@@ -59,13 +59,13 @@ def test_a_paid_bill_opens_no_arrears_case():
     resolved = arrears_engine.arrears_stages(
         chain["arrears_gbp"],
         date.fromisoformat("2023-03-14") + timedelta(days=14),
-        eventually_resolved=True,
+        still_open=True,
         archetype="NEUTRAL",
         method="direct_debit",
     )
     stage_names = [s["stage"] for s in resolved]
-    assert "RESOLVED" in stage_names and "WRITTEN_OFF" not in stage_names, (
-        f"a resolved arrears case still wrote the debt off — {stage_names}"
+    assert "BALANCE_OPEN" in stage_names and "WRITTEN_OFF" not in stage_names, (
+        f"an open arrears case still wrote the debt off — {stage_names}"
     )
 
 

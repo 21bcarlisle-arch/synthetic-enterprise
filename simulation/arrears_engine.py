@@ -42,7 +42,9 @@ order, of how many bills precede it, and of how many draws any other bill or
 subsystem consumes. Every consumer therefore agrees BY CONSTRUCTION rather
 than by discipline, and a consumer that legitimately skips bills (the ledger's
 credit invoices) or filters them (its held-bill validation gate) can no longer
-desynchronise anything.
+desynchronise anything. Agreeing on each bill's draw is not agreeing on WHICH bills: until
+2026-09-28 the engine still resolved held bills and credits the ledger never collects, and wrote
+off 6 held bills and two negative credits (£19,135 vs the ledger's £17,359). It now skips both.
 
 Payment method / outcome probabilities:
   I&C / SME (BACS/CHAPS) -- 92% on-time, 7.3% late, 0.7% formal dispute.
@@ -51,9 +53,9 @@ Payment method / outcome probabilities:
 
 Arrears escalation (opened the day payment fails):
   Residential:  DD_FAILED -> FIRST_NOTICE(+7d) -> SECOND_NOTICE(+21d)
-                -> RESOLVED(+45d) | WRITTEN_OFF(+90d)
+                -> BALANCE_OPEN | WRITTEN_OFF (the balance-at-close date)
   I&C dispute:  INVOICE_DISPUTED -> DISPUTE_NOTICE(+14d)
-                -> PAYMENT_PLAN_AGREED(+30d) | WRITTEN_OFF(+60d)
+                -> BALANCE_OPEN | WRITTEN_OFF (the balance-at-close date)
 
 WHAT IS WRITTEN OFF, AND WHEN (2026-09-27, the balance-at-close rule,
 `docs/staging/SEAT_DESIGN_THE_WRITE_OFF_RULE_RE_KEYED_TO_THE_BALANCE_AT_CLOSE_2026-09-27.md`).
@@ -474,7 +476,13 @@ def opening_arrears_stage(method: str, due_date: date) -> dict:
             "note": _NON_DD_OPENING_NOTE.get(method, _NON_DD_OPENING_NOTE_DEFAULT)}
 
 
-def arrears_stages(arrears_gbp: float, due_date: date, eventually_resolved: bool,
+#: The terminal stage of a case that is not written off. It states the balance, and moves no money:
+#: a consumer that books a resolution as cash collected must not find one here.
+BALANCE_OPEN = "BALANCE_OPEN"
+BALANCE_OPEN_NOTE = "Balance still open -- GBP%.2f unpaid, with no payment or arrangement against it"
+
+
+def arrears_stages(arrears_gbp: float, due_date: date, still_open: bool,
                     archetype: str = "NEUTRAL", *, method: str,
                     write_off_date: date | None = None) -> list[dict]:
     """`method` is REQUIRED and keyword-only, deliberately.
@@ -488,6 +496,10 @@ def arrears_stages(arrears_gbp: float, due_date: date, eventually_resolved: bool
     `write_off_date` is the date `balance_write_offs` resolved for this case. Without it the
     case falls back to due+90, which is what callers outside the balance rule
     (`final_bill_outcome`) still use. A notice that would fall after the write-off is not sent.
+
+    `still_open` is a case `balance_write_offs` does not write off. Nothing in the world clears
+    it -- re-presentation and arrangement paydown are unbuilt -- so it ends on `BALANCE_OPEN`, a
+    statement that moves no money, never on a resolution that did not happen.
     """
     stages = [
         opening_arrears_stage(method, due_date),
@@ -496,9 +508,9 @@ def arrears_stages(arrears_gbp: float, due_date: date, eventually_resolved: bool
         {"stage": "SECOND_NOTICE", "date": (due_date + timedelta(days=21)).isoformat(),
          "note": "Second notice -- payment plan offered"},
     ]
-    if eventually_resolved:
-        stages.append({"stage": "RESOLVED", "date": (due_date + timedelta(days=45)).isoformat(),
-                        "note": "Arrears cleared via payment plan"})
+    if still_open:
+        stages.append({"stage": BALANCE_OPEN, "date": stages[-1]["date"],
+                        "note": BALANCE_OPEN_NOTE % arrears_gbp})
     else:
         if write_off_date is None:
             write_off_date = due_date + timedelta(days=90)
@@ -510,7 +522,7 @@ def arrears_stages(arrears_gbp: float, due_date: date, eventually_resolved: bool
     return stages
 
 
-def ic_arrears_stages(arrears_gbp: float, due_date: date, eventually_resolved: bool,
+def ic_arrears_stages(arrears_gbp: float, due_date: date, still_open: bool,
                        archetype: str = "NEUTRAL", *,
                        write_off_date: date | None = None) -> list[dict]:
     stages = [
@@ -519,10 +531,9 @@ def ic_arrears_stages(arrears_gbp: float, due_date: date, eventually_resolved: b
         {"stage": "DISPUTE_NOTICE", "date": (due_date + timedelta(days=14)).isoformat(),
          "note": "Dispute notice raised -- escalated to accounts receivable"},
     ]
-    if eventually_resolved:
-        stages.append({"stage": "PAYMENT_PLAN_AGREED",
-                        "date": (due_date + timedelta(days=30)).isoformat(),
-                        "note": "Payment plan agreed -- arrears to be settled over 60 days"})
+    if still_open:
+        stages.append({"stage": BALANCE_OPEN, "date": stages[-1]["date"],
+                        "note": BALANCE_OPEN_NOTE % arrears_gbp})
     else:
         if write_off_date is None:
             write_off_date = due_date + timedelta(days=60)
@@ -584,6 +595,12 @@ def _resolve_bills(bills: list[dict], behavioral: dict, seed: int) -> list[dict]
         period_end = bill["period_end"]
         commodity = bill.get("commodity", "electricity")
         due_date = date.fromisoformat(period_end) + timedelta(days=PAYMENT_TERMS_DAYS)
+        if amount <= 0:
+            # A credit bill has nothing to collect, so it can neither fail nor acknowledge a debt.
+            rows.append({"customer_id": cid, "period_end": period_end, "commodity": commodity,
+                         "amount_gbp": amount, "due_date": due_date, "method": None,
+                         "outcome": "credit", "days_late": 0})
+            continue
         stress = stress_for_year(behavioral.get(cid) or {}, int(period_end[:4]))
         method = payment_method(segment, amount, cid, commodity)
         outcome, days_late = payment_outcome(
@@ -670,7 +687,11 @@ def balance_write_offs(bills: list[dict], behavioral: dict, churned_ids: set[str
     household's arrears history). None of them re-derives the balance, which is what keeps the
     ledger and the P&L agreeing by construction.
     """
-    return balance_write_offs_from_outcomes(_resolve_bills(bills, behavioral, seed), churned_ids)
+    # Only the bills the supplier issues: a bill its pre-bill gate holds never reached the customer,
+    # so it cannot fail. The ledger runs the same gate, so the two see one population.
+    from company.interfaces.bill_assembly import issued_bills
+    return balance_write_offs_from_outcomes(
+        _resolve_bills(issued_bills(bills), behavioral, seed), churned_ids)
 
 
 def compute_emergent_bad_debt(bills: list[dict], behavioral: dict, churned_ids: set[str],

@@ -157,7 +157,7 @@ def test_advancing_arrears_engine_batch_does_not_shift_pbs():
     not accidentally one-directional."""
     from simulation import arrears_engine as ae
     baseline = pbs.generate_customer_payment_history("ISO1", _due_dates(6), seed=1)
-    bills = [{"customer_id": "X", "period_end": "2024-01-31",
+    bills = [{"customer_id": "X", "period_start": "2024-01-01", "period_end": "2024-01-31",
               "total_amount_gbp": 100.0, "segment": "resi", "commodity": "electricity"}]
     _ = ae.compute_emergent_bad_debt(bills, {}, set(), seed=42)
     assert pbs.generate_customer_payment_history("ISO1", _due_dates(6), seed=1) == baseline

@@ -87,16 +87,18 @@ def test_dd_high_some_failures():
     assert results.count("failed") > 20
 
 
-def test_arrears_resolved():
+def test_an_unwritten_off_case_ends_open_not_resolved():
+    """Defect: a stayer's unpaid balance rendered as "Arrears cleared via payment plan"."""
     stages = _arrears_stages(200.0, date(2022, 11, 15), True, method="direct_debit")
     names = [s["stage"] for s in stages]
-    assert "RESOLVED" in names and "WRITTEN_OFF" not in names
+    assert names[-1] == "BALANCE_OPEN" and "WRITTEN_OFF" not in names and "RESOLVED" not in names
+    assert "200.00" in stages[-1]["note"]
 
 
 def test_arrears_written_off():
     stages = _arrears_stages(200.0, date(2022, 11, 15), False, method="direct_debit")
     names = [s["stage"] for s in stages]
-    assert "WRITTEN_OFF" in names and "RESOLVED" not in names
+    assert "WRITTEN_OFF" in names and "BALANCE_OPEN" not in names
 
 
 def test_arrears_dates_ordered():

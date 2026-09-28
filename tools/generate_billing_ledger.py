@@ -149,8 +149,9 @@ def generate(run_json_path=None, out_path=None):
     behavioral = data.get("per_customer_behavioral", {})
     churned = set(data.get("churned_billing_accounts", []))
     # Which failed bills are written off, and when, is READ from the engine over the same unfiltered
-    # bills the P&L sees -- never re-derived here -- so the ledger and `bad_debt_gbp` agree by
-    # construction under the balance-at-close rule.
+    # bills the P&L sees -- never re-derived here. The engine drops held bills and credits itself,
+    # so the ledger and `bad_debt_gbp` agree per account; tests/tools/
+    # test_the_ledger_and_the_pnl_write_off_agree_on_the_real_book.py holds that on the real run.
     write_offs = _balance_write_offs(bills, behavioral, churned, seed=42)
 
     # DOMAIN_SENSE_AND_COMPLIANCE.md Phase 3: Tier-1 pre-bill validation gate
@@ -484,10 +485,8 @@ def generate(run_json_path=None, out_path=None):
 
         written_off = write_offs.get((cid, period_end, commodity))
         if outcome == "failed":
-            # A case that is not written off is still an open balance. It renders as RESOLVED, as
-            # it did before the balance rule -- a known misstatement, named in
-            # docs/staging/records/SEAT_RESULT_THE_BALANCE_AT_CLOSE_WRITE_OFF_RULE_RUN_ALONE_2026-09-27.md.
-            eventually_resolved = written_off is None
+            # A case that is not written off is still an open balance, and ends on BALANCE_OPEN.
+            still_open = written_off is None
             wo_date = None if written_off is None else written_off["date"]
             write_off_year = (wo_date or due_date + timedelta(days=90)).year
             archetype = _debt_archetype(beh.get("income_stress_trajectory") or [], write_off_year)
@@ -501,12 +500,12 @@ def generate(run_json_path=None, out_path=None):
                 # agree, which is the whole point of
                 # PAYMENT_CHANNEL_DD_CONSISTENCY. Reading it from anywhere else
                 # would reintroduce the two-generator disagreement.
-                "stages": _arrears_stages(amount, due_date, eventually_resolved,
+                "stages": _arrears_stages(amount, due_date, still_open,
                                            archetype, method=method, write_off_date=wo_date),
             }
             arrears_by_cid.setdefault(cid, []).append(arr)
         elif outcome == "dispute":
-            eventually_resolved = written_off is None
+            still_open = written_off is None
             wo_date = None if written_off is None else written_off["date"]
             write_off_year = (wo_date or due_date + timedelta(days=60)).year
             archetype = _debt_archetype(beh.get("income_stress_trajectory") or [], write_off_year)
@@ -515,7 +514,7 @@ def generate(run_json_path=None, out_path=None):
                 "invoice_number": invoice_number,
                 "arrears_gbp": round(amount, 2),
                 "opened_date": due_date.isoformat(),
-                "stages": _ic_arrears_stages(amount, due_date, eventually_resolved, archetype,
+                "stages": _ic_arrears_stages(amount, due_date, still_open, archetype,
                                               write_off_date=wo_date),
             }
             arrears_by_cid.setdefault(cid, []).append(arr)

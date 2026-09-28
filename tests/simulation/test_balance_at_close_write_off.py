@@ -83,7 +83,11 @@ def test_the_stayer_provision_is_a_declared_gap_and_the_bad_debt_line_says_write
 
 
 def test_a_stayers_failed_bills_are_never_booked_on_the_real_engine():
-    bills = [{"customer_id": "C1", "period_end": f"2022-{m:02d}-28", "total_amount_gbp": 200.0,
+    # Bills the pre-bill gate issues: the engine resolves nothing it holds (they foot, and 600 kWh).
+    bills = [{"customer_id": "C1", "period_start": f"2022-{m:02d}-01", "period_end": f"2022-{m:02d}-28",
+              "total_amount_gbp": 199.92, "commodity_amount_gbp": 150.0,
+              "non_commodity_amount_gbp": 25.0, "standing_charge_gbp": 15.4, "vat_gbp": 9.52,
+              "total_consumption_kwh": 600.0,
               "segment": "resi", "commodity": "electricity"} for m in range(1, 13)]
     beh = {"C1": {"income_stress_trajectory": [{"year": 2022, "stress": "HIGH"}]}}
     assert compute_emergent_bad_debt(bills, beh, set()) == {}
@@ -103,3 +107,30 @@ def test_a_write_off_dated_after_the_accounts_last_record_books_on_it_rather_tha
     assert records[1]["treasury_cash_balance_gbp"] == 1010.0
     # A year BEFORE the account's first record is not folded forward.
     assert records[0]["bad_debt_gbp"] == 0.0
+
+
+def test_a_held_bill_and_a_credit_bill_are_never_written_off():
+    """Defect (real book, 6ba548633): the engine wrote off bills its pre-bill gate held -- never
+    issued, so never due -- and credit bills as NEGATIVE bad debt. The ledger issued neither."""
+    good = {"customer_id": "C1", "period_start": "2022-01-01", "period_end": "2022-01-28",
+            "total_amount_gbp": 199.92, "commodity_amount_gbp": 150.0,
+            "non_commodity_amount_gbp": 25.0, "standing_charge_gbp": 15.4, "vat_gbp": 9.52,
+            "total_consumption_kwh": 600.0, "segment": "resi", "commodity": "electricity"}
+    beh = {"C1": {"income_stress_trajectory": [{"year": 2022, "stress": "HIGH"}]}}
+    held = [dict(good, period_start=f"2022-{m:02d}-01", period_end=f"2022-{m:02d}-28",
+                 total_consumption_kwh=0.0) for m in range(1, 13)]
+    # A credit the gate ISSUES: the real book's credits are catch-up overcharge refunds, not
+    # negative line items (which the gate holds, and which would test the held leg twice).
+    credit = [dict(good, period_start=f"2022-{m:02d}-01", period_end=f"2022-{m:02d}-28",
+                   catchup_applied=True, catchup_direction="overcharge", catchup_adjustment_gbp=-400.0,
+                   total_amount_gbp=-200.08)
+              for m in range(1, 13)]
+    from company.billing.pre_bill_validation import validate_bills
+    assert len(validate_bills(credit)[0]) == 12, "the credit fixture is held -- it tests nothing"
+    issued = [dict(good, period_start=f"2022-{m:02d}-01", period_end=f"2022-{m:02d}-28")
+              for m in range(1, 13)]
+    # Control: the same account on issued positive bills IS written off, so the refusals below
+    # are about the bills, not an engine that writes off nothing.
+    assert compute_emergent_bad_debt(issued, beh, {"C1"})
+    assert compute_emergent_bad_debt(held, beh, {"C1"}) == {}
+    assert compute_emergent_bad_debt(credit, beh, {"C1"}) == {}

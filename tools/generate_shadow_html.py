@@ -727,7 +727,7 @@ def _collections_process(billing_ledger):
                 still_open += 1
 
     stage_order = ["DD_FAILED", "FIRST_NOTICE", "SECOND_NOTICE", "PAYMENT_PLAN_AGREED",
-                   "DISPUTE_NOTICE", "RESOLVED", "WRITTEN_OFF", "PLACED_WITH_DCA",
+                   "DISPUTE_NOTICE", "RESOLVED", "BALANCE_OPEN", "WRITTEN_OFF", "PLACED_WITH_DCA",
                    "RECOVERED", "SOLD"]
     stage_rows = "".join(
         _row(stage, stage_counts[stage])

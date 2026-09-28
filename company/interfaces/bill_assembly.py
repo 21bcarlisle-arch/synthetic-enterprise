@@ -39,5 +39,15 @@ from company.billing.monthly_bill_assembly import (
 from company.billing.monthly_bill_assembly import (
     build_monthly_bills as assemble_monthly_bills,
 )
+from company.billing.pre_bill_validation import validate_bills
 
-__all__ = ["ReadArrival", "ReadArrivalFeed", "assemble_monthly_bills"]
+
+def issued_bills(bills: list) -> list:
+    """The bills the supplier actually sends: `bills` less those its pre-bill validation gate
+    holds. A held bill never reaches the customer, so the world cannot pay or default on it --
+    which is why the world's payment outcomes are drawn over this set, not over `bills`.
+    """
+    return validate_bills(bills)[0]
+
+
+__all__ = ["ReadArrival", "ReadArrivalFeed", "assemble_monthly_bills", "issued_bills"]

@@ -116,14 +116,14 @@ def test_payment_outcome_bacs_ic_can_dispute():
 def test_arrears_stages_written_off_vs_resolved():
     resolved = arrears_stages(100.0, date(2022, 1, 1), True, method='direct_debit')
     written_off = arrears_stages(100.0, date(2022, 1, 1), False, method='direct_debit')
-    assert "RESOLVED" in [s["stage"] for s in resolved]
+    assert [s["stage"] for s in resolved][-1] == "BALANCE_OPEN"
     assert "WRITTEN_OFF" in [s["stage"] for s in written_off]
 
 
 def test_ic_arrears_stages_written_off_vs_resolved():
     resolved = ic_arrears_stages(100.0, date(2022, 1, 1), True)
     written_off = ic_arrears_stages(100.0, date(2022, 1, 1), False)
-    assert "PAYMENT_PLAN_AGREED" in [s["stage"] for s in resolved]
+    assert [s["stage"] for s in resolved][-1] == "BALANCE_OPEN"
     assert "WRITTEN_OFF" in [s["stage"] for s in written_off]
 
 

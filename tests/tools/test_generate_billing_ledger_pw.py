@@ -165,18 +165,19 @@ def test_ic_arrears_stages_starts_with_invoice_disputed():
     assert stages[0]["stage"] == "INVOICE_DISPUTED"
 
 
-def test_ic_arrears_stages_resolved_via_payment_plan():
+def test_ic_arrears_stages_open_when_not_written_off():
+    """Defect: an unpaid dispute rendered as a payment plan agreed, which nothing in the world agreed."""
     stages = _ic_arrears_stages(5000.0, date(2022, 5, 1), True)
     names = [s["stage"] for s in stages]
-    assert "PAYMENT_PLAN_AGREED" in names
-    assert "WRITTEN_OFF" not in names
+    assert names[-1] == "BALANCE_OPEN"
+    assert "WRITTEN_OFF" not in names and "PAYMENT_PLAN_AGREED" not in names
 
 
 def test_ic_arrears_stages_written_off_when_churned():
     stages = _ic_arrears_stages(5000.0, date(2022, 5, 1), False)
     names = [s["stage"] for s in stages]
     assert "WRITTEN_OFF" in names
-    assert "PAYMENT_PLAN_AGREED" not in names
+    assert "BALANCE_OPEN" not in names
 
 
 def test_ic_arrears_dates_ordered():

@@ -492,7 +492,7 @@ def run_money_chain(
     arrears_gbp = round(estimated_bill["total_amount_gbp"], 2)
     due = date.fromisoformat(period_end) + timedelta(days=14)
     stages = arrears_engine.arrears_stages(
-        arrears_gbp, due, eventually_resolved=False,
+        arrears_gbp, due, still_open=False,
         archetype="PERSISTENT", method=method,
     )
 
@@ -801,7 +801,7 @@ def run_lifecycle_chain(
     final_stages = arrears_engine.arrears_stages(
         closing_balance_gbp,
         date.fromisoformat(leave_date) + timedelta(days=14),
-        eventually_resolved=False,
+        still_open=False,
         archetype="NEUTRAL",
         method="direct_debit",
     )
