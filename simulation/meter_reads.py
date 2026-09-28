@@ -139,6 +139,8 @@ def simulate_read(
     true_consumption_kwh: float,
     trailing_actuals_kwh: list[float],
     consecutive_estimated_count: int,
+    trailing_actual_days: Optional[list[int]] = None,
+    period_days: Optional[int] = None,
 ) -> MeterReadEvent:
     """Simulate one customer-period's meter-read arrival.
 
@@ -147,6 +149,9 @@ def simulate_read(
     `consecutive_estimated_count` -- running count of consecutive estimated
     bills immediately prior to this one; caller tracks and threads it through
     across a customer's bill sequence.
+    `trailing_actual_days` / `period_days` -- the day count of each of those
+    actual periods and of THIS one. Given both, the estimate is pro-rata by day;
+    without them every period is taken to be the same length.
     """
     rng = random.Random(f"meterread_{customer_id}_{period_end}")
 
@@ -176,7 +181,24 @@ def simulate_read(
             forced_catch_up=forced_catch_up,
         )
 
-    if trailing_actuals_kwh:
+    if trailing_actuals_kwh and trailing_actual_days is not None and period_days is not None:
+        # Pro-rata by day, the way every supplier estimate is (an EAC/AQ is a
+        # daily rate times the days billed): the window's actual kWh over its
+        # actual days, times this period's days. Averaging kWh PER BILL put a
+        # whole month's estimate on a 7-day stub (736 kWh billed, 42 used) and
+        # a 3-day opening stub's kWh on every following month; on the
+        # 2026-09-27 run that held 5 bills at the pre-bill gate, never issued.
+        # Pooling the days, not averaging per-bill rates, keeps one short stub
+        # from setting the rate for months.
+        if len(trailing_actual_days) != len(trailing_actuals_kwh):
+            raise ValueError(
+                f"{customer_id} {period_end}: {len(trailing_actuals_kwh)} trailing actuals "
+                f"but {len(trailing_actual_days)} day counts -- the two lists must pair"
+            )
+        window_kwh = trailing_actuals_kwh[-ESTIMATE_TRAILING_WINDOW:]
+        window_days = trailing_actual_days[-ESTIMATE_TRAILING_WINDOW:]
+        estimate = sum(window_kwh) / sum(window_days) * period_days
+    elif trailing_actuals_kwh:
         estimate = statistics.mean(trailing_actuals_kwh[-ESTIMATE_TRAILING_WINDOW:])
     else:
         # No history yet: the opening read taken at switch/onboarding is a
@@ -253,6 +275,7 @@ def generate_meter_read_log(
     Returns plain JSON-serialisable dicts, in the same order as `bills`.
     """
     trailing_by_customer: dict[str, list[float]] = {}
+    trailing_days_by_customer: dict[str, list[int]] = {}
     consecutive_by_customer: dict[str, int] = {}
     log: list[dict] = []
     for bill in bills:
@@ -260,12 +283,16 @@ def generate_meter_read_log(
         meter_type = customer_meter_types.get(cid, "traditional")
         true_kwh = bill["total_consumption_kwh"]
         consecutive = consecutive_by_customer.get(cid, 0)
+        days = bill.get("days_in_period")
         event = simulate_read(
             cid, bill["period_end"], meter_type, true_kwh,
             trailing_by_customer.get(cid, []), consecutive,
+            trailing_days_by_customer.get(cid, []) if days is not None else None, days,
         )
         if event.status == "actual":
             trailing_by_customer.setdefault(cid, []).append(true_kwh)
+            if days is not None:
+                trailing_days_by_customer.setdefault(cid, []).append(days)
             consecutive_by_customer[cid] = 0
         else:
             consecutive_by_customer[cid] = event.consecutive_estimated_count
@@ -301,10 +328,13 @@ class SimulatedReadFeed:
         true_consumption_kwh: float,
         trailing_actuals_kwh: list,
         consecutive_estimated_count: int,
+        trailing_actual_days: Optional[list] = None,
+        period_days: Optional[int] = None,
     ) -> MeterReadEvent:
         return simulate_read(
             customer_id, period_end, meter_type, true_consumption_kwh,
             trailing_actuals_kwh, consecutive_estimated_count,
+            trailing_actual_days, period_days,
         )
 
     def final_read_for(

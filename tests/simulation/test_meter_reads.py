@@ -7,6 +7,8 @@ value, and the back-billing forced-catch-up cap.
 """
 import statistics
 
+import pytest
+
 from simulation.meter_reads import (
     MAX_CONSECUTIVE_ESTIMATED_PERIODS,
     READ_CUTOFF_DAYS_AFTER_PERIOD_END,
@@ -146,3 +148,34 @@ def test_generate_meter_read_log_multiple_customers_independent():
 
 def test_read_cutoff_constant_is_positive():
     assert READ_CUTOFF_DAYS_AFTER_PERIOD_END > 0
+
+
+def _first_estimated_roll(customer_id, trailing, trailing_days, period_days):
+    for yr in range(16, 60):
+        event = simulate_read(
+            customer_id, f"20{yr}-06-30", "traditional", 999.0, trailing, 0,
+            trailing_days, period_days,
+        )
+        if event.status == "estimated":
+            return event
+    raise AssertionError("no estimated roll in 44 periods -- the branch under test is unreachable")
+
+
+def test_an_estimate_is_pro_rata_by_day_so_a_seven_day_stub_is_not_billed_a_month():
+    # 900 kWh over 90 days is 10 kWh/day; a 7-day period estimates 70, not 300.
+    event = _first_estimated_roll("C11", [300.0, 310.0, 290.0], [30, 31, 29], 7)
+    assert event.estimated_consumption_kwh == 70.0
+
+
+def test_a_short_opening_stub_is_pooled_by_its_days_not_averaged_as_a_rate():
+    # A 3-day stub at 20 kWh/day beside two 10 kWh/day months. Pooled: 670 kWh /
+    # 64 days x 30 = 314.06. Averaging the three per-bill rates would give 400 --
+    # one stub setting a third of the rate for months.
+    event = _first_estimated_roll("C12", [60.0, 300.0, 310.0], [3, 30, 31], 30)
+    assert event.estimated_consumption_kwh == round(670.0 / 64 * 30, 2)
+
+
+def test_unpaired_day_counts_are_refused_by_name():
+    with pytest.raises(ValueError, match="must pair"):
+        for yr in range(16, 60):
+            simulate_read("C13", f"20{yr}-06-30", "traditional", 999.0, [300.0, 310.0], 0, [30], 7)

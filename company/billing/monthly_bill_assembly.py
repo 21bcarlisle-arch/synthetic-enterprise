@@ -110,8 +110,13 @@ class ReadArrivalFeed(Protocol):
         true_consumption_kwh: float,
         trailing_actuals_kwh: list[float],
         consecutive_estimated_count: int,
+        trailing_actual_days: list[int] | None = None,
+        period_days: int | None = None,
     ) -> ReadArrival:
-        """Whether a read arrived for this customer-period, and what it said."""
+        """Whether a read arrived for this customer-period, and what it said.
+
+        The two day counts let an estimate be pro-rata by day; a feed that
+        ignores them estimates a stub period as if it were a full one."""
 
     def final_read_for(
         self,
@@ -430,6 +435,7 @@ def build_monthly_bills(
         # every run (mixed or not), not just an all-actual one.
         previous_bill_total_gbp = None
         trailing_actuals_kwh: list[float] = []
+        trailing_actual_days: list[int] = []
         consecutive_estimated = 0
         pending_estimated_run: list[dict] = []
         sorted_months = sorted(months)
@@ -445,6 +451,7 @@ def build_monthly_bills(
                 customer_id, true_bill["period_end"], meter_type,
                 true_bill["total_consumption_kwh"],
                 trailing_actuals_kwh, consecutive_estimated,
+                trailing_actual_days, true_bill["days_in_period"],
             )
             is_final_bill_for_customer = month_idx == len(sorted_months) - 1
             if (
@@ -535,6 +542,7 @@ def build_monthly_bills(
                         )
                 pending_estimated_run = []
                 trailing_actuals_kwh.append(true_bill["total_consumption_kwh"])
+                trailing_actual_days.append(true_bill["days_in_period"])
                 consecutive_estimated = 0
             else:
                 true_kwh = true_bill["total_consumption_kwh"]

@@ -119,7 +119,8 @@ _PROBE = textwrap.dedent(
             return "traditional"
 
         def read_for(self, customer_id, period_end, meter_type, true_consumption_kwh,
-                     trailing_actuals_kwh, consecutive_estimated_count):
+                     trailing_actuals_kwh, consecutive_estimated_count,
+                     trailing_actual_days=None, period_days=None):
             return _Read()
 
         def final_read_for(self, customer_id, period_end, meter_type, true_consumption_kwh):
@@ -281,3 +282,52 @@ def test_mutation_isinstance_alone_would_wave_a_reordered_feed_through():
     assert _positional_names(ReorderedFeed.read_for) != _positional_names(
         ReadArrivalFeed.read_for
     ), "the reordering must actually differ, or the mutation proves nothing"
+
+
+def test_the_billing_run_hands_the_feed_the_day_counts_an_estimate_is_pro_rated_by():
+    """A 7-day period after a 3-day opening stub: the feed must be told both.
+
+    Without the day counts the world's estimate averages kWh PER BILL, which put a
+    whole month's estimate on a 7-day stub (2026-09-27 run: 736 kWh billed, 42 used;
+    five such bills held at the pre-bill gate and never issued).
+    """
+    from company.billing.monthly_bill_assembly import build_monthly_bills
+    from company.interfaces.supply_book import registered_supply_points
+
+    customer_id = registered_supply_points()[0]["customer_id"]
+    calls = []
+
+    class _Arrival:
+        def __init__(self, status):
+            self.status = status
+            self.estimated_consumption_kwh = None if status == "actual" else 70.0
+            self.consecutive_estimated_count = 0 if status == "actual" else 1
+
+    class _RecordingFeed:
+        def meter_type_for(self, customer):
+            return "traditional"
+
+        def read_for(self, customer_id, period_end, meter_type, true_consumption_kwh,
+                     trailing_actuals_kwh, consecutive_estimated_count,
+                     trailing_actual_days=None, period_days=None):
+            calls.append((list(trailing_actuals_kwh), list(trailing_actual_days or []), period_days))
+            return _Arrival("actual" if not calls[:-1] else "estimated")
+
+        def final_read_for(self, customer_id, period_end, meter_type, true_consumption_kwh):
+            return _Arrival("actual")
+
+    def _rec(day, kwh=10.0):
+        return {
+            "customer_id": customer_id, "settlement_date": day, "settlement_period": 1,
+            "consumption_kwh": kwh, "unit_rate_gbp_per_mwh": 200.0,
+            "revenue_gbp": kwh / 1000 * 200.0, "wholesale_cost_gbp": 0.0, "margin_gbp": 0.0,
+        }
+
+    records = [_rec(f"2024-01-{d}") for d in (29, 30, 31)] + [_rec(f"2024-02-0{d}") for d in range(1, 8)]
+    build_monthly_bills(records, _RecordingFeed())
+    assert len(calls) == 2, calls
+    assert calls[0] == ([], [], 3)
+    assert calls[1] == ([30.0], [3], 7), (
+        f"the February estimate was asked with {calls[1]}; it needs the January actual's "
+        "3 days beside its 30 kWh, and February's own 7 days, to pro-rate by day"
+    )
