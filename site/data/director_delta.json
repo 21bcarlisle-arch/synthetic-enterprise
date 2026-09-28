@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-27T10:47:34.125662+00:00",
+  "generated_at": "2026-09-28T03:53:55.363337+00:00",
   "stamp_version": 1,
   "stamp_file": "director_last_look.json",
   "stamp_status": "ok",
@@ -13,15 +13,16 @@
     "reserved_changed": 0,
     "reserved_added": 0,
     "reserved_cleared": 0,
-    "daemons_flipped": 4,
+    "daemons_flipped": 5,
     "daemons_newly_stale": 4,
-    "daemons_recovered": 0,
+    "daemons_recovered": 1,
     "daemons_appeared": 0,
     "daemons_disappeared": 0,
     "headline_moves": 1
   },
   "changes": [
     "4 daemon(s) went stale: discovery-daemon, dispatcher, epistemic-verifier, ntfy-responder",
+    "1 daemon(s) recovered: discovery-agent",
     "total_open_atoms: 55 -> 110"
   ],
   "detail": {
@@ -34,7 +35,9 @@
       "epistemic-verifier",
       "ntfy-responder"
     ],
-    "daemons_recovered": [],
+    "daemons_recovered": [
+      "discovery-agent"
+    ],
     "daemons_appeared": [],
     "daemons_disappeared": [],
     "fidelity_moves": [],
@@ -60,7 +63,7 @@
       "autonomous-runner": "retired",
       "background-worker": "live",
       "epistemic-verifier": "stale",
-      "discovery-agent": "stale",
+      "discovery-agent": "live",
       "supervisor": "live",
       "sanity-daemon": "live",
       "director-comments": "stale",
@@ -76,7 +79,7 @@
   },
   "source_stamps": {
     "reserved_generated_at": "2026-09-18T23:17:47.846939+00:00",
-    "health_last_updated": "2026-09-27T10:47:24.582529+00:00",
+    "health_last_updated": "2026-09-28T03:53:35.467487+00:00",
     "decisions_generated_at": "2026-07-19T06:25:33Z"
   }
 }

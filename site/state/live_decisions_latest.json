@@ -1,18 +1,18 @@
 {
-  "decision_run_at": "2026-09-27T10:47:59Z",
-  "portfolio_as_of": "2026-09-27T10:47:57Z",
+  "decision_run_at": "2026-09-28T03:54:23Z",
+  "portfolio_as_of": "2026-09-28T03:54:20Z",
   "run_identity_fields": [
     "decision_run_at",
     "portfolio_as_of"
   ],
-  "market_as_of_date": "2026-09-26",
+  "market_as_of_date": "2026-09-27",
   "market_data_stale_days": 1,
-  "elec_spot_gbp_per_mwh": 126.79,
+  "elec_spot_gbp_per_mwh": 126.23,
   "gas_spot_gbp_per_mwh": 32.25,
-  "elec_12m_forward_gbp_per_mwh": 134.27,
+  "elec_12m_forward_gbp_per_mwh": 134.58,
   "gas_12m_forward_gbp_per_mwh": 33.86,
-  "treasury_gbp": 414175.15,
-  "active_customers": 127,
+  "treasury_gbp": 424947.71,
+  "active_customers": 130,
   "hedge_recommendation": "INCREASE",
   "hedge_affected_customers": [
     "PROS-2020-0205",
@@ -48,9 +48,9 @@
   "renewal_window_days": 60,
   "renewal_flags": [],
   "acquisition_prices": {
-    "resi_elec_gbp_per_mwh": 214.27,
-    "sme_elec_gbp_per_mwh": 208.27,
-    "ic_elec_gbp_per_mwh": 198.27,
+    "resi_elec_gbp_per_mwh": 214.58,
+    "sme_elec_gbp_per_mwh": 208.58,
+    "ic_elec_gbp_per_mwh": 198.58,
     "ic_gas_gbp_per_mwh": 53.86
   }
 }

@@ -38,10 +38,10 @@
   },
   "dual_fuel_combined": {
     "gas_account_id": "PROS-2025-0041g",
-    "gas_lifetime_net_gbp": 79.69,
-    "gas_lifetime_revenue_gbp": 365.66,
-    "combined_net_gbp": 87.22,
-    "combined_revenue_gbp": 966.34
+    "gas_lifetime_net_gbp": 78.67,
+    "gas_lifetime_revenue_gbp": 358.24,
+    "combined_net_gbp": 86.2,
+    "combined_revenue_gbp": 958.92
   },
   "annual_pnl": [
     {
@@ -76,7 +76,7 @@
   ],
   "invoices": [
     {
-      "id": "PROS-2025-0041-INV6921",
+      "id": "PROS-2025-0041-INV7306",
       "date": "2025-02-28",
       "period_start": "2025-02-04",
       "period_end": "2025-02-28",
@@ -117,7 +117,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "PROS-2025-0041-INV6922",
+      "id": "PROS-2025-0041-INV7307",
       "date": "2025-03-31",
       "period_start": "2025-03-01",
       "period_end": "2025-03-31",
@@ -158,7 +158,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "PROS-2025-0041-INV6923",
+      "id": "PROS-2025-0041-INV7308",
       "date": "2025-04-30",
       "period_start": "2025-04-01",
       "period_end": "2025-04-30",
@@ -199,7 +199,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "PROS-2025-0041-INV6924",
+      "id": "PROS-2025-0041-INV7309",
       "date": "2025-05-31",
       "period_start": "2025-05-01",
       "period_end": "2025-05-31",
@@ -241,22 +241,22 @@
     }
   ],
   "ledger": {
-    "as_of_date": "2025-06-22",
+    "as_of_date": "2025-06-25",
     "entries": [
       {
         "date": "2025-02-28",
         "type": "invoice_raised",
-        "invoice_number": 6921,
+        "invoice_number": 7306,
         "amount_gbp": 235.69,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV6921 raised",
+        "description": "Invoice INV7306 raised",
         "running_balance_gbp": 235.69
       },
       {
         "date": "2025-03-14",
         "type": "payment_received",
-        "invoice_number": 6921,
+        "invoice_number": 7306,
         "amount_gbp": -235.69,
         "info_amount_gbp": null,
         "method": "direct_debit",
@@ -266,17 +266,17 @@
       {
         "date": "2025-03-31",
         "type": "invoice_raised",
-        "invoice_number": 6922,
+        "invoice_number": 7307,
         "amount_gbp": 224.37,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV6922 raised",
+        "description": "Invoice INV7307 raised",
         "running_balance_gbp": 224.37
       },
       {
         "date": "2025-04-14",
         "type": "payment_failed",
-        "invoice_number": 6922,
+        "invoice_number": 7307,
         "amount_gbp": 0.0,
         "info_amount_gbp": null,
         "method": "direct_debit",
@@ -286,7 +286,7 @@
       {
         "date": "2025-04-21",
         "type": "notice",
-        "invoice_number": 6922,
+        "invoice_number": 7307,
         "amount_gbp": 0.0,
         "info_amount_gbp": null,
         "method": "direct_debit",
@@ -296,17 +296,17 @@
       {
         "date": "2025-05-01",
         "type": "invoice_raised",
-        "invoice_number": 6923,
+        "invoice_number": 7308,
         "amount_gbp": 169.52,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV6923 raised",
+        "description": "Invoice INV7308 raised",
         "running_balance_gbp": 393.89
       },
       {
         "date": "2025-05-05",
         "type": "notice",
-        "invoice_number": 6922,
+        "invoice_number": 7307,
         "amount_gbp": 0.0,
         "info_amount_gbp": null,
         "method": "direct_debit",
@@ -314,39 +314,29 @@
         "running_balance_gbp": 393.89
       },
       {
-        "date": "2025-05-29",
-        "type": "arrears_resolved",
-        "invoice_number": 6922,
-        "amount_gbp": -224.37,
-        "info_amount_gbp": null,
-        "method": "payment_plan",
-        "description": "Arrears cleared via payment plan",
-        "running_balance_gbp": 169.52
-      },
-      {
         "date": "2025-06-01",
         "type": "invoice_raised",
-        "invoice_number": 6924,
+        "invoice_number": 7309,
         "amount_gbp": 103.02,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV6924 raised",
-        "running_balance_gbp": 272.54
+        "description": "Invoice INV7309 raised",
+        "running_balance_gbp": 496.91
       },
       {
         "date": "2025-06-11",
         "type": "payment_received",
-        "invoice_number": 6923,
+        "invoice_number": 7308,
         "amount_gbp": -169.52,
         "info_amount_gbp": null,
         "method": "direct_debit",
         "description": "Payment received",
-        "running_balance_gbp": 103.02
+        "running_balance_gbp": 327.39
       }
     ],
-    "current_balance_gbp": 103.02,
+    "current_balance_gbp": 327.39,
     "total_billed_gbp": 732.6,
-    "total_collected_gbp": 629.58,
+    "total_collected_gbp": 405.21,
     "total_written_off_gross_gbp": 0,
     "total_recovered_gbp": 0
   },
@@ -412,13 +402,13 @@
     },
     {
       "customer_id": "PROS-2025-0041",
-      "date": "2025-05-29",
-      "event_type": "arrears_resolved",
-      "description": "Arrears cleared via payment plan",
+      "date": "2025-05-05",
+      "event_type": "arrears_balance_open",
+      "description": "Balance still open -- GBP224.37 unpaid, with no payment or arrangement against it",
       "company_belief": null,
       "sim_truth": null,
       "amount_gbp": 224.37,
-      "outcome": "RESOLVED",
+      "outcome": "BALANCE_OPEN",
       "framing_type": null
     }
   ]
