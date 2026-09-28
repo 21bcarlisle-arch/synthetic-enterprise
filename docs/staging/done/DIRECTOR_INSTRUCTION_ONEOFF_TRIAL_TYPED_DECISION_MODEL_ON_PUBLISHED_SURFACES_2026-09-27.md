@@ -136,3 +136,17 @@ substituting a different experiment.
 
 Epoch 1 — governance and the published evidence surface. Not company
 machinery. No model goes near the wall on the strength of this.
+
+---
+
+## Disposition — actioned 2026-09-27, archived 2026-09-28
+
+Run once on the director's prepaid key (GitHub Actions run 36316887264, $0.0031). Verdict: **no**. It
+does not close the by-eye gap. False alarms on clean pairs were 40%, recall on corruptions 0.64, and
+there were 2 adversarial flips, so report-only is the permanent ceiling. Workflow deleted in
+`a9da50c49`. The record is
+`docs/staging/records/SEAT_PREREG_THE_JEV_TRIAL_IS_AIMED_AT_CLAIM_VERSUS_SOURCE_BECAUSE_THE_OTHER_TWO_CLASSES_ARE_CODE_2026-09-27.md`
+and the corpus is `docs/trials/jev_2026-09-27/`. The stamp-vs-date class became the door
+`site/test_a_chart_stamp_is_never_older_than_its_page.py` (`b2d2de01f`, which also made an unlinked
+published file fail in code). Nav reachability was already held by
+`tools/site_reachability.py`.
