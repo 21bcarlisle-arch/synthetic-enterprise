@@ -113,14 +113,13 @@ def test_a_bill_can_accumulate_several_reasons_at_once():
     assert len(r.reasons) > 1  # period + downstream checks all fire
 
 
-def test_a_zero_consumption_resi_bill_is_held_by_the_plausibility_check():
-    """An entirely empty bill is legitimate to the footing/VAT checks but 0 kWh
-    over 31 days trips the resi plausibility band, so it is still HELD."""
+def test_a_zero_consumption_resi_bill_is_not_held_by_the_plausibility_check():
+    """0 kWh over 31 days is a void home, not a billing error: the resi band has no
+    floor (none is published) since 2026-09-28. It used to be HELD here, never issued."""
     r = validate_bill(bill(commodity_amount_gbp=0.0, non_commodity_amount_gbp=0.0,
                            standing_charge_gbp=0.0, vat_gbp=0.0,
                            total_amount_gbp=0.0, total_consumption_kwh=0.0))
-    assert r.held is True
-    assert any("implausible" in x for x in r.reasons)
+    assert not any("implausible" in x for x in r.reasons)
 
 
 # ---------------------------------------------------------------------------

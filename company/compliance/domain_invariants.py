@@ -283,6 +283,11 @@ _DAYS_PER_MONTH = 30.44
 # 2026-07-09) -- wide enough to tolerate real seasonal/electric-heating
 # variation, narrow enough to still catch a genuine order-of-magnitude
 # error (an SME-scale account on a resi record, the R10 C6 class).
+# That purpose is a CEILING. There is no published per-bill FLOOR: a void home
+# uses nothing and a summer gas month is only hot water and cooking, so `low`
+# is physical zero. The old floors (15 / 100 kWh) were the sim's own minimum
+# plus a margin and held 195 real summer gas bills, never issued (2026-09-28,
+# docs/staging/SEAT_FINDING_THE_RESI_BILL_CONSUMPTION_FLOOR_HELD_195_REAL_SUMMER_GAS_BILLS_2026-09-28.md).
 RESI_CONSUMPTION_ENVELOPE_ELEC_MONTHLY = RangeInvariant(
     id="resi_consumption_envelope_elec_monthly",
     description="Plausible per-bill (~30 day) resi electricity consumption",
@@ -291,12 +296,20 @@ RESI_CONSUMPTION_ENVELOPE_ELEC_MONTHLY = RangeInvariant(
     # kWh/month, BILL_CORRECTNESS_ADDENDUM.md) -- comfortable margin above
     # genuine domestic variation, still catches that exact defect class
     # (an SME account mislabeled resi) if it recurs.
-    source="Calibrated against observed sim population + headroom", low=15.0, high=2100.0, unit="kWh/~30 days",
+    source=(
+        "high: observed sim population + headroom, below C6's real SME 2,346.8 kWh/month; "
+        "low: no published per-bill floor exists, so physical zero"
+    ),
+    low=0.0, high=2100.0, unit="kWh/~30 days",
 )
 RESI_CONSUMPTION_ENVELOPE_GAS_MONTHLY = RangeInvariant(
     id="resi_consumption_envelope_gas_monthly",
     description="Plausible per-bill (~30 day) resi gas consumption",
-    source="Calibrated against observed sim population + headroom", low=100.0, high=8000.0, unit="kWh/~30 days",
+    source=(
+        "high: observed sim population + headroom; low: no published per-bill floor exists "
+        "(NEED's 1,000 kWh/yr cut is a statistics filter, not a billing rule), so physical zero"
+    ),
+    low=0.0, high=8000.0, unit="kWh/~30 days",
 )
 
 # --- Year-specific unit-rate plausibility (company/pricing/ofgem_price_cap.py, Phase 47a) ---

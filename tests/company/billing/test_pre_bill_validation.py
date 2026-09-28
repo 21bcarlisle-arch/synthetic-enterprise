@@ -63,6 +63,21 @@ def test_gross_implausible_resi_consumption_is_held():
     assert any("slc_6_7_billing_accuracy" in r for r in result.reasons)
 
 
+def test_a_low_or_zero_resi_month_is_issued_not_held_and_only_the_ceiling_holds():
+    """Defect: a per-bill consumption FLOOR with no published source held real summer gas bills
+    (SYN-2016-005's July, 41.6 kWh / 31 days) forever -- never issued, never collected, the energy
+    still bought. A void home's zero month is a bill too. The ceiling (the SME-mislabel control) must
+    still hold, on gas as well as electricity, and a negative consumption is impossible."""
+    def slc_held(**kw):
+        return any("slc_6_7_billing_accuracy" in r for r in validate_bill(_good_resi_bill(**kw)).reasons)
+
+    assert not slc_held(commodity="gas", total_consumption_kwh=41.6)
+    assert not slc_held(commodity="gas", total_consumption_kwh=0.0)
+    assert not slc_held(commodity="electricity", total_consumption_kwh=0.0)
+    assert slc_held(commodity="gas", total_consumption_kwh=9000.0)
+    assert slc_held(commodity="gas", total_consumption_kwh=-5.0)
+
+
 def test_c6_real_sme_consumption_on_a_resi_account_is_held():
     # The actual R10 defect class, real figure: C6's genuine SME monthly
     # consumption is 2,346.8 kWh (BILL_CORRECTNESS_ADDENDUM.md) -- if an
