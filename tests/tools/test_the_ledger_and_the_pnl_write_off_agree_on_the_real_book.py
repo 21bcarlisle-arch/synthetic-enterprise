@@ -82,3 +82,25 @@ def test_no_open_balance_renders_as_resolved(book):
     wrong = [s for s in finals
              if s["stage"] in ("RESOLVED", "PAYMENT_PLAN_AGREED") or "cleared" in s["note"].lower()]
     assert not wrong, f"{len(wrong)} open balance(s) render as resolved, e.g. {wrong[:2]}"
+
+
+def test_an_invoice_is_outstanding_by_what_its_case_still_owes_not_by_its_face(book):
+    """A failed bill that credit has netted in part, still open, read 'overdue' at its full face
+    while its case and the household balance were net of the credit: one fact, two homes."""
+    _data, ledger = book
+    part_credited_open = 0
+    wrong = []
+    for cid, cust in ledger["customers"].items():
+        case_by_inv = {a["invoice_number"]: a for a in cust["arrears_history"]}
+        for inv in cust["invoices"]:
+            case = case_by_inv.get(inv["invoice_number"])
+            owed = 0.0
+            if case is not None and inv["payment_status"] != "written_off":
+                owed = case["arrears_gbp"]
+            if inv.get("outstanding_gbp") != owed:
+                wrong.append((cid, inv["invoice_number"], inv.get("outstanding_gbp"), owed))
+            if inv["payment_status"] == "overdue" and 0 < owed < inv["total_amount_gbp"]:
+                part_credited_open += 1
+    assert part_credited_open, "no open part-credited bill in the real book -- the leg is untested"
+    assert not wrong, f"{len(wrong)} invoice(s) outstanding at other than their case's balance: " \
+                      f"{wrong[:5]}"

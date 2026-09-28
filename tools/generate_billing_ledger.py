@@ -526,9 +526,14 @@ def generate(run_json_path=None, out_path=None):
                                               write_off_date=wo_date),
             }
             arrears_by_cid.setdefault(cid, []).append(arr)
+        # What is still owed on THIS invoice: its case's arrears_gbp, the one figure the household
+        # balance also nets credit from -- never the face, which a part-credited bill no longer owes.
+        inv["outstanding_gbp"] = 0.0
         if outcome in ("failed", "dispute"):
             arr.update(face_gbp=round(face, 2), credit_applied_gbp=round(face - amount, 2),
                        stages=_with_credits_applied(arr["stages"], face, credits))
+            inv["outstanding_gbp"] = arr["arrears_gbp"]
+            inv["credit_applied_gbp"] = arr["credit_applied_gbp"]
             if credits and amount == 0:
                 inv["payment_status"] = "settled_by_credit"
 
@@ -558,6 +563,7 @@ def generate(run_json_path=None, out_path=None):
                     inv = inv_by_num.get(arr["invoice_number"])
                     if inv is not None:
                         inv["payment_status"] = "written_off"
+                        inv["outstanding_gbp"] = 0.0
 
     customers = {}
     for cid in sorted(invoices_by_cid):
