@@ -74,10 +74,14 @@ seed-to-seed variance. Two of the depth regressors are identical on all 18 seeds
   - (c) the pay-on-receipt row.
   They are pre-registered in `records/SEAT_PREREG_THE_C1_BRACKET_THREE_RUNS_AT_ONE_COMMIT_2026-09-28.md`
   and due back about 2026-09-28 17:00Z.
-- **Which outcome holds is NOT YET KNOWN.**
-  - If (b) and (c) agree on both seeds' signs, C1 does not matter to the sign.
-  - If they disagree, "we cannot tell" goes on the page with C1 named as the reason.
-  - The director was asked the practitioner question at 03:03Z (NTFY `N8U7crm2DRQP`).
+- **Outcome (graded 2026-09-28 ~16:50Z): C1 does not matter to the sign.** (b) and (c) keep
+  both seeds' signs: 11111 reads −3,508.25 / −3,507.32 / −3,501.47 and 88888 reads
+  +706.67 / +707.60 / +713.40 across (a)/(b)/(c); the state distance holds at −£4,214.9. Leg 4b
+  cannot reach the switch: `PROS-2016-0098` is a leaver's write-off and leaves in both states.
+  C1 stays a named gap for the level figures only (a ~£11,300 bracket per arm while leg 4b is
+  on; it is off at HEAD). Grades:
+  `records/SEAT_RESULT_THE_C1_BRACKET_RUN_C_GRADED_AND_C1_DOES_NOT_MATTER_TO_THE_SIGN_2026-09-28.md`.
+  - NTFY `N8U7crm2DRQP` has no recorded answer; it now decides the level row only.
 
 ## 2026-09-28: steps 1–3 are done, and the finding leaves BLOCKING
 
@@ -111,7 +115,7 @@ seed-to-seed variance. Two of the depth regressors are identical on all 18 seeds
   - **Switches found:** the HEAD 18 (9.4) and `five_seed_head` (3.27), neither of them in a
     Gaussian sentence now. Also `20260909b` (2.07), whose selection verdict `current_world`
     already withholds with a null sem.
-  - **Still open:** the C1 bracket above. It bears on the sign, not on the bound.
+  - **Closed:** the C1 bracket above does not move the sign (graded 2026-09-28).
 - **Worth knowing.** The gap statistic's cut of 2.0 is the instrument's convention, not a sourced
   number. `20260909b` clears it by 0.07 on nine draws, so a switch reading that marginal is weak.
 

@@ -135,3 +135,12 @@ Nothing picks a row. The bracket that says whether the choice matters is
 `records/SEAT_PREREG_THE_C1_BRACKET_THREE_RUNS_AT_ONE_COMMIT_2026-09-28.md`. The practitioner
 question went to the director at 03:03Z (NTFY `N8U7crm2DRQP`), recommending net-of-retry. C1
 itself stays a GAP.
+
+## 2026-09-28: the bracket is graded, and C1 does not matter to the sign
+
+Leg 4b charges each arm about £1,930 under `still_in_dd` and about £13,230 under
+`fallen_out_of_dd`, and neither moves either seed's selection sign (shifts +£0.93 and +£6.78).
+So C1 bears on the level figures only, as an £11,300-per-arm bracket while leg 4b is on. It is off
+at HEAD, so nothing published carries it. C1 stays a GAP; the director's answer to
+`N8U7crm2DRQP` picks the row whenever leg 4b is switched on. Grades:
+`records/SEAT_RESULT_THE_C1_BRACKET_RUN_C_GRADED_AND_C1_DOES_NOT_MATTER_TO_THE_SIGN_2026-09-28.md`.
