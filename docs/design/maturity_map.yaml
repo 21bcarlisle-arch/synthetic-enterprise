@@ -609,7 +609,7 @@
   lane: G_data_learning
   value_stream: close_to_learn
   epoch: 2
-  level_current: 0
+  level_current: 1
   level_target: 3
   loop_stage: build
   dial_inherited: 3
@@ -619,7 +619,7 @@
   #   control its build writes, replacing two bare directories.
   depends_on: []
   blocked_on: null
-  simplifications_count: 3
+  simplifications_count: 4
   records_rehomed: [evidence]
 - id: W3_1b_intra_year_price_cap_granularity
   notes_rehomed: [name]
