@@ -65,6 +65,7 @@ import math
 import random
 
 from simulation.demand_model import PERIODS_PER_DAY, build_demand_shape
+from simulation.rng_substream import substream
 
 
 def local_mean_temp_c(national_temp_c: float, regional_deviation_c: float) -> float:
@@ -255,9 +256,7 @@ def _substream(base_seed: int, salt: str = "") -> random.Random:
     substream, so a draw can never shift another sequence. A stable digest (not
     Python's per-process-salted `hash()`) gives deterministic replay across processes.
     """
-    key = f"{STREAM_NAME}::{salt}::{base_seed}".encode("utf-8")
-    seed_int = int.from_bytes(hashlib.sha256(key).digest()[:8], "big")
-    return random.Random(seed_int)
+    return substream(STREAM_NAME, salt, base_seed)
 
 
 def _base_seed_for(premise_id: str, seed: int | None) -> int:

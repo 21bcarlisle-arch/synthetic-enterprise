@@ -84,11 +84,11 @@ load-bearing precision).
 """
 from __future__ import annotations
 
-import hashlib
 import os
 import random
 from datetime import date, timedelta
 
+from simulation.rng_substream import substream
 from simulation.segment_vocabulary import (
     INDUSTRIAL_AND_COMMERCIAL,
     SME,
@@ -119,9 +119,7 @@ def _substream(base_seed: int, name: str) -> random.Random:
     never consume from, or shift, any other substream of this or any other
     subsystem.
     """
-    key = f"{STREAM_NAMESPACE}::{name}::{base_seed}".encode("utf-8")
-    seed_int = int.from_bytes(hashlib.sha256(key).digest()[:8], "big")
-    return random.Random(seed_int)
+    return substream(STREAM_NAMESPACE, name, base_seed)
 
 
 def bill_substream(base_seed: int, customer_id: str, period_end: str,

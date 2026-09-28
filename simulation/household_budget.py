@@ -93,6 +93,8 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Dict, Mapping, Optional, Sequence, Tuple
 
+from simulation.rng_substream import substream
+
 STREAM_NAME = "W2_4_household_budget"
 
 # Named substream salts — one per drawn attribute (C-S2). A new attribute is
@@ -114,9 +116,7 @@ def _substream(base_seed: int, salt: str = "") -> random.Random:
     Stable digest (not Python's per-process-salted `hash()`) => deterministic
     replay across processes (C-S2).
     """
-    key = f"{STREAM_NAME}::{salt}::{base_seed}".encode("utf-8")
-    seed_int = int.from_bytes(hashlib.sha256(key).digest()[:8], "big")
-    return random.Random(seed_int)
+    return substream(STREAM_NAME, salt, base_seed)
 
 
 def _base_seed_for(customer_id: str, seed: Optional[int]) -> int:

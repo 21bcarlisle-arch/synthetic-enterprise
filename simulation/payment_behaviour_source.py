@@ -141,6 +141,7 @@ from simulation.arrears_engine import payment_outcome as _core_payment_outcome
 from simulation.household_segments import (
     NON_DD_PREPAYMENT_SHARE as _PREPAYMENT_SHARE_OF_NON_DD,
 )
+from simulation.rng_substream import substream
 from simulation.segment_vocabulary import is_business
 
 STREAM_NAMESPACE = "W2_11_payment_behaviour_source"
@@ -166,9 +167,7 @@ def _substream(base_seed: int, name: str) -> random.Random:
     name seeds an independent generator; a draw here can never consume from, or
     shift, any other substream of this or any other subsystem.
     """
-    key = f"{STREAM_NAMESPACE}::{name}::{base_seed}".encode("utf-8")
-    seed_int = int.from_bytes(hashlib.sha256(key).digest()[:8], "big")
-    return random.Random(seed_int)
+    return substream(STREAM_NAMESPACE, name, base_seed)
 
 
 def _period_substream(base_seed: int, base_name: str, period_index: int) -> random.Random:

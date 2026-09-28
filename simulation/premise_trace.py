@@ -142,6 +142,7 @@ from simulation.household import (
     InsulationLevel,
     PropertyType,
 )
+from simulation.rng_substream import substream
 
 STREAM_NAME = "W1_12_premise_trace"
 
@@ -166,8 +167,7 @@ def _substream(base_seed: int, salt: str = "") -> random.Random:
     Shares no state with the global `random`, with W1_11's substream, or with any
     other subsystem, so no draw here can shift another sequence (C-S2).
     """
-    key = f"{STREAM_NAME}::{salt}::{base_seed}".encode("utf-8")
-    return random.Random(int.from_bytes(hashlib.sha256(key).digest()[:8], "big"))
+    return substream(STREAM_NAME, salt, base_seed)
 
 
 def _base_seed_for(premise_id: str, seed: int | None) -> int:

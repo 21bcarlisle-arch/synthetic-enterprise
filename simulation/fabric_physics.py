@@ -170,6 +170,7 @@ from simulation.household import (
     InsulationLevel,
     PropertyType,
 )
+from simulation.rng_substream import substream
 
 PERIODS_PER_DAY = 48
 SUB_STEPS_PER_PERIOD = 30  # 1-minute integration steps — see `_SUB_STEP_HOURS`
@@ -869,9 +870,7 @@ def _substream(base_seed: int, salt: str = "") -> random.Random:
     Shares no state with the global `random`, with any other salt here, or with any
     other subsystem's substream, so a draw can never shift another sequence.
     """
-    key = f"{STREAM_NAME}::{salt}::{base_seed}".encode("utf-8")
-    seed_int = int.from_bytes(hashlib.sha256(key).digest()[:8], "big")
-    return random.Random(seed_int)
+    return substream(STREAM_NAME, salt, base_seed)
 
 
 def _base_seed_for(premise_id: str, seed: int | None) -> int:

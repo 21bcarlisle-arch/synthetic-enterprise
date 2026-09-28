@@ -105,6 +105,7 @@ from enum import Enum
 from typing import Iterator, List, Mapping, Optional, Tuple
 
 from simulation import segment_vocabulary as _vocab
+from simulation.rng_substream import substream
 
 # ---------------------------------------------------------------------------
 STREAM_NAMESPACE = "W2_6_sme_distress"
@@ -202,9 +203,7 @@ def _substream(base_seed: int, name: str) -> random.Random:
     name seeds an independent generator, so a draw here can never consume from,
     or shift, any other substream (of this or any other subsystem).
     """
-    key = f"{STREAM_NAMESPACE}::{name}::{base_seed}".encode("utf-8")
-    seed_int = int.from_bytes(hashlib.sha256(key).digest()[:8], "big")
-    return random.Random(seed_int)
+    return substream(STREAM_NAMESPACE, name, base_seed)
 
 
 def _base_seed_for(customer_id: str, seed: Optional[int]) -> int:

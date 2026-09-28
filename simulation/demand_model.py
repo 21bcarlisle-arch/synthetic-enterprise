@@ -52,6 +52,8 @@ import hashlib
 import math
 import random
 
+from simulation.rng_substream import substream
+
 PERIODS_PER_DAY = 48
 
 # --- Heating/cooling degree days (UK convention) ---
@@ -244,8 +246,7 @@ def _substream(base_seed: int, salt: str) -> random.Random:
     """An ISOLATED `random.Random` seeded from a STABLE sha256 of
     (STREAM_NAME::salt::base_seed) — C-S2 substream discipline, the same
     construction `simulation.premise_demand` uses for its own stream."""
-    key = f"{STREAM_NAME}::{salt}::{base_seed}".encode("utf-8")
-    return random.Random(int.from_bytes(hashlib.sha256(key).digest()[:8], "big"))
+    return substream(STREAM_NAME, salt, base_seed)
 
 
 def _base_seed_for(household_key: str, seed: int | None) -> int:
