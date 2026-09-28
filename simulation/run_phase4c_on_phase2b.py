@@ -62,6 +62,8 @@ hand here — `tools/wall_crossing_dispositions.py` prints it from the walker, a
 this docstring disagreeing with it is a defect in this docstring.
 """
 
+import functools
+
 from company.interfaces.accounting_close import close_the_books
 from company.interfaces.bill_assembly import assemble_monthly_bills
 from company.interfaces.billing_experience import build_billing_experience_view
@@ -211,6 +213,26 @@ def simulated_payment_channel(customer_data: dict) -> str | None:
     ).value
 
 
+@functools.lru_cache(maxsize=1)
+def _listed_dwellings() -> frozenset:
+    from simulation.live_population import live_premises
+
+    return frozenset(live_premises())
+
+
+def simulated_council_tax_listing(customer_data: dict | None) -> bool | None:
+    """The world's answer to the supplier's council-tax lookup on one supply address.
+
+    Every premise in the drawn stock is an England HOUSING-stock dwelling, so every account the
+    world drew a dwelling for is listed (True). Anything else -- a hand-authored founder, an SME
+    point -- is None, not False: the world holds no premise record for it to answer from, and a
+    None releases nothing (`pre_bill_validation.release_confirmed_domestic`).
+    """
+    if not customer_data or not customer_data.get("customer_id"):
+        return None
+    return True if customer_data["customer_id"] in _listed_dwellings() else None
+
+
 def build_monthly_bills(
     all_records: list[dict],
     churned_ids: set[str] | None = None,
@@ -244,6 +266,7 @@ def build_monthly_bills(
         all_records, SimulatedReadFeed(), churned_ids=churned_ids,
         read_events_out=read_events_out,
         payment_channel_feed=simulated_payment_channel,
+        premise_listing_feed=simulated_council_tax_listing,
     )
 
 

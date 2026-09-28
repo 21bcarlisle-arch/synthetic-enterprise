@@ -184,7 +184,16 @@ def test_build_monthly_bills_clarity_score_not_none():
     assert isinstance(bills[0]["clarity_score"], float)
 
 
-def test_main_produces_meter_read_log_matching_bills():
+@pytest.fixture(scope="module")
+def main_result():
+    """ONE full run for the whole module. Each of the three wiring tests below used to call
+    main() itself, so the file paid for three complete decade simulations to read three keys of
+    one result -- and every commit touching run_phase4c_on_phase2b.py selects this file whole.
+    They only read the result; none patches anything main() consults."""
+    return main()
+
+
+def test_main_produces_meter_read_log_matching_bills(main_result):
     # Phase 3 (CORE_FIDELITY_PHASES.md item 1) wiring: every bill the full
     # pipeline produces must have a corresponding meter-read event, and the
     # events must carry real status/delay data (not a stub).
@@ -193,7 +202,7 @@ def test_main_produces_meter_read_log_matching_bills():
     # bills; its three assertions were cardinality and value domains, so a
     # per-row disagreement of equal length passed -- and three such rows were
     # published. The join is now asserted here, on the same run.
-    result = main()
+    result = main_result
     assert len(result["meter_read_log"]) == len(result["bills"])
     statuses = {entry["status"] for entry in result["meter_read_log"]}
     assert statuses <= {"actual", "estimated"}
@@ -262,10 +271,10 @@ def test_read_log_cannot_be_re_derived_without_losing_the_final_read_override():
         mr.MAX_CONSECUTIVE_ESTIMATED_PERIODS = original_max_consecutive
 
 
-def test_main_produces_contact_centre_log():
+def test_main_produces_contact_centre_log(main_result):
     # Phase 3 item 4 wiring: every logged contact carries a resolved
     # channel + first-response latency.
-    result = main()
+    result = main_result
     assert "contact_centre_log" in result
     for entry in result["contact_centre_log"]:
         assert entry["channel"] in ("phone", "email", "webchat")
@@ -273,10 +282,10 @@ def test_main_produces_contact_centre_log():
         assert isinstance(entry["breached_sla"], bool)
 
 
-def test_main_produces_credit_refund_log():
+def test_main_produces_credit_refund_log(main_result):
     # Phase 3 item 2 wiring: credit_refund.py's SLA mechanic now has a real
     # caller -- every logged event must carry a resolved SLC 14 outcome.
-    result = main()
+    result = main_result
     assert "credit_refund_log" in result
     for entry in result["credit_refund_log"]:
         assert entry["credit_amount_gbp"] > 0
@@ -830,3 +839,31 @@ class TestSerializeDdCollectionBook:
         book.record_attempt(DDPaymentAttempt("REF", "C1", "2020-01-31", 80.0, "failed", failure_reason="Refer to Payer"))
         result = _serialize_dd_collection_book(book)
         json.dumps(result)  # must not raise
+
+
+def test_the_council_tax_listing_feed_can_answer_listed_and_can_decline():
+    """Defect: the listing feed answers None for every account (a wrong key into live_premises),
+    so `release_confirmed_domestic` can never release a held bill and the genuine domestic tail
+    (PROS-2016-0098, a 6-bed pre-1919 direct-electric house) stays held for ever -- or it answers
+    True for an address the world drew no dwelling for. Both branches must be reachable."""
+    from simulation.run_phase4c_on_phase2b import simulated_council_tax_listing
+
+    assert simulated_council_tax_listing({"customer_id": "PROS-2016-0098"}) is True
+    assert simulated_council_tax_listing({"customer_id": "NO-SUCH-PREMISE"}) is None
+    assert simulated_council_tax_listing(None) is None
+
+
+def test_build_monthly_bills_hands_the_listing_feed_to_bill_assembly(monkeypatch):
+    """Defect: the feed exists but the world's bill run never passes it, so no bill is ever
+    stamped as listed and the release path is unreachable in production."""
+    import simulation.run_phase4c_on_phase2b as mod
+
+    seen = {}
+
+    def spy(*args, **kwargs):
+        seen.update(kwargs)
+        return []
+
+    monkeypatch.setattr(mod, "assemble_monthly_bills", spy)
+    mod.build_monthly_bills([])
+    assert seen.get("premise_listing_feed") is mod.simulated_council_tax_listing
