@@ -3523,6 +3523,69 @@ def prereg_result(text: str, written_at: float = 0.0) -> dict | None:
     return None
 
 
+def _landed_result(stem: str) -> tuple[str, str] | None:
+    """(path, commit) of the OLDEST commit on origin/main that added a `SEAT_RESULT_<stem>_*.md`
+    anywhere under docs/staging, or None. Any date, any room: results are archived to `done/`, and
+    the archive move is itself an add, which is why the OLDEST add is the one named."""
+    out = _git("log", "origin/main", "--reverse", "--diff-filter=A", "--format=%x00%H",
+               "--name-only", "--",
+               f":(glob)docs/staging/**/SEAT_RESULT_{stem}_[0-9]*.md")
+    if not out:
+        return None
+    for chunk in out.split("\0"):
+        lines = [ln.strip() for ln in chunk.splitlines() if ln.strip()]
+        if len(lines) >= 2:
+            return lines[1], lines[0][:9]
+    return None
+
+
+def result_note(item: dict) -> str:
+    """A line for the doorbell when a pre-registration this item names already has its RESULT on
+    origin/main, else "". Names the result's commit, which is the evidence `--premise-spent` wants.
+
+    THE DEFECT (2026-09-28). `grade-the-balance-rule-two-state-diff-against-the-cefd2c04a-baseline`
+    was handed out at 04:27; `7dc8f150d` had landed its graded result,
+    `SEAT_RESULT_THE_TWO_STATE_DIFF_RERUN_UNDER_THE_BALANCE_AT_CLOSE_RULE_2026-09-28.md`, at 02:57.
+    Every prereg-then-result arc names the PREREG, and the prereg is the one file that does not
+    change when the grading is done -- so `landed_since_note` sees nothing on the item's paths,
+    `premise_note` sees only context shas, and a worker tick is spent re-deriving a finished grade.
+
+    IT ANNOTATES AND DOES NOT WITHHOLD, AND THE COUNTER-EXAMPLE WAS IN THE SAME STORE THAT DAY. The
+    item asking for this said "treat it as premise_spent". But
+    `the-stranded-balance-rule-run-graded-and-the-c1-bracket-run-at-one-commit` names the SAME
+    prereg and asks for the grading AND a three-run C1 bracket after it; a draw-time filter keyed
+    to "the result landed" would have swallowed the bracket, which is the thesis step. The grading
+    half of an item is spent by the result; whether the rest is, only a reader can say. So this is
+    the strongest voice the note can carry -- a named commit and the exact disposition command --
+    and never a filter, for `premise_note`'s reason.
+
+    WHAT/WHY ONLY, for `premise_note`'s reason: `done_means` is where an item names its own OUTPUT,
+    and "a SEAT_RESULT_ beside SEAT_PREREG_X" there is a completion marker, not a dependency.
+
+    NEVER RAISES; an unanswerable git is "" (no note), the fail-open direction every note here takes.
+    """
+    try:
+        text = "{} {}".format(item.get("what") or "", item.get("why") or "")
+        hits = []
+        for stem in dict.fromkeys(_PREREG_NAME.findall(text)):
+            found = _landed_result(stem)
+            if found:
+                hits.append((stem, found[0], found[1]))
+        if not hits:
+            return ""
+        shown = "; ".join(f"SEAT_PREREG_{stem} has its result `{rpath}` on origin/main in {sha}"
+                          for stem, rpath, sha in hits)
+        return (
+            "RESULT CHECK (git, run at draw time): {shown}. A pre-registration does not change when "
+            "its grading is done, so nothing else here can see this. IF THIS ITEM'S WORK IS THAT "
+            "GRADING, IT IS SPENT: python3 -m background.delivery_lane --premise-spent {fid} {sha} "
+            "'<the result that graded it>' and release the claim. If it asks for more than the "
+            "grading, do only the rest. "
+        ).format(shown=shown, fid=item.get("id") or "<id>", sha=hits[0][2])
+    except Exception:
+        return ""
+
+
 def landed_since_note(item: dict, *, now: float | None = None,
                       path: Path | None = None) -> str:
     """A line for the doorbell when git shows work on this item's own paths since it was last
@@ -4199,7 +4262,7 @@ def doorbell(item: dict) -> str:
     outright, and a reader who has just been told to take a disposition should not first walk a
     per-path table for work they are not going to do. It is also the longest of the five, and the
     four that can end the turn in one line have to be readable above it."""
-    return premise_note(item) + landed_since_note(item) + rival_note(item) + successor_note(
+    return premise_note(item) + result_note(item) + landed_since_note(item) + rival_note(item) + successor_note(
         item) + path_note(item) + (
         # DRIFT COMES LAST OF THE FIVE AND IMMEDIATELY AFTER THE TABLE IT REFERS TO. It is the only
         # row here that is not answerable from the tree in front of the reader: a hand-off carries

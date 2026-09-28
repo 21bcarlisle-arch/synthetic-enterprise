@@ -172,6 +172,51 @@ def test_both_verdicts_of_the_spread_or_switch_partition_are_reachable():
     assert {"SWITCH" in switch["verdict"], "SPREAD" in spread["verdict"]} == {True}
 
 
+def test_a_two_cluster_family_is_refused_the_gaussian_path_at_every_producer_door():
+    """DEFECT: a standard error published on a family the shape check calls a switch.
+
+    Fires on: dropping the `gaussian_licensed` branch in `gaussian_or_mixture_bound`, or any of the
+    three producers (`bound_on_its_shape` from both floor writers, the fold's `_leg`) passing the
+    sd/sqrt(n) through regardless. The spread family and the too-small family are in the SAME
+    control, because a gate that refused everything would pass a switch-only test.
+    """
+    from tools.fold_noise_floor_family import _leg
+    from tools.run_value_cycle_ab import _spread, bound_on_its_shape
+
+    switch = srd.gaussian_or_mixture_bound(_switch_family())
+    spread = srd.gaussian_or_mixture_bound(_spread_family())
+    small = srd.gaussian_or_mixture_bound(_switch_family()[:3])
+    assert (not switch["gaussian_licensed"]) and spread["gaussian_licensed"] \
+        and small["gaussian_licensed"] and small["shape_checked"] is False
+    lo, hi = switch["mean_interval_gbp"]
+    assert lo < 0 < hi and switch["sign_if_stateable"] is None
+    assert "SWITCH" in switch["why_no_sem"] and "90%" in switch["why_no_sem"]
+
+    fam = _switch_family()
+    shaped = bound_on_its_shape(fam, "selection_gbp", _spread([r["selection_gbp"] for r in fam]),
+                                123.0, True)
+    assert shaped["sem_gbp"] is None and shaped["distinguishable_from_zero"] is False
+    assert shaped["distance_to_a_sign"]["available"] is False
+    assert "seeds_needed_to_state_a_sign" not in shaped["distance_to_a_sign"]
+
+    # The fold's per-leg door, called directly: `summarise` also refuses these synthetic rows for
+    # carrying no decision fingerprints, which is a different refusal from the one under test.
+    folded = _leg(fam, "selection_gbp")
+    assert folded["sem_gbp"] is None and folded["distance_to_a_sign"]["available"] is False
+    assert _leg(_spread_family(), "selection_gbp")["sem_gbp"] is not None
+
+
+def test_a_switch_wholly_one_side_of_zero_states_that_sign():
+    """DEFECT: a switch that can never state a sign -- the refusal's rare branch, asserted reachable.
+
+    Both states negative: the rate interval carried through cannot reach zero, so the sign stands.
+    """
+    fam = [_seed(100 + i, -9000.0 + 100.0 * i) for i in range(4)] + [
+        _seed(200 + i, -3000.0 + 100.0 * i) for i in range(14)]
+    out = srd.gaussian_or_mixture_bound(fam)
+    assert out["gaussian_licensed"] is False and out["sign_if_stateable"] == "negative"
+
+
 def test_the_two_state_mean_interval_is_printed_low_to_high():
     """DEFECT: reporting the rate's endpoints in the RATE's order.
 

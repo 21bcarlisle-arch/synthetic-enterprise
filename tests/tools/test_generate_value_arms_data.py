@@ -13431,3 +13431,40 @@ def test_the_selection_switch_voids_the_gaussian_price_only_when_its_record_is_o
                    "{:,.2f}".format(abs(s["write_off_moved_gbp"])),
                    "{:,.2f}".format(abs(s["state_distance_gbp"]))):
         assert figure in text, "`{}` is not in the record it was copied from".format(figure)
+
+
+def test_a_switch_family_publishes_its_mixture_interval_and_no_standard_error(tmp_path):
+    """DEFECT: the cross-code row printing sd/sqrt(n) on a family the shape check calls a switch.
+
+    The HEAD re-run of the served 18 seeds is two states at separation 9.4, and the page read it
+    as "0.31 standard errors from zero" -- a Gaussian distance on a switch whose unknown is its rate.
+    Fires on: dropping the `gaussian_or_mixture_bound` branch in `_one_cross_code_reading`, or the
+    statement composing a standard error for a row carrying `switch`. The spread row is in the same
+    control, so a row builder that nulled every sem would red here too.
+    """
+    def floor(values):
+        return {"seeds": [{"seed": i, "selection_gbp": v} for i, v in enumerate(values)],
+                "selection_gbp_spread": {"n": len(values), "mean": sum(values) / len(values),
+                                         "stdev": 1.0},
+                "selection_sem_gbp": 999.0,
+                "distance_to_a_sign": {"sems_from_zero": 0.3, "sems_needed_to_state_a_sign": 2.1,
+                                       "sign_if_it_were_stateable": "positive"}}
+
+    switch_path, spread_path = tmp_path / "switch.json", tmp_path / "spread.json"
+    switch_path.write_text(json.dumps(floor(
+        [-4000.0 + 100.0 * i for i in range(4)] + [1200.0 + 100.0 * i for i in range(14)])))
+    spread_path.write_text(json.dumps(floor([-2000.0 + 250.0 * i for i in range(18)])))
+    sw = gva._one_cross_code_reading("switch", switch_path)
+    sp = gva._one_cross_code_reading("spread", spread_path)
+
+    assert sw["sem_gbp"] is None and sw["sems_from_zero"] is None and sw["its_own_bar_sems"] is None
+    lo, hi = sw["switch"]["mean_interval_gbp"]
+    assert lo < 0 < hi and sw["states"] == gva._NO_SIGN_AT_ITS_OWN_BAR_CROSS_CODE
+    assert sp["switch"] is None and sp["sem_gbp"] == 999.0
+
+    for row in (sw, sp):
+        row["which_code"] = {"commits_short": []}
+    said = gva._cross_code_reading([sw, sp], sorted({sw["states"], "positive"}), None)
+    switch_part, spread_part = said.split("; ", 1)
+    assert "standard error" in spread_part and "no standard error is stated" in switch_part
+    assert sw["switch"]["mean_interval_stated"][0] in switch_part

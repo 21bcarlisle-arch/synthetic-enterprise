@@ -36,7 +36,12 @@ waiter that cannot be written the broken way:
     and deadline, so the output file is self-describing to whoever finds it, including me.
 
 `--pid` is strictly better than `--pattern` where a PID is available: a PID cannot
-self-match and cannot be ambiguous. Prefer it.
+self-match and cannot be ambiguous. Prefer it. A `--pattern` CAN be ambiguous, and an
+earlier version of this paragraph implied otherwise by omission: any other process whose
+command line carries the words is a match. The ancestry exclusion covers this waiter only;
+a SIBLING waiter on the same pattern (and the `bash -c` shell around it) matched, and two
+such waiters each kept the other alive to its deadline (2026-09-28). Other waiters are now
+filtered as probe noise, but anything else that merely mentions the pattern still counts.
 
 FAIL-CLOSED, WITH THE DISTINCTION THAT MATTERS (see the standing lesson about controls that
 refuse on input they could not READ): if `pgrep` itself cannot be run, that is a broken
@@ -63,6 +68,7 @@ from __future__ import annotations
 
 import argparse
 import os
+import re
 import subprocess
 import sys
 import time
@@ -132,16 +138,51 @@ def self_and_ancestors(pid: int | None = None, ppid_of=_ppid_of, limit: int = 64
     return seen
 
 
-def _is_probe_noise(cmdline: str) -> bool:
+def _invokes_waiter(segment: str) -> bool:
+    """Whether one simple command runs this module: `python[3] [opts] -m tools.wait_for` or
+    `python[3] [opts] .../tools/wait_for.py`. Keyed to the MODULE, so a run whose own
+    arguments merely mention `tools.wait_for` is not taken for a waiter."""
+    argv = segment.split()
+    for i, tok in enumerate(argv):
+        if tok.rsplit("/", 1)[-1].startswith("python"):
+            rest = [a for a in argv[i + 1:] if a == "-m" or not a.startswith("-")]
+            if rest[:2] == ["-m", "tools.wait_for"]:
+                return True
+            return bool(rest) and rest[0] != "-m" and rest[0].endswith("tools/wait_for.py")
+    return False
+
+
+def _pattern_in(pattern: str, text: str) -> bool:
+    # pgrep reads the pattern as an extended regex; a pattern Python cannot compile falls
+    # back to a substring test rather than raising inside the wait loop.
+    try:
+        return re.search(pattern, text) is not None
+    except re.error:
+        return pattern in text
+
+
+def _is_probe_noise(cmdline: str, pattern: str) -> bool:
     """True for lines that are the act of looking rather than the thing looked for.
 
-    A `pgrep`/`grep` carrying the pattern is not a running subject, and neither is an
-    editor with the file open. Kept narrow deliberately: over-filtering here would make a
-    LIVE subject invisible, which is the more dangerous direction -- we would report
-    FINISHED for something still running.
+    A `pgrep`/`grep` carrying the pattern is not a running subject. Kept narrow
+    deliberately: over-filtering here would make a LIVE subject invisible, which is the more
+    dangerous direction -- we would report FINISHED for something still running.
     """
-    head = cmdline.split()[0].rsplit("/", 1)[-1] if cmdline.split() else ""
-    return head in ("pgrep", "grep", "egrep", "fgrep")
+    argv = cmdline.split()
+    head = argv[0].rsplit("/", 1)[-1] if argv else ""
+    if head in ("pgrep", "grep", "egrep", "fgrep"):
+        return True
+    # ANOTHER WAITER is also the act of looking -- and so is the `bash -c` shell every Bash
+    # tool call wraps it in. Excluding only our own ancestry left two `--pattern` waiters on
+    # one subject each seeing the other (or the other's shell) as the subject, so neither
+    # could ever end: the C1 bracket's run (c) sat behind them for six hours after (b) had
+    # returned (2026-09-28). So a line is noise when the pattern occurs ONLY inside its
+    # wait_for invocations. A chain that waits and THEN runs something carrying the pattern
+    # keeps it in the remainder and stays a subject, because it becomes the subject.
+    segments = re.split(r"&&|\|\||[;|&\n]", cmdline)
+    waits = [s for s in segments if _invokes_waiter(s)]
+    return bool(waits) and not _pattern_in(
+        pattern, " ".join(s for s in segments if not _invokes_waiter(s)))
 
 
 def matching_pids(pattern: str, exclude: set[int], runner=None) -> tuple[list[int], int]:
@@ -171,7 +212,7 @@ def matching_pids(pattern: str, exclude: set[int], runner=None) -> tuple[list[in
             pid = int(pid_text)
         except ValueError:
             continue
-        if _is_probe_noise(cmdline):
+        if _is_probe_noise(cmdline, pattern):
             continue
         raw += 1
         if pid not in exclude:

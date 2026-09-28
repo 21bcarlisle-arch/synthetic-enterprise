@@ -45,7 +45,7 @@ from tools import wait_for as W
 _TOKEN = "ZZ_WAITFOR_SELFMATCH_PROBE_8f21c4"
 
 
-def _waiter_under_a_real_bash(subject: str, deadline: float = 30.0):
+def _waiter_under_a_real_bash(subject: str, deadline: float = 30.0, then: str = "exit $?"):
     """Launch the waiter the way the incident launched it: under a shell that STAYS.
 
     The trailing `; exit $?` is load-bearing twice over, and both halves cost a failing
@@ -57,11 +57,16 @@ def _waiter_under_a_real_bash(subject: str, deadline: float = 30.0):
     `true`, which kept bash resident but returned 0 no matter what the waiter said -- so
     the FINISHED assertion below would have passed even against a waiter that reported
     NEVER_STARTED.
+
+    `then` is the rest of the shell line after the wait. The default carries no pattern, so
+    that shell is a waiter-only line and filtered as probe noise; a `then` that names the
+    token makes the shell a real ancestor match, which is the shape the ancestry exclusion
+    alone must handle.
     """
     return subprocess.run(
         ["bash", "-c",
-         "{} -m tools.wait_for --pattern {} --subject '{}' --deadline {} --poll 0.5; exit $?"
-         .format(sys.executable, _TOKEN, subject, deadline)],
+         "{} -m tools.wait_for --pattern {} --subject '{}' --deadline {} --poll 0.5; {}"
+         .format(sys.executable, _TOKEN, subject, deadline, then)],
         capture_output=True, text=True, timeout=deadline + 25)
 
 
@@ -76,13 +81,56 @@ def test_a_pattern_that_matches_only_the_waiter_ENDS_instead_of_waiting_forever(
     If the exclusion regresses this fails by DEADLINE (or by the subprocess timeout) rather
     than hanging the suite -- the correct shape, because the defect IS a hang.
     """
-    r = _waiter_under_a_real_bash("a subject that does not exist")
+    r = _waiter_under_a_real_bash("a subject that does not exist",
+                                  then="rc=$?; : {}; exit $rc".format(_TOKEN))
     assert r.returncode == W.EXIT_CODES[W.NEVER_STARTED], r.stdout + r.stderr
     assert W.NEVER_STARTED in r.stdout
-    assert "2 matches excluded as this waiter or its ancestors" in r.stdout, (
-        "expected BOTH the waiter and its parent shell to be struck out. One match means "
-        "the shell exec'd itself away and the ancestor half of the exclusion -- the half "
-        "that actually failed in the incident -- was never exercised:\n" + r.stdout)
+    # The waiter's own python line is filtered as a WAITER before counting; the parent shell
+    # carries the token in a later step, so it is left for the ANCESTRY to strike out. None
+    # would mean the shell exec'd itself away and the ancestor half of the exclusion -- the
+    # half that failed in the incident -- never ran.
+    assert "1 match excluded as this waiter or its ancestors" in r.stdout, (
+        "expected the parent shell to be struck out as an ancestor:\n" + r.stdout)
+
+
+def _two_concurrent_waiters(deadline: float = 20.0):
+    """Two `--pattern` waiters on one token, each under its own `bash -c` as the Bash tool
+    launches them, started together so each is alive while the other probes."""
+    procs = [subprocess.Popen(
+        ["bash", "-c",
+         "{} -m tools.wait_for --pattern {} --subject 'waiter {}' --deadline {} --poll 0.5; "
+         "exit $?".format(sys.executable, _TOKEN, i, deadline)],
+        stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True) for i in (1, 2)]
+    return [(p.wait(timeout=deadline + 25), p.stdout.read()) for p in procs]
+
+
+def test_TWO_WAITERS_on_one_pattern_with_no_subject_both_END():
+    """THE 2026-09-28 STALL, end to end, no fakes. Before, each waiter's probe matched the
+    other waiter's `bash -c` shell (the ancestry exclusion covers only its OWN chain), so both
+    ran to their deadline. Now both must say NEVER_STARTED within seconds.
+
+    Mutation shown in the commit: `_is_probe_noise` without the waiter-only clause turns this
+    red with both waiters at DEADLINE."""
+    import time as _t
+    started = _t.monotonic()
+    results = _two_concurrent_waiters()
+    assert _t.monotonic() - started < 10, results
+    for rc, out in results:
+        assert rc == W.EXIT_CODES[W.NEVER_STARTED], out
+
+
+def test_TWO_WAITERS_still_wait_on_a_REAL_subject_carrying_the_pattern():
+    """THE PARTNER: the waiter filter must not swallow every match. With a live process whose
+    argv carries the token, both waiters must see it and end FINISHED, not NEVER_STARTED."""
+    sleeper = subprocess.Popen([sys.executable, "-c", "import time; time.sleep(4)", _TOKEN])
+    try:
+        results = _two_concurrent_waiters()
+    finally:
+        if sleeper.poll() is None:
+            sleeper.kill()
+        sleeper.wait()
+    for rc, out in results:
+        assert rc == W.EXIT_CODES[W.FINISHED], out
 
 
 def test_a_REAL_subject_is_still_seen_through_the_exclusion():
@@ -363,6 +411,39 @@ def test_the_noise_filter_only_looks_at_argv0():
     out = "11 /usr/bin/python3 -m pytest tests/test_grep_helpers.py\n"
     kept, _ = W.matching_pids("pytest", set(), runner=lambda _p: (0, out))
     assert kept == [11]
+
+
+def test_ANOTHER_WAITER_on_the_same_pattern_is_not_the_subject():
+    """The 2026-09-28 stall: two waiters on `se-c1-bracket-b/value_cycle_ab.json` each matched
+    the other's argv, so both waited out their six-hour deadline after (b) had exited."""
+    out = ("20 python3 -m tools.wait_for --pattern se-b/out.json --deadline 60 --subject b\n"
+           "21 /usr/bin/python3 tools/wait_for.py --pattern se-b/out.json --deadline 60 --subject b\n")
+    kept, raw = W.matching_pids("se-b/out.json", set(), runner=lambda _p: (0, out))
+    assert kept == [] and raw == 0
+
+
+def test_a_chain_that_waits_THEN_runs_the_subject_is_still_a_subject():
+    """THE PARTNER: the waiter filter must not hide the subject. A unit's `bash -c` that runs a
+    wait and then the job carries both words; it becomes the job, so it stays visible -- as does
+    the job itself and a run whose own arguments merely mention the waiter."""
+    out = ("30 /usr/bin/bash -c python3 -m tools.wait_for --pid 9 --deadline 60 --subject a && "
+           "python3 -m tools.run --out se-b/out.json\n"
+           "31 python3 -u -m tools.run --out se-b/out.json\n"
+           "32 python3 -m tools.run --note tools.wait_for --out se-b/out.json\n")
+    kept, _ = W.matching_pids("se-b/out.json", set(), runner=lambda _p: (0, out))
+    assert kept == [30, 31, 32]
+
+
+def test_the_SHELL_around_another_waiter_is_not_the_subject_either():
+    """Every Bash tool call wraps its command in `bash -c`, so a sibling waiter's shell carries
+    the pattern too. A line whose only occurrence of the pattern is inside wait_for
+    invocations is noise, whatever interpreter flags or prefixes surround it."""
+    out = ("40 /bin/bash -c python3 -m tools.wait_for --pattern se-b/out.json --deadline 60 "
+           "--subject b; exit $?\n"
+           "41 bash -c cd /x && timeout 90 python3 -u -m tools.wait_for --pattern se-b/out.json "
+           "--deadline 60 --subject b\n")
+    kept, raw = W.matching_pids("se-b/out.json", set(), runner=lambda _p: (0, out))
+    assert kept == [] and raw == 0
 
 
 def test_a_malformed_pgrep_line_is_skipped_rather_than_crashing_the_wait():

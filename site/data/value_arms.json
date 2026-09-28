@@ -624,6 +624,7 @@
         "sems_from_zero": 2.4954054412326214,
         "its_own_bar_sems": 2.0,
         "states": "negative",
+        "switch": null,
         "world_digest": "39a192ce04c1eda8",
         "home_digest": null
       },
@@ -675,11 +676,23 @@
         "mean_gbp": 169.60139788889015,
         "mean_stated": "\u00a3169.60",
         "stdev_gbp": 2311.6387631790753,
-        "sem_gbp": 544.8584816992027,
-        "sem_stated": "\u00a3544.86",
-        "sems_from_zero": 0.3112760534808397,
-        "its_own_bar_sems": 2.1098155778333156,
+        "sem_gbp": null,
+        "sem_stated": "an unstated amount",
+        "sems_from_zero": null,
+        "its_own_bar_sems": null,
         "states": "no sign at its own bar",
+        "switch": {
+          "mean_interval_gbp": [
+            -997.6900601405677,
+            937.4861955770598
+          ],
+          "mean_interval_stated": [
+            "\u2212\u00a3997.69",
+            "\u00a3937.49"
+          ],
+          "separation": 9.398534978828435,
+          "why_no_standard_error": "this family is a SWITCH, not a spread: its 18 draws fall into two states \u00a35,387.65 apart, each at most \u00a3514.60 wide (separation 9.4), with the lower state drawn 4 of 18 times. A standard error prices one quantity wobbling about a mean; here the unknown is the RATE at which the switch fires, so the bound is that rate's exact 90% interval (0.080 to 0.439) carried through to the mean: \u00a3-997.69 to \u00a3937.49, which contains zero, so no sign is stated. No standard error and no seed count is published for it."
+        },
         "world_digest": "39a192ce04c1eda8",
         "home_digest": "35f8efe8ff02f245"
       }
@@ -701,7 +714,7 @@
       "what_it_means": "`run_value_cycle_ab --fold` refuses to pool two families whose shared seeds return different `selection_gbp`. A non-zero code is the tool declining to treat these as one family, on the seeds themselves rather than on their summaries.",
       "recorded_in": "docs/staging/records/SEAT_PREREG_THE_EIGHTEEN_SEED_RE_RUN_AT_HEAD_REPRODUCES_THE_SERVED_RESIDUALS_2026-09-25.md"
     },
-    "the_reading": "the served family -- 18 seeds, measured 2026-09-10 states negative -- \u2212\u00a3959.78 on 18 seeds, standard error \u00a3384.62, 2.50 standard errors from zero against a bar of 2.00 -- measured on 4e7938f67 and 9f0ab066f; the same 18 seeds re-run at HEAD -- measured 2026-09-25 states no sign at its own bar -- \u00a3169.60 on 18 seeds, standard error \u00a3544.86, 0.31 standard errors from zero against a bar of 2.11 -- measured on ba9bc6733. The two do not state the same side, and the fold tool refused to pool them (exit 2) on the seeds themselves rather than on their summaries. No direction is stated off this pair, and neither reading is withdrawn.",
+    "the_reading": "the served family -- 18 seeds, measured 2026-09-10 states negative -- \u2212\u00a3959.78 on 18 seeds, standard error \u00a3384.62, 2.50 standard errors from zero against a bar of 2.00 -- measured on 4e7938f67 and 9f0ab066f; the same 18 seeds re-run at HEAD -- measured 2026-09-25 states no sign at its own bar -- \u00a3169.60 on 18 seeds, which fall into two states rather than spreading about one, so no standard error is stated and the mean's 90% interval from the switch rate is \u2212\u00a3997.69 to \u00a3937.49 -- measured on ba9bc6733. The two do not state the same side, and the fold tool refused to pool them (exit 2) on the seeds themselves rather than on their summaries. No direction is stated off this pair, and neither reading is withdrawn.",
     "this_page_states": "NO DIRECTION for the choosing, off either reading. The two readings are what two code trees returned on one set of seeds; the page reports them and states no side.",
     "what_would_settle_this": "A run that establishes what moved between the two trees. The fingerprint of the priced decisions does NOT determine the residual at HEAD -- three of its four fingerprints each span about -GBP4,300 to +GBP1,550 -- so the first question is what outside the priced decisions moves this quantity, and no exact draw count off either family is established until it is answered."
   },
