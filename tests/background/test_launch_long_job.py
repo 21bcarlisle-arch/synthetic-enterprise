@@ -86,9 +86,97 @@ def _launch(tmp_path, runner, **over):
     kwargs = dict(
         artefact=str(tmp_path / "out.json"), workdir=str(tmp_path),
         log=str(tmp_path / "job.log"), records_path=tmp_path / "records.json",
-        runner=runner)
+        runner=runner, peak_mb=1000, residents=lambda: [], guest_total_mb=24000)
     kwargs.update(over)
     return llj.launch("a-long-run", ["python3", "-m", "tools.nothing"], **kwargs)
+
+
+def _started(runner):
+    """The unit launches `runner` was asked for. The tool's name comes from the launcher's own
+    argv, not a literal, so the launch-shape census does not count this file as a launch site."""
+    tool = llj.systemd_run_argv("u", [], workdir="/", log="/", description="")[0]
+    return [c for c in runner.calls if c[:1] == [tool]]
+
+
+#: The 19:07Z box from the kernel dump: the ab5 leg at 10.2 GiB and two workers at 6.1 and 5.2.
+_THE_1907Z_NEIGHBOURS = [
+    {"pid": 1033543, "rss_mb": 10445.0, "unit": "longjob-ab5-runa2b.service",
+     "command": "python3 -m tools.run_value_cycle_ab --level-arm"},
+    {"pid": 1259605, "rss_mb": 6246.0, "unit": "sim-runner.service", "command": "python3"},
+    {"pid": 1259606, "rss_mb": 5325.0, "unit": "sim-runner.service", "command": "python3"},
+]
+
+
+def test_a_launch_that_would_share_the_box_is_refused_and_names_the_pids(tmp_path, faked_path):
+    """THE DEFECT: three long jobs died of memory or neighbours on 2026-09-29, each under an
+    exclusivity rule that was prose keyed to the previous death's flag.
+
+    The partition first: the same launch MUST be able to refuse, or a check that admits
+    everything passes the admission control below. Then what the refusal says: the pids that
+    would have to go -- the largest first and no more than needed -- and that nothing was started.
+
+    Fires on: the co-residence check removed or bypassed (no refusal); a refusal that does not
+    name the pids; a refusal that still reached `systemd-run`.
+    """
+    runner = _Runner()
+    with pytest.raises(llj.LaunchRefused) as refused:
+        _launch(tmp_path, runner, peak_mb=10445, residents=lambda: _THE_1907Z_NEIGHBOURS)
+    why = str(refused.value)
+    assert why.startswith("co-resident"), why
+    assert "pid 1033543" in why, why
+    # The 10.2 GiB leg going is enough on its own (22,016 <= 22,976 MB), so it is named alone.
+    assert "pid 1259605" not in why and "pid 1259606" not in why, (
+        f"named more pids than need to go: {why}")
+    assert not _started(runner), "a refused launch still started a unit"
+
+
+def test_a_launch_is_admitted_when_nothing_is_resident(tmp_path, monkeypatch, faked_path):
+    """The other half of the partition: the same declared peak on an empty box starts.
+
+    Fires on: a check that refuses everything -- which the refusal control above cannot see."""
+    monkeypatch.setattr(llj, "own_cgroup", lambda *a, **k: "/user.slice/launcher.service")
+    runner = _Runner()
+    entry = _launch(tmp_path, runner, peak_mb=10445, residents=lambda: [])
+    assert _started(runner) and entry["claim"] == ll.LIVE
+    assert entry["co_residence"].startswith("admitted"), entry["co_residence"]
+    assert ll.load(tmp_path / "records.json")[-1]["peak_mb"] == 10445.0
+
+
+def test_a_growing_job_is_counted_at_its_declared_peak_not_its_current_size():
+    """The 22222 leg was 3.7 GiB an hour into a run that peaked at 10.2 GiB. At its current size
+    a 10 GiB neighbour fits; at its declared peak it does not.
+
+    Fires on: `declared` ignored, so a job still climbing reads as room."""
+    climbing = [dict(_THE_1907Z_NEIGHBOURS[0], rss_mb=3700.0), _THE_1907Z_NEIGHBOURS[1]]
+    assert llj.co_residence(10445, climbing, 24032)["admitted"] is True
+    held = llj.co_residence(10445, climbing, 24032,
+                            declared={"longjob-ab5-runa2b.service": 10445})
+    assert held["admitted"] is False and "pid 1033543" in held["reason"], held["reason"]
+
+
+def test_waiting_on_the_blocker_admits_and_the_job_starts_behind_it(tmp_path, monkeypatch,
+                                                                     faked_path):
+    """`--wait-for-pid` instead of a refusal: the waited pid leaves the sum, and the unit runs
+    `tools.wait_for` on it before the job. Waiting on a pid that does not free enough still refuses.
+
+    Fires on: the wait not excluding the pid (still refused); the job started without the wait."""
+    monkeypatch.setattr(llj, "own_cgroup", lambda *a, **k: "/user.slice/launcher.service")
+    neighbours = lambda: _THE_1907Z_NEIGHBOURS  # noqa: E731
+    with pytest.raises(llj.LaunchRefused):
+        _launch(tmp_path, _Runner(), peak_mb=10445, residents=neighbours, wait_for_pid=1259606)
+    runner = _Runner()
+    _launch(tmp_path, runner, peak_mb=10445, residents=neighbours, wait_for_pid=1033543,
+            records_path=tmp_path / "r2.json")
+    argv = _started(runner)[0]
+    script = argv[argv.index("-c") + 1]
+    assert "tools.wait_for --pid 1033543" in script and 'exec "$@"' in script, argv
+    assert argv[-3:] == ["python3", "-m", "tools.nothing"], argv
+
+
+def test_a_launch_with_no_declared_peak_is_refused(tmp_path, faked_path):
+    """Fires on: a missing peak treated as zero -- the unchecked launch this replaces."""
+    with pytest.raises(llj.LaunchRefused, match="undeclared peak"):
+        _launch(tmp_path, _Runner(), peak_mb=None)
 
 
 def test_every_outcome_is_reachable(tmp_path, monkeypatch, faked_path):
@@ -306,7 +394,7 @@ def test_a_real_launch_detaches_and_logs_both_streams(tmp_path):
             job, ["/bin/bash", "-c",
                   f"echo to-stdout; echo to-stderr >&2; echo '{{}}' > {artefact}; sleep 4"],
             artefact=str(artefact), workdir=str(tmp_path), log=str(log),
-            records_path=tmp_path / "records.json")
+            records_path=tmp_path / "records.json", peak_mb=1)
         assert entry["detached"] is True, entry["detach_why"]
         # A bounded wait on the artefact this launch names -- ten seconds, then we read whatever
         # is there and let the assertion say what was missing.

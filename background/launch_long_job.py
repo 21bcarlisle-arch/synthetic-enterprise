@@ -54,7 +54,9 @@ WHAT THIS DELIBERATELY DOES NOT DO.
 from __future__ import annotations
 
 import argparse
+import os
 import re
+import shlex
 import shutil
 import subprocess
 import sys
@@ -119,6 +121,144 @@ def systemd_run_argv(unit: str, command: list, *, workdir: str, log: str,
     for key, value in (env or {}).items():
         argv.append(f"--setenv={key}={value}")
     return argv + list(command)
+
+
+def resident_census(proc_root: Path | None = None) -> list[dict]:
+    """Every process on the box with its resident MB, its cgroup's unit and the head of its argv.
+
+    EVERY process, daemons included, and that is a deliberate departure from the rule this
+    replaces ("nothing over 2 GB other than the permanent daemons"). `sim-runner.service` IS a
+    permanent daemon, its cycles peak at ~6 GiB by its own unit summaries, and it restarted
+    minutes before the 19:07Z kill -- a census that exempted daemons would have exempted the
+    likeliest neighbour. The small ones cost a few hundred MB between them; counting them is
+    cheaper than a classifier that can be wrong.
+    """
+    root = proc_root or Path("/proc")
+    rows = []
+    for entry in root.iterdir():
+        if not entry.name.isdigit():
+            continue
+        try:
+            status = (entry / "status").read_text(encoding="utf-8", errors="replace")
+            cgroup = (entry / "cgroup").read_text(encoding="utf-8", errors="replace")
+            argv = (entry / "cmdline").read_bytes()
+        except OSError:
+            continue  # gone between listdir and read, or not ours to read
+        rss_kb = next((int(line.split()[1]) for line in status.splitlines()
+                       if line.startswith("VmRSS:")), 0)  # kernel threads have no VmRSS
+        if not rss_kb:
+            continue
+        leaf = cgroup.strip().splitlines()[-1].rsplit("/", 1)[-1] if cgroup.strip() else ""
+        rows.append({"pid": int(entry.name), "rss_mb": round(rss_kb / 1024, 1), "unit": leaf,
+                     "command": argv.replace(b"\0", b" ").decode(errors="replace").strip()[:100]})
+    return rows
+
+
+def declared_peaks(records_path: Path | None = None) -> dict:
+    """{unit: peak_mb} for every `live` launch record that declared one.
+
+    THIS IS THE LEG THAT WOULD HAVE MATTERED AT 19:07Z. A long job is launched small and grows:
+    the 22222 leg was 3.7 GiB an hour into a run that peaked at 10.2 GiB. Counted at its current
+    RSS, a job still climbing reads as room, and a second one would be admitted beside it.
+    """
+    try:
+        records = launch_liveness.load(records_path)
+    except Exception:  # noqa: BLE001 -- no register means no declarations, not no launch
+        return {}
+    return {r["unit"]: float(r["peak_mb"]) for r in records
+            if r.get("claim") == launch_liveness.LIVE and r.get("unit") and r.get("peak_mb")}
+
+
+def co_residence(peak_mb, residents: list, total_mb, *, declared: dict | None = None,
+                 wait_for_pid: int | None = None) -> dict:
+    """May a job declaring `peak_mb` start beside `residents` on a guest of `total_mb`?
+
+    The sum is resident MB plus the declared peak, against the guest's total less
+    `resource_headroom.RESERVE_FOR_UNDECLARED_MB` -- the kernel, tmpfs, and the growth of every
+    resident counted at today's size rather than its peak. A resident unit that declared a peak
+    is counted at the larger of the two.
+
+    On a refusal, `blockers` is the SMALLEST set of the largest residents whose exit would let
+    the job fit: the pids worth waiting on, not the sixty that were counted. `wait_for_pid`
+    takes that pid out of the sum -- the job will not start until it is gone -- and admits only
+    if what is left then fits.
+    """
+    from background.resource_headroom import RESERVE_FOR_UNDECLARED_MB
+
+    verdict = {"admitted": False, "peak_mb": peak_mb, "total_mb": total_mb,
+               "wait_for_pid": wait_for_pid, "blockers": [], "residents": []}
+    if peak_mb is None or float(peak_mb) <= 0:
+        verdict["reason"] = (
+            "undeclared peak: the job did not say how much memory it will hold (--peak-mb). A "
+            "launch that cannot say its size cannot be checked against its neighbours, and a "
+            "number picked for it here would be read as measured. Take it from the job's own "
+            "last run -- `systemctl --user status longjob-<job>` reports `Memory: ... (peak ...)`")
+        return verdict
+    if total_mb is None:
+        verdict["reason"] = ("unmeasurable: /proc/meminfo gave no MemTotal, so there is no guest "
+                             "to fit the job into. Refusing rather than assuming room")
+        return verdict
+
+    counted = [dict(r, counted_mb=float(r["rss_mb"])) for r in residents]
+    for unit, peak in (declared or {}).items():
+        members = [r for r in counted if r["unit"] == unit]
+        if members:
+            uplift = max(0.0, peak - sum(r["counted_mb"] for r in members))
+            biggest = max(members, key=lambda r: r["counted_mb"])
+            biggest["counted_mb"] += uplift
+            biggest["declared_peak_mb"] = peak
+    waited = [r for r in counted if wait_for_pid is not None and r["pid"] == wait_for_pid]
+    counted = sorted((r for r in counted if r not in waited),
+                     key=lambda r: r["counted_mb"], reverse=True)
+
+    budget = total_mb - RESERVE_FOR_UNDECLARED_MB
+    resident = sum(r["counted_mb"] for r in counted)
+    need = resident + float(peak_mb)
+    verdict.update(budget_mb=round(budget, 1), resident_mb=round(resident, 1),
+                   residents=counted, waited=waited)
+    sums = (f"{resident:.0f} MB resident across {len(counted)} process(es) + {float(peak_mb):.0f}"
+            f" MB declared peak = {need:.0f} MB, against {budget:.0f} MB (guest {total_mb:.0f} MB"
+            f" less {RESERVE_FOR_UNDECLARED_MB} MB reserved)")
+    wait_note = (f"; waiting on pid {wait_for_pid} "
+                 f"({sum(r['counted_mb'] for r in waited):.0f} MB) first" if wait_for_pid else "")
+    if need <= budget:
+        verdict["admitted"] = True
+        verdict["reason"] = f"admitted: {sums}{wait_note}"
+        return verdict
+    if float(peak_mb) > budget:
+        verdict["reason"] = (f"the declared peak alone exceeds the guest: {sums}. No neighbour "
+                             "leaving makes room; the job has to get smaller")
+        return verdict
+    freed = 0.0
+    for r in counted:
+        verdict["blockers"].append(r)
+        freed += r["counted_mb"]
+        if need - freed <= budget:
+            break
+    named = ", ".join(
+        f"pid {r['pid']} {r['counted_mb']:.0f} MB"
+        + (f" (declared peak {r['declared_peak_mb']:.0f})" if "declared_peak_mb" in r else "")
+        + f" [{r['unit']}] `{r['command'][:60]}`" for r in verdict["blockers"])
+    verdict["reason"] = (
+        f"co-resident: {sums}{wait_note}. It fits only once these have gone: {named}. Launch "
+        "after them, or pass --wait-for-pid <pid> to start the job the moment one exits")
+    return verdict
+
+
+def wait_then(command: list, pid: int, *, repo: str | None = None) -> list:
+    """`command`, started only after `pid` exits -- through `tools.wait_for`, never a hand loop.
+
+    The deadline is `wait_for`'s own ceiling. A wait that hits it exits non-zero WITHOUT running
+    the job, and the unit's exit record then says so -- starting it anyway would be the
+    co-residence this exists to refuse, arriving six hours late.
+    """
+    waiter = (f"cd {shlex.quote(repo or str(_REPO))} && {shlex.quote(sys.executable)} -m "
+              f"tools.wait_for --pid {int(pid)} --deadline 21600 --heartbeat 3600 "
+              f"--subject {shlex.quote(f'pid {pid}, which this long job may not share memory with')}")
+    # 0 = it exited, 2 = it was already gone: both mean the memory is free. 1 (deadline) and 3
+    # (could not look) mean it may still hold it, so the job does not start.
+    script = f'({waiter}); rc=$?; case $rc in 0|2) exec "$@";; *) exit $rc;; esac'
+    return ["/bin/sh", "-c", script, "wait-then", *command]
 
 
 def _show(unit: str, *properties: str, runner=subprocess.run) -> dict | None:
@@ -258,7 +398,9 @@ def launch(job: str, command: list, *, artefact: str, workdir: str | None = None
            log: str | None = None, description: str | None = None,
            asserted_live_by=(), env: dict | None = None,
            records_path: Path | None = None, runner=subprocess.run,
-           launched_at: str | None = None, out=None) -> dict:
+           launched_at: str | None = None, out=None, peak_mb=None,
+           wait_for_pid: int | None = None, residents=resident_census,
+           guest_total_mb=None) -> dict:
     """Start `command` in a transient user unit AND write its liveness record. One call, both.
 
     THE ORDER IS THE ARGUMENT, and it is the opposite of the obvious one. The record is written
@@ -282,7 +424,14 @@ def launch(job: str, command: list, *, artefact: str, workdir: str | None = None
     job name. Both are closed, and the ordering here is the half that cannot be fixed in the
     register alone -- no writer can preserve a verdict that was erased before it was asked for.
 
-    Returns the launch record, with `unit`, `detached` and `detach_why` added.
+    AND IT REFUSES TO SHARE THE BOX. `peak_mb` is the job's declared size and `co_residence`
+    weighs it against everything resident; over the guest, the launch is refused with the pids
+    that would have to go, or -- with `wait_for_pid` -- starts the moment that pid exits. Three
+    long jobs died of memory or neighbours on 2026-09-29, each under an exclusivity rule written
+    as prose and keyed to the flag of the previous death. `residents` and `guest_total_mb` are
+    seams for the controls; production reads /proc and `resource_headroom.sample()`.
+
+    Returns the launch record, with `unit`, `detached`, `detach_why` and `co_residence` added.
     """
     def say(line: str) -> None:
         print(line, file=out or sys.stdout)
@@ -308,6 +457,18 @@ def launch(job: str, command: list, *, artefact: str, workdir: str | None = None
             "second copy is how one measurement became six on 2026-08-10. Ask it: "
             f"`systemctl --user show {unit} -p ActiveState`, or "
             "`python3 -m background.launch_liveness --check`.")
+    if guest_total_mb is None:
+        from background.resource_headroom import sample
+        guest_total_mb = sample()["total_mb"]
+    me = os.getpid()
+    verdict = co_residence(
+        peak_mb, [r for r in residents() if r["pid"] != me], guest_total_mb,
+        declared=declared_peaks(records_path), wait_for_pid=wait_for_pid)
+    if not verdict["admitted"]:
+        raise LaunchRefused(verdict["reason"])
+    say(f"  . {verdict['reason']}")
+    if wait_for_pid is not None:
+        command = wait_then(command, wait_for_pid)
     # SETTLE THE PREVIOUS RUN BEFORE THE CORPSE IS CLEARED, AND THE ORDER IS THE WHOLE SUBSTANCE.
     # `clear_a_corpse` runs `systemctl --user reset-failed`, which makes the user manager forget
     # the unit's exit record -- and that record is the one thing `reask()` will accept as evidence
@@ -355,7 +516,7 @@ def launch(job: str, command: list, *, artefact: str, workdir: str | None = None
     try:
         entry = launch_liveness.record(
             job, unit, artefact, log=log, asserted_live_by=list(asserted_live_by),
-            launched_at=launched_at, path=records_path)
+            launched_at=launched_at, path=records_path, peak_mb=peak_mb)
     except Exception as exc:  # noqa: BLE001 -- see the docstring: unrecorded must not stay running
         stop(unit, runner=runner)
         raise LaunchRefused(
@@ -364,7 +525,8 @@ def launch(job: str, command: list, *, artefact: str, workdir: str | None = None
             "every reader of a document claiming it is in flight, and that invisibility is what "
             "this launcher exists to abolish. Fix the record path and relaunch.") from exc
 
-    entry = dict(entry, unit=unit, detached=detached, detach_why=why)
+    entry = dict(entry, unit=unit, detached=detached, detach_why=why,
+                 co_residence=verdict["reason"])
     say(f"launched {job} -> unit {unit}")
     say(f"  cgroup:   {'VERIFIED' if detached else 'UNVERIFIED'} -- {why}")
     say(f"  log:      {log}")
@@ -391,6 +553,11 @@ def main(argv: list | None = None) -> int:
     parser.add_argument("--asserted-live-by", action="append", default=[], metavar="DOC",
                         help="a document that will state this run is in flight (repeatable); it "
                              "is what turns a stale claim into an address")
+    parser.add_argument("--peak-mb", type=float, required=True,
+                        help="the most memory the job will hold, from its own last run. The "
+                             "launch refuses when this plus everything resident exceeds the guest")
+    parser.add_argument("--wait-for-pid", type=int,
+                        help="instead of refusing over this resident, start the job when it exits")
     parser.add_argument("--dry-run", action="store_true",
                         help="print the launch argv and exit, launching and recording nothing")
     parser.add_argument("command", nargs=argparse.REMAINDER)
@@ -409,11 +576,18 @@ def main(argv: list | None = None) -> int:
             unit, command, workdir=args.workdir or str(_REPO),
             log=args.log or f"/var/tmp/{unit}.log",
             description=args.description or f"long job {args.job}", env=env)))
+        from background.resource_headroom import sample
+        verdict = co_residence(args.peak_mb, [r for r in resident_census()
+                                              if r["pid"] != os.getpid()],
+                               sample()["total_mb"], declared=declared_peaks(),
+                               wait_for_pid=args.wait_for_pid)
+        print(verdict["reason"] if verdict["admitted"] else f"WOULD REFUSE: {verdict['reason']}")
         return 0
 
     try:
         launch(args.job, command, artefact=args.artefact, workdir=args.workdir, log=args.log,
-               description=args.description, asserted_live_by=args.asserted_live_by, env=env)
+               description=args.description, asserted_live_by=args.asserted_live_by, env=env,
+               peak_mb=args.peak_mb, wait_for_pid=args.wait_for_pid)
     except LaunchRefused as exc:
         print(f"REFUSED: {exc}")
         return 1

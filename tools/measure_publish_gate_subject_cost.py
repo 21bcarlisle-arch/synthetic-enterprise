@@ -220,7 +220,7 @@ def _launch_under_systemd(out: str, log) -> int:
     return code. A launch that silently did nothing is precisely the failure mode of the four
     attempts this file's comments are made of, and the next reader must be able to tell 'refused'
     from 'running'."""
-    from background import launch_long_job
+    from background import launch_long_job, resource_headroom
 
     _record_launch_header("background.launch_long_job")
     # The launcher narrates to stdout; this harness's own narration is prefixed and flushed, so
@@ -232,7 +232,9 @@ def _launch_under_systemd(out: str, log) -> int:
             [sys.executable, "-m", "tools.measure_publish_gate_subject_cost", "--out", out],
             artefact=out, workdir=str(prc.PROJECT_DIR), log=str(LAUNCH_LOG_FILE),
             description="OPS2 publish-gate subject-cost measurement (one-shot, ~50 min)",
-            out=narration)
+            out=narration,
+            # Its peak is the one `resource_headroom` measured at its OOM kill, not a new number.
+            peak_mb=resource_headroom.CLASS_WEIGHTS_MB["subject_cost"])
     except launch_long_job.LaunchRefused as exc:
         log("! REFUSED: {}".format(exc))
         return 1

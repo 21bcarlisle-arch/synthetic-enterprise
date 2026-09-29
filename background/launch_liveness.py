@@ -336,8 +336,12 @@ def save(records: list, path: Path | None = None) -> None:
 
 def record(job: str, unit: str, artefact: str, *, log: str | None = None,
            rc_path: str | None = None, asserted_live_by: list | None = None,
-           launched_at: str | None = None, path: Path | None = None) -> dict:
+           launched_at: str | None = None, path: Path | None = None,
+           peak_mb=None) -> dict:
     """Write the launch record for `job`. Always writes the claim `live`.
+
+    `peak_mb` is the job's declared size, kept so the NEXT launch counts this one at its peak
+    rather than at whatever it has grown to so far (`launch_long_job.declared_peaks`).
 
     `asserted_live_by` names the documents that state this run is in flight. It is what turns a
     contradiction into an address: the check does not just say a claim went stale, it says which
@@ -393,6 +397,8 @@ def record(job: str, unit: str, artefact: str, *, log: str | None = None,
         "settled_at": None,
         "evidence": None,
     }
+    if peak_mb:
+        entry["peak_mb"] = float(peak_mb)
     records, verdict = load_register(path)
     if prior_unreadable(verdict):
         # BEFORE `save` below, which is the only ordering that keeps anything: `save` writes the
