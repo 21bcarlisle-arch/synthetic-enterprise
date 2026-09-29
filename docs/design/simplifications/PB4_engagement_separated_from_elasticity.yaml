@@ -78,4 +78,6 @@ map_notes:
 
     LANDED: `test_the_refusal_is_keyed_to_the_gap_and_not_unconditional` in `tests/simulation/test_payment_channel_carries_the_engagement_antecedent.py`
 
-    LANDED: `test_the_bill_shock_seam_moves_no_answer_while_its_amplitude_is_absent` in `tests/simulation/test_payment_channel_carries_the_engagement_antecedent.py`'
+    LANDED: `test_the_bill_shock_seam_moves_no_answer_while_its_amplitude_is_absent` in `tests/simulation/test_payment_channel_carries_the_engagement_antecedent.py`
+
+    RESIDUAL (b) SEARCHED 2026-09-29, AND THE ANSWER IS STILL ABSENT: `docs/market_research/does_a_bill_shock_event_raise_the_odds_a_household_shops.md`. No published instrument gives P(shop | shock event) against P(shop | no event). The nearest figures are the wrong conditional (Ofgem CES 2017 prompt shares), the right conditional over other events (complained 33% vs 16%), or states (He & Reiner 2015). The route left is a practitioner one, not another search. The multiplier stays None; the next draw of this atom should not re-run the search.'
