@@ -2269,14 +2269,15 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                 # PB7: THE OBSERVABLE THE COMPANY ALREADY HAS A SEAM FOR, ACTUALLY HANDED OVER.
                 # `SimInterface.get_payment_method` has exposed this since PB6 and no run passed
                 # it, so `payment_method_engagement_factor` returned 1.0 on every account in every
-                # run and the coefficient PB6 landed reached nothing. Resolved from the same
-                # `payment_channel_for_customer` convention the satisfaction gap below uses, and
-                # resi-only for the same reason: an I&C account pays by BACS or CHAPS and the CIM
-                # survey's household banners say nothing about it.
+                # run and the coefficient PB6 landed reached nothing. Resi-only: an I&C account
+                # pays by BACS or CHAPS and the CIM survey's household banners say nothing about it.
+                # READ THROUGH THE SEAM, not from `payment_channel_for_customer` (2026-09-29). The
+                # value is the same today; the route is not -- anything the seam later models (a
+                # CRM miss, a method changed mid-tenure) would otherwise never reach a run.
                 if segment_for_churn == "resi":
-                    from simulation.household_segments import payment_channel_for_customer
-                    _company_payment_method = payment_channel_for_customer(
-                        billing_account, commodity).value
+                    from company.interfaces.sim_interface import LiveSimInterface
+                    _company_payment_method = LiveSimInterface().get_payment_method(
+                        billing_account, commodity)
                 # THE COMPANY'S OWN RECEIVABLE, ASKED FOR AT THE RENEWAL (2026-09-25). The
                 # distress term in `churn_model` used to be a knee on the household's BILL, and
                 # the bill is the wrong variable: Ofgem/BMG puts the bill-to-switching

@@ -105,3 +105,34 @@ def test_the_company_reads_the_published_statistic_and_not_the_worlds_parameter(
     assert "simulation" not in source and "from sim" not in source, (
         "the company's churn model must not reach into the world for this figure"
     )
+
+
+def test_the_run_hands_the_company_its_payment_method_through_the_seam():
+    """THE DEFECT: PB7 wired the run and resolved the method by importing the world's
+    `payment_channel_for_customer` directly, so the only production route around the seam PB6
+    built was the one every run took. Same value today; but anything the seam models that the
+    world function does not would reach tests and never a run.
+
+    Read from the AST, not the text, so the comment that names the old route cannot satisfy it.
+    It also demands the assignment EXISTS: a run that stopped passing the method at all is PB6's
+    original defect and must not read as compliance.
+    """
+    import ast
+    from pathlib import Path
+
+    tree = ast.parse(Path("simulation/run_phase2b.py").read_text(encoding="utf-8"))
+    # Every value assigned except the `None` an I&C account keeps.
+    routes = [
+        node.value
+        for node in ast.walk(tree)
+        if isinstance(node, ast.Assign)
+        and any(isinstance(t, ast.Name) and t.id == "_company_payment_method" for t in node.targets)
+        and not (isinstance(node.value, ast.Constant) and node.value.value is None)
+    ]
+    assert routes, "the run no longer hands the company a payment method at all"
+    for value in routes:
+        assert (isinstance(value, ast.Call) and isinstance(value.func, ast.Attribute)
+                and value.func.attr == "get_payment_method"), (
+            f"the run resolves the company's payment method via {ast.unparse(value)}, "
+            "not SimInterface.get_payment_method"
+        )
