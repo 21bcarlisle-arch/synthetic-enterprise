@@ -3194,6 +3194,11 @@ def retire_continuation(focus_id: str, *, path: Path | None = None) -> bool:
         return False
 
 
+def orientation_path(project_dir: Path | None = None) -> Path:
+    """The DIRECTION.yaml whose `oriented_at` a retirement is keyed to: the shared tree's."""
+    return seat_continuation.shared_tree_dir(project_dir) / "docs" / "direction" / "DIRECTION.yaml"
+
+
 def current_orientation(path: Path | None = None) -> str | None:
     """The `oriented_at` of the direction record as it stands, or None if it cannot be read.
 
@@ -3205,9 +3210,18 @@ def current_orientation(path: Path | None = None) -> str | None:
     an expired one. Every caller treats None as "do not refuse", so the worst case is the re-offer
     behaviour that already exists rather than a promotion route wedged shut by a file it could not
     parse. See `seat_continuation.retire` on why fail-open is right for this one specifically.
+
+    THE SHARED TREE'S RECORD, NOT THIS CHECKOUT'S (2026-09-29). The orienting seat writes
+    DIRECTION.yaml in the shared tree and leaves it staged for hours. An isolated executor
+    worktree holds HEAD's older copy. Before this default, a `--release` from a worktree stamped
+    its retirement 11:21:09Z while the executor's guard compared it against 17:22:34Z. The guard
+    never fired, and the next promotion's `hand_off` deleted the retired entry.
+    `a-long-job-that-dies-is-shown-dead-in-the-brief` was redrawn twice after landing that way.
+    The retirement and the guard must read one record, so this default resolves the way
+    `seat_continuation.STORE` does. See `orientation_path`.
     """
     try:
-        record = direction_mod.read_direction(path)
+        record = direction_mod.read_direction(orientation_path() if path is None else path)
         return record.oriented_at.isoformat() if record is not None else None
     except Exception:  # noqa: BLE001 - the draw must never go down for want of a timestamp
         return None
