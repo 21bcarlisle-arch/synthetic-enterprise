@@ -119,3 +119,15 @@ prepayment factor still reads below 1.0, because the prior dominates at n~20 and
 changes the prior. The planted arm still does not recover 0.307, because the plant still acts on
 decisions reached and not on departure per decision. Company prior (2) still waits on the
 practitioner answer.
+
+## Re-run on the repaired world: queued (2026-09-29 21:27Z, worker tick)
+
+The three arms are queued as ONE serial job, `longjob-pb6-eh2-rerun-repaired-world`, in a worktree
+pinned at `b50a03519` (`/var/tmp/se-pb6-eh2r-b50a03519`, contains `19a58b44d`). The order is null,
+then planted, then head, and the output goes to `/var/tmp/pb6_eh2r/<arm>.json`. It waits on pid
+1592398, the ab5 leg `longjob-ab5-runa2c`, so it never shares the box with that leg's 10.2 GiB peak.
+The declared peak is 6500 MB per arm, taken from the 6.1 GiB `run_phase2b` cycle seen at 19:07Z.
+Expect the result about 1h10m after the leg finishes, plus roughly 3 x 30 min.
+
+The predictions are the ones filed above, before this launch, and are not restated with any change:
+null prepayment factor < 1.0, and planted does not recover 0.307. Grading them is the next step.
