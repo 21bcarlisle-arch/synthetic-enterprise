@@ -812,7 +812,7 @@ HOW TO LAND, and there is no other way:
   2. `python3 -m tools.promote_worktree_landing . --work-id <your claim id>` — gets the landing onto
      origin/main, or refuses with a named cause. If it refuses because origin moved, re-gate on the
      new base and land again. Never force anything.
-     THIS IS WHAT THE TURN IS JUDGED ON, and passing --work-id is what makes it so: the push also
+     Run it with --work-id: that is what records the work as done. The push also
      BINDS the paths that commit touched to your claim, and prints what it bound or the named
      reason it could not. When the turn ends, the executor asks whether those bound paths moved on
      the SHARED tree; a turn that landed nothing, or that committed here and never ran step 2, is

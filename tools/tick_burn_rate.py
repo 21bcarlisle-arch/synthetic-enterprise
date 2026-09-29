@@ -30,12 +30,31 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import statistics
 import time
 from collections import defaultdict
 from pathlib import Path
 
 PROJECTS = Path.home() / ".claude" / "projects"
+
+#: A turn LANDED if its tool results carry the landing door's own success line. The executor and the
+#: ticks land through `tools.surgical_land`; an orientation turn never lands (its record is committed
+#: for it), so its rate is reported as not applicable rather than as a false 0%.
+_LANDED = re.compile(r"\[surgical-land\] landed [0-9a-f]{7,}")
+
+#: PROMPT CHANGES UNDER MEASUREMENT (director, 2026-09-29): "compare landing rate per turn type
+#: before and after in the Friday burn review, and put the capitals back if plain wording lands
+#: less." A turn's variant is read from the prompt it actually RECEIVED -- its own transcript --
+#: so the split needs no change timestamp and cannot mis-assign a turn that ran on a stale checkout.
+PROMPT_CHANGES = (
+    {"id": "prompt-audit-2026-09-29", "kind": "seat_executor",
+     "old": "THIS IS WHAT THE TURN IS JUDGED ON", "new": "Run it with --work-id: that is what records",
+     "reverse": "restore the capitalised line in the `background.seat_executor` CHARTER"},
+    {"id": "prompt-audit-2026-09-29", "kind": "worker_tick",
+     "old": "then STOP and exit cleanly", "new": "via tree_lock, and exit.",
+     "reverse": "restore the capitalised `background.worker_tick` WORKER_PREAMBLE"},
+)
 
 #: A turn's kind, from the first words of its opening prompt. Unknown openings are counted, never
 #: dropped, so a new seat shows up as `other` rather than vanishing from the table.
@@ -75,7 +94,9 @@ def _text(content) -> str:
 
 def read_turn(path: Path) -> dict | None:
     """One session file -> {kind, model, tokens by class, weighted $, started}; None if it is not a turn."""
-    opening, model, started = None, None, None
+    if path.suffix != ".jsonl":   # only Claude Code's own transcripts are read here
+        return None
+    opening, model, started, landed = None, None, None, False
     tot = defaultdict(int)
     weighted = 0.0
     for line in path.read_text(errors="replace").splitlines():
@@ -84,15 +105,24 @@ def read_turn(path: Path) -> dict | None:
         except ValueError:
             continue
         started = started or row.get("timestamp")
-        if row.get("type") == "user" and opening is None:
-            opening = _text((row.get("message") or {}).get("content"))
+        if row.get("type") == "user":
+            content = (row.get("message") or {}).get("content")
+            if opening is None:
+                opening = _text(content)
+            elif not landed and isinstance(content, list):
+                for block in content:
+                    if isinstance(block, dict) and block.get("type") == "tool_result":
+                        body = block.get("content")
+                        text = body if isinstance(body, str) else json.dumps(body)
+                        if _LANDED.search(text or ""):
+                            landed = True
         if row.get("type") != "assistant":
             continue
         msg = row.get("message") or {}
         u = msg.get("usage") or {}
         if not u:
             continue
-        if (msg.get("model") or "").startswith("<"):   # `<synthetic>`: a harness placeholder, not a model call
+        if msg.get("model") == "<synthetic>":   # a harness placeholder message, not a model call
             continue
         model = msg.get("model") or model
         cc = u.get("cache_creation") or {}
@@ -112,7 +142,7 @@ def read_turn(path: Path) -> dict | None:
     if opening is None or model is None:
         return None
     return {"kind": kind_of(opening), "model": model, "started": started, "weighted_usd": weighted,
-            **dict(tot)}
+            "landed": landed, "opening": opening[:20000], **dict(tot)}
 
 
 def turns(days: float = 7.0, now: float | None = None, root: Path = PROJECTS) -> list[dict]:
@@ -139,6 +169,8 @@ def table(rows: list[dict], days: float) -> list[dict]:
                     "median_fresh_tokens": int(statistics.median(fresh)),
                     "median_cache_read_tokens": int(statistics.median(r.get("cache_read", 0) for r in rs)),
                     "median_weighted_usd": round(statistics.median(w), 3),
+                    "landed_pct": None if kind == "delivery_seat"
+                    else round(100 * sum(r["landed"] for r in rs) / len(rs)),
                     "week_weighted_usd": round(sum(w), 2)})
     return out
 
@@ -147,12 +179,39 @@ def render(days: float = 7.0, now: float | None = None, root: Path = PROJECTS) -
     rows = table(turns(days, now, root), days)
     if not rows:
         return f"No turns found in the last {days:g} days under `{root}` -- nothing measured, which is not zero."
-    head = ("| kind | model | turns | per day | median fresh tokens | median cache-read tokens "
-            "| median weighted $ | total weighted $ |\n|---|---|---|---|---|---|---|---|")
+    head = ("| kind | model | turns | per day | landed | median fresh tokens | median cache-read tokens "
+            "| median weighted $ | total weighted $ |\n|---|---|---|---|---|---|---|---|---|")
     body = "\n".join(f"| {r['kind']} | {r['model']} | {r['turns']} | {r['turns_per_day']} | "
+                     f"{'n/a' if r['landed_pct'] is None else str(r['landed_pct']) + '%'} | "
                      f"{r['median_fresh_tokens']:,} | {r['median_cache_read_tokens']:,} | "
                      f"{r['median_weighted_usd']} | {r['week_weighted_usd']} |" for r in rows)
-    return head + "\n" + body
+    return head + "\n" + body + "\n\n" + render_changes(turns(days, now, root))
+
+
+def change_effects(rows: list[dict]) -> list[dict]:
+    """Per prompt change: turns and landing rate on the OLD wording against the NEW, by kind."""
+    out = []
+    for ch in PROMPT_CHANGES:
+        arms = {}
+        for arm in ("old", "new"):
+            rs = [r for r in rows if r["kind"] == ch["kind"] and ch[arm] in (r.get("opening") or "")]
+            arms[arm] = {"turns": len(rs),
+                         "landed_pct": round(100 * sum(r["landed"] for r in rs) / len(rs)) if rs else None}
+        out.append({**ch, **{f"{a}_{k}": v for a, d in arms.items() for k, v in d.items()}})
+    return out
+
+
+def render_changes(rows: list[dict]) -> str:
+    lines = ["**Prompt changes under measurement** (landing rate on the old wording vs the new; "
+             "revert a change whose new arm lands less, once both arms have turns):", ""]
+
+    def fmt(n, p):
+        return f"{n} turns, " + ("no turns yet" if p is None else f"{p}% landed")
+
+    for e in change_effects(rows):
+        lines.append(f"- `{e['id']}` {e['kind']}: old {fmt(e['old_turns'], e['old_landed_pct'])}; "
+                     f"new {fmt(e['new_turns'], e['new_landed_pct'])}. To revert: {e['reverse']}.")
+    return "\n".join(lines)
 
 
 def main(argv=None) -> int:
