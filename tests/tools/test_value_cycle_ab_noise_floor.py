@@ -1112,6 +1112,41 @@ def test_seeds_whose_REALISED_counts_differ_are_the_normal_case_and_not_a_mixed_
     assert "never on `realised_across_seeds`" in block["how_a_consumer_should_pair_this"]
 
 
+def _seeds_in_weather(*worlds):
+    """A runner whose Nth seed ran in `worlds[N]` -- a (before, after) bracket, same book."""
+    seen = {"n": 0}
+
+    def _run():
+        before, after = worlds[seen["n"]]
+        seen["n"] += 1
+        return _runner_with_book(dict(_book(), weather_store_before_arm=before,
+                                      weather_store_after_arm=after))()
+    return _run
+
+
+def test_the_weather_reconciliation_reaches_every_state_across_seeds():
+    """PARTITION CONTROL over the floor's weather axis, in one test: agreement names the store,
+    a store swapped BETWEEN seeds or INSIDE one seed's arm refuses, and an unrecorded bracket
+    (a seed from before 2026-09-29) blanks it with a reason rather than pairing on the others.
+
+    Fires on: the refusal removed (the swap pairs as one floor -- the 2026-09-29 shape one level
+    up), the refusal made unconditional, or a partial record reported as agreement.
+    """
+    same = noise_floor([11111, 22222], runner=_seeds_in_weather(("w1", "w1"), ("w1", "w1")))
+    partial = noise_floor([11111, 22222], runner=_seeds_in_weather(("w1", "w1"), (None, "w1")))
+    assert same["book_identity"]["weather_store"] == "w1"
+    assert same["book_identity"]["weather_store_unavailable_because"] is None
+    assert partial["book_identity"]["weather_store"] is None
+    assert "1 of 4 weather-store brackets" in (
+        partial["book_identity"]["weather_store_unavailable_because"])
+    # The book is unchanged by the weather axis: it still pairs on `declared`.
+    assert partial["book_identity"]["declared"] is not None
+
+    for between_or_inside in ((("w1", "w1"), ("w2", "w2")), (("w1", "w1"), ("w1", "w2"))):
+        with pytest.raises(AssertionError, match="2 different weather stores"):
+            noise_floor([11111, 22222], runner=_seeds_in_weather(*between_or_inside))
+
+
 def test_each_seed_row_carries_the_book_size_the_range_is_taken_over():
     """A published range whose rows a reader cannot check is a figure to be trusted rather than
     re-answered, which is the shape every other spread in this artefact already avoids."""

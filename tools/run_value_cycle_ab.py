@@ -1102,7 +1102,7 @@ def floor_book_identity(books: list[dict | None]) -> dict:
     population, and the two are separate questions a consumer has to be able to ask separately.
 
     REFUSES A MIXED FLOOR, for the same reason `clock` does one block down: seeds drawn over
-    different books are not repeated draws of one quantity, so no error bar can be taken from
+    different books, or in different weather worlds, are not repeated draws of one quantity, so no error bar can be taken from
     them. FAILS CLOSED to `None` with a named reason when ANY seed recorded no book -- a partial
     record must not pair, and a `None` a consumer can see is what stops it.
     """
@@ -1114,8 +1114,32 @@ def floor_book_identity(books: list[dict | None]) -> dict:
             "spread of one quantity and no error bar can be taken from it".format(
                 len(distinct),
                 sorted(str(list(d)) for d in distinct)))
+    # THE WEATHER WORLD, ACROSS SEEDS. Each seed's run already refuses arms on two stores
+    # (`same_book_across_arms`), but that guards one run; two seeds of one floor are two runs,
+    # hours apart, in a tree that can be landed into between them -- the 2026-09-29 swap one level
+    # up (`SEAT_FINDING_A_MULTI_ARM_RUN_REREADS_THE_WEATHER_STORE_FROM_A_TREE_THAT_MOVES_UNDER_IT_
+    # 2026-09-29`). Every bracket of every seed enters, so a swap inside the arm read is caught
+    # too. Kept OUT of `declared`: that is the pairing key consumers already compare, and a seed
+    # written before the brackets existed must read as cannot-tell there, not as a new book.
+    brackets = [b.get(k) if isinstance(b, dict) else None
+                for b in books
+                for k in ("weather_store_before_arm", "weather_store_after_arm")]
+    weather = {d for d in brackets if isinstance(d, str)}
+    if len(weather) > 1:
+        raise AssertionError(
+            "the seeds ran on {} different weather stores ({}), so their spread is not the "
+            "spread of one quantity and no error bar can be taken from it".format(
+                len(weather), sorted(weather)))
+    unread = sum(1 for d in brackets if not isinstance(d, str))
+    agreed_weather = next(iter(weather)) if weather and not unread else None
     silent = sum(1 for d in declared if d is None)
     block: dict = {
+        "weather_store": agreed_weather,
+        "weather_store_unavailable_because": (
+            None if agreed_weather is not None else
+            "{} of {} weather-store brackets across {} seeds were not recorded, so which weather "
+            "world this floor was drawn in is not established for the floor as a whole".format(
+                unread, len(brackets), len(books))),
         "declared": (
             dict(zip(BOOK_DECLARED_FIELDS, distinct.pop()))
             if distinct and not silent else None),
