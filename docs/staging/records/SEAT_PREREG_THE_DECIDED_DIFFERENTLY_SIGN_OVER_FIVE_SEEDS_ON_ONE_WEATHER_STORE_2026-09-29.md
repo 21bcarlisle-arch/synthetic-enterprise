@@ -69,3 +69,9 @@ Given P3(a)'s arithmetic, the prediction is: **not distinguishable at five seeds
 - **Grader:** a script over both artefacts. It reads `decided_differently_by_account`, the arms' `*_net_by_account_gbp` and the `*_arrears_lines_by_account_gbp`.
 - **Checks before grading:** the per-account sums reconcile to `selection_gbp`, and the arrears lines reconcile per account.
 - **Output:** a `SEAT_RESULT_` beside this file, with one row per prediction and per seed. Its first row is each arm's weather-store digest and the `same_weather_store` verdict.
+
+**Launch record, appended 2026-09-29 ~17:35Z (tick worker):**
+- **`longjob-ab5-runa2` (22222 alone) died at 16:08:02 local, status 1, after waiting 3h09m for its predecessors.** It passed both of `legA.sh`'s checks, then `noise_floor` raised `a noise floor needs at least two seeds; got 1` (`/var/tmp/se-ab5-out/runA2.log`). A one-seed leg was never admissible, so no 22222 figure exists.
+- The worktree had been removed by then. It was re-created at b79e2c0e8 and the digest re-checked (`e11451b5…d242`).
+- Relaunched at 17:35:09Z as `longjob-ab5-runa2b`: `legA.sh runA2.json 22222,33333`. 33333 is added so the floor admits the leg, and it doubles as a replicate of runB's 33333. The log is `runA2b.log`.
+- Seeds 11111 and 88888 were graded in increment 2 of the result before this relaunch. 22222's own figure had not been seen by anyone.

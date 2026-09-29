@@ -49,3 +49,57 @@ Reconciliation: on both seeds, the per-account differences sum exactly to `selec
 - **P3(b)**, the pooled account-level sign test. For B alone it is +45 / −46, p=1.000, which is not a grade.
 - The seeds-needed figure.
 - The plain answer.
+
+---
+
+# INCREMENT 2: seeds 11111 and 88888 graded, and the pooled lines over four seeds
+
+**Grader:** `python3 /var/tmp/se-ab5-out/grade5.py runB.json runA1.json`, run at ~17:34Z on 2026-09-29 (tick worker). `runA1.json` was written at 16:07 local by `longjob-ab5-runa1`. Everything above this line is left as written.
+
+**Seed 22222 is MISSING.** `longjob-ab5-runa2` waited 3h09m for its predecessors, passed both of `legA.sh`'s checks (code equal to b79e2c0e8 outside `docs/`, and digest e11451b5…d242), then died at 16:08:02 local, status 1. The cause is in `/var/tmp/se-ab5-out/runA2.log`: `noise_floor` raises `AssertionError: a noise floor needs at least two seeds; got 1` (`tools/run_value_cycle_ab.py:6612` at b79e2c0e8). A one-seed leg was never admissible, and nothing checked that when the legs were split. No 22222 figure exists. The leg is relaunched as `22222,33333`; see the end of this increment.
+
+## W — the weather store, runA1
+
+| artefact | digest | verdict |
+|---|---|---|
+| `runA1.json` (11111, 88888) | `e11451b5…d242`, the only digest across both artefacts, equal to the launch digest | **HOLDS** |
+| `runA2.json` (22222) | not written | MISSING |
+
+## Per-seed lines (runA1)
+
+Reconciliation: on both seeds the per-account differences sum exactly to `selection_gbp`, and both arms' arrears lines reconcile with 0 accounts off.
+
+| line | prediction | 11111 | 88888 |
+|---|---|---|---|
+| selection (context) | — | −£4,873.11 | +£958.02 |
+| **P1** D ex-0098 | positive, +£300 to +£1,800 | +£1,111.11, n=69: **HOLDS** | +£1,109.49, n=69: **HOLDS** |
+| per-seed sign test, D ex-0098 | (context) | +24 / −22, p=0.883 | +24 / −22, p=0.883 |
+| **P2** A within ±£25 | yes | +£1.19, n=94: **HOLDS** | −£1.89, n=94: **HOLDS** |
+| P2 refutation line \|A\| > £100 | not breached | not breached | not breached |
+| **P4** D size 60–70 | yes | 70/164, or 69 ex-0098: **HOLDS** | 70/164, or 69 ex-0098: **HOLDS** |
+| roster-only | — | n=0 | n=0 |
+| PROS-2016-0098 (excluded churn roll) | — | −£5,985.41 | −£149.57 |
+
+As predicted, neither seed reproduces the `5f05e0068` figures (+£900 and +£1,197); the store changed in between.
+
+## Pooled lines over four seeds (11111, 33333, 44444, 88888)
+
+| line | prediction | result | verdict |
+|---|---|---|---|
+| **P3(a)** seed-level sign of D ex-0098 | 4 or 5 positive of 5 | **3/4 positive**, exact sign p=0.625. Mean +£674.57, sd £823.63, 95% t-CI [−£636.02, +£1,985.16] | Still reachable only if 22222 is positive. At four seeds: **not distinguishable** |
+| seeds needed | (the result must state it) | **~6** seeds at this spread for mean/SE > 1.96 | — |
+| **P3(b)** pooled account-level sign test | p > 0.05 | **+93 / −90, p=0.883** | **HOLDS** (and the pairs are not independent across seeds, so even this overstates the evidence) |
+| "all five positive" | ~25% | refuted in increment 1 (44444) | REFUTED |
+
+**Roster-only successor fold (UNGRADED, not a prereg line).** Folding each home-move successor into its predecessor, only 44444 changes: `C5_2` into C5 moves D ex-0098 from −£559.81 to **+£785.66**. With the fold, all four seeds are positive: mean +£1,010.94, sd £154.06, 95% t-CI [+£765.83, +£1,256.04]. The lineage is read from `saas.customers`, because the artefact predates the `successor_of` field. That is a post-hoc re-keying, so it is reported beside the pre-registered D and does not replace it.
+
+**Not graded by any prereg line, and worth saying.** The whole four-seed ambiguity in the pre-registered D rests on one account pair on one seed. `C5_2` is C5's home-move successor, created because the value arm's price churned C5 on a roll the level arm survived. So it is a decision, not a harness leak (`3e608eefc`). The pre-registered D keys decisions by account, which is too narrow: it leaves a decision's consequence in the roster-only bucket. The seeds-needed figure of ~6 is almost entirely the width that one pair adds. Two further things are seen in the artefacts and not graded. First, D's composition is nearly identical on every seed: the same top accounts carry it, at the same amounts to the penny (SYN-2016-013 +£603.93, SYN-2016-055 +£491.58, PROS-2020-0304 +£417.25, SYN-2016-064 −£409.62). So the seeds are far from independent draws of D, and the t-CI over seeds describes the few draws that differ. Second, the seeds fall into two states on 0098's churn roll: 11111 and 44444 give about −£5,985, and 33333 and 88888 give −£149.57, with A exactly −£1.89 on both. That is the two-state switch in `SEAT_FINDING_THE_SELECTION_RESIDUAL_IS_A_TWO_STATE_SWITCH_PRICED_AS_A_GAUSSIAN_SPREAD_AND_THE_LEVEL_ARM_CARRIES_ALL_OF_IT_2026-09-27.md`, now visible across seeds.
+
+**Plain answer at four seeds (interim, not the prereg's five-seed answer):** on the pre-registered D, **we cannot yet say**. D is positive on 3 of 4 seeds, and the t-CI spans zero. About 6 seeds would be needed at this spread. With the successor fold, D is positive on all four seeds, with a CI clear of zero. But that is a re-keying made after seeing 44444, so it is a lead, not a grade.
+
+## Relaunch of 22222
+
+- By 16:08 the pinned worktree `/var/tmp/se-ab5-b79e2c0e8` had been removed. It was re-created at 17:34Z with `git worktree add --detach` at `b79e2c0e8`. `weather_store_digest()` there = `e11451b5…d242`, equal to the prereg's, because the store is tracked in the repo (`sim/weather_world/`).
+- No other `--level-arm` process was resident. It was launched at 17:35:09Z as unit `longjob-ab5-runa2b` through `background.launch_long_job` under `setsid`, with its own cgroup verified. The command is `legA.sh /var/tmp/se-ab5-out/runA2.json 22222,33333`, with no predecessor pids, and the log is `/var/tmp/se-ab5-out/runA2b.log`.
+- 33333 is paired so that `noise_floor` admits the leg. It also replicates runB's 33333 from the same code and store. **Prediction, written before it finishes:** 33333 reproduces runB's D ex-0098 of +£1,037.49 to the penny. The run is seeded and the code and store are pinned, so any difference is a nondeterminism finding in its own right.
+- Increment 3 gives the five-seed plain answer and the 33333 replicate verdict when `runA2.json` lands.
