@@ -76,6 +76,7 @@ THREE RULES CAME OUT OF IT, and each is a branch below rather than a comment:
 from __future__ import annotations
 
 import os
+import re
 import subprocess
 import sys
 import tempfile
@@ -94,6 +95,9 @@ WORKTREE = Path(os.environ.get("SE_RECONCILE_WORKTREE", "/var/tmp/se-origin-reco
 #: CLAUDE.md's own "commits take more than ten minutes"), short enough that a wedged merge frees
 #: the next cadence rather than sitting forever.
 MERGE_TIMEOUT_SECONDS = 25 * 60
+
+#: The test leg a `surgical_land` receipt records, e.g. `tests: 1427 passed, 2 skipped in 1570.17s`.
+_RECEIPT_TESTS_SECONDS = re.compile(r"^tests: .* in ([0-9]+(?:\.[0-9]+)?)s", re.MULTILINE)
 
 #: How long the advance waits for the shared tree lock before giving the cadence back. A REFUSAL,
 #: not a wait: the reconciler runs every 5 minutes, so a missed window costs one cadence, while a
@@ -1568,7 +1572,7 @@ def shared_tree(start: Path | None = None) -> Path | None:
 def reconcile(project: Path | None = None, *, worktree: Path | None = None,
               state_fn=None, behind_fn=None, ahead_fn=None, runner=None, pusher=None,
               make_worktree=None, drop_worktree=None, gate_fn=None, blockers_fn=None,
-              advance_fn=None) -> dict:
+              advance_fn=None, budget_fn=None) -> dict:
     """Close the fork with origin, or say exactly why it stayed open. Never raises.
 
     Returns {"status", "detail", "behind", "pushed"}. Fully injectable, because every one of its
@@ -1666,7 +1670,15 @@ def reconcile(project: Path | None = None, *, worktree: Path | None = None,
         # THE SANCTIONED DOOR, RUN INSIDE THE ISOLATION. `surgical_land --merge` gates the tree the
         # merge would create and refuses on conflict; both properties are inherited rather than
         # reimplemented, so this module adds isolation and a caller, and no new way to commit.
-        merge = (runner or _run_merge)(worktree)
+        budget, budget_why = (budget_fn or merge_budget)(project)
+        try:
+            merge = runner(worktree) if runner else _run_merge(worktree, budget)
+        except subprocess.TimeoutExpired:
+            return {"status": ERROR, "behind": behind, "pushed": False,
+                    "detail": "the merge's gate outran its budget of {}s ({}) and was killed, so "
+                              "nothing was pushed. A cause that recurs every cadence is a gate "
+                              "slower than any receipt it brings in -- time the selection, do "
+                              "not raise the base".format(budget, budget_why)}
         if merge.returncode != 0:
             status, detail = _classify_merge_failure((merge.stdout or "") + (merge.stderr or ""))
             return {"status": status, "behind": behind, "pushed": False, "detail": detail}
@@ -1716,11 +1728,48 @@ def reconcile(project: Path | None = None, *, worktree: Path | None = None,
         (drop_worktree or _drop_worktree)(project, worktree)
 
 
-def _run_merge(worktree: Path) -> subprocess.CompletedProcess:
+def merge_budget(project: Path | None = None, *, log_fn=None) -> tuple[int, str]:
+    """How long the merge's gate may run: `MERGE_TIMEOUT_SECONDS` PLUS the slowest test leg any
+    incoming commit's own receipt recorded. Returns `(seconds, why)`.
+
+    WHY A FIXED 25 MINUTES WEDGED THE FORK (measured 2026-09-29). `f997f8bf7` landed on origin with
+    a receipt reading `tests: 1427 passed ... in 1570.17s` -- 26 minutes of tests for its subject
+    alone. A merge that closes the fork carries every incoming commit's diff, so its selection holds
+    that subject too, and its gate can never finish inside 25 minutes. From 00:10Z every cadence
+    ran the merge, was killed at the limit, and logged `ERROR: TimeoutExpired`, while HEAD fell 24
+    -> 37 behind. The limit guarded against a wedged merge and could not tell a wedge from a gate
+    that was simply bigger than the number.
+
+    THE FLOOR IS READ, NOT PICKED. A merge's gate runs at least the incoming subject's tests, and
+    that commit's receipt is a measurement of what those tests cost on this box. The base keeps the
+    reason it was given (the other gates, the site lane, a wedge guard), so the two are ADDED. With
+    no parsable receipt the budget is the base alone, which is the old behaviour.
+    """
+    project = project or PROJECT_DIR
+    try:
+        log = (log_fn or (lambda: _git(project, "log", "--format=%h%x00%B%x01",
+                                       "HEAD..{}/{}".format(REMOTE, BRANCH)).stdout))() or ""
+    except (OSError, subprocess.SubprocessError):
+        log = ""
+    slowest, which = 0.0, ""
+    for entry in log.split("\x01"):
+        sha, _, body = entry.strip().partition("\x00")
+        for found in _RECEIPT_TESTS_SECONDS.findall(body):
+            if float(found) > slowest:
+                slowest, which = float(found), sha
+    if not which:
+        return MERGE_TIMEOUT_SECONDS, "base {}s; no incoming receipt records a test leg".format(
+            MERGE_TIMEOUT_SECONDS)
+    budget = MERGE_TIMEOUT_SECONDS + int(slowest + 0.5)
+    return budget, "base {}s + {}s, the slowest incoming test leg ({}'s receipt)".format(
+        MERGE_TIMEOUT_SECONDS, int(slowest + 0.5), which)
+
+
+def _run_merge(worktree: Path, timeout: int = MERGE_TIMEOUT_SECONDS) -> subprocess.CompletedProcess:
     return subprocess.run(
         [sys.executable, "-m", "tools.surgical_land", "--merge",
          "{}/{}".format(REMOTE, BRANCH), "-m", _MERGE_MESSAGE],
-        cwd=str(worktree), capture_output=True, text=True, timeout=MERGE_TIMEOUT_SECONDS,
+        cwd=str(worktree), capture_output=True, text=True, timeout=timeout,
         env=dict(os.environ, PYTHONPATH=str(PROJECT_DIR)))
 
 
