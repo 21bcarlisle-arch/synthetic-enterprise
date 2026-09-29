@@ -611,6 +611,28 @@ def _show_exec_start_pre(session: str) -> str:
     return r.stdout or "" if getattr(r, "returncode", 1) == 0 else ""
 
 
+def records_discarded_by_reload(started_at: float | None, reloaded_at: float | None) -> bool:
+    """PURE. True iff systemd's last `daemon-reload` came AFTER this unit's current start.
+
+    systemd keeps `ExecStartPre` exec status in memory only and drops it on reload, so every
+    stamper record then reads `start_time=[n/a]` until the unit next restarts -- measured
+    2026-09-29: a reload at 04:23:26 blanked all ten running units' records, and the live stamper
+    tests read that as a broken reader. Unknown on either side is False: an unanswerable question
+    must never excuse a missing record."""
+    return started_at is not None and reloaded_at is not None and reloaded_at > started_at
+
+
+def unit_start_and_manager_reload(session: str) -> tuple[float | None, float | None]:
+    """`(ActiveEnterTimestamp of session's unit, the user manager's UnitsLoadTimestamp)` as epochs,
+    either None if systemd cannot say. The manager's timestamp moves on every daemon-reload."""
+    def show(*argv: str) -> float | None:
+        r = subprocess.run(["systemctl", "--user", "show", *argv, "--value"],
+                           capture_output=True, text=True)
+        return _systemd_timestamp(r.stdout) if r.returncode == 0 else None
+    return (show(f"{session}.service", "-p", "ActiveEnterTimestamp"),
+            show("-p", "UnitsLoadTimestamp"))
+
+
 def observed_launched_by(entries: list[dict], unit_states: dict[str, dict],
                          main_pids: dict[str, int],
                          cgroup_of=lambda pid: "") -> dict[str, str | None]:

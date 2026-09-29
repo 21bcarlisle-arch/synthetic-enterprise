@@ -291,7 +291,21 @@ def test_the_stamper_run_clock_is_systemds_own_record_and_not_a_reconstruction()
         assert 1_500_000_000 < run["ran_at"] <= time.time() + 1, unit
         if run["finished_at"] is not None:
             assert run["ran_at"] <= run["finished_at"], unit
+    if not seen:
+        _skip_if_a_reload_blanked_every_record(u[: -len(".service")] for u in declared)
     assert seen, "vacuity: no declaring unit had a recorded stamper run to grade"
+
+
+def _skip_if_a_reload_blanked_every_record(sessions):
+    """A daemon-reload after a unit's start blanks its stamper record until it restarts, so an
+    empty population is then the manager's, not the reader's. Skip ONLY if every started unit is
+    explained that way; one started since the reload with no record still reds the vacuity guard."""
+    clocks = {s: R.unit_start_and_manager_reload(s) for s in sessions}
+    started = {s: c for s, c in clocks.items() if c[0] is not None}
+    if started and all(R.records_discarded_by_reload(*c) for c in started.values()):
+        pytest.skip(f"systemd daemon-reload at {max(c[1] for c in started.values()):.0f} postdates "
+                    f"the start of all {len(started)} running declaring units, discarding their "
+                    f"ExecStartPre records -- nothing to grade until one restarts")
 
 
 def _live_boot_dir(sessions):
@@ -378,11 +392,23 @@ def test_a_stamp_written_inside_its_own_recorded_stamper_window_is_GRADED_on_thi
         # fraction of that second is still this boot's. Compare against the whole second after it.
         if run["ran_at"] <= stamped < (run["finished_at"] or run["ran_at"]) + 1:
             qualifying.append(session)
+    if not qualifying:
+        _skip_if_a_reload_blanked_every_record(d["population"])
     assert qualifying, "vacuity: no daemon on this box stamped inside its own stamper window"
     for session in qualifying:
         assert unresolved.get(session) != "stamp-predates-process", (
             f"{session} stamped inside its own recorded stamper window and was refused as "
             f"stamp-predates-process -- the comparison clock is wrong, not the fleet")
+
+
+def test_a_reload_excuses_a_missing_stamper_record_only_when_it_postdates_the_start():
+    """The live vacuity guards skip on this excuse, so it must be refusable: a unit started AFTER
+    the reload, or either clock unknown, is never excused -- or the guards could never red."""
+    assert R.records_discarded_by_reload(100.0, 200.0)
+    assert not R.records_discarded_by_reload(200.0, 100.0)
+    assert not R.records_discarded_by_reload(100.0, 100.0)
+    assert not R.records_discarded_by_reload(None, 200.0)
+    assert not R.records_discarded_by_reload(100.0, None)
 
 
 @pytest.mark.real_subprocess   # the fail-closed path must hold for the REAL reader, not a stub
