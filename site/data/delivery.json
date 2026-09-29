@@ -1,9 +1,21 @@
 {
- "generated_at": "2026-09-28T23:24:56.906646+00:00",
+ "generated_at": "2026-09-29T02:27:08.640720+00:00",
  "seat": "delivery",
  "what_it_did": {
   "available": true,
   "commits": [
+   {
+    "sha": "6b8b79e8d",
+    "at": "2026-09-29T00:58:50+01:00",
+    "subject": "the per-renewal decision fields already landed in 5f05e0068, and the stranded shared-tree copies of the arrears work are older drafts origin supersedes",
+    "substantive": false
+   },
+   {
+    "sha": "65a6294be",
+    "at": "2026-09-29T00:24:57+01:00",
+    "subject": "delivery seat: direction for the next stretch",
+    "substantive": false
+   },
    {
     "sha": "2cad67373",
     "at": "2026-09-28T23:47:47+01:00",
@@ -231,71 +243,55 @@
     "at": "2026-09-28T11:14:35+01:00",
     "subject": "chore(liveness): publish heartbeat while sim output unchanged (git=6f4c8638d9e5d2ff269b447a7e82dfea76e211e6) -- decouples published liveness from content-change (Fault#1 2026-07-25)",
     "substantive": false
-   },
-   {
-    "sha": "6f4c8638d",
-    "at": "2026-09-28T11:02:05+01:00",
-    "subject": "the seat's brief reads the director's console capture turn by turn, so silence is measured on the channel he steers from",
-    "substantive": true
-   },
-   {
-    "sha": "94ef02f0d",
-    "at": "2026-09-28T10:42:10+01:00",
-    "subject": "chore(liveness): publish heartbeat while sim output unchanged (git=fa9f337fafe0918326bf363832de78c1f7262682) -- decouples published liveness from content-change (Fault#1 2026-07-25)",
-    "substantive": false
    }
   ],
-  "substantive": 12,
-  "mechanical": 28,
+  "substantive": 11,
+  "mechanical": 29,
   "what_the_split_means": "A mechanical commit republishes an unchanged net -- the report, the dashboard, the state files. Counting those as work would make a quiet day look busy, so they are separated rather than filtered: they happened, they are just not progress."
  },
  "what_it_decided": {
   "available": true,
-  "oriented_at": "2026-09-28T23:21:49.041482+00:00",
+  "oriented_at": "2026-09-29T02:24:01.809792+00:00",
   "age_hours": 0.1,
   "expires_after_hours": 12.0,
   "live": true,
-  "thesis_read": "Nothing moved against the thesis this stretch. No level moved, 0 of 17 commits was substantive and 12 carried no work. The +\u00a3880 on priced accounts is still graded only at fcba478b7, and there is still nothing that could say whether the arms DECIDED differently on those accounts. So the project can say where money differs between the arms, but not yet that inference caused any of it. The per-account arrears lines were rebuilt in the seat-executor worktree and committed as f997f8bf7 (00:19 BST), but that commit is not on origin. When I read the tree, surgical_land pid 1658805 was merging origin/main onto it, so the instrument is one gated merge from landing and not yet landed. The two decision fields (renewal_decisions_by_arm, decided_differently_by_account) appear nowhere on origin. 4c11c0ce3 rightly declined to grade +\u00a3880 without them. Last stretch's focus reached the draw: of 3 items, 2 were drawn and both ended as honest dispositions (55292b8b1, 4c11c0ce3), not as work. Item three was never drawn. Even so, a 62-line _heartbeat_stand_down sits uncommitted in the shared tree's background/process_run_complete.py, written at 22:59Z by no drawn claim. That is the stranded-work shape again, and this time it came from work outside the draw. The machine went backwards. HEAD is now 21 behind origin, against 11 last stretch. The daemons are running code the branch has moved past. The stale pre-rebuild copies of the arrears paths (mtime 19:54 BST) are still dirty in the shared tree, and they are part of what pins it. Carried row one stays corrected: 7a97d25a8 never reached origin, but its content did, rebuilt as daf2155d9.",
+  "thesis_read": "The thesis moved this stretch, and the news is not good for it. All three previous focus items were drawn and all three finished, so each one leaves focus. The decision fields landed in 5f05e0068. The heartbeat stand-down landed in fa489a631. The +\u00a3880 was graded in 5cbbad968 against a prereg written before any output existed (3b9a11eea). On the per-customer side the partition is clean: 69 of the 70 priced accounts were decided differently on both seeds, and that set carries +\u00a3900 and +\u00a31,197. But the sign tests across it give p=0.77 and p=0.90. And on seed 88888, 94 never-priced accounts carry +\u00a32,464, a sum of the same size, where no renewal was decided at all. The level arm's re-drawn elasticity reaches something other than renewal pricing: PROS-2024-0082 has 16 bills in one arm and 5 in the other. So the honest read is that we cannot tell whether the arm's decisions made money, and the A/B has a leak that is not a decision. That leak must be closed before any inference claim means anything, because a baseline that differs from the per-customer arm by more than its decisions is not the baseline the thesis asks for. The one-seed capture run that locates it (the 767bd9c03 prereg) is running now as pid 1970916, with a waiter on it. The machine went backwards for the third stretch in a row: HEAD is now 30 behind origin, against 21 and then 11. I deferred the pinning diagnosis twice with no trigger, and it grew each time. I re-read the tree this time rather than trusting the carried rows. The arrears paths still show dirty (simulation/arrears_engine.py, the untracked reconciliation test), but both now equal origin byte for byte. They read dirty only because HEAD is behind. So that half of the \"stale copies\" row is spent. About 135 non-observability paths still differ from origin, and a reconciler merge (surgical_land pid 1983095) is in flight as I write. The brief credits two items as landed_unbound on 9f929478e. That is a preservation commit on no remote ref, while the real grade landed as 5cbbad968, which is another instance of the carried HEAD-not-origin row. The weather store landing (f0ba399a4) is real world-fidelity progress off the thesis path.",
   "focus": [
    {
-    "id": "add-the-per-renewal-decision-fields-once-the-arrears-lines-land",
+    "id": "grade-the-pros-2024-0082-first-bill-capture-on-seed-88888",
     "lane": "A_strategy_governance",
-    "what": "Precondition: f997f8bf7's arrears lines must be on origin/main. Check with `git grep` on origin/main for the arrears-lines field in tools/run_value_cycle_ab.py. If surgical_land pid 1658805 is still running, wait on it with tools.wait_for --pid; do not start a second landing. Then add two fields to noise_floor's per-seed row in tools/run_value_cycle_ab.py. The first is renewal_decisions_by_arm: customer_id, commodity, term_start, declined, chosen_margin_gbp_per_mwh and offered_rate_gbp_per_mwh, for every value_arm_log row in both arms. The second is decided_differently_by_account. It joins the two arms on (customer_id, commodity, term_start) and counts renewals that differ in offered rate, or where one arm declined and the other priced. A renewal present in only one arm's log is its own roster category. Before adding anything for retention, grep for a per-account retention-action log. If none exists, name that absence in the commit. Mutation-prove a control showing that decided_differently counts a known differing pair AND a known identical pair as zero. Land with tools/isolate_hunks.py plus surgical_land --content, then bind with delivery_lane --landed. Afterwards, diff the shared tree's stale copies of simulation/arrears_engine.py, tools/run_value_cycle_ab.py and the untracked tests/tools/test_the_arrears_lines_reconcile_each_accounts_net_to_the_penny.py against origin. Restore them only if every hunk is on origin; file what is not.",
-    "why": "Every inference claim the thesis allows needs the set of accounts where the per-customer arm decided something the flat arm did not, and nothing can build that set yet. The stale copies are also among the dirty paths pinning HEAD 21 behind. DONE when origin/main carries both fields and their mutation-proven control, and the three shared-tree arrears paths no longer appear in git status."
+    "what": "The run pre-registered in docs/staging/records/SEAT_PREREG_PROS_2024_0082_FIRST_BILL_PER_ARM_ON_SEED_88888_2026-09-29.md is already running as /var/tmp/se-leak-88888-out/drive.py (pid 1970916), and tools.wait_for pid 1976031 is waiting on it. Do not launch another run. Wait on that pid with tools.wait_for --pid. Then grade P0 through P3 and the refutation line in a SEAT_RESULT_ beside the prereg, one row per prediction. If P0 fails, say the run is not a reproduction and grade nothing else. Name the code path that gives PROS-2024-0082 16 bills in one arm and 5 in the other: file, line and function, read from the source at 5f05e0068. Say which of three categories it is: an acquisition draw, the pre-bill hold gate, or an unlogged renewal decision. If it is acquisition or the hold gate, file a finding saying that the noise floor's elasticity redraw reaches a non-decision path, and name the call chain.",
+    "why": "A +\u00a32,464 swing on accounts where nothing was decided is the same size as everything the per-customer arm's decisions carry. Until it has a named mechanism, the A/B cannot separate inference from noise, and the baseline is not a clean flat-rules arm. DONE when a SEAT_RESULT_ on origin grades every prereg line and names the call chain, or states plainly that the capture could not name it and why."
    },
    {
-    "id": "grade-the-plus-880-once-the-decision-fields-are-on-origin",
-    "lane": "A_strategy_governance",
-    "what": "Trigger: `git grep -q decided_differently_by_account origin/main -- tools/run_value_cycle_ab.py`. Before launch, write one SEAT_PREREG_ at that commit covering both open questions, so a single run pair grades both. From the selection re-measure: whether the priced-set value-minus-level, excluding PROS-2016-0098, keeps its sign at HEAD; 875322e5a's prediction that 0098's arrears line grows past \u2212\u00a35,659.81; and whether 0098 still leaves at different dates across seeds. From the +\u00a3880 partition: the share of that figure sitting on accounts with at least one differing decision, and the count of such accounts per seed. Run seeds 11111 and 88888 with leg 4b at its HEAD default, via tools.launch_long_job under setsid, and wait with tools.wait_for --pid. Launch nothing while another value-cycle run holds memory. Grade in a SEAT_RESULT_ beside the prereg: value-minus-level on the decided-differently and decided-alike sets, an exact binomial bound on each count, and a sign test across the differently-decided accounts.",
-    "why": "This is the first measurement that can credit the arm's edge to what it decided (inference) rather than to one account's churn roll (luck). It also moves every graded figure off fcba478b7. One pair of runs instead of two, because the disposition in 4c11c0ce3 showed that both preregs need the same seeds at the same HEAD. DONE when a SEAT_RESULT_ at a named origin commit grades every prereg line. \"We cannot tell at n=2\", stated with the counts, is a legitimate grade."
-   },
-   {
-    "id": "land-the-heartbeat-stand-down-already-in-the-shared-tree",
+    "id": "find-what-pins-the-shared-tree-behind-origin",
     "lane": "H_harness",
-    "what": "Start with background/process_run_complete.py in the shared tree. It carries an uncommitted 62-line _heartbeat_stand_down (written 22:59Z, drawn by no claim) implementing last stretch's undrawn item three: stand down when no site/ liveness file differs from HEAD, and stand down while origin is ahead unless the banner's stale bound is near. Do not rewrite it. First, ps for a live writer or surgical_land holding that path. If one is live, leave it and record that. If none is, check that the function is wired into _refresh_published_liveness_on_skip and that each stand-down names its reason in the publisher's log. Add one partition control asserting the publisher CAN still commit and can skip for each reason before asserting what each branch does, and mutation-prove it. Then land it with tools/isolate_hunks.py plus surgical_land --content, because the file is edited in place by other lanes.",
-    "why": "4 of this stretch's 12 no-work commits were heartbeats. The fix is already written, so an unlanded fix is the cheapest harness win on the board, and leaving it in place makes it another dirty path pinning the tree. DONE when the function is on origin with its mutation-proven partition control, heartbeat-only commits that touch no site/ path stop appearing on origin, and the public freshness banner still advances."
+    "what": "Trigger: this is not deferrable behind item one. It is a reading of the tree, not a run, so do it while item one's run holds memory. First let surgical_land pid 1983095 (the reconciler's merge) finish; wait on it and do not start a rival merge. Then, in the shared tree, list every path in git status that differs from origin/main, and put each in one of four classes: (a) identical to origin, so dirty only because HEAD is behind; (b) a daemon's observability state file; (c) another lane's in-place edit that is not on origin; (d) untracked. Count each class. For the reconciler's last refusals in its log, name which class and which path blocked each one. Write the census as a SEAT_RESULT_. If class (a) is what holds the fast-forward, the remedy is a reconciler step that refreshes identical-to-origin paths. Build it only if its refusal names its reason, and mutation-prove that it CAN refresh AND can refuse on a class (c) path before asserting what either branch does.",
+    "why": "HEAD went 11, 21, 30 behind origin over three stretches. Every daemon on the box is running code the branch has moved past, which makes every fix landed on origin inert where it runs. I deferred this twice with no trigger, and that deferral is on my own wrong list. DONE when the class census is on origin with a named blocker per refusal, and either HEAD contains origin/main or the result names the one class still holding it and the item that clears it."
+   },
+   {
+    "id": "bisect-the-never-decided-leak-between-fcba478b7-and-5f05e0068",
+    "lane": "A_strategy_governance",
+    "what": "Trigger: item one's SEAT_RESULT_ is on origin. Do not start before it. Write a SEAT_PREREG_ first. It predicts which of 254b4c1e4 (held bills released) and e83d571c3 (the world answers the listing lookup) opens the +\u00a32,464 on never-priced accounts, and uses item one's named mechanism to choose. Then run seed 88888 with --level-arm and the elasticity redraw at exactly one of those commits and at its parent, with nothing else changed, via tools.launch_long_job under setsid. Launch nothing while another value-cycle run holds memory. Grade the prereg in a SEAT_RESULT_ that names the commit that opened the leak.",
+    "why": "At fcba478b7 the never-priced accounts moved \u00a33; at 5f05e0068 they moved \u00a32,464 on the same seed. Two commits sit between, and one-variable runs are the only way to attribute it. Naming the commit is what lets the leak be fixed as a class and not patched per account. DONE when a SEAT_RESULT_ on origin names the opening commit, or says \"cannot yet say\" with the runs that failed to separate them."
    }
   ],
   "not_now": [
    {
-    "what": "A diagnosis of which lanes leave shared-tree paths dirty and pin HEAD behind origin (now 21 behind, against 11).",
-    "why": "This is the bigger harness lever, and deferring it last stretch let the gap double. But items one and three each remove a known dirty path as a side effect, and that is the cheapest part of the diagnosis. A third harness-leaning item would push the thesis grade down the queue. It is first in line when the grade is running."
+    "what": "Re-running the +\u00a3880 grade on more seeds, or crediting the decided-differently set's +\u00a3900 and +\u00a31,197 as the arm's edge.",
+    "why": "With a non-decision leak of the same size on seed 88888, more seeds would only measure the leak alongside the decisions. The leak has to be named and closed first, or the grade has no clean baseline."
    },
    {
-    "what": "Re-launching the arrears-lines landing, or rebuilding the lines, because f997f8bf7 is not on origin.",
-    "why": "A gated merge of that commit was already running when I read the tree. A second writer would collide with it, and the one-way cost of waiting is minutes."
+    "what": "Patching the level arm's elasticity redraw right now so it cannot reach acquisition or billing.",
+    "why": "The mechanism is not yet established. The prereg puts 85% on the redraw reaching the account only indirectly. A patch before item one's grade would fix a guessed path and hide the real one."
    },
    {
-    "what": "Widening the seed family, and pinning C1 or leg 4b's level bracket.",
-    "why": "More seeds only price the flat arm's churn coin more tightly. 8924da6ec showed C1 cannot move the sign. The next compute belongs on the decided-differently partition."
+    "what": "Re-asking evaluate_boot_sha_drift against origin, re-asking cached refusals against the remote, and the stash-completeness atom.",
+    "why": "All three stay open in wrong. Item two's census is the reading they all depend on: with HEAD 30 behind, drift and staleness readings are dominated by the pin. Fixing the pin first makes each of them measurable."
    },
    {
-    "what": "Adding a heartbeat line to worker-seat-manager, and re-issuing the 203 held bills.",
-    "why": "Both have causes on file and neither is on the inference question's path."
-   },
-   {
-    "what": "evaluate_boot_sha_drift against origin, re-asking cached refusals against the remote, the same-subject-sibling check at landing, and the stash-completeness atom.",
-    "why": "All four stay open in wrong. The drift row matters more with HEAD 21 behind, but it is a reading of the machine and does not outrank landing the instrument the thesis waits on."
+    "what": "Adding a heartbeat line to worker-seat-manager, and the weather-store follow-ons after f0ba399a4.",
+    "why": "The first has a cause on file and is not on the inference path. The weather store is complete for every book cell, and nothing downstream disagrees with it yet."
    }
   ],
   "for_the_director": [],
@@ -305,6 +301,66 @@
  },
  "what_it_got_wrong": {
   "entries": [
+   {
+    "at": "2026-09-29T02:24:01.809792+00:00",
+    "what": "MINE, CARRIED. I named the liveness heartbeat as what manufactures the gate cycles the reconciler cannot keep up with. Withdrawn by measurement: it is 6.5% of behind time, and the dirty-path and conflict classes are 45%. 7a97d25a8 itself never reached origin, but its content did, as daf2155d9.",
+    "corrected": true
+   },
+   {
+    "at": "2026-09-29T02:24:01.809792+00:00",
+    "what": "MINE, CARRIED. not_now said HEAD was one behind origin and \"the reconciler will take\" it. It did not. I predicted a reconcile without asking what was holding the tree.",
+    "corrected": true
+   },
+   {
+    "at": "2026-09-29T02:24:01.809792+00:00",
+    "what": "MINE, CARRIED AND WORSE. I deferred the dirty-path pinning as \"next in line\", and then as \"first in line when the grade is running\". Neither deferral had a trigger and nothing drew either. HEAD went 11, 21, 30 behind origin. It is focus item two now, with an explicit trigger, and it stays open until the census lands.",
+    "corrected": false
+   },
+   {
+    "at": "2026-09-29T02:24:01.809792+00:00",
+    "what": "THE MACHINE'S, CARRIED. Item two's surgical_land (pid 837396) ran 1h25m, exited, and put nothing on any ref. Why that land exited empty was never read. The stale copies it left are now byte-identical to origin, so that half is spent (see thesis_read). The empty exit is still unexplained.",
+    "corrected": false
+   },
+   {
+    "at": "2026-09-29T02:24:01.809792+00:00",
+    "what": "THE MACHINE'S, CARRIED. A control or door whose shape changes must re-run every fixture that builds a synthetic tree to drive it, and no control requires it. citation_at_head, red_at_head and fork_state in docs/observability/.publish_gate_state.json still read not_established.",
+    "corrected": false
+   },
+   {
+    "at": "2026-09-29T02:24:01.809792+00:00",
+    "what": "THE MACHINE'S, CARRIED. A refusal naming a commit is not re-asked against the remote ref before a reader sees it. liveness_surface_refusal is still not re-asked.",
+    "corrected": false
+   },
+   {
+    "at": "2026-09-29T02:24:01.809792+00:00",
+    "what": "MINE, CARRIED. evaluate_boot_sha_drift() in background/process_reconciler.py grades every daemon against local HEAD, and misreads when HEAD and origin diverge during a reconcile. The function now diffs boot blobs against disk, so the claim may describe code that has since changed. Not re-established, so not withdrawn.",
+    "corrected": false
+   },
+   {
+    "at": "2026-09-29T02:24:01.809792+00:00",
+    "what": "THE MACHINE'S, CARRIED. The stash-completeness sweep reports a genuinely lost file as safe. It is still not on the map.",
+    "corrected": false
+   },
+   {
+    "at": "2026-09-29T02:24:01.809792+00:00",
+    "what": "THE MACHINE'S, CARRIED. The lane-0 block and the path check read HEAD or a local ref, not origin. This stretch's instance: the brief grades both the +\u00a3880 item and the arrears item landed_unbound on 9f929478e, a preservation commit on no remote ref, while the real grade landed on origin as 5cbbad968.",
+    "corrected": false
+   },
+   {
+    "at": "2026-09-29T02:24:01.809792+00:00",
+    "what": "THE MACHINE'S, CARRIED. Nothing on the landing path asks whether a same-subject untracked sibling is left behind in the shared tree. The arrears reconciliation test is still untracked there. It is now on origin, so this instance is a symptom of the pin, but the landing path still asks nothing.",
+    "corrected": false
+   },
+   {
+    "at": "2026-09-29T02:24:01.809792+00:00",
+    "what": "MINE, CARRIED. not_now is prose, and nothing a launch from another lane reads. It is still true of this file.",
+    "corrected": false
+   },
+   {
+    "at": "2026-09-29T02:24:01.809792+00:00",
+    "what": "MINE, NEW. Last stretch's focus assumed the +\u00a3880's only open question was which accounts the arms decided differently on. I never asked whether the level arm's redraw could move accounts where nothing was decided. It could, by \u00a32,464 on one seed. The decision partition was necessary, and I treated it as sufficient.",
+    "corrected": false
+   },
    {
     "at": "2026-09-28T23:21:49.041482+00:00",
     "what": "MINE, CARRIED. I named the liveness heartbeat as what manufactures the gate cycles the reconciler cannot keep up with. Withdrawn by measurement: it is 6.5% of behind time, and the dirty-path and conflict classes are 45%. 7a97d25a8 itself never reached origin, but its content did, as daf2155d9.",
@@ -1799,41 +1855,51 @@
     "at": "2026-09-22T17:24:53.597866+00:00",
     "what": "MINE, CARRIED, STILL CLOSED, AND THE CONDITION RESTATED BECAUSE IT IS THE ONLY THING HOLDING IT SHUT. I had recorded that three records running ranked machine repair above the thesis while the company's central claim went untouched for four weeks. Three records have now put the thesis at ranks 1 and 2, and each time both items were drawn and landed. This record does the same, and it does one thing more that the condition should have named from the start: the machine work at rank 3 is a PREREQUISITE of ranks 1 and 2 \u2014 nine of the armed reverts are the thesis page's own publishing chain \u2014 and rather than promote it, I have named those nine files inside the two thesis items and left the residue at 3. That is the ordering this row exists to protect. The condition stands unchanged: if the next record ranks the machine first, this was closed early and belongs back open.",
     "corrected": true
-   },
-   {
-    "at": "2026-09-22T14:24:02.330054+00:00",
-    "what": "MINE, NEW, AND IT IS LAST RECORD'S FIRST ROW RECURRING \u2014 WHICH MEANS I CLOSED THAT ROW ON AN INSTRUCTION RATHER THAN ON AN OUTCOME, AND IT RECURRED WITHIN ONE RECORD. Last record I wrote that my error was tracing a page's remedy sentence instead of asking which artefact holds the quantity and what is already on disk, and I marked it corrected because that record's ranks 1 and 2 named the question and the artefact. They did. And then I commissioned a NEW instrument (`tools/churn_belief_size_response.py`) to answer a mechanism question about the churn belief, while the OUTCOME question \u2014 does that belief order the customers who actually left \u2014 was already graded, with its permutation null, its oracle ceiling and its per-factor decomposition, in `docs/observability/svt_drift_belief_grade.json` under `per_route.renewal`, generated at 09:24Z, two hours before I wrote the record. I did not look, because the filename names the SVT route and I took the filename for the contents. The work I commissioned was good and it is on the page; it is not the point. The point is that the thesis's most direct measurement sat unread on disk for a stretch because I graded an artefact by its name. Marked NOT corrected: rank 1 commissions the publication, and on this row's own evidence a correction claimed on the strength of my next instruction is worth nothing until the outcome shows it.",
-    "corrected": false
-   },
-   {
-    "at": "2026-09-22T14:24:02.330054+00:00",
-    "what": "THE MACHINE'S, CARRIED, TENTH LISTING, AND NOW WORSE THAN UNREADABLE \u2014 IT HAS PRODUCED TWO NUMBERS THAT CANNOT BE COMPARED. Finished work does not reliably reach history. `git merge-base --is-ancestor origin/main HEAD` is still false, though the state has changed in one respect worth recording: this checkout is now 0 ahead and 4 behind, so it is no longer diverged and the repair is a fast-forward rather than a merge. `tools/stale_copy_refusal.py --census` still opens by saying its remedies are computed against a base the trunk has moved past and that the door it names would land those copies OVER the trunk \u2014 and it now reports 22 where it reported 17 last record. Both readings were taken through a stale base, so that movement is not evidence the class grew; it is evidence the instrument cannot be read at all. Two paths the seat explicitly decided \u2014 HEAD wins on `simulation/premise_population.py` and its test \u2014 remain refused by every door that exists, days after the judgement, which is a missing door and not a pending decision. Rank 4.",
-    "corrected": false
-   },
-   {
-    "at": "2026-09-22T14:24:02.330054+00:00",
-    "what": "THE MACHINE'S, NEW, AND IT IS THE SAME SHAPE AS MY OWN ROW ABOVE. The mute-daemon causes were established correctly and written into a `log_silence` block on four manifest rows \u2014 including a fourth cause nobody had named, mute by construction, evidenced against the live pid's own `wchan` \u2014 and `grep -rn log_silence` over the whole repository returns the manifest and nothing else. No reader reads it. `background/delivery_seat.py:561` builds `why_no_log` from the journal alone and only when there is no age at all, so a row with a perfectly good declared cause still renders blank, and the next orientation would have read six causeless mute rows and concluded nothing had been done. The bytes are also still uncommitted in this tree, and the lane-0 draw that commissioned them came back `not_done` against a git query while they sat here. A cause recorded where nothing reads it is not recorded. Rank 3.",
-    "corrected": false
-   },
-   {
-    "at": "2026-09-22T14:24:02.330054+00:00",
-    "what": "MINE, CARRIED, STILL CLOSED, AND THE RE-OPEN CONDITION RESTATED BECAUSE IT IS THE ONLY THING HOLDING IT SHUT. I had recorded that three records running ranked machine repair above the thesis while the company's central claim went untouched for four weeks. Two records have now put the thesis at ranks 1 and 2, and both times both items were drawn, landed and published \u2014 this stretch producing the flat-in-size finding on the page and the headline share's own seed-redraw null. This record does the same: thesis at 1 and 2, machine at 3 and 4, and rank 2 is a knowledge-first question rather than a build, which is the other half of the same discipline. The condition stands unchanged: if the next record ranks the machine first, this was closed early and belongs back open.",
-    "corrected": true
    }
   ],
   "refused_own_records": [],
-  "outstanding": 222,
-  "corrected": 81,
+  "outstanding": 229,
+  "corrected": 82,
   "correction_not_recorded": 0,
   "empty_means": ""
  },
  "what_next": {
   "focus": [
-   "add-the-per-renewal-decision-fields-once-the-arrears-lines-land",
-   "grade-the-plus-880-once-the-decision-fields-are-on-origin",
-   "land-the-heartbeat-stand-down-already-in-the-shared-tree"
+   "grade-the-pros-2024-0082-first-bill-capture-on-seed-88888",
+   "find-what-pins-the-shared-tree-behind-origin",
+   "bisect-the-never-decided-leak-between-fcba478b7-and-5f05e0068"
   ],
   "steer_checks": [
+   {
+    "by_class": {
+     "lane_0": {
+      "drawn": [
+       "add-the-per-renewal-decision-fields-once-the-arrears-lines-land",
+       "grade-the-plus-880-once-the-decision-fields-are-on-origin",
+       "land-the-heartbeat-stand-down-already-in-the-shared-tree"
+      ],
+      "focus": [
+       "add-the-per-renewal-decision-fields-once-the-arrears-lines-land",
+       "grade-the-plus-880-once-the-decision-fields-are-on-origin",
+       "land-the-heartbeat-stand-down-already-in-the-shared-tree"
+      ],
+      "steered": true
+     }
+    },
+    "drawn": [
+     "add-the-per-renewal-decision-fields-once-the-arrears-lines-land",
+     "grade-the-plus-880-once-the-decision-fields-are-on-origin",
+     "land-the-heartbeat-stand-down-already-in-the-shared-tree"
+    ],
+    "focus": [
+     "add-the-per-renewal-decision-fields-once-the-arrears-lines-land",
+     "grade-the-plus-880-once-the-decision-fields-are-on-origin",
+     "land-the-heartbeat-stand-down-already-in-the-shared-tree"
+    ],
+    "note": "the previous direction named work the draw then took (measured over this stretch only -- the 3.0h since 2026-09-28T23:21:49.041482+00:00; this is the PREVIOUS FOCUS, not every drawn item)",
+    "steered": true,
+    "window": "this stretch only -- the 3.0h since 2026-09-28T23:21:49.041482+00:00"
+   },
    {
     "by_class": {
      "lane_0": {
@@ -1951,36 +2017,6 @@
     "note": "the previous direction named work the draw then took (measured over this stretch only -- the 3.1h since 2026-09-28T11:20:11.711279+00:00; this is the PREVIOUS FOCUS, not every drawn item)",
     "steered": true,
     "window": "this stretch only -- the 3.1h since 2026-09-28T11:20:11.711279+00:00"
-   },
-   {
-    "by_class": {
-     "lane_0": {
-      "drawn": [
-       "the-selection-error-bar-stops-being-gaussian-on-a-two-state-switch",
-       "the-orientation-reads-the-directors-console-capture",
-       "a-landed-seat-result-spends-its-preregs-grading-premise"
-      ],
-      "focus": [
-       "the-selection-error-bar-stops-being-gaussian-on-a-two-state-switch",
-       "the-orientation-reads-the-directors-console-capture",
-       "a-landed-seat-result-spends-its-preregs-grading-premise"
-      ],
-      "steered": true
-     }
-    },
-    "drawn": [
-     "the-selection-error-bar-stops-being-gaussian-on-a-two-state-switch",
-     "the-orientation-reads-the-directors-console-capture",
-     "a-landed-seat-result-spends-its-preregs-grading-premise"
-    ],
-    "focus": [
-     "the-selection-error-bar-stops-being-gaussian-on-a-two-state-switch",
-     "the-orientation-reads-the-directors-console-capture",
-     "a-landed-seat-result-spends-its-preregs-grading-premise"
-    ],
-    "note": "the previous direction named work the draw then took (measured over this stretch only -- the 2.9h since 2026-09-28T08:24:07.964475+00:00; this is the PREVIOUS FOCUS, not every drawn item)",
-    "steered": true,
-    "window": "this stretch only -- the 2.9h since 2026-09-28T08:24:07.964475+00:00"
    }
   ],
   "steered_recently": true,
