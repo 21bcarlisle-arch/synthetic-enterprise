@@ -189,8 +189,13 @@ def main_result():
     """ONE full run for the whole module. Each of the three wiring tests below used to call
     main() itself, so the file paid for three complete decade simulations to read three keys of
     one result -- and every commit touching run_phase4c_on_phase2b.py selects this file whole.
-    They only read the result; none patches anything main() consults."""
-    return main()
+    They only read the result; none patches anything main() consults.
+
+    The window ends 2018-12-31, not at the full record: the decade run took ~1,400 s of every landing
+    that selected this file, and three years carry every row these tests read (measured 2026-09-29:
+    3,061 read-log rows, 434 contacts, 6 credit refunds, 25 SLC 21B final-read overrides, 326 s).
+    The non-empty legs below are what make a window too short to hold them go red."""
+    return main(report_end="2018-12-31")
 
 
 def test_main_produces_meter_read_log_matching_bills(main_result):
@@ -203,6 +208,7 @@ def test_main_produces_meter_read_log_matching_bills(main_result):
     # per-row disagreement of equal length passed -- and three such rows were
     # published. The join is now asserted here, on the same run.
     result = main_result
+    assert result["bills"], "no bills in the window: the join below would pass vacuously"
     assert len(result["meter_read_log"]) == len(result["bills"])
     statuses = {entry["status"] for entry in result["meter_read_log"]}
     assert statuses <= {"actual", "estimated"}
@@ -222,6 +228,22 @@ def test_main_produces_meter_read_log_matching_bills(main_result):
         f"customer-period: {disagreements[:5]}"
     )
     assert len(basis_by_key) == len(result["bills"]), "bill keys are not unique"
+
+
+def test_main_window_holds_a_churned_accounts_final_read(main_result):
+    # The live counterpart of the forced-estimate proof below: a churned account's last bill
+    # resolves on an actual read (SLC 21B). Without a churned account in the window the override
+    # is untested by the one run this file pays for.
+    churned = set(main_result["phase2b"]["churned_billing_accounts"])
+    last_bill = {}
+    for bill in main_result["bills"]:
+        if bill["customer_id"] in churned:
+            prior = last_bill.get(bill["customer_id"])
+            if prior is None or bill["period_end"] > prior["period_end"]:
+                last_bill[bill["customer_id"]] = bill
+    assert last_bill, "no churned account billed in the fixture's window"
+    not_final_read = [c for c, b in last_bill.items() if b["billing_basis"] != "actual"]
+    assert not_final_read == [], f"churned accounts closed on an estimate: {not_final_read[:5]}"
 
 
 def test_read_log_cannot_be_re_derived_without_losing_the_final_read_override():
@@ -275,7 +297,7 @@ def test_main_produces_contact_centre_log(main_result):
     # Phase 3 item 4 wiring: every logged contact carries a resolved
     # channel + first-response latency.
     result = main_result
-    assert "contact_centre_log" in result
+    assert result["contact_centre_log"], "no contacts in the window: the legs below would pass vacuously"
     for entry in result["contact_centre_log"]:
         assert entry["channel"] in ("phone", "email", "webchat")
         assert entry["first_response_hours"] >= 0
@@ -286,7 +308,7 @@ def test_main_produces_credit_refund_log(main_result):
     # Phase 3 item 2 wiring: credit_refund.py's SLA mechanic now has a real
     # caller -- every logged event must carry a resolved SLC 14 outcome.
     result = main_result
-    assert "credit_refund_log" in result
+    assert result["credit_refund_log"], "no refunds in the window: the legs below would pass vacuously"
     for entry in result["credit_refund_log"]:
         assert entry["credit_amount_gbp"] > 0
         assert entry["working_days_to_pay"] is not None
