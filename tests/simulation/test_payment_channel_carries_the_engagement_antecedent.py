@@ -42,11 +42,41 @@ def test_no_household_changed_direct_debit_status_when_prepayment_was_separated(
         share = DIRECT_DEBIT_SHARE_BY_FUEL.get(fuel, DIRECT_DEBIT_SHARE_BY_FUEL["electricity"])
         return random.Random(f"paychannel_{cid}_{fuel}").random() < share
 
-    for fuel in ("electricity", "gas"):
-        for cid in _CIDS[:1500]:
-            was_dd = before(cid, fuel)
-            is_dd = payment_channel_for_customer(cid, fuel) is PaymentChannel.DIRECT_DEBIT
-            assert was_dd == is_dd, f"{cid}/{fuel} changed direct-debit status"
+    # ELECTRICITY ONLY since 2026-09-29. The gas leg's DD status was moved ON PURPOSE by the
+    # household coupling below, which is a different change with a different reason; this control
+    # still holds the property it was written for on every leg that change left alone.
+    for cid in _CIDS[:1500]:
+        was_dd = before(cid, "electricity")
+        is_dd = payment_channel_for_customer(cid, "electricity") is PaymentChannel.DIRECT_DEBIT
+        assert was_dd == is_dd, f"{cid}/electricity changed direct-debit status"
+
+
+def test_a_dual_fuel_household_pays_both_fuels_one_way_outside_the_band_between_the_anchors():
+    """A household drawn DD for electricity and prepayment for gas -- 17 of this book's 80 dual-fuel
+    households were, when each leg took its own draw -- is not a customer a GB supplier has. The
+    only legitimate disagreement is the one the two published DD shares force: gas DD at 75%,
+    electricity at 72%, so a household in the 3-point band between them pays gas by DD and
+    electricity some other way. Never the reverse, and never two different non-DD labels.
+
+    Reachability first: the band itself must be populated, or a coupling that forced gas onto the
+    electricity answer outright (and broke the 75% anchor) would pass the rest.
+    """
+    in_band = 0
+    for cid in _CIDS:
+        elec = payment_channel_for_customer(cid, "electricity")
+        gas = payment_channel_for_customer(f"{cid}g", "gas")
+        if elec is gas:
+            continue
+        assert elec is not PaymentChannel.DIRECT_DEBIT and gas is PaymentChannel.DIRECT_DEBIT, (
+            f"{cid} pays electricity {elec.value} and gas {gas.value}")
+        in_band += 1
+    band = DIRECT_DEBIT_SHARE_BY_FUEL["gas"] - DIRECT_DEBIT_SHARE_BY_FUEL["electricity"]
+    assert in_band > 0, "no household sits between the two DD anchors -- gas is not reading its own"
+    assert abs(in_band / len(_CIDS) - band) < 0.01, f"{in_band} in the band, expected ~{band:.0%}"
+
+    gas_dd = sum(payment_channel_for_customer(f"{c}g", "gas") is PaymentChannel.DIRECT_DEBIT
+                 for c in _CIDS) / len(_CIDS)
+    assert abs(gas_dd - DIRECT_DEBIT_SHARE_BY_FUEL["gas"]) < 0.02, f"gas DD share {gas_dd:.3f}"
 
 
 def test_prepayment_is_drawn_at_the_published_share_and_actually_appears():

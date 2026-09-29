@@ -20,8 +20,9 @@ _METHODS = ("direct_debit", "standard_credit", "prepayment")
 def test_the_seam_answers_for_the_fuel_it_was_asked_about():
     """SURVIVOR: `get_payment_method` dropping `fuel` and answering electricity for every account.
 
-    A household's electricity and gas are two accounts with two mandates, and the world draws them
-    separately (72% vs 75% direct debit) -- they differ on 160 of the first 400 ids. The existing
+    A household's electricity and gas are two accounts read against two anchors (72% vs 75% direct
+    debit) -- since 2026-09-29 off ONE household draw, so they differ only in the band between the
+    anchors: 10 of these 200 ids, where independent draws differed on 160 of 400. The existing
     agreement test asked only about electricity, so a seam that ignored the fuel agreed with it.
     """
     from simulation.household_segments import payment_channel_for_customer

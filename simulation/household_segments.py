@@ -67,6 +67,8 @@ import math
 import random
 from enum import Enum
 
+from simulation.household import household_of
+
 
 class EngagementLevel(str, Enum):
     ACTIVE = "active"
@@ -313,13 +315,26 @@ NON_DD_PREPAYMENT_SHARE = 0.50
 
 
 def payment_channel_for_customer(customer_id: str, fuel: str = "electricity") -> PaymentChannel:
-    """Deterministic per-customer, per-fuel payment-channel archetype,
-    stable for the account's whole tenure. Keyed on (customer_id, fuel) --
-    not just customer_id -- because the anchor itself is fuel-specific
-    (72% elec vs 75% gas) and this codebase already bills/meters electricity
-    and gas as two independent accounts (own MPAN/MPRN) per household."""
+    """Deterministic per-household, per-fuel payment-channel archetype,
+    stable for the account's whole tenure.
+
+    ONE DRAW PER HOUSEHOLD, READ AGAINST EACH FUEL'S OWN ANCHOR (2026-09-29). Until today the gas
+    leg took an independent draw keyed on its own supply-point id, so the two fuels of one household
+    agreed only as often as two coin-flips at 72%/75% do: 49 of this book's 80 dual-fuel resi
+    households, with 17 on a prepayment meter for one fuel and direct debit for the other and ONE
+    prepaying both. A dual-fuel customer of one supplier pays both fuels one way -- Ofgem sets the
+    cap per dual-fuel payment method -- and the company's churn belief reads the electricity mandate
+    for the household while 31 gas legs were billed some other way.
+
+    The gas leg now reads the household's electricity-stream uniform against the gas share. Both
+    published marginals are unchanged (U < 0.72 and U < 0.75 are still 72% and 75%), the two fuels
+    differ only in the 3-point band between them, and a household non-DD on both takes ONE
+    prepayment/standard-credit label. That is the coupling that maximises agreement given the two
+    marginals; the true joint is not published, so this asserts the practitioner's frame, not a
+    measured one. Every electricity leg is byte-identical: its key is exactly the key it had."""
     share = DIRECT_DEBIT_SHARE_BY_FUEL.get(fuel, DIRECT_DEBIT_SHARE_BY_FUEL["electricity"])
-    rng = random.Random(f"paychannel_{customer_id}_{fuel}")
+    household = household_of(customer_id) if fuel == "gas" else customer_id
+    rng = random.Random(f"paychannel_{household}_electricity")
     if rng.random() < share:
         return PaymentChannel.DIRECT_DEBIT
     # THE SECOND DRAW IS TAKEN ONLY BY NON-DD HOUSEHOLDS, AND THAT IS THE WHOLE DESIGN. Every
