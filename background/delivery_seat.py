@@ -38,6 +38,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import subprocess
 import sys
 import time
@@ -868,6 +869,69 @@ def running_now(floor_seconds: int = ELAPSED_FLOOR_SECONDS) -> dict:
     }
 
 
+def _stamp(raw) -> datetime | None:
+    try:
+        return datetime.fromisoformat(str(raw).replace("Z", "+00:00"))
+    except (TypeError, ValueError):
+        return None
+
+
+def ended_since(since: datetime, register: Path | None = None) -> dict:
+    """THE COMPLEMENT OF `running_now`: every `launch_long_job` job that stopped in the stretch.
+
+    `running_now` lists survivors, and so does every other reader of the box. On 2026-09-29 two
+    runs of one five-seed family died -- `ab5-runA` OOM-killed at 10:01Z, `ab5-runA2` exit 1 at
+    15:08Z -- and each stayed invisible for over an hour, although the launch register had settled
+    each to `died` within minutes. The register was right; nothing that orients read it.
+
+    READ FROM THE REGISTER, NOT FROM `systemctl`. `launch_liveness.check` has already asked the
+    user manager and written the verdict back, so the book holds the answer, and a brief that
+    re-probed would be a second, drifting copy of the same question (and the G-T1 test guard
+    refuses the spawn anyway).
+
+    THE END TIME IS SYSTEMD'S `ExecMainExitTimestamp` WHERE THE RECORD HAS IT. Records settled
+    before that field was kept carry only `settled_at` -- when somebody next ASKED -- and that is
+    reported as a bound (`ended_by`), never as the time it ended.
+
+    An unreadable register is `available: False`, not an empty list: "no job died" and "we could
+    not read the book" are opposite answers of the same shape.
+    """
+    from background import launch_liveness as ll
+
+    records, verdict = ll.load_register(register)
+    if ll.prior_unreadable(verdict):
+        return {"available": False, "why": "the launch register at {} could not be read "
+                "({})".format(register or ll.RECORDS_PATH, verdict)}
+    rows = []
+    for r in records:
+        if r.get("claim") in (ll.LIVE, None):
+            continue
+        exited = _stamp(r.get("exited_at"))
+        settled = _stamp(r.get("settled_at"))
+        launched = _stamp(r.get("launched_at"))
+        # THE WINDOW IS THE SETTLE, NOT THE EXIT. A settle always follows its exit, so an exit in
+        # the stretch implies a settle in it; and a death before the last orientation that was
+        # only settled after it was invisible to that orientation, so this stretch is the first
+        # that can see it.
+        if not any(t is not None and t >= since for t in (settled, launched)):
+            continue
+        evidence = r.get("evidence") or ""
+        result = r.get("result") or (re.search(r"Result=([\w-]+)", evidence) or [None, None])[1]
+        status = r.get("exit_status") or (
+            re.search(r"ExecMainStatus=(\d+)", evidence) or [None, None])[1]
+        rows.append({
+            "job": r.get("job"), "unit": r.get("unit"), "claim": r.get("claim"),
+            "launched_at": r.get("launched_at"),
+            "ended_at": r.get("exited_at"),
+            "ended_by": None if exited else r.get("settled_at"),
+            "result": result, "exit_status": status,
+            "log": r.get("log"), "artefact": r.get("artefact"),
+        })
+    rows.sort(key=lambda x: (x["claim"] != ll.DIED, x["ended_at"] or x["ended_by"] or ""))
+    return {"available": True, "since": since.isoformat(), "jobs": rows,
+            "died": [x for x in rows if x["claim"] == ll.DIED]}
+
+
 def findings_now() -> dict:
     """Open staging findings by severity, from the parser the rest of the tree already reads."""
     try:
@@ -1329,6 +1393,9 @@ def build_brief(now: datetime | None = None) -> dict:
         # has changed what this seat wrote twice in a row. Six consecutive orientations ran this
         # `ps` by hand before it was a key.
         "running": running_now(),
+        # AND WHAT STOPPED, beside it. A job that died is in neither `running` nor any tree
+        # reading, which is exactly how two deaths on 2026-09-29 went unseen for over an hour.
+        "ended": ended_since(since),
         "findings": findings_now(),
         "levels_moved": moved,
         "levels_recorded": levels_recorded_since(since),
@@ -1424,6 +1491,14 @@ def is_material(brief: dict) -> tuple[bool, str]:
             "the ledger says they were handed out and git says nothing came of them".format(
                 len(missed), ", ".join("{} ({}h ago)".format(r.get("id"), r.get(
                     "hours_since_draw")) for r in missed[:3])))
+    # A LONG JOB THAT DIED IN THE STRETCH. Its work landed nothing, so every clause above and
+    # below reads the stretch as if it had never been launched -- and a quiet stretch would skip
+    # the one orientation that could relaunch it.
+    died = (brief.get("ended") or {}).get("died") or []
+    if died:
+        return True, "{} long job(s) died in the stretch: {}".format(
+            len(died), ", ".join("{} ({})".format(r["job"], r.get("result") or "no result")
+                                 for r in died[:3]))
     if brief.get("levels_recorded"):
         return True, "{} level move(s) recorded in the ledger".format(
             len(brief["levels_recorded"]))
@@ -1687,6 +1762,30 @@ def _prompt(brief: dict) -> str:
                 "  {:>8}  {:>8}  {:>7}MB  {}".format(
                     j["pid"], j["elapsed"], j["rss_mb"], j["what"])
                 for j in running.get("jobs", [])))
+    ended = brief.get("ended") or {}
+    if not ended.get("available", False):
+        ended_sentence = (
+            "\n\nWHICH LONG JOBS ENDED COULD NOT BE READ ({}) -- so 'none died' is NOT what this "
+            "says.".format(ended.get("why", "the reading was not taken")))
+    elif not ended.get("jobs"):
+        ended_sentence = (
+            "\n\nNO `launch_long_job` JOB LAUNCHED OR ENDED IN THIS STRETCH, read from the launch "
+            "register and not inferred from what is still running.")
+    else:
+        def _when(j):
+            if j["ended_at"]:
+                return "ended {}".format(j["ended_at"])
+            return "ended by {} (settle time; exit time not recorded)".format(j["ended_by"])
+        ended_sentence = (
+            "\n\nLONG JOBS THAT STOPPED IN THIS STRETCH -- the complement of the list above, from "
+            "the launch register. {} DIED. A died job landed nothing; before focusing on its "
+            "subject, read its log and decide whether to relaunch, and never write that its run "
+            "is in flight:\n\n".format(len(ended.get("died") or []))
+            + "\n".join(
+                "  {:<8} {:<32} {}  Result={} status={}  log {}".format(
+                    "DIED" if j["claim"] == "died" else j["claim"], j["job"], _when(j),
+                    j["result"] or "?", j["exit_status"] or "?", j["log"] or "none")
+                for j in ended["jobs"]))
     return (
         CHARTER
         + graded
@@ -1698,6 +1797,7 @@ def _prompt(brief: dict) -> str:
         + rendered
         + absence_sentence
         + running_sentence
+        + ended_sentence
         + "\n\nWHAT THE STRETCH ABOVE WAS MEASURED OVER. Everything you are about to grade -- the "
           "commits, the substantive count, the shape -- was read from HEAD *and* origin/main "
           "together, so it does not change with whether this checkout has fast-forwarded:\n\n"

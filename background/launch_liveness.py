@@ -138,8 +138,9 @@ def systemd_probe(unit: str) -> dict | None:
     """
     try:
         out = subprocess.check_output(
-            ["systemctl", "--user", "show", unit,
-             "-p", "ActiveState", "-p", "Result", "-p", "ExecMainStatus", "-p", "LoadState"],
+            ["systemctl", "--user", "show", "--timestamp=utc", unit,
+             "-p", "ActiveState", "-p", "Result", "-p", "ExecMainStatus", "-p", "LoadState",
+             "-p", "ExecMainExitTimestamp"],
             text=True, timeout=15, stderr=subprocess.DEVNULL)
     except Exception:
         return None
@@ -179,20 +180,27 @@ def reask(entry: dict, probe=systemd_probe) -> dict:
     result = (fields or {}).get("Result") or ""
     status = (fields or {}).get("ExecMainStatus") or ""
 
+    # WHEN IT ENDED, FROM THE SAME RECORD AS HOW. `settled_at` is when somebody next ASKED, which
+    # was 7 minutes after the 10:01Z OOM kill of `ab5-runA` and could as easily be hours; a brief
+    # listing deaths by that clock dates them to the reader, not the event. `--timestamp=utc` is
+    # passed so this is `Tue 2026-09-29 10:01:46 UTC` and never a local zone name to guess at.
+    exit_fields = {"result": result or None, "exit_status": status or None,
+                   "exited_at": _utc_stamp((fields or {}).get("ExecMainExitTimestamp") or "")}
+
     if on_disk and rc in (0, None) and result in ("success", ""):
-        return {"verdict": FINISHED, "why": (
+        return {**exit_fields, "verdict": FINISHED, "why": (
             f"the artefact `{artefact}` exists, the unit's Result={result or 'unrecorded'} and "
             f"ExecMainStatus={status or 'unrecorded'}, and the job's own rc file says "
             f"{'nothing' if rc is None else rc}")}
 
     if result and result != "success":
-        return {"verdict": DIED, "why": (
+        return {**exit_fields, "verdict": DIED, "why": (
             f"the user manager reports `{unit}` Result={result} "
             f"(ExecMainStatus={status or 'unrecorded'}) and no artefact at `{artefact}`. THIS IS "
             "THE VERDICT THE RC FILE COULD NOT GIVE: a group kill takes the wrapper that would "
             "have written it, so its absence is the signature and not the diagnosis.")}
     if status and status not in ("0", ""):
-        return {"verdict": DIED, "why": (
+        return {**exit_fields, "verdict": DIED, "why": (
             f"the user manager reports `{unit}` ExecMainStatus={status} and no artefact at "
             f"`{artefact}`")}
 
@@ -201,6 +209,16 @@ def reask(entry: dict, probe=systemd_probe) -> dict:
         f"{(fields or {}).get('LoadState') or 'unrecorded'}) and there is no artefact at "
         f"`{artefact}`. We cannot tell whether it ran -- most likely the unit was collected, "
         "which is why `--collect` must not be passed to a job whose death anyone will ask about.")}
+
+
+def _utc_stamp(raw: str) -> str | None:
+    """`Tue 2026-09-29 10:01:46 UTC` -> `2026-09-29T10:01:46Z`; None for anything else, including
+    the empty value systemd prints for a unit that never exited. Never a guess at a zone."""
+    try:
+        return datetime.strptime(raw.strip(), "%a %Y-%m-%d %H:%M:%S UTC").strftime(
+            "%Y-%m-%dT%H:%M:%SZ")
+    except ValueError:
+        return None
 
 
 def _read_rc(rc_path) -> int | None:
@@ -486,6 +504,9 @@ def check(path: Path | None = None, probe=systemd_probe, *,
         entry["claim"] = FINISHED if verdict == FINISHED else DIED
         entry["settled_at"] = _now()
         entry["evidence"] = answer["why"]
+        for key in ("result", "exit_status", "exited_at"):
+            if answer.get(key):
+                entry[key] = answer[key]
         if notice and entry["claim"] == DIED:
             entry["pending_notice"] = True
         settled.append(entry)

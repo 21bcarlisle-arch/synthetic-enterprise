@@ -136,7 +136,7 @@ def _show(unit: str, *properties: str, runner=subprocess.run) -> dict | None:
     were green; the real-launch door test at the bottom of the suite caught it on its first run.
     """
     try:
-        res = runner(["systemctl", "--user", "show", unit,
+        res = runner(["systemctl", "--user", "show", "--timestamp=utc", unit,
                       *[arg for p in properties for arg in ("-p", p)]],
                      capture_output=True, text=True, timeout=30)
     except (OSError, subprocess.SubprocessError):
@@ -152,13 +152,15 @@ def _show(unit: str, *properties: str, runner=subprocess.run) -> dict | None:
 def liveness_probe(runner=subprocess.run):
     """`launch_liveness.reask()`'s probe, asked through THIS launcher's runner.
 
-    The properties are exactly the four `launch_liveness.systemd_probe` asks for, and they have to
-    stay exactly those four: `reask()` reads `Result` and `ExecMainStatus` to tell a death from a
+    The properties are exactly the ones `launch_liveness.systemd_probe` asks for, and they have to
+    stay exactly those: `reask()` reads `Result` and `ExecMainStatus` to tell a death from a
     collection, and a probe that answered fewer would return UNKNOWN for every death it was handed
-    -- a settle that settles nothing, wearing a working probe's clothes.
+    -- a settle that settles nothing, wearing a working probe's clothes. `ExecMainExitTimestamp`
+    is WHEN it ended, which the settle clock is not.
     """
     def probe(unit: str) -> dict | None:
-        return _show(unit, "ActiveState", "Result", "ExecMainStatus", "LoadState", runner=runner)
+        return _show(unit, "ActiveState", "Result", "ExecMainStatus", "LoadState",
+                     "ExecMainExitTimestamp", runner=runner)
     return probe
 
 
