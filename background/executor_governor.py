@@ -311,6 +311,7 @@ def _default_fold() -> list[str]:
                 # archival that had already landed, one fold away from being re-added to the
                 # queue (SEAT_RESULT_THE_UNCOMMITTED_STAGING_DISPOSITIONS_WERE_27_MOVES_NOT_19
                 # _AND_THE_ITEMS_OWN_DOOR_WOULD_HAVE_UNARCHIVED_107_2026-09-23.md, addendum).
+                # suppression-lint: not-a-suppression _FOLD_PATHS -- the pathspec the atom_status fold commits, a map-reconciliation fold and not a page/alarm suppression
                 _FOLD_PATHS = ["docs/design/maturity_map.yaml", "docs/design/atom_status"]
                 subprocess.run(
                     ["git", "add", "--", *_FOLD_PATHS],

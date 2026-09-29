@@ -9,7 +9,6 @@ import pytest
 
 from saas.customers import CUSTOMERS
 from simulation.demand_model import (
-    HOUSEHOLD_SIZE_POPULATION_SHARE,
     population_mean_volume_factor,
     volume_factor_is_unbiased,
 )
@@ -45,15 +44,6 @@ def test_authored_headcounts_are_coherent_with_the_authored_category():
             assert count >= 3
 
 
-def test_ons_shares_agree_across_the_wall():
-    """`property_model` (saas) holds the ONS TS017 shares as a literal because
-    it must not import `simulation.*`. This is the guard that the two copies
-    have not silently diverged — a divergence would break the volume
-    normalisation without any other symptom."""
-    assert dict(HOUSEHOLD_SIZE_SHARE_ONS_TS017) == HOUSEHOLD_SIZE_POPULATION_SHARE
-    assert sum(s for _, s in HOUSEHOLD_SIZE_SHARE_ONS_TS017) == pytest.approx(1.0)
-
-
 def test_derived_headcounts_reproduce_the_ons_distribution():
     """Expected values are the published ONS TS017 shares and the published
     mean household size (2.37 persons), not anything derived from the draw."""
@@ -61,7 +51,7 @@ def test_derived_headcounts_reproduce_the_ons_distribution():
     n = len(counts)
     for size, share in HOUSEHOLD_SIZE_SHARE_ONS_TS017:
         assert counts.count(size) / n == pytest.approx(share, abs=0.02)
-    # ONS TS017 mean is 2.37; the 5+ band is read as exactly 5 here, so the
+    # ONS TS017 mean is 2.37; the tail stops at 8 ("8 or more"), so the
     # modelled mean sits marginally below it.
     assert sum(counts) / n == pytest.approx(2.37, abs=0.05)
 

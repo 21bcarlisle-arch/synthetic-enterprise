@@ -114,6 +114,17 @@ BASELINE_ALLOWLIST: dict[tuple[str, str], str] = {
         "schema/path (DEFAULT_DB_PATH, create_schema). Pre-seam debt; "
         "remediate-on-touch."
     ),
+    (
+        "company/billing/annual_consumption_estimate.py",
+        "company.pricing.tariff_comparison",
+    ): (
+        "BILLING->PRICING: the opening direct debit calls the annual-cost "
+        "function, pure arithmetic on rates the caller passes in. No pricing state "
+        "crosses. It is imported rather than copied so the quote a customer "
+        "is shown and the DD that collects it share one formula (a private "
+        "copy is how one VAT rule became five). Post-seam and deliberate, "
+        "not debt: it moves only if the formula gets a home both domains own."
+    ),
 }
 
 

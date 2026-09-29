@@ -67,9 +67,15 @@ def test_gas_ccl_clamps_pre_2016():
     assert get_gas_ccl_per_mwh("2010-01-01", "SME") == pytest.approx(_GAS_CCL_RATE_BY_YEAR[2016])
 
 
-def test_gas_ccl_clamps_post_2024():
-    """Post-2024 dates clamp to the 2024 rate."""
-    assert get_gas_ccl_per_mwh("2030-01-01", "SME") == pytest.approx(_GAS_CCL_RATE_BY_YEAR[2024])
+def test_gas_ccl_clamps_past_the_last_published_year():
+    """A date past the table clamps to its LAST published year, whichever that is.
+
+    Keyed to the property, not to today's answer: this pinned the 2024 rate and went red when the
+    sourced 2026/27 and 2027/28 rows landed, which is the table becoming MORE complete."""
+    last = max(_GAS_CCL_RATE_BY_YEAR)
+    assert get_gas_ccl_per_mwh(f"{last + 5}-06-01", "SME") == pytest.approx(
+        _GAS_CCL_RATE_BY_YEAR[last]
+    )
 
 
 def test_gas_ccl_rising_trend():

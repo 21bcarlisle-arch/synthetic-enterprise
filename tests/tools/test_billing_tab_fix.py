@@ -75,8 +75,32 @@ def _closed_account_notice(d, invoices):
     return "Account closed " + churned["date"] + " — final bill " + last["id"] + "." + settle
 
 
-def test_closed_account_notice_real_churned_customer_c1():
-    """C1's closed-account notice must render the account's OWN generated churn
+def _a_churned_account_with_a_write_off():
+    """The first account in the live book that churned, was billed, and closed with a
+    ledger write-off -- DISCOVERED, not named.
+
+    This read `C1.json` by name. When C1 stopped churning (an RNG draw that any world change
+    moves), both closed-account tests went red on a stale fixture that looked like a
+    billing regression. The precondition is asserted rather than assumed: a book with no such
+    account fails loudly instead of passing over nothing."""
+    for f in sorted(CUSTOMERS_DIR.glob("*.json")):
+        d = json.loads(f.read_text())
+        if not isinstance(d, dict) or not d.get("invoices"):
+            continue
+        ledger = d.get("ledger") or {}
+        if (
+            any(e.get("type") == "churned" for e in d.get("timeline", []))
+            and ledger.get("current_balance_gbp", 1.0) <= 0.005
+            and ledger.get("total_written_off_gross_gbp", 0.0) > 0.005
+        ):
+            return d
+    raise AssertionError(
+        "no churned account with a write-off in the live book -- the closed-account "
+        "notice cannot be exercised; re-point rather than delete the coverage")
+
+
+def test_closed_account_notice_real_churned_customer():
+    """A churned account's closed-account notice must render the account's OWN generated churn
     date and final bill -- asserted structurally, never as an RNG-derived literal.
 
     Why no literal (the queued debt this test's own comment named, paid 2026-08-03):
@@ -94,17 +118,9 @@ def test_closed_account_notice_real_churned_customer_c1():
     rendered date against an INDEPENDENT part of the record -- the invoice stream
     -- so the port cannot satisfy them by inventing or defaulting a date.
     """
-    d = json.loads((CUSTOMERS_DIR / "C1.json").read_text())
+    d = _a_churned_account_with_a_write_off()
     invoices = d["invoices"]
     churn_events = [e for e in d.get("timeline", []) if e.get("type") == "churned"]
-    # Fixture must stay meaningful: if C1 stops being a churned account with a
-    # write-off, this test is silently testing nothing -- fail loudly instead.
-    assert churn_events, (
-        "C1 is no longer a churned account -- this test's whole subject is the "
-        "closed-account notice. Re-point it at a real churned account with a "
-        "write-off rather than deleting the coverage."
-    )
-    assert invoices, "C1 has no invoices -- closedAccountNotice() cannot be exercised"
 
     churn_date = churn_events[-1]["date"]
     notice = _closed_account_notice(d, invoices)
@@ -121,12 +137,12 @@ def test_closed_account_notice_real_churned_customer_c1():
             churn_date, last_period_end)
     )
     assert not [i for i in invoices if i["period_start"] > churn_date], (
-        "C1 has invoice periods starting after its churn date -- billing did not "
+        "the account has invoice periods starting after its churn date -- billing did not "
         "stop at churn, so the rendered closed-account date is not real"
     )
 
     assert (invoices[-1]["id"] + ".") in notice
-    # C1 has a real historical write-off (Phase RP ledger) -- settles to zero, not fabricated as fully collected
+    # The account has a real write-off (Phase RP ledger) -- settles to zero, not fabricated as fully collected
     assert "settled to zero" in notice
 
 
@@ -139,7 +155,7 @@ def test_closed_account_notice_date_tracks_the_record_not_a_constant():
     date with it; if closedAccountNotice() ever hardcoded or defaulted a date, the
     rendered value would stay put and this fails.
     """
-    d = json.loads((CUSTOMERS_DIR / "C1.json").read_text())
+    d = _a_churned_account_with_a_write_off()
     real_date = [e for e in d["timeline"] if e.get("type") == "churned"][-1]["date"]
     assert _closed_account_notice(d, d["invoices"]).startswith(
         "Account closed " + real_date + " — ")

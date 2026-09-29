@@ -259,6 +259,7 @@ def item_is_product(item: dict, atoms: list | None = None) -> tuple[bool, str]:
     return False, "names no atom, lane or path, so it cannot show it is product work"
 
 
+# suppression-lint: not-a-suppression item_is_fold -- classifies whether an item grades an in-flight long job (fold-only mode decides what a tick draws, not whether anything pages)
 def item_is_fold(item: dict, records: list | None = None) -> tuple[bool, str]:
     """fold-only: the item is grading an in-flight long job iff it names one in the launch register."""
     if records is None:

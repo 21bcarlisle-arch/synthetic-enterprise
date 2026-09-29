@@ -18,7 +18,7 @@ run-derived LITERAL -- an ISO date or a generated invoice id. Those values are
 outputs of the sim's RNG; pinning one turns a legitimate world change into a
 publish-blocking red. Assert the value STRUCTURALLY instead (against the
 record's own field, cross-checked by an independent part of the record) --
-see test_billing_tab_fix.py::test_closed_account_notice_real_churned_customer_c1
+see test_billing_tab_fix.py::test_closed_account_notice_real_churned_customer
 for the worked example.
 
 WHY THIS IS NARROW BY CONSTRUCTION. A guard that wedges the publish gate on a

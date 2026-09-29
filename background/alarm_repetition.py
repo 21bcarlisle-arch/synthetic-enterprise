@@ -1122,6 +1122,8 @@ def _refresh_counts(path: Path, *, key: str, repeats: int | None, first_ts: floa
 #: `escalate()` deliberately does not search `done/`, so a condition that returns after being
 #: archived files a fresh document and is an R3 two-strike signal. A wrong archive costs one
 #: re-filing; a wrong hold costs a permanent unrankable queue item, which is the defect.
+# suppression-lint: not-a-suppression REASK_QUIET_DAYS -- archives an alarm only after its condition stops being observed; a live one reads STILL_HOLDS and a returning one re-files, because escalate() skips done/
+# suppression-lint: not-a-suppression quiet_before -- the date form of REASK_QUIET_DAYS, the cutoff before which the last observation counts as quiet
 REASK_QUIET_DAYS = 3
 
 #: How recently the alarm-filing machinery must have observed SOMETHING for silence to be

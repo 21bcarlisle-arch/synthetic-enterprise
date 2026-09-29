@@ -6545,6 +6545,8 @@ def _recent_gate_chain_costs(limit: int = 20) -> list[float]:
     return costs[-limit:] if limit else costs
 
 
+# suppression-lint: not-a-suppression _quiet_wait_budget_seconds -- how long a publish waits for a rival's gate chain to finish; 'quiet' is a git tree nobody is committing to, not a silenced alarm
+# suppression-lint: not-a-suppression _wait_for_a_quiet_tree -- waits for another writer's commit to finish before starting a gate chain; defers a landing, silences no page
 def _quiet_wait_budget_seconds(costs=None) -> float:
     """How long a publish landing may wait for another writer's gate to finish. 0 == never wait.
 
