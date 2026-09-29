@@ -128,12 +128,22 @@ REFUSED_GATE = "REFUSED_GATE"
 #: HEAD moves under the gate, and in a fresh isolated worktree nothing else moves HEAD. The race
 #: that actually happens is `origin/main` advancing between the merge and the push.
 #:
-#: STILL NOT RETRIED IN-PROCESS, deliberately. A retry would have to re-merge and re-gate against
-#: the new base -- the full cost again, inside a cadence that is about to do exactly that anyway --
-#: and this is the module that once manufactured 29 commits in three and a quarter hours by looping
-#: on its own output. Naming the outcome is the whole repair; spinning on it is the defect it would
-#: reintroduce.
+#: CAUGHT UP IN-PROCESS, A BOUNDED NUMBER OF TIMES (2026-09-29). This used to say "not retried --
+#: the next cadence re-merges", and both halves of that were wrong once the merge's gate grew past
+#: origin's commit interval. The next cadence re-merges from the SHARED tree's HEAD, so it re-gates
+#: every incoming commit again and loses the same race again: nine REFUSED_RACE in a row on
+#: 2026-09-24, and on 2026-09-29 a 43-minute gate lost to an origin that moves every ~30. And a
+#: catch-up is NOT the full cost: `surgical_land --merge` gates the diff against the worktree's
+#: HEAD, which is now the merge that already gated clean, so the second merge's gate selects only
+#: what arrived during the first (small landings here gate in 10s to 5min). Bounded by
+#: `RACE_CATCHUPS` and pushed once, so it cannot become the 29-commit loop: every catch-up merges
+#: commits origin genuinely gained, never its own output.
 REFUSED_RACE = "REFUSED_RACE"
+
+#: How many catch-up merges one run may stack on a gated merge whose push lost the race. A count
+#: of attempts, not a domain quantity: each costs a gate over what arrived meanwhile, and after
+#: this many the run gives the race back to the cadence under its own name.
+RACE_CATCHUPS = 2
 
 #: The two ways a shared tree refuses to advance. They are reported apart because they are cleared
 #: apart -- one is a lane's uncommitted work, the other is usually a byte-identical twin of a file
@@ -1572,7 +1582,7 @@ def shared_tree(start: Path | None = None) -> Path | None:
 def reconcile(project: Path | None = None, *, worktree: Path | None = None,
               state_fn=None, behind_fn=None, ahead_fn=None, runner=None, pusher=None,
               make_worktree=None, drop_worktree=None, gate_fn=None, blockers_fn=None,
-              advance_fn=None, budget_fn=None) -> dict:
+              advance_fn=None, budget_fn=None, fetcher=None) -> dict:
     """Close the fork with origin, or say exactly why it stayed open. Never raises.
 
     Returns {"status", "detail", "behind", "pushed"}. Fully injectable, because every one of its
@@ -1684,10 +1694,41 @@ def reconcile(project: Path | None = None, *, worktree: Path | None = None,
             return {"status": status, "behind": behind, "pushed": False, "detail": detail}
 
         pushed = (pusher or _push)(worktree)
-        if pushed.returncode != 0:
+        catchups = 0
+        while pushed.returncode != 0:
             status, detail = _classify_push_failure(
                 (pushed.stderr or "") + (pushed.stdout or ""))
-            return {"status": status, "behind": behind, "pushed": False, "detail": detail}
+            if status != REFUSED_RACE or catchups >= RACE_CATCHUPS:
+                if catchups:
+                    detail = "{} ({} catch-up merge(s) were stacked on the gated merge first)".format(
+                        detail, catchups)
+                return {"status": status, "behind": behind, "pushed": False, "detail": detail}
+            # ONTO THE GATED MERGE, NOT FROM SCRATCH. The worktree's HEAD is the merge that already
+            # gated clean, so this merge's gate covers only what origin gained while it ran.
+            # A catch-up that cannot fetch has nothing new to merge, so the race goes back to the
+            # cadence under its own name rather than escalating to ERROR.
+            try:
+                fetched = (fetcher or _fetch)(worktree).returncode == 0
+            except (OSError, subprocess.SubprocessError):
+                fetched = False
+            if not fetched:
+                return {"status": status, "behind": behind, "pushed": False,
+                        "detail": "{} (the catch-up fetch failed, so no catch-up merge was "
+                                  "tried)".format(detail)}
+            catchups += 1
+            budget, budget_why = (budget_fn or merge_budget)(worktree)
+            try:
+                merge = runner(worktree) if runner else _run_merge(worktree, budget)
+            except subprocess.TimeoutExpired:
+                return {"status": ERROR, "behind": behind, "pushed": False,
+                        "detail": "catch-up merge {} outran its budget of {}s ({}) and was killed, "
+                                  "so nothing was pushed".format(catchups, budget, budget_why)}
+            if merge.returncode != 0:
+                status, detail = _classify_merge_failure(
+                    (merge.stdout or "") + (merge.stderr or ""))
+                return {"status": status, "behind": behind, "pushed": False,
+                        "detail": "catch-up merge {}: {}".format(catchups, detail)}
+            pushed = (pusher or _push)(worktree)
 
         # THE SAME ADVANCE THE `ahead == 0` LEG USES, not a second hand-rolled `--ff-only` beside
         # it. This is the leg the 24h measurement caught failing most often: the merge gates clean
@@ -1771,6 +1812,10 @@ def _run_merge(worktree: Path, timeout: int = MERGE_TIMEOUT_SECONDS) -> subproce
          "{}/{}".format(REMOTE, BRANCH), "-m", _MERGE_MESSAGE],
         cwd=str(worktree), capture_output=True, text=True, timeout=timeout,
         env=dict(os.environ, PYTHONPATH=str(PROJECT_DIR)))
+
+
+def _fetch(worktree: Path) -> subprocess.CompletedProcess:
+    return _git(worktree, "fetch", REMOTE, BRANCH, "--quiet")
 
 
 def _push(worktree: Path) -> subprocess.CompletedProcess:
