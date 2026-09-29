@@ -26,16 +26,60 @@ from tools.fold_noise_floor_family import (
 from tools.run_value_cycle_ab import priced_decision_fingerprint, sems_to_state_a_sign
 
 _REPO = Path(__file__).resolve().parent.parent.parent
-#: The real nine-seed family the Lane 0 selection leg is published from. Read, never rebuilt: a
-#: synthetic fixture here would be a fixture fitted to the conclusion, and the whole point of the
-#: first control is that the fold agrees with a summary IT DID NOT COMPUTE.
-_LIVE_FLOOR = _REPO / "docs" / "observability" / "value_cycle_ab_s1_noise_floor.json"
+_FLOOR_DIR = _REPO / "docs" / "observability"
+_FLOOR_GLOB = "value_cycle_ab_s1_noise_floor*.json"
+
+
+def _producer_made_floors() -> list:
+    """Every floor artefact on disk that a PRODUCER wrote, newest first.
+
+    WHY THIS IS NOT SIMPLY THE SERVED PATH. It was, and that was the defect. The first control
+    below asks whether the fold agrees with "a summary IT DID NOT COMPUTE" -- and the Lane 0 plan
+    is to fold new seeds INTO the served family, which writes `summarise`'s own output to the very
+    path the control reads. From that moment the assertion is `summarise(rows) == summarise(rows)`:
+    an identity that passes on any drift, with the poison round below still green because that leg
+    only proves `summarise` moves, never that the two sides are independent.
+
+    Measured, not argued: with `summarise` drifted to double the sem, this control CAUGHT it on a
+    producer-made artefact and PASSED on a folded one -- publishing a sem of 1207.0 where the true
+    figure is 603.50.
+
+    So the subject is selected by the property that makes it a witness -- nobody folded it -- and
+    never by its path.
+    """
+    found = []
+    # `_FLOOR_GLOB` spelled out: the source-scan census reads a pattern held in a name as a walk
+    # over anything, so this read of JSON would be graded as reading Python.
+    for path in sorted(_FLOOR_DIR.glob("value_cycle_ab_s1_noise_floor*.json")):
+        try:
+            data = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            continue
+        if data.get("folded"):
+            continue
+        if "selection_sem_gbp" not in data or not data.get("seeds"):
+            continue
+        found.append((data.get("generated_at") or "", path, data))
+    return [(p, d) for _, p, d in sorted(found, reverse=True)]
 
 
 def _live() -> dict:
-    if not _LIVE_FLOOR.exists():
-        pytest.skip("no live floor artefact on disk at {}".format(_LIVE_FLOOR))
-    return json.loads(_LIVE_FLOOR.read_text(encoding="utf-8"))
+    """The newest producer-made floor family, or a refusal that says which of two things is wrong.
+
+    FAIL CLOSED AND SAY SO, rather than skip. "No floor artefact at all" is a tree without the
+    evidence (skip); "artefacts exist and every one of them is folded" is the drift-blind state
+    this control exists to make visible, and a skip there would be the fail-open the fix removes.
+    """
+    floors = _producer_made_floors()
+    if floors:
+        return floors[0][1]
+    if not list(_FLOOR_DIR.glob(_FLOOR_GLOB)):
+        pytest.skip("no floor artefact on disk under {}/{}".format(_FLOOR_DIR, _FLOOR_GLOB))
+    raise AssertionError(
+        "floor artefacts exist under {}/{} but EVERY one of them is folded, so nothing on disk "
+        "carries a summary the fold did not compute and the producer/fold agreement cannot be "
+        "checked at all. This is not a pass. Keep a producer-made member on disk -- `fold` names "
+        "each one in `folded_from` and never removes it.".format(_FLOOR_DIR, _FLOOR_GLOB))
 
 
 def test_the_fold_reproduces_the_producers_own_summary_on_the_family_already_on_disk():
@@ -58,6 +102,12 @@ def test_the_fold_reproduces_the_producers_own_summary_on_the_family_already_on_
     the day the family grows this control still asks the same question of the bigger one.
     """
     live = _live()
+    #: THE PREMISE, ASSERTED RATHER THAN ASSUMED. The whole control rests on this summary having
+    #: been computed by the producer and not by `summarise`; if the subject were ever folded the
+    #: three assertions below would compare a function with itself and pass on any drift.
+    assert not live.get("folded"), (
+        "the artefact under test is a FOLDED family, so its summary was written by `summarise` "
+        "and comparing `summarise` to it is an identity, not a control")
     got = summarise(live["seeds"])
 
     assert got["selection_gbp_spread"] == live["selection_gbp_spread"]
@@ -114,6 +164,39 @@ def test_the_folds_bar_is_the_one_the_family_size_earns_and_is_published_beside_
     assert half["selection_sems_needed_to_state_a_sign"] > earned, (
         "a smaller family was given a LOOSER bar, which is backwards: fewer draws buy less "
         "certainty about the standard error, so the tail is wider")
+
+
+def test_a_folded_artefact_is_never_the_witness_and_an_all_folded_tree_refuses(tmp_path,
+                                                                              monkeypatch):
+    """THE DEFECT: the control above reads the path Lane 0 is about to overwrite with a FOLD, and
+    from then on compares `summarise` with its own output -- green on any drift.
+
+    Both halves of the partition are asserted here, because a selector that returned NOTHING would
+    satisfy "never folded" vacuously and a refusal that never fires is not a refusal:
+
+      * a folded member is not selected even when it is the newest thing on disk; and
+      * a tree where EVERY floor artefact is folded raises, rather than skipping quietly.
+    """
+    live = _live()
+    folded_now = {**copy.deepcopy(live), "folded": True,
+                  "generated_at": "2099-01-01T00:00:00Z"}   # newest on disk, and unusable
+    (tmp_path / "value_cycle_ab_s1_noise_floor.json").write_text(json.dumps(folded_now))
+    monkeypatch.setattr("tests.tools.test_fold_noise_floor_family._FLOOR_DIR", tmp_path)
+
+    assert _producer_made_floors() == [], "a folded family was accepted as a producer's witness"
+    # A SKIP HERE IS THE FAIL-OPEN, not a neutral outcome: `pytest.raises` lets it through and the
+    # test reads skipped-green, so it is caught and failed by name.
+    try:
+        with pytest.raises(AssertionError, match="EVERY one of them is folded"):
+            _live()
+    except pytest.skip.Exception:
+        pytest.fail("an all-folded tree SKIPPED instead of refusing -- the drift-blind state "
+                    "passed quietly")
+
+    #: AND THE OTHER SIDE: drop a producer-made member in beside it and the witness comes back,
+    #: so the refusal above is keyed to the absence of a witness and not to the directory.
+    (tmp_path / "value_cycle_ab_s1_noise_floor_20260909b.json").write_text(json.dumps(live))
+    assert _live()["seeds"] == live["seeds"]
 
 
 def test_summarise_moves_at_all_so_the_agreement_above_is_not_an_artefact_of_a_dead_function():
