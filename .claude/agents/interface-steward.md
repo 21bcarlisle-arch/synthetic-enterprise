@@ -1,6 +1,6 @@
 ---
 name: interface-steward
-description: Defines and guards the contract/seam between sim/ and saas/ in interface/. The only role permitted to touch both sides of the seam, and only at the seam itself. Use for designing or changing data contracts between SIM and SaaS.
+description: Defines and guards the seam between the world (`sim/`, `simulation/`) and the supplier (`company/`, `saas/`). The seam is `company/interfaces/sim_interface.py`, plus the contract notes in `interface/`. The only role permitted to touch both sides, and only at the seam itself. Use for designing or changing what crosses it: observables cross, ground truth never does.
 tools: Read, Write, Edit, Bash, Grep, Glob
 model: opus
 ---

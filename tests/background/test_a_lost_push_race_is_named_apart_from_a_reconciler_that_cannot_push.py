@@ -24,10 +24,12 @@ asserting what it does*. A classifier that returned `REFUSED_RACE` for EVERY pus
 a race-only test and destroy the distinction it exists to draw. So the partition is asserted whole —
 both legs reachable, from one set of inputs — before either leg's meaning is checked.
 
-NOT A RETRY, deliberately. See `origin_reconcile.REFUSED_RACE`: re-merging and re-gating in-process
-costs the full gate again inside a cadence about to do exactly that, and this is the module that
-manufactured 29 commits in three and a quarter hours by looping on its own output. Naming the
-outcome is the repair.
+A BOUNDED CATCH-UP, NOT "THE NEXT CADENCE" (2026-09-29). This file used to pin "not retried
+in-process", on the premise that a retry costs the full gate again and the next cadence heals the
+race. Both were refuted: nine REFUSED_RACE in a row on 2026-09-24, and a 43-minute gate losing to a
+~30-minute origin on 2026-09-29. A catch-up merges onto the merge that already gated, so its gate
+covers only what arrived meanwhile. The loop is bounded by `RACE_CATCHUPS` so it cannot become the
+29-commit loop this module once was. See `origin_reconcile.REFUSED_RACE`.
 """
 from __future__ import annotations
 
@@ -64,12 +66,12 @@ BROKEN_STDERR = (
 @pytest.fixture
 def spy(monkeypatch):
     """Everything that could touch the world, watched. Nothing here reaches git or origin."""
-    calls = {"merge": 0, "push": 0, "worktree": 0}
+    calls = {"merge": 0, "push": 0, "worktree": 0, "fetch": 0}
     monkeypatch.setattr(orc, "_git", lambda *a, **k: _Proc(0))
     return calls
 
 
-def _run(spy, *, push_rc, push_err):
+def _run(spy, *, push_rc, push_err, then=None):
     """A clean merge and a failing push, with the world fully injected out.
 
     `behind=6, ahead=2` is the live 2026-09-05 state: something of ours to land, so the module
@@ -80,8 +82,15 @@ def _run(spy, *, push_rc, push_err):
         return _Proc(0)
 
     def pusher(_where):
+        """The first push answers `push_rc`/`push_err`; later pushes answer `then` if given."""
         spy["push"] += 1
+        if then is not None and spy["push"] > 1:
+            return _Proc(*then)
         return _Proc(push_rc, err=push_err)
+
+    def fetcher(_wt):
+        spy["fetch"] += 1
+        return _Proc(0)
 
     def make(_p, _w):
         spy["worktree"] += 1
@@ -91,7 +100,7 @@ def _run(spy, *, push_rc, push_err):
         state_fn=lambda _p=None: (6, 2), runner=runner, pusher=pusher, make_worktree=make,
         drop_worktree=lambda p, w: None, gate_fn=lambda _p=None: False,
         advance_fn=lambda _p=None: {"advanced": False, "reason": "not reached", "cleared": []},
-        blockers_fn=lambda _p=None: [])
+        blockers_fn=lambda _p=None: [], fetcher=fetcher)
 
 
 # ── THE PARTITION, ASSERTED WHOLE BEFORE EITHER LEG'S MEANING ────────────────────────────────
@@ -129,23 +138,70 @@ def test_a_lost_race_is_REFUSED_RACE_and_not_ERROR(spy, stderr):
     assert r["status"] == orc.REFUSED_RACE, \
         "a self-clearing race was filed under the word the module uses for a broken reconciler"
     assert r["pushed"] is False
-    assert spy["merge"] == 1 and spy["push"] == 1, "the leg under test was not the leg that ran"
+    tries = 1 + orc.RACE_CATCHUPS
+    assert spy["merge"] == tries and spy["push"] == tries, \
+        "the leg under test was not the leg that ran"
     assert "NOTHING IS OWED" in r["detail"], \
         "the status names the race but the detail does not tell a reader it needs no attention"
 
 
-def test_the_race_is_not_retried_in_process(spy):
-    """NAMING IT IS THE REPAIR; SPINNING ON IT IS THE DEFECT THAT WOULD COME BACK.
+def test_a_lost_race_is_caught_up_onto_the_gated_merge_and_the_catch_up_can_land(spy):
+    """THE CATCH-UP BRANCH CAN BE TAKEN, AND IT BUILDS ON THE MERGE THAT ALREADY GATED.
 
-    A retry must re-merge and re-gate against the new base — the full cost again, inside a cadence
-    about to do exactly that. This is the module that produced 29 empty commits in 3h15m by looping
-    on its own output (`test_the_reconciler_manufactured_the_fork_it_existed_to_close.py`).
+    One race, then a push that lands: one catch-up merge, fetched first, in the SAME worktree (a
+    rebuilt worktree would re-gate every incoming commit, which is the race it exists to escape).
 
-    MUTATION: wrap the push in a retry loop and the counts go above one.
+    MUTATION: delete the catch-up loop and `pushed` stays False with one merge; rebuild the worktree
+    per attempt and the worktree count goes above one; skip the fetch and the fetch count is zero.
     """
-    _run(spy, push_rc=1, push_err=RACE_STDERR)
-    assert spy["push"] == 1, "the push was retried in-process"
-    assert spy["merge"] == 1, "the merge was rebuilt in-process to retry the push"
+    r = _run(spy, push_rc=1, push_err=RACE_STDERR, then=(0, "", ""))
+    assert r["pushed"] is True, "a race followed by a clean catch-up never reached origin"
+    assert spy["merge"] == 2 and spy["push"] == 2
+    assert spy["fetch"] == 1, "the catch-up merged a stale origin ref without fetching"
+    assert spy["worktree"] == 1, "the catch-up rebuilt the worktree instead of merging onto the gate"
+
+
+def test_the_catch_up_is_bounded_and_a_race_that_keeps_winning_is_still_named(spy):
+    """NOT THE 29-COMMIT LOOP. An origin that moves under every gate gets `RACE_CATCHUPS`
+    catch-ups and then the run returns REFUSED_RACE, pushing nothing.
+
+    MUTATION: make the loop unbounded and this never returns; drop the bound's `>=` for `>` and the
+    counts go one over.
+    """
+    r = _run(spy, push_rc=1, push_err=RACE_STDERR)
+    assert r["status"] == orc.REFUSED_RACE and r["pushed"] is False
+    assert spy["push"] == 1 + orc.RACE_CATCHUPS
+    assert orc.RACE_CATCHUPS >= 1, "a bound of zero is the old no-catch-up behaviour"
+    assert "catch-up merge(s)" in r["detail"], "the detail hides that catch-ups were tried"
+
+
+def test_a_catch_up_that_cannot_fetch_hands_the_race_back_named(spy, monkeypatch):
+    """A FAILED FETCH IS NOT A BROKEN RECONCILER. With nothing fetched there is nothing to merge,
+    so the run stops and still reports REFUSED_RACE -- not ERROR, and no second merge.
+
+    MUTATION: ignore the fetch result and the merge count goes to two.
+    """
+    def _run_failing_fetch():
+        return orc.reconcile(
+            state_fn=lambda _p=None: (6, 2), runner=lambda _w: spy.__setitem__(
+                "merge", spy["merge"] + 1) or _Proc(0),
+            pusher=lambda _w: spy.__setitem__("push", spy["push"] + 1) or _Proc(1, err=RACE_STDERR),
+            make_worktree=lambda _p, _w: (True, ""), drop_worktree=lambda p, w: None,
+            gate_fn=lambda _p=None: False, blockers_fn=lambda _p=None: [],
+            advance_fn=lambda _p=None: {"advanced": False, "reason": "", "cleared": []},
+            fetcher=lambda _w: _Proc(1))
+    r = _run_failing_fetch()
+    assert r["status"] == orc.REFUSED_RACE and spy["merge"] == 1 and spy["push"] == 1
+
+
+def test_a_broken_push_after_a_lost_race_stops_catching_up(spy):
+    """ONLY A RACE EARNS A CATCH-UP. A catch-up whose push genuinely fails returns ERROR at once.
+
+    MUTATION: catch up on any push failure and the merge count goes above two.
+    """
+    r = _run(spy, push_rc=1, push_err=RACE_STDERR, then=(1, "", BROKEN_STDERR))
+    assert r["status"] == orc.ERROR and r["pushed"] is False
+    assert spy["merge"] == 2 and spy["push"] == 2
 
 
 # ── LEG TWO: A REAL FAILURE IS STILL A REAL FAILURE ──────────────────────────────────────────

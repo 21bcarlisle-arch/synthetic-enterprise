@@ -49,12 +49,6 @@ def _off_store(verdicts) -> list[str]:
             if not v.is_eligible and v.reason.startswith(fdp.NO_ARCHIVE_REFUSAL)]
 
 
-@pytest.mark.xfail(strict=True, reason=(
-    "OWED, 2026-09-27: 42 premises off-store at HEAD. The re-pull stopped on Open-Meteo's DAILY "
-    "quota after 8 of 118 cells; a half-built store is WORSE (100 off), because the HadUK pass "
-    "stores every new cell temperature-only and a premise then resolves to its own incomplete cell "
-    "instead of a complete neighbour. Land the store only when complete, and delete this marker in "
-    "that commit -- strict, so the completing commit cannot forget."))
 def test_every_domestic_non_hh_premise_resolves_to_a_complete_stored_cell(book):
     register, weather = book
     verdicts = _verdicts(register, weather)

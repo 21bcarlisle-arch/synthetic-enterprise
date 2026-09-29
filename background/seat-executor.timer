@@ -10,7 +10,7 @@ Description=Synthetic Enterprise seat-executor timer — activates seat-executor
 # :05 and :35, deliberately OFF the tick's :00/:30 and off delivery-seat's :20. Three writers
 # arriving in the same second is how a claim store gets read half-written, and the three-hour
 # orientation is the one that must not be read mid-stretch (see delivery-seat.timer).
-OnCalendar=*-*-* *:05,35:00
+OnCalendar=*-*-* *:05/10:00
 Persistent=false
 RandomizedDelaySec=120
 

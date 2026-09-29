@@ -876,27 +876,45 @@ def balance_write_offs(bills: list[dict], behavioral: dict, churned_ids: set[str
     return balance_settlement(bills, behavioral, churned_ids, seed)[0]
 
 
+def emergent_bad_debt_lines(bills: list[dict], behavioral: dict, churned_ids: set[str],
+                            seed: int = 42) -> dict[str, dict[tuple[str, int], float]]:
+    """`compute_emergent_bad_debt`'s charge, kept apart by LINE: the write-off at close, the
+    statute-barred write-off, and leg 4b's stayer provision (empty while leg 4b is off). Each is
+    keyed (customer_id, year) exactly as the sum is, so a reader can say which rule a household's
+    bad debt came from -- the question the C1 bracket could not answer for PROS-2016-0098.
+
+    `"total"` is the sum, accumulated in the order and with the per-step rounding the charge has
+    always used; re-adding the lines in another order can move a key by a penny.
+    """
+    from company.interfaces.bill_assembly import issued_bills
+    resolved = _resolve_bills(issued_bills(bills), behavioral, seed)
+    written_off, credited = balance_settlement_from_outcomes(resolved, churned_ids)
+    lines: dict[str, dict[tuple[str, int], float]] = {
+        LEG_CLOSE: {}, LEG_STATUTE_BAR: {}, "stayer_provision": {}, "total": {}}
+    total = lines["total"]
+    for (cid, _pe, _c), wo in sorted(written_off.items()):
+        key = (cid, wo["date"].year)
+        line = lines[wo["leg"]]
+        line[key] = round(line.get(key, 0.0) + wo["amount_gbp"], 2)
+        total[key] = round(total.get(key, 0.0) + wo["amount_gbp"], 2)
+    bucket = stayer_failed_dd_bucket()
+    if bucket is not None:
+        charges = stayer_provision_charges(resolved, churned_ids, written_off, credited, bucket)
+        print(f"  [leg 4b] stayer provision ON, C1 bucket={bucket}: "
+              f"GBP {sum(charges.values()):,.2f} over {len({c for c, _ in charges})} stayer(s)")
+        lines["stayer_provision"] = dict(charges)
+        for key, charge in charges.items():
+            total[key] = round(total.get(key, 0.0) + charge, 2)
+    return lines
+
+
 def compute_emergent_bad_debt(bills: list[dict], behavioral: dict, churned_ids: set[str],
                                seed: int = 42) -> dict[tuple[str, int], float]:
     """GBP written off, keyed by (customer_id, write_off_year). Its basis is `BAD_DEBT_BASIS`:
     write-offs only, no provision -- unless `stayer_failed_dd_bucket()` names a C1 bucket, when
     leg 4b's stayer provision charge is added on the same keys.
     """
-    from company.interfaces.bill_assembly import issued_bills
-    resolved = _resolve_bills(issued_bills(bills), behavioral, seed)
-    written_off, credited = balance_settlement_from_outcomes(resolved, churned_ids)
-    result: dict[tuple[str, int], float] = {}
-    for (cid, _pe, _c), wo in sorted(written_off.items()):
-        key = (cid, wo["date"].year)
-        result[key] = round(result.get(key, 0.0) + wo["amount_gbp"], 2)
-    bucket = stayer_failed_dd_bucket()
-    if bucket is not None:
-        charges = stayer_provision_charges(resolved, churned_ids, written_off, credited, bucket)
-        print(f"  [leg 4b] stayer provision ON, C1 bucket={bucket}: "
-              f"GBP {sum(charges.values()):,.2f} over {len({c for c, _ in charges})} stayer(s)")
-        for key, charge in charges.items():
-            result[key] = round(result.get(key, 0.0) + charge, 2)
-    return result
+    return emergent_bad_debt_lines(bills, behavioral, churned_ids, seed)["total"]
 
 
 def _row_for(key: tuple[str, int], last_index_by_cy: dict[tuple[str, int], int]) -> int | None:
@@ -1018,3 +1036,64 @@ def apply_debt_recovery(all_records: list[dict], recovery_by_customer_year: dict
             cumulative_correction += delta
         if cumulative_correction != 0.0 and "treasury_cash_balance_gbp" in rec:
             rec["treasury_cash_balance_gbp"] = round(rec["treasury_cash_balance_gbp"] + cumulative_correction, 2)
+
+
+#: The per-customer arrears lines `book_arrears_lines` returns, in the order the identity reads.
+ARREARS_LINE_KEYS = (
+    "pre_4c_net_gbp", "placeholder_bad_debt_released_gbp", "write_off_at_close_gbp",
+    "write_off_statute_barred_gbp", "stayer_provision_gbp", "line_rounding_gbp",
+    "unbooked_bad_debt_gbp", "dca_recovery_gbp", "unbooked_recovery_gbp",
+)
+
+
+def book_arrears_lines(all_records: list[dict], lines: dict[str, dict[tuple[str, int], float]],
+                       recovery_by_customer_year: dict[tuple[str, int], float]
+                       ) -> dict[str, dict[str, float]]:
+    """Book the arrears engine onto `all_records` (`apply_emergent_bad_debt` then
+    `apply_debt_recovery`, unchanged) and return, per customer, the lines that took each
+    record's net from the settlement loop's figure to the booked one:
+
+        net = pre_4c_net + placeholder_released
+              - (write_off_at_close + write_off_statute_barred + stayer_provision
+                 + line_rounding - unbooked_bad_debt)
+              + (dca_recovery - unbooked_recovery)
+
+    `unbooked_*` is a figure keyed to a year `_row_for` finds no record for, which the apply
+    step drops; it is carried so the drop is visible rather than a gap. `line_rounding` is the
+    engine's total less the sum of its lines -- the lines are rounded per line, the total in the
+    charge's own order.
+    """
+    out: dict[str, dict[str, float]] = {}
+    last_index_by_cy: dict[tuple[str, int], int] = {}
+
+    def row(cid: str) -> dict[str, float]:
+        return out.setdefault(cid, dict.fromkeys(ARREARS_LINE_KEYS, 0.0))
+
+    for i, rec in enumerate(all_records):
+        r = row(rec["customer_id"])
+        r["pre_4c_net_gbp"] += rec["net_margin_gbp"]
+        r["placeholder_bad_debt_released_gbp"] += rec.get("bad_debt_gbp", 0.0)
+        last_index_by_cy[(rec["customer_id"], int(rec["settlement_date"][:4]))] = i
+
+    for name, field in ((LEG_CLOSE, "write_off_at_close_gbp"),
+                        (LEG_STATUTE_BAR, "write_off_statute_barred_gbp"),
+                        ("stayer_provision", "stayer_provision_gbp")):
+        for (cid, _y), gbp in lines[name].items():
+            row(cid)[field] += gbp
+    for key, gbp in lines["total"].items():
+        r = row(key[0])
+        r["line_rounding_gbp"] += gbp
+        if _row_for(key, last_index_by_cy) is None:
+            r["unbooked_bad_debt_gbp"] += gbp
+    for key, gbp in recovery_by_customer_year.items():
+        r = row(key[0])
+        r["dca_recovery_gbp"] += gbp
+        if _row_for(key, last_index_by_cy) is None:
+            r["unbooked_recovery_gbp"] += gbp
+    for r in out.values():
+        r["line_rounding_gbp"] -= (r["write_off_at_close_gbp"] + r["write_off_statute_barred_gbp"]
+                                   + r["stayer_provision_gbp"])
+
+    apply_emergent_bad_debt(all_records, lines["total"])
+    apply_debt_recovery(all_records, recovery_by_customer_year)
+    return {cid: {k: round(v, 6) for k, v in r.items()} for cid, r in out.items()}
