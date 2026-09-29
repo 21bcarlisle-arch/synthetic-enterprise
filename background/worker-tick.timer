@@ -55,7 +55,7 @@ OnBootSec=30s
 # produces level moves and reader-visible landings at this rate, restore 60s. If it does not, the
 # rate was never the constraint and 60s would only have bought more of the fortnight. Either
 # outcome is an answer; the current number is the one that lets the question be asked.
-OnUnitActiveSec=1800s
+OnUnitActiveSec=600s
 Persistent=true
 
 [Install]
