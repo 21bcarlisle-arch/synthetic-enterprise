@@ -1,9 +1,21 @@
 {
- "generated_at": "2026-09-29T08:26:36.837607+00:00",
+ "generated_at": "2026-09-29T11:24:54.252356+00:00",
  "seat": "delivery",
  "what_it_did": {
   "available": true,
   "commits": [
+   {
+    "sha": "a3b1ae3c5",
+    "at": "2026-09-29T09:53:29+01:00",
+    "subject": "prereg: the decided-differently sign over five seeds on one weather store, written before either run launched",
+    "substantive": false
+   },
+   {
+    "sha": "bf2e58088",
+    "at": "2026-09-29T09:26:37+01:00",
+    "subject": "delivery seat: direction for the next stretch",
+    "substantive": false
+   },
    {
     "sha": "7fe9157c8",
     "at": "2026-09-29T07:37:54+01:00",
@@ -231,65 +243,53 @@
     "at": "2026-09-28T13:47:38+01:00",
     "subject": "a --pattern waiter no longer takes another waiter for its subject, so two waits on one artefact can end",
     "substantive": true
-   },
-   {
-    "sha": "e9a9a0dc9",
-    "at": "2026-09-28T13:07:56+01:00",
-    "subject": "chore(liveness): publish heartbeat while sim output unchanged (git=d3b12ad3d74e41d60123e9b9af62d30f55c662ac) -- decouples published liveness from content-change (Fault#1 2026-07-25)",
-    "substantive": false
-   },
-   {
-    "sha": "d3b12ad3d",
-    "at": "2026-09-28T12:36:48+01:00",
-    "subject": "a landed SEAT_RESULT spends the grading premise of the SEAT_PREREG an item names -- the draw skips it and the ledger reads premise_spent with the result's commit, so finished grading is no longer re-issued to a worker tick",
-    "substantive": true
    }
   ],
-  "substantive": 10,
-  "mechanical": 30,
+  "substantive": 9,
+  "mechanical": 31,
   "what_the_split_means": "A mechanical commit republishes an unchanged net -- the report, the dashboard, the state files. Counting those as work would make a quiet day look busy, so they are separated rather than filtered: they happened, they are just not progress."
  },
  "what_it_decided": {
   "available": true,
-  "oriented_at": "2026-09-29T08:23:33.806625+00:00",
+  "oriented_at": "2026-09-29T11:21:09.297754+00:00",
   "age_hours": 0.1,
   "expires_after_hours": 12.0,
   "live": true,
-  "thesis_read": "The thesis did not move this stretch. The one run that could say whether the per-customer arm beats the flat-rules baseline because of its decisions was my item one, and it was never drawn. There is no prereg, no launch and no longjob unit for it, while 20 GB was free all stretch. The steer bit on items two and three and missed the item that matters. That miss is the drift I have to name first. Three hours is short, but the item has no competitor on memory, and this direction carries it first again, unchanged in substance. Nothing on the inference side regressed: b9c9092e6 stops a noise floor from one weather world bounding a figure from another. That is the last guard the rerun needs. The machine moved more than the product did. Item three is finished and leaves focus. The 26-minute subject gate is one world run: 51 of its 52 files take 242 s, and one fixture's main() takes the rest, 45% of it 144 fabric premises (bcb661031). The lever is filed as owed work (7fe9157c8), and it becomes item two, because it pays on every landing that selects that fixture. Item two is finished on its own terms: the draft is cleared (2fa8dd840). But my claim that it was the one path holding the tree was wrong. The census named one class-(c) path. The reconcile that followed won the push race, merged as 6166e3af0 and closed the fork, so the ahead leg is 0. It then refused the fast-forward on 14 paths of other lanes' uncommitted bytes (662da7fd3). The shared tree is 46 behind and its origin_reconcile.py still has no merge_budget. So the daemon still runs the 1,500 s timeout. With the fork closed, the fast-forward needs no merge. Clearing those 14 paths is in hand now under the seat's own claim, so I do not put it in focus a second time. The director's prompt-audit instruction was applied in af39801d1, including the check that a stale agent description fails. The before/after measurement for hunks 5\u20137 is owed at Friday's burn review. Nothing is owed him today.",
+  "thesis_read": "The steer bit this time. Last stretch's thesis item was drawn. A prereg was written before any output (a3b1ae3c5), and both legs launched at 08:51Z from a worktree pinned at origin b79e2c0e8, on one weather store (digest e11451b5\u2026). That corrects my \"never drawn\" row. Then half of it died. The kernel OOM-killed run A (seeds 11111, 88888, 22222) at 10:01Z (the journal's 11:01 is BST), after 1h10m, at an 8.7 GB cgroup peak. It left no artefact, and nothing in this stretch recorded the kill. The brief does not mention it. Only run B (33333, 44444) is still alive, at 8.2 GB. So the question the thesis turns on, whether the per-customer arm beats the flat baseline because of what it decided, is still where it was. At best this stretch yields two new seeds of five. The cause was not bad luck. The admission check that let both legs start prices a noise-floor leg at FLOOR_RUN_PEAK_MB = 6,400 MB (tools/run_value_cycle_ab.py). That figure is the MemoryPeak of a run that was itself OOM-killed, so it is a floor used as a ceiling. The same defect was found and fixed on the paired-leg constant on 2026-09-23, and it was left live on its sibling. A real --level-arm leg costs 8.2\u20138.7 GB. So I put the thesis item first again, reshaped to finish from what survived. The mispriced admission comes second, because it will kill the relaunch the same way. The phase4c short-window item is finished. The fixture runs to 2018-12-31, and its wiring tests go red on an empty log (568ec4fe8, on origin). It leaves focus. The 14 fast-forward paths turned out to be copies origin supersedes (19286b105). That disposition also retires the not_done lane-0 row judge-the-stale-fold-noise-floor-test-copy\u2026, which is the same subject under a second id. A reconcile merge is running now (surgical_land pid 3989327). The shared tree is 50 behind, and its origin_reconcile.py still has 0 merge_budget hits against origin's 3, so that row stays open. Net: the machine served the thesis this stretch instead of competing with it, and the result is still owed.",
   "focus": [
    {
-    "id": "rerun-the-value-cycle-ab-on-one-weather-store-with-more-seeds",
+    "id": "finish-the-five-seed-decided-differently-grade",
     "lane": "B_commercial",
-    "what": "Before any output exists, write a SEAT_PREREG_ in docs/staging/records/. Per seed, predict three things: the sign of the decided-differently set (D), excluding PROS-2016-0098; that the decided-alike set (A) stays within \u00b1\u00a325; and the pooled sign test on D across all seeds. Then create a git worktree at the current origin/main, which carries c39e01693, e297d1169 and b9c9092e6. From it, run tools/run_value_cycle_ab.py --level-arm with --noise-floor-seeds 11111,88888 plus three new seeds. Launch it through background/launch_long_job.py under setsid. Launch as soon as background.resource_headroom.sample() shows room and no other value-cycle run is on the box. At 08:25Z, 20 GB was free and no run was on the box, so do not wait for the shared tree to advance. The run needs origin, not the shared tree. Grade every prereg line in a SEAT_RESULT_ beside it, one row per prediction. Make the first row each arm's weather_store digest and the same_weather_store verdict. launch_long_job.py is used, not edited. What lands is the two records.",
-    "why": "This is the thesis's own question: does the per-customer arm beat the flat baseline because of what it decided? The last grade had two seeds (p=0.77 and p=0.90), and one of them was contaminated by a store swap that is now refused by construction. The item was named last stretch and never drawn. DONE when a SEAT_RESULT_ on origin grades every line over at least five seeds that share one weather-store digest, and says plainly whether D's sign is distinguishable from zero. \"Cannot yet say, with the bound\" is finished. A run that refused on its digests is not."
+    "what": "Run B (unit longjob-ab5-runb, pid 3528271, seeds 33333,44444) is still running. Do not start anything memory-heavy beside it. Wait for its unit to exit with tools/wait_for.py, not a hand-rolled pgrep. Then confirm three things: /var/tmp/se-ab5-out/runB.json exists; the worktree /var/tmp/se-ab5-b79e2c0e8 is still detached at b79e2c0e8; and weather_store_digest() still equals the prereg's e11451b5\u2026d242. Then relaunch the three seeds run A lost, from that same worktree, through background/launch_long_job.py under setsid, as two legs so each ends inside 5h: 11111,88888 to runA1.json and 22222 to runA2.json. Launch the second leg beside the first only if item two's re-priced admission has landed and admits it; otherwise run them one after the other. Append the OOM and the relaunch to the prereg's launch record ONLY, and do not touch its predictions. Run A died before writing any artefact, so no D or A figure was seen. When all three artefacts exist, grade every prereg line with /var/tmp/se-ab5-out/grade5.py into a SEAT_RESULT_ beside the prereg. Its first row is each arm's weather-store digest and the same_weather_store verdict.",
+    "why": "This is the thesis's own question, and the only live run that answers it. A family of two seeds, p=0.77 and p=0.90, cannot say whether D's sign is decision or noise. DONE when a SEAT_RESULT_ on origin grades every prereg line over five seeds sharing one weather-store digest, and says plainly whether D's sign is distinguishable from zero. \"Cannot yet say, with the bound\" counts as finished. Grading B's two seeds alone is not finished, and a refusal on digests is not a result."
    },
    {
-    "id": "cut-the-phase4c-fixture-to-a-short-window",
+    "id": "reprice-the-noise-floor-leg-admission-from-a-completed-run",
     "lane": "H_harness",
-    "what": "Work docs/staging/WORKER_MINTED_short_window_phase4c_fixture_2026-09-29.md as written, and do not re-time. In a checkout that has sim/cache, run one full main() and one main(report_end=\"2018-12-31\") of simulation/run_phase4c_on_phase2b.py. For each, record the row counts of meter_read_log, contact_centre_log and credit_refund_log, and the number of SLC 21B churned final-read overrides. If all four are non-zero in the short run, move the main_result fixture in tests/simulation/test_run_phase4c_on_phase2b.py to that window. In the same commit, add assert-non-empty legs to test_main_produces_contact_centre_log and test_main_produces_credit_refund_log, and assert at least one churned final read in the window. Mutation-prove each new leg against an emptied log. If any count is zero, try 2020-12-31 before concluding. Do not run this while item one's run holds memory.",
-    "why": "About 1,330 s of every landing that selects this fixture is one world run. That is what outgrew the reconciler's merge budget and pinned the tree. A faster selection is the cheap mechanism; a bigger budget only treats the symptom. Two of the fixture's three tests pass on an empty log today, so the cut must make them bite first. DONE when the fixture runs the short window on origin with the new legs mutation-proven, or when a record on origin names the count that went to zero in both short windows."
+    "what": "In tools/run_value_cycle_ab.py, FLOOR_RUN_PEAK_MB = 6400.0 prices a --noise-floor-seeds leg from the MemoryPeak of a run the OOM killer took, so it is a floor, not a peak. Re-derive it from completed runs only. Use the MemoryPeak systemd reports for longjob-ab5-runb once it exits (read `systemctl --user show -p MemoryPeak` or the journal's \"memory peak\" line). Also use run A's kill line: 8.7G peak, OOM-killed at 1h10m, which is a second floor. Write the origin in the comment the way PAIRED_FLOOR_RUN_PEAK_MB's sibling comment already does: completed versus killed, cgroup versus VmHWM, and rounded in which direction. Add one control that the admission REFUSES the 08:51Z shape: a second --level-arm floor leg with one already running, against the MemAvailable the box had then (about 20 GB). Add a partition leg proving a single leg on an idle box is still ADMITTED. Mutation-prove the refusal against the old 6,400. Leave the edit in a worktree until run B has exited, so its gate does not starve the run.",
+    "why": "This number admitted the pair that killed run A. Without the fix, item one's relaunch is admitted into the same death. The paired-leg constant beside it was corrected for exactly this defect on 2026-09-23 and this sibling was missed, so fixing the one constant is the whole job; no new register. DONE when the constant on origin cites a completed run's peak, and a mutation-proven control refuses two concurrent --level-arm floor legs at about 20 GB free while still admitting one."
    }
   ],
   "not_now": [
    {
-    "what": "Putting clear-the-14-shared-tree-paths-that-hold-the-fast-forward in focus.",
-    "why": "It is the right next machine item, and the seat already claims it (claimed 08:18Z). A focus row would hand the same paths to a worker tick as a rival writer on the same files."
+    "what": "Relaunching run A's three seeds right now, beside run B.",
+    "why": "MemAvailable is about 10.8 GB with B at 8.2 GB and a reconcile gate's pytest at 2.4 GB. One 8.7 GB leg would reproduce the kill. Waiting about three hours for B costs time; a second OOM costs the run and hides the result behind another partial family."
    },
    {
-    "what": "Re-asking evaluate_boot_sha_drift against origin, re-asking cached refusals against the remote, the stash-completeness atom, and why surgical_land pid 837396 exited empty.",
-    "why": "All of these stay open in wrong. Each reading is still dominated by the 46-commit gap, which the in-hand 14-path clear removes. Measured now, they would measure the pin again."
+    "what": "Grading B's two seeds now as an interim SEAT_RESULT_.",
+    "why": "The prereg is written for five seeds, and P3(a) already concedes five cannot reach 0.05. A two-seed grade would be read as an answer. The grader runs once, over the whole family."
    },
    {
-    "what": "Measuring hunks 5\u20137 of the prompt audit (plain wording against capitals) now.",
-    "why": "The director set the instrument himself: landing rate per turn type, before and after, at the Friday burn review (2026-10-02). Four hours of after-data would be noise."
+    "what": "Adding a heartbeat to worker-seat-manager, or re-asking evaluate_boot_sha_drift and cached refusals against origin.",
+    "why": "All of these are machine readings still dominated by the 50-commit shared-tree gap. A reconcile is running now, and measuring before it lands would measure the pin again. They stay open in wrong."
    },
    {
-    "what": "Adding a heartbeat line to worker-seat-manager.",
-    "why": "Its cause is on file, and its wait channel reads hrtimer_nanosleep again. It is not wedged and not on the inference path."
+    "what": "Measuring hunks 5\u20137 of the prompt audit.",
+    "why": "The director fixed the instrument and the date: the Friday burn review, 2026-10-02."
    },
    {
-    "what": "A control that refuses a focus item which is never drawn.",
-    "why": "That would be a control guarding my own steer. The cheaper remedy is item one's why, which now says it needs origin and not the shared tree, so nothing in the pin reads as a reason to wait."
+    "what": "A watcher that raises an alarm when a long job is OOM-killed.",
+    "why": "That builds the thing that watches the work. Admitting a correctly priced leg removes the kill itself. Item two is that one-leg fix."
    }
   ],
   "for_the_director": [],
@@ -299,6 +299,76 @@
  },
  "what_it_got_wrong": {
   "entries": [
+   {
+    "at": "2026-09-29T11:21:09.297754+00:00",
+    "what": "MINE, NEW. Last stretch's item one told the worker to launch once headroom showed room, and cited 20 GB free as sufficient. It said nothing about how many legs fit. The worker launched two legs in parallel. An admission priced from an OOM-killed run's floor let both start, and run A was OOM-killed at 10:01Z with no artefact. I used free memory as the gate when the class \"a bound from an OOM-killed run is a floor used as a ceiling\" was already on file.",
+    "corrected": false
+   },
+   {
+    "at": "2026-09-29T11:21:09.297754+00:00",
+    "what": "THE MACHINE'S, NEW. A long job OOM-killed at 10:01Z was recorded nowhere in the 80 minutes that followed. It is absent from staging, the seat log and this brief's running block. That block lists survivors only, so a dead job reads as a job that never existed.",
+    "corrected": false
+   },
+   {
+    "at": "2026-09-29T11:21:09.297754+00:00",
+    "what": "MINE, NEW. Item two's why said the withdrawn sanity-daemon draft was the one class-(c) path holding the shared tree, and that clearing it would let the tree advance. It was cleared (2fa8dd840). The next reconcile refused the fast-forward on 14 other paths of uncommitted bytes (662da7fd3). I took the census's one named path as the whole population without asking what a fresh refusal would name.",
+    "corrected": false
+   },
+   {
+    "at": "2026-09-29T11:21:09.297754+00:00",
+    "what": "MINE, NEW. Item one, the thesis item, was named first and never drawn in its 3-hour window, while the two machine items behind it were. I did not ask what made it look undrawable.",
+    "corrected": true
+   },
+   {
+    "at": "2026-09-29T11:21:09.297754+00:00",
+    "what": "THE MACHINE'S, CARRIED. Item two's surgical_land (pid 837396) ran 1h25m, exited, and put nothing on any ref. Why that land exited empty was never read. The stale copies it left are byte-identical to origin, so that half is spent. The empty exit is still unexplained. The 1,500 s merge timeout f9023293a found does not explain a 1h25m run.",
+    "corrected": false
+   },
+   {
+    "at": "2026-09-29T11:21:09.297754+00:00",
+    "what": "THE MACHINE'S, CARRIED. A control or door whose shape changes must re-run every fixture that builds a synthetic tree to drive it, and no control requires it. citation_at_head, red_at_head and fork_state in docs/observability/.publish_gate_state.json still read not_established.",
+    "corrected": false
+   },
+   {
+    "at": "2026-09-29T11:21:09.297754+00:00",
+    "what": "THE MACHINE'S, CARRIED. A refusal naming a commit is not re-asked against the remote ref before a reader sees it. liveness_surface_refusal is still not re-asked.",
+    "corrected": false
+   },
+   {
+    "at": "2026-09-29T11:21:09.297754+00:00",
+    "what": "MINE, CARRIED. evaluate_boot_sha_drift() in background/process_reconciler.py grades every daemon against local HEAD, and misreads when HEAD and origin diverge during a reconcile. The function now diffs boot blobs against disk, and 1380d3c02 touched it, so the claim may describe code that has since changed. Not re-established, so not withdrawn.",
+    "corrected": false
+   },
+   {
+    "at": "2026-09-29T11:21:09.297754+00:00",
+    "what": "THE MACHINE'S, CARRIED. The stash-completeness sweep reports a genuinely lost file as safe. It is still not on the map.",
+    "corrected": false
+   },
+   {
+    "at": "2026-09-29T11:21:09.297754+00:00",
+    "what": "THE MACHINE'S, CARRIED. The lane-0 block and the path check read HEAD or a local ref, not origin. It recurs in this brief: two items are still graded landed_unbound on 9f929478e, a preservation commit on no remote ref, while the real grade landed on origin as 5cbbad968.",
+    "corrected": false
+   },
+   {
+    "at": "2026-09-29T11:21:09.297754+00:00",
+    "what": "THE MACHINE'S, CARRIED. Nothing on the landing path asks whether a same-subject untracked sibling is left behind in the shared tree. The 14-path refusal in 662da7fd3 included 8 untracked staging drafts that origin already carries, which is the same class again.",
+    "corrected": false
+   },
+   {
+    "at": "2026-09-29T11:21:09.297754+00:00",
+    "what": "MINE, CARRIED. not_now is prose, and nothing a launch from another lane reads. It is still true of this file.",
+    "corrected": false
+   },
+   {
+    "at": "2026-09-29T11:21:09.297754+00:00",
+    "what": "MINE, CARRIED. The +\u00a3880 focus assumed its only open question was which accounts the arms decided differently on. I never asked whether anything could move accounts where nothing was decided. Something could, and it turned out to be the harness, not the arm. It stays open until item one grades the A set on a constant store. That grade is now two seeds in flight and three to relaunch.",
+    "corrected": false
+   },
+   {
+    "at": "2026-09-29T11:21:09.297754+00:00",
+    "what": "THE MACHINE'S, CARRIED. The reconciler's merge timeout was a literal 1,500 s, and one receipt's 1,570 s test leg outgrew it. Every merge then died silently as a truncated TimeoutExpired. The budget fix is on origin and gated a seat-run merge clean in 42 minutes (6166e3af0). It is still inert in the shared tree: at 11:21Z its origin_reconcile.py has 0 merge_budget hits against origin's 3, and a reconcile merge (pid 3989327) is in flight.",
+    "corrected": false
+   },
    {
     "at": "2026-09-29T08:23:33.806625+00:00",
     "what": "MINE, NEW. Item two's why said the withdrawn sanity-daemon draft was the one class-(c) path holding the shared tree, and that clearing it would let the tree advance. It was cleared (2fa8dd840). The next reconcile refused the fast-forward on 14 other paths of uncommitted bytes (662da7fd3). I took the census's one named path as the whole population without asking what a fresh refusal would name.",
@@ -1923,45 +1993,46 @@
     "at": "2026-09-23T02:23:47.340670+00:00",
     "what": "MINE, CARRIED, STILL CLOSED, AND THE REMEDY I PROMISED IS APPLIED RATHER THAN ARGUED. The condition is: a record is in breach if it ranks anything above the thesis whose DONE does not end in a published figure moving. Last record I ranked a machine item third, above a thesis item, recorded myself in breach on the literal reading of my own condition, and said the remedy would be to move it below the thesis next record without weakening the condition. It is not below \u2014 it is GONE, because the work is in the gate and a rank spent on it would collide with a live lane. All four ranks here end in a published figure or sentence moving: rank 1 names the ceiling on the page, rank 2 renders both answers live, rank 3 publishes the corrected floor, rank 4 publishes what this book can and cannot settle. The condition stands unchanged and this record is not in breach of it.",
     "corrected": true
-   },
-   {
-    "at": "2026-09-22T23:23:48.841598+00:00",
-    "what": "MINE, CARRIED, STILL CLOSED, AND IT EARNED ITS KEEP AGAIN TONIGHT. The error was grading artefacts by their names, or by the part of them I expected to matter, instead of reading them; the habit that replaced it is asking HEAD rather than the file in front of me. That is the only reason this record is right: the working copy of `site/data/value_arms.json`, regenerated at 00:02 and the freshest thing on disk, says \"we cannot tell: 0.499 on 144 decisions\" \u2014 which is the superseded 2026-08-31 capture, not the news \u2014 while HEAD's copy carries the pre-withdrawal sentence and the true reading lives only in the committed grade files. Three readings, three places, and the newest file on disk is the most wrong of them.",
-    "corrected": true
-   },
-   {
-    "at": "2026-09-22T23:23:48.841598+00:00",
-    "what": "THE MACHINE'S, CARRIED, THIRTEENTH LISTING, HALF-REPAIRED BY ANOTHER LANE AND STILL OPEN ON THE HALF THAT MATTERS. The instrument WAS rebuilt this stretch under the id `clear-the-sixteen-remaining-armed-reverts...`: the census now reads 19 with differentiated grades (`predates_landing_by_clock`, `predates_landing_carrying_some`), a `--base-wins` enactment exists, and the refusal text now NAMES the conflation in its own words. It was made HONEST and not TRUE. Measured tonight, not assumed: `refresh_to_head` and `--base-wins` both refuse all three publishing-chain files `refused_supplies_names_head_lacks` \u2014 234, 2,706 and 14,236 leaf names \"HEAD lacks\" on files HEAD wrote hours later \u2014 because a JSON leaf name carries its value and every value in a regenerated artefact is edited. So the class is structural: no regenerated JSON file can ever pass that door. `simulation/premise_population.py` is still `predates_landing` days after the seat decided HEAD wins on it. And 19 may not be compared with 20, 25 or 27 \u2014 that is now three successive instrument changes, so the count has never once been a trend. Rank 3 is the repair.",
-    "corrected": false
-   },
-   {
-    "at": "2026-09-22T23:23:48.841598+00:00",
-    "what": "MINE, CARRIED, AND NOT CORRECTED BECAUSE ITS TEST COULD NOT RUN. The error was writing a focus item as a REMEDY rather than an outcome \u2014 naming doors that turned out to take none of the population. The evidence I said this row would accept was a rank whose DONE is written as an outcome; last record's rank 4 was written that way and then was NEVER DRAWN \u2014 it is absent from the draw ledger entirely \u2014 so nothing tested it and I will not credit an untested instruction. There IS supporting evidence from elsewhere: rank 2's DONE was an outcome, the worker was free to refute my premise, and it did and delivered anyway. This record's ranks 1 and 3 are written to the same rule, and go further \u2014 where I know a door is shut I give the MEASUREMENT rather than either the command or the silence, so the next worker inherits a fact instead of a hunch. The row closes when an item written this way is drawn and the worker's mechanism differs from anything I named, without the rank being spent finding out.",
-    "corrected": false
-   },
-   {
-    "at": "2026-09-22T23:23:48.841598+00:00",
-    "what": "MINE, NEW THIS STRETCH, AND CORRECTED BY THE WORKER RATHER THAN BY ME. I wrote last record's rank 2 on the premise that the renewal block's 384 pairs \"do not carry\" the within-year decomposition. They already were it \u2014 `measure_churn_heterogeneity.report` computes every reading inside `by_year_and_route`, and handed route-filtered rows it collapses to year-only, so the published 0.6706 was the within-year figure and the MISSING twin was the pooled one. I inferred a defect from the absence of a key name on the published artefact instead of reading what the producer computes \u2014 the same family as the row at the top of this list, one level up: grading a computation by its output's field names. The mirrored defect was real and the direction mattered, because pooled and within-year disagree and cross. Corrected inside the stretch, at near-zero cost, and the reason the cost was near zero is the rule in the row above.",
-    "corrected": true
-   },
-   {
-    "at": "2026-09-22T23:23:48.841598+00:00",
-    "what": "MINE, CARRIED, STILL CLOSED, AND THIS RECORD IS GRADED AGAINST IT HONESTLY RATHER THAN GENEROUSLY. The condition is: a record is in breach if it ranks anything above the thesis whose DONE does not end in a published figure moving. Rank 1 ends in a published figure moving and is the thesis. Rank 2 is the thesis. Rank 4 is the thesis. RANK 3 IS A MACHINE ITEM AND IT SITS ABOVE RANK 4, so on the literal reading of my own condition this record is IN BREACH, and I am recording that rather than arguing it away. The reason it is ranked there is that rank 3 is not an item competing with the thesis for attention \u2014 it is the measured cause of rank 1's obstruction, the door that will not let the withdrawal onto the page, and a worker who draws rank 1 may have to do rank 3 to finish it. If the director reads that as the breach the condition was written to catch, the remedy is to move it below rank 4 next record and the condition stands unchanged; I have not weakened it to fit.",
-    "corrected": true
    }
   ],
   "refused_own_records": [],
-  "outstanding": 247,
-  "corrected": 83,
+  "outstanding": 258,
+  "corrected": 81,
   "correction_not_recorded": 0,
   "empty_means": ""
  },
  "what_next": {
   "focus": [
-   "rerun-the-value-cycle-ab-on-one-weather-store-with-more-seeds",
-   "cut-the-phase4c-fixture-to-a-short-window"
+   "finish-the-five-seed-decided-differently-grade",
+   "reprice-the-noise-floor-leg-admission-from-a-completed-run"
   ],
   "steer_checks": [
+   {
+    "by_class": {
+     "lane_0": {
+      "drawn": [
+       "rerun-the-value-cycle-ab-on-one-weather-store-with-more-seeds",
+       "cut-the-phase4c-fixture-to-a-short-window"
+      ],
+      "focus": [
+       "rerun-the-value-cycle-ab-on-one-weather-store-with-more-seeds",
+       "cut-the-phase4c-fixture-to-a-short-window"
+      ],
+      "steered": true
+     }
+    },
+    "drawn": [
+     "rerun-the-value-cycle-ab-on-one-weather-store-with-more-seeds",
+     "cut-the-phase4c-fixture-to-a-short-window"
+    ],
+    "focus": [
+     "rerun-the-value-cycle-ab-on-one-weather-store-with-more-seeds",
+     "cut-the-phase4c-fixture-to-a-short-window"
+    ],
+    "note": "the previous direction named work the draw then took (measured over this stretch only -- the 3.0h since 2026-09-29T08:23:33.806625+00:00; this is the PREVIOUS FOCUS, not every drawn item)",
+    "steered": true,
+    "window": "this stretch only -- the 3.0h since 2026-09-29T08:23:33.806625+00:00"
+   },
    {
     "by_class": {
      "lane_0": {
@@ -2073,36 +2144,6 @@
     "note": "the previous direction named work the draw then took (measured over this stretch only -- the 3.0h since 2026-09-28T20:22:19.798811+00:00; this is the PREVIOUS FOCUS, not every drawn item)",
     "steered": true,
     "window": "this stretch only -- the 3.0h since 2026-09-28T20:22:19.798811+00:00"
-   },
-   {
-    "by_class": {
-     "lane_0": {
-      "drawn": [
-       "does-the-value-arm-decide-anything-the-flat-arm-does-not",
-       "re-measure-the-selection-at-head-with-per-account-arrears-lines",
-       "grade-the-heartbeat-attribution-with-a-one-variable-reading"
-      ],
-      "focus": [
-       "does-the-value-arm-decide-anything-the-flat-arm-does-not",
-       "re-measure-the-selection-at-head-with-per-account-arrears-lines",
-       "grade-the-heartbeat-attribution-with-a-one-variable-reading"
-      ],
-      "steered": true
-     }
-    },
-    "drawn": [
-     "does-the-value-arm-decide-anything-the-flat-arm-does-not",
-     "re-measure-the-selection-at-head-with-per-account-arrears-lines",
-     "grade-the-heartbeat-attribution-with-a-one-variable-reading"
-    ],
-    "focus": [
-     "does-the-value-arm-decide-anything-the-flat-arm-does-not",
-     "re-measure-the-selection-at-head-with-per-account-arrears-lines",
-     "grade-the-heartbeat-attribution-with-a-one-variable-reading"
-    ],
-    "note": "the previous direction named work the draw then took (measured over this stretch only -- the 3.0h since 2026-09-28T17:21:48.049122+00:00; this is the PREVIOUS FOCUS, not every drawn item)",
-    "steered": true,
-    "window": "this stretch only -- the 3.0h since 2026-09-28T17:21:48.049122+00:00"
    }
   ],
   "steered_recently": true,
