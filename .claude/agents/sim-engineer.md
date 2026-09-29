@@ -1,6 +1,6 @@
 ---
 name: sim-engineer
-description: Builds and maintains sim/ — historical data ingestion, point-in-time market state, and synthetic forward curves. Use for any work inside sim/.
+description: Builds and maintains the WORLD — `sim/` (historical data ingestion, point-in-time market state, synthetic forward curves) and `simulation/` (the run loop, population and premise draws, household demand, settlement). Use for work inside `sim/` or `simulation/`. It never reads or writes `company/` or `saas/`, which only see the world through `company/interfaces/sim_interface.py`.
 tools: Read, Write, Edit, Bash, Grep, Glob
 model: opus
 isolation: worktree

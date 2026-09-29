@@ -731,6 +731,21 @@ def _book_identity(sources: list) -> dict:
     that a floor's book IS its declared half. `floor_book_identity.how_a_consumer_should_pair_this`
     says so on every artefact, and this is that instruction obeyed rather than paraphrased.
     """
+    # THE WEATHER WORLD FIRST, because a proven difference refuses whatever else is known.
+    # `floor_book_identity` raises on two stores across one run's seeds; two MEMBERS are two runs,
+    # and the success path below copies the first member's block -- so without this a fold of a
+    # store-X floor and a store-Y floor would publish X as the weather of every row.
+    stores = {}
+    for path, data in sources:
+        store = (data.get("book_identity") or {}).get("weather_store")
+        if isinstance(store, str):
+            stores.setdefault(store, []).append(str(path))
+    if len(stores) > 1:
+        raise FoldRefused(
+            "the sources ran on {} different weather stores ({}). Their rows are not draws of one "
+            "quantity, so no spread over the union bounds anything.".format(
+                len(stores), "; ".join("{} -> {}".format(k, ", ".join(v))
+                                      for k, v in sorted(stores.items()))))
     missing = [str(path) for path, data in sources if not (data.get("book_identity") or {})]
     if missing:
         return {
@@ -789,6 +804,17 @@ def _book_identity(sources: list) -> dict:
         (data.get("book_identity") or {}).get("seeds_that_recorded_no_book") or 0
         for _, data in sources)
     first["folded_over_members"] = len(sources)
+    # One store is only the family's when EVERY member names it: a member from before the brackets
+    # (or one whose own seeds left a bracket unread) is cannot-tell, and the first member's digest
+    # would otherwise stand in for rows it never described.
+    unnamed = [str(path) for path, data in sources
+               if not isinstance((data.get("book_identity") or {}).get("weather_store"), str)]
+    first["weather_store"] = next(iter(stores)) if stores and not unnamed else None
+    first["weather_store_unavailable_because"] = (
+        None if first["weather_store"] is not None else
+        "{} of {} folded runs name no weather store ({}), so which weather world this family was "
+        "drawn in is not established for the family as a whole".format(
+            len(unnamed), len(sources), ", ".join("`{}`".format(u) for u in unnamed)))
     return first
 
 

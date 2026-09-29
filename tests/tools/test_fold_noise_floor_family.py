@@ -324,6 +324,33 @@ def test_a_family_whose_members_all_declare_one_book_NAMES_it(tmp_path):
     assert book["realised_across_seeds_unavailable_because"]
 
 
+def test_members_in_two_weather_worlds_refuse_and_one_unnamed_member_blanks_the_family(tmp_path):
+    """THE DEFECT: the success path copies the FIRST member's book block, so once
+    `floor_book_identity` began publishing `weather_store` a fold of a store-X floor and a store-Y
+    floor would have named X as the weather of all its rows. Partition, admitting leg first."""
+    def fold_with(stores):
+        sources = _two_sources(tmp_path)
+        for path, store in zip(sources, stores):
+            data = json.loads(path.read_text(encoding="utf-8"))
+            data["book_identity"] = copy.deepcopy(_A_DECLARED_BOOK)
+            data["book_identity"]["weather_store"] = store
+            path.write_text(json.dumps(data), encoding="utf-8")
+        return fold(sources)
+
+    agreed = fold_with(["a" * 16, "a" * 16])["book_identity"]
+    assert agreed["weather_store"] == "a" * 16
+    assert agreed["weather_store_unavailable_because"] is None
+
+    partial = fold_with(["a" * 16, None])["book_identity"]
+    assert partial["weather_store"] is None
+    assert "1 of 2 folded runs name no weather store" in partial["weather_store_unavailable_because"]
+    assert partial["declared"] == _A_DECLARED_BOOK["declared"], (
+        "an unrecorded store is cannot-tell, and must not cost the family the book it does name")
+
+    with pytest.raises(FoldRefused, match="2 different weather stores"):
+        fold_with(["a" * 16, "b" * 16])
+
+
 def test_two_declared_books_are_never_folded_into_one(tmp_path):
     """THE DEFECT: rows drawn over a resi-only book pooled with rows drawn over resi+SME, and the
     family naming one of the two. The spread of two populations is not an error bar on either."""

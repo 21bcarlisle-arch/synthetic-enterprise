@@ -212,6 +212,10 @@ def test_the_run_publishes_a_same_book_verdict_a_reader_can_check(wired):
 
     agreement = result["book_identity"]["same_book_across_arms"]
     assert agreement["same_book"] is True
+    # The weather axis PASSES on an unmoved store -- the control over the partition, so the
+    # refusal below is not the only branch this wiring can reach.
+    assert agreement["same_weather_store"] is True
+    assert len(agreement["distinct_weather_stores"]) == 1
     assert agreement["arms_compared"] == ["control_arm", "level_arm", "value_arm"]
     assert len(agreement["distinct_books"]) == 1
 
@@ -235,3 +239,97 @@ def test_two_arms_on_two_books_are_REFUSED_rather_than_reported(wired, monkeypat
 
     # Both arms ran — the refusal is on the comparison, not on the second pass.
     assert [p.name for p in wired] == ["current", "value_arm"]
+
+
+# ---- the weather axis ------------------------------------------------------------------------
+#
+# `run_phase2b.main` re-reads sim/weather_world/ on every arm, from the working tree. On
+# 2026-09-29 seed 88888's level arm ran on the store `f0ba399a4` swapped in mid-run and every
+# identity check passed -- SEAT_FINDING_A_MULTI_ARM_RUN_REREADS_THE_WEATHER_STORE_FROM_A_TREE_
+# THAT_MOVES_UNDER_IT_2026-09-29.
+
+
+def _store_in(tmp_path, monkeypatch):
+    from sim import weather_world
+    paths = {}
+    for attr, name in (("CELLS_PATH", "cells.json"), ("SERIES_PATH", "daily.csv.gz"),
+                       ("REGIMES_PATH", "regimes.json")):
+        path = tmp_path / name
+        path.write_bytes(b"original " + name.encode())
+        monkeypatch.setattr(weather_world, attr, path)
+        paths[attr] = path
+    return paths
+
+
+def test_a_store_swapped_under_the_run_between_arms_is_REFUSED(wired, monkeypatch, tmp_path):
+    """The 2026-09-29 defect end to end: the store changes on disk after the first arm."""
+    paths = _store_in(tmp_path, monkeypatch)
+
+    def swap_the_store_after_the_first_arm(report_end=None, policy=None):
+        wired.append(policy)
+        if len(wired) == 2:
+            paths["SERIES_PATH"].write_bytes(b"the store a landing put here")
+        return {"phase2b": {}, "_name": policy.name}
+
+    monkeypatch.setattr(rvca, "run_phase4c", swap_the_store_after_the_first_arm)
+
+    with pytest.raises(AssertionError, match="one weather world"):
+        rvca.run_value_cycle_ab()
+
+
+def test_the_same_temporary_store_unmoved_PASSES(wired, monkeypatch, tmp_path):
+    """Control for the refusal above: identical wiring, no swap. Without it a digest that
+    differed on every call (a timestamp in the hash, say) would pass the refusal test."""
+    _store_in(tmp_path, monkeypatch)
+    result = rvca.run_value_cycle_ab()
+    agreement = result["book_identity"]["same_book_across_arms"]
+    assert agreement["same_weather_store"] is True
+    assert agreement["weather_store_by_arm"]["value_arm"] == {
+        "before": rvca.weather_store_digest(), "after": rvca.weather_store_digest()}
+
+
+def test_each_arms_book_identity_carries_its_weather_brackets():
+    """The per-arm block, so a reader of one arm sees its world without the cross-arm verdict."""
+    identity = rvca.book_identity(
+        {}, {"served_segments": ["resi"], "weather_store_before_arm": "a",
+             "weather_store_after_arm": "b"})
+    assert (identity["weather_store_before_arm"], identity["weather_store_after_arm"]) == (
+        "a", "b")
+
+
+def test_the_weather_verdict_reaches_all_three_states():
+    """Partition control: one test over every branch, so a verdict stuck on any one of them
+    fails here. A swap INSIDE one arm (before != after) is a disagreement on its own."""
+    def arm(before, after):
+        return {"served_segments": ["resi"], "weather_store_before_arm": before,
+                "weather_store_after_arm": after}
+
+    same = rvca.same_book_across_arms({"control_arm": arm("a", "a"), "value_arm": arm("a", "a")})
+    between = rvca.same_book_across_arms(
+        {"control_arm": arm("a", "a"), "value_arm": arm("b", "b")})
+    inside = rvca.same_book_across_arms(
+        {"control_arm": arm("a", "a"), "value_arm": arm("a", "b")})
+    unread = rvca.same_book_across_arms(
+        {"control_arm": arm("a", "a"), "value_arm": arm(None, "a")})
+    alone = rvca.same_book_across_arms({"control_arm": arm("a", "a")})
+
+    assert same["same_weather_store"] is True
+    assert between["same_weather_store"] is False
+    assert inside["same_weather_store"] is False
+    assert unread["same_weather_store"] is None
+    assert alone["same_weather_store"] is None
+    assert between["distinct_weather_stores"] == ["a", "b"]
+
+
+def test_the_digest_reads_every_store_file_and_fails_closed_on_a_missing_one(
+        monkeypatch, tmp_path):
+    paths = _store_in(tmp_path, monkeypatch)
+    first = rvca.weather_store_digest()
+    assert first == rvca.weather_store_digest()
+    for attr in ("CELLS_PATH", "SERIES_PATH", "REGIMES_PATH"):
+        original = paths[attr].read_bytes()
+        paths[attr].write_bytes(original + b"!")
+        assert rvca.weather_store_digest() != first, attr
+        paths[attr].write_bytes(original)
+    paths["REGIMES_PATH"].unlink()
+    assert rvca.weather_store_digest() is None
