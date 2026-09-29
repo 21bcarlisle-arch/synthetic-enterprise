@@ -3,8 +3,15 @@
 Subject: two captured factor tables from `tools/capture_departure_factors.py`, differing by one
 variable. Default pair is C3 (the price the household is SHOWN) against `main`:
 
-    baseline  docs/reports/c2_departure_factors.json
+    baseline  docs/reports/c3_paired_c2_departure_factors.json
     arm       docs/reports/c3_shown_price_departure_factors.json
+
+THE BASELINE IS THE C2 CAPTURE C3 WAS DIFFERENCED AGAINST, NOT THE LIVE C2 CAPTURE. It is the
+byte-exact `c2_departure_factors.json` of `6168ae6bf`, the commit that landed the C3 arm beside it.
+`b46318106` re-captured `c2_departure_factors.json` on a later world (465 decisions to 148), and
+the C3 arm was not re-captured. Pairing the two then differenced two world changes at once, and
+only 118 decisions still matched. The live capture belongs to `measure_departure_level`. This pair
+belongs to this split.
 
 Opened by: `docs/staging/WORKER_PREREGISTRATION_WHAT_THE_SHOWN_PRICE_MUST_SHOW_2026-08-30.md`,
 whose result section names this split as the owed next step:
@@ -40,7 +47,7 @@ from simulation.market_switching_propensity import (
 )
 
 PROJECT = Path(__file__).resolve().parent.parent
-DEFAULT_BASELINE = PROJECT / "docs" / "reports" / "c2_departure_factors.json"
+DEFAULT_BASELINE = PROJECT / "docs" / "reports" / "c3_paired_c2_departure_factors.json"
 DEFAULT_ARM = PROJECT / "docs" / "reports" / "c3_shown_price_departure_factors.json"
 
 #: The segment boundaries of `_savings_to_rate`, in GBP of annual pounds-on-the-table. Written as
