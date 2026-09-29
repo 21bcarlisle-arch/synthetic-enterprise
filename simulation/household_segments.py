@@ -538,6 +538,26 @@ def active_renewal_probability_for_customer(
     return min(1.0, max(0.0, scaled))
 
 
+def active_renewal_probability_at_a_decision(customer_id: str, segment: str) -> float:
+    """The probability every roll on "is this household active at this renewal" is asked with.
+
+    ONE EVENT, ONE ANSWER (PB6, 2026-09-29). A resi renewal is rolled first by the schedule
+    builders, which send a passive household to an SVT stint, and again by `run_phase2b`'s
+    departure branch on the same seed. The departure branch used to pass the archetype alone while
+    the builders passed archetype x payment channel, so in the band `[p, p*m)` a household reached
+    a fixed renewal as active and was then capped as passive: 15 of 212 reached decisions on the
+    live roster, all direct debit or standard credit. With one probability, every resi decision
+    reached is active, which is what reaching it means -- a passive household is already on SVT,
+    where `inertia_hazard_for_term` is its departure route.
+
+    Non-resi keeps the archetype roll and the passive cap. Its renewal has no SVT to roll onto,
+    so this roll is the only answer it gets, and a microbusiness contract can roll over passively.
+    """
+    if segment == "resi":
+        return active_renewal_probability_for_customer(customer_id)
+    return active_renewal_probability(engagement_level_for_customer(customer_id))
+
+
 class TenureType(str, Enum):
     OWNER_OCCUPIER = "owner_occupier"
     PRIVATE_RENTER = "private_renter"

@@ -2231,14 +2231,23 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                 # coin-flip every renewal -- the population-weighted
                 # aggregate still reproduces the existing anchored ~35% rate.
                 from simulation.household_segments import (
-                    active_renewal_probability,
+                    active_renewal_probability_at_a_decision,
                     engagement_level_for_customer,
                 )
                 _engagement_level = engagement_level_for_customer(billing_account)
                 _engagement_level_str = _engagement_level.value
+                # Phase 27e: I&C segment uses broker-driven churn model
+                cust_for_churn = next(
+                    (c for c in _ALL_KNOWN_CUSTOMERS if c["customer_id"] == billing_account), None
+                )
+                segment_for_churn = cust_for_churn.get("segment", "resi") if cust_for_churn else "resi"
+                # THE SCHEDULE ALREADY ASKED THIS, on this seed, for a resi household: it is why
+                # this term is fixed and not an SVT stint. Asked with the same probability, so the
+                # answer is the same one (PB6, 2026-09-29) -- see
+                # `active_renewal_probability_at_a_decision` for the band it used to disagree in.
                 active_renewal = rolls_active_renewal(
                     term_start_str, f"{billing_account}_{term_index}",
-                    active_renewal_probability(_engagement_level),
+                    active_renewal_probability_at_a_decision(billing_account, segment_for_churn),
                 )
                 passive_cap = passive_churn_cap_for(active_renewal)
                 # Phase 15d: pass previous-term hedge fraction — well-hedged customers
@@ -2261,11 +2270,6 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                         "error_pct": round(eac_err_pct, 2),
                         "source": "prior_billing" if company_eac != true_eac else "fallback",
                     })
-                # Phase 27e: I&C segment uses broker-driven churn model
-                cust_for_churn = next(
-                    (c for c in _ALL_KNOWN_CUSTOMERS if c["customer_id"] == billing_account), None
-                )
-                segment_for_churn = cust_for_churn.get("segment", "resi") if cust_for_churn else "resi"
                 # PB7: THE OBSERVABLE THE COMPANY ALREADY HAS A SEAM FOR, ACTUALLY HANDED OVER.
                 # `SimInterface.get_payment_method` has exposed this since PB6 and no run passed
                 # it, so `payment_method_engagement_factor` returned 1.0 on every account in every

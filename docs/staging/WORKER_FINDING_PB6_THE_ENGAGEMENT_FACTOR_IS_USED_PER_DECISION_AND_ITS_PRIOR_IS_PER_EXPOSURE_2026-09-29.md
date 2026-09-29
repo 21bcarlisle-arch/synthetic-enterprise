@@ -86,3 +86,36 @@ keep part of it.
 
 The world repair in (1) is the next build on this row, in the sim lane, with the practitioner answer
 setting how the company prior in (2) is centred. PB6 stays at L2 in build.
+
+## Correction and the world repair (2026-09-29, later, worker tick)
+
+**Corrected beside the claim: an SVT stint DOES have a departure path.** Defect 1 above says "an
+SVT stint has no departure path at all" and that the double-roll repair must land with a new SVT
+departure hazard. That is false at HEAD. C1b's `inertia_hazard_for_term` (`run_phase2b`, the
+"AN ACCOUNT ON THE STANDARD VARIABLE PRODUCT CAN NOW LEAVE" block) rolls a departure on every SVT
+segment of the decision leg, and the knowledge map's route attribution has it carrying 70-87% of
+the world's departures. What SVT has no path for is a *renewal decision*, which is correct. So the
+world repair is the single roll alone, and it removes no churn route from any household.
+
+**The seed alignment, verified on the live roster** (the check this finding said it had not run).
+All 212 resi electricity terms that are fixed at k >= 1 had a schedule roll of active on
+`{household}_{k}`, so `term_index` is the schedule index there. The departure roll then said
+passive on 15 of them: 14 direct debit, 1 standard credit, 0 prepayment. That matches the
+synthetic 0.94 / 0.93 / 1.00 above.
+
+**Landed:** `household_segments.active_renewal_probability_at_a_decision(customer_id, segment)`.
+It returns archetype x channel for resi, the same probability the schedule builders roll, and the
+archetype alone for non-resi. The departure branch now asks it. Every resi decision reached is
+active, and `PASSIVE_CHURN_CAP` stays reachable for SME renewals, which have no SVT to roll to.
+Controls: `tests/simulation/test_a_renewal_is_decided_once.py`, 4 tests, 3 mutations each red.
+
+**What this moves, downstream:** about 7% of reached resi renewal decisions lose the 0.10 passive
+cap, so the renewal route's departures rise for direct debit and standard credit. The per-year
+level anchor (`simulation/departure_level_anchor.py`) was fitted on captures of the old route, so
+it will now read slightly high. Per the knowledge map it is a clamp owed retirement anyway. It is
+not re-fitted here. The EH-2 arms were run on the pre-repair world, so they are stale. The next
+step on this row is to re-run them on the repaired world. Prediction, filed now: the null arm's
+prepayment factor still reads below 1.0, because the prior dominates at n~20 and nothing here
+changes the prior. The planted arm still does not recover 0.307, because the plant still acts on
+decisions reached and not on departure per decision. Company prior (2) still waits on the
+practitioner answer.

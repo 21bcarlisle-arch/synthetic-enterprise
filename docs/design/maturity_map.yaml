@@ -1549,7 +1549,8 @@
   # `test_the_engagement_observable_crosses_the_seam.py` and the row kept the shorter planned
   # name. `company/crm/vulnerability_index.py` is dropped -- that commit touched
   # `enriched_churn_estimate.py`, and the vulnerability scorer belongs to C32.
-  file_scope: ['company/interfaces/sim_interface.py', 'company/crm/enriched_churn_estimate.py', 'tests/company/test_the_engagement_observable_crosses_the_seam.py']
+  file_scope: ['company/interfaces/sim_interface.py', 'company/crm/enriched_churn_estimate.py', 'tests/company/test_the_engagement_observable_crosses_the_seam.py',
+               'tools/_pb6_engagement_recovery_arm.py', 'tests/tools/test_pb6_engagement_recovery_arm.py', 'tests/simulation/test_a_renewal_is_decided_once.py']
   records_rehomed: [expert_hour_findings]
   expert_hour: {status: attempted_finding_open, last: '2026-09-29 blind pass (retention-analytics veteran), tools/blind_review.py, 15 questions. FAIL, held at 2: EH-1 learns a raw channel/book ratio atop signals that already carry arrears; EH-2 no planted/null recovery run.'}
   real_world_twin: "a real supplier's own billing record. It knows how every customer pays because it set the arrangement up, bills against it, and prices for it -- payment method is on the tariff table itself. A supplier that could not see its own payment channels would be unable to bill."
