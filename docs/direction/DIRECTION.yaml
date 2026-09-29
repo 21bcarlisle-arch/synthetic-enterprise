@@ -1,150 +1,115 @@
 version: 1
-oriented_at: "2026-09-29T05:23:12.794442+00:00"
+oriented_at: "2026-09-29T08:23:33.806625+00:00"
 thesis_read: >-
-  The thesis did not go backwards this stretch, but it did not advance either: the per-customer
-  arm's edge over the flat baseline is still unproven, and the one obstacle to proving it has now
-  gone. Two of the three previous focus items were drawn and both finished. The third was
-  correctly never drawn because its trigger never fired, and its premise is now spent. The
-  +£2,464 "moved where nothing was decided" on seed 88888 was not the model. It was the harness.
-  The two-seed run re-read sim/weather_world from the shared tree for every arm, and f0ba399a4
-  swapped that store on disk while the sixth arm was running. The 42 premises that moved to fabric
-  physics carry +£2,484 of the +£2,464 (db50d434c). The one-seed capture bills PROS-2024-0082 16
-  times in every arm, and the elasticity redraw never reaches it (acb2d1732). So my framing last
-  stretch, which named three candidate paths (acquisition, hold gate, unlogged renewal), was wrong
-  in all three. The bisect between fcba478b7 and 5f05e0068 was chasing a commit that opened
-  nothing, and it leaves focus as spent. The defect has been fixed as a class, not an instance. Each
-  arm now carries a weather-store digest, and the run refuses when two arms differ (c39e01693). A
-  noise floor refuses seeds that ran on different stores (e297d1169). Both controls were
-  mutation-proven. What stands from the 5cbbad968 grade: 69 of the 70 priced accounts were decided
-  differently, and they carry +£900 and +£1,331. But the sign tests give p=0.77 and p=0.90, so
-  we still cannot tell whether the decisions made money. Two seeds were never enough power, and the
-  run that settles it can now be trusted. That is item one. On the machine: the pin census landed
-  (f9023293a), which closes my carried deferral row on its own terms. Every reconciler merge died at a
-  1,500 s timeout, while f997f8bf7's own receipt records 1,570 s of tests. The merge budget now
-  extends by the slowest incoming receipt's test leg. The census names one class-(c) path still
-  holding the shared tree: a withdrawn sanity-daemon draft in background/process_manifest.yaml,
-  whose bytes are preserved on origin in that result. HEAD is still 4 ahead and 38 behind. The
-  reconciler is merging now from /var/tmp/se-seat-executor. That worktree carries the new budget;
-  the shared tree does not. Clearing the draft is my decision, not another lane's: its content was
-  deliberately withdrawn on origin (0afe22631) and its only unique bytes are preserved. It is item
-  two. The director's two console questions (mode control, the Monday publish) were answered in
-  SEAT_REPLY_2026-09-29 with commits d6d6a2619 and 77e9db44a, and the cadences were lifted in
-  2bf220c5f. Nothing is owed him.
+  The thesis did not move this stretch. The one run that could say whether the per-customer arm
+  beats the flat-rules baseline because of its decisions was my item one, and it was never drawn.
+  There is no prereg, no launch and no longjob unit for it, while 20 GB was free all stretch. The
+  steer bit on items two and three and missed the item that matters. That miss is the drift I have
+  to name first. Three hours is short, but the item has no competitor on memory, and this direction
+  carries it first again, unchanged in substance. Nothing on the inference side regressed: b9c9092e6
+  stops a noise floor from one weather world bounding a figure from another. That is the last guard
+  the rerun needs. The machine moved more than the product did. Item three is finished and leaves
+  focus. The 26-minute subject gate is one world run: 51 of its 52 files take 242 s, and one
+  fixture's main() takes the rest, 45% of it 144 fabric premises (bcb661031). The lever is filed as
+  owed work (7fe9157c8), and it becomes item two, because it pays on every landing that selects
+  that fixture. Item two is finished on its own terms: the draft is cleared (2fa8dd840). But my
+  claim that it was the one path holding the tree was wrong. The census named one class-(c) path.
+  The reconcile that followed won the push race, merged as 6166e3af0 and closed the fork, so the
+  ahead leg is 0. It then refused the fast-forward on 14 paths of other lanes' uncommitted bytes
+  (662da7fd3). The shared tree is 46 behind and its origin_reconcile.py still has no merge_budget.
+  So the daemon still runs the 1,500 s timeout. With the fork closed, the fast-forward needs no
+  merge. Clearing those 14 paths is in hand now under the seat's own claim, so I do not put it in
+  focus a second time. The director's prompt-audit instruction was applied in af39801d1, including
+  the check that a stale agent description fails. The before/after measurement for hunks 5–7 is
+  owed at Friday's burn review. Nothing is owed him today.
 stretch_reviewed:
-  since: "2026-09-29T02:24:01.809792+00:00"
-  commits: 10
-  substantive: 4
+  since: "2026-09-29T05:23:12.794442+00:00"
+  commits: 11
+  substantive: 3
 focus:
   - id: rerun-the-value-cycle-ab-on-one-weather-store-with-more-seeds
     lane: B_commercial
     what: >-
-      Write a SEAT_PREREG_ in docs/staging/records/ before any output exists. Per seed, predict
-      three things: the sign of the decided-differently set (D) ex-PROS-2016-0098; the decided-alike
-      set (A) staying within ±£25, which is the line seed 88888 refuted only because of the store
-      swap; and the pooled sign test across all seeds on D. Then create a git worktree at the
-      current origin/main, which must contain c39e01693 and e297d1169. If the noise-floor follow-on
-      being landed from /tmp/wt-floorwx is on origin by then, use the commit that has it; do not
-      wait more than one tick for it. From that worktree, run tools/run_value_cycle_ab.py
-      --level-arm with --noise-floor-seeds 11111,88888 plus three new seeds. Launch it via
-      background/launch_long_job.py under setsid. Launch only when
-      background.resource_headroom.sample() shows room and no other value-cycle run is on the box;
-      a gate pytest can take 3 GB. Grade every prereg line in a SEAT_RESULT_ beside it, one row per
-      prediction. Include each arm's weather_store digest and the same_weather_store verdict as the
-      first row.
-      Nothing in code changes: launch_long_job.py is used, not edited. What lands is the two new
-      records in docs/staging/records/.
+      Before any output exists, write a SEAT_PREREG_ in docs/staging/records/. Per seed, predict
+      three things: the sign of the decided-differently set (D), excluding PROS-2016-0098; that the
+      decided-alike set (A) stays within ±£25; and the pooled sign test on D across all seeds. Then
+      create a git worktree at the current origin/main, which carries c39e01693, e297d1169 and
+      b9c9092e6. From it, run tools/run_value_cycle_ab.py --level-arm with --noise-floor-seeds
+      11111,88888 plus three new seeds. Launch it through background/launch_long_job.py under
+      setsid. Launch as soon as background.resource_headroom.sample() shows room and no other
+      value-cycle run is on the box. At 08:25Z, 20 GB was free and no run was on the box, so do not
+      wait for the shared tree to advance. The run needs origin, not the shared tree. Grade every
+      prereg line in a SEAT_RESULT_ beside it, one row per prediction. Make the first row each arm's
+      weather_store digest and the same_weather_store verdict. launch_long_job.py is used, not
+      edited. What lands is the two records.
     why: >-
-      This is the thesis's own question: does the per-customer arm beat the flat-rules baseline
-      because of its decisions? The last grade could not say. It had two seeds, p=0.77 and p=0.90,
-      and one seed was contaminated by a mid-run store swap that is now refused by construction.
-      DONE when a SEAT_RESULT_ on origin grades every line over at least five seeds that share one
-      weather-store digest, and says plainly whether D's sign is distinguishable from zero. "Cannot
-      yet say, with the bound" is a finished answer; a run that refused on digests is not.
-  - id: clear-the-withdrawn-sanity-daemon-manifest-draft-from-the-shared-tree
+      This is the thesis's own question: does the per-customer arm beat the flat baseline because
+      of what it decided? The last grade had two seeds (p=0.77 and p=0.90), and one of them was
+      contaminated by a store swap that is now refused by construction. The item was named last
+      stretch and never drawn. DONE when a SEAT_RESULT_ on origin grades every line over at least
+      five seeds that share one weather-store digest, and says plainly whether D's sign is
+      distinguishable from zero. "Cannot yet say, with the bound" is finished. A run that refused
+      on its digests is not.
+  - id: cut-the-phase4c-fixture-to-a-short-window
     lane: H_harness
     what: >-
-      First wait on the reconciler's in-flight merge (tools.surgical_land pid 2756499, running from
-      /var/tmp/se-seat-executor) with tools.wait_for --pid, and do not start a rival merge. Then, in
-      /home/rich/synthetic-enterprise, confirm that git diff HEAD -- background/process_manifest.yaml
-      is exactly the 16-line sanity-daemon log_silence hunk preserved verbatim in
-      docs/staging/records/SEAT_RESULT_THE_SHARED_TREE_IS_PINNED_BY_A_MERGE_BUDGET_ONE_RECEIPT_OUTGREW_AND_BEHIND_IT_BY_ONE_WITHDRAWN_MANIFEST_DRAFT_2026-09-29.md
-      on origin. If it is, refresh that one path to HEAD with the seat's decision cited (origin
-      withdrew the row in 0afe22631, and the bytes are preserved). If it has any other bytes, stop
-      and preserve them first. Then let the next reconcile cadence run, and check whether
-      git merge-base --is-ancestor origin/main HEAD holds in the shared tree. Record the outcome as a
-      SEAT_DISPOSITION_. If the tree is still behind, name the next refusal's path and class.
+      Work docs/staging/WORKER_MINTED_short_window_phase4c_fixture_2026-09-29.md as written, and do
+      not re-time. In a checkout that has sim/cache, run one full main() and one
+      main(report_end="2018-12-31") of simulation/run_phase4c_on_phase2b.py. For each, record the
+      row counts of meter_read_log, contact_centre_log and credit_refund_log, and the number of
+      SLC 21B churned final-read overrides. If all four are non-zero in the short run, move the
+      main_result fixture in tests/simulation/test_run_phase4c_on_phase2b.py to that window. In the
+      same commit, add assert-non-empty legs to test_main_produces_contact_centre_log and
+      test_main_produces_credit_refund_log, and assert at least one churned final read in the
+      window. Mutation-prove each new leg against an emptied log. If any count is zero, try
+      2020-12-31 before concluding. Do not run this while item one's run holds memory.
     why: >-
-      HEAD is 38 behind origin, so every daemon runs code the branch has moved past. That includes
-      the merge budget in f9023293a, which is inert in the shared tree until the tree advances. The
-      census names this draft as the one class-(c) path left. DONE when the shared tree contains
-      origin/main, or a disposition on origin names the single path and refusal still holding it.
-  - id: name-the-tests-that-make-a-subject-gate-take-26-minutes
-    lane: H_harness
-    what: >-
-      Trigger: only when no value-cycle run from item one holds memory. In a worktree at origin,
-      rebuild the pre-commit test selection that f997f8bf7's receipt recorded (1,570 s). Run it with
-      pytest --durations=30 via background/launch_long_job.py under setsid, so the durations print
-      even on a slow box; the last attempt was killed at 1,500 s before they printed. Write a
-      SEAT_RESULT_ naming the slowest tests, their share of the leg, and why the selection picked
-      each one (subject-stem match or its own file). Then, per test, either mark it for the slow
-      lane with its reason or file a finding. Do not raise any timeout.
-      launch_long_job.py is used, not edited. What lands is the new SEAT_RESULT_, plus any slow-lane
-      marks on the named test files.
-    why: >-
-      Every commit here takes over ten minutes. One 26-minute subject gate was enough to pin the
-      shared tree 37 behind, and the merge budget treats that symptom without explaining it. The
-      cheaper mechanism is a faster selection, not a bigger budget. DONE when a SEAT_RESULT_ on
-      origin names the tests behind the 1,570 s, or says "cannot yet say" with the run that
-      failed to separate them.
+      About 1,330 s of every landing that selects this fixture is one world run. That is what
+      outgrew the reconciler's merge budget and pinned the tree. A faster selection is the cheap
+      mechanism; a bigger budget only treats the symptom. Two of the fixture's three tests pass on
+      an empty log today, so the cut must make them bite first. DONE when the fixture runs the
+      short window on origin with the new legs mutation-proven, or when a record on origin names
+      the count that went to zero in both short windows.
 not_now:
   - what: >-
-      The bisect of the never-decided leak between fcba478b7 and 5f05e0068, which was focus item
-      three.
+      Putting clear-the-14-shared-tree-paths-that-hold-the-fast-forward in focus.
     why: >-
-      Its premise is spent. The leak was a weather store swapped on disk mid-run, not a commit
-      (db50d434c), and it is now refused by construction. A bisect would compare two commits that
-      both show a swing of about £3 on a constant store.
-  - what: >-
-      Patching the level arm's elasticity redraw so it cannot reach acquisition or billing.
-    why: >-
-      Measured: the redraw's one production call-site, customer_events.py:650, never runs for
-      PROS-2024-0082 in any arm. There is nothing to patch. The last stretch was right to hold this
-      back until the mechanism was named.
-  - what: >-
-      A launch-time control refusing any value-cycle run started from the shared tree instead of a
-      pinned worktree.
-    why: >-
-      The store digest already catches the defect at its effect, in one leg, whatever the launch
-      path. A second control guarding where runs start would guard our own controls. Item one
-      launches from a worktree as practice, not as a rule.
+      It is the right next machine item, and the seat already claims it (claimed 08:18Z). A focus
+      row would hand the same paths to a worker tick as a rival writer on the same files.
   - what: >-
       Re-asking evaluate_boot_sha_drift against origin, re-asking cached refusals against the
       remote, the stash-completeness atom, and why surgical_land pid 837396 exited empty.
     why: >-
-      All of these stay open in wrong. Each reading is dominated by the 38-commit divergence, and
-      item two removes it. Measuring them before the tree advances would measure the pin again.
+      All of these stay open in wrong. Each reading is still dominated by the 46-commit gap, which
+      the in-hand 14-path clear removes. Measured now, they would measure the pin again.
+  - what: >-
+      Measuring hunks 5–7 of the prompt audit (plain wording against capitals) now.
+    why: >-
+      The director set the instrument himself: landing rate per turn type, before and after, at
+      the Friday burn review (2026-10-02). Four hours of after-data would be noise.
   - what: >-
       Adding a heartbeat line to worker-seat-manager.
     why: >-
-      Its cause is on file and its wait channel reads hrtimer_nanosleep this stretch too. It is not
-      wedged and not on the inference path.
+      Its cause is on file, and its wait channel reads hrtimer_nanosleep again. It is not wedged and
+      not on the inference path.
+  - what: >-
+      A control that refuses a focus item which is never drawn.
+    why: >-
+      That would be a control guarding my own steer. The cheaper remedy is item one's why, which
+      now says it needs origin and not the shared tree, so nothing in the pin reads as a reason to
+      wait.
 wrong:
   - what: >-
-      MINE, CARRIED. I named the liveness heartbeat as what manufactures the gate cycles the
-      reconciler cannot keep up with. Withdrawn by measurement: it is 6.5% of behind time, and the
-      dirty-path and conflict classes are 45%. 7a97d25a8 itself never reached origin, but its
-      content did, as daf2155d9.
-    corrected: true
+      MINE, NEW. Item two's why said the withdrawn sanity-daemon draft was the one class-(c) path
+      holding the shared tree, and that clearing it would let the tree advance. It was cleared
+      (2fa8dd840). The next reconcile refused the fast-forward on 14 other paths of uncommitted
+      bytes (662da7fd3). I took the census's one named path as the whole population without asking
+      what a fresh refusal would name.
+    corrected: false
   - what: >-
-      MINE, CARRIED. not_now said HEAD was one behind origin and "the reconciler will take" it. It
-      did not. I predicted a reconcile without asking what was holding the tree.
-    corrected: true
-  - what: >-
-      MINE, CARRIED AND WORSE. I deferred the dirty-path pinning as "next in line", and then as
-      "first in line when the grade is running". Neither deferral had a trigger and nothing drew
-      either. HEAD went 11, 21, 30 behind origin. It stayed open until the census landed. The
-      census landed as f9023293a, naming the merge timeout and one class-(c) path.
-    corrected: true
+      MINE, NEW. Item one, the thesis item, was named first and never drawn in its 3-hour window,
+      while the two machine items behind it were. I did not ask what made it look undrawable.
+    corrected: false
   - what: >-
       THE MACHINE'S, CARRIED. Item two's surgical_land (pid 837396) ran 1h25m, exited, and put
       nothing on any ref. Why that land exited empty was never read. The stale copies it left are
@@ -163,8 +128,8 @@ wrong:
   - what: >-
       MINE, CARRIED. evaluate_boot_sha_drift() in background/process_reconciler.py grades every
       daemon against local HEAD, and misreads when HEAD and origin diverge during a reconcile. The
-      function now diffs boot blobs against disk, and 1380d3c02 touched it again this stretch, so
-      the claim may describe code that has since changed. Not re-established, so not withdrawn.
+      function now diffs boot blobs against disk, and 1380d3c02 touched it, so the claim may
+      describe code that has since changed. Not re-established, so not withdrawn.
     corrected: false
   - what: >-
       THE MACHINE'S, CARRIED. The stash-completeness sweep reports a genuinely lost file as safe. It
@@ -177,9 +142,8 @@ wrong:
     corrected: false
   - what: >-
       THE MACHINE'S, CARRIED. Nothing on the landing path asks whether a same-subject untracked
-      sibling is left behind in the shared tree. The arrears reconciliation test is still untracked
-      there. It is now on origin, so this instance is a symptom of the pin, but the landing path
-      still asks nothing.
+      sibling is left behind in the shared tree. The 14-path refusal in 662da7fd3 includes 8
+      untracked staging drafts that origin already carries, which is the same class again.
     corrected: false
   - what: >-
       MINE, CARRIED. not_now is prose, and nothing a launch from another lane reads. It is still
@@ -188,27 +152,14 @@ wrong:
   - what: >-
       MINE, CARRIED. The +£880 focus assumed its only open question was which accounts the arms
       decided differently on. I never asked whether anything could move accounts where nothing was
-      decided. Something could, and it turned out to be the harness, not the arm. The decision
-      partition was necessary, and I treated it as sufficient. It stays open until item one grades
-      the A set on a constant store.
+      decided. Something could, and it turned out to be the harness, not the arm. It stays open
+      until item one grades the A set on a constant store, and item one has not run.
     corrected: false
   - what: >-
-      MINE, NEW. Last stretch's item one told the worker to classify the 16-v-5 bills as an
-      acquisition draw, the hold gate or an unlogged renewal. I closed the frame before asking
-      whether the run's world was held constant across arms. It was not: the weather store changed
-      under the sixth arm. The run disproved the frame (db50d434c), and the class fix landed in
-      c39e01693 and e297d1169.
-    corrected: true
-  - what: >-
-      THE MACHINE'S, NEW. A multi-arm value-cycle run re-read sim/weather_world from a working tree
-      that other lanes land into, so one arm ran in a different world and every identity check
-      passed. Corrected: each arm is now digested before and after it runs, and a run or a noise
-      floor refuses on two different digests. Both are mutation-proven.
-    corrected: true
-  - what: >-
-      THE MACHINE'S, NEW. The reconciler's merge timeout was a literal 1,500 s, and one receipt's
-      1,570 s test leg outgrew it. Every merge then died silently as a truncated TimeoutExpired, and
-      the tree pinned 37 behind. The budget fix is on origin, but it is inert in the shared tree
-      that runs the daemon until the tree advances.
+      THE MACHINE'S, CARRIED. The reconciler's merge timeout was a literal 1,500 s, and one
+      receipt's 1,570 s test leg outgrew it. Every merge then died silently as a truncated
+      TimeoutExpired. The budget fix is on origin and gated a seat-run merge clean in 42 minutes
+      (6166e3af0). It is still inert in the shared tree, whose origin_reconcile.py has 0
+      merge_budget hits at 08:25Z, until the tree fast-forwards.
     corrected: false
 for_the_director: []

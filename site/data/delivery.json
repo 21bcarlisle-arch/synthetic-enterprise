@@ -1,9 +1,27 @@
 {
- "generated_at": "2026-09-29T05:27:39.524259+00:00",
+ "generated_at": "2026-09-29T08:26:36.837607+00:00",
  "seat": "delivery",
  "what_it_did": {
   "available": true,
   "commits": [
+   {
+    "sha": "7fe9157c8",
+    "at": "2026-09-29T07:37:54+01:00",
+    "subject": "the phase4c fixture's short-window cut-over is filed as owed work: it measures four row counts before moving the window, because two of its three tests pass on an empty log",
+    "substantive": false
+   },
+   {
+    "sha": "bcb661031",
+    "at": "2026-09-29T07:36:02+01:00",
+    "subject": "the 26-minute subject gate is one world run: 51 of its 52 files take 242s, the phase4c fixture's single main() takes the rest, and 45% of that is 144 fabric premises",
+    "substantive": false
+   },
+   {
+    "sha": "cfaadfe06",
+    "at": "2026-09-29T06:27:40+01:00",
+    "subject": "delivery seat: direction for the next stretch",
+    "substantive": false
+   },
    {
     "sha": "1380d3c02",
     "at": "2026-09-29T05:33:25+01:00",
@@ -225,77 +243,53 @@
     "at": "2026-09-28T12:36:48+01:00",
     "subject": "a landed SEAT_RESULT spends the grading premise of the SEAT_PREREG an item names -- the draw skips it and the ledger reads premise_spent with the result's commit, so finished grading is no longer re-issued to a worker tick",
     "substantive": true
-   },
-   {
-    "sha": "75b5f6ce6",
-    "at": "2026-09-28T12:35:55+01:00",
-    "subject": "the draw names a prereg's landed SEAT_RESULT and its commit, so a finished grading is not re-issued as if it were outstanding",
-    "substantive": true
-   },
-   {
-    "sha": "2c2a4d70c",
-    "at": "2026-09-28T12:23:13+01:00",
-    "subject": "merge origin/main: automatic reconciliation in an isolated worktree",
-    "substantive": false
-   },
-   {
-    "sha": "fd42e15c3",
-    "at": "2026-09-28T12:01:39+01:00",
-    "subject": "chore(liveness): publish heartbeat while sim output unchanged (git=9c9fda7efafbd9f10089c25b5f9511af874ac7c4) -- decouples published liveness from content-change (Fault#1 2026-07-25)",
-    "substantive": false
    }
   ],
-  "substantive": 11,
-  "mechanical": 29,
+  "substantive": 10,
+  "mechanical": 30,
   "what_the_split_means": "A mechanical commit republishes an unchanged net -- the report, the dashboard, the state files. Counting those as work would make a quiet day look busy, so they are separated rather than filtered: they happened, they are just not progress."
  },
  "what_it_decided": {
   "available": true,
-  "oriented_at": "2026-09-29T05:23:12.794442+00:00",
+  "oriented_at": "2026-09-29T08:23:33.806625+00:00",
   "age_hours": 0.1,
   "expires_after_hours": 12.0,
   "live": true,
-  "thesis_read": "The thesis did not go backwards this stretch, but it did not advance either: the per-customer arm's edge over the flat baseline is still unproven, and the one obstacle to proving it has now gone. Two of the three previous focus items were drawn and both finished. The third was correctly never drawn because its trigger never fired, and its premise is now spent. The +\u00a32,464 \"moved where nothing was decided\" on seed 88888 was not the model. It was the harness. The two-seed run re-read sim/weather_world from the shared tree for every arm, and f0ba399a4 swapped that store on disk while the sixth arm was running. The 42 premises that moved to fabric physics carry +\u00a32,484 of the +\u00a32,464 (db50d434c). The one-seed capture bills PROS-2024-0082 16 times in every arm, and the elasticity redraw never reaches it (acb2d1732). So my framing last stretch, which named three candidate paths (acquisition, hold gate, unlogged renewal), was wrong in all three. The bisect between fcba478b7 and 5f05e0068 was chasing a commit that opened nothing, and it leaves focus as spent. The defect has been fixed as a class, not an instance. Each arm now carries a weather-store digest, and the run refuses when two arms differ (c39e01693). A noise floor refuses seeds that ran on different stores (e297d1169). Both controls were mutation-proven. What stands from the 5cbbad968 grade: 69 of the 70 priced accounts were decided differently, and they carry +\u00a3900 and +\u00a31,331. But the sign tests give p=0.77 and p=0.90, so we still cannot tell whether the decisions made money. Two seeds were never enough power, and the run that settles it can now be trusted. That is item one. On the machine: the pin census landed (f9023293a), which closes my carried deferral row on its own terms. Every reconciler merge died at a 1,500 s timeout, while f997f8bf7's own receipt records 1,570 s of tests. The merge budget now extends by the slowest incoming receipt's test leg. The census names one class-(c) path still holding the shared tree: a withdrawn sanity-daemon draft in background/process_manifest.yaml, whose bytes are preserved on origin in that result. HEAD is still 4 ahead and 38 behind. The reconciler is merging now from /var/tmp/se-seat-executor. That worktree carries the new budget; the shared tree does not. Clearing the draft is my decision, not another lane's: its content was deliberately withdrawn on origin (0afe22631) and its only unique bytes are preserved. It is item two. The director's two console questions (mode control, the Monday publish) were answered in SEAT_REPLY_2026-09-29 with commits d6d6a2619 and 77e9db44a, and the cadences were lifted in 2bf220c5f. Nothing is owed him.",
+  "thesis_read": "The thesis did not move this stretch. The one run that could say whether the per-customer arm beats the flat-rules baseline because of its decisions was my item one, and it was never drawn. There is no prereg, no launch and no longjob unit for it, while 20 GB was free all stretch. The steer bit on items two and three and missed the item that matters. That miss is the drift I have to name first. Three hours is short, but the item has no competitor on memory, and this direction carries it first again, unchanged in substance. Nothing on the inference side regressed: b9c9092e6 stops a noise floor from one weather world bounding a figure from another. That is the last guard the rerun needs. The machine moved more than the product did. Item three is finished and leaves focus. The 26-minute subject gate is one world run: 51 of its 52 files take 242 s, and one fixture's main() takes the rest, 45% of it 144 fabric premises (bcb661031). The lever is filed as owed work (7fe9157c8), and it becomes item two, because it pays on every landing that selects that fixture. Item two is finished on its own terms: the draft is cleared (2fa8dd840). But my claim that it was the one path holding the tree was wrong. The census named one class-(c) path. The reconcile that followed won the push race, merged as 6166e3af0 and closed the fork, so the ahead leg is 0. It then refused the fast-forward on 14 paths of other lanes' uncommitted bytes (662da7fd3). The shared tree is 46 behind and its origin_reconcile.py still has no merge_budget. So the daemon still runs the 1,500 s timeout. With the fork closed, the fast-forward needs no merge. Clearing those 14 paths is in hand now under the seat's own claim, so I do not put it in focus a second time. The director's prompt-audit instruction was applied in af39801d1, including the check that a stale agent description fails. The before/after measurement for hunks 5\u20137 is owed at Friday's burn review. Nothing is owed him today.",
   "focus": [
    {
     "id": "rerun-the-value-cycle-ab-on-one-weather-store-with-more-seeds",
     "lane": "B_commercial",
-    "what": "Write a SEAT_PREREG_ in docs/staging/records/ before any output exists. Per seed, predict three things: the sign of the decided-differently set (D) ex-PROS-2016-0098; the decided-alike set (A) staying within \u00b1\u00a325, which is the line seed 88888 refuted only because of the store swap; and the pooled sign test across all seeds on D. Then create a git worktree at the current origin/main, which must contain c39e01693 and e297d1169. If the noise-floor follow-on being landed from /tmp/wt-floorwx is on origin by then, use the commit that has it; do not wait more than one tick for it. From that worktree, run tools/run_value_cycle_ab.py --level-arm with --noise-floor-seeds 11111,88888 plus three new seeds. Launch it via background/launch_long_job.py under setsid. Launch only when background.resource_headroom.sample() shows room and no other value-cycle run is on the box; a gate pytest can take 3 GB. Grade every prereg line in a SEAT_RESULT_ beside it, one row per prediction. Include each arm's weather_store digest and the same_weather_store verdict as the first row. Nothing in code changes: launch_long_job.py is used, not edited. What lands is the two new records in docs/staging/records/.",
-    "why": "This is the thesis's own question: does the per-customer arm beat the flat-rules baseline because of its decisions? The last grade could not say. It had two seeds, p=0.77 and p=0.90, and one seed was contaminated by a mid-run store swap that is now refused by construction. DONE when a SEAT_RESULT_ on origin grades every line over at least five seeds that share one weather-store digest, and says plainly whether D's sign is distinguishable from zero. \"Cannot yet say, with the bound\" is a finished answer; a run that refused on digests is not."
+    "what": "Before any output exists, write a SEAT_PREREG_ in docs/staging/records/. Per seed, predict three things: the sign of the decided-differently set (D), excluding PROS-2016-0098; that the decided-alike set (A) stays within \u00b1\u00a325; and the pooled sign test on D across all seeds. Then create a git worktree at the current origin/main, which carries c39e01693, e297d1169 and b9c9092e6. From it, run tools/run_value_cycle_ab.py --level-arm with --noise-floor-seeds 11111,88888 plus three new seeds. Launch it through background/launch_long_job.py under setsid. Launch as soon as background.resource_headroom.sample() shows room and no other value-cycle run is on the box. At 08:25Z, 20 GB was free and no run was on the box, so do not wait for the shared tree to advance. The run needs origin, not the shared tree. Grade every prereg line in a SEAT_RESULT_ beside it, one row per prediction. Make the first row each arm's weather_store digest and the same_weather_store verdict. launch_long_job.py is used, not edited. What lands is the two records.",
+    "why": "This is the thesis's own question: does the per-customer arm beat the flat baseline because of what it decided? The last grade had two seeds (p=0.77 and p=0.90), and one of them was contaminated by a store swap that is now refused by construction. The item was named last stretch and never drawn. DONE when a SEAT_RESULT_ on origin grades every line over at least five seeds that share one weather-store digest, and says plainly whether D's sign is distinguishable from zero. \"Cannot yet say, with the bound\" is finished. A run that refused on its digests is not."
    },
    {
-    "id": "clear-the-withdrawn-sanity-daemon-manifest-draft-from-the-shared-tree",
+    "id": "cut-the-phase4c-fixture-to-a-short-window",
     "lane": "H_harness",
-    "what": "First wait on the reconciler's in-flight merge (tools.surgical_land pid 2756499, running from /var/tmp/se-seat-executor) with tools.wait_for --pid, and do not start a rival merge. Then, in /home/rich/synthetic-enterprise, confirm that git diff HEAD -- background/process_manifest.yaml is exactly the 16-line sanity-daemon log_silence hunk preserved verbatim in docs/staging/records/SEAT_RESULT_THE_SHARED_TREE_IS_PINNED_BY_A_MERGE_BUDGET_ONE_RECEIPT_OUTGREW_AND_BEHIND_IT_BY_ONE_WITHDRAWN_MANIFEST_DRAFT_2026-09-29.md on origin. If it is, refresh that one path to HEAD with the seat's decision cited (origin withdrew the row in 0afe22631, and the bytes are preserved). If it has any other bytes, stop and preserve them first. Then let the next reconcile cadence run, and check whether git merge-base --is-ancestor origin/main HEAD holds in the shared tree. Record the outcome as a SEAT_DISPOSITION_. If the tree is still behind, name the next refusal's path and class.",
-    "why": "HEAD is 38 behind origin, so every daemon runs code the branch has moved past. That includes the merge budget in f9023293a, which is inert in the shared tree until the tree advances. The census names this draft as the one class-(c) path left. DONE when the shared tree contains origin/main, or a disposition on origin names the single path and refusal still holding it."
-   },
-   {
-    "id": "name-the-tests-that-make-a-subject-gate-take-26-minutes",
-    "lane": "H_harness",
-    "what": "Trigger: only when no value-cycle run from item one holds memory. In a worktree at origin, rebuild the pre-commit test selection that f997f8bf7's receipt recorded (1,570 s). Run it with pytest --durations=30 via background/launch_long_job.py under setsid, so the durations print even on a slow box; the last attempt was killed at 1,500 s before they printed. Write a SEAT_RESULT_ naming the slowest tests, their share of the leg, and why the selection picked each one (subject-stem match or its own file). Then, per test, either mark it for the slow lane with its reason or file a finding. Do not raise any timeout. launch_long_job.py is used, not edited. What lands is the new SEAT_RESULT_, plus any slow-lane marks on the named test files.",
-    "why": "Every commit here takes over ten minutes. One 26-minute subject gate was enough to pin the shared tree 37 behind, and the merge budget treats that symptom without explaining it. The cheaper mechanism is a faster selection, not a bigger budget. DONE when a SEAT_RESULT_ on origin names the tests behind the 1,570 s, or says \"cannot yet say\" with the run that failed to separate them."
+    "what": "Work docs/staging/WORKER_MINTED_short_window_phase4c_fixture_2026-09-29.md as written, and do not re-time. In a checkout that has sim/cache, run one full main() and one main(report_end=\"2018-12-31\") of simulation/run_phase4c_on_phase2b.py. For each, record the row counts of meter_read_log, contact_centre_log and credit_refund_log, and the number of SLC 21B churned final-read overrides. If all four are non-zero in the short run, move the main_result fixture in tests/simulation/test_run_phase4c_on_phase2b.py to that window. In the same commit, add assert-non-empty legs to test_main_produces_contact_centre_log and test_main_produces_credit_refund_log, and assert at least one churned final read in the window. Mutation-prove each new leg against an emptied log. If any count is zero, try 2020-12-31 before concluding. Do not run this while item one's run holds memory.",
+    "why": "About 1,330 s of every landing that selects this fixture is one world run. That is what outgrew the reconciler's merge budget and pinned the tree. A faster selection is the cheap mechanism; a bigger budget only treats the symptom. Two of the fixture's three tests pass on an empty log today, so the cut must make them bite first. DONE when the fixture runs the short window on origin with the new legs mutation-proven, or when a record on origin names the count that went to zero in both short windows."
    }
   ],
   "not_now": [
    {
-    "what": "The bisect of the never-decided leak between fcba478b7 and 5f05e0068, which was focus item three.",
-    "why": "Its premise is spent. The leak was a weather store swapped on disk mid-run, not a commit (db50d434c), and it is now refused by construction. A bisect would compare two commits that both show a swing of about \u00a33 on a constant store."
-   },
-   {
-    "what": "Patching the level arm's elasticity redraw so it cannot reach acquisition or billing.",
-    "why": "Measured: the redraw's one production call-site, customer_events.py:650, never runs for PROS-2024-0082 in any arm. There is nothing to patch. The last stretch was right to hold this back until the mechanism was named."
-   },
-   {
-    "what": "A launch-time control refusing any value-cycle run started from the shared tree instead of a pinned worktree.",
-    "why": "The store digest already catches the defect at its effect, in one leg, whatever the launch path. A second control guarding where runs start would guard our own controls. Item one launches from a worktree as practice, not as a rule."
+    "what": "Putting clear-the-14-shared-tree-paths-that-hold-the-fast-forward in focus.",
+    "why": "It is the right next machine item, and the seat already claims it (claimed 08:18Z). A focus row would hand the same paths to a worker tick as a rival writer on the same files."
    },
    {
     "what": "Re-asking evaluate_boot_sha_drift against origin, re-asking cached refusals against the remote, the stash-completeness atom, and why surgical_land pid 837396 exited empty.",
-    "why": "All of these stay open in wrong. Each reading is dominated by the 38-commit divergence, and item two removes it. Measuring them before the tree advances would measure the pin again."
+    "why": "All of these stay open in wrong. Each reading is still dominated by the 46-commit gap, which the in-hand 14-path clear removes. Measured now, they would measure the pin again."
+   },
+   {
+    "what": "Measuring hunks 5\u20137 of the prompt audit (plain wording against capitals) now.",
+    "why": "The director set the instrument himself: landing rate per turn type, before and after, at the Friday burn review (2026-10-02). Four hours of after-data would be noise."
    },
    {
     "what": "Adding a heartbeat line to worker-seat-manager.",
-    "why": "Its cause is on file and its wait channel reads hrtimer_nanosleep this stretch too. It is not wedged and not on the inference path."
+    "why": "Its cause is on file, and its wait channel reads hrtimer_nanosleep again. It is not wedged and not on the inference path."
+   },
+   {
+    "what": "A control that refuses a focus item which is never drawn.",
+    "why": "That would be a control guarding my own steer. The cheaper remedy is item one's why, which now says it needs origin and not the shared tree, so nothing in the pin reads as a reason to wait."
    }
   ],
   "for_the_director": [],
@@ -305,6 +299,66 @@
  },
  "what_it_got_wrong": {
   "entries": [
+   {
+    "at": "2026-09-29T08:23:33.806625+00:00",
+    "what": "MINE, NEW. Item two's why said the withdrawn sanity-daemon draft was the one class-(c) path holding the shared tree, and that clearing it would let the tree advance. It was cleared (2fa8dd840). The next reconcile refused the fast-forward on 14 other paths of uncommitted bytes (662da7fd3). I took the census's one named path as the whole population without asking what a fresh refusal would name.",
+    "corrected": false
+   },
+   {
+    "at": "2026-09-29T08:23:33.806625+00:00",
+    "what": "MINE, NEW. Item one, the thesis item, was named first and never drawn in its 3-hour window, while the two machine items behind it were. I did not ask what made it look undrawable.",
+    "corrected": false
+   },
+   {
+    "at": "2026-09-29T08:23:33.806625+00:00",
+    "what": "THE MACHINE'S, CARRIED. Item two's surgical_land (pid 837396) ran 1h25m, exited, and put nothing on any ref. Why that land exited empty was never read. The stale copies it left are byte-identical to origin, so that half is spent. The empty exit is still unexplained. The 1,500 s merge timeout f9023293a found does not explain a 1h25m run.",
+    "corrected": false
+   },
+   {
+    "at": "2026-09-29T08:23:33.806625+00:00",
+    "what": "THE MACHINE'S, CARRIED. A control or door whose shape changes must re-run every fixture that builds a synthetic tree to drive it, and no control requires it. citation_at_head, red_at_head and fork_state in docs/observability/.publish_gate_state.json still read not_established.",
+    "corrected": false
+   },
+   {
+    "at": "2026-09-29T08:23:33.806625+00:00",
+    "what": "THE MACHINE'S, CARRIED. A refusal naming a commit is not re-asked against the remote ref before a reader sees it. liveness_surface_refusal is still not re-asked.",
+    "corrected": false
+   },
+   {
+    "at": "2026-09-29T08:23:33.806625+00:00",
+    "what": "MINE, CARRIED. evaluate_boot_sha_drift() in background/process_reconciler.py grades every daemon against local HEAD, and misreads when HEAD and origin diverge during a reconcile. The function now diffs boot blobs against disk, and 1380d3c02 touched it, so the claim may describe code that has since changed. Not re-established, so not withdrawn.",
+    "corrected": false
+   },
+   {
+    "at": "2026-09-29T08:23:33.806625+00:00",
+    "what": "THE MACHINE'S, CARRIED. The stash-completeness sweep reports a genuinely lost file as safe. It is still not on the map.",
+    "corrected": false
+   },
+   {
+    "at": "2026-09-29T08:23:33.806625+00:00",
+    "what": "THE MACHINE'S, CARRIED. The lane-0 block and the path check read HEAD or a local ref, not origin. It recurs in this brief: two items are still graded landed_unbound on 9f929478e, a preservation commit on no remote ref, while the real grade landed on origin as 5cbbad968.",
+    "corrected": false
+   },
+   {
+    "at": "2026-09-29T08:23:33.806625+00:00",
+    "what": "THE MACHINE'S, CARRIED. Nothing on the landing path asks whether a same-subject untracked sibling is left behind in the shared tree. The 14-path refusal in 662da7fd3 includes 8 untracked staging drafts that origin already carries, which is the same class again.",
+    "corrected": false
+   },
+   {
+    "at": "2026-09-29T08:23:33.806625+00:00",
+    "what": "MINE, CARRIED. not_now is prose, and nothing a launch from another lane reads. It is still true of this file.",
+    "corrected": false
+   },
+   {
+    "at": "2026-09-29T08:23:33.806625+00:00",
+    "what": "MINE, CARRIED. The +\u00a3880 focus assumed its only open question was which accounts the arms decided differently on. I never asked whether anything could move accounts where nothing was decided. Something could, and it turned out to be the harness, not the arm. It stays open until item one grades the A set on a constant store, and item one has not run.",
+    "corrected": false
+   },
+   {
+    "at": "2026-09-29T08:23:33.806625+00:00",
+    "what": "THE MACHINE'S, CARRIED. The reconciler's merge timeout was a literal 1,500 s, and one receipt's 1,570 s test leg outgrew it. Every merge then died silently as a truncated TimeoutExpired. The budget fix is on origin and gated a seat-run merge clean in 42 minutes (6166e3af0). It is still inert in the shared tree, whose origin_reconcile.py has 0 merge_budget hits at 08:25Z, until the tree fast-forwards.",
+    "corrected": false
+   },
    {
     "at": "2026-09-29T05:23:12.794442+00:00",
     "what": "MINE, CARRIED. I named the liveness heartbeat as what manufactures the gate cycles the reconciler cannot keep up with. Withdrawn by measurement: it is 6.5% of behind time, and the dirty-path and conflict classes are 45%. 7a97d25a8 itself never reached origin, but its content did, as daf2155d9.",
@@ -1894,41 +1948,46 @@
     "at": "2026-09-22T23:23:48.841598+00:00",
     "what": "MINE, CARRIED, STILL CLOSED, AND THIS RECORD IS GRADED AGAINST IT HONESTLY RATHER THAN GENEROUSLY. The condition is: a record is in breach if it ranks anything above the thesis whose DONE does not end in a published figure moving. Rank 1 ends in a published figure moving and is the thesis. Rank 2 is the thesis. Rank 4 is the thesis. RANK 3 IS A MACHINE ITEM AND IT SITS ABOVE RANK 4, so on the literal reading of my own condition this record is IN BREACH, and I am recording that rather than arguing it away. The reason it is ranked there is that rank 3 is not an item competing with the thesis for attention \u2014 it is the measured cause of rank 1's obstruction, the door that will not let the withdrawal onto the page, and a worker who draws rank 1 may have to do rank 3 to finish it. If the director reads that as the breach the condition was written to catch, the remedy is to move it below rank 4 next record and the condition stands unchanged; I have not weakened it to fit.",
     "corrected": true
-   },
-   {
-    "at": "2026-09-22T20:22:02.764297+00:00",
-    "what": "MINE, CARRIED THREE RECORDS, AND NOW CORRECTED ON THE TEST I PRE-REGISTERED FOR IT \u2014 WITH THE NEAR-MISS STATED BECAUSE IT IS THE WHOLE VALUE OF THE ROW. The error was grading artefacts by their names, or by the part of them I expected to matter, instead of reading them. The test I wrote was: does the next record's thesis reading cite a `world_identity.digest` that is non-null. It does \u2014 `39a192ce04c1eda8` at HEAD, equal to `live_world`, agreeing year by year, and the ten-year `ceiling_world_gap` is gone from the page because it no longer applies. The near-miss is the correction's own evidence: the WORKING-TREE copies of `docs/reports/ladder_churn_factors.json` and `docs/observability/svt_drift_belief_grade.json` are still the 2026-08-31 bytes with `digest: null`, because both are armed reverts. Opening them on disk \u2014 which is what I did every previous record \u2014 would have told me rank 1 had failed when it had succeeded. What changed is that I asked HEAD rather than the file in front of me. That is the habit the row existed to build, so it closes.",
-    "corrected": true
-   },
-   {
-    "at": "2026-09-22T20:22:02.764297+00:00",
-    "what": "THE MACHINE'S, CARRIED, TWELFTH LISTING, AND THE PART I NARROWED LAST RECORD WAS NARROWED WRONG. I said the census's 25 was \"the first figure in this class that means anything\". It was not. `60fdf12ad` ran the census's own printed remedy against all 27 rows on an honest base and every one of the 27 REFUSED: 7 have no reader and never will, 10 were graded HOLDER WORK by a rule that reads an edited JSON value as a new key, 8 have no landable hunk, 2 are another lane's and staged. So the instrument mis-grades a third of its own population, and 17, 22, 25, 27 and 20 are five readings from an instrument that was never calibrated \u2014 no two of them may be compared and none of them is a trend. The class itself is uncorrected: 20 working-tree files would revert a landing, SIX of them in the publishing chain of the thesis reading that landed tonight, and `simulation/premise_population.py` is still `predates_landing` days after the seat decided HEAD wins on it, because the door that would enact that decision still does not exist. Rank 4 is all three repairs.",
-    "corrected": false
-   },
-   {
-    "at": "2026-09-22T20:22:02.764297+00:00",
-    "what": "MINE, NEW THIS STRETCH, AND THE SAME FAMILY AS THE ROW ABOVE IT. I wrote last record's rank 3 as a REMEDY rather than as an outcome \u2014 \"use `refresh_to_head --write --slug NAME` where the working copy predates the landing and `surgical_land --content` where it carries later work\" \u2014 and neither door takes a single row of that population. I took the remedy the census PRINTED as a remedy that RUNS, which is grading a door by its name. The worker who drew it discovered that by running it, filed it correctly, and repaired the half that was repairable; the cost was a rank spent finding out that my instruction was impossible. The general rule I should have followed is the one this project already enforces: a focus item states what DONE looks like, and the mechanism is the worker's to choose. NOT corrected \u2014 rank 4 commissions the three repairs that would make the remedy column true, and rank 4's own DONE is written as an outcome rather than a command, which is the only evidence this row will accept.",
-    "corrected": false
-   },
-   {
-    "at": "2026-09-22T20:22:02.764297+00:00",
-    "what": "MINE, CARRIED, STILL CLOSED, AND THE CONDITION REPLACED WITH ONE THAT CAN ACTUALLY CATCH ME. The row recorded that records kept ranking machine repair above the thesis while the company's central claim went untouched. It has now been thesis-first for four records running and this stretch is why it mattered: the claim was ANSWERED. I am aware rank 1 here reads like a machine item, and I am not going to grade my own compliance generously \u2014 so the old condition (\"if the next record ranks the machine first, re-open\") is retired for being pinned to a label, and replaced with one keyed to the property: a record is in breach if it ranks anything above the thesis whose DONE does not end in a PUBLISHED FIGURE MOVING. Rank 1's done is `last_clean_publish` inside the stretch and the belief reading rendered on the capabilities page; rank 4's done is a census count, and it sits at 4. On that test this record complies. On the old test the director may judge that it does not, and both readings are written here rather than only the one that flatters me.",
-    "corrected": true
    }
   ],
   "refused_own_records": [],
-  "outstanding": 237,
-  "corrected": 85,
+  "outstanding": 247,
+  "corrected": 83,
   "correction_not_recorded": 0,
   "empty_means": ""
  },
  "what_next": {
   "focus": [
    "rerun-the-value-cycle-ab-on-one-weather-store-with-more-seeds",
-   "clear-the-withdrawn-sanity-daemon-manifest-draft-from-the-shared-tree",
-   "name-the-tests-that-make-a-subject-gate-take-26-minutes"
+   "cut-the-phase4c-fixture-to-a-short-window"
   ],
   "steer_checks": [
+   {
+    "by_class": {
+     "lane_0": {
+      "drawn": [
+       "clear-the-withdrawn-sanity-daemon-manifest-draft-from-the-shared-tree"
+      ],
+      "focus": [
+       "rerun-the-value-cycle-ab-on-one-weather-store-with-more-seeds",
+       "clear-the-withdrawn-sanity-daemon-manifest-draft-from-the-shared-tree",
+       "name-the-tests-that-make-a-subject-gate-take-26-minutes"
+      ],
+      "steered": true
+     }
+    },
+    "drawn": [
+     "clear-the-withdrawn-sanity-daemon-manifest-draft-from-the-shared-tree"
+    ],
+    "focus": [
+     "rerun-the-value-cycle-ab-on-one-weather-store-with-more-seeds",
+     "clear-the-withdrawn-sanity-daemon-manifest-draft-from-the-shared-tree",
+     "name-the-tests-that-make-a-subject-gate-take-26-minutes"
+    ],
+    "note": "the previous direction named work the draw then took (measured over this stretch only -- the 3.0h since 2026-09-29T05:23:12.794442+00:00; this is the PREVIOUS FOCUS, not every drawn item)",
+    "steered": true,
+    "window": "this stretch only -- the 3.0h since 2026-09-29T05:23:12.794442+00:00"
+   },
    {
     "by_class": {
      "lane_0": {
@@ -2044,36 +2103,6 @@
     "note": "the previous direction named work the draw then took (measured over this stretch only -- the 3.0h since 2026-09-28T17:21:48.049122+00:00; this is the PREVIOUS FOCUS, not every drawn item)",
     "steered": true,
     "window": "this stretch only -- the 3.0h since 2026-09-28T17:21:48.049122+00:00"
-   },
-   {
-    "by_class": {
-     "lane_0": {
-      "drawn": [
-       "what-pros-2016-0098s-4218-is",
-       "grade-the-c1-bracket-when-run-c-returns",
-       "sanity-daemon-log-silence-cause"
-      ],
-      "focus": [
-       "what-pros-2016-0098s-4218-is",
-       "grade-the-c1-bracket-when-run-c-returns",
-       "sanity-daemon-log-silence-cause"
-      ],
-      "steered": true
-     }
-    },
-    "drawn": [
-     "what-pros-2016-0098s-4218-is",
-     "grade-the-c1-bracket-when-run-c-returns",
-     "sanity-daemon-log-silence-cause"
-    ],
-    "focus": [
-     "what-pros-2016-0098s-4218-is",
-     "grade-the-c1-bracket-when-run-c-returns",
-     "sanity-daemon-log-silence-cause"
-    ],
-    "note": "the previous direction named work the draw then took (measured over this stretch only -- the 3.0h since 2026-09-28T14:23:25.192615+00:00; this is the PREVIOUS FOCUS, not every drawn item)",
-    "steered": true,
-    "window": "this stretch only -- the 3.0h since 2026-09-28T14:23:25.192615+00:00"
    }
   ],
   "steered_recently": true,
