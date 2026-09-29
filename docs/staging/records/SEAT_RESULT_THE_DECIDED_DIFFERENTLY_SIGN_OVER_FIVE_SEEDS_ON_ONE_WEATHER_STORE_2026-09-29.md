@@ -120,3 +120,49 @@ As predicted, neither seed reproduces the `5f05e0068` figures (+£900 and +£1,1
 - **If this leg dies a third time, it is not retried.** It comes back as a question about the leg's memory: 10.2 GiB is not shareable on a 24 GiB box with a 6 GiB daemon cycling beside it.
 - **22:28Z check: alive, past the point where runa2b died.** Seed 22222 finished at `seed_elapsed_s=5409.8`, about 22:19Z, and 33333 is running. The unit reads 6.1G now, with a peak of 10.7G. The PB6 EH-2 arms unit is correctly waiting on pid 1592398 through `tools.wait_for`, so it does not share memory with the leg.
 - **Correction: the leg needs about 3h05m, not the 1h50m this item assumed.** Every seed on this code takes 5,410–5,724 s (runA1: 5,724 + 5,584; runB: 5,543 + 5,678; runA2c: 5,410 so far), so a two-seed leg is about 11,200 s. runa2b's 1h32m death came right at the seed-1/seed-2 boundary (its log stops at 31.2 MB, the same size runa2c's log reached when 22222 finished). So it lost 22222's result and never began 33333. Expected `runA2.json`: about 23:50Z.
+- **Relaunch 3 finished:** `longjob-ab5-runa2c` ended `Result=success` at 23:51Z, with `total_elapsed_s=10945.9` (22222 took 5,409.8 s and 33333 took 5,536.1 s) and a memory peak of 11.5 GiB. `runA2.json` was written at 23:51Z.
+
+# INCREMENT 3: five seeds graded (11111, 22222, 33333, 44444, 88888)
+
+Grader: `grade5.py runA2.json runA1.json runB.json`. runB is listed last, so its own 33333 row is the one graded, and the runA2 33333 row is checked separately below.
+
+## W — the weather store, all three artefacts
+
+The only digest across `runB.json`, `runA1.json` and `runA2.json` is `e11451b5…d242`, equal to the launch digest: **HOLDS**.
+
+## The 33333 replicate (pre-registered: reproduce runB's D ex-0098 of +£1,037.49 to the penny)
+
+**HOLDS, exactly.** runA2's 33333 gives D ex-0098 = +£1,037.49 over n=69, and selection +£886.02, the same as runB. On all 164 accounts, `value_arm_net_by_account_gbp`, `level_arm_net_by_account_gbp` and `decided_differently_by_account` (71 rows) differ on **0** accounts. So the same code (`b79e2c0e8`) and the same store produce the same result per account, in separate processes, eleven hours apart. The run is deterministic at this grain, and the spread across seeds is seed-driven, not noise from the harness. (Script: `/var/tmp/se-ab5-out/replicate33333.py`.)
+
+## Per-seed lines (22222, the new seed)
+
+Reconciliation: the per-account differences sum exactly to `selection_gbp` (+£851.78), and both arms' arrears lines reconcile with 0 accounts off.
+
+| line | prediction | 22222 |
+|---|---|---|
+| **P1** D ex-0098 | positive, +£300 to +£1,800 | **−£342.34**, n=69: **REFUTED** on this seed |
+| per-seed sign test, D ex-0098 | (context) | +23 / −22, p=1.000 |
+| **P2** A within ±£25 | yes | −£1.72, n=94: **HOLDS** |
+| P2 refutation line \|A\| > £100 | not breached | not breached |
+| **P4** D size 60–70 | yes | 70/165, or 69 ex-0098: **HOLDS** |
+| roster-only | — | n=1, `C5_2` +£1,345.47 |
+| PROS-2016-0098 (excluded churn roll) | — | −£149.64 |
+
+22222 is in the same C5 state as 44444: the value arm's price churns C5 (−£1,375.96 in D) and its home-move successor `C5_2` (+£1,345.47) sits in the roster-only bucket. Seeds 11111, 33333 and 88888 are not in that state. 22222 is in 0098's benign state (−£149.64), whereas 44444 is in the −£5,985 state. So there are **two independent binary switches** across the five seeds, one on 0098's churn roll and one on C5's. That is the two-state shape of `SEAT_FINDING_THE_SELECTION_RESIDUAL_IS_A_TWO_STATE_SWITCH_PRICED_AS_A_GAUSSIAN_SPREAD_AND_THE_LEVEL_ARM_CARRIES_ALL_OF_IT_2026-09-27.md`, now seen on two accounts.
+
+## Pooled lines over five seeds
+
+| line | prediction | result | verdict |
+|---|---|---|---|
+| **P3(a)** seed-level sign of D ex-0098 | 4 or 5 positive of 5 | **3/5 positive**, exact sign p=1.000. Mean +£471.19, sd £845.93, 95% t-CI [−£579.17, +£1,521.55] | **REFUTED** (3, not 4 or 5) |
+| seeds needed | (the result must state it) | **~12** seeds at this spread for mean/SE > 1.96. This figure treats a two-state switch as a Gaussian spread, so it describes only how often C5 churns, not the size of any effect | — |
+| **P3(b)** pooled account-level sign test | p > 0.05 | **+116 / −112, p=0.843** | **HOLDS** (the pairs are not independent across seeds, so even this overstates the evidence) |
+| P4 over five seeds | 60–70 per seed | 69 ex-0098 on every seed | **HOLDS** |
+
+**Roster-only successor fold (UNGRADED, not a prereg line).** Folding `C5_2` into C5 changes only the two seeds in the C5 state: 44444 moves from −£559.81 to +£785.66, and 22222 from −£342.34 to **+£1,003.13**. With the fold, D ex-0098 is positive on **all five seeds**: +£1,111.11, +£1,003.13, +£1,037.49, +£785.66 and +£1,109.49. The mean is +£1,009.38, sd £133.46, 95% t-CI [+£843.66, +£1,175.09]. The fold was keyed after seeing 44444, so it remains a lead, not a grade. But 22222 was not seen when the fold was defined, and it is the one out-of-sample case: it landed in the churned-C5 state and the fold turned it positive, as the lead implied it would.
+
+## Plain answer at five seeds
+
+**On the pre-registered D, it is not distinguishable** from zero. D is positive on 3 of 5 seeds, with sign p=1.0 and a t-CI spanning zero; about 12 seeds would be needed at this spread. The prereg predicted exactly this ("not distinguishable at five seeds"), and that holds. P3(a)'s 4-or-5 prediction is refuted, and so is P1 on 22222.
+
+The reason is narrow and now seen twice. Every negative seed is a seed where the value arm's price churned C5 and the gain moved to C5's successor, outside D's by-account key. With that one lineage folded, D is positive on every seed with a tight CI, which is the answer to "does the per-customer arm beat flat rules on what it decided differently". **That answer is not graded here.** Grading it needs a new pre-registration that keys D by lineage (successor folded into predecessor), run on seeds this record has not seen.
