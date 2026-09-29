@@ -162,7 +162,6 @@ from tools.run_value_cycle_ab import (
     # how the sentence and the solver come to disagree about what "unreachable" means.
     _SEEDS_SEARCH_CEILING,
     BOOK_REALISED_FIELDS,
-    FLOOR_RUN_PEAK_MB,
     SIGN_TAIL_PROBABILITY_EACH_SIDE,
     _concordance,
     distance_to_a_sign,
@@ -10804,18 +10803,22 @@ def _auc_attribution(three_arm: dict, belief: dict, priced_accounts: list) -> di
 _WITHIN_YEAR_NULL_DRAWS = 8000
 _WITHIN_YEAR_NULL_SEED = 20260910
 
-#: WHAT ONE PASS ON THIS BOOK ACTUALLY COST, from the systemd accounting of the kill that
-#: established `tools.run_value_cycle_ab.FLOOR_RUN_PEAK_MB` -- the same record, read for its other
-#: half. `se-noise-floor-20260903` (2026-09-03, `--redraw-mode all`, seeds 11111/22222/33333):
+#: WHAT ONE PASS ON THIS BOOK ACTUALLY COST, from the systemd accounting of a kill.
+#: `se-noise-floor-20260903` (2026-09-03, `--redraw-mode all`, seeds 11111/22222/33333):
 #: "Consumed 1h 9min 7.465s CPU time over 1h 9min 35.554s wall clock time, 6.4G memory peak,
 #: 895.8M memory swap peak", and it was OOM-KILLED before finishing. Both numbers are therefore
 #: FLOORS on what a completed pass costs and never estimates of it, which is the only direction
 #: that lets a cost block refuse a book rather than certify one.
 _MEASURED_PASS_WALL_S = 4175.554
+#: That same kill's memory half, held HERE and no longer read from `FLOOR_RUN_PEAK_MB`: on
+#: 2026-09-29 that constant was re-priced from a completed `--level-arm` leg, a different run with a
+#: different wall clock, and pairing its peak with this wall would publish one pass assembled from
+#: two runs.
+_MEASURED_PASS_PEAK_MB = 6400.0
 _MEASURED_PASS_SEEDS = 3
 _MEASURED_PASS_UNIT = (
     "systemd accounting for `se-noise-floor-20260903` (2026-09-03, `--redraw-mode all`, three "
-    "seeds), the run whose kill established `tools.run_value_cycle_ab.FLOOR_RUN_PEAK_MB`. It was "
+    "seeds), the run whose kill set the floor-leg admission price until 2026-09-29. It was "
     "OOM-killed before finishing, so both figures are FLOORS on a completed pass")
 
 #: THE PROBE THAT WOULD PRICE A BIGGER BOOK, and the field that says it cannot yet. Read rather
@@ -10893,7 +10896,7 @@ def _pass_cost(observability: Path | None = None) -> dict:
     return {
         "available": True,
         "this_book": {
-            "peak_mb_at_least": FLOOR_RUN_PEAK_MB,
+            "peak_mb_at_least": _MEASURED_PASS_PEAK_MB,
             "wall_seconds_at_least": _MEASURED_PASS_WALL_S,
             "seeds_in_that_pass": _MEASURED_PASS_SEEDS,
             "machine_hours_at_least": _MEASURED_PASS_WALL_S / 3600.0,

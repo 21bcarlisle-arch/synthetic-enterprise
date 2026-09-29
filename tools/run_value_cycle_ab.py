@@ -6205,7 +6205,7 @@ def fold_floors(members: list[dict], sources: list[str] | None = None,
     """Pool several noise-floor runs into ONE family, or refuse and name which one broke it.
 
     WHY THIS EXISTS. `selection_gbp`'s sign is unstateable at nine seeds for want of draws alone,
-    and a draw costs three full decade passes at a measured 6.4 GB peak -- so the seeds arrive a
+    and a draw costs three full decade passes at a measured 6.4-11 GB peak -- so the seeds arrive a
     few at a time, from different lanes, hours apart, at different commits. Until 2026-09-10 the
     only way to grow the family was to re-run the whole thing, which throws away every seed already
     paid for. Folding is what makes an nine-seed family and a nine-seed run into an eighteen-seed
@@ -7350,14 +7350,42 @@ def where_the_priced_decisions_come_from(three_arm: dict) -> dict:
     }
 
 
-#: WHAT ONE FLOOR LEG ACTUALLY TOOK, from the kill that established it rather than from a guess.
-#: systemd's own accounting for `se-noise-floor-20260903` (2026-09-03, `--redraw-mode all`, seeds
-#: 11111,22222,33333): "Consumed 1h 9min 7.465s CPU time over 1h 9min 35.554s wall clock time,
-#: 6.4G memory peak, 895.8M memory swap peak" -- and that run was OOM-killed at 90% of the way
-#: through, so 6.4G is a floor on the requirement and not its peak. Rounded DOWN to 6,400 MB
-#: deliberately: this number exists to refuse, and a requirement set above the true one refuses
-#: runs that would have finished.
-FLOOR_RUN_PEAK_MB = 6400.0
+#: WHAT ONE FLOOR LEG ACTUALLY TOOK -- FROM A LEG THAT FINISHED, since 2026-09-29.
+#:
+#: UNTIL THEN THIS WAS 6,400, rounded DOWN from `se-noise-floor-20260903`'s "6.4G memory peak" --
+#: the MemoryPeak of a run the OOM killer took at 1h 09m, so a FLOOR on the requirement used as
+#: its price. It was the same defect `PAIRED_FLOOR_LEG_PEAK_MB` below was corrected for on
+#: 2026-09-23, and this sibling was missed. What it cost: at 08:51Z on 2026-09-29 two `--level-arm
+#: --noise-floor-seeds` legs (`longjob-ab5-runa`, `-runb`) were launched 25 s apart on a guest the
+#: seat had read at 20 GB free. 2 x 6,400 = 12,800 against ~20 GB, so the pair was ADMITTED.
+#:
+#: TWO RUNS, AND ONLY ONE OF THEM IS A PEAK.
+#:   run A (seeds 11111,88888,22222) -- KILLED. "Consumed 1h 3min 31.977s CPU time over 1h 10min
+#:     28.885s wall clock time, 8.7G memory peak, 1G memory swap peak"; cgroup MemoryPeak
+#:     9,368,956,928 B = 8,935 MB. A second floor, and a LOWER one than the peak run B went on to
+#:     reach, which is the point: a kill says only "at least this".
+#:   run B (seeds 33333,44444) -- COMPLETED, all six passes, `runB.json` written. "Consumed 2h 53min
+#:     55.303s CPU time over 3h 7min 9.958s wall clock time, 10.8G memory peak, 1G memory swap
+#:     peak". The unit was transient and was collected on exit, so its exact `MemoryPeak` is gone;
+#:     "10.8G" is systemd's one-decimal GiB, i.e. 11,008-11,110 MB. The last exact read, 42 min
+#:     before exit, was 11,537,833,984 B = 11,003 MB, which rounds to 10.7G -- so the peak rose in
+#:     the last pass, and that read is itself a floor.
+#:
+#: CGROUP VERSUS VmHWM. The process's own VmHWM, sampled every 20 s until it exited, ended at
+#: 11,276,436 kB = 11,012 MB; the cgroup held ~46 MB of page cache beside it. The cgroup is what the
+#: OOM killer charges, so the price is keyed to the cgroup figure, and to the TOP of its rounding
+#: interval rather than the process's own figure.
+#:
+#: ROUNDED UP, to 11,200: the first round hundred above 11,110. Up where the old figure rounded
+#: down, and for the reason `PAIRED_FLOOR_LEG_PEAK_MB` gives -- this is a completed run, so the
+#: residual uncertainty is n=1 rather than a kill, and under-pricing is the direction that killed
+#: run A. It is RSS, not RSS+swap, because `available_mb` is MemAvailable and counts no swap.
+#:
+#: WHAT IT DOES NOT COVER. Run B was a TWO-seed leg; a three-seed leg was never completed, and
+#: whether the peak climbs with the seeds in one process is unmeasured. And every `--noise-floor-
+#: seeds` leg now pays the `--level-arm` price, which over-prices a two-arm leg -- the safe
+#: direction, and the census has no second shape to tell them apart by.
+FLOOR_RUN_PEAK_MB = 11200.0
 
 #: THE SAME QUANTITY FOR THE PAIRED LEG, AND IT IS NOT THE SAME NUMBER. systemd's accounting for
 #: `longjob-size-term-paired-floor-20260923` (2026-09-23, `--seeds 5101..5106`): MemoryPeak
@@ -7515,8 +7543,9 @@ def _peak_provenance(own_peak_mb: float) -> str:
     if own_peak_mb == PAIRED_FLOOR_RUN_PEAK_MB:
         return ("The 2026-09-23 paired run that established this peak reached 7,878 MB RSS and "
                 "2,358 MB of swap before the OOM killer took it at 1h 26m, having written NOTHING")
-    return ("The 2026-09-03 run that established the peak was OOM-killed after 1h 09m and wrote "
-            "NOTHING")
+    return ("The 2026-09-29 --level-arm leg that established this peak, longjob-ab5-runb, ran to "
+            "COMPLETION at a 10.8G cgroup peak; its twin run A, admitted beside it at the old "
+            "6,400 MB price, was OOM-killed at 1h 10m having written NOTHING")
 
 
 def floor_run_headroom_refusal(sample_fn=None, legs_fn=None,
@@ -7542,7 +7571,9 @@ def floor_run_headroom_refusal(sample_fn=None, legs_fn=None,
     Arithmetic on the numbers that actually occurred: at the third launch, two legs at ~1 GB RSS
     with ~15 GB available needs 3 x 6.4 = 19.2 GB against 15 + 2 = 17 GB -- REFUSED, correctly.
     One leg alone on an idle guest needs 6.4 GB against ~18 GB -- allowed, so the PASS branch is
-    reachable and this is not a constant verdict.
+    reachable and this is not a constant verdict. At the price re-measured on 2026-09-29 (11.2 GB
+    per leg) the 08:51Z pair needs 22.4 GB against ~20.3 GB -- REFUSED -- and either leg alone
+    still fits in 20 GB.
 
     FAILS CLOSED AND NAMES ITS REASON. An unreadable `/proc/meminfo` refuses rather than assuming
     room; "we cannot tell" is a result. The guest's own size is READ and never quoted, because it

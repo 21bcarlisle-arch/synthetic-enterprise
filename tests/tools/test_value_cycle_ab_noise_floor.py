@@ -747,13 +747,52 @@ def test_a_floor_run_is_refused_when_the_legs_already_running_cannot_all_peak():
     """
     from tools.run_value_cycle_ab import floor_run_headroom_refusal
 
+    # PRICED AT 6,400 BY NAME, because this is the 2026-09-03 state and 6,400 was that day's
+    # price. `FLOOR_RUN_PEAK_MB` has since been re-measured from a completed leg; defaulting to it
+    # here would turn a reconstruction of one day's arithmetic into a test of today's constant.
     refusal = floor_run_headroom_refusal(
         sample_fn=lambda: _obs(15000.0),
-        legs_fn=lambda: [(101, 1000.0, 6400.0), (102, 1000.0, 6400.0)])
+        legs_fn=lambda: [(101, 1000.0, 6400.0), (102, 1000.0, 6400.0)],
+        own_peak_mb=6400.0)
     assert refusal is not None, (
         "a third floor leg was allowed to start beside two that were already growing -- the "
         "launch that cost 1h 09m of compute and produced no artefact")
-    assert "19,200" in refusal and "OOM-killed" in refusal, refusal
+    assert "19,200" in refusal, refusal
+
+
+def test_a_second_level_arm_floor_leg_is_refused_at_the_headroom_that_admitted_run_b():
+    """The 2026-09-29 08:51Z launch, as arithmetic -- the pair this constant used to admit.
+
+    `longjob-ab5-runa` and `longjob-ab5-runb` were launched 25 s apart as two `--level-arm
+    --noise-floor-seeds` legs, on a guest the seat had read at 20 GB free with no run on it. At the
+    old 6,400 MB price the pair needed 12,800 MB against ~20,300 MB and was ADMITTED; run A was
+    OOM-killed at 1h 10m having written nothing, while run B's cgroup went on past 11 GB. So the
+    state is: one leg already running and still small, ~20 GB available, this leg asking to start.
+
+    THE PASS BRANCH IS ASSERTED ON THE SAME GUEST, because the refusal alone is satisfied by a
+    price so high that no leg can ever run, and then the floor can never be re-measured -- which
+    reads exactly like the defect this exists to prevent. One leg alone on the same 20 GB must
+    still start.
+
+    Fires on: restoring `FLOOR_RUN_PEAK_MB = 6400.0` (the pair is admitted again); pricing the
+    running leg at its current RSS instead of its shape's peak; a price above ~20 GB (the lone
+    leg is refused).
+    """
+    from tools.run_value_cycle_ab import FLOOR_RUN_PEAK_MB, floor_run_headroom_refusal
+
+    run_a_just_launched = [(3527043, 300.0, FLOOR_RUN_PEAK_MB)]
+    refused = floor_run_headroom_refusal(sample_fn=lambda: _obs(20000.0),
+                                         legs_fn=lambda: run_a_just_launched)
+    assert refused is not None, (
+        "a second --level-arm floor leg was admitted beside a first on ~20 GB free -- the pair "
+        "that OOM-killed run A at 1h 10m on 2026-09-29")
+    assert "longjob-ab5-runb" in refused, (
+        "the refusal quotes a peak without naming the completed run that measured it: " + refused)
+
+    assert floor_run_headroom_refusal(sample_fn=lambda: _obs(20000.0),
+                                      legs_fn=lambda: []) is None, (
+        "one --level-arm floor leg alone on ~20 GB free is refused, so the floor can never be "
+        "re-measured on this guest")
 
 
 def test_a_lone_floor_run_on_an_idle_guest_is_allowed():
@@ -837,7 +876,7 @@ def test_the_leg_census_sees_a_paired_floor_leg_and_prices_it_at_its_own_peak(tm
     line, that this guard was landed to prevent.
 
     TWO LEGS OF DIFFERENT SHAPES, which is the part a count cannot express. The census must
-    return the paired leg's own price and the noise-floor leg's own 6,400 MB, because the caller
+    return the paired leg's own price and the noise-floor leg's own, because the caller
     sums them; pricing both at one peak is what the arithmetic did before.
 
     THE FIXTURE WAS STALE AND THIS TEST WAS RED ON THE TRUNK, found 2026-09-23 while raising the
@@ -883,7 +922,11 @@ def test_the_leg_census_sees_a_paired_floor_leg_and_prices_it_at_its_own_peak(tm
         "the paired leg was priced at something other than the leg constant")
     assert census[999011] == pytest.approx(FLOOR_RUN_PEAK_MB), (
         "the noise-floor leg's own price moved when the paired shape was added")
-    assert census[999010] > census[999011], (
+    # DIFFERENT, NOT LARGER. This read `>` -- "a paired leg carries two worlds, so it costs more"
+    # -- and the ordering was itself today's answer: it held only while the noise-floor price was a
+    # kill's floor. Re-measured from a completed `--level-arm` leg on 2026-09-29, the noise-floor
+    # shape now costs MORE than a paired leg. What the census owes the caller is a price per shape.
+    assert census[999010] != census[999011], (
         "the two leg shapes collapsed to one price, which is the conflation that admitted the "
         "2026-09-23 run")
 
