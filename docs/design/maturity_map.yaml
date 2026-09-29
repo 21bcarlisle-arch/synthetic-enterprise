@@ -1531,11 +1531,10 @@
   lane: W4_the_wall
   value_stream: meter_to_cash
   epoch: 3
-  # L0->L1 2026-09-06, recorded in docs/observability/gate_authorizations.jsonl. The work landed
-  # in 99d2befb4 and the row read 0 for a day; nothing could see it because the row named a
-  # control file no build ever wrote. L1 not L2: BUILT in any form is what the evidence carries,
-  # and no DISCOVER-lite/VERIFY pass is attested.
-  level_current: 1
+  # L1->L2 2026-09-29: VERIFY battery killed 4/9; the 5 survivors (fuel dropped, fallback
+  # unreached, std-credit rate, base, run passing None) now die in *_is_the_right_one.py. L3 wants
+  # HARDEN + Expert Hour.
+  level_current: 2
   level_target: 3
   loop_stage: build
   dial_inherited: 45    # R1 follow-on. Inherits PB4's rank because it is the second half of

@@ -19,6 +19,7 @@ Usage: python3 -m tools.mutate_printed_figure_rederivation
 """
 from __future__ import annotations
 
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -101,6 +102,10 @@ def run_suite():
     proc = subprocess.run(
         [sys.executable, "-m", "pytest", SUITE, "-q", "--no-header", "-p", "no:randomly"],
         cwd=PROJECT, capture_output=True, text=True,
+        # CPython reuses a .pyc whose recorded (mtime, size) match the source. A same-size
+        # mutation restored within the same second matches its own bytecode, so the MUTANT runs
+        # on after the restore -- in the next leg and in every later lane's pytest.
+        env={**os.environ, "PYTHONDONTWRITEBYTECODE": "1"},
     )
     failed = set()
     for line in proc.stdout.splitlines():
