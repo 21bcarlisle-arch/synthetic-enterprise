@@ -37,6 +37,12 @@ This document supersedes the individual findings listed below, which are **archi
 - `SEAT_FINDING_THE_HOOK_GATE_MARK_WAS_INERT_IN_THE_ONLY_TREE_THAT_COMMITS_AND_IS_NOW_LIVE_2026-09-25.md`
 - `WORKER_FINDING_THE_DRAWN_LANE_0_ITEM_WAS_NEVER_CLAIMED_SO_ITS_OWN_BIND_INSTRUCTION_IS_INERT_2026-09-05.md`
 
+## Refused consolidation — out of lane, still live
+
+These documents match this class but carry a different lane. They are NOT archived and NOT superseded: severity is lane-scoped, so filing them here would remove their own lane's finding while recording it under `H_harness`.
+
+- `WORKER_FINDING_A_LAUNCH_TIME_MEMORY_CHECK_WOULD_NOT_HAVE_STOPPED_1907Z_BECAUSE_THE_NEIGHBOURS_ARRIVED_AFTER_2026-09-29.md` — lane `A_strategy_governance`
+
 ## Disposition
 
 **Decision:** OPEN
