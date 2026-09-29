@@ -833,7 +833,36 @@ def churn_volume_attribution(control: dict, value: dict) -> dict:
     }
 
 
-def book_at_run() -> dict:
+def weather_store_digest() -> str | None:
+    """One sha256 over the three files `WeatherWorldSource.load()` reads, or `None` if one is gone.
+
+    `run_phase2b.main` re-reads the store from the WORKING TREE on every arm, so an arm is run
+    against whatever bytes are on disk when it starts -- and a tree that is landed into mid-run
+    (the executor worktree is) swaps the world between arms. That happened on 2026-09-29: seed
+    88888's level arm ran on the store `f0ba399a4` replaced under it, every identity check passed,
+    and +2,484 of the +2,464 "moved where nothing was decided" was the swap
+    (`SEAT_FINDING_A_MULTI_ARM_RUN_REREADS_THE_WEATHER_STORE_FROM_A_TREE_THAT_MOVES_UNDER_IT_
+    2026-09-29`). `producing_commit` cannot see it: it names the code Python bound at start.
+
+    The paths are `sim.weather_world`'s own, never restated here, so a store that moves or grows a
+    file is digested where the loader reads it. Name and bytes both enter the hash.
+    """
+    from sim import weather_world
+
+    h = hashlib.sha256()
+    for path in (weather_world.CELLS_PATH, weather_world.SERIES_PATH,
+                 weather_world.REGIMES_PATH):
+        try:
+            data = Path(path).read_bytes()
+        except OSError:
+            # FAIL CLOSED: an unread store is "not known", and the cross-arm control reads a
+            # `None` as cannot-tell rather than as agreement.
+            return None
+        h.update(Path(path).name.encode() + b"\0" + data)
+    return h.hexdigest()
+
+
+def book_at_run(weather_before: str | None = None) -> dict:
     """The segments being served AT THE MOMENT AN ARM RAN, snapshotted by the caller.
 
     Reading this once, at the end, when the artefact is assembled is not the same measurement
@@ -860,6 +889,12 @@ def book_at_run() -> dict:
         # The raw string, not a re-parse of it: a second parser here would be a second answer
         # to the same question and the two would drift.
         "override_env": override or None,
+        # THE WEATHER WORLD, BRACKETING THE ARM. The caller digests the store just before the arm
+        # and this call digests it just after, because the arm reads it once, somewhere between.
+        # Equal brackets mean the arm read those bytes; unequal ones mean it cannot be said which
+        # it read, and `same_book_across_arms` refuses either way. See `weather_store_digest`.
+        "weather_store_before_arm": weather_before,
+        "weather_store_after_arm": weather_store_digest(),
     }
 
 
@@ -893,8 +928,27 @@ def same_book_across_arms(books: dict) -> dict:
         verdict = None
     else:
         verdict = len(distinct) == 1
+    # THE WEATHER AXIS, compared over BOTH brackets of every arm so a swap INSIDE one arm is
+    # caught as well as one between arms. A proven difference is `False` even when another arm is
+    # unrecorded -- two digests that disagree are a disagreement whatever else is missing -- and
+    # otherwise the same tri-state as the book: `None` when any bracket or any second arm is
+    # absent, because an unread store is not a matching one.
+    weather = {arm: {"before": (b or {}).get("weather_store_before_arm"),
+                     "after": (b or {}).get("weather_store_after_arm")}
+               for arm, b in books.items()}
+    digests = [d for w in weather.values() for d in w.values()]
+    distinct_weather = sorted({d for d in digests if isinstance(d, str)})
+    if len(distinct_weather) > 1:
+        same_weather = False
+    elif len(weather) < 2 or not all(isinstance(d, str) for d in digests):
+        same_weather = None
+    else:
+        same_weather = True
     return {
         "same_book": verdict,
+        "same_weather_store": same_weather,
+        "weather_store_by_arm": weather,
+        "distinct_weather_stores": distinct_weather,
         "arms_compared": sorted(recorded),
         "arms_with_no_recorded_book": missing,
         "served_segments_by_arm": dict(lists),
@@ -949,6 +1003,9 @@ def book_identity(result: dict, at_run: dict | None = None) -> dict:
         "served_segments": snapshot.get("served_segments"),
         "served_segments_resolved_from": snapshot.get("resolved_from"),
         "served_segments_override_env": snapshot.get("override_env"),
+        # Which weather world this arm ran in, bracketed -- see `weather_store_digest`.
+        "weather_store_before_arm": snapshot.get("weather_store_before_arm"),
+        "weather_store_after_arm": snapshot.get("weather_store_after_arm"),
         "served_segments_unavailable_because": (
             None if snapshot else
             "the caller recorded no book at this arm's run, so which segments it served is "
@@ -5266,9 +5323,10 @@ def run_value_cycle_ab(report_end: str | None = None, level_arm: bool = False) -
     # carries the reason. These feed both the per-arm `book_identity` blocks and the cross-arm
     # same-book control, and taking them here is what lets that control fail.
     books: dict[str, dict] = {}
+    weather_before = weather_store_digest()
     with policy_scope(CURRENT_POLICY):
         control = run_phase4c(report_end=report_end, policy=CURRENT_POLICY)
-    books["control_arm"] = book_at_run()
+    books["control_arm"] = book_at_run(weather_before)
     if control["phase2b"].get("value_arm_log"):
         raise AssertionError(
             "the CONTROL arm priced {} renewal(s) with the value arm -- the writer is not a "
@@ -5276,9 +5334,10 @@ def run_value_cycle_ab(report_end: str | None = None, level_arm: bool = False) -
             "policy field. Refusing to report it.".format(
                 len(control["phase2b"]["value_arm_log"])))
 
+    weather_before = weather_store_digest()
     with policy_scope(VALUE_ARM_POLICY):
         value = run_phase4c(report_end=report_end, policy=VALUE_ARM_POLICY)
-    books["value_arm"] = book_at_run()
+    books["value_arm"] = book_at_run(weather_before)
 
     control_m = realised_metrics(control)
     value_m = realised_metrics(value)
@@ -5303,9 +5362,10 @@ def run_value_cycle_ab(report_end: str | None = None, level_arm: bool = False) -
         level_policy = replace(
             CURRENT_POLICY, name="level_arm", renewal_margin_arm=FLAT_AT_LEVEL,
             renewal_margin_flat_level_gbp_per_mwh=float(level))
+        weather_before = weather_store_digest()
         with policy_scope(level_policy):
             level_result = run_phase4c(report_end=report_end, policy=level_policy)
-        books["level_arm"] = book_at_run()
+        books["level_arm"] = book_at_run(weather_before)
         level_m = realised_metrics(level_result)
         # THE POPULATIONS MUST BE THE SAME ONES, and this checks rather than assumes it. The arm
         # exists to price EXACTLY the renewals the value arm priced -- if it priced a different
@@ -5328,6 +5388,13 @@ def run_value_cycle_ab(report_end: str | None = None, level_arm: bool = False) -
             "exists to catch. Refusing to report it.".format(
                 agreement["distinct_books"], agreement["arms_compared"],
                 agreement["arms_with_no_recorded_book"]))
+    if agreement["same_weather_store"] is not True:
+        raise AssertionError(
+            "the arms did not run in one weather world: {} distinct store digest(s) across the "
+            "arms' before/after brackets ({}). `run_phase2b.main` re-reads sim/weather_world/ "
+            "per arm, so a tree landed into mid-run puts arms in different worlds -- run in a "
+            "worktree pinned to the commit under test. Refusing to report it.".format(
+                len(agreement["distinct_weather_stores"]), agreement["weather_store_by_arm"]))
 
     # ONE FUNNEL PER ARM THAT ACTUALLY RAN, computed once and used twice below -- as the per-arm
     # block and as the input to the cross-arm denominator comparison. An arm that did not run is
