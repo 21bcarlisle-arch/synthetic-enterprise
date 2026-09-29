@@ -22,7 +22,7 @@ from company.crm.churn_desk import RenewalObservation, estimate_renewal_churn
 from company.crm.competitive_pressure import (
     PRIOR_LOG_VARIANCE,
     CompetitivePressureLedger,
-    log_space_update_weight,
+    log_space_weight_for_variance,
     pressure_ledger_scope,
 )
 from company.crm.enriched_churn_estimate import (
@@ -261,6 +261,14 @@ def test_the_desk_books_the_channel_it_priced_with():
         ))
 
     assert ledger.decisions_by_method[(_METHOD, 2019)] == 2, ledger.decisions_by_method
+    # THE EXPECTATION THE CHANNEL LEARNS AGAINST IS THE ONE BEFORE THE FACTOR (PB6 EH-1). The
+    # active prepayment renewal was priced with a factor below one, so its pre-factor belief is
+    # higher than the priced one. If the desk booked the priced belief twice, the channel would
+    # learn against a prediction that already contains its own answer.
+    assert ledger.expected_pre_by_year[2019] > ledger.expected_by_year[2019], (
+        "the pre-factor expectation equals the priced one on a book holding an active prepayment "
+        "renewal, so the desk is not booking the belief before the factor"
+    )
     assert ledger.decisions_by_year[2019] == 3, (
         "the unresolvable account was dropped from the book denominator, which biases the base "
         "rate towards whichever channel the CRM finds easiest to read"
@@ -301,11 +309,12 @@ def test_the_engagement_channel_is_weighted_against_its_own_priors_dispersion():
     with pressure_ledger_scope(ledger):
         reading = payment_method_engagement_reading(_METHOD, 2020)
 
-    n_book, book_losses = reading.book_decisions, reading.book_losses
-    n_effective = (reading.decisions * n_book) / (reading.decisions + n_book)
-    p_book = (book_losses + 0.5) / (n_book + 1.0)
-    assert reading.weight == log_space_update_weight(n_effective, p_book, expected_variance)
-    assert reading.weight != log_space_update_weight(n_effective, p_book, PRIOR_LOG_VARIANCE), (
+    v_evidence = sum(
+        (1.0 - e / n) / e for n, e in ((reading.decisions, reading.expected_losses),
+                                        (reading.book_decisions, reading.book_expected_losses))
+    )
+    assert reading.weight == log_space_weight_for_variance(v_evidence, expected_variance)
+    assert reading.weight != log_space_weight_for_variance(v_evidence, PRIOR_LOG_VARIANCE), (
         "the channel is being weighted against the year series' dispersion, not its own"
     )
 
@@ -332,3 +341,98 @@ def test_the_run_loop_still_hands_the_channel_to_both_the_belief_and_the_departu
         f"the run books {sorted(wired)} with a payment channel; the engagement belief needs both "
         "-- a denominator without a numerator reads as a channel nobody ever leaves"
     )
+
+
+_BOOK_RATE = 0.08
+_CHANNEL_RATE = _PRIOR * _BOOK_RATE
+_OTHER_RATE = (_BOOK_RATE - 0.2 * _CHANNEL_RATE) / 0.8
+
+
+def _confirming_book(n_channel: int, *, explained: bool) -> CompetitivePressureLedger:
+    """A book whose channel leaves at exactly the published relative rate, one fifth of the book.
+
+    `explained` sets what the company believed BEFORE the engagement factor. False gives every
+    renewal the book rate, so the belief says nothing about the channel. True gives each channel
+    its own realised rate, as an arrears term correlated with channel would.
+    """
+    book_rate, channel_rate, other_rate = _BOOK_RATE, _CHANNEL_RATE, _OTHER_RATE
+    channel_pre_belief = channel_rate if explained else book_rate
+    other_pre_belief = other_rate if explained else book_rate
+    ledger = CompetitivePressureLedger()
+    ledger.arm_loss_reporting()
+    for _ in range(n_channel):
+        ledger.observe_renewal_decision(2018, book_rate, payment_method=_METHOD,
+                                        pre_factor_p_leave=channel_pre_belief)
+    for _ in range(4 * n_channel):
+        ledger.observe_renewal_decision(2018, book_rate, payment_method=_OTHER,
+                                        pre_factor_p_leave=other_pre_belief)
+    for _ in range(round(n_channel * channel_rate)):
+        ledger.observe_competitive_loss(2018, payment_method=_METHOD)
+    for _ in range(round(4 * n_channel * other_rate)):
+        ledger.observe_competitive_loss(2018, payment_method=_OTHER)
+    return ledger
+
+
+def test_a_book_that_confirms_the_prior_leaves_the_belief_at_the_prior():
+    """DEFECT (shipped until 2026-09-29): the prior counted twice.
+
+    `prior x ratio ** w` with a ratio that is ITSELF an estimate of the factor converges to
+    `prior x ratio`. On this book that was 0.344 against a prior of 0.585, so a book agreeing
+    with Ofgem drove the belief AWAY from Ofgem. A weight of about one is asserted FIRST, because
+    at w = 0 both blends return the prior and this test would pass under either.
+    """
+    with pressure_ledger_scope(_confirming_book(20000, explained=False)):
+        reading = payment_method_engagement_reading(_METHOD, 2020)
+    assert reading.weight > 0.95, f"weight {reading.weight}: the evidence cannot move the belief"
+    assert abs(reading.ratio / _PRIOR - 1.0) < 0.02, (reading.ratio, _PRIOR)
+    assert abs(reading.factor / _PRIOR - 1.0) < 0.02, (
+        f"a book leaving at exactly the published rate read {reading.factor:.3f} against a prior "
+        f"of {_PRIOR:.3f}"
+    )
+
+
+def test_a_channel_difference_the_belief_already_explains_is_not_learned_again():
+    """DEFECT (PB6 Expert Hour EH-1): arrears learned a second time and called engagement.
+
+    The channel leaves at the published low rate, but the company's belief BEFORE the factor
+    already predicted exactly that, for example through the arrears term. There is nothing left
+    for the factor to explain, so it goes to one. The raw per-channel ratio read this book as the
+    full 0.585, and a prepayment account in arrears was made less likely to leave twice.
+    """
+    with pressure_ledger_scope(_confirming_book(20000, explained=True)):
+        explained = payment_method_engagement_reading(_METHOD, 2020)
+    with pressure_ledger_scope(_confirming_book(20000, explained=False)):
+        unexplained = payment_method_engagement_reading(_METHOD, 2020)
+    # Same leavers, same book: only what the belief predicted before the factor differs.
+    assert (explained.observed_losses, explained.book_losses) == (
+        unexplained.observed_losses, unexplained.book_losses)
+    assert abs(explained.factor - 1.0) < 0.02, explained.basis
+    assert unexplained.factor < 0.65, unexplained.basis
+
+
+def test_the_engagement_reading_does_not_read_the_belief_the_factor_already_moved():
+    """DEFECT: the channel's evidence taken against a prediction that contains the factor itself.
+
+    Two books, identical except for the PRICED belief booked on each renewal: once at the
+    pre-factor value, once halved as if a factor had been applied. The engagement reading must not
+    tell them apart. If either end of its ratio reads the priced belief, the factor would feed its
+    own value back into its own evidence. The market-wide `reading()` is supposed to see the
+    difference, so it is asserted first: that proves the two books do differ where they should.
+    """
+    def book(priced_scale: float) -> CompetitivePressureLedger:
+        ledger = CompetitivePressureLedger()
+        ledger.arm_loss_reporting()
+        for method, n, losses in ((_METHOD, 2000, 60), (_OTHER, 8000, 700)):
+            for _ in range(n):
+                ledger.observe_renewal_decision(2018, 0.08 * priced_scale, payment_method=method,
+                                                pre_factor_p_leave=0.08)
+            for _ in range(losses):
+                ledger.observe_competitive_loss(2018, payment_method=method)
+        return ledger
+
+    with pressure_ledger_scope(book(1.0)):
+        as_pre = payment_method_engagement_reading(_METHOD, 2020)
+    with pressure_ledger_scope(book(0.5)) as halved:
+        as_priced = payment_method_engagement_reading(_METHOD, 2020)
+    assert halved.reading(2020).ratio > 1.5, "the priced belief never reached the ledger"
+    assert as_priced.factor == as_pre.factor, (as_pre.basis, as_priced.basis)

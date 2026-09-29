@@ -39,7 +39,7 @@ the observation arrives as a plain frozen dataclass through one signature.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import Optional
 
 from company.analytics.churn_accuracy_report import compute_churn_model_performance
@@ -122,9 +122,25 @@ def estimate_renewal_churn(observation: RenewalObservation) -> float:
         # would measure the wiring rather than the book -- and passive rollers are 65% of resi
         # renewals in most years and 100% of them in crisis years, so that is most of the book.
         ledger.observe_renewal_decision(
-            observation.renewal_year, estimate, payment_method=observation.payment_method
+            observation.renewal_year, estimate, payment_method=observation.payment_method,
+            pre_factor_p_leave=_pre_engagement_estimate(observation, estimate),
         )
     return estimate
+
+
+def _pre_engagement_estimate(observation: RenewalObservation, estimate: float) -> float:
+    """The same belief with no payment channel on the record, i.e. before the engagement factor.
+
+    The engagement belief learns observed/expected against THIS (PB6 EH-1). Re-estimated rather
+    than divided out, because the cap and the rounding sit after the factor and dividing by it
+    would not recover them. Only the branch that applies the factor can differ, so a passive roller
+    or a channel-less account returns its own estimate without a second call.
+    """
+    if observation.payment_method is None or (
+        not observation.active_renewal and observation.segment != "I&C"
+    ):
+        return estimate
+    return _estimate_renewal_churn(replace(observation, payment_method=None))
 
 
 def _estimate_renewal_churn(observation: RenewalObservation) -> float:

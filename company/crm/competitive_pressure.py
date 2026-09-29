@@ -117,7 +117,21 @@ def log_space_update_weight(
     """
     if n <= 0 or not 0.0 < p_expected < 1.0:
         return 0.0
-    v_evidence = (1.0 - p_expected) / (n * p_expected)
+    return log_space_weight_for_variance(
+        (1.0 - p_expected) / (n * p_expected), prior_log_variance)
+
+
+def log_space_weight_for_variance(
+    v_evidence: float, prior_log_variance: float = PRIOR_LOG_VARIANCE
+) -> float:
+    """`V_prior / (V_prior + V_evidence)` for an evidence variance already composed by the caller.
+
+    Split out for the engagement channel, whose ratio has two estimated ends and so two variance
+    terms that add. Folding that sum back into an `n` and a `p` for `log_space_update_weight` is
+    only exact when both ends share one predicted rate, and after 2026-09-29 they do not.
+    """
+    if not math.isfinite(v_evidence) or v_evidence <= 0.0:
+        return 0.0
     return prior_log_variance / (prior_log_variance + v_evidence)
 
 
@@ -185,6 +199,10 @@ class EngagementReading:
     observed_losses: int = 0
     book_decisions: int = 0
     book_losses: int = 0
+    #: Losses the company predicted on this channel, and across the book, BEFORE any engagement
+    #: factor was applied. The ratio is taken against these rather than against head counts.
+    expected_losses: float = 0.0
+    book_expected_losses: float = 0.0
     ratio: Optional[float] = None
     weight: float = 0.0
 
@@ -229,6 +247,15 @@ class CompetitivePressureLedger:
     #: it would bias the base towards whichever channel happens to be easiest to read.
     decisions_by_method: dict[tuple[str, int], int] = field(default_factory=dict)
     losses_by_method: dict[tuple[str, int], int] = field(default_factory=dict)
+    #: WHAT THE COMPANY WOULD HAVE PREDICTED WITHOUT THE ENGAGEMENT FACTOR, by year and by channel
+    #: (2026-09-29, PB6 EH-1). The engagement channel learns observed over THIS, not over head
+    #: counts. Its estimate already moves an account by arrears, bill shock and rate change, and
+    #: all of those correlate with how the account pays. A raw per-channel rate would learn every
+    #: one of them a second time and call the result "engagement". It is also not
+    #: `expected_by_year`, which holds the POST-factor belief: learning against that would feed the
+    #: factor back into its own evidence.
+    expected_pre_by_year: dict[int, float] = field(default_factory=dict)
+    expected_pre_by_method: dict[tuple[str, int], float] = field(default_factory=dict)
     #: A SECOND ARMING FLAG, AND IT IS NOT REDUNDANT WITH THE ONE ABOVE. `loss_reporting_armed`
     #: says departures reach this ledger; it says nothing about whether they arrive CARRYING A
     #: CHANNEL. A run that books every loss without one would leave `losses_by_method` empty while
@@ -269,6 +296,7 @@ class CompetitivePressureLedger:
         renewal_year: Optional[int],
         believed_p_leave: float,
         payment_method: Optional[str] = None,
+        pre_factor_p_leave: Optional[float] = None,
     ) -> None:
         """Record that the company priced one renewal and what it believed about it.
 
@@ -281,6 +309,10 @@ class CompetitivePressureLedger:
         whose estimate never applies the engagement factor. The denominator the engagement channel
         needs is "renewals of accounts paying this way", not "renewals the factor was applied to" --
         restricting it to the latter would measure the wiring rather than the book.
+
+        `pre_factor_p_leave` is the same belief with no engagement factor applied. When it is
+        None, the belief never carried a factor, which is true of every passive roller and every
+        account with no channel on record, so the two are the same number.
         """
         if renewal_year is None:
             return
@@ -288,11 +320,15 @@ class CompetitivePressureLedger:
         p = float(believed_p_leave)
         if not math.isfinite(p):
             return
+        pre = p if pre_factor_p_leave is None else float(pre_factor_p_leave)
+        pre = max(0.0, min(1.0, pre)) if math.isfinite(pre) else max(0.0, min(1.0, p))
         self.decisions_by_year[year] = self.decisions_by_year.get(year, 0) + 1
         self.expected_by_year[year] = self.expected_by_year.get(year, 0.0) + max(0.0, min(1.0, p))
+        self.expected_pre_by_year[year] = self.expected_pre_by_year.get(year, 0.0) + pre
         if payment_method is not None:
             key = (str(payment_method), year)
             self.decisions_by_method[key] = self.decisions_by_method.get(key, 0) + 1
+            self.expected_pre_by_method[key] = self.expected_pre_by_method.get(key, 0.0) + pre
 
     def observe_competitive_loss(
         self, renewal_year: Optional[int], payment_method: Optional[str] = None
@@ -324,8 +360,14 @@ class CompetitivePressureLedger:
         observed = sum(self.losses_by_year.get(y, 0) for y in years)
         return n, expected, observed
 
-    def _closed_method_window(self, payment_method: str, renewal_year: int) -> tuple[int, int]:
-        """Renewals priced and losses realised on ONE payment channel, over closed years only.
+    def _closed_pre_expected(self, renewal_year: int) -> float:
+        """Pre-factor predicted losses across the whole book, over closed years only."""
+        return sum(v for y, v in self.expected_pre_by_year.items() if y < renewal_year)
+
+    def _closed_method_window(
+        self, payment_method: str, renewal_year: int
+    ) -> tuple[int, float, int]:
+        """Renewals priced, pre-factor losses predicted and losses realised on ONE channel.
 
         The same `y < renewal_year` rule as `_closed_window`, and for the same non-negotiable
         reason: a company pricing a 2019 renewal has not yet seen how 2019 closed for prepayment
@@ -335,11 +377,15 @@ class CompetitivePressureLedger:
             count for (method, y), count in self.decisions_by_method.items()
             if method == payment_method and y < renewal_year
         )
+        expected = sum(
+            value for (method, y), value in self.expected_pre_by_method.items()
+            if method == payment_method and y < renewal_year
+        )
         observed = sum(
             count for (method, y), count in self.losses_by_method.items()
             if method == payment_method and y < renewal_year
         )
-        return n, observed
+        return n, expected, observed
 
     def reading(self, renewal_year: Optional[int]) -> PressureReading:
         """The company's competitive-pressure multiplier for a renewal in `renewal_year`.
@@ -398,23 +444,40 @@ class CompetitivePressureLedger:
         switching rate by payment method and updates. Until it can, its belief cannot be WRONG,
         and the belief-vs-truth gap this project scores itself on has nothing to bite on.
 
-        THE LIKELIHOOD IS A RATIO OF TWO REALISED RATES, NOT A RATE. `factor` multiplies an
-        estimate that already carries the book-wide competitive multiplier, so what is being
-        learned is the channel's loss rate RELATIVE to the whole book -- the same quantity the
-        published prior is normalised to. Both proportions carry the same Jeffreys correction as
-        `reading()`, so a channel nobody has left yet gives a small ratio rather than `log(0)`.
+        THE LIKELIHOOD IS OBSERVED/EXPECTED ON THE CHANNEL, OVER OBSERVED/EXPECTED ON THE BOOK, and
+        until 2026-09-29 it was the channel's raw loss rate over the book's (PB6 Expert Hour, EH-1).
+        That raw ratio is a MARGINAL. The estimate the factor multiplies already moves an account
+        by arrears, bill shock and rate change, and those correlate with how an account pays: a
+        prepayment account in arrears was made less likely to leave once by the churn desk and
+        again by a factor that had learned the same correlation. Expected is the company's belief
+        BEFORE the factor (`expected_pre_by_method`), so what is learned is only what the rest of
+        the belief does not already explain. The book's own O/E is the normaliser because
+        `factor` is relative to the book and the market-wide multiplier has already taken the
+        book's level.
 
-        THE EVIDENCE VARIANCE HAS TWO TERMS because the ratio has two estimated ends, and they
-        compose as an effective sample size: `1/n_eff = 1/n_method + 1/n_book`. The positive
-        correlation between the slice and the book that contains it is IGNORED, which overstates
-        the variance and therefore under-weights the company's own experience. That is the
-        fail-soft direction -- it errs towards the published prior, never away from it.
+        THE BLEND IS `prior x (ratio / prior) ** w`, NOT `prior x ratio ** w`, and the second form
+        is what shipped until the same date. `reading()` above can use the second form because its
+        ratio is a RESIDUAL against a prediction that already contains the prior. This ratio is not
+        a residual. It is its own estimate of the factor, so multiplying the prior onto it counted
+        the prior twice. Printed before the fix: a book whose prepayment customers left at EXACTLY
+        the published relative rate converged to 0.375 against a prior of 0.585
+        (`docs/staging/WORKER_FINDING_THE_ENGAGEMENT_FACTOR_COUNTS_ITS_OWN_PRIOR_TWICE_*`).
 
-        THE CORRECTION LEAVES A SMALL BIAS AND IT IS NAMED RATHER THAN HIDDEN. Adding 0.5/1.0 to
-        both ends of a ratio does not cancel when the two sample sizes differ, so a channel that
-        left at EXACTLY the book rate reads slightly above it -- 200 renewals against a book of
-        1000 gives ratio 1.035, worth 1.4% on the factor after weighting. It shrinks as `1/n` and
-        the alternative is `log(0)` on the first channel nobody has left, which is not a trade.
+        THE PRIOR IS STILL A MARGINAL, AND THAT IS A NAMED GAP RATHER THAN A FIXED ONE. CIM w6
+        reports switching by payment method across the population. Nothing published conditions it
+        on arrears, so prior and likelihood are not quite the same quantity. As the book grows, the
+        weight moves toward the conditional reading, which is the direction that shrinks the error.
+
+        THE EVIDENCE VARIANCE HAS TWO TERMS because the ratio has two estimated ends:
+        `(1 - p)/(n p)` at each end's own PREDICTED rate, the null convention
+        `log_space_update_weight` documents, and the two are summed. The positive correlation
+        between the slice and the book that contains it is IGNORED. That overstates the variance
+        and so under-weights the company's own experience, which is the fail-soft direction.
+
+        THE JEFFREYS CORRECTION IS ON THE OBSERVED RATE AT BOTH ENDS, as in `reading()`, so a
+        channel nobody has left yet gives a small ratio rather than `log(0)`. It leaves a bias that
+        shrinks as `1/n` and does not cancel when the two sample sizes differ. The alternative is
+        `log(0)` on the first quiet channel, so the bias is the accepted cost.
 
 
         Every branch that declines to update names its reason, and the reasons are not
@@ -435,28 +498,45 @@ class CompetitivePressureLedger:
                 "departures are not being reported with a payment method: prior only")
 
         year = int(renewal_year)
-        n_book, _expected_book, observed_book = self._closed_window(year)
-        n_method, observed_method = self._closed_method_window(method, year)
+        n_book, _post_factor_expected_book, observed_book = self._closed_window(year)
+        expected_book = self._closed_pre_expected(year)
+        n_method, expected_method, observed_method = self._closed_method_window(method, year)
+        counts = dict(decisions=n_method, observed_losses=observed_method,
+                      book_decisions=n_book, book_losses=observed_book,
+                      expected_losses=expected_method, book_expected_losses=expected_book)
         if n_book <= 0 or n_method <= 0:
             return EngagementReading(
                 method, year, prior, prior,
                 f"no closed renewals on {method} yet ({n_method} of {n_book} book): prior only",
-                decisions=n_method, observed_losses=observed_method,
-                book_decisions=n_book, book_losses=observed_book)
+                **counts)
+        if expected_method <= 0.0 or expected_book <= 0.0:
+            # No departures were predicted, so there is nothing to divide by. Any ratio taken would
+            # make a single leaver infinite evidence.
+            return EngagementReading(
+                method, year, prior, prior,
+                f"predicted zero losses on {method} ({expected_method:.2f}) or across the book "
+                f"({expected_book:.2f}): no ratio available",
+                **counts)
 
-        p_book = (observed_book + _CONTINUITY_SUCCESSES) / (n_book + _CONTINUITY_TRIALS)
-        p_method = (observed_method + _CONTINUITY_SUCCESSES) / (n_method + _CONTINUITY_TRIALS)
-        ratio = p_method / p_book
-        n_effective = (n_method * n_book) / (n_method + n_book)
-        weight = log_space_update_weight(n_effective, p_book, prior_log_variance)
-        factor = precision_weighted_posterior(prior, ratio, weight)
+        p_exp_method = expected_method / n_method
+        p_exp_book = expected_book / n_book
+        oe_method = ((observed_method + _CONTINUITY_SUCCESSES)
+                     / (n_method + _CONTINUITY_TRIALS)) / p_exp_method
+        oe_book = ((observed_book + _CONTINUITY_SUCCESSES)
+                   / (n_book + _CONTINUITY_TRIALS)) / p_exp_book
+        ratio = oe_method / oe_book
+        v_evidence = sum(
+            (1.0 - p) / (n * p) for n, p in ((n_method, p_exp_method), (n_book, p_exp_book))
+            if 0.0 < p < 1.0
+        )
+        weight = log_space_weight_for_variance(v_evidence, prior_log_variance)
+        factor = precision_weighted_posterior(prior, ratio / prior, weight)
         return EngagementReading(
             method, year, prior, factor,
             f"{observed_method} of {n_method} {method} renewals lost against "
-            f"{observed_book} of {n_book} across the book",
-            decisions=n_method, observed_losses=observed_method,
-            book_decisions=n_book, book_losses=observed_book,
-            ratio=ratio, weight=weight)
+            f"{expected_method:.2f} predicted before the channel, and {observed_book} of "
+            f"{n_book} against {expected_book:.2f} across the book",
+            ratio=ratio, weight=weight, **counts)
 
 
 _ACTIVE_LEDGER: ContextVar[Optional[CompetitivePressureLedger]] = ContextVar(
