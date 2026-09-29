@@ -34,13 +34,22 @@ leg. The census was not redone.
 
 ## Outcome of the seat-run merge
 
-**In flight when this was landed.** Reconciler pid 3037437 started `surgical_land --merge` pid
-3037474 at 06:15:50Z. Its budget ends about 07:07Z. The verdict it prints goes to
-`/tmp/seat_reconcile_once.out`, a detached `setsid` job that outlives this tick. The seat's
-hand-off `confirm-the-seat-run-merge-advanced-the-shared-tree` checks it:
-`git -C /home/rich/synthetic-enterprise merge-base --is-ancestor origin/main HEAD`. If the merge
-still timed out at 3070 s, the budget is not the whole story. The next place to look is then the
-per-test timing item, not a larger number.
+**It gated clean and then lost the push race: `REFUSED_RACE` at 06:59:16Z, rc 1.**
+
+- The gate ran for about 43 minutes: started 06:15:50Z, pushed about 06:59Z. The old 1500 s
+  budget would have killed it. 3070 s was enough.
+- The push was refused as a non-fast-forward because origin moved during the gate:
+  `af39801d1` (prompt audit) and `11e069e0e`, **this disposition's own first landing**. The seat
+  raced its own merge.
+- **Measured after the refusal: the shared tree is 7 ahead and 41 behind, and its copy of
+  `origin_reconcile.py` still has 0 `merge_budget`.** The loop is not broken. Every daemon
+  cadence will die at 1500 s again.
+
+**What clears it:** the next seat-run `origin_reconcile` from an origin worktree, with **no
+landing to origin by the seat during its ~45-minute window**. A 43-minute gate against a busy trunk
+can lose the race even so. The structural fix is a merge that absorbs an origin move without
+re-gating the whole range, or a much faster subject gate. The second is the per-test timing item.
+Handed on as `rerun-the-origin-reconcile-from-an-origin-worktree-without-racing-it`.
 
 ## Where the remainder lives
 
