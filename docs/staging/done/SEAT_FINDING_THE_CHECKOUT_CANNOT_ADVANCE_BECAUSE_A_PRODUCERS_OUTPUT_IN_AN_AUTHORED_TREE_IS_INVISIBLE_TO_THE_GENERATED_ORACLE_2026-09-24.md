@@ -728,3 +728,115 @@ document already carries one instance of exactly that being caught and repaired.
 
 **Step 4 is still untouched:** `GATE_RUNNING` starving the reconciler. With the ahead leg closed and
 the residue at 1, it is now the second-order subject rather than the third.
+
+## 2026-09-25 — the fresh `checkout_drift()` reading owed to the prediction above, and the prediction is REFUTED
+
+**Graded first, because it was written before the answer.** §"Pre-registered, replacing the prediction
+the correction above refuted" said: *"with the ahead leg closed, the twins swept and path 1 refreshed,
+`contains_origin` goes `True` exactly when that last comment-only copy is resolved."*
+
+**Refuted, on its own numbers.** Measured on the shared tree in one process (both readings in one run,
+because a before/after survey over a live tree that three lanes write is otherwise two variables):
+
+```
+deploy_restart.checkout_drift()  ->  {'behind': 4, 'ahead': 10, 'contains_origin': False,
+                                      'gap_paths': 32, 'stale_judges': ['tools/stale_copy_refusal.py']}
+blockers 1  |  tracked twins 0  |  untracked twins 1  |  RESIDUE 0
+  blocker: docs/staging/SEAT_FINDING_THE_LIVE_HOOK_REPORT_READS_CLEAN_ON_A_HAND_PATCH_...md
+           (untracked twin -- sweep-clearable, unattended)
+```
+
+**The residue is 0 and `contains_origin` is still `False`.** The comment-only copy was resolved by
+nobody: it stopped being residue because `025b2793c` merged origin and the behind leg became four
+commits that touch **no path in the residue population**. `paths_blocking_fast_forward` only names a
+dirty path an incoming commit touches, so a residue count is a function of a base that moves — for the
+third time in this document — and the "exactly when" in the prediction was a claim about a quantity
+that decays on its own. The binding cause is the one the mid-turn correction already named and this
+reading confirms: **`ahead: 10`**, an unpromotable leg. Nothing about the last residue path was ever
+going to move `contains_origin`.
+
+**And the third gap is now naming a file this turn edited.** `stale_judges: ['tools/stale_copy_refusal.py']`
+— the shared checkout grades its own advance with its own copy of the rulebook, so the rule that was
+landed to unwedge it is not yet available *to* it. That is `ADVANCE_JUDGE_MODULES` working, not failing,
+and it is why the remedy below is a mechanism rather than an enactment.
+
+### What the named door turned out to be: making the control honest handed the destroying door a new population
+
+The direction was *give that copy a legal door by extending `tools/stale_copy_refusal.py`*. **That
+landed before this turn** (`reverted_comment_block`, rule 1b, 8 of 8 mutations red — see
+`docs/staging/records/RESULT_THE_COMMENT_FLIP_IS_ONE_VERDICT_WIDE_AND_FORTY_TWO_EVIDENCE_SETS_WIDE_2026-09-24.md`),
+and the copy grades `refreshable` today rather than `refused_head_does_not_supersede_it`. Both of the
+item's first two finish conditions were already met when it was drawn a third time.
+
+**Following the thread from there found the defect the door had installed.** In `refresh_to_head`, ANY
+loss from `judge` is what licenses `REFRESHABLE` — so a rule added to `judge` does not close a hole,
+it hands the byte-destroying grade a new population. `_judge_copy`'s own `KEY_SUBSET` note says this in
+terms — *"any loss is a `REFRESHABLE` here, and `origin_reconcile` acts on that grade with no person in
+the loop, so the honest move is a refusal"* — and guards the one leg it was written beside. Rule 1b,
+**whose entire subject is prose**, had no such guard.
+
+**Measured, not argued. 662 dirty paths on the shared tree, 2026-09-25:**
+
+| verdict | count |
+|---|---|
+| `refused_rival_values_no_key_the_base_lacks` | 236 |
+| `refused_no_base` | 236 |
+| `refused_supplies_names_head_lacks` | 108 |
+| `refused_no_reader` | 38 |
+| `refused_replacement_no_landable_hunk` | 26 |
+| `refused_head_does_not_supersede_it` | 13 |
+| `refused_holder_has_it_staged` | 3 |
+| **`refreshable`** | **2** |
+
+**Both of the two hold comment lines HEAD does not have.** Not a corner: the one grade in the tool
+that overwrites bytes applied to two copies in the entire tree and *both* of them were holding writing.
+
+* `tests/architecture/test_static_quality_ratchet.py` — **19 lines**, a hand-written ratchet log entry
+  for 2026-09-25 recording a measured `I001 1306 -> 1305` move, which file it came from, that it was
+  measured on the tree the commit would create, and that no `--fix` was run. There is no other copy of
+  that reasoning anywhere.
+* `tests/background/test_a_swept_row_names_the_sibling_that_holds_its_windows_commit.py` — **4 lines**,
+  this document's own subject.
+
+`origin_reconcile.advance_shared_tree` refreshes on `REFRESHABLE` **with no person in the loop**, so
+the first time origin moved a commit onto either path a daemon would have overwritten both.
+
+### The mechanism, and it is one guard rather than a prose clause per rule
+
+`PROSE_GAIN = "refused_supplies_prose_the_base_lacks"` in `tools/refresh_to_head.py`, in `judge_copy`
+beside `WHITELIST_GAIN` — the wrapper whose own docstring gives the reason that is the right place:
+*"a fifth `REFRESHABLE` return added later is covered by this wrapper the day it is written."* So it
+covers rule 1b, rule 1, rule 2 and every rule not yet written, which also removes the reason for
+`guard-rule-2-against-refreshing-a-copy-that-adds-prose` to be built separately as its own claim.
+
+* The lines go **on the surface**, not a count — the operator's next act is destroying those exact
+  lines and a refusal naming a count cannot be checked.
+* **Two doors named**, because a refusal with no legal move evaporates: keep BOTH (take the base's
+  bytes, re-add the lines by hand, land with `surgical_land` — the base's bytes and the writing are not
+  in conflict, which is why discarding is not the only move), or `--discard-prose` if they really are
+  superseded. That flag is a **person's**: no automated caller passes it, and a leg asks
+  `inspect.signature` for the default so the chain cannot be loosened by a keyword three calls from
+  the daemon.
+* **Unscoped by suffix, and that was priced rather than shrugged at.** Scoping to `READABLE` was
+  drafted first; it would have changed neither live verdict, because no `.md`/`.yaml` copy in the tree
+  is `REFRESHABLE` at all. The cost the unscoped reading *can* carry is named in the code: the advance
+  is all-or-nothing, so a future `.md` blocker adding a heading refuses here and holds it — which is
+  why the escape is a flag on the tool a person runs and not on the daemon's call.
+
+**Five mutations, each red on the leg written for it:** the branch deleted (fires the named test and
+the partition control); the `--discard-prose` escape dropped (a refusal with no exit); the flag made a
+general override (it admitted holder work `isolate_hunks` can save); `judge_copy` defaulting the flag
+to `True` (fires the signature leg only — `refresh` passes it explicitly, which is exactly why that
+leg is not redundant); and the render loop emptied (fires the on-the-surface leg). 56 tests in the
+module's own suite, 203 across the advance consumers.
+
+### What this turn does NOT claim
+
+* **It does not advance the checkout, and the residue was never what was holding it.** `ahead: 10` is,
+  and that is the rival lane's subject (`the-shared-hooks-checkout-is-a-mixture...`), unchanged here.
+* **It leaves the ratchet-log copy standing.** 19 lines of another lane's in-place work on a file whose
+  frozen census reds every lane that touches it; resolving it is that lane's call and the refusal now
+  says so instead of a daemon deciding it silently. Named here so the next session does not have to
+  re-find it.
+* **The guard is a refusal, not a repair.** It cannot tell superseded prose from novel prose and does
+  not try — that is the judgement it hands back, and `unread_populations`' argument applies unchanged.

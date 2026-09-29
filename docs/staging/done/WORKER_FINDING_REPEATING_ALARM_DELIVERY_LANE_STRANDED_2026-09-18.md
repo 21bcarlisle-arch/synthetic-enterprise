@@ -2,10 +2,17 @@
 
 # [SEAT] reconcile-the-fork-and-take-the-repair-that-is-already-on-the-branch was claimed, landed NOTHING, and its work is SITTING IN THE SHARED TREE
 
-**Filed automatically by `background/alarm_repetition.py`, not by a person.** This alarm has
-fired **1 times without its state changing**, over **1.7h**. Under the
-director's instruction of 2026-08-20 a repeating alert escalates itself into the draw rather
-than being sent again, so this document exists and a 1th page does not.
+<!-- counts:begin -->
+**Filed automatically by `background/alarm_repetition.py`, not by a person.** This condition
+has been **observed to hold on 8 separate day(s)**, between **2026-09-18** and **2026-09-25**,
+and **31 member(s)** of the family `delivery-lane-stranded` have fired. Both counts are DERIVED
+from this document's own dated lines every time the alarm fires again, so they age with the
+document rather than with its first firing.
+
+This condition's observer calls `escalate()` directly rather than through `notify()`, so no
+consecutive-firing count exists for it and `ESCALATE_AFTER_REPEATS` (= 3) was never applied.
+That absence is stated rather than filled with a placeholder count.
+<!-- counts:end -->
 
 ## The alarm, verbatim
 
@@ -66,6 +73,26 @@ files a fresh document, because that is a new episode and an R3 two-strike signa
 - `how-to-read-this-is-the-one-truthiness-reader-and-it-withdraws-on-the-tie` (first seen 2026-09-23)
 - `the-regeneration-check-clones-at-head-so-it-cannot-see-the-producer-edit-that-wedges-the-publisher` (first seen 2026-09-23)
 - `the-refuted-bill-stress-knee-is-unbounded-beside-a-saturating-size-term` (first seen 2026-09-23)
-
+- `census-git-show-head-controls-that-mean-this-commit` (first seen 2026-09-24)
+- `the-checkout-fast-forward-is-blocked-on-two-contested-files-not-on-a-judgement` (first seen 2026-09-24)
+- `the-ahead-leg-is-filled-automatically-and-drained-by-hand` (first seen 2026-09-24)
+- `the-fork-closer-is-running-from-bytes-in-no-commit` (first seen 2026-09-25)
+- `the-last-residue-path-has-no-door-because-its-only-loss-is-a-comment` (first seen 2026-09-25)
+- `bill-stress-hazard-from-the-arrears-ledger` (first seen 2026-09-25)
+- `boot-sha-drift-reads-zero-stale-over-one-resolvable-daemon` (first seen 2026-09-25)
 ## Re-asked
 - **2026-09-24** — re-asked: **still_holds**. observed 2026-09-23, within the 3-day bar.
+- **2026-09-25** — re-asked: **still_holds**. observed 2026-09-24, within the 3-day bar.
+- **2026-09-26** — re-asked: **still_holds**. observed 2026-09-25, within the 3-day bar.
+- **2026-09-27** — re-asked: **still_holds**. observed 2026-09-25, within the 3-day bar.
+- **2026-09-28** — re-asked: **cleared**. no observation since 2026-09-25, past the 3-day bar; the store holds no key for `delivery-lane-stranded` at all, so it can neither corroborate nor contradict this and the document's own lines are the only witness; and the machinery observed other conditions on 2026-09-27, so the silence is the observers running and not seeing it.
+
+## Re-asked and cleared, 2026-09-28
+
+Archived by `background/alarm_repetition.reask()`, not by a person, and not because anybody diagnosed it.
+
+- **What was asked:** has the condition behind `delivery-lane-stranded:reconcile-the-fork-and-take-the-repair-that-is-already-on-the-branch` been observed to hold since it was last annotated?
+- **Last observation:** 2026-09-25
+- **The answer, and what carried it:** no observation since 2026-09-25, past the 3-day bar; the store holds no key for `delivery-lane-stranded` at all, so it can neither corroborate nor contradict this and the document's own lines are the only witness; and the machinery observed other conditions on 2026-09-27, so the silence is the observers running and not seeing it.
+- **What this does NOT claim:** that the condition was fixed, or why it stopped. Only that nothing has observed it for 3 days while the observers were demonstrably running. If it returns it files a FRESH document — `escalate()` does not search `done/` — and that fresh document is an R3 two-strike signal worth more than this one was.
+
