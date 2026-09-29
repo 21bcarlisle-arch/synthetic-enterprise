@@ -133,11 +133,11 @@ def test_the_decision_fields_name_when_an_account_left_and_its_first_roll(monkey
     }
     decisions = _decisions_by_billing_account(result)
     assert decisions["A"] == {
-        "left_at": "2020-03-22", "renewal_decisions": 3, "bills_issued": 2,
+        "left_at": "2020-03-22", "renewal_decisions": 3, "bills_issued": 2, "successor_of": None,
         "first_renewal": {"date": "2017-03-23", "p_retain": 0.6254, "roll": 0.3763,
                           "outcome": "renewed"}}
     assert decisions["B"] == {"left_at": None, "first_renewal": None,
-                              "renewal_decisions": 0, "bills_issued": 1}
+                              "renewal_decisions": 0, "bills_issued": 1, "successor_of": None}
 
 
 def test_sub_penny_rows_still_reconcile_because_the_fold_does_not_round_each_line():

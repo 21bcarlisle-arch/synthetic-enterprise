@@ -406,17 +406,54 @@ def arrears_reconciliation(net_by_account: dict[str, float],
             "tolerance_gbp": ARREARS_RECONCILIATION_TOLERANCE_GBP}
 
 
+def home_move_successor_of() -> dict[str, str]:
+    """Successor billing account -> the predecessor billing account whose churn activated it.
+
+    Read off the REGISTERED home-move successors (`supply_book.successor_supply_points`), which
+    are what `run_phase2b.SUCCESSOR_MAP` activates when a churn's `home_move_won` fires. A
+    successor tenure carries a new billing key, so an account-keyed partition files it apart from
+    the decision that caused it: on seed 44444 the value arm's price churned C5 and C5_2 existed
+    in that arm only, splitting one decision into C5 in D and C5_2 in roster-only
+    (`SEAT_FINDING_THE_ROSTER_ONLY_1345_ON_SEED_44444_IS_C5S_HOME_MOVE_SUCCESSOR_...2026-09-29`).
+
+    NOT the runtime market replacements `saas.customers.make_acquired_customer` also stamps with
+    `successor_of`: that key there names the property profile a new household was cloned from,
+    and whether a replacement belongs with the churn that freed its slot is not established.
+    """
+    from company.interfaces.supply_book import successor_supply_points
+
+    return {_billing_account_id(p["customer_id"]): _billing_account_id(p["successor_of"])
+            for p in successor_supply_points()}
+
+
+def fold_by_successor(diff_by_account: dict[str, float], members: list[str],
+                      successor_of: dict[str, str], roster_only: list[str]) -> float:
+    """`diff_by_account` summed over `members` plus every ROSTER-ONLY successor whose predecessor
+    is a member -- one supply point's lineage, one decision. A diagnostic beside the pre-
+    registered partition, never a re-grade of it.
+
+    Roster-only and not any successor: a successor tenure present in BOTH arms was not caused by
+    the arms deciding differently (the predecessor left in both), and its own renewals are graded
+    where they fall. Folding it moves decided-alike money into D -- C3_2 on seeds 33333/44444."""
+    chosen = set(members)
+    chosen |= {s for s in roster_only if successor_of.get(s) in chosen}
+    return sum(diff_by_account[a] for a in chosen if a in diff_by_account)
+
+
 def _decisions_by_billing_account(result: dict) -> dict[str, dict]:
     """The per-account facts `SEAT_RESULT_PROS_2016_0098S_4218_...` had to read out of a log:
     when the account left, its first renewal's `p_retain` against its roll, how many renewals
-    the world decided for it, and how many bills the supplier issued it."""
+    the world decided for it, how many bills the supplier issued it, and -- for a home-move
+    successor tenure -- the predecessor whose churn activated it (`home_move_successor_of`)."""
     from company.interfaces.bill_assembly import issued_bills
 
     out: dict[str, dict] = {}
+    successors = home_move_successor_of()
 
     def row(account: str) -> dict:
         return out.setdefault(account, {"left_at": None, "first_renewal": None,
-                                        "renewal_decisions": 0, "bills_issued": 0})
+                                        "renewal_decisions": 0, "bills_issued": 0,
+                                        "successor_of": successors.get(account)})
 
     events = sorted((e for e in (result["phase2b"].get("customer_events") or [])
                      if isinstance(e, dict) and "random_roll" in e),
