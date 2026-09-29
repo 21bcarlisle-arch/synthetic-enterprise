@@ -253,14 +253,14 @@
   epoch: 2
   level_current: 0
   level_target: 3
-  loop_stage: build
+  loop_stage: idle   # 2026-09-29 subsumed by OPS10 finding_classes; see simplifications
   dial_inherited: 3
   provenance: proposal
   records_rehomed: [evidence]
   file_scope: [tools/failure_register.py, docs/retrospectives/failure_register.jsonl,
     tests/tools/test_failure_register.py]   # 2026-09-25: the three artefacts
   #   UNIFIED_FAILURE_REGISTER.md 7 (L2) declares, replacing three bare directories.
-  simplifications_count: 5
+  simplifications_count: 6
 - id: E5_carbon_three_ledger
   notes_rehomed: [name]
   lane: E_finance_treasury
