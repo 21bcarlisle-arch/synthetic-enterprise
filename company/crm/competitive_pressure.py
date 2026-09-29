@@ -468,6 +468,16 @@ class CompetitivePressureLedger:
         on arrears, so prior and likelihood are not quite the same quantity. As the book grows, the
         weight moves toward the conditional reading, which is the direction that shrinks the error.
 
+        THE PRIOR IS ALSO PER EXPOSURE AND THE FACTOR IS USED PER DECISION -- a second named gap.
+        The factor multiplies the chance this account leaves AT THIS RENEWAL, so the ledger rightly
+        counts closed renewal decisions. CIM w6 counts households that switched in six months,
+        which is (decisions reached, relative) x (departure per decision, relative), and nothing
+        published separates the two. So the prior is on the product, applied as if it were the
+        second factor alone. It is not re-picked here: centring it needs that split, which is a
+        practitioner question put to the director, and it changes company behaviour, so it lands
+        with the world repair it depends on
+        (`docs/staging/WORKER_FINDING_PB6_THE_ENGAGEMENT_FACTOR_IS_USED_PER_DECISION_*`).
+
         THE EVIDENCE VARIANCE HAS TWO TERMS because the ratio has two estimated ends:
         `(1 - p)/(n p)` at each end's own PREDICTED rate, the null convention
         `log_space_update_weight` documents, and the two are summed. The positive correlation
