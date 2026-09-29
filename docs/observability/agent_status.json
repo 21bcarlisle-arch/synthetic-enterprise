@@ -1,6 +1,6 @@
 {
   "_schema_version": "1",
-  "last_updated": "2026-09-29T22:38:59.242950+00:00",
+  "last_updated": "2026-09-29T23:19:02.343337+00:00",
   "agents": [
     {
       "name": "session-watchdog",
@@ -15,7 +15,7 @@
     {
       "name": "staging-watcher",
       "status": "idle",
-      "last_heartbeat": "2026-09-29T22:38:41.332523+00:00",
+      "last_heartbeat": "2026-09-29T23:18:58.589981+00:00",
       "last_action": "Watcher started",
       "last_action_ts": "2026-09-29T22:08:58.541351+00:00",
       "anomaly": null,
@@ -75,9 +75,9 @@
     {
       "name": "background-worker",
       "status": "idle",
-      "last_heartbeat": "2026-09-29T22:09:01.490432+00:00",
+      "last_heartbeat": "2026-09-29T22:49:01.798738+00:00",
       "last_action": "Worker started",
-      "last_action_ts": "2026-09-29T22:08:55.225138+00:00",
+      "last_action_ts": "2026-09-29T22:48:55.836212+00:00",
       "anomaly": null,
       "role": "Runs background automation tasks via local Qwen; respects 16-19 UTC peak hours",
       "produces": "docs/observability/background-worker-log.md"
@@ -105,7 +105,7 @@
     {
       "name": "supervisor",
       "status": "idle",
-      "last_heartbeat": "2026-09-29T22:35:06.689076+00:00",
+      "last_heartbeat": "2026-09-29T23:19:02.343337+00:00",
       "last_action": "Supervisor started",
       "last_action_ts": "2026-09-29T22:08:59.590933+00:00",
       "anomaly": null,
@@ -115,9 +115,9 @@
     {
       "name": "sanity-daemon",
       "status": "idle",
-      "last_heartbeat": "2026-09-29T22:38:59.242950+00:00",
+      "last_heartbeat": "2026-09-29T23:08:59.572297+00:00",
       "last_action": "Cycle complete",
-      "last_action_ts": "2026-09-29T22:38:59.242950+00:00",
+      "last_action_ts": "2026-09-29T23:08:59.572297+00:00",
       "anomaly": null,
       "role": "Detective/sampling control: population-level consumption/unit-rate/estimated-read checks against domain_invariants.py every 30min",
       "produces": "sanity-daemon-log.md entries + one NTFY per new/changed finding set"
