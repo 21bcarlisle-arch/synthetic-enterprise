@@ -103,3 +103,18 @@ As predicted, neither seed reproduces the `5f05e0068` figures (+£900 and +£1,1
 - No other `--level-arm` process was resident. It was launched at 17:35:09Z as unit `longjob-ab5-runa2b` through `background.launch_long_job` under `setsid`, with its own cgroup verified. The command is `legA.sh /var/tmp/se-ab5-out/runA2.json 22222,33333`, with no predecessor pids, and the log is `/var/tmp/se-ab5-out/runA2b.log`.
 - 33333 is paired so that `noise_floor` admits the leg. It also replicates runB's 33333 from the same code and store. **Prediction, written before it finishes:** 33333 reproduces runB's D ex-0098 of +£1,037.49 to the penny. The run is seeded and the code and store are pinned, so any difference is a nondeterminism finding in its own right.
 - Increment 3 gives the five-seed plain answer and the 33333 replicate verdict when `runA2.json` lands.
+
+### The second death, 19:07Z: what the kernel chose and what else was resident
+
+`longjob-ab5-runa2b` did not finish. The kernel reading comes from `journalctl -k` at 20:07:18–19 BST (19:07Z) on 2026-09-29:
+
+- **Chosen:** pid 1033543 (python3, the leg itself), anon-rss 10.2 GiB. It was a *global* OOM (`constraint=CONSTRAINT_NONE`, `task_memcg=…/longjob-ab5-runa2b.service`), and swap was exhausted (`Free swap = 0kB` of 8 GiB). The unit's summary: 1h32m wall, 10.2G memory peak, 1.6G swap peak, `Failed with result 'oom-kill'`. The leg was the largest task, so every task sat at `oom_score_adj` 200 and the kernel's choice follows from size alone.
+- **Resident beside it:** two further python3 processes, **pid 1259605 at 6.1 GiB rss and pid 1259606 at 5.2 GiB rss** (plus 0.1–1 GiB of swap each). Together they held more than the leg did. Everything else was under 1.4 GiB (tailscaled, weston, journald, and the claude sessions).
+- **Who they were: I cannot say from the kernel dump.** It records no cgroup for non-chosen tasks. By the observed pid rate (~2.9k/min between 1033543 at 17:35Z and ~1.59M at 20:48Z), they started around 18:50–18:55Z. Consecutive pids are consistent with a pair of forked workers, such as a gate's pytest workers. `sim-runner.service` also restarted at 18:58:51Z, and its cycles peak at 5.6–6.1G by its own unit summaries. **sim-runner is a permanent daemon that routinely peaks at ~6 GiB, and a gate run can add two more multi-GiB workers.** So the rule this item's launch obeyed ("no other process over 2 GB other than the permanent daemons") was satisfied at launch and did not protect the leg: the contention arrived 1h30m after launch. The box is 24 GiB, and 10.2 (leg) + 6.1 + 5.2 exceeds it once swap is gone.
+
+### Relaunch 3: `longjob-ab5-runa2c`, 20:49:13Z
+
+- The pinned worktree had been removed again. It was re-created with `git worktree add --detach /var/tmp/se-ab5-b79e2c0e8 b79e2c0e8` and is now `git worktree lock`ed, so a prune cannot take it mid-run. The digest there is `e11451b5…d242`, equal to the prereg's.
+- At launch, no process over 2 GiB was resident (`ps` by rss), and none of `tools.run_value_cycle_ab`, `_pb6_engagement_recovery_arm` or `run_annual_report` was running. Available memory was 20.8 GiB of 24.0.
+- Unit `longjob-ab5-runa2c`, cgroup verified, through `background.launch_long_job`. The command is `legA.sh /var/tmp/se-ab5-out/runA2.json 22222,33333`, with no predecessor, and the log is `/var/tmp/se-ab5-out/runA2c.log`.
+- **If this leg dies a third time, it is not retried.** It comes back as a question about the leg's memory: 10.2 GiB is not shareable on a 24 GiB box with a 6 GiB daemon cycling beside it.
