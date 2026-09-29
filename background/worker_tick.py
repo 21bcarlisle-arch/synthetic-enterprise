@@ -87,15 +87,15 @@ MODEL = "claude-opus-5-5"
 # disk/git state, not this text. The invocation re-orients, does the drawn work, and EXITS.
 WORKER_PREAMBLE = (
     "You are the autonomous worker, woken by a scheduled tick because there is work to do. "
-    "This is a bounded invocation: do the drawn work on REAL disk/git state, commit it via "
-    "tree_lock, then STOP and exit cleanly. Do NOT try to keep yourself alive or re-arm — the "
-    "scheduler starts the next invocation if more work remains."
+    "This is a bounded invocation: do the drawn work on the real disk and git state, commit it "
+    "via tree_lock, and exit. Don't try to keep yourself alive or re-arm: the scheduler starts "
+    "the next invocation if more work remains."
 )
 try:  # the turn-ending rule is shared with the seat executor; a tick must still start without it
     from background.model_tier import UNATTENDED_TURN_ENDS as _TURN_ENDS
 except Exception:  # noqa: BLE001
     _TURN_ENDS = ""
-WORKER_PREAMBLE = WORKER_PREAMBLE + _TURN_ENDS + " Drawn work follows.\n\n"
+WORKER_PREAMBLE = WORKER_PREAMBLE + _TURN_ENDS + "Drawn work follows.\n\n"
 
 
 def _log(msg: str) -> None:
