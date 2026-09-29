@@ -76,6 +76,7 @@ THREE RULES CAME OUT OF IT, and each is a branch below rather than a comment:
 from __future__ import annotations
 
 import os
+import re
 import subprocess
 import sys
 import tempfile
@@ -94,6 +95,9 @@ WORKTREE = Path(os.environ.get("SE_RECONCILE_WORKTREE", "/var/tmp/se-origin-reco
 #: CLAUDE.md's own "commits take more than ten minutes"), short enough that a wedged merge frees
 #: the next cadence rather than sitting forever.
 MERGE_TIMEOUT_SECONDS = 25 * 60
+
+#: The test leg a `surgical_land` receipt records, e.g. `tests: 1427 passed, 2 skipped in 1570.17s`.
+_RECEIPT_TESTS_SECONDS = re.compile(r"^tests: .* in ([0-9]+(?:\.[0-9]+)?)s", re.MULTILINE)
 
 #: How long the advance waits for the shared tree lock before giving the cadence back. A REFUSAL,
 #: not a wait: the reconciler runs every 5 minutes, so a missed window costs one cadence, while a
@@ -124,12 +128,22 @@ REFUSED_GATE = "REFUSED_GATE"
 #: HEAD moves under the gate, and in a fresh isolated worktree nothing else moves HEAD. The race
 #: that actually happens is `origin/main` advancing between the merge and the push.
 #:
-#: STILL NOT RETRIED IN-PROCESS, deliberately. A retry would have to re-merge and re-gate against
-#: the new base -- the full cost again, inside a cadence that is about to do exactly that anyway --
-#: and this is the module that once manufactured 29 commits in three and a quarter hours by looping
-#: on its own output. Naming the outcome is the whole repair; spinning on it is the defect it would
-#: reintroduce.
+#: CAUGHT UP IN-PROCESS, A BOUNDED NUMBER OF TIMES (2026-09-29). This used to say "not retried --
+#: the next cadence re-merges", and both halves of that were wrong once the merge's gate grew past
+#: origin's commit interval. The next cadence re-merges from the SHARED tree's HEAD, so it re-gates
+#: every incoming commit again and loses the same race again: nine REFUSED_RACE in a row on
+#: 2026-09-24, and on 2026-09-29 a 43-minute gate lost to an origin that moves every ~30. And a
+#: catch-up is NOT the full cost: `surgical_land --merge` gates the diff against the worktree's
+#: HEAD, which is now the merge that already gated clean, so the second merge's gate selects only
+#: what arrived during the first (small landings here gate in 10s to 5min). Bounded by
+#: `RACE_CATCHUPS` and pushed once, so it cannot become the 29-commit loop: every catch-up merges
+#: commits origin genuinely gained, never its own output.
 REFUSED_RACE = "REFUSED_RACE"
+
+#: How many catch-up merges one run may stack on a gated merge whose push lost the race. A count
+#: of attempts, not a domain quantity: each costs a gate over what arrived meanwhile, and after
+#: this many the run gives the race back to the cadence under its own name.
+RACE_CATCHUPS = 2
 
 #: The two ways a shared tree refuses to advance. They are reported apart because they are cleared
 #: apart -- one is a lane's uncommitted work, the other is usually a byte-identical twin of a file
@@ -1568,7 +1582,7 @@ def shared_tree(start: Path | None = None) -> Path | None:
 def reconcile(project: Path | None = None, *, worktree: Path | None = None,
               state_fn=None, behind_fn=None, ahead_fn=None, runner=None, pusher=None,
               make_worktree=None, drop_worktree=None, gate_fn=None, blockers_fn=None,
-              advance_fn=None) -> dict:
+              advance_fn=None, budget_fn=None, fetcher=None) -> dict:
     """Close the fork with origin, or say exactly why it stayed open. Never raises.
 
     Returns {"status", "detail", "behind", "pushed"}. Fully injectable, because every one of its
@@ -1666,16 +1680,55 @@ def reconcile(project: Path | None = None, *, worktree: Path | None = None,
         # THE SANCTIONED DOOR, RUN INSIDE THE ISOLATION. `surgical_land --merge` gates the tree the
         # merge would create and refuses on conflict; both properties are inherited rather than
         # reimplemented, so this module adds isolation and a caller, and no new way to commit.
-        merge = (runner or _run_merge)(worktree)
+        budget, budget_why = (budget_fn or merge_budget)(project)
+        try:
+            merge = runner(worktree) if runner else _run_merge(worktree, budget)
+        except subprocess.TimeoutExpired:
+            return {"status": ERROR, "behind": behind, "pushed": False,
+                    "detail": "the merge's gate outran its budget of {}s ({}) and was killed, so "
+                              "nothing was pushed. A cause that recurs every cadence is a gate "
+                              "slower than any receipt it brings in -- time the selection, do "
+                              "not raise the base".format(budget, budget_why)}
         if merge.returncode != 0:
             status, detail = _classify_merge_failure((merge.stdout or "") + (merge.stderr or ""))
             return {"status": status, "behind": behind, "pushed": False, "detail": detail}
 
         pushed = (pusher or _push)(worktree)
-        if pushed.returncode != 0:
+        catchups = 0
+        while pushed.returncode != 0:
             status, detail = _classify_push_failure(
                 (pushed.stderr or "") + (pushed.stdout or ""))
-            return {"status": status, "behind": behind, "pushed": False, "detail": detail}
+            if status != REFUSED_RACE or catchups >= RACE_CATCHUPS:
+                if catchups:
+                    detail = "{} ({} catch-up merge(s) were stacked on the gated merge first)".format(
+                        detail, catchups)
+                return {"status": status, "behind": behind, "pushed": False, "detail": detail}
+            # ONTO THE GATED MERGE, NOT FROM SCRATCH. The worktree's HEAD is the merge that already
+            # gated clean, so this merge's gate covers only what origin gained while it ran.
+            # A catch-up that cannot fetch has nothing new to merge, so the race goes back to the
+            # cadence under its own name rather than escalating to ERROR.
+            try:
+                fetched = (fetcher or _fetch)(worktree).returncode == 0
+            except (OSError, subprocess.SubprocessError):
+                fetched = False
+            if not fetched:
+                return {"status": status, "behind": behind, "pushed": False,
+                        "detail": "{} (the catch-up fetch failed, so no catch-up merge was "
+                                  "tried)".format(detail)}
+            catchups += 1
+            budget, budget_why = (budget_fn or merge_budget)(worktree)
+            try:
+                merge = runner(worktree) if runner else _run_merge(worktree, budget)
+            except subprocess.TimeoutExpired:
+                return {"status": ERROR, "behind": behind, "pushed": False,
+                        "detail": "catch-up merge {} outran its budget of {}s ({}) and was killed, "
+                                  "so nothing was pushed".format(catchups, budget, budget_why)}
+            if merge.returncode != 0:
+                status, detail = _classify_merge_failure(
+                    (merge.stdout or "") + (merge.stderr or ""))
+                return {"status": status, "behind": behind, "pushed": False,
+                        "detail": "catch-up merge {}: {}".format(catchups, detail)}
+            pushed = (pusher or _push)(worktree)
 
         # THE SAME ADVANCE THE `ahead == 0` LEG USES, not a second hand-rolled `--ff-only` beside
         # it. This is the leg the 24h measurement caught failing most often: the merge gates clean
@@ -1716,12 +1769,53 @@ def reconcile(project: Path | None = None, *, worktree: Path | None = None,
         (drop_worktree or _drop_worktree)(project, worktree)
 
 
-def _run_merge(worktree: Path) -> subprocess.CompletedProcess:
+def merge_budget(project: Path | None = None, *, log_fn=None) -> tuple[int, str]:
+    """How long the merge's gate may run: `MERGE_TIMEOUT_SECONDS` PLUS the slowest test leg any
+    incoming commit's own receipt recorded. Returns `(seconds, why)`.
+
+    WHY A FIXED 25 MINUTES WEDGED THE FORK (measured 2026-09-29). `f997f8bf7` landed on origin with
+    a receipt reading `tests: 1427 passed ... in 1570.17s` -- 26 minutes of tests for its subject
+    alone. A merge that closes the fork carries every incoming commit's diff, so its selection holds
+    that subject too, and its gate can never finish inside 25 minutes. From 00:10Z every cadence
+    ran the merge, was killed at the limit, and logged `ERROR: TimeoutExpired`, while HEAD fell 24
+    -> 37 behind. The limit guarded against a wedged merge and could not tell a wedge from a gate
+    that was simply bigger than the number.
+
+    THE FLOOR IS READ, NOT PICKED. A merge's gate runs at least the incoming subject's tests, and
+    that commit's receipt is a measurement of what those tests cost on this box. The base keeps the
+    reason it was given (the other gates, the site lane, a wedge guard), so the two are ADDED. With
+    no parsable receipt the budget is the base alone, which is the old behaviour.
+    """
+    project = project or PROJECT_DIR
+    try:
+        log = (log_fn or (lambda: _git(project, "log", "--format=%h%x00%B%x01",
+                                       "HEAD..{}/{}".format(REMOTE, BRANCH)).stdout))() or ""
+    except (OSError, subprocess.SubprocessError):
+        log = ""
+    slowest, which = 0.0, ""
+    for entry in log.split("\x01"):
+        sha, _, body = entry.strip().partition("\x00")
+        for found in _RECEIPT_TESTS_SECONDS.findall(body):
+            if float(found) > slowest:
+                slowest, which = float(found), sha
+    if not which:
+        return MERGE_TIMEOUT_SECONDS, "base {}s; no incoming receipt records a test leg".format(
+            MERGE_TIMEOUT_SECONDS)
+    budget = MERGE_TIMEOUT_SECONDS + int(slowest + 0.5)
+    return budget, "base {}s + {}s, the slowest incoming test leg ({}'s receipt)".format(
+        MERGE_TIMEOUT_SECONDS, int(slowest + 0.5), which)
+
+
+def _run_merge(worktree: Path, timeout: int = MERGE_TIMEOUT_SECONDS) -> subprocess.CompletedProcess:
     return subprocess.run(
         [sys.executable, "-m", "tools.surgical_land", "--merge",
          "{}/{}".format(REMOTE, BRANCH), "-m", _MERGE_MESSAGE],
-        cwd=str(worktree), capture_output=True, text=True, timeout=MERGE_TIMEOUT_SECONDS,
+        cwd=str(worktree), capture_output=True, text=True, timeout=timeout,
         env=dict(os.environ, PYTHONPATH=str(PROJECT_DIR)))
+
+
+def _fetch(worktree: Path) -> subprocess.CompletedProcess:
+    return _git(worktree, "fetch", REMOTE, BRANCH, "--quiet")
 
 
 def _push(worktree: Path) -> subprocess.CompletedProcess:

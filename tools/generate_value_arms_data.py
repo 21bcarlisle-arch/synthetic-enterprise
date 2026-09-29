@@ -1677,13 +1677,16 @@ def _admitted_on_a_stamp_proxy(floor: dict, three_arm: dict, why_not: str,
     fail-open in its strongest form: nothing else on the page is even looking.
     """
     realised = _realised_book_pairing(floor, three_arm)
+    weather = _weather_store_pairing(floor, three_arm)
     return {
         "rule": ADMITTED_ON_A_STAMP_PROXY,
-        "admitted": _staleness_caveat(floor, three_arm) is None and not realised["refusal"],
+        "admitted": (_staleness_caveat(floor, three_arm) is None and not realised["refusal"]
+                     and not weather["refusal"]),
         "floor_declared_book": floor_book,
         "figure_declared_book": None,
         "realised_book_pairing": realised,
-        "refusal": realised["refusal"],
+        "weather_store_pairing": weather,
+        "refusal": realised["refusal"] or weather["refusal"],
         "why_this_rule": (
             "THE BOUND ON THIS FIGURE WAS ADMITTED BY ITS DATE, NOT BY THE BOOK IT WAS DRAWN "
             "OVER: {why_not}. A date is a proxy for that question and it is wrong in BOTH "
@@ -1837,6 +1840,51 @@ def _realised_book_pairing(floor: dict, three_arm: dict) -> dict:
     }
 
 
+def _weather_store_pairing(floor: dict, three_arm: dict) -> dict:
+    """Whether the floor and the figure it would bound ran in provably DIFFERENT weather worlds.
+
+    `run_value_cycle_ab.floor_book_identity` publishes `weather_store` -- the one store digest
+    every bracket of every seed agrees on -- and the run records a before/after bracket per arm.
+    Neither `declared` nor the realised counts can see the store: a weather swap moves demand
+    without moving the segments or, necessarily, the settled-account count. So a floor from one
+    weather world could bound a figure measured in another and both book tests would pass.
+
+    REFUSES ONLY A PROVEN DIFFERENCE, like `_realised_book_pairing`. Every floor drawn before the
+    brackets existed has `weather_store: null` by the producer's own design (so it reads as
+    cannot-tell, not as a new book), and refusing on that would withdraw every bound on the page
+    for a question those artefacts could never have answered. The unknown is carried in
+    `unavailable_because` and named in the admission sentence instead.
+    """
+    identity = (floor or {}).get("book_identity")
+    floor_store = identity.get("weather_store") if isinstance(identity, dict) else None
+    arms = ((three_arm or {}).get("book_identity") or {})
+    brackets = [block.get(k) for block in (arms.values() if isinstance(arms, dict) else ())
+                if isinstance(block, dict) and "served_segments" in block
+                for k in ("weather_store_before_arm", "weather_store_after_arm")]
+    figure_stores = sorted({d for d in brackets if isinstance(d, str)})
+    differing = [d for d in figure_stores if isinstance(floor_store, str) and d != floor_store]
+    unread = sum(1 for d in brackets if not isinstance(d, str))
+    if not isinstance(floor_store, str):
+        why = ((isinstance(identity, dict) and identity.get("weather_store_unavailable_because"))
+               or "the floor names no weather store -- it predates the brackets that record one")
+    elif not brackets or unread:
+        why = ("{} of {} weather-store brackets across this run's arms were not recorded".format(
+            unread, len(brackets)) if brackets else
+            "the run this floor would bound records no weather-store bracket for any arm")
+    else:
+        why = None
+    return {
+        "floor_weather_store": floor_store,
+        "figure_weather_stores": figure_stores,
+        "unavailable_because": None if differing else why,
+        "refusal": (None if not differing else (
+            "THE ERROR BAR WAS DRAWN IN A DIFFERENT WEATHER WORLD FROM THE FIGURE IT WOULD BOUND: "
+            "the floor's seeds all ran on weather store {floor}, and this run's arms read {fig}. "
+            "A spread over one weather history is not an interval on a figure measured in "
+            "another, at any width.").format(floor=floor_store, fig=", ".join(figure_stores))),
+    }
+
+
 def _range_text(span: list) -> str:
     """A [min, max] pair as a reader reads it -- one number when it did not move."""
     low, high = span[0], span[-1]
@@ -1883,12 +1931,15 @@ def _floor_admission(floor: dict, three_arm: dict) -> dict:
     # why the blanket "never pair on realised" this block used to carry was one field's reason
     # applied to five. Ordered after the declared test and ANDed with it: a pair must clear both.
     realised = _realised_book_pairing(floor or {}, three_arm or {})
+    # AND THE WEATHER WORLD, which neither half above can see -- `_weather_store_pairing`.
+    weather = _weather_store_pairing(floor or {}, three_arm or {})
     return {
         "rule": ADMITTED_ON_THE_DECLARED_BOOK,
-        "admitted": same and not realised["refusal"],
+        "admitted": same and not realised["refusal"] and not weather["refusal"],
         "floor_declared_book": declared,
         "figure_declared_book": run_book,
         "realised_book_pairing": realised,
+        "weather_store_pairing": weather,
         # REFUSES rather than caveats, because this is not a shading of confidence: a spread over
         # one population is not an interval on a figure over another at any width.
         "refusal": ((None if same else (
@@ -1898,19 +1949,23 @@ def _floor_admission(floor: dict, three_arm: dict) -> dict:
             "measured over another, however recently it was taken -- so no contrast on this page "
             "takes its direction from it.").format(
                 floor=declared.get("served_segments"), run=run_book.get("served_segments")))
-            or realised["refusal"]),
+            or realised["refusal"] or weather["refusal"]),
         "why_this_rule": (
             "The bound on this figure was admitted on the BOOK it was drawn over rather than on "
             "its date: the floor's seeds and this run's arms {verdict} declare {floor}. The "
             "declared half is what the run was GIVEN, and it is a curriculum setting every run "
             "this company has done declares, so on its own it separates almost nothing; the "
             "realised counts are asked beside it wherever their ranges can prove a difference "
-            "({realised}).").format(
+            "({realised}). The weather world is asked the same way: {weather}.").format(
                 verdict="both" if same else "do NOT both",
                 floor=declared.get("served_segments"),
                 realised=(", ".join(realised["fields_compared"])
                           if realised["fields_compared"]
-                          else "not askable here: " + str(realised["unavailable_because"]))),
+                          else "not askable here: " + str(realised["unavailable_because"])),
+                weather=("not askable here -- " + str(weather["unavailable_because"])
+                         if weather["unavailable_because"] else
+                         "both ran on store " + str(weather["floor_weather_store"])
+                         if not weather["refusal"] else "they differ")),
     }
 
 

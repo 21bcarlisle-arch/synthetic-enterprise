@@ -7980,6 +7980,64 @@ from background.publish_gate_blocking_read import (  # noqa: E402
 )
 
 
+def _heartbeat_stand_down(*, runner=None, ahead_fn=None, advance_fn=None, now=None):
+    """The reason this heartbeat should NOT be committed, or `None` when it should.
+
+    TWO COSTS THE HEARTBEAT PAID FOR NOTHING (measured 2026-09-28, 136 heartbeats over 7 days,
+    `daf2155d9`). Every heartbeat runs the full pre-commit chain. 54 of them changed no `site/`
+    path -- `deploy-pages.yml` deploys only on `site/**`, so they reached no reader that needs a
+    commit. 40 were committed onto a tree origin was already ahead of, so they could only reach
+    origin as the first parent of a gated reconcile merge.
+
+    WHY THE BEHIND LEG IS BOUNDED, NOT ABSOLUTE. The shared tree was behind origin 37h of 95h in
+    that record, pinned by dirty paths no cadence clears. An unconditional stand-down would freeze
+    the published heartbeat for the whole of such a stretch -- Fault #1 again. The one reader that
+    needs the commit (`site/assets/freshness-banner.js`) holds the heartbeat's age to the feed's
+    own `content_publish.stale_after_seconds`, so the heartbeat stands down only while ORIGIN'S
+    copy is further than `PUSH_LAG_AFTER_SECONDS` (the delivery-lag horizon) from that bound.
+
+    EVERY UNREADABLE ANSWER BEATS, for the reason `_landing_in_flight` argues: a wasted heartbeat
+    costs a gate cycle, a withheld one costs the only outside signal that the machine is alive.
+    """
+    run = runner or subprocess.run
+    site_paths = [rel for rel in LIVENESS_SURFACE_FILES if rel.startswith("site/")]
+    try:
+        diff = run(["git", "diff", "--quiet", "HEAD", "--"] + site_paths,
+                   cwd=str(PROJECT_DIR), capture_output=True, text=True, timeout=30)
+        site_unchanged = diff.returncode == 0
+    except (OSError, subprocess.SubprocessError):
+        site_unchanged = False
+    if site_unchanged:
+        return ("no site/ liveness file ({}) differs from HEAD, so the commit would deploy "
+                "nothing -- deploy-pages.yml deploys on site/** only".format(", ".join(site_paths)))
+    ahead_fn = ahead_fn or _commits_origin_is_ahead_by
+    ahead = ahead_fn()
+    if not ahead:
+        return None
+    advance = (advance_fn or _advance_to_origin_or_say_why)()
+    if advance.get("advanced"):
+        ahead = ahead_fn()
+        if not ahead:
+            return None
+    # FETCH_HEAD is origin's tip: `_commits_origin_is_ahead_by` fetched it just now.
+    try:
+        shown = run(["git", "show", "FETCH_HEAD:site/data/tick_heartbeat.json"],
+                    cwd=str(PROJECT_DIR), capture_output=True, text=True, timeout=30)
+        published = json.loads(shown.stdout) if shown.returncode == 0 else None
+        published_ts = float(published["ts"])
+        stale_after = float(published["content_publish"]["stale_after_seconds"])
+    except (OSError, subprocess.SubprocessError, ValueError, KeyError, TypeError):
+        return None
+    from background.publish_freshness import PUSH_LAG_AFTER_SECONDS
+    age = (now if now is not None else time.time()) - published_ts
+    if age >= stale_after - PUSH_LAG_AFTER_SECONDS:
+        return None
+    return ("origin/main is still {} commit(s) ahead after the advance attempt ({}), so this "
+            "commit could reach origin only through a reconcile merge; origin's heartbeat is "
+            "{:.1f}h old against the reader's {:.1f}h bound, so it can wait".format(
+                ahead, advance.get("reason", "no reason given"), age / 3600, stale_after / 3600))
+
+
 def _refresh_published_liveness_on_skip(git_hash: str) -> bool:
     """Publish ONLY the liveness surface on a change-detection SKIP. Returns True
     iff a fresh liveness commit reached origin this call.
@@ -8050,6 +8108,10 @@ def _refresh_published_liveness_on_skip(git_hash: str) -> bool:
     files = [str(PROJECT_DIR / rel) for rel in LIVENESS_SURFACE_FILES
              if (PROJECT_DIR / rel).exists()]
     if not files:
+        return False
+    _stand_down = _heartbeat_stand_down()
+    if _stand_down:
+        log("Liveness heartbeat not committed this cycle: {}.".format(_stand_down))
         return False
     msg = ("chore(liveness): publish heartbeat while sim output unchanged (git={}) -- "
            "decouples published liveness from content-change (Fault#1 2026-07-25)".format(git_hash))

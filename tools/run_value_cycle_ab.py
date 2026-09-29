@@ -112,6 +112,7 @@ from company.pricing.value_based_renewal import (
 )
 from saas.customer_reaction import _billing_account_id
 from saas.tariff_pricing import TARGET_MARGIN_GBP_PER_MWH
+from simulation.arrears_engine import ARREARS_LINE_KEYS
 from simulation.run_phase4c_on_phase2b import main as run_phase4c
 
 # ONE COUNTERFACTUAL, NOT TWO. The choice of reference (Ofgem cap where published, the pre-2019
@@ -352,6 +353,151 @@ def _net_by_billing_account(records: list) -> dict[str, float]:
     return dict(folded)
 
 
+#: Tolerance of the arrears reconciliation: to the penny, per billing account.
+ARREARS_RECONCILIATION_TOLERANCE_GBP = 0.005
+
+
+def _arrears_lines_by_billing_account(phase2b: dict) -> dict[str, dict[str, float]] | None:
+    """Phase 4c's per-customer arrears lines (`simulation.arrears_engine.book_arrears_lines`)
+    folded to the billing account, on the same key as `net_by_billing_account_gbp`. None when
+    the run predates the lines -- an absent reading, never an empty one."""
+    by_customer = phase2b.get("arrears_lines_by_customer")
+    if not isinstance(by_customer, dict):
+        return None
+    folded: dict[str, dict[str, float]] = {}
+    for customer_id, lines in by_customer.items():
+        row = folded.setdefault(_billing_account_id(customer_id),
+                                dict.fromkeys(ARREARS_LINE_KEYS, 0.0))
+        for key in ARREARS_LINE_KEYS:
+            row[key] += float(lines[key])
+    # Six places, not two: an account's lines are nine figures, and rounding each to the penny
+    # before the identity re-adds them can put the sum 4.5p off a net that was never wrong.
+    return {account: {k: round(v, 6) for k, v in row.items()} for account, row in folded.items()}
+
+
+def arrears_line_net(lines: dict[str, float]) -> float:
+    """The net an account's arrears lines imply, by the identity `book_arrears_lines` states."""
+    return (lines["pre_4c_net_gbp"] + lines["placeholder_bad_debt_released_gbp"]
+            - (lines["write_off_at_close_gbp"] + lines["write_off_statute_barred_gbp"]
+               + lines["stayer_provision_gbp"] + lines["line_rounding_gbp"]
+               - lines["unbooked_bad_debt_gbp"])
+            + (lines["dca_recovery_gbp"] - lines["unbooked_recovery_gbp"]))
+
+
+def arrears_reconciliation(net_by_account: dict[str, float],
+                           lines_by_account: dict[str, dict[str, float]] | None) -> dict:
+    """Do the arrears lines plus the pre-4c trading net rebuild each account's realised net, to
+    the penny? Every account in either column is graded; one missing from a side reads 0 there,
+    so an account the lines never saw is a residual, not a skip."""
+    if lines_by_account is None:
+        return {"reconciles": None,
+                "why_not": "this run carries no `arrears_lines_by_customer`, so its arrears "
+                           "charge cannot be decomposed per account"}
+    zero = dict.fromkeys(ARREARS_LINE_KEYS, 0.0)
+    residuals = {}
+    for account in sorted(set(net_by_account) | set(lines_by_account)):
+        residual = (float(net_by_account.get(account, 0.0))
+                    - arrears_line_net(lines_by_account.get(account, zero)))
+        if abs(residual) >= ARREARS_RECONCILIATION_TOLERANCE_GBP:
+            residuals[account] = round(residual, 6)
+    return {"reconciles": not residuals,
+            "accounts_graded": len(set(net_by_account) | set(lines_by_account)),
+            "accounts_off_by_a_penny_or_more": residuals,
+            "tolerance_gbp": ARREARS_RECONCILIATION_TOLERANCE_GBP}
+
+
+def _decisions_by_billing_account(result: dict) -> dict[str, dict]:
+    """The per-account facts `SEAT_RESULT_PROS_2016_0098S_4218_...` had to read out of a log:
+    when the account left, its first renewal's `p_retain` against its roll, how many renewals
+    the world decided for it, and how many bills the supplier issued it."""
+    from company.interfaces.bill_assembly import issued_bills
+
+    out: dict[str, dict] = {}
+
+    def row(account: str) -> dict:
+        return out.setdefault(account, {"left_at": None, "first_renewal": None,
+                                        "renewal_decisions": 0, "bills_issued": 0})
+
+    events = sorted((e for e in (result["phase2b"].get("customer_events") or [])
+                     if isinstance(e, dict) and "random_roll" in e),
+                    key=lambda e: e["event_date"])
+    for event in events:
+        r = row(_billing_account_id(event["customer_id"]))
+        r["renewal_decisions"] += 1
+        if r["first_renewal"] is None:
+            r["first_renewal"] = {"date": event["event_date"],
+                                  "p_retain": event.get("effective_retention_probability"),
+                                  "roll": event["random_roll"], "outcome": event["event_type"]}
+        if event["event_type"] == "churned" and r["left_at"] is None:
+            r["left_at"] = event["event_date"]
+    for bill in issued_bills(result.get("bills") or []):
+        row(_billing_account_id(bill["customer_id"]))["bills_issued"] += 1
+    return out
+
+
+#: The fields of one arm's renewal log that say what it DECIDED -- b6a21c885's list, verbatim.
+RENEWAL_DECISION_FIELDS = ("customer_id", "commodity", "term_start", "declined",
+                           "chosen_margin_gbp_per_mwh", "offered_rate_gbp_per_mwh")
+
+
+def _renewal_decision_rows(arm_result: dict | None) -> list[dict] | None:
+    """Every row of one arm's renewal log, declines included, cut to what the arm decided.
+    None when the arm did not run -- absent, never an empty list that reads as "decided nothing"."""
+    if arm_result is None:
+        return None
+    log = (arm_result.get("phase2b") or {}).get("value_arm_log") or []
+    return [{f: e.get(f) for f in RENEWAL_DECISION_FIELDS} for e in log if isinstance(e, dict)]
+
+
+def decided_differently_by_account(value_rows: list[dict] | None,
+                                   level_rows: list[dict] | None) -> dict[str, dict] | None:
+    """Join the two arms' renewals on (customer_id, commodity, term_start) and count, per billing
+    account, the renewals the arms decided differently.
+
+    A renewal in BOTH logs is decided differently when one arm declined and the other priced, or
+    both priced at different offered rates. A renewal in ONE log only is a ROSTER difference --
+    the books had already diverged, so the arms never faced the same decision -- and it is
+    counted apart, never as "different" (b6a21c885 §1.2). Accounts with no difference of either
+    kind are listed with zeros, so an absent account means it renewed in neither log.
+    """
+    if value_rows is None or level_rows is None:
+        return None
+
+    def keyed(rows):
+        return {(r["customer_id"], r["commodity"], r["term_start"]): r for r in rows}
+
+    value, level = keyed(value_rows), keyed(level_rows)
+    out: dict[str, dict] = {}
+    for key in sorted(set(value) | set(level), key=lambda k: tuple(map(str, k))):
+        row = out.setdefault(_billing_account_id(key[0]), {
+            "renewals_in_both_logs": 0, "declined_in_one_arm_only": 0,
+            "offered_a_different_rate": 0, "in_value_log_only": 0, "in_level_log_only": 0})
+        v, lv = value.get(key), level.get(key)
+        if lv is None:
+            row["in_value_log_only"] += 1
+            continue
+        if v is None:
+            row["in_level_log_only"] += 1
+            continue
+        row["renewals_in_both_logs"] += 1
+        if bool(v["declined"]) != bool(lv["declined"]):
+            row["declined_in_one_arm_only"] += 1
+        elif not v["declined"] and _rates_differ(v["offered_rate_gbp_per_mwh"],
+                                                 lv["offered_rate_gbp_per_mwh"]):
+            row["offered_a_different_rate"] += 1
+    for row in out.values():
+        row["decided_differently"] = row["declined_in_one_arm_only"] + row["offered_a_different_rate"]
+    return out
+
+
+def _rates_differ(a, b) -> bool:
+    """Two offered rates differ unless both are numbers within a millionth of a pound per MWh.
+    A missing rate on a priced row is a difference, not a match: it cannot be shown equal."""
+    if not isinstance(a, (int, float)) or not isinstance(b, (int, float)):
+        return True
+    return abs(float(a) - float(b)) > 1e-6
+
+
 def realised_metrics(result: dict) -> dict:
     """What the WORLD did to one arm's book. Nothing the company believed appears here.
 
@@ -410,6 +556,7 @@ def realised_metrics(result: dict) -> dict:
     realised_bad_debt = sum(float(r.get("bad_debt_gbp", 0.0) or 0.0) for r in records)
     realised_treasury = float(records[-1].get("treasury_cash_balance_gbp", 0.0) or 0.0)
     net_by_account = _net_by_billing_account(records)
+    arrears_lines = _arrears_lines_by_billing_account(phase2b)
 
     return {
         "total_net_gbp": realised_net,
@@ -421,6 +568,13 @@ def realised_metrics(result: dict) -> dict:
         # because a dropped row would make the column quietly disagree with the total it is a
         # decomposition of.
         "net_by_billing_account_gbp": net_by_account,
+        # THE SAME COLUMN DECOMPOSED: each account's pre-4c trading net and the arrears lines
+        # that took it to the figure above, under a reconciliation graded here rather than
+        # trusted. Without it the C1 bracket could name PROS-2016-0098's -5,659.81 but not
+        # split it into write-off, recovery and released placeholder.
+        "arrears_lines_by_billing_account_gbp": arrears_lines,
+        "arrears_reconciliation": arrears_reconciliation(net_by_account, arrears_lines),
+        "decisions_by_billing_account": _decisions_by_billing_account(result),
         # THE D2 DEPTH VECTOR, on the same key as the column above, so depth is a REGRESSOR
         # against per-account money instead of the seed-level constant it has been. Counted as
         # DISTINCT PRICED TERM STARTS per billing account and NOT as log entries: a decline
@@ -679,7 +833,36 @@ def churn_volume_attribution(control: dict, value: dict) -> dict:
     }
 
 
-def book_at_run() -> dict:
+def weather_store_digest() -> str | None:
+    """One sha256 over the three files `WeatherWorldSource.load()` reads, or `None` if one is gone.
+
+    `run_phase2b.main` re-reads the store from the WORKING TREE on every arm, so an arm is run
+    against whatever bytes are on disk when it starts -- and a tree that is landed into mid-run
+    (the executor worktree is) swaps the world between arms. That happened on 2026-09-29: seed
+    88888's level arm ran on the store `f0ba399a4` replaced under it, every identity check passed,
+    and +2,484 of the +2,464 "moved where nothing was decided" was the swap
+    (`SEAT_FINDING_A_MULTI_ARM_RUN_REREADS_THE_WEATHER_STORE_FROM_A_TREE_THAT_MOVES_UNDER_IT_
+    2026-09-29`). `producing_commit` cannot see it: it names the code Python bound at start.
+
+    The paths are `sim.weather_world`'s own, never restated here, so a store that moves or grows a
+    file is digested where the loader reads it. Name and bytes both enter the hash.
+    """
+    from sim import weather_world
+
+    h = hashlib.sha256()
+    for path in (weather_world.CELLS_PATH, weather_world.SERIES_PATH,
+                 weather_world.REGIMES_PATH):
+        try:
+            data = Path(path).read_bytes()
+        except OSError:
+            # FAIL CLOSED: an unread store is "not known", and the cross-arm control reads a
+            # `None` as cannot-tell rather than as agreement.
+            return None
+        h.update(Path(path).name.encode() + b"\0" + data)
+    return h.hexdigest()
+
+
+def book_at_run(weather_before: str | None = None) -> dict:
     """The segments being served AT THE MOMENT AN ARM RAN, snapshotted by the caller.
 
     Reading this once, at the end, when the artefact is assembled is not the same measurement
@@ -706,6 +889,12 @@ def book_at_run() -> dict:
         # The raw string, not a re-parse of it: a second parser here would be a second answer
         # to the same question and the two would drift.
         "override_env": override or None,
+        # THE WEATHER WORLD, BRACKETING THE ARM. The caller digests the store just before the arm
+        # and this call digests it just after, because the arm reads it once, somewhere between.
+        # Equal brackets mean the arm read those bytes; unequal ones mean it cannot be said which
+        # it read, and `same_book_across_arms` refuses either way. See `weather_store_digest`.
+        "weather_store_before_arm": weather_before,
+        "weather_store_after_arm": weather_store_digest(),
     }
 
 
@@ -739,8 +928,27 @@ def same_book_across_arms(books: dict) -> dict:
         verdict = None
     else:
         verdict = len(distinct) == 1
+    # THE WEATHER AXIS, compared over BOTH brackets of every arm so a swap INSIDE one arm is
+    # caught as well as one between arms. A proven difference is `False` even when another arm is
+    # unrecorded -- two digests that disagree are a disagreement whatever else is missing -- and
+    # otherwise the same tri-state as the book: `None` when any bracket or any second arm is
+    # absent, because an unread store is not a matching one.
+    weather = {arm: {"before": (b or {}).get("weather_store_before_arm"),
+                     "after": (b or {}).get("weather_store_after_arm")}
+               for arm, b in books.items()}
+    digests = [d for w in weather.values() for d in w.values()]
+    distinct_weather = sorted({d for d in digests if isinstance(d, str)})
+    if len(distinct_weather) > 1:
+        same_weather = False
+    elif len(weather) < 2 or not all(isinstance(d, str) for d in digests):
+        same_weather = None
+    else:
+        same_weather = True
     return {
         "same_book": verdict,
+        "same_weather_store": same_weather,
+        "weather_store_by_arm": weather,
+        "distinct_weather_stores": distinct_weather,
         "arms_compared": sorted(recorded),
         "arms_with_no_recorded_book": missing,
         "served_segments_by_arm": dict(lists),
@@ -795,6 +1003,9 @@ def book_identity(result: dict, at_run: dict | None = None) -> dict:
         "served_segments": snapshot.get("served_segments"),
         "served_segments_resolved_from": snapshot.get("resolved_from"),
         "served_segments_override_env": snapshot.get("override_env"),
+        # Which weather world this arm ran in, bracketed -- see `weather_store_digest`.
+        "weather_store_before_arm": snapshot.get("weather_store_before_arm"),
+        "weather_store_after_arm": snapshot.get("weather_store_after_arm"),
         "served_segments_unavailable_because": (
             None if snapshot else
             "the caller recorded no book at this arm's run, so which segments it served is "
@@ -891,7 +1102,7 @@ def floor_book_identity(books: list[dict | None]) -> dict:
     population, and the two are separate questions a consumer has to be able to ask separately.
 
     REFUSES A MIXED FLOOR, for the same reason `clock` does one block down: seeds drawn over
-    different books are not repeated draws of one quantity, so no error bar can be taken from
+    different books, or in different weather worlds, are not repeated draws of one quantity, so no error bar can be taken from
     them. FAILS CLOSED to `None` with a named reason when ANY seed recorded no book -- a partial
     record must not pair, and a `None` a consumer can see is what stops it.
     """
@@ -903,8 +1114,32 @@ def floor_book_identity(books: list[dict | None]) -> dict:
             "spread of one quantity and no error bar can be taken from it".format(
                 len(distinct),
                 sorted(str(list(d)) for d in distinct)))
+    # THE WEATHER WORLD, ACROSS SEEDS. Each seed's run already refuses arms on two stores
+    # (`same_book_across_arms`), but that guards one run; two seeds of one floor are two runs,
+    # hours apart, in a tree that can be landed into between them -- the 2026-09-29 swap one level
+    # up (`SEAT_FINDING_A_MULTI_ARM_RUN_REREADS_THE_WEATHER_STORE_FROM_A_TREE_THAT_MOVES_UNDER_IT_
+    # 2026-09-29`). Every bracket of every seed enters, so a swap inside the arm read is caught
+    # too. Kept OUT of `declared`: that is the pairing key consumers already compare, and a seed
+    # written before the brackets existed must read as cannot-tell there, not as a new book.
+    brackets = [b.get(k) if isinstance(b, dict) else None
+                for b in books
+                for k in ("weather_store_before_arm", "weather_store_after_arm")]
+    weather = {d for d in brackets if isinstance(d, str)}
+    if len(weather) > 1:
+        raise AssertionError(
+            "the seeds ran on {} different weather stores ({}), so their spread is not the "
+            "spread of one quantity and no error bar can be taken from it".format(
+                len(weather), sorted(weather)))
+    unread = sum(1 for d in brackets if not isinstance(d, str))
+    agreed_weather = next(iter(weather)) if weather and not unread else None
     silent = sum(1 for d in declared if d is None)
     block: dict = {
+        "weather_store": agreed_weather,
+        "weather_store_unavailable_because": (
+            None if agreed_weather is not None else
+            "{} of {} weather-store brackets across {} seeds were not recorded, so which weather "
+            "world this floor was drawn in is not established for the floor as a whole".format(
+                unread, len(brackets), len(books))),
         "declared": (
             dict(zip(BOOK_DECLARED_FIELDS, distinct.pop()))
             if distinct and not silent else None),
@@ -5112,9 +5347,10 @@ def run_value_cycle_ab(report_end: str | None = None, level_arm: bool = False) -
     # carries the reason. These feed both the per-arm `book_identity` blocks and the cross-arm
     # same-book control, and taking them here is what lets that control fail.
     books: dict[str, dict] = {}
+    weather_before = weather_store_digest()
     with policy_scope(CURRENT_POLICY):
         control = run_phase4c(report_end=report_end, policy=CURRENT_POLICY)
-    books["control_arm"] = book_at_run()
+    books["control_arm"] = book_at_run(weather_before)
     if control["phase2b"].get("value_arm_log"):
         raise AssertionError(
             "the CONTROL arm priced {} renewal(s) with the value arm -- the writer is not a "
@@ -5122,9 +5358,10 @@ def run_value_cycle_ab(report_end: str | None = None, level_arm: bool = False) -
             "policy field. Refusing to report it.".format(
                 len(control["phase2b"]["value_arm_log"])))
 
+    weather_before = weather_store_digest()
     with policy_scope(VALUE_ARM_POLICY):
         value = run_phase4c(report_end=report_end, policy=VALUE_ARM_POLICY)
-    books["value_arm"] = book_at_run()
+    books["value_arm"] = book_at_run(weather_before)
 
     control_m = realised_metrics(control)
     value_m = realised_metrics(value)
@@ -5149,9 +5386,10 @@ def run_value_cycle_ab(report_end: str | None = None, level_arm: bool = False) -
         level_policy = replace(
             CURRENT_POLICY, name="level_arm", renewal_margin_arm=FLAT_AT_LEVEL,
             renewal_margin_flat_level_gbp_per_mwh=float(level))
+        weather_before = weather_store_digest()
         with policy_scope(level_policy):
             level_result = run_phase4c(report_end=report_end, policy=level_policy)
-        books["level_arm"] = book_at_run()
+        books["level_arm"] = book_at_run(weather_before)
         level_m = realised_metrics(level_result)
         # THE POPULATIONS MUST BE THE SAME ONES, and this checks rather than assumes it. The arm
         # exists to price EXACTLY the renewals the value arm priced -- if it priced a different
@@ -5174,6 +5412,13 @@ def run_value_cycle_ab(report_end: str | None = None, level_arm: bool = False) -
             "exists to catch. Refusing to report it.".format(
                 agreement["distinct_books"], agreement["arms_compared"],
                 agreement["arms_with_no_recorded_book"]))
+    if agreement["same_weather_store"] is not True:
+        raise AssertionError(
+            "the arms did not run in one weather world: {} distinct store digest(s) across the "
+            "arms' before/after brackets ({}). `run_phase2b.main` re-reads sim/weather_world/ "
+            "per arm, so a tree landed into mid-run puts arms in different worlds -- run in a "
+            "worktree pinned to the commit under test. Refusing to report it.".format(
+                len(agreement["distinct_weather_stores"]), agreement["weather_store_by_arm"]))
 
     # ONE FUNNEL PER ARM THAT ACTUALLY RAN, computed once and used twice below -- as the per-arm
     # block and as the input to the cross-arm denominator comparison. An arm that did not run is
@@ -5189,8 +5434,16 @@ def run_value_cycle_ab(report_end: str | None = None, level_arm: bool = False) -
     household = household_sides(
         control_arm=control, value_arm=value, level_arm=level_result)
 
+    renewal_decisions = {"value_arm": _renewal_decision_rows(value),
+                         "level_arm": _renewal_decision_rows(level_result)}
     artefact = {
         "generated_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        # WHAT EACH ARM DECIDED, per renewal, and where the two decided differently. Before this
+        # the floor row carried each arm's money per account but not one decision, so "the arms
+        # decided differently on this account" could not be counted (b6a21c885).
+        "renewal_decisions_by_arm": renewal_decisions,
+        "decided_differently_by_account": decided_differently_by_account(
+            renewal_decisions["value_arm"], renewal_decisions["level_arm"]),
         # WHICH CODE MADE THIS, above every figure it made, because `generated_at` is the one
         # timestamp on this artefact that is guaranteed NOT to be when the numbers were decided.
         "producing_commit": producing_commit(),
@@ -6533,6 +6786,17 @@ def noise_floor(seeds: list[int], report_end: str | None = None,
                 (result.get("value_arm") or {}).get("net_by_billing_account_gbp")),
             "level_arm_net_by_account_gbp": (
                 (result.get("level_arm") or {}).get("net_by_billing_account_gbp")),
+            # WHAT EACH ARM'S NET ABOVE IS MADE OF, per account, and whether it reconciles.
+            # Added 2026-09-28: the C1 bracket found the whole selection sign on one account's
+            # arrears charge and could not split it, because no row carried the lines.
+            **{f"{arm}_{field}": (result.get(arm) or {}).get(key)
+               for arm in ("value_arm", "level_arm")
+               for field, key in (("arrears_lines_by_account_gbp",
+                                   "arrears_lines_by_billing_account_gbp"),
+                                  ("arrears_reconciliation", "arrears_reconciliation"),
+                                  ("decisions_by_account", "decisions_by_billing_account"))},
+            "renewal_decisions_by_arm": result.get("renewal_decisions_by_arm"),
+            "decided_differently_by_account": result.get("decided_differently_by_account"),
             # THE D2 DEPTH VECTOR ON THE SAME KEY, so depth is a per-account REGRESSOR on this row
             # instead of the seed-level constant that explained nothing. Value arm only: the level
             # arm prices the same population by construction since 2026-09-18

@@ -766,6 +766,67 @@ def test_the_realised_counts_ADMIT_an_honest_re_run_and_REFUSE_a_different_book(
         "adding the realised leg removed the declared refusal instead of adding to it")
 
 
+def _run_in_weather(three_arm: dict, store: str) -> dict:
+    """The run with every arm's before/after bracket naming one store -- the live artefact predates
+    the brackets, so the known-store states are constructed rather than found."""
+    run = copy.deepcopy(three_arm)
+    for block in run["book_identity"].values():
+        if isinstance(block, dict) and "served_segments" in block:
+            block["weather_store_before_arm"] = block["weather_store_after_arm"] = store
+    return run
+
+
+def test_a_floor_from_ANOTHER_WEATHER_WORLD_is_refused_and_an_unrecorded_one_is_not_askable():
+    """THE DEFECT: `floor_book_identity` publishes the one weather store a floor's seeds agree on,
+    and nothing paired it against the figure. Neither the declared segments nor the settled counts
+    can see a weather swap, so a floor from store X admitted as the bound on a figure from store Y.
+
+    ALL THREE STATES, the admitting ones first, so a leg that refuses everything cannot pass: the
+    same store admits, an unrecorded store admits and SAYS it could not ask, a different store
+    refuses -- on both the declared-book branch and the stamp-proxy branch."""
+    three_arm = _load(THREE_ARM)
+    settled = [block["billing_accounts_settled_in_window"]
+               for block in three_arm["book_identity"].values()
+               if isinstance(block, dict) and "served_segments" in block]
+    run = _run_in_weather(three_arm, "a" * 16)
+
+    def floor_in(store):
+        floor = _floor_declaring(_the_runs_own_segments(), realised={
+            "billing_accounts_settled_in_window": {"min": min(settled), "max": max(settled),
+                                                   "n": 12}})
+        floor["book_identity"]["weather_store"] = store
+        return floor
+
+    same = gva._floor_admission(floor_in("a" * 16), run)
+    unknown = gva._floor_admission(floor_in(None), run)
+    other = gva._floor_admission(floor_in("b" * 16), run)
+    assert same["admitted"] and unknown["admitted"] and not other["admitted"], (
+        same["weather_store_pairing"], unknown["weather_store_pairing"],
+        other["weather_store_pairing"])
+    assert same["weather_store_pairing"]["unavailable_because"] is None
+    assert "both ran on store " + "a" * 16 in same["why_this_rule"]
+    assert unknown["weather_store_pairing"]["unavailable_because"]
+    assert "not askable" in unknown["why_this_rule"]
+    assert "DIFFERENT WEATHER WORLD" in other["refusal"] and "b" * 16 in other["refusal"]
+
+    # ...and an unbracketed RUN is cannot-tell too, never agreement with the floor's store.
+    unbracketed = gva._floor_admission(floor_in("b" * 16), three_arm)
+    assert unbracketed["weather_store_pairing"]["refusal"] is None
+    assert unbracketed["weather_store_pairing"]["unavailable_because"]
+
+    # The stamp-proxy branch asks it too: a floor with no declared book is not thereby exempt.
+    # Bound to the run's stamp AND realised book, so the store is the one variable that differs.
+    def proxied_in(store):
+        floor = _booked_like(_stamped_after(_floor_without_a_book(), run), run)
+        floor["book_identity"] = {"declared": None, "weather_store": store}
+        return gva._floor_admission(floor, run)
+
+    admitted, refused = proxied_in("a" * 16), proxied_in("b" * 16)
+    assert admitted["rule"] == refused["rule"] == gva.ADMITTED_ON_A_STAMP_PROXY
+    assert admitted["admitted"] is True, admitted["refusal"]
+    assert refused["admitted"] is False and "DIFFERENT WEATHER WORLD" in refused["refusal"]
+
+
 def test_the_realised_leg_is_read_from_SEED_ROWS_when_the_fold_declares_it_unavailable():
     """A FOLD'S SUMMARY SAYS THE REALISED HALF IS UNAVAILABLE, and its seed rows answer anyway.
 

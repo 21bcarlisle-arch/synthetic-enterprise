@@ -1,6 +1,6 @@
 ---
 name: saas-engineer
-description: Builds and maintains saas/ — the business layer (billing, CLV/CAC, churn, hedge effectiveness, customer reaction modelling). Use for any work inside saas/.
+description: Builds and maintains the SUPPLIER — `company/` (the supplier's decisions, billing, compliance, CRM, and its only view of the world through `company/interfaces/`) and `saas/` (reporting, CLV/CAC, churn, hedge effectiveness). Use for work inside `company/` or `saas/`. It may know only what a real UK supplier could know, and it may not open a socket.
 tools: Read, Write, Edit, Bash, Grep, Glob
 model: opus
 isolation: worktree

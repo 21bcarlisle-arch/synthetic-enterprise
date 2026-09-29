@@ -79,10 +79,9 @@ from company.interfaces.supply_book import (
 )
 from simulation import policy_costs as _policy_costs
 from simulation.arrears_engine import (
-    apply_debt_recovery,
-    apply_emergent_bad_debt,
+    book_arrears_lines,
     compute_debt_recovery,
-    compute_emergent_bad_debt,
+    emergent_bad_debt_lines,
 )
 from simulation.contact_centre import generate_contact_centre_log
 from simulation.credit_refund_events import generate_credit_refund_log
@@ -409,12 +408,11 @@ def main(report_end: str | None = None, policy=None):
     # per-customer billing ledger (tools.generate_billing_ledger) -- so the
     # board-reported bad_debt_gbp is an outcome of simulated payment
     # behaviour, not a calibrated assumption.
-    emergent_bad_debt = compute_emergent_bad_debt(
+    emergent_bad_debt_by_line = emergent_bad_debt_lines(
         bills,
         phase2b_result.get("per_customer_behavioral", {}),
         churned_ids,
     )
-    apply_emergent_bad_debt(all_records, emergent_bad_debt)
 
     # Phase [debt-branch, docs/design/PROCESS_MODEL.md Section 4]: real
     # post-write-off DCA recovery / debt-sale proceeds, applied as a
@@ -426,7 +424,11 @@ def main(report_end: str | None = None, policy=None):
         phase2b_result.get("per_customer_behavioral", {}),
         churned_ids,
     )
-    apply_debt_recovery(all_records, debt_recovery)
+    # Both applied here, by one call that also returns each customer's lines -- write-off at
+    # close, statute-barred, leg 4b provision, placeholder released, DCA recovery -- so a
+    # reader can decompose an account's arrears charge instead of inferring it by subtraction.
+    phase2b_result["arrears_lines_by_customer"] = book_arrears_lines(
+        all_records, emergent_bad_debt_by_line, debt_recovery)
 
     # THE LAST STAGE THAT MUTATES `all_records` HAS NOW RUN, so the scalars the settlement loop
     # froze at `run_phase2b.py:2506-2510` are stale from here on. Re-derive them from the rows

@@ -97,7 +97,7 @@ THIS SESSION WRITES DIRECTION. IT DOES NOT WRITE CODE. Do not edit, create or de
 except `docs/direction/DIRECTION.yaml`. Nothing else you touch will be committed, so a code edit
 here is work thrown away and a second writer on a tree that already has three.
 
-YOUR DIRECTION IS NOW BUILT, WHICH CHANGES HOW TO WRITE IT (2026-08-25). A focus item that names a
+HOW YOUR DIRECTION IS WORKED (built 2026-08-25). A focus item that names a
 maturity-map atom biases the ordinary draw toward it. A focus item that names ANYTHING ELSE is
 handed to a worker tick as LANE 0 -- ahead of the dial-weighted lanes -- and that tick will do the
 work and land it (`background/delivery_lane.py`). Until this landed, four of five of your
