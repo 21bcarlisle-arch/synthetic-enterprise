@@ -365,19 +365,26 @@ def overlay_shortfall(subject) -> list[str]:
 #: rule demands more than 14342s; the unit keeps its 300s for the checkout and the report. 14400s
 #: from the 03:30 timer ends by 07:35, inside the night and nowhere near the next firing.
 #:
+#: AND AGAIN THE SAME EVENING, ON A MEASUREMENT RATHER THAN A JOURNAL LINE. One unscoped run of
+#: `pytest_argv()` in a clean HEAD checkout (`aebaaa344`), outside the unit, no timeout, other
+#: lanes co-resident: **8647s wall (8627s in pytest), 28 failed / 36151 passed** -- inside the
+#: 7300-9500s band pre-registered before it ended. The rule demands more than 17293s; 17400s
+#: from the 03:30 timer ends by 08:20, far from the next firing. The slowest four tests are 1231s
+#: of it (`--durations=80` in the finding), which is where the suite gets cheaper -- not here.
+#:
 #: THIS IS AN ALLOWANCE FOR HOW LONG THE RUN TAKES AND NOTHING ELSE. It forgives no red, it moves
 #: no baseline, and raising it can never turn a verdict green -- the only outcome it changes is
 #: UNPROVEN into a real answer. `test_the_census_timeout_clears_the_duration_it_has_observed`
 #: holds both directions against the unit file, because until it existed the relationship was
 #: asserted in this comment and true only by luck.
-SUITE_TIMEOUT_SECONDS = 14400
+SUITE_TIMEOUT_SECONDS = 17400
 
-#: The worst COMPLETE census duration on record -- the 09-23 unit wall clock from systemd's journal,
-#: which includes the checkout and so over-states the suite alone -- transcribed so the control can
+#: The worst COMPLETE census duration on record -- the 2026-09-30 timing run's wall clock, suite
+#: plus interpreter start, measured outside the unit -- transcribed so the control can
 #: compare against it. Moved by hand when a slower run is observed -- a bound that
 #: re-derived itself from the latest run would ratchet upward on its own, which is how a ceiling
 #: stops being a decision anyone made.
-WORST_OBSERVED_SUITE_SECONDS = 7171.2
+WORST_OBSERVED_SUITE_SECONDS = 8646.7
 
 
 def subject_head_sha(subject) -> str | None:

@@ -49,4 +49,34 @@ logging to `/var/tmp/hgc_suite_timing2.log`, and it has no timeout.
   about 7,950 s), the census is split into two scoped halves instead.
 - The `--durations` table names what grew. That table, not this bound, is where the suite gets cheaper.
 
-Result: *pending — appended beside this prediction when the run ends.*
+**Result (22:14Z, written after the run ended). The prediction HELD.**
+`28 failed, 36151 passed, 48 skipped, 1321 deselected, 15 xfailed in 8626.87s`, `ELAPSED_SECONDS 8646.7`.
+That is inside the 7,300–9,500 s band, and more than 7,200 s, so the bound moved again, as the
+prediction said it would.
+
+- `WORST_OBSERVED_SUITE_SECONDS = 8646.7`, `SUITE_TIMEOUT_SECONDS = 17400` (> 2 × 8646.7 = 17293),
+  unit `TimeoutStartSec = 17700`. The installed unit was re-copied and `daemon-reload`ed, and now
+  reads `TimeoutStartUSec=4h 55min`. To reverse it, restore
+  `/var/tmp/head-green-census.service.pre-17700.bak` and reload.
+- Mutation: `SUITE_TIMEOUT_SECONDS` set back to 14400 reds
+  `test_the_census_timeout_clears_the_duration_it_has_observed`.
+- **The split branch triggered and I did not take it. The reason is that its trigger was
+  unsourced.** The "03:30 to 08:00" night edge in the prediction above named nothing that actually
+  runs at 08:00. The only hard limit is the next firing, 24 h away. A healthy run ends near 05:55,
+  and the 17,400 s bound only binds on a hang, which it now catches by 08:20. Splitting the census
+  would change what a verdict covers. Nothing measured asks for that.
+- **The cheaper remedy is in the durations table, not in the bound.** Four tests take 1,231 s
+  together: `test_couple_w2_11_d5::test_cli_runs_and_prints_all_three_gaps` 356 s, two
+  `test_home_move_undeliverable_win` tests at 297 s and 295 s, and the
+  `test_value_chain_credit_feed_wiring` setup at 284 s. Six `tests/background/` brief/sweep tests
+  take about 152 s each, 915 s together, which reads as one shared slow fixture. Together these ten
+  are about 25 % of the suite.
+- **The 28 reds are the first HEAD-green reading since 09-23.** They are what
+  `HEAD_RED_REGISTER.md` has been blind to. Among them: 8 in `tests/harness/test_premise_two_level.py`
+  (the premise two-level fidelity corrections, already a 09-30 worker finding); 4
+  `launch_long_job` "undeclared peak" refusals; and `test_head_green_census.py:606`. That last one is
+  this checkout's own artefact: `aebaaa344`'s 7500 against the installed 14700.
+- **Still conditional on the shared tree advancing.** At 22:15Z `/home/rich/synthetic-enterprise`
+  sat at `940e9ee86`, 10 behind origin, with `SUITE_TIMEOUT_SECONDS = 7200`. If the reconciler has
+  not moved it by 03:30, tonight is killed at 7,200 s again under a 17,700 s unit. That is UNPROVEN,
+  and it is not silent.

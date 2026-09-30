@@ -21,8 +21,9 @@ ExecStart=/usr/bin/python3 -m tools.head_green_census --notify
 # 3600 was set against "~25 min at 24k tests" and the run on 2026-09-02 took 58:57 -- 63s of
 # margin, 1.7%. The suite is now bounded at 2x its worst observed duration, so this follows it up.
 # 7500 held until the suite itself reached 7171s (09-23) and every night after was killed at the
-# suite's 7200s; re-derived 2026-09-30 from that run. The timer fires once a day, so 14700s still
-# cannot reach the next firing.
+# suite's 7200s; re-derived 2026-09-30 from that run, then again the same evening from a measured
+# unscoped run of 8647s (suite 17400s). The timer fires once a day, so 17700s cannot reach the
+# next firing.
 # `tests/tools/test_head_green_census.py::test_the_census_timeout_clears_the_duration_it_has_observed`
 # reads THIS FILE and fails if the two ever cross.
-TimeoutStartSec=14700
+TimeoutStartSec=17700
