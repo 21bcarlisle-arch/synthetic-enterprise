@@ -1053,3 +1053,139 @@ their own copy for exactly this reason; the reuse was the novel mistake.
 `docs/observability/ep13_ccgt_level_ceiling.json`. Controls:
 `tests/tools/test_ep13_ccgt_level_ceiling.py`. Preregistration, its pre-run correction and its
 scorecard: `docs/staging/done/WORKER_PREREGISTRATION_WHAT_THE_BALANCED_GAS_LEVEL_CEILING_MUST_SHOW_2026-09-03.md`.
+
+## 17. 2026-09-30 — WHAT ABSORBS A GAS-LEVEL DEPARTURE: not the peakers, and after 2019 not the thermal stack
+
+§16 left one question: *what should absorb a gas-level correction, if not the OCGT peaker band?*
+It can be answered by measurement, so this pass measured it. No instrument was built and no level
+moved. **This was not preregistered.** It is a decomposition run once, and it should be read as one.
+
+### The measurement
+
+For every half hour with a metered CCGT reading, `gap = model gas − metered CCGT`. The model's gas is
+`dispatch_rate`'s `implied_ccgt_mw` with no override (the shipped merit order, the same inputs
+`measure()` uses). The gap is averaged per day (days with ≥46 periods), and then regressed, one
+component at a time, on each part of the identity that the cached FUELHH can see:
+
+- metered COAL. The model dispatches none below the 30 GW CCGT fleet, so every metered coal MW has
+  gone into the model's gas.
+- metered OCGT.
+- metered BIOMASS minus the model's constant.
+- metered NUCLEAR+NPSHYD minus the model's must-run.
+- metered positive interconnector flow minus the priced imports the model subtracts.
+
+Each slope is the share of the daily gap that component moves with. `rest = 1 − Σ` is a
+**remainder, not a measurement**. It holds everything the caches cannot see: the INDO demand
+definition, AGWS wind against transmission-metered wind, pumped storage, OIL, OTHER.
+
+| year | days | mean gap MW | sd MW | coal | OCGT | biomass | must-run | imports | **rest** |
+|---|---|---|---|---|---|---|---|---|---|
+| 2017 | 60 | +1193 | 2212 | +0.93 | +0.00 | +0.16 | +0.00 | +0.00 | −0.09 |
+| 2018 | 355 | −1162 | 2487 | +0.77 | +0.00 | +0.02 | +0.00 | +0.00 | +0.22 |
+| 2019 | 351 | −1804 | 1637 | +0.38 | −0.00 | +0.14 | −0.00 | −0.00 | **+0.48** |
+| 2020 | 341 | −1588 | 1525 | +0.35 | +0.00 | +0.12 | −0.00 | +0.00 | **+0.53** |
+| 2021 | 348 | −1616 | 1599 | +0.23 | +0.01 | +0.14 | −0.00 | +0.08 | **+0.54** |
+| 2022 | 292 | −2994 | 2509 | +0.10 | −0.00 | +0.10 | −0.00 | +0.11 | **+0.70** |
+| 2023 | 358 | −616 | 2233 | +0.03 | +0.00 | +0.09 | +0.00 | +0.00 | **+0.87** |
+| 2024 | 361 | +522 | 2350 | −0.03 | +0.00 | +0.06 | +0.00 | +0.07 | **+0.90** |
+| 2025 | 156 | −2434 | 1365 | +0.00 | +0.01 | +0.14 | +0.00 | +0.19 | +0.66 |
+
+### What it establishes
+
+**The OCGT peaker band absorbs 0.00–0.01 of the real day-level gas departure in every year.** The
+construction in §16 sends every downward correction to that band. In the real system it carried
+effectively none of it, so the carbon penalty §16's balanced rung charged was an artefact of its
+construction. That settles the question §16 asked, and it settles it against the peaker band.
+
+**Coal was the absorber until 2019 and is gone by 2023:** 0.93 → 0.77 → 0.38 → 0.03. Inside that
+window, the balanced construction's first absorber (coal) was the right one. What broke it there was
+the cap: gas could not be *raised* past what the stack served. The absorber was not the problem.
+
+**From 2019 on, most of the departure is outside the thermal stack altogether:** 48% rising to 90% by
+2024. In those years the model's gas level is wrong because the model's *thermal requirement* is
+wrong. Something on the demand/wind side of the residual differs from what was metered. So a
+construction that conserves the model's served total is conserving the wrong number. **The frame
+§15 and §16 shared, "impose truth's gas level and re-split within the stack", is the wrong frame for
+2019 onward, and it cannot be repaired by choosing a better absorber inside the stack.**
+
+This also accounts for §15's decay across the window. The source of the model's gas error moved
+from a fuel it cannot dispatch (coal, 2016–18) to an input it is handed (2019+). That reading is
+consistent with the table but was not tested separately.
+
+### What it does NOT establish
+
+- **Which input carries the remainder.** The cached FUELHH holds only COAL, CCGT, OCGT, NUCLEAR,
+  NPSHYD, BIOMASS and the interconnectors. WIND, PS, OIL and OTHER were never fetched, so the
+  remainder cannot be split. The leading candidate is unmeasured. AGWS wind includes an embedded
+  estimate that transmission-metered gas never sees, and it is the input whose share grows with
+  wind build-out, as the remainder does.
+- **Anything about the correlation ceiling.** This is a decomposition of the gas *level* error, not
+  a rung. No gain is claimed.
+- **2017 and 2025 are partial years** (60 and 156 days) and are shown for completeness only.
+
+### NEXT, named and NOT built
+
+1. Fetch FUELHH `WIND`, `PS`, `OIL`, `OTHER` into a fifth cache through `sim/elexon_fuel_outturn.py`,
+   the existing adapter, with the same wall line: they go to measurement and never to the dispatch.
+   Then split the remainder.
+2. If the remainder is the wind definition (AGWS against transmission), that is an **input
+   fidelity correction** to `build_shape`. It is not a ceiling, and it is decided blind to the
+   correlation it moves.
+3. Only after that does a level rung mean anything. It would be the §16 **unbalanced** rung with the
+   corrected residual, not the balanced one.
+
+No level move. LAW A.
+
+Reproduce: save the script below and run it as `PYTHONPATH=. python3 <file>` from the repo root.
+It takes a few minutes and needs the `sim/cache/elexon_*` caches. It was re-run from this text and
+matched the table to the last digit.
+
+```python
+import json
+from collections import defaultdict
+from pathlib import Path
+from sim import elexon_fuel_outturn as fuel
+from sim import grid_carbon_intensity as gci
+from sim.generation_demand_history import aggregate_renewable_generation
+from tools.generate_grid_intensity_feed import AGWS_CACHE, DEMAND_CACHE, aggregate_demand, fuel_mix
+from tools.ep13_per_fuel_oracle_bound import per_fuel_by_period
+from tools.ep13_ccgt_level_ceiling import dispatch_rate
+
+demand = aggregate_demand(json.loads(Path(DEMAND_CACHE).read_text()))
+wind = aggregate_renewable_generation(json.loads(Path(AGWS_CACHE).read_text()))
+imports, coal_cap, _c, floors_r, must_run, _m, _e = fuel_mix()
+floors = {y: r["floor_mw"] for y, r in floors_r.items()}
+metered = [per_fuel_by_period(fuel.load_cached_thermal()),
+           per_fuel_by_period(json.loads(Path(fuel.CACHE_PATH).read_text())),
+           per_fuel_by_period(json.loads(Path(fuel.BIOMASS_CACHE_PATH).read_text())),
+           per_fuel_by_period(fuel.load_cached_zero_carbon_must_run())]
+days = defaultdict(lambda: defaultdict(list))
+for k in demand:
+    if k not in wind or any(k not in m for m in metered) or "CCGT" not in metered[0][k]:
+        continue
+    y = int(k[0][:4]); imp, rate = imports.get(k, (0.0, 0.0))
+    try:
+        _, gas, _, _ = dispatch_rate(demand[k], wind[k], y, import_mw=imp, import_rate_t_per_mwh=rate,
+                                     coal_capacity_mw=coal_cap.get(y, 0.0), thermal_floor_mw=floors.get(y, 0.0),
+                                     zero_carbon_must_run_mw=must_run.get(k))
+    except Exception:
+        continue
+    t = {f: v for m in metered for f, v in m[k].items()}
+    d = days[k[0]]
+    d["gap"].append(gas - t["CCGT"]); d["coal"].append(t.get("COAL", 0.0)); d["ocgt"].append(t.get("OCGT", 0.0))
+    d["bio"].append(t.get("BIOMASS", 0.0) - gci.MUST_RUN_BIOMASS_MW)
+    d["zc"].append(t.get("NUCLEAR", 0) + t.get("NPSHYD", 0) - float(must_run.get(k, gci.MUST_RUN_ZERO_CARBON_MW)))
+    d["imp"].append(sum(v for f, v in t.items() if f.startswith("INT") and v > 0) - imp)
+mean = lambda x: sum(x) / len(x)
+def slope(xs, ys):
+    mx, my = mean(xs), mean(ys); sxx = sum((a - mx) ** 2 for a in xs)
+    return sum((a - mx) * (b - my) for a, b in zip(xs, ys)) / sxx
+by_year = defaultdict(list)
+for day, d in days.items():
+    if len(d["gap"]) >= 46:
+        by_year[day[:4]].append({c: mean(v) for c, v in d.items()})
+for y, rows in sorted(by_year.items()):
+    g = [r["gap"] for r in rows]
+    s = {c: slope(g, [r[c] for r in rows]) for c in ("coal", "ocgt", "bio", "zc", "imp")}
+    print(y, len(rows), round(mean(g)), {c: round(v, 2) for c, v in s.items()}, "rest", round(1 - sum(s.values()), 2))
+```
