@@ -54,9 +54,9 @@ negotiable: an estimate informed by its own outcome is not an estimate.
 TWO BELIEFS OFF ONE LEDGER (2026-09-06, PB7). The same book that says how hard the market is
 competing for it says how hard the market is competing for each PAYMENT CHANNEL within it, and
 that second belief was a hardcoded coefficient until this. `payment_method_engagement_reading`
-runs the identical prior-and-update rule against a different published prior (Ofgem's CIM survey
-rather than the DESNZ year series) and a different slice of the same counters. It is one ledger
-rather than two because arming, run scope and the departure wire are the parts that go wrong, and
+runs the identical prior-and-update rule against a different prior (its width from Ofgem's CIM
+survey rather than the DESNZ year series) and a different slice of the same counters. It is one
+ledger rather than two because arming, run scope and the departure wire are the parts that go wrong, and
 a second copy of all three is a second place for them to go wrong silently.
 """
 from __future__ import annotations
@@ -461,7 +461,7 @@ class CompetitivePressureLedger:
         a residual. It is its own estimate of the factor, so multiplying the prior onto it counted
         the prior twice. Printed before the fix: a book whose prepayment customers left at EXACTLY
         the published relative rate converged to 0.375 against a prior of 0.585
-        (`docs/staging/WORKER_FINDING_THE_ENGAGEMENT_FACTOR_COUNTS_ITS_OWN_PRIOR_TWICE_*`).
+        (`docs/staging/done/WORKER_FINDING_THE_ENGAGEMENT_FACTOR_COUNTS_ITS_OWN_PRIOR_TWICE_*`).
 
         THE PRIOR IS STILL A MARGINAL, AND THAT IS A NAMED GAP RATHER THAN A FIXED ONE. CIM w6
         reports switching by payment method across the population. Nothing published conditions it
@@ -472,10 +472,11 @@ class CompetitivePressureLedger:
         The factor multiplies the chance this account leaves AT THIS RENEWAL, so the ledger rightly
         counts closed renewal decisions. CIM w6 counts households that switched in six months,
         which is (decisions reached, relative) x (departure per decision, relative), and nothing
-        published separates the two. So the prior is on the product, applied as if it were the
-        second factor alone. It is not re-picked here: centring it needs that split, which is a
-        practitioner question put to the director, and it changes company behaviour, so it lands
-        with the world repair it depends on
+        published separates the two. So the caller centres the prior at 1.0 as a declared gap,
+        with CIM's spread as its width, rather than at CIM's point applied as if it were the second
+        factor alone (2026-09-30). The practitioner question that would move the centre is named
+        in `enriched_churn_estimate.payment_method_engagement_reading`. This method takes the
+        prior as a parameter and its blend is correct for any centre
         (`docs/staging/WORKER_FINDING_PB6_THE_ENGAGEMENT_FACTOR_IS_USED_PER_DECISION_*`).
 
         THE EVIDENCE VARIANCE HAS TWO TERMS because the ratio has two estimated ends:

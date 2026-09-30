@@ -74,3 +74,34 @@ files a fresh document, because that is a new episode and an R3 two-strike signa
 
 ## Re-asked
 - **2026-09-24** — re-asked: **still_holds**. observed 2026-09-24, within the 3-day bar.
+
+## 2026-09-30 fork: the duplicate pairs, and which route made each copy (seat, lane 0)
+
+Every shared-HEAD copy below appears in the reflog of `main` as `surgical-land`, so each was
+committed by `surgical_land` run IN THE SHARED TREE, by the tick worker or the live interactive
+seat. None of them ever reached origin: `promote_worktree_landing` never writes or pushes the
+shared tree, and `origin_reconcile` refused the merge every cadence. Every origin copy is a SECOND,
+separate landing: a `surgical_land` in an isolated worktree off origin, then a promote. **No landing
+committed to both shared HEAD and origin.** Each pair is the same work done by two writers,
+because the shared-tree writer's landing could not publish.
+
+| shared HEAD | origin | how the local copy was made | how the origin copy was made |
+|---|---|---|---|
+| 7f3022e66 | abd5f4ab1 | worker tick, shared tree; different text (its own filed predictions 3-5) | seat executor, `/var/tmp/se-seat-executor` (reflog `surgical-land` 00:36Z) |
+| bb76ab6eb | a322166cc | worker tick, shared tree; different text | seat executor, same worktree (01:21Z) |
+| a5ed0d0e2 | 48104db63 | shared tree, 03:09Z; the same reds re-keyed a second time | no live worktree committed it; a since-removed worktree |
+| a1ba7b753 | 9727cb88f | shared tree, 01:39Z; patch-identical | seat executor, same worktree (01:56Z) |
+| b2739434b | 7413b3ea2 | shared tree, 01:48Z; patch-identical | since-removed worktree (the executor only reset to it) |
+| 124a46a06 | d11c047ac | shared tree, 06:08Z; patch-identical | since-removed worktree |
+| 6b5654f04 | 9f5497cb3 | shared tree, 09:09Z; patch-identical | since-removed worktree |
+
+**Disposition (lane 0, `land-the-stranded-head-only-commits-on-origin`):** the 19 receipted
+shared-HEAD-only commits, from 7f3022e66 through 5ff9171a2, are replayed in order onto origin as ONE
+gated landing, with origin as the base on the duplicate paths (the commit message lists the carried
+lines). **This does not close the fork, and the item's DONE line cannot be met by landing alone.**
+`reconcile()` merges whenever `rev-list origin/main..HEAD` is non-zero, and a content landing leaves
+that count at 26. The two prereg records are add/add with different bytes on each side, and the PB6
+finding is changed on both sides, so the merge keeps conflicting. `git cherry` matches patch-ids, so
+a combined landing cannot turn the stranded commits to `-`. The fork closes only when the shared
+tree's HEAD is MOVED to origin, and the other lanes' uncommitted files must be preserved when that
+happens. That move is handed on as its own item.

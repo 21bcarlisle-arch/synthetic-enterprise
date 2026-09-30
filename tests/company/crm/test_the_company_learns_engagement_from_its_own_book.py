@@ -26,6 +26,7 @@ from company.crm.competitive_pressure import (
     pressure_ledger_scope,
 )
 from company.crm.enriched_churn_estimate import (
+    _CIM_ENGAGEMENT_PRIOR_LOG_VARIANCE,
     enriched_churn_estimate,
     payment_method_engagement_factor,
     payment_method_engagement_reading,
@@ -33,7 +34,8 @@ from company.crm.enriched_churn_estimate import (
 
 _METHOD = "prepayment"
 _OTHER = "direct_debit"
-_PRIOR = payment_method_engagement_factor(_METHOD)
+_PRIOR = payment_method_engagement_reading(_METHOD).prior
+_PUBLISHED = payment_method_engagement_factor(_METHOD)
 
 
 def _book(
@@ -150,7 +152,6 @@ def test_every_no_evidence_branch_returns_the_published_prior_and_all_of_them_ar
         + repr({n: r.basis for n, r in readings.items()})
     )
     assert readings["unrecognised channel"].prior == 1.0
-    assert readings["no run scope"].prior == _PRIOR
 
 
 def test_a_departure_booked_without_its_channel_cannot_arm_the_engagement_numerator():
@@ -243,8 +244,13 @@ def test_the_desk_books_the_channel_it_priced_with():
     only place the two can be kept in step. A passive roller is booked too -- its estimator never
     applies the factor, but it is still a renewal of an account paying this way, and the
     denominator is the book rather than the wiring.
+
+    A CLOSED 2018 IN WHICH PREPAYMENT LEFT AT A FIFTH OF THE REST'S RATE comes first. The prior is
+    centred at 1.0 (2026-09-30), so without the book's own evidence the factor is exactly one and
+    every assertion below that needs it below one would ask nothing.
     """
-    with pressure_ledger_scope() as ledger:
+    ledger = _book(channel_renewals=200, channel_losses=4, other_renewals=800, other_losses=80)
+    with pressure_ledger_scope(ledger):
         estimate_renewal_churn(RenewalObservation(
             old_rate_gbp_per_mwh=200.0, new_rate_gbp_per_mwh=240.0, tenure_years=3.0,
             annual_consumption_kwh=3100.0, renewal_year=2019,
@@ -284,7 +290,9 @@ def test_the_desk_books_the_channel_it_priced_with():
             annual_consumption_kwh=3100.0, renewal_year=2019, payment_method=method,
         ))
 
-    assert priced(_METHOD) < priced(None) , (
+    with pressure_ledger_scope(ledger):
+        ppm, unknown = priced(_METHOD), priced(None)
+    assert ppm < unknown, (
         "the desk priced a prepayment renewal identically to one with no channel on record"
     )
 
@@ -344,12 +352,12 @@ def test_the_run_loop_still_hands_the_channel_to_both_the_belief_and_the_departu
 
 
 _BOOK_RATE = 0.08
-_CHANNEL_RATE = _PRIOR * _BOOK_RATE
+_CHANNEL_RATE = _PUBLISHED * _BOOK_RATE
 _OTHER_RATE = (_BOOK_RATE - 0.2 * _CHANNEL_RATE) / 0.8
 
 
 def _confirming_book(n_channel: int, *, explained: bool) -> CompetitivePressureLedger:
-    """A book whose channel leaves at exactly the published relative rate, one fifth of the book.
+    """A book whose channel leaves at exactly CIM's published relative rate, one fifth of the book.
 
     `explained` sets what the company believed BEFORE the engagement factor. False gives every
     renewal the book rate, so the belief says nothing about the channel. True gives each channel
@@ -380,14 +388,45 @@ def test_a_book_that_confirms_the_prior_leaves_the_belief_at_the_prior():
     `prior x ratio`. On this book that was 0.344 against a prior of 0.585, so a book agreeing
     with Ofgem drove the belief AWAY from Ofgem. A weight of about one is asserted FIRST, because
     at w = 0 both blends return the prior and this test would pass under either.
+
+    THE LEDGER IS ASKED DIRECTLY, AT CIM'S POINT AS THE PRIOR. The company's own prior is centred
+    at 1.0 (2026-09-30), and at a centre of 1.0 the two blends are the same function, so this
+    defect is unreachable through the public reading today. It returns the moment the practitioner
+    answer moves the centre off 1.0, which is why the rule is held at a centre where it can fail.
     """
-    with pressure_ledger_scope(_confirming_book(20000, explained=False)):
-        reading = payment_method_engagement_reading(_METHOD, 2020)
+    ledger = _confirming_book(20000, explained=False)
+    reading = ledger.payment_method_engagement_reading(
+        _METHOD, 2020, prior=_PUBLISHED, prior_log_variance=_CIM_ENGAGEMENT_PRIOR_LOG_VARIANCE)
     assert reading.weight > 0.95, f"weight {reading.weight}: the evidence cannot move the belief"
-    assert abs(reading.ratio / _PRIOR - 1.0) < 0.02, (reading.ratio, _PRIOR)
-    assert abs(reading.factor / _PRIOR - 1.0) < 0.02, (
+    assert abs(reading.ratio / _PUBLISHED - 1.0) < 0.02, (reading.ratio, _PUBLISHED)
+    assert abs(reading.factor / _PUBLISHED - 1.0) < 0.02, (
         f"a book leaving at exactly the published rate read {reading.factor:.3f} against a prior "
-        f"of {_PRIOR:.3f}"
+        f"of {_PUBLISHED:.3f}"
+    )
+
+
+def test_the_prior_is_centred_on_no_effect_and_only_the_book_moves_it_off():
+    """DEFECT (shipped until 2026-09-30, PB6): a per-exposure survey point used as a per-decision
+    prior centre. CIM's 0.585 is (decisions reached) x (departure per decision), and nothing
+    published splits it, so centring on it asserted the split. Outside a run scope every channel
+    must read the same, and a book that shows prepayment leaving at the book's own rate must leave
+    it there rather than at CIM's point.
+
+    The width is NOT re-centred: it is still CIM's own spread, asserted in the dispersion control
+    below, so the survey still says how far the book may carry a channel.
+    """
+    outside = {m: payment_method_engagement_reading(m).factor
+               for m in ("direct_debit", "standard_credit", "prepayment")}
+    assert set(outside.values()) == {1.0}, outside
+    assert _PUBLISHED < 0.9, "CIM no longer separates prepayment, so this control asks nothing"
+
+    ledger = _book(channel_renewals=2000, channel_losses=100, other_renewals=8000, other_losses=400)
+    with pressure_ledger_scope(ledger):
+        reading = payment_method_engagement_reading(_METHOD, 2020)
+    assert reading.weight > 0.5, f"weight {reading.weight}: the book cannot speak"
+    assert abs(reading.factor - 1.0) < 0.05, (
+        f"a book whose prepayment leaves at the book's rate read {reading.factor:.3f}: the prior "
+        "is pulling it toward a centre nothing published establishes"
     )
 
 

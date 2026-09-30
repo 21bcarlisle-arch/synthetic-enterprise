@@ -20,6 +20,7 @@ import pytest
 
 from company.billing.pre_bill_validation import validate_bills
 from simulation.arrears_engine import BALANCE_OPEN, CREDIT_APPLIED, compute_emergent_bad_debt
+from simulation.household import supply_points_that_left
 from tools.generate_billing_ledger import generate
 
 RUN = Path(__file__).resolve().parents[2] / "docs" / "reports" / "run_output_latest.json"
@@ -61,7 +62,8 @@ def test_the_ledger_and_the_pnl_write_off_agree_per_account(book):
     pnl: dict[str, float] = defaultdict(float)
     for (cid, _year), gbp in compute_emergent_bad_debt(
             data["bills"], data.get("per_customer_behavioral", {}),
-            set(data.get("churned_billing_accounts", []))).items():
+            supply_points_that_left(data.get("churned_billing_accounts", []),
+                                    {b["customer_id"] for b in data["bills"]})).items():
         pnl[cid] += gbp
     led = _ledger_write_off_by_account(ledger)
     # A penny per case: the ledger prints each case rounded, the P&L rounds per (account, year).

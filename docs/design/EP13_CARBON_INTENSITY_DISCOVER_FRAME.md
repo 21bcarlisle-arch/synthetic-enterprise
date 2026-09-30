@@ -1053,3 +1053,259 @@ their own copy for exactly this reason; the reuse was the novel mistake.
 `docs/observability/ep13_ccgt_level_ceiling.json`. Controls:
 `tests/tools/test_ep13_ccgt_level_ceiling.py`. Preregistration, its pre-run correction and its
 scorecard: `docs/staging/done/WORKER_PREREGISTRATION_WHAT_THE_BALANCED_GAS_LEVEL_CEILING_MUST_SHOW_2026-09-03.md`.
+
+## 17. 2026-09-30 — WHAT ABSORBS A GAS-LEVEL DEPARTURE: not the peakers, and after 2019 not the thermal stack
+
+§16 left one question: *what should absorb a gas-level correction, if not the OCGT peaker band?*
+It can be answered by measurement, so this pass measured it. No instrument was built and no level
+moved. **This was not preregistered.** It is a decomposition run once, and it should be read as one.
+
+### The measurement
+
+For every half hour with a metered CCGT reading, `gap = model gas − metered CCGT`. The model's gas is
+`dispatch_rate`'s `implied_ccgt_mw` with no override (the shipped merit order, the same inputs
+`measure()` uses). The gap is averaged per day (days with ≥46 periods), and then regressed, one
+component at a time, on each part of the identity that the cached FUELHH can see:
+
+- metered COAL. The model dispatches none below the 30 GW CCGT fleet, so every metered coal MW has
+  gone into the model's gas.
+- metered OCGT.
+- metered BIOMASS minus the model's constant.
+- metered NUCLEAR+NPSHYD minus the model's must-run.
+- metered positive interconnector flow minus the priced imports the model subtracts.
+
+Each slope is the share of the daily gap that component moves with. `rest = 1 − Σ` is a
+**remainder, not a measurement**. It holds everything the caches cannot see: the INDO demand
+definition, AGWS wind against transmission-metered wind, pumped storage, OIL, OTHER.
+
+| year | days | mean gap MW | sd MW | coal | OCGT | biomass | must-run | imports | **rest** |
+|---|---|---|---|---|---|---|---|---|---|
+| 2017 | 60 | +1193 | 2212 | +0.93 | +0.00 | +0.16 | +0.00 | +0.00 | −0.09 |
+| 2018 | 355 | −1162 | 2487 | +0.77 | +0.00 | +0.02 | +0.00 | +0.00 | +0.22 |
+| 2019 | 351 | −1804 | 1637 | +0.38 | −0.00 | +0.14 | −0.00 | −0.00 | **+0.48** |
+| 2020 | 341 | −1588 | 1525 | +0.35 | +0.00 | +0.12 | −0.00 | +0.00 | **+0.53** |
+| 2021 | 348 | −1616 | 1599 | +0.23 | +0.01 | +0.14 | −0.00 | +0.08 | **+0.54** |
+| 2022 | 292 | −2994 | 2509 | +0.10 | −0.00 | +0.10 | −0.00 | +0.11 | **+0.70** |
+| 2023 | 358 | −616 | 2233 | +0.03 | +0.00 | +0.09 | +0.00 | +0.00 | **+0.87** |
+| 2024 | 361 | +522 | 2350 | −0.03 | +0.00 | +0.06 | +0.00 | +0.07 | **+0.90** |
+| 2025 | 156 | −2434 | 1365 | +0.00 | +0.01 | +0.14 | +0.00 | +0.19 | +0.66 |
+
+### What it establishes
+
+**The OCGT peaker band absorbs 0.00–0.01 of the real day-level gas departure in every year.** The
+construction in §16 sends every downward correction to that band. In the real system it carried
+effectively none of it, so the carbon penalty §16's balanced rung charged was an artefact of its
+construction. That settles the question §16 asked, and it settles it against the peaker band.
+
+**Coal was the absorber until 2019 and is gone by 2023:** 0.93 → 0.77 → 0.38 → 0.03. Inside that
+window, the balanced construction's first absorber (coal) was the right one. What broke it there was
+the cap: gas could not be *raised* past what the stack served. The absorber was not the problem.
+
+**From 2019 on, most of the departure is outside the thermal stack altogether:** 48% rising to 90% by
+2024. In those years the model's gas level is wrong because the model's *thermal requirement* is
+wrong. Something on the demand/wind side of the residual differs from what was metered. So a
+construction that conserves the model's served total is conserving the wrong number. **The frame
+§15 and §16 shared, "impose truth's gas level and re-split within the stack", is the wrong frame for
+2019 onward, and it cannot be repaired by choosing a better absorber inside the stack.**
+
+This also accounts for §15's decay across the window. The source of the model's gas error moved
+from a fuel it cannot dispatch (coal, 2016–18) to an input it is handed (2019+). That reading is
+consistent with the table but was not tested separately.
+
+### What it does NOT establish
+
+- **Which input carries the remainder.** The cached FUELHH holds only COAL, CCGT, OCGT, NUCLEAR,
+  NPSHYD, BIOMASS and the interconnectors. WIND, PS, OIL and OTHER were never fetched, so the
+  remainder cannot be split. The leading candidate is unmeasured. AGWS wind includes an embedded
+  estimate that transmission-metered gas never sees, and it is the input whose share grows with
+  wind build-out, as the remainder does.
+- **Anything about the correlation ceiling.** This is a decomposition of the gas *level* error, not
+  a rung. No gain is claimed.
+- **2017 and 2025 are partial years** (60 and 156 days) and are shown for completeness only.
+
+### NEXT, named and NOT built
+
+1. Fetch FUELHH `WIND`, `PS`, `OIL`, `OTHER` into a fifth cache through `sim/elexon_fuel_outturn.py`,
+   the existing adapter, with the same wall line: they go to measurement and never to the dispatch.
+   Then split the remainder.
+2. If the remainder is the wind definition (AGWS against transmission), that is an **input
+   fidelity correction** to `build_shape`. It is not a ceiling, and it is decided blind to the
+   correlation it moves.
+3. Only after that does a level rung mean anything. It would be the §16 **unbalanced** rung with the
+   corrected residual, not the balanced one.
+
+No level move. LAW A.
+
+Reproduce: save the script below and run it as `PYTHONPATH=. python3 <file>` from the repo root.
+It takes a few minutes and needs the `sim/cache/elexon_*` caches. It was re-run from this text and
+matched the table to the last digit.
+
+```python
+import json
+from collections import defaultdict
+from pathlib import Path
+from sim import elexon_fuel_outturn as fuel
+from sim import grid_carbon_intensity as gci
+from sim.generation_demand_history import aggregate_renewable_generation
+from tools.generate_grid_intensity_feed import AGWS_CACHE, DEMAND_CACHE, aggregate_demand, fuel_mix
+from tools.ep13_per_fuel_oracle_bound import per_fuel_by_period
+from tools.ep13_ccgt_level_ceiling import dispatch_rate
+
+demand = aggregate_demand(json.loads(Path(DEMAND_CACHE).read_text()))
+wind = aggregate_renewable_generation(json.loads(Path(AGWS_CACHE).read_text()))
+imports, coal_cap, _c, floors_r, must_run, _m, _e = fuel_mix()
+floors = {y: r["floor_mw"] for y, r in floors_r.items()}
+metered = [per_fuel_by_period(fuel.load_cached_thermal()),
+           per_fuel_by_period(json.loads(Path(fuel.CACHE_PATH).read_text())),
+           per_fuel_by_period(json.loads(Path(fuel.BIOMASS_CACHE_PATH).read_text())),
+           per_fuel_by_period(fuel.load_cached_zero_carbon_must_run())]
+days = defaultdict(lambda: defaultdict(list))
+for k in demand:
+    if k not in wind or any(k not in m for m in metered) or "CCGT" not in metered[0][k]:
+        continue
+    y = int(k[0][:4]); imp, rate = imports.get(k, (0.0, 0.0))
+    try:
+        _, gas, _, _ = dispatch_rate(demand[k], wind[k], y, import_mw=imp, import_rate_t_per_mwh=rate,
+                                     coal_capacity_mw=coal_cap.get(y, 0.0), thermal_floor_mw=floors.get(y, 0.0),
+                                     zero_carbon_must_run_mw=must_run.get(k))
+    except Exception:
+        continue
+    t = {f: v for m in metered for f, v in m[k].items()}
+    d = days[k[0]]
+    d["gap"].append(gas - t["CCGT"]); d["coal"].append(t.get("COAL", 0.0)); d["ocgt"].append(t.get("OCGT", 0.0))
+    d["bio"].append(t.get("BIOMASS", 0.0) - gci.MUST_RUN_BIOMASS_MW)
+    d["zc"].append(t.get("NUCLEAR", 0) + t.get("NPSHYD", 0) - float(must_run.get(k, gci.MUST_RUN_ZERO_CARBON_MW)))
+    d["imp"].append(sum(v for f, v in t.items() if f.startswith("INT") and v > 0) - imp)
+mean = lambda x: sum(x) / len(x)
+def slope(xs, ys):
+    mx, my = mean(xs), mean(ys); sxx = sum((a - mx) ** 2 for a in xs)
+    return sum((a - mx) * (b - my) for a, b in zip(xs, ys)) / sxx
+by_year = defaultdict(list)
+for day, d in days.items():
+    if len(d["gap"]) >= 46:
+        by_year[day[:4]].append({c: mean(v) for c, v in d.items()})
+for y, rows in sorted(by_year.items()):
+    g = [r["gap"] for r in rows]
+    s = {c: slope(g, [r[c] for r in rows]) for c in ("coal", "ocgt", "bio", "zc", "imp")}
+    print(y, len(rows), round(mean(g)), {c: round(v, 2) for c, v in s.items()}, "rest", round(1 - sum(s.values()), 2))
+```
+
+## 18. 2026-09-30 — THE REMAINDER, SPLIT: solar counted twice, then offshore wind counted short
+
+§17's NEXT step 1 is done. FUELHH `WIND`, `PS`, `OIL` and `OTHER` are fetched through the existing
+adapter into a fifth cache (`sim/elexon_fuel_outturn.py --remainder`, `REMAINDER_CACHE_PATH`,
+700,940 rows over 2016–2025). They are used for measurement only. No `*_by_period` view exists for
+them, and `test_the_remainder_series_never_reaches_the_dispatch` holds that line. **Not
+preregistered.** This is §17's decomposition with five more columns, run once.
+
+The five new columns are each read against how the model builds its residual. The residual is INDO
+(transmission demand, already net of embedded generation) minus AGWS wind+solar:
+
+- **wind** = FUELHH `WIND` − AGWS wind (onshore + offshore), i.e. metered wind minus the wind the model subtracts.
+- **solar** = −AGWS solar. All of it is embedded, and INDO is already net of it.
+- **ps** = FUELHH `PS`, signed. Pumping is load that INDO excludes.
+- **oil+oth** = `OIL` + `OTHER`.
+- **exp** = the sum of negative interconnector flows. Exports are generation that INDO excludes.
+
+| year | days | gap MW | coal | OCGT | bio | must-run | imports | **wind** | **solar** | ps | oil+oth | **exp** | rest |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 2017 | 60 | +1193 | +0.93 | +0.00 | +0.16 | +0.00 | +0.00 | −0.01 | +0.02 | −0.00 | −0.00 | −0.04 | −0.06 |
+| 2018 | 355 | −1162 | +0.77 | +0.00 | +0.02 | +0.00 | +0.00 | +0.05 | +0.23 | −0.00 | −0.00 | −0.03 | −0.04 |
+| 2019 | 351 | −1804 | +0.38 | −0.00 | +0.14 | −0.00 | −0.00 | +0.12 | **+0.40** | −0.01 | +0.01 | −0.01 | −0.04 |
+| 2020 | 341 | −1588 | +0.35 | +0.00 | +0.12 | −0.00 | +0.00 | +0.12 | **+0.40** | −0.01 | −0.00 | +0.09 | −0.08 |
+| 2021 | 348 | −1616 | +0.23 | +0.01 | +0.14 | −0.00 | +0.08 | +0.16 | **+0.40** | +0.01 | +0.01 | −0.01 | −0.03 |
+| 2022 | 292 | −2994 | +0.10 | −0.00 | +0.10 | −0.00 | +0.11 | +0.04 | +0.20 | −0.00 | −0.01 | **+0.45** | +0.02 |
+| 2023 | 358 | −616 | +0.03 | +0.00 | +0.09 | +0.00 | +0.00 | **+0.70** | +0.15 | −0.00 | −0.00 | +0.09 | −0.07 |
+| 2024 | 361 | +522 | −0.03 | +0.00 | +0.06 | +0.00 | +0.07 | **+1.02** | −0.01 | +0.00 | +0.00 | +0.04 | −0.15 |
+| 2025 | 156 | −2434 | +0.00 | +0.01 | +0.14 | +0.00 | +0.19 | +0.10 | +0.30 | +0.00 | +0.02 | +0.20 | +0.04 |
+
+Mean component levels, MW: solar about −1,300 in every full year. Exports −425 (2019) to −2,444
+(2022). Wind −282 (2018) to +1,383 (2024).
+
+### What it establishes
+
+**The remainder closes.** `rest` is −0.15 to +0.04 in every year, down from +0.48 to +0.90. The
+identity now accounts for the model's daily gas error. The error has three sources outside the
+thermal stack, and they take turns:
+
+1. **Solar is subtracted twice, 2018–2022.** INDO is already net of embedded solar, and the model
+   subtracts AGWS solar from it again. That costs about 1.3 GW of gas every year and carries 0.40
+   of the daily variation in 2019–2021. This matches INDO's published definition. It is a
+   definitional error in the model's input, not something the grid did.
+2. **Exports, 2022.** GB exported heavily to France that year. INDO excludes exports, so the gas
+   that served them is invisible to the model. This carries 0.45 of 2022.
+3. **The wind input, 2023–2024.** It carries 0.70 and then 1.02.
+
+PS, OIL and OTHER carry nothing (|slope| ≤ 0.02). The OCGT band still carries nothing.
+
+### The reading that is ODD, and is not built on
+
+§17 named the leading candidate as AGWS wind carrying embedded output that the metered side never
+sees, which would make AGWS wind *larger* than metered wind. **The sign is the other way.** From
+2019 on, metered FUELHH `WIND` runs above AGWS wind by up to 1.4 GW. By psrType:
+
+| year | FUELHH WIND | AGWS onshore | AGWS offshore | AGWS solar |
+|---|---|---|---|---|
+| 2020 | 6181 | 2994 | 3067 | 1323 |
+| 2022 | 7151 | 3598 | 3044 | 1274 |
+| 2023 | 7245 | 2963 | 2939 | 1322 |
+| 2024 | 7471 | 3103 | 3003 | 1436 |
+| 2025 (part) | 7313 | 3708 | 5297 | 2019 |
+
+**In the cached AGWS series, offshore wind stays flat at about 3 GW from 2020 to 2024 and then jumps
+to 5.3 GW in 2025.** GB's offshore fleet was growing through those years, so a flat mean is
+not what the industry would expect. There are three possible causes, and **which one it is has NOT
+been established**:
+
+- the published AGWS (B1630) series omits units,
+- our cache walk dropped rows,
+- a psrType was relabelled.
+
+**Cause (b) is excluded for the one week checked.** AGWS for 2023-06-01..06 was re-fetched live
+and compared with the cache. Means per psrType agree within 2% (offshore 731 vs 745 MW, onshore 991
+vs 997, solar 2752 vs 2733). So the gap sits between two *published* series, not in our walk.
+Monthly means make it plain:
+
+| month | FUELHH WIND | AGWS onshore | AGWS offshore |
+|---|---|---|---|
+| 2023-01 | 10593 | 4676 | 4516 |
+| 2023-06 | 4201 | 1471 | 1047 |
+| 2024-07 | 4724 | 1496 | 535 |
+
+Transmission-metered wind exceeding onshore+offshore AGWS by 2–3 GW is odd against how the two
+series are described. AGWS is meant to be the wider of the two. **This is a question for someone who
+knows the trade, not one to build on.** It was put to the director on 2026-09-30.
+
+The rest of cause (a)/(c) is settled by the annual offshore generation in DUKES Table 6.1 against the
+AGWS annual sum. That has not been run. Until it is, the "wind" column says only that the model
+subtracts less wind than FUELHH metered. It does not say why.
+
+One thing is on record for the fix that follows. FUELHH `WIND` passes both of the adapter's
+half-hourly crossing conditions (NESO factor exactly 0, and never negative), so handing it to
+`build_shape` *in place of* AGWS wind would be the same class of observable as AGWS itself. It
+would not be the answer with a different cache. That is a candidate, not a decision.
+
+### What it does NOT establish
+
+- **Any fix.** §17 NEXT step 2 (an input fidelity correction to `build_shape`) now has three
+  candidates rather than one: remove the solar double-subtraction, account for exports, and
+  correct the wind input. Each is decided blind to the correlation it moves. The wind one waits on
+  the AGWS check above.
+- **A joint attribution.** The slopes are one-component-at-a-time shares of the gap, as in §17. They
+  sum to about 1 because the identity closes, not because they were fitted jointly.
+- **Anything about the correlation ceiling.** This is still a level decomposition, not a rung.
+
+Reproduce: save the §17 script and replace the `metered` list with the one below. It adds
+`fuel.load_cached_remainder()` as the fifth cache, skips periods without `WIND`, and appends these
+five columns (with `w = aggregate_wind_generation(agws).get(k, 0.0)`, from
+`sim.generation_demand_history`):
+
+```python
+d["wind"].append(t["WIND"] - w)
+d["solar"].append(-(wind[k] - w))
+d["ps"].append(t.get("PS", 0.0))
+d["oiloth"].append(t.get("OIL", 0.0) + t.get("OTHER", 0.0))
+d["exp"].append(sum(v for f, v in t.items() if f.startswith("INT") and v < 0))
+```
+
+It runs in about 13 s once the caches exist.

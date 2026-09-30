@@ -75,6 +75,9 @@ _PUBLISH_BLOCK_COLLABORATORS = {
     "tools": "merge_atom_status -- folds an inbox that does not exist in the sandbox",
     "tools.couple_value_based_pricing": "isolated by _PIPELINE_OUTPUT_FALLBACK_WRITERS",
     "tools.fetch_weather_data": "isolated by _PIPELINE_OUTPUT_FALLBACK_WRITERS",
+    "tools.generate_dashboard_data": "consistency_alarm_detail only -- reads LAST_FAILED_CHECKS; "
+                                     "importing writes nothing, and generate() runs outside the "
+                                     "block, in _generate_dashboard_json",
     "tools.generate_explore_carbon": "isolated by _PIPELINE_OUTPUT_FALLBACK_WRITERS",
     "tools.generate_grid_intensity_feed": "isolated by _PIPELINE_OUTPUT_FALLBACK_WRITERS",
     "tools.generate_insights": "written through RUN_INSIGHTS_PATH/RUN_HISTORY_PATH, which prc "

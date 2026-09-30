@@ -88,6 +88,7 @@ from simulation.credit_refund_events import generate_credit_refund_log
 from simulation.dd_balance_book import build_dd_balance_book
 from simulation.dd_collection_book import build_dd_collection_book
 from simulation.dd_level_collection_book import build_dd_level_collection_book
+from simulation.household import supply_points_that_left
 from simulation.live_population import live_population
 from simulation.meter_reads import (
     SimulatedReadFeed,
@@ -293,7 +294,12 @@ def main(report_end: str | None = None, policy=None):
     # earlier than its pre-existing use below, for generate_credit_refund_log)
     # so a churning account's own last bill can force-resolve any pending
     # estimated run rather than leaving it unreconciled forever.
-    churned_ids = set(phase2b_result.get("churned_billing_accounts", []))
+    # Keyed by SUPPLY POINT, because every consumer below tests a bill's own id: the roster is
+    # keyed by household, so without this a leaving household's gas leg reads as a stayer.
+    churned_ids = supply_points_that_left(
+        phase2b_result.get("churned_billing_accounts", []),
+        {r["customer_id"] for r in all_records},
+    )
 
     # `billed_read_events` takes back the read event each bill was actually
     # assembled from (2026-08-15, EP8 finding) -- the published read log is a

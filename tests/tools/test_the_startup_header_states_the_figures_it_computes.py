@@ -364,3 +364,90 @@ def test_the_floor_is_COMPUTED_from_the_index_and_outlives_the_typed_source():
         f"{early['tests_floor']} then {late['tests_floor']}")
     assert early["tests"] == (None, None), "the typed source is not readable that far back"
     assert all(early["tests_floor"]), "and the floor still is -- that is what it is for"
+
+
+def _forge_both_documents(monkeypatch, header: str, count: int) -> str:
+    """The EH-3 forgery run the other way: one invented count typed into BOTH documents."""
+    stated = saf.stated_figures(header)["tests"]
+    forged = header.replace(f"{stated:,} tests collected", f"{count:,} tests collected")
+    assert forged != header, "the mutation did not apply -- the header was reworded"
+    monkeypatch.setattr(saf, "_tests_figure", lambda _text: count)
+    monkeypatch.setattr(saf, "_figures_in_working_tree",
+                        lambda: dict(saf._figures_at("HEAD"), tests=count))
+    return forged
+
+
+def test_a_test_count_ABOVE_A_REAL_COLLECTION_is_refused_though_both_documents_agree(monkeypatch):
+    """EH-3 RESIDUAL (2026-09-17): the index floors `tests` and nothing capped it, so a count
+    inflated in the header AND the Build line at once read `AGREES`. The first assertion shows
+    the gap is real, not assumed: the forged figure really does agree with its forged source.
+
+    The cap is a real collection. ONE ASSERTION OVER THE PARTITION: an honest figure at or below
+    the collection stays `AGREES`, an inflated one refuses, a collection that could not be taken
+    leaves the row `AGREES` and says so, and a figure already refused keeps its own refusal. A cap
+    that refused everything, or that silently passed when it had no count, fails here.
+    """
+    header = _live_header()
+    floor = _tests_row(header)["floor"]
+    forged = _forge_both_documents(monkeypatch, header, floor * 2)
+    row = _tests_row(forged)
+    assert row["verdict"] == "AGREES", (
+        f"the forgery must agree with its forged source for this test to mean anything: {row}")
+
+    collected = floor + 1
+
+    def capped(stated_row: dict, count: int | None) -> tuple[str, str]:
+        r = saf.apply_ceiling([dict(stated_row)], count, "" if count else "it errored")[0]
+        return r["verdict"], r["ceiling_unavailable"]
+
+    honest = dict(row, stated=collected)
+    refused = dict(row, verdict="BELOW_THE_INDEX_FLOOR", stated=floor - 1)
+    assert (capped(honest, collected), capped(row, collected), capped(row, None),
+            capped(refused, collected)) == (
+        ("AGREES", ""), ("ABOVE_A_REAL_COLLECTION", ""), ("AGREES", "it errored"),
+        ("BELOW_THE_INDEX_FLOOR", "")), "the cap does not partition the tests figure correctly"
+
+
+def test_the_cap_REFUSES_at_the_commit_that_types_the_figure_and_costs_nothing_elsewhere(
+        monkeypatch, tmp_path):
+    """The cap costs most of a minute, so it runs only where the figure can be typed: `--gate`
+    on a commit staging the header, or `--ceiling`. Both halves in one assertion -- the cap route
+    must refuse the forgery AND the uncapped route must never start a collection. Stubbing
+    `figure_refusals` or dropping the `--ceiling` wiring reds the left; running the collection on
+    every publish reds the right.
+    """
+    header = _live_header()
+    floor = _tests_row(header)["floor"]
+    forged = tmp_path / "forged.md"
+    forged.write_text(_forge_both_documents(monkeypatch, header, floor * 2), encoding="utf-8")
+    calls = []
+
+    def fake_collection(root=None):
+        calls.append(root)
+        return floor + 1, ""
+
+    monkeypatch.setattr(saf, "real_collection", fake_collection)
+    capped_exit = saf.main(["--check", "--ceiling", "--overview", str(forged)])
+    capped_calls = len(calls)
+    uncapped_exit = saf.main(["--check", "--overview", str(forged)])
+
+    assert (capped_exit, capped_calls, uncapped_exit, len(calls)) == (1, 1, 0, 1), (
+        "(cap exit, collections, uncapped exit, collections) -- the cap must refuse the forgery "
+        "and the route without it must not collect")
+
+
+def test_a_collection_that_ERRORED_is_not_a_count(tmp_path):
+    """A collection with an import error still prints a total -- of the files that imported. That
+    sits BELOW the truth and would refuse an honest figure, the one direction a cap must never
+    fail in. A clean tree and a broken one, in one assertion, so a parser that returned None for
+    everything (and so capped nothing) fails as surely as one that trusted the partial total.
+    """
+    clean, broken = tmp_path / "clean", tmp_path / "broken"
+    for d in (clean, broken):
+        d.mkdir()
+        (d / "test_a.py").write_text("def test_one():\n    pass\n\n\ndef test_two():\n    pass\n")
+    (broken / "test_b.py").write_text("import a_module_that_does_not_exist\n")
+
+    got = (saf.real_collection(clean), saf.real_collection(broken)[0])
+
+    assert got == ((2, ""), None), f"(clean, broken) collection read as {got}"

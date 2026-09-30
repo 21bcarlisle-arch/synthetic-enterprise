@@ -493,11 +493,37 @@ def test_a_commit_that_does_not_stage_the_map_asks_the_index_for_NOTHING(tmp_pat
     the evidence it is not an equivalence is the clock: the suite went from 1.18s to 2.29s on the
     mutation, which is the two YAML parses it would add to EVERY commit of EVERY lane. So the
     control is keyed to the predicate itself, which a mutation cannot leave standing.
+
+    THE INDEX IS BUILT HERE, NOT BORROWED (2026-09-30). This read the ambient index, so it held
+    only where nothing was staged. Inside `surgical_land`'s extract the index IS the landing, and
+    the first commit to stage a level move and select this file went red on its own W1_28 and W2_31
+    moves. A throwaway index read from HEAD is a commit that stages nothing, wherever pytest runs.
     """
-    assert gate.staged_level_moves() == {}, (
+    import os
+    import subprocess
+    import tempfile
+
+    import pytest
+
+    from tools.level_promotion_gate import ROOT
+
+    fd, index = tempfile.mkstemp(prefix="test-next-step-quiet-idx-")
+    os.close(fd)
+    os.unlink(index)
+    try:
+        subprocess.run(["git", "read-tree", "HEAD"], cwd=str(ROOT),
+                       env=dict(os.environ, GIT_INDEX_FILE=index), check=True,
+                       capture_output=True, timeout=60)
+        with pytest.MonkeyPatch.context() as mp:
+            mp.setenv("GIT_INDEX_FILE", index)
+            moves, staged = gate.staged_level_moves(), gate._map_is_staged()
+    finally:
+        if os.path.exists(index):
+            os.unlink(index)
+    assert moves == {}, (
         "this worktree stages no map, so the gate must report no move"
     )
-    assert gate._map_is_staged() is False, (
+    assert staged is False, (
         "the map is not staged here, so the gate must not go to the index for it at all"
     )
 

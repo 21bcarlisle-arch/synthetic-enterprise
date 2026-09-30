@@ -5790,7 +5790,10 @@ def measure_own_drift_resolution(
             # Cached per (n, seed, knob, k): the CLI and several controls sweep
             # the same book-derived grid inside one process, and a company is
             # BUILT per drift here (the window is a constructor argument).
-            key = (n_customers, seed, knob, k)
+            # `k` is a drift FROM the origin, so the origin is in the key: a
+            # process that substitutes it (the D27 flip is measured that way)
+            # must not be handed the company built at the old one.
+            key = (n_customers, seed, knob, k, DD_FAILURE_WINDOW_DAYS)
             if key not in _OWN_RESOLUTION_SCORES:
                 recs, cons, _ledger, as_of = build_scenario(
                     n_customers, seed=seed, **{knob: k})
@@ -7081,7 +7084,8 @@ def measure_recency_contribution(
             # `measure_own_drift_resolution`: `main()` runs both over n=300 and
             # the same seeds, and the drifts this asks for are already on that
             # sweep's book-derived grid, so the probe costs nothing there.
-            key = (n_customers, seed, "organ_failure_window_drift_days", k)
+            key = (n_customers, seed, "organ_failure_window_drift_days", k,
+                   DD_FAILURE_WINDOW_DAYS)
             if key not in _OWN_RESOLUTION_SCORES:
                 recs, cons, _ledger, as_of = build_scenario(
                     n_customers, seed=seed,
@@ -10982,7 +10986,7 @@ def measure_published_resolution_floor(
 
     if runner is None:
         def runner(knob_name: str, seed: int, k: int) -> tuple:
-            key = (n_customers, seed, knob_name, k)
+            key = (n_customers, seed, knob_name, k, DD_FAILURE_WINDOW_DAYS)
             if key not in _OWN_RESOLUTION_SCORES:
                 recs, cons, _ledger, as_of = build_scenario(
                     n_customers, seed=seed, **{knob_name: k})

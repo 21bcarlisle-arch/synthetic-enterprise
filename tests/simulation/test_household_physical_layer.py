@@ -11,7 +11,10 @@ this project has paid for before, not hypotheticals:
   * the PICKED COEFFICIENT -- a correlation strength invented to fill a slot,
     which reads as established within a week;
   * the WRONG MARGINAL -- headcount drawn from bedrooms rather than from the
-    census, which is the state this atom found and fixed.
+    census, which is the state this atom found and fixed;
+  * the ASSUMED CORRELATION -- a between-layer association declared absent that
+    the draw carries, or carried with nobody declaring it (build era -> income
+    stress was exactly that until 2026-09-30).
 """
 
 from __future__ import annotations
@@ -29,6 +32,7 @@ from simulation.household_physical_layer import (
     Layer,
     LayerCorrelation,
     attribute_lost_comfort,
+    measure_layer_associations,
     occupancy_band_for,
     people_count_for,
     physical_layer_for,
@@ -139,6 +143,8 @@ def test_a_declared_correlation_is_either_sourced_or_openly_unestablished():
             established=True,
             source=None,
             reason="a coefficient with nothing behind it",
+            in_the_world=False,
+            measured_as=("occupancy",),
         )
 
 
@@ -327,3 +333,120 @@ def test_the_two_causes_are_never_summed_into_one_number(drawn_households):
             f"the attribution carries a {banned!r} field -- the two causes have been "
             "summed into a quantity that counts nothing"
         )
+
+
+# About twenty physical attributes are measured against income stress, so a per-pair 1e-3 would
+# red a perfectly independent draw on roughly one seed in fifty. 1e-4 keeps the family's false
+# alarm near one in five hundred and still finds the build-era path at p ~ 1e-11.
+_FAMILY_ALPHA = 1e-4
+_MEASURED_AT = "2025-12-31"
+
+
+@pytest.fixture(scope="module")
+def homes_at_the_end_of_the_record(drawn_households):
+    """The book at the last day of the record, where the commercial layer has had ten years of
+    life events to move. At the draw every home is income-stress LOW and nothing can associate."""
+    from simulation.life_events import generate_life_events, household_at_date
+
+    return [
+        (pid, hh, household_at_date(hh, generate_life_events(hh, 2016, 2025), _MEASURED_AT))
+        for pid, hh in drawn_households
+    ]
+
+
+def _carried(associations):
+    from scipy.stats import chi2 as chi2_dist
+
+    return {
+        (a.physical, a.commercial)
+        for a in associations
+        if a.chi2 is not None and chi2_dist.sf(a.chi2, a.dof) < _FAMILY_ALPHA
+    }
+
+
+def _disagreements(associations, declared):
+    """What the draw carries that nobody declared, and what is declared absent that it carries."""
+    carried = _carried(associations)
+    declared_present = {(m, r.commercial) for r in declared if r.in_the_world for m in r.measured_as}
+    declared_absent = {(m, r.commercial) for r in declared if not r.in_the_world
+                       for m in r.measured_as}
+    return sorted(carried - declared_present), sorted(carried & declared_absent)
+
+
+def test_every_association_the_world_draws_between_the_layers_is_declared(
+    homes_at_the_end_of_the_record,
+):
+    """DEFECT: the assumed correlation. The W2_31 exit asks for the correlation structure
+    "stated and measured rather than assumed". Until 2026-09-30 it was only stated: occupancy
+    and assets were declared independent of income stress and nobody had looked, and build era
+    -> income stress was carried by the draw (through retirement keyed on the dwelling's age)
+    with no declaration at all.
+
+    Keyed to the property in both directions, so it goes red whether the draw gains an
+    association or a declaration goes stale -- never on today's list of fields.
+    """
+    measured = measure_layer_associations(homes_at_the_end_of_the_record)
+    by_pair = {(a.physical, a.commercial): a for a in measured}
+
+    # BOTH BRANCHES ARE REACHABLE on the real draw: something is carried and something is not.
+    # Without this, a threshold that finds everything (or nothing) passes every leg below.
+    carried = _carried(measured)
+    readable = {k for k, a in by_pair.items() if a.chi2 is not None}
+    assert carried and readable - carried, (
+        f"carried {sorted(carried)} of {len(readable)} readable pairs -- the partition has "
+        "collapsed, so this control cannot tell a carried association from an absent one"
+    )
+
+    for row in LAYER_CORRELATIONS:
+        read = [m for m in row.measured_as
+                if by_pair.get((m, row.commercial)) and by_pair[(m, row.commercial)].chi2 is not None]
+        assert read, (
+            f"{row.physical} <-> {row.commercial}: none of {row.measured_as} could be measured "
+            f"on this book ({[by_pair.get((m, row.commercial)) for m in row.measured_as]}), so "
+            "the declaration is a claim nothing checks"
+        )
+        if row.in_the_world:
+            assert any((m, row.commercial) in carried for m in row.measured_as), (
+                f"{row.physical} <-> {row.commercial} is declared carried by the draw and "
+                "measures absent -- the path it names has gone; set in_the_world=False"
+            )
+
+    undeclared, contradicted = _disagreements(measured, LAYER_CORRELATIONS)
+    assert not undeclared, (
+        f"the draw carries {undeclared} between the layers and no LayerCorrelation declares "
+        "it -- find the path (a commercial transition keyed on a physical field, or the "
+        "reverse) and declare it, or cut it"
+    )
+    assert not contradicted, (
+        f"{contradicted} are declared absent from the draw and the draw carries them -- one "
+        "layer is being derived from the other"
+    )
+
+
+def test_the_association_control_sees_a_merge_and_a_missing_declaration(
+    homes_at_the_end_of_the_record,
+):
+    """The control above can fail, each way, at a strength smaller than the one it found.
+
+    MERGE: one-person homes that were LOW become HIGH one time in four -- occupancy re-merged
+    into the commercial layer, weaker than the build-era path. MISSING: the same real draw with
+    the build-era declaration deleted, which is exactly the tree before 2026-09-30.
+    """
+    from simulation.household_segments import OccupancyBand
+
+    merged = []
+    for i, (pid, drawn, at_date) in enumerate(homes_at_the_end_of_the_record):
+        if (i % 4 == 0 and at_date.income_stress is IncomeStress.LOW
+                and occupancy_band_for(pid, drawn.output_area) is OccupancyBand.ONE_PERSON):
+            at_date = dataclasses.replace(at_date, income_stress=IncomeStress.HIGH)
+        merged.append((pid, drawn, at_date))
+    _, contradicted = _disagreements(measure_layer_associations(merged), LAYER_CORRELATIONS)
+    assert ("occupancy", "income_stress") in contradicted, (
+        "occupancy was merged into income stress and the control did not see it"
+    )
+
+    real = measure_layer_associations(homes_at_the_end_of_the_record)
+    without_era = tuple(r for r in LAYER_CORRELATIONS if r.physical != "build_era")
+    assert without_era != LAYER_CORRELATIONS, "the build-era declaration this poison deletes is gone"
+    undeclared, _ = _disagreements(real, without_era)
+    assert ("build_era", "income_stress") in undeclared

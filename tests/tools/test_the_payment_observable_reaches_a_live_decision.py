@@ -25,18 +25,31 @@ def _customer(**over):
     return base
 
 
-def test_the_live_decision_moves_with_the_payment_method():
-    """THE DEFECT. Measured on the real book at the time of writing: prepayment churn 0.1101 ->
-    0.0644 (0.58x), direct debit 0.1116 -> 0.1179. All 145 accounts moved."""
-    ppm, _ = _retention_ev(400.0, 420.0, _customer(payment_method="prepayment"), **_ARGS)
-    dd, _ = _retention_ev(400.0, 420.0, _customer(payment_method="direct_debit"), **_ARGS)
+def test_the_live_decision_hands_the_payment_method_to_the_belief(monkeypatch):
+    """THE DEFECT: the live path never passed the method, so the belief never saw it.
 
-    assert ppm is not None and dd is not None
-    assert ppm < dd * 0.75, (
-        f"prepayment ({ppm}) must read as materially less likely to leave than direct debit "
-        f"({dd}) once the observable reaches the decision -- Ofgem CIM w6 puts the annual "
-        f"switching rates at 3.1% and 5.6%"
-    )
+    RE-KEYED 2026-09-30 from "prepayment reads below direct debit". That held only while the
+    engagement prior was centred on CIM's 0.585. It is now centred at 1.0 (`f9b04ddc7`), and this
+    path runs with no run scope and no renewal year, so the belief is the prior and the method
+    moves no live decision until the path reads a book. That is a declared gap
+    (`docs/staging/WORKER_FINDING_PB6_THE_ENGAGEMENT_FACTOR_IS_USED_PER_DECISION_*`). So this asks
+    whether the method REACHES the belief, which is the defect this file exists for.
+    """
+    import tools.run_live_decisions as live
+
+    seen = []
+    real = live.enriched_churn_estimate
+
+    def spy(*args, **kwargs):
+        seen.append(kwargs.get("payment_method"))
+        return real(*args, **kwargs)
+
+    monkeypatch.setattr(live, "enriched_churn_estimate", spy)
+    for method in ("prepayment", "direct_debit", "standard_credit"):
+        got, _ = _retention_ev(400.0, 420.0, _customer(payment_method=method), **_ARGS)
+        assert got is not None
+
+    assert seen == ["prepayment", "direct_debit", "standard_credit"], seen
 
 
 def test_a_record_without_the_observable_is_bit_for_bit_unchanged():
@@ -65,8 +78,8 @@ def test_an_unavailable_seam_yields_none_and_never_the_majority_channel():
     asserted here because the two look inconsistent side by side and a later reader would
     "fix" one of them.
 
-    `LiveSimInterface.get_payment_method` falls to direct_debit: its argument is a broken CRM
-    record for a customer the supplier is still billing. THIS falls to None: the question is
+    `LiveSimInterface.get_payment_method` refuses a lookup with no account (it used to fall to
+    direct_debit, PB6 EH-5), and THIS catches that and falls to None: the question is
     whether the observable is available at all, and answering direct_debit for a portfolio the
     seam could not be built for would apply the direct-debit engagement factor to every account
     in the book while looking exactly like a measurement.

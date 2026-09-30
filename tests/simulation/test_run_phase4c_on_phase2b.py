@@ -233,11 +233,15 @@ def test_main_produces_meter_read_log_matching_bills(main_result):
 def test_main_window_holds_a_churned_accounts_final_read(main_result):
     # The live counterpart of the forced-estimate proof below: a churned account's last bill
     # resolves on an actual read (SLC 21B). Without a churned account in the window the override
-    # is untested by the one run this file pays for.
+    # is untested by the one run this file pays for. Read BY HOUSEHOLD: the roster is keyed by
+    # household and bills by supply point, so matching the bill's own id skipped every gas leg,
+    # which is how 17 of them closed on an estimate unseen (2026-09-30).
+    from simulation.household import household_of
+
     churned = set(main_result["phase2b"]["churned_billing_accounts"])
     last_bill = {}
     for bill in main_result["bills"]:
-        if bill["customer_id"] in churned:
+        if household_of(bill["customer_id"]) in churned:
             prior = last_bill.get(bill["customer_id"])
             if prior is None or bill["period_end"] > prior["period_end"]:
                 last_bill[bill["customer_id"]] = bill

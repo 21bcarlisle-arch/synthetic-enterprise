@@ -1,0 +1,3 @@
+atom_id: EP13_2_split_the_gas_level_remainder
+map_notes:
+  gain: Fetch FUELHH WIND, PS, OIL and OTHER through the existing adapter, for measurement only and never for the dispatch. Then split the 48-90% remainder of the model's daily gas error (EP13 frame doc s17) by input. If it turns out to be AGWS wind against metered wind, the fix is to build_shape's input, and it is decided without looking at the correlation it moves.

@@ -524,18 +524,22 @@ class LiveSimInterface(SimInterface):
         `simulation.household_segments` off this module's import path for every consumer that
         never asks about payment.
 
-        FAILS TO THE MAJORITY CHANNEL, NOT TO A REFUSAL, and that is a deliberate asymmetry from
-        the rest of this seam. A supplier that cannot resolve a payment method for an account has
-        a broken CRM record, not an unknown customer -- it still bills them, and it bills them the
-        way it always has. Returning direct debit (72% of the electricity book) keeps a lookup
-        failure from silently reclassifying a household as prepayment, which would move it into
-        the vulnerability score's +10 band and into the low-engagement band at once.
+        REFUSES A LOOKUP WITH NO ACCOUNT, rather than answering direct debit (PB6 EH-5,
+        2026-09-30). This used to fall to the majority channel on any exception, on the argument
+        that a broken CRM record is still a billed customer. But this world models no CRM miss:
+        every string id resolves, so the only thing the fallback could ever catch was a caller
+        passing no id at all. It answered that silently, and the answer entered the engagement
+        ledger as a direct-debit renewal. Its own control never reached it either: `None` on the
+        electricity leg resolves through the ordinary draw, and that draw happens to be direct
+        debit. If a CRM miss is ever modelled, it gets its own path and its own count here.
         """
-        try:
-            from simulation.household_segments import payment_channel_for_customer
-            return payment_channel_for_customer(account_id, fuel).value
-        except Exception:  # noqa: BLE001 -- see the docstring: a CRM miss is not an unknown customer
-            return "direct_debit"
+        if not isinstance(account_id, str) or not account_id:
+            raise ValueError(
+                f"get_payment_method({account_id!r}): not an account id. A supplier holds a "
+                "payment method for every account it bills, so a lookup with no account is a "
+                "caller defect, not a CRM miss -- refusing rather than booking it as direct debit")
+        from simulation.household_segments import payment_channel_for_customer
+        return payment_channel_for_customer(account_id, fuel).value
 
     def notify_churn(self, account_id, event_date, *, reason="non-renewal",
                  sim_churn_probability=None, company_churn_estimate=None):

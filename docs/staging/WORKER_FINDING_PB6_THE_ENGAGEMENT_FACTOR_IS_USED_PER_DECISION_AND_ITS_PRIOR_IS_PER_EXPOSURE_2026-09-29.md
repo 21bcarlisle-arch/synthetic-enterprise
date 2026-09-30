@@ -1,3 +1,9 @@
+> **DISPOSITION 2026-09-30 (worker tick): held open on ONE sub-item.** Everything else here has landed
+> (single roll `19a58b44d`, prior centred at 1.0 `f9b04ddc7`, null arm graded `46b78123f`). What keeps this
+> in staging is the practitioner question (NTFY `EntQKsMePM5C`, no reply on record): whether some of CIM's
+> channel ratio belongs per decision. A reply releases it by moving the prior's centre in
+> `enriched_churn_estimate.py`. PB6 itself is parked; see its store record 11.
+
 **Severity:** LATENT · **Lane:** W4_the_wall · **Epoch:** 3 · **Atom:** `PB6_the_engagement_observable_crosses_the_seam`
 
 # PB6 after EH-2: the factor is used per decision, its prior is per exposure, and the world decides one renewal twice
@@ -232,3 +238,181 @@ centring, and it waits on the answer. This row has no drawable build until then.
 
 Raw artefacts: `/var/tmp/pb6_eh2r/<arm>.json` and `.log`, not committed. Re-running
 `tools/_pb6_engagement_recovery_arm.py` at `b50a03519` reproduces them.
+## Grading the re-run: null read, and a prediction filed before planted and head (2026-09-30 00:40Z, worker tick)
+
+**Null arm (`/var/tmp/pb6_eh2r/null.json`, pinned at `b50a03519`): identical to its pre-repair twin,
+every figure.** PPM 20 decisions, 4 lost / 6.91, factor 0.537; DD 29/60, 1.005; SC 2/5, 1.097. The
+two 95k-line run logs differ only in a cache line and a dict print order. **This is an equivalence,
+not a repair that failed to reach.** The null arm sets every channel multiplier to 1.0, so
+`archetype x channel == archetype` and the band `[p, p·m)` the repair closes is empty. On the null
+world the two rolls already agreed. The filed prediction (null prepayment factor < 1.0) **HELD, but
+vacuously**: this arm is the same run as before and adds no evidence. Why prepayment still reads 4
+lost / 6.91 predicted when the world's truth is 1.0 is the open question from the first EH-2 table,
+unchanged.
+
+**Filed now, before planted and head finish.** For prepayment, `m < 1` in both arms, so every
+decision reached was already active (1.000 above), and none sits in the band. The repair can move
+only direct debit and standard credit.
+
+3. Prepayment decisions and losses are unchanged: planted 2 / 0, head 10 / 1. The exception is a
+   cascade, where a DD departure changes the later book, and that would show as other counts moving too.
+4. Direct debit losses in head are at least 30 of 67, and the DD factor is at least 0.967, because
+   the band's decisions lose the 0.10 cap.
+5. So the head prepayment factor reads AT OR BELOW 0.530. Its likelihood is channel O/E over BOOK
+   O/E, and the book's O/E rises with DD's. The repair therefore moves the company's prepayment
+   reading further from 1.0, not closer.
+
+## Graded: all three arms on the repaired world (2026-09-30 01:25Z, worker tick)
+
+*(The heading above says 00:40Z. The clock read 00:35Z. The predictions landed in `7f3022e66` at
+00:35:12Z, before planted finished at 00:50Z and head at 01:19Z.)*
+
+Same columns as the first EH-2 table, each arm beside its pre-repair twin in `/var/tmp/pb6_eh2/`:
+
+| arm | world | world PPM multiplier | PPM decisions | PPM lost / predicted pre-factor | ratio | w | **factor** | pre-EH-1 raw rule | DD lost / decisions | DD factor |
+|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| null | pre-repair `ad3e03018` | 1.000 | 20 | 4 / 6.91 | 0.474 | 0.411 | **0.537** | 0.427 | 29 / 60 | 1.005 |
+| null | repaired `b50a03519` | 1.000 | 20 | 4 / 6.91 | 0.474 | 0.411 | **0.537** | 0.427 | 29 / 60 | 1.005 |
+| planted | pre-repair | 0.307 | 2 | 0 / 0.38 | 0.549 | 0.036 | **0.584** | 0.562 | 32 / 72 | 0.925 |
+| planted | repaired | 0.307 | 2 | 0 / 0.38 | 0.596 | 0.036 | **0.585** | 0.562 | 32 / 72 | 0.914 |
+| head | pre-repair | 0.589 | 10 | 1 / 2.56 | 0.358 | 0.202 | **0.530** | 0.457 | 30 / 67 | 0.967 |
+| head | repaired | 0.589 | 10 | 1 / 2.51 | 0.387 | 0.200 | **0.539** | 0.459 | 30 / 67 | 0.957 |
+
+**No realised count moved in any arm.** Decisions and losses by method and year are identical to the
+pre-repair twins in all three. The repair changed no departure in books of 84 to 91 decisions: the
+band decisions it uncapped did not roll between the 0.10 cap and their uncapped probability. The
+"departures rise for DD and SC" expected in the correction above was not seen at this book size.
+
+**What moved is the company's expectation, and why.** `run_phase2b` hands the departure branch's
+`active_renewal` into `RenewalObservation`. `churn_desk` sends a resi account with
+`active_renewal=False` to the passive (SVT-roller) estimator. Before the repair, a band decision was
+a household on a fixed renewal, which the supplier can see, and it was estimated as a passive roller
+off a coin the supplier cannot see. After the repair, a resi decision's `active_renewal` is exactly
+"reached a fixed term", which is observable. So the repair also closes a small leak across the
+wall. That is where the rise in DD predicted-pre-factor losses comes from (planted 23.69 -> 25.95,
+head 22.25 -> 23.85) with the same losses: DD's O/E falls, the book's O/E falls with it, and
+prepayment's channel-over-book ratio rises.
+
+Graded against what was filed:
+
+1. **Null prepayment factor < 1.0: HELD, vacuously.** It is the same run (m = 1 empties the band).
+2. **Planted does not recover 0.307: HELD.** It reads 0.585, the prior. EH-2 still answers FAIL on
+   the repaired world, for the reason in the first table: the plant acts on decisions reached (20 / 10 / 2),
+   not on departure per decision.
+3. **Prepayment counts unchanged: HELD** (2 / 0 and 10 / 1).
+4. **DD losses at least 30 and DD factor at least 0.967: losses HELD at exactly 30, factor
+   REFUTED** (0.957). The mechanism I named, more losses, did not happen. The factor fell because
+   expected losses rose.
+5. **Head prepayment factor at or below 0.530: REFUTED** (0.539). This is the same wrong mechanism as
+   in 4, and it moved the other way: book O/E fell, not rose.
+
+**I cannot yet say** why head's prepayment predicted-pre-factor moved (2.56 -> 2.51) when no
+prepayment decision sits in the band. Planted's did not (0.3794 both). The candidate is company
+state carried from the DD band decisions, which now take the active estimator and its retention
+offer. That is a cascade through the company's own book, not a world outcome. The effect is
+0.05 of a loss.
+
+**What this settles for PB6.** The repaired world does not change EH-2's answer. It moves prepayment
+by at most 0.009 in any arm. The company prior's centring (defect 2 above) is still the open step,
+and it still waits on the practitioner answer (NTFY `EntQKsMePM5C`, no reply on record at this
+time). PB6 stays L2. The artefacts are in `/var/tmp/pb6_eh2r/` and are not committed, so re-running
+`tools/_pb6_engagement_recovery_arm.py` at `b50a03519` is the reproduction.
+
+## Defect (2) enacted: the prior re-centred at 1.0 as a declared gap (2026-09-30 04:05Z, worker tick)
+
+DIRECTION `PB6_the_engagement_observable_crosses_the_seam` said not to wait for NTFY `EntQKsMePM5C`
+any longer. No reply is on record.
+
+**What changed.** In `company/crm/enriched_churn_estimate.payment_method_engagement_reading`, the
+prior is now **1.0 for every channel**. Its docstring names the gap and the practitioner question
+that would move the centre. The **width is unchanged**: `_CIM_ENGAGEMENT_PRIOR_LOG_VARIANCE` is
+still CIM's spread across channels (0.080 in log space), and it is now derived through
+`payment_method_engagement_factor`, so the published table and the width cannot drift apart.
+`payment_method_engagement_factor` is still Ofgem's per-exposure reading, but it is no longer the
+centre. The ledger's blend takes the prior as a parameter and is correct for any centre. It was not
+touched.
+
+**Before and after, printed at real inputs.** These are the three repaired-world arms' own
+counts, from `/var/tmp/pb6_eh2r/<arm>.json`. The ratio and the weight are unchanged, and only the
+centre differs. This is a counterfactual on the same counts, not a re-run: the re-centred prior
+also changes which retention offers are made, so a re-run's counts can differ.
+
+| arm | channel | n | lost / pre-expected | ratio | w | before (prior = CIM point) | after (prior 1.0) |
+|---|---|---:|---:|---:|---:|---:|---:|
+| null | prepayment | 20 | 4 / 6.91 | 0.474 | 0.411 | 0.537 | **0.736** |
+| null | direct debit | 60 | 29 / 22.75 | 0.975 | 0.628 | 1.005 | **0.984** |
+| planted | prepayment | 2 | 0 / 0.38 | 0.596 | 0.036 | 0.585 | **0.982** |
+| planted | direct debit | 72 | 32 / 25.95 | 0.838 | 0.626 | 0.914 | **0.895** |
+| head | prepayment | 10 | 1 / 2.51 | 0.387 | 0.200 | 0.539 | **0.827** |
+| head | direct debit | 67 | 30 / 23.85 | 0.898 | 0.613 | 0.957 | **0.936** |
+
+Direct debit moves by about 0.02. Prepayment moves most where the book is thinnest, which is what a
+prior carrying no information should do. EH-2's planted arm now reads 0.982 instead of 0.585. It is
+still not 0.307, because two decisions cannot recover anything, but it no longer reads as though
+it had recovered the published point.
+
+**Controls.** `test_the_prior_is_centred_on_no_effect_and_only_the_book_moves_it_off` is new, and
+it reds when the old centre is restored (mutation run). At a centre of 1.0 the double-count blend
+`prior x ratio**w` and the correct `prior x (ratio/prior)**w` are **the same function**, so that
+defect is an equivalence through the public reading. Its control now asks the ledger directly at
+CIM's point, where it can still fail. `test_the_desk_books_the_channel_it_priced_with` had needed the
+prior alone to put prepayment below one. It now gets a closed 2018 book first, and it still reds
+when the desk books the priced belief as the pre-factor belief (mutation run). The seam test
+`test_the_companys_churn_belief_actually_moves_with_the_observable` asked the prior, outside a
+scope, for 0.75x. It was re-keyed to a book in which prepayment leaves at a third of the rate.
+
+**Prediction for the null arm, filed before it runs.** The world's truth in this arm is 1.0.
+(a) The prepayment factor reads above 0.537, the pre-re-centring value, and within 0.70-0.95. The
+prior no longer drags it down, but 4 lost against 6.91 predicted is still evidence below 1. (b) The
+direct-debit factor reads within 0.03 of 0.984. (c) Prepayment decision count stays within ±3 of 20.
+The re-centring can move retention offers, but it cannot move which renewals a household reaches.
+
+**Queued.** Unit `longjob-pb6-null-arm-recentred-prior` waits on the whole ab5 lineage script (pid
+2141363, both legs), then calls `launch_long_job --peak-mb 6500`. That launch does its own
+co-residency check and refuses by name if ab6 is resident. The worktree is
+`/var/tmp/se-pb6-recentre-a5ed0d0e2`, at HEAD `a5ed0d0e2` plus this commit's diff (patch sha256
+`bb7984cc…`). Output goes to `/var/tmp/pb6_recentre/null.json`, and the waiter's log is
+`/var/tmp/pb6_recentre/wait.log`. Grading it against (a)-(c) is the next step on this row. After
+that, the row returns to its Expert Hour.
+
+## Graded: the null arm under the re-centred prior (2026-09-30 06:20Z, worker tick)
+
+`/var/tmp/pb6_recentre/null.json`. The run tree's `company/` diff against `a5ed0d0e2` is
+byte-identical to `f9b04ddc7`'s (sha256 `d26737b2…` both). The later auto-salvage commit in that
+worktree holds only run outputs.
+
+| channel | n | lost / pre-expected | ratio | w | **factor** | counterfactual above |
+|---|---:|---:|---:|---:|---:|---:|
+| prepayment | 20 | 4 / 6.83 | 0.475 | 0.407 | **0.739** | 0.736 |
+| direct debit | 60 | 29 / 22.52 | 0.975 | 0.624 | **0.984** | 0.984 |
+| standard credit | 5 | 2 / 1.23 | 1.278 | 0.113 | **1.028** | — |
+
+(a) Prepayment above 0.537 and within 0.70-0.95: **HELD** (0.739). (b) Direct debit within 0.03
+of 0.984: **HELD** (0.984). (c) Prepayment decisions within ±3 of 20: **HELD** (20). The realised
+losses are the same as in the pre-re-centring run, 4 of 20 and 29 of 60. What moved is pre-expected
+prepayment losses, 6.91 to 6.83. That is the re-centred prior changing retention offers, the effect
+(c)'s reasoning allowed for. The counterfactual printed before the run was within 0.003.
+
+What this leaves: the world's truth in this arm is 1.0 and the company reads 0.739. That is the
+prior's pull, gone, and 4 losses against 6.83 expected on 20 decisions, still there. Sampling at
+this book size (w 0.41) is the whole of the remaining gap. The rule cannot be graded any finer
+than this until the book is at PB1's population scale.
+
+## Two more, found while grading (2026-09-30, same tick)
+
+**A HEAD red `f9b04ddc7` left in a sibling file.** `tests/tools/test_the_payment_observable_reaches_a_live_decision.py`
+asserted that the live decision reads prepayment below 0.75 x direct debit. That held only because
+of CIM's point prior. `tools/run_live_decisions._retention_ev` runs with no scope and no renewal
+year, so at a centre of 1.0 both channels read 0.1326, even inside a book. The gate's stem
+selection never ran it. It is now re-keyed to the property it was written for: the method reaches
+the belief call (a pass-through spy, which reds when the call drops the method). **Declared gap:**
+the live path reads no book, so after the re-centring the payment method moves no live decision.
+That is correct with no evidence behind it. It stops being correct once the live path can read the
+run's end-of-run ledger, and nothing does that yet.
+
+**EH-5 remedied.** `LiveSimInterface.get_payment_method` fell to direct debit on any exception.
+This world models no CRM miss, so the fallback could catch only a caller passing no id. It booked
+that as a direct-debit renewal. Its control never reached it: `None` on the electricity leg draws as
+direct debit by chance. Only the gas leg reached the except arm. The seam now refuses a non-string
+or empty id by name, and lets any world failure surface. Controls: both fuels are refused, and every
+id shape the book carries still resolves. Restoring the silent fallback reds two tests (mutation run).

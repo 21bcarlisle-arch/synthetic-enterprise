@@ -36,11 +36,12 @@ def test_the_seam_answers_for_the_fuel_it_was_asked_about():
         assert live.get_payment_method(cid, "gas") == payment_channel_for_customer(cid, "gas").value
 
 
-def test_the_fail_safe_branch_is_reached_and_answers_direct_debit(monkeypatch):
-    """SURVIVOR: the fallback returning prepayment. The existing test passes `None` as the id, and
-    `None` never reaches the fallback -- the world's draw seeds a stream from any value, so it
-    resolved `None` like any other id and answered direct debit by chance. The branch has to be
-    TAKEN before what it returns can be asserted.
+def test_a_failed_lookup_is_never_answered_as_direct_debit(monkeypatch):
+    """SURVIVOR, then EH-5. This used to assert the fallback answered direct debit, after the
+    battery found that `None` never reached it. EH-5 (2026-09-30) removed the fallback: this world
+    models no CRM miss, so all it could ever catch was a caller defect, and it booked that as a
+    direct-debit renewal in the engagement ledger. A failure must now surface rather than be
+    answered, and restoring the silent fallback reds here.
     """
     import simulation.household_segments as world
 
@@ -48,7 +49,8 @@ def test_the_fail_safe_branch_is_reached_and_answers_direct_debit(monkeypatch):
         raise LookupError("no CRM record")
 
     monkeypatch.setattr(world, "payment_channel_for_customer", unresolvable)
-    assert LiveSimInterface().get_payment_method("CUST00001") == "direct_debit"
+    with pytest.raises(LookupError):
+        LiveSimInterface().get_payment_method("CUST00001")
 
 
 def test_the_published_ordering_of_the_three_channels_holds():

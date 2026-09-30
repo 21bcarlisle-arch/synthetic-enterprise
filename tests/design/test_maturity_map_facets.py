@@ -378,6 +378,9 @@ REVIEWED_CLOSE_TO_LEARN = {
     # to file it under, and its sibling E5_carbon_three_ledger sits in the same class.
     "EP6_wall_protocol_typing",
     "EP13_adapter_carbon_intensity",
+    # EP13_2_split_the_gas_level_remainder: EP13's own next step (frame doc s17). It is the same
+    # emissions feed with the same absence of revenue flow.
+    "EP13_2_split_the_gas_level_remainder",
     # EP16_anchored_generators: world-generation METHOD with its calibration discipline (R13 baseline).
     # It builds the worlds the company is measured in; it is on the far side of the wall from every
     # revenue flow, and the same class as its G-fidelity siblings.

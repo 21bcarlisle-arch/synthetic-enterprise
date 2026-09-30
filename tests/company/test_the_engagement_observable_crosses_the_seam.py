@@ -9,6 +9,8 @@ from __future__ import annotations
 
 import inspect
 
+import pytest
+
 from company.crm.enriched_churn_estimate import (
     enriched_churn_estimate,
     payment_method_engagement_factor,
@@ -45,16 +47,27 @@ def test_the_seam_agrees_with_the_world_rather_than_drawing_its_own():
         assert live.get_payment_method(cid) == payment_channel_for_customer(cid).value
 
 
-def test_a_lookup_failure_falls_to_the_majority_channel_and_not_to_prepayment():
-    """FAIL-SAFE DIRECTION, chosen deliberately and asserted because it is a judgement call.
-
-    A CRM record the supplier cannot resolve is a broken record, not an unknown customer -- it
-    still bills them. Falling to prepayment would silently move a household into BOTH the
-    vulnerability score's +10 band and the low-engagement band on a lookup error.
-    """
+def test_a_lookup_with_no_account_is_refused_by_name_and_not_booked_as_direct_debit():
+    """PB6 EH-5. The old control asserted `get_payment_method(None) == "direct_debit"`. On the
+    electricity leg `None` never reached the fallback: it drew as direct debit by chance, so the
+    control stayed green with the fallback mutated to prepayment. Both fuels are asked here,
+    because only the gas leg ever reached the except arm."""
     live = LiveSimInterface()
-    # An id the world's draw cannot resolve at all.
-    assert live.get_payment_method(None) == "direct_debit"  # type: ignore[arg-type]
+    for bad in (None, ""):
+        for fuel in ("electricity", "gas"):
+            with pytest.raises(ValueError, match="caller defect, not a CRM miss"):
+                live.get_payment_method(bad, fuel)  # type: ignore[arg-type]
+
+
+def test_every_id_shape_the_book_carries_resolves_without_the_refusal():
+    """The refusal can fire, so it has to be shown not to fire on the ids a run actually passes:
+    an electricity point, its gas leg, an I&C site, a successor after a home move, a drawn point."""
+    from simulation.household_segments import payment_channel_for_customer
+
+    live = LiveSimInterface()
+    for cid in ("C1", "C1g", "C_IC1", "C1_2", "SYN-2021-001"):
+        for fuel in ("electricity", "gas"):
+            assert live.get_payment_method(cid, fuel) == payment_channel_for_customer(cid, fuel).value
 
 
 def test_the_stub_can_be_made_to_vary_so_a_consumer_can_be_tested_at_all():
@@ -69,14 +82,29 @@ def test_the_companys_churn_belief_actually_moves_with_the_observable():
     `no_caller_and_never_runs` class wearing a seam's clothes -- and this seam was built precisely
     because `vulnerability_index.assess_vulnerability` already takes a `has_ppm` argument and has
     no caller anywhere in the tree.
+
+    IN A BOOK, NOT OUT OF ONE (re-keyed 2026-09-30). The prior is centred at 1.0, so outside a run
+    scope the two channels read the same and it is the company's own leavers that move them apart.
+    This book's prepayment customers leave at a third of its direct-debit customers' rate.
     """
+    from company.crm.competitive_pressure import CompetitivePressureLedger, pressure_ledger_scope
+
+    ledger = CompetitivePressureLedger()
+    ledger.arm_loss_reporting()
+    for method, n, losses in (("prepayment", 1000, 30), ("direct_debit", 4000, 360)):
+        for _ in range(n):
+            ledger.observe_renewal_decision(2018, 0.08, payment_method=method)
+        for _ in range(losses):
+            ledger.observe_competitive_loss(2018, payment_method=method)
+
     args = (100.0, 115.0, 2.0, 3000.0)
-    dd = enriched_churn_estimate(*args, payment_method="direct_debit")
-    ppm = enriched_churn_estimate(*args, payment_method="prepayment")
+    with pressure_ledger_scope(ledger):
+        dd = enriched_churn_estimate(*args, payment_method="direct_debit", renewal_year=2020)
+        ppm = enriched_churn_estimate(*args, payment_method="prepayment", renewal_year=2020)
 
     assert ppm < dd * 0.75, (
         f"prepayment ({ppm:.4f}) must read as materially less likely to leave than direct debit "
-        f"({dd:.4f}) -- Ofgem CIM w6 puts them at 3.1% and 5.6%"
+        f"({dd:.4f}) on a book where it left at a third of the rate"
     )
 
 

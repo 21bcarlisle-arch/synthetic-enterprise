@@ -37,21 +37,6 @@ def test_trading_hedge_annual_has_all_years(dash):
         assert yr in years
 
 
-@pytest.mark.xfail(strict=True, reason=(
-    "MEASURED FALSE, 2026-08-27, and recorded rather than tuned: docs/staging/done/"
-    "WORKER_FINDING_THE_2022_CRISIS_IS_NOT_VISIBLE_IN_DOMESTIC_BILL_SHOCK_2026-08-27.md. "
-    "THREE independent denominators agree that 2022 is not worse than 2020 on shock frequency "
-    "-- per active account 3.57 vs 4.72, per active ELECTRICITY account 6.56 vs 8.57 (ruling "
-    "out the dual-fuel gas legs, which dilute both years alike), and per BILL 0.366 vs 0.398, "
-    "the denominator a shock actually belongs to and the one invariant to book size AND "
-    "tenure. `avg_bill_shock_pct` agrees and drifts DOWN across the decade. "
-    "THE WHOLESALE CRISIS IS REAL AND THE PRICE CAP STANDS BETWEEN IT AND A DOMESTIC BILL -- a "
-    "capped tariff cannot pass a spike through when it happens, so a flat avg_bill_shock_pct "
-    "across 2021-2023 is the cap working, not the world failing. "
-    "R12 is why the metric was not normalised a fourth time until it passed, and R13 is why no "
-    "world parameter was touched to make 2022 harsher. "
-    "STRICT so an XPASS alarms: if 2022 ever does become the worse year, the cap modelling or "
-    "the pass-through has changed and this seat wants telling."))
 def test_crisis_year_2022_worse_than_2020(dash):
     """D3 Expert-Hour finding (2026-07-12): compares ORGANIC (market/
     consumption-driven) shocks, not the raw bill_shock_count -- a real
@@ -75,7 +60,15 @@ def test_crisis_year_2022_worse_than_2020(dash):
     by comparing the organic shock RATE per active account (organic count /
     active accounts) rather than the raw count -- robust to population-size
     differences between years, which are a genuine, expected feature of this
-    project's own churn-timing model, not a bug to suppress."""
+    project's own churn-timing model, not a bug to suppress.
+
+    The strict xfail that sat here from 2026-08-27 to 2026-09-30 argued the
+    price cap stands between the wholesale crisis and a domestic bill. The
+    published record says otherwise: Feb-Apr 2022 over 7m SVT households saw
+    direct-debit rises averaging +62% (Ofgem DD Compliance Review, July 2022,
+    in docs/market_research/what_bill_shock_is.md). The run has read 2022 as
+    the worse year since the 2026-08-28 book (2.14 vs 0.85 per active account
+    at 1526f5267), so the XPASS was the world agreeing with the evidence."""
     ann = {r["year"]: r for r in dash["financial"]["annual"]}
     book = {r["year"]: r for r in dash["customers"]["book_annual"]}
     row_2022, row_2020 = book[2022], book[2020]
@@ -131,15 +124,9 @@ def test_trading_hedge_annual_has_hf_key(dash):
 
 
 def test_bill_shock_stays_in_a_plausible_band_across_the_decade(dash):
-    """THE CLAIM THAT REPLACES the 2022-vs-2020 one (2026-08-27).
-
-    `test_crisis_year_2022_worse_than_2020` is xfail-strict against
-    `docs/staging/done/WORKER_FINDING_THE_2022_CRISIS_IS_NOT_VISIBLE_IN_DOMESTIC_BILL_SHOCK_2026-08-27.md`:
-    measured three ways, 2022 is simply not the worse year, and the reason is that a capped
-    domestic tariff cannot pass a wholesale spike through at the moment it happens.
-
-    Retiring a claim must not retire the COVERAGE. What the old assertion really stood guard
-    over was that bill shock is a live, bounded quantity -- so that is asserted directly here,
+    """Written 2026-08-27 to stand in while the 2022-vs-2020 claim was xfail. That claim is live
+    again (2026-09-30) and this one stays beside it, because the two guard different things.
+    What the old assertion really stood guard over was that bill shock is a live, bounded quantity -- so that is asserted directly here,
     on every year rather than on two. A run where shock vanished (the company stopped billing,
     or the detector broke) or exploded (pass-through unbounded, the cap ignored) still reds.
 
