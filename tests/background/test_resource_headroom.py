@@ -95,7 +95,7 @@ def _hold(path, pid, weight_mb, starttime="12345", job_class="sim_run"):
 
 def test_denies_when_the_budget_is_exhausted_though_memory_looks_free(tmp_path):
     """MUTATION KILLED: dropping the declared-budget condition and admitting on measured
-    memory alone. Memory looks free here (16 GB available) precisely BECAUSE the 9.7 GB
+    memory alone. Memory looks free here precisely BECAUSE the 9.7 GB
     subject-cost job that declared has not allocated its peak yet -- the collision that has
     not happened YET. This is the real pairing: subject_cost (oom-killed at 9,648 MB) against
     a sim_run (peaked at 13.5 G on 2026-08-24), which together cannot fit the 24 GB guest
@@ -107,18 +107,24 @@ def test_denies_when_the_budget_is_exhausted_though_memory_looks_free(tmp_path):
     exists to prove while leaving it green on the first two assertions. The numbers here are
     chosen so the measured condition still ADMITS and only the budget refuses; the mutation
     killed is unchanged.
+
+    RE-SIZED 2026-09-30 when sim_run was re-derived to 7,066 MB, and now keyed to whatever the
+    weight is: the guest sits one MB short of fitting both, and availability leaves 500 MB over
+    the floor, so only the budget can refuse at any weight.
     """
     res = tmp_path / "reservations.json"
     _hold(res, pid=4242, weight_mb=9728, job_class="subject_cost")
     proc = _fake_proc(tmp_path, 4242)
+    w = rh.CLASS_WEIGHTS_MB["sim_run"]
 
     d = rh.admit("sim_run", reservations_path=res, proc_root=proc,
-                 **_sample_kwargs(tmp_path, total_mb=24000, available_mb=16000))
+                 **_sample_kwargs(tmp_path, total_mb=9728 + w + rh.RESERVE_FOR_UNDECLARED_MB - 1,
+                                  available_mb=w + rh.RESERVE_FOR_UNDECLARED_MB + 500))
 
     assert d["admitted"] is False
     assert "budget exhausted" in d["reason"]
     assert d["committed_mb"] == pytest.approx(9728)
-    # The measured condition would have ADMITTED this (16000 - 13824 > 1024): the denial can
+    # The measured condition would have ADMITTED this (500 MB over the floor): the denial can
     # only have come from the declared budget, which is what makes the pair independent.
     assert d["available_mb"] - d["weight_mb"] > rh.RESERVE_FOR_UNDECLARED_MB
 
@@ -426,25 +432,56 @@ def test_the_named_defect_fires_on_the_pre_fix_constant(monkeypatch):
     assert "fail-open" in alarm
 
 
-def test_the_re_derived_constant_covers_the_record_it_was_derived_from():
-    """ANTI-REGRESSION, and the reason this is not just a one-off edit.
-
-    The repair for the above was to re-derive the constant from systemd's record. This holds
-    that repair: whatever `sim_run` says today must still cover the peak that killed it. A
-    future edit that lowers it back under 13.5 G turns this red.
-    """
-    verdict = rh.weight_drift("sim_run", peaks_reader=_peaks(_REAL_PEAKS_MB))
-
-    assert verdict["drifted"] is False, verdict["detail"]
-    assert rh.weight_drift_alarm([verdict]) is None
+# Peaks systemd recorded for sim-runner.service 2026-09-19..09-30 -- the whole retained journal
+# when the weight was re-derived (82 runs); the extremes and the 24h window's top.
+_RETAINED_PEAKS_MB = [5.2 * 1024, 6.2 * 1024, 6.8 * 1024, 6.9 * 1024]
+_WINDOW_PEAKS_MB_2026_09_30 = [5.6 * 1024, 6.1 * 1024, 6.2 * 1024]
 
 
-def test_a_weight_that_still_covers_the_record_is_not_flagged():
+def test_the_re_derived_constant_matches_the_record_it_was_derived_from():
+    """ANTI-REGRESSION on the 2026-09-30 re-derivation, in BOTH directions: the weight must
+    neither fall under the retained record nor sit over-reserved against the 24h window it was
+    checked on. Raising it back toward 13,824 reds this as surely as lowering it under 6.9G."""
+    for peaks in (_RETAINED_PEAKS_MB, _WINDOW_PEAKS_MB_2026_09_30):
+        verdict = rh.weight_drift("sim_run", peaks_reader=_peaks(peaks))
+        assert verdict["drifted"] is False, verdict["detail"]
+        assert rh.weight_drift_alarm([verdict]) is None
+
+
+@pytest.mark.parametrize("declared, direction", [
+    pytest.param(13824, "over", id="over_declared_the_2026_09_stale_figure"),
+    pytest.param(6144, "under", id="under_declared_the_2026_08_stale_figure"),
+    pytest.param(7066, None, id="matched"),
+])
+def test_drift_reads_in_both_directions(monkeypatch, declared, direction):
+    """THE DEFECT: `drifted = peak > declared` read 13,824 MB against a 6.3 GB job as clean for
+    a month, and one deferral rested on the excess by accident. The partition is the control:
+    all three legs are reachable, or a check that flags everything (or nothing) passes.
+
+    MUTATIONS KILLED: dropping the over leg (13,824 reads clean); tolerance 0 (the matched
+    7,066 sits 717 MB above the window's 6,349 peak, so it reads over)."""
+    monkeypatch.setitem(rh.CLASS_WEIGHTS_MB, "sim_run", declared)
+
+    verdict = rh.weight_drift("sim_run", peaks_reader=_peaks(_WINDOW_PEAKS_MB_2026_09_30))
+
+    assert verdict["direction"] == direction, verdict["detail"]
+    assert verdict["drifted"] is (direction is not None)
+    alarm = rh.weight_drift_alarm([verdict])
+    if direction == "over":
+        assert "OVER-RESERVED" in alarm and "OUTGROWN" not in alarm
+    elif direction == "under":
+        assert "OUTGROWN" in alarm and "OVER-RESERVED" not in alarm
+    else:
+        assert alarm is None
+
+
+def test_a_weight_that_matches_the_record_is_not_flagged():
     """The FAIL side: a control that flagged a healthy weight would be worthless."""
-    verdict = rh.weight_drift("sim_run", peaks_reader=_peaks([2048.0, 3072.0]))
+    w = rh.CLASS_WEIGHTS_MB["sim_run"]
+    verdict = rh.weight_drift("sim_run", peaks_reader=_peaks([w - 512.0, w - 256.0]))
 
     assert verdict["drifted"] is False
-    assert "still covers" in verdict["detail"]
+    assert "matches" in verdict["detail"]
 
 
 @pytest.mark.parametrize(
@@ -564,10 +601,11 @@ def test_an_injected_journal_does_not_silently_recruit_the_real_boxes_live_peak(
     from the machine it happens to run on. Injecting either reader means the observation set
     is what was injected.
     """
-    verdict = rh.weight_drift("sim_run", peaks_reader=_peaks([2048.0]))
+    w = float(rh.CLASS_WEIGHTS_MB["sim_run"])
+    verdict = rh.weight_drift("sim_run", peaks_reader=_peaks([w]))
 
     assert verdict["live_peak_mb"] is None
-    assert verdict["observed_peak_mb"] == pytest.approx(2048.0)
+    assert verdict["observed_peak_mb"] == pytest.approx(w)
     assert verdict["drifted"] is False
 
 

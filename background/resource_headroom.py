@@ -128,14 +128,15 @@ RESERVE_FOR_UNDECLARED_MB = 1024
 # no measured weight and must pass one explicitly -- guessing on a caller's behalf is how a
 # budget becomes fiction (the 32 GB constant was exactly that).
 CLASS_WEIGHTS_MB = {
-    # tools.run_annual_report. RE-DERIVED 2026-08-24 from systemd's own record (see
-    # CLASS_UNITS and weight_drift below): fourteen OOM kills of sim-runner.service in one
-    # day, peaks 3.6G climbing to 13.5G, max 13,824 MB. The previous entry here said 6,144 MB
-    # "observed 5,548 MB RSS 2026-08-10" -- true when written and 2.2x short fourteen days
-    # later, because the book this job holds in memory grew under it. Budgeted AT the observed
-    # peak, like subject_cost: padding it would be the guess this table's own comment forbids,
-    # and `weight_drift` is the mechanism that keeps it current instead.
-    "sim_run": 13824,
+    # tools.run_annual_report via sim-runner.service. ORIGIN: systemd's journal, read through
+    # weight_drift's own reader (oom_watch.read_unit_memory_peaks_mb) 2026-09-30 -- 82 runs
+    # 2026-09-19..09-30, the whole retained record, max 6.9G (7,066 MB) on 09-27; the 24h window
+    # peaked at 6.2G. Budgeted at the retained maximum rather than the window's, because
+    # under-declaring is the fail-open side. The previous 13,824 MB was the 2026-08-24 peak and
+    # stood a month at twice the job's size, reading clean because drift was checked upward only.
+    # Do not raise it to keep sim-runner off a long job's box: that is
+    # sim_runner.cycle_admission's explicit yield, not this figure's job.
+    "sim_run": 7066,
     # tools.measure_publish_gate_subject_cost, oom-killed at 9,648 MB anon-rss 2026-08-10.
     # Budgeted at its observed peak: it is the largest single resident this project runs.
     "subject_cost": 9728,
@@ -156,6 +157,14 @@ CLASS_UNITS = {"sim_run": "sim-runner.service"}
 DRIFT_WINDOW = "-24h"
 
 
+#: How far a declared weight may sit ABOVE the observed peak before it reads over-declared.
+#: Under-declaring has no tolerance -- it is fail-open. Over-declaring is fail-closed but not
+#: free: at 13,824 MB against a 6.3 GB job it held back ~7 GB of a 24 GB guest and hid the fact
+#: that one deferral rested on it. ORIGIN: the budget's own reserve for undeclared residents --
+#: an over-reservation smaller than that margin is inside the error the budget already carries.
+OVER_DECLARED_TOLERANCE_MB = RESERVE_FOR_UNDECLARED_MB
+
+
 def weight_drift(job_class: str, since: str = DRIFT_WINDOW, journal_reader=None,
                  peaks_reader=None, live_reader=None) -> dict:
     """Has the world outgrown a declared weight? {job_class, declared_mb, observed_peak_mb, ...}
@@ -174,8 +183,10 @@ def weight_drift(job_class: str, since: str = DRIFT_WINDOW, journal_reader=None,
     table against a number derived from the table would be the tautology this rule names.
 
     `drifted` is TRISTATE and the third value is the point:
-      * True  -- the journal answered and the observed peak EXCEEDS the declared weight;
-      * False -- the journal answered and the weight still covers what was observed;
+      * True  -- the journal answered and the weight is wrong in EITHER direction (`direction`
+                 says which): "under" when the peak exceeds it, "over" when it exceeds the
+                 peak by more than OVER_DECLARED_TOLERANCE_MB;
+      * False -- the journal answered and the weight matches what was observed;
       * None  -- the journal could not be read, or the class has no unit. An unavailable
                  check is a FAILED check (R15), never a clean one, so None must not be
                  rendered as "no drift" by any caller.
@@ -190,6 +201,7 @@ def weight_drift(job_class: str, since: str = DRIFT_WINDOW, journal_reader=None,
         "live_peak_mb": None,
         "samples": 0,
         "drifted": None,
+        "direction": None,
         "detail": None,
     }
     if declared is None:
@@ -255,19 +267,29 @@ def weight_drift(job_class: str, since: str = DRIFT_WINDOW, journal_reader=None,
     peak = max(peaks)
     verdict["observed_peak_mb"] = round(peak, 1)
     verdict["samples"] = len(peaks)
-    verdict["drifted"] = peak > declared
-    if verdict["drifted"]:
+    if peak > declared:
+        verdict["direction"] = "under"
         verdict["detail"] = (
             f"{job_class!r} is declared at {declared:.0f} MB but {unit} peaked at "
             f"{peak:.0f} MB across {len(peaks)} run(s) in {since} -- the governor is sizing "
             f"this job at {peak / declared:.1f}x under its measured footprint, which admits "
             f"it into memory that is not there. Re-derive CLASS_WEIGHTS_MB[{job_class!r}]"
         )
+    elif declared - peak > OVER_DECLARED_TOLERANCE_MB:
+        verdict["direction"] = "over"
+        verdict["detail"] = (
+            f"{job_class!r} is declared at {declared:.0f} MB but {unit} peaked at only "
+            f"{peak:.0f} MB across {len(peaks)} run(s) in {since} -- {declared - peak:.0f} MB "
+            f"over-reserved, more than the {OVER_DECLARED_TOLERANCE_MB} MB tolerance. Any "
+            f"deferral that rests on the excess is an accident, not a decision. Re-derive "
+            f"CLASS_WEIGHTS_MB[{job_class!r}]"
+        )
     else:
         verdict["detail"] = (
-            f"{job_class!r} declared at {declared:.0f} MB still covers the {peak:.0f} MB "
+            f"{job_class!r} declared at {declared:.0f} MB matches the {peak:.0f} MB "
             f"peak observed across {len(peaks)} run(s) in {since}"
         )
+    verdict["drifted"] = verdict["direction"] is not None
     return verdict
 
 
@@ -277,9 +299,10 @@ def weight_drift_alarm(verdicts) -> str | None:
     An UNREADABLE verdict is reported, not swallowed: the whole failure mode is a weight
     nobody has checked lately, and "we could not check" is that same state.
     """
-    drifted = [v for v in verdicts if v.get("drifted") is True]
+    drifted = [v for v in verdicts if v.get("drifted") is True and v.get("direction") != "over"]
+    over = [v for v in verdicts if v.get("drifted") is True and v.get("direction") == "over"]
     unknown = [v for v in verdicts if v.get("drifted") is None]
-    if not drifted and not unknown:
+    if not drifted and not over and not unknown:
         return None
     parts = []
     if drifted:
@@ -287,6 +310,10 @@ def weight_drift_alarm(verdicts) -> str | None:
             "DECLARED JOB WEIGHT OUTGROWN: "
             + "; ".join(v["detail"] for v in drifted)
             + ". Until re-derived, admit() is fail-open for these classes."
+        )
+    if over:
+        parts.append(
+            "DECLARED JOB WEIGHT OVER-RESERVED: " + "; ".join(v["detail"] for v in over)
         )
     if unknown:
         parts.append(

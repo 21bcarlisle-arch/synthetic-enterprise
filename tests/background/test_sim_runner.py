@@ -484,6 +484,30 @@ def test_a_cycle_defers_beside_a_declared_long_job_and_names_the_pids_it_yields_
     assert receipts == [deferred]
 
 
+@pytest.mark.parametrize("weight_mb", [1024, 7066, 13824])
+def test_a_cycle_yields_to_an_ab6_pass_whatever_sim_run_is_declared_at(tmp_path, monkeypatch, weight_mb):
+    """THE DEFECT: the deferral beside a long job rested on a stale 13,824 MB weight. At an honest
+    ~7 GB, an 11,200 MB ab6 pass plus a cycle fits the budget, and the undeclared third resident
+    that killed 19:07Z is invisible to the arithmetic. So the yield is a stated rule, and this
+    holds it at any weight -- including one small enough that admit() alone certainly admits.
+
+    Fires on: cycle_admission dropping the yield (the 1024 and 7066 legs admit)."""
+    import json
+
+    monkeypatch.setattr(sim_runner, "log", lambda m: None)
+    monkeypatch.setattr(sim_runner.resource_headroom, "record_deferral", lambda d: None)
+    monkeypatch.setitem(sim_runner.resource_headroom.CLASS_WEIGHTS_MB, "sim_run", weight_mb)
+    box = _the_1907z_box(tmp_path)
+    box["launch_records_path"].write_text(json.dumps([{
+        "job": "ab5-runa2b", "unit": "longjob-ab5-runa2b", "claim": "live", "peak_mb": 11200.0,
+    }]), encoding="utf-8")
+
+    decision = sim_runner.cycle_admission(**box)
+
+    assert not decision["admitted"], decision["reason"]
+    assert "longjob-ab5-runa2b.service" in decision["reason"] and "1033543" in decision["reason"]
+
+
 def test_a_cycle_on_an_empty_box_runs_and_leaves_no_receipt(tmp_path, monkeypatch):
     """Fires on: a governor that defers everything, or a receipt written on admission."""
     lines, receipts = [], []

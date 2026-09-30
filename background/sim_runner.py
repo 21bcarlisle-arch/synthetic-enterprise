@@ -729,6 +729,12 @@ def cycle_admission(**admit_kwargs) -> dict:
     refuses to start a job beside residents, but this daemon never launches through it -- so the
     cycle asks here, and a long job's declared peak counts before it has been reached.
 
+    A cycle YIELDS to any resident long job, even when the declared arithmetic says both fit.
+    At an honest ~7 GB weight an 11.2 GB ab6 pass plus a cycle fits the 23 GB budget, but 19:07Z
+    died on a third, undeclared 5.2 GiB worker the arithmetic cannot see. A long job is a thesis
+    run hours in; a cycle is cheap to defer. This rule used to be carried by accident, by a stale
+    13,824 MB weight -- it is stated here so a correct weight cannot silently remove it.
+
     A refusal is logged with its reason (the units and pids it yields to) and receipted in the
     deferral log. The caller skips the cycle and asks again later; nothing is cancelled.
     """
@@ -737,6 +743,15 @@ def cycle_admission(**admit_kwargs) -> dict:
     except Exception as exc:  # noqa: BLE001 -- a governor that raises defers; it never kills the loop
         decision = {"job_class": "sim_run", "admitted": False,
                     "reason": f"the admission check raised {type(exc).__name__}: {exc}"}
+    if decision["admitted"] and decision.get("long_jobs"):
+        named = "; ".join(
+            f"{j['unit']} declared {j['peak_mb']:.0f} MB, pid(s) {', '.join(str(p) for p in j['pids'])}"
+            for j in decision["long_jobs"])
+        decision = {**decision, "admitted": False, "reason": (
+            f"yielding to a resident long job ({named}): the declared arithmetic fits "
+            f"({decision['committed_mb']:.0f}+{decision['weight_mb']:.0f} <= "
+            f"{decision['budget_mb']:.0f} MB) but cannot see undeclared residents, and a cycle "
+            f"is the cheaper thing to defer")}
     if not decision["admitted"]:
         log(f"DEFERRED this cycle -- {decision['reason']}")
         resource_headroom.record_deferral(decision)
