@@ -1542,23 +1542,18 @@
   lane: W1_market_weather
   value_stream: price_to_bill
   epoch: 3
-  level_current: 1
+  level_current: 2
   level_target: 3
   loop_stage: build
   dial_inherited: 60
   provenance: director_ruling
   blocked_on: null
-  block_reason: "ALL THREE LEGS READ THE PER-CELL STORE FOR THE WHOLE BOOK since 2026-09-30.
-    The 09-21 'HDD leg wired' was true of the 18-point roster only: 91 of the 95 gas premises the
-    run settles (76 PROS-*, 15 SYN-*) read the flat 1991-2020 monthly normal -- 2018 = 2022 -- until
-    `weather_inputs.adopt_book`; their 2022 HDD falls 16.4% on the mean. The runner half of steps 1
-    and 3 was in no commit until the same landing. Superseded texts are in git history.
-    STEP 2 DONE 2026-09-30: `book_cells` read the curriculum-filtered book, so the world's
-    coverage followed what the company sells (I&C unserved, Birmingham uncovered). It reads the
-    whole registered roster now; E407N0287 (Birmingham) and E457N0522 (Teesside) are pulled,
-    18/18 registered premises resolve, and the 339 prior cells are value-identical.
-    REMAINING: (3) judge what the drawn frame needs, and the level -- every premise the run
-    settles now reads its own cell, which is the reason this row gave for withholding L2."
+  block_reason: "L2 2026-09-30: every premise the run settles reads its own cell, on all legs
+    -- 250/250 of the published book (seed 20260724), which is why L2 was withheld. FOR L3, the
+    store covers ONE draw: at book seeds 7 and 42 only 106/243 and 118/250 resolve, and 11 and
+    88888 do not import (KeyError aq_kwh). Unreachable while EP17 refuses non-default book seeds;
+    that ruling needs `build_weather_world --build` over its seeds first. Record:
+    docs/staging/records/WORKER_RESULT_W1_14_L2_2026-09-30.md."
   depends_on: []
   couples_with: [W1_5_premise_demand_shape]
   file_scope: ['simulation/weather_cell_siting.py', 'simulation/weather_inputs.py', 'tests/simulation/test_weather_cell_siting.py']
