@@ -89,11 +89,22 @@ site published the typed number. `_collectible_test_functions` is the independen
 costs nothing this function was not already paying. It floors the figure and does NOT cap it --
 `@parametrize` expansion is unbounded, so only a real collection could -- and the published table
 says so in the reader's own words rather than letting one AGREES look like another.
+
+THE CAP IS A REAL COLLECTION, AND IT IS PAID ONLY WHERE THE FIGURE CAN BE TYPED (2026-09-30). The
+2026-09-17 pass recorded "no cheap ceiling" and that was true of a check that runs every publish
+cycle. It is not true of the one commit that can inflate the figure: the header only changes in a
+commit that stages it, and `--gate` already confines the figure half to exactly that commit. So
+`real_collection` runs there and nowhere else -- one ~48 s collection on a rare commit, no cost to
+any other lane. A static AST ceiling was measured first and cannot be sound: 85 test files
+parametrize over a name or a call, and nine more multiply through a mark stored in a variable
+(`@_RESOLVERS`) that no decorator-shape rule sees, so a static bound under-counted real collection
+in exactly the files it looked certain about.
 """
 from __future__ import annotations
 
 import ast
 import datetime as dt
+import os
 import re
 import subprocess
 import sys
@@ -676,6 +687,62 @@ def figure_verdicts(overview_text: str | None = None) -> list[dict]:
     return rows
 
 
+#: A real full-suite collection, measured 2026-09-30 at 7aa39b17a in a clean HEAD extract: 38,706
+#: items, 47.7 s wall, 1.14 GB peak RSS. The timeout is room for a loaded box, not a tolerance.
+COLLECTION_TIMEOUT_S = 600
+
+_COLLECTED_RE = re.compile(r"^(\d+) tests? collected in ", re.M)
+
+
+def real_collection(root: Path | None = None) -> tuple[int | None, str]:
+    """`pytest --collect-only` over `root`: the count, or None and the reason it has none.
+
+    A collection that ERRORED is not a count. pytest still prints a total, but it is the total of
+    the files that imported, so it sits BELOW the truth and would refuse an honest figure -- the
+    one direction a cap must never fail in. `-q` prints "N tests collected, M errors in" there,
+    which `_COLLECTED_RE` does not match, and a non-zero exit is refused as well.
+
+    GIT_* is stripped: inside the pre-commit hook git exports GIT_INDEX_FILE and friends, and a
+    test module that shells out to git at import time would read the hook's half-built index.
+    """
+    env = {k: v for k, v in os.environ.items() if not k.startswith("GIT_")}
+    try:
+        done = subprocess.run(
+            (sys.executable, "-m", "pytest", "--collect-only", "-q", "-p", "no:cacheprovider"),
+            cwd=str(root or PROJECT), env=env, capture_output=True, text=True,
+            timeout=COLLECTION_TIMEOUT_S)
+    except subprocess.TimeoutExpired:
+        return None, f"the collection did not finish inside {COLLECTION_TIMEOUT_S} s"
+    m = _COLLECTED_RE.search(done.stdout)
+    if done.returncode != 0 or m is None:
+        tail = (done.stdout.strip().splitlines() or ["(no output)"])[-1]
+        return None, f"the collection exited {done.returncode}: {tail}"
+    return int(m.group(1)), ""
+
+
+def apply_ceiling(rows: list[dict], collected: int | None, reason: str = "") -> list[dict]:
+    """Cap the `tests` row with a real collection of the tree this figure describes.
+
+    Only an `AGREES` can be moved: a figure already refused keeps the refusal it earned, and the
+    cap is not a second route to clearing one. `ABOVE_A_REAL_COLLECTION` is a refusal; a
+    collection that could not be taken leaves the row `AGREES` with `ceiling_unavailable` set, so
+    the table says the cap was not applied rather than implying it was.
+
+    Graded against the collection at the HIGH end of the window, which is where the gate stands:
+    the suite grows, so a figure honestly computed earlier in the window sits at or below it. A
+    deletion of tests between the author's count and the commit can red an honest figure; the
+    refusal prints the real count, so the fix is one edit and never a wrong number.
+    """
+    for r in rows:
+        if r["figure"] != "tests":
+            continue
+        r["ceiling"] = collected
+        r["ceiling_unavailable"] = reason if collected is None else ""
+        if collected is not None and r["verdict"] == "AGREES" and r["stated"] > collected:
+            r["verdict"] = "ABOVE_A_REAL_COLLECTION"
+    return rows
+
+
 def figure_refusals(rows: list[dict]) -> list[dict]:
     """A stated figure its own source never carried, in either direction.
 
@@ -691,7 +758,8 @@ def figure_refusals(rows: list[dict]) -> list[dict]:
     deleted, which is exactly why it exists.
     """
     return [r for r in rows if r["verdict"] in ("OVERSTATES", "UNDERSTATES", "SOURCE_GONE",
-                                                "BELOW_THE_INDEX_FLOOR")]
+                                                "BELOW_THE_INDEX_FLOOR",
+                                                "ABOVE_A_REAL_COLLECTION")]
 
 
 def assess(today: dt.date | None = None) -> list[dict]:
@@ -790,6 +858,9 @@ def _render_figures(rows: list[dict] | None) -> list[str]:
         if r["verdict"] == "BELOW_THE_INDEX_FLOOR":
             band = (f"**at least {r['floor']:,}** -- the test functions the git index carries, "
                     "which no collection can be smaller than")
+        elif r["verdict"] == "ABOVE_A_REAL_COLLECTION":
+            band = (f"**at most {r['ceiling']:,}** -- what a real collection of this tree "
+                    "returned")
         elif r["band_low"] is not None:
             band = f"{r['band_low']:,} – {r['band_high']:,}"
         elif r["verdict"] == "SOURCE_GONE":
@@ -810,10 +881,12 @@ def _render_figures(rows: list[dict] | None) -> list[str]:
             "**These four verdicts are not all worth the same, and the reader is owed that.** "
             "`commits`, `lines` and `modules` are graded against git, which nobody can type into. "
             "`tests` is graded against another hand-typed line -- CLAUDE.md's Build stamp -- so "
-            "its band is only as independent as that line is, and it is floored, but not capped, "
-            "by the index. An `AGREES` on `tests` therefore rules out a count that is too small "
-            "and does not rule out one that is too large: a figure inflated in both documents at "
-            "once would still read as agreeing. That gap is named rather than papered over.",
+            "its band is only as independent as that line is. It is floored by the index on every "
+            "run. It is CAPPED by a real collection only at the commit that writes the figure "
+            "(`ABOVE_A_REAL_COLLECTION` refuses there), because that collection costs most of a "
+            "minute and the figure cannot change anywhere else. So on this published table an "
+            "`AGREES` on `tests` rules out a count that is too small; that it is not too large "
+            "was checked when the sentence was last committed, not on this run.",
             ""]
     return out
 
@@ -856,6 +929,10 @@ def main(argv: list[str] | None = None) -> int:
         overview_rel = str(OVERVIEW.relative_to(PROJECT))
         figure_rows = (figure_verdicts(overview_text)
                        if (not gated or overview_rel in touched or overview_text) else [])
+        # The cap runs where the figure can be TYPED -- the commit staging the header -- or when
+        # asked. Not on the publish path: see `real_collection` for the cost.
+        if figure_rows and ((gated and overview_rel in touched) or "--ceiling" in argv):
+            apply_ceiling(figure_rows, *real_collection())
     except AnchorRefusal as exc:
         # FAILS CLOSED. Unlike the next-step gate (one missed trailer is recoverable), an
         # unmeasurable startup surface is the exact condition being guarded against.
@@ -886,6 +963,13 @@ def main(argv: list[str] | None = None) -> int:
                   "is a source that was taken away, not one that never existed, and leaving it as "
                   "an unchecked figure is how this check gets switched off. Restore the source, or "
                   "point this figure at the one that replaced it.", file=sys.stderr)
+            continue
+        if r["verdict"] == "ABOVE_A_REAL_COLLECTION":
+            print(f"[startup-anchors] REFUSED: the startup header says {r['stated']:,} tests "
+                  f"collected, and a real collection of the tree this commit creates returned "
+                  f"{r['ceiling']:,}. The index floors this figure and a collection caps it; both "
+                  "documents agreeing with each other is not evidence, because both are typed. "
+                  "Correct BOTH to the collected count.", file=sys.stderr)
             continue
         if r["verdict"] == "BELOW_THE_INDEX_FLOOR":
             print(f"[startup-anchors] REFUSED: the startup header says {r['stated']:,} tests "

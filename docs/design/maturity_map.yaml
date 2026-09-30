@@ -1616,8 +1616,7 @@
   #   questions are now repaired, and EH-3's repair caught the defect LIVE on this tree.
   level_target: 3
   loop_stage: harden   # L2->L3 waits on a SECOND blind pass -- a verdict cannot certify the
-  #   repairs it prescribed -- and on EH-3's named residual: the tests figure is floored by the
-  #   index but NOT capped, so an overstatement typed into both documents still reads AGREES.
+  #   repairs it prescribed. EH-3's residual (no cap) is repaired 2026-09-30: see the store.
   dial_inherited: 12    # presentation, not product. Ranked with H31, below the R-set: the header
   #   is now correct and gated for STALENESS, so what is left is preventing the next drift rather
   #   than repairing a live wrong page.
