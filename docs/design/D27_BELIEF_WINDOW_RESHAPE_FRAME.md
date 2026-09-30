@@ -1494,3 +1494,69 @@ gives 1 failed.
 The four defect-assertions: two restated in §20, one here (`recency_contribution`). One is left,
 `test_the_reshape_moves_no_published_figure`. The null control is done in the sense of §21.1. Not
 touched: the five D30/D33 sibling claims and the four publication surfaces.
+
+---
+
+## 22. BUILD pass 13 — 2026-09-30 (worker tick, BUILD lane) — the last defect-assertion, and a class control the frame never listed
+
+The origin is still 400, no level moved, `CAVEAT_COVERAGE_PROBES` untouched (§19.4). The candidate
+origin was substituted in the process through the §17.4 `flip_plugin`, never in the tree.
+
+### 22.1 `test_the_reshape_moves_no_published_figure` restated
+
+At 90 it red on `all(co_read_dimensions_identical)`: `belief` and `belief_population_mix` read
+different figures at the two reading dates. Measured through the shipped
+`measure_detection_resolution`, seed 7, n=300, window set by `organ_failure_window_drift_days`:
+
+| window | detection | detection_latency | belief | belief_population_mix |
+|---|---|---|---|---|
+| 400 | same | same | same | same |
+| 92 | same | same | same | same |
+| 91 | same | same | same | same |
+| 90 | same | same | **moves** | **moves** |
+| 89 | same | same | **moves** | **moves** |
+
+The edge is exactly the book's oldest observed failure (`_OLDEST_OBSERVED_FAILURE_AGE_DAYS[7]` = 91).
+The node now builds three arms at explicit windows (the shipped origin, 91 and 90), so both sides of
+the edge run whatever the origin is, and asserts: non-memory dimensions always identical; memory
+dimensions identical when the window reaches the oldest failure; at least one of them moves when it
+does not. It also asserts that both sides were reached. Green at 400 and at 90. **R15, three
+mutations through a wrapping plugin:** co-read forced all-identical (fires on the 90 arm), `belief`
+forced to move (fires on the 400 arm), `detection` forced to move (fires on the 400 arm). All three
+give 1 failed.
+
+That was the last of §17.3's four defect-assertions.
+
+### 22.2 NEW FINDING — the as_of class control reds at the flip, and the frame never listed it
+
+`test_every_dimension_declares_its_as_of_contract_and_the_declaration_is_measured` fails at 90:
+`belief: declared gap_is_as_of_invariant=True but the gap went 0.1866 -> 0.4925 over 60 days`
+(n=250, `_SEED`). No section of this frame names the as_of contract. §17.3's "33 named failures"
+names 14 of them, so this one sat in the unnamed remainder.
+
+It is not a test rewrite. `DIMENSION_AS_OF_CONTRACT["belief"]["why"]` says the invariance holds
+because "a failure does not resolve itself by the clock moving". That is true of the TRUTH side. On
+the company side the failure window is a clock, and past the book's span it only looked frozen.
+After the flip the declaration is false for both belief dimensions. The control's only sanctioned
+exemption shape ("VIOLATES THE INVARIANT" plus naming D11) does not fit either. That shape is for a
+figure that moves because of the question's timing. This one moves because of a company parameter,
+which is the thing the dimension exists to grade. The flip commit therefore has to decide between:
+
+* a third contract kind: the gap moves on a company-side clock and that movement is a measurement,
+  keyed to the saturation property (§22.1's edge) rather than a literal; or
+* a truth side that also forgets. That would change what "at risk" means, and it is not D27's
+  decision.
+
+The first is recommended. §22.1 already shows the property is sharp and measurable. Two knock-ons
+follow. `DETECTION_CO_READ_DIMENSIONS` is derived from the declaration, so the belief dimensions
+leave the co-read set by themselves and §22.1's memory arm goes empty. The node stays green because
+its non-memory arm and the both-sides guard do not depend on them. Second, R15 must-fire #1
+(`test_the_as_of_class_control_fires_when_a_clean_dimension_starts_drifting`) poisons `belief` on
+the premise that it "measures clean today". After the flip it has to poison a dimension that still
+measures clean.
+
+### 22.3 Where §17.3 stands
+
+Defect-assertions: 4 of 4 restated. Null control: done (§21.1). Still pinned: the five D30/D33
+sibling claims, the four publication surfaces, the register node (§21.1) and, new here, the as_of
+class control (§22.2). That last one belongs to the flip commit with the contract edit.
