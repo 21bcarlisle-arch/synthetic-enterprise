@@ -500,3 +500,88 @@ def test_a_commit_that_does_not_stage_the_map_asks_the_index_for_NOTHING(tmp_pat
     assert gate._map_is_staged() is False, (
         "the map is not staged here, so the gate must not go to the index for it at all"
     )
+
+
+# --- a trailer naming a PARKED atom ------------------------------------------------------------
+
+_PB8 = "PB8_a_households_payment_channel_changes_over_its_tenure"
+_PB8_REASON = ("SOURCED 2026-09-30, NO RATE: no normal-year gross rate is published for any route "
+               "(gb_payment_method_migration_rates.md); only 2022's crisis count exists.")
+_PB6 = "PB6_the_engagement_observable_crosses_the_seam"
+
+
+def test_a_NEXT_naming_a_PARKED_atom_is_refused_and_the_partition_is_reachable():
+    """46b78123f, as it happened: PB6's commit named `NEXT: PB8`, PB8 was parked waiting for a rate
+    nobody publishes, and PB6's own step then had no drawer. The trailer passed because the gate
+    asked only whether PB8 existed.
+
+    Over the whole partition in one control, so a check that refuses everything fails the drawable
+    and `none` legs, and one that refuses nothing fails the parked leg."""
+    open_ = {_PB6, _PB8, "C29_decisions_stop_being_lookup_tables"}
+    parked = {_PB8: _PB8_REASON}
+    subject = f"PB6 EH-2 graded on the repaired world\n\n{_PB6} moves on.\n\n"
+
+    drawable = gate.verdict(subject + "NEXT: C29_decisions_stop_being_lookup_tables\n",
+                            open_, parked=parked)
+    refused = gate.verdict(subject + f"NEXT: {_PB8}\n", open_, parked=parked)
+    released = gate.verdict(subject + "NEXT: none -- waits on PB8's rate being published\n",
+                            open_, parked=parked)
+
+    assert drawable[0] and released[0] and not refused[0], (drawable, refused, released)
+    assert "parked" in refused[1]
+    assert _PB8_REASON in refused[1], "the refusal must quote the block_reason it refused on"
+    assert "NEXT: <atom_id>" in refused[1] and "NEXT: none -- " in refused[1], (
+        "the refusal must offer both legal shapes")
+
+
+def test_only_an_IDLE_atom_with_a_reason_is_parked_so_a_build_atom_carrying_status_prose_is_not():
+    """`block_reason` alone is not the park. Atoms at `build` carry one as a status line on work
+    still moving, and refusing them would push a live handover onto `none`. Idle with no reason is
+    unranked, not blocked. This reads the live map, so it is keyed to the property and not to
+    which atoms happen to be parked today."""
+    from tools import maturity_map_store
+
+    parked = gate.parked_atom_reasons()
+    atoms = maturity_map_store.load_live_atoms()
+    assert parked, "no parked atom on the live map: the refusal leg has nothing to bite on"
+    for a in atoms:
+        is_parked = a.get("loop_stage") == "idle" and bool(str(a.get("block_reason") or "").strip())
+        assert (a["id"] in parked) is is_parked, a["id"]
+        if is_parked:
+            assert parked[a["id"]] == str(a["block_reason"]).strip()
+
+
+def test_the_PARKED_leg_fires_WHEN_RUN_THE_WAY_THE_HOOK_RUNS_IT(tmp_path):
+    """The script path, against the live map, for the same reason as the hook-way control above:
+    the fail-open branch would swallow an import error in the new reader and every pure control
+    would stay green."""
+    import subprocess
+    import sys as _sys
+
+    from tools.next_step_gate import PROJECT, open_atom_ids
+
+    parked = gate.parked_atom_reasons()
+    open_ids = sorted(open_atom_ids())
+    live = [a for a in open_ids if a not in parked]
+    assert parked and len(live) >= 2, "the live map cannot populate every leg of this control"
+    subject = live[0]
+    # Neither trailer may be read as the commit's own subject, or self-succession refuses first.
+    named = gate.atoms_named_in(f"advance {subject}", set(open_ids) | set(parked))
+    successor = next(a for a in live if a not in named)
+    parked_id = next(a for a in sorted(parked) if a not in named)
+
+    def run(trailer: str) -> subprocess.CompletedProcess:
+        msg = tmp_path / "COMMIT_EDITMSG"
+        msg.write_text(f"advance {subject}\n\nNEXT: {trailer}\n")
+        return subprocess.run(
+            [_sys.executable, "tools/next_step_gate.py", str(msg)],
+            cwd=str(PROJECT), capture_output=True, text=True, timeout=120,
+        )
+
+    drawable, refused, released = (run(successor), run(parked_id),
+                                   run("none -- the line waits on its park"))
+
+    assert (drawable.returncode, refused.returncode, released.returncode) == (0, 1, 0), (
+        drawable.stderr, refused.stderr, released.stderr)
+    assert "not blocking" not in refused.stderr + drawable.stderr
+    assert parked[parked_id][:60] in refused.stderr

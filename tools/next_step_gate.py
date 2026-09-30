@@ -154,6 +154,26 @@ def open_atom_ids() -> set[str]:
     return out
 
 
+def parked_atom_reasons() -> dict[str, str]:
+    """{atom_id: block_reason} for live atoms a `NEXT:` trailer may not hand work on to.
+
+    PARKED MEANS `loop_stage: idle` WITH A `block_reason`, not a `block_reason` alone.
+    `background/blocked_atom_visibility.is_parked` keys the park to `idle` because atoms at
+    `build` carry a `block_reason` too, as a status line on work that is still moving (W1_14's
+    reads "ALL THREE LEGS READ THE PER-CELL STORE"). Refusing those would push handovers onto
+    `none` when the successor is live. An idle atom with no reason is also left alone. It is
+    unranked rather than blocked, and the discover lane draws from idle atoms.
+    """
+    from tools import maturity_map_store
+    out = {}
+    for atom in maturity_map_store.load_live_atoms():
+        aid = atom.get("id")
+        reason = str(atom.get("block_reason") or "").strip()
+        if aid and reason and atom.get("loop_stage") == "idle":
+            out[aid] = reason
+    return out
+
+
 def atoms_named_in(message: str, known: set[str]) -> set[str]:
     """Which open atoms this commit message names -- BY FULL ID OR BY NUMBER.
 
@@ -251,12 +271,18 @@ def _map_is_staged() -> bool:
 
 
 def verdict(message: str, known_open: set[str],
-            moved: dict[str, tuple[int, int]] | None = None) -> tuple[bool, str]:
+            moved: dict[str, tuple[int, int]] | None = None,
+            parked: dict[str, str] | None = None) -> tuple[bool, str]:
     """(passes, explanation). Pure, so the controls can drive it without a repo or a commit.
 
     `moved` is what the STAGED MAP DIFF says this commit did -- {atom_id: (from, to)} from
     `staged_level_moves()`. It defaults to nothing moved, so every caller that asks only the old
     question gets the old answer; `main()` is what supplies it.
+
+    `parked` is {atom_id: block_reason} from `parked_atom_reasons()`. A trailer naming one of
+    those is refused. 46b78123f passed PB6 on with `NEXT: PB8`, PB8 was parked waiting for a rate
+    nobody publishes, and PB6's own next step then had nobody to draw it. The trailer was valid
+    and it pointed at nothing.
     """
     # THE SUBJECT IS THE COMMIT, NOT ITS TRAILER. `atoms_named_in` scans the whole message, so a
     # successor named on the NEXT line names itself -- and the self-succession refusal below would
@@ -313,6 +339,18 @@ def verdict(message: str, known_open: set[str],
                 "machinery in front of it instead. That is the exact failure this gate exists to "
                 "prevent and it passed five times.\n"
                 "Mint the next bounded step and name THAT, or `NEXT: none -- <reason>`."
+            )
+        reason = (parked or {}).get(raw)
+        if reason is not None:
+            return False, (
+                f"NEXT names `{raw}`, which the map has parked:\n"
+                f"    block_reason: {reason}\n"
+                "A parked atom is not drawn, so handing work to it hands it to nobody -- the "
+                "step this commit leaves behind goes undrawn until the park releases.\n"
+                "Name a successor that is drawable now:\n"
+                "    NEXT: <atom_id>          (not parked; mint the bounded step if none exists)\n"
+                "or say that the line waits, and on what:\n"
+                "    NEXT: none -- <what releases the park>"
             )
         if raw in known_open or _looks_like_atom_id(raw):
             continue
@@ -406,6 +444,7 @@ def main(argv: list[str]) -> int:
         return 0
     try:
         known = open_atom_ids()
+        parked = parked_atom_reasons()
     except Exception as exc:  # noqa: BLE001
         # FAILS OPEN, LOUDLY, AND THE CHOICE IS DELIBERATE. This gate runs on every commit in a
         # tree several lanes write at once; an unreadable map would otherwise wedge all of them.
@@ -424,7 +463,7 @@ def main(argv: list[str]) -> int:
               file=sys.stderr)
         moved = {}
 
-    ok, why = verdict(message, known, moved)
+    ok, why = verdict(message, known, moved, parked)
     if not ok:
         print("[next-step-gate] COMMIT REFUSED.\n" + why, file=sys.stderr)
         return 1
