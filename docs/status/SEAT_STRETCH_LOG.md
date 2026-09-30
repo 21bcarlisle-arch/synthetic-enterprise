@@ -8,6 +8,147 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-10-01 — orientation: THE LEVER HAS MOVED AGAIN, AND ONE STEP CLOSER TO THE THESIS
+
+<!-- head: ebc9af681c88 -->
+
+*Written by the orientation seat from its own record (2026-09-30T23:20:58.042440+00:00; 9 commits, 4 substantive, since 2026-09-30T20:22:46.532615+00:00).*
+
+## What the stretch meant
+
+THE LEVER HAS MOVED AGAIN, AND ONE STEP CLOSER TO THE THESIS. Last stretch named the cause: the per-customer arm loses only through a retention belief with no ranking power (pin AUC 0.486, belief-vs-world correlation -0.255). This stretch asked whether PB6's re-centring of the engagement factor fixes that. The interim answer is that it barely touches it. C0 reproduces runP1's 61001 to the bit, so the single-arm instrument is valid. On that seed PB6 changes 79 of 110 paired beliefs, but by at most 0.0089: AUC 0.578 against 0.579, corr -0.253 against -0.252. The pre-run split shows why. Within direct debit, 80% of first renewals, the belief anti-ranks the world at -0.383, and PB6 moves the direct-debit factor by ~0.02. So the engagement factor is not what orders the belief on this book. The other terms of max(rate_estimate, payment_estimate) x market multiplier do, and one of them points the wrong way. That is progress against the thesis. The advantage must come from inference, and the question is now which input of one estimator is inverted, not whether per-customer pricing can work. Accounts whose tenure the offer did not change still earn +£800 per seed. The next step is a decomposition on artefacts that already exist, not another long run. The six-seed PB6 leg (pid 2244605) is still running and expected ~00:20Z; it is not to be relaunched. On the machine: all three previous focus items were drawn. The ledger/path-check fix is built and gated (ebc9af681, five mutations red), but it is on HEAD ONLY. HEAD is 1 ahead and 14 behind origin, and a reconcile surgical_land --merge is running now. A receipted land that origin does not carry is exactly the shape the land-twice and divergence rows describe, so that row stays open until origin holds the commit. The boot-sha item was drawn at 23:17Z and is in hand. 9 commits, 4 substantive by the brief's count; 3 are empty reconcile merges, the ordinary empty. The launch register now reads hgc-suite-timing as finished, success, so the register and the box agree again. The class behind that row, a /var/tmp driver launched against an unchecked API, is not fixed. The PB6 worker's prereg records its own hook-bypass. It made a throwaway --no-verify commit in a scratch worktree and reset it within the minute, before anything ran. It said so on the record, which is right; it is listed below as a wall crossing all the same.
+
+## What went wrong
+
+- NOT corrected: MINE, NEW. Last focus asked for a 3.5h six-seed run to learn whether PB6 fixes the ranking. The worker's pre-run reading of the pin, split by channel, showed PB6 cannot touch the within-direct-debit anti-ranking before anything was launched. I should have asked for the pin-only split first and the run only if the split left the question open.
+- corrected: THE MACHINE'S, NEW. The PB6 ranking worker made a throwaway --no-verify commit in a scratch worktree, which crosses the hook-bypass wall. It reset the commit within the minute, before anything ran, and recorded the slip itself in the prereg. The instance is undone. Nothing in a scratch worktree refuses the shape.
+- NOT corrected: THE MACHINE'S, NEW. ebc9af681 carries a surgical-land receipt (gate-rc 0) and sits on the shared HEAD only. origin/main does not contain it, so a gated land reads as done and no reader of origin sees it. How it got there is not yet read. It is in focus.
+- corrected: MINE, NEW (last stretch). Last stretch I recommended the director authorise the EP17 four-book pilot, before the attribution I had put in focus had read. The attribution showed the loss runs through a retention belief with AUC ~0.49. I asked him to spend attention on a design that would mostly re-measure that noise, and I should have held the ask until the cause was named.
+- corrected: MINE, NEW (last stretch). Last thesis_read opened "it points the wrong way" and said the per-customer arm "loses on every draw so far". I also gave X1a ~65% and X1b ~55%. X1 refuted both: 1 of 6 positive, and the CI is [-£4,908, +£156]. The answer is "cannot say", not "no".
+- corrected: MINE, NEW (last stretch). I wrote `wrong` fourteen times between 25 and 30 September and never listed the stretch log going silent (121.7h, 330 commits), though this orientation is the one writer that is always present. The director had to notice it himself.
+- corrected: THE MACHINE'S, NEW (last stretch). surgical_land --merge printed "landed MERGE 1918a0820" and exited rc 0, yet no ref contains 1918a0820. A land can report success while landing nothing.
+- NOT corrected: THE MACHINE'S, CARRIED. The brief measures the stretch over HEAD and origin together, and its divergence line counts patch-equivalent copies, so 21 commits with no origin equivalent read as "8 of 8 carrying work" and a count of 25 ahead. origin_reconcile has logged REFUSED_CONFLICT every cycle for hours, and nothing raised it past its own log.
+- NOT corrected: THE MACHINE'S, CARRIED. One item can land twice, once on origin through surgical_land and once as a local commit on the shared HEAD with different bytes (four pairs last stretch). The copies then conflict, and the reconcile cannot merge the machine's own work. ebc9af681 is a live HEAD-only instance this stretch.
+- corrected: THE MACHINE'S, CARRIED. The lane-0 ledger grades the 03:12Z draw of grade-the-ab6-bridge-leg as landed_elsewhere under 51417dba4, because that commit touched the same prereg path. The bridge grade actually landed as 504b42a37. A path match is read as the work. It attributed item two's 09:55 bytes to the grade item by time, and graded grade-ab6-pilots-once-runp2-exists as landed_unbound under dd5f33581, a W1_14 weather commit.
+- corrected: THE MACHINE'S, CARRIED. sim-runner's deferral under a long job rests on CLASS_WEIGHTS_MB["sim_run"] = 13,824 MB, about twice the observed 6,317 MB. weight_drift checks one direction only, so it reads drifted=False. The protection is correct by accident of a stale figure.
+- NOT corrected: THE MACHINE'S, CARRIED. The launch register recorded hgc-suite-timing as died at 19:49:09Z (its /var/tmp driver called resource_headroom.admitted(), which does not exist), while a process of the same driver path was on the box. The register now reads it finished, success, so the two agree again. Nothing checks that a hand-written /var/tmp driver calls an API that exists.
+- corrected: THE MACHINE'S, CARRIED. Item two's surgical_land (pid 837396) ran 1h25m, exited, and put nothing on any ref. Why that land exited empty was never read. Closed as UNESTABLISHABLE, not explained: 9df2d9c0f read the sibling 1918a0820 and found no reflog anywhere holding it, and the door now refuses that shape with a non-zero exit.
+- NOT corrected: THE MACHINE'S, CARRIED. A control or door whose shape changes must re-run every fixture that builds a synthetic tree to drive it, and no control requires it. citation_at_head, red_at_head and fork_state in docs/observability/.publish_gate_state.json still read not_established.
+- NOT corrected: THE MACHINE'S, CARRIED. A refusal naming a commit is not re-asked against the remote ref before a reader sees it. liveness_surface_refusal is still not re-asked.
+- NOT corrected: MINE, CARRIED. evaluate_boot_sha_drift() in background/process_reconciler.py grades every daemon against local HEAD, and misreads when HEAD and origin diverge during a reconcile. HEAD is 1 ahead and 14 behind origin now. The item is drawn and in hand, and still unsettled.
+- NOT corrected: THE MACHINE'S, CARRIED. The stash-completeness sweep reports a genuinely lost file as safe. It is still not on the map.
+- NOT corrected: THE MACHINE'S, CARRIED. The lane-0 block and the path check read HEAD or a local ref, not origin. The fix is built and gated with five mutations red (ebc9af681), but it is on HEAD only. It is not corrected until origin carries it, which is in focus.
+- NOT corrected: THE MACHINE'S, CARRIED. Nothing on the landing path asks whether a same-subject untracked sibling is left behind in the shared tree. The 14-path refusal in 662da7fd3 is an instance.
+- NOT corrected: MINE, CARRIED. not_now is prose, and nothing a launch from another lane reads. The launcher in b50a03519 and the --book-seeds refusal in 19ca27dbc each turn one instance into a mechanism, and the class stays open.
+
+## Chosen against
+
+- Changing enriched_churn_estimate.py, or unparking PB7's learning rule, now.
+- Re-sending the EP17 four-book pilot ask to the director.
+- Re-running the full ab6 A/B at origin/main.
+- A second PB6 run, or any new long run, to answer the decomposition.
+- Binding the lane-0 not_done rows (grade-ab6-pilots-once-runp2-exists as premise_spent; grade-the-ab6-bridge-leg as landed under 504b42a37).
+- A heartbeat line for the mute worker-seat-manager.
+
+## Focus for the next stretch
+
+- `read-the-retention-estimates-ranking-at-pb6`
+- `name-the-input-that-anti-ranks-the-retention-belief`
+- `re-establish-boot-sha-drift-against-origin`
+- `the-ledger-fix-reaches-origin`
+
+---
+
+## 2026-09-30 — orientation: FOR THE FIRST TIME, THE BASELINE QUESTION HAS A NAMED CAUSE AND NOT JUST A SIGN, AND THE CAUSE IS EXACTLY WHAT THE THESIS SAYS DECIDES IT: INFERENCE
+
+<!-- head: 8a1ec06afbe0 -->
+
+*Written by the orientation seat from its own record (2026-09-30T20:22:46.532615+00:00; 19 commits, 10 substantive, since 2026-09-30T17:24:51.786827+00:00).*
+
+## What the stretch meant
+
+FOR THE FIRST TIME, THE BASELINE QUESTION HAS A NAMED CAUSE AND NOT JUST A SIGN, AND THE CAUSE IS EXACTLY WHAT THE THESIS SAYS DECIDES IT: INFERENCE. The attribution section of the ab6 prereg (08efb6b8f, ~18:55Z) splits the six-seed mean of -£2,375.99 into three parts that sum to it exactly. Accounts whose tenure the offer did not change earn +£800 per seed for the per-customer arm, positive on 5 of 6 seeds, so pricing each customer works. The whole negative centre comes from tenure switches. The value arm loses a customer the flat arm keeps (-£6,047 per seed) far more often than the reverse (+£2,870). It raised prices on 237 of 411 first renewals and lost 11 customers there against 3 on the other side, which is what the offers predict and not a bad roll. The steering signal is the company's retention belief. Its AUC is 0.486 averaged over the six seeds, and its correlation with the world's p_retain at the same offer is -0.257. SYN-2016-034 was believed 0.911 and left. So the supplier is not yet beating average because it does not yet predict who stays better than chance. That moves the thesis's next step off "more seeds" and off "a different book" and onto one estimator, which is the right place for the lever. It also changes my recommendation. Last stretch I asked the director for the EP17 four-book pilot. Varying the book under an estimator with no ranking power would mostly measure that estimator's noise four times over. I am withdrawing the ask, not re-sending it, and it moves to not_now. Whether PB6's re-centring (f9b04ddc7, 46b78123f, both on origin and not in the pin a322166cc) fixes ranking or only level is the open question, and it goes first. On the machine, all three previous focus items were drawn and landed, and the path check reads nothing to land on each, so they leave focus. X1 was graded in 32c04d778, and the attribution landed in 08efb6b8f. The lane-0 ledger now attributes by the item (b36addf94). This brief shows the evidence: 51417dba4 now appears only as "path_touched_by ... a hint, not a disposition", and dd5f33581 is no longer credited to the pilot item. That item now reads not_done. Its honest disposition is premise_spent, because the pilots were graded under grade-ab6-bridge-and-pilots. The ledger no longer lies about it, but nobody has bound it yet. weight_drift reads both directions and sim_run is re-derived to 7,066 MB, with the deferral kept as a rule (38ee201e6). The stretch log is live. `tools/stretch_log.py --check` now reads 11 commits since the last report, where the previous orientation saw 124.7h and 360 commits, so my row on its silence is corrected. The stretch had 19 commits and 14 carried work. The five empties are four reconciliation merges and two heartbeats, one of which is also among the merges. That is the ordinary empty. HEAD is 8 behind origin at this reading, not ahead, so the HEAD-reads rows in `wrong` have a live instance again and one takes a harness slot. One long job died. The hgc-suite-timing driver in /var/tmp called resource_headroom.admitted(), which does not exist, 3 seconds after launch. A driver of the same path has been alive for 33 minutes, so the register and the box disagree about that job, and it is recorded here but not taken into focus. 25861c1f4 found the direction commit itself failing 18 times in 40 orientations, logging only a count. It now logs why, so the next brief should show whether this record landed.
+
+## What went wrong
+
+- corrected: MINE, NEW. Last stretch I recommended the director authorise the EP17 four-book pilot, before the attribution I had put in focus had read. The attribution showed the loss runs through a retention belief with AUC ~0.49. I asked him to spend attention on a design that would mostly re-measure that noise, and I should have held the ask until the cause was named.
+- corrected: MINE, NEW. Last thesis_read opened "it points the wrong way" and said the per-customer arm "loses on every draw so far". I also gave X1a ~65% and X1b ~55%. X1 refuted both: 1 of 6 positive, and the CI is [-£4,908, +£156]. The answer is "cannot say", not "no".
+- corrected: MINE, NEW. I wrote `wrong` fourteen times between 25 and 30 September and never listed the stretch log going silent (121.7h, 330 commits), though this orientation is the one writer that is always present. The director had to notice it himself.
+- corrected: THE MACHINE'S, NEW. surgical_land --merge printed "landed MERGE 1918a0820" and exited rc 0, yet no ref contains 1918a0820. A land can report success while landing nothing.
+- NOT corrected: THE MACHINE'S, NEW. The brief measures the stretch over HEAD and origin together, and its divergence line counts patch-equivalent copies, so 21 commits with no origin equivalent read as "8 of 8 carrying work" and a count of 25 ahead. origin_reconcile has logged REFUSED_CONFLICT every cycle for hours, and nothing raised it past its own log.
+- NOT corrected: THE MACHINE'S, NEW. One item can land twice, once on origin through surgical_land and once as a local commit on the shared HEAD with different bytes (four pairs this stretch). The copies then conflict, and the reconcile cannot merge the machine's own work.
+- corrected: THE MACHINE'S, NEW (last stretch). The lane-0 ledger grades the 03:12Z draw of grade-the-ab6-bridge-leg as landed_elsewhere under 51417dba4, because that commit touched the same prereg path. The bridge grade actually landed as 504b42a37. A path match is read as the work. It attributed item two's 09:55 bytes to the grade item by time, and graded grade-ab6-pilots-once-runp2-exists as landed_unbound under dd5f33581, a W1_14 weather commit.
+- corrected: THE MACHINE'S, NEW (last stretch). sim-runner's deferral under a long job rests on CLASS_WEIGHTS_MB["sim_run"] = 13,824 MB, about twice the observed 6,317 MB. weight_drift checks one direction only, so it reads drifted=False. The protection is correct by accident of a stale figure.
+- NOT corrected: THE MACHINE'S, NEW. The launch register records hgc-suite-timing as died at 19:49:09Z (its /var/tmp driver called resource_headroom.admitted(), which does not exist), while a process of the same driver path has been on the box for 33 minutes. The register and the box disagree about one job, and a hand-written /var/tmp driver was launched against an API nobody checked.
+- corrected: THE MACHINE'S, CARRIED. Item two's surgical_land (pid 837396) ran 1h25m, exited, and put nothing on any ref. Why that land exited empty was never read. Closed as UNESTABLISHABLE, not explained: 9df2d9c0f read the sibling 1918a0820 and found no reflog anywhere holding it, and the door now refuses that shape with a non-zero exit.
+- NOT corrected: THE MACHINE'S, CARRIED. A control or door whose shape changes must re-run every fixture that builds a synthetic tree to drive it, and no control requires it. citation_at_head, red_at_head and fork_state in docs/observability/.publish_gate_state.json still read not_established.
+- NOT corrected: THE MACHINE'S, CARRIED. A refusal naming a commit is not re-asked against the remote ref before a reader sees it. liveness_surface_refusal is still not re-asked.
+- NOT corrected: MINE, CARRIED. evaluate_boot_sha_drift() in background/process_reconciler.py grades every daemon against local HEAD, and misreads when HEAD and origin diverge during a reconcile. HEAD is 8 behind origin now, so it has a live instance for the first time in several stretches, and it is in focus to be settled by running it.
+- NOT corrected: THE MACHINE'S, CARRIED. The stash-completeness sweep reports a genuinely lost file as safe. It is still not on the map.
+- NOT corrected: THE MACHINE'S, CARRIED. The lane-0 block and the path check read HEAD or a local ref, not origin. HEAD is 8 behind origin this stretch, so the defect is live, and it is in focus.
+- NOT corrected: THE MACHINE'S, CARRIED. Nothing on the landing path asks whether a same-subject untracked sibling is left behind in the shared tree. The 14-path refusal in 662da7fd3 is an instance.
+- NOT corrected: MINE, CARRIED. not_now is prose, and nothing a launch from another lane reads. The launcher in b50a03519 and the --book-seeds refusal in 19ca27dbc each turn one instance into a mechanism, and the class stays open.
+
+## Chosen against
+
+- Re-sending the EP17 four-book pilot ask to the director.
+- Re-running the full ab6 A/B at origin/main (PB6 + W1_14 + D27 + EP13 all moved since the pin).
+- Measuring the company's price-response slope against the world's (the attribution's second "cannot say").
+- Binding grade-ab6-pilots-once-runp2-exists as premise_spent and chasing the hgc timing driver register mismatch.
+- The land-twice class (one item on origin via surgical_land and again as a different local commit on HEAD).
+
+## Focus for the next stretch
+
+- `read-the-retention-estimates-ranking-at-pb6`
+- `the-ledger-and-path-check-read-origin`
+- `re-establish-boot-sha-drift-against-origin`
+
+---
+
+## 2026-09-30 — orientation: THE BASELINE QUESTION'S ANSWER MOVED FROM "LOSES" TO "CANNOT SAY", AND I LED LAST STRETCH ON THE WRONG SIDE OF IT
+
+<!-- head: 36b826890b52 -->
+
+*Written by the orientation seat from its own record (2026-09-30T17:24:51.786827+00:00; 18 commits, 6 substantive, since 2026-09-30T14:22:25.400516+00:00).*
+
+## What the stretch meant
+
+THE BASELINE QUESTION'S ANSWER MOVED FROM "LOSES" TO "CANNOT SAY", AND I LED LAST STRETCH ON THE WRONG SIDE OF IT. X1 finished at 16:49Z (rc 0, runX1.json). Seed 61005 read selection -£2,404.66 and seed 61006 read +£190.05. I ran the prereg's own grader over P1, P2 and X1 this orientation: 1 of 6 seeds positive, sign p = 0.22, mean -£2,375.99, sd £2,412.76, 95% t-CI [-£4,908, +£156]. X1a (both X1 seeds' D_lin ex-0098 < 0, ~65%) is refuted, because 61006 reads +£216. X1b (the CI excludes zero on the negative side, ~55%) is refuted. X1c (the sd stays in £1,500-£8,000) holds. So the answer the record fixed before X1 read is "cannot say on this book under its own renewal noise". Last stretch I opened with "it points the wrong way" and wrote that the per-customer arm "loses on every draw so far". The centre is still negative, and five of six draws lose, but the thesis has no signed answer at 164 settled accounts. The record's next step is the book-varying design, which is EP17, and EP17 is the director's. That is the one thing below that goes to him. The grade is not yet in the record. The item was drawn at 15:07Z, before X1 existed, and it released correctly with nothing to land, so I am re-issuing it with the numbers. The attribution matters more now, not less: a negative centre that cannot be signed is exactly where knowing WHY the value arm loses is cheaper and more informative than another six box-hours. On the machine, both harness items from last stretch landed. First, the fork is closed. HEAD and origin/main are level at 36b826890, and 1918a0820 is now reachable through 13218de49. 9df2d9c0f makes a land that no ref holds exit non-zero, with a control and two mutants. Its reading of the orphan is honest: origin moving explains a non-fast-forward, not an orphan, and where 1918a0820 was written cannot be established now that the reflogs are gone. Second, the orientation now writes the stretch log (46ddd0e9d), and a stoppage now pages as "the orientation stopped" (c91ce7515). But `stretch_log.py --check` still read ESCALATED at 124.7h and 360 commits when I looked. This record is the first orientation that runs under the new writer, so the check after it is the acceptance test. My own row on the silent log stays open until that check reads clean. Of the stretch's 18 commits, 8 carried nothing: 6 merges and 2 heartbeats, the merges being the fork closing, which is the right kind of empty. The product did move. W1_14 reads the per-cell HDD store for the gas book (c8e4f09d7, dd5f33581). That corrects the 91-of-95 climate-normal defect, and it bears on any origin re-run of ab6. H41 went 0->2, and W2_28 went 1->2. The lane-0 ledger misattributed again, this time the pilot-grade item to dd5f33581, a weather commit. That is the third instance of one path-match defect feeding this brief, so it moves into focus.
+
+## What went wrong
+
+- corrected: MINE, NEW. Last thesis_read opened "it points the wrong way" and said the per-customer arm "loses on every draw so far". I also gave X1a ~65% and X1b ~55%. X1 refuted both: 1 of 6 positive, and the CI is [-£4,908, +£156]. The answer is "cannot say", not "no".
+- NOT corrected: MINE, NEW. I wrote `wrong` fourteen times between 25 and 30 September and never listed the stretch log going silent (121.7h, 330 commits), though this orientation is the one writer that is always present. The director had to notice it himself.
+- corrected: THE MACHINE'S, NEW. surgical_land --merge printed "landed MERGE 1918a0820" and exited rc 0, yet no ref contains 1918a0820. A land can report success while landing nothing.
+- NOT corrected: THE MACHINE'S, NEW. The brief measures the stretch over HEAD and origin together, and its divergence line counts patch-equivalent copies, so 21 commits with no origin equivalent read as "8 of 8 carrying work" and a count of 25 ahead. origin_reconcile has logged REFUSED_CONFLICT every cycle for hours, and nothing raised it past its own log.
+- NOT corrected: THE MACHINE'S, NEW. One item can land twice, once on origin through surgical_land and once as a local commit on the shared HEAD with different bytes (four pairs this stretch). The copies then conflict, and the reconcile cannot merge the machine's own work.
+- NOT corrected: THE MACHINE'S, NEW (last stretch). The lane-0 ledger grades the 03:12Z draw of grade-the-ab6-bridge-leg as landed_elsewhere under 51417dba4, because that commit touched the same prereg path. The bridge grade actually landed as 504b42a37. A path match is read as the work. It attributed item two's 09:55 bytes to the grade item by time, and this stretch it graded grade-ab6-pilots-once-runp2-exists as landed_unbound under dd5f33581, a W1_14 weather commit.
+- NOT corrected: THE MACHINE'S, NEW (last stretch). sim-runner's deferral under a long job rests on CLASS_WEIGHTS_MB["sim_run"] = 13,824 MB, about twice the observed 6,317 MB. weight_drift checks one direction only, so it reads drifted=False. The protection is correct by accident of a stale figure.
+- corrected: THE MACHINE'S, CARRIED. Item two's surgical_land (pid 837396) ran 1h25m, exited, and put nothing on any ref. Why that land exited empty was never read. Closed as UNESTABLISHABLE, not explained: 9df2d9c0f read the sibling 1918a0820 and found no reflog anywhere holding it, and the door now refuses that shape with a non-zero exit.
+- NOT corrected: THE MACHINE'S, CARRIED. A control or door whose shape changes must re-run every fixture that builds a synthetic tree to drive it, and no control requires it. citation_at_head, red_at_head and fork_state in docs/observability/.publish_gate_state.json still read not_established.
+- NOT corrected: THE MACHINE'S, CARRIED. A refusal naming a commit is not re-asked against the remote ref before a reader sees it. liveness_surface_refusal is still not re-asked.
+- NOT corrected: MINE, CARRIED. evaluate_boot_sha_drift() in background/process_reconciler.py grades every daemon against local HEAD, and misreads when HEAD and origin diverge during a reconcile. HEAD and origin are level now, so it has no live instance, but the claim was never re-established against the current function, so it is not withdrawn.
+- NOT corrected: THE MACHINE'S, CARRIED. The stash-completeness sweep reports a genuinely lost file as safe. It is still not on the map.
+- NOT corrected: THE MACHINE'S, CARRIED. The lane-0 block and the path check read HEAD or a local ref, not origin. HEAD equals origin this stretch, so it reads correctly by coincidence, and the next fork re-opens it.
+- NOT corrected: THE MACHINE'S, CARRIED. Nothing on the landing path asks whether a same-subject untracked sibling is left behind in the shared tree. The 14-path refusal in 662da7fd3 is an instance.
+- NOT corrected: MINE, CARRIED. not_now is prose, and nothing a launch from another lane reads. The launcher in b50a03519 and the --book-seeds refusal in 19ca27dbc each turn one instance into a mechanism, and the class stays open.
+
+## Chosen against
+
+- Re-running ab6 at origin/main now, carrying PB6's churn-prior re-centring and W1_14's per-cell HDD.
+- Extending ab6 past six seeds to try to sign the CI.
+- Having the seat write varied_population_draw_activation.json itself because the box is free and the budget ample.
+- A focus item to verify the stretch-log writer.
+- The land-twice class (one item on origin through surgical_land and again as a local commit on HEAD).
+
+## Focus for the next stretch
+
+- `grade-x1-and-attribute-the-loss`
+- `the-lane-0-ledger-attributes-by-the-item-not-by-a-path`
+- `the-memory-weights-drift-both-ways`
+
+---
+
 ## 2026-09-25 — the gas half of the shape switch reaches a run for the first time (85 of 98), and W2_19's prior is built and reaches no home
 
 <!-- head: 17a88051cad4 -->
