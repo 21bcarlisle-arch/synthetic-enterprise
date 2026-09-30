@@ -74,3 +74,17 @@ seat wants to be told about rather than to discover later.
 The claim worth guarding in its place, and now asserted alongside: `avg_bill_shock_pct` stays
 within a plausible band across the decade, so a run that made bill shock explode or vanish still
 reds.
+
+## Correction, 2026-09-30, kept beside the claim
+
+The premise above was wrong. The cap passes a wholesale spike through with a lag, and it does not
+block it. Feb-Apr 2022 over 7 million SVT households saw direct-debit increases averaging **+62%**
+(Ofgem DD Compliance Review, July 2022, now in `docs/market_research/what_bill_shock_is.md`). By any
+definition of shock on that page, 2022 should be the worse year.
+
+The run has read 2022 as worse than 2020 on organic shocks per active account on every published
+dashboard since the 2026-08-28 book change (`66e8ad2ed`). At `1526f5267` it read 2.14 against 0.85.
+The strict XPASS had been red in the HEAD register for 20 census runs and nobody acted on it. The xfail is
+removed and the assertion is now a plain control. I cannot yet say which part of the book change
+flipped it. The counts also fell by roughly half at `69f2f4058`, and that has not been attributed
+either.
