@@ -1,173 +1,163 @@
 version: 1
-oriented_at: "2026-09-30T05:22:33.146517+00:00"
+oriented_at: "2026-09-30T08:24:57.155919+00:00"
 thesis_read: >-
-  The thesis is back on a test that can answer it. It has no answer yet, and that is the honest
-  position. The old design is closed at the point where it stopped being informative. On unseen
-  seeds 55555 and 66666 (51417dba4), L1, L3 and L4 held. Both seeds reproduced seen seeds to within
-  £0.47, which is 7413b3ea2's mechanism observed directly. So the ab5 "+£1,000, CI clear of zero"
-  now reads as conditional on one set of renewal rolls. L2 is withdrawn, not refuted. ab6 is
-  running as longjob-ab6-single-roll at the a322166cc pin. Bridge leg B started 04:26:47Z and has
-  finished one of its two seeds. At about 93 min a seed, runB6.json is due around 07:35Z and
-  runP2.json around 13:45Z. The ab6 prereg's own P2 puts about 70% on "this book cannot sign D
-  under its own renewal noise". That would be a result, not a failure, and the design that follows
-  it should be pre-registered before the pilot answers, not after. HEAD has also moved past the
-  pin under ab6: f9b04ddc7 and 46b78123f re-centre the company's engagement prior and change the
-  seam, and c5e30c230 changes how a leaving household's gas leg closes. Chasing HEAD would never
-  finish, so ab6 stays pinned, and its grade must say that it describes a322166cc. PB6 moved for
-  the first time in three stretches, because the steer gave the worker a way to disagree instead of
-  stalling. The prior is a declared gap at 1.0 (f9b04ddc7). The null arm reads 0.739 against a
-  truth of 1.0 on 20 decisions, and all three predictions filed before the run held. EH-5 is
-  fixed: the seam no longer books a lookup with no account as direct debit. The worker then handed
-  on to PB8, which is blocked because no migration rate is published. That leaves PB6's own return
-  to its Expert Hour with no drawer, so it goes first here: it is the only item that can move a
-  level now while the box's memory belongs to ab6. Four open errors close with evidence.
-  (1) sim-runner's journal shows DEFERRED at 05:04Z and every five minutes after, naming
-  longjob-ab6-single-roll's declared 11,200 MB, so admit() has a live caller doing its job.
-  (2) The PB6 re-centring landed as f9b04ddc7. (3) The lineage leg was stopped 22 s into L2.
-  (4) The previous bridge item was drawn once and released with no staging file, which is the
-  designed second-drawer shape working. All three previous focus items were drawn, and two landed.
-  The bridge item's "CANNOT ANSWER" row is mine: the item named no tracked path. HEAD and origin
-  have diverged (11/9), so the shared checkout's daemons are running behind origin. That is the
-  carried reconcile class, and it cost no thesis run in this stretch. Staging drained by a net 75
-  over the week.
+  The thesis test is running and has not answered yet. This stretch did the right things in the
+  right order, but it also filed a successor design that crosses a line the director drew. The
+  bridge is graded (504b42a37). B2 holds: 112 of 163 lineages are identical, so the world change
+  reached the A/B. B1 is refuted on 44444: D_lin fell by £500.63 on the same lineages at the new
+  pin, through the level arm's net rising, and no decision flipped. So ab5's "+£1,000, CI clear of
+  zero" now reads as conditional on b79e2c0e8 and on one set of renewal rolls, and it is not
+  carried into the pilot. The baseline comparison the thesis needs is P1+P2's own mean. P1 started
+  at 07:27Z on the a322166cc pin, so runP1.json is due about 10:30Z and runP2.json about 13:40Z.
+  The book-varying successor was pre-registered before the pilot answered (d11c047ac), as asked,
+  and it is good work. It refuses a longer window (there is no later record) and refuses a wider
+  funnel (a thin funnel is what a real GB book looks like, from the knowledge map). But the
+  variable it chose, "more books", varies `live_population`'s base seed. That draws a different
+  cast of founders and arrivals. That is EP17_varied_population_draw, which is director-reserved
+  under R13, and the seat has asked him twice to release it for measurement only, with no answer.
+  The prereg never names EP17. Its rule 2 would build and launch a four-cast pilot on the ~70%
+  branch with no ruling. My own previous item offered "more books" as a candidate without naming
+  the reservation, so that error is mine. PB6 and PB7 parked (dc3a4f66e, 3931f644b) rather than
+  taking the fresh blind pass I asked for. The worker argued that every residual below L3 releases
+  outside the row: PB8's unpublished rate, a PB1-scale book, and EH-4, which is the household side
+  entering a decision surface and so the director's two-sided objective (A47,
+  test_household_share_is_not_yet_a_target). That meets the item's own DONE ("a named fail
+  pointing at its owner"), and a second pass on the same battery would have bought nothing. So I
+  accept it and PB6 leaves focus. The ordinary draw moved two levels on its own (W1_28 and W2_31,
+  L0 to L2), and nothing blocking is filed. Two open errors close. The lane-0 ledger now grades an
+  ab6 item by its path. It reads landed_elsewhere, where it used to read CANNOT ANSWER, although
+  it credits the wrong commit (a new row). The PB6 steer bit. The shared checkout's divergence
+  from origin grew from 11/9 to 20/11, and the HEAD-only side carries duplicate-subject copies of
+  origin commits. That is the carried reconcile class. It cost no thesis run this stretch, and
+  sim-runner kept deferring under ab6's declared peak. All four previous focus items were drawn,
+  and three landed. Staging drained by a net 78 over the week.
 stretch_reviewed:
-  since: "2026-09-30T02:22:19.400709+00:00"
-  commits: 9
-  substantive: 8
+  since: "2026-09-30T05:22:33.146517+00:00"
+  commits: 10
+  substantive: 6
 focus:
-  - id: PB6_the_engagement_observable_crosses_the_seam
-    what: >-
-      Return PB6 to its Expert Hour now. Run a fresh blind pass with tools/blind_review.py, the same
-      shape as the 2026-09-29 retention-analytics pass. Give it the current
-      docs/staging/WORKER_FINDING_PB6_THE_ENGAGEMENT_FACTOR_IS_USED_PER_DECISION_AND_ITS_PRIOR_IS_PER_EXPOSURE_2026-09-29.md,
-      and disposition each of EH-1, EH-2, EH-5 and the declared "live path reads no book" gap. For
-      EH-2 planted, state whether its failure to recover 0.307 is a build defect or sample
-      thinness: 2 prepayment decisions at w 0.036 cannot identify a factor. If it is thinness, it is
-      a declared "cannot tell on this book", not a reason to hold. Record the verdict in the PB6
-      simplification yaml under expert_hour. If it passes, move the level to 3 through the level
-      gate. If it fails, name the fail that stops it and mint or point at the atom that owns it.
-      Do not hand on to PB8, which is blocked on an unpublished rate.
-    why: >-
-      Every build step the last Expert Hour asked for has now landed (the null arm, the
-      re-centring, EH-5), and nothing is drawing the review that grades them. This is the one item
-      here that can change a level while ab6 holds the box's memory. DONE when the PB6 row carries a
-      dated Expert Hour verdict newer than 2026-09-29, and either level 3 or a named fail pointing
-      at its owner.
-  - id: grade-the-ab6-bridge-leg
-    lane: B_commercial
-    what: >-
-      If /var/tmp/se-ab6-out/runB6.json does not exist (it is due about 07:35Z), release this item
-      with no staging file and stop. Otherwise run /var/tmp/se-ab6-out/seed_census.py on runB6.json
-      against ab5's runs for 33333 and 44444. Grade B1 (|Δ D_lin| < £300 per seed) and B2 (fewer
-      than 120 identical lineages), each beside its prediction. Append the grade to
-      docs/staging/records/SEAT_PREREG_THE_NEXT_AB_ON_THE_SINGLE_ROLL_WORLD_WHAT_A_SEED_VARIES_2026-09-30.md
-      and land it by pathspec. If B1 misses by more than £1,000, write that the ab5 line closes as
-      "graded at a superseded world". Never stop or restart longjob-ab6-single-roll.
-    why: >-
-      The bridge decides whether anything ab5 found still describes the code ab6 runs, and so how
-      the pilot is read. It costs minutes once the file exists. DONE when origin's ab6 record
-      carries B1 and B2 graded.
-  - id: prereg-the-book-varying-design-before-the-pilot-answers
-    lane: B_commercial
-    what: >-
-      Before /var/tmp/se-ab6-out/runP2.json exists, write
-      docs/staging/records/SEAT_PREREG_THE_AB_THAT_VARIES_THE_BOOK_NOT_THE_SEED_2026-09-30.md. It is
-      the design ab6's prereg says follows if n* > 12. Read the REDRAW_KEYS note in
-      tools/run_value_cycle_ab.py and the renewal funnel (only ~70 of 164 settled accounts ever
-      renew). Name the one variable it changes: a longer window, a wider renewal funnel, or more
-      books. Justify that choice against what a real supplier's book would expose, and ask the
-      knowledge layer, not invention, for any size. Price it in box-hours from measured seed times.
-      File its predictions and the rule that decides between it and simply extending ab6. Do not
-      launch. If you judge that the n* > 12 branch does not need a new design, write that refusal
-      with its reason into the same file and land it instead.
-    why: >-
-      P2 already puts about 70% on "stop, vary the book". A successor designed after the pilot has
-      answered is fitted to the answer. Written now, it is a prediction. DONE when origin carries
-      the record, timestamped before runP2.json's mtime, or the named refusal.
   - id: grade-ab6-bridge-and-pilots
     lane: B_commercial
     what: >-
-      If /var/tmp/se-ab6-out/runP2.json does not exist (it is due about 13:45Z), release with no
-      staging file and stop. Otherwise run /var/tmp/se-ab6-out/grade_lineage.py runP1.json
-      runP2.json. Compute n* as the ab6 prereg defines it, and grade P1, P2 and P3 beside their
-      predictions. Confirm that churn_rolls_redrawn > 0 on every pilot seed. List the commits
-      between a322166cc and origin/main that touch company/ or simulation/, and state that the
-      answer describes the pin. Append all of it to
+      If /var/tmp/se-ab6-out/runP2.json does not exist (due about 13:40Z), release with no staging
+      file and stop. Never stop or restart the running tools.run_value_cycle_ab. Otherwise run
+      /var/tmp/se-ab6-out/grade_lineage.py runP1.json runP2.json. Compute n* from P1+P2's own mean,
+      as the ab6 prereg defines it, and never from ab5's |m| = £1,009.68, which the bridge showed
+      overstates the pin. Grade P1, P2 and P3 beside their predictions. Confirm that
+      churn_rolls_redrawn > 0 on every pilot seed. List the commits between a322166cc and
+      origin/main that touch company/ or simulation/, and state that the answer describes the pin.
+      Append all of it to
       docs/staging/records/SEAT_PREREG_THE_NEXT_AB_ON_THE_SINGLE_ROLL_WORLD_WHAT_A_SEED_VARIES_2026-09-30.md
-      and land by pathspec. Then apply the prereg's own rule. If n* ≤ 12, launch the extension legs
-      (61005...) through background.launch_long_job with --peak-mb 11200. If n* > 12, write the
-      plain answer "cannot say on this book" and point at the book-varying prereg.
+      and land by pathspec. If n* ≤ 12, launch the extension legs (61005...) through
+      background.launch_long_job with --peak-mb 11200. If n* > 12, write the plain answer "cannot
+      say on this book under its own renewal noise". Point at the book-varying prereg, and state
+      that its pilot waits on the director's EP17 ruling. Do NOT build or launch a multi-cast run
+      from this item.
     why: >-
       This is the first measurement of whether per-customer beats flat rules under the world's own
       renewal noise, which is the thesis's baseline question. DONE when origin's ab6 record carries
-      P1-P3 graded and either an extension unit is active or the plain answer is written.
+      P1-P3 graded, and either an extension unit is active or the plain answer is written.
+  - id: put-the-ep17-line-into-the-book-varying-prereg-and-build-the-refusing-flag
+    lane: B_commercial
+    what: >-
+      Add a section to
+      docs/staging/records/SEAT_PREREG_THE_AB_THAT_VARIES_THE_BOOK_NOT_THE_SEED_2026-09-30.md
+      saying that varying live_population's base_seed draws a different cast, which is
+      EP17_varied_population_draw. Name its R13 block_reason in docs/design/maturity_map.yaml, and
+      amend rule 2: the book pilot launches only on a director ruling. Leave every prediction
+      untouched and say so beside the amendment. Then build tools/run_value_cycle_ab.py
+      --book-seeds as that prereg specifies. It resolves each book in its own subprocess, sets the
+      churn-roll floor seed equal to the book seed, and records run_base_seed() per member. Add
+      its three refusals (a duplicate seed, a recorded seed that is not the requested one,
+      redrawn = 0) and a FOURTH refusal. The fourth refuses any member whose seed is not
+      _DEFAULT_BASE_SEED unless an authorisation record exists under docs/design/curriculum/ in
+      the population_draw_activation.json shape. Do not write that record. The refusal must name
+      EP17 and the missing file. Write the one-leg control without running the sim. It compares
+      founder_book(S1) and founder_book(S2) rosters (about 1.4 s) and the patched roll streams on a
+      shared id, and it asserts the authorisation refusal CAN fire and CAN pass, using a temporary
+      record in a tmp dir. Run nothing memory-heavy while ab6 is on the box.
+    why: >-
+      The prereg's own ~70% branch would put the company through different casts of households
+      without the ruling R13 reserves. The branch is only reached if P2 says n* > 12, so fixing it
+      before P2 lands keeps the successor a prediction and not an improvisation. With the flag
+      built behind a refusal, a yes from the director costs no turn of code. DONE when origin
+      carries the amended prereg and a --book-seeds flag whose unauthorised run refuses and names
+      EP17.
+  - id: the-next-trailer-refuses-a-blocked-atom
+    lane: H_harness
+    what: >-
+      In tools/next_step_gate.py, refuse a `NEXT: <atom_id>` trailer whose atom carries a
+      block_reason, or sits at loop_stage idle with one, in docs/design/maturity_map.yaml read
+      through tools.maturity_map_store. The refusal must quote the block_reason and offer the two
+      legal shapes: a drawable successor, or `NEXT: none -- <reason>` naming the release. Add a
+      control over the whole partition: one drawable id passes, one parked id (PB8's) refuses, and
+      `none -- ...` passes. Mutate the new check to always-pass and to always-refuse, and record
+      that both red.
+    why: >-
+      46b78123f handed PB6 on to a parked PB8, and PB6's own step went undrawn for a stretch. This
+      stretch the workers used `none -- <reason>` correctly, but by habit, not because anything
+      held them to it. DONE when origin's gate refuses a NEXT naming a parked atom, and the carried
+      wrong row about it can be marked corrected.
 not_now:
-  - what: Restarting ab6 at current HEAD so it carries the re-centred PB6 prior and the gas-leaver fix.
+  - what: A one-commit bisection of why seed 44444's D_lin moves about twice 33333's across the new pin.
     why: >-
-      It would throw away about 1h of B and delay the pilot by about 9h. It would also chase a HEAD
-      that moves every stretch. The pin is what makes the answer attributable, so the pilot grade
-      names the commits it predates instead.
-  - what: Re-deriving sim-runner's sim_run admission weight down from 13,824 MB toward the observed 6,317 MB.
+      Five candidate commits at about 1.5 box-hours each would contend with ab6's P legs for the
+      only box's memory. The bridge already did its job: ab5 is re-labelled and not carried. The
+      cause matters only if a later design reuses the ab5 figure, and none does.
+  - what: Launching or pre-running the four-book pilot (even truncated to --end-year 2017) before the director rules on EP17.
     why: >-
-      The weight is what keeps sim-runner deferred for the whole ab6 night, which is the intended
-      protection. Publish is held until 2026-10-05, so a deferred sim-runner costs nothing this
-      week. Re-derive it only when every long job's declared peak is honest.
-  - what: Working PB8 (a household's payment channel changes over its tenure).
+      A different cast is the world the company lives through, and R13 makes that his. The
+      roster-and-stream control can be written against founder_book and the patch function with
+      no run, so waiting costs no code.
+  - what: Restarting ab6 at current HEAD to carry the re-centred PB6 prior and the gas-leaver fix.
     why: >-
-      Its own block_reason is the knowledge-first rule working: no normal-year migration rate is
-      published. Building it would mean picking a number.
-  - what: The carried harness reader defects (the empty surgical_land exit, the synthetic-tree fixtures, re-asking refusals against the remote, the stash sweep, the origin-vs-HEAD reader, untracked siblings, the HEAD/origin divergence).
+      The pin is what makes the answer attributable. The bridge measured the pin-to-ab5 gap as
+      level-arm drift with no decision flips, so the grade names the commits it predates instead
+      of chasing HEAD.
+  - what: A fresh PB6 or PB7 blind pass, or unparking either.
     why: >-
-      None of them cost a thesis run this stretch, and the hours go to ab6 and PB6's level. They
-      stay open in wrong.
-  - what: A second memory-heavy job beside ab6, such as a PB6 planted or head re-run under the re-centred prior.
+      Every residual below L3 releases outside the rows (PB8's source, a PB1-scale book, the
+      director's two-sided objective), so a second pass on the same battery re-asks answered
+      questions.
+  - what: Reconciling the shared checkout's 20/11 divergence from origin, and the other carried harness reader defects.
     why: >-
-      The null arm answered the question the re-centring raised. A planted arm with 2 prepayment
-      decisions cannot identify 0.307 whatever the prior, so the re-run would buy nothing and
-      would crowd the pilot.
+      Neither cost a thesis run this stretch, and sim-runner deferred correctly under ab6. The
+      NEXT-trailer gate is taken instead because it closes a wrong row with one mechanism. The
+      rest stay open in wrong.
+  - what: Re-deriving sim-runner's sim_run admission weight from 13,824 MB toward the observed 6,317 MB.
+    why: >-
+      It is still what keeps sim-runner deferred for ab6's whole run, and publishing is held until
+      2026-10-05. Re-derive it only when every long job's declared peak is honest.
 wrong:
   - what: >-
-      MINE, NEW. The previous steer said to write the ab6 prereg before any more compute on the old
-      design. It did not also say to hold or stop a run of that design already queued. The seat
-      launched longjob-ab5-lineage-unseen at 00:00Z on the ab5 design, two hours before 7413b3ea2
-      showed that a seed in that design varies one account. Its L2 plain-answer rule would read an
-      elasticity-draw CI as a world CI. About 3h of box time is committed to it, and more would
-      have been.
-    corrected: true
-  - what: >-
-      THE MACHINE'S, NEW. sim-runner's deferral under a long job rests on CLASS_WEIGHTS_MB["sim_run"]
-      = 13,824 MB, about twice the observed 6,317 MB. weight_drift checks one direction only, so it
-      reads drifted=False. The protection is correct by accident of a stale figure, and honest
-      re-derivation would reopen 19:07Z unless the long job's declared peak is honest too.
+      MINE, NEW. The previous focus item for the book-varying prereg offered "more books" as a
+      candidate without naming that a different book seed is a different cast, which is
+      EP17_varied_population_draw, director-reserved under R13, with two earlier unanswered asks
+      on file. d11c047ac chose it, and its rule 2 would launch a four-cast pilot on the ~70% branch
+      with no ruling.
     corrected: false
   - what: >-
-      MINE, NEW. The PB6 step (2) instruction ("without waiting for the NTFY practitioner answer")
-      was not followed. The worker held it again (a322166cc NEXT). My item gave no shape for
-      disagreeing, so the worker's only way to disagree was to stall.
-    corrected: true
+      THE MACHINE'S, NEW. The lane-0 ledger grades the 03:12Z draw of grade-the-ab6-bridge-leg
+      (released unworked, by design) as landed_elsewhere under 51417dba4, which is the ab5 stop and
+      ab6 launch, because that commit touched the same prereg path. The bridge grade actually
+      landed as 504b42a37 under another id. A path match is read as the work.
+    corrected: false
   - what: >-
-      THE MACHINE'S, NEW. Memory admission covers only jobs launched through launch_long_job.
-      resource_headroom.admit() has no production caller, sim_runner never asks, and a declared
-      peak_mb is read by nothing except the launcher itself. A neighbour that arrives after a long
-      job can still kill it, and that is what happened at 19:07Z. (9727cb88f gives admit() its
-      caller, and the daemon restarted onto it at 01:59Z. This stays open until its journal shows a
-      DEFERRED line under a declared long job.)
-    corrected: true
-  - what: >-
-      MINE, NEW. A focus item held by a live seat claim, with a running job, carried no instruction
-      for a second drawer. Ticks redrew it twice (a520dadd7, 99936c585), and each spent a tick and a
-      staging file saying "held". It recurred this stretch: two seats drew
-      the-neighbour-of-a-long-job-sees-its-declared-peak, and one yielded by cross-session message.
-    corrected: true
+      THE MACHINE'S, NEW. sim-runner's deferral under a long job rests on
+      CLASS_WEIGHTS_MB["sim_run"] = 13,824 MB, about twice the observed 6,317 MB. weight_drift
+      checks one direction only, so it reads drifted=False. The protection is correct by accident
+      of a stale figure, and honest re-derivation would reopen 19:07Z unless the long job's
+      declared peak is honest too.
+    corrected: false
   - what: >-
       MINE, NEW. grade-the-ab6-bridge-leg named no tracked path, so the lane-0 ledger could not ask
       git whether it landed ("CANNOT ANSWER"). Every ab6 item now names the prereg record it
       appends to. This stays open until the ledger grades one of them.
-    corrected: false
+    corrected: true
   - what: >-
-      THE MACHINE'S, NEW. 46b78123f handed PB6 on with NEXT PB8, which is blocked because no rate is
-      published. PB6's own step (return to its Expert Hour, as its finding says) was left with no
-      drawer. A NEXT pointer can name a blocked atom, and nothing refuses that.
+      THE MACHINE'S, NEW. 46b78123f handed PB6 on with NEXT PB8, which is blocked because no rate
+      is published. PB6's own step (return to its Expert Hour, as its finding says) was left with
+      no drawer. A NEXT pointer can name a blocked atom, and nothing refuses that.
     corrected: false
   - what: >-
       THE MACHINE'S, CARRIED. Item two's surgical_land (pid 837396) ran 1h25m, exited, and put
@@ -177,8 +167,9 @@ wrong:
     corrected: false
   - what: >-
       THE MACHINE'S, CARRIED. A control or door whose shape changes must re-run every fixture that
-      builds a synthetic tree to drive it, and no control requires it. citation_at_head, red_at_head
-      and fork_state in docs/observability/.publish_gate_state.json still read not_established.
+      builds a synthetic tree to drive it, and no control requires it. citation_at_head,
+      red_at_head and fork_state in docs/observability/.publish_gate_state.json still read
+      not_established.
     corrected: false
   - what: >-
       THE MACHINE'S, CARRIED. A refusal naming a commit is not re-asked against the remote ref
@@ -191,13 +182,13 @@ wrong:
       describe code that has since changed. Not re-established, so not withdrawn.
     corrected: false
   - what: >-
-      THE MACHINE'S, CARRIED. The stash-completeness sweep reports a genuinely lost file as safe. It
-      is still not on the map.
+      THE MACHINE'S, CARRIED. The stash-completeness sweep reports a genuinely lost file as safe.
+      It is still not on the map.
     corrected: false
   - what: >-
       THE MACHINE'S, CARRIED. The lane-0 block and the path check read HEAD or a local ref, not
-      origin. It showed up as two items graded landed_unbound on 9f929478e, a preservation commit on
-      no remote ref. Those instances are now bound to origin commits (b31e079ca), and every row
+      origin. It showed up as two items graded landed_unbound on 9f929478e, a preservation commit
+      on no remote ref. Those instances are now bound to origin commits (b31e079ca), and every row
       reads premise_spent. The reader's defect stays open.
     corrected: false
   - what: >-
@@ -208,6 +199,19 @@ wrong:
   - what: >-
       MINE, CARRIED. not_now is prose, and nothing a launch from another lane reads. The launcher
       in b50a03519 turns one instance (memory exclusivity) into a mechanism, and the class stays
-      open. The lineage leg launched against the previous not_now's intent is a new instance.
+      open. The EP17 line is a new instance: a reservation lived in a map row the prereg's author
+      never read. The --book-seeds refusal turns that one instance into a mechanism.
     corrected: false
-for_the_director: []
+for_the_director:
+  - >-
+    EP17, the one question that can decide whether the thesis test gets an answer. At about 13:40Z
+    today ab6's pilot says whether one book's own renewal noise can show per-customer choosing
+    beating flat rules. The prereg puts about 70% on "it cannot" (n* > 12 seeds). If so, the only
+    variable left inside the compute ceiling is running the same A/B over several different casts
+    of households. A longer window does not exist, and a wider renewal funnel would make the book
+    less like a real one. A different cast is EP17, which you reserved. My recommendation: release
+    EP17 for measurement only. Four casts first (about 6 box-hours), at most 12. The published
+    baseline world stays at its current cast, untouched. The seeds used go in a curriculum file
+    you can read, and no result changes which world the company lives in. I am building the flag
+    now behind a refusal that names EP17, so nothing launches without you. If you say nothing, I
+    publish "cannot say on this book" as the answer and the four-cast pilot stays unlaunched.
