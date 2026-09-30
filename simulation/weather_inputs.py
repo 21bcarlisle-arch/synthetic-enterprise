@@ -110,6 +110,31 @@ def adopt_shared_world(world: WeatherWorld) -> None:
     _WORLD = world
 
 
+#: The records a runner settles, by id, for the id-only door. Empty until `adopt_book`.
+_BOOK: dict[str, dict] = {}
+
+
+def adopt_book(customers: list[dict]) -> None:
+    """Make the runner's own customer RECORDS visible to `cell_weather_for_customer_id`.
+
+    WHY. That door scanned only the 18 registered supply points, and `run_phase2b` settles 95 gas
+    premises, 91 of them drawn `SYN-*`/`PROS-*` households the registered roster does not hold. So
+    the HDD leg read the 1991-2020 monthly normal for 91 of 95 -- flat from 2018 to 2022 -- while
+    `weather_refusals_for_book` over the same records reported 0 refusals, because it is handed the
+    record and the id door was not. The step-3 measurement "16/18 read their own cell" was true of
+    the roster and silent about the book.
+
+    A skied premise already cached in `sim.weather_hdd` is dropped for every adopted id, so a
+    refusal resolved before adoption cannot outlive it. Last-writer-wins, like `adopt_shared_world`.
+    """
+    from sim.weather_hdd import _WEATHER_CACHE
+
+    _BOOK.clear()
+    for customer in customers:
+        _BOOK[customer["customer_id"]] = customer
+        _WEATHER_CACHE.pop(customer["customer_id"], None)
+
+
 @dataclass(frozen=True)
 class CellWeather:
     """One premise's sky: the cell it reads, the daily column, and — when there is none — why.
@@ -314,14 +339,16 @@ def cell_weather_for_customer_id(
     the two need different remedies: a premise 7.4 km outside the store needs a cell added, an id
     that no registered point holds needs a caller corrected.
     """
+    if customer_id in _BOOK:
+        return cell_weather_for_customer(_BOOK[customer_id], weather_field, world)
     for customer in CUSTOMERS:
         if customer.get("customer_id") == customer_id:
             return cell_weather_for_customer(customer, weather_field, world)
     return CellWeather(
         customer_id, None, {},
-        f"{customer_id} is not a registered supply point, so the book publishes no coordinate "
-        "for it and no cell can be resolved -- check the id against "
-        "`company.interfaces.supply_book.registered_supply_points`",
+        f"{customer_id} is not a registered supply point and not in the book a runner adopted, "
+        "so no coordinate is known for it and no cell can be resolved -- check the id against "
+        "`company.interfaces.supply_book.registered_supply_points`, or call `adopt_book`",
     )
 
 

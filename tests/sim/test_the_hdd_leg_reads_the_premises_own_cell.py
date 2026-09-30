@@ -18,6 +18,10 @@ is the `assert plan["restart"] and plan["defer"] and plan["hold"]` shape, and th
 that this repo has entered the rare-branch-unreachable trap three times through three doors.
 """
 
+import ast
+import re
+from pathlib import Path
+
 import pytest
 
 from sim.weather_hdd import (
@@ -80,7 +84,11 @@ def test_the_resolver_discriminates_a_premise_with_a_cell_from_one_without():
         f"claiming a cell that does not exist. basis={refused_cold.basis!r}"
     )
     assert refused_cold.basis.startswith(NORMAL_BASIS_PREFIX), refused_cold.basis
-    assert "7.4 km" in refused_cold.basis, (
+    # WAS `"7.4 km" in basis` -- today's answer, and it went red when the store grew and the
+    # nearest held cell moved to 5.5 km, though the refusal was as honest as ever. The property is
+    # that the reason names a distance and the cell it was measured to.
+    assert re.search(r"\d+(\.\d+)? km from the nearest cell the store holds \(E\d+N\d+\)",
+                     refused_cold.basis), (
         "the substitution must name its reason, not merely declare itself: "
         f"basis={refused_cold.basis!r}"
     )
@@ -141,3 +149,74 @@ def test_an_unregistered_id_is_refused_by_name_rather_than_answered():
     assert reading.from_normal
     assert "not a registered supply point" in reading.basis, reading.basis
     assert reading.hdd == pytest.approx(REFERENCE_MONTHLY_HDD[1] / 30.0)
+
+
+@pytest.fixture
+def _no_adopted_book():
+    """`adopt_book` is process state; every control here starts from none and leaves none."""
+    from sim import weather_hdd
+    from simulation import weather_inputs
+
+    saved = dict(weather_inputs._BOOK)
+    weather_inputs._BOOK.clear()
+    weather_hdd._WEATHER_CACHE.clear()
+    yield
+    weather_inputs._BOOK.clear()
+    weather_inputs._BOOK.update(saved)
+    weather_hdd._WEATHER_CACHE.clear()
+
+
+def test_a_drawn_gas_premise_reads_its_cell_once_the_runner_adopts_its_book(_no_adopted_book):
+    """THE DEFECT (2026-09-30): the id-only door scanned the 18 registered points and nothing else.
+
+    `run_phase2b` settles 95 gas premises and 91 are drawn `SYN-*`/`PROS-*` households, so every
+    one of them read the monthly normal -- 2018 and 2022 identical -- while
+    `weather_refusals_for_book` over the same records said 0 refused. Measured: their 2022 HDD
+    falls 16.4% on the mean once they read their cells. `test_no_registered_premise_...` above
+    asked the roster and was green throughout; this asks the book the run actually settles.
+
+    ONE control over the partition: before adoption the drawn premise MUST read the normal (so the
+    adoption is what moved it, not a resolver that answers a cell for everything), after it MUST
+    NOT, and the registered-roster premise must be unaffected either way.
+    """
+    from simulation.run_phase2b import ELEC_CUSTOMERS, GAS_CUSTOMERS, SUCCESSOR_ELEC_CUSTOMERS
+    from simulation.weather_inputs import adopt_book, cell_weather_for_customer
+
+    drawn = [c for c in GAS_CUSTOMERS if c["customer_id"] not in {HELD, HELD_TWIN, REFUSED}
+             and not c["customer_id"].startswith("C")]
+    assert len(drawn) >= 50, f"{len(drawn)} drawn gas premises; nothing to control"
+    held = [c for c in drawn if cell_weather_for_customer(c).series]
+    assert held, "the store holds a cell for none of the drawn gas premises"
+    subject = held[0]["customer_id"]
+
+    before = hdd_reading(COLD_YEAR_DAY, subject)
+    assert before.from_normal, f"{subject} read weather before any book was adopted: {before}"
+
+    adopt_book(ELEC_CUSTOMERS + GAS_CUSTOMERS + SUCCESSOR_ELEC_CUSTOMERS)
+
+    on_the_normal = [c["customer_id"] for c in held
+                     if hdd_reading(COLD_YEAR_DAY, c["customer_id"]).from_normal]
+    assert not on_the_normal, (
+        f"{len(on_the_normal)} of {len(held)} drawn gas premises whose cell the store holds still "
+        f"read the normal after adoption: {on_the_normal[:5]}"
+    )
+    assert hdd_reading(COLD_YEAR_DAY, subject).hdd != hdd_reading(MILD_YEAR_DAY, subject).hdd
+    assert not hdd_reading(COLD_YEAR_DAY, HELD).from_normal
+
+
+def test_the_runner_adopts_the_gas_book_it_settles():
+    """The door above is inert unless the runner calls it with the records it settles gas for.
+
+    An AST call, not a text grep: the comment beside the call names `adopt_book` too, and a grep
+    would stay green on the comment after the call was deleted.
+    """
+    tree = ast.parse(Path("simulation/run_phase2b.py").read_text())
+    adopted = [
+        {n.id for n in ast.walk(call) if isinstance(n, ast.Name)}
+        for call in ast.walk(tree)
+        if isinstance(call, ast.Call) and getattr(call.func, "id", None) == "adopt_book"
+    ]
+    assert any("GAS_CUSTOMERS" in names for names in adopted), (
+        f"run_phase2b never calls adopt_book with GAS_CUSTOMERS (calls found: {adopted}); every "
+        "drawn gas premise's HDD would read the 1991-2020 monthly normal"
+    )

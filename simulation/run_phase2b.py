@@ -208,9 +208,12 @@ from simulation.triad import (
 )
 from simulation.volume_tolerance import compute_term_volume_tolerance
 from simulation.weather_inputs import (
+    adopt_book,
+    adopt_shared_world,
     cloud_cover_for_customer,
     lookback_mean_temps,
     weather_means_for_customer,
+    weather_refusals_for_book,
 )
 from tools.acquisition_funnel_port import AcquisitionFunnelMessage
 from tools.credit_adapters import get_credit_bureau_adapter
@@ -1333,15 +1336,41 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
     household_demand_register = HouseholdDemandRegister(
         CUSTOMERS, drawn_households=live_drawn_households()
     )
+    # W1_14 step 1, 2026-09-21: THE SHAPE AND FORWARD-PRICE LEGS READ THE PER-CELL STORE TOO.
+    # The fabric leg moved to it on 2026-09-17 (`_weather_source` below) and these two did not, so
+    # the same premise's physics ran on its cell's sky while its demand SHAPE and its forward
+    # temperature came from one of four per-property ERA5 archives resolved by exact `location`
+    # match. The store is loaded HERE, once, and handed to every leg -- the load is 8 MB of gzip
+    # and two copies of the world could drift from each other, which is the whole thing the
+    # per-cell architecture exists to make impossible.
+    _weather_source = WeatherWorldSource.load()
+    _weather_world = _weather_source.world
+    # W1_14 step 3, 2026-09-21: the GAS/HDD leg reads the store too, and it is the one leg that
+    # cannot be handed the world -- `get_hdd(date_str, customer_id)` sits five frames under
+    # `run_gas_term` with no world in any signature on the way down. Adopting the store the line
+    # above just loaded is what stops it loading a second copy (8 MB gzip, ~450 MB resident) that
+    # could then drift from this one.
+    adopt_shared_world(_weather_world)
+    # ...and the RECORDS, because that id carries no coordinate: without this every drawn SYN-*
+    # or PROS-* gas premise read the monthly normal (91 of 95, 2026-09-30).
+    adopt_book(ELEC_CUSTOMERS + GAS_CUSTOMERS + SUCCESSOR_ELEC_CUSTOMERS)
     weather_by_customer = {
-        c["customer_id"]: weather_means_for_customer(c)
+        c["customer_id"]: weather_means_for_customer(c, _weather_world)
         for c in ELEC_CUSTOMERS + GAS_CUSTOMERS + SUCCESSOR_ELEC_CUSTOMERS
     }
     # Phase O: cloud cover for all elec customers — any can acquire solar via life events.
     cloud_cover_by_customer = {
-        c["customer_id"]: cloud_cover_for_customer(c)
+        c["customer_id"]: cloud_cover_for_customer(c, _weather_world)
         for c in ELEC_CUSTOMERS + SUCCESSOR_ELEC_CUSTOMERS
     }
+    # WHY THE EMPTY SERIES ARE COUNTED HERE RATHER THAN LEFT TO SPEAK FOR THEMSELVES: a premise the
+    # store cannot answer settles on the UNADJUSTED base shape, which is a number and looks like
+    # every other number. Nothing downstream can distinguish "this cell's weather said the shape
+    # needed no adjustment" from "there was no weather". So the reasons are carried out of the
+    # resolver and into the run's own record, one entry per premise, naming the cell and the remedy.
+    weather_refusal_by_customer = weather_refusals_for_book(
+        ELEC_CUSTOMERS + GAS_CUSTOMERS + SUCCESSOR_ELEC_CUSTOMERS, world=_weather_world
+    )
 
     # Phase 6a: per-customer HH consumption for HH (smart meter) customers.
     hh_consumption_by_customer = {
@@ -1381,9 +1410,9 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
     # the world's daily weather keyed by 1 km OSGB cell, and the premise READS it -- which is the
     # director's architecture rather than a wider pull: two households in one cell now get the
     # identical sky, so the difference between their demand is attributable to fabric and people.
-    # The store is loaded ONCE here and its accessors handed to the seam; a load per premise would
-    # be the per-property design in a different coat.
-    _weather_source = WeatherWorldSource.load()
+    # The store is loaded ONCE for the whole run -- at the 4c inputs above, since 2026-09-21, where
+    # the shape and forward-price legs need the same world -- and its accessors handed to the seam;
+    # a load per premise, or one load per leg, would be the per-property design in a different coat.
     fabric_series_by_customer, fabric_eligibility_verdicts = fabric_providers_for_book(
         customers=ELEC_CUSTOMERS + SUCCESSOR_ELEC_CUSTOMERS,
         household_at_date=household_demand_register.household_at_date,
@@ -3773,6 +3802,10 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         # why a premise is not fabric-driven -- recorded so an unexplained
         # population change is visible in the run, not inferred from its numbers.
         "demand_provider_by_customer": dict(demand_provider_by_customer),
+        # W1_14 step 1: which premises the per-cell store could not give a daily mean temperature,
+        # and why -- in the record rather than printed, for the same reason the gas half below is.
+        # Empty is the good answer and it is still an ANSWER; a missing key would not be.
+        "weather_refusal_by_customer": dict(weather_refusal_by_customer),
         # W2_30, THE GAS HALF OF THE SAME QUESTION (2026-09-18). These were computed, used at the
         # gas term below, and PRINTED -- reaching no artefact, so no reader could tell whether the
         # per-household seasonal shape had reached the gas book at all, or how many households were

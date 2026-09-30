@@ -1710,26 +1710,18 @@
   # `_has_archive` IS LANDED 2026-09-20, written fresh (nothing to recover). 18/18 unchanged.
   # The proxy was unmutatable on the live book -- archived ids precede un-archived ones at every
   # shared coordinate -- so the discriminating pair is BOUND in the test.
-  block_reason: "NOT WIRED TO THE WORLD'S WEATHER on the gas/HDD leg; WIRED on the other two
-    since 2026-09-21. REPLACED 2026-09-20 and again 2026-09-21, both superseded versions in git
-    history. The 09-07 text said ARCHIVE BREADTH and ordered `then pull` -- the design the director
-    refused in writing on 2026-09-16 (`sim/weather_world.py`), which `ADD_THE_CELL_REMEDY` replaced
-    on 09-17 because naming a per-property pull recruits the reader into rebuilding it.
-    MEASURED 2026-09-20 against the per-cell store (221 cells, MAX_SNAP_KM 5.0): 78/210 = 37.1% of
-    drawn households (seed 7) against those four sites' 2.0%, and 16/18 of the supply book -- both
-    misses BIRMINGHAM at 7.35 km, so the store's build set and the book have DIVERGED and nothing
-    watched. (Both pre-registered predictions were refuted: I said 18/18 and 50-90%.)
-    THE REMAINING WORK, none of it a pull; step 1's detail and its mutation table are in
-    `build_note` in the record store: (1) LANDED 2026-09-21 -- the shape and forward-price legs
-    resolve the CELL with the physics leg's own call, 14/18 -> 16/18 of the book, 3,446 -> 3,653
-    days, and NOT an equivalence (+1.19 C at London: HadUK 1 km against ERA5). (2) add Birmingham's
-    cell. (3) then judge what the drawn frame needs (median household 7.2 km out). (4) BLOCKING
-    this lane, found by (1): `sim/weather_hdd` is a THIRD resolver -- it strips a trailing `g` off
-    the id, asks no coordinate, and hands 10 of 18 premises the 1991-2020 MONTHLY NORMAL, flat
-    every year (C7 +33.7% in 2018 / +52.6% in 2022 against its own cell, and 12-20% from C1, which
-    shares its cell). A seam change, not a pull.
-    LEVEL STAYS 1 and now for a MEASURED reason rather than a judgement: while a tenth of the
-    book's heat load is climatology, 'mechanically real' is not true of what this atom names."
+  block_reason: "ALL THREE LEGS READ THE PER-CELL STORE FOR THE WHOLE BOOK since 2026-09-30.
+    The 09-21 'HDD leg wired' was true of the 18-point roster only: 91 of the 95 gas premises the
+    run settles (76 PROS-*, 15 SYN-*) read the flat 1991-2020 monthly normal -- 2018 = 2022 -- until
+    `weather_inputs.adopt_book`; their 2022 HDD falls 16.4% on the mean. The runner half of steps 1
+    and 3 was in no commit until the same landing. Superseded texts are in git history.
+    REMAINING: (2) C_IC1/C_IC2 (Birmingham, I&C) are 5.5 km from the nearest held cell against
+    MAX_SNAP_KM 5.0 -- add the cell (`ADD_THE_CELL_REMEDY`), never a per-property pull. NO RUN
+    SETTLES THEM TODAY: I&C is outside the served curriculum (resi, SME), and
+    `build_weather_world.book_cells` reads that curriculum-filtered book, so the WORLD's coverage
+    follows the curriculum -- widen it to the whole roster, then pull the one cell; (3) judge
+    what the drawn frame needs. LEVEL STAYS 1 for now, but its measured reason ('a tenth of the
+    book is climatology') is FALSE since this landing: two I&C premises remain, both named."
   depends_on: []
   couples_with: [W1_5_premise_demand_shape]
   file_scope: ['simulation/weather_cell_siting.py', 'simulation/weather_inputs.py', 'tests/simulation/test_weather_cell_siting.py']
