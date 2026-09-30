@@ -1,3 +1,9 @@
+> **DISPOSITION 2026-09-30 (worker tick): held open on ONE sub-item.** Everything else here has landed
+> (single roll `19a58b44d`, prior centred at 1.0 `f9b04ddc7`, null arm graded `46b78123f`). What keeps this
+> in staging is the practitioner question (NTFY `EntQKsMePM5C`, no reply on record): whether some of CIM's
+> channel ratio belongs per decision. A reply releases it by moving the prior's centre in
+> `enriched_churn_estimate.py`. PB6 itself is parked; see its store record 11.
+
 **Severity:** LATENT · **Lane:** W4_the_wall · **Epoch:** 3 · **Atom:** `PB6_the_engagement_observable_crosses_the_seam`
 
 # PB6 after EH-2: the factor is used per decision, its prior is per exposure, and the world decides one renewal twice

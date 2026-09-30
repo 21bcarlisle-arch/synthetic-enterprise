@@ -1531,12 +1531,10 @@
   lane: W4_the_wall
   value_stream: meter_to_cash
   epoch: 3
-  # L1->L2 2026-09-29: VERIFY battery killed 4/9; the 5 survivors (fuel dropped, fallback
-  # unreached, std-credit rate, base, run passing None) now die in *_is_the_right_one.py. L3 wants
-  # HARDEN + Expert Hour.
   level_current: 2
   level_target: 3
-  loop_stage: build
+  loop_stage: idle
+  block_reason: "PARKED 2026-09-30: EH-3 waits on PB8's source; EH-4 is the household side entering a decision surface, the director's (test_household_share_is_not_yet_a_target); EH-2 grades only near PB1 scale. Store record 11."
   dial_inherited: 45    # R1 follow-on. Inherits PB4's rank because it is the second half of
   #   the same claim: PB4 made the trait learnable IN THE WORLD, this makes it observable BY
   #   THE COMPANY, and neither alone is what R1 asks for. Minted 2026-09-05 at the moment it

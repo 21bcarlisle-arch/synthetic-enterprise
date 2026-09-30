@@ -461,7 +461,7 @@ class CompetitivePressureLedger:
         a residual. It is its own estimate of the factor, so multiplying the prior onto it counted
         the prior twice. Printed before the fix: a book whose prepayment customers left at EXACTLY
         the published relative rate converged to 0.375 against a prior of 0.585
-        (`docs/staging/WORKER_FINDING_THE_ENGAGEMENT_FACTOR_COUNTS_ITS_OWN_PRIOR_TWICE_*`).
+        (`docs/staging/done/WORKER_FINDING_THE_ENGAGEMENT_FACTOR_COUNTS_ITS_OWN_PRIOR_TWICE_*`).
 
         THE PRIOR IS STILL A MARGINAL, AND THAT IS A NAMED GAP RATHER THAN A FIXED ONE. CIM w6
         reports switching by payment method across the population. Nothing published conditions it
