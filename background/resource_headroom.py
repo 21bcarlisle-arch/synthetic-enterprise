@@ -746,6 +746,34 @@ def record_deferral(decision: dict, log_path: Path | None = None) -> None:
 
 
 @contextlib.contextmanager
+def admitted(job_class: str, log=None, reservations_path: Path | None = None,
+             deferral_log_path: Path | None = None, **admit_kwargs):
+    """Ask `admit`, and either receipt the refusal or hold a reservation for the whole job.
+
+    Yields the decision. On a refusal the caller skips the job and the deferral is already
+    receipted; on admission the job runs inside `reservation`, so the NEXT asker counts it.
+    Asking without reserving is half a governor: sim-runner's admission sums reservations,
+    and until a gate held one it summed a ledger nobody wrote.
+
+    A governor that raises defers, never admits -- the same fail-closed direction as
+    `sim_runner.cycle_admission`.
+    """
+    try:
+        decision = admit(job_class, reservations_path=reservations_path, **admit_kwargs)
+    except Exception as exc:  # noqa: BLE001 -- an unreadable governor is a deferral, not a pass
+        decision = {"job_class": job_class, "admitted": False,
+                    "reason": f"the admission check raised {type(exc).__name__}: {exc}"}
+    if not decision["admitted"]:
+        if log is not None:
+            log(f"DEFERRED {job_class} -- {decision['reason']}")
+        record_deferral(decision, deferral_log_path)
+        yield decision
+        return
+    with reservation(job_class, reservations_path=reservations_path):
+        yield decision
+
+
+@contextlib.contextmanager
 def reservation(job_class: str, weight_mb=None, reservations_path: Path | None = None,
                 proc_root: Path | None = None):
     """Hold a declared claim for the duration of a heavy job.
