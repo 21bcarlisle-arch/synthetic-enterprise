@@ -17,6 +17,17 @@ from tools import enumerate_publish_gate_reds as census
 pytestmark = pytest.mark.operational
 
 
+@pytest.fixture(autouse=True)
+def _governor_admits(monkeypatch, tmp_path):
+    """Admit by default, with the reservation ledger in tmp: the live one is a protected path and
+    the live /proc/meminfo would make these a function of the load. The deferral test overrides."""
+    monkeypatch.setattr(census.resource_headroom, "RESERVATIONS_PATH", tmp_path / "reservations.json")
+    monkeypatch.setattr(census.resource_headroom, "DEFERRAL_LOG_PATH", tmp_path / "deferrals.jsonl")
+    monkeypatch.setattr(census.resource_headroom, "admit",
+                        lambda job_class, **kw: {"job_class": job_class, "admitted": True,
+                                                 "reason": "test default: admitted"})
+
+
 class TestFailFastIsRemovedAndProvenRemoved:
     """`-x` is the ONE difference between the census and the gate."""
 
@@ -97,7 +108,21 @@ class TestAnUnfinishedCensusSaysSo:
     has to survive into the artefact, or the batch is built from a truncated list."""
 
     def test_the_outcomes_are_distinct_values(self):
-        assert census.OUTCOME_COMPLETE != census.OUTCOME_TIMEOUT != census.OUTCOME_UNAVAILABLE
+        outcomes = (census.OUTCOME_COMPLETE, census.OUTCOME_TIMEOUT, census.OUTCOME_UNAVAILABLE,
+                    census.OUTCOME_DEFERRED)
+        assert len(set(outcomes)) == len(outcomes)
+
+    def test_a_deferred_census_runs_nothing_and_leaves_a_receipt(self, monkeypatch, tmp_path):
+        """The governor's refusal must stop the suite before it starts -- and say why."""
+        monkeypatch.setattr(census.resource_headroom, "admit",
+                            lambda job_class, **kw: {"job_class": job_class, "admitted": False,
+                                                     "reason": "budget exhausted: test"})
+        monkeypatch.setattr(census.prc, "_head_sha",
+                            lambda: pytest.fail("a deferred census went on to read HEAD"))
+        out = census.run_census()
+        assert out == {"outcome": census.OUTCOME_DEFERRED, "reason": "budget exhausted: test"}
+        receipts = (tmp_path / "deferrals.jsonl").read_text().splitlines()
+        assert len(receipts) == 1 and '"census"' in receipts[0]
 
     def test_a_timed_out_census_is_not_reported_as_complete(self, monkeypatch, tmp_path):
         import subprocess
