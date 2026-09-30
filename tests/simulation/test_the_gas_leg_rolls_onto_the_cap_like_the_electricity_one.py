@@ -136,17 +136,33 @@ def book(resi_gas_customers, gas_records):
 # THE PAIRING: THE READ RESOLVES, AND THE ROLL IS WHAT STOPS IT BEING A BLANKET
 # ---------------------------------------------------------------------------------------------
 
-def test_the_opening_term_is_fixed_on_both_fuels(book):
-    """An account arrives by taking a deal, so its first term is a fixed one -- either fuel.
+def test_the_opening_term_is_fixed_on_both_fuels(resi_gas_customers, book):
+    """A SWITCH opens on a fixed term and a MOVE-IN opens on the deemed default tariff -- either fuel.
 
     THE DEFECT: the gas read left at `.get(..., "fixed")`, so a drawn leg's first term is
     labelled `None` and every downstream product gate refuses it. That is the 158.
+
+    Until 2026-09-19 every arrival was a switch and this asserted `{"fixed"}` over the whole
+    book. `7bff15179` (C6) gave the world its second published route -- a move-in arises as a
+    deemed contract at default-tariff rates, `arrival_route.arrival_tariff_type` -- and this went
+    red on four `SYN-2016-*` legs the roster itself labels `svt`. Keyed now to the ROUTE the record
+    carries, with both partitions required non-empty: a builder ignoring the record (all `fixed`)
+    reds the move-in leg, and the pre-repair spelling (`None`) reds the switch leg.
     """
+    route = {c["customer_id"]: c.get("tariff_type") for c in resi_gas_customers}
     firsts = {cid: schedule[0]["tariff_type"] for cid, schedule in book.items() if schedule}
     assert firsts, "no gas schedules built -- this control would pass vacuously"
-    assert set(firsts.values()) == {"fixed"}, (
-        f"a gas leg does not open on a fixed term: "
-        f"{sorted({v for v in firsts.values() if v != 'fixed'})}")
+    switched = {cid: t for cid, t in firsts.items() if route[cid] is None}
+    moved_in = {cid: t for cid, t in firsts.items() if route[cid] == SVT_TARIFF_TYPE}
+    assert switched and moved_in, (
+        f"both arrival routes must be on the roster ({len(switched)} switch, {len(moved_in)} "
+        f"move-in) or one leg below passes over nothing")
+    assert set(switched.values()) == {"fixed"}, (
+        f"a switched gas leg does not open on a fixed term: "
+        f"{sorted({v for v in switched.values() if v != 'fixed'}, key=str)}")
+    assert set(moved_in.values()) == {SVT_TARIFF_TYPE}, (
+        f"a moved-in gas leg does not open on the deemed default tariff: "
+        f"{sorted({v for v in moved_in.values() if v != SVT_TARIFF_TYPE}, key=str)}")
 
 
 def test_the_gas_book_is_not_all_fixed_which_is_what_the_determination_refused(book):

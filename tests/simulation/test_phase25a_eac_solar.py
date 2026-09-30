@@ -78,15 +78,22 @@ def test_load_weather_cloud_cover_returns_dict():
 
 
 def test_cloud_cover_for_customer_resolves_shared_locations():
-    """C5 (London, shares C1 location) resolves to C1's cloud cover data."""
+    """C5 (London, shares C1 location) resolves to C1's cloud cover data.
+
+    Compared resolver-to-resolver, not against `load_weather_cloud_cover("C1")`: since 2026-09-21
+    `cloud_cover_for_customer` reads the PER-CELL store (`cell_weather_for_customer`) and the
+    per-customer CSV is a different, legacy series, so the old comparison differed on most days
+    while the shared resolution it guards held. Manchester (C2) must differ, or a resolver handing
+    every premise one sky would pass.
+    """
     from saas.customers import CUSTOMERS
-    from simulation.weather_inputs import cloud_cover_for_customer, load_weather_cloud_cover
-    c1 = next(c for c in CUSTOMERS if c["customer_id"] == "C1")
-    c5 = next(c for c in CUSTOMERS if c["customer_id"] == "C5")
-    c1_data = load_weather_cloud_cover("C1")
-    c5_resolved = cloud_cover_for_customer(c5)
-    # C1 and C5 share exact location dict, so C5 resolves to C1's data
-    assert c5_resolved == c1_data
+    from simulation.weather_inputs import cloud_cover_for_customer
+    by_id = {c["customer_id"]: c for c in CUSTOMERS}
+    c1_resolved = cloud_cover_for_customer(by_id["C1"])
+    c5_resolved = cloud_cover_for_customer(by_id["C5"])
+    assert c1_resolved, "C1 resolves to no cloud series -- the comparison below would be vacuous"
+    assert c5_resolved == c1_resolved
+    assert cloud_cover_for_customer(by_id["C2"]) != c1_resolved
 
 
 def test_solar_wiring_reduces_daytime_consumption_for_c4():
