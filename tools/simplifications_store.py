@@ -630,6 +630,15 @@ INLINE_PROSE_BUDGET = 2048
 PROSE_BUDGET_EXEMPT = ("size_basis",)
 
 
+# WHERE A ROW'S COMMENT PROSE GOES when it passes the same budget (H41, 2026-09-30). A comment
+# is not a field, so the budget above cannot see it, and ~15.5 KB of the spine's regrowth after
+# the `gain` drain arrived as comment. `maturity_map_store.comment_bytes_by_atom` measures it
+# and tests/design/test_simplifications_store.py refuses a row over INLINE_PROSE_BUDGET; the
+# remedy is to move the row's comment lines here, verbatim, under this key. It is in the note
+# class by its `_note` suffix, so no tuple had to grow to admit it.
+COMMENT_NOTE_FIELD = "map_comment_note"
+
+
 def over_inline_prose_budget(field: str, value, budget: int = INLINE_PROSE_BUDGET) -> bool:
     """Is this inline map field over the prose budget? Class-keyed: the field's NAME is
     used only to check the exemption, never to decide whether the rule applies."""

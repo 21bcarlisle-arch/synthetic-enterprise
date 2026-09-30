@@ -5,3 +5,151 @@ map_notes:
   build_note: 'STEP 1 OF THE THREE IN block_reason, landed 2026-09-21. LANDED: `cell_weather_for_customer` in `simulation/weather_inputs.py`; LANDED: `weather_refusals_for_book` in `simulation/weather_inputs.py`; LANDED: `test_the_physics_leg_and_the_shape_leg_send_a_premise_to_the_same_cell` in `tests/simulation/test_weather_inputs.py`. (The record is docs/staging/WORKER_RESULT_THE_SHAPE_AND_PRICE_LEGS_READ_THE_WORLDS_OWN_WEATHER_NOW_AND_THE_HDD_LEG_IS_A_THIRD_RESOLVER_2026-09-21.md; the pre-registration is in staging/records/, written before the measurement). `weather_inputs.cell_weather_for_customer` resolves a premise with `WeatherWorld.cell_id_for` -- the SAME call the physics leg makes -- so which sky a household had is decided in one place. It was decided in two between 2026-09-17 (the fabric leg moved to the store) and 2026-09-21 (these legs did): one premise''s physics ran on its cell while its demand SHAPE and forward TEMPERATURE came from a per-property ERA5 CSV matched on `location`. MEASURED: 14/18 -> 16/18 of the book hold a mean-temperature series, 3,446 -> 3,653 days (the archive stopped 2025-06-07), the two misses Birmingham and the two gained Teesside. NOT AN EQUIVALENCE and must not be read as one: HadUK 1 km + level_c reads +1.19 C (London), +1.19 (Manchester), +1.27 (C3), +0.25 (C4) warmer than ERA5 on the mean, 1.31 C mean-absolute at London -- the urban heat island a ~9 km reanalysis cannot resolve, an R13 fidelity call taken blind to company results, which it will move. Cloud cover is ERA5 both sides and differs only by sampling point (+0.015 pp mean). CONTROLS: 9 legs in tests/simulation/test_weather_inputs.py; 6 die under the revert-to-archive mutation. The 3 that do not are EQUIVALENCES, established rather than assumed: two assert one-place-one-sky, which holds under BOTH designs (a shared `location` shared a CSV; a shared cell shares a series) -- which is exactly why nothing caught the four days when the two legs disagreed. The cross-leg agreement control is the leg that now would. Two pre-existing controls asserted the OLD source (`== 4.6`, and file identity against load_weather_cloud_cover) and were rewritten onto the property, old claim kept beside the new.
 
     STEP 3 IS PART-LANDED 2026-09-21, IN THE SAME COMMIT AS STEP 1 because step 1 was still uncommitted when the gas leg needed it. LANDED: `cell_weather_for_customer_id` in `simulation/weather_inputs.py`; LANDED: `adopt_shared_world` in `simulation/weather_inputs.py`; LANDED: `hdd_reading` in `sim/weather_hdd.py`; LANDED: `HddReading` in `sim/weather_hdd.py`; LANDED: `PremiseSky` in `sim/weather_hdd.py`; LANDED: `test_the_resolver_discriminates_a_premise_with_a_cell_from_one_without` in `tests/sim/test_the_hdd_leg_reads_the_premises_own_cell.py`; DELETED: `_resolve_source_cid` from `sim/weather_hdd.py`, with its per-property CSV reader. The gas/HDD leg was the THIRD resolver of which sky a household had, and the last one answering from a filename: strip a trailing `g`, else pass the id through, then look for one of four CSVs. MEASURED, whole book: 10 of 18 premises were reading the 1991-2020 England and Wales monthly normal -- the same number in 2018 as in 2022, biased high by a third to a half at an urban cell -- and C1 and C7, ONE COORDINATE, read annual HDD 12-20% apart purely because one id matched a filename. After: 16/18 read their own cell, annual HDD moves -2.5% to -34.5%, C1 and C7 are identical every day. TWO CAUSES IN THAT COLUMN AND THEY MUST NOT BE AVERAGED: ten premises moved off a flat normal onto weather at all; eight moved from ERA5 ~9 km to HadUK 1 km. The two the store holds no cell for (C_IC1, C_IC2, Birmingham, 7.4 km outside MAX_SNAP_KM) still get the normal and now NAME it -- `HddReading.from_normal` is the question and `basis` is the sentence; `get_hdd`''s bare float still cannot say it and its docstring says so. CONTROL: ONE test over the whole partition (a premise with a cell and a premise without, in one function), because a resolver returning the normal for everything passes every assertion about what the normal looks like and one returning a cell for everything passes every assertion about weather. Both one-way mutations red it, each on the leg written for it. STILL OWED under step 3: `_weather_source_customer_id`, `cell_matched_site` and `simulation/run_phase1b_weather_pull.py`. The record is docs/staging/WORKER_RESULT_THE_HDD_LEG_READS_THE_WORLDS_OWN_CELLS_NOW_2026-09-21.md.'
+  map_comment_note: 'level_current: 1   # 2026-09-06 L0->L1 SELF-CERTIFIED (PROPOSE-RECORD-ACT; ledger row in
+
+    #   gate_authorizations.jsonl). L1 = "exists, been BUILT in any form", and it now does:
+
+    #   `simulation/weather_cell_siting.py` is the sim-side seam that imports the derivation
+
+    #   (W1_19/W1_20/W1_21/W1_25) and sites a premise in the derived cells, and
+
+    #   `weather_inputs._weather_source_customer_id` consults it. Before this the five derivation
+
+    #   modules were imported by NOTHING in simulation/, company/ or saas/.
+
+    #
+
+    #   L2 IS NOT CLAIMED AND MUST NOT BE. L2 is "mechanically real"; the world''s household heat load
+
+    #   is still not DRIVEN by the cells, and the seam is what measured why. The archive is four real
+
+    #   Open-Meteo pulls (C1-C4) against a decision of 21 cells per driver, and those four sites
+
+    #   cover 20.4% / 27.8% / 17.2% of GB households on winter temperature / wind / sunshine, and
+
+    #   2.0% on all three at once (re-cut 2026-09-07 on the UPRN placement; the superseded centroid
+
+    #   figures were 20.5% / 30.7% / 27.9% / 3.5% and every one overstated the archive). So the
+
+    #   substitution branch is live and correct and today accepts
+
+    #   nothing the supply book holds: Birmingham shares Manchester''s wind cell and neither its
+
+    #   temperature nor its sunshine cell; Teesside shares nothing with anything.
+
+    #
+
+    #   2026-09-07, LATER THE SAME DAY -- the artefact is now CUT over the drawn population (delivery
+
+    #   seat, lane 0). It held seven coordinates and was looked up by a population of 139,938: every
+
+    #   drawn household carried a real coordinate after W2_18 and 0/201 resolved. It is now cut over
+
+    #   the whole household siting frame -- 139,938/139,938 sited, 0 dropped, max 6.6 m to a cell
+
+    #   centre, a JOIN rather than a nearest-anything because frame and cells share the HadUK
+
+    #   auxiliary coordinates. 201/201, 195/195, 183/183 resolve at seeds 7/11/42.
+
+    #   (17.2% not 17.3%: the artefact holds 0.1725 and every surface that PRINTS it renders 17.2%.
+
+    #   Aligned to what the code emits so a reader diffing the two does not find a disagreement.)
+
+    #
+
+    #   L2 STILL NOT CLAIMED, and this is a judgement worth contesting.
+
+    #   `test_a_drawn_household_has_a_coordinate_and_the_artefact_still_cannot_look_it_up` said in its
+
+    #   own docstring "delete leg 3 and move the level" when this happened. Leg 3 is deleted; the
+
+    #   level is NOT moved, deliberately. The cut converted the refusal from "not sited" (a lookup
+
+    #   gap, ours) to "no archive site shares all three cells" (ARCHIVE BREADTH, a pull): 200 of
+
+    #   139,938 frame cells reach an archive site, so ~99% of drawn households still get no weather
+
+    #   from the cells. L2 is "mechanically real" and the world''s heat load is still not DRIVEN by
+
+    #   the cells for essentially anyone. Moving it here would be the reachable-but-not-chosen error
+
+    #   this map keeps recording. If the next reader disagrees, the disagreement is about whether L2
+
+    #   means "the mechanism works" or "the world uses it" -- say which and move it.
+
+    dial_inherited: 60    # the product tier the director''s own re-rank created. His ruling says
+
+    #   "draw it ahead of the next un-drawn product item"; sequencing against its siblings is carried
+
+    #   structurally by depends_on rather than by inventing a 46th rung on a scale that has none.
+
+    # WHAT THIS ATOM WAITS ON, named -- and it is NOT W1_23 or W1_24. Both DEPEND ON this atom and
+
+    # open when it reaches level 3, so deferring the wiring to them is circular. The blocker has been
+
+    # restated three times BY MEASUREMENT, each correction kept: "17 pulls" counted the PARTITION
+
+    # (W1_23''s precondition); "two pulls" counted the supply book''s LOCATIONS, whose un-archived
+
+    # premises are all I&C, so both move HOUSEHOLD coverage 100% -> 100% (2026-09-06); and the
+
+    # coordinate gap that replaced them was closed by W2_18 on 2026-09-07; and the artefact''s own CUT,
+
+    # which replaced THAT, was closed on 2026-09-07. blocked_on is null and correct, and the blocker
+
+    # is now the one it was three restatements ago and for the first time with nothing in front of it:
+
+    # ARCHIVE BREADTH. Four Open-Meteo pulls against 21 cells per driver. That is a data pull, not
+
+    # code in this atom.
+
+    # RE-MEASURED 2026-09-06 (later tick), because a stated precondition is a proxy that expires and
+
+    # ''clears on its own'' is a prediction, not a reading. Probed the archive directly for Birmingham
+
+    # (52.4862,-1.8904), two days of one variable: still HTTP 429, and the reason string is now
+
+    # "Daily API request limit exceeded. Please try again tomorrow." So the block is real, external,
+
+    # and dated -- not a stale note. THE SECOND HALF OF THIS NOTE IS NOW DISCHARGED, 2026-09-06 (later
+
+    # tick), and it is kept beside its correction rather than revised away. It read: step 1 scans resi
+
+    # ELECTRICITY sources only, all four premises at the two uncovered locations are I&C (C_IC1/C_IC2
+
+    # Birmingham, C_IC3 + C_IC3g Teesside), so C_IC2 and C_IC3g could only resolve through step 2''s
+
+    # STATIC `weather_cell_siting.ARCHIVE_SITES` dict -- hence "the two pulls must land WITH two
+
+    # entries there", plus an instruction not to add those entries before the CSVs exist.
+
+    #
+
+    # THAT PARAGRAPH CLAIMED A REPAIR THAT WAS NEVER LANDED, and the claim stood 13 days. It said
+
+    # `_weather_source_customer_id` checks `_has_archive`; `git log --all -S` finds that name in NO
+
+    # commit''s code -- only in this map''s prose and in one test call site in salvage `8730d1b96`.
+
+    # fork_salvage caught two of the three files the dying worktree held and never weather_inputs.py.
+
+    # `_has_archive` IS LANDED 2026-09-20, written fresh (nothing to recover). 18/18 unchanged.
+
+    # The proxy was unmutatable on the live book -- archived ids precede un-archived ones at every
+
+    # shared coordinate -- so the discriminating pair is BOUND in the test.
+
+    # `tools/generate_weather_cells_data.py` was in this scope until 2026-09-06 and HAS NEVER EXISTED
+
+    # in any commit -- a level-0 row''s file_scope is checked by nothing, so it named a program no build
+
+    # ever wrote. Replaced with the three paths the seam actually lands in. NOT `sim/weather_cells/
+
+    # site_cells.json`: that is the derived OUTPUT, and scoping the generated file would find the path
+
+    # dirty on every re-derivation. Scope the generator, not the generated.
+
+
+    # (rehomed 2026-09-30 by H41; the claim line below states the landing the prose above asserts)
+
+    LANDED: `_has_archive` in `simulation/weather_inputs.py`'

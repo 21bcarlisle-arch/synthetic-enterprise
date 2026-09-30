@@ -827,42 +827,10 @@
 # (a proposal) is, so nothing here is waiting on anything to be opened.
 - id: PB3_book_growth_as_earned_outcome
   title: "A growth curve that can be lost"
-  notes_rehomed: [discover_note, gain, name]
+  notes_rehomed: [discover_note, gain, name, map_comment_note]
   lane: W2_customer_generator
   value_stream: meter_to_cash
   epoch: 2
-  # BACKED OUT FROM 2 TO 0 ON 2026-08-31, AND THE LEVEL IS NOT THE THING THAT WAS WRONG. The `2`
-  # sat STAGED in the shared index for 17.9 hours and refused seventeen consecutive publish
-  # commits under §0's recorded-but-unbuilt predicate. The refusal is correct and must stay: this
-  # atom's `file_scope` names `simulation/run_phase2b.py`, which another lane holds 160
-  # uncommitted lines of (the C1b SVT-departure branch), so the level declared a program no
-  # commit contained. What makes it a WEDGE rather than one bad commit is that the publisher is
-  # the process that carries this file, and the publisher can never carry source -- so no draw
-  # priority, however high, could ever clear it. Landing that source instead was measured and
-  # refused: `run_phase2b.py` imports `DEPARTURE_OCCASION_SVT_SEGMENT` and
-  # `inertia_hazard_for_term`, which exist at HEAD in neither `customer_events.py` nor
-  # `svt_product.py` (both dirty, both OUTSIDE this file_scope), so landing it alone is an
-  # ImportError at HEAD in a module 200+ files import -- the whole suite, not a selection.
-  # RE-DECLARE THIS AS 2 IN THE SAME SEAT COMMIT THAT CARRIES ITS SOURCE. The L2 work itself was
-  # never in question and nothing about it is retracted here.
-  #
-  # RE-DECLARED 2 ON 2026-09-03, AND THE BACK-OUT'S OWN CONDITION IS WHAT CLEARED IT. The
-  # instruction above says "in the same seat commit that carries its source"; the source landed
-  # in ANOTHER lane's commit instead, which satisfies the intent -- the level no longer declares
-  # a program no commit contains -- so this commit carries the map alone. Re-measured at HEAD
-  # rather than inferred from the note: `DEPARTURE_OCCASION_SVT_SEGMENT` is at
-  # `simulation/customer_events.py:66` and `inertia_hazard_for_term` at `simulation/svt_product.py:124`,
-  # both at HEAD, and `git status --porcelain` over this atom's whole file_scope is EMPTY, so the
-  # gate's second control passes on the fact and not on the claim. The four exit legs were re-run,
-  # not recalled: tests/simulation/test_net_new_acquisition.py 54 passed (b1 and b2 with their
-  # named MUTATION controls and the b1 null control), tests/tools/test_couple_pb3_book_growth.py
-  # 20 passed (d), tests/simulation/test_opening_book_subset.py 29 passed. Authorised by the
-  # EXISTING ledger row -- no new authority was minted for this; `gate_authorizations.jsonl` has
-  # carried a valid `level: 2` self-certification for this atom since 2026-08-25.
-  # THE LESSON, because it cost three ticks: a back-out comment states a cause, and a cause can be
-  # CURED by a lane that never reads the comment. This note went stale the moment the C1b branch
-  # landed, and every draw of PB3 after that re-derived a wedge that no longer existed. A blocker
-  # note is a measurement and goes stale exactly like a green -- re-run it before believing it.
   level_current: 2
   level_target: 3
   loop_stage: build
@@ -870,42 +838,9 @@
   provenance: director_ruling
   depends_on: ['PB2_opening_book_won_not_assigned']
   couples_with: ['W2_3_competitor_field']
-  # L3 RESIDUE, named rather than left for the next reader to rediscover (2026-08-30): the
-  # competitor is wired on the LOSS side only. `simulation/customer_events.py` reads
-  # `competitor_reference_rate_gbp_per_mwh` and B10_competitor_switching_response is at L3, but
-  # neither `simulation/net_new_acquisition.py` (see its line 66) nor
-  # `simulation/acquisition_funnel.py` imports it, so the win side is still the funnel's own
-  # leakage. A book whose down is a rival supplier and whose up is nobody is not yet won and lost
-  # against the SAME market. That import, and the re-run of every published book figure behind it,
-  # is what carries this atom to L3.
-  #
-  # HALF OF THAT RESIDUE IS NOW CLOSED, and saying which half is the point (2026-09-03).
-  # THE IMPORT LANDED. `simulation/acquisition_funnel.py:176` calls `offer_position_multiplier`
-  # from `simulation.market_switching_propensity` inside `_quote_to_application_rate`, and
-  # `simulation/live_population.py:971` binds `price_differential_pct=PRICE_DIFFERENTIAL_PCT` into
-  # `run_acquisition_funnel` -- the SAME run parameter `customer_events` has been handing the
-  # retention side since Phase NS. So the win side is no longer blind to our price, and
-  # `test_b1_the_win_side_reads_the_SAME_elasticity_the_loss_side_does` is the control that says up
-  # and down are the same contest rather than two mechanisms pointed opposite ways.
-  # WHAT IS STILL OPEN, and it is why this is 2 and not 3:
-  #   1. THE RE-RUN. The clause "and the re-run of every published book figure behind it" is NOT
-  #      discharged. No one has shown the published book figures were regenerated behind that
-  #      import, and an unverified re-run is exactly the "done means the rendered value changed"
-  #      failure this project keeps paying for. Measure it; do not assume it.
-  #   2. NO RIVAL TAKES THE CUSTOMER. `simulation/competitor_field.py` does not exist. The win side
-  #      reads our position against a market AVERAGE, not against a named rival's counter-offer --
-  #      `simulation/net_new_acquisition.py:66` still says so in its own docstring, and that line is
-  #      accurate. B10's own closed-map note names the same hole one layer down: "§5 component 1
-  #      (the ceiling gap) is unbuilt -- the company still has no observation of the cheapest rival
-  #      price."
-  # Both must be discharged by MEASUREMENT before this atom is 3. Neither is discharged by reading
-  # this comment, which is the mistake the note above records.
   simplifications_count: 3
   file_scope: [simulation/net_new_acquisition.py, simulation/run_phase2b.py, tests/simulation/test_net_new_acquisition.py,
     simulation/market_switching_propensity.py, simulation/acquisition_funnel.py, simulation/live_population.py,
-    # DECLARED 2026-09-04 by `check_file_scope_names_the_atoms_own_program`. This atom's scope is
-    # already the subject of the back-out note above, so an undeclared coupling module is the same
-    # class of defect that wedged seventeen commits.
     tools/couple_pb3_book_growth.py, tests/tools/test_couple_pb3_book_growth.py]
 
 # --- EPOCH 3: the wall becomes real transport (blocked -- R13 curriculum)
@@ -1197,38 +1132,6 @@
   file_scope: []
 
 # --- The ruling's own machinery (drawable now -- deliverables 2, 3 and 4)
-- id: H41_the_map_ratchet_has_no_ongoing_drain
-  title: "The map ratchet drains once and refills at mint rate"
-  notes_rehomed: [gain, level_hold_note, name]
-  lane: H_harness
-  value_stream: close_to_learn
-  epoch: 3
-  level_current: 0   # 2026-09-06: THE WORK IS BUILT AND THE LEVEL DID NOT MOVE, and the second
-  #   half is not a hedge. Both drains landed -- stock (137 atoms' `gain` out of both map halves
-  #   under three proofs; ratchet headroom 1,417 -> 44,616 B) and flow (`gain` in NOTE_FIELDS so an
-  #   inline one is refused, plus INLINE_PROSE_BUDGET catching the next fat field under any name).
-  #   `record_level_up_self_certified` REFUSED the ratification: OPS11, lane H_harness holds 13
-  #   live BLOCKING findings, so a level certified here would rest on an instrument this lane's own
-  #   findings say may be wrong. Accepting the limitation to move the number would be exactly that.
-  #   The evidence is in the store's `level_hold_note`; the row moves when the lane drains.
-  level_target: 2
-  loop_stage: build
-  dial_inherited: 2
-  provenance: worker_finding
-  depends_on: []
-  couples_with: []
-  records_rehomed: [evidence]
-  blocked_on: null
-  block_reason: "Built, not ratified. OPS11 refuses a level move in H_harness while the lane holds
-    13 live BLOCKING findings; the mechanism is landed and proven either way."
-  # file_scope CORRECTED 2026-09-06: it named `tools/generate_proof_data.py`, which no control in
-  # this row's scope reaches -- a file_scope entry is EVIDENCE for the level claimed, and an
-  # unreached one inflates what the controls cover. Replaced with the two suites that do run
-  # (70 controls between them) and the one-shot that moved the stock.
-  file_scope: ['tests/design/test_simplifications_store.py', 'tests/design/test_atom_notes_store.py', 'tools/simplifications_store.py', 'tools/migrate_gain_to_store.py', 'docs/design/maturity_map.yaml']
-  expert_hour: {status: not_attempted, last: null, findings: []}
-  real_world_twin: "a disk-space alarm cleared by deleting last month's logs, which fires again next month because nothing changed the write rate"
-
 - id: H40_full_suite_pollution_bisect
   title: "Name the module that pollutes the full suite, then close its class"
   notes_rehomed: [gain, name, origin_note]
@@ -1635,81 +1538,16 @@
   real_world_twin: "an annual report whose 'about us' page still gives the headcount from three acquisitions ago. Everyone reads it, nobody owns it, and every outsider's first number is wrong."
 - id: W1_14_weather_cells_for_household_heat_load
   title: "phase 1: the smallest set of weather cells that captures household-weighted heat-load variation across GB"
-  notes_rehomed: [build_note, gain, origin_note]
+  notes_rehomed: [build_note, gain, origin_note, map_comment_note]
   lane: W1_market_weather
   value_stream: price_to_bill
   epoch: 3
-  level_current: 1   # 2026-09-06 L0->L1 SELF-CERTIFIED (PROPOSE-RECORD-ACT; ledger row in
-  #   gate_authorizations.jsonl). L1 = "exists, been BUILT in any form", and it now does:
-  #   `simulation/weather_cell_siting.py` is the sim-side seam that imports the derivation
-  #   (W1_19/W1_20/W1_21/W1_25) and sites a premise in the derived cells, and
-  #   `weather_inputs._weather_source_customer_id` consults it. Before this the five derivation
-  #   modules were imported by NOTHING in simulation/, company/ or saas/.
-  #
-  #   L2 IS NOT CLAIMED AND MUST NOT BE. L2 is "mechanically real"; the world's household heat load
-  #   is still not DRIVEN by the cells, and the seam is what measured why. The archive is four real
-  #   Open-Meteo pulls (C1-C4) against a decision of 21 cells per driver, and those four sites
-  #   cover 20.4% / 27.8% / 17.2% of GB households on winter temperature / wind / sunshine, and
-  #   2.0% on all three at once (re-cut 2026-09-07 on the UPRN placement; the superseded centroid
-  #   figures were 20.5% / 30.7% / 27.9% / 3.5% and every one overstated the archive). So the
-  #   substitution branch is live and correct and today accepts
-  #   nothing the supply book holds: Birmingham shares Manchester's wind cell and neither its
-  #   temperature nor its sunshine cell; Teesside shares nothing with anything.
-  #
-  #   2026-09-07, LATER THE SAME DAY -- the artefact is now CUT over the drawn population (delivery
-  #   seat, lane 0). It held seven coordinates and was looked up by a population of 139,938: every
-  #   drawn household carried a real coordinate after W2_18 and 0/201 resolved. It is now cut over
-  #   the whole household siting frame -- 139,938/139,938 sited, 0 dropped, max 6.6 m to a cell
-  #   centre, a JOIN rather than a nearest-anything because frame and cells share the HadUK
-  #   auxiliary coordinates. 201/201, 195/195, 183/183 resolve at seeds 7/11/42.
-  #   (17.2% not 17.3%: the artefact holds 0.1725 and every surface that PRINTS it renders 17.2%.
-  #   Aligned to what the code emits so a reader diffing the two does not find a disagreement.)
-  #
-  #   L2 STILL NOT CLAIMED, and this is a judgement worth contesting.
-  #   `test_a_drawn_household_has_a_coordinate_and_the_artefact_still_cannot_look_it_up` said in its
-  #   own docstring "delete leg 3 and move the level" when this happened. Leg 3 is deleted; the
-  #   level is NOT moved, deliberately. The cut converted the refusal from "not sited" (a lookup
-  #   gap, ours) to "no archive site shares all three cells" (ARCHIVE BREADTH, a pull): 200 of
-  #   139,938 frame cells reach an archive site, so ~99% of drawn households still get no weather
-  #   from the cells. L2 is "mechanically real" and the world's heat load is still not DRIVEN by
-  #   the cells for essentially anyone. Moving it here would be the reachable-but-not-chosen error
-  #   this map keeps recording. If the next reader disagrees, the disagreement is about whether L2
-  #   means "the mechanism works" or "the world uses it" -- say which and move it.
+  level_current: 1
   level_target: 3
   loop_stage: build
-  dial_inherited: 60    # the product tier the director's own re-rank created. His ruling says
-  #   "draw it ahead of the next un-drawn product item"; sequencing against its siblings is carried
-  #   structurally by depends_on rather than by inventing a 46th rung on a scale that has none.
+  dial_inherited: 60
   provenance: director_ruling
-  # WHAT THIS ATOM WAITS ON, named -- and it is NOT W1_23 or W1_24. Both DEPEND ON this atom and
-  # open when it reaches level 3, so deferring the wiring to them is circular. The blocker has been
-  # restated three times BY MEASUREMENT, each correction kept: "17 pulls" counted the PARTITION
-  # (W1_23's precondition); "two pulls" counted the supply book's LOCATIONS, whose un-archived
-  # premises are all I&C, so both move HOUSEHOLD coverage 100% -> 100% (2026-09-06); and the
-  # coordinate gap that replaced them was closed by W2_18 on 2026-09-07; and the artefact's own CUT,
-  # which replaced THAT, was closed on 2026-09-07. blocked_on is null and correct, and the blocker
-  # is now the one it was three restatements ago and for the first time with nothing in front of it:
-  # ARCHIVE BREADTH. Four Open-Meteo pulls against 21 cells per driver. That is a data pull, not
-  # code in this atom.
   blocked_on: null
-  # RE-MEASURED 2026-09-06 (later tick), because a stated precondition is a proxy that expires and
-  # 'clears on its own' is a prediction, not a reading. Probed the archive directly for Birmingham
-  # (52.4862,-1.8904), two days of one variable: still HTTP 429, and the reason string is now
-  # "Daily API request limit exceeded. Please try again tomorrow." So the block is real, external,
-  # and dated -- not a stale note. THE SECOND HALF OF THIS NOTE IS NOW DISCHARGED, 2026-09-06 (later
-  # tick), and it is kept beside its correction rather than revised away. It read: step 1 scans resi
-  # ELECTRICITY sources only, all four premises at the two uncovered locations are I&C (C_IC1/C_IC2
-  # Birmingham, C_IC3 + C_IC3g Teesside), so C_IC2 and C_IC3g could only resolve through step 2's
-  # STATIC `weather_cell_siting.ARCHIVE_SITES` dict -- hence "the two pulls must land WITH two
-  # entries there", plus an instruction not to add those entries before the CSVs exist.
-  #
-  # THAT PARAGRAPH CLAIMED A REPAIR THAT WAS NEVER LANDED, and the claim stood 13 days. It said
-  # `_weather_source_customer_id` checks `_has_archive`; `git log --all -S` finds that name in NO
-  # commit's code -- only in this map's prose and in one test call site in salvage `8730d1b96`.
-  # fork_salvage caught two of the three files the dying worktree held and never weather_inputs.py.
-  # `_has_archive` IS LANDED 2026-09-20, written fresh (nothing to recover). 18/18 unchanged.
-  # The proxy was unmutatable on the live book -- archived ids precede un-archived ones at every
-  # shared coordinate -- so the discriminating pair is BOUND in the test.
   block_reason: "ALL THREE LEGS READ THE PER-CELL STORE FOR THE WHOLE BOOK since 2026-09-30.
     The 09-21 'HDD leg wired' was true of the 18-point roster only: 91 of the 95 gas premises the
     run settles (76 PROS-*, 15 SYN-*) read the flat 1991-2020 monthly normal -- 2018 = 2022 -- until
@@ -1724,11 +1562,6 @@
   depends_on: []
   couples_with: [W1_5_premise_demand_shape]
   file_scope: ['simulation/weather_cell_siting.py', 'simulation/weather_inputs.py', 'tests/simulation/test_weather_cell_siting.py']
-  # `tools/generate_weather_cells_data.py` was in this scope until 2026-09-06 and HAS NEVER EXISTED
-  # in any commit -- a level-0 row's file_scope is checked by nothing, so it named a program no build
-  # ever wrote. Replaced with the three paths the seam actually lands in. NOT `sim/weather_cells/
-  # site_cells.json`: that is the derived OUTPUT, and scoping the generated file would find the path
-  # dirty on every re-derivation. Scope the generator, not the generated.
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a supplier that hedges and forecasts on 14 GSP groups because that is how it is settled, having never asked how many genuinely distinct weather regimes its customers actually live in."
 - id: W2_18_the_housing_joint_the_sample_and_the_ceiling
@@ -2159,38 +1992,10 @@
 
 - id: W2_28_a_household_is_a_vector_and_a_claim_declares_what_it_reduces_over
   title: "the demand vector as the declared subject of every coverage, ceiling and sufficiency claim, and the control that refuses one measured on an undeclared reduction dimension"
+  notes_rehomed: [map_comment_note]
   lane: W2_customer_generator
   value_stream: meter_to_cash
   epoch: 3
-  # LEVEL 1, AND WHAT UNSTUCK IT WAS THE CONTROL'S OWN SPECIFICATION, NOT THE BLOCKER. The row stood
-  # at 0 for two days because the control could not be committed: its live leg asserted
-  # `undeclared() == []`, and the tenth of ten declarations lives in
-  # `simulation/weather_cell_siting.py`, whose pathspec selects
-  # `tests/simulation/test_weather_cell_siting.py` -- RED AT PRISTINE HEAD on
-  # `test_derive_reproduces_the_committed_artefact` ({'annual_wind': 0.2062} derived against 0.2782
-  # published), an artefact cut owned by lane W1_market_weather. MEASURED, not inferred, in a
-  # `git worktree add --detach HEAD` extract 2026-09-09: 1 failed, 13 passed at pristine HEAD; the
-  # shared tree is 2 failed, 12 passed on two DIFFERENT tests. No state of the tree is 14/14.
-  # THE DIAGNOSIS: `== []` is stricter than the property the file's own docstring names -- "a new
-  # claim cannot arrive silent" -- and the extra strictness bought nothing and cost everything,
-  # leaving nine landed declarations unguarded while the control waited on a dispute it has no part
-  # in. `tools.reduction_dimension.OUTSTANDING` now names that one debt with the finding that
-  # discharges it, shrink-only and citation-checked. R15: four mutations, one leg each (drop the
-  # OUTSTANDING filter; add a second debt row; break the citation; remove it).
-  #
-  # CORRECTION 2026-09-09, beside the claim it replaces. This comment previously read "16 passed in
-  # the shared tree AND in a clean HEAD extract". That was false, and the word doing the damage was
-  # CLEAN: a pristine-HEAD extract is 1 failed, 15 passed, because
-  # `test_every_outstanding_row_names_a_document_that_still_exists` asserts `.exists()` on the
-  # document the single OUTSTANDING row cites -- and that document was UNTRACKED, never committed.
-  # Measured both ways in a `git worktree add --detach HEAD` extract: 16/16 with the citation copied
-  # in, 1 failed/15 passed with it removed, so the citation is load-bearing rather than incidental.
-  # THE CONSEQUENCE IS THE LANDABLE UNIT, not the count: this row's `file_scope` names two paths and
-  # a two-path commit is RED. The minimum unit is FOUR -- the two below, this map row, and
-  # docs/staging/done/SEAT_FINDING_TWO_LANES_BUILT_W1_14S_ARTEFACT_CUT_TWICE_AND_THE_SHARED_TREE_
-  # HELD_THE_LOSING_ONE_IN_A_STATE_THAT_COULD_NOT_COLLECT_2026-09-07.md, the cited document. A
-  # control whose green depends on a file no commit contains is the `uncommitted_and_orphaned_work`
-  # class wearing a passing suite, and the shared tree cannot see it because `.exists()` is true there.
   level_current: 1
   level_target: 3
   loop_stage: build
@@ -2200,39 +2005,11 @@
   block_reason: null
   depends_on: []
   couples_with: [W2_21_the_premise_joint_is_fitted_not_drawn_independently]
-  # EXECUTABLE CONTROLS, not directories: the census is runnable
-  # (`python3 -m tools.reduction_dimension --undeclared`, exit 1 when a claim in scope is silent and
-  # is not a named OUTSTANDING debt row) and the control is a pytest file. A `file_scope` naming
-  # `docs/design` cannot be
-  # asserted past by anything, which is why 28 of 34 level-0 rows name no control a runner can
-  # execute.
   file_scope:
     - tools/reduction_dimension.py
     - tests/architecture/test_a_coverage_claim_declares_what_it_reduces_over.py
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a cold well-insulated house and a mild leaky one with the same annual kWh -- one number, one case, and two customers who want opposite things from a supplier."
-  # THE DELIVERABLE, verbatim from DIRECTOR_CANON_THE_DEMAND_VECTOR_2026-09-07 section 2. The
-  # drawn population must reproduce the observed DISTRIBUTION of, per household: annual gas,
-  # annual electricity, the seasonal shape of gas, the half-hourly shape of electricity, and
-  # heating fuel type. Held as `tools.reduction_dimension.DEMAND_VECTOR` so a claim declares
-  # itself against one list rather than five drifting copies.
-  #
-  # LEVEL 1, NOT 2, AND THE GAP IS NAMED. What landed is item 3 of the canon's WORK THIS
-  # CREATES -- the refusal, mutation-proven, with its poison round on the record: before any
-  # declaration existed the census was red on 11 claim modules including both the canon names
-  # (the 13-case demand coverage on annual kWh, and the 21/21/5 separable weather grids), and
-  # is green only because each now states what it reduces over and what it is blind to. Not a
-  # single figure moved and none was withdrawn: what changed is that every one of them is now
-  # readable as the reduction it is. The WEIGHTED DISTRIBUTIONAL ACCEPTANCE TEST (item 1) is
-  # deliberately NOT stubbed here -- `tools/demand_vector_coverage.py` measures it and its N is
-  # a FLOOR until per-household electricity exists. Items 1, 2, 4 and 5 are MINTED 2026-09-07 as
-  # W2_29, W1_28, W2_30 and W2_31 below; this row carries item 3 and nothing else.
-  #
-  # WHAT LEVEL 1 IS NOT: nine of the ten declarations are at HEAD and the tenth
-  # (`simulation.weather_cell_siting`) is a named row of `OUTSTANDING`, not a covered claim. The
-  # control refuses a NEW silent claim and does not assert that every existing one has spoken. Level
-  # 2 needs that debt paid, which needs W1_market_weather's artefact cut settled -- it is the row's
-  # own citation, and archiving that finding turns this control red until somebody re-measures.
 
 - id: W2_29_the_coverage_is_re_measured_against_the_demand_vector
   title: "coverage re-measured against the demand vector under a weighted distributional acceptance test, with the dominant term named and both N figures reported"
@@ -2321,6 +2098,7 @@
 
 - id: W2_30_per_household_half_hourly_electricity_and_seasonal_gas_shape
   title: "per-household half-hourly electricity shape and seasonal gas shape as the demand deliverable, published as modelled and explicitly not validated"
+  notes_rehomed: [map_comment_note]
   lane: W2_customer_generator
   value_stream: price_to_bill
   epoch: 3
@@ -2338,55 +2116,6 @@
     - tests/simulation/test_household_demand_shape.py
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a supplier whose every customer has the same half-hourly shape, so time-of-use, flexibility and hedging by physics are all worth exactly zero in its own model, and it cannot tell that this is a modelling artefact."
-  # ITEM 4 of DIRECTOR_CANON_THE_DEMAND_VECTOR_2026-09-07, and the canon is explicit that this is
-  # NOT AN ENHANCEMENT to the demand work -- it IS the deliverable. The world today rescales one
-  # national profile, so every household has the same time-of-use cost profile and the price
-  # signal is invisible to the model.
-  #
-  # THE TWO RESOLUTIONS DIFFER, AND THE PRICE SETS THEM, NOT THE PHYSICS. Gas: seasonal shape is
-  # enough, because the price does not move within a month. Electricity: half-hourly is required,
-  # because that is where the price and the settlement live. Two households at identical annual
-  # kWh -- one with a sharp evening peak, one flat -- are a different cost to serve and a
-  # different hedge.
-  #
-  # A DIRECTOR DECISION IS ALREADY TAKEN AND IT BOUNDS THE EXIT (canon section 6). The only
-  # household shape artefact available is Elexon Profile Class 1 -- one population-average curve
-  # on a 1997 reference year -- and NEED is annual. SERL has half-hourly with EPC linkage but is
-  # accredited-access and is NOT pursued. So shape is published as MODELLED AND EXPLICITLY NOT
-  # VALIDATED, said plainly on the page. A row that closes claiming validated shape has crossed
-  # a director decision, not raised a level.
-  #
-  # EXIT: a per-household shape the draw actually carries, the not-validated statement on the
-  # reader-facing surface (not a footnote), and W2_29's acceptance re-run over the full vector
-  # with this in it.
-  #
-  # 2026-09-08, LEVEL 0 -> 2. Evidence:
-  # docs/staging/SEAT_RESULT_THE_GAS_HEATING_FRACTION_SPANS_0_25_TO_0_95_AND_EVERY_HOUSEHOLD_
-  # WAS_HANDED_0_70_2026-09-08.md.
-  #
-  # THE ELECTRICITY HALF WAS ALREADY DONE and the row's own premise above is stale on it:
-  # `fabric_demand_path.fabric_providers_for_book` has driven every eligible premise's
-  # half-hourly electricity from W1_11/W1_12 since the settlement switch, and `run_phase2b`
-  # settles money off it. `tools/book_shape_spread.py` measures it with the level divided out
-  # (2022-01, 5,778 pairs): mean absolute half-hourly share difference 0.006463 on the fabric
-  # path, and the LEGACY path's closest pair at 1.6e-4 -- the collapse the switch removed. The
-  # correct action was to establish that and NOT build a second copy.
-  #
-  # THE GAS HALF WAS THE REAL GAP and `run_phase2b` had refused it for a reason that answers a
-  # different question: it assumed switching gas meant replacing the AQ LEVEL with fabric volume
-  # (a 4x hedge mismatch). The canon asks for a seasonal SHAPE. `simulation/household_demand_
-  # shape.py` fits each household's own daily gas onto the two-term form `gas_settlement`
-  # already settles and moves only the heating FRACTION, so the annual total is the AQ whatever
-  # the fraction is -- level preserved by construction and mutation-tested as such.
-  # MEASURED over 27 households (era x insulation x type, C1, 2021): the fitted fraction spans
-  # 0.250 to 0.945, median 0.746, where the shipped code handed every household the DUKES
-  # population figure of 0.70. The population figure is confirmed and was wrong per household.
-  #
-  # NOT AT TARGET, and both remaining criteria are exit criteria 2 and 3 verbatim:
-  # `NOT_VALIDATED_STATEMENT` exists and is tested but reaches no reader-facing surface (it is
-  # in the run's stdout, which is not a page), and W2_29's acceptance has not been re-run --
-  # `population_coverage.REDUCES_OVER` still declares itself `blind_to` both of this row's two
-  # components. HARDEN when those two land and the fitted distribution survives a cold-eyes pass.
 
 - id: W2_31_people_phase1_the_physical_layer_stands_alone
   title: "people phase 1 re-cut so the physical layer stands alone, with the commercial layer correlated rather than merged"
@@ -2430,6 +2159,7 @@
 
 - id: W2_34_the_company_has_one_piece_of_advice_that_costs_the_customer_nothing
   title: "a zero-capital measure in the offer book, refused below a health floor rather than priced against a comfort cost -- so the company's advice leg exists and cannot recommend that the coldest households be colder"
+  notes_rehomed: [map_comment_note]
   lane: W2_customer_generator
   value_stream: price_to_bill
   epoch: 3
@@ -2448,43 +2178,6 @@
     - tests/company/test_the_epc_band_reaches_the_floor_from_the_register.py
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "the advice a supplier's call handler actually gives for free -- turn the thermostat down a degree, drop the flow temperature -- which is the only thing they can offer a household with no capital, and which a responsible supplier withholds from a home that is already too cold"
-  # MINTED 2026-09-08 from SEAT_FINDING_EVERY_PIECE_OF_ADVICE_THE_COMPANY_CAN_GIVE_COSTS_THE_CUSTOMER_MONEY
-  # (LATENT, atom `unminted`). The finding's own measurement: OFFER_BOOK held insulate £6,000,
-  # heat_pump £12,000, solar_pv £7,000, time_shift £300 and nothing else, against a mission that
-  # names ADVICE as one of three mechanisms. Every route the company had to a customer's bill ran
-  # through the customer's capital.
-  #
-  # L2 2026-09-21: THE BAND ARRIVES AND THE MEASURE IS LIVE. `EpcCertificate.efficiency_band`
-  # carries the register's A-G band, `couple_fabric` passes the drawn one where a certificate
-  # exists, and on a 40-premise draw 13 of 39 households are offered a turn-down by the production
-  # rule. L1 sat on REACHABILITY, not the controls: 9 green legs while `epc_band` defaulted to
-  # `None` and every real call hit the fail-closed branch.
-  #
-  # NO MONEY FIGURE MOVED, MEASURED NOT ASSUMED. `turn_down` only ever wins the ranking where every
-  # capital measure destroys value; elsewhere it is surfaced in `zero_capital_measure`, which the
-  # gap ledger does not read. Both ledger arms get the SAME band on purpose -- a one-sided floor
-  # would book a refusal that protects cold households as money the company's ignorance cost them.
-  #
-  # THE DESIGN THE FINDING ASKED FOR WAS SUPERSEDED, DELIBERATELY. The finding's step 2 said "with
-  # a stated comfort cost". Comfort is FLOORED here instead, on the director's refusal of the
-  # priced design (2026-09-08): a comfort cost makes warmth a willingness-to-pay question, and the
-  # households that would accept the trade are the ones who can least afford to refuse it. A floor
-  # cannot be bought off by a large enough saving; a price can.
-  #
-  # CONTROL: tests/company/test_turn_down_respects_the_health_floor.py, and specifically
-  # `test_NO_SAVING_HOWEVER_LARGE_BUYS_A_TURN_DOWN_BELOW_THE_FLOOR` -- it drives the unit rate to
-  # 10,000 p/kWh and asserts an EPC F household is STILL not offered the measure. It is the leg
-  # that reds if a well-meaning refactor turns the floor back into a term, which is the only way
-  # this defect comes back.
-  #
-  # EXIT to L3: FLOW TEMPERATURE in the book. It is the measure that actually answers the finding
-  # -- zero capital, and it does not make the home one degree colder, so it never meets this floor
-  # at all. STILL BLOCKED ON A SOURCE, and the only figure in this repo is `docs/market_research/
-  # gas_demand_what_drives_it...md`'s 6-10%, which is the DIRECTOR'S OWN REMARK rather than a
-  # citation. It is also a BOILER EFFICIENCY loss, not a demand reduction -- a different quantity
-  # that shares a number with `TURN_DOWN_DEMAND_REDUCTION`, and reading them as one is how this
-  # gets built wrong. The flow-temp measure also needs its own gate, not this floor: it applies
-  # only to a condensing wet system, so a heat pump or a non-condensing boiler must be refused.
 - id: A50_the_supplier_use_case_register_is_published_with_a_status_per_item
   title: "the supplier use-case register reaches a reader on Capabilities, each item carrying its SIM-native test and a status derived from the tree"
   notes_rehomed: [gain]

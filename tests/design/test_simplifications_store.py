@@ -1098,6 +1098,51 @@ def test_the_prose_budget_is_not_vacuous_on_the_live_map():
     )
 
 
+# ── H41 (2026-09-30): the comment half -- the one prose no field guard can see ────────────────
+def check_comment_budget(text: str, budget: int = None) -> list[str]:
+    """Rows carrying more full-line comment than one field may carry inline.
+
+    The SAME number as the field budget, deliberately: a row's comment and a row's field are
+    both prose with one home, and a separate figure would be a second dial with nothing behind
+    it. Measured at `c91ce7515`: 353 atoms, 56,930 B of in-row comment, 7 rows over 2,048."""
+    budget = store.INLINE_PROSE_BUDGET if budget is None else budget
+    return [
+        f"{atom_id}: {n} B of comment inside the row, over the {budget}-byte budget -- move the "
+        f"row's comment lines verbatim to simplifications_store.set_note_for_atom(id, "
+        f"'{store.COMMENT_NOTE_FIELD}', ...) and declare it in `notes_rehomed`; never trim them"
+        for atom_id, n in sorted(map_store.comment_bytes_by_atom(text).items())
+        if n > budget
+    ]
+
+
+def test_no_map_row_carries_comment_over_the_inline_prose_budget():
+    violations = check_comment_budget(map_store.map_text(MAP_PATH))
+    assert not violations, "in-row comment over budget:\n  " + "\n  ".join(violations)
+
+
+def test_MUTATION_the_comment_budget_fires_on_a_fat_row_and_not_on_a_section_header():
+    """R15 both ways on synthetic text. A row one byte over fires and one at the line does not;
+    a column-0 section header of any size is the FILE's, so it is never charged to the row
+    above it -- if it were, the first long epoch header would wedge whichever atom it follows."""
+    b = store.INLINE_PROSE_BUDGET
+    line = "  # " + "c" * 60 + "\n"
+    body = line * (b // len(line)) + "  #" + "c" * (b % len(line) - 4) + "\n"
+    assert len(body.encode()) == b
+    at_line = f"- id: A\n{body}  level_current: 0\n"
+    assert not check_comment_budget(at_line)
+    over = at_line.replace("  level_current", "  #\n  level_current")
+    assert [v.split(":")[0] for v in check_comment_budget(over)] == ["A"]
+    header = "# " + "h" * (4 * b) + "\n"
+    assert not check_comment_budget(f"- id: A\n  level_current: 0\n{header}- id: B\n  lane: x\n")
+
+
+def test_the_comment_budget_is_not_vacuous_on_the_live_map():
+    """It could pass by measuring nothing: a block parser that finds no rows, or no comment in
+    them. The live map has hundreds of rows and tens of KB of in-row comment."""
+    sizes = map_store.comment_bytes_by_atom(map_store.map_text(MAP_PATH))
+    assert len(sizes) > 100 and sum(sizes.values()) > 10_000, (len(sizes), sum(sizes.values()))
+
+
 # ── the map's shared reasoning lives in ONE place (2026-09-17) ───────────────────────────────
 #
 # WHY THIS IS A CONTROL AND NOT A ONE-OFF CLEAN-UP. Six paragraphs of dial provenance had been

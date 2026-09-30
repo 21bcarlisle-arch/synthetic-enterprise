@@ -368,6 +368,28 @@ def _atom_blocks(text: str) -> tuple[list[str], list[tuple[str, int, int]]]:
     return lines, blocks
 
 
+def comment_bytes_by_atom(text: str) -> dict[str, int]:
+    """Bytes of FULL-LINE comment inside each atom's record, keyed by atom id.
+
+    WHY (H41, 2026-09-30). Every flow guard on the spine is keyed to a FIELD -- the note class
+    by name, `INLINE_PROSE_BUDGET` by value -- and a YAML comment is not a field, so neither can
+    see it. Measured from H41's landing (`992a037fc`) to `c91ce7515`: the pair grew 369,828 ->
+    402,156 B and full-line comment was ~15.5 KB of that, the largest single class, while the
+    per-field census moved by at most 2.4 KB on any one field. The prose did what it did to
+    `gain`: it went where the guard was not looking.
+
+    Section headers at column 0 belong to the file, not to the atom above them (`_atom_blocks`
+    ends a record there), so they are never charged to a row. Trailing comments on a key line
+    are not counted: they held flat over the same window and a trailing `#` cannot be told
+    from one inside a quoted scalar without a real YAML tokenizer."""
+    lines, blocks = _atom_blocks(text)
+    return {
+        atom_id: sum(len(line.encode("utf-8")) for line in lines[start:end]
+                     if line.lstrip().startswith("#"))
+        for atom_id, start, end in blocks
+    }
+
+
 def _cut_blocks(text: str, ids: set) -> tuple[str, list[str]]:
     """Remove each named atom's record from `text`, returning the new text and the removed
     records verbatim. Each atom owns the blank lines that FOLLOW it, so cutting one leaves its

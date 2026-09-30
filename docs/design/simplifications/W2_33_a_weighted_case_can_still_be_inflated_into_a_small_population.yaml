@@ -1,0 +1,63 @@
+atom_id: W2_33_a_weighted_case_can_still_be_inflated_into_a_small_population
+map_notes:
+  map_comment_note: 'level_current: 2   # 2026-09-09 L0->L2 SELF-CERTIFIED (ledger row in gate_authorizations.jsonl).
+
+    # The seam DID NOT EXIST -- `fit_weights` solved for a share and nothing multiplied it by a
+
+    # household count -- so the property had no place it could be foreclosed AND none where it could
+
+    # be asserted. `case_household_counts` names it, `gb_households()` counts 27,291,846 from the two
+
+    # censuses at call time, and the variation slot is carried empty with its reason. The control''s
+
+    # poison round: 5 mutations, 5 kills, none survived. Measured, the biggest chosen case stands for
+
+    # 1,575,773 households -- the canon says "tens of thousands"; it is millions.
+
+    # L2 not L1 because the household total is a counted artefact, not a handed-in figure.
+
+    # ITEM 5 of DIRECTOR_CANON_WHAT_THE_SYNTHETIC_BOOK_IS_2026-09-07, section 3. Two properties,
+
+    # both stated as "neither is built now, both must stay possible":
+
+    #   (a) a weighted case can LATER be inflated into a small population with within-group variation;
+
+    #   (b) the count on high-volume cases can be RAISED where a use case makes it worth doing.
+
+    #
+
+    # THIS IS A NEGATIVE DELIVERABLE AND THAT IS WHY IT NEEDS A CONTROL RATHER THAN A BUILD. Nothing
+
+    # is to be built here. What is asked is that nothing ELSE forecloses these -- and a foreclosure
+
+    # arrives as somebody else''s reasonable change, in a lane that has never read this canon, with a
+
+    # green suite. An intention cannot catch that; only a control keyed to the property can. Keying it
+
+    # to today''s answer would be exactly backwards: it must red when the build stops ADMITTING
+
+    # inflation, not when the book''s current contents change.
+
+    #
+
+    # THE KNOWN HAZARD IS ALREADY VISIBLE. The canon''s own stated limit is that near-duplicates are
+
+    # rejected by construction (`tools/space_filling_sample.py` draws for difference), so the world
+
+    # holds no two households that are similar but not identical. Any code that reads "one case, one
+
+    # household" -- an integer count, a 1:1 case-to-account join, a uniqueness assumption on the
+
+    # roster -- is the foreclosure, and it will look like a simplification when it lands.
+
+    #
+
+    # EXIT: (1) the seam through which a case''s weight becomes a count named and stated to be
+
+    # inflatable, with the within-group variation slot present and honestly empty rather than absent;
+
+    # (2) a control that reds when a caller assumes a case stands for exactly one household; proven by
+
+    # a poison round, because a control over a property nobody violates today passes vacuously and
+
+    # "survived" would mean two opposite things.'
