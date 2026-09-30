@@ -134,3 +134,30 @@ The DECIDED set is the same 69 lineages on all four seeds. A_lin is small and po
 **The plain answer, fixed before X1 reads.** If X1b holds, the answer at the pin is **no**. On what it decided differently, and over its own renewal noise, the per-customer arm **loses** to flat rules, and the ab5 positive was the fixed roll. If the CI contains zero at n = 6, the answer is **"cannot say on this book under its own renewal noise"**. The next step is then the book-varying prereg above, not more seeds: n\* was computed from a four-seed sd, and the prereg's ceiling is not re-opened after the fact.
 
 **Grading X1:** `grade_lineage.py runP1.json runP2.json runX1.json` and `grade_p3.py` over the same three artefacts.
+
+## X1 graded (2026-09-30 ~17:45Z, delivery seat, item `grade-ab6-extension-x1-r2`)
+
+**What was run.** Leg X1 (61005, 61006, `churn_roll`) exited rc=0 at 16:49:40Z (`runX1.log`), and its weather digest at start was `e11451b5…d242`. The artefact is `runX1.json`, sha256 `50dba3de…`. It was graded unchanged by `grade_lineage.py` (`71b82d07…65df7`) and `grade_p3.py` (`45e1864e…1cdf`), over `runP1.json runP2.json runX1.json`. The launch script `legs6x.sh` hashes to `d1ad196c…d23e`, which matches the launch record. grade_lineage's digest line reads `equals launch digest: True`.
+
+**The re-draw reached both new seeds.** 61005 has draws_redrawn 365 and accounts_redrawn 72. 61006 has 362 and 71. The DECIDED set is the same 69 lineages on all six seeds.
+
+| seed | draws_redrawn | D_lin ex-0098 | 0098 lineage (excluded) | A_lin |
+|---|---|---|---|---|
+| 61005 | 365 | **−£2,202.11** | −£198.36 | −£4.19 |
+| 61006 | 362 | **+£216.48** | £0.00 | −£26.43 |
+
+**Six seeds: mean −£2,375.99, sd £2,412.76, 95% t-CI [−£4,908.03, +£156.05]. 1 of 6 positive (sign p = 0.219).**
+
+| id | prediction | result | grade |
+|---|---|---|---|
+| **X1a** | both X1 seeds' D_lin ex-0098 < 0 (~65%) | 61005 −£2,202.11, **61006 +£216.48** | **REFUTED** |
+| **X1b** | the six-seed 95% t-CI excludes zero on the negative side (~55%) | **[−£4,908.03, +£156.05] contains zero** | **REFUTED** |
+| **X1c** | the six-seed sd stays in £1,500–£8,000 (~80%) | **£2,412.76** | **HOLDS** |
+
+**The plain answer, as fixed above before X1 read: at the pin `a322166cc`, we cannot say on this book under its own renewal noise** whether per-customer choosing beats flat rules on what it decided differently. The centre is negative: 5 of 6 seeds are negative and the mean is −£2,376. So the ab5 "+£1,000, CI clear of zero" stays re-labelled as one favourable roll. It is not a win, and on six rolls it is not a signed loss either. The next step is the book-varying design, not more seeds: `SEAT_PREREG_THE_AB_THAT_VARIES_THE_BOOK_NOT_THE_SEED_2026-09-30.md` and its EP17 amendment `19ca27dbc`.
+
+**Two things that are true and could be read the wrong way.**
+1. **n\* at the six-seed moments is 7.** That is one seed more than was run. The stopping rule was fixed at four seeds. Adding seeds after reading the CI until it clears zero is optional stopping, and this section's rule forbids it. No seventh seed is launched. The figure is recorded, not acted on.
+2. **The book-varying prereg's own trigger does not literally fire.** Its rule 2 and launch condition 1 key on *n\*_r > 12*. The six-seed n\*_r is 7, and the four-seed n\*_r was 6. This record reaches the book design by a different branch, the one fixed above: the CI contains zero at the extension's end. The two records were written for the same question from opposite ends, and neither covered n\* ≤ 12 with the extended CI still containing zero. That gap is named here rather than papered over. Either way, the book pilot launches only on the director's ruling, recorded as `docs/design/curriculum/varied_population_draw_activation.json` (EP17, R13). The seat has not written that file and does not run `--book-seeds`.
+
+**What the six seeds say about where the variance lives.** 67 of 69 lineages vary. By removal share (1 − var(D − L)/var(D)), the largest are SYN-2016-034 at 66.9%, C6 at 47.8% and C5 at 42.6%. The shares overlap because they co-move on 61002. So P3's refutation stands on six seeds: the roll key reaches the book widely, but a handful of single-account switches carry the spread. *Why the value arm loses on most draws, I still cannot say*, because no per-account attribution has been run. As before, this describes the pin, not origin/main: the PB6 churn-estimate commits in `4380002bd` sit between them.
