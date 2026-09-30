@@ -136,17 +136,25 @@ def book(resi_gas_customers, gas_records):
 # THE PAIRING: THE READ RESOLVES, AND THE ROLL IS WHAT STOPS IT BEING A BLANKET
 # ---------------------------------------------------------------------------------------------
 
-def test_the_opening_term_is_fixed_on_both_fuels(book):
-    """An account arrives by taking a deal, so its first term is a fixed one -- either fuel.
+def test_the_opening_term_is_fixed_on_both_fuels(book, resi_gas_customers):
+    """A switcher arrives by taking a deal, so its first term is a fixed one -- either fuel.
 
     THE DEFECT: the gas read left at `.get(..., "fixed")`, so a drawn leg's first term is
     labelled `None` and every downstream product gate refuses it. That is the 158.
+
+    THE ONE OTHER ROUTE (since `7bff15179`, 2026-09-19): a move-in opens on a deemed contract at
+    the default tariff, and `simulation.arrival_route` labels that record `svt` at the draw. So
+    an `svt` opening is legal only on a record carrying that label. Any other non-fixed opening
+    is the defect.
     """
+    labelled = {c["customer_id"]: c.get("tariff_type") for c in resi_gas_customers}
     firsts = {cid: schedule[0]["tariff_type"] for cid, schedule in book.items() if schedule}
     assert firsts, "no gas schedules built -- this control would pass vacuously"
-    assert set(firsts.values()) == {"fixed"}, (
-        f"a gas leg does not open on a fixed term: "
-        f"{sorted({v for v in firsts.values() if v != 'fixed'})}")
+    assert "fixed" in firsts.values(), "no gas leg opens on a fixed term at all"
+    wrong = sorted(
+        (cid, first) for cid, first in firsts.items()
+        if first != "fixed" and not (first == SVT_TARIFF_TYPE == labelled.get(cid)))
+    assert not wrong, f"a gas leg opens on neither a deal nor its drawn move-in label: {wrong[:5]}"
 
 
 def test_the_gas_book_is_not_all_fixed_which_is_what_the_determination_refused(book):
