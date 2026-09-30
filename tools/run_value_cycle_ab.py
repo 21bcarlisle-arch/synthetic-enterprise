@@ -6396,6 +6396,12 @@ def fold_floors(members: list[dict], sources: list[str] | None = None,
                       "that the code motion did not move this quantity".format(worst) if shared
                       else "they share no seed, so whether the code motion moved this quantity is "
                            "UNMEASURED")))}),
+        # The fold lands on the noise-floor promote target, so it must say which run it is. Its
+        # `producing_commit` is carried from the members and has no `resolved_at` of its own; a
+        # declared path that does not resolve is refused by the census's own control, so that one
+        # field is dropped here rather than the shared list forked.
+        "run_identity_fields": [f for f in _RUN_IDENTITY_FIELDS
+                                if f != "producing_commit.resolved_at"],
         # Carried from the members, which the refusals above have proven agree on every one.
         "world_identity": first.get("world_identity"),
         "clock": first.get("clock"),
