@@ -69,14 +69,29 @@ def test_the_companys_churn_belief_actually_moves_with_the_observable():
     `no_caller_and_never_runs` class wearing a seam's clothes -- and this seam was built precisely
     because `vulnerability_index.assess_vulnerability` already takes a `has_ppm` argument and has
     no caller anywhere in the tree.
+
+    IN A BOOK, NOT OUT OF ONE (re-keyed 2026-09-30). The prior is centred at 1.0, so outside a run
+    scope the two channels read the same and it is the company's own leavers that move them apart.
+    This book's prepayment customers leave at a third of its direct-debit customers' rate.
     """
+    from company.crm.competitive_pressure import CompetitivePressureLedger, pressure_ledger_scope
+
+    ledger = CompetitivePressureLedger()
+    ledger.arm_loss_reporting()
+    for method, n, losses in (("prepayment", 1000, 30), ("direct_debit", 4000, 360)):
+        for _ in range(n):
+            ledger.observe_renewal_decision(2018, 0.08, payment_method=method)
+        for _ in range(losses):
+            ledger.observe_competitive_loss(2018, payment_method=method)
+
     args = (100.0, 115.0, 2.0, 3000.0)
-    dd = enriched_churn_estimate(*args, payment_method="direct_debit")
-    ppm = enriched_churn_estimate(*args, payment_method="prepayment")
+    with pressure_ledger_scope(ledger):
+        dd = enriched_churn_estimate(*args, payment_method="direct_debit", renewal_year=2020)
+        ppm = enriched_churn_estimate(*args, payment_method="prepayment", renewal_year=2020)
 
     assert ppm < dd * 0.75, (
         f"prepayment ({ppm:.4f}) must read as materially less likely to leave than direct debit "
-        f"({dd:.4f}) -- Ofgem CIM w6 puts them at 3.1% and 5.6%"
+        f"({dd:.4f}) on a book where it left at a third of the rate"
     )
 
 

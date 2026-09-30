@@ -1759,14 +1759,14 @@ _NOT_A_LEVEL_READING: dict[str, str] = {
     # not a rate over the book.
     "company.crm.enriched_churn_estimate:payment_method_engagement_reading":
         "a RELATIVE factor for one payment channel -- how much more or less this channel shops "
-        "than the market -- blended from the published CIM prior and this book's own realised "
+        "than the market -- blended from a prior as wide as the published CIM spread and this book's own realised "
         "losses. It is a MULTIPLIER around 1.0, not a rate: holding it to the published band "
         "would compare a dimensionless ratio with a per-cent level, which is the "
         "say-what-each-number-counts defect this file exists over. The level it scales IS "
         "registered; this is the scaling.",
     "company.crm.enriched_churn_estimate:derived_payment_method_engagement_factor":
         "the drop-in accessor over `payment_method_engagement_reading` above, returning that "
-        "same multiplier. Outside a run scope it returns the published prior unchanged, so it "
+        "same multiplier. Outside a run scope it returns the prior unchanged, so it "
         "carries no book level of its own at all.",
     "company.crm.enriched_churn_estimate:_CIM_ENGAGEMENT_PRIOR_LOG_VARIANCE":
         "a VARIANCE in log space -- the dispersion the published CIM survey shows ACROSS payment "

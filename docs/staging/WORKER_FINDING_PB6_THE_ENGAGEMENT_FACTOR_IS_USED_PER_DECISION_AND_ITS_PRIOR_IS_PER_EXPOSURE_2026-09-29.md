@@ -211,3 +211,60 @@ by at most 0.009 in any arm. The company prior's centring (defect 2 above) is st
 and it still waits on the practitioner answer (NTFY `EntQKsMePM5C`, no reply on record at this
 time). PB6 stays L2. The artefacts are in `/var/tmp/pb6_eh2r/` and are not committed, so re-running
 `tools/_pb6_engagement_recovery_arm.py` at `b50a03519` is the reproduction.
+
+## Defect (2) enacted: the prior re-centred at 1.0 as a declared gap (2026-09-30 04:05Z, worker tick)
+
+DIRECTION `PB6_the_engagement_observable_crosses_the_seam` said not to wait for NTFY `EntQKsMePM5C`
+any longer. No reply is on record.
+
+**What changed.** In `company/crm/enriched_churn_estimate.payment_method_engagement_reading`, the
+prior is now **1.0 for every channel**. Its docstring names the gap and the practitioner question
+that would move the centre. The **width is unchanged**: `_CIM_ENGAGEMENT_PRIOR_LOG_VARIANCE` is
+still CIM's spread across channels (0.080 in log space), and it is now derived through
+`payment_method_engagement_factor`, so the published table and the width cannot drift apart.
+`payment_method_engagement_factor` is still Ofgem's per-exposure reading, but it is no longer the
+centre. The ledger's blend takes the prior as a parameter and is correct for any centre. It was not
+touched.
+
+**Before and after, printed at real inputs.** These are the three repaired-world arms' own
+counts, from `/var/tmp/pb6_eh2r/<arm>.json`. The ratio and the weight are unchanged, and only the
+centre differs. This is a counterfactual on the same counts, not a re-run: the re-centred prior
+also changes which retention offers are made, so a re-run's counts can differ.
+
+| arm | channel | n | lost / pre-expected | ratio | w | before (prior = CIM point) | after (prior 1.0) |
+|---|---|---:|---:|---:|---:|---:|---:|
+| null | prepayment | 20 | 4 / 6.91 | 0.474 | 0.411 | 0.537 | **0.736** |
+| null | direct debit | 60 | 29 / 22.75 | 0.975 | 0.628 | 1.005 | **0.984** |
+| planted | prepayment | 2 | 0 / 0.38 | 0.596 | 0.036 | 0.585 | **0.982** |
+| planted | direct debit | 72 | 32 / 25.95 | 0.838 | 0.626 | 0.914 | **0.895** |
+| head | prepayment | 10 | 1 / 2.51 | 0.387 | 0.200 | 0.539 | **0.827** |
+| head | direct debit | 67 | 30 / 23.85 | 0.898 | 0.613 | 0.957 | **0.936** |
+
+Direct debit moves by about 0.02. Prepayment moves most where the book is thinnest, which is what a
+prior carrying no information should do. EH-2's planted arm now reads 0.982 instead of 0.585. It is
+still not 0.307, because two decisions cannot recover anything, but it no longer reads as though
+it had recovered the published point.
+
+**Controls.** `test_the_prior_is_centred_on_no_effect_and_only_the_book_moves_it_off` is new, and
+it reds when the old centre is restored (mutation run). At a centre of 1.0 the double-count blend
+`prior x ratio**w` and the correct `prior x (ratio/prior)**w` are **the same function**, so that
+defect is an equivalence through the public reading. Its control now asks the ledger directly at
+CIM's point, where it can still fail. `test_the_desk_books_the_channel_it_priced_with` had needed the
+prior alone to put prepayment below one. It now gets a closed 2018 book first, and it still reds
+when the desk books the priced belief as the pre-factor belief (mutation run). The seam test
+`test_the_companys_churn_belief_actually_moves_with_the_observable` asked the prior, outside a
+scope, for 0.75x. It was re-keyed to a book in which prepayment leaves at a third of the rate.
+
+**Prediction for the null arm, filed before it runs.** The world's truth in this arm is 1.0.
+(a) The prepayment factor reads above 0.537, the pre-re-centring value, and within 0.70-0.95. The
+prior no longer drags it down, but 4 lost against 6.91 predicted is still evidence below 1. (b) The
+direct-debit factor reads within 0.03 of 0.984. (c) Prepayment decision count stays within ±3 of 20.
+The re-centring can move retention offers, but it cannot move which renewals a household reaches.
+
+**Queued.** Unit `longjob-pb6-null-arm-recentred-prior` waits on the whole ab5 lineage script (pid
+2141363, both legs), then calls `launch_long_job --peak-mb 6500`. That launch does its own
+co-residency check and refuses by name if ab6 is resident. The worktree is
+`/var/tmp/se-pb6-recentre-a5ed0d0e2`, at HEAD `a5ed0d0e2` plus this commit's diff (patch sha256
+`bb7984cc…`). Output goes to `/var/tmp/pb6_recentre/null.json`, and the waiter's log is
+`/var/tmp/pb6_recentre/wait.log`. Grading it against (a)-(c) is the next step on this row. After
+that, the row returns to its Expert Hour.
