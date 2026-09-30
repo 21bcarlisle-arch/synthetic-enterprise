@@ -536,6 +536,8 @@ def test_observe_surfaces_drift_and_only_on_transition(tmp_path, monkeypatch):
     flagged classes is remembered in the episode; only a CHANGE speaks.
     """
     monkeypatch.setitem(rh.CLASS_WEIGHTS_MB, "sim_run", 6144)
+    # sim_run's journal only: the injected reader would otherwise be every unit's journal.
+    monkeypatch.setattr(rh, "CLASS_UNITS", {"sim_run": rh.CLASS_UNITS["sim_run"]})
     ep = tmp_path / "episode.json"
     drift = {"peaks_reader": _peaks(_REAL_PEAKS_MB)}
 
