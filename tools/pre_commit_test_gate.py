@@ -1320,6 +1320,71 @@ def _staging_room_check(staged: list[str]) -> tuple[bool, str]:
     return True, f"{len(flagged)} room-kinded document(s) leave the queue root in this commit"
 
 
+def _staging_chain_check(staged: list[str]) -> tuple[bool, str]:
+    """A work item FILED by this commit carries its lane, epoch and atom (H45, the director's P8).
+
+    `staging_rooms.unchained()` has counted the gap since 2026-08-28 and nothing refused it: 28
+    of the 96 work items filed in the week to 2026-09-30 arrived without an epoch or an atom.
+    The predicate is `staging_rooms.unchained_filings`; this is its caller on the write.
+
+    FILED MEANS ABSENT FROM THE PARENT. An edit to a document already in the queue is not a
+    filing, so the 7 legacy gaps bill nobody -- only the author of a new one, in one line.
+    Directives and console messages are exempt there (the director's words, not the machine's).
+
+    Same subject as its siblings: the tree this commit would create; a deletion is skipped.
+    FAIL-CLOSED on an unavailable predicate or an unreadable tree.
+    """
+    if str(ROOT) not in sys.path:
+        sys.path.insert(0, str(ROOT))
+    try:
+        from background.staging_rooms import chain_owed, unchained_filings
+    except Exception as e:  # noqa: BLE001 -- an unavailable check is a FAILED check
+        return False, (
+            f"staging-chain predicate UNAVAILABLE: {type(e).__name__}: {e}\n"
+            "An unavailable check is a FAILED check (R15 FAIL-SILENT). If the module is "
+            "genuinely being removed, remove this gate step in the same commit."
+        )
+
+    owed = [
+        p for p in staged
+        if p.startswith(STAGING_ROOM_PREFIX)
+        and p.endswith(".md")
+        and "/" not in p[len(STAGING_ROOM_PREFIX):]
+        and chain_owed(p[len(STAGING_ROOM_PREFIX):])
+    ]
+    if not owed:
+        return True, ""
+
+    try:
+        tree = _index_tree()
+    except Exception as e:  # noqa: BLE001
+        return False, f"could not determine the tree this commit would create: {e}"
+
+    filed: dict[str, str] = {}
+    for path in owed:
+        try:
+            at_parent = subprocess.run(
+                ["git", "cat-file", "-e", f"HEAD:{path}"],
+                cwd=ROOT, capture_output=True, text=True, timeout=30,
+            )
+            if at_parent.returncode == 0:
+                continue  # already in the queue: an edit, not a filing
+            blob = subprocess.run(
+                ["git", "cat-file", "blob", f"{tree}:{path}"],
+                cwd=ROOT, capture_output=True, text=True, timeout=30,
+            )
+        except Exception as e:  # noqa: BLE001
+            return False, f"could not read {path} out of tree {tree[:9]}: {e}"
+        if blob.returncode != 0:
+            continue  # not in the tree this commit creates -- a deletion
+        filed[path[len(STAGING_ROOM_PREFIX):]] = blob.stdout
+
+    failures = unchained_filings(filed)
+    if failures:
+        return False, "\n".join(f"  - {STAGING_ROOM_PREFIX}{f}" for f in failures)
+    return True, (f"{len(filed)} filed work item(s) chained to the map" if filed else "")
+
+
 WALL_REGISTER_PATH = "docs/design/WALL_CROSSING_DISPOSITION_REGISTER.md"
 WALL_CENSUS_BASELINE = "docs/design/wall_channel_census_baseline.json"
 
@@ -2009,6 +2074,24 @@ def main() -> int:
                 "restores the root copy from HEAD -- so it recurs at the rate of filing until a "
                 "seat commits the deletion by hand.\n"
                 "[test-gate] Reproduce: `python3 -m background.staging_rooms --check`\n"
+            )
+            return 1
+        if detail:
+            print(f"[test-gate] ✓ {detail}")
+
+        # THE DOCUMENT'S CHAIN TO THE MAP. Fifth member; see `_staging_chain_check`.
+        ok, detail = _staging_chain_check(staged)
+        if not ok:
+            sys.stderr.write(
+                "\n[test-gate] ❌ A WORK ITEM THIS COMMIT FILES CARRIES NO CHAIN TO THE MAP "
+                "-- COMMIT REFUSED.\n"
+                f"{detail}\n"
+                "[test-gate] Extend the header line with the fields it lacks; `unassigned` "
+                "and `unminted` are answers, absence is not:\n"
+                "[test-gate]   **Severity:** … · **Lane:** <lane> · **Epoch:** <n>|unassigned "
+                "· **Atom:** `<atom_id>`|`unminted`\n"
+                "[test-gate] Reproduce: `python3 -m background.staging_rooms` (Unchained work "
+                "items)\n"
             )
             return 1
         if detail:
