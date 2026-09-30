@@ -268,3 +268,45 @@ co-residency check and refuses by name if ab6 is resident. The worktree is
 `bb7984cc…`). Output goes to `/var/tmp/pb6_recentre/null.json`, and the waiter's log is
 `/var/tmp/pb6_recentre/wait.log`. Grading it against (a)-(c) is the next step on this row. After
 that, the row returns to its Expert Hour.
+
+## Graded: the null arm under the re-centred prior (2026-09-30 06:20Z, worker tick)
+
+`/var/tmp/pb6_recentre/null.json`. The run tree's `company/` diff against `a5ed0d0e2` is
+byte-identical to `f9b04ddc7`'s (sha256 `d26737b2…` both). The later auto-salvage commit in that
+worktree holds only run outputs.
+
+| channel | n | lost / pre-expected | ratio | w | **factor** | counterfactual above |
+|---|---:|---:|---:|---:|---:|---:|
+| prepayment | 20 | 4 / 6.83 | 0.475 | 0.407 | **0.739** | 0.736 |
+| direct debit | 60 | 29 / 22.52 | 0.975 | 0.624 | **0.984** | 0.984 |
+| standard credit | 5 | 2 / 1.23 | 1.278 | 0.113 | **1.028** | — |
+
+(a) Prepayment above 0.537 and within 0.70-0.95: **HELD** (0.739). (b) Direct debit within 0.03
+of 0.984: **HELD** (0.984). (c) Prepayment decisions within ±3 of 20: **HELD** (20). The realised
+losses are the same as in the pre-re-centring run, 4 of 20 and 29 of 60. What moved is pre-expected
+prepayment losses, 6.91 to 6.83. That is the re-centred prior changing retention offers, the effect
+(c)'s reasoning allowed for. The counterfactual printed before the run was within 0.003.
+
+What this leaves: the world's truth in this arm is 1.0 and the company reads 0.739. That is the
+prior's pull, gone, and 4 losses against 6.83 expected on 20 decisions, still there. Sampling at
+this book size (w 0.41) is the whole of the remaining gap. The rule cannot be graded any finer
+than this until the book is at PB1's population scale.
+
+## Two more, found while grading (2026-09-30, same tick)
+
+**A HEAD red `f9b04ddc7` left in a sibling file.** `tests/tools/test_the_payment_observable_reaches_a_live_decision.py`
+asserted that the live decision reads prepayment below 0.75 x direct debit. That held only because
+of CIM's point prior. `tools/run_live_decisions._retention_ev` runs with no scope and no renewal
+year, so at a centre of 1.0 both channels read 0.1326, even inside a book. The gate's stem
+selection never ran it. It is now re-keyed to the property it was written for: the method reaches
+the belief call (a pass-through spy, which reds when the call drops the method). **Declared gap:**
+the live path reads no book, so after the re-centring the payment method moves no live decision.
+That is correct with no evidence behind it. It stops being correct once the live path can read the
+run's end-of-run ledger, and nothing does that yet.
+
+**EH-5 remedied.** `LiveSimInterface.get_payment_method` fell to direct debit on any exception.
+This world models no CRM miss, so the fallback could catch only a caller passing no id. It booked
+that as a direct-debit renewal. Its control never reached it: `None` on the electricity leg draws as
+direct debit by chance. Only the gas leg reached the except arm. The seam now refuses a non-string
+or empty id by name, and lets any world failure surface. Controls: both fuels are refused, and every
+id shape the book carries still resolves. Restoring the silent fallback reds two tests (mutation run).

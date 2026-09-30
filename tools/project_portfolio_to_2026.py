@@ -75,10 +75,9 @@ def _live_seam():
 def _payment_method(seam, cid: str, fuel: str):
     """`direct_debit` / `standard_credit` / `prepayment`, or None when it cannot be established.
 
-    NOT defaulted to the majority channel here, deliberately, and this is the opposite choice from
-    `LiveSimInterface.get_payment_method`'s own fallback -- for a reason worth stating, because the
-    two look inconsistent side by side. There, the argument is a broken CRM record for a customer
-    the supplier is still billing, so the majority channel is the best available answer. HERE the
+    NOT defaulted to the majority channel, deliberately. `LiveSimInterface.get_payment_method`
+    refuses a lookup it cannot answer (it fell to direct debit until PB6 EH-5, 2026-09-30), and
+    this catches that refusal as None. HERE the
     question is whether the observable is available AT ALL, and answering "direct debit" for an
     entire portfolio the seam could not be built for would silently apply the direct-debit
     engagement factor to every account and look exactly like a measurement.
