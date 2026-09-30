@@ -341,6 +341,25 @@ def _no_daemon_state_reaches_the_live_record(tmp_path, monkeypatch):
 
 
 @pytest.fixture(autouse=True)
+def _publish_gate_admitted(monkeypatch):
+    """Default the memory governor to ADMIT the publisher's gate for every test here.
+
+    The live answer reads this box's /proc/meminfo and writes a reservation into the protected
+    `docs/observability/`, so without this every gate test would red whenever the box is busy.
+    `test_the_publish_gate_asks_admission_before_its_suite_starts.py` restores the real seam.
+    """
+    import contextlib
+
+    from background import process_run_complete
+
+    @contextlib.contextmanager
+    def _admitted():
+        yield {"admitted": True, "reason": "test default: admitted"}
+
+    monkeypatch.setattr(process_run_complete, "_gate_admission", _admitted)
+
+
+@pytest.fixture(autouse=True)
 def _weekly_publish_window_open(monkeypatch):
     """Default the publisher's weekly window OPEN for every test here.
 
