@@ -155,3 +155,59 @@ only direct debit and standard credit.
 5. So the head prepayment factor reads AT OR BELOW 0.530. Its likelihood is channel O/E over BOOK
    O/E, and the book's O/E rises with DD's. The repair therefore moves the company's prepayment
    reading further from 1.0, not closer.
+
+## Graded: all three arms on the repaired world (2026-09-30 01:25Z, worker tick)
+
+*(The heading above says 00:40Z. The clock read 00:35Z. The predictions landed in `7f3022e66` at
+00:35:12Z, before planted finished at 00:50Z and head at 01:19Z.)*
+
+Same columns as the first EH-2 table, each arm beside its pre-repair twin in `/var/tmp/pb6_eh2/`:
+
+| arm | world | world PPM multiplier | PPM decisions | PPM lost / predicted pre-factor | ratio | w | **factor** | pre-EH-1 raw rule | DD lost / decisions | DD factor |
+|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| null | pre-repair `ad3e03018` | 1.000 | 20 | 4 / 6.91 | 0.474 | 0.411 | **0.537** | 0.427 | 29 / 60 | 1.005 |
+| null | repaired `b50a03519` | 1.000 | 20 | 4 / 6.91 | 0.474 | 0.411 | **0.537** | 0.427 | 29 / 60 | 1.005 |
+| planted | pre-repair | 0.307 | 2 | 0 / 0.38 | 0.549 | 0.036 | **0.584** | 0.562 | 32 / 72 | 0.925 |
+| planted | repaired | 0.307 | 2 | 0 / 0.38 | 0.596 | 0.036 | **0.585** | 0.562 | 32 / 72 | 0.914 |
+| head | pre-repair | 0.589 | 10 | 1 / 2.56 | 0.358 | 0.202 | **0.530** | 0.457 | 30 / 67 | 0.967 |
+| head | repaired | 0.589 | 10 | 1 / 2.51 | 0.387 | 0.200 | **0.539** | 0.459 | 30 / 67 | 0.957 |
+
+**No realised count moved in any arm.** Decisions and losses by method and year are identical to the
+pre-repair twins in all three. The repair changed no departure in books of 84 to 91 decisions: the
+band decisions it uncapped did not roll between the 0.10 cap and their uncapped probability. The
+"departures rise for DD and SC" expected in the correction above was not seen at this book size.
+
+**What moved is the company's expectation, and why.** `run_phase2b` hands the departure branch's
+`active_renewal` into `RenewalObservation`. `churn_desk` sends a resi account with
+`active_renewal=False` to the passive (SVT-roller) estimator. Before the repair, a band decision was
+a household on a fixed renewal, which the supplier can see, and it was estimated as a passive roller
+off a coin the supplier cannot see. After the repair, a resi decision's `active_renewal` is exactly
+"reached a fixed term", which is observable. So the repair also closes a small leak across the
+wall. That is where the rise in DD predicted-pre-factor losses comes from (planted 23.69 -> 25.95,
+head 22.25 -> 23.85) with the same losses: DD's O/E falls, the book's O/E falls with it, and
+prepayment's channel-over-book ratio rises.
+
+Graded against what was filed:
+
+1. **Null prepayment factor < 1.0: HELD, vacuously.** It is the same run (m = 1 empties the band).
+2. **Planted does not recover 0.307: HELD.** It reads 0.585, the prior. EH-2 still answers FAIL on
+   the repaired world, for the reason in the first table: the plant acts on decisions reached (20 / 10 / 2),
+   not on departure per decision.
+3. **Prepayment counts unchanged: HELD** (2 / 0 and 10 / 1).
+4. **DD losses at least 30 and DD factor at least 0.967: losses HELD at exactly 30, factor
+   REFUTED** (0.957). The mechanism I named, more losses, did not happen. The factor fell because
+   expected losses rose.
+5. **Head prepayment factor at or below 0.530: REFUTED** (0.539). This is the same wrong mechanism as
+   in 4, and it moved the other way: book O/E fell, not rose.
+
+**I cannot yet say** why head's prepayment predicted-pre-factor moved (2.56 -> 2.51) when no
+prepayment decision sits in the band. Planted's did not (0.3794 both). The candidate is company
+state carried from the DD band decisions, which now take the active estimator and its retention
+offer. That is a cascade through the company's own book, not a world outcome. The effect is
+0.05 of a loss.
+
+**What this settles for PB6.** The repaired world does not change EH-2's answer. It moves prepayment
+by at most 0.009 in any arm. The company prior's centring (defect 2 above) is still the open step,
+and it still waits on the practitioner answer (NTFY `EntQKsMePM5C`, no reply on record at this
+time). PB6 stays L2. The artefacts are in `/var/tmp/pb6_eh2r/` and are not committed, so re-running
+`tools/_pb6_engagement_recovery_arm.py` at `b50a03519` is the reproduction.
