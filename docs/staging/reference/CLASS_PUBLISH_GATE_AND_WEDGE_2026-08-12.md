@@ -1,6 +1,6 @@
 # [CLASS] The publish gate and the wedge: the control that stops publishing, and what it stops on
 
-**Severity:** BLOCKING · **Lane:** H_harness
+**Severity:** BLOCKING · **Lane:** H_harness · **Epoch:** unassigned · **Atom:** `unminted`
 
 **Instances:** 92 · **Class:** `publish_gate_and_wedge` · **Source's own count:** ~18 (`DIRECTOR_RULING_FINDING_SEVERITY_AND_INTERLEAVE_2026-08-12`, clause 1, "publish-gate/wedge")
 

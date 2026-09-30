@@ -1,6 +1,6 @@
 # [CLASS] Measurements that mirror the thing they measure: the instrument reads its own subject back
 
-**Severity:** LATENT · **Lane:** H_harness
+**Severity:** LATENT · **Lane:** H_harness · **Epoch:** unassigned · **Atom:** `unminted`
 
 **Instances:** 9 · **Class:** `measurements_that_mirror` · **Source's own count:** ~7 (`DIRECTOR_RULING_FINDING_SEVERITY_AND_INTERLEAVE_2026-08-12`, clause 1, "measurements that mirror the thing they measure")
 

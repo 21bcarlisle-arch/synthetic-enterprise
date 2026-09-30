@@ -1,6 +1,6 @@
 # [CLASS] No caller, never runs: code and controls nothing reaches
 
-**Severity:** BLOCKING · **Lane:** H_harness
+**Severity:** BLOCKING · **Lane:** H_harness · **Epoch:** unassigned · **Atom:** `unminted`
 
 **Instances:** 15 · **Class:** `no_caller_and_never_runs` · **Source's own count:** ~5 (`DIRECTOR_RULING_FINDING_SEVERITY_AND_INTERLEAVE_2026-08-12`, clause 1, "no-caller/never-runs")
 

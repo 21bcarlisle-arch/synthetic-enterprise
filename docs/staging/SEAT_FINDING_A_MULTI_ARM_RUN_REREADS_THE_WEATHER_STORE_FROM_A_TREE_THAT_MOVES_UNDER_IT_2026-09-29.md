@@ -1,4 +1,4 @@
-**Severity:** LATENT · **Lane:** A_strategy_governance · **Class:** `measurements_that_mirror`
+**Severity:** LATENT · **Lane:** A_strategy_governance · **Class:** `measurements_that_mirror` · **Epoch:** unassigned · **Atom:** `unminted`
 
 # FINDING: a multi-arm A/B run re-reads the weather store from a working tree that can move under it, and nothing records that it did
 

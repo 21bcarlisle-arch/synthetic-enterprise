@@ -1,4 +1,4 @@
-**Severity:** LATENT · **Lane:** A_strategy_governance · **Class:** `no_caller_and_never_runs`
+**Severity:** LATENT · **Lane:** A_strategy_governance · **Class:** `no_caller_and_never_runs` · **Epoch:** unassigned · **Atom:** `unminted`
 
 # FINDING: the long-job launcher now refuses to share the box, but a launch-time check would not have stopped 19:07Z. The neighbours arrived 1h30m after the leg, and nothing they ran through asks.
 
