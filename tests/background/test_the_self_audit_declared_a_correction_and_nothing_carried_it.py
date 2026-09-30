@@ -277,9 +277,13 @@ def test_an_EMPTY_previous_audit_says_which_kind_of_empty_it_is():
     assert "a seat that stopped looking" in prompt
 
 
-def test_the_brief_actually_ASSEMBLES_the_field_against_the_real_record():
+def test_the_brief_actually_ASSEMBLES_the_field_against_the_real_record(monkeypatch):
     """The source check above pins the call; this one proves it runs and returns the shape the
     seat will read, against this repository's own `decisions.jsonl`."""
+    # The nested level-zero control pass (`lz.assess`, ~145 s of pytest subprocesses) is the one
+    # brief input this test never reads; `test_delivery_seat.py` owns it. Everything else is real.
+    monkeypatch.setattr("tools.level_zero_contradicted_by_its_own_controls.assess",
+                        lambda *a, **k: ([], []))
     brief = seat.build_brief(now=NOW)
 
     assert "previous_wrong" in brief

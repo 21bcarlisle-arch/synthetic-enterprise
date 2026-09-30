@@ -201,8 +201,12 @@ def test_IT_SURVIVES_THE_PROMPT_TRUNCATION_because_the_json_is_capped_at_60k():
     assert "NO DRAWN LANE 0 ITEM" in empty, "silence must be stated, not inferred from an absence"
 
 
-def test_THE_BRIEF_CARRIES_IT_and_early_enough_that_the_cap_cannot_reach_it():
+def test_THE_BRIEF_CARRIES_IT_and_early_enough_that_the_cap_cannot_reach_it(monkeypatch):
     """Read from the real store, so a key wired to nothing cannot pass."""
+    # The nested level-zero control pass (`lz.assess`, ~145 s of pytest subprocesses) is the one
+    # brief input this test never reads; `test_delivery_seat.py` owns it. Everything else is real.
+    monkeypatch.setattr("tools.level_zero_contradicted_by_its_own_controls.assess",
+                        lambda *a, **k: ([], []))
     brief = ds.build_brief(datetime.now(timezone.utc))
     assert "lane_0_drawn_never_landed" in brief
     assert isinstance(brief["lane_0_drawn_never_landed"], list)
