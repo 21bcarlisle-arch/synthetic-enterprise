@@ -48,6 +48,7 @@ from pathlib import Path
 from background import direction as direction_mod
 from background import direction_path_check
 from tools import maturity_map_store as map_store
+from tools import stretch_log as stretch_log_mod
 
 PROJECT_DIR = Path(__file__).resolve().parent.parent
 LOG_FILE = PROJECT_DIR / "docs" / "observability" / "delivery-seat-log.md"
@@ -1901,11 +1902,65 @@ def _push_direction_or_say_why(*, pusher=None, ahead_fn=None) -> dict:
                       f"and `background/origin_reconcile` is what closes it"}
 
 
+#: WHAT THE SEAT ITSELF WRITES AND COMMITS BESIDE THE DIRECTION RECORD -- written by this module's own
+#: code after the session has exited, never by the orienting session, whose charter still forbids
+#: it every file but `DIRECTION.yaml`. Kept apart from `direction_mod.WRITE_SCOPE` so the session's
+#: scope does not widen.
+SEAT_WRITTEN = ("docs/status/SEAT_STRETCH_LOG.md",)
+
+
+def stretch_entry_from_row(row: dict) -> tuple[str, str]:
+    """The stretch-log entry for one orientation, rendered from the decision row it already recorded.
+
+    THE LOG'S ONLY WRITER USED TO BE AN INTERACTIVE SESSION, present only while the director is
+    (`SEAT_FINDING_THE_STRETCH_LOG_HAS_ONE_WRITER_...`, 2026-09-30). Every fix to its alarm went quiet
+    within a week because none changed the writer, while this seat wrote the same reflection every
+    three hours into `decisions.jsonl`. So this seat is now the writer that cannot be absent; the
+    interactive seat still adds entries when it closes a piece of its own. Nothing here is invented:
+    every line is a field of the row.
+    """
+    thesis = " ".join((row.get("thesis_read") or "").split())
+    first = thesis.split(". ")[0].rstrip(".")
+    subject = f"orientation: {first}"[:180]
+    if not first or stretch_log_mod.validate_subject(subject):
+        subject = ("orientation: what the stretch meant against the thesis, what went wrong, and "
+                   "what was chosen against")
+    wrong = row.get("wrong") or []
+    lines = [f"*Written by the orientation seat from its own record ({row.get('at', '?')}; "
+             f"{row.get('commits', '?')} commits, {row.get('substantive', '?')} substantive, since "
+             f"{row.get('since', '?')}).*", "", "## What the stretch meant", "", thesis or "(no reading)", ""]
+    lines += ["## What went wrong", ""]
+    lines += [f"- {'corrected' if w.get('corrected') else 'NOT corrected'}: {w.get('what')}" for w in wrong] \
+        or ["- nothing recorded"]
+    lines += ["", "## Chosen against", ""]
+    lines += [f"- {w}" for w in (row.get("not_now") or [])] or ["- nothing recorded"]
+    lines += ["", "## Focus for the next stretch", ""]
+    lines += [f"- `{f}`" for f in (row.get("focus") or [])] or ["- none"]
+    return subject, "\n".join(lines)
+
+
+def write_stretch_entry(row: dict, append_fn=None) -> bool:
+    """Append the orientation's entry to the stretch log. Only an ORIENTED row with a reading writes:
+    a skipped stretch recorded no reflection, and inventing one would be the fabrication the log
+    exists to prevent -- the check then escalates on its own clock, which is the right signal.
+    Never raises: the log is downstream of the decision record, never a reason to lose it."""
+    if row.get("outcome") != "oriented" or not (row.get("thesis_read") or "").strip():
+        row["stretch_entry"] = False
+        return False
+    try:
+        (append_fn or stretch_log_mod.append)(*stretch_entry_from_row(row))
+        row["stretch_entry"] = True
+    except Exception as exc:  # noqa: BLE001
+        row["stretch_entry"] = False
+        _log(f"stretch-log entry NOT written ({type(exc).__name__}: {exc}) -- the check will escalate")
+    return row["stretch_entry"]
+
+
 def commit_direction() -> tuple[bool, str]:
     """Commit ONLY `direction.WRITE_SCOPE`. THE PATHSPEC IS THE CONTROL, not a promise: anything
     the session touched outside it is left where it is, so this seat cannot become a writer on
     the code tree even if its session tries to be one."""
-    present = [p for p in direction_mod.WRITE_SCOPE if (PROJECT_DIR / p).exists()]
+    present = [p for p in (*direction_mod.WRITE_SCOPE, *SEAT_WRITTEN) if (PROJECT_DIR / p).exists()]
     if not present:
         return False, "nothing in the write scope exists to commit"
     add = subprocess.run(["git", "add", "--", *present], cwd=str(PROJECT_DIR),
@@ -2035,6 +2090,7 @@ def orient(now: datetime | None = None, dry_run: bool = False) -> dict:
         "path_concerns": direction_path_check.concerns((parsed.raw if parsed else None)),
     })
     direction_mod.append_decision(row)
+    write_stretch_entry(row)
     try:
         from tools.generate_delivery_page import generate
         generate()
