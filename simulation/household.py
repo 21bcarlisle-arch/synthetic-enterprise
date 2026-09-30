@@ -19,6 +19,7 @@ interactions. The SIM's ground truth is never exposed to company code.
 
 from __future__ import annotations
 
+from collections.abc import Iterable
 from dataclasses import dataclass
 from enum import Enum
 
@@ -551,3 +552,19 @@ def household_of(supply_point_id: str) -> str:
     if supply_point_id.endswith(GAS_LEG_ID_SUFFIX) and len(supply_point_id) > 1:
         return supply_point_id[: -len(GAS_LEG_ID_SUFFIX)]
     return supply_point_id
+
+
+def supply_points_that_left(
+    departed_households: Iterable[str], supply_point_ids: Iterable[str],
+) -> set[str]:
+    """Every supply point whose household is on the departed roster, plus the roster itself.
+
+    `churned_billing_accounts` is keyed by household (`C1`); bills, read events and arrears
+    rows are keyed by supply point (`C1`, `C1g`). Asking `bill["customer_id"] in roster`
+    therefore silently answers "stayed" for every gas leg of a household that left. On the
+    2026-09-28 book that was 28 gas legs: 17 closed on an estimate with no SLC 21B final read,
+    and the arrears engine treated their unpaid bills as a stayer's. Any consumer testing a
+    supply point against the roster takes its set from here.
+    """
+    departed = set(departed_households)
+    return departed | {sp for sp in supply_point_ids if household_of(sp) in departed}
