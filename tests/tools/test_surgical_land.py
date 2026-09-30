@@ -2028,3 +2028,50 @@ def test_the_receipt_names_the_MESSAGE_chain_as_WELL_AS_the_test_chain(repo: Pat
     assert "message-gate: sh tools/git-hooks/commit-msg (rc 0)" in message, \
         "the receipt does not say the message chain ran, so the record understates what gated it"
     assert sl.verify(repo, sha)[0] == 0, "the new line broke the receipt's own falsifiability"
+
+
+# --------------------------------------------------------------------------------------------
+# A LANDING NO REF HOLDS IS NOT A LANDING (2026-09-30: "landed MERGE 1918a0820", rc 0, and no
+# HEAD reflog entry for it in the shared tree). The CAS proves HEAD was the new commit at the
+# swap; these pin that the door asks again afterwards, and that the ask can pass.
+# --------------------------------------------------------------------------------------------
+
+def _head_reset_after_the_swap(repo: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """A lock-free writer (a `git reset`, a salvage) moving HEAD back between the ref swap and
+    the post-swap refresh -- the one window the compare-and-swap cannot see. A move during the
+    gate is the `BaseMoved` race above, refused before anything is written."""
+    real_refresh = sl._refresh_index_for
+
+    def refresh_then_lose_head(root, result_tree, files, sha=""):
+        real_refresh(root, result_tree, files, sha=sha)
+        _run(repo, "git", "update-ref", "HEAD", sha + "^")
+
+    monkeypatch.setattr(sl, "_refresh_index_for", refresh_then_lose_head)
+
+
+def test_a_landing_that_no_ref_holds_exits_non_zero_and_says_why(
+        repo: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture):
+    (repo / "code.py").write_text("VALUE = 2\n")
+    before = _head(repo)
+    _head_reset_after_the_swap(repo, monkeypatch)
+    real_land = sl.land
+    # main() lands at ROOT; route it to the scratch repo without patching ROOT, which would make
+    # `_write_lock` take the live tree lock.
+    monkeypatch.setattr(sl, "land", lambda _root, *a, **k: real_land(repo, *a, **k))
+
+    rc = sl.main(["-m", "orphaned", "code.py"])
+
+    assert rc != 0, "a commit no ref holds was reported as landed"
+    err = capsys.readouterr().err
+    assert "NO REF contains it" in err and "rescue/" in err, err
+    assert _head(repo) == before
+
+
+def test_the_no_ref_check_passes_an_ordinary_landing_and_a_detached_head_one(repo: Path):
+    """The partition control: the refusal above must not be the check refusing everything."""
+    (repo / "code.py").write_text("VALUE = 2\n")
+    on_branch = sl.land(repo, ["code.py"], "on a branch")
+    _run(repo, "git", "checkout", "-q", "--detach")
+    (repo / "detached.py").write_text("VALUE = 3\n")
+    detached = sl.land(repo, ["detached.py"], "on a detached HEAD")
+    assert _head(repo) == detached and on_branch != detached

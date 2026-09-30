@@ -1485,6 +1485,7 @@ def land(root: Path, paths: list[str], message: str, hook_rel: str = HOOK_REL,
     for attempt in range(1, attempts + 1):
         try:
             sha = _land_once(root, paths, message, hook_rel, content, merge, resolutions, drops)
+            _refuse_a_landing_no_ref_holds(root, sha)
             announce_landing(sha, message, paths, merge=merge)
             return sha
         except BaseMoved as exc:
@@ -1500,6 +1501,35 @@ def land(root: Path, paths: list[str], message: str, hook_rel: str = HOOK_REL,
             len(lost),
             "\n".join("  attempt {}: {} -> {}".format(i + 1, e.parent[:9], e.observed[:9])
                       for i, e in enumerate(lost))))
+
+
+def _refuse_a_landing_no_ref_holds(root: Path, sha: str) -> None:
+    """Refuse -- after the fact, but before anything announces it -- a commit that no ref holds.
+
+    WHY (2026-09-30). `--merge origin/main` printed "landed MERGE 1918a0820" and exited 0, and
+    the shared tree's HEAD reflog has no entry for it: whatever checkout it was written into, no
+    ref there held it by the time anyone looked. The compare-and-swap in `_swap_head` proves HEAD
+    was `sha` at the instant of the swap and says nothing afterwards -- a writer that skips the
+    tree lock (`git reset`, `git commit`, a salvage) can move HEAD between the swap and here, and
+    then "landed" names a commit that exists only until gc. A moved ORIGIN is not this case: it
+    makes the landing a non-fast-forward to push, which the reconciler reports, not an orphan.
+
+    HEAD counts as a ref, so a landing on a linked worktree's detached HEAD passes -- it is held
+    for as long as that worktree is. Asked after the swap, not re-derived from the swap's success.
+    """
+    held_by_head = _git(root, "merge-base", "--is-ancestor", sha, "HEAD").returncode == 0
+    if held_by_head:
+        return
+    holders = _git_text(root, "for-each-ref", "--contains", sha, "--format=%(refname)")
+    if holders:
+        return
+    raise LandingRefused(
+        "the gate passed and commit {} was written, but NO REF contains it now: HEAD is at {}, "
+        "which does not descend from it, and no branch or remote-tracking ref does either. "
+        "Something moved HEAD after the compare-and-swap without taking the tree lock, so this "
+        "is NOT a landing -- the commit will be garbage-collected. Recover it with "
+        "`git branch rescue/{} {}` before re-running.".format(
+            sha[:9], _git_text(root, "rev-parse", "--short", "HEAD"), sha[:9], sha))
 
 
 def announce_landing(sha: str, message: str, paths: list[str], *,
