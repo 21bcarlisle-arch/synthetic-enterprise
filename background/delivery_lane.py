@@ -1420,12 +1420,56 @@ def _claim_subject_paths(focus_id: str, row: dict) -> list[str]:
     read there is no role to read, and inventing `mentioned` for an unreadable item would let a
     row be un-creditable for the sole reason that its text expired. The narrowing applies where
     the evidence for it exists and nowhere else.
+
+    AND THAT PARAGRAPH WAS WRONG ABOUT A PATH THE PROSE DOES NOT NAME, corrected beside the claim
+    (2026-09-30). The stamp is not only the item's prose: `claim_dispatched` stamps the DOORBELL,
+    whose PATH CHECK and alarm lines name files the item never asked for. The row for
+    `grade-ab6-pilots-once-runp2-exists` stamped eight paths from a prose that names ONE, and was
+    graded `landed_unbound` on a W1_14 weather commit that touched `maturity_map.yaml`. So when
+    the prose is readable and confirms any stamped path, the subject set is exactly the paths it
+    asks to CHANGE; the stamp is kept whole only when the prose confirms none of them (it has
+    left both stores, or was re-worded past recognition) -- there is no evidence to narrow on.
     """
     paths = _claim_paths(focus_id, row)
     if not paths:
         return []
-    _to_change, mentioned = _path_roles(_item_text(focus_id), known=set(paths))
-    return [p for p in paths if p not in set(mentioned)]
+    to_change, mentioned = _path_roles(_item_text(focus_id), known=set(paths))
+    if not (to_change or mentioned):
+        return paths
+    return [p for p in paths if p in set(to_change)]
+
+
+def _message_names(sha: str, focus_id: str) -> bool:
+    """True when commit `sha`'s full message names `focus_id` as a whole id. False if git is silent.
+
+    WHOLE ID, NOT SUBSTRING: `grade-the-ab6-bridge-leg` is a prefix of
+    `grade-the-ab6-bridge-leg-once-runb6-exists`, and a commit naming the second binds only it.
+    """
+    if not sha or not focus_id:
+        return False
+    body = _git("log", "-1", "--format=%B", sha) or ""
+    return re.search(r"(?<![\w-]){}(?![\w-])".format(re.escape(focus_id)), body) is not None
+
+
+def _binds_item(focus_id: str, sha: str, when: float, bound_by) -> bool:
+    """Whether a commit on this item's subject paths inside its window is THIS ITEM'S work.
+
+    A PATH MATCH IS NOT THE WORK (director's direction, 2026-09-30,
+    `the-lane-0-ledger-attributes-by-the-item-not-by-a-path`). A commit binds the item only by one
+    of three facts: a `--landed` bind to this id, the id in its own message, or -- for a commit NO
+    row is bound to -- a diff to a path the item asks to CHANGE, which `_window_hits`' pathspec
+    already guarantees. A commit bound to ANOTHER row is that row's work unless its message names
+    this id: `grade-the-ab6-bridge-leg` was graded `landed_elsewhere` under `51417dba4`, the commit
+    that launched ab6 and wrote the prereg the grade was to append to; the grade itself was
+    `504b42a37`. What does not bind is published as `path_touched_by <sha>`, a hint.
+    """
+    if isinstance(bound_by, dict):
+        holder = bound_by.get(when)
+    else:                       # a set of instants: owned or not, owner unknown
+        holder = "" if when in bound_by else None
+    if holder is None or holder == focus_id:
+        return True
+    return _message_names(sha, focus_id)
 
 
 def _window_hits(focus_id: str, row: dict, drawn: float, *,
@@ -1598,9 +1642,12 @@ def _landed_by_sibling(focus_id: str, row: dict, drawn: float, bound_by: dict) -
     or leave alone reaches neither reading.
     """
     paths, hits, _liveness = _window_hits(focus_id, row, drawn)
+    # OWNED BY ANOTHER ROW IS NOT ENOUGH (2026-09-30): the commit must also BIND this item, which
+    # for a commit another row holds means naming this id in its message. See `_binds_item`.
     owned = [(sha, when, subject, touched, bound_by[when])
              for sha, when, subject, touched in hits
-             if bound_by.get(when) and bound_by[when] != focus_id]
+             if bound_by.get(when) and bound_by[when] != focus_id
+             and _binds_item(focus_id, sha, when, bound_by)]
     if not owned:
         return None
     sha, _when, subject, touched, holder = owned[0]
@@ -1654,7 +1701,7 @@ def _landed_unbound(focus_id: str, row: dict, drawn: float, bound_at) -> dict | 
     untouched.
     """
     paths, hits, _liveness = _window_hits(focus_id, row, drawn)
-    hits = [h for h in hits if h[1] not in bound_at]
+    hits = [h for h in hits if h[1] not in bound_at and _binds_item(focus_id, h[0], h[1], bound_at)]
     if not hits:
         return None
     sha, when, subject, touched = hits[0]
@@ -1666,6 +1713,12 @@ def _landed_unbound(focus_id: str, row: dict, drawn: float, bound_at) -> dict | 
     return {"disposition": LANDED_UNBOUND, "commit": sha, "at": when, "paths": list(paths),
             "evidence": "{} {} touched {}{}".format(
                 sha[:9], subject.strip()[:80], _matched(touched, paths), more)}
+
+
+def _touched_by_hint(hits: list[tuple]) -> str:
+    """`path_touched_by <sha>, ...` for commits that touched an item's paths without binding it."""
+    shown = ", ".join("path_touched_by {}".format(h[0][:9]) for h in hits[:3])
+    return shown + (" (+{} more)".format(len(hits) - 3) if len(hits) > 3 else "")
 
 
 def _matched(touched: list[str], paths: list[str]) -> str:
@@ -2258,7 +2311,17 @@ def tree_verdict(focus_id: str, *, now: float | None = None,
         return {"verdict": CREDITED, "commit": str(landed["commit"]), "at": float(landed["at"]),
                 "paths": paths, "drawn_at": drawn, "evidence": landed.get("evidence", "")}
     closed = drawn + CLAIM_STALE_SECONDS
-    stranded = _stranded_paths(paths, closed, now=stamp)
+    # "LAND THESE" IS SAID ONLY OF A PATH THE ITEM ASKS TO CHANGE (2026-09-30). The grade item's
+    # stamp held two paths another item wrote at 09:55 and never landed; the prose asked for
+    # neither, and the strand alarm told the grade's reader to commit them under its name. Bytes
+    # on the rest of the named set are still said -- as a hint, in the LOOK voice, below.
+    try:
+        subject = set(_claim_subject_paths(focus_id, row))
+    except GitUnavailable:
+        return None
+    dirty_named = _stranded_paths(paths, closed, now=stamp)
+    stranded = [pair for pair in dirty_named if pair[0] in subject]
+    touched_only = [pair for pair in dirty_named if pair[0] not in subject]
     if stranded:
         oldest_rel, oldest_mtime = stranded[0]
         return {"verdict": STRANDED, "paths": [rel for rel, _ in stranded], "drawn_at": drawn,
@@ -2286,6 +2349,14 @@ def tree_verdict(focus_id: str, *, now: float | None = None,
                 "named_paths": paths,
                 "oldest_age_hours": round((stamp - by_name[0][1]) / 3600.0, 1),
                 "evidence": _attributed_by_name(by_name, focus_id)}
+    if touched_only:
+        return {"verdict": STRAND_CANDIDATE, "paths": [rel for rel, _ in touched_only],
+                "drawn_at": drawn, "named_paths": paths,
+                "oldest_age_hours": round((stamp - touched_only[0][1]) / 3600.0, 1),
+                "evidence": "{} path(s) this row's stamp names hold uncommitted bytes, but its "
+                            "prose does not ask to CHANGE them -- path_touched, a hint and not "
+                            "this item's work: {}".format(
+                                len(touched_only), ", ".join(r for r, _ in touched_only[:5]))}
     # AND ONLY THEN THE SECOND QUESTION. The order is what keeps the strong claim strong: a row
     # whose OWN named paths are dirty is a strand and is said so, and the weaker time-attributed
     # reading is never reached for it. What this adds is the case the named set cannot express --
@@ -2532,8 +2603,10 @@ def _nothing_answered(focus_id: str, row: dict, drawn: float,
         # tells the reader the paths were right and the window was right, which the empty branch
         # below deliberately does not.
         return {"disposition": NOT_DONE,
-                "evidence": asked + "grace): {} found, each already bound in this ledger, so none "
-                                    "was creditable to this window".format(len(hits))}
+                "evidence": asked + "grace): {} found, each already bound to another row and none "
+                                    "naming this id, so none was creditable to this window -- "
+                                    "{} (a hint, not a disposition)".format(
+                                        len(hits), _touched_by_hint(hits))}
     if liveness_only:
         # THE ANSWERED VOICE, AND IT HAS EARNED IT. git was asked, on this row's own paths, over
         # this row's own window, and what came back carried no work -- so "workable, draw it

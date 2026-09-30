@@ -84,6 +84,15 @@ import pytest
 from background import delivery_lane as dl
 from tests.background.residual_voices import could_not_ask, looked_and_found_nothing
 
+
+@pytest.fixture(autouse=True)
+def _every_sibling_commit_names_the_item(monkeypatch):
+    """Since 2026-09-30 a commit another row holds binds this item only if its message names it
+    (`_binds_item`; graded in `test_a_commit_counts_for_an_item_only_if_it_binds_the_item.py`).
+    This file grades a different property, so its sibling commits are taken to name the item."""
+    monkeypatch.setattr(dl, "_message_names", lambda sha, focus_id: True)
+
+
 #: Synthetic ids. A control pinned to the live ledger's rows goes green when the sweep merely gets
 #: quieter, which is the failure being fixed wearing a better name.
 EARLY_ID = "a-window-that-closed-before-its-own-subject-existed"
