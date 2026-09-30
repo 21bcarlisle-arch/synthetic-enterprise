@@ -1,130 +1,174 @@
 version: 1
-oriented_at: "2026-09-29T11:21:09.297754+00:00"
+oriented_at: "2026-09-30T05:22:33.146517+00:00"
 thesis_read: >-
-  The steer bit this time. Last stretch's thesis item was drawn. A prereg was written before any
-  output (a3b1ae3c5), and both legs launched at 08:51Z from a worktree pinned at origin b79e2c0e8,
-  on one weather store (digest e11451b5…). That corrects my "never drawn" row. Then half of it
-  died. The kernel OOM-killed run A (seeds 11111, 88888, 22222) at 10:01Z (the journal's 11:01 is
-  BST), after 1h10m, at an 8.7 GB cgroup peak. It left no artefact, and nothing in this stretch
-  recorded the kill. The brief does not mention it. Only run B (33333, 44444) is still alive, at
-  8.2 GB. So the question the thesis turns on, whether the per-customer arm beats the flat baseline
-  because of what it decided, is still where it was. At best this stretch yields two new seeds of
-  five. The cause was not bad luck. The admission check that let both legs start prices a
-  noise-floor leg at FLOOR_RUN_PEAK_MB = 6,400 MB (tools/run_value_cycle_ab.py). That figure is
-  the MemoryPeak of a run that was itself OOM-killed, so it is a floor used as a ceiling. The same
-  defect was found and fixed on the paired-leg constant on 2026-09-23, and it was left live on its
-  sibling. A real --level-arm leg costs 8.2–8.7 GB. So I put the thesis item first again, reshaped
-  to finish from what survived. The mispriced admission comes second, because it will kill the
-  relaunch the same way. The phase4c short-window item is finished. The fixture runs to
-  2018-12-31, and its wiring tests go red on an empty log (568ec4fe8, on origin). It leaves focus.
-  The 14 fast-forward paths turned out to be copies origin supersedes (19286b105). That
-  disposition also retires the not_done lane-0 row judge-the-stale-fold-noise-floor-test-copy…,
-  which is the same subject under a second id. A reconcile merge is running now (surgical_land pid
-  3989327). The shared tree is 50 behind, and its origin_reconcile.py still has 0 merge_budget
-  hits against origin's 3, so that row stays open. Net: the machine served the thesis this stretch
-  instead of competing with it, and the result is still owed.
+  The thesis is back on a test that can answer it. It has no answer yet, and that is the honest
+  position. The old design is closed at the point where it stopped being informative. On unseen
+  seeds 55555 and 66666 (51417dba4), L1, L3 and L4 held. Both seeds reproduced seen seeds to within
+  £0.47, which is 7413b3ea2's mechanism observed directly. So the ab5 "+£1,000, CI clear of zero"
+  now reads as conditional on one set of renewal rolls. L2 is withdrawn, not refuted. ab6 is
+  running as longjob-ab6-single-roll at the a322166cc pin. Bridge leg B started 04:26:47Z and has
+  finished one of its two seeds. At about 93 min a seed, runB6.json is due around 07:35Z and
+  runP2.json around 13:45Z. The ab6 prereg's own P2 puts about 70% on "this book cannot sign D
+  under its own renewal noise". That would be a result, not a failure, and the design that follows
+  it should be pre-registered before the pilot answers, not after. HEAD has also moved past the
+  pin under ab6: f9b04ddc7 and 46b78123f re-centre the company's engagement prior and change the
+  seam, and c5e30c230 changes how a leaving household's gas leg closes. Chasing HEAD would never
+  finish, so ab6 stays pinned, and its grade must say that it describes a322166cc. PB6 moved for
+  the first time in three stretches, because the steer gave the worker a way to disagree instead of
+  stalling. The prior is a declared gap at 1.0 (f9b04ddc7). The null arm reads 0.739 against a
+  truth of 1.0 on 20 decisions, and all three predictions filed before the run held. EH-5 is
+  fixed: the seam no longer books a lookup with no account as direct debit. The worker then handed
+  on to PB8, which is blocked because no migration rate is published. That leaves PB6's own return
+  to its Expert Hour with no drawer, so it goes first here: it is the only item that can move a
+  level now while the box's memory belongs to ab6. Four open errors close with evidence.
+  (1) sim-runner's journal shows DEFERRED at 05:04Z and every five minutes after, naming
+  longjob-ab6-single-roll's declared 11,200 MB, so admit() has a live caller doing its job.
+  (2) The PB6 re-centring landed as f9b04ddc7. (3) The lineage leg was stopped 22 s into L2.
+  (4) The previous bridge item was drawn once and released with no staging file, which is the
+  designed second-drawer shape working. All three previous focus items were drawn, and two landed.
+  The bridge item's "CANNOT ANSWER" row is mine: the item named no tracked path. HEAD and origin
+  have diverged (11/9), so the shared checkout's daemons are running behind origin. That is the
+  carried reconcile class, and it cost no thesis run in this stretch. Staging drained by a net 75
+  over the week.
 stretch_reviewed:
-  since: "2026-09-29T08:23:33.806625+00:00"
-  commits: 6
-  substantive: 2
+  since: "2026-09-30T02:22:19.400709+00:00"
+  commits: 9
+  substantive: 8
 focus:
-  - id: finish-the-five-seed-decided-differently-grade
+  - id: PB6_the_engagement_observable_crosses_the_seam
+    what: >-
+      Return PB6 to its Expert Hour now. Run a fresh blind pass with tools/blind_review.py, the same
+      shape as the 2026-09-29 retention-analytics pass. Give it the current
+      docs/staging/WORKER_FINDING_PB6_THE_ENGAGEMENT_FACTOR_IS_USED_PER_DECISION_AND_ITS_PRIOR_IS_PER_EXPOSURE_2026-09-29.md,
+      and disposition each of EH-1, EH-2, EH-5 and the declared "live path reads no book" gap. For
+      EH-2 planted, state whether its failure to recover 0.307 is a build defect or sample
+      thinness: 2 prepayment decisions at w 0.036 cannot identify a factor. If it is thinness, it is
+      a declared "cannot tell on this book", not a reason to hold. Record the verdict in the PB6
+      simplification yaml under expert_hour. If it passes, move the level to 3 through the level
+      gate. If it fails, name the fail that stops it and mint or point at the atom that owns it.
+      Do not hand on to PB8, which is blocked on an unpublished rate.
+    why: >-
+      Every build step the last Expert Hour asked for has now landed (the null arm, the
+      re-centring, EH-5), and nothing is drawing the review that grades them. This is the one item
+      here that can change a level while ab6 holds the box's memory. DONE when the PB6 row carries a
+      dated Expert Hour verdict newer than 2026-09-29, and either level 3 or a named fail pointing
+      at its owner.
+  - id: grade-the-ab6-bridge-leg
     lane: B_commercial
     what: >-
-      Run B (unit longjob-ab5-runb, pid 3528271, seeds 33333,44444) is still running. Do not start
-      anything memory-heavy beside it. Wait for its unit to exit with tools/wait_for.py, not a
-      hand-rolled pgrep. Then confirm three things: /var/tmp/se-ab5-out/runB.json exists; the
-      worktree /var/tmp/se-ab5-b79e2c0e8 is still detached at b79e2c0e8; and
-      weather_store_digest() still equals the prereg's e11451b5…d242. Then relaunch the three seeds
-      run A lost, from that same worktree, through background/launch_long_job.py under setsid, as
-      two legs so each ends inside 5h: 11111,88888 to runA1.json and 22222 to runA2.json. Launch
-      the second leg beside the first only if item two's re-priced admission has landed and admits
-      it; otherwise run them one after the other. Append the OOM and the relaunch to the prereg's
-      launch record ONLY, and do not touch its predictions. Run A died before writing any artefact,
-      so no D or A figure was seen. When all three artefacts exist, grade every prereg line with
-      /var/tmp/se-ab5-out/grade5.py into a SEAT_RESULT_ beside the prereg. Its first row is each
-      arm's weather-store digest and the same_weather_store verdict.
+      If /var/tmp/se-ab6-out/runB6.json does not exist (it is due about 07:35Z), release this item
+      with no staging file and stop. Otherwise run /var/tmp/se-ab6-out/seed_census.py on runB6.json
+      against ab5's runs for 33333 and 44444. Grade B1 (|Δ D_lin| < £300 per seed) and B2 (fewer
+      than 120 identical lineages), each beside its prediction. Append the grade to
+      docs/staging/records/SEAT_PREREG_THE_NEXT_AB_ON_THE_SINGLE_ROLL_WORLD_WHAT_A_SEED_VARIES_2026-09-30.md
+      and land it by pathspec. If B1 misses by more than £1,000, write that the ab5 line closes as
+      "graded at a superseded world". Never stop or restart longjob-ab6-single-roll.
     why: >-
-      This is the thesis's own question, and the only live run that answers it. A family of two
-      seeds, p=0.77 and p=0.90, cannot say whether D's sign is decision or noise. DONE when a
-      SEAT_RESULT_ on origin grades every prereg line over five seeds sharing one weather-store
-      digest, and says plainly whether D's sign is distinguishable from zero. "Cannot yet say, with
-      the bound" counts as finished. Grading B's two seeds alone is not finished, and a refusal on
-      digests is not a result.
-  - id: reprice-the-noise-floor-leg-admission-from-a-completed-run
-    lane: H_harness
+      The bridge decides whether anything ab5 found still describes the code ab6 runs, and so how
+      the pilot is read. It costs minutes once the file exists. DONE when origin's ab6 record
+      carries B1 and B2 graded.
+  - id: prereg-the-book-varying-design-before-the-pilot-answers
+    lane: B_commercial
     what: >-
-      In tools/run_value_cycle_ab.py, FLOOR_RUN_PEAK_MB = 6400.0 prices a --noise-floor-seeds leg
-      from the MemoryPeak of a run the OOM killer took, so it is a floor, not a peak. Re-derive it
-      from completed runs only. Use the MemoryPeak systemd reports for longjob-ab5-runb once it
-      exits (read `systemctl --user show -p MemoryPeak` or the journal's "memory peak" line). Also
-      use run A's kill line: 8.7G peak, OOM-killed at 1h10m, which is a second floor. Write the
-      origin in the comment the way PAIRED_FLOOR_RUN_PEAK_MB's sibling comment already does:
-      completed versus killed, cgroup versus VmHWM, and rounded in which direction. Add one control
-      that the admission REFUSES the 08:51Z shape: a second --level-arm floor leg with one already
-      running, against the MemAvailable the box had then (about 20 GB). Add a partition leg proving
-      a single leg on an idle box is still ADMITTED. Mutation-prove the refusal against the old
-      6,400. Leave the edit in a worktree until run B has exited, so its gate does not starve the
-      run.
+      Before /var/tmp/se-ab6-out/runP2.json exists, write
+      docs/staging/records/SEAT_PREREG_THE_AB_THAT_VARIES_THE_BOOK_NOT_THE_SEED_2026-09-30.md. It is
+      the design ab6's prereg says follows if n* > 12. Read the REDRAW_KEYS note in
+      tools/run_value_cycle_ab.py and the renewal funnel (only ~70 of 164 settled accounts ever
+      renew). Name the one variable it changes: a longer window, a wider renewal funnel, or more
+      books. Justify that choice against what a real supplier's book would expose, and ask the
+      knowledge layer, not invention, for any size. Price it in box-hours from measured seed times.
+      File its predictions and the rule that decides between it and simply extending ab6. Do not
+      launch. If you judge that the n* > 12 branch does not need a new design, write that refusal
+      with its reason into the same file and land it instead.
     why: >-
-      This number admitted the pair that killed run A. Without the fix, item one's relaunch is
-      admitted into the same death. The paired-leg constant beside it was corrected for exactly this
-      defect on 2026-09-23 and this sibling was missed, so fixing the one constant is the whole job;
-      no new register. DONE when the constant on origin cites a completed run's peak, and a
-      mutation-proven control refuses two concurrent --level-arm floor legs at about 20 GB free
-      while still admitting one.
+      P2 already puts about 70% on "stop, vary the book". A successor designed after the pilot has
+      answered is fitted to the answer. Written now, it is a prediction. DONE when origin carries
+      the record, timestamped before runP2.json's mtime, or the named refusal.
+  - id: grade-ab6-bridge-and-pilots
+    lane: B_commercial
+    what: >-
+      If /var/tmp/se-ab6-out/runP2.json does not exist (it is due about 13:45Z), release with no
+      staging file and stop. Otherwise run /var/tmp/se-ab6-out/grade_lineage.py runP1.json
+      runP2.json. Compute n* as the ab6 prereg defines it, and grade P1, P2 and P3 beside their
+      predictions. Confirm that churn_rolls_redrawn > 0 on every pilot seed. List the commits
+      between a322166cc and origin/main that touch company/ or simulation/, and state that the
+      answer describes the pin. Append all of it to
+      docs/staging/records/SEAT_PREREG_THE_NEXT_AB_ON_THE_SINGLE_ROLL_WORLD_WHAT_A_SEED_VARIES_2026-09-30.md
+      and land by pathspec. Then apply the prereg's own rule. If n* ≤ 12, launch the extension legs
+      (61005...) through background.launch_long_job with --peak-mb 11200. If n* > 12, write the
+      plain answer "cannot say on this book" and point at the book-varying prereg.
+    why: >-
+      This is the first measurement of whether per-customer beats flat rules under the world's own
+      renewal noise, which is the thesis's baseline question. DONE when origin's ab6 record carries
+      P1-P3 graded and either an extension unit is active or the plain answer is written.
 not_now:
-  - what: >-
-      Relaunching run A's three seeds right now, beside run B.
+  - what: Restarting ab6 at current HEAD so it carries the re-centred PB6 prior and the gas-leaver fix.
     why: >-
-      MemAvailable is about 10.8 GB with B at 8.2 GB and a reconcile gate's pytest at 2.4 GB. One
-      8.7 GB leg would reproduce the kill. Waiting about three hours for B costs time; a second
-      OOM costs the run and hides the result behind another partial family.
-  - what: >-
-      Grading B's two seeds now as an interim SEAT_RESULT_.
+      It would throw away about 1h of B and delay the pilot by about 9h. It would also chase a HEAD
+      that moves every stretch. The pin is what makes the answer attributable, so the pilot grade
+      names the commits it predates instead.
+  - what: Re-deriving sim-runner's sim_run admission weight down from 13,824 MB toward the observed 6,317 MB.
     why: >-
-      The prereg is written for five seeds, and P3(a) already concedes five cannot reach 0.05. A
-      two-seed grade would be read as an answer. The grader runs once, over the whole family.
-  - what: >-
-      Adding a heartbeat to worker-seat-manager, or re-asking evaluate_boot_sha_drift and cached
-      refusals against origin.
+      The weight is what keeps sim-runner deferred for the whole ab6 night, which is the intended
+      protection. Publish is held until 2026-10-05, so a deferred sim-runner costs nothing this
+      week. Re-derive it only when every long job's declared peak is honest.
+  - what: Working PB8 (a household's payment channel changes over its tenure).
     why: >-
-      All of these are machine readings still dominated by the 50-commit shared-tree gap. A
-      reconcile is running now, and measuring before it lands would measure the pin again. They
+      Its own block_reason is the knowledge-first rule working: no normal-year migration rate is
+      published. Building it would mean picking a number.
+  - what: The carried harness reader defects (the empty surgical_land exit, the synthetic-tree fixtures, re-asking refusals against the remote, the stash sweep, the origin-vs-HEAD reader, untracked siblings, the HEAD/origin divergence).
+    why: >-
+      None of them cost a thesis run this stretch, and the hours go to ab6 and PB6's level. They
       stay open in wrong.
-  - what: >-
-      Measuring hunks 5–7 of the prompt audit.
+  - what: A second memory-heavy job beside ab6, such as a PB6 planted or head re-run under the re-centred prior.
     why: >-
-      The director fixed the instrument and the date: the Friday burn review, 2026-10-02.
-  - what: >-
-      A watcher that raises an alarm when a long job is OOM-killed.
-    why: >-
-      That builds the thing that watches the work. Admitting a correctly priced leg removes the kill
-      itself. Item two is that one-leg fix.
+      The null arm answered the question the re-centring raised. A planted arm with 2 prepayment
+      decisions cannot identify 0.307 whatever the prior, so the re-run would buy nothing and
+      would crowd the pilot.
 wrong:
   - what: >-
-      MINE, NEW. Last stretch's item one told the worker to launch once headroom showed room, and
-      cited 20 GB free as sufficient. It said nothing about how many legs fit. The worker launched
-      two legs in parallel. An admission priced from an OOM-killed run's floor let both start, and
-      run A was OOM-killed at 10:01Z with no artefact. I used free memory as the gate when the class
-      "a bound from an OOM-killed run is a floor used as a ceiling" was already on file.
-    corrected: false
-  - what: >-
-      THE MACHINE'S, NEW. A long job OOM-killed at 10:01Z was recorded nowhere in the 80 minutes
-      that followed. It is absent from staging, the seat log and this brief's running block. That
-      block lists survivors only, so a dead job reads as a job that never existed.
-    corrected: false
-  - what: >-
-      MINE, NEW. Item two's why said the withdrawn sanity-daemon draft was the one class-(c) path
-      holding the shared tree, and that clearing it would let the tree advance. It was cleared
-      (2fa8dd840). The next reconcile refused the fast-forward on 14 other paths of uncommitted
-      bytes (662da7fd3). I took the census's one named path as the whole population without asking
-      what a fresh refusal would name.
-    corrected: false
-  - what: >-
-      MINE, NEW. Item one, the thesis item, was named first and never drawn in its 3-hour window,
-      while the two machine items behind it were. I did not ask what made it look undrawable.
+      MINE, NEW. The previous steer said to write the ab6 prereg before any more compute on the old
+      design. It did not also say to hold or stop a run of that design already queued. The seat
+      launched longjob-ab5-lineage-unseen at 00:00Z on the ab5 design, two hours before 7413b3ea2
+      showed that a seed in that design varies one account. Its L2 plain-answer rule would read an
+      elasticity-draw CI as a world CI. About 3h of box time is committed to it, and more would
+      have been.
     corrected: true
+  - what: >-
+      THE MACHINE'S, NEW. sim-runner's deferral under a long job rests on CLASS_WEIGHTS_MB["sim_run"]
+      = 13,824 MB, about twice the observed 6,317 MB. weight_drift checks one direction only, so it
+      reads drifted=False. The protection is correct by accident of a stale figure, and honest
+      re-derivation would reopen 19:07Z unless the long job's declared peak is honest too.
+    corrected: false
+  - what: >-
+      MINE, NEW. The PB6 step (2) instruction ("without waiting for the NTFY practitioner answer")
+      was not followed. The worker held it again (a322166cc NEXT). My item gave no shape for
+      disagreeing, so the worker's only way to disagree was to stall.
+    corrected: true
+  - what: >-
+      THE MACHINE'S, NEW. Memory admission covers only jobs launched through launch_long_job.
+      resource_headroom.admit() has no production caller, sim_runner never asks, and a declared
+      peak_mb is read by nothing except the launcher itself. A neighbour that arrives after a long
+      job can still kill it, and that is what happened at 19:07Z. (9727cb88f gives admit() its
+      caller, and the daemon restarted onto it at 01:59Z. This stays open until its journal shows a
+      DEFERRED line under a declared long job.)
+    corrected: true
+  - what: >-
+      MINE, NEW. A focus item held by a live seat claim, with a running job, carried no instruction
+      for a second drawer. Ticks redrew it twice (a520dadd7, 99936c585), and each spent a tick and a
+      staging file saying "held". It recurred this stretch: two seats drew
+      the-neighbour-of-a-long-job-sees-its-declared-peak, and one yielded by cross-session message.
+    corrected: true
+  - what: >-
+      MINE, NEW. grade-the-ab6-bridge-leg named no tracked path, so the lane-0 ledger could not ask
+      git whether it landed ("CANNOT ANSWER"). Every ab6 item now names the prereg record it
+      appends to. This stays open until the ledger grades one of them.
+    corrected: false
+  - what: >-
+      THE MACHINE'S, NEW. 46b78123f handed PB6 on with NEXT PB8, which is blocked because no rate is
+      published. PB6's own step (return to its Expert Hour, as its finding says) was left with no
+      drawer. A NEXT pointer can name a blocked atom, and nothing refuses that.
+    corrected: false
   - what: >-
       THE MACHINE'S, CARRIED. Item two's surgical_land (pid 837396) ran 1h25m, exited, and put
       nothing on any ref. Why that land exited empty was never read. The stale copies it left are
@@ -152,8 +196,9 @@ wrong:
     corrected: false
   - what: >-
       THE MACHINE'S, CARRIED. The lane-0 block and the path check read HEAD or a local ref, not
-      origin. It recurs in this brief: two items are still graded landed_unbound on 9f929478e, a
-      preservation commit on no remote ref, while the real grade landed on origin as 5cbbad968.
+      origin. It showed up as two items graded landed_unbound on 9f929478e, a preservation commit on
+      no remote ref. Those instances are now bound to origin commits (b31e079ca), and every row
+      reads premise_spent. The reader's defect stays open.
     corrected: false
   - what: >-
       THE MACHINE'S, CARRIED. Nothing on the landing path asks whether a same-subject untracked
@@ -161,21 +206,8 @@ wrong:
       untracked staging drafts that origin already carries, which is the same class again.
     corrected: false
   - what: >-
-      MINE, CARRIED. not_now is prose, and nothing a launch from another lane reads. It is still
-      true of this file.
-    corrected: false
-  - what: >-
-      MINE, CARRIED. The +£880 focus assumed its only open question was which accounts the arms
-      decided differently on. I never asked whether anything could move accounts where nothing was
-      decided. Something could, and it turned out to be the harness, not the arm. It stays open
-      until item one grades the A set on a constant store. That grade is now two seeds in flight
-      and three to relaunch.
-    corrected: false
-  - what: >-
-      THE MACHINE'S, CARRIED. The reconciler's merge timeout was a literal 1,500 s, and one
-      receipt's 1,570 s test leg outgrew it. Every merge then died silently as a truncated
-      TimeoutExpired. The budget fix is on origin and gated a seat-run merge clean in 42 minutes
-      (6166e3af0). It is still inert in the shared tree: at 11:21Z its origin_reconcile.py has 0
-      merge_budget hits against origin's 3, and a reconcile merge (pid 3989327) is in flight.
+      MINE, CARRIED. not_now is prose, and nothing a launch from another lane reads. The launcher
+      in b50a03519 turns one instance (memory exclusivity) into a mechanism, and the class stays
+      open. The lineage leg launched against the previous not_now's intent is a new instance.
     corrected: false
 for_the_director: []
