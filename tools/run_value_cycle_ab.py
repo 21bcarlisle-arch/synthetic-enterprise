@@ -8450,6 +8450,11 @@ def book_member(seed: int, report_end: str | None = None, runner=None) -> dict:
         "value_advantage_gbp": lvs.get("value_advantage_gbp"),
         "selection_gbp": lvs.get("selection_gbp"),
         "producing_commit": producing_commit(),
+        # The member's own stamp is its commit. `book_seed` identifies the BOOK, which is a fact
+        # about the world and not about the run, so `_RUN_IDENTITY_FIELDS` leaves it out for the
+        # same reason it leaves out `book_identity`. The embedded `result` makes its own
+        # declaration.
+        "run_identity_fields": ["producing_commit.commit", "producing_commit.resolved_at"],
         "result": result,
     }
 

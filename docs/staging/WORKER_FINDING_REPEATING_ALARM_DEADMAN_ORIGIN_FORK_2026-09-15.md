@@ -105,3 +105,21 @@ finding is changed on both sides, so the merge keeps conflicting. `git cherry` m
 a combined landing cannot turn the stranded commits to `-`. The fork closes only when the shared
 tree's HEAD is MOVED to origin, and the other lanes' uncommitted files must be preserved when that
 happens. That move is handed on as its own item.
+
+**Correction (seat, lane 0, second turn on the same claim, 13:30Z).** No continuation was written for
+the "move", and a MOVE would have been wrong. The two receipt-less `delivery seat: direction`
+commits (41644d8b8, c2ac926ef) hold the only copy of the 09-30 `DIRECTION.yaml` and
+`decisions.jsonl`, because origin's last direction commit is b76e69c0d from 09-29. Resetting the
+shared HEAD to origin would have reverted the director's current direction without any warning.
+A fetch-and-merge in the other direction closes the fork with nothing lost. A throwaway worktree
+at the shared HEAD runs `surgical_land --merge origin/main`, with `--resolve` taking origin's copy
+on all 7 conflicted paths. 4380002bd had already carried each HEAD-only line those paths held.
+One path needed `--drops`, and the door was right to ask for it. The gas-leg test's
+`test_the_opening_term_is_fixed_on_both_fuels` was rewritten on BOTH sides, a5ed0d0e2 on HEAD and
+48104db63 on origin, re-keying the same red. The copy kept is origin's, which requires both
+partitions to be non-empty.
+H45 (bc0df4b9e) was the one receipted commit 4380002bd left out, and it was replayed first as
+its own landing. The merge's first parent is the shared HEAD, so origin fast-forwards to it,
+and then `origin_reconcile` sees `ahead == 0` and fast-forwards the shared tree on its own
+cadence. It is a fast-forward, so nobody's uncommitted file is touched. It also turns every
+stranded commit into an ancestor of origin, which is the only thing that can empty `git cherry`.
