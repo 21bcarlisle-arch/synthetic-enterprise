@@ -1,6 +1,6 @@
 # Prereg: the A/B that varies the book, not the seed — ab6's n\* > 12 successor, written before P2 answers
 
-**Severity:** RECORDED · **Lane:** A_strategy_governance · **Item:** `prereg-the-book-varying-design-before-the-pilot-answers` · **Status:** written, pinned, **NOT launched, NOT built.** Written 2026-09-30 while ab6's bridge leg B (seed 33333 done at 5,368.9 s; 44444 running) was still ahead of P1 and P2. `/var/tmp/se-ab6-out/runP1.json` and `runP2.json` do not exist at the time of writing. So everything below is a prediction.
+**Severity:** RECORDED · **Lane:** A_strategy_governance · **Item:** `prereg-the-book-varying-design-before-the-pilot-answers` · **Status:** written, pinned, **NOT launched.** `--book-seeds` built 2026-09-30 behind an EP17 refusal (§Amendment). Written 2026-09-30 while ab6's bridge leg B (seed 33333 done at 5,368.9 s; 44444 running) was still ahead of P1 and P2. `/var/tmp/se-ab6-out/runP1.json` and `runP2.json` do not exist at the time of writing. So everything below is a prediction.
 
 ## Why this exists
 
@@ -22,6 +22,8 @@ Measured on `/var/tmp/se-ab5-out/runB.json`, seed 33333 (the funnel is identical
 
 **3. More books — CHOSEN.** `simulation.live_population.live_population(base_seed)` draws the book from a seed. `_DEFAULT_BASE_SEED = 20260724` is documented at its definition as *"a MECHANISM default (determinism), NOT a curriculum knob — the curriculum decision is on/off; the seed only fixes which deterministic draw the 'on' state yields."* Varying it keeps everything the director set in `docs/design/FOUNDER_BOOK.yaml` (80 founders, the settlement customer-year budget, served segments) and redraws which households fill those slots. So it is the seat's to vary.
 
+> **CORRECTED 2026-09-30, same day, before P2 — the sentence above is wrong.** See *§Amendment: varying the book seed is EP17, and EP17 is the director's* below. The docstring at `_DEFAULT_BASE_SEED` calls the seed a mechanism default because it only ever picks *which* draw the "on" state yields. Varying it *across runs* is a different act: it puts the company through a different cast of households each run. That act is already on the map as `EP17_varied_population_draw`.
+
 **Why "more books" is the faithful variable.** A real supplier exposes one book, but that book holds 10⁴–10⁶ accounts, not 164. D is a sum over accounts, and its renewal-roll noise shrinks roughly as 1/√N. K independent books of this size are the nearest thing this box can run to one book K times larger. That holds only while book-level couplings (the campaign budget, the opening capital) do not dominate, and K1 below tests that. It is also the estimand the mission names: **the enterprise value is the method, and the book is the evidence** (CLAUDE.md, mission point 3). ab6 on its best day answers *"on this one book, over its renewal noise"*. The book design answers *"on a book like this, does the method beat flat rules?"*
 
 ## A defect this design must close before it can run (measured 2026-09-30)
@@ -33,6 +35,10 @@ Measured on `/var/tmp/se-ab5-out/runB.json`, seed 33333 (the funnel is identical
 **The remedy already exists, so no new randomness is needed.** Run each book under `--redraw-key churn_roll` with the floor seed set **equal to the book seed**. `_churn_roll_redraw_patch` then composes the namespaced stream `floor{seed}_{account}_{term}`, so the book and the roll move together. Elasticity already follows the book, because `customer_events` passes `run_base_seed()` to `price_elasticity_for_customer`.
 
 ## What must be built first (not built here; one turn of code, no box time)
+
+*Built 2026-09-30 (see §Amendment): `book_seeds`, `book_member`, and the three refusals below plus a fourth, EP17 authorisation. The one-leg control is `tests/tools/test_a_book_family_redraws_the_cast_and_the_dice_and_refuses_without_ep17.py`. It runs no simulation pass. It compares `founder_book` rosters and the patched roll stream on a shared id, and drives the member loop with an injected spawn. The `--end-year 2017` two-book fold below is **not** the control: it is a sim pass at a non-default seed, so it too waits for the ruling.*
+
+*Landed by a later invocation of the same claim (`put-the-ep17-line-into-the-book-varying-prereg-and-build-the-refusing-flag`): the first built all of this in the shared tree at 09:55 and did not land it. Seven mutations were run before landing; six redded the control and one, the member patching the roll at the DEFAULT seed while recording the book seed, did not. That was a missing test, not an equivalence, and `test_a_member_reads_the_seed_its_book_was_drawn_at_and_restores_the_roll` now compares the dice the pass took with the ones floor seed == book seed draws.*
 
 `run_value_cycle_ab --book-seeds S1,S2,…` (the name is illustrative). For each member it must:
 
@@ -67,10 +73,20 @@ Nine `--level-arm` seed passes are on disk (`/var/tmp/se-ab5-out/run{A1,A2c,B,L}
 | for comparison: extending ab6 from 4 seeds to n\*_r = 13 (the smallest over-ceiling case) | +9 | +13.9 |
 | for comparison: extending ab6 at P1's own point guess (s ≈ £4,000, \|m\| ≈ £1,000, so n\*_r ≈ 66) | +62 | +96 |
 
+## Amendment: varying the book seed is EP17, and EP17 is the director's (2026-09-30, before P2)
+
+**What changed.** `live_population(base_seed)` at a seed other than `_DEFAULT_BASE_SEED` does more than redraw the renewal noise. It draws a different **cast**: `founder_book(20260724)` against `founder_book(61001)` shares 77 of 80 ids, and only 18 of those records are identical (re-measured this turn, 0.03 s for both books). *A different cast every run* is the title of `EP17_varied_population_draw` in `docs/design/maturity_map.yaml`. That row is level 0, epoch 4, and its `block_reason` starts **"director-reserved curriculum sequencing (R13)"**. It adds that population activation is separately director-reserved as curriculum, and that the only act that promotes an epoch-4 curriculum atom is a curriculum decision. "Which world the company lives through is the director's" (CLAUDE.md, the baseline/curriculum split). So a K-book family is a curriculum act, not a harness setting. The seat cannot take it on a rule it wrote for itself, and rule 2 below said it could.
+
+**Rule 2 is amended.** The book pilot launches **only on a director ruling** that authorises the named seeds. The ruling must be recorded as `docs/design/curriculum/varied_population_draw_activation.json`, in the same shape as `population_draw_activation.json`: `_meta.authority` carries his words, `activated.value` is `true`, and `base_seeds.value` lists the seeds. The seat does not write that file. If n\*_r > 12 the seat still does **not** extend ab6. It sends the director a priced ask: this design, its 6.2 box-hours, and what K books would answer. Launch condition 1 below carries the same amendment.
+
+**The flag is built behind that refusal.** `tools/run_value_cycle_ab.py --book-seeds S1,S2,…` refuses any member seed other than `_DEFAULT_BASE_SEED` unless that record exists and lists the seed. The refusal names `EP17_varied_population_draw` and the missing file. A yes from the director is therefore one file and no code.
+
+**Every prediction is untouched.** K1–K6, their confidences, the statistic, the cost table and rules 1, 3 and 4 are exactly as written before this amendment. Only rule 2's trigger and launch condition 1 changed: *who* may launch, not *what* is predicted. P2 had not been read when this was written (`/var/tmp/se-ab6-out/runP2.json` does not exist).
+
 ## The rule that decides between this design and extending ab6
 
 1. **n\*_r ≤ 12 on ab6's pilot:** extend ab6, as its own rule says. This design is **not** launched. It stays filed as the generalisation question ("was that one book?"), to be drawn after ab6 is graded.
-2. **n\*_r > 12:** **do not extend ab6.** Build `--book-seeds` and run the 4-book pilot (6.2 h). The pilot is cheaper than the smallest over-ceiling extension of ab6 (13.9 h). Its answer also decides whether any spend at this book size can sign D, and extending ab6 answers only the one-book question.
+2. **n\*_r > 12:** **do not extend ab6.** ~~Build `--book-seeds` and run the 4-book pilot (6.2 h).~~ *Amended 2026-09-30, see §Amendment: take the 4-book pilot (6.2 h) to the director as a priced ask, and launch it only on his recorded ruling. `--book-seeds` is built already, behind that refusal.* The pilot is cheaper than the smallest over-ceiling extension of ab6 (13.9 h). Its answer also decides whether any spend at this book size can sign D, and extending ab6 answers only the one-book question.
 3. **After the book pilot, n\*_b ≤ 12:** extend to n\*_b books and grade with a t-CI on the mean D_book. Plain answer: *"on a book like this, over book and renewal noise, the per-customer arm does / does not beat flat rules."*
 4. **n\*_b > 12:** **stop.** The answer is *"at 164 settled accounts, neither one book's renewal noise nor a family of books can sign D inside the compute ceiling"*. The remaining lever is book **size**, which is the director's curriculum (`FOUNDER_BOOK.yaml`), not the seat's. It goes to him as a priced menu (founders ↔ campaign width ↔ settlement budget, and the pass time a larger book costs), never as a run.
 
@@ -95,7 +111,7 @@ The ceiling of 12 is ab6's compute choice (~18.6 h, about three continuations), 
 
 ## Launch conditions (all must hold)
 
-1. ab6 is graded, and its n\*_r > 12 (rule 2). Otherwise this record stays filed.
+1. ab6 is graded, and its n\*_r > 12 (rule 2). Otherwise this record stays filed. **And (amended 2026-09-30):** `docs/design/curriculum/varied_population_draw_activation.json` exists with the director's words and lists every seed (EP17, R13).
 2. `--book-seeds` is landed with the refusals and the one-leg control above.
 3. The same pin and weather-store checks as ab6's `legs6.sh`. No other `run_value_cycle_ab` is resident.
 4. It is launched through `background.launch_long_job` as one unit of 2-book legs gated through `tools.wait_for`, declaring the 11.2 GB peak.
