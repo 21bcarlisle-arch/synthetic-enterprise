@@ -1196,3 +1196,62 @@ def test_the_units_leading_dash_costs_no_detection_because_the_failing_exit_is_r
         f"the `-` no longer keeps the unit starting through a failed stamper: {broken}")
     # (3) ANTI-TAUTOLOGY: the two arms must be told APART, or a constant reader passes.
     assert broken["run"]["status"] != valid["run"]["status"]
+
+
+def _diverged(tmp_path):
+    """A checkout one commit AHEAD of and one commit BEHIND its trunk: the trunk changed `mod.py`,
+    the checkout changed `local.py`. A real clone, because the defect is what `git diff` counts."""
+    import subprocess
+    up = tmp_path / "up"
+    up.mkdir()
+    _repo(up)
+    subprocess.run(["git", "branch", "-M", "main"], cwd=up, check=True)  # init's default varies
+    here = tmp_path / "here"
+    subprocess.run(["git", "clone", "-q", str(up), str(here)], check=True)
+    for d in (up, here):
+        for cmd in (["git", "config", "user.email", "t@t"], ["git", "config", "user.name", "t"]):
+            subprocess.run(cmd, cwd=d, check=True)
+    (up / "mod.py").write_text("landed on the trunk\n")
+    subprocess.run(["git", "commit", "-qam", "trunk", "--no-gpg-sign"], cwd=up, check=True)
+    (here / "local.py").write_text("ahead\n")
+    subprocess.run(["git", "add", "local.py"], cwd=here, check=True)
+    subprocess.run(["git", "commit", "-qm", "ahead", "--no-gpg-sign"], cwd=here, check=True)
+    subprocess.run(["git", "fetch", "-q", "origin"], cwd=here, check=True)
+    return here
+
+
+def test_a_checkout_behind_its_trunk_reads_current_on_the_disk_leg_and_behind_on_the_trunk_leg(
+        tmp_path, monkeypatch):
+    """THE DEFECT THIS OWNS, measured 2026-10-01: HEAD 13 behind origin/main, `stale: []` over
+    10/10 graded daemons, and four of the ten import a module the trunk had already changed. The
+    disk leg is right that a restart would change nothing; it cannot say the disk is behind.
+
+    Both legs over ONE diverged repo, so the pair is the evidence: the disk leg reads clean (the
+    daemon loaded exactly HEAD) and the trunk leg names exactly the trunk's path -- not the
+    checkout's own ahead commit. MUTATIONS: two dots for three and `local.py` appears; return an
+    empty set and `mod.py` vanishes; drop the closure intersection and `unrelated` gets `mod.py`."""
+    import subprocess
+    here = _diverged(tmp_path)
+    monkeypatch.setattr(boot_sha, "_REPO", here)
+    head = subprocess.run(["git", "rev-parse", "HEAD"], cwd=here, capture_output=True,
+                          text=True, check=True).stdout.strip()
+
+    assert boot_sha.changed_paths_since(head, {}) == set(), "the disk leg: nothing to restart for"
+    behind = boot_sha.paths_behind_trunk()
+    assert behind == {"mod.py"}
+    assert boot_sha.trunk_sha() not in (None, head)
+
+    legs = R.loaded_code_behind_trunk(
+        {"imports-it": ["mod.py", "local.py"], "unrelated": ["other.py"], "unknown": None}, behind)
+    assert legs == {"imports-it": ["mod.py"]}
+
+
+def test_a_checkout_with_no_trunk_ref_is_unresolved_not_current(tmp_path, monkeypatch):
+    """The gate's own extract has no origin/main, so this state is reachable in production. An
+    unanswerable trunk leg must read None -- never `{}`, which is the clean fleet. MUTATION: return
+    an empty set on a failed diff and this fires."""
+    _repo(tmp_path)
+    monkeypatch.setattr(boot_sha, "_REPO", tmp_path)
+    assert boot_sha.paths_behind_trunk() is None
+    assert boot_sha.trunk_sha() is None
+    assert R.loaded_code_behind_trunk({"d": ["mod.py"]}, None) is None

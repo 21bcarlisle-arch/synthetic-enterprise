@@ -909,9 +909,27 @@ def probe_declared_stamper(unit_dir: Path | None = None, run=None) -> dict:
                       + (f" ({len(declared)} unit(s) declare it)" if not bad else "")}
 
 
+def loaded_code_behind_trunk(closures: dict, behind: set[str] | None) -> dict | None:
+    """`{session: [paths]}` for each daemon whose code closure holds a path the trunk has changed
+    and this checkout lacks. None when the trunk leg is unresolved -- an unanswerable question is
+    not a clean fleet. A session with no known closure is omitted here; it is already refused in
+    `unresolved` by the disk leg."""
+    if behind is None:
+        return None
+    out = {}
+    for session, closure in closures.items():
+        if closure is None:
+            continue
+        hit = sorted(behind & set(closure))
+        if hit:
+            out[session] = hit
+    return out
+
+
 def evaluate_boot_sha_drift() -> dict:
     """Live wrapper. Population = OBSERVED systemd daemons; signal = their own loaded modules.
-    Returns {head, population, graded, stale, stale_detail, unresolved, misdeclared, vacuous}.
+    Returns {head, trunk, behind_trunk, population, graded, stale, stale_detail, unresolved,
+    misdeclared, stamper, vacuous}.
     `stale` stays a list of session names (health_check's existing consumer). REPORT ONLY.
 
     `graded` IS THE DENOMINATOR AND IT IS NOT DECORATION. Measured on this box 2026-09-25: 11
@@ -942,6 +960,13 @@ def evaluate_boot_sha_drift() -> dict:
     any_active = any((unit_states.get(e["session"]) or {}).get("active")
                      for e in entries if e.get("owner") == "systemd")
     return {"head": boot_sha.current_head(),
+            # TWO LEGS, NOT ONE VERDICT. `stale` grades each daemon against the DISK -- what a
+            # restart would load now. `behind_trunk` grades the disk against origin/main -- what
+            # has landed that no restart here can load until the checkout advances. A fleet can
+            # read `stale: []` on the first while the second names half of it; restarting clears
+            # only the first.
+            "trunk": boot_sha.trunk_sha(),
+            "behind_trunk": loaded_code_behind_trunk(closures, boot_sha.paths_behind_trunk()),
             "population": population,
             # Derived by SUBTRACTION through the partition the rules above actually produce, so a
             # rule added later shrinks `graded` by construction. A `graded` recomputed from its own
