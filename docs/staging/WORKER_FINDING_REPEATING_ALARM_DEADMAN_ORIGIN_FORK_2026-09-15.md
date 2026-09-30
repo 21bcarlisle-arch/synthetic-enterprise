@@ -2,10 +2,17 @@
 
 # [ORIGIN FORK] REFUSED_CONFLICT: between e097212cd and 33b78a519 -- 6 conflicted path(s), nothing was committed:
 
-**Filed automatically by `background/alarm_repetition.py`, not by a person.** This alarm has
-fired **46 times without its state changing**, over **101.9h**. Under the
-director's instruction of 2026-08-20 a repeating alert escalates itself into the draw rather
-than being sent again, so this document exists and a 46th page does not.
+<!-- counts:begin -->
+**Filed automatically by `background/alarm_repetition.py`, not by a person.** This condition
+has been **observed to hold on 16 separate day(s)**, between **2026-09-15** and **2026-09-30**,
+and **16 member(s)** of the family `deadman_origin_fork` have fired. Both counts are DERIVED
+from this document's own dated lines every time the alarm fires again, so they age with the
+document rather than with its first firing.
+
+Separately, the observer that last filed reported **3 consecutive firing(s) without a state
+change**, over **0.2h**. That is `notify()`'s streak counter, which resets; it is not a total
+and does not combine with the two counts above.
+<!-- counts:end -->
 
 ## The alarm, verbatim
 
@@ -71,9 +78,20 @@ files a fresh document, because that is a new episode and an R3 two-strike signa
 - `refused_conflict: between # and # -- # conflicted path(s), nothing was committed: docs/staging/records/prereg_the_publis` (first seen 2026-09-18)
 - `refused_conflict: between # and # -- # conflicted path(s), nothing was committed: tests/background/test_a_window_that_cl` (first seen 2026-09-18)
 - `refused_conflict: between # and # -- # conflicted path(s), nothing was committed: docs/staging/records/seat_result_a_car` (first seen 2026-09-24)
-
+- `refused_conflict: between # and # -- # conflicted path(s), nothing was committed: docs/staging/seat_finding_the_checkout` (first seen 2026-09-24)
+- `refused_conflict: between # and # -- # conflicted path(s), nothing was committed: tests/tools/test_level_zero_contradict` (first seen 2026-09-26)
+- `refused_conflict: between # and # -- # conflicted path(s), nothing was committed: docs/staging/seat_finding_the_ledger_a` (first seen 2026-09-28)
+- `refused_conflict: between # and # -- # conflicted path(s), nothing was committed: background/delivery_lane.py a conflict` (first seen 2026-09-28)
+- `refused_conflict: between # and # -- # conflicted path(s), nothing was committed: docs/staging/worker_finding_pb#_the_en` (first seen 2026-09-30)
+- `refused_conflict: between # and # -- # conflicted path(s), nothing was committed: docs/design/blocked_atom_visibility.md` (first seen 2026-09-30)
 ## Re-asked
 - **2026-09-24** — re-asked: **still_holds**. observed 2026-09-24, within the 3-day bar.
+- **2026-09-25** — re-asked: **still_holds**. observed 2026-09-24, within the 3-day bar.
+- **2026-09-26** — re-asked: **still_holds**. observed 2026-09-25, within the 3-day bar.
+- **2026-09-27** — re-asked: **still_holds**. observed 2026-09-26, within the 3-day bar.
+- **2026-09-28** — re-asked: **still_holds**. observed 2026-09-27, within the 3-day bar.
+- **2026-09-29** — re-asked: **still_holds**. observed 2026-09-28, within the 3-day bar.
+- **2026-09-30** — re-asked: **still_holds**. observed 2026-09-29, within the 3-day bar.
 
 ## 2026-09-30 fork: the duplicate pairs, and which route made each copy (seat, lane 0)
 
