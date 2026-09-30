@@ -1423,7 +1423,26 @@ def test_gap_measured_reader_accepts_written_entries(tmp_path):
 # is exercised by the orchestrator post-merge, per the atom's own scope).
 # ---------------------------------------------------------------------------
 
-def test_cli_runs_and_prints_all_three_gaps(capsys, monkeypatch):
+def _reuse_module_measurement(monkeypatch, name, measured):
+    """`main` calls three sweeps with exactly the arguments this module's fixtures already
+    measured them with, and those three are ~95% of `main`'s runtime (760 of 806 s, profiled
+    2026-09-30). Hand `main` the module's measurement instead of a second identical one; any
+    OTHER arguments fall through to the real sweep, so a changed call site is still measured."""
+    real = getattr(pair, name)
+
+    def reuse(*args, **kwargs):
+        if not args and kwargs == {"n_customers": _RES_N}:
+            return measured
+        return real(*args, **kwargs)
+
+    monkeypatch.setattr(pair, name, reuse)
+
+
+def test_cli_runs_and_prints_all_three_gaps(capsys, monkeypatch, drift_resolution,
+                                            own_drift_resolution, recon_saturation):
+    _reuse_module_measurement(monkeypatch, "measure_dimension_drift_resolution", drift_resolution)
+    _reuse_module_measurement(monkeypatch, "measure_own_drift_resolution", own_drift_resolution)
+    _reuse_module_measurement(monkeypatch, "measure_organ_query_grid_saturation", recon_saturation)
     monkeypatch.setattr("sys.argv", ["couple_w2_11_d5.py", "--customers", "300", "--seed", "3"])
     pair.main()
     out = capsys.readouterr().out
