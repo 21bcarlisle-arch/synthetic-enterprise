@@ -1309,3 +1309,65 @@ d["exp"].append(sum(v for f, v in t.items() if f.startswith("INT") and v < 0))
 ```
 
 It runs in about 13 s once the caches exist.
+
+## 19. 2026-09-30 — THE SOLAR CORRECTION, built on the definition and measured after
+
+§18's first candidate is built. The choice rests on INDO's published definition, not on the
+correlation it moves. INDO is transmission demand and is already net of embedded generation. GB
+solar is embedded. So AGWS solar comes out of the dispatch residual, which was counting it twice.
+It goes into the rate's DENOMINATOR instead: the intensity is per MWh *consumed*, and GB consumed
+that solar output. NESO's national figure counts embedded solar as zero-carbon supply. Correcting
+only the residual would have fixed the gas level and then divided by the wrong demand, so both
+halves go in together. The parameter is `embedded_generation_mw` / `embedded_generation_by_period`
+in `sim/grid_carbon_intensity.py`, and its default of 0.0 is the old series exactly.
+
+**Prediction, written before the first run.**
+- **Level.** The model's gas rises by about the AGWS solar mean (~1.3 GW) in each full year.
+  §18's solar column should fall to about 0 when that decomposition is re-run on the corrected model.
+- **Correlation with NESO.** Up in every full year 2018–2024, by +0.01 to +0.05, and most in the
+  years with the most solar. My confidence in the SIGN is low: the numerator and the denominator
+  both move at midday, in opposite directions.
+
+**Named gap, not closed here.** The year's normalisation is still INDO-weighted, so every caller's
+`demand_weighted_mean` check still holds on the demand it has. The honest weight is consumption
+(INDO plus embedded). That changes one scalar per year, not the shape's correlation. It is left
+for the pass that changes the feed's anchor contract.
+
+### The result, measured after the build
+
+Shipped shape against NESO's published series, all half hours, `neso.compare_shapes`. Old means
+the pre-fix publishing call (wind+solar in the residual, INDO denominator).
+
+| year | corr old | corr new | MAE old | MAE new | within-day × old | new | between-day × old | new |
+|---|---|---|---|---|---|---|---|---|
+| 2019 | 0.883 | **0.903** | 0.112 | 0.088 | 1.48 | 1.29 | 1.00 | 0.91 |
+| 2020 | 0.869 | **0.884** | 0.133 | 0.115 | 1.46 | 1.32 | 0.95 | 0.93 |
+| 2021 | 0.909 | **0.936** | 0.105 | 0.078 | 1.40 | 1.23 | 0.98 | 0.92 |
+| 2022 | 0.871 | **0.908** | 0.150 | 0.115 | 1.54 | 1.32 | 0.97 | 0.94 |
+| 2023 | 0.795 | **0.800** | 0.204 | 0.193 | 1.47 | 1.28 | 0.98 | 0.95 |
+| 2024 | 0.746 | **0.732** | 0.268 | 0.265 | 1.35 | 1.13 | 0.92 | 0.87 |
+
+Mean model-minus-metered CCGT, MW (the level): 2016 −1214 → +32, 2018 −1147 → +80,
+2019 −1794 → −579, 2021 −1607 → −490, 2022 −2840 → −1728, 2023 −621 → +536, 2024 +493 → +1728.
+
+**The level prediction held.** Gas rose by 1.1–1.3 GW in every year. 2016–18 now sit within
+±80 MW of metered CCGT. The residuals left are §18's other two sources: exports in 2022, and the
+short wind input from 2023, which now shows as an OVERSHOOT.
+
+**The correlation prediction was REFUTED in one year.** Correlation rose in 2019–2023 (+0.005 to
++0.037) and FELL in 2024 (−0.013). "Up in every full year" was wrong, and it stays on record here.
+MAE fell in every year. So did within-day overstatement: its mean went from 1.45x to 1.26x.
+Between-day now reads slightly UNDER the published series (0.87–0.95x). p95/p5 went from 1.38x to
+1.31x, and max/min from 1.01x to 1.08x. A likely reading of 2024, **not tested**: it is the year the
+wind input overshoots most (+1.7 GW of gas), and raising gas at midday adds weight on the axis
+that input already gets wrong. It is the wind question put to the director, and it is not built on.
+
+The feed prose (`NAMED_GAPS`, `ERROR_DIRECTION`) and the module docstring now quote these figures.
+`test_the_WITHIN_DAY_FIGURES_QUOTED_in_ERROR_DIRECTION_are_the_MEASURED_ones` holds them to the
+feed. New controls: `test_EMBEDDED_generation_never_enters_the_residual_and_only_divides`, the
+skip/keep partition beside it, and
+`test_EMBEDDED_SOLAR_is_out_of_the_residual_and_in_the_denominator_of_the_published_feed`. Four
+mutations ran (renewables back to wind+solar, the embedded keyword dropped, solar subtracted in
+the residual, solar out of the denominator) and each one turned a control red.
+
+No level move. The atom's L3 bar (the Expert Hour, s13's 0.97 peer bound) is not reached.

@@ -53,7 +53,13 @@ import json
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
-from sim.generation_demand_history import aggregate_renewable_generation
+# `aggregate_renewable_generation` is re-exported for the EP13 instruments, which reproduce the
+# pre-s19 model (wind+solar in the residual) so their recorded numbers stay reproducible.
+from sim.generation_demand_history import (  # noqa: F401
+    aggregate_renewable_generation,
+    aggregate_solar_generation,
+    aggregate_wind_generation,
+)
 from sim.grid_carbon_intensity import (
     SHAPE_BASIS,
     ShapeUnavailable,
@@ -141,12 +147,14 @@ NAMED_GAPS = [
     "reading (303 MW in 2024, against a 1st percentile of 1,720 MW), deliberately the most "
     "conservative number available, so quiet half hours still run less gas than GB actually ran",
     "the shape still knows how clean a quiet half hour is far better than it knows WHICH half "
-    "hours were the quiet ones: correlation against the published series is 0.75 in 2024 and "
-    "falls year by year (0.88 in 2019). Measuring the fleet GB actually ran, rather than "
-    "assuming a flat one, is the first correction that moved this axis at all -- it improved "
-    "correlation in all six measured years, where the thermal floor moved it by less than 0.004 "
-    "in every one -- but 0.75 is still an instrument that would point a customer at some of the "
-    "wrong half hours",
+    "hours were the quiet ones: correlation against the published series is 0.73 in 2024 "
+    "against 0.90 in 2019. Two corrections have moved this axis: measuring the fleet GB actually "
+    "ran (2026-08-26), and no longer subtracting embedded solar from a demand series already net "
+    "of it (2026-09-30), which raised correlation in 2019-2023 and lowered it in 2024 by 0.01 -- "
+    "but 0.73 is still an instrument that would point a customer at some of the wrong half hours",
+    "the model's gas LEVEL is still wrong in two named ways: exports are invisible to it (INDO "
+    "excludes them, which cost it most in 2022), and the wind it subtracts reads below Elexon's "
+    "metered wind from 2023 by up to 1.4 GW, for a reason not yet established",
     "interconnector imports are counted at NESO's own published per-cable factors, but two of "
     "GB's nine cables postdate that table -- North Sea Link (Norway) and Viking Link (Denmark) -- "
     "so their flow is still dispatched as GB gas and reads dirtier than it was; that is 34% of "
@@ -195,15 +203,17 @@ NAMED_GAPS = [
 #: lets the thermal stack reach exactly zero, in 16.1% of 2024's half hours.
 ERROR_DIRECTION = (
     "The RANGE is overstated, and that is the sentence to carry: this shape's p95/p5 spread runs "
-    "about 1.38x the published series', so any benefit computed from moving load between quiet "
-    "and busy half hours is an UPPER BOUND on the real one. THAT 1.38x IS A BLEND OF TWO AXES "
+    "about 1.31x the published series', so any benefit computed from moving load between quiet "
+    "and busy half hours is an UPPER BOUND on the real one. THAT 1.31x IS A BLEND OF TWO AXES "
     "THAT BEHAVE OPPOSITELY, and the one a household can act on is the worse of them: split "
-    "day-by-day, this shape's BETWEEN-day swing matches the published series to "
-    "within 8% in every year 2019-2024 (0.92-1.00x, mean 0.97), while its WITHIN-day swing is "
-    "too large in every one of those years (1.35-1.54x, mean 1.45). A customer can move the "
+    "day-by-day, this shape's BETWEEN-day swing is within 14% of the published series in "
+    "every year 2019-2024 and slightly UNDER it (0.87-0.95x, mean 0.92), while its WITHIN-day "
+    "swing is too large in every one of those years (1.13-1.32x, mean 1.26). A customer can move the "
     "washing from 6pm to 2am; they cannot move it to a windier Tuesday in March -- so the whole "
     "of this model's exaggeration sits on the only axis a time-shifting recommendation acts on, "
-    "and the annual figure UNDERSTATES the correction such a claim needs by about a tenth. "
+    "and the annual figure UNDERSTATES the correction such a claim needs. "
+    "REMOVING THE SOLAR DOUBLE-COUNT (2026-09-30) cut the within-day overstatement from a mean "
+    "1.45x to 1.26x and p95/p5 from 1.38x to 1.31x, and moved max/min from 1.01x to 1.08x. "
     "MEASURING THE MUST-RUN FLEET (2026-08-26) IMPROVED THAT AXIS AND WORSENED THE HEADLINE, "
     "and both halves are published because reporting only the first is how a correction becomes "
     "a claim: within-day overstatement fell from 1.48x to 1.45x (and from 1.44x to 1.35x in "
@@ -214,8 +224,8 @@ ERROR_DIRECTION = (
     "is no longer true, and was "
     "until the thermal floor was measured on 2026-08-25, is that the clean END is uniformly "
     "optimistic: flooring the stack at the gas fleet's demonstrated annual minimum moved the "
-    "quietest half hours from about 3.2x too clean to a MIXED picture -- still slightly cleaner "
-    "than published in 2019, 2022 and 2023, and now DIRTIER than published in 2020 and 2021. "
+    "quietest half hours from about 3.2x too clean to a MIXED picture -- still cleaner than "
+    "published in 2022, 2023 and 2024, and DIRTIER than published in 2019, 2020 and 2021. "
     "That is MEASURED, year by year, in `versus_published` below and never inferred from the gap "
     "list, which is the same reason the gaps are not all pushing one way: an import's sign "
     "depends on what it displaced -- against the mid-merit gas band a Dutch import is dirtier "
@@ -742,7 +752,10 @@ def fuel_mix() -> tuple[
 
 def generate(out_path: Path | None = None) -> dict:
     demand = aggregate_demand(json.loads(DEMAND_CACHE.read_text(encoding="utf-8")))
-    renewables = aggregate_renewable_generation(json.loads(AGWS_CACHE.read_text(encoding="utf-8")))
+    # WIND IN THE RESIDUAL, SOLAR IN THE DENOMINATOR: INDO is already net of embedded solar,
+    # so subtracting it again hid its gas (EP13 frame doc s18-s19).
+    agws = json.loads(AGWS_CACHE.read_text(encoding="utf-8"))
+    renewables = aggregate_wind_generation(agws)
     (imports, coal_capacity, coverage, thermal_floors, must_run, must_run_coverage,
      biomass_envelope) = fuel_mix()
     shape = build_shape(
@@ -753,6 +766,7 @@ def generate(out_path: Path | None = None) -> dict:
         thermal_floor_by_year={y: r["floor_mw"] for y, r in thermal_floors.items()},
         zero_carbon_must_run_by_period=must_run,
         biomass_envelope_by_year=biomass_envelope if BIOMASS_DISPATCH_WIRED else None,
+        embedded_generation_by_period=aggregate_solar_generation(agws),
     )
     data = build(shape, demand, extra_dates=dates_with_reads(), import_coverage=coverage,
                  coal_capacity_by_year=coal_capacity, thermal_floor_by_year=thermal_floors,

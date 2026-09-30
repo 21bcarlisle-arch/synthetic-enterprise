@@ -114,6 +114,19 @@ def aggregate_wind_generation(wind_solar_records: list[dict]) -> dict[tuple[str,
     return totals
 
 
+
+def aggregate_solar_generation(wind_solar_records: list[dict]) -> dict[tuple[str, int], float]:
+    """AGWS Solar only, per (settlementDate, settlementPeriod). GB solar is embedded, so this is
+    generation INDO is already net of -- a consumption term, never a residual term.
+    """
+    totals: dict[tuple[str, int], float] = {}
+    for record in wind_solar_records:
+        if record["psrType"] != "Solar":
+            continue
+        key = (record["settlementDate"], record["settlementPeriod"])
+        totals[key] = totals.get(key, 0.0) + record["quantity"]
+    return totals
+
 if __name__ == "__main__":
     demand = get_demand_outturn_range("2024-01-01", "2024-01-02")
     print(f"{len(demand)} demand records retrieved")

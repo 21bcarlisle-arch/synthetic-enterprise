@@ -116,18 +116,20 @@ and are kept here, rewritten, because what replaced them is a smaller gap and no
   * NO LOSS CORRECTION IS APPLIED, and none must be added downstream either. The denominator is
     Elexon's transmission-boundary demand outturn, so this is per kWh at that boundary; NESO's
     published series is separately loss-corrected to a consumed basis. Applying a second
-    correction on top is item 2 of the disqualification battery.
+    correction on top is item 2 of the disqualification battery. Since 2026-09-30 the denominator
+    also carries embedded solar, which INDO is net of, so it is transmission demand PLUS the
+    embedded supply GB consumed (EP13 frame doc s19); losses are still not corrected.
 
 WHICH WAY THE ERRORS POINT, and this is the sentence to read if you read only one. THE RANGE IS
-STILL OVERSTATED — p95/p5 runs about 1.38x the published series' — so ANY BENEFIT COMPUTED FROM
+STILL OVERSTATED — p95/p5 runs about 1.31x the published series' — so ANY BENEFIT COMPUTED FROM
 MOVING LOAD BETWEEN QUIET AND BUSY HALF HOURS IS AN UPPER BOUND on the real one. That is the
 error direction that matters here, because it flatters the mission's own thesis, and it must be
 carried on the face of anything published from this rather than left in a module nobody opens.
 
-AND THAT 1.38x IS A BLEND OF TWO AXES THAT POINT OPPOSITE WAYS. Split day by day by
+AND THAT 1.31x IS A BLEND OF TWO AXES THAT POINT OPPOSITE WAYS. Split day by day by
 `neso_carbon_intensity.compare_shapes`, this shape's BETWEEN-day swing matches the published
-series to within 8% in every year 2019-2024 (0.92-1.00x, mean 0.97) and its WITHIN-day swing is
-too wide in every one of them (1.35-1.54x, mean 1.45). The aggregate figure averages a term this
+series to within 14% in every year 2019-2024 (0.87-0.95x, mean 0.92) and its WITHIN-day swing is
+too wide in every one of them (1.13-1.32x, mean 1.26; 1.35-1.54x before the 2026-09-30 solar fix). The aggregate figure averages a term this
 model gets RIGHT with a term it gets WRONG — and the wrong one is the only axis a customer can
 act on, because a household can move the washing from 6pm to 2am and cannot move it to a windier
 Tuesday in March. So the annual correction UNDERSTATES what an intra-day shifting claim needs.
@@ -412,6 +414,7 @@ def emissions_rate_t_per_mwh(
     zero_carbon_must_run_mw: float | None = None,
     biomass_capacity_mw: float | None = None,
     biomass_floor_mw: float | None = None,
+    embedded_generation_mw: float = 0.0,
 ) -> float:
     """Tonnes CO2 per MWh of demand met, in ONE half hour, on the dispatch above.
 
@@ -452,6 +455,11 @@ def emissions_rate_t_per_mwh(
     what the plant was able to do — and where inside that envelope it sits in any half hour is
     decided here, from the residual, with no biomass reading in sight. `None` for either falls
     back to the flat `MUST_RUN_BIOMASS_MW` used before 2026-08-26, exactly.
+
+    `embedded_generation_mw` -- zero-carbon output BELOW the INDO metering point (AGWS solar).
+    INDO is already net of it, so it must never enter the residual: subtracting it there counted
+    it twice and hid ~1.3 GW of gas a year (EP13 frame doc s18). It belongs in the DENOMINATOR
+    only, because the intensity is per MWh CONSUMED and GB consumed it. 0.0 is the old series.
 
     THE DEFAULTS REPRODUCE THE PRE-2026-08-25 SHAPE EXACTLY, and that is a liability rather than
     a convenience: a caller that forgets them gets the known-wrong series silently. The control
@@ -595,7 +603,7 @@ def emissions_rate_t_per_mwh(
         + coal_mw * EF_COAL_TCO2_PER_MWH_E_BY_YEAR[y]
         + peaker_mw * (EF_GAS_TCO2_PER_MWH_TH / OCGT_REFERENCE_EFFICIENCY)
     )
-    return tonnes / demand_mw
+    return tonnes / (demand_mw + max(0.0, float(embedded_generation_mw)))
 
 
 def build_shape(
@@ -607,6 +615,7 @@ def build_shape(
     thermal_floor_by_year: Mapping[int, float] | None = None,
     zero_carbon_must_run_by_period: Mapping[tuple[str, int], float] | None = None,
     biomass_envelope_by_year: Mapping[int, Mapping[str, float]] | None = None,
+    embedded_generation_by_period: Mapping[tuple[str, int], float] | None = None,
 ) -> dict[tuple[str, int], float]:
     """{(settlement date, period): shape}, normalised per CALENDAR YEAR to a demand-weighted
     mean of exactly 1.0.
@@ -632,6 +641,12 @@ def build_shape(
     Periods present in one mapping and not the other are skipped rather than defaulted: a
     missing renewable outturn is not zero renewables, and treating it as zero would invent a
     dirty half hour out of a gap in the feed (R15 fail-open).
+
+    `embedded_generation_by_period`, when given, makes `renewables_by_period` the TRANSMISSION
+    renewables only (wind) and carries embedded solar to the denominator; see
+    `emissions_rate_t_per_mwh`. A half hour it does not cover is skipped, for the reason above.
+    The year's normalisation stays INDO-weighted, so `demand_weighted_mean` still reads 1.0 on
+    the demand every caller holds; a consumption weight is a named gap (frame doc s19).
     """
     rates: dict[tuple[str, int], float] = {}
     demands: dict[tuple[str, int], float] = {}
@@ -668,6 +683,11 @@ def build_shape(
         # it matters more here because `mean_mw` is the number a goal-seeking author would reach
         # for and it would fit the published series better than either honest end (R12/R13).
         envelope = (biomass_envelope_by_year or {}).get(year)
+        embedded_mw = 0.0
+        if embedded_generation_by_period is not None:
+            embedded_mw = embedded_generation_by_period.get(key)
+            if embedded_mw is None:
+                continue
         try:
             rates[key] = emissions_rate_t_per_mwh(
                 float(demand_mw),
@@ -686,6 +706,7 @@ def build_shape(
                 biomass_floor_mw=(
                     None if envelope is None else float(envelope["floor_mw"])
                 ),
+                embedded_generation_mw=float(embedded_mw),
             )
         except (ShapeUnavailable, ValueError, KeyError):
             continue

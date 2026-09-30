@@ -1,11 +1,12 @@
 {
- "published_at": "2026-09-04T16:16:02.249569+00:00",
+ "published_at": "2026-09-30T17:10:01.924409+00:00",
  "basis": "dimensionless; the half hour's emissions rate relative to the calendar year's DEMAND-WEIGHTED mean, which is 1.0 by construction. National, generation-based, outturn, no loss correction. Coal dispatched from its demonstrated annual capacity; interconnector imports counted at NESO's published per-cable factors for the cables it publishes one for (84% of imported MWh over the series, 66% in 2024); the thermal stack held at or above the CCGT+OCGT fleet's demonstrated annual MINIMUM output, so no half hour is dispatched with no gas running at all; and the zero-carbon must-run block taken from Elexon's published half-hourly NUCLEAR+NPSHYD outturn where it exists (99.97% of half hours) rather than assumed flat, with the biomass share of that block still modelled at a constant 2,400 MW -- the fleet's demonstrated annual envelope is now measured and published beside this series as a diagnostic, and is NOT dispatched, because doing so was measured to make the series worse on four axes of five (see `generate_grid_intensity_feed.BIOMASS_DISPATCH_WIRED`).",
  "how_to_use": "Multiply by YOUR OWN published annual grid intensity for the record's calendar year. This series is deliberately dimensionless and there is no absolute grid-intensity figure in it: this repository has exactly one annual series and company/regulatory/carbon_emissions.py owns it.",
- "error_direction": "The RANGE is overstated, and that is the sentence to carry: this shape's p95/p5 spread runs about 1.38x the published series', so any benefit computed from moving load between quiet and busy half hours is an UPPER BOUND on the real one. THAT 1.38x IS A BLEND OF TWO AXES THAT BEHAVE OPPOSITELY, and the one a household can act on is the worse of them: split day-by-day, this shape's BETWEEN-day swing matches the published series to within 8% in every year 2019-2024 (0.92-1.00x, mean 0.97), while its WITHIN-day swing is too large in every one of those years (1.35-1.54x, mean 1.45). A customer can move the washing from 6pm to 2am; they cannot move it to a windier Tuesday in March -- so the whole of this model's exaggeration sits on the only axis a time-shifting recommendation acts on, and the annual figure UNDERSTATES the correction such a claim needs by about a tenth. MEASURING THE MUST-RUN FLEET (2026-08-26) IMPROVED THAT AXIS AND WORSENED THE HEADLINE, and both halves are published because reporting only the first is how a correction becomes a claim: within-day overstatement fell from 1.48x to 1.45x (and from 1.44x to 1.35x in 2024), max/min overstatement fell from 1.04x to 1.01x, correlation and mean absolute error improved in ALL SIX measured years -- while p95/p5 overstatement rose from 1.36x to 1.38x, worse in four years of six. p95/p5 and max/min are two statistics under one word 'spread' and they moved in opposite directions here, so neither is quoted alone. What is no longer true, and was until the thermal floor was measured on 2026-08-25, is that the clean END is uniformly optimistic: flooring the stack at the gas fleet's demonstrated annual minimum moved the quietest half hours from about 3.2x too clean to a MIXED picture -- still slightly cleaner than published in 2019, 2022 and 2023, and now DIRTIER than published in 2020 and 2021. That is MEASURED, year by year, in `versus_published` below and never inferred from the gap list, which is the same reason the gaps are not all pushing one way: an import's sign depends on what it displaced -- against the mid-merit gas band a Dutch import is dirtier than what it replaced, against a peaker it is cleaner -- so only the net is knowable. AND THERE IS A SECOND FACTOR ON THE SAME SIDE THAT IS NOT ABOUT THIS MODEL AT ALL, measured 2026-08-26 and carried in `published_forecast_skill` below. Every figure here is computed with hindsight; a household has to act on a FORECAST. Graded against NESO's own outturn, NESO's own published forecast picks a three-hour window that delivers about 86% of that day's achievable within-day saving on the mean day, about 55% on the worst day in twenty, and on a handful of days a window DIRTIER than simply not shifting. That ceiling cannot be built away by improving this model, so the honest reading of any timing benefit on this feed is this model's overstatement TIMES what a forecast could actually pick.",
+ "error_direction": "The RANGE is overstated, and that is the sentence to carry: this shape's p95/p5 spread runs about 1.31x the published series', so any benefit computed from moving load between quiet and busy half hours is an UPPER BOUND on the real one. THAT 1.31x IS A BLEND OF TWO AXES THAT BEHAVE OPPOSITELY, and the one a household can act on is the worse of them: split day-by-day, this shape's BETWEEN-day swing is within 14% of the published series in every year 2019-2024 and slightly UNDER it (0.87-0.95x, mean 0.92), while its WITHIN-day swing is too large in every one of those years (1.13-1.32x, mean 1.26). A customer can move the washing from 6pm to 2am; they cannot move it to a windier Tuesday in March -- so the whole of this model's exaggeration sits on the only axis a time-shifting recommendation acts on, and the annual figure UNDERSTATES the correction such a claim needs. REMOVING THE SOLAR DOUBLE-COUNT (2026-09-30) cut the within-day overstatement from a mean 1.45x to 1.26x and p95/p5 from 1.38x to 1.31x, and moved max/min from 1.01x to 1.08x. MEASURING THE MUST-RUN FLEET (2026-08-26) IMPROVED THAT AXIS AND WORSENED THE HEADLINE, and both halves are published because reporting only the first is how a correction becomes a claim: within-day overstatement fell from 1.48x to 1.45x (and from 1.44x to 1.35x in 2024), max/min overstatement fell from 1.04x to 1.01x, correlation and mean absolute error improved in ALL SIX measured years -- while p95/p5 overstatement rose from 1.36x to 1.38x, worse in four years of six. p95/p5 and max/min are two statistics under one word 'spread' and they moved in opposite directions here, so neither is quoted alone. What is no longer true, and was until the thermal floor was measured on 2026-08-25, is that the clean END is uniformly optimistic: flooring the stack at the gas fleet's demonstrated annual minimum moved the quietest half hours from about 3.2x too clean to a MIXED picture -- still cleaner than published in 2022, 2023 and 2024, and DIRTIER than published in 2019, 2020 and 2021. That is MEASURED, year by year, in `versus_published` below and never inferred from the gap list, which is the same reason the gaps are not all pushing one way: an import's sign depends on what it displaced -- against the mid-merit gas band a Dutch import is dirtier than what it replaced, against a peaker it is cleaner -- so only the net is knowable. AND THERE IS A SECOND FACTOR ON THE SAME SIDE THAT IS NOT ABOUT THIS MODEL AT ALL, measured 2026-08-26 and carried in `published_forecast_skill` below. Every figure here is computed with hindsight; a household has to act on a FORECAST. Graded against NESO's own outturn, NESO's own published forecast picks a three-hour window that delivers about 86% of that day's achievable within-day saving on the mean day, about 55% on the worst day in twenty, and on a handful of days a window DIRTIER than simply not shifting. That ceiling cannot be built away by improving this model, so the honest reading of any timing benefit on this feed is this model's overstatement TIMES what a forecast could actually pick.",
  "named_gaps": [
   "the thermal stack is floored at the CCGT+OCGT fleet's demonstrated annual MINIMUM output, so no half hour is dispatched with no gas running -- but that floor is the year's single lowest reading (303 MW in 2024, against a 1st percentile of 1,720 MW), deliberately the most conservative number available, so quiet half hours still run less gas than GB actually ran",
-  "the shape still knows how clean a quiet half hour is far better than it knows WHICH half hours were the quiet ones: correlation against the published series is 0.75 in 2024 and falls year by year (0.88 in 2019). Measuring the fleet GB actually ran, rather than assuming a flat one, is the first correction that moved this axis at all -- it improved correlation in all six measured years, where the thermal floor moved it by less than 0.004 in every one -- but 0.75 is still an instrument that would point a customer at some of the wrong half hours",
+  "the shape still knows how clean a quiet half hour is far better than it knows WHICH half hours were the quiet ones: correlation against the published series is 0.73 in 2024 against 0.90 in 2019. Two corrections have moved this axis: measuring the fleet GB actually ran (2026-08-26), and no longer subtracting embedded solar from a demand series already net of it (2026-09-30), which raised correlation in 2019-2023 and lowered it in 2024 by 0.01 -- but 0.73 is still an instrument that would point a customer at some of the wrong half hours",
+  "the model's gas LEVEL is still wrong in two named ways: exports are invisible to it (INDO excludes them, which cost it most in 2022), and the wind it subtracts reads below Elexon's metered wind from 2023 by up to 1.4 GW, for a reason not yet established",
   "interconnector imports are counted at NESO's own published per-cable factors, but two of GB's nine cables postdate that table -- North Sea Link (Norway) and Viking Link (Denmark) -- so their flow is still dispatched as GB gas and reads dirtier than it was; that is 34% of imported MWh in 2024 and it is growing",
   "coal is dispatched from the fleet's demonstrated annual maximum, but its place in merit is fixed above the CCGT band rather than recomputed from the gas/coal spread, so the 2021-22 gas spike understates coal",
   "the must-run block is no longer a constant 8 GW -- nuclear and run-of-river hydro now come from Elexon's published half-hourly outturn (99.97% of half hours; 544 MW to 9,831 MW against the 5,600 MW this model used to assume) -- but the BIOMASS half of that block is still a flat 2,400 MW. Biomass carries 120 gCO2/kWh on NESO's own table, so its metered output is an emissions term and may not cross the wall; it is modelled, it is wrong (2024's outturn averages nearer 2.7 GW and swings 1.0-3.0 GW), and it is the next thing to build",
@@ -191,102 +192,102 @@
   "2016": {
    "half_hours": 14484,
    "demand_weighted_mean": 1.0,
-   "p5": 0.4871,
-   "p50": 0.9738,
-   "p95": 1.3567,
-   "min": 0.2696,
-   "max": 1.8616,
-   "p95_over_p5": 2.79
+   "p5": 0.5421,
+   "p50": 0.976,
+   "p95": 1.3092,
+   "min": 0.2631,
+   "max": 1.789,
+   "p95_over_p5": 2.42
   },
   "2017": {
    "half_hours": 17169,
    "demand_weighted_mean": 1.0,
-   "p5": 0.4543,
-   "p50": 0.9508,
-   "p95": 1.4277,
-   "min": 0.2924,
-   "max": 2.3708,
-   "p95_over_p5": 3.14
+   "p5": 0.4881,
+   "p50": 0.9561,
+   "p95": 1.38,
+   "min": 0.2525,
+   "max": 2.3501,
+   "p95_over_p5": 2.83
   },
   "2018": {
    "half_hours": 17308,
    "demand_weighted_mean": 1.0,
-   "p5": 0.4265,
-   "p50": 0.9765,
-   "p95": 1.4195,
-   "min": 0.2435,
-   "max": 1.9769,
-   "p95_over_p5": 3.33
+   "p5": 0.4762,
+   "p50": 0.9754,
+   "p95": 1.368,
+   "min": 0.2515,
+   "max": 1.8882,
+   "p95_over_p5": 2.87
   },
   "2019": {
    "half_hours": 17231,
    "demand_weighted_mean": 1.0,
-   "p5": 0.3656,
-   "p50": 0.9844,
-   "p95": 1.4368,
-   "min": 0.2113,
-   "max": 2.0108,
-   "p95_over_p5": 3.93
+   "p5": 0.4084,
+   "p50": 0.9876,
+   "p95": 1.3811,
+   "min": 0.1992,
+   "max": 1.9652,
+   "p95_over_p5": 3.38
   },
   "2020": {
    "half_hours": 16576,
    "demand_weighted_mean": 1.0,
-   "p5": 0.4299,
-   "p50": 0.9558,
-   "p95": 1.5541,
-   "min": 0.3259,
-   "max": 1.859,
-   "p95_over_p5": 3.61
+   "p5": 0.4092,
+   "p50": 0.9705,
+   "p95": 1.4987,
+   "min": 0.2678,
+   "max": 1.7765,
+   "p95_over_p5": 3.66
   },
   "2021": {
    "half_hours": 16834,
    "demand_weighted_mean": 1.0,
-   "p5": 0.3565,
-   "p50": 0.9895,
-   "p95": 1.4715,
-   "min": 0.229,
-   "max": 1.7626,
-   "p95_over_p5": 4.13
+   "p5": 0.385,
+   "p50": 1.0009,
+   "p95": 1.4156,
+   "min": 0.2022,
+   "max": 1.6842,
+   "p95_over_p5": 3.68
   },
   "2022": {
    "half_hours": 14967,
    "demand_weighted_mean": 1.0,
-   "p5": 0.3338,
-   "p50": 0.9842,
-   "p95": 1.5517,
-   "min": 0.1966,
-   "max": 1.8608,
-   "p95_over_p5": 4.65
+   "p5": 0.329,
+   "p50": 1.0038,
+   "p95": 1.485,
+   "min": 0.1754,
+   "max": 1.7745,
+   "p95_over_p5": 4.51
   },
   "2023": {
    "half_hours": 17463,
    "demand_weighted_mean": 1.0,
-   "p5": 0.2382,
-   "p50": 0.992,
-   "p95": 1.6252,
-   "min": 0.1409,
-   "max": 1.9807,
-   "p95_over_p5": 6.82
+   "p5": 0.2319,
+   "p50": 1.0198,
+   "p95": 1.5558,
+   "min": 0.1247,
+   "max": 2.0745,
+   "p95_over_p5": 6.71
   },
   "2024": {
    "half_hours": 17523,
    "demand_weighted_mean": 1.0,
-   "p5": 0.1924,
-   "p50": 0.9991,
-   "p95": 1.7074,
-   "min": 0.1013,
-   "max": 2.4851,
-   "p95_over_p5": 8.87
+   "p5": 0.1851,
+   "p50": 1.0071,
+   "p95": 1.6154,
+   "min": 0.0946,
+   "max": 2.3345,
+   "p95_over_p5": 8.73
   },
   "2025": {
    "half_hours": 7570,
    "demand_weighted_mean": 1.0,
-   "p5": 0.2816,
-   "p50": 0.8226,
-   "p95": 1.865,
-   "min": 0.192,
-   "max": 2.4181,
-   "p95_over_p5": 6.62
+   "p5": 0.2502,
+   "p50": 0.9023,
+   "p95": 1.7877,
+   "min": 0.1722,
+   "max": 2.2951,
+   "p95_over_p5": 7.14
   }
  },
  "versus_published": {
@@ -311,10 +312,10 @@
     "published_spread": 1.0,
     "reconstructed_p95_over_p5": 1.0,
     "published_p95_over_p5": 1.0,
-    "mean_error": -0.0,
+    "mean_error": 0.0,
     "mean_abs_error": 0.0,
     "correlation": 0.0,
-    "reconstructed_renormalisation_divisor": 0.39534829,
+    "reconstructed_renormalisation_divisor": 0.37759831,
     "published_renormalisation_divisor": 1.0,
     "counts_toward_headline": false
    },
@@ -322,24 +323,24 @@
     "year": 2019.0,
     "half_hours": 16923.0,
     "days": 359.0,
-    "reconstructed_within_day_sd": 0.2227,
+    "reconstructed_within_day_sd": 0.195,
     "published_within_day_sd": 0.1507,
-    "reconstructed_between_day_sd": 0.2267,
+    "reconstructed_between_day_sd": 0.2071,
     "published_between_day_sd": 0.2277,
-    "within_day_swing_overstated_by": 1.4776,
-    "between_day_swing_overstated_by": 0.9954,
-    "reconstructed_min": 0.2105,
+    "within_day_swing_overstated_by": 1.2936,
+    "between_day_swing_overstated_by": 0.9095,
+    "reconstructed_min": 0.2181,
     "published_min": 0.2169,
-    "reconstructed_max": 2.0034,
+    "reconstructed_max": 1.9582,
     "published_max": 2.0194,
-    "reconstructed_spread": 9.5163,
+    "reconstructed_spread": 8.9801,
     "published_spread": 9.3125,
-    "reconstructed_p95_over_p5": 3.8658,
+    "reconstructed_p95_over_p5": 3.2964,
     "published_p95_over_p5": 2.7838,
-    "mean_error": -0.0077,
-    "mean_abs_error": 0.1122,
-    "correlation": 0.8826,
-    "reconstructed_renormalisation_divisor": 1.00364846,
+    "mean_error": -0.0047,
+    "mean_abs_error": 0.0877,
+    "correlation": 0.9026,
+    "reconstructed_renormalisation_divisor": 1.00358634,
     "published_renormalisation_divisor": 0.99746461,
     "counts_toward_headline": true
    },
@@ -347,24 +348,24 @@
     "year": 2020.0,
     "half_hours": 16492.0,
     "days": 356.0,
-    "reconstructed_within_day_sd": 0.2449,
+    "reconstructed_within_day_sd": 0.2211,
     "published_within_day_sd": 0.168,
-    "reconstructed_between_day_sd": 0.2597,
+    "reconstructed_between_day_sd": 0.2551,
     "published_between_day_sd": 0.2738,
-    "within_day_swing_overstated_by": 1.4574,
-    "between_day_swing_overstated_by": 0.9486,
-    "reconstructed_min": 0.3256,
+    "within_day_swing_overstated_by": 1.3155,
+    "between_day_swing_overstated_by": 0.9317,
+    "reconstructed_min": 0.2675,
     "published_min": 0.2436,
-    "reconstructed_max": 1.8573,
+    "reconstructed_max": 1.7747,
     "published_max": 1.965,
-    "reconstructed_spread": 5.7049,
+    "reconstructed_spread": 6.6341,
     "published_spread": 8.0652,
-    "reconstructed_p95_over_p5": 3.6127,
+    "reconstructed_p95_over_p5": 3.664,
     "published_p95_over_p5": 3.1209,
-    "mean_error": -0.0052,
-    "mean_abs_error": 0.1326,
-    "correlation": 0.8687,
-    "reconstructed_renormalisation_divisor": 1.00089119,
+    "mean_error": -0.0027,
+    "mean_abs_error": 0.1151,
+    "correlation": 0.8841,
+    "reconstructed_renormalisation_divisor": 1.00100448,
     "published_renormalisation_divisor": 1.00438045,
     "counts_toward_headline": true
    },
@@ -372,24 +373,24 @@
     "year": 2021.0,
     "half_hours": 16646.0,
     "days": 355.0,
-    "reconstructed_within_day_sd": 0.2239,
+    "reconstructed_within_day_sd": 0.1961,
     "published_within_day_sd": 0.1595,
-    "reconstructed_between_day_sd": 0.2529,
+    "reconstructed_between_day_sd": 0.2379,
     "published_between_day_sd": 0.2583,
-    "within_day_swing_overstated_by": 1.4034,
-    "between_day_swing_overstated_by": 0.979,
-    "reconstructed_min": 0.2287,
+    "within_day_swing_overstated_by": 1.2295,
+    "between_day_swing_overstated_by": 0.9209,
+    "reconstructed_min": 0.2018,
     "published_min": 0.1949,
-    "reconstructed_max": 1.7602,
+    "reconstructed_max": 1.6812,
     "published_max": 1.7694,
-    "reconstructed_spread": 7.6968,
+    "reconstructed_spread": 8.3293,
     "published_spread": 9.0789,
-    "reconstructed_p95_over_p5": 4.1115,
+    "reconstructed_p95_over_p5": 3.6327,
     "published_p95_over_p5": 3.2588,
-    "mean_error": -0.008,
-    "mean_abs_error": 0.1046,
-    "correlation": 0.9088,
-    "reconstructed_renormalisation_divisor": 1.00139543,
+    "mean_error": -0.0058,
+    "mean_abs_error": 0.0775,
+    "correlation": 0.9362,
+    "reconstructed_renormalisation_divisor": 1.0017781,
     "published_renormalisation_divisor": 1.00310182,
     "counts_toward_headline": true
    },
@@ -397,24 +398,24 @@
     "year": 2022.0,
     "half_hours": 14929.0,
     "days": 343.0,
-    "reconstructed_within_day_sd": 0.2513,
+    "reconstructed_within_day_sd": 0.2157,
     "published_within_day_sd": 0.1634,
-    "reconstructed_between_day_sd": 0.3018,
+    "reconstructed_between_day_sd": 0.2936,
     "published_between_day_sd": 0.3108,
-    "within_day_swing_overstated_by": 1.5378,
-    "between_day_swing_overstated_by": 0.9708,
-    "reconstructed_min": 0.1969,
+    "within_day_swing_overstated_by": 1.3195,
+    "between_day_swing_overstated_by": 0.9446,
+    "reconstructed_min": 0.1756,
     "published_min": 0.2108,
-    "reconstructed_max": 1.8634,
+    "reconstructed_max": 1.7767,
     "published_max": 1.7406,
-    "reconstructed_spread": 9.465,
+    "reconstructed_spread": 10.1179,
     "published_spread": 8.2564,
-    "reconstructed_p95_over_p5": 4.6517,
+    "reconstructed_p95_over_p5": 4.517,
     "published_p95_over_p5": 4.1045,
-    "mean_error": -0.0213,
-    "mean_abs_error": 0.1495,
-    "correlation": 0.8707,
-    "reconstructed_renormalisation_divisor": 0.99856797,
+    "mean_error": -0.0189,
+    "mean_abs_error": 0.1148,
+    "correlation": 0.908,
+    "reconstructed_renormalisation_divisor": 0.99873529,
     "published_renormalisation_divisor": 0.99072712,
     "counts_toward_headline": true
    },
@@ -422,24 +423,24 @@
     "year": 2023.0,
     "half_hours": 17362.0,
     "days": 364.0,
-    "reconstructed_within_day_sd": 0.2784,
+    "reconstructed_within_day_sd": 0.2421,
     "published_within_day_sd": 0.1895,
-    "reconstructed_between_day_sd": 0.3428,
+    "reconstructed_between_day_sd": 0.3308,
     "published_between_day_sd": 0.3488,
-    "within_day_swing_overstated_by": 1.4691,
-    "between_day_swing_overstated_by": 0.9827,
-    "reconstructed_min": 0.1407,
+    "within_day_swing_overstated_by": 1.2775,
+    "between_day_swing_overstated_by": 0.9483,
+    "reconstructed_min": 0.1245,
     "published_min": 0.1647,
-    "reconstructed_max": 1.9781,
+    "reconstructed_max": 2.072,
     "published_max": 1.9579,
-    "reconstructed_spread": 14.0609,
+    "reconstructed_spread": 16.636,
     "published_spread": 11.8846,
-    "reconstructed_p95_over_p5": 6.8237,
+    "reconstructed_p95_over_p5": 6.7014,
     "published_p95_over_p5": 4.3448,
-    "mean_error": -0.0106,
-    "mean_abs_error": 0.2037,
-    "correlation": 0.7952,
-    "reconstructed_renormalisation_divisor": 1.00131033,
+    "mean_error": -0.0067,
+    "mean_abs_error": 0.1927,
+    "correlation": 0.8001,
+    "reconstructed_renormalisation_divisor": 1.00118293,
     "published_renormalisation_divisor": 0.99947368,
     "counts_toward_headline": true
    },
@@ -447,30 +448,30 @@
     "year": 2024.0,
     "half_hours": 17492.0,
     "days": 366.0,
-    "reconstructed_within_day_sd": 0.3072,
+    "reconstructed_within_day_sd": 0.2567,
     "published_within_day_sd": 0.2271,
-    "reconstructed_between_day_sd": 0.3581,
+    "reconstructed_between_day_sd": 0.3367,
     "published_between_day_sd": 0.3889,
-    "within_day_swing_overstated_by": 1.3524,
-    "between_day_swing_overstated_by": 0.9209,
-    "reconstructed_min": 0.1014,
+    "within_day_swing_overstated_by": 1.1304,
+    "between_day_swing_overstated_by": 0.8657,
+    "reconstructed_min": 0.0946,
     "published_min": 0.1053,
-    "reconstructed_max": 2.4859,
+    "reconstructed_max": 2.3354,
     "published_max": 2.2795,
-    "reconstructed_spread": 24.5248,
+    "reconstructed_spread": 24.6814,
     "published_spread": 21.6429,
-    "reconstructed_p95_over_p5": 8.8792,
+    "reconstructed_p95_over_p5": 8.7322,
     "published_p95_over_p5": 5.0638,
-    "mean_error": 0.0136,
-    "mean_abs_error": 0.2675,
-    "correlation": 0.7456,
-    "reconstructed_renormalisation_divisor": 0.99970414,
+    "mean_error": 0.0198,
+    "mean_abs_error": 0.2651,
+    "correlation": 0.7322,
+    "reconstructed_renormalisation_divisor": 0.99962568,
     "published_renormalisation_divisor": 0.99937155,
     "counts_toward_headline": true
    }
   },
-  "spread_overstated_by": 1.01,
-  "p95_spread_overstated_by": 1.38,
+  "spread_overstated_by": 1.08,
+  "p95_spread_overstated_by": 1.31,
   "headline_years": [
    "2019",
    "2020",
@@ -647,6259 +648,6259 @@
  },
  "typical_day": {
   "2016": [
-   0.8653,
-   0.8526,
-   0.8243,
-   0.8409,
-   0.8265,
-   0.8103,
-   0.7962,
-   0.7916,
-   0.7826,
-   0.7827,
-   0.8001,
-   0.8327,
-   0.9061,
-   0.9659,
-   1.0202,
-   1.0484,
-   1.0544,
-   1.0346,
-   1.0323,
-   0.9891,
-   0.9598,
-   0.93,
-   0.911,
-   0.8937,
-   0.8828,
-   0.869,
-   0.8656,
-   0.8574,
-   0.865,
-   0.8793,
-   0.8924,
-   0.9334,
-   0.9736,
-   1.0216,
-   1.0553,
-   1.0892,
-   1.1092,
-   1.1504,
-   1.151,
-   1.1622,
-   1.1689,
-   1.1599,
-   1.1753,
-   1.146,
-   1.1084,
-   1.0528,
-   0.9684,
-   0.9142
+   0.8309,
+   0.8187,
+   0.7915,
+   0.8075,
+   0.7936,
+   0.7781,
+   0.7646,
+   0.7601,
+   0.7516,
+   0.7518,
+   0.7701,
+   0.8032,
+   0.8773,
+   0.9391,
+   0.9966,
+   1.032,
+   1.0463,
+   1.0409,
+   1.0436,
+   1.023,
+   1.0074,
+   0.9914,
+   0.9811,
+   0.9713,
+   0.9646,
+   0.9547,
+   0.9525,
+   0.9437,
+   0.9461,
+   0.9518,
+   0.9588,
+   0.9847,
+   1.0109,
+   1.0434,
+   1.0644,
+   1.0853,
+   1.096,
+   1.1261,
+   1.1213,
+   1.1259,
+   1.1288,
+   1.1168,
+   1.1314,
+   1.1008,
+   1.0648,
+   1.011,
+   0.9299,
+   0.8779
   ],
   "2017": [
-   0.8266,
-   0.8284,
-   0.8046,
-   0.8037,
-   0.7873,
-   0.7775,
-   0.7602,
-   0.7597,
-   0.7521,
-   0.7476,
-   0.7751,
-   0.8082,
-   0.8889,
-   0.9541,
-   1.0148,
-   1.0424,
-   1.0492,
-   1.0211,
-   1.0071,
-   0.9745,
-   0.9451,
-   0.9163,
-   0.8918,
-   0.8768,
-   0.8682,
-   0.8583,
-   0.8527,
-   0.8541,
-   0.8665,
-   0.8869,
-   0.9024,
-   0.9433,
-   0.99,
-   1.0542,
-   1.0936,
-   1.1328,
-   1.1549,
-   1.1747,
-   1.1908,
-   1.183,
-   1.1768,
-   1.1588,
-   1.1384,
-   1.106,
-   1.0625,
-   1.0072,
-   0.932,
-   0.8792
+   0.7941,
+   0.7959,
+   0.773,
+   0.7721,
+   0.7564,
+   0.747,
+   0.7303,
+   0.7298,
+   0.7225,
+   0.7183,
+   0.7449,
+   0.7782,
+   0.8576,
+   0.9255,
+   0.9889,
+   1.0253,
+   1.0378,
+   1.0301,
+   1.0292,
+   1.0163,
+   1.002,
+   0.9867,
+   0.9725,
+   0.9656,
+   0.9595,
+   0.9517,
+   0.9455,
+   0.9414,
+   0.9475,
+   0.9575,
+   0.9644,
+   0.9917,
+   1.0244,
+   1.0725,
+   1.0986,
+   1.1233,
+   1.1365,
+   1.1463,
+   1.1565,
+   1.1431,
+   1.1347,
+   1.1147,
+   1.0956,
+   1.0627,
+   1.0208,
+   0.9676,
+   0.8954,
+   0.8447
   ],
   "2018": [
-   0.8388,
-   0.8455,
-   0.8192,
-   0.8256,
-   0.8073,
-   0.8013,
-   0.7857,
-   0.7892,
-   0.7836,
-   0.7791,
-   0.7929,
-   0.8403,
-   0.9157,
-   0.9849,
-   1.0465,
-   1.0663,
-   1.0672,
-   1.0376,
-   1.012,
-   0.9762,
-   0.9437,
-   0.9092,
-   0.8765,
-   0.8611,
-   0.8452,
-   0.8339,
-   0.8303,
-   0.8345,
-   0.85,
-   0.8641,
-   0.8883,
-   0.9371,
-   0.9831,
-   1.0403,
-   1.0925,
-   1.1294,
-   1.1613,
-   1.1834,
-   1.21,
-   1.196,
-   1.1946,
-   1.1773,
-   1.1532,
-   1.116,
-   1.0739,
-   1.0133,
+   0.8011,
+   0.8076,
+   0.7824,
+   0.7886,
+   0.7711,
+   0.7653,
+   0.7504,
+   0.7537,
+   0.7485,
+   0.7442,
+   0.7577,
+   0.8046,
+   0.8799,
+   0.9509,
+   1.0159,
+   1.0445,
+   1.0523,
+   1.0455,
+   1.0382,
+   1.0225,
+   1.0038,
+   0.991,
+   0.9724,
+   0.9657,
+   0.9544,
+   0.945,
+   0.9406,
    0.9374,
-   0.8902
+   0.9445,
+   0.9494,
+   0.9627,
+   0.9975,
+   1.0265,
+   1.066,
+   1.1002,
+   1.121,
+   1.1397,
+   1.1506,
+   1.1684,
+   1.1495,
+   1.1443,
+   1.1254,
+   1.1031,
+   1.066,
+   1.0257,
+   0.9678,
+   0.8954,
+   0.8503
   ],
   "2019": [
-   0.8431,
-   0.8441,
-   0.8107,
-   0.8223,
-   0.8021,
-   0.8122,
-   0.7732,
-   0.7671,
-   0.7615,
-   0.7676,
-   0.801,
-   0.8473,
-   0.9354,
-   1.0073,
-   1.049,
-   1.0688,
-   1.0627,
-   1.0409,
-   1.0178,
-   0.9811,
-   0.9416,
-   0.9054,
-   0.8785,
-   0.8577,
-   0.8445,
-   0.8302,
-   0.8266,
-   0.8352,
-   0.8503,
-   0.8611,
-   0.8876,
-   0.9415,
-   0.9797,
-   1.0411,
-   1.0823,
-   1.1375,
-   1.1651,
-   1.186,
-   1.1921,
-   1.194,
-   1.1912,
-   1.1689,
-   1.1525,
-   1.1185,
-   1.0731,
-   1.01,
-   0.9312,
-   0.9191
+   0.8038,
+   0.8048,
+   0.7729,
+   0.784,
+   0.7647,
+   0.7743,
+   0.7372,
+   0.7314,
+   0.7261,
+   0.7318,
+   0.7641,
+   0.8097,
+   0.8969,
+   0.9709,
+   1.0185,
+   1.0478,
+   1.0555,
+   1.0512,
+   1.0451,
+   1.0297,
+   1.0106,
+   0.9919,
+   0.9788,
+   0.9638,
+   0.9585,
+   0.9455,
+   0.9402,
+   0.9424,
+   0.9495,
+   0.9509,
+   0.9641,
+   1.0013,
+   1.0206,
+   1.0629,
+   1.0866,
+   1.1255,
+   1.1402,
+   1.1505,
+   1.1484,
+   1.1445,
+   1.1384,
+   1.1152,
+   1.0989,
+   1.0664,
+   1.0231,
+   0.9629,
+   0.8878,
+   0.8762
   ],
   "2020": [
-   0.8393,
-   0.8449,
-   0.8174,
-   0.8316,
-   0.8184,
-   0.8123,
-   0.7964,
-   0.7857,
-   0.7897,
-   0.7871,
-   0.8173,
-   0.8383,
-   0.9109,
-   0.973,
-   1.0079,
-   1.0417,
-   1.0292,
-   1.0233,
-   0.9984,
-   0.9481,
-   0.906,
-   0.8789,
-   0.856,
-   0.8526,
-   0.8497,
-   0.8467,
-   0.8412,
-   0.8505,
-   0.865,
-   0.8681,
-   0.8896,
-   0.9334,
-   0.9688,
-   1.0259,
-   1.0882,
-   1.1363,
-   1.1744,
-   1.1998,
-   1.2227,
-   1.2076,
-   1.2068,
-   1.1814,
-   1.1577,
-   1.1162,
-   1.0735,
-   1.0057,
-   0.9323,
-   0.9043
+   0.802,
+   0.8074,
+   0.7811,
+   0.7947,
+   0.782,
+   0.7762,
+   0.7611,
+   0.7508,
+   0.7546,
+   0.7522,
+   0.7814,
+   0.8029,
+   0.8762,
+   0.9422,
+   0.9855,
+   1.0291,
+   1.0308,
+   1.0412,
+   1.0317,
+   1.0032,
+   0.9776,
+   0.9607,
+   0.9474,
+   0.9443,
+   0.947,
+   0.9411,
+   0.9287,
+   0.9311,
+   0.9377,
+   0.9305,
+   0.952,
+   0.9852,
+   1.0112,
+   1.061,
+   1.1056,
+   1.1372,
+   1.16,
+   1.1725,
+   1.1844,
+   1.1624,
+   1.1568,
+   1.1301,
+   1.1066,
+   1.0667,
+   1.0258,
+   0.9611,
+   0.891,
+   0.8641
   ],
   "2021": [
-   0.8504,
-   0.8676,
-   0.8277,
-   0.8346,
+   0.8125,
    0.8289,
-   0.8171,
-   0.7953,
-   0.787,
-   0.7938,
-   0.7934,
-   0.8237,
-   0.8558,
-   1.0248,
-   0.9905,
-   1.0337,
-   1.0644,
-   1.0659,
-   1.0475,
-   1.0123,
-   0.9845,
-   0.9419,
-   0.9103,
-   0.8784,
-   0.8671,
-   0.8576,
-   0.8506,
-   0.8345,
-   0.8265,
-   0.8366,
-   0.8514,
-   0.8837,
-   0.9282,
-   0.9753,
-   1.0338,
-   1.0898,
-   1.1387,
-   1.1677,
-   1.1827,
-   1.2025,
-   1.1927,
-   1.1876,
-   1.1678,
-   1.1491,
-   1.1026,
-   1.0693,
-   1.0046,
-   0.9478,
-   0.9175
+   0.7909,
+   0.7975,
+   0.792,
+   0.7807,
+   0.7599,
+   0.752,
+   0.7585,
+   0.7581,
+   0.7874,
+   0.8195,
+   0.9837,
+   0.9562,
+   1.0044,
+   1.0433,
+   1.0566,
+   1.0541,
+   1.0374,
+   1.029,
+   1.0048,
+   0.9898,
+   0.9702,
+   0.9674,
+   0.9611,
+   0.9558,
+   0.937,
+   0.9253,
+   0.9288,
+   0.9347,
+   0.9553,
+   0.9879,
+   1.0188,
+   1.0589,
+   1.0969,
+   1.1294,
+   1.1453,
+   1.15,
+   1.161,
+   1.1461,
+   1.1377,
+   1.1166,
+   1.0981,
+   1.0536,
+   1.0217,
+   0.9598,
+   0.9056,
+   0.8766
   ],
   "2022": [
-   0.8686,
-   0.8802,
-   0.8268,
-   0.851,
-   0.8352,
-   0.8191,
-   0.805,
-   0.8041,
-   0.8094,
-   0.8014,
-   0.8312,
-   0.8646,
-   1.1637,
-   0.9945,
-   1.0456,
-   1.0588,
-   1.0604,
-   1.0331,
-   0.9983,
-   0.9556,
-   0.9081,
-   0.8594,
-   0.8281,
-   0.8051,
-   0.8076,
-   0.7955,
-   0.7892,
-   0.7796,
-   0.8079,
-   0.8188,
-   0.8384,
-   0.9018,
-   0.9541,
-   1.0347,
-   1.1024,
-   1.1532,
-   1.1934,
-   1.2082,
-   1.2251,
-   1.2149,
-   1.2143,
-   1.1946,
-   1.1751,
-   1.1228,
-   1.0684,
-   1.0174,
-   0.949,
-   0.9091
+   0.8263,
+   0.8373,
+   0.7866,
+   0.8096,
+   0.7945,
+   0.7792,
+   0.7657,
+   0.765,
+   0.77,
+   0.7624,
+   0.7909,
+   0.8241,
+   1.1118,
+   0.9568,
+   1.0134,
+   1.038,
+   1.0519,
+   1.0436,
+   1.0298,
+   1.0097,
+   0.9831,
+   0.9542,
+   0.9346,
+   0.9206,
+   0.9246,
+   0.9107,
+   0.901,
+   0.8864,
+   0.9032,
+   0.9049,
+   0.9178,
+   0.9635,
+   1.0016,
+   1.0607,
+   1.1089,
+   1.1426,
+   1.1678,
+   1.1718,
+   1.1794,
+   1.1633,
+   1.1586,
+   1.1375,
+   1.1181,
+   1.0681,
+   1.0164,
+   0.9678,
+   0.9028,
+   0.8649
   ],
   "2023": [
-   0.8665,
-   0.903,
-   0.8399,
-   0.8892,
-   0.8535,
-   0.8374,
-   0.8068,
-   0.8168,
-   0.7984,
-   0.8108,
-   0.8369,
-   0.9152,
-   0.9872,
-   0.9922,
-   1.0242,
-   1.0634,
-   1.048,
-   1.0361,
-   0.988,
-   0.9512,
-   0.9043,
-   0.8833,
-   0.8446,
-   0.8211,
-   0.7975,
-   0.7844,
-   0.7939,
-   0.7943,
-   0.7969,
-   0.8233,
-   0.8559,
-   0.8989,
-   0.9523,
-   1.0308,
-   1.0632,
-   1.1135,
-   1.1488,
-   1.174,
-   1.1875,
-   1.19,
-   1.1898,
-   1.1626,
-   1.1467,
-   1.1155,
-   1.0758,
-   1.0585,
-   0.9506,
-   0.9131
+   0.8224,
+   0.8571,
+   0.7973,
+   0.844,
+   0.8101,
+   0.7949,
+   0.7658,
+   0.7753,
+   0.7578,
+   0.7697,
+   0.7948,
+   0.8712,
+   0.9437,
+   0.9547,
+   0.9934,
+   1.0437,
+   1.041,
+   1.049,
+   1.0237,
+   1.006,
+   0.9833,
+   0.9779,
+   0.9524,
+   0.937,
+   0.9185,
+   0.9054,
+   0.9067,
+   0.9111,
+   0.9042,
+   0.9179,
+   0.9424,
+   0.9675,
+   1.0,
+   1.0657,
+   1.0769,
+   1.1077,
+   1.1272,
+   1.139,
+   1.1426,
+   1.1375,
+   1.1328,
+   1.1046,
+   1.0886,
+   1.0589,
+   1.0212,
+   1.0048,
+   0.9023,
+   0.8667
   ],
   "2024": [
-   0.8852,
-   0.895,
-   0.866,
-   0.8513,
-   0.8503,
-   0.8379,
-   0.8204,
-   0.7783,
-   0.8082,
-   0.7846,
-   0.8021,
-   0.9205,
-   0.9355,
-   1.0165,
-   1.0452,
-   1.059,
-   1.0658,
-   1.0292,
-   1.0024,
-   0.9344,
-   0.8738,
-   0.8414,
-   0.8043,
-   0.7715,
-   0.7731,
-   0.7742,
-   0.7588,
-   0.7796,
-   0.7831,
-   0.799,
-   0.8421,
-   0.8644,
-   0.9448,
-   1.0273,
-   1.0831,
-   1.1457,
-   1.1939,
-   1.2291,
-   1.2349,
-   1.2438,
-   1.2523,
-   1.2071,
-   1.1901,
-   1.1523,
-   1.1059,
-   1.0513,
-   0.9765,
-   0.9271
+   0.8315,
+   0.8407,
+   0.8135,
+   0.7997,
+   0.7987,
+   0.7871,
+   0.7707,
+   0.7312,
+   0.7592,
+   0.7371,
+   0.754,
+   0.8678,
+   0.8874,
+   0.9722,
+   1.0107,
+   1.0397,
+   1.0648,
+   1.0545,
+   1.0534,
+   1.0168,
+   0.9835,
+   0.9697,
+   0.9465,
+   0.9173,
+   0.9249,
+   0.918,
+   0.899,
+   0.912,
+   0.9105,
+   0.908,
+   0.938,
+   0.9469,
+   1.0111,
+   1.0676,
+   1.0994,
+   1.1365,
+   1.1648,
+   1.1836,
+   1.178,
+   1.1778,
+   1.1804,
+   1.1351,
+   1.1181,
+   1.0824,
+   1.0389,
+   0.9876,
+   0.9173,
+   0.8709
   ],
   "2025": [
-   0.8109,
-   0.8397,
-   0.8075,
-   0.8144,
-   0.8003,
+   0.7697,
+   0.797,
+   0.7664,
+   0.773,
+   0.7596,
+   0.7453,
+   0.726,
+   0.7192,
+   0.7189,
+   0.7207,
+   0.7526,
    0.7853,
-   0.7649,
-   0.7577,
-   0.7574,
-   0.7593,
-   0.7928,
-   0.8258,
-   0.9154,
-   0.9749,
-   1.0376,
-   1.0324,
-   1.0166,
-   0.9629,
-   0.914,
-   0.851,
-   0.8073,
-   0.7724,
-   0.7467,
-   0.7422,
-   0.7458,
-   0.7498,
-   0.7536,
-   0.7674,
-   0.7768,
-   0.8003,
-   0.8178,
-   0.8625,
-   0.913,
-   0.9922,
-   1.0755,
-   1.1423,
-   1.1951,
-   1.2303,
-   1.2577,
-   1.2583,
-   1.2511,
-   1.2264,
-   1.1882,
-   1.1325,
-   1.0572,
-   0.9772,
-   0.8879,
-   0.8412
+   0.8753,
+   0.9425,
+   1.0164,
+   1.0339,
+   1.0421,
+   1.0198,
+   0.9968,
+   0.953,
+   0.9155,
+   0.8761,
+   0.8468,
+   0.8348,
+   0.8264,
+   0.8203,
+   0.8131,
+   0.8131,
+   0.8162,
+   0.8329,
+   0.852,
+   0.9004,
+   0.9573,
+   1.0268,
+   1.103,
+   1.15,
+   1.1877,
+   1.2066,
+   1.2169,
+   1.2056,
+   1.1913,
+   1.1648,
+   1.1278,
+   1.0749,
+   1.0035,
+   0.9275,
+   0.8427,
+   0.7985
   ]
  },
  "records": [
   {
    "date": "2016-07-24",
    "period": 1,
-   "shape": 0.92343,
+   "shape": 0.88672,
    "published": null
   },
   {
    "date": "2016-07-24",
    "period": 2,
-   "shape": 0.89228,
+   "shape": 0.85681,
    "published": null
   },
   {
    "date": "2016-07-24",
    "period": 3,
-   "shape": 0.87734,
+   "shape": 0.84247,
    "published": null
   },
   {
    "date": "2016-07-24",
    "period": 4,
-   "shape": 0.86723,
+   "shape": 0.83276,
    "published": null
   },
   {
    "date": "2016-07-24",
    "period": 5,
-   "shape": 0.85631,
+   "shape": 0.82228,
    "published": null
   },
   {
    "date": "2016-07-24",
    "period": 6,
-   "shape": 0.83132,
+   "shape": 0.79828,
    "published": null
   },
   {
    "date": "2016-07-24",
    "period": 7,
-   "shape": 0.83483,
+   "shape": 0.80165,
    "published": null
   },
   {
    "date": "2016-07-24",
    "period": 8,
-   "shape": 0.82694,
+   "shape": 0.79407,
    "published": null
   },
   {
    "date": "2016-07-24",
    "period": 9,
-   "shape": 0.86204,
+   "shape": 0.82778,
    "published": null
   },
   {
    "date": "2016-07-24",
    "period": 10,
-   "shape": 0.84646,
+   "shape": 0.81282,
    "published": null
   },
   {
    "date": "2016-07-24",
    "period": 11,
-   "shape": 0.83344,
+   "shape": 0.80032,
    "published": null
   },
   {
    "date": "2016-07-24",
    "period": 12,
-   "shape": 0.82506,
+   "shape": 0.79963,
    "published": null
   },
   {
    "date": "2016-07-24",
    "period": 13,
-   "shape": 0.85272,
+   "shape": 0.82587,
    "published": null
   },
   {
    "date": "2016-07-24",
    "period": 14,
-   "shape": 0.84034,
+   "shape": 0.83153,
    "published": null
   },
   {
    "date": "2016-07-24",
    "period": 15,
-   "shape": 0.87361,
+   "shape": 0.86207,
    "published": null
   },
   {
    "date": "2016-07-24",
    "period": 16,
-   "shape": 0.87366,
+   "shape": 0.88431,
    "published": null
   },
   {
    "date": "2016-07-24",
    "period": 17,
-   "shape": 0.83495,
+   "shape": 0.87426,
    "published": null
   },
   {
    "date": "2016-07-24",
    "period": 18,
-   "shape": 0.82791,
+   "shape": 0.88186,
    "published": null
   },
   {
    "date": "2016-07-24",
    "period": 19,
-   "shape": 0.80029,
+   "shape": 0.87286,
    "published": null
   },
   {
    "date": "2016-07-24",
    "period": 20,
-   "shape": 0.80129,
+   "shape": 0.88451,
    "published": null
   },
   {
    "date": "2016-07-24",
    "period": 21,
-   "shape": 0.79418,
+   "shape": 0.88733,
    "published": null
   },
   {
    "date": "2016-07-24",
    "period": 22,
-   "shape": 0.77367,
+   "shape": 0.87751,
    "published": null
   },
   {
    "date": "2016-07-24",
    "period": 23,
-   "shape": 0.79391,
+   "shape": 0.89174,
    "published": null
   },
   {
    "date": "2016-07-24",
    "period": 24,
-   "shape": 0.79608,
+   "shape": 0.89481,
    "published": null
   },
   {
    "date": "2016-07-24",
    "period": 25,
-   "shape": 0.79923,
+   "shape": 0.89606,
    "published": null
   },
   {
    "date": "2016-07-24",
    "period": 26,
-   "shape": 0.7887,
+   "shape": 0.88766,
    "published": null
   },
   {
    "date": "2016-07-24",
    "period": 27,
-   "shape": 0.7743,
+   "shape": 0.87702,
    "published": null
   },
   {
    "date": "2016-07-24",
    "period": 28,
-   "shape": 0.77207,
+   "shape": 0.87156,
    "published": null
   },
   {
    "date": "2016-07-24",
    "period": 29,
-   "shape": 0.77068,
+   "shape": 0.86684,
    "published": null
   },
   {
    "date": "2016-07-24",
    "period": 30,
-   "shape": 0.77823,
+   "shape": 0.86607,
    "published": null
   },
   {
    "date": "2016-07-24",
    "period": 31,
-   "shape": 0.79338,
+   "shape": 0.86937,
    "published": null
   },
   {
    "date": "2016-07-24",
    "period": 32,
-   "shape": 0.83146,
+   "shape": 0.89262,
    "published": null
   },
   {
    "date": "2016-07-24",
    "period": 33,
-   "shape": 1.02534,
+   "shape": 0.98459,
    "published": null
   },
   {
    "date": "2016-07-24",
    "period": 34,
-   "shape": 1.03375,
+   "shape": 0.99266,
    "published": null
   },
   {
    "date": "2016-07-24",
    "period": 35,
-   "shape": 1.02688,
+   "shape": 0.98607,
    "published": null
   },
   {
    "date": "2016-07-24",
    "period": 36,
-   "shape": 1.01306,
+   "shape": 0.9728,
    "published": null
   },
   {
    "date": "2016-07-24",
    "period": 37,
-   "shape": 0.92958,
+   "shape": 0.93299,
    "published": null
   },
   {
    "date": "2016-07-24",
    "period": 38,
-   "shape": 0.962,
+   "shape": 0.95011,
    "published": null
   },
   {
    "date": "2016-07-24",
    "period": 39,
-   "shape": 0.95243,
+   "shape": 0.93448,
    "published": null
   },
   {
    "date": "2016-07-24",
    "period": 40,
-   "shape": 0.97242,
+   "shape": 0.94636,
    "published": null
   },
   {
    "date": "2016-07-24",
    "period": 41,
-   "shape": 1.00264,
+   "shape": 0.96279,
    "published": null
   },
   {
    "date": "2016-07-24",
    "period": 42,
-   "shape": 0.99587,
+   "shape": 0.95629,
    "published": null
   },
   {
    "date": "2016-07-24",
    "period": 43,
-   "shape": 1.00045,
+   "shape": 0.96069,
    "published": null
   },
   {
    "date": "2016-07-24",
    "period": 44,
-   "shape": 1.00177,
+   "shape": 0.96195,
    "published": null
   },
   {
    "date": "2016-07-24",
    "period": 45,
-   "shape": 0.99661,
+   "shape": 0.957,
    "published": null
   },
   {
    "date": "2016-07-24",
    "period": 46,
-   "shape": 0.92459,
+   "shape": 0.88784,
    "published": null
   },
   {
    "date": "2016-07-24",
    "period": 47,
-   "shape": 0.86912,
+   "shape": 0.83458,
    "published": null
   },
   {
    "date": "2016-07-24",
    "period": 48,
-   "shape": 0.81771,
+   "shape": 0.78521,
    "published": null
   },
   {
    "date": "2021-02-11",
    "period": 1,
-   "shape": 1.19619,
+   "shape": 1.14293,
    "published": 1.21928
   },
   {
    "date": "2021-02-11",
    "period": 2,
-   "shape": 1.21893,
+   "shape": 1.16465,
    "published": 1.1987
   },
   {
    "date": "2021-02-11",
    "period": 3,
-   "shape": 1.19869,
+   "shape": 1.14538,
    "published": 1.18327
   },
   {
    "date": "2021-02-11",
    "period": 4,
-   "shape": 1.18677,
+   "shape": 1.13399,
    "published": 1.18841
   },
   {
    "date": "2021-02-11",
    "period": 5,
-   "shape": 1.19802,
+   "shape": 1.14467,
    "published": 1.18841
   },
   {
    "date": "2021-02-11",
    "period": 6,
-   "shape": 1.19695,
+   "shape": 1.14372,
    "published": 1.18841
   },
   {
    "date": "2021-02-11",
    "period": 7,
-   "shape": 1.24717,
+   "shape": 1.19167,
    "published": 1.18327
   },
   {
    "date": "2021-02-11",
    "period": 8,
-   "shape": 1.23651,
+   "shape": 1.18144,
    "published": 1.22442
   },
   {
    "date": "2021-02-11",
    "period": 9,
-   "shape": 1.2719,
+   "shape": 1.21533,
    "published": 1.29645
   },
   {
    "date": "2021-02-11",
    "period": 10,
-   "shape": 1.28829,
+   "shape": 1.23093,
    "published": 1.35304
   },
   {
    "date": "2021-02-11",
    "period": 11,
-   "shape": 1.37464,
+   "shape": 1.31342,
    "published": 1.38905
   },
   {
    "date": "2021-02-11",
    "period": 12,
-   "shape": 1.40155,
+   "shape": 1.33914,
    "published": 1.46108
   },
   {
    "date": "2021-02-11",
    "period": 13,
-   "shape": 1.47895,
+   "shape": 1.41309,
    "published": 1.50223
   },
   {
    "date": "2021-02-11",
    "period": 14,
-   "shape": 1.52384,
+   "shape": 1.45598,
    "published": 1.46622
   },
   {
    "date": "2021-02-11",
    "period": 15,
-   "shape": 1.51103,
+   "shape": 1.44375,
    "published": 1.48165
   },
   {
    "date": "2021-02-11",
    "period": 16,
-   "shape": 1.52967,
+   "shape": 1.46249,
    "published": 1.43535
   },
   {
    "date": "2021-02-11",
    "period": 17,
-   "shape": 1.5089,
+   "shape": 1.4505,
    "published": 1.41477
   },
   {
    "date": "2021-02-11",
    "period": 18,
-   "shape": 1.49102,
+   "shape": 1.44562,
    "published": 1.43021
   },
   {
    "date": "2021-02-11",
    "period": 19,
-   "shape": 1.45367,
+   "shape": 1.4257,
    "published": 1.41477
   },
   {
    "date": "2021-02-11",
    "period": 20,
-   "shape": 1.42021,
+   "shape": 1.40566,
    "published": 1.38905
   },
   {
    "date": "2021-02-11",
    "period": 21,
-   "shape": 1.366,
+   "shape": 1.3648,
    "published": 1.37362
   },
   {
    "date": "2021-02-11",
    "period": 22,
-   "shape": 1.3545,
+   "shape": 1.35761,
    "published": 1.35818
   },
   {
    "date": "2021-02-11",
    "period": 23,
-   "shape": 1.36421,
+   "shape": 1.36726,
    "published": 1.35304
   },
   {
    "date": "2021-02-11",
    "period": 24,
-   "shape": 1.34698,
+   "shape": 1.35706,
    "published": 1.31188
   },
   {
    "date": "2021-02-11",
    "period": 25,
-   "shape": 1.30218,
+   "shape": 1.32031,
    "published": 1.31703
   },
   {
    "date": "2021-02-11",
    "period": 26,
-   "shape": 1.29697,
+   "shape": 1.31684,
    "published": 1.33761
   },
   {
    "date": "2021-02-11",
    "period": 27,
-   "shape": 1.32591,
+   "shape": 1.3437,
    "published": 1.33761
   },
   {
    "date": "2021-02-11",
    "period": 28,
-   "shape": 1.32081,
+   "shape": 1.33446,
    "published": 1.36847
   },
   {
    "date": "2021-02-11",
    "period": 29,
-   "shape": 1.34939,
+   "shape": 1.35489,
    "published": 1.38391
   },
   {
    "date": "2021-02-11",
    "period": 30,
-   "shape": 1.36756,
+   "shape": 1.36356,
    "published": 1.39934
   },
   {
    "date": "2021-02-11",
    "period": 31,
-   "shape": 1.39802,
+   "shape": 1.37821,
    "published": 1.4405
   },
   {
    "date": "2021-02-11",
    "period": 32,
-   "shape": 1.44285,
+   "shape": 1.40518,
    "published": 1.4405
   },
   {
    "date": "2021-02-11",
    "period": 33,
-   "shape": 1.46942,
+   "shape": 1.41651,
    "published": 1.41477
   },
   {
    "date": "2021-02-11",
    "period": 34,
-   "shape": 1.50348,
+   "shape": 1.43922,
    "published": 1.37876
   },
   {
    "date": "2021-02-11",
    "period": 35,
-   "shape": 1.49496,
+   "shape": 1.42843,
    "published": 1.37362
   },
   {
    "date": "2021-02-11",
    "period": 36,
-   "shape": 1.49637,
+   "shape": 1.42976,
    "published": 1.35818
   },
   {
    "date": "2021-02-11",
    "period": 37,
-   "shape": 1.47277,
+   "shape": 1.40721,
    "published": 1.35304
   },
   {
    "date": "2021-02-11",
    "period": 38,
-   "shape": 1.46282,
+   "shape": 1.39775,
    "published": 1.38905
   },
   {
    "date": "2021-02-11",
    "period": 39,
-   "shape": 1.4435,
+   "shape": 1.37922,
    "published": 1.34789
   },
   {
    "date": "2021-02-11",
    "period": 40,
-   "shape": 1.39902,
+   "shape": 1.33672,
    "published": 1.27072
   },
   {
    "date": "2021-02-11",
    "period": 41,
-   "shape": 1.33022,
+   "shape": 1.27099,
    "published": 1.1987
   },
   {
    "date": "2021-02-11",
    "period": 42,
-   "shape": 1.28077,
+   "shape": 1.22374,
    "published": 1.09581
   },
   {
    "date": "2021-02-11",
    "period": 43,
-   "shape": 1.21424,
+   "shape": 1.16017,
    "published": 1.01864
   },
   {
    "date": "2021-02-11",
    "period": 44,
-   "shape": 1.13856,
+   "shape": 1.08786,
    "published": 0.9569
   },
   {
    "date": "2021-02-11",
    "period": 45,
-   "shape": 1.07131,
+   "shape": 1.0236,
    "published": 0.88488
   },
   {
    "date": "2021-02-11",
    "period": 46,
-   "shape": 0.9884,
+   "shape": 0.94438,
    "published": 0.80256
   },
   {
    "date": "2021-02-11",
    "period": 47,
-   "shape": 0.90045,
+   "shape": 0.86039,
    "published": 0.72539
   },
   {
    "date": "2021-02-11",
    "period": 48,
-   "shape": 0.8572,
+   "shape": 0.81903,
    "published": 0.70482
   },
   {
    "date": "2021-06-07",
    "period": 1,
-   "shape": 1.08878,
+   "shape": 1.0403,
    "published": 1.01864
   },
   {
    "date": "2021-06-07",
    "period": 2,
-   "shape": 1.04545,
+   "shape": 0.99889,
    "published": 1.0032
   },
   {
    "date": "2021-06-07",
    "period": 3,
-   "shape": 1.02278,
+   "shape": 0.97724,
    "published": 0.99291
   },
   {
    "date": "2021-06-07",
    "period": 4,
-   "shape": 1.01907,
+   "shape": 0.97369,
    "published": 0.99291
   },
   {
    "date": "2021-06-07",
    "period": 5,
-   "shape": 0.98878,
+   "shape": 0.94475,
    "published": 0.98263
   },
   {
    "date": "2021-06-07",
    "period": 6,
-   "shape": 0.9667,
+   "shape": 0.92365,
    "published": 0.98263
   },
   {
    "date": "2021-06-07",
    "period": 7,
-   "shape": 0.95803,
+   "shape": 0.91537,
    "published": 0.96719
   },
   {
    "date": "2021-06-07",
    "period": 8,
-   "shape": 0.93719,
+   "shape": 0.89551,
    "published": 0.96719
   },
   {
    "date": "2021-06-07",
    "period": 9,
-   "shape": 0.92334,
+   "shape": 0.88223,
    "published": 0.96719
   },
   {
    "date": "2021-06-07",
    "period": 10,
-   "shape": 0.91105,
+   "shape": 0.87061,
    "published": 0.96205
   },
   {
    "date": "2021-06-07",
    "period": 11,
-   "shape": 1.02175,
+   "shape": 0.97892,
    "published": 1.01864
   },
   {
    "date": "2021-06-07",
    "period": 12,
-   "shape": 1.05877,
+   "shape": 1.0237,
    "published": 1.03922
   },
   {
    "date": "2021-06-07",
    "period": 13,
-   "shape": 1.16763,
+   "shape": 1.13873,
    "published": 1.09581
   },
   {
    "date": "2021-06-07",
    "period": 14,
-   "shape": 1.15555,
+   "shape": 1.14051,
    "published": 1.12668
   },
   {
    "date": "2021-06-07",
    "period": 15,
-   "shape": 1.15503,
+   "shape": 1.15329,
    "published": 1.10095
   },
   {
    "date": "2021-06-07",
    "period": 16,
-   "shape": 1.16507,
+   "shape": 1.17729,
    "published": 1.1061
   },
   {
    "date": "2021-06-07",
    "period": 17,
-   "shape": 1.10854,
+   "shape": 1.14207,
    "published": 1.08552
   },
   {
    "date": "2021-06-07",
    "period": 18,
-   "shape": 1.07195,
+   "shape": 1.12657,
    "published": 1.07523
   },
   {
    "date": "2021-06-07",
    "period": 19,
-   "shape": 1.02535,
+   "shape": 1.10474,
    "published": 1.07008
   },
   {
    "date": "2021-06-07",
    "period": 20,
-   "shape": 0.9851,
+   "shape": 1.08569,
    "published": 1.04951
   },
   {
    "date": "2021-06-07",
    "period": 21,
-   "shape": 0.91675,
+   "shape": 1.04692,
    "published": 1.01864
   },
   {
    "date": "2021-06-07",
    "period": 22,
-   "shape": 0.8644,
+   "shape": 1.02003,
    "published": 0.99806
   },
   {
    "date": "2021-06-07",
    "period": 23,
-   "shape": 0.80866,
+   "shape": 0.99101,
    "published": 0.96205
   },
   {
    "date": "2021-06-07",
    "period": 24,
-   "shape": 0.75865,
+   "shape": 0.96876,
    "published": 0.94661
   },
   {
    "date": "2021-06-07",
    "period": 25,
-   "shape": 0.70128,
+   "shape": 0.93926,
    "published": 0.9106
   },
   {
    "date": "2021-06-07",
    "period": 26,
-   "shape": 0.65958,
+   "shape": 0.91615,
    "published": 0.89517
   },
   {
    "date": "2021-06-07",
    "period": 27,
-   "shape": 0.64966,
+   "shape": 0.91509,
    "published": 0.87973
   },
   {
    "date": "2021-06-07",
    "period": 28,
-   "shape": 0.66454,
+   "shape": 0.92311,
    "published": 0.88488
   },
   {
    "date": "2021-06-07",
    "period": 29,
-   "shape": 0.64623,
+   "shape": 0.90964,
    "published": 0.87459
   },
   {
    "date": "2021-06-07",
    "period": 30,
-   "shape": 0.7849,
+   "shape": 1.0135,
    "published": 0.85915
   },
   {
    "date": "2021-06-07",
    "period": 31,
-   "shape": 0.62205,
+   "shape": 0.86256,
    "published": 0.82829
   },
   {
    "date": "2021-06-07",
    "period": 32,
-   "shape": 0.6825,
+   "shape": 0.88785,
    "published": 0.83858
   },
   {
    "date": "2021-06-07",
    "period": 33,
-   "shape": 0.76204,
+   "shape": 0.93346,
    "published": 0.89002
   },
   {
    "date": "2021-06-07",
    "period": 34,
-   "shape": 0.83417,
+   "shape": 0.97236,
    "published": 0.91575
   },
   {
    "date": "2021-06-07",
    "period": 35,
-   "shape": 0.85986,
+   "shape": 0.96974,
    "published": 0.92089
   },
   {
    "date": "2021-06-07",
    "period": 36,
-   "shape": 0.91818,
+   "shape": 0.99832,
    "published": 0.93118
   },
   {
    "date": "2021-06-07",
    "period": 37,
-   "shape": 0.9726,
+   "shape": 1.02272,
    "published": 0.94661
   },
   {
    "date": "2021-06-07",
    "period": 38,
-   "shape": 1.00058,
+   "shape": 1.02651,
    "published": 0.94661
   },
   {
    "date": "2021-06-07",
    "period": 39,
-   "shape": 1.03181,
+   "shape": 1.03877,
    "published": 0.94661
   },
   {
    "date": "2021-06-07",
    "period": 40,
-   "shape": 1.07398,
+   "shape": 1.06079,
    "published": 0.97234
   },
   {
    "date": "2021-06-07",
    "period": 41,
-   "shape": 1.14473,
+   "shape": 1.11295,
    "published": 0.99806
   },
   {
    "date": "2021-06-07",
    "period": 42,
-   "shape": 1.16363,
+   "shape": 1.11947,
    "published": 1.02378
   },
   {
    "date": "2021-06-07",
    "period": 43,
-   "shape": 1.16507,
+   "shape": 1.1142,
    "published": 1.01349
   },
   {
    "date": "2021-06-07",
    "period": 44,
-   "shape": 1.13158,
+   "shape": 1.08123,
    "published": 0.98263
   },
   {
    "date": "2021-06-07",
    "period": 45,
-   "shape": 1.14654,
+   "shape": 1.09556,
    "published": 0.96719
   },
   {
    "date": "2021-06-07",
    "period": 46,
-   "shape": 1.05626,
+   "shape": 1.00922,
    "published": 0.90031
   },
   {
    "date": "2021-06-07",
    "period": 47,
-   "shape": 0.96894,
+   "shape": 0.92584,
    "published": 0.80256
   },
   {
    "date": "2021-06-07",
    "period": 48,
-   "shape": 0.86253,
+   "shape": 0.82418,
    "published": 0.74597
   },
   {
    "date": "2022-12-15",
    "period": 1,
-   "shape": 1.04062,
+   "shape": 0.98991,
    "published": 1.21572
   },
   {
    "date": "2022-12-15",
    "period": 2,
-   "shape": 1.07736,
+   "shape": 1.02486,
    "published": 1.22643
   },
   {
    "date": "2022-12-15",
    "period": 3,
-   "shape": 1.08075,
+   "shape": 1.02809,
    "published": 1.19965
   },
   {
    "date": "2022-12-15",
    "period": 4,
-   "shape": 1.03515,
+   "shape": 0.98471,
    "published": 1.17288
   },
   {
    "date": "2022-12-15",
    "period": 5,
-   "shape": 1.02837,
+   "shape": 0.97826,
    "published": 1.17288
   },
   {
    "date": "2022-12-15",
    "period": 6,
-   "shape": 1.03118,
+   "shape": 0.98093,
    "published": 1.18894
   },
   {
    "date": "2022-12-15",
    "period": 7,
-   "shape": 1.02586,
+   "shape": 0.97587,
    "published": 1.19965
   },
   {
    "date": "2022-12-15",
    "period": 8,
-   "shape": 1.03103,
+   "shape": 0.98079,
    "published": 1.23179
   },
   {
    "date": "2022-12-15",
    "period": 9,
-   "shape": 1.04759,
+   "shape": 0.99654,
    "published": 1.27463
   },
   {
    "date": "2022-12-15",
    "period": 10,
-   "shape": 1.05405,
+   "shape": 1.00268,
    "published": 1.28534
   },
   {
    "date": "2022-12-15",
    "period": 11,
-   "shape": 1.08815,
+   "shape": 1.03512,
    "published": 1.31212
   },
   {
    "date": "2022-12-15",
    "period": 12,
-   "shape": 1.14441,
+   "shape": 1.08864,
    "published": 1.33354
   },
   {
    "date": "2022-12-15",
    "period": 13,
-   "shape": 1.66986,
+   "shape": 1.58848,
    "published": 1.36568
   },
   {
    "date": "2022-12-15",
    "period": 14,
-   "shape": 1.35238,
+   "shape": 1.28648,
    "published": 1.40317
   },
   {
    "date": "2022-12-15",
    "period": 15,
-   "shape": 1.45048,
+   "shape": 1.3798,
    "published": 1.42459
   },
   {
    "date": "2022-12-15",
    "period": 16,
-   "shape": 1.51259,
+   "shape": 1.43888,
    "published": 1.40317
   },
   {
    "date": "2022-12-15",
    "period": 17,
-   "shape": 1.57599,
+   "shape": 1.49925,
    "published": 1.42459
   },
   {
    "date": "2022-12-15",
    "period": 18,
-   "shape": 1.547,
+   "shape": 1.48548,
    "published": 1.41388
   },
   {
    "date": "2022-12-15",
    "period": 19,
-   "shape": 1.48009,
+   "shape": 1.43974,
    "published": 1.37103
   },
   {
    "date": "2022-12-15",
    "period": 20,
-   "shape": 1.47305,
+   "shape": 1.43927,
    "published": 1.34961
   },
   {
    "date": "2022-12-15",
    "period": 21,
-   "shape": 1.40717,
+   "shape": 1.40551,
    "published": 1.31212
   },
   {
    "date": "2022-12-15",
    "period": 22,
-   "shape": 1.54805,
+   "shape": 1.54048,
    "published": 1.04434
   },
   {
    "date": "2022-12-15",
    "period": 23,
-   "shape": 1.3519,
+   "shape": 1.37429,
    "published": 1.27463
   },
   {
    "date": "2022-12-15",
    "period": 24,
-   "shape": 1.3188,
+   "shape": 1.35072,
    "published": 1.26392
   },
   {
    "date": "2022-12-15",
    "period": 25,
-   "shape": 1.30412,
+   "shape": 1.33869,
    "published": 1.25857
   },
   {
    "date": "2022-12-15",
    "period": 26,
-   "shape": 1.28911,
+   "shape": 1.32352,
    "published": 1.25321
   },
   {
    "date": "2022-12-15",
    "period": 27,
-   "shape": 1.30315,
+   "shape": 1.32848,
    "published": 1.24785
   },
   {
    "date": "2022-12-15",
    "period": 28,
-   "shape": 1.31514,
+   "shape": 1.32686,
    "published": 1.25321
   },
   {
    "date": "2022-12-15",
    "period": 29,
-   "shape": 1.38009,
+   "shape": 1.36718,
    "published": 1.27999
   },
   {
    "date": "2022-12-15",
    "period": 30,
-   "shape": 1.44018,
+   "shape": 1.40027,
    "published": 1.30141
   },
   {
    "date": "2022-12-15",
    "period": 31,
-   "shape": 1.53373,
+   "shape": 1.46823,
    "published": 1.35497
   },
   {
    "date": "2022-12-15",
    "period": 32,
-   "shape": 1.56454,
+   "shape": 1.48899,
    "published": 1.3389
   },
   {
    "date": "2022-12-15",
    "period": 33,
-   "shape": 1.57442,
+   "shape": 1.50209,
    "published": 1.31748
   },
   {
    "date": "2022-12-15",
    "period": 34,
-   "shape": 1.61084,
+   "shape": 1.53234,
    "published": 1.32819
   },
   {
    "date": "2022-12-15",
    "period": 35,
-   "shape": 1.60625,
+   "shape": 1.52798,
    "published": 1.32819
   },
   {
    "date": "2022-12-15",
    "period": 36,
-   "shape": 1.60862,
+   "shape": 1.53023,
    "published": 1.32819
   },
   {
    "date": "2022-12-15",
    "period": 37,
-   "shape": 1.57957,
+   "shape": 1.5026,
    "published": 1.32283
   },
   {
    "date": "2022-12-15",
    "period": 38,
-   "shape": 1.57261,
+   "shape": 1.49598,
    "published": 1.33354
   },
   {
    "date": "2022-12-15",
    "period": 39,
-   "shape": 1.55079,
+   "shape": 1.47522,
    "published": 1.34425
   },
   {
    "date": "2022-12-15",
    "period": 40,
-   "shape": 1.55363,
+   "shape": 1.47792,
    "published": 1.34961
   },
   {
    "date": "2022-12-15",
    "period": 41,
-   "shape": 1.53515,
+   "shape": 1.46034,
    "published": 1.36032
   },
   {
    "date": "2022-12-15",
    "period": 42,
-   "shape": 1.52115,
+   "shape": 1.44702,
    "published": 1.36032
   },
   {
    "date": "2022-12-15",
    "period": 43,
-   "shape": 1.5609,
+   "shape": 1.48484,
    "published": 1.40317
   },
   {
    "date": "2022-12-15",
    "period": 44,
-   "shape": 1.51649,
+   "shape": 1.44259,
    "published": 1.3871
   },
   {
    "date": "2022-12-15",
    "period": 45,
-   "shape": 1.49435,
+   "shape": 1.42153,
    "published": 1.42994
   },
   {
    "date": "2022-12-15",
    "period": 46,
-   "shape": 1.45681,
+   "shape": 1.38582,
    "published": 1.41923
   },
   {
    "date": "2022-12-15",
    "period": 47,
-   "shape": 1.41358,
+   "shape": 1.3447,
    "published": 1.44601
   },
   {
    "date": "2022-12-15",
    "period": 48,
-   "shape": 1.4102,
+   "shape": 1.34148,
    "published": 1.44066
   },
   {
    "date": "2025-01-10",
    "period": 1,
-   "shape": 1.07392,
+   "shape": 1.01933,
    "published": null
   },
   {
    "date": "2025-01-10",
    "period": 2,
-   "shape": 1.1595,
+   "shape": 1.10055,
    "published": null
   },
   {
    "date": "2025-01-10",
    "period": 3,
-   "shape": 1.19462,
+   "shape": 1.13388,
    "published": null
   },
   {
    "date": "2025-01-10",
    "period": 4,
-   "shape": 1.19097,
+   "shape": 1.13042,
    "published": null
   },
   {
    "date": "2025-01-10",
    "period": 5,
-   "shape": 1.1674,
+   "shape": 1.10805,
    "published": null
   },
   {
    "date": "2025-01-10",
    "period": 6,
-   "shape": 1.17677,
+   "shape": 1.11694,
    "published": null
   },
   {
    "date": "2025-01-10",
    "period": 7,
-   "shape": 1.17408,
+   "shape": 1.11439,
    "published": null
   },
   {
    "date": "2025-01-10",
    "period": 8,
-   "shape": 1.18476,
+   "shape": 1.12453,
    "published": null
   },
   {
    "date": "2025-01-10",
    "period": 9,
-   "shape": 1.25883,
+   "shape": 1.19483,
    "published": null
   },
   {
    "date": "2025-01-10",
    "period": 10,
-   "shape": 1.26959,
+   "shape": 1.20505,
    "published": null
   },
   {
    "date": "2025-01-10",
    "period": 11,
-   "shape": 1.60486,
+   "shape": 1.52327,
    "published": null
   },
   {
    "date": "2025-01-10",
    "period": 12,
-   "shape": 1.68215,
+   "shape": 1.59663,
    "published": null
   },
   {
    "date": "2025-01-10",
    "period": 13,
-   "shape": 1.8421,
+   "shape": 1.74844,
    "published": null
   },
   {
    "date": "2025-01-10",
    "period": 14,
-   "shape": 1.92161,
+   "shape": 1.82391,
    "published": null
   },
   {
    "date": "2025-01-10",
    "period": 15,
-   "shape": 1.85961,
+   "shape": 1.76507,
    "published": null
   },
   {
    "date": "2025-01-10",
    "period": 16,
-   "shape": 1.94672,
+   "shape": 1.84775,
    "published": null
   },
   {
    "date": "2025-01-10",
    "period": 17,
-   "shape": 1.99701,
+   "shape": 1.8956,
    "published": null
   },
   {
    "date": "2025-01-10",
    "period": 18,
-   "shape": 2.02321,
+   "shape": 1.92712,
    "published": null
   },
   {
    "date": "2025-01-10",
    "period": 19,
-   "shape": 1.99427,
+   "shape": 1.91424,
    "published": null
   },
   {
    "date": "2025-01-10",
    "period": 20,
-   "shape": 1.95907,
+   "shape": 1.89625,
    "published": null
   },
   {
    "date": "2025-01-10",
    "period": 21,
-   "shape": 1.91962,
+   "shape": 1.88042,
    "published": null
   },
   {
    "date": "2025-01-10",
    "period": 22,
-   "shape": 1.85226,
+   "shape": 1.83521,
    "published": null
   },
   {
    "date": "2025-01-10",
    "period": 23,
-   "shape": 1.81947,
+   "shape": 1.82152,
    "published": null
   },
   {
    "date": "2025-01-10",
    "period": 24,
-   "shape": 1.81898,
+   "shape": 1.83147,
    "published": null
   },
   {
    "date": "2025-01-10",
    "period": 25,
-   "shape": 1.80965,
+   "shape": 1.82681,
    "published": null
   },
   {
    "date": "2025-01-10",
    "period": 26,
-   "shape": 1.82515,
+   "shape": 1.83899,
    "published": null
   },
   {
    "date": "2025-01-10",
    "period": 27,
-   "shape": 1.82958,
+   "shape": 1.83444,
    "published": null
   },
   {
    "date": "2025-01-10",
    "period": 28,
-   "shape": 1.8235,
+   "shape": 1.8178,
    "published": null
   },
   {
    "date": "2025-01-10",
    "period": 29,
-   "shape": 1.83969,
+   "shape": 1.81963,
    "published": null
   },
   {
    "date": "2025-01-10",
    "period": 30,
+   "shape": 1.85093,
+   "published": null
+  },
+  {
+   "date": "2025-01-10",
+   "period": 31,
    "shape": 1.89523,
    "published": null
   },
   {
    "date": "2025-01-10",
-   "period": 31,
-   "shape": 1.96743,
-   "published": null
-  },
-  {
-   "date": "2025-01-10",
    "period": 32,
-   "shape": 2.05452,
+   "shape": 1.95684,
    "published": null
   },
   {
    "date": "2025-01-10",
    "period": 33,
-   "shape": 2.1048,
+   "shape": 1.99803,
    "published": null
   },
   {
    "date": "2025-01-10",
    "period": 34,
-   "shape": 2.13576,
+   "shape": 2.02717,
    "published": null
   },
   {
    "date": "2025-01-10",
    "period": 35,
-   "shape": 2.14844,
+   "shape": 2.03922,
    "published": null
   },
   {
    "date": "2025-01-10",
    "period": 36,
-   "shape": 2.09797,
+   "shape": 1.99131,
    "published": null
   },
   {
    "date": "2025-01-10",
    "period": 37,
-   "shape": 2.09685,
+   "shape": 1.99024,
    "published": null
   },
   {
    "date": "2025-01-10",
    "period": 38,
-   "shape": 2.09885,
+   "shape": 1.99215,
    "published": null
   },
   {
    "date": "2025-01-10",
    "period": 39,
-   "shape": 2.06543,
+   "shape": 1.96043,
    "published": null
   },
   {
    "date": "2025-01-10",
    "period": 40,
-   "shape": 2.04062,
+   "shape": 1.93688,
    "published": null
   },
   {
    "date": "2025-01-10",
    "period": 41,
-   "shape": 2.01041,
+   "shape": 1.9082,
    "published": null
   },
   {
    "date": "2025-01-10",
    "period": 42,
-   "shape": 1.99601,
+   "shape": 1.89453,
    "published": null
   },
   {
    "date": "2025-01-10",
    "period": 43,
-   "shape": 1.96107,
+   "shape": 1.86137,
    "published": null
   },
   {
    "date": "2025-01-10",
    "period": 44,
-   "shape": 1.93501,
+   "shape": 1.83664,
    "published": null
   },
   {
    "date": "2025-01-10",
    "period": 45,
-   "shape": 1.90221,
+   "shape": 1.8055,
    "published": null
   },
   {
    "date": "2025-01-10",
    "period": 46,
-   "shape": 1.84299,
+   "shape": 1.74929,
    "published": null
   },
   {
    "date": "2025-01-10",
    "period": 47,
-   "shape": 1.76303,
+   "shape": 1.6734,
    "published": null
   },
   {
    "date": "2025-01-10",
    "period": 48,
-   "shape": 1.72755,
+   "shape": 1.63972,
    "published": null
   },
   {
    "date": "2025-05-24",
    "period": 1,
-   "shape": 0.30796,
+   "shape": 0.2923,
    "published": null
   },
   {
    "date": "2025-05-24",
    "period": 2,
-   "shape": 0.31549,
+   "shape": 0.29945,
    "published": null
   },
   {
    "date": "2025-05-24",
    "period": 3,
-   "shape": 0.31889,
+   "shape": 0.30268,
    "published": null
   },
   {
    "date": "2025-05-24",
    "period": 4,
-   "shape": 0.32278,
+   "shape": 0.30637,
    "published": null
   },
   {
    "date": "2025-05-24",
    "period": 5,
-   "shape": 0.32161,
+   "shape": 0.30526,
    "published": null
   },
   {
    "date": "2025-05-24",
    "period": 6,
-   "shape": 0.32464,
+   "shape": 0.30814,
    "published": null
   },
   {
    "date": "2025-05-24",
    "period": 7,
-   "shape": 0.32485,
+   "shape": 0.30833,
    "published": null
   },
   {
    "date": "2025-05-24",
    "period": 8,
-   "shape": 0.32312,
+   "shape": 0.3067,
    "published": null
   },
   {
    "date": "2025-05-24",
    "period": 9,
-   "shape": 0.30923,
+   "shape": 0.29351,
    "published": null
   },
   {
    "date": "2025-05-24",
    "period": 10,
-   "shape": 0.31192,
+   "shape": 0.29606,
    "published": null
   },
   {
    "date": "2025-05-24",
    "period": 11,
-   "shape": 0.31746,
+   "shape": 0.30127,
    "published": null
   },
   {
    "date": "2025-05-24",
    "period": 12,
-   "shape": 0.32031,
+   "shape": 0.30329,
    "published": null
   },
   {
    "date": "2025-05-24",
    "period": 13,
-   "shape": 0.32102,
+   "shape": 0.30207,
    "published": null
   },
   {
    "date": "2025-05-24",
    "period": 14,
-   "shape": 0.31149,
+   "shape": 0.28959,
    "published": null
   },
   {
    "date": "2025-05-24",
    "period": 15,
-   "shape": 0.31398,
+   "shape": 0.28727,
    "published": null
   },
   {
    "date": "2025-05-24",
    "period": 16,
-   "shape": 0.30316,
+   "shape": 0.27315,
    "published": null
   },
   {
    "date": "2025-05-24",
    "period": 17,
-   "shape": 0.35713,
+   "shape": 0.31786,
    "published": null
   },
   {
    "date": "2025-05-24",
    "period": 18,
-   "shape": 0.35229,
+   "shape": 0.30707,
    "published": null
   },
   {
    "date": "2025-05-24",
    "period": 19,
-   "shape": 0.42705,
+   "shape": 0.36443,
    "published": null
   },
   {
    "date": "2025-05-24",
    "period": 20,
-   "shape": 0.4291,
+   "shape": 0.35793,
    "published": null
   },
   {
    "date": "2025-05-24",
    "period": 21,
-   "shape": 0.39226,
+   "shape": 0.32207,
    "published": null
   },
   {
    "date": "2025-05-24",
    "period": 22,
-   "shape": 0.38365,
+   "shape": 0.31188,
    "published": null
   },
   {
    "date": "2025-05-24",
    "period": 23,
-   "shape": 0.26171,
+   "shape": 0.2074,
    "published": null
   },
   {
    "date": "2025-05-24",
    "period": 24,
-   "shape": 0.26086,
+   "shape": 0.20527,
    "published": null
   },
   {
    "date": "2025-05-24",
    "period": 25,
-   "shape": 0.32158,
+   "shape": 0.24927,
    "published": null
   },
   {
    "date": "2025-05-24",
    "period": 26,
-   "shape": 0.33114,
+   "shape": 0.25309,
    "published": null
   },
   {
    "date": "2025-05-24",
    "period": 27,
-   "shape": 0.34794,
+   "shape": 0.26489,
    "published": null
   },
   {
    "date": "2025-05-24",
    "period": 28,
-   "shape": 0.34756,
+   "shape": 0.26351,
    "published": null
   },
   {
    "date": "2025-05-24",
    "period": 29,
-   "shape": 0.31111,
+   "shape": 0.23743,
    "published": null
   },
   {
    "date": "2025-05-24",
    "period": 30,
-   "shape": 0.31496,
+   "shape": 0.24208,
    "published": null
   },
   {
    "date": "2025-05-24",
    "period": 31,
-   "shape": 0.33451,
+   "shape": 0.26101,
    "published": null
   },
   {
    "date": "2025-05-24",
    "period": 32,
-   "shape": 0.33091,
+   "shape": 0.2607,
    "published": null
   },
   {
    "date": "2025-05-24",
    "period": 33,
-   "shape": 0.35764,
+   "shape": 0.29088,
    "published": null
   },
   {
    "date": "2025-05-24",
    "period": 34,
-   "shape": 0.35186,
+   "shape": 0.29333,
    "published": null
   },
   {
    "date": "2025-05-24",
    "period": 35,
-   "shape": 0.48084,
+   "shape": 0.41039,
    "published": null
   },
   {
    "date": "2025-05-24",
    "period": 36,
-   "shape": 0.46935,
+   "shape": 0.41033,
    "published": null
   },
   {
    "date": "2025-05-24",
    "period": 37,
-   "shape": 0.39886,
+   "shape": 0.37005,
    "published": null
   },
   {
    "date": "2025-05-24",
    "period": 38,
-   "shape": 0.38657,
+   "shape": 0.35293,
    "published": null
   },
   {
    "date": "2025-05-24",
    "period": 39,
-   "shape": 0.29036,
+   "shape": 0.2687,
    "published": null
   },
   {
    "date": "2025-05-24",
    "period": 40,
-   "shape": 0.29145,
+   "shape": 0.27284,
    "published": null
   },
   {
    "date": "2025-05-24",
    "period": 41,
-   "shape": 0.28032,
+   "shape": 0.26484,
    "published": null
   },
   {
    "date": "2025-05-24",
    "period": 42,
-   "shape": 0.29055,
+   "shape": 0.27559,
    "published": null
   },
   {
    "date": "2025-05-24",
    "period": 43,
-   "shape": 0.25538,
+   "shape": 0.2424,
    "published": null
   },
   {
    "date": "2025-05-24",
    "period": 44,
-   "shape": 0.2601,
+   "shape": 0.24688,
    "published": null
   },
   {
    "date": "2025-05-24",
    "period": 45,
-   "shape": 0.26374,
+   "shape": 0.25033,
    "published": null
   },
   {
    "date": "2025-05-24",
    "period": 46,
-   "shape": 0.27173,
+   "shape": 0.25791,
    "published": null
   },
   {
    "date": "2025-05-24",
    "period": 47,
-   "shape": 0.27599,
+   "shape": 0.26196,
    "published": null
   },
   {
    "date": "2025-05-24",
    "period": 48,
-   "shape": 0.283,
+   "shape": 0.26861,
    "published": null
   },
   {
    "date": "2025-05-25",
    "period": 1,
-   "shape": 0.28451,
+   "shape": 0.27005,
    "published": null
   },
   {
    "date": "2025-05-25",
    "period": 2,
-   "shape": 0.29021,
+   "shape": 0.27546,
    "published": null
   },
   {
    "date": "2025-05-25",
    "period": 3,
-   "shape": 0.29457,
+   "shape": 0.2796,
    "published": null
   },
   {
    "date": "2025-05-25",
    "period": 4,
-   "shape": 0.30071,
+   "shape": 0.28543,
    "published": null
   },
   {
    "date": "2025-05-25",
    "period": 5,
-   "shape": 0.31169,
+   "shape": 0.29584,
    "published": null
   },
   {
    "date": "2025-05-25",
    "period": 6,
-   "shape": 0.32253,
+   "shape": 0.30614,
    "published": null
   },
   {
    "date": "2025-05-25",
    "period": 7,
-   "shape": 0.32972,
+   "shape": 0.31296,
    "published": null
   },
   {
    "date": "2025-05-25",
    "period": 8,
-   "shape": 0.33741,
+   "shape": 0.32025,
    "published": null
   },
   {
    "date": "2025-05-25",
    "period": 9,
-   "shape": 0.34122,
+   "shape": 0.32387,
    "published": null
   },
   {
    "date": "2025-05-25",
    "period": 10,
-   "shape": 0.35325,
+   "shape": 0.33529,
    "published": null
   },
   {
    "date": "2025-05-25",
    "period": 11,
-   "shape": 0.36994,
+   "shape": 0.35065,
    "published": null
   },
   {
    "date": "2025-05-25",
    "period": 12,
-   "shape": 0.36588,
+   "shape": 0.34187,
    "published": null
   },
   {
    "date": "2025-05-25",
    "period": 13,
-   "shape": 0.36287,
+   "shape": 0.33043,
    "published": null
   },
   {
    "date": "2025-05-25",
    "period": 14,
-   "shape": 0.36945,
+   "shape": 0.32352,
    "published": null
   },
   {
    "date": "2025-05-25",
    "period": 15,
-   "shape": 0.36876,
+   "shape": 0.30938,
    "published": null
   },
   {
    "date": "2025-05-25",
    "period": 16,
-   "shape": 0.36546,
+   "shape": 0.29389,
    "published": null
   },
   {
    "date": "2025-05-25",
    "period": 17,
-   "shape": 0.3535,
+   "shape": 0.27205,
    "published": null
   },
   {
    "date": "2025-05-25",
    "period": 18,
-   "shape": 0.35778,
+   "shape": 0.26118,
    "published": null
   },
   {
    "date": "2025-05-25",
    "period": 19,
-   "shape": 0.34439,
+   "shape": 0.24213,
    "published": null
   },
   {
    "date": "2025-05-25",
    "period": 20,
-   "shape": 0.33721,
+   "shape": 0.22913,
    "published": null
   },
   {
    "date": "2025-05-25",
    "period": 21,
-   "shape": 0.3431,
+   "shape": 0.21939,
    "published": null
   },
   {
    "date": "2025-05-25",
    "period": 22,
-   "shape": 0.35861,
+   "shape": 0.21623,
    "published": null
   },
   {
    "date": "2025-05-25",
    "period": 23,
-   "shape": 0.3638,
+   "shape": 0.2115,
    "published": null
   },
   {
    "date": "2025-05-25",
    "period": 24,
-   "shape": 0.36688,
+   "shape": 0.20913,
    "published": null
   },
   {
    "date": "2025-05-25",
    "period": 25,
-   "shape": 0.49141,
+   "shape": 0.27668,
    "published": null
   },
   {
    "date": "2025-05-25",
    "period": 26,
-   "shape": 0.51044,
+   "shape": 0.28012,
    "published": null
   },
   {
    "date": "2025-05-25",
    "period": 27,
-   "shape": 0.54532,
+   "shape": 0.29859,
    "published": null
   },
   {
    "date": "2025-05-25",
    "period": 28,
-   "shape": 0.55627,
+   "shape": 0.29768,
    "published": null
   },
   {
    "date": "2025-05-25",
    "period": 29,
-   "shape": 0.43537,
+   "shape": 0.23394,
    "published": null
   },
   {
    "date": "2025-05-25",
    "period": 30,
-   "shape": 0.46105,
+   "shape": 0.25022,
    "published": null
   },
   {
    "date": "2025-05-25",
    "period": 31,
-   "shape": 0.4653,
+   "shape": 0.26515,
    "published": null
   },
   {
    "date": "2025-05-25",
    "period": 32,
-   "shape": 0.48388,
+   "shape": 0.28636,
    "published": null
   },
   {
    "date": "2025-05-25",
    "period": 33,
-   "shape": 0.46407,
+   "shape": 0.29696,
    "published": null
   },
   {
    "date": "2025-05-25",
    "period": 34,
-   "shape": 0.43284,
+   "shape": 0.29742,
    "published": null
   },
   {
    "date": "2025-05-25",
    "period": 35,
-   "shape": 0.38803,
+   "shape": 0.28571,
    "published": null
   },
   {
    "date": "2025-05-25",
    "period": 36,
-   "shape": 0.36088,
+   "shape": 0.28089,
    "published": null
   },
   {
    "date": "2025-05-25",
    "period": 37,
-   "shape": 0.3246,
+   "shape": 0.26429,
    "published": null
   },
   {
    "date": "2025-05-25",
    "period": 38,
-   "shape": 0.29096,
+   "shape": 0.24623,
    "published": null
   },
   {
    "date": "2025-05-25",
    "period": 39,
-   "shape": 0.28249,
+   "shape": 0.24837,
    "published": null
   },
   {
    "date": "2025-05-25",
    "period": 40,
-   "shape": 0.28823,
+   "shape": 0.26145,
    "published": null
   },
   {
    "date": "2025-05-25",
    "period": 41,
-   "shape": 0.28099,
+   "shape": 0.26103,
    "published": null
   },
   {
    "date": "2025-05-25",
    "period": 42,
-   "shape": 0.28253,
+   "shape": 0.26686,
    "published": null
   },
   {
    "date": "2025-05-25",
    "period": 43,
-   "shape": 0.28131,
+   "shape": 0.26699,
    "published": null
   },
   {
    "date": "2025-05-25",
    "period": 44,
-   "shape": 0.28302,
+   "shape": 0.26863,
    "published": null
   },
   {
    "date": "2025-05-25",
    "period": 45,
-   "shape": 0.28789,
+   "shape": 0.27326,
    "published": null
   },
   {
    "date": "2025-05-25",
    "period": 46,
-   "shape": 0.29753,
+   "shape": 0.28241,
    "published": null
   },
   {
    "date": "2025-05-25",
    "period": 47,
-   "shape": 0.28264,
+   "shape": 0.26827,
    "published": null
   },
   {
    "date": "2025-05-25",
    "period": 48,
-   "shape": 0.28524,
+   "shape": 0.27074,
    "published": null
   },
   {
    "date": "2025-05-26",
    "period": 1,
-   "shape": 0.28239,
+   "shape": 0.26803,
    "published": null
   },
   {
    "date": "2025-05-26",
    "period": 2,
-   "shape": 0.28764,
+   "shape": 0.27302,
    "published": null
   },
   {
    "date": "2025-05-26",
    "period": 3,
-   "shape": 0.29205,
+   "shape": 0.2772,
    "published": null
   },
   {
    "date": "2025-05-26",
    "period": 4,
-   "shape": 0.29117,
+   "shape": 0.27636,
    "published": null
   },
   {
    "date": "2025-05-26",
    "period": 5,
-   "shape": 0.29668,
+   "shape": 0.2816,
    "published": null
   },
   {
    "date": "2025-05-26",
    "period": 6,
-   "shape": 0.30697,
+   "shape": 0.29136,
    "published": null
   },
   {
    "date": "2025-05-26",
    "period": 7,
-   "shape": 0.31243,
+   "shape": 0.29655,
    "published": null
   },
   {
    "date": "2025-05-26",
+   "period": 8,
+   "shape": 0.30239,
+   "published": null
+  },
+  {
+   "date": "2025-05-26",
+   "period": 9,
+   "shape": 0.29952,
+   "published": null
+  },
+  {
+   "date": "2025-05-26",
+   "period": 10,
+   "shape": 0.31051,
+   "published": null
+  },
+  {
+   "date": "2025-05-26",
+   "period": 11,
+   "shape": 0.31049,
+   "published": null
+  },
+  {
+   "date": "2025-05-26",
+   "period": 12,
+   "shape": 0.30765,
+   "published": null
+  },
+  {
+   "date": "2025-05-26",
+   "period": 13,
+   "shape": 0.29113,
+   "published": null
+  },
+  {
+   "date": "2025-05-26",
+   "period": 14,
+   "shape": 0.27528,
+   "published": null
+  },
+  {
+   "date": "2025-05-26",
+   "period": 15,
+   "shape": 0.26571,
+   "published": null
+  },
+  {
+   "date": "2025-05-26",
+   "period": 16,
+   "shape": 0.25669,
+   "published": null
+  },
+  {
+   "date": "2025-05-26",
+   "period": 17,
+   "shape": 0.25277,
+   "published": null
+  },
+  {
+   "date": "2025-05-26",
+   "period": 18,
+   "shape": 0.24426,
+   "published": null
+  },
+  {
+   "date": "2025-05-26",
+   "period": 19,
+   "shape": 0.23475,
+   "published": null
+  },
+  {
+   "date": "2025-05-26",
+   "period": 20,
+   "shape": 0.22794,
+   "published": null
+  },
+  {
+   "date": "2025-05-26",
+   "period": 21,
+   "shape": 0.20974,
+   "published": null
+  },
+  {
+   "date": "2025-05-26",
+   "period": 22,
+   "shape": 0.20601,
+   "published": null
+  },
+  {
+   "date": "2025-05-26",
+   "period": 23,
+   "shape": 0.20152,
+   "published": null
+  },
+  {
+   "date": "2025-05-26",
+   "period": 24,
+   "shape": 0.20265,
+   "published": null
+  },
+  {
+   "date": "2025-05-26",
+   "period": 25,
+   "shape": 0.28123,
+   "published": null
+  },
+  {
+   "date": "2025-05-26",
+   "period": 26,
+   "shape": 0.28884,
+   "published": null
+  },
+  {
+   "date": "2025-05-26",
+   "period": 27,
+   "shape": 0.30355,
+   "published": null
+  },
+  {
+   "date": "2025-05-26",
+   "period": 28,
+   "shape": 0.3099,
+   "published": null
+  },
+  {
+   "date": "2025-05-26",
+   "period": 29,
+   "shape": 0.2949,
+   "published": null
+  },
+  {
+   "date": "2025-05-26",
+   "period": 30,
+   "shape": 0.30019,
+   "published": null
+  },
+  {
+   "date": "2025-05-26",
+   "period": 31,
+   "shape": 0.25911,
+   "published": null
+  },
+  {
+   "date": "2025-05-26",
+   "period": 32,
+   "shape": 0.25561,
+   "published": null
+  },
+  {
+   "date": "2025-05-26",
+   "period": 33,
+   "shape": 0.23064,
+   "published": null
+  },
+  {
+   "date": "2025-05-26",
+   "period": 34,
+   "shape": 0.22344,
+   "published": null
+  },
+  {
+   "date": "2025-05-26",
+   "period": 35,
+   "shape": 0.22082,
+   "published": null
+  },
+  {
+   "date": "2025-05-26",
+   "period": 36,
+   "shape": 0.22162,
+   "published": null
+  },
+  {
+   "date": "2025-05-26",
+   "period": 37,
+   "shape": 0.21983,
+   "published": null
+  },
+  {
+   "date": "2025-05-26",
+   "period": 38,
+   "shape": 0.22083,
+   "published": null
+  },
+  {
+   "date": "2025-05-26",
+   "period": 39,
+   "shape": 0.22683,
+   "published": null
+  },
+  {
+   "date": "2025-05-26",
+   "period": 40,
+   "shape": 0.23292,
+   "published": null
+  },
+  {
+   "date": "2025-05-26",
+   "period": 41,
+   "shape": 0.23709,
+   "published": null
+  },
+  {
+   "date": "2025-05-26",
+   "period": 42,
+   "shape": 0.24279,
+   "published": null
+  },
+  {
+   "date": "2025-05-26",
+   "period": 43,
+   "shape": 0.24009,
+   "published": null
+  },
+  {
+   "date": "2025-05-26",
+   "period": 44,
+   "shape": 0.24927,
+   "published": null
+  },
+  {
+   "date": "2025-05-26",
+   "period": 45,
+   "shape": 0.2664,
+   "published": null
+  },
+  {
+   "date": "2025-05-26",
+   "period": 46,
+   "shape": 0.27839,
+   "published": null
+  },
+  {
+   "date": "2025-05-26",
+   "period": 47,
+   "shape": 0.27528,
+   "published": null
+  },
+  {
+   "date": "2025-05-26",
+   "period": 48,
+   "shape": 0.28237,
+   "published": null
+  },
+  {
+   "date": "2025-05-27",
+   "period": 1,
+   "shape": 0.27755,
+   "published": null
+  },
+  {
+   "date": "2025-05-27",
+   "period": 2,
+   "shape": 0.28308,
+   "published": null
+  },
+  {
+   "date": "2025-05-27",
+   "period": 3,
+   "shape": 0.30047,
+   "published": null
+  },
+  {
+   "date": "2025-05-27",
+   "period": 4,
+   "shape": 0.30353,
+   "published": null
+  },
+  {
+   "date": "2025-05-27",
+   "period": 5,
+   "shape": 0.30613,
+   "published": null
+  },
+  {
+   "date": "2025-05-27",
+   "period": 6,
+   "shape": 0.31137,
+   "published": null
+  },
+  {
+   "date": "2025-05-27",
+   "period": 7,
+   "shape": 0.31563,
+   "published": null
+  },
+  {
+   "date": "2025-05-27",
    "period": 8,
    "shape": 0.31859,
    "published": null
   },
   {
-   "date": "2025-05-26",
-   "period": 9,
-   "shape": 0.31556,
-   "published": null
-  },
-  {
-   "date": "2025-05-26",
-   "period": 10,
-   "shape": 0.32714,
-   "published": null
-  },
-  {
-   "date": "2025-05-26",
-   "period": 11,
-   "shape": 0.32809,
-   "published": null
-  },
-  {
-   "date": "2025-05-26",
-   "period": 12,
-   "shape": 0.33147,
-   "published": null
-  },
-  {
-   "date": "2025-05-26",
-   "period": 13,
-   "shape": 0.3228,
-   "published": null
-  },
-  {
-   "date": "2025-05-26",
-   "period": 14,
-   "shape": 0.31622,
-   "published": null
-  },
-  {
-   "date": "2025-05-26",
-   "period": 15,
-   "shape": 0.31835,
-   "published": null
-  },
-  {
-   "date": "2025-05-26",
-   "period": 16,
-   "shape": 0.32228,
-   "published": null
-  },
-  {
-   "date": "2025-05-26",
-   "period": 17,
-   "shape": 0.33123,
-   "published": null
-  },
-  {
-   "date": "2025-05-26",
-   "period": 18,
-   "shape": 0.33279,
-   "published": null
-  },
-  {
-   "date": "2025-05-26",
-   "period": 19,
-   "shape": 0.32799,
-   "published": null
-  },
-  {
-   "date": "2025-05-26",
-   "period": 20,
-   "shape": 0.32387,
-   "published": null
-  },
-  {
-   "date": "2025-05-26",
-   "period": 21,
-   "shape": 0.30085,
-   "published": null
-  },
-  {
-   "date": "2025-05-26",
-   "period": 22,
-   "shape": 0.29839,
-   "published": null
-  },
-  {
-   "date": "2025-05-26",
-   "period": 23,
-   "shape": 0.29356,
-   "published": null
-  },
-  {
-   "date": "2025-05-26",
-   "period": 24,
-   "shape": 0.29514,
-   "published": null
-  },
-  {
-   "date": "2025-05-26",
-   "period": 25,
-   "shape": 0.4097,
-   "published": null
-  },
-  {
-   "date": "2025-05-26",
-   "period": 26,
-   "shape": 0.42255,
-   "published": null
-  },
-  {
-   "date": "2025-05-26",
-   "period": 27,
-   "shape": 0.44204,
-   "published": null
-  },
-  {
-   "date": "2025-05-26",
-   "period": 28,
-   "shape": 0.4479,
-   "published": null
-  },
-  {
-   "date": "2025-05-26",
-   "period": 29,
-   "shape": 0.42199,
-   "published": null
-  },
-  {
-   "date": "2025-05-26",
-   "period": 30,
-   "shape": 0.41891,
-   "published": null
-  },
-  {
-   "date": "2025-05-26",
-   "period": 31,
-   "shape": 0.34605,
-   "published": null
-  },
-  {
-   "date": "2025-05-26",
-   "period": 32,
-   "shape": 0.32554,
-   "published": null
-  },
-  {
-   "date": "2025-05-26",
-   "period": 33,
-   "shape": 0.28141,
-   "published": null
-  },
-  {
-   "date": "2025-05-26",
-   "period": 34,
-   "shape": 0.26657,
-   "published": null
-  },
-  {
-   "date": "2025-05-26",
-   "period": 35,
-   "shape": 0.25687,
-   "published": null
-  },
-  {
-   "date": "2025-05-26",
-   "period": 36,
-   "shape": 0.25127,
-   "published": null
-  },
-  {
-   "date": "2025-05-26",
-   "period": 37,
-   "shape": 0.24442,
-   "published": null
-  },
-  {
-   "date": "2025-05-26",
-   "period": 38,
-   "shape": 0.24213,
-   "published": null
-  },
-  {
-   "date": "2025-05-26",
-   "period": 39,
-   "shape": 0.24517,
-   "published": null
-  },
-  {
-   "date": "2025-05-26",
-   "period": 40,
-   "shape": 0.24915,
-   "published": null
-  },
-  {
-   "date": "2025-05-26",
-   "period": 41,
-   "shape": 0.2513,
-   "published": null
-  },
-  {
-   "date": "2025-05-26",
-   "period": 42,
-   "shape": 0.25604,
-   "published": null
-  },
-  {
-   "date": "2025-05-26",
-   "period": 43,
-   "shape": 0.25295,
-   "published": null
-  },
-  {
-   "date": "2025-05-26",
-   "period": 44,
-   "shape": 0.26262,
-   "published": null
-  },
-  {
-   "date": "2025-05-26",
-   "period": 45,
-   "shape": 0.28067,
-   "published": null
-  },
-  {
-   "date": "2025-05-26",
-   "period": 46,
-   "shape": 0.2933,
-   "published": null
-  },
-  {
-   "date": "2025-05-26",
-   "period": 47,
-   "shape": 0.29003,
-   "published": null
-  },
-  {
-   "date": "2025-05-26",
-   "period": 48,
-   "shape": 0.29749,
-   "published": null
-  },
-  {
-   "date": "2025-05-27",
-   "period": 1,
-   "shape": 0.29242,
-   "published": null
-  },
-  {
-   "date": "2025-05-27",
-   "period": 2,
-   "shape": 0.29824,
-   "published": null
-  },
-  {
-   "date": "2025-05-27",
-   "period": 3,
-   "shape": 0.31657,
-   "published": null
-  },
-  {
-   "date": "2025-05-27",
-   "period": 4,
-   "shape": 0.31979,
-   "published": null
-  },
-  {
-   "date": "2025-05-27",
-   "period": 5,
-   "shape": 0.32253,
-   "published": null
-  },
-  {
-   "date": "2025-05-27",
-   "period": 6,
-   "shape": 0.32804,
-   "published": null
-  },
-  {
-   "date": "2025-05-27",
-   "period": 7,
-   "shape": 0.33254,
-   "published": null
-  },
-  {
-   "date": "2025-05-27",
-   "period": 8,
-   "shape": 0.33566,
-   "published": null
-  },
-  {
    "date": "2025-05-27",
    "period": 9,
-   "shape": 0.32407,
+   "shape": 0.30759,
    "published": null
   },
   {
    "date": "2025-05-27",
    "period": 10,
-   "shape": 0.32587,
+   "shape": 0.3093,
    "published": null
   },
   {
    "date": "2025-05-27",
    "period": 11,
-   "shape": 0.31087,
+   "shape": 0.29446,
    "published": null
   },
   {
    "date": "2025-05-27",
    "period": 12,
-   "shape": 0.30018,
+   "shape": 0.27982,
    "published": null
   },
   {
    "date": "2025-05-27",
    "period": 13,
-   "shape": 0.28101,
+   "shape": 0.25611,
    "published": null
   },
   {
    "date": "2025-05-27",
    "period": 14,
-   "shape": 0.27058,
+   "shape": 0.23985,
    "published": null
   },
   {
    "date": "2025-05-27",
    "period": 15,
-   "shape": 0.26703,
+   "shape": 0.23152,
    "published": null
   },
   {
    "date": "2025-05-27",
    "period": 16,
-   "shape": 0.26456,
+   "shape": 0.22351,
    "published": null
   },
   {
    "date": "2025-05-27",
    "period": 17,
-   "shape": 0.38554,
+   "shape": 0.32255,
    "published": null
   },
   {
    "date": "2025-05-27",
    "period": 18,
-   "shape": 0.39857,
+   "shape": 0.3301,
    "published": null
   },
   {
    "date": "2025-05-27",
    "period": 19,
-   "shape": 0.46448,
+   "shape": 0.38293,
    "published": null
   },
   {
    "date": "2025-05-27",
    "period": 20,
-   "shape": 0.45942,
+   "shape": 0.38034,
    "published": null
   },
   {
    "date": "2025-05-27",
    "period": 21,
-   "shape": 0.45818,
+   "shape": 0.41915,
    "published": null
   },
   {
    "date": "2025-05-27",
    "period": 22,
-   "shape": 0.45705,
+   "shape": 0.45505,
    "published": null
   },
   {
    "date": "2025-05-27",
    "period": 23,
-   "shape": 0.44651,
+   "shape": 0.52428,
    "published": null
   },
   {
    "date": "2025-05-27",
    "period": 24,
-   "shape": 0.43337,
+   "shape": 0.55026,
    "published": null
   },
   {
    "date": "2025-05-27",
    "period": 25,
-   "shape": 0.42719,
+   "shape": 0.55787,
    "published": null
   },
   {
    "date": "2025-05-27",
    "period": 26,
-   "shape": 0.42287,
+   "shape": 0.6062,
    "published": null
   },
   {
    "date": "2025-05-27",
    "period": 27,
-   "shape": 0.43363,
+   "shape": 0.63441,
    "published": null
   },
   {
    "date": "2025-05-27",
    "period": 28,
-   "shape": 0.4292,
+   "shape": 0.61312,
    "published": null
   },
   {
    "date": "2025-05-27",
    "period": 29,
-   "shape": 0.42945,
+   "shape": 0.60085,
    "published": null
   },
   {
    "date": "2025-05-27",
    "period": 30,
-   "shape": 0.42813,
+   "shape": 0.6096,
    "published": null
   },
   {
    "date": "2025-05-27",
    "period": 31,
-   "shape": 0.40326,
+   "shape": 0.61127,
    "published": null
   },
   {
    "date": "2025-05-27",
    "period": 32,
-   "shape": 0.51087,
+   "shape": 0.69532,
    "published": null
   },
   {
    "date": "2025-05-27",
    "period": 33,
-   "shape": 0.42547,
+   "shape": 0.61407,
    "published": null
   },
   {
    "date": "2025-05-27",
    "period": 34,
-   "shape": 0.58892,
+   "shape": 0.7266,
    "published": null
   },
   {
    "date": "2025-05-27",
    "period": 35,
-   "shape": 0.67026,
+   "shape": 0.77139,
    "published": null
   },
   {
    "date": "2025-05-27",
    "period": 36,
-   "shape": 0.74135,
+   "shape": 0.81626,
    "published": null
   },
   {
    "date": "2025-05-27",
    "period": 37,
-   "shape": 0.80655,
+   "shape": 0.85356,
    "published": null
   },
   {
    "date": "2025-05-27",
    "period": 38,
-   "shape": 0.86146,
+   "shape": 0.88704,
    "published": null
   },
   {
    "date": "2025-05-27",
    "period": 39,
-   "shape": 0.89279,
+   "shape": 0.89866,
    "published": null
   },
   {
    "date": "2025-05-27",
    "period": 40,
-   "shape": 0.90361,
+   "shape": 0.88911,
    "published": null
   },
   {
    "date": "2025-05-27",
    "period": 41,
-   "shape": 0.92959,
+   "shape": 0.89822,
    "published": null
   },
   {
    "date": "2025-05-27",
    "period": 42,
-   "shape": 0.90334,
+   "shape": 0.86107,
    "published": null
   },
   {
    "date": "2025-05-27",
    "period": 43,
-   "shape": 0.88118,
+   "shape": 0.83653,
    "published": null
   },
   {
    "date": "2025-05-27",
    "period": 44,
-   "shape": 0.83274,
+   "shape": 0.79041,
    "published": null
   },
   {
    "date": "2025-05-27",
    "period": 45,
-   "shape": 0.79786,
+   "shape": 0.75729,
    "published": null
   },
   {
    "date": "2025-05-27",
    "period": 46,
-   "shape": 0.69845,
+   "shape": 0.66295,
    "published": null
   },
   {
    "date": "2025-05-27",
    "period": 47,
-   "shape": 0.58678,
+   "shape": 0.55695,
    "published": null
   },
   {
    "date": "2025-05-27",
    "period": 48,
-   "shape": 0.55119,
+   "shape": 0.52316,
    "published": null
   },
   {
    "date": "2025-05-28",
    "period": 1,
-   "shape": 0.4757,
+   "shape": 0.45151,
    "published": null
   },
   {
    "date": "2025-05-28",
    "period": 2,
-   "shape": 0.48234,
+   "shape": 0.45781,
    "published": null
   },
   {
    "date": "2025-05-28",
    "period": 3,
-   "shape": 0.42356,
+   "shape": 0.40203,
    "published": null
   },
   {
    "date": "2025-05-28",
    "period": 4,
-   "shape": 0.4238,
-   "published": null
-  },
-  {
-   "date": "2025-05-28",
-   "period": 5,
-   "shape": 0.56985,
-   "published": null
-  },
-  {
-   "date": "2025-05-28",
-   "period": 6,
-   "shape": 0.58951,
-   "published": null
-  },
-  {
-   "date": "2025-05-28",
-   "period": 7,
-   "shape": 0.55489,
-   "published": null
-  },
-  {
-   "date": "2025-05-28",
-   "period": 8,
-   "shape": 0.55958,
-   "published": null
-  },
-  {
-   "date": "2025-05-28",
-   "period": 9,
-   "shape": 0.40351,
-   "published": null
-  },
-  {
-   "date": "2025-05-28",
-   "period": 10,
-   "shape": 0.40405,
-   "published": null
-  },
-  {
-   "date": "2025-05-28",
-   "period": 11,
    "shape": 0.40225,
    "published": null
   },
   {
    "date": "2025-05-28",
+   "period": 5,
+   "shape": 0.54088,
+   "published": null
+  },
+  {
+   "date": "2025-05-28",
+   "period": 6,
+   "shape": 0.55954,
+   "published": null
+  },
+  {
+   "date": "2025-05-28",
+   "period": 7,
+   "shape": 0.52668,
+   "published": null
+  },
+  {
+   "date": "2025-05-28",
+   "period": 8,
+   "shape": 0.53113,
+   "published": null
+  },
+  {
+   "date": "2025-05-28",
+   "period": 9,
+   "shape": 0.38299,
+   "published": null
+  },
+  {
+   "date": "2025-05-28",
+   "period": 10,
+   "shape": 0.38351,
+   "published": null
+  },
+  {
+   "date": "2025-05-28",
+   "period": 11,
+   "shape": 0.38128,
+   "published": null
+  },
+  {
+   "date": "2025-05-28",
    "period": 12,
-   "shape": 0.39621,
+   "shape": 0.40592,
    "published": null
   },
   {
    "date": "2025-05-28",
    "period": 13,
-   "shape": 0.50541,
+   "shape": 0.54855,
    "published": null
   },
   {
    "date": "2025-05-28",
    "period": 14,
-   "shape": 0.5362,
+   "shape": 0.62645,
    "published": null
   },
   {
    "date": "2025-05-28",
    "period": 15,
-   "shape": 0.61595,
+   "shape": 0.74607,
    "published": null
   },
   {
    "date": "2025-05-28",
    "period": 16,
-   "shape": 0.55346,
+   "shape": 0.74698,
    "published": null
   },
   {
    "date": "2025-05-28",
    "period": 17,
-   "shape": 0.56696,
+   "shape": 0.79978,
    "published": null
   },
   {
    "date": "2025-05-28",
    "period": 18,
-   "shape": 0.48119,
+   "shape": 0.74942,
    "published": null
   },
   {
    "date": "2025-05-28",
    "period": 19,
-   "shape": 0.48332,
+   "shape": 0.70093,
    "published": null
   },
   {
    "date": "2025-05-28",
    "period": 20,
-   "shape": 0.47927,
+   "shape": 0.67293,
    "published": null
   },
   {
    "date": "2025-05-28",
    "period": 21,
-   "shape": 0.42687,
+   "shape": 0.70682,
    "published": null
   },
   {
    "date": "2025-05-28",
    "period": 22,
-   "shape": 0.43309,
+   "shape": 0.60612,
    "published": null
   },
   {
    "date": "2025-05-28",
    "period": 23,
-   "shape": 0.50926,
+   "shape": 0.58947,
    "published": null
   },
   {
    "date": "2025-05-28",
    "period": 24,
-   "shape": 0.51998,
+   "shape": 0.57966,
    "published": null
   },
   {
    "date": "2025-05-28",
    "period": 25,
-   "shape": 0.52735,
+   "shape": 0.58899,
    "published": null
   },
   {
    "date": "2025-05-28",
    "period": 26,
-   "shape": 0.5281,
+   "shape": 0.5676,
    "published": null
   },
   {
    "date": "2025-05-28",
    "period": 27,
-   "shape": 0.53533,
+   "shape": 0.542,
    "published": null
   },
   {
    "date": "2025-05-28",
    "period": 28,
-   "shape": 0.53989,
+   "shape": 0.51213,
    "published": null
   },
   {
    "date": "2025-05-28",
    "period": 29,
-   "shape": 0.53129,
+   "shape": 0.47532,
    "published": null
   },
   {
    "date": "2025-05-28",
    "period": 30,
-   "shape": 0.52215,
+   "shape": 0.45755,
    "published": null
   },
   {
    "date": "2025-05-28",
    "period": 31,
-   "shape": 0.50908,
+   "shape": 0.47158,
    "published": null
   },
   {
    "date": "2025-05-28",
    "period": 32,
-   "shape": 0.498,
+   "shape": 0.5048,
    "published": null
   },
   {
    "date": "2025-05-28",
    "period": 33,
-   "shape": 0.42887,
+   "shape": 0.53305,
    "published": null
   },
   {
    "date": "2025-05-28",
    "period": 34,
-   "shape": 0.40422,
+   "shape": 0.67553,
    "published": null
   },
   {
    "date": "2025-05-28",
    "period": 35,
-   "shape": 0.32287,
+   "shape": 0.74972,
    "published": null
   },
   {
    "date": "2025-05-28",
    "period": 36,
-   "shape": 0.58969,
+   "shape": 0.90226,
    "published": null
   },
   {
    "date": "2025-05-28",
    "period": 37,
-   "shape": 0.87824,
+   "shape": 1.0764,
    "published": null
   },
   {
    "date": "2025-05-28",
    "period": 38,
-   "shape": 1.07236,
+   "shape": 1.18472,
    "published": null
   },
   {
    "date": "2025-05-28",
    "period": 39,
-   "shape": 1.25312,
+   "shape": 1.28289,
    "published": null
   },
   {
    "date": "2025-05-28",
    "period": 40,
-   "shape": 1.35061,
+   "shape": 1.33109,
    "published": null
   },
   {
    "date": "2025-05-28",
    "period": 41,
-   "shape": 1.4704,
+   "shape": 1.4141,
    "published": null
   },
   {
    "date": "2025-05-28",
    "period": 42,
-   "shape": 1.48886,
+   "shape": 1.41667,
    "published": null
   },
   {
    "date": "2025-05-28",
    "period": 43,
-   "shape": 1.45016,
+   "shape": 1.37648,
    "published": null
   },
   {
    "date": "2025-05-28",
    "period": 44,
-   "shape": 1.40269,
+   "shape": 1.33137,
    "published": null
   },
   {
    "date": "2025-05-28",
    "period": 45,
-   "shape": 1.28876,
+   "shape": 1.22324,
    "published": null
   },
   {
    "date": "2025-05-28",
    "period": 46,
-   "shape": 1.15248,
+   "shape": 1.09389,
    "published": null
   },
   {
    "date": "2025-05-28",
    "period": 47,
-   "shape": 0.97177,
+   "shape": 0.92237,
    "published": null
   },
   {
    "date": "2025-05-28",
    "period": 48,
-   "shape": 0.835,
+   "shape": 0.79255,
    "published": null
   },
   {
    "date": "2025-05-29",
    "period": 1,
-   "shape": 0.72316,
+   "shape": 0.68639,
    "published": null
   },
   {
    "date": "2025-05-29",
    "period": 2,
-   "shape": 0.66479,
+   "shape": 0.63099,
    "published": null
   },
   {
    "date": "2025-05-29",
    "period": 3,
-   "shape": 0.58973,
+   "shape": 0.55975,
    "published": null
   },
   {
    "date": "2025-05-29",
    "period": 4,
-   "shape": 0.55817,
+   "shape": 0.52979,
    "published": null
   },
   {
    "date": "2025-05-29",
    "period": 5,
-   "shape": 0.49739,
+   "shape": 0.4721,
    "published": null
   },
   {
    "date": "2025-05-29",
    "period": 6,
-   "shape": 0.28751,
+   "shape": 0.27289,
    "published": null
   },
   {
    "date": "2025-05-29",
    "period": 7,
-   "shape": 0.29009,
+   "shape": 0.27534,
    "published": null
   },
   {
    "date": "2025-05-29",
    "period": 8,
-   "shape": 0.29649,
+   "shape": 0.28142,
    "published": null
   },
   {
    "date": "2025-05-29",
    "period": 9,
-   "shape": 0.30327,
+   "shape": 0.28785,
    "published": null
   },
   {
    "date": "2025-05-29",
    "period": 10,
-   "shape": 0.29695,
+   "shape": 0.28186,
    "published": null
   },
   {
    "date": "2025-05-29",
    "period": 11,
-   "shape": 0.30336,
+   "shape": 0.28789,
    "published": null
   },
   {
    "date": "2025-05-29",
    "period": 12,
-   "shape": 0.302,
+   "shape": 0.28568,
    "published": null
   },
   {
    "date": "2025-05-29",
    "period": 13,
-   "shape": 0.29378,
+   "shape": 0.27583,
    "published": null
   },
   {
    "date": "2025-05-29",
    "period": 14,
-   "shape": 0.30022,
+   "shape": 0.2785,
    "published": null
   },
   {
    "date": "2025-05-29",
    "period": 15,
-   "shape": 0.27743,
+   "shape": 0.25376,
    "published": null
   },
   {
    "date": "2025-05-29",
    "period": 16,
-   "shape": 0.26222,
+   "shape": 0.2346,
    "published": null
   },
   {
    "date": "2025-05-29",
    "period": 17,
-   "shape": 0.25349,
+   "shape": 0.2218,
    "published": null
   },
   {
    "date": "2025-05-29",
    "period": 18,
-   "shape": 0.2549,
+   "shape": 0.21719,
    "published": null
   },
   {
    "date": "2025-05-29",
    "period": 19,
-   "shape": 0.25182,
+   "shape": 0.20878,
    "published": null
   },
   {
    "date": "2025-05-29",
    "period": 20,
-   "shape": 0.2579,
+   "shape": 0.20667,
    "published": null
   },
   {
    "date": "2025-05-29",
    "period": 21,
-   "shape": 0.26313,
+   "shape": 0.20275,
    "published": null
   },
   {
    "date": "2025-05-29",
    "period": 22,
-   "shape": 0.26825,
+   "shape": 0.19822,
    "published": null
   },
   {
    "date": "2025-05-29",
    "period": 23,
-   "shape": 0.25392,
+   "shape": 0.18321,
    "published": null
   },
   {
    "date": "2025-05-29",
    "period": 24,
-   "shape": 0.25461,
+   "shape": 0.17817,
    "published": null
   },
   {
    "date": "2025-05-29",
    "period": 25,
-   "shape": 0.25114,
+   "shape": 0.17223,
    "published": null
   },
   {
    "date": "2025-05-29",
    "period": 26,
-   "shape": 0.25285,
+   "shape": 0.17243,
    "published": null
   },
   {
    "date": "2025-05-29",
    "period": 27,
-   "shape": 0.28637,
+   "shape": 0.19444,
    "published": null
   },
   {
    "date": "2025-05-29",
    "period": 28,
-   "shape": 0.29462,
+   "shape": 0.19723,
    "published": null
   },
   {
    "date": "2025-05-29",
    "period": 29,
-   "shape": 0.26938,
+   "shape": 0.18106,
    "published": null
   },
   {
    "date": "2025-05-29",
    "period": 30,
-   "shape": 0.26921,
+   "shape": 0.18231,
    "published": null
   },
   {
    "date": "2025-05-29",
    "period": 31,
-   "shape": 0.26907,
+   "shape": 0.18481,
    "published": null
   },
   {
    "date": "2025-05-29",
    "period": 32,
-   "shape": 0.26913,
+   "shape": 0.19068,
    "published": null
   },
   {
    "date": "2025-05-29",
    "period": 33,
-   "shape": 0.28204,
+   "shape": 0.2077,
    "published": null
   },
   {
    "date": "2025-05-29",
    "period": 34,
-   "shape": 0.273,
+   "shape": 0.20932,
    "published": null
   },
   {
    "date": "2025-05-29",
    "period": 35,
-   "shape": 0.26052,
+   "shape": 0.20817,
    "published": null
   },
   {
    "date": "2025-05-29",
    "period": 36,
-   "shape": 0.25275,
+   "shape": 0.20865,
    "published": null
   },
   {
    "date": "2025-05-29",
    "period": 37,
-   "shape": 0.24259,
+   "shape": 0.20737,
    "published": null
   },
   {
    "date": "2025-05-29",
    "period": 38,
-   "shape": 0.23712,
+   "shape": 0.20887,
    "published": null
   },
   {
    "date": "2025-05-29",
    "period": 39,
-   "shape": 0.29991,
+   "shape": 0.27088,
    "published": null
   },
   {
    "date": "2025-05-29",
    "period": 40,
-   "shape": 0.30826,
+   "shape": 0.28388,
    "published": null
   },
   {
    "date": "2025-05-29",
    "period": 41,
-   "shape": 0.37696,
+   "shape": 0.35265,
    "published": null
   },
   {
    "date": "2025-05-29",
    "period": 42,
-   "shape": 0.38044,
+   "shape": 0.35981,
    "published": null
   },
   {
    "date": "2025-05-29",
    "period": 43,
-   "shape": 0.40182,
+   "shape": 0.38136,
    "published": null
   },
   {
    "date": "2025-05-29",
    "period": 44,
-   "shape": 0.40741,
+   "shape": 0.3867,
    "published": null
   },
   {
    "date": "2025-05-29",
    "period": 45,
-   "shape": 0.42576,
+   "shape": 0.40411,
    "published": null
   },
   {
    "date": "2025-05-29",
    "period": 46,
-   "shape": 0.41929,
+   "shape": 0.39797,
    "published": null
   },
   {
    "date": "2025-05-29",
    "period": 47,
-   "shape": 0.26916,
+   "shape": 0.25547,
    "published": null
   },
   {
    "date": "2025-05-29",
    "period": 48,
-   "shape": 0.27606,
+   "shape": 0.26202,
    "published": null
   },
   {
    "date": "2025-05-30",
    "period": 1,
-   "shape": 0.2678,
+   "shape": 0.25419,
    "published": null
   },
   {
    "date": "2025-05-30",
    "period": 2,
-   "shape": 0.26852,
+   "shape": 0.25487,
    "published": null
   },
   {
    "date": "2025-05-30",
    "period": 3,
-   "shape": 0.28164,
+   "shape": 0.26732,
    "published": null
   },
   {
    "date": "2025-05-30",
    "period": 4,
-   "shape": 0.28548,
+   "shape": 0.27096,
    "published": null
   },
   {
    "date": "2025-05-30",
    "period": 5,
-   "shape": 0.30936,
+   "shape": 0.29364,
    "published": null
   },
   {
    "date": "2025-05-30",
    "period": 6,
-   "shape": 0.32042,
+   "shape": 0.30413,
    "published": null
   },
   {
    "date": "2025-05-30",
    "period": 7,
-   "shape": 0.33051,
+   "shape": 0.31371,
    "published": null
   },
   {
    "date": "2025-05-30",
    "period": 8,
-   "shape": 0.33127,
+   "shape": 0.31443,
    "published": null
   },
   {
    "date": "2025-05-30",
    "period": 9,
-   "shape": 0.33707,
+   "shape": 0.31993,
    "published": null
   },
   {
    "date": "2025-05-30",
    "period": 10,
-   "shape": 0.34,
+   "shape": 0.32271,
    "published": null
   },
   {
    "date": "2025-05-30",
    "period": 11,
-   "shape": 0.33737,
+   "shape": 0.31975,
    "published": null
   },
   {
    "date": "2025-05-30",
    "period": 12,
-   "shape": 0.33459,
+   "shape": 0.31345,
    "published": null
   },
   {
    "date": "2025-05-30",
    "period": 13,
-   "shape": 0.30861,
+   "shape": 0.28451,
    "published": null
   },
   {
    "date": "2025-05-30",
    "period": 14,
-   "shape": 0.29996,
+   "shape": 0.27064,
    "published": null
   },
   {
    "date": "2025-05-30",
    "period": 15,
-   "shape": 0.3732,
+   "shape": 0.3294,
    "published": null
   },
   {
    "date": "2025-05-30",
    "period": 16,
-   "shape": 0.37336,
+   "shape": 0.32031,
    "published": null
   },
   {
    "date": "2025-05-30",
    "period": 17,
-   "shape": 0.48979,
+   "shape": 0.40901,
    "published": null
   },
   {
    "date": "2025-05-30",
    "period": 18,
-   "shape": 0.48947,
+   "shape": 0.39533,
    "published": null
   },
   {
    "date": "2025-05-30",
    "period": 19,
-   "shape": 0.49287,
+   "shape": 0.3842,
    "published": null
   },
   {
    "date": "2025-05-30",
    "period": 20,
-   "shape": 0.50282,
+   "shape": 0.3794,
    "published": null
   },
   {
    "date": "2025-05-30",
    "period": 21,
-   "shape": 0.51347,
+   "shape": 0.37498,
    "published": null
   },
   {
    "date": "2025-05-30",
    "period": 22,
-   "shape": 0.52492,
+   "shape": 0.37419,
    "published": null
   },
   {
    "date": "2025-05-30",
    "period": 23,
-   "shape": 0.53472,
+   "shape": 0.37039,
    "published": null
   },
   {
    "date": "2025-05-30",
    "period": 24,
-   "shape": 0.54518,
+   "shape": 0.37246,
    "published": null
   },
   {
    "date": "2025-05-30",
    "period": 25,
-   "shape": 0.55291,
+   "shape": 0.37563,
    "published": null
   },
   {
    "date": "2025-05-30",
    "period": 26,
-   "shape": 0.55461,
+   "shape": 0.37708,
    "published": null
   },
   {
    "date": "2025-05-30",
    "period": 27,
-   "shape": 0.56399,
+   "shape": 0.38343,
    "published": null
   },
   {
    "date": "2025-05-30",
    "period": 28,
-   "shape": 0.56309,
+   "shape": 0.3976,
    "published": null
   },
   {
    "date": "2025-05-30",
    "period": 29,
-   "shape": 0.56529,
+   "shape": 0.42138,
    "published": null
   },
   {
    "date": "2025-05-30",
    "period": 30,
-   "shape": 0.55369,
+   "shape": 0.47879,
    "published": null
   },
   {
    "date": "2025-05-30",
    "period": 31,
-   "shape": 0.55181,
+   "shape": 0.53545,
    "published": null
   },
   {
    "date": "2025-05-30",
    "period": 32,
-   "shape": 0.54411,
+   "shape": 0.61435,
    "published": null
   },
   {
    "date": "2025-05-30",
    "period": 33,
-   "shape": 0.51209,
+   "shape": 0.665,
    "published": null
   },
   {
    "date": "2025-05-30",
    "period": 34,
-   "shape": 0.48821,
+   "shape": 0.77377,
    "published": null
   },
   {
    "date": "2025-05-30",
    "period": 35,
-   "shape": 0.58012,
+   "shape": 0.91674,
    "published": null
   },
   {
    "date": "2025-05-30",
    "period": 36,
-   "shape": 0.77811,
+   "shape": 1.02616,
    "published": null
   },
   {
    "date": "2025-05-30",
    "period": 37,
-   "shape": 0.97849,
+   "shape": 1.1394,
    "published": null
   },
   {
    "date": "2025-05-30",
    "period": 38,
-   "shape": 1.11002,
+   "shape": 1.20617,
    "published": null
   },
   {
    "date": "2025-05-30",
    "period": 39,
-   "shape": 1.19739,
+   "shape": 1.24264,
    "published": null
   },
   {
    "date": "2025-05-30",
    "period": 40,
-   "shape": 1.29557,
+   "shape": 1.29091,
    "published": null
   },
   {
    "date": "2025-05-30",
    "period": 41,
-   "shape": 1.32817,
+   "shape": 1.29108,
    "published": null
   },
   {
    "date": "2025-05-30",
    "period": 42,
-   "shape": 1.36643,
+   "shape": 1.30447,
    "published": null
   },
   {
    "date": "2025-05-30",
    "period": 43,
-   "shape": 1.43324,
+   "shape": 1.36065,
    "published": null
   },
   {
    "date": "2025-05-30",
    "period": 44,
-   "shape": 1.43511,
+   "shape": 1.36215,
    "published": null
   },
   {
    "date": "2025-05-30",
    "period": 45,
-   "shape": 1.39267,
+   "shape": 1.32187,
    "published": null
   },
   {
    "date": "2025-05-30",
    "period": 46,
-   "shape": 1.33434,
+   "shape": 1.2665,
    "published": null
   },
   {
    "date": "2025-05-30",
    "period": 47,
-   "shape": 1.23038,
+   "shape": 1.16782,
    "published": null
   },
   {
    "date": "2025-05-30",
    "period": 48,
-   "shape": 1.14393,
+   "shape": 1.08577,
    "published": null
   },
   {
    "date": "2025-05-31",
    "period": 1,
-   "shape": 1.08659,
+   "shape": 1.03135,
    "published": null
   },
   {
    "date": "2025-05-31",
    "period": 2,
-   "shape": 1.03926,
+   "shape": 0.98643,
    "published": null
   },
   {
    "date": "2025-05-31",
    "period": 3,
-   "shape": 0.96868,
+   "shape": 0.91943,
    "published": null
   },
   {
    "date": "2025-05-31",
    "period": 4,
-   "shape": 0.98452,
+   "shape": 0.93447,
    "published": null
   },
   {
    "date": "2025-05-31",
    "period": 5,
-   "shape": 0.90892,
+   "shape": 0.86271,
    "published": null
   },
   {
    "date": "2025-05-31",
    "period": 6,
-   "shape": 0.88432,
+   "shape": 0.83936,
    "published": null
   },
   {
    "date": "2025-05-31",
    "period": 7,
-   "shape": 0.84308,
+   "shape": 0.80021,
    "published": null
   },
   {
    "date": "2025-05-31",
    "period": 8,
-   "shape": 0.85313,
+   "shape": 0.80975,
    "published": null
   },
   {
    "date": "2025-05-31",
    "period": 9,
-   "shape": 0.90358,
+   "shape": 0.85764,
    "published": null
   },
   {
    "date": "2025-05-31",
    "period": 10,
-   "shape": 0.8632,
+   "shape": 0.81931,
    "published": null
   },
   {
    "date": "2025-05-31",
    "period": 11,
-   "shape": 0.8608,
+   "shape": 0.82091,
    "published": null
   },
   {
    "date": "2025-05-31",
    "period": 12,
-   "shape": 0.77142,
+   "shape": 0.76349,
    "published": null
   },
   {
    "date": "2025-05-31",
    "period": 13,
-   "shape": 0.76489,
+   "shape": 0.79176,
    "published": null
   },
   {
    "date": "2025-05-31",
    "period": 14,
-   "shape": 0.67174,
+   "shape": 0.74515,
    "published": null
   },
   {
    "date": "2025-05-31",
    "period": 15,
-   "shape": 0.59084,
+   "shape": 0.71387,
    "published": null
   },
   {
    "date": "2025-05-31",
    "period": 16,
-   "shape": 0.51961,
+   "shape": 0.71242,
    "published": null
   },
   {
    "date": "2025-05-31",
    "period": 17,
-   "shape": 0.47564,
+   "shape": 0.68792,
    "published": null
   },
   {
    "date": "2025-05-31",
    "period": 18,
-   "shape": 0.49733,
+   "shape": 0.63114,
    "published": null
   },
   {
    "date": "2025-05-31",
    "period": 19,
-   "shape": 0.51548,
+   "shape": 0.50946,
    "published": null
   },
   {
    "date": "2025-05-31",
    "period": 20,
-   "shape": 0.51062,
+   "shape": 0.43208,
    "published": null
   },
   {
    "date": "2025-05-31",
    "period": 21,
-   "shape": 0.56016,
+   "shape": 0.39244,
    "published": null
   },
   {
    "date": "2025-05-31",
    "period": 22,
-   "shape": 0.57128,
+   "shape": 0.38707,
    "published": null
   },
   {
    "date": "2025-05-31",
    "period": 23,
-   "shape": 0.51925,
+   "shape": 0.3395,
    "published": null
   },
   {
    "date": "2025-05-31",
    "period": 24,
-   "shape": 0.5217,
+   "shape": 0.33615,
    "published": null
   },
   {
    "date": "2025-05-31",
    "period": 25,
-   "shape": 0.55343,
-   "published": null
-  },
-  {
-   "date": "2025-05-31",
-   "period": 26,
-   "shape": 0.5606,
-   "published": null
-  },
-  {
-   "date": "2025-05-31",
-   "period": 27,
-   "shape": 0.5394,
-   "published": null
-  },
-  {
-   "date": "2025-05-31",
-   "period": 28,
-   "shape": 0.54543,
-   "published": null
-  },
-  {
-   "date": "2025-05-31",
-   "period": 29,
-   "shape": 0.53926,
-   "published": null
-  },
-  {
-   "date": "2025-05-31",
-   "period": 30,
-   "shape": 0.52576,
-   "published": null
-  },
-  {
-   "date": "2025-05-31",
-   "period": 31,
-   "shape": 0.37021,
-   "published": null
-  },
-  {
-   "date": "2025-05-31",
-   "period": 32,
-   "shape": 0.36023,
-   "published": null
-  },
-  {
-   "date": "2025-05-31",
-   "period": 33,
-   "shape": 0.36421,
-   "published": null
-  },
-  {
-   "date": "2025-05-31",
-   "period": 34,
-   "shape": 0.33981,
-   "published": null
-  },
-  {
-   "date": "2025-05-31",
-   "period": 35,
-   "shape": 0.33147,
-   "published": null
-  },
-  {
-   "date": "2025-05-31",
-   "period": 36,
-   "shape": 0.29966,
-   "published": null
-  },
-  {
-   "date": "2025-05-31",
-   "period": 37,
-   "shape": 0.28246,
-   "published": null
-  },
-  {
-   "date": "2025-05-31",
-   "period": 38,
-   "shape": 0.27182,
-   "published": null
-  },
-  {
-   "date": "2025-05-31",
-   "period": 39,
-   "shape": 0.26094,
-   "published": null
-  },
-  {
-   "date": "2025-05-31",
-   "period": 40,
-   "shape": 0.26054,
-   "published": null
-  },
-  {
-   "date": "2025-05-31",
-   "period": 41,
    "shape": 0.35105,
    "published": null
   },
   {
    "date": "2025-05-31",
+   "period": 26,
+   "shape": 0.34998,
+   "published": null
+  },
+  {
+   "date": "2025-05-31",
+   "period": 27,
+   "shape": 0.33094,
+   "published": null
+  },
+  {
+   "date": "2025-05-31",
+   "period": 28,
+   "shape": 0.33423,
+   "published": null
+  },
+  {
+   "date": "2025-05-31",
+   "period": 29,
+   "shape": 0.32895,
+   "published": null
+  },
+  {
+   "date": "2025-05-31",
+   "period": 30,
+   "shape": 0.32796,
+   "published": null
+  },
+  {
+   "date": "2025-05-31",
+   "period": 31,
+   "shape": 0.23563,
+   "published": null
+  },
+  {
+   "date": "2025-05-31",
+   "period": 32,
+   "shape": 0.23654,
+   "published": null
+  },
+  {
+   "date": "2025-05-31",
+   "period": 33,
+   "shape": 0.25021,
+   "published": null
+  },
+  {
+   "date": "2025-05-31",
+   "period": 34,
+   "shape": 0.24691,
+   "published": null
+  },
+  {
+   "date": "2025-05-31",
+   "period": 35,
+   "shape": 0.2509,
+   "published": null
+  },
+  {
+   "date": "2025-05-31",
+   "period": 36,
+   "shape": 0.23775,
+   "published": null
+  },
+  {
+   "date": "2025-05-31",
+   "period": 37,
+   "shape": 0.23449,
+   "published": null
+  },
+  {
+   "date": "2025-05-31",
+   "period": 38,
+   "shape": 0.23427,
+   "published": null
+  },
+  {
+   "date": "2025-05-31",
+   "period": 39,
+   "shape": 0.2812,
+   "published": null
+  },
+  {
+   "date": "2025-05-31",
+   "period": 40,
+   "shape": 0.31602,
+   "published": null
+  },
+  {
+   "date": "2025-05-31",
+   "period": 41,
+   "shape": 0.37971,
+   "published": null
+  },
+  {
+   "date": "2025-05-31",
    "period": 42,
-   "shape": 0.31597,
+   "shape": 0.31526,
    "published": null
   },
   {
    "date": "2025-05-31",
    "period": 43,
-   "shape": 0.34721,
+   "shape": 0.33036,
    "published": null
   },
   {
    "date": "2025-05-31",
    "period": 44,
-   "shape": 0.37764,
+   "shape": 0.35845,
    "published": null
   },
   {
    "date": "2025-05-31",
    "period": 45,
-   "shape": 0.36668,
+   "shape": 0.34804,
    "published": null
   },
   {
    "date": "2025-05-31",
    "period": 46,
-   "shape": 0.27822,
+   "shape": 0.26407,
    "published": null
   },
   {
    "date": "2025-05-31",
    "period": 47,
-   "shape": 0.29508,
+   "shape": 0.28008,
    "published": null
   },
   {
    "date": "2025-05-31",
    "period": 48,
-   "shape": 0.30201,
+   "shape": 0.28666,
    "published": null
   },
   {
    "date": "2025-06-01",
    "period": 1,
-   "shape": 0.30862,
+   "shape": 0.29293,
    "published": null
   },
   {
    "date": "2025-06-01",
    "period": 2,
+   "shape": 0.29977,
+   "published": null
+  },
+  {
+   "date": "2025-06-01",
+   "period": 3,
+   "shape": 0.32026,
+   "published": null
+  },
+  {
+   "date": "2025-06-01",
+   "period": 4,
+   "shape": 0.31825,
+   "published": null
+  },
+  {
+   "date": "2025-06-01",
+   "period": 5,
+   "shape": 0.3248,
+   "published": null
+  },
+  {
+   "date": "2025-06-01",
+   "period": 6,
+   "shape": 0.34089,
+   "published": null
+  },
+  {
+   "date": "2025-06-01",
+   "period": 7,
+   "shape": 0.33982,
+   "published": null
+  },
+  {
+   "date": "2025-06-01",
+   "period": 8,
+   "shape": 0.34203,
+   "published": null
+  },
+  {
+   "date": "2025-06-01",
+   "period": 9,
+   "shape": 0.35386,
+   "published": null
+  },
+  {
+   "date": "2025-06-01",
+   "period": 10,
+   "shape": 0.35711,
+   "published": null
+  },
+  {
+   "date": "2025-06-01",
+   "period": 11,
+   "shape": 0.35532,
+   "published": null
+  },
+  {
+   "date": "2025-06-01",
+   "period": 12,
+   "shape": 0.3498,
+   "published": null
+  },
+  {
+   "date": "2025-06-01",
+   "period": 13,
+   "shape": 0.36029,
+   "published": null
+  },
+  {
+   "date": "2025-06-01",
+   "period": 14,
+   "shape": 0.35373,
+   "published": null
+  },
+  {
+   "date": "2025-06-01",
+   "period": 15,
+   "shape": 0.30916,
+   "published": null
+  },
+  {
+   "date": "2025-06-01",
+   "period": 16,
+   "shape": 0.2992,
+   "published": null
+  },
+  {
+   "date": "2025-06-01",
+   "period": 17,
+   "shape": 0.32815,
+   "published": null
+  },
+  {
+   "date": "2025-06-01",
+   "period": 18,
+   "shape": 0.31995,
+   "published": null
+  },
+  {
+   "date": "2025-06-01",
+   "period": 19,
+   "shape": 0.3273,
+   "published": null
+  },
+  {
+   "date": "2025-06-01",
+   "period": 20,
+   "shape": 0.31778,
+   "published": null
+  },
+  {
+   "date": "2025-06-01",
+   "period": 21,
+   "shape": 0.34729,
+   "published": null
+  },
+  {
+   "date": "2025-06-01",
+   "period": 22,
+   "shape": 0.34263,
+   "published": null
+  },
+  {
+   "date": "2025-06-01",
+   "period": 23,
+   "shape": 0.29867,
+   "published": null
+  },
+  {
+   "date": "2025-06-01",
+   "period": 24,
+   "shape": 0.29147,
+   "published": null
+  },
+  {
+   "date": "2025-06-01",
+   "period": 25,
+   "shape": 0.36686,
+   "published": null
+  },
+  {
+   "date": "2025-06-01",
+   "period": 26,
+   "shape": 0.36223,
+   "published": null
+  },
+  {
+   "date": "2025-06-01",
+   "period": 27,
+   "shape": 0.30714,
+   "published": null
+  },
+  {
+   "date": "2025-06-01",
+   "period": 28,
+   "shape": 0.31331,
+   "published": null
+  },
+  {
+   "date": "2025-06-01",
+   "period": 29,
+   "shape": 0.31488,
+   "published": null
+  },
+  {
+   "date": "2025-06-01",
+   "period": 30,
+   "shape": 0.31228,
+   "published": null
+  },
+  {
+   "date": "2025-06-01",
+   "period": 31,
+   "shape": 0.23668,
+   "published": null
+  },
+  {
+   "date": "2025-06-01",
+   "period": 32,
+   "shape": 0.23091,
+   "published": null
+  },
+  {
+   "date": "2025-06-01",
+   "period": 33,
+   "shape": 0.23641,
+   "published": null
+  },
+  {
+   "date": "2025-06-01",
+   "period": 34,
+   "shape": 0.2346,
+   "published": null
+  },
+  {
+   "date": "2025-06-01",
+   "period": 35,
+   "shape": 0.2264,
+   "published": null
+  },
+  {
+   "date": "2025-06-01",
+   "period": 36,
+   "shape": 0.22321,
+   "published": null
+  },
+  {
+   "date": "2025-06-01",
+   "period": 37,
+   "shape": 0.22368,
+   "published": null
+  },
+  {
+   "date": "2025-06-01",
+   "period": 38,
+   "shape": 0.22231,
+   "published": null
+  },
+  {
+   "date": "2025-06-01",
+   "period": 39,
+   "shape": 0.22361,
+   "published": null
+  },
+  {
+   "date": "2025-06-01",
+   "period": 40,
+   "shape": 0.23115,
+   "published": null
+  },
+  {
+   "date": "2025-06-01",
+   "period": 41,
+   "shape": 0.23978,
+   "published": null
+  },
+  {
+   "date": "2025-06-01",
+   "period": 42,
+   "shape": 0.24381,
+   "published": null
+  },
+  {
+   "date": "2025-06-01",
+   "period": 43,
+   "shape": 0.24966,
+   "published": null
+  },
+  {
+   "date": "2025-06-01",
+   "period": 44,
+   "shape": 0.24864,
+   "published": null
+  },
+  {
+   "date": "2025-06-01",
+   "period": 45,
+   "shape": 0.2532,
+   "published": null
+  },
+  {
+   "date": "2025-06-01",
+   "period": 46,
+   "shape": 0.26075,
+   "published": null
+  },
+  {
+   "date": "2025-06-01",
+   "period": 47,
+   "shape": 0.29422,
+   "published": null
+  },
+  {
+   "date": "2025-06-01",
+   "period": 48,
+   "shape": 0.30959,
+   "published": null
+  },
+  {
+   "date": "2025-06-02",
+   "period": 1,
    "shape": 0.31582,
    "published": null
   },
   {
-   "date": "2025-06-01",
-   "period": 3,
-   "shape": 0.33742,
-   "published": null
-  },
-  {
-   "date": "2025-06-01",
-   "period": 4,
-   "shape": 0.3353,
-   "published": null
-  },
-  {
-   "date": "2025-06-01",
-   "period": 5,
-   "shape": 0.3422,
-   "published": null
-  },
-  {
-   "date": "2025-06-01",
-   "period": 6,
-   "shape": 0.35915,
-   "published": null
-  },
-  {
-   "date": "2025-06-01",
-   "period": 7,
-   "shape": 0.35802,
-   "published": null
-  },
-  {
-   "date": "2025-06-01",
-   "period": 8,
-   "shape": 0.36035,
-   "published": null
-  },
-  {
-   "date": "2025-06-01",
-   "period": 9,
-   "shape": 0.37281,
-   "published": null
-  },
-  {
-   "date": "2025-06-01",
-   "period": 10,
-   "shape": 0.37624,
-   "published": null
-  },
-  {
-   "date": "2025-06-01",
-   "period": 11,
-   "shape": 0.37594,
-   "published": null
-  },
-  {
-   "date": "2025-06-01",
-   "period": 12,
-   "shape": 0.37796,
-   "published": null
-  },
-  {
-   "date": "2025-06-01",
-   "period": 13,
-   "shape": 0.40058,
-   "published": null
-  },
-  {
-   "date": "2025-06-01",
-   "period": 14,
-   "shape": 0.40856,
-   "published": null
-  },
-  {
-   "date": "2025-06-01",
-   "period": 15,
-   "shape": 0.3725,
-   "published": null
-  },
-  {
-   "date": "2025-06-01",
-   "period": 16,
-   "shape": 0.3792,
-   "published": null
-  },
-  {
-   "date": "2025-06-01",
-   "period": 17,
-   "shape": 0.43333,
-   "published": null
-  },
-  {
-   "date": "2025-06-01",
-   "period": 18,
-   "shape": 0.44305,
-   "published": null
-  },
-  {
-   "date": "2025-06-01",
-   "period": 19,
-   "shape": 0.4699,
-   "published": null
-  },
-  {
-   "date": "2025-06-01",
-   "period": 20,
-   "shape": 0.46862,
-   "published": null
-  },
-  {
-   "date": "2025-06-01",
-   "period": 21,
-   "shape": 0.52655,
-   "published": null
-  },
-  {
-   "date": "2025-06-01",
-   "period": 22,
-   "shape": 0.52579,
-   "published": null
-  },
-  {
-   "date": "2025-06-01",
-   "period": 23,
-   "shape": 0.47218,
-   "published": null
-  },
-  {
-   "date": "2025-06-01",
-   "period": 24,
-   "shape": 0.46876,
-   "published": null
-  },
-  {
-   "date": "2025-06-01",
-   "period": 25,
-   "shape": 0.584,
-   "published": null
-  },
-  {
-   "date": "2025-06-01",
-   "period": 26,
-   "shape": 0.58365,
-   "published": null
-  },
-  {
-   "date": "2025-06-01",
-   "period": 27,
-   "shape": 0.50915,
-   "published": null
-  },
-  {
-   "date": "2025-06-01",
-   "period": 28,
-   "shape": 0.5208,
-   "published": null
-  },
-  {
-   "date": "2025-06-01",
-   "period": 29,
-   "shape": 0.50247,
-   "published": null
-  },
-  {
-   "date": "2025-06-01",
-   "period": 30,
-   "shape": 0.48759,
-   "published": null
-  },
-  {
-   "date": "2025-06-01",
-   "period": 31,
-   "shape": 0.36194,
-   "published": null
-  },
-  {
-   "date": "2025-06-01",
-   "period": 32,
-   "shape": 0.34858,
-   "published": null
-  },
-  {
-   "date": "2025-06-01",
-   "period": 33,
-   "shape": 0.33508,
-   "published": null
-  },
-  {
-   "date": "2025-06-01",
-   "period": 34,
-   "shape": 0.32072,
-   "published": null
-  },
-  {
-   "date": "2025-06-01",
-   "period": 35,
-   "shape": 0.29524,
-   "published": null
-  },
-  {
-   "date": "2025-06-01",
-   "period": 36,
-   "shape": 0.27764,
-   "published": null
-  },
-  {
-   "date": "2025-06-01",
-   "period": 37,
-   "shape": 0.26735,
-   "published": null
-  },
-  {
-   "date": "2025-06-01",
-   "period": 38,
-   "shape": 0.25728,
-   "published": null
-  },
-  {
-   "date": "2025-06-01",
-   "period": 39,
-   "shape": 0.25178,
-   "published": null
-  },
-  {
-   "date": "2025-06-01",
-   "period": 40,
-   "shape": 0.25468,
-   "published": null
-  },
-  {
-   "date": "2025-06-01",
-   "period": 41,
-   "shape": 0.25855,
-   "published": null
-  },
-  {
-   "date": "2025-06-01",
-   "period": 42,
-   "shape": 0.25876,
-   "published": null
-  },
-  {
-   "date": "2025-06-01",
-   "period": 43,
-   "shape": 0.26314,
-   "published": null
-  },
-  {
-   "date": "2025-06-01",
-   "period": 44,
-   "shape": 0.26196,
-   "published": null
-  },
-  {
-   "date": "2025-06-01",
-   "period": 45,
-   "shape": 0.26676,
-   "published": null
-  },
-  {
-   "date": "2025-06-01",
-   "period": 46,
-   "shape": 0.27472,
-   "published": null
-  },
-  {
-   "date": "2025-06-01",
-   "period": 47,
-   "shape": 0.30998,
-   "published": null
-  },
-  {
-   "date": "2025-06-01",
-   "period": 48,
-   "shape": 0.32617,
-   "published": null
-  },
-  {
-   "date": "2025-06-02",
-   "period": 1,
-   "shape": 0.33274,
-   "published": null
-  },
-  {
    "date": "2025-06-02",
    "period": 2,
-   "shape": 0.33647,
+   "shape": 0.31936,
    "published": null
   },
   {
    "date": "2025-06-02",
    "period": 3,
-   "shape": 0.33899,
+   "shape": 0.32175,
    "published": null
   },
   {
    "date": "2025-06-02",
    "period": 4,
-   "shape": 0.342,
+   "shape": 0.32461,
    "published": null
   },
   {
    "date": "2025-06-02",
    "period": 5,
-   "shape": 0.34695,
+   "shape": 0.32931,
    "published": null
   },
   {
    "date": "2025-06-02",
    "period": 6,
-   "shape": 0.35473,
+   "shape": 0.3367,
    "published": null
   },
   {
    "date": "2025-06-02",
    "period": 7,
-   "shape": 0.35893,
+   "shape": 0.34068,
    "published": null
   },
   {
    "date": "2025-06-02",
    "period": 8,
-   "shape": 0.36151,
+   "shape": 0.34313,
    "published": null
   },
   {
    "date": "2025-06-02",
    "period": 9,
-   "shape": 0.36566,
+   "shape": 0.34707,
    "published": null
   },
   {
    "date": "2025-06-02",
    "period": 10,
-   "shape": 0.36989,
+   "shape": 0.35108,
    "published": null
   },
   {
    "date": "2025-06-02",
    "period": 11,
-   "shape": 0.36514,
+   "shape": 0.34523,
    "published": null
   },
   {
    "date": "2025-06-02",
    "period": 12,
-   "shape": 0.35608,
+   "shape": 0.32992,
    "published": null
   },
   {
    "date": "2025-06-02",
    "period": 13,
-   "shape": 0.32305,
+   "shape": 0.29252,
    "published": null
   },
   {
    "date": "2025-06-02",
    "period": 14,
-   "shape": 0.31064,
+   "shape": 0.40941,
    "published": null
   },
   {
    "date": "2025-06-02",
    "period": 15,
-   "shape": 0.41708,
+   "shape": 0.57005,
    "published": null
   },
   {
    "date": "2025-06-02",
    "period": 16,
-   "shape": 0.41884,
+   "shape": 0.62193,
    "published": null
   },
   {
    "date": "2025-06-02",
    "period": 17,
-   "shape": 0.38031,
+   "shape": 0.63276,
    "published": null
   },
   {
    "date": "2025-06-02",
    "period": 18,
-   "shape": 0.38843,
+   "shape": 0.6471,
    "published": null
   },
   {
    "date": "2025-06-02",
    "period": 19,
-   "shape": 0.51444,
+   "shape": 0.70672,
    "published": null
   },
   {
    "date": "2025-06-02",
    "period": 20,
-   "shape": 0.45527,
+   "shape": 0.69899,
    "published": null
   },
   {
    "date": "2025-06-02",
    "period": 21,
-   "shape": 0.54066,
+   "shape": 0.69991,
    "published": null
   },
   {
    "date": "2025-06-02",
    "period": 22,
-   "shape": 0.54953,
+   "shape": 0.67647,
    "published": null
   },
   {
    "date": "2025-06-02",
    "period": 23,
-   "shape": 0.56178,
+   "shape": 0.6475,
    "published": null
   },
   {
    "date": "2025-06-02",
    "period": 24,
-   "shape": 0.5646,
+   "shape": 0.60707,
    "published": null
   },
   {
    "date": "2025-06-02",
    "period": 25,
-   "shape": 0.56541,
+   "shape": 0.56722,
    "published": null
   },
   {
    "date": "2025-06-02",
    "period": 26,
-   "shape": 0.5692,
+   "shape": 0.50697,
    "published": null
   },
   {
    "date": "2025-06-02",
    "period": 27,
-   "shape": 0.46844,
+   "shape": 0.42061,
    "published": null
   },
   {
    "date": "2025-06-02",
    "period": 28,
-   "shape": 0.45627,
+   "shape": 0.36457,
    "published": null
   },
   {
    "date": "2025-06-02",
    "period": 29,
-   "shape": 0.41448,
+   "shape": 0.27061,
    "published": null
   },
   {
    "date": "2025-06-02",
    "period": 30,
-   "shape": 0.4244,
+   "shape": 0.26763,
    "published": null
   },
   {
    "date": "2025-06-02",
    "period": 31,
-   "shape": 0.44105,
+   "shape": 0.28071,
    "published": null
   },
   {
    "date": "2025-06-02",
    "period": 32,
-   "shape": 0.43241,
+   "shape": 0.28366,
    "published": null
   },
   {
    "date": "2025-06-02",
    "period": 33,
-   "shape": 0.4609,
+   "shape": 0.30886,
    "published": null
   },
   {
    "date": "2025-06-02",
    "period": 34,
-   "shape": 0.41571,
+   "shape": 0.29267,
    "published": null
   },
   {
    "date": "2025-06-02",
    "period": 35,
-   "shape": 0.3987,
+   "shape": 0.29428,
    "published": null
   },
   {
    "date": "2025-06-02",
    "period": 36,
-   "shape": 0.40124,
+   "shape": 0.35096,
    "published": null
   },
   {
    "date": "2025-06-02",
    "period": 37,
-   "shape": 0.39712,
+   "shape": 0.42948,
    "published": null
   },
   {
    "date": "2025-06-02",
    "period": 38,
-   "shape": 0.38889,
+   "shape": 0.44155,
    "published": null
   },
   {
    "date": "2025-06-02",
    "period": 39,
-   "shape": 0.37967,
+   "shape": 0.40786,
    "published": null
   },
   {
    "date": "2025-06-02",
    "period": 40,
-   "shape": 0.37254,
+   "shape": 0.37145,
    "published": null
   },
   {
    "date": "2025-06-02",
    "period": 41,
-   "shape": 0.35263,
+   "shape": 0.34146,
    "published": null
   },
   {
    "date": "2025-06-02",
    "period": 42,
-   "shape": 0.33927,
+   "shape": 0.3201,
    "published": null
   },
   {
    "date": "2025-06-02",
    "period": 43,
-   "shape": 0.34329,
+   "shape": 0.32574,
    "published": null
   },
   {
    "date": "2025-06-02",
    "period": 44,
-   "shape": 0.31847,
+   "shape": 0.30228,
    "published": null
   },
   {
    "date": "2025-06-02",
    "period": 45,
-   "shape": 0.29409,
+   "shape": 0.27914,
    "published": null
   },
   {
    "date": "2025-06-02",
    "period": 46,
-   "shape": 0.25572,
+   "shape": 0.24272,
    "published": null
   },
   {
    "date": "2025-06-02",
    "period": 47,
-   "shape": 0.25535,
+   "shape": 0.24237,
    "published": null
   },
   {
    "date": "2025-06-02",
    "period": 48,
-   "shape": 0.2679,
+   "shape": 0.25428,
    "published": null
   },
   {
    "date": "2025-06-03",
    "period": 1,
-   "shape": 0.27579,
+   "shape": 0.26177,
    "published": null
   },
   {
    "date": "2025-06-03",
    "period": 2,
-   "shape": 0.29355,
+   "shape": 0.27863,
    "published": null
   },
   {
    "date": "2025-06-03",
    "period": 3,
-   "shape": 0.2892,
+   "shape": 0.27449,
    "published": null
   },
   {
    "date": "2025-06-03",
    "period": 4,
-   "shape": 0.29238,
+   "shape": 0.27752,
    "published": null
   },
   {
    "date": "2025-06-03",
    "period": 5,
-   "shape": 0.29438,
+   "shape": 0.27941,
    "published": null
   },
   {
    "date": "2025-06-03",
    "period": 6,
-   "shape": 0.30505,
+   "shape": 0.28954,
    "published": null
   },
   {
    "date": "2025-06-03",
    "period": 7,
-   "shape": 0.31219,
+   "shape": 0.29631,
    "published": null
   },
   {
    "date": "2025-06-03",
    "period": 8,
-   "shape": 0.3132,
+   "shape": 0.29728,
    "published": null
   },
   {
    "date": "2025-06-03",
    "period": 9,
-   "shape": 0.32232,
+   "shape": 0.30593,
    "published": null
   },
   {
    "date": "2025-06-03",
    "period": 10,
-   "shape": 0.32288,
+   "shape": 0.30646,
    "published": null
   },
   {
    "date": "2025-06-03",
    "period": 11,
-   "shape": 0.30764,
+   "shape": 0.29125,
    "published": null
   },
   {
    "date": "2025-06-03",
    "period": 12,
-   "shape": 0.30252,
+   "shape": 0.28331,
    "published": null
   },
   {
    "date": "2025-06-03",
    "period": 13,
-   "shape": 0.29077,
+   "shape": 0.26921,
    "published": null
   },
   {
    "date": "2025-06-03",
    "period": 14,
-   "shape": 0.26791,
+   "shape": 0.24508,
    "published": null
   },
   {
    "date": "2025-06-03",
    "period": 15,
-   "shape": 0.2446,
+   "shape": 0.22086,
    "published": null
   },
   {
    "date": "2025-06-03",
    "period": 16,
-   "shape": 0.23588,
+   "shape": 0.20928,
    "published": null
   },
   {
    "date": "2025-06-03",
    "period": 17,
+   "shape": 0.21462,
+   "published": null
+  },
+  {
+   "date": "2025-06-03",
+   "period": 18,
+   "shape": 0.2115,
+   "published": null
+  },
+  {
+   "date": "2025-06-03",
+   "period": 19,
+   "shape": 0.25744,
+   "published": null
+  },
+  {
+   "date": "2025-06-03",
+   "period": 20,
+   "shape": 0.25562,
+   "published": null
+  },
+  {
+   "date": "2025-06-03",
+   "period": 21,
+   "shape": 0.27782,
+   "published": null
+  },
+  {
+   "date": "2025-06-03",
+   "period": 22,
+   "shape": 0.27547,
+   "published": null
+  },
+  {
+   "date": "2025-06-03",
+   "period": 23,
+   "shape": 0.28152,
+   "published": null
+  },
+  {
+   "date": "2025-06-03",
+   "period": 24,
+   "shape": 0.27647,
+   "published": null
+  },
+  {
+   "date": "2025-06-03",
+   "period": 25,
+   "shape": 0.22845,
+   "published": null
+  },
+  {
+   "date": "2025-06-03",
+   "period": 26,
+   "shape": 0.22968,
+   "published": null
+  },
+  {
+   "date": "2025-06-03",
+   "period": 27,
+   "shape": 0.19315,
+   "published": null
+  },
+  {
+   "date": "2025-06-03",
+   "period": 28,
+   "shape": 0.1944,
+   "published": null
+  },
+  {
+   "date": "2025-06-03",
+   "period": 29,
+   "shape": 0.19255,
+   "published": null
+  },
+  {
+   "date": "2025-06-03",
+   "period": 30,
+   "shape": 0.19529,
+   "published": null
+  },
+  {
+   "date": "2025-06-03",
+   "period": 31,
+   "shape": 0.18918,
+   "published": null
+  },
+  {
+   "date": "2025-06-03",
+   "period": 32,
+   "shape": 0.19025,
+   "published": null
+  },
+  {
+   "date": "2025-06-03",
+   "period": 33,
+   "shape": 0.21687,
+   "published": null
+  },
+  {
+   "date": "2025-06-03",
+   "period": 34,
+   "shape": 0.21558,
+   "published": null
+  },
+  {
+   "date": "2025-06-03",
+   "period": 35,
+   "shape": 0.21872,
+   "published": null
+  },
+  {
+   "date": "2025-06-03",
+   "period": 36,
+   "shape": 0.2171,
+   "published": null
+  },
+  {
+   "date": "2025-06-03",
+   "period": 37,
+   "shape": 0.21801,
+   "published": null
+  },
+  {
+   "date": "2025-06-03",
+   "period": 38,
+   "shape": 0.22277,
+   "published": null
+  },
+  {
+   "date": "2025-06-03",
+   "period": 39,
+   "shape": 0.22432,
+   "published": null
+  },
+  {
+   "date": "2025-06-03",
+   "period": 40,
+   "shape": 0.22903,
+   "published": null
+  },
+  {
+   "date": "2025-06-03",
+   "period": 41,
+   "shape": 0.23815,
+   "published": null
+  },
+  {
+   "date": "2025-06-03",
+   "period": 42,
    "shape": 0.24573,
    "published": null
   },
   {
    "date": "2025-06-03",
-   "period": 18,
-   "shape": 0.24634,
-   "published": null
-  },
-  {
-   "date": "2025-06-03",
-   "period": 19,
-   "shape": 0.30695,
-   "published": null
-  },
-  {
-   "date": "2025-06-03",
-   "period": 20,
-   "shape": 0.31205,
-   "published": null
-  },
-  {
-   "date": "2025-06-03",
-   "period": 21,
-   "shape": 0.34944,
-   "published": null
-  },
-  {
-   "date": "2025-06-03",
-   "period": 22,
-   "shape": 0.35814,
-   "published": null
-  },
-  {
-   "date": "2025-06-03",
-   "period": 23,
-   "shape": 0.37894,
-   "published": null
-  },
-  {
-   "date": "2025-06-03",
-   "period": 24,
-   "shape": 0.38283,
-   "published": null
-  },
-  {
-   "date": "2025-06-03",
-   "period": 25,
-   "shape": 0.32491,
-   "published": null
-  },
-  {
-   "date": "2025-06-03",
-   "period": 26,
-   "shape": 0.33374,
-   "published": null
-  },
-  {
-   "date": "2025-06-03",
-   "period": 27,
-   "shape": 0.28623,
-   "published": null
-  },
-  {
-   "date": "2025-06-03",
-   "period": 28,
-   "shape": 0.29034,
-   "published": null
-  },
-  {
-   "date": "2025-06-03",
-   "period": 29,
-   "shape": 0.28959,
-   "published": null
-  },
-  {
-   "date": "2025-06-03",
-   "period": 30,
-   "shape": 0.29062,
-   "published": null
-  },
-  {
-   "date": "2025-06-03",
-   "period": 31,
-   "shape": 0.27658,
-   "published": null
-  },
-  {
-   "date": "2025-06-03",
-   "period": 32,
-   "shape": 0.26819,
-   "published": null
-  },
-  {
-   "date": "2025-06-03",
-   "period": 33,
-   "shape": 0.2932,
-   "published": null
-  },
-  {
-   "date": "2025-06-03",
-   "period": 34,
-   "shape": 0.28171,
-   "published": null
-  },
-  {
-   "date": "2025-06-03",
-   "period": 35,
-   "shape": 0.27386,
-   "published": null
-  },
-  {
-   "date": "2025-06-03",
-   "period": 36,
-   "shape": 0.26399,
-   "published": null
-  },
-  {
-   "date": "2025-06-03",
-   "period": 37,
-   "shape": 0.25663,
-   "published": null
-  },
-  {
-   "date": "2025-06-03",
-   "period": 38,
-   "shape": 0.2556,
-   "published": null
-  },
-  {
-   "date": "2025-06-03",
-   "period": 39,
-   "shape": 0.25086,
-   "published": null
-  },
-  {
-   "date": "2025-06-03",
-   "period": 40,
-   "shape": 0.25037,
-   "published": null
-  },
-  {
-   "date": "2025-06-03",
-   "period": 41,
-   "shape": 0.25538,
-   "published": null
-  },
-  {
-   "date": "2025-06-03",
-   "period": 42,
-   "shape": 0.26017,
-   "published": null
-  },
-  {
-   "date": "2025-06-03",
    "period": 43,
-   "shape": 0.32455,
+   "shape": 0.30878,
    "published": null
   },
   {
    "date": "2025-06-03",
    "period": 44,
-   "shape": 0.33847,
+   "shape": 0.32126,
    "published": null
   },
   {
    "date": "2025-06-03",
    "period": 45,
-   "shape": 0.27474,
+   "shape": 0.26078,
    "published": null
   },
   {
    "date": "2025-06-03",
    "period": 46,
-   "shape": 0.2833,
+   "shape": 0.2689,
    "published": null
   },
   {
    "date": "2025-06-03",
    "period": 47,
-   "shape": 0.3033,
+   "shape": 0.28788,
    "published": null
   },
   {
    "date": "2025-06-03",
    "period": 48,
-   "shape": 0.31729,
+   "shape": 0.30116,
    "published": null
   },
   {
    "date": "2025-06-04",
    "period": 1,
-   "shape": 0.3289,
+   "shape": 0.31218,
    "published": null
   },
   {
    "date": "2025-06-04",
    "period": 2,
-   "shape": 0.33269,
+   "shape": 0.31578,
    "published": null
   },
   {
    "date": "2025-06-04",
    "period": 3,
-   "shape": 0.33026,
+   "shape": 0.31347,
    "published": null
   },
   {
    "date": "2025-06-04",
    "period": 4,
-   "shape": 0.33393,
+   "shape": 0.31696,
    "published": null
   },
   {
    "date": "2025-06-04",
    "period": 5,
-   "shape": 0.34784,
+   "shape": 0.33016,
    "published": null
   },
   {
    "date": "2025-06-04",
    "period": 6,
-   "shape": 0.35123,
+   "shape": 0.33337,
    "published": null
   },
   {
    "date": "2025-06-04",
    "period": 7,
-   "shape": 0.35825,
+   "shape": 0.34004,
    "published": null
   },
   {
    "date": "2025-06-04",
    "period": 8,
-   "shape": 0.36087,
+   "shape": 0.34253,
    "published": null
   },
   {
    "date": "2025-06-04",
    "period": 9,
-   "shape": 0.3605,
+   "shape": 0.34218,
    "published": null
   },
   {
    "date": "2025-06-04",
    "period": 10,
-   "shape": 0.36544,
+   "shape": 0.34686,
    "published": null
   },
   {
    "date": "2025-06-04",
    "period": 11,
-   "shape": 0.36306,
+   "shape": 0.34348,
    "published": null
   },
   {
    "date": "2025-06-04",
    "period": 12,
-   "shape": 0.35547,
+   "shape": 0.33081,
    "published": null
   },
   {
    "date": "2025-06-04",
    "period": 13,
-   "shape": 0.33164,
+   "shape": 0.30162,
    "published": null
   },
   {
    "date": "2025-06-04",
    "period": 14,
-   "shape": 0.3143,
+   "shape": 0.27784,
    "published": null
   },
   {
    "date": "2025-06-04",
    "period": 15,
-   "shape": 0.2937,
+   "shape": 0.25246,
    "published": null
   },
   {
    "date": "2025-06-04",
    "period": 16,
-   "shape": 0.28842,
+   "shape": 0.23968,
    "published": null
   },
   {
    "date": "2025-06-04",
    "period": 17,
-   "shape": 0.28405,
+   "shape": 0.22915,
    "published": null
   },
   {
    "date": "2025-06-04",
    "period": 18,
-   "shape": 0.2905,
+   "shape": 0.22612,
    "published": null
   },
   {
    "date": "2025-06-04",
    "period": 19,
-   "shape": 0.29835,
+   "shape": 0.22421,
    "published": null
   },
   {
    "date": "2025-06-04",
    "period": 20,
-   "shape": 0.30387,
+   "shape": 0.22058,
    "published": null
   },
   {
    "date": "2025-06-04",
    "period": 21,
-   "shape": 0.30918,
+   "shape": 0.21834,
    "published": null
   },
   {
    "date": "2025-06-04",
    "period": 22,
-   "shape": 0.3161,
+   "shape": 0.21826,
    "published": null
   },
   {
    "date": "2025-06-04",
    "period": 23,
-   "shape": 0.32183,
+   "shape": 0.21663,
    "published": null
   },
   {
    "date": "2025-06-04",
    "period": 24,
-   "shape": 0.32365,
+   "shape": 0.21518,
    "published": null
   },
   {
    "date": "2025-06-04",
    "period": 25,
-   "shape": 0.34632,
+   "shape": 0.22844,
    "published": null
   },
   {
    "date": "2025-06-04",
    "period": 26,
-   "shape": 0.34569,
+   "shape": 0.22735,
    "published": null
   },
   {
    "date": "2025-06-04",
    "period": 27,
-   "shape": 0.33505,
+   "shape": 0.21806,
    "published": null
   },
   {
    "date": "2025-06-04",
    "period": 28,
-   "shape": 0.33875,
+   "shape": 0.21908,
    "published": null
   },
   {
    "date": "2025-06-04",
    "period": 29,
-   "shape": 0.34579,
+   "shape": 0.22412,
    "published": null
   },
   {
    "date": "2025-06-04",
    "period": 30,
-   "shape": 0.34369,
+   "shape": 0.22614,
    "published": null
   },
   {
    "date": "2025-06-04",
    "period": 31,
-   "shape": 0.34723,
+   "shape": 0.23073,
    "published": null
   },
   {
    "date": "2025-06-04",
    "period": 32,
-   "shape": 0.33665,
+   "shape": 0.23074,
    "published": null
   },
   {
    "date": "2025-06-04",
    "period": 33,
-   "shape": 0.31818,
+   "shape": 0.22688,
    "published": null
   },
   {
    "date": "2025-06-04",
    "period": 34,
-   "shape": 0.30658,
+   "shape": 0.22734,
    "published": null
   },
   {
    "date": "2025-06-04",
    "period": 35,
-   "shape": 0.28474,
+   "shape": 0.22235,
    "published": null
   },
   {
    "date": "2025-06-04",
    "period": 36,
-   "shape": 0.27313,
+   "shape": 0.22179,
    "published": null
   },
   {
    "date": "2025-06-04",
    "period": 37,
-   "shape": 0.26262,
+   "shape": 0.26691,
    "published": null
   },
   {
    "date": "2025-06-04",
    "period": 38,
-   "shape": 0.25561,
+   "shape": 0.3263,
    "published": null
   },
   {
    "date": "2025-06-04",
    "period": 39,
-   "shape": 0.28435,
+   "shape": 0.40676,
    "published": null
   },
   {
    "date": "2025-06-04",
    "period": 40,
-   "shape": 0.36502,
+   "shape": 0.42832,
    "published": null
   },
   {
    "date": "2025-06-04",
    "period": 41,
-   "shape": 0.48198,
+   "shape": 0.49476,
    "published": null
   },
   {
    "date": "2025-06-04",
    "period": 42,
-   "shape": 0.50376,
+   "shape": 0.48734,
    "published": null
   },
   {
    "date": "2025-06-04",
    "period": 43,
-   "shape": 0.50065,
+   "shape": 0.47579,
    "published": null
   },
   {
    "date": "2025-06-04",
    "period": 44,
-   "shape": 0.4616,
+   "shape": 0.43813,
    "published": null
   },
   {
    "date": "2025-06-04",
    "period": 45,
-   "shape": 0.41547,
+   "shape": 0.39435,
    "published": null
   },
   {
    "date": "2025-06-04",
    "period": 46,
-   "shape": 0.2782,
+   "shape": 0.26406,
    "published": null
   },
   {
    "date": "2025-06-04",
    "period": 47,
-   "shape": 0.29153,
+   "shape": 0.27671,
    "published": null
   },
   {
    "date": "2025-06-04",
    "period": 48,
-   "shape": 0.30515,
+   "shape": 0.28964,
    "published": null
   },
   {
    "date": "2025-06-05",
    "period": 1,
-   "shape": 0.31486,
+   "shape": 0.29885,
    "published": null
   },
   {
    "date": "2025-06-05",
    "period": 2,
-   "shape": 0.32377,
+   "shape": 0.30731,
    "published": null
   },
   {
    "date": "2025-06-05",
    "period": 3,
-   "shape": 0.32815,
+   "shape": 0.31146,
    "published": null
   },
   {
    "date": "2025-06-05",
    "period": 4,
-   "shape": 0.32583,
+   "shape": 0.30926,
    "published": null
   },
   {
    "date": "2025-06-05",
    "period": 5,
-   "shape": 0.33491,
+   "shape": 0.31788,
    "published": null
   },
   {
    "date": "2025-06-05",
    "period": 6,
-   "shape": 0.3425,
+   "shape": 0.32508,
    "published": null
   },
   {
    "date": "2025-06-05",
    "period": 7,
-   "shape": 0.34602,
+   "shape": 0.32843,
    "published": null
   },
   {
    "date": "2025-06-05",
    "period": 8,
-   "shape": 0.35027,
+   "shape": 0.33246,
    "published": null
   },
   {
    "date": "2025-06-05",
    "period": 9,
-   "shape": 0.34936,
+   "shape": 0.33159,
    "published": null
   },
   {
    "date": "2025-06-05",
    "period": 10,
-   "shape": 0.35187,
+   "shape": 0.33398,
    "published": null
   },
   {
    "date": "2025-06-05",
    "period": 11,
-   "shape": 0.34383,
+   "shape": 0.32594,
    "published": null
   },
   {
    "date": "2025-06-05",
    "period": 12,
-   "shape": 0.33073,
+   "shape": 0.31212,
    "published": null
   },
   {
    "date": "2025-06-05",
    "period": 13,
-   "shape": 0.29691,
+   "shape": 0.27849,
    "published": null
   },
   {
    "date": "2025-06-05",
    "period": 14,
-   "shape": 0.28474,
+   "shape": 0.32018,
    "published": null
   },
   {
    "date": "2025-06-05",
    "period": 15,
-   "shape": 0.53921,
+   "shape": 0.58043,
    "published": null
   },
   {
    "date": "2025-06-05",
    "period": 16,
-   "shape": 0.5654,
+   "shape": 0.63353,
    "published": null
   },
   {
    "date": "2025-06-05",
    "period": 17,
-   "shape": 0.58501,
+   "shape": 0.67529,
    "published": null
   },
   {
    "date": "2025-06-05",
    "period": 18,
-   "shape": 0.5425,
+   "shape": 0.66864,
    "published": null
   },
   {
    "date": "2025-06-05",
    "period": 19,
-   "shape": 0.50931,
+   "shape": 0.66775,
    "published": null
   },
   {
    "date": "2025-06-05",
    "period": 20,
-   "shape": 0.44706,
+   "shape": 0.65196,
    "published": null
   },
   {
    "date": "2025-06-05",
    "period": 21,
-   "shape": 0.44489,
+   "shape": 0.60144,
    "published": null
   },
   {
    "date": "2025-06-05",
    "period": 22,
-   "shape": 0.44707,
+   "shape": 0.58109,
    "published": null
   },
   {
    "date": "2025-06-05",
    "period": 23,
-   "shape": 0.44458,
+   "shape": 0.56659,
    "published": null
   },
   {
    "date": "2025-06-05",
    "period": 24,
-   "shape": 0.45274,
+   "shape": 0.53451,
    "published": null
   },
   {
    "date": "2025-06-05",
    "period": 25,
-   "shape": 0.45207,
+   "shape": 0.51758,
    "published": null
   },
   {
    "date": "2025-06-05",
    "period": 26,
-   "shape": 0.45768,
+   "shape": 0.46123,
    "published": null
   },
   {
    "date": "2025-06-05",
    "period": 27,
-   "shape": 0.46175,
+   "shape": 0.41262,
    "published": null
   },
   {
    "date": "2025-06-05",
    "period": 28,
-   "shape": 0.47289,
+   "shape": 0.39389,
    "published": null
   },
   {
    "date": "2025-06-05",
    "period": 29,
-   "shape": 0.4833,
+   "shape": 0.37688,
    "published": null
   },
   {
    "date": "2025-06-05",
    "period": 30,
-   "shape": 0.49601,
+   "shape": 0.38931,
    "published": null
   },
   {
    "date": "2025-06-05",
    "period": 31,
-   "shape": 0.5048,
+   "shape": 0.39143,
    "published": null
   },
   {
    "date": "2025-06-05",
    "period": 32,
-   "shape": 0.48914,
+   "shape": 0.45721,
    "published": null
   },
   {
    "date": "2025-06-05",
    "period": 33,
-   "shape": 0.46208,
+   "shape": 0.57339,
    "published": null
   },
   {
    "date": "2025-06-05",
    "period": 34,
-   "shape": 0.44319,
+   "shape": 0.67228,
    "published": null
   },
   {
    "date": "2025-06-05",
    "period": 35,
-   "shape": 0.55955,
+   "shape": 0.72977,
    "published": null
   },
   {
    "date": "2025-06-05",
    "period": 36,
-   "shape": 0.70052,
+   "shape": 0.81454,
    "published": null
   },
   {
    "date": "2025-06-05",
    "period": 37,
-   "shape": 0.78314,
+   "shape": 0.85846,
    "published": null
   },
   {
    "date": "2025-06-05",
    "period": 38,
-   "shape": 0.89235,
+   "shape": 0.92524,
    "published": null
   },
   {
    "date": "2025-06-05",
    "period": 40,
-   "shape": 1.09379,
+   "shape": 1.06901,
    "published": null
   },
   {
    "date": "2025-06-05",
    "period": 41,
-   "shape": 1.12982,
+   "shape": 1.08954,
    "published": null
   },
   {
    "date": "2025-06-05",
    "period": 42,
-   "shape": 1.13645,
+   "shape": 1.08527,
    "published": null
   },
   {
    "date": "2025-06-05",
    "period": 43,
-   "shape": 1.21561,
+   "shape": 1.15443,
    "published": null
   },
   {
    "date": "2025-06-05",
    "period": 44,
-   "shape": 1.20215,
+   "shape": 1.14103,
    "published": null
   },
   {
    "date": "2025-06-05",
    "period": 45,
-   "shape": 1.15953,
+   "shape": 1.10058,
    "published": null
   },
   {
    "date": "2025-06-05",
    "period": 46,
-   "shape": 1.05399,
+   "shape": 1.00041,
    "published": null
   },
   {
    "date": "2025-06-05",
    "period": 47,
-   "shape": 0.85088,
+   "shape": 0.80762,
    "published": null
   },
   {
    "date": "2025-06-05",
    "period": 48,
-   "shape": 0.75243,
+   "shape": 0.71418,
    "published": null
   },
   {
    "date": "2025-06-06",
    "period": 1,
-   "shape": 0.65579,
+   "shape": 0.62245,
    "published": null
   },
   {
    "date": "2025-06-06",
    "period": 2,
-   "shape": 0.59371,
+   "shape": 0.56353,
    "published": null
   },
   {
    "date": "2025-06-06",
    "period": 3,
-   "shape": 0.54505,
+   "shape": 0.51734,
    "published": null
   },
   {
    "date": "2025-06-06",
    "period": 4,
-   "shape": 0.55121,
+   "shape": 0.52318,
    "published": null
   },
   {
    "date": "2025-06-06",
    "period": 5,
-   "shape": 0.52607,
+   "shape": 0.49933,
    "published": null
   },
   {
    "date": "2025-06-06",
    "period": 6,
-   "shape": 0.52974,
+   "shape": 0.50281,
    "published": null
   },
   {
    "date": "2025-06-06",
    "period": 7,
-   "shape": 0.4245,
+   "shape": 0.40292,
    "published": null
   },
   {
    "date": "2025-06-06",
    "period": 8,
-   "shape": 0.42975,
+   "shape": 0.4079,
    "published": null
   },
   {
    "date": "2025-06-06",
    "period": 9,
-   "shape": 0.4586,
+   "shape": 0.43529,
    "published": null
   },
   {
    "date": "2025-06-06",
    "period": 10,
-   "shape": 0.46682,
+   "shape": 0.44309,
    "published": null
   },
   {
    "date": "2025-06-06",
    "period": 11,
-   "shape": 0.53841,
+   "shape": 0.50963,
    "published": null
   },
   {
    "date": "2025-06-06",
    "period": 12,
-   "shape": 0.53179,
+   "shape": 0.49752,
    "published": null
   },
   {
    "date": "2025-06-06",
    "period": 13,
-   "shape": 0.55119,
+   "shape": 0.58258,
    "published": null
   },
   {
    "date": "2025-06-06",
    "period": 14,
-   "shape": 0.66665,
+   "shape": 0.72659,
    "published": null
   },
   {
    "date": "2025-06-06",
    "period": 15,
-   "shape": 0.7241,
+   "shape": 0.81604,
    "published": null
   },
   {
    "date": "2025-06-06",
    "period": 16,
-   "shape": 0.72235,
+   "shape": 0.8613,
    "published": null
   },
   {
    "date": "2025-06-06",
    "period": 17,
-   "shape": 0.65398,
+   "shape": 0.85743,
    "published": null
   },
   {
    "date": "2025-06-06",
    "period": 18,
-   "shape": 0.50382,
+   "shape": 0.79338,
    "published": null
   },
   {
    "date": "2025-06-06",
    "period": 19,
-   "shape": 0.48305,
+   "shape": 0.71332,
    "published": null
   },
   {
    "date": "2025-06-06",
    "period": 20,
-   "shape": 0.49782,
+   "shape": 0.64577,
    "published": null
   },
   {
    "date": "2025-06-06",
    "period": 21,
-   "shape": 0.51397,
+   "shape": 0.62058,
    "published": null
   },
   {
    "date": "2025-06-06",
    "period": 22,
-   "shape": 0.53081,
+   "shape": 0.55778,
    "published": null
   },
   {
    "date": "2025-06-06",
    "period": 23,
-   "shape": 0.55716,
+   "shape": 0.48612,
    "published": null
   },
   {
    "date": "2025-06-06",
    "period": 24,
-   "shape": 0.55633,
+   "shape": 0.46034,
    "published": null
   },
   {
    "date": "2025-06-06",
    "period": 25,
-   "shape": 0.56437,
+   "shape": 0.40281,
    "published": null
   },
   {
    "date": "2025-06-06",
    "period": 26,
-   "shape": 0.57399,
+   "shape": 0.36513,
    "published": null
   },
   {
    "date": "2025-06-06",
    "period": 27,
-   "shape": 0.58785,
+   "shape": 0.37419,
    "published": null
   },
   {
    "date": "2025-06-06",
    "period": 28,
-   "shape": 0.60689,
+   "shape": 0.38242,
    "published": null
   },
   {
    "date": "2025-06-06",
    "period": 29,
-   "shape": 0.60759,
+   "shape": 0.38257,
    "published": null
   },
   {
    "date": "2025-06-06",
    "period": 30,
-   "shape": 0.60294,
+   "shape": 0.38528,
    "published": null
   },
   {
    "date": "2025-06-06",
    "period": 31,
-   "shape": 0.60444,
+   "shape": 0.39269,
    "published": null
   },
   {
    "date": "2025-06-06",
    "period": 32,
-   "shape": 0.5859,
+   "shape": 0.39909,
    "published": null
   },
   {
    "date": "2025-06-06",
    "period": 33,
-   "shape": 0.55197,
+   "shape": 0.4787,
    "published": null
   },
   {
    "date": "2025-06-06",
    "period": 34,
-   "shape": 0.53552,
+   "shape": 0.58287,
    "published": null
   },
   {
    "date": "2025-06-06",
    "period": 35,
-   "shape": 0.50397,
+   "shape": 0.75146,
    "published": null
   },
   {
    "date": "2025-06-06",
    "period": 36,
-   "shape": 0.59842,
+   "shape": 0.86273,
    "published": null
   },
   {
    "date": "2025-06-06",
    "period": 37,
-   "shape": 0.76486,
+   "shape": 0.94165,
    "published": null
   },
   {
    "date": "2025-06-06",
    "period": 38,
-   "shape": 0.90739,
+   "shape": 1.0197,
    "published": null
   },
   {
    "date": "2025-06-06",
    "period": 39,
-   "shape": 1.03786,
+   "shape": 1.09957,
    "published": null
   },
   {
    "date": "2025-06-06",
    "period": 40,
-   "shape": 1.11109,
+   "shape": 1.13099,
    "published": null
   },
   {
    "date": "2025-06-06",
    "period": 41,
-   "shape": 1.22742,
+   "shape": 1.19364,
    "published": null
   },
   {
    "date": "2025-06-06",
    "period": 42,
-   "shape": 1.26255,
+   "shape": 1.2127,
    "published": null
   },
   {
    "date": "2025-06-06",
    "period": 43,
-   "shape": 1.29991,
+   "shape": 1.23382,
    "published": null
   },
   {
    "date": "2025-06-06",
    "period": 44,
-   "shape": 1.28901,
+   "shape": 1.22347,
    "published": null
   },
   {
    "date": "2025-06-06",
    "period": 45,
-   "shape": 1.21989,
+   "shape": 1.15787,
    "published": null
   },
   {
    "date": "2025-06-06",
    "period": 46,
-   "shape": 1.17922,
+   "shape": 1.11927,
    "published": null
   },
   {
    "date": "2025-06-06",
    "period": 47,
-   "shape": 1.13366,
+   "shape": 1.07602,
    "published": null
   },
   {
    "date": "2025-06-06",
    "period": 48,
-   "shape": 1.06704,
+   "shape": 1.01279,
    "published": null
   },
   {
    "date": "2025-06-07",
    "period": 1,
-   "shape": 1.04382,
+   "shape": 0.99075,
    "published": null
   },
   {
    "date": "2025-06-07",
    "period": 2,
-   "shape": 1.05244,
+   "shape": 0.99893,
    "published": null
   },
   {
    "date": "2025-06-07",
    "period": 3,
-   "shape": 1.01213,
+   "shape": 0.96067,
    "published": null
   },
   {
    "date": "2025-06-07",
    "period": 4,
-   "shape": 0.99413,
+   "shape": 0.94359,
    "published": null
   },
   {
    "date": "2025-06-07",
    "period": 5,
-   "shape": 1.00064,
+   "shape": 0.94977,
    "published": null
   },
   {
    "date": "2025-06-07",
    "period": 6,
-   "shape": 1.01529,
+   "shape": 0.96367,
    "published": null
   },
   {
    "date": "2025-06-07",
    "period": 7,
-   "shape": 0.95812,
+   "shape": 0.90941,
    "published": null
   },
   {
    "date": "2025-06-07",
    "period": 8,
-   "shape": 0.97126,
+   "shape": 0.92188,
    "published": null
   },
   {
    "date": "2025-06-07",
    "period": 9,
-   "shape": 1.00015,
+   "shape": 0.9493,
    "published": null
   },
   {
    "date": "2025-06-07",
    "period": 10,
-   "shape": 0.9976,
+   "shape": 0.94688,
    "published": null
   },
   {
    "date": "2025-06-07",
    "period": 11,
-   "shape": 1.00462,
+   "shape": 0.9575,
    "published": null
   },
   {
    "date": "2025-06-07",
    "period": 12,
-   "shape": 0.98502,
+   "shape": 0.9468,
    "published": null
   },
   {
    "date": "2025-06-07",
    "period": 13,
-   "shape": 1.04291,
+   "shape": 1.00937,
    "published": null
   },
   {
    "date": "2025-06-07",
    "period": 14,
-   "shape": 1.07663,
+   "shape": 1.05415,
    "published": null
   },
   {
    "date": "2025-06-07",
    "period": 15,
-   "shape": 1.08942,
+   "shape": 1.08417,
    "published": null
   },
   {
    "date": "2025-06-07",
    "period": 16,
-   "shape": 0.92328,
+   "shape": 1.0392,
    "published": null
   },
   {
    "date": "2025-06-07",
    "period": 17,
-   "shape": 0.97497,
+   "shape": 1.11873,
    "published": null
   },
   {
    "date": "2025-06-07",
    "period": 18,
-   "shape": 0.9137,
+   "shape": 1.09988,
    "published": null
   },
   {
    "date": "2025-06-07",
    "period": 19,
-   "shape": 0.82107,
+   "shape": 1.05774,
    "published": null
   },
   {
    "date": "2025-06-07",
    "period": 20,
-   "shape": 0.75889,
+   "shape": 1.03594,
    "published": null
   },
   {
    "date": "2025-06-07",
    "period": 21,
-   "shape": 0.6825,
+   "shape": 1.01428,
    "published": null
   },
   {
    "date": "2025-06-07",
    "period": 22,
-   "shape": 0.63436,
+   "shape": 0.99966,
    "published": null
   },
   {
    "date": "2025-06-07",
    "period": 23,
-   "shape": 0.53327,
+   "shape": 0.94519,
    "published": null
   },
   {
    "date": "2025-06-07",
    "period": 24,
-   "shape": 0.53564,
+   "shape": 0.92146,
    "published": null
   },
   {
    "date": "2025-06-07",
    "period": 25,
-   "shape": 0.54217,
+   "shape": 0.91988,
    "published": null
   },
   {
    "date": "2025-06-07",
    "period": 26,
-   "shape": 0.54443,
+   "shape": 0.91377,
    "published": null
   },
   {
    "date": "2025-06-07",
    "period": 27,
-   "shape": 0.5603,
+   "shape": 0.89215,
    "published": null
   },
   {
    "date": "2025-06-07",
    "period": 28,
-   "shape": 0.56617,
+   "shape": 0.87844,
    "published": null
   },
   {
    "date": "2025-06-07",
    "period": 29,
-   "shape": 0.55283,
+   "shape": 0.83274,
    "published": null
   },
   {
    "date": "2025-06-07",
    "period": 30,
-   "shape": 0.55218,
+   "shape": 0.8152,
    "published": null
   },
   {
    "date": "2025-06-07",
    "period": 31,
-   "shape": 0.54213,
+   "shape": 0.80793,
    "published": null
   },
   {
    "date": "2025-06-07",
    "period": 32,
-   "shape": 0.53501,
+   "shape": 0.80078,
    "published": null
   },
   {
    "date": "2025-06-07",
    "period": 33,
-   "shape": 0.53062,
+   "shape": 0.77732,
    "published": null
   },
   {
    "date": "2025-06-07",
    "period": 34,
-   "shape": 0.61108,
+   "shape": 0.84628,
    "published": null
   },
   {
    "date": "2025-06-07",
    "period": 35,
-   "shape": 0.68606,
+   "shape": 0.8645,
    "published": null
   },
   {
    "date": "2025-06-07",
    "period": 36,
-   "shape": 0.76914,
+   "shape": 0.90183,
    "published": null
   },
   {
    "date": "2025-06-07",
    "period": 37,
-   "shape": 0.75041,
+   "shape": 0.85879,
    "published": null
   },
   {
    "date": "2025-06-07",
    "period": 38,
-   "shape": 0.79781,
+   "shape": 0.87254,
    "published": null
   },
   {
    "date": "2025-06-07",
    "period": 39,
-   "shape": 0.83443,
+   "shape": 0.88089,
    "published": null
   },
   {
    "date": "2025-06-07",
    "period": 40,
-   "shape": 0.8441,
+   "shape": 0.86195,
    "published": null
   },
   {
    "date": "2025-06-07",
    "period": 41,
-   "shape": 0.93317,
+   "shape": 0.91774,
    "published": null
   },
   {
    "date": "2025-06-07",
    "period": 42,
-   "shape": 1.01615,
+   "shape": 0.9738,
    "published": null
   },
   {
    "date": "2025-06-07",
    "period": 43,
-   "shape": 1.05862,
+   "shape": 1.00557,
    "published": null
   },
   {
    "date": "2025-06-07",
    "period": 44,
-   "shape": 1.02907,
+   "shape": 0.97675,
    "published": null
   },
   {
    "date": "2025-06-07",
    "period": 45,
-   "shape": 0.93201,
+   "shape": 0.88463,
    "published": null
   },
   {
    "date": "2025-06-07",
    "period": 46,
-   "shape": 0.82163,
+   "shape": 0.77986,
    "published": null
   },
   {
    "date": "2025-06-07",
    "period": 47,
-   "shape": 0.73408,
+   "shape": 0.69676,
    "published": null
   },
   {
    "date": "2025-06-07",
    "period": 48,
-   "shape": 0.57409,
+   "shape": 0.5449,
    "published": null
   }
  ]

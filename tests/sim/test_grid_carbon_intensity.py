@@ -973,3 +973,35 @@ def test_a_DISPATCHED_fleet_larger_than_demand_cannot_manufacture_generation():
     served_fraction = demand / (ENVELOPE_FLOOR_MW + 9_800.0)
     expected = ENVELOPE_FLOOR_MW * served_fraction * gci.BIOMASS_G_CO2_PER_KWH / 1000.0
     assert rate == pytest.approx(expected / demand)
+
+
+def test_EMBEDDED_generation_never_enters_the_residual_and_only_divides():
+    """INDO is already net of embedded solar (EP13 frame doc s18-s19), so the tonnes a half hour
+    burns must not depend on it; only the consumption it is divided by may.
+
+    MUTATION (must fire): subtract `embedded_generation_mw` in the residual, or leave it out of
+    the denominator.
+    """
+    from sim.grid_carbon_intensity import emissions_rate_t_per_mwh
+
+    demand, wind, embedded = 30_000.0, 6_000.0, 8_000.0
+    for year in (2019, 2024):
+        without = emissions_rate_t_per_mwh(demand, wind, year)
+        with_solar = emissions_rate_t_per_mwh(demand, wind, year, embedded_generation_mw=embedded)
+        assert with_solar * (demand + embedded) == pytest.approx(without * demand, rel=1e-12)
+        assert with_solar < without, "embedded zero-carbon supply did not dilute the rate"
+
+
+def test_a_half_hour_the_EMBEDDED_series_does_not_cover_is_skipped_and_one_it_covers_is_kept():
+    """Missing embedded solar is not zero solar, for the renewables reason in `build_shape`.
+
+    The partition control first: both branches must be reachable in one call.
+    """
+    from sim.grid_carbon_intensity import build_shape
+
+    demand = {("2024-06-01", p): 25_000.0 for p in range(1, 49)}
+    wind = {key: 5_000.0 for key in demand}
+    covered = {key: 1_000.0 * (key[1] % 7) for key in demand if key[1] != 24}
+    shape = build_shape(demand, wind, embedded_generation_by_period=covered)
+    assert ("2024-06-01", 23) in shape and ("2024-06-01", 24) not in shape
+    assert len(shape) == 47

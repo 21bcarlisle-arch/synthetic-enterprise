@@ -1198,7 +1198,7 @@ def test_the_page_is_not_told_the_ceiling_can_be_built_away():
 # grid.                                                                          #
 # --------------------------------------------------------------------------- #
 
-def _shape_generate_would_build(mix, demand, renewables, **knocked_out):
+def _shape_generate_would_build(mix, demand, agws, **knocked_out):
     """`generate()`'s own `build_shape` call, with one correction optionally knocked out.
 
     A REPLICA OF THE PUBLISHING CALL IS A MIRROR unless something ties it back, so every
@@ -1210,7 +1210,9 @@ def _shape_generate_would_build(mix, demand, renewables, **knocked_out):
     from sim.grid_carbon_intensity import build_shape
 
     imports, coal_capacity, _coverage, floors, must_run, _mrc, biomass = mix
+    renewables = knocked_out.pop("renewables", gif.aggregate_wind_generation(agws))
     keywords = dict(
+        embedded_generation_by_period=gif.aggregate_solar_generation(agws),
         imports_by_period=imports,
         coal_capacity_by_year=coal_capacity,
         thermal_floor_by_year={year: row["floor_mw"] for year, row in floors.items()},
@@ -1275,10 +1277,9 @@ def real_publish(real_mix, tmp_path_factory):
     three that cost 45s.
     """
     demand = gif.aggregate_demand(json.loads(gif.DEMAND_CACHE.read_text(encoding="utf-8")))
-    renewables = gif.aggregate_renewable_generation(
-        json.loads(gif.AGWS_CACHE.read_text(encoding="utf-8")))
+    agws = json.loads(gif.AGWS_CACHE.read_text(encoding="utf-8"))
     feed = gif.generate(out_path=tmp_path_factory.mktemp("feed") / "grid_intensity_feed.json")
-    return real_mix, demand, renewables, feed
+    return real_mix, demand, agws, feed
 
 
 def test_the_TUPLES_ORDER_is_the_contract_and_each_member_is_a_DIFFERENT_SHAPE(real_mix):
@@ -1566,7 +1567,7 @@ def test_the_THERMAL_FLOOR_the_MIX_MEASURES_reaches_the_published_feed_and_MOVES
     MUTATION (must fire): `floors = {}` in `fuel_mix()` -- battery row M5, killed by none of the
     eight callers and neither direct suite at `d7eb36a0b901`.
     """
-    mix, demand, renewables, feed = real_publish
+    mix, demand, agws, feed = real_publish
     floors = feed["thermal_floor_mw"]
 
     # EVERY YEAR THE SERIES IS PUBLISHED FOR HAS ITS FLOOR PUBLISHED BESIDE IT. Keyed to the
@@ -1587,8 +1588,8 @@ def test_the_THERMAL_FLOOR_the_MIX_MEASURES_reaches_the_published_feed_and_MOVES
     # AND IT IS MATERIAL: the shape the feed publishes is the one built WITH the floor, and a
     # feed built without it is a different series. Without this leg the block above would still
     # pass if the floor were published as a decoration and never dispatched.
-    with_floor = _shape_generate_would_build(mix, demand, renewables)
-    without = _shape_generate_would_build(mix, demand, renewables, thermal_floor_by_year={})
+    with_floor = _shape_generate_would_build(mix, demand, agws)
+    without = _shape_generate_would_build(mix, demand, agws, thermal_floor_by_year={})
     assert with_floor != without, (
         "knocking the thermal floor out of the publishing call changes nothing in the series, "
         "so either the floor the mix measured is empty or the dispatch ignores it"
@@ -1612,7 +1613,7 @@ def test_the_ZERO_CARBON_MUST_RUN_BLOCK_the_MIX_MEASURES_is_the_ONE_THE_FEED_PUB
     MUTATION (must fire): return `{}` in place of
     `fuel.zero_carbon_must_run_by_period(must_run_rows)` -- battery row M6.
     """
-    mix, demand, renewables, feed = real_publish
+    mix, demand, agws, feed = real_publish
     must_run = mix[4]
 
     assert must_run, (
@@ -1627,8 +1628,8 @@ def test_the_ZERO_CARBON_MUST_RUN_BLOCK_the_MIX_MEASURES_is_the_ONE_THE_FEED_PUB
         "every record on the page is the flat fallback"
     )
 
-    with_block = _shape_generate_would_build(mix, demand, renewables)
-    flat = _shape_generate_would_build(mix, demand, renewables,
+    with_block = _shape_generate_would_build(mix, demand, agws)
+    flat = _shape_generate_would_build(mix, demand, agws,
                                        zero_carbon_must_run_by_period={})
     assert with_block != flat, (
         "the series is identical with and without the measured must-run block, so the block the "
@@ -1686,3 +1687,28 @@ def test_the_BIOMASS_ENVELOPE_the_MIX_MEASURES_reaches_the_published_feed_TO_THE
             f"{year} publishes a 99th percentile above the capacity it was measured against "
             f"({row}), so one of the two is not this fleet"
         )
+
+
+def test_EMBEDDED_SOLAR_is_out_of_the_residual_and_in_the_denominator_of_the_published_feed(
+        real_publish):
+    """EP13 frame doc s18-s19. INDO is already net of embedded solar, so subtracting AGWS solar
+    from it again hid ~1.3 GW of gas a year; the fix moves solar to the consumption denominator.
+
+    The knock-out is the pre-2026-09-30 publishing call exactly: wind+solar in the residual and
+    no embedded term. It must CHANGE the series (else the correction is inert) and the feed must
+    carry the corrected one, not the old one.
+
+    MUTATION (must fire): in `generate()`, pass `aggregate_renewable_generation(agws)` as the
+    renewables, or drop `embedded_generation_by_period`.
+    """
+    mix, demand, agws, feed = real_publish
+    corrected = _shape_generate_would_build(mix, demand, agws)
+    double_counted = _shape_generate_would_build(
+        mix, demand, agws, renewables=gif.aggregate_renewable_generation(agws),
+        embedded_generation_by_period=None)
+    assert not _published_records_carry(feed, double_counted), (
+        "the published records are the shape with solar subtracted from INDO a second time"
+    )
+    assert _published_records_carry(feed, corrected), (
+        "the published records are not the shape with solar in the denominator only"
+    )
