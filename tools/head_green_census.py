@@ -355,18 +355,29 @@ def overlay_shortfall(subject) -> list[str]:
 #: fires first and the census says UNPROVEN instead of vanishing. The timer fires once every 24h,
 #: so 7500s cannot reach the next firing.
 #:
+#: THE SAME RULE, RE-APPLIED 2026-09-30, BECAUSE THE WORST RUN MOVED AND THIS CONSTANT DID NOT.
+#: systemd's journal records the unit's wall clock for every night: the last COMPLETE runs took
+#: 1h52m49s (09-22) and **1h59m31s = 7171s (09-23)** -- 29s under this bound -- and every night
+#: from 09-24 to 09-30 was killed by it at 2h00m and reported UNPROVEN. CPU time tracks wall time
+#: on each of them (2h05m CPU over 2h02m), so the suite is compute-bound and slow, not hung. The
+#: bound was already under 2x the worst run on 09-22 and nothing compared them, because
+#: `WORST_OBSERVED_SUITE_SECONDS` below is moved by hand and was never moved. Against 7171s the
+#: rule demands more than 14342s; the unit keeps its 300s for the checkout and the report. 14400s
+#: from the 03:30 timer ends by 07:35, inside the night and nowhere near the next firing.
+#:
 #: THIS IS AN ALLOWANCE FOR HOW LONG THE RUN TAKES AND NOTHING ELSE. It forgives no red, it moves
 #: no baseline, and raising it can never turn a verdict green -- the only outcome it changes is
 #: UNPROVEN into a real answer. `test_the_census_timeout_clears_the_duration_it_has_observed`
 #: holds both directions against the unit file, because until it existed the relationship was
 #: asserted in this comment and true only by luck.
-SUITE_TIMEOUT_SECONDS = 7200
+SUITE_TIMEOUT_SECONDS = 14400
 
-#: The worst COMPLETE census duration on record, transcribed from the run described above so the
-#: control can compare against it. Moved by hand when a slower run is observed -- a bound that
+#: The worst COMPLETE census duration on record -- the 09-23 unit wall clock from systemd's journal,
+#: which includes the checkout and so over-states the suite alone -- transcribed so the control can
+#: compare against it. Moved by hand when a slower run is observed -- a bound that
 #: re-derived itself from the latest run would ratchet upward on its own, which is how a ceiling
 #: stops being a decision anyone made.
-WORST_OBSERVED_SUITE_SECONDS = 3537.0
+WORST_OBSERVED_SUITE_SECONDS = 7171.2
 
 
 def subject_head_sha(subject) -> str | None:
