@@ -1,9 +1,45 @@
 {
- "generated_at": "2026-09-30T08:30:30.609506+00:00",
+ "generated_at": "2026-09-30T14:28:11.490043+00:00",
  "seat": "delivery",
  "what_it_did": {
   "available": true,
   "commits": [
+   {
+    "sha": "bc0df4b9e",
+    "at": "2026-09-30T12:35:35+01:00",
+    "subject": "H45: a work item filed into the queue without its lane, epoch and atom is refused at the write",
+    "substantive": true
+   },
+   {
+    "sha": "5ff9171a2",
+    "at": "2026-09-30T12:20:32+01:00",
+    "subject": "D27 pass 12: the drift cache handed one origin the other's company, and two more nodes hold at both origins",
+    "substantive": true
+   },
+   {
+    "sha": "eea130593",
+    "at": "2026-09-30T11:45:23+01:00",
+    "subject": "H47: the tests figure is capped by a real collection, at the one commit that can type it",
+    "substantive": true
+   },
+   {
+    "sha": "7aa39b17a",
+    "at": "2026-09-30T10:54:45+01:00",
+    "subject": "EP13_2 L0 -> L2: the gas-level remainder splits, into solar counted twice, exports, and a wind input that reads short",
+    "substantive": true
+   },
+   {
+    "sha": "6b5654f04",
+    "at": "2026-09-30T10:09:24+01:00",
+    "subject": "the next-step gate refuses a NEXT naming a parked atom, and quotes the park",
+    "substantive": true
+   },
+   {
+    "sha": "c2ac926ef",
+    "at": "2026-09-30T09:30:31+01:00",
+    "subject": "delivery seat: direction for the next stretch",
+    "substantive": false
+   },
    {
     "sha": "365c03341",
     "at": "2026-09-30T09:28:00+01:00",
@@ -207,99 +243,63 @@
     "at": "2026-09-29T22:28:47+01:00",
     "subject": "PB6 EH-2: the three arms are queued on the repaired world, behind the ab5 leg",
     "substantive": false
-   },
-   {
-    "sha": "b50a03519",
-    "at": "2026-09-29T22:23:39+01:00",
-    "subject": "a long job's launch refuses to share the box, naming the resident pids, unless told to wait on one",
-    "substantive": true
-   },
-   {
-    "sha": "1466401d9",
-    "at": "2026-09-29T22:08:58+01:00",
-    "subject": "chore(liveness): publish heartbeat while sim output unchanged (git=bf05012f87a1554b3d43c0cc0150641d13a3fd89) -- decouples published liveness from content-change (Fault#1 2026-07-25)",
-    "substantive": false
-   },
-   {
-    "sha": "bf05012f8",
-    "at": "2026-09-29T21:54:08+01:00",
-    "subject": "merge origin/main: automatic reconciliation in an isolated worktree",
-    "substantive": false
-   },
-   {
-    "sha": "a520dadd7",
-    "at": "2026-09-29T21:51:11+01:00",
-    "subject": "staging: the 22222 relaunch was drawn by the tick while its holder already had longjob-ab5-runa2c running; not launched twice, claim left with its holder",
-    "substantive": false
-   },
-   {
-    "sha": "a95fe01ec",
-    "at": "2026-09-29T21:50:32+01:00",
-    "subject": "ab5 relaunch of 22222: the kernel's reading of the 19:07Z OOM kill and relaunch 3 (longjob-ab5-runa2c)",
-    "substantive": false
-   },
-   {
-    "sha": "19a58b44d",
-    "at": "2026-09-29T21:34:38+01:00",
-    "subject": "PB6: a resi renewal is decided once, so a household that reached a fixed term is not then capped as passive",
-    "substantive": true
    }
   ],
-  "substantive": 18,
-  "mechanical": 22,
+  "substantive": 21,
+  "mechanical": 19,
   "what_the_split_means": "A mechanical commit republishes an unchanged net -- the report, the dashboard, the state files. Counting those as work would make a quiet day look busy, so they are separated rather than filtered: they happened, they are just not progress."
  },
  "what_it_decided": {
   "available": true,
-  "oriented_at": "2026-09-30T08:24:57.155919+00:00",
+  "oriented_at": "2026-09-30T14:22:25.400516+00:00",
   "age_hours": 0.1,
   "expires_after_hours": 12.0,
   "live": true,
-  "thesis_read": "The thesis test is running and has not answered yet. This stretch did the right things in the right order, but it also filed a successor design that crosses a line the director drew. The bridge is graded (504b42a37). B2 holds: 112 of 163 lineages are identical, so the world change reached the A/B. B1 is refuted on 44444: D_lin fell by \u00a3500.63 on the same lineages at the new pin, through the level arm's net rising, and no decision flipped. So ab5's \"+\u00a31,000, CI clear of zero\" now reads as conditional on b79e2c0e8 and on one set of renewal rolls, and it is not carried into the pilot. The baseline comparison the thesis needs is P1+P2's own mean. P1 started at 07:27Z on the a322166cc pin, so runP1.json is due about 10:30Z and runP2.json about 13:40Z. The book-varying successor was pre-registered before the pilot answered (d11c047ac), as asked, and it is good work. It refuses a longer window (there is no later record) and refuses a wider funnel (a thin funnel is what a real GB book looks like, from the knowledge map). But the variable it chose, \"more books\", varies `live_population`'s base seed. That draws a different cast of founders and arrivals. That is EP17_varied_population_draw, which is director-reserved under R13, and the seat has asked him twice to release it for measurement only, with no answer. The prereg never names EP17. Its rule 2 would build and launch a four-cast pilot on the ~70% branch with no ruling. My own previous item offered \"more books\" as a candidate without naming the reservation, so that error is mine. PB6 and PB7 parked (dc3a4f66e, 3931f644b) rather than taking the fresh blind pass I asked for. The worker argued that every residual below L3 releases outside the row: PB8's unpublished rate, a PB1-scale book, and EH-4, which is the household side entering a decision surface and so the director's two-sided objective (A47, test_household_share_is_not_yet_a_target). That meets the item's own DONE (\"a named fail pointing at its owner\"), and a second pass on the same battery would have bought nothing. So I accept it and PB6 leaves focus. The ordinary draw moved two levels on its own (W1_28 and W2_31, L0 to L2), and nothing blocking is filed. Two open errors close. The lane-0 ledger now grades an ab6 item by its path. It reads landed_elsewhere, where it used to read CANNOT ANSWER, although it credits the wrong commit (a new row). The PB6 steer bit. The shared checkout's divergence from origin grew from 11/9 to 20/11, and the HEAD-only side carries duplicate-subject copies of origin commits. That is the carried reconcile class. It cost no thesis run this stretch, and sim-runner kept deferring under ab6's declared peak. All four previous focus items were drawn, and three landed. Staging drained by a net 78 over the week.",
+  "thesis_read": "THE THESIS RUN HAS ITS FIRST HONEST ANSWER, AND IT POINTS THE WRONG WAY. 749c0a290 graded the ab6 pilots at pin a322166cc. The renewal-roll re-draw reached all four seeds (346 to 393 draws each, held 0), and the per-customer arm lost to flat rules on every one of them: 0 of 4 positive, mean -\u00a33,067.58, sd \u00a32,610.41, 95% CI [-\u00a37,221, +\u00a31,086]. So the ab5 and bridge positives (+\u00a3813 and +\u00a3284) were one favourable realisation of the fixed rolls, not a property of the method. P2's prediction (n* > 12, so \"cannot say\") was refuted: n* = 6. The prereg's rule therefore launched one extension leg, X1 (seeds 61005 and 61006, pid 313621, 44 minutes in at 14:26Z, due about 16:40Z). The plain answer was written down before X1 reads. If the six-seed CI excludes zero on the negative side, the answer at the pin is NO: on what it decided differently, choosing customer-by-customer loses to flat rules. Three single-account switches carry most of the variance (C6, SYN-2016-034 and account 0098, all on seed 61002). Why the value arm loses is not yet known, and that is now the most important question on the thesis. It also describes the pin and not origin, because 4380002bd carried the PB6 churn-prior re-centring and the gas-leaver fix into company/ and simulation/ after the pin. On the machine, last stretch's first item landed correctly. 4380002bd put the content of all 19 stranded receipted commits on origin, in order, including five level moves, three parks and the world fix. That corrects my not_now error. But the fork is NOT closed. The follow-up `surgical_land --merge origin/main` (pid 349380) printed \"landed MERGE 1918a0820\" and exited rc 0, yet no ref contains 1918a0820. HEAD is still bc0df4b9e, 26 ahead and 18 behind, and reconcile-watch logged REFUSED_CONFLICT on 7 paths again at 14:21Z. A land that says it landed and is on no ref is probably what happened to pid 837396 too. Item three last time (the brief counts stranded landings) was named and never drawn. I am withdrawing it rather than repeating it, because its instrument is now wrong: a squash replay like 4380002bd is never patch-equivalent, so `git cherry` would count those 19 as stranded forever. The director's console turn at 14:09Z outranks both of those. The stretch log has been silent since 25 September, 121.7h and 330 commits, the fifth stoppage. He asked for the pattern, not another patch. 7cc2e0e69 found it. The log has one writer, the interactive seat, which runs only when he is present. The alarm pages once and then suppresses by design, and it routes its escalation to the pull-loop, which is that same absent session. Meanwhile this orientation writes the same reflection every 3h into decisions.jsonl, 14 times since 25 September, and it is not the file the check reads. That is my error as much as the machine's. I wrote `wrong` fourteen times over those five days and never listed the silent log. He also said budget is ample and to spend more where the lanes can use it. The box is the binding constraint while X1 runs, not the budget.",
   "focus": [
    {
-    "id": "grade-ab6-bridge-and-pilots",
-    "lane": "B_commercial",
-    "what": "If /var/tmp/se-ab6-out/runP2.json does not exist (due about 13:40Z), release with no staging file and stop. Never stop or restart the running tools.run_value_cycle_ab. Otherwise run /var/tmp/se-ab6-out/grade_lineage.py runP1.json runP2.json. Compute n* from P1+P2's own mean, as the ab6 prereg defines it, and never from ab5's |m| = \u00a31,009.68, which the bridge showed overstates the pin. Grade P1, P2 and P3 beside their predictions. Confirm that churn_rolls_redrawn > 0 on every pilot seed. List the commits between a322166cc and origin/main that touch company/ or simulation/, and state that the answer describes the pin. Append all of it to docs/staging/records/SEAT_PREREG_THE_NEXT_AB_ON_THE_SINGLE_ROLL_WORLD_WHAT_A_SEED_VARIES_2026-09-30.md and land by pathspec. If n* \u2264 12, launch the extension legs (61005...) through background.launch_long_job with --peak-mb 11200. If n* > 12, write the plain answer \"cannot say on this book under its own renewal noise\". Point at the book-varying prereg, and state that its pilot waits on the director's EP17 ruling. Do NOT build or launch a multi-cast run from this item.",
-    "why": "This is the first measurement of whether per-customer beats flat rules under the world's own renewal noise, which is the thesis's baseline question. DONE when origin's ab6 record carries P1-P3 graded, and either an extension unit is active or the plain answer is written."
-   },
-   {
-    "id": "put-the-ep17-line-into-the-book-varying-prereg-and-build-the-refusing-flag",
-    "lane": "B_commercial",
-    "what": "Add a section to docs/staging/records/SEAT_PREREG_THE_AB_THAT_VARIES_THE_BOOK_NOT_THE_SEED_2026-09-30.md saying that varying live_population's base_seed draws a different cast, which is EP17_varied_population_draw. Name its R13 block_reason in docs/design/maturity_map.yaml, and amend rule 2: the book pilot launches only on a director ruling. Leave every prediction untouched and say so beside the amendment. Then build tools/run_value_cycle_ab.py --book-seeds as that prereg specifies. It resolves each book in its own subprocess, sets the churn-roll floor seed equal to the book seed, and records run_base_seed() per member. Add its three refusals (a duplicate seed, a recorded seed that is not the requested one, redrawn = 0) and a FOURTH refusal. The fourth refuses any member whose seed is not _DEFAULT_BASE_SEED unless an authorisation record exists under docs/design/curriculum/ in the population_draw_activation.json shape. Do not write that record. The refusal must name EP17 and the missing file. Write the one-leg control without running the sim. It compares founder_book(S1) and founder_book(S2) rosters (about 1.4 s) and the patched roll streams on a shared id, and it asserts the authorisation refusal CAN fire and CAN pass, using a temporary record in a tmp dir. Run nothing memory-heavy while ab6 is on the box.",
-    "why": "The prereg's own ~70% branch would put the company through different casts of households without the ruling R13 reserves. The branch is only reached if P2 says n* > 12, so fixing it before P2 lands keeps the successor a prediction and not an improvisation. With the flag built behind a refusal, a yes from the director costs no turn of code. DONE when origin carries the amended prereg and a --book-seeds flag whose unauthorised run refuses and names EP17."
-   },
-   {
-    "id": "the-next-trailer-refuses-a-blocked-atom",
+    "id": "the-orientation-writes-the-stretch-log",
     "lane": "H_harness",
-    "what": "In tools/next_step_gate.py, refuse a `NEXT: <atom_id>` trailer whose atom carries a block_reason, or sits at loop_stage idle with one, in docs/design/maturity_map.yaml read through tools.maturity_map_store. The refusal must quote the block_reason and offer the two legal shapes: a drawable successor, or `NEXT: none -- <reason>` naming the release. Add a control over the whole partition: one drawable id passes, one parked id (PB8's) refuses, and `none -- ...` passes. Mutate the new check to always-pass and to always-refuse, and record that both red.",
-    "why": "46b78123f handed PB6 on to a parked PB8, and PB6's own step went undrawn for a stretch. This stretch the workers used `none -- <reason>` correctly, but by habit, not because anything held them to it. DONE when origin's gate refuses a NEXT naming a parked atom, and the carried wrong row about it can be marked corrected."
+    "what": "Enact the remedy recommended in docs/staging/SEAT_FINDING_THE_STRETCH_LOG_HAS_ONE_WRITER_AND_IT_IS_ONLY_PRESENT_WHEN_THE_DIRECTOR_IS_SO_EVERY_FIX_TO_ITS_ALARM_GOES_QUIET_2026-09-30.md. In background/delivery_seat.py, at the point where an orientation's row is appended to docs/direction/decisions.jsonl, also append one dated stretch-log entry through tools/stretch_log.py's own append path (never a second writer's format). Render it from that same row: thesis_read, wrong and not_now. Append only, and the entry must say it was written by the orientation. A failed stretch-log write must not lose the decisions.jsonl row, and must name its reason in the seat log. In tools/stretch_log.py, route raise_stretch_report_owed's escalation to a writer that is always present. Once an orientation writes, a still-ESCALATED check means orientation itself stopped, so the escalation should say that, not hand the work to the pull-loop. Write one control that drives an orientation's record write in a temp tree and asserts that a stretch-log entry appears whose text contains that record's thesis_read. Mutate the append call away and record that it reds. Move the 09-17 REPEATING_ALARM_STRETCH_LOG finding to its disposition, citing this commit.",
+    "why": "The director asked for this by name. He called it the mechanism that lets the seat notice drift, and he ranked it above any single piece of work. Four fixes changed the channel, the host and the trigger, and none changed who writes. DONE when `python3 tools/stretch_log.py --check` reads not ESCALATED after an orientation that ran with no interactive session, and the finding is dispositioned. It is also done when the next stoppage would mean the orientation stopped, not that he stepped away."
+   },
+   {
+    "id": "close-the-fork-and-make-a-land-on-no-ref-refuse",
+    "lane": "H_harness",
+    "what": "First, read why `surgical_land --merge origin/main` (log /tmp/fork_land.log, pid 349380) printed \"landed MERGE 1918a0820\", exited rc 0, and left 1918a0820 on no ref. The likely cause is that origin moved to 7cc2e0e69 during its 25-minute gate, but test that, don't assume it: compare 1918a0820's second parent to origin/main at exit. Fix tools/surgical_land.py so that a land whose commit no ref contains after the update exits non-zero, and says why in the refusal. Write a control that moves the target ref during a stubbed gate and asserts the non-zero exit. Mutate the check away and record that it reds. Then re-run the merge against current origin/main through tools.surgical_land. It uses the same base-choice rule the fork message in /tmp/fork_msg.txt states, and never --no-verify, commit-tree or a hand-built merge. Leave the shared tree's uncommitted files and pid 313621 alone.",
+    "why": "Every daemon still runs from a HEAD that is 18 commits behind origin. That includes the PB6 churn change a thesis re-grade will need. And a door that reports success while putting nothing on a ref is the likeliest reading of the carried pid 837396 row, which was never explained. DONE when HEAD contains origin/main, reconcile-watch's latest fork line is not REFUSED_CONFLICT, and a land that reaches no ref exits non-zero."
+   },
+   {
+    "id": "grade-x1-and-attribute-the-loss",
+    "lane": "B_commercial",
+    "what": "If /var/tmp/se-ab6-out/runX1.json does not exist (due about 16:40Z), release with no staging file and stop. Never stop pid 313621. Once it exists, run `grade_lineage.py runP1.json runP2.json runX1.json` and grade_p3.py over the same three files. Grade X1a, X1b and X1c beside their predictions in docs/staging/records/SEAT_PREREG_THE_NEXT_AB_ON_THE_SINGLE_ROLL_WORLD_WHAT_A_SEED_VARIES_2026-09-30.md, and write the plain answer that the record already fixed (NO, or \"cannot say on this book under its own renewal noise\"). Then do the attribution the pilot grade says it has not run. For C6, SYN-2016-034 and 0098 on seed 61002, and for the largest mover on each X1 seed, list what the value arm decided differently: the tariff or offer, p_retain against the roll, and churn or stay. Say whether the loss comes from mispriced retention (the company's churn estimate), from the offer itself, or from something you cannot yet name. If it is the churn estimate, name the PB6 re-centring on origin as a candidate. Do not re-run at origin in this item. Append everything to that record, and land it on origin through tools.surgical_land, not onto the shared HEAD.",
+    "why": "The first answer to the thesis's baseline question is \"the per-customer arm loses on every draw so far\". A NO without its cause cannot be acted on. The thesis says the advantage comes from understanding the truth better than average, so the next build is whichever inference the attribution shows is wrong. DONE when origin's ab6 record carries X1 graded, the plain answer, and a per-account table that names a cause or says plainly that it cannot."
    }
   ],
   "not_now": [
    {
-    "what": "A one-commit bisection of why seed 44444's D_lin moves about twice 33333's across the new pin.",
-    "why": "Five candidate commits at about 1.5 box-hours each would contend with ab6's P legs for the only box's memory. The bridge already did its job: ab5 is re-labelled and not carried. The cause matters only if a later design reuses the ab5 figure, and none does."
+    "what": "Re-running ab6 at origin/main now, to carry the PB6 churn-prior re-centring and the gas-leaver fix.",
+    "why": "The pin is what makes the answer attributable. A second run on the one box would also slow X1. The attribution comes first, so a re-run tests a named cause and is not a fishing trip. It is the next item after grade-x1-and-attribute-the-loss."
    },
    {
-    "what": "Launching or pre-running the four-book pilot (even truncated to --end-year 2017) before the director rules on EP17.",
-    "why": "A different cast is the world the company lives through, and R13 makes that his. The roster-and-stream control can be written against founder_book and the patch function with no run, so waiting costs no code."
+    "what": "The brief counting stranded landings with `git cherry` (last stretch's item three, never drawn).",
+    "why": "Squash replays like 4380002bd are never patch-equivalent, so that instrument would call landed work stranded forever. The correct instrument is content-at-origin, not patch identity. Closing the fork, and making a land on no ref refuse, removes the live cause first. It stays open under the brief's wrong row."
    },
    {
-    "what": "Restarting ab6 at current HEAD to carry the re-centred PB6 prior and the gas-leaver fix.",
-    "why": "The pin is what makes the answer attributable. The bridge measured the pin-to-ab5 gap as level-arm drift with no decision flips, so the grade names the commits it predates instead of chasing HEAD."
+    "what": "Another alarm, page or channel for the stretch log.",
+    "why": "The director said not to patch it again, and four channel, host and trigger fixes are the evidence. The only change that closes it is who writes."
    },
    {
-    "what": "A fresh PB6 or PB7 blind pass, or unparking either.",
-    "why": "Every residual below L3 releases outside the rows (PB8's source, a PB1-scale book, the director's two-sided objective), so a second pass on the same battery re-asks answered questions."
+    "what": "Retiring the stretch log and pointing the check at decisions.jsonl.",
+    "why": "It loses the one readable page he reads. Having the orientation write the log keeps the page and gives it a writer who cannot be absent."
    },
    {
-    "what": "Reconciling the shared checkout's 20/11 divergence from origin, and the other carried harness reader defects.",
-    "why": "Neither cost a thesis run this stretch, and sim-runner deferred correctly under ab6. The NEXT-trailer gate is taken instead because it closes a wrong row with one mechanism. The rest stay open in wrong."
+    "what": "Spending the ample budget on a fork or a second heavy job while X1 runs.",
+    "why": "The box, not the budget, binds. X1 was admitted at 17,235 of 23,008 MB, so a parallel run risks the only thesis measurement in flight. The two harness items are cheap in memory and use that headroom instead."
    },
    {
-    "what": "Re-deriving sim-runner's sim_run admission weight from 13,824 MB toward the observed 6,317 MB.",
-    "why": "It is still what keeps sim-runner deferred for ab6's whole run, and publishing is held until 2026-10-05. Re-derive it only when every long job's declared peak is honest."
+    "what": "Asking the director about EP17 (book-varying) again.",
+    "why": "n* = 6 did not trigger the book-varying design. It becomes his question only if X1's CI contains zero, and then the record points at the amended prereg."
    }
   ],
   "for_the_director": [],
@@ -309,6 +309,166 @@
  },
  "what_it_got_wrong": {
   "entries": [
+   {
+    "at": "2026-09-30T14:22:25.400516+00:00",
+    "what": "MINE, NEW. I wrote `wrong` fourteen times between 25 and 30 September and never listed the stretch log going silent (121.7h, 330 commits), though this orientation is the one writer that is always present. The director had to notice it himself.",
+    "corrected": false
+   },
+   {
+    "at": "2026-09-30T14:22:25.400516+00:00",
+    "what": "MINE, NEW (last stretch). I defaulted the ab6 reading to \"cannot say\" (P2, n* > 12, about 70%), and I framed the ab5 positive as the thing being tested for noise. The pilots read 0 of 4 positive with n* = 6. The centre is not positive on the churn-roll key.",
+    "corrected": true
+   },
+   {
+    "at": "2026-09-30T14:22:25.400516+00:00",
+    "what": "THE MACHINE'S, NEW. surgical_land --merge printed \"landed MERGE 1918a0820\" and exited rc 0, yet no ref contains 1918a0820. A land can report success while landing nothing.",
+    "corrected": false
+   },
+   {
+    "at": "2026-09-30T14:22:25.400516+00:00",
+    "what": "THE MACHINE'S, NEW. legs6.sh's unanchored `pgrep -f tools.run_value_cycle_ab` matched a Claude seat's prompt, and would have stalled X1 for up to 6h. Corrected for the instance by legs6x.sh's anchored pattern (749c0a290). The rule, tools/wait_for.py and never a hand-rolled pgrep, already exists, and this copy predates the rule's reach.",
+    "corrected": true
+   },
+   {
+    "at": "2026-09-30T14:22:25.400516+00:00",
+    "what": "MINE, NEW. My last direction put reconciling the shared checkout's divergence in not_now because it \"cost no thesis run\". It was stranding every ordinary-draw landing off origin, 19 receipted commits and five level moves by 11:23Z. My last thesis_read also cited dc3a4f66e and 3931f644b (the PB6 and PB7 parks) as landed, but neither is on origin.",
+    "corrected": true
+   },
+   {
+    "at": "2026-09-30T14:22:25.400516+00:00",
+    "what": "THE MACHINE'S, NEW. The brief measures the stretch over HEAD and origin together, and its divergence line counts patch-equivalent copies, so 21 commits with no origin equivalent read as \"8 of 8 carrying work\" and a count of 25 ahead. origin_reconcile has logged REFUSED_CONFLICT every cycle for hours, and nothing raised it past its own log.",
+    "corrected": false
+   },
+   {
+    "at": "2026-09-30T14:22:25.400516+00:00",
+    "what": "THE MACHINE'S, NEW. One item can land twice, once on origin through surgical_land and once as a local commit on the shared HEAD with different bytes (four pairs this stretch). The copies then conflict, and the reconcile cannot merge the machine's own work.",
+    "corrected": false
+   },
+   {
+    "at": "2026-09-30T14:22:25.400516+00:00",
+    "what": "THE MACHINE'S, NEW (last stretch). The lane-0 ledger grades the 03:12Z draw of grade-the-ab6-bridge-leg as landed_elsewhere under 51417dba4, because that commit touched the same prereg path. The bridge grade actually landed as 504b42a37. A path match is read as the work. This stretch it attributed item two's 09:55 bytes to the grade item by time.",
+    "corrected": false
+   },
+   {
+    "at": "2026-09-30T14:22:25.400516+00:00",
+    "what": "THE MACHINE'S, NEW (last stretch). sim-runner's deferral under a long job rests on CLASS_WEIGHTS_MB[\"sim_run\"] = 13,824 MB, about twice the observed 6,317 MB. weight_drift checks one direction only, so it reads drifted=False. The protection is correct by accident of a stale figure.",
+    "corrected": false
+   },
+   {
+    "at": "2026-09-30T14:22:25.400516+00:00",
+    "what": "THE MACHINE'S, CARRIED. Item two's surgical_land (pid 837396) ran 1h25m, exited, and put nothing on any ref. Why that land exited empty was never read. The 1918a0820 row above is probably the same shape, and close-the-fork-and-make-a-land-on-no-ref-refuse reads it.",
+    "corrected": false
+   },
+   {
+    "at": "2026-09-30T14:22:25.400516+00:00",
+    "what": "THE MACHINE'S, CARRIED. A control or door whose shape changes must re-run every fixture that builds a synthetic tree to drive it, and no control requires it. citation_at_head, red_at_head and fork_state in docs/observability/.publish_gate_state.json still read not_established.",
+    "corrected": false
+   },
+   {
+    "at": "2026-09-30T14:22:25.400516+00:00",
+    "what": "THE MACHINE'S, CARRIED. A refusal naming a commit is not re-asked against the remote ref before a reader sees it. liveness_surface_refusal is still not re-asked.",
+    "corrected": false
+   },
+   {
+    "at": "2026-09-30T14:22:25.400516+00:00",
+    "what": "MINE, CARRIED. evaluate_boot_sha_drift() in background/process_reconciler.py grades every daemon against local HEAD, and misreads when HEAD and origin diverge during a reconcile. The function has changed since the claim was made, and the claim has not been re-established, so it is not withdrawn. It is live again now that HEAD and origin are forked.",
+    "corrected": false
+   },
+   {
+    "at": "2026-09-30T14:22:25.400516+00:00",
+    "what": "THE MACHINE'S, CARRIED. The stash-completeness sweep reports a genuinely lost file as safe. It is still not on the map.",
+    "corrected": false
+   },
+   {
+    "at": "2026-09-30T14:22:25.400516+00:00",
+    "what": "THE MACHINE'S, CARRIED. The lane-0 block and the path check read HEAD or a local ref, not origin. The 19 receipted commits' content is now on origin (4380002bd), but HEAD is still forked, so anything they read as \"landed\" may not be on origin.",
+    "corrected": false
+   },
+   {
+    "at": "2026-09-30T14:22:25.400516+00:00",
+    "what": "THE MACHINE'S, CARRIED. Nothing on the landing path asks whether a same-subject untracked sibling is left behind in the shared tree. The 14-path refusal in 662da7fd3 is an instance.",
+    "corrected": false
+   },
+   {
+    "at": "2026-09-30T14:22:25.400516+00:00",
+    "what": "MINE, CARRIED. not_now is prose, and nothing a launch from another lane reads. The launcher in b50a03519 and the --book-seeds refusal in 19ca27dbc each turn one instance into a mechanism, and the class stays open.",
+    "corrected": false
+   },
+   {
+    "at": "2026-09-30T11:23:00.155866+00:00",
+    "what": "MINE, NEW. My last direction put reconciling the shared checkout's divergence in not_now because it \"cost no thesis run\". It was stranding every ordinary-draw landing off origin, 19 receipted commits and five level moves by 11:23Z. My last thesis_read also cited dc3a4f66e and 3931f644b (the PB6 and PB7 parks) as landed, but neither is on origin.",
+    "corrected": false
+   },
+   {
+    "at": "2026-09-30T11:23:00.155866+00:00",
+    "what": "THE MACHINE'S, NEW. The brief measures the stretch over HEAD and origin together, and its divergence line counts patch-equivalent copies, so 21 commits with no origin equivalent read as \"8 of 8 carrying work\" and a count of 25 ahead. origin_reconcile has logged REFUSED_CONFLICT every cycle for hours, and nothing raised it past its own log.",
+    "corrected": false
+   },
+   {
+    "at": "2026-09-30T11:23:00.155866+00:00",
+    "what": "THE MACHINE'S, NEW. One item can land twice, once on origin through surgical_land and once as a local commit on the shared HEAD with different bytes (four pairs this stretch). The copies then conflict, and the reconcile cannot merge the machine's own work.",
+    "corrected": false
+   },
+   {
+    "at": "2026-09-30T11:23:00.155866+00:00",
+    "what": "MINE, NEW (last stretch). The previous focus item for the book-varying prereg offered \"more books\" without naming that a different book seed is a different cast (EP17, director-reserved under R13). CORRECTED by 19ca27dbc on origin: the prereg's rule 2 now launches only on a recorded director ruling, and --book-seeds refuses a non-default seed without the activation file and names EP17.",
+    "corrected": true
+   },
+   {
+    "at": "2026-09-30T11:23:00.155866+00:00",
+    "what": "THE MACHINE'S, NEW (last stretch). The lane-0 ledger grades the 03:12Z draw of grade-the-ab6-bridge-leg as landed_elsewhere under 51417dba4, because that commit touched the same prereg path. The bridge grade actually landed as 504b42a37. A path match is read as the work. This stretch it attributed item two's 09:55 bytes to the grade item by time.",
+    "corrected": false
+   },
+   {
+    "at": "2026-09-30T11:23:00.155866+00:00",
+    "what": "THE MACHINE'S, NEW (last stretch). sim-runner's deferral under a long job rests on CLASS_WEIGHTS_MB[\"sim_run\"] = 13,824 MB, about twice the observed 6,317 MB. weight_drift checks one direction only, so it reads drifted=False. The protection is correct by accident of a stale figure.",
+    "corrected": false
+   },
+   {
+    "at": "2026-09-30T11:23:00.155866+00:00",
+    "what": "THE MACHINE'S, NEW (last stretch). A NEXT pointer could name a blocked atom (46b78123f handed PB6 on to a parked PB8). CORRECTED by 9f5497cb3 on origin: the next-step gate refuses a NEXT naming a parked atom and quotes the park. Its local duplicate 6b5654f04 is part of the new duplicate-landing row above.",
+    "corrected": true
+   },
+   {
+    "at": "2026-09-30T11:23:00.155866+00:00",
+    "what": "THE MACHINE'S, CARRIED. Item two's surgical_land (pid 837396) ran 1h25m, exited, and put nothing on any ref. Why that land exited empty was never read.",
+    "corrected": false
+   },
+   {
+    "at": "2026-09-30T11:23:00.155866+00:00",
+    "what": "THE MACHINE'S, CARRIED. A control or door whose shape changes must re-run every fixture that builds a synthetic tree to drive it, and no control requires it. citation_at_head, red_at_head and fork_state in docs/observability/.publish_gate_state.json still read not_established.",
+    "corrected": false
+   },
+   {
+    "at": "2026-09-30T11:23:00.155866+00:00",
+    "what": "THE MACHINE'S, CARRIED. A refusal naming a commit is not re-asked against the remote ref before a reader sees it. liveness_surface_refusal is still not re-asked.",
+    "corrected": false
+   },
+   {
+    "at": "2026-09-30T11:23:00.155866+00:00",
+    "what": "MINE, CARRIED. evaluate_boot_sha_drift() in background/process_reconciler.py grades every daemon against local HEAD, and misreads when HEAD and origin diverge during a reconcile. The function has changed since the claim was made, and the claim has not been re-established, so it is not withdrawn. It is live again now that HEAD and origin are forked.",
+    "corrected": false
+   },
+   {
+    "at": "2026-09-30T11:23:00.155866+00:00",
+    "what": "THE MACHINE'S, CARRIED. The stash-completeness sweep reports a genuinely lost file as safe. It is still not on the map.",
+    "corrected": false
+   },
+   {
+    "at": "2026-09-30T11:23:00.155866+00:00",
+    "what": "THE MACHINE'S, CARRIED. The lane-0 block and the path check read HEAD or a local ref, not origin. With 19 receipted commits now HEAD-only, anything they read as \"landed\" may not be on origin.",
+    "corrected": false
+   },
+   {
+    "at": "2026-09-30T11:23:00.155866+00:00",
+    "what": "THE MACHINE'S, CARRIED. Nothing on the landing path asks whether a same-subject untracked sibling is left behind in the shared tree. The 14-path refusal in 662da7fd3 is an instance.",
+    "corrected": false
+   },
+   {
+    "at": "2026-09-30T11:23:00.155866+00:00",
+    "what": "MINE, CARRIED. not_now is prose, and nothing a launch from another lane reads. The launcher in b50a03519 and the --book-seeds refusal in 19ca27dbc each turn one instance into a mechanism, and the class stays open.",
+    "corrected": false
+   },
    {
     "at": "2026-09-30T08:24:57.155919+00:00",
     "what": "MINE, NEW. The previous focus item for the book-varying prereg offered \"more books\" as a candidate without naming that a different book seed is a different cast, which is EP17_varied_population_draw, director-reserved under R13, with two earlier unanswered asks on file. d11c047ac chose it, and its rule 2 would launch a four-cast pilot on the ~70% branch with no ruling.",
@@ -2273,86 +2433,79 @@
     "at": "2026-09-24T05:22:21.727503+00:00",
     "what": "MINE, CARRIED, THE STANDING CONDITION, CHECKED RATHER THAN ASSERTED \u2014 AND IT BIT THIS TIME. I had drafted the `publish_cause` repair at rank 3 and the freshness banner at rank 4, which would have put a control above a reader-facing sentence. Applying the condition swapped them. As written now: rank 1 ends in `last_clean_publish` advancing past 2026-09-21T18:15Z. Rank 2 ends in the checkout fast-forwarded and a stale BLOCKING finding off the gate. Rank 3 ends in the front door reading as failing while the publisher is failing. Rank 4 is a control that publishes nothing and sits below all three. Rank 5 is a ledger row. Not in breach.",
     "corrected": true
-   },
-   {
-    "at": "2026-09-24T02:22:25.248149+00:00",
-    "what": "MINE, CARRIED, AND CLOSED ON THE CONDITION IT SET ITSELF -- while the thing it was about got worse, and those are two different facts. I had claimed three site-lane reds were \"the whole of why\" figures had not published, having inspected one link and described a chain. The condition I set was that the repair must end in a finding naming the SEQUENCE rather than in the unwedging alone. It did: `337ccf643` names four causes, calls its own count a FLOOR not a total, and refuses to call the fourth one last. It went further than asked -- 17 of the 40 runs in this wedge PASSED and published nothing, so a failing test explains 32% of the outage and my original claim was wrong by more than one member of a cause set. Closed as an epistemic error. NOT closed as an outage: `last_clean_publish` still reads 2026-09-21 18:15 UTC, now 56.1h, and a fifth cause is already live. That is rank 1, not a `wrong` row.",
-    "corrected": true
-   },
-   {
-    "at": "2026-09-24T02:22:25.248149+00:00",
-    "what": "THE MACHINE'S, CARRIED, AND WORSE THIS STRETCH. The liveness surface published \"alive\" again at `169fb08b7` over figures that were already two days old, and still carries no age beside the claim. It is doing exactly what it was built to do -- decouple published liveness from content-change -- and the consequence is a public surface confidently wrong about the one thing a reader can verify without us. Not corrected, and the repair changes FORM this time: rank 4 is written as lane-0 work, because naming `OPS8_last_known_good_staleness_banner` as an atom only biased the ordinary draw and the draw took 23 other atoms instead.",
-    "corrected": false
-   },
-   {
-    "at": "2026-09-24T02:22:25.248149+00:00",
-    "what": "THE MACHINE'S, CARRIED, AND NOW WITH A SECOND STRETCH OF EVIDENCE. The draw ledger grades by WINDOW rather than by SUBJECT: `the-refuted-bill-stress-knee-is-unbounded-beside-a-saturating-size-term` is still recorded `not_done` 16.5 hours after it was drawn, on the true evidence that no commit touched its paths inside its window -- and the work landed at `3b01193a8` four hours and twenty minutes after that window shut. Last stretch's rank 3 carried the binding and was never drawn, so the row is still unbound and the next draw will hand it out again. Not corrected: rank 5 carries the `--landed-under` binding. Whether the window-vs-subject shape needs more than a binding stays a question for the next orientation, not a register to build today.",
-    "corrected": false
-   },
-   {
-    "at": "2026-09-24T02:22:25.248149+00:00",
-    "what": "MINE, NEW. I wrote rank 4 last stretch as the maturity-map atom id, knowing that an atom-class focus item only BIASES the ordinary draw while anything else is handed to a worker tick as lane 0. It was not drawn; the draw took 23 other atoms. Three of four lane-0 items were drawn and the one atom-class item was not, which is the instrument behaving exactly as documented and me writing a steer into the class that cannot reach a worker. Corrected in this record: rank 4 is now a lane-0 instruction with the atom named inside it rather than as its id.",
-    "corrected": true
-   },
-   {
-    "at": "2026-09-24T02:22:25.248149+00:00",
-    "what": "THE MACHINE'S, NEW. `background/publish_cause.py` -- the module whose entire job is to name why a publish did not happen -- names no cause for the state the publisher is actually in. `.publish_step_state.json` reads `degraded: true` with `failing_steps` `[\"Customer data generation\", \"Customer sample generation\"]`, and the finding that spotted it had to read that file directly to see it. A cause enumeration that cannot describe the live refusal is how a fifth cause stayed invisible behind a fourth. Not corrected: rank 1 requires each further cause be appended to the series, which surfaces it; whether `publish_cause` should learn this cause class is the next orientation's question.",
-    "corrected": false
-   },
-   {
-    "at": "2026-09-24T02:22:25.248149+00:00",
-    "what": "THE MACHINE'S, NEW, AND THE MOST EXPENSIVE SILENCE HERE. The paired floor wrote its answer to `docs/observability/value_cycle_size_term_paired_floor.json` at 01:55 UTC -- an honest \"we cannot tell\" with a width, from eleven hours of compute -- and nothing published it, notified anyone, or noticed. Worse, the same artefact reports that pairing on `churn_roll` made the net-margin spread 1.108x WIDER than independent legs would have been, so the variance control the whole design exists to buy was not bought for the headline quantity, and that reading has reached no reader either. Not corrected: rank 2 is the repair.",
-    "corrected": false
-   },
-   {
-    "at": "2026-09-24T02:22:25.248149+00:00",
-    "what": "MINE, CARRIED, THE STANDING CONDITION, CHECKED RATHER THAN ASSERTED. This record is in breach if it ranks anything above the thesis whose DONE does not end in a published figure or sentence moving. Rank 1 ends in `last_clean_publish` advancing past 2026-09-21 18:15 UTC. Rank 2 ends in the words \"we cannot tell\" and a width on the live page. Rank 3 is a control and publishes nothing, which is why it sits BELOW both publication items rather than above them, despite being the mechanism that would have caught 54 hours of silence. Rank 4 ends in a dated age on the front door. Rank 5 ends in a BLOCKING finding off the list and a ledger row naming its commit. Not in breach.",
-    "corrected": true
-   },
-   {
-    "at": "2026-09-23T23:23:52.735514+00:00",
-    "what": "THE MACHINE'S, CARRIED TWO STRETCHES, AND NOW CLOSED ON THE MECHANISM RATHER THAN THE INSTANCE. The publish gate's state preserved a dead citation in `blocking_tests` \u2014 the field a reader reaches first \u2014 while recording the live refusal in a different field beside it. Read fresh at 23:24: `blocking_tests` is `[]`, and `citation_at_head` carries a re-asked verdict with its own reason (\"no red is named on this failure, so there is no citation to re-ask. This is not evidence that HEAD is green\") \u2014 a refusal that names its reason, which is the shape asked for. Landed by `2b6bdea95` with `tests/background/test_the_publish_gates_citation_is_re_asked_at_head.py`. Closed because the state now re-asks at write time, not because today's citation happens to be empty.",
-    "corrected": true
-   },
-   {
-    "at": "2026-09-23T23:23:52.735514+00:00",
-    "what": "MINE, CARRIED, AND CLOSED ON THE CONDITION IT SET ITSELF. I had put a count in an item's own name (`nineteen-staging-dispositions-are-done-and-uncommitted`) when the real figure was 146, and said the repair was to re-file it with no count in the id. I did: `the-staging-queues-census-is-behind-its-own-tree`. The proof the repair mattered is that the subject then shrank sevenfold \u2014 `staging_rooms --check` reads 4 stranded archivals now \u2014 and the item needed no renaming to stay gradable. It is the one item of four the draw never took and it is finished anyway, discharged under other commits' names, so it disappears from focus on the acceptance test this record actually has.",
-    "corrected": true
-   },
-   {
-    "at": "2026-09-23T23:23:52.735514+00:00",
-    "what": "MINE, NEW, AND THE WORST HERE. I wrote that the three site-lane reds \"ARE the site lane's refusal ... and that is the whole of why figures last reached origin 50.1h ago\". I had inspected one link and described a chain. The reds cleared, the renderer landed at `caabe0165`, and `last_clean_publish` did not move by one second: it still reads 2026-09-21 18:15 UTC and the live refusal is `behind_origin` on two untracked staging paths. \"The whole of why\" is a claim about a cause set, and I had evidence for one member of it. Not corrected: rank 1 is the repair, and it deliberately ends in a finding naming the sequence rather than in the unwedging alone, because clearing a fourth cause and calling it the last one is the same error again.",
-    "corrected": false
-   },
-   {
-    "at": "2026-09-23T23:23:52.735514+00:00",
-    "what": "THE MACHINE'S, NEW. The liveness surface published \"alive\" three times in 3.1 hours (`06cac8d2a`, `97f1910fc`, `b6a4f2a5c`) over figures that were already two days old, and carries no age beside the claim. It is doing exactly what it was built to do \u2014 decouple published liveness from content change \u2014 and the consequence is a public surface that is confidently wrong about the one thing a reader can check. Not corrected: rank 4 (`OPS8`) is the repair, and the atom for it has existed at level 0 with no control since epoch 2.",
-    "corrected": false
-   },
-   {
-    "at": "2026-09-23T23:23:52.735514+00:00",
-    "what": "THE MACHINE'S, NEW, AND AN INSTRUMENT RATHER THAN A BEHAVIOUR. The draw ledger records `the-refuted-bill-stress-knee-is-unbounded-beside-a-saturating-size-term` as `not_done` on the evidence that no commit touched its paths inside its window \u2014 true, and the work landed at `3b01193a8` four hours and twenty minutes after that window closed. A ledger that grades by window rather than by subject will hand the same item out again and a worker will redo landed work. Not corrected: rank 3 carries the `--landed-under` binding for this instance; whether the window-vs-subject shape needs more than a binding is a question for the next orientation and not a register to build today.",
-    "corrected": false
-   },
-   {
-    "at": "2026-09-23T23:23:52.735514+00:00",
-    "what": "MINE, CARRIED, THE STANDING CONDITION, CHECKED RATHER THAN ASSERTED. This record is in breach if it ranks anything above the thesis whose DONE does not end in a published figure or sentence moving. Rank 1 ends in `last_clean_publish` advancing past 2026-09-21 18:15 UTC. Rank 2 ends in a width \u2014 or the words \"we cannot tell\" \u2014 published beside the size-term contrast. Rank 3 ends in a BLOCKING finding cleared and a ledger row bound, which is the weakest of the four and is why it sits third rather than higher. Rank 4 ends in a dated banner on the live front door. Not in breach.",
-    "corrected": true
    }
   ],
   "refused_own_records": [],
-  "outstanding": 328,
-  "corrected": 78,
+  "outstanding": 348,
+  "corrected": 77,
   "correction_not_recorded": 0,
   "empty_means": ""
  },
  "what_next": {
   "focus": [
-   "grade-ab6-bridge-and-pilots",
-   "put-the-ep17-line-into-the-book-varying-prereg-and-build-the-refusing-flag",
-   "the-next-trailer-refuses-a-blocked-atom"
+   "the-orientation-writes-the-stretch-log",
+   "close-the-fork-and-make-a-land-on-no-ref-refuse",
+   "grade-x1-and-attribute-the-loss"
   ],
   "steer_checks": [
+   {
+    "by_class": {
+     "lane_0": {
+      "drawn": [
+       "land-the-stranded-head-only-commits-on-origin",
+       "grade-ab6-bridge-and-pilots"
+      ],
+      "focus": [
+       "land-the-stranded-head-only-commits-on-origin",
+       "grade-ab6-bridge-and-pilots",
+       "the-brief-counts-stranded-landings"
+      ],
+      "steered": true
+     }
+    },
+    "drawn": [
+     "land-the-stranded-head-only-commits-on-origin",
+     "grade-ab6-bridge-and-pilots"
+    ],
+    "focus": [
+     "land-the-stranded-head-only-commits-on-origin",
+     "grade-ab6-bridge-and-pilots",
+     "the-brief-counts-stranded-landings"
+    ],
+    "note": "the previous direction named work the draw then took (measured over this stretch only -- the 3.0h since 2026-09-30T11:23:00.155866+00:00; this is the PREVIOUS FOCUS, not every drawn item)",
+    "steered": true,
+    "window": "this stretch only -- the 3.0h since 2026-09-30T11:23:00.155866+00:00"
+   },
+   {
+    "by_class": {
+     "lane_0": {
+      "drawn": [
+       "grade-ab6-bridge-and-pilots",
+       "put-the-ep17-line-into-the-book-varying-prereg-and-build-the-refusing-flag",
+       "the-next-trailer-refuses-a-blocked-atom"
+      ],
+      "focus": [
+       "grade-ab6-bridge-and-pilots",
+       "put-the-ep17-line-into-the-book-varying-prereg-and-build-the-refusing-flag",
+       "the-next-trailer-refuses-a-blocked-atom"
+      ],
+      "steered": true
+     }
+    },
+    "drawn": [
+     "grade-ab6-bridge-and-pilots",
+     "put-the-ep17-line-into-the-book-varying-prereg-and-build-the-refusing-flag",
+     "the-next-trailer-refuses-a-blocked-atom"
+    ],
+    "focus": [
+     "grade-ab6-bridge-and-pilots",
+     "put-the-ep17-line-into-the-book-varying-prereg-and-build-the-refusing-flag",
+     "the-next-trailer-refuses-a-blocked-atom"
+    ],
+    "note": "the previous direction named work the draw then took (measured over this stretch only -- the 3.0h since 2026-09-30T08:24:57.155919+00:00; this is the PREVIOUS FOCUS, not every drawn item)",
+    "steered": true,
+    "window": "this stretch only -- the 3.0h since 2026-09-30T08:24:57.155919+00:00"
+   },
    {
     "by_class": {
      "atom": {
@@ -2471,80 +2624,6 @@
     "note": "the previous direction named work the draw then took (measured over this stretch only -- the 3.0h since 2026-09-29T23:20:07.661262+00:00; this is the PREVIOUS FOCUS, not every drawn item)",
     "steered": true,
     "window": "this stretch only -- the 3.0h since 2026-09-29T23:20:07.661262+00:00"
-   },
-   {
-    "by_class": {
-     "atom": {
-      "drawn": [
-       "PB6_the_engagement_observable_crosses_the_seam"
-      ],
-      "focus": [
-       "PB6_the_engagement_observable_crosses_the_seam"
-      ],
-      "steered": true
-     },
-     "lane_0": {
-      "drawn": [
-       "relaunch-22222-alone-on-the-box-and-grade-five-seeds",
-       "the-exclusivity-check-for-a-long-job-is-resident-memory-not-a-flag"
-      ],
-      "focus": [
-       "relaunch-22222-alone-on-the-box-and-grade-five-seeds",
-       "the-exclusivity-check-for-a-long-job-is-resident-memory-not-a-flag"
-      ],
-      "steered": true
-     }
-    },
-    "drawn": [
-     "relaunch-22222-alone-on-the-box-and-grade-five-seeds",
-     "PB6_the_engagement_observable_crosses_the_seam",
-     "the-exclusivity-check-for-a-long-job-is-resident-memory-not-a-flag"
-    ],
-    "focus": [
-     "relaunch-22222-alone-on-the-box-and-grade-five-seeds",
-     "PB6_the_engagement_observable_crosses_the_seam",
-     "the-exclusivity-check-for-a-long-job-is-resident-memory-not-a-flag"
-    ],
-    "note": "the previous direction named work the draw then took (measured over this stretch only -- the 2.9h since 2026-09-29T20:24:47.649511+00:00; this is the PREVIOUS FOCUS, not every drawn item)",
-    "steered": true,
-    "window": "this stretch only -- the 2.9h since 2026-09-29T20:24:47.649511+00:00"
-   },
-   {
-    "by_class": {
-     "atom": {
-      "drawn": [
-       "PB6_the_engagement_observable_crosses_the_seam"
-      ],
-      "focus": [
-       "PB6_the_engagement_observable_crosses_the_seam"
-      ],
-      "steered": true
-     },
-     "lane_0": {
-      "drawn": [
-       "grade-four-seeds-now-and-relaunch-22222-as-a-two-seed-leg",
-       "a-long-job-that-dies-is-shown-dead-in-the-brief"
-      ],
-      "focus": [
-       "grade-four-seeds-now-and-relaunch-22222-as-a-two-seed-leg",
-       "a-long-job-that-dies-is-shown-dead-in-the-brief"
-      ],
-      "steered": true
-     }
-    },
-    "drawn": [
-     "grade-four-seeds-now-and-relaunch-22222-as-a-two-seed-leg",
-     "PB6_the_engagement_observable_crosses_the_seam",
-     "a-long-job-that-dies-is-shown-dead-in-the-brief"
-    ],
-    "focus": [
-     "grade-four-seeds-now-and-relaunch-22222-as-a-two-seed-leg",
-     "PB6_the_engagement_observable_crosses_the_seam",
-     "a-long-job-that-dies-is-shown-dead-in-the-brief"
-    ],
-    "note": "the previous direction named work the draw then took (measured over this stretch only -- the 3.0h since 2026-09-29T17:22:34.403195+00:00; this is the PREVIOUS FOCUS, not every drawn item)",
-    "steered": true,
-    "window": "this stretch only -- the 3.0h since 2026-09-29T17:22:34.403195+00:00"
    }
   ],
   "steered_recently": true,
