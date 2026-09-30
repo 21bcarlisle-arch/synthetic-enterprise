@@ -150,6 +150,14 @@ class LayerCorrelation:
     `test_a_declared_correlation_is_either_sourced_or_openly_unestablished`,
     because an unsourced coefficient is exactly the placeholder that reads as an
     answer.
+
+    `in_the_world` is a different question from `established`, and the difference is the point:
+    `established` asks whether the REAL strength is known; `in_the_world` asks whether OUR draw
+    carries any association at all. The first is answered from the published record, the second
+    only by measuring the draw -- `measure_layer_associations` below, over the attributes named in
+    `measured_as`. A row declared absent that the draw carries, or a carried association with no
+    row, is the canon's "correlation assumed rather than measured", and
+    `test_every_association_the_world_draws_between_the_layers_is_declared` goes red on either.
     """
 
     physical: str
@@ -157,6 +165,8 @@ class LayerCorrelation:
     established: bool
     source: str | None
     reason: str
+    in_the_world: bool
+    measured_as: tuple[str, ...]
 
     def __post_init__(self) -> None:
         if self.established and not self.source:
@@ -178,9 +188,15 @@ LAYER_CORRELATIONS: tuple[LayerCorrelation, ...] = (
             "TS017 as a MARGINAL; segmentation_joint_structure.md records it as 'not "
             "cross-tabbed to tenure/EPC in any doc found'. Closing this needs a "
             "published cross-tabulation of household size against income, which no "
-            "source in the commons carries. Until then the two are drawn "
-            "independently and the sample is NOT claimed to span the joint."
+            "source in the commons carries. The FRS/HBAI low-income rates by family type "
+            "(POPULATION_COVERAGE_SOURCE_LANDSCAPE.md, 'apply') are the nearest candidate and "
+            "are keyed on composition, not headcount. Until then the two are drawn "
+            "independently and the sample is NOT claimed to span the joint. MEASURED "
+            "2026-09-30 at 2025-12-31: chi2 5.6/6 dof (seed 11, n 1954) and 6.9/6 (seed 23, "
+            "n 2040) -- independent, as declared."
         ),
+        in_the_world=False,
+        measured_as=("occupancy",),
     ),
     LayerCorrelation(
         physical="asset_ownership",
@@ -191,8 +207,36 @@ LAYER_CORRELATIONS: tuple[LayerCorrelation, ...] = (
             "solar/EV/battery co-ownership against tenure and income is carried in "
             "the population-coverage register as 'assumed', not fused. W1_10 models "
             "adoption as spatially correlated by region, which is a different joint: "
-            "it says WHERE adopters are, not WHO they are."
+            "it says WHERE adopters are, not WHO they are. Nothing in the draw conditions "
+            "adoption on income stress; measured 2026-09-30, every asset field is independent "
+            "of it at the control's threshold."
         ),
+        in_the_world=False,
+        measured_as=("has_solar", "has_battery", "has_ev", "has_smart_meter", "has_driveway"),
+    ),
+    # FOUND BY MEASURING, 2026-09-30, not declared by anyone before. The draw CARRIES this one,
+    # at Cramer's V 0.14 (p < 1e-11 on two seeds), and it is the only cross-layer association it
+    # carries. The path is `life_events._RETIREMENT_PROB_BY_ERA`: retirement, a commercial
+    # transition (LOW -> MODERATE), fires on the DWELLING's build era, on the premise that a
+    # 1945-64 house holds people born 1945-64. `boiler_age` is drawn from the era and rides the
+    # same path. Declared here because it is real in the world; whether it should BE real is
+    # the life-events lane's question, filed rather than fixed from this seam.
+    LayerCorrelation(
+        physical="build_era",
+        commercial="income_stress",
+        established=False,
+        source=None,
+        reason=(
+            "carried by the draw through life_events._RETIREMENT_PROB_BY_ERA, which keys "
+            "retirement on the dwelling's build era as a proxy for its occupants' birth "
+            "cohort. Nothing read establishes that a house's age predicts its occupants' "
+            "age, and composition_cuts_for draws pensioner_present on the physical layer "
+            "independently of that retirement, so the world holds two answers to 'is "
+            "someone here retired'. Closing it needs the EHS age-of-HRP by dwelling-age "
+            "cross-tab, or the retirement keyed on the drawn pensioner instead."
+        ),
+        in_the_world=True,
+        measured_as=("build_era", "boiler_age"),
     ),
 )
 
@@ -541,3 +585,90 @@ def unclassified_household_fields() -> tuple[str, ...]:
     return tuple(
         f.name for f in dataclasses.fields(Household) if f.name not in known
     )
+
+
+#: Above this many distinct values a chi-square over a book of a few thousand homes has cells too
+#: thin to read (an output area has thousands), so the pair is returned UNMEASURED with that
+#: reason rather than given a statistic that means nothing.
+_MAX_LEVELS_FOR_A_CONTINGENCY = 12
+
+
+@dataclass(frozen=True)
+class LayerAssociation:
+    """One physical attribute against one commercial one, as the draw actually has them.
+
+    `chi2` is None when the pair could not be measured, and `unmeasured_because` says why.
+    Cramer's V is reported beside the statistic because chi-square alone grows with the book: V
+    is the strength, chi2 with its dof is whether it is there at all.
+    """
+
+    physical: str
+    commercial: str
+    n: int
+    chi2: float | None
+    dof: int
+    cramers_v: float | None
+    unmeasured_because: str | None = None
+
+
+def measure_layer_associations(
+    homes: Sequence[tuple[str, Household, Household]],
+) -> list[LayerAssociation]:
+    """Measure every physical attribute against every commercial one over a drawn book.
+
+    `homes` is `(customer_id, household as drawn, household at the date measured)`. The commercial
+    layer MOVES -- income stress changes through life events and starts LOW for every home -- so a
+    reading at the draw would find nothing and prove nothing; the caller picks the date. Physical
+    fields are read at the same date, because assets are adopted over the run. `occupancy` is read
+    off the assembled physical layer, which is the headcount the demand path sees.
+
+    Continuous fields (kWp, kWh, kW) are not measured: a contingency over a float is a table of
+    ones. They are not silently dropped either -- their integer siblings (`has_solar`, ...) carry
+    the ownership question.
+    """
+    physical_values: dict[str, list[str]] = {"occupancy": []}
+    commercial_values: dict[str, list[str]] = {}
+    for customer_id, drawn, at_date in homes:
+        physical_values["occupancy"].append(
+            occupancy_band_for(customer_id, drawn.output_area).value
+        )
+        for name, layer in LAYER_OF.items():
+            value = getattr(at_date, name)
+            if isinstance(value, float):
+                continue
+            target = physical_values if layer is Layer.PHYSICAL else commercial_values
+            target.setdefault(name, []).append(str(getattr(value, "value", value)))
+
+    out: list[LayerAssociation] = []
+    for commercial, cvals in commercial_values.items():
+        for physical, pvals in physical_values.items():
+            out.append(_association(physical, commercial, pvals, cvals))
+    return out
+
+
+def _association(
+    physical: str, commercial: str, pvals: list[str], cvals: list[str]
+) -> LayerAssociation:
+    n = len(pvals)
+    rows, cols = sorted(set(pvals)), sorted(set(cvals))
+    if len(rows) < 2 or len(cols) < 2:
+        return LayerAssociation(physical, commercial, n, None, 0, None,
+                                f"{physical if len(rows) < 2 else commercial} takes one value "
+                                "over the whole book, so there is nothing to associate")
+    if len(rows) > _MAX_LEVELS_FOR_A_CONTINGENCY:
+        return LayerAssociation(physical, commercial, n, None, 0, None,
+                                f"{physical} takes {len(rows)} values, too many for a "
+                                f"contingency over {n} homes")
+    counts: dict[tuple[str, str], int] = {}
+    for p, c in zip(pvals, cvals):
+        counts[(p, c)] = counts.get((p, c), 0) + 1
+    row_total = {r: sum(counts.get((r, c), 0) for c in cols) for r in rows}
+    col_total = {c: sum(counts.get((r, c), 0) for r in rows) for c in cols}
+    chi2 = 0.0
+    for r in rows:
+        for c in cols:
+            expected = row_total[r] * col_total[c] / n
+            chi2 += (counts.get((r, c), 0) - expected) ** 2 / expected
+    k = min(len(rows), len(cols)) - 1
+    return LayerAssociation(physical, commercial, n, chi2,
+                            (len(rows) - 1) * (len(cols) - 1), (chi2 / (n * k)) ** 0.5)

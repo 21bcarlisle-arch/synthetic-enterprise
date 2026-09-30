@@ -2403,9 +2403,9 @@
   lane: W2_customer_generator
   value_stream: price_to_bill
   epoch: 3
-  level_current: 0
+  level_current: 2
   level_target: 3
-  loop_stage: build
+  loop_stage: harden
   dial_inherited: 50
   provenance: director_ruling
   blocked_on: null
