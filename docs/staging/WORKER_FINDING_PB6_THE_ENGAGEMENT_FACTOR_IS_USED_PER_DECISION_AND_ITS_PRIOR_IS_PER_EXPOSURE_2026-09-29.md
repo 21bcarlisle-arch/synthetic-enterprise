@@ -131,3 +131,27 @@ Expect the result about 1h10m after the leg finishes, plus roughly 3 x 30 min.
 
 The predictions are the ones filed above, before this launch, and are not restated with any change:
 null prepayment factor < 1.0, and planted does not recover 0.307. Grading them is the next step.
+
+## Grading the re-run: null read, and a prediction filed before planted and head (2026-09-30 00:40Z, worker tick)
+
+**Null arm (`/var/tmp/pb6_eh2r/null.json`, pinned at `b50a03519`): identical to its pre-repair twin,
+every figure.** PPM 20 decisions, 4 lost / 6.91, factor 0.537; DD 29/60, 1.005; SC 2/5, 1.097. The
+two 95k-line run logs differ only in a cache line and a dict print order. **This is an equivalence,
+not a repair that failed to reach.** The null arm sets every channel multiplier to 1.0, so
+`archetype x channel == archetype` and the band `[p, p·m)` the repair closes is empty. On the null
+world the two rolls already agreed. The filed prediction (null prepayment factor < 1.0) **HELD, but
+vacuously**: this arm is the same run as before and adds no evidence. Why prepayment still reads 4
+lost / 6.91 predicted when the world's truth is 1.0 is the open question from the first EH-2 table,
+unchanged.
+
+**Filed now, before planted and head finish.** For prepayment, `m < 1` in both arms, so every
+decision reached was already active (1.000 above), and none sits in the band. The repair can move
+only direct debit and standard credit.
+
+3. Prepayment decisions and losses are unchanged: planted 2 / 0, head 10 / 1. The exception is a
+   cascade, where a DD departure changes the later book, and that would show as other counts moving too.
+4. Direct debit losses in head are at least 30 of 67, and the DD factor is at least 0.967, because
+   the band's decisions lose the 0.10 cap.
+5. So the head prepayment factor reads AT OR BELOW 0.530. Its likelihood is channel O/E over BOOK
+   O/E, and the book's O/E rises with DD's. The repair therefore moves the company's prepayment
+   reading further from 1.0, not closer.
