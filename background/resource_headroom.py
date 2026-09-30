@@ -145,16 +145,33 @@ CLASS_WEIGHTS_MB = {
     # tools.enumerate_publish_gate_reds -- same suite, no -x, so it runs to the end and holds
     # more; observed 577 MB and still climbing at sample time.
     "census": 1536,
+    # tools.head_green_census via head-green-census.service -- the UNSCOPED nightly suite, no -x.
+    # ORIGIN: systemd's journal through oom_watch.read_unit_memory_peaks_mb, 2026-09-30 -- the
+    # whole retained record, 11 nightly runs 09-20..09-30. Only 09-20..09-23 finished (7.5G,
+    # 8.9G, 10.5G, 10.9G); every run since hit SUITE_TIMEOUT_SECONDS and was killed, so its
+    # peak (6.4G..8.5G) is a FLOOR on a truncated suite, not the job's size. Budgeted at the
+    # largest COMPLETE run, 10.9G (11,162 MB). A cgroup peak, so it counts page cache as
+    # sim_run's does.
+    "head_green_census": 11162,
 }
 
 # Which systemd unit's record re-derives which class weight. Only classes that RUN AS A UNIT
 # can appear -- the others are started ad hoc and leave no journal to check against, so they
 # have no automatic re-derivation and stay hand-measured.
-CLASS_UNITS = {"sim_run": "sim-runner.service"}
+CLASS_UNITS = {
+    "sim_run": "sim-runner.service",
+    "head_green_census": "head-green-census.service",
+}
 
 #: How far back weight_drift asks. Wider than oom_watch's default so a weekly growth trend is
 #: visible rather than only the current episode.
 DRIFT_WINDOW = "-24h"
+
+#: Per-class override of DRIFT_WINDOW. A once-nightly unit leaves ONE peak in 24h, and the
+#: census's night-to-night spread is 6.4G..10.9G, so a one-sample window reads "over" on most
+#: nights and "matches" on the rest -- a coin, not a check. ORIGIN: the retained journal the
+#: weight itself was read from (~a month of nightly runs).
+CLASS_DRIFT_WINDOWS = {"head_green_census": "-30d"}
 
 
 #: How far a declared weight may sit ABOVE the observed peak before it reads over-declared.
@@ -165,7 +182,7 @@ DRIFT_WINDOW = "-24h"
 OVER_DECLARED_TOLERANCE_MB = RESERVE_FOR_UNDECLARED_MB
 
 
-def weight_drift(job_class: str, since: str = DRIFT_WINDOW, journal_reader=None,
+def weight_drift(job_class: str, since: str | None = None, journal_reader=None,
                  peaks_reader=None, live_reader=None) -> dict:
     """Has the world outgrown a declared weight? {job_class, declared_mb, observed_peak_mb, ...}
 
@@ -191,6 +208,8 @@ def weight_drift(job_class: str, since: str = DRIFT_WINDOW, journal_reader=None,
                  check is a FAILED check (R15), never a clean one, so None must not be
                  rendered as "no drift" by any caller.
     """
+    if since is None:
+        since = CLASS_DRIFT_WINDOWS.get(job_class, DRIFT_WINDOW)
     declared = CLASS_WEIGHTS_MB.get(job_class)
     unit = CLASS_UNITS.get(job_class)
     verdict = {

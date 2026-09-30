@@ -61,4 +61,4 @@ The last row is honest arithmetic, and it is also the case the result record cal
 **Deliberately not done:**
 - The gate does **not** yield to a resident long job the way a sim-runner cycle does. At 1,536 MB it fits beside a declared 11.8 GB leg, and deferring it would hold the public surface for a whole long run.
 - The gate is **not** the 5.2 GiB undeclared neighbour of 19:07Z. Its observed weight is 854 MB. That resident is still unidentified.
-- `head-green-census.service` (nightly, the whole unscoped suite) has no measured weight, so it still does not ask. Measuring it comes before writing any weight for it. No number was invented.
+- `head-green-census.service` (nightly, the whole unscoped suite) has no measured weight, so it still does not ask. Measuring it comes before writing any weight for it. No number was invented. **Discharged 2026-09-30:** measured from its journal at 11,162 MB, and the census now asks — `SEAT_FINDING_THE_HEAD_GREEN_CENSUS_WEIGHS_11_GB_AND_EVERY_PEAK_SINCE_09_24_IS_A_TRUNCATED_RUN_2026-09-30.md`.

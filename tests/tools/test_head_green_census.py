@@ -14,7 +14,20 @@ from pathlib import Path
 
 import pytest
 
+from background import resource_headroom
 from tools import head_green_census as hgc
+
+
+@pytest.fixture(autouse=True)
+def _governor_admits(monkeypatch, tmp_path):
+    """Admit by default, with the ledger in tmp: the live one is a protected path and the live
+    /proc/meminfo would make every suite test here a function of the box's load. The admission
+    control below overrides `admit` to reach both branches."""
+    monkeypatch.setattr(resource_headroom, "RESERVATIONS_PATH", tmp_path / "reservations.json")
+    monkeypatch.setattr(resource_headroom, "DEFERRAL_LOG_PATH", tmp_path / "deferrals.jsonl")
+    monkeypatch.setattr(resource_headroom, "admit",
+                        lambda job_class, **kw: {"job_class": job_class, "admitted": True,
+                                                 "reason": "test default: admitted"})
 
 # A realistic tail: pytest's `-q --tb=line` output.
 _OUTPUT = """\
@@ -920,3 +933,78 @@ def test_a_census_that_could_not_record_says_so_on_the_channel_he_reads(tmp_path
     assert "register NOT updated" in sent[0] and "OSError" in sent[0], (
         "the alarm reported the reds but not that recording them failed -- a verdict published "
         "without the fate of its own observation")
+
+
+# ─────────────────────────────── the census asks the memory governor ─────────────────────────
+
+
+def test_the_census_suite_runs_only_when_admitted_and_holds_its_measured_weight(
+        tmp_path, monkeypatch, capsys):
+    """One partition over the governor's two answers, and both are reached.
+
+    ADMITTED: the suite starts inside a `head_green_census` reservation at the class's declared
+    weight, so sim-runner's next admission counts it; the ledger is empty once it ends.
+    REFUSED: the suite never starts, the refusal is receipted, and the reason reaches `--json`.
+
+    MUTATIONS (each must fire): run the suite outside `admitted`; ignore a refusal; drop the
+    `deferred` block from `main`; delete the class from CLASS_WEIGHTS_MB (the real `admit` would
+    then refuse every night -- pinned by the weight assertion).
+    """
+    import contextlib
+
+    @contextlib.contextmanager
+    def _subject():
+        yield tmp_path
+
+    ledger_at_start = []
+
+    def _argv():
+        ledger_at_start.append(list(resource_headroom.live_reservations()))
+        return ["true"]
+
+    monkeypatch.setattr(hgc, "head_subject_checkout", _subject)
+    monkeypatch.setattr(hgc, "overlay_shortfall", lambda subject: [])
+    monkeypatch.setattr(hgc, "subject_head_sha", lambda s: "cafebabe")
+    monkeypatch.setattr(hgc, "pytest_argv", _argv)
+
+    reached = {}
+
+    hgc.run_suite(observed={})
+    reached["admitted"] = bool(ledger_at_start)
+    assert ledger_at_start, "an admitted census never started its suite"
+    rows = ledger_at_start[0]
+    assert [r["job_class"] for r in rows] == ["head_green_census"], (
+        "the suite must run INSIDE its reservation, or the next asker cannot see it: {}".format(rows))
+    assert rows[0]["weight_mb"] == resource_headroom.CLASS_WEIGHTS_MB["head_green_census"]
+    assert resource_headroom.live_reservations() == [], "the reservation outlived the suite"
+
+    ledger_at_start.clear()
+    monkeypatch.setattr(resource_headroom, "admit",
+                        lambda job_class, **kw: {"job_class": job_class, "admitted": False,
+                                                 "reason": "budget exhausted: test refusal"})
+    observed: dict = {}
+    output = hgc.run_suite(observed=observed)
+    reached["refused"] = not ledger_at_start
+    assert output == "" and not ledger_at_start, "a refused census launched its suite anyway"
+    assert observed["deferred"] == "budget exhausted: test refusal"
+    receipts = (tmp_path / "deferrals.jsonl").read_text().splitlines()
+    assert len(receipts) == 1 and json.loads(receipts[0])["job_class"] == "head_green_census"
+
+    monkeypatch.setattr(hgc, "run_suite",
+                        lambda observed=None, **kw: (observed.update(deferred="test refusal"), "")[1])
+    assert hgc.main(["--json"]) == 0, "a deferral is UNPROVEN, not NEW_RED -- it must not page"
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["status"] == "UNPROVEN" and "deferred" in payload["reason"], payload["reason"]
+
+    assert reached == {"admitted": True, "refused": True}
+
+
+def test_the_census_weight_is_rederived_from_its_own_unit_over_more_than_one_night():
+    """A once-nightly unit leaves one peak per 24h; its window must hold several nights, or the
+    drift verdict is a single draw from a 6.4G..10.9G spread."""
+    assert resource_headroom.CLASS_UNITS["head_green_census"] == "head-green-census.service"
+    seen = {}
+    resource_headroom.weight_drift(
+        "head_green_census",
+        peaks_reader=lambda unit, since: seen.setdefault("since", since) and [11161.6])
+    assert seen["since"] != resource_headroom.DRIFT_WINDOW, seen
