@@ -31,3 +31,44 @@ the alarm's finding, and leave the alarm's file to the alarm.
 since 15:28. When it lands on bc0df4b9e the shared tree will be 1 ahead and 20 behind, so it is a
 fork again, closed by `origin_reconcile`'s merge leg rather than by the ff this item cleared. This
 is the same receipt-less direction-commit shape the 13:30Z correction in the deadman finding names.
+
+## Outcome (14:52Z)
+
+The seven blockers are cleared, and nobody's uncommitted file other than those seven was touched.
+`run_value_cycle_ab.py` went through `refresh_to_head` (it was refreshable).
+`BLOCKED_ATOM_VISIBILITY.md` went through `refresh_to_head --base-wins`. Five were written by hand,
+each preserved first as a blob ref under `refs/preserved/ff-block-2026-09-30/*` in the shared repo,
+because the door refused them:
+
+- **The prereg record and the deadman finding were refused with `refused_head_does_not_supersede_it`,
+  and each copy was a strict line-subset of origin (0 lines only in the copy).** The stale-copy
+  control reads the clock and the names, not line containment, so the one case with nothing to lose
+  is the case it cannot admit. A containment leg (every line of the copy is in the base, so the copy
+  is `refreshable`) would have made both enactments use the door.
+- The two untracked copies were refused with `refused_no_base`, and the reason printed was "the
+  fast-forward adds it; nothing needs clearing". That is wrong for `git merge --ff-only`, which
+  refuses to overwrite an untracked file. Both were deleted by hand.
+  **Correction (14:58Z): that refusal was RIGHT and the hand deletion was unneeded for the
+  byte-identical one.** `origin_reconcile.identical_untracked_twins` clears a byte-identical
+  untracked twin itself, and `identical_tracked_twins` restores a modified copy that hash-matches
+  origin. The line-subset draft was not a twin, so it still needed clearing. One was byte-identical to
+  origin, and the other was a line-subset apart from the call the seventh mutation's leg replaced.
+- The home-move test was refused as `predates_landing_carrying_some`. The seat decided it as
+  superseded, because origin's version passes 6/6 at 13218de49. Its C1b-era monkeypatch and
+  `gap_ledger_path=tmp_path` are preserved in the blob ref if either one is wanted again.
+
+As predicted above, the orientation's direction commit 876a64eeb then landed on bc0df4b9e, so the
+shared tree read 21 behind and 1 ahead. Origin has not touched those three paths since bc0df4b9e.
+`origin_reconcile`'s own merge was running in its isolated worktree at 14:50Z. That merge is the
+route that closes it.
+
+## Second pass (14:58Z): the loop, observed
+
+Within two minutes of the refresh the alarm had appended a 09-30 re-ask line to the refreshed deadman
+copy, so it was dirty against HEAD once more. At 14:50Z `staging_watcher.check_remote` also
+materialised this finding as an untracked twin of 3ed69bb41's bytes, and this seat's second landing,
+c3f45f70c, made that twin stale. The watcher skips a path that exists, so an origin edit to a staging
+file it has already mirrored always leaves a non-identical twin, and that twin is a blocker. **The
+reliable end state is not HEAD's bytes but ORIGIN's.** Both copies were written byte-identical to
+origin (preserved under `refs/preserved/ff-block-2026-09-30/twin-*`), which is the shape the
+reconciler clears without help.
