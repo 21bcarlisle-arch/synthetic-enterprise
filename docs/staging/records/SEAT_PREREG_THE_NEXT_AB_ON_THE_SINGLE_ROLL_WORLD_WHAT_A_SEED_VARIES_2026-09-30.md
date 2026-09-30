@@ -1,6 +1,6 @@
 # Prereg: the next value-cycle A/B on the single-roll world — what a seed varies, and so how many
 
-**Severity:** RECORDED · **Lane:** A_strategy_governance · **Item:** `prereg-the-next-ab-on-the-repaired-world-keyed-by-lineage` · **Status:** written, pinned, **NOT launched**. The launch is the next steer's call.
+**Severity:** RECORDED · **Lane:** A_strategy_governance · **Item:** `prereg-the-next-ab-on-the-repaired-world-keyed-by-lineage` · **Status:** **LAUNCHED 2026-09-30T04:10:47Z** as `longjob-ab6-single-roll`; bridge B started 04:26:47Z (launch record at the foot).
 
 ## Why this exists
 
@@ -60,3 +60,18 @@ After P1 and P2 (four churn-roll seeds), take the pilot's D_lin mean m and sd s.
 5. **The next steer says launch.** This item was scoped as a pre-registration only.
 
 Grading: `seed_census.py runB6.json` against ab5 (B1, B2), then `grade_lineage.py runP1.json runP2.json` plus the n\* computation above (P1–P3).
+
+## Launch record (2026-09-30, delivery seat, item `stop-the-old-design-after-one-pair-and-launch-ab6`)
+
+**Conditions, each re-asked at launch:**
+1. **The lineage unit has exited: HOLDS, by gating.** ab6 was launched at 04:10:47Z with `--wait-for-pid 2295586`, the L1 leg's `run_value_cycle_ab`. That puts its 11,200 MB declaration on the shared register before the PB6 waiter could race for the same moment. L1 exited 0 at 04:26:21Z. `longjob-ab5-lineage-unseen` was stopped at 04:26:43Z. legs6.sh's own resident check then waited 15 s for L2's pid 2941018 to die with that unit. So no two value-cycle A/Bs were ever co-resident.
+2. **Pin clean and locked: HOLDS.** `git -C /var/tmp/se-ab6-a322166cc diff --quiet a322166cc -- . ':!docs'` returned 0. HEAD is `a322166cc0…`, detached and `locked` ("ab6 prereg pin: lineage-keyed D on the single-roll world, churn-roll redraw").
+3. **Weather store: HOLDS.** `weather_store_digest()` in the pin equals `e11451b5…d242`. It was read by the seat before launch, and again by legs6.sh at B's start (logged).
+4. **One unit, B→P1→P2, peak declared: HOLDS.** The unit is `longjob-ab6-single-roll`, running `/var/tmp/se-ab6-out/legs6.sh` (sha256 `519b1a84…2e4b`). Each leg re-checks conditions 2–3 and runs only if its predecessor exited 0 and wrote its artefact. The unit was launched through `background.launch_long_job --peak-mb 11200`. Admission read: 7,494 MB resident + 11,200 = 18,694 of 23,008 MB, with pid 2295586's 11,798 MB excluded as waited-on. The cgroup is its own (verified). The artefact the unit declares is `runP2.json`; B and P1 write `runB6.json` and `runP1.json`. The log is `/var/tmp/se-ab6-out/run6.log`.
+5. **The steer: this item.**
+
+**Grader pins, recorded in full.** `grade_lineage.py` is `71b82d0737c21631420bb41399ccdf12407550655929e75aae7e0bdfd5a65df7`, which matches above. `seed_census.py` is `dd7b12c4c655a1a9b33064c16919f5d298231c2de80320dcef2423d6e0099e8a`. The "…98a" abbreviation above is a transcription slip, not a changed file: its mtime (01:45:43Z) predates this record's commit `7413b3ea2` (02:00:16Z).
+
+**One co-residence, admitted and not prevented.** When legsL.sh exited, the PB6 re-centred null arm's waiter fired too. `launch_long_job` admitted `longjob-pb6-null-arm-recentred-prior-run` (declared 6,500 MB) at 04:26:52Z beside ab6's declared 11,200, because the two fit the budget after L1's 11.8 GB left. A PB6 arm is ~30 min, and it overlaps only the start of bridge B, which is well below its peak then. **If B dies of OOM**, legs6.sh stops at B (rc 94) and P1/P2 do not run. The remedy is to relaunch the same unit once the PB6 arm has exited. It is not a change to this design.
+
+**Next:** grade B (B1, B2) when `runB6.json` exists (~3h after 04:26Z), then P1–P3 and n\* when `runP2.json` exists (~9.3h). That is handed on through `seat_continuation`.
