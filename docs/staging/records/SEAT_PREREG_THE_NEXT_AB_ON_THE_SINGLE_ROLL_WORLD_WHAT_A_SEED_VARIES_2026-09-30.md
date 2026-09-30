@@ -161,3 +161,44 @@ The DECIDED set is the same 69 lineages on all four seeds. A_lin is small and po
 2. **The book-varying prereg's own trigger does not literally fire.** Its rule 2 and launch condition 1 key on *n\*_r > 12*. The six-seed n\*_r is 7, and the four-seed n\*_r was 6. This record reaches the book design by a different branch, the one fixed above: the CI contains zero at the extension's end. The two records were written for the same question from opposite ends, and neither covered n\* ≤ 12 with the extended CI still containing zero. That gap is named here rather than papered over. Either way, the book pilot launches only on the director's ruling, recorded as `docs/design/curriculum/varied_population_draw_activation.json` (EP17, R13). The seat has not written that file and does not run `--book-seeds`.
 
 **What the six seeds say about where the variance lives.** 67 of 69 lineages vary. By removal share (1 − var(D − L)/var(D)), the largest are SYN-2016-034 at 66.9%, C6 at 47.8% and C5 at 42.6%. The shares overlap because they co-move on 61002. So P3's refutation stands on six seeds: the roll key reaches the book widely, but a handful of single-account switches carry the spread. *Why the value arm loses on most draws, I still cannot say*, because no per-account attribution has been run. As before, this describes the pin, not origin/main: the PB6 churn-estimate commits in `4380002bd` sit between them.
+
+## Where the loss comes from: per-account attribution (2026-09-30 ~18:55Z, autonomous worker, item `grade-x1-and-attribute-the-loss`)
+
+The X1 grade and the plain answer are in the section above (`32c04d778`). Nothing new was run for this section. `/var/tmp/se-ab6-out/attribute_x1.py` (sha256 `018ae094…49da8`) reads the same three artefacts (`runP1.json runP2.json runX1.json`), and it uses grade_lineage's rooting and its 0098 exclusion, copied unchanged. In the artefact, `believed_p_retain` is `p_retain(m*)`, which is the company's retention belief at the margin it chose (`company/pricing/value_based_renewal.py` `decide_margin` at the pin). So the belief and the world's `p_retain` below are read at the **same offer**. One limit: the artefact logs the world's `p_retain` and the roll for the **first renewal only**. A switch at a later renewal is identified by tenure (`bills_issued`, `left_at`) and by the margins the two arms quoted, not by p against roll.
+
+**The named lineages (margins are £/MWh; V is the value arm, L the flat arm):**
+
+| seed | lineage | diff V−L | the renewal where the arms part | V offer | L offer | world p_retain V / L vs roll | outcome V / L | company's belief at V's offer |
+|---|---|---|---|---|---|---|---|---|
+| 61002 | C6 (+C6_2) | **−£2,825** | C6 2018-04-01; C6_2 2020-03-31 | margin 123.25 (rate 248.44); 101.75 (217.66) | 36.25 (161.44); 36.25 (152.16) | not logged (later renewals) | V loses C6 in 2018 and C6_2 in 2020; L keeps C6 to 2019 and C6_2 to 2024 | 0.558; 0.628 |
+| 61002 | SYN-2016-034 | **−£3,229** | 2021-05-02 (fourth renewal) | margin 44.00 (rate 185.27); V had climbed 22→35→41→44 | 36.25 (177.52) | not logged | V loses the customer 2021; L keeps them to the end (110 bills against 61) | **0.911** |
+| 61002 | 0098 (excluded) | −£5,984 | 2017-03-23 | margin **12.50** (rate 138.45) | 36.25 (162.20) | 0.760 / 0.571, roll 0.610 | **V keeps**, L loses | 0.326 |
+| 61005 | C6 (largest \|diff\|) | **+£2,193** | none: same tenure in both arms | margins 53→117→156 | 34 flat | 0.629 / 0.704, roll 0.625 | both renew; both lose C6_2 in 2020 | 0.379→0.554→0.635 |
+| 61006 | SYN-2016-062 (largest \|diff\|) | **+£2,999** | 2017-08-31 | margin 23.75 (rate 126.20) | 30.00 (132.45) | 0.8203 / 0.7973, roll **0.7983** | **V keeps** (107 bills), L loses (13) | 0.577 |
+
+**What the population says (six seeds, DECIDED accounts, ex-0098).** Each account's V−L is split by whether the two arms kept it for the same number of bills. The three classes reconcile exactly to the graded mean: −6,046.56 + 2,870.48 + 800.09 = −2,375.99.
+
+| class | six-seed mean | per seed (n, £) |
+|---|---|---|
+| V loses a customer L keeps | **−£6,046.56** | 61001 (7, −5,288) · 61002 (6, −7,442) · 61003 (5, −3,923) · 61004 (4, −4,806) · 61005 (6, −7,200) · 61006 (7, −7,620) |
+| V keeps a customer L loses | **+£2,870.48** | (1, +3,409) · (1, +1,345) · (0, 0) · (1, +749) · (3, +4,084) · (5, +7,635) |
+| same tenure in both arms (pure price) | **+£800.09** | (63, +680) · (65, −661) · (65, +852) · (67, +2,815) · (63, +914) · (59, +201) |
+
+**What the offers were:**
+- At first renewals (411 paired), V quoted above L on 237 of them, by a mean of **+£25.48/MWh**. That cost a mean of −0.0316 in world `p_retain`, and it produced 11 switches where V lost and L kept, against 0 the other way.
+- V quoted below L on 168, by a mean of −£8.08. That gave +0.0142 in `p_retain` and 3 switches where V kept, against 0 the other way.
+- The expected counts are 237 × 0.0316 ≈ 7.5 and 168 × 0.0142 ≈ 2.4. So 11 against 3 is what the offers predict. **It is not an unlucky roll.**
+
+**What the company believed:**
+- At V's own offer, the company's belief has a mean of 0.629, against a world mean of 0.683.
+- **Across accounts, the correlation between the belief and the world's `p_retain` is −0.257.** Discrimination AUC by seed is 0.579, 0.496, 0.450, 0.419, 0.348 and 0.624, with a mean of **0.486**.
+- SYN-2016-034 is the sharpest single case. The company put its retention at 0.911 when it quoted +£7.75 over flat, and the world took the customer away.
+
+**The cause, stated plainly: mispriced retention, which is the company's churn estimate.** It is not the offer as such. On accounts whose tenure the offer did not change, the per-customer margin earns **+£800 per seed**, positive on 5 of 6 seeds. The whole of the negative centre is tenure switches. V's raises go to customers without regard to who will actually stay, because the estimate that should steer them cannot rank stayers above leavers: its AUC is ~0.49 and its correlation with the world's `p_retain` at the same offer is negative. So the optimiser is maximising `p_retain(m) × contribution` over a `p_retain` that carries no ranking information. That is the failure `value_based_renewal`'s own docstring names: "if that model is noise, the grid search maximises noise". **The candidate is the PB6 re-centring already on origin**: `f9b04ddc7` and `46b78123f`, inside `4380002bd`, which re-centre the engagement prior at no effect and stop booking a no-account lookup as direct debit. Both move exactly this estimate, and neither is in the pin `a322166cc`.
+
+**What I cannot say.**
+1. Whether PB6 fixes the **ranking** or only the **level**. A re-centred prior moves the mean belief (0.629 against the world's 0.683). A negative correlation is a ranking defect, and a re-centring need not touch it. The one-variable test is the bridge this record already owes: the same six rolls at origin, with the pin as control. This section runs nothing and does not launch it.
+2. How the estimate's own price slope compares with the world's. The artefact carries only `p_retain(m*)`, not the curve. The world's paired response averages −0.00102 per £/MWh, but it is very uneven: on 61002, C5's `p_retain` falls from 0.510 to 0.065 on +£22.75. Whether the company's curve is too flat for the customers who react that way is a second candidate, and it is not measured here.
+3. Why 0098 is a V win on retention (a £12.50 margin kept them) and still a −£5,984 loss. That is a credit/arrears question, not a churn one. It stays excluded, as before.
+
+**What the next build should be.** Before anyone builds on the grade, re-read the retention estimate's discrimination at origin (after PB6). The AUC and the belief-against-world correlation above are the reading to beat, and the artefact's `scored_decisions` already carries them, so this needs a bridge run and no new instrument. The book-varying design stays the director's (EP17). Nothing here writes `varied_population_draw_activation.json`.
