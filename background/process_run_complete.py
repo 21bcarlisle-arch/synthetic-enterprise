@@ -4954,7 +4954,8 @@ def _generate_dashboard_json(json_path, git_hash="unknown"):
         if ok:
             log("Generated site/data/dashboard.json")
         else:
-            log("CONSISTENCY GATE FAILED — dashboard/exec-summary surfaces disagree (see stderr above)")
+            from tools.generate_dashboard_data import consistency_alarm_detail
+            log("CONSISTENCY GATE FAILED — " + consistency_alarm_detail())
     with _ledger.step("Customer data generation", ["site/data/customers/"]):
         from tools.generate_customer_data import generate as gen_cust
         gen_cust(json_path)
@@ -10668,10 +10669,11 @@ def _process(marker_path_str):
     consistency_ok = generate_dashboard_json(json_path, git_hash)
     if not consistency_ok:
         from background.notify import notify
+        from tools.generate_dashboard_data import consistency_alarm_detail
         notify(
-            "[SIM] CONSISTENCY GATE FAILED (git={}) — dashboard totals and exec-summary "
-            "insights disagree on a headline number. Site figures may be untrustworthy "
-            "until this is fixed. See docs/observability/sim-runner-log.md for detail.".format(git_hash),
+            "[SIM] CONSISTENCY GATE FAILED (git={}) — {}. The figure named is wrong on that "
+            "page until this is fixed; the mismatch itself is on the publisher's "
+            "stderr.".format(git_hash, consistency_alarm_detail()),
             kind="real_alarm",
         )
         log("NTFY sent: consistency gate failure")

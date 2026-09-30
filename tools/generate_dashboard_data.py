@@ -2386,6 +2386,18 @@ def generate(run_json_path=None):
     # are reported rather than gating, and what would put them back.
     consistency_ok = (population_ok and mix_claim_ok and selection_verdict_ok
                       and selection_draws_ok)
+    # WHICH blocker fired, for the alarm. Until H46 (2026-09-30) the publisher's alarm said
+    # "dashboard/exec-summary surfaces disagree" for every red -- a comparison retired on
+    # 2026-08-20 -- so the 2026-09-05 population mismatch (opex 69 != resi 90) reached the
+    # director as a cause that no longer existed. Held equal to the conjunction above by
+    # tests/tools/test_the_consistency_alarm_names_the_check_that_fired.py.
+    global LAST_FAILED_CHECKS
+    LAST_FAILED_CHECKS = tuple(name for name, ok in (
+        ("_check_population_consistency", population_ok),
+        ("_check_front_door_segment_claim", mix_claim_ok),
+        ("_check_front_door_selection_verdict", selection_verdict_ok),
+        ("_check_front_door_selection_draw_count", selection_draws_ok),
+    ) if not ok)
 
     # THE OPENING DIRECT DEBIT, BOTH ARMS. Written on the publish path rather than
     # composed into `dashboard` because the block is a comparison of two runs of one
@@ -2441,6 +2453,24 @@ PUBLISH_VERDICT_CHECKS = {
         "/", "the front door's stated number of re-draws matches the family the run actually held"
     ),
 }
+
+#: The blockers that failed on the LAST generate() in this process; empty until one has run.
+LAST_FAILED_CHECKS = ()
+
+
+def consistency_alarm_detail(failed=None):
+    """One line naming each failed blocker and the page it guards, for the publisher's alarm.
+
+    An empty `failed` says so rather than guessing: a False verdict with nothing recorded means
+    generate() did not reach the verdict in this process, and that is a different finding."""
+    failed = LAST_FAILED_CHECKS if failed is None else failed
+    if not failed:
+        return "no failing blocker was recorded -- generate() did not reach its verdict"
+    return "; ".join(
+        "{} ({} -- {})".format(name, *PUBLISH_VERDICT_CHECKS.get(name, ("?", "undeclared")))
+        for name in failed
+    )
+
 
 #: REPORTED, NEVER BLOCKING -- and the reason is a genuine conflict between two director
 #: instructions, which is not this module's to resolve.
