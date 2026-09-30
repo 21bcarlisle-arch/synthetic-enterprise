@@ -602,17 +602,49 @@ def weight_for(job_class: str, weight_mb=None):
     return CLASS_WEIGHTS_MB.get(job_class)
 
 
+def running_long_jobs(records_path: Path | None = None, residents: list | None = None) -> list[dict]:
+    """[{unit, peak_mb, pids}] for every long job that declared a peak AND still has a process.
+
+    A launch through `launch_long_job` declares `--peak-mb`; this is how a neighbour that did NOT
+    launch through that door sees it. Counted at the declared peak, not today's RSS: the 22222 leg
+    read 3.7 GiB an hour into a run that peaked at 10.2 GiB, and at 19:07Z a sim-runner cycle
+    arrived beside it and the kernel chose. Only units with a live process count -- a record left
+    `live` after its job ended holds no memory, and counting it would defer the caller forever.
+    """
+    from background import launch_long_job
+
+    declared = launch_long_job.declared_peaks(records_path)
+    if not declared:
+        return []
+    if residents is None:
+        residents = launch_long_job.resident_census()
+    jobs = []
+    for unit, peak in sorted(declared.items()):
+        pids = sorted(r["pid"] for r in residents if r.get("unit") == unit)
+        if pids:
+            jobs.append({"unit": unit, "peak_mb": peak, "pids": pids})
+    return jobs
+
+
 def admit(job_class: str, weight_mb=None, reservations_path: Path | None = None,
-          proc_root: Path | None = None, **sample_kwargs) -> dict:
+          proc_root: Path | None = None, launch_records_path: Path | None = None,
+          residents: list | None = None, **sample_kwargs) -> dict:
     """May a heavy job of this class start right now?
 
     Returns {admitted, reason, ...}. BOTH conditions must hold -- see the module docstring on
     why either alone is unsound. Every denial names which condition failed and with what
     numbers, because a deferral nobody can diagnose is just a stall.
+
+    The declared side is reservations PLUS the declared peaks of running long jobs. An injected
+    `reservations_path` with no `launch_records_path` reads no launch records: a synthetic
+    ledger must not silently recruit whatever long job is live on the real box.
     """
     obs = sample(**sample_kwargs)
     weight = weight_for(job_class, weight_mb)
-    committed = committed_mb(reservations_path, proc_root)
+    reserved = committed_mb(reservations_path, proc_root)
+    long_jobs = ([] if reservations_path is not None and launch_records_path is None
+                 else running_long_jobs(launch_records_path, residents))
+    committed = reserved + sum(j["peak_mb"] for j in long_jobs)
     total = obs["total_mb"]
     available = obs["available_mb"]
     budget = (total - RESERVE_FOR_UNDECLARED_MB) if total is not None else None
@@ -622,6 +654,8 @@ def admit(job_class: str, weight_mb=None, reservations_path: Path | None = None,
         "job_class": job_class,
         "weight_mb": weight,
         "committed_mb": round(committed, 1),
+        "reserved_mb": round(reserved, 1),
+        "long_jobs": long_jobs,
         "available_mb": available,
         "budget_mb": round(budget, 1) if budget is not None else None,
         "admitted": False,
@@ -641,8 +675,12 @@ def admit(job_class: str, weight_mb=None, reservations_path: Path | None = None,
         )
         return decision
     if committed + weight > budget:
+        named = "".join(
+            f"; long job {j['unit']} declared {j['peak_mb']:.0f} MB, "
+            f"pid(s) {', '.join(str(p) for p in j['pids'])}" for j in long_jobs)
         decision["reason"] = (
-            f"budget exhausted: {committed:.0f} MB already declared + {weight:.0f} MB "
+            f"budget exhausted: {committed:.0f} MB already declared ({reserved:.0f} MB reserved"
+            f"{named}) + {weight:.0f} MB "
             f"requested exceeds the {budget:.0f} MB budget "
             f"(MemTotal {total:.0f} MB less {RESERVE_FOR_UNDECLARED_MB} MB for undeclared)"
         )

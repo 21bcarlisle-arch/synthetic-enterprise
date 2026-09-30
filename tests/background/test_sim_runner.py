@@ -424,3 +424,115 @@ def test_the_pause_is_longer_than_the_interval_that_defeats_it(tmp_path):
     """
     shortest_observed_restart_interval_s = 20 * 60
     assert sim_runner.BETWEEN_RUN_PAUSE_SECONDS > shortest_observed_restart_interval_s
+
+
+# --------------------------------------------------------------------------------------
+# The cycle asks before it runs. At 19:07Z a sim-runner cycle (~6 GiB) arrived beside a long
+# job that had launched alone and was still growing toward its declared 10,445 MB; the kernel
+# killed the job. The launcher's co-residence check cannot see this daemon, so the cycle asks.
+# --------------------------------------------------------------------------------------
+
+def _the_1907z_box(tmp_path, *, leg_running=True):
+    """The 19:07Z inputs: a 24,032 MB guest, the leg launched through `launch_long_job` with its
+    declared 10,445 MB peak and 3.7 GiB resident so far, so MemAvailable still looks roomy."""
+    import json
+
+    records = tmp_path / "launch_records.json"
+    records.write_text(json.dumps([{
+        "job": "ab5-runa2b", "unit": "longjob-ab5-runa2b", "claim": "live", "peak_mb": 10445.0,
+    }]), encoding="utf-8")
+    reservations = tmp_path / "reservations.json"
+    reservations.write_text("[]", encoding="utf-8")
+    meminfo = tmp_path / "meminfo"
+    meminfo.write_text(f"MemTotal: {24032 * 1024} kB\nMemAvailable: {18000 * 1024} kB\n",
+                       encoding="utf-8")
+    residents = ([{"pid": 1033543, "rss_mb": 3700.0, "unit": "longjob-ab5-runa2b.service",
+                   "command": "python3 -m tools.run_value_cycle_ab --level-arm"}]
+                 if leg_running else [])
+    return {"launch_records_path": records, "reservations_path": reservations,
+            "proc_root": tmp_path / "proc", "residents": residents, "meminfo_path": meminfo,
+            "vmstat_path": tmp_path / "absent", "psi_path": tmp_path / "absent"}
+
+
+def test_a_cycle_defers_beside_a_declared_long_job_and_names_the_pids_it_yields_to(
+        tmp_path, monkeypatch):
+    """THE DEFECT: `resource_headroom.admit()` had no production caller and read only its own
+    reservations, so a cycle started beside a long job still climbing to its declared peak.
+
+    The partition first -- the same cycle MUST be able to both defer and run, or a check that
+    refuses everything passes the rest of this test. Then what the deferral says: the unit and
+    the pid, in the journal line and the receipt.
+
+    Fires on: `cycle_admission` not asking `admit`; `admit` ignoring declared long-job peaks; the
+    declared unit keyed without the `.service` suffix the census reports (so it matches nothing);
+    a stale `live` record with no process counted (the cycle would defer forever); a refusal that
+    names no pid or leaves no receipt.
+    """
+    lines, receipts = [], []
+    monkeypatch.setattr(sim_runner, "log", lines.append)
+    monkeypatch.setattr(sim_runner.resource_headroom, "record_deferral", receipts.append)
+
+    deferred = sim_runner.cycle_admission(**_the_1907z_box(tmp_path))
+    ran = sim_runner.cycle_admission(**_the_1907z_box(tmp_path, leg_running=False))
+    assert not deferred["admitted"] and ran["admitted"], (deferred["reason"], ran["reason"])
+
+    assert "longjob-ab5-runa2b.service" in deferred["reason"], deferred["reason"]
+    assert "1033543" in deferred["reason"], deferred["reason"]
+    # The measured leg would have admitted it (18,000 MB free): only the declared peak defers.
+    assert deferred["available_mb"] - deferred["weight_mb"] > sim_runner.resource_headroom.RESERVE_FOR_UNDECLARED_MB
+    assert lines == [f"DEFERRED this cycle -- {deferred['reason']}"]
+    assert receipts == [deferred]
+
+
+def test_a_cycle_on_an_empty_box_runs_and_leaves_no_receipt(tmp_path, monkeypatch):
+    """Fires on: a governor that defers everything, or a receipt written on admission."""
+    lines, receipts = [], []
+    monkeypatch.setattr(sim_runner, "log", lines.append)
+    monkeypatch.setattr(sim_runner.resource_headroom, "record_deferral", receipts.append)
+    box = _the_1907z_box(tmp_path, leg_running=False)
+    box["launch_records_path"].write_text("[]", encoding="utf-8")
+
+    decision = sim_runner.cycle_admission(**box)
+
+    assert decision["admitted"], decision["reason"]
+    assert decision["committed_mb"] == 0 and lines == [] and receipts == []
+
+
+def test_a_raising_admission_check_defers_the_cycle_rather_than_killing_the_loop(monkeypatch):
+    """Fires on: an exception from the governor escaping `main()`'s loop -- a crash-restart cycle
+    under systemd instead of a logged deferral."""
+    def boom(*a, **k):
+        raise OSError("no /proc")
+    monkeypatch.setattr(sim_runner.resource_headroom, "admit", boom)
+    monkeypatch.setattr(sim_runner, "log", lambda m: None)
+    monkeypatch.setattr(sim_runner.resource_headroom, "record_deferral", lambda d: None)
+
+    decision = sim_runner.cycle_admission()
+
+    assert decision["admitted"] is False and "OSError" in decision["reason"]
+
+
+def test_the_loop_does_not_run_a_cycle_the_admission_check_refused(monkeypatch):
+    """Fires on: `main()` asking and then running anyway -- the check wired to nothing."""
+    class Stop(Exception):
+        pass
+
+    ran = []
+    monkeypatch.setattr(sim_runner, "log", lambda m: None)
+    monkeypatch.setattr(sim_runner, "pause_owed_from_a_previous_process", lambda: (0.0, ""))
+    monkeypatch.setattr(sim_runner, "_check_hold", lambda held: (False, False))
+    monkeypatch.setattr(sim_runner, "cycle_admission", lambda: {"admitted": False})
+    monkeypatch.setattr(sim_runner, "run_simulation", lambda: ran.append(1) or True)
+    monkeypatch.setattr(sim_runner, "record_next_run_not_before", lambda deadline: None)
+    slept = []
+
+    def sleep(s):
+        slept.append(s)
+        raise Stop
+    monkeypatch.setattr(sim_runner.time, "sleep", sleep)
+
+    try:
+        sim_runner.main()
+    except Stop:
+        pass
+    assert ran == [] and slept == [sim_runner.DEFERRAL_RETRY_SECONDS]

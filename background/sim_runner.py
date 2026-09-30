@@ -177,7 +177,7 @@ BETWEEN_RUN_PAUSE_SECONDS = pause_for_cadence(_declared_cadence_seconds())
 NEXT_RUN_FILE = PROJECT_DIR / "docs" / "observability" / ".sim_next_run_not_before.json"
 
 sys.path.insert(0, str(PROJECT_DIR))
-from background import publisher_budget  # noqa: E402
+from background import publisher_budget, resource_headroom  # noqa: E402
 from background.agent_protocol import AgentMessage  # noqa: E402
 from background.agent_status import update_agent_status  # noqa: E402
 from background.child_diagnostics import (  # noqa: E402
@@ -716,6 +716,33 @@ def pause_owed_from_a_previous_process(*, now=None, path=None) -> tuple[float, s
     return float(owed), "resuming the between-run pause a previous process had begun"
 
 
+#: A deferred cycle re-asks after the same wait as a failed run. The long job it yields to runs for
+#: hours, so asking sooner buys nothing but deferral receipts.
+DEFERRAL_RETRY_SECONDS = 300
+
+
+def cycle_admission(**admit_kwargs) -> dict:
+    """Ask `resource_headroom.admit` whether a cycle may start beside what is running now.
+
+    A cycle peaks at ~6 GiB, and at 19:07Z one arrived beside a long job that had launched alone
+    and was still growing toward its declared 10,445 MB; the kernel killed the job. The launcher
+    refuses to start a job beside residents, but this daemon never launches through it -- so the
+    cycle asks here, and a long job's declared peak counts before it has been reached.
+
+    A refusal is logged with its reason (the units and pids it yields to) and receipted in the
+    deferral log. The caller skips the cycle and asks again later; nothing is cancelled.
+    """
+    try:
+        decision = resource_headroom.admit("sim_run", **admit_kwargs)
+    except Exception as exc:  # noqa: BLE001 -- a governor that raises defers; it never kills the loop
+        decision = {"job_class": "sim_run", "admitted": False,
+                    "reason": f"the admission check raised {type(exc).__name__}: {exc}"}
+    if not decision["admitted"]:
+        log(f"DEFERRED this cycle -- {decision['reason']}")
+        resource_headroom.record_deferral(decision)
+    return decision
+
+
 def main() -> None:
     log("Simulation runner started")
     # A RESTART MUST NOT RESET THE PAUSE. See NEXT_RUN_FILE: this daemon is restarted on
@@ -731,6 +758,9 @@ def main() -> None:
         was_held, should_skip = _check_hold(was_held)
         if should_skip:
             time.sleep(120)
+            continue
+        if not cycle_admission()["admitted"]:
+            time.sleep(DEFERRAL_RETRY_SECONDS)
             continue
         try:
             success = run_simulation()

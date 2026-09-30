@@ -32,4 +32,21 @@ The last row is honest arithmetic, and it is also the case the result record cal
 
 **DONE, as the item defined it:** the refusal half is done. "Item one's relaunch went through it" cannot be: relaunch 3 (`longjob-ab5-runa2c`) was launched at 20:49Z, before this existed, and is running now. The next relaunch through the CLI must pass `--peak-mb`. `tools/run_arms_rerun.py` has no sourced peak, so it now refuses with "undeclared peak" until its own last run supplies one; no number was invented for it. `tools/measure_publish_gate_subject_cost.py` declares `CLASS_WEIGHTS_MB["subject_cost"]`, the peak measured at its OOM kill.
 
-**Owed, and not this item:** the neighbour side. `sim_runner`'s cycle and the gate's pytest workers do not launch through this door, so they cannot see a declared peak. The smallest next step is to have `resource_headroom.admit()` count live `peak_mb` records (via `declared_peaks`) alongside its reservations, and to have `sim_runner` call it before a cycle. That would give `admit()` its first production caller.
+**Owed — SPENT for sim-runner, 2026-09-30** (claim `the-neighbour-of-a-long-job-sees-its-declared-peak`). The owed paragraph read: *have `resource_headroom.admit()` count live `peak_mb` records (via `declared_peaks`) alongside its reservations, and have `sim_runner` call it before a cycle.* That is now done:
+- `admit()` counts the declared peak of every long job that still has a process (`running_long_jobs`). A record left `live` after its job has ended holds no memory, so it is not counted; otherwise the cycle would defer forever.
+- `sim_runner.main()` asks `cycle_admission()` before each cycle. A refusal is logged to the journal as `DEFERRED this cycle -- <reason naming the unit and pids>`, receipted in `heavy_job_deferrals.jsonl`, and re-asked after 300 s. If the check itself raises, the cycle defers; the loop does not crash.
+- `admit()` is no longer test-only: this is its first production caller.
+
+**A defect found on the way, and fixed in the same commit.** `declared_peaks` keyed the record's unit (`longjob-x`), but the census names the cgroup leaf (`longjob-x.service`). So `co_residence`'s declared-peak uplift matched no real resident, and the launcher's own "counted at its declared peak" leg was inert for every real launch. Its control passed because the fixture typed the `.service` suffix, which the real record never carries. The fix is keyed at `declared_peaks`, with a control that goes from `launch()`'s record to `co_residence`.
+
+**Verdicts at real inputs** (guest 24,032 MB, budget 23,008 MB, `CLASS_WEIGHTS_MB["sim_run"]` = 13,824):
+
+| case | declared | verdict |
+|---|---|---|
+| 19:07Z: leg declared 10,445 MB (3.7 GiB resident), 18,000 MB free | 10,445 + 13,824 = 24,269 | **deferred**, names `longjob-ab5-runa2b.service` pid 1033543 |
+| same box, leg's process gone | 0 + 13,824 | admitted |
+| today 01:25Z: `longjob-ab5-lineage-unseen` declared 11,800, pids 2141363, 2295586 | 25,624 | **deferred**. sim-runner will sit out this whole run once it loads the new code. That is intended. |
+
+**What makes it defer is the stale-high weight, and that weight is now load-bearing.** (Measured by `se-seat-executor-9a`, confirmed here.) `weight_drift('sim_run')` reports a 24 h observed peak of 6,317 MB across 9 runs against the declared 13,824; `drifted=False` because drift is checked upward only. At 6.1 GiB the 19:07Z pair (10,445 + 6,246 = 16,691) fits the budget and would be ADMITTED. The 19:07Z death also involved a second 5.2 GiB worker that neither side declares. **Do not re-derive `sim_run` downward without a mechanism for the undeclared residents:** `admit()`'s declared leg does not count them, and its measured leg only sees memory already allocated.
+
+**Still owed:** the gate's pytest workers do not ask either. The `publish_gate` and `census` classes have weights, but no caller asks `admit()` before starting them. Left out on purpose; this landing is about the one permanent neighbour we can name.
