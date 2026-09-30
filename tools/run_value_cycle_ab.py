@@ -74,6 +74,8 @@ import math
 import os
 import random
 import statistics
+import subprocess
+import sys
 import time
 from dataclasses import replace
 from datetime import date, datetime, timedelta, timezone
@@ -206,6 +208,10 @@ NOISE_FLOOR_PROGRESS_MARKER = "[noise_floor] seed "
 #: The floor cut in two. A THIRD file, again on purpose: it is the answer to "what would resolve
 #: this", it is composed from three floors rather than measured by one, and the site feed reads it
 #: to decide whether the remedy sentence beside its refusal is true.
+#: Where `--book-seeds` writes its family unless `--out` names somewhere else. Per-book artefacts
+#: go in a sibling `<stem>_members/` directory.
+BOOK_FAMILY_OUTPUT_PATH = (
+    PROJECT_DIR / "docs" / "observability" / "value_cycle_ab_book_family.json")
 DECOMPOSITION_OUTPUT_PATH = (
     PROJECT_DIR / "docs" / "observability" / "value_cycle_ab_floor_decomposition.json")
 #: A FOURTH file, and the only one that measures no spread: which households take which re-drawable
@@ -6396,6 +6402,12 @@ def fold_floors(members: list[dict], sources: list[str] | None = None,
                       "that the code motion did not move this quantity".format(worst) if shared
                       else "they share no seed, so whether the code motion moved this quantity is "
                            "UNMEASURED")))}),
+        # The fold lands on the noise-floor promote target, so it must say which run it is. Its
+        # `producing_commit` is carried from the members and has no `resolved_at` of its own; a
+        # declared path that does not resolve is refused by the census's own control, so that one
+        # field is dropped here rather than the shared list forked.
+        "run_identity_fields": [f for f in _RUN_IDENTITY_FIELDS
+                                if f != "producing_commit.resolved_at"],
         # Carried from the members, which the refusals above have proven agree on every one.
         "world_identity": first.get("world_identity"),
         "clock": first.get("clock"),
@@ -8292,6 +8304,205 @@ def decompose_floor(undecomposed: dict, priced_only: dict, priced_except: dict,
     return out
 
 
+# ---------------------------------------------------------------------------
+# THE BOOK AS THE VARIED QUANTITY -- `--book-seeds`, added 2026-09-30
+# ---------------------------------------------------------------------------
+#
+# A NOISE FLOOR MOVES ONE DRAW ON ONE BOOK; A BOOK FAMILY MOVES THE BOOK. Each member is the whole
+# three-arm pass over `live_population(base_seed=S)`, with the churn roll re-drawn at floor seed S
+# too. Both are needed: `churn_roll_for_renewal` hashes (id, date) with no seed, founder ids are
+# positional, and founders cluster on 2016-01-01/02. A different household under a shared id would
+# therefore take the SAME renewal roll in every book, and the between-book spread would come out
+# narrow in the flattering direction. The prereg is
+# `docs/staging/records/SEAT_PREREG_THE_AB_THAT_VARIES_THE_BOOK_NOT_THE_SEED_2026-09-30.md`.
+#
+# ONE SUBPROCESS PER BOOK, because the book cannot be re-drawn inside a process that has imported
+# this module. `simulation.run_phase4c_on_phase2b`, imported at the top of this file, calls
+# `live_population()` at import, so by the time any function here runs, the book is fixed. The
+# member process rebinds the seed BEFORE it imports anything that assembles a book.
+#
+# AND IT IS THE DIRECTOR'S TO RUN, NOT THE SEAT'S. A book seed other than the default puts the
+# company through a different cast of households. That is `EP17_varied_population_draw`, which
+# is R13 curriculum. The flag is built so that his yes costs one file and no code. It refuses
+# until that file exists, and this module never writes the file.
+
+#: The atom whose ruling a non-default book seed needs, named in every refusal it causes.
+BOOK_SEED_ATOM = "EP17_varied_population_draw"
+
+#: Where the director's ruling would live, in `population_draw_activation.json`'s shape. It does
+#: NOT exist as of 2026-09-30, and its absence is what keeps `--book-seeds` refusing.
+BOOK_SEED_AUTHORISATION = (
+    PROJECT_DIR / "docs" / "design" / "curriculum" / "varied_population_draw_activation.json")
+
+#: The member entrypoint, run with `python3 -c` so that the rebind in its first two lines happens
+#: before `tools.run_value_cycle_ab` (and so `run_phase4c_on_phase2b`) is imported. argv:
+#: seed, report_end ("" = full window), member artefact path.
+BOOK_MEMBER_PREAMBLE = (
+    "import sys\n"
+    "import simulation.live_population as _lp\n"
+    "_lp._DEFAULT_BASE_SEED = int(sys.argv[1])\n")
+BOOK_MEMBER_BOOTSTRAP = BOOK_MEMBER_PREAMBLE + (
+    "from tools.run_value_cycle_ab import book_member_main\n"
+    "raise SystemExit(book_member_main(int(sys.argv[1]), sys.argv[2] or None, sys.argv[3]))\n")
+
+
+def _default_book_seed() -> int:
+    """The seed every published run's book is drawn at, read off the module that owns it."""
+    from simulation.live_population import _DEFAULT_BASE_SEED
+    return _DEFAULT_BASE_SEED
+
+
+def book_seed_authorisation_refusal(seeds: list[int], record: Path | None = None) -> str | None:
+    """Why this family may not run without the director, or None if it may.
+
+    Only the DEFAULT seed is free: it is the book every published run already uses. Any other
+    seed needs a record that is activated and lists THAT seed. A general "yes, vary the book"
+    does not authorise every seed anyone later types.
+    """
+    default = _default_book_seed()
+    foreign = sorted({int(s) for s in seeds} - {default})
+    if not foreign:
+        return None
+    record = BOOK_SEED_AUTHORISATION if record is None else record
+    head = ("book seed(s) {} are not the default {}. A different book seed draws a different "
+            "cast of households, which is {} -- R13 curriculum, the director's alone".format(
+                foreign, default, BOOK_SEED_ATOM))
+    try:
+        doc = json.loads(record.read_text(encoding="utf-8"))
+    except FileNotFoundError:
+        return ("{}. No ruling is recorded: {} does not exist. It is written only on his word, "
+                "in the shape of population_draw_activation.json, and never by this tool."
+                .format(head, record))
+    except (OSError, ValueError) as exc:
+        return "{}. {} is unreadable ({}), so no ruling can be read from it.".format(
+            head, record, exc)
+    try:
+        activated = doc["activated"]["value"] is True
+        authority = str(doc["_meta"]["authority"]).strip()
+        listed = {int(s) for s in doc["base_seeds"]["value"]}
+    except (KeyError, TypeError, ValueError) as exc:
+        return ("{}. {} is not in population_draw_activation.json's shape (needs _meta.authority, "
+                "activated.value, base_seeds.value; {!r}).".format(head, record, exc))
+    if not activated or not authority:
+        return "{}. {} exists but is not activated with the director's words.".format(
+            head, record)
+    unlisted = sorted(set(foreign) - listed)
+    if unlisted:
+        return "{}. {} does not list seed(s) {}.".format(head, record, unlisted)
+    return None
+
+
+def book_seeds_refusal(seeds: list[int]) -> str | None:
+    """A family that cannot be a family: fewer than two books, or one book counted twice."""
+    if len(seeds) < 2:
+        return ("a book family needs at least two seeds; got {}. One book is a run, and its "
+                "between-book spread is undefined, not zero.".format(len(seeds)))
+    dupes = sorted({s for s in seeds if seeds.count(s) > 1})
+    if dupes:
+        return ("book seed(s) {} appear more than once. A repeated book is the same draw counted "
+                "twice, which narrows the between-book spread by construction.".format(dupes))
+    return None
+
+
+def book_member_refusal(requested: int, member: dict) -> str | None:
+    """Why this member's pass does not measure the book it was asked for, or None."""
+    recorded = member.get("run_base_seed")
+    if recorded != requested:
+        return ("book {}: the pass recorded run_base_seed() = {!r}, not the seed it was asked "
+                "for. The rebind did not reach the book, so this member ran some other book "
+                "(most likely the default) under this seed's label.".format(requested, recorded))
+    if not member.get("draws_redrawn"):
+        return ("book {}: the churn-roll patch re-drew 0 of {} roll(s). The rolls stayed keyed "
+                "to (id, date) alone, so a shared founder id takes the same dice in every book."
+                .format(requested, member.get("draw_calls")))
+    return None
+
+
+def book_member(seed: int, report_end: str | None = None, runner=None) -> dict:
+    """ONE book: the three-arm pass with the churn roll re-drawn at floor seed == book seed.
+
+    Must run in a process whose `_DEFAULT_BASE_SEED` was rebound before import
+    (`BOOK_MEMBER_BOOTSTRAP`). The seed is read back from `_RUN_BASE_SEED`, NOT from
+    `run_base_seed()`. After the rebind, `run_base_seed()` would fall back to the rebound default
+    and read "correct" even if no book had been drawn at all.
+    """
+    import simulation.live_population as lp
+    module_name, name, patch_factory = resolve_redraw_target("churn_roll")
+    module = importlib.import_module(module_name)
+    real = getattr(module, name)
+    calls = {"n": 0, "redrawn": 0, "held": 0, "ids": set()}
+    setattr(module, name, patch_factory(real, int(seed), lambda _account: True, calls))
+    try:
+        result = (runner or (lambda: run_value_cycle_ab(report_end=report_end,
+                                                         level_arm=True)))()
+    finally:
+        setattr(module, name, real)
+    lvs = result.get("level_vs_selection") or {}
+    book = (result.get("book_identity") or {}).get("control_arm") or {}
+    return {
+        "book_seed": int(seed),
+        "run_base_seed": lp._RUN_BASE_SEED,
+        "churn_roll_floor_seed": int(seed),
+        "draw_calls": calls["n"],
+        "draws_redrawn": calls["redrawn"],
+        "accounts_redrawn": len(calls["ids"]),
+        "billing_accounts_settled_in_window": book.get("billing_accounts_settled_in_window"),
+        "value_advantage_gbp": lvs.get("value_advantage_gbp"),
+        "selection_gbp": lvs.get("selection_gbp"),
+        "producing_commit": producing_commit(),
+        # The member's own stamp is its commit. `book_seed` identifies the BOOK, which is a fact
+        # about the world and not about the run, so `_RUN_IDENTITY_FIELDS` leaves it out for the
+        # same reason it leaves out `book_identity`. The embedded `result` makes its own
+        # declaration.
+        "run_identity_fields": ["producing_commit.commit", "producing_commit.resolved_at"],
+        "result": result,
+    }
+
+
+def book_member_main(seed: int, report_end: str | None, out: str) -> int:
+    """The member subprocess's entrypoint: run one book and write it, even if it refuses."""
+    member = book_member(seed, report_end=report_end)
+    Path(out).write_text(json.dumps(member, indent=2), encoding="utf-8")
+    return 0 if book_member_refusal(seed, member) is None else 2
+
+
+def book_seeds(seeds: list[int], report_end: str | None, member_dir: Path,
+               spawn=None, record: Path | None = None) -> dict:
+    """Run one subprocess per book, strictly serially, and refuse a family that is not one.
+
+    Every refusal that needs no pass is taken BEFORE the first book spends its 1.5 box-hours.
+    `spawn(seed, report_end, member_path)` is injectable so the control can drive this loop
+    without the simulation.
+    """
+    seeds = [int(s) for s in seeds]
+    for refusal in (book_seeds_refusal(seeds), book_seed_authorisation_refusal(seeds, record)):
+        if refusal:
+            return {"available": False, "why_not": refusal, "members": []}
+
+    def _spawn(seed, end, path):
+        return subprocess.run(
+            [sys.executable, "-c", BOOK_MEMBER_BOOTSTRAP, str(seed), end or "", str(path)],
+            cwd=PROJECT_DIR, check=False).returncode
+
+    member_dir.mkdir(parents=True, exist_ok=True)
+    members = []
+    for seed in seeds:
+        path = member_dir / "book_{}.json".format(seed)
+        code = (spawn or _spawn)(seed, report_end, path)
+        if not path.exists():
+            return {"available": False, "members": members,
+                    "why_not": "book {}: the member exited {} and wrote no artefact at {}".format(
+                        seed, code, path)}
+        member = json.loads(path.read_text(encoding="utf-8"))
+        refusal = book_member_refusal(seed, member)
+        if refusal:
+            return {"available": False, "why_not": refusal, "members": members}
+        members.append({k: v for k, v in member.items() if k != "result"}
+                       | {"artefact": str(path)})
+    return {"available": True, "why_not": None, "atom": BOOK_SEED_ATOM,
+            "report_end": report_end, "members": members}
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--end-year", help="truncate the window, e.g. 2019 (faster iteration)")
@@ -8320,6 +8531,13 @@ def main(argv: list[str] | None = None) -> int:
               "REFUSES. `churn_roll` re-draws the renewal dice every billing account takes, priced "
               "or not -- the quantity the rest of the book has. Two legs on two keys do not "
               "partition each other and `--decompose` withholds the share and the price for it."))
+    ap.add_argument(
+        "--book-seeds",
+        help=("BOOK FAMILY mode: comma-separated book seeds. Each is a full three-arm pass over "
+              "`live_population(base_seed=S)` in its own subprocess, with the churn roll re-drawn "
+              "at floor seed S. Any seed other than the default REFUSES unless the director's "
+              "ruling is recorded for EP17_varied_population_draw (see BOOK_SEED_AUTHORISATION). "
+              "Costs ~1.5 box-hours PER BOOK, strictly serial."))
     ap.add_argument(
         "--partition-probe", action="store_true",
         help=("PROBE mode: ONE pass with pass-through recorders on both re-drawable draws, "
@@ -8359,6 +8577,31 @@ def main(argv: list[str] | None = None) -> int:
               "names the priced roster the cut is made along. Read, never hand-written."))
     args = ap.parse_args(argv)
     report_end = f"{args.end_year}-12-31" if args.end_year else None
+
+    if args.book_seeds:
+        seeds = [int(s) for s in args.book_seeds.split(",") if s.strip()]
+        out = args.out if args.out != OUTPUT_PATH else BOOK_FAMILY_OUTPUT_PATH
+        # THE CHEAP REFUSALS FIRST: a family the director has not ruled on is refused whatever
+        # the headroom, and saying "not enough memory" would hide the real reason.
+        refusal = book_seeds_refusal(seeds) or book_seed_authorisation_refusal(seeds)
+        if refusal is None and not args.ignore_headroom:
+            refusal = floor_run_headroom_refusal()
+        if refusal:
+            print("book family REFUSED: {}".format(refusal))
+            return 2
+        family = book_seeds(seeds, report_end, out.parent / (out.stem + "_members"))
+        out.parent.mkdir(parents=True, exist_ok=True)
+        out.write_text(json.dumps(family, indent=2), encoding="utf-8")
+        if not family["available"]:
+            print("book family REFUSED: {}".format(family["why_not"]))
+            return 2
+        for m in family["members"]:
+            print("  book {:<9} {} settled   selection {}   {} roll(s) re-drawn".format(
+                m["book_seed"], m["billing_accounts_settled_in_window"],
+                "{:+,.2f}".format(m["selection_gbp"]) if m["selection_gbp"] is not None
+                else "n/a", m["draws_redrawn"]))
+        print("  wrote {}".format(out))
+        return 0
 
     if args.partition_probe:
         # THE SAME REFUSAL AS A FLOOR LEG, because this IS a floor leg's cost. A probe re-draws

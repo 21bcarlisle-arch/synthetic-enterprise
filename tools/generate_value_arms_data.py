@@ -3896,12 +3896,20 @@ def _the_verdicts_clause(stateable: list, unstateable: list, seeds) -> str:
                 "{verb} a measured bound and still no direction. This page states no side for "
                 "any of them.").format(n=seeds, cannot=cannot,
                                        verb="carries" if len(unstateable) == 1 else "carry")
+    # WHICH LEG WAS CALLED IS READ OFF THE VERDICTS, NOT ASSUMED (2026-09-30). This sentence was
+    # written when the only split on disk was level-called, selection-not, and it said "the leg
+    # that CAN be called is the price LEVEL" on every split. Once a family that repeats draws
+    # withholds the level's side, the split is whole-advantage-called and it read "the level ...
+    # has no direction ... The leg that CAN be called is the price LEVEL" in one breath.
+    called = {key for key, _, _ in stateable}
+    level_called = (" The leg that CAN be called is the price LEVEL -- a flat margin with no "
+                    "per-customer inference in it anywhere -- and the level is value MOVED, not "
+                    "made." if LEVEL_CONTRAST in called else "")
+    mission = (" The leg the mission turns on is the one this book cannot yet call."
+               if SELECTION_CONTRAST not in called else "")
     return ("On {n} re-draws the legs split, and the split is the finding rather than a gap in "
-            "it: {said}, while {cannot} still {verb} no direction at this sample. The leg that "
-            "CAN be called is the price LEVEL -- a flat margin with no per-customer inference in "
-            "it anywhere -- and the level is value MOVED, not made. The leg the mission turns on "
-            "is the one this book cannot yet call."
-            ).format(n=seeds, said=said, cannot=cannot,
+            "it: {said}, while {cannot} still {verb} no direction at this sample.{level}{mission}"
+            ).format(n=seeds, said=said, cannot=cannot, level=level_called, mission=mission,
                      verb="has" if len(unstateable) == 1 else "have")
 
 

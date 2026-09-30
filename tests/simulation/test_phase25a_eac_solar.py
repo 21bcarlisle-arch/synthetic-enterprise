@@ -78,20 +78,22 @@ def test_load_weather_cloud_cover_returns_dict():
 
 
 def test_cloud_cover_for_customer_resolves_shared_locations():
-    """C5 (London, shares C1 location) resolves to C1's cloud cover data, and C4 does not.
+    """C5 (London, shares C1 location) resolves to C1's cloud cover data.
 
-    Both sides go through `cloud_cover_for_customer`. The archive CSV that
-    `load_weather_cloud_cover("C1")` reads was sampled at the property, and the resolver reads the
-    per-cell store, so the two differ by about 1.6 pp a day by design (weather_inputs docstring).
-    C4 sits in the Cotswolds. It is here so that a resolver handing every premise the same sky
-    cannot pass."""
+    Compared resolver-to-resolver, not against `load_weather_cloud_cover("C1")`: since 2026-09-21
+    `cloud_cover_for_customer` reads the PER-CELL store (`cell_weather_for_customer`) and the
+    per-customer CSV is a different, legacy series, so the old comparison differed on most days
+    while the shared resolution it guards held. Manchester (C2) must differ, or a resolver handing
+    every premise one sky would pass.
+    """
     from saas.customers import CUSTOMERS
     from simulation.weather_inputs import cloud_cover_for_customer
     by_id = {c["customer_id"]: c for c in CUSTOMERS}
-    c1_data = cloud_cover_for_customer(by_id["C1"])
-    assert c1_data, "C1 resolved to no cloud cover -- the equality below would be vacuous"
-    assert cloud_cover_for_customer(by_id["C5"]) == c1_data
-    assert cloud_cover_for_customer(by_id["C4"]) != c1_data
+    c1_resolved = cloud_cover_for_customer(by_id["C1"])
+    c5_resolved = cloud_cover_for_customer(by_id["C5"])
+    assert c1_resolved, "C1 resolves to no cloud series -- the comparison below would be vacuous"
+    assert c5_resolved == c1_resolved
+    assert cloud_cover_for_customer(by_id["C2"]) != c1_resolved
 
 
 def test_solar_wiring_reduces_daytime_consumption_for_c4():

@@ -48,3 +48,23 @@ The question it answers: **on what the per-customer arm decided differently from
 - **Launched 2026-09-30T00:00:28Z** as unit `longjob-ab5-lineage-unseen` through `background.launch_long_job`, in a cgroup of its own (verified). It was admitted with 10,198 MB resident + 11,800 MB declared peak = 21,998 of 23,008 MB. The log is `/var/tmp/se-ab5-out/runL.log`, the artefacts are `runL1.json` and `runL2.json`, and the liveness claim is recorded. At launch the log reads `WAITING for PB6 EH-2 arms pid 1677297`, the unit's MainPID is 2141363, and it is waiting on the PB6 arms pid 1677297 (null arm running; planted and head still to come).
 - **Known exposure, not fixed here:** `sim-runner`'s annual report cycles to ~6 GiB and is not a predecessor. That co-residence is what killed runa2b. If a leg dies of OOM, its seed pair is relaunched once and the finding goes to the admission, not to this prereg.
 - **Grading** is handed on through `seat_continuation` for when `runL2.json` exists. Expect it about 6h10m after the arms finish.
+
+## Grade — first pair only (55555, 66666), 2026-09-30T04:27Z
+
+**The run was stopped after its first pair, on purpose.** `runL1.json` was written at 04:26:21Z (legL1 rc=0; sha256 `263d0dba…3ef4`). `longjob-ab5-lineage-unseen` was stopped at 04:26:43Z, 22 s into legL2, and no `run_value_cycle_ab` for 77777,99999 was resident afterwards. `runL2.json` will never exist. The seat continuation that waited on it (`ab5-grade-lineage-keyed-d-on-unseen-seeds`) is retired. The reason is `7413b3ea2` (`records/SEAT_PREREG_THE_NEXT_AB_ON_THE_SINGLE_ROLL_WORLD_WHAT_A_SEED_VARIES_2026-09-30.md`): in this design a seed re-draws only elasticity weights, and every renewal roll is the same on every seed. The box's next nine hours go to the design that re-draws the roll.
+
+The grader is `grade_lineage.py runL1.json`, sha256 `7638f037…6ecc`, which is the sha this prereg named. The store digest equals `e11451b5…d242`. The successor source is the pinned `saas.customers`.
+
+| seed | D_lin ex-0098 | A_lin | roster-only | multi-member lineages | 0098 lineage |
+|---|---|---|---|---|---|
+| 55555 | **+£1,038.66** (69 lineages) | −£3.07 (n=93) | n=0, £0.00 | C3+C3_2 (D) | −£149.57 |
+| 66666 | **+£785.12** (69 lineages) | −£2.80 (n=93) | n=0, £0.00 | C3+C3_2 (D), C5+C5_2 (D) | −£149.64 |
+
+- **L1: HOLDS on both seeds.** Both are positive and inside +£600…+£1,300.
+- **L3: HOLDS.** |A_lin| ≤ £3.07 on both seeds, against a £25 band. The key is not refuted.
+- **L4: HOLDS.** There are no roster-only lineages on either seed.
+- L5 (context): 1 of 2 seeds is in the churned-C5 state (66666: C5_2 present).
+- L6 (context): 0098 is in the same state on both seeds (not mixed over two).
+- **L2 and the plain answer are WITHDRAWN, not refuted.** L2 needed four seeds, and two were run. More to the point, `7413b3ea2` showed that this design's seed-level t-CI is an interval over **elasticity draws**, with one fixed set of renewal rolls. Any CI it produced could not carry the plain answer's "on unseen seeds" meaning, however many seeds ran. The two-seed figures are printed for the record and are not a grade: mean +£911.89, sd £179.28, t-CI [−£698.85, +£2,522.64].
+
+**What the pair adds, stated so it is not over-read.** 55555 reproduces seen seed 33333's D_lin **to the penny** (+£1,038.66). 66666 is within £0.47 of seen seed 44444 (+£784.65), and it is in 44444's churned-C5 state. So the "unseen" seeds landed on two of the discrete states the five seen seeds had already visited. That is `7413b3ea2`'s mechanism observed directly: a seed chooses which near-threshold accounts flip, and it does not draw a new world. **L3 and L4 are the lines that carry forward.** The lineage key found nothing moving where nothing was decided, and no consequence escaped it by a route other than a home move, on two seeds it had not seen. ab6 grades with that key.
