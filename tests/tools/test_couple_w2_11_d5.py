@@ -449,7 +449,11 @@ def _as_of_contract_report(records, consumer, as_of, contract, score=None):
             "truth_moved": early_truth[dim] != later_truth[dim],
             "gap_moved": gap_moved,
             "declared_truth_invariant": bool(declared["truth_is_as_of_invariant"]),
-            "declared_gap_invariant": bool(declared["gap_is_as_of_invariant"]),
+            # What the declaration demands ON THIS SCENARIO: a conditional
+            # declaration (D27) is evaluated against the book and the window.
+            "declared_gap_invariant": pair.as_of_gap_invariance_expected(
+                dim, records, consumer, later, contract),
+            "conditional": declared.get("gap_invariance_condition") is not None,
             "early": a, "later": b,
         }
     return report
@@ -489,17 +493,32 @@ def test_every_dimension_declares_its_as_of_contract_and_the_declaration_is_meas
         "not one published gap moved -- the sweep did nothing"
     )
 
+    # A CONDITIONAL declaration whose condition fails on this scenario (D27: the
+    # company's window no longer covers the book) is a company-side clock, and
+    # its movement is the measurement. It is not required per dimension -- a
+    # failure ageing out may cross no severity tier -- but one of them must
+    # move, or the condition is a free pass.
+    uncovered = [d for d, m in report.items()
+                 if m["conditional"] and not m["declared_gap_invariant"]]
+    if uncovered:
+        assert any(report[d]["gap_moved"] for d in uncovered), (
+            f"{uncovered}: the company's window no longer covers the book, yet "
+            f"no belief gap moved over {_CONTRACT_SWEEP_DAYS} days")
+
     for dim, m in report.items():
         assert m["truth_moved"] == (not m["declared_truth_invariant"]), (
             f"{dim}: declared truth_is_as_of_invariant="
             f"{m['declared_truth_invariant']} but measurement says otherwise"
         )
+        if dim in uncovered:
+            continue
         assert m["gap_moved"] == (not m["declared_gap_invariant"]), (
             f"{dim}: declared gap_is_as_of_invariant="
             f"{m['declared_gap_invariant']} but the gap went "
             f"{m['early']} -> {m['later']} over {_CONTRACT_SWEEP_DAYS} days"
         )
-        if m["declared_truth_invariant"] and not m["declared_gap_invariant"]:
+        if (m["declared_truth_invariant"]
+                and not contract[dim]["gap_is_as_of_invariant"]):
             # The exemption is allowed, but only as a NAMED, dated debt.
             why = str(contract[dim]["why"])
             assert "VIOLATES THE INVARIANT" in why, dim
@@ -511,8 +530,10 @@ def test_every_dimension_declares_its_as_of_contract_and_the_declaration_is_meas
 
 
 def test_the_as_of_class_control_fires_when_a_clean_dimension_starts_drifting():
-    """R15 MUST-FIRE #1. `belief` is declared invariant on both sides and
-    measures clean today. Poison ONLY its gap so it drifts with the clock while
+    """R15 MUST-FIRE #1. `detection` is declared invariant on both sides,
+    unconditionally, and measures clean. (This used to poison `belief`, whose
+    invariance is now conditional on the company's window -- D27 -- so at the
+    organ's own window it is not clean to start with.) Poison ONLY its gap so it drifts with the clock while
     its truth stands still -- the exact defect class -- and the control must
     catch it. A control that only ever passes is not evidence."""
     import datetime as _dt
@@ -522,17 +543,17 @@ def test_the_as_of_class_control_fires_when_a_clean_dimension_starts_drifting():
     def _poisoned_score(recs, cons, when, **kw):
         res = pair.score_triad(recs, cons, when, **kw)
         # Nothing about the world changed; only the question's timing.
-        res["belief"].gap = res["belief"].gap + 0.001 * (when - as_of).days
+        res["detection"].gap = res["detection"].gap + 0.001 * (when - as_of).days
         return res
 
     report = _as_of_contract_report(
         records, consumer, as_of, pair.DIMENSION_AS_OF_CONTRACT, score=_poisoned_score)
 
-    assert report["belief"]["gap_moved"] is True
-    assert report["belief"]["truth_moved"] is False
+    assert report["detection"]["gap_moved"] is True
+    assert report["detection"]["truth_moved"] is False
     # ...and that combination is precisely what the real test forbids.
     with pytest.raises(AssertionError):
-        m = report["belief"]
+        m = report["detection"]
         assert m["gap_moved"] == (not m["declared_gap_invariant"])
 
 
@@ -569,6 +590,54 @@ def test_the_as_of_class_control_fires_on_a_declaration_that_lies():
     m = _as_of_contract_report(records, consumer, as_of, lying_dirty)["detection"]
     with pytest.raises(AssertionError):
         assert m["gap_moved"] == (not m["declared_gap_invariant"])
+
+
+def test_the_belief_invariance_condition_is_reachable_on_both_sides_and_is_not_a_free_pass():
+    """D27 FRAME s23. The belief dimensions' as_of invariance is conditional on
+    the company's window covering the book. Built at explicit windows, so both
+    sides run whatever `DD_FAILURE_WINDOW_DAYS` ships as: a window that still
+    covers the oldest failure at the later reading date, and one a day short of
+    the oldest failure at `as_of`.
+
+    Covered: the condition holds and neither gap moves. Uncovered: the
+    condition fails, and at least one gap moves -- so a declaration stripped of
+    its condition is a lie the control catches, which is the mutation that
+    matters (a condition that is never false, or that nobody evaluates, would
+    let the belief figures move with the clock unseen)."""
+    import datetime as _dt
+
+    records, _c, _l, as_of = pair.build_scenario(250, seed=_SEED)
+    oldest = pair.measure_belief_window_resolution(
+        records, as_of)["oldest_event_age_days"]
+    memory = ("belief", "belief_population_mix")
+    covered = oldest + _CONTRACT_SWEEP_DAYS
+    arms = {}
+    for window in (covered, oldest - 1):
+        recs, consumer, _l, when = pair.build_scenario(
+            250, seed=_SEED,
+            organ_failure_window_drift_days=window - pair.DD_FAILURE_WINDOW_DAYS)
+        later = when + _dt.timedelta(days=_CONTRACT_SWEEP_DAYS)
+        arms[window] = (recs, consumer, when, _as_of_contract_report(
+            recs, consumer, when, pair.DIMENSION_AS_OF_CONTRACT))
+        expected = {d: pair.as_of_gap_invariance_expected(d, recs, consumer, later)
+                    for d in memory}
+        assert all(expected.values()) is (window == covered), (window, expected)
+
+    for d in memory:
+        assert arms[covered][3][d]["gap_moved"] is False, d
+    assert any(arms[oldest - 1][3][d]["gap_moved"] for d in memory)
+
+    # THE MUTATION: drop the condition. On the uncovered arm the declaration now
+    # demands invariance of a gap that moved, and the class control's own
+    # equality reds.
+    recs, consumer, when, _r = arms[oldest - 1]
+    stripped = {k: dict(v) for k, v in pair.DIMENSION_AS_OF_CONTRACT.items()}
+    for d in memory:
+        stripped[d].pop("gap_invariance_condition")
+    lied = _as_of_contract_report(recs, consumer, when, stripped)
+    with pytest.raises(AssertionError):
+        for d in memory:
+            assert lied[d]["gap_moved"] == (not lied[d]["declared_gap_invariant"])
 
 
 def test_detection_headline_is_no_longer_an_as_of_artefact():

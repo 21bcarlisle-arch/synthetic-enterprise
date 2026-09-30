@@ -1560,3 +1560,71 @@ measures clean.
 Defect-assertions: 4 of 4 restated. Null control: done (§21.1). Still pinned: the five D30/D33
 sibling claims, the four publication surfaces, the register node (§21.1) and, new here, the as_of
 class control (§22.2). That last one belongs to the flip commit with the contract edit.
+
+---
+
+## 23. BUILD pass 14 — 2026-09-30 (worker tick, BUILD lane) — §22.2's third contract kind, landed ahead of the flip
+
+The origin is still 400, no level moved, `CAVEAT_COVERAGE_PROBES` untouched (§19.4). The candidate
+origin was substituted in the process through the §17.4 `flip_plugin`, never in the tree.
+
+### 23.1 The contract kind, and why it can land now
+
+§22.2 recommended a third as_of contract kind keyed to the saturation property. It lands as a field
+rather than a new boolean: `gap_invariance_condition = COMPANY_WINDOW_COVERS_THE_BOOK` on `belief` and
+`belief_population_mix`, evaluated by `as_of_gap_invariance_expected`, which reads
+`measure_belief_window_resolution(records, later, consumer.dd_failure_window_days)["saturated"]` at
+the LATER reading date (the older of the two ages, so covered there means no failure changed side).
+Both `why` strings now say what is true: the truth side is settled facts, the company side is a
+window, and a window is a clock.
+
+Measured n=250, sweep 60 days, one process per origin:
+
+| seed | oldest failure | 400: saturated at later / belief / mix | 90: saturated at later / belief / mix |
+|---|---|---|---|
+| 101 | 92 | True / same / same | False / 0.1866→0.4925 / 0.088→0.264 |
+| 7 | 91 | True / same / same | False / 0.1769→0.4923 / 0.084→0.256 |
+| 11 | 92 | True / same / same | False / 0.1884→0.5000 / 0.100→0.272 |
+| 23 | 92 | True / same / same | False / 0.1522→0.5000 / 0.084→0.276 |
+
+Detection and detection_latency are identical at both origins on every seed.
+
+The class control now asserts: covered ⇒ that gap is identical (per dimension, as before);
+uncovered ⇒ at least one conditional gap moved (not per dimension: a failure ageing out may cross no
+tier, so demanding each would overclaim). The exemption leg reads the raw declaration, so the
+condition cannot be used to buy a D11-style exemption. Must-fire #1 now poisons `detection`, the
+dimension that is unconditionally clean. New node
+`test_the_belief_invariance_condition_is_reachable_on_both_sides_and_is_not_a_free_pass` builds
+explicit windows (oldest + 60 and oldest − 1), so both branches run at any origin, and strips the
+condition to show the class control's equality reds on the uncovered arm.
+
+**Green at 400 and at 90**, 6 passed each. **R15, two evaluator mutations × two origins:**
+
+| mutation | at 400 | at 90 |
+|---|---|---|
+| condition ignored (always covered) | 1 failed (new node only) | 2 failed (class control + new node) |
+| condition never holds | 2 failed (class control's "none moved" leg + new node) | 1 failed (new node only) |
+
+"Condition ignored" at 400 is caught only by the explicit-window node. The class control cannot see
+it at the saturated origin, which is this atom's finding in miniature.
+
+### 23.2 CORRECTION to §22.2 — the co-read knock-on does not happen, and would have red §22.1's node
+
+§22.2 said `DETECTION_CO_READ_DIMENSIONS` "leaves the belief dimensions by itself" and that §22.1's
+node "stays green because its non-memory arm and the both-sides guard do not depend on them". The
+second half is wrong: that node's uncovered-arm assertion is `not all(identical[d] for d in memory &
+set(identical))`, and over an empty intersection `all(...)` is True, so it would red. Under the
+design landed here nothing leaves the set: `gap_is_as_of_invariant` stays True on both belief
+entries and the co-read derivation is unchanged, so §22.1's node is untouched.
+
+What the flip commit still owes on this seam: at the organ default, `measure_detection_resolution`
+co-reads the belief dimensions at the shipped and own reading dates, and at 90 they move between
+them (§22.1's table). Whether `check_detection_resolution` then fires on the production reading was
+not measured this pass. If it does, the co-read loop should skip a conditional dimension whose
+condition fails, via the same `as_of_gap_invariance_expected`, not by editing the derivation.
+
+### 23.3 Where §17.3 stands
+
+The as_of class control (§22.2) is off the list: green at both origins. Must-fire #1 moved with it.
+Still pinned: the five D30/D33 sibling claims, the four publication surfaces and the register node
+(§21.1), plus the co-read question in §23.2, which needs measuring.

@@ -1019,6 +1019,14 @@ def format_detection_latency_summary(result: GapResult) -> str:
 #
 # `truth_is_as_of_invariant` is the DECLARATION. The test derives the truth
 # signatures independently from `records`, so a wrong declaration fails.
+#
+# `gap_invariance_condition` narrows `gap_is_as_of_invariant` to the scenarios
+# where a named property holds; `as_of_gap_invariance_expected` evaluates it.
+# The one kind today is D27's: a company-side WINDOW is itself a clock, so the
+# belief gaps are invariant only while no observed failure can age out of it
+# between the two reading dates.
+COMPANY_WINDOW_COVERS_THE_BOOK = "company_failure_window_covers_the_book"
+
 DIMENSION_AS_OF_CONTRACT: Dict[str, Dict[str, object]] = {
     "detection": {
         "truth_is_as_of_invariant": True,
@@ -1048,19 +1056,25 @@ DIMENSION_AS_OF_CONTRACT: Dict[str, Dict[str, object]] = {
         "truth_is_as_of_invariant": True,
         "truth": "per-account count of unresolved true failures -- as_of-free",
         "gap_is_as_of_invariant": True,
-        "why": ("HOLDS. Severity labels over settled facts, on both sides: the "
-                "company's `arrears_risk_belief` counts unresolved observed "
-                "failures, and a failure does not resolve itself by the clock "
-                "moving. STILL HOLDS AFTER THE D19 RESHAPE (2026-08-10), which "
-                "changed what is done with the two label lists and not when "
-                "either is true -- re-measured by the sweep, not assumed to "
-                "carry over."),
+        "gap_invariance_condition": COMPANY_WINDOW_COVERS_THE_BOOK,
+        "why": ("HOLDS ONLY WHILE THE COMPANY'S FAILURE WINDOW COVERS THE BOOK "
+                "(atom D27). The truth side is severity labels over settled "
+                "facts and does not move. The company side counts observed "
+                "failures inside `dd_failure_window_days`, and that window is a "
+                "clock: once the oldest observed failure ages past it, moving "
+                "the reading date drops it and the gap moves. That movement is "
+                "the company's memory being measured, not a timing artefact. "
+                "Measured n=250 seeds 101/7/11/23: invariant at the 400d window, "
+                "0.1866 -> 0.4925 over 60 days at the organ's own 90d (seed "
+                "101). The D19 reshape (2026-08-10) changed what is done with "
+                "the two label lists and not when either is true."),
     },
     "belief_population_mix": {
         "truth_is_as_of_invariant": True,
         "truth": "per-account count of unresolved true failures -- as_of-free",
         "gap_is_as_of_invariant": True,
-        "why": ("HOLDS, and for the same reason as `belief` -- it is scored "
+        "gap_invariance_condition": COMPANY_WINDOW_COVERS_THE_BOOK,
+        "why": ("HOLDS ON THE SAME CONDITION as `belief` -- it is scored "
                 "from the identical two label lists (atom D19). It gets its own "
                 "entry rather than an exemption because no published number "
                 "escapes this control, and a dimension that shares another's "
@@ -1102,6 +1116,36 @@ DIMENSION_AS_OF_CONTRACT: Dict[str, Dict[str, object]] = {
         ),
     },
 }
+
+
+def as_of_gap_invariance_expected(
+    dim: str,
+    records: Sequence["PeriodRecord"],
+    consumer: PaymentObservationConsumer,
+    later: date,
+    contract: Optional[Dict[str, Dict[str, object]]] = None,
+) -> bool:
+    """Whether `dim`'s gap must be identical at `as_of` and at `later`, on THIS
+    scenario. An unconditional declaration answers for itself; a conditional
+    one is evaluated here, from the book and the company's own window.
+
+    COMPANY_WINDOW_COVERS_THE_BOOK is read at `later`, the older of the two
+    ages: if the oldest observed failure is still inside the window then, it
+    was inside at `as_of` too, and no failure changed side. A book with no
+    failure has nothing to age out, so it is covered."""
+    entry = (DIMENSION_AS_OF_CONTRACT if contract is None else contract)[dim]
+    if not entry["gap_is_as_of_invariant"]:
+        return False
+    condition = entry.get("gap_invariance_condition")
+    if condition is None:
+        return True
+    if condition == COMPANY_WINDOW_COVERS_THE_BOOK:
+        saturated = measure_belief_window_resolution(
+            records, later, consumer.dd_failure_window_days)["saturated"]
+        return saturated is not False
+    raise ValueError(
+        f"{dim}: unknown gap_invariance_condition {condition!r} -- a condition "
+        f"nobody can evaluate would read as unconditional")
 
 
 # ---------------------------------------------------------------------------
