@@ -5453,6 +5453,19 @@ def test_the_invoice_span_is_the_null_control_and_does_not_move(belief_band_axis
     predicted = pair.predict_event_age_span_from_constants()
     assert (predicted["youngest_age_days"],
             predicted["oldest_age_days"]) == (30, 92)
+    # Only the null-control leg here: the invoice span is a property of the
+    # book, so it holds at either memory origin. The register's declared edges
+    # are origin coordinates and are checked in the node below, which is the
+    # one the D27 origin flip has to move (FRAME section 21).
+    assert [v for v in pair.check_belief_band_population_axis(belief_band_axis)
+            if "NULL CONTROL" in v] == []
+
+
+def test_the_belief_register_describes_the_draw_size_axis(belief_band_axis):
+    """The register half of the check above: both belief entries' declared
+    edges, scope and axis ranges agree with the sweep. These are coordinates
+    measured FROM `DD_FAILURE_WINDOW_DAYS`, so this node moves with the origin
+    and its replacement values are FRAME section 15.2 / 16.1's."""
     assert pair.check_belief_band_population_axis(belief_band_axis) == []
 
 
@@ -10057,17 +10070,52 @@ def test_the_recency_contribution_is_zero_and_that_zero_is_the_finding(
     published number cannot be told from a supplier that keeps a recovered
     customer in collections for ever."""
     m = recency_contribution
-    assert m["scored_window_days"] == pair.DD_FAILURE_WINDOW_DAYS
-    assert set(m["never_forgets_drift_days"].values()) == {0}
+    window = pair.DD_FAILURE_WINDOW_DAYS
+    assert m["scored_window_days"] == window
+    # Stated as the law plus the book's coordinate, so it holds at the shipped
+    # origin (where it IS the finding) and at the organ's own default: the
+    # never-forgets company is `oldest observed failure - window` days away,
+    # and a seed where that is 0 counts exactly the events never-forgets does.
+    assert m["never_forgets_drift_days"] == {
+        s: max(0, age - window)
+        for s, age in _OLDEST_OBSERVED_FAILURE_AGE_DAYS.items()}
+    forgets = {s for s, d in m["never_forgets_drift_days"].items() if d > 0}
     for dim in pair.BELIEF_FLOOR_DIMENSIONS:
         row = m["dimensions"][dim]
         assert row["undefined_readings"] == ()
-        assert set(row["contribution"].values()) == {0.0}, dim
-        assert row["scored_already_never_forgets"] is True, dim
-        # NOT MERELY SMALL: below this figure's own reader step, so no consumer
-        # could render the difference even if one existed.
-        assert row["readable"] is False, dim
         assert row["epsilon"] == pair.published_reading_epsilon(dim)
+        for seed, value in row["contribution"].items():
+            if seed not in forgets:
+                assert value == 0.0, (dim, seed)
+        if not forgets:
+            assert row["scored_already_never_forgets"] is True, dim
+            # NOT MERELY SMALL: below this figure's own reader step, so no
+            # consumer could render the difference even if one existed.
+            assert row["readable"] is False, dim
+    if forgets:
+        # The converse is the reshape's claim, and it is per-figure, not per
+        # dimension: dropping a day of memory need not move every figure
+        # (belief_population_mix reads 0.0 on two seeds at the organ default),
+        # but at least one published belief figure must tell the scored
+        # company from never-forgets on every seed.
+        assert any(m["dimensions"][d]["readable"]
+                   for d in pair.BELIEF_FLOOR_DIMENSIONS), m["dimensions"]
+
+
+def test_the_recency_cache_does_not_hand_one_origin_the_other_origins_company(
+        monkeypatch):
+    """The sweep caches a company per DRIFT, and a drift is measured from the
+    origin. Keyed without it, a process that measured at 400 and then at the
+    organ's default re-used the 400 company as the "scored" one and read a
+    recency contribution of 0.0 at a window that forgets failures -- the
+    finding this atom names, manufactured by the cache (FRAME section 21.2)."""
+    monkeypatch.setattr(pair, "DD_FAILURE_WINDOW_DAYS", 400)
+    pair.measure_recency_contribution(seeds=(7,))
+    monkeypatch.setattr(pair, "DD_FAILURE_WINDOW_DAYS",
+                        pair.organ_default_failure_window_days())
+    m = pair.measure_recency_contribution(seeds=(7,))
+    assert m["never_forgets_drift_days"][7] > 0
+    assert m["dimensions"]["belief"]["readable"] is True, m["dimensions"]
 
 
 def test_the_probe_is_the_amnesiac_company_derived_from_the_book(

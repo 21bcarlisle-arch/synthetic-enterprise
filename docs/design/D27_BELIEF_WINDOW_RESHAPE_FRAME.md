@@ -1415,3 +1415,82 @@ unmeasured number on the record. Named here rather than guessed.
 
 **The route is now proven rather than proposed**, and the remaining 31 land the same way, in as many
 commits as anyone likes, while the origin is still 400.
+
+---
+
+## 21. BUILD pass 12 — 2026-09-30 (worker tick, BUILD lane) — two more nodes off §17.3's list, and a cache that faked the finding
+
+Carries on §20's piecewise route. The origin is still 400, the reshape has not landed, no level
+moved (D27 stays at 0), and `CAVEAT_COVERAGE_PROBES` has not been touched (§19.4). The candidate
+origin was substituted in the process through the §17.4 `flip_plugin`, never in the tree.
+
+### 21.1 The null control: §17.3's inference is now an observation
+
+§17.3 guessed that `test_the_invoice_span_is_the_null_control_and_does_not_move` fails at the
+candidate origin because it pins the register, not the span. **Confirmed.** At 90, both span
+assertions (`invoice_spans == ((30, 92),)` and the constants' predictor) pass. The red comes from
+the node's last line, `check_belief_band_population_axis(...) == []`, and the eight violations it
+returns are all register edges ("declares its above edge inside [-333, -308] … the sweep read
+[-23, 2]"), none from the NULL CONTROL leg. The node is now split in two:
+
+* the null-control node keeps the span assertions, plus only the check's `NULL CONTROL` violations.
+  It is green at both origins.
+* the new `test_the_belief_register_describes_the_draw_size_axis` keeps the full `== []`. It is red
+  at 90 by design: its replacement values are §15.2/§16.1's, and it belongs to the flip commit.
+
+So the list does not get shorter here. One node leaves it and one joins. What changes is that the
+remaining node now means only the register half.
+
+### 21.2 NEW FINDING — the drift cache is keyed without the origin, so a two-origin process reads the finding back
+
+`_OWN_RESOLUTION_SCORES` caches one built company per `(n, seed, knob, k)`. `k` is a drift *from*
+`DD_FAILURE_WINDOW_DAYS`, and the origin was not part of the key. A process that measures at 400 and
+then substitutes 90 therefore gets the 400 company back for `k = 0`, and scores it against a
+freshly built never-forgets company. Measured this pass, seed 7, `measure_recency_contribution`:
+
+| process | belief contribution at 90 | readable |
+|---|---|---|
+| 400 first, then 90 (stale key) | 0.0 / 0.0 / 0.0 | False |
+| 90 alone (fresh process) | **0.0190 / 0.0123 / 0.0059** | **True** |
+
+The first row is exactly what this atom complains about, *the scored company reads as the
+never-forgets company*, and here the cache produced it. pytest runs were never exposed: the plugin
+substitutes at configure time, before anything fills the cache. A scratch script that measures both
+origins in one process was exposed. §14.2/§15.2's figures were taken in scratch scripts, but their
+belief numbers match the fresh 90 reading (0.1709 − 0.1519 = 0.0190 at seed 7), so there is no
+evidence that any of them hit the cache. The origin is now part of the key in all three runners.
+`test_the_recency_cache_does_not_hand_one_origin_the_other_origins_company` warms the cache at 400,
+switches to the organ default, and asserts belief is readable. **R15:** re-executing the module
+with the old key reds it, reading contribution `{7: 0.0}`.
+
+### 21.3 `recency_contribution` restated — the measurement §20.5 said it lacked, taken
+
+Taken at 90 in a fresh process:
+
+| | seed 7 | seed 11 | seed 23 |
+|---|---|---|---|
+| never-forgets drift | 1 | 2 | 2 |
+| `belief` contribution | 0.01899 | 0.01235 | 0.00588 |
+| `belief_population_mix` contribution | 0.00333 | −1.4e-17 | 0.0 |
+
+`belief` is readable on every seed. `belief_population_mix` is not: one day of lost memory drops a
+few failures and they cross no mix tier on seeds 11 and 23. The converse of "drift 0 ⇒ contribution
+exactly 0" therefore holds per figure and not per dimension. The node now asserts:
+
+* `never_forgets_drift_days == max(0, _OLDEST_OBSERVED_FAILURE_AGE_DAYS[s] − WINDOW)`;
+* on every seed where that is 0, the contribution is exactly 0.0 in both dimensions. When that holds
+  on all seeds, `scored_already_never_forgets` is True and `readable` is False (this is today's
+  finding);
+* when any seed forgets, at least one belief figure is `readable`. This is the reshape's own claim,
+  and it is not keyed to a dimension name.
+
+Green at both origins. **R15, six mutations, each fired on the origin where it is the real defect:**
+at 400, `readable` forced True, contribution forced 0.01, `scored_already_never_forgets` forced
+False; at 90, `readable` forced False, contribution forced 0.0, never-forgets drift forced 0. Each
+gives 1 failed.
+
+### 21.4 Where §17.3 stands
+
+The four defect-assertions: two restated in §20, one here (`recency_contribution`). One is left,
+`test_the_reshape_moves_no_published_figure`. The null control is done in the sense of §21.1. Not
+touched: the five D30/D33 sibling claims and the four publication surfaces.
