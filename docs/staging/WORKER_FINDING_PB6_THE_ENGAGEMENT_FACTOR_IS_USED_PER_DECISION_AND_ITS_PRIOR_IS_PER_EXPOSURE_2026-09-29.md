@@ -162,3 +162,73 @@ In head, it is direct debit (1.064) and standard credit (1.083), not prepayment 
 - P4. If P1 fails, meaning prepayment counts move, then either the repair reaches prepayment by a
   route I have not traced, or the world diverges downstream of changed departures. That would be
   the more important result.
+
+## Re-run on the repaired world: all three arms graded (2026-09-30 01:25Z, seat)
+
+Same columns as the first EH-2 table. Each row is one full-window `run_phase2b.main()` at
+`b50a03519` (repair `19a58b44d` in), graded at 2026. The pre-repair twin from `/var/tmp/pb6_eh2/`
+is on the line below each row.
+
+| arm | world PPM multiplier | PPM decisions | PPM lost / predicted pre-factor | ratio | w | **factor** | pre-EH-1 raw rule, same counts |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| null, repaired | 1.000 | 20 | 4 / 6.91 | 0.474 | 0.411 | **0.537** | 0.427 |
+| null, pre-repair | 1.000 | 20 | 4 / 6.91 | 0.474 | 0.411 | 0.537 | 0.427 |
+| planted, repaired | 0.307 | 2 | 0 / 0.38 | 0.596 | 0.036 | **0.585** | 0.562 |
+| planted, pre-repair | 0.307 | 2 | 0 / 0.38 | 0.549 | 0.036 | 0.584 | 0.562 |
+| head, repaired | 0.589 | 10 | 1 / 2.51 | 0.387 | 0.200 | **0.539** | 0.459 |
+| head, pre-repair | 0.589 | 10 | 1 / 2.56 | 0.358 | 0.202 | 0.530 | 0.457 |
+
+Book (repaired): null 42 lost of 91 against 32.13 predicted; planted 42 of 84 against **28.50**
+(was 26.23); head 40 of 87 against **28.54** (was 26.96). Direct debit: planted 32 of 72 against
+25.95 (was 23.69), factor 0.914 (was 0.925); head 30 of 67 against 23.85 (was 22.25), factor 0.957
+(was 0.967).
+
+**Not one world outcome changed, in any arm.** In all three, `decisions_by_method` and
+`losses_by_method` are identical to the pre-repair twin, year by year, and so are the churn lines in
+the run logs once the probabilities are stripped. The repair did move probabilities: in the
+retention log, 10 of 101 lines in planted and 7 of 104 in head have a different `p_retain`.
+SYN-2016-030 in 2019 fell from 0.41 to 0.14. But every roll landed on the same side as before. On a
+deterministic book of this size, the ~7% band is about four decisions, and all of them fell the
+same way.
+
+**What moved is the company's expectation, and it moved through `active_renewal`.** In the band,
+`RenewalObservation.active_renewal` used to read passive and now reads active. `churn_desk` sends a
+passive roller to the SVT-inertia formula and an active one to the full enriched model. So the
+company's pre-factor belief on those decisions rose, and the book's predicted losses rose by about
+2.3 in planted and 1.6 in head, with no loss added. Book O/E fell, and each channel's ratio is taken
+against book O/E. That is why prepayment's ratio ROSE: in planted from 0.549 to 0.596, and in head
+from 0.358 to 0.387. Head's prepayment prediction also fell a little (2.56 to 2.51) with its band
+empty. The likely route is the company's year-level pressure multiplier, which learns from the same
+book O/E. **I have not traced that.**
+
+### Graded
+
+- **Filed, null prepayment factor < 1.0: HELD** (0.537, byte-identical to pre-repair; the band is
+  empty when every multiplier is 1.0, so the null arm is the repair's placebo).
+- **Filed, planted does not recover 0.307: HELD** (0.585, which is the prior of 0.585; w = 0.036 on
+  2 decisions). **EH-2 still answers FAIL on the repaired world.**
+- P1, prepayment counts unchanged in both arms: **HELD** (2/0 and 10/1).
+- P2, direct-debit losses rise by +1 to +4: **REFUTED, kept beside the claim.** They rose by 0. I
+  priced the band's decisions as losses in expectation and forgot that, on one deterministic book,
+  four decisions can all land on the retain side of the roll. That is what happened.
+- P3, prepayment factor moves only through the book, and moves DOWN: **REFUTED on direction.** I
+  assumed the book would move through its losses. It moved through its EXPECTATION, via the
+  company reading the flipped `active_renewal`, so the factor went UP: planted +0.001, head +0.009.
+  "Only through the book" held.
+- P4 did not fire.
+
+### What this means for PB6
+
+The repair was a fidelity fix and it was right to make. But on this book it moves the engagement
+reading by less than 0.01. It does not touch the structural reason EH-2 fails: the channel effect
+lands on how many decisions a household reaches (20 / 10 / 2 again), and the ledger learns per
+decision. Nothing inside the simulation can now move PB6 toward L3 on this book size. The recovery
+needs PB1-scale decision counts (reason (b) of the first EH-2 finding). The prior's centring (per
+decision, 1.0 with CIM's spread, or keeping part of 0.585) waits on the practitioner answer to NTFY
+`EntQKsMePM5C`, which has not arrived. **PB6 stays at L2.** The next build on this row is the
+company-side declared gap in defect (2): the engagement prior's docstring and reading name the
+per-exposure vs per-decision gap. `decabc703` has already named it in code. So what is owed is the
+centring, and it waits on the answer. This row has no drawable build until then.
+
+Raw artefacts: `/var/tmp/pb6_eh2r/<arm>.json` and `.log`, not committed. Re-running
+`tools/_pb6_engagement_recovery_arm.py` at `b50a03519` reproduces them.
