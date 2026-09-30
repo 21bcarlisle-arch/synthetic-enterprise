@@ -113,6 +113,13 @@ def test_weather_data_dir_is_string():
 
 LONDON = {"lat": 51.5074, "lon": -0.1278, "region": "London"}
 
+#: A premise OUTSIDE THE STORE BY CONSTRUCTION: Lerwick, ~317 km from the nearest held cell. These
+#: controls used C_IC1/C_IC2 (Birmingham) as "the live instance" until its cell was added on
+#: 2026-09-30 and every registered premise resolved -- after which the refused branch had no live
+#: subject and the partition control below went red for the property being MORE true.
+OUTSIDE = {"customer_id": "TEST-OUTSIDE-THE-STORE", "commodity": "electricity",
+           "location": {"lat": 60.155, "lon": -1.145, "region": "Lerwick"}}
+
 
 def test_a_premise_with_no_csv_cannot_be_a_weather_source_however_early_it_sits():
     """DEFECT: resolving a premise to a customer_id that holds no archive. That is not an error —
@@ -226,7 +233,7 @@ def test_the_physics_leg_and_the_shape_leg_send_a_premise_to_the_same_cell():
     """
     source = WeatherWorldSource.load()
     resolved, refused = [], []
-    for customer in wi.CUSTOMERS:
+    for customer in [*wi.CUSTOMERS, OUTSIDE]:
         mine = wi.cell_weather_for_customer(customer, world=source.world)
         theirs = source.site_for(customer)
         if mine.cell is None:
@@ -255,12 +262,12 @@ def test_a_premise_the_store_cannot_reach_gets_a_named_refusal_not_a_silent_empt
     and a premise with a complete sky are indistinguishable downstream — a declared `None` and a
     silent `None` collapsing into the flattering branch.
 
-    C_IC1/C_IC2 (Birmingham) are the live instance. The refusal must be clearable by whoever reads
-    it, which means naming the cell and the per-cell remedy — never a per-property pull.
+    WAS C_IC1/C_IC2 (Birmingham) until their cell was added; now `OUTSIDE`. The refusal must be
+    clearable by whoever reads it, which means naming the cell and the per-cell remedy — never a
+    per-property pull.
     """
     world = wi.shared_world()
-    birmingham = next(c for c in wi.CUSTOMERS if c["customer_id"] == "C_IC1")
-    verdict = wi.cell_weather_for_customer(birmingham, world=world)
+    verdict = wi.cell_weather_for_customer(OUTSIDE, world=world)
     assert verdict.series == {} and verdict.cell is None
     assert verdict.refusal, "the premise got no weather and no reason: this is the silent failure"
     assert "km from the nearest cell" in verdict.refusal
@@ -269,13 +276,14 @@ def test_a_premise_the_store_cannot_reach_gets_a_named_refusal_not_a_silent_empt
         "the refusal is recruiting the reader into the per-property design the director refused"
     )
 
-    register = wi.weather_refusals_for_book(wi.CUSTOMERS, world=world)
+    book = [*wi.CUSTOMERS, OUTSIDE]
+    register = wi.weather_refusals_for_book(book, world=world)
     # THE REGISTER CANNOT DISAGREE WITH THE SERIES. Two surfaces answering one question is the
     # shape this whole migration existed to remove; a register built by a second rule would be it.
-    empty = {c["customer_id"] for c in wi.CUSTOMERS
+    empty = {c["customer_id"] for c in book
              if not wi.cell_weather_for_customer(c, world=world).series}
     assert set(register) == empty
-    assert "C_IC1" in register and register["C_IC1"] == verdict.refusal
+    assert register[OUTSIDE["customer_id"]] == verdict.refusal
 
 
 def test_a_premise_with_no_coordinate_says_so_in_its_own_sentence():

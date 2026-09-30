@@ -167,6 +167,7 @@ def book_cells() -> dict[str, dict]:
     """
     import numpy as np
 
+    from simulation.live_population import CUSTOMERS as REGISTERED_ROSTER
     from simulation.run_phase2b import ACQUIRED_CUSTOMERS, CUSTOMERS, SUCCESSOR_CUSTOMERS
     from tools import weather_cell_drivers as drv
 
@@ -174,8 +175,13 @@ def book_cells() -> dict[str, dict]:
     east, north = np.asarray(grid["east"]), np.asarray(grid["north"])
     lat, lon = np.asarray(grid["latitude"]), np.asarray(grid["longitude"])
 
+    # THE WHOLE REGISTERED ROSTER, not only the served book. `run_phase2b.CUSTOMERS` is filtered
+    # by the served-segments CURRICULUM, so without the roster the world's weather covered only
+    # what the company currently sells to: C_IC1/C_IC2 (Birmingham, I&C) had no cell, and turning
+    # I&C on would have met a store that refused them. The world is decided blind to the
+    # curriculum (2026-09-30).
     seen: dict[str, dict] = {}
-    for book in (CUSTOMERS, ACQUIRED_CUSTOMERS, SUCCESSOR_CUSTOMERS):
+    for book in (REGISTERED_ROSTER, CUSTOMERS, ACQUIRED_CUSTOMERS, SUCCESSOR_CUSTOMERS):
         for customer in book:
             cid = str(customer.get("customer_id", ""))
             if cid:

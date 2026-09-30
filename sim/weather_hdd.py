@@ -9,10 +9,10 @@ This leg was the THIRD resolver of "which sky did this household have", and the 
 answering from a per-property file. `_premise_sky()` below now asks
 `simulation.weather_inputs.cell_weather_for_customer_id`, which is `WeatherWorld.cell_id_for` --
 the one rule the fabric leg (2026-09-17) and the demand-shape/forward-price legs (2026-09-21)
-already resolve by. 16 of the book's 18 premises hold a cell; the two that do not (C_IC1, C_IC2,
-7.4 km outside the store) still get `REFERENCE_MONTHLY_HDD`, and `hdd_reading()` NAMES that
-substitution in what it returns rather than handing back a climatological number that reads like
-weather.
+already resolve by. All 18 registered premises hold a cell since 2026-09-30 (C_IC1/C_IC2 were
+outside it until then); a premise outside the store still gets `REFERENCE_MONTHLY_HDD`, and
+`hdd_reading()` NAMES that substitution in what it returns rather than handing back a
+climatological number that reads like weather.
 
 THIS IS NOT AN EQUIVALENCE. Measured annual HDD over the whole book moves on 16 of 18 premises,
 -2.5% to -34.5% (2018 and 2022), for two reasons that must not be confused: the ten premises that

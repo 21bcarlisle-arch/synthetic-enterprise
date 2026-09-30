@@ -19,8 +19,9 @@ MEASURED ON THE BOOK, before and after, at real inputs (18 registered supply poi
 | the per-cell store | **16/18** | **3,653 (to 2025-12-31)** |
 
 The two gained are Teesside's C_IC3/C_IC3g, which matched no archive coordinate. The two still
-refused are C_IC1/C_IC2 (Birmingham), 7.4 km from the nearest held cell — `MAX_SNAP_KM` is 5.0 and
+refused were C_IC1/C_IC2 (Birmingham), 7.4 km from the nearest held cell — `MAX_SNAP_KM` is 5.0 and
 the remedy is `fabric_demand_path.ADD_THE_CELL_REMEDY`, W1_14's step 2, never a per-property pull.
+That cell was added 2026-09-30, and 18/18 registered premises now resolve.
 
 **THIS IS NOT AN EQUIVALENCE AND MUST NOT BE READ AS ONE.** The store's temperature is HadUK-Grid
 1 km plus the cell's own `level_c`; the archives are ERA5 at ~9 km. Over the 3,446 overlapping days

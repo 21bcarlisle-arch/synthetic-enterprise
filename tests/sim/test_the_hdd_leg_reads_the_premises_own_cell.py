@@ -41,10 +41,14 @@ HELD = "C7"
 #: weather; one cell is one sky, so they must now be identical day for day.
 HELD_TWIN = "C1"
 
-#: A premise the store genuinely holds NO cell for: Birmingham, 7.4 km from the nearest held cell
-#: against a `MAX_SNAP_KM` of 5.0. The remedy is `fabric_demand_path.ADD_THE_CELL_REMEDY` -- add
-#: the cell -- never a per-property pull, which is the design the director refused on 2026-09-16.
-REFUSED = "C_IC1"
+#: A premise the store holds NO cell for, ADOPTED into the id door at a coordinate no build of the
+#: store reaches: Lerwick, ~317 km from the nearest held cell against a `MAX_SNAP_KM` of 5.0. WAS
+#: `"C_IC1"` (Birmingham, 7.4 km, then 5.5 km out) -- today's answer, and it went stale the day its
+#: cell was added (2026-09-30). The property is "a premise outside the store", so the subject is
+#: one that is outside by construction rather than one that happens to be outside this week.
+REFUSED = "TEST-OUTSIDE-THE-STORE"
+REFUSED_RECORD = {"customer_id": REFUSED, "commodity": "gas",
+                  "location": {"lat": 60.155, "lon": -1.145, "region": "Lerwick"}}
 
 #: Two mid-January days ten degrees of winter apart in the real record. 2022 is a fact, not a
 #: scenario: a premise on the normal reads the SAME number in both, which is the whole defect.
@@ -52,13 +56,31 @@ COLD_YEAR_DAY = "2018-01-15"
 MILD_YEAR_DAY = "2022-01-15"
 
 
-def test_the_resolver_discriminates_a_premise_with_a_cell_from_one_without():
+@pytest.fixture
+def _no_adopted_book():
+    """`adopt_book` is process state; every control here starts from none and leaves none."""
+    from sim import weather_hdd
+    from simulation import weather_inputs
+
+    saved = dict(weather_inputs._BOOK)
+    weather_inputs._BOOK.clear()
+    weather_hdd._WEATHER_CACHE.clear()
+    yield
+    weather_inputs._BOOK.clear()
+    weather_inputs._BOOK.update(saved)
+    weather_hdd._WEATHER_CACHE.clear()
+
+
+def test_the_resolver_discriminates_a_premise_with_a_cell_from_one_without(_no_adopted_book):
     """ONE control over the whole partition. Reds if the resolver answers one way for everything.
 
     Make `_premise_sky` return an empty series for every id and the HELD leg reds (it reads the
     normal, and its two years collapse to one number). Make it return a cell for every id and the
     REFUSED leg reds (its basis no longer names the substitution). Neither mutation survives.
     """
+    from simulation.weather_inputs import adopt_book
+
+    adopt_book([REFUSED_RECORD])
     held_cold = hdd_reading(COLD_YEAR_DAY, HELD)
     held_mild = hdd_reading(MILD_YEAR_DAY, HELD)
     refused_cold = hdd_reading(COLD_YEAR_DAY, REFUSED)
@@ -80,7 +102,7 @@ def test_the_resolver_discriminates_a_premise_with_a_cell_from_one_without():
 
     # Side two: the store holds NO cell for this premise, so the normal stands in -- and SAYS SO.
     assert refused_cold.from_normal, (
-        f"{REFUSED} is 7.4 km outside the store; a reading that claims to be weather for it is "
+        f"{REFUSED} is far outside the store; a reading that claims to be weather for it is "
         f"claiming a cell that does not exist. basis={refused_cold.basis!r}"
     )
     assert refused_cold.basis.startswith(NORMAL_BASIS_PREFIX), refused_cold.basis
@@ -151,21 +173,6 @@ def test_an_unregistered_id_is_refused_by_name_rather_than_answered():
     assert reading.hdd == pytest.approx(REFERENCE_MONTHLY_HDD[1] / 30.0)
 
 
-@pytest.fixture
-def _no_adopted_book():
-    """`adopt_book` is process state; every control here starts from none and leaves none."""
-    from sim import weather_hdd
-    from simulation import weather_inputs
-
-    saved = dict(weather_inputs._BOOK)
-    weather_inputs._BOOK.clear()
-    weather_hdd._WEATHER_CACHE.clear()
-    yield
-    weather_inputs._BOOK.clear()
-    weather_inputs._BOOK.update(saved)
-    weather_hdd._WEATHER_CACHE.clear()
-
-
 def test_a_drawn_gas_premise_reads_its_cell_once_the_runner_adopts_its_book(_no_adopted_book):
     """THE DEFECT (2026-09-30): the id-only door scanned the 18 registered points and nothing else.
 
@@ -220,3 +227,25 @@ def test_the_runner_adopts_the_gas_book_it_settles():
         f"run_phase2b never calls adopt_book with GAS_CUSTOMERS (calls found: {adopted}); every "
         "drawn gas premise's HDD would read the 1991-2020 monthly normal"
     )
+
+
+def test_every_registered_premise_has_a_cell_whatever_the_curriculum_serves():
+    """The world's weather covers the whole registered roster, not the segments sold to today.
+
+    THE DEFECT (2026-09-30): `tools.build_weather_world.book_cells` built the store from
+    `run_phase2b.CUSTOMERS`, which the served-segments CURRICULUM filters to resi and SME. So
+    C_IC1/C_IC2 (Birmingham, I&C) had no cell, and a curriculum that turned I&C on would have met
+    a world that refused them. The world is decided blind to the curriculum. Red at the store as it
+    stood before the Birmingham cell was added; asked of the roster, not the served book, so a
+    curriculum change cannot empty it.
+    """
+    from company.interfaces.supply_book import registered_supply_points
+    from simulation.weather_inputs import cell_weather_for_customer_id
+
+    book = registered_supply_points()
+    assert len(book) >= 18, f"the supply book returned {len(book)} points; nothing to control"
+    assert any(c.get("segment") == "I&C" for c in book), "no I&C premise on the roster to ask"
+
+    no_cell = [(c["customer_id"], cell_weather_for_customer_id(c["customer_id"]).refusal)
+               for c in book if not cell_weather_for_customer_id(c["customer_id"]).series]
+    assert not no_cell, f"registered premises the world holds no weather for: {no_cell}"

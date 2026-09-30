@@ -1715,13 +1715,12 @@
     run settles (76 PROS-*, 15 SYN-*) read the flat 1991-2020 monthly normal -- 2018 = 2022 -- until
     `weather_inputs.adopt_book`; their 2022 HDD falls 16.4% on the mean. The runner half of steps 1
     and 3 was in no commit until the same landing. Superseded texts are in git history.
-    REMAINING: (2) C_IC1/C_IC2 (Birmingham, I&C) are 5.5 km from the nearest held cell against
-    MAX_SNAP_KM 5.0 -- add the cell (`ADD_THE_CELL_REMEDY`), never a per-property pull. NO RUN
-    SETTLES THEM TODAY: I&C is outside the served curriculum (resi, SME), and
-    `build_weather_world.book_cells` reads that curriculum-filtered book, so the WORLD's coverage
-    follows the curriculum -- widen it to the whole roster, then pull the one cell; (3) judge
-    what the drawn frame needs. LEVEL STAYS 1 for now, but its measured reason ('a tenth of the
-    book is climatology') is FALSE since this landing: two I&C premises remain, both named."
+    STEP 2 DONE 2026-09-30: `book_cells` read the curriculum-filtered book, so the world's
+    coverage followed what the company sells (I&C unserved, Birmingham uncovered). It reads the
+    whole registered roster now; E407N0287 (Birmingham) and E457N0522 (Teesside) are pulled,
+    18/18 registered premises resolve, and the 339 prior cells are value-identical.
+    REMAINING: (3) judge what the drawn frame needs, and the level -- every premise the run
+    settles now reads its own cell, which is the reason this row gave for withholding L2."
   depends_on: []
   couples_with: [W1_5_premise_demand_shape]
   file_scope: ['simulation/weather_cell_siting.py', 'simulation/weather_inputs.py', 'tests/simulation/test_weather_cell_siting.py']
