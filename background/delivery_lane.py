@@ -424,6 +424,33 @@ class LivenessSurfaceUnreadable(RuntimeError):
     """
 
 
+#: The ref a landing must be an ancestor of. The REMOTE-TRACKING ref, never a local branch: a local
+#: `main` is HEAD in the shared tree, and HEAD can stand behind or ahead of what was published.
+PUBLISHED_REF = "refs/remotes/origin/main"
+
+
+class NoPublishedRef(GitUnavailable):
+    """This repo has no `origin/main`, so whether a commit is PUBLISHED cannot be asked.
+
+    A subclass so every `except GitUnavailable` that already turns an unaskable question into
+    `could_not_ask` keeps doing so, and a distinct type so the residual names THIS reason rather than
+    "git would not answer". The gate extract and a fresh clone without a fetch are both here; falling
+    back to HEAD in them is the defect this exists to refuse.
+    """
+
+
+def _published_ref_or_raise(cwd: Path | None = None) -> str:
+    """The sha `origin/main` names, or `NoPublishedRef`."""
+    sha = (_git("rev-parse", "--verify", "--quiet", PUBLISHED_REF, cwd=cwd) or "").strip()
+    # A git that answers nothing at all is not a repo without origin; only name the ref when git ran.
+    if not sha and _git("rev-parse", "--git-dir", cwd=cwd) is None:
+        raise GitUnavailable("`git rev-parse` would not answer")
+    if not sha:
+        raise NoPublishedRef("no origin/main in this repo -- whether a commit is published cannot "
+                             "be asked, and HEAD is not a substitute")
+    return sha
+
+
 def _liveness_surface_or_raise() -> frozenset[str]:
     """The publisher's OWN declaration of the files it commits as pure liveness. Never empty.
 
@@ -1574,10 +1601,18 @@ def _window_hits(focus_id: str, row: dict, drawn: float, *,
     # `--name-only` UNDER THE SAME PATHSPEC IS THE INTERSECTION, FOR FREE. git filters the printed
     # filenames to the pathspec, so this one call answers both "which commits" and "which of the
     # claim's paths did each touch" -- no second query, and no chance of the two drifting.
-    out = _git_or_raise("log", "--all", "--no-renames", "--name-only",
-                        "--format=%H%x1f%ct%x1f%s",
-                        "--since=@{:.0f}".format(drawn), "--until=@{:.0f}".format(window_ends),
-                        "--", *paths)
+    # ORIGIN, NOT `--all` (2026-09-30). `--all` credited a commit on ANY ref -- a local HEAD that
+    # may yet be reset, a fork branch, a salvage ref -- and a local HEAD behind origin missed
+    # nothing only by luck. A landing is a commit on the published trunk; the refusal below names
+    # the one state where that cannot be asked, which the gate extract is always in.
+    out = _git("log", PUBLISHED_REF, "--no-renames", "--name-only",
+               "--format=%H%x1f%ct%x1f%s",
+               "--since=@{:.0f}".format(drawn), "--until=@{:.0f}".format(window_ends),
+               "--", *paths)
+    if out is None:
+        if _git("rev-parse", "--git-dir") is not None:
+            _published_ref_or_raise()
+        raise GitUnavailable("`git log {}` would not answer".format(PUBLISHED_REF))
     if not out:
         return paths, [], []
     # A HEADER LINE IS THE ONE THAT SPLITS IN THREE; filenames carry no \x1f, so the two cannot be
@@ -4175,7 +4210,23 @@ def _path_verdict(root: Path, path: str):
         head_text = door.blob_at(root, "HEAD", path)
         work = (root / path).read_text(encoding="utf-8", errors="replace")
         if work == head_text:
-            return ("already landed", "identical to HEAD -- the working tree has NOTHING to land")
+            # LANDED MEANS PUBLISHED (2026-09-30). Equal to a HEAD that stands behind origin is a
+            # copy the trunk has moved past, and "nothing to land" there reads as a spent ask.
+            try:
+                _published_ref_or_raise(cwd=root)
+            except NoPublishedRef as exc:
+                return ("ungraded", "identical to HEAD, but {} -- NOT a clean verdict".format(exc))
+            if door.blob_at(root, PUBLISHED_REF, path) != work:
+                return ("behind origin", "identical to HEAD, but origin/main carries a different "
+                                         "copy -- HEAD is behind the trunk on this path; advance "
+                                         "the base before judging whether the ask is spent")
+            return ("already landed", "identical to origin/main -- the working tree has NOTHING "
+                                      "to land")
+        # THE OTHER DIRECTION: a copy that differs from a stale HEAD but IS origin's has landed.
+        if (_git("rev-parse", "--verify", "--quiet", PUBLISHED_REF, cwd=root)
+                and door.blob_at(root, PUBLISHED_REF, path) == work):
+            return ("already landed", "identical to origin/main, which HEAD is behind -- the "
+                                      "working tree has NOTHING to land")
         readable = Path(path).suffix in door.READABLE
         loss = (door.judge(root, path, head_text, work) if readable
                 else door.clock_judge(root, path, head_text, work))
@@ -4287,7 +4338,9 @@ def path_note(item: dict) -> str:
             "DO NOT TRUST THE ITEM'S OWN WORD FOR WHAT THE PILE IS -- these are the bytes, read "
             "just now:{rows}\n"
             "READ THE TAGS BEFORE YOU PICK A DOOR. `already landed` means there is nothing to land "
-            "there and the item's ask for it is spent. `predates landing` means the copy is OLDER "
+            "there and the item's ask for it is spent -- it now means identical to ORIGIN/MAIN. "
+            "`behind origin` means the copy equals a HEAD the trunk has moved past on that path, "
+            "so the ask is NOT shown spent. `predates landing` means the copy is OLDER "
             "than the last commit to its own path and landing it REVERTS that commit -- "
             "`isolate_hunks` separates hunks by AUTHOR, not by AGE, so it will not save you; the "
             "door is `python3 -m tools.refresh_to_head <path>`. `holder work` is the only tag "

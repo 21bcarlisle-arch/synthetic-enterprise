@@ -61,6 +61,8 @@ def tree(tmp_path: Path) -> Path:
         (root / "tools" / name).write_text(LANDED)
     _run(root, "add", "-A")
     _run(root, "commit", "-qm", "another lane lands a helper")
+    # PUBLISHED: `already landed` means identical to origin/main, not to HEAD.
+    _run(root, "update-ref", "refs/remotes/origin/main", "HEAD")
 
     # `tools/spent.py` is left identical to HEAD -- nothing to land.
     (root / "tools" / "revert.py").write_text(STALE_PURE_REVERT)

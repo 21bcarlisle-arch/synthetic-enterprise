@@ -58,6 +58,8 @@ def _commit_at(repo, name, body, when: float) -> str:
     env = dict(os.environ, GIT_AUTHOR_DATE=stamp, GIT_COMMITTER_DATE=stamp)
     subprocess.run(("git", "commit", "-m", f"land {name}"), cwd=repo, check=True,
                    capture_output=True, text=True, env=env)
+    # PUBLISHED, because the ledger credits only commits on origin/main.
+    _git(repo, "update-ref", "refs/remotes/origin/main", "HEAD")
     return _git(repo, "rev-parse", "HEAD")
 
 

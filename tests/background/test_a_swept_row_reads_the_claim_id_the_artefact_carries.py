@@ -322,6 +322,8 @@ def test_a_landed_commit_still_outranks_the_artefact(lane):
     subprocess.run(("git", "commit", "-m", "land the repair"), cwd=repo, check=True,
                    capture_output=True, text=True,
                    env=dict(os.environ, GIT_AUTHOR_DATE=stamp, GIT_COMMITTER_DATE=stamp))
+    # PUBLISHED, because the ledger credits only commits on origin/main.
+    _git(repo, "update-ref", "refs/remotes/origin/main", "HEAD")
     _row(claims, CLAIM, ["background/delivery_lane.py"])
 
     verdict = dl.tree_verdict(CLAIM, now=_now(), path=claims)

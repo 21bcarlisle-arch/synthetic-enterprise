@@ -165,7 +165,7 @@ def _concerns(graded: dict, text: str) -> list[dict]:
             "class": NOTHING_TO_LAND,
             "paths": [p for p, _t, _d in gradable],
             "says": (
-                "every path this item asks to be CHANGED is identical to HEAD, so there is "
+                "every path this item asks to be CHANGED is identical to origin/main, so there is "
                 "nothing to land on any of them: {paths}. THIS IS A MEASUREMENT AND NOT A VERDICT "
                 "-- it is also true of an item whose real subject is a directory ({dirs} bare "
                 "directory token(s) named here, which this door has no opinion about) or whose "

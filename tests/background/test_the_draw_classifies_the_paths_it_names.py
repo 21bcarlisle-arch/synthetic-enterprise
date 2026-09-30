@@ -74,6 +74,8 @@ def tree(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
         (root / "pile" / name).write_text(LANDED)
     _run(root, "add", "-A")
     _run(root, "commit", "-qm", "another lane lands a helper")
+    # PUBLISHED: `already landed` means identical to origin/main, not to HEAD.
+    _run(root, "update-ref", "refs/remotes/origin/main", "HEAD")
 
     (root / "pile" / "revert.py").write_text(STALE_PURE_REVERT)
     (root / "pile" / "holder.py").write_text(STALE_WITH_OWN_WORK)
