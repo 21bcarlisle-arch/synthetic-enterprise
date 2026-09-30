@@ -253,3 +253,25 @@ PB6 moves a per-channel departure multiplier. Prepayment goes from CIM's ~0.54 t
 **C0 HOLDS, exactly.** The pin value-only run on 61001 (1,762 s) reproduces `runP1`'s 61001 to the bit: AUC 0.5794, the same 131-row scored roster with every belief and outcome equal, and every account's first-renewal `p_retain`, roll and outcome equal. So the single-arm instrument is the three-arm one, and the pin column above is a valid control for the PB6 column.
 
 **PB6 on 61001** (1,806 s): AUC **0.578** (pin 0.579), corr **−0.253** (pin −0.252), mean belief **0.623** (pin 0.624), conc 0.425 (pin 0.426). **PB6 does reach the estimate, and it barely moves it.** Paired by (account, term) over the 110 decisions both trees priced, 79 beliefs changed, but by at most **0.0089**. The mean change is −0.0001 on direct debit (91 decisions) and **−0.0009 on prepayment** (10 decisions). The prior's centre moves from CIM's ~0.54 to 1.0, yet the belief moves by a thousandth. So on this book the engagement factor is not what sets the belief's level or its order; the other inputs to the estimate do. The six-seed grade and the plain answer follow when the leg exits (~00:20Z).
+
+## What orders the belief: predictions (2026-10-01 ~00:55Z, autonomous worker, item `name-the-input-that-anti-ranks-the-retention-belief`; filed before any term was computed)
+
+**The question.** Within direct debit (n = 338 first renewals, six pin seeds pooled), the value arm's belief correlates −0.383 with the world's `p_retain` at the same offer. Which term of `enriched_churn_estimate` carries that? This section runs no simulation. It reads `runP1/P2/X1.json` and the run logs, and it recomputes terms by calling the pin's own functions.
+
+**A code read made before any number, which changes the question.** At the pin (and still on origin), the only value-arm caller, `value_based_renewal.decide_margin`, calls `enriched_churn_estimate` with no `payment_method`. Its adapter, `renewal_margin_uplift`, also passes no `behaviour_score`, `satisfaction_score`, `bill_shock_count` or `arrears_state`, so they take their defaults. Three of the five terms the item names are therefore the same for every account in the value arm at a given date:
+- `payment_estimate` = `combined_churn_probability(0, None, None)` = `BASE_ANNUAL_CHURN_PROBABILITY` = 0.05 for everyone.
+- The engagement factor is `derived_payment_method_engagement_factor(None, year)`. That is one value per date, which is 1.0 unless the ledger learns a factor for the `None` channel.
+- The market-pressure multiplier is `derived_market_pressure_multiplier(year)`. That is one value per date.
+
+So a term that is constant at a date can contribute only BETWEEN dates, through when an account's first renewal falls. Only `rate_estimate` can order two accounts renewing on the same day. Its account-level inputs are the offer net of the market move, tenure, bill size (old rate × EAC) and fuel.
+
+| id | prediction | confidence | refuted if |
+|---|---|---|---|
+| **T1** | `payment_estimate` and the engagement factor carry none of the −0.383. Holding each at its book mean moves the DD correlation by < 0.02 | 95% | either moves it by ≥ 0.02 |
+| **T2** | `rate_estimate` wins the `max()` on ≥ 90% of DD first renewals, because 0.05 is below almost any resi rate estimate. So the max() switch carries nothing either | 80% | the payment term wins on > 10% |
+| **T3** | The anti-ranking is WITHIN-DATE and so sits in `rate_estimate`, not in the date-level multiplier. The DD correlation within (seed, renewal year) cells, pooled, stays ≤ −0.25 | 55% | the pooled within-cell correlation is > −0.25. The year/multiplier component then carries at least a third of it |
+| **T4** | Within `rate_estimate`, the inverted input is the OFFER (own move net of market). V raises most where the belief says the customer stays, and the world punishes a raise harder than the belief allows. Holding the offer at the account's current rate brings the DD correlation to ≥ −0.15 | 45% | it stays < −0.15 |
+| **T4-alt** | The inverted input is tenure. The company gives long tenure a discount, and the world's `p_retain` does not rise with tenure on this book | 30% | — |
+| **T5** | No single term alone brings the DD correlation to ≥ −0.15 | 25% | one term does |
+
+**The instrument, fixed now.** Per term: (a) corr(term, world `p_retain`) over DD first renewals; (b) the belief's corr with world `p_retain` after the belief is recomputed with that term (or input) held at its DD-book mean and everything else as logged. Inputs the roster does not carry are rebuilt from the run logs: the unit rate per term, EAC, fuel, and tenure from the first term's start. **The reconstruction must pass a control before any term is graded.** Recomputing the belief from the rebuilt inputs must reproduce the logged `believed_p_retain`. If it does not, the date-level scalars (m × engagement) are fitted per (seed, date) from the rebuilt `max(rate, payment)` and reported as fitted, not called. If that fit is not constant within a date, the per-input half is **"cannot say"**, and only the between/within-date split is graded.
