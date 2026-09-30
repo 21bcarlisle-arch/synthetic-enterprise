@@ -646,3 +646,66 @@ def test_the_biomass_LOADER_refuses_an_absent_cache_rather_than_reverting_in_sil
             fuel.load_cached_biomass()
     finally:
         fuel.BIOMASS_CACHE_PATH = original
+
+
+# --------------------------------------------------------------------------- #
+# The remainder fuels -- measurement only                                     #
+# --------------------------------------------------------------------------- #
+
+def test_the_remainder_window_keeps_exactly_the_four_fuels_no_other_cache_holds(monkeypatch):
+    """WIND, PS, OIL and OTHER, and nothing already held elsewhere.
+
+    The point of the fifth cache is that the EP13 s17 remainder becomes a measurement. A filter
+    that also kept CCGT would double-count against the thermal cache in the decomposition; one
+    that dropped PS would leave pumped storage inside the remainder again.
+
+    MUTATION (must fire): drop "PS" from `REMAINDER_FUEL_TYPES`, or keep every row.
+    """
+    payload = {"data": [row(f, 100.0) for f in
+                        ("WIND", "PS", "OIL", "OTHER", "CCGT", "COAL", "NUCLEAR", "BIOMASS", "INTFR")]}
+
+    class _Response:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *exc):
+            return False
+
+        def read(self):
+            import json
+            return json.dumps(payload).encode("utf-8")
+
+    monkeypatch.setattr(fuel.urllib.request, "urlopen", lambda *a, **k: _Response())
+    from datetime import date
+    kept = fuel._fetch_remainder_window(date(2024, 1, 1), date(2024, 1, 7))
+    assert sorted(r["fuelType"] for r in kept) == ["OIL", "OTHER", "PS", "WIND"]
+
+
+def test_the_remainder_series_never_reaches_the_dispatch():
+    """The remainder series is measurement only; swapping any of it in is a fidelity decision.
+
+    `grid_carbon_intensity` imports nothing from this module (tested above); the feed generator
+    DOES, and is the one place a remainder loader could be wired into `build_shape`.
+
+    MUTATION (must fire): call `fuel.load_cached_remainder()` inside `fuel_mix()`.
+    """
+    from tools.python_code_text import searchable
+
+    source = searchable((REPO / "tools" / "generate_grid_intensity_feed.py").read_text(encoding="utf-8"))
+    assert "load_cached_remainder" not in source
+    assert "REMAINDER_CACHE_PATH" not in source
+    assert "fetch_remainder" not in source
+
+
+def test_the_remainder_LOADER_refuses_an_absent_cache():
+    """An absent remainder must not read as a remainder of zero (R15 FAIL-OPEN).
+
+    MUTATION (must fire): return `[]` when the cache is missing.
+    """
+    original = fuel.REMAINDER_CACHE_PATH
+    try:
+        fuel.REMAINDER_CACHE_PATH = Path("sim/cache/does_not_exist_remainder.json")
+        with pytest.raises(fuel.FuelOutturnUnavailable):
+            fuel.load_cached_remainder()
+    finally:
+        fuel.REMAINDER_CACHE_PATH = original

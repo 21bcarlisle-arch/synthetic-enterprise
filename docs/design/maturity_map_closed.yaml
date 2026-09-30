@@ -4449,3 +4449,19 @@
   file_scope: ['site/live_pixel_verify.py', 'site/test_ia_register.py', 'site/ia_register.py', 'site/sitemap.xml', 'site/_redirects']
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a utility whose site map lives in sixteen hand-maintained page footers, so every reorganisation is sixteen chances to strand a page"
+
+- id: EP13_2_split_the_gas_level_remainder
+  title: "from 2019 most of the model's gas-level error lies outside the thermal stack, in inputs no cache can split yet"
+  notes_rehomed: [gain]
+  lane: W4_the_wall
+  value_stream: close_to_learn
+  epoch: 3
+  level_current: 2
+  level_target: 2
+  loop_stage: idle
+  dial_inherited: 3    # EP13's own dial: this is EP13's next bounded step, frame doc s17.
+  provenance: seat_finding
+  depends_on: []
+  couples_with: []
+  file_scope: ['sim/elexon_fuel_outturn.py', 'tests/sim/test_elexon_fuel_outturn.py']
+  expert_hour: {status: not_attempted, last: null, findings: []}

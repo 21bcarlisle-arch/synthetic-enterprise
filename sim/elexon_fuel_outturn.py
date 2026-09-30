@@ -162,6 +162,20 @@ BIOMASS_FUEL_TYPE = "BIOMASS"
 #: place is a window in which a running process sees a truncated file. A new path is a create.
 BIOMASS_CACHE_PATH = Path("sim/cache/elexon_fuelhh_biomass.json")
 
+#: THE FUELS NOTHING ELSE HERE READS, fetched for MEASUREMENT ONLY. EP13 frame doc s17 split the
+#: model's daily gas-level error across every fuel the other four caches hold and left 48-90% of it
+#: (2019-2024) as a remainder they cannot see. These four are the rest of FUELHH, so with them the
+#: remainder becomes a measurement. NOTHING ABOUT THIS SERIES REACHES THE DISPATCH, at any grain.
+#: PS is the merit order itself (condition 2 above), and OIL/OTHER carry emissions factors. WIND
+#: would pass both conditions, but swapping it in for AGWS wind is an input-fidelity decision
+#: (frame doc s18) that must be taken blind to the correlation it moves, not by a fetch.
+#: There is no `*_by_period` view for them on purpose; the only reader is the s18 decomposition.
+REMAINDER_FUEL_TYPES = ("WIND", "PS", "OIL", "OTHER")
+
+#: A FIFTH file, for the reason the second to fourth exist: widening a live cache's filter in place
+#: is a window in which a running process sees a truncated file. A new path is a create.
+REMAINDER_CACHE_PATH = Path("sim/cache/elexon_fuelhh_remainder.json")
+
 #: NESO's OWN published generation factors, gCO2/kWh, fetched from
 #: `api.carbonintensity.org.uk/intensity/factors` (the same table as the Carbon Intensity Forecast
 #: Methodology). NOT this project's numbers: the reconstruction is graded against the series these
@@ -299,6 +313,25 @@ def _fetch_biomass_window(start: date_cls, end: date_cls, *, timeout: float = 90
     return [row for row in data if row.get("fuelType") == BIOMASS_FUEL_TYPE]
 
 
+def _fetch_remainder_window(start: date_cls, end: date_cls, *, timeout: float = 90.0) -> list[dict]:
+    """One settlement-date window, reduced to the four fuels the other caches never kept."""
+    url = (
+        f"{BASE_URL}{DATASET_ENDPOINT}?settlementDateFrom={start.isoformat()}"
+        f"&settlementDateTo={end.isoformat()}&format=json"
+    )
+    request = urllib.request.Request(url, headers={"Accept": "application/json"})
+    try:
+        with urllib.request.urlopen(request, timeout=timeout) as response:
+            payload = json.loads(response.read().decode("utf-8"))
+    except (urllib.error.URLError, TimeoutError, json.JSONDecodeError, OSError) as exc:
+        raise FuelOutturnUnavailable(f"Elexon FUELHH fetch failed for {url}: {exc}") from exc
+    data = payload.get("data")
+    if not isinstance(data, list):
+        raise FuelOutturnUnavailable(f"Elexon returned no `data` list for {url}: {payload!r}")
+    keep = set(REMAINDER_FUEL_TYPES)
+    return [row for row in data if row.get("fuelType") in keep]
+
+
 def _walk(start_date: str, end_date: str, window_fetcher, pause_s: float) -> list[dict]:
     """Walk [start_date, end_date] in the API's own window size, one fetcher per fuel filter."""
     start = date_cls.fromisoformat(start_date)
@@ -341,6 +374,11 @@ def fetch_zero_carbon_must_run(start_date: str, end_date: str, *, pause_s: float
 def fetch_biomass(start_date: str, end_date: str, *, pause_s: float = 0.1) -> list[dict]:
     """The same walk, keeping the biomass fleet instead of coal and the cables."""
     return _walk(start_date, end_date, _fetch_biomass_window, pause_s)
+
+
+def fetch_remainder(start_date: str, end_date: str, *, pause_s: float = 0.1) -> list[dict]:
+    """The same walk, keeping WIND, PS, OIL and OTHER — for measurement, never for the dispatch."""
+    return _walk(start_date, end_date, _fetch_remainder_window, pause_s)
 
 
 def to_settlement_periods(rows: Iterable[Mapping]) -> dict[tuple[str, int], dict[str, float]]:
@@ -923,6 +961,28 @@ def write_biomass_cache(rows: list[dict]) -> None:
     BIOMASS_CACHE_PATH.write_text(json.dumps(rows, separators=(",", ":")))
 
 
+def load_cached_remainder() -> list[dict]:
+    """The cached WIND/PS/OIL/OTHER rows, or a refusal — never an empty list dressed as a cache hit.
+
+    An empty remainder series would read as "the remainder is zero", which is the one answer the
+    decomposition that reads it must never be handed by accident.
+    """
+    if not REMAINDER_CACHE_PATH.exists():
+        raise FuelOutturnUnavailable(
+            f"{REMAINDER_CACHE_PATH} does not exist. Run "
+            "`python3 -m sim.elexon_fuel_outturn --remainder` to build it."
+        )
+    rows = json.loads(REMAINDER_CACHE_PATH.read_text())
+    if not rows:
+        raise FuelOutturnUnavailable(f"{REMAINDER_CACHE_PATH} is empty")
+    return rows
+
+
+def write_remainder_cache(rows: list[dict]) -> None:
+    REMAINDER_CACHE_PATH.parent.mkdir(parents=True, exist_ok=True)
+    REMAINDER_CACHE_PATH.write_text(json.dumps(rows, separators=(",", ":")))
+
+
 def load_cached() -> list[dict]:
     """The cached rows, or a refusal. Never an empty list dressed as a cache hit."""
     if not CACHE_PATH.exists():
@@ -980,7 +1040,19 @@ def main(argv: list[str] | None = None) -> int:
                         help="fetch the NUCLEAR+NPSHYD series into the must-run cache instead")
     parser.add_argument("--biomass", action="store_true",
                         help="fetch the BIOMASS series into the biomass cache instead")
+    parser.add_argument("--remainder", action="store_true",
+                        help="fetch WIND+PS+OIL+OTHER into the remainder cache (measurement only)")
     args = parser.parse_args(argv)
+
+    if args.remainder:
+        rows = fetch_remainder(args.start, args.end)
+        write_remainder_cache(rows)
+        by_fuel: dict[str, int] = {}
+        for row in rows:
+            by_fuel[row["fuelType"]] = by_fuel.get(row["fuelType"], 0) + 1
+        print(f"{len(rows):,} rows: " + ", ".join(f"{k} {v:,}" for k, v in sorted(by_fuel.items())))
+        print(f"cached to {REMAINDER_CACHE_PATH}")
+        return 0
 
     if args.biomass:
         rows = fetch_biomass(args.start, args.end)

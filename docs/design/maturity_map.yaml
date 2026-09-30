@@ -1075,21 +1075,6 @@
     'tools/ep13_ccgt_level_ceiling.py', 'tests/tools/test_ep13_ccgt_level_ceiling.py',
     'sim/neso_embedded_generation.py']
   simplifications_count: 7
-- id: EP13_2_split_the_gas_level_remainder
-  title: "from 2019 most of the model's gas-level error lies outside the thermal stack, in inputs no cache can split yet"
-  notes_rehomed: [gain]
-  lane: W4_the_wall
-  value_stream: close_to_learn
-  epoch: 3
-  level_current: 0
-  level_target: 2
-  loop_stage: build
-  dial_inherited: 3    # EP13's own dial: this is EP13's next bounded step, frame doc s17.
-  provenance: seat_finding
-  depends_on: []
-  couples_with: []
-  file_scope: ['sim/elexon_fuel_outturn.py', 'tests/sim/test_elexon_fuel_outturn.py']
-  expert_hour: {status: not_attempted, last: null, findings: []}
 - id: EP14_adapter_published_cost_stack
   title: "The non-commodity stack, parsed from what is actually published"
   notes_rehomed: [gain, name, origin_note]
