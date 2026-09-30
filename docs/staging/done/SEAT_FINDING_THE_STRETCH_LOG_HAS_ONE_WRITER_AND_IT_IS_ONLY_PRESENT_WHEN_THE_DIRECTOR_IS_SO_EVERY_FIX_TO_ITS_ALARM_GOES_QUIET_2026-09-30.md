@@ -64,3 +64,10 @@ readable page the director reads, and the check that reads it.
 
 The general lesson, for anything else built this way: **an alarm whose remedy is a person must route
 to a writer who is always present, or it is a notification about the director's absence.**
+
+## Disposition (2026-09-30) — enacted
+
+The recommended remedy is built: 46ddd0e9d made each oriented run the log's writer. The commit that
+archives this document makes skipped runs write too and routes the page to the seat, and it delays
+the clock page to two orientation periods so the healthy writer's own lateness does not page.
+Details are in `done/WORKER_FINDING_REPEATING_ALARM_STRETCH_LOG_2026-09-17.md`.

@@ -1939,16 +1939,37 @@ def stretch_entry_from_row(row: dict) -> tuple[str, str]:
     return subject, "\n".join(lines)
 
 
+def skipped_entry_from_row(row: dict) -> tuple[str, str]:
+    """The entry for a SKIPPED run: that it skipped and the reason it recorded, and nothing else.
+
+    WHY A SKIP WRITES AT ALL. The check escalates on its clock, so a skip that wrote nothing made a
+    quiet stretch (or the director's own tick-mode hold) page exactly like a stopped writer, and the
+    page could not say which. With every run writing, an escalation means the orientation stopped.
+    No reflection is invented: the seat judged the stretch not material and this says only that.
+    """
+    why = " ".join(str(row.get("why") or "no reason recorded").split())
+    subject = f"orientation skipped: {why}"[:180]
+    if stretch_log_mod.validate_subject(subject):
+        subject = "orientation skipped: the stretch was judged not material, reason below"
+    body = (f"*Written by the orientation seat from its own record ({row.get('at', '?')}; "
+            f"{row.get('commits', '?')} commits, {row.get('substantive', '?')} substantive, since "
+            f"{row.get('since', '?')}).*\n\nThe seat did not orient, so there is no reading of "
+            f"this stretch against the thesis. Its recorded reason: {why}")
+    return subject, body
+
+
 def write_stretch_entry(row: dict, append_fn=None) -> bool:
-    """Append the orientation's entry to the stretch log. Only an ORIENTED row with a reading writes:
-    a skipped stretch recorded no reflection, and inventing one would be the fabrication the log
-    exists to prevent -- the check then escalates on its own clock, which is the right signal.
+    """Append the run's entry to the stretch log: an oriented row's reading, or a skipped row's
+    reason. A row with neither (a refusal, an oriented row whose reading is empty) writes nothing,
+    and the check then escalates on its own clock, which is the right signal.
     Never raises: the log is downstream of the decision record, never a reason to lose it."""
-    if row.get("outcome") != "oriented" or not (row.get("thesis_read") or "").strip():
+    oriented = row.get("outcome") == "oriented" and (row.get("thesis_read") or "").strip()
+    if not oriented and row.get("outcome") != "skipped":
         row["stretch_entry"] = False
         return False
     try:
-        (append_fn or stretch_log_mod.append)(*stretch_entry_from_row(row))
+        entry = stretch_entry_from_row(row) if oriented else skipped_entry_from_row(row)
+        (append_fn or stretch_log_mod.append)(*entry)
         row["stretch_entry"] = True
     except Exception as exc:  # noqa: BLE001
         row["stretch_entry"] = False
@@ -2026,6 +2047,7 @@ def orient(now: datetime | None = None, dry_run: bool = False) -> dict:
         _log(f"skipped: {why}")
         if not dry_run:
             direction_mod.append_decision(row)
+            write_stretch_entry(row)
         return row
     if dry_run:
         row.update({"outcome": "would-orient", "why": why})

@@ -16,15 +16,32 @@ ROW = {"at": "2026-09-30T11:23:00+00:00", "since": "2026-09-30T08:24:57+00:00", 
        "not_now": ["the bulk drain of parked docs"], "focus": ["finish-the-five-seed-grade"]}
 
 
-def test_an_oriented_row_writes_and_a_skipped_one_does_not_both_ways():
-    """Partition in one control: a writer that never writes, or one that writes for a skipped
-    stretch (inventing a reflection nobody recorded), fails a leg."""
+def test_every_run_that_recorded_a_reason_writes_and_a_refusal_does_not():
+    """Partition in one control over oriented / skipped / refused. A skipped run writes too
+    (2026-09-30): if it did not, a quiet stretch or the director's tick-mode hold would escalate
+    exactly like a stopped writer, and the page could not say which. A refused run has neither a
+    reading nor a skip reason, and writing for it would invent one."""
     got = []
-    assert seat.write_stretch_entry(dict(ROW), append_fn=lambda s, b: got.append((s, b))) is True
-    assert len(got) == 1
-    skipped = {"outcome": "skipped", "why": "no substantive commit", "thesis_read": ""}
-    assert seat.write_stretch_entry(skipped, append_fn=lambda s, b: got.append((s, b))) is False
-    assert len(got) == 1
+    grab = lambda s, b: got.append((s, b))  # noqa: E731
+    assert seat.write_stretch_entry(dict(ROW), append_fn=grab) is True
+    skipped = {"outcome": "skipped", "why": "no substantive commit in the stretch", "thesis_read": ""}
+    assert seat.write_stretch_entry(skipped, append_fn=grab) is True
+    assert seat.write_stretch_entry({"outcome": "refused", "why": "x"}, append_fn=grab) is False
+    assert len(got) == 2
+    assert got[1][0].startswith("orientation skipped:") and "no substantive commit" in got[1][1]
+    assert "reading of this stretch" in got[1][1], "a skip entry must say no reading was made"
+
+
+def test_an_orientation_writes_its_thesis_read_into_a_real_log(tmp_path, monkeypatch):
+    """The control the item asked for: the REAL append path, no stub, into a temp log, and the
+    entry's text carries the row's thesis_read. Mutating the append call in `write_stretch_entry`
+    away reds this leg (recorded in the commit)."""
+    log = tmp_path / "SEAT_STRETCH_LOG.md"
+    monkeypatch.setattr(seat.stretch_log_mod, "LOG", log)
+    assert seat.write_stretch_entry(dict(ROW)) is True
+    text = log.read_text(encoding="utf-8")
+    assert ROW["thesis_read"] in text
+    assert "Written by the orientation seat" in text
 
 
 def test_the_entry_is_the_rows_own_words_and_invents_nothing():
@@ -57,3 +74,19 @@ def test_orient_calls_the_writer_and_the_commit_carries_the_log():
         < src.index("commit_direction()")
     assert "SEAT_WRITTEN" in inspect.getsource(seat.commit_direction)
     assert "docs/status/SEAT_STRETCH_LOG.md" in seat.SEAT_WRITTEN
+
+
+def test_a_skipped_orientation_reaches_the_writer(monkeypatch):
+    """Drives `orient()` down its skip branch. The source-order leg above cannot see this call: its
+    first match for the writer is satisfied by either branch."""
+    brief = {"since": "2026-09-30T11:00:00+00:00", "commit_count": 0, "substantive_count": 0,
+             "previous_focus_drawn": None}
+    monkeypatch.setattr(seat, "build_brief", lambda now: brief)
+    monkeypatch.setattr(seat, "is_material", lambda b: (False, "no substantive commit"))
+    monkeypatch.setattr(seat, "map_levels", lambda: {})
+    monkeypatch.setattr(seat, "_log", lambda m: None)
+    monkeypatch.setattr(seat.direction_mod, "append_decision", lambda row: None)
+    written = []
+    monkeypatch.setattr(seat, "write_stretch_entry", lambda row, append_fn=None: written.append(row))
+    row = seat.orient()
+    assert row["outcome"] == "skipped" and written == [row]

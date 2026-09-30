@@ -59,9 +59,16 @@ def test_a_stretch_that_landed_nothing_owes_a_report(monkeypatch, tmp_path):
         "a stretch past the cadence that landed nothing was reported as needing no entry -- this "
         "is the exact state a day of machinery produces, and the exact state that must be written"
     )
-    assert v["escalate"] is True
+    assert v["escalate"] is False, (
+        "one period past the cadence is the orientation writer's ordinary lateness (its entry is "
+        "stamped with HEAD's commit time, earlier than the write) and must not page"
+    )
     assert v["nothing_landed"] is True, "the writer must be told WHICH entry this is"
     assert "cadence" in v["reason"]
+
+    late = _verdict(monkeypatch, tmp_path, hours=sl.ESCALATE_AFTER_HOURS + 0.5, commits=0)
+    assert late["owed"] and late["escalate"], "a missed orientation must page"
+    assert "cadence" in late["reason"]
 
 
 def test_inside_the_cadence_an_ordinary_stretch_does_not_escalate(monkeypatch, tmp_path):

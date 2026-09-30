@@ -4,13 +4,13 @@
 
 <!-- counts:begin -->
 **Filed automatically by `background/alarm_repetition.py`, not by a person.** This condition
-has been **observed to hold on 8 separate day(s)**, between **2026-09-17** and **2026-09-24**,
+has been **observed to hold on 14 separate day(s)**, between **2026-09-17** and **2026-09-30**,
 and **1 member(s)** of the family `stretch-log` have fired. Both counts are DERIVED from this
 document's own dated lines every time the alarm fires again, so they age with the document
 rather than with its first firing.
 
-Separately, the observer that last filed reported **504 consecutive firing(s) without a state
-change**, over **17.0h**. That is `notify()`'s streak counter, which resets; it is not a total
+Separately, the observer that last filed reported **2171 consecutive firing(s) without a state
+change**, over **120.7h**. That is `notify()`'s streak counter, which resets; it is not a total
 and does not combine with the two counts above.
 <!-- counts:end -->
 
@@ -53,3 +53,31 @@ files a fresh document, because that is a new episode and an R3 two-strike signa
 
 ## Re-asked
 - **2026-09-24** — re-asked: **still_holds**. observed 2026-09-24, within the 3-day bar.
+- **2026-09-25** — re-asked: **still_holds**. observed 2026-09-24, within the 3-day bar.
+- **2026-09-26** — re-asked: **still_holds**. observed 2026-09-25, within the 3-day bar.
+- **2026-09-27** — re-asked: **still_holds**. observed 2026-09-26, within the 3-day bar.
+- **2026-09-28** — re-asked: **still_holds**. observed 2026-09-27, within the 3-day bar.
+- **2026-09-29** — re-asked: **still_holds**. observed 2026-09-28, within the 3-day bar.
+- **2026-09-30** — re-asked: **still_holds**. observed 2026-09-29, within the 3-day bar.
+
+## Disposition (2026-09-30) — the cause is fixed; the condition clears at the next orientation
+
+Diagnosed in `SEAT_FINDING_THE_STRETCH_LOG_HAS_ONE_WRITER_...` (7cc2e0e69, archived beside this):
+the log's only writer was an interactive session, so the check stayed ESCALATED whenever the
+director was away. Every earlier fix changed the detector, the channel or the host, never the writer.
+
+- 46ddd0e9d: every ORIENTED run of `background/delivery_seat.py` appends an entry rendered from
+  its own `decisions.jsonl` row (thesis_read, wrong, not_now, focus).
+- The commit that archives this document:
+  - A SKIPPED run writes an entry too, carrying its recorded reason, so a quiet stretch or a
+    tick-mode hold no longer pages like a stopped writer.
+  - The clock leg now pages only past two orientation periods (`ESCALATE_AFTER_HOURS`). The
+    writer's timer period equals the cadence, and an entry is stamped with HEAD's commit time,
+    so a 3h page would have fired before every orientation.
+  - The page now says the ORIENTATION stopped and points at the seat's timer and log, not at a
+    hand-written entry.
+  - Control: `tests/background/test_the_orientation_seat_writes_the_stretch_log.py`.
+
+Not yet observed: the first entry is due from the 2026-09-30 18:20 local seat run. If the condition
+survives that, it is a new episode and `alarm_repetition` files a fresh document by design. It
+would then mean the orientation itself is failing to write.

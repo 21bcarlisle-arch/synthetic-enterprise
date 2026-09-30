@@ -220,6 +220,15 @@ CADENCE_HOURS = 3.0
 #: different entries.
 ESCALATE_AFTER_COMMITS = 80
 
+#: WHEN THE CLOCK LEG PAGES, which is later than when it makes an entry OWED. The writer is now the
+#: orientation seat (`background/delivery_seat.write_stretch_entry`, 2026-09-30) on a timer whose
+#: period is `CADENCE_HOURS`, and an entry is stamped with HEAD's commit time, which is always
+#: earlier than the write. So every stretch passes the cadence minutes-to-hours before the next
+#: orientation writes; paging there would page every three hours with the writer healthy, and the
+#: page's state (the newest head stamp) changes every entry, so no transition key would hold it.
+#: One missed period is lateness; a second with no entry means the writer stopped.
+ESCALATE_AFTER_HOURS = 2 * CADENCE_HOURS
+
 
 def _entry_epoch(head: str) -> float | None:
     """Committer epoch of the commit the newest entry was written at, or None if unreadable."""
@@ -266,11 +275,13 @@ def owed(now: float | None = None) -> dict:
     # that landed nothing was reported as "up to date", so a day of machinery, reds and merges
     # asked nothing of anyone and the log kept only the wins.
     legs = []
+    past_cadence = hours is not None and hours > CADENCE_HOURS
     if hours is None:
         legs.append("the age of the last report is unreadable")
-    elif hours > CADENCE_HOURS:
+    elif hours > ESCALATE_AFTER_HOURS:
         legs.append(f"{hours:.1f}h since the last report (the cadence is {CADENCE_HOURS:.0f}h, "
-                    "whatever state the work is in)")
+                    "whatever state the work is in, and the orientation seat that writes it has "
+                    "missed at least one)")
     if n > ESCALATE_AFTER_COMMITS:
         legs.append(f"{n} commits since the last report (escalates above {ESCALATE_AFTER_COMMITS}; "
                     "largest gap this log has ever had is 70)")
@@ -284,17 +295,22 @@ def owed(now: float | None = None) -> dict:
     # What the 2026-09-18 repair changes is the ESCALATE side: the clock now carries it alone, so a
     # stretch that landed nothing is escalated past the cadence instead of being exempt forever.
     escalate = bool(legs)
-    owed_now = escalate or n > 0
+    owed_now = escalate or past_cadence or n > 0
     if not owed_now:
         return {"owed": False, "escalate": False, "commits": n, "hours": hours,
                 "nothing_landed": True,
                 "reason": f"inside the {CADENCE_HOURS:.0f}h cadence, nothing landed"}
+    parts = list(legs)
+    if past_cadence and hours <= ESCALATE_AFTER_HOURS:
+        parts.append(f"{hours:.1f}h since the last report, past the {CADENCE_HOURS:.0f}h cadence; "
+                     "the next orientation writes it")
+    reason = ("; and ".join(parts) if parts
+              else f"{n} commit(s) since the last report, inside the cadence")
     return {"owed": True, "escalate": escalate, "commits": n, "hours": hours,
             # NAMED SO THE WRITER KNOWS WHICH ENTRY TO WRITE. "Nothing landed" and "two hundred
             # commits landed" are different reports, and the second is not more owed than the first.
             "nothing_landed": n == 0,
-            "reason": "; and ".join(legs) if legs
-                      else f"{n} commit(s) since the last report, inside the cadence"}
+            "reason": reason}
 
 
 def alarm_message(verdict: dict | None = None) -> str:
@@ -305,12 +321,18 @@ def alarm_message(verdict: dict | None = None) -> str:
     publish cycle: a fresh escalation document each time, and 28 documents standing for one
     condition. The listing belongs in `check()`, which the run log keeps; the page carries the
     condition and where to read the rest.
+
+    WHO IT HANDS THE WORK TO (2026-09-30). The writer is the orientation seat, which appends an entry
+    on every run, oriented or skipped. So a page means THE ORIENTATION STOPPED, not that the director
+    stepped away, and it points at the seat rather than asking whoever reads it to write the entry
+    by hand: a hand-written entry clears the page and leaves the stopped writer stopped.
     """
     v = verdict or owed()
     return ("[stretch-log] NO STRETCH REPORT for work that has landed -- " + v["reason"] + ". "
-            "The commits keep WHAT changed; nothing is keeping WHY. "
-            "Read the owed list with `python3 tools/stretch_log.py --check`, then write one with "
-            "`--append '<subject>' --body-file <path>`.")
+            "The orientation seat writes one on every run, so the ORIENTATION HAS STOPPED WRITING: "
+            "read `systemctl --user status delivery-seat.timer delivery-seat.service` and "
+            "`docs/observability/delivery-seat-log.md` (`stretch-log entry NOT written` names a "
+            "failed append), then the last row of `docs/direction/decisions.jsonl`.")
 
 
 def check() -> tuple[int, str]:
