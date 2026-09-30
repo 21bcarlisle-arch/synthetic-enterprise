@@ -154,6 +154,25 @@ def test_a_growing_job_is_counted_at_its_declared_peak_not_its_current_size():
     assert held["admitted"] is False and "pid 1033543" in held["reason"], held["reason"]
 
 
+def test_a_recorded_peak_reaches_the_next_launchs_count(tmp_path, monkeypatch, faked_path):
+    """End to end: the peak `launch()` records is the peak the next co-residence check counts.
+
+    The record stores the unit as `systemd-run --unit=` was given it; the census names it by its
+    cgroup leaf, with `.service`. Fires on: `declared_peaks` keyed the record's way, which matches
+    no resident, so every live declaration is silently dropped -- the control above typed the
+    suffix into its fixture and could not see it."""
+    monkeypatch.setattr(llj, "own_cgroup", lambda *a, **k: "/user.slice/launcher.service")
+    records = tmp_path / "records.json"
+    entry = _launch(tmp_path, _Runner(), peak_mb=10445, residents=lambda: [],
+                    records_path=records)
+    climbing = [{"pid": 1033543, "rss_mb": 3700.0, "unit": f"{entry['unit']}.service",
+                 "command": "python3"}, _THE_1907Z_NEIGHBOURS[1]]
+    # At current RSS (3,700 + 6,246 + 10,445) it fits; at the declared peak it does not.
+    assert llj.co_residence(10445, climbing, 24032)["admitted"] is True
+    held = llj.co_residence(10445, climbing, 24032, declared=llj.declared_peaks(records))
+    assert held["admitted"] is False and "pid 1033543" in held["reason"], held["reason"]
+
+
 def test_waiting_on_the_blocker_admits_and_the_job_starts_behind_it(tmp_path, monkeypatch,
                                                                      faked_path):
     """`--wait-for-pid` instead of a refusal: the waited pid leaves the sum, and the unit runs

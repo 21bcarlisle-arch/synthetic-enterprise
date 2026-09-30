@@ -160,13 +160,22 @@ def declared_peaks(records_path: Path | None = None) -> dict:
     THIS IS THE LEG THAT WOULD HAVE MATTERED AT 19:07Z. A long job is launched small and grows:
     the 22222 leg was 3.7 GiB an hour into a run that peaked at 10.2 GiB. Counted at its current
     RSS, a job still climbing reads as room, and a second one would be admitted beside it.
+
+    Keyed as the CENSUS names the unit -- its cgroup leaf, `<unit>.service` -- because the record
+    stores the name `systemd-run --unit=` was given, without the suffix. Keyed the record's way,
+    `co_residence` matched no resident and every live declaration was silently ignored; its test
+    passed only because the fixture typed the suffix the real record never carries.
     """
     try:
         records = launch_liveness.load(records_path)
     except Exception:  # noqa: BLE001 -- no register means no declarations, not no launch
         return {}
-    return {r["unit"]: float(r["peak_mb"]) for r in records
+    return {_as_cgroup_leaf(r["unit"]): float(r["peak_mb"]) for r in records
             if r.get("claim") == launch_liveness.LIVE and r.get("unit") and r.get("peak_mb")}
+
+
+def _as_cgroup_leaf(unit: str) -> str:
+    return unit if unit.endswith(".service") else f"{unit}.service"
 
 
 def co_residence(peak_mb, residents: list, total_mb, *, declared: dict | None = None,
