@@ -131,3 +131,34 @@ Expect the result about 1h10m after the leg finishes, plus roughly 3 x 30 min.
 
 The predictions are the ones filed above, before this launch, and are not restated with any change:
 null prepayment factor < 1.0, and planted does not recover 0.307. Grading them is the next step.
+
+## Re-run on the repaired world: null graded, planted and head pre-registered (2026-09-30 00:40Z, seat)
+
+The job's pinned worktree is at `b50a03519` plus one `fork_salvage` commit (`e0a72b11c`, 00:29Z)
+that holds only the run's own `docs/observability/` outputs, so the code the arms run is
+`b50a03519` and contains the repair `19a58b44d`.
+
+**Null arm (finished 00:21Z): identical to its pre-repair twin in every number.** 20 prepayment
+decisions, 4 lost against 6.91, factor **0.537**. Direct debit 29 of 60, standard credit 2 of 5,
+book 42 of 91. That is the expected result, not a failure to run the repair: in the null world every
+channel multiplier is 1.0, so the band `[p, p·m)` the repair acts on is empty and the two rolls
+already agreed. The null arm is the repair's placebo, and it reads as one. **Filed prediction
+(null prepayment factor < 1.0): HELD, at 0.537.**
+
+**Pre-registered now, while planted is 20 minutes in and head has not started.** The same
+reasoning, applied to the other two worlds: the repair only moves decisions for channels with
+m > 1. In planted, that is direct debit (1.110) and standard credit (1.129), not prepayment (0.307).
+In head, it is direct debit (1.064) and standard credit (1.083), not prepayment (0.589).
+
+- P1. **Prepayment decisions and losses do not change in either arm**: planted 2 decisions, 0 lost;
+  head 10 decisions, 1 lost.
+- P2. **Direct-debit losses rise, or hold, in both arms** (pre-repair: planted 32 of 72, head 30 of
+  67). A decision in the band loses the 0.10 cap. About 6-10% of reached decisions sit in the band,
+  so I expect +1 to +4 losses, and the direct-debit decision count may fall by the same amount
+  because a leaver reaches no later renewal.
+- P3. **The prepayment factor moves only through the book's ratio**, and moves DOWN, because book
+  losses rise while prepayment's do not. Planted reads in [0.55, 0.584]; head in [0.49, 0.530].
+  **Filed prediction (planted does not recover 0.307): expected to HOLD.**
+- P4. If P1 fails, meaning prepayment counts move, then either the repair reaches prepayment by a
+  route I have not traced, or the world diverges downstream of changed departures. That would be
+  the more important result.
