@@ -355,18 +355,29 @@ def overlay_shortfall(subject) -> list[str]:
 #: fires first and the census says UNPROVEN instead of vanishing. The timer fires once every 24h,
 #: so 7500s cannot reach the next firing.
 #:
+#: THE SAME RULE, RE-APPLIED 2026-09-30, BECAUSE THE WORST RUN MOVED AND THIS CONSTANT DID NOT.
+#: systemd's journal records the unit's wall clock for every night: the last COMPLETE runs took
+#: 1h52m49s (09-22) and **1h59m31s = 7171s (09-23)** -- 29s under this bound -- and every night
+#: from 09-24 to 09-30 was killed by it at 2h00m and reported UNPROVEN. CPU time tracks wall time
+#: on each of them (2h05m CPU over 2h02m), so the suite is compute-bound and slow, not hung. The
+#: bound was already under 2x the worst run on 09-22 and nothing compared them, because
+#: `WORST_OBSERVED_SUITE_SECONDS` below is moved by hand and was never moved. Against 7171s the
+#: rule demands more than 14342s; the unit keeps its 300s for the checkout and the report. 14400s
+#: from the 03:30 timer ends by 07:35, inside the night and nowhere near the next firing.
+#:
 #: THIS IS AN ALLOWANCE FOR HOW LONG THE RUN TAKES AND NOTHING ELSE. It forgives no red, it moves
 #: no baseline, and raising it can never turn a verdict green -- the only outcome it changes is
 #: UNPROVEN into a real answer. `test_the_census_timeout_clears_the_duration_it_has_observed`
 #: holds both directions against the unit file, because until it existed the relationship was
 #: asserted in this comment and true only by luck.
-SUITE_TIMEOUT_SECONDS = 7200
+SUITE_TIMEOUT_SECONDS = 14400
 
-#: The worst COMPLETE census duration on record, transcribed from the run described above so the
-#: control can compare against it. Moved by hand when a slower run is observed -- a bound that
+#: The worst COMPLETE census duration on record -- the 09-23 unit wall clock from systemd's journal,
+#: which includes the checkout and so over-states the suite alone -- transcribed so the control can
+#: compare against it. Moved by hand when a slower run is observed -- a bound that
 #: re-derived itself from the latest run would ratchet upward on its own, which is how a ceiling
 #: stops being a decision anyone made.
-WORST_OBSERVED_SUITE_SECONDS = 3537.0
+WORST_OBSERVED_SUITE_SECONDS = 7171.2
 
 
 def subject_head_sha(subject) -> str | None:
@@ -449,25 +460,42 @@ def run_suite(timeout: int = SUITE_TIMEOUT_SECONDS, observed: dict | None = None
         # grew 1.67GB -> 3.36GB in one hour under three concurrent runs.
         env = dict(os.environ)
         env.setdefault("TMPDIR", str(prc.HEAD_CHECKOUT_ROOT))
-        try:
-            proc = subprocess.run(pytest_argv(), cwd=str(subject), env=env,
-                                  capture_output=True, text=True, timeout=timeout)
-        except subprocess.TimeoutExpired:
-            # "" CARRIES NO PYTEST SUMMARY, so `verdict()` reads it as UNPROVEN through the
-            # fail-safe that already exists, and `_record_observation` writes nothing — an
-            # incomplete run must never mark standing reds as fixed.
-            #
-            # THE PARTIAL OUTPUT IS DELIBERATELY DISCARDED. `TimeoutExpired` carries whatever
-            # pytest had printed, and it contains real `FAILED` lines; returning it would publish
-            # a PARTIAL red list as if it were the complete one, which is a worse answer than
-            # "could not measure".
-            sys.stderr.write(
-                "[head-green-census] the suite did not finish inside {}s -- UNPROVEN. Partial "
-                "output discarded: an incomplete failure list reported as complete would mark "
-                "every unreached red as fixed.\n".format(timeout))
-            sys.stderr.flush()
-            return ""
-        return (proc.stdout or "") + (proc.stderr or "")
+        # ASK THE MEMORY GOVERNOR, AND HOLD ITS RESERVATION FOR THE WHOLE SUITE. At ~11 GB this is
+        # the largest routine pytest resident on the box, and until it declared itself sim-runner's
+        # admission summed a ledger it was absent from. A refusal is the same "" as every other
+        # suite-not-run path -- UNPROVEN, nothing recorded -- with its reason on `observed`.
+        from background import resource_headroom
+        with resource_headroom.admitted("head_green_census") as admission:
+            if not admission["admitted"]:
+                if observed is not None:
+                    observed["deferred"] = admission["reason"]
+                sys.stderr.write("[head-green-census] DEFERRED by resource_headroom, suite not "
+                                 "run -- UNPROVEN. {}\n".format(admission["reason"]))
+                sys.stderr.flush()
+                return ""
+            return _run_admitted_suite(subject, env, timeout)
+
+
+def _run_admitted_suite(subject, env, timeout) -> str:
+    try:
+        proc = subprocess.run(pytest_argv(), cwd=str(subject), env=env,
+                              capture_output=True, text=True, timeout=timeout)
+    except subprocess.TimeoutExpired:
+        # "" CARRIES NO PYTEST SUMMARY, so `verdict()` reads it as UNPROVEN through the
+        # fail-safe that already exists, and `_record_observation` writes nothing — an
+        # incomplete run must never mark standing reds as fixed.
+        #
+        # THE PARTIAL OUTPUT IS DELIBERATELY DISCARDED. `TimeoutExpired` carries whatever
+        # pytest had printed, and it contains real `FAILED` lines; returning it would publish
+        # a PARTIAL red list as if it were the complete one, which is a worse answer than
+        # "could not measure".
+        sys.stderr.write(
+            "[head-green-census] the suite did not finish inside {}s -- UNPROVEN. Partial "
+            "output discarded: an incomplete failure list reported as complete would mark "
+            "every unreached red as fixed.\n".format(timeout))
+        sys.stderr.flush()
+        return ""
+    return (proc.stdout or "") + (proc.stderr or "")
 
 
 def evaluate(output: str, baseline_path: Path = BASELINE_PATH) -> dict:
@@ -542,6 +570,10 @@ def main(argv=None) -> int:
         result["reason"] = (
             "the subject checkout could not see the machine's untracked data, so it was not a "
             "checkout of HEAD and the suite was not run -- {}".format("; ".join(shortfall)))
+    if observed.get("deferred"):
+        result["deferred"] = observed["deferred"]
+        result["reason"] = ("the memory governor deferred the census, so the suite was not run -- "
+                            "{}".format(observed["deferred"]))
     register = _record_observation(result)
 
     if args.json:
