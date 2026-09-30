@@ -215,3 +215,58 @@ def test_an_unavailable_classifier_is_a_FAILED_check(monkeypatch):
     ok, detail = gate._staging_room_check([IN_ROOT])
     assert not ok, "an unimportable predicate let the commit through -- a skipped check is not a pass"
     assert "UNAVAILABLE" in detail
+
+
+# ── 6. THE CHAIN (H45): a work item FILED by this commit names its lane, epoch and atom ──────
+
+_UNCHAINED = "**Severity:** LATENT · **Lane:** H_harness\n\n# a finding\n"
+_CHAINED = ("**Severity:** LATENT · **Lane:** H_harness · **Epoch:** unassigned · "
+            "**Atom:** `unminted`\n\n# a finding\n")
+
+
+def test_the_chain_step_can_both_refuse_and_pass_and_an_edit_is_not_a_filing(repo):
+    """DEFECT: 28 of 96 work items filed in a week carried no epoch or atom, and nothing refused.
+
+    One control over the whole partition, so a step that refuses EVERYTHING and one that
+    refuses NOTHING both go red here: a NEW unchained finding is refused by name; a new chained
+    one, an EDIT to a legacy unchained one already at the parent, and a director's directive
+    all pass. `unassigned`/`unminted` count as answers -- absence is the defect, not "not yet".
+    """
+    legacy = "docs/staging/SEAT_FINDING_LEGACY_UNCHAINED_2026-09-01.md"
+    (repo / legacy).write_text(_UNCHAINED)
+    _git(repo, "add", legacy)
+    _git(repo, "commit", "-q", "-m", "a legacy gap, filed before this control")
+    (repo / legacy).write_text(_UNCHAINED + "\nan edit\n")
+
+    new_bad = "docs/staging/SEAT_FINDING_NEW_UNCHAINED_2026-09-30.md"
+    new_good = "docs/staging/SEAT_FINDING_NEW_CHAINED_2026-09-30.md"
+    directive = "docs/staging/DIRECTOR_INSTRUCTION_SOMETHING_2026-09-30.md"
+    (repo / new_bad).write_text(_UNCHAINED)
+    (repo / new_good).write_text(_CHAINED)
+    (repo / directive).write_text("# the director's words\n")
+    _git(repo, "add", legacy, new_bad, new_good, directive)
+
+    refused, detail = gate._staging_chain_check([new_bad])
+    passed = [gate._staging_chain_check([p])[0] for p in (new_good, legacy, directive)]
+
+    assert not refused and passed == [True, True, True], (
+        f"partition wrong: new-unchained refused={not refused}, "
+        f"[chained, legacy edit, directive] passed={passed}")
+    assert "SEAT_FINDING_NEW_UNCHAINED" in detail and "epoch, atom" in detail, (
+        f"the refusal does not name the document and what it lacks: {detail}")
+
+
+def test_a_chain_refusal_reaches_main_and_stops_the_commit(monkeypatch, capsys):
+    """R15 both-ways at the CALLER, on the staging-only commit that selects no targets."""
+    monkeypatch.setattr(gate, "staged_files", lambda: ["docs/staging/WORKER_FINDING_X.md"])
+    monkeypatch.setattr(gate, "select_targets", lambda files: [])
+    monkeypatch.setattr(gate, "_class_consolidation_check", lambda: (True, "ok"))
+    monkeypatch.setattr(gate, "_landed_manifest_check", lambda staged: (True, ""))
+    monkeypatch.setattr(gate, "_staging_severity_check", lambda staged: (True, ""))
+    monkeypatch.setattr(gate, "_staging_room_check", lambda staged: (True, ""))
+    monkeypatch.setattr(gate, "_staging_chain_check",
+                        lambda staged: (False, "  - docs/staging/W.md: missing epoch, atom"))
+    assert gate.main() == 1, "an unchained filing did not refuse the commit"
+    err = capsys.readouterr().err
+    assert "COMMIT REFUSED" in err and "missing epoch, atom" in err
+    assert "**Epoch:**" in err, "the refusal did not tell the author what to write"

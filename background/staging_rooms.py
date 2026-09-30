@@ -827,6 +827,37 @@ def unchained(root: Path | str = DEFAULT_STAGING_ROOT) -> list[Chain]:
     return out
 
 
+#: Kinds the chain is NOT owed on at filing. NOT_WORK is outside the queue; a directive and a
+#: console message carry the director's words, and P8 asks the MACHINE to connect its own
+#: queue to the map -- refusing his words at the door would be a ceremony on his path.
+CHAIN_EXEMPT_KINDS = NOT_WORK | {KIND_DIRECTIVE, KIND_FROM_RICH}
+
+
+def chain_owed(name: str) -> bool:
+    """Does a root document of this NAME owe a chain header when it is filed?"""
+    return kind_of(name) not in CHAIN_EXEMPT_KINDS
+
+
+def unchained_filings(filed: dict[str, str]) -> list[str]:
+    """Refusal lines for NEWLY FILED root documents that owe a chain and carry none.
+
+    `filed` maps a root document NAME to its text in the tree being created. The caller
+    decides what "newly filed" means (the gate: absent from the parent commit); this only
+    judges. Why at filing and not over the room: `unchained()` counted the gap for a month
+    while 28 of the 96 work items filed in the week to 2026-09-30 arrived without one --
+    counted, never refused, so the count was a description rather than a control. Keyed to
+    the WRITE, so the legacy gaps bill nobody and a new one bills only its author.
+    """
+    out = []
+    for name in sorted(filed):
+        if not chain_owed(name):
+            continue
+        chain = chain_of_text(filed[name], path=Path(name))
+        if not chain.is_chained:
+            out.append(f"{name}: missing {', '.join(chain.missing)}")
+    return out
+
+
 # ---------------------------------------------------------------------------
 # SPANNING READS — a room must never be able to hide a document
 # ---------------------------------------------------------------------------
