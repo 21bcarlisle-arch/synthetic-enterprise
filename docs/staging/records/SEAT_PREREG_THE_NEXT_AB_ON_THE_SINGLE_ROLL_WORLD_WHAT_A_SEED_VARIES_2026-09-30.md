@@ -1,6 +1,6 @@
 # Prereg: the next value-cycle A/B on the single-roll world — what a seed varies, and so how many
 
-**Severity:** RECORDED · **Lane:** A_strategy_governance · **Item:** `prereg-the-next-ab-on-the-repaired-world-keyed-by-lineage` · **Status:** written, pinned, **NOT launched**. The launch is the next steer's call.
+**Severity:** RECORDED · **Lane:** A_strategy_governance · **Item:** `prereg-the-next-ab-on-the-repaired-world-keyed-by-lineage` · **Status:** **LAUNCHED 2026-09-30T04:10:47Z** as `longjob-ab6-single-roll`; bridge B started 04:26:47Z (launch record at the foot).
 
 ## Why this exists
 
@@ -60,3 +60,77 @@ After P1 and P2 (four churn-roll seeds), take the pilot's D_lin mean m and sd s.
 5. **The next steer says launch.** This item was scoped as a pre-registration only.
 
 Grading: `seed_census.py runB6.json` against ab5 (B1, B2), then `grade_lineage.py runP1.json runP2.json` plus the n\* computation above (P1–P3).
+
+## Launch record (2026-09-30, delivery seat, item `stop-the-old-design-after-one-pair-and-launch-ab6`)
+
+**Conditions, each re-asked at launch:**
+1. **The lineage unit has exited: HOLDS, by gating.** ab6 was launched at 04:10:47Z with `--wait-for-pid 2295586`, the L1 leg's `run_value_cycle_ab`. That puts its 11,200 MB declaration on the shared register before the PB6 waiter could race for the same moment. L1 exited 0 at 04:26:21Z. `longjob-ab5-lineage-unseen` was stopped at 04:26:43Z. legs6.sh's own resident check then waited 15 s for L2's pid 2941018 to die with that unit. So no two value-cycle A/Bs were ever co-resident.
+2. **Pin clean and locked: HOLDS.** `git -C /var/tmp/se-ab6-a322166cc diff --quiet a322166cc -- . ':!docs'` returned 0. HEAD is `a322166cc0…`, detached and `locked` ("ab6 prereg pin: lineage-keyed D on the single-roll world, churn-roll redraw").
+3. **Weather store: HOLDS.** `weather_store_digest()` in the pin equals `e11451b5…d242`. It was read by the seat before launch, and again by legs6.sh at B's start (logged).
+4. **One unit, B→P1→P2, peak declared: HOLDS.** The unit is `longjob-ab6-single-roll`, running `/var/tmp/se-ab6-out/legs6.sh` (sha256 `519b1a84…2e4b`). Each leg re-checks conditions 2–3 and runs only if its predecessor exited 0 and wrote its artefact. The unit was launched through `background.launch_long_job --peak-mb 11200`. Admission read: 7,494 MB resident + 11,200 = 18,694 of 23,008 MB, with pid 2295586's 11,798 MB excluded as waited-on. The cgroup is its own (verified). The artefact the unit declares is `runP2.json`; B and P1 write `runB6.json` and `runP1.json`. The log is `/var/tmp/se-ab6-out/run6.log`.
+5. **The steer: this item.**
+
+**Grader pins, recorded in full.** `grade_lineage.py` is `71b82d0737c21631420bb41399ccdf12407550655929e75aae7e0bdfd5a65df7`, which matches above. `seed_census.py` is `dd7b12c4c655a1a9b33064c16919f5d298231c2de80320dcef2423d6e0099e8a`. The "…98a" abbreviation above is a transcription slip, not a changed file: its mtime (01:45:43Z) predates this record's commit `7413b3ea2` (02:00:16Z).
+
+**One co-residence, admitted and not prevented.** When legsL.sh exited, the PB6 re-centred null arm's waiter fired too. `launch_long_job` admitted `longjob-pb6-null-arm-recentred-prior-run` (declared 6,500 MB) at 04:26:52Z beside ab6's declared 11,200, because the two fit the budget after L1's 11.8 GB left. A PB6 arm is ~30 min, and it overlaps only the start of bridge B, which is well below its peak then. **If B dies of OOM**, legs6.sh stops at B (rc 94) and P1/P2 do not run. The remedy is to relaunch the same unit once the PB6 arm has exited. It is not a change to this design.
+
+**Next:** grade B (B1, B2) when `runB6.json` exists (~3h after 04:26Z), then P1–P3 and n\* when `runP2.json` exists (~9.3h). That is handed on through `seat_continuation`.
+
+## Bridge graded (2026-09-30 ~07:50Z, delivery seat, item `grade-the-ab6-bridge-leg-once-runb6-exists`)
+
+**What was run.** Leg B exited rc=0 at 07:27:14Z (`run6.log`). The weather digest at B's start was `e11451b5…d242`. `runB6.json` has sha256 `b73d4c36…a9e2`. `grade_lineage.py` (`71b82d07…`, matches) was run on `runB6.json`, and ab5's own grader on `/var/tmp/se-ab5-out/runB.json` (the same seeds). `seed_census.py` (`dd7b12c4…`, matches) was run on `runB6.json`. `seed_census.py` keys rows by seed, so it cannot compare one seed across two pins. The per-lineage cross-pin comparison is therefore `/var/tmp/se-ab6-out/bridge_cmp.py` (sha256 `0e3880d6…1a776ffa`; it roots lineages through the ab6 pin's `SUCCESSOR_CUSTOMERS`, exactly as `seed_census.py` does).
+
+| id | prediction | result | grade |
+|---|---|---|---|
+| **B1** | \|Δ D_lin\| < £300 on both seeds | 33333: +£813.63 − £1,038.66 = **−£225.03**. 44444: +£284.02 − £784.65 = **−£500.63** | **REFUTED** (on 44444). The miss is not > £1,000, so the ab5 line does **not** close as "graded at a superseded world" |
+| **B2** | fewer than 120 of ~163 lineages identical to the penny against the same ab5 seed | **112 of 163** on each seed (51 moved) | **HOLDS**. The world change reached the A/B |
+
+**Where the move is.** No lineage changed its DECIDED flag and none appeared or vanished, on either seed. So the move is not a switch. It is drift spread across roughly 50 lineages, and nearly all of it is the **level arm's net rising** while the value arm mostly holds. On 44444: C5 −£154 (L +£154, V unchanged), C9 −£57, C8 −£55, SYN-2016-064 −£55, SYN-2016-055 −£48, PROS-2020-0304 −£42. The top five give −£369 of the −£499 ex-0098. On 33333 the same lineages move the same way at about half the size (C5 −£77, SYN-2016-064 −£35, C9 −£30). 0098 barely moves (−£17 and −£0.4). *Why 44444 moves about twice as much on the same lineages, I cannot yet say.* 44444 is the seed in which C5 churns in the value arm and 0098 churns in the level arm, so a state-dependent path through one of the five commits (`936d30be5` re-routes dual-fuel gas, `bc16b269b` the engagement prior) is the candidate. No one-commit bisection has been run.
+
+**What this means for the ab5 line.** ab5's D_lin grade does not describe HEAD within ab5's own seed spread (sd £133.98). HEAD's D_lin is lower by £225–£500 per seed, and the drop runs one way on both seeds, through the level arm. Read literally, the ab5 five-seed mean of +£1,009.68 is about +£510 to +£785 at HEAD, and both HEAD bridge seeds are still positive (+£814, +£284). That is not a grade: two seeds, and the per-seed shift itself differs by £276. **So ab5's "+£1,000, CI clear of zero" is re-labelled as conditional on `b79e2c0e8` and on one set of renewal rolls, and it is not carried into the pilot's reading.** The pilot's n\* is computed from P1+P2's own mean, as pre-registered. The alternative with |m| = £1,009.68 is now known to overstate HEAD's effect and is reported only as context.
+
+**Correction, beside the claim.** The B1 confidence was ~60%, and it missed. "Refuted if either \|Δ\| ≥ £300" holds on one seed, by £200. The P-legs are untouched by this: P1 started on the same pin and digest right after B exited.
+
+## Pilots graded (2026-09-30 ~13:50Z, autonomous worker, item `grade-ab6-bridge-and-pilots`)
+
+**What was run.** Leg P2 exited rc=0 at 13:39:49Z (`run6.log`). P1 had exited at 10:30:00Z. Artefacts: `runP1.json` sha256 `690784f2…317d`, `runP2.json` sha256 `2e311968…bba7`. `grade_lineage.py` (`71b82d07…65df7`, matches) was run on both. Its weather-digest line reads `{e11451b5…d242}`, which equals the launch digest. The n\* and variance-share arithmetic is `/var/tmp/se-ab6-out/grade_p3.py` (sha256 `45e1864e…1cdf`). It uses grade_lineage's lineage rooting and DECIDED rule, copied unchanged, and computes n\* by the definition above.
+
+**The re-draw reached every seed.** The prereg's `churn_rolls_redrawn` is the key-neutral `draws_redrawn` in the artefact. It is > 0 on all four seeds, and `held = 0` on each:
+
+| seed | draws_redrawn | accounts_redrawn | D_lin ex-0098 | 0098 lineage (excluded) |
+|---|---|---|---|---|
+| 61001 | 346 | 71 | **−£1,199.15** | −£83.55 |
+| 61002 | 374 | 72 | **−£6,758.07** | −£5,984.12 |
+| 61003 | 393 | 70 | **−£3,070.89** | −£225.89 |
+| 61004 | 376 | 72 | **−£1,242.19** | −£273.69 |
+
+The DECIDED set is the same 69 lineages on all four seeds. A_lin is small and positive on each (+£16.52 to +£216.97). There are no roster-only lineages.
+
+**Pilot: mean −£3,067.58, sd £2,610.41, 95% t-CI [−£7,221.33, +£1,086.17].**
+
+| id | prediction | result | grade |
+|---|---|---|---|
+| **P1** | D_lin sd across the four seeds is £1,500–£8,000 (point guess £4,000) | **£2,610.41** | **HOLDS** |
+| **P2** | n\* at the pilot's own mean > 12, so "stop, vary the book" (~70%) | **n\* = 6** (t₀.₉₇₅,₅ · 2,610.41/√6 = £2,740 ≤ £3,067.58). At the ab5 reference \|m\| = £1,009.68, which the bridge showed overstates HEAD and is context only: n\* = 29 | **REFUTED** |
+| **P3** | the single largest lineage holds < 50% of the pilot's D_lin variance | **C6: 79.1%** on the measure the ab5 section used (1 − var(D − L)/var(D)). SYN-2016-034 is 76.8% and C5 46.7%. On own-variance share, var(L)/var(D), the figures are C6 37.1%, SYN-2016-034 37.2% and C5 25.8% | **REFUTED** on the prereg's own measure |
+| P4 (context) | 2–3 of 4 positive | **0 of 4 positive** (sign p = 0.125) | not graded; the prediction missed |
+
+**What P3 is and is not.** 67 of the 69 DECIDED lineages vary across the four seeds, so the renewal-roll key does reach the book widely. But the variance is held by a few switches: C6 (−£2,825 on 61002, +£794 on 61004, £0 otherwise), SYN-2016-034 (−£3,229 on 61002) and C5 (+£169 to +£2,845). C6 and SYN-2016-034 both land on seed 61002, and so does 0098's −£5,984. That is why their removal shares overlap and sum to more than 100%. With four seeds, a variance share is itself very loose. So "the key collapses back to a few switches" is the reading the prereg named, and it holds on this sample. It is not yet a property of the book.
+
+**The sign.** Under the elasticity key, the bridge at this same pin read +£813.63 and +£284.02 (33333, 44444) on the fixed production rolls. Under four independent draws of those rolls, it reads negative on every draw, and by more than either bridge value. So the ab5/bridge positive was one realisation of the renewal rolls, and it was a favourable one for the value arm. *Why the value arm loses on these draws, I cannot yet say.* The largest movers are single-account churn switches (C6 and SYN-2016-034 on 61002), but no per-account attribution has been run. **Correction, beside the claim:** P4's "2–3 of 4 positive" and the ab5 line's "+£1,000, CI clear of zero" both assumed a positive centre. On the churn-roll key the centre is not positive.
+
+**What the answer describes.** It describes the **pin `a322166cc`**, not origin/main. One commit on origin since the pin touches `company/` or `simulation/`: `4380002bd` (2026-09-30 14:09 +0100, "land the 19 receipted commits stranded on the shared tree's HEAD…"). It changes `company/crm/competitive_pressure.py`, `company/crm/enriched_churn_estimate.py`, `company/interfaces/sim_interface.py`, `simulation/household.py`, `simulation/household_physical_layer.py` and `simulation/run_phase4c_on_phase2b.py`. The code-bearing replays inside it include `f9b04ddc7` and `46b78123f` (PB6: the engagement prior is re-centred at no effect, and the seam stops booking a no-account lookup as direct debit) and `c5e30c230` (a leaving household's gas leg is a leaver). The first two move the company's churn estimate, which feeds `p_retain`, and `p_retain` is exactly what the churn roll is compared against. So a re-grade at origin is a different world, and this grade does not transfer to it without a bridge.
+
+**Consequence under the rule above: n\* = 6 ≤ 12, so extend.** Seeds 61001–61004 are done, so the extension is one 2-seed leg, **X1: 61005,61006, `churn_roll`**, on the same pin and weather store. It runs as `/var/tmp/se-ab6-out/legs6x.sh` (sha256 `d1ad196c…d23e`). That script is legs6.sh's per-leg pin and digest checks, verbatim, with the leg line changed and one repair to the resident check. **The repair: legs6.sh's resident check matches prompts, not only runs.** `pgrep -f "tools.run_value_cycle_ab"` is unanchored, and `.` matches `/`. The first X1 launch (13:41:25Z) therefore sat waiting on pid 202737, which is a Claude seat whose prompt text names `tools/run_value_cycle_ab.py`. My own session matched too. It would have waited up to 6h and then refused with rc 91. I stopped my own unit after ~30 s, before any leg started (log kept as `runX1.falsestart.log`). legs6x.sh anchors the pattern to the leg's argv (`^python3 -m tools\.run_value_cycle_ab`), and it relaunched at 13:42:02Z. legs6.sh got lucky: at its launch it waited only on real runs. The same pattern in any copy of it can stall for hours on a prompt. X1 is pid 313621. Its log shows the pin clean and the weather digest `e11451b5…d242` at start. The unit is `longjob-ab6-extension-x1`, launched through `background.launch_long_job --peak-mb 11200`. At launch it was admitted at 6,035 MB resident + 11,200 = 17,235 of 23,008 MB. It writes `/var/tmp/se-ab6-out/runX1.json` and logs to `runX1.log`, and takes ~3h. **The book-varying design (`SEAT_PREREG_THE_AB_THAT_VARIES_THE_BOOK_NOT_THE_SEED_2026-09-30.md`, and its EP17 amendment `19ca27dbc`) is not triggered by this result**, and nothing here runs `--book-seeds` or writes the activation file.
+
+**Predictions for X1, filed before it launched:**
+
+| id | prediction | refuted if |
+|---|---|---|
+| **X1a** | both X1 seeds' D_lin ex-0098 < 0 (~65%) | either ≥ 0 |
+| **X1b** | the six-seed 95% t-CI excludes zero, on the negative side (~55%) | the CI contains zero, or excludes it on the positive side |
+| **X1c** | the six-seed sd stays in £1,500–£8,000 (~80%) | outside |
+
+**The plain answer, fixed before X1 reads.** If X1b holds, the answer at the pin is **no**. On what it decided differently, and over its own renewal noise, the per-customer arm **loses** to flat rules, and the ab5 positive was the fixed roll. If the CI contains zero at n = 6, the answer is **"cannot say on this book under its own renewal noise"**. The next step is then the book-varying prereg above, not more seeds: n\* was computed from a four-seed sd, and the prereg's ceiling is not re-opened after the fact.
+
+**Grading X1:** `grade_lineage.py runP1.json runP2.json runX1.json` and `grade_p3.py` over the same three artefacts.

@@ -2,10 +2,17 @@
 
 # [ORIGIN FORK] REFUSED_CONFLICT: between e097212cd and 33b78a519 -- 6 conflicted path(s), nothing was committed:
 
-**Filed automatically by `background/alarm_repetition.py`, not by a person.** This alarm has
-fired **46 times without its state changing**, over **101.9h**. Under the
-director's instruction of 2026-08-20 a repeating alert escalates itself into the draw rather
-than being sent again, so this document exists and a 46th page does not.
+<!-- counts:begin -->
+**Filed automatically by `background/alarm_repetition.py`, not by a person.** This condition
+has been **observed to hold on 16 separate day(s)**, between **2026-09-15** and **2026-09-30**,
+and **16 member(s)** of the family `deadman_origin_fork` have fired. Both counts are DERIVED
+from this document's own dated lines every time the alarm fires again, so they age with the
+document rather than with its first firing.
+
+Separately, the observer that last filed reported **3 consecutive firing(s) without a state
+change**, over **0.2h**. That is `notify()`'s streak counter, which resets; it is not a total
+and does not combine with the two counts above.
+<!-- counts:end -->
 
 ## The alarm, verbatim
 
@@ -71,6 +78,66 @@ files a fresh document, because that is a new episode and an R3 two-strike signa
 - `refused_conflict: between # and # -- # conflicted path(s), nothing was committed: docs/staging/records/prereg_the_publis` (first seen 2026-09-18)
 - `refused_conflict: between # and # -- # conflicted path(s), nothing was committed: tests/background/test_a_window_that_cl` (first seen 2026-09-18)
 - `refused_conflict: between # and # -- # conflicted path(s), nothing was committed: docs/staging/records/seat_result_a_car` (first seen 2026-09-24)
-
+- `refused_conflict: between # and # -- # conflicted path(s), nothing was committed: docs/staging/seat_finding_the_checkout` (first seen 2026-09-24)
+- `refused_conflict: between # and # -- # conflicted path(s), nothing was committed: tests/tools/test_level_zero_contradict` (first seen 2026-09-26)
+- `refused_conflict: between # and # -- # conflicted path(s), nothing was committed: docs/staging/seat_finding_the_ledger_a` (first seen 2026-09-28)
+- `refused_conflict: between # and # -- # conflicted path(s), nothing was committed: background/delivery_lane.py a conflict` (first seen 2026-09-28)
+- `refused_conflict: between # and # -- # conflicted path(s), nothing was committed: docs/staging/worker_finding_pb#_the_en` (first seen 2026-09-30)
+- `refused_conflict: between # and # -- # conflicted path(s), nothing was committed: docs/design/blocked_atom_visibility.md` (first seen 2026-09-30)
 ## Re-asked
 - **2026-09-24** — re-asked: **still_holds**. observed 2026-09-24, within the 3-day bar.
+- **2026-09-25** — re-asked: **still_holds**. observed 2026-09-24, within the 3-day bar.
+- **2026-09-26** — re-asked: **still_holds**. observed 2026-09-25, within the 3-day bar.
+- **2026-09-27** — re-asked: **still_holds**. observed 2026-09-26, within the 3-day bar.
+- **2026-09-28** — re-asked: **still_holds**. observed 2026-09-27, within the 3-day bar.
+- **2026-09-29** — re-asked: **still_holds**. observed 2026-09-28, within the 3-day bar.
+- **2026-09-30** — re-asked: **still_holds**. observed 2026-09-29, within the 3-day bar.
+
+## 2026-09-30 fork: the duplicate pairs, and which route made each copy (seat, lane 0)
+
+Every shared-HEAD copy below appears in the reflog of `main` as `surgical-land`, so each was
+committed by `surgical_land` run IN THE SHARED TREE, by the tick worker or the live interactive
+seat. None of them ever reached origin: `promote_worktree_landing` never writes or pushes the
+shared tree, and `origin_reconcile` refused the merge every cadence. Every origin copy is a SECOND,
+separate landing: a `surgical_land` in an isolated worktree off origin, then a promote. **No landing
+committed to both shared HEAD and origin.** Each pair is the same work done by two writers,
+because the shared-tree writer's landing could not publish.
+
+| shared HEAD | origin | how the local copy was made | how the origin copy was made |
+|---|---|---|---|
+| 7f3022e66 | abd5f4ab1 | worker tick, shared tree; different text (its own filed predictions 3-5) | seat executor, `/var/tmp/se-seat-executor` (reflog `surgical-land` 00:36Z) |
+| bb76ab6eb | a322166cc | worker tick, shared tree; different text | seat executor, same worktree (01:21Z) |
+| a5ed0d0e2 | 48104db63 | shared tree, 03:09Z; the same reds re-keyed a second time | no live worktree committed it; a since-removed worktree |
+| a1ba7b753 | 9727cb88f | shared tree, 01:39Z; patch-identical | seat executor, same worktree (01:56Z) |
+| b2739434b | 7413b3ea2 | shared tree, 01:48Z; patch-identical | since-removed worktree (the executor only reset to it) |
+| 124a46a06 | d11c047ac | shared tree, 06:08Z; patch-identical | since-removed worktree |
+| 6b5654f04 | 9f5497cb3 | shared tree, 09:09Z; patch-identical | since-removed worktree |
+
+**Disposition (lane 0, `land-the-stranded-head-only-commits-on-origin`):** the 19 receipted
+shared-HEAD-only commits, from 7f3022e66 through 5ff9171a2, are replayed in order onto origin as ONE
+gated landing, with origin as the base on the duplicate paths (the commit message lists the carried
+lines). **This does not close the fork, and the item's DONE line cannot be met by landing alone.**
+`reconcile()` merges whenever `rev-list origin/main..HEAD` is non-zero, and a content landing leaves
+that count at 26. The two prereg records are add/add with different bytes on each side, and the PB6
+finding is changed on both sides, so the merge keeps conflicting. `git cherry` matches patch-ids, so
+a combined landing cannot turn the stranded commits to `-`. The fork closes only when the shared
+tree's HEAD is MOVED to origin, and the other lanes' uncommitted files must be preserved when that
+happens. That move is handed on as its own item.
+
+**Correction (seat, lane 0, second turn on the same claim, 13:30Z).** No continuation was written for
+the "move", and a MOVE would have been wrong. The two receipt-less `delivery seat: direction`
+commits (41644d8b8, c2ac926ef) hold the only copy of the 09-30 `DIRECTION.yaml` and
+`decisions.jsonl`, because origin's last direction commit is b76e69c0d from 09-29. Resetting the
+shared HEAD to origin would have reverted the director's current direction without any warning.
+A fetch-and-merge in the other direction closes the fork with nothing lost. A throwaway worktree
+at the shared HEAD runs `surgical_land --merge origin/main`, with `--resolve` taking origin's copy
+on all 7 conflicted paths. 4380002bd had already carried each HEAD-only line those paths held.
+One path needed `--drops`, and the door was right to ask for it. The gas-leg test's
+`test_the_opening_term_is_fixed_on_both_fuels` was rewritten on BOTH sides, a5ed0d0e2 on HEAD and
+48104db63 on origin, re-keying the same red. The copy kept is origin's, which requires both
+partitions to be non-empty.
+H45 (bc0df4b9e) was the one receipted commit 4380002bd left out, and it was replayed first as
+its own landing. The merge's first parent is the shared HEAD, so origin fast-forwards to it,
+and then `origin_reconcile` sees `ahead == 0` and fast-forwards the shared tree on its own
+cadence. It is a fast-forward, so nobody's uncommitted file is touched. It also turns every
+stranded commit into an ancestor of origin, which is the only thing that can empty `git cherry`.

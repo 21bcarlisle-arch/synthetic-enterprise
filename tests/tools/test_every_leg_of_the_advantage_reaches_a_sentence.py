@@ -52,14 +52,26 @@ OBSERVABILITY = PROJECT / "docs" / "observability"
 
 #: A FLOOR AND THE RUN IT WAS MEASURED ON -- the pair, because half a pair cannot be graded. Both
 #: families are real artefacts already in this repository, chosen by measuring the corpus rather
-#: than by construction: a fabricated family would make every assertion below unfalsifiable. One
-#: pair's legs all clear their own bar; the other's SPLIT. They share a run, differ by ninety
-#: minutes of wall clock and nine fresh seeds, and disagree about the selection leg by a factor of
-#: ten -- which is why both are kept rather than one being preferred.
-UNANIMOUS_PAIR = (OBSERVABILITY / "value_cycle_ab_s1_noise_floor.json",
+#: than by construction: a fabricated family would make every assertion below unfalsifiable.
+#:
+#: RE-CHOSEN 2026-09-30, AND WHY. These were a "unanimous" pair (every leg stateable) and a split
+#: one. `39330677b` then withheld the side of any leg whose family REPEATS draws -- its bound is
+#: partly a count of how often the instrument pinned -- and graded over every admissible pair on
+#: this disk, no pair is unanimous any more and none states the selection leg's side. The old
+#: unanimous pair is kept as the instance of that third state: its level leg clears its bar at 49.5
+#: sems and is withheld because 4 of its 9 draws repeat. The split pair is now the one family that
+#: states the level with no repeated draw -- 3 seeds, 38.4 sems, selection at 0.4.
+REPEATING_PAIR = (OBSERVABILITY / "value_cycle_ab_s1_noise_floor.json",
                   OBSERVABILITY / "value_cycle_ab_s1_three_arm_20260910.json")
-SPLIT_PAIR = (OBSERVABILITY / "value_cycle_ab_s1_noise_floor_20260910b.json",
-              OBSERVABILITY / "value_cycle_ab_s1_three_arm_20260910.json")
+SPLIT_PAIR = (OBSERVABILITY / "value_cycle_ab_s1_noise_floor_20260908.json",
+              OBSERVABILITY / "value_cycle_ab_s1_three_arm_20260908.json")
+
+#: THE NOUN A WITHHOLDING SENTENCE USES FOR EACH LEG. A stated side names the leg's subject; the
+#: branches that withhold it speak of "a selection effect" -- words a door control is keyed to -- so
+#: a reading names its own leg if it carries either.
+_EFFECT_NOUN = {gva.SELECTION_CONTRAST: "a selection effect",
+                gva.LEVEL_CONTRAST: "a price-level effect",
+                gva.PAGE_FIGURE_CONTRAST: "an advantage"}
 
 #: WHAT THE PAGE ACTUALLY PUBLISHES, and it is here to be a REAL instance of the refusing branch.
 #: `test_a_floor_that_bounds_nothing_grades_no_leg_and_says_why` used to reach that branch only by
@@ -129,7 +141,7 @@ def test_each_fixture_pair_is_admitted_for_a_stated_reason():
     has to satisfy the ordering on its own stamps. A pair that passed the rule while failing the
     ordering would mean the rule had stopped being about the ordering.
     """
-    for pair in (UNANIMOUS_PAIR, SPLIT_PAIR):
+    for pair in (REPEATING_PAIR, SPLIT_PAIR):
         floor, run = _load(pair[0]), _load(pair[1])
         assert floor["generated_at"] >= run["generated_at"], (
             "{} was measured BEFORE the run it is paired with here, so this fixture asks the "
@@ -148,17 +160,24 @@ def test_every_bounded_contrast_reaches_a_reading_of_its_own():
     control is over the PARTITION and not over one leg: every contrast this file says it bounds
     has to arrive with its own estimate, its own bar and its own sentence.
     """
-    legs = _graded(UNANIMOUS_PAIR)["legs"]
-    assert set(legs) == set(gva._BOUNDED_CONTRASTS), (
-        "the advantage has {} bounded legs and only {} reached a reading; a leg nobody "
-        "summarises reads on the page exactly like a leg with nothing in it".format(
-            len(gva._BOUNDED_CONTRASTS), len(legs)))
-    for key, leg in legs.items():
-        assert leg["available"] is True, (key, leg)
-        assert leg["reading"], "{} carries no sentence".format(key)
-        assert leg["subject"] in leg["reading"], (
-            "{}'s sentence does not name {} -- a reading that names another leg's subject is "
-            "worse than none".format(key, leg["subject"]))
+    for pair in (REPEATING_PAIR, SPLIT_PAIR):
+        legs = _graded(pair)["legs"]
+        assert set(legs) == set(gva._BOUNDED_CONTRASTS), (
+            "the advantage has {} bounded legs and only {} reached a reading; a leg nobody "
+            "summarises reads on the page exactly like a leg with nothing in it".format(
+                len(gva._BOUNDED_CONTRASTS), len(legs)))
+        for key, leg in legs.items():
+            assert leg["available"] is True, (key, leg)
+            reading = leg["reading"]
+            assert reading, "{} carries no sentence".format(key)
+            assert leg["subject"] in reading or _EFFECT_NOUN[key] in reading, (
+                "{}'s sentence names neither {!r} nor {!r}".format(
+                    key, leg["subject"], _EFFECT_NOUN[key]))
+            others = [other["subject"] for k, other in legs.items()
+                      if k != key and other["subject"] in reading]
+            assert not others, (
+                "{}'s sentence names {} -- a reading that names another leg's subject is worse "
+                "than none".format(key, others))
 
 
 def test_the_level_leg_states_its_sign_because_its_own_family_determines_one():
@@ -168,7 +187,8 @@ def test_the_level_leg_states_its_sign_because_its_own_family_determines_one():
     measurement. A level leg whose draws straddled zero would fail this by its own numbers, which
     is the correct direction for it to fail in.
     """
-    leg = _graded(UNANIMOUS_PAIR)["legs"][gva.LEVEL_CONTRAST]
+    leg = _graded(SPLIT_PAIR)["legs"][gva.LEVEL_CONTRAST]
+    assert not leg["repetition"]["draws_that_repeat_another"], leg["repetition"]
     assert leg["sems_from_zero"] > leg["sems_needed_to_state_a_sign"], leg
     assert leg["sign_is_stateable"] is True, leg
     assert leg["sign"] == ("positive" if leg["estimate_gbp"] > 0 else "negative"), leg
@@ -182,9 +202,9 @@ def test_each_leg_is_graded_at_its_own_familys_bar_and_over_its_own_rows():
     spread. It would render three verdicts, all of them wrong for two legs, and every other
     control here would stay green.
     """
-    floor = _load(UNANIMOUS_PAIR[0])
+    floor = _load(REPEATING_PAIR[0])
     rows = [s for s in floor["seeds"] if isinstance(s, dict)]
-    legs = _graded(UNANIMOUS_PAIR)["legs"]
+    legs = _graded(REPEATING_PAIR)["legs"]
     for key, leg in legs.items():
         values = [row[key] for row in rows]
         assert leg["estimate_gbp"] == pytest.approx(sum(values) / len(values)), (
@@ -205,9 +225,9 @@ def test_the_selection_leg_reads_the_same_on_both_routes():
     bounds the other two -- and a derivation that cannot reproduce the single figure it is
     checkable against has no business bounding anything.
     """
-    run = _run(UNANIMOUS_PAIR)
+    run = _run(REPEATING_PAIR)
     split = _split(run)
-    floor = _load(UNANIMOUS_PAIR[0])
+    floor = _load(REPEATING_PAIR[0])
     bar = gva._error_bar(floor, split.get("selection_gbp"), run, split.get("clock"), split)
     published = bar["selection_leg"]
     derived = bar["legs_on_one_bar"]["legs"][gva.SELECTION_CONTRAST]
@@ -230,19 +250,22 @@ def test_both_verdicts_are_reachable_over_real_floors_on_this_disk():
     """Fires on: a grader that can only ever produce one verdict.
 
     A partition every test asks one side of is a partition nothing has established is a partition.
-    This asserts the level leg CAN be stated while the selection leg CANNOT, on a pair that is
-    already in this repository -- which is the state the whole finding is about -- and that a pair
-    exists where every leg clears. Neither family is constructed here; both were found by running
-    this grader over the real corpus, and they share a run, so the difference between them is nine
-    seeds and nothing else.
+    A leg reaches one of three states, and each is asserted reached on a real pair in this
+    repository: its side STATED; WITHHELD SHORT of its bar; and WITHHELD DESPITE CLEARING its bar,
+    because the family repeats draws. The last is the rare one -- it went unreached by any control
+    here while it silently turned the "unanimous" fixture into something else.
     """
-    unanimous = _graded(UNANIMOUS_PAIR)["legs"]
+    repeating = _graded(REPEATING_PAIR)["legs"]
     split = _graded(SPLIT_PAIR)["legs"]
-    assert all(leg["sign_is_stateable"] is True for leg in unanimous.values()), unanimous
-    assert split[gva.LEVEL_CONTRAST]["sign_is_stateable"] is True, split[gva.LEVEL_CONTRAST]
-    assert split[gva.SELECTION_CONTRAST]["sign_is_stateable"] is False, (
-        split[gva.SELECTION_CONTRAST])
-    assert split[gva.SELECTION_CONTRAST]["sign"] is None, split[gva.SELECTION_CONTRAST]
+    stated = split[gva.LEVEL_CONTRAST]
+    short = split[gva.SELECTION_CONTRAST]
+    pinned = repeating[gva.LEVEL_CONTRAST]
+    assert (stated["sign_is_stateable"] is True
+            and short["sign_is_stateable"] is False and short["clears_its_own_bar"] is False
+            and pinned["sign_is_stateable"] is False and pinned["clears_its_own_bar"] is True
+            ), (stated, short, pinned)
+    assert short["sign"] is None and pinned["sign"] is None, (short, pinned)
+    assert pinned["sign_withheld_because_the_family_repeats_draws"], pinned
 
 
 def test_the_split_verdict_says_the_level_is_what_can_be_called():
@@ -256,24 +279,39 @@ def test_the_split_verdict_says_the_level_is_what_can_be_called():
     assert "price LEVEL" in clause, clause
     assert "value MOVED" in clause, clause
     assert "cannot yet call" in clause, clause
+    # AND IT SAYS SO ONLY WHEN IT IS SO. On the repeating pair the level's side is withheld, and the
+    # split sentence used to announce "the leg that CAN be called is the price LEVEL" anyway.
+    withheld = _graded(REPEATING_PAIR)
+    assert withheld["legs"][gva.LEVEL_CONTRAST]["sign_is_stateable"] is False
+    assert "CAN be called is the price LEVEL" not in withheld["the_verdicts"], (
+        withheld["the_verdicts"])
 
 
-def test_a_unanimous_family_that_reads_against_the_company_says_so():
+def test_a_family_that_reads_against_the_company_says_so():
     """Fires on: a verdict sentence that states a positive level and a negative choosing as two
-    neutral measurements.
+    neutral measurements -- or that says so when the signs do not.
 
     Derived from the two signs and never asserted: a publish where the choosing turns positive
-    drops the sentence with nobody editing a string. That is what makes it a reading rather than
-    a confession pinned to today's answer.
+    drops the sentence with nobody editing a string. No pair on this disk now states the
+    selection leg's side, so the branch that says it is reached through the clause's own inputs,
+    and every real pair is held to the biconditional.
     """
-    block = _graded(UNANIMOUS_PAIR)
-    legs = block["legs"]
-    against_us = (legs[gva.LEVEL_CONTRAST]["sign"] == "positive"
-                  and legs[gva.SELECTION_CONTRAST]["sign"] == "negative")
-    assert against_us, "this pair no longer reads against the company; the control below is moot"
-    clause = block["the_verdicts"]
-    assert "AGAINST THIS COMPANY" in clause, clause
-    assert "flat rule beat the control by MORE" in clause, clause
+    level = (gva.LEVEL_CONTRAST, "the price-LEVEL leg", "positive")
+    whole = (gva.PAGE_FIGURE_CONTRAST, "the whole advantage over flat rules", "positive")
+    against = gva._the_verdicts_clause(
+        [whole, level, (gva.SELECTION_CONTRAST, "the selection leg", "negative")], [], 9)
+    not_against = gva._the_verdicts_clause(
+        [whole, level, (gva.SELECTION_CONTRAST, "the selection leg", "positive")], [], 9)
+    assert "AGAINST THIS COMPANY" in against, against
+    assert "flat rule beat the control by MORE" in against, against
+    assert "AGAINST THIS COMPANY" not in not_against, not_against
+    for pair in (REPEATING_PAIR, SPLIT_PAIR):
+        block = _graded(pair)
+        legs = block["legs"]
+        against_us = (legs[gva.LEVEL_CONTRAST]["sign"] == "positive"
+                      and legs[gva.SELECTION_CONTRAST]["sign"] == "negative")
+        assert ("AGAINST THIS COMPANY" in block["the_verdicts"]) is against_us, (
+            pair[0].name, block["the_verdicts"])
 
 
 def test_a_floor_that_bounds_nothing_grades_no_leg_and_says_why():
@@ -283,9 +321,9 @@ def test_a_floor_that_bounds_nothing_grades_no_leg_and_says_why():
     floor that bounds no leg. The permissive failure -- deriving the level and value families
     locally and skipping those five refusals -- is the one this is written against.
     """
-    run = _run(UNANIMOUS_PAIR)
+    run = _run(REPEATING_PAIR)
     split = _split(run)
-    floor = _load(UNANIMOUS_PAIR[0])
+    floor = _load(REPEATING_PAIR[0])
     worldless = dict(floor, world_identity={})
     block = gva._legs_on_one_bar(worldless, run, split, split.get("clock"))
     assert block["available"] is False, block

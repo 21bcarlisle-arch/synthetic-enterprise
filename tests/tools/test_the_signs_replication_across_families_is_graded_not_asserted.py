@@ -33,12 +33,17 @@ import tools.generate_value_arms_data as gva
 PROJECT = Path(__file__).resolve().parents[2]
 OBSERVABILITY = PROJECT / "docs" / "observability"
 
-#: A PAIR SET DRAWN FROM PRODUCTION THAT MAKES EVERY LEG REPLICATE, and it is the first entry of
-#: the production tuple rather than anything constructed here. A single unanimous family trivially
-#: agrees with itself, which is exactly the property needed: it is the `replicates` outcome reached
-#: over real bytes. Fabricating a family to reach it would make the discrimination control assert
-#: something about a fixture instead of about the rule.
-UNANIMOUS_SUBSET = gva._REPLICATION_PAIRS[:1]
+#: A PAIR SET DRAWN FROM PRODUCTION THAT MAKES A LEG REPLICATE, and it is the first entry of the
+#: production tuple rather than anything constructed here. A single family trivially agrees with
+#: itself on every leg it states, which is exactly the property needed: it is the `replicates`
+#: outcome reached over real bytes. Fabricating a family to reach it would make the discrimination
+#: control assert something about a fixture instead of about the rule.
+#:
+#: IT WAS "UNANIMOUS" UNTIL `39330677b` (2026-09-22) withheld the side of a leg whose draws repeat.
+#: This family's level and selection legs repeat, so only the whole advantage states a side now, and
+#: no pair on this disk states the selection leg's. The all-replicate sentence is therefore reached
+#: through the composer's own inputs below, not through a pair set.
+ONE_FAMILY_SUBSET = gva._REPLICATION_PAIRS[:1]
 
 
 def _load(path: Path) -> dict:
@@ -86,7 +91,7 @@ def test_the_verdict_discriminates_replication_from_contest():
     day a re-run makes the four families agree, `_the_sign_across_families()` moves to `replicates`
     and this control keeps its meaning with nobody editing a string.
     """
-    unanimous = _verdicts(gva._the_sign_across_families(UNANIMOUS_SUBSET))
+    unanimous = _verdicts(gva._the_sign_across_families(ONE_FAMILY_SUBSET))
     everything = _verdicts(gva._the_sign_across_families())
     assert "replicates" in unanimous.values(), (
         "no pair set in this repository produces a `replicates` verdict, so the grader has never "
@@ -98,7 +103,7 @@ def test_the_verdict_discriminates_replication_from_contest():
     assert moved, (
         "no leg's verdict changed between {} families and {} -- the verdict is not a function of "
         "the families at all, which is a constant wearing a computation's clothes".format(
-            len(UNANIMOUS_SUBSET), len(gva._REPLICATION_PAIRS)))
+            len(ONE_FAMILY_SUBSET), len(gva._REPLICATION_PAIRS)))
 
 
 def test_the_classifier_reaches_all_three_of_its_own_outcomes():
@@ -250,14 +255,20 @@ def test_the_reading_is_composed_from_the_verdicts_and_not_written_beside_them()
     on the day a re-run settled it. So the two pair sets that reach opposite verdicts must also
     reach different sentences, and the one whose legs all replicate must not claim a contest.
     """
-    unanimous = gva._the_sign_across_families(UNANIMOUS_SUBSET)
+    one = gva._the_sign_across_families(ONE_FAMILY_SUBSET)
     everything = gva._the_sign_across_families()
-    assert unanimous["the_reading"] != everything["the_reading"], (
-        "the same sentence is published for a family set where every leg replicates and one where "
-        "a leg does not -- it is a literal, not a reading")
-    assert "not a gap in it" not in unanimous["the_reading"], (
+    assert _verdicts(one) != _verdicts(everything), (
+        "premise: the two sets must reach different verdicts")
+    assert one["the_reading"] != everything["the_reading"], (
+        "the same sentence is published for two family sets whose verdicts differ -- it is a "
+        "literal, not a reading")
+    every_leg = {key: {"verdict": "replicates", "subject": subject}
+                 for key, (subject, _) in gva._LEG_SUBJECTS.items()}
+    all_replicate = gva._replication_reading(every_leg, [{"available": True}])
+    assert "not a gap in it" not in all_replicate, (
         "the all-replicate reading claims a contrast between legs that do and do not replicate, "
-        "when every leg replicated: {}".format(unanimous["the_reading"]))
+        "when every leg replicated: {}".format(all_replicate))
+    assert "No sign here is a property of which floor was drawn" in all_replicate, all_replicate
     for key, leg in everything["per_leg"].items():
         if leg["verdict"] != "replicates":
             assert leg["subject"] in everything["the_reading"], (
@@ -296,16 +307,25 @@ def test_the_strength_of_the_replicating_legs_is_measured_and_not_typed():
     # maximum and this control reded while the code became MORE honest. That is a control pinned
     # to today's answer going red for the reason it exists to prevent, and the repair is to ask
     # the rows which family carries it rather than to assume an index.
-    replicating = {key for key, leg in gva._the_sign_across_families()["per_leg"].items()
+    #
+    # AND WHICH FAMILIES, IS DERIVED TOO (2026-09-30). Across all five families no leg replicates
+    # any more -- a family whose draws repeat withholds its side -- so the set is the families that
+    # each state the whole advantage, which is the leg the most of them state.
+    key = gva.PAGE_FIGURE_CONTRAST
+    pairs = tuple(p for p in gva._REPLICATION_PAIRS
+                  if gva._the_sign_across_families((p,))["per_leg"][key]["verdict"]
+                  == "replicates")
+    assert len(pairs) >= 3, (
+        "premise: too few families state {} to drop one and still replicate".format(key))
+    replicating = {k for k, leg in gva._the_sign_across_families(pairs)["per_leg"].items()
                    if leg["verdict"] == "replicates"}
+    assert key in replicating, replicating
     carrier = max(
-        range(len(gva._REPLICATION_PAIRS)),
+        range(len(pairs)),
         key=lambda i: gva._strongest_sems(
-            gva._replication_pair_blocks(gva._REPLICATION_PAIRS[i:i + 1]),
-            replicating) or float("-inf"))
-    without_the_carrier = (gva._REPLICATION_PAIRS[:carrier]
-                           + gva._REPLICATION_PAIRS[carrier + 1:])
-    full = _quoted(gva._REPLICATION_PAIRS)
+            gva._replication_pair_blocks(pairs[i:i + 1]), replicating) or float("-inf"))
+    without_the_carrier = pairs[:carrier] + pairs[carrier + 1:]
+    full = _quoted(pairs)
     weaker = _quoted(without_the_carrier)
     assert full != weaker, (
         "dropping the family that carries the strongest replicating leg did not move the number "
@@ -402,10 +422,14 @@ def test_a_floor_that_repeats_no_draw_is_not_a_floor_that_could_not_be_counted()
     assert clean["countable"] is True and clean["draws_that_repeat_another"] == 0, clean
     assert clean["distinct_values"] == 3 and clean["draws"] == 3, clean
 
+    # TWO COUNTS SINCE `39330677b`, each with its own meaning: a value returned three times
+    # IMPLICATES three draws and makes two REDUNDANT. The old single key counted the second while
+    # its name said the first.
     repeats = gva._draw_repetition(_floor([1.0, 1.0, 1.0, 2.0]))
-    assert repeats["draws_that_repeat_another"] == 2, (
-        "three draws returning one value counts as fewer than TWO draws repeating another, so a "
-        "floor that pinned three times reads as milder than it was: {!r}".format(repeats))
+    assert repeats["draws_that_repeat_another"] == 3, (
+        "three draws returning one value implicates three draws, and a count of fewer reads a "
+        "floor that pinned three times as milder than it was: {!r}".format(repeats))
+    assert repeats["redundant_draws"] == 2, repeats
 
     silent = gva._draw_repetition(_floor([1.0, None, 3.0]))
     assert silent["countable"] is False, (

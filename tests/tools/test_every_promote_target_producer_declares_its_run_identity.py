@@ -53,10 +53,20 @@ PRODUCERS = {
 
 
 def _payloads_missing_declaration(source: str, anchor: str) -> list[int]:
-    """Line numbers of dict literals carrying `anchor` and NOT declaring their run identity."""
+    """Line numbers of dict literals carrying `anchor` and NOT declaring their run identity.
+
+    A dict carrying the anchor INSIDE another anchored dict is not an artefact but a row within
+    one -- the fold's `folded_from.members` names each member's commit -- and the artefact around
+    it is the one that must declare.
+    """
+    tree = ast.parse(source)
+    anchored = [n for n in ast.walk(tree) if isinstance(n, ast.Dict)
+                and any(isinstance(k, ast.Constant) and k.value == anchor for k in n.keys)]
+    nested = {id(inner) for outer in anchored for inner in ast.walk(outer)
+              if inner is not outer and isinstance(inner, ast.Dict)}
     out: list[int] = []
-    for node in ast.walk(ast.parse(source)):
-        if not isinstance(node, ast.Dict):
+    for node in anchored:
+        if id(node) in nested:
             continue
         keys = {k.value for k in node.keys
                 if isinstance(k, ast.Constant) and isinstance(k.value, str)}

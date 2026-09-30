@@ -103,9 +103,15 @@ def restore_acquired_book():
     rp.ACQUIRED_CUSTOMERS[:] = before
 
 
-def _force_one_churn_with_a_win(monkeypatch, account_id: str) -> None:
-    """Turn the FIRST real lifecycle event for `account_id` into a churn that won the
-    home-mover, and hold every OTHER account to a renewal for the window.
+def _force_one_churn_with_a_win(monkeypatch, candidates) -> dict:
+    """Turn the FIRST real lifecycle event of any account in `candidates` into a churn that won
+    the home-mover, and hold every OTHER account to a renewal for the window. Returns a dict whose
+    `"account"` names the one forced, or None if no candidate reached a lifecycle event.
+
+    A SET, NOT ONE ID (2026-09-30). The successor leg forced `next(iter(SUCCESSOR_MAP))`, which is
+    C1, and once C1 stopped reaching a lifecycle event before `FORCED_RUN_END` the force never
+    fired and the test measured an empty window. Any successor-bearing account is the subject,
+    so the first one the world reaches is forced and the test reads which it was.
 
     THE SOLE-CHURN PREMISE IS NOW ENFORCED RATHER THAN INHERITED (2026-08-27). This used to
     leave other accounts' events untouched, and the tests below rely on "the forced churn is the
@@ -124,23 +130,41 @@ def _force_one_churn_with_a_win(monkeypatch, account_id: str) -> None:
     time is noise that makes the market approach unattributable.
     """
     real_roll = rp.roll_lifecycle_event
-    forced = {"done": False}
+    candidates = set(candidates)
+    forced = {"account": None}
 
     def wrapper(cid, term_start_str, *args, **kwargs):
         event = real_roll(cid, term_start_str, *args, **kwargs)
         if event is None:
             return None
-        if not forced["done"] and event["customer_id"] == account_id:
+        if forced["account"] is None and event["customer_id"] in candidates:
             event["event_type"] = "churned"
             event["home_move_won"] = True
-            forced["done"] = True
-        elif event["customer_id"] != account_id:
+            forced["account"] = event["customer_id"]
+        elif event["customer_id"] != forced["account"]:
             # Hold everyone else on supply, so the only churn in the window is the forced one.
             event["event_type"] = "renewed"
             event["home_move_won"] = False
         return event
 
     monkeypatch.setattr(rp, "roll_lifecycle_event", wrapper)
+    return forced
+
+
+def _lifecycle_churns(result: dict) -> list[str]:
+    """The accounts that left through `roll_lifecycle_event` -- the route the hold above governs.
+
+    NOT `churned_billing_accounts`. That is the union of every departure route, and since C1b's
+    SVT-inertia departures (`_svt_departures`, `DEPARTURE_OCCASION_SVT_SEGMENT`) it also holds
+    accounts leaving an SVT stint, which no lifecycle event decides and this hold cannot reach:
+    on 2026-09-30 it read `['C7', 'PROS-2016-0003', ...]`, nine accounts, for one forced churn.
+    Those departures never go to market -- the only `decide_acquisition` call is in the lifecycle
+    branch -- so they cannot pollute the spy, and the attribution rests on this list alone.
+    """
+    assert result["churned_billing_accounts"], "no departure at all -- the forced churn never ran"
+    return sorted(
+        e["customer_id"] for e in result["customer_events"] if e.get("event_type") == "churned"
+    )
 
 
 def _spy_on_going_to_market(monkeypatch) -> list:
@@ -163,12 +187,14 @@ def test_a_won_home_mover_with_no_successor_still_goes_to_market(
     account = _accounts_without_successor()[0]
     assert rp.SUCCESSOR_MAP.get(account) is None, "fixture chose an account that HAS a successor"
 
-    _force_one_churn_with_a_win(monkeypatch, account)
+    forced = _force_one_churn_with_a_win(monkeypatch, [account])
     went_to_market = _spy_on_going_to_market(monkeypatch)
     result = rp.main(report_end=FORCED_RUN_END)
 
-    # The forced churn is the only one in this window, so any market approach is its.
-    assert result["churned_billing_accounts"] == [account]
+    assert forced["account"] == account, f"{account} reached no lifecycle event in the window"
+    # The forced churn is the only LIFECYCLE churn in this window, and that branch holds the
+    # only `decide_acquisition` call, so any market approach is its.
+    assert _lifecycle_churns(result) == [account]
     assert went_to_market, (
         f"{account} won its home-mover, had no successor supply point to activate, and "
         f"the company was never asked whether to replace it — the win suppressed the "
@@ -190,14 +216,17 @@ def test_a_won_home_mover_WITH_a_successor_activates_it_and_does_not_go_to_marke
     monkeypatch, restore_acquired_book
 ):
     """The other direction: the repair must not turn every win into a market approach."""
-    account = next(iter(rp.SUCCESSOR_MAP))
-    successor_id = rp.SUCCESSOR_MAP[account]
-
-    _force_one_churn_with_a_win(monkeypatch, account)
+    forced = _force_one_churn_with_a_win(monkeypatch, rp.SUCCESSOR_MAP)
     went_to_market = _spy_on_going_to_market(monkeypatch)
     result = rp.main(report_end=FORCED_RUN_END)
 
-    assert result["churned_billing_accounts"] == [account]
+    account = forced["account"]
+    assert account is not None, (
+        f"no successor-bearing account {sorted(rp.SUCCESSOR_MAP)} reached a lifecycle event "
+        f"before {FORCED_RUN_END} -- the force never fired and every leg below is vacuous"
+    )
+    successor_id = rp.SUCCESSOR_MAP[account]
+    assert _lifecycle_churns(result) == [account]
     assert successor_id in result["won_successor_activations"]
     assert not went_to_market, (
         f"{account}'s home-move win was delivered as {successor_id}; the company must "

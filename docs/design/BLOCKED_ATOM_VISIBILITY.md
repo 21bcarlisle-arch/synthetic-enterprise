@@ -8,9 +8,9 @@
 
 | Property | Source | Result |
 |---|---|---|
-| Invisible to the BUILD draw | `supervisor._maturity_map_draw_concurrent` (the real draw) | 88/88 parked atoms not offered — 53 proven excluded BY THE PARK (lifting the park alone makes them drawable), 35 excluded for another reason |
-| Visible to the staleness clocks | `tools/map_assertion_provenance.build_rows` (AO11) | 88/88 parked atoms carry a row |
-| Visible to the composition dial | this module, over all 352 atoms | 88 parked (21 with a gate stated in `block_reason`) |
+| Invisible to the BUILD draw | `supervisor._maturity_map_draw_concurrent` (the real draw) | 91/91 parked atoms not offered — 55 proven excluded BY THE PARK (lifting the park alone makes them drawable), 36 excluded for another reason |
+| Visible to the staleness clocks | `tools/map_assertion_provenance.build_rows` (AO11) | 91/91 parked atoms carry a row |
+| Visible to the composition dial | this module, over all 353 atoms | 91 parked (23 with a gate stated in `block_reason`) |
 
 ## The dial
 
@@ -25,14 +25,14 @@ At mint (2026-08-08) the ruling measured **82 harness vs 7 commercial across 206
 | `C_customer_ops` | 22 | 14 | 8 |
 | `A_strategy_governance` | 16 | 9 | 7 |
 | `G_data_learning` | 15 | 10 | 5 |
-| `W4_the_wall` | 14 | 5 | 9 |
+| `W4_the_wall` | 15 | 4 | 11 |
 | `F_risk_compliance` | 11 | 6 | 5 |
-| `B_commercial` | 10 | 6 | 4 |
+| `B_commercial` | 10 | 5 | 5 |
 | `E_finance_treasury` | 8 | 6 | 2 |
 | `W3_industry_systems` | 3 | 2 | 1 |
 | `W5_banking_payment_rails` | 1 | 1 | 0 |
 
-Harness share of the whole map: **34.9%** (123 of 352).
+Harness share of the whole map: **34.8%** (123 of 353).
 This is a DIAGNOSTIC (R12). `--check` never fails on it.
 The same lane counts split by `loop_stage` are on the WIP-flow door (`tools/generate_wip_flow_data.py`); what is here and not there is the with/without-parked comparison and the two probes below it.
 

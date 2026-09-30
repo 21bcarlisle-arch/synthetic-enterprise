@@ -116,9 +116,13 @@ BASELINE_DATE = "2026-08-06"
 # silence the suite — a new/rising code is a real new lint sin; fix it instead.
 #
 # SHRINK LOG — every downward move, with the reason (the ratchet's own remedy).
-#   2026-09-30  F841 124 -> 123  (a HEAD-register red rekeyed to its resolver). `tests/simulation/
-#     test_phase25a_eac_solar.py` bound `c1 = next(...)` and never read it; the rewrite that reads
-#     C1, C4 and C5 through one `by_id` map dropped the binding.
+#   2026-09-30  F841 124 -> 123  (two HEAD reds re-keyed). ONE FILE,
+#     `tests/simulation/test_phase25a_eac_solar.py`, a side effect: the cloud-cover control bound
+#     `c1` and never read it, and this commit rewrote that test because its comparison went red
+#     when the resolver moved to the per-cell store. The -1 the 2026-09-21 entry saw in the shared
+#     tree and declined to bank is this same binding, now removed in a commit.
+#     MEASURED ON THE TREE THIS COMMIT WOULD CREATE: a HEAD worktree with this commit's files
+#     reads F841 123. Nothing else is banked.
 #   2026-09-27  I001 1304 -> 1303  (the last Qwen callers retired). `background/file_api.py`: its
 #     `import httpx` served only /query; removing it left the top import block sorted.
 #   2026-09-27  I001 1305 -> 1304  (the Qwen internal audit retired). The one I001 in the deleted
@@ -889,8 +893,9 @@ RUFF_BASELINE: dict[str, int] = {
     # with the same `makefile_lint_scope()` the ratchet uses, so the improvement is inside this
     # commit rather than banked from a dirty tree.
     "E402": 172,  # lowered 2026-09-05 with the I001 entry above — same deletion, same attribution
-    "F841": 123,  # lowered 2026-09-30 (see the SHRINK LOG head). Previously 124,
-    #             lowered 2026-09-19: -1, `fired_ids` in
+    "F841": 123,  # lowered 2026-09-30 (see the SHRINK LOG head): -1, unread `c1` in
+    #             `tests/simulation/test_phase25a_eac_solar.py`. Previously 124,
+    #             lowered 2026-09-19 (see the SHRINK LOG head): -1, `fired_ids` in
     #             `tests/background/test_naive_organ.py`, bound and never read, in the file
     #             that T6's first coverage was added to. Previously 125,
     #             lowered 2026-09-07 (the Capacity Market price leg): -1, and it is this
