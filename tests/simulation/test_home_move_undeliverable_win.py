@@ -37,8 +37,12 @@ from simulation.customer_events import (
 from simulation.household import household_of
 
 # Short enough to keep the two forced runs cheap; the window is only the stage on
-# which the forced churn happens, so its own event history is irrelevant.
-FORCED_RUN_END = "2017-12-31"
+# which the forced churn happens, so its own event history is irrelevant. It must
+# reach ONE lifecycle event in each leg's candidate set: measured 2026-10-01, the
+# first are C5 (successor-bearing) on 2016-12-31 and C8 (no successor) on 2017-04-01.
+# Each leg asserts its force fired, so a world that moves those events reds here
+# rather than passing over an empty window. Was 2017-12-31 (~170 s a leg).
+FORCED_RUN_END = "2017-04-30"
 
 
 # ---------------------------------------------------------------------------
@@ -183,15 +187,24 @@ def test_a_won_home_mover_with_no_successor_still_goes_to_market(
     monkeypatch, restore_acquired_book
 ):
     """The BLOCKING defect, run end to end. Reverting the call site to the if/elif
-    chain leaves `went_to_market` empty and reds this test."""
-    account = _accounts_without_successor()[0]
-    assert rp.SUCCESSOR_MAP.get(account) is None, "fixture chose an account that HAS a successor"
+    chain leaves `went_to_market` empty and reds this test.
 
-    forced = _force_one_churn_with_a_win(monkeypatch, [account])
+    Forces the first account WITHOUT a successor that the world reaches, not the
+    first by name: C7's first event is the last day of a two-year window, so pinning
+    it cost the window eight months the subject never used (see `FORCED_RUN_END`)."""
+    candidates = _accounts_without_successor()
+    assert not [a for a in candidates if rp.SUCCESSOR_MAP.get(a) is not None], (
+        "the candidate set includes an account that HAS a successor")
+
+    forced = _force_one_churn_with_a_win(monkeypatch, candidates)
     went_to_market = _spy_on_going_to_market(monkeypatch)
     result = rp.main(report_end=FORCED_RUN_END)
 
-    assert forced["account"] == account, f"{account} reached no lifecycle event in the window"
+    account = forced["account"]
+    assert account is not None, (
+        f"no account without a successor {candidates} reached a lifecycle event before "
+        f"{FORCED_RUN_END} -- the force never fired and every leg below is vacuous"
+    )
     # The forced churn is the only LIFECYCLE churn in this window, and that branch holds the
     # only `decide_acquisition` call, so any market approach is its.
     assert _lifecycle_churns(result) == [account]
