@@ -60,6 +60,18 @@ OK = "ok"                    # the row rests on events on every side it needs
 NO_SOURCE = "no_source"      # no events at all -- the row is an ABSENCE, not a measurement of zero
 ONE_SIDED = "one_sided"      # NET only: one ledger is empty, so the net IS the other ledger
 
+# The SPENT decomposition, term by term (E5 FRAME §2.1; control C3). A SPENT event names its
+# term in `source`. A term with no event is OMITTED, and the omission travels on the SPENT and
+# NET rows: an unmeasured term understates SPENT, which flatters NET, and arithmetic cannot
+# show that. A zero-tonnage event IS a measurement (the local model after its 2026-08-10
+# eviction emits nothing, and saying so is different from not looking).
+SPENT_TERMS: Tuple[str, ...] = (
+    "compute_electricity",
+    "frontier_tokens",
+    "local_model_inference",
+    "people",
+)
+
 
 class CarbonEventMalformed(ValueError):
     """Fail-closed on a structurally invalid event (wrong ledger/sign/provenance/
@@ -158,6 +170,10 @@ class LedgerRow:
     as_of_earliest: Optional[str]
     as_of_latest: Optional[str]
     event_count: int
+    # SPENT terms this row rests on / leaves out. None on the SAVED row, where the SPENT
+    # decomposition does not apply -- an empty tuple there would read as "exhaustive".
+    measured_terms: Optional[Tuple[str, ...]] = None
+    omitted_terms: Optional[Tuple[str, ...]] = None
 
     @property
     def mixed_basis(self) -> bool:
@@ -181,8 +197,23 @@ def _provenance_mix(events: Tuple[CarbonEvent, ...]) -> Mapping[str, float]:
     return mix
 
 
-def _row(tco2e: float, status: str, events: Tuple[CarbonEvent, ...]) -> LedgerRow:
+def _spent_terms(spent_events: Tuple[CarbonEvent, ...]) -> Tuple[Tuple[str, ...], Tuple[str, ...]]:
+    """(measured, omitted) over SPENT_TERMS -- a partition of it, always. A SPENT event whose
+    source names no term measures no term, so it never shrinks the omitted list."""
+    seen = {e.source for e in spent_events}
+    measured = tuple(t for t in SPENT_TERMS if t in seen)
+    omitted = tuple(t for t in SPENT_TERMS if t not in seen)
+    return measured, omitted
+
+
+def _row(
+    tco2e: float,
+    status: str,
+    events: Tuple[CarbonEvent, ...],
+    spent_terms: Optional[Tuple[Tuple[str, ...], Tuple[str, ...]]] = None,
+) -> LedgerRow:
     stamps = sorted(e.as_of for e in events)
+    measured, omitted = spent_terms if spent_terms is not None else (None, None)
     return LedgerRow(
         tco2e=float(tco2e),
         status=status,
@@ -191,6 +222,8 @@ def _row(tco2e: float, status: str, events: Tuple[CarbonEvent, ...]) -> LedgerRo
         as_of_earliest=stamps[0] if stamps else None,
         as_of_latest=stamps[-1] if stamps else None,
         event_count=len(events),
+        measured_terms=measured,
+        omitted_terms=omitted,
     )
 
 
@@ -314,10 +347,11 @@ class CarbonLedger:
         saved_events = self._events_in(SAVED)
         spent_events = self._events_in(SPENT)
         net_status = self.net_status()
+        terms = _spent_terms(spent_events)
         return {
             "saved_tco2e": _row(self.saved(), OK if saved_events else NO_SOURCE, saved_events),
-            "spent_tco2e": _row(self.spent(), OK if spent_events else NO_SOURCE, spent_events),
+            "spent_tco2e": _row(self.spent(), OK if spent_events else NO_SOURCE, spent_events, terms),
             # NET's labels are the UNION of both sides -- it is a claim about both,
-            # so it inherits every basis and the full provenance mix behind it.
-            "net_tco2e": _row(self.net(), net_status, saved_events + spent_events),
+            # so it inherits every basis, the full provenance mix, and SPENT's omissions.
+            "net_tco2e": _row(self.net(), net_status, saved_events + spent_events, terms),
         }

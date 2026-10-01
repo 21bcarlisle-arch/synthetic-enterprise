@@ -294,3 +294,54 @@ def test_finite_tonnage_still_accepted():
     led = CarbonLedger()
     led.extend([_ev("a", SAVED, 0.0), _ev("b", SAVED, 1e6), _ev("c", SPENT, 1.0)])
     assert led.cost_per_tonne_abated(1000.0) > 0
+
+
+# -- C3: the omitted SPENT term travels with the figure ------------------------
+# Defect: a SPENT term with no measurement (the local model, the people) understates SPENT and
+# so flatters NET, and nothing on the row said so. The control is over the whole partition: for
+# every subset of terms measured, measured + omitted is exactly SPENT_TERMS, and NET carries the
+# same omissions as SPENT. Mutations that must go red: drop a term from the omitted computation;
+# give NET no terms; let an unattributed SPENT source count as measuring a term.
+
+def test_every_spent_term_is_either_measured_or_declared_omitted():
+    from itertools import combinations
+
+    from company.carbon.carbon_ledger import SPENT_TERMS
+
+    seen_lengths = set()
+    for k in range(len(SPENT_TERMS) + 1):
+        for measured in combinations(SPENT_TERMS, k):
+            led = CarbonLedger()
+            led.add(_ev("s", SAVED, 5.0))
+            led.extend(_ev(f"t-{t}", SPENT, 0.0, source=t, basis="activity_based") for t in measured)
+            view = led.three_ledger_view()
+            spent, net = view["spent_tco2e"], view["net_tco2e"]
+            assert spent.measured_terms == measured
+            assert set(spent.measured_terms) | set(spent.omitted_terms) == set(SPENT_TERMS)
+            assert not set(spent.measured_terms) & set(spent.omitted_terms)
+            assert (net.measured_terms, net.omitted_terms) == (spent.measured_terms, spent.omitted_terms)
+            seen_lengths.add(len(spent.omitted_terms))
+    # Both ends reachable: an absent feed omits every term, and full coverage omits none.
+    assert {0, len(SPENT_TERMS)} <= seen_lengths
+
+
+def test_an_absent_spent_feed_omits_every_term_and_saved_carries_none():
+    from company.carbon.carbon_ledger import SPENT_TERMS
+
+    led = CarbonLedger()
+    led.add(_ev("s", SAVED, 5.0))
+    view = led.three_ledger_view()
+    assert view["spent_tco2e"].omitted_terms == SPENT_TERMS
+    assert view["net_tco2e"].omitted_terms == SPENT_TERMS
+    # Not applicable on SAVED -- an empty tuple there would read as "exhaustive".
+    assert view["saved_tco2e"].omitted_terms is None
+
+
+def test_an_unattributed_spent_source_measures_no_term():
+    from company.carbon.carbon_ledger import SPENT_TERMS
+
+    led = CarbonLedger()
+    led.extend([_ev("s", SAVED, 5.0), _ev("x", SPENT, 1.0, source="H1")])
+    spent = led.three_ledger_view()["spent_tco2e"]
+    assert spent.measured_terms == ()
+    assert spent.omitted_terms == SPENT_TERMS
