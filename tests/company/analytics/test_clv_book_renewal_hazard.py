@@ -39,7 +39,6 @@ from company.analytics.clv_three_horizon import (
     TimeModel,
     estimate_account,
     estimate_book,
-    survival_discounted_value_gbp,
 )
 from company.analytics.customer_value_view import (
     build_customer_value_view,
@@ -245,7 +244,7 @@ def test_h2_is_priced_at_the_books_exit_hazard_and_not_the_accounts_belief():
     high = estimate_account(_obs(belief=0.60), book_exits=_COUNTED).tenure_expected
     h = _COUNTED.hazard
     assert low.value_gbp == high.value_gbp == pytest.approx(
-        survival_discounted_value_gbp(120.0, h, DISCOUNT_RATE, 1.0 / h)
+        120.0 * (1.0 - h) / (DISCOUNT_RATE + h)
     )
     # The belief path, for contrast, does move -- so the equality above is the book
     # path's doing and not a horizon that ignores its hazard altogether.

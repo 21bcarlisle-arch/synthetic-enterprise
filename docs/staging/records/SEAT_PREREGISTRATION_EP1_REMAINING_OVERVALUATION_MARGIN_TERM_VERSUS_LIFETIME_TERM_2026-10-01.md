@@ -131,3 +131,18 @@ exit +13,614; belief error on leavers +3,679; window (pre-snapshot months) −9,
   ≤ 0.125 everywhere).
 
 Scripts (not landed, /tmp): `/tmp/ep1dec/{decompose,truebelief,denominator,decompose_true,check2,fixarms}.py`.
+
+## Third addendum: the built arm C (filed before it runs)
+
+Claim `ep1-margin-per-settled-year-and-untruncated-h2`. Both changes are now code:
+`customer_value_view.settled_year_margins`, and `survival_discounted_value_by_year_gbp`
+untruncated. The measurement rebuilds each snapshot with `build_customer_value_view` and reads
+`annual_margin_gbp` and H2 off it, as the true-belief run did.
+
+- **P10.** The built code reproduces arm C: 66 rows, gap 1.066 ± 0.002, Σ(b − t) −£2.4k ± £0.1k,
+  37/66 over. *Confidence: high.* If it does not, the build and the arm do not define the same
+  thing, and the gap is reported as a defect of one of them, not of the belief.
+
+**P10 — CONFIRMED exactly.** Built code on the rebuilt snapshots: 66 rows, gap **1.066**,
+Spearman +0.122, 37/66 over, Σ(b − t) **−£2,421**. Script `/tmp/ep1dec/built.py`. The ledger row
+is not re-measured here; the next run's `couple_clv` reading is the real one.

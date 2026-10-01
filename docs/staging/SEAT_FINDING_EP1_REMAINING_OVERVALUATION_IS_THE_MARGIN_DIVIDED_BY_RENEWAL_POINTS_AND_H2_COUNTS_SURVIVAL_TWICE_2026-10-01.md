@@ -67,3 +67,16 @@ records (the view already has `observed_tenure_positions`'s span), and H2 sums s
 untruncated. Land both together and say so, because either alone moves the level the wrong way
 on one side. `build_clv`'s own unit question (08-17 item 1) stays its own. The gap is a
 diagnostic, never a target: both changes are definitions, and the 1.07 is reported, not aimed at.
+
+## Landed together (2026-10-01, claim `ep1-margin-per-settled-year-and-untruncated-h2`)
+
+Both fixes are code now. `customer_value_view.settled_year_margins` gives EP1 its margin per
+settled year: cumulative `net_of_all_costs` over the account's distinct settled months ÷ 12.
+Who gets valued is unchanged: an account `build_clv` does not value is still blank under its
+named reason. `survival_discounted_value_by_year_gbp` is the untruncated Σ S(t)/(1+r)^t, and the
+two constant-hazard H2 paths now call it, so H2 has one definition. On the rebuilt snapshots
+the result is gap 1.066 on 66 rows, Spearman 0.122, Σ(b − t) −£2.4k. That matches arm C exactly
+(P10). The harness's `recover_hazard` inverts the OLD truncated ratio. It is reached only for
+snapshots that publish no hazard, which no production snapshot now does, so it still reads the
+legacy artefacts it was written for. `build_clv`'s own unit (08-17 item 1) is still its own
+question.

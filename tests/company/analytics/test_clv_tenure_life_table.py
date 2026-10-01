@@ -8,7 +8,8 @@ a hazard per tenure year, starting at the year each account enters next.
 What each control guards:
 
 1. The valuation reduces to the closed form when every year has one hazard -- so the life
-   table changed the hazard and nothing else.
+   table changed the hazard and nothing else -- and it is the UNTRUNCATED expectation:
+   undiscounted, it counts sum_{t>=1} S(t) life-years, never fewer by stopping at E[T].
 2. The counting: the anniversary month closes its year (both departure shapes land in year
    1), and a year the book has not watched end to end is not in the table.
 3. The tail pools from the last year anyone left in, so a quiet final year cannot claim an
@@ -16,7 +17,8 @@ What each control guards:
 4. Every H2 outcome on the life-table path is reachable, in one control.
 5. The account's own position moves its value -- the per-account variation the constant
    hazard could not carry.
-6. The production caller passes the table AND each account's position.
+6. The production caller passes the table AND each account's position, and values each
+   account on its margin per SETTLED YEAR, not per renewal point.
 """
 
 from __future__ import annotations
@@ -35,13 +37,14 @@ from company.analytics.clv_three_horizon import (
     estimate_account,
     expected_remaining_tenure_years,
     survival_discounted_value_by_year_gbp,
-    survival_discounted_value_gbp,
 )
 from company.analytics.customer_value_view import (
     build_customer_value_view,
     observed_book_exits,
     observed_tenure_positions,
+    settled_year_margins,
 )
+from saas.clv_model import CLV_MARGIN_BASIS
 from saas.enterprise_value import ceased_billing_accounts
 from tests.company.analytics.test_clv_book_renewal_hazard import _customers, _records
 
@@ -71,13 +74,27 @@ def _year(k: int, hazard: float, exits: int = 1) -> TenureYearHazard:
 @pytest.mark.parametrize("hazard", [0.016, 0.137, 0.154, 0.3, 0.95])
 @pytest.mark.parametrize("rate", [0.0, DISCOUNT_RATE, 0.25])
 def test_a_constant_table_reproduces_the_closed_form(hazard, rate):
-    # 1/h is fractional for most of these, so the fractional final year is checked too.
-    closed = survival_discounted_value_gbp(100.0, hazard, rate, 1.0 / hazard)
+    closed = 100.0 * (1.0 - hazard) / (rate + hazard)
     for years in (1, 2, 5):
         assert survival_discounted_value_by_year_gbp(
             100.0, [hazard] * years, rate
         ) == pytest.approx(closed, rel=1e-12)
     assert expected_remaining_tenure_years([hazard] * 3) == pytest.approx(1.0 / hazard)
+
+
+@pytest.mark.parametrize("hazards", [[0.2], [0.4, 0.1], [0.15, 0.3, 0.05]])
+def test_survival_is_counted_once_so_h2_is_not_truncated_at_the_expected_tenure(hazards):
+    """Undiscounted, H2 per unit margin is the expected number of forward years earned,
+    sum_{t>=1} S(t) -- the expected remaining tenure less the year in hand. Survival already
+    prices the exit; stopping the sum at E[T] priced it twice (h=0.2: 2.69, not 4.00)."""
+    assert survival_discounted_value_by_year_gbp(1.0, hazards, 0.0) == pytest.approx(
+        expected_remaining_tenure_years(hazards) - 1.0, rel=1e-12
+    )
+    # Still not H1's perpetuity: every year is survival-weighted, so a positive hazard
+    # is worth strictly less than the same margin with no exit at all.
+    assert survival_discounted_value_by_year_gbp(1.0, hazards, DISCOUNT_RATE) < (
+        1.0 / DISCOUNT_RATE
+    )
 
 
 def test_a_front_loaded_hazard_is_worth_less_than_its_tail_alone():
@@ -188,12 +205,28 @@ def test_the_production_view_passes_the_table_and_each_accounts_position():
     assert observed_tenure_positions(records, _customers())["S"] == 6
     s = book.account("S").horizon(Horizon.TENURE_EXPECTED)
     assert s.time_model is TimeModel.BOOK_EXIT_LIFE_TABLE_BY_TENURE_YEAR
-    margin = view.enterprise_value["by_customer"]["S"]["avg_annual_net_margin_gbp"]
+    margin = settled_year_margins(view.cost_to_serve, records)["S"]
+    # A per-YEAR margin for a per-year life table. `build_clv`'s figure is per renewal
+    # point, which S has fewer of than settled years, so the two must differ here.
+    assert margin != pytest.approx(
+        view.enterprise_value["by_customer"]["S"]["avg_annual_net_margin_gbp"]
+    )
     assert s.value_gbp == pytest.approx(
         survival_discounted_value_by_year_gbp(
             margin, book.book_exits.forward_hazards(6), DISCOUNT_RATE
         )
     )
+
+
+def test_the_margin_is_per_settled_year_across_both_legs():
+    """Both legs' margin over the months either leg settled, per twelve: £50 earned over
+    six distinct months is £100 a year, however many renewal points the account has."""
+    records = [
+        {"customer_id": leg, "settlement_date": f"2020-{m:02d}-01"}
+        for leg in ("C1", "C1g") for m in range(1, 7)
+    ] + [{"customer_id": "C1g", "settlement_date": "2020-03-15"}]
+    cost = {"by_customer": {"C1": {CLV_MARGIN_BASIS: 30.0}, "C1g": {CLV_MARGIN_BASIS: 20.0}}}
+    assert settled_year_margins(cost, records) == {"C1": pytest.approx(100.0)}
 
 
 def test_each_snapshot_publishes_the_position_it_read_the_table_from():

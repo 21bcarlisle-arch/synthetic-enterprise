@@ -161,13 +161,13 @@ class TimeModel(str, Enum):
     #: renewal is most recent, and therefore the number.
     CONSTANT_HAZARD_FIXED_TERM = "constant_hazard_fixed_term"
 
-    #: Hazard read from the account's most recent renewal; the term is the expected
-    #: remaining tenure that hazard implies. Order-aware for the same reason.
+    #: Hazard read from the account's most recent renewal; every forward year is valued,
+    #: weighted by the survival that hazard implies. Order-aware for the same reason.
     LATEST_RENEWAL_CONDITIONED = "latest_renewal_conditioned"
 
     #: Hazard is the BOOK's observed ALL-CAUSE annual exit probability at the snapshot,
-    #: pooled over every billing account; the term is the expected remaining tenure it
-    #: implies. EXCHANGEABLE across accounts by construction -- one number per date --
+    #: pooled over every billing account; every forward year is valued, weighted by the
+    #: survival it implies. EXCHANGEABLE across accounts by construction -- one number per date --
     #: so it carries the level of the lifetime term and no per-account ranking. All-cause
     #: and not per-renewal because a tenure ends at any exit: 40 of 89 cessations on the
     #: real book fall away from an anniversary, and the world decides a renewal at only
@@ -760,38 +760,41 @@ def survival_discounted_value_by_year_gbp(
     year_hazards: Sequence[float],
     discount_rate: float,
 ) -> float:
-    """`survival_discounted_value_gbp` with a hazard per forward year instead of one.
+    """The expected present value of a margin earned for as long as the account stays:
+
+        margin * sum_{t>=1} S(t) / (1+d)^t,   S(t) = prod_{k<=t} (1 - h_k)
 
     `year_hazards[t-1]` is forward year t's exit probability and the LAST one carries on for
-    ever after. The term is the expected remaining tenure the hazards imply, sum_{t>=0} S(t)
-    -- exactly 1/h when they are all h, so a constant table reproduces the closed form to
-    the float, fractional final year included (the tail IS the closed form). Raises on a
-    last hazard of zero: an infinite tenure, refused for the reason the closed form's
-    callers refuse `hazard <= 0`.
+    ever after, so the sum is untruncated and closes on its geometric tail. A constant
+    table is `margin * (1-h) / (d+h)`.
+
+    UNTRUNCATED ON PURPOSE. Until 2026-10-01 this stopped at t = E[T]. Survival weighting
+    already prices the exit, so stopping at the expected tenure priced it a second time:
+    at h = 0.2, undiscounted, 2.69 life-years against the 4.00 the hazard implies
+    (SEAT_FINDING_EP1_REMAINING_OVERVALUATION_IS_THE_MARGIN_DIVIDED_BY_RENEWAL_POINTS_AND_
+    H2_COUNTS_SURVIVAL_TWICE_2026-10-01). It is still not the perpetuity H1 paid for: every
+    year is weighted by the chance the account is still here to earn it.
+
+    Raises on a last hazard of zero (an infinite tenure, refused for the reason the closed
+    form's callers refuse `hazard <= 0`) and on a tail that does not shrink.
     """
     hazards = list(year_hazards)
-    term = expected_remaining_tenure_years(hazards)
+    if not hazards or hazards[-1] <= 0.0:
+        raise ValueError("needs a positive final hazard, got " + repr(hazards))
     factor = 1.0 + discount_rate
     if factor <= 0:
         factor = 1.0
-
-    def partial(x: float, span: float) -> float:
-        # sum_{t=1..span} x^t on the closed form's continuous extension.
-        if abs(1.0 - x) < _UNIT_RETENTION_EPSILON:
-            return span
-        return x * (1.0 - x**span) / (1.0 - x)
-
     value, carried = 0.0, 1.0
-    for t, h in enumerate(hazards[:-1], start=1):
-        x = (1.0 - h) / factor
-        remaining = term - (t - 1)
-        if remaining < 1.0:
-            return annual_margin_gbp * (value + carried * partial(x, remaining))
-        carried *= x
+    for h in hazards[:-1]:
+        carried *= (1.0 - h) / factor
         value += carried
     tail_x = (1.0 - hazards[-1]) / factor
-    value += carried * partial(tail_x, term - (len(hazards) - 1))
-    return annual_margin_gbp * value
+    if tail_x >= 1.0:
+        raise ValueError(
+            "a tail that does not shrink has no finite value: hazard "
+            + repr(hazards[-1]) + " at discount rate " + repr(discount_rate)
+        )
+    return annual_margin_gbp * (value + carried * tail_x / (1.0 - tail_x))
 
 
 def _blank(horizon: Horizon, time_model: TimeModel, reason: Exclusion) -> HorizonValue:
@@ -859,8 +862,8 @@ def estimate_account(
             ),
         )
 
-    # H2 — TENURE EXPECTED. Same hazard, but the term is the expected remaining tenure
-    # that hazard implies (1/h renewals). Finite by construction: a hazard of zero would
+    # H2 — TENURE EXPECTED. The margin for as long as the hazard keeps the account,
+    # survival-weighted and untruncated. Finite by construction: a hazard of zero would
     # imply an infinite tenure, which is the perpetuity this seam has already paid for
     # once, so it is refused rather than approximated.
     if book_exits is not None:
@@ -893,9 +896,7 @@ def estimate_account(
             h2 = _counted(
                 Horizon.TENURE_EXPECTED,
                 TimeModel.LATEST_RENEWAL_CONDITIONED,
-                survival_discounted_value_gbp(
-                    margin, hazard, discount_rate, 1.0 / hazard
-                ),
+                survival_discounted_value_by_year_gbp(margin, [hazard], discount_rate),
             )
 
     # H3 — PORTFOLIO COHORT. Pooled margin and pooled hazard: what a customer LIKE this
@@ -955,7 +956,7 @@ def _book_hazard_tenure(
     return _counted(
         Horizon.TENURE_EXPECTED,
         model,
-        survival_discounted_value_gbp(margin, hazard, discount_rate, 1.0 / hazard),
+        survival_discounted_value_by_year_gbp(margin, [hazard], discount_rate),
     )
 
 

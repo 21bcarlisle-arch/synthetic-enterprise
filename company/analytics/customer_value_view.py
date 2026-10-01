@@ -83,6 +83,7 @@ from saas.churn_model import (
     _shift_month,
     build_churn_risk,
 )
+from saas.clv_model import CLV_MARGIN_BASIS
 from saas.cost_to_serve import build_cost_to_serve, build_cost_to_serve_ledger_events
 from saas.customer_reaction import _billing_account_id
 from saas.enterprise_value import build_enterprise_value, ceased_billing_accounts
@@ -95,6 +96,7 @@ __all__ = [
     "observed_book_exits",
     "observed_book_renewals",
     "observed_tenure_positions",
+    "settled_year_margins",
 ]
 
 #: Contract term in years, by the roster's own `contract_type`. Anything unmapped
@@ -173,6 +175,7 @@ def build_customer_value_view(
         _clv_observables(
             churn_risk, enterprise_value, customers, ceased,
             observed_tenure_positions(settlement_records, customers),
+            settled_year_margins(cost_to_serve, settlement_records),
         ),
         book_exits=observed_book_exits(settlement_records, ceased, customers),
         book_renewals=observed_book_renewals(settlement_records, customers, ceased),
@@ -371,18 +374,50 @@ def observed_book_renewals(
     return BookRenewalRecord(decisions=decisions, departures=departures)
 
 
+def settled_year_margins(
+    cost_to_serve: dict, settlement_records: list[dict]
+) -> dict[str, float]:
+    """Each billing account's margin per SETTLED YEAR: what it has earned, over how long.
+
+    The cumulative `CLV_MARGIN_BASIS` margin across its legs, divided by the distinct
+    months its own records settle, over twelve. EP1 multiplies this by a count of forward
+    YEARS, so the margin has to be per year. `build_clv`'s `avg_annual_net_margin_gbp` is
+    the same total divided by the account's renewal POINTS: right for its own sBG lifetime,
+    which counts renewal periods, and ~70% high under EP1 on a young book, where every
+    graded account had one renewal point against 1.67 settled years
+    (SEAT_FINDING_EP1_REMAINING_OVERVALUATION_IS_THE_MARGIN_DIVIDED_BY_RENEWAL_POINTS_AND_
+    H2_COUNTS_SURVIVAL_TWICE_2026-10-01). Whether `build_clv` should keep its own unit is
+    a separate question and is not answered here.
+    """
+    net: dict[str, float] = {}
+    for customer_id, entry in cost_to_serve["by_customer"].items():
+        account_id = _billing_account_id(customer_id)
+        net[account_id] = net.get(account_id, 0.0) + entry[CLV_MARGIN_BASIS]
+    months: dict[str, set[str]] = {}
+    for record in settlement_records:
+        months.setdefault(_billing_account_id(record["customer_id"]), set()).add(
+            record["settlement_date"][:7]
+        )
+    return {
+        account_id: total / (len(months[account_id]) / 12.0)
+        for account_id, total in net.items()
+        if months.get(account_id)
+    }
+
+
 def _clv_observables(
     churn_risk: dict,
     enterprise_value: dict,
     customers: list[dict],
     ceased: set[str],
     tenure_positions: dict[str, int] | None = None,
+    margins_per_settled_year: dict[str, float] | None = None,
 ) -> list[AccountObservables]:
     """Assemble EP1's inputs from beliefs this view has ALREADY formed.
 
     Nothing new is read and nothing new crosses the wall: the renewal
-    trajectories are the supplier's own churn estimate, the margins are the ones
-    its own valuation already published per account, and the roster is the
+    trajectories are the supplier's own churn estimate, the margins are its own
+    cost-to-serve over its own settled months, and the roster is the
     customer list handed in through the signature. EP1 is a re-reading of what
     the company already believes, not a new observation of the world.
 
@@ -405,6 +440,10 @@ def _clv_observables(
         # than raising inside a run.
         row = roster.get(account_id, {})
         margin = by_account.get(account_id, {}).get("avg_annual_net_margin_gbp")
+        if margin is not None and margins_per_settled_year is not None:
+            # Who is valued stays the enterprise value's call (supplied, with a renewal
+            # point); what one year of them is worth is `settled_year_margins`.
+            margin = margins_per_settled_year.get(account_id)
         acquisition_date = str(row.get("acquisition_date", ""))
         observables.append(
             AccountObservables(
