@@ -152,3 +152,48 @@ Against the predictions:
 Prediction, filed before the control: **the gap is the cost-to-serve subtraction**. Computing the
 naive rate net of cost to serve will close it to within ±0.03. The one-variable control is
 handed on.
+
+## The attribution control (`/tmp/ep1s/ctl.py`), run after the first landing
+
+On the 300 later snapshots, the gap decomposes as follows (paired cluster CIs):
+
+| step | effect on Spearman with gross forward margin |
+|---|---|
+| gross rate over calendar span → over distinct settled months | **+0.000** [0, 0] |
+| subtracting cost to serve (I2 → I1, the belief's own input) | **+0.084** [+0.046, +0.128] |
+| the belief's form, I1 → m_b = B / L_b | **+0.000** [0, 0] (within-cutoff sp(I1, m_b) = 1.000) |
+
+**The prediction is CONFIRMED.** The whole gap is the cost-to-serve subtraction. The belief's
+form costs nothing in ranking: within a cutoff, m_b is its input's ordering exactly.
+
+That makes the gap a **target artefact until shown otherwise**. The target is gross of cost to
+serve, so the gross rate shares its basis.
+
+Prediction, filed before the run: with the forward target ALSO net of cost to serve (cumulative
+cost to serve at run end minus at the cutoff, per account), I1 ranks it **at least as well as**
+I2. The I2 − I1 gap falls to ≤ 0, with its CI covering 0 or below.
+
+**Result: WRONG.** Against a forward target net of cost to serve, on the 300 later snapshots:
+
+| predictor | Spearman | cluster CI |
+|---|---|---|
+| gross rate I2 | **+0.451** | [+0.29, +0.58] |
+| belief input I1 = m_b | **+0.387** | [+0.23, +0.53] |
+
+- The I2 − I1 gap is **+0.062** [+0.031, +0.099]. It persists, so it is **not** a target
+  artefact.
+- At first valuation (n = 118) the two read +0.291 and +0.224, with overlapping CIs.
+
+Two candidate causes were ruled out by measuring them:
+- **Cost to serve is persistent.** Within-cutoff Spearman between cost to serve per year to date
+  and per forward year is **0.71** [0.59, 0.78]. It is mostly a flat £55 per leg per year: the
+  median is £55, and the upper quartile £109 is the dual-fuel accounts.
+- **It is not on a different clock.** The median ratio of the to-date rate to the forward rate is
+  1.005–1.04 at tenure positions 3–8. The ratio drifts up with tenure (within-cutoff Spearman
+  with position −0.358 on the difference), which is small.
+
+**I cannot yet say why a persistent cost subtracted from a persistent margin makes the ranking
+of their persistent difference worse.** The next candidate, not yet measured, is that the
+dual-fuel step in cost to serve (£55 against £110) re-orders accounts across the fuel split in a
+way the forward net margin does not follow. The one-variable control is to grade I1 and I2
+within fuel-split strata. That is handed on.

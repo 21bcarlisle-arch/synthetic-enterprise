@@ -37,13 +37,19 @@ No code changed. The predecessor's two open questions (channel; every snapshot) 
    - At first valuation it was +0.071 against the whole-life rate. The forward, per-year target
      is the honest one, and it reads +0.257 at first valuation.
    - What the belief knows about an account's value is margin persistence, not tenure.
-4. **…and the naive margin rate observed to date ranks forward margin better** than the belief's
-   margin term.
-   - The gap is +0.084, paired cluster CI [+0.046, +0.128].
-   - The two orderings agree at 0.954.
-   - The gap is **not yet attributed**. The belief subtracts cost to serve and the target does
-     not, and its form also differs. Prediction: the gap is the cost-to-serve subtraction, filed
-     before the control.
+4. **…and a cruder gross margin rate ranks forward margin better than the belief's input,
+   even when the target is net of cost to serve.**
+   - The gap is +0.062, paired cluster CI [+0.031, +0.099], on 300 later snapshots.
+   - The control decomposed the first-reported +0.084 exactly:
+     - the months denominator contributes 0.000;
+     - the belief's form (B / L_b) contributes 0.000, because within a cutoff m_b IS its input's
+       ordering;
+     - the cost-to-serve subtraction contributes all +0.084 against a gross target, and +0.062
+       against a net one.
+   - Cost to serve is persistent (0.71) and on the right clock (ratio about 1.0), so neither
+     explains it.
+   - **Cause not yet attributed.** The candidate is the per-leg dual-fuel step. Predictions and
+     results are in the record.
 5. **An instrument lesson.**
    - Tenure position reads C 0.447, outside the stratified permutation band. Its per-account
      cluster CI [0.387, 0.509] contains 0.5.
@@ -57,5 +63,6 @@ No code changed. The predecessor's two open questions (channel; every snapshot) 
   because those inputs do not rank it either.
 - The remaining lever on the tenure side is world fidelity (PB4's first-year hazard re-derivation,
   and whether acquisition route should carry engagement). It is not company code.
-- On the margin side, the belief works. The next question is whether its form costs ranking
-  against the naive rate once cost to serve is put on both sides.
+- On the margin side, the belief works, and its form costs nothing. What costs ranking is how
+  cost to serve enters the margin. The control for that is graded within fuel-split strata,
+  and it is handed on.
