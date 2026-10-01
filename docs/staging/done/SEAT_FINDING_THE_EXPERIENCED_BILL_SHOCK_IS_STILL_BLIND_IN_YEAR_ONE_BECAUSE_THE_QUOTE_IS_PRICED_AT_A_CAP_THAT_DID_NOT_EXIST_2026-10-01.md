@@ -68,3 +68,9 @@ mis-setting figures will move with it, and that movement is expected.
   in 2022, so this may be history-true. But it means no world can show the "2022 first renewals"
   cohort that the continuation expected to be the most shocked.
 - The materiality cut is still the inherited 15%. That gap is unchanged by this finding.
+
+## Disposition (2026-10-01)
+
+ACTIONED. The opening DD now uses the rate sold (`7a119f52c`), and the re-run left 0 of 31 in-scope first
+renewals blind. Result: `records/SEAT_PREREGISTRATION_PB4_THE_OPENING_DD_AT_THE_RATE_SOLD_2026-10-01.md`;
+what is still owed: `SEAT_FINDING_THE_YEAR_ONE_QUOTE_AND_THE_REVIEW_IT_IS_MET_BY_ARE_ON_DIFFERENT_BASES_2026-10-01.md`.

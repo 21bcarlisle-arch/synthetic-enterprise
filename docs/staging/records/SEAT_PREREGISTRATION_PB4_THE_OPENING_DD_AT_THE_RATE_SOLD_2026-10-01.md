@@ -43,3 +43,30 @@ or the 2024 standing charge applied across 2016–2025. The hazard swap then wai
 the quote.
 
 ## Result (appended after the run; nothing above is edited)
+
+Run on this worktree at `9240dbc04` plus the code landed as `7a119f52c`, 1180 s. The run used the
+parameter's first name, `contracted_unit_rate_gbp_per_mwh_ex_vat`. The portability gate made it
+currency-neutral before landing; it is a rename only, with no change in behaviour. Previous output is
+kept as `/var/tmp/se-pb4-shock-out/events_aed6bf966.json`. `analyse.py` was re-run byte-unchanged
+(sha256 checked).
+
+| First renewals (36) | before (cap) | after (rate sold) |
+|---|---|---|
+| None: no amount set at sign-up | 27 | **0** |
+| None: prepayment | 5 | 5 |
+| Defined | 4 | **31** |
+| Shocked | 0 | **9** (share **0.290**) — all 9 are direct debit (9/26); standard credit 0/5 |
+
+| | Verdict |
+|---|---|
+| Q0 | **HELD.** Later renewals are byte-identical row by row: 0 of 70 differ (62 defined, 20 shocked, 0.323; P5 corr +0.029; old-base means 0.0231 / 0.1114). The run is one-variable. |
+| Q1 | **HELD.** 31 of 31 in scope are defined. |
+| Q2 | **HELD.** 0.290 lies in [0.10, 0.50]. |
+| Q3 | **HELD.** \|0.290 − 0.323\| = 0.033. |
+| Q4 | **HELD.** All 4 rose: −0.353→−0.198, −0.326→−0.057, −0.401→−0.146, −0.043→+0.026. The cap quote had over-set the opening DD on every one. |
+
+The plan-level refutation did not fire: 0.290 is neither ≥ 0.6 nor ≤ 0.03. The first-renewal rise
+fraction is wide, with quartiles −0.270, −0.084 and +0.333; 11 of 31 fell by more than 15% and 9 rose
+by more than 15%. Its median sits ~12 points below the later renewals' +0.04, the direction a
+VAT/standing-charge basis gap predicts. That is a reading, not a measurement:
+`SEAT_FINDING_THE_YEAR_ONE_QUOTE_AND_THE_REVIEW_IT_IS_MET_BY_ARE_ON_DIFFERENT_BASES_2026-10-01.md`.
