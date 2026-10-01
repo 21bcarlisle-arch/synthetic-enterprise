@@ -539,36 +539,52 @@ def get_ggl_per_mwh(date_str: str, aq_kwh: float) -> float:
 
 
 # ─── Standing Charges (Phase 62) ─────────────────────────────────────────────
-# Daily standing charge (£/day) for domestic and SME electricity customers.
-# Covers metering costs, network fixed capacity charges, and supplier admin margin.
-# Source: Ofgem quarterly tariff tracker; EPG/price-cap publications Oct 2022+.
-# Pre-2022: typical market averages across standard fixed-rate tariff offers.
-# I&C customers have separate capacity and utilisation charges via BSC settlement;
-# standing charge = 0 for I&C (their fixed meter costs are in the capacity tariff).
+# Daily standing charge for domestic and SME customers, held in pence/day EX-VAT.
+#
+# EX-VAT, because every reader adds it to `revenue_gbp` (hedged_settlement, gas_settlement) and the
+# bill doors gross it by 5% on the way out. Until 2026-10-01 the 2022+ rows were Ofgem's PUBLISHED
+# cap standing charges (46p/53p/61p electricity, 28p/29p/31p gas), and Ofgem publishes those
+# INCLUDING VAT, so the world booked the VAT as supplier revenue and the bill grossed it a second
+# time (SEAT_FINDING_THE_DD_BOOKS_NOW_OPEN_AT_THE_STANDING_CHARGE_SOLD_AND_THE_WORLDS_CHARGE_MAY_
+# CARRY_VAT_TWICE_2026-10-01). The pre-2022 rows were "typical market averages" with no source.
+#
+# Source, every row: Ofgem default tariff cap level model v1.31
+# (`sim/cache/ofgem_cap_level_models/Default-tariff-cap-level-v1.31.xlsx`, the same edition
+# `tools/ofgem_cap_unit_rate_composition` reads), sheets `ElecSingle_Other_Nil` and `Gas_Other_Nil`
+# — the NIL-CONSUMPTION allowance is the standing charge, by Ofgem's own construction, and the
+# model's components are ex-VAT. "Other" is direct debit. Per cap period: the median over the
+# model's regional rows of Total/365; per calendar year: the day-weighted mean of the periods in
+# force. Corroboration of the basis: Oct 2022 gas 27.13p ex-VAT x 1.05 = 28.49p, Ofgem's published
+# inc-VAT figure to the penny. Electricity's regional spread is wide (e.g. 36-59p in 2023), so a
+# GB median is not any one household's charge; the world has no regional standing charge.
+#
+# GAP, carried rather than filled: the 2016-2018 rows are periods BEFORE the cap was in force
+# (2019-01-01). The model back-casts Ofgem's methodology over them, so they are a notional cap
+# level, not an observed market tariff; nothing in the commons yet says what suppliers actually
+# charged then. 2025 is not tabled here and still clamps to 2024 (a separate coverage change).
 _ELEC_SC_PENCE_PER_DAY_BY_YEAR: dict[int, float] = {
-    2016: 24.0,   # ~£88/yr; typical pre-crisis fixed-rate market average
-    2017: 25.0,
-    2018: 26.0,
-    2019: 27.0,
-    2020: 27.0,   # COVID: network investment paused; SC held flat
-    2021: 29.0,
-    2022: 46.0,   # Ofgem EPG default tariff Q4 2022 cap (46p/day)
-    2023: 53.0,   # Q1 2023 Ofgem cap; SC rose as network cost recovery increased
-    2024: 61.0,   # 2024 cap; many suppliers at ceiling
+    2016: 19.22,  # notional (pre-cap back-cast)
+    2017: 18.98,  # notional
+    2018: 19.93,  # notional
+    2019: 22.13,
+    2020: 22.99,
+    2021: 23.57,
+    2022: 40.22,  # 23.68p to March, 45.31p from April, 46.28p from October
+    2023: 50.13,
+    2024: 57.11,
 }
 
-# Daily gas standing charge (£/day) for resi/SME gas customers.
-# Source: Ofgem quarterly tariff tracker; EPG publications.
+# Daily gas standing charge, pence/day EX-VAT. Source and basis: as the electricity table above.
 _GAS_SC_PENCE_PER_DAY_BY_YEAR: dict[int, float] = {
-    2016: 22.0,   # ~£80/yr; typical pre-crisis fixed-rate market average
-    2017: 23.0,
-    2018: 24.0,
-    2019: 25.0,
-    2020: 25.0,
-    2021: 26.0,
-    2022: 28.0,   # Ofgem EPG Q4 2022 default tariff cap
-    2023: 29.0,
-    2024: 31.0,
+    2016: 20.93,  # notional (pre-cap back-cast)
+    2017: 21.28,  # notional
+    2018: 22.69,  # notional
+    2019: 25.14,
+    2020: 25.59,
+    2021: 25.10,
+    2022: 25.97,
+    2023: 27.70,
+    2024: 28.57,
 }
 
 # SME meter capacity standing charge multiplier vs resi (larger meters, higher capacity).
@@ -576,7 +592,7 @@ _SME_SC_MULTIPLIER: float = 1.5
 
 
 def get_electricity_standing_charge_per_day(date_str: str, segment: str = "resi") -> float:
-    """Daily electricity standing charge (£/day) by year and segment.
+    """Daily electricity standing charge (£/day, EX-VAT) by year and segment.
 
     Resi/SME: covers metering costs, network fixed capacity, and supplier admin.
     SME pays 1.5x the resi rate (larger meter, higher capacity charge).
@@ -597,7 +613,7 @@ def get_electricity_standing_charge_per_day(date_str: str, segment: str = "resi"
 
 
 def get_gas_standing_charge_per_day(date_str: str, segment: str = "resi") -> float:
-    """Daily gas standing charge (£/day) by year and segment.
+    """Daily gas standing charge (£/day, EX-VAT) by year and segment.
 
     Resi/SME: covers gas meter fixed charges (metering + network fixed component).
     SME pays 1.5x the resi rate.
