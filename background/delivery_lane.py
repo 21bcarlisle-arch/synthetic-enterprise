@@ -4678,6 +4678,183 @@ def _result_landed(item: dict) -> bool:
     return prereg_result(_item_prose(item), float(item.get("written_at") or 0.0)) is not None
 
 
+#: A code identifier in an item's prose: lower snake case with at least one underscore, eight
+#: characters or more. The underscore is what separates a symbol from an English word, and the
+#: floor drops `to_dict`-sized names that half the diffs on the machine touch.
+_IDENTIFIER = re.compile(r"(?<![\w./-])_?[a-z][a-z0-9]*(?:_[a-z0-9]+)+(?![\w./-])")
+_MIN_IDENTIFIER = 8
+
+
+def _identifiers(text: str) -> set[str]:
+    """Symbols `text` names, excluding dotted module references and path segments.
+
+    `python3 -m tools.surgical_land` is in half the items here as an instruction, not a subject;
+    the `.` before it is what says so, and the look-behind drops it. A path segment is graded by
+    the path leg, so `/` and `.` on either side drop those too.
+    """
+    return {m.group(0) for m in _IDENTIFIER.finditer(text) if len(m.group(0)) >= _MIN_IDENTIFIER}
+
+
+def _worktree_subject(root: Path) -> tuple[set[str], set[str]]:
+    """(paths, identifiers) a worktree holds: its dirty and untracked paths, and the identifiers on
+    the changed lines of its dirty `.py` files. Empty sets if git cannot answer."""
+    paths: set[str] = set()
+    idents: set[str] = set()
+    status = _git("status", "--porcelain", "--untracked-files=all", cwd=root)
+    for line in (status or "").splitlines():
+        rel = line[3:].split(" -> ")[-1].strip().strip('"')
+        if rel and rel != ".se_worktree_owner":
+            paths.add(rel)
+            paths.add(str(root / rel))
+    diff = _git("diff", "-U0", "HEAD", "--", "*.py", cwd=root)
+    for line in (diff or "").splitlines():
+        if line[:1] in "+-" and not line.startswith(("+++", "---")):
+            idents |= _identifiers(line[1:])
+    return paths, idents
+
+
+def _live_holders() -> list[dict]:
+    """Everything holding work right now that the claim stores cannot see. NEVER RAISES.
+
+    THE DEFECT (2026-10-01). The PB4 swap landing was drawn four times while its work was held.
+    The 2d3b87a6b lock stopped LOST claims; it cannot stop a RE-MINTED one. The fourth draw came
+    under a new id (`run-pb4s-swap-with-the-read-error-named-on-the-hazard`) while
+    `longjob-pb4-floor-d-s123` ran from `/home/rich/wt-pb4-land`, whose session had exited. No claim
+    named it, so the only facts that could were systemd and the worktree.
+
+    TWO KINDS OF HOLDER. A RUNNING `longjob-*` unit, with its register record's artefact and log,
+    plus the subject of the worktree its artefact is being written into. And a worktree whose
+    `.se_worktree_owner` names a live pid inside `seat_executor.OWNER_LEASE_SECONDS`.
+
+    `names` are the holder's own names -- unit, job, worktree root. An item that names one of those
+    KNOWS about the holder: it is the holder's hand-off (`promote-pb4-world-d-value-arms-...` names
+    both the worktree and `pb4-floor-d-s123`, and is meant to be drawn while the floor runs).
+
+    FAIL-OPEN: an unreadable probe yields no holders, so the draw offers what it offered before
+    this existed. The same direction and argument as `_retired_ids`: a re-offered held item costs
+    one turn and is visible to it; an idle lane is visible to nobody.
+    """
+    try:
+        from background import launch_liveness
+        from background.seat_executor import (
+            OWNER_LEASE_SECONDS,
+            OWNER_MARKER,
+            _claim_age_seconds,
+            pid_is_alive,
+        )
+    except Exception:
+        return []
+
+    def _owned(root: Path) -> bool:
+        # THE MARKER LEG ONLY, NOT `worktree_is_live`. Its git-lock leg is right for the reaper --
+        # a lock is a claim no death invalidates -- and wrong here for the same reason: measured
+        # 2026-10-01, eleven locked worktrees from as far back as 09-10 read live, one with 172
+        # dirty paths, and every item touching any of them would have been refused for good.
+        marker = root / OWNER_MARKER
+        age = _claim_age_seconds(marker)
+        return (age is not None and age < OWNER_LEASE_SECONDS
+                and pid_is_alive(int(marker.read_text().strip())))
+    worktrees: list[Path] = []
+    try:
+        listing = _git("worktree", "list", "--porcelain") or ""
+        worktrees = [Path(line.split(" ", 1)[1]) for line in listing.splitlines()
+                     if line.startswith("worktree ")]
+    except Exception:
+        worktrees = []
+    # THE SHARED TREE AND THIS PROCESS'S OWN TREE ARE NEVER HOLDERS. The shared tree is dirty with
+    # every lane's traffic by design, so its subject would match everything; this tree is the
+    # drawer's own, and a draw refusing its own work in hand is the wrong way round.
+    try:
+        own = {PROJECT_DIR.resolve(), Path(seat_continuation.shared_tree_dir()).resolve()}
+    except Exception:
+        own = {PROJECT_DIR}
+    worktrees = [w for w in worktrees if w.resolve() not in own]
+    subjects: dict[Path, tuple[set[str], set[str]]] = {}
+
+    def _subject(root: Path) -> tuple[set[str], set[str]]:
+        if root not in subjects:
+            try:
+                subjects[root] = _worktree_subject(root)
+            except Exception:
+                subjects[root] = (set(), set())
+        return subjects[root]
+
+    holders: list[dict] = []
+    try:
+        units = launch_liveness.live_units() or []
+        records = launch_liveness.load()
+    except Exception:
+        units, records = [], []
+    for unit in units:
+        bare = unit.removesuffix(".service")
+        rec = next((r for r in reversed(records)
+                    if str(r.get("unit") or "").removesuffix(".service") == bare), {}) or {}
+        artefact = str(rec.get("artefact") or "")
+        names = {bare, str(rec.get("job") or "")} - {""}
+        paths = {p for p in (artefact, str(rec.get("log") or "")) if p}
+        idents: set[str] = set()
+        home = next((w for w in worktrees if artefact.startswith(str(w) + "/")), None)
+        if home is not None:
+            names.add(str(home))
+            more_paths, idents = _subject(home)
+            paths |= more_paths
+        holders.append({"holder": unit, "artefact": artefact or "(none recorded)",
+                        "names": names, "paths": paths, "identifiers": idents})
+    for root in worktrees:
+        try:
+            if not _owned(root):
+                continue
+        except Exception:
+            continue
+        paths, idents = _subject(root)
+        holders.append({"holder": f"live worktree {root}", "artefact": str(root),
+                        "names": {str(root)}, "paths": paths, "identifiers": idents})
+    return holders
+
+
+def held_by(item: dict, holders: list[dict]) -> tuple[dict, str] | None:
+    """(holder, reason) when a live holder already holds `item`'s subject, else None.
+
+    KEYED ON THE SUBJECT, NOT THE ID. The id is exactly what a re-mint changes. The fourth PB4 draw
+    named no path the job held; it named `_bill_shock_base`, which the held worktree's diff changes
+    on thirteen lines. So two legs: a path the item names that the holder holds, and an identifier
+    the item names that the holder's diff changes.
+    """
+    prose = _item_prose(item)
+    named_paths = {m.group(0).rstrip(".)") for m in _NAMED_PATH.finditer(prose)}
+    idents = _identifiers(prose)
+    for holder in holders:
+        if any(n and n in prose for n in holder.get("names") or ()):
+            continue
+        reasons = []
+        shared_paths = sorted(p for p in named_paths & set(holder.get("paths") or ())
+                              if claims_mod._informative(p))
+        if shared_paths:
+            reasons.append("holds " + ", ".join(shared_paths))
+        shared_idents = sorted(idents & set(holder.get("identifiers") or ()))
+        if shared_idents:
+            reasons.append("its uncommitted diff changes " + ", ".join(shared_idents))
+        if reasons:
+            return holder, " and ".join(reasons)
+    return None
+
+
+def held_note(skipped: list[tuple[dict, dict, str]]) -> str:
+    """The doorbell line naming every item the draw walked past because a live holder has it."""
+    if not skipped:
+        return ""
+    named = "; ".join(f"`{item.get('id')}` -- {holder['holder']} (artefact {holder['artefact']}) "
+                      f"{reason}" for item, holder, reason in skipped)
+    return ("HELD-WORK CHECK (systemd and live worktrees, run at draw time): the draw REFUSED "
+            f"{len(skipped)} item(s) because a running job or a live worktree already holds their "
+            f"subject -- {named}. Nothing was claimed for them and nothing was released. If one is "
+            "NOT the held work, say so in docs/staging/ and name the holder; do not re-mint it. ")
+
+
+#: The (item, holder, reason) triples the last `next_item` walk refused as held. Read by `draw`.
+LAST_HELD_SKIPS: list[tuple[dict, dict, str]] = []
+
+
 def next_item(now: float | None = None, path: Path | None = None, *,
               admit=None) -> dict | None:
     """The highest-ranked focus item that is not an atom and not already claimed, or None.
@@ -4750,13 +4927,29 @@ def next_item(now: float | None = None, path: Path | None = None, *,
     # it. Returning None here would convert a stale instruction into an IDLE MACHINE, trading one
     # wasted invocation for every invocation in the window -- strictly worse than the defect being
     # repaired, and the failure `draw`'s own six-day walkover already paid for once.
+    # A HELD ITEM IS SKIPPED, LIKE AN EMBARGO, and the walk goes on (see `held_by`). Asked LAST in
+    # each filter and probed at most once per walk, because it shells out to systemd and git and
+    # the ordinary walk ends at the first unclaimed row. The skips are kept so `draw` can name the
+    # holder: a refusal that does not say why is how a wrong refusal stays invisible.
+    LAST_HELD_SKIPS.clear()
+    probed: list[list[dict]] = []
+
+    def _held(item) -> bool:
+        if not probed:
+            probed.append(_live_holders())
+        hit = held_by(item, probed[0])
+        if hit is not None:
+            LAST_HELD_SKIPS.append((item, hit[0], hit[1]))
+        return hit is not None
+
     def _continuation():
         # Wrapped because `draw` documents that a lane which can throw takes every other lane
         # down with it, and a handoff store must never cost the machine a tick.
         try:
             for item in seat_continuation.live(now=now):
                 if (item.get("id") and item["id"] not in taken and not _embargoed(item, now)
-                        and (admit is None or admit(item)) and not _result_landed(item)):
+                        and (admit is None or admit(item)) and not _result_landed(item)
+                        and not _held(item)):
                     return item
         except Exception:
             return None
@@ -4766,7 +4959,8 @@ def next_item(now: float | None = None, path: Path | None = None, *,
         for item in direction_mod.unreachable_focus(_atom_ids()):
             if (item.get("id") and item["id"] not in taken
                     and item["id"] not in retired and not _embargoed(item, now)
-                    and (admit is None or admit(item)) and not _result_landed(item)):
+                    and (admit is None or admit(item)) and not _result_landed(item)
+                    and not _held(item)):
                 return item
         return None
 
@@ -4812,10 +5006,11 @@ def draw(now: float | None = None, path: Path | None = None, *, claim: bool = Tr
     """
     try:
         item = next_item(now=now, path=path)
+        held = held_note(list(LAST_HELD_SKIPS))
         if item is None:
             return None
         if not claim:
-            return doorbell(item)
+            return doorbell(item) + held
         store = path or CLAIMS_FILE
         claims_mod.claim(item["id"], note=str(item.get("what") or "")[:200], paths=[],
                          path=store, now=now)
@@ -4829,7 +5024,7 @@ def draw(now: float | None = None, path: Path | None = None, *, claim: bool = Tr
         rec = claims_mod._load(store).get(item["id"]) or {}
         record_draw(item["id"], float(rec.get("claimed_at") or 0.0), path=store,
                     text=doorbell(item))
-        return doorbell(item)
+        return doorbell(item) + held
     except Exception:
         return None
 

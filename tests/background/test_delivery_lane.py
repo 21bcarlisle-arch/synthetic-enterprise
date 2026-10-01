@@ -86,6 +86,9 @@ def tree(tmp_path, monkeypatch):
     monkeypatch.setattr(dl, "MATURITY_MAP", map_path)
     monkeypatch.setattr(d, "DIRECTION_PATH", direction_path)
     monkeypatch.setattr(sc, "STORE", continuation_path)
+    # The held-work probe asks the REAL systemd and the real worktrees; a test item must not be
+    # refused because this machine happens to be running a job. The held-work tests set their own.
+    monkeypatch.setattr(dl, "_live_holders", lambda: [])
 
     def _write(focus):
         direction_path.write_text(yaml.safe_dump(_record(focus)), encoding="utf-8")
@@ -1032,3 +1035,119 @@ def test_a_handoff_without_done_means_is_refused_rather_than_stored_as_a_topic(
     else:
         raise AssertionError("a continuation was stored with no done-means")
     assert seat_continuation.live(path=store) == []
+
+
+# --------------------------------------------------------------------------- #
+# The draw refuses work a live job or an owned worktree already holds          #
+# --------------------------------------------------------------------------- #
+
+#: The fourth PB4 draw's own prose, verbatim from DIRECTION.yaml at 2026-10-01T14:24Z. It names no
+#: path the held worktree holds; what ties it to the held work is `_bill_shock_base`.
+_REMINTED = _item(
+    "run-pb4s-swap-with-the-read-error-named-on-the-hazard",
+    "Land step 3 of docs/staging/SEAT_CONTINUATION_SWAP_THE_WORLDS_BILL_SHOCK_BASE_ONTO_THE_"
+    "EXPERIENCED_SHOCK_2026-10-01.md. Move the world's _bill_shock_base onto the experienced shock "
+    "and re-fit its level to the published band.",
+    "Every company ranking is graded against retention gradients that still come from a count "
+    "which reads 0 in year one.")
+
+_FLOOR_JOB = {
+    "holder": "longjob-pb4-floor-d-s123.service",
+    "artefact": "/home/rich/wt-pb4-land/docs/observability/value_cycle_ab_s1_noise_floor_20261001.json",
+    "names": {"longjob-pb4-floor-d-s123", "pb4-floor-d-s123", "/home/rich/wt-pb4-land"},
+    "paths": {"simulation/customer_events.py", "/home/rich/wt-pb4-land/simulation/customer_events.py"},
+    "identifiers": {"_bill_shock_base", "sim_experienced_bill_shock"},
+}
+
+
+def test_a_reminted_duplicate_of_held_work_is_refused_and_an_unheld_item_is_still_offered(
+        tree, monkeypatch):
+    """THE 2026-10-01 CASE. Both branches in one control: the re-minted item is walked past with
+    its holder and artefact named, and the ordinary item behind it is offered and claimed.
+
+    MUTATION (must fire): drop `and not _held(item)` from `_focus` -- the re-minted item is drawn.
+    MUTATION (must fire): drop the identifier leg from `held_by` -- nothing ties it to the job.
+    """
+    tree["write"]([_REMINTED, _item("unrelated-ordinary-work", "read the DD opening rule")])
+    monkeypatch.setattr(dl, "_live_holders", lambda: [_FLOOR_JOB])
+
+    text = dl.draw(now=NOW_EPOCH, path=tree["claims"])
+
+    assert text and "unrelated-ordinary-work" in text.split("HELD-WORK CHECK")[0]
+    assert "HELD-WORK CHECK" in text
+    assert "longjob-pb4-floor-d-s123.service" in text and "noise_floor_20261001.json" in text
+    assert "_bill_shock_base" in text
+    taken = dl.held(tree["claims"])
+    assert "unrelated-ordinary-work" in taken
+    assert _REMINTED["id"] not in taken, "a refused item is never claimed, so never released"
+
+
+def test_with_no_holder_the_same_item_is_offered(tree, monkeypatch):
+    """The refusal can be NOT taken: the identical prose is drawn when nothing holds it."""
+    tree["write"]([_REMINTED, _item("unrelated-ordinary-work")])
+    monkeypatch.setattr(dl, "_live_holders", lambda: [])
+
+    assert dl.next_item(now=NOW_EPOCH, path=tree["claims"])["id"] == _REMINTED["id"]
+    assert dl.LAST_HELD_SKIPS == []
+
+
+def test_the_holders_own_handoff_is_offered_while_the_job_runs(tree, monkeypatch):
+    """`promote-pb4-world-d-value-arms-and-land-the-swap` names the worktree and the job, and is
+    MEANT to be drawn while the floor runs. Naming the holder is what tells a hand-off from a
+    re-mint.
+
+    MUTATION (must fire): drop the `names` skip in `held_by` -- the hand-off is refused.
+    """
+    handoff = _item("promote-pb4-world-d-value-arms-and-land-the-swap",
+                    "The jobs are running from /home/rich/wt-pb4-land. pb4-floor-d-s123 will "
+                    "probably still be running. Move _bill_shock_base in simulation/customer_events.py.")
+    tree["write"]([handoff])
+    monkeypatch.setattr(dl, "_live_holders", lambda: [_FLOOR_JOB])
+
+    assert dl.next_item(now=NOW_EPOCH, path=tree["claims"])["id"] == handoff["id"]
+
+
+def test_a_path_the_holder_holds_refuses_and_a_dotted_module_name_does_not():
+    """The path leg, and the instruction-not-subject exclusion: `tools.surgical_land` in an item is
+    how to land, not what to change."""
+    holder = dict(_FLOOR_JOB, identifiers={"surgical_land"})
+    by_path = dl.held_by(_item("x", "edit simulation/customer_events.py"), [holder])
+    assert by_path and "simulation/customer_events.py" in by_path[1]
+    assert dl.held_by(_item("y", "land it with python3 -m tools.surgical_land"), [holder]) is None
+
+
+def test_a_running_jobs_worktree_diff_is_its_subject(tmp_path, monkeypatch):
+    """The probe end to end over a real git worktree: a running unit whose artefact is written into
+    a worktree holds the identifiers that worktree's diff changes, and a stale owner pid holds
+    nothing.
+
+    MUTATION (must fire): harvest identifiers from context instead of +/- lines, or drop the
+    artefact-home join -- `_bill_shock_base` is no longer held.
+    """
+    from background import launch_liveness
+
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    env = {**os.environ, "GIT_AUTHOR_NAME": "t", "GIT_AUTHOR_EMAIL": "t@t",
+           "GIT_COMMITTER_NAME": "t", "GIT_COMMITTER_EMAIL": "t@t"}
+    for args in (["init", "-q"], ["config", "core.hooksPath", "/dev/null"]):
+        subprocess.run(["git", *args], cwd=repo, check=True, env=env)
+    (repo / "events.py").write_text("def unrelated_context_name():\n    return 1\n")
+    subprocess.run(["git", "add", "."], cwd=repo, check=True, env=env)
+    subprocess.run(["git", "commit", "-qm", "base"], cwd=repo, check=True, env=env)
+    (repo / "events.py").write_text("def unrelated_context_name():\n    return _bill_shock_base()\n")
+    (repo / ".se_worktree_owner").write_text("999999999\n")
+
+    monkeypatch.setattr(launch_liveness, "live_units", lambda: ["longjob-floor.service"])
+    monkeypatch.setattr(launch_liveness, "load", lambda path=None: [
+        {"job": "floor", "unit": "longjob-floor", "artefact": str(repo / "out.json"), "claim": "live"}])
+    real_git = dl._git
+    monkeypatch.setattr(dl, "_git", lambda *a, cwd=None: (
+        f"worktree {repo}\nHEAD 0\n" if a[:2] == ("worktree", "list") else real_git(*a, cwd=cwd)))
+
+    holders = dl._live_holders()
+
+    assert [h["holder"] for h in holders] == ["longjob-floor.service"], "a dead owner holds nothing"
+    assert "_bill_shock_base" in holders[0]["identifiers"]
+    assert "unrelated_context_name" not in holders[0]["identifiers"]
+    assert "events.py" in holders[0]["paths"]
