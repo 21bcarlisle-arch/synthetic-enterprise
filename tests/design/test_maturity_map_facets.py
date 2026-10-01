@@ -799,6 +799,8 @@ def _is_blocked(blocked_on) -> bool:
     """A blocked_on is a real block unless it is null/None/empty/whitespace."""
     if blocked_on is None:
         return False
+    if isinstance(blocked_on, list):
+        return bool(blocked_on)
     s = str(blocked_on).strip()
     return bool(s) and s.lower() != "null"
 
@@ -809,7 +811,13 @@ def _block_reason_missing(atom: dict) -> bool:
 
 
 def _blocked_on_resolves(blocked_on, known_ids: set) -> bool:
-    """RESOLVES iff blocked_on names a canonical releaser token (substring) or an existing atom id."""
+    """RESOLVES iff blocked_on names a canonical releaser token (substring) or an existing atom id.
+
+    A LIST resolves iff every member is an existing atom id. That is the only shape
+    `test_maturity_map_contract.check_edges` admits, and stringifying it here made every
+    contract-valid block unresolvable, so no block could pass both controls."""
+    if isinstance(blocked_on, list):
+        return all(isinstance(m, str) and m in known_ids for m in blocked_on)
     s = str(blocked_on).strip()
     low = s.lower()
     if any(tok in low for tok in KNOWN_RELEASER_TOKENS):
@@ -985,6 +993,17 @@ def test_block_hygiene_fires_on_atom_id_release_condition_referent_missing():
     # the same, but the named atom does NOT exist -> unresolvable -> must fire
     bad = [{"id": "A_waiter", "blocked_on": "B_ghost", "block_reason": "waits on a ghost"}]
     assert check_block_hygiene(bad), "blocked_on naming a non-existent atom id must fire"
+
+
+def test_block_hygiene_resolves_the_list_shape_the_contract_requires():
+    # The contract admits only a LIST of ids, so the list leg must be reachable AND refuse a ghost.
+    good = [{"id": "A_waiter", "blocked_on": ["B_dependency"], "block_reason": "waits on B"},
+            {"id": "B_dependency"}]
+    assert not check_block_hygiene(good), "a list of existing atom ids must resolve"
+    bad = [{"id": "A_waiter", "blocked_on": ["B_dependency", "B_ghost"], "block_reason": "waits"},
+           {"id": "B_dependency"}]
+    assert check_block_hygiene(bad), "a list with a non-existent member must fire"
+    assert not check_block_hygiene([{"id": "E", "blocked_on": []}]), "an empty list is no edge"
 
 
 def test_block_hygiene_ignores_unblocked_atoms():

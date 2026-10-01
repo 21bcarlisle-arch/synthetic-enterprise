@@ -81,3 +81,19 @@ The direction agrees, but at about 20 accounts each the CIs reach 0, so this set
   accounts that are different households.
 - **When that ruling arrives,** `book_member` in `tools/run_value_cycle_ab.py` is the door. It
   already rebinds the seed before import and re-draws the churn roll at the same seed.
+
+**Parked (2026-10-01, autonomous worker, ~18:40).** The draw kept offering EP1 for a build whose
+company-side steps are spent. The ledger row (`7a8e651cd`) reads gap 1.081 on 69 rows, and after
+the best single scale it is 0.991, so no per-account information is left to recover. The wider
+every-snapshot grade (ROUTE finding) found tenure unrankable because the world holds no tenure
+signal, which is the world lane's question. The `saas.churn_model` 0.05 bucket in
+`hazard_calibration` belongs to B8, not to H2, which no longer reads it. The map row now carries
+`blocked_on: ['EP17_varied_population_draw']` with its `block_reason`. **To unpark:** delete both
+fields when the book-seed ruling lands.
+
+Parking it exposed a control pair that no block could satisfy. `test_maturity_map_contract.check_edges`
+requires `blocked_on` to be a LIST of ids, but `test_maturity_map_facets._blocked_on_resolves`
+stringified it and looked the string up as one id. So every contract-valid block failed hygiene,
+which is why director-blocked atoms have been parked `idle` instead. The resolver now accepts a
+list whose members all exist. Mutation-checked: removing the list leg reds the new test and the
+live-map test.

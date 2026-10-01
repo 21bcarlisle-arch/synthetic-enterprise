@@ -744,7 +744,9 @@
   couples_with: []
   records_rehomed: [evidence]
   file_scope: ['company/analytics/clv_three_horizon.py', 'tests/company/analytics/test_clv_three_horizon.py', 'company/analytics/customer_value_view.py', 'tools/couple_clv.py', 'tests/tools/test_couple_clv.py']
-  simplifications_count: 19   # 2026-10-01 pass 20, LEVEL STAYS 2: graded since 08-26 (pass 19's 'not graded ONCE' went stale); row re-measured, gap 2.36 n=69; its ledger write waits on the premise-two-level reds a ledger edit selects. Horizon hypothesis CONFIRMED, not applied (R12): a point-in-time observed hazard alone takes the gap to 1.08, so the excess is the lifetime LEVEL and the per-account ranking is ~nil. Next: that hazard in the tenure horizon, with a researched first-year prior.
+  simplifications_count: 19   # 2026-10-01 LEVEL STAYS 2. Ledger row landed 7a8e651cd: gap 1.081 n=69 (H2 on the book's tenure-year life table). Best single scale leaves 0.991: no per-account information left to recover company-side. Tenure is unrankable because the world holds no tenure signal (world lane); the margin ranking is the fuel split. See SEAT_FINDING_EP1_LEGS_THEN_RATE_*.
+  blocked_on: ['EP17_varied_population_draw']
+  block_reason: "Replicating EP1's legs-then-rate ranking needs a second book; which book the company lives through is the director's (R13). Recommendation (two measurement-only book seeds) is in SEAT_FINDING_EP1_LEGS_THEN_RATE_*; clear this field when the ruling lands."
 - id: EP2_variance_learning_loop
   title: "Expected minus realised, fed back into belief"
   notes_rehomed: [gain, name, origin_note]
