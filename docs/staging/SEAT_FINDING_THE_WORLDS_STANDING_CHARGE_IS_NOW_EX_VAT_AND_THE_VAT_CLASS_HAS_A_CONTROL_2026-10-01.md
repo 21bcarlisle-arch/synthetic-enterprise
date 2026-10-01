@@ -56,6 +56,7 @@ by only 0.877 of the standing-charge fall. Something else added £1,356. The can
 pricing reading the observed standing charge (`value_based_renewal._observed_standing_charge_gbp`):
 a lower fixed recovery would raise the struck unit rate. That is **consistent with the result but
 not established**. The one-variable test is to freeze the renewal path to old-arm SC observations.
+*Correction, 2026-10-01: that candidate was unreachable. The default world runs `flat_rules` and never calls it (0 calls). The £1,356 is the portfolio premium (+£1,040.51) and the margin surcharge (+£320.63) pricing the lower realised margin into renewal unit rates; see `SEAT_FINDING_THE_12_PERCENT_IS_THE_COMPANY_PRICING_ITS_LOWER_MARGIN_BACK_INTO_RENEWAL_UNIT_RATES_2026-10-01.md`.*
 DD review and balance books move by noise: increases 489 → 490, mean held credit £826.93 → £831.00.
 
 **For the company figures this means:** about £11k of what the world booked as supplier revenue
@@ -86,6 +87,6 @@ different answers, but it does not merge them. That merge is the next piece of t
 
 ## Still open
 
-- The 12% feedback in P3: confirm or refute it with the one-variable renewal freeze.
+- ~~The 12% feedback in P3~~: attributed, see the correction under P3.
 - 2025 standing-charge row: add it from the model, as a coverage change in its own run.
-- Merge the three VAT-rate homes into one.
+- ~~Merge the three VAT-rate homes into one~~: landed `ed7b4666f`.
