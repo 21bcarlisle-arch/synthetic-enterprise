@@ -369,3 +369,42 @@ def test_the_reader_and_the_report_cannot_disagree_about_the_substrate():
     report = json.loads((root / "docs/reports/dd_opening_arms.json").read_text())
     feed = json.loads((root / "site/data/dd_opening_arms.json").read_text())
     assert feed["substrate_sha256"] == report["clock"]["substrate_sha256"]
+
+
+def test_the_estimate_arm_is_the_amounts_the_run_used_and_an_older_substrate_refuses():
+    """DEFECT: the estimate arm re-derives the opening and measures the cap fallback.
+
+    THIS ONE ALREADY HAPPENED. From 2026-10-01 the run opens each account at the rate
+    it was SOLD at, read from settlement records no run output carries; the instrument
+    kept calling the opening function with customers alone and so measured the cap
+    while publishing "the live rule". The arm must be exactly the mapping the run
+    handed over, and a substrate without it must refuse, naming the key, rather than
+    fall back to a re-derivation.
+    """
+    import pytest
+
+    from tools.dd_opening_arms import estimate_opening_by_customer
+
+    used = {"A": 81.25, "B": 47.0}
+    assert estimate_opening_by_customer({"bills": [], "opening_dd_by_customer": used}) == used
+
+    with pytest.raises(SystemExit, match="opening_dd_by_customer"):
+        estimate_opening_by_customer({"bills": []})
+
+
+def test_the_openings_the_run_used_survive_into_the_persisted_run_output():
+    """DEFECT: the world hands the openings over and the report's key whitelist drops them.
+
+    `docs/reports/run_output_latest.json` is what `extract_report_data` selects, key by
+    key, from the run's dict. A key the simulation returns and that list omits never
+    reaches the instrument's substrate, and every later re-run refuses for want of it.
+    """
+    from saas.reporting.annual_report import extract_report_data
+
+    phase2b = {"all_records": [], "starting_treasury": 0.0, "total_gross": 0.0,
+               "total_capital": 0.0, "administration_event": None}
+    used = {"A": 81.25}
+    out = extract_report_data({"phase2b": phase2b, "bills": [],
+                               "opening_dd_by_customer": used})
+    assert out.get("opening_dd_by_customer") == used, (
+        "the persisted run output does not carry the opening amounts the run used")

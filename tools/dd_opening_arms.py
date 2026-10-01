@@ -95,17 +95,30 @@ def flat_opening_by_customer(bills: list[dict], *, direct_debit_only: bool) -> d
     }
 
 
-def estimate_opening_by_customer(customers: list[dict]) -> dict[str, float]:
-    """The LIVE rule, measured through the live call site rather than a copy of it.
+def estimate_opening_by_customer(payload: Mapping[str, Any]) -> dict[str, float]:
+    """The LIVE rule, read as the amounts the run actually USED, never re-derived.
 
-    Imports `simulation.run_phase4c_on_phase2b._opening_dd_by_customer` -- private,
-    and deliberately so. A second implementation of the arm under test is exactly
-    the shape that lets the experiment agree with a version of the organ that is
-    not the one running in production.
+    Since 2026-10-01 `_opening_dd_by_customer` annualises each account at the rate it
+    was SOLD at, read from the run's settlement records, and falls back to the cap only
+    without them. No run output carries those records, so calling the function from here
+    -- as this did until then -- silently measured the cap fallback while this docstring
+    and the published page said "the live rule". Rebuilding the sold rate from the
+    bills' own rate fields would be a second implementation of the arm under test, the
+    shape that lets an experiment agree with an organ that is not the one in production.
+    So the run hands over `opening_dd_by_customer`, the mapping both DD books were fed,
+    and this reads it.
+
+    A substrate written before that key existed REFUSES, naming why: there is no way to
+    recover from it what the live rule opened each account at.
     """
-    from simulation.run_phase4c_on_phase2b import _opening_dd_by_customer
-
-    return _opening_dd_by_customer(customers)
+    opening = payload.get("opening_dd_by_customer")
+    if opening is None:
+        raise SystemExit(
+            "this run output carries no `opening_dd_by_customer`: it predates the run "
+            "handing over the opening amounts it used, so the live rule's arm cannot be "
+            "measured from it without re-deriving the rate sold. Re-run against a run "
+            "output produced after that key landed.")
+    return {str(cid): float(amount) for cid, amount in opening.items()}
 
 
 def _basis_and_rate_by_customer(customers: list[dict]) -> dict[str, dict]:
@@ -446,7 +459,7 @@ def run(run_output_path: Path) -> dict:
 
     flat_for_book = flat_opening_by_customer(bills, direct_debit_only=True)
     flat_for_review = flat_opening_by_customer(bills, direct_debit_only=False)
-    est_open = estimate_opening_by_customer(customers)
+    est_open = estimate_opening_by_customer(payload)
     basis = _basis_and_rate_by_customer(customers)
 
     flat_arm = build_arm(bills, flat_for_book, flat_for_review)
@@ -699,12 +712,16 @@ def publish_view(result: dict | None) -> dict:
             "n": unest.get("estimate_n"),
             "cause_no_published_rate": unest.get("estimate_cause_no_published_rate"),
             "cause_no_consumption_basis": unest.get("estimate_cause_no_consumption_basis"),
+            # Built from the counts, not asserted: since the rate sold opens an account,
+            # a missing cap is a cause only together with no first-bill rate to sell at.
             "statement": (
-                "{n} accounts get NO opening amount under the estimate, every one of them "
-                "because this company holds no published GB rate before the price cap began in "
-                "January 2019 and therefore has nothing to annualise against. None failed for "
-                "want of a consumption estimate. They carry no direct debit rather than one "
-                "invented to fill the gap.".format(n=unest.get("estimate_n"))
+                "{n} accounts get NO opening amount under the estimate: {r} had no first-bill "
+                "rate and no published GB price cap on the date they opened, and {b} had no "
+                "consumption estimate. They carry no direct debit rather than one invented "
+                "to fill the gap.".format(
+                    n=unest.get("estimate_n"),
+                    r=unest.get("estimate_cause_no_published_rate"),
+                    b=unest.get("estimate_cause_no_consumption_basis"))
             ),
         },
         # BOTH SPLITS REACH THE FEED, under names that say what each one counts. The

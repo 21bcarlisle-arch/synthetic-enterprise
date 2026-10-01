@@ -657,6 +657,11 @@ def main(report_end: str | None = None, policy=None):
         "bills": bills,
         "dd_collection_book": _serialize_dd_collection_book(dd_collection_book),
         "annual_dd_review": annual_dd_review,
+        # The opening DD each account was given, exactly as both books above were fed
+        # it. Handed over so `tools/dd_opening_arms` measures the amounts this run
+        # USED: the rate sold is read from `all_records`, which no run output carries,
+        # so an instrument re-deriving from customers alone measures the cap fallback.
+        "opening_dd_by_customer": opening_dd,
         "dd_balance_book": dd_balance_book.serialise(),
         "dd_level_collection_book": dd_level_collection_book.serialise(),
         "meter_read_log": meter_read_log,
