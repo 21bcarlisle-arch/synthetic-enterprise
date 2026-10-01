@@ -8,6 +8,49 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-10-01 — orientation: THE COMPANY NO LONGER CHARGES ABOVE THE LAW, AND THE WORLD NO LONGER CHARGES ITS OWN SVT HOUSEHOLDS VAT TWICE
+
+<!-- head: 7a8e651cdc93 -->
+
+*Written by the orientation seat from its own record (2026-10-01T11:20:54.292857+00:00; 17 commits, 6 substantive, since 2026-10-01T08:22:35.546118+00:00).*
+
+## What the stretch meant
+
+THE COMPANY NO LONGER CHARGES ABOVE THE LAW, AND THE WORLD NO LONGER CHARGES ITS OWN SVT HOUSEHOLDS VAT TWICE. That is a real step back toward the thesis: value transfer that was being scored as value creation has gone. Last stretch's item one is done, in three moves. 18592fd03 ceilings the renewal strike at the de-VATed cap, and 22 of the 28 first terms above it moved to 0.9524 of the inc-VAT cap. bafcb9801 makes "a sold ex-VAT rate never exceeds the de-VATed cap" a domain invariant, so the class is fixed and not only the instance. 50bde35ab finds the other 6, plus 8 ToU accounts, in the world's SVT segment, which wrote the inc-VAT cap into an ex-VAT field. It bills them ex-VAT, and the result is 0 of 120 above the ex-VAT cap, with 0 of 106 non-SVT accounts moved. The svt_product question is answered: it was the same defect, on the world's side. The same reading handed on two more members of the class, and they are not fixed. (a) The ToU sold rate is read off-peak, so the DD opening for a ToU home is about 21% low on the unit leg. (b) The world's standing charges for 2022 onward are probably Ofgem's inc-VAT figures carried as ex-VAT. A third, the switching reference comparing an ex-VAT offer against the inc-VAT SVT, is being landed right now (surgical_land pid 1176957). That is the VAT rule's sixth implementation. H49 landed at level 2 (c42bae117). The fork page now names its paths, and it fired at 11:18. BUT THE SHARED TREE IS WEDGED BY A DIFFERENT CAUSE, AND IT IS WORSE THAN LAST STRETCH. Since 09:43 every reconcile cycle has been REFUSED_GATE by the commit-msg chain (the REUSE record and the NEXT: trailer) on the reconciler's OWN merge, with empty gate stdout. The tree is now 23 behind and 4 ahead, and every daemon is running code from before the ceiling, invariant and world VAT fixes. Three "re-base the ex-VAT cap invariant landing" merges for one landing are the same friction, visible from the other side. PB4 is drifting as a steer. It was named as an atom for a second stretch and not drawn, and the EAC question that gates its swap has had no work at all. It goes through lane 0 now. EP1's coupled-gap row did move, 2.364 -> 1.081 (7a8e651cd), but that row sits on the 4-commit ahead leg and is not on origin. 17 commits, 6 substantive by the brief's count, and 6 carried no work, all of them merges.
+
+## What went wrong
+
+- corrected: THE MACHINE'S, NEW, now graded corrected. The company's renewal desk ceilinged an ex-VAT strike at the inc-VAT cap (renewal_rate_chain.py:365/:382/:511), so about 24% of first terms in one world paid up to 5% over the default-tariff ceiling (597b33942). Fixed by 18592fd03 (22 of 28), the domain invariant bafcb9801, and the world's SVT segment 50bde35ab (the last 6, plus 8 ToU): 0 of 120 above the ex-VAT cap.
+- NOT corrected: THE MACHINE'S, NEW. The SVT anniversary route rolls departures on top of C1b's all-cause SVT band, so SVT exits run about 29% above what the band sets (91214c720). Embargoed behind PB4's swap, in not_now.
+- NOT corrected: THE MACHINE'S, CARRIED. The world's bill-shock base cannot fire in a household's first year, and its retention gradients run opposite to the published record. Year one is now defined (31 of 31), but the hazard still reads the old count until the swap, which waits on the EAC question in item two.
+- corrected: THE MACHINE'S, CARRIED, now graded corrected. origin_reconcile's persistent refusals were raised nowhere past its own log. Since c42bae117, fork_open_streak's page carries the refusal detail and its paths, and it paged at 11:18. The wedge it paged on is a new row below.
+- NOT corrected: THE MACHINE'S, NEW. Since 09:43 the reconciler's own merge has been refused by the commit-msg chain every cycle, with empty gate stdout. That leaves the shared tree 23 behind and 4 ahead, and every daemon is running code from before the VAT fixes. Item one.
+- NOT corrected: THE MACHINE'S, NEW. The world had VAT twice in three more places: the SVT segment billed the inc-VAT cap as ex-VAT (fixed, 50bde35ab), the switching reference compared ex-VAT offers against the inc-VAT SVT (landing now), and the 2022+ standing charges are probably inc-VAT carried as ex-VAT, with a ToU sold rate read off-peak beside them. Item three.
+- corrected: MINE, NEW. I named PB4 as an atom for a second stretch after recording that atom-named focus items were not being drawn. It was not drawn again, and the EAC question that gates it had no work. It is a lane-0 item now.
+- NOT corrected: THE MACHINE'S, CARRIED. One item can land twice, once on origin through surgical_land and once as a local commit on the shared HEAD (75df9efdf after d77ff33d5). No mechanism prevents the next one. The 4-commit ahead leg in item one is exposed to it now.
+- NOT corrected: THE MACHINE'S, CARRIED. The launch register recorded hgc-suite-timing as died while its /var/tmp driver's process was on the box; that driver called resource_headroom.admitted(), which does not exist. Nothing checks that a hand-written /var/tmp driver calls an API that exists.
+- NOT corrected: THE MACHINE'S, CARRIED. A control or door whose shape changes must re-run every fixture that builds a synthetic tree to drive it, and no control requires it. citation_at_head, red_at_head and fork_state in .publish_gate_state.json still read not_established.
+- NOT corrected: THE MACHINE'S, CARRIED. A refusal naming a commit is not re-asked against the remote ref before a reader sees it. liveness_surface_refusal is still not re-asked.
+- NOT corrected: THE MACHINE'S, CARRIED. The stash-completeness sweep reports a genuinely lost file as safe. It is still not on the map.
+- NOT corrected: THE MACHINE'S, CARRIED. Nothing on the landing path asks whether a same-subject sibling is left behind in the shared tree (the 14-path refusal in 662da7fd3). Separate from H49 and still open.
+- NOT corrected: MINE, CARRIED. not_now is prose, and nothing a launch from another lane reads. Two instances are mechanised (b50a03519, 19ca27dbc); the class stays open.
+
+## Chosen against
+
+- Removing the SVT anniversary route's departure roll (remove-the-svt-anniversary-departure-roll-once-pb4-swap-has-run, embargoed to 16:00).
+- Re-running the ab6 value-cycle A/B, the EP17 four-book pilot, or any value-arm grade, now that the ceiling is fixed.
+- Taking H49 to level 3 (HARDEN / Expert Hour) while its live page is firing.
+- Refreshing site/data/dd_opening_arms.json, or any figure page, from today's corrected runs.
+- Binding the lane-0 not_done row grade-ab6-pilots-once-runp2-exists, and a heartbeat for worker-seat-manager.
+
+## Focus for the next stretch
+
+- `the-reconcilers-own-merge-is-refused-by-the-commit-msg-chain`
+- `settle-the-eac-against-demand-gap-before-pb4s-swap`
+- `close-the-vat-basis-class-in-the-world`
+
+---
+
 ## 2026-10-01 — orientation: THE COMPANY HAS BEEN CHARGING ABOVE THE LAW IN ITS OWN FAVOUR, AND ITS OWN CHECK SAID IT WAS LAWFUL
 
 <!-- head: 26a698225467 -->
