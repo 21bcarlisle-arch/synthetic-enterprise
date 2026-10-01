@@ -97,7 +97,10 @@ the claimant's say-so.
 """
 from __future__ import annotations
 
+import contextlib
+import fcntl
 import json
+import os
 import subprocess
 import time
 from pathlib import Path
@@ -209,9 +212,30 @@ def _preserve_if_unreadable(verdict: str, path: Path) -> None:
 
 
 def _save(claims: dict, path: Path) -> None:
+    """Atomic: a temporary sibling, then `os.replace`, so a reader never sees a half-written
+    store. A truncated read is classified unreadable and the next writer moves the store aside."""
     guard_live_ledger_write(path, writer="seat_work_in_hand._save")
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(claims, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    tmp = path.with_name(f"{path.name}.tmp-{os.getpid()}")
+    tmp.write_text(json.dumps(claims, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    os.replace(tmp, path)
+
+
+@contextlib.contextmanager
+def _exclusive(path: Path):
+    """Serialise one writer's whole load -> modify -> save against every other writer of `path`.
+
+    WITHOUT IT A WRITER SAVES A STALE DICT OVER ANOTHER'S ROW (2026-10-01). The worker's dispatch
+    claim on the PB4 swap landing, taken at 15:17:20Z, was gone by 15:19:54Z with no release
+    logged, and the isolated executor drew the same item four times while the worker ran it.
+    Measured with eight processes each claiming 25 ids into one store: 21 of 200 rows survived.
+    `tests/background/test_concurrent_claim_writers_lose_no_row.py` is the control. Same pattern
+    as `ntfy_utils.record_sent_id`, which lost ids the same way.
+    """
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with open(path.with_name(path.name + ".lock"), "w") as lock:
+        fcntl.flock(lock, fcntl.LOCK_EX)
+        yield
 
 
 def _last_commit_time_touching(paths: list[str]) -> float:
@@ -246,14 +270,15 @@ def claim(work_id: str, note: str = "", paths: list[str] | None = None, *,
     out loud, in the record.
     """
     p = path or CLAIMS_FILE
-    claims, verdict = _load_classified(p)
-    _preserve_if_unreadable(verdict, p)
-    claims[work_id] = {
-        "claimed_at": time.time() if now is None else now,
-        "note": note,
-        "paths": list(paths or []),
-    }
-    _save(claims, p)
+    with _exclusive(p):
+        claims, verdict = _load_classified(p)
+        _preserve_if_unreadable(verdict, p)
+        claims[work_id] = {
+            "claimed_at": time.time() if now is None else now,
+            "note": note,
+            "paths": list(paths or []),
+        }
+        _save(claims, p)
 
 
 #: Ceiling on a single claim's accumulated file_scope.
@@ -281,19 +306,20 @@ def bind_paths(work_id: str, paths: list[str], *, path: Path | None = None) -> l
     commit into.
     """
     p = path or CLAIMS_FILE
-    claims = _load(p)
-    rec = claims.get(work_id)
-    if not isinstance(rec, dict):
-        return []
-    fresh = {str(x) for x in paths if str(x).strip()}
-    # At the ceiling, THIS landing's paths win: they are where the work is now, and the older
-    # ones are the likeliest to be picked up by another lane and certify a claim that stopped.
-    room = sorted(set(rec.get("paths") or []) - fresh)[:max(0, MAX_BOUND_PATHS - len(fresh))]
-    merged = sorted(fresh)[:MAX_BOUND_PATHS] + room
-    rec["paths"] = sorted(merged)
-    claims[work_id] = rec
-    _save(claims, p)
-    return rec["paths"]
+    with _exclusive(p):
+        claims = _load(p)
+        rec = claims.get(work_id)
+        if not isinstance(rec, dict):
+            return []
+        fresh = {str(x) for x in paths if str(x).strip()}
+        # At the ceiling, THIS landing's paths win: they are where the work is now, and the older
+        # ones are the likeliest to be picked up by another lane and certify a claim that stopped.
+        room = sorted(set(rec.get("paths") or []) - fresh)[:max(0, MAX_BOUND_PATHS - len(fresh))]
+        merged = sorted(fresh)[:MAX_BOUND_PATHS] + room
+        rec["paths"] = sorted(merged)
+        claims[work_id] = rec
+        _save(claims, p)
+        return rec["paths"]
 
 
 def release(work_id: str, *, path: Path | None = None) -> bool:
@@ -319,15 +345,16 @@ def release(work_id: str, *, path: Path | None = None) -> bool:
     `record_landing`/`refusal_reason` already uses in the module that owns that pattern.
     """
     p = path or CLAIMS_FILE
-    claims, verdict = _load_classified(p)
-    if claims.pop(work_id, None) is None:
-        # No write happens on this branch, so there is nothing to preserve AGAINST -- and an
-        # unreadable store lands here, because `{}` has nothing to pop. The preserve belongs
-        # with the write, not with the read.
-        return False
-    _preserve_if_unreadable(verdict, p)
-    _save(claims, p)
-    return True
+    with _exclusive(p):
+        claims, verdict = _load_classified(p)
+        if claims.pop(work_id, None) is None:
+            # No write happens on this branch, so there is nothing to preserve AGAINST -- and an
+            # unreadable store lands here, because `{}` has nothing to pop. The preserve belongs
+            # with the write, not with the read.
+            return False
+        _preserve_if_unreadable(verdict, p)
+        _save(claims, p)
+        return True
 
 
 def held(*, path: Path | None = None) -> list[str]:
