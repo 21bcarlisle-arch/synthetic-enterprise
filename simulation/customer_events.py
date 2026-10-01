@@ -39,6 +39,7 @@ from simulation.departure_risks import (
     resolve_departure,
     total_departure_probability,
 )
+from simulation.experienced_bill_shock import experienced_bill_shock_at_renewal
 from simulation.household import IncomeStress, household_of
 from simulation.market_switching_propensity import (
     bill_scale_for,
@@ -540,6 +541,9 @@ def roll_lifecycle_event(
     # chain starts from, which is `1 - effective_retention_probability`, and the difference is
     # exactly the quantity the P0 calibration is fitted against.
     _bill_shock_base = 1.0 - effective_p_retain
+    _experienced_shock = experienced_bill_shock_at_renewal(
+        customer_id, commodity, term_month, records_so_far, customers,
+    )
     _market_opportunity = 1.0
     _price_response = 1.0
     _action_propensity = 1.0
@@ -844,4 +848,10 @@ def roll_lifecycle_event(
         # reader who cannot see it would find the hazards not reconstructing and have no way to
         # tell a level anchor from a defect.
         "sim_level_anchor": round(_level_anchor, 6),
+        # PB4: the bill shock this household EXPERIENCED, by `what_bill_shock_is.md`'s definition
+        # (DD reset for direct debit, the bill for standard credit, out of scope for prepayment;
+        # the quote is the reference in year one). Ground truth beside `sim_bill_shock_base`, NOT
+        # yet what the hazard reads -- see `simulation/experienced_bill_shock.py` for why the swap
+        # waits for one run that measures it first.
+        "sim_experienced_bill_shock": _experienced_shock,
     }

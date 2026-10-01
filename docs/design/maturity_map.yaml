@@ -1425,7 +1425,7 @@
   # never updated. A named control that is not on disk is a row nothing can grade -- which is
   # why this atom sat at level 0 with its work landed. `tools/level_zero_contradicted_by_its_
   # own_controls.py` reports that shape rather than grading the survivors.
-  file_scope: ['simulation/household_segments.py', 'simulation/payment_behaviour_source.py', 'tests/simulation/test_payment_channel_carries_the_engagement_antecedent.py']
+  file_scope: ['simulation/household_segments.py', 'simulation/payment_behaviour_source.py', 'tests/simulation/test_payment_channel_carries_the_engagement_antecedent.py', 'simulation/experienced_bill_shock.py', 'simulation/departure_risks.py', 'saas/churn_model.py', 'saas/customer_reaction.py']
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "the GB retail market's actual switching record: roughly half the domestic book has never switched supplier, and a large part of that half moves when a bill shock or a cap headline makes them look -- disengagement is an attention fact and the price response underneath it is a separate, and often large, quantity"
 - id: PB6_the_engagement_observable_crosses_the_seam

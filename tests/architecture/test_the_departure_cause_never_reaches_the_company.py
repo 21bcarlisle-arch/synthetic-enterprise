@@ -41,6 +41,10 @@ C2_GROUND_TRUTH_FIELDS = frozenset({
     # The guard below is what put this line here -- it went red on the new name the same commit
     # the name appeared, which is the whole point of reading the emission site back.
     "sim_level_anchor",
+    # PB4, 2026-10-01: whether the household experienced a bill shock by the published definition.
+    # The world computes it with the household's payment channel; it is B8's forbidden target --
+    # a company fitting it would learn the world's hazard rather than its customers.
+    "sim_experienced_bill_shock",
 })
 
 
