@@ -32,7 +32,23 @@ from saas.customer_reaction import score_experience_signals
 
 CONTRACT_LENGTH_DAYS = 365  # matches simulation/settlement.py
 
+# ORIGIN: A NAMED SIMPLIFICATION (2026-10-02), carried since Phase 4b-2 with no source. Since
+# `simulation.departure_level_anchor.year_level_anchor` sets the world's departure LEVEL each year,
+# what this pair still decides is the SHAPE. A shocked renewal's bill-shock base is (0.05 + 0.03) /
+# 0.05 = 1.6x an unshocked one's. To do it properly needs that ratio, and it is a published gap. See
+# the uplift's block below.
 BASE_ANNUAL_CHURN_PROBABILITY = 0.05
+
+# ORIGIN: A NAMED SIMPLIFICATION (2026-10-02). It is not sourced, and the amplitude it sets has been
+# searched for and is not established: does_a_bill_shock_event_raise_the_odds_a_household_shops.md
+# in the market-research layer (P(shop | shock) / P(shop | no shock), no published value). The world's
+# ENGAGEMENT leg holds the same amplitude as an honest None
+# (`simulation.household_segments.BILL_SHOCK_ENGAGEMENT_MULTIPLIER`) and refuses to price it. This
+# leg asserts 1.6x on the bill-shock base, and has done since before that search.
+# What it carried before the PB4 swap: +3pt per shocked MONTH, counted by `abs()`, so a bill that
+# FELL raised churn. That is how two 2024 renewals with identical offers went 0.29 -> 0.32 and
+# 0.17 -> 0.20 between `65401d319` and `cd0c7c39c`. See
+# SEAT_FINDING_THE_CHURN_RISE_ON_AN_IDENTICAL_OFFER_WAS_ONE_MORE_SHOCKED_MONTH_2026-10-02.md.
 CHURN_UPLIFT_PER_BILL_SHOCK = 0.03
 
 # ORIGIN: A NAMED SIMPLIFICATION (2026-08-31), and this constant is the director's own example of

@@ -92,6 +92,7 @@ so common random numbers held; what moved was the probability.
   That is a 13% give-back on £9,154 of extra revenue. The coupled-triad question is whether that
   price-to-churn response is the right size. The answer belongs to the churn model's evidence, not
   to this pair.
+  *Correction (2026-10-02): the extra churn on PROS-2022-0010 and -0097 was not a price response. Their one extra "shocked" month was a 2023 bill that FELL against a 2022 reference `new` had raised, counted by `abs()`. Only £215 of the £1,235 responded to price, about 2% of £9,154, not 13%. See `SEAT_FINDING_THE_CHURN_RISE_ON_AN_IDENTICAL_OFFER_WAS_ONE_MORE_SHOCKED_MONTH_2026-10-02.md`.*
 - **The 14% standing-charge feedback grew for the same reason.** The premium reads lower, honest
   margins, so it amplifies any margin loss more. That explains the direction of both misses in
   `SEAT_FINDING_WITHOUT_THE_LOOK_AHEAD_..._14_PERCENT_...`. Their sizes are not attributed here.
