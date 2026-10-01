@@ -69,6 +69,7 @@ from dataclasses import dataclass
 from company.analytics.clv_three_horizon import (
     AccountObservables,
     BookCLV,
+    BookExitRecord,
     BookRenewalRecord,
     Horizon,
     RenewalPoint,
@@ -89,6 +90,7 @@ __all__ = [
     "CustomerValueView",
     "build_customer_value_view",
     "build_three_horizon_clv_snapshots",
+    "observed_book_exits",
     "observed_book_renewals",
 ]
 
@@ -166,6 +168,7 @@ def build_customer_value_view(
     )
     three_horizon_clv = estimate_book(
         _clv_observables(churn_risk, enterprise_value, customers, ceased),
+        book_exits=observed_book_exits(settlement_records, ceased),
         book_renewals=observed_book_renewals(settlement_records, customers, ceased),
     )
     return CustomerValueView(
@@ -175,6 +178,35 @@ def build_customer_value_view(
         enterprise_value=enterprise_value,
         cost_to_serve_ledger_events=cost_to_serve_ledger_events,
         three_horizon_clv=three_horizon_clv,
+    )
+
+
+def observed_book_exits(
+    settlement_records: list[dict], ceased: set[str]
+) -> BookExitRecord:
+    """The settled time this supplier's book has observed, and the accounts that left it.
+
+    Per billing account, exposure runs from its first settled month to its last, inclusive
+    -- a whole month for the month an account arrived or left, because settlement is read
+    by month and anything finer would be a precision the records do not carry. An exit is
+    an account in `ceased`, WHENEVER it ceased: H2 is a tenure, and a home move or a
+    mid-term switch ends one exactly as a renewal departure does. Truncation is the
+    caller's, as for `observed_book_renewals`.
+    """
+    span: dict[str, tuple[str, str]] = {}
+    for record in settlement_records:
+        account_id = _billing_account_id(record["customer_id"])
+        month = record["settlement_date"][:7]
+        first, last = span.get(account_id, (month, month))
+        span[account_id] = (min(first, month), max(last, month))
+
+    months = 0
+    for first, last in span.values():
+        months += (
+            (int(last[:4]) - int(first[:4])) * 12 + int(last[5:7]) - int(first[5:7]) + 1
+        )
+    return BookExitRecord(
+        account_years=months / 12.0, exits=len(ceased & span.keys())
     )
 
 
@@ -415,7 +447,13 @@ def build_three_horizon_clv_snapshots(
             "observation_edge": edge,
             "covers_full_year": edge is not None and edge >= cutoff,
             # The n behind H2's hazard at this cutoff, so a reader can see a year
-            # valued on three decisions apart from one valued on ninety.
+            # valued on three account-years apart from one valued on ninety.
+            "book_exits": (
+                None
+                if book.book_exits is None
+                else book.book_exits.as_published_dict()
+            ),
+            # The per-anniversary diagnostic. NOT what H2 used -- `book_exits` is.
             "book_renewals": (
                 None
                 if book.book_renewals is None

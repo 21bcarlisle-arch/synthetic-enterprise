@@ -308,6 +308,20 @@ def test_lifetime_level_reads_the_published_book_hazard_rather_than_inverting():
     assert sorted(round(r["hazard"], 5) for r in rows) == [0.05, 0.2]
 
 
+def test_lifetime_level_reads_the_exit_hazard_over_the_renewal_diagnostic():
+    """Once H2 values on `book_exits`, the snapshot still publishes `book_renewals`
+    beside it as a diagnostic H2 never read. Taking the renewal hazard there would
+    publish the wrong number as the one EP1 used."""
+    run, counted = _snapshot_run({"A": 0.05, "B": 0.20})
+    year = run["three_horizon_clv_snapshots"]["years"]["2020"]
+    year["book_renewals"] = {"decisions": 50, "departures": 5, "hazard": 0.10}
+    year["book_exits"] = {"account_years": 60.0, "exits": 9, "rate": 0.15,
+                          "hazard": 0.139}
+    rows = sel.lifetime_level(run, counted)["per_account"]
+    assert {r["hazard"] for r in rows} == {0.139}
+    assert {r["hazard_source"] for r in rows} == {"published_book_exit_hazard"}
+
+
 def test_lifetime_level_uses_the_runs_own_discount_rate_not_the_fallback():
     """A run published at a different discount rate must recover the same
     hazard; silently applying 0.10 to a 0.06 run would shift every hazard."""

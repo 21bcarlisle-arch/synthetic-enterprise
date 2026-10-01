@@ -1,19 +1,23 @@
-"""EP1's tenure horizon on the book's OWN observed renewal departures.
+"""EP1's tenure horizon on the book's OWN observed exits, and the renewal diagnostic beside it.
 
 EP1 pass 20 measured that the whole of the CLV gap's excess over 1 was the LEVEL of the
-lifetime term: H2 read a 0.05 hazard off `saas.churn_model` for every account while the
-book realised 0.36 at renewal. H2 now reads the book's pooled per-renewal departure
-frequency, counted by `observed_book_renewals` from the supplier's own settled records.
+lifetime term: H2 read a 0.05 hazard off `saas.churn_model` for every account. 81977a312
+moved it to the book's per-renewal departure frequency (`observed_book_renewals`); the
+measurement after it found the world decides a renewal at one anniversary in five and 40
+of 89 cessations fall away from any anniversary. A TENURE ends at any exit, so H2 now
+values on the book's all-cause annual exit probability (`observed_book_exits`), and the
+renewal record is published beside it as a diagnostic only.
 
 What each control guards:
 
-1. The counting rule's five cases (stay, leave in the anniversary month, leave the month
-   before it, undecided, off-anniversary cessation). Each is a fixture account whose
+1. The renewal counting rule's five cases (stay, leave in the anniversary month, leave the
+   month before it, undecided, off-anniversary cessation). Each is a fixture account whose
    expected contribution is stated beside it.
 2. The blindfold: a truncated window counts only what had been decided by then.
-3. The partition: every H2 outcome on the book path can be REACHED (counted, no
-   decisions, no departures), and the no-decisions branch is blank, not a picked prior.
-4. The production caller actually takes the book path -- a seam that grew the argument
+3. The exit count: exposure per account, and an off-anniversary leaver IS an exit.
+4. The partition: every H2 outcome on the book path can be REACHED (counted, no exposure,
+   no exits), and a book nobody has left is blank, not a picked prior.
+5. The production caller actually takes the exit path -- a seam that grew the argument
    and a caller that never passed it would leave every other test here green.
 """
 
@@ -25,6 +29,7 @@ from company.analytics.clv_three_horizon import (
     DISCOUNT_RATE,
     FIRST_RENEWAL_DEPARTURE_PRIOR,
     AccountObservables,
+    BookExitRecord,
     BookRenewalRecord,
     Exclusion,
     Horizon,
@@ -36,6 +41,7 @@ from company.analytics.clv_three_horizon import (
 )
 from company.analytics.customer_value_view import (
     build_customer_value_view,
+    observed_book_exits,
     observed_book_renewals,
 )
 from saas.enterprise_value import ceased_billing_accounts
@@ -155,7 +161,43 @@ def test_a_truncated_window_counts_only_what_was_decided_by_then():
 
 
 # ---------------------------------------------------------------------------
-# 3. The H2 partition on the book path.
+# 3. The exit count.
+# ---------------------------------------------------------------------------
+
+#: Settled months per fixture account over the full window: S 2019-03..2024-12, L1
+#: 2020-06..2021-06, L0 2020-04..2021-03, M 2020-01..2021-07, U 2024-01..2024-12.
+_EXPOSURE_MONTHS = {"S": 70, "L1": 13, "L0": 12, "M": 19, "U": 12}
+
+
+def _exits(through: str = "2024-12-31") -> BookExitRecord:
+    records = _records(through)
+    return observed_book_exits(records, ceased_billing_accounts(records))
+
+
+def test_exposure_is_each_accounts_settled_span_and_every_leaver_is_an_exit():
+    got = _exits()
+    assert got.account_years == pytest.approx(sum(_EXPOSURE_MONTHS.values()) / 12.0)
+    # L1 and L0 left at an anniversary; M left MID-TERM. The renewal record counts
+    # two departures, the exit record three -- M is the case this record exists for.
+    assert got.exits == 3
+    assert _count().departures == 2
+
+
+def test_the_exit_record_counts_only_what_was_observed_by_the_cutoff():
+    early = _exits("2020-12-31")
+    assert early.account_years == pytest.approx((22 + 7 + 9 + 12) / 12.0)
+    assert early.exits == 0
+
+
+def test_the_hazard_is_the_annual_probability_not_the_rate():
+    record = BookExitRecord(account_years=20.0, exits=3)
+    assert record.rate == pytest.approx(0.15)
+    assert record.hazard == pytest.approx(1.0 - 2.718281828459045 ** -0.15)
+    assert record.hazard < record.rate
+
+
+# ---------------------------------------------------------------------------
+# 4. The H2 partition on the book path.
 # ---------------------------------------------------------------------------
 
 
@@ -172,40 +214,36 @@ def _obs(account_id: str = "A", *, belief: float = 0.05, margin: float | None = 
     )
 
 
+_COUNTED = BookExitRecord(account_years=20.0, exits=3)
+
+
 def test_every_h2_outcome_on_the_book_path_is_reachable():
     outcomes = {
-        "counted": estimate_account(_obs(), book_renewals=BookRenewalRecord(8, 2)),
-        "no_decisions": estimate_account(_obs(), book_renewals=BookRenewalRecord(0, 0)),
-        "no_departures": estimate_account(_obs(), book_renewals=BookRenewalRecord(4, 0)),
+        "counted": estimate_account(_obs(), book_exits=_COUNTED),
+        "no_exposure": estimate_account(_obs(), book_exits=BookExitRecord(0.0, 0)),
+        "no_exits": estimate_account(_obs(), book_exits=BookExitRecord(4.0, 0)),
     }
     h2 = {k: v.tenure_expected for k, v in outcomes.items()}
-    assert all(v.time_model is TimeModel.BOOK_OBSERVED_RENEWAL_HAZARD for v in h2.values())
+    assert all(v.time_model is TimeModel.BOOK_OBSERVED_EXIT_HAZARD for v in h2.values())
     assert h2["counted"].value_gbp is not None
-    assert h2["no_decisions"].value_gbp is None
-    assert h2["no_decisions"].population.reasons == {
-        Exclusion.NO_BOOK_RENEWAL_DECISIONS.value: 1
-    }
-    assert h2["no_departures"].value_gbp is None
-    assert h2["no_departures"].population.reasons == {
-        Exclusion.NO_BOOK_RENEWAL_DEPARTURES.value: 1
-    }
+    assert h2["no_exposure"].value_gbp is None
+    assert h2["no_exposure"].population.reasons == {Exclusion.NO_BOOK_EXPOSURE.value: 1}
+    assert h2["no_exits"].value_gbp is None
+    assert h2["no_exits"].population.reasons == {Exclusion.NO_BOOK_EXITS.value: 1}
 
 
 def test_the_first_renewal_prior_is_unestablished_and_says_so():
-    """Keyed to the property: while no prior is established, a book with no decided
-    renewal is blank. If a SOURCED prior is ever filed, this asserts it is used."""
-    record = BookRenewalRecord(0, 0)
-    assert record.hazard == FIRST_RENEWAL_DEPARTURE_PRIOR
-    h2 = estimate_account(_obs(), book_renewals=record).tenure_expected
-    assert (h2.value_gbp is None) == (FIRST_RENEWAL_DEPARTURE_PRIOR is None)
+    """Keyed to the property: while no prior is established, the renewal diagnostic of a
+    book with no decided renewal publishes no hazard."""
+    assert BookRenewalRecord(0, 0).hazard == FIRST_RENEWAL_DEPARTURE_PRIOR
 
 
-def test_h2_is_priced_at_the_books_frequency_and_not_the_accounts_belief():
-    record = BookRenewalRecord(8, 2)
-    low = estimate_account(_obs(belief=0.05), book_renewals=record).tenure_expected
-    high = estimate_account(_obs(belief=0.60), book_renewals=record).tenure_expected
+def test_h2_is_priced_at_the_books_exit_hazard_and_not_the_accounts_belief():
+    low = estimate_account(_obs(belief=0.05), book_exits=_COUNTED).tenure_expected
+    high = estimate_account(_obs(belief=0.60), book_exits=_COUNTED).tenure_expected
+    h = _COUNTED.hazard
     assert low.value_gbp == high.value_gbp == pytest.approx(
-        survival_discounted_value_gbp(120.0, 0.25, DISCOUNT_RATE, 4.0)
+        survival_discounted_value_gbp(120.0, h, DISCOUNT_RATE, 1.0 / h)
     )
     # The belief path, for contrast, does move -- so the equality above is the book
     # path's doing and not a horizon that ignores its hazard altogether.
@@ -221,33 +259,55 @@ def test_h2_on_the_book_path_needs_a_margin_not_a_renewal_of_its_own():
         contract_term_years=1.0, renewal_history=(), annual_margin_gbp=80.0,
         still_supplied=True,
     )
-    h2 = estimate_account(no_history, book_renewals=BookRenewalRecord(8, 2)).tenure_expected
+    h2 = estimate_account(no_history, book_exits=_COUNTED).tenure_expected
     assert h2.value_gbp is not None
-    blank = estimate_account(_obs(margin=None), book_renewals=BookRenewalRecord(8, 2))
+    blank = estimate_account(_obs(margin=None), book_exits=_COUNTED)
     assert blank.tenure_expected.population.reasons == {
         Exclusion.NO_MARGIN_OBSERVED.value: 1
     }
 
 
 def test_the_published_book_carries_the_n_behind_the_hazard():
-    payload = estimate_book([_obs()], book_renewals=BookRenewalRecord(8, 2)).as_published_dict()
+    payload = estimate_book(
+        [_obs()], book_exits=_COUNTED, book_renewals=BookRenewalRecord(8, 2)
+    ).as_published_dict()
+    assert payload["book_exits"] == {
+        "account_years": 20.0, "exits": 3, "rate": 0.15, "hazard": _COUNTED.hazard,
+    }
     assert payload["book_renewals"] == {"decisions": 8, "departures": 2, "hazard": 0.25}
-    assert estimate_book([_obs()]).as_published_dict()["book_renewals"] is None
+    bare = estimate_book([_obs()]).as_published_dict()
+    assert bare["book_exits"] is None and bare["book_renewals"] is None
+
+
+def test_the_renewal_record_is_published_and_never_valued_on():
+    """Passing a renewal record whose hazard differs from the exit hazard moves nothing:
+    H2 reads the exit record alone."""
+    with_renewals = estimate_book(
+        [_obs()], book_exits=_COUNTED, book_renewals=BookRenewalRecord(10, 9)
+    )
+    without = estimate_book([_obs()], book_exits=_COUNTED)
+    assert (
+        with_renewals.accounts[0].tenure_expected.value_gbp
+        == without.accounts[0].tenure_expected.value_gbp
+    )
 
 
 def test_departures_cannot_exceed_decisions():
     with pytest.raises(ValueError):
         BookRenewalRecord(1, 2)
+    with pytest.raises(ValueError):
+        BookExitRecord(-1.0, 0)
 
 
 # ---------------------------------------------------------------------------
-# 4. The production caller takes the book path.
+# 5. The production caller takes the exit path.
 # ---------------------------------------------------------------------------
 
 
-def test_the_production_view_values_h2_on_the_books_own_renewals():
+def test_the_production_view_values_h2_on_the_books_own_exits():
     view = build_customer_value_view(_records(), _customers(), 0.0)
     book = view.three_horizon_clv
+    assert book.book_exits == _exits()
     assert book.book_renewals == _count()
     models = {a.horizon(Horizon.TENURE_EXPECTED).time_model for a in book.accounts}
-    assert models == {TimeModel.BOOK_OBSERVED_RENEWAL_HAZARD}
+    assert models == {TimeModel.BOOK_OBSERVED_EXIT_HAZARD}
