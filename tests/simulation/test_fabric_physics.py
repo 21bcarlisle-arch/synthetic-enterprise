@@ -1011,3 +1011,124 @@ def test_the_hoisted_solve_is_BIT_IDENTICAL_to_the_per_sample_solve():
         assert got == _reference_solve(**day), day
         compared += 1
     assert compared > 2000, "the partition stopped reaching the solve: {}".format(compared)
+
+
+def _reference_simulate_day(*, household, params, schedule, source, ambient_profile,
+                            irradiance_kw_per_m2, initial_state, internal_gain_kw=None):
+    """The 2R2C integrator as it stood before 2026-10-01: both drives interpolated per sub-step
+    through a helper, every parameter read off `params` inside the loop."""
+    def interp(series, period, within):
+        if within < 0.5:
+            prev = series[period - 1] if period > 0 else series[0]
+            return prev + (series[period] - prev) * (within + 0.5)
+        nxt = series[period + 1] if period + 1 < len(series) else series[-1]
+        return series[period] + (nxt - series[period]) * (within - 0.5)
+
+    ambient = ambient_profile.temperatures_c
+    gains = internal_gain_kw or [params.internal_gain_kw] * PERIODS_PER_DAY
+    t_i, t_m, firing = initial_state.indoor_air_c, initial_state.mass_c, initial_state.burner_firing
+    steps, step_h = fabric_physics.SUB_STEPS_PER_PERIOD, fabric_physics._SUB_STEP_HOURS
+    split = fabric_physics._SOLAR_SPLIT_TO_AIR
+    air, mass, heat, fuel, duty = [], [], [], [], []
+    for period in range(PERIODS_PER_DAY):
+        setpoint = schedule.setpoint_at(period)
+        half_band = schedule.deadband_c / 2.0
+        period_heat_kwh, period_on_steps = 0.0, 0
+        for step in range(steps):
+            within = (step + 0.5) / steps
+            t_a = interp(ambient, period, within)
+            phi_s = interp(irradiance_kw_per_m2, period, within) * params.solar_aperture_m2
+            phi_p = gains[period]
+            if source.rated_output_kw <= 0.0:
+                phi_h, firing = 0.0, False
+            elif source.control_mode == ControlMode.WEATHER_COMPENSATED:
+                demand_kw = params.heat_loss_coefficient_kw_per_k * (setpoint - t_a)
+                demand_kw += params.heat_loss_coefficient_kw_per_k * 3.0 * (setpoint - t_i)
+                if t_i > setpoint + schedule.deadband_c or demand_kw <= 0.0:
+                    phi_h, firing = 0.0, False
+                else:
+                    phi_h = max(source.minimum_output_kw, min(source.rated_output_kw, demand_kw))
+                    firing = True
+            else:
+                if t_i < setpoint - half_band:
+                    firing = True
+                elif t_i > setpoint + half_band:
+                    firing = False
+                if firing:
+                    phi_h = source.rated_output_kw if t_i < setpoint else source.minimum_output_kw
+                else:
+                    phi_h = 0.0
+            if phi_h > 0.0:
+                period_on_steps += 1
+                period_heat_kwh += phi_h * step_h
+            d_ti = ((t_a - t_i) / params.r_ia_k_per_kw + (t_m - t_i) / params.r_im_k_per_kw
+                    + phi_h + phi_p + split * phi_s) * step_h / params.c_i_kwh_per_k
+            d_tm = ((t_i - t_m) / params.r_im_k_per_kw
+                    + (1.0 - split) * phi_s) * step_h / params.c_m_kwh_per_k
+            t_i += d_ti
+            t_m += d_tm
+        air.append(t_i)
+        mass.append(t_m)
+        heat.append(period_heat_kwh)
+        duty.append(period_on_steps / steps)
+        fuel.append(fabric_physics._fuel_for(household.heating_system, period_heat_kwh,
+                                             ambient[period], household.boiler_age))
+    return air, mass, heat, fuel, duty, (t_i, t_m, firing)
+
+
+def test_the_hoisted_integrator_is_BIT_IDENTICAL_to_the_per_step_integrator():
+    """`simulate_day` hoists its loop invariants for speed alone (it was a third of a truncated
+    `run_phase2b`, 2026-10-01), so the only acceptable difference is NONE: equality, not `approx`,
+    over chained days across every control branch -- hysteresis, weather-compensated, no source --
+    with and without a supplied gain profile.
+
+    MUTATION (must fire): fold `* _SUB_STEP_HOURS / c_i` into `* (_SUB_STEP_HOURS / c_i)` -- one
+    re-association, and the chained temperatures move.
+    """
+    import random
+
+    rng = random.Random(20261001)
+    systems = [HeatingSystem.GAS_BOILER_COMBI, HeatingSystem.HEAT_PUMP_AIR,
+               HeatingSystem.ELECTRIC_STORAGE, HeatingSystem.NONE]
+    modes_seen, days = set(), 0
+    for n, system in enumerate(systems * 3):
+        household = make_household(
+            f"C{n}", heating_system=system,
+            build_era=rng.choice(list(BuildEra)), insulation=rng.choice(list(InsulationLevel)))
+        params = fabric_parameters(household)
+        schedule = heating_schedule_for(f"C{n}", household, seed=n)
+        source = heat_source_for(household, params, schedule.comfort_setpoint_c)
+        modes_seen.add("none" if source.rated_output_kw <= 0.0 else source.control_mode)
+        state = ThermalState(indoor_air_c=schedule.setback_setpoint_c,
+                             mass_c=schedule.setback_setpoint_c)
+        for _ in range(6):
+            low = rng.uniform(-8.0, 14.0)
+            high = low + rng.uniform(0.0, 12.0)
+            doy = rng.randint(1, 366)
+            try:
+                profile = reconstruct_ambient_profile(
+                    temperature_min_c=low, temperature_max_c=high,
+                    temperature_mean_c=low + (high - low) * rng.uniform(0.3, 0.7),
+                    day_of_year=doy, latitude_deg=DEFAULT_LATITUDE_DEG)
+            except ValueError:
+                continue
+            kwargs = dict(
+                household=household, params=params, schedule=schedule, source=source,
+                ambient_profile=profile,
+                irradiance_kw_per_m2=reconstruct_irradiance_profile(
+                    cloud_cover_pct=rng.uniform(0.0, 100.0), day_of_year=doy,
+                    latitude_deg=DEFAULT_LATITUDE_DEG),
+                initial_state=state,
+                internal_gain_kw=rng.choice(
+                    [None, [rng.uniform(0.1, 1.5) for _ in range(PERIODS_PER_DAY)]]),
+            )
+            got = simulate_day(**kwargs)
+            air, mass, heat, fuel, duty, end = _reference_simulate_day(**kwargs)
+            assert (got.indoor_air_c, got.mass_c, got.heat_delivered_kwh, got.fuel_kwh,
+                    got.duty_cycle_fraction) == (air, mass, heat, fuel, duty)
+            assert (got.end_state.indoor_air_c, got.end_state.mass_c,
+                    got.end_state.burner_firing) == end
+            state = got.end_state
+            days += 1
+    assert days > 50, f"the partition stopped reaching the integrator: {days}"
+    assert {"none", ControlMode.WEATHER_COMPENSATED} < modes_seen, modes_seen
