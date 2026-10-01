@@ -3618,6 +3618,47 @@ def _feed_whose_current_world_block_speaks() -> dict:
     return feed
 
 
+_SIGNLESS_FEED: dict = {}
+
+
+def _feed_whose_selection_leg_has_no_sign() -> dict:
+    """A feed whose current-world selection leg's re-draws straddle zero, built by the real `build`.
+
+    WHY NOT THE LIVE FEED (2026-10-01). The PB4 refit moved the live world to `cf823b185f8ca51c`,
+    where all three selection re-draws are negative, so the published leg states a sign and the
+    no-sign branch -- `no_sign`, `what_would_settle_the_sign` -- has no subject there. The pair the
+    page read until then (the 09-08 run and the 09-09b floor) straddles zero; both are stamped onto
+    the live world so the world guard is not what the rungs meet.
+    """
+    if _SIGNLESS_FEED:
+        return copy.deepcopy(_SIGNLESS_FEED)
+    from simulation.departure_level_anchor import world_level_identity
+    from tools import generate_value_arms_data as gvad
+
+    live = world_level_identity()["digest"]
+    obs = SITE.parent / "docs" / "observability"
+
+    def _stamped(name: str) -> dict:
+        path = obs / name
+        if not path.is_file():
+            pytest.fail("{} is missing -- this fixture's subject is UNAVAILABLE (R15)".format(path))
+        out = json.loads(path.read_text(encoding="utf-8"))
+        out["world_identity"] = {"digest": live, "unavailable_because": None}
+        return out
+
+    feed = gvad.build(
+        json.loads(gvad.THREE_ARM_PATH.read_text(encoding="utf-8")),
+        json.loads(gvad.NOISE_FLOOR_PATH.read_text(encoding="utf-8")),
+        current_three_arm=_stamped("value_cycle_ab_s1_three_arm_20260908.json"),
+        current_floor=_stamped("value_cycle_ab_s1_noise_floor_20260909b.json"))
+    leg = (feed.get("current_world") or {}).get("selection_leg") or {}
+    if (leg.get("verdict_stability") or {}).get("sign_determined") is not False:
+        pytest.fail("the pinned pair's selection leg no longer straddles zero, so every rung on "
+                    "this fixture has no subject")
+    _SIGNLESS_FEED.update(feed)
+    return copy.deepcopy(feed)
+
+
 def _row(bucket: dict) -> str:
     """One believed-retention band as a reader reads across it, in `_text`'s collapsed form.
 
@@ -7118,19 +7159,19 @@ def test_the_no_sign_clause_reaches_the_reader_whichever_field_the_feed_puts_it_
     AND IT MAY NOT PRINT TWICE. Leg [3] is the other half: a door that concatenated
     unconditionally would satisfy leg [2] and give every ordinary reader the same paragraph twice.
     """
-    feed = _live_feed()
+    feed = _feed_whose_selection_leg_has_no_sign()
     leg = feed["current_world"]["selection_leg"]
     no_sign = leg.get("no_sign")
     if not no_sign:
-        pytest.fail("the published selection leg carries no `no_sign`, so the family behind it "
-                    "does not straddle zero and this control has no subject on the live feed")
+        pytest.fail("the signless fixture's selection leg carries no `no_sign`, so this control "
+                    "has no subject")
 
     # [1] TODAY: the producer folds it in, so the reader meets it through the withheld reason.
     assert no_sign in (leg.get("verdict_withheld_because") or ""), (
         "`no_sign` is no longer inside `verdict_withheld_because`, so the containment this "
         "control records has stopped holding -- the door's own concatenation is now what puts "
         "the sentence on the page, and that is a finding rather than a failure")
-    rendered = live["arms-legs-first"]
+    rendered = _render(feed)["arms-legs-first"]
     assert _door_prose(no_sign) in rendered, (
         "the strongest disqualification the feed carries -- the family straddles zero -- is not "
         "on the page a reader opens")
@@ -7510,14 +7551,14 @@ def test_what_would_settle_the_selection_legs_sign_reaches_the_reader(live):
     Fires on: rendering `legVerdict` without `whatWouldSettleIt`; dropping either priced row;
     dropping the lower-bound caveat that is the block's whole licence to be published.
     """
-    feed = _live_feed()
+    feed = _feed_whose_selection_leg_has_no_sign()
     block = ((feed["current_world"]["selection_leg"]).get("what_would_settle_the_sign") or {})
     if not block.get("available"):
-        pytest.fail("the live feed prices no remedy for the selection leg's sign ({}), so this "
+        pytest.fail("the signless fixture prices no remedy for the selection leg's sign ({}), so this "
                     "control cannot run -- reported as a failure and never skipped".format(
                         str(block.get("why_not"))[:200]))
 
-    rendered = live["arms-legs-first"]
+    rendered = _render(feed)["arms-legs-first"]
     # THE REFUSAL AND THE REMEDY ON ONE SCREEN. Either alone is a different page: the refusal
     # alone is the dead end, the remedy alone is a price for a question nobody was told about.
     assert "NO DIRECTION IS STATED FOR THIS LEG" in rendered
@@ -7558,14 +7599,14 @@ def test_MUTATION_the_book_a_sign_needs_is_read_from_the_feed_and_never_from_the
     decisions from it in JavaScript rather than taking the feed's own.
     """
     # THE PRESENT STATE. Both counts on screen, so the half below is a change and not an absence.
-    real = copy.deepcopy(_live_feed())
+    real = _feed_whose_selection_leg_has_no_sign()
     row = real["current_world"]["selection_leg"]["what_would_settle_the_sign"]["rows"][0]
     present = _render(real)["arms-legs-first"]
     assert "{:,}".format(row["priced_decisions_needed"]) in present, (
         "the live feed's own count is not on the page, so the substitution below would be "
         "measuring an absence rather than a source")
 
-    moved = copy.deepcopy(_live_feed())
+    moved = _feed_whose_selection_leg_has_no_sign()
     block = moved["current_world"]["selection_leg"]["what_would_settle_the_sign"]
     block["rows"][0]["priced_decisions_needed"] = 424242
     block["rows"][0]["renewals_the_world_must_offer"] = 515151

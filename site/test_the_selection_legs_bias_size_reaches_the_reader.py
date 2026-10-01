@@ -164,13 +164,35 @@ def _published_feed() -> dict:
     return published_json(FEED_REL)
 
 
+#: A run taken BEFORE the two-populations repair, whose bias block is the subject of every reader
+#: rung below. Since 2026-10-01 the published current-world run (world `cf823b185f8ca51c`)
+#: carries the repair, so the live feed's block is the cleared branch -- which
+#: `test_both_sides_of_the_partition_are_reachable` owns -- and these rungs would have no subject.
+PRE_REPAIR_RUN_REL = "docs/observability/value_cycle_ab_s1_three_arm_20260908.json"
+
+
+def _feed_with_a_bias() -> dict:
+    """The published feed carrying the bias block a pre-repair run produces, through the real door."""
+    import sys
+    sys.path.insert(0, str(PROJECT))
+    from tools.generate_value_arms_data import _population_repair_bias
+
+    block = _population_repair_bias(published_json(PRE_REPAIR_RUN_REL))
+    assert block.get("available"), (
+        "the pinned pre-repair run no longer yields a bias, so every rung on this helper has no "
+        "subject: {}".format(block.get("reason")))
+    feed = copy.deepcopy(_published_feed())
+    feed["current_world"]["selection_leg"]["population_repair_bias"] = block
+    return feed
+
+
 def test_the_bias_direction_and_one_magnitude_reach_the_reader():
     """DIRECTION, SIZE and BOOK, on the surface, from the feed's own figures."""
-    feed = _published_feed()
+    feed = _feed_with_a_bias()
     block = _bias(feed)
     if not block.get("available"):
         pytest.fail(
-            "the published run carries the two-populations repair, so no bias is claimed -- but "
+            "the pre-repair run's feed carries no bias, so no bias is claimed -- but "
             "then `test_both_sides_of_the_partition_are_reachable` is the control that should be "
             "asserting this state, not this one. Reason given: {}".format(block.get("reason")))
     rendered = _render(feed)
@@ -210,7 +232,7 @@ def test_the_magnitude_never_reaches_the_reader_without_the_sentence_that_nothin
     wrong in the single most expensive direction available: it reads as "the selection leg is now
     positive and significant". The whole advantage did not move by a penny.
     """
-    feed = _published_feed()
+    feed = _feed_with_a_bias()
     block = _bias(feed)
     assert block.get("available"), (
         "no bias is published, so this control has no subject -- and that is a state "
@@ -270,7 +292,7 @@ def test_the_bias_size_never_reaches_the_reader_without_the_sign_on_the_shared_p
     stateable. The day a wider family DOES state a sign, `sign_is_stateable` turns True, the
     refusal leg goes quiet by itself and the reader rung still holds.
     """
-    feed = _published_feed()
+    feed = _feed_with_a_bias()
     block = _bias(feed)
     assert block.get("available"), (
         "no bias is published, so this control has no subject -- and that is a state "
@@ -379,7 +401,7 @@ def test_MUTATION_a_clause_that_keeps_the_bias_size_and_drops_the_shared_populat
     fills in themselves, upward. So the mutation is the clause truncated at exactly the sentence
     it used to end on.
     """
-    feed = _published_feed()
+    feed = _feed_with_a_bias()
     block = _bias(feed)
     if not block.get("available"):
         pytest.fail("no bias is published; this control has no subject")
@@ -424,7 +446,7 @@ def test_the_bias_qualifies_the_figure_rather_than_footnoting_it():
     rung in this file survives a mutation that renders this block muted -- and a reader who meets
     the size in footnote grey reads the figure above as standing unqualified.
     """
-    feed = _published_feed()
+    feed = _feed_with_a_bias()
     block = _bias(feed)
     if not block.get("available"):
         pytest.fail("no bias is published; this control has no subject")
@@ -510,7 +532,7 @@ def test_MUTATION_a_clause_that_keeps_the_size_and_drops_the_counter_is_caught()
     look for -- and has had the counter-sentence cut out of it. That is precisely what a future
     edit "tightening the wording" produces, and it is invisible to every other control here.
     """
-    feed = _published_feed()
+    feed = _feed_with_a_bias()
     block = _bias(feed)
     if not block.get("available"):
         pytest.fail("no bias is published; this control has no subject")

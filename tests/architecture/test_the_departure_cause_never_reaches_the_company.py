@@ -45,6 +45,8 @@ C2_GROUND_TRUTH_FIELDS = frozenset({
     # The world computes it with the household's payment channel; it is B8's forbidden target --
     # a company fitting it would learn the world's hazard rather than its customers.
     "sim_experienced_bill_shock",
+    # The retired month-count base, kept beside the new one so the PB4 swap can be attributed.
+    "sim_month_count_bill_shock_base",
 })
 
 

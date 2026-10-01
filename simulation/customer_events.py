@@ -28,7 +28,7 @@ from collections.abc import Container
 from datetime import date
 
 from company.crm.churn_model import estimate_churn_probability
-from saas.churn_model import build_churn_risk
+from saas.churn_model import build_churn_risk, churn_probability
 from saas.home_move_win_rate import build_home_move_win_rates
 from simulation.departure_level_anchor import year_level_anchor
 from simulation.departure_risks import (
@@ -589,10 +589,27 @@ def roll_lifecycle_event(
     # `renewal_data["churn_probability"]` (the raw base rate on the event) is NOT the number the
     # chain starts from, which is `1 - effective_retention_probability`, and the difference is
     # exactly the quantity the P0 calibration is fitted against.
-    _bill_shock_base = 1.0 - effective_p_retain
+    _month_count_bill_shock_base = 1.0 - effective_p_retain
     _experienced_shock = experienced_bill_shock_at_renewal(
         customer_id, commodity, term_month, records_so_far, customers,
     )
+    # PB4 SWAP (2026-10-01): the base counts ONE experienced shock per year, not shocked months.
+    # The month count was blind in a household's first year and carried the world's whole tenure
+    # gradient (0 vs 6.86 months); the experienced shock fires at a first renewal. Same uplift,
+    # same win leg, same passive cap -- only the count changed, so `year_level_anchor` is refitted
+    # against the published band rather than this tree's own output. A `None` shock (prepayment,
+    # no sign-up quote, unobserved prior year) adds no uplift, and its reason travels on the event.
+    # YEAR ONE IS SET BY AN ASSUMPTION, NOT A MEASUREMENT. A fabric premise's registry EAC is its
+    # own trailing-year reads, i.e. ZERO read error, so the first-renewal shock rate this base sees
+    # is what a perfectly estimated direct debit leaves. The real error of a registry EAC at
+    # registration is unpublished (gap 4 of
+    # docs/market_research/what_a_supplier_holds_to_size_a_direct_debit.md). Any year-one level or
+    # tenure gradient read from this base inherits that assumption.
+    _p_churn_shock = churn_probability(1 if _experienced_shock["shocked"] else 0) * (
+        1.0 - renewal_data["win_probability"])
+    if passive_churn_cap is not None:
+        _p_churn_shock = min(_p_churn_shock, passive_churn_cap)
+    _bill_shock_base = _p_churn_shock
     _market_opportunity = 1.0
     _price_response = 1.0
     _action_propensity = 1.0
@@ -900,8 +917,9 @@ def roll_lifecycle_event(
         "sim_level_anchor": round(_level_anchor, 6),
         # PB4: the bill shock this household EXPERIENCED, by `what_bill_shock_is.md`'s definition
         # (DD reset for direct debit, the bill for standard credit, out of scope for prepayment;
-        # the quote is the reference in year one). Ground truth beside `sim_bill_shock_base`, NOT
-        # yet what the hazard reads -- see `simulation/experienced_bill_shock.py` for why the swap
-        # waits for one run that measures it first.
+        # the quote is the reference in year one). Since the PB4 swap it is what
+        # `sim_bill_shock_base` counts; the retired month-count base rides beside it so a capture
+        # can attribute the swap without a second run.
         "sim_experienced_bill_shock": _experienced_shock,
+        "sim_month_count_bill_shock_base": round(_month_count_bill_shock_base, 6),
     }

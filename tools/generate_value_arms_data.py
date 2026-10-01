@@ -238,8 +238,12 @@ THREE_ARM_PATH = PROJECT / "docs" / "observability" / "value_cycle_ab_s1_three_a
 #: and `_later_runs_in_this_world` fires and names `_20260908b.json` for exactly that reason. The
 #: page states its own staleness. It states it ONCE per run since 2026-09-09 -- see that function
 #: for the promoted-copy twin the census used to count twice.
+#:
+#: MOVED 2026-10-01 TOGETHER WITH `CURRENT_WORLD_NOISE_FLOOR_PATH`, to world `cf823b185f8ca51c`:
+#: the PB4 bill-shock swap refits the level anchor, so every run above belongs to a world the
+#: tree no longer runs. Both artefacts were produced by one tree (origin `0407ce0e3` + the swap).
 CURRENT_WORLD_THREE_ARM_PATH = (
-    PROJECT / "docs" / "observability" / "value_cycle_ab_s1_three_arm_20260908.json")
+    PROJECT / "docs" / "observability" / "value_cycle_ab_s1_three_arm_20261001.json")
 #: The spread `error_bar` is built from -- the block that owns the page's SELECTION VERDICT, the
 #: one sentence the mission turns on. NOT the same constant as `CURRENT_WORLD_NOISE_FLOOR_PATH`
 #: below, and the difference cost a turn: the 2026-09-17 write-up named THAT constant as the thing
@@ -530,8 +534,11 @@ AUC_FAMILY_SOURCE = "the 12-seed AUC-carrying floor of 2026-09-17"
 #: still states NO DIRECTION at n=9 (5 of 9 re-draws clear the bound, and the family still falls
 #: on both sides of zero); what the move buys is that the refusal now names the sample the rest of
 #: the page is already using. A refusal at n=9 and a refusal at n=3 are not the same refusal.
+#: MOVED 2026-10-01 with `CURRENT_WORLD_THREE_ARM_PATH`, to the 3-seed `--redraw-mode all` floor
+#: of world `cf823b185f8ca51c`, from the same tree as the arms. Back to n=3: no wider family exists
+#: in this world yet, and a 9-draw bound from a superseded world bounds nothing here.
 CURRENT_WORLD_NOISE_FLOOR_PATH = (
-    PROJECT / "docs" / "observability" / "value_cycle_ab_s1_noise_floor_20260909b.json")
+    PROJECT / "docs" / "observability" / "value_cycle_ab_s1_noise_floor_20261001.json")
 #: The ONE redraw mode whose seed spread bounds the published contrast, in the undecomposed
 #: artefact's own words (`redraw_scope.means`): "every household re-drawn -- the undecomposed
 #: floor, and the only mode whose spread bounds the published figure directly".
@@ -13381,13 +13388,13 @@ def _against_the_superseded_panel(superseded_share, differences: dict | None) ->
         "world's departure level and its price response, not the company's skill.")
     if not isinstance(differences, dict) or not differences.get("available"):
         return (
-            "The panel above states {old} for the same quantity. This page has not established "
+            "The run behind this page's headline figure states {old} for the same quantity. This page has not established "
             "which of {fields} differ between the two runs, "
             "so it states no attribution for the difference between them at all.{inv}"
         ).format(old=old, fields=_the_fields_this_page_compares(), inv=invariant)
     if differences.get("the_same_run"):
         return (
-            "The panel above states {old} for the same quantity, and it is the SAME RUN as this "
+            "The run behind this page's headline figure states {old} for the same quantity, and it is the SAME RUN as this "
             "one -- same world, same date, same commit, same book. There is no difference between "
             "them to attribute: the two figures are one figure printed twice, not a "
             "comparison.{inv}"
@@ -13396,20 +13403,20 @@ def _against_the_superseded_panel(superseded_share, differences: dict | None) ->
     how_many = differences.get("how_many_differ") or 0
     if how_many >= 2:
         return (
-            "The panel above states {old} for the same quantity. {n} things differ between the two "
+            "The run behind this page's headline figure states {old} for the same quantity. {n} things differ between the two "
             "runs -- {named} -- so more than one thing changed, and the difference between them "
             "cannot be attributed to any one of them.{inv} The one-variable version of this "
             "comparison has not been run."
         ).format(old=old, n=how_many, named=named, inv=invariant)
     if how_many == 1:
         return (
-            "The panel above states {old} for the same quantity. Of {fields}, exactly ONE differs "
+            "The run behind this page's headline figure states {old} for the same quantity. Of {fields}, exactly ONE differs "
             "between the two runs -- {named} -- so this is "
             "the one-variable version of the comparison, and the difference is attributable to "
             "that alone only if nothing this page cannot see also moved.{inv}"
         ).format(old=old, fields=_the_fields_this_page_compares(), named=named, inv=invariant)
     return (
-        "The panel above states {old} for the same quantity. Of {fields}, "
+        "The run behind this page's headline figure states {old} for the same quantity. Of {fields}, "
         "none that this page could read differ between the two runs and {un} "
         "could not be read at all -- so no difference between them has been established, and none "
         "is attributed.{inv}"

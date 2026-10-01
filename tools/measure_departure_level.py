@@ -92,7 +92,11 @@ COMMONS = PROJECT / "docs" / "domain_artefact_library" / "regulatory" / "gb_dome
 #: other judging a world it did not come from. `c6_second_pass_departure_factors.json` is the
 #: capture of the twice-fitted world — 133 renewal and 1,313 SVT decisions, both halves tracked
 #: in this commit, both executed under the block this commit lands.
-DEFAULT_TABLE = PROJECT / "docs" / "reports" / "c6_second_pass_departure_factors.json"
+#: REPOINTED 2026-10-01 FOR THE PB4 SWAP, same reason again: the bill-shock base changed and the
+#: block was refitted twice (third and fourth pass). `pb4_d_fourth_pass_anchor_departure_factors.json`
+#: is the capture under the fourth block that lands with it. It has 104 renewal and 2,013 SVT
+#: decisions, and both halves are tracked.
+DEFAULT_TABLE = PROJECT / "docs" / "reports" / "pb4_d_fourth_pass_anchor_departure_factors.json"
 
 #: Active domestic electricity accounts per year in the live run, from the opening finding's own
 #: table. NOT re-derived here: the factor table holds renewals, not the active book, so the

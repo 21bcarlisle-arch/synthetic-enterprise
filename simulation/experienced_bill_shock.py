@@ -22,10 +22,11 @@ bill-size gradients (`docs/staging/WORKER_FINDING_THE_WORLDS_BILL_SHOCK_COUNT_IS
 HOUSEHOLDS_FIRST_YEAR_AND_CARRIES_THE_WHOLE_TENURE_GRADIENT_2026-10-01.md`). Widening that window to
 reach year one would keep the wrong quantity.
 
-**This module is emitted as ground truth on each renewal event and does NOT yet drive the hazard.**
-Swapping the base moves the departure LEVEL as well as its gradients -- `year_level_anchor` was
-fitted against the old month count -- and two changes in one run cannot be attributed. The next
-pass measures this quantity's tenure gradient on a run, then swaps the base.
+**Since the PB4 swap (2026-10-01) this drives the hazard.** `customer_events` counts ONE event per
+year -- shocked or not -- where it used to count shocked months, and `year_level_anchor` was
+refitted against the published band, because swapping the base moves the departure LEVEL as well as
+its gradients. The month-count base still rides on the event as `sim_month_count_bill_shock_base`.
+The pair and the refit: `docs/staging/done/SEAT_PREREGISTRATION_WHAT_THE_PB4_BILL_SHOCK_SWAP_MUST_MOVE_2026-10-01.md`.
 
 A FALL IS NOT A SHOCK. Every trigger the page names is a rise: cold weather, a usage rise, a
 catch-up after estimates, a renewal price rise, a DD increase, and Ofgem's own 2022 escalation was

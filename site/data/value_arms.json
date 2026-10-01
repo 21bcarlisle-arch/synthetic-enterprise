@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-28T03:54:28.648090Z",
+  "generated_at": "2026-10-01T22:34:20.639210Z",
   "what_this_is": "The same book and the same world, run once per pricing arm, scored on what actually happened. No figure here is anything the company believed.",
   "provisional": true,
   "provisional_note": "PROVISIONAL. This is one run of each arm on one world, and the error bar below is wider than the effect it is measuring. It is published because withholding it while publishing the profitable-looking half would be the misleading choice, not because it is settled.",
@@ -7,8 +7,8 @@
   "sources": [
     "docs/observability/value_cycle_ab_s1_three_arm.json",
     "docs/observability/value_cycle_ab_s1_noise_floor_folded18_single_arm_20260917.json",
-    "docs/observability/value_cycle_ab_s1_three_arm_20260908.json",
-    "docs/observability/value_cycle_ab_s1_noise_floor_20260909b.json",
+    "docs/observability/value_cycle_ab_s1_three_arm_20261001.json",
+    "docs/observability/value_cycle_ab_s1_noise_floor_20261001.json",
     "docs/observability/value_cycle_ab_floor_decomposition.json",
     "docs/observability/value_cycle_ab_s1_three_arm_departure_20260909.json",
     "docs/observability/value_cycle_ab_s1_three_arm_20260909c.json",
@@ -1135,7 +1135,7 @@
     "commit": "b329e702b78496afc9ba96bb159322d884064955",
     "short": "b329e702b",
     "resolved_at": "2026-09-18T04:24:06Z",
-    "publishing_tree_commit": "acd8567d85951bf140021101c169c33bafc5d3d1",
+    "publishing_tree_commit": "8c29e03d90314afaabebe77764f96e856e3b678b",
     "produced_by_the_tree_it_publishes_from": false,
     "counts_are_labelled_by_the_code_that_made_them": true,
     "objective": {
@@ -1147,122 +1147,118 @@
       "objective_moved_since_the_run": false,
       "clause": "The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
     },
-    "reading": "Produced at b329e702b and published from acd8567d8 -- the code was replaced between the run and this page, so read every count here as the older tree's. The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
+    "reading": "Produced at b329e702b and published from 8c29e03d9 -- the code was replaced between the run and this page, so read every count here as the older tree's. The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
   },
   "world_provenance": {
     "available": true,
-    "superseded": false,
-    "live_world": "39a192ce04c1eda8",
+    "superseded": true,
+    "live_world": "cf823b185f8ca51c",
     "worlds_these_figures_were_measured_in": [
-      "39a192ce04c1eda8"
+      "39a192ce04c1eda8",
+      "cf823b185f8ca51c"
     ],
-    "one_world_across_every_figure": true,
-    "runs_measured_in_a_superseded_world": [],
-    "runs_measured_in_the_live_world": [
-      "the current-world noise floor (2026-09-09T15:17:31Z)",
-      "the current-world three-arm run (2026-09-08T00:19:54Z)",
+    "one_world_across_every_figure": false,
+    "runs_measured_in_a_superseded_world": [
       "the floor decomposition",
       "the noise floor (2026-09-17T21:39:28Z)",
       "the three-arm run (2026-09-18T05:43:40Z)"
     ],
-    "reason": null,
-    "what_this_costs": null,
+    "runs_measured_in_the_live_world": [
+      "the current-world noise floor (2026-10-01T21:02:51Z)",
+      "the current-world three-arm run (2026-10-01T17:14:07Z)"
+    ],
+    "reason": "THE FIGURES ON THIS PAGE AND THE BOUND ON THEM WERE MEASURED IN DIFFERENT WORLDS. the floor decomposition, the noise floor (2026-09-17T21:39:28Z), the three-arm run (2026-09-18T05:43:40Z) ran over departure level 39a192ce04c1eda8; the current-world noise floor (2026-10-01T21:02:51Z), the current-world three-arm run (2026-10-01T17:14:07Z) ran over cf823b185f8ca51c, which is the live one. A spread measured where customers leave at one rate is not a confidence interval on a figure measured where they leave at another, so nothing here bounds anything else and no contrast below may have its direction read. This is the defect `c30b98048` was filed for on 2026-08-31; the remedy is to re-run every leg in one world, never to quote whichever leg is current.",
+    "what_this_costs": "no figure on this page may be read as the company's CURRENT beat over the flat-rule baseline until every leg is re-run in one world and that world is the live one",
     "what_this_identifies": "the departure LEVEL the world was running at -- `year_level_anchor` for every year inside the published switching record, fitted and declared alike. Two runs sharing this digest ran over the same departure surface; two that do not are different worlds however close their timestamps, and no figure from one bounds a figure from the other."
   },
   "current_world": {
     "available": true,
-    "live_world": "39a192ce04c1eda8",
-    "ran_in_world": "39a192ce04c1eda8",
-    "generated_at": "2026-09-08T00:19:54Z",
-    "producing_commit": "04361d6c7a01c3c55554762eb247aad40bc69d70",
+    "live_world": "cf823b185f8ca51c",
+    "ran_in_world": "cf823b185f8ca51c",
+    "generated_at": "2026-10-01T17:14:07Z",
+    "producing_commit": "0407ce0e3caec3f2731358635e9e9758dad36e0d",
     "bound_tree_pairing": {
       "rule": "producing_commit",
-      "same_tree": false,
-      "floor_producing_commit": "c066c114b4746d9fa6a16da1848ef1f2c610c9e1",
-      "figure_producing_commit": "04361d6c7a01c3c55554762eb247aad40bc69d70",
-      "why_this_rule": "THIS SPREAD AND THE FIGURE IT BOUNDS WERE DRAWN BY DIFFERENT CODE: the floor at c066c114b, the run it bounds at 04361d6c7. Neither is thereby wrong and both name the same world -- what is not true of them is that the width below and the number beside it are two readings of one tree.",
-      "caveat": "HOW LARGE THAT CODE DIFFERENCE IS IS NOT STATED HERE, and it is not stated because this page cannot measure it: sizing it needs the same seed drawn under both trees, and only re-running the arms under the floor's tree removes it rather than estimating it. Until then the direction this bound gates on -- does the family of re-draws cross zero -- is the claim to read, and the width itself is the claim to read carefully."
+      "same_tree": true,
+      "floor_producing_commit": "0407ce0e3caec3f2731358635e9e9758dad36e0d",
+      "figure_producing_commit": "0407ce0e3caec3f2731358635e9e9758dad36e0d",
+      "why_this_rule": "This spread and the figure it bounds were drawn by the SAME code, at 0407ce0e3 -- so nothing in the width below is a difference between two trees.",
+      "caveat": null
     },
-    "value_advantage_gbp": 17738.642093000002,
-    "level_advantage_gbp": 17468.435006000014,
-    "selection_gbp": 270.20708699998795,
-    "control_net_gbp": 140140.542581,
-    "value_arm_net_gbp": 157879.184674,
-    "level_arm_net_gbp": 157608.977587,
+    "value_advantage_gbp": 7707.581990000006,
+    "level_advantage_gbp": 8967.049988999992,
+    "selection_gbp": -1259.4679989999859,
+    "control_net_gbp": 132618.043874,
+    "value_arm_net_gbp": 140325.625864,
+    "level_arm_net_gbp": 141585.093863,
     "clock": "settled-realised",
-    "priced_decisions": 214,
-    "renewals_offered": 2035,
-    "is_the_later_run": false,
-    "run_ordering": "earlier",
-    "how_the_two_runs_order": "THIS BLOCK IS THE EARLIER OF THE TWO RUNS THIS PAGE CARRIES: it was measured at 2026-09-08T00:19:54Z, and the run it is published against states 2026-09-18T05:43:40Z.",
+    "priced_decisions": 112,
+    "renewals_offered": 3134,
+    "is_the_later_run": true,
+    "run_ordering": "later",
+    "how_the_two_runs_order": "THIS BLOCK IS THE LATER OF THE TWO RUNS THIS PAGE CARRIES: it was measured at 2026-10-01T17:14:07Z, and the run it is published against states 2026-09-18T05:43:40Z.",
     "superseded_generated_at": "2026-09-18T05:43:40Z",
-    "why_the_headline_omits_it": "THIS RUN IS NOT THE LATER OF THE TWO ON THIS PAGE. It was taken at 2026-09-08T00:19:54Z; the run this page marks superseded was taken at 2026-09-18T05:43:40Z. Both name this world, so nothing here is stale and every figure in this block was honestly measured -- but 'the world as it is now' is a claim about which run is more recent, and on these two it is false. So the headline states no sentence from this block, and what is published here is a SECOND reading of the same world at a different hour and a different commit. Read the two as two draws, not as a revision.",
+    "why_the_headline_omits_it": null,
     "superseded_floor_ran_in_world": "39a192ce04c1eda8",
     "superseded_value_advantage_gbp": 4579.228659000015,
-    "resolved": null,
-    "verdict_withheld_because": "AND THE VERDICT IS WITHDRAWN FOR WHICH RUN THIS IS. This block was measured at 2026-09-08T00:19:54Z and the run published beside it at 2026-09-18T05:43:40Z, so it is not the later of the two this page carries. Every figure here was honestly measured and none of them is withdrawn -- the spread, the seed family and the composition stand exactly as they were taken. What may not stand is a DIRECTION read off them, because a direction stated here would be this page's most confident sentence resting on its oldest run, and that is the sentence a reader takes. The evidence below is what a direction would have rested on and what a re-run of this contrast against the later run would be compared with.",
+    "resolved": true,
+    "verdict_withheld_because": null,
     "verdict_stability": {
       "checked": true,
-      "n": 9,
+      "n": 3,
       "redraw_values_gbp": [
-        19607.507551999995,
-        17244.433779999992,
-        19903.595164,
-        16890.32416399999,
-        20742.894054000004,
-        21546.838982000016,
-        14329.175675999984,
-        17170.483406000014,
-        17456.516900000017
+        7171.429839999997,
+        9331.106259999986,
+        5983.673394999991
       ],
-      "redraw_resolving": 9,
-      "redraw_min_gbp": 14329.175675999984,
-      "redraw_max_gbp": 21546.838982000016,
-      "redraw_mean_gbp": 18321.307742,
+      "redraw_resolving": 3,
+      "redraw_min_gbp": 5983.673394999991,
+      "redraw_max_gbp": 9331.106259999986,
+      "redraw_mean_gbp": 7495.4031649999915,
       "stable": true,
       "sign_determined": true
     },
-    "redraw_band": "The re-draws themselves are set out contrast by contrast in the band table directly below this headline, lowest, mean and highest; the published draw sits BELOW the centre of its own family.",
+    "redraw_band": "The re-draws themselves are set out contrast by contrast in the band table directly below this headline, lowest, mean and highest; the published draw sits ABOVE the centre of its own family.",
     "repetition": {
       "countable": true,
-      "draws": 9,
-      "distinct_values": 9,
+      "draws": 3,
+      "distinct_values": 3,
       "draws_that_repeat_another": 0,
       "redundant_draws": 0,
       "what_this_counts": "re-draws of this floor returning a `value_advantage_gbp` another of its own draws already returned. `draws_that_repeat_another` counts the DRAWS implicated -- a value returned three times implicates three of them; `redundant_draws` counts how many added nothing the family did not already hold, which is two fewer for that same value. A bound computed across repeated draws measures how often the instrument pinned, not how far the quantity moves."
     },
     "no_sign": "",
     "bound_available": true,
-    "floor_ran_in_world": "39a192ce04c1eda8",
+    "floor_ran_in_world": "cf823b185f8ca51c",
     "floor_leg": "all",
-    "floor_generated_at": "2026-09-09T15:17:31Z",
+    "floor_generated_at": "2026-10-01T21:02:51Z",
     "bound": {
-      "n": 9,
-      "stdev_gbp": 2281.524306779542,
-      "mean_gbp": 18321.307742,
-      "min_gbp": 14329.175675999984,
-      "max_gbp": 21546.838982000016,
+      "n": 3,
+      "stdev_gbp": 1697.0697489803367,
+      "mean_gbp": 7495.4031649999915,
+      "min_gbp": 5983.673394999991,
+      "max_gbp": 9331.106259999986,
       "repetition": {
         "countable": true,
-        "draws": 9,
-        "distinct_values": 9,
+        "draws": 3,
+        "distinct_values": 3,
         "draws_that_repeat_another": 0,
         "redundant_draws": 0,
         "what_this_counts": "re-draws of this floor returning a `value_advantage_gbp` another of its own draws already returned. `draws_that_repeat_another` counts the DRAWS implicated -- a value returned three times implicates three of them; `redundant_draws` counts how many added nothing the family did not already hold, which is two fewer for that same value. A bound computed across repeated draws measures how often the instrument pinned, not how far the quantity moves."
       },
-      "sem_gbp": 760.5081022598473
+      "sem_gbp": 979.8036764073681
     },
     "bound_contrast": "value_advantage_gbp",
     "bound_is_of_the_same_contrast": "The spread below is this contrast's own across the seed re-draws -- not the floor's published `selection_gbp_spread`, which measures a different quantity.",
     "distance_to_a_sign": {
       "available": true,
-      "sems_from_zero": 24.090877779682156,
-      "sems_needed_to_state_a_sign": 2.306004135204166,
+      "sems_from_zero": 7.649903083118934,
+      "sems_needed_to_state_a_sign": 4.302652729749462,
       "sems_needed_is_derived_from_the_family_size": true,
       "seeds_needed_to_state_a_sign": 3,
       "seeds_at_the_point_estimate": 3,
       "seeds_needed_interval": null,
-      "seeds_in_hand": 9,
+      "seeds_in_hand": 3,
       "sign_if_it_were_stateable": "positive",
       "seeds_needed_unavailable_because": null,
       "what_this_count_is": "the seeds this family would need IF its mean and standard deviation stayed exactly where they are. New draws move both -- that is why they are worth taking -- so this is the price of the question at today's estimate and never a forecast that the sign will appear.",
@@ -1271,52 +1267,46 @@
     "which_sign_question_this_answers": "THE MEAN'S, NOT A SINGLE DRAW'S. `no_sign` and `verdict_stability.sign_determined` above answer whether one draw's sign generalises -- it does not, the re-draws fall on both sides of zero, and no number of further seeds changes that because the spread is the world's own dispersion rather than an estimation error. `distance_to_a_sign` answers whether the FAMILY'S MEAN is distinguishable from zero, whose denominator is the standard error and DOES fall as 1/sqrt(n). That is the question the thesis asks: is the per-customer arm, on average, worse than its own flat-at-level baseline? The two can disagree without contradiction, and until 2026-09-10 this page answered only the first and read as though the second were unanswerable too.",
     "selection_leg": {
       "resolved": null,
-      "verdict_withheld_because": "THE VERDICT WOULD BE ONE DRAW'S. This leg's own figure is a single realisation and the bound stated with it is how far that same quantity moves across 9 re-draws. 5 of those 9 re-draws clear the bound and the rest do not, so whether this page could state a direction depends on which draw the run happened to make. It states none. The re-draws themselves are set out contrast by contrast in the band table directly below this headline, lowest, mean and highest; the published draw sits ABOVE the centre of its own family. AND THE QUANTITY DOES NOT CARRY A SIGN. The same contrast re-drawn 9 times in this same world falls on BOTH sides of zero, so there is no direction here for a bound to clear: the plus or minus on the published draw is a property of which draw was made. The band table directly below this headline gives that family, and its Lowest and Highest sit on opposite sides of zero. The CENTRE of that family is on the other side of zero from the published draw, so the draw's own sign is not the family's. AND THE VERDICT IS WITHDRAWN FOR WHICH RUN THIS IS. This block was measured at 2026-09-08T00:19:54Z and the run published beside it at 2026-09-18T05:43:40Z, so it is not the later of the two this page carries. Every figure here was honestly measured and none of them is withdrawn -- the spread, the seed family and the composition stand exactly as they were taken. What may not stand is a DIRECTION read off them, because a direction stated here would be this page's most confident sentence resting on its oldest run, and that is the sentence a reader takes. The evidence below is what a direction would have rested on and what a re-run of this contrast against the later run would be compared with.",
+      "verdict_withheld_because": "THE VERDICT WOULD BE ONE DRAW'S. This leg's own figure is a single realisation and the bound stated with it is how far that same quantity moves across 3 re-draws. 2 of those 3 re-draws clear the bound and the rest do not, so whether this page could state a direction depends on which draw the run happened to make. It states none. The re-draws themselves are set out contrast by contrast in the band table directly below this headline, lowest, mean and highest; the published draw sits ABOVE the centre of its own family.",
       "verdict_stability": {
         "checked": true,
-        "n": 9,
+        "n": 3,
         "redraw_values_gbp": [
-          1260.9261999999871,
-          -3036.2544110000017,
-          494.4478329999838,
-          -2644.3478250000044,
-          286.0552489999973,
-          1090.000177000009,
-          -2482.5793040000135,
-          -2719.108798000001,
-          -1952.6304309999978
+          -4926.191380000004,
+          -464.5749690000084,
+          -2564.1040090000024
         ],
-        "redraw_resolving": 5,
-        "redraw_min_gbp": -3036.2544110000017,
-        "redraw_max_gbp": 1260.9261999999871,
-        "redraw_mean_gbp": -1078.1657011111156,
+        "redraw_resolving": 2,
+        "redraw_min_gbp": -4926.191380000004,
+        "redraw_max_gbp": -464.5749690000084,
+        "redraw_mean_gbp": -2651.6234526666717,
         "stable": false,
-        "sign_determined": false
+        "sign_determined": true
       },
       "redraw_band": "The re-draws themselves are set out contrast by contrast in the band table directly below this headline, lowest, mean and highest; the published draw sits ABOVE the centre of its own family.",
       "repetition": {
         "countable": true,
-        "draws": 9,
-        "distinct_values": 9,
+        "draws": 3,
+        "distinct_values": 3,
         "draws_that_repeat_another": 0,
         "redundant_draws": 0,
         "what_this_counts": "re-draws of this floor returning a `selection_gbp` another of its own draws already returned. `draws_that_repeat_another` counts the DRAWS implicated -- a value returned three times implicates three of them; `redundant_draws` counts how many added nothing the family did not already hold, which is two fewer for that same value. A bound computed across repeated draws measures how often the instrument pinned, not how far the quantity moves."
       },
-      "no_sign": "AND THE QUANTITY DOES NOT CARRY A SIGN. The same contrast re-drawn 9 times in this same world falls on BOTH sides of zero, so there is no direction here for a bound to clear: the plus or minus on the published draw is a property of which draw was made. The band table directly below this headline gives that family, and its Lowest and Highest sit on opposite sides of zero. The CENTRE of that family is on the other side of zero from the published draw, so the draw's own sign is not the family's.",
+      "no_sign": "",
       "bound_available": true,
-      "floor_ran_in_world": "39a192ce04c1eda8",
+      "floor_ran_in_world": "cf823b185f8ca51c",
       "floor_leg": "all",
-      "floor_generated_at": "2026-09-09T15:17:31Z",
+      "floor_generated_at": "2026-10-01T21:02:51Z",
       "bound": {
-        "n": 9,
-        "stdev_gbp": 1810.5007782810442,
-        "mean_gbp": -1078.1657011111156,
-        "min_gbp": -3036.2544110000017,
-        "max_gbp": 1260.9261999999871,
+        "n": 3,
+        "stdev_gbp": 2232.0954257134513,
+        "mean_gbp": -2651.6234526666717,
+        "min_gbp": -4926.191380000004,
+        "max_gbp": -464.5749690000084,
         "repetition": {
           "countable": true,
-          "draws": 9,
-          "distinct_values": 9,
+          "draws": 3,
+          "distinct_values": 3,
           "draws_that_repeat_another": 0,
           "redundant_draws": 0,
           "what_this_counts": "re-draws of this floor returning a `selection_gbp` another of its own draws already returned. `draws_that_repeat_another` counts the DRAWS implicated -- a value returned three times implicates three of them; `redundant_draws` counts how many added nothing the family did not already hold, which is two fewer for that same value. A bound computed across repeated draws measures how often the instrument pinned, not how far the quantity moves."
@@ -1332,134 +1322,26 @@
       },
       "which_sign_question_this_answers": "VOIDED 2026-09-27. The selection residual is not a Gaussian spread around a mean. It is one account's renewal roll, so a standard error over seeds prices the wrong unknown. See docs/staging/records/SEAT_RESULT_THE_SELECTION_SWITCH_IS_ONE_ACCOUNTS_CHURN_ROLL_AND_ITS_MONEY_IS_THE_WRITE_OFF_RULE_2026-09-27.md.",
       "what_would_settle_the_sign": {
-        "available": true,
-        "what_this_is": "How much larger the priced book would have to be before this leg could carry a direction at all -- priced on THIS book, from THIS leg's own nine-seed spread, on THIS contrast.",
-        "contrast": "selection_gbp",
-        "floor_variance_gbp2": 3277913.0681562666,
-        "floor_stdev_gbp": 1810.5007782810442,
-        "floor_seeds": 9,
-        "book": {
-          "priced_decisions": 214,
-          "renewals_offered": 2035,
-          "priced_share_of_renewals_offered": 0.1052
-        },
-        "independence_unit": "priced_decisions",
-        "why_no_account_column": "The 1/n law indexes on INDEPENDENT DRAWS -- the households whose elasticity was re-rolled -- and that count comes off the `only` floor leg, which cannot be run as a distinct leg on this book: with every drawing household inside the priced roster it holds nobody fixed, which is the undecomposed floor wearing a decomposed label, and the producer refuses it. The multiple below is invariant to which index is used; the absolute counts are not, so only the decision index is published and it is named.",
-        "rows": [
-          {
-            "which_figure": "the published draw",
-            "contrast_gbp": 270.20708699998795,
-            "what_this_figure_counts": "the single realisation this page prints. Pricing against it asks what book would make THIS draw clear its own spread -- a question about one draw, and this draw sat above the centre of its own family.",
-            "times_this_book": 44.89561867428295,
-            "priced_decisions_needed": 9608,
-            "renewals_the_world_must_offer": 91331,
-            "this_book_already_resolves_it": false
-          },
-          {
-            "which_figure": "the centre of its own re-draw family",
-            "contrast_gbp": -1078.1657011111156,
-            "what_this_figure_counts": "the mean of the nine re-draws, which is this page's best estimate of the quantity itself rather than of one draw of it. Pricing against it asks what book would make an effect the size of that centre carry a direction. It is itself an estimate and is not established to be non-zero.",
-            "times_this_book": 2.819852604364061,
-            "priced_decisions_needed": 604,
-            "renewals_the_world_must_offer": 5742,
-            "this_book_already_resolves_it": false
-          }
-        ],
-        "is_a_lower_bound": true,
-        "why_it_is_a_lower_bound": "Every figure here is the corner where the WHOLE spread is the priced households' own draw and none of it is the rest of the book's churn cascade. The requirement is strictly increasing in the churn-cascade share, so no split prices smaller than this. AND ON THIS INSTRUMENT THE BOUND IS ATTAINED, so read these as exact and not as a floor that will rise. One instrumented full-window pass counted 298 elasticity draws in this world, from 67 households, and NONE of them fell outside the 100-account roster the `except` leg cuts along. So there is no rest of the book for that leg to re-draw: `V_rest` is identically zero on this instrument, for every seed and at any book size. The corner is therefore where this book actually sits, and the two floor legs that would 'pin it down' cannot be run here to do it: the `except` leg re-draws an empty set and the `only` leg holds nobody fixed. Both refuse, and the nine-seed `except` run launched on 2026-09-10 refused on its first seed after 39 minutes for exactly this reason. What is missing is not compute -- it is a floor keyed to something the rest of the book HAS, its churn cascade, rather than to an elasticity draw it never reaches.",
-        "the_bound_is_attained": true,
-        "the_complement_this_bound_rests_on": {
-          "empty": true,
-          "probe_elasticity_calls": 298,
-          "probe_accounts_that_drew": 67,
-          "probe_roster_size": 100,
-          "probe_accounts_outside_the_roster": 0,
-          "matched_on": "the world digest and the roster size, which is what both artefacts carry -- not an account-by-account identity, which neither publishes",
-          "why": "One instrumented full-window pass counted 298 elasticity draws in this world, from 67 households, and NONE of them fell outside the 100-account roster the `except` leg cuts along. So there is no rest of the book for that leg to re-draw: `V_rest` is identically zero on this instrument, for every seed and at any book size."
-        },
-        "and_it_must_be_exceeded": "The page resolves a contrast when it EXCEEDS its spread, strictly, so a book of exactly the size below leaves the leg still unresolved. Read every count as the smallest book that does not work.",
-        "the_two_figures_disagree": true,
-        "can_a_book_that_size_be_built": {
-          "available": true,
-          "unit": "customer-years",
-          "why_this_unit": "Accounts will not do it: this book's 164 accounts are counted over a ten-year window and do not each live it, so the same book is 1,122 customer-years and not ten times its account count. Customer-years is what both ceilings are stated in.",
-          "this_book_customer_years": 1122.0,
-          "the_book_these_figures_are_denominated_in": {
-            "run_generated_at": "2026-09-08T00:19:54Z",
-            "accounts": 164,
-            "customer_years": 1122.0
-          },
-          "why_the_multiple_cannot_be_re_denominated": "`required_multiple_*` is a multiple of THE BOOK STAMPED ABOVE -- it comes off that run's own priced-decision count and its own floor spread. `required_customer_years_smallest_leg` is that multiple times THAT run's customer-years, and the two factors have to be the same book. Carrying the multiple to another run's customer-years asks how many customer-years of one book equal a multiple of a different one, which is not a quantity. A later run needs the multiple RE-COMPUTED on it, not re-scaled.",
-          "capacity_customer_years": 1250.0,
-          "what_binds": "SETTLEMENT_CUSTOMER_YEAR_BUDGET",
-          "reachable_multiple_of_this_book": 1.1140819964349375,
-          "required_multiple_smallest_leg": 2.819852604364061,
-          "required_multiple_largest_leg": 44.89561867428295,
-          "required_customer_years_smallest_leg": 3163.8746220964763,
-          "every_leg_is_reachable": false,
-          "no_leg_is_reachable": true,
-          "memory_ceiling": {
-            "max_customer_years": 1312,
-            "bound_kind": "measured_interpolation",
-            "within_the_measured_range": true,
-            "measured_range_customer_years": [
-              1197.0,
-              3135.5
-            ],
-            "mb_per_customer_year": 4.3402,
-            "anchored_at": {
-              "customer_years": 1197.0,
-              "peak_rss_mb": 5507.4
-            },
-            "budget_peak_rss_mb": 6008.0,
-            "share_of_guest_the_run_may_hold": 0.25,
-            "guest_total_mb": 24032.1,
-            "measured_at_utc": "2026-09-21T19:49:05.549028+00:00",
-            "measured_at_git_head": "b726402c1",
-            "read_from": "docs/observability/settlement_ceiling_slope_20260921.json",
-            "prices_which_footprint": "the PEAK RSS OF THE WHOLE RUN -- `tools.run_annual_report._run_and_extract` over the full window, the same call `background/sim_runner.py` makes -- measured at several settlement budgets, not any one data structure inside it",
-            "what_it_does_not_bound": "wall clock. A book inside this bound can still be one no publish cycle will ever finish; the probe's own `bounds.time` is that separate question, and WHICH of the two binds is a comparison the caller makes against `net_new_acquisition.SETTLEMENT_CUSTOMER_YEAR_BUDGET` -- not a sentence this function can carry. It carried one until 2026-09-21: the literals '1,200', 'slack by 4.5x' and 'Memory is not what caps this book' were hard-coded here, inside the function computing the number they described, and the measurement refuted all three. They are named here only so a reader meeting them elsewhere knows they were deleted, not restated."
-          },
-          "retained_records_per_customer_year": 289.3903743315508,
-          "memory_slack_multiple_over_the_budget": 1.0496,
-          "why_the_old_comparison_was_not_one": "`settled_book_ceiling` prices every customer at 17,520 settlement records a year -- the HALF-HOURLY rate, which is what an I&C account settles on. I&C was suspended from the served book on 2026-08-24, and `run_phase2b` folds each term to DAILY rows before retaining any of it. This run retains 289.4 rows per customer-year, so the old ceiling was pricing a record population the settled book does not hold, by a factor of 61.",
-          "why_the_retained_rate_is_not_the_ceilings_input_either": "Re-ruling to 289.4 rows per customer-year fixed which RECORDS were priced and left the ceiling pricing records at all. The scale probe's two stages bound one data structure; a run's peak RSS is the whole process. This ceiling is now read off a measured whole-run curve -- 4.340 MB per customer-year across four budgets -- and the retained rate above is context, not its input. On 2026-09-21 the stage-cost arithmetic this replaced published 0.214 MB per customer-year and a ceiling of 38,275, optimistic by a factor of 29.2; that figure is named here with its date because it was cited on this page and is not recoverable from the code once the arithmetic is gone."
-        },
-        "what_is_not_established": "Not whether a book that size can be built -- that is now measured, on one ruler, and the answer is NO: 2.82x this book is 3,164 customer-years against a capacity of 1,250, and `SETTLEMENT_CUSTOMER_YEAR_BUDGET` is what binds. What is NOT established is why that capacity is where it is. Memory very nearly binds too: the measured whole-run RSS ceiling is 1,312 customer-years, slack of only 1.05x over the budget. Raising the budget to reach the requirement above spends that slack long before it gets there. What no measurement here settles is what publish cadence this company is willing to pay for a signed answer -- though the 2026-09-21 curve narrows even that: across a 112x range of intervals the supported ceiling moved under 10%, so the cadence is a far smaller lever on this question than it was argued to be.",
-        "sentence": "What it would take, against this book's 214 priced renewals: to give the published draw (\u00a3270) a direction, more than 44.9x this book -- about 9,608 priced renewals out of 91,331 the world must offer; to give the centre of its own re-draw family (-\u00a31,078) a direction, more than 2.8x this book -- about 604 priced renewals out of 5,742 the world must offer. Both are the most optimistic book in the family, and on this instrument that corner is where this book sits -- read them as exact, not as a floor that will rise when the missing floor legs are run, which on this book they cannot be. Which of the two a reader should mean is not a detail this page can settle for them: they are different quantities and they are answered by different books."
+        "available": false,
+        "why_not": "this leg is not one whose sign is undetermined, so there is nothing here for a larger book to settle. A price for resolving a leg that already carries a direction would be a remedy for a question the page has answered."
       },
-      "figure_gbp": 270.20708699998795,
+      "figure_gbp": -1259.4679989999859,
       "bind_asymmetry": {
         "available": true,
-        "value_arm_priced": 214,
-        "value_arm_ceiling_bound": 143,
-        "value_arm_bound_share": 0.6682242990654206,
+        "value_arm_priced": 112,
+        "value_arm_ceiling_bound": 46,
+        "value_arm_bound_share": 0.4107142857142857,
         "value_arm_extrapolation_bound": 6,
-        "level_arm_priced": 281,
-        "level_arm_ceiling_bound": 0,
-        "asymmetric": true,
-        "the_leg_is_not_the_value_of_choosing": true,
-        "clause": "THIS LEG IS NOT THE VALUE OF CHOOSING PER CUSTOMER. The statutory price cap binds 143 of the value arm's 214 priced decisions (67%) and 0 of the level arm's 281. The flat arm sits below the lawful cap everywhere, so it is bound on nothing and there is no free/bound partition on that side to difference this one against. What the figure contrasts is an arm the cap binds on most of its decisions against an arm it never binds at all -- so the confound is in the QUANTITY, not in the sample, and no larger book removes it.",
+        "level_arm_priced": 115,
+        "level_arm_ceiling_bound": 31,
+        "asymmetric": false,
+        "the_leg_is_not_the_value_of_choosing": false,
+        "clause": "The cap binds 46 of the value arm's 112 priced decisions and 31 of the level arm's 115. Both rosters carry a bound partition, so this leg contrasts like with like on that axis.",
         "what_would_remove_it": "A bound flag defined EXOGENOUSLY, so it applies to both arms: per renewal, whether the lawful cap at that term's own window lies below the arm's UNCONSTRAINED optimum -- a shadow score `decide_margin` already computes. Applied to both rosters it partitions both sides. As recorded, `ceiling_bound` is a property of a value-arm decision and is 0 on the level arm by construction, which is not a measurement."
       },
       "population_repair_bias": {
-        "available": true,
-        "run_carries_the_repair": false,
-        "direction": "downward",
-        "never_asked": true,
-        "magnitude_gbp": 810.18,
-        "ci_low_gbp": 778.26,
-        "ci_high_gbp": 842.11,
-        "t": 55.86,
-        "paired_seeds": 12,
-        "measured_on_commit": "18327d977",
-        "measured_against_commit": "a178b56d6",
-        "paths_between_the_two_books": 20,
-        "is_a_correction_to_the_figure_above": false,
-        "total_advantage_moved_gbp": 0.0,
-        "source": "docs/staging/SEAT_RESULT_THE_PAIRED_TWELVE_PRICE_THE_POPULATION_REPAIR_AT_810_POUNDS_AND_THE_STANDALONE_SIGN_GOT_SEVENTEEN_TIMES_HARDER_2026-09-19.md",
-        "level_arm_priced": 281,
-        "value_arm_priced": 214,
+        "available": false,
+        "run_carries_the_repair": true,
         "sign_on_the_shared_population": {
           "available": true,
           "n": 12,
@@ -1498,7 +1380,7 @@
           "may_be_netted_against_the_published_figure": false,
           "source_artefact": "value_cycle_ab_s1_noise_floor_next12_at_18327d977.json"
         },
-        "clause": "THE CHOOSING FIGURE IS BIASED DOWNWARD, and here is one measured size for that bias. This run never asked whether the two arms priced the same renewals -- the field is written only by runs taken after the level arm was given the per-customer arm's refusal frontier. The flat arm priced 281 renewals against the per-customer arm's 214. Where the flat arm prices renewals the per-customer arm has already declined, it books margin on them, and the residual called \"the choosing\" carries that difference as a shortfall. Twelve seeds paired across exactly that one repair price it: `selection_gbp` rose by \u00a3810.18 (95% CI \u00a3778.26 to \u00a3842.11, t = 55.86 on 12 paired seeds). THAT SIZE IS NOT A GAIN AND NOT A CORRECTION TO THE CHOOSING FIGURE. On every one of those 12 seeds the WHOLE advantage moved by \u00a30.00 -- not a penny, not a rounding -- because the \u00a3810.18 came OFF the price-level leg and went ONTO the choosing leg by exactly equal and opposite amounts. Nothing was created; one side of the decomposition was handed to the other. A reader who takes this as \"the choosing leg is now positive and significant\" has read it backwards. AND IT IS A DIFFERENT BOOK FROM THIS ONE: it was measured on `18327d977` against `a178b56d6`, 20 paths of pricing code away from the run that produced the choosing figure, so it is the size of the CLASS and not this figure's own error. Subtracting it here would be arithmetic across two instruments. The choosing figure stands as published. AND HERE IS WHAT THE SAME INSTRUMENT SAYS ITS OWN REPAIRED BOOK IS WORTH, which is the question the size above makes a reader ask and does not answer. The 12 seeds drawn on `18327d977` -- where both arms refuse at one frontier, so the populations match by construction and not by restriction -- put `selection_gbp` at a mean of -\u00a3259.29, and THE SIGN IS NOT STATEABLE: 0.166 of the 2.201 SEMs it would need, and NO NUMBER OF SEEDS IS THE PRICE OF CLOSING THAT GAP. The count divides by the very estimate whose interval contains zero, so it has no upper bound: the arithmetic at this family's point estimate gives 1677 seeds, one standard error either side of the denominator gives 37 seeds and 69 seeds, and those are not a range because the quantity diverges between them. So the answer to what the choosing is worth on a population both arms priced is WE CANNOT TELL, and that is this page's result rather than a gap in it. A reader who adds \u00a3810.18 to this page's `selection_gbp` and reads the total as the like-for-like worth of choosing has done arithmetic across two instruments to reach a number this one refuses to state."
+        "reason": "this run was taken after the level arm was given the per-customer arm's own refusal frontier, so both arms priced one book and the downward bias this block sizes does not apply to the `selection_gbp` figure it qualifies."
       },
       "what_this_leg_is": "What the per-customer CHOOSING was worth once one flat margin at the same price LEVEL is credited with everything a level alone would have earned. The other leg of the advantage is the level itself, which is a price charged rather than a value made -- so this is the only figure on this page that could be value created instead of value moved.",
       "root_cause": {
@@ -1531,88 +1413,82 @@
       }
     },
     "level_leg": {
-      "resolved": null,
-      "verdict_withheld_because": "4 of this family's 9 re-draws returned a value another of its own draws had already returned, so the standard error the estimate is graded in units of is partly a count of how often this instrument PINNED rather than a measure of how far the quantity moves. Across every family on this disk the ones that repeat a draw are bounded more tightly than every one that does not, with no overlap between the two groups. AND THE VERDICT IS WITHDRAWN FOR WHICH RUN THIS IS. This block was measured at 2026-09-08T00:19:54Z and the run published beside it at 2026-09-18T05:43:40Z, so it is not the later of the two this page carries. Every figure here was honestly measured and none of them is withdrawn -- the spread, the seed family and the composition stand exactly as they were taken. What may not stand is a DIRECTION read off them, because a direction stated here would be this page's most confident sentence resting on its oldest run, and that is the sentence a reader takes. The evidence below is what a direction would have rested on and what a re-run of this contrast against the later run would be compared with.",
+      "resolved": true,
+      "verdict_withheld_because": null,
       "verdict_stability": {
         "checked": true,
-        "n": 9,
+        "n": 3,
         "redraw_values_gbp": [
-          18346.58135200001,
-          20280.688190999994,
-          19409.147331000015,
-          19534.671988999995,
-          20456.838805000007,
-          20456.838805000007,
-          16811.754979999998,
-          19889.592204000015,
-          19409.147331000015
+          12097.62122,
+          9795.681228999994,
+          8547.777403999993
         ],
-        "redraw_resolving": 9,
-        "redraw_min_gbp": 16811.754979999998,
-        "redraw_max_gbp": 20456.838805000007,
-        "redraw_mean_gbp": 19399.473443111117,
+        "redraw_resolving": 3,
+        "redraw_min_gbp": 8547.777403999993,
+        "redraw_max_gbp": 12097.62122,
+        "redraw_mean_gbp": 10147.026617666663,
         "stable": true,
         "sign_determined": true
       },
       "redraw_band": "The re-draws themselves are set out contrast by contrast in the band table directly below this headline, lowest, mean and highest; the published draw sits BELOW the centre of its own family.",
       "repetition": {
         "countable": true,
-        "draws": 9,
-        "distinct_values": 7,
-        "draws_that_repeat_another": 4,
-        "redundant_draws": 2,
+        "draws": 3,
+        "distinct_values": 3,
+        "draws_that_repeat_another": 0,
+        "redundant_draws": 0,
         "what_this_counts": "re-draws of this floor returning a `level_advantage_gbp` another of its own draws already returned. `draws_that_repeat_another` counts the DRAWS implicated -- a value returned three times implicates three of them; `redundant_draws` counts how many added nothing the family did not already hold, which is two fewer for that same value. A bound computed across repeated draws measures how often the instrument pinned, not how far the quantity moves."
       },
       "no_sign": "",
       "bound_available": true,
-      "floor_ran_in_world": "39a192ce04c1eda8",
+      "floor_ran_in_world": "cf823b185f8ca51c",
       "floor_leg": "all",
-      "floor_generated_at": "2026-09-09T15:17:31Z",
+      "floor_generated_at": "2026-10-01T21:02:51Z",
       "bound": {
-        "n": 9,
-        "stdev_gbp": 1176.6548593147284,
-        "mean_gbp": 19399.473443111117,
-        "min_gbp": 16811.754979999998,
-        "max_gbp": 20456.838805000007,
+        "n": 3,
+        "stdev_gbp": 1800.8138343819367,
+        "mean_gbp": 10147.026617666663,
+        "min_gbp": 8547.777403999993,
+        "max_gbp": 12097.62122,
         "repetition": {
           "countable": true,
-          "draws": 9,
-          "distinct_values": 7,
-          "draws_that_repeat_another": 4,
-          "redundant_draws": 2,
+          "draws": 3,
+          "distinct_values": 3,
+          "draws_that_repeat_another": 0,
+          "redundant_draws": 0,
           "what_this_counts": "re-draws of this floor returning a `level_advantage_gbp` another of its own draws already returned. `draws_that_repeat_another` counts the DRAWS implicated -- a value returned three times implicates three of them; `redundant_draws` counts how many added nothing the family did not already hold, which is two fewer for that same value. A bound computed across repeated draws measures how often the instrument pinned, not how far the quantity moves."
         },
-        "sem_gbp": 392.2182864382428
+        "sem_gbp": 1039.7003520408134
       },
       "bound_contrast": "level_advantage_gbp",
       "bound_is_of_the_same_contrast": "The spread below is this contrast's own across the seed re-draws -- not the floor's published `selection_gbp_spread`, which measures a different quantity.",
       "distance_to_a_sign": {
         "available": true,
-        "sems_from_zero": 49.460910196918334,
-        "sems_needed_to_state_a_sign": 2.306004135204166,
+        "sems_from_zero": 9.759568319611708,
+        "sems_needed_to_state_a_sign": 4.302652729749462,
         "sems_needed_is_derived_from_the_family_size": true,
-        "seeds_needed_to_state_a_sign": 2,
-        "seeds_at_the_point_estimate": 2,
+        "seeds_needed_to_state_a_sign": 3,
+        "seeds_at_the_point_estimate": 3,
         "seeds_needed_interval": null,
-        "seeds_in_hand": 9,
+        "seeds_in_hand": 3,
         "sign_if_it_were_stateable": "positive",
         "seeds_needed_unavailable_because": null,
         "what_this_count_is": "the seeds this family would need IF its mean and standard deviation stayed exactly where they are. New draws move both -- that is why they are worth taking -- so this is the price of the question at today's estimate and never a forecast that the sign will appear.",
         "how_to_read_the_distance": "`sems_from_zero` below `sems_needed_to_state_a_sign` means the sign is NOT stateable and says by how much. It is not a cue to re-run until a seed agrees (R12): the seed set is fixed before the draw and the answer is whatever it returns."
       },
       "which_sign_question_this_answers": "THE MEAN'S, NOT A SINGLE DRAW'S. `no_sign` and `verdict_stability.sign_determined` above answer whether one draw's sign generalises -- it does not, the re-draws fall on both sides of zero, and no number of further seeds changes that because the spread is the world's own dispersion rather than an estimation error. `distance_to_a_sign` answers whether the FAMILY'S MEAN is distinguishable from zero, whose denominator is the standard error and DOES fall as 1/sqrt(n). That is the question the thesis asks: is the per-customer arm, on average, worse than its own flat-at-level baseline? The two can disagree without contradiction, and until 2026-09-10 this page answered only the first and read as though the second were unanswerable too.",
-      "figure_gbp": 17468.435006000014,
+      "figure_gbp": 8967.049988999992,
       "what_this_leg_is": "What ONE FLAT margin at the same price level earned over flat rules, with no per-customer choosing in it at all. This is value MOVED and not made -- a price charged transfers value from the household to the company rather than creating any. It is published bounded because it looks like the safe half and is not: its own re-draws in this world change its sign."
     },
     "composition": {
       "available": true,
-      "level_share_of_advantage": 0.9847673184010732,
-      "level_share_measured_in": "39a192ce04c1eda8",
+      "level_share_of_advantage": 1.1634063705886033,
+      "level_share_measured_in": "cf823b185f8ca51c",
       "what_each_part_counts": "The numerator is `level_advantage_gbp` -- what one FLAT margin at the same price level earned over flat rules, which is a price charged and therefore value MOVED. The denominator is `value_advantage_gbp`, that plus the per-customer choosing. Both come from the same run and the same clock, so their ratio is a quantity; what is at issue below is not the arithmetic but whether the quantity can be READ.",
       "superseded_panel_share": 0.05507795041077859,
       "published_run": {
-        "artefact": "value_cycle_ab_s1_three_arm_20260908.json",
-        "generated_at": "2026-09-08T00:19:54Z"
+        "artefact": "value_cycle_ab_s1_three_arm_20261001.json",
+        "generated_at": "2026-10-01T17:14:07Z"
       },
       "floor_selected_by_book": {
         "the_runs_book": [
@@ -1620,9 +1496,9 @@
           165
         ],
         "selected": {
-          "artefact": "value_cycle_ab_s1_noise_floor_folded18_head_20260925.json",
-          "generated_at": "2026-09-26T06:46:52Z",
-          "seeds": 18,
+          "artefact": "value_cycle_ab_s1_noise_floor_20261001.json",
+          "generated_at": "2026-10-01T21:02:51Z",
+          "seeds": 3,
           "also_on_disk_as": [],
           "realised_book": [
             164,
@@ -1632,7 +1508,7 @@
         "considered": [
           {
             "artefact": "value_cycle_ab_s1_noise_floor.json",
-            "refused_because": null
+            "refused_because": "drawn in a different world from the run being read"
           },
           {
             "artefact": "value_cycle_ab_s1_noise_floor_20260831.json",
@@ -1640,261 +1516,88 @@
           },
           {
             "artefact": "value_cycle_ab_s1_noise_floor_20260903.json",
-            "refused_because": "older than the run it would bound"
+            "refused_because": "drawn in a different world from the run being read"
           },
           {
             "artefact": "value_cycle_ab_s1_noise_floor_20260908.json",
-            "refused_because": "states no realised book count this run also states, so it cannot be shown to have been drawn over this run's book -- this noise floor states no realised book counts -- neither a `realised_across_seeds` block nor a count on every seed row"
+            "refused_because": "drawn in a different world from the run being read"
           },
           {
             "artefact": "value_cycle_ab_s1_noise_floor_20260908b.json",
-            "refused_because": "states no realised book count this run also states, so it cannot be shown to have been drawn over this run's book -- this noise floor states no realised book counts -- neither a `realised_across_seeds` block nor a count on every seed row"
+            "refused_because": "drawn in a different world from the run being read"
           },
           {
             "artefact": "value_cycle_ab_s1_noise_floor_20260909.json",
-            "refused_because": "states no realised book count this run also states, so it cannot be shown to have been drawn over this run's book -- this noise floor states no realised book counts -- neither a `realised_across_seeds` block nor a count on every seed row"
+            "refused_because": "drawn in a different world from the run being read"
           },
           {
             "artefact": "value_cycle_ab_s1_noise_floor_20260909b.json",
-            "refused_because": "states no realised book count this run also states, so it cannot be shown to have been drawn over this run's book -- this noise floor states no realised book counts -- neither a `realised_across_seeds` block nor a count on every seed row"
+            "refused_because": "drawn in a different world from the run being read"
           },
           {
             "artefact": "value_cycle_ab_s1_noise_floor_20260910.json",
-            "refused_because": null
+            "refused_because": "drawn in a different world from the run being read"
           },
           {
             "artefact": "value_cycle_ab_s1_noise_floor_20260910b.json",
+            "refused_because": "drawn in a different world from the run being read"
+          },
+          {
+            "artefact": "value_cycle_ab_s1_noise_floor_20261001.json",
             "refused_because": null
           },
           {
             "artefact": "value_cycle_ab_s1_noise_floor_auc3_20260917.json",
-            "refused_because": "drawn over a different book from the run being read"
+            "refused_because": "drawn in a different world from the run being read"
           },
           {
             "artefact": "value_cycle_ab_s1_noise_floor_five_seed_head_20260924.json",
-            "refused_because": "drawn over a different book from the run being read"
+            "refused_because": "drawn in a different world from the run being read"
           },
           {
             "artefact": "value_cycle_ab_s1_noise_floor_folded18_20260917.json",
-            "refused_because": "states no realised book count this run also states, so it cannot be shown to have been drawn over this run's book -- this noise floor states no realised book counts -- neither a `realised_across_seeds` block nor a count on every seed row"
+            "refused_because": "drawn in a different world from the run being read"
           },
           {
             "artefact": "value_cycle_ab_s1_noise_floor_folded18_head_20260925.json",
-            "refused_because": null
+            "refused_because": "drawn in a different world from the run being read"
           },
           {
             "artefact": "value_cycle_ab_s1_noise_floor_folded18_single_arm_20260917.json",
-            "refused_because": "already the family the error bar is built from, and rendering its selection mean in two regions of one headline is refused by `_the_legs_own_regions`"
+            "refused_because": "drawn in a different world from the run being read"
           },
           {
             "artefact": "value_cycle_ab_s1_noise_floor_next12_20260917.json",
-            "refused_because": "drawn over a different book from the run being read"
+            "refused_because": "drawn in a different world from the run being read"
           },
           {
             "artefact": "value_cycle_ab_s1_noise_floor_next12_at_18327d977.json",
-            "refused_because": "drawn over a different book from the run being read"
+            "refused_because": "drawn in a different world from the run being read"
           },
           {
             "artefact": "value_cycle_ab_s1_noise_floor_next12_at_4e7938f673.json",
-            "refused_because": null
+            "refused_because": "drawn in a different world from the run being read"
           }
         ],
         "refusal": null
       },
       "readable": false,
-      "later_runs_in_this_world": [
-        {
-          "artefact": "value_cycle_ab_s1_three_arm_20260908b.json",
-          "generated_at": "2026-09-08T21:01:30Z",
-          "ran_in_world": "39a192ce04c1eda8",
-          "level_share_of_advantage": 0.9814628408269529,
-          "the_bigger_leg": "level",
-          "value_advantage_gbp": 17452.610023999994,
-          "level_advantage_gbp": 17129.08821399999,
-          "selection_gbp": 323.52181000000564
-        },
-        {
-          "artefact": "value_cycle_ab_s1_three_arm_20260909.json",
-          "generated_at": "2026-09-09T01:24:34Z",
-          "ran_in_world": "39a192ce04c1eda8",
-          "level_share_of_advantage": 0.981707098049328,
-          "the_bigger_leg": "level",
-          "value_advantage_gbp": 17443.974545999983,
-          "level_advantage_gbp": 17124.873629999987,
-          "selection_gbp": 319.1009159999958
-        },
-        {
-          "artefact": "value_cycle_ab_s1_three_arm_20260909b.json",
-          "generated_at": "2026-09-09T13:15:17Z",
-          "ran_in_world": "39a192ce04c1eda8",
-          "level_share_of_advantage": 0.981707098049328,
-          "the_bigger_leg": "level",
-          "value_advantage_gbp": 17443.974545999983,
-          "level_advantage_gbp": 17124.873629999987,
-          "selection_gbp": 319.1009159999958
-        },
-        {
-          "artefact": "value_cycle_ab_s1_three_arm_20260909c.json",
-          "generated_at": "2026-09-09T13:58:12Z",
-          "ran_in_world": "39a192ce04c1eda8",
-          "level_share_of_advantage": 0.981707098049328,
-          "the_bigger_leg": "level",
-          "value_advantage_gbp": 17443.974545999983,
-          "level_advantage_gbp": 17124.873629999987,
-          "selection_gbp": 319.1009159999958
-        },
-        {
-          "artefact": "value_cycle_ab_s1_three_arm_departure_20260909.json",
-          "generated_at": "2026-09-09T21:35:40Z",
-          "ran_in_world": "39a192ce04c1eda8",
-          "level_share_of_advantage": 1.019971827652637,
-          "the_bigger_leg": "level",
-          "value_advantage_gbp": 16793.687579999998,
-          "level_advantage_gbp": 17129.08821399999,
-          "selection_gbp": -335.40063399999053
-        },
-        {
-          "artefact": "value_cycle_ab_s1_three_arm_20260910.json",
-          "generated_at": "2026-09-10T14:04:08Z",
-          "ran_in_world": "39a192ce04c1eda8",
-          "level_share_of_advantage": 1.0198088976479727,
-          "the_bigger_leg": "level",
-          "value_advantage_gbp": 16792.23790800001,
-          "level_advantage_gbp": 17124.873629999987,
-          "selection_gbp": -332.63572199997725
-        },
-        {
-          "artefact": "value_cycle_ab_s1_three_arm_20260918.json",
-          "generated_at": "2026-09-18T05:43:40Z",
-          "ran_in_world": "39a192ce04c1eda8",
-          "level_share_of_advantage": 0.05507795041077859,
-          "the_bigger_leg": "selection",
-          "value_advantage_gbp": 4579.228659000015,
-          "level_advantage_gbp": 252.21452900001896,
-          "selection_gbp": 4327.014129999996,
-          "also_on_disk_as": [
-            "value_cycle_ab_s1_three_arm.json"
-          ]
-        }
-      ],
-      "later_runs_disagree": {
-        "available": true,
-        "world": "39a192ce04c1eda8",
-        "published_run": {
-          "artefact": "value_cycle_ab_s1_three_arm_20260908.json",
-          "generated_at": "2026-09-08T00:19:54Z",
-          "level_share_of_advantage": 0.9847673184010732,
-          "the_bigger_leg": "level"
-        },
-        "later_runs_that_disagree": [
-          {
-            "artefact": "value_cycle_ab_s1_three_arm_20260918.json",
-            "generated_at": "2026-09-18T05:43:40Z",
-            "ran_in_world": "39a192ce04c1eda8",
-            "level_share_of_advantage": 0.05507795041077859,
-            "the_bigger_leg": "selection",
-            "value_advantage_gbp": 4579.228659000015,
-            "level_advantage_gbp": 252.21452900001896,
-            "selection_gbp": 4327.014129999996,
-            "also_on_disk_as": [
-              "value_cycle_ab_s1_three_arm.json"
-            ]
-          }
-        ],
-        "later_runs_in_this_world": [
-          {
-            "artefact": "value_cycle_ab_s1_three_arm_20260908b.json",
-            "generated_at": "2026-09-08T21:01:30Z",
-            "ran_in_world": "39a192ce04c1eda8",
-            "level_share_of_advantage": 0.9814628408269529,
-            "the_bigger_leg": "level",
-            "value_advantage_gbp": 17452.610023999994,
-            "level_advantage_gbp": 17129.08821399999,
-            "selection_gbp": 323.52181000000564
-          },
-          {
-            "artefact": "value_cycle_ab_s1_three_arm_20260909.json",
-            "generated_at": "2026-09-09T01:24:34Z",
-            "ran_in_world": "39a192ce04c1eda8",
-            "level_share_of_advantage": 0.981707098049328,
-            "the_bigger_leg": "level",
-            "value_advantage_gbp": 17443.974545999983,
-            "level_advantage_gbp": 17124.873629999987,
-            "selection_gbp": 319.1009159999958
-          },
-          {
-            "artefact": "value_cycle_ab_s1_three_arm_20260909b.json",
-            "generated_at": "2026-09-09T13:15:17Z",
-            "ran_in_world": "39a192ce04c1eda8",
-            "level_share_of_advantage": 0.981707098049328,
-            "the_bigger_leg": "level",
-            "value_advantage_gbp": 17443.974545999983,
-            "level_advantage_gbp": 17124.873629999987,
-            "selection_gbp": 319.1009159999958
-          },
-          {
-            "artefact": "value_cycle_ab_s1_three_arm_20260909c.json",
-            "generated_at": "2026-09-09T13:58:12Z",
-            "ran_in_world": "39a192ce04c1eda8",
-            "level_share_of_advantage": 0.981707098049328,
-            "the_bigger_leg": "level",
-            "value_advantage_gbp": 17443.974545999983,
-            "level_advantage_gbp": 17124.873629999987,
-            "selection_gbp": 319.1009159999958
-          },
-          {
-            "artefact": "value_cycle_ab_s1_three_arm_departure_20260909.json",
-            "generated_at": "2026-09-09T21:35:40Z",
-            "ran_in_world": "39a192ce04c1eda8",
-            "level_share_of_advantage": 1.019971827652637,
-            "the_bigger_leg": "level",
-            "value_advantage_gbp": 16793.687579999998,
-            "level_advantage_gbp": 17129.08821399999,
-            "selection_gbp": -335.40063399999053
-          },
-          {
-            "artefact": "value_cycle_ab_s1_three_arm_20260910.json",
-            "generated_at": "2026-09-10T14:04:08Z",
-            "ran_in_world": "39a192ce04c1eda8",
-            "level_share_of_advantage": 1.0198088976479727,
-            "the_bigger_leg": "level",
-            "value_advantage_gbp": 16792.23790800001,
-            "level_advantage_gbp": 17124.873629999987,
-            "selection_gbp": -332.63572199997725
-          },
-          {
-            "artefact": "value_cycle_ab_s1_three_arm_20260918.json",
-            "generated_at": "2026-09-18T05:43:40Z",
-            "ran_in_world": "39a192ce04c1eda8",
-            "level_share_of_advantage": 0.05507795041077859,
-            "the_bigger_leg": "selection",
-            "value_advantage_gbp": 4579.228659000015,
-            "level_advantage_gbp": 252.21452900001896,
-            "selection_gbp": 4327.014129999996,
-            "also_on_disk_as": [
-              "value_cycle_ab_s1_three_arm.json"
-            ]
-          }
-        ],
-        "statement": "WE CANNOT YET TELL WHETHER THE ADVANTAGE IS SELECTION OR LEVEL. This page publishes 98.5% -- the LEVEL leg's share of the advantage, so mostly the level -- from value_cycle_ab_s1_three_arm_20260908.json measured 2026-09-08T00:19:54Z. 7 later runs over the SAME world (39a192ce04c1eda8) exist and are not published on this page: 98.1% (level) from value_cycle_ab_s1_three_arm_20260908b.json measured 2026-09-08T21:01:30Z, whole advantage \u00a317,453 of which the level leg is \u00a317,129 and the choosing \u00a3324; 98.2% (level) from value_cycle_ab_s1_three_arm_20260909.json measured 2026-09-09T01:24:34Z, whole advantage \u00a317,444 of which the level leg is \u00a317,125 and the choosing \u00a3319; 98.2% (level) from value_cycle_ab_s1_three_arm_20260909b.json measured 2026-09-09T13:15:17Z, whole advantage \u00a317,444 of which the level leg is \u00a317,125 and the choosing \u00a3319; 98.2% (level) from value_cycle_ab_s1_three_arm_20260909c.json measured 2026-09-09T13:58:12Z, whole advantage \u00a317,444 of which the level leg is \u00a317,125 and the choosing \u00a3319; 102.0% (level) from value_cycle_ab_s1_three_arm_departure_20260909.json measured 2026-09-09T21:35:40Z, whole advantage \u00a316,794 of which the level leg is \u00a317,129 and the choosing -\u00a3335; 102.0% (level) from value_cycle_ab_s1_three_arm_20260910.json measured 2026-09-10T14:04:08Z, whole advantage \u00a316,792 of which the level leg is \u00a317,125 and the choosing -\u00a3333; 5.5% (selection) from value_cycle_ab_s1_three_arm_20260918.json measured 2026-09-18T05:43:40Z, whole advantage \u00a34,579 of which the level leg is \u00a3252 and the choosing \u00a34,327. Of those, 1 put the advantage on the OTHER side of which leg is bigger -- value_cycle_ab_s1_three_arm_20260918.json. THE SPLIT IS THEREFORE STATED AS UNRESOLVED AND NOT AS A COMPOSITION. These runs are NOT differenced into a trend and none of them supersedes the others: the level arm takes its level from each run's own realised median margin and the priced population moved between them, so more than one thing changed and the movement is not one quantity across them. Every figure here carries the run and the date it was measured on, which is the whole of what this page can say until the one-variable version is run.",
-        "what_would_answer_it": "the arms re-run once over this world with ONE thing changed at a time -- the level arm's own level held fixed across the runs, or the priced population held fixed -- so the movement in the split can be attributed to something. Until then the split is a property of which run was read."
-      },
-      "why_not_readable": "THIS SHARE CANNOT BE READ FROM ONE RUN, AND THAT IS A PROPERTY OF THE STATISTIC RATHER THAN OF THESE TWO RUNS. Re-running this same world 12 times with NOTHING moved but the per-household elasticity draw takes `level_share_of_advantage` from 0.067 to 12.074 -- a span of 12.007, which is 12.9 times the 0.930 between the two draws this page prints. The gap between them is therefore smaller than what the statistic does when nothing is done to it, so no arrangement of confounders explains it and none is needed to: a single draw of this share carries no reading, and that stays true however the confounders are cleaned up. WHAT THIS IS NOT MEASURED ON: the null is drawn on 154 settled accounts and the share's own arms were scored over 164-165, so the seed sensitivity is established for this statistic on a NEIGHBOURING book and not on its own. It is published with that named because a measured null one book over is evidence and the alternative already on the page is no ruler at all. WE CANNOT YET TELL WHETHER THE ADVANTAGE IS SELECTION OR LEVEL. This page publishes 98.5% -- the LEVEL leg's share of the advantage, so mostly the level -- from value_cycle_ab_s1_three_arm_20260908.json measured 2026-09-08T00:19:54Z. 7 later runs over the SAME world (39a192ce04c1eda8) exist and are not published on this page: 98.1% (level) from value_cycle_ab_s1_three_arm_20260908b.json measured 2026-09-08T21:01:30Z, whole advantage \u00a317,453 of which the level leg is \u00a317,129 and the choosing \u00a3324; 98.2% (level) from value_cycle_ab_s1_three_arm_20260909.json measured 2026-09-09T01:24:34Z, whole advantage \u00a317,444 of which the level leg is \u00a317,125 and the choosing \u00a3319; 98.2% (level) from value_cycle_ab_s1_three_arm_20260909b.json measured 2026-09-09T13:15:17Z, whole advantage \u00a317,444 of which the level leg is \u00a317,125 and the choosing \u00a3319; 98.2% (level) from value_cycle_ab_s1_three_arm_20260909c.json measured 2026-09-09T13:58:12Z, whole advantage \u00a317,444 of which the level leg is \u00a317,125 and the choosing \u00a3319; 102.0% (level) from value_cycle_ab_s1_three_arm_departure_20260909.json measured 2026-09-09T21:35:40Z, whole advantage \u00a316,794 of which the level leg is \u00a317,129 and the choosing -\u00a3335; 102.0% (level) from value_cycle_ab_s1_three_arm_20260910.json measured 2026-09-10T14:04:08Z, whole advantage \u00a316,792 of which the level leg is \u00a317,125 and the choosing -\u00a3333; 5.5% (selection) from value_cycle_ab_s1_three_arm_20260918.json measured 2026-09-18T05:43:40Z, whole advantage \u00a34,579 of which the level leg is \u00a3252 and the choosing \u00a34,327. Of those, 1 put the advantage on the OTHER side of which leg is bigger -- value_cycle_ab_s1_three_arm_20260918.json. THE SPLIT IS THEREFORE STATED AS UNRESOLVED AND NOT AS A COMPOSITION. These runs are NOT differenced into a trend and none of them supersedes the others: the level arm takes its level from each run's own realised median margin and the priced population moved between them, so more than one thing changed and the movement is not one quantity across them. Every figure here carries the run and the date it was measured on, which is the whole of what this page can say until the one-variable version is run.",
+      "later_runs_in_this_world": [],
+      "later_runs_disagree": null,
       "differs_from_the_superseded_panel": {
         "available": true,
         "differ": [
+          "the world it ran in",
           "the date it ran on",
           "the commit that produced it",
           "the book it was scored over"
         ],
-        "same": [
-          "the world it ran in"
-        ],
+        "same": [],
         "unestablished": [],
-        "how_many_differ": 3,
+        "how_many_differ": 4,
         "the_same_run": false
       },
-      "against_the_superseded_panel": "The panel above states 5.5% for the same quantity. 3 things differ between the two runs -- the date it ran on, the commit that produced it and the book it was scored over -- so more than one thing changed, and the difference between them cannot be attributed to any one of them. It may not be read as the company having got better or worse at choosing: what a share of the advantage is mostly reads is how much book there is to win or lose, which is the world's departure level and its price response, not the company's skill. The one-variable version of this comparison has not been run.",
+      "against_the_superseded_panel": "The run behind this page's headline figure states 5.5% for the same quantity. 4 things differ between the two runs -- the world it ran in, the date it ran on, the commit that produced it and the book it was scored over -- so more than one thing changed, and the difference between them cannot be attributed to any one of them. It may not be read as the company having got better or worse at choosing: what a share of the advantage is mostly reads is how much book there is to win or lose, which is the world's departure level and its price response, not the company's skill. The one-variable version of this comparison has not been run.",
       "the_shares_own_null": {
         "available": true,
         "family": "the 12-seed AUC-carrying floor of 2026-09-17",
@@ -1913,37 +1616,38 @@
         "mean": 2.084145824229207,
         "stdev": 3.283835055633331,
         "range": 12.006911478564598,
-        "observed_disagreement": 0.9296893679902947,
+        "observed_disagreement": 1.1083284201778247,
         "what_each_span_counts": "`range` is the widest minus the narrowest draw of `level_share_of_advantage` across 12 re-runs of ONE world in which nothing moved but the per-household elasticity draw. `observed_disagreement` is the gap between the two draws of that same statistic this page prints. Both are differences of one quantity in one unit, so `times_the_observed_disagreement` counts how many of the second fit inside the first. It is NOT a fold of one share by another.",
-        "times_the_observed_disagreement": 12.91497127101699,
+        "times_the_observed_disagreement": 10.833351613087897,
         "null_is_wider_than_the_disagreement": true,
-        "statement": "THIS SHARE CANNOT BE READ FROM ONE RUN, AND THAT IS A PROPERTY OF THE STATISTIC RATHER THAN OF THESE TWO RUNS. Re-running this same world 12 times with NOTHING moved but the per-household elasticity draw takes `level_share_of_advantage` from 0.067 to 12.074 -- a span of 12.007, which is 12.9 times the 0.930 between the two draws this page prints. The gap between them is therefore smaller than what the statistic does when nothing is done to it, so no arrangement of confounders explains it and none is needed to: a single draw of this share carries no reading, and that stays true however the confounders are cleaned up. WHAT THIS IS NOT MEASURED ON: the null is drawn on 154 settled accounts and the share's own arms were scored over 164-165, so the seed sensitivity is established for this statistic on a NEIGHBOURING book and not on its own. It is published with that named because a measured null one book over is evidence and the alternative already on the page is no ruler at all."
+        "statement": "THIS SHARE CANNOT BE READ FROM ONE RUN, AND THAT IS A PROPERTY OF THE STATISTIC RATHER THAN OF THESE TWO RUNS. Re-running this same world 12 times with NOTHING moved but the per-household elasticity draw takes `level_share_of_advantage` from 0.067 to 12.074 -- a span of 12.007, which is 10.8 times the 1.108 between the two draws this page prints. The gap between them is therefore smaller than what the statistic does when nothing is done to it, so no arrangement of confounders explains it and none is needed to: a single draw of this share carries no reading, and that stays true however the confounders are cleaned up. WHAT THIS IS NOT MEASURED ON: the null is drawn on 154 settled accounts and the share's own arms were scored over 164-165, so the seed sensitivity is established for this statistic on a NEIGHBOURING book and not on its own. It is published with that named because a measured null one book over is evidence and the alternative already on the page is no ruler at all."
       },
+      "why_not_readable": "THIS SHARE CANNOT BE READ FROM ONE RUN, AND THAT IS A PROPERTY OF THE STATISTIC RATHER THAN OF THESE TWO RUNS. Re-running this same world 12 times with NOTHING moved but the per-household elasticity draw takes `level_share_of_advantage` from 0.067 to 12.074 -- a span of 12.007, which is 10.8 times the 1.108 between the two draws this page prints. The gap between them is therefore smaller than what the statistic does when nothing is done to it, so no arrangement of confounders explains it and none is needed to: a single draw of this share carries no reading, and that stays true however the confounders are cleaned up. WHAT THIS IS NOT MEASURED ON: the null is drawn on 154 settled accounts and the share's own arms were scored over 164-165, so the seed sensitivity is established for this statistic on a NEIGHBOURING book and not on its own. It is published with that named because a measured null one book over is evidence and the alternative already on the page is no ruler at all.",
       "which_arm_moved": {
         "available": true,
         "what_moved": "`level_advantage_gbp`, the numerator of this share, which is the level arm's net minus the control arm's -- so its movement between two runs is the difference of those two arms' movements and of nothing else",
         "direction": "from the run this block publishes to the run the superseded panel states its share from",
         "control_net_gbp": {
-          "published": 140140.542581,
+          "published": 132618.043874,
           "superseded_panel": 157806.875908,
-          "delta": 17666.333327,
-          "pct": 12.6061545086348
+          "delta": 25188.832033999992,
+          "pct": 18.993517999656085
         },
         "level_arm_net_gbp": {
-          "published": 157608.977587,
+          "published": 141585.093863,
           "superseded_panel": 158059.090437,
-          "delta": 450.112850000005,
-          "pct": 0.2855883318902587
+          "delta": 16473.99657400002,
+          "pct": 11.63540322255994
         },
-        "numerator_delta_gbp": -17216.220476999995,
+        "numerator_delta_gbp": -8714.835459999973,
         "the_arm_that_moved": "control",
-        "share_of_the_movement": 0.9751544621057384,
+        "share_of_the_movement": 0.6045876594457459,
         "what_that_share_counts": "the control arm's absolute net change over the SUM of both arms' absolute net changes. Not a share of the advantage, not a share of either net, and not a share of the numerator's own change",
-        "statement": "THE ARM THAT MOVED IS THE ONE THAT PRICES NOTHING. Between the two runs this page prints, the level arm's net moved +450 and the control arm's moved +17,666: 97.5% of the two arms' absolute movement is the CONTROL arm, which applies flat rules and takes no per-customer pricing decision. Nothing either pricing arm does can reach it, so what moved between these two runs is the BASELINE the split is measured against and not the choosing. That is as far as this goes: which of the differences counted in `differs_from_the_superseded_panel` moved the control arm is NOT established, because the two producing commits differ and the book count is itself an output of the code they differ in, so the book and the commit cannot be told apart here."
+        "statement": "THE ARM THAT MOVED IS THE ONE THAT PRICES NOTHING. Between the two runs this page prints, the level arm's net moved +16,474 and the control arm's moved +25,189: 60.5% of the two arms' absolute movement is the CONTROL arm, which applies flat rules and takes no per-customer pricing decision. Nothing either pricing arm does can reach it, so what moved between these two runs is the BASELINE the split is measured against and not the choosing. That is as far as this goes: which of the differences counted in `differs_from_the_superseded_panel` moved the control arm is NOT established, because the two producing commits differ and the book count is itself an output of the code they differ in, so the book and the commit cannot be told apart here."
       }
     },
-    "what_would_answer_it": "a LARGER PRICED BOOK, not another floor leg: the choosing carries a measured bound already and still no direction, because the same contrast re-drawn nine times in this world falls on both sides of zero. What size of book that would take is priced beside the leg itself, under `what_would_settle_the_sign` -- and it is a lower bound, so read it as the smallest book that would not be enough.",
-    "how_to_read_this": "The same book, the same three arms and the same code as the figures above, run at a different hour of the same world and from a different commit. It is NOT the more recent of the two -- the run above it was taken at 2026-09-18T05:43:40Z and this one at 2026-09-08T00:19:54Z -- so nothing here is a statement about how things stand relative to that panel. Compare the two as two draws of one world, not as a revision and not as a trend."
+    "what_would_answer_it": null,
+    "how_to_read_this": "The same book, the same three arms and the same code as the figures above, re-run over the departure level this world runs at TODAY. It is published beside the 2026-09-18T05:43:40Z run rather than instead of it, because those figures were honestly measured and their fault is only being read as current. Compare the two as two worlds, not as a revision."
   },
   "book": {
     "served_segments": [
@@ -1970,7 +1674,7 @@
       "commit": "b329e702b78496afc9ba96bb159322d884064955",
       "short": "b329e702b",
       "resolved_at": "2026-09-18T04:24:06Z",
-      "publishing_tree_commit": "acd8567d85951bf140021101c169c33bafc5d3d1",
+      "publishing_tree_commit": "8c29e03d90314afaabebe77764f96e856e3b678b",
       "produced_by_the_tree_it_publishes_from": false,
       "counts_are_labelled_by_the_code_that_made_them": true,
       "objective": {
@@ -1982,7 +1686,7 @@
         "objective_moved_since_the_run": false,
         "clause": "The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
       },
-      "reading": "Produced at b329e702b and published from acd8567d8 -- the code was replaced between the run and this page, so read every count here as the older tree's. The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
+      "reading": "Produced at b329e702b and published from 8c29e03d9 -- the code was replaced between the run and this page, so read every count here as the older tree's. The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
     }
   },
   "realised": {
@@ -2049,8 +1753,8 @@
         "dashboard_run_id": "run_output_16eeaf2cf_20260928T032442Z.json",
         "dashboard_commit": "16eeaf2cf",
         "dashboard_commit_source": "run_stamp",
-        "last_verified_run_id": "run_output_6f11f96c4_20260927T125021Z.json",
-        "last_verified_commit": "6f11f96c4",
+        "last_verified_run_id": "run_output_16eeaf2cf_20260928T032442Z.json",
+        "last_verified_commit": "16eeaf2cf",
         "not_older_than_verified": true,
         "order_not_asked_because": null,
         "state": "established",
@@ -2283,8 +1987,14 @@
         "unavailable_because": null,
         "refusal": "THE ERROR BAR WAS DRAWN OVER A DIFFERENT BOOK FROM THE FIGURE IT WOULD BOUND, and both artefacts say so in their own counts: billing_accounts_settled_in_window is 164 across the floor's seeds against 154-155 across this run's arms. These ranges do not overlap, so this is not two draws of one population -- it is a spread over one book published as the error bar on a figure from another, which it is not at any width."
       },
+      "weather_store_pairing": {
+        "floor_weather_store": null,
+        "figure_weather_stores": [],
+        "unavailable_because": "the floor names no weather store -- it predates the brackets that record one",
+        "refusal": null
+      },
       "refusal": "THE ERROR BAR WAS DRAWN OVER A DIFFERENT BOOK FROM THE FIGURE IT WOULD BOUND, and both artefacts say so in their own counts: billing_accounts_settled_in_window is 164 across the floor's seeds against 154-155 across this run's arms. These ranges do not overlap, so this is not two draws of one population -- it is a spread over one book published as the error bar on a figure from another, which it is not at any width.",
-      "why_this_rule": "The bound on this figure was admitted on the BOOK it was drawn over rather than on its date: the floor's seeds and this run's arms both declare ['resi', 'SME']. The declared half is what the run was GIVEN, and it is a curriculum setting every run this company has done declares, so on its own it separates almost nothing; the realised counts are asked beside it wherever their ranges can prove a difference (billing_accounts_settled_in_window)."
+      "why_this_rule": "The bound on this figure was admitted on the BOOK it was drawn over rather than on its date: the floor's seeds and this run's arms both declare ['resi', 'SME']. The declared half is what the run was GIVEN, and it is a curriculum setting every run this company has done declares, so on its own it separates almost nothing; the realised counts are asked beside it wherever their ranges can prove a difference (billing_accounts_settled_in_window). The weather world is asked the same way: not askable here -- the floor names no weather store -- it predates the brackets that record one."
     },
     "floor_tree_pairing": {
       "rule": "declared_unavailable",
@@ -2995,7 +2705,7 @@
         "band_lo_pct": 13.5,
         "band_hi_pct": 14.0,
         "inside_band": true,
-        "share_of_the_band": 0.999
+        "share_of_the_band": 1.001
       },
       {
         "year": 2018,
@@ -3003,7 +2713,7 @@
         "band_lo_pct": 19.5,
         "band_hi_pct": 20.0,
         "inside_band": true,
-        "share_of_the_band": 1.001
+        "share_of_the_band": 1.0
       },
       {
         "year": 2019,
@@ -3015,55 +2725,55 @@
       },
       {
         "year": 2020,
-        "world_pct": 22.97,
+        "world_pct": 23.0,
         "band_lo_pct": 22.5,
         "band_hi_pct": 23.0,
         "inside_band": true,
-        "share_of_the_band": 0.946
+        "share_of_the_band": 1.0
       },
       {
         "year": 2021,
-        "world_pct": 18.53,
+        "world_pct": 18.4,
         "band_lo_pct": 17.9,
         "band_hi_pct": 18.4,
-        "inside_band": false,
-        "share_of_the_band": 1.261
+        "inside_band": true,
+        "share_of_the_band": 1.0
       },
       {
         "year": 2022,
-        "world_pct": 2.5,
+        "world_pct": 2.59,
         "band_lo_pct": 2.9,
         "band_hi_pct": 4.3,
         "inside_band": false,
-        "share_of_the_band": -0.286
+        "share_of_the_band": -0.221
       },
       {
         "year": 2023,
-        "world_pct": 12.4,
+        "world_pct": 8.73,
         "band_lo_pct": 8.9,
         "band_hi_pct": 12.5,
-        "inside_band": true,
-        "share_of_the_band": 0.972
+        "inside_band": false,
+        "share_of_the_band": -0.047
       },
       {
         "year": 2024,
-        "world_pct": 15.96,
+        "world_pct": 16.28,
         "band_lo_pct": 12.5,
         "band_hi_pct": 16.1,
-        "inside_band": true,
-        "share_of_the_band": 0.961
+        "inside_band": false,
+        "share_of_the_band": 1.051
       }
     ],
-    "years_inside_the_band": 6,
+    "years_inside_the_band": 5,
     "years_compared": 8,
     "all_inside_the_band": false,
-    "world_mean_pct": 15.96,
+    "world_mean_pct": 15.54,
     "published_midpoint_mean_pct": 15.5,
-    "mean_share_of_the_band": 0.857,
+    "mean_share_of_the_band": 0.723,
     "denominator": "The headline column is every departure the world expects on EITHER route -- a renewal decision or an SVT roll -- over the accounts on the book in that year. That is the same numerator and the same denominator the published band states, which is what makes the verdict beside it readable. The renewal-decision reading, over the households who reached a fixed-term end and so demonstrably shop, is a different population and is published separately with no verdict, because nothing published states a rate over that population.",
     "measured_by": "tools/measure_departure_level.py",
     "published_record": "docs/domain_artefact_library/regulatory/gb_domestic_switching_rate.json",
-    "statement": "Over the 8 years this run can be compared on, the world's own departures averaged 15.96% of electricity accounts a year against a published GB record averaging 15.50%. Each year is judged against its OWN published band, never against that average, and 2 of 8 sit OUTSIDE it -- 1.03x ABOVE the record's own midpoint of 15.50%. Customers leave this world faster than they left the real one, so every retention, churn and lifetime-value figure below reads LOW by roughly that factor.",
+    "statement": "Over the 8 years this run can be compared on, the world's own departures averaged 15.54% of electricity accounts a year against a published GB record averaging 15.50%. Each year is judged against its OWN published band, never against that average, and 3 of 8 sit OUTSIDE it -- 1.00x ABOVE the record's own midpoint of 15.50%. Customers leave this world faster than they left the real one, so every retention, churn and lifetime-value figure below reads LOW by roughly that factor.",
     "against_the_publisher": {
       "available": true,
       "years": [
@@ -3090,45 +2800,45 @@
         },
         {
           "year": 2020,
-          "world_pct": 22.97,
+          "world_pct": 23.0,
           "published_rate_pct": 20.213,
-          "ratio": 1.137,
+          "ratio": 1.138,
           "world_is_above": true
         },
         {
           "year": 2021,
-          "world_pct": 18.53,
+          "world_pct": 18.4,
           "published_rate_pct": 15.569,
-          "ratio": 1.19,
+          "ratio": 1.182,
           "world_is_above": true
         },
         {
           "year": 2022,
-          "world_pct": 2.5,
+          "world_pct": 2.59,
           "published_rate_pct": 3.056,
-          "ratio": 0.818,
+          "ratio": 0.848,
           "world_is_above": false
         },
         {
           "year": 2023,
-          "world_pct": 12.4,
+          "world_pct": 8.73,
           "published_rate_pct": 6.332,
-          "ratio": 1.958,
+          "ratio": 1.379,
           "world_is_above": true
         },
         {
           "year": 2024,
-          "world_pct": 15.96,
+          "world_pct": 16.28,
           "published_rate_pct": 9.028,
-          "ratio": 1.768,
+          "ratio": 1.804,
           "world_is_above": true
         }
       ],
       "years_compared": 8,
       "years_the_world_is_above": 6,
-      "world_mean_pct": 15.96,
+      "world_mean_pct": 15.54,
       "published_mean_pct": 14.03,
-      "ratio_of_means": 1.137,
+      "ratio_of_means": 1.107,
       "publisher": "DESNZ Quarterly Energy Prices table 2.7.1, transfers and accounts from the same table, as tabulated in the commons' own refutation block"
     },
     "renewal_decisions": {
@@ -3137,45 +2847,45 @@
       "years": [
         {
           "year": 2017,
-          "world_pct": 23.96,
-          "renewals": 20
+          "world_pct": 22.27,
+          "renewals": 28
         },
         {
           "year": 2018,
-          "world_pct": 25.97,
-          "renewals": 17
+          "world_pct": 25.66,
+          "renewals": 22
         },
         {
           "year": 2019,
-          "world_pct": 31.7,
-          "renewals": 13
+          "world_pct": 33.67,
+          "renewals": 16
         },
         {
           "year": 2020,
-          "world_pct": 40.98,
-          "renewals": 13
+          "world_pct": 58.71,
+          "renewals": 11
         },
         {
           "year": 2021,
-          "world_pct": 26.05,
-          "renewals": 20
+          "world_pct": 60.8,
+          "renewals": 8
         },
         {
           "year": 2023,
-          "world_pct": 15.75,
-          "renewals": 19
+          "world_pct": 5.7,
+          "renewals": 2
         },
         {
           "year": 2024,
-          "world_pct": 32.12,
-          "renewals": 16
+          "world_pct": 45.61,
+          "renewals": 12
         }
       ],
       "years_compared": 7,
-      "world_mean_pct": 28.08,
+      "world_mean_pct": 36.06,
       "no_published_comparator": "NO VERDICT IS PUBLISHED FOR THIS COLUMN and that is a gap in the record, not an omission here. Every GB switching rate this project has found -- the commons' bands and DESNZ QEP 2.7.1 alike -- is stated over ALL domestic electricity accounts. Nothing published states one over the sub-population that reaches a fixed-term end, so there is nothing this column can be judged against; a number reads high against a whole-account band for that reason alone. Filed as a knowledge gap in the switching-rate row of docs/institutional/knowledge_map.md."
     },
-    "bounding_statement": "THE PUBLISHED BAND IS REFUTED BY ITS OWN PUBLISHER AND THE VERDICT IS STATED BOTH WAYS. The regulation commons this page reads declares its own switching bands outside DESNZ Quarterly Energy Prices table 2.7.1 in 8 of the 10 years it covers, and re-siting them is a world re-capture that has not run. Against the commons' bands, this world's whole-book departure level reads 1.03x the record; against the publisher's own figures for the same years it reads 1.14x. The refuted band is the FLATTERING standard of the two. THE RENEWAL-DECISION COLUMN IS A DIFFERENT POPULATION, NOT A SECOND ESTIMATE OF THIS ONE. Departures expected of the households who reached a fixed-term end and so demonstrably shop average 28.08% across 7 years \u2014 higher than the book's own level, and judged against nothing, because no published GB switching rate is stated over that population. Neither ratio here is about it."
+    "bounding_statement": "THE PUBLISHED BAND IS REFUTED BY ITS OWN PUBLISHER AND THE VERDICT IS STATED BOTH WAYS. The regulation commons this page reads declares its own switching bands outside DESNZ Quarterly Energy Prices table 2.7.1 in 8 of the 10 years it covers, and re-siting them is a world re-capture that has not run. Against the commons' bands, this world's whole-book departure level reads 1.00x the record; against the publisher's own figures for the same years it reads 1.11x. The refuted band is the FLATTERING standard of the two. THE RENEWAL-DECISION COLUMN IS A DIFFERENT POPULATION, NOT A SECOND ESTIMATE OF THIS ONE. Departures expected of the households who reached a fixed-term end and so demonstrably shop average 36.06% across 7 years \u2014 higher than the book's own level, and judged against nothing, because no published GB switching rate is stated over that population. Neither ratio here is about it."
   },
   "method_skill": {
     "available": true,
@@ -4213,7 +3923,7 @@
             "seeds_in_that_pass": 3,
             "machine_hours_at_least": 1.159876111111111,
             "wall_seconds_per_seed_at_least": 1391.8513333333333,
-            "measured_by": "systemd accounting for `se-noise-floor-20260903` (2026-09-03, `--redraw-mode all`, three seeds), the run whose kill established `tools.run_value_cycle_ab.FLOOR_RUN_PEAK_MB`. It was OOM-killed before finishing, so both figures are FLOORS on a completed pass",
+            "measured_by": "systemd accounting for `se-noise-floor-20260903` (2026-09-03, `--redraw-mode all`, three seeds), the run whose kill set the floor-leg admission price until 2026-09-29. It was OOM-killed before finishing, so both figures are FLOORS on a completed pass",
             "and_they_run_one_at_a_time": "`tools.run_value_cycle_ab.floor_run_headroom_refusal` refuses a second concurrent leg against this machine's live headroom, so the legs a settling run needs are SERIAL and their wall clocks add rather than overlap"
           },
           "a_larger_book": {
@@ -5523,7 +5233,7 @@
             "seeds_in_that_pass": 3,
             "machine_hours_at_least": 1.159876111111111,
             "wall_seconds_per_seed_at_least": 1391.8513333333333,
-            "measured_by": "systemd accounting for `se-noise-floor-20260903` (2026-09-03, `--redraw-mode all`, three seeds), the run whose kill established `tools.run_value_cycle_ab.FLOOR_RUN_PEAK_MB`. It was OOM-killed before finishing, so both figures are FLOORS on a completed pass",
+            "measured_by": "systemd accounting for `se-noise-floor-20260903` (2026-09-03, `--redraw-mode all`, three seeds), the run whose kill set the floor-leg admission price until 2026-09-29. It was OOM-killed before finishing, so both figures are FLOORS on a completed pass",
             "and_they_run_one_at_a_time": "`tools.run_value_cycle_ab.floor_run_headroom_refusal` refuses a second concurrent leg against this machine's live headroom, so the legs a settling run needs are SERIAL and their wall clocks add rather than overlap"
           },
           "a_larger_book": {
@@ -5646,11 +5356,11 @@
     ],
     "control_credibility_note": "The control this experiment scores the value arm against is this company's own flat rule. It sits well below what the regulator allows an efficient supplier to earn, so beating it demonstrates the control's weakness at least as much as the arm's strength. Read the delta with this ratio beside it."
   },
-  "headline": "Running the same book through the per-customer decision engine came out \u00a34,579 from flat rules. Its DIRECTION is not stated here, and the reason is not that no floor has been run: THE ERROR BAR IS OLDER THAN THE FIGURE IT BOUNDS. The seed spread was measured on the run of 2026-09-17T21:39:28Z and the point estimate on the run of 2026-09-18T05:43:40Z. Both runs carry the same world digest 39a192ce04c1eda8, so the departure surface did not move between them. They also did NOT measure the same BOOK, and that is the graver half: billing_accounts_settled_in_window is 164 across the floor's seeds against 154-155 across this run's arms. Re-stamping this floor would not fix it. Read it as the size of this instrument's seed sensitivity; re-running the noise floor on the point estimate's own run is owed work, though the nearest floor on this figure's own book (the 12-seed AUC-carrying floor of 2026-09-17, 12 seeds on the same 154 settled accounts the figure prices) states NEITHER A SIGN NOR A PRICE FOR ONE -- 0.686 of the 2.201 errors from zero, and the seed count that would close that gap divides by an estimate whose own interval contains zero, so it has no upper bound. The owed re-run is still strictly better evidence, because the arms span two books and that floor covers one; but the closest thing to an answer already on disk is that more draws of this instrument do not buy a direction. Once one flat margin at the same price LEVEL is given credit for what a level alone would have earned, \u00a34,327 separates the two on the single run this page publishes. Its DIRECTION is not stated here either, and for the same reason. THE REMEDY'S EVIDENCE IS FROM A DIFFERENT BOOK, so no remedy is stated from it. The floor decomposition was measured where the arm priced 104 of 2,009 renewals; the run this page publishes priced 104 of 2,824. A split of the variance measured on one book is not a price for resolving another, and the priced count is the very quantity the remedy is denominated in -- so quoting it here would state a remedy in units this page no longer has. Re-running it on the current book would NOT clear this: the rest of the book's half carried no variance even on the smaller book above, and a larger priced roster covers MORE of the complement that leg re-draws, not less. What is owed is a floor keyed to something the rest of the book has. What WOULD resolve it has not been established: this spread has not been separated into the priced households' own draw, which a larger settled book shrinks, and the rest of the book's churn cascade, which no book size touches. More seeds do not shrink this SPREAD: re-drawing the dice measures the same width again. What they do buy is how well those draws pin their own MEAN, which is the quantity this page states a side from. How many would be needed is NOT a number this page can give: the count divides by the estimate itself, and it is only ever asked when that estimate's own interval contains zero -- so it has no upper bound. The error bar below publishes that interval and the reason, in place of a count. Read all of it against its size: the per-customer arm priced 104 of the 2,824 renewals the world offered, 3.68% of them, so every figure here is those decisions and what they cascade into.",
+  "headline": "THE FIGURE BELOW AND THE BOUND ON IT WERE MEASURED IN DIFFERENT WORLDS. The runs behind it are dated 2026-09-17 and 2026-09-18. A spread measured where customers leave at one rate is not a confidence interval on a figure measured where they leave at another, so nothing here bounds anything else and no contrast below may have its direction read as resolved. Departure rate is how much book there is to win or lose, so it is the surface this whole comparison sits on. Every leg is kept with its own date rather than deleted; the remedy is to re-run all of them in one world, never to quote whichever leg is current. IN THE WORLD AS IT IS NOW, the same comparison gives \u00a37,708, measured 2026-10-01T17:14:07Z. That figure CLEARS the \u00a31,697 this same contrast moves across 3 seed re-draws in this same world, the first bound this page has held that was measured where the figure was. It is a LARGER advantage than the \u00a34,579 below. WHY it differs is not stated here: more than one thing differs between the two runs, so no single one of them can be credited with the move, and the count is published beside the share below rather than guessed at here.  The re-draws themselves are set out contrast by contrast in the band table directly below this headline, lowest, mean and highest; the published draw sits ABOVE the centre of its own family. OF THAT, -\u00a31,259 IS THE LEG THAT COULD BE VALUE CREATED RATHER THAN MOVED -- what the per-customer choosing was worth once one flat margin at the same price LEVEL is credited with everything a level alone would have earned; the rest is the level, which is a price charged. THIS PAGE STATES NO VERDICT ON THAT FIGURE. It is a single draw, and the same contrast re-drawn 3 times in this same world moves against a \u00a32,232 spread -- 2 of the 3 re-draws clear that spread and the rest do not, so a direction here would be a property of which draw was made rather than of the company. The re-draws themselves are set out contrast by contrast in the band table directly below this headline, lowest, mean and highest; the published draw sits ABOVE the centre of its own family. The figure and its bound are both published; the verdict is withheld until it survives a re-draw. THIS SHARE CANNOT BE READ FROM ONE RUN, AND THAT IS A PROPERTY OF THE STATISTIC RATHER THAN OF THESE TWO RUNS. Re-running this same world 12 times with NOTHING moved but the per-household elasticity draw takes `level_share_of_advantage` from 0.067 to 12.074 -- a span of 12.007, which is 10.8 times the 1.108 between the two draws this page prints. The gap between them is therefore smaller than what the statistic does when nothing is done to it, so no arrangement of confounders explains it and none is needed to: a single draw of this share carries no reading, and that stays true however the confounders are cleaned up. WHAT THIS IS NOT MEASURED ON: the null is drawn on 154 settled accounts and the share's own arms were scored over 164-165, so the seed sensitivity is established for this statistic on a NEIGHBOURING book and not on its own. It is published with that named because a measured null one book over is evidence and the alternative already on the page is no ruler at all. The run behind this page's headline figure states 5.5% for the same quantity. 4 things differ between the two runs -- the world it ran in, the date it ran on, the commit that produced it and the book it was scored over -- so more than one thing changed, and the difference between them cannot be attributed to any one of them. It may not be read as the company having got better or worse at choosing: what a share of the advantage is mostly reads is how much book there is to win or lose, which is the world's departure level and its price response, not the company's skill. The one-variable version of this comparison has not been run. Running the same book through the per-customer decision engine came out \u00a34,579 from flat rules. Its DIRECTION is not stated here, and the reason is not that no floor has been run: THE ERROR BAR IS OLDER THAN THE FIGURE IT BOUNDS. The seed spread was measured on the run of 2026-09-17T21:39:28Z and the point estimate on the run of 2026-09-18T05:43:40Z. Both runs carry the same world digest 39a192ce04c1eda8, so the departure surface did not move between them. They also did NOT measure the same BOOK, and that is the graver half: billing_accounts_settled_in_window is 164 across the floor's seeds against 154-155 across this run's arms. Re-stamping this floor would not fix it. Read it as the size of this instrument's seed sensitivity; re-running the noise floor on the point estimate's own run is owed work, though the nearest floor on this figure's own book (the 12-seed AUC-carrying floor of 2026-09-17, 12 seeds on the same 154 settled accounts the figure prices) states NEITHER A SIGN NOR A PRICE FOR ONE -- 0.686 of the 2.201 errors from zero, and the seed count that would close that gap divides by an estimate whose own interval contains zero, so it has no upper bound. The owed re-run is still strictly better evidence, because the arms span two books and that floor covers one; but the closest thing to an answer already on disk is that more draws of this instrument do not buy a direction. Once one flat margin at the same price LEVEL is given credit for what a level alone would have earned, \u00a34,327 separates the two on the single run this page publishes. Its DIRECTION is not stated here either, and for the same reason. THE REMEDY'S EVIDENCE IS FROM A DIFFERENT BOOK, so no remedy is stated from it. The floor decomposition was measured where the arm priced 104 of 2,009 renewals; the run this page publishes priced 104 of 2,824. A split of the variance measured on one book is not a price for resolving another, and the priced count is the very quantity the remedy is denominated in -- so quoting it here would state a remedy in units this page no longer has. Re-running it on the current book would NOT clear this: the rest of the book's half carried no variance even on the smaller book above, and a larger priced roster covers MORE of the complement that leg re-draws, not less. What is owed is a floor keyed to something the rest of the book has. What WOULD resolve it has not been established: this spread has not been separated into the priced households' own draw, which a larger settled book shrinks, and the rest of the book's churn cascade, which no book size touches. More seeds do not shrink this SPREAD: re-drawing the dice measures the same width again. What they do buy is how well those draws pin their own MEAN, which is the quantity this page states a side from. How many would be needed is NOT a number this page can give: the count divides by the estimate itself, and it is only ever asked when that estimate's own interval contains zero -- so it has no upper bound. The error bar below publishes that interval and the reason, in place of a count. Read all of it against its size: the per-customer arm priced 104 of the 2,824 renewals the world offered, 3.68% of them, so every figure here is those decisions and what they cascade into.",
   "published_from": {
-    "commit": "acd8567d85951bf140021101c169c33bafc5d3d1",
+    "commit": "8c29e03d90314afaabebe77764f96e856e3b678b",
     "tree_was_clean": false,
-    "inputs_are_the_committed_bytes": true,
+    "inputs_are_the_committed_bytes": false,
     "inputs": [
       {
         "path": "docs/observability/value_cycle_ab_s1_three_arm.json",
@@ -5665,12 +5375,12 @@
         "state": "committed"
       },
       {
-        "path": "docs/observability/value_cycle_ab_s1_three_arm_20260908.json",
-        "state": "committed"
+        "path": "docs/observability/value_cycle_ab_s1_three_arm_20261001.json",
+        "state": "not_in_the_commit"
       },
       {
-        "path": "docs/observability/value_cycle_ab_s1_noise_floor_20260909b.json",
-        "state": "committed"
+        "path": "docs/observability/value_cycle_ab_s1_noise_floor_20261001.json",
+        "state": "not_in_the_commit"
       },
       {
         "path": "docs/observability/value_cycle_ab_s1_three_arm_departure_20260909.json",
@@ -5689,6 +5399,6 @@
         "state": "committed"
       }
     ],
-    "reason": "every input named here matches this commit, but the tree carried other uncommitted changes, and this generator reads more than the paths it names \u2014 so standing at this commit may still not reproduce this feed"
+    "reason": "read off the working tree, not out of this commit: docs/observability/value_cycle_ab_s1_noise_floor_20261001.json, docs/observability/value_cycle_ab_s1_three_arm_20261001.json \u2014 standing at this commit will not reproduce this feed"
   }
 }

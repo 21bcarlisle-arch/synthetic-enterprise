@@ -146,3 +146,23 @@ def test_a_year_billed_EXACTLY_as_quoted_reads_NO_rise():
     # The round-up to the pound is at most £1 on a ~£50 payment.
     assert 0.0 <= shock["rise_fraction"] < 0.025, shock
     assert shock["shocked"] is False
+
+
+def test_the_HAZARD_BASE_counts_one_experienced_shock_a_year_and_so_moves_in_year_one():
+    """The defect is the swap not having happened: the hazard read shocked MONTHS, which are 0 at
+    every first renewal, so a household shocked in year one was exactly as likely to leave as one
+    that was not. Both legs of the partition are asserted reachable before the ratio is read."""
+    from saas.churn_model import churn_probability
+
+    customers = [{"customer_id": "C1", "commodity": "electricity", "segment": "resi",
+                  "epc_rating": "D", "acquisition_date": "2021-10-01", "eac_kwh": 2700}]
+    shocked = roll_lifecycle_event("C1", "2022-10-01", "electricity",
+                                   _year_one_records("2021-10", 200.0, 400.0), customers)
+    quiet = roll_lifecycle_event("C1", "2022-10-01", "electricity",
+                                 _year_one_records("2021-10", 200.0, 200.0), customers)
+    assert shocked["sim_experienced_bill_shock"]["shocked"] is True
+    assert quiet["sim_experienced_bill_shock"]["shocked"] is False
+    # The retired month count cannot tell them apart in year one -- that is the blindness.
+    assert shocked["sim_month_count_bill_shock_base"] == quiet["sim_month_count_bill_shock_base"]
+    ratio = shocked["sim_bill_shock_base"] / quiet["sim_bill_shock_base"]
+    assert abs(ratio - churn_probability(1) / churn_probability(0)) < 1e-3, ratio

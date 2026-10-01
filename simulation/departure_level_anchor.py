@@ -221,14 +221,33 @@ NO_LEVEL_CORRECTION = 1.0
 #: exists to stop. So the clamp stays, DECLARED, until the mechanism under it has a source -- and
 #: the verdict file is what stops the clamped number travelling alone in the meantime.
 #: ─────────────────────────────────────────────────────────────────────────────────────────────
+#: ─────────────────────────────────────────────────────────────────────────────────────────────
+#: THIRD PASS, RE-FITTED 2026-10-01 FOR THE PB4 SWAP. The bill-shock base now counts one experienced
+#: shock a year instead of shocked months, which cut the renewal route's mean base about fourfold
+#: (0.100 -> 0.026 at later renewals) and lowered the whole book in all seven fitted years on a
+#: one-variable pair (`e9b79073d` with and without the swap, same seed). Fitted by `fit_whole_book`
+#: on the swapped capture. Six anchors rise and 2017 falls (7.372584 -> 7.031166), because 2017
+#: already sat 0.39pp over its target before the swap. 2023 keeps its value: on both captures the
+#: fit refuses it (the renewal route cannot carry the residual at any anchor), so the swap did not
+#: create that gap. 2020 and 2024 now stand above 15 on 13-14 renewal decisions each, so the clamp
+#: is carrying more of the level than before. That is the cost of the swap, and it is stated rather
+#: than smoothed. Pre-registration and grading:
+#: `docs/staging/done/SEAT_PREREGISTRATION_WHAT_THE_PB4_BILL_SHOCK_SWAP_MUST_MOVE_2026-10-01.md`.
+#: FOURTH PASS, the same day, and these are the values below. One pass does not reach the fixed
+#: point, because the anchor changes who is left on the book. The third-pass capture left 2020 and
+#: 2021 low. Refitted on C2, which is origin `0407ce0e3` (the ex-VAT standing charge) plus the swap
+#: under the third-pass block. C2's level sat within 0.07pp of C's in every year, so the
+#: standing-charge change did not move this fit. 2020, 2021 and 2024 now all stand above 17, on
+#: 8-12 renewal decisions each. The values are graded on capture D:
+#: `docs/staging/records/SEAT_PREREGISTRATION_THE_PB4_FOURTH_PASS_IN_THE_EX_VAT_STANDING_CHARGE_WORLD_2026-10-01.md`.
 YEAR_LEVEL_ANCHOR: dict[int, float] = {
-    2017: 7.372584,
-    2018: 2.945347,
-    2019: 6.637286,
-    2020: 6.359296,
-    2021: 5.641346,
+    2017: 6.990171,
+    2018: 5.269958,
+    2019: 8.583067,
+    2020: 19.550406,
+    2021: 18.474462,
     2023: 2.033232,
-    2024: 4.259915,
+    2024: 17.128306,
 }
 
 #: `{year inside the published record with no fitted anchor: WHY}`. This is the half of the

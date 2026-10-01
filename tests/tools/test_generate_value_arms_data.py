@@ -4056,6 +4056,17 @@ NOISE_FLOOR_NO_WORLD = (
     PROJECT / "docs" / "observability" / "value_cycle_ab_s1_noise_floor_20260831.json")
 
 
+def _only_leg_live() -> dict:
+    """The `only` leg, stamped onto the world the tree runs NOW.
+
+    Its role is "right world, wrong leg", and the world it was measured in is incidental to that
+    role. Read raw, it stopped naming the live world the day the PB4 swap refitted the level anchor
+    (2026-10-01), and every guard it witnesses reported the world refusal instead -- the same
+    moving-pointer lesson `_stamped_after` records for clocks, one axis over.
+    """
+    return _world_stamped(_load(NOISE_FLOOR_ONLY_LIVE), _live_digest())
+
+
 def test_the_current_world_bound_takes_only_the_undecomposed_leg_of_this_world():
     """A bound is admitted on the floor's WORLD and its LEG, and each guard has a sole witness.
 
@@ -4081,7 +4092,7 @@ def test_the_current_world_bound_takes_only_the_undecomposed_leg_of_this_world()
     current = _world_stamped(_load(THREE_ARM), live)
     superseded = _load(NOISE_FLOOR)
     no_world = _load(NOISE_FLOOR_NO_WORLD)
-    only_leg = _load(NOISE_FLOOR_ONLY_LIVE)
+    only_leg = _only_leg_live()
 
     # SOLE WITNESS FOR THE WORLD GUARD: the undecomposed leg, naming no world.
     assert (no_world.get("redraw_scope") or {}).get("mode") == gva.BOUNDING_REDRAW_MODE, (
@@ -4162,7 +4173,7 @@ def test_the_generator_reads_the_current_world_floor_from_its_own_constant(tmp_p
     for it; or reading it into a variable `build` never receives.
     """
     live = _live_digest()
-    only_leg = _load(NOISE_FLOOR_ONLY_LIVE)
+    only_leg = _only_leg_live()
     point = _world_stamped(_load(gva.CURRENT_WORLD_THREE_ARM_PATH), live)
     # THE LEG THE PAGE IS WAITING FOR, synthesised. The real one is still being measured; this
     # control is about the WIRING and must not wait on a run to be able to fail.
@@ -4216,7 +4227,7 @@ def test_MUTATION_the_leg_guard_and_the_world_guard_each_fail_alone():
     # one that can refuse. A dated fixture against a promoted run is refused by the STALENESS guard
     # first, and a mutation battery whose witnesses die on a third guard reports SURVIVED for both.
     no_world = _stamped_after(_load(NOISE_FLOOR_NO_WORLD), current)
-    only_leg = _stamped_after(_load(NOISE_FLOOR_ONLY_LIVE), current)
+    only_leg = _stamped_after(_only_leg_live(), current)
 
     # MUTATION 1: the world guard drops. The superseded floor -- right leg, no world -- is the
     # only subject that tells the mutated function from the real one.
@@ -4282,8 +4293,8 @@ def test_the_verdict_is_withheld_when_the_floors_own_redraws_reverse_it():
     current = _world_stamped(_load(THREE_ARM), live)
     superseded = _load(NOISE_FLOOR)
     admitted = _stamped_after(
-        dict(_load(NOISE_FLOOR_ONLY_LIVE),
-             redraw_scope=dict(_load(NOISE_FLOOR_ONLY_LIVE)["redraw_scope"],
+        dict(_only_leg_live(),
+             redraw_scope=dict(_only_leg_live()["redraw_scope"],
                                mode=gva.BOUNDING_REDRAW_MODE)), current)
 
     # WITNESS A -- the re-draws straddle the bound they generate. These are the live artefact's
@@ -4588,8 +4599,8 @@ def test_the_redraw_family_reaches_the_headline_on_the_branch_that_states_a_verd
     current = _world_stamped(_load(THREE_ARM), live)
     superseded = _load(NOISE_FLOOR)
     admitted = _stamped_after(
-        dict(_load(NOISE_FLOOR_ONLY_LIVE),
-             redraw_scope=dict(_load(NOISE_FLOOR_ONLY_LIVE)["redraw_scope"],
+        dict(_only_leg_live(),
+             redraw_scope=dict(_only_leg_live()["redraw_scope"],
                                mode=gva.BOUNDING_REDRAW_MODE)), current)
     unanimous = _floor_with_advantages(admitted, [20000.0, 20100.0, 20200.0])
     stated = gva._current_world_contrast(current, superseded, unanimous)
@@ -4643,8 +4654,8 @@ def test_MUTATION_the_stability_guard_fails_on_its_own_witness_and_only_there():
     current = _world_stamped(_load(THREE_ARM), live)
     superseded = _load(NOISE_FLOOR)
     admitted = _stamped_after(
-        dict(_load(NOISE_FLOOR_ONLY_LIVE),
-             redraw_scope=dict(_load(NOISE_FLOOR_ONLY_LIVE)["redraw_scope"],
+        dict(_only_leg_live(),
+             redraw_scope=dict(_only_leg_live()["redraw_scope"],
                                mode=gva.BOUNDING_REDRAW_MODE)), current)
     straddling = _floor_with_advantages(admitted, [1467.230551, 2433.696987, 450.9949])
     unanimous = _floor_with_advantages(admitted, [10000.0, 10100.0, 10200.0])
@@ -5302,7 +5313,7 @@ def _admitted_live_floor(run: dict | None = None) -> dict:
     Stamped after the run it bounds by `_stamped_after`, so the staleness guard is not what refuses
     it; see that helper for the ten controls that went red reporting the wrong guard.
     """
-    only_live = _load(NOISE_FLOOR_ONLY_LIVE)
+    only_live = _only_leg_live()
     return _stamped_after(
         dict(only_live, redraw_scope=dict(only_live["redraw_scope"],
                                           mode=gva.BOUNDING_REDRAW_MODE)), run)
@@ -6195,7 +6206,11 @@ def test_a_later_run_in_this_world_that_disagrees_about_the_split_refuses_the_co
     # own docstrings price. The property is that the scan can READ `OBSERVABILITY_DIR` and admit
     # what is in it; the vantage below is a committed artefact this world's later runs are all
     # after, so rows must come back whichever run the constant names.
-    vantage = gva._read(gva.OBSERVABILITY_DIR / _CENSUS_VANTAGE_ARTEFACT)
+    # STAMPED ONTO THE LIVE WORLD, keeping its own clock: the vantage's job is to be OLDER than
+    # every run in whatever world the tree runs, and the 2026-10-01 refit left no committed run of
+    # the live world old enough to be one.
+    vantage = _world_stamped(
+        gva._read(gva.OBSERVABILITY_DIR / _CENSUS_VANTAGE_ARTEFACT), live)
     assert (vantage.get("world_identity") or {}).get("digest") == live, (
         "the census vantage no longer names the live world, so the rows below would be scoped out "
         "for that reason alone and this leg would pass for the wrong one")
@@ -6218,8 +6233,8 @@ def test_a_later_run_in_this_world_that_disagrees_about_the_split_refuses_the_co
         "the run the reader is looking at")
 
 
-#: The vantage WITNESS D takes the real census from. A COMMITTED artefact over the live world that
-#: every later run in that world is after -- deliberately not `CURRENT_WORLD_THREE_ARM_PATH`, whose
+#: The vantage WITNESS D takes the real census from. A COMMITTED artefact whose clock every run in
+#: the live world is after (its world is stamped forward at the call site) -- deliberately not `CURRENT_WORLD_THREE_ARM_PATH`, whose
 #: whole job is to move forward to the newest run and which therefore has nothing after it.
 _CENSUS_VANTAGE_ARTEFACT = "value_cycle_ab_s1_three_arm_20260903.json"
 
@@ -7088,7 +7103,10 @@ def test_which_panel_is_the_LATER_run_decides_whether_the_headline_may_claim_cur
         "the three subjects no longer straddle the current-world run's stamp, so this control "
         "cannot drive both sides of the partition and is measuring nothing")
 
-    floor = _load(gva.CURRENT_WORLD_NOISE_FLOOR_PATH)
+    # These runs and their floor are world `39a192ce04c1eda8`'s; the ordering is what is on trial,
+    # so both are stamped onto the live world rather than left to be refused for it (PB4, 10-01).
+    current = _world_stamped(current, _live_digest())
+    floor = _world_stamped(_load(BOOK_SILENT_FLOOR), _live_digest())
     against_earlier = gva._current_world_contrast(current, {}, floor, superseded_run=earlier)
     against_later = gva._current_world_contrast(current, {}, floor, superseded_run=later)
 
@@ -7243,8 +7261,10 @@ def test_the_two_runs_ordering_has_a_state_for_every_shape_two_stamps_can_take()
         "an unread stamp answers the ordering question in the flattering direction")
 
     # THE TIE, THROUGH THE PRODUCER, and what it must NOT do to the verdicts.
-    floor = _load(gva.CURRENT_WORLD_NOISE_FLOOR_PATH)
-    tied = gva._current_world_contrast(corrected, {}, floor, superseded_run=promoted)
+    # Stamped onto the live world for the sibling control's reason: the tie is on trial, not the world.
+    floor = _world_stamped(_load(BOOK_SILENT_FLOOR), _live_digest())
+    tied = gva._current_world_contrast(_world_stamped(corrected, _live_digest()), {}, floor,
+                                       superseded_run=promoted)
     assert tied["available"], (
         "the corrected 09-18 run no longer names the live world, so every leg below would pass "
         "by refusing: {}".format(tied.get("why_not")))
@@ -7254,7 +7274,8 @@ def test_the_two_runs_ordering_has_a_state_for_every_shape_two_stamps_can_take()
         "the page states a reason for omitting a headline it does not omit, and the reason it "
         "states says this run is not the later of the two -- which is false of a tie")
     assert "SAME STAMP" in tied["how_the_two_runs_order"]
-    against_earlier = gva._current_world_contrast(corrected, {}, floor, superseded_run=earlier)
+    against_earlier = gva._current_world_contrast(
+        _world_stamped(corrected, _live_digest()), {}, floor, superseded_run=earlier)
     for where in ("selection_leg", "level_leg"):
         assert tied[where].get("resolved") == against_earlier[where].get("resolved"), (
             "{}: the tie and the later branch disagree about the verdict, so the ordering is "
@@ -7608,10 +7629,17 @@ def real_current_world() -> dict:
     THE `real` FIXTURE ABOVE CANNOT SERVE THIS. It passes neither, so `_current_world_contrast`
     gets no floor, every leg refuses its bound, and a control reading the selection leg's remedy
     through it would be reading the no-bound refusal while asserting on the priced branch.
+
+    PINNED TO THE SIGNLESS PAIR, NOT THE MOVING CONSTANTS (2026-10-01). Every control on this
+    fixture is about a selection leg whose re-draws straddle zero. In world `cf823b185f8ca51c`
+    (the PB4 refit) all three selection re-draws are negative, so the live page no longer renders
+    that branch. The pair the constants named until then, 09-08 run + 09-09b floor, is stamped
+    onto the live world so the branch stays reachable.
     """
+    live = _live_digest()
     return gva.build(_load(THREE_ARM), _load(NOISE_FLOOR),
-                     current_three_arm=_load(gva.CURRENT_WORLD_THREE_ARM_PATH),
-                     current_floor=_load(gva.CURRENT_WORLD_NOISE_FLOOR_PATH))
+                     current_three_arm=_world_stamped(_load(CURRENT_RUN_164), live),
+                     current_floor=_world_stamped(_load(BOOK_SILENT_FLOOR), live))
 
 
 def _settle(page: dict) -> dict:
@@ -10923,8 +10951,13 @@ def test_the_refusal_states_what_the_repeats_cost_and_no_longer_asserts_what_it_
 
 
 def _a_current_world_leg(floor: dict, contrast: str) -> dict:
-    """The panel's leg builder on the real run, so the only fixture is the floor handed in."""
-    current = _load(gva.CURRENT_WORLD_THREE_ARM_PATH)
+    """The panel's leg builder on a real run, so the only fixture is the floor handed in.
+
+    Pinned to the 09-08 run and, at its callers, the 09-09b floor (2026-10-01): the rules below
+    are driven by that nine-seed family's repeated draws, and the world-D floor has three seeds
+    and repeats none.
+    """
+    current = _load(CURRENT_RUN_164)
     live = (current.get("world_identity") or {}).get("digest")
     point = (current.get("level_vs_selection") or {}).get(contrast)
     assert point is not None, (
@@ -10976,7 +11009,7 @@ def test_the_current_world_panels_leg_withholds_its_direction_for_repeated_draws
     that gate into either of the two above it (both are `stable`/`sign_determined` here, so a
     folded rule never runs); dropping the append and substituting the reason instead.
     """
-    floor = _load(gva.CURRENT_WORLD_NOISE_FLOOR_PATH)
+    floor = _load(BOOK_SILENT_FLOOR)
     contrast = gva.LEVEL_CONTRAST
 
     clean = _a_current_world_leg(_with_its_repeats_nudged_apart(floor, contrast), contrast)
@@ -11023,7 +11056,7 @@ def test_the_current_world_panel_publishes_its_repeat_count_on_the_CLEAN_legs_to
 
     Fires on: publishing `repetition` only when it withholds; dropping the key from the leg.
     """
-    floor = _load(gva.CURRENT_WORLD_NOISE_FLOOR_PATH)
+    floor = _load(BOOK_SILENT_FLOOR)
     for contrast in (gva.PAGE_FIGURE_CONTRAST, gva.SELECTION_CONTRAST):
         leg = _a_current_world_leg(floor, contrast)
         repetition = leg["repetition"]
@@ -11059,7 +11092,7 @@ def test_the_current_world_leg_publishes_BOTH_refusals_when_both_of_them_fire():
     that gate above the stability gate so the earlier reason is the one lost.
     """
     contrast = gva.SELECTION_CONTRAST
-    floor = _load(gva.CURRENT_WORLD_NOISE_FLOOR_PATH)
+    floor = _load(BOOK_SILENT_FLOOR)
     floor["seeds"][1][contrast] = floor["seeds"][0][contrast]
     values = [seed[contrast] for seed in floor["seeds"]]
     floor["selection_gbp_spread"] = {
@@ -11466,6 +11499,11 @@ CURRENT_RUN_164 = (
     PROJECT / "docs" / "observability" / "value_cycle_ab_s1_three_arm_20260908.json")
 LATER_RUN_154 = (
     PROJECT / "docs" / "observability" / "value_cycle_ab_s1_three_arm_20260918.json")
+#: The floor the page read until 2026-09-18 and the witness for "states no book". Named by its
+#: dated file: `CURRENT_WORLD_NOISE_FLOOR_PATH` moves on to whatever floor the live world has, and
+#: the 2026-10-01 one states its book.
+BOOK_SILENT_FLOOR = (
+    PROJECT / "docs" / "observability" / "value_cycle_ab_s1_noise_floor_20260909b.json")
 
 
 def _book_of(artefact: dict):
@@ -11495,9 +11533,10 @@ def test_the_composition_floor_is_selected_by_the_runs_book_and_never_by_its_ans
     `NOISE_FLOOR_PATH` filters; or choosing among survivors on anything a seed says.
     """
     run = gva._read(CURRENT_RUN_164)
+    # The selector is asked in the RUN'S OWN world, which since the PB4 refit (2026-10-01) is no
+    # longer the live one. The rung is about the book filter; the world only has to be named.
     live = (run.get("world_identity") or {}).get("digest")
-    assert live == _live_digest(), (
-        "the run this rung is built on is not in the live world, so it witnesses nothing")
+    assert live, "the run this rung is built on names no world, so it witnesses nothing"
 
     payload, block = gva._the_floor_that_realises_this_runs_book(run, live)
     assert block["refusal"] is None and payload is not None, (
@@ -11519,14 +11558,14 @@ def test_the_composition_floor_is_selected_by_the_runs_book_and_never_by_its_ans
 def test_a_book_silent_floor_is_REFUSED_and_the_one_the_page_used_to_read_is_the_witness():
     """Silence is not agreement, and the family that proves it is the one this block used to read.
 
-    THE SUBJECT IS THE REAL DEFECT, not a synthetic stand-in: `CURRENT_WORLD_NOISE_FLOOR_PATH` is
-    on disk, is in the live world, is newer than the run it bounded, and states no book. Every
+    THE SUBJECT IS THE REAL DEFECT, not a synthetic stand-in: `BOOK_SILENT_FLOOR` is on disk, is
+    in run 164's world, is newer than the run it bounded, and states no book. Every
     filter except the book one admits it. If it is ever admitted again, the page goes back to
     bounding a 164-account figure with a spread over a population that cannot be named.
     """
     run = gva._read(CURRENT_RUN_164)
     live = (run.get("world_identity") or {}).get("digest")
-    silent = gva._read(gva.CURRENT_WORLD_NOISE_FLOOR_PATH)
+    silent = gva._read(BOOK_SILENT_FLOOR)
 
     # THE PARTITION: it must be refused for the BOOK and for nothing else, or this rung would
     # stay green on a selector that had merely become stricter about dates.
@@ -11541,7 +11580,7 @@ def test_a_book_silent_floor_is_REFUSED_and_the_one_the_page_used_to_read_is_the
 
     _, block = gva._the_floor_that_realises_this_runs_book(run, live)
     rows = {row["artefact"]: row["refused_because"] for row in block["considered"]}
-    said = rows.get(gva.CURRENT_WORLD_NOISE_FLOOR_PATH.name)
+    said = rows.get(BOOK_SILENT_FLOOR.name)
     assert said and "states no realised book count" in said, (
         "the book-silent floor was not refused for stating no book -- it was {} -- so a family "
         "that cannot name its population is being read as agreeing with this run's".format(
@@ -11564,11 +11603,12 @@ def test_the_same_selector_refuses_the_sign_test_on_the_154_run_and_allows_it_on
     """
     runs = {name: gva._read(path)
             for name, path in (("164", CURRENT_RUN_164), ("154", LATER_RUN_154))}
-    live = _live_digest()
+    live = (runs["164"].get("world_identity") or {}).get("digest")
+    assert live, "run 164 names no world, so no selector can be asked in it"
     chosen = {}
     for name, run in runs.items():
         assert (run.get("world_identity") or {}).get("digest") == live, (
-            "run {} is not in the live world, so the two subjects differ by the world as well as "
+            "run {} is not in run 164's world, so the two subjects differ by the world as well as "
             "the book and nothing is attributable".format(name))
         payload, block = gva._the_floor_that_realises_this_runs_book(run, live)
         assert payload is not None, (
@@ -11853,7 +11893,10 @@ def test_how_to_read_this_composes_a_DISTINCT_sentence_for_every_state_of_the_ru
     reading: dict[str, str] = {}
     ordering_prose: dict[str, str] = {}
     for shape, (current, other) in shapes.items():
-        block = gva._current_world_contrast(current, None, superseded_run=other)
+        # Stamped onto the live world: these runs are world `39a192ce04c1eda8`'s, and the ordering
+        # is the subject, not the world (PB4 refit, 2026-10-01).
+        block = gva._current_world_contrast(
+            _world_stamped(current, _live_digest()), None, superseded_run=other)
         assert block.get("available") is True, (
             "the current-world block refused outright on the {!r} shape, so every leg below would "
             "pass on a page that publishes no reading at all: {}".format(
@@ -12365,7 +12408,8 @@ def test_the_page_sentence_prices_the_gap_without_naming_a_number_of_seeds(tmp_p
     "seeds away" or "seeds it would need". A future defect that published a different integer in
     the same grammar is caught; rewording the honest sentence is not.
     """
-    artefact = json.loads(gva.CURRENT_WORLD_THREE_ARM_PATH.read_text(encoding="utf-8"))
+    # Pinned to the 09-08 run, whose family is the signless one (2026-10-01): world D's states a sign.
+    artefact = _load(CURRENT_RUN_164)
     clause = gva._population_repair_bias(artefact).get("clause") or ""
     assert "NOT STATEABLE" in clause, (
         "the live family now states a sign, so this test is grading a branch the page no longer "
