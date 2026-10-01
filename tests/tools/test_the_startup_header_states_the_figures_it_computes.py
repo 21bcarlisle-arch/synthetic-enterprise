@@ -451,3 +451,39 @@ def test_a_collection_that_ERRORED_is_not_a_count(tmp_path):
     got = (saf.real_collection(clean), saf.real_collection(broken)[0])
 
     assert got == ((2, ""), None), f"(clean, broken) collection read as {got}"
+
+
+def test_the_tests_row_says_ON_THE_FIGURE_whether_too_large_was_ever_ruled_out():
+    """SECOND BLIND PASS (2026-09-30, Q3): `tests AGREES` without its cap reads exactly like
+    `commits AGREES`, and the only qualifier sat in a legend under the table. The same pass found
+    that legend saying the cap "was checked when the sentence was last committed" -- false for the
+    live sentence, which was written 2026-09-17, thirteen days before the cap existed.
+
+    ONE ASSERTION OVER THE PARTITION, so a cell that printed the same words for every state fails:
+    capped on this run, cap attempted and unavailable, a sentence written after the cap existed,
+    one written before it -- and a non-tests AGREES left bare.
+    """
+    row = {"figure": "tests", "verdict": "AGREES", "stated": 10}
+    before, after = saf.CAP_ENFORCED_FROM - dt.timedelta(days=1), saf.CAP_ENFORCED_FROM
+    cells = (
+        saf._verdict_cell(dict(row, ceiling=12, ceiling_unavailable="")),
+        saf._verdict_cell(dict(row, ceiling=None, ceiling_unavailable="it errored")),
+        saf._verdict_cell(dict(row, declared=after)),
+        saf._verdict_cell(dict(row, declared=before)),
+        saf._verdict_cell(dict(row, figure="commits")),
+    )
+    assert ("12" in cells[0], "it errored" in cells[1], "ruled out at the commit" in cells[2],
+            "never checked for too large" in cells[3], cells[4]) == (
+        True, True, True, True, "AGREES"), cells
+    assert len(set(cells)) == 5, f"two cap states render identically: {cells}"
+
+
+def test_the_published_table_carries_the_qualified_cell_not_the_bare_verdict():
+    """The cell above is only worth anything if the table prints it. Un-wiring it from
+    `_render_figures` left every control green (seat, 2026-10-01): the published row would read a
+    bare `AGREES` again while `_verdict_cell` stayed correct and unreached."""
+    row = {"figure": "tests", "verdict": "AGREES", "stated": 10, "source": "x", "band_low": 9,
+           "band_high": 11, "floor": 9, "declared": saf.CAP_ENFORCED_FROM - dt.timedelta(days=1)}
+    table = "\n".join(saf._render_figures([row]))
+
+    assert saf._verdict_cell(row) in table, table

@@ -683,13 +683,18 @@ def figure_verdicts(overview_text: str | None = None) -> list[dict]:
         else:
             verdict = "AGREES"
         rows.append({"figure": key, "source": FIGURE_SOURCES[key], "stated": value,
-                     "band_low": low, "band_high": high, "floor": floor, "verdict": verdict})
+                     "band_low": low, "band_high": high, "floor": floor, "verdict": verdict,
+                     "declared": declared})
     return rows
 
 
 #: A real full-suite collection, measured 2026-09-30 at 7aa39b17a in a clean HEAD extract: 38,706
 #: items, 47.7 s wall, 1.14 GB peak RSS. The timeout is room for a loaded box, not a tolerance.
 COLLECTION_TIMEOUT_S = 600
+
+#: The date the cap first ran at a commit writing the header (eea130593). Not a tolerance: a
+#: sentence declared before it was never capped by anything, and the table must not say otherwise.
+CAP_ENFORCED_FROM = dt.date(2026, 9, 30)
 
 _COLLECTED_RE = re.compile(r"^(\d+) tests? collected in ", re.M)
 
@@ -868,7 +873,7 @@ def _render_figures(rows: list[dict] | None) -> list[str]:
         else:
             band = "no source existed over this window"
         out.append("| {} | {:,} | {} ({}) | {} |".format(
-            r["figure"], r["stated"], band, r["source"], r["verdict"]))
+            r["figure"], r["stated"], band, r["source"], _verdict_cell(r)))
     out += ["", "`AGREES` inside the band · `OVERSTATES` / `UNDERSTATES` a number its own source "
             "never carried in that window · `UNGRADED` the source did not exist that far back, so "
             "this figure is unchecked and the reader is told so rather than reassured · "
@@ -885,10 +890,30 @@ def _render_figures(rows: list[dict] | None) -> list[str]:
             "run. It is CAPPED by a real collection only at the commit that writes the figure "
             "(`ABOVE_A_REAL_COLLECTION` refuses there), because that collection costs most of a "
             "minute and the figure cannot change anywhere else. So on this published table an "
-            "`AGREES` on `tests` rules out a count that is too small; that it is not too large "
-            "was checked when the sentence was last committed, not on this run.",
+            "`AGREES` on `tests` rules out a count that is too small, and the row itself says "
+            "whether, and when, too large was ruled out.",
             ""]
     return out
+
+
+def _verdict_cell(r: dict) -> str:
+    """The verdict as the reader sees it. `tests AGREES` without its cap is a weaker statement than
+    `commits AGREES`, and a second blind pass (2026-09-30, Q3) asked that the difference sit ON THE
+    FIGURE, not only in the legend under it. It also found the legend's old wording -- "checked
+    when the sentence was last committed" -- false for the live sentence, written before the cap
+    existed. So the cell states which of the three it is, keyed to the sentence's own date."""
+    if r["figure"] != "tests" or r["verdict"] != "AGREES":
+        return r["verdict"]
+    if r.get("ceiling") is not None:
+        return f"AGREES -- and at most the {r['ceiling']:,} a real collection returned on this run"
+    if r.get("ceiling_unavailable"):
+        return f"AGREES on the floor only -- the cap could not be taken: {r['ceiling_unavailable']}"
+    declared = r.get("declared")
+    if declared is None or declared < CAP_ENFORCED_FROM:
+        return ("AGREES on the floor only -- **never checked for too large**: this sentence "
+                "predates the cap, which runs only at a commit that writes it")
+    return ("AGREES on the floor only on this run -- too large was ruled out at the commit "
+            "that wrote this sentence")
 
 
 def staged_anchors(paths: list[str]) -> set[str]:
