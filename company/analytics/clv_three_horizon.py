@@ -91,12 +91,15 @@ __all__ = [
     "RenewalPoint",
     "BookRenewalRecord",
     "BookExitRecord",
+    "TenureYearHazard",
     "FIRST_RENEWAL_DEPARTURE_PRIOR",
     "AccountObservables",
     "AccountCLV",
     "CohortValue",
     "BookCLV",
     "survival_discounted_value_gbp",
+    "survival_discounted_value_by_year_gbp",
+    "expected_remaining_tenure_years",
     "estimate_account",
     "estimate_book",
     "CLV_SEAM_REGISTER",
@@ -172,6 +175,15 @@ class TimeModel(str, Enum):
     #: (SEAT_FINDING_THE_WORLD_DECIDES_A_RENEWAL_AT_ONE_ANNIVERSARY_IN_FIVE..., 2026-10-01).
     BOOK_OBSERVED_EXIT_HAZARD = "book_observed_exit_hazard"
 
+    #: The book's all-cause exits again, but as a LIFE TABLE by tenure year: forward year t
+    #: of an account entering tenure year j takes the book's hazard for year j+t-1, and
+    #: survival is their product. Not exchangeable -- two accounts at different points in
+    #: their tenure face different years -- because departures cluster at anniversaries
+    #: and a constant rate averages the first year's quiet in-term months into the
+    #: first-renewal spike (SEAT_FINDING_EP1_ALL_CAUSE_EXIT_HAZARD_IS_RIGHT_BY_DEFINITION...,
+    #: 2026-10-01). Years past the book's last COMPLETE tenure year take that year's hazard.
+    BOOK_EXIT_LIFE_TABLE_BY_TENURE_YEAR = "book_exit_life_table_by_tenure_year"
+
     #: Hazard and margin pooled over the account's cohort. Deliberately EXCHANGEABLE —
     #: reordering any member's history cannot move it, and that is the point: this
     #: horizon exists precisely for accounts whose own history is too short to condition
@@ -197,6 +209,13 @@ class Exclusion(str, Enum):
     #: tenure, for the reason `hazard <= 0` is refused on the belief path, and no sourced
     #: prior exists to stand in (`FIRST_RENEWAL_DEPARTURE_PRIOR`).
     NO_BOOK_EXITS = "no_book_exits"
+    #: The book has exits but no tenure year it has watched from end to end. The year it is
+    #: in is censored before its anniversary, so its rate is the quiet in-term part only and
+    #: would be read as a whole year's hazard.
+    NO_COMPLETE_TENURE_YEAR = "no_complete_tenure_year"
+    #: The book has a life table but this account's place in its tenure is unknown (no
+    #: acquisition date on the roster), so there is no year to start reading it from.
+    NO_TENURE_POSITION = "no_tenure_position"
 
 
 @dataclass(frozen=True)
@@ -347,6 +366,36 @@ class BookRenewalRecord:
 
 
 @dataclass(frozen=True)
+class TenureYearHazard:
+    """One COMPLETE tenure year of the book's life table, counted by the caller.
+
+    `hazard` is the year's probability of exit given the account entered it, the product of
+    its monthly survivals (`1 - exits_m / at_risk_m`). `at_risk` is the accounts at risk in
+    the year's first month and `exits` the exits inside it -- the n a reader needs beside
+    a hazard that may rest on two accounts.
+    """
+
+    tenure_year: int
+    at_risk: int
+    exits: int
+    hazard: float
+
+    def __post_init__(self) -> None:
+        if self.tenure_year < 1 or self.at_risk < 0 or self.exits < 0:
+            raise ValueError("tenure_year >= 1 and non-negative counts, got " + repr(self))
+        if not 0.0 <= self.hazard <= 1.0:
+            raise ValueError("hazard must be a probability, got " + repr(self.hazard))
+
+    def as_published_dict(self) -> dict:
+        return {
+            "tenure_year": self.tenure_year,
+            "at_risk": self.at_risk,
+            "exits": self.exits,
+            "hazard": self.hazard,
+        }
+
+
+@dataclass(frozen=True)
 class BookExitRecord:
     """How long the company's own book has been supplied, and how many accounts left it.
 
@@ -359,6 +408,10 @@ class BookExitRecord:
 
     account_years: float
     exits: int
+    #: The life table, years 1..K in order, COMPLETE years only. `None` means it was not
+    #: counted and H2 keeps the constant hazard; `()` means it was counted and the book has
+    #: no complete year yet, which blanks H2 rather than falling back to the constant.
+    tenure_years: tuple[TenureYearHazard, ...] | None = None
 
     def __post_init__(self) -> None:
         if self.account_years < 0 or self.exits < 0:
@@ -366,6 +419,32 @@ class BookExitRecord:
                 "account_years and exits must be non-negative, got "
                 + repr((self.account_years, self.exits))
             )
+        if self.tenure_years is not None and [
+            y.tenure_year for y in self.tenure_years
+        ] != list(range(1, len(self.tenure_years) + 1)):
+            raise ValueError("tenure_years must be years 1..K in order")
+
+    def forward_hazards(self, next_tenure_year: int) -> tuple[float, ...]:
+        """Hazards for forward years 1, 2, ... of an account entering `next_tenure_year`.
+
+        The last element carries on for every later year, and it is the TAIL: the complete
+        years from the last one anyone left in onward, pooled as one annual hazard
+        (`1 - (prod (1 - h_k)) ** (1/n)`). Not the last complete year alone -- on the real
+        book at 2023 that year (7) has 22 accounts at risk and no exit, and as a tail it
+        would claim an infinite tenure and blank H2 for every account. Its quiet years
+        still count: they lower the tail. Only a table with no exit in it ends in zero.
+        """
+        table = [y.hazard for y in self.tenure_years or ()]
+        last_exit = max((k for k, y in enumerate(self.tenure_years or ()) if y.exits), default=None)
+        if last_exit is not None:
+            pooled = 1.0
+            for h in table[last_exit:]:
+                pooled *= 1.0 - h
+            table = table[:last_exit] + [1.0 - pooled ** (1.0 / (len(table) - last_exit))]
+        if not table:
+            return ()
+        start = min(max(next_tenure_year, 1), len(table))
+        return tuple(table[start - 1:])
 
     @property
     def rate(self) -> float | None:
@@ -393,6 +472,11 @@ class BookExitRecord:
             "exits": self.exits,
             "rate": self.rate,
             "hazard": self.hazard,
+            "tenure_years": (
+                None
+                if self.tenure_years is None
+                else [y.as_published_dict() for y in self.tenure_years]
+            ),
         }
 
 
@@ -415,6 +499,9 @@ class AccountObservables:
     renewal_history: tuple[RenewalPoint, ...]
     annual_margin_gbp: float | None
     still_supplied: bool
+    #: The tenure year this account enters next (1 = still before its first anniversary),
+    #: from its acquisition date and its own last settled month. None when unknown.
+    next_tenure_year: int | None = None
 
     def __post_init__(self) -> None:
         # `still_supplied` is checked for its TYPE, not its truthiness: the failure this
@@ -653,6 +740,60 @@ def survival_discounted_value_gbp(
     return annual_margin_gbp * retention * (1.0 - ratio**term_years) / denom
 
 
+def expected_remaining_tenure_years(year_hazards: Sequence[float]) -> float:
+    """sum_{t>=0} S(t) under per-year hazards whose last carries on: 1/h when all are h.
+
+    Raises on an empty sequence or a last hazard of zero (an infinite tenure).
+    """
+    hazards = list(year_hazards)
+    if not hazards or hazards[-1] <= 0.0:
+        raise ValueError("needs a positive final hazard, got " + repr(hazards))
+    survival, term = 1.0, 1.0
+    for h in hazards[:-1]:
+        survival *= 1.0 - h
+        term += survival
+    return term + survival * (1.0 - hazards[-1]) / hazards[-1]
+
+
+def survival_discounted_value_by_year_gbp(
+    annual_margin_gbp: float,
+    year_hazards: Sequence[float],
+    discount_rate: float,
+) -> float:
+    """`survival_discounted_value_gbp` with a hazard per forward year instead of one.
+
+    `year_hazards[t-1]` is forward year t's exit probability and the LAST one carries on for
+    ever after. The term is the expected remaining tenure the hazards imply, sum_{t>=0} S(t)
+    -- exactly 1/h when they are all h, so a constant table reproduces the closed form to
+    the float, fractional final year included (the tail IS the closed form). Raises on a
+    last hazard of zero: an infinite tenure, refused for the reason the closed form's
+    callers refuse `hazard <= 0`.
+    """
+    hazards = list(year_hazards)
+    term = expected_remaining_tenure_years(hazards)
+    factor = 1.0 + discount_rate
+    if factor <= 0:
+        factor = 1.0
+
+    def partial(x: float, span: float) -> float:
+        # sum_{t=1..span} x^t on the closed form's continuous extension.
+        if abs(1.0 - x) < _UNIT_RETENTION_EPSILON:
+            return span
+        return x * (1.0 - x**span) / (1.0 - x)
+
+    value, carried = 0.0, 1.0
+    for t, h in enumerate(hazards[:-1], start=1):
+        x = (1.0 - h) / factor
+        remaining = term - (t - 1)
+        if remaining < 1.0:
+            return annual_margin_gbp * (value + carried * partial(x, remaining))
+        carried *= x
+        value += carried
+    tail_x = (1.0 - hazards[-1]) / factor
+    value += carried * partial(tail_x, term - (len(hazards) - 1))
+    return annual_margin_gbp * value
+
+
 def _blank(horizon: Horizon, time_model: TimeModel, reason: Exclusion) -> HorizonValue:
     """An unestimable horizon, carrying the named reason it is unestimable."""
     return HorizonValue(
@@ -723,7 +864,9 @@ def estimate_account(
     # imply an infinite tenure, which is the perpetuity this seam has already paid for
     # once, so it is refused rather than approximated.
     if book_exits is not None:
-        h2 = _book_hazard_tenure(margin, book_exits, discount_rate)
+        h2 = _book_hazard_tenure(
+            margin, book_exits, discount_rate, obs.next_tenure_year
+        )
     elif margin is None:
         h2 = _blank(
             Horizon.TENURE_EXPECTED,
@@ -789,9 +932,18 @@ def estimate_account(
 
 
 def _book_hazard_tenure(
-    margin: float | None, book: BookExitRecord, discount_rate: float
+    margin: float | None,
+    book: BookExitRecord,
+    discount_rate: float,
+    next_tenure_year: int | None = None,
 ) -> HorizonValue:
-    """H2 on the book's observed all-cause exits. Needs no renewal of the account's own."""
+    """H2 on the book's observed all-cause exits. Needs no renewal of the account's own.
+
+    On the life table when the book carries one, else on the constant hazard; the time
+    model on the output says which.
+    """
+    if book.tenure_years is not None:
+        return _book_life_table_tenure(margin, book, discount_rate, next_tenure_year)
     model = TimeModel.BOOK_OBSERVED_EXIT_HAZARD
     if margin is None:
         return _blank(Horizon.TENURE_EXPECTED, model, Exclusion.NO_MARGIN_OBSERVED)
@@ -804,6 +956,34 @@ def _book_hazard_tenure(
         Horizon.TENURE_EXPECTED,
         model,
         survival_discounted_value_gbp(margin, hazard, discount_rate, 1.0 / hazard),
+    )
+
+
+def _book_life_table_tenure(
+    margin: float | None,
+    book: BookExitRecord,
+    discount_rate: float,
+    next_tenure_year: int | None,
+) -> HorizonValue:
+    model = TimeModel.BOOK_EXIT_LIFE_TABLE_BY_TENURE_YEAR
+    if margin is None:
+        return _blank(Horizon.TENURE_EXPECTED, model, Exclusion.NO_MARGIN_OBSERVED)
+    if book.account_years <= 0:
+        return _blank(Horizon.TENURE_EXPECTED, model, Exclusion.NO_BOOK_EXPOSURE)
+    if book.exits == 0:
+        return _blank(Horizon.TENURE_EXPECTED, model, Exclusion.NO_BOOK_EXITS)
+    if not book.tenure_years:
+        return _blank(Horizon.TENURE_EXPECTED, model, Exclusion.NO_COMPLETE_TENURE_YEAR)
+    if next_tenure_year is None:
+        return _blank(Horizon.TENURE_EXPECTED, model, Exclusion.NO_TENURE_POSITION)
+    hazards = book.forward_hazards(next_tenure_year)
+    if hazards[-1] <= 0.0:
+        # The last complete year saw no exit: the table implies an infinite tenure.
+        return _blank(Horizon.TENURE_EXPECTED, model, Exclusion.NO_BOOK_EXITS)
+    return _counted(
+        Horizon.TENURE_EXPECTED,
+        model,
+        survival_discounted_value_by_year_gbp(margin, hazards, discount_rate),
     )
 
 

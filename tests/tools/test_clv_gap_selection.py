@@ -479,3 +479,40 @@ def test_the_published_note_declares_survivorship_not_only_the_truth_window():
     result, _ = couple_clv.measure(run)
     assert "SURVIVORSHIP" in result.note
     assert "population_selection" in result.note
+
+
+def test_lifetime_level_reads_the_life_table_at_each_accounts_position():
+    """On a life-table snapshot H2 used each account's own forward hazards, so the
+    hazard reported is 1/(its expected remaining tenure), per account -- not the
+    constant `book_exits.hazard` published beside the table."""
+    run, counted = _snapshot_run({"A": 0.05, "B": 0.20, "C": 0.10})
+    year = run["three_horizon_clv_snapshots"]["years"]["2020"]
+    table = [{"tenure_year": 1, "at_risk": 10, "exits": 4, "hazard": 0.4},
+             {"tenure_year": 2, "at_risk": 6, "exits": 1, "hazard": 0.1}]
+    year["book_exits"] = {"account_years": 60.0, "exits": 9, "rate": 0.15,
+                          "hazard": 0.139, "tenure_years": table}
+    year["accounts"]["A"]["next_tenure_year"] = 1
+    year["accounts"]["B"]["next_tenure_year"] = 2
+    rows = {r["account"]: r for r in sel.lifetime_level(run, counted)["per_account"]}
+    assert rows["A"]["believed_tenure_years"] == pytest.approx(1 + 0.6 / 0.1)
+    assert rows["B"]["hazard"] == pytest.approx(0.1)
+    assert {r["hazard_source"] for r in rows.values()} == {"published_book_exit_life_table"}
+    assert "C" not in rows  # no position published: named, not guessed
+    level = sel.lifetime_level(run, counted)
+    assert {"account": "C", "reason": "no life-table position"} in level["unrecoverable"]
+
+
+@pytest.mark.parametrize("position", [1, 2, 3, 7])
+def test_the_harness_life_table_matches_the_company_form(position):
+    from company.analytics.clv_three_horizon import (
+        BookExitRecord,
+        TenureYearHazard,
+        expected_remaining_tenure_years,
+    )
+    rows = [TenureYearHazard(1, 90, 13, 0.154), TenureYearHazard(2, 70, 14, 0.192),
+            TenureYearHazard(3, 40, 0, 0.0), TenureYearHazard(4, 30, 2, 0.06),
+            TenureYearHazard(5, 22, 0, 0.0)]
+    company = expected_remaining_tenure_years(
+        BookExitRecord(100.0, 29, tuple(rows)).forward_hazards(position))
+    harness = sel._life_table_tenure_years([r.as_published_dict() for r in rows], position)
+    assert harness == pytest.approx(company, rel=1e-12)

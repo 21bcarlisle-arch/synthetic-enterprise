@@ -18,7 +18,9 @@ What each control guards:
 4. The partition: every H2 outcome on the book path can be REACHED (counted, no exposure,
    no exits), and a book nobody has left is blank, not a picked prior.
 5. The production caller actually takes the exit path -- a seam that grew the argument
-   and a caller that never passed it would leave every other test here green.
+   and a caller that never passed it would leave every other test here green. Since the
+   life table landed that path is `BOOK_EXIT_LIFE_TABLE_BY_TENURE_YEAR`
+   (`test_clv_tenure_life_table.py`).
 """
 
 from __future__ import annotations
@@ -273,6 +275,7 @@ def test_the_published_book_carries_the_n_behind_the_hazard():
     ).as_published_dict()
     assert payload["book_exits"] == {
         "account_years": 20.0, "exits": 3, "rate": 0.15, "hazard": _COUNTED.hazard,
+        "tenure_years": None,
     }
     assert payload["book_renewals"] == {"decisions": 8, "departures": 2, "hazard": 0.25}
     bare = estimate_book([_obs()]).as_published_dict()
@@ -307,7 +310,14 @@ def test_departures_cannot_exceed_decisions():
 def test_the_production_view_values_h2_on_the_books_own_exits():
     view = build_customer_value_view(_records(), _customers(), 0.0)
     book = view.three_horizon_clv
-    assert book.book_exits == _exits()
+    records = _records()
+    assert book.book_exits == observed_book_exits(
+        records, ceased_billing_accounts(records), _customers()
+    )
     assert book.book_renewals == _count()
+    # The constant-hazard counts are the same with or without the life table beside them.
+    assert (book.book_exits.account_years, book.book_exits.exits) == (
+        _exits().account_years, _exits().exits
+    )
     models = {a.horizon(Horizon.TENURE_EXPECTED).time_model for a in book.accounts}
-    assert models == {TimeModel.BOOK_OBSERVED_EXIT_HAZARD}
+    assert models == {TimeModel.BOOK_EXIT_LIFE_TABLE_BY_TENURE_YEAR}
