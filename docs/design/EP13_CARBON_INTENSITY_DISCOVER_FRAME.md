@@ -1571,3 +1571,65 @@ time in the generator.
 No level move. The L3 bar is an Expert Hour, and the axis that blocked the last one (0.74–0.91)
 is now 0.93–0.97. NEXT: the second Expert Hour, with the shared-input question above put to it
 first.
+
+## 22. 2026-10-01 — THE SHARED-INPUT NULL: the correlation no longer grades the merit order
+
+§21 asked the second Expert Hour to weigh one thing before it counts 0.95 as fidelity: NESO's
+actual is built from the metered mix, and the reconstruction now reads much of that mix. That
+weighing is a measurement, so it was run instead of argued.
+
+**The null arm, one variable away from the shipped feed.** Same INDO demand, exports, FUELHH
+`WIND` (AGWS fallback), imports at their NESO rates, NUCLEAR+NPSHYD must-run and the AGWS solar
+denominator. The whole positive residual then burns at ONE factor, the year's best-efficiency
+CCGT rate. Removed: the coal band, the biomass envelope, the thermal floor, the CCGT efficiency
+curve and the OCGT tier, which together are the merit order. The script (scratch, not shipped) is
+`/var/tmp/se-ep13-s22/measure.py`. **Instrument check:** the shipped arm reproduces §21 to the
+last digit (2019: 0.948, 0.070, 1.23; 2022: 0.969; 2024: 0.955, 0.106).
+
+**Prediction, written at 21:12:38 before the script existed.** In 2019–24 the null's
+correlation would be 0.00–0.03 BELOW the shipped arm each year, with the sign low-confidence. Its
+within-day swing would be lower than the shipped arm's by 0.02–0.10.
+
+| year | corr shipped | corr null | Δ | MAE shipped | null | within-day × shipped | null | between-day × shipped | null | p95/p5 shipped | null | NESO |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 2019 | 0.948 | 0.938 | −0.010 | 0.070 | 0.070 | 1.23 | 0.98 | 0.99 | 0.82 | 3.25 | 2.50 | 2.78 |
+| 2020 | 0.931 | 0.916 | −0.014 | 0.098 | 0.099 | 1.20 | 1.01 | 1.01 | 0.89 | 3.73 | 3.12 | 3.12 |
+| 2021 | 0.958 | 0.956 | −0.002 | 0.065 | 0.073 | 1.13 | 0.93 | 0.93 | 0.81 | 3.42 | 2.65 | 3.26 |
+| 2022 | 0.969 | **0.971** | +0.002 | 0.065 | 0.067 | — | — | — | — | — | — | — |
+| 2023 | 0.969 | 0.967 | −0.003 | 0.074 | 0.084 | 1.13 | 0.96 | 0.98 | 0.85 | 5.68 | 4.12 | 4.35 |
+| 2024 | 0.955 | 0.946 | −0.008 | 0.106 | 0.130 | 1.09 | 0.90 | 0.89 | 0.75 | 6.66 | 4.35 | 5.06 |
+
+2022: the null has one half hour with no fossil and no import, so `compare_shapes` refuses its
+spread (correctly). Correlation and MAE there are taken directly, on the same common keys and
+the same renormalisation. 2016–18 and 2025 have no NESO overlap to compare.
+
+**Against the prediction.** Correlation held: the null sits 0.002–0.014 below in five years, and
+in 2022 it sits 0.002 ABOVE, which is the sign I flagged as uncertain. Within-day swing was
+refuted in size: the null is lower by 0.17–0.25, not 0.02–0.10, and it lands on or UNDER NESO
+(0.90–1.01) where the shipped arm overstates (1.09–1.23).
+
+**What it establishes.**
+- **Almost all of the 0.93–0.97 is the shared-input residual.** Demand minus metered wind,
+  imports and nuclear, at a single gas factor, reaches 0.92–0.97 on its own. The model's merit
+  order adds at most 0.015 to the correlation, and in 2022 it takes 0.002 away. **Correlation
+  with NESO can no longer grade the merit order.** The gains in §19–§21 were input corrections.
+  They are real, but they say nothing about whether the dispatch is right.
+- **The merit order shows up in the SWING, and there it overshoots.** The null understates
+  within-day swing slightly (0.90–1.01x) and between-day swing more (0.75–0.89x). The shipped
+  merit order lifts both. Between-day lands near NESO (0.89–1.01). Within-day overshoots to
+  1.09–1.23. Within-day is the axis a shifting claim acts on, so the merit order's one visible
+  effect on that axis is the error direction that flatters the product.
+- **The p95/p5 tells the same story.** The null is at or under NESO in every year. The shipped
+  arm is over NESO in 2019, 2020, 2023 and 2024.
+
+**What it does NOT establish.**
+- **Which merit-order element carries the within-day overshoot.** The efficiency curve (dirtier
+  per MWh at high load) and the OCGT tier are the candidates. The null removed five elements at
+  once, so this run cannot attribute it. The next one-variable runs restore them one at a time.
+- **That the null is a better published series.** It understates between-day swing by up to a
+  quarter, and it is not offered as a replacement.
+
+**For the Expert Hour.** The question §21 put to it is answered: do not count 0.95 as fidelity
+of the dispatch. The statistics that can grade the merit order are the within-day and
+between-day swing ratios measured against this null, together with §14's per-fuel oracle.
+No level move.
