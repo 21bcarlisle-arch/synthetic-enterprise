@@ -117,6 +117,7 @@ def opening_monthly_amount(
     registry_eac_kwh: float | None = None,
     band: str | None = None,
     contracted_unit_rate_per_mwh_ex_vat: float | None = None,
+    contracted_standing_charge_per_day_ex_vat: float | None = None,
 ) -> float | None:
     """The standing monthly Direct Debit the supplier SET when the account
     opened — or `None` where nothing it holds established one.
@@ -171,6 +172,16 @@ def opening_monthly_amount(
     not re-applied as a clamp: the renewal desk already ceilings a resi fixed
     strike at it, and a default-tariff rate IS it.
 
+    ...AND THE STANDING CHARGE BESIDE IT (2026-10-01, same day):
+    `contracted_standing_charge_per_day_ex_vat`, per day, in the currency's major unit, as the
+    settled book carries it. It is printed on the same first bill and crosses for the same
+    reason. Without it every leg was quoted the 53p 2024 resi figure, for both fuels and every
+    year, while the bills carried the world's dated charge (22p gas in 2016). So a year-one
+    quote was over-set and a year-one rise under-read
+    (SEAT_FINDING_THE_YEAR_ONE_QUOTE_AND_THE_REVIEW_IT_IS_MET_BY_ARE_ON_DIFFERENT_BASES_...).
+    Absent, the 53p fallback stands. It is grossed by the same VAT rule as the rate, so the
+    whole quote stays inc-VAT, as the customer is told it.
+
     `None` is a RESULT and callers must carry it as one: the DD books count
     those customers as unestimated rather than opening them from a bill. It is
     returned when nothing establishes a consumption, and also when no
@@ -212,9 +223,14 @@ def opening_monthly_amount(
         estimate,
         # £/MWh -> p/kWh.
         unit_rate_p_kwh=rate_per_mwh_inc_vat / 10.0,
-        # REUSED, not re-declared: the repo already carries exactly one published
+        # The fallback is REUSED, not re-declared: the repo already carries exactly one published
         # resi standing charge, and a fifth declaration of it is a filed finding
         # of its own. It is a 2024 figure applied across the window — a known
         # limitation of that constant, not of this call site.
-        standing_charge_p_day=STANDING_CHARGE_RESI_P_PER_DAY,
+        standing_charge_p_day=(
+            STANDING_CHARGE_RESI_P_PER_DAY
+            if contracted_standing_charge_per_day_ex_vat is None
+            # major unit/day -> minor unit/day, grossed onto the quote's inc-VAT basis.
+            else contracted_standing_charge_per_day_ex_vat * 100.0 * (1.0 + VAT_RATE_DOMESTIC)
+        ),
     )

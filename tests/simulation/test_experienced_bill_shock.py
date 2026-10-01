@@ -15,6 +15,10 @@ WHAT EACH TEST NAMES AS ITS OWN DEFECT:
     nothing: the renewal event the world emits must carry it.
   * `test_a_sign_up_BEFORE_THE_CAP_is_quoted_at_the_rate_it_was_sold_at` -- the quote was
     annualised at the cap, which has no value before 2019, so year one stayed blind as a None.
+  * `test_a_year_billed_EXACTLY_as_quoted_reads_NO_rise` -- the quote was inc-VAT at a 53p 2024
+    standing charge and the year it was met by was ex-VAT at the world's dated charge, so a
+    household billed exactly what it was quoted read as a FALL, and every year-one rise was
+    under-read.
 """
 from simulation.customer_events import roll_lifecycle_event
 from simulation.experienced_bill_shock import (
@@ -113,3 +117,32 @@ def test_a_sign_up_BEFORE_THE_CAP_is_quoted_at_the_rate_it_was_sold_at():
     assert cheap["reference"] == "quote" and cheap["shocked"] is not None, cheap
     # Same year-one bills after month six, so a dearer sale must read as a SMALLER rise.
     assert dear["rise_fraction"] < cheap["rise_fraction"], (cheap, dear)
+
+
+def test_a_year_billed_EXACTLY_as_quoted_reads_NO_rise():
+    """One basis: a household that uses exactly its EAC at the rate and standing charge it was sold
+    at meets, at its first review, the payment it was quoted -- up to the review's round-up to the
+    pound. The defect read that household as a fall: the quote carried VAT and a 53p standing
+    charge, and the year was summed ex-VAT at 20p."""
+    from datetime import date, timedelta
+
+    eac, rate, sc = 2700.0, 140.0, 0.20
+    records, day = [], date(2016, 3, 1)
+    while day < date(2017, 3, 1):
+        kwh = eac / 365.0
+        revenue = kwh * rate / 1000.0 + sc
+        records.append({"customer_id": "C1", "settlement_date": day.isoformat(),
+                        "settlement_period": 48, "consumption_kwh": kwh,
+                        "unit_rate_gbp_per_mwh": rate, "standing_charge_gbp": sc,
+                        "revenue_gbp": revenue, "wholesale_cost_gbp": revenue * 0.7,
+                        "margin_gbp": revenue * 0.3, "capital_cost_gbp": 0.0,
+                        "net_margin_gbp": revenue * 0.3})
+        day += timedelta(days=1)
+    customers = [{"customer_id": "C1", "commodity": "electricity", "segment": "resi",
+                  "epc_rating": "D", "acquisition_date": "2016-03-01", "eac_kwh": eac}]
+    shock = roll_lifecycle_event("C1", "2017-03-01", "electricity", records,
+                                 customers)["sim_experienced_bill_shock"]
+    assert shock["reference"] == "quote" and shock["population"] == POPULATION_LEVEL_PAYMENT, shock
+    # The round-up to the pound is at most £1 on a ~£50 payment.
+    assert 0.0 <= shock["rise_fraction"] < 0.025, shock
+    assert shock["shocked"] is False
