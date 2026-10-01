@@ -114,6 +114,9 @@ a { color: var(--teal); }
     <h3>What it is doing next</h3>
     <div id="delivery-next"></div>
 
+    <h3>Whether the work queue is tied to the map</h3>
+    <div id="delivery-queue-chain"></div>
+
     <h3>The number the inference programme rests on</h3>
     <p class="sub">
       One figure decides whether a whole line of work can pay: how much of a household's real price
@@ -641,6 +644,33 @@ function renderDeliveryNext(d) {
       : "");
 }
 
+/* THE QUEUE'S LINK TO THE MAP (H45). Three disjoint counts over one population, read from the
+   same function the commit gate refuses on. A feed written before the field existed says nothing
+   about the queue, and that is rendered as "not measured", never as a queue with no gaps. */
+function renderQueueChain(d) {
+  var q = d.the_queues_link_to_the_map || {};
+  if (!q.available) {
+    $("delivery-queue-chain").innerHTML = '<div class="note">This record does not carry the ' +
+      "queue's link to the map, so whether the work queue is tied to it is not measured here. " +
+      "That is not the same as every item being tied.</div>";
+    return;
+  }
+  var gaps = q.unchained || [];
+  $("delivery-queue-chain").innerHTML =
+    "<p>Of <b>" + n(q.population) + "</b> item(s) waiting for work, <b>" + n(q.chained) +
+    "</b> say which part of the map they belong to: <b>" + n(q.minted) + "</b> name a real atom, " +
+    "and <b>" + n(q.unminted) + "</b> were read against the map and need an atom that does not " +
+    "exist yet. <b>" + n(gaps.length) + "</b> say nothing at all." +
+    (q.unreadable ? " <b>" + n(q.unreadable) + "</b> could not be read, so are not counted " +
+                    "either way." : "") + "</p>" +
+    (gaps.length
+      ? "<ul>" + gaps.map(function (g) {
+          return "<li>" + esc(g.name) + " — missing " + esc((g.missing || []).join(", ")) + "</li>";
+        }).join("") + "</ul>"
+      : "") +
+    "<p>" + esc(q.why_this_is_here || "") + "</p>";
+}
+
 /* THE ONE FIGURE A PROGRAMME IS GATED ON, and the correction that moved it. A search over 45
    candidate pairs reported its winner as a ceiling and graded that winner against the odds of ONE
    pair coming up by chance. Both readings are rendered, side by side and labelled, because a page
@@ -993,11 +1023,14 @@ function renderProductCeiling(d) {
 
 fetch("../data/delivery.json").then(function (r) { return r.json(); }).then(function (d) {
   renderDeliveryKpis(d); renderDeliveryDid(d); renderDeliveryDecided(d);
-  renderDeliveryWrong(d); renderDeliveryNext(d); renderDeliveryCeiling(d);
+  renderDeliveryWrong(d); renderDeliveryNext(d); renderQueueChain(d);
+  renderDeliveryCeiling(d);
   renderCarbonCeiling(d); renderProductCeiling(d);
 }).catch(function () {
   $("delivery-kpis").innerHTML = "";
   $("delivery-did").innerHTML = "<p>The delivery record could not be loaded, so nothing is shown here.</p>";
+  $("delivery-queue-chain").innerHTML =
+    "<p>The delivery record could not be loaded, so the queue's link to the map is not shown.</p>";
   /* THE TWO CEILING PANELS SIT UNDER LIVE HEADINGS AND MUST SAY SO WHEN THE FEED DIES. A blank
      panel below "The most a carbon score could ever be worth" reads as "nothing", and nothing is
      the one answer neither instrument returned. */

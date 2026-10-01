@@ -194,6 +194,27 @@ def what_next() -> dict:
     }
 
 
+def the_queues_link_to_the_map() -> dict:
+    """How much of the work queue names the map atom it belongs to (H45, the director's P8).
+
+    A LIFT of `staging_rooms.chain_census`, the count the commit gate already refuses on -- the
+    page and the gate read one function. Until this panel the count lived only in terminal
+    output, which is not a surface anyone outside a session can see.
+    """
+    from background import staging_rooms
+
+    return {
+        "available": True,
+        **staging_rooms.chain_census(),
+        "why_this_is_here": (
+            "Every item waiting for work should say which lane, release epoch and map atom it "
+            "belongs to, so the queue and the map cannot drift apart unnoticed. An item that says "
+            "'unminted' has been read against the map and needs an atom that does not exist yet; "
+            "an item that says nothing has not been read at all."
+        ),
+    }
+
+
 def _redraw_panel(stability: dict | None) -> dict:
     """The stability rung, rendered for a reader — or an explicit statement that it was not run.
 
@@ -563,6 +584,7 @@ def build() -> dict:
         "what_it_decided": what_it_decided(),
         "what_it_got_wrong": what_it_got_wrong(),
         "what_next": what_next(),
+        "the_queues_link_to_the_map": the_queues_link_to_the_map(),
         "the_number_the_programme_rests_on": the_number_the_programme_rests_on(),
         "the_most_a_carbon_score_could_be_worth": the_most_a_carbon_score_could_be_worth(),
         "the_most_the_products_beyond_price_could_be_worth": (

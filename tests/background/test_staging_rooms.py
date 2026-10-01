@@ -276,6 +276,28 @@ def test_UNMINTED_is_a_chain_and_a_MISSING_atom_is_not(tmp_path):
     assert [c.path.name for c in sr.unchained(tmp_path)] == [no.name]
 
 
+def test_the_published_chain_census_partitions_the_queue_into_all_three_states(tmp_path):
+    """The figure the harness page publishes for H45. One control over the WHOLE partition:
+    a census that put every item in one bucket would pass any per-bucket assertion, so all
+    three states must be reachable at once and must sum to the population.
+
+    MUTATION (must fire): count `unminted` items as minted, or drop the gaps list."""
+    _write(tmp_path, "WORKER_FINDING_A_2026-08-28.md",
+           "**Severity:** LATENT · **Lane:** H_harness · **Epoch:** 3 · **Atom:** `H45_x`\n\n# x\n")
+    _write(tmp_path, "WORKER_FINDING_B_2026-08-28.md",
+           f"**Severity:** LATENT · **Lane:** H_harness · **Epoch:** 3 · "
+           f"**Atom:** `{sr.UNMINTED}`\n\n# x\n")
+    gap = _write(tmp_path, "WORKER_FINDING_C_2026-08-28.md",
+                 "**Severity:** LATENT · **Lane:** H_harness\n\n# x\n")
+    census = sr.chain_census(tmp_path)
+
+    assert census["minted"] and census["unminted"] and census["unchained"]
+    assert (census["minted"], census["unminted"]) == (1, 1)
+    assert census["unchained"] == [{"name": gap.name, "missing": ["epoch", "atom"]}]
+    assert census["chained"] + len(census["unchained"]) + census["unreadable"] \
+        == census["population"] == 3
+
+
 @pytest.mark.skipif(__import__("os").geteuid() == 0, reason="root can read a 000 file")
 def test_MUTATION_an_UNREADABLE_document_is_not_reported_as_unchained(tmp_path):
     """A control refusing on input it could not READ was found three times in one day, and its

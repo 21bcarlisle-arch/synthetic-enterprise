@@ -827,6 +827,27 @@ def unchained(root: Path | str = DEFAULT_STAGING_ROOT) -> list[Chain]:
     return out
 
 
+def chain_census(root: Path | str = DEFAULT_STAGING_ROOT) -> dict:
+    """The queue's link to the map as disjoint counts over one population, for a reader.
+
+    `chained + len(unchained) + unreadable == population`; `minted` is the part of `chained`
+    naming a real atom and `unminted` the part that said `unminted` -- triaged, not yet minted.
+    The gaps ARE `unchained()`, the list the commit gate refuses on, so the page and the gate
+    cannot become two opinions; an unreadable item is neither, and is counted as such.
+    """
+    queue = work_queue(root)
+    chained = [c for c in (chain_of(i.path) for i in queue) if c.is_chained]
+    gaps = unchained(root)
+    return {
+        "population": len(queue),
+        "chained": len(chained),
+        "minted": sum(1 for c in chained if c.is_minted),
+        "unminted": sum(1 for c in chained if not c.is_minted),
+        "unchained": [{"name": c.path.name, "missing": list(c.missing)} for c in gaps],
+        "unreadable": len(queue) - len(chained) - len(gaps),
+    }
+
+
 #: Kinds the chain is NOT owed on at filing. NOT_WORK is outside the queue; a directive and a
 #: console message carry the director's words, and P8 asks the MACHINE to connect its own
 #: queue to the map -- refusing his words at the door would be a ceremony on his path.

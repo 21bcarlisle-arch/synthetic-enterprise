@@ -45,7 +45,7 @@ FEED_FILES = {
 }
 
 PANELS = ("delivery-kpis", "delivery-did", "delivery-decided", "delivery-wrong",
-          "delivery-next", "delivery-ceiling", "delivery-carbon-ceiling",
+          "delivery-next", "delivery-queue-chain", "delivery-ceiling", "delivery-carbon-ceiling",
           "delivery-product-ceiling", "director-delta")
 
 
@@ -197,6 +197,48 @@ def test_WHAT_IT_IS_DOING_NEXT_states_that_direction_can_never_BLOCK_work(render
     body = _text(rendered["delivery-next"]["innerHTML"])
 
     assert "can never zero one" in body or "never obeyed by force" in body
+
+
+def _with_queue_chain(block):
+    live = json.loads((DATA / "delivery.json").read_text(encoding="utf-8"))
+    if block is None:
+        live.pop("the_queues_link_to_the_map", None)
+    else:
+        live["the_queues_link_to_the_map"] = block
+    return _render({"../data/delivery.json": live})
+
+
+def test_the_queues_link_to_the_map_reaches_the_reader_as_all_three_counts():
+    """H45: the chain count lived only in terminal output and the commit gate. The panel must
+    carry every state of the partition and NAME the items that carry nothing -- a count without
+    the names tells a reader there is a gap and not where.
+
+    The block is supplied rather than read from the committed feed so the populated branch is
+    tested whatever the feed's age. MUTATION (must fire): render only `chained`, or drop the list.
+    """
+    body = _text(_with_queue_chain({
+        "available": True, "population": 37, "chained": 35, "minted": 6, "unminted": 29,
+        "unchained": [{"name": "maintenance_due_202610.md", "missing": ["lane", "atom"]}],
+        "unreadable": 1, "why_this_is_here": "so the queue and the map cannot drift apart",
+    })["delivery-queue-chain"]["innerHTML"])
+
+    assert "Of 37 item(s) waiting for work, 35 say" in body
+    assert "6 name a real atom" in body and "29 were read against the map" in body
+    assert "1 say nothing at all" in body and "1 could not be read" in body
+    assert "maintenance_due_202610.md — missing lane, atom" in body
+
+
+def test_a_feed_WITHOUT_the_queue_count_says_not_measured_and_not_no_gaps():
+    """A delivery record written before the field existed says nothing about the queue. Rendered
+    as zeros it would read as a fully tied queue -- the flattering claim, made on no evidence.
+
+    MUTATION (must fire): render the counts unconditionally (`n(undefined)` shows a dash and the
+    sentence still reads as a measurement).
+    """
+    body = _text(_with_queue_chain(None)["delivery-queue-chain"]["innerHTML"])
+
+    assert "not measured here" in body and "not the same as every item being tied" in body
+    assert "waiting for work" not in body
 
 
 def test_the_director_delta_does_not_claim_he_has_LOOKED(rendered):
