@@ -197,7 +197,39 @@ def test_the_refusals_reach_the_reader_with_their_cause(live):
     rendered = live["ddopen-refused"]
     assert str(feed["refused"]["n"]) in rendered, (
         "the count of accounts the supplier refused to open does not reach the reader")
-    assert "2019" in rendered, "the refusal reaches the reader without naming its cause"
+    # Keyed to the CAUSE, not to the year it happened to fall in: under the cap rule every refusal
+    # was a pre-2019 account and the statement named the year; under the rate-sold rule it names
+    # the missing price cap and the count can be zero. Both name the cap.
+    assert "price cap" in rendered.lower(), (
+        "the refusal reaches the reader without naming its cause")
+
+
+def test_the_paired_sentence_is_chosen_by_where_its_interval_sits():
+    """DEFECT: the paired sentence said "falls by ... the interval excludes zero" whatever the
+    interval was. On the first rate-sold run (2026-10-01, CI -£77.20 to +£109.67) it rendered a
+    fall of 40p with the bounds reversed and called it a difference and not noise.
+
+    One control over the whole partition: each of the three intervals must reach its OWN sentence
+    and no other's, so a renderer that collapses two branches into one reds here.
+    """
+    base = _live_feed()
+    verdicts = {
+        "falls": ([-3.0, -1.0], -2.0),
+        "rises": ([1.0, 3.0], 2.0),
+        "spans": ([-1.0, 1.0], 0.5),
+    }
+    phrase = {"falls": "falls by", "rises": "rises by", "spans": "spans zero"}
+    for name, (ci, mean) in verdicts.items():
+        feed = json.loads(json.dumps(base))
+        feed["year_one_drift_matched"]["mean_change_in_abs_drift_ci95_gbp"] = ci
+        feed["year_one_drift_matched"]["mean_change_in_abs_drift_gbp"] = mean
+        rendered = _render(feed)["ddopen-paired"].lower()
+        for other, words in phrase.items():
+            assert (words in rendered) == (other == name), (
+                "an interval of {} rendered {!r}: the sentence does not follow the interval"
+                .format(ci, rendered))
+        assert ("excludes zero" in rendered) == (name != "spans"), (
+            "an interval of {} told the reader whether it excludes zero wrongly".format(ci))
 
 
 def test_the_reader_is_told_why_no_headline_figure_moved(live):

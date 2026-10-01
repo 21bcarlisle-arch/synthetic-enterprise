@@ -4476,17 +4476,34 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
       /* THE PAIRED RESULT -- the only statistic here that answers "did it help THIS household",
          because it is the same household under both rules. Rendered with its interval inline for
          the same reason the table is. */
+      /* THE SENTENCE IS THE INTERVAL'S TO CHOOSE, NOT THIS PAGE'S. It used to say "falls by ...
+         the interval excludes zero" unconditionally, which was true on the 2026-09-03 cap-rule
+         run (-£202, CI -£258 to -£144) and false on the first rate-sold run (-£0.40, CI -£77 to
+         +£110), where it printed a fall of 40p with a reversed interval and called it real. */
       var ci = dr.mean_change_in_abs_drift_ci95_gbp || [];
+      var pairedLead = "<strong>Household by household.</strong> Taking the same account under "
+        + "both rules, the estimate ends the first year closer to square for "
+        + esc(dr.n_estimate_closer_to_zero) + " of " + esc(dr.n_matched_accounts) + " households";
+      var signedGbp = function (v) { return (v < 0 ? "&minus;" : "+") + esc(gbp(Math.abs(v))); };
       $("ddopen-paired").innerHTML = ci[0] === null || ci[0] === undefined
+          || ci[1] === null || ci[1] === undefined
         ? "<strong>Household by household.</strong> The change per household could not be "
           + "bounded on this sample, so it is not quoted as a result."
-        : "<strong>Household by household.</strong> Taking the same account under both rules, the "
-          + "estimate ends the first year closer to square for "
-          + esc(dr.n_estimate_closer_to_zero) + " of " + esc(dr.n_matched_accounts)
-          + " households, and the typical distance from square falls by "
+        : ci[1] < 0
+        ? pairedLead + ", and the typical distance from square falls by "
           + esc(gbp(Math.abs(dr.mean_change_in_abs_drift_gbp)))
           + " (95% " + esc(gbp(Math.abs(ci[1]))) + " to " + esc(gbp(Math.abs(ci[0])))
-          + "). The interval excludes zero, so this is a difference and not noise.";
+          + "). The interval excludes zero, so this is a difference and not noise."
+        : ci[0] > 0
+        ? pairedLead + ", but the typical distance from square RISES by "
+          + esc(gbp(Math.abs(dr.mean_change_in_abs_drift_gbp)))
+          + " (95% " + esc(gbp(ci[0])) + " to " + esc(gbp(ci[1]))
+          + "). The interval excludes zero: on average the estimate leaves households further "
+          + "from square than the first bill did."
+        : pairedLead + ". Averaged over them, the change in distance from square is "
+          + signedGbp(dr.mean_change_in_abs_drift_gbp) + " (95% " + signedGbp(ci[0]) + " to "
+          + signedGbp(ci[1]) + "). The interval spans zero, so on this run we cannot tell the "
+          + "two rules apart on how far from square a household ends its first year.";
 
       $("ddopen-refused").innerHTML = "<strong>What the supplier refused to guess.</strong> "
         + prose((d.refused || {}).statement || "");
