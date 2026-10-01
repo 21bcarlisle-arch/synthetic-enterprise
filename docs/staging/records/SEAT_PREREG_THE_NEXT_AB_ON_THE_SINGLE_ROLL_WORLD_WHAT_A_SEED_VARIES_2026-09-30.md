@@ -254,6 +254,32 @@ PB6 moves a per-channel departure multiplier. Prepayment goes from CIM's ~0.54 t
 
 **PB6 on 61001** (1,806 s): AUC **0.578** (pin 0.579), corr **−0.253** (pin −0.252), mean belief **0.623** (pin 0.624), conc 0.425 (pin 0.426). **PB6 does reach the estimate, and it barely moves it.** Paired by (account, term) over the 110 decisions both trees priced, 79 beliefs changed, but by at most **0.0089**. The mean change is −0.0001 on direct debit (91 decisions) and **−0.0009 on prepayment** (10 decisions). The prior's centre moves from CIM's ~0.54 to 1.0, yet the belief moves by a thousandth. So on this book the engagement factor is not what sets the belief's level or its order; the other inputs to the estimate do. The six-seed grade and the plain answer follow when the leg exits (~00:20Z).
 
+## Ranking at PB6: graded, six seeds (2026-10-01 ~00:40Z, autonomous worker, same item)
+
+**The leg finished.** It exited rc=0 at 2026-10-01T00:34:40Z, and all six PB6 seeds completed (1,806–2,089 s each). The tree check passed at the leg's start, and the weather digest was `e11451b5…d242` at both starts. Grader: `grade_pb6_rank.py pb6rank_pb6.json`. The paired read against the pin artefacts is `/var/tmp/se-ab6-out/grade_pb6_pair.py`.
+
+| seed | 61001 | 61002 | 61003 | 61004 | 61005 | 61006 | mean | pin mean |
+|---|---|---|---|---|---|---|---|---|
+| AUC (PB6) | 0.578 | 0.497 | 0.451 | 0.420 | 0.349 | 0.626 | **0.487** | 0.486 |
+| corr (PB6) | −0.253 | −0.241 | −0.266 | −0.248 | −0.257 | −0.269 | **−0.256** | −0.255 |
+| mean belief (PB6) | 0.6234 | 0.6244 | 0.6373 | 0.6242 | 0.6181 | 0.6061 | **0.6223** | 0.6224 |
+| mean world `p_retain` (PB6) | 0.684 | 0.682 | 0.682 | 0.681 | 0.685 | 0.687 | **0.683** | 0.683 |
+| conc (PB6) | 0.425 | 0.423 | 0.408 | 0.426 | 0.418 | 0.400 | **0.416** | 0.416 |
+
+Paired by (seed, account, term) over the 689 decisions both trees priced, 509 beliefs changed. The largest change is **0.0113** and the mean is **−0.0001**. Every seed's column is the pin's to within 0.001 in AUC and 0.002 in corr.
+
+**Predictions graded.**
+- **C0 HOLDS** (interim, above).
+- **R1 HOLDS.** AUC 0.487 is inside 0.44–0.53, so there is no ranking fix.
+- **R2 HOLDS.** corr is negative on all six seeds.
+- **R2b HOLDS on its band, but not on its direction.** −0.256 is inside −0.35 to −0.22. The point said "slightly worse than the pin", and it is the pin to 0.001.
+- **R3 REFUTED.** The mean belief is 0.6223, not below 0.622. It did not fall. It did not move. The prediction's mechanism, prepayment pushed down, is real (−0.0009 on 61001) but too small to show in the book mean: prepayment is about 12% of first renewals.
+- **R4 HOLDS.** conc 0.416 is inside 0.39–0.43.
+
+**Plain answer, under the rule fixed before launch: PB6 CHANGES NEITHER.** The ranking rule fails: AUC 0.487 < 0.55 and corr < 0. The level rule fails too: |mean belief − world| is 0.0607 at the pin and 0.0610 at PB6, so the gap widens by 0.0003 instead of shrinking by ≥ 0.02. The predicted answer was "changes neither, or level only, away from the world". It came out as the first half. The level does not move, so it does not move away.
+
+**What this settles.** PB6 reaches the estimate, so this is not a wiring failure. The value arm calls `enriched_churn_estimate` with `payment_method=None` (see "What orders the belief" below). So on this path the engagement factor is one value per date. Through that factor, PB6 can shift the belief between renewal dates, but it cannot reorder two accounts renewing on the same day. That fits a belief that moves by at most 0.011. The interim's −0.0009 on prepayment is consistent with this if it is a date-composition effect. That is not tested here. The anti-ranking sits in `rate_estimate` (graded below), and PB6 does not reach it.
+
 ## What orders the belief: predictions (2026-10-01 ~00:55Z, autonomous worker, item `name-the-input-that-anti-ranks-the-retention-belief`; filed before any term was computed)
 
 **The question.** Within direct debit (n = 338 first renewals, six pin seeds pooled), the value arm's belief correlates −0.383 with the world's `p_retain` at the same offer. Which term of `enriched_churn_estimate` carries that? This section runs no simulation. It reads `runP1/P2/X1.json` and the run logs, and it recomputes terms by calling the pin's own functions.
