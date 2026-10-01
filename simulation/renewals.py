@@ -204,6 +204,17 @@ def build_renewal_schedule(
         # share that is a minority in every year of the window but never vanishes and is ~33% in
         # 2025 (`docs/design/DRAWN_BOOK_TARIFF_TYPE_FIDELITY_DETERMINATION.md` §(b)).
         #
+        # WHY THE PASSIVE BRANCH ROLLS NO DEPARTURE, AND WHY ADDING ONE WOULD BE A DOUBLE COUNT.
+        # Passive here means the household did nothing at its term end, and leaving is doing
+        # something. A household that leaves at a term end takes the ACTIVE branch, where
+        # `run_phase2b` rolls the departure. The licence makes the TERM END a decision point
+        # (SLC 22C, 24.8(b)), and that is P(active) x P(exit | active). It is not a separate exit
+        # owed to the passive branch: Ofgem's 2019 End of Fixed Term trial's do-nothing 81% left at
+        # 0% too. On one world at `aed6bf966` this gave 13.9% exit at fixed ends outside the FTC
+        # window, above that trial's 6% external floor on an inert book.
+        # `docs/staging/SEAT_FINDING_THE_PASSIVE_TERM_END_NEEDS_NO_DEPARTURE_ROLL_AND_THE_SVT_
+        # ANNIVERSARY_ADDS_A_SECOND_EXIT_ROUTE_2026-10-01.md`.
+        #
         # DOMESTIC ONLY, because the product is. `simulation/svt_rates.py` is the Ofgem DOMESTIC
         # default-tariff cap; an SME or I&C site has no default tariff to roll onto and its
         # renewals are broker-driven, which `run_phase2b` already states at its own passive
