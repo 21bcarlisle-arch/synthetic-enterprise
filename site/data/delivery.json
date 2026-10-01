@@ -1,9 +1,219 @@
 {
- "generated_at": "2026-10-01T02:29:31.982709+00:00",
+ "generated_at": "2026-10-01T05:28:05.103560+00:00",
  "seat": "delivery",
  "what_it_did": {
   "available": true,
   "commits": [
+   {
+    "sha": "2acb617d4",
+    "at": "2026-10-01T06:24:17+01:00",
+    "subject": "EP1 legs-then-rate on two re-drawn-dice runs: every prediction held, the informativeness control failed, so no licence",
+    "substantive": false
+   },
+   {
+    "sha": "57b505ca3",
+    "at": "2026-10-01T06:18:37+01:00",
+    "subject": "PB4 experienced bill shock: pre-registration, filed before the one-world run is launched",
+    "substantive": false
+   },
+   {
+    "sha": "aed6bf966",
+    "at": "2026-10-01T06:12:37+01:00",
+    "subject": "EP1 legs-then-rate replication: pre-registration, filed before either floor run is read",
+    "substantive": false
+   },
+   {
+    "sha": "9d6ad4551",
+    "at": "2026-10-01T06:10:49+01:00",
+    "subject": "A renewal decision, defined from the licence: a fixed term's end is one, the default tariff has none, so EP1's tenure hazard is all-cause exit over exposure",
+    "substantive": true
+   },
+   {
+    "sha": "cff926925",
+    "at": "2026-10-01T05:59:59+01:00",
+    "subject": "chore(liveness): publish heartbeat while sim output unchanged (git=d81a867129b32315307d87be8bd474e6e9cadbfe) -- decouples published liveness from content-change (Fault#1 2026-07-25)",
+    "substantive": false
+   },
+   {
+    "sha": "d81a86712",
+    "at": "2026-10-01T05:53:22+01:00",
+    "subject": "merge origin/main: automatic reconciliation in an isolated worktree",
+    "substantive": false
+   },
+   {
+    "sha": "147dc5cba",
+    "at": "2026-10-01T05:50:36+01:00",
+    "subject": "tests/background: the publisher's refusal record is redirected for every test, so a wedged live publisher cannot decide a healthy-publish assertion",
+    "substantive": true
+   },
+   {
+    "sha": "24542747c",
+    "at": "2026-10-01T05:48:04+01:00",
+    "subject": "EP1 fuel-split forecast out of sample: the fitted blend fails the licence, and the leg count is not a tenure proxy",
+    "substantive": false
+   },
+   {
+    "sha": "1d9d0b373",
+    "at": "2026-10-01T05:43:24+01:00",
+    "subject": "merge origin/main: automatic reconciliation in an isolated worktree",
+    "substantive": false
+   },
+   {
+    "sha": "388d33b76",
+    "at": "2026-10-01T05:40:25+01:00",
+    "subject": "the shared checkout reaches origin again; the ten untracked blockers were the supervisor's staging sync, filed as H49",
+    "substantive": true
+   },
+   {
+    "sha": "719e71173",
+    "at": "2026-10-01T05:39:27+01:00",
+    "subject": "EP1 cost to serve: the gap is entirely between fuel strata, and the fuel split carries most of the forward-margin ranking",
+    "substantive": false
+   },
+   {
+    "sha": "1e021ddd2",
+    "at": "2026-10-01T05:33:27+01:00",
+    "subject": "merge origin/main: automatic reconciliation in an isolated worktree",
+    "substantive": false
+   },
+   {
+    "sha": "ade3f95df",
+    "at": "2026-10-01T05:32:06+01:00",
+    "subject": "EP1 margin attribution: the belief's form costs nothing; subtracting cost to serve costs ranking even against a net target",
+    "substantive": false
+   },
+   {
+    "sha": "7c8dea27f",
+    "at": "2026-10-01T05:28:53+01:00",
+    "subject": "EP1: acquisition route does not rank tenure, and at every snapshot the belief ranks forward margin but never tenure",
+    "substantive": false
+   },
+   {
+    "sha": "367580371",
+    "at": "2026-10-01T05:24:03+01:00",
+    "subject": "chore(liveness): publish heartbeat while sim output unchanged (git=3f7a0632fffe8f0537b50fcb258010850b987856) -- decouples published liveness from content-change (Fault#1 2026-07-25)",
+    "substantive": false
+   },
+   {
+    "sha": "3f7a0632f",
+    "at": "2026-10-01T05:18:42+01:00",
+    "subject": "EP1 graded over the whole book: within a cohort nothing a supplier holds at first valuation ranks tenure",
+    "substantive": false
+   },
+   {
+    "sha": "a0ccd009b",
+    "at": "2026-10-01T05:16:46+01:00",
+    "subject": "PB4: the world now knows what bill shock a household experienced, by the published definition, and it can fire in year one",
+    "substantive": true
+   },
+   {
+    "sha": "9cd6e7ab5",
+    "at": "2026-10-01T04:59:35+01:00",
+    "subject": "EP1: the belief carries no per-account tenure, and no snapshot observable ranks a lifetime margin at n=66",
+    "substantive": false
+   },
+   {
+    "sha": "127c007f0",
+    "at": "2026-10-01T04:47:08+01:00",
+    "subject": "EP1 values a margin per settled year over an untruncated survival sum; the two defects that hid each other are fixed together",
+    "substantive": true
+   },
+   {
+    "sha": "8dd7794bd",
+    "at": "2026-10-01T04:39:38+01:00",
+    "subject": "what drives the world's retention at a first renewal: the bill-shock count is blind in a household's first year and carries the whole tenure gradient",
+    "substantive": false
+   },
+   {
+    "sha": "33e9c1ba3",
+    "at": "2026-10-01T04:33:14+01:00",
+    "subject": "what drives the world's retention at a first renewal: predictions filed before any term is computed",
+    "substantive": false
+   },
+   {
+    "sha": "f372171dd",
+    "at": "2026-10-01T04:30:52+01:00",
+    "subject": "merge origin/main: automatic reconciliation in an isolated worktree",
+    "substantive": false
+   },
+   {
+    "sha": "69b3c8d57",
+    "at": "2026-10-01T04:25:20+01:00",
+    "subject": "merge origin/main: automatic reconciliation in an isolated worktree",
+    "substantive": false
+   },
+   {
+    "sha": "8d6123c6a",
+    "at": "2026-10-01T04:13:47+01:00",
+    "subject": "EP1's remaining over-valuation is the margin, divided by renewal points; H2 also counts survival twice, and the two hide each other",
+    "substantive": false
+   },
+   {
+    "sha": "7e2503507",
+    "at": "2026-10-01T04:02:40+01:00",
+    "subject": "EP1's tenure horizon values on the book's exit life table by tenure year; the young-book defect of the constant hazard is gone and the gap arm falls from 1.558 to 1.275",
+    "substantive": true
+   },
+   {
+    "sha": "627f05756",
+    "at": "2026-10-01T03:41:30+01:00",
+    "subject": "EP1's tenure horizon values on the book's all-cause exit frequency, not its per-anniversary departures; a young book shows the constant hazard is the next defect",
+    "substantive": true
+   },
+   {
+    "sha": "c71a78417",
+    "at": "2026-10-01T03:29:38+01:00",
+    "subject": "delivery seat: direction for the next stretch",
+    "substantive": false
+   },
+   {
+    "sha": "d8ae8c2e7",
+    "at": "2026-10-01T03:22:21+01:00",
+    "subject": "EP1's pre-registered real-book measurement: the derived renewal record reproduces every decision the world rolled, and the world decides at one anniversary in five",
+    "substantive": false
+   },
+   {
+    "sha": "81977a312",
+    "at": "2026-10-01T03:19:47+01:00",
+    "subject": "EP1's tenure horizon values on the book's own observed renewal departures, not on a 0.05 belief; the first-renewal prior is researched and stays None",
+    "substantive": true
+   },
+   {
+    "sha": "d77ff33d5",
+    "at": "2026-10-01T03:06:21+01:00",
+    "subject": "EP1 pass 20 lands: the CLV ledger writer stamps a row with the run's own commit, not the tree's HEAD, and the horizon hypothesis is confirmed",
+    "substantive": true
+   },
+   {
+    "sha": "823b984b7",
+    "at": "2026-10-01T02:56:23+01:00",
+    "subject": "merge origin/main: automatic reconciliation in an isolated worktree",
+    "substantive": false
+   },
+   {
+    "sha": "c5e9a1b5c",
+    "at": "2026-10-01T02:47:39+01:00",
+    "subject": "merge origin/main: automatic reconciliation in an isolated worktree",
+    "substantive": false
+   },
+   {
+    "sha": "1542c490e",
+    "at": "2026-10-01T02:32:47+01:00",
+    "subject": "the HEAD-green census prints its slowest 80 tests to the journal on every complete run",
+    "substantive": true
+   },
+   {
+    "sha": "9073a256c",
+    "at": "2026-10-01T02:18:15+01:00",
+    "subject": "merge origin/main: automatic reconciliation in an isolated worktree",
+    "substantive": false
+   },
+   {
+    "sha": "41ff79654",
+    "at": "2026-10-01T02:07:19+01:00",
+    "subject": "merge origin/main: automatic reconciliation in an isolated worktree",
+    "substantive": false
+   },
    {
     "sha": "9a5dc872e",
     "at": "2026-10-01T02:04:18+01:00",
@@ -11,295 +221,79 @@
     "substantive": true
    },
    {
+    "sha": "cb43c1148",
+    "at": "2026-10-01T01:59:57+01:00",
+    "subject": "staging: the census's ten slowest tests are trimmed, ~2,150 s -> ~400 s, the bound waits for a measured run",
+    "substantive": false
+   },
+   {
+    "sha": "571a79e9f",
+    "at": "2026-10-01T01:58:53+01:00",
+    "subject": "the three run_phase2b-backed slow tests stop simulating months their subjects never reach",
+    "substantive": true
+   },
+   {
+    "sha": "51f207c58",
+    "at": "2026-10-01T01:47:54+01:00",
+    "subject": "the 2R2C integrator hoists its loop invariants: bit-identical, ~1.6x faster per day",
+    "substantive": true
+   },
+   {
     "sha": "dab06dea3",
     "at": "2026-10-01T01:42:49+01:00",
     "subject": "the ledger fix reached origin on the reconciler's push: surgical_land does not push, origin_reconcile does",
     "substantive": false
-   },
-   {
-    "sha": "b1b4c284e",
-    "at": "2026-10-01T00:26:06+01:00",
-    "subject": "delivery seat: direction for the next stretch",
-    "substantive": false
-   },
-   {
-    "sha": "ebc9af681",
-    "at": "2026-10-01T00:14:12+01:00",
-    "subject": "the lane-0 ledger and the path check ask origin/main, not HEAD or --all, whether work has landed",
-    "substantive": true
-   },
-   {
-    "sha": "6a47d2108",
-    "at": "2026-09-30T23:05:08+01:00",
-    "subject": "PB6 ranking read, interim: the value-only instrument reproduces the pin to the bit, and PB6 moves the belief by at most 0.009 on the first seed",
-    "substantive": false
-   },
-   {
-    "sha": "940e9ee86",
-    "at": "2026-09-30T21:56:04+01:00",
-    "subject": "PB6 ranking read: predictions filed before launch -- the value arm alone carries the belief, and the pin says PB6 cannot reach the direct-debit anti-ranking",
-    "substantive": false
-   },
-   {
-    "sha": "280a33a0a",
-    "at": "2026-09-30T21:46:49+01:00",
-    "subject": "D27 pass 14: the belief dimensions' as_of invariance is declared conditional on the company's window covering the book, and the class control holds at both origins",
-    "substantive": true
-   },
-   {
-    "sha": "8a1ec06af",
-    "at": "2026-09-30T21:01:57+01:00",
-    "subject": "H45: the level stays at 1 and the store record says why -- the chain count is enforced but rendered nowhere",
-    "substantive": true
-   },
-   {
-    "sha": "0ac9815b7",
-    "at": "2026-09-30T20:59:56+01:00",
-    "subject": "H45: the last six queue items unlinked to the map now say so explicitly, so unchained() reads 0",
-    "substantive": false
-   },
-   {
-    "sha": "ff2f6cf43",
-    "at": "2026-09-30T20:52:33+01:00",
-    "subject": "D27 pass 13: the last defect-assertion is restated as a law that holds at both origins, and the as_of class control reds at the flip",
-    "substantive": true
-   },
-   {
-    "sha": "aebaaa344",
-    "at": "2026-09-30T20:08:05+01:00",
-    "subject": "W1_14 L1 -> L2: every premise the run settles reads its own weather cell, on every leg",
-    "substantive": true
-   },
-   {
-    "sha": "770da9baa",
-    "at": "2026-09-30T20:01:08+01:00",
-    "subject": "chore(liveness): publish heartbeat while sim output unchanged (git=b36addf943847cde4fb308a69ee85a3b9a2afc50) -- decouples published liveness from content-change (Fault#1 2026-07-25)",
-    "substantive": false
-   },
-   {
-    "sha": "b36addf94",
-    "at": "2026-09-30T19:45:26+01:00",
-    "subject": "the lane-0 ledger attributes by the item, not by a path: a commit counts only if it binds the item",
-    "substantive": true
-   },
-   {
-    "sha": "38ee201e6",
-    "at": "2026-09-30T19:35:48+01:00",
-    "subject": "weight_drift reads both directions, sim_run is re-derived to 7,066 MB, and sim-runner's yield to a long job is a rule instead of an accident",
-    "substantive": true
-   },
-   {
-    "sha": "f601a4478",
-    "at": "2026-09-30T19:11:06+01:00",
-    "subject": "chore(liveness): publish heartbeat while sim output unchanged (git=08efb6b8fd477766fc0bc1783fd5ff7b305e06d7) -- decouples published liveness from content-change (Fault#1 2026-07-25)",
-    "substantive": false
-   },
-   {
-    "sha": "08efb6b8f",
-    "at": "2026-09-30T18:54:37+01:00",
-    "subject": "ab6 attribution: the negative centre is lost tenure, not the margin -- the company's retention belief cannot rank stayers",
-    "substantive": false
-   },
-   {
-    "sha": "32c04d778",
-    "at": "2026-09-30T18:41:32+01:00",
-    "subject": "ab6 X1 graded: the six-seed CI contains zero, so the answer is \"cannot say on this book under its own renewal noise\"",
-    "substantive": false
-   },
-   {
-    "sha": "295e9ad64",
-    "at": "2026-09-30T18:30:35+01:00",
-    "subject": "EP13 s19: embedded solar comes out of the carbon dispatch residual and goes into the denominator",
-    "substantive": true
-   },
-   {
-    "sha": "36b826890",
-    "at": "2026-09-30T18:06:20+01:00",
-    "subject": "chore(liveness): publish heartbeat while sim output unchanged (git=91828bc1c1f3dbfac5e39ebf4a8678a861444fd6) -- decouples published liveness from content-change (Fault#1 2026-07-25)",
-    "substantive": false
-   },
-   {
-    "sha": "91828bc1c",
-    "at": "2026-09-30T18:01:38+01:00",
-    "subject": "H41: the map's regrowth came back as comment, which no field guard can see -- budget it per row and move the seven fat rows to the store",
-    "substantive": true
-   },
-   {
-    "sha": "c91ce7515",
-    "at": "2026-09-30T17:33:05+01:00",
-    "subject": "the stretch log's page means the orientation stopped: skipped runs write too, and the clock pages past two periods, not one",
-    "substantive": true
-   },
-   {
-    "sha": "dd5f33581",
-    "at": "2026-09-30T17:20:24+01:00",
-    "subject": "W1_14 step 2: the world's weather covers the whole registered roster, not only the segments the company serves",
-    "substantive": true
-   },
-   {
-    "sha": "c8e4f09d7",
-    "at": "2026-09-30T17:11:21+01:00",
-    "subject": "W1_14: the HDD leg reads the per-cell store for the drawn gas book, not the monthly normal",
-    "substantive": true
-   },
-   {
-    "sha": "e5b4f6fde",
-    "at": "2026-09-30T16:51:11+01:00",
-    "subject": "merge origin/main: advance the base under the orientation stretch writer",
-    "substantive": false
-   },
-   {
-    "sha": "9893ad531",
-    "at": "2026-09-30T16:45:42+01:00",
-    "subject": "merge origin/main: advance the base under the orientation stretch writer",
-    "substantive": false
-   },
-   {
-    "sha": "dbebbba88",
-    "at": "2026-09-30T16:31:00+01:00",
-    "subject": "chore(liveness): publish heartbeat while sim output unchanged (git=40159b57d8bf7d74788015dbd9ba5f361db13af2) -- decouples published liveness from content-change (Fault#1 2026-07-25)",
-    "substantive": false
-   },
-   {
-    "sha": "46ddd0e9d",
-    "at": "2026-09-30T16:25:32+01:00",
-    "subject": "the orientation seat writes the stretch log: its only writer was an interactive session, and this one cannot be absent",
-    "substantive": true
-   },
-   {
-    "sha": "40159b57d",
-    "at": "2026-09-30T16:25:05+01:00",
-    "subject": "merge origin/main: automatic reconciliation in an isolated worktree",
-    "substantive": false
-   },
-   {
-    "sha": "c19f3443d",
-    "at": "2026-09-30T16:19:04+01:00",
-    "subject": "merge origin/main: automatic reconciliation in an isolated worktree",
-    "substantive": false
-   },
-   {
-    "sha": "00ddba144",
-    "at": "2026-09-30T16:17:58+01:00",
-    "subject": "correction: the refresh door's untracked-twin refusal was right, and the reliable end state for a blocker is origin's bytes, not HEAD's",
-    "substantive": false
-   },
-   {
-    "sha": "9df2d9c0f",
-    "at": "2026-09-30T15:59:26+01:00",
-    "subject": "surgical_land: a landing that no ref holds afterwards exits non-zero, and says why",
-    "substantive": true
-   },
-   {
-    "sha": "c3f45f70c",
-    "at": "2026-09-30T15:53:22+01:00",
-    "subject": "the seven fast-forward blockers are cleared, and the finding records the four the refresh door could not admit",
-    "substantive": false
-   },
-   {
-    "sha": "3ed69bb41",
-    "at": "2026-09-30T15:48:42+01:00",
-    "subject": "the origin-fork alarm's finding carries both writers, so the shared tree's copy of it stops refusing the fast-forward",
-    "substantive": false
-   },
-   {
-    "sha": "876a64eeb",
-    "at": "2026-09-30T15:28:12+01:00",
-    "subject": "delivery seat: direction for the next stretch",
-    "substantive": false
-   },
-   {
-    "sha": "13218de49",
-    "at": "2026-09-30T15:27:06+01:00",
-    "subject": "merge origin/main onto the gated fork-closing merge 1918a0820: catch-up for the commit origin gained while it gated",
-    "substantive": false
-   },
-   {
-    "sha": "1918a0820",
-    "at": "2026-09-30T15:25:31+01:00",
-    "subject": "merge origin/main into the shared tree's HEAD: the 2026-09-30 fork closes, with origin's copy on the 7 conflicts",
-    "substantive": false
-   },
-   {
-    "sha": "7cc2e0e69",
-    "at": "2026-09-30T15:13:25+01:00",
-    "subject": "file why the stretch log goes quiet within a week of every fix: it has one writer, present only when the director is",
-    "substantive": false
-   },
-   {
-    "sha": "47ced1cf2",
-    "at": "2026-09-30T14:55:20+01:00",
-    "subject": "book_member's artefact declares its run identity, so origin's HEAD red from 19ca27dbc is green",
-    "substantive": true
-   },
-   {
-    "sha": "749c0a290",
-    "at": "2026-09-30T14:44:16+01:00",
-    "subject": "ab6 pilots graded: 0 of 4 churn-roll seeds positive, n* = 6, so the extension leg X1 is running",
-    "substantive": false
-   },
-   {
-    "sha": "6e2eddc1b",
-    "at": "2026-09-30T14:19:23+01:00",
-    "subject": "H45: a work item filed into the queue without its lane, epoch and atom is refused at the write",
-    "substantive": true
    }
   ],
-  "substantive": 17,
-  "mechanical": 23,
+  "substantive": 13,
+  "mechanical": 27,
   "what_the_split_means": "A mechanical commit republishes an unchanged net -- the report, the dashboard, the state files. Counting those as work would make a quiet day look busy, so they are separated rather than filtered: they happened, they are just not progress."
  },
  "what_it_decided": {
   "available": true,
-  "oriented_at": "2026-10-01T02:24:31.786192+00:00",
+  "oriented_at": "2026-10-01T05:23:38.288126+00:00",
   "age_hours": 0.1,
   "expires_after_hours": 12.0,
   "live": true,
-  "thesis_read": "THE INVERTED INPUT IS NAMED, AND THE QUESTION HAS CROSSED THE WALL. The value arm's loss runs through a retention belief that anti-ranks the world. This stretch settled where that inversion lives, using existing artefacts and no new run. Among direct-debit first renewals, the whole -0.383 sits in enriched_churn_estimate's rate term. Holding that term at its book mean turns the correlation to +0.331 (8dc8dcd97). payment_estimate is a flat 0.05. The engagement factor is never read, because decide_margin passes no payment_method. The market multiplier is correctly signed. The six-seed PB6 grade on filed bands says PB6 changes neither ranking nor level (AUC 0.487, corr -0.256, every seed within 0.001 of the pin; b45d9a5c6), and that closes PB6 as the lever. PB7's learning rule cannot reach it either: it is one scalar per channel, and the inversion is within a channel. The thesis question is now sharper than it has been, and it is no longer only the company's. Inside the rate term, the inverted inputs are the account's standing features. Within a renewal year, the WORLD's p_retain falls as tenure and bill size rise (-0.32, -0.27), and published evidence (CMA 2016 inertia) says longer tenure switches less. Before the company is taught to fit that, someone must ask whether the world is right. The world's switching code uses the word \"tenure\" for HOUSING tenure (owner, private renter, social renter in simulation/switching_propensity.py), not years on supply, so the -0.32 may be a confound and not a term. That is the first item. A company that learns a world artefact would \"beat average\" by access to a defect, which is the opposite of the thesis. EP1 gave the same shape from the other side. The derived renewal record reproduces every decision the world rolled (37/38 churns, 68/68 stays), but the world decides at only 106 of ~520 anniversaries. So \"per-renewal hazard\" has three readings, 0.36, 0.09 and ~0.17, and the definition must come before the build. The published record should settle most of it (a default-tariff customer is on an evergreen product), so it goes to research first, not to the director. ON THE MACHINE: all four previous focus items finished and disappear. The ledger fix ebc9af681 is on origin. It reached origin through origin_reconcile's push, about 70 minutes late because the reconcile worktree was held; surgical_land never pushes (dab06dea3). Boot-sha drift now reports two legs (12a67dfc8). Running it showed my carried diagnosis was wrong: it grades the DISK, not HEAD. It showed 0 stale while 4 of 10 daemons ran code the trunk had replaced. This stretch went backwards on one point. The shared checkout is now 0 ahead and 31 behind origin, and every 5-minute reconcile logs NOT_ADVANCED, refused by 9 uncommitted shared-tree copies that origin also changes (maturity_map.yaml, EP1's simplification yaml, tests/background/conftest.py among them). That is the second time in two days; the 2026-09-30 clearance was by hand. So the daemons run stale code, and nothing has raised it past its own log. It is the second focus item. A surgical_land titled \"EP1 pass 20\" was gating at orientation (pid 3300519), after d77ff33d5, \"EP1 pass 20 lands\", reached origin at 02:06. If it lands, it is a live instance of the land-twice row. 20 commits, 8 substantive by the brief's count; the 5 empty ones are reconcile merges.",
+  "thesis_read": "THE ANTI-RANKING WAS MOSTLY THE WORLD, NOT THE COMPANY. That is the stretch's meaning, and it moves the thesis forward by removing a false lesson rather than adding a capability. Last stretch I said the value arm loses because the company's retention belief anti-ranks the world, and I guessed the world's tenure slope was a housing-tenure confound. The guess was wrong, and the real cause is worse for the world. The world's bill-shock base (saas.customer_reaction yoy count) cannot fire in a household's first year: k=0 on 156 of 156 tenure-1 rows, against 6.86 shocked months out of 12 later. That one term carries the whole tenure gradient (-0.346 to -0.009 when it is held) and the whole bill-size gradient (-0.272 to +0.003). Hold it, and the company belief's pooled score against the world goes from -0.336 to +0.197 (8dd7794bd). Published evidence points the other way on both: longer tenure switches less (Ofgem, CMA 2016), and spend barely correlates (BMG 2024). So a company taught to fit the world's retention would have learned a defect. That is advantage by access to an artefact, the reverse of the thesis, and it was caught before anyone built it. PB4 now defines the experienced shock by the published definition (a0ccd009b). The hazard still reads the old count on purpose, and a one-world run measuring the new shock is on the box now (pid 4051166, pre-registered in 57b505ca3). A second world gap surfaced from the licence (9d6ad4551): about 65% of fixed-term ends are passive and roll no departure at all, although the record makes every term end a decision point (Ofgem's 2019 EoFT trial: 6% external switching within six weeks). The error runs the company's way. EP1 now values on all-cause exit over exposure, the defined reading, with a life table by tenure year and an untruncated survival sum (627f05756, 7e2503507, 127c007f0). The gap arm fell from 1.558 to 1.275. But nothing a supplier holds at first valuation ranks tenure within a cohort. What ranks forward margin is mostly the fuel split: legs alone +0.545 against the belief's rate +0.387. The fitted blend fails out of sample. \"Legs, then rate\" held every prediction on two re-drawn-dice runs (2acb617d4), but it cannot be licensed, because re-drawing dice cannot vary a household trait (C1 failed, 16% and 11%). Replicating it needs a different book, which is EP17 (R13 curriculum). That ruling is the director's, and the worker has already sent him an NTFY with its recommendation, so I do not repeat it. ON THE MACHINE: all three previous focus items were drawn and finished, and they disappear. 388d33b76 brought the shared checkout back to origin, from 1 ahead and 42 behind. The ahead commit, 75df9efdf, was a live land-twice instance: a second \"EP1 pass 20\", byte-identical in code to d77ff33d5, dropped and preserved. The ten untracked blockers were supervisor._sync_origin_staging, not staging_watcher as I had it. Three of them matched an EARLIER origin revision, and the reconciler cannot clear that case, so it recurs. That mechanism is H49 (level 0) and it is the third item. origin_reconcile logged REFUSED_CONFLICT every five minutes from at least 04:07 to 04:22 while nothing raised it. The stretch had 26 commits and 7 substantive; 5 were empty merges or heartbeats.",
   "focus": [
    {
-    "id": "what-drives-the-worlds-retention-at-a-first-renewal",
+    "id": "PB4_engagement_separated_from_elasticity",
+    "what": "Finish the swap in docs/staging/SEAT_CONTINUATION_SWAP_THE_WORLDS_BILL_SHOCK_BASE_ONTO_THE_EXPERIENCED_SHOCK_2026-10-01.md, in order. (1) The one-world run measuring sim_experienced_bill_shock is already on the box (pid 4051166, watched by tools.wait_for). Do NOT launch another. Wait on it, grade it against P1-P6 in docs/staging/records/SEAT_PREREGISTRATION_PB4_THE_EXPERIENCED_BILL_SHOCK_ON_ONE_WORLD_2026-10-01.md, and publish the None count by reason. (2) If neither refutation clause fires, swap _bill_shock_base in simulation/customer_events.py onto one experienced-shock event per year. Re-fit year_level_anchor against the published SVT/fixed switching band in docs/market_research/svt_rates_active_passive_2016_2025.md, an external anchor and never this tree's output, and keep the 15% materiality cut as a named unsourced gap. Add a control that the hazard can fire at tenure 1. (3) On one post-swap world, re-measure the within-year tenure and bill-size gradients of p_retain with the analyse.py shape in /var/tmp/se-world-terms-out/, and grade them against the published direction (longer tenure switches less; spend within -0.07 to +0.05). Do not touch the passive-term-end roll in the same change.",
+    "why": "The world's retention gradients are an artefact of a count that is blind in year one, and every company-side ranking grade since the ab6 work has been scored against that artefact. Until the world is right, no retention result can tell inference from fitting a defect. DONE when the swap and its tenure-1 control are on origin, and a finding states the post-swap gradients against the published sign. If the run refutes the plan, DONE is instead the finding that says so and names what the cut is doing."
+   },
+   {
+    "id": "a-passive-fixed-term-end-is-a-decision-point-in-the-world",
     "lane": "W2_customer_generator",
-    "what": "A measurement, with no simulation/ or company/ code change. File predictions first, in a new section \"What drives the world\" in docs/staging/records/SEAT_PREREG_THE_NEXT_AB_ON_THE_SINGLE_ROLL_WORLD_WHAT_A_SEED_VARIES_2026-09-30.md. Then split the world's p_churn at each first renewal into the terms that compute it in simulation/customer_events.py, simulation/departure_risks.py and simulation/switching_propensity.py. Use the same rosters in /var/tmp/se-ab6-out (pin a322166cc, runP1/P2/X1 and pb6rank_C0_pin.json). Where a term is not carried there, recompute it from the logged inputs; do not start a sim run. Answer three things. (1) Does any world term depend on years on supply? Note that `tenure` in switching_propensity.py is HOUSING tenure, not years on supply. (2) Is the within-year -0.32 against supply tenure and -0.27 against bill size each carried by a term, or by a confound (housing tenure, income stress, consumption), shown by holding each term at its book mean as 8dc8dcd97 did on the company side? (3) Re-grade the company belief's -0.383 with each dual-fuel account paired leg-for-leg or at household level, not whichever leg was scored last (61 of 317 rows). Check the result against the published record on inertia and years on supply (CMA 2016 energy market investigation, Ofgem consumer engagement surveys; look in docs/market_research/ and docs/institutional/knowledge_map.md first). File one finding in docs/staging/ that says which: a world-fidelity gap, against the W2 atom that owns departure risk, or a real feature the company must learn, against B8_discovered_price_sensitivity_holdout.",
-    "why": "The rate term is the named lever. Fixing it toward the world is only inference if the world is right, and the one published anchor (CMA inertia) points the other way. Teaching the company a world artefact would be an advantage from a defect, which is the reverse of the thesis. DONE when the section (predictions, the per-term table and the re-paired grade) and the finding are on origin, and the finding names which atom the next build belongs to."
+    "what": "Only after item one's swap is on origin, and never in the same run. Knowledge first: establish from the published record the departure rate at a passive fixed-term end for a switched-in book. Start from Ofgem's 2019 End of Fixed Term trial, docs/market_research/what_a_renewal_decision_is_for_a_gb_domestic_customer.md and docs/domain_artefact_library/. If nothing establishes it, carry it as an explicit named None (FIRST_RENEWAL_DEPARTURE_PRIOR is already None for this reason), never as a placeholder. Then give the passive branch of rolls_active_renewal (simulation/renewals.py:211-231, simulation/run_phase2b.py:2323-2376) a term-end departure roll on that evidence, with a control asserting the passive branch CAN depart. Also record whether the anniversary re-draw for an SVT household duplicates the C1b cap-calendar hazard. Measure that; do not change it.",
+    "why": "The world gives about 65% of term ends no exit, against a licence that makes each one a decision point. The error flatters the company, and it is a reason a dice redraw moved only 9-12 exit months in 2acb617d4, so it also blunts every noise-floor test we run. DONE when the roll, or the named-None gap, is on origin with its control, and a finding gives the before/after exit count at term ends on one world."
    },
    {
-    "id": "the-shared-checkout-reaches-origin-and-stays-there",
-    "lane": "H_harness",
-    "what": "First wait on any running tools.surgical_land with tools/wait_for.py (pid 3300519 at orientation), and never kill it. Record whether it put a second \"EP1 pass 20\" commit on the shared HEAD after d77ff33d5 was already on origin, with its sha and a byte-diff against d77ff33d5. Then clear every path that origin_reconcile's latest NOT_ADVANCED line in docs/observability/reconcile-watch-log.md names, by the 2026-09-30 method in docs/staging/SEAT_FINDING_THE_ORIGIN_FORK_ALARM_WRITES_THE_FILE_THAT_BLOCKS_THE_FAST_FORWARD_IT_REPORTS_2026-09-30.md. Preserve each one first as a refs/preserved/ blob, then use tools.surgical_land refresh_to_head; three-way merge any copy with novel bytes and land it. For each path, name the writer and the door that left it: which lane or commit wrote the bytes, and whether its subject landed from an isolated worktree with the shared copy left behind. Append that table to the same finding as a dated 2026-10-01 section. If two or more paths share one door, file the mechanism that would have refreshed them at landing time as a map row under H_harness, after asking tools.maturity_map_store for headroom.",
-    "why": "At 31 behind, four of ten daemons run code the trunk has replaced. The recurrence is the same class as the open untracked-sibling and land-twice rows, and a second hand-clearance without the per-path door is a third clearance next week. DONE when shared HEAD equals origin/main, `evaluate_boot_sha_drift()` reports behind_trunk empty, and the dated section names a door for every path."
-   },
-   {
-    "id": "say-what-a-renewal-decision-is-before-ep1-values-it",
-    "lane": "B_commercial",
-    "what": "Knowledge first, then the build. Establish from the published record what a GB domestic customer's decision points actually are: Ofgem's rules on fixed-term end notices and roll-off to the default tariff, exit fees, and the evergreen nature of the default tariff (SLC 22C / 22D and the CMA 2016 remedies; check docs/domain_artefact_library/ and docs/market_research/ first). Write the result to docs/market_research/ with sources. Then read the world's renewal roll in simulation/run_phase2b.py and simulation/customer_events.py and record which anniversaries it decides at, and why, against that evidence. Choose the reading EP1's H2 tenure horizon needs (per world decision 0.36, per anniversary 0.09, or all-cause annual exit ~0.17) and make that change in company/analytics/clv_three_horizon.py with a control. If the published record does not settle whether a default-tariff customer faces an annual decision, send one NTFY to the director with the recommended reading and proceed on it.",
-    "why": "EP1 is the per-customer lifetime value the thesis decides on, and its horizon now rests on a hazard with no agreed denominator: a fourfold spread between readings. CLAUDE.md's rule is to say what the thing is before differencing it. DONE when the sourced note is on origin and H2 values on a named reading, or the gap is carried as an explicit None with its reason."
+    "id": "H49_an_untracked_copy_of_an_earlier_origin_revision_is_cleared_like_a_twin",
+    "what": "Build the H49 mechanism in background/origin_reconcile.py. An untracked shared-tree copy whose bytes equal ANY earlier origin revision of its own path (ask git log --format=%H -- <path> plus hash-object, not only the tip) is cleared like a twin, after preserving it under refs/preserved/. In the same change, make a REFUSED_CONFLICT or NOT_ADVANCED that persists past three cycles raise one supervisor alarm, naming its paths, instead of only appending to docs/observability/reconcile-watch-log.md. Also stop supervisor._sync_origin_staging writing a copy that would block a fast-forward. Mutation-prove each leg: one control with a fixture where the copy matches an earlier revision, and one with novel bytes that must NOT be cleared.",
+    "why": "This is the third hand-clearance of the shared checkout in two days (09-30, 388d33b76), and each time daemons ran code the trunk had replaced. A fourth hand-clearance is certain without the mechanism. DONE when H49 moves off level 0 with a mutation-proven control, and the next fast-forward needs no hand."
    }
   ],
   "not_now": [
    {
-    "what": "Changing the rate term in enriched_churn_estimate.py, or starting B8's learned price response, now.",
-    "why": "Its direction depends on whether the world's tenure and bill-size slopes are real. A fix before the world read could teach the company an artefact, and the read costs no sim run."
+    "what": "Changing the company's retention rate term (enriched_churn_estimate) or starting B8's learned price response.",
+    "why": "8dd7794bd showed the anti-ranking it would correct is mostly a world artefact. Any company-side fit before item one lands would learn the defect, which is the reverse of the thesis."
    },
    {
-    "what": "Building PB7's per-channel learning rule.",
-    "why": "8dc8dcd97 showed that a scalar per channel cannot reorder accounts within direct debit, and the value arm does not read it. PB7 is released against that finding; building it now moves no ranking."
+    "what": "Putting \"legs, then rate\" into EP1's ranking input, or rebinding _DEFAULT_BASE_SEED by hand to replicate it.",
+    "why": "Two dice-redraw runs held every prediction but cannot vary a household trait, so they cannot license the rule (2acb617d4). A different book is EP17, which is R13 curriculum and the director's; the worker already sent him the recommendation. Going round the door would be deciding his call."
    },
    {
-    "what": "Re-sending the EP17 four-book pilot ask, or re-running the full ab6 A/B at origin/main.",
-    "why": "The belief still anti-ranks within direct debit. A book-varied or re-pinned run would price the same inversion again, and with PB6, W1_14, D27 and EP13 all moved it could not be attributed."
+    "what": "Swapping the bill-shock base and adding the passive-term-end roll in one change.",
+    "why": "Both move departure levels and gradients. Together they cannot be attributed, and the swap's run is already in flight. Item two waits for item one."
    },
    {
-    "what": "Writing EP1's ledger row (couple_clv --write-ledger).",
-    "why": "It waits on the premise-two-level reds and on the denominator question in item three. A row written on the 0.09 reading would be read as established."
+    "what": "Re-running the ab6 value-cycle A/B or the EP17 four-book pilot now.",
+    "why": "Any result is scored against a world whose retention gradients are known to be artefacts. It would price the defect again; run it after items one and two."
    },
    {
-    "what": "Binding the lane-0 not_done rows, and a heartbeat for the mute worker-seat-manager.",
-    "why": "Bookkeeping and a daemon behaviour change that move no level. The ledger no longer misattributes them, and the mute daemon's wait channel is still its ordinary sleep."
-   },
-   {
-    "what": "Putting the tenure or default-tariff questions to the director as practitioner now.",
-    "why": "Both may be settled by the published record and a world-side measurement, which cost his attention nothing. Item three sends one NTFY with a recommendation only if the record leaves it open."
+    "what": "Binding the lane-0 not_done row grade-ab6-pilots-once-runp2-exists, and a heartbeat for the mute worker-seat-manager.",
+    "why": "The bytes attributed to that row by time (a done run_complete and the director console) are not its work, and both items move no level. The mute daemon's wait channel is still its ordinary sleep."
    }
   ],
   "for_the_director": [],
@@ -309,6 +303,66 @@
  },
  "what_it_got_wrong": {
   "entries": [
+   {
+    "at": "2026-10-01T05:23:38.288126+00:00",
+    "what": "MINE, NEW. Last stretch I guessed that the world's within-year tenure slope (-0.32) was a housing-tenure confound. Measured, housing tenure moves nothing material. The whole gradient is the yoy bill-shock count, which is blind in year one (8dd7794bd). The finding was right to test it; my thesis_read carried the guess as the likely answer.",
+    "corrected": true
+   },
+   {
+    "at": "2026-10-01T05:23:38.288126+00:00",
+    "what": "THE MACHINE'S, NEW. The world's bill-shock base cannot fire in a household's first year (k=0 on 156/156 tenure-1 rows), and it produced retention gradients opposite to the published record. Every company ranking grade was scored against it. The definition landed in a0ccd009b; the hazard still reads the old count until item one's swap.",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-01T05:23:38.288126+00:00",
+    "what": "THE MACHINE'S, NEW. The world rolls no departure at a passive fixed-term end (about 65% of term ends), though the licence makes every term end a decision point (9d6ad4551). Item two.",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-01T05:23:38.288126+00:00",
+    "what": "THE MACHINE'S, CARRIED. The shared checkout was 0 ahead and 31 behind origin, held by uncommitted shared-tree copies, with nothing raising it. Cleared by 388d33b76; HEAD is now level with origin bar the newest commit. The recurring class is H49 and the alarm leg, both item three.",
+    "corrected": true
+   },
+   {
+    "at": "2026-10-01T05:23:38.288126+00:00",
+    "what": "THE MACHINE'S, CARRIED. The brief measures the stretch over HEAD and origin together, and its divergence line counts patch-equivalent copies. origin_reconcile logged REFUSED_CONFLICT every cycle (04:07-04:22 this stretch, on 75df9efdf) and nothing raised it past its own log. The raise leg is in item three.",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-01T05:23:38.288126+00:00",
+    "what": "THE MACHINE'S, CARRIED. One item can land twice, once on origin through surgical_land and once as a local commit on the shared HEAD. This stretch's live instance was 75df9efdf, a second \"EP1 pass 20\" after d77ff33d5, dropped by hand in 388d33b76. No mechanism prevents the next one.",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-01T05:23:38.288126+00:00",
+    "what": "THE MACHINE'S, CARRIED. The launch register recorded hgc-suite-timing as died at 19:49:09Z (its /var/tmp driver called resource_headroom.admitted(), which does not exist), while a process of the same driver path was on the box. Nothing checks that a hand-written /var/tmp driver calls an API that exists.",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-01T05:23:38.288126+00:00",
+    "what": "THE MACHINE'S, CARRIED. A control or door whose shape changes must re-run every fixture that builds a synthetic tree to drive it, and no control requires it. citation_at_head, red_at_head and fork_state in docs/observability/.publish_gate_state.json still read not_established.",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-01T05:23:38.288126+00:00",
+    "what": "THE MACHINE'S, CARRIED. A refusal naming a commit is not re-asked against the remote ref before a reader sees it. liveness_surface_refusal is still not re-asked.",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-01T05:23:38.288126+00:00",
+    "what": "THE MACHINE'S, CARRIED. The stash-completeness sweep reports a genuinely lost file as safe. It is still not on the map.",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-01T05:23:38.288126+00:00",
+    "what": "THE MACHINE'S, CARRIED. Nothing on the landing path asks whether a same-subject sibling is left behind in the shared tree. The 14-path refusal in 662da7fd3 was one instance. This stretch's blockers were mostly the supervisor's staging sync (H49), not landing siblings, so the class is separate and still open.",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-01T05:23:38.288126+00:00",
+    "what": "MINE, CARRIED. not_now is prose, and nothing a launch from another lane reads. The launcher in b50a03519 and the --book-seeds refusal in 19ca27dbc each turn one instance into a mechanism; the --book-seeds door held again this stretch (2acb617d4 did not go round it). The class stays open.",
+    "corrected": false
+   },
    {
     "at": "2026-10-01T02:24:31.786192+00:00",
     "what": "MINE, NEW. I carried \"evaluate_boot_sha_drift() grades every daemon against local HEAD\" as a diagnosis for several stretches without running it. Run, it grades the DISK. The real defect was that it could not see the trunk at all (0 stale while 4 of 10 were behind).",
@@ -2628,41 +2682,51 @@
     "at": "2026-09-24T20:22:26.871045+00:00",
     "what": "THE MACHINE'S, CARRIED, INSTANCE CLOSED AND CLASS STILL OPEN. A seat ran `git stash` on the shared tree \u2014 a never-do \u2014 and swept 436 paths of several lanes' uncommitted work; all of it was recovered and verified byte-identical, and the stash entry is kept as the copy of record. The class is untouched: `git restore --source=stash@{0}` silently skipped the one path present in the stash but in neither HEAD nor the index, and the completeness sweep could not see the miss because `git diff --quiet HEAD -- <path>` is quiet for an untracked path whatever its content \u2014 so the same detector would report a genuinely lost file safe. Rejected from focus for a third stretch, visibly, in `not_now`. Carried so that nobody reaching for a recovery sweep trusts one.",
     "corrected": false
-   },
-   {
-    "at": "2026-09-24T17:22:07.364961+00:00",
-    "what": "MINE, CARRIED, AND REGRADED RATHER THAN REPEATED \u2014 the diagnosis was wrong, not just the outcome. I filed that the tree-advance work failed because I ranked it FOURTH, and I wrote \"grade this next stretch by whether `contains_origin` has turned true, never by my having re-ranked it\". The one-variable control has now run and it refutes me: I ranked it SECOND, the lane drew it, a session worked it for a full turn, and the gap grew from 20 to 29 commits anyway while the publisher reached 50 consecutive failures over 68.7h. Rank was an untested cause that fit the evidence, which is the shape this project keeps paying for. The real cause is a door broken on the trunk \u2014 `refresh_to_head`'s `-S` probe is built from the judgement base rather than the preserved commit's parent, so it fails closed on its own sound preservation, and three of the five residue paths have no other door. `contains_origin` is still `False`, so this stays open; the correction is that the next seat should grade the REPAIR and not the ranking.",
-    "corrected": false
-   },
-   {
-    "at": "2026-09-24T17:22:07.364961+00:00",
-    "what": "THE MACHINE'S, CARRIED, HALF ESTABLISHED AND HALF UNTOUCHED \u2014 and the established half refutes the premise I filed it under. I wrote that `ec1012c01` had been inert for six days. `ec667ff1e` ran the command by hand and it DOES stamp; the stamps then answered the rest themselves, because a stamp records a content hash for every file dirty at boot including its own source. `background/boot_sha.py` reads blob `56648a39a` in three separate stamps, that blob is in no commit, and it carries both `dirty_blobs` and the `__main__` block that `3ecf355d8` deleted \u2014 so the stamper did not die on 2026-09-04, it ran for two more weeks off an uncommitted hybrid and stopped when the checkout was refreshed to HEAD. The deployment was tracking a dirty working copy, invisible because the only evidence sat inside the artefact the mechanism writes. WHAT IS STILL OPEN IS THE HALF THAT MATTERS: nothing can distinguish a working stamper from a dead one, the `-` prefix on `ExecStartPre` keeps every failure silent by design, the stamping and restarting populations are disjoint so the signal goes dark by construction, and the finding's pre-registered prediction is unchecked. The thoroughness of the write-up is itself a hazard \u2014 it reads finished and is not.",
-    "corrected": false
-   },
-   {
-    "at": "2026-09-24T17:22:07.364961+00:00",
-    "what": "THE MACHINE'S, CARRIED, INSTANCE CLOSED AND CLASS STILL OPEN. A seat ran `git stash` on the shared tree \u2014 a never-do \u2014 and swept 436 paths of several lanes' uncommitted work; everything was recovered and verified byte-identical by partitioning the stash against disk, and the stash entry is deliberately kept as the copy of record. The class is the sharper half and is untouched: `git restore --source=stash@{0}` silently skipped the one path present in the stash but in neither HEAD nor the index, and the completeness sweep could not see the miss because `git diff --quiet HEAD -- <path>` is quiet for an untracked path whatever its content, so the same detector would report a genuinely lost file safe. Deliberately not in focus for a second stretch: it guards a forbidden manoeuvre and it loses to a dark publisher. Carried so that nobody reaching for a recovery sweep trusts one.",
-    "corrected": false
-   },
-   {
-    "at": "2026-09-24T17:22:07.364961+00:00",
-    "what": "MINE, NEW, AND THE CHEAPEST THING ON THIS LIST TO FIX: I wrote FOUR focus items into a three-hour stretch when the evidence already said the fourth is unreachable. The lane drew three of four this stretch and three of four the stretch before, and both times the undrawn one was the item in fourth place. A fourth item is therefore not a statement of priority, it is a quiet write-off dressed as one, and it let me record `the-sanity-daemons-silence-has-no- cause-on-file` as chosen while choosing nothing. This record names three and puts the rejection in `not_now` where it is visible as a decision. Corrected here; the acceptance test is that every item named is drawn.",
-    "corrected": true
    }
   ],
   "refused_own_records": [],
-  "outstanding": 378,
-  "corrected": 90,
+  "outstanding": 385,
+  "corrected": 91,
   "correction_not_recorded": 0,
   "empty_means": ""
  },
  "what_next": {
   "focus": [
-   "what-drives-the-worlds-retention-at-a-first-renewal",
-   "the-shared-checkout-reaches-origin-and-stays-there",
-   "say-what-a-renewal-decision-is-before-ep1-values-it"
+   "PB4_engagement_separated_from_elasticity",
+   "a-passive-fixed-term-end-is-a-decision-point-in-the-world",
+   "H49_an_untracked_copy_of_an_earlier_origin_revision_is_cleared_like_a_twin"
   ],
   "steer_checks": [
+   {
+    "by_class": {
+     "lane_0": {
+      "drawn": [
+       "what-drives-the-worlds-retention-at-a-first-renewal",
+       "the-shared-checkout-reaches-origin-and-stays-there",
+       "say-what-a-renewal-decision-is-before-ep1-values-it"
+      ],
+      "focus": [
+       "what-drives-the-worlds-retention-at-a-first-renewal",
+       "the-shared-checkout-reaches-origin-and-stays-there",
+       "say-what-a-renewal-decision-is-before-ep1-values-it"
+      ],
+      "steered": true
+     }
+    },
+    "drawn": [
+     "what-drives-the-worlds-retention-at-a-first-renewal",
+     "the-shared-checkout-reaches-origin-and-stays-there",
+     "say-what-a-renewal-decision-is-before-ep1-values-it"
+    ],
+    "focus": [
+     "what-drives-the-worlds-retention-at-a-first-renewal",
+     "the-shared-checkout-reaches-origin-and-stays-there",
+     "say-what-a-renewal-decision-is-before-ep1-values-it"
+    ],
+    "note": "the previous direction named work the draw then took (measured over this stretch only -- the 3.0h since 2026-10-01T02:24:31.786192+00:00; this is the PREVIOUS FOCUS, not every drawn item)",
+    "steered": true,
+    "window": "this stretch only -- the 3.0h since 2026-10-01T02:24:31.786192+00:00"
+   },
    {
     "by_class": {
      "lane_0": {
@@ -2784,34 +2848,6 @@
     "note": "the previous direction named work the draw then took (measured over this stretch only -- the 3.0h since 2026-09-30T14:22:25.400516+00:00; this is the PREVIOUS FOCUS, not every drawn item)",
     "steered": true,
     "window": "this stretch only -- the 3.0h since 2026-09-30T14:22:25.400516+00:00"
-   },
-   {
-    "by_class": {
-     "lane_0": {
-      "drawn": [
-       "land-the-stranded-head-only-commits-on-origin",
-       "grade-ab6-bridge-and-pilots"
-      ],
-      "focus": [
-       "land-the-stranded-head-only-commits-on-origin",
-       "grade-ab6-bridge-and-pilots",
-       "the-brief-counts-stranded-landings"
-      ],
-      "steered": true
-     }
-    },
-    "drawn": [
-     "land-the-stranded-head-only-commits-on-origin",
-     "grade-ab6-bridge-and-pilots"
-    ],
-    "focus": [
-     "land-the-stranded-head-only-commits-on-origin",
-     "grade-ab6-bridge-and-pilots",
-     "the-brief-counts-stranded-landings"
-    ],
-    "note": "the previous direction named work the draw then took (measured over this stretch only -- the 3.0h since 2026-09-30T11:23:00.155866+00:00; this is the PREVIOUS FOCUS, not every drawn item)",
-    "steered": true,
-    "window": "this stretch only -- the 3.0h since 2026-09-30T11:23:00.155866+00:00"
    }
   ],
   "steered_recently": true,
@@ -2819,11 +2855,39 @@
  },
  "the_queues_link_to_the_map": {
   "available": true,
-  "population": 36,
-  "chained": 35,
-  "minted": 7,
-  "unminted": 28,
+  "population": 45,
+  "chained": 40,
+  "minted": 17,
+  "unminted": 23,
   "unchained": [
+   {
+    "name": "CLASS_PUBLISH_GATE_AND_WEDGE_2026-08-12.md",
+    "missing": [
+     "epoch",
+     "atom"
+    ]
+   },
+   {
+    "name": "CLASS_CONTROLS_THAT_CANNOT_FAIL_2026-08-12.md",
+    "missing": [
+     "epoch",
+     "atom"
+    ]
+   },
+   {
+    "name": "CLASS_NO_CALLER_AND_NEVER_RUNS_2026-08-12.md",
+    "missing": [
+     "epoch",
+     "atom"
+    ]
+   },
+   {
+    "name": "CLASS_MEASUREMENTS_THAT_MIRROR_2026-08-12.md",
+    "missing": [
+     "epoch",
+     "atom"
+    ]
+   },
    {
     "name": "maintenance_due_202610.md",
     "missing": [

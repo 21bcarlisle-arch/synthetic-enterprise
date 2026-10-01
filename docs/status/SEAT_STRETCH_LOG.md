@@ -8,6 +8,47 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-10-01 — orientation: THE ANTI-RANKING WAS MOSTLY THE WORLD, NOT THE COMPANY
+
+<!-- head: 2acb617d439b -->
+
+*Written by the orientation seat from its own record (2026-10-01T05:23:38.288126+00:00; 26 commits, 7 substantive, since 2026-10-01T02:24:31.786192+00:00).*
+
+## What the stretch meant
+
+THE ANTI-RANKING WAS MOSTLY THE WORLD, NOT THE COMPANY. That is the stretch's meaning, and it moves the thesis forward by removing a false lesson rather than adding a capability. Last stretch I said the value arm loses because the company's retention belief anti-ranks the world, and I guessed the world's tenure slope was a housing-tenure confound. The guess was wrong, and the real cause is worse for the world. The world's bill-shock base (saas.customer_reaction yoy count) cannot fire in a household's first year: k=0 on 156 of 156 tenure-1 rows, against 6.86 shocked months out of 12 later. That one term carries the whole tenure gradient (-0.346 to -0.009 when it is held) and the whole bill-size gradient (-0.272 to +0.003). Hold it, and the company belief's pooled score against the world goes from -0.336 to +0.197 (8dd7794bd). Published evidence points the other way on both: longer tenure switches less (Ofgem, CMA 2016), and spend barely correlates (BMG 2024). So a company taught to fit the world's retention would have learned a defect. That is advantage by access to an artefact, the reverse of the thesis, and it was caught before anyone built it. PB4 now defines the experienced shock by the published definition (a0ccd009b). The hazard still reads the old count on purpose, and a one-world run measuring the new shock is on the box now (pid 4051166, pre-registered in 57b505ca3). A second world gap surfaced from the licence (9d6ad4551): about 65% of fixed-term ends are passive and roll no departure at all, although the record makes every term end a decision point (Ofgem's 2019 EoFT trial: 6% external switching within six weeks). The error runs the company's way. EP1 now values on all-cause exit over exposure, the defined reading, with a life table by tenure year and an untruncated survival sum (627f05756, 7e2503507, 127c007f0). The gap arm fell from 1.558 to 1.275. But nothing a supplier holds at first valuation ranks tenure within a cohort. What ranks forward margin is mostly the fuel split: legs alone +0.545 against the belief's rate +0.387. The fitted blend fails out of sample. "Legs, then rate" held every prediction on two re-drawn-dice runs (2acb617d4), but it cannot be licensed, because re-drawing dice cannot vary a household trait (C1 failed, 16% and 11%). Replicating it needs a different book, which is EP17 (R13 curriculum). That ruling is the director's, and the worker has already sent him an NTFY with its recommendation, so I do not repeat it. ON THE MACHINE: all three previous focus items were drawn and finished, and they disappear. 388d33b76 brought the shared checkout back to origin, from 1 ahead and 42 behind. The ahead commit, 75df9efdf, was a live land-twice instance: a second "EP1 pass 20", byte-identical in code to d77ff33d5, dropped and preserved. The ten untracked blockers were supervisor._sync_origin_staging, not staging_watcher as I had it. Three of them matched an EARLIER origin revision, and the reconciler cannot clear that case, so it recurs. That mechanism is H49 (level 0) and it is the third item. origin_reconcile logged REFUSED_CONFLICT every five minutes from at least 04:07 to 04:22 while nothing raised it. The stretch had 26 commits and 7 substantive; 5 were empty merges or heartbeats.
+
+## What went wrong
+
+- corrected: MINE, NEW. Last stretch I guessed that the world's within-year tenure slope (-0.32) was a housing-tenure confound. Measured, housing tenure moves nothing material. The whole gradient is the yoy bill-shock count, which is blind in year one (8dd7794bd). The finding was right to test it; my thesis_read carried the guess as the likely answer.
+- NOT corrected: THE MACHINE'S, NEW. The world's bill-shock base cannot fire in a household's first year (k=0 on 156/156 tenure-1 rows), and it produced retention gradients opposite to the published record. Every company ranking grade was scored against it. The definition landed in a0ccd009b; the hazard still reads the old count until item one's swap.
+- NOT corrected: THE MACHINE'S, NEW. The world rolls no departure at a passive fixed-term end (about 65% of term ends), though the licence makes every term end a decision point (9d6ad4551). Item two.
+- corrected: THE MACHINE'S, CARRIED. The shared checkout was 0 ahead and 31 behind origin, held by uncommitted shared-tree copies, with nothing raising it. Cleared by 388d33b76; HEAD is now level with origin bar the newest commit. The recurring class is H49 and the alarm leg, both item three.
+- NOT corrected: THE MACHINE'S, CARRIED. The brief measures the stretch over HEAD and origin together, and its divergence line counts patch-equivalent copies. origin_reconcile logged REFUSED_CONFLICT every cycle (04:07-04:22 this stretch, on 75df9efdf) and nothing raised it past its own log. The raise leg is in item three.
+- NOT corrected: THE MACHINE'S, CARRIED. One item can land twice, once on origin through surgical_land and once as a local commit on the shared HEAD. This stretch's live instance was 75df9efdf, a second "EP1 pass 20" after d77ff33d5, dropped by hand in 388d33b76. No mechanism prevents the next one.
+- NOT corrected: THE MACHINE'S, CARRIED. The launch register recorded hgc-suite-timing as died at 19:49:09Z (its /var/tmp driver called resource_headroom.admitted(), which does not exist), while a process of the same driver path was on the box. Nothing checks that a hand-written /var/tmp driver calls an API that exists.
+- NOT corrected: THE MACHINE'S, CARRIED. A control or door whose shape changes must re-run every fixture that builds a synthetic tree to drive it, and no control requires it. citation_at_head, red_at_head and fork_state in docs/observability/.publish_gate_state.json still read not_established.
+- NOT corrected: THE MACHINE'S, CARRIED. A refusal naming a commit is not re-asked against the remote ref before a reader sees it. liveness_surface_refusal is still not re-asked.
+- NOT corrected: THE MACHINE'S, CARRIED. The stash-completeness sweep reports a genuinely lost file as safe. It is still not on the map.
+- NOT corrected: THE MACHINE'S, CARRIED. Nothing on the landing path asks whether a same-subject sibling is left behind in the shared tree. The 14-path refusal in 662da7fd3 was one instance. This stretch's blockers were mostly the supervisor's staging sync (H49), not landing siblings, so the class is separate and still open.
+- NOT corrected: MINE, CARRIED. not_now is prose, and nothing a launch from another lane reads. The launcher in b50a03519 and the --book-seeds refusal in 19ca27dbc each turn one instance into a mechanism; the --book-seeds door held again this stretch (2acb617d4 did not go round it). The class stays open.
+
+## Chosen against
+
+- Changing the company's retention rate term (enriched_churn_estimate) or starting B8's learned price response.
+- Putting "legs, then rate" into EP1's ranking input, or rebinding _DEFAULT_BASE_SEED by hand to replicate it.
+- Swapping the bill-shock base and adding the passive-term-end roll in one change.
+- Re-running the ab6 value-cycle A/B or the EP17 four-book pilot now.
+- Binding the lane-0 not_done row grade-ab6-pilots-once-runp2-exists, and a heartbeat for the mute worker-seat-manager.
+
+## Focus for the next stretch
+
+- `PB4_engagement_separated_from_elasticity`
+- `a-passive-fixed-term-end-is-a-decision-point-in-the-world`
+- `H49_an_untracked_copy_of_an_earlier_origin_revision_is_cleared_like_a_twin`
+
+---
+
 ## 2026-10-01 — orientation: THE INVERTED INPUT IS NAMED, AND THE QUESTION HAS CROSSED THE WALL
 
 <!-- head: 9a5dc872e612 -->
