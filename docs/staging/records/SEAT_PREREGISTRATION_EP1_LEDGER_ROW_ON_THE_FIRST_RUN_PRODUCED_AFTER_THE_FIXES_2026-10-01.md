@@ -69,3 +69,7 @@ position and never by account. That is the structural gap that
 **Not landed.** The gate refused the ledger write because of ten reds that are already on origin
 and that this change does not touch (see the EP1 all-cause finding's last paragraph). This record
 lands without the ledger. The number above is measured, not published.
+
+**Landed later the same day.** `9fd88794f` resolved the ten premise and fabric reds. After that,
+the row was recomputed from the same `af4709ff1` output and written onto HEAD's ledger with this
+key alone. It reproduced the result above exactly: 1.081 on 69 of 248 counted accounts.

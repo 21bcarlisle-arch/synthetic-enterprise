@@ -1,8 +1,8 @@
 {
   "EP1_clv_three_horizon": {
-    "baseline": "no-skill = assign every account the MEAN realised lifetime margin OF THE GRADED POPULATION (GBP 100.20); g0 = that predictor's mean absolute error (GBP 269.65). gap>1 means the company's per-customer CLV carries less information than that mean. NOT the book's mean: the graded population is the accounts whose life ENDED inside the run, so this divisor is fitted on a population selected on the outcome, and the baseline is handed a figure the company could not have formed at belief time. See `components.population_selection` for how far the two populations are apart before reading the ratio.",
+    "baseline": "no-skill = assign every account the MEAN realised lifetime margin OF THE GRADED POPULATION (GBP 240.96); g0 = that predictor's mean absolute error (GBP 356.62). gap>1 means the company's per-customer CLV carries less information than that mean. NOT the book's mean: the graded population is the accounts whose life ENDED inside the run, so this divisor is fitted on a population selected on the outcome, and the baseline is handed a figure the company could not have formed at belief time. See `components.population_selection` for how far the two populations are apart before reading the ratio.",
     "components": {
-      "available_accounts": 263,
+      "available_accounts": 248,
       "belief_provenance": {
         "atom_estimator_imported_by_series": true,
         "atom_estimator_module": "company.analytics.clv_three_horizon",
@@ -40,679 +40,1224 @@
         "series_uses_the_shared_view_builder": true,
         "tree_wires_ep1": true
       },
-      "counted_accounts": 33,
-      "crosscheck_snapshot_coverage": 205,
+      "counted_accounts": 69,
+      "crosscheck_snapshot_coverage": 128,
       "error_decomposition": {
         "available": true,
-        "best_single_scale": 0.2042541061772752,
-        "gap_after_best_single_scale": 0.8058525467005443,
+        "best_single_scale": 0.6013922616156716,
+        "gap_after_best_single_scale": 0.9909053010036094,
         "in_sample": true,
-        "magnitude_inflated_accounts": 27,
-        "population": 33,
+        "magnitude_inflated_accounts": 43,
+        "population": 69,
         "reading": "share of the headline one scalar absorbs = the share NOT explained by per-account error. Fitted in-sample: an attribution, never a skill estimate and never a correction to apply (R12)."
       },
-      "excluded_accounts": 230,
-      "excluded_right_censored": 218,
+      "excluded_accounts": 179,
+      "excluded_right_censored": 158,
       "grades_atom_estimator": true,
       "hazard_calibration": {
         "available": true,
         "by_believed_hazard": [
           {
             "believed_hazard": 0.05,
-            "believed_over_realised": 0.9392857142857144,
+            "believed_over_realised": 0.13571428571428573,
             "believed_tenure_years": 20.0,
             "churned": 14,
-            "decisions": 263,
-            "realised_rate": 0.053231939163498096
+            "decisions": 38,
+            "realised_rate": 0.3684210526315789
           },
           {
             "believed_hazard": 0.08,
-            "believed_over_realised": 7.6000000000000005,
+            "believed_over_realised": 0.56,
             "believed_tenure_years": 12.5,
             "churned": 1,
-            "decisions": 95,
-            "realised_rate": 0.010526315789473684
+            "decisions": 7,
+            "realised_rate": 0.14285714285714285
           },
           {
             "believed_hazard": 0.11,
-            "believed_over_realised": null,
+            "believed_over_realised": 0.44,
             "believed_tenure_years": 9.090909090909092,
-            "churned": 0,
-            "decisions": 13,
-            "realised_rate": 0.0
+            "churned": 1,
+            "decisions": 4,
+            "realised_rate": 0.25
           },
           {
             "believed_hazard": 0.14,
-            "believed_over_realised": null,
+            "believed_over_realised": 0.35000000000000003,
             "believed_tenure_years": 7.142857142857142,
-            "churned": 0,
-            "decisions": 6,
-            "realised_rate": 0.0
+            "churned": 2,
+            "decisions": 5,
+            "realised_rate": 0.4
           },
           {
             "believed_hazard": 0.17,
-            "believed_over_realised": 1.0200000000000002,
+            "believed_over_realised": 0.22666666666666668,
             "believed_tenure_years": 5.88235294117647,
-            "churned": 1,
-            "decisions": 6,
-            "realised_rate": 0.16666666666666666
+            "churned": 3,
+            "decisions": 4,
+            "realised_rate": 0.75
           },
           {
             "believed_hazard": 0.2,
-            "believed_over_realised": 1.8000000000000003,
+            "believed_over_realised": 0.7000000000000001,
             "believed_tenure_years": 5.0,
-            "churned": 1,
-            "decisions": 9,
-            "realised_rate": 0.1111111111111111
+            "churned": 2,
+            "decisions": 7,
+            "realised_rate": 0.2857142857142857
           },
           {
             "believed_hazard": 0.23,
-            "believed_over_realised": 1.0350000000000001,
+            "believed_over_realised": 0.92,
             "believed_tenure_years": 4.3478260869565215,
             "churned": 2,
-            "decisions": 9,
-            "realised_rate": 0.2222222222222222
+            "decisions": 8,
+            "realised_rate": 0.25
           },
           {
             "believed_hazard": 0.26,
-            "believed_over_realised": null,
+            "believed_over_realised": 0.52,
             "believed_tenure_years": 3.846153846153846,
-            "churned": 0,
-            "decisions": 5,
-            "realised_rate": 0.0
+            "churned": 1,
+            "decisions": 2,
+            "realised_rate": 0.5
           },
           {
             "believed_hazard": 0.29,
-            "believed_over_realised": 3.48,
-            "believed_tenure_years": 3.4482758620689657,
-            "churned": 1,
-            "decisions": 12,
-            "realised_rate": 0.08333333333333333
-          },
-          {
-            "believed_hazard": 0.32,
-            "believed_over_realised": 2.56,
-            "believed_tenure_years": 3.125,
-            "churned": 1,
-            "decisions": 8,
-            "realised_rate": 0.125
-          },
-          {
-            "believed_hazard": 0.35,
             "believed_over_realised": null,
-            "believed_tenure_years": 2.857142857142857,
+            "believed_tenure_years": 3.4482758620689657,
             "churned": 0,
-            "decisions": 5,
+            "decisions": 3,
             "realised_rate": 0.0
           },
           {
+            "believed_hazard": 0.32,
+            "believed_over_realised": 1.28,
+            "believed_tenure_years": 3.125,
+            "churned": 2,
+            "decisions": 8,
+            "realised_rate": 0.25
+          },
+          {
+            "believed_hazard": 0.35,
+            "believed_over_realised": 1.05,
+            "believed_tenure_years": 2.857142857142857,
+            "churned": 2,
+            "decisions": 6,
+            "realised_rate": 0.3333333333333333
+          },
+          {
             "believed_hazard": 0.38,
-            "believed_over_realised": 2.364444444444444,
+            "believed_over_realised": 0.6839999999999999,
             "believed_tenure_years": 2.6315789473684212,
-            "churned": 9,
-            "decisions": 56,
-            "realised_rate": 0.16071428571428573
+            "churned": 5,
+            "decisions": 9,
+            "realised_rate": 0.5555555555555556
           },
           {
             "believed_hazard": 0.41,
-            "believed_over_realised": 3.69,
+            "believed_over_realised": 0.6833333333333333,
             "believed_tenure_years": 2.4390243902439024,
-            "churned": 15,
-            "decisions": 135,
-            "realised_rate": 0.1111111111111111
+            "churned": 3,
+            "decisions": 5,
+            "realised_rate": 0.6
           }
         ],
-        "churn_events": 45,
-        "decision_points": 622,
+        "churn_events": 38,
+        "decision_points": 106,
         "distinct_believed_hazards": 13,
-        "implied_realised_mean_tenure_years": 13.822222222222223,
-        "mean_believed_hazard": 0.18268488745980707,
-        "mean_believed_tenure_years": 11.74356273483199,
+        "implied_realised_mean_tenure_years": 2.7894736842105265,
+        "mean_believed_hazard": 0.17962264150943397,
+        "mean_believed_tenure_years": 10.461785541860257,
         "reading": "`believed_over_realised` above 1 means the company thinks the customer is likelier to leave than they proved to be, which makes its believed tenure -- and therefore its CLV -- too SHORT, not too long. Compare `mean_believed_tenure_years` with `implied_realised_mean_tenure_years` for the portfolio-level direction. Buckets with small `decisions` carry a realised rate that is mostly noise; `decisions` is published so a reader can see which rows are worth reading. R12: diagnostic, never a target.",
-        "realised_per_renewal_churn_rate": 0.07234726688102894
+        "realised_per_renewal_churn_rate": 0.3584905660377358
       },
       "lifetime_level": {
         "available": true,
         "discount_rate": 0.1,
-        "distinct_hazards": 1,
+        "distinct_hazards": 6,
         "hazard_histogram": {
-          "0.05": 33
+          "0.1403": 2,
+          "0.1543": 54,
+          "0.1917": 3,
+          "0.2406": 4,
+          "0.2495": 3,
+          "0.2519": 3
         },
-        "hazard_is_constant_across_graded_population": true,
-        "median_believed_tenure_years": 20.000000000000004,
+        "hazard_is_constant_across_graded_population": false,
+        "median_believed_tenure_years": 6.480922803904172,
         "per_account": [
           {
             "account": "C1",
-            "belief_year": "2016",
-            "believed_tenure_years": 20.000000000000004,
-            "hazard": 0.04999999999999999
+            "belief_year": "2017",
+            "believed_tenure_years": 6.480922803904172,
+            "hazard": 0.15429901423877324,
+            "hazard_source": "published_book_exit_life_table"
+          },
+          {
+            "account": "C2",
+            "belief_year": "2017",
+            "believed_tenure_years": 6.480922803904172,
+            "hazard": 0.15429901423877324,
+            "hazard_source": "published_book_exit_life_table"
+          },
+          {
+            "account": "C3_2",
+            "belief_year": "2017",
+            "believed_tenure_years": 6.480922803904172,
+            "hazard": 0.15429901423877324,
+            "hazard_source": "published_book_exit_life_table"
+          },
+          {
+            "account": "C4",
+            "belief_year": "2017",
+            "believed_tenure_years": 6.480922803904172,
+            "hazard": 0.15429901423877324,
+            "hazard_source": "published_book_exit_life_table"
           },
           {
             "account": "C5",
-            "belief_year": "2016",
-            "believed_tenure_years": 20.000000000000004,
-            "hazard": 0.04999999999999999
+            "belief_year": "2017",
+            "believed_tenure_years": 6.480922803904172,
+            "hazard": 0.15429901423877324,
+            "hazard_source": "published_book_exit_life_table"
           },
           {
-            "account": "PROS-2016-0003",
+            "account": "C7",
             "belief_year": "2017",
-            "believed_tenure_years": 20.000000000000004,
-            "hazard": 0.04999999999999999
+            "believed_tenure_years": 6.480922803904172,
+            "hazard": 0.15429901423877324,
+            "hazard_source": "published_book_exit_life_table"
+          },
+          {
+            "account": "C8",
+            "belief_year": "2017",
+            "believed_tenure_years": 6.480922803904172,
+            "hazard": 0.15429901423877324,
+            "hazard_source": "published_book_exit_life_table"
+          },
+          {
+            "account": "C9",
+            "belief_year": "2017",
+            "believed_tenure_years": 6.480922803904172,
+            "hazard": 0.15429901423877324,
+            "hazard_source": "published_book_exit_life_table"
           },
           {
             "account": "PROS-2016-0024",
             "belief_year": "2017",
-            "believed_tenure_years": 20.000000000000004,
-            "hazard": 0.04999999999999999
+            "believed_tenure_years": 6.480922803904172,
+            "hazard": 0.15429901423877324,
+            "hazard_source": "published_book_exit_life_table"
           },
           {
-            "account": "PROS-2017-0038",
+            "account": "PROS-2016-0042",
+            "belief_year": "2017",
+            "believed_tenure_years": 6.480922803904172,
+            "hazard": 0.15429901423877324,
+            "hazard_source": "published_book_exit_life_table"
+          },
+          {
+            "account": "PROS-2016-0046",
+            "belief_year": "2017",
+            "believed_tenure_years": 6.480922803904172,
+            "hazard": 0.15429901423877324,
+            "hazard_source": "published_book_exit_life_table"
+          },
+          {
+            "account": "PROS-2016-0067",
+            "belief_year": "2017",
+            "believed_tenure_years": 6.480922803904172,
+            "hazard": 0.15429901423877324,
+            "hazard_source": "published_book_exit_life_table"
+          },
+          {
+            "account": "PROS-2016-0075",
+            "belief_year": "2017",
+            "believed_tenure_years": 6.480922803904172,
+            "hazard": 0.15429901423877324,
+            "hazard_source": "published_book_exit_life_table"
+          },
+          {
+            "account": "PROS-2016-0098",
+            "belief_year": "2017",
+            "believed_tenure_years": 6.480922803904172,
+            "hazard": 0.15429901423877324,
+            "hazard_source": "published_book_exit_life_table"
+          },
+          {
+            "account": "PROS-2016-0104",
+            "belief_year": "2017",
+            "believed_tenure_years": 6.480922803904172,
+            "hazard": 0.15429901423877324,
+            "hazard_source": "published_book_exit_life_table"
+          },
+          {
+            "account": "PROS-2016-0121",
+            "belief_year": "2017",
+            "believed_tenure_years": 6.480922803904172,
+            "hazard": 0.15429901423877324,
+            "hazard_source": "published_book_exit_life_table"
+          },
+          {
+            "account": "PROS-2016-0133",
+            "belief_year": "2017",
+            "believed_tenure_years": 6.480922803904172,
+            "hazard": 0.15429901423877324,
+            "hazard_source": "published_book_exit_life_table"
+          },
+          {
+            "account": "PROS-2017-0036",
             "belief_year": "2018",
-            "believed_tenure_years": 20.000000000000004,
-            "hazard": 0.04999999999999999
+            "believed_tenure_years": 5.215979808488914,
+            "hazard": 0.191718533567273,
+            "hazard_source": "published_book_exit_life_table"
           },
           {
-            "account": "PROS-2018-0003",
+            "account": "PROS-2017-0049",
+            "belief_year": "2018",
+            "believed_tenure_years": 5.215979808488914,
+            "hazard": 0.191718533567273,
+            "hazard_source": "published_book_exit_life_table"
+          },
+          {
+            "account": "PROS-2017-0117",
+            "belief_year": "2018",
+            "believed_tenure_years": 5.215979808488914,
+            "hazard": 0.191718533567273,
+            "hazard_source": "published_book_exit_life_table"
+          },
+          {
+            "account": "PROS-2018-0120",
             "belief_year": "2019",
-            "believed_tenure_years": 20.000000000000004,
-            "hazard": 0.04999999999999999
+            "believed_tenure_years": 3.9703191141525456,
+            "hazard": 0.25186892318942666,
+            "hazard_source": "published_book_exit_life_table"
           },
           {
-            "account": "PROS-2018-0014",
+            "account": "PROS-2018-0188",
             "belief_year": "2019",
-            "believed_tenure_years": 20.000000000000004,
-            "hazard": 0.04999999999999999
+            "believed_tenure_years": 3.9703191141525456,
+            "hazard": 0.25186892318942666,
+            "hazard_source": "published_book_exit_life_table"
           },
           {
-            "account": "PROS-2018-0058",
+            "account": "PROS-2018-0192",
             "belief_year": "2019",
-            "believed_tenure_years": 20.000000000000004,
-            "hazard": 0.04999999999999999
+            "believed_tenure_years": 3.9703191141525456,
+            "hazard": 0.25186892318942666,
+            "hazard_source": "published_book_exit_life_table"
           },
           {
-            "account": "PROS-2019-0003",
+            "account": "PROS-2019-0167",
             "belief_year": "2020",
-            "believed_tenure_years": 20.000000000000004,
-            "hazard": 0.04999999999999999
+            "believed_tenure_years": 4.155797598326831,
+            "hazard": 0.2406276957286396,
+            "hazard_source": "published_book_exit_life_table"
           },
           {
-            "account": "PROS-2019-0024",
+            "account": "PROS-2019-0207",
             "belief_year": "2020",
-            "believed_tenure_years": 19.999999999999993,
-            "hazard": 0.05000000000000002
+            "believed_tenure_years": 4.155797598326831,
+            "hazard": 0.2406276957286396,
+            "hazard_source": "published_book_exit_life_table"
           },
           {
-            "account": "PROS-2019-0050",
+            "account": "PROS-2019-0309",
             "belief_year": "2020",
-            "believed_tenure_years": 19.999999999999993,
-            "hazard": 0.05000000000000002
+            "believed_tenure_years": 4.155797598326831,
+            "hazard": 0.2406276957286396,
+            "hazard_source": "published_book_exit_life_table"
           },
           {
-            "account": "PROS-2019-0063",
+            "account": "PROS-2019-0321",
             "belief_year": "2020",
-            "believed_tenure_years": 20.000000000000004,
-            "hazard": 0.04999999999999999
+            "believed_tenure_years": 4.155797598326831,
+            "hazard": 0.2406276957286396,
+            "hazard_source": "published_book_exit_life_table"
           },
           {
-            "account": "PROS-2019-0079",
-            "belief_year": "2020",
-            "believed_tenure_years": 20.000000000000004,
-            "hazard": 0.04999999999999999
-          },
-          {
-            "account": "PROS-2019-0082",
-            "belief_year": "2020",
-            "believed_tenure_years": 20.000000000000004,
-            "hazard": 0.04999999999999999
-          },
-          {
-            "account": "PROS-2020-0013",
+            "account": "PROS-2020-0009",
             "belief_year": "2021",
-            "believed_tenure_years": 20.000000000000004,
-            "hazard": 0.04999999999999999
+            "believed_tenure_years": 4.008259546177052,
+            "hazard": 0.24948484210653665,
+            "hazard_source": "published_book_exit_life_table"
           },
           {
-            "account": "PROS-2020-0025",
+            "account": "PROS-2020-0032",
             "belief_year": "2021",
-            "believed_tenure_years": 20.000000000000004,
-            "hazard": 0.04999999999999999
+            "believed_tenure_years": 4.008259546177052,
+            "hazard": 0.24948484210653665,
+            "hazard_source": "published_book_exit_life_table"
           },
           {
-            "account": "PROS-2020-0047",
+            "account": "PROS-2020-0304",
             "belief_year": "2021",
-            "believed_tenure_years": 20.000000000000004,
-            "hazard": 0.04999999999999999
+            "believed_tenure_years": 4.008259546177052,
+            "hazard": 0.24948484210653665,
+            "hazard_source": "published_book_exit_life_table"
           },
           {
-            "account": "PROS-2020-0050",
-            "belief_year": "2021",
-            "believed_tenure_years": 20.000000000000004,
-            "hazard": 0.04999999999999999
-          },
-          {
-            "account": "PROS-2020-0067",
-            "belief_year": "2021",
-            "believed_tenure_years": 20.000000000000004,
-            "hazard": 0.04999999999999999
-          },
-          {
-            "account": "PROS-2020-0086",
-            "belief_year": "2021",
-            "believed_tenure_years": 20.000000000000004,
-            "hazard": 0.04999999999999999
-          },
-          {
-            "account": "PROS-2020-0090",
-            "belief_year": "2021",
-            "believed_tenure_years": 20.000000000000004,
-            "hazard": 0.04999999999999999
-          },
-          {
-            "account": "PROS-2020-0097",
-            "belief_year": "2021",
-            "believed_tenure_years": 20.000000000000004,
-            "hazard": 0.04999999999999999
-          },
-          {
-            "account": "PROS-2020-0102",
-            "belief_year": "2021",
-            "believed_tenure_years": 20.000000000000004,
-            "hazard": 0.04999999999999999
-          },
-          {
-            "account": "PROS-2020-0104",
-            "belief_year": "2021",
-            "believed_tenure_years": 20.000000000000004,
-            "hazard": 0.04999999999999999
-          },
-          {
-            "account": "PROS-2020-0110",
-            "belief_year": "2021",
-            "believed_tenure_years": 20.000000000000004,
-            "hazard": 0.04999999999999999
-          },
-          {
-            "account": "PROS-2021-0031",
+            "account": "PROS-2021-0139",
             "belief_year": "2022",
-            "believed_tenure_years": 20.000000000000004,
-            "hazard": 0.04999999999999999
+            "believed_tenure_years": 7.127328978248164,
+            "hazard": 0.14030501511181703,
+            "hazard_source": "published_book_exit_life_table"
           },
           {
-            "account": "PROS-2021-0045",
+            "account": "SYN-2016-001",
+            "belief_year": "2017",
+            "believed_tenure_years": 6.480922803904172,
+            "hazard": 0.15429901423877324,
+            "hazard_source": "published_book_exit_life_table"
+          },
+          {
+            "account": "SYN-2016-002",
+            "belief_year": "2017",
+            "believed_tenure_years": 6.480922803904172,
+            "hazard": 0.15429901423877324,
+            "hazard_source": "published_book_exit_life_table"
+          },
+          {
+            "account": "SYN-2016-003",
+            "belief_year": "2017",
+            "believed_tenure_years": 6.480922803904172,
+            "hazard": 0.15429901423877324,
+            "hazard_source": "published_book_exit_life_table"
+          },
+          {
+            "account": "SYN-2016-007",
+            "belief_year": "2017",
+            "believed_tenure_years": 6.480922803904172,
+            "hazard": 0.15429901423877324,
+            "hazard_source": "published_book_exit_life_table"
+          },
+          {
+            "account": "SYN-2016-011",
+            "belief_year": "2017",
+            "believed_tenure_years": 6.480922803904172,
+            "hazard": 0.15429901423877324,
+            "hazard_source": "published_book_exit_life_table"
+          },
+          {
+            "account": "SYN-2016-013",
+            "belief_year": "2017",
+            "believed_tenure_years": 6.480922803904172,
+            "hazard": 0.15429901423877324,
+            "hazard_source": "published_book_exit_life_table"
+          },
+          {
+            "account": "SYN-2016-014",
+            "belief_year": "2017",
+            "believed_tenure_years": 6.480922803904172,
+            "hazard": 0.15429901423877324,
+            "hazard_source": "published_book_exit_life_table"
+          },
+          {
+            "account": "SYN-2016-015",
+            "belief_year": "2017",
+            "believed_tenure_years": 6.480922803904172,
+            "hazard": 0.15429901423877324,
+            "hazard_source": "published_book_exit_life_table"
+          },
+          {
+            "account": "SYN-2016-019",
+            "belief_year": "2017",
+            "believed_tenure_years": 6.480922803904172,
+            "hazard": 0.15429901423877324,
+            "hazard_source": "published_book_exit_life_table"
+          },
+          {
+            "account": "SYN-2016-020",
+            "belief_year": "2017",
+            "believed_tenure_years": 6.480922803904172,
+            "hazard": 0.15429901423877324,
+            "hazard_source": "published_book_exit_life_table"
+          },
+          {
+            "account": "SYN-2016-021",
+            "belief_year": "2017",
+            "believed_tenure_years": 6.480922803904172,
+            "hazard": 0.15429901423877324,
+            "hazard_source": "published_book_exit_life_table"
+          },
+          {
+            "account": "SYN-2016-026",
+            "belief_year": "2017",
+            "believed_tenure_years": 6.480922803904172,
+            "hazard": 0.15429901423877324,
+            "hazard_source": "published_book_exit_life_table"
+          },
+          {
+            "account": "SYN-2016-027",
+            "belief_year": "2017",
+            "believed_tenure_years": 6.480922803904172,
+            "hazard": 0.15429901423877324,
+            "hazard_source": "published_book_exit_life_table"
+          },
+          {
+            "account": "SYN-2016-028",
+            "belief_year": "2017",
+            "believed_tenure_years": 6.480922803904172,
+            "hazard": 0.15429901423877324,
+            "hazard_source": "published_book_exit_life_table"
+          },
+          {
+            "account": "SYN-2016-029",
+            "belief_year": "2017",
+            "believed_tenure_years": 6.480922803904172,
+            "hazard": 0.15429901423877324,
+            "hazard_source": "published_book_exit_life_table"
+          },
+          {
+            "account": "SYN-2016-030",
+            "belief_year": "2017",
+            "believed_tenure_years": 6.480922803904172,
+            "hazard": 0.15429901423877324,
+            "hazard_source": "published_book_exit_life_table"
+          },
+          {
+            "account": "SYN-2016-031",
+            "belief_year": "2017",
+            "believed_tenure_years": 6.480922803904172,
+            "hazard": 0.15429901423877324,
+            "hazard_source": "published_book_exit_life_table"
+          },
+          {
+            "account": "SYN-2016-032",
+            "belief_year": "2017",
+            "believed_tenure_years": 6.480922803904172,
+            "hazard": 0.15429901423877324,
+            "hazard_source": "published_book_exit_life_table"
+          },
+          {
+            "account": "SYN-2016-034",
+            "belief_year": "2017",
+            "believed_tenure_years": 6.480922803904172,
+            "hazard": 0.15429901423877324,
+            "hazard_source": "published_book_exit_life_table"
+          },
+          {
+            "account": "SYN-2016-035",
+            "belief_year": "2017",
+            "believed_tenure_years": 6.480922803904172,
+            "hazard": 0.15429901423877324,
+            "hazard_source": "published_book_exit_life_table"
+          },
+          {
+            "account": "SYN-2016-036",
+            "belief_year": "2017",
+            "believed_tenure_years": 6.480922803904172,
+            "hazard": 0.15429901423877324,
+            "hazard_source": "published_book_exit_life_table"
+          },
+          {
+            "account": "SYN-2016-040",
+            "belief_year": "2017",
+            "believed_tenure_years": 6.480922803904172,
+            "hazard": 0.15429901423877324,
+            "hazard_source": "published_book_exit_life_table"
+          },
+          {
+            "account": "SYN-2016-042",
+            "belief_year": "2017",
+            "believed_tenure_years": 6.480922803904172,
+            "hazard": 0.15429901423877324,
+            "hazard_source": "published_book_exit_life_table"
+          },
+          {
+            "account": "SYN-2016-043",
+            "belief_year": "2017",
+            "believed_tenure_years": 6.480922803904172,
+            "hazard": 0.15429901423877324,
+            "hazard_source": "published_book_exit_life_table"
+          },
+          {
+            "account": "SYN-2016-046",
+            "belief_year": "2017",
+            "believed_tenure_years": 6.480922803904172,
+            "hazard": 0.15429901423877324,
+            "hazard_source": "published_book_exit_life_table"
+          },
+          {
+            "account": "SYN-2016-047",
+            "belief_year": "2017",
+            "believed_tenure_years": 6.480922803904172,
+            "hazard": 0.15429901423877324,
+            "hazard_source": "published_book_exit_life_table"
+          },
+          {
+            "account": "SYN-2016-048",
+            "belief_year": "2017",
+            "believed_tenure_years": 6.480922803904172,
+            "hazard": 0.15429901423877324,
+            "hazard_source": "published_book_exit_life_table"
+          },
+          {
+            "account": "SYN-2016-050",
+            "belief_year": "2017",
+            "believed_tenure_years": 6.480922803904172,
+            "hazard": 0.15429901423877324,
+            "hazard_source": "published_book_exit_life_table"
+          },
+          {
+            "account": "SYN-2016-052",
+            "belief_year": "2017",
+            "believed_tenure_years": 6.480922803904172,
+            "hazard": 0.15429901423877324,
+            "hazard_source": "published_book_exit_life_table"
+          },
+          {
+            "account": "SYN-2016-054",
+            "belief_year": "2017",
+            "believed_tenure_years": 6.480922803904172,
+            "hazard": 0.15429901423877324,
+            "hazard_source": "published_book_exit_life_table"
+          },
+          {
+            "account": "SYN-2016-057",
+            "belief_year": "2017",
+            "believed_tenure_years": 6.480922803904172,
+            "hazard": 0.15429901423877324,
+            "hazard_source": "published_book_exit_life_table"
+          },
+          {
+            "account": "SYN-2016-058",
+            "belief_year": "2017",
+            "believed_tenure_years": 6.480922803904172,
+            "hazard": 0.15429901423877324,
+            "hazard_source": "published_book_exit_life_table"
+          },
+          {
+            "account": "SYN-2016-059",
+            "belief_year": "2017",
+            "believed_tenure_years": 6.480922803904172,
+            "hazard": 0.15429901423877324,
+            "hazard_source": "published_book_exit_life_table"
+          },
+          {
+            "account": "SYN-2016-060",
+            "belief_year": "2017",
+            "believed_tenure_years": 6.480922803904172,
+            "hazard": 0.15429901423877324,
+            "hazard_source": "published_book_exit_life_table"
+          },
+          {
+            "account": "SYN-2016-063",
+            "belief_year": "2017",
+            "believed_tenure_years": 6.480922803904172,
+            "hazard": 0.15429901423877324,
+            "hazard_source": "published_book_exit_life_table"
+          },
+          {
+            "account": "SYN-2016-064",
+            "belief_year": "2017",
+            "believed_tenure_years": 6.480922803904172,
+            "hazard": 0.15429901423877324,
+            "hazard_source": "published_book_exit_life_table"
+          },
+          {
+            "account": "SYN-2016-065",
+            "belief_year": "2017",
+            "believed_tenure_years": 6.480922803904172,
+            "hazard": 0.15429901423877324,
+            "hazard_source": "published_book_exit_life_table"
+          },
+          {
+            "account": "SYN-2021-001",
             "belief_year": "2022",
-            "believed_tenure_years": 20.000000000000004,
-            "hazard": 0.04999999999999999
-          },
-          {
-            "account": "PROS-2021-0117",
-            "belief_year": "2022",
-            "believed_tenure_years": 20.000000000000004,
-            "hazard": 0.04999999999999999
-          },
-          {
-            "account": "PROS-2022-0011",
-            "belief_year": "2023",
-            "believed_tenure_years": 20.000000000000004,
-            "hazard": 0.04999999999999999
-          },
-          {
-            "account": "PROS-2022-0067",
-            "belief_year": "2023",
-            "believed_tenure_years": 20.000000000000004,
-            "hazard": 0.04999999999999999
-          },
-          {
-            "account": "PROS-2022-0125",
-            "belief_year": "2023",
-            "believed_tenure_years": 20.000000000000004,
-            "hazard": 0.04999999999999999
-          },
-          {
-            "account": "PROS-2023-0025",
-            "belief_year": "2024",
-            "believed_tenure_years": 20.000000000000004,
-            "hazard": 0.04999999999999999
-          },
-          {
-            "account": "PROS-2023-0116",
-            "belief_year": "2024",
-            "believed_tenure_years": 20.000000000000004,
-            "hazard": 0.04999999999999999
+            "believed_tenure_years": 7.127328978248164,
+            "hazard": 0.14030501511181703,
+            "hazard_source": "published_book_exit_life_table"
           }
         ],
         "reading": "`hazard_is_constant_across_graded_population` true means the tenure horizon contributed NO per-account variation to the graded CLV -- every ranking it produced came from the margin term alone. Recovered by inverting the published `tenure_expected`/`contract_term` ratio, which depends on the hazard alone; no company-side private state is read. R12: diagnostic, never a target.",
-        "recovered_accounts": 33,
+        "recovered_accounts": 69,
         "unrecoverable": [],
         "unrecoverable_accounts": 0
       },
-      "mean_absolute_error_gbp": 681.9679876279245,
-      "mean_belief_gbp": 473.7129267778644,
-      "mean_realised_gbp": 100.19619593482835,
+      "mean_absolute_error_gbp": 385.5114535643943,
+      "mean_belief_gbp": 265.68661036414477,
+      "mean_realised_gbp": 240.9565990710736,
       "per_account": [
         {
           "account": "C1",
-          "belief_gbp": 622.7003581760306,
-          "belief_year": "2016",
-          "realised_gbp": 162.51518392693367,
+          "belief_gbp": 334.91141529309294,
+          "belief_year": "2017",
+          "realised_gbp": 153.99042611872267,
+          "sign_disagrees": false
+        },
+        {
+          "account": "C2",
+          "belief_gbp": 441.04707031747995,
+          "belief_year": "2017",
+          "realised_gbp": 91.72083631050347,
+          "sign_disagrees": false
+        },
+        {
+          "account": "C3_2",
+          "belief_gbp": 644.5206085120315,
+          "belief_year": "2017",
+          "realised_gbp": 231.98984692237485,
+          "sign_disagrees": false
+        },
+        {
+          "account": "C4",
+          "belief_gbp": 395.3470628101088,
+          "belief_year": "2017",
+          "realised_gbp": 77.193980392696,
           "sign_disagrees": false
         },
         {
           "account": "C5",
-          "belief_gbp": 890.4809972108957,
-          "belief_year": "2016",
-          "realised_gbp": -1223.3042790684772,
+          "belief_gbp": 175.4373895144668,
+          "belief_year": "2017",
+          "realised_gbp": -302.9523710136861,
           "sign_disagrees": true
         },
         {
-          "account": "PROS-2016-0003",
-          "belief_gbp": 1012.9318384250648,
+          "account": "C7",
+          "belief_gbp": 1076.4841247005538,
           "belief_year": "2017",
-          "realised_gbp": 170.37682607762636,
+          "realised_gbp": 647.3892223470327,
+          "sign_disagrees": false
+        },
+        {
+          "account": "C8",
+          "belief_gbp": 474.30604198121756,
+          "belief_year": "2017",
+          "realised_gbp": 4082.5434037944988,
+          "sign_disagrees": false
+        },
+        {
+          "account": "C9",
+          "belief_gbp": 238.55745411484506,
+          "belief_year": "2017",
+          "realised_gbp": 268.40009131050607,
           "sign_disagrees": false
         },
         {
           "account": "PROS-2016-0024",
-          "belief_gbp": 331.3655254844172,
+          "belief_gbp": 356.0352487736538,
           "belief_year": "2017",
-          "realised_gbp": 131.59422065752727,
+          "realised_gbp": 1240.4638812008848,
           "sign_disagrees": false
         },
         {
-          "account": "PROS-2017-0038",
-          "belief_gbp": -550.8540272490378,
+          "account": "PROS-2016-0042",
+          "belief_gbp": 474.03441851226006,
+          "belief_year": "2017",
+          "realised_gbp": 385.1559756940663,
+          "sign_disagrees": false
+        },
+        {
+          "account": "PROS-2016-0046",
+          "belief_gbp": 202.95457421812267,
+          "belief_year": "2017",
+          "realised_gbp": 248.46531331050608,
+          "sign_disagrees": false
+        },
+        {
+          "account": "PROS-2016-0067",
+          "belief_gbp": 265.38261196102457,
+          "belief_year": "2017",
+          "realised_gbp": 74.98363538356301,
+          "sign_disagrees": false
+        },
+        {
+          "account": "PROS-2016-0075",
+          "belief_gbp": 342.2498200212314,
+          "belief_year": "2017",
+          "realised_gbp": 201.4463352009168,
+          "sign_disagrees": false
+        },
+        {
+          "account": "PROS-2016-0098",
+          "belief_gbp": 772.0948642245274,
+          "belief_year": "2017",
+          "realised_gbp": -5955.691090689495,
+          "sign_disagrees": true
+        },
+        {
+          "account": "PROS-2016-0104",
+          "belief_gbp": 409.92591392998645,
+          "belief_year": "2017",
+          "realised_gbp": 314.6206841187233,
+          "sign_disagrees": false
+        },
+        {
+          "account": "PROS-2016-0121",
+          "belief_gbp": 329.56901363927943,
+          "belief_year": "2017",
+          "realised_gbp": 148.56288710502665,
+          "sign_disagrees": false
+        },
+        {
+          "account": "PROS-2016-0133",
+          "belief_gbp": 562.6455908692647,
+          "belief_year": "2017",
+          "realised_gbp": 554.2770897762603,
+          "sign_disagrees": false
+        },
+        {
+          "account": "PROS-2017-0036",
+          "belief_gbp": 383.09696167545604,
           "belief_year": "2018",
-          "realised_gbp": 778.4983174291993,
-          "sign_disagrees": true
+          "realised_gbp": 543.2334861735205,
+          "sign_disagrees": false
         },
         {
-          "account": "PROS-2018-0003",
-          "belief_gbp": -515.5620868100063,
+          "account": "PROS-2017-0049",
+          "belief_gbp": 326.4900658826387,
+          "belief_year": "2018",
+          "realised_gbp": 104.43480415525194,
+          "sign_disagrees": false
+        },
+        {
+          "account": "PROS-2017-0117",
+          "belief_gbp": 360.121110501597,
+          "belief_year": "2018",
+          "realised_gbp": 307.9059900730635,
+          "sign_disagrees": false
+        },
+        {
+          "account": "PROS-2018-0120",
+          "belief_gbp": 570.4985786698851,
           "belief_year": "2019",
-          "realised_gbp": -85.83582876712246,
+          "realised_gbp": 349.59068824657794,
           "sign_disagrees": false
         },
         {
-          "account": "PROS-2018-0014",
-          "belief_gbp": 509.47985762368813,
+          "account": "PROS-2018-0188",
+          "belief_gbp": -77.05986554590802,
           "belief_year": "2019",
-          "realised_gbp": -33.20496442008741,
+          "realised_gbp": 142.4171260684936,
           "sign_disagrees": true
         },
         {
-          "account": "PROS-2018-0058",
-          "belief_gbp": 305.41754372046546,
+          "account": "PROS-2018-0192",
+          "belief_gbp": 299.26469575381134,
           "belief_year": "2019",
-          "realised_gbp": 228.1576545799126,
+          "realised_gbp": 406.3018339589049,
           "sign_disagrees": false
         },
         {
-          "account": "PROS-2019-0003",
-          "belief_gbp": -607.860482292957,
+          "account": "PROS-2019-0167",
+          "belief_gbp": 337.2891965897523,
           "belief_year": "2020",
-          "realised_gbp": -119.4755910365273,
+          "realised_gbp": 230.30856842465832,
           "sign_disagrees": false
         },
         {
-          "account": "PROS-2019-0024",
-          "belief_gbp": 1009.4639130362242,
+          "account": "PROS-2019-0207",
+          "belief_gbp": 407.31346263208343,
           "belief_year": "2020",
-          "realised_gbp": 178.1196289634727,
+          "realised_gbp": 98.27855742465835,
           "sign_disagrees": false
         },
         {
-          "account": "PROS-2019-0050",
-          "belief_gbp": 564.3597347080179,
+          "account": "PROS-2019-0309",
+          "belief_gbp": 223.6553319489547,
           "belief_year": "2020",
-          "realised_gbp": 241.01961296347267,
+          "realised_gbp": 157.01454467123287,
           "sign_disagrees": false
         },
         {
-          "account": "PROS-2019-0063",
-          "belief_gbp": 903.24412082236,
+          "account": "PROS-2019-0321",
+          "belief_gbp": 129.8565967526492,
           "belief_year": "2020",
-          "realised_gbp": -327.03546703652734,
+          "realised_gbp": 138.49460261643915,
+          "sign_disagrees": false
+        },
+        {
+          "account": "PROS-2020-0009",
+          "belief_gbp": 192.74872226529388,
+          "belief_year": "2021",
+          "realised_gbp": -42.385619150682956,
           "sign_disagrees": true
         },
         {
-          "account": "PROS-2019-0079",
-          "belief_gbp": 1031.9990599221258,
-          "belief_year": "2020",
-          "realised_gbp": 547.5384382739657,
-          "sign_disagrees": false
-        },
-        {
-          "account": "PROS-2019-0082",
-          "belief_gbp": 325.5173578756982,
-          "belief_year": "2020",
-          "realised_gbp": 74.77114796347269,
-          "sign_disagrees": false
-        },
-        {
-          "account": "PROS-2020-0013",
-          "belief_gbp": 312.9413308867266,
+          "account": "PROS-2020-0032",
+          "belief_gbp": 216.8934353187488,
           "belief_year": "2021",
-          "realised_gbp": -8.622732652967215,
+          "realised_gbp": -235.23986495890176,
           "sign_disagrees": true
         },
         {
-          "account": "PROS-2020-0025",
-          "belief_gbp": -221.73093074030115,
+          "account": "PROS-2020-0304",
+          "belief_gbp": -1.8737110017255998,
           "belief_year": "2021",
-          "realised_gbp": 210.2333286575361,
+          "realised_gbp": 1845.6144995570817,
           "sign_disagrees": true
         },
         {
-          "account": "PROS-2020-0047",
-          "belief_gbp": 754.8283210706041,
-          "belief_year": "2021",
-          "realised_gbp": 30.276279347032784,
-          "sign_disagrees": false
-        },
-        {
-          "account": "PROS-2020-0050",
-          "belief_gbp": 601.2082505828689,
-          "belief_year": "2021",
-          "realised_gbp": 107.59230734703277,
-          "sign_disagrees": false
-        },
-        {
-          "account": "PROS-2020-0067",
-          "belief_gbp": 711.8217588813213,
-          "belief_year": "2021",
-          "realised_gbp": -18.418554652967217,
-          "sign_disagrees": true
-        },
-        {
-          "account": "PROS-2020-0086",
-          "belief_gbp": -996.5046789023628,
-          "belief_year": "2021",
-          "realised_gbp": -317.5708636529672,
-          "sign_disagrees": false
-        },
-        {
-          "account": "PROS-2020-0090",
-          "belief_gbp": 922.8260511031563,
-          "belief_year": "2021",
-          "realised_gbp": 206.8656563470328,
-          "sign_disagrees": false
-        },
-        {
-          "account": "PROS-2020-0097",
-          "belief_gbp": 296.0223633918237,
-          "belief_year": "2021",
-          "realised_gbp": 111.40323034703277,
-          "sign_disagrees": false
-        },
-        {
-          "account": "PROS-2020-0102",
-          "belief_gbp": -68.15757787196607,
-          "belief_year": "2021",
-          "realised_gbp": -197.5331486529672,
-          "sign_disagrees": false
-        },
-        {
-          "account": "PROS-2020-0104",
-          "belief_gbp": 983.3739941418326,
-          "belief_year": "2021",
-          "realised_gbp": 213.46477334703278,
-          "sign_disagrees": false
-        },
-        {
-          "account": "PROS-2020-0110",
-          "belief_gbp": -199.39791790750382,
-          "belief_year": "2021",
-          "realised_gbp": -603.2373163424638,
-          "sign_disagrees": false
-        },
-        {
-          "account": "PROS-2021-0031",
-          "belief_gbp": 599.3964656545988,
+          "account": "PROS-2021-0139",
+          "belief_gbp": -11.911609341330543,
           "belief_year": "2022",
-          "realised_gbp": 910.393864849319,
+          "realised_gbp": 804.538105849319,
+          "sign_disagrees": true
+        },
+        {
+          "account": "SYN-2016-001",
+          "belief_gbp": 147.86031185060213,
+          "belief_year": "2017",
+          "realised_gbp": -33.99315488127672,
+          "sign_disagrees": true
+        },
+        {
+          "account": "SYN-2016-002",
+          "belief_gbp": 134.878328763598,
+          "belief_year": "2017",
+          "realised_gbp": 110.76890387671426,
           "sign_disagrees": false
         },
         {
-          "account": "PROS-2021-0045",
-          "belief_gbp": 1717.4326083638005,
+          "account": "SYN-2016-003",
+          "belief_gbp": 178.73618443050094,
+          "belief_year": "2017",
+          "realised_gbp": 95.6113848904121,
+          "sign_disagrees": false
+        },
+        {
+          "account": "SYN-2016-007",
+          "belief_gbp": 234.3687978069985,
+          "belief_year": "2017",
+          "realised_gbp": 57.51664507762639,
+          "sign_disagrees": false
+        },
+        {
+          "account": "SYN-2016-011",
+          "belief_gbp": 119.36225473063504,
+          "belief_year": "2017",
+          "realised_gbp": 127.78917164383782,
+          "sign_disagrees": false
+        },
+        {
+          "account": "SYN-2016-013",
+          "belief_gbp": 154.20044044079245,
+          "belief_year": "2017",
+          "realised_gbp": 44.27023300000238,
+          "sign_disagrees": false
+        },
+        {
+          "account": "SYN-2016-014",
+          "belief_gbp": 436.6571080100917,
+          "belief_year": "2017",
+          "realised_gbp": 359.9222280000024,
+          "sign_disagrees": false
+        },
+        {
+          "account": "SYN-2016-015",
+          "belief_gbp": 169.60600389833596,
+          "belief_year": "2017",
+          "realised_gbp": 198.71362072603026,
+          "sign_disagrees": false
+        },
+        {
+          "account": "SYN-2016-019",
+          "belief_gbp": 364.004333687898,
+          "belief_year": "2017",
+          "realised_gbp": 119.75620569406624,
+          "sign_disagrees": false
+        },
+        {
+          "account": "SYN-2016-020",
+          "belief_gbp": 432.1821713771415,
+          "belief_year": "2017",
+          "realised_gbp": 368.09800969862704,
+          "sign_disagrees": false
+        },
+        {
+          "account": "SYN-2016-021",
+          "belief_gbp": 226.08541260358987,
+          "belief_year": "2017",
+          "realised_gbp": 881.2676524383223,
+          "sign_disagrees": false
+        },
+        {
+          "account": "SYN-2016-026",
+          "belief_gbp": 179.8980846368369,
+          "belief_year": "2017",
+          "realised_gbp": 167.863746041099,
+          "sign_disagrees": false
+        },
+        {
+          "account": "SYN-2016-027",
+          "belief_gbp": 326.82343170111113,
+          "belief_year": "2017",
+          "realised_gbp": 180.4008360776264,
+          "sign_disagrees": false
+        },
+        {
+          "account": "SYN-2016-028",
+          "belief_gbp": 214.76056450622949,
+          "belief_year": "2017",
+          "realised_gbp": 172.8945292876743,
+          "sign_disagrees": false
+        },
+        {
+          "account": "SYN-2016-029",
+          "belief_gbp": 393.18015438409446,
+          "belief_year": "2017",
+          "realised_gbp": 318.6078268310522,
+          "sign_disagrees": false
+        },
+        {
+          "account": "SYN-2016-030",
+          "belief_gbp": 194.81379749166442,
+          "belief_year": "2017",
+          "realised_gbp": 193.67619969406627,
+          "sign_disagrees": false
+        },
+        {
+          "account": "SYN-2016-031",
+          "belief_gbp": 186.61841672287736,
+          "belief_year": "2017",
+          "realised_gbp": 266.3499429634736,
+          "sign_disagrees": false
+        },
+        {
+          "account": "SYN-2016-032",
+          "belief_gbp": 152.21117069137966,
+          "belief_year": "2017",
+          "realised_gbp": 307.4561658995475,
+          "sign_disagrees": false
+        },
+        {
+          "account": "SYN-2016-034",
+          "belief_gbp": 537.9445065522406,
+          "belief_year": "2017",
+          "realised_gbp": -75.4405693059337,
+          "sign_disagrees": true
+        },
+        {
+          "account": "SYN-2016-035",
+          "belief_gbp": 153.26306174676185,
+          "belief_year": "2017",
+          "realised_gbp": 200.81811513698932,
+          "sign_disagrees": false
+        },
+        {
+          "account": "SYN-2016-036",
+          "belief_gbp": 154.11700117558635,
+          "belief_year": "2017",
+          "realised_gbp": 95.52730507762638,
+          "sign_disagrees": false
+        },
+        {
+          "account": "SYN-2016-040",
+          "belief_gbp": 98.61987502608451,
+          "belief_year": "2017",
+          "realised_gbp": 16.2618530684949,
+          "sign_disagrees": false
+        },
+        {
+          "account": "SYN-2016-042",
+          "belief_gbp": 142.19565474663517,
+          "belief_year": "2017",
+          "realised_gbp": 94.83725707762639,
+          "sign_disagrees": false
+        },
+        {
+          "account": "SYN-2016-043",
+          "belief_gbp": 119.1878574456391,
+          "belief_year": "2017",
+          "realised_gbp": 56.745601990867726,
+          "sign_disagrees": false
+        },
+        {
+          "account": "SYN-2016-046",
+          "belief_gbp": 108.28940660839712,
+          "belief_year": "2017",
+          "realised_gbp": 416.2704946301077,
+          "sign_disagrees": false
+        },
+        {
+          "account": "SYN-2016-047",
+          "belief_gbp": 209.44290226409484,
+          "belief_year": "2017",
+          "realised_gbp": 1499.3042224291994,
+          "sign_disagrees": false
+        },
+        {
+          "account": "SYN-2016-048",
+          "belief_gbp": 144.6567645898706,
+          "belief_year": "2017",
+          "realised_gbp": 476.7175654291992,
+          "sign_disagrees": false
+        },
+        {
+          "account": "SYN-2016-050",
+          "belief_gbp": 99.28995604932638,
+          "belief_year": "2017",
+          "realised_gbp": 242.04074200000196,
+          "sign_disagrees": false
+        },
+        {
+          "account": "SYN-2016-052",
+          "belief_gbp": 329.53077958010226,
+          "belief_year": "2017",
+          "realised_gbp": 601.9803376712375,
+          "sign_disagrees": false
+        },
+        {
+          "account": "SYN-2016-054",
+          "belief_gbp": 142.05956587259743,
+          "belief_year": "2017",
+          "realised_gbp": 9.467253406393027,
+          "sign_disagrees": false
+        },
+        {
+          "account": "SYN-2016-057",
+          "belief_gbp": 188.09649644471617,
+          "belief_year": "2017",
+          "realised_gbp": 424.1739581187233,
+          "sign_disagrees": false
+        },
+        {
+          "account": "SYN-2016-058",
+          "belief_gbp": 163.1664479122342,
+          "belief_year": "2017",
+          "realised_gbp": 64.82866365296863,
+          "sign_disagrees": false
+        },
+        {
+          "account": "SYN-2016-059",
+          "belief_gbp": 300.09044688511864,
+          "belief_year": "2017",
+          "realised_gbp": 118.0588750776264,
+          "sign_disagrees": false
+        },
+        {
+          "account": "SYN-2016-060",
+          "belief_gbp": 147.17319623202522,
+          "belief_year": "2017",
+          "realised_gbp": 10.690847077626387,
+          "sign_disagrees": false
+        },
+        {
+          "account": "SYN-2016-063",
+          "belief_gbp": 356.25398474516123,
+          "belief_year": "2017",
+          "realised_gbp": 208.24362631050332,
+          "sign_disagrees": false
+        },
+        {
+          "account": "SYN-2016-064",
+          "belief_gbp": 93.3940577464282,
+          "belief_year": "2017",
+          "realised_gbp": 648.4897673105058,
+          "sign_disagrees": false
+        },
+        {
+          "account": "SYN-2016-065",
+          "belief_gbp": 148.07559506603545,
+          "belief_year": "2017",
+          "realised_gbp": 59.36767800456593,
+          "sign_disagrees": false
+        },
+        {
+          "account": "SYN-2021-001",
+          "belief_gbp": -400.6046047924967,
           "belief_year": "2022",
-          "realised_gbp": 930.557332849319,
-          "sign_disagrees": false
-        },
-        {
-          "account": "PROS-2021-0117",
-          "belief_gbp": 807.3236035493873,
-          "belief_year": "2022",
-          "realised_gbp": 49.36040377169029,
-          "sign_disagrees": false
-        },
-        {
-          "account": "PROS-2022-0011",
-          "belief_gbp": -1566.708880820651,
-          "belief_year": "2023",
-          "realised_gbp": -146.62211168949534,
-          "sign_disagrees": false
-        },
-        {
-          "account": "PROS-2022-0067",
-          "belief_gbp": 1662.2104443407882,
-          "belief_year": "2023",
-          "realised_gbp": 452.11784231050467,
-          "sign_disagrees": false
-        },
-        {
-          "account": "PROS-2022-0125",
-          "belief_gbp": -12.66722996414703,
-          "belief_year": "2023",
-          "realised_gbp": -19.785071689495368,
-          "sign_disagrees": false
-        },
-        {
-          "account": "PROS-2023-0025",
-          "belief_gbp": 1365.0899659297215,
-          "belief_year": "2024",
-          "realised_gbp": 237.09383742465835,
-          "sign_disagrees": false
-        },
-        {
-          "account": "PROS-2023-0116",
-          "belief_gbp": 2130.5349313268416,
-          "belief_year": "2024",
-          "realised_gbp": 435.17050807762644,
-          "sign_disagrees": false
+          "realised_gbp": 207.5841243881287,
+          "sign_disagrees": true
         }
       ],
       "population_selection": {
         "available": true,
         "by_segment": {
-          "I&C": {
-            "excluded_over_graded_mean": null,
-            "excluded_still_supplied": {
-              "mean_gbp": 221491.70022752773,
-              "median_gbp": 127588.13013919168,
-              "n": 5
-            },
-            "graded": {
-              "mean_gbp": null,
-              "median_gbp": null,
-              "n": 0
-            }
-          },
           "SME": {
-            "excluded_over_graded_mean": -0.4485025160258695,
+            "excluded_over_graded_mean": 0.3408599709067754,
             "excluded_still_supplied": {
-              "mean_gbp": 548.6550470274244,
-              "median_gbp": 548.6550470274244,
+              "mean_gbp": -103.26433636986367,
+              "median_gbp": -103.26433636986367,
               "n": 1
             },
             "graded": {
-              "mean_gbp": -1223.3042790684772,
-              "median_gbp": -1223.3042790684772,
+              "mean_gbp": -302.9523710136861,
+              "median_gbp": -302.9523710136861,
               "n": 1
             }
           },
           "resi": {
-            "excluded_over_graded_mean": 2.9644918709060164,
+            "excluded_over_graded_mean": 2.266218585561687,
             "excluded_still_supplied": {
-              "mean_gbp": 419.64038332224106,
-              "median_gbp": 343.5464614474887,
-              "n": 224
+              "mean_gbp": 564.1870380824234,
+              "median_gbp": 354.49849591781157,
+              "n": 174
             },
             "graded": {
-              "mean_gbp": 141.55558577868166,
-              "median_gbp": 121.49872550228002,
-              "n": 32
+              "mean_gbp": 248.95526039584948,
+              "median_gbp": 196.19491021004825,
+              "n": 68
             }
           }
         },
         "dominant_graded_segment": "resi",
-        "dominant_segment_share_of_graded": 0.9696969696969697,
+        "dominant_segment_share_of_graded": 0.9855072463768116,
         "excluded_side_is_censored": true,
         "excluded_still_supplied": {
-          "mean_gbp": 5226.115661081948,
-          "median_gbp": 347.7158804634714,
-          "n": 230
+          "mean_gbp": 560.3730302284105,
+          "median_gbp": 354.0135496301406,
+          "n": 175
         },
         "graded": {
-          "mean_gbp": 100.19619593482835,
-          "median_gbp": 111.40323034703277,
-          "n": 33
+          "mean_gbp": 240.9565990710736,
+          "median_gbp": 193.67619969406627,
+          "n": 69
         },
-        "like_for_like_excluded_over_graded": 2.9644918709060164,
+        "like_for_like_excluded_over_graded": 2.266218585561687,
         "reading": "The graded population is selected ON THE OUTCOME -- an account is counted only once its life has ENDED. Where the two populations differ in realised value, a perfectly calibrated estimator scores as a uniform over-estimate, so `error_decomposition.best_single_scale` cannot be read as an estimator fault without this row beside it. The excluded side is still accruing, so `like_for_like_excluded_over_graded` is a LOWER BOUND. Read the like-for-like ratio, not the whole-book one: segments differ by orders of magnitude in this book. R12: diagnostic, never a target.",
-        "whole_book_excluded_over_graded": 52.15882312020333
+        "whole_book_excluded_over_graded": 2.32561810877452
       },
       "roster_never_snapshotted": [
+        "C3",
+        "C6",
+        "PROS-2016-0003",
+        "PROS-2016-0092",
+        "PROS-2017-0065",
         "PROS-2018-0002",
-        "PROS-2020-0081",
-        "PROS-2021-0006",
-        "PROS-2021-0017",
-        "PROS-2021-0029",
-        "PROS-2021-0044",
-        "PROS-2021-0060",
-        "PROS-2021-0067",
-        "PROS-2021-0100",
-        "PROS-2022-0019",
-        "PROS-2022-0157",
-        "PROS-2024-0076"
+        "PROS-2019-0255",
+        "PROS-2020-0132",
+        "PROS-2020-0221",
+        "SYN-2016-005",
+        "SYN-2016-008",
+        "SYN-2016-009",
+        "SYN-2016-018",
+        "SYN-2016-022",
+        "SYN-2016-023",
+        "SYN-2016-024",
+        "SYN-2016-039",
+        "SYN-2016-041",
+        "SYN-2016-044",
+        "SYN-2016-045",
+        "SYN-2016-053"
       ],
-      "roster_only_in_churn_list": [],
+      "roster_only_in_churn_list": [
+        "PROS-2021-0139"
+      ],
       "roster_only_in_snapshot_drop": [],
-      "roster_sources_agree": true,
-      "sign_disagreements": 7,
-      "sign_errors_robust_to_window_bias": 5,
-      "still_supplied_disagrees_with_roster": [],
+      "roster_sources_agree": false,
+      "sign_disagreements": 10,
+      "sign_errors_robust_to_window_bias": 6,
+      "still_supplied_disagrees_with_roster": [
+        "C_IC1",
+        "C_IC2",
+        "C_IC3",
+        "C_IC4"
+      ],
       "truth_window_bias": "realised total spans the WHOLE lifetime; the belief is taken at the first year-end snapshot. Truth is therefore measured over a longer window than the belief forecasts, which flatters an over-estimating belief -- the headline is conservative for those cases. No per-account-per-year margin is published, so the pre-snapshot slice cannot be removed."
     },
-    "g0": 269.6473356122603,
-    "gap": 2.529110796067947,
-    "measured_at": "2026-08-26T11:46:22.450859+00:00",
+    "g0": 356.61886967860744,
+    "gap": 1.081018101795414,
+    "measured_at": "2026-10-01T10:42:57.208168+00:00",
     "metric": "belief",
     "normalisation": "divisor",
     "normalisation_reason": "",
     "note": "Point-in-time backtest of a company CLV belief against realised lifetime margin, over accounts whose life COMPLETED inside the run. WHOSE BELIEF: the graded field is `three_horizon_clv_snapshots` -- EP1's OWN estimator (company/analytics/clv_three_horizon.py), recorded at each year end from the records observable then, on the `tenure_expected` horizon at a discount rate of 0.1. This row grades the atom it is keyed to, which it did NOT before 2026-08-25: pass 17 measured that deleting EP1's entire published output left the headline bit-identical. The belief taken is the EARLIEST year-end snapshot, which is also the only one a ceased account has -- EP1 blanks the forward horizons once an account stops settling, so a terminal table alone would grade an empty population. TRUTH-WINDOW BIAS: the realised total spans the whole lifetime while the belief is taken at the first snapshot, so truth is measured over a longer window than the belief forecasts, which flatters an over-estimating belief. SURVIVORSHIP: the graded population is every account whose life ENDED inside the run and no other, so it is selected on the quantity being predicted, and the no-skill divisor is fitted on that same selected population. A calibrated estimator scores as a uniform over-estimate here; read `components.population_selection` for the size of the shift and `components.hazard_calibration` for which way the lifetime term is actually wrong, before attributing the headline to the estimator. R12: diagnostic, never a target.",
-    "raw_gap": 681.9679876279245,
+    "raw_gap": 385.5114535643943,
     "raw_gap_is": "the numerator of gap = raw_gap / g0",
-    "run_git_commit": "8afa34ceb0aac02ff528441845f3e0de3adef5fd",
+    "run_git_commit": "af4709ff1",
     "twin_atom_id": "EP1_clv_three_horizon"
   },
   "PB3_book_growth_as_earned_outcome": {
