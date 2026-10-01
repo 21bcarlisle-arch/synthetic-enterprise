@@ -26,3 +26,13 @@ worker shares it, and releasing would return work in hand to the pool for a thir
 isolated executor within minutes of each other. The DUPLICATE-WORK CHECK reported the executor's own
 claim write as "another writer". The real rival is only visible to `ps`. Since a value-arms retake
 costs about 53 minutes per seat, a double draw of this item costs hours, not one turn.
+
+**Recurred at 16:28 (third draw, executor pid 2166456).** It happened for the same reason. The
+executor's previous turn stepped aside and was logged `LANDED NOTHING`, which hands the item back
+for a re-offer (`seat_executor.py`, "HAND BACK ON BOTH PATHS"). The next executor turn redrew it
+nine minutes later. The `.seat_work_in_hand.json` row was again this draw's own write, stamped
+16:28:15. The worker was still live and still running PB4 capture C2. This turn stepped aside the
+same way. **The step-aside is not a disposition the executor can see**, so each executor turn
+until the worker lands will redraw this item and spend its turn finding that out. The remedy
+belongs in the draw, not in the step-aside: before offering a LANE 0 item, check whether a live
+`.se_worktree_owner` pid is already working it.
