@@ -1,9 +1,75 @@
 {
- "generated_at": "2026-10-01T05:28:05.103560+00:00",
+ "generated_at": "2026-10-01T08:27:03.149633+00:00",
  "seat": "delivery",
  "what_it_did": {
   "available": true,
   "commits": [
+   {
+    "sha": "26a698225",
+    "at": "2026-10-01T09:13:31+01:00",
+    "subject": "chore(liveness): publish heartbeat while sim output unchanged (git=86bb0926157656a86b7d65856969870fc22a9ad0) -- decouples published liveness from content-change (Fault#1 2026-07-25)",
+    "substantive": false
+   },
+   {
+    "sha": "86bb09261",
+    "at": "2026-10-01T08:07:26+01:00",
+    "subject": "chore(liveness): publish heartbeat while sim output unchanged (git=3ef39322e6997ad966e1d9a92eff3be05ff3fdd5) -- decouples published liveness from content-change (Fault#1 2026-07-25)",
+    "substantive": false
+   },
+   {
+    "sha": "3ef39322e",
+    "at": "2026-10-01T07:33:07+01:00",
+    "subject": "PB4 year-one quote and review on one basis: pre-registration, filed before the code meets a world",
+    "substantive": false
+   },
+   {
+    "sha": "7f4cb24a9",
+    "at": "2026-10-01T07:21:42+01:00",
+    "subject": "SVT anniversary exit route: pre-registration and decided design, filed before the world changes",
+    "substantive": false
+   },
+   {
+    "sha": "0f2e841cd",
+    "at": "2026-10-01T07:01:28+01:00",
+    "subject": "chore(liveness): publish heartbeat while sim output unchanged (git=91214c7209cd3b50451b7f4dc63cc64066315379) -- decouples published liveness from content-change (Fault#1 2026-07-25)",
+    "substantive": false
+   },
+   {
+    "sha": "91214c720",
+    "at": "2026-10-01T06:55:59+01:00",
+    "subject": "A passive fixed-term end needs no departure roll; the SVT anniversary is a second exit route",
+    "substantive": true
+   },
+   {
+    "sha": "628b58850",
+    "at": "2026-10-01T06:48:27+01:00",
+    "subject": "merge origin/main: automatic reconciliation in an isolated worktree",
+    "substantive": false
+   },
+   {
+    "sha": "8efcafc82",
+    "at": "2026-10-01T06:46:16+01:00",
+    "subject": "PB4 experienced bill shock on one world: later renewals work, year one is still blind because the quote is priced at a cap that did not exist",
+    "substantive": false
+   },
+   {
+    "sha": "acc9abc37",
+    "at": "2026-10-01T06:42:41+01:00",
+    "subject": "Passive term end: pre-registration, filed before the one-world log is read",
+    "substantive": false
+   },
+   {
+    "sha": "55d343a35",
+    "at": "2026-10-01T06:28:52+01:00",
+    "subject": "census 03:34 run read: UNPROVEN at 7200s on a stale shared checkout lacking the trims and the 17400s bound, so the bound does not move",
+    "substantive": false
+   },
+   {
+    "sha": "3d82b5f0e",
+    "at": "2026-10-01T06:28:12+01:00",
+    "subject": "delivery seat: direction for the next stretch",
+    "substantive": false
+   },
    {
     "sha": "2acb617d4",
     "at": "2026-10-01T06:24:17+01:00",
@@ -177,123 +243,62 @@
     "at": "2026-10-01T03:19:47+01:00",
     "subject": "EP1's tenure horizon values on the book's own observed renewal departures, not on a 0.05 belief; the first-renewal prior is researched and stays None",
     "substantive": true
-   },
-   {
-    "sha": "d77ff33d5",
-    "at": "2026-10-01T03:06:21+01:00",
-    "subject": "EP1 pass 20 lands: the CLV ledger writer stamps a row with the run's own commit, not the tree's HEAD, and the horizon hypothesis is confirmed",
-    "substantive": true
-   },
-   {
-    "sha": "823b984b7",
-    "at": "2026-10-01T02:56:23+01:00",
-    "subject": "merge origin/main: automatic reconciliation in an isolated worktree",
-    "substantive": false
-   },
-   {
-    "sha": "c5e9a1b5c",
-    "at": "2026-10-01T02:47:39+01:00",
-    "subject": "merge origin/main: automatic reconciliation in an isolated worktree",
-    "substantive": false
-   },
-   {
-    "sha": "1542c490e",
-    "at": "2026-10-01T02:32:47+01:00",
-    "subject": "the HEAD-green census prints its slowest 80 tests to the journal on every complete run",
-    "substantive": true
-   },
-   {
-    "sha": "9073a256c",
-    "at": "2026-10-01T02:18:15+01:00",
-    "subject": "merge origin/main: automatic reconciliation in an isolated worktree",
-    "substantive": false
-   },
-   {
-    "sha": "41ff79654",
-    "at": "2026-10-01T02:07:19+01:00",
-    "subject": "merge origin/main: automatic reconciliation in an isolated worktree",
-    "substantive": false
-   },
-   {
-    "sha": "9a5dc872e",
-    "at": "2026-10-01T02:04:18+01:00",
-    "subject": "H45: the work queue's link to the map is published on /harness/, not only in terminal output",
-    "substantive": true
-   },
-   {
-    "sha": "cb43c1148",
-    "at": "2026-10-01T01:59:57+01:00",
-    "subject": "staging: the census's ten slowest tests are trimmed, ~2,150 s -> ~400 s, the bound waits for a measured run",
-    "substantive": false
-   },
-   {
-    "sha": "571a79e9f",
-    "at": "2026-10-01T01:58:53+01:00",
-    "subject": "the three run_phase2b-backed slow tests stop simulating months their subjects never reach",
-    "substantive": true
-   },
-   {
-    "sha": "51f207c58",
-    "at": "2026-10-01T01:47:54+01:00",
-    "subject": "the 2R2C integrator hoists its loop invariants: bit-identical, ~1.6x faster per day",
-    "substantive": true
-   },
-   {
-    "sha": "dab06dea3",
-    "at": "2026-10-01T01:42:49+01:00",
-    "subject": "the ledger fix reached origin on the reconciler's push: surgical_land does not push, origin_reconcile does",
-    "substantive": false
    }
   ],
-  "substantive": 13,
-  "mechanical": 27,
+  "substantive": 9,
+  "mechanical": 31,
   "what_the_split_means": "A mechanical commit republishes an unchanged net -- the report, the dashboard, the state files. Counting those as work would make a quiet day look busy, so they are separated rather than filtered: they happened, they are just not progress."
  },
  "what_it_decided": {
   "available": true,
-  "oriented_at": "2026-10-01T05:23:38.288126+00:00",
+  "oriented_at": "2026-10-01T08:22:35.546118+00:00",
   "age_hours": 0.1,
   "expires_after_hours": 12.0,
   "live": true,
-  "thesis_read": "THE ANTI-RANKING WAS MOSTLY THE WORLD, NOT THE COMPANY. That is the stretch's meaning, and it moves the thesis forward by removing a false lesson rather than adding a capability. Last stretch I said the value arm loses because the company's retention belief anti-ranks the world, and I guessed the world's tenure slope was a housing-tenure confound. The guess was wrong, and the real cause is worse for the world. The world's bill-shock base (saas.customer_reaction yoy count) cannot fire in a household's first year: k=0 on 156 of 156 tenure-1 rows, against 6.86 shocked months out of 12 later. That one term carries the whole tenure gradient (-0.346 to -0.009 when it is held) and the whole bill-size gradient (-0.272 to +0.003). Hold it, and the company belief's pooled score against the world goes from -0.336 to +0.197 (8dd7794bd). Published evidence points the other way on both: longer tenure switches less (Ofgem, CMA 2016), and spend barely correlates (BMG 2024). So a company taught to fit the world's retention would have learned a defect. That is advantage by access to an artefact, the reverse of the thesis, and it was caught before anyone built it. PB4 now defines the experienced shock by the published definition (a0ccd009b). The hazard still reads the old count on purpose, and a one-world run measuring the new shock is on the box now (pid 4051166, pre-registered in 57b505ca3). A second world gap surfaced from the licence (9d6ad4551): about 65% of fixed-term ends are passive and roll no departure at all, although the record makes every term end a decision point (Ofgem's 2019 EoFT trial: 6% external switching within six weeks). The error runs the company's way. EP1 now values on all-cause exit over exposure, the defined reading, with a life table by tenure year and an untruncated survival sum (627f05756, 7e2503507, 127c007f0). The gap arm fell from 1.558 to 1.275. But nothing a supplier holds at first valuation ranks tenure within a cohort. What ranks forward margin is mostly the fuel split: legs alone +0.545 against the belief's rate +0.387. The fitted blend fails out of sample. \"Legs, then rate\" held every prediction on two re-drawn-dice runs (2acb617d4), but it cannot be licensed, because re-drawing dice cannot vary a household trait (C1 failed, 16% and 11%). Replicating it needs a different book, which is EP17 (R13 curriculum). That ruling is the director's, and the worker has already sent him an NTFY with its recommendation, so I do not repeat it. ON THE MACHINE: all three previous focus items were drawn and finished, and they disappear. 388d33b76 brought the shared checkout back to origin, from 1 ahead and 42 behind. The ahead commit, 75df9efdf, was a live land-twice instance: a second \"EP1 pass 20\", byte-identical in code to d77ff33d5, dropped and preserved. The ten untracked blockers were supervisor._sync_origin_staging, not staging_watcher as I had it. Three of them matched an EARLIER origin revision, and the reconciler cannot clear that case, so it recurs. That mechanism is H49 (level 0) and it is the third item. origin_reconcile logged REFUSED_CONFLICT every five minutes from at least 04:07 to 04:22 while nothing raised it. The stretch had 26 commits and 7 substantive; 5 were empty merges or heartbeats.",
+  "thesis_read": "THE COMPANY HAS BEEN CHARGING ABOVE THE LAW IN ITS OWN FAVOUR, AND ITS OWN CHECK SAID IT WAS LAWFUL. That is what this stretch means, and it is a step backwards on the mission before it is a step forwards on fidelity. The DD-books work (ed41ffa1e) opened each account at the rate it was sold at, and 28 of 117 first terms in one world came out above the cap. 597b33942 accounts for all 28. The company's renewal desk ceilings an ex-VAT strike at the INC-VAT cap (company/pricing/renewal_rate_chain.py:365, :382 and :511, reading get_cap_unit_rate_for_date). So about 24% of first terms pay up to 5% over the default-tariff ceiling once VAT is added. The value arm has also scored that 5% as lawful headroom: the 08-26 A/B had 27 of 66 renewals ceiling-bound. This is value transfer, not value creation, so every value-arm result that touched the ceiling is overstated by an unknown amount. It is also the VAT rule's defect class again, fixed in hedged_settlement on 08-25 and still live on the company's side. A seat lane is measuring the corrected ceiling on one world now (/var/tmp/se-exvat, pid 544762), and it is item one. PB4 moved a long way without reaching its swap. Year one is no longer blind: the quote is priced at the rate sold (7a119f52c), and the quote and the review share one inc-VAT basis (7c872f2d0). That took first-renewal shock from 4 of 36 defined to 31 of 31 defined and 17 shocked. The corrected basis exposed a tail, though. 7 of 31 first renewals rise by more than 100%, all in electrically heated homes whose registry EAC is a fraction of what they are billed for. A practitioner would say a settled home's EAC follows its own reads, so this is probably a world defect. Swapping the hazard before that is settled would teach the world an electric-heating gradient that does not exist, so the swap waits behind it (item two). Last stretch's second item was answered, and its premise was wrong (91214c720). The \"65% of term ends\" were mostly anniversaries of households already on SVT, which in law are not decision points. Fixed-end exits run at 13.9%, above the only published floor (6%), so no roll was added. The same reading found the opposite defect: the SVT anniversary route adds exits on top of C1b's all-cause band, about 29% too many, and that errs against the company. THE STEER IS DRIFTING ON ITS ATOM ITEMS. Neither atom-named focus item (PB4 and H49) was drawn this stretch; only the lane-0 item was. Lanes moved PB4 anyway, through lane-0 claims under other names. H49 did not move at all and is still level 0. At 08:18 the shared tree was 11 behind and NOT_ADVANCED, refused by 6 paths, and it was logged and nothing more. So H49 now goes through lane 0 under a key, not as an atom bias. 23 commits, 5 substantive by the brief's count. 5 carried no work: 3 heartbeats and 2 empty merges.",
   "focus": [
    {
+    "id": "the-company-ceilings-an-ex-vat-strike-at-the-ex-vat-cap",
+    "lane": "B_commercial",
+    "what": "Finish the fix that docs/staging/SEAT_FINDING_THE_28_ACCOUNTS_ABOVE_THE_CAP_ARE_EX_VAT_STRIKES_CEILINGED_AT_THE_INC_VAT_CAP_2026-10-01.md hands on. A seat lane is already measuring it in /var/tmp/se-exvat (measure_exvat.py, pid 544762): do NOT launch a second world. Wait on that run, or take over its output if its lane has ended. Do it in this order. (1) Read whether simulation/svt_product.py writing svt_rates' inc-VAT cap into the ex-VAT unit_rate_gbp_per_mwh is the same defect on the world's side or a deliberate basis. Record that reading, and do not change the world in this item. (2) File a pre-registration predicting how many ceiling-bound renewals move, and by how much. (3) In company/pricing/renewal_rate_chain.py, de-VAT cap_ceiling at the company's own VAT_RATE_DOMESTIC, for both writer 4's clamp (:511) and the value arm's max_offered_rate_gbp_per_mwh (:382). Do not write a new VAT rule. (4) Add a control that no strike the desk writes exceeds the ex-VAT cap, mutation-proven by restoring the inc-VAT read. Fix the class, not the instance: if compliance/domain_invariants.py has no invariant that a sold ex-VAT rate sits at or under the cap de-VATed, add one there.",
+    "why": "24% of priced first terms in one world pay up to 5% over the legal default-tariff ceiling (SLC 28AD), and the company's own check passes them. The value arm has been scoring that excess as headroom. It is transfer, the exact thing the mission says is not value, and any value-arm result is untrustworthy until it is gone. DONE when the de-VATed ceiling and its invariant are on origin, the 28 openings re-read at or under the cap on one world, and the svt_product question has a recorded answer."
+   },
+   {
     "id": "PB4_engagement_separated_from_elasticity",
-    "what": "Finish the swap in docs/staging/SEAT_CONTINUATION_SWAP_THE_WORLDS_BILL_SHOCK_BASE_ONTO_THE_EXPERIENCED_SHOCK_2026-10-01.md, in order. (1) The one-world run measuring sim_experienced_bill_shock is already on the box (pid 4051166, watched by tools.wait_for). Do NOT launch another. Wait on it, grade it against P1-P6 in docs/staging/records/SEAT_PREREGISTRATION_PB4_THE_EXPERIENCED_BILL_SHOCK_ON_ONE_WORLD_2026-10-01.md, and publish the None count by reason. (2) If neither refutation clause fires, swap _bill_shock_base in simulation/customer_events.py onto one experienced-shock event per year. Re-fit year_level_anchor against the published SVT/fixed switching band in docs/market_research/svt_rates_active_passive_2016_2025.md, an external anchor and never this tree's output, and keep the 15% materiality cut as a named unsourced gap. Add a control that the hazard can fire at tenure 1. (3) On one post-swap world, re-measure the within-year tenure and bill-size gradients of p_retain with the analyse.py shape in /var/tmp/se-world-terms-out/, and grade them against the published direction (longer tenure switches less; spend within -0.07 to +0.05). Do not touch the passive-term-end roll in the same change.",
-    "why": "The world's retention gradients are an artefact of a count that is blind in year one, and every company-side ranking grade since the ab6 work has been scored against that artefact. Until the world is right, no retention result can tell inference from fitting a defect. DONE when the swap and its tenure-1 control are on origin, and a finding states the post-swap gradients against the published sign. If the run refutes the plan, DONE is instead the finding that says so and names what the cut is doing."
+    "what": "Before the hazard swap, settle the year-one tail named in docs/staging/SEAT_FINDING_THE_YEAR_ONE_SHOCK_TAIL_IS_AN_EAC_A_FRACTION_OF_THE_HOMES_USE_2026-10-01.md. 7 of 31 first renewals rise by more than 100%, in electrically heated homes whose registry EAC (1,600-2,500 kWh) is a fraction of their billed use (e.g. PROS-2016-0098). Do knowledge first: establish from the published record (Elexon BSCP/EAC methodology, docs/domain_artefact_library/) how an EAC is set for a settled home. Then find which layer of simulation/household_demand.py puts demand above the declared EAC. If the gap is not history-true, fix it in the world as a fidelity change, blind to company results and in its own run. Only then do step 3 of docs/staging/SEAT_CONTINUATION_SWAP_THE_WORLDS_BILL_SHOCK_BASE_ONTO_THE_EXPERIENCED_SHOCK_2026-10-01.md: swap _bill_shock_base in simulation/customer_events.py, re-fit the level against docs/market_research/svt_rates_active_passive_2016_2025.md, and add the tenure-1 control. Wait for item one to land first, because the ceiling fix moves the rates the year-one quote is priced at.",
+    "why": "The world's retention gradients are still the artefact of a count that is blind in year one, and every company ranking is graded against them. But swapping now would replace one artefact with another, an electric-heating shock gradient carried by a registry EAC the world's own demand ignores. DONE when the EAC/demand question has a sourced answer, any world fix for it is on origin, and the swap with its tenure-1 control is on origin with a finding giving the post-swap tenure and bill-size gradients against the published sign."
    },
    {
-    "id": "a-passive-fixed-term-end-is-a-decision-point-in-the-world",
-    "lane": "W2_customer_generator",
-    "what": "Only after item one's swap is on origin, and never in the same run. Knowledge first: establish from the published record the departure rate at a passive fixed-term end for a switched-in book. Start from Ofgem's 2019 End of Fixed Term trial, docs/market_research/what_a_renewal_decision_is_for_a_gb_domestic_customer.md and docs/domain_artefact_library/. If nothing establishes it, carry it as an explicit named None (FIRST_RENEWAL_DEPARTURE_PRIOR is already None for this reason), never as a placeholder. Then give the passive branch of rolls_active_renewal (simulation/renewals.py:211-231, simulation/run_phase2b.py:2323-2376) a term-end departure roll on that evidence, with a control asserting the passive branch CAN depart. Also record whether the anniversary re-draw for an SVT household duplicates the C1b cap-calendar hazard. Measure that; do not change it.",
-    "why": "The world gives about 65% of term ends no exit, against a licence that makes each one a decision point. The error flatters the company, and it is a reason a dice redraw moved only 9-12 exit months in 2acb617d4, so it also blunts every noise-floor test we run. DONE when the roll, or the named-None gap, is on origin with its control, and a finding gives the before/after exit count at term ends on one world."
-   },
-   {
-    "id": "H49_an_untracked_copy_of_an_earlier_origin_revision_is_cleared_like_a_twin",
-    "what": "Build the H49 mechanism in background/origin_reconcile.py. An untracked shared-tree copy whose bytes equal ANY earlier origin revision of its own path (ask git log --format=%H -- <path> plus hash-object, not only the tip) is cleared like a twin, after preserving it under refs/preserved/. In the same change, make a REFUSED_CONFLICT or NOT_ADVANCED that persists past three cycles raise one supervisor alarm, naming its paths, instead of only appending to docs/observability/reconcile-watch-log.md. Also stop supervisor._sync_origin_staging writing a copy that would block a fast-forward. Mutation-prove each leg: one control with a fixture where the copy matches an earlier revision, and one with novel bytes that must NOT be cleared.",
-    "why": "This is the third hand-clearance of the shared checkout in two days (09-30, 388d33b76), and each time daemons ran code the trunk had replaced. A fourth hand-clearance is certain without the mechanism. DONE when H49 moves off level 0 with a mutation-proven control, and the next fast-forward needs no hand."
+    "id": "build-h49-so-the-shared-tree-fast-forwards-without-a-hand",
+    "lane": "H_harness",
+    "what": "Build atom H49_an_untracked_copy_of_an_earlier_origin_revision_is_cleared_like_a_twin in background/origin_reconcile.py. An untracked or modified shared-tree copy whose bytes equal ANY earlier origin revision of its own path is cleared like a twin, after it is preserved under refs/preserved/. Check with git log --format=%H -- <path> plus hash-object, not only the tip. In the same change, a NOT_ADVANCED or REFUSED_CONFLICT that persists past three cycles raises ONE supervisor alarm naming its paths, instead of only appending to docs/observability/reconcile-watch-log.md. Mutation-prove both legs: one fixture where the copy matches an earlier revision and is cleared, and one with novel bytes that must not be cleared. Then record the level move.",
+    "why": "As an atom bias, this was not drawn in the whole stretch. At 08:18 the shared tree sat 11 behind, NOT_ADVANCED, refused by 6 paths, and the only record was a log line. Daemons run from that checkout, so they execute code the trunk has replaced. This is the fourth time in three days. DONE when H49 is off level 0 with both controls on origin, and the next fast-forward needs no hand."
    }
   ],
   "not_now": [
    {
-    "what": "Changing the company's retention rate term (enriched_churn_estimate) or starting B8's learned price response.",
-    "why": "8dd7794bd showed the anti-ranking it would correct is mostly a world artefact. Any company-side fit before item one lands would learn the defect, which is the reverse of the thesis."
+    "what": "Removing the SVT anniversary route's departure roll, or moving its re-draw onto the cap calendar (91214c720's next step).",
+    "why": "It is a real world defect, about 29% too many SVT exits, but it moves the world's churn. It must not share a run with PB4's swap or the EAC fix. Errs against the company, so waiting costs no false credit. It goes after item two."
    },
    {
-    "what": "Putting \"legs, then rate\" into EP1's ranking input, or rebinding _DEFAULT_BASE_SEED by hand to replicate it.",
-    "why": "Two dice-redraw runs held every prediction but cannot vary a household trait, so they cannot license the rule (2acb617d4). A different book is EP17, which is R13 curriculum and the director's; the worker already sent him the recommendation. Going round the door would be deciding his call."
+    "what": "Re-running the ab6 value-cycle A/B, the EP17 four-book pilot, or any value-arm grade.",
+    "why": "The arm has been searching under a ceiling 5% too high, and the world's retention gradients are still artefacts. Any result now prices both defects. Run it after items one and two."
    },
    {
-    "what": "Swapping the bill-shock base and adding the passive-term-end roll in one change.",
-    "why": "Both move departure levels and gradients. Together they cannot be attributed, and the swap's run is already in flight. Item two waits for item one."
+    "what": "Fixing svt_product's inc-VAT write in the same change as the company's ceiling.",
+    "why": "One is the world and one is the company. Changed together they cannot be attributed, and the world's change must be decided blind to company results. Item one reads it and records it."
    },
    {
-    "what": "Re-running the ab6 value-cycle A/B or the EP17 four-book pilot now.",
-    "why": "Any result is scored against a world whose retention gradients are known to be artefacts. It would price the defect again; run it after items one and two."
+    "what": "Putting \"legs, then rate\" into EP1's ranking, or rebinding _DEFAULT_BASE_SEED to replicate it.",
+    "why": "Unchanged from last stretch. A dice redraw cannot vary a household trait, so the rule is not licensed. A different book is EP17 and the director's call, and he already has the NTFY."
    },
    {
-    "what": "Binding the lane-0 not_done row grade-ab6-pilots-once-runp2-exists, and a heartbeat for the mute worker-seat-manager.",
-    "why": "The bytes attributed to that row by time (a done run_complete and the director console) are not its work, and both items move no level. The mute daemon's wait channel is still its ordinary sleep."
+    "what": "Refreshing site/data/dd_opening_arms.json now (68e4fb4bf).",
+    "why": "It needs a run output produced after the ceiling fix, or it would publish openings above the cap. The page is honest about its 09-03 substrate meanwhile."
+   },
+   {
+    "what": "Binding the lane-0 not_done row grade-ab6-pilots-once-runp2-exists, and a heartbeat for worker-seat-manager.",
+    "why": "The bytes attributed to that row by time are a done run_complete and the director console, not its work. Neither item moves a level. The daemon's wait channel is still its ordinary sleep."
    }
   ],
   "for_the_director": [],
@@ -303,6 +308,71 @@
  },
  "what_it_got_wrong": {
   "entries": [
+   {
+    "at": "2026-10-01T08:22:35.546118+00:00",
+    "what": "THE MACHINE'S, NEW. The company's renewal desk ceilings an ex-VAT strike at the inc-VAT cap (renewal_rate_chain.py:365/:382/:511), so about 24% of first terms in one world pay up to 5% over the default-tariff ceiling and the value arm counts it as headroom (597b33942). It is the VAT rule's defect class again, after hedged_settlement's fix on 08-25. Item one.",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-01T08:22:35.546118+00:00",
+    "what": "MINE, NEW. Last stretch's second item said the world gives about 65% of term ends no exit. 64.8% of those draws were anniversaries of households already on SVT, not term ends, and fixed-end exits run at 13.9%, above the published 6% floor (91214c720). I carried the worker's premise into focus without asking what the 65% counted.",
+    "corrected": true
+   },
+   {
+    "at": "2026-10-01T08:22:35.546118+00:00",
+    "what": "THE MACHINE'S, NEW. The SVT anniversary route rolls departures on top of C1b's all-cause SVT band, so SVT exits run about 29% above what the band sets (91214c720). In not_now behind item two.",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-01T08:22:35.546118+00:00",
+    "what": "THE MACHINE'S, CARRIED. The world's bill-shock base cannot fire in a household's first year, and its retention gradients run opposite to the published record. Year one is now defined (31 of 31, 7a119f52c and 7c872f2d0), but the hazard still reads the old count until the swap in item two.",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-01T08:22:35.546118+00:00",
+    "what": "THE MACHINE'S, CARRIED, now graded corrected. \"The world rolls no departure at a passive fixed-term end.\" Measured, nobody leaves by doing nothing: the exit comes through the active branch, and the fixed-end rate is above the published floor (91214c720). The premise was the error, and it is in my row above.",
+    "corrected": true
+   },
+   {
+    "at": "2026-10-01T08:22:35.546118+00:00",
+    "what": "THE MACHINE'S, CARRIED. origin_reconcile's persistent refusals are raised nowhere past its own log. At 08:18 this stretch: NOT_ADVANCED, 11 behind, 6 paths, [STILL OPEN], log only. Item three.",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-01T08:22:35.546118+00:00",
+    "what": "THE MACHINE'S, CARRIED. One item can land twice, once on origin through surgical_land and once as a local commit on the shared HEAD (75df9efdf after d77ff33d5). No mechanism prevents the next one.",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-01T08:22:35.546118+00:00",
+    "what": "THE MACHINE'S, CARRIED. The launch register recorded hgc-suite-timing as died while its /var/tmp driver's process was on the box; that driver called resource_headroom.admitted(), which does not exist. Nothing checks that a hand-written /var/tmp driver calls an API that exists.",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-01T08:22:35.546118+00:00",
+    "what": "THE MACHINE'S, CARRIED. A control or door whose shape changes must re-run every fixture that builds a synthetic tree to drive it, and no control requires it. citation_at_head, red_at_head and fork_state in .publish_gate_state.json still read not_established.",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-01T08:22:35.546118+00:00",
+    "what": "THE MACHINE'S, CARRIED. A refusal naming a commit is not re-asked against the remote ref before a reader sees it. liveness_surface_refusal is still not re-asked.",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-01T08:22:35.546118+00:00",
+    "what": "THE MACHINE'S, CARRIED. The stash-completeness sweep reports a genuinely lost file as safe. It is still not on the map.",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-01T08:22:35.546118+00:00",
+    "what": "THE MACHINE'S, CARRIED. Nothing on the landing path asks whether a same-subject sibling is left behind in the shared tree (the 14-path refusal in 662da7fd3). Separate from H49 and still open.",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-01T08:22:35.546118+00:00",
+    "what": "MINE, CARRIED. not_now is prose, and nothing a launch from another lane reads. Two instances are mechanised (b50a03519, 19ca27dbc); the class stays open.",
+    "corrected": false
+   },
    {
     "at": "2026-10-01T05:23:38.288126+00:00",
     "what": "MINE, NEW. Last stretch I guessed that the world's within-year tenure slope (-0.32) was a housing-tenure confound. Measured, housing tenure moves nothing material. The whole gradient is the yoy bill-shock count, which is blind in year one (8dd7794bd). The finding was right to test it; my thesis_read carried the guess as the likely answer.",
@@ -2662,41 +2732,53 @@
     "at": "2026-09-24T23:24:04.367685+00:00",
     "what": "THE MACHINE'S, CARRIED, INSTANCE CLOSED AND CLASS STILL OPEN AFTER FOUR STRETCHES. A seat ran `git stash` on the shared tree \u2014 a never-do \u2014 and swept 436 paths of several lanes' uncommitted work; all of it was recovered and verified byte-identical and the stash entry is kept as the copy of record. The class is untouched: `git restore --source=stash@{0}` silently skipped the one path present in the stash but in neither HEAD nor the index, and the completeness sweep could not see the miss, because `git diff --quiet HEAD -- <path>` is quiet for an untracked path whatever its content \u2014 so the same detector would report a genuinely lost file safe. It has also stopped being only a recovery concern: the same stash pop restamped 321 files and defeated the stale-copy clock by 38 seconds, which is why focus item three is forbidden from using that clock. Rejected from focus for a fourth time, visibly, in `not_now`. Carried so nobody reaching for a recovery sweep trusts one.",
     "corrected": false
-   },
-   {
-    "at": "2026-09-24T20:22:26.871045+00:00",
-    "what": "MINE, GRADED AND NOW CORRECTED \u2014 the repair landed, which is what I said to grade it by. I filed that the tree-advance failed because I ranked it fourth, was refuted, and re-filed the cause as a broken door on the trunk: `refresh_to_head`'s `-S` probe built from the judgement base rather than the preserved commit's parent. 62abd5e49 repaired it and is an ancestor of origin/main. I am marking this corrected on the repair and not on the outcome deliberately, because marking it open would send the next session to re-fix a door that is fixed \u2014 which is precisely what the \"nothing to land\" annotation on all three of last stretch's focus items is already saying. The outcome it was meant to buy did not arrive, for a third distinct cause, and that cause is the row below rather than this one.",
-    "corrected": true
-   },
-   {
-    "at": "2026-09-24T20:22:26.871045+00:00",
-    "what": "MINE, NEW, AND THE ERROR IS THE SHAPE AND NOT THE CAUSE. I have now named \"advance the checkout\" in three consecutive directions. Each named a different cause, each cause was real, each fix landed \u2014 and the gap went 20, then 29, then 37 commits behind, and the publisher went from dark to 51 consecutive failures over 71.7h. Three correct instance fixes in a row losing ground is not bad luck, it is a category error: the ahead leg is a GENERATOR, refilled by a liveness commit whose own push fails rc=1 every one to two hours, and I kept prescribing hand doors against it while never once asking what was trying to drain it. Nothing was \u2014 `background/reconcile_watch.py` has no merge and no push in it at all. Grade this by whether `contains_origin` holds true across subsequent heartbeat commits with no hand door in between; a single hand close is not evidence and I should not accept it as such.",
-    "corrected": false
-   },
-   {
-    "at": "2026-09-24T20:22:26.871045+00:00",
-    "what": "THE MACHINE'S, CARRIED, AND THE SAME HALF STILL OPEN AFTER TWO STRETCHES. The established half stands: `background/boot_sha.py` does stamp, and the stamps themselves showed the deployment was tracking an uncommitted hybrid blob (56648a39a, in no commit) for two weeks until the checkout was refreshed. What is still open is the half that matters \u2014 nothing can distinguish a working stamper from a dead one, the `-` prefix on `ExecStartPre` silences every failure by design, the stamping and restarting populations are disjoint so the signal goes dark by construction, and the finding's second pre-registered prediction is still unchecked at the cost of one `stat`. The write-up's thoroughness is the hazard: it reads finished. It is item 3 this stretch precisely because the 37-behind checkout just demonstrated what not knowing which code is running costs.",
-    "corrected": false
-   },
-   {
-    "at": "2026-09-24T20:22:26.871045+00:00",
-    "what": "THE MACHINE'S, CARRIED, INSTANCE CLOSED AND CLASS STILL OPEN. A seat ran `git stash` on the shared tree \u2014 a never-do \u2014 and swept 436 paths of several lanes' uncommitted work; all of it was recovered and verified byte-identical, and the stash entry is kept as the copy of record. The class is untouched: `git restore --source=stash@{0}` silently skipped the one path present in the stash but in neither HEAD nor the index, and the completeness sweep could not see the miss because `git diff --quiet HEAD -- <path>` is quiet for an untracked path whatever its content \u2014 so the same detector would report a genuinely lost file safe. Rejected from focus for a third stretch, visibly, in `not_now`. Carried so that nobody reaching for a recovery sweep trusts one.",
-    "corrected": false
    }
   ],
   "refused_own_records": [],
-  "outstanding": 385,
-  "corrected": 91,
+  "outstanding": 393,
+  "corrected": 92,
   "correction_not_recorded": 0,
   "empty_means": ""
  },
  "what_next": {
   "focus": [
+   "the-company-ceilings-an-ex-vat-strike-at-the-ex-vat-cap",
    "PB4_engagement_separated_from_elasticity",
-   "a-passive-fixed-term-end-is-a-decision-point-in-the-world",
-   "H49_an_untracked_copy_of_an_earlier_origin_revision_is_cleared_like_a_twin"
+   "build-h49-so-the-shared-tree-fast-forwards-without-a-hand"
   ],
   "steer_checks": [
+   {
+    "by_class": {
+     "atom": {
+      "drawn": [],
+      "focus": [
+       "PB4_engagement_separated_from_elasticity",
+       "H49_an_untracked_copy_of_an_earlier_origin_revision_is_cleared_like_a_twin"
+      ],
+      "steered": false
+     },
+     "lane_0": {
+      "drawn": [
+       "a-passive-fixed-term-end-is-a-decision-point-in-the-world"
+      ],
+      "focus": [
+       "a-passive-fixed-term-end-is-a-decision-point-in-the-world"
+      ],
+      "steered": true
+     }
+    },
+    "drawn": [
+     "a-passive-fixed-term-end-is-a-decision-point-in-the-world"
+    ],
+    "focus": [
+     "PB4_engagement_separated_from_elasticity",
+     "a-passive-fixed-term-end-is-a-decision-point-in-the-world",
+     "H49_an_untracked_copy_of_an_earlier_origin_revision_is_cleared_like_a_twin"
+    ],
+    "note": "the previous direction named work the draw then took (measured over this stretch only -- the 3.0h since 2026-10-01T05:23:38.288126+00:00; this is the PREVIOUS FOCUS, not every drawn item)",
+    "steered": true,
+    "window": "this stretch only -- the 3.0h since 2026-10-01T05:23:38.288126+00:00"
+   },
    {
     "by_class": {
      "lane_0": {
@@ -2818,36 +2900,6 @@
     "note": "the previous direction named work the draw then took (measured over this stretch only -- the 3.0h since 2026-09-30T17:24:51.786827+00:00; this is the PREVIOUS FOCUS, not every drawn item)",
     "steered": true,
     "window": "this stretch only -- the 3.0h since 2026-09-30T17:24:51.786827+00:00"
-   },
-   {
-    "by_class": {
-     "lane_0": {
-      "drawn": [
-       "the-orientation-writes-the-stretch-log",
-       "close-the-fork-and-make-a-land-on-no-ref-refuse",
-       "grade-x1-and-attribute-the-loss"
-      ],
-      "focus": [
-       "the-orientation-writes-the-stretch-log",
-       "close-the-fork-and-make-a-land-on-no-ref-refuse",
-       "grade-x1-and-attribute-the-loss"
-      ],
-      "steered": true
-     }
-    },
-    "drawn": [
-     "the-orientation-writes-the-stretch-log",
-     "close-the-fork-and-make-a-land-on-no-ref-refuse",
-     "grade-x1-and-attribute-the-loss"
-    ],
-    "focus": [
-     "the-orientation-writes-the-stretch-log",
-     "close-the-fork-and-make-a-land-on-no-ref-refuse",
-     "grade-x1-and-attribute-the-loss"
-    ],
-    "note": "the previous direction named work the draw then took (measured over this stretch only -- the 3.0h since 2026-09-30T14:22:25.400516+00:00; this is the PREVIOUS FOCUS, not every drawn item)",
-    "steered": true,
-    "window": "this stretch only -- the 3.0h since 2026-09-30T14:22:25.400516+00:00"
    }
   ],
   "steered_recently": true,
@@ -2855,9 +2907,9 @@
  },
  "the_queues_link_to_the_map": {
   "available": true,
-  "population": 45,
-  "chained": 40,
-  "minted": 17,
+  "population": 51,
+  "chained": 46,
+  "minted": 23,
   "unminted": 23,
   "unchained": [
    {

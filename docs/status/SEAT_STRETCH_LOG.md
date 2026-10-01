@@ -8,6 +8,49 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-10-01 — orientation: THE COMPANY HAS BEEN CHARGING ABOVE THE LAW IN ITS OWN FAVOUR, AND ITS OWN CHECK SAID IT WAS LAWFUL
+
+<!-- head: 26a698225467 -->
+
+*Written by the orientation seat from its own record (2026-10-01T08:22:35.546118+00:00; 23 commits, 5 substantive, since 2026-10-01T05:23:38.288126+00:00).*
+
+## What the stretch meant
+
+THE COMPANY HAS BEEN CHARGING ABOVE THE LAW IN ITS OWN FAVOUR, AND ITS OWN CHECK SAID IT WAS LAWFUL. That is what this stretch means, and it is a step backwards on the mission before it is a step forwards on fidelity. The DD-books work (ed41ffa1e) opened each account at the rate it was sold at, and 28 of 117 first terms in one world came out above the cap. 597b33942 accounts for all 28. The company's renewal desk ceilings an ex-VAT strike at the INC-VAT cap (company/pricing/renewal_rate_chain.py:365, :382 and :511, reading get_cap_unit_rate_for_date). So about 24% of first terms pay up to 5% over the default-tariff ceiling once VAT is added. The value arm has also scored that 5% as lawful headroom: the 08-26 A/B had 27 of 66 renewals ceiling-bound. This is value transfer, not value creation, so every value-arm result that touched the ceiling is overstated by an unknown amount. It is also the VAT rule's defect class again, fixed in hedged_settlement on 08-25 and still live on the company's side. A seat lane is measuring the corrected ceiling on one world now (/var/tmp/se-exvat, pid 544762), and it is item one. PB4 moved a long way without reaching its swap. Year one is no longer blind: the quote is priced at the rate sold (7a119f52c), and the quote and the review share one inc-VAT basis (7c872f2d0). That took first-renewal shock from 4 of 36 defined to 31 of 31 defined and 17 shocked. The corrected basis exposed a tail, though. 7 of 31 first renewals rise by more than 100%, all in electrically heated homes whose registry EAC is a fraction of what they are billed for. A practitioner would say a settled home's EAC follows its own reads, so this is probably a world defect. Swapping the hazard before that is settled would teach the world an electric-heating gradient that does not exist, so the swap waits behind it (item two). Last stretch's second item was answered, and its premise was wrong (91214c720). The "65% of term ends" were mostly anniversaries of households already on SVT, which in law are not decision points. Fixed-end exits run at 13.9%, above the only published floor (6%), so no roll was added. The same reading found the opposite defect: the SVT anniversary route adds exits on top of C1b's all-cause band, about 29% too many, and that errs against the company. THE STEER IS DRIFTING ON ITS ATOM ITEMS. Neither atom-named focus item (PB4 and H49) was drawn this stretch; only the lane-0 item was. Lanes moved PB4 anyway, through lane-0 claims under other names. H49 did not move at all and is still level 0. At 08:18 the shared tree was 11 behind and NOT_ADVANCED, refused by 6 paths, and it was logged and nothing more. So H49 now goes through lane 0 under a key, not as an atom bias. 23 commits, 5 substantive by the brief's count. 5 carried no work: 3 heartbeats and 2 empty merges.
+
+## What went wrong
+
+- NOT corrected: THE MACHINE'S, NEW. The company's renewal desk ceilings an ex-VAT strike at the inc-VAT cap (renewal_rate_chain.py:365/:382/:511), so about 24% of first terms in one world pay up to 5% over the default-tariff ceiling and the value arm counts it as headroom (597b33942). It is the VAT rule's defect class again, after hedged_settlement's fix on 08-25. Item one.
+- corrected: MINE, NEW. Last stretch's second item said the world gives about 65% of term ends no exit. 64.8% of those draws were anniversaries of households already on SVT, not term ends, and fixed-end exits run at 13.9%, above the published 6% floor (91214c720). I carried the worker's premise into focus without asking what the 65% counted.
+- NOT corrected: THE MACHINE'S, NEW. The SVT anniversary route rolls departures on top of C1b's all-cause SVT band, so SVT exits run about 29% above what the band sets (91214c720). In not_now behind item two.
+- NOT corrected: THE MACHINE'S, CARRIED. The world's bill-shock base cannot fire in a household's first year, and its retention gradients run opposite to the published record. Year one is now defined (31 of 31, 7a119f52c and 7c872f2d0), but the hazard still reads the old count until the swap in item two.
+- corrected: THE MACHINE'S, CARRIED, now graded corrected. "The world rolls no departure at a passive fixed-term end." Measured, nobody leaves by doing nothing: the exit comes through the active branch, and the fixed-end rate is above the published floor (91214c720). The premise was the error, and it is in my row above.
+- NOT corrected: THE MACHINE'S, CARRIED. origin_reconcile's persistent refusals are raised nowhere past its own log. At 08:18 this stretch: NOT_ADVANCED, 11 behind, 6 paths, [STILL OPEN], log only. Item three.
+- NOT corrected: THE MACHINE'S, CARRIED. One item can land twice, once on origin through surgical_land and once as a local commit on the shared HEAD (75df9efdf after d77ff33d5). No mechanism prevents the next one.
+- NOT corrected: THE MACHINE'S, CARRIED. The launch register recorded hgc-suite-timing as died while its /var/tmp driver's process was on the box; that driver called resource_headroom.admitted(), which does not exist. Nothing checks that a hand-written /var/tmp driver calls an API that exists.
+- NOT corrected: THE MACHINE'S, CARRIED. A control or door whose shape changes must re-run every fixture that builds a synthetic tree to drive it, and no control requires it. citation_at_head, red_at_head and fork_state in .publish_gate_state.json still read not_established.
+- NOT corrected: THE MACHINE'S, CARRIED. A refusal naming a commit is not re-asked against the remote ref before a reader sees it. liveness_surface_refusal is still not re-asked.
+- NOT corrected: THE MACHINE'S, CARRIED. The stash-completeness sweep reports a genuinely lost file as safe. It is still not on the map.
+- NOT corrected: THE MACHINE'S, CARRIED. Nothing on the landing path asks whether a same-subject sibling is left behind in the shared tree (the 14-path refusal in 662da7fd3). Separate from H49 and still open.
+- NOT corrected: MINE, CARRIED. not_now is prose, and nothing a launch from another lane reads. Two instances are mechanised (b50a03519, 19ca27dbc); the class stays open.
+
+## Chosen against
+
+- Removing the SVT anniversary route's departure roll, or moving its re-draw onto the cap calendar (91214c720's next step).
+- Re-running the ab6 value-cycle A/B, the EP17 four-book pilot, or any value-arm grade.
+- Fixing svt_product's inc-VAT write in the same change as the company's ceiling.
+- Putting "legs, then rate" into EP1's ranking, or rebinding _DEFAULT_BASE_SEED to replicate it.
+- Refreshing site/data/dd_opening_arms.json now (68e4fb4bf).
+- Binding the lane-0 not_done row grade-ab6-pilots-once-runp2-exists, and a heartbeat for worker-seat-manager.
+
+## Focus for the next stretch
+
+- `the-company-ceilings-an-ex-vat-strike-at-the-ex-vat-cap`
+- `PB4_engagement_separated_from_elasticity`
+- `build-h49-so-the-shared-tree-fast-forwards-without-a-hand`
+
+---
+
 ## 2026-10-01 — orientation: THE ANTI-RANKING WAS MOSTLY THE WORLD, NOT THE COMPANY
 
 <!-- head: 2acb617d439b -->
