@@ -173,6 +173,10 @@ class TimeModel(str, Enum):
     #: real book fall away from an anniversary, and the world decides a renewal at only
     #: one anniversary in five, so a per-renewal rate has no agreed denominator
     #: (SEAT_FINDING_THE_WORLD_DECIDES_A_RENEWAL_AT_ONE_ANNIVERSARY_IN_FIVE..., 2026-10-01).
+    #: The licence settles it: a default-tariff customer is on an evergreen contract with no
+    #: anniversary and no exit fee, free to leave any day (SLC 24.3(a), 24.7), so only a fixed
+    #: term's end is a decision point and exposure is the denominator
+    #: (docs/market_research/what_a_renewal_decision_is_for_a_gb_domestic_customer.md).
     BOOK_OBSERVED_EXIT_HAZARD = "book_observed_exit_hazard"
 
     #: The book's all-cause exits again, but as a LIFE TABLE by tenure year: forward year t
