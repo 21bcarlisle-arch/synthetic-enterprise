@@ -1,0 +1,501 @@
+{
+ "artefact": "ofgem_cap_standing_charges",
+ "version": 1,
+ "published_by": "Ofgem (Default Tariff Cap level model)",
+ "what_this_is": "The default tariff cap's STANDING CHARGE per cap period, electricity single-rate and gas, direct debit, in pence per day EX-VAT, read off Ofgem's own cap level model. The nil-consumption allowance IS the standing charge by Ofgem's construction, so each figure is that sheet's Total row / 365 x 100. Nothing here blends periods into years: the calendar-year blend is a READING and belongs to the lane that needs it (simulation/policy_costs does it).",
+ "basis": {
+  "sheets": {
+   "electricity": "ElecSingle_Other_Nil",
+   "gas": "Gas_Other_Nil"
+  },
+  "payment_method": "'Other Payment Method', i.e. direct debit",
+  "vat": "EX-VAT. The model's components are ex-VAT. Ofgem's PUBLISHED standing charges include VAT (5%, and 0% on electricity from 2026-10-01 to 2027-03-31).",
+  "statistic": "The median over the sheet's 15 Total rows: the 14 charge-restriction regions AND the model's own 'GB average' row. That is the population tools/ofgem_cap_unit_rate_composition reads (its `regions: 15`), and it is what reproduces simulation/policy_costs' 2016-2024 tables to the penny. The regions-only median differs on electricity by up to 0.22p/day in a calendar year (0.5p in 2025) and not at all on gas. Electricity's regional spread is wide (about 36-59p in 2023), so neither statistic is any one household's charge.",
+  "overlap": "The model carries a historical column 'October 2018 - March 2019' AND the cap's first column 'January 2019 - March 2019'. In v1.31 the two carry identical values for both fuels, so which one a reader takes for January-March 2019 does not matter; counting both double-weights the quarter (gas 2019 reads 25.03p instead of 25.14p).",
+  "pre_cap": "Columns starting before 2019-01-01 are Ofgem's back-cast of its own methodology (the model's 'Historical examples ... for illustration only'), a notional cap level and not what suppliers charged.",
+  "coverage": "v1.31 carries decided caps to October-December 2026; its columns from January 2027 are empty and are not carried here."
+ },
+ "source_model": "Default-tariff-cap-level-v1.31.xlsx",
+ "source_check": {
+  "publication": "Ofgem Default Tariff Cap level model, Default-tariff-cap-level-v1.31.xlsx",
+  "url": "https://www.ofgem.gov.uk/energy-regulation/domestic-and-non-domestic/energy-pricing-rules/energy-price-cap/energy-price-cap-default-tariff-levels",
+  "fetched": "2026-09-07",
+  "version_token": "v1.31",
+  "derived": "2026-10-01, from the cached workbook at sim/cache/ofgem_cap_level_models/ (gitignored). The electricity column is independently carried by ofgem_cap_unit_rate_composition.json `standing_charge_p_per_day_ex_vat`, and tests/simulation/test_standing_charge_reproduces_the_cap_model.py asserts the two agree.",
+  "version_token_is": "in_filename_only",
+  "how_to_recheck": "THE URL ABOVE IS A VERSION HISTORY PAGE, NOT THE WORKBOOK, and it is NOT the page this artefact cited until 2026-09-07. That one (/energy-policy-and-regulation/policy-and-regulatory-programmes/default-tariff-cap) returns 200 and carries exactly one .xlsx link -- the Annex 9 levelisation workbook -- so the old recipe, 'find the cap level model link there', could never terminate in anything but cannot_tell. A 200 serving nothing on the subject reads exactly like a working check. GET the URL above and take the HIGHEST v<major>.<minor> across every link matching Default[-_]tariff[-_]cap[-_]level OR Energy-price-cap-levels-pre-levelised-rates-model: the series is published under BOTH names (v1.30 under the second), so a check keyed to the filename stem rather than to the version number misses editions. If the highest is above `version_token`, the standing charges here were derived from a superseded model.",
+  "checked_for_supersession": {
+   "on": "2026-09-07",
+   "found": "current",
+   "note": "INHERITED, NOT RE-ASKED. This artefact was derived on 2026-10-01 from the SAME workbook ofgem_cap_unit_rate_composition.json reads, and that artefact asked the supersession question of the publisher on 2026-09-07 and found v1.31 current. Nobody asked it again on 2026-10-01; the date above is when it was last asked, which is the honest age of the answer."
+  }
+ },
+ "periods": {
+  "electricity": [
+   {
+    "cap_period": "April 2015 – September 2015",
+    "starts": "2015-04-01",
+    "ends_before": "2015-10-01",
+    "p_per_day_ex_vat": 18.661,
+    "rows": 15
+   },
+   {
+    "cap_period": "October 2015- March 2016",
+    "starts": "2015-10-01",
+    "ends_before": "2016-04-01",
+    "p_per_day_ex_vat": 18.685,
+    "rows": 15
+   },
+   {
+    "cap_period": "April 2016-September 2016",
+    "starts": "2016-04-01",
+    "ends_before": "2016-10-01",
+    "p_per_day_ex_vat": 19.374,
+    "rows": 15
+   },
+   {
+    "cap_period": "October 2016-March 2017",
+    "starts": "2016-10-01",
+    "ends_before": "2017-04-01",
+    "p_per_day_ex_vat": 19.446,
+    "rows": 15
+   },
+   {
+    "cap_period": "April 2017 - September 2017",
+    "starts": "2017-04-01",
+    "ends_before": "2017-10-01",
+    "p_per_day_ex_vat": 18.785,
+    "rows": 15
+   },
+   {
+    "cap_period": "October 2017 - March 2018",
+    "starts": "2017-10-01",
+    "ends_before": "2018-04-01",
+    "p_per_day_ex_vat": 18.904,
+    "rows": 15
+   },
+   {
+    "cap_period": "April 2018 - September 2018",
+    "starts": "2018-04-01",
+    "ends_before": "2018-10-01",
+    "p_per_day_ex_vat": 19.635,
+    "rows": 15
+   },
+   {
+    "cap_period": "October 2018 - March 2019",
+    "starts": "2018-10-01",
+    "ends_before": "2019-04-01",
+    "p_per_day_ex_vat": 21.53,
+    "rows": 15
+   },
+   {
+    "cap_period": "January 2019 - March 2019",
+    "starts": "2019-01-01",
+    "ends_before": "2019-04-01",
+    "p_per_day_ex_vat": 21.53,
+    "rows": 15
+   },
+   {
+    "cap_period": "April 2019 - September 2019",
+    "starts": "2019-04-01",
+    "ends_before": "2019-10-01",
+    "p_per_day_ex_vat": 22.301,
+    "rows": 15
+   },
+   {
+    "cap_period": "October 2019 - March 2020",
+    "starts": "2019-10-01",
+    "ends_before": "2020-04-01",
+    "p_per_day_ex_vat": 22.393,
+    "rows": 15
+   },
+   {
+    "cap_period": "April 2020 - September 2020",
+    "starts": "2020-04-01",
+    "ends_before": "2020-10-01",
+    "p_per_day_ex_vat": 23.192,
+    "rows": 15
+   },
+   {
+    "cap_period": "October 2020 - March 2021",
+    "starts": "2020-10-01",
+    "ends_before": "2021-04-01",
+    "p_per_day_ex_vat": 23.191,
+    "rows": 15
+   },
+   {
+    "cap_period": "April 2021 - September 2021",
+    "starts": "2021-04-01",
+    "ends_before": "2021-10-01",
+    "p_per_day_ex_vat": 23.692,
+    "rows": 15
+   },
+   {
+    "cap_period": "October 2021 - March 2022",
+    "starts": "2021-10-01",
+    "ends_before": "2022-04-01",
+    "p_per_day_ex_vat": 23.682,
+    "rows": 15
+   },
+   {
+    "cap_period": "April 2022 - September 2022",
+    "starts": "2022-04-01",
+    "ends_before": "2022-10-01",
+    "p_per_day_ex_vat": 45.314,
+    "rows": 15
+   },
+   {
+    "cap_period": "October 2022 - December 2022",
+    "starts": "2022-10-01",
+    "ends_before": "2023-01-01",
+    "p_per_day_ex_vat": 46.283,
+    "rows": 15
+   },
+   {
+    "cap_period": "January 2023 - March 2023",
+    "starts": "2023-01-01",
+    "ends_before": "2023-04-01",
+    "p_per_day_ex_vat": 46.283,
+    "rows": 15
+   },
+   {
+    "cap_period": "April 2023 - June 2023",
+    "starts": "2023-04-01",
+    "ends_before": "2023-07-01",
+    "p_per_day_ex_vat": 51.262,
+    "rows": 15
+   },
+   {
+    "cap_period": "July 2023 - September 2023",
+    "starts": "2023-07-01",
+    "ends_before": "2023-10-01",
+    "p_per_day_ex_vat": 51.262,
+    "rows": 15
+   },
+   {
+    "cap_period": "October 2023 - December 2023",
+    "starts": "2023-10-01",
+    "ends_before": "2024-01-01",
+    "p_per_day_ex_vat": 51.644,
+    "rows": 15
+   },
+   {
+    "cap_period": "January 2024 - March 2024",
+    "starts": "2024-01-01",
+    "ends_before": "2024-04-01",
+    "p_per_day_ex_vat": 51.625,
+    "rows": 15
+   },
+   {
+    "cap_period": "April 2024 - June 2024",
+    "starts": "2024-04-01",
+    "ends_before": "2024-07-01",
+    "p_per_day_ex_vat": 58.573,
+    "rows": 15
+   },
+   {
+    "cap_period": "July 2024 - September 2024",
+    "starts": "2024-07-01",
+    "ends_before": "2024-10-01",
+    "p_per_day_ex_vat": 58.622,
+    "rows": 15
+   },
+   {
+    "cap_period": "October 2024 - December 2024",
+    "starts": "2024-10-01",
+    "ends_before": "2025-01-01",
+    "p_per_day_ex_vat": 59.575,
+    "rows": 15
+   },
+   {
+    "cap_period": "January 2025 - March 2025",
+    "starts": "2025-01-01",
+    "ends_before": "2025-04-01",
+    "p_per_day_ex_vat": 59.567,
+    "rows": 15
+   },
+   {
+    "cap_period": "April 2025 - June 2025",
+    "starts": "2025-04-01",
+    "ends_before": "2025-07-01",
+    "p_per_day_ex_vat": 49.63,
+    "rows": 15
+   },
+   {
+    "cap_period": "July 2025 - September 2025",
+    "starts": "2025-07-01",
+    "ends_before": "2025-10-01",
+    "p_per_day_ex_vat": 46.825,
+    "rows": 15
+   },
+   {
+    "cap_period": "October 2025 - December 2025",
+    "starts": "2025-10-01",
+    "ends_before": "2026-01-01",
+    "p_per_day_ex_vat": 49.045,
+    "rows": 15
+   },
+   {
+    "cap_period": "January 2026 - March 2026",
+    "starts": "2026-01-01",
+    "ends_before": "2026-04-01",
+    "p_per_day_ex_vat": 50.089,
+    "rows": 15
+   },
+   {
+    "cap_period": "April 2026 - June 2026",
+    "starts": "2026-04-01",
+    "ends_before": "2026-07-01",
+    "p_per_day_ex_vat": 53.348,
+    "rows": 15
+   },
+   {
+    "cap_period": "July 2026 - September 2026",
+    "starts": "2026-07-01",
+    "ends_before": "2026-10-01",
+    "p_per_day_ex_vat": 53.36,
+    "rows": 15
+   },
+   {
+    "cap_period": "October 2026 - December 2026",
+    "starts": "2026-10-01",
+    "ends_before": "2027-01-01",
+    "p_per_day_ex_vat": 54.047,
+    "rows": 15
+   }
+  ],
+  "gas": [
+   {
+    "cap_period": "April 2015 – September 2015",
+    "starts": "2015-04-01",
+    "ends_before": "2015-10-01",
+    "p_per_day_ex_vat": 20.812,
+    "rows": 15
+   },
+   {
+    "cap_period": "October 2015- March 2016",
+    "starts": "2015-10-01",
+    "ends_before": "2016-04-01",
+    "p_per_day_ex_vat": 20.849,
+    "rows": 15
+   },
+   {
+    "cap_period": "April 2016-September 2016",
+    "starts": "2016-04-01",
+    "ends_before": "2016-10-01",
+    "p_per_day_ex_vat": 20.924,
+    "rows": 15
+   },
+   {
+    "cap_period": "October 2016-March 2017",
+    "starts": "2016-10-01",
+    "ends_before": "2017-04-01",
+    "p_per_day_ex_vat": 21.038,
+    "rows": 15
+   },
+   {
+    "cap_period": "April 2017 - September 2017",
+    "starts": "2017-04-01",
+    "ends_before": "2017-10-01",
+    "p_per_day_ex_vat": 21.288,
+    "rows": 15
+   },
+   {
+    "cap_period": "October 2017 - March 2018",
+    "starts": "2017-10-01",
+    "ends_before": "2018-04-01",
+    "p_per_day_ex_vat": 21.506,
+    "rows": 15
+   },
+   {
+    "cap_period": "April 2018 - September 2018",
+    "starts": "2018-04-01",
+    "ends_before": "2018-10-01",
+    "p_per_day_ex_vat": 22.31,
+    "rows": 15
+   },
+   {
+    "cap_period": "October 2018 - March 2019",
+    "starts": "2018-10-01",
+    "ends_before": "2019-04-01",
+    "p_per_day_ex_vat": 24.594,
+    "rows": 15
+   },
+   {
+    "cap_period": "January 2019 - March 2019",
+    "starts": "2019-01-01",
+    "ends_before": "2019-04-01",
+    "p_per_day_ex_vat": 24.594,
+    "rows": 15
+   },
+   {
+    "cap_period": "April 2019 - September 2019",
+    "starts": "2019-04-01",
+    "ends_before": "2019-10-01",
+    "p_per_day_ex_vat": 25.257,
+    "rows": 15
+   },
+   {
+    "cap_period": "October 2019 - March 2020",
+    "starts": "2019-10-01",
+    "ends_before": "2020-04-01",
+    "p_per_day_ex_vat": 25.441,
+    "rows": 15
+   },
+   {
+    "cap_period": "April 2020 - September 2020",
+    "starts": "2020-04-01",
+    "ends_before": "2020-10-01",
+    "p_per_day_ex_vat": 26.042,
+    "rows": 15
+   },
+   {
+    "cap_period": "October 2020 - March 2021",
+    "starts": "2020-10-01",
+    "ends_before": "2021-04-01",
+    "p_per_day_ex_vat": 24.832,
+    "rows": 15
+   },
+   {
+    "cap_period": "April 2021 - September 2021",
+    "starts": "2021-04-01",
+    "ends_before": "2021-10-01",
+    "p_per_day_ex_vat": 25.333,
+    "rows": 15
+   },
+   {
+    "cap_period": "October 2021 - March 2022",
+    "starts": "2021-10-01",
+    "ends_before": "2022-04-01",
+    "p_per_day_ex_vat": 24.88,
+    "rows": 15
+   },
+   {
+    "cap_period": "April 2022 - September 2022",
+    "starts": "2022-04-01",
+    "ends_before": "2022-10-01",
+    "p_per_day_ex_vat": 25.922,
+    "rows": 15
+   },
+   {
+    "cap_period": "October 2022 - December 2022",
+    "starts": "2022-10-01",
+    "ends_before": "2023-01-01",
+    "p_per_day_ex_vat": 27.129,
+    "rows": 15
+   },
+   {
+    "cap_period": "January 2023 - March 2023",
+    "starts": "2023-01-01",
+    "ends_before": "2023-04-01",
+    "p_per_day_ex_vat": 27.129,
+    "rows": 15
+   },
+   {
+    "cap_period": "April 2023 - June 2023",
+    "starts": "2023-04-01",
+    "ends_before": "2023-07-01",
+    "p_per_day_ex_vat": 27.725,
+    "rows": 15
+   },
+   {
+    "cap_period": "July 2023 - September 2023",
+    "starts": "2023-07-01",
+    "ends_before": "2023-10-01",
+    "p_per_day_ex_vat": 27.725,
+    "rows": 15
+   },
+   {
+    "cap_period": "October 2023 - December 2023",
+    "starts": "2023-10-01",
+    "ends_before": "2024-01-01",
+    "p_per_day_ex_vat": 28.209,
+    "rows": 15
+   },
+   {
+    "cap_period": "January 2024 - March 2024",
+    "starts": "2024-01-01",
+    "ends_before": "2024-04-01",
+    "p_per_day_ex_vat": 28.189,
+    "rows": 15
+   },
+   {
+    "cap_period": "April 2024 - June 2024",
+    "starts": "2024-04-01",
+    "ends_before": "2024-07-01",
+    "p_per_day_ex_vat": 28.376,
+    "rows": 15
+   },
+   {
+    "cap_period": "July 2024 - September 2024",
+    "starts": "2024-07-01",
+    "ends_before": "2024-10-01",
+    "p_per_day_ex_vat": 28.408,
+    "rows": 15
+   },
+   {
+    "cap_period": "October 2024 - December 2024",
+    "starts": "2024-10-01",
+    "ends_before": "2025-01-01",
+    "p_per_day_ex_vat": 29.306,
+    "rows": 15
+   },
+   {
+    "cap_period": "January 2025 - March 2025",
+    "starts": "2025-01-01",
+    "ends_before": "2025-04-01",
+    "p_per_day_ex_vat": 29.301,
+    "rows": 15
+   },
+   {
+    "cap_period": "April 2025 - June 2025",
+    "starts": "2025-04-01",
+    "ends_before": "2025-07-01",
+    "p_per_day_ex_vat": 30.39,
+    "rows": 15
+   },
+   {
+    "cap_period": "July 2025 - September 2025",
+    "starts": "2025-07-01",
+    "ends_before": "2025-10-01",
+    "p_per_day_ex_vat": 27.549,
+    "rows": 15
+   },
+   {
+    "cap_period": "October 2025 - December 2025",
+    "starts": "2025-10-01",
+    "ends_before": "2026-01-01",
+    "p_per_day_ex_vat": 31.098,
+    "rows": 15
+   },
+   {
+    "cap_period": "January 2026 - March 2026",
+    "starts": "2026-01-01",
+    "ends_before": "2026-04-01",
+    "p_per_day_ex_vat": 32.139,
+    "rows": 15
+   },
+   {
+    "cap_period": "April 2026 - June 2026",
+    "starts": "2026-04-01",
+    "ends_before": "2026-07-01",
+    "p_per_day_ex_vat": 26.453,
+    "rows": 15
+   },
+   {
+    "cap_period": "July 2026 - September 2026",
+    "starts": "2026-07-01",
+    "ends_before": "2026-10-01",
+    "p_per_day_ex_vat": 26.435,
+    "rows": 15
+   },
+   {
+    "cap_period": "October 2026 - December 2026",
+    "starts": "2026-10-01",
+    "ends_before": "2027-01-01",
+    "p_per_day_ex_vat": 27.022,
+    "rows": 15
+   }
+  ]
+ }
+}

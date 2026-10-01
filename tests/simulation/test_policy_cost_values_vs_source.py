@@ -98,6 +98,11 @@ _PINNED_ELSEWHERE: dict[str, str] = {
     # Its old unverified reason — "the pin is the Annex 9 row and not the quotient" — was right
     # and is now moot: the quotient is stated in the artefact's own `basis.derivation`.
     "_CM_LEVY_BY_YEAR": "tests/architecture/test_year_keyed_rate_table_census.py",
+    # Both standing-charge tables left `_UNVERIFIED_TABLES` on 2026-10-01: the commons now carries
+    # the cap model's per-period figures and that file does the calendar-year blend as a stated
+    # reading -- exactly the shape the old unverified reason said the pin must have.
+    "_ELEC_SC_PENCE_PER_DAY_BY_YEAR": "tests/simulation/test_standing_charge_reproduces_the_cap_model.py",
+    "_GAS_SC_PENCE_PER_DAY_BY_YEAR": "tests/simulation/test_standing_charge_reproduces_the_cap_model.py",
 }
 
 # Tables with NO values-vs-source pin yet, each with the reason. Declared rather than omitted:
@@ -121,11 +126,6 @@ _UNVERIFIED_TABLES: dict[str, str] = {
     "_GGL_RATE_GBP_PER_METER_YEAR": "Green Gas Levy is published £/meter/year by BEIS/DESNZ; this "
                                     "one is a genuinely single-figure pin and is the cheapest "
                                     "next one to do.",
-    "_ELEC_SC_PENCE_PER_DAY_BY_YEAR": "Ofgem cap standing charges are published per cap period "
-                                      "and per region; the table is a calendar-year blend.",
-    "_GAS_SC_PENCE_PER_DAY_BY_YEAR": "the gas half of the above: published per cap period and per "
-                                     "region, against a table keyed by calendar year, so the pin "
-                                     "must carry the blending as a stated reading.",
 }
 
 # Ratchets. Both may only be LOWERED. Raising either to make a red test green is the
@@ -143,7 +143,8 @@ _UNVERIFIED_TABLES: dict[str, str] = {
 # than merely detected. It is declared in `_PINNED_ELSEWHERE` above and not simply deleted, for
 # the reason the RO note gives: a table that leaves this dict without arriving anywhere is exactly
 # how the ratchet moves down while coverage does not move up.
-_MAX_UNVERIFIED_TABLES = 9
+# 9 -> 7 on 2026-10-01: both standing-charge tables, pinned to the cap model's periods (above).
+_MAX_UNVERIFIED_TABLES = 7
 _MAX_RECALLED_PINS = 3   # elec 2016, gas 2016, gas 2022 — each an open item in the commons
 
 

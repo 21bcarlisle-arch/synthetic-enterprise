@@ -552,16 +552,20 @@ def get_ggl_per_mwh(date_str: str, aq_kwh: float) -> float:
 # (`sim/cache/ofgem_cap_level_models/Default-tariff-cap-level-v1.31.xlsx`, the same edition
 # `tools/ofgem_cap_unit_rate_composition` reads), sheets `ElecSingle_Other_Nil` and `Gas_Other_Nil`
 # — the NIL-CONSUMPTION allowance is the standing charge, by Ofgem's own construction, and the
-# model's components are ex-VAT. "Other" is direct debit. Per cap period: the median over the
-# model's regional rows of Total/365; per calendar year: the day-weighted mean of the periods in
-# force. Corroboration of the basis: Oct 2022 gas 27.13p ex-VAT x 1.05 = 28.49p, Ofgem's published
-# inc-VAT figure to the penny. Electricity's regional spread is wide (e.g. 36-59p in 2023), so a
+# model's components are ex-VAT. "Other" is direct debit. Per cap period: the median of Total/365
+# over the sheet's 15 Total rows -- the 14 regions AND the model's own "GB average" row, which is
+# what reproduces these figures (regions alone run up to 0.22p/day different on electricity, 0.5p in
+# 2025; gas is the same either way); per calendar year: the day-weighted mean of the periods in
+# force, the cap column winning where the model's historical and cap columns overlap (early 2019).
+# `tests/simulation/test_standing_charge_reproduces_the_cap_model.py` re-derives every row.
+# Corroboration of the basis: Oct 2022 gas 27.13p ex-VAT x 1.05 = 28.49p, Ofgem's published inc-VAT
+# figure to the penny. Electricity's regional spread is wide (e.g. 36-59p in 2023), so a
 # GB median is not any one household's charge; the world has no regional standing charge.
 #
 # GAP, carried rather than filled: the 2016-2018 rows are periods BEFORE the cap was in force
 # (2019-01-01). The model back-casts Ofgem's methodology over them, so they are a notional cap
 # level, not an observed market tariff; nothing in the commons yet says what suppliers actually
-# charged then. 2025 is not tabled here and still clamps to 2024 (a separate coverage change).
+# charged then. 2025 is the last year the world runs; a date after it clamps to 2025.
 _ELEC_SC_PENCE_PER_DAY_BY_YEAR: dict[int, float] = {
     2016: 19.22,  # notional (pre-cap back-cast)
     2017: 18.98,  # notional
@@ -572,6 +576,7 @@ _ELEC_SC_PENCE_PER_DAY_BY_YEAR: dict[int, float] = {
     2022: 40.22,  # 23.68p to March, 45.31p from April, 46.28p from October
     2023: 50.13,
     2024: 57.11,
+    2025: 51.23,  # 59.57p to March, 49.63p from April, 46.82p from July, 49.04p from October
 }
 
 # Daily gas standing charge, pence/day EX-VAT. Source and basis: as the electricity table above.
@@ -585,6 +590,7 @@ _GAS_SC_PENCE_PER_DAY_BY_YEAR: dict[int, float] = {
     2022: 25.97,
     2023: 27.70,
     2024: 28.57,
+    2025: 29.58,
 }
 
 # SME meter capacity standing charge multiplier vs resi (larger meters, higher capacity).

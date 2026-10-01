@@ -88,5 +88,6 @@ different answers, but it does not merge them. That merge is the next piece of t
 ## Still open
 
 - ~~The 12% feedback in P3~~: attributed, see the correction under P3.
-- 2025 standing-charge row: add it from the model, as a coverage change in its own run.
+- ~~2025 standing-charge row~~: tabled from the model with its own run, see
+  `done/SEAT_FINDING_THE_2025_STANDING_CHARGE_IS_TABLED_FROM_THE_CAP_MODEL_2026-10-01.md`.
 - ~~Merge the three VAT-rate homes into one~~: landed `ed7b4666f`.
