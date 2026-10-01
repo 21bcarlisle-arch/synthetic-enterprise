@@ -195,7 +195,7 @@ _CAP_FIRST_DAY = _CAP_WINDOWS[0]["from"]
 _CAP_LAST_DAY = _CAP_WINDOWS[-1]["to"]
 
 
-def get_cap_unit_rate_for_date(fuel: str, on_date: date) -> float | None:
+def get_cap_unit_rate_for_date(fuel: str, on_date: date, *, net_of_epg: bool = True) -> float | None:
     """Return the domestic cap unit-rate ceiling (£/MWh) in force ON a given date.
 
     fuel: 'electricity' or 'gas'.
@@ -203,6 +203,11 @@ def get_cap_unit_rate_for_date(fuel: str, on_date: date) -> float | None:
 
     Returns None when no cap applied (before 1 Jan 2019), else the binding
     ceiling — min(Ofgem cap, Energy Price Guarantee) where the EPG was in force.
+
+    `net_of_epg=False` returns the published Ofgem level alone. That is the ceiling on what a
+    supplier may RECEIVE per unit on a default tariff: during the EPG the household paid the EPG
+    rate and HM Treasury paid the supplier the difference up to the cap, so a ceiling at the EPG
+    would take the Treasury's half out of revenue the supplier lawfully earned.
 
     Dates beyond the last published window CARRY THE LAST WINDOW FORWARD rather
     than returning None: a None there would silently un-cap every resi customer,
@@ -227,7 +232,7 @@ def get_cap_unit_rate_for_date(fuel: str, on_date: date) -> float | None:
 
     key = "elec" if fuel == "electricity" else "gas"
     ofgem = window[key]
-    epg = window.get(f"{key}_epg")
+    epg = window.get(f"{key}_epg") if net_of_epg else None
     return min(ofgem, epg) if epg is not None else ofgem
 
 
@@ -266,14 +271,14 @@ def _load_multi_register_ratios() -> list[tuple[date, date, float]]:
 _MULTI_REGISTER_RATIOS = _load_multi_register_ratios()
 
 
-def get_multi_register_cap_unit_rate_for_date(on_date: date) -> float | None:
+def get_multi_register_cap_unit_rate_for_date(on_date: date, *, net_of_epg: bool = True) -> float | None:
     """The electricity cap unit rate (£/MWh, INC-VAT like its single-rate sibling) for a
     multi-register or ToU tariff, weighted at its assumed split. None before the cap existed.
 
     Past the last carried period the last ratio carries forward, for the reason the single-rate
     lookup carries its last window: "no published level yet" is not "no ceiling".
     """
-    single = get_cap_unit_rate_for_date("electricity", on_date)
+    single = get_cap_unit_rate_for_date("electricity", on_date, net_of_epg=net_of_epg)
     if single is None:
         return None
     ratio = _MULTI_REGISTER_RATIOS[-1][2]

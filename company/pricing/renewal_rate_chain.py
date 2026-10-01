@@ -104,7 +104,9 @@ from saas.tariff_pricing import TARGET_MARGIN_GBP_PER_MWH
 __all__ = ["RenewalRateChain", "cap_ceiling_ex_vat", "decide_renewal_rate"]
 
 
-def cap_ceiling_ex_vat(commodity: str, on_date: date, *, multi_register: bool) -> float | None:
+def cap_ceiling_ex_vat(
+    commodity: str, on_date: date, *, multi_register: bool, net_of_epg: bool = True,
+) -> float | None:
     """The domestic cap unit rate on the strike's own basis: EX-VAT, GBP/MWh.
 
     `get_cap_unit_rate_for_date` returns Ofgem's published figure, which INCLUDES VAT at 5%.
@@ -118,13 +120,15 @@ def cap_ceiling_ex_vat(commodity: str, on_date: date, *, multi_register: bool) -
     against the multi-register benchmark (SLC 28AD.4), 0.4-8% below single-rate, and a default of
     single-rate is the fail-open that let 15 of 27 ToU first terms sit above their lawful ceiling.
     Gas has one benchmark, so `multi_register` on gas is refused rather than ignored.
+
+    `net_of_epg` is passed through to the published lookup; see `get_cap_unit_rate_for_date`.
     """
     if multi_register:
         if commodity != "electricity":
             raise ValueError(f"no multi-register cap benchmark exists for {commodity!r}")
-        inc_vat = get_multi_register_cap_unit_rate_for_date(on_date)
+        inc_vat = get_multi_register_cap_unit_rate_for_date(on_date, net_of_epg=net_of_epg)
     else:
-        inc_vat = get_cap_unit_rate_for_date(commodity, on_date)
+        inc_vat = get_cap_unit_rate_for_date(commodity, on_date, net_of_epg=net_of_epg)
     return None if inc_vat is None else inc_vat / (1.0 + vat_rate_for_segment("resi"))
 
 # The premium and the surcharge both learn from COMPLETED terms, so neither can
@@ -177,7 +181,19 @@ def portfolio_position(portfolio_margin_rates: list[float]) -> dict | None:
 # on a standard domestic product; it is not the supplier's licence to ignore it
 # on everything else, and a supplier that reads this wrong is the failure mode
 # the compliance side of the coupled triad exists to catch.
-CAPPED_TARIFF_TYPES = ("fixed",)
+#
+# `svt` is the product SLC 28AD binds first ("Evergreen (SVT), Deemed, and default fixed-term
+# contracts", `docs/domain_artefact_library/regulatory/slc_28ad_multi_register_cap_test.md`). It
+# was missing until 2026-10-01, and writers 1-3 moved 630 of 2,333 capped-year SVT segments above
+# the published cap, up to x1.38, at the rate settlement bills. `fixed` stays as this supplier's
+# own reading: the commons says a fixed tariff the customer chose is OUTSIDE 28AD, and removing it
+# is a separate decision, filed rather than taken here.
+CAPPED_TARIFF_TYPES = ("fixed", "svt")
+#: The cap binds a default tariff on what the supplier RECEIVES, and during the EPG HM Treasury
+#: paid the supplier the gap between the EPG and the cap. So an SVT segment's ceiling is the
+#: published cap, not min(cap, EPG). The world's SVT strike is that cap, ex-VAT, with the receipt
+#: as its own leg (`simulation/svt_rates`).
+EPG_MADE_WHOLE_TARIFF_TYPES = ("svt",)
 
 
 @dataclass
@@ -402,7 +418,8 @@ def decide_renewal_rate(
         # the offer uses, so the term graded as ToU is the term sold as ToU.
         cap_ceiling = cap_ceiling_ex_vat(
             commodity, date.fromisoformat(term_start[:10]),
-            multi_register=commodity == "electricity" and offers_tou(customer))
+            multi_register=commodity == "electricity" and offers_tou(customer),
+            net_of_epg=tariff_type not in EPG_MADE_WHOLE_TARIFF_TYPES)
 
     arm_uplift = renewal_margin_uplift(
         account_id=billing_account,
