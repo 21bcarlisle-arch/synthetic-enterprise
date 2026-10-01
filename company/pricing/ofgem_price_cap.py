@@ -229,3 +229,56 @@ def get_cap_unit_rate_for_date(fuel: str, on_date: date) -> float | None:
     ofgem = window[key]
     epg = window.get(f"{key}_epg")
     return min(ofgem, epg) if epg is not None else ofgem
+
+
+# --- The multi-register benchmark (SLC 28AD.4) ---
+#
+# A ToU tariff is a Multi-Register Tariff "regardless of the metering equipment employed", and
+# 28AD.4 grades it against the MULTI-REGISTER benchmark at its assumed consumption split, never
+# against the single-rate one. That benchmark's unit rate sits 0.4-8% below single-rate, so a ToU
+# pair that is revenue-neutral to a flat rate at the single-rate cap is above its lawful ceiling
+# (`docs/domain_artefact_library/regulatory/slc_28ad_multi_register_cap_test.md`).
+#
+# THE READING, and it is this company's: the multi-register ceiling is the single-rate ceiling above
+# (published windows, EPG included) scaled by the cap model's own multi-register / single-rate ratio
+# for the period. The ratio, not the model's absolute level, because the model carries no EPG: an
+# absolute multi-register level for October 2022 - June 2023 would sit far ABOVE the EPG the
+# single-rate ceiling already applies, and loosen the ceiling in exactly the windows the guarantee
+# bound. Scaling the EPG by the cap's ratio is unwitnessed, and said so here rather than hidden.
+_MULTI_REGISTER_ARTEFACT = _CAP_WINDOWS_ARTEFACT.with_name("ofgem_cap_multi_register_unit_rates.json")
+
+
+def _load_multi_register_ratios() -> list[tuple[date, date, float]]:
+    """(from, to, multi-register / single-rate) per cap period. Missing or empty RAISES (R15)."""
+    if not _MULTI_REGISTER_ARTEFACT.exists():
+        raise FileNotFoundError(
+            f"multi-register cap commons artefact missing: {_MULTI_REGISTER_ARTEFACT}. A ToU term "
+            "graded against the single-rate cap instead is above its lawful ceiling.")
+    periods = json.loads(_MULTI_REGISTER_ARTEFACT.read_text()).get("periods")
+    if not periods:
+        raise ValueError(f"multi-register cap commons artefact has no periods: {_MULTI_REGISTER_ARTEFACT}")
+    return sorted(
+        (date.fromisoformat(p["from"]), date.fromisoformat(p["to"]),
+         p["multi_register_p_per_kwh_ex_vat"] / p["single_rate_p_per_kwh_ex_vat"])
+        for p in periods)
+
+
+_MULTI_REGISTER_RATIOS = _load_multi_register_ratios()
+
+
+def get_multi_register_cap_unit_rate_for_date(on_date: date) -> float | None:
+    """The electricity cap unit rate (£/MWh, INC-VAT like its single-rate sibling) for a
+    multi-register or ToU tariff, weighted at its assumed split. None before the cap existed.
+
+    Past the last carried period the last ratio carries forward, for the reason the single-rate
+    lookup carries its last window: "no published level yet" is not "no ceiling".
+    """
+    single = get_cap_unit_rate_for_date("electricity", on_date)
+    if single is None:
+        return None
+    ratio = _MULTI_REGISTER_RATIOS[-1][2]
+    for begins, ends, period_ratio in _MULTI_REGISTER_RATIOS:
+        if begins <= on_date <= ends:
+            ratio = period_ratio
+            break
+    return single * ratio

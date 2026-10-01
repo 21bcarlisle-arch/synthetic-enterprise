@@ -230,6 +230,7 @@ def _renewal_rate_under_the_active_arm() -> float | None:
         prior_term_revenue_gbp=0.0,
         is_domestic=False,
         settled_records=settled,
+        customer={"metering": "NHH", "smart_meter": False},
     ).unit_rate_gbp_per_mwh
 
 

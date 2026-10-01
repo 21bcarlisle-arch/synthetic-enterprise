@@ -64,6 +64,7 @@ import json
 import re
 import statistics
 import sys
+from datetime import date, timedelta
 from pathlib import Path
 
 PROJECT = Path(__file__).resolve().parents[1]
@@ -647,7 +648,7 @@ def measure() -> dict:
     }
 
 
-def _with_carried_source_check(result: dict) -> dict:
+def _with_carried_source_check(result: dict, out_path: Path | None = None) -> dict:
     """The rebuilt artefact, keeping the `source_check` block the rebuild does not produce.
 
     WITHOUT THIS, RE-RUNNING THE DERIVATION DELETES THE SUPERSESSION BLOCK. `measure()` reads a
@@ -662,10 +663,12 @@ def _with_carried_source_check(result: dict) -> dict:
     read, so a model name that no longer matches the recorded `version_token` is stated as an
     inconsistency for the next reader rather than quietly reconciled.
     """
-    if not OUT_PATH.exists():
+    # Resolved at CALL time, not as the default, so a patched OUT_PATH is honoured.
+    out_path = OUT_PATH if out_path is None else out_path
+    if not out_path.exists():
         return result
     try:
-        previous = json.loads(OUT_PATH.read_text())
+        previous = json.loads(out_path.read_text())
     except json.JSONDecodeError:
         return result
     block = previous.get("source_check")
@@ -684,8 +687,125 @@ def _with_carried_source_check(result: dict) -> dict:
     return carried
 
 
+MULTI_REGISTER_OUT_PATH = (PROJECT / "docs" / "domain_artefact_library" / "regulatory"
+                           / "ofgem_cap_multi_register_unit_rates.json")
+
+#: The multi-register benchmark consumption for every cap period BEFORE P15b, in kWh. It is read off
+#: the sheet's own note, which `multi_register_series` re-reads and refuses on if it stops saying so.
+#: The P15b and P16b values are NOT carried: the note says they changed and does not state them, so
+#: periods from `MULTI_REGISTER_WITNESSED_BEFORE` are left out of the artefact rather than divided
+#: by a number nobody has read.
+MULTI_REGISTER_BENCHMARK_KWH = 4200
+MULTI_REGISTER_WITNESSED_BEFORE = "2026-01-01"
+MULTI_REGISTER_NOTE_WITNESS = "old typical consumption (4,200 kWh)"
+
+
+def multi_register_series(model_path: Path) -> dict:
+    """Per cap period, the direct-debit unit-rate cap for BOTH benchmark metering arrangements.
+
+    SLC 28AD.4 grades a multi-register tariff, which includes any time-of-use tariff "regardless of
+    the metering equipment employed", against the multi-register benchmark. Both columns are built
+    the same way (benchmark minus nil, over the benchmark kWh, median over the 15 Total rows) and
+    from the same workbook, so their ratio is a quantity: the single-rate column is the one
+    `cross_check` corroborates against published levels, and the multi-register one is not
+    corroborated against any published Economy 7 series.
+    """
+    try:
+        import openpyxl
+    except ImportError as exc:  # pragma: no cover - environment, not logic
+        raise CapModelUnavailable(f"openpyxl is needed to read the cap model: {exc}") from exc
+
+    suffix = PAYMENT_METHODS["direct_debit"]
+    workbook = openpyxl.load_workbook(model_path, read_only=True, data_only=True)
+    try:
+        names = {"mr": f"ElecMulti_{suffix}_Benchmark", "mr_nil": f"ElecMulti_{suffix}_Nil",
+                 "sr": _benchmark_sheet_name(workbook, suffix), "sr_nil": f"ElecSingle_{suffix}_Nil"}
+        missing = [name for name in names.values() if name not in workbook.sheetnames]
+        if missing:
+            raise CapModelUnavailable(f"{model_path.name} has no sheet(s) {missing}")
+        note = " ".join(str(cell) for row in workbook[names["mr"]].iter_rows(
+            min_row=1, max_row=11, max_col=8, values_only=True) for cell in row if cell)
+        if MULTI_REGISTER_NOTE_WITNESS not in note:
+            raise CapModelUnavailable(
+                f"{names['mr']!r} no longer says {MULTI_REGISTER_NOTE_WITNESS!r}; the multi-register "
+                "benchmark consumption this reader divides by is not witnessed in this model")
+        sheets = {key: _sheet_rows(workbook[name]) for key, name in names.items()}
+    finally:
+        workbook.close()
+
+    labels = set.intersection(*(set(head) for head, _ in sheets.values()))
+    starts = sorted({_period_start(label) for label in labels} - {None})
+    regions = sorted({region for region, _ in sheets["mr"][1]})
+    periods = []
+    for label in sorted(labels, key=lambda k: sheets["mr"][0][k]):
+        begins = _period_start(label)
+        if not begins or begins < CAP_IN_FORCE_FROM or begins >= MULTI_REGISTER_WITNESSED_BEFORE:
+            continue
+        rates: dict[str, list[float]] = {"mr": [], "sr": []}
+        for region in regions:
+            totals = {}
+            for key, (head, body) in sheets.items():
+                row = body.get((region, f"Total_{region}"))
+                totals[key] = None if row is None else _number(row, head[label])
+            if None in totals.values():
+                continue
+            rates["mr"].append((totals["mr"] - totals["mr_nil"]) / MULTI_REGISTER_BENCHMARK_KWH * 100)
+            rates["sr"].append((totals["sr"] - totals["sr_nil"]) / benchmark_kwh(begins) * 100)
+        if not rates["mr"]:
+            continue
+        following = [s for s in starts if s > begins]
+        ends = (date.fromisoformat(following[0]) - timedelta(days=1)).isoformat() if following else None
+        single, multi = statistics.median(rates["sr"]), statistics.median(rates["mr"])
+        periods.append({
+            "cap_period": label, "from": begins, "to": ends,
+            "single_rate_p_per_kwh_ex_vat": round(single, 3),
+            "multi_register_p_per_kwh_ex_vat": round(multi, 3),
+            "multi_register_over_single_rate": round(multi / single, 4),
+            "regions": len(rates["mr"]),
+        })
+    if not periods:
+        raise CapModelUnavailable(f"{model_path.name} yielded no multi-register period")
+    return {
+        "artefact": "ofgem_cap_multi_register_unit_rates",
+        "published_by": "Ofgem (Default Tariff Cap level model)",
+        "source_model": model_path.name,
+        "what_this_is": (
+            "The default tariff cap's direct-debit electricity UNIT RATE, EX-VAT, per cap period, "
+            "for the multi-register benchmark metering arrangement beside the single-rate one, read "
+            "off the same workbook. SLC 28AD.4 grades every multi-register tariff, ToU included, "
+            "against the multi-register column; see slc_28ad_multi_register_cap_test.md."),
+        "basis": {
+            "method": "(benchmark - nil) / benchmark kWh x 100, median over the sheet's 15 Total rows",
+            "single_rate_benchmark_kwh": "tools/ofgem_cap_unit_rate_composition.BENCHMARK_KWH_SCHEDULE",
+            "multi_register_benchmark_kwh": MULTI_REGISTER_BENCHMARK_KWH,
+            "coverage": (f"cap periods from {CAP_IN_FORCE_FROM} to before "
+                         f"{MULTI_REGISTER_WITNESSED_BEFORE}. From P15b the multi-register "
+                         "benchmark consumption changed and the model does not state the new value"),
+            "corroboration": ("single-rate: reproduces published levels (cross_check). "
+                              "multi-register: NOT checked against a published Economy 7 series"),
+            "epg": ("The Energy Price Guarantee (Oct 2022 - Jun 2023) is not in this model. "
+                    "Its multi-register level is not carried here"),
+        },
+        "periods": periods,
+    }
+
+
 def main(argv=None) -> int:
-    del argv
+    args = list(sys.argv[1:] if argv is None else argv)
+    if "--multi-register" in args:
+        try:
+            series = multi_register_series(latest_model())
+        except CapModelUnavailable as exc:
+            print(f"REFUSED: {exc}")
+            return 2
+        MULTI_REGISTER_OUT_PATH.write_text(json.dumps(
+            _with_carried_source_check(series, MULTI_REGISTER_OUT_PATH), indent=1) + "\n")
+        for period in series["periods"]:
+            print(f"{period['from']} {period['single_rate_p_per_kwh_ex_vat']:7.2f} "
+                  f"{period['multi_register_p_per_kwh_ex_vat']:7.2f} "
+                  f"{period['multi_register_over_single_rate']:.4f}")
+        print(f"written to {_named(MULTI_REGISTER_OUT_PATH)}")
+        return 0
     try:
         result = measure()
     except CapModelUnavailable as exc:

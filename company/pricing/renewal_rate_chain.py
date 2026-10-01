@@ -86,11 +86,15 @@ from company.compliance.domain_invariants import vat_rate_for_segment
 from company.interfaces.customer_profitability import renewal_unit_rate_uplift
 from company.policy.decision_policy import active_policy
 from company.pricing.margin_feedback import compute_margin_surcharge
-from company.pricing.ofgem_price_cap import get_cap_unit_rate_for_date
+from company.pricing.ofgem_price_cap import (
+    get_cap_unit_rate_for_date,
+    get_multi_register_cap_unit_rate_for_date,
+)
 from company.pricing.tariff_engine import (
     PORTFOLIO_PREMIUM_LOOKBACK,
     compute_portfolio_premium,
 )
+from company.pricing.tou_desk import offers_tou
 from company.pricing.value_based_renewal import (
     STAGE_PRICED as VALUE_ARM_STAGE_PRICED,
 )
@@ -100,7 +104,7 @@ from saas.tariff_pricing import TARGET_MARGIN_GBP_PER_MWH
 __all__ = ["RenewalRateChain", "cap_ceiling_ex_vat", "decide_renewal_rate"]
 
 
-def cap_ceiling_ex_vat(commodity: str, on_date: date) -> float | None:
+def cap_ceiling_ex_vat(commodity: str, on_date: date, *, multi_register: bool) -> float | None:
     """The domestic cap unit rate on the strike's own basis: EX-VAT, GBP/MWh.
 
     `get_cap_unit_rate_for_date` returns Ofgem's published figure, which INCLUDES VAT at 5%.
@@ -109,8 +113,18 @@ def cap_ceiling_ex_vat(commodity: str, on_date: date) -> float | None:
     own check passed it. That was 28 of 117 first terms in the default world
     (`SEAT_FINDING_THE_28_ACCOUNTS_ABOVE_THE_CAP_ARE_EX_VAT_STRIKES_CEILINGED_AT_THE_INC_VAT_CAP_2026-10-01.md`).
     The world's `hedged_settlement` fixed the same defect on 2026-08-25.
+
+    `multi_register` is REQUIRED, with no default: a term the company sells as ToU is graded
+    against the multi-register benchmark (SLC 28AD.4), 0.4-8% below single-rate, and a default of
+    single-rate is the fail-open that let 15 of 27 ToU first terms sit above their lawful ceiling.
+    Gas has one benchmark, so `multi_register` on gas is refused rather than ignored.
     """
-    inc_vat = get_cap_unit_rate_for_date(commodity, on_date)
+    if multi_register:
+        if commodity != "electricity":
+            raise ValueError(f"no multi-register cap benchmark exists for {commodity!r}")
+        inc_vat = get_multi_register_cap_unit_rate_for_date(on_date)
+    else:
+        inc_vat = get_cap_unit_rate_for_date(commodity, on_date)
     return None if inc_vat is None else inc_vat / (1.0 + vat_rate_for_segment("resi"))
 
 # The premium and the surcharge both learn from COMPLETED terms, so neither can
@@ -217,6 +231,7 @@ def decide_renewal_rate(
     is_domestic: bool,
     segment: str | None = None,
     settled_records: list[dict],
+    customer: dict,
 ) -> RenewalRateChain:
     """Decide the rate this renewal is contracted at.
 
@@ -231,6 +246,10 @@ def decide_renewal_rate(
 
     `prior_term_margin_gbp` is `None` where the supplier has no completed term
     for this customer — distinct from a completed term that made £0.
+
+    `customer` is the record as the world holds it, read for METERING FACTS only, through the
+    same `tou_desk.offers_tou` the ToU offer reads: it decides which cap benchmark writer 4 grades
+    this term against. Required, so no caller can reach the single-rate benchmark by omission.
     """
     unit_rate = struck_unit_rate_gbp_per_mwh
     rate_original = unit_rate
@@ -377,7 +396,13 @@ def decide_renewal_rate(
     # then clamped by a different one.
     cap_ceiling = None
     if is_domestic and tariff_type in CAPPED_TARIFF_TYPES:
-        cap_ceiling = cap_ceiling_ex_vat(commodity, date.fromisoformat(term_start[:10]))
+        # THE BENCHMARK FOLLOWS THE PRODUCT SOLD. `tou_desk` strikes the ToU pair off the rate
+        # this chain returns, revenue-neutral at its assumed split, so the pair is lawful only if
+        # this rate is under the MULTI-REGISTER cap (SLC 28AD.4). Read from the same predicate
+        # the offer uses, so the term graded as ToU is the term sold as ToU.
+        cap_ceiling = cap_ceiling_ex_vat(
+            commodity, date.fromisoformat(term_start[:10]),
+            multi_register=commodity == "electricity" and offers_tou(customer))
 
     arm_uplift = renewal_margin_uplift(
         account_id=billing_account,

@@ -70,6 +70,7 @@ def decide_renewal_rate(
     prior_term_revenue_gbp: float,
     is_domestic: bool,
     settled_records: list[dict],
+    customer: dict,
     segment: str | None = None,
 ) -> RenewalRateChain:
     """Ask the company what rate it is contracting this renewal at.
@@ -110,4 +111,8 @@ def decide_renewal_rate(
         prior_term_revenue_gbp=prior_term_revenue_gbp,
         is_domestic=is_domestic,
         settled_records=settled_records,
+        # THE METERING FACTS the ToU offer reads, so writer 4 grades a term the company will sell
+        # as ToU against the multi-register cap (SLC 28AD.4). Required at the door for the reason
+        # `segment` crosses here: a parameter on the desk alone is a release whose effect is nothing.
+        customer=customer,
     )

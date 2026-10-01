@@ -161,8 +161,8 @@ def test_mutation_widening_the_eligibility_rule_is_caught_by_the_same_comparison
     comparison at all."""
     with _Mutant(
         DESK_SOURCE,
-        "    if not is_tou_eligible(customer):\n        return None",
-        "    if False:  # MUTATION\n        return None",
+        "    return is_tou_eligible(customer)\n",
+        "    return True  # MUTATION\n",
         "mutant_tou_desk_eligibility",
     ) as mutated:
         got = mutated.decide_tou_offer(

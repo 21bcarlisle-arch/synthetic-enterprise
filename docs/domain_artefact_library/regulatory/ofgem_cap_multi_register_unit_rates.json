@@ -1,0 +1,219 @@
+{
+ "artefact": "ofgem_cap_multi_register_unit_rates",
+ "published_by": "Ofgem (Default Tariff Cap level model)",
+ "source_model": "Default-tariff-cap-level-v1.31.xlsx",
+ "what_this_is": "The default tariff cap's direct-debit electricity UNIT RATE, EX-VAT, per cap period, for the multi-register benchmark metering arrangement beside the single-rate one, read off the same workbook. SLC 28AD.4 grades every multi-register tariff, ToU included, against the multi-register column; see slc_28ad_multi_register_cap_test.md.",
+ "basis": {
+  "method": "(benchmark - nil) / benchmark kWh x 100, median over the sheet's 15 Total rows",
+  "single_rate_benchmark_kwh": "tools/ofgem_cap_unit_rate_composition.BENCHMARK_KWH_SCHEDULE",
+  "multi_register_benchmark_kwh": 4200,
+  "coverage": "cap periods from 2019-01-01 to before 2026-01-01. From P15b the multi-register benchmark consumption changed and the model does not state the new value",
+  "corroboration": "single-rate: reproduces published levels (cross_check). multi-register: NOT checked against a published Economy 7 series",
+  "epg": "The Energy Price Guarantee (Oct 2022 - Jun 2023) is not in this model. Its multi-register level is not carried here"
+ },
+ "periods": [
+  {
+   "cap_period": "January 2019 - March 2019",
+   "from": "2019-01-01",
+   "to": "2019-03-31",
+   "single_rate_p_per_kwh_ex_vat": 15.723,
+   "multi_register_p_per_kwh_ex_vat": 14.63,
+   "multi_register_over_single_rate": 0.9305,
+   "regions": 15
+  },
+  {
+   "cap_period": "April 2019 - September 2019",
+   "from": "2019-04-01",
+   "to": "2019-09-30",
+   "single_rate_p_per_kwh_ex_vat": 17.666,
+   "multi_register_p_per_kwh_ex_vat": 16.469,
+   "multi_register_over_single_rate": 0.9322,
+   "regions": 15
+  },
+  {
+   "cap_period": "October 2019 - March 2020",
+   "from": "2019-10-01",
+   "to": "2020-03-31",
+   "single_rate_p_per_kwh_ex_vat": 16.986,
+   "multi_register_p_per_kwh_ex_vat": 15.763,
+   "multi_register_over_single_rate": 0.928,
+   "regions": 15
+  },
+  {
+   "cap_period": "April 2020 - September 2020",
+   "from": "2020-04-01",
+   "to": "2020-09-30",
+   "single_rate_p_per_kwh_ex_vat": 16.766,
+   "multi_register_p_per_kwh_ex_vat": 15.614,
+   "multi_register_over_single_rate": 0.9313,
+   "regions": 15
+  },
+  {
+   "cap_period": "October 2020 - March 2021",
+   "from": "2020-10-01",
+   "to": "2021-03-31",
+   "single_rate_p_per_kwh_ex_vat": 16.152,
+   "multi_register_p_per_kwh_ex_vat": 14.932,
+   "multi_register_over_single_rate": 0.9245,
+   "regions": 15
+  },
+  {
+   "cap_period": "April 2021 - September 2021",
+   "from": "2021-04-01",
+   "to": "2021-09-30",
+   "single_rate_p_per_kwh_ex_vat": 18.004,
+   "multi_register_p_per_kwh_ex_vat": 16.558,
+   "multi_register_over_single_rate": 0.9197,
+   "regions": 15
+  },
+  {
+   "cap_period": "October 2021 - March 2022",
+   "from": "2021-10-01",
+   "to": "2022-03-31",
+   "single_rate_p_per_kwh_ex_vat": 19.784,
+   "multi_register_p_per_kwh_ex_vat": 18.383,
+   "multi_register_over_single_rate": 0.9292,
+   "regions": 15
+  },
+  {
+   "cap_period": "April 2022 - September 2022",
+   "from": "2022-04-01",
+   "to": "2022-09-30",
+   "single_rate_p_per_kwh_ex_vat": 26.942,
+   "multi_register_p_per_kwh_ex_vat": 25.41,
+   "multi_register_over_single_rate": 0.9431,
+   "regions": 15
+  },
+  {
+   "cap_period": "October 2022 - December 2022",
+   "from": "2022-10-01",
+   "to": "2022-12-31",
+   "single_rate_p_per_kwh_ex_vat": 49.246,
+   "multi_register_p_per_kwh_ex_vat": 46.54,
+   "multi_register_over_single_rate": 0.9451,
+   "regions": 15
+  },
+  {
+   "cap_period": "January 2023 - March 2023",
+   "from": "2023-01-01",
+   "to": "2023-03-31",
+   "single_rate_p_per_kwh_ex_vat": 64.139,
+   "multi_register_p_per_kwh_ex_vat": 63.871,
+   "multi_register_over_single_rate": 0.9958,
+   "regions": 15
+  },
+  {
+   "cap_period": "April 2023 - June 2023",
+   "from": "2023-04-01",
+   "to": "2023-06-30",
+   "single_rate_p_per_kwh_ex_vat": 47.912,
+   "multi_register_p_per_kwh_ex_vat": 47.12,
+   "multi_register_over_single_rate": 0.9835,
+   "regions": 15
+  },
+  {
+   "cap_period": "July 2023 - September 2023",
+   "from": "2023-07-01",
+   "to": "2023-09-30",
+   "single_rate_p_per_kwh_ex_vat": 28.541,
+   "multi_register_p_per_kwh_ex_vat": 27.292,
+   "multi_register_over_single_rate": 0.9562,
+   "regions": 15
+  },
+  {
+   "cap_period": "October 2023 - December 2023",
+   "from": "2023-10-01",
+   "to": "2023-12-31",
+   "single_rate_p_per_kwh_ex_vat": 25.964,
+   "multi_register_p_per_kwh_ex_vat": 24.984,
+   "multi_register_over_single_rate": 0.9622,
+   "regions": 15
+  },
+  {
+   "cap_period": "January 2024 - March 2024",
+   "from": "2024-01-01",
+   "to": "2024-03-31",
+   "single_rate_p_per_kwh_ex_vat": 27.121,
+   "multi_register_p_per_kwh_ex_vat": 26.228,
+   "multi_register_over_single_rate": 0.9671,
+   "regions": 15
+  },
+  {
+   "cap_period": "April 2024 - June 2024",
+   "from": "2024-04-01",
+   "to": "2024-06-30",
+   "single_rate_p_per_kwh_ex_vat": 23.35,
+   "multi_register_p_per_kwh_ex_vat": 22.106,
+   "multi_register_over_single_rate": 0.9467,
+   "regions": 15
+  },
+  {
+   "cap_period": "July 2024 - September 2024",
+   "from": "2024-07-01",
+   "to": "2024-09-30",
+   "single_rate_p_per_kwh_ex_vat": 21.308,
+   "multi_register_p_per_kwh_ex_vat": 19.97,
+   "multi_register_over_single_rate": 0.9372,
+   "regions": 15
+  },
+  {
+   "cap_period": "October 2024 - December 2024",
+   "from": "2024-10-01",
+   "to": "2024-12-31",
+   "single_rate_p_per_kwh_ex_vat": 23.335,
+   "multi_register_p_per_kwh_ex_vat": 22.189,
+   "multi_register_over_single_rate": 0.9509,
+   "regions": 15
+  },
+  {
+   "cap_period": "January 2025 - March 2025",
+   "from": "2025-01-01",
+   "to": "2025-03-31",
+   "single_rate_p_per_kwh_ex_vat": 23.672,
+   "multi_register_p_per_kwh_ex_vat": 22.656,
+   "multi_register_over_single_rate": 0.9571,
+   "regions": 15
+  },
+  {
+   "cap_period": "April 2025 - June 2025",
+   "from": "2025-04-01",
+   "to": "2025-06-30",
+   "single_rate_p_per_kwh_ex_vat": 25.742,
+   "multi_register_p_per_kwh_ex_vat": 24.529,
+   "multi_register_over_single_rate": 0.9529,
+   "regions": 15
+  },
+  {
+   "cap_period": "July 2025 - September 2025",
+   "from": "2025-07-01",
+   "to": "2025-09-30",
+   "single_rate_p_per_kwh_ex_vat": 24.564,
+   "multi_register_p_per_kwh_ex_vat": 23.371,
+   "multi_register_over_single_rate": 0.9514,
+   "regions": 15
+  },
+  {
+   "cap_period": "October 2025 - December 2025",
+   "from": "2025-10-01",
+   "to": "2025-12-31",
+   "single_rate_p_per_kwh_ex_vat": 25.215,
+   "multi_register_p_per_kwh_ex_vat": 24.129,
+   "multi_register_over_single_rate": 0.957,
+   "regions": 15
+  }
+ ],
+ "source_check": {
+  "publication": "Ofgem Default Tariff Cap level model, Default-tariff-cap-level-v1.31.xlsx",
+  "url": "https://www.ofgem.gov.uk/energy-regulation/domestic-and-non-domestic/energy-pricing-rules/energy-price-cap/energy-price-cap-default-tariff-levels",
+  "fetched": "2026-09-07",
+  "version_token": "v1.31",
+  "version_token_is": "in_filename_only",
+  "how_to_recheck": "THE URL ABOVE IS A VERSION HISTORY PAGE, NOT THE WORKBOOK, and it is NOT the page this artefact cited until 2026-09-07. That one (/energy-policy-and-regulation/policy-and-regulatory-programmes/default-tariff-cap) returns 200 and carries exactly one .xlsx link -- the Annex 9 levelisation workbook -- so the old recipe, 'find the cap level model link there', could never terminate in anything but cannot_tell. A 200 serving nothing on the subject reads exactly like a working check. GET the URL above and take the HIGHEST v<major>.<minor> across every link matching Default[-_]tariff[-_]cap[-_]level OR Energy-price-cap-levels-pre-levelised-rates-model: the series is published under BOTH names (v1.30 under the second), so a check keyed to the filename stem rather than to the version number misses editions. If the highest is above `version_token`, the standing charges here were derived from a superseded model.",
+  "derived": "2026-10-01, from the cached workbook at sim/cache/ofgem_cap_level_models/ (gitignored), by `python3 -m tools.ofgem_cap_unit_rate_composition --multi-register`. The single-rate column is the one ofgem_cap_unit_rate_composition.json carries as `unit_rate_p_per_kwh_ex_vat`, built the same way.",
+  "checked_for_supersession": {
+   "on": "2026-09-07",
+   "found": "current",
+   "note": "INHERITED, NOT RE-ASKED. Derived on 2026-10-01 from the SAME workbook ofgem_cap_unit_rate_composition.json reads; that artefact asked the publisher on 2026-09-07 and found v1.31 current. The date above is when it was last asked, which is the honest age of the answer."
+  }
+ }
+}

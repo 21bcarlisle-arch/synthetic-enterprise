@@ -51,6 +51,7 @@ CHAIN_KWARGS = dict(
     is_domestic=True,
     segment="resi",
     settled_records=[],
+    customer={"metering": "NHH", "smart_meter": False},
 )
 
 

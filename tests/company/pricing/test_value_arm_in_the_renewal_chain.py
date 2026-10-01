@@ -98,6 +98,7 @@ REFERENCE = dict(
     prior_term_revenue_gbp=0.0,
     is_domestic=False,          # SME: keeps writer 4 out of the way except where it is the subject
     settled_records=_settled(),
+    customer={"metering": "NHH", "smart_meter": False},
 )
 
 
@@ -505,7 +506,7 @@ def test_the_CAP_is_INSIDE_the_search_and_never_a_CLAMP_on_a_renewal_the_arm_PRI
     the cap, the unbounded optimum exceeds the ceiling for ANY churn belief that leaves a positive
     margin, so the flag's ability to fire no longer rides on a company belief being mistaken.
     """
-    cap = chain.cap_ceiling_ex_vat("electricity", date(2021, 6, 1))
+    cap = chain.cap_ceiling_ex_vat("electricity", date(2021, 6, 1), multi_register=False)
     domestic = dict(is_domestic=True, tariff_type="fixed", term_start="2021-06-01",
                     struck_unit_rate_gbp_per_mwh=cap - 2.0,
                     settled_records=_settled_with_standing_charge())
@@ -542,7 +543,7 @@ def test_the_arm_NEVER_ASKS_for_a_rate_above_the_cap_it_was_given():
                             struck_unit_rate_gbp_per_mwh=struck,
                             settled_records=_settled_with_standing_charge(
                                 commodity_rate=struck))
-        cap = chain.cap_ceiling_ex_vat("electricity", _date(2021, 6, 1))
+        cap = chain.cap_ceiling_ex_vat("electricity", _date(2021, 6, 1), multi_register=False)
         for entry in result.value_arm_entries:
             if entry.get("declined"):
                 continue
@@ -943,8 +944,8 @@ def test_the_gas_renewal_decides_under_the_GAS_cap_and_not_the_electricity_one()
     """
     from datetime import date as _date
 
-    gas_cap = chain.cap_ceiling_ex_vat("gas", _date(2021, 6, 1))
-    elec_cap = chain.cap_ceiling_ex_vat("electricity", _date(2021, 6, 1))
+    gas_cap = chain.cap_ceiling_ex_vat("gas", _date(2021, 6, 1), multi_register=False)
+    elec_cap = chain.cap_ceiling_ex_vat("electricity", _date(2021, 6, 1), multi_register=False)
     assert gas_cap is not None and elec_cap is not None
     assert gas_cap != pytest.approx(elec_cap), (
         "the two caps agree on this date, so this control cannot tell which one the chain "

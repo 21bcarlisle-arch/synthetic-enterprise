@@ -2005,6 +2005,9 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             # renewal desk was missing was three lines away the whole time.
             segment=_SEGMENT_OF.get(cid, "resi"),
             settled_records=all_records,
+            # The same record the ToU offer below is handed, for the same metering facts: the
+            # company grades a term it sells as ToU against the multi-register cap.
+            customer=get_customer(cid),
         )
         unit_rate = _chain.unit_rate_gbp_per_mwh
         dynamic_pricing_log.extend(_chain.dynamic_pricing_entries)

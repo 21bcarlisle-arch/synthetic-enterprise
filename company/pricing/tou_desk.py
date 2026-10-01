@@ -41,7 +41,7 @@ from dataclasses import dataclass
 from saas.smart_meter_rollout import is_tou_eligible
 from saas.tariff_pricing import split_flat_rate_to_tou
 
-__all__ = ("TouOffer", "decide_tou_offer")
+__all__ = ("TouOffer", "decide_tou_offer", "offers_tou")
 
 
 @dataclass(frozen=True)
@@ -56,6 +56,13 @@ class TouOffer:
 
     peak_rate_gbp_per_mwh: float
     offpeak_rate_gbp_per_mwh: float
+
+
+def offers_tou(customer: dict) -> bool:
+    """Whether the company sells this customer a ToU tariff. ONE rule, read by the offer below
+    and by the renewal rate chain, which must grade a term it will sell as ToU against the
+    multi-register cap (SLC 28AD.4) and so has to know before the pair is struck."""
+    return is_tou_eligible(customer)
 
 
 def decide_tou_offer(
@@ -73,7 +80,7 @@ def decide_tou_offer(
 
     Returns None when the company is not offering ToU for this term.
     """
-    if not is_tou_eligible(customer):
+    if not offers_tou(customer):
         return None
 
     peak, offpeak = split_flat_rate_to_tou(flat_unit_rate_gbp_per_mwh)

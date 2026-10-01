@@ -75,6 +75,7 @@ REFERENCE = dict(
     prior_term_margin_gbp=-380.0,
     prior_term_revenue_gbp=1_500.0,
     is_domestic=True,
+    customer={"metering": "NHH", "smart_meter": False},
 )
 
 
@@ -226,9 +227,12 @@ def _drive_pre_cut(**over):
     if (unit_rate is not None
             and args["is_domestic"]
             and term_tariff_type == "fixed"):
-        # Ex-VAT since 2026-10-01: the strike is ex-VAT and the published cap is not.
+        # Ex-VAT since 2026-10-01: the strike is ex-VAT and the published cap is not. A term sold
+        # as ToU is graded against the multi-register benchmark (SLC 28AD.4) since the same day.
+        from company.pricing.tou_desk import offers_tou
         _cap = cap_ceiling_ex_vat(
-            commodity, date.fromisoformat(term_start_str[:10])
+            commodity, date.fromisoformat(term_start_str[:10]),
+            multi_register=commodity == "electricity" and offers_tou(args["customer"]),
         )
         if _cap is not None:
             if _cap < unit_rate:
@@ -398,6 +402,7 @@ _PROBE = textwrap.dedent(
         portfolio_margin_rates=[-0.04, -0.03, 0.0, 0.01, 0.02],
         prior_term_margin_gbp=-380.0, prior_term_revenue_gbp=1500.0,
         is_domestic=True, settled_records=[],
+        customer=dict(metering="NHH", smart_meter=False),
     )
 
     walled = sorted(
@@ -494,7 +499,7 @@ def test_the_cap_is_the_last_writer_and_the_order_is_load_bearing():
         "order is not the thing this control thinks it is"
     )
     cap = cap_ceiling_ex_vat(
-        "electricity", date.fromisoformat(REFERENCE["term_start"])
+        "electricity", date.fromisoformat(REFERENCE["term_start"]), multi_register=False
     )
     assert capped <= cap < escaped, (
         "the reordered chain did not breach the cap, so this control is not "
