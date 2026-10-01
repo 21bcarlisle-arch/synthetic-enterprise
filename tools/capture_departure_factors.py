@@ -228,6 +228,10 @@ def main(out_path: Path, roll_seed: int | None = None) -> int:
             "sim_price_response": event.get("sim_price_response"),
             "sim_action_propensity": event.get("sim_action_propensity"),
             "sim_dissatisfaction_response": event.get("sim_dissatisfaction_response"),
+            # PB4: what the base now counts, and the month count it replaced, so a capture can
+            # split the base by first and later renewal without joining the event log.
+            "sim_experienced_bill_shock": event.get("sim_experienced_bill_shock"),
+            "sim_month_count_bill_shock_base": event.get("sim_month_count_bill_shock_base"),
             # The year's level term and the risk that fired. Captured so the departure
             # decomposition can be replayed from this table alone: with the factors, the anchor
             # and the roll, `resolve_departure` reproduces the cause exactly, which is what lets

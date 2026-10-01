@@ -56,3 +56,26 @@ shock fell from 17/31 to 3/31, and later renewals did not change on any row:
 Step 3 can now run. Its tenure-1 control must assert that year-one shock is defined and non-zero,
 and not that it equals 0.097. That level is a zero-read-error assumption, and the hazard's surface
 must say so.
+
+## Step 3 built and measured, not landed (2026-10-01, claim `swap-pb4-bill-shock-base-onto-the-experienced-shock`)
+
+The swap and a refit were built, and three captures were taken (A = month count, B = swap, C = swap
+under the refitted block). They are graded in
+`docs/staging/done/SEAT_PREREGISTRATION_WHAT_THE_PB4_BILL_SHOCK_SWAP_MUST_MOVE_2026-10-01.md`. The swap flattens the
+base's tenure ratio from 1.46 to 1.02. Year-one shock is defined on 31 first renewals and fires on
+2 of them. Under the refit, 4 of 6 years land in band.
+
+**It is not landed.** A refit changes `world_level_identity`. The value-arms page then refuses
+every bound it publishes, and 25 of its controls red. The landing sequence and the exact patch are
+in `docs/design/UNLANDED_PB4_SWAP_AND_THIRD_PASS_ANCHOR_2026-10-01.md`. The next pass re-takes the
+value arms in the new world and lands the swap, the block, the repointed `DEFAULT_TABLE` and the
+arms together.
+
+**The drawn exit test cannot be the exit.** `test_the_worlds_realised_departure_rate_is_inside_the_published_band`
+reads the RENEWAL ROUTE alone (22–51% on C). The anchor has been fitted to the whole book since
+2026-09-03, and the renewal route is a selected shopping population. No whole-book refit can put
+it inside a whole-market band. The whole-book expected level, read by `fit_whole_book`'s
+diagnostics, is the exit. Re-keying that test to the whole book is its own item.
+
+`remove-the-svt-anniversary-departure-roll-once-pb4-swap-has-run` is still gated: the swap has not
+had its one-world run on origin.
