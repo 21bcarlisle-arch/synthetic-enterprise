@@ -126,6 +126,10 @@ REVIEWED_CLOSE_TO_LEARN = {
     # stream, and inheriting theirs would be the same mistake A49 is called out for two entries
     # above -- an audit that finds a flow is not that flow.
     "H48_the_parked_document_audit_is_the_idle_hole_at_scale",
+    # 2026-10-01 reviewed (delivery seat, the shared-checkout clearance). H49 lets the reconciler
+    # clear a shared-tree copy that equals an earlier origin revision of its path. It touches no
+    # price, bill or customer; it decides whether the machine's daemons run the trunk's code.
+    "H49_an_untracked_copy_of_an_earlier_origin_revision_is_cleared_like_a_twin",
     # 2026-08-10 reviewed (worker tick, backlog-triage Group A: "verify the atom exists; mint if
     # not"). Both classified on their merits, not to clear the gate.
     # AO12 is a MEASUREMENT atom: it runs a bounded 10k-customer probe against a prediction

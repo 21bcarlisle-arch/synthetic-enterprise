@@ -1611,6 +1611,25 @@
   file_scope: ['docs/staging/in_progress/', 'docs/staging/done/']
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a change board with a hundred items parked pending decisions that were taken last quarter, where the parking itself is what stops anyone noticing."
+- id: H49_an_untracked_copy_of_an_earlier_origin_revision_is_cleared_like_a_twin
+  title: "A shared-tree copy whose bytes equal an EARLIER origin revision of its path is lossless to clear, and the reconciler refuses it"
+  lane: H_harness
+  value_stream: close_to_learn
+  epoch: 3
+  level_current: 0
+  level_target: 2
+  loop_stage: build
+  dial_inherited: 12    # machinery; it recurs at every fast-forward, measured 3 of 12 blockers 2026-10-01.
+  provenance: seat_finding
+  depends_on: []
+  couples_with: []
+  file_scope: ['background/origin_reconcile.py', 'background/supervisor.py']
+  #   Writer: `supervisor._sync_origin_staging` copies origin's staging docs in and never refreshes
+  #   them, so a revised doc leaves a stale twin. `identical_untracked_twins` asks origin's TIP blob
+  #   only; a copy equal to ANY revision in `git log origin/main -- <path>` is equally on origin. See the 2026-10-01 section of
+  #   SEAT_FINDING_THE_ORIGIN_FORK_ALARM_WRITES_THE_FILE_THAT_BLOCKS_THE_FAST_FORWARD_IT_REPORTS_2026-09-30.md.
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a filing room that will not accept this week's minutes because last week's draft of them is still in the tray."
 - id: C32_one_obligation_one_vulnerability_scorer
   title: "two vulnerability scorers implement one Ofgem obligation, disagree on every shared term, and the dead one decides disconnection"
   notes_rehomed: [gain]
