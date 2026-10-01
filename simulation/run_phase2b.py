@@ -874,6 +874,7 @@ def _build_churn_basis_risk(customer_events_log: list) -> list[dict]:
     names that both say `svt` -- the exact shape `run_price_ladder`'s reconciliation caught in
     August, and it is caught here before it lands rather than after.
     """
+    from simulation.price_cap_enforcement import household_price_inc_vat
     from simulation.svt_rates import get_svt_elec_rate_charged_to_household_gbp_per_mwh
 
     records = []
@@ -885,7 +886,10 @@ def _build_churn_basis_risk(customer_events_log: list) -> list[dict]:
         svt_rate = get_svt_elec_rate_charged_to_household_gbp_per_mwh(term_start)
         rate_vs_svt_pct = None
         if unit_rate is not None and svt_rate is not None and svt_rate > 0:
-            rate_vs_svt_pct = round((unit_rate - svt_rate) / svt_rate * 100.0, 2)
+            # The struck rate is ex-VAT and the SVT is the inc-VAT published price (2026-10-01).
+            rate_vs_svt_pct = round(
+                (household_price_inc_vat(unit_rate) - svt_rate) / svt_rate * 100.0, 2
+            )
         records.append({
             "customer_id": e["customer_id"],
             "term_start": term_start,

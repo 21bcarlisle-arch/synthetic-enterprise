@@ -26,6 +26,7 @@ from simulation.market_switching_propensity import (
     churn_position_multiplier,
     offer_position_multiplier,
 )
+from simulation.price_cap_enforcement import DOMESTIC_VAT_RATE
 from simulation.svt_rates import get_svt_elec_rate_gbp_per_mwh
 
 TERM = "2024-01-01"
@@ -38,7 +39,12 @@ SVT = get_svt_elec_rate_gbp_per_mwh(TERM)
 
 @pytest.mark.parametrize("factor,expected", [(0.90, -0.10), (1.00, 0.0), (1.10, 0.10)])
 def test_the_differential_is_the_offered_rate_against_the_published_SVT(factor, expected):
-    assert ce._price_differential_vs_market(SVT * factor, TERM) == pytest.approx(expected)
+    """On ONE VAT basis. The offer is an ex-VAT struck rate and the SVT is inc-VAT, so the rate a
+    household sees as `factor` x the SVT is `SVT * factor / (1 + VAT)`. Parity at `1.00` is the
+    leg that fails if the gross-up is dropped: it then reads -4.8%, the cheapness every offer
+    carried until 2026-10-01."""
+    ex_vat_offer = SVT * factor / (1.0 + DOMESTIC_VAT_RATE)
+    assert ce._price_differential_vs_market(ex_vat_offer, TERM) == pytest.approx(expected)
 
 
 def test_TWO_customers_priced_differently_get_DIFFERENT_positions():

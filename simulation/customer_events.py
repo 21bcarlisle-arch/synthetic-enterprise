@@ -48,6 +48,7 @@ from simulation.market_switching_propensity import (
     offer_position_multiplier,
     perceived_price_differential,
 )
+from simulation.price_cap_enforcement import household_price_inc_vat
 from simulation.satisfaction_churn import satisfaction_churn_multiplier
 from simulation.switching_propensity import (
     stress_switching_multiplier,
@@ -177,7 +178,11 @@ def _price_differential_vs_market(
     )
     if not reference or reference <= 0:
         return None
-    return (float(new_rate_gbp_per_mwh) - float(reference)) / float(reference)
+    # ONE VAT BASIS (2026-10-01). The offer is an ex-VAT company rate and the reference is an
+    # inc-VAT published price; differenced raw, every offer read ~4.8% cheaper than the
+    # household's real alternative, and that differential is what the world churns on.
+    offer = household_price_inc_vat(new_rate_gbp_per_mwh)
+    return (offer - float(reference)) / float(reference)
 
 
 def _reference_level_gbp_per_mwh(
@@ -223,9 +228,12 @@ def _reference_level_gbp_per_mwh(
 
     from simulation.competitor_reference import competitor_reference_rate_gbp_per_mwh
 
+    # The ledger holds the company's ex-VAT struck rates; the rival chases the price a
+    # comparison site would publish, which is inc-VAT like the anchor it is chased from.
+    position = position_ledger.position_for(term_start_str)
     moved = competitor_reference_rate_gbp_per_mwh(
         term_start_str,
-        company_rate_gbp_per_mwh=position_ledger.position_for(term_start_str),
+        company_rate_gbp_per_mwh=None if position is None else household_price_inc_vat(position),
         wholesale_gbp_per_mwh=wholesale_gbp_per_mwh,
     )
     if moved is None:
@@ -260,7 +268,8 @@ def _svt_position(rate_gbp_per_mwh: float | None, term_start_str: str) -> float 
     svt = get_svt_elec_rate_charged_to_household_gbp_per_mwh(term_start_str)
     if not svt or svt <= 0:
         return None
-    return round((float(rate_gbp_per_mwh) - float(svt)) / float(svt), 4)
+    offer = household_price_inc_vat(rate_gbp_per_mwh)
+    return round((offer - float(svt)) / float(svt), 4)
 
 
 def _market_reference_gbp_per_mwh(

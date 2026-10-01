@@ -154,12 +154,13 @@ def _svt_position_pct(unit_rate: float | None, term_start: str | None) -> float 
     # `price_differential_vs_svt`; that field moved onto the Energy Price Guarantee's rate for
     # 2022-10-01..2023-06-30, so reading the Ofgem cap here would report a ~50pp divergence in
     # those quarters and name the wrong side as wrong.
+    from simulation.price_cap_enforcement import household_price_inc_vat
     from simulation.svt_rates import get_svt_elec_rate_charged_to_household_gbp_per_mwh
 
     svt = get_svt_elec_rate_charged_to_household_gbp_per_mwh(term_start)
     if not svt or svt <= 0:
         return None
-    return 100.0 * (float(unit_rate) - float(svt)) / float(svt)
+    return 100.0 * (household_price_inc_vat(unit_rate) - float(svt)) / float(svt)
 
 
 def _ols_slope(xs: list[float], ys: list[float]) -> dict:

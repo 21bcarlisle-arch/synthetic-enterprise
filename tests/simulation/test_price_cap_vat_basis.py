@@ -227,3 +227,30 @@ def test_the_worlds_ceiling_cannot_be_obtained_without_naming_its_vat_basis():
         "choose will pick wrong exactly as `run_deemed_term` did until 2026-08-25. Name "
         "it `..._inc_vat` or `..._ex_vat`."
     )
+
+
+def test_every_logged_SVT_position_reads_a_struck_rate_on_the_published_basis():
+    """The switching reference's sixth implementation of the VAT rule (2026-10-01). The world
+    logs a struck rate's position against the SVT in three places: the customer event's
+    `price_differential_vs_svt`, `churn_basis_risk`'s `rate_vs_svt_pct`, and the price ladder's
+    reconciler of the first. Each differenced an ex-VAT rate against the inc-VAT SVT, so a household
+    paying exactly the SVT read 4.8% cheaper than it.
+
+    PARITY IS THE PROBE: the ex-VAT rate a household sees as the SVT must read 0 at all three.
+    MUTATION (must fire): drop `household_price_inc_vat` at any one site and that leg reads -4.76.
+    """
+    from simulation.customer_events import _svt_position
+    from simulation.run_phase2b import _build_churn_basis_risk
+    from simulation.svt_rates import get_svt_elec_rate_charged_to_household_gbp_per_mwh
+    from tools.run_price_ladder import _svt_position_pct
+
+    when = "2024-01-01"
+    at_parity = get_svt_elec_rate_charged_to_household_gbp_per_mwh(when) / (1.0 + DOMESTIC_VAT_RATE)
+    [record] = _build_churn_basis_risk([{
+        "customer_id": "C1", "event_date": when, "unit_rate_gbp_per_mwh": at_parity,
+        "company_churn_estimate": 0.1, "churn_estimate_error_pct": 0.0, "churn_probability": 0.1,
+    }])
+
+    assert _svt_position(at_parity, when) == pytest.approx(0.0, abs=1e-4)
+    assert _svt_position_pct(at_parity, when) == pytest.approx(0.0, abs=1e-6)
+    assert record["rate_vs_svt_pct"] == pytest.approx(0.0, abs=0.01)

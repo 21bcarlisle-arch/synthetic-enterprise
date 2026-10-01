@@ -140,6 +140,7 @@ from dataclasses import dataclass, field
 from datetime import date
 
 from simulation.market_switching_propensity import MARKET_SAVINGS_BY_YEAR
+from simulation.price_cap_enforcement import household_price_inc_vat
 from simulation.svt_rates import get_svt_elec_rate_gbp_per_mwh
 
 #: Ofgem's Typical Domestic Consumption Values, dual fuel, used ONLY to turn
@@ -275,8 +276,8 @@ def competitor_reference_rate_gbp_per_mwh(
     """The price a switching household can actually go to on this date.
 
     `company_rate_gbp_per_mwh` is the company's OBSERVED position -- what a comparison site would
-    publish about it -- and should be a LAGGED book aggregate, not the rate being struck right
-    now (see `CompanyPositionLedger`). Passing None returns the pure historical anchor, which is
+    publish about it, so INC-VAT like the anchor it is compared with -- and should be a LAGGED
+    book aggregate, not the rate being struck right now (see `CompanyPositionLedger`). Passing None returns the pure historical anchor, which is
     the correct answer before the company has any published position at all.
 
     `wholesale_gbp_per_mwh` is optional only because the floor is a refinement, not the
@@ -311,7 +312,9 @@ def competitor_reference_rate_gbp_per_mwh(
     # would still be wrong, because the cap is what that household can actually fall back to.
     reference = min(reference, svt)
     if floor is not None:
-        reference = max(reference, floor)
+        # The floor is a cost stack plus margin, ex-VAT; the reference is a published price,
+        # inc-VAT. Compared raw, the rival could follow 4.8% further below its own costs.
+        reference = max(reference, household_price_inc_vat(floor))
     return reference
 
 

@@ -21,6 +21,7 @@ from __future__ import annotations
 import pytest
 
 from simulation import competitor_reference as cr
+from simulation.price_cap_enforcement import DOMESTIC_VAT_RATE
 from simulation.svt_rates import get_svt_elec_rate_gbp_per_mwh
 
 DATE = "2019-06-01"
@@ -118,7 +119,8 @@ def test_MUTATION_the_rival_STOPS_FOLLOWING_at_its_cost_floor():
     ref = cr.competitor_reference_rate_gbp_per_mwh(
         DATE, company_rate_gbp_per_mwh=very_cheap, chase=1.0,
         wholesale_gbp_per_mwh=wholesale)
-    assert ref == pytest.approx(floor)
+    # The floor is an ex-VAT cost-plus price; the reference is the inc-VAT price a household sees.
+    assert ref == pytest.approx(floor * (1.0 + DOMESTIC_VAT_RATE))
     assert ref > very_cheap, "the rival followed a company below its own costs"
 
 
@@ -239,7 +241,7 @@ def test_the_CHURN_DIFFERENTIAL_reads_the_reference_when_a_ledger_is_present():
     meets the market, and with a ledger it must meet a market that has moved."""
     from simulation.customer_events import _price_differential_vs_market
 
-    cheap = CAP * 0.9
+    cheap = CAP * 0.9 / (1.0 + DOMESTIC_VAT_RATE)  # ex-VAT: a household sees it 10% under
     assert _price_differential_vs_market(cheap, DATE) == pytest.approx(-0.10)
 
     led = cr.CompanyPositionLedger()
@@ -258,7 +260,9 @@ def test_MUTATION_NO_ledger_leaves_the_differential_byte_identical():
     for position in (0.7, 0.9, 1.0, 1.3):
         rate = CAP * position
         svt = get_svt_elec_rate_gbp_per_mwh(DATE)
-        assert _price_differential_vs_market(rate, DATE) == pytest.approx((rate - svt) / svt)
+        # The ex-VAT offer grossed up to the inc-VAT basis the SVT is published on (2026-10-01).
+        offer = rate * (1.0 + DOMESTIC_VAT_RATE)
+        assert _price_differential_vs_market(rate, DATE) == pytest.approx((offer - svt) / svt)
 
 
 def test_MUTATION_the_run_FEEDS_and_READS_the_ledger_and_feeds_it_AFTER_the_roll():
@@ -320,7 +324,7 @@ def test_MUTATION_the_SVT_position_stays_the_SVT_position_after_the_reference_mo
     `..._vs_market_reference` is the number the churn decision actually used."""
     from simulation.customer_events import _price_differential_vs_market, _svt_position
 
-    cheap = CAP * 0.9
+    cheap = CAP * 0.9 / (1.0 + DOMESTIC_VAT_RATE)  # ex-VAT: a household sees it 10% under
     led = cr.CompanyPositionLedger()
     for day in ("2019-01-15", "2019-02-15", "2019-03-15"):
         led.observe(day, cheap)
@@ -341,7 +345,8 @@ def test_the_LEVEL_the_differential_was_taken_against_is_PUBLISHED():
     assert _market_reference_gbp_per_mwh(DATE) == pytest.approx(CAP)
     led = cr.CompanyPositionLedger()
     for day in ("2019-01-15", "2019-02-15", "2019-03-15"):
-        led.observe(day, CAP * 0.9)
+        # The ledger holds ex-VAT struck rates; the rival chases what a comparison site shows.
+        led.observe(day, CAP * 0.9 / (1.0 + DOMESTIC_VAT_RATE))
     moved = _market_reference_gbp_per_mwh(DATE, position_ledger=led)
     assert moved < CAP, "the published level did not move with the rival"
     assert moved == pytest.approx(

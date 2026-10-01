@@ -301,6 +301,20 @@ def hmt_epg_receipt_gbp_per_mwh(fuel: str, on_date: date) -> float | None:
     return ofgem - binding
 
 
+def household_price_inc_vat(amount_ex_vat: float) -> float:
+    """An ex-VAT rate restated as the price a household sees, for comparison against an
+    inc-VAT published one.
+
+    The mirror of the ex-VAT accessor below, and for the same reason: every rate this codebase
+    strikes and settles is ex-VAT, while every published tariff a household compares against
+    (the SVT, the cap, the EPG, a rival's default) is inc-VAT. A ratio taken across the two
+    reads every offer about 4.8% cheaper than it is. That was live in the world's switching
+    reference, its rival chase and cost floor, and both logged SVT positions until 2026-10-01.
+    Every switching comparison in the world now takes the gross-up from here.
+    """
+    return float(amount_ex_vat) * (1.0 + DOMESTIC_VAT_RATE)
+
+
 def binding_cap_unit_rate_gbp_per_mwh_ex_vat(fuel: str, on_date: date) -> float | None:
     """The same ceiling, restated EXCLUDING VAT, for comparison against an
     ex-VAT unit rate.

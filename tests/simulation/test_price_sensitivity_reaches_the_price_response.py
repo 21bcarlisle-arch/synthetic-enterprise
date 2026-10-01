@@ -408,6 +408,7 @@ def _one_renewal(monkeypatch, sensitivity) -> float:
     """
     from simulation import population_draw as pd
     from simulation.customer_events import roll_lifecycle_event
+    from simulation.price_cap_enforcement import DOMESTIC_VAT_RATE
     from simulation.svt_rates import get_svt_elec_rate_gbp_per_mwh
     from tests.simulation.test_customer_events import (
         _build_one_year_records,
@@ -425,7 +426,8 @@ def _one_renewal(monkeypatch, sensitivity) -> float:
     event = roll_lifecycle_event(
         "C5", renewal, "electricity",
         _build_one_year_records(), _make_customers(),
-        old_rate_gbp_per_mwh=svt, new_rate_gbp_per_mwh=svt * 1.20,
+        # Ex-VAT, like every struck rate: the household sees it 20% above the inc-VAT SVT.
+        old_rate_gbp_per_mwh=svt, new_rate_gbp_per_mwh=svt * 1.20 / (1.0 + DOMESTIC_VAT_RATE),
     )
     assert event is not None, "the fixture stopped reaching a renewal — it can no longer see this"
     assert event["price_differential_vs_svt"] == pytest.approx(0.20), (
