@@ -135,6 +135,9 @@ make the test green.
 # SECOND market quantity hiding in that door and not counted by this register: the trail is a rate
 # per kWh, and kWh is as market-varying as GBP. It stays inside `saas/opex_ledger.py` and does not
 # cross, which is why the door hands over a settled amount rather than a rate.
+# dd_review_outcome 6 -> 3, drained 2026-10-01 on touch: the opening rate became `rate_per_mwh_inc_vat`
+# when the door started taking the rate the account was sold at (claim
+# `price-the-opening-dd-at-the-rate-the-supplier-sold-at`); the new parameter is currency-neutral.
 # dd_review_outcome 2 -> 6, and dd_review 0 -> 3, amended 2026-09-02 under the same-change rule
 # (atom `D_opening_dd_seasonal_sizing`). Until today the direct debit had no estimate behind it:
 # both books opened every customer at their FIRST ISSUED BILL, so the monthly payment was an
@@ -162,7 +165,7 @@ counterparty      company/interfaces/sim_interface.py                  mpan     
 counterparty      company/interfaces/sim_interface.py                  nbp          1
 market_quantity   company/interfaces/credit_refund_requests.py         gbp          5
 market_quantity   company/interfaces/dd_review.py                      gbp          3
-market_quantity   company/interfaces/dd_review_outcome.py              gbp          6
+market_quantity   company/interfaces/dd_review_outcome.py              gbp          3
 market_quantity   company/interfaces/growth_desk.py                    gbp         25
 market_quantity   company/interfaces/internal_seams.py                 gbp          5
 market_quantity   company/interfaces/point_in_time_view.py             gbp          4

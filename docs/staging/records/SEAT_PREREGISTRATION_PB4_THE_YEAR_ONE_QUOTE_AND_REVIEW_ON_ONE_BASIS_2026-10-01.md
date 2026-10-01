@@ -70,3 +70,31 @@ claim's worktree. The previous `events.json` is kept as `events_rate_sold_7a119f
 `analyse.py` is re-run byte-unchanged and its sha256 is checked against `analyse.sha256`.
 
 ## Result (appended after the run; nothing above is edited)
+
+The run used a worktree at `d3009f5a9` plus this claim's code, and took 1,396 s. The previous output
+is kept as `events_rate_sold_7a119f52c.json`. `analyse.py` was re-run byte-unchanged, and its sha256
+was checked.
+
+| First renewals (36) | rate sold, mixed basis | one basis |
+|---|---|---|
+| Defined | 31 | **31** |
+| Shocked | 9 (0.290) | **17 (0.548)**: direct debit 14/26, standard credit 3/5 |
+| Rise quartiles | −0.270 / −0.084 / +0.333 | **−0.056 / +0.222 / +0.788** |
+
+Later renewals: 62 defined, 20 shocked (0.323), median rise +0.074.
+
+| | Verdict |
+|---|---|
+| R0 | **FAILED AS WRITTEN; the mechanism holds exactly.** The shocked set moved by 2 rows, both inside the allowance (0.138→0.167 and 0.153→0.145). But the largest later move is 0.061, not under 0.02. All 62 later rows recompute EXACTLY (to 1e-6) from the run's own household bills, as `ceil(1.05·this)/ceil(1.05·prior) − 1` for direct debit and an unchanged ratio for standard credit. So nothing but the review's round-up to the pound moved them. The 0.02 bound assumed ~£50 payments; a £1 round-up on a £16–£33 payment is 3–6%. The size was mispriced, not the attribution, so the run is NOT discarded. That is a call made after the answer, and it is recorded as one. |
+| R1 | **HELD.** 31 of 31. |
+| R2 | **HELD.** All 31 first-renewal rises went up. The factor (1+new)/(1+old) runs from 1.07 (a 2024 electricity sign-up) to 1.51 (2016 gas). That is wider than the 1.24–1.30 printed above, because a low-use leg carries the standing charge as a larger share of its quote. |
+| R3 | **HELD.** Median +0.222 is inside [+0.05, +0.25]; share 0.548 is inside [0.35, 0.65]. |
+| R4 | **HELD.** 0.548 > 0.323. |
+
+**The plan-level refutation did not fire** (share < 0.75, median < +0.35). But the consumption leg
+it names is visible in the tail: **7 of 31 first renewals rise by more than 100%** (+1.04 to +7.15).
+These are winter-peaked, electrically heated homes whose registry EAC (1,600–2,500 kWh) is a fraction
+of what they use. PROS-2016-0098 is quoted on 2,470 kWh and billed £300–600 a month all winter.
+Without those 7, year one reads 10/24 shocked (0.417) with a median of +0.107, against later
+renewals' 0.323 and +0.074. That tail is the subject of
+`SEAT_FINDING_THE_YEAR_ONE_SHOCK_TAIL_IS_AN_EAC_A_FRACTION_OF_THE_HOMES_USE_2026-10-01.md`.
