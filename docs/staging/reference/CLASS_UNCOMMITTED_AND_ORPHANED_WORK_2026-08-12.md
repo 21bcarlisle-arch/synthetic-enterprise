@@ -1,6 +1,6 @@
 # [CLASS] Uncommitted and orphaned work: finished work that never became part of the tree
 
-**Severity:** BLOCKING · **Lane:** H_harness
+**Severity:** BLOCKING · **Lane:** H_harness · **Epoch:** unassigned · **Atom:** `unminted`
 
 **Instances:** 35 · **Class:** `uncommitted_and_orphaned_work` · **Source's own count:** ~7 (`DIRECTOR_RULING_FINDING_SEVERITY_AND_INTERLEAVE_2026-08-12`, clause 1, "uncommitted/orphaned work")
 

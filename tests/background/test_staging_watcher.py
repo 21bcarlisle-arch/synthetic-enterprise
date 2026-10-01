@@ -285,6 +285,9 @@ def test_check_monthly_maintenance_queues_marker_on_first_of_month(tmp_path, mon
     assert marker.exists()
     assert "2026-08" in marker.read_text()
     assert watcher._load_maintenance_state() == "2026-08"
+    # Filed chained, or it is the one unchained item the queue census names (H45).
+    from background import staging_rooms
+    assert staging_rooms.chain_of(marker).is_chained, staging_rooms.chain_of(marker).missing
 
 
 def test_check_monthly_maintenance_skips_non_first_day(tmp_path, monkeypatch):

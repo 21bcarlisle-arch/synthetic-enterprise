@@ -1675,3 +1675,27 @@ def test_case_folding_does_not_make_the_other_class_field_resolve(tmp_path):
     assert not any(f.startswith("UNKNOWN DECLARED CLASS") for f in fc.check(root).failures), (
         "a header field is not the section form — it must not report a TYPO in a declaration"
     )
+
+
+def test_a_re_render_keeps_the_registers_chain_to_the_map(tmp_path):
+    """Defect: the renderer wrote Severity + Lane only, so a chain stamped on a register was
+    wiped at its next re-render and all four registers read unchained on /harness/ again a day
+    after 0ac9815b7 stamped them. A fresh render must be chained (the explicit "no atom yet"
+    sentinels), and a decision written on the register must survive the re-render."""
+    from background import staging_rooms
+
+    root, _blocker = _consolidated_wedge_class(tmp_path)
+    doc = root / "CLASS_PUBLISH_GATE_AND_WEDGE_2026-08-12.md"
+    fc._write_class_documents(root)
+    fresh = staging_rooms.chain_of(doc)
+    assert fresh.is_chained and not fresh.is_minted, fresh.missing
+
+    doc.write_text(
+        doc.read_text(encoding="utf-8")
+        .replace("**Epoch:** unassigned", "**Epoch:** 3")
+        .replace("`unminted`", "`H45_the_queue_is_chained_to_the_map`"),
+        encoding="utf-8",
+    )
+    fc._write_class_documents(root)
+    kept = staging_rooms.chain_of(doc)
+    assert (kept.epoch, kept.atom) == (3, "H45_the_queue_is_chained_to_the_map")

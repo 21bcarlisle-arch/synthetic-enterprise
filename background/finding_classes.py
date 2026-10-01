@@ -978,6 +978,27 @@ def existing_disposition_section(root: Path | str, finding_class: FindingClass) 
     return match.group(0).rstrip() if match else ""
 
 
+def existing_chain_fields(root: Path | str, finding_class: FindingClass) -> tuple[str, str]:
+    """The register's `**Epoch:**` and `**Atom:**` decisions, carried through a re-render.
+
+    The header used to be rendered as Severity + Lane only, so a chain stamped on a register
+    (0ac9815b7, 2026-09-30) was wiped at its next `--render` and the four registers read as
+    unchained on /harness/ again by 2026-10-01. Same argument as the Disposition carry-through:
+    a re-render must not forget a decision somebody recorded. Absent a decision, the explicit
+    "read against the map, no atom yet" sentinels -- a register is a class, not one atom's work.
+    """
+    doc = _class_doc_path(Path(root), finding_class.document_name)
+    epoch: str = staging_rooms.UNASSIGNED
+    atom: str = staging_rooms.UNMINTED
+    if doc.exists():
+        chain = staging_rooms.chain_of(doc)
+        if chain.epoch_declared and chain.epoch is not None:
+            epoch = str(chain.epoch)
+        if chain.atom:
+            atom = chain.atom
+    return epoch, atom
+
+
 def render_class_document(
     membership: ClassMembership,
     root: Path | str = DEFAULT_STAGING_ROOT,
@@ -1006,7 +1027,11 @@ def render_class_document(
     lines: list[str] = []
     lines.append(f"# [CLASS] {finding_class.title}")
     lines.append("")
-    lines.append(f"**Severity:** {severity} · **Lane:** {finding_class.lane}")
+    epoch, atom = existing_chain_fields(root, finding_class)
+    lines.append(
+        f"**Severity:** {severity} · **Lane:** {finding_class.lane} · "
+        f"**Epoch:** {epoch} · **Atom:** `{atom}`"
+    )
     lines.append("")
     lines.append(
         f"**Instances:** {membership.count} · **Class:** `{finding_class.id}` · "

@@ -400,7 +400,11 @@ def check_monthly_maintenance(now: datetime) -> None:
     marker = STAGING_DIR / f"maintenance_due_{now.strftime('%Y%m')}.md"
     if not marker.exists():
         STAGING_DIR.mkdir(parents=True, exist_ok=True)
+        # The chain header: P8's commit gate refuses a filing without one, and a marker filed
+        # bare read as the one unchained item on /harness/ (maintenance_due_202610, H45).
         marker.write_text(
+            "**Severity:** LATENT \u00b7 **Lane:** H_harness \u00b7 **Epoch:** unassigned "
+            "\u00b7 **Atom:** `unminted`\n\n"
             f"[MAINTENANCE] Monthly maintenance due for {month_key}.\n\n"
             f"Run the checklist in docs/operations/MAINTENANCE.md and log the "
             f"result in docs/operations/maintenance-log.md.\n"

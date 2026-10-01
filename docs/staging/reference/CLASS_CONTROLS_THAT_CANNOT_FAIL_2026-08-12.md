@@ -1,6 +1,6 @@
 # [CLASS] Controls that cannot fail: vacuous, fail-open, or blind to their own subject
 
-**Severity:** BLOCKING · **Lane:** H_harness
+**Severity:** BLOCKING · **Lane:** H_harness · **Epoch:** unassigned · **Atom:** `unminted`
 
 **Instances:** 57 · **Class:** `controls_that_cannot_fail` · **Source's own count:** ~9 (`DIRECTOR_RULING_FINDING_SEVERITY_AND_INTERLEAVE_2026-08-12`, clause 1, "controls that cannot fail — vacuous, fail-open, blind")
 

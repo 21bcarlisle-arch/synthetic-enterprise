@@ -1,6 +1,6 @@
 # [CLASS] Figures on a superseded clock: a summary frozen before the rows it summarises were mutated, published beside a figure re-summed from them
 
-**Severity:** BLOCKING · **Lane:** H_harness
+**Severity:** BLOCKING · **Lane:** H_harness · **Epoch:** unassigned · **Atom:** `unminted`
 
 **Instances:** 4 · **Class:** `figures_on_a_superseded_clock` · **Source's own count:** ~2 (registered under R10 by `WORKER_FINDING_THE_PUBLISHED_TREASURY_IS_ON_A_SUPERSEDED_CLOCK_BESIDE_A_REALISED_NET_MARGIN_2026-08-28`, which is the SECOND instance and names the class; not one of the director's five, and the count is this module's own)
 
