@@ -8,9 +8,9 @@
 
 | Property | Source | Result |
 |---|---|---|
-| Invisible to the BUILD draw | `supervisor._maturity_map_draw_concurrent` (the real draw) | 93/93 parked atoms not offered — 56 proven excluded BY THE PARK (lifting the park alone makes them drawable), 37 excluded for another reason |
-| Visible to the staleness clocks | `tools/map_assertion_provenance.build_rows` (AO11) | 93/93 parked atoms carry a row |
-| Visible to the composition dial | this module, over all 354 atoms | 93 parked (23 with a gate stated in `block_reason`) |
+| Invisible to the BUILD draw | `supervisor._maturity_map_draw_concurrent` (the real draw) | 94/94 parked atoms not offered — 57 proven excluded BY THE PARK (lifting the park alone makes them drawable), 37 excluded for another reason |
+| Visible to the staleness clocks | `tools/map_assertion_provenance.build_rows` (AO11) | 94/94 parked atoms carry a row |
+| Visible to the composition dial | this module, over all 354 atoms | 94 parked (24 with a gate stated in `block_reason`) |
 
 ## The dial
 
@@ -28,7 +28,7 @@ At mint (2026-08-08) the ruling measured **82 harness vs 7 commercial across 206
 | `W4_the_wall` | 15 | 4 | 11 |
 | `F_risk_compliance` | 11 | 6 | 5 |
 | `B_commercial` | 10 | 5 | 5 |
-| `E_finance_treasury` | 8 | 6 | 2 |
+| `E_finance_treasury` | 8 | 5 | 3 |
 | `W3_industry_systems` | 3 | 2 | 1 |
 | `W5_banking_payment_rails` | 1 | 1 | 0 |
 
