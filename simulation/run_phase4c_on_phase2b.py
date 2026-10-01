@@ -141,11 +141,11 @@ def _opening_dd_by_customer(customers: list[dict],
     WITH `settlement_records` (2026-10-01) each account is annualised at the rate
     it was SOLD at -- the unit rate on its first bill, read by the same
     `sold_unit_rate` the experienced bill shock uses. That puts pre-2019 accounts
-    back in scope and stops post-2019 fixed accounts opening at the cap. Without
-    it the door falls back to the cap, as above. The STANDING CHARGE sold is not
-    passed here yet, so this caller still quotes the door's 53p fallback while
-    the bill shock (since 7c872f2d0) quotes the first bill's charge: the two
-    agree on the rate and not yet on the standing charge.
+    back in scope and stops post-2019 fixed accounts opening at the cap. The
+    STANDING CHARGE sold crosses beside it (`sold_standing_charge`), so the books
+    and the bill shock (since 7c872f2d0) quote the household the same first
+    bill; before, the books quoted the door's 53p 2024 charge for both fuels and
+    every year. Without records the door falls back to the cap and 53p, as above.
 
     NOTHING ABOUT THE SUPPLIER'S PRICING IS COMPUTED HERE. An earlier draft
     resolved the cap rate and standing charge in this function and passed them
@@ -154,7 +154,7 @@ def _opening_dd_by_customer(customers: list[dict],
     The world hands over registration facts and is told an amount.
     """
     from company.interfaces.dd_review_outcome import opening_monthly_amount
-    from simulation.experienced_bill_shock import sold_unit_rate
+    from simulation.experienced_bill_shock import sold_standing_charge, sold_unit_rate
 
     # Bucketed once: `sold_unit_rate` filters by customer, and a whole run's
     # settlement book scanned once per account is quadratic.
@@ -173,15 +173,18 @@ def _opening_dd_by_customer(customers: list[dict],
         # the two industries' names.
         eac = c.get("eac_kwh") if commodity == "electricity" else c.get("aq_kwh")
 
+        sold_rate = sold_sc = None
+        if settlement_records is not None:
+            own = records_by_customer.get(cid, [])
+            sold_rate = sold_unit_rate(cid, own)
+            sold_sc = sold_standing_charge(cid, own)
         amount = opening_monthly_amount(
             as_of_iso=as_of_iso,
             commodity=commodity,
             registry_eac_kwh=float(eac) if eac else None,
             band="MEDIUM" if not eac else None,
-            contracted_unit_rate_per_mwh_ex_vat=(
-                sold_unit_rate(cid, records_by_customer.get(cid, []))
-                if settlement_records is not None else None
-            ),
+            contracted_unit_rate_per_mwh_ex_vat=sold_rate,
+            contracted_standing_charge_per_day_ex_vat=sold_sc,
         )
         if amount is not None:
             opening[cid] = amount
