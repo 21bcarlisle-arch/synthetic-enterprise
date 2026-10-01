@@ -14,6 +14,13 @@ draw's own write. The only seat process on the id was this session (pid 2218269)
 
 ## The answer
 
+> **Correction (2026-10-01, retaken after `cd0c7c39c`).** The figures below were measured on a
+> base where the portfolio premium read terms that had not yet ended. Do not cite them. Without
+> the look-ahead, the feedback is **13.9%**: +£1,518.25 of a −£10,893.04 standing-charge change.
+> The portfolio premium carries £1,153.72 and the margin surcharge £363.40. The mechanism below
+> still holds. See
+> `SEAT_FINDING_WITHOUT_THE_LOOK_AHEAD_THE_RENEWAL_FEEDBACK_IS_14_PERCENT_AND_NO_PRE_2025_RECORD_MOVES_2026-10-01.md`.
+
 In P3 of `SEAT_FINDING_THE_WORLDS_STANDING_CHARGE_IS_NOW_EX_VAT...`, revenue fell by £1,356 less
 than the standing charge did. That £1,356 is **renewal unit rates rising** because the
 supplier's learned writers read its own lower realised margin. It is not a defect: a real supplier
