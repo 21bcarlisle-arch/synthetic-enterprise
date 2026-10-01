@@ -53,3 +53,30 @@ and nothing is shrunk toward a picked number.
    number per date carries no per-account information.
 
 If (2) fails, the derivation is the defect and it gets fixed before any ledger row is written.
+
+## RESULT, 2026-10-01, written beside the predictions and not over them
+
+Measured on a fresh `run_phase2b` (315,943 settlement records, 256 customers, 106 world renewal events)
+at `81977a312`, with the derived record taken at each year-end cutoff:
+
+| cutoff | derived decisions / departures / hazard | world events / churned / rate |
+|---|---|---|
+| 2016 | 0 / 0 / None | 1 / 0 / 0.0 |
+| 2017 | 83 / 12 / 0.145 | 29 / 12 / 0.414 |
+| 2019 | 215 / 28 / 0.130 | 67 / 25 / 0.373 |
+| 2021 | 330 / 44 / 0.133 | 87 / 36 / 0.414 |
+| 2025 | 531 / 49 / 0.092 | 106 / 38 / 0.358 |
+
+1. **FAILED.** There were 531 decisions, not 60–110, and the hazard was 0.092, not 0.28–0.45.
+2. **FAILED as worded, and the failure is NOT the derivation.** The derived and world readings
+   differ by 0.24–0.32. When each derived decision was matched to a world event on the same account
+   within a month, 37 of 38 world churns were derived departures and 68 of 68 world renewals were
+   derived stays. The derivation reproduces every decision the world rolled. The difference is
+   **414 anniversaries at which the world rolled no decision** (the account went on being
+   supplied), plus 12 cessations near an anniversary that the world logged as no renewal churn. The
+   pre-registration said a failure of (2) would mean the derivation is the defect. The match shows
+   the defect is in the prediction's frame instead: "a renewal" was never defined. The world
+   decides at 106 of the ~520 anniversaries the book passed.
+3. **HELD.** The 2016 snapshot is blank on H2 under `no_book_renewal_decisions`.
+4. **NOT RUN.** The ledger row still waits on the premise-two-level reds, and (2) puts the frame in
+   question first. See the finding this result opened.
