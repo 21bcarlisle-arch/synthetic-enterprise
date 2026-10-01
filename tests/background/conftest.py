@@ -678,6 +678,17 @@ def _isolate_publish_gate_wedge_state(tmp_path, monkeypatch):
     _publish_clock = _publish_clock_dir / ".last_content_publish.json"
     _publish_clock.write_text(json.dumps({"ts": time.time()}))
     monkeypatch.setattr(publish_freshness, "STATE_FILE", _publish_clock, raising=False)
+    # THE SECOND FILE `snapshot()` READS, since 2026-09-24: the publisher's own refusal record.
+    # Same leak, opposite direction to the clock above -- this one is not seeded but REDIRECTED to
+    # an absent path, because absent reads as `unknown` there and `unknown` makes no claim either
+    # way. Seeding a clean record would be the manufactured all-clear this whole fixture block
+    # exists to avoid, and leaving it pointed at the live file would make every assertion in this
+    # directory about a healthy publish line depend on whether the real publisher happened to be
+    # wedged while the suite ran.
+    monkeypatch.setattr(
+        publish_freshness, "PUBLISH_GATE_STATE_FILE",
+        _publish_clock_dir / "publish_gate_state_absent.json", raising=False,
+    )
     # RUNG 1d PRODUCER STARVATION (2026-08-17) -- the NINTH instance, and the first that leaks the
     # other way: a test WRITING live state that a priority-zero rung READS. `sim_runner.
     # record_run_outcome` defaults to the real `.sim_producer_state.json`, and the existing
