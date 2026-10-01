@@ -347,3 +347,33 @@ Within (seed, year) cells, the belief's correlation is **−0.477**, more negati
 5. **A frame question stays open**, filed in the finding rather than built on. The world's `p_retain` FALLS with tenure within a year. The published expectation (CMA 2016, inertia) is the opposite.
 
 Finding: `docs/staging/WORKER_FINDING_THE_RETENTION_BELIEFS_ANTI_RANKING_IS_ALL_IN_THE_RATE_TERM_AND_PB7_CANNOT_REACH_IT_2026-10-01.md`.
+
+## What drives the world: predictions (2026-10-01 ~04:50Z, autonomous worker, item `what-drives-the-worlds-retention-at-a-first-renewal`; filed before any term was computed)
+
+**The question.** The section above found that the world's `p_retain` at a first renewal falls within a renewal year with supply tenure (−0.32) and with bill size (−0.27), against the CMA/Ofgem expectation on tenure. Is each gradient carried by a world term, and is that term a fidelity gap or a real feature? No simulation is run. Rosters: `/var/tmp/se-ab6-out` (pin `a322166cc`, `runP1/P2/X1.json`, `pb6rank_C0_pin.json`). Terms are recomputed with the pin's own functions from the logged inputs.
+
+**"First renewal" here is the world's first DECIDED renewal, not the first anniversary.** The world rolls at one anniversary in five (`SEAT_FINDING_THE_WORLD_DECIDES_A_RENEWAL_AT_ONE_ANNIVERSARY_IN_FIVE…`). That is why years on supply at this row runs from 1 to 8 (161 of 317 rows at 1, 156 at 2 or more), and it is the only reason the row can vary in tenure at all.
+
+**A code read made before any number** (`customer_events.roll_lifecycle_event` and `departure_risks.build_departure_risks` at the pin). The world's departure probability at this row is `1 − Π(1 − h)` over three hazards:
+- **bill shock**: `L(y)·0.5·base·M(y)·A`. Here `base = (0.05 + 0.03·k)·(1 − p_win)`, where `k` is the count of bill-shocked billing periods in the 12 months before the anniversary (`saas.churn_model.build_churn_risk`, compared year on year), and it is capped by the passive-renewal cap.
+- **price position**: `L·s·0.40·price_response·M·A·offer`, where `price_response = churn_position_multiplier(differential vs market × the household's elasticity, scaled by the household's own annual bill in £)`.
+- **dissatisfaction**: `L·s·0.32·satisfaction_churn_multiplier(score)·A`, where `score = 0.70 − 0.10·(lifetime rate shocks) + income-stress delta + min(0.02·years on supply, 0.10) + channel delta + individual variation` (`sim_satisfaction`).
+- `L`, the year anchor, and `M`, the market multiplier, are per year. `A = stress multiplier × HOUSING-tenure multiplier` is per household (`switching_propensity.py`: `tenure` there is owner/renter, not years on supply).
+
+So years on supply can reach `p_churn` by three routes, and only one of them is a declared tenure term:
+1. the satisfaction tenure bonus (+0.02/yr, protective: the CMA direction);
+2. the lifetime rate-shock count `_rate_shock_counts` (`run_phase2b`), which never decays and can only grow with years on supply (the anti-CMA direction);
+3. the bill-shock base's year-on-year comparison, which may have nothing to compare against in an account's first year, so `k` may be structurally 0 at a tenure-1 decision. **Seen before this was filed:** two log lines read while locating the fields, SYN-2016-001 at tenure 1 with `p_churn` 0.05 (k = 0) and SYN-2016-034 at tenure 2 with 0.20 (k = 5). That is two rows, not a census, and it is why W1 is stated as it is.
+
+| id | prediction | confidence | refuted if |
+|---|---|---|---|
+| **W1** | The bill-shock base rises with years on supply within (seed, year): corr(base, tenure) ≥ +0.30. Rows at tenure 1 carry k = 0 on ≥ 80% | 70% | corr < +0.30, or k = 0 on < 80% of tenure-1 rows |
+| **W2** | The world's −0.32 against tenure is carried by the bill-shock hazard. Holding it at its book mean takes the within-cell corr(world `p_retain`, tenure) to > −0.10 | 55% | it stays ≤ −0.10 |
+| **W3** | The dissatisfaction hazard's two tenure routes (bonus against lifetime shocks) roughly cancel. Holding it moves corr(world, tenure) by < 0.05 | 60% | it moves it by ≥ 0.05 |
+| **W4** | The −0.27 against bill size is carried by the price-position hazard (the bill scale in £). Holding it takes corr(world, bill size) to > −0.10 | 50% | it stays ≤ −0.10 |
+| **W4-alt** | The bill-size gradient is carried by the bill-shock base instead: bigger consumers trip more shocked periods | 25% | — |
+| **W5** | The confounds (housing tenure, income stress, through `A`) carry < 0.05 of either gradient | 75% | holding `A` moves either by ≥ 0.05 |
+| **W6** | Re-pairing every dual-fuel household leg-for-leg or at household level moves the belief's −0.383 by < 0.05 | 65% | it moves ≥ 0.05 |
+| **W7** | Verdict: the tenure gradient is a world-fidelity gap (a measurement artefact of the shock count, not a behaviour), and the bill-size gradient is a mechanism with a source (Ofgem/BMG absolute £) | 50% | either half reads the other way |
+
+**The instrument, fixed now.** Population: the same direct-debit first renewals (338 rows; 317 with a rebuilt rate input). Per term: compute its hazard per row; then **hold** = recompute `p_retain` with that hazard at its DD-book mean and the others as computed, and report the within-(seed, year) correlation of the held `p_retain` with years on supply and with bill size (the same within-cell pooling as the section above). **Reconstruction control, before any term is graded:** `1 − Π(1 − h)` over the rebuilt hazards must reproduce the logged world `p_retain`. Two inputs are not logged and are rebuilt. The price response is rebuilt without the competitor-position ledger. The passive cap is redrawn from its seeded stream. If the full rebuild misses the logged value by a median > 0.02, then the price hazard is taken as the **residual** that closes the logged value exactly given the other two (both are rebuilt from logged or deterministic inputs), and that is reported as residual, not called. Holds that use a residual are labelled.
