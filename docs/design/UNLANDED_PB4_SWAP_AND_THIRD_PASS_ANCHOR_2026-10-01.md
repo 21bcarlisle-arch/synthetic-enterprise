@@ -1,7 +1,7 @@
 # Unlanded: the PB4 bill-shock swap and the third-pass level anchor (2026-10-01)
 
-**Status (updated 2026-10-01 17:05 BST): fourth pass done, value arms re-taking in world D. Not landed, because a level refit changes the world
-identity and the value-arms page then refuses every bound it publishes.**
+**Status (updated 2026-10-01 23:55 BST): LANDED in `c3939e7b1`, together with the world-D value arms. Everything below is the
+history of how it got there. The result is in `docs/staging/records/SEAT_RESULT_THE_PB4_SWAP_LANDS_WITH_ITS_ARMS_RETAKEN_IN_WORLD_D_2026-10-01.md`.**
 Claim `swap-pb4-bill-shock-base-onto-the-experienced-shock`, base `e9b79073d`.
 
 ## What the patch does
