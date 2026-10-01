@@ -15,9 +15,14 @@ deliberately later rather than drifting into it."*
 |---|---|
 | Production importers reading a COMPUTATION | **0** (was 1, moved out) |
 | Production importers frozen with a stated reason | **2** (the renderer's own runner; a publisher importing two path constants) |
-| Test files importing the report | **88** |
+| Test files importing the report | **89** |
 | ...of which reach into private `_section_*` functions | **83** |
-| `saas/reporting/annual_report.py` | **10900 lines** |
+| `saas/reporting/annual_report.py` | **11079 lines** |
+
+Re-measured 2026-10-01: **89 / 83 / 11,079**. One new importer and no new private reacher:
+`tests/tools/test_dd_opening_arms.py` calls the public `extract_report_data` to prove that
+`opening_dd_by_customer` survives the key whitelist into the persisted run output. That whitelist
+is the only place the key can be dropped.
 
 Re-measured 2026-09-07: **88 / 83 / 10,900**. The importer count moved 87 → 88 for one file
 and the private-reacher count moved 82 → 83 with it, for the same file. The new importer is

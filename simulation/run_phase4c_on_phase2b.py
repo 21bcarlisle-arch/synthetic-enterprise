@@ -114,7 +114,8 @@ PRICE_DIFFERENTIAL_PCT = 0.0  # matches run_phase4b_on_phase2b.py
 
 
 
-def _opening_dd_by_customer(customers: list[dict]) -> dict[str, float]:
+def _opening_dd_by_customer(customers: list[dict],
+                            settlement_records: list[dict] | None = None) -> dict[str, float]:
     """The monthly Direct Debit the supplier SET when each account opened.
 
     ATOM `D_opening_dd_seasonal_sizing`, 2026-09-02. Until this existed, both
@@ -136,8 +137,15 @@ def _opening_dd_by_customer(customers: list[dict]) -> dict[str, float]:
     fail-closed and the count is published, not hidden: the company holds no
     published rate before the price cap began in January 2019, so pre-cap
     acquisitions genuinely have no rate to annualise against in this repository.
-    Giving the company its own dated tariff book is the registered next step for
-    this atom, and it is what would put those accounts back in scope.
+
+    WITH `settlement_records` (2026-10-01) each account is annualised at the rate
+    it was SOLD at -- the unit rate on its first bill, read by the same
+    `sold_unit_rate` the experienced bill shock uses. That puts pre-2019 accounts
+    back in scope and stops post-2019 fixed accounts opening at the cap. Without
+    it the door falls back to the cap, as above. The STANDING CHARGE sold is not
+    passed here yet, so this caller still quotes the door's 53p fallback while
+    the bill shock (since 7c872f2d0) quotes the first bill's charge: the two
+    agree on the rate and not yet on the standing charge.
 
     NOTHING ABOUT THE SUPPLIER'S PRICING IS COMPUTED HERE. An earlier draft
     resolved the cap rate and standing charge in this function and passed them
@@ -146,6 +154,13 @@ def _opening_dd_by_customer(customers: list[dict]) -> dict[str, float]:
     The world hands over registration facts and is told an amount.
     """
     from company.interfaces.dd_review_outcome import opening_monthly_amount
+    from simulation.experienced_bill_shock import sold_unit_rate
+
+    # Bucketed once: `sold_unit_rate` filters by customer, and a whole run's
+    # settlement book scanned once per account is quadratic.
+    records_by_customer: dict[str, list[dict]] = {}
+    for r in settlement_records or ():
+        records_by_customer.setdefault(r.get("customer_id"), []).append(r)
 
     opening: dict[str, float] = {}
     for c in customers:
@@ -163,6 +178,10 @@ def _opening_dd_by_customer(customers: list[dict]) -> dict[str, float]:
             commodity=commodity,
             registry_eac_kwh=float(eac) if eac else None,
             band="MEDIUM" if not eac else None,
+            contracted_unit_rate_per_mwh_ex_vat=(
+                sold_unit_rate(cid, records_by_customer.get(cid, []))
+                if settlement_records is not None else None
+            ),
         )
         if amount is not None:
             opening[cid] = amount
@@ -344,7 +363,7 @@ def main(report_end: str | None = None, policy=None):
     # It now goes through
     # `company.interfaces.dd_review`, which takes the bills and returns the
     # SERIALISED review -- no company type crosses at all.
-    opening_dd = _opening_dd_by_customer(_get_all_customers())
+    opening_dd = _opening_dd_by_customer(_get_all_customers(), all_records)
     annual_dd_review = annual_dd_review_view(bills, opening_dd)
 
     # DD2 (atom DD_seasonal_cashflow_physics): the per-customer level-DD seasonal
@@ -638,6 +657,11 @@ def main(report_end: str | None = None, policy=None):
         "bills": bills,
         "dd_collection_book": _serialize_dd_collection_book(dd_collection_book),
         "annual_dd_review": annual_dd_review,
+        # The opening DD each account was given, exactly as both books above were fed
+        # it. Handed over so `tools/dd_opening_arms` measures the amounts this run
+        # USED: the rate sold is read from `all_records`, which no run output carries,
+        # so an instrument re-deriving from customers alone measures the cap fallback.
+        "opening_dd_by_customer": opening_dd,
         "dd_balance_book": dd_balance_book.serialise(),
         "dd_level_collection_book": dd_level_collection_book.serialise(),
         "meter_read_log": meter_read_log,

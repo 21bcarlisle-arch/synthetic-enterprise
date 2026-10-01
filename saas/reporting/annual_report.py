@@ -1281,6 +1281,8 @@ def extract_report_data(run_output: dict) -> dict:
         # closed this atom's decisive "zero live pipeline callers" gap.
         "dd_collection_book": run_output.get("dd_collection_book", {}),
         "annual_dd_review": run_output.get("annual_dd_review", {}),
+        # The opening DD amounts both DD books were fed, read by tools/dd_opening_arms.
+        "opening_dd_by_customer": run_output.get("opening_dd_by_customer", {}),
         "dd_balance_book": run_output.get("dd_balance_book", {}),
         # DD1 (atom DD_seasonal_cashflow_physics): the LEVEL (fixed) DD collection
         # book -- the standing monthly amount sizing a first-class collection
