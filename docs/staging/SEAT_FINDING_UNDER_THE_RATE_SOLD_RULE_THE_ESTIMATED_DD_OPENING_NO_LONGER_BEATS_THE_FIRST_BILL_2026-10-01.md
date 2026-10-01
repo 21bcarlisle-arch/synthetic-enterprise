@@ -73,3 +73,81 @@ chooses one of three sentences, falls, rises or spans zero, from where the inter
 test. I mutated the renderer to force the old unconditional branch, the test went red, and I
 reverted the mutation. The refusal test keyed on "2019", which was this run's cause word. It now
 keys on "price cap", which is the cause itself.
+
+## Attribution, 2026-10-01 evening: the rule did not do it, and the tail is a wiring gap
+
+Claim `attribute-the-dd-opening-collapse-rule-against-run`. One process, one substrate: the run output
+produced at `c48eb1ff6`, which descends from both `68e4fb4bf` and `3bf64c4e7`. Three arms over the same
+bills. **Flat** is the first issued bill. **Cap** is the OLD rule: the same `opening_monthly_amount`
+door with no contracted rate, so it uses the cap and 53p, as it did before `ed41ffa1e`. **Sold** is the
+run's own `opening_dd_by_customer`. Only the opening rule varies.
+
+Matched window-0 change in |drift|, with the instrument's bootstrap:
+
+| comparison | population | n | closer | mean Δ\|drift\| [95% CI] |
+|---|---|---|---|---|
+| cap − flat | 2019+ (all the cap rule opens) | 95 | 60 | −£30.42 [−156.02, +166.09] |
+| sold − flat | 2019+ | 95 | 62 | −£33.68 [−157.94, +163.55] |
+| **sold − cap** | **2019+** | **95** | 43 | **−£3.27 [−32.79, +25.46]** |
+| sold − flat | all | 194 | 123 | −£0.40 [−77.20, +109.67] |
+| sold − flat | pre-2019 | 99 | 61 | +£31.54 [−53.60, +129.41] |
+
+**The rule did not move the mean.** On this substrate the OLD cap rule collapses as well: −£30, against
+−£202 on the 09-03 page. Holding the households and the bills fixed, the rule change is worth −£3.27,
+and that interval sits tightly on zero. It changes the openings by a median of −£11.80 a month. The
+collapse came with the run. The company's own method did not regress.
+
+**The tail did it.** Dropping the four named accounts is not a repair, but it shows where the mean comes
+from:
+
+| comparison | population | n | mean Δ\|drift\| [95% CI] |
+|---|---|---|---|
+| cap − flat | 2019+ less tail | 94 | −£111.58 [−167.28, −54.73] |
+| sold − flat | 2019+ less tail | 94 | −£116.01 [−170.65, −58.10] |
+| sold − flat | all less tail | 190 | −£73.82 [−112.62, −32.94] |
+
+On the 2019+ cohort a single account, PROS-2024-0082, moves the mean from −£116 to −£34. Without the
+tail, both rules beat the first bill with intervals that exclude zero, and they are indistinguishable
+from each other. I cannot attribute the remaining gap between −£112 here and −£202 on 09-03. It is the
+substrate (09-09 → `c48eb1ff6`), and this cut holds the substrate fixed.
+
+**The prediction above is not yet tested.** Trimming the tail is not repairing it. The prediction stands
+as written, to be graded on the first run in which the repair reaches the openings.
+
+### The tail: `3bf64c4e7` did not reach it, and why
+
+The registry EAC the company held when each account opened, against the household's own first-year use
+as billed:
+
+| account | EAC at opening | first-year use (billed, annualised) | ratio | provider |
+|---|---|---|---|---|
+| PROS-2024-0082 | 2,602 kWh | 41,951 kWh | 0.06 | fabric_physics |
+| PROS-2018-0002 | 1,622 kWh | 18,087 kWh | 0.09 | fabric_physics |
+| PROS-2016-0098 | 2,470 kWh | 20,296 kWh | 0.12 | fabric_physics |
+| PROS-2016-0092 | 2,338 kWh | 10,222 kWh | 0.23 | fabric_physics |
+
+All four are fabric premises, which is exactly the population `3bf64c4e7` re-sets to its own trailing
+reads. The openings are still sized on the drawn band: the run's cap-equivalent for PROS-2024-0082 is
+£78.19, which is precisely `opening_monthly_amount` at 2,602 kWh. At its own reads it would be
+£1,016.65.
+
+**Cause: the fix writes into a copy the DD opening never reads.** `run_phase2b` rewrites
+`eac_kwh` on the records in its own module-level `CUSTOMERS = live_population()` (line 231).
+`run_phase4c_on_phase2b` builds the DD openings from its own `CUSTOMERS = live_population()` (line 110),
+which comes from a second call. `live_population()` returns the 13 static `CUSTOMERS` records by
+identity, but it builds fresh dicts for every drawn account. Two calls in one process share 13 of
+244 records, and none of the 231 drawn ones, PROS-* included. So the fix reaches what `run_phase2b`
+reads (the quote, EFFECTIVE_EAC_KWH, and the renewal-shock figures its commit measured). It does not
+reach anything in `run_phase4c` that reads `eac_kwh` through `_get_all_customers()`: the DD opening
+(line 369), and possibly the readers at lines 405 and 530, which I have not audited. The 13 shared
+static accounts are the only ones the fix reaches on the phase-4c side. `tools/dd_opening_arms`'s
+`_basis_and_rate_by_customer` reads a third fresh copy and has the same gap.
+
+This is a world defect in what the company inherits, not a defect in the company's method. On the
+phase-4c side the company is still handed the band drawn blind to the dwelling.
+
+**Next, as a separate pre-registered item. The opening rule is not touched here.** Make the
+registry-EAC rewrite reach the record that `run_phase4c` reads: one population object, or the rewrite
+handed across explicitly. Re-run, then grade the prediction above on the 2019+ cohort. A second
+prediction, filed now: after that repair, `sold − cap` on 2019+ stays inside ±£35 and spans zero,
+because the rule was never the variable.
