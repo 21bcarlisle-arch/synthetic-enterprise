@@ -874,8 +874,8 @@ def _build_churn_basis_risk(customer_events_log: list) -> list[dict]:
     names that both say `svt` -- the exact shape `run_price_ladder`'s reconciliation caught in
     August, and it is caught here before it lands rather than after.
     """
+    from simulation.customer_events import _household_svt_gbp_per_mwh
     from simulation.price_cap_enforcement import household_price_inc_vat
-    from simulation.svt_rates import get_svt_elec_rate_charged_to_household_gbp_per_mwh
 
     records = []
     for e in customer_events_log:
@@ -883,7 +883,9 @@ def _build_churn_basis_risk(customer_events_log: list) -> list[dict]:
             continue
         unit_rate = e.get("unit_rate_gbp_per_mwh")
         term_start = e["event_date"]
-        svt_rate = get_svt_elec_rate_charged_to_household_gbp_per_mwh(term_start)
+        # The event's own fuel (2026-10-01): a gas event against the electricity SVT read ~80%
+        # cheaper than the market, and disagreed with the event's `price_differential_vs_svt`.
+        svt_rate = _household_svt_gbp_per_mwh(e["commodity"], term_start)
         rate_vs_svt_pct = None
         if unit_rate is not None and svt_rate is not None and svt_rate > 0:
             # The struck rate is ex-VAT and the SVT is the inc-VAT published price (2026-10-01).

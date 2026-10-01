@@ -150,6 +150,7 @@ def _price_differential_vs_market(
     new_rate_gbp_per_mwh: float | None,
     term_start_str: str,
     *,
+    commodity: str,
     position_ledger=None,
     wholesale_gbp_per_mwh: float | None = None,
 ) -> float | None:
@@ -173,6 +174,7 @@ def _price_differential_vs_market(
         return None
     reference = _reference_level_gbp_per_mwh(
         term_start_str,
+        commodity=commodity,
         position_ledger=position_ledger,
         wholesale_gbp_per_mwh=wholesale_gbp_per_mwh,
     )
@@ -185,8 +187,37 @@ def _price_differential_vs_market(
     return (offer - float(reference)) / float(reference)
 
 
+def _household_svt_gbp_per_mwh(commodity: str, term_start_str: str) -> float | None:
+    """The default tariff this household's OWN FUEL was charged at, inc-VAT.
+
+    THE FUEL IS REQUIRED (2026-10-01). Until today every reading in this module took the
+    electricity SVT whatever the leg, so each gas renewal set a ~£30/MWh gas offer against a
+    ~£150/MWh electricity price and read about 80% cheaper than the market -- past the curve's
+    -0.30 saturation, so no gas price the company could charge reached the departure roll at all.
+    No default: a default of electricity is how that was built.
+    """
+    from simulation.svt_rates import (
+        get_svt_elec_rate_charged_to_household_gbp_per_mwh,
+        get_svt_gas_rate_charged_to_household_gbp_per_mwh,
+    )
+
+    if commodity == "electricity":
+        return get_svt_elec_rate_charged_to_household_gbp_per_mwh(term_start_str)
+    if commodity == "gas":
+        return get_svt_gas_rate_charged_to_household_gbp_per_mwh(term_start_str)
+    raise ValueError(
+        f"no published default tariff for commodity {commodity!r}: the SVT series exist for "
+        "'electricity' and 'gas' only, and answering another fuel with one of them is the defect "
+        "this argument exists to refuse"
+    )
+
+
 def _reference_level_gbp_per_mwh(
-    term_start_str: str, *, position_ledger=None, wholesale_gbp_per_mwh: float | None = None
+    term_start_str: str,
+    *,
+    commodity: str,
+    position_ledger=None,
+    wholesale_gbp_per_mwh: float | None = None,
 ) -> float | None:
     """The one level every reading in this module is taken against. ONE FUNCTION, because
     `_price_differential_vs_market` and `_market_reference_gbp_per_mwh` used to compute this
@@ -219,11 +250,15 @@ def _reference_level_gbp_per_mwh(
     reference above it is a price the switching household could not have been offered. Outside
     the EPG windows the ceiling IS the cap and the clamp is a no-op, which is why this is one
     `min` rather than a second reading of the schedule.
-    """
-    from simulation.svt_rates import get_svt_elec_rate_charged_to_household_gbp_per_mwh
 
-    reference = get_svt_elec_rate_charged_to_household_gbp_per_mwh(term_start_str)
-    if position_ledger is None:
+    A GAS LEG HAS NO RIVAL (2026-10-01). `competitor_reference` is anchored on the electricity cap
+    and floored on the electricity policy and network stack, so handing it a gas offer would chase
+    a gas price down an electricity anchor. Nothing in the knowledge layer says how a gas rival
+    defends, so a gas leg is measured against the published gas default and nothing moves it.
+    That is a gap, stated, not a model of one.
+    """
+    reference = _household_svt_gbp_per_mwh(commodity, term_start_str)
+    if position_ledger is None or commodity != "electricity":
         return reference
 
     from simulation.competitor_reference import competitor_reference_rate_gbp_per_mwh
@@ -243,7 +278,9 @@ def _reference_level_gbp_per_mwh(
     return min(float(moved), float(reference))
 
 
-def _svt_position(rate_gbp_per_mwh: float | None, term_start_str: str) -> float | None:
+def _svt_position(
+    rate_gbp_per_mwh: float | None, term_start_str: str, *, commodity: str
+) -> float | None:
     """This customer's position against THE DEFAULT TARIFF IT WOULD OTHERWISE PAY, whatever the
     competitor is doing.
 
@@ -261,11 +298,9 @@ def _svt_position(rate_gbp_per_mwh: float | None, term_start_str: str) -> float 
     event for and is reconciled against the logged field, so it moved in the same commit. That
     reconciliation is the reason a change here cannot be made in one file.
     """
-    from simulation.svt_rates import get_svt_elec_rate_charged_to_household_gbp_per_mwh
-
     if rate_gbp_per_mwh is None:
         return None
-    svt = get_svt_elec_rate_charged_to_household_gbp_per_mwh(term_start_str)
+    svt = _household_svt_gbp_per_mwh(commodity, term_start_str)
     if not svt or svt <= 0:
         return None
     offer = household_price_inc_vat(rate_gbp_per_mwh)
@@ -273,7 +308,11 @@ def _svt_position(rate_gbp_per_mwh: float | None, term_start_str: str) -> float 
 
 
 def _market_reference_gbp_per_mwh(
-    term_start_str: str, *, position_ledger=None, wholesale_gbp_per_mwh: float | None = None
+    term_start_str: str,
+    *,
+    commodity: str,
+    position_ledger=None,
+    wholesale_gbp_per_mwh: float | None = None,
 ) -> float | None:
     """The LEVEL the differential above was taken against, for anything that has to reconcile.
 
@@ -294,6 +333,7 @@ def _market_reference_gbp_per_mwh(
     """
     return _reference_level_gbp_per_mwh(
         term_start_str,
+        commodity=commodity,
         position_ledger=position_ledger,
         wholesale_gbp_per_mwh=wholesale_gbp_per_mwh,
     )
@@ -602,7 +642,7 @@ def roll_lifecycle_event(
     # one `_build_churn_basis_risk` already reports as `rate_vs_svt_pct`. The run-level parameter
     # remains as the fallback for a caller that has no rate to hand.
     differential = _price_differential_vs_market(
-        new_rate_gbp_per_mwh, term_start_str,
+        new_rate_gbp_per_mwh, term_start_str, commodity=commodity,
         position_ledger=position_ledger, wholesale_gbp_per_mwh=wholesale_gbp_per_mwh,
     )
     if differential is None:
@@ -832,10 +872,11 @@ def roll_lifecycle_event(
         # which is the same thing until a competitor reference moves and is the only one that
         # explains the roll after it does. Keeping one name for both is what made
         # `run_price_ladder`'s reconciliation go red at 21.3pp on the day this landed.
-        "price_differential_vs_svt": _svt_position(new_rate_gbp_per_mwh, term_start_str),
+        "price_differential_vs_svt": _svt_position(
+            new_rate_gbp_per_mwh, term_start_str, commodity=commodity),
         "price_differential_vs_market_reference": round(differential, 4) if differential else None,
         "market_reference_gbp_per_mwh": _market_reference_gbp_per_mwh(
-            term_start_str, position_ledger=position_ledger,
+            term_start_str, commodity=commodity, position_ledger=position_ledger,
             wholesale_gbp_per_mwh=wholesale_gbp_per_mwh),
         "offer_position_multiplier": (
             round(offer_position_multiplier(differential), 4) if differential else None

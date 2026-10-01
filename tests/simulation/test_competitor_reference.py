@@ -242,12 +242,12 @@ def test_the_CHURN_DIFFERENTIAL_reads_the_reference_when_a_ledger_is_present():
     from simulation.customer_events import _price_differential_vs_market
 
     cheap = CAP * 0.9 / (1.0 + DOMESTIC_VAT_RATE)  # ex-VAT: a household sees it 10% under
-    assert _price_differential_vs_market(cheap, DATE) == pytest.approx(-0.10)
+    assert _price_differential_vs_market(cheap, DATE, commodity="electricity") == pytest.approx(-0.10)
 
     led = cr.CompanyPositionLedger()
     for day in ("2019-01-15", "2019-02-15", "2019-03-15"):
         led.observe(day, cheap)
-    defended = _price_differential_vs_market(cheap, DATE, position_ledger=led)
+    defended = _price_differential_vs_market(cheap, DATE, position_ledger=led, commodity="electricity")
     assert defended > -0.10 + 0.02, "the seam is wired but the reference did not move"
 
 
@@ -262,7 +262,7 @@ def test_MUTATION_NO_ledger_leaves_the_differential_byte_identical():
         svt = get_svt_elec_rate_gbp_per_mwh(DATE)
         # The ex-VAT offer grossed up to the inc-VAT basis the SVT is published on (2026-10-01).
         offer = rate * (1.0 + DOMESTIC_VAT_RATE)
-        assert _price_differential_vs_market(rate, DATE) == pytest.approx((offer - svt) / svt)
+        assert _price_differential_vs_market(rate, DATE, commodity="electricity") == pytest.approx((offer - svt) / svt)
 
 
 def test_MUTATION_the_run_FEEDS_and_READS_the_ledger_and_feeds_it_AFTER_the_roll():
@@ -329,8 +329,8 @@ def test_MUTATION_the_SVT_position_stays_the_SVT_position_after_the_reference_mo
     for day in ("2019-01-15", "2019-02-15", "2019-03-15"):
         led.observe(day, cheap)
 
-    against_market = _price_differential_vs_market(cheap, DATE, position_ledger=led)
-    against_cap = _svt_position(cheap, DATE)
+    against_market = _price_differential_vs_market(cheap, DATE, position_ledger=led, commodity="electricity")
+    against_cap = _svt_position(cheap, DATE, commodity="electricity")
     assert against_cap == pytest.approx(-0.10), "the SVT position moved when the rival did"
     assert against_market != pytest.approx(against_cap), (
         "the two references produced the same number, so one of them is not being used"
@@ -342,12 +342,12 @@ def test_the_LEVEL_the_differential_was_taken_against_is_PUBLISHED():
     that used to match. Re-deriving is exactly how a control goes quiet after a reference moves."""
     from simulation.customer_events import _market_reference_gbp_per_mwh
 
-    assert _market_reference_gbp_per_mwh(DATE) == pytest.approx(CAP)
+    assert _market_reference_gbp_per_mwh(DATE, commodity="electricity") == pytest.approx(CAP)
     led = cr.CompanyPositionLedger()
     for day in ("2019-01-15", "2019-02-15", "2019-03-15"):
         # The ledger holds ex-VAT struck rates; the rival chases what a comparison site shows.
         led.observe(day, CAP * 0.9 / (1.0 + DOMESTIC_VAT_RATE))
-    moved = _market_reference_gbp_per_mwh(DATE, position_ledger=led)
+    moved = _market_reference_gbp_per_mwh(DATE, position_ledger=led, commodity="electricity")
     assert moved < CAP, "the published level did not move with the rival"
     assert moved == pytest.approx(
         cr.competitor_reference_rate_gbp_per_mwh(

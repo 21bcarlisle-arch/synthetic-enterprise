@@ -247,10 +247,86 @@ def test_every_logged_SVT_position_reads_a_struck_rate_on_the_published_basis():
     when = "2024-01-01"
     at_parity = get_svt_elec_rate_charged_to_household_gbp_per_mwh(when) / (1.0 + DOMESTIC_VAT_RATE)
     [record] = _build_churn_basis_risk([{
-        "customer_id": "C1", "event_date": when, "unit_rate_gbp_per_mwh": at_parity,
+        "customer_id": "C1", "event_date": when, "commodity": "electricity",
+        "unit_rate_gbp_per_mwh": at_parity,
         "company_churn_estimate": 0.1, "churn_estimate_error_pct": 0.0, "churn_probability": 0.1,
     }])
 
-    assert _svt_position(at_parity, when) == pytest.approx(0.0, abs=1e-4)
-    assert _svt_position_pct(at_parity, when) == pytest.approx(0.0, abs=1e-6)
+    assert _svt_position(at_parity, when, commodity="electricity") == pytest.approx(0.0, abs=1e-4)
+    assert _svt_position_pct(at_parity, when, commodity="electricity") == pytest.approx(0.0, abs=1e-6)
     assert record["rate_vs_svt_pct"] == pytest.approx(0.0, abs=0.01)
+
+
+def test_a_gas_offer_is_read_against_the_GAS_default_tariff_at_every_site(monkeypatch):
+    """Until 2026-10-01 every one of these read the ELECTRICITY SVT whatever the leg, so a gas
+    offer at the gas SVT read about 80% cheaper than the market -- past the departure curve's
+    -0.30 saturation, so no gas price the company could charge reached the departure roll.
+
+    PARITY ON THE GAS SVT IS THE PROBE, at all six readings: the churn roll's differential, the
+    level it was taken against, the logged SVT position, the ladder's reconciler and
+    `churn_basis_risk`. A rival ledger is passed and must not move the gas reference: the rival is
+    anchored and floored on electricity, and a gas leg has no rival yet.
+
+    THE SAME RATE ON THE OTHER FUEL MUST NOT READ PARITY, which is the control that the fuel
+    argument is reached at all -- every site reading one fuel for both would pass the parity legs
+    for whichever fuel it read. MUTATION (must fire): answer `gas` with the electricity accessor in
+    `_household_svt_gbp_per_mwh`, or drop `commodity` at any one call site, or let a gas leg reach
+    the rival.
+
+    THE CHASE IS PINNED AT 1.0 because at the shipped 0.5 the rival guard is an EQUIVALENCE, not a
+    tested branch: half-way between the electricity SVT and any positive gas rate is always above
+    the gas SVT, so `min(rival, gas SVT)` returns the gas SVT with or without the guard. Measured
+    when this landed: removing the guard went green at 0.5. A full chase on a no-floor call lets
+    the rival read below the gas SVT, which is the only state in which the guard decides anything.
+    """
+    from simulation import competitor_reference
+    from simulation.competitor_reference import CompanyPositionLedger
+    from simulation.customer_events import (
+        _market_reference_gbp_per_mwh,
+        _price_differential_vs_market,
+        _svt_position,
+    )
+    from simulation.run_phase2b import _build_churn_basis_risk
+    from simulation.svt_rates import (
+        get_svt_elec_rate_charged_to_household_gbp_per_mwh,
+        get_svt_gas_rate_charged_to_household_gbp_per_mwh,
+    )
+    from tools.run_price_ladder import _svt_position_pct
+
+    when = "2024-01-01"
+    gas_svt = get_svt_gas_rate_charged_to_household_gbp_per_mwh(when)
+    elec_svt = get_svt_elec_rate_charged_to_household_gbp_per_mwh(when)
+    at_parity = gas_svt / (1.0 + DOMESTIC_VAT_RATE)
+    ledger = CompanyPositionLedger()
+    ledger.observe("2023-11-15", at_parity * 0.5)   # a rival that saw a deep undercut last quarter
+    monkeypatch.setattr(competitor_reference, "aggression",
+                        lambda: {"chase_per_quarter": 1.0, "min_retail_margin_pct": 0.03})
+
+    [record] = _build_churn_basis_risk([{
+        "customer_id": "C1", "event_date": when, "commodity": "gas",
+        "unit_rate_gbp_per_mwh": at_parity,
+        "company_churn_estimate": 0.1, "churn_estimate_error_pct": 0.0, "churn_probability": 0.1,
+    }])
+
+    assert _price_differential_vs_market(
+        at_parity, when, commodity="gas", position_ledger=ledger,
+    ) == pytest.approx(0.0, abs=1e-9)
+    assert _market_reference_gbp_per_mwh(
+        when, commodity="gas", position_ledger=ledger) == pytest.approx(gas_svt)
+    assert _svt_position(at_parity, when, commodity="gas") == pytest.approx(0.0, abs=1e-4)
+    assert _svt_position_pct(at_parity, when, commodity="gas") == pytest.approx(0.0, abs=1e-6)
+    assert record["rate_vs_svt_pct"] == pytest.approx(0.0, abs=0.01)
+    assert record["svt_rate_gbp_per_mwh"] == pytest.approx(gas_svt)
+
+    # The fuel is reached: the same rate on the other fuel is nowhere near parity.
+    assert gas_svt < 0.5 * elec_svt
+    assert _price_differential_vs_market(at_parity, when, commodity="electricity") < -0.40
+    assert _svt_position(at_parity, when, commodity="electricity") < -0.40
+
+
+def test_a_fuel_with_no_published_default_tariff_is_refused_by_name():
+    """A refusal that names its reason, rather than answering with one of the two series."""
+    from simulation.customer_events import _svt_position
+
+    with pytest.raises(ValueError, match="'heat'"):
+        _svt_position(100.0, "2024-01-01", commodity="heat")

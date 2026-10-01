@@ -44,15 +44,15 @@ def test_the_differential_is_the_offered_rate_against_the_published_SVT(factor, 
     leg that fails if the gross-up is dropped: it then reads -4.8%, the cheapness every offer
     carried until 2026-10-01."""
     ex_vat_offer = SVT * factor / (1.0 + DOMESTIC_VAT_RATE)
-    assert ce._price_differential_vs_market(ex_vat_offer, TERM) == pytest.approx(expected)
+    assert ce._price_differential_vs_market(ex_vat_offer, TERM, commodity="electricity") == pytest.approx(expected)
 
 
 def test_TWO_customers_priced_differently_get_DIFFERENT_positions():
     """THE WHOLE POINT, and the thing a run-level constant could never express. A supplier that
     prices two customers differently must face two different consequences, or per-customer
     pricing is a decision with no outcome attached."""
-    dearer = ce._price_differential_vs_market(SVT * 1.20, TERM)
-    keener = ce._price_differential_vs_market(SVT * 0.95, TERM)
+    dearer = ce._price_differential_vs_market(SVT * 1.20, TERM, commodity="electricity")
+    keener = ce._price_differential_vs_market(SVT * 0.95, TERM, commodity="electricity")
 
     assert dearer > 0 > keener
 
@@ -62,11 +62,11 @@ def test_an_UNKNOWN_rate_is_NOT_reported_as_parity():
     is a different one. Returning 0.0 here would let a missing rate silently assert the first.
 
     MUTATION (must fire): return 0.0 instead of None when the rate is absent."""
-    assert ce._price_differential_vs_market(None, TERM) is None
+    assert ce._price_differential_vs_market(None, TERM, commodity="electricity") is None
 
 
 def test_an_UNKNOWN_market_reference_is_not_reported_as_parity_either():
-    assert ce._price_differential_vs_market(SVT, "1990-01-01") is None
+    assert ce._price_differential_vs_market(SVT, "1990-01-01", commodity="electricity") is None
 
 
 # --------------------------------------------------------------------------- #

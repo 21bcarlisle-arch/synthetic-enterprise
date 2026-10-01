@@ -215,7 +215,7 @@ def test_the_gap_is_measured_at_the_price_the_ARM_ACTUALLY_CHOOSES():
     that advantage comes from prediction, so the number that matters is how wrong the company is
     AT THE PRICE ITS OWN DECISION PICKS -- not at the price it happened to charge last year."""
     scored = cvp.belief_versus_truth(offered_rate=200.0, current_rate=150.0, tenure_years=4.0,
-                                     eac_kwh=3100, segment="resi", term_start="2025-01-01")
+                                     eac_kwh=3100, segment="resi", term_start="2025-01-01", commodity="electricity")
 
     assert scored is not None
     assert set(scored) >= {"price_differential_vs_svt", "company_believes_p_leave",
@@ -226,7 +226,7 @@ def test_an_UNKNOWN_market_position_is_NOT_scored_as_a_perfect_prediction():
     """R15 fail-silent, in the direction that would flatter the company most: an unscoreable
     account returning a zero error would report perfect foresight, and the summary averages it."""
     assert cvp.belief_versus_truth(offered_rate=200.0, current_rate=150.0, tenure_years=4.0,
-                                   eac_kwh=3100, segment="resi", term_start="1990-01-01") is None
+                                   eac_kwh=3100, segment="resi", term_start="1990-01-01", commodity="electricity") is None
 
 
 def test_the_SIGN_of_the_error_is_reported_and_not_just_its_size():
@@ -552,7 +552,7 @@ def test_an_account_scored_where_the_world_EXTRAPOLATES_says_so_on_its_own_ROW()
     def _at(differential):
         return cvp.belief_versus_truth(
             offered_rate=svt * (1.0 + differential), current_rate=svt, tenure_years=4.0,
-            eac_kwh=3100, segment="resi", term_start="2025-01-01")
+            eac_kwh=3100, segment="resi", term_start="2025-01-01", commodity="electricity")
 
     inside, beyond = _at(edge * 0.5), _at(edge * 2.0)
 
@@ -580,9 +580,9 @@ def test_a_CHEAPER_position_is_SATURATED_and_never_flagged_as_EXTRAPOLATED():
 
     svt = get_svt_elec_rate_gbp_per_mwh("2025-01-01")
     deep = cvp.belief_versus_truth(offered_rate=svt * 0.4, current_rate=svt, tenure_years=4.0,
-                                   eac_kwh=3100, segment="resi", term_start="2025-01-01")
+                                   eac_kwh=3100, segment="resi", term_start="2025-01-01", commodity="electricity")
     keen = cvp.belief_versus_truth(offered_rate=svt * 0.95, current_rate=svt, tenure_years=4.0,
-                                   eac_kwh=3100, segment="resi", term_start="2025-01-01")
+                                   eac_kwh=3100, segment="resi", term_start="2025-01-01", commodity="electricity")
 
     assert deep["world_curve_beyond_calibration"] is False
     assert "saturated" in deep["world_curve_basis"]

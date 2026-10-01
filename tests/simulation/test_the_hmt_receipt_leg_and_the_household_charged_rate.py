@@ -375,8 +375,8 @@ def test_the_household_facing_readings_are_against_what_the_household_paid():
     assert cap > charged, "this window has no split; the control cannot see the defect"
 
     offer = (charged + cap) / 2.0  # dearer than the household's bill, cheaper than the cap
-    differential = _price_differential_vs_market(offer, when)
-    position = _svt_position(offer, when)
+    differential = _price_differential_vs_market(offer, when, commodity="electricity")
+    position = _svt_position(offer, when, commodity="electricity")
     assert differential > 0 and position > 0, (
         f"an offer of {offer:.1f} is dearer than the {charged:.1f} this household was actually "
         f"charged, and the world reports differential={differential} position={position}. It is "
@@ -401,8 +401,8 @@ def test_the_published_level_is_the_level_that_was_used():
 
     when = _EPG_WINDOWS[1]["from"].isoformat()
     for ledger in (None, _Ledger(120.0), _Ledger(0.0)):
-        level = _market_reference_gbp_per_mwh(when, position_ledger=ledger)
-        differential = _price_differential_vs_market(500.0, when, position_ledger=ledger)
+        level = _market_reference_gbp_per_mwh(when, position_ledger=ledger, commodity="electricity")
+        differential = _price_differential_vs_market(500.0, when, position_ledger=ledger, commodity="electricity")
         assert level is not None and differential is not None
         # The differential grosses the ex-VAT offer up to the published basis first.
         implied = 500.0 * (1.0 + pce.DOMESTIC_VAT_RATE) / (1.0 + differential)
@@ -427,7 +427,7 @@ def test_the_reference_a_household_can_switch_to_is_capped_by_the_guarantee():
 
     inside = _EPG_WINDOWS[1]["from"].isoformat()
     charged = get_svt_elec_rate_charged_to_household_gbp_per_mwh(inside)
-    level = _market_reference_gbp_per_mwh(inside, position_ledger=_Ledger())
+    level = _market_reference_gbp_per_mwh(inside, position_ledger=_Ledger(), commodity="electricity")
     assert level == pytest.approx(charged), (
         f"with no chase the household's alternative is its own guaranteed rate {charged}; the "
         f"world offers it {level}, which is above what the law allowed anyone to charge"
@@ -435,7 +435,6 @@ def test_the_reference_a_household_can_switch_to_is_capped_by_the_guarantee():
 
     outside = "2024-01-01"
     assert _market_reference_gbp_per_mwh(
-        outside, position_ledger=_Ledger()
-    ) == pytest.approx(get_svt_elec_rate_gbp_per_mwh(outside)), (
+        outside, position_ledger=_Ledger(), commodity="electricity") == pytest.approx(get_svt_elec_rate_gbp_per_mwh(outside)), (
         "outside the scheme the clamp must be a no-op and the cap-anchored reference must stand"
     )

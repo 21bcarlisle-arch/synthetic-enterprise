@@ -952,7 +952,7 @@ def book_identity(data: dict, at_read: dict | None = None) -> dict:
 
 
 def belief_versus_truth(*, offered_rate: float, current_rate: float, tenure_years: float,
-                        eac_kwh: float, segment: str, term_start: str,
+                        eac_kwh: float, segment: str, term_start: str, commodity: str,
                         annual_bill_gbp: float | None = None) -> dict | None:
     """What the COMPANY believes would happen at its own chosen price, against what the WORLD
     would actually do. The coupled-triad measurement, at the price the decision picks.
@@ -988,7 +988,9 @@ def belief_versus_truth(*, offered_rate: float, current_rate: float, tenure_year
     gap is real for the first time, and it points the way the thesis says it should: a company
     that predicts badly should lose.
     """
-    differential = _price_differential_vs_market(offered_rate, term_start)
+    # The leg's own fuel's default tariff (2026-10-01): a gas offer read against the electricity
+    # SVT scored every gas row at the curve's saturated floor.
+    differential = _price_differential_vs_market(offered_rate, term_start, commodity=commodity)
     if differential is None:
         return None
     believed = float(enriched_churn_estimate(
@@ -1245,6 +1247,7 @@ def compare(run: dict, book: dict, as_of_year: int = AS_OF_YEAR) -> dict:
                 offered_rate=common["base_rate_gbp_per_mwh"] + value.margin_gbp_per_mwh,
                 current_rate=avg_rate, tenure_years=years, eac_kwh=eac,
                 segment=common["segment"], term_start=f"{as_of_year}-01-01",
+                commodity=record.get("commodity") or "electricity",
                 # The household's whole annual spend, which is the scale the world feels a price
                 # differential against. Omitting it -- what this call did until 2026-09-09 --
                 # silently scores every row as a GBP 1,700 household.

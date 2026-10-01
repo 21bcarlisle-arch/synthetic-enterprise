@@ -132,7 +132,9 @@ def _outcomes(result: dict) -> dict[tuple, dict]:
     return out
 
 
-def _svt_position_pct(unit_rate: float | None, term_start: str | None) -> float | None:
+def _svt_position_pct(
+    unit_rate: float | None, term_start: str | None, *, commodity: str
+) -> float | None:
     """THE WORLD'S REFERENCE, computed for decisions the world rolled no event for.
 
     Same source, same key and same arithmetic as
@@ -154,10 +156,13 @@ def _svt_position_pct(unit_rate: float | None, term_start: str | None) -> float 
     # `price_differential_vs_svt`; that field moved onto the Energy Price Guarantee's rate for
     # 2022-10-01..2023-06-30, so reading the Ofgem cap here would report a ~50pp divergence in
     # those quarters and name the wrong side as wrong.
+    # AND AGAINST THE LEG'S OWN FUEL (2026-10-01), through the world's one reader of it, for the
+    # same reconciliation: a gas decision read against the electricity SVT sat ~80pp from the
+    # world's field once the world stopped doing that.
+    from simulation.customer_events import _household_svt_gbp_per_mwh
     from simulation.price_cap_enforcement import household_price_inc_vat
-    from simulation.svt_rates import get_svt_elec_rate_charged_to_household_gbp_per_mwh
 
-    svt = get_svt_elec_rate_charged_to_household_gbp_per_mwh(term_start)
+    svt = _household_svt_gbp_per_mwh(commodity, term_start)
     if not svt or svt <= 0:
         return None
     return 100.0 * (household_price_inc_vat(unit_rate) - float(svt)) / float(svt)
@@ -225,7 +230,7 @@ def rung_reading(multiplier: float, result: dict) -> dict:
             # THE TWO REFERENCES, SIDE BY SIDE, per decision. The company's is a DELTA against
             # this customer's own prior rate; the world's is a LEVEL against the published SVT.
             "rate_increase_pct": entry.get("rate_increase_pct"),
-            "rate_vs_svt_pct": _svt_position_pct(rate, key[1]),
+            "rate_vs_svt_pct": _svt_position_pct(rate, key[1], commodity=entry.get("commodity")),
             "believed_p_retain": entry.get("believed_p_retain"),
             "believed_p_leave": (
                 None if entry.get("believed_p_retain") is None
