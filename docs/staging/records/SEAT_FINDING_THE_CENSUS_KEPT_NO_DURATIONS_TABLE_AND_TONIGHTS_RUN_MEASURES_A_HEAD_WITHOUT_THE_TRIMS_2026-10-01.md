@@ -42,3 +42,21 @@ table exists in the journal: `WORST_OBSERVED_SUITE_SECONDS` to that run's wall (
 `Consumed ... over <wall>`), `SUITE_TIMEOUT_SECONDS` to just over twice it, unit
 `TimeoutStartSec` = timeout + 300, and the top of its `SLOW` table trimmed. That is handed on as a
 continuation, because it needs a run that cannot exist inside this turn.
+
+## Result of the 03:34 run (read 06:27 BST, 2026-10-01) -- untrimmed evidence, bound NOT moved
+
+- **Did not complete.** `the suite did not finish inside 7200s -- UNPROVEN`; unit line
+  `Consumed 2h 6min 27.594s CPU time over 2h 2.720s wall clock time, 8.1G memory peak`. No `SLOW`
+  rows. Wall clock 7,203 s, which is the bound being hit, not a measurement of the suite.
+- **Subject and driver were both shared HEAD `c71a78417`** (shared-tree reflog: on it from 03:29
+  until a reset to `3f7a0632f` at 05:18). That commit contains `9a5dc872e`, but **not** `571a79e9f`
+  (trims), `fb3e406a5` (17400 s bound) or `1542c490e` (durations table). So the driver ran
+  `SUITE_TIMEOUT_SECONDS = 7200`, not 17400.
+- **The prediction was wrong.** I predicted a complete run in 7,500–9,500 s. I took the 17400 s bound to
+  be live, but the driver was the shared working copy, which lacked even the 23:21 bound move. So
+  the untrimmed suite was cut off at 7200 s, below the band, as it had been every night since
+  09-23. The miss was the driver, not a fact about the suite. "No durations table" held.
+- Fails qualification on (a) no summary, (b) subject lacks `571a79e9f`, (c) no SLOW rows.
+- **For the next run:** the shared tree is now at `2acb617d4` = origin/main. That carries the trims, the
+  17400 s bound and the table. The 2026-10-02 03:34 run is the first that can qualify, unless the
+  shared checkout falls behind origin again. Check its subject's ancestry before reading its wall.
