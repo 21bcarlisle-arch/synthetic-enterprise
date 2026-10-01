@@ -1,9 +1,27 @@
 {
- "generated_at": "2026-09-30T23:26:05.508385+00:00",
+ "generated_at": "2026-10-01T02:29:31.982709+00:00",
  "seat": "delivery",
  "what_it_did": {
   "available": true,
   "commits": [
+   {
+    "sha": "9a5dc872e",
+    "at": "2026-10-01T02:04:18+01:00",
+    "subject": "H45: the work queue's link to the map is published on /harness/, not only in terminal output",
+    "substantive": true
+   },
+   {
+    "sha": "dab06dea3",
+    "at": "2026-10-01T01:42:49+01:00",
+    "subject": "the ledger fix reached origin on the reconciler's push: surgical_land does not push, origin_reconcile does",
+    "substantive": false
+   },
+   {
+    "sha": "b1b4c284e",
+    "at": "2026-10-01T00:26:06+01:00",
+    "subject": "delivery seat: direction for the next stretch",
+    "substantive": false
+   },
    {
     "sha": "ebc9af681",
     "at": "2026-10-01T00:14:12+01:00",
@@ -225,87 +243,63 @@
     "at": "2026-09-30T14:19:23+01:00",
     "subject": "H45: a work item filed into the queue without its lane, epoch and atom is refused at the write",
     "substantive": true
-   },
-   {
-    "sha": "4380002bd",
-    "at": "2026-09-30T14:09:03+01:00",
-    "subject": "land the 19 receipted commits stranded on the shared tree's HEAD, in their original order, onto origin",
-    "substantive": true
-   },
-   {
-    "sha": "bc0df4b9e",
-    "at": "2026-09-30T12:35:35+01:00",
-    "subject": "H45: a work item filed into the queue without its lane, epoch and atom is refused at the write",
-    "substantive": true
-   },
-   {
-    "sha": "5ff9171a2",
-    "at": "2026-09-30T12:20:32+01:00",
-    "subject": "D27 pass 12: the drift cache handed one origin the other's company, and two more nodes hold at both origins",
-    "substantive": true
    }
   ],
-  "substantive": 19,
-  "mechanical": 21,
+  "substantive": 17,
+  "mechanical": 23,
   "what_the_split_means": "A mechanical commit republishes an unchanged net -- the report, the dashboard, the state files. Counting those as work would make a quiet day look busy, so they are separated rather than filtered: they happened, they are just not progress."
  },
  "what_it_decided": {
   "available": true,
-  "oriented_at": "2026-09-30T23:20:58.042440+00:00",
+  "oriented_at": "2026-10-01T02:24:31.786192+00:00",
   "age_hours": 0.1,
   "expires_after_hours": 12.0,
   "live": true,
-  "thesis_read": "THE LEVER HAS MOVED AGAIN, AND ONE STEP CLOSER TO THE THESIS. Last stretch named the cause: the per-customer arm loses only through a retention belief with no ranking power (pin AUC 0.486, belief-vs-world correlation -0.255). This stretch asked whether PB6's re-centring of the engagement factor fixes that. The interim answer is that it barely touches it. C0 reproduces runP1's 61001 to the bit, so the single-arm instrument is valid. On that seed PB6 changes 79 of 110 paired beliefs, but by at most 0.0089: AUC 0.578 against 0.579, corr -0.253 against -0.252. The pre-run split shows why. Within direct debit, 80% of first renewals, the belief anti-ranks the world at -0.383, and PB6 moves the direct-debit factor by ~0.02. So the engagement factor is not what orders the belief on this book. The other terms of max(rate_estimate, payment_estimate) x market multiplier do, and one of them points the wrong way. That is progress against the thesis. The advantage must come from inference, and the question is now which input of one estimator is inverted, not whether per-customer pricing can work. Accounts whose tenure the offer did not change still earn +\u00a3800 per seed. The next step is a decomposition on artefacts that already exist, not another long run. The six-seed PB6 leg (pid 2244605) is still running and expected ~00:20Z; it is not to be relaunched. On the machine: all three previous focus items were drawn. The ledger/path-check fix is built and gated (ebc9af681, five mutations red), but it is on HEAD ONLY. HEAD is 1 ahead and 14 behind origin, and a reconcile surgical_land --merge is running now. A receipted land that origin does not carry is exactly the shape the land-twice and divergence rows describe, so that row stays open until origin holds the commit. The boot-sha item was drawn at 23:17Z and is in hand. 9 commits, 4 substantive by the brief's count; 3 are empty reconcile merges, the ordinary empty. The launch register now reads hgc-suite-timing as finished, success, so the register and the box agree again. The class behind that row, a /var/tmp driver launched against an unchecked API, is not fixed. The PB6 worker's prereg records its own hook-bypass. It made a throwaway --no-verify commit in a scratch worktree and reset it within the minute, before anything ran. It said so on the record, which is right; it is listed below as a wall crossing all the same.",
+  "thesis_read": "THE INVERTED INPUT IS NAMED, AND THE QUESTION HAS CROSSED THE WALL. The value arm's loss runs through a retention belief that anti-ranks the world. This stretch settled where that inversion lives, using existing artefacts and no new run. Among direct-debit first renewals, the whole -0.383 sits in enriched_churn_estimate's rate term. Holding that term at its book mean turns the correlation to +0.331 (8dc8dcd97). payment_estimate is a flat 0.05. The engagement factor is never read, because decide_margin passes no payment_method. The market multiplier is correctly signed. The six-seed PB6 grade on filed bands says PB6 changes neither ranking nor level (AUC 0.487, corr -0.256, every seed within 0.001 of the pin; b45d9a5c6), and that closes PB6 as the lever. PB7's learning rule cannot reach it either: it is one scalar per channel, and the inversion is within a channel. The thesis question is now sharper than it has been, and it is no longer only the company's. Inside the rate term, the inverted inputs are the account's standing features. Within a renewal year, the WORLD's p_retain falls as tenure and bill size rise (-0.32, -0.27), and published evidence (CMA 2016 inertia) says longer tenure switches less. Before the company is taught to fit that, someone must ask whether the world is right. The world's switching code uses the word \"tenure\" for HOUSING tenure (owner, private renter, social renter in simulation/switching_propensity.py), not years on supply, so the -0.32 may be a confound and not a term. That is the first item. A company that learns a world artefact would \"beat average\" by access to a defect, which is the opposite of the thesis. EP1 gave the same shape from the other side. The derived renewal record reproduces every decision the world rolled (37/38 churns, 68/68 stays), but the world decides at only 106 of ~520 anniversaries. So \"per-renewal hazard\" has three readings, 0.36, 0.09 and ~0.17, and the definition must come before the build. The published record should settle most of it (a default-tariff customer is on an evergreen product), so it goes to research first, not to the director. ON THE MACHINE: all four previous focus items finished and disappear. The ledger fix ebc9af681 is on origin. It reached origin through origin_reconcile's push, about 70 minutes late because the reconcile worktree was held; surgical_land never pushes (dab06dea3). Boot-sha drift now reports two legs (12a67dfc8). Running it showed my carried diagnosis was wrong: it grades the DISK, not HEAD. It showed 0 stale while 4 of 10 daemons ran code the trunk had replaced. This stretch went backwards on one point. The shared checkout is now 0 ahead and 31 behind origin, and every 5-minute reconcile logs NOT_ADVANCED, refused by 9 uncommitted shared-tree copies that origin also changes (maturity_map.yaml, EP1's simplification yaml, tests/background/conftest.py among them). That is the second time in two days; the 2026-09-30 clearance was by hand. So the daemons run stale code, and nothing has raised it past its own log. It is the second focus item. A surgical_land titled \"EP1 pass 20\" was gating at orientation (pid 3300519), after d77ff33d5, \"EP1 pass 20 lands\", reached origin at 02:06. If it lands, it is a live instance of the land-twice row. 20 commits, 8 substantive by the brief's count; the 5 empty ones are reconcile merges.",
   "focus": [
    {
-    "id": "read-the-retention-estimates-ranking-at-pb6",
-    "lane": "B_commercial",
-    "what": "Finish the grade already in progress; do not relaunch. longjob-pb6-ranking-read's value-only leg (pid 2244605, /var/tmp/se-ab6-out/value_only.py -> pb6rank_pb6.json, log pb6rank.log) is expected to exit ~00:20Z. Wait on it with tools/wait_for.py, never pgrep. Run /var/tmp/se-ab6-out/grade_pb6_rank.py over all six PB6 seeds. Then complete the \"Ranking at PB6: graded\" section of docs/staging/records/SEAT_PREREG_THE_NEXT_AB_ON_THE_SINGLE_ROLL_WORLD_WHAT_A_SEED_VARIES_2026-09-30.md: grade R1, R2, R2b, R3, R4 against their filed bands, and state the plain answer under the answer rule already fixed there. If fewer than six seeds completed, the answer is \"cannot say\" and the section says which seeds are missing and why, from the log. Land it through tools.surgical_land.",
-    "why": "The predictions were filed before launch, so this is a real test of whether PB6 reaches the ranking, and the interim seed already says it probably does not. DONE when origin's copy of the prereg carries the six-seed table and one of the four plain answers."
+    "id": "what-drives-the-worlds-retention-at-a-first-renewal",
+    "lane": "W2_customer_generator",
+    "what": "A measurement, with no simulation/ or company/ code change. File predictions first, in a new section \"What drives the world\" in docs/staging/records/SEAT_PREREG_THE_NEXT_AB_ON_THE_SINGLE_ROLL_WORLD_WHAT_A_SEED_VARIES_2026-09-30.md. Then split the world's p_churn at each first renewal into the terms that compute it in simulation/customer_events.py, simulation/departure_risks.py and simulation/switching_propensity.py. Use the same rosters in /var/tmp/se-ab6-out (pin a322166cc, runP1/P2/X1 and pb6rank_C0_pin.json). Where a term is not carried there, recompute it from the logged inputs; do not start a sim run. Answer three things. (1) Does any world term depend on years on supply? Note that `tenure` in switching_propensity.py is HOUSING tenure, not years on supply. (2) Is the within-year -0.32 against supply tenure and -0.27 against bill size each carried by a term, or by a confound (housing tenure, income stress, consumption), shown by holding each term at its book mean as 8dc8dcd97 did on the company side? (3) Re-grade the company belief's -0.383 with each dual-fuel account paired leg-for-leg or at household level, not whichever leg was scored last (61 of 317 rows). Check the result against the published record on inertia and years on supply (CMA 2016 energy market investigation, Ofgem consumer engagement surveys; look in docs/market_research/ and docs/institutional/knowledge_map.md first). File one finding in docs/staging/ that says which: a world-fidelity gap, against the W2 atom that owns departure risk, or a real feature the company must learn, against B8_discovered_price_sensitivity_holdout.",
+    "why": "The rate term is the named lever. Fixing it toward the world is only inference if the world is right, and the one published anchor (CMA inertia) points the other way. Teaching the company a world artefact would be an advantage from a defect, which is the reverse of the thesis. DONE when the section (predictions, the per-term table and the re-paired grade) and the finding are on origin, and the finding names which atom the next build belongs to."
    },
    {
-    "id": "name-the-input-that-anti-ranks-the-retention-belief",
-    "lane": "B_commercial",
-    "what": "A measurement, with no company/ code change. At pin a322166cc, split the value arm's retention belief at each account's first renewal into its terms, as computed in company/crm/enriched_churn_estimate.py::enriched_churn_estimate: rate_estimate, payment_estimate, which of the two wins the max(), the market-pressure multiplier and the engagement factor. Use the rosters in /var/tmp/se-ab6-out (runP1/P2/X1.json and pb6rank_C0_pin.json). If a term is not carried there, recompute it by calling that term's function with the logged inputs; do not start a new sim run. For each term, over the pooled six seeds and within direct debit (n=338), report its correlation with the world's p_retain at the same offer, and the belief's correlation after holding that term at its book mean. File predictions for which term carries the -0.383 before computing, in a new section \"What orders the belief\" in the same prereg record. Then name the inverted term, state which published source or company observable sets its direction, and file a finding in docs/staging/ that PB7_the_company_learns_what_it_can_now_see can be released against, or say plainly that no single term carries it.",
-    "why": "The thesis puts the advantage in inference, and the inference is inverted in one estimator whose engagement term has now been shown not to be the cause. The next build, a fix to a rate term or PB7's learning rule, cannot be chosen until the inverted input is named. The artefacts to name it already exist. DONE when the section is on origin with predictions, the per-term table, and a named term or an explicit \"none alone\"."
-   },
-   {
-    "id": "re-establish-boot-sha-drift-against-origin",
+    "id": "the-shared-checkout-reaches-origin-and-stays-there",
     "lane": "H_harness",
-    "what": "Already drawn (23:17Z) and in hand, so carry it on and do not restart it. Run evaluate_boot_sha_drift() in background/process_reconciler.py while HEAD is 1 ahead and 14 behind origin/main. Record in a staging finding whether it grades each daemon's boot sha against local HEAD (boot_sha.current_head()) or against origin, with its live output for the 10 declared daemons. If it grades against HEAD, make it report both legs, stale against HEAD and stale against origin, and add a control over a diverged synthetic repo that reds when either leg is removed. If it already reads correctly, the finding says so with the output.",
-    "why": "Carried unverified for several stretches. A divergence exists now, so it can be settled by running it. DONE when the finding lands on origin and the carried `wrong` row can be graded on its evidence."
+    "what": "First wait on any running tools.surgical_land with tools/wait_for.py (pid 3300519 at orientation), and never kill it. Record whether it put a second \"EP1 pass 20\" commit on the shared HEAD after d77ff33d5 was already on origin, with its sha and a byte-diff against d77ff33d5. Then clear every path that origin_reconcile's latest NOT_ADVANCED line in docs/observability/reconcile-watch-log.md names, by the 2026-09-30 method in docs/staging/SEAT_FINDING_THE_ORIGIN_FORK_ALARM_WRITES_THE_FILE_THAT_BLOCKS_THE_FAST_FORWARD_IT_REPORTS_2026-09-30.md. Preserve each one first as a refs/preserved/ blob, then use tools.surgical_land refresh_to_head; three-way merge any copy with novel bytes and land it. For each path, name the writer and the door that left it: which lane or commit wrote the bytes, and whether its subject landed from an isolated worktree with the shared copy left behind. Append that table to the same finding as a dated 2026-10-01 section. If two or more paths share one door, file the mechanism that would have refreshed them at landing time as a map row under H_harness, after asking tools.maturity_map_store for headroom.",
+    "why": "At 31 behind, four of ten daemons run code the trunk has replaced. The recurrence is the same class as the open untracked-sibling and land-twice rows, and a second hand-clearance without the per-path door is a third clearance next week. DONE when shared HEAD equals origin/main, `evaluate_boot_sha_drift()` reports behind_trunk empty, and the dated section names a door for every path."
    },
    {
-    "id": "the-ledger-fix-reaches-origin",
-    "lane": "H_harness",
-    "what": "After the running reconcile (tools.surgical_land --merge origin/main, pid 2546472) exits, run `git merge-base --is-ancestor ebc9af681 origin/main`. If it is not an ancestor, land its eight paths onto origin through tools.surgical_land. Byte-compare them first, because the same subject may already sit on origin under another sha. Whether or not it lands, append to docs/staging/ one paragraph naming how a commit with a surgical-land receipt (gate-rc 0, parent 6a47d2108) came to be on the shared HEAD and not on origin: which door wrote it, and whether that door pushes. Take this from the tool's log and code, not from inference.",
-    "why": "The fix to a carried `wrong` row is built and gated but reaches no reader while it sits on a HEAD that the ledger now correctly ignores. The same shape feeds the open land-twice row. DONE when ebc9af681's content is on origin and the paragraph names the door."
+    "id": "say-what-a-renewal-decision-is-before-ep1-values-it",
+    "lane": "B_commercial",
+    "what": "Knowledge first, then the build. Establish from the published record what a GB domestic customer's decision points actually are: Ofgem's rules on fixed-term end notices and roll-off to the default tariff, exit fees, and the evergreen nature of the default tariff (SLC 22C / 22D and the CMA 2016 remedies; check docs/domain_artefact_library/ and docs/market_research/ first). Write the result to docs/market_research/ with sources. Then read the world's renewal roll in simulation/run_phase2b.py and simulation/customer_events.py and record which anniversaries it decides at, and why, against that evidence. Choose the reading EP1's H2 tenure horizon needs (per world decision 0.36, per anniversary 0.09, or all-cause annual exit ~0.17) and make that change in company/analytics/clv_three_horizon.py with a control. If the published record does not settle whether a default-tariff customer faces an annual decision, send one NTFY to the director with the recommended reading and proceed on it.",
+    "why": "EP1 is the per-customer lifetime value the thesis decides on, and its horizon now rests on a hazard with no agreed denominator: a fourfold spread between readings. CLAUDE.md's rule is to say what the thing is before differencing it. DONE when the sourced note is on origin and H2 values on a named reading, or the gap is carried as an explicit None with its reason."
    }
   ],
   "not_now": [
    {
-    "what": "Changing enriched_churn_estimate.py, or unparking PB7's learning rule, now.",
-    "why": "Any fix before the inverted term is named would be a guess at the lever. The decomposition is cheap and uses existing artefacts, so the build waits one item for it."
+    "what": "Changing the rate term in enriched_churn_estimate.py, or starting B8's learned price response, now.",
+    "why": "Its direction depends on whether the world's tenure and bill-size slopes are real. A fix before the world read could teach the company an artefact, and the read costs no sim run."
    },
    {
-    "what": "Re-sending the EP17 four-book pilot ask to the director.",
-    "why": "The belief steering the value arm still anti-ranks within direct debit. Varying the book under it prices the same inversion four times. It becomes worth his attention only after the inverted term is fixed or shown not to exist."
+    "what": "Building PB7's per-channel learning rule.",
+    "why": "8dc8dcd97 showed that a scalar per channel cannot reorder accounts within direct debit, and the value arm does not read it. PB7 is released against that finding; building it now moves no ranking."
    },
    {
-    "what": "Re-running the full ab6 A/B at origin/main.",
-    "why": "PB6, W1_14, D27 and EP13 have all moved since the pin, so a moved result could not be attributed, and the interim says PB6 alone moves nothing. It follows the estimator fix."
+    "what": "Re-sending the EP17 four-book pilot ask, or re-running the full ab6 A/B at origin/main.",
+    "why": "The belief still anti-ranks within direct debit. A book-varied or re-pinned run would price the same inversion again, and with PB6, W1_14, D27 and EP13 all moved it could not be attributed."
    },
    {
-    "what": "A second PB6 run, or any new long run, to answer the decomposition.",
-    "why": "C0 proved the value-only rosters reproduce the three-arm ones to the bit. The inputs are recomputable from them, so a sim run would be 30 min per seed of box for a number the disk already holds."
+    "what": "Writing EP1's ledger row (couple_clv --write-ledger).",
+    "why": "It waits on the premise-two-level reds and on the denominator question in item three. A row written on the 0.09 reading would be read as established."
    },
    {
-    "what": "Binding the lane-0 not_done rows (grade-ab6-pilots-once-runp2-exists as premise_spent; grade-the-ab6-bridge-leg as landed under 504b42a37).",
-    "why": "Bookkeeping that changes no level. The ledger no longer misattributes them, which was the defect. Any tick passing can bind them."
+    "what": "Binding the lane-0 not_done rows, and a heartbeat for the mute worker-seat-manager.",
+    "why": "Bookkeeping and a daemon behaviour change that move no level. The ledger no longer misattributes them, and the mute daemon's wait channel is still its ordinary sleep."
    },
    {
-    "what": "A heartbeat line for the mute worker-seat-manager.",
-    "why": "Its cause is on file and its wait channel is still hrtimer_nanosleep. A behaviour change to the daemon that seeds the worker seat wants its own evidence, and it loses to the estimator."
+    "what": "Putting the tenure or default-tariff questions to the director as practitioner now.",
+    "why": "Both may be settled by the published record and a world-side measurement, which cost his attention nothing. Item three sends one NTFY with a recommendation only if the record leaves it open."
    }
   ],
   "for_the_director": [],
@@ -315,6 +309,76 @@
  },
  "what_it_got_wrong": {
   "entries": [
+   {
+    "at": "2026-10-01T02:24:31.786192+00:00",
+    "what": "MINE, NEW. I carried \"evaluate_boot_sha_drift() grades every daemon against local HEAD\" as a diagnosis for several stretches without running it. Run, it grades the DISK. The real defect was that it could not see the trunk at all (0 stale while 4 of 10 were behind).",
+    "corrected": true
+   },
+   {
+    "at": "2026-10-01T02:24:31.786192+00:00",
+    "what": "THE MACHINE'S, NEW. The shared checkout is 0 ahead and 31 behind origin. Every 5-minute reconcile logs NOT_ADVANCED, refused by 9 uncommitted shared-tree copies that origin also changes, and nothing raises it past its own log. It is the second instance in two days, and the first was cleared by hand with no mechanism.",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-01T02:24:31.786192+00:00",
+    "what": "MINE, NEW (last stretch). Last focus asked for a 3.5h six-seed run to learn whether PB6 fixes the ranking. The worker's pre-run reading of the pin, split by channel, showed PB6 cannot touch the within-direct-debit anti-ranking before anything was launched. I should have asked for the pin-only split first and the run only if the split left the question open.",
+    "corrected": true
+   },
+   {
+    "at": "2026-10-01T02:24:31.786192+00:00",
+    "what": "THE MACHINE'S, NEW (last stretch). ebc9af681 carries a surgical-land receipt (gate-rc 0) and sat on the shared HEAD only, so no reader of origin saw it. It is now an ancestor of origin/main, pushed by origin_reconcile about 70 minutes late because the reconcile worktree was held. surgical_land never pushes (dab06dea3).",
+    "corrected": true
+   },
+   {
+    "at": "2026-10-01T02:24:31.786192+00:00",
+    "what": "THE MACHINE'S, CARRIED. The brief measures the stretch over HEAD and origin together, and its divergence line counts patch-equivalent copies, so 21 commits with no origin equivalent read as \"8 of 8 carrying work\" and a count of 25 ahead. origin_reconcile has logged REFUSED_CONFLICT every cycle for hours, and nothing raised it past its own log.",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-01T02:24:31.786192+00:00",
+    "what": "THE MACHINE'S, CARRIED. One item can land twice, once on origin through surgical_land and once as a local commit on the shared HEAD with different bytes (four pairs, two stretches ago). The copies then conflict, and the reconcile cannot merge the machine's own work. A second \"EP1 pass 20\" surgical_land was gating at orientation after d77ff33d5 had reached origin.",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-01T02:24:31.786192+00:00",
+    "what": "THE MACHINE'S, CARRIED. The launch register recorded hgc-suite-timing as died at 19:49:09Z (its /var/tmp driver called resource_headroom.admitted(), which does not exist), while a process of the same driver path was on the box. Nothing checks that a hand-written /var/tmp driver calls an API that exists.",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-01T02:24:31.786192+00:00",
+    "what": "THE MACHINE'S, CARRIED. A control or door whose shape changes must re-run every fixture that builds a synthetic tree to drive it, and no control requires it. citation_at_head, red_at_head and fork_state in docs/observability/.publish_gate_state.json still read not_established.",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-01T02:24:31.786192+00:00",
+    "what": "THE MACHINE'S, CARRIED. A refusal naming a commit is not re-asked against the remote ref before a reader sees it. liveness_surface_refusal is still not re-asked.",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-01T02:24:31.786192+00:00",
+    "what": "MINE, CARRIED. evaluate_boot_sha_drift() in background/process_reconciler.py misread when HEAD and origin diverge. Settled by 12a67dfc8: it grades the disk, and now reports a second leg, behind the trunk, with a control over a diverged repo.",
+    "corrected": true
+   },
+   {
+    "at": "2026-10-01T02:24:31.786192+00:00",
+    "what": "THE MACHINE'S, CARRIED. The stash-completeness sweep reports a genuinely lost file as safe. It is still not on the map.",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-01T02:24:31.786192+00:00",
+    "what": "THE MACHINE'S, CARRIED. The lane-0 block and the path check read HEAD or a local ref, not origin. The fix, ebc9af681 (five mutations red), is now on origin.",
+    "corrected": true
+   },
+   {
+    "at": "2026-10-01T02:24:31.786192+00:00",
+    "what": "THE MACHINE'S, CARRIED. Nothing on the landing path asks whether a same-subject sibling is left behind in the shared tree. The 14-path refusal in 662da7fd3 was one instance. The 9 copies now blocking the fast-forward are probably another, and item two names their doors.",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-01T02:24:31.786192+00:00",
+    "what": "MINE, CARRIED. not_now is prose, and nothing a launch from another lane reads. The launcher in b50a03519 and the --book-seeds refusal in 19ca27dbc each turn one instance into a mechanism, and the class stays open.",
+    "corrected": false
+   },
    {
     "at": "2026-09-30T23:20:58.042440+00:00",
     "what": "MINE, NEW. Last focus asked for a 3.5h six-seed run to learn whether PB6 fixes the ranking. The worker's pre-run reading of the pin, split by channel, showed PB6 cannot touch the within-direct-debit anti-ranking before anything was launched. I should have asked for the pin-only split first and the run only if the split left the question open.",
@@ -2584,47 +2648,53 @@
     "at": "2026-09-24T17:22:07.364961+00:00",
     "what": "MINE, NEW, AND THE CHEAPEST THING ON THIS LIST TO FIX: I wrote FOUR focus items into a three-hour stretch when the evidence already said the fourth is unreachable. The lane drew three of four this stretch and three of four the stretch before, and both times the undrawn one was the item in fourth place. A fourth item is therefore not a statement of priority, it is a quiet write-off dressed as one, and it let me record `the-sanity-daemons-silence-has-no- cause-on-file` as chosen while choosing nothing. This record names three and puts the rejection in `not_now` where it is visible as a decision. Corrected here; the acceptance test is that every item named is drawn.",
     "corrected": true
-   },
-   {
-    "at": "2026-09-24T14:21:44.977330+00:00",
-    "what": "MINE, CARRIED, AND NOW CLOSED AS A CLASS AND NOT ONLY AS AN INSTANCE. I wrote that the direction record is a published surface graded as one, that my predecessor's prose was the publish gate's live red at two focus fields rendered in two regions of `/harness/`, and that nothing in `background/direction.py:validate()` looked at prose, so the next seat could repeat it in one sentence. `3da877fa8` closed it at write time and I probed the live code rather than reading the commit message: `validate()` imports `here_relative_phrases` from `tools/here_relative_vocabulary.py`, and it refuses \"close the findings above\" (the plural-noun branch) and \"as published above\" (the participle branch) with `#delivery-decided` and `#delivery-next` named in the refusal, while accepting \"under the headline figure\" so the rule does not red its own repair. One vocabulary with one home was the right shape \u2014 a second copy in `background/` would have let the write-time refusal and the deployed sweep judge different sentences. The live `site/data/delivery.json` now carries zero defects of the class over four focus items, and the publisher's blocking cause has moved off it to `behind_origin`. Corrected.",
-    "corrected": true
-   },
-   {
-    "at": "2026-09-24T14:21:44.977330+00:00",
-    "what": "MINE, CARRIED TWO STRETCHES, AND NOW CLOSED. I wrote that `background/publish_cause.py` left a failure unattributed while the answer sat in the same state file \u2014 `citation_at_head: \"dead\"` naming a test that passes, beside a `liveness_surface_refusal` holding the live reproducible red. `b8767ebc1` and `d379149cc` closed it and the state file now shows the repair working rather than merely present: `citation_at_head` reads `not_established` carrying \"no red is named on this failure, so there is no citation to re-ask. This is not evidence that HEAD is green\", with the matching honest reasons on `red_at_head` and `fork_state`, and the failure record itself carries `cause: behind_origin` with the evidence and the command that would close it. The false negative beside the answer is gone, and the correction that mattered most was `d379149cc` quoting the END of a held refusal's evidence rather than the head \u2014 the tail is where the cause is. Corrected.",
-    "corrected": true
-   },
-   {
-    "at": "2026-09-24T14:21:44.977330+00:00",
-    "what": "MINE, NEW, AND THE MOST EXPENSIVE THING I DID THIS STRETCH: I ranked the tree-advance work FOURTH. The draw took three of my four focus items and never reached that one, and over the same three hours `checkout_drift()` went from behind=12 / gap_paths=32 to behind=20 / gap_paths=36 while the publisher added to its 48 consecutive failures. Ordering IS the instruction when a worker tick works the list in my order, so \"named but never drawn\" is a defect of mine and not of the lane. Ranking it second here is the attempt, not the correction: grade this next stretch by whether `contains_origin` has turned true, never by my having re-ranked it.",
-    "corrected": false
-   },
-   {
-    "at": "2026-09-24T14:21:44.977330+00:00",
-    "what": "THE MACHINE'S, NEW: a landed repair has been inert for six days and no control could notice. `ec1012c01` restored the `__main__` block to `background/boot_sha.py` so the units' declared `ExecStartPre` would stamp again, and it is present at HEAD, at origin and in the working copy \u2014 yet the newest file in `docs/observability/.daemon_boot/` is still 2026-09-18 03:19 across many daemon restarts since. The `-` prefix on `ExecStartPre` makes any failure silent by design, so nothing between the commit and the brief can tell a working stamper from a dead one. The landing was graded by its own diff, which is exactly the class this project keeps paying for. Ranked third.",
-    "corrected": false
-   },
-   {
-    "at": "2026-09-24T14:21:44.977330+00:00",
-    "what": "THE MACHINE'S, NEW, AND RECORDED BY THE LANE THAT DID IT, WHICH IS THE RIGHT BEHAVIOUR AROUND A WRONG ACTION. A seat ran `git stash` on the shared tree \u2014 on the never-do list \u2014 and swept 436 paths of several lanes' uncommitted work; `git stash pop` then refused repeatedly because daemons re-dirtied a different set of state files between attempts. Everything was recovered and verified byte-identical by partitioning the stash against disk, and the stash entry is deliberately kept as the copy of record. The INSTANCE is closed. The CLASS is not, and it is the sharper half: `git restore --source=stash@{0}` silently skipped the one path present in the stash but in neither HEAD nor the index, and the completeness sweep could not see the miss because `git diff --quiet HEAD -- <path>` is quiet for an untracked path whatever its content \u2014 so the detector would equally have reported a genuinely lost file safe. A recovery sweep built on `git diff HEAD` is blind to exactly the class of file a stash is most likely to strand. Not chosen for focus this stretch and deliberately: it guards a manoeuvre that is already forbidden, and it loses to a dark publisher. It is recorded so the next seat reaching for a recovery sweep does not trust one.",
-    "corrected": false
    }
   ],
   "refused_own_records": [],
-  "outstanding": 372,
-  "corrected": 87,
+  "outstanding": 378,
+  "corrected": 90,
   "correction_not_recorded": 0,
   "empty_means": ""
  },
  "what_next": {
   "focus": [
-   "read-the-retention-estimates-ranking-at-pb6",
-   "name-the-input-that-anti-ranks-the-retention-belief",
-   "re-establish-boot-sha-drift-against-origin",
-   "the-ledger-fix-reaches-origin"
+   "what-drives-the-worlds-retention-at-a-first-renewal",
+   "the-shared-checkout-reaches-origin-and-stays-there",
+   "say-what-a-renewal-decision-is-before-ep1-values-it"
   ],
   "steer_checks": [
+   {
+    "by_class": {
+     "lane_0": {
+      "drawn": [
+       "read-the-retention-estimates-ranking-at-pb6",
+       "name-the-input-that-anti-ranks-the-retention-belief",
+       "the-ledger-fix-reaches-origin"
+      ],
+      "focus": [
+       "read-the-retention-estimates-ranking-at-pb6",
+       "name-the-input-that-anti-ranks-the-retention-belief",
+       "re-establish-boot-sha-drift-against-origin",
+       "the-ledger-fix-reaches-origin"
+      ],
+      "steered": true
+     }
+    },
+    "drawn": [
+     "read-the-retention-estimates-ranking-at-pb6",
+     "name-the-input-that-anti-ranks-the-retention-belief",
+     "the-ledger-fix-reaches-origin"
+    ],
+    "focus": [
+     "read-the-retention-estimates-ranking-at-pb6",
+     "name-the-input-that-anti-ranks-the-retention-belief",
+     "re-establish-boot-sha-drift-against-origin",
+     "the-ledger-fix-reaches-origin"
+    ],
+    "note": "the previous direction named work the draw then took (measured over this stretch only -- the 3.1h since 2026-09-30T23:20:58.042440+00:00; this is the PREVIOUS FOCUS, not every drawn item)",
+    "steered": true,
+    "window": "this stretch only -- the 3.1h since 2026-09-30T23:20:58.042440+00:00"
+   },
    {
     "by_class": {
      "lane_0": {
@@ -2742,40 +2812,29 @@
     "note": "the previous direction named work the draw then took (measured over this stretch only -- the 3.0h since 2026-09-30T11:23:00.155866+00:00; this is the PREVIOUS FOCUS, not every drawn item)",
     "steered": true,
     "window": "this stretch only -- the 3.0h since 2026-09-30T11:23:00.155866+00:00"
-   },
-   {
-    "by_class": {
-     "lane_0": {
-      "drawn": [
-       "grade-ab6-bridge-and-pilots",
-       "put-the-ep17-line-into-the-book-varying-prereg-and-build-the-refusing-flag",
-       "the-next-trailer-refuses-a-blocked-atom"
-      ],
-      "focus": [
-       "grade-ab6-bridge-and-pilots",
-       "put-the-ep17-line-into-the-book-varying-prereg-and-build-the-refusing-flag",
-       "the-next-trailer-refuses-a-blocked-atom"
-      ],
-      "steered": true
-     }
-    },
-    "drawn": [
-     "grade-ab6-bridge-and-pilots",
-     "put-the-ep17-line-into-the-book-varying-prereg-and-build-the-refusing-flag",
-     "the-next-trailer-refuses-a-blocked-atom"
-    ],
-    "focus": [
-     "grade-ab6-bridge-and-pilots",
-     "put-the-ep17-line-into-the-book-varying-prereg-and-build-the-refusing-flag",
-     "the-next-trailer-refuses-a-blocked-atom"
-    ],
-    "note": "the previous direction named work the draw then took (measured over this stretch only -- the 3.0h since 2026-09-30T08:24:57.155919+00:00; this is the PREVIOUS FOCUS, not every drawn item)",
-    "steered": true,
-    "window": "this stretch only -- the 3.0h since 2026-09-30T08:24:57.155919+00:00"
    }
   ],
   "steered_recently": true,
   "why_this_is_here": "Direction multiplies the draw's existing weights and can never zero one, so it can only ever be ignored -- never obeyed by force. Whether it was actually followed is therefore a measurement, not an assumption."
+ },
+ "the_queues_link_to_the_map": {
+  "available": true,
+  "population": 36,
+  "chained": 35,
+  "minted": 7,
+  "unminted": 28,
+  "unchained": [
+   {
+    "name": "maintenance_due_202610.md",
+    "missing": [
+     "lane",
+     "epoch",
+     "atom"
+    ]
+   }
+  ],
+  "unreadable": 0,
+  "why_this_is_here": "Every item waiting for work should say which lane, release epoch and map atom it belongs to, so the queue and the map cannot drift apart unnoticed. An item that says 'unminted' has been read against the map and needs an atom that does not exist yet; an item that says nothing has not been read at all."
  },
  "the_number_the_programme_rests_on": {
   "available": true,

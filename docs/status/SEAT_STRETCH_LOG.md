@@ -8,6 +8,50 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-10-01 — orientation: THE INVERTED INPUT IS NAMED, AND THE QUESTION HAS CROSSED THE WALL
+
+<!-- head: 9a5dc872e612 -->
+
+*Written by the orientation seat from its own record (2026-10-01T02:24:31.786192+00:00; 20 commits, 8 substantive, since 2026-09-30T23:20:58.042440+00:00).*
+
+## What the stretch meant
+
+THE INVERTED INPUT IS NAMED, AND THE QUESTION HAS CROSSED THE WALL. The value arm's loss runs through a retention belief that anti-ranks the world. This stretch settled where that inversion lives, using existing artefacts and no new run. Among direct-debit first renewals, the whole -0.383 sits in enriched_churn_estimate's rate term. Holding that term at its book mean turns the correlation to +0.331 (8dc8dcd97). payment_estimate is a flat 0.05. The engagement factor is never read, because decide_margin passes no payment_method. The market multiplier is correctly signed. The six-seed PB6 grade on filed bands says PB6 changes neither ranking nor level (AUC 0.487, corr -0.256, every seed within 0.001 of the pin; b45d9a5c6), and that closes PB6 as the lever. PB7's learning rule cannot reach it either: it is one scalar per channel, and the inversion is within a channel. The thesis question is now sharper than it has been, and it is no longer only the company's. Inside the rate term, the inverted inputs are the account's standing features. Within a renewal year, the WORLD's p_retain falls as tenure and bill size rise (-0.32, -0.27), and published evidence (CMA 2016 inertia) says longer tenure switches less. Before the company is taught to fit that, someone must ask whether the world is right. The world's switching code uses the word "tenure" for HOUSING tenure (owner, private renter, social renter in simulation/switching_propensity.py), not years on supply, so the -0.32 may be a confound and not a term. That is the first item. A company that learns a world artefact would "beat average" by access to a defect, which is the opposite of the thesis. EP1 gave the same shape from the other side. The derived renewal record reproduces every decision the world rolled (37/38 churns, 68/68 stays), but the world decides at only 106 of ~520 anniversaries. So "per-renewal hazard" has three readings, 0.36, 0.09 and ~0.17, and the definition must come before the build. The published record should settle most of it (a default-tariff customer is on an evergreen product), so it goes to research first, not to the director. ON THE MACHINE: all four previous focus items finished and disappear. The ledger fix ebc9af681 is on origin. It reached origin through origin_reconcile's push, about 70 minutes late because the reconcile worktree was held; surgical_land never pushes (dab06dea3). Boot-sha drift now reports two legs (12a67dfc8). Running it showed my carried diagnosis was wrong: it grades the DISK, not HEAD. It showed 0 stale while 4 of 10 daemons ran code the trunk had replaced. This stretch went backwards on one point. The shared checkout is now 0 ahead and 31 behind origin, and every 5-minute reconcile logs NOT_ADVANCED, refused by 9 uncommitted shared-tree copies that origin also changes (maturity_map.yaml, EP1's simplification yaml, tests/background/conftest.py among them). That is the second time in two days; the 2026-09-30 clearance was by hand. So the daemons run stale code, and nothing has raised it past its own log. It is the second focus item. A surgical_land titled "EP1 pass 20" was gating at orientation (pid 3300519), after d77ff33d5, "EP1 pass 20 lands", reached origin at 02:06. If it lands, it is a live instance of the land-twice row. 20 commits, 8 substantive by the brief's count; the 5 empty ones are reconcile merges.
+
+## What went wrong
+
+- corrected: MINE, NEW. I carried "evaluate_boot_sha_drift() grades every daemon against local HEAD" as a diagnosis for several stretches without running it. Run, it grades the DISK. The real defect was that it could not see the trunk at all (0 stale while 4 of 10 were behind).
+- NOT corrected: THE MACHINE'S, NEW. The shared checkout is 0 ahead and 31 behind origin. Every 5-minute reconcile logs NOT_ADVANCED, refused by 9 uncommitted shared-tree copies that origin also changes, and nothing raises it past its own log. It is the second instance in two days, and the first was cleared by hand with no mechanism.
+- corrected: MINE, NEW (last stretch). Last focus asked for a 3.5h six-seed run to learn whether PB6 fixes the ranking. The worker's pre-run reading of the pin, split by channel, showed PB6 cannot touch the within-direct-debit anti-ranking before anything was launched. I should have asked for the pin-only split first and the run only if the split left the question open.
+- corrected: THE MACHINE'S, NEW (last stretch). ebc9af681 carries a surgical-land receipt (gate-rc 0) and sat on the shared HEAD only, so no reader of origin saw it. It is now an ancestor of origin/main, pushed by origin_reconcile about 70 minutes late because the reconcile worktree was held. surgical_land never pushes (dab06dea3).
+- NOT corrected: THE MACHINE'S, CARRIED. The brief measures the stretch over HEAD and origin together, and its divergence line counts patch-equivalent copies, so 21 commits with no origin equivalent read as "8 of 8 carrying work" and a count of 25 ahead. origin_reconcile has logged REFUSED_CONFLICT every cycle for hours, and nothing raised it past its own log.
+- NOT corrected: THE MACHINE'S, CARRIED. One item can land twice, once on origin through surgical_land and once as a local commit on the shared HEAD with different bytes (four pairs, two stretches ago). The copies then conflict, and the reconcile cannot merge the machine's own work. A second "EP1 pass 20" surgical_land was gating at orientation after d77ff33d5 had reached origin.
+- NOT corrected: THE MACHINE'S, CARRIED. The launch register recorded hgc-suite-timing as died at 19:49:09Z (its /var/tmp driver called resource_headroom.admitted(), which does not exist), while a process of the same driver path was on the box. Nothing checks that a hand-written /var/tmp driver calls an API that exists.
+- NOT corrected: THE MACHINE'S, CARRIED. A control or door whose shape changes must re-run every fixture that builds a synthetic tree to drive it, and no control requires it. citation_at_head, red_at_head and fork_state in docs/observability/.publish_gate_state.json still read not_established.
+- NOT corrected: THE MACHINE'S, CARRIED. A refusal naming a commit is not re-asked against the remote ref before a reader sees it. liveness_surface_refusal is still not re-asked.
+- corrected: MINE, CARRIED. evaluate_boot_sha_drift() in background/process_reconciler.py misread when HEAD and origin diverge. Settled by 12a67dfc8: it grades the disk, and now reports a second leg, behind the trunk, with a control over a diverged repo.
+- NOT corrected: THE MACHINE'S, CARRIED. The stash-completeness sweep reports a genuinely lost file as safe. It is still not on the map.
+- corrected: THE MACHINE'S, CARRIED. The lane-0 block and the path check read HEAD or a local ref, not origin. The fix, ebc9af681 (five mutations red), is now on origin.
+- NOT corrected: THE MACHINE'S, CARRIED. Nothing on the landing path asks whether a same-subject sibling is left behind in the shared tree. The 14-path refusal in 662da7fd3 was one instance. The 9 copies now blocking the fast-forward are probably another, and item two names their doors.
+- NOT corrected: MINE, CARRIED. not_now is prose, and nothing a launch from another lane reads. The launcher in b50a03519 and the --book-seeds refusal in 19ca27dbc each turn one instance into a mechanism, and the class stays open.
+
+## Chosen against
+
+- Changing the rate term in enriched_churn_estimate.py, or starting B8's learned price response, now.
+- Building PB7's per-channel learning rule.
+- Re-sending the EP17 four-book pilot ask, or re-running the full ab6 A/B at origin/main.
+- Writing EP1's ledger row (couple_clv --write-ledger).
+- Binding the lane-0 not_done rows, and a heartbeat for the mute worker-seat-manager.
+- Putting the tenure or default-tariff questions to the director as practitioner now.
+
+## Focus for the next stretch
+
+- `what-drives-the-worlds-retention-at-a-first-renewal`
+- `the-shared-checkout-reaches-origin-and-stays-there`
+- `say-what-a-renewal-decision-is-before-ep1-values-it`
+
+---
+
 ## 2026-10-01 — orientation: THE LEVER HAS MOVED AGAIN, AND ONE STEP CLOSER TO THE THESIS
 
 <!-- head: ebc9af681c88 -->
