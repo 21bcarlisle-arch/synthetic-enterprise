@@ -132,6 +132,9 @@ These are gaps, stated rather than filled. Each is a place where the code must c
    typically sits from the household's realised annual consumption — the error that *causes* the
    drift the director described — has no published distribution found. This is the single most
    load-bearing gap for measuring whether a better estimate reduces harm.
+   *Partly answered 2026-10-01:* `how_far_a_settled_eac_sits_from_next_years_use.md` publishes
+   the spread of consecutive industry annual figures (AA/EAC) per dwelling from NEED. The
+   by-meter-type split is still a gap, and the practitioner question is put there.
 5. **No published fixed-versus-variable direct-debit split** (carried forward from
    `what_bill_shock_is.md`, still the load-bearing gap there).
 
