@@ -47,6 +47,7 @@ from pathlib import Path
 
 import pytest
 
+from simulation.price_cap_enforcement import DOMESTIC_VAT_RATE
 from simulation.renewal_engagement import PASSIVE_CHURN_CAP
 from simulation.renewals import build_renewal_schedule
 from simulation.settlement import CONTRACT_LENGTH_DAYS
@@ -99,11 +100,17 @@ def test_a_segment_is_a_cap_period_not_a_contract_year(schedule):
 
 
 def test_the_rate_is_the_published_series_and_is_never_struck(schedule):
-    """Every segment's rate equals the published cap for its own start date."""
+    """Every segment's rate, once VAT is added back, is the published cap for its own start date.
+
+    The published series is inc-VAT and settlement bills `unit_rate_gbp_per_mwh` as ex-VAT
+    revenue, so the segment carries the published figure de-VATed. Recomputed here from the
+    published number and the statutory rate, not from the module's helper.
+    """
     for seg in schedule:
         published = get_svt_elec_rate_gbp_per_mwh(seg["acquisition_date"])
-        assert seg["unit_rate_gbp_per_mwh"] == published, (
-            f"{seg['acquisition_date']}: rate {seg['unit_rate_gbp_per_mwh']} is not the "
+        assert seg["unit_rate_gbp_per_mwh"] * (1.0 + DOMESTIC_VAT_RATE) == pytest.approx(
+            published), (
+            f"{seg['acquisition_date']}: rate {seg['unit_rate_gbp_per_mwh']} plus VAT is not the "
             f"published {published}")
 
     # And the series it tracks is the real one: the January 2023 cap ceiling is the record's
@@ -117,7 +124,7 @@ def test_the_rate_is_the_published_series_and_is_never_struck(schedule):
     from datetime import date as _d
 
     from simulation.price_cap_enforcement import ofgem_cap_unit_rate_gbp_per_mwh_inc_vat
-    assert peak["unit_rate_gbp_per_mwh"] == pytest.approx(
+    assert peak["unit_rate_gbp_per_mwh"] * (1.0 + DOMESTIC_VAT_RATE) == pytest.approx(
         ofgem_cap_unit_rate_gbp_per_mwh_inc_vat("electricity", _d(2023, 1, 1))
     ), peak
     assert peak["unit_rate_gbp_per_mwh"] > 600.0, peak

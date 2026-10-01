@@ -1616,17 +1616,16 @@
   lane: H_harness
   value_stream: close_to_learn
   epoch: 3
-  level_current: 0
+  level_current: 2    # 2026-10-01: built + mutation-proven, real git. Class: `earlier_revision_twins`.
+  #   Page: `fork_open_streak` now names the refusing paths. Not L3: no HARDEN / Expert Hour yet.
   level_target: 2
   loop_stage: build
   dial_inherited: 12    # machinery; it recurs at every fast-forward, measured 3 of 12 blockers 2026-10-01.
   provenance: seat_finding
   depends_on: []
   couples_with: []
-  file_scope: ['background/origin_reconcile.py', 'background/supervisor.py']
-  #   Writer: `supervisor._sync_origin_staging` copies origin's staging docs in and never refreshes
-  #   them, so a revised doc leaves a stale twin. `identical_untracked_twins` asks origin's TIP blob
-  #   only; a copy equal to ANY revision in `git log origin/main -- <path>` is equally on origin. See the 2026-10-01 section of
+  file_scope: ['background/origin_reconcile.py', 'background/supervisor.py', 'tests/background/test_origin_reconcile_earlier_revision_twin.py']
+  #   Writer: `supervisor._sync_origin_staging` never refreshes a copy origin later revises. See
   #   SEAT_FINDING_THE_ORIGIN_FORK_ALARM_WRITES_THE_FILE_THAT_BLOCKS_THE_FAST_FORWARD_IT_REPORTS_2026-09-30.md.
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a filing room that will not accept this week's minutes because last week's draft of them is still in the tray."

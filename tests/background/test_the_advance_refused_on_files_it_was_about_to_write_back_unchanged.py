@@ -68,6 +68,7 @@ class _Advance:
     def run(self):
         return orc.advance_shared_tree(
             blockers_fn=lambda _project: self.blocking,
+            earlier_fn=lambda _project, _blocking: {},
             twins_fn=lambda _project, _blocking: self.twins,
             tracked_twins_fn=lambda _project, _blocking: list(self.tracked),
             ff_fn=self._ff,
@@ -126,6 +127,7 @@ def test_the_removal_and_the_advance_actually_happened_in_that_order():
 
     orc.advance_shared_tree(
         blockers_fn=lambda _p: [_untracked(twin)],
+        earlier_fn=lambda _project, _blocking: {},
         twins_fn=lambda _p, _b: [twin],
         ff_fn=ff,
         remover=lambda p: order.append("rm:{}".format(p)),

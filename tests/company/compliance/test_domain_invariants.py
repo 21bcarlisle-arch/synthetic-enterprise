@@ -594,3 +594,29 @@ def test_period_sane_allows_an_annual_bill():
     # this project's data is 30 days; a full year has a ~24x margin to the bound.
     annual = _footing_bill(period_start="2023-01-01", period_end="2023-12-31")
     assert check_bill_period_sane(annual) is True
+
+
+def test_a_sold_rate_at_the_PUBLISHED_cap_breaches_and_the_de_VATed_cap_does_not():
+    """Ofgem publishes the cap inc-VAT and the company sells ex-VAT. The defect this invariant
+    closes as a class was a rate sitting AT the published figure, so the published figure itself
+    must be refused -- and, so the rule is not one that refuses everything, the de-VATed figure
+    must pass. Pre-cap dates have no ceiling; a non-finite rate cannot be shown lawful.
+    MUTATION: drop the `/ (1.0 + vat_rate_for_segment("resi"))` and the first assert reds."""
+    from datetime import date as _date
+
+    from company.compliance.domain_invariants import (
+        SOLD_UNIT_RATE_WITHIN_CAP_EX_VAT,
+        check_sold_unit_rate_within_cap,
+    )
+    from company.pricing.ofgem_price_cap import get_cap_unit_rate_for_date
+
+    assert SOLD_UNIT_RATE_WITHIN_CAP_EX_VAT in ALL_INVARIANTS
+    for fuel, on in (("electricity", _date(2021, 6, 1)), ("gas", _date(2023, 1, 15))):
+        published = get_cap_unit_rate_for_date(fuel, on)
+        assert not check_sold_unit_rate_within_cap(fuel, on, published), (
+            f"{fuel} sold at the inc-VAT published cap {published:.2f} ex-VAT passed -- 5% over the law"
+        )
+        assert check_sold_unit_rate_within_cap(fuel, on, published / 1.05)
+        assert not check_sold_unit_rate_within_cap(fuel, on, published / 1.05 + 0.01)
+    assert check_sold_unit_rate_within_cap("electricity", _date(2018, 6, 1), 10_000.0)
+    assert not check_sold_unit_rate_within_cap("electricity", _date(2021, 6, 1), float("nan"))

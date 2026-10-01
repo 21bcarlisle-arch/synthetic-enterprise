@@ -99,6 +99,7 @@ class _Advance:
     def run(self):
         return orc.advance_shared_tree(
             blockers_fn=lambda _project: self.blocking,
+            earlier_fn=lambda _project, _blocking: {},
             twins_fn=lambda _project, _blocking: [],
             tracked_twins_fn=lambda _project, _blocking: list(self.tracked),
             stale_fn=lambda _project, paths: {

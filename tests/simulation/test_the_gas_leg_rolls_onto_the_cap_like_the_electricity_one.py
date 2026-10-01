@@ -316,9 +316,13 @@ def test_a_gas_segment_is_billed_off_the_published_GAS_cap_and_not_the_electrici
         f"dates ({len(dates) - len(separable)} of {len(dates)}), so equality with one of them "
         "does not exclude the other -- repoint this control before trusting it")
 
+    from simulation.price_cap_enforcement import DOMESTIC_VAT_RATE
+
     for term in segments:
+        # Billed ex-VAT; the published (inc-VAT) cap is the rate with VAT added back.
         expected = get_svt_gas_rate_gbp_per_mwh(term["acquisition_date"])
-        assert term["unit_rate_gbp_per_mwh"] == expected, (
+        assert term["unit_rate_gbp_per_mwh"] * (1.0 + DOMESTIC_VAT_RATE) == pytest.approx(
+            expected), (
             f"a gas SVT segment starting {term['acquisition_date']} is billed "
             f"{term['unit_rate_gbp_per_mwh']} where the published GAS cap says {expected} "
             f"(the electricity cap says {get_svt_elec_rate_gbp_per_mwh(term['acquisition_date'])})")

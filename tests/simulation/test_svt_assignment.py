@@ -277,14 +277,16 @@ def test_the_svt_stint_carries_no_notice_and_no_struck_rate(price_records):
     schedule = _schedule(cid, "2016-01-01", price_records)
     svt = [t for t in schedule if t.get("tariff_type") == SVT_TARIFF_TYPE]
     assert svt, "no SVT segments; the control has lost its subject"
+    from simulation.price_cap_enforcement import DOMESTIC_VAT_RATE
     from simulation.svt_rates import get_svt_elec_rate_gbp_per_mwh
 
     for term in svt:
         assert term["notice_date"] == term["acquisition_date"], (
             "a notice date on a product that never ends -- the 42-day statutory notice is an "
             "artefact of a contract expiring")
-        assert term["unit_rate_gbp_per_mwh"] == get_svt_elec_rate_gbp_per_mwh(
-            term["acquisition_date"]), (
+        # Billed ex-VAT, so the published (inc-VAT) cap is the rate with VAT added back.
+        assert term["unit_rate_gbp_per_mwh"] * (1.0 + DOMESTIC_VAT_RATE) == pytest.approx(
+            get_svt_elec_rate_gbp_per_mwh(term["acquisition_date"])), (
             "the rate was struck rather than read off the published cap; no supplier prices a "
             "capped default tariff, it is handed the number")
         length = (date.fromisoformat(term["term_end"])

@@ -46,6 +46,7 @@ from functools import lru_cache
 from company.interfaces.dd_review_outcome import opening_monthly_amount, reviewed_monthly_amount
 from simulation.household import household_of
 from simulation.household_segments import PaymentChannel, payment_channel_for_customer
+from simulation.price_cap_enforcement import DOMESTIC_VAT_RATE
 
 # ORIGIN: INHERITED, NOT SOURCED. The same 15% the world's old count used
 # (`saas.customer_reaction.score_experience_signals`' `bill_shock_threshold`), kept so that the
@@ -67,18 +68,73 @@ def _shift_month(period: str, months: int) -> str:
 
 
 @lru_cache(maxsize=None)
-def _opening_for_leg(as_of_iso: str, commodity: str, eac: float | None) -> float | None:
+def _opening_for_leg(as_of_iso: str, commodity: str, eac: float | None,
+                     sold_rate: float | None = None,
+                     sold_standing_charge: float | None = None) -> float | None:
     return opening_monthly_amount(
         as_of_iso=as_of_iso,
         commodity=commodity,
         registry_eac_kwh=eac if eac else None,
         band="MEDIUM" if not eac else None,
+        contracted_unit_rate_per_mwh_ex_vat=sold_rate,
+        contracted_standing_charge_per_day_ex_vat=sold_standing_charge,
     )
 
 
-def opening_monthly_for_household(household: str, customers: list[dict]) -> float | None:
+def _inc_vat(amount_ex_vat: float) -> float:
+    # Every amount this module compares is on the basis the household pays and the quote is
+    # given in. Settlement `revenue_gbp` is ex-VAT; the quote and the company's own DD review
+    # (which reads bill totals) are inc-VAT. Comparing across the two under-read every year-one
+    # rise. The world's own VAT rule, not a sixth copy.
+    return amount_ex_vat * (1.0 + DOMESTIC_VAT_RATE)
+
+
+def sold_unit_rate(customer_id: str, settlement_records: list[dict]) -> float | None:
+    """The unit rate on this leg's FIRST bill (£/MWh ex-VAT): consumption-weighted over its first
+    settled month, so a time-of-use split or a default tariff reads as what was charged. The
+    household holds it on paper, so it crosses the door as a contract fact, not a computed price.
+    None where no row of that month carries a rate."""
+    rows = [r for r in settlement_records if r.get("customer_id") == customer_id]
+    if not rows:
+        return None
+    first = min(r["settlement_date"][:7] for r in rows)
+    kwh = cost = 0.0
+    for r in rows:
+        rate = r.get("unit_rate_gbp_per_mwh")
+        if r["settlement_date"][:7] != first or rate is None:
+            continue
+        kwh += r.get("consumption_kwh") or 0.0
+        cost += rate * (r.get("consumption_kwh") or 0.0)
+    return cost / kwh if kwh > 0 else None
+
+
+#: The per-row standing-charge fields the settlement writers emit, summed over a day (electricity
+#: carries 1/48 of the daily charge on each half-hour; gas settles one row per day).
+_STANDING_CHARGE_FIELDS = ("standing_charge_gbp", "gas_standing_charge_gbp")
+
+
+def sold_standing_charge(customer_id: str, settlement_records: list[dict]) -> float | None:
+    """The daily standing charge on this leg's FIRST bill (ex-VAT, per day): the first settled
+    month's standing charge over the days it settled. Printed on the bill beside the unit rate, so
+    it crosses the door on the same footing. None where that month carries no standing charge."""
+    rows = [r for r in settlement_records if r.get("customer_id") == customer_id]
+    if not rows:
+        return None
+    first = min(r["settlement_date"][:7] for r in rows)
+    month = [r for r in rows if r["settlement_date"][:7] == first]
+    charged = sum((r.get(f) or 0.0) for r in month for f in _STANDING_CHARGE_FIELDS)
+    days = len({r["settlement_date"][:10] for r in month})
+    return charged / days if charged > 0 and days else None
+
+
+def opening_monthly_for_household(household: str, customers: list[dict],
+                                  settlement_records: list[dict] | None = None) -> float | None:
     """The monthly amount the household was told at sign-up, summed over its legs -- or None if
-    any leg has none (a dual-fuel household quoted for one fuel was not quoted)."""
+    any leg has none (a dual-fuel household quoted for one fuel was not quoted).
+
+    With `settlement_records`, each leg is annualised at the rate and standing charge it was
+    SOLD at (its first bill); without, the door falls back to the cap and the 2024 standing charge,
+    which pre-2019 is no quote at all."""
     total = 0.0
     legs = [c for c in customers if household_of(c.get("customer_id", "")) == household]
     if not legs:
@@ -88,7 +144,12 @@ def opening_monthly_for_household(household: str, customers: list[dict]) -> floa
         eac = c.get("eac_kwh") if commodity == "electricity" else c.get("aq_kwh")
         if not c.get("acquisition_date"):
             return None
-        amount = _opening_for_leg(c["acquisition_date"], commodity, float(eac) if eac else None)
+        sold = sold_sc = None
+        if settlement_records is not None:
+            sold = sold_unit_rate(c.get("customer_id", ""), settlement_records)
+            sold_sc = sold_standing_charge(c.get("customer_id", ""), settlement_records)
+        amount = _opening_for_leg(c["acquisition_date"], commodity, float(eac) if eac else None,
+                                  sold, sold_sc)
         if amount is None:
             return None
         total += amount
@@ -97,12 +158,12 @@ def opening_monthly_for_household(household: str, customers: list[dict]) -> floa
 
 def monthly_bills_by_household(settlement_records: list[dict]) -> dict[str, dict[str, float]]:
     """{household: {"YYYY-MM": bill £}} -- the same per-period sum the old count read, keyed by
-    the property rather than the supplier's billing grouping."""
+    the property rather than the supplier's billing grouping. Inc-VAT: what the household pays."""
     out: dict[str, dict[str, float]] = {}
     for r in settlement_records:
         periods = out.setdefault(household_of(r["customer_id"]), {})
         p = r["settlement_date"][:7]
-        periods[p] = periods.get(p, 0.0) + r["revenue_gbp"]
+        periods[p] = periods.get(p, 0.0) + _inc_vat(r["revenue_gbp"])
     return out
 
 
@@ -140,7 +201,7 @@ def experienced_bill_shock(
         if reference is None:
             return {"population": population, "shocked": None, "rise_fraction": None,
                     "reference": "quote", "reason": "no amount was set at sign-up for this "
-                    "household (the supplier holds no rate to annualise against)"}
+                    "household (no sold rate and no cap to annualise against, or no consumption)"}
         ref_label = "quote"
     else:
         prior = _year_monthly_mean(bills, _shift_month(renewal_period, -24),
@@ -179,14 +240,13 @@ def experienced_bill_shock_at_renewal(
     first_renewal = bool(acquisition) and (
         (date.fromisoformat(acquisition) + timedelta(days=365)).isoformat()[:7] == renewal_period
     )
-    bills = monthly_bills_by_household(
-        [r for r in settlement_records if household_of(r["customer_id"]) == household]
-    ).get(household, {})
+    household_records = [r for r in settlement_records if household_of(r["customer_id"]) == household]
+    bills = monthly_bills_by_household(household_records).get(household, {})
     return experienced_bill_shock(
         bills=bills,
         payment_channel=payment_channel_for_customer(customer_id, commodity).value,
         renewal_period=renewal_period,
         first_renewal=first_renewal,
-        opening_monthly_gbp=(opening_monthly_for_household(household, customers)
+        opening_monthly_gbp=(opening_monthly_for_household(household, customers, household_records)
                              if first_renewal else None),
     )

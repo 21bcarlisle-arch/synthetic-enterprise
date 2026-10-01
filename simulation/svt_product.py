@@ -137,7 +137,7 @@ from datetime import date, timedelta
 from sim.forward_curve import generate_forward_price
 from simulation.departure_risks import svt_inertia_hazard
 from simulation.market_switching_propensity import market_switching_multiplier
-from simulation.price_cap_enforcement import hmt_epg_receipt_gbp_per_mwh
+from simulation.price_cap_enforcement import DOMESTIC_VAT_RATE, hmt_epg_receipt_gbp_per_mwh
 from simulation.svt_rates import (
     CAP_PERIOD_START_MONTHS,
     get_svt_elec_rate_charged_to_household_gbp_per_mwh,
@@ -176,6 +176,21 @@ _RATE_LEGS_BY_FUEL = {
         get_svt_gas_rate_charged_to_household_gbp_per_mwh,
     ),
 }
+
+
+def _ex_vat(inc_vat_gbp_per_mwh: float | None) -> float | None:
+    """A commons rate (inc-VAT) restated on the basis settlement bills: ex-VAT.
+
+    `svt_rates` publishes the cap as Ofgem does, VAT in, and keeps it that way because readers
+    difference it against bills. But `unit_rate_gbp_per_mwh` is the field settlement books as
+    ex-VAT revenue and every downstream reader grosses up by `DOMESTIC_VAT_RATE` again (the DD
+    opening, `experienced_bill_shock._inc_vat`). Written inc-VAT, an SVT household paid the cap
+    plus 5%, and its fixed-to-SVT step carried a 5% jump no bill showed it. All three legs pass
+    through here so `unit = charged + receipt` still holds.
+    """
+    if inc_vat_gbp_per_mwh is None:
+        return None
+    return inc_vat_gbp_per_mwh / (1.0 + DOMESTIC_VAT_RATE)
 
 
 def _next_cap_period_start(day: date) -> date:
@@ -247,7 +262,8 @@ def build_svt_schedule(
 
       * `tariff_type` is `"svt"`, which `run_phase2b` treats as indexed — no renewal decision.
       * `notice_date` equals the segment start; there is nothing to give notice of.
-      * `unit_rate_gbp_per_mwh` is the published cap rate for the period, not a struck price.
+      * `unit_rate_gbp_per_mwh` is the published cap rate for the period, not a struck price,
+        restated EX-VAT (2026-10-01) because that is the basis settlement bills it on.
         No company module is asked to price it, because no supplier prices a capped default
         tariff — it is handed the number.
       * `household_charged_unit_rate_gbp_per_mwh` and `hmt_epg_receipt_gbp_per_mwh` SPLIT that
@@ -311,7 +327,8 @@ def build_svt_schedule(
         next_start = _next_cap_period_start(segment_start)
         segment_end = min(next_start, report_end + timedelta(days=1))
 
-        rate = cap_rate_of(segment_start_str)
+        # EX-VAT, because settlement bills this field as ex-VAT revenue; see `_ex_vat`.
+        rate = _ex_vat(cap_rate_of(segment_start_str))
         # THE RECEIPT IS ASKED FOR, NOT DIFFERENCED, and the reason is about what the CONTROL
         # means, not about what the number is. `receipt = rate - charged` returns the identical
         # value on every date -- proven by mutation, 2026-09-08: swapping this line for the
@@ -326,11 +343,11 @@ def build_svt_schedule(
         # Both rate legs are None on exactly the same dates (pre-2016), and a receipt against a
         # bill that could not be computed is unknown rather than zero, so the split is only
         # written where both legs are numbers.
-        charged = charged_rate_of(segment_start_str)
+        charged = _ex_vat(charged_rate_of(segment_start_str))
         receipt = (
             None
             if (rate is None or charged is None)
-            else hmt_epg_receipt_gbp_per_mwh(fuel, segment_start)
+            else _ex_vat(hmt_epg_receipt_gbp_per_mwh(fuel, segment_start))
         )
         lookback_temps = (
             lookback_temps_fn(segment_start_str) if lookback_temps_fn else None

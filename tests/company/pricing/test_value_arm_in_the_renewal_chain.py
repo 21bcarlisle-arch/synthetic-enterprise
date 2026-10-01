@@ -53,7 +53,6 @@ from company.policy.decision_policy import (  # noqa: E402
 )
 from company.pricing import renewal_rate_chain as chain  # noqa: E402
 from company.pricing import value_based_renewal as vbr  # noqa: E402
-from company.pricing.ofgem_price_cap import get_cap_unit_rate_for_date  # noqa: E402
 from saas.tariff_pricing import TARGET_MARGIN_GBP_PER_MWH  # noqa: E402
 
 # THE WORLD'S OWN ID GRAMMAR, imported here and nowhere in `company/`. This file is a test and
@@ -506,7 +505,7 @@ def test_the_CAP_is_INSIDE_the_search_and_never_a_CLAMP_on_a_renewal_the_arm_PRI
     the cap, the unbounded optimum exceeds the ceiling for ANY churn belief that leaves a positive
     margin, so the flag's ability to fire no longer rides on a company belief being mistaken.
     """
-    cap = get_cap_unit_rate_for_date("electricity", date(2021, 6, 1))
+    cap = chain.cap_ceiling_ex_vat("electricity", date(2021, 6, 1))
     domestic = dict(is_domestic=True, tariff_type="fixed", term_start="2021-06-01",
                     struck_unit_rate_gbp_per_mwh=cap - 2.0,
                     settled_records=_settled_with_standing_charge())
@@ -537,15 +536,13 @@ def test_the_arm_NEVER_ASKS_for_a_rate_above_the_cap_it_was_given():
     """
     from datetime import date as _date
 
-    from company.pricing.ofgem_price_cap import get_cap_unit_rate_for_date
-
     for struck in (80.0, 120.0, 160.0, 185.0):
         with policy_scope(VALUE_ARM_POLICY):
             result = _drive(is_domestic=True, tariff_type="fixed", term_start="2021-06-01",
                             struck_unit_rate_gbp_per_mwh=struck,
                             settled_records=_settled_with_standing_charge(
                                 commodity_rate=struck))
-        cap = get_cap_unit_rate_for_date("electricity", _date(2021, 6, 1))
+        cap = chain.cap_ceiling_ex_vat("electricity", _date(2021, 6, 1))
         for entry in result.value_arm_entries:
             if entry.get("declined"):
                 continue
@@ -553,6 +550,59 @@ def test_the_arm_NEVER_ASKS_for_a_rate_above_the_cap_it_was_given():
                 f"struck at {struck}: the arm asked for {entry['unit_rate_after']:.2f} GBP/MWh "
                 f"against a cap of {cap:.2f} -- an unlawful offer that only writer 4 stops"
             )
+
+
+def test_a_strike_once_VAT_is_added_never_exceeds_the_PUBLISHED_cap():
+    """Ofgem publishes the cap INCLUSIVE of 5% VAT, and the strike is ex-VAT. Until 2026-10-01 the
+    chain clamped the one against the other, so a strike could sit up to 5% above the law once VAT
+    was added on the bill. That was 28 of 117 first terms in the default world, and the company's
+    own ceiling passed them.
+
+    The ceiling is recomputed here from the published figure and the VAT rate, not read from the
+    chain's helper: a helper that reverted to the inc-VAT figure would agree with itself.
+    Both writers are covered. The control arm reaches writer 4 alone, and the value arm reaches the
+    search. The strikes run from inside the gap between the two caps to above the inc-VAT cap. The
+    gap is the case the old ceiling let through, so the test first asserts that a strike inside it
+    exists and is clamped.
+    MUTATION: drop the `/ (1.0 + VAT_RATE_DOMESTIC)` in `cap_ceiling_ex_vat` and every leg reds.
+    """
+    from datetime import date as _date
+
+    from company.compliance.domain_invariants import check_sold_unit_rate_within_cap
+    from company.pricing.ofgem_price_cap import get_cap_unit_rate_for_date
+    from company.pricing.tariff_comparison import VAT_RATE_DOMESTIC
+
+    published = get_cap_unit_rate_for_date("electricity", _date(2021, 6, 1))
+    ex_vat = published / (1.0 + VAT_RATE_DOMESTIC)
+    in_the_gap = (ex_vat + published) / 2.0
+    assert ex_vat < in_the_gap < published
+
+    for policy in (CURRENT_POLICY, VALUE_ARM_POLICY):
+        for struck in (in_the_gap, published, published + 20.0):
+            with policy_scope(policy):
+                result = _drive(is_domestic=True, tariff_type="fixed", term_start="2021-06-01",
+                                struck_unit_rate_gbp_per_mwh=struck,
+                                settled_records=_settled_with_standing_charge(
+                                    commodity_rate=struck))
+            billed = result.unit_rate_gbp_per_mwh * (1.0 + VAT_RATE_DOMESTIC)
+            assert billed <= published + 1e-6, (
+                f"{policy.name}, struck at {struck:.2f}: contracted "
+                f"{result.unit_rate_gbp_per_mwh:.2f} ex-VAT bills at {billed:.2f} against a "
+                f"published cap of {published:.2f} -- the ceiling is on the wrong side of VAT"
+            )
+            for entry in result.value_arm_entries:
+                if not entry.get("declined"):
+                    assert entry["unit_rate_after"] <= ex_vat + 1e-6
+            assert check_sold_unit_rate_within_cap(
+                "electricity", _date(2021, 6, 1), result.unit_rate_gbp_per_mwh)
+
+    with policy_scope(CURRENT_POLICY):
+        clamped = _drive(is_domestic=True, tariff_type="fixed", term_start="2021-06-01",
+                         struck_unit_rate_gbp_per_mwh=in_the_gap)
+    assert clamped.unit_rate_gbp_per_mwh == pytest.approx(ex_vat, abs=1e-3), (
+        "a strike between the ex-VAT and the published cap was not clamped to the ex-VAT cap"
+    )
+    assert [c for c in clamped.components if c["cause"] == "price_cap"]
 
 
 # ── gas is priced as gas, not as electricity wearing a label ────────────────────────────────
@@ -890,10 +940,8 @@ def test_the_gas_renewal_decides_under_the_GAS_cap_and_not_the_electricity_one()
     """
     from datetime import date as _date
 
-    from company.pricing.ofgem_price_cap import get_cap_unit_rate_for_date
-
-    gas_cap = get_cap_unit_rate_for_date("gas", _date(2021, 6, 1))
-    elec_cap = get_cap_unit_rate_for_date("electricity", _date(2021, 6, 1))
+    gas_cap = chain.cap_ceiling_ex_vat("gas", _date(2021, 6, 1))
+    elec_cap = chain.cap_ceiling_ex_vat("electricity", _date(2021, 6, 1))
     assert gas_cap is not None and elec_cap is not None
     assert gas_cap != pytest.approx(elec_cap), (
         "the two caps agree on this date, so this control cannot tell which one the chain "
