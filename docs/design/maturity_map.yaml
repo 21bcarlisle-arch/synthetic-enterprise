@@ -611,7 +611,7 @@
   epoch: 2
   level_current: 1
   level_target: 3
-  loop_stage: build
+  loop_stage: idle
   dial_inherited: 3
   provenance: proposal
   file_scope: [simulation/rng_substream.py, tests/simulation/test_rng_substream.py]
@@ -619,7 +619,7 @@
   #   control its build writes, replacing two bare directories.
   depends_on: []
   blocked_on: null
-  simplifications_count: 6
+  simplifications_count: 8
   records_rehomed: [evidence]
 - id: W3_1b_intra_year_price_cap_granularity
   notes_rehomed: [name]
@@ -2007,7 +2007,13 @@
   lane: W2_customer_generator
   value_stream: meter_to_cash
   epoch: 3
-  level_current: 1
+  # LEVEL 2, recorded 2026-09-30: the condition this row set for it -- the one OUTSTANDING debt
+  # (`simulation.weather_cell_siting`) paid -- was met 2026-09-16 when `1bf4821b6` re-cut W1's stale
+  # artefact and the declaration landed; `OUTSTANDING` is `{}`. Measured in a pristine-HEAD extract
+  # 2026-09-30: the control and `tests/simulation/test_weather_cell_siting.py` 30 passed, census
+  # exit 0 with 0 outstanding. The level lagged the fact by two weeks because nothing re-reads a
+  # row's own exit when its blocker's repair lands elsewhere.
+  level_current: 2
   level_target: 3
   loop_stage: build
   dial_inherited: 50
