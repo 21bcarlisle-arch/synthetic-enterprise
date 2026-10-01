@@ -22,7 +22,7 @@ against `e196d0937`, and the shared tree's dirty companions
   The control plus `test_weather_cell_siting.py` give 30 passed. The preserved ref held **no ledger
   line** for this move, so the level gate would have refused it. I recorded one through
   `record_level_up_self_certified`.
-- **SP2_2 build→idle**, simplifications 6→7. The park still holds in substance. The AB lineage's next
+- **SP2_2 build→idle**, simplifications 6→8 (the stranded entry plus my re-read). The park still holds in substance. The AB lineage's next
   step is EP17's book-varying pilot, which waits on the director's ruling (`32c04d778`). Its
   replicate-to-the-penny comparisons are exactly what a world-wide re-seed would break. I added one
   line to its store that restates the release.
@@ -34,9 +34,9 @@ against `e196d0937`, and the shared tree's dirty companions
 (`gate_authorizations.jsonl`, the PB6 level-2 line), forty minutes later. DIRECTION.yaml
 (2026-10-01) also names PB4 as an active focus item, and its EAC work is landing on origin
 (`3bf64c4e7`). Landing `idle` would park a row that its own rule had already released. The row stays
-`build` at HEAD. The PB4 store's dirty note, which records NTFY `9kuLLifpjEiV` as put to the
-director, is still in the shared tree. It was left there, because it says the row is idle, and that
-is no longer true.
+`build` at HEAD. The PB4 store's dirty note recorded NTFY `9kuLLifpjEiV` as put to the director. That record
+is landed in a follow-up commit, with the release written beside it. The shared copy was then
+refreshed to HEAD (preserved first), so it cannot wedge the next fast-forward that touches PB4.
 
 ## The class
 
