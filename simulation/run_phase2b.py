@@ -148,6 +148,7 @@ from simulation.fabric_demand_path import (
     fabric_eligibility,
     fabric_providers_for_book,
     fabric_shape_fn,
+    registry_eac_from_own_reads,
     settled_shape_is_physically_textured,
     settlement_providers_match_eligibility,
     the_switch_moves_the_settled_volume,
@@ -1596,6 +1597,33 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             f"across the book. Unmoved: {_still[:12]}"
         )
 
+    # A SETTLED HOME'S REGISTRY EAC IS ITS OWN READS (2026-10-01). The drawn TDCV band was the
+    # registry EAC on every account, set before and blind to the dwelling, while a fabric
+    # premise's demand is its physics -- so an electrically heated home using 10-20 MWh was
+    # quoted, hedged and DD-sized at 1,600-2,500 kWh, and every one of them sat in the year-one
+    # >100% renewal-rise tail. A gaining supplier is handed the old supplier's read-derived EAC
+    # (BSCP504 s3.2.6.51); see `registry_eac_from_own_reads`. Written into the customer record
+    # itself, because the sign-up quote, the roster and EFFECTIVE_EAC_KWH must stay one object.
+    # AFTER the switch verdicts above, deliberately: their legacy counterfactual is the
+    # band-levelled provider and is not this change's subject. Gas is untouched: its AQ IS the
+    # level its settlement uses, so its registry and its demand already agree. Founding
+    # treasury (TOTAL_ELEC_EAC) is sized at import and stays on the drawn bands.
+    _elec_record_of = {c["customer_id"]: c for c in ELEC_CUSTOMERS + SUCCESSOR_ELEC_CUSTOMERS}
+    for _fab_cid, _fab_series in sorted(fabric_series_by_customer.items()):
+        _fab_customer = _elec_record_of[_fab_cid]
+        _own_eac, _own_basis = registry_eac_from_own_reads(
+            fabric_shape_fn(
+                _fab_series, "electricity",
+                battery_dispatch=_fabric_battery_dispatch_for(_fab_cid),
+            ),
+            _fab_series.dates(),
+            _fab_customer["acquisition_date"],
+        )
+        print(f"  registry EAC {_fab_cid} [{_fab_series.heating_commodity}-heated]: drawn "
+              f"{_fab_customer.get('eac_kwh')} -> own reads {_own_eac:.0f} kWh ({_own_basis[:22]})")
+        _fab_customer["eac_kwh"] = round(_own_eac, 1)
+        EFFECTIVE_EAC_KWH[_fab_cid] = _fab_customer["eac_kwh"]
+
     def _lookback_temps_fn(cid):
         weather_means = weather_by_customer[cid]
         return lambda term_start: lookback_mean_temps(weather_means, term_start)
@@ -2878,7 +2906,9 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             # Phase H: adjust base EAC for EV/solar/ASHP at first term.
             # Billing history on renewal terms already reflects actual consumption;
             # the declared-EAC fallback needs the household multiplier.
-            if household_demand_register is not None:
+            # A fabric premise's EAC is already its own reads, assets and EPC included, so the
+            # multiplier that turned a TDCV band into a household would count them twice.
+            if household_demand_register is not None and cid not in fabric_series_by_customer:
                 _elec_mult = household_demand_register.eac_multiplier_for_date(cid, term_start_str)
                 _base_elec_eac = EFFECTIVE_EAC_KWH.get(cid, 0.0)
                 _adj_base_elec = max(1, round(_base_elec_eac * _elec_mult))

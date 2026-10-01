@@ -735,6 +735,57 @@ def fabric_shape_fn(
     return shape_fn
 
 
+
+#: Why a registry EAC is read off the home's own trace rather than drawn from a band. Kept as
+#: the reason string the run prints beside each settled value, so a reader of the log can tell
+#: an own-reads EAC from a trailing-year one that had to borrow the first year of the window.
+OWN_READS_TRAILING = "trailing 365 days of its own metered import before acquisition"
+OWN_READS_FIRST_YEAR = (
+    "first 365 days of its own metered import: acquisition is within a year of the window's "
+    "start, so the trailing year is outside the weather the world holds -- a stable-use proxy, "
+    "right in level, wrong in which winter it saw"
+)
+OWN_READS_LAST_YEAR_HELD = (
+    "last 365 days of the trace: the join is after the window ends, so the account never "
+    "settles here and only a truncated run reaches this"
+)
+
+
+def registry_eac_from_own_reads(
+    shape_fn: Callable[[str], list[float]],
+    trace_dates: Sequence[str],
+    acquisition_date: str,
+) -> tuple[float, str]:
+    """The EAC a gaining supplier is handed for a settled home: that home's own recent use.
+
+    BSCP504 v53.0: the NHHDC recomputes the EAC from each read's Annualised Advance (s3.3.11,
+    App. 4.9) and the new NHHDC takes "the latest EAC" from the old supplier (s3.2.6.51), so a
+    class average is only for a meter with no history. Every premise this world draws is a
+    settled, existing dwelling, so its registry EAC is its trailing-year import -- NOT a TDCV
+    band drawn before and independent of the dwelling, which is what put 1,600-2,500 kWh on
+    electrically heated homes using 10-20 MWh
+    (docs/staging/SEAT_FINDING_A_SETTLED_HOMES_EAC_IS_ITS_OWN_SMOOTHED_READS_AND_THE_WORLD_DRAWS_IT_BLIND_TO_THE_DWELLING_2026-10-01.md).
+
+    IMPORT, through the same `shape_fn` settlement uses: net of PV and the battery, which is
+    what the meter recorded. A LAG-ONLY model with ZERO READ ERROR. App. 4.9 smooths AAs, so a
+    real EAC lags a change of use by a read period or two and carries estimation error; nothing
+    published sizes that error (gap 4 of `what_a_supplier_holds_to_size_a_direct_debit.md`), so
+    none is invented here. Returns `(kwh, basis)`.
+    """
+    dates = sorted(trace_dates)
+    if len(dates) < 365:
+        raise ValueError(
+            f"a registry EAC needs a year of the home's own reads; the trace holds {len(dates)} days"
+        )
+    after_trace = (dt.date.fromisoformat(dates[-1]) + dt.timedelta(days=1)).isoformat()
+    window_close = min(acquisition_date, after_trace)
+    window_open = (dt.date.fromisoformat(window_close) - dt.timedelta(days=365)).isoformat()
+    if window_open < dates[0]:
+        return sum(sum(shape_fn(d)) for d in dates[:365]), OWN_READS_FIRST_YEAR
+    trailing = [d for d in dates if window_open <= d < window_close]
+    basis = OWN_READS_TRAILING if window_close == acquisition_date else OWN_READS_LAST_YEAR_HELD
+    return sum(sum(shape_fn(d)) for d in trailing) * 365 / len(trailing), basis
+
 # ---------------------------------------------------------------------------
 # R15-failable controls
 #

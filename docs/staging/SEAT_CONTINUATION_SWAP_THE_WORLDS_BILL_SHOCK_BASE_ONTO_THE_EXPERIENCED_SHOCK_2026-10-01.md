@@ -47,3 +47,12 @@ make PB4's series two-variable. Its gate was re-checked at origin `c42bae117` an
 It was re-issued with an embargo of 16:00. The swap itself waits on the EAC-tail finding
 (`SEAT_FINDING_THE_YEAR_ONE_SHOCK_TAIL_IS_AN_EAC_A_FRACTION_OF_THE_HOMES_USE_2026-10-01.md`),
 so landing step 3 here also unblocks the SVT exit-route repair.
+
+## The EAC tail is gone, so the swap is unblocked (2026-10-01, claim `settle-the-eac-against-demand-gap-before-pb4s-swap`)
+
+A fabric premise's registry EAC is now its own trailing-year reads. On one world, first-renewal
+shock fell from 17/31 to 3/31, and later renewals did not change on any row:
+`SEAT_FINDING_A_FABRIC_PREMISES_REGISTRY_EAC_IS_NOW_ITS_OWN_READS_AND_YEAR_ONE_SHOCK_IS_SET_BY_AN_UNSIZED_READ_ERROR_2026-10-01.md`.
+Step 3 can now run. Its tenure-1 control must assert that year-one shock is defined and non-zero,
+and not that it equals 0.097. That level is a zero-read-error assumption, and the hazard's surface
+must say so.

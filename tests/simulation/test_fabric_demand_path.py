@@ -1217,3 +1217,87 @@ def test_the_book_control_IS_NOT_AN_ORPHAN_and_the_per_premise_raise_is_gone():
         "the per-premise raise is still live: one premise below the 2% floor still wedges the "
         "whole run, and the book-level control it was replaced by can never be reached"
     )
+
+
+# ---------------------------------------------------------------------------
+# The registry EAC is the home's own reads (2026-10-01)
+# ---------------------------------------------------------------------------
+#
+# The defect: a TDCV band drawn before and blind to the dwelling stood as the registry EAC of
+# electrically heated homes using several times that, and every one of them landed in the
+# year-one >100% renewal-rise tail. BSCP504 s3.2.6.51 hands a gaining supplier the old
+# supplier's read-derived EAC.
+
+
+def _two_level_trace():
+    """2016 uses 10 kWh/day, every later day 30 kWh/day, so the window that was read is
+    visible in the answer."""
+    dates, day = [], dt.date(2016, 1, 1)
+    while day <= dt.date(2018, 12, 31):
+        dates.append(day.isoformat())
+        day += dt.timedelta(days=1)
+
+    def shape_fn(d):
+        return [(10.0 if d < "2017-01-01" else 30.0) / 48] * 48
+
+    return shape_fn, dates
+
+
+def test_a_settled_homes_registry_eac_is_its_trailing_year_of_import():
+    shape_fn, dates = _two_level_trace()
+    kwh, basis = fdp.registry_eac_from_own_reads(shape_fn, dates, "2018-03-01")
+    assert kwh == pytest.approx(30.0 * 365)
+    assert basis == fdp.OWN_READS_TRAILING
+
+
+def test_the_trailing_year_is_read_BEFORE_acquisition_not_after():
+    """Mutation: a window opening at acquisition reads 2017 for a 2017-01-01 join and returns
+    30/day; the year the old supplier actually read was 2016 at 10/day."""
+    shape_fn, dates = _two_level_trace()
+    kwh, basis = fdp.registry_eac_from_own_reads(shape_fn, dates, "2017-01-01")
+    assert basis == fdp.OWN_READS_TRAILING
+    assert kwh == pytest.approx(10.0 * 365)
+
+
+def test_a_join_inside_the_first_year_borrows_the_first_year_and_says_so():
+    shape_fn, dates = _two_level_trace()
+    kwh, basis = fdp.registry_eac_from_own_reads(shape_fn, dates, "2016-06-01")
+    assert basis == fdp.OWN_READS_FIRST_YEAR
+    assert kwh == pytest.approx(10.0 * 365)
+
+
+def test_every_basis_is_reachable_over_one_book():
+    """The partition control: a rule that always borrowed the first year (or never did) would
+    pass whichever single-basis test it happened to match."""
+    shape_fn, dates = _two_level_trace()
+    bases = {fdp.registry_eac_from_own_reads(shape_fn, dates, a)[1]
+             for a in ("2016-03-01", "2017-06-01", "2018-09-01", "2020-01-01")}
+    assert bases == {fdp.OWN_READS_TRAILING, fdp.OWN_READS_FIRST_YEAR, fdp.OWN_READS_LAST_YEAR_HELD}
+
+
+def test_a_join_after_the_trace_ends_reads_the_last_year_held_rather_than_dividing_by_nothing():
+    """Found by the truncated-window run: an account joining after the window ends had an empty
+    trailing window and the rule divided by zero."""
+    shape_fn, dates = _two_level_trace()
+    kwh, basis = fdp.registry_eac_from_own_reads(shape_fn, dates, "2019-11-28")
+    assert basis == fdp.OWN_READS_LAST_YEAR_HELD
+    assert kwh == pytest.approx(30.0 * 365)
+
+
+def test_a_trace_shorter_than_a_year_is_refused_with_its_length():
+    shape_fn, dates = _two_level_trace()
+    with pytest.raises(ValueError, match="holds 100 days"):
+        fdp.registry_eac_from_own_reads(shape_fn, dates[:100], "2016-02-01")
+
+
+def test_the_registry_eac_rule_is_NOT_AN_ORPHAN():
+    """The run must call it, and on the symbol tested here."""
+    import ast
+    import inspect
+
+    from simulation import run_phase2b
+
+    calls = [n for n in ast.walk(ast.parse(inspect.getsource(run_phase2b)))
+             if isinstance(n, ast.Call) and getattr(n.func, "id", None) == "registry_eac_from_own_reads"]
+    assert calls, "run_phase2b no longer sets a fabric premise's registry EAC from its own reads"
+    assert run_phase2b.registry_eac_from_own_reads is fdp.registry_eac_from_own_reads
