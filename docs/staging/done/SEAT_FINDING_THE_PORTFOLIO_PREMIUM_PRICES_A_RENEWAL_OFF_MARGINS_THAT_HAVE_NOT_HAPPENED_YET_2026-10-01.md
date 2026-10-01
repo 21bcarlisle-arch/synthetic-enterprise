@@ -52,3 +52,7 @@ renewal's `term_start`. The append site and the read site both stay in the world
 
 The fix needs its own pre-registered pair of runs, because it moves every renewal's premium. It is
 handed on as the next item.
+
+## Resolved 2026-10-01
+
+Fixed by `EndedTermMargins` in `simulation/run_phase2b.py`. Measured look-ahead before the fix: 0.96 of the lookback (median 1.0). See `SEAT_FINDING_THE_PORTFOLIO_PREMIUM_NOW_READS_ONLY_ENDED_TERMS_AND_THE_FORESIGHT_HAD_BEEN_COSTING_MARGIN_2026-10-01.md`.

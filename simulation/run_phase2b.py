@@ -15,6 +15,7 @@ Key differences from Phase 2a repriced:
 Delegation note: hand-written (orchestration-adjacent, per protocol).
 """
 
+import heapq
 import random
 import statistics
 from collections import defaultdict
@@ -1201,6 +1202,33 @@ def campaign_acquisition_spend_events(report_end: str = REPORT_END) -> list[dict
     ]
 
 
+class EndedTermMargins:
+    """The supplier's realised margin rate per term, per fuel, holding a term back until it has ENDED.
+
+    `main` walks terms in START order and settles each one to its end inside its own iteration, so
+    a list appended at settlement handed a renewal priced in July 2024 the whole-term margin of a
+    term that ran to February 2025: days no supplier has seen. `PORTFOLIO_PREMIUM_LOOKBACK` reads
+    the last N *completed* terms, and this is what makes "completed" true at the moment of reading.
+    Found 2026-10-01 when a 2025-only standing-charge change moved renewals priced in 2024.
+    """
+
+    def __init__(self) -> None:
+        self.electricity: list[float] = []
+        self.gas: list[float] = []
+        self._pending: list[tuple[str, int, str, float]] = []
+        self._sequence = 0
+
+    def settled(self, last_settled_day: str, commodity: str, margin_rate: float) -> None:
+        heapq.heappush(self._pending, (last_settled_day[:10], self._sequence, commodity, margin_rate))
+        self._sequence += 1
+
+    def as_of(self, day: str) -> None:
+        """Release, in end order, every term whose last settled day is before `day`."""
+        while self._pending and self._pending[0][0] < day[:10]:
+            _, _, commodity, rate = heapq.heappop(self._pending)
+            (self.electricity if commodity == "electricity" else self.gas).append(rate)
+
+
 def main(report_end: str | None = None, policy: DecisionPolicy | None = None,
          gap_ledger_path=None):
     """Run one simulation under its own fresh competitive-pressure ledger.
@@ -1775,8 +1803,10 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
     CRISIS_HANGOVER_LOSS_THRESHOLD = 0.20  # trigger: net loss > 20% of term revenue
 
     # Phase 17a + 19a: rolling portfolio-wide margin rates for learning premium
-    portfolio_elec_margin_rates: list[float] = []
-    portfolio_gas_margin_rates: list[float] = []  # Phase 19a: separate gas tracking
+    # Released only once a term has ended: see `EndedTermMargins`.
+    _portfolio_margins = EndedTermMargins()
+    portfolio_elec_margin_rates = _portfolio_margins.electricity
+    portfolio_gas_margin_rates = _portfolio_margins.gas  # Phase 19a: separate gas tracking
     dynamic_pricing_log: list[dict] = []
     # THE COMPANY'S RECORD OF ITS OWN BOOK, ACCOUNT-SHAPED (2026-09-06). Every other customer log
     # in this run is EVENT-shaped: it exists because a renewal fired, an offer was made, a journey
@@ -1951,6 +1981,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         # apart with the margin history mutable between them; taking one reading is what makes
         # the recorded figure the one the rate was actually struck against, and not a second
         # reading that agrees today.
+        _portfolio_margins.as_of(term_start_str)
         _position = portfolio_position(
             portfolio_elec_margin_rates if commodity == "electricity"
             else portfolio_gas_margin_rates
@@ -3373,10 +3404,9 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         if commodity == "electricity" and term_revenue > 0 and actual_net / term_revenue < -CRISIS_HANGOVER_LOSS_THRESHOLD:
             hangover_remaining[cid] = crisis_hangover_periods()
         if term_revenue > 0:
-            if commodity == "electricity":
-                portfolio_elec_margin_rates.append(actual_net / term_revenue)
-            else:
-                portfolio_gas_margin_rates.append(actual_net / term_revenue)  # Phase 19a
+            _portfolio_margins.settled(
+                max(r["settlement_date"] for r in settled_this_term), commodity, actual_net / term_revenue,
+            )
 
         # KNIFE3 step 23 (§3r): the backward-looking arm of the SAME desk — was the
         # hedge worth paying for, and where does that put next term's opening.
