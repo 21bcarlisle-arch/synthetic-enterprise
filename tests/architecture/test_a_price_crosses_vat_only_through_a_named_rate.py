@@ -11,11 +11,12 @@ created, and the next one will not announce itself.
 
 WHAT IS SANCTIONED. A gross-up or de-VAT is `amount * (1 + RATE)` or `amount / (1 + RATE)`, where
 RATE resolves to one of `SANCTIONED_RATES`: `simulation.price_cap_enforcement.DOMESTIC_VAT_RATE`
-(the world's side, with `household_price_inc_vat` and the `_ex_vat` cap accessor built on it),
-`company.pricing.tariff_comparison.VAT_RATE_DOMESTIC` (the company's), and
-`company.compliance.domain_invariants.vat_rate_for_segment` (the invariant library's
-segment-aware rate). Three homes for one number is itself a debt; `test_the_sanctioned_homes_agree`
-is what stops it becoming three answers.
+(the world's side, with `household_price_inc_vat` and the `_ex_vat` cap accessor built on it) or
+`company.compliance.domain_invariants.vat_rate_for_segment` (the company's). Neither declares the
+figure: both read `docs/domain_artefact_library/regulatory/uk_vat_rates.json`, one reader on each
+side of the wall because neither tree may import the other. Until 2026-10-01 there were three
+literal 0.05s (the third was `tariff_comparison.VAT_RATE_DOMESTIC`, now deleted);
+`test_the_rate_is_declared_only_in_the_commons` stops a literal home coming back.
 
 WHAT IS NOT CAUGHT, said so nobody reads more into green than it holds: `x + x * 0.05`; a factor
 assembled in one statement and applied in another (`f = 1.05` then `p * f`); invoice VAT LINES
@@ -27,13 +28,19 @@ EACH TEST NAMES ITS OWN DEFECT:
   * `test_every_vat_factor_names_a_sanctioned_rate` — `vat = 0.05; p * (1 + vat)`: a seventh home.
   * `test_the_detector_can_fire` — a scan that walks nothing is green; it must flag a known stray
     and must reach real factors in BOTH trees.
-  * `test_the_sanctioned_homes_agree` — three homes drifting apart.
+  * `test_the_rate_is_declared_only_in_the_commons` — `VAT_RATE_DOMESTIC = 0.05` in a module, or
+    `VAT_RESIDENTIAL = RateInvariant(value=0.05)`: a literal home that can drift from the law.
 
 R15 MUTATIONS, each applied to the tree and reverted (2026-10-01):
   * `* 1.05` appended to `simulation/svt_product.py`'s de-VAT line -> the bare-factor test red.
   * `DOMESTIC_VAT_RATE` in `simulation/experienced_bill_shock.py` replaced by a local
     `_VAT = 0.05` -> the sanctioned-rate test red.
   * `_bare_factor` returning False -> `test_the_detector_can_fire` red.
+  Merge to the commons (2026-10-01), each applied and reverted:
+  * `VAT_RATE_DOMESTIC = 0.05` re-added to `company/pricing/tariff_comparison.py` -> the
+    declared-only-in-the-commons test red.
+  * `VAT_RESIDENTIAL`'s `value=VAT_RATES["reduced"]` replaced by `value=0.05` -> the same test red.
+  * `declared_rates` returning `[]` -> the same test red, on its own can-fire assertions.
 """
 from __future__ import annotations
 
@@ -48,11 +55,13 @@ SCOPE = ("simulation", "company")
 #: (or used inside it), is the sanctioned route.
 SANCTIONED_RATES: dict[str, str] = {
     "DOMESTIC_VAT_RATE": "simulation.price_cap_enforcement",
-    "VAT_RATE_DOMESTIC": "company.pricing.tariff_comparison",
     "vat_rate_for_segment": "company.compliance.domain_invariants",
 }
-#: The homes themselves may take their rate as a parameter (`tariff_comparison`'s `vat_rate=`).
-HOMES = {m.replace(".", "/") + ".py" for m in SANCTIONED_RATES.values()}
+#: The homes, and modules that take their rate as a parameter (`tariff_comparison`'s `vat_rate=`,
+#: defaulted from `vat_rate_for_segment`), may write `(1 + vat_rate)` on a local name.
+HOMES = {m.replace(".", "/") + ".py" for m in SANCTIONED_RATES.values()} | {
+    "company/pricing/tariff_comparison.py"}
+VAT_RATES_COMMONS = PROJECT / "docs/domain_artefact_library/regulatory/uk_vat_rates.json"
 
 _VAT_NAME = re.compile(r"(^|_)vat(_|$)", re.I)
 _VAT_FACTOR = 1.05
@@ -132,7 +141,7 @@ def test_no_price_is_grossed_or_de_vatted_by_a_bare_factor():
     assert not bare, (
         "a price is grossed up or de-VATed by a literal factor; route it through "
         "`price_cap_enforcement.household_price_inc_vat` / `binding_cap_unit_rate_gbp_per_mwh_ex_vat` "
-        "or `(1 + VAT_RATE_DOMESTIC)`:\n  " + "\n  ".join(bare))
+        "or `(1 + vat_rate_for_segment(segment))`:\n  " + "\n  ".join(bare))
 
 
 def test_every_vat_factor_names_a_sanctioned_rate():
@@ -156,8 +165,42 @@ def test_the_detector_can_fire():
     assert all(seen.values()), f"the scan reached no sanctioned VAT factor in some tree: {seen}"
 
 
-def test_the_sanctioned_homes_agree():
+def _is_rate(node: ast.AST) -> bool:
+    return (isinstance(node, ast.Constant) and isinstance(node.value, (int, float))
+            and not isinstance(node.value, bool) and 0.0 < node.value < 1.0)
+
+
+def declared_rates(source: str, rel: str) -> list[str]:
+    """`X_VAT_Y = 0.05`, or `VAT_X = SomeInvariant(value=0.05)`: a VAT rate typed as a literal."""
+    out = []
+    for node in ast.walk(ast.parse(source)):
+        if not isinstance(node, (ast.Assign, ast.AnnAssign)) or node.value is None:
+            continue
+        targets = node.targets if isinstance(node, ast.Assign) else [node.target]
+        if not any(_vat_name(t) for t in targets):
+            continue
+        value = node.value
+        if _is_rate(value) or (isinstance(value, ast.Call) and any(
+                k.arg == "value" and _is_rate(k.value) for k in value.keywords)):
+            out.append(f"{rel}:{node.lineno}: {ast.unparse(node)[:100]}")
+    return out
+
+
+def test_the_rate_is_declared_only_in_the_commons():
+    import json
+
     from company.compliance.domain_invariants import vat_rate_for_segment
-    from company.pricing.tariff_comparison import VAT_RATE_DOMESTIC
     from simulation.price_cap_enforcement import DOMESTIC_VAT_RATE
-    assert DOMESTIC_VAT_RATE == VAT_RATE_DOMESTIC == vat_rate_for_segment("resi")
+    law = json.loads(VAT_RATES_COMMONS.read_text())["rates"]["reduced"]["rate"]
+    assert DOMESTIC_VAT_RATE == vat_rate_for_segment("resi") == law
+
+    assert declared_rates("VAT_RATE_DOMESTIC = 0.05\n", "company/x.py")
+    assert declared_rates("VAT_RESIDENTIAL = RateInvariant(id='v', value=0.05)\n", "company/x.py")
+    assert not declared_rates("SME_VAT_DE_MINIMIS_KWH_PER_DAY = 33.0\n", "company/x.py")
+    declared = [hit for root in SCOPE for path in sorted((PROJECT / root).rglob("*.py"))
+                for hit in declared_rates(path.read_text(encoding="utf-8"),
+                                          path.relative_to(PROJECT).as_posix())]
+    assert not declared, (
+        "a VAT rate is typed as a literal; read it from the commons through "
+        "`DOMESTIC_VAT_RATE` (world) or `vat_rate_for_segment` (company):\n  "
+        + "\n  ".join(declared))

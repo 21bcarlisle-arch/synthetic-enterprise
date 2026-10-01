@@ -153,11 +153,27 @@ _FIRST_CAPPED_DAY = PUBLISHED_CAP_WINDOWS[0]["from"]
 _FUEL_KEY = {"electricity": "elec", "gas": "gas"}
 
 
-#: Domestic supply is VAT-rated at 5% (VATA 1994 Sch 7A Group 1, the reduced
-#: rate for domestic fuel and power). The published cap levels are inc-VAT at
-#: this rate — the commons artefact says so in its own `basis` block — so this
-#: is the factor, and the ONLY factor, that separates the two accessors below.
-DOMESTIC_VAT_RATE = 0.05
+def _load_reduced_vat_rate() -> float:
+    """The reduced VAT band from the commons (`uk_vat_rates.json`). Raises rather than defaulting.
+
+    The figure is declared ONCE, in that artefact. The company reads the same file through
+    `company.billing.dual_fuel_bill.VAT_RATES`; this is the world's reader of it, separate for the
+    reason the cap-window loader above gives. Until 2026-10-01 there were three literal 0.05s in
+    the code (here, `tariff_comparison`, `domain_invariants`), held together only by a test that
+    they agreed.
+    """
+    artefact = _CAP_WINDOWS_ARTEFACT.with_name("uk_vat_rates.json")
+    rate = json.loads(artefact.read_text())["rates"]["reduced"]["rate"]
+    if not isinstance(rate, (int, float)) or not 0.0 < rate < 1.0:
+        raise ValueError(f"{artefact} carries no usable reduced rate: {rate!r}")
+    return float(rate)
+
+
+#: Domestic supply is VAT-rated at the reduced rate (VATA 1994 Sch 7A Group 1,
+#: domestic fuel and power). The published cap levels are inc-VAT at this rate —
+#: the cap commons artefact says so in its own `basis` block — so this is the
+#: factor, and the ONLY factor, that separates the two accessors below.
+DOMESTIC_VAT_RATE = _load_reduced_vat_rate()
 
 
 def _window_for(on_date: date) -> dict:

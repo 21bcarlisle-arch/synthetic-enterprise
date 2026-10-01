@@ -564,13 +564,16 @@ def test_a_strike_once_VAT_is_added_never_exceeds_the_PUBLISHED_cap():
     search. The strikes run from inside the gap between the two caps to above the inc-VAT cap. The
     gap is the case the old ceiling let through, so the test first asserts that a strike inside it
     exists and is clamped.
-    MUTATION: drop the `/ (1.0 + VAT_RATE_DOMESTIC)` in `cap_ceiling_ex_vat` and every leg reds.
+    MUTATION: drop the `/ (1.0 + vat_rate_for_segment("resi"))` in `cap_ceiling_ex_vat` and every leg reds.
     """
     from datetime import date as _date
 
-    from company.compliance.domain_invariants import check_sold_unit_rate_within_cap
+    from company.compliance.domain_invariants import (
+        check_sold_unit_rate_within_cap,
+        vat_rate_for_segment,
+    )
     from company.pricing.ofgem_price_cap import get_cap_unit_rate_for_date
-    from company.pricing.tariff_comparison import VAT_RATE_DOMESTIC
+    VAT_RATE_DOMESTIC = vat_rate_for_segment("resi")
 
     published = get_cap_unit_rate_for_date("electricity", _date(2021, 6, 1))
     ex_vat = published / (1.0 + VAT_RATE_DOMESTIC)

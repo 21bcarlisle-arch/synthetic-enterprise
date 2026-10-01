@@ -9,11 +9,11 @@ Epistemic constraint: uses only observable forward prices. No simulation
 internals, no SIM cost parameters, no hedge fraction knowledge.
 """
 
+from company.compliance.domain_invariants import vat_rate_for_segment
+
 STANDING_CHARGE_RESI_P_PER_DAY = 53.0   # Ofgem average 2024 (published)
 STANDING_CHARGE_SME_P_PER_DAY = 60.0
 STANDING_CHARGE_IC_P_PER_DAY = 0.0       # I&C bespoke, no published default
-VAT_RATE_DOMESTIC = 0.05
-VAT_RATE_BUSINESS = 0.20
 
 _TARIFF_OPTIONS = [
     ("Fixed 1 Year", 12, 8.0),
@@ -31,13 +31,13 @@ def _standing_charge(segment: str) -> float:
 
 
 def _vat_rate(segment: str) -> float:
-    return VAT_RATE_DOMESTIC if segment == "resi" else VAT_RATE_BUSINESS
+    return vat_rate_for_segment(segment)
 
 
 def unit_rate_from_forward(
     forward_gbp_per_mwh: float,
     markup_pct: float = 8.0,
-    vat_rate: float = VAT_RATE_DOMESTIC,
+    vat_rate: float = vat_rate_for_segment("resi"),
 ) -> float:
     """Unit rate in pence per kWh (inc VAT) from a forward price in £/MWh."""
     base_gbp_per_kwh = forward_gbp_per_mwh / 1000.0

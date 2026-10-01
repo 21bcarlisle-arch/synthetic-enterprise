@@ -82,11 +82,11 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from datetime import date
 
+from company.compliance.domain_invariants import vat_rate_for_segment
 from company.interfaces.customer_profitability import renewal_unit_rate_uplift
 from company.policy.decision_policy import active_policy
 from company.pricing.margin_feedback import compute_margin_surcharge
 from company.pricing.ofgem_price_cap import get_cap_unit_rate_for_date
-from company.pricing.tariff_comparison import VAT_RATE_DOMESTIC
 from company.pricing.tariff_engine import (
     PORTFOLIO_PREMIUM_LOOKBACK,
     compute_portfolio_premium,
@@ -111,7 +111,7 @@ def cap_ceiling_ex_vat(commodity: str, on_date: date) -> float | None:
     The world's `hedged_settlement` fixed the same defect on 2026-08-25.
     """
     inc_vat = get_cap_unit_rate_for_date(commodity, on_date)
-    return None if inc_vat is None else inc_vat / (1.0 + VAT_RATE_DOMESTIC)
+    return None if inc_vat is None else inc_vat / (1.0 + vat_rate_for_segment("resi"))
 
 # The premium and the surcharge both learn from COMPLETED terms, so neither can
 # apply to a customer's first one. The world used to spell this as

@@ -29,19 +29,24 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import date, datetime, timedelta
-from decimal import Decimal, ROUND_HALF_UP
+from decimal import ROUND_HALF_UP, Decimal
 from math import isfinite
 from typing import Optional
 
 from company.billing.back_billing import BackBillingAssessment, BackBillingReason
+from company.billing.dual_fuel_bill import VAT_RATES
+from company.compliance.segment_debt_policy import (
+    LPCDCA_EFFECTIVE_FROM,
+)
+from company.compliance.segment_debt_policy import (
+    check_debt_terms_lawful_for_segment as _check_debt_terms_lawful_for_segment,
+)
+from company.compliance.segment_debt_policy import (
+    select_debt_terms as _select_debt_terms,
+)
 from company.pricing.ofgem_price_cap import (
     get_cap_unit_rate_for_date,
     get_cap_unit_rate_gbp_per_mwh,
-)
-from company.compliance.segment_debt_policy import (
-    LPCDCA_EFFECTIVE_FROM,
-    check_debt_terms_lawful_for_segment as _check_debt_terms_lawful_for_segment,
-    select_debt_terms as _select_debt_terms,
 )
 
 _CAP_ANCHOR_YEARS = range(2019, 2026)
@@ -155,11 +160,13 @@ class YearlyRangeInvariant:
 
 VAT_RESIDENTIAL = RateInvariant(
     id="vat_residential", description="VAT rate for residential energy supply",
-    source="HMRC VAT Notice 701/19 (reduced domestic rate)", value=0.05,
+    source="HMRC VAT Notice 701/19 (reduced domestic rate); gov.uk/vat-rates via the commons",
+    value=VAT_RATES["reduced"],
 )
 VAT_SME = RateInvariant(
     id="vat_sme", description="VAT rate for SME/non-domestic energy supply",
-    source="HMRC (standard rate; de minimis <33kWh/day not modelled)", value=0.20,
+    source="HMRC (standard rate; de minimis <33kWh/day not modelled); gov.uk/vat-rates via the commons",
+    value=VAT_RATES["standard"],
 )
 STANDING_CHARGE_ELEC_RESI = RangeInvariant(
     id="standing_charge_elec_resi", description="Electricity standing charge, residential",

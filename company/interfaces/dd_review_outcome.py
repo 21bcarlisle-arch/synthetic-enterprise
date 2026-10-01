@@ -196,18 +196,16 @@ def opening_monthly_amount(
         estimate_annual_consumption,
         opening_monthly_dd_gbp,
     )
+    from company.compliance.domain_invariants import vat_rate_for_segment
     from company.pricing.ofgem_price_cap import get_cap_unit_rate_for_date
-    from company.pricing.tariff_comparison import (
-        STANDING_CHARGE_RESI_P_PER_DAY,
-        VAT_RATE_DOMESTIC,
-    )
+    from company.pricing.tariff_comparison import STANDING_CHARGE_RESI_P_PER_DAY
 
     as_of = date.fromisoformat(as_of_iso)
 
     if contracted_unit_rate_per_mwh_ex_vat is not None:
         # Grossed up so this path stays on the cap's inc-VAT basis: one variable
         # (the rate's LEVEL) moves, not the basis as well.
-        rate_per_mwh_inc_vat = contracted_unit_rate_per_mwh_ex_vat * (1.0 + VAT_RATE_DOMESTIC)
+        rate_per_mwh_inc_vat = contracted_unit_rate_per_mwh_ex_vat * (1.0 + vat_rate_for_segment("resi"))
     else:
         rate_per_mwh_inc_vat = get_cap_unit_rate_for_date(commodity, as_of)
     if rate_per_mwh_inc_vat is None:
@@ -231,6 +229,6 @@ def opening_monthly_amount(
             STANDING_CHARGE_RESI_P_PER_DAY
             if contracted_standing_charge_per_day_ex_vat is None
             # major unit/day -> minor unit/day, grossed onto the quote's inc-VAT basis.
-            else contracted_standing_charge_per_day_ex_vat * 100.0 * (1.0 + VAT_RATE_DOMESTIC)
+            else contracted_standing_charge_per_day_ex_vat * 100.0 * (1.0 + vat_rate_for_segment("resi"))
         ),
     )

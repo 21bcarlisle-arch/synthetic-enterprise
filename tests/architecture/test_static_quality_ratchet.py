@@ -785,7 +785,9 @@ RUFF_BASELINE: dict[str, int] = {
     #             a `git archive HEAD` extract overlaid with exactly this commit's files: 1326 there
     #             against 1328 at clean HEAD. A baseline frozen from the dirty tree would red the
     #             live-tree control the moment this landed alone.  SHRINK-ONLY.
-    "I001": 1302,  # lowered 2026-10-01: tests/tools/test_couple_clv.py, whose import block
+    "I001": 1301,  # lowered 2026-10-01: company/compliance/domain_invariants.py, sorted when the
+    #             VAT rates moved to the commons (read in a clean worktree). Previously 1302,
+    #             lowered 2026-10-01: tests/tools/test_couple_clv.py, whose import block
     #             sorted once a stray blank line went. Previously 1303,
     #             lowered 2026-09-27 (see the SHRINK LOG head). Previously 1304,
     #             lowered 2026-09-27 (see the SHRINK LOG head). Previously 1305,
@@ -924,6 +926,7 @@ RUFF_BASELINE: dict[str, int] = {
     "invalid-syntax": 1,
 }
 RUFF_BASELINE_TOTAL = 2277  # 2278 -> 2277 on 2026-10-01: the I001 above, `tests/tools/test_couple_clv.py`.
+RUFF_BASELINE_TOTAL -= 1  # 2277 -> 2276 on 2026-10-01: the I001 above, `company/compliance/domain_invariants.py`.
 # 2279 -> 2278 on 2026-09-30: the F841 above. 2280 -> 2279 on 2026-09-27: the I001 above, `background/file_api.py`,
 # whose top import block sorted once the retired /query leg's `httpx` import went.
 # 2281 -> 2280 on 2026-09-27: the I001 above, the whole of
