@@ -955,3 +955,59 @@ def test_no_public_entry_point_lets_latitude_default_to_the_national_mean():
             f"{parameter.default!r} — a caller that forgets it silently gets the "
             "national mean instead of its own site's solar geometry"
         )
+
+
+def _reference_solve(*, temperature_min_c, temperature_max_c, temperature_mean_c,
+                     day_of_year, latitude_deg):
+    """The solve as it stood before 2026-10-01: `_diurnal_shape` per sample, all 80 steps."""
+    sunrise, sunset = fabric_physics.daylight_hours(latitude_deg, day_of_year)
+    peak_hour = min(12.0 + (sunset - 12.0) / 2.0 + 2.0, sunrise + 23.0)
+    swing = temperature_max_c - temperature_min_c
+    hours = [(p + 0.5) * 0.5 for p in range(PERIODS_PER_DAY)]
+
+    def mean_at(k):
+        shapes = [fabric_physics._diurnal_shape(h, sunrise, peak_hour, k) for h in hours]
+        return temperature_min_c + swing * (sum(shapes) / len(shapes))
+
+    if swing <= 0.0:
+        return 1.0
+    lo, hi = fabric_physics._SHAPE_K_MIN, fabric_physics._SHAPE_K_MAX
+    if temperature_mean_c >= mean_at(lo):
+        return lo
+    if temperature_mean_c <= mean_at(hi):
+        return hi
+    for _ in range(80):
+        mid = 0.5 * (lo + hi)
+        if mean_at(mid) > temperature_mean_c:
+            lo = mid
+        else:
+            hi = mid
+    return 0.5 * (lo + hi)
+
+
+def test_the_hoisted_solve_is_BIT_IDENTICAL_to_the_per_sample_solve():
+    """The hoisted inner loop and the fixed-point stop exist for speed alone (the solve was 85% of
+    a truncated `run_phase2b`), so the only acceptable difference is NONE: equality, not
+    `approx`, over days spanning the flat, clamped and interior branches.
+
+    MUTATION (must fire): stop the bisection at `hi - lo < 1e-9` instead of the float fixed
+    point -- over 20,000 such days that moved 5,509 of them.
+    """
+    import random
+
+    rng = random.Random(20261001)
+    compared = 0
+    for _ in range(3000):
+        lo = rng.uniform(-15.0, 25.0)
+        hi = lo + rng.choice([0.0, rng.uniform(0.0, 20.0)])
+        frac = rng.choice([rng.uniform(0.0, 1.0), rng.uniform(0.2, 0.85), 0.0, 1.0])
+        day = dict(temperature_min_c=lo, temperature_max_c=hi,
+                   temperature_mean_c=lo + (hi - lo) * frac,
+                   day_of_year=rng.randint(1, 366), latitude_deg=rng.uniform(49.9, 60.8))
+        try:
+            got = fabric_physics.reconstruct_ambient_profile(**day).decay_k
+        except ValueError:
+            continue  # an irreconcilable day raises on both paths; the solve is not the subject
+        assert got == _reference_solve(**day), day
+        compared += 1
+    assert compared > 2000, "the partition stopped reaching the solve: {}".format(compared)

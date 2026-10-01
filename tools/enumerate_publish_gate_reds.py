@@ -52,7 +52,7 @@ if str(PROJECT_DIR) not in sys.path:
     sys.path.insert(0, str(PROJECT_DIR))
 
 from background import process_run_complete as prc  # noqa: E402
-from background import publish_scope  # noqa: E402
+from background import publish_scope, resource_headroom  # noqa: E402
 
 # Its own prefix, deliberately NOT `publish-gate-head-`: `_sweep_stale_head_checkouts` owns
 # that namespace "and nothing else", and a census tree living inside the publisher's
@@ -71,6 +71,8 @@ DEFAULT_DEADLINE_SECONDS = 5400
 OUTCOME_COMPLETE = "complete"
 OUTCOME_TIMEOUT = "timeout"
 OUTCOME_UNAVAILABLE = "unavailable"
+#: The memory governor declined to start the run. Nothing was enumerated; ask again later.
+OUTCOME_DEFERRED = "deferred"
 
 
 def _argv_without_fail_fast(argv):
@@ -129,6 +131,14 @@ def _materialise_census_checkout(head_sha: str):
 
 
 def run_census(deadline_seconds=DEFAULT_DEADLINE_SECONDS, keep_checkout=False):
+    """Ask the memory governor first; the whole run holds a `census` reservation once admitted."""
+    with resource_headroom.admitted("census") as admission:
+        if not admission["admitted"]:
+            return {"outcome": OUTCOME_DEFERRED, "reason": admission["reason"]}
+        return _run_census_admitted(deadline_seconds, keep_checkout)
+
+
+def _run_census_admitted(deadline_seconds, keep_checkout):
     started_wall = time.time()
     head_sha = prc._head_sha()
     if head_sha is None:
@@ -209,6 +219,9 @@ def main(argv=None):
     if census["outcome"] == OUTCOME_UNAVAILABLE:
         print("  {}".format(census.get("reason")))
         return 2
+    if census["outcome"] == OUTCOME_DEFERRED:
+        print("  {}".format(census.get("reason")))
+        return 4
     print("  HEAD {}  rc={}  {}s (deadline {}s)".format(
         census["head_sha"], census["rc"], census["elapsed_seconds"], census["deadline_seconds"]))
     print("  scope: {}".format(census["scope_reason"]))

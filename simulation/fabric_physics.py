@@ -386,8 +386,31 @@ def reconstruct_ambient_profile(
 
     sample_hours = [(p + 0.5) * 0.5 for p in range(PERIODS_PER_DAY)]
 
+    # THE SOLVE'S INNER LOOP, HOISTED (2026-10-01). Only `k` changes across the ~80 bisection
+    # steps, so each sample's position on the cycle -- the rise's `sin` base, or the fall's `v` --
+    # is computed once here, and `exp(-k)` once per step rather than twice per sample. Every term
+    # is the SAME float expression `_diurnal_shape` evaluates, summed in the same order, so the
+    # solve is bit-identical to calling it per sample (differential over real archive days in
+    # `tests/simulation/test_fabric_physics.py`); it was 85% of a truncated `run_phase2b`.
+    rise_span = peak_hour - sunrise
+    fall_span = 24.0 - rise_span
+    positions: list[tuple[bool, float]] = []
+    for h in sample_hours:
+        u = (h - sunrise) % 24.0
+        if u <= rise_span:
+            positions.append((True, math.sin(math.pi / 2.0 * (u / rise_span))))
+        else:
+            positions.append((False, (u - rise_span) / fall_span))
+
     def mean_at(k: float) -> float:
-        shapes = [_diurnal_shape(h, sunrise, peak_hour, k) for h in sample_hours]
+        rise_exponent = _rise_exponent(k)
+        if abs(k) < 1e-9:
+            shapes = [x ** rise_exponent if rising else 1.0 - x for rising, x in positions]
+        else:
+            tail = math.exp(-k)
+            norm = 1.0 - tail
+            shapes = [x ** rise_exponent if rising else (math.exp(-k * x) - tail) / norm
+                      for rising, x in positions]
         return temperature_min_c + swing * (sum(shapes) / len(shapes))
 
     # A flat day (max == min) has no shape to solve; any k gives the same series.
@@ -404,6 +427,10 @@ def reconstruct_ambient_profile(
         else:
             for _ in range(80):
                 mid = 0.5 * (lo + hi)
+                if mid == lo or mid == hi:
+                    # A float fixed point: every remaining step leaves 0.5 * (lo + hi) == mid,
+                    # so stopping here returns the value the full 80 steps would.
+                    break
                 if mean_at(mid) > temperature_mean_c:
                     lo = mid
                 else:
