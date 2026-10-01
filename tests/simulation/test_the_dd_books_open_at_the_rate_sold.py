@@ -11,7 +11,12 @@ import ast
 import inspect
 
 from simulation import run_phase4c_on_phase2b as run4c
-from simulation.experienced_bill_shock import sold_unit_rate
+from simulation.experienced_bill_shock import (
+    opening_monthly_for_household,
+    sold_standing_charge,
+    sold_unit_rate,
+)
+from simulation.household import household_of
 
 _PRE_CAP = {"customer_id": "C-PRE", "acquisition_date": "2016-03-01",
             "commodity": "electricity", "eac_kwh": 3100.0}
@@ -62,3 +67,25 @@ def test_the_run_hands_its_settlement_book_to_the_dd_opening():
              and getattr(n.func, "id", None) == "_opening_dd_by_customer"]
     assert len(calls) == 1
     assert len(calls[0].args) == 2 and getattr(calls[0].args[1], "id", None) == "all_records"
+
+
+def _with_standing_charge(rows: list[dict], gbp_per_day: float) -> list[dict]:
+    return [{**r, "standing_charge_gbp": gbp_per_day} for r in rows]
+
+
+def test_the_opening_is_sized_at_the_standing_charge_on_the_first_bill():
+    """Defect: the books quote the door's 53p 2024 charge while the bill shock quotes the first
+    bill's (22p gas in 2016), so the two disagree about what the household was told. The charge
+    sold must move the opening, an account whose first month carries none must keep the fallback,
+    and the books must quote exactly what the bill shock quotes for the same leg."""
+    low = _with_standing_charge(_first_month("C-POST", "2021-03", 120.0), 0.20)
+    high = _with_standing_charge(_first_month("C-POST", "2021-03", 120.0), 0.80)
+    assert sold_standing_charge("C-POST", low) == 0.20
+    at_low = run4c._opening_dd_by_customer([_POST_CAP], low)["C-POST"]
+    at_high = run4c._opening_dd_by_customer([_POST_CAP], high)["C-POST"]
+    no_charge = run4c._opening_dd_by_customer([_POST_CAP], _RECORDS)["C-POST"]
+    assert at_low < no_charge < at_high
+    leg = {**_POST_CAP, "customer_id": "C9"}
+    rows = [{**r, "customer_id": "C9"} for r in low]
+    assert run4c._opening_dd_by_customer([leg], rows)["C9"] == opening_monthly_for_household(
+        household_of("C9"), [leg], rows)
