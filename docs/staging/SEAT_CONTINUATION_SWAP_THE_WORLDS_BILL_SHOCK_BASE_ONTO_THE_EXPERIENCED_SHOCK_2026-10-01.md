@@ -38,3 +38,12 @@ not work. The shock is defined at only 4 of 36 first renewals, because the quote
 a price cap that does not exist before 2019. **Step 3 (the swap) is blocked** until the opening DD
 is priced at the rate the supplier sold at:
 `SEAT_FINDING_THE_EXPERIENCED_BILL_SHOCK_IS_STILL_BLIND_IN_YEAR_ONE_BECAUSE_THE_QUOTE_IS_PRICED_AT_A_CAP_THAT_DID_NOT_EXIST_2026-10-01.md`.
+
+## Waiting on this swap (2026-10-01 10:40, autonomous worker)
+
+`remove-the-svt-anniversary-departure-roll-once-pb4-swap-has-run` cannot start until this swap
+has had its own one-world run on origin. It is gated on that run so that the churn change does not
+make PB4's series two-variable. Its gate was re-checked at origin `c42bae117` and does not hold.
+It was re-issued with an embargo of 16:00. The swap itself waits on the EAC-tail finding
+(`SEAT_FINDING_THE_YEAR_ONE_SHOCK_TAIL_IS_AN_EAC_A_FRACTION_OF_THE_HOMES_USE_2026-10-01.md`),
+so landing step 3 here also unblocks the SVT exit-route repair.
