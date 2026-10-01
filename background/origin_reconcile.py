@@ -1613,6 +1613,11 @@ def _drop_worktree(project: Path, path: Path) -> None:
         pass
 
 
+#: (the tag each `commit-msg` gate prefixes its refusal with, the gate it names)
+_MESSAGE_GATES = (("[next-step-gate]", "NEXT: gate (tools/next_step_gate.py)"),
+                  ("[write-time-gate]", "REUSE gate (tools/write_time_gate.py)"))
+
+
 def _classify_merge_failure(output: str) -> tuple[str, str]:
     """Which refusal the gated merge door gave. The two mean different things to a reader.
 
@@ -1622,6 +1627,17 @@ def _classify_merge_failure(output: str) -> tuple[str, str]:
     """
     if "MERGE CONFLICT" in output:
         return REFUSED_CONFLICT, output.split("MERGE CONFLICT", 1)[1].strip()[:400]
+    if "MESSAGE GATE RED" in output:
+        # NAME THE GATE AND QUOTE IT. `surgical_land`'s header for this refusal is ~380 characters
+        # of boilerplate, so the 400-character cut below kept the boilerplate and dropped the
+        # verdict: from 2026-10-01 09:43 the log read "<the gate produced no ou" for every cycle
+        # while `next_step_gate` was printing exactly why on stderr.
+        for tag, gate in _MESSAGE_GATES:
+            if tag in output:
+                said = output.split(tag, 1)[1].strip()
+                return REFUSED_GATE, "the `commit-msg` chain's {} refused this merge's message: {}{}".format(
+                    gate, tag, " " + said[:600])
+        return REFUSED_GATE, output.split("MESSAGE GATE RED", 1)[1].strip()[-600:]
     if "GATE RED" in output:
         return REFUSED_GATE, output.split("GATE RED", 1)[1].strip()[:400]
     return ERROR, output.strip()[-400:]

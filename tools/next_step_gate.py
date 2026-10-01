@@ -123,6 +123,7 @@ if str(PROJECT) not in sys.path:
 # where this import cannot resolve is a tree where the pre-commit chain was already refusing.
 from tools.level_promotion_gate import _staged_names, _whole_map, atom_levels  # noqa: E402
 from tools.maturity_map_store import MAP_PARTS_REL  # noqa: E402
+from tools.write_time_gate import merging_parents  # noqa: E402
 
 #: `NEXT:` at the start of a line, case-insensitive, to the end of that line.
 _NEXT_RE = re.compile(r"^\s*NEXT:\s*(.+?)\s*$", re.IGNORECASE | re.MULTILINE)
@@ -250,7 +251,30 @@ def staged_level_moves() -> dict[str, tuple[int, int]]:
     old_text = _whole_map("HEAD:")
     # A repo with no HEAD (the very first commit) has no baseline, so nothing has MOVED. That is a
     # different statement from "the map could not be read", and it must not be reported as one.
-    return atoms_whose_level_moved(old_text or "", new_text)
+    moved = atoms_whose_level_moved(old_text or "", new_text)
+    return moves_no_parent_carried(moved, new_text, merging_parents(), _whole_map)
+
+
+def moves_no_parent_carried(moved: dict[str, tuple[int, int]], new_text: str,
+                            parents: list[str], map_at) -> dict[str, tuple[int, int]]:
+    """Drop the moves an OTHER merge parent already carries. Outside a merge, `moved` unchanged.
+
+    THE SAME WRONG QUESTION `write_time_gate.staged_additions` was asked until 2026-09-25, met here
+    a week later. Against `HEAD` alone, a merge "moves" every level the other side moved -- and that
+    side's own commit already recorded its successor (2026-10-01: origin's `c42bae117` took H49
+    0 -> 2 with `NEXT: none -- ...`, and from 09:43 every `origin_reconcile` merge was refused for
+    it, so the shared tree stopped reaching the trunk). A merge owes a trailer only for a level no
+    parent holds: a value the merge itself invented.
+
+    An unreadable parent subtracts nothing -- the strict reading, as in `staged_additions`.
+    """
+    for parent in parents:
+        carried = map_at(f"{parent}:")
+        if carried is None:
+            continue
+        held = atom_levels(carried)
+        moved = {aid: mv for aid, mv in moved.items() if held.get(aid) != mv[1]}
+    return moved
 
 
 def _map_is_staged() -> bool:
