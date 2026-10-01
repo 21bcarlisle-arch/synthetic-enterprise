@@ -377,3 +377,64 @@ So years on supply can reach `p_churn` by three routes, and only one of them is 
 | **W7** | Verdict: the tenure gradient is a world-fidelity gap (a measurement artefact of the shock count, not a behaviour), and the bill-size gradient is a mechanism with a source (Ofgem/BMG absolute £) | 50% | either half reads the other way |
 
 **The instrument, fixed now.** Population: the same direct-debit first renewals (338 rows; 317 with a rebuilt rate input). Per term: compute its hazard per row; then **hold** = recompute `p_retain` with that hazard at its DD-book mean and the others as computed, and report the within-(seed, year) correlation of the held `p_retain` with years on supply and with bill size (the same within-cell pooling as the section above). **Reconstruction control, before any term is graded:** `1 − Π(1 − h)` over the rebuilt hazards must reproduce the logged world `p_retain`. Two inputs are not logged and are rebuilt. The price response is rebuilt without the competitor-position ledger. The passive cap is redrawn from its seeded stream. If the full rebuild misses the logged value by a median > 0.02, then the price hazard is taken as the **residual** that closes the logged value exactly given the other two (both are rebuilt from logged or deterministic inputs), and that is reported as residual, not called. Holds that use a residual are labelled.
+
+## What drives the world: graded (2026-10-01 ~05:40Z, same item; predictions landed first as `33e9c1ba3`)
+
+**Scripts** are in `/var/tmp/se-world-terms-out/`: `terms.py` (sha256 `ec21b7ed…`) rebuilds every hazard per row with the pin's own functions; `analyse.py` (`120a75c8…`) runs the within-cell holds; `repair.py` (`3da0760c…`) does the re-pairing; `cf.py` (`df5ffe41…`) is the counterfactual. No simulation was run. Inputs come from the C0 value-arm log (`pb6rank.log` block 0, the block the belief rebuild used). An account that churned at the date in C0 takes its new-term rate from `new_by.json`, the belief rebuild's own source.
+
+**The reconstruction control passes.** The full rebuild, with the price response rebuilt without the competitor ledger and the passive cap redrawn from its seeded stream, reproduces the logged world `p_retain` with a median |error| of **0.0169** (pre-registered bar: 0.02) and a max of 0.21. Three (account, date) pairs miss by more than 0.05, all on the price term: C5_2 2017-12-31, PROS-2018-0002 2019-01-02 and SYN-2016-060 2018-08-24. So the price hazard is the rebuilt one, not a residual. The holds are anchored (logged + (held − rebuilt)), as pre-registered. Population: 317 DD rows carrying both rebuilds (53 accounts). Within-(seed, year) gradients of the world's `p_retain`: **−0.346 against years on supply and −0.272 against bill size** (scored leg, the section above's definition; −0.299 at household level). Both reproduce the −0.32/−0.27. Years on supply and bill size are nearly independent (+0.094).
+
+**W1: the bill-shock base is structurally zero in a household's first year.** `saas.customer_reaction.score_experience_signals` in `yoy` mode "requires 12+ months of history before first shock fires". The window counted at the first anniversary is months −12 to −1, and none of them has a prior-year month to compare against.
+
+| years on supply at the first decided renewal | n | k = 0 | mean k (shocked months of 12) | mean base | mean lifetime rate shocks | mean world `p_retain` |
+|---|---|---|---|---|---|---|
+| 1 | 156 | **100%** | 0.00 | 0.0225 | 0.65 | **0.775** |
+| 2 to 8 | 161 | 6.8% | **6.86** | 0.1154 | 1.78 | **0.651** |
+
+Within cells, corr(base, years on supply) = **+0.406**. The passive cap binds on no row.
+
+**Per term.** Each row gives the term's within-cell correlation with years on supply and with bill size, then the world's two gradients with that term held at its DD-book mean.
+
+| term or input | corr(term, years) | corr(term, bill) | held: world ~ years | held: world ~ bill |
+|---|---|---|---|---|
+| (none held) | | | −0.346 | −0.272 |
+| **hazard: bill shock** | +0.383 | +0.334 | **−0.009** | **+0.003** |
+| hazard: price position | +0.037 | −0.011 | −0.356 | −0.322 |
+| hazard: dissatisfaction | +0.104 | +0.367 | −0.358 | −0.255 |
+| input: bill-shock base (k) | +0.406 | +0.242 | +0.008 | −0.129 |
+| input: price response | +0.035 | −0.009 | −0.336 | −0.340 |
+| input: dissatisfaction response | +0.241 | +0.091 | −0.341 | −0.270 |
+| input: `A` = income stress × housing tenure | −0.041 | +0.266 | −0.399 | −0.201 |
+| inside A: housing tenure only | +0.069 | −0.167 | −0.392 | −0.233 |
+| inside satisfaction: tenure bonus (+0.02/yr) | +0.929 | +0.115 | −0.349 | −0.273 |
+| inside satisfaction: lifetime rate shocks | +0.495 | +0.102 | −0.336 | −0.273 |
+
+**W6: re-pairing dual-fuel households.** 75 of 338 rows (20 accounts) carry two legs. Labelling the legs by nearest per-leg rebuild is **unidentified** (median assignment margin 0.000), so "61 gas rows" is not a measured figure. It does not matter, because first-scored against last-scored brackets every labelling:
+
+| pairing | corr (rows) | corr (57 accounts) |
+|---|---|---|
+| as published: last-scored leg | −0.383 | −0.379 |
+| first-scored leg | −0.409 | −0.402 |
+| electricity leg (the world's decision leg), as labelled | −0.414 | −0.408 |
+| household: mean of legs | −0.399 | −0.392 |
+| household: the leg likelier to leave | −0.412 | −0.404 |
+
+**The counterfactual that decides the verdict.** The belief is scored against the world with only its bill-shock hazard held at the book mean. Pooled correlation: **−0.336 → +0.197**. Within cells: −0.374 → −0.132.
+
+**Predictions graded.**
+- **W1 HOLDS.** corr(base, years) is +0.406, and k = 0 on 100% of tenure-1 rows.
+- **W2 HOLDS.** Holding the bill-shock hazard takes the tenure gradient to −0.009.
+- **W3 HOLDS.** The dissatisfaction hazard moves it by 0.012. Its two tenure routes are both present, the bonus (+0.929 with years) and lifetime shocks (+0.495), and their hold effects are each under 0.01.
+- **W4 REFUTED.** The price-position hazard carries none of the bill-size gradient: held, −0.322.
+- **W4-alt HOLDS.** The bill-shock hazard carries it: held, +0.003.
+- **W5 REFUTED, narrowly.** Holding `A` moves the bill gradient by 0.071 (the bar was 0.05) and the tenure gradient by 0.053, the wrong way. Some of the bill gradient is the stress × housing confound (owners have bigger bills and a higher multiplier), but most of it is the shock count.
+- **W6 HOLDS.** Every pairing lies within 0.031 of −0.383, all more negative.
+- **W7 SPLIT.** The tenure half holds: it is a fidelity gap, a measurement artefact of the shock count. The bill half is refuted: the bill gradient is not the sourced £-scale mechanism. It is the same shock count, plus a small housing/stress confound.
+
+**Plain answer.**
+1. **(1) Does a world term read years on supply? Yes, three routes, and only one matters.** The satisfaction tenure bonus and the lifetime rate-shock count both read it and carry nothing measurable. The bill-shock base reads it by construction: its year-on-year comparison cannot fire in a household's first year, so every first-anniversary decision carries k = 0. A household the world first decides at a later anniversary carries ~7 shocked months of 12.
+2. **(2) Both gradients are carried by one term, the bill-shock hazard,** and not by housing tenure, income stress or the price response. Holding it zeroes both (−0.009, +0.003).
+3. **(3) Re-pairing does not rescue the belief** (−0.38 to −0.41). Holding the world's bill-shock artefact does: +0.197 pooled. Most of the "anti-ranking" was the world's first-year blind spot.
+4. **Against the published record, the world is the one that is wrong.** Ofgem engagement surveys (`svt_rates_active_passive_2016_2025.md`) give SVT 3+-year stayers ~5–10%/yr switching against ~15–20% under 3 years, and the CMA 2016 inertia finding agrees. The world retains its tenure-2+ first decisions at 0.651 against 0.775 at tenure 1, which is the reverse. Ofgem/BMG 2024 Table 3 (`is_there_a_bill_level_at_which_switching_rises.md`) bounds the spend–switching correlation within −0.07 to +0.05. The world's −0.27 is outside that, and so is the company's +0.33.
+
+Finding: `docs/staging/WORKER_FINDING_THE_WORLDS_BILL_SHOCK_COUNT_IS_BLIND_IN_A_HOUSEHOLDS_FIRST_YEAR_AND_CARRIES_THE_WHOLE_TENURE_GRADIENT_2026-10-01.md`.
