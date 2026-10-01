@@ -2619,7 +2619,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             # offer can ever reach the reference it is itself being measured against. Recording
             # it before the roll would make the differential partly a function of itself, which
             # is the tautology R15 names first.
-            _competitor_position_ledger.observe(term_start_str, unit_rate)
+            _competitor_position_ledger.observe(term_start_str, unit_rate, commodity=commodity)
             if event is not None:
                 _journey.record_decision(
                     date.fromisoformat(term_start_str), switched=(event["event_type"] == "churned"),

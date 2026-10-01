@@ -327,6 +327,11 @@ def _year_of(date_str: str) -> int:
 # ---------------------------------------------------------------------------
 
 
+#: The fuels a strike can arrive on. Gas is accepted and ignored rather than refused, because the
+#: run feeds every decision leg and a gas-only household's decision leg is gas.
+RIVAL_LEDGER_FUELS = frozenset({"electricity", "gas"})
+
+
 @dataclass
 class CompanyPositionLedger:
     """The company's published position as a rival would see it: last quarter's average.
@@ -355,8 +360,22 @@ class CompanyPositionLedger:
         year, q = int(quarter[:4]), int(quarter[-1])
         return f"{year - 1}Q4" if q == 1 else f"{year}Q{q - 1}"
 
-    def observe(self, date_str: str, rate_gbp_per_mwh: float | None) -> None:
-        """Record a rate the company published. A None or non-positive rate is not a position."""
+    def observe(self, date_str: str, rate_gbp_per_mwh: float | None, *, commodity: str) -> None:
+        """Record a rate the company published. A None or non-positive rate is not a position.
+
+        ELECTRICITY ONLY (2026-10-01). The rival this ledger feeds is anchored on the electricity
+        cap, and no gas leg reads it. A gas strike (~GBP 30-40/MWh against ~GBP 150) averaged into
+        the same quarter dragged the rival's view of the company's ELECTRICITY price down by every
+        gas-only household's renewal, so the rival chased electricity offers the company never
+        made. `commodity` has no default because a default is how the fuels were mixed.
+        """
+        if commodity not in RIVAL_LEDGER_FUELS:
+            raise ValueError(
+                f"no rival position is kept for commodity {commodity!r}: the ledger knows "
+                f"{sorted(RIVAL_LEDGER_FUELS)}"
+            )
+        if commodity != "electricity":
+            return
         if rate_gbp_per_mwh is None or float(rate_gbp_per_mwh) <= 0:
             return
         self._by_quarter.setdefault(self.quarter_of(date_str), []).append(

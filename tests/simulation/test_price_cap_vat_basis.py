@@ -298,7 +298,7 @@ def test_a_gas_offer_is_read_against_the_GAS_default_tariff_at_every_site(monkey
     elec_svt = get_svt_elec_rate_charged_to_household_gbp_per_mwh(when)
     at_parity = gas_svt / (1.0 + DOMESTIC_VAT_RATE)
     ledger = CompanyPositionLedger()
-    ledger.observe("2023-11-15", at_parity * 0.5)   # a rival that saw a deep undercut last quarter
+    ledger.observe("2023-11-15", at_parity * 0.5, commodity="electricity")   # a rival that saw a deep undercut last quarter
     monkeypatch.setattr(competitor_reference, "aggression",
                         lambda: {"chase_per_quarter": 1.0, "min_retail_margin_pct": 0.03})
 

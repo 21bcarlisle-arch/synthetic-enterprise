@@ -198,15 +198,15 @@ def test_the_ledger_reports_the_PREVIOUS_quarter_never_the_current_one():
     """A rival that could read the current quarter would be re-pricing against a tariff it has
     not seen yet — a rival with foresight rather than a rival."""
     led = cr.CompanyPositionLedger()
-    led.observe("2019-04-10", 100.0)
-    led.observe("2019-05-10", 120.0)
+    led.observe("2019-04-10", 100.0, commodity="electricity")
+    led.observe("2019-05-10", 120.0, commodity="electricity")
     assert led.position_for("2019-06-01") is None, "read its own quarter"
     assert led.position_for("2019-08-01") == pytest.approx(110.0)
 
 
 def test_the_ledger_crosses_a_YEAR_boundary():
     led = cr.CompanyPositionLedger()
-    led.observe("2019-11-15", 200.0)
+    led.observe("2019-11-15", 200.0, commodity="electricity")
     assert led.position_for("2020-02-01") == pytest.approx(200.0)
 
 
@@ -214,12 +214,29 @@ def test_MUTATION_a_missing_or_nonsense_rate_is_NOT_a_position(caplog):
     """FAIL-OPEN again, at the input. A None or zero rate recorded as a position would drag the
     quarter's mean toward zero and make the rival chase a price the company never offered."""
     led = cr.CompanyPositionLedger()
-    led.observe("2019-04-10", None)
-    led.observe("2019-04-11", 0.0)
-    led.observe("2019-04-12", -5.0)
+    led.observe("2019-04-10", None, commodity="electricity")
+    led.observe("2019-04-11", 0.0, commodity="electricity")
+    led.observe("2019-04-12", -5.0, commodity="electricity")
     assert led.position_for("2019-08-01") is None
-    led.observe("2019-04-13", 150.0)
+    led.observe("2019-04-13", 150.0, commodity="electricity")
     assert led.position_for("2019-08-01") == pytest.approx(150.0)
+
+
+def test_MUTATION_a_gas_strike_never_moves_the_rivals_electricity_position():
+    """The rival is anchored on the electricity cap, so a gas strike in its ledger is a price the
+    company never offered on the fuel the rival chases. Both legs of the partition are asserted:
+    an electricity strike IS a position (else a ledger that ignores everything passes), and a gas
+    strike in the same quarter leaves it exactly where it was."""
+    led = cr.CompanyPositionLedger()
+    led.observe("2019-04-10", 150.0, commodity="electricity")
+    assert led.position_for("2019-08-01") == pytest.approx(150.0)
+    led.observe("2019-04-11", 30.0, commodity="gas")
+    assert led.position_for("2019-08-01") == pytest.approx(150.0), "a gas strike moved it"
+
+
+def test_a_fuel_the_ledger_does_not_know_is_refused_by_name():
+    with pytest.raises(ValueError, match="'hydrogen'"):
+        cr.CompanyPositionLedger().observe("2019-04-10", 150.0, commodity="hydrogen")
 
 
 def test_the_ledger_is_INSTANCE_state_and_never_a_module_global():
@@ -227,7 +244,7 @@ def test_the_ledger_is_INSTANCE_state_and_never_a_module_global():
     the order tests happen to execute in, which is the non-determinism the seeded-run discipline
     exists to forbid."""
     a, b = cr.CompanyPositionLedger(), cr.CompanyPositionLedger()
-    a.observe("2019-04-10", 100.0)
+    a.observe("2019-04-10", 100.0, commodity="electricity")
     assert b.position_for("2019-08-01") is None
     assert a.position_for("2019-08-01") == pytest.approx(100.0)
 
@@ -246,7 +263,7 @@ def test_the_CHURN_DIFFERENTIAL_reads_the_reference_when_a_ledger_is_present():
 
     led = cr.CompanyPositionLedger()
     for day in ("2019-01-15", "2019-02-15", "2019-03-15"):
-        led.observe(day, cheap)
+        led.observe(day, cheap, commodity="electricity")
     defended = _price_differential_vs_market(cheap, DATE, position_ledger=led, commodity="electricity")
     assert defended > -0.10 + 0.02, "the seam is wired but the reference did not move"
 
@@ -278,6 +295,9 @@ def test_MUTATION_the_run_FEEDS_and_READS_the_ledger_and_feeds_it_AFTER_the_roll
     assert "CompanyPositionLedger()" in src, "no ledger is created by the run"
     assert "position_ledger=_competitor_position_ledger" in src, "the run does not pass it"
     assert "_competitor_position_ledger.observe(" in src, "the run never feeds it"
+    assert "_competitor_position_ledger.observe(term_start_str, unit_rate, commodity=commodity)" in src, (
+        "the run feeds the ledger without the leg's fuel, so a gas strike can reach the rival"
+    )
     # THE FLOOR MUST NOT BE INERT IN THE LIVE PATH. `wholesale_gbp_per_mwh=None` is a legal
     # call and gives an UNFLOORED reference -- fine in a unit test, wrong in the run, where it
     # would let the rival follow a company below any rival's costs. Named here because that is
@@ -327,7 +347,7 @@ def test_MUTATION_the_SVT_position_stays_the_SVT_position_after_the_reference_mo
     cheap = CAP * 0.9 / (1.0 + DOMESTIC_VAT_RATE)  # ex-VAT: a household sees it 10% under
     led = cr.CompanyPositionLedger()
     for day in ("2019-01-15", "2019-02-15", "2019-03-15"):
-        led.observe(day, cheap)
+        led.observe(day, cheap, commodity="electricity")
 
     against_market = _price_differential_vs_market(cheap, DATE, position_ledger=led, commodity="electricity")
     against_cap = _svt_position(cheap, DATE, commodity="electricity")
@@ -346,7 +366,7 @@ def test_the_LEVEL_the_differential_was_taken_against_is_PUBLISHED():
     led = cr.CompanyPositionLedger()
     for day in ("2019-01-15", "2019-02-15", "2019-03-15"):
         # The ledger holds ex-VAT struck rates; the rival chases what a comparison site shows.
-        led.observe(day, CAP * 0.9 / (1.0 + DOMESTIC_VAT_RATE))
+        led.observe(day, CAP * 0.9 / (1.0 + DOMESTIC_VAT_RATE), commodity="electricity")
     moved = _market_reference_gbp_per_mwh(DATE, position_ledger=led, commodity="electricity")
     assert moved < CAP, "the published level did not move with the rival"
     assert moved == pytest.approx(
