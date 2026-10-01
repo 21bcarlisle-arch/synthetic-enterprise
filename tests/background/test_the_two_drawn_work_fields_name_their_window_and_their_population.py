@@ -68,6 +68,10 @@ def _brief(monkeypatch, *, missed_rows):
     monkeypatch.setattr(ds, "_drawn_never_landed", lambda now: list(missed_rows))
     monkeypatch.setattr(ds, "focus_drawn_since", lambda since: [IN_FOCUS])
     monkeypatch.setattr(ds, "last_orientation", lambda: {"focus": [IN_FOCUS], "map_levels": {}})
+    # The nested level-zero control pass (`lz.assess`, ~145 s of pytest subprocesses) is the one
+    # brief input this test never reads; `test_delivery_seat.py` owns it. Everything else is real.
+    monkeypatch.setattr("tools.level_zero_contradicted_by_its_own_controls.assess",
+                        lambda *a, **k: ([], []))
     return ds.build_brief(datetime.now(timezone.utc))
 
 

@@ -13,13 +13,18 @@ import pytest
 
 from simulation.run_phase2b import main as run_phase2b
 
+# One year, not two (2026-10-01): the run's cost scales with its days, and the subject -- the
+# end-of-run mark forms and the registers move -- needs only that forwards were opened before it.
+# Measured at this end: 12 counterparties, net exposure > 0 (the load-bearing legs below).
+REPORT_END = "2016-12-31"
+
 
 @pytest.fixture(scope="module")
 def _fed_result():
     # SIM_FAST_MODE=1 set by the session autouse fixture; truncated window keeps it quick.
     # No sim_interface: the parameter was deleted 2026-08-29 (it was never passed on any
     # production path, so a stub here made this fixture unlike every real run).
-    return run_phase2b(report_end="2017-12-31")
+    return run_phase2b(report_end=REPORT_END)
 
 
 def test_wholesale_credit_block_present_and_populated(_fed_result):
@@ -33,7 +38,7 @@ def test_wholesale_credit_block_present_and_populated(_fed_result):
         "largest_utilisation_pct", "is_limit_breached", "n_breach",
     ):
         assert k in block
-    assert block["mark_date"] == "2017-12-31"
+    assert block["mark_date"] == REPORT_END
     # A current forward mark was actually formed from observable history.
     assert block["current_forward_price_by_commodity"].get("electricity", 0) > 0
 
