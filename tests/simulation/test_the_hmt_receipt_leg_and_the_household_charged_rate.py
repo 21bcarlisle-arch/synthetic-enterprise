@@ -291,7 +291,8 @@ def test_the_billed_rate_did_not_move_and_that_is_the_half_that_protects_revenue
     segment, whatever the commons says today.
     """
     for s in straddling_schedule:
-        assert s["unit_rate_gbp_per_mwh"] == pytest.approx(
+        # Billed ex-VAT; the cap accessor answers inc-VAT, so VAT is added back to compare.
+        assert s["unit_rate_gbp_per_mwh"] * (1.0 + pce.DOMESTIC_VAT_RATE) == pytest.approx(
             get_svt_elec_rate_gbp_per_mwh(s["acquisition_date"])
         ), (
             f"segment {s['acquisition_date']} is billed at "
