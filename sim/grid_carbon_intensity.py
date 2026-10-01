@@ -49,7 +49,8 @@ HOW THE SHAPE IS DERIVED
 From residual demand, which is real published data, through the dispatch stack, which is
 already built and graded:
 
-    residual = national demand outturn - (wind + solar) outturn - net imports   [Elexon, HH]
+    residual = national demand outturn + exports - wind outturn - imports      [Elexon, HH]
+    rate     = emissions / (demand outturn + exports + embedded solar)       [s19-s20]
     below the must-run floor          -> near-zero-carbon plant, price-taking
     the CCGT band                     -> gas, at the efficiency actually dispatched
     the coal band above it            -> coal, at the DUKES 5.14 electrical factor
@@ -118,18 +119,20 @@ and are kept here, rewritten, because what replaced them is a smaller gap and no
     published series is separately loss-corrected to a consumed basis. Applying a second
     correction on top is item 2 of the disqualification battery. Since 2026-09-30 the denominator
     also carries embedded solar, which INDO is net of, so it is transmission demand PLUS the
-    embedded supply GB consumed (EP13 frame doc s19); losses are still not corrected.
+    embedded supply GB consumed (EP13 frame doc s19), plus the exports INDO excludes, which the
+    stack also serves (s20); losses are still not corrected.
 
 WHICH WAY THE ERRORS POINT, and this is the sentence to read if you read only one. THE RANGE IS
-STILL OVERSTATED — p95/p5 runs about 1.31x the published series' — so ANY BENEFIT COMPUTED FROM
+STILL OVERSTATED — p95/p5 runs about 1.25x the published series' — so ANY BENEFIT COMPUTED FROM
 MOVING LOAD BETWEEN QUIET AND BUSY HALF HOURS IS AN UPPER BOUND on the real one. That is the
 error direction that matters here, because it flatters the mission's own thesis, and it must be
 carried on the face of anything published from this rather than left in a module nobody opens.
 
-AND THAT 1.31x IS A BLEND OF TWO AXES THAT POINT OPPOSITE WAYS. Split day by day by
+AND THAT 1.25x IS A BLEND OF TWO AXES THAT POINT OPPOSITE WAYS. Split day by day by
 `neso_carbon_intensity.compare_shapes`, this shape's BETWEEN-day swing matches the published
-series to within 14% in every year 2019-2024 (0.87-0.95x, mean 0.92) and its WITHIN-day swing is
-too wide in every one of them (1.13-1.32x, mean 1.26; 1.35-1.54x before the 2026-09-30 solar fix). The aggregate figure averages a term this
+series to within 17% in every year 2019-2024 (0.84-0.94x, mean 0.90) and its WITHIN-day swing is
+too wide in every one of them (1.07-1.29x, mean 1.19; 1.35-1.54x before the 2026-09-30 solar and
+export fixes, frame doc s19-s20). The aggregate figure averages a term this
 model gets RIGHT with a term it gets WRONG — and the wrong one is the only axis a customer can
 act on, because a household can move the washing from 6pm to 2am and cannot move it to a windier
 Tuesday in March. So the annual correction UNDERSTATES what an intra-day shifting claim needs.
@@ -236,7 +239,7 @@ them, which is a confound, not a result:
   * CORRELATION DID NOT MOVE, in any year, by more than 0.004. That is the most useful line in
     the table and it re-diagnoses the atom. The floor fixed a LEVEL error at the clean end and
     left the TIMING error untouched: this shape now knows how clean a quiet half hour is, and
-    still does not know which half hours were the quiet ones (0.73 in 2024, falling by year).
+    still does not know which half hours were the quiet ones (0.72 in 2024, falling by year).
 
 STILL L2 AFTER THIS BUILD, and the reason has CHANGED rather than merely survived, which is the
 part worth reading. The gap the last pass named as what held the level — the zero-thermal half
@@ -415,6 +418,7 @@ def emissions_rate_t_per_mwh(
     biomass_capacity_mw: float | None = None,
     biomass_floor_mw: float | None = None,
     embedded_generation_mw: float = 0.0,
+    export_mw: float = 0.0,
 ) -> float:
     """Tonnes CO2 per MWh of demand met, in ONE half hour, on the dispatch above.
 
@@ -461,6 +465,11 @@ def emissions_rate_t_per_mwh(
     it twice and hid ~1.3 GW of gas a year (EP13 frame doc s18). It belongs in the DENOMINATOR
     only, because the intensity is per MWh CONSUMED and GB consumed it. 0.0 is the old series.
 
+    `export_mw` -- the half hour's interconnector EXPORTS, each cable clamped on its own. INDO
+    excludes them, yet GB generated them, so they join the load the stack dispatches AND the
+    denominator: the export is charged the half hour's average rate, never its marginal gas, and
+    GB demand keeps the same average (EP13 frame doc s20). 0.0 is the pre-s20 series exactly.
+
     THE DEFAULTS REPRODUCE THE PRE-2026-08-25 SHAPE EXACTLY, and that is a liability rather than
     a convenience: a caller that forgets them gets the known-wrong series silently. The control
     against that is not in this signature — it is `generate_grid_intensity_feed.generate()`,
@@ -471,6 +480,8 @@ def emissions_rate_t_per_mwh(
     demand_mw = float(demand_mw)
     if demand_mw <= 0.0:
         raise ShapeUnavailable("a half hour with no demand has no emissions rate")
+    # EVERYTHING THE STACK AND THE CABLES SUPPLY: INDO plus what GB generated for export.
+    demand_mw += max(0.0, float(export_mw))
 
     # IMPORTS ARE SERVED BEFORE ANYTHING GB BURNS, because that is what a cable does: it delivers
     # whatever the cross-border spread told it to deliver and the GB stack dispatches around the
@@ -616,6 +627,7 @@ def build_shape(
     zero_carbon_must_run_by_period: Mapping[tuple[str, int], float] | None = None,
     biomass_envelope_by_year: Mapping[int, Mapping[str, float]] | None = None,
     embedded_generation_by_period: Mapping[tuple[str, int], float] | None = None,
+    exports_by_period: Mapping[tuple[str, int], float] | None = None,
 ) -> dict[tuple[str, int], float]:
     """{(settlement date, period): shape}, normalised per CALENDAR YEAR to a demand-weighted
     mean of exactly 1.0.
@@ -647,6 +659,10 @@ def build_shape(
     `emissions_rate_t_per_mwh`. A half hour it does not cover is skipped, for the reason above.
     The year's normalisation stays INDO-weighted, so `demand_weighted_mean` still reads 1.0 on
     the demand every caller holds; a consumption weight is a named gap (frame doc s19).
+
+    `exports_by_period` is read like `imports_by_period`: a half hour it does not cover is
+    dispatched with no export, not skipped, because a missing cable reading is not a missing
+    half hour (frame doc s20).
     """
     rates: dict[tuple[str, int], float] = {}
     demands: dict[tuple[str, int], float] = {}
@@ -707,6 +723,7 @@ def build_shape(
                     None if envelope is None else float(envelope["floor_mw"])
                 ),
                 embedded_generation_mw=float(embedded_mw),
+                export_mw=float((exports_by_period or {}).get(key, 0.0)),
             )
         except (ShapeUnavailable, ValueError, KeyError):
             continue

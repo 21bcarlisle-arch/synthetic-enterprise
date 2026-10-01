@@ -72,6 +72,26 @@ def test_an_export_only_half_hour_contributes_no_negative_emissions():
     assert series[KEY]["covered_import_t_per_mwh"] == 0.0
 
 
+def test_EXPORTS_are_read_per_cable_as_a_positive_MW_and_an_import_never_offsets_one():
+    """EP13 frame doc s20: INDO excludes exports, so the dispatch has to be handed them.
+
+    The mirror of the import clamp: a cable importing while another exports must not shrink the
+    export, and the export is returned as positive MW. The partition control first: a half hour
+    with only imports reads 0.0 and one with no cable reading is ABSENT, and both occur here.
+
+    MUTATION (must fire): net the cables before clamping, or drop the sign flip, or default an
+    uncovered half hour to 0.0.
+    """
+    other = ("2022-01-15", 21)
+    rows = [row("INTFR", -1500), row("INTNED", 900), row("INTIFA2", -300),
+            row("INTFR", -1600),  # a revision of the first row: last row wins
+            row("INTNED", 400, period=other[1]), row("COAL", 500, period=22)]
+    exports = fuel.exports_by_period(rows)
+    assert exports[KEY] == pytest.approx(1900.0)
+    assert exports[other] == 0.0
+    assert ("2022-01-15", 22) not in exports
+
+
 # --------------------------------------------------------------------------- #
 # The factor NESO never published                                             #
 # --------------------------------------------------------------------------- #

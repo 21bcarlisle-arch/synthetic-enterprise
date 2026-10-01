@@ -147,14 +147,17 @@ NAMED_GAPS = [
     "reading (303 MW in 2024, against a 1st percentile of 1,720 MW), deliberately the most "
     "conservative number available, so quiet half hours still run less gas than GB actually ran",
     "the shape still knows how clean a quiet half hour is far better than it knows WHICH half "
-    "hours were the quiet ones: correlation against the published series is 0.73 in 2024 "
-    "against 0.90 in 2019. Two corrections have moved this axis: measuring the fleet GB actually "
+    "hours were the quiet ones: correlation against the published series is 0.72 in 2024 "
+    "against 0.91 in 2019. Three corrections have moved this axis: measuring the fleet GB actually "
     "ran (2026-08-26), and no longer subtracting embedded solar from a demand series already net "
-    "of it (2026-09-30), which raised correlation in 2019-2023 and lowered it in 2024 by 0.01 -- "
-    "but 0.73 is still an instrument that would point a customer at some of the wrong half hours",
-    "the model's gas LEVEL is still wrong in two named ways: exports are invisible to it (INDO "
-    "excludes them, which cost it most in 2022), and the wind it subtracts reads below Elexon's "
-    "metered wind from 2023 by up to 1.4 GW, for a reason not yet established",
+    "of it (2026-09-30), which raised correlation in 2019-2023 and lowered it in 2024 by 0.01, "
+    "and serving the exports INDO excludes (2026-09-30), which raised 2022 from 0.91 to 0.94 and "
+    "lowered 2024 by another 0.01 -- but 0.72 is still an instrument that would point a customer at some of the wrong half hours",
+    "the model's gas LEVEL is still wrong in one named way: the wind it subtracts reads below "
+    "Elexon's metered wind from 2023 by up to 1.4 GW, for a reason not yet established, so it "
+    "burns too much gas in 2023-2024 (about 1.5 and 2.8 GW over metered CCGT). Exports are now "
+    "served and divided by at the half hour's AVERAGE rate, the basis NESO publishes on; charging "
+    "them the MARGINAL gas instead would be a different, defensible convention, not this one",
     "interconnector imports are counted at NESO's own published per-cable factors, but two of "
     "GB's nine cables postdate that table -- North Sea Link (Norway) and Viking Link (Denmark) -- "
     "so their flow is still dispatched as GB gas and reads dirtier than it was; that is 34% of "
@@ -203,17 +206,19 @@ NAMED_GAPS = [
 #: lets the thermal stack reach exactly zero, in 16.1% of 2024's half hours.
 ERROR_DIRECTION = (
     "The RANGE is overstated, and that is the sentence to carry: this shape's p95/p5 spread runs "
-    "about 1.31x the published series', so any benefit computed from moving load between quiet "
-    "and busy half hours is an UPPER BOUND on the real one. THAT 1.31x IS A BLEND OF TWO AXES "
+    "about 1.25x the published series', so any benefit computed from moving load between quiet "
+    "and busy half hours is an UPPER BOUND on the real one. THAT 1.25x IS A BLEND OF TWO AXES "
     "THAT BEHAVE OPPOSITELY, and the one a household can act on is the worse of them: split "
-    "day-by-day, this shape's BETWEEN-day swing is within 14% of the published series in "
-    "every year 2019-2024 and slightly UNDER it (0.87-0.95x, mean 0.92), while its WITHIN-day "
-    "swing is too large in every one of those years (1.13-1.32x, mean 1.26). A customer can move the "
+    "day-by-day, this shape's BETWEEN-day swing is within 17% of the published series in "
+    "every year 2019-2024 and slightly UNDER it (0.84-0.94x, mean 0.90), while its WITHIN-day "
+    "swing is too large in every one of those years (1.07-1.29x, mean 1.19). A customer can move the "
     "washing from 6pm to 2am; they cannot move it to a windier Tuesday in March -- so the whole "
     "of this model's exaggeration sits on the only axis a time-shifting recommendation acts on, "
     "and the annual figure UNDERSTATES the correction such a claim needs. "
     "REMOVING THE SOLAR DOUBLE-COUNT (2026-09-30) cut the within-day overstatement from a mean "
     "1.45x to 1.26x and p95/p5 from 1.38x to 1.31x, and moved max/min from 1.01x to 1.08x. "
+    "SERVING EXPORTS (2026-09-30) took within-day to 1.19x and p95/p5 to 1.25x, and max/min "
+    "to 1.12x. "
     "MEASURING THE MUST-RUN FLEET (2026-08-26) IMPROVED THAT AXIS AND WORSENED THE HEADLINE, "
     "and both halves are published because reporting only the first is how a correction becomes "
     "a claim: within-day overstatement fell from 1.48x to 1.45x (and from 1.44x to 1.35x in "
@@ -750,10 +755,21 @@ def fuel_mix() -> tuple[
     )
 
 
+def exports_by_period() -> dict[tuple[str, int], float]:
+    """GB's interconnector exports by half hour, from the same FUELHH cache `fuel_mix` reads.
+
+    Kept OUT of `fuel_mix()` because that signature is a battery anchor (see its docstring).
+    """
+    from sim import elexon_fuel_outturn as fuel
+
+    return fuel.exports_by_period(fuel.load_cached())
+
+
 def generate(out_path: Path | None = None) -> dict:
     demand = aggregate_demand(json.loads(DEMAND_CACHE.read_text(encoding="utf-8")))
     # WIND IN THE RESIDUAL, SOLAR IN THE DENOMINATOR: INDO is already net of embedded solar,
-    # so subtracting it again hid its gas (EP13 frame doc s18-s19).
+    # so subtracting it again hid its gas (EP13 frame doc s18-s19). EXPORTS INTO BOTH: INDO
+    # excludes them, yet GB generated them (s20).
     agws = json.loads(AGWS_CACHE.read_text(encoding="utf-8"))
     renewables = aggregate_wind_generation(agws)
     (imports, coal_capacity, coverage, thermal_floors, must_run, must_run_coverage,
@@ -767,6 +783,7 @@ def generate(out_path: Path | None = None) -> dict:
         zero_carbon_must_run_by_period=must_run,
         biomass_envelope_by_year=biomass_envelope if BIOMASS_DISPATCH_WIRED else None,
         embedded_generation_by_period=aggregate_solar_generation(agws),
+        exports_by_period=exports_by_period(),
     )
     data = build(shape, demand, extra_dates=dates_with_reads(), import_coverage=coverage,
                  coal_capacity_by_year=coal_capacity, thermal_floor_by_year=thermal_floors,

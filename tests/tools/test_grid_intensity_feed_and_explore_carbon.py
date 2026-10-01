@@ -9,6 +9,7 @@ beside a generated one.
 """
 from __future__ import annotations
 
+import functools
 import json
 from pathlib import Path
 
@@ -1198,6 +1199,11 @@ def test_the_page_is_not_told_the_ceiling_can_be_built_away():
 # grid.                                                                          #
 # --------------------------------------------------------------------------- #
 
+@functools.lru_cache(maxsize=1)
+def _exports():
+    return gif.exports_by_period()
+
+
 def _shape_generate_would_build(mix, demand, agws, **knocked_out):
     """`generate()`'s own `build_shape` call, with one correction optionally knocked out.
 
@@ -1213,6 +1219,7 @@ def _shape_generate_would_build(mix, demand, agws, **knocked_out):
     renewables = knocked_out.pop("renewables", gif.aggregate_wind_generation(agws))
     keywords = dict(
         embedded_generation_by_period=gif.aggregate_solar_generation(agws),
+        exports_by_period=_exports(),
         imports_by_period=imports,
         coal_capacity_by_year=coal_capacity,
         thermal_floor_by_year={year: row["floor_mw"] for year, row in floors.items()},
@@ -1687,6 +1694,23 @@ def test_the_BIOMASS_ENVELOPE_the_MIX_MEASURES_reaches_the_published_feed_TO_THE
             f"{year} publishes a 99th percentile above the capacity it was measured against "
             f"({row}), so one of the two is not this fleet"
         )
+
+
+def test_EXPORTS_are_served_and_divided_by_in_the_published_feed(real_publish):
+    """EP13 frame doc s20. INDO excludes exports; the feed must carry the shape whose stack
+    serves them, and dropping them must CHANGE the series (else the correction is inert).
+
+    MUTATION (must fire): in `generate()`, drop `exports_by_period`.
+    """
+    mix, demand, agws, feed = real_publish
+    served = _shape_generate_would_build(mix, demand, agws)
+    dropped = _shape_generate_would_build(mix, demand, agws, exports_by_period=None)
+    assert not _published_records_carry(feed, dropped), (
+        "the published records are the shape with exports invisible to the dispatch"
+    )
+    assert _published_records_carry(feed, served), (
+        "the published records are not the shape that serves exports"
+    )
 
 
 def test_EMBEDDED_SOLAR_is_out_of_the_residual_and_in_the_denominator_of_the_published_feed(

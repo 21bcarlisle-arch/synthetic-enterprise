@@ -1371,3 +1371,72 @@ mutations ran (renewables back to wind+solar, the embedded keyword dropped, sola
 the residual, solar out of the denominator) and each one turned a control red.
 
 No level move. The atom's L3 bar (the Expert Hour, s13's 0.97 peer bound) is not reached.
+
+## 20. 2026-09-30 — THE EXPORT CORRECTION, decided on INDO's definition
+
+§18's second candidate. INDO excludes interconnector exports, so the GB generation that served
+them was invisible to the dispatch: the model burned gas for GB's own demand only, and 2022 (GB
+exporting ~2.4 GW to France on average) read 1.7 GW short of metered CCGT after §19.
+
+**The decision, on the definition, before any run.** Exported MWh were GENERATED here, so they go
+into the residual the GB stack dispatches. They also go into the DENOMINATOR: the intensity is
+taken over everything the stack and the cables supplied, which is the average-mix convention and
+the one NESO's national series is published on (a generation mix plus imports; nothing in it
+traces an exported MWh to a plant). Adding exports to the numerator alone WOULD charge exported
+emissions to GB demand, which is what `elexon_fuel_outturn.to_settlement_periods` rightly refused;
+adding them to both charges the export the half hour's average rate and leaves GB demand the same
+average. That docstring's "exports are DROPPED" was a third convention — the export takes the
+MARGINAL gas and GB demand keeps the infra-marginal mix — and it is replaced, not kept beside.
+Each cable is still clamped individually, so an export on one cable never nets against an import
+on another. Pumping (also outside INDO) is not added: §18 measured it at |slope| ≤ 0.02.
+
+**Prediction, written before the first run.**
+- **Level.** Model gas rises by about the year's mean export wherever the CCGT band has room:
+  2022 from −1728 MW to between +400 and +900 MW against metered CCGT; 2019 from −579 to about
+  −150; 2024 overshoots further (+1728 → about +2,000), because the wind input is still short.
+- **Correlation with NESO.** |Δ| ≤ 0.02 in every year except 2022. 2022 up by +0.005 to +0.03.
+  Low confidence on the sign everywhere: exports and the dilution of the denominator move
+  together, so the rate moves less than the gas does.
+
+### The result, measured after the build
+
+Shipped shape (s19 call plus `exports_by_period`) against NESO's published series, all half hours,
+`neso.compare_shapes`. Old is the s19 publishing call.
+
+| year | corr old | corr new | MAE old | MAE new | within-day × old | new | between-day × old | new | gas − metered CCGT, MW old → new | mean export MW |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 2019 | 0.903 | 0.909 | 0.088 | 0.083 | 1.29 | 1.27 | 0.91 | 0.90 | −579 → −178 | 424 |
+| 2020 | 0.884 | 0.889 | 0.115 | 0.113 | 1.32 | 1.29 | 0.93 | 0.94 | −533 → −114 | 508 |
+| 2021 | 0.936 | 0.936 | 0.077 | 0.077 | 1.23 | 1.19 | 0.92 | 0.92 | −490 → −23 | 507 |
+| 2022 | 0.908 | **0.940** | 0.115 | 0.085 | 1.32 | 1.11 | 0.95 | 0.88 | **−1728 → +502** | 2363 |
+| 2023 | 0.800 | 0.807 | 0.193 | 0.182 | 1.28 | 1.20 | 0.95 | 0.91 | +536 → +1537 | 1158 |
+| 2024 | 0.732 | **0.720** | 0.265 | 0.271 | 1.13 | 1.07 | 0.87 | 0.84 | +1728 → **+2784** | 1209 |
+
+2016–18 and 2025 levels: +32 → +312, −51 → +339, +80 → +368, −1384 → −541. Headline p95/p5
+overstatement 1.31x → 1.25x; max/min 1.08x → 1.12x.
+
+**Against the prediction.**
+- **Level: held in 2019 and 2022, wrong in size for 2024.** 2022 landed at +502 (band +400..+900),
+  2019 at −178 (predicted about −150). 2024 overshoots to +2,784, not about +2,000: I guessed its
+  exports from 2022's pattern and did not look them up; they average 1.2 GW. 2016–18, which sat
+  within ±80 MW after s19, now read +310..+370 over metered: exports in those years are real
+  (0.3–0.4 GW) and something else then compensated. Not attributed here.
+- **Correlation: 2022 +0.032, just past the +0.03 bound — refuted at the top end, right in sign.**
+  Every other year |Δ| ≤ 0.012 as predicted; 2024 fell again (−0.012), the second correction in a
+  row to lower it. 2024 MAE rose (0.265 → 0.271), the only year it did.
+
+**What it establishes.** With solar and exports now on INDO's definition, 2019–2022 sit within
+0.6 GW of metered CCGT and 2023–24 overshoot by 1.5 and 2.8 GW. The overshoot is where §18's third
+source (the wind input reading short) lives, and it is now the dominant level error by a
+distance. Each definitional fix raised it, which is what it should do if the wind input is the
+remaining cause; that is consistent with §18, not a test of it.
+
+Controls: `test_an_EXPORT_is_served_by_the_stack_AND_divides_the_rate` (the export is exactly a
+half hour with that much more demand), the covered/uncovered partition beside it,
+`test_EXPORTS_are_read_per_cable_as_a_positive_MW_and_an_import_never_offsets_one`, and
+`test_EXPORTS_are_served_and_divided_by_in_the_published_feed`. Five mutations ran (export out of
+the denominator, out of the residual, dropped in `build_shape`, cables netted, dropped in
+`generate()`) and each one turned a control red.
+
+No level move. NEXT is unchanged in kind: the wind question is with the director (§18), then
+§16's unbalanced rung on the corrected residual, then a second Expert Hour.

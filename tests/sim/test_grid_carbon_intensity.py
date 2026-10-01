@@ -992,6 +992,45 @@ def test_EMBEDDED_generation_never_enters_the_residual_and_only_divides():
         assert with_solar < without, "embedded zero-carbon supply did not dilute the rate"
 
 
+def test_an_EXPORT_is_served_by_the_stack_AND_divides_the_rate():
+    """EP13 frame doc s20. INDO excludes exports, yet GB generated them: an export must add to
+    the load the stack dispatches AND to the denominator, which is exactly the rate of a half
+    hour whose demand was that much larger. That identity is the whole contract.
+
+    It must also MOVE the rate where gas is on the margin, else the identity holds trivially.
+
+    MUTATION (must fire): add the export to the residual only, to the denominator only, or not
+    at all.
+    """
+    from sim.grid_carbon_intensity import emissions_rate_t_per_mwh
+
+    demand, wind, export = 28_000.0, 5_000.0, 3_000.0
+    for year in (2019, 2022):
+        kw = dict(import_mw=1_000.0, import_rate_t_per_mwh=0.3, thermal_floor_mw=1_500.0,
+                  zero_carbon_must_run_mw=6_000.0)
+        with_export = emissions_rate_t_per_mwh(demand, wind, year, export_mw=export, **kw)
+        as_demand = emissions_rate_t_per_mwh(demand + export, wind, year, **kw)
+        without = emissions_rate_t_per_mwh(demand, wind, year, **kw)
+        assert with_export == pytest.approx(as_demand, rel=1e-12)
+        assert with_export != pytest.approx(without, rel=1e-6), "the export moved nothing"
+
+
+def test_a_half_hour_with_no_EXPORT_reading_is_dispatched_without_one_not_skipped():
+    """A missing cable reading is not a missing half hour, for the imports reason in
+    `build_shape`. Partition control: covered and uncovered half hours both occur, both are kept,
+    and the covered one differs from the no-exports shape.
+    """
+    from sim.grid_carbon_intensity import build_shape
+
+    demand = {("2022-06-01", p): 25_000.0 + 200.0 * p for p in range(1, 49)}
+    wind = {key: 5_000.0 for key in demand}
+    exports = {key: 2_000.0 * (key[1] % 5) for key in demand if key[1] != 24}
+    shape = build_shape(demand, wind, exports_by_period=exports)
+    plain = build_shape(demand, wind)
+    assert len(shape) == 48 and ("2022-06-01", 24) in shape
+    assert shape[("2022-06-01", 23)] != pytest.approx(plain[("2022-06-01", 23)], rel=1e-6)
+
+
 def test_a_half_hour_the_EMBEDDED_series_does_not_cover_is_skipped_and_one_it_covers_is_kept():
     """Missing embedded solar is not zero solar, for the renewables reason in `build_shape`.
 

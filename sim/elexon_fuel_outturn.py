@@ -391,11 +391,11 @@ def to_settlement_periods(rows: Iterable[Mapping]) -> dict[tuple[str, int], dict
     import on another and quietly clean up the half hour. So each cable is clamped at zero
     INDIVIDUALLY and only the importing ones contribute.
 
-    Exports are then DROPPED rather than modelled, and that is a stated choice with a direction.
-    The quantity being built is gCO2 per kWh of GB DEMAND; under that consumption basis the
-    emissions of an exported MWh belong to the country that consumed it. Charging them to GB
-    demand would make export hours read dirtier than they were. NAMED GAP: nothing here credits
-    GB for exporting clean power either.
+    Exports are not in THIS record; `exports_by_period` reads them from the same rows, with the
+    same per-cable clamp. They are not dropped: INDO excludes them, yet GB generated them, so the
+    dispatch serves them and divides by them, which charges an export the half hour's AVERAGE
+    rate and leaves GB demand that same average (EP13 frame doc s20). Until 2026-09-30 they were
+    dropped, which quietly charged the export the marginal gas and hid ~1.7 GW of it in 2022.
 
     A ROW WITH A NON-NUMERIC OR ABSENT `generation` IS SKIPPED, never defaulted to zero — zero
     import is a perfectly plausible reading (cables do sit idle) and would be indistinguishable
@@ -469,6 +469,33 @@ def to_settlement_periods(rows: Iterable[Mapping]) -> dict[tuple[str, int], dict
                 (covered_tonnes.get(key, 0.0) / covered_mw) if covered_mw > 0.0 else 0.0
             ),
         }
+    return out
+
+
+def exports_by_period(rows: Iterable[Mapping]) -> dict[tuple[str, int], float]:
+    """Raw FUELHH rows -> {(settlement date, period): MW GB exported}, a positive number.
+
+    EACH CABLE IS CLAMPED ON ITS OWN, the mirror of the import side: a cable exporting while
+    another imports contributes its export in full, never netted. Last row wins per
+    (half hour, cable), for the revision reason in `to_settlement_periods`. A half hour with
+    cable readings and no export reads 0.0; one with no cable reading at all is absent.
+    """
+    latest: dict[tuple[tuple[str, int], str], float] = {}
+    for row in rows:
+        fuel = row.get("fuelType")
+        value = row.get("generation")
+        if fuel not in INTERCONNECTOR_MARKETS or value is None:
+            continue
+        if isinstance(value, bool) or not isinstance(value, (int, float)):
+            continue
+        try:
+            key = (str(row["settlementDate"]), int(row["settlementPeriod"]))
+        except (KeyError, TypeError, ValueError):
+            continue
+        latest[(key, str(fuel))] = float(value)
+    out: dict[tuple[str, int], float] = {}
+    for (key, _fuel), value in latest.items():
+        out[key] = out.get(key, 0.0) + max(0.0, -value)
     return out
 
 
