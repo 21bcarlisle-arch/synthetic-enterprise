@@ -38,6 +38,44 @@ If the shocked share at first renewal and at later renewals are both near 0, or 
 15% cut (inherited, unsourced) is doing the work and the swap would only move the level. The swap
 then waits on a sourced noticing threshold. It does not proceed on this quantity.
 
-## Result
+## Result (appended after the run; nothing above is edited)
 
-(appended after the run; nothing above is edited)
+Run `aed6bf966`, 1360 s, 106 decided renewals, every one carrying the shock. Scripts and output:
+`/var/tmp/se-pb4-shock-out/` (`run.py`, `analyse.py`, `events.json`). Each billing account is
+decided once per renewal, so the per-household table equals the per-row table.
+
+| Population | n |
+|---|---|
+| A, direct debit | 83 |
+| C, prepayment (None by definition) | 13 |
+| B, standard credit | 10 |
+
+| | n | None: no quote | None: prepayment | Defined | Shocked | Share |
+|---|---|---|---|---|---|---|
+| First renewal | 36 | 27 | 5 | **4** | 0 | 0.000 |
+| Later renewal | 70 | 0 | 8 | 62 | 20 | **0.323** |
+
+| | Verdict |
+|---|---|
+| P1 | **CANNOT BE GRADED.** 0 of 4 defined. n = 4 is no reading, and 0/4 is consistent with the predicted band. |
+| P2 | **NOT HELD as written:** 0.000 against 0.323 is a difference of 0.32. The same n = 4 makes it ungradable in substance. |
+| P3 | **CANNOT BE GRADED.** The world decided **no renewal in 2022** and two in 2023. There is no 2022 cell. |
+| P4 | **HELD.** Every pre-2020 first renewal is None: 27 for no quote, 4 prepayment. The None share of first renewals is **0.89**. |
+| P5 | **HELD.** The within-year correlation is +0.029 (n = 62), inside the published −0.07 to +0.05. |
+| P6 | **PARTLY.** 2023 is 2/2, the highest cell but on n = 2. 2025 is 0/5. 2024 is 2/9 = 0.22, which is not near 0. 2018 is 6/16 = 0.38. |
+
+Other readings:
+
+- The rise fraction's quartiles are −0.082, +0.066 and +0.223.
+- **16 of 66 defined rows FELL by more than 15%.** The old `abs()` count scored those as shocks; this
+  definition does not.
+- The old base averages 0.023 at first renewals against 0.111 at later ones. That is the old
+  tenure gradient, reproduced.
+
+**The plan-level refutation fired, but on a different leg than the one written.** The cut did not
+saturate: the later share is 0.32, a usable rate. Instead, **year one is still blind, now as None
+where it used to be 0**. 76 of the 106 rows are 2016 sign-ups. The opening amount is annualised
+at the cap unit rate, and the repository holds no cap before January 2019. So the quantity
+cannot fire at the first renewal for 87% (27/31) of in-scope first renewals. Swapping the hazard
+onto it now would move the blindness, not end it. The swap waits. See
+`SEAT_FINDING_THE_EXPERIENCED_BILL_SHOCK_IS_STILL_BLIND_IN_YEAR_ONE_BECAUSE_THE_QUOTE_IS_PRICED_AT_A_CAP_THAT_DID_NOT_EXIST_2026-10-01.md`.

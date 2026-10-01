@@ -29,3 +29,12 @@ PB4's `file_scope` now names the four files the swap touches.
 - The materiality cut (15%) is inherited from the old count, not sourced. No published measure of what size of change a household notices exists.
 - The "balance the household does not understand" half of definition A is a communication property. The world has no record of what the household was told.
 - The fixed-versus-variable DD split is unpublished, so every DD household is treated as level-DD.
+
+## Steps 1–2 done (2026-10-01, claim `measure-the-experienced-bill-shock-on-one-world`): the swap waits
+
+One world was measured against a pre-registration (`57b505ca3`). Later renewals work: 32% are
+shocked, there is no bill-size gradient (+0.029), and falls are no longer counted. Year one does
+not work. The shock is defined at only 4 of 36 first renewals, because the quote is annualised at
+a price cap that does not exist before 2019. **Step 3 (the swap) is blocked** until the opening DD
+is priced at the rate the supplier sold at:
+`SEAT_FINDING_THE_EXPERIENCED_BILL_SHOCK_IS_STILL_BLIND_IN_YEAR_ONE_BECAUSE_THE_QUOTE_IS_PRICED_AT_A_CAP_THAT_DID_NOT_EXIST_2026-10-01.md`.
