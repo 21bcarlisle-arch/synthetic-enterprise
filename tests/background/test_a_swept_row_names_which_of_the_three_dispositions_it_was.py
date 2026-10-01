@@ -263,7 +263,7 @@ def test_THE_RECORD_TAKES_NO_CLAIM_AND_MOVES_NO_DRAW(tmp_path):
     assert not row.get("last_landing_at")
 
 
-def test_THE_SEATS_OWN_PROSE_NAMES_THE_DISPOSITION_and_counts_only_the_undisposed():
+def test_THE_SEATS_OWN_PROSE_NAMES_THE_DISPOSITION_and_counts_only_the_undisposed(monkeypatch):
     """The disposition has to reach the READER, not just the store.
 
     `delivery_seat._prompt` is the sentence the orienting session actually reads, above the JSON
@@ -278,6 +278,10 @@ def test_THE_SEATS_OWN_PROSE_NAMES_THE_DISPOSITION_and_counts_only_the_undispose
     """
     from background import delivery_seat as ds
 
+    # The nested level-zero control pass (`lz.assess`, ~145 s of pytest subprocesses) is the one
+    # brief input this test never reads; `test_delivery_seat.py` owns it. Everything else is real.
+    monkeypatch.setattr("tools.level_zero_contradicted_by_its_own_controls.assess",
+                        lambda *a, **k: ([], []))
     brief = ds.build_brief()
     brief["lane_0_drawn_never_landed"] = [
         {"id": "a-real-miss", "hours_since_draw": 3.0, "disposition": dl.NOT_DONE,
