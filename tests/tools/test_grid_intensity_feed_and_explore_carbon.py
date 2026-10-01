@@ -1216,7 +1216,7 @@ def _shape_generate_would_build(mix, demand, agws, **knocked_out):
     from sim.grid_carbon_intensity import build_shape
 
     imports, coal_capacity, _coverage, floors, must_run, _mrc, biomass = mix
-    renewables = knocked_out.pop("renewables", gif.aggregate_wind_generation(agws))
+    renewables = knocked_out.pop("renewables", None) or gif.transmission_wind_by_period(agws)
     keywords = dict(
         embedded_generation_by_period=gif.aggregate_solar_generation(agws),
         exports_by_period=_exports(),
@@ -1711,6 +1711,51 @@ def test_EXPORTS_are_served_and_divided_by_in_the_published_feed(real_publish):
     assert _published_records_carry(feed, served), (
         "the published records are not the shape that serves exports"
     )
+
+
+def test_the_published_feed_subtracts_TRANSMISSION_METERED_wind_not_AGWS(real_publish):
+    """EP13 frame doc s21. INDO is transmission demand, so the residual subtracts FUELHH `WIND`;
+    AGWS offshore reads 0.52-0.70 of DESNZ's. Reverting to AGWS must CHANGE the series.
+
+    MUTATION (must fire): in `generate()`, hand `build_shape` `aggregate_wind_generation(agws)`.
+    """
+    mix, demand, agws, feed = real_publish
+    metered = _shape_generate_would_build(mix, demand, agws)
+    agws_only = _shape_generate_would_build(
+        mix, demand, agws, renewables=gif.aggregate_wind_generation(agws))
+    assert not _published_records_carry(feed, agws_only), (
+        "the published records are the shape that subtracts AGWS wind"
+    )
+    assert _published_records_carry(feed, metered), (
+        "the published records are not the shape that subtracts transmission-metered wind"
+    )
+
+
+def test_TRANSMISSION_WIND_takes_the_metered_reading_and_falls_back_to_AGWS_only_where_absent(
+        monkeypatch):
+    """Both branches of `transmission_wind_by_period`, asserted reachable before what they do: a
+    half hour FUELHH metered reads the metered MW even where AGWS disagrees, and one FUELHH
+    never metered keeps its AGWS wind rather than leaving the shape.
+
+    MUTATION (must fire): let AGWS win the merge, or drop the AGWS fallback.
+    """
+    from sim import elexon_fuel_outturn as fuel
+
+    def agws_row(date, period, psr, mw):
+        return {"settlementDate": date, "settlementPeriod": period, "psrType": psr,
+                "businessType": "Wind generation", "quantity": mw}
+
+    agws = [agws_row("2024-01-01", 1, "Wind Offshore", 3000.0),
+            agws_row("2024-01-01", 1, "Wind Onshore", 2000.0),
+            agws_row("2024-01-01", 2, "Wind Offshore", 2500.0),
+            agws_row("2024-01-01", 2, "Wind Onshore", 1500.0)]
+    metered = [{"fuelType": "WIND", "settlementDate": "2024-01-01", "settlementPeriod": 1,
+                "generation": 7400.0}]
+    monkeypatch.setattr(fuel, "load_cached_remainder", lambda: metered)
+    wind = gif.transmission_wind_by_period(agws)
+    assert set(wind) == {("2024-01-01", 1), ("2024-01-01", 2)}
+    assert wind[("2024-01-01", 1)] == pytest.approx(7400.0)
+    assert wind[("2024-01-01", 2)] == pytest.approx(4000.0)
 
 
 def test_EMBEDDED_SOLAR_is_out_of_the_residual_and_in_the_denominator_of_the_published_feed(

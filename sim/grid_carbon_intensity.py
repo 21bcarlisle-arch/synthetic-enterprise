@@ -49,8 +49,8 @@ HOW THE SHAPE IS DERIVED
 From residual demand, which is real published data, through the dispatch stack, which is
 already built and graded:
 
-    residual = national demand outturn + exports - wind outturn - imports      [Elexon, HH]
-    rate     = emissions / (demand outturn + exports + embedded solar)       [s19-s20]
+    residual = national demand outturn + exports - metered wind - imports       [Elexon, HH]
+    rate     = emissions / (demand outturn + exports + embedded solar)       [s19-s21]
     below the must-run floor          -> near-zero-carbon plant, price-taking
     the CCGT band                     -> gas, at the efficiency actually dispatched
     the coal band above it            -> coal, at the DUKES 5.14 electrical factor
@@ -123,16 +123,16 @@ and are kept here, rewritten, because what replaced them is a smaller gap and no
     stack also serves (s20); losses are still not corrected.
 
 WHICH WAY THE ERRORS POINT, and this is the sentence to read if you read only one. THE RANGE IS
-STILL OVERSTATED — p95/p5 runs about 1.25x the published series' — so ANY BENEFIT COMPUTED FROM
+STILL OVERSTATED — p95/p5 runs about 1.19x the published series' — so ANY BENEFIT COMPUTED FROM
 MOVING LOAD BETWEEN QUIET AND BUSY HALF HOURS IS AN UPPER BOUND on the real one. That is the
 error direction that matters here, because it flatters the mission's own thesis, and it must be
 carried on the face of anything published from this rather than left in a module nobody opens.
 
-AND THAT 1.25x IS A BLEND OF TWO AXES THAT POINT OPPOSITE WAYS. Split day by day by
+AND THAT 1.19x IS A BLEND OF TWO AXES THAT BEHAVE DIFFERENTLY. Split day by day by
 `neso_carbon_intensity.compare_shapes`, this shape's BETWEEN-day swing matches the published
-series to within 17% in every year 2019-2024 (0.84-0.94x, mean 0.90) and its WITHIN-day swing is
-too wide in every one of them (1.07-1.29x, mean 1.19; 1.35-1.54x before the 2026-09-30 solar and
-export fixes, frame doc s19-s20). The aggregate figure averages a term this
+series to within 12% in every year 2019-2024 (0.89-1.01x, mean 0.96) and its WITHIN-day swing is
+too wide in every one of them (1.09-1.23x, mean 1.15; 1.35-1.54x before the 2026-09-30 solar and
+export fixes and the 2026-10-01 metered-wind fix, frame doc s19-s21). The aggregate figure averages a term this
 model gets RIGHT with a term it gets WRONG — and the wrong one is the only axis a customer can
 act on, because a household can move the washing from 6pm to 2am and cannot move it to a windier
 Tuesday in March. So the annual correction UNDERSTATES what an intra-day shifting claim needs.
@@ -239,7 +239,7 @@ them, which is a confound, not a result:
   * CORRELATION DID NOT MOVE, in any year, by more than 0.004. That is the most useful line in
     the table and it re-diagnoses the atom. The floor fixed a LEVEL error at the clean end and
     left the TIMING error untouched: this shape now knows how clean a quiet half hour is, and
-    still does not know which half hours were the quiet ones (0.72 in 2024, falling by year).
+    still does not know which half hours were the quiet ones (0.73 in 2024 then; 0.95 since s21).
 
 STILL L2 AFTER THIS BUILD, and the reason has CHANGED rather than merely survived, which is the
 part worth reading. The gap the last pass named as what held the level — the zero-thermal half

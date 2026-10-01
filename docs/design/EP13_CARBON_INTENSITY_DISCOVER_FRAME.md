@@ -1440,3 +1440,134 @@ the denominator, out of the residual, dropped in `build_shape`, cables netted, d
 
 No level move. NEXT is unchanged in kind: the wind question is with the director (§18), then
 §16's unbalanced rung on the corrected residual, then a second Expert Hour.
+
+## 21. 2026-10-01 — THE AGWS CHECK §18 OWED: the published wind series is short in every year, not from 2023
+
+§18 left one check unrun: DUKES annual offshore generation against the AGWS annual sum, which
+separates "the published AGWS series omits units or relabels a psrType" from anything in our
+walk. It needed no fetch. The sourced figure was already in the knowledge layer,
+`docs/market_research/w1_7_dukes_generation_and_load_factor_annual.json` (DESNZ ET 6.1, fetched
+2026-08-03, an independent collection from the Elexon settlement feeds).
+
+AGWS is read from `sim/cache/elexon_agws_full.json`, last row wins per (half hour, psrType),
+summed at 0.5 h and scaled to a full year by half-hour coverage. FUELHH `WIND` is read from
+`fuel.load_cached_remainder()` in the same way. Both are in GWh.
+
+| year | AGWS cover | AGWS offshore | DUKES offshore | ratio | AGWS onshore | DUKES onshore | ratio | FUELHH WIND |
+|---|---|---|---|---|---|---|---|---|
+| 2016 | 82% | 10,574 | 16,406 | 0.64 | 16,742 | 20,754 | 0.81 | 21,193 |
+| 2017 | 98% | 14,696 | 20,916 | 0.70 | 22,656 | 28,725 | 0.79 | 32,337 |
+| 2018 | 99% | 15,360 | 26,525 | 0.58 | 26,216 | 30,382 | 0.86 | 39,413 |
+| 2019 | 98% | 19,900 | 31,975 | 0.62 | 24,758 | 31,860 | 0.78 | 46,431 |
+| 2020 | 94% | 26,935 | 40,750 | 0.66 | 26,292 | 34,873 | 0.75 | 54,680 |
+| 2021 | 96% | 24,967 | 35,597 | 0.70 | 24,454 | 29,327 | 0.83 | 48,954 |
+| 2022 | 85% | 26,671 | 45,113 | 0.59 | 31,522 | 35,102 | 0.90 | 61,641 |
+| 2023 | 100% | 25,745 | 49,435 | 0.52 | 25,959 | 33,332 | 0.78 | 63,396 |
+| 2024 | 100% | 26,380 | 48,805 | 0.54 | 27,256 | 34,813 | 0.78 | 65,642 |
+
+(2025's AGWS covers 43% of the year and is seasonal, so it is not compared.)
+
+**What it establishes.**
+- **AGWS offshore is 0.52–0.70 of DESNZ's offshore generation in EVERY year since 2016,** so the
+  shortfall is not something that began in 2023. What changes in 2023–24 is its size: the ratio
+  falls to 0.52–0.54 while the offshore fleet keeps growing and AGWS stays near 26 TWh. In mean
+  MW the missing offshore output is about 1.4 GW in 2019, 2.1 GW in 2022 and 2.7 GW in 2023.
+- **Taken together with §18's live re-fetch, our walk is excluded as the cause.** The gap is
+  between two published series.
+- **FUELHH `WIND` agrees with DESNZ wherever the two can be compared.** It exceeds DESNZ offshore
+  in every year, by a margin of 5–16 TWh. That margin is the part of onshore that is
+  transmission-connected, which is under half of DESNZ's onshore figure, and that is the expected
+  shape. AGWS's total wind (51.7 TWh in 2023) is below transmission-metered wind alone (63.4 TWh),
+  whereas DESNZ puts all GB wind at 82.8 TWh. So AGWS is the series that is short. FUELHH is not.
+
+**What it does NOT establish.**
+- **Why B1630 under-reports.** Missing BM units, or a psrType mapping, are still both open. That
+  part of the question stays with the director as a practitioner question. It no longer blocks
+  the definitional decision below.
+- **Why 2019–22 sat within 0.6 GW of metered CCGT after §20 while carrying a 1.4–2.1 GW offshore
+  shortfall.** Something else compensates in those years and it has not been attributed. So the
+  swap below is expected to push 2019–22 UNDER metered CCGT, and that is predicted rather than
+  hoped against.
+
+**The decision, on INDO's definition, before any run.** INDO is transmission demand, net of
+embedded generation. The wind that serves it is therefore TRANSMISSION-METERED wind, and that is
+FUELHH `WIND` by definition. AGWS mixes embedded onshore output, which INDO is already net of,
+with an offshore series this check shows is short. §18 recorded that FUELHH `WIND` passes both
+crossing conditions (NESO factor 0, never negative). The candidate becomes the decision: swap
+the residual's wind to FUELHH `WIND`, and fall back to AGWS for any half hour with no FUELHH
+`WIND` reading. Embedded solar stays in the denominator, from AGWS, as in §19.
+
+**Prediction, written before the build.** This is gas minus metered CCGT, in MW, against the §20
+row. The model's gas falls by roughly the year's mean of (FUELHH WIND − AGWS wind), less wherever
+the must-run floor or the coal band takes the cut instead:
+- 2024: from +2,784 to between +1,200 and +1,700. 2023: from +1,537 to between 0 and +500.
+- 2022: from +502 to between −300 and +200. 2019–21: down by 0–400 each.
+- 2016–18, where AGWS wind runs ABOVE FUELHH (§18: −282 MW in 2018), the model's gas rises by up
+  to 300.
+- Correlation with NESO: 2023–24 up by +0.01 to +0.04. Every other year |Δ| ≤ 0.015. The sign is
+  low-confidence, because §19 and §20 both lowered 2024 against my prediction.
+
+(The prediction above was written at 20:44:43 on 2026-10-01. The measurement script was written
+at 20:45:50 and its output at 20:46:04.)
+
+### The result, measured after the build
+
+The shipped call is the §20 call with `renewables = transmission_wind_by_period(agws)`, compared
+against NESO's published series with `neso.compare_shapes`. Gas minus metered CCGT is
+`ep13_ccgt_level_ceiling.dispatch_rate(demand + exports, wind, …)` against FUELHH `CCGT`, on
+every half hour with a CCGT reading. **Instrument check:** the old arm reproduces the §20 table
+to the last digit in every year (2019: 0.909, 0.083, −178; 2024: 0.720, 0.271, +2,784).
+
+| year | corr old | corr new | MAE old | MAE new | within-day × old | new | between-day × old | new | gas − metered CCGT, MW old → new |
+|---|---|---|---|---|---|---|---|---|---|
+| 2019 | 0.909 | 0.948 | 0.083 | 0.070 | 1.27 | 1.23 | 0.90 | 0.98 | −178 → −331 |
+| 2020 | 0.889 | 0.931 | 0.113 | 0.098 | 1.29 | 1.20 | 0.94 | 1.01 | −114 → −223 |
+| 2021 | 0.936 | 0.958 | 0.077 | 0.065 | 1.19 | 1.13 | 0.92 | 0.93 | −23 → +103 |
+| 2022 | 0.940 | 0.969 | 0.085 | 0.065 | 1.11 | 1.13 | 0.88 | 0.97 | +502 → +27 |
+| 2023 | 0.807 | **0.969** | 0.182 | 0.074 | 1.20 | 1.13 | 0.91 | 0.98 | +1537 → +148 |
+| 2024 | 0.720 | **0.955** | 0.271 | 0.106 | 1.07 | 1.09 | 0.84 | 0.89 | +2784 → **+1273** |
+
+2016–18 and 2025 levels: +312 → +1,151, +339 → +840, +368 → +639, −541 → +815. Headline p95/p5
+overstatement 1.25x → 1.19x, max/min 1.12x → 1.09x.
+
+**Against the prediction.**
+- **Level: held in 2019, 2020 and 2022–24, wrong in 2021 and 2016–17.** 2024 landed at +1,273
+  (band +1,200..+1,700). 2023 landed at +148 (0..+500) and 2022 at +27 (−300..+200). 2021 ROSE by
+  126 where I predicted a fall. 2016 and 2017 rose by 839 and 501, not "up to 300": AGWS wind
+  runs above FUELHH there by more than §18's 2018 figure suggested, and I did not look.
+- **Correlation: refuted in size everywhere, right in sign everywhere.** 2023–24 rose by +0.16
+  and +0.24, not +0.01..+0.04. The other years rose by +0.02..+0.04, not |Δ| ≤ 0.015. I modelled
+  the wind input as a LEVEL error with a small timing side-effect. It was the largest TIMING
+  error left in the model, because the AGWS shortfall is not a constant offset: in 2024-07 AGWS
+  offshore read 535 MW against a fleet doing several GW.
+
+**What it establishes.** On INDO's definition of the wind input, the reconstruction's correlation
+with NESO is 0.93–0.97 in every year 2019–2024. §13's peer bound (NESO's own forecast) is 0.97.
+2022 and 2023 sit at it and 2024 is 0.015 below it. The 2024 decline that §19 and §20 each
+deepened was the wind input. Each of those fixes removed an error that had been partly offsetting
+it. That reading is consistent with the table, and it was not tested separately.
+
+**What it does NOT establish.**
+- **That the timing axis is closed.** 2019–20 are still 0.93–0.95. Within-day swing is still
+  overstated in every year (1.09–1.23x). That overstatement is the error direction the feed
+  carries on its face, and it still flatters a shifting claim.
+- **Independence of the comparison.** NESO's published actual is built from the metered
+  generation mix, and FUELHH `WIND` is part of that mix. Imports and must-run already crossed on
+  the same terms. Wind is zero-carbon and enters only the residual, so gas is still decided by
+  the model's merit order. But some of the correlation gained is agreement between shared inputs,
+  and how much has not been measured. The Expert Hour must weigh that before it counts 0.95 as
+  fidelity.
+- **The level in 2024 (+1.3 GW) and in 2016–17 (+0.8 to +1.2 GW).** Neither is attributed.
+
+Controls: `test_WIND_is_read_alone_from_the_remainder_last_row_wins_and_an_absent_reading_is_absent`,
+`test_only_WIND_of_the_remainder_series_reaches_the_dispatch` (re-keyed from "none of it"),
+`test_TRANSMISSION_WIND_takes_the_metered_reading_and_falls_back_to_AGWS_only_where_absent` (both
+branches asserted reachable), and
+`test_the_published_feed_subtracts_TRANSMISSION_METERED_wind_not_AGWS`. Six mutations ran, and
+each one turned a control red: AGWS wind back in `generate()`, AGWS winning the merge, the
+fallback dropped, the `WIND` filter dropped, the clamp dropped, and the remainder loaded a second
+time in the generator.
+
+No level move. The L3 bar is an Expert Hour, and the axis that blocked the last one (0.74–0.91)
+is now 0.93–0.97. NEXT: the second Expert Hour, with the shared-input question above put to it
+first.

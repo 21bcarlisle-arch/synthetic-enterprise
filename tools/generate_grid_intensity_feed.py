@@ -146,18 +146,19 @@ NAMED_GAPS = [
     "no half hour is dispatched with no gas running -- but that floor is the year's single lowest "
     "reading (303 MW in 2024, against a 1st percentile of 1,720 MW), deliberately the most "
     "conservative number available, so quiet half hours still run less gas than GB actually ran",
-    "the shape still knows how clean a quiet half hour is far better than it knows WHICH half "
-    "hours were the quiet ones: correlation against the published series is 0.72 in 2024 "
-    "against 0.91 in 2019. Three corrections have moved this axis: measuring the fleet GB actually "
-    "ran (2026-08-26), and no longer subtracting embedded solar from a demand series already net "
-    "of it (2026-09-30), which raised correlation in 2019-2023 and lowered it in 2024 by 0.01, "
-    "and serving the exports INDO excludes (2026-09-30), which raised 2022 from 0.91 to 0.94 and "
-    "lowered 2024 by another 0.01 -- but 0.72 is still an instrument that would point a customer at some of the wrong half hours",
-    "the model's gas LEVEL is still wrong in one named way: the wind it subtracts reads below "
-    "Elexon's metered wind from 2023 by up to 1.4 GW, for a reason not yet established, so it "
-    "burns too much gas in 2023-2024 (about 1.5 and 2.8 GW over metered CCGT). Exports are now "
-    "served and divided by at the half hour's AVERAGE rate, the basis NESO publishes on; charging "
-    "them the MARGINAL gas instead would be a different, defensible convention, not this one",
+    "the shape's TIMING against the published series is now 0.93-0.97 correlation in every year "
+    "2019-2024 (0.95 in 2024). Four corrections moved it: measuring the fleet GB actually ran "
+    "(2026-08-26), no longer subtracting embedded solar from a demand series already net of it "
+    "(2026-09-30), serving the exports INDO excludes (2026-09-30), and subtracting "
+    "transmission-METERED wind instead of AGWS wind (2026-10-01), which alone took 2024 from 0.72 "
+    "to 0.95 and 2023 from 0.81 to 0.97. NESO's own day-ahead forecast scores 0.97, so the rest is "
+    "within reach of a peer, not closed",
+    "the model's gas LEVEL still overshoots metered CCGT in 2024 by about 1.3 GW and in 2016-2017 "
+    "by 0.8-1.2 GW, for reasons not yet established. AGWS offshore wind reads 0.52-0.70 of DESNZ's "
+    "offshore generation in every year 2016-2024, which is why the wind now subtracted is FUELHH "
+    "WIND (AGWS only where FUELHH has no reading); why the AGWS series is short is not established. "
+    "Exports are served and divided by at the half hour's AVERAGE rate, the basis NESO publishes "
+    "on; charging them the MARGINAL gas instead would be a different, defensible convention",
     "interconnector imports are counted at NESO's own published per-cable factors, but two of "
     "GB's nine cables postdate that table -- North Sea Link (Norway) and Viking Link (Denmark) -- "
     "so their flow is still dispatched as GB gas and reads dirtier than it was; that is 34% of "
@@ -206,19 +207,20 @@ NAMED_GAPS = [
 #: lets the thermal stack reach exactly zero, in 16.1% of 2024's half hours.
 ERROR_DIRECTION = (
     "The RANGE is overstated, and that is the sentence to carry: this shape's p95/p5 spread runs "
-    "about 1.25x the published series', so any benefit computed from moving load between quiet "
-    "and busy half hours is an UPPER BOUND on the real one. THAT 1.25x IS A BLEND OF TWO AXES "
-    "THAT BEHAVE OPPOSITELY, and the one a household can act on is the worse of them: split "
-    "day-by-day, this shape's BETWEEN-day swing is within 17% of the published series in "
-    "every year 2019-2024 and slightly UNDER it (0.84-0.94x, mean 0.90), while its WITHIN-day "
-    "swing is too large in every one of those years (1.07-1.29x, mean 1.19). A customer can move the "
+    "about 1.19x the published series', so any benefit computed from moving load between quiet "
+    "and busy half hours is an UPPER BOUND on the real one. THAT 1.19x IS A BLEND OF TWO AXES "
+    "THAT BEHAVE DIFFERENTLY, and the one a household can act on is the worse of them: split "
+    "day-by-day, this shape's BETWEEN-day swing is within 12% of the published series in "
+    "every year 2019-2024 (0.89-1.01x, mean 0.96), while its WITHIN-day "
+    "swing is too large in every one of those years (1.09-1.23x, mean 1.15). A customer can move the "
     "washing from 6pm to 2am; they cannot move it to a windier Tuesday in March -- so the whole "
     "of this model's exaggeration sits on the only axis a time-shifting recommendation acts on, "
     "and the annual figure UNDERSTATES the correction such a claim needs. "
     "REMOVING THE SOLAR DOUBLE-COUNT (2026-09-30) cut the within-day overstatement from a mean "
     "1.45x to 1.26x and p95/p5 from 1.38x to 1.31x, and moved max/min from 1.01x to 1.08x. "
     "SERVING EXPORTS (2026-09-30) took within-day to 1.19x and p95/p5 to 1.25x, and max/min "
-    "to 1.12x. "
+    "to 1.12x. SUBTRACTING TRANSMISSION-METERED WIND (2026-10-01) took within-day to 1.15x, "
+    "p95/p5 to 1.19x and max/min to 1.09x. "
     "MEASURING THE MUST-RUN FLEET (2026-08-26) IMPROVED THAT AXIS AND WORSENED THE HEADLINE, "
     "and both halves are published because reporting only the first is how a correction becomes "
     "a claim: within-day overstatement fell from 1.48x to 1.45x (and from 1.44x to 1.35x in "
@@ -765,13 +767,28 @@ def exports_by_period() -> dict[tuple[str, int], float]:
     return fuel.exports_by_period(fuel.load_cached())
 
 
+def transmission_wind_by_period(agws: list[dict]) -> dict[tuple[str, int], float]:
+    """The wind the residual subtracts: FUELHH `WIND` where metered, AGWS wind where it is not.
+
+    INDO is transmission demand, so the wind serving it is transmission-METERED wind. AGWS offshore
+    reads 0.52-0.70 of DESNZ's offshore generation in every year 2016-2024 (EP13 frame doc s21), so
+    it under-subtracts wind and over-burns gas. The AGWS fallback keeps a half hour with no FUELHH
+    reading in the shape rather than dropping it.
+    """
+    from sim import elexon_fuel_outturn as fuel
+
+    wind = aggregate_wind_generation(agws)
+    wind.update(fuel.wind_by_period(fuel.load_cached_remainder()))
+    return wind
+
+
 def generate(out_path: Path | None = None) -> dict:
     demand = aggregate_demand(json.loads(DEMAND_CACHE.read_text(encoding="utf-8")))
     # WIND IN THE RESIDUAL, SOLAR IN THE DENOMINATOR: INDO is already net of embedded solar,
     # so subtracting it again hid its gas (EP13 frame doc s18-s19). EXPORTS INTO BOTH: INDO
-    # excludes them, yet GB generated them (s20).
+    # excludes them, yet GB generated them (s20). The wind is TRANSMISSION-METERED (s21).
     agws = json.loads(AGWS_CACHE.read_text(encoding="utf-8"))
-    renewables = aggregate_wind_generation(agws)
+    renewables = transmission_wind_by_period(agws)
     (imports, coal_capacity, coverage, thermal_floors, must_run, must_run_coverage,
      biomass_envelope) = fuel_mix()
     shape = build_shape(

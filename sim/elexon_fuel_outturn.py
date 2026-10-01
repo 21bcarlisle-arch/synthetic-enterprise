@@ -165,11 +165,12 @@ BIOMASS_CACHE_PATH = Path("sim/cache/elexon_fuelhh_biomass.json")
 #: THE FUELS NOTHING ELSE HERE READS, fetched for MEASUREMENT ONLY. EP13 frame doc s17 split the
 #: model's daily gas-level error across every fuel the other four caches hold and left 48-90% of it
 #: (2019-2024) as a remainder they cannot see. These four are the rest of FUELHH, so with them the
-#: remainder becomes a measurement. NOTHING ABOUT THIS SERIES REACHES THE DISPATCH, at any grain.
-#: PS is the merit order itself (condition 2 above), and OIL/OTHER carry emissions factors. WIND
-#: would pass both conditions, but swapping it in for AGWS wind is an input-fidelity decision
-#: (frame doc s18) that must be taken blind to the correlation it moves, not by a fetch.
-#: There is no `*_by_period` view for them on purpose; the only reader is the s18 decomposition.
+#: remainder becomes a measurement. ONLY `WIND` REACHES THE DISPATCH, through `wind_by_period`.
+#: PS is the merit order itself (condition 2 above), and OIL/OTHER carry emissions factors, so
+#: neither has a `*_by_period` view on purpose. WIND passes both conditions, and since s21 it
+#: replaces AGWS wind in the residual: INDO is TRANSMISSION demand, so the wind that serves it is
+#: transmission-metered wind, and AGWS offshore reads 0.52-0.70 of DESNZ's in every year (frame
+#: doc s21, decided on the definition before the correlation it moves was run).
 REMAINDER_FUEL_TYPES = ("WIND", "PS", "OIL", "OTHER")
 
 #: A FIFTH file, for the reason the second to fourth exist: widening a live cache's filter in place
@@ -496,6 +497,30 @@ def exports_by_period(rows: Iterable[Mapping]) -> dict[tuple[str, int], float]:
     out: dict[tuple[str, int], float] = {}
     for (key, _fuel), value in latest.items():
         out[key] = out.get(key, 0.0) + max(0.0, -value)
+    return out
+
+
+def wind_by_period(rows: Iterable[Mapping]) -> dict[tuple[str, int], float]:
+    """Raw FUELHH rows -> {(settlement date, period): MW of transmission-metered WIND}.
+
+    Only `WIND` is read, so PS, OIL and OTHER in the same remainder cache never reach a caller.
+    Last row wins per half hour, for the revision reason in `to_settlement_periods`. A
+    non-numeric reading is skipped and a negative one is clamped to 0.0: a wind farm's station
+    load is not a fuel the dispatch should see. A half hour with no reading is absent, never 0.0,
+    because a missing reading is not a calm.
+    """
+    out: dict[tuple[str, int], float] = {}
+    for row in rows:
+        value = row.get("generation")
+        if row.get("fuelType") != "WIND" or value is None:
+            continue
+        if isinstance(value, bool) or not isinstance(value, (int, float)):
+            continue
+        try:
+            key = (str(row["settlementDate"]), int(row["settlementPeriod"]))
+        except (KeyError, TypeError, ValueError):
+            continue
+        out[key] = max(0.0, float(value))
     return out
 
 

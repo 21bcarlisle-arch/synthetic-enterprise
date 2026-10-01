@@ -92,6 +92,25 @@ def test_EXPORTS_are_read_per_cable_as_a_positive_MW_and_an_import_never_offsets
     assert ("2022-01-15", 22) not in exports
 
 
+def test_WIND_is_read_alone_from_the_remainder_last_row_wins_and_an_absent_reading_is_absent():
+    """EP13 frame doc s21: transmission-metered WIND replaces AGWS wind in the residual.
+
+    The remainder cache also holds PS, OIL and OTHER, which must never reach the dispatch. The
+    partition control first: a half hour with a WIND reading is present, a half hour with only PS
+    is ABSENT (a missing reading is not a calm), and a negative reading clamps to 0.0.
+
+    MUTATION (must fire): drop the `WIND` filter, or default a half hour to 0.0, or drop the clamp.
+    """
+    other = ("2022-01-15", 21)
+    rows = [row("WIND", 6000), row("PS", -900), row("OIL", 5),
+            row("WIND", 6100),  # a revision of the first row: last row wins
+            row("WIND", -12, period=other[1]), row("PS", 300, period=22)]
+    wind = fuel.wind_by_period(rows)
+    assert wind[KEY] == pytest.approx(6100.0)
+    assert wind[other] == 0.0
+    assert ("2022-01-15", 22) not in wind
+
+
 # --------------------------------------------------------------------------- #
 # The factor NESO never published                                             #
 # --------------------------------------------------------------------------- #
@@ -701,18 +720,21 @@ def test_the_remainder_window_keeps_exactly_the_four_fuels_no_other_cache_holds(
     assert sorted(r["fuelType"] for r in kept) == ["OIL", "OTHER", "PS", "WIND"]
 
 
-def test_the_remainder_series_never_reaches_the_dispatch():
-    """The remainder series is measurement only; swapping any of it in is a fidelity decision.
+def test_only_WIND_of_the_remainder_series_reaches_the_dispatch():
+    """PS, OIL and OTHER are measurement only; WIND reaches the dispatch since s21, and ONLY
+    through `wind_by_period`, which reads nothing else.
 
     `grid_carbon_intensity` imports nothing from this module (tested above); the feed generator
     DOES, and is the one place a remainder loader could be wired into `build_shape`.
 
-    MUTATION (must fire): call `fuel.load_cached_remainder()` inside `fuel_mix()`.
+    MUTATION (must fire): call `fuel.load_cached_remainder()` anywhere else in the generator, e.g.
+    inside `fuel_mix()`.
     """
     from tools.python_code_text import searchable
 
     source = searchable((REPO / "tools" / "generate_grid_intensity_feed.py").read_text(encoding="utf-8"))
-    assert "load_cached_remainder" not in source
+    assert source.count("load_cached_remainder") == 1
+    assert source.count("fuel.wind_by_period(fuel.load_cached_remainder())") == 1
     assert "REMAINDER_CACHE_PATH" not in source
     assert "fetch_remainder" not in source
 
