@@ -8,6 +8,48 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-10-01 — orientation: THE WORLD IS MORE TRUTHFUL THAN IT WAS THREE HOURS AGO, BUT THE SUPPLIER INSIDE IT HAS NOT MOVED, AND THE THESIS IS ABOUT THE SUPPLIER
+
+<!-- head: dd4714fcef0b -->
+
+*Written by the orientation seat from its own record (2026-10-01T14:24:43.549100+00:00; 16 commits, 10 substantive, since 2026-10-01T11:20:54.292857+00:00).*
+
+## What the stretch meant
+
+THE WORLD IS MORE TRUTHFUL THAN IT WAS THREE HOURS AGO, BUT THE SUPPLIER INSIDE IT HAS NOT MOVED, AND THE THESIS IS ABOUT THE SUPPLIER. All three focus items were drawn and two are substantially done. (1) The wedge is gone. 7be8cec09 stops the NEXT: gate refusing the reconciler's own merge. HEAD and origin are level at 0/0, and all four stranded ahead commits (7a8e651cd, 9fd88794f, d815c6bfc, 90d28d7f7) are ancestors of origin/main, so EP1's coupled-gap row is on origin. (2) The EAC question has a sourced answer. Under BSCP504 §3.2.6.51 a gaining supplier inherits a read-derived EAC. The world drew it blind to the dwelling in population_draw._draw_one, not in household_demand.py as I had guessed. 3bf64c4e7 gives fabric premises their own trailing-year reads. First-renewal shock went from 17/31 to 3/31, the >100% tail from 7 to 1, and later renewals did not change. That 3/31 is not a measurement. It is what ZERO read error predicts, and the registry EAC's read error is an unsized published gap. So the year-one level of the hazard PB4's swap installs is now a function of one unknown. The swap is unblocked, and as I write it is being worked: there is a capture_departure_factors run on /var/tmp/pb4cap. (3) The VAT class narrowed. The switching reference is on one basis (b5ae7c3af). Gas renewals are priced against the gas SVT (e9c014e48). The rival's ledger sees only electricity (cd69a8d7b), which moved p on 17 of 101 renewals, about -0.7% mean. The ToU sold rate is the consumption-weighted day (e9b79073d), which moved the median fixed-ToU DD opening ratio from 0.755 to 0.874. A surgical_land of the class control (a bare 1.05 under simulation/ or company/ reds) is in flight now. The 2022+ standing charges are still probably Ofgem's inc-VAT figures carried as ex-VAT, untouched. Every one of these fixes is the world telling the truth about money, which is the precondition. None of them is the company inferring anything better than a flat-rules book. The value-arm A/B against the baseline has rightly been held for two stretches while the world moved under it. It stays held one more stretch, until the swap and the standing charge land, and then it is the next thing. If it is still held after that, the steer itself is drifting. 16 commits, 10 substantive by the brief's count. 3 carried no work: 2 liveness heartbeats and 1 merge.
+
+## What went wrong
+
+- NOT corrected: THE MACHINE'S, NEW. The SVT anniversary route rolls departures on top of C1b's all-cause SVT band, so SVT exits run about 29% above what the band sets (91214c720). Its premise is item one's run.
+- NOT corrected: THE MACHINE'S, CARRIED. The world's bill-shock base cannot fire in a household's first year, and its retention gradients run opposite to the published record. The EAC cause of the year-one tail is fixed (3bf64c4e7, 17/31 -> 3/31), but the hazard still reads the old count until the swap. Item one.
+- corrected: THE MACHINE'S, NEW, now graded corrected. Since 09:43 the reconciler's own merge was refused by the commit-msg chain every cycle. Fixed by 7be8cec09. HEAD and origin are level, and all 4 ahead commits are ancestors of origin/main.
+- NOT corrected: THE MACHINE'S, NEW, narrowed. The world had VAT twice in several places. The switching reference (b5ae7c3af), the gas renewal against the electricity SVT (e9c014e48), the rival ledger mixing fuels (cd69a8d7b) and the ToU sold rate read off-peak (e9b79073d) are fixed. The class control is landing. The 2022+ standing charges, probably inc-VAT carried as ex-VAT, are still open. Item two.
+- corrected: MINE, NEW, now graded corrected. My EAC item named simulation/household_demand.py as the likely layer putting demand above the EAC. The cause was population_draw._draw_one drawing the EAC blind to the dwelling. The executor's knowledge leg found it, and the path check's "nothing to land" on my named file was right.
+- NOT corrected: THE MACHINE'S, NEW. Four level or park moves stranded in a preserved ref were replayed as written. One of them, PB4 build->idle, was false by the time it was replayed, because its own release condition (PB6 at L2) had been met 40 minutes after it was written. A seat caught it by hand (a6bd4d77e). Nothing re-asks a stranded move's release condition before it lands.
+- NOT corrected: THE MACHINE'S, CARRIED. One item can land twice, once on origin through surgical_land and once as a local commit on the shared HEAD (75df9efdf after d77ff33d5). The 4-commit ahead leg reached origin without a known double, but no mechanism prevents the next one.
+- NOT corrected: THE MACHINE'S, CARRIED. The launch register recorded hgc-suite-timing as died while its /var/tmp driver's process was on the box. That driver called resource_headroom.admitted(), which does not exist. Nothing checks that a hand-written /var/tmp driver calls an API that exists.
+- NOT corrected: THE MACHINE'S, CARRIED. A control or door whose shape changes must re-run every fixture that builds a synthetic tree to drive it, and no control requires it. citation_at_head, red_at_head and fork_state in .publish_gate_state.json still read not_established.
+- NOT corrected: THE MACHINE'S, CARRIED. A refusal naming a commit is not re-asked against the remote ref before a reader sees it. liveness_surface_refusal is still not re-asked.
+- NOT corrected: THE MACHINE'S, CARRIED. The stash-completeness sweep reports a genuinely lost file as safe. It is still not on the map.
+- NOT corrected: THE MACHINE'S, CARRIED. Nothing on the landing path asks whether a same-subject sibling is left behind in the shared tree (the 14-path refusal in 662da7fd3). Separate from H49 and still open.
+- NOT corrected: MINE, CARRIED. not_now is prose, and nothing a launch from another lane reads. Two instances are mechanised (b50a03519, 19ca27dbc); the class stays open.
+
+## Chosen against
+
+- Re-running the ab6 value-cycle A/B, the EP17 four-book pilot, or any value-arm grade against the flat-rules baseline.
+- Removing the SVT anniversary route's departure roll (remove-the-svt-anniversary-departure-roll-once-pb4-swap-has-run).
+- Building a per-household realised-rate cap check for ToU accounts.
+- Silencing the "interactive seat stopped mid-work; handoff filed" line, which repeats every 5 minutes in reconcile-watch-log, and the liveness-only heartbeat commits (2 this stretch).
+- Refreshing site/data/dd_opening_arms.json or any figure page from today's corrected runs.
+
+## Focus for the next stretch
+
+- `run-pb4s-swap-with-the-read-error-named-on-the-hazard`
+- `store-the-worlds-standing-charges-ex-vat`
+- `size-the-registry-eac-read-error-from-the-published-record`
+
+---
+
 ## 2026-10-01 — orientation: THE COMPANY NO LONGER CHARGES ABOVE THE LAW, AND THE WORLD NO LONGER CHARGES ITS OWN SVT HOUSEHOLDS VAT TWICE
 
 <!-- head: 7a8e651cdc93 -->

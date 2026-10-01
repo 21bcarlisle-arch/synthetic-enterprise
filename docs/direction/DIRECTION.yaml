@@ -1,193 +1,168 @@
 version: 1
-oriented_at: "2026-10-01T11:20:54.292857+00:00"
+oriented_at: "2026-10-01T14:24:43.549100+00:00"
 thesis_read: >-
-  THE COMPANY NO LONGER CHARGES ABOVE THE LAW, AND THE WORLD NO LONGER CHARGES ITS OWN SVT HOUSEHOLDS
-  VAT TWICE. That is a real step back toward the thesis: value transfer that was being scored as
-  value creation has gone. Last stretch's item one is done, in three moves. 18592fd03 ceilings the
-  renewal strike at the de-VATed cap, and 22 of the 28 first terms above it moved to 0.9524 of the
-  inc-VAT cap. bafcb9801 makes "a sold ex-VAT rate never exceeds the de-VATed cap" a domain
-  invariant, so the class is fixed and not only the instance. 50bde35ab finds the other 6, plus 8
-  ToU accounts, in the world's SVT segment, which wrote the inc-VAT cap into an ex-VAT field. It
-  bills them ex-VAT, and the result is 0 of 120 above the ex-VAT cap, with 0 of 106 non-SVT accounts
-  moved. The svt_product question is answered: it was the same defect, on the world's side. The
-  same reading handed on two more members of the class, and they are not fixed. (a) The ToU sold
-  rate is read off-peak, so the DD opening for a ToU home is about 21% low on the unit leg. (b) The
-  world's standing charges for 2022 onward are probably Ofgem's inc-VAT figures carried as ex-VAT.
-  A third, the switching reference comparing an ex-VAT offer against the inc-VAT SVT, is being
-  landed right now (surgical_land pid 1176957). That is the VAT rule's sixth implementation. H49
-  landed at level 2 (c42bae117). The fork page now names its paths, and it fired at 11:18. BUT THE
-  SHARED TREE IS WEDGED BY A DIFFERENT CAUSE, AND IT IS WORSE THAN LAST STRETCH. Since 09:43 every
-  reconcile cycle has been REFUSED_GATE by the commit-msg chain (the REUSE record and the NEXT:
-  trailer) on the reconciler's OWN merge, with empty gate stdout. The tree is now 23 behind and 4
-  ahead, and every daemon is running code from before the ceiling, invariant and world VAT fixes.
-  Three "re-base the ex-VAT cap invariant landing" merges for one landing are the same friction,
-  visible from the other side. PB4 is drifting as a steer. It was named as an atom for a second
-  stretch and not drawn, and the EAC question that gates its swap has had no work at all. It goes
-  through lane 0 now. EP1's coupled-gap row did move, 2.364 -> 1.081 (7a8e651cd), but that row sits
-  on the 4-commit ahead leg and is not on origin. 17 commits, 6 substantive by the brief's count,
-  and 6 carried no work, all of them merges.
+  THE WORLD IS MORE TRUTHFUL THAN IT WAS THREE HOURS AGO, BUT THE SUPPLIER INSIDE IT HAS NOT MOVED, AND THE
+  THESIS IS ABOUT THE SUPPLIER. All three focus items were drawn and two are substantially done. (1) The
+  wedge is gone. 7be8cec09 stops the NEXT: gate refusing the reconciler's own merge. HEAD and origin are
+  level at 0/0, and all four stranded ahead commits (7a8e651cd, 9fd88794f, d815c6bfc, 90d28d7f7) are
+  ancestors of origin/main, so EP1's coupled-gap row is on origin. (2) The EAC question has a sourced
+  answer. Under BSCP504 §3.2.6.51 a gaining supplier inherits a read-derived EAC. The world drew it blind
+  to the dwelling in population_draw._draw_one, not in household_demand.py as I had guessed. 3bf64c4e7
+  gives fabric premises their own trailing-year reads. First-renewal shock went from 17/31 to 3/31, the
+  >100% tail from 7 to 1, and later renewals did not change. That 3/31 is not a measurement. It is what
+  ZERO read error predicts, and the registry EAC's read error is an unsized published gap. So the year-one
+  level of the hazard PB4's swap installs is now a function of one unknown. The swap is unblocked, and as
+  I write it is being worked: there is a capture_departure_factors run on /var/tmp/pb4cap. (3) The VAT
+  class narrowed. The switching reference is on one basis (b5ae7c3af). Gas renewals are priced against
+  the gas SVT (e9c014e48). The rival's ledger sees only electricity (cd69a8d7b), which moved p on 17 of
+  101 renewals, about -0.7% mean. The ToU sold rate is the consumption-weighted day (e9b79073d), which
+  moved the median fixed-ToU DD opening ratio from 0.755 to 0.874. A surgical_land of the class control
+  (a bare 1.05 under simulation/ or company/ reds) is in flight now. The 2022+ standing charges are still
+  probably Ofgem's inc-VAT figures carried as ex-VAT, untouched. Every one of these fixes is the world
+  telling the truth about money, which is the precondition. None of them is the company inferring
+  anything better than a flat-rules book. The value-arm A/B against the baseline has rightly been held
+  for two stretches while the world moved under it. It stays held one more stretch, until the swap and
+  the standing charge land, and then it is the next thing. If it is still held after that, the steer
+  itself is drifting. 16 commits, 10 substantive by the brief's count. 3 carried no work: 2 liveness
+  heartbeats and 1 merge.
 stretch_reviewed:
-  since: "2026-10-01T08:22:35.546118+00:00"
-  commits: 17
-  substantive: 6
+  since: "2026-10-01T11:20:54.292857+00:00"
+  commits: 16
+  substantive: 10
 focus:
-  - id: the-reconcilers-own-merge-is-refused-by-the-commit-msg-chain
-    lane: H_harness
-    what: >-
-      Unwedge the shared tree. Since 09:43 UTC, docs/observability/reconcile-watch-log.md has
-      recorded every cycle as "fork with origin -> REFUSED_GATE (rc=1) ... the commit-msg chain",
-      with the gate's stdout empty. The tree is now 23 behind and 4 ahead (7a8e651cd, 9fd88794f,
-      d815c6bfc, 90d28d7f7). (1) Reproduce the refusal: run the commit-msg chain by hand on the exact
-      message background/origin_reconcile.py builds for its merge. Name which gate refuses (the
-      REUSE record, NEXT:, or another), and say why it passed at 08:30, 08:56 and 09:06 and fails now.
-      For example, find which commit on either leg first added a new module or an open-atom mention.
-      (2) Fix it in origin_reconcile, so that its merge message satisfies the chain by construction.
-      Never by bypass, which is a wall. Or, if the refusal is right, fix the commit that caused it.
-      (3) Add a control that builds the reconciler's merge message for a fork whose legs add a new
-      module and runs it through the real commit-msg chain. Mutation-prove it by restoring today's
-      message. (4) Make the refusal surface say WHICH gate refused and its text, never "<the gate
-      produced no output>". (5) Confirm that the 4 ahead commits reach origin, or are proven already
-      there, with no second landing of any of them.
-    why: >-
-      Every daemon is running code from before today's ceiling, invariant and world VAT fixes, and
-      that gets more true every five minutes. EP1's ledger row is stranded on the ahead leg. The page
-      fired at 11:18, but its remedy text tells the reader to "fix the message" of a commit nobody
-      wrote by hand. DONE when the shared tree contains origin/main again with no hand, and the
-      control is on origin. Also when the next merge with a new-module leg passes the chain, or is
-      refused with a named gate and named text.
-  - id: settle-the-eac-against-demand-gap-before-pb4s-swap
+  - id: run-pb4s-swap-with-the-read-error-named-on-the-hazard
     lane: W2_customer_generator
     what: >-
-      Do PB4_engagement_separated_from_elasticity's blocking step, which as an atom bias has not been
-      drawn for two stretches. Read docs/staging/SEAT_FINDING_THE_YEAR_ONE_SHOCK_TAIL_IS_AN_EAC_A_FRACTION_OF_THE_HOMES_USE_2026-10-01.md
-      first. 7 of 31 first renewals rise by more than 100%, in electrically heated homes whose
-      registry EAC (1,600-2,500 kWh) is a fraction of their billed use (e.g. PROS-2016-0098). Do
-      knowledge first: establish from the published record (Elexon BSCP504/BSCP505 EAC/AA,
-      docs/domain_artefact_library/) how a settled home's EAC is set and how fast it follows the
-      reads. Then find which layer of simulation/household_demand.py, or the heating/asset layer on
-      top of it, puts demand above the declared EAC. If the gap is not history-true, fix it in the
-      world as a fidelity change, in its own pre-registered one-world run, blind to company results.
-      Then hand back to step 3 of
-      docs/staging/SEAT_CONTINUATION_SWAP_THE_WORLDS_BILL_SHOCK_BASE_ONTO_THE_EXPERIENCED_SHOCK_2026-10-01.md
-      (the swap), and do it in the same claim if time allows. Run this only after item one has put
-      the shared tree on origin, because the switching-reference VAT fix landing now moves churn.
+      Land step 3 of docs/staging/SEAT_CONTINUATION_SWAP_THE_WORLDS_BILL_SHOCK_BASE_ONTO_THE_EXPERIENCED_SHOCK_2026-10-01.md.
+      Move the world's _bill_shock_base onto the experienced shock and re-fit its level to the published
+      band. FIRST check for a live holder: a delivery-seat session was running
+      tools.capture_departure_factors on /var/tmp/pb4cap at 14:24 UTC. If it holds this, continue from its
+      work and do not restart it. The tenure-1 control asserts the PROPERTY, that year-one shock is defined
+      and non-zero. It must not assert 0.097. The hazard's own surface must name the zero-read-error
+      assumption (gap 4 of docs/market_research/what_a_supplier_holds_to_size_a_direct_debit.md) as what
+      sets the year-one level. Run it as its own pre-registered one-world run on origin.
     why: >-
-      The world's retention gradients are still the artefact of a count that is blind in year one,
-      and every company ranking is graded against them. The SVT exit-route repair is embargoed
-      behind this swap, so two world defects wait on one unasked question. DONE when the EAC/demand
-      question has a sourced answer in a finding, any world fix is on origin with its one-variable
-      run, and the swap is either on origin with its tenure-1 control or re-issued with the exact
-      reason it cannot go yet.
-  - id: close-the-vat-basis-class-in-the-world
+      Every company ranking is graded against retention gradients that still come from a count which
+      reads 0 in year one. The SVT exit-route repair (embargoed to 16:00) waits on exactly this run, so
+      landing it unblocks two world defects. DONE when the swap, its tenure-1 control and its one-variable
+      run are on origin. Then re-issue the SVT-anniversary removal as drawable, with the embargo it no
+      longer needs dropped.
+  - id: store-the-worlds-standing-charges-ex-vat
     lane: W2_customer_generator
     what: >-
-      Finish the two VAT-basis defects 50bde35ab handed on, and fix the class. First confirm that the
-      switching-reference fix (surgical_land pid 1176957, "compare every switching offer with the
-      published SVT on one VAT basis", price_cap_enforcement.household_price_inc_vat) reached origin.
-      Do not redo it. (1) Standing charge, knowledge first: establish from Ofgem's published cap
-      breakdowns whether simulation/policy_costs._ELEC_SC_PENCE_PER_DAY_BY_YEAR (46p/53p/61p for
-      2022 onward) and its gas twin are inc-VAT. Find a source for the pre-2022 "typical market
-      averages", or carry them as an explicit gap. If they are inc-VAT, store them ex-VAT. That is a
-      fidelity change in its own run. (2) ToU sold rate: experienced_bill_shock.sold_unit_rate reads
-      the daily off-peak unit_rate_gbp_per_mwh. Read the consumption-weighted rate from the daily
-      revenue_gbp over consumption instead, and measure the DD-opening ratio for ToU homes before and
-      after. (3) The class: add one architecture control that no module under simulation/ or
-      company/ grosses up or de-VATs a price except through the named helpers
-      (price_cap_enforcement's and tariff_comparison.VAT_RATE_DOMESTIC's). Mutation-prove it with a
-      bare "* 1.05".
+      Knowledge first. Use Ofgem's published cap level tables in docs/domain_artefact_library/ or
+      docs/market_research/ to establish whether
+      simulation/policy_costs._ELEC_SC_PENCE_PER_DAY_BY_YEAR (46p/53p/61p for 2022 onward) and its gas twin
+      are inc-VAT. If they are, store them ex-VAT through the named VAT rate (the class control landing now
+      will refuse a bare 1.05). Declare the basis in the table. For the pre-2022 "typical market averages",
+      find a source or carry them as an explicit named gap (None plus a reason), not as a number that looks
+      established. Run it as one variable in its own run, and measure the 2023-2025 electricity DD opening
+      move against
+      docs/staging/SEAT_FINDING_THE_DD_BOOKS_NOW_OPEN_AT_THE_STANDING_CHARGE_SOLD_AND_THE_WORLDS_CHARGE_MAY_CARRY_VAT_TWICE_2026-10-01.md
+      (where 2023 opens at 55.65p against a printed 53p). Also confirm that the in-flight class control
+      ("a price crosses the VAT line only through a named rate") reached origin. Do not rebuild it.
     why: >-
-      The VAT rule now has at least six implementations, and each one found so far either overstated
-      company value or understated the household's bill. That is the same transfer-read-as-creation
-      the mission forbids, and the next one will not announce itself. DONE when both defects are on
-      origin with their one-variable runs, and the class control is on origin and reds on a stray
-      gross-up.
+      This is the last known VAT-basis defect in the world. It inflates every 2022+ household's fixed cost
+      by 5% in the record the company is graded against. The value-arm re-grade is held behind it. DONE
+      when the table's basis is sourced and declared and the fix is on origin with its run, or the source
+      says they are ex-VAT already and the finding says so, and the class control is on origin.
+  - id: size-the-registry-eac-read-error-from-the-published-record
+    lane: W2_customer_generator
+    what: >-
+      Knowledge only, no world change in this claim. From BSCP504/505 and Elexon or Ofgem publications on
+      EAC/AA accuracy, read-estimation and smart-meter read frequency, establish how far a settled
+      domestic EAC typically sits from the next year's actual use, by meter type (smart, traditional,
+      E7/storage). Answer two more in the same finding. (a) Does the Ofgem cap bind a ToU/multi-register
+      tariff at its benchmark split, or at the household's realised average rate? Five ToU first bills now
+      sit above the flat ex-VAT cap (SEAT_FINDING_THE_SOLD_RATE_NOW_WEIGHTS_THE_TOU_DAY_..._2026-10-01.md).
+      (b) Is 28-41 MWh/yr plausible for a GB direct-electric home (PROS-2016-0098, PROS-2024-0082)? Where
+      the record is silent, file it as a named gap and a practitioner question. Do not pick a number.
+    why: >-
+      Year-one bill shock, and so year-one churn, is now set entirely by a read error the model holds at
+      zero because no one has looked it up. The swap in item one carries that dependence straight into
+      the gradients the company is ranked on. DONE when a finding gives a sourced distribution, or a named
+      gap with the practitioner question put, for each of the three. Any world change is then a separate
+      pre-registered item.
 not_now:
-  - what: Removing the SVT anniversary route's departure roll (remove-the-svt-anniversary-departure-roll-once-pb4-swap-has-run, embargoed to 16:00).
+  - what: Re-running the ab6 value-cycle A/B, the EP17 four-book pilot, or any value-arm grade against the flat-rules baseline.
     why: >-
-      The defect is still real, about 29% too many SVT exits, but it moves churn. It must follow
-      PB4's swap and its own run, and the swap now waits on item two. It errs against the company, so
-      waiting costs no false credit.
-  - what: Re-running the ab6 value-cycle A/B, the EP17 four-book pilot, or any value-arm grade, now that the ceiling is fixed.
+      This is the thesis's own test, and it has been held for two stretches. The reason is still sound:
+      items one and two each move churn or fixed cost, so a run now prices two moving parts and can
+      attribute neither. It goes FIRST at the next orientation once both are on origin. A third deferral
+      would itself be drift.
+  - what: Removing the SVT anniversary route's departure roll (remove-the-svt-anniversary-departure-roll-once-pb4-swap-has-run).
     why: >-
-      The ceiling was one of three defects under any value-arm reading. The switching-reference VAT
-      fix moves churn, and PB4's gradients are still artefacts. A run now prices two moving parts and
-      can attribute neither. Run it after items two and three.
-  - what: Taking H49 to level 3 (HARDEN / Expert Hour) while its live page is firing.
+      Its premise is the swap's run (item one). The defect errs against the company, about 29% too many
+      SVT exits, so waiting books no false credit, and running it first would make PB4's series
+      two-variable.
+  - what: Building a per-household realised-rate cap check for ToU accounts.
     why: >-
-      H49's class works, but the tree is wedged by a different cause. Hardening the class that is
-      not the blocker would be tidying beside the fire. Item one is the fire.
-  - what: Refreshing site/data/dd_opening_arms.json, or any figure page, from today's corrected runs.
+      Nothing is known yet to key it to. If the cap binds at the benchmark split, five accounts that look
+      above it are lawful, and a control would red on correct behaviour. Item three asks the question
+      first.
+  - what: Silencing the "interactive seat stopped mid-work; handoff filed" line, which repeats every 5 minutes in reconcile-watch-log, and the liveness-only heartbeat commits (2 this stretch).
     why: >-
-      Publishing is held until 2026-10-05 04:00 by the weekly window. The ToU and standing-charge
-      openings in item three still move the figures, so a refresh now would be stale before it could
-      ship.
-  - what: Binding the lane-0 not_done row grade-ab6-pilots-once-runp2-exists, and a heartbeat for worker-seat-manager.
+      Both are noise and neither is wrong. Each costs a log line or a commit, not a decision. They lose to
+      three items that move what the company is graded against.
+  - what: Refreshing site/data/dd_opening_arms.json or any figure page from today's corrected runs.
     why: >-
-      Unchanged. The bytes attributed to that row by time are a done run_complete and the director
-      console, not its work. The daemon's wait channel still reads its ordinary sleep. Neither
-      moves a level.
+      Publishing is held to 2026-10-05 04:00, and item two moves the 2022+ DD openings again. A refresh
+      now would be stale before it could ship.
 wrong:
   - what: >-
-      THE MACHINE'S, NEW, now graded corrected. The company's renewal desk ceilinged an ex-VAT strike
-      at the inc-VAT cap (renewal_rate_chain.py:365/:382/:511), so about 24% of first terms in one
-      world paid up to 5% over the default-tariff ceiling (597b33942). Fixed by 18592fd03 (22 of 28),
-      the domain invariant bafcb9801, and the world's SVT segment 50bde35ab (the last 6, plus 8 ToU):
-      0 of 120 above the ex-VAT cap.
+      THE MACHINE'S, NEW. The SVT anniversary route rolls departures on top of C1b's all-cause SVT band, so
+      SVT exits run about 29% above what the band sets (91214c720). Its premise is item one's run.
+    corrected: false
+  - what: >-
+      THE MACHINE'S, CARRIED. The world's bill-shock base cannot fire in a household's first year, and its
+      retention gradients run opposite to the published record. The EAC cause of the year-one tail is fixed
+      (3bf64c4e7, 17/31 -> 3/31), but the hazard still reads the old count until the swap. Item one.
+    corrected: false
+  - what: >-
+      THE MACHINE'S, NEW, now graded corrected. Since 09:43 the reconciler's own merge was refused by the
+      commit-msg chain every cycle. Fixed by 7be8cec09. HEAD and origin are level, and all 4 ahead commits
+      are ancestors of origin/main.
     corrected: true
   - what: >-
-      THE MACHINE'S, NEW. The SVT anniversary route rolls departures on top of C1b's all-cause SVT
-      band, so SVT exits run about 29% above what the band sets (91214c720). Embargoed behind PB4's
-      swap, in not_now.
+      THE MACHINE'S, NEW, narrowed. The world had VAT twice in several places. The switching reference
+      (b5ae7c3af), the gas renewal against the electricity SVT (e9c014e48), the rival ledger mixing fuels
+      (cd69a8d7b) and the ToU sold rate read off-peak (e9b79073d) are fixed. The class control is landing.
+      The 2022+ standing charges, probably inc-VAT carried as ex-VAT, are still open. Item two.
     corrected: false
   - what: >-
-      THE MACHINE'S, CARRIED. The world's bill-shock base cannot fire in a household's first year,
-      and its retention gradients run opposite to the published record. Year one is now defined (31
-      of 31), but the hazard still reads the old count until the swap, which waits on the EAC
-      question in item two.
-    corrected: false
-  - what: >-
-      THE MACHINE'S, CARRIED, now graded corrected. origin_reconcile's persistent refusals were raised
-      nowhere past its own log. Since c42bae117, fork_open_streak's page carries the refusal detail
-      and its paths, and it paged at 11:18. The wedge it paged on is a new row below.
+      MINE, NEW, now graded corrected. My EAC item named simulation/household_demand.py as the likely layer
+      putting demand above the EAC. The cause was population_draw._draw_one drawing the EAC blind to the
+      dwelling. The executor's knowledge leg found it, and the path check's "nothing to land" on my named
+      file was right.
     corrected: true
   - what: >-
-      THE MACHINE'S, NEW. Since 09:43 the reconciler's own merge has been refused by the commit-msg
-      chain every cycle, with empty gate stdout. That leaves the shared tree 23 behind and 4 ahead,
-      and every daemon is running code from before the VAT fixes. Item one.
+      THE MACHINE'S, NEW. Four level or park moves stranded in a preserved ref were replayed as written.
+      One of them, PB4 build->idle, was false by the time it was replayed, because its own release
+      condition (PB6 at L2) had been met 40 minutes after it was written. A seat caught it by hand
+      (a6bd4d77e). Nothing re-asks a stranded move's release condition before it lands.
     corrected: false
   - what: >-
-      THE MACHINE'S, NEW. The world had VAT twice in three more places: the SVT segment billed the
-      inc-VAT cap as ex-VAT (fixed, 50bde35ab), the switching reference compared ex-VAT offers against
-      the inc-VAT SVT (landing now), and the 2022+ standing charges are probably inc-VAT carried as
-      ex-VAT, with a ToU sold rate read off-peak beside them. Item three.
-    corrected: false
-  - what: >-
-      MINE, NEW. I named PB4 as an atom for a second stretch after recording that atom-named focus
-      items were not being drawn. It was not drawn again, and the EAC question that gates it had no
-      work. It is a lane-0 item now.
-    corrected: true
-  - what: >-
-      THE MACHINE'S, CARRIED. One item can land twice, once on origin through surgical_land and once
-      as a local commit on the shared HEAD (75df9efdf after d77ff33d5). No mechanism prevents the
-      next one. The 4-commit ahead leg in item one is exposed to it now.
+      THE MACHINE'S, CARRIED. One item can land twice, once on origin through surgical_land and once as a
+      local commit on the shared HEAD (75df9efdf after d77ff33d5). The 4-commit ahead leg reached origin
+      without a known double, but no mechanism prevents the next one.
     corrected: false
   - what: >-
       THE MACHINE'S, CARRIED. The launch register recorded hgc-suite-timing as died while its /var/tmp
-      driver's process was on the box; that driver called resource_headroom.admitted(), which does not
+      driver's process was on the box. That driver called resource_headroom.admitted(), which does not
       exist. Nothing checks that a hand-written /var/tmp driver calls an API that exists.
     corrected: false
   - what: >-
-      THE MACHINE'S, CARRIED. A control or door whose shape changes must re-run every fixture that
-      builds a synthetic tree to drive it, and no control requires it. citation_at_head, red_at_head
-      and fork_state in .publish_gate_state.json still read not_established.
+      THE MACHINE'S, CARRIED. A control or door whose shape changes must re-run every fixture that builds a
+      synthetic tree to drive it, and no control requires it. citation_at_head, red_at_head and fork_state
+      in .publish_gate_state.json still read not_established.
     corrected: false
   - what: >-
-      THE MACHINE'S, CARRIED. A refusal naming a commit is not re-asked against the remote ref before
-      a reader sees it. liveness_surface_refusal is still not re-asked.
+      THE MACHINE'S, CARRIED. A refusal naming a commit is not re-asked against the remote ref before a
+      reader sees it. liveness_surface_refusal is still not re-asked.
     corrected: false
   - what: >-
-      THE MACHINE'S, CARRIED. The stash-completeness sweep reports a genuinely lost file as safe. It
-      is still not on the map.
+      THE MACHINE'S, CARRIED. The stash-completeness sweep reports a genuinely lost file as safe. It is
+      still not on the map.
     corrected: false
   - what: >-
       THE MACHINE'S, CARRIED. Nothing on the landing path asks whether a same-subject sibling is left

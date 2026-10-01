@@ -1,9 +1,105 @@
 {
- "generated_at": "2026-10-01T11:25:37.993071+00:00",
+ "generated_at": "2026-10-01T14:29:15.452771+00:00",
  "seat": "delivery",
  "what_it_did": {
   "available": true,
   "commits": [
+   {
+    "sha": "dd4714fce",
+    "at": "2026-10-01T15:11:52+01:00",
+    "subject": "chore(liveness): publish heartbeat while sim output unchanged (git=a6bd4d77ef3d8d231a55cd37482202fa37536bd7) -- decouples published liveness from content-change (Fault#1 2026-07-25)",
+    "substantive": false
+   },
+   {
+    "sha": "0bc35640b",
+    "at": "2026-10-01T15:10:14+01:00",
+    "subject": "PB4 store: the release note sits above the paragraph it releases, so the shared tree's draft is a plain subset",
+    "substantive": true
+   },
+   {
+    "sha": "11c2344ab",
+    "at": "2026-10-01T15:07:50+01:00",
+    "subject": "PB4: the practitioner question put to the director is kept; its idle park is recorded as released before it was ever committed",
+    "substantive": true
+   },
+   {
+    "sha": "a6bd4d77e",
+    "at": "2026-10-01T15:03:33+01:00",
+    "subject": "W2_28 L1->L2 and SP2_2 parked idle, landed from the preserved ref; PB4's idle dropped as already released",
+    "substantive": true
+   },
+   {
+    "sha": "d029477c7",
+    "at": "2026-10-01T14:59:56+01:00",
+    "subject": "H47 L2->L3: the stranded second blind pass lands with the repair it graded",
+    "substantive": true
+   },
+   {
+    "sha": "e9b79073d",
+    "at": "2026-10-01T14:43:53+01:00",
+    "subject": "World: the sold rate is the ToU day's consumption-weighted rate, not its 00:00 off-peak leg",
+    "substantive": true
+   },
+   {
+    "sha": "3bf64c4e7",
+    "at": "2026-10-01T14:33:36+01:00",
+    "subject": "World: a fabric premise's registry EAC is its own trailing-year reads, not a band drawn blind to the dwelling",
+    "substantive": true
+   },
+   {
+    "sha": "554a06add",
+    "at": "2026-10-01T14:11:47+01:00",
+    "subject": "chore(liveness): publish heartbeat while sim output unchanged (git=64911297584633a2aeeb81f77fdecf46304bb316) -- decouples published liveness from content-change (Fault#1 2026-07-25)",
+    "substantive": false
+   },
+   {
+    "sha": "649112975",
+    "at": "2026-10-01T14:08:16+01:00",
+    "subject": "The shared tree was held 29 behind by four lanes' stranded level moves; it has fast-forwarded",
+    "substantive": false
+   },
+   {
+    "sha": "cd69a8d7b",
+    "at": "2026-10-01T13:56:54+01:00",
+    "subject": "World: the rival's ledger observes only electricity strikes",
+    "substantive": true
+   },
+   {
+    "sha": "5962fb17d",
+    "at": "2026-10-01T13:34:31+01:00",
+    "subject": "Staging: a settled home's EAC is its own smoothed reads; the world draws it blind to the dwelling",
+    "substantive": false
+   },
+   {
+    "sha": "e9c014e48",
+    "at": "2026-10-01T13:18:36+01:00",
+    "subject": "World: price a gas renewal against the gas SVT, not the electricity one",
+    "substantive": true
+   },
+   {
+    "sha": "528b18b4e",
+    "at": "2026-10-01T13:04:24+01:00",
+    "subject": "merge origin/main: automatic reconciliation in an isolated worktree",
+    "substantive": false
+   },
+   {
+    "sha": "7be8cec09",
+    "at": "2026-10-01T12:42:24+01:00",
+    "subject": "The reconciler's own merge is no longer refused by the NEXT: gate for a level its other parent moved",
+    "substantive": true
+   },
+   {
+    "sha": "e196d0937",
+    "at": "2026-10-01T12:25:46+01:00",
+    "subject": "delivery seat: direction for the next stretch",
+    "substantive": false
+   },
+   {
+    "sha": "b5ae7c3af",
+    "at": "2026-10-01T12:24:23+01:00",
+    "subject": "World: compare every switching offer with the published SVT on one VAT basis",
+    "substantive": true
+   },
    {
     "sha": "7a8e651cd",
     "at": "2026-10-01T12:15:00+01:00",
@@ -17,15 +113,87 @@
     "substantive": true
    },
    {
+    "sha": "50bde35ab",
+    "at": "2026-10-01T11:28:08+01:00",
+    "subject": "World: bill the SVT segment ex-VAT, so no first term sits above the ex-VAT cap",
+    "substantive": true
+   },
+   {
     "sha": "d815c6bfc",
     "at": "2026-10-01T11:26:23+01:00",
     "subject": "EP1's ledger row measured on the first run after the day's fixes (2.364 -> 1.081), not landed: ten origin reds block every ledger write",
     "substantive": false
    },
    {
+    "sha": "5e02bbdda",
+    "at": "2026-10-01T10:50:02+01:00",
+    "subject": "merge origin/main: re-base the ex-VAT cap invariant landing",
+    "substantive": false
+   },
+   {
+    "sha": "e3da60a2f",
+    "at": "2026-10-01T10:41:38+01:00",
+    "subject": "merge origin/main: re-base the ex-VAT cap invariant landing",
+    "substantive": false
+   },
+   {
     "sha": "90d28d7f7",
     "at": "2026-10-01T10:39:03+01:00",
     "subject": "SVT exit-route repair re-gated: the PB4 bill-shock swap it waits on has not run",
+    "substantive": false
+   },
+   {
+    "sha": "c42bae117",
+    "at": "2026-10-01T10:34:13+01:00",
+    "subject": "H49: a shared-tree copy of an EARLIER origin revision is cleared like a twin, and the fork page names its paths",
+    "substantive": true
+   },
+   {
+    "sha": "e84cc5e47",
+    "at": "2026-10-01T10:16:14+01:00",
+    "subject": "merge origin/main: re-base the ex-VAT cap invariant landing",
+    "substantive": false
+   },
+   {
+    "sha": "54fea3f4a",
+    "at": "2026-10-01T10:06:27+01:00",
+    "subject": "merge origin/main: automatic reconciliation in an isolated worktree",
+    "substantive": false
+   },
+   {
+    "sha": "bafcb9801",
+    "at": "2026-10-01T10:05:50+01:00",
+    "subject": "A sold ex-VAT rate above the de-VATed cap is now a domain invariant, not one desk's clamp",
+    "substantive": true
+   },
+   {
+    "sha": "3f3db8e0b",
+    "at": "2026-10-01T09:56:53+01:00",
+    "subject": "merge origin/main: automatic reconciliation in an isolated worktree",
+    "substantive": false
+   },
+   {
+    "sha": "d2ad77a9a",
+    "at": "2026-10-01T09:53:35+01:00",
+    "subject": "The DD books open each account at the standing charge it was sold at",
+    "substantive": true
+   },
+   {
+    "sha": "0485b09ca",
+    "at": "2026-10-01T09:43:15+01:00",
+    "subject": "The ex-VAT renewal ceiling clears 22 of the 28, and the last 6 are the world's SVT segment",
+    "substantive": false
+   },
+   {
+    "sha": "18592fd03",
+    "at": "2026-10-01T09:41:30+01:00",
+    "subject": "The renewal desk ceilings the ex-VAT strike at the ex-VAT cap, not the inc-VAT one",
+    "substantive": true
+   },
+   {
+    "sha": "40ce32240",
+    "at": "2026-10-01T09:30:04+01:00",
+    "subject": "merge origin/main: automatic reconciliation in an isolated worktree",
     "substantive": false
    },
    {
@@ -41,261 +209,93 @@
     "substantive": false
    },
    {
+    "sha": "68e4fb4bf",
+    "at": "2026-10-01T09:09:51+01:00",
+    "subject": "The DD opening-arms instrument measures the openings the run used, not the cap fallback",
+    "substantive": true
+   },
+   {
+    "sha": "597b33942",
+    "at": "2026-10-01T08:35:07+01:00",
+    "subject": "The 28 accounts sold above the cap are ex-VAT strikes ceilinged at the inc-VAT cap",
+    "substantive": false
+   },
+   {
+    "sha": "ce2bf4ab6",
+    "at": "2026-10-01T08:32:46+01:00",
+    "subject": "merge origin/main: automatic reconciliation in an isolated worktree",
+    "substantive": false
+   },
+   {
+    "sha": "940a67254",
+    "at": "2026-10-01T08:23:13+01:00",
+    "subject": "merge origin/main: automatic reconciliation in an isolated worktree",
+    "substantive": false
+   },
+   {
+    "sha": "ed41ffa1e",
+    "at": "2026-10-01T08:20:43+01:00",
+    "subject": "The company's DD books open each account at the rate it was sold at, not at the cap",
+    "substantive": true
+   },
+   {
     "sha": "86bb09261",
     "at": "2026-10-01T08:07:26+01:00",
     "subject": "chore(liveness): publish heartbeat while sim output unchanged (git=3ef39322e6997ad966e1d9a92eff3be05ff3fdd5) -- decouples published liveness from content-change (Fault#1 2026-07-25)",
     "substantive": false
-   },
-   {
-    "sha": "3ef39322e",
-    "at": "2026-10-01T07:33:07+01:00",
-    "subject": "PB4 year-one quote and review on one basis: pre-registration, filed before the code meets a world",
-    "substantive": false
-   },
-   {
-    "sha": "7f4cb24a9",
-    "at": "2026-10-01T07:21:42+01:00",
-    "subject": "SVT anniversary exit route: pre-registration and decided design, filed before the world changes",
-    "substantive": false
-   },
-   {
-    "sha": "0f2e841cd",
-    "at": "2026-10-01T07:01:28+01:00",
-    "subject": "chore(liveness): publish heartbeat while sim output unchanged (git=91214c7209cd3b50451b7f4dc63cc64066315379) -- decouples published liveness from content-change (Fault#1 2026-07-25)",
-    "substantive": false
-   },
-   {
-    "sha": "91214c720",
-    "at": "2026-10-01T06:55:59+01:00",
-    "subject": "A passive fixed-term end needs no departure roll; the SVT anniversary is a second exit route",
-    "substantive": true
-   },
-   {
-    "sha": "628b58850",
-    "at": "2026-10-01T06:48:27+01:00",
-    "subject": "merge origin/main: automatic reconciliation in an isolated worktree",
-    "substantive": false
-   },
-   {
-    "sha": "8efcafc82",
-    "at": "2026-10-01T06:46:16+01:00",
-    "subject": "PB4 experienced bill shock on one world: later renewals work, year one is still blind because the quote is priced at a cap that did not exist",
-    "substantive": false
-   },
-   {
-    "sha": "acc9abc37",
-    "at": "2026-10-01T06:42:41+01:00",
-    "subject": "Passive term end: pre-registration, filed before the one-world log is read",
-    "substantive": false
-   },
-   {
-    "sha": "55d343a35",
-    "at": "2026-10-01T06:28:52+01:00",
-    "subject": "census 03:34 run read: UNPROVEN at 7200s on a stale shared checkout lacking the trims and the 17400s bound, so the bound does not move",
-    "substantive": false
-   },
-   {
-    "sha": "3d82b5f0e",
-    "at": "2026-10-01T06:28:12+01:00",
-    "subject": "delivery seat: direction for the next stretch",
-    "substantive": false
-   },
-   {
-    "sha": "2acb617d4",
-    "at": "2026-10-01T06:24:17+01:00",
-    "subject": "EP1 legs-then-rate on two re-drawn-dice runs: every prediction held, the informativeness control failed, so no licence",
-    "substantive": false
-   },
-   {
-    "sha": "57b505ca3",
-    "at": "2026-10-01T06:18:37+01:00",
-    "subject": "PB4 experienced bill shock: pre-registration, filed before the one-world run is launched",
-    "substantive": false
-   },
-   {
-    "sha": "aed6bf966",
-    "at": "2026-10-01T06:12:37+01:00",
-    "subject": "EP1 legs-then-rate replication: pre-registration, filed before either floor run is read",
-    "substantive": false
-   },
-   {
-    "sha": "9d6ad4551",
-    "at": "2026-10-01T06:10:49+01:00",
-    "subject": "A renewal decision, defined from the licence: a fixed term's end is one, the default tariff has none, so EP1's tenure hazard is all-cause exit over exposure",
-    "substantive": true
-   },
-   {
-    "sha": "cff926925",
-    "at": "2026-10-01T05:59:59+01:00",
-    "subject": "chore(liveness): publish heartbeat while sim output unchanged (git=d81a867129b32315307d87be8bd474e6e9cadbfe) -- decouples published liveness from content-change (Fault#1 2026-07-25)",
-    "substantive": false
-   },
-   {
-    "sha": "d81a86712",
-    "at": "2026-10-01T05:53:22+01:00",
-    "subject": "merge origin/main: automatic reconciliation in an isolated worktree",
-    "substantive": false
-   },
-   {
-    "sha": "147dc5cba",
-    "at": "2026-10-01T05:50:36+01:00",
-    "subject": "tests/background: the publisher's refusal record is redirected for every test, so a wedged live publisher cannot decide a healthy-publish assertion",
-    "substantive": true
-   },
-   {
-    "sha": "24542747c",
-    "at": "2026-10-01T05:48:04+01:00",
-    "subject": "EP1 fuel-split forecast out of sample: the fitted blend fails the licence, and the leg count is not a tenure proxy",
-    "substantive": false
-   },
-   {
-    "sha": "1d9d0b373",
-    "at": "2026-10-01T05:43:24+01:00",
-    "subject": "merge origin/main: automatic reconciliation in an isolated worktree",
-    "substantive": false
-   },
-   {
-    "sha": "388d33b76",
-    "at": "2026-10-01T05:40:25+01:00",
-    "subject": "the shared checkout reaches origin again; the ten untracked blockers were the supervisor's staging sync, filed as H49",
-    "substantive": true
-   },
-   {
-    "sha": "719e71173",
-    "at": "2026-10-01T05:39:27+01:00",
-    "subject": "EP1 cost to serve: the gap is entirely between fuel strata, and the fuel split carries most of the forward-margin ranking",
-    "substantive": false
-   },
-   {
-    "sha": "1e021ddd2",
-    "at": "2026-10-01T05:33:27+01:00",
-    "subject": "merge origin/main: automatic reconciliation in an isolated worktree",
-    "substantive": false
-   },
-   {
-    "sha": "ade3f95df",
-    "at": "2026-10-01T05:32:06+01:00",
-    "subject": "EP1 margin attribution: the belief's form costs nothing; subtracting cost to serve costs ranking even against a net target",
-    "substantive": false
-   },
-   {
-    "sha": "7c8dea27f",
-    "at": "2026-10-01T05:28:53+01:00",
-    "subject": "EP1: acquisition route does not rank tenure, and at every snapshot the belief ranks forward margin but never tenure",
-    "substantive": false
-   },
-   {
-    "sha": "367580371",
-    "at": "2026-10-01T05:24:03+01:00",
-    "subject": "chore(liveness): publish heartbeat while sim output unchanged (git=3f7a0632fffe8f0537b50fcb258010850b987856) -- decouples published liveness from content-change (Fault#1 2026-07-25)",
-    "substantive": false
-   },
-   {
-    "sha": "3f7a0632f",
-    "at": "2026-10-01T05:18:42+01:00",
-    "subject": "EP1 graded over the whole book: within a cohort nothing a supplier holds at first valuation ranks tenure",
-    "substantive": false
-   },
-   {
-    "sha": "a0ccd009b",
-    "at": "2026-10-01T05:16:46+01:00",
-    "subject": "PB4: the world now knows what bill shock a household experienced, by the published definition, and it can fire in year one",
-    "substantive": true
-   },
-   {
-    "sha": "9cd6e7ab5",
-    "at": "2026-10-01T04:59:35+01:00",
-    "subject": "EP1: the belief carries no per-account tenure, and no snapshot observable ranks a lifetime margin at n=66",
-    "substantive": false
-   },
-   {
-    "sha": "127c007f0",
-    "at": "2026-10-01T04:47:08+01:00",
-    "subject": "EP1 values a margin per settled year over an untruncated survival sum; the two defects that hid each other are fixed together",
-    "substantive": true
-   },
-   {
-    "sha": "8dd7794bd",
-    "at": "2026-10-01T04:39:38+01:00",
-    "subject": "what drives the world's retention at a first renewal: the bill-shock count is blind in a household's first year and carries the whole tenure gradient",
-    "substantive": false
-   },
-   {
-    "sha": "33e9c1ba3",
-    "at": "2026-10-01T04:33:14+01:00",
-    "subject": "what drives the world's retention at a first renewal: predictions filed before any term is computed",
-    "substantive": false
-   },
-   {
-    "sha": "f372171dd",
-    "at": "2026-10-01T04:30:52+01:00",
-    "subject": "merge origin/main: automatic reconciliation in an isolated worktree",
-    "substantive": false
-   },
-   {
-    "sha": "69b3c8d57",
-    "at": "2026-10-01T04:25:20+01:00",
-    "subject": "merge origin/main: automatic reconciliation in an isolated worktree",
-    "substantive": false
-   },
-   {
-    "sha": "8d6123c6a",
-    "at": "2026-10-01T04:13:47+01:00",
-    "subject": "EP1's remaining over-valuation is the margin, divided by renewal points; H2 also counts survival twice, and the two hide each other",
-    "substantive": false
    }
   ],
-  "substantive": 7,
-  "mechanical": 33,
+  "substantive": 18,
+  "mechanical": 22,
   "what_the_split_means": "A mechanical commit republishes an unchanged net -- the report, the dashboard, the state files. Counting those as work would make a quiet day look busy, so they are separated rather than filtered: they happened, they are just not progress."
  },
  "what_it_decided": {
   "available": true,
-  "oriented_at": "2026-10-01T11:20:54.292857+00:00",
+  "oriented_at": "2026-10-01T14:24:43.549100+00:00",
   "age_hours": 0.1,
   "expires_after_hours": 12.0,
   "live": true,
-  "thesis_read": "THE COMPANY NO LONGER CHARGES ABOVE THE LAW, AND THE WORLD NO LONGER CHARGES ITS OWN SVT HOUSEHOLDS VAT TWICE. That is a real step back toward the thesis: value transfer that was being scored as value creation has gone. Last stretch's item one is done, in three moves. 18592fd03 ceilings the renewal strike at the de-VATed cap, and 22 of the 28 first terms above it moved to 0.9524 of the inc-VAT cap. bafcb9801 makes \"a sold ex-VAT rate never exceeds the de-VATed cap\" a domain invariant, so the class is fixed and not only the instance. 50bde35ab finds the other 6, plus 8 ToU accounts, in the world's SVT segment, which wrote the inc-VAT cap into an ex-VAT field. It bills them ex-VAT, and the result is 0 of 120 above the ex-VAT cap, with 0 of 106 non-SVT accounts moved. The svt_product question is answered: it was the same defect, on the world's side. The same reading handed on two more members of the class, and they are not fixed. (a) The ToU sold rate is read off-peak, so the DD opening for a ToU home is about 21% low on the unit leg. (b) The world's standing charges for 2022 onward are probably Ofgem's inc-VAT figures carried as ex-VAT. A third, the switching reference comparing an ex-VAT offer against the inc-VAT SVT, is being landed right now (surgical_land pid 1176957). That is the VAT rule's sixth implementation. H49 landed at level 2 (c42bae117). The fork page now names its paths, and it fired at 11:18. BUT THE SHARED TREE IS WEDGED BY A DIFFERENT CAUSE, AND IT IS WORSE THAN LAST STRETCH. Since 09:43 every reconcile cycle has been REFUSED_GATE by the commit-msg chain (the REUSE record and the NEXT: trailer) on the reconciler's OWN merge, with empty gate stdout. The tree is now 23 behind and 4 ahead, and every daemon is running code from before the ceiling, invariant and world VAT fixes. Three \"re-base the ex-VAT cap invariant landing\" merges for one landing are the same friction, visible from the other side. PB4 is drifting as a steer. It was named as an atom for a second stretch and not drawn, and the EAC question that gates its swap has had no work at all. It goes through lane 0 now. EP1's coupled-gap row did move, 2.364 -> 1.081 (7a8e651cd), but that row sits on the 4-commit ahead leg and is not on origin. 17 commits, 6 substantive by the brief's count, and 6 carried no work, all of them merges.",
+  "thesis_read": "THE WORLD IS MORE TRUTHFUL THAN IT WAS THREE HOURS AGO, BUT THE SUPPLIER INSIDE IT HAS NOT MOVED, AND THE THESIS IS ABOUT THE SUPPLIER. All three focus items were drawn and two are substantially done. (1) The wedge is gone. 7be8cec09 stops the NEXT: gate refusing the reconciler's own merge. HEAD and origin are level at 0/0, and all four stranded ahead commits (7a8e651cd, 9fd88794f, d815c6bfc, 90d28d7f7) are ancestors of origin/main, so EP1's coupled-gap row is on origin. (2) The EAC question has a sourced answer. Under BSCP504 \u00a73.2.6.51 a gaining supplier inherits a read-derived EAC. The world drew it blind to the dwelling in population_draw._draw_one, not in household_demand.py as I had guessed. 3bf64c4e7 gives fabric premises their own trailing-year reads. First-renewal shock went from 17/31 to 3/31, the >100% tail from 7 to 1, and later renewals did not change. That 3/31 is not a measurement. It is what ZERO read error predicts, and the registry EAC's read error is an unsized published gap. So the year-one level of the hazard PB4's swap installs is now a function of one unknown. The swap is unblocked, and as I write it is being worked: there is a capture_departure_factors run on /var/tmp/pb4cap. (3) The VAT class narrowed. The switching reference is on one basis (b5ae7c3af). Gas renewals are priced against the gas SVT (e9c014e48). The rival's ledger sees only electricity (cd69a8d7b), which moved p on 17 of 101 renewals, about -0.7% mean. The ToU sold rate is the consumption-weighted day (e9b79073d), which moved the median fixed-ToU DD opening ratio from 0.755 to 0.874. A surgical_land of the class control (a bare 1.05 under simulation/ or company/ reds) is in flight now. The 2022+ standing charges are still probably Ofgem's inc-VAT figures carried as ex-VAT, untouched. Every one of these fixes is the world telling the truth about money, which is the precondition. None of them is the company inferring anything better than a flat-rules book. The value-arm A/B against the baseline has rightly been held for two stretches while the world moved under it. It stays held one more stretch, until the swap and the standing charge land, and then it is the next thing. If it is still held after that, the steer itself is drifting. 16 commits, 10 substantive by the brief's count. 3 carried no work: 2 liveness heartbeats and 1 merge.",
   "focus": [
    {
-    "id": "the-reconcilers-own-merge-is-refused-by-the-commit-msg-chain",
-    "lane": "H_harness",
-    "what": "Unwedge the shared tree. Since 09:43 UTC, docs/observability/reconcile-watch-log.md has recorded every cycle as \"fork with origin -> REFUSED_GATE (rc=1) ... the commit-msg chain\", with the gate's stdout empty. The tree is now 23 behind and 4 ahead (7a8e651cd, 9fd88794f, d815c6bfc, 90d28d7f7). (1) Reproduce the refusal: run the commit-msg chain by hand on the exact message background/origin_reconcile.py builds for its merge. Name which gate refuses (the REUSE record, NEXT:, or another), and say why it passed at 08:30, 08:56 and 09:06 and fails now. For example, find which commit on either leg first added a new module or an open-atom mention. (2) Fix it in origin_reconcile, so that its merge message satisfies the chain by construction. Never by bypass, which is a wall. Or, if the refusal is right, fix the commit that caused it. (3) Add a control that builds the reconciler's merge message for a fork whose legs add a new module and runs it through the real commit-msg chain. Mutation-prove it by restoring today's message. (4) Make the refusal surface say WHICH gate refused and its text, never \"<the gate produced no output>\". (5) Confirm that the 4 ahead commits reach origin, or are proven already there, with no second landing of any of them.",
-    "why": "Every daemon is running code from before today's ceiling, invariant and world VAT fixes, and that gets more true every five minutes. EP1's ledger row is stranded on the ahead leg. The page fired at 11:18, but its remedy text tells the reader to \"fix the message\" of a commit nobody wrote by hand. DONE when the shared tree contains origin/main again with no hand, and the control is on origin. Also when the next merge with a new-module leg passes the chain, or is refused with a named gate and named text."
+    "id": "run-pb4s-swap-with-the-read-error-named-on-the-hazard",
+    "lane": "W2_customer_generator",
+    "what": "Land step 3 of docs/staging/SEAT_CONTINUATION_SWAP_THE_WORLDS_BILL_SHOCK_BASE_ONTO_THE_EXPERIENCED_SHOCK_2026-10-01.md. Move the world's _bill_shock_base onto the experienced shock and re-fit its level to the published band. FIRST check for a live holder: a delivery-seat session was running tools.capture_departure_factors on /var/tmp/pb4cap at 14:24 UTC. If it holds this, continue from its work and do not restart it. The tenure-1 control asserts the PROPERTY, that year-one shock is defined and non-zero. It must not assert 0.097. The hazard's own surface must name the zero-read-error assumption (gap 4 of docs/market_research/what_a_supplier_holds_to_size_a_direct_debit.md) as what sets the year-one level. Run it as its own pre-registered one-world run on origin.",
+    "why": "Every company ranking is graded against retention gradients that still come from a count which reads 0 in year one. The SVT exit-route repair (embargoed to 16:00) waits on exactly this run, so landing it unblocks two world defects. DONE when the swap, its tenure-1 control and its one-variable run are on origin. Then re-issue the SVT-anniversary removal as drawable, with the embargo it no longer needs dropped."
    },
    {
-    "id": "settle-the-eac-against-demand-gap-before-pb4s-swap",
+    "id": "store-the-worlds-standing-charges-ex-vat",
     "lane": "W2_customer_generator",
-    "what": "Do PB4_engagement_separated_from_elasticity's blocking step, which as an atom bias has not been drawn for two stretches. Read docs/staging/SEAT_FINDING_THE_YEAR_ONE_SHOCK_TAIL_IS_AN_EAC_A_FRACTION_OF_THE_HOMES_USE_2026-10-01.md first. 7 of 31 first renewals rise by more than 100%, in electrically heated homes whose registry EAC (1,600-2,500 kWh) is a fraction of their billed use (e.g. PROS-2016-0098). Do knowledge first: establish from the published record (Elexon BSCP504/BSCP505 EAC/AA, docs/domain_artefact_library/) how a settled home's EAC is set and how fast it follows the reads. Then find which layer of simulation/household_demand.py, or the heating/asset layer on top of it, puts demand above the declared EAC. If the gap is not history-true, fix it in the world as a fidelity change, in its own pre-registered one-world run, blind to company results. Then hand back to step 3 of docs/staging/SEAT_CONTINUATION_SWAP_THE_WORLDS_BILL_SHOCK_BASE_ONTO_THE_EXPERIENCED_SHOCK_2026-10-01.md (the swap), and do it in the same claim if time allows. Run this only after item one has put the shared tree on origin, because the switching-reference VAT fix landing now moves churn.",
-    "why": "The world's retention gradients are still the artefact of a count that is blind in year one, and every company ranking is graded against them. The SVT exit-route repair is embargoed behind this swap, so two world defects wait on one unasked question. DONE when the EAC/demand question has a sourced answer in a finding, any world fix is on origin with its one-variable run, and the swap is either on origin with its tenure-1 control or re-issued with the exact reason it cannot go yet."
+    "what": "Knowledge first. Use Ofgem's published cap level tables in docs/domain_artefact_library/ or docs/market_research/ to establish whether simulation/policy_costs._ELEC_SC_PENCE_PER_DAY_BY_YEAR (46p/53p/61p for 2022 onward) and its gas twin are inc-VAT. If they are, store them ex-VAT through the named VAT rate (the class control landing now will refuse a bare 1.05). Declare the basis in the table. For the pre-2022 \"typical market averages\", find a source or carry them as an explicit named gap (None plus a reason), not as a number that looks established. Run it as one variable in its own run, and measure the 2023-2025 electricity DD opening move against docs/staging/SEAT_FINDING_THE_DD_BOOKS_NOW_OPEN_AT_THE_STANDING_CHARGE_SOLD_AND_THE_WORLDS_CHARGE_MAY_CARRY_VAT_TWICE_2026-10-01.md (where 2023 opens at 55.65p against a printed 53p). Also confirm that the in-flight class control (\"a price crosses the VAT line only through a named rate\") reached origin. Do not rebuild it.",
+    "why": "This is the last known VAT-basis defect in the world. It inflates every 2022+ household's fixed cost by 5% in the record the company is graded against. The value-arm re-grade is held behind it. DONE when the table's basis is sourced and declared and the fix is on origin with its run, or the source says they are ex-VAT already and the finding says so, and the class control is on origin."
    },
    {
-    "id": "close-the-vat-basis-class-in-the-world",
+    "id": "size-the-registry-eac-read-error-from-the-published-record",
     "lane": "W2_customer_generator",
-    "what": "Finish the two VAT-basis defects 50bde35ab handed on, and fix the class. First confirm that the switching-reference fix (surgical_land pid 1176957, \"compare every switching offer with the published SVT on one VAT basis\", price_cap_enforcement.household_price_inc_vat) reached origin. Do not redo it. (1) Standing charge, knowledge first: establish from Ofgem's published cap breakdowns whether simulation/policy_costs._ELEC_SC_PENCE_PER_DAY_BY_YEAR (46p/53p/61p for 2022 onward) and its gas twin are inc-VAT. Find a source for the pre-2022 \"typical market averages\", or carry them as an explicit gap. If they are inc-VAT, store them ex-VAT. That is a fidelity change in its own run. (2) ToU sold rate: experienced_bill_shock.sold_unit_rate reads the daily off-peak unit_rate_gbp_per_mwh. Read the consumption-weighted rate from the daily revenue_gbp over consumption instead, and measure the DD-opening ratio for ToU homes before and after. (3) The class: add one architecture control that no module under simulation/ or company/ grosses up or de-VATs a price except through the named helpers (price_cap_enforcement's and tariff_comparison.VAT_RATE_DOMESTIC's). Mutation-prove it with a bare \"* 1.05\".",
-    "why": "The VAT rule now has at least six implementations, and each one found so far either overstated company value or understated the household's bill. That is the same transfer-read-as-creation the mission forbids, and the next one will not announce itself. DONE when both defects are on origin with their one-variable runs, and the class control is on origin and reds on a stray gross-up."
+    "what": "Knowledge only, no world change in this claim. From BSCP504/505 and Elexon or Ofgem publications on EAC/AA accuracy, read-estimation and smart-meter read frequency, establish how far a settled domestic EAC typically sits from the next year's actual use, by meter type (smart, traditional, E7/storage). Answer two more in the same finding. (a) Does the Ofgem cap bind a ToU/multi-register tariff at its benchmark split, or at the household's realised average rate? Five ToU first bills now sit above the flat ex-VAT cap (SEAT_FINDING_THE_SOLD_RATE_NOW_WEIGHTS_THE_TOU_DAY_..._2026-10-01.md). (b) Is 28-41 MWh/yr plausible for a GB direct-electric home (PROS-2016-0098, PROS-2024-0082)? Where the record is silent, file it as a named gap and a practitioner question. Do not pick a number.",
+    "why": "Year-one bill shock, and so year-one churn, is now set entirely by a read error the model holds at zero because no one has looked it up. The swap in item one carries that dependence straight into the gradients the company is ranked on. DONE when a finding gives a sourced distribution, or a named gap with the practitioner question put, for each of the three. Any world change is then a separate pre-registered item."
    }
   ],
   "not_now": [
    {
-    "what": "Removing the SVT anniversary route's departure roll (remove-the-svt-anniversary-departure-roll-once-pb4-swap-has-run, embargoed to 16:00).",
-    "why": "The defect is still real, about 29% too many SVT exits, but it moves churn. It must follow PB4's swap and its own run, and the swap now waits on item two. It errs against the company, so waiting costs no false credit."
+    "what": "Re-running the ab6 value-cycle A/B, the EP17 four-book pilot, or any value-arm grade against the flat-rules baseline.",
+    "why": "This is the thesis's own test, and it has been held for two stretches. The reason is still sound: items one and two each move churn or fixed cost, so a run now prices two moving parts and can attribute neither. It goes FIRST at the next orientation once both are on origin. A third deferral would itself be drift."
    },
    {
-    "what": "Re-running the ab6 value-cycle A/B, the EP17 four-book pilot, or any value-arm grade, now that the ceiling is fixed.",
-    "why": "The ceiling was one of three defects under any value-arm reading. The switching-reference VAT fix moves churn, and PB4's gradients are still artefacts. A run now prices two moving parts and can attribute neither. Run it after items two and three."
+    "what": "Removing the SVT anniversary route's departure roll (remove-the-svt-anniversary-departure-roll-once-pb4-swap-has-run).",
+    "why": "Its premise is the swap's run (item one). The defect errs against the company, about 29% too many SVT exits, so waiting books no false credit, and running it first would make PB4's series two-variable."
    },
    {
-    "what": "Taking H49 to level 3 (HARDEN / Expert Hour) while its live page is firing.",
-    "why": "H49's class works, but the tree is wedged by a different cause. Hardening the class that is not the blocker would be tidying beside the fire. Item one is the fire."
+    "what": "Building a per-household realised-rate cap check for ToU accounts.",
+    "why": "Nothing is known yet to key it to. If the cap binds at the benchmark split, five accounts that look above it are lawful, and a control would red on correct behaviour. Item three asks the question first."
    },
    {
-    "what": "Refreshing site/data/dd_opening_arms.json, or any figure page, from today's corrected runs.",
-    "why": "Publishing is held until 2026-10-05 04:00 by the weekly window. The ToU and standing-charge openings in item three still move the figures, so a refresh now would be stale before it could ship."
+    "what": "Silencing the \"interactive seat stopped mid-work; handoff filed\" line, which repeats every 5 minutes in reconcile-watch-log, and the liveness-only heartbeat commits (2 this stretch).",
+    "why": "Both are noise and neither is wrong. Each costs a log line or a commit, not a decision. They lose to three items that move what the company is graded against."
    },
    {
-    "what": "Binding the lane-0 not_done row grade-ab6-pilots-once-runp2-exists, and a heartbeat for worker-seat-manager.",
-    "why": "Unchanged. The bytes attributed to that row by time are a done run_complete and the director console, not its work. The daemon's wait channel still reads its ordinary sleep. Neither moves a level."
+    "what": "Refreshing site/data/dd_opening_arms.json or any figure page from today's corrected runs.",
+    "why": "Publishing is held to 2026-10-05 04:00, and item two moves the 2022+ DD openings again. A refresh now would be stale before it could ship."
    }
   ],
   "for_the_director": [],
@@ -305,6 +305,71 @@
  },
  "what_it_got_wrong": {
   "entries": [
+   {
+    "at": "2026-10-01T14:24:43.549100+00:00",
+    "what": "THE MACHINE'S, NEW. The SVT anniversary route rolls departures on top of C1b's all-cause SVT band, so SVT exits run about 29% above what the band sets (91214c720). Its premise is item one's run.",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-01T14:24:43.549100+00:00",
+    "what": "THE MACHINE'S, CARRIED. The world's bill-shock base cannot fire in a household's first year, and its retention gradients run opposite to the published record. The EAC cause of the year-one tail is fixed (3bf64c4e7, 17/31 -> 3/31), but the hazard still reads the old count until the swap. Item one.",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-01T14:24:43.549100+00:00",
+    "what": "THE MACHINE'S, NEW, now graded corrected. Since 09:43 the reconciler's own merge was refused by the commit-msg chain every cycle. Fixed by 7be8cec09. HEAD and origin are level, and all 4 ahead commits are ancestors of origin/main.",
+    "corrected": true
+   },
+   {
+    "at": "2026-10-01T14:24:43.549100+00:00",
+    "what": "THE MACHINE'S, NEW, narrowed. The world had VAT twice in several places. The switching reference (b5ae7c3af), the gas renewal against the electricity SVT (e9c014e48), the rival ledger mixing fuels (cd69a8d7b) and the ToU sold rate read off-peak (e9b79073d) are fixed. The class control is landing. The 2022+ standing charges, probably inc-VAT carried as ex-VAT, are still open. Item two.",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-01T14:24:43.549100+00:00",
+    "what": "MINE, NEW, now graded corrected. My EAC item named simulation/household_demand.py as the likely layer putting demand above the EAC. The cause was population_draw._draw_one drawing the EAC blind to the dwelling. The executor's knowledge leg found it, and the path check's \"nothing to land\" on my named file was right.",
+    "corrected": true
+   },
+   {
+    "at": "2026-10-01T14:24:43.549100+00:00",
+    "what": "THE MACHINE'S, NEW. Four level or park moves stranded in a preserved ref were replayed as written. One of them, PB4 build->idle, was false by the time it was replayed, because its own release condition (PB6 at L2) had been met 40 minutes after it was written. A seat caught it by hand (a6bd4d77e). Nothing re-asks a stranded move's release condition before it lands.",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-01T14:24:43.549100+00:00",
+    "what": "THE MACHINE'S, CARRIED. One item can land twice, once on origin through surgical_land and once as a local commit on the shared HEAD (75df9efdf after d77ff33d5). The 4-commit ahead leg reached origin without a known double, but no mechanism prevents the next one.",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-01T14:24:43.549100+00:00",
+    "what": "THE MACHINE'S, CARRIED. The launch register recorded hgc-suite-timing as died while its /var/tmp driver's process was on the box. That driver called resource_headroom.admitted(), which does not exist. Nothing checks that a hand-written /var/tmp driver calls an API that exists.",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-01T14:24:43.549100+00:00",
+    "what": "THE MACHINE'S, CARRIED. A control or door whose shape changes must re-run every fixture that builds a synthetic tree to drive it, and no control requires it. citation_at_head, red_at_head and fork_state in .publish_gate_state.json still read not_established.",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-01T14:24:43.549100+00:00",
+    "what": "THE MACHINE'S, CARRIED. A refusal naming a commit is not re-asked against the remote ref before a reader sees it. liveness_surface_refusal is still not re-asked.",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-01T14:24:43.549100+00:00",
+    "what": "THE MACHINE'S, CARRIED. The stash-completeness sweep reports a genuinely lost file as safe. It is still not on the map.",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-01T14:24:43.549100+00:00",
+    "what": "THE MACHINE'S, CARRIED. Nothing on the landing path asks whether a same-subject sibling is left behind in the shared tree (the 14-path refusal in 662da7fd3). Separate from H49 and still open.",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-01T14:24:43.549100+00:00",
+    "what": "MINE, CARRIED. not_now is prose, and nothing a launch from another lane reads. Two instances are mechanised (b50a03519, 19ca27dbc); the class stays open.",
+    "corrected": false
+   },
    {
     "at": "2026-10-01T11:20:54.292857+00:00",
     "what": "THE MACHINE'S, NEW, now graded corrected. The company's renewal desk ceilinged an ex-VAT strike at the inc-VAT cap (renewal_rate_chain.py:365/:382/:511), so about 24% of first terms in one world paid up to 5% over the default-tariff ceiling (597b33942). Fixed by 18592fd03 (22 of 28), the domain invariant bafcb9801, and the world's SVT segment 50bde35ab (the last 6, plus 8 ToU): 0 of 120 above the ex-VAT cap.",
@@ -2749,51 +2814,51 @@
     "at": "2026-09-25T05:24:12.349211+00:00",
     "what": "MINE, CARRIED, CLOSED BY THE TEST I WROTE FOR IT. I ranked the only thesis-facing item fourth on a list worked in my order and the window shut after three, producing a stretch with no domain work in it. I moved `value-arms-error-bar` to second; the draw took it, `44a8629a4` landed the worth of the count beside the count, and it DISAPPEARS from focus in this record -- which was the acceptance test. The ordering lesson is applied again here: the domain item (`bill-stress-hazard-from-the-arrears-ledger`) is third rather than last, and the item ranked below it is the one with a ratchet cliff rather than a thesis claim.",
     "corrected": true
-   },
-   {
-    "at": "2026-09-25T02:23:15.352973+00:00",
-    "what": "MINE, CARRIED, FIRST HALF NOW CLOSED WITH EVIDENCE AND THE SECOND HALF REFUTING MY DIAGNOSIS. I said the ahead leg was a generator and nothing was draining it. The drain has landed: `background/reconcile_watch.py` carries merge, push and `origin_reconcile`, and `19f4a7824` is an ancestor of `origin/main`, so the half I graded too weakly last stretch -- \"the draining mechanism is an ancestor of origin\" -- is satisfied. The other half is not, and it refutes rather than delays the diagnosis: WITH the drain running on a five-minute timer the checkout is still diverged 2 ahead / 4 behind, `contains_origin` still false, the publisher still at 55 refusals, and `liveness_surface_refusal` still reads `push_never_landed` (origin=029159310, head=71e8b471c). So a missing drain was never the whole cause. The untested half is the GENERATOR: both ahead commits are daemon output -- a staging note and a liveness heartbeat -- so the fork refills as fast as it drains and no drain rate closes it. Grade next stretch by the generator, not the drain: whether the daemons that commit unaided either wait for the trunk or stop producing commits the push door cannot carry.",
-    "corrected": false
-   },
-   {
-    "at": "2026-09-25T02:23:15.352973+00:00",
-    "what": "MINE, CARRIED, AND THE TEST I DESIGNED HAS NOT YET BEEN RUNNABLE -- WHICH IS NOT THE SAME AS PASSING. The repair landed and is on origin: `f1791deca` and `934343669` make `_refuse_if_ungated` consult `hook_gate_mark.verify` before refusing, so a hook-gated receiptless daemon commit is promotable and only the third population -- neither receipt nor mark -- is refused. But the grade I wrote was \"whether a DIRECTION COMMIT written after the repair passes `promote_worktree_landing` without a hand `--content` re-land\", and no direction commit has existed since the repair landed. The record being written now is the first. Marking this corrected on the strength of the code having changed would be the exact error the row above is about: grading a mechanism by its existence instead of its effect. It stays open until a commit from `background/delivery_seat.py` has actually passed the door.",
-    "corrected": false
-   },
-   {
-    "at": "2026-09-25T02:23:15.352973+00:00",
-    "what": "THE MACHINE'S, PROMOTED OUT OF A CLOSED ROW SO IT CANNOT RIDE INSIDE ONE. All twelve `ExecStartPre=` lines still carry the `-` prefix that silences a boot-stamper failure by design. The grading half is closed (`e070217f6` runs and grades the units' own declared command; `0fde08115` closed the argv defect that grading exposed), which is why I marked the parent row corrected -- but the silencing is untouched, and last stretch I promised the remainder would be named rather than forgotten. It is now its own row with its own grade. Grade it by whether a deliberately broken stamper command makes a unit's start FAIL rather than log and continue.",
-    "corrected": false
-   },
-   {
-    "at": "2026-09-25T02:23:15.352973+00:00",
-    "what": "THE MACHINE'S, CARRIED, INSTANCE CLOSED AND CLASS OPEN AFTER FIVE STRETCHES. A seat ran `git stash` on the shared tree -- a never-do -- and swept 436 paths of several lanes' uncommitted work; all recovered, verified byte-identical, stash entry deliberately kept as the copy of record. The class is untouched: `git restore --source=stash@{0}` silently skipped the one path present in the stash but in neither HEAD nor the index, and the completeness sweep could not see the miss, because `git diff --quiet HEAD -- <path>` is quiet for an untracked path whatever its content -- so the same detector would report a genuinely lost file safe. The same pop also restamped 321 files and defeated the stale-copy clock by 38 seconds, so no item may grade a working copy's age by that clock. Rejected from focus a fifth time, visibly, in `not_now`.",
-    "corrected": false
-   },
-   {
-    "at": "2026-09-25T02:23:15.352973+00:00",
-    "what": "MINE, NEW, AND IT IS THE ONE ERROR THIS FILE'S OWN ACCEPTANCE TEST WAS BUILT TO CATCH. Of the four items I named last stretch the draw took three, and the one it never reached was `value-arms-error-bar` -- the only thesis-facing item on the list -- because I ranked it fourth on a list that is worked in my order and the window closed after three. Three plumbing items were drawn, nine substantive commits landed, and not one of them touched `company/`, `saas/` or `simulation/`. The ordering, not the lane, is what produced a stretch with no domain work in it. Corrected in this record by moving that item to second; grade it by whether `value-arms-error-bar` is drawn AND disappears from focus at the next orientation.",
-    "corrected": true
-   },
-   {
-    "at": "2026-09-25T02:23:15.352973+00:00",
-    "what": "THE MACHINE'S, NEW, AND IT IS THE \"MORE HONEST CODE REDS THE CONTROL\" SHAPE COSTING A DAY OF PUBLISHING. The trim-on-read landed in `_publish_gate_wedge_active` on 2026-09-24 is a real repair -- a frozen failure list drawn forever is a worse defect than the one it replaced -- and it redded a neighbouring test whose fixture had chosen failure timestamps four hours old for the AGE bound and not for the window. Two things went wrong and neither is the fixture. The landing did not notice that its own new screen invalidated a sibling's fixture, and nothing connected that red to the publisher: the gate recorded the citation, `citation_at_head` read `reproduces` for 77.7 hours, and no rung raised \"one stale fixture is the whole blocker\". Grade it by whether a control whose population screen changes is required to re-run the tests whose fixtures sit inside the old screen, and by whether a single-citation wedge older than a day names the citation on a surface a person reads.",
-    "corrected": false
    }
   ],
   "refused_own_records": [],
-  "outstanding": 401,
-  "corrected": 94,
+  "outstanding": 407,
+  "corrected": 95,
   "correction_not_recorded": 0,
   "empty_means": ""
  },
  "what_next": {
   "focus": [
-   "the-reconcilers-own-merge-is-refused-by-the-commit-msg-chain",
-   "settle-the-eac-against-demand-gap-before-pb4s-swap",
-   "close-the-vat-basis-class-in-the-world"
+   "run-pb4s-swap-with-the-read-error-named-on-the-hazard",
+   "store-the-worlds-standing-charges-ex-vat",
+   "size-the-registry-eac-read-error-from-the-published-record"
   ],
   "steer_checks": [
+   {
+    "by_class": {
+     "lane_0": {
+      "drawn": [
+       "the-reconcilers-own-merge-is-refused-by-the-commit-msg-chain",
+       "settle-the-eac-against-demand-gap-before-pb4s-swap",
+       "close-the-vat-basis-class-in-the-world"
+      ],
+      "focus": [
+       "the-reconcilers-own-merge-is-refused-by-the-commit-msg-chain",
+       "settle-the-eac-against-demand-gap-before-pb4s-swap",
+       "close-the-vat-basis-class-in-the-world"
+      ],
+      "steered": true
+     }
+    },
+    "drawn": [
+     "the-reconcilers-own-merge-is-refused-by-the-commit-msg-chain",
+     "settle-the-eac-against-demand-gap-before-pb4s-swap",
+     "close-the-vat-basis-class-in-the-world"
+    ],
+    "focus": [
+     "the-reconcilers-own-merge-is-refused-by-the-commit-msg-chain",
+     "settle-the-eac-against-demand-gap-before-pb4s-swap",
+     "close-the-vat-basis-class-in-the-world"
+    ],
+    "note": "the previous direction named work the draw then took (measured over this stretch only -- the 3.1h since 2026-10-01T11:20:54.292857+00:00; this is the PREVIOUS FOCUS, not every drawn item)",
+    "steered": true,
+    "window": "this stretch only -- the 3.1h since 2026-10-01T11:20:54.292857+00:00"
+   },
    {
     "by_class": {
      "atom": {
@@ -2921,36 +2986,6 @@
     "note": "the previous direction named work the draw then took (measured over this stretch only -- the 3.1h since 2026-09-30T23:20:58.042440+00:00; this is the PREVIOUS FOCUS, not every drawn item)",
     "steered": true,
     "window": "this stretch only -- the 3.1h since 2026-09-30T23:20:58.042440+00:00"
-   },
-   {
-    "by_class": {
-     "lane_0": {
-      "drawn": [
-       "read-the-retention-estimates-ranking-at-pb6",
-       "the-ledger-and-path-check-read-origin",
-       "re-establish-boot-sha-drift-against-origin"
-      ],
-      "focus": [
-       "read-the-retention-estimates-ranking-at-pb6",
-       "the-ledger-and-path-check-read-origin",
-       "re-establish-boot-sha-drift-against-origin"
-      ],
-      "steered": true
-     }
-    },
-    "drawn": [
-     "read-the-retention-estimates-ranking-at-pb6",
-     "the-ledger-and-path-check-read-origin",
-     "re-establish-boot-sha-drift-against-origin"
-    ],
-    "focus": [
-     "read-the-retention-estimates-ranking-at-pb6",
-     "the-ledger-and-path-check-read-origin",
-     "re-establish-boot-sha-drift-against-origin"
-    ],
-    "note": "the previous direction named work the draw then took (measured over this stretch only -- the 3.0h since 2026-09-30T20:22:46.532615+00:00; this is the PREVIOUS FOCUS, not every drawn item)",
-    "steered": true,
-    "window": "this stretch only -- the 3.0h since 2026-09-30T20:22:46.532615+00:00"
    }
   ],
   "steered_recently": true,
@@ -2958,10 +2993,10 @@
  },
  "the_queues_link_to_the_map": {
   "available": true,
-  "population": 54,
-  "chained": 49,
-  "minted": 26,
-  "unminted": 23,
+  "population": 57,
+  "chained": 52,
+  "minted": 30,
+  "unminted": 22,
   "unchained": [
    {
     "name": "CLASS_PUBLISH_GATE_AND_WEDGE_2026-08-12.md",
