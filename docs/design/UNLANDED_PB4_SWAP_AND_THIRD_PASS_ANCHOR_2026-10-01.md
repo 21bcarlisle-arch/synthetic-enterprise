@@ -65,6 +65,23 @@ Step 1 is done and step 2 is running. The patch below is now the FOURTH-pass blo
    the property; do not re-run until it agrees. If n=3 cannot satisfy a control that needs a
    family, extend the floor with more seeds and `--fold`.
 4. Land the patch, the re-taken arms and the generator's repointed constants as one commit.
+   **Added 2026-10-01 ~17:15 BST (claim `run-pb4s-swap-with-the-read-error-named-on-the-hazard`).**
+   The fenced patch below does not yet name what sets the year-one level, and the swap's done-means
+   requires the hazard's own surface to. Before landing, add this comment directly above
+   `_p_churn_shock = ...` in `simulation/customer_events.py`. It is a comment only, so the world
+   digest and the running jobs are unaffected:
+   ```
+   # YEAR ONE IS SET BY AN ASSUMPTION, NOT A MEASUREMENT. A fabric premise's registry EAC is its
+   # own trailing-year reads, i.e. ZERO read error, so the first-renewal shock rate this base sees
+   # is what a perfectly estimated direct debit leaves. The real error of a registry EAC at
+   # registration is unpublished (gap 4 of
+   # docs/market_research/what_a_supplier_holds_to_size_a_direct_debit.md). Any year-one level or
+   # tenure gradient read from this base inherits that assumption.
+   ```
+   The tenure-1 control already in the patch
+   (`test_the_HAZARD_BASE_counts_one_experienced_shock_a_year_and_so_moves_in_year_one`) is keyed
+   to the property (both legs reachable, ratio = `churn_probability(1)/churn_probability(0)`), not
+   to a year-one level. Keep it that way.
 
 The patch (`git apply` from the repo root, at `0407ce0e3` or later):
 
