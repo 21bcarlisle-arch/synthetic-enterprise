@@ -1008,3 +1008,46 @@ def test_the_census_weight_is_rederived_from_its_own_unit_over_more_than_one_nig
         "head_green_census",
         peaks_reader=lambda unit, since: seen.setdefault("since", since) and [11161.6])
     assert seen["since"] != resource_headroom.DRIFT_WINDOW, seen
+
+
+# ------------------------------------------------- every complete run leaves its durations table
+
+def test_the_census_asks_pytest_for_its_slowest_tests():
+    """The bound is moved to a MEASURED run, and lowering it means trimming whatever tops this
+    table; a census that never asks for it leaves every trim waiting on a separate timing run."""
+    assert "--durations={}".format(hgc.DURATIONS_SHOWN) in hgc.pytest_argv()
+    assert hgc.DURATIONS_SHOWN > 0
+
+
+def test_a_completed_run_prints_its_slowest_tests_to_the_journal(tmp_path, monkeypatch, capsys):
+    """The output is the journal, so the table has to be PRINTED -- parsed and dropped it is gone.
+
+    MUTATION (must fire): drop the `SLOW` print loop in `main`, or have `durations_table` return
+    `[]`. The real `-q` shape is used, header, blank line and `(N durations hidden)` footer
+    included, because a fixture written to the parser's own idea of the format would agree with it.
+    """
+    from background import head_red_register as reg
+
+    monkeypatch.setattr(reg, "OBSERVED_PATH", tmp_path / "head_red_observed.json")
+    monkeypatch.setattr(reg, "REGISTER_PATH", tmp_path / "HEAD_RED_REGISTER.md")
+    log = tmp_path / "run.log"
+    log.write_text(
+        "============================= slowest 80 durations =============================\n"
+        "212.41s call     tests/_seam/test_synthetic.py::test_slow\n"
+        "3.02s setup    tests/_seam/test_synthetic.py::test_other\n"
+        "\n"
+        "(5 durations < 0.005s hidden.  Use -vv to show these durations.)\n"
+        "=========================== short test summary info ============================\n"
+        "FAILED tests/_seam/test_synthetic.py::test_one - OSError: boom\n"
+        "1 failed, 24204 passed in 3537.19s\n")
+
+    hgc.main(["--from-log", str(log)])
+    out = capsys.readouterr().out
+    assert "  SLOW     212.41s call     tests/_seam/test_synthetic.py::test_slow" in out
+    assert "  SLOW     3.02s setup    tests/_seam/test_synthetic.py::test_other" in out
+    assert "hidden" not in out and "FAILED tests/_seam" not in out.split("SLOW")[-1]
+
+
+def test_a_run_with_no_table_prints_none_and_still_gives_its_verdict():
+    assert hgc.durations_table("") == []
+    assert hgc.durations_table("FAILED a::b\n1 failed, 3 passed in 1.0s\n") == []

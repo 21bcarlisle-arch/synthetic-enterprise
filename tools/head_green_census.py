@@ -152,6 +152,20 @@ def parse_passed_count(output: str):
     return int(matches[-1]) if matches else None
 
 
+def durations_table(output: str) -> list[str]:
+    """The `--durations` rows of a run's output, slowest first, or `[]` when it printed none.
+
+    `[]` is a fact about the log -- a timed-out run's output is "" -- never a claim the suite has
+    no slow tests.
+
+    A FLOOR ROW IN `substring_source_scan_baseline.json`, beside its three `parse_*` siblings and
+    for their reason: `--from-log` hands it file text, so the census taints it, but the text is a
+    pytest log and never Python source.
+    """
+    block = _DURATIONS_BLOCK_RE.search(output or "")
+    return _DURATION_ROW_RE.findall(block.group(1)) if block else []
+
+
 def diff_against_baseline(failures, baseline) -> dict:
     """New reds, fixed reds, and still-red -- the whole verdict, from two sets."""
     failures, baseline = set(failures), set(baseline)
@@ -208,8 +222,19 @@ def verdict(delta: dict, passed_count) -> tuple[str, str]:
     return "GREEN", "no failures at all ({} passed)".format(passed_count)
 
 
+#: The suite's slowest tests, printed to the journal by every complete run (2026-10-01). The bound
+#: above is moved by hand to a MEASURED run and the cheapest way to lower it is to trim whatever tops
+#: this table -- and until now no nightly run kept one: the output was captured, parsed for its
+#: reds and thrown away, so every trim began with a separate multi-hour timing run outside the unit.
+DURATIONS_SHOWN = 80
+_DURATIONS_BLOCK_RE = re.compile(r"^=+ slowest \d+ durations =+\n(.*?)(?=^=|\Z)",
+                                 re.MULTILINE | re.DOTALL)
+_DURATION_ROW_RE = re.compile(r"^\d+(?:\.\d+)?s[ \t]+\w+[ \t]+\S+$", re.MULTILINE)
+
+
 def pytest_argv() -> list:
-    argv = [sys.executable, "-m", "pytest", "tests/", "-q", "--tb=line", "-m", MARKER_EXPR]
+    argv = [sys.executable, "-m", "pytest", "tests/", "-q", "--tb=line", "-m", MARKER_EXPR,
+            "--durations={}".format(DURATIONS_SHOWN)]
     argv += ["--ignore=" + i for i in HEAVY_IGNORES]
     return argv
 
@@ -564,6 +589,7 @@ def main(argv=None) -> int:
     output = (args.from_log.read_text(errors="replace") if args.from_log
               else run_suite(observed=observed))
     result = evaluate(output)
+    result["durations"] = durations_table(output)
     # Stays absent for `--from-log`: a log parsed after the fact cannot name the commit that
     # produced it, and that is exactly how this store's first row came to claim one.
     result["subject_head"] = observed.get("subject_head")
@@ -594,6 +620,8 @@ def main(argv=None) -> int:
             print("  NEW RED  " + name)
         for name in result["fixed"]:
             print("  FIXED    " + name + "   (prune it from the baseline)")
+        for row in result["durations"]:
+            print("  SLOW     " + row)
 
     if args.notify and result["status"] == "NEW_RED":
         try:
