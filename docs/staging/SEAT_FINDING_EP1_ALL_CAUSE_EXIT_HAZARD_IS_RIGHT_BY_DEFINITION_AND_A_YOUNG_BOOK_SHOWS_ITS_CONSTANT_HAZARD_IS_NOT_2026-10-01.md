@@ -77,3 +77,9 @@ this change: the eight in
 The gate refused the landing on exactly those ten. To re-write the row once they are green, run
 `python3 -m tools.couple_clv --run-output <the af4709ff1 output> --write-ledger`, or re-measure it
 on any later run.
+
+**Landed (2026-10-01, autonomous worker, read at 18:09).** The paragraph above is superseded. The
+row landed at `7a8e651cd` (12:15, on origin): gap 1.081 on 69 rows, run `af4709ff1`. Both selected
+harness files are green at `6ed871310` (320 passed). EP1's next ranking step, replicating "legs,
+then rate" on a different book, waits on the director's EP17 book-seed ruling, which has not
+arrived. See `SEAT_FINDING_EP1_LEGS_THEN_RATE_HOLDS_ON_REDRAWN_DICE_…_2026-10-01.md`.
