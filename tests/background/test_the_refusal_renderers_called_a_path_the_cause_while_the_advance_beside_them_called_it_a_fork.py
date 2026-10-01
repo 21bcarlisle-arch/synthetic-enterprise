@@ -165,6 +165,7 @@ def test_the_two_renderers_agree_with_the_advance_they_describe():
         ff_fn=_Refused,
         ahead_fn=lambda _p: 10,
         blockers_fn=lambda _p: LIVE_BLOCKING,
+        earlier_fn=lambda _project, _blocking: {},
         twins_fn=lambda _p, _b: [b["path"] for b in LIVE_BLOCKING],
         tracked_twins_fn=lambda _p, _b: [],
         remover=_never, restorer=_never, locker=_never)

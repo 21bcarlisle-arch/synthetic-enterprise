@@ -93,6 +93,7 @@ class _Advance:
     def run(self):
         return orc.advance_shared_tree(
             blockers_fn=self._blockers,
+            earlier_fn=lambda _project, _blocking: {},
             twins_fn=lambda _project, _blocking: (
                 None if self.twins is None else list(self.twins)),
             tracked_twins_fn=lambda _project, _blocking: (
@@ -251,6 +252,7 @@ def test_the_default_ahead_seam_is_the_modules_own_commits_ahead(monkeypatch):
 
     adv = orc.advance_shared_tree(
         blockers_fn=lambda _project: [_untracked(note)],
+        earlier_fn=lambda _project, _blocking: {},
         twins_fn=lambda _project, _blocking: [note],
         tracked_twins_fn=lambda _project, _blocking: [],
         ff_fn=lambda: _completed(1, _DIVERGED),

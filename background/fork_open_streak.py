@@ -69,7 +69,12 @@ STALE_MINUTES = 90
 _VERDICT = re.compile(
     r"^- \[(?P<at>\d{4}-\d{2}-\d{2} \d{2}:\d{2}) UTC\] fork with origin "
     r"\((?P<behind>-?\d+) behind, (?P<ahead>-?\d+) ahead\) -> (?P<status>\w+) "
-    r"\[(?P<tag>settled|STILL OPEN)\]")
+    r"\[(?P<tag>settled|STILL OPEN)\](?:: (?P<detail>.*))?")
+
+#: The two verdicts that are REFUSALS naming the paths that hold the fork -- a dirty-tree collision
+#: and a merge conflict. The page carries the newest one's paths, because "the fork is open" sends
+#: a person to the log and the paths are what they go there for.
+_REFUSALS = ("NOT_ADVANCED", "REFUSED_CONFLICT")
 
 
 def verdicts(lines) -> list[dict]:
@@ -82,7 +87,8 @@ def verdicts(lines) -> list[dict]:
             out.append({
                 "at": datetime.strptime(m["at"], "%Y-%m-%d %H:%M").replace(tzinfo=timezone.utc),
                 "behind": int(m["behind"]), "ahead": int(m["ahead"]),
-                "status": m["status"], "settled": m["tag"] == "settled"})
+                "status": m["status"], "settled": m["tag"] == "settled",
+                "detail": (m["detail"] or "").strip()})
     return out
 
 
@@ -116,6 +122,9 @@ def open_streak(rows: list[dict], now: datetime) -> dict:
         "since": run[0]["at"], "last": run[-1]["at"],
         "statuses": dict(Counter(r["status"] for r in run)),
         "behind": last["behind"], "ahead": last["ahead"],
+        "refusal": next(({"status": r["status"], "at": r["at"].isoformat(),
+                          "detail": r["detail"]}
+                         for r in reversed(run) if r["status"] in _REFUSALS), None),
         "why": "the fork has not closed since {}".format(run[0]["at"].isoformat())}
 
 
@@ -154,6 +163,14 @@ def page_for(streak: dict, prior: dict | None, now: datetime) -> tuple[str | Non
         .format(streak["minutes"], streak["ticks"], streak["behind"], streak["ahead"],
                 ", ".join("{} x{}".format(k, v) for k, v in sorted(streak["statuses"].items())),
                 UNATTENDED_MINUTES))
+    refusal = streak.get("refusal")
+    if refusal:
+        text += " THE NEWEST REFUSAL, {} at {}, NAMES WHAT HOLDS IT: {}".format(
+            refusal["status"], refusal["at"],
+            refusal["detail"] or "(the verdict line carried no detail)")
+    else:
+        text += (" No verdict in this streak was a refusal naming paths ({}), so nothing local is "
+                 "named as the cause.".format(" or ".join(_REFUSALS)))
     if streak["stale"]:
         # OPEN *AND* UNOBSERVED. The counts below are real and they are also OLD, and a page that
         # states one without the other invites the reader to act on a picture of the fork that
