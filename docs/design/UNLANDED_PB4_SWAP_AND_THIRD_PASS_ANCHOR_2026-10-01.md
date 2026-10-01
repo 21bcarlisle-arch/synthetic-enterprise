@@ -1,6 +1,6 @@
 # Unlanded: the PB4 bill-shock swap and the third-pass level anchor (2026-10-01)
 
-**Status: built, controlled and measured. Not landed, because a level refit changes the world
+**Status (updated 2026-10-01 17:05 BST): fourth pass done, value arms re-taking in world D. Not landed, because a level refit changes the world
 identity and the value-arms page then refuses every bound it publishes.**
 Claim `swap-pb4-bill-shock-base-onto-the-experienced-shock`, base `e9b79073d`.
 
@@ -36,14 +36,37 @@ Applied at `e9b79073d`, the patch reds 26 controls:
 
 ## The landing sequence
 
-1. Optionally run a fourth pass first: apply the C-fitted values (in the pre-registration's C
-   table) and capture D. 2020 and 2021 sat low on C.
-2. Re-take the value arms in the new world (`python3 -m tools.run_value_cycle_ab`, the same
-   procedure as the 2026-09-08 current-world re-take) and promote them through the generator's
-   path constants.
-3. Land the patch, the repointed `DEFAULT_TABLE` and the re-taken arms as one commit.
+**Updated 2026-10-01 ~17:05 BST (claim `land-pb4-swap-with-value-arms-retaken-in-the-new-world`).
+Step 1 is done and step 2 is running. The patch below is now the FOURTH-pass block (world digest
+`cf823b185f8ca51c`), and it supersedes the third-pass patch this file first carried.**
 
-The patch (`git apply` from the repo root):
+1. **Done: the fourth pass.** It was taken in origin `0407ce0e3`'s world, where the standing charge
+   is ex-VAT. C2 (third block, current world) sat within 0.07pp of C in every year. Refitted on C2,
+   and D was captured under that block. D lands 2017-2021 at their targets. 2024 is 16.28 against
+   a band top of 16.1: 0.18pp, or about 0.12 of one expected departure on 65 accounts. 2023 is
+   still unfittable. That is 5 of 6 in band, against C's 4. Captures:
+   `docs/reports/pb4_c2_ex_vat_standing_charge_departure_factors.json` and
+   `docs/reports/pb4_d_fourth_pass_anchor_departure_factors.json`, each with its SVT sibling. Graded in
+   `docs/staging/records/SEAT_RESULT_THE_PB4_FOURTH_PASS_LANDS_FIVE_OF_SIX_YEARS_IN_BAND_2026-10-01.md`.
+2. **Running: the value arms in world D.** They run from the scratch worktree `/home/rich/wt-pb4-land`,
+   which is origin `0407ce0e3` plus the patch below. Do not move or reset it until both artefacts exist.
+   * `longjob-pb4-three-arm-d` writes `docs/observability/value_cycle_ab_s1_three_arm_20261001.json`
+     (`--level-arm`, about 50 min, started 17:04 BST).
+   * `longjob-pb4-floor-d-s123` writes `docs/observability/value_cycle_ab_s1_noise_floor_20261001.json`
+     (`--noise-floor-seeds 11111,22222,33333 --redraw-mode all`, 3 passes per seed, so about
+     8h). It starts when the three-arm pid exits.
+   * Re-ask both with `python3 -m background.launch_liveness --check`.
+3. **Then promote.** Copy both artefacts into the shared tree. Repoint `CURRENT_WORLD_THREE_ARM_PATH`
+   and `CURRENT_WORLD_NOISE_FLOOR_PATH` in `tools/generate_value_arms_data.py`, plus every other
+   constant whose artefact now names world `39a192ce04c1eda8`. Regenerate `site/data/value_arms.json`
+   and run `tests/tools/test_generate_value_arms_data.py`. The 25 reds listed above are the
+   checklist. Some of them assert TODAY's answer (for example "the level leg's family straddles
+   zero", or the 154/164-run selector). Where the new world's answer differs, re-key the control to
+   the property; do not re-run until it agrees. If n=3 cannot satisfy a control that needs a
+   family, extend the floor with more seeds and `--fold`.
+4. Land the patch, the re-taken arms and the generator's repointed constants as one commit.
+
+The patch (`git apply` from the repo root, at `0407ce0e3` or later):
 
 ```diff
 diff --git a/simulation/customer_events.py b/simulation/customer_events.py
@@ -96,10 +119,10 @@ index 8f329974d..1e7c770cd 100644
 +        "sim_month_count_bill_shock_base": round(_month_count_bill_shock_base, 6),
      }
 diff --git a/simulation/departure_level_anchor.py b/simulation/departure_level_anchor.py
-index 13a8a49a8..bbfa923cf 100644
+index 13a8a49a8..4688b85eb 100644
 --- a/simulation/departure_level_anchor.py
 +++ b/simulation/departure_level_anchor.py
-@@ -221,14 +221,26 @@ NO_LEVEL_CORRECTION = 1.0
+@@ -221,14 +221,33 @@ NO_LEVEL_CORRECTION = 1.0
  #: exists to stop. So the clamp stays, DECLARED, until the mechanism under it has a source -- and
  #: the verdict file is what stops the clamped number travelling alone in the meantime.
  #: ─────────────────────────────────────────────────────────────────────────────────────────────
@@ -115,25 +138,32 @@ index 13a8a49a8..bbfa923cf 100644
 +#: is carrying more of the level than before. That is the cost of the swap, and it is stated rather
 +#: than smoothed. Pre-registration and grading:
 +#: `docs/staging/done/SEAT_PREREGISTRATION_WHAT_THE_PB4_BILL_SHOCK_SWAP_MUST_MOVE_2026-10-01.md`.
++#: FOURTH PASS, the same day, and these are the values below. One pass does not reach the fixed
++#: point, because the anchor changes who is left on the book. The third-pass capture left 2020 and
++#: 2021 low. Refitted on C2, which is origin `0407ce0e3` (the ex-VAT standing charge) plus the swap
++#: under the third-pass block. C2's level sat within 0.07pp of C's in every year, so the
++#: standing-charge change did not move this fit. 2020, 2021 and 2024 now all stand above 17, on
++#: 8-12 renewal decisions each. The values are graded on capture D:
++#: `docs/staging/records/SEAT_PREREGISTRATION_THE_PB4_FOURTH_PASS_IN_THE_EX_VAT_STANDING_CHARGE_WORLD_2026-10-01.md`.
  YEAR_LEVEL_ANCHOR: dict[int, float] = {
 -    2017: 7.372584,
 -    2018: 2.945347,
 -    2019: 6.637286,
 -    2020: 6.359296,
 -    2021: 5.641346,
-+    2017: 7.031166,
-+    2018: 5.295245,
-+    2019: 8.556731,
-+    2020: 16.29343,
-+    2021: 12.208051,
++    2017: 6.990171,
++    2018: 5.269958,
++    2019: 8.583067,
++    2020: 19.550406,
++    2021: 18.474462,
      2023: 2.033232,
 -    2024: 4.259915,
-+    2024: 15.43806,
++    2024: 17.128306,
  }
  
  #: `{year inside the published record with no fitted anchor: WHY}`. This is the half of the
 diff --git a/simulation/experienced_bill_shock.py b/simulation/experienced_bill_shock.py
-index ecf30ea31..26cce29ac 100644
+index ecf30ea31..040d16046 100644
 --- a/simulation/experienced_bill_shock.py
 +++ b/simulation/experienced_bill_shock.py
 @@ -22,10 +22,11 @@ bill-size gradients (`docs/staging/WORKER_FINDING_THE_WORLDS_BILL_SHOCK_COUNT_IS
@@ -193,4 +223,21 @@ index 6966c103c..0bf26232d 100644
 +    assert shocked["sim_month_count_bill_shock_base"] == quiet["sim_month_count_bill_shock_base"]
 +    ratio = shocked["sim_bill_shock_base"] / quiet["sim_bill_shock_base"]
 +    assert abs(ratio - churn_probability(1) / churn_probability(0)) < 1e-3, ratio
+diff --git a/tools/measure_departure_level.py b/tools/measure_departure_level.py
+index 04e040e79..a211f7160 100644
+--- a/tools/measure_departure_level.py
++++ b/tools/measure_departure_level.py
+@@ -92,7 +92,11 @@ COMMONS = PROJECT / "docs" / "domain_artefact_library" / "regulatory" / "gb_dome
+ #: other judging a world it did not come from. `c6_second_pass_departure_factors.json` is the
+ #: capture of the twice-fitted world — 133 renewal and 1,313 SVT decisions, both halves tracked
+ #: in this commit, both executed under the block this commit lands.
+-DEFAULT_TABLE = PROJECT / "docs" / "reports" / "c6_second_pass_departure_factors.json"
++#: REPOINTED 2026-10-01 FOR THE PB4 SWAP, same reason again: the bill-shock base changed and the
++#: block was refitted twice (third and fourth pass). `pb4_d_fourth_pass_anchor_departure_factors.json`
++#: is the capture under the fourth block that lands with it. It has 104 renewal and 2,013 SVT
++#: decisions, and both halves are tracked.
++DEFAULT_TABLE = PROJECT / "docs" / "reports" / "pb4_d_fourth_pass_anchor_departure_factors.json"
+ 
+ #: Active domestic electricity accounts per year in the live run, from the opening finding's own
+ #: table. NOT re-derived here: the factor table holds renewals, not the active book, so the
 ```
