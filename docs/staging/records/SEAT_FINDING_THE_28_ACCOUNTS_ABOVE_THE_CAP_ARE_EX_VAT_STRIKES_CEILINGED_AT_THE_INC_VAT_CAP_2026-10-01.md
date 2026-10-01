@@ -83,3 +83,8 @@ fallbacks is **3 of 4**: one is a lawful strike that rounds to 1.
 Next: the fix is handed on as a continuation. Writer 4 and the arm's search should use the cap
 de-VATed at the company's own `VAT_RATE_DOMESTIC`. That needs its own pre-registration, because
 it moves every ceiling-bound renewal in the book.
+
+**Dispositioned 2026-10-01** (claim `ceiling-the-renewal-strike-at-the-ex-vat-cap`): writer 4 and the
+arm now ceiling at the ex-VAT cap (`18592fd03`), which clears 22 of the 28. The other 6 are the
+world's SVT segment, not the company's desk. See
+`docs/staging/SEAT_FINDING_THE_EX_VAT_RENEWAL_CEILING_CLEARS_22_OF_28_AND_THE_LAST_6_ARE_THE_WORLDS_SVT_SEGMENT_2026-10-01.md`.
