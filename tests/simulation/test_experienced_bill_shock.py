@@ -13,6 +13,8 @@ WHAT EACH TEST NAMES AS ITS OWN DEFECT:
     A rise the review absorbs (its rounding / variance band) is not a payment change.
   * `test_the_live_roll_CARRIES_the_experienced_shock` -- an unwired measure is a measure of
     nothing: the renewal event the world emits must carry it.
+  * `test_a_sign_up_BEFORE_THE_CAP_is_quoted_at_the_rate_it_was_sold_at` -- the quote was
+    annualised at the cap, which has no value before 2019, so year one stayed blind as a None.
 """
 from simulation.customer_events import roll_lifecycle_event
 from simulation.experienced_bill_shock import (
@@ -67,20 +69,47 @@ def test_a_DD_household_is_shocked_by_the_PAYMENT_not_by_the_bill():
     assert abs(sc["rise_fraction"] - 0.2) < 1e-6
 
 
-def test_the_live_roll_CARRIES_the_experienced_shock():
-    # C1 is a direct-debit household; a 2021-10 sign-up was quoted before the April 2022 cap rise.
-    customers = [{"customer_id": "C1", "commodity": "electricity", "segment": "resi",
-                  "epc_rating": "D", "acquisition_date": "2021-10-01", "eac_kwh": 2700}]
+def _year_one_records(start: str, sold_rate: float, later_rate: float) -> list[dict]:
+    """Twelve monthly rows from `start`: the first six at the sold rate, the rest at `later_rate`."""
+    y0, m0 = (int(x) for x in start.split("-"))
     records = []
     for i in range(12):
-        ym = f"{2021 + (9 + i) // 12}-{(9 + i) % 12 + 1:02d}"
+        ym = f"{y0 + (m0 - 1 + i) // 12}-{(m0 - 1 + i) % 12 + 1:02d}"
+        rate = sold_rate if i < 6 else later_rate
+        revenue = 225.0 * rate / 1000.0 + 16.0
         records.append({"customer_id": "C1", "settlement_date": f"{ym}-15", "settlement_period": 1,
-                        "consumption_kwh": 225.0, "unit_rate_gbp_per_mwh": 400.0,
-                        "revenue_gbp": 110.0, "wholesale_cost_gbp": 80.0, "margin_gbp": 30.0,
-                        "capital_cost_gbp": 0.1, "net_margin_gbp": 29.9})
-    event = roll_lifecycle_event("C1", "2022-10-01", "electricity", records, customers)
+                        "consumption_kwh": 225.0, "unit_rate_gbp_per_mwh": rate,
+                        "revenue_gbp": revenue, "wholesale_cost_gbp": revenue * 0.7,
+                        "margin_gbp": revenue * 0.3, "capital_cost_gbp": 0.1,
+                        "net_margin_gbp": revenue * 0.3 - 0.1})
+    return records
+
+
+def test_the_live_roll_CARRIES_the_experienced_shock():
+    # C1 is a direct-debit household sold at 200 £/MWh in 2021-10; from April 2022 it is charged
+    # 400. The quote is the rate it was SOLD at (its first bill), so the rise is the year's own.
+    customers = [{"customer_id": "C1", "commodity": "electricity", "segment": "resi",
+                  "epc_rating": "D", "acquisition_date": "2021-10-01", "eac_kwh": 2700}]
+    event = roll_lifecycle_event("C1", "2022-10-01", "electricity",
+                                 _year_one_records("2021-10", 200.0, 400.0), customers)
     assert event is not None
     shock = event["sim_experienced_bill_shock"]
     assert shock["population"] == POPULATION_LEVEL_PAYMENT
     assert shock["reference"] == "quote", shock
     assert shock["shocked"] is True, shock
+
+
+def test_a_sign_up_BEFORE_THE_CAP_is_quoted_at_the_rate_it_was_sold_at():
+    """The defect: the quote was annualised at the default-tariff cap, which does not exist before
+    2019, so 27 of 31 in-scope first renewals on one world had no quote at all. A 2016 sign-up has a
+    first bill, and the rate on it is the quote's rate; a dearer sale is a dearer quote."""
+    customers = [{"customer_id": "C1", "commodity": "electricity", "segment": "resi",
+                  "epc_rating": "D", "acquisition_date": "2016-03-01", "eac_kwh": 2700}]
+    cheap = roll_lifecycle_event("C1", "2017-03-01", "electricity",
+                                 _year_one_records("2016-03", 100.0, 160.0), customers)
+    dear = roll_lifecycle_event("C1", "2017-03-01", "electricity",
+                                _year_one_records("2016-03", 140.0, 160.0), customers)
+    cheap, dear = cheap["sim_experienced_bill_shock"], dear["sim_experienced_bill_shock"]
+    assert cheap["reference"] == "quote" and cheap["shocked"] is not None, cheap
+    # Same year-one bills after month six, so a dearer sale must read as a SMALLER rise.
+    assert dear["rise_fraction"] < cheap["rise_fraction"], (cheap, dear)

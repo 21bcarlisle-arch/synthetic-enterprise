@@ -116,6 +116,7 @@ def opening_monthly_amount(
     commodity: str,
     registry_eac_kwh: float | None = None,
     band: str | None = None,
+    contracted_unit_rate_per_mwh_ex_vat: float | None = None,
 ) -> float | None:
     """The standing monthly Direct Debit the supplier SET when the account
     opened — or `None` where nothing it holds established one.
@@ -157,12 +158,26 @@ def opening_monthly_amount(
     never become one** — this door is exactly where that breach would be easiest
     to make by accident.
 
+    THE ONE RATE THAT MAY CROSS (2026-10-01): `contracted_unit_rate_per_mwh_ex_vat`,
+    the unit rate on the account's contract, as the supplier's settled book
+    carries it (ex-VAT). That is not the excluded case above. The excluded case was
+    the world WORKING OUT a price on the supplier's behalf. This is the price
+    the supplier already struck and printed on the customer's first bill, so
+    both parties hold it. Without it the door annualised every account at the
+    default-tariff cap. A fixed deal is not sold at the cap, and before 2019
+    there is no cap, so 27 of 31 in-scope first renewals had no quote at all
+    (SEAT_FINDING_THE_EXPERIENCED_BILL_SHOCK_IS_STILL_BLIND_IN_YEAR_ONE_...).
+    The cap is now only the fallback when no contracted rate is supplied. It is
+    not re-applied as a clamp: the renewal desk already ceilings a resi fixed
+    strike at it, and a default-tariff rate IS it.
+
     `None` is a RESULT and callers must carry it as one: the DD books count
     those customers as unestimated rather than opening them from a bill. It is
-    returned when nothing establishes a consumption, and also when the company
-    holds no published rate for that date — before the price cap began in
-    January 2019 there is none in this repository, and inventing one to fill the
-    gap is the defect this whole atom removes.
+    returned when nothing establishes a consumption, and also when no
+    contracted rate is supplied and the company holds no published rate for
+    that date — before the price cap began in January 2019 there is none in
+    this repository, and inventing one to fill the gap is the defect this whole
+    atom removes.
     """
     from datetime import date
 
@@ -171,12 +186,20 @@ def opening_monthly_amount(
         opening_monthly_dd_gbp,
     )
     from company.pricing.ofgem_price_cap import get_cap_unit_rate_for_date
-    from company.pricing.tariff_comparison import STANDING_CHARGE_RESI_P_PER_DAY
+    from company.pricing.tariff_comparison import (
+        STANDING_CHARGE_RESI_P_PER_DAY,
+        VAT_RATE_DOMESTIC,
+    )
 
     as_of = date.fromisoformat(as_of_iso)
 
-    cap_gbp_per_mwh = get_cap_unit_rate_for_date(commodity, as_of)
-    if cap_gbp_per_mwh is None:
+    if contracted_unit_rate_per_mwh_ex_vat is not None:
+        # Grossed up so this path stays on the cap's inc-VAT basis: one variable
+        # (the rate's LEVEL) moves, not the basis as well.
+        rate_per_mwh_inc_vat = contracted_unit_rate_per_mwh_ex_vat * (1.0 + VAT_RATE_DOMESTIC)
+    else:
+        rate_per_mwh_inc_vat = get_cap_unit_rate_for_date(commodity, as_of)
+    if rate_per_mwh_inc_vat is None:
         return None
 
     estimate = estimate_annual_consumption(
@@ -188,7 +211,7 @@ def opening_monthly_amount(
     return opening_monthly_dd_gbp(
         estimate,
         # £/MWh -> p/kWh.
-        unit_rate_p_kwh=cap_gbp_per_mwh / 10.0,
+        unit_rate_p_kwh=rate_per_mwh_inc_vat / 10.0,
         # REUSED, not re-declared: the repo already carries exactly one published
         # resi standing charge, and a fifth declaration of it is a filed finding
         # of its own. It is a 2024 figure applied across the window — a known

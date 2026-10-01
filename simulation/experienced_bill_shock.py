@@ -67,18 +67,43 @@ def _shift_month(period: str, months: int) -> str:
 
 
 @lru_cache(maxsize=None)
-def _opening_for_leg(as_of_iso: str, commodity: str, eac: float | None) -> float | None:
+def _opening_for_leg(as_of_iso: str, commodity: str, eac: float | None,
+                     sold_rate: float | None = None) -> float | None:
     return opening_monthly_amount(
         as_of_iso=as_of_iso,
         commodity=commodity,
         registry_eac_kwh=eac if eac else None,
         band="MEDIUM" if not eac else None,
+        contracted_unit_rate_per_mwh_ex_vat=sold_rate,
     )
 
 
-def opening_monthly_for_household(household: str, customers: list[dict]) -> float | None:
+def sold_unit_rate(customer_id: str, settlement_records: list[dict]) -> float | None:
+    """The unit rate on this leg's FIRST bill (£/MWh ex-VAT): consumption-weighted over its first
+    settled month, so a time-of-use split or a default tariff reads as what was charged. The
+    household holds it on paper, so it crosses the door as a contract fact, not a computed price.
+    None where no row of that month carries a rate."""
+    rows = [r for r in settlement_records if r.get("customer_id") == customer_id]
+    if not rows:
+        return None
+    first = min(r["settlement_date"][:7] for r in rows)
+    kwh = cost = 0.0
+    for r in rows:
+        rate = r.get("unit_rate_gbp_per_mwh")
+        if r["settlement_date"][:7] != first or rate is None:
+            continue
+        kwh += r.get("consumption_kwh") or 0.0
+        cost += rate * (r.get("consumption_kwh") or 0.0)
+    return cost / kwh if kwh > 0 else None
+
+
+def opening_monthly_for_household(household: str, customers: list[dict],
+                                  settlement_records: list[dict] | None = None) -> float | None:
     """The monthly amount the household was told at sign-up, summed over its legs -- or None if
-    any leg has none (a dual-fuel household quoted for one fuel was not quoted)."""
+    any leg has none (a dual-fuel household quoted for one fuel was not quoted).
+
+    With `settlement_records`, each leg is annualised at the rate it was SOLD at (its first
+    bill); without, the door falls back to the cap, which pre-2019 is no quote at all."""
     total = 0.0
     legs = [c for c in customers if household_of(c.get("customer_id", "")) == household]
     if not legs:
@@ -88,7 +113,10 @@ def opening_monthly_for_household(household: str, customers: list[dict]) -> floa
         eac = c.get("eac_kwh") if commodity == "electricity" else c.get("aq_kwh")
         if not c.get("acquisition_date"):
             return None
-        amount = _opening_for_leg(c["acquisition_date"], commodity, float(eac) if eac else None)
+        sold = (sold_unit_rate(c.get("customer_id", ""), settlement_records)
+                if settlement_records is not None else None)
+        amount = _opening_for_leg(c["acquisition_date"], commodity, float(eac) if eac else None,
+                                  sold)
         if amount is None:
             return None
         total += amount
@@ -140,7 +168,7 @@ def experienced_bill_shock(
         if reference is None:
             return {"population": population, "shocked": None, "rise_fraction": None,
                     "reference": "quote", "reason": "no amount was set at sign-up for this "
-                    "household (the supplier holds no rate to annualise against)"}
+                    "household (no sold rate and no cap to annualise against, or no consumption)"}
         ref_label = "quote"
     else:
         prior = _year_monthly_mean(bills, _shift_month(renewal_period, -24),
@@ -179,14 +207,13 @@ def experienced_bill_shock_at_renewal(
     first_renewal = bool(acquisition) and (
         (date.fromisoformat(acquisition) + timedelta(days=365)).isoformat()[:7] == renewal_period
     )
-    bills = monthly_bills_by_household(
-        [r for r in settlement_records if household_of(r["customer_id"]) == household]
-    ).get(household, {})
+    household_records = [r for r in settlement_records if household_of(r["customer_id"]) == household]
+    bills = monthly_bills_by_household(household_records).get(household, {})
     return experienced_bill_shock(
         bills=bills,
         payment_channel=payment_channel_for_customer(customer_id, commodity).value,
         renewal_period=renewal_period,
         first_renewal=first_renewal,
-        opening_monthly_gbp=(opening_monthly_for_household(household, customers)
+        opening_monthly_gbp=(opening_monthly_for_household(household, customers, household_records)
                              if first_renewal else None),
     )

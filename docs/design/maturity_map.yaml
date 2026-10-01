@@ -1623,7 +1623,7 @@
   provenance: seat_finding
   depends_on: []
   couples_with: []
-  file_scope: ['background/origin_reconcile.py', 'background/supervisor.py']
+  file_scope: ['background/origin_reconcile.py', 'background/supervisor.py', 'tests/background/test_origin_reconcile_earlier_revision_twin.py']
   #   Writer: `supervisor._sync_origin_staging` copies origin's staging docs in and never refreshes
   #   them, so a revised doc leaves a stale twin. `identical_untracked_twins` asks origin's TIP blob
   #   only; a copy equal to ANY revision in `git log origin/main -- <path>` is equally on origin. See the 2026-10-01 section of
