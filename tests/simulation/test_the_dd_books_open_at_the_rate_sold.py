@@ -89,3 +89,20 @@ def test_the_opening_is_sized_at_the_standing_charge_on_the_first_bill():
     rows = [{**r, "customer_id": "C9"} for r in low]
     assert run4c._opening_dd_by_customer([leg], rows)["C9"] == opening_monthly_for_household(
         household_of("C9"), [leg], rows)
+
+
+def test_a_tou_account_is_sold_at_its_weighted_rate_not_its_off_peak_leg():
+    """Defect: the daily row's `unit_rate_gbp_per_mwh` is the 00:00 rate, off-peak on a ToU
+    account, so the books opened every ToU household about a fifth low. Read through the real
+    fold, the sold rate is the month's consumption-weighted rate; a row the fold did not make
+    still reads its own rate (the fallback the tests above exercise)."""
+    from simulation.settlement_daily import fold_to_days
+
+    periods = [{"customer_id": "C-TOU", "commodity": "electricity",
+                "settlement_date": f"2024-06-{d:02d}", "settlement_period": p,
+                "consumption_kwh": 1.0 if p == 1 else 3.0,
+                "unit_rate_gbp_per_mwh": 110.0 if p == 1 else 210.0}
+               for d in range(1, 29) for p in (1, 34)]
+    days = fold_to_days(periods)
+    assert all(r["unit_rate_gbp_per_mwh"] == 110.0 for r in days)
+    assert abs(sold_unit_rate("C-TOU", days) - 185.0) < 1e-9

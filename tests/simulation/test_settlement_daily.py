@@ -97,6 +97,23 @@ def test_a_rate_is_carried_not_summed():
     assert rows[0]["hedge_fraction"] == pytest.approx(0.85)
 
 
+def test_the_day_carries_the_rate_its_consumption_was_charged_at():
+    """Defect: a reader weights the day's OPENING rate by its kWh. On a ToU day that is the 00:00
+    off-peak leg, so every ToU account read 11/14 of its flat rate. The weighted rate must differ
+    from the opening rate on a split day and equal it on a flat one, and a day with no kWh keeps
+    its opening rate rather than dividing by zero."""
+    tou = [_period(period=1, kwh=1.0, unit_rate_gbp_per_mwh=110.0),
+           _period(period=34, kwh=3.0, unit_rate_gbp_per_mwh=210.0)]
+    (split,) = fold_to_days(tou)
+    assert split["unit_rate_gbp_per_mwh"] == 110.0
+    assert split["unit_rate_weighted_gbp_per_mwh"] == pytest.approx((110.0 + 3 * 210.0) / 4)
+    (flat,) = fold_to_days([_period(period=p) for p in (1, 2, 3)])
+    assert flat["unit_rate_weighted_gbp_per_mwh"] == flat["unit_rate_gbp_per_mwh"] == 150.0
+    (idle,) = fold_to_days([_period(period=1, kwh=0.0, unit_rate_gbp_per_mwh=110.0),
+                            _period(period=34, kwh=0.0, unit_rate_gbp_per_mwh=210.0)])
+    assert idle["unit_rate_weighted_gbp_per_mwh"] == 110.0
+
+
 def test_the_day_keeps_its_last_period_so_orderings_still_work():
     """Two downstream sites order by `(settlement_date, settlement_period)` and one takes the
     `max` of that to find a year's closing balance. Keeping the day's LAST period makes both

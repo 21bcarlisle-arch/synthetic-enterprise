@@ -93,14 +93,18 @@ def sold_unit_rate(customer_id: str, settlement_records: list[dict]) -> float | 
     """The unit rate on this leg's FIRST bill (£/MWh ex-VAT): consumption-weighted over its first
     settled month, so a time-of-use split or a default tariff reads as what was charged. The
     household holds it on paper, so it crosses the door as a contract fact, not a computed price.
-    None where no row of that month carries a rate."""
+    None where no row of that month carries a rate.
+
+    A daily row's `unit_rate_gbp_per_mwh` is the rate at 00:00, so on a ToU account it is the
+    off-peak leg; the day's own weighted rate is read first, the opening rate only on a row the
+    fold did not produce."""
     rows = [r for r in settlement_records if r.get("customer_id") == customer_id]
     if not rows:
         return None
     first = min(r["settlement_date"][:7] for r in rows)
     kwh = cost = 0.0
     for r in rows:
-        rate = r.get("unit_rate_gbp_per_mwh")
+        rate = r.get("unit_rate_weighted_gbp_per_mwh", r.get("unit_rate_gbp_per_mwh"))
         if r["settlement_date"][:7] != first or rate is None:
             continue
         kwh += r.get("consumption_kwh") or 0.0

@@ -123,6 +123,10 @@ nothing has to infer them:
     became £102.36. The day therefore carries the rate it opened on AND
     `unit_rate_min_gbp_per_mwh` / `unit_rate_max_gbp_per_mwh`, which compose — the min of the
     daily minima is the min over every period — so the report's per-year range is exact again.
+    It also carries `unit_rate_weighted_gbp_per_mwh`, the day's consumption-weighted rate, which
+    is what the household was charged per unit. The opening rate is 00:00, off-peak, so a reader
+    weighting it by the day's kWh priced every ToU account at 11/14 of its flat rate
+    (`experienced_bill_shock.sold_unit_rate`, 2026-10-01).
 """
 from __future__ import annotations
 
@@ -136,7 +140,8 @@ CARRIED_FIELDS = (
 
 #: Maintained by hand in the fold rather than summed or carried — see the module docstring on
 #: `unit_rate_gbp_per_mwh`.
-_RATE_EXTREMA = ("unit_rate_min_gbp_per_mwh", "unit_rate_max_gbp_per_mwh")
+_RATE_EXTREMA = ("unit_rate_min_gbp_per_mwh", "unit_rate_max_gbp_per_mwh",
+                 "unit_rate_weighted_gbp_per_mwh")
 
 #: Taken from the day's LAST record: a running balance's daily value is its close, not its sum.
 CLOSING_FIELDS = ("treasury_cash_balance_gbp", "settlement_period")
@@ -157,6 +162,8 @@ def fold_to_days(records):
     """
     out: list[dict] = []
     index: dict[tuple, dict] = {}
+    #: key -> [sum of rate x kWh, kWh] over the day's rated periods.
+    charged: dict[tuple, list[float]] = {}
     for rec in records:
         day = rec.get("settlement_date")
         if not day:
@@ -164,6 +171,11 @@ def fold_to_days(records):
             continue
         key = (rec.get("customer_id"), rec.get("commodity"), day)
         rate = rec.get("unit_rate_gbp_per_mwh")
+        if rate is not None:
+            kwh = rec.get("consumption_kwh") or 0.0
+            acc = charged.setdefault(key, [0.0, 0.0])
+            acc[0] += rate * kwh
+            acc[1] += kwh
         row = index.get(key)
         if row is None:
             row = dict(rec)
@@ -193,6 +205,11 @@ def fold_to_days(records):
                 # Non-numeric and not a declared carry: keep the day's LAST, which is what a
                 # reader of a daily row expects of a flag that changed mid-day.
                 row[field] = value
+    for key, (cost, kwh) in charged.items():
+        # A day with no consumption charged nothing at any rate; its opening rate stands.
+        row = index[key]
+        row["unit_rate_weighted_gbp_per_mwh"] = (
+            cost / kwh if kwh > 0 else row["unit_rate_gbp_per_mwh"])
     return out
 
 
