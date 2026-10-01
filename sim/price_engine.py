@@ -202,6 +202,10 @@ def system_margin_price(
     shrinks over τ as coal exits. Default `None` keeps `dispatchable_capacity_mw`
     (the flat constant for every existing caller) — unchanged behaviour, R12/R13.
     """
+    # Not physical residual demand: INDO is already net of embedded solar, so AGWS solar is
+    # subtracted twice. Held out by year, that double count is the fit's optimum (solar weight
+    # 1-1.5 on top of INDO), and the physical axes are worse: INDO - wind +1.4% MAE, + exports
+    # +4.9% (docs/staging/records/WORKER_PREREGISTRATION_THE_PRICE_RESIDUALS_AXIS_REFIT_ON_INDO_LESS_WIND_2026-10-01.md).
     residual_demand_mw = demand_mw - renewable_generation_mw
     capacity = _dispatchable_capacity_for_year(dispatchable_capacity_mw, year)
     x = residual_demand_mw / capacity

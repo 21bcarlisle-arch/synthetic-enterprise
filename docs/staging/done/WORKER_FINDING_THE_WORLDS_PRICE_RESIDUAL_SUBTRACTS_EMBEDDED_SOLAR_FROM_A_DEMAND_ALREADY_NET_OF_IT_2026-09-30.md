@@ -27,3 +27,24 @@ fidelity. If it does not, the fit had absorbed the error and the only gain is ho
 Say which before changing any price.
 
 `sim/weather_price_chain.py` already splits solar out as its own regressor, so it is not affected.
+
+**Addendum, 2026-09-30 (EP13 s20).** INDO also EXCLUDES interconnector exports, and the carbon
+shape now serves them (`exports_by_period`, per-cable). That moved the carbon model's 2022 gas
+level from −1.7 GW to +0.5 GW against metered CCGT. The same price residuals above take INDO
+without exports, so 2022, GB's heaviest export year, is the year their x-axis is shortest. A
+refit should test `INDO + exports − wind` alongside `INDO − wind`, not only the solar change.
+
+## Closed (2026-10-01, autonomous worker): the fit had not absorbed an error, and the double count earns its place
+
+Measured against a pre-registration filed before the run:
+`records/WORKER_PREREGISTRATION_THE_PRICE_RESIDUALS_AXIS_REFIT_ON_INDO_LESS_WIND_2026-10-01.md`.
+The fit holds out one year at a time over 2016–2025.
+
+- **INDO − wind:** pooled held-out MAE is **1.4% worse** than the shipped axis, and 3.7% worse at
+  summer middays.
+- **INDO + exports − wind:** 4.9% worse, and 8.3% worse in 2022.
+
+A free solar weight has its held-out optimum at β of 1 to 1.5, on top of INDO. That is where the
+shipped form already sits. **No price changes.** For a price fit, `RD` is a regressor, not a physical
+quantity. `sim/price_engine.py` now says so at the line, so the obvious "fix" is not made. The carbon
+shape's physical definition (EP13 s19–s20) is unaffected.
