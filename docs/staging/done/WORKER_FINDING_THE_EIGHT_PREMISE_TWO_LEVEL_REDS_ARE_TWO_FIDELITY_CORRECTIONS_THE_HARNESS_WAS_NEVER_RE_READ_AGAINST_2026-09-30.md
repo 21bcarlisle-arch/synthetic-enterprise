@@ -65,3 +65,45 @@ EP1's re-graded row (gap 2.364 to 1.081) was refused on exactly those ten. No la
 coupled gap until they are resolved, so this item is ahead of new ledger work. The way through is
 unchanged: decide whether each mutation leg is a missing test or an equivalence, then re-derive
 the measured pins in one commit.
+
+## Resolved (2026-10-01, autonomous worker): ten reds, four causes, two equivalences
+
+**Discharged:** `tests/harness/test_premise_two_level.py::test_the_REPAIR_ITSELF_fires_its_own_named_defect`,
+plus nine sibling legs in the same file and `tests/tools/test_couple_fabric.py`. Both files: 320
+passed at origin `50bde35ab`.
+
+I bisected each red in clean extracts. The title's two causes are four:
+
+| cause | reds |
+|---|---|
+| `0388be7c1` gas inside temperature | MEASURED worst home P0036 → P0000 |
+| `affc29e03` SAP hot water + cooking gas | both water-heater diagnosis legs, REPAIR_ITSELF, the worst-MARGIN premise |
+| `263b57ac0` composition shares | switched loads, L2.3n at 40/60 days, NOT_LOOSER, both fabric reds, L2.4 2.17 → 2.00 |
+| `7b792426d` children census conditional | L2.4 2.00 → 1.96 |
+
+**The mutation legs.** I established each one by measurement, not by inference.
+
+- **REPAIR_ITSELF is an equivalence on the corrected world, not a missing test.** With SAP hot
+  water, the water heater is about 30% of the space-only behaviour, down from 36–40%. P0008 now
+  clears the floor on that reading too (0.1685). The 60's marginal home is a gas home, so the cell
+  does not change. I applied the revert in `evaluate_two_level` itself. It is still killed by the
+  L1.2 leg, the L1.1n leg and the fabric texture closure. The leg now asks the cell about the
+  electrically heated homes, and it goes red under the same source mutation.
+- **The switched-loads leg was firing on a coincidence.** Making the banks continuous moves the
+  marginal home by only ~0.003: 0.1529 → 0.1502 on the 8-home panel and 0.1526 → 0.1496 on the
+  drawn 60. The banks carry about 2% of its texture. The test now asks whether L1.1 sees the
+  mutation, on the drawn 60. It no longer asks whether the mutation flips a verdict on a 0.003
+  margin.
+- **L2.3n direction one moved to the drawn 60.** It reads 1.40 / 1.69 / 1.84 / 2.00 at 40, 60, 90
+  and 120 days. Only the eight authored homes fall under their null at 40 and 60 days, and they are
+  not evidence by this file's own rule.
+- **The worst-MARGIN blend is now chosen by its premise.** It is placed midway between the
+  heat-pump home and the floor, not fixed at 0.6. The fabric affine triple was re-chosen by its own
+  guard: 16/17/18.
+
+**One thing to read, not absorb: L2.4 went backwards, 2.17 → 1.96.** Two sourced composition
+corrections narrowed the scale spread further from the real 5.38x. The missing spread is not in
+who lives in the home. I re-pinned it so the regress stays visible. I did not loosen it.
+
+This unblocks the coupled-gap ledger write. EP1's re-graded row (2.364 → 1.081, `d815c6bfc`) can
+now land.

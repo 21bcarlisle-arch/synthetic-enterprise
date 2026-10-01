@@ -432,7 +432,13 @@ def test_the_money_consequence_is_AFFINE_in_the_unit_rate_for_a_fixed_decision(m
     #
     # The new triple is chosen BY THE STRENGTHENED GUARD rather than by the answer: it is
     # the first triple at which every premise's (chosen, best) pair is genuinely constant.
-    rates = (14.0, 15.0, 16.0)
+    #
+    # 14/15/16 -> 16/17/18 ON 2026-10-01, BY THE SAME GUARD. `263b57ac0` (the fabric
+    # path's composition shares) moved E15's best measure insulate -> heat_pump
+    # between 15.5 and 16 p/kWh. Swept at 0.5p: the vector is constant from 16.0
+    # to 18.0 and D7 flips again at 18.5, so 16/17/18 is the first spaced-by-one
+    # triple the guard admits.
+    rates = (16.0, 17.0, 18.0)
     vectors = [
         tuple(
             (row.premise_id, row.chosen_measure, row.best_measure)
@@ -598,8 +604,12 @@ def test_the_TEXTURE_CELL_BREACH_CLOSED_when_the_LOAD_SET_WAS_REPAIRED(panel, we
     # the water heater out of the denominator too, the panel's marginal home is a
     # GAS home the netting never touched. That is the same tell the drawn 60 gives,
     # and it is the shape a load-set repair leaves behind.
-    assert texture.worst_home == "D7", texture.note
-    assert texture.worst_value == pytest.approx(0.1782, abs=5e-4), texture.note
+    #
+    # D7 at 0.1782 -> S9 at 0.1862 on 2026-10-01: `263b57ac0` redrew the panel's
+    # household composition. Both are gas combi homes, which is the property; the
+    # identity is pinned so the next move is read rather than absorbed.
+    assert texture.worst_home == "S9", texture.note
+    assert texture.worst_value == pytest.approx(0.1862, abs=5e-4), texture.note
     assert "net of space AND water heat" in texture.note
     electric = {
         home for home, system in zip(population_homes(panel), panel_systems(panel))
