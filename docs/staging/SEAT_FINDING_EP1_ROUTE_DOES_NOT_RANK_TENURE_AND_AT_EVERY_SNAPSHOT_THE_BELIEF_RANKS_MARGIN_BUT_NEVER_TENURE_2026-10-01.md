@@ -37,6 +37,9 @@ No code changed. The predecessor's two open questions (channel; every snapshot) 
    - At first valuation it was +0.071 against the whole-life rate. The forward, per-year target
      is the honest one, and it reads +0.257 at first valuation.
    - What the belief knows about an account's value is margin persistence, not tenure.
+   - **Corrected the same day by the fuel-stratified control.** Most of this ranking is the
+     fuel split: legs alone read +0.545, and within a fuel stratum the margin input reads +0.19,
+     CI [−0.01, +0.38]. See `SEAT_FINDING_EP1_THE_FUEL_SPLIT_CARRIES_THE_FORWARD_MARGIN_RANKING_AND_COST_TO_SERVE_PARTLY_ERASES_IT_2026-10-01.md`.
 4. **…and a cruder gross margin rate ranks forward margin better than the belief's input,
    even when the target is net of cost to serve.**
    - The gap is +0.062, paired cluster CI [+0.031, +0.099], on 300 later snapshots.
@@ -48,7 +51,8 @@ No code changed. The predecessor's two open questions (channel; every snapshot) 
        against a net one.
    - Cost to serve is persistent (0.71) and on the right clock (ratio about 1.0), so neither
      explains it.
-   - **Cause not yet attributed.** The candidate is the per-leg dual-fuel step. Predictions and
+   - **Attributed later the same day: the whole gap is between fuel strata. Within strata it is
+     −0.004 [−0.017, +0.009] (same finding as above).** Before that it read: **Cause not yet attributed.** The candidate is the per-leg dual-fuel step. Predictions and
      results are in the record.
 5. **An instrument lesson.**
    - Tenure position reads C 0.447, outside the stratified permutation band. Its per-account
