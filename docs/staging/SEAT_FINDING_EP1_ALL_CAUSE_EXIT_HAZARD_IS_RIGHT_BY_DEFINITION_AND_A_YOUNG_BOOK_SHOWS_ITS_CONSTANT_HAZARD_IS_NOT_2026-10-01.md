@@ -58,3 +58,9 @@ one-variable arm takes the gap from 1.558 (constant) to **1.275**, and 2017 from
 Spearman is unmoved, because 2017's table has one year. The prediction and result are in
 `docs/staging/records/SEAT_PREREGISTRATION_EP1_TENURE_HORIZON_ON_A_LIFE_TABLE_BY_TENURE_YEAR_2026-10-01.md`.
 The ledger row still waits on a fresh run, as above.
+
+**Correction (2026-10-01, later the same day).** The gaps above (1.437, 1.558, 1.275) were
+measured on a belief re-derived from H1 with the wrong divisor, and its margin is off by up to
+7.1×. Their direction between hazard arms holds, because the hazard side is exact. Their level does
+not: the true life-table belief is **1.173 on 66 rows**. See
+`SEAT_FINDING_EP1_REMAINING_OVERVALUATION_IS_THE_MARGIN_DIVIDED_BY_RENEWAL_POINTS_AND_H2_COUNTS_SURVIVAL_TWICE_2026-10-01.md`.
