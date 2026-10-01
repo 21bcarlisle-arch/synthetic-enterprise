@@ -28,7 +28,6 @@ import pytest
 from background.gap_metric import NORMALISATION_DIVISOR, write_gap_entry
 from tools import couple_clv
 
-
 # --- Fixtures ----------------------------------------------------------------
 
 def _run(counted=None, supplied=None, off_book=()):
@@ -912,3 +911,15 @@ def test_the_crosscheck_follows_the_graded_series_not_the_legacy_one():
     legacy = couple_clv.roster_crosscheck(
         run, detail["counted"], {"snapshots": run["clv_snapshots"]})
     assert legacy["agrees"] is False
+
+
+def test_the_row_is_stamped_with_the_runs_commit_not_the_trees_head():
+    """Defect named: the ledger row carried `git rev-parse HEAD` at write time, so a run
+    produced at one commit and graded weeks later was attributed to whatever the tree held
+    then (2026-10-01: `9a5dc872e` named for a run stamped `b1b4c284e`)."""
+    run = {"producing_commit": {"commit": "b1b4c284e", "resolved_at": "2026-10-01T01:04:15Z"}}
+    assert couple_clv.run_commit(run) == "b1b4c284e"
+    # A run that cannot say which code drew it is unattributed, never given today's HEAD.
+    assert couple_clv.run_commit({}) is None
+    assert couple_clv.run_commit({"producing_commit": {"commit": None,
+                                                        "unavailable_because": "x"}}) is None
