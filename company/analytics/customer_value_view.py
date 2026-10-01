@@ -64,6 +64,7 @@ this output, that caller needs the bound; this module does not.
 
 from __future__ import annotations
 
+from collections import Counter
 from dataclasses import dataclass
 
 from company.analytics.clv_three_horizon import (
@@ -73,6 +74,7 @@ from company.analytics.clv_three_horizon import (
     BookRenewalRecord,
     Horizon,
     RenewalPoint,
+    TenureYearHazard,
     estimate_book,
 )
 from saas.churn_model import (
@@ -92,6 +94,7 @@ __all__ = [
     "build_three_horizon_clv_snapshots",
     "observed_book_exits",
     "observed_book_renewals",
+    "observed_tenure_positions",
 ]
 
 #: Contract term in years, by the roster's own `contract_type`. Anything unmapped
@@ -167,8 +170,11 @@ def build_customer_value_view(
         settlement_records, customers
     )
     three_horizon_clv = estimate_book(
-        _clv_observables(churn_risk, enterprise_value, customers, ceased),
-        book_exits=observed_book_exits(settlement_records, ceased),
+        _clv_observables(
+            churn_risk, enterprise_value, customers, ceased,
+            observed_tenure_positions(settlement_records, customers),
+        ),
+        book_exits=observed_book_exits(settlement_records, ceased, customers),
         book_renewals=observed_book_renewals(settlement_records, customers, ceased),
     )
     return CustomerValueView(
@@ -181,8 +187,112 @@ def build_customer_value_view(
     )
 
 
+def _month_index(month: str) -> int:
+    return int(month[:4]) * 12 + int(month[5:7]) - 1
+
+
+def _tenure_year(month_since_acquisition: int) -> int:
+    """Year 1 is months 0-12, year k >= 2 is months 12(k-1)+1 .. 12k.
+
+    The anniversary month belongs to the year it CLOSES. A term starting on the 1st last
+    settles the month before its anniversary and a mid-month term the anniversary month
+    itself; `observed_book_renewals` counts both as a departure AT the anniversary, and
+    a boundary between them would split the renewal spike across two years.
+    """
+    return max(1, (month_since_acquisition + 11) // 12)
+
+
+def _settled_spans(settlement_records: list[dict]) -> dict[str, tuple[str, str]]:
+    span: dict[str, tuple[str, str]] = {}
+    for record in settlement_records:
+        account_id = _billing_account_id(record["customer_id"])
+        month = record["settlement_date"][:7]
+        first, last = span.get(account_id, (month, month))
+        span[account_id] = (min(first, month), max(last, month))
+    return span
+
+
+def _acquisition_months(customers: list[dict]) -> dict[str, int]:
+    out: dict[str, int] = {}
+    for c in customers:
+        acquired = str(c.get("acquisition_date") or "")[:7]
+        if len(acquired) == 7 and acquired[:4].isdigit() and acquired[5:7].isdigit():
+            out[c["customer_id"]] = _month_index(acquired)
+    return out
+
+
+def observed_tenure_positions(
+    settlement_records: list[dict], customers: list[dict]
+) -> dict[str, int]:
+    """The tenure year each billing account enters next, from its OWN last settled month.
+
+    Absent for an account with no acquisition date on the roster: its place in its
+    tenure is unknown, and H2 says so rather than guessing year 1.
+    """
+    acquired = _acquisition_months(customers)
+    return {
+        account_id: _tenure_year(_month_index(last) + 1 - acquired[account_id])
+        for account_id, (_, last) in _settled_spans(settlement_records).items()
+        if account_id in acquired
+    }
+
+
+def _life_table(
+    span: dict[str, tuple[str, str]], ceased: set[str], customers: list[dict]
+) -> tuple[TenureYearHazard, ...]:
+    """The book's exit hazard by tenure year, COMPLETE years only.
+
+    Monthly product-limit, not exits over exposure. At tenure month i, `at_risk` is the
+    accounts whose settled span covers i and an exit is a ceased account whose last settled
+    month is i. Exits-over-exposure was printed on the real book first and rejected: an
+    account the snapshot censors mid-year adds its quiet in-term months to a year's
+    denominator without ever reaching that year's anniversary, which is the young-book
+    defect of the constant hazard moved one year along.
+
+    A year is complete when every one of its months has an account at risk. The last year a
+    snapshot reaches is censored before its anniversary in almost every snapshot (2017's
+    year 2 read 0.046 on months that never include a second anniversary), so it is left out
+    and the valuation carries the last complete year on instead.
+    """
+    acquired = _acquisition_months(customers)
+    at_risk: Counter[int] = Counter()
+    exits_at: Counter[int] = Counter()
+    for account_id, (first, last) in span.items():
+        if account_id not in acquired:
+            continue
+        start = max(0, _month_index(first) - acquired[account_id])
+        end = max(0, _month_index(last) - acquired[account_id])
+        for month in range(start, end + 1):
+            at_risk[month] += 1
+        if account_id in ceased:
+            exits_at[end] += 1
+
+    table: list[TenureYearHazard] = []
+    year = 1
+    while True:
+        # The months are whatever `_tenure_year` says, so the table and each account's
+        # position cannot disagree about where a year ends.
+        months = [m for m in range(12 * year + 1) if _tenure_year(m) == year]
+        if not all(at_risk[m] for m in months):
+            return tuple(table)
+        survival = 1.0
+        for m in months:
+            survival *= 1.0 - exits_at[m] / at_risk[m]
+        table.append(
+            TenureYearHazard(
+                tenure_year=year,
+                at_risk=at_risk[months[0]],
+                exits=sum(exits_at[m] for m in months),
+                hazard=1.0 - survival,
+            )
+        )
+        year += 1
+
+
 def observed_book_exits(
-    settlement_records: list[dict], ceased: set[str]
+    settlement_records: list[dict],
+    ceased: set[str],
+    customers: list[dict] | None = None,
 ) -> BookExitRecord:
     """The settled time this supplier's book has observed, and the accounts that left it.
 
@@ -192,13 +302,11 @@ def observed_book_exits(
     an account in `ceased`, WHENEVER it ceased: H2 is a tenure, and a home move or a
     mid-term switch ends one exactly as a renewal departure does. Truncation is the
     caller's, as for `observed_book_renewals`.
+
+    With `customers` the record also carries the life table by tenure year, which is what
+    H2 then values on; without it, `tenure_years` is None and H2 keeps the constant hazard.
     """
-    span: dict[str, tuple[str, str]] = {}
-    for record in settlement_records:
-        account_id = _billing_account_id(record["customer_id"])
-        month = record["settlement_date"][:7]
-        first, last = span.get(account_id, (month, month))
-        span[account_id] = (min(first, month), max(last, month))
+    span = _settled_spans(settlement_records)
 
     months = 0
     for first, last in span.values():
@@ -206,7 +314,11 @@ def observed_book_exits(
             (int(last[:4]) - int(first[:4])) * 12 + int(last[5:7]) - int(first[5:7]) + 1
         )
     return BookExitRecord(
-        account_years=months / 12.0, exits=len(ceased & span.keys())
+        account_years=months / 12.0,
+        exits=len(ceased & span.keys()),
+        tenure_years=(
+            None if customers is None else _life_table(span, ceased, customers)
+        ),
     )
 
 
@@ -264,6 +376,7 @@ def _clv_observables(
     enterprise_value: dict,
     customers: list[dict],
     ceased: set[str],
+    tenure_positions: dict[str, int] | None = None,
 ) -> list[AccountObservables]:
     """Assemble EP1's inputs from beliefs this view has ALREADY formed.
 
@@ -318,6 +431,7 @@ def _clv_observables(
                     None if margin is None else float(margin)
                 ),
                 still_supplied=account_id not in ceased,
+                next_tenure_year=(tenure_positions or {}).get(account_id),
             )
         )
     return observables
@@ -441,6 +555,7 @@ def build_three_horizon_clv_snapshots(
         book = build_customer_value_view(
             records_to_year, customers, price_differential_pct
         ).three_horizon_clv
+        positions = observed_tenure_positions(records_to_year, customers)
         basis = book
         out[year] = {
             "cutoff": cutoff,
@@ -461,11 +576,15 @@ def build_three_horizon_clv_snapshots(
             ),
             "accounts": {
                 account.account_id: {
-                    horizon.value: {
-                        "value_gbp": account.horizon(horizon).value_gbp,
-                        "reason": _blank_reason(account.horizon(horizon)),
-                    }
-                    for horizon in Horizon
+                    **{
+                        horizon.value: {
+                            "value_gbp": account.horizon(horizon).value_gbp,
+                            "reason": _blank_reason(account.horizon(horizon)),
+                        }
+                        for horizon in Horizon
+                    },
+                    # Where in the book's life table H2 started reading this account.
+                    "next_tenure_year": positions.get(account.account_id),
                 }
                 for account in sorted(book.accounts, key=lambda a: a.account_id)
             },

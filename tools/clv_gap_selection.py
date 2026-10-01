@@ -117,6 +117,31 @@ def _survival_annuity(margin_multiplier_hazard: float, term_years: float,
     return retention * (1.0 - ratio ** term_years) / denom
 
 
+def _life_table_tenure_years(table: list, position: int) -> float | None:
+    """The expected remaining tenure H2 read off a published life table, or None.
+
+    Re-derived for the reason `_survival_annuity` is (the company side's
+    `BookExitRecord.forward_hazards` + `expected_remaining_tenure_years`), and
+    `test_the_harness_life_table_matches_the_company_form` asserts the two agree.
+    The tail pools the complete years from the last one with an exit onward.
+    """
+    hazards = [float(row["hazard"]) for row in table]
+    exits = [k for k, row in enumerate(table) if row.get("exits")]
+    if not exits:
+        return None
+    last = exits[-1]
+    stay = 1.0
+    for h in hazards[last:]:
+        stay *= 1.0 - h
+    hazards = hazards[:last] + [1.0 - stay ** (1.0 / (len(hazards) - last))]
+    forward = hazards[min(max(position, 1), len(hazards)) - 1:]
+    survival, term = 1.0, 1.0
+    for h in forward[:-1]:
+        survival *= 1.0 - h
+        term += survival
+    return term + survival * (1.0 - forward[-1]) / forward[-1]
+
+
 def _published_ratio(hazard: float, discount_rate: float) -> float:
     """`tenure_expected / contract_term` for a given hazard.
 
@@ -368,12 +393,29 @@ def lifetime_level(run: dict, counted: list,
         # record landed carry only `book_renewals`, and H2 did use it then.
         snapshot = snapshots.get(year) or {}
         published, source = None, None
+        # On a life table there is no single hazard: the account's own remaining
+        # tenure, read from the table at its published position, is what H2 used,
+        # and 1/that is the constant hazard with the same expected tenure.
+        table = (snapshot.get("book_exits") or {}).get("tenure_years")
+        if isinstance(table, list):
+            position = entry.get("next_tenure_year")
+            if not table or not isinstance(position, int):
+                unrecoverable.append({"account": account_id,
+                                      "reason": "no life-table position"})
+                continue
+            tenure = _life_table_tenure_years(table, position)
+            if tenure is None:
+                unrecoverable.append({"account": account_id, "reason": "ratio not invertible"})
+                continue
+            published = 1.0 / tenure
+            source = "published_book_exit_life_table"
         for key, label in (("book_exits", "published_book_exit_hazard"),
                            ("book_renewals", "published_book_hazard")):
+            if published is not None:
+                break
             value = (snapshot.get(key) or {}).get("hazard")
             if isinstance(value, (int, float)) and not isinstance(value, bool):
                 published, source = float(value), label
-                break
         if published is not None:
             hazard = published
         else:

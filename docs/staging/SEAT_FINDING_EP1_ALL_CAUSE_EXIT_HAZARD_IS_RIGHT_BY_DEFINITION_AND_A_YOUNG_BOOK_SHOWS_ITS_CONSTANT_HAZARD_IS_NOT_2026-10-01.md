@@ -47,3 +47,14 @@ The ledger row still waits. `run_output_latest.json` is the `b1b4c284e` run, pro
 81977a312. Its snapshots carry the 0.05 belief, so `couple_clv --write-ledger` now would grade the
 old H2 under this commit's name. The row needs a fresh run promoted through the ordinary publish
 path.
+
+## Closed (2026-10-01): H2 values on the book's life table by tenure year
+
+Landed under `ep1-tenure-hazard-by-tenure-year`. `BookExitRecord.tenure_years` is a monthly
+product-limit table of COMPLETE tenure years, counted from `acquisition_date`; the anniversary month
+closes its year. Each account reads it from the year it enters next (`next_tenure_year`, published
+per account on every snapshot). The tail pools complete years from the last one anyone left in. The
+one-variable arm takes the gap from 1.558 (constant) to **1.275**, and 2017 from 532 to 449 MAE.
+Spearman is unmoved, because 2017's table has one year. The prediction and result are in
+`docs/staging/records/SEAT_PREREGISTRATION_EP1_TENURE_HORIZON_ON_A_LIFE_TABLE_BY_TENURE_YEAR_2026-10-01.md`.
+The ledger row still waits on a fresh run, as above.
