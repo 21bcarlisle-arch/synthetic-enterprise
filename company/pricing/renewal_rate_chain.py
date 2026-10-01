@@ -86,6 +86,7 @@ from company.interfaces.customer_profitability import renewal_unit_rate_uplift
 from company.policy.decision_policy import active_policy
 from company.pricing.margin_feedback import compute_margin_surcharge
 from company.pricing.ofgem_price_cap import get_cap_unit_rate_for_date
+from company.pricing.tariff_comparison import VAT_RATE_DOMESTIC
 from company.pricing.tariff_engine import (
     PORTFOLIO_PREMIUM_LOOKBACK,
     compute_portfolio_premium,
@@ -96,7 +97,21 @@ from company.pricing.value_based_renewal import (
 from company.pricing.value_based_renewal import renewal_margin_uplift
 from saas.tariff_pricing import TARGET_MARGIN_GBP_PER_MWH
 
-__all__ = ["RenewalRateChain", "decide_renewal_rate"]
+__all__ = ["RenewalRateChain", "cap_ceiling_ex_vat", "decide_renewal_rate"]
+
+
+def cap_ceiling_ex_vat(commodity: str, on_date: date) -> float | None:
+    """The domestic cap unit rate on the strike's own basis: EX-VAT, GBP/MWh.
+
+    `get_cap_unit_rate_for_date` returns Ofgem's published figure, which INCLUDES VAT at 5%.
+    Every rate this chain writes is ex-VAT: VAT is added on the bill. Clamping one against the
+    other let a strike sit up to 5% above the legal ceiling once VAT was added, and the company's
+    own check passed it. That was 28 of 117 first terms in the default world
+    (`SEAT_FINDING_THE_28_ACCOUNTS_ABOVE_THE_CAP_ARE_EX_VAT_STRIKES_CEILINGED_AT_THE_INC_VAT_CAP_2026-10-01.md`).
+    The world's `hedged_settlement` fixed the same defect on 2026-08-25.
+    """
+    inc_vat = get_cap_unit_rate_for_date(commodity, on_date)
+    return None if inc_vat is None else inc_vat / (1.0 + VAT_RATE_DOMESTIC)
 
 # The premium and the surcharge both learn from COMPLETED terms, so neither can
 # apply to a customer's first one. The world used to spell this as
@@ -362,7 +377,7 @@ def decide_renewal_rate(
     # then clamped by a different one.
     cap_ceiling = None
     if is_domestic and tariff_type in CAPPED_TARIFF_TYPES:
-        cap_ceiling = get_cap_unit_rate_for_date(commodity, date.fromisoformat(term_start[:10]))
+        cap_ceiling = cap_ceiling_ex_vat(commodity, date.fromisoformat(term_start[:10]))
 
     arm_uplift = renewal_margin_uplift(
         account_id=billing_account,
