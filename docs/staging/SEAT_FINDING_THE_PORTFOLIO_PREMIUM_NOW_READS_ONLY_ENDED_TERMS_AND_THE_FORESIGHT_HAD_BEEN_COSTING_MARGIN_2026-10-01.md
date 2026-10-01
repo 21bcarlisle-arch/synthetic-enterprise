@@ -44,6 +44,9 @@ The other years are within ±£430.
 ## What I can and cannot say
 
 - **Said:** the look-ahead was near-total (P1), and the fix removes it (P2).
+- *Measured since (2026-10-01): the story below holds. In 2021H2–2022 the reading went −0.091 → −0.235, and
+  `portfolio_premium` carries £9,291 of the +£7,331, which is revenue, not value. See
+  `SEAT_FINDING_THE_LOOK_AHEAD_FIXS_MARGIN_RISE_IS_THE_PORTFOLIO_PREMIUM_..._2026-10-01.md`.*
 - **Cannot yet say why foresight cost margin.** Here is one story the numbers fit; it has not been
   measured. In 2022H2, OLD's last-4 were terms that had just started and settled into the 2023 price
   fall. So OLD read healthy margins and cut renewal prices early. NEW read the crisis-loss terms

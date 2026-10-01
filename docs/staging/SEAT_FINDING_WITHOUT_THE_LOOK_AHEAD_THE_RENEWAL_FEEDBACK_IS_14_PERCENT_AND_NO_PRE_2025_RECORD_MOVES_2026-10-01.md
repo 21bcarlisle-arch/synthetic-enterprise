@@ -71,3 +71,6 @@ pair. The revenue-to-standing-charge ratio is 0.925 (it was 0.98).
   is attributed. The one-variable test would be to hold the book fixed and change only the timing
   of each entry. It is not filed as a defect, because nothing here is wrong; what is missing is an
   explanation.
+- *Since attributed (2026-10-01): the £7,331 is the portfolio premium reading honest crisis
+  losses and charging renewals £9,154 more, less £1,235 of profitable book lost to churn. See
+  `SEAT_FINDING_THE_LOOK_AHEAD_FIXS_MARGIN_RISE_IS_THE_PORTFOLIO_PREMIUM_..._2026-10-01.md`.*
