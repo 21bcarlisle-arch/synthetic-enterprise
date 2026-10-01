@@ -359,14 +359,24 @@ def lifetime_level(run: dict, counted: list,
         if not isinstance(h1, (int, float)) or not isinstance(h2, (int, float)):
             unrecoverable.append({"account": account_id, "reason": "horizon blank"})
             continue
-        hazard = recover_hazard(float(h1), float(h2), discount_rate)
-        if hazard is None:
+        # Since 2026-10-01 H2 can value on the BOOK's observed renewal hazard while H1
+        # keeps the account's belief, and the snapshot then publishes the hazard H2
+        # used. Inverting H2/H1 assumes one hazard drives both, so on such a snapshot
+        # it returns a number that is neither -- read the published one instead.
+        published = ((snapshots.get(year) or {}).get("book_renewals") or {}).get("hazard")
+        if isinstance(published, (int, float)) and not isinstance(published, bool):
+            hazard, source = float(published), "published_book_hazard"
+        else:
+            hazard = recover_hazard(float(h1), float(h2), discount_rate)
+            source = "inverted_from_horizons"
+        if hazard is None or hazard <= 0:
             unrecoverable.append({"account": account_id, "reason": "ratio not invertible"})
             continue
         recovered.append({
             "account": account_id,
             "belief_year": year,
             "hazard": hazard,
+            "hazard_source": source,
             "believed_tenure_years": 1.0 / hazard,
         })
 
