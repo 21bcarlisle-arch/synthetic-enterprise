@@ -1997,7 +1997,12 @@ def commit_direction() -> tuple[bool, str]:
         ["git", "commit", "-m", "delivery seat: direction for the next stretch", "--", *present],
         cwd=str(PROJECT_DIR), capture_output=True, text=True)
     if commit.returncode != 0:
-        return False, f"commit rc={commit.returncode}"
+        # WHY, NOT ONLY THAT (2026-09-30): 18 of 40 orientations since 09-24 failed here -- rc=1 ten
+        # times, rc=128 eight -- and the log carried only the number, so nothing could say whether
+        # it was a hook refusal, index-lock contention on the shared tree, or something else. Git's
+        # own words are the diagnosis; the tail is enough to classify them.
+        why = " | ".join((commit.stderr or commit.stdout or "").strip().splitlines()[-3:])[:300]
+        return False, f"commit rc={commit.returncode}: {why or 'git gave no message'}"
     # AND THEN SEND IT. `ok` stays keyed to the COMMIT and never to the push: the direction record
     # exists once the commit lands, and reporting `committed: false` for a rejected push would
     # make the row lie about the thing it names. The push outcome rides out in the detail, which

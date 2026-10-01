@@ -4,8 +4,9 @@ WHAT THIS ANSWERS, AND WHAT IT DELIBERATELY DOES NOT. Three VALUATION BASES for 
 same customer, measured forward:
 
   H1 ``contract_term``    — what the contract already sold is worth before it ends.
-  H2 ``tenure_expected``  — what this customer is worth if they go on behaving the way
-                            their MOST RECENT renewal suggests.
+  H2 ``tenure_expected``  — what this customer is worth over the tenure the BOOK's own
+                            all-cause exit frequency implies (their most recent renewal
+                            belief only when no book record is passed).
   H3 ``portfolio_cohort`` — what a customer like this is worth, when their own history
                             is too short to trust.
 
@@ -72,6 +73,7 @@ speculatively is the thing the standing design-lens rules forbid.
 from __future__ import annotations
 
 import ast
+import math
 import re
 from collections import Counter
 from dataclasses import dataclass, field
@@ -87,6 +89,9 @@ __all__ = [
     "Population",
     "HorizonValue",
     "RenewalPoint",
+    "BookRenewalRecord",
+    "BookExitRecord",
+    "FIRST_RENEWAL_DEPARTURE_PRIOR",
     "AccountObservables",
     "AccountCLV",
     "CohortValue",
@@ -157,6 +162,16 @@ class TimeModel(str, Enum):
     #: remaining tenure that hazard implies. Order-aware for the same reason.
     LATEST_RENEWAL_CONDITIONED = "latest_renewal_conditioned"
 
+    #: Hazard is the BOOK's observed ALL-CAUSE annual exit probability at the snapshot,
+    #: pooled over every billing account; the term is the expected remaining tenure it
+    #: implies. EXCHANGEABLE across accounts by construction -- one number per date --
+    #: so it carries the level of the lifetime term and no per-account ranking. All-cause
+    #: and not per-renewal because a tenure ends at any exit: 40 of 89 cessations on the
+    #: real book fall away from an anniversary, and the world decides a renewal at only
+    #: one anniversary in five, so a per-renewal rate has no agreed denominator
+    #: (SEAT_FINDING_THE_WORLD_DECIDES_A_RENEWAL_AT_ONE_ANNIVERSARY_IN_FIVE..., 2026-10-01).
+    BOOK_OBSERVED_EXIT_HAZARD = "book_observed_exit_hazard"
+
     #: Hazard and margin pooled over the account's cohort. Deliberately EXCHANGEABLE —
     #: reordering any member's history cannot move it, and that is the point: this
     #: horizon exists precisely for accounts whose own history is too short to condition
@@ -176,6 +191,12 @@ class Exclusion(str, Enum):
     NO_RENEWAL_OBSERVED = "no_renewal_observed"
     CEASED = "ceased"
     NO_COHORT_PEERS = "no_cohort_peers"
+    #: The book has no settled account-time yet, so there is nothing to divide by.
+    NO_BOOK_EXPOSURE = "no_book_exposure"
+    #: No account has left the book yet. A zero frequency is not evidence of an infinite
+    #: tenure, for the reason `hazard <= 0` is refused on the belief path, and no sourced
+    #: prior exists to stand in (`FIRST_RENEWAL_DEPARTURE_PRIOR`).
+    NO_BOOK_EXITS = "no_book_exits"
 
 
 @dataclass(frozen=True)
@@ -275,6 +296,104 @@ class RenewalPoint:
                 "churn_probability must be a probability, got "
                 + repr(self.churn_probability)
             )
+
+
+#: The per-renewal departure rate to assume for a book that has decided no renewal yet.
+#: UNESTABLISHED, and `None` is the research result rather than a gap in it (2026-10-01,
+#: `docs/market_research/first_renewal_departure_rate_small_gb_supplier.md`). The one
+#: route-conditioned published instrument -- Ofgem's End of Fixed Term Communications Trial,
+#: 2019 -- measured 6% EXTERNAL switching within six weeks of term end, on one LARGE
+#: supplier's residual inert book (mean tenure 17 years, prior actors excluded). That is a
+#: floor for an incumbent, not a prior for a small supplier whose every customer arrived by
+#: switching. A number here would be read as established. H2 no longer reads this (it values
+#: on `BookExitRecord`, blank under `Exclusion.NO_BOOK_EXITS` until an account has left);
+#: the per-renewal diagnostic publishes it as its hazard while no renewal is decided.
+FIRST_RENEWAL_DEPARTURE_PRIOR: float | None = None
+
+
+@dataclass(frozen=True)
+class BookRenewalRecord:
+    """The renewals the company's own book has DECIDED by a snapshot, and how many left.
+
+    Counted by the caller from its own settled records (a supplier knows which accounts
+    went on being supplied past their anniversary and which stopped at it); this module
+    only reads the two counts. Undecided renewals -- the anniversary is the last month
+    settled and the account is still supplied -- are in neither count.
+    """
+
+    decisions: int
+    departures: int
+
+    def __post_init__(self) -> None:
+        if not 0 <= self.departures <= self.decisions:
+            raise ValueError(
+                "departures must lie in [0, decisions], got "
+                + repr((self.departures, self.decisions))
+            )
+
+    @property
+    def hazard(self) -> float | None:
+        """Pooled per-renewal departure frequency, or the prior when nothing is decided."""
+        if self.decisions == 0:
+            return FIRST_RENEWAL_DEPARTURE_PRIOR
+        return self.departures / self.decisions
+
+    def as_published_dict(self) -> dict:
+        return {
+            "decisions": self.decisions,
+            "departures": self.departures,
+            "hazard": self.hazard,
+        }
+
+
+@dataclass(frozen=True)
+class BookExitRecord:
+    """How long the company's own book has been supplied, and how many accounts left it.
+
+    Counted by the caller from its own settled records: `account_years` is the settled
+    time observed (first to last settled month, per billing account) and `exits` the
+    accounts that stopped settling, at ANY point -- a switch at renewal, a switch mid-term
+    and a home move all end a tenure. This is what H2 values on. `BookRenewalRecord` asks
+    a narrower question (departures AT an anniversary) and is published beside it only.
+    """
+
+    account_years: float
+    exits: int
+
+    def __post_init__(self) -> None:
+        if self.account_years < 0 or self.exits < 0:
+            raise ValueError(
+                "account_years and exits must be non-negative, got "
+                + repr((self.account_years, self.exits))
+            )
+
+    @property
+    def rate(self) -> float | None:
+        """Exits per account-year, or None with no exposure."""
+        if self.account_years <= 0:
+            return None
+        return self.exits / self.account_years
+
+    @property
+    def hazard(self) -> float | None:
+        """Annual exit probability, `1 - exp(-rate)`, or None with no exposure.
+
+        The rate is per account-year; H2's annuity takes a per-YEAR departure probability
+        (`retention ** t`), and under a constant hazard those are related by the
+        exponential. A unit conversion, not a chosen constant: at the real book's ~0.15
+        the two differ by about 0.01, which is why passing the rate straight in would
+        look right and be wrong.
+        """
+        rate = self.rate
+        return None if rate is None else 1.0 - math.exp(-rate)
+
+    def as_published_dict(self) -> dict:
+        return {
+            "account_years": self.account_years,
+            "exits": self.exits,
+            "rate": self.rate,
+            "hazard": self.hazard,
+        }
 
 
 @dataclass(frozen=True)
@@ -421,6 +540,11 @@ class BookCLV:
     #: knows both, so neither can be supplied by a guess downstream.
     aggregate_horizon: Horizon
     discount_rate: float
+    #: The exit record H2 was valued on, or None when H2 used the latest-renewal
+    #: belief. Published beside the basis so a reader sees the n behind the hazard.
+    book_exits: BookExitRecord | None = None
+    #: The per-anniversary renewal record: a DIAGNOSTIC, published, never valued on.
+    book_renewals: BookRenewalRecord | None = None
 
     def cohort(self, key: str) -> CohortValue | None:
         """The cohort, or None if no such cohort exists in this book.
@@ -458,6 +582,14 @@ class BookCLV:
         return {
             "aggregate_horizon": self.aggregate_horizon.value,
             "discount_rate": self.discount_rate,
+            "book_exits": (
+                None if self.book_exits is None else self.book_exits.as_published_dict()
+            ),
+            "book_renewals": (
+                None
+                if self.book_renewals is None
+                else self.book_renewals.as_published_dict()
+            ),
             "portfolio": self.portfolio.as_published_dict(),
             "cohorts": {
                 key: cohort.as_published_dict()
@@ -547,6 +679,7 @@ def estimate_account(
     cohort_churn_probability: float | None = None,
     cohort_term_years: float | None = None,
     discount_rate: float = DISCOUNT_RATE,
+    book_exits: BookExitRecord | None = None,
 ) -> AccountCLV:
     """The three horizons for one account.
 
@@ -554,6 +687,11 @@ def estimate_account(
     they are absent H3 is unestimable with reason `no_cohort_peers` rather than falling
     back to the account's own numbers — a cohort horizon that quietly becomes the tenure
     horizon for a lonely account is the same defect as a blank becoming a zero.
+
+    `book_exits`, when given, moves H2 onto the book's observed all-cause exit frequency
+    (`TimeModel.BOOK_OBSERVED_EXIT_HAZARD`). Without it H2 keeps the latest-renewal
+    belief. The production caller (`customer_value_view`) always passes it; the time
+    model on the output says which path ran.
     """
     margin = obs.annual_margin_gbp
     latest = obs.latest_renewal
@@ -584,7 +722,9 @@ def estimate_account(
     # that hazard implies (1/h renewals). Finite by construction: a hazard of zero would
     # imply an infinite tenure, which is the perpetuity this seam has already paid for
     # once, so it is refused rather than approximated.
-    if margin is None:
+    if book_exits is not None:
+        h2 = _book_hazard_tenure(margin, book_exits, discount_rate)
+    elif margin is None:
         h2 = _blank(
             Horizon.TENURE_EXPECTED,
             TimeModel.LATEST_RENEWAL_CONDITIONED,
@@ -645,6 +785,25 @@ def estimate_account(
         contract_term=h1,
         tenure_expected=h2,
         portfolio_cohort=h3,
+    )
+
+
+def _book_hazard_tenure(
+    margin: float | None, book: BookExitRecord, discount_rate: float
+) -> HorizonValue:
+    """H2 on the book's observed all-cause exits. Needs no renewal of the account's own."""
+    model = TimeModel.BOOK_OBSERVED_EXIT_HAZARD
+    if margin is None:
+        return _blank(Horizon.TENURE_EXPECTED, model, Exclusion.NO_MARGIN_OBSERVED)
+    hazard = book.hazard
+    if hazard is None:
+        return _blank(Horizon.TENURE_EXPECTED, model, Exclusion.NO_BOOK_EXPOSURE)
+    if hazard <= 0.0:
+        return _blank(Horizon.TENURE_EXPECTED, model, Exclusion.NO_BOOK_EXITS)
+    return _counted(
+        Horizon.TENURE_EXPECTED,
+        model,
+        survival_discounted_value_gbp(margin, hazard, discount_rate, 1.0 / hazard),
     )
 
 
@@ -732,6 +891,8 @@ def estimate_book(
     *,
     horizon: Horizon = Horizon.TENURE_EXPECTED,
     discount_rate: float = DISCOUNT_RATE,
+    book_exits: BookExitRecord | None = None,
+    book_renewals: BookRenewalRecord | None = None,
 ) -> BookCLV:
     """Value a whole book, cohorting by segment.
 
@@ -766,6 +927,7 @@ def estimate_book(
                 cohort_churn_probability=c_churn,
                 cohort_term_years=c_term,
                 discount_rate=discount_rate,
+                book_exits=book_exits,
             )
         )
     by_id = {a.account_id: a for a in accounts}
@@ -803,6 +965,8 @@ def estimate_book(
         # whoever is reading.
         aggregate_horizon=horizon,
         discount_rate=discount_rate,
+        book_exits=book_exits,
+        book_renewals=book_renewals,
     )
 
 

@@ -386,8 +386,31 @@ def reconstruct_ambient_profile(
 
     sample_hours = [(p + 0.5) * 0.5 for p in range(PERIODS_PER_DAY)]
 
+    # THE SOLVE'S INNER LOOP, HOISTED (2026-10-01). Only `k` changes across the ~80 bisection
+    # steps, so each sample's position on the cycle -- the rise's `sin` base, or the fall's `v` --
+    # is computed once here, and `exp(-k)` once per step rather than twice per sample. Every term
+    # is the SAME float expression `_diurnal_shape` evaluates, summed in the same order, so the
+    # solve is bit-identical to calling it per sample (differential over real archive days in
+    # `tests/simulation/test_fabric_physics.py`); it was 85% of a truncated `run_phase2b`.
+    rise_span = peak_hour - sunrise
+    fall_span = 24.0 - rise_span
+    positions: list[tuple[bool, float]] = []
+    for h in sample_hours:
+        u = (h - sunrise) % 24.0
+        if u <= rise_span:
+            positions.append((True, math.sin(math.pi / 2.0 * (u / rise_span))))
+        else:
+            positions.append((False, (u - rise_span) / fall_span))
+
     def mean_at(k: float) -> float:
-        shapes = [_diurnal_shape(h, sunrise, peak_hour, k) for h in sample_hours]
+        rise_exponent = _rise_exponent(k)
+        if abs(k) < 1e-9:
+            shapes = [x ** rise_exponent if rising else 1.0 - x for rising, x in positions]
+        else:
+            tail = math.exp(-k)
+            norm = 1.0 - tail
+            shapes = [x ** rise_exponent if rising else (math.exp(-k * x) - tail) / norm
+                      for rising, x in positions]
         return temperature_min_c + swing * (sum(shapes) / len(shapes))
 
     # A flat day (max == min) has no shape to solve; any k gives the same series.
@@ -404,6 +427,10 @@ def reconstruct_ambient_profile(
         else:
             for _ in range(80):
                 mid = 0.5 * (lo + hi)
+                if mid == lo or mid == hi:
+                    # A float fixed point: every remaining step leaves 0.5 * (lo + hi) == mid,
+                    # so stopping here returns the value the full 80 steps would.
+                    break
                 if mean_at(mid) > temperature_mean_c:
                     lo = mid
                 else:
@@ -1118,14 +1145,24 @@ class FabricDayResult:
     ambient_profile: AmbientProfile
 
 
-def _interpolate_periodwise(series: list[float], period: int, within: float) -> float:
-    """Linear interpolation between half-hourly period midpoints, so the integrator
-    sees a continuous drive rather than a staircase."""
-    if within < 0.5:
-        prev = series[period - 1] if period > 0 else series[0]
-        return prev + (series[period] - prev) * (within + 0.5)
+# Each sub-step's position inside its period, as the two interpolation weights. The drive is linear
+# between half-hourly period midpoints, so the integrator sees a continuous drive rather than a
+# staircase: a step in the first half of a period leans on the previous period (weight
+# `within + 0.5`), one in the second half on the next (`within - 0.5`). Fixed per step, so computed
+# once here rather than 403M times a truncated run.
+_SUB_STEP_WEIGHTS: tuple[tuple[bool, float], ...] = tuple(
+    (within < 0.5, within + 0.5 if within < 0.5 else within - 0.5)
+    for within in ((step + 0.5) / SUB_STEPS_PER_PERIOD for step in range(SUB_STEPS_PER_PERIOD))
+)
+
+
+def _period_endpoints(series: list[float], period: int) -> tuple[float, float, float, float]:
+    """(prev, prev->cur delta, cur, cur->next delta) for one period, ends clamped -- the operands of
+    the interpolation, each the same float expression the per-step form computed."""
+    cur = series[period]
+    prev = series[period - 1] if period > 0 else series[0]
     nxt = series[period + 1] if period + 1 < len(series) else series[-1]
-    return series[period] + (nxt - series[period]) * (within - 0.5)
+    return prev, cur - prev, cur, nxt - cur
 
 
 def _fuel_for(system: HeatingSystem, heat_kwh: float, ambient_c: float, boiler_age: BoilerAge) -> float:
@@ -1177,18 +1214,32 @@ def simulate_day(
     out_fuel: list[float] = []
     out_duty: list[float] = []
 
+    # Loop invariants, hoisted for speed alone (this loop was a third of a truncated `run_phase2b`).
+    # Every expression below is the same float operation on the same operands, in the same order.
+    r_ia = params.r_ia_k_per_kw
+    r_im = params.r_im_k_per_kw
+    c_i = params.c_i_kwh_per_k
+    c_m = params.c_m_kwh_per_k
+    aperture = params.solar_aperture_m2
+    mass_solar_split = 1.0 - _SOLAR_SPLIT_TO_AIR
+
     for period in range(PERIODS_PER_DAY):
         setpoint = schedule.setpoint_at(period)
         half_band = schedule.deadband_c / 2.0
         period_heat_kwh = 0.0
         period_on_steps = 0
+        a_prev, a_rise, a_cur, a_fall = _period_endpoints(ambient, period)
+        g_prev, g_rise, g_cur, g_fall = _period_endpoints(irradiance_kw_per_m2, period)
+        phi_p = gains[period]
 
-        for step in range(SUB_STEPS_PER_PERIOD):
-            within = (step + 0.5) / SUB_STEPS_PER_PERIOD
-            t_a = _interpolate_periodwise(ambient, period, within)
-            ghi = _interpolate_periodwise(irradiance_kw_per_m2, period, within)
-            phi_s = ghi * params.solar_aperture_m2
-            phi_p = gains[period]
+        for first_half, weight in _SUB_STEP_WEIGHTS:
+            if first_half:
+                t_a = a_prev + a_rise * weight
+                ghi = g_prev + g_rise * weight
+            else:
+                t_a = a_cur + a_fall * weight
+                ghi = g_cur + g_fall * weight
+            phi_s = ghi * aperture
 
             if source.rated_output_kw <= 0.0:
                 phi_h = 0.0
@@ -1227,16 +1278,16 @@ def simulate_day(
                 period_heat_kwh += phi_h * _SUB_STEP_HOURS
 
             d_ti = (
-                (t_a - t_i) / params.r_ia_k_per_kw
-                + (t_m - t_i) / params.r_im_k_per_kw
+                (t_a - t_i) / r_ia
+                + (t_m - t_i) / r_im
                 + phi_h
                 + phi_p
                 + _SOLAR_SPLIT_TO_AIR * phi_s
-            ) * _SUB_STEP_HOURS / params.c_i_kwh_per_k
+            ) * _SUB_STEP_HOURS / c_i
             d_tm = (
-                (t_i - t_m) / params.r_im_k_per_kw
-                + (1.0 - _SOLAR_SPLIT_TO_AIR) * phi_s
-            ) * _SUB_STEP_HOURS / params.c_m_kwh_per_k
+                (t_i - t_m) / r_im
+                + mass_solar_split * phi_s
+            ) * _SUB_STEP_HOURS / c_m
             t_i += d_ti
             t_m += d_tm
 

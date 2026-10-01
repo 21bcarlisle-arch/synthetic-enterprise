@@ -290,6 +290,38 @@ def test_lifetime_level_recovers_the_hazard_the_company_actually_used():
     assert recovered["B"] == pytest.approx(0.38, rel=1e-5)
 
 
+def test_lifetime_level_reads_the_published_book_hazard_rather_than_inverting():
+    """Since 2026-10-01 H2 can value on the book's observed renewal hazard while H1
+    keeps the account's own belief. The H2/H1 inversion assumes ONE hazard drives
+    both, so on such a snapshot it returns a number that is neither. The snapshot
+    publishes the hazard H2 used, and that is what must be read."""
+    run, counted = _snapshot_run({"A": 0.05, "B": 0.20})
+    year = run["three_horizon_clv_snapshots"]["years"]["2020"]
+    year["book_renewals"] = {"decisions": 50, "departures": 18, "hazard": 0.36}
+    rows = sel.lifetime_level(run, counted)["per_account"]
+    assert {r["hazard"] for r in rows} == {0.36}
+    assert {r["hazard_source"] for r in rows} == {"published_book_hazard"}
+    # The partner: a snapshot that publishes no book hazard still inverts.
+    year["book_renewals"] = None
+    rows = sel.lifetime_level(run, counted)["per_account"]
+    assert {r["hazard_source"] for r in rows} == {"inverted_from_horizons"}
+    assert sorted(round(r["hazard"], 5) for r in rows) == [0.05, 0.2]
+
+
+def test_lifetime_level_reads_the_exit_hazard_over_the_renewal_diagnostic():
+    """Once H2 values on `book_exits`, the snapshot still publishes `book_renewals`
+    beside it as a diagnostic H2 never read. Taking the renewal hazard there would
+    publish the wrong number as the one EP1 used."""
+    run, counted = _snapshot_run({"A": 0.05, "B": 0.20})
+    year = run["three_horizon_clv_snapshots"]["years"]["2020"]
+    year["book_renewals"] = {"decisions": 50, "departures": 5, "hazard": 0.10}
+    year["book_exits"] = {"account_years": 60.0, "exits": 9, "rate": 0.15,
+                          "hazard": 0.139}
+    rows = sel.lifetime_level(run, counted)["per_account"]
+    assert {r["hazard"] for r in rows} == {0.139}
+    assert {r["hazard_source"] for r in rows} == {"published_book_exit_hazard"}
+
+
 def test_lifetime_level_uses_the_runs_own_discount_rate_not_the_fallback():
     """A run published at a different discount rate must recover the same
     hazard; silently applying 0.10 to a 0.06 run would shift every hazard."""

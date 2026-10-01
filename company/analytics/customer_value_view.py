@@ -69,12 +69,20 @@ from dataclasses import dataclass
 from company.analytics.clv_three_horizon import (
     AccountObservables,
     BookCLV,
+    BookExitRecord,
+    BookRenewalRecord,
     Horizon,
     RenewalPoint,
     estimate_book,
 )
-from saas.churn_model import CONTRACT_LENGTH_DAYS, build_churn_risk
+from saas.churn_model import (
+    CONTRACT_LENGTH_DAYS,
+    _renewal_periods,
+    _shift_month,
+    build_churn_risk,
+)
 from saas.cost_to_serve import build_cost_to_serve, build_cost_to_serve_ledger_events
+from saas.customer_reaction import _billing_account_id
 from saas.enterprise_value import build_enterprise_value, ceased_billing_accounts
 from saas.home_move_win_rate import build_home_move_win_rates
 
@@ -82,6 +90,8 @@ __all__ = [
     "CustomerValueView",
     "build_customer_value_view",
     "build_three_horizon_clv_snapshots",
+    "observed_book_exits",
+    "observed_book_renewals",
 ]
 
 #: Contract term in years, by the roster's own `contract_type`. Anything unmapped
@@ -157,7 +167,9 @@ def build_customer_value_view(
         settlement_records, customers
     )
     three_horizon_clv = estimate_book(
-        _clv_observables(churn_risk, enterprise_value, customers, ceased)
+        _clv_observables(churn_risk, enterprise_value, customers, ceased),
+        book_exits=observed_book_exits(settlement_records, ceased),
+        book_renewals=observed_book_renewals(settlement_records, customers, ceased),
     )
     return CustomerValueView(
         cost_to_serve=cost_to_serve,
@@ -167,6 +179,84 @@ def build_customer_value_view(
         cost_to_serve_ledger_events=cost_to_serve_ledger_events,
         three_horizon_clv=three_horizon_clv,
     )
+
+
+def observed_book_exits(
+    settlement_records: list[dict], ceased: set[str]
+) -> BookExitRecord:
+    """The settled time this supplier's book has observed, and the accounts that left it.
+
+    Per billing account, exposure runs from its first settled month to its last, inclusive
+    -- a whole month for the month an account arrived or left, because settlement is read
+    by month and anything finer would be a precision the records do not carry. An exit is
+    an account in `ceased`, WHENEVER it ceased: H2 is a tenure, and a home move or a
+    mid-term switch ends one exactly as a renewal departure does. Truncation is the
+    caller's, as for `observed_book_renewals`.
+    """
+    span: dict[str, tuple[str, str]] = {}
+    for record in settlement_records:
+        account_id = _billing_account_id(record["customer_id"])
+        month = record["settlement_date"][:7]
+        first, last = span.get(account_id, (month, month))
+        span[account_id] = (min(first, month), max(last, month))
+
+    months = 0
+    for first, last in span.values():
+        months += (
+            (int(last[:4]) - int(first[:4])) * 12 + int(last[5:7]) - int(first[5:7]) + 1
+        )
+    return BookExitRecord(
+        account_years=months / 12.0, exits=len(ceased & span.keys())
+    )
+
+
+def observed_book_renewals(
+    settlement_records: list[dict],
+    customers: list[dict],
+    ceased: set[str],
+) -> BookRenewalRecord:
+    """The renewals this supplier's book has decided, read off its OWN settled records.
+
+    Per billing account, at each annual anniversary of `acquisition_date` (the same
+    anniversaries `saas.churn_model` prices -- `_renewal_periods` is reused rather than
+    restated, so the two cannot disagree about when a renewal is):
+
+    - settled in a month AFTER the anniversary -> a decision, and a stay;
+    - ceased, with its last settled month the anniversary month or the month before
+      it -> a decision, and a departure. The month before counts because a term
+      starting on the 1st ends on the last day of the previous month, so its final
+      settlement precedes the anniversary month -- the boundary that once silenced six
+      of nine seed accounts in `build_churn_risk`;
+    - the anniversary is the last settled month and the account is still supplied ->
+      undecided, counted nowhere;
+    - a cessation away from any anniversary is a departure but not a RENEWAL decision,
+      and is counted nowhere.
+
+    Nothing from the world is read. The world's `customer_events` names the same
+    outcomes and also carries its dice, which is why it does not cross.
+    """
+    acquisition = {c["customer_id"]: c.get("acquisition_date") for c in customers}
+    last_month: dict[str, str] = {}
+    for record in settlement_records:
+        account_id = _billing_account_id(record["customer_id"])
+        month = record["settlement_date"][:7]
+        if month > last_month.get(account_id, ""):
+            last_month[account_id] = month
+
+    decisions = departures = 0
+    for account_id, last in last_month.items():
+        acquired = acquisition.get(account_id)
+        if not acquired:
+            continue
+        has_left = account_id in ceased
+        for anniversary in _renewal_periods(str(acquired)[:10], _shift_month(last, 1)):
+            if anniversary < last:
+                decisions += 1
+            elif has_left:
+                decisions += 1
+                departures += 1
+                break
+    return BookRenewalRecord(decisions=decisions, departures=departures)
 
 
 def _clv_observables(
@@ -356,6 +446,19 @@ def build_three_horizon_clv_snapshots(
             "cutoff": cutoff,
             "observation_edge": edge,
             "covers_full_year": edge is not None and edge >= cutoff,
+            # The n behind H2's hazard at this cutoff, so a reader can see a year
+            # valued on three account-years apart from one valued on ninety.
+            "book_exits": (
+                None
+                if book.book_exits is None
+                else book.book_exits.as_published_dict()
+            ),
+            # The per-anniversary diagnostic. NOT what H2 used -- `book_exits` is.
+            "book_renewals": (
+                None
+                if book.book_renewals is None
+                else book.book_renewals.as_published_dict()
+            ),
             "accounts": {
                 account.account_id: {
                     horizon.value: {

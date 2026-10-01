@@ -1301,6 +1301,7 @@ from background import (  # noqa: E402
     publish_delivery_deferral,  # (a landed commit whose delivery is still with the cadence)
     publish_gate_blocking_read,  # (the record's honesty contract)
     publish_provenance,  # BOUND HERE ON PURPOSE — see below
+    resource_headroom,  # (the gate declares its weight and defers rather than collide)
 )
 
 # ONE GENERATION PER CYCLE (2026-09-01). This was five lazy `from background import
@@ -1720,17 +1721,49 @@ def run_fast_tests(git_hash: str):
         # WHAT THIS DELIBERATELY DOES NOT CHANGE: tests that assert about the LIVE box (systemd
         # units, daemon liveness) still observe the real machine, because their subject is the
         # box, not the tree. Only the CODE under test moves to HEAD.
-        with _head_checkout() as head_dir:
-            if head_dir is None:
-                # The same refusal as `_run_gate_in`'s root_unavailable leg and it records the
-                # same cause, for the reason that branch's comment gives: an unavailable check
-                # is a FAILED check, and it is not a red test.
-                _record_scoped_gate_cause(None, [], git_hash, None)
-                return _checkout_unavailable_verdict()
-            _repair_derived_artefacts_in(head_dir)
-            return _run_gate_in(head_dir, full_env, git_hash)
+        with _gate_admission() as admission:
+            if not admission["admitted"]:
+                return _gate_deferred(admission, git_hash)
+            return _run_gate_admitted(git_hash, full_env)
     except subprocess.TimeoutExpired:
         return _gate_timed_out()
+
+
+def _gate_admission():
+    """Ask the memory governor before the gate's suite starts, and hold its claim while it runs.
+
+    A seam of its own so `tests/background/conftest.py` can admit by default -- the real answer
+    reads this box's /proc/meminfo and would make every gate test a function of the load."""
+    return resource_headroom.admitted("publish_gate", log=log)
+
+
+def _gate_deferred(admission, git_hash):
+    """The verdict when the governor defers the gate: UNJUDGED, with the deferral as its cause.
+
+    Not a red and not a pass. It keeps the wedge streak like every other unjudged refusal (R15:
+    an unavailable check is a failed check), so a deferral that never ends pages like a wedge --
+    and the cause record says it was memory, not a test, so nobody goes hunting a red."""
+    evidence = ("the publisher's scoped gate was DEFERRED by resource_headroom before it started, "
+                "so NOTHING was judged -- {}".format(admission.get("reason")))
+    try:
+        publish_cause.record_cause(PUBLISH_CAUSE_FILE, publish_cause.SCOPED_GATE_UNJUDGED,
+                                   evidence, git_hash)
+    except Exception as exc:  # noqa: BLE001 -- an attribution must never break the cycle
+        log("Scoped-gate cause record skipped (non-fatal): {}".format(exc))
+    return False, False
+
+
+def _run_gate_admitted(git_hash, full_env):
+    """The checkout -> run half of `run_fast_tests`, entered only once the governor admits."""
+    with _head_checkout() as head_dir:
+        if head_dir is None:
+            # The same refusal as `_run_gate_in`'s root_unavailable leg and it records the
+            # same cause, for the reason that branch's comment gives: an unavailable check
+            # is a FAILED check, and it is not a red test.
+            _record_scoped_gate_cause(None, [], git_hash, None)
+            return _checkout_unavailable_verdict()
+        _repair_derived_artefacts_in(head_dir)
+        return _run_gate_in(head_dir, full_env, git_hash)
 
 
 # SELF-HEALING DERIVED ARTEFACTS (2026-08-10, R10 class closure for the fourth wedge of the

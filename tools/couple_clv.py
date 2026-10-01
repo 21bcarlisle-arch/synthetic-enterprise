@@ -162,7 +162,6 @@ import argparse
 import ast
 import json
 import statistics
-import subprocess
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -1020,12 +1019,17 @@ def _whose_belief_note(belief: dict) -> str:
     )
 
 
-def _git_head():
-    try:
-        return subprocess.check_output(["git", "rev-parse", "HEAD"],
-                                       text=True).strip()
-    except Exception:
-        return None
+def run_commit(run: dict):
+    """The commit whose code PRODUCED the graded run, read from the run's own stamp.
+
+    Not `git rev-parse HEAD` at write time: the ledger is written minutes or weeks after
+    the run, by then the tree has moved, and on 2026-10-01 the row named `9a5dc872e`
+    for a run stamped `b1b4c284e`. A run without the stamp gets None, never HEAD --
+    HEAD would read as an answer for a run nobody can tie to it.
+    """
+    stamp = run.get("producing_commit")
+    commit = stamp.get("commit") if isinstance(stamp, dict) else None
+    return commit if isinstance(commit, str) and commit else None
 
 
 def main(argv=None) -> int:
@@ -1149,7 +1153,7 @@ def main(argv=None) -> int:
         write_gap_entry(
             LEDGER_KEY, TWIN_ATOM_ID, result,
             measured_at=datetime.now(timezone.utc).isoformat(),
-            run_git_commit=_git_head(),
+            run_git_commit=run_commit(run),
         )
         print(f"  ledger written: {LEDGER_KEY} -> gap={result.gap}")
     return 0

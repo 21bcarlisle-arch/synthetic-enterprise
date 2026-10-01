@@ -359,14 +359,34 @@ def lifetime_level(run: dict, counted: list,
         if not isinstance(h1, (int, float)) or not isinstance(h2, (int, float)):
             unrecoverable.append({"account": account_id, "reason": "horizon blank"})
             continue
-        hazard = recover_hazard(float(h1), float(h2), discount_rate)
-        if hazard is None:
+        # Since 2026-10-01 H2 values on a BOOK hazard while H1 keeps the account's
+        # belief, and the snapshot publishes the hazard H2 used. Inverting H2/H1 assumes
+        # one hazard drives both, so on such a snapshot it returns a number that is
+        # neither -- read the published one instead. `book_exits` first: once it is
+        # there, `book_renewals` is a diagnostic H2 never read, and taking its hazard
+        # would publish the wrong one as EP1's. Snapshots from 81977a312 until the exit
+        # record landed carry only `book_renewals`, and H2 did use it then.
+        snapshot = snapshots.get(year) or {}
+        published, source = None, None
+        for key, label in (("book_exits", "published_book_exit_hazard"),
+                           ("book_renewals", "published_book_hazard")):
+            value = (snapshot.get(key) or {}).get("hazard")
+            if isinstance(value, (int, float)) and not isinstance(value, bool):
+                published, source = float(value), label
+                break
+        if published is not None:
+            hazard = published
+        else:
+            hazard = recover_hazard(float(h1), float(h2), discount_rate)
+            source = "inverted_from_horizons"
+        if hazard is None or hazard <= 0:
             unrecoverable.append({"account": account_id, "reason": "ratio not invertible"})
             continue
         recovered.append({
             "account": account_id,
             "belief_year": year,
             "hazard": hazard,
+            "hazard_source": source,
             "believed_tenure_years": 1.0 / hazard,
         })
 

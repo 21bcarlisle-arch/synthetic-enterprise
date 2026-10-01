@@ -1,8 +1,9 @@
 """Booted-SHA stamping (OPS1 sub-step 5 — deployment-by-construction, G-D1/G-D3).
 
 docs/design/OPERATIONAL_LAYER_DESIGN.md §2.2. Each systemd daemon stamps the git HEAD it BOOTED
-from (as its unit's ExecStartPre); the reconciler compares the stamp against current HEAD, so a
-daemon running STALE code is flagged by construction. This GENERALISES the prior stale-detection
+from (as its unit's ExecStartPre); the reconciler compares the stamp against the WORKING TREE
+(and, separately, the tree against origin/main -- `paths_behind_trunk`), so a daemon running
+STALE code is flagged by construction. This GENERALISES the prior stale-detection
 (health_check.stale_daemon_sessions was mtime-of-the-daemon's-OWN-top-level-script only): a boot
 SHA older than HEAD means stale no matter WHICH file changed — including an imported module the
 daemon depends on, the gap the mtime check silently missed.
@@ -229,6 +230,43 @@ def changed_paths_since(sha: str, boot_blobs: dict[str, str] | None = None) -> s
     if now is None:
         return candidates  # cannot compare content -> keep the honest over-report
     return {p for p in candidates if now.get(p) != boot_blobs.get(p)}
+
+
+#: The trunk a checkout can fall behind. Read, never fetched: fetching is the reconciler's job.
+TRUNK_REF = "origin/main"
+
+
+def paths_behind_trunk(ref: str = TRUNK_REF) -> set[str] | None:
+    """Paths the trunk has changed since this checkout's merge-base with it (`HEAD...ref`), or None
+    if the ref or git is unavailable.
+
+    THE LEG `changed_paths_since` CANNOT SEE. That one grades a daemon against the DISK, which is
+    right about what it loaded and silent about what it was never given: a fix landed on the trunk
+    but not yet checked out here is on no disk, so every daemon reads current while running the
+    code the fix replaced. Measured 2026-10-01: HEAD 13 behind origin/main, `stale: []` over 10/10
+    graded, and four of those ten import a module the trunk had already changed.
+
+    Three dots, not two: the checkout's own commits the trunk lacks are the AHEAD leg and are not
+    code anyone is missing. None is UNRESOLVED (no such ref -- e.g. the gate's standalone extract),
+    never an empty set."""
+    try:
+        r = subprocess.run(["git", "diff", "--name-only", f"HEAD...{ref}", "--"],
+                           cwd=_REPO, capture_output=True, text=True, timeout=30)
+    except Exception:
+        return None
+    if r.returncode != 0:
+        return None
+    return {line.strip() for line in (r.stdout or "").splitlines() if line.strip()}
+
+
+def trunk_sha(ref: str = TRUNK_REF) -> str | None:
+    """The trunk ref's SHA, or None (never raises)."""
+    try:
+        r = subprocess.run(["git", "rev-parse", "--verify", "-q", f"{ref}^{{commit}}"],
+                           cwd=_REPO, capture_output=True, text=True, timeout=5)
+    except Exception:
+        return None
+    return ((r.stdout or "").strip() or None) if r.returncode == 0 else None
 
 
 if __name__ == "__main__":

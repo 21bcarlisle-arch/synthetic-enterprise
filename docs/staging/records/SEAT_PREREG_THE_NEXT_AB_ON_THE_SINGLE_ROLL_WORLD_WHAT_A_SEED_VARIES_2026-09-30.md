@@ -253,3 +253,97 @@ PB6 moves a per-channel departure multiplier. Prepayment goes from CIM's ~0.54 t
 **C0 HOLDS, exactly.** The pin value-only run on 61001 (1,762 s) reproduces `runP1`'s 61001 to the bit: AUC 0.5794, the same 131-row scored roster with every belief and outcome equal, and every account's first-renewal `p_retain`, roll and outcome equal. So the single-arm instrument is the three-arm one, and the pin column above is a valid control for the PB6 column.
 
 **PB6 on 61001** (1,806 s): AUC **0.578** (pin 0.579), corr **−0.253** (pin −0.252), mean belief **0.623** (pin 0.624), conc 0.425 (pin 0.426). **PB6 does reach the estimate, and it barely moves it.** Paired by (account, term) over the 110 decisions both trees priced, 79 beliefs changed, but by at most **0.0089**. The mean change is −0.0001 on direct debit (91 decisions) and **−0.0009 on prepayment** (10 decisions). The prior's centre moves from CIM's ~0.54 to 1.0, yet the belief moves by a thousandth. So on this book the engagement factor is not what sets the belief's level or its order; the other inputs to the estimate do. The six-seed grade and the plain answer follow when the leg exits (~00:20Z).
+
+## Ranking at PB6: graded, six seeds (2026-10-01 ~00:40Z, autonomous worker, same item)
+
+**The leg finished.** It exited rc=0 at 2026-10-01T00:34:40Z, and all six PB6 seeds completed (1,806–2,089 s each). The tree check passed at the leg's start, and the weather digest was `e11451b5…d242` at both starts. Grader: `grade_pb6_rank.py pb6rank_pb6.json`. The paired read against the pin artefacts is `/var/tmp/se-ab6-out/grade_pb6_pair.py`.
+
+| seed | 61001 | 61002 | 61003 | 61004 | 61005 | 61006 | mean | pin mean |
+|---|---|---|---|---|---|---|---|---|
+| AUC (PB6) | 0.578 | 0.497 | 0.451 | 0.420 | 0.349 | 0.626 | **0.487** | 0.486 |
+| corr (PB6) | −0.253 | −0.241 | −0.266 | −0.248 | −0.257 | −0.269 | **−0.256** | −0.255 |
+| mean belief (PB6) | 0.6234 | 0.6244 | 0.6373 | 0.6242 | 0.6181 | 0.6061 | **0.6223** | 0.6224 |
+| mean world `p_retain` (PB6) | 0.684 | 0.682 | 0.682 | 0.681 | 0.685 | 0.687 | **0.683** | 0.683 |
+| conc (PB6) | 0.425 | 0.423 | 0.408 | 0.426 | 0.418 | 0.400 | **0.416** | 0.416 |
+
+Paired by (seed, account, term) over the 689 decisions both trees priced, 509 beliefs changed. The largest change is **0.0113** and the mean is **−0.0001**. Every seed's column is the pin's to within 0.001 in AUC and 0.002 in corr.
+
+**Predictions graded.**
+- **C0 HOLDS** (interim, above).
+- **R1 HOLDS.** AUC 0.487 is inside 0.44–0.53, so there is no ranking fix.
+- **R2 HOLDS.** corr is negative on all six seeds.
+- **R2b HOLDS on its band, but not on its direction.** −0.256 is inside −0.35 to −0.22. The point said "slightly worse than the pin", and it is the pin to 0.001.
+- **R3 REFUTED.** The mean belief is 0.6223, not below 0.622. It did not fall. It did not move. The prediction's mechanism, prepayment pushed down, is real (−0.0009 on 61001) but too small to show in the book mean: prepayment is about 12% of first renewals.
+- **R4 HOLDS.** conc 0.416 is inside 0.39–0.43.
+
+**Plain answer, under the rule fixed before launch: PB6 CHANGES NEITHER.** The ranking rule fails: AUC 0.487 < 0.55 and corr < 0. The level rule fails too: |mean belief − world| is 0.0607 at the pin and 0.0610 at PB6, so the gap widens by 0.0003 instead of shrinking by ≥ 0.02. The predicted answer was "changes neither, or level only, away from the world". It came out as the first half. The level does not move, so it does not move away.
+
+**What this settles.** PB6 reaches the estimate, so this is not a wiring failure. The value arm calls `enriched_churn_estimate` with `payment_method=None` (see "What orders the belief" below). So on this path the engagement factor is one value per date. Through that factor, PB6 can shift the belief between renewal dates, but it cannot reorder two accounts renewing on the same day. That fits a belief that moves by at most 0.011. The interim's −0.0009 on prepayment is consistent with this if it is a date-composition effect. That is not tested here. The anti-ranking sits in `rate_estimate` (graded below), and PB6 does not reach it.
+
+## What orders the belief: predictions (2026-10-01 ~00:55Z, autonomous worker, item `name-the-input-that-anti-ranks-the-retention-belief`; filed before any term was computed)
+
+**The question.** Within direct debit (n = 338 first renewals, six pin seeds pooled), the value arm's belief correlates −0.383 with the world's `p_retain` at the same offer. Which term of `enriched_churn_estimate` carries that? This section runs no simulation. It reads `runP1/P2/X1.json` and the run logs, and it recomputes terms by calling the pin's own functions.
+
+**A code read made before any number, which changes the question.** At the pin (and still on origin), the only value-arm caller, `value_based_renewal.decide_margin`, calls `enriched_churn_estimate` with no `payment_method`. Its adapter, `renewal_margin_uplift`, also passes no `behaviour_score`, `satisfaction_score`, `bill_shock_count` or `arrears_state`, so they take their defaults. Three of the five terms the item names are therefore the same for every account in the value arm at a given date:
+- `payment_estimate` = `combined_churn_probability(0, None, None)` = `BASE_ANNUAL_CHURN_PROBABILITY` = 0.05 for everyone.
+- The engagement factor is `derived_payment_method_engagement_factor(None, year)`. That is one value per date, which is 1.0 unless the ledger learns a factor for the `None` channel.
+- The market-pressure multiplier is `derived_market_pressure_multiplier(year)`. That is one value per date.
+
+So a term that is constant at a date can contribute only BETWEEN dates, through when an account's first renewal falls. Only `rate_estimate` can order two accounts renewing on the same day. Its account-level inputs are the offer net of the market move, tenure, bill size (old rate × EAC) and fuel.
+
+| id | prediction | confidence | refuted if |
+|---|---|---|---|
+| **T1** | `payment_estimate` and the engagement factor carry none of the −0.383. Holding each at its book mean moves the DD correlation by < 0.02 | 95% | either moves it by ≥ 0.02 |
+| **T2** | `rate_estimate` wins the `max()` on ≥ 90% of DD first renewals, because 0.05 is below almost any resi rate estimate. So the max() switch carries nothing either | 80% | the payment term wins on > 10% |
+| **T3** | The anti-ranking is WITHIN-DATE and so sits in `rate_estimate`, not in the date-level multiplier. The DD correlation within (seed, renewal year) cells, pooled, stays ≤ −0.25 | 55% | the pooled within-cell correlation is > −0.25. The year/multiplier component then carries at least a third of it |
+| **T4** | Within `rate_estimate`, the inverted input is the OFFER (own move net of market). V raises most where the belief says the customer stays, and the world punishes a raise harder than the belief allows. Holding the offer at the account's current rate brings the DD correlation to ≥ −0.15 | 45% | it stays < −0.15 |
+| **T4-alt** | The inverted input is tenure. The company gives long tenure a discount, and the world's `p_retain` does not rise with tenure on this book | 30% | — |
+| **T5** | No single term alone brings the DD correlation to ≥ −0.15 | 25% | one term does |
+
+**The instrument, fixed now.** Per term: (a) corr(term, world `p_retain`) over DD first renewals; (b) the belief's corr with world `p_retain` after the belief is recomputed with that term (or input) held at its DD-book mean and everything else as logged. Inputs the roster does not carry are rebuilt from the run logs: the unit rate per term, EAC, fuel, and tenure from the first term's start. **The reconstruction must pass a control before any term is graded.** Recomputing the belief from the rebuilt inputs must reproduce the logged `believed_p_retain`. If it does not, the date-level scalars (m × engagement) are fitted per (seed, date) from the rebuilt `max(rate, payment)` and reported as fitted, not called. If that fit is not constant within a date, the per-input half is **"cannot say"**, and only the between/within-date split is graded.
+
+## What orders the belief: graded (2026-10-01 ~01:40Z, same item; predictions landed first as `b6224d6d0`)
+
+**The population reproduces.** Six pin seeds, first renewals carrying a belief, direct debit only: n = 338, belief 0.638, world 0.686, corr **−0.383**, matching the section above to the digit. **But n = 338 is 57 accounts seen six times.** A seed redraws only the churn dice, so each account's inputs are the same book in every seed: the belief's within-account sd is 0.020 and the world's is 0.004. At the account level the correlation is −0.379, with a 95% CI of −0.58 to −0.13 on n = 57. Every correlation below has roughly that much room.
+
+**Scripts and intermediates** are in `/var/tmp/se-belief-terms-out/`: `load.py`, `analyse.py`, `within.py`, `holds.py`, and `recon*.py` for the log rebuild. Terms are recomputed by calling the pin's own functions from `/var/tmp/se-ab6-a322166cc`. No simulation was run.
+
+**The five named terms: exact.** Every term except `rate_estimate` is one value per (seed, renewal year), so the logged belief can be inverted exactly into the `max(rate, payment)` it came from. Accounts that the payment term wins share one belief per (seed, year), and that shared value is the year's ceiling. It gives the effective date scalar m exactly in 2021, 2024 and 2025 (88 rows); other years use the published prior. The ceiling reads above the prior (2021: 0.9142 against 0.937 at the prior m = 1.269), so the ledger moved m or the `None` channel's engagement factor. The two are not separable here. It does not matter, because both are per year.
+
+| term | varies between accounts renewing in the same year? | corr(term, world `p_retain`) | belief corr with the term held at its DD-book mean |
+|---|---|---|---|
+| `rate_estimate` (the implied `max`, a leave probability) | **yes, the only one that does** | **+0.419** (the belief falls as the world's retention rises) | **+0.331** |
+| `payment_estimate` | no: 0.05 for every account, since the value arm passes no behaviour, satisfaction or bill-shock input | constant | −0.383 (unchanged) |
+| which wins the `max()` | payment wins **37 of 338**: 22 in 2021, 11 in 2024, 4 in 2025, all offers at or below the market | −0.027 | rate always wins: −0.363 |
+| market-pressure multiplier | no: per (seed, year) | −0.321 (**correct sign**: high-switching years retain less) | **−0.419** (holding it makes the ranking WORSE) |
+| engagement factor | no: `payment_method=None` on this path, so one value per year, folded into m | constant | −0.383 (unchanged) |
+
+Within (seed, year) cells, the belief's correlation is **−0.477**, more negative than the pooled figure. The between-year part is right-signed and offsets some of it.
+
+**Inside `rate_estimate`: approximate, and labelled so.** The rate term's inputs are the realised current rate (settled revenue net of the standing charge, over a one-year window), the offer, tenure, EAC and fuel. The artefacts do not carry them. They are rebuilt from the run log: day-weighted unit rates over the window, the new term's unit rate (taken from a PB6 seed where the account churned in C0), declared EAC, and tenure from the first term. **The rebuild is loose.** It reproduces the logged belief with a median |error| of 0.088, and its rate term has Spearman 0.50 with the exact implied one. The likely cause is the realised-rate netting: `PROS-2018-0002` logs 0.167 where the rebuild gives 0.668. So the holds below are **anchored**: logged belief + (model with the input held − model as rebuilt), over the 317 rebuildable rows (base −0.336).
+
+| input | within-(seed, year) corr with belief | with world | anchored hold → belief corr |
+|---|---|---|---|
+| own move (offer net of market move) | −0.310 | −0.110 (**same sign**: not inverted) | **−0.178** |
+| tenure | **+0.214** | **−0.320** (inverted) | −0.317 |
+| bill size (old rate × EAC) | **+0.325** | **−0.272** (inverted) | −0.271 (EAC held) |
+| gas leg | +0.382 | +0.056 | — |
+| world's own `p_churn` (not a company input; reference) | **+0.249** | −0.843 | — |
+| own move + tenure + EAC held together | | | −0.207 |
+
+**Predictions graded.**
+- **T1 HOLDS.** Holding payment or engagement moves the correlation by 0.000.
+- **T2 REFUTED, narrowly, on its count.** Payment wins 10.9% of rows, not ≤ 10%. Its consequence holds: removing the switch moves the correlation by 0.02.
+- **T3 HOLDS.** The within-cell correlation is −0.477 ≤ −0.25.
+- **T4 REFUTED.** Holding the offer's move gives −0.178, not ≥ −0.15. It is still the largest single input, but it is not inverted: the belief and the world both fall with it.
+- **T4-alt REFUTED.** Holding tenure gives −0.317.
+- **T5 HOLDS at the input level.** No single input takes the correlation to −0.15.
+
+**Plain answer.**
+1. **The inverted term is `rate_estimate`, `company/crm/churn_model.estimate_churn_probability`, and it carries all of it.** Holding it at its mean turns −0.383 into +0.331.
+2. **The other four terms cannot carry it.** On the value arm they are either constants (payment 0.05, and engagement, because `decide_margin` passes no `payment_method`) or per-year scalars. The one that varies, the multiplier, is right-signed.
+3. **Inside the rate term, no single input carries it.** The offer's move is the largest contributor, but it points the same way as the world. The inversion is in the standing features: tenure and bill size rise with the belief and fall with the world's `p_retain` within a year. The belief is also higher where the world's own `p_churn` is higher (+0.249).
+4. **The direction is set by the rate term's population constants.** `RATE_SENSITIVITY` 0.8 (gas 0.6) × the size scale × own move, − `TENURE_DISCOUNT_PER_YEAR` 0.01, + bill stress. The size scale's reference is sourced (Ofgem TDCV). `RATE_SENSITIVITY` and the tenure discount are the hardcoded constants `B8_DISCOVERED_PRICE_SENSITIVITY_FRAME.md` lists.
+5. **A frame question stays open**, filed in the finding rather than built on. The world's `p_retain` FALLS with tenure within a year. The published expectation (CMA 2016, inertia) is the opposite.
+
+Finding: `docs/staging/WORKER_FINDING_THE_RETENTION_BELIEFS_ANTI_RANKING_IS_ALL_IN_THE_RATE_TERM_AND_PB7_CANNOT_REACH_IT_2026-10-01.md`.
