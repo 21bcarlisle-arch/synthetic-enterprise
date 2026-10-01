@@ -64,3 +64,16 @@ measured on a belief re-derived from H1 with the wrong divisor, and its margin i
 7.1×. Their direction between hazard arms holds, because the hazard side is exact. Their level does
 not: the true life-table belief is **1.173 on 66 rows**. See
 `SEAT_FINDING_EP1_REMAINING_OVERVALUATION_IS_THE_MARGIN_DIVIDED_BY_RENEWAL_POINTS_AND_H2_COUNTS_SURVIVAL_TWICE_2026-10-01.md`.
+
+**The ledger row is measured, but it cannot land yet (2026-10-01, autonomous worker).** The first run produced after the
+fixes, `af4709ff1` (09:33Z), grades **1.081 on 69 rows**, down from 2.364 at `b1b4c284e`, with
+Spearman +0.172. The realised side is bit-identical, so only the belief moved. Predictions and
+results:
+`records/SEAT_PREREGISTRATION_EP1_LEDGER_ROW_ON_THE_FIRST_RUN_PRODUCED_AFTER_THE_FIXES_2026-10-01.md`.
+Any commit that changes `coupled_gap_ledger.json` selects `tests/harness/test_premise_two_level.py`
+and `tests/tools/test_couple_fabric.py`. Ten of their tests are red at origin `5e02bbdda` without
+this change: the eight in
+`WORKER_FINDING_THE_EIGHT_PREMISE_TWO_LEVEL_REDS_…_2026-09-30.md`, plus two in `test_couple_fabric`.
+The gate refused the landing on exactly those ten. To re-write the row once they are green, run
+`python3 -m tools.couple_clv --run-output <the af4709ff1 output> --write-ledger`, or re-measure it
+on any later run.

@@ -53,3 +53,15 @@ whatever the new world reads would turn a control that has stopped firing into o
 The next step is the sim lane's: for each mutation leg, establish whether it is a missing test or an
 equivalence on the corrected world, then re-derive the four measured pins in one commit that names
 both causes.
+
+## Now blocking every coupled-gap ledger write (2026-10-01, autonomous worker)
+
+The test selection names this file, and `tests/tools/test_couple_fabric.py`, for any commit that
+changes `docs/observability/coupled_gap_ledger.json`. At origin `5e02bbdda` there are ten reds
+across the two files: these eight, plus `test_couple_fabric`'s
+`test_the_TEXTURE_CELL_BREACH_CLOSED_when_the_LOAD_SET_WAS_REPAIRED` (worst home S9, pinned D7) and
+`test_the_money_consequence_is_AFFINE_in_the_unit_rate_for_a_fixed_decision`. A surgical landing of
+EP1's re-graded row (gap 2.364 to 1.081) was refused on exactly those ten. No lane can publish a
+coupled gap until they are resolved, so this item is ahead of new ledger work. The way through is
+unchanged: decide whether each mutation leg is a missing test or an equivalence, then re-derive
+the measured pins in one commit.
