@@ -51,6 +51,7 @@ from company.crm.customer_profitability import renewal_unit_rate_uplift
 from company.interfaces import renewal_rate_chain as door
 from company.pricing.margin_feedback import compute_margin_surcharge
 from company.pricing.ofgem_price_cap import get_cap_unit_rate_for_date
+from company.pricing.renewal_rate_chain import cap_ceiling_ex_vat
 from company.pricing.tariff_engine import (
     PORTFOLIO_PREMIUM_LOOKBACK,
     compute_portfolio_premium,
@@ -225,7 +226,8 @@ def _drive_pre_cut(**over):
     if (unit_rate is not None
             and args["is_domestic"]
             and term_tariff_type == "fixed"):
-        _cap = get_cap_unit_rate_for_date(
+        # Ex-VAT since 2026-10-01: the strike is ex-VAT and the published cap is not.
+        _cap = cap_ceiling_ex_vat(
             commodity, date.fromisoformat(term_start_str[:10])
         )
         if _cap is not None:
@@ -491,7 +493,7 @@ def test_the_cap_is_the_last_writer_and_the_order_is_load_bearing():
         "running the uplift after the clamp changed nothing — the chain's "
         "order is not the thing this control thinks it is"
     )
-    cap = get_cap_unit_rate_for_date(
+    cap = cap_ceiling_ex_vat(
         "electricity", date.fromisoformat(REFERENCE["term_start"])
     )
     assert capped <= cap < escaped, (
