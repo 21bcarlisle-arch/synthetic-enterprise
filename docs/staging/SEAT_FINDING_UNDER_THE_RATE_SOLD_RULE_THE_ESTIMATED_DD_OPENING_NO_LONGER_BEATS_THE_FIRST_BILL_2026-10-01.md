@@ -151,3 +151,61 @@ registry-EAC rewrite reach the record that `run_phase4c` reads: one population o
 handed across explicitly. Re-run, then grade the prediction above on the 2019+ cohort. A second
 prediction, filed now: after that repair, `sold − cap` on 2019+ stays inside ±£35 and spans zero,
 because the rule was never the variable.
+
+## Graded, 2026-10-01 night: the rewrite now reaches the openings, and the first prediction HELD
+
+Claim `the-registry-eac-rewrite-reaches-the-phase-4c-population`.
+
+**The repair.** `run_phase4c_on_phase2b.CUSTOMERS` is now `run_phase2b.CUSTOMERS`, the same list
+object, not a second `live_population()` call. Before it, measured in one process, the two copies
+held 244 records each and shared 13. The run output hands over `opening_registry_kwh_by_customer`,
+and `tools/dd_opening_arms` reads that for its basis column, because it runs in another process
+where a fresh draw still carries the band. The opening rule is untouched. The control is
+`tests/simulation/test_the_registry_eac_rewrite_reaches_the_dd_opening.py`. Restoring
+`live_population()` turns both of its tests red.
+
+**Two full runs, one variable.** Both runs are at `86bf8adbb` in clean worktrees, so no other lane's
+uncommitted `simulation/` edits are in either. Each took about 24 minutes. Phase 2b closes on the
+same treasury (£379,620.68) in both. The fix acts after phase 2b, so that is expected.
+- FIX run: substrate sha256 `69861bd69781…`. It is the substrate `site/data/dd_opening_arms.json` now cites.
+- CONTROL run, fix absent: substrate sha256 `1d733ad419f4…`.
+
+Both substrates are kept in `/home/rich/regeac_substrates/`. They are not committed, at 32 MB each.
+
+The four tail accounts are now opened on their own reads:
+
+| account | registry EAC (was → now) | estimate opening (was → now) | year-one drift, estimate (was → now) |
+|---|---|---|---|
+| PROS-2024-0082 | 2,602 → 41,365 kWh | £69.38 → £831.84 | −£11,723 → −£2,574 |
+| PROS-2018-0002 | 1,622 → 8,907 kWh | £23.85 → £102.38 | −£3,129 → −£2,186 |
+| PROS-2016-0098 | 2,470 → 28,254 kWh | £31.63 → £298.03 | −£3,014 → +£183 |
+| PROS-2016-0092 | 2,338 → 16,946 kWh | £30.28 → £181.28 | −£2,514 → −£702 |
+
+Matched window-0 change in |drift|, estimate minus flat, using the instrument's bootstrap:
+
+| population | CONTROL (fix absent) | FIX |
+|---|---|---|
+| 2019+ (n=95) | −£45.44 [−170.34, +153.54] | **−£154.50 [−236.08, −61.50]** |
+| pre-2019 (n=99) | +£26.44 [−58.35, +122.93] | −£106.07 [−167.79, −34.41] |
+| all (n=194) | −£8.76 [−85.17, +101.80] | −£129.79 [−182.90, −72.42] |
+| 2019+ less the four (n=94) | −£127.89 [−182.70, −69.00] | −£140.77 [−216.64, −49.43] |
+
+**Prediction 1 HELD.** It said the 2019+ matched mean goes negative with a CI that excludes zero.
+It did, and the control shows the repair is the variable that did it. The published page now
+carries this verdict. `filed_prediction` in the feed renders as `ddopen-prediction`, and its verdict
+is computed from the interval each run publishes, so a later run can turn it.
+
+**Prediction 2 HELD, NARROWLY. Do not read it as "the rules are equal".** It said `sold − cap` on
+2019+ stays inside ±£35 and spans zero. The result was +£33.13 [−9.66, +90.99]. The point estimate
+is £1.87 inside the bound, and the interval runs to +£91, well outside it. In the control the same
+cut is −£14.70 [−41.41, +11.85]. So on the rewritten EACs the cap rule edges the rate-sold rule,
+though not significantly. If that persists across seeds it is a finding about the rule, and it
+belongs to the opening-rule atom. Nothing here touches the rule.
+
+**Audit of the other phase-4c readers of `_get_all_customers()`.** That covers the meter-type map,
+`build_customer_value_view` (cost to serve, churn risk, enterprise value), the broker commission
+schedule and the three-horizon CLV snapshots. All of them now receive the rewritten records, since
+there is now one object. The diff between the two runs settles whether any of them reads `eac_kwh`
+to any effect. Of 119 shared keys, the only moved figures are `annual_dd_review`, `dd_balance_book`,
+`dd_level_collection_book` and `dd3_held_credit_balance_sheet` (the held-credit liability booked from
+the balance book), plus the handed-over openings. None of the others moved.

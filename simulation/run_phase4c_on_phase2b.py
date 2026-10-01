@@ -89,11 +89,11 @@ from simulation.dd_balance_book import build_dd_balance_book
 from simulation.dd_collection_book import build_dd_collection_book
 from simulation.dd_level_collection_book import build_dd_level_collection_book
 from simulation.household import supply_points_that_left
-from simulation.live_population import live_population
 from simulation.meter_reads import (
     SimulatedReadFeed,
     meter_read_log_from_events,
 )
+from simulation.run_phase2b import CUSTOMERS as _PHASE2B_CUSTOMERS
 from simulation.run_phase2b import main as run_phase2b
 from simulation.settlement_clocks import refresh_settlement_scalars
 from tools.contact_centre_port import ContactCentreMessage
@@ -107,7 +107,14 @@ ACQUIRED_CUSTOMERS = acquired_supply_points()
 # Byte-identical flag-OFF; flag-ON adds the curriculum's drawn 2021-2025 trickle.
 # This is the module `tools.run_annual_report` drives, so this binding is the one
 # that decides whether a PUBLISHED figure sees the drawn book.
-CUSTOMERS = live_population()
+#
+# THE SAME LIST OBJECT AS `run_phase2b.CUSTOMERS`, NOT A SECOND `live_population()` CALL
+# (2026-10-01). `run_phase2b.main` rewrites a fabric premise's `eac_kwh` to its own
+# trailing-year reads IN THE RECORD (3bf64c4e7), and `live_population()` builds fresh dicts
+# for every drawn account on each call -- two calls shared only the 13 static records. So
+# the DD openings below were sized on the band drawn blind to the dwelling (PROS-2024-0082
+# opened at 2,602 kWh against 41,951 billed) while phase 2b quoted on the rewrite.
+CUSTOMERS = _PHASE2B_CUSTOMERS
 SUCCESSOR_CUSTOMERS = successor_supply_points()
 
 PRICE_DIFFERENTIAL_PCT = 0.0  # matches run_phase4b_on_phase2b.py
@@ -665,6 +672,14 @@ def main(report_end: str | None = None, policy=None):
         # USED: the rate sold is read from `all_records`, which no run output carries,
         # so an instrument re-deriving from customers alone measures the cap fallback.
         "opening_dd_by_customer": opening_dd,
+        # The registration figure each opening was sized on, after phase 2b's registry-EAC
+        # rewrite. `tools/dd_opening_arms` runs in another process and cannot see the rewrite
+        # on a fresh `live_population()`; it reads this instead of re-drawing the band.
+        "opening_registry_kwh_by_customer": {
+            c["customer_id"]: (c.get("eac_kwh") if c.get("commodity", "electricity")
+                               == "electricity" else c.get("aq_kwh"))
+            for c in _get_all_customers() if c.get("customer_id")
+        },
         "dd_balance_book": dd_balance_book.serialise(),
         "dd_level_collection_book": dd_level_collection_book.serialise(),
         "meter_read_log": meter_read_log,

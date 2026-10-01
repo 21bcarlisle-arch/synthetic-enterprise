@@ -1283,6 +1283,8 @@ def extract_report_data(run_output: dict) -> dict:
         "annual_dd_review": run_output.get("annual_dd_review", {}),
         # The opening DD amounts both DD books were fed, read by tools/dd_opening_arms.
         "opening_dd_by_customer": run_output.get("opening_dd_by_customer", {}),
+        # ...and the registry EAC/AQ each was sized on, after the world's fabric-premise rewrite.
+        "opening_registry_kwh_by_customer": run_output.get("opening_registry_kwh_by_customer", {}),
         "dd_balance_book": run_output.get("dd_balance_book", {}),
         # DD1 (atom DD_seasonal_cashflow_physics): the LEVEL (fixed) DD collection
         # book -- the standing monthly amount sizing a first-class collection

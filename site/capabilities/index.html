@@ -4377,6 +4377,9 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
        different remedies, and the mean of the two is a quantity nobody has. -->
   <div id="ddopen-drift"></div>
   <p id="ddopen-paired" style="margin:14px 0 0;"></p>
+  <!-- A PREDICTION FILED BEFORE THE RUN THAT TESTS IT, with the verdict this run's interval
+       gives it. The verdict is computed in tools/dd_opening_arms.py, never typed here. -->
+  <p id="ddopen-prediction" style="margin:10px 0 0;font-size:13px;"></p>
   <!-- WHAT THE SUPPLIER REFUSED TO GUESS. Published as a count with its cause, not hidden:
        a fail-closed organ whose refusals are invisible reads exactly like one that had nothing
        to refuse. -->
@@ -4504,6 +4507,19 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
           + signedGbp(dr.mean_change_in_abs_drift_gbp) + " (95% " + signedGbp(ci[0]) + " to "
           + signedGbp(ci[1]) + "). The interval spans zero, so on this run we cannot tell the "
           + "two rules apart on how far from square a household ends its first year.";
+
+      var fp = d.filed_prediction || {};
+      var fci = fp.mean_change_in_abs_drift_ci95_gbp || [];
+      $("ddopen-prediction").innerHTML = !fp.verdict
+        ? ""
+        : "<strong>A prediction filed on " + esc(fp.filed_on) + ", before this run.</strong> "
+          + prose(fp.statement || "") + " "
+          + (fp.verdict === "unbounded"
+            ? "This run could not bound the figure, so the prediction is NOT graded."
+            : "On this run, over the " + esc(fp.n_matched_accounts) + " households opened under "
+              + "the cap: " + signedGbp(fp.mean_change_in_abs_drift_gbp) + " (95% "
+              + signedGbp(fci[0]) + " to " + signedGbp(fci[1]) + "). The prediction "
+              + (fp.verdict === "held" ? "<strong>held</strong>." : "<strong>is refuted</strong>."));
 
       $("ddopen-refused").innerHTML = "<strong>What the supplier refused to guess.</strong> "
         + prose((d.refused || {}).statement || "");

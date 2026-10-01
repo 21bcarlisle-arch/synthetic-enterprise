@@ -44,33 +44,47 @@
   },
   "clock": "billed",
   "clock_note": "Every figure below is derived from the company's own ISSUED BILLS, so it is on the billed clock and cannot be reconciled against a settled-realised headline.",
-  "headline": "Sizing the opening direct debit from an annualised estimate instead of from the first issued bill moves 3 of 118 figures this run publishes \u2014 and not one of them is a figure a reader could previously see.",
+  "filed_prediction": {
+    "clock": "billed",
+    "filed_in": "docs/staging/SEAT_FINDING_UNDER_THE_RATE_SOLD_RULE_THE_ESTIMATED_DD_OPENING_NO_LONGER_BEATS_THE_FIRST_BILL_2026-10-01.md",
+    "filed_on": "2026-10-01",
+    "mean_change_in_abs_drift_ci95_gbp": [
+      -236.08,
+      -61.5
+    ],
+    "mean_change_in_abs_drift_gbp": -154.5,
+    "n_estimate_closer_to_zero": 67,
+    "n_matched_accounts": 95,
+    "statement": "Once a fabric premise's registry EAC is its own reads in the record the DD opening reads, the estimate beats the first bill on the households opened under the price cap: the matched mean change in distance from square goes negative, with a 95% interval that excludes zero.",
+    "verdict": "held"
+  },
+  "headline": "Sizing the opening direct debit from an annualised estimate instead of from the first issued bill moves 3 of 120 figures this run publishes \u2014 and not one of them is a figure a reader could previously see.",
   "keys_moved": [
     "annual_dd_review",
     "dd_balance_book",
     "dd_level_collection_book"
   ],
-  "keys_unmoved_count": 115,
-  "n_bills": 10719,
+  "keys_unmoved_count": 117,
+  "n_bills": 10619,
   "opening_amount": {
     "clock": "billed",
     "estimate": {
       "ci95_gbp": [
-        37.92,
-        45.38
+        46.6,
+        63.76
       ],
-      "max_abs_gbp": 432.95,
-      "mean_gbp": 41.19,
-      "median_gbp": 35.67,
+      "max_abs_gbp": 831.84,
+      "mean_gbp": 54.08,
+      "median_gbp": 38.38,
       "n": 247
     },
     "flat": {
       "ci95_gbp": [
-        32.77,
-        51.14
+        32.73,
+        51.11
       ],
       "max_abs_gbp": 711.43,
-      "mean_gbp": 40.94,
+      "mean_gbp": 40.91,
       "median_gbp": 24.84,
       "n": 194
     },
@@ -82,8 +96,8 @@
     "n": 0,
     "statement": "0 accounts get NO opening amount under the estimate: 0 had no first-bill rate and no published GB price cap on the date they opened, and 0 had no consumption estimate. They carry no direct debit rather than one invented to fill the gap."
   },
-  "substrate": "docs/reports/run_output_latest.json",
-  "substrate_sha256": "7570bd05bc3da30c835f54c72a9163e6c0ea5ff6d0c3c3a41d8c2af043df781e",
+  "substrate": "docs/reports/run_output_registry_eac_reaches_4c.json",
+  "substrate_sha256": "69861bd69781132d0f1368ee17445f4a84490a659b79a845034b93f0f7e2109e",
   "why_no_headline_moves": "The published treasury is a running total of net margin (simulation/run_phase2b.py: treasury += net_margin), so it is a profit accumulator wearing a cash name. No direct-debit arrangement whatsoever can move it, and the seven other headline figures are profit and loss. The comparison below is the only place the difference exists.",
   "year_one_drift_matched": {
     "clock": "billed",
@@ -91,23 +105,23 @@
       "exactly_zero": 0,
       "in_credit": {
         "ci95_gbp": [
-          75.74,
-          150.09
+          79.37,
+          481.98
         ],
-        "max_abs_gbp": 773.36,
-        "mean_gbp": 108.49,
-        "median_gbp": 72.56,
-        "n": 46
+        "max_abs_gbp": 3870.12,
+        "mean_gbp": 229.46,
+        "median_gbp": 76.1,
+        "n": 33
       },
       "in_debit": {
         "ci95_gbp": [
-          -621.71,
-          -280.01
+          -275.08,
+          -166.71
         ],
-        "max_abs_gbp": 11726.96,
-        "mean_gbp": -418.56,
-        "median_gbp": -169.59,
-        "n": 148
+        "max_abs_gbp": 2573.74,
+        "mean_gbp": -216.01,
+        "median_gbp": -130.52,
+        "n": 161
       },
       "n_accounts": 194
     },
@@ -115,33 +129,33 @@
       "exactly_zero": 0,
       "in_credit": {
         "ci95_gbp": [
-          158.66,
-          438.39
+          156.73,
+          429.21
         ],
-        "max_abs_gbp": 1248.82,
-        "mean_gbp": 288.38,
+        "max_abs_gbp": 1249.09,
+        "mean_gbp": 277.75,
         "median_gbp": 163.67,
-        "n": 25
+        "n": 26
       },
       "in_debit": {
         "ci95_gbp": [
-          -425.53,
-          -292.28
+          -432.75,
+          -294.89
         ],
-        "max_abs_gbp": 4022.33,
-        "mean_gbp": -353.88,
+        "max_abs_gbp": 4018.68,
+        "mean_gbp": -358.97,
         "median_gbp": -256.91,
-        "n": 169
+        "n": 168
       },
       "n_accounts": 194
     },
     "mean_change_in_abs_drift_ci95_gbp": [
-      -77.2,
-      109.67
+      -182.9,
+      -72.42
     ],
-    "mean_change_in_abs_drift_gbp": -0.4,
-    "n_estimate_closer_to_zero": 123,
-    "n_flat_closer_to_zero": 71,
+    "mean_change_in_abs_drift_gbp": -129.79,
+    "n_estimate_closer_to_zero": 141,
+    "n_flat_closer_to_zero": 53,
     "n_matched_accounts": 194,
     "population_note": "The same 194 households under both rules. Credit and debit are reported separately and never netted: a household in credit and one in debit are two different experiences with two different remedies."
   }

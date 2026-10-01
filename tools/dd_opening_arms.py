@@ -121,7 +121,9 @@ def estimate_opening_by_customer(payload: Mapping[str, Any]) -> dict[str, float]
     return {str(cid): float(amount) for cid, amount in opening.items()}
 
 
-def _basis_and_rate_by_customer(customers: list[dict]) -> dict[str, dict]:
+def _basis_and_rate_by_customer(customers: list[dict],
+                                registry_kwh: Mapping[str, float | None] | None = None,
+                                ) -> dict[str, dict]:
     """Per account: which SLC 27.15 basis the estimate resolved to, and whether the
     company held a published rate to annualise against on that date.
 
@@ -139,6 +141,11 @@ def _basis_and_rate_by_customer(customers: list[dict]) -> dict[str, dict]:
     Do not re-add a keyword here to make a signature "match": the door is the
     authority on which rungs exist, and a caller that names an excluded rung is
     asserting the opening instant can reach it.
+
+    `registry_kwh` is the run's own `opening_registry_kwh_by_customer`: the EAC/AQ each
+    opening was sized on AFTER phase 2b re-set a fabric premise's EAC to its own reads.
+    The `customers` here come from a fresh `live_population()` in this process, which
+    carries the drawn band and not the rewrite, so the run's figure wins where it has one.
     """
     from company.billing.annual_consumption_estimate import estimate_annual_consumption
     from company.pricing.ofgem_price_cap import get_cap_unit_rate_for_date
@@ -151,6 +158,8 @@ def _basis_and_rate_by_customer(customers: list[dict]) -> dict[str, dict]:
             continue
         commodity = c.get("commodity", "electricity")
         eac = c.get("eac_kwh") if commodity == "electricity" else c.get("aq_kwh")
+        if registry_kwh is not None:
+            eac = registry_kwh.get(cid, eac)
         as_of = date.fromisoformat(as_of_iso)
         est = estimate_annual_consumption(
             as_of=as_of,
@@ -433,6 +442,19 @@ def per_account_comparison(flat_arm: dict, est_arm: dict,
         # difference to the opening rule. The unmatched pair is kept beside it
         # because it is what each arm would actually publish.
         "window0_end_balance_drift_matched_population": _matched_window0(flat_w, est_w),
+        # The same matched figure split by whether a GB price cap was published on the day
+        # the account opened (the cap began in January 2019). The two cohorts reached the
+        # estimate arm by different routes, and the pre-registered prediction of 2026-10-01
+        # is stated over the capped one. An account with no basis row is in neither.
+        "window0_matched_by_opening_cohort": {
+            name: _matched_window0(
+                {c: w for c, w in flat_w.items()
+                 if c in basis and basis[c]["has_published_rate"] is capped},
+                {c: w for c, w in est_w.items()
+                 if c in basis and basis[c]["has_published_rate"] is capped})
+            for name, capped in (("opened_before_the_price_cap", False),
+                                 ("opened_under_the_price_cap", True))
+        },
         "all_window_end_balance_drift": {
             "flat": _split_credit_debit(
                 [v for w in flat_w.values() for v in w.values()]),
@@ -460,7 +482,8 @@ def run(run_output_path: Path) -> dict:
     flat_for_book = flat_opening_by_customer(bills, direct_debit_only=True)
     flat_for_review = flat_opening_by_customer(bills, direct_debit_only=False)
     est_open = estimate_opening_by_customer(payload)
-    basis = _basis_and_rate_by_customer(customers)
+    basis = _basis_and_rate_by_customer(
+        customers, payload.get("opening_registry_kwh_by_customer"))
 
     flat_arm = build_arm(bills, flat_for_book, flat_for_review)
     est_arm = build_arm(bills, est_open, est_open)
@@ -736,6 +759,40 @@ def publish_view(result: dict | None) -> dict:
         "basis_precedence": basis_precedence_view(
             pa.get("basis_split_resolved") or {},
             pa.get("basis_split_with_opening_amount") or {}),
+        "filed_prediction": filed_prediction_view(
+            (pa.get("window0_matched_by_opening_cohort") or {}).get(
+                "opened_under_the_price_cap") or {}),
+    }
+
+
+# Filed BEFORE the run that tests it, in the finding named below; the verdict is computed from
+# whatever interval the current run publishes, so it can turn either way on a later run.
+FILED_PREDICTION = {
+    "filed_in": ("docs/staging/SEAT_FINDING_UNDER_THE_RATE_SOLD_RULE_THE_ESTIMATED_DD_OPENING_"
+                 "NO_LONGER_BEATS_THE_FIRST_BILL_2026-10-01.md"),
+    "filed_on": "2026-10-01",
+    "statement": ("Once a fabric premise's registry EAC is its own reads in the record the DD "
+                  "opening reads, the estimate beats the first bill on the households opened "
+                  "under the price cap: the matched mean change in distance from square goes "
+                  "negative, with a 95% interval that excludes zero."),
+}
+
+
+def filed_prediction_view(cohort: Mapping[str, Any]) -> dict:
+    """The pre-registered prediction and its verdict on THIS run's 2019+ matched figure."""
+    ci = cohort.get("mean_change_in_abs_drift_ci95_gbp") or [None, None]
+    if not cohort.get("n_matched_accounts") or None in ci:
+        verdict = "unbounded"
+    else:
+        verdict = "held" if ci[1] < 0 else "refuted"
+    return {
+        **FILED_PREDICTION,
+        "clock": PUBLISHED_CLOCK,
+        "n_matched_accounts": cohort.get("n_matched_accounts"),
+        "n_estimate_closer_to_zero": cohort.get("n_estimate_closer_to_zero"),
+        "mean_change_in_abs_drift_gbp": cohort.get("mean_change_in_abs_drift_gbp"),
+        "mean_change_in_abs_drift_ci95_gbp": ci,
+        "verdict": verdict,
     }
 
 

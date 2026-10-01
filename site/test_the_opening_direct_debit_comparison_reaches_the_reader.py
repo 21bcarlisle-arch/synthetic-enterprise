@@ -63,7 +63,7 @@ CAPS_REL = "site/data/capabilities_door.json"
 #: Every element this section renders into, so a section that renders half of itself is a red
 #: rather than a silently thinner page.
 PANELS = ("ddopen-headline", "ddopen-why", "ddopen-amounts", "ddopen-drift",
-          "ddopen-paired", "ddopen-refused", "ddopen-basis", "ddopen-note")
+          "ddopen-paired", "ddopen-prediction", "ddopen-refused", "ddopen-basis", "ddopen-note")
 
 
 def _text(fragment: str) -> str:
@@ -230,6 +230,28 @@ def test_the_paired_sentence_is_chosen_by_where_its_interval_sits():
                 .format(ci, rendered))
         assert ("excludes zero" in rendered) == (name != "spans"), (
             "an interval of {} told the reader whether it excludes zero wrongly".format(ci))
+
+
+def test_the_filed_prediction_reaches_the_reader_with_the_verdict_its_interval_gives():
+    """DEFECT: a prediction filed before its run is graded only in a staging file no reader meets,
+    or the page prints a verdict the interval does not give.
+
+    One control over the partition: each verdict the feed can carry must reach its OWN words and
+    no other's, so a renderer that prints "held" whatever the verdict reds here.
+    """
+    base = _live_feed()
+    assert base.get("filed_prediction", {}).get("verdict") in ("held", "refuted", "unbounded"), (
+        "the published feed carries no graded prediction")
+    phrase = {"held": "prediction held", "refuted": "prediction is refuted",
+              "unbounded": "not graded"}
+    for verdict in phrase:
+        feed = json.loads(json.dumps(base))
+        feed["filed_prediction"]["verdict"] = verdict
+        rendered = _render(feed)["ddopen-prediction"].lower()
+        assert "filed on" in rendered, rendered
+        for other, words in phrase.items():
+            assert (words in rendered) == (other == verdict), (
+                "a {!r} verdict rendered {!r}".format(verdict, rendered))
 
 
 def test_the_reader_is_told_why_no_headline_figure_moved(live):

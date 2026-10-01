@@ -408,3 +408,23 @@ def test_the_openings_the_run_used_survive_into_the_persisted_run_output():
                                "opening_dd_by_customer": used})
     assert out.get("opening_dd_by_customer") == used, (
         "the persisted run output does not carry the opening amounts the run used")
+
+
+def test_the_filed_predictions_verdict_follows_the_interval_and_every_verdict_is_reachable():
+    """DEFECT: the published verdict on the 2026-10-01 prediction is not the interval's.
+
+    One control over the partition: held, refuted and unbounded each reachable, each from its
+    own interval, so a view that returns "held" for everything reds on the other two.
+    """
+    from tools.dd_opening_arms import filed_prediction_view
+
+    def verdict(ci, n=95):
+        return filed_prediction_view({"n_matched_accounts": n,
+                                      "mean_change_in_abs_drift_ci95_gbp": ci})["verdict"]
+
+    assert {verdict([-3.0, -1.0]), verdict([-1.0, 1.0]), verdict([None, None])} == {
+        "held", "refuted", "unbounded"}
+    assert verdict([-3.0, -1.0]) == "held"
+    assert verdict([-1.0, 1.0]) == "refuted"
+    assert verdict([1.0, 3.0]) == "refuted"
+    assert verdict([-3.0, -1.0], n=0) == "unbounded"
