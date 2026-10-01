@@ -165,6 +165,11 @@ REFRESH_SLUG_STEM = "origin-reconcile-"
 #: which of their files still has a second home.
 ORPHAN_PRESERVED_PREFIX = "refs/preserved/origin-reconcile-orphan/"
 
+#: Where a copy of an EARLIER origin revision goes before it is cleared. Its bytes already have a
+#: home -- the origin commit the reason names -- so this ref is the second one, kept apart from the
+#: orphans' because an orphan's ref is its ONLY home and a reader must be able to tell which.
+EARLIER_PRESERVED_PREFIX = "refs/preserved/origin-reconcile-earlier-revision/"
+
 FF_MODIFIED = "modified here, and origin changes it too"
 FF_UNTRACKED = "untracked here, and origin adds its own copy"
 UNREADABLE = "UNREADABLE"
@@ -633,6 +638,111 @@ def identical_untracked_twins(project: Path | None = None,
     return sorted(twins)
 
 
+def _origin_revisions(project: Path, path: str) -> dict[str, str] | None:
+    """Every blob `origin/main`'s history wrote at `path`, mapped to the NEWEST commit writing it.
+
+    One `git log --raw` over the path rather than a `rev-parse` per commit: the same answer as
+    `git log --format=%H -- <path>` followed by `<commit>:<path>` for each, in one process. Merge
+    commits carry no `--raw` line, so a blob that exists ONLY as a merge resolution is not offered
+    -- the fail-closed direction: a copy of it stays held, it is never cleared on a missed proof.
+    """
+    try:
+        res = _git(project, "log", "--no-renames", "--format=%H", "--raw", "--no-abbrev",
+                   "{}/{}".format(REMOTE, BRANCH), "--", path)
+    except (OSError, subprocess.SubprocessError):
+        return None
+    if res.returncode != 0:
+        return None
+    blobs: dict[str, str] = {}
+    commit = ""
+    for line in (res.stdout or "").splitlines():
+        if line.startswith(":"):
+            fields = line.split("\t", 1)[0].split()
+            if len(fields) >= 4 and commit and set(fields[3]) != {"0"}:
+                blobs.setdefault(fields[3], commit)
+        elif len(line) == 40 and all(c in "0123456789abcdef" for c in line):
+            commit = line
+    return blobs
+
+
+def earlier_revision_twins(project: Path | None = None,
+                           blocking: list[dict] | None = None) -> dict[str, str] | None:
+    """Of the blocking paths, those whose bytes equal a blob origin held at that path EARLIER.
+
+    `{path: origin_commit}`, the commit being the newest on `origin/main` that wrote those bytes
+    there. `None` if git would not answer -- distinct from `{}`, as for the twin sweeps.
+
+    THE TWIN SWEEPS ASK ORIGIN'S TIP AND ONLY ITS TIP. Measured on the shared tree 2026-10-01: ten
+    of twelve paths holding the fast-forward were written by `supervisor._sync_origin_staging`,
+    which copies origin's staging docs in and never refreshes a path that already exists. Seven
+    equalled the tip and were cleared. Three equalled an EARLIER revision of their own path (the
+    doc was revised on origin after the copy was taken) and held the tree until a hand cleared
+    them. Those bytes are on origin exactly as much as a tip twin's are -- `git show
+    <commit>:<path>` returns them -- so clearing them loses nothing, by the same argument.
+
+    IT MATTERS MOST FOR A TRACKED COPY. An untracked one would otherwise fall to the orphan class,
+    which preserves and clears it anyway; a tracked `.md` or `.json` falls to `stale_copy_verdicts`,
+    whose reader is Python's, and to `generated_output_verdicts`, which it is not -- so before this
+    it was held by every class and its own history was the one proof nobody asked.
+
+    A path no longer on disk is not a candidate (there are no bytes to compare), and is left to
+    the classes behind this one rather than read as unreadable.
+    """
+    project = project or PROJECT_DIR
+    if blocking is None:
+        return None
+    matched: dict[str, str] = {}
+    for path in sorted({b["path"] for b in blocking}):
+        if not (project / path).is_file():
+            continue
+        here = _blob_here(project, path)
+        revisions = _origin_revisions(project, path)
+        if here is None or revisions is None:
+            return None
+        if here in revisions:
+            matched[path] = revisions[here]
+    return matched
+
+
+def preserve_earlier_revision_twins(project: Path | None = None,
+                                    matched: dict[str, str] | None = None,
+                                    slug: str | None = None) -> tuple[str | None, str]:
+    """Commit the earlier-revision twins' bytes onto a ref, then RE-PROVE them. `(commit, "")`.
+
+    THE PROOF IS RE-ASKED HERE, INSIDE THE LOCK, BECAUSE IT WAS FIRST ASKED OUTSIDE IT. Between
+    `earlier_revision_twins` and this call a lane can write novel bytes over a path, and the
+    clearing that follows would then destroy work that was never on origin. So both legs run
+    against the disk as it is now: the preserved blob is the bytes on disk, and the origin commit
+    the verdict named still holds exactly those bytes at that path. Either failing refuses the
+    whole advance with nothing cleared.
+    """
+    project = project or PROJECT_DIR
+    if not matched:
+        return None, "nothing to preserve"
+    slug = slug or refresh_slug(project)
+    paths = sorted(matched)
+    commit, failure = _commit_disk_bytes_to_ref(
+        project, paths, EARLIER_PRESERVED_PREFIX + slug,
+        "preserved shared-tree copies of EARLIER origin revisions before origin-reconcile cleared "
+        "them for the fast-forward: {}".format(", ".join(
+            "{} (= {}:{})".format(p, matched[p][:9], p) for p in paths)))
+    if failure:
+        return None, failure
+    for path in paths:
+        try:
+            local = (project / path).read_bytes()
+        except OSError as exc:
+            return None, "{} could not be re-read ({}), so nothing was removed".format(path, exc)
+        for rev in (commit, matched[path]):
+            shown = subprocess.run(["git", "show", "{}:{}".format(rev, path)], cwd=str(project),
+                                   capture_output=True, check=False, timeout=60)
+            if shown.returncode != 0 or shown.stdout != local:
+                return None, "{} on disk is no longer the bytes {} holds at that path -- it " \
+                             "changed after it was judged, so nothing was removed".format(
+                                 path, rev[:9])
+    return commit, ""
+
+
 def stale_copy_verdicts(project: Path | None = None,
                         paths: list[str] | None = None) -> dict[str, tuple[bool, str]] | None:
     """For each path, `(is_refreshable, why)` judged against ORIGIN's blob. `None` if unreadable.
@@ -920,31 +1030,15 @@ def untracked_orphan_verdicts(project: Path | None = None,
     return verdicts
 
 
-def preserve_untracked_orphans(project: Path | None = None, paths: list[str] | None = None,
-                               slug: str | None = None) -> tuple[str | None, str]:
-    """Commit the untracked orphans' CURRENT bytes onto a ref. `(commit, "")` or `(None, why not)`.
+def _commit_disk_bytes_to_ref(project: Path, paths: list[str], ref: str,
+                              message: str) -> tuple[str | None, str]:
+    """Commit the working-tree bytes at `paths` onto `ref`, as HEAD's tree with them written in.
 
-    THE IDIOM IS `refresh_to_head.preserve`'s AND SO IS THE VERIFICATION -- what could not be
-    reused is the one line that refuses a path HEAD does not carry, which is every path here. The
-    tree is HEAD's with these paths ADDED through a throwaway `GIT_INDEX_FILE`, so the holder's
-    real index is untouched, and the parent is HEAD, so the commit's own diff is exactly the bytes
-    about to be destroyed -- which is what `git log --all -S` searches.
-
-    NOTHING IS REPORTED AS PRESERVED THAT WAS NOT PROVEN TO COME BACK. Both legs of
-    `verify_recoverable` run here, per path: the blob under the commit must hash to what is on disk
-    right now, and the advertised `git log --all -S` lookup must actually FIND the commit. A
-    preservation the advertised search cannot reach is a preservation in name only, and the
-    difference is invisible until somebody needs it.
-
-    A PATH WITH NO LINE ORIGIN LACKS GETS NO `-S` PROBE AND SAYS SO. That is the strict-subset
-    draft -- the safest member of the class, since every line of it is on origin already -- and
-    printing a search command that would find nothing would be worse than naming none.
+    `(commit, "")` or `(None, why not)`. The holder's real index is never opened -- the tree is
+    built through a throwaway `GIT_INDEX_FILE` -- and the parent is HEAD, so the commit's own diff
+    is exactly the bytes about to be cleared. Shared by the two classes that preserve before they
+    clear; each verifies the result by its own rule, because what "comes back" means differs.
     """
-    project = project or PROJECT_DIR
-    if not paths:
-        return None, "nothing to preserve"
-    slug = slug or refresh_slug(project)
-    ref = ORPHAN_PRESERVED_PREFIX + slug
     try:
         head = _git(project, "rev-parse", "HEAD")
         if head.returncode != 0:
@@ -977,8 +1071,7 @@ def preserve_untracked_orphans(project: Path | None = None, paths: list[str] | N
                              "preserved".format((written.stderr or "").strip()[:160])
         made = _git(project, "commit-tree", (written.stdout or "").strip(),
                     "-p", (head.stdout or "").strip(),
-                    "-m", "preserved untracked shared-tree drafts before origin-reconcile "
-                          "cleared them for the fast-forward: {}".format(", ".join(paths)))
+                    "-m", message)
         if made.returncode != 0:
             return None, "the preservation commit could not be made ({}), so nothing was " \
                          "removed".format((made.stderr or "").strip()[:160])
@@ -991,6 +1084,40 @@ def preserve_untracked_orphans(project: Path | None = None, paths: list[str] | N
     except (OSError, subprocess.SubprocessError) as exc:
         return None, "the preservation raised {}: {} -- nothing was removed".format(
             type(exc).__name__, exc)
+
+    return commit, ""
+
+
+def preserve_untracked_orphans(project: Path | None = None, paths: list[str] | None = None,
+                               slug: str | None = None) -> tuple[str | None, str]:
+    """Commit the untracked orphans' CURRENT bytes onto a ref. `(commit, "")` or `(None, why not)`.
+
+    THE IDIOM IS `refresh_to_head.preserve`'s AND SO IS THE VERIFICATION -- what could not be
+    reused is the one line that refuses a path HEAD does not carry, which is every path here. The
+    tree is HEAD's with these paths ADDED through a throwaway `GIT_INDEX_FILE`, so the holder's
+    real index is untouched, and the parent is HEAD, so the commit's own diff is exactly the bytes
+    about to be destroyed -- which is what `git log --all -S` searches.
+
+    NOTHING IS REPORTED AS PRESERVED THAT WAS NOT PROVEN TO COME BACK. Both legs of
+    `verify_recoverable` run here, per path: the blob under the commit must hash to what is on disk
+    right now, and the advertised `git log --all -S` lookup must actually FIND the commit. A
+    preservation the advertised search cannot reach is a preservation in name only, and the
+    difference is invisible until somebody needs it.
+
+    A PATH WITH NO LINE ORIGIN LACKS GETS NO `-S` PROBE AND SAYS SO. That is the strict-subset
+    draft -- the safest member of the class, since every line of it is on origin already -- and
+    printing a search command that would find nothing would be worse than naming none.
+    """
+    project = project or PROJECT_DIR
+    if not paths:
+        return None, "nothing to preserve"
+    slug = slug or refresh_slug(project)
+    commit, failure = _commit_disk_bytes_to_ref(
+        project, paths, ORPHAN_PRESERVED_PREFIX + slug,
+        "preserved untracked shared-tree drafts before origin-reconcile cleared them for the "
+        "fast-forward: {}".format(", ".join(paths)))
+    if failure:
+        return None, failure
 
     try:
         from tools.refresh_to_head import RefreshError, verify_recoverable
@@ -1011,7 +1138,8 @@ def preserve_untracked_orphans(project: Path | None = None, paths: list[str] | N
 def advance_shared_tree(project: Path | None = None, *, blockers_fn=None, twins_fn=None,
                         tracked_twins_fn=None, ff_fn=None, remover=None, restorer=None,
                         locker=None, ahead_fn=None, stale_fn=None, refresher=None,
-                        orphans_fn=None, preserver=None, generated_fn=None) -> dict:
+                        orphans_fn=None, preserver=None, generated_fn=None,
+                        earlier_fn=None, earlier_preserver=None) -> dict:
     """Fast-forward the shared tree onto `origin/main`, clearing every blocker it can prove lossless.
 
     Returns `{"advanced": bool, "cleared": list[str], "reason": str}`. `advanced` is claimed only
@@ -1029,8 +1157,9 @@ def advance_shared_tree(project: Path | None = None, *, blockers_fn=None, twins_
     hash-equal because its producer rewrites it every tick, and invisible to the stale judgement
     because `refresh_to_head` reads Python and a `.json` feed is not Python -- so it was permanently
     unresolvable and, under the all-or-nothing rule below, fatal to every other class beside it. See
-    `generated_output_verdicts`. All five are resolvable; a blocker in none of them refuses
-    everything, by name and with its reason attached.
+    `generated_output_verdicts`. The sixth, added 2026-10-01, is a copy of an EARLIER origin
+    revision of its own path -- see `earlier_revision_twins`. All six are resolvable; a blocker in
+    none of them refuses everything, by name and with its reason attached.
 
     THE THREE THAT PROVE AND THE ONE THAT MANUFACTURES. Classes one to three each rest on an
     argument that the bytes are already safe somewhere. The fourth cannot: untracked means on no
@@ -1158,6 +1287,17 @@ def advance_shared_tree(project: Path | None = None, *, blockers_fn=None, twins_
                           "established, so nothing was removed -- a file is never deleted on an "
                           "unread comparison"}
     resolvable = sorted(set(twins) | set(tracked))
+    # THE SIXTH CLASS IS ASKED SECOND, of what the tip proofs left: it is the same proof (the bytes
+    # are on origin) over origin's history instead of its tip, so it goes ahead of every class
+    # that has to build or argue its safety instead of finding it.
+    earlier = (earlier_fn or earlier_revision_twins)(
+        project, [b for b in blocking if b["path"] not in set(resolvable)])
+    if earlier is None:
+        return {"advanced": False, "cleared": [],
+                "reason": "whether the blocking paths match an earlier origin revision could not "
+                          "be established, so nothing was removed -- a file is never deleted on "
+                          "an unread comparison"}
+    resolvable = sorted(set(resolvable) | set(earlier))
     # BOTH SIDES ARE PATH SETS. `blocking` carries one ENTRY PER (path, kind) and a single path can
     # hold both kinds at once -- a staged deletion whose file is still on disk is `FF_MODIFIED` and
     # `FF_UNTRACKED` together. Comparing lengths counted it twice against a deduplicated union and
@@ -1240,6 +1380,12 @@ def advance_shared_tree(project: Path | None = None, *, blockers_fn=None, twins_
     slug = refresh_slug(project)
     _refresh = refresher or (lambda p: refresh_stale_copies(project, p, slug))
     _preserve = preserver or (lambda p: preserve_untracked_orphans(project, p, slug))
+    _preserve_earlier = earlier_preserver or (
+        lambda m: preserve_earlier_revision_twins(project, m, slug))
+    # An earlier-revision copy is cleared by the twin act for its kind: restored if git tracks the
+    # path (an index entry an `unlink` would strand), removed if it does not.
+    modified_paths = {b["path"] for b in blocking if b.get("kind") == FF_MODIFIED}
+    earlier_set = set(earlier)
     # A GENERATED BLOCKER IS CLEARED BY THE TRACKED TWIN'S ACT, because the act is what the two
     # share and the PROOF is what differs: both are tracked paths restored to HEAD's bytes for the
     # fast-forward to overwrite, one proven lossless by hashing against origin and the other by
@@ -1247,9 +1393,20 @@ def advance_shared_tree(project: Path | None = None, *, blockers_fn=None, twins_
     # branch in the loop below, keeps the acts at three and the grounds at five.
     tracked_set, stale_set, orphan_set = (
         set(tracked) | set(generated), set(stale), set(orphans))
-    orphan_commit = ""
+    orphan_commit = earlier_commit = ""
     try:
         with _lock():
+            # BEFORE ANYTHING IS CLEARED, and with the origin proof re-asked against the disk as it
+            # is now: the verdict above was read outside this lock.
+            if earlier_set:
+                earlier_commit, failure = _preserve_earlier(
+                    {p: earlier[p] for p in sorted(earlier_set)})
+                if failure:
+                    return {"advanced": False, "cleared": [],
+                            "reason": "the {} copy/copies of an earlier origin revision could not "
+                                      "be preserved and re-proven, so nothing was removed and the "
+                                      "advance was not attempted: {}".format(
+                                          len(earlier_set), failure)}
             # THE PRESERVATION GOES FIRST OF ALL, because it is the only thing standing between the
             # orphans and a deletion nothing can undo. It is all-or-nothing with itself and it
             # VERIFIES the recovery route before returning, so reaching the next line means every
@@ -1284,7 +1441,8 @@ def advance_shared_tree(project: Path | None = None, *, blockers_fn=None, twins_
                 # `unlink` on a path with an index entry leaves that entry behind, and the
                 # fast-forward stays refused on a file that is no longer even on disk.
                 try:
-                    if path in tracked_set:
+                    if path in tracked_set or (path in earlier_set
+                                               and path in modified_paths):
                         failure = _restore(path)
                     else:
                         _remove(path)
@@ -1307,11 +1465,15 @@ def advance_shared_tree(project: Path | None = None, *, blockers_fn=None, twins_
     if second.returncode == 0:
         return {"advanced": True, "cleared": cleared,
                 "reason": "cleared {} blocking path(s) ({} tracked twin(s), {} untracked twin(s), "
+                          "{} cop(y/ies) of an EARLIER origin revision, preserved at {}{} as {}; "
                           "{} stale copy/copies origin supersedes, preserved at {}{}; {} untracked "
                           "orphan draft(s), preserved at {}{} as {}), then fast-forwarded -- every "
                           "one is on disk, tracked, holding origin's bytes: {}".format(
                               len(cleared), len(tracked_set),
-                              len(cleared) - len(tracked_set) - len(stale_set) - len(orphan_set),
+                              len(cleared) - len(tracked_set) - len(earlier_set) - len(stale_set)
+                              - len(orphan_set),
+                              len(earlier_set), EARLIER_PRESERVED_PREFIX, slug,
+                              (earlier_commit or "-")[:9],
                               len(stale_set), REFRESH_PRESERVED_PREFIX, slug,
                               len(orphan_set), ORPHAN_PRESERVED_PREFIX, slug,
                               (orphan_commit or "-")[:9],
@@ -1328,9 +1490,15 @@ def advance_shared_tree(project: Path | None = None, *, blockers_fn=None, twins_
     return {"advanced": False, "cleared": cleared,
             "reason": "cleared {} blocking path(s) and git STILL refused the fast-forward, which "
                       "means the cause was not the collision this cleared. Recover a twin with "
-                      "`git checkout {}/{} -- <path>`: {}.{}{} git: {}".format(
+                      "`git checkout {}/{} -- <path>`: {}.{}{}{} git: {}".format(
                           len(cleared), REMOTE, BRANCH, "; ".join(sorted(
-                              set(cleared) - stale_set - orphan_set)[:12]),
+                              set(cleared) - stale_set - orphan_set - earlier_set)[:12]),
+                          (" The {} earlier-revision cop(y/ies) ({}) come back from the origin "
+                           "commit each was matched to, or from {}{} ({}).".format(
+                               len(earlier_set), "; ".join(
+                                   "{}={}".format(p, earlier[p][:9]) for p in sorted(earlier_set)
+                               )[:600], EARLIER_PRESERVED_PREFIX, slug,
+                               (earlier_commit or "-")[:9])) if earlier_set else "",
                           (" The {} refreshed rival copy/copies ({}) are on NO branch and come "
                            "back only from {}{}.".format(
                                len(stale_set), "; ".join(sorted(stale_set)[:12]),

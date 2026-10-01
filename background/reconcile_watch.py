@@ -225,6 +225,9 @@ def _drift_report(evaluate=None) -> list[str]:
 #: constant answers "is the fork closed", not "what did the CLI exit".
 _FORK_SETTLED = ("LEVEL", "RECONCILED", "PUSHED", "FAST_FORWARDED")
 
+#: Room for a dozen full repo paths with their reasons. A display bound, not a domain quantity.
+FORK_DETAIL_CHARS = 2400
+
 
 def _reconcile_the_fork(state_fn=None, reconcile_fn=None, subject_fn=None) -> str | None:
     """Close the fork with origin when one is open. Returns a log line, or None when level.
@@ -303,9 +306,12 @@ def _reconcile_the_fork(state_fn=None, reconcile_fn=None, subject_fn=None) -> st
     # everything else into exit 1, so recording the status records the rc without shelling out to
     # get it -- and it records WHICH of the four settled shapes it was, which the rc throws away.
     settled = status in _FORK_SETTLED
+    # ONE LINE, AND LONG ENOUGH TO HOLD THE PATHS. A `REFUSED_CONFLICT` detail puts its conflicted
+    # paths after a newline, and `[:400]` cut a six-path `NOT_ADVANCED` mid-name -- so the paths
+    # that refused were on lines `fork_open_streak` never parses, and its page could not name them.
     return "fork with origin ({} behind, {} ahead) -> {} [{}]: {}".format(
         behind, ahead, status, "settled" if settled else "STILL OPEN",
-        str(result.get("detail", ""))[:400])
+        " ".join(str(result.get("detail", "")).split())[:FORK_DETAIL_CHARS])
 
 
 def run(proc_results: list[dict] | None = None,

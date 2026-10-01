@@ -277,3 +277,52 @@ def test_an_OPEN_fork_nobody_has_observed_recently_says_BOTH_things():
         {}, T0 + timedelta(minutes=500 + F.STALE_MINUTES + 5))
     assert text and "OPEN 500 MINUTES" in text and "LAST OBSERVATION" in text, (
         "an open-and-unobserved fork was paged as one or the other: {!r}".format(text))
+
+
+# ── THE ONE PAGE NAMES THE PATHS (H49, 2026-10-01) ───────────────────────────────────────────
+def test_the_page_names_the_paths_the_newest_refusal_named(tmp_path, monkeypatch):
+    """The page said "the path is named in the log line" and named none. At 08:18 on 2026-10-01
+    the shared tree sat 11 behind, refused by six paths, and those paths were in a markdown file
+    and nowhere a person is. And the producer hid them twice over: `[:400]` cut a six-path
+    `NOT_ADVANCED` mid-name, and a `REFUSED_CONFLICT` detail puts its paths after a NEWLINE, so
+    they were on a line this parser never reads.
+
+    Driven through the REAL `_reconcile_the_fork` and `_log`, with a multi-line conflict detail.
+    MUTATION (must fire): drop the `" ".join(...split())` flattening in `_reconcile_the_fork` --
+    the path lands on a continuation line and leaves the page. MUTATION: drop the `if refusal:`
+    clause in `page_for` -- the page names nothing and this reds.
+    """
+    log = tmp_path / "reconcile-watch-log.md"
+    monkeypatch.setattr(W, "LOG_FILE", log)
+    path = "docs/design/maturity_map.yaml"
+    for _ in range(2):
+        W._log(W._reconcile_the_fork(
+            state_fn=lambda _p: (11, 1),
+            reconcile_fn=lambda _p: {"status": "REFUSED_CONFLICT",
+                                     "detail": "1 conflicted path(s), nothing was committed:\n"
+                                               "  {}".format(path)},
+            subject_fn=lambda: Path("/somewhere")))
+    rows = F.verdicts(log.read_text().splitlines())
+    for row in rows:
+        row["at"] -= timedelta(minutes=F.UNATTENDED_MINUTES + 5) if row is rows[0] else timedelta(0)
+    streak = F.open_streak(rows, rows[-1]["at"])
+    text, _ = F.page_for(streak, {}, rows[-1]["at"])
+
+    assert text and path in text, \
+        "the one page sent for an unattended fork does not name the path holding it: {!r}".format(
+            text)
+
+
+def test_a_streak_with_no_refusal_says_so_rather_than_naming_a_stale_cause():
+    """The partition's other side. A streak of ERRORs (the merge worktree busy) has no refusal in
+    it, and borrowing a path from an earlier, CLOSED streak would name a cause that is not this
+    one. MUTATION (must fire): search all rows instead of the current run for the refusal -- the
+    REFUSED_CONFLICT before the settled line leaks in and this reds."""
+    lines = ([_line(0, "REFUSED_CONFLICT", settled=False).replace(": detail", ": old/path.py"),
+              _line(5, "FAST_FORWARDED", settled=True)]
+             + [_line(10 + i * 5, "ERROR", settled=False) for i in range(15)])
+    streak = F.open_streak(F.verdicts(lines), T0 + timedelta(minutes=85))
+    text, _ = F.page_for(streak, {}, T0 + timedelta(minutes=85))
+
+    assert text and "old/path.py" not in text, text
+    assert "No verdict in this streak was a refusal" in text, text
