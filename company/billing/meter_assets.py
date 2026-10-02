@@ -45,7 +45,10 @@ class MeterAsset:
         years = _CERT_PERIOD_YEARS.get(self.meter_type, 10)
         d = date.fromisoformat(self.installed_date)
         from datetime import timedelta
-        cert_date = d.replace(year=d.year + years)
+        try:
+            cert_date = d.replace(year=d.year + years)
+        except ValueError:  # installed 29 February: no such day in the target year; 1 March
+            cert_date = d.replace(year=d.year + years, month=3, day=1)
         return cert_date.isoformat()
 
     @property

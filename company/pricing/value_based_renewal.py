@@ -1470,7 +1470,14 @@ def observed_account_state(
     from datetime import date as _date
 
     start = _date.fromisoformat(term_start)
-    window_open = start.replace(year=start.year - OBSERVATION_WINDOW_YEARS).isoformat()
+    # A TERM STARTING 29 FEBRUARY has no same-day date N years back, and `replace` raises. It crashed
+    # a whole run on 2026-10-02, the first time a book drew one. 1 March errs SHORTER, the safe side
+    # of a point-in-time window, and it is the convention `simulation.customer_events` and
+    # `company/billing/fit_legacy_register` already chose.
+    try:
+        window_open = start.replace(year=start.year - OBSERVATION_WINDOW_YEARS).isoformat()
+    except ValueError:
+        window_open = start.replace(year=start.year - OBSERVATION_WINDOW_YEARS, month=3, day=1).isoformat()
 
     prior = [
         r for r in settled_records
