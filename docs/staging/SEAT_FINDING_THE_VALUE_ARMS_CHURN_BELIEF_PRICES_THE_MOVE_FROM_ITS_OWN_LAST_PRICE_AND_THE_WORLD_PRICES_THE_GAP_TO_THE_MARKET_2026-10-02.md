@@ -189,3 +189,35 @@ Predictions, graded on the uncapped arm against this record's table:
    electricity" finding, reached from the pricing side.
 3. **The −£3,587 headline** in the cited finding and in `THE_VALUE_CYCLE_REALISED_AB.md` is a
    single-seed figure that changes sign at HEAD. Any reader citing it needs this record.
+
+## Addendum 2026-10-02 07:40Z: the remedy is built and held. P1–P4 are NOT graded yet
+
+Claim `the-belief-reads-the-gap-to-the-published-default` (DIRECTION item four). The code and its
+controls are in
+`docs/staging/records/SEAT_HELD_THE_BELIEF_READS_THE_GAP_TO_THE_PUBLISHED_DEFAULT_BUILT_AT_FDABAA5A9_2026-10-02.md`,
+as a diff against `fdabaa5a9`. Six mutations bite. It is not on main.
+
+**Why it is held, not landed.** Item four is ordered after items two and three. Item two (the world-D
+retake at `f18e8b5dc`) is still on the box, and item three (decline-and-stay) is pre-registered but
+not built. The value-arms page withdraws any reading whose `company/` paths differ from the
+publishing HEAD unless an exemption is argued. This change moves the arms by design, so no honest
+exemption exists. Landing it now would withdraw the retake that item two is about to publish. The
+graded runs need the change on main, but not before item two lands.
+
+**A static check, not the graded run.** The company's reading of the published default
+(`cap_ceiling_ex_vat`, single-rate, EPG-net, ex-VAT) was printed against this record's own 21
+rolled renewals. It reproduces the world's `price_differential_vs_market_reference` exactly on all
+21 (r = 1.00, the same value on every row). So the input is the world's quantity on the world's VAT
+and EPG basis. Correlation of the input alone with world P(leave) is +0.47 for the gap and +0.31 for
+the old move. The old belief's output correlates at −0.03 over these 21 (−0.12 over the 18 with
+both arms present). This is a replay of prices the old belief chose. It does not grade P1, because
+the arm will set different prices once it reads the new input.
+
+**The run that grades it, when it can.** After item two's unit exits and item three lands, apply
+the diff on that HEAD and land it. Then run paired capped and uncapped value arms serially on that
+one commit, with `measure.py` and `analyse.py` re-pointed at a worktree of it. Grade P1–P4 against
+this record's table, and the net against the floor's spread from item two's 3-seed floor. **One
+caveat to the one-variable reading:** on item three's world, the SVT-conversion rows can answer
+price, so P4's "uncapped net falls" compares against a baseline on a different world. Re-run the
+uncapped arm WITHOUT the diff on the same commit as the baseline, which makes three runs, not two.
+The predictions above are unchanged.
