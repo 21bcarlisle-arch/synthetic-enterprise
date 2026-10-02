@@ -314,6 +314,20 @@ def test_the_observation_window_is_the_one_the_churn_estimate_uses():
         pytest.approx(250.0 * 12))
 
 
+def test_a_term_starting_29_february_reads_its_window_rather_than_crashing_the_run():
+    """A term starting 29 February 2020 killed the depth-vs-width width arm on 2026-10-02: the
+    window's open date, one year back, does not exist. The AST class control
+    (`tests/architecture/test_no_year_arithmetic_can_crash_on_29_february.py`) grades the shape;
+    this drives a real leap-day term through the function. The window opens 1 March 2019, so the
+    February 2019 row sits outside it and exactly twelve months are read."""
+    records = _settled(year=2019) + [
+        dict(r, settlement_date=f"2020-{m:02d}-15") for m, r in ((1, _settled()[0]), (2, _settled()[1]))
+    ]
+    observed = vbr.observed_account_state("C1", "2020-02-29", records, "resi", "electricity")
+    assert observed is not None
+    assert observed["eac_kwh"] == pytest.approx(250.0 * 12)
+
+
 # ── 5. "no offer" is an ANSWER, and a live chain must be able to hear it ────────────────────
 
 def test_a_renewal_the_arm_CANNOT_LAWFULLY_PRICE_leaves_the_rate_alone_and_says_why():
