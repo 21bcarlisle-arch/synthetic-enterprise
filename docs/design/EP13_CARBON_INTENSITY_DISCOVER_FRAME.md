@@ -2035,3 +2035,70 @@ passing `capacity_mw` through as the top end. The `SHAPE_BASIS` control now asks
 **Next.** (1) The PS rule's foresight, graded on between-day. (2) The 2024 level, +1.3 GW and
 still unattributed. No level move: the Expert Hour still has to weigh the shared-input share of
 the correlation (§22).
+
+## 28. 2026-10-03 — PUMPED STORAGE ON THE BETWEEN-DAY AXIS: the rule's foresight is not why 2019–20 swing too wide between days
+
+§27 named the PS rule's foresight as the one candidate left for the between-day overshoot
+(2019 1.048, 2020 1.111). This pass measured it and built nothing. Scratch and the timestamped
+predictions are in `/var/tmp/se-ep13-s28/` (`measure.py`, `prediction.txt`, `out.txt`).
+**Instrument check:** the shipped-rule arm reproduces the committed feed's records to five places.
+
+**Four arms on the s27 base**, with `pumped_storage_schedule` swapped in-process and nothing else
+changed. N: no PS. O: measured half-hourly PS, the oracle (refused at condition 2, so it is
+scratch only). R2: the shipped water-fill. D: R2's water-fill, but each day spends THAT day's
+measured generation and pumping energy instead of the year's mean. D separates the rule's
+within-day placement from its even split of energy across days.
+
+**Predictions (23:07Z, before `measure.py`).** P1: between-day |R2 − O| < 0.015 in every year.
+P2: between-day |R2 − N| < 0.015 in every year. P3: O leaves 2020 above 1.08. P4: within-day
+O > R2 in every year, by 0.02–0.05. P5: D sits between O and R2 on within-day in at least 4 of 6.
+
+| between-day | 2019 | 2020 | 2021 | 2022 | 2023 | 2024 |
+|---|---|---|---|---|---|---|
+| N no PS | 1.054 | 1.100 | 0.996 | 1.025 | 1.001 | 0.931 |
+| **R2 shipped** | **1.048** | **1.111** | **0.997** | **1.027** | **1.002** | **0.934** |
+| O oracle | 1.038 | 1.103 | 0.990 | 1.019 | 0.990 | 0.917 |
+| D day energy | 1.037 | 1.105 | 0.990 | 1.020 | 0.991 | 0.919 |
+
+| within-day | 2019 | 2020 | 2021 | 2022 | 2023 | 2024 |
+|---|---|---|---|---|---|---|
+| N no PS | 1.252 | 1.242 | 1.163 | 1.148 | 1.114 | 1.110 |
+| **R2 shipped** | **1.064** | **1.097** | **0.983** | **0.972** | **0.950** | **0.926** |
+| O oracle | 1.090 | 1.123 | 1.015 | 1.012 | 0.987 | 0.965 |
+| D day energy | 1.055 | 1.097 | 0.983 | 0.970 | 0.945 | 0.924 |
+
+Correlation: R2 .959/.931/.966/.978/.974/.959; O is +0.003 to +0.006 above it, D +0.001 to
++0.004, N −0.001 to −0.004.
+
+**Against the predictions.** P2 held (≤0.012). P3 held: the oracle leaves 2020 at 1.103. P4
+held: O is 0.026–0.041 wider within the day. P1 held in 2019–23 (≤0.012) and **was refuted in
+2024 at 0.017**. P5 **was refuted**: D sits at or below R2 within the day in five years of six,
+not between O and R2.
+
+**What it establishes.**
+- **PS is not the between-day cause.** With GB's real PS dispatch, 2019 is still 1.04 and 2020
+  1.10. Taking PS out entirely moves between-day by ≤0.012. So the 2019–20 overshoot is somewhere
+  else, and §26 is where it appeared: embedded wind in the denominator raised between-day by
+  +0.04 to +0.09, the largest move on that axis of any pass. It is now the leading candidate,
+  and it is NESO's weather-model estimate, not a meter read.
+- **What the rule gets wrong between days is the even energy split, not the foresight.** D and O
+  agree on between-day to within 0.002 in every year. Once each day carries its true energy, the
+  rule's between-day error is gone. Its remaining gap to O, 0.007–0.017, is the year-mean energy
+  spent the same every day.
+- **The within-day overshoot is all placement.** Handing the rule the true daily energy narrows
+  the day slightly further, not less. So the 115–129% of §25 comes from where in the day the
+  rule puts the energy (foresight, and answering only to the residual), not from how much.
+
+**What it does NOT establish.**
+- **That a daily-energy rule is buildable.** A day's measured PS energy is a dispatch decision at
+  a daily grain, and condition 2 refuses it the same way it refuses the half hour. A rule that
+  set the day's energy from the day's own residual spread would cross nothing. It is worth at
+  most 0.007–0.017 between-day and +0.001–0.004 correlation, so it is not the next pass.
+- **That embedded wind is the cause.** It is named from §26's table, not measured on this base.
+
+**Controls.** None. Nothing shipped changed, and the feed is byte-identical.
+
+**Next.** (1) Embedded wind on the between-day axis: on the s27 base, NESO's estimate against
+its per-year scaled mean, and against none, graded on between-day and p95/p5. (2) The 2024 level,
++1.3 GW and still unattributed. No level move: the Expert Hour still has to weigh the
+shared-input share of the correlation (§22).
