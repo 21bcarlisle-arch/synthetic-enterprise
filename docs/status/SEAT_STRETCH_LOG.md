@@ -8,6 +8,200 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-10-02 — orientation: THE WORLD CAN REFUSE NOW, AND THE FLAT RULE STILL BEATS THE PER-CUSTOMER VIEW
+
+<!-- head: 78f7e3c34c35 -->
+
+*Written by the orientation seat from its own record (2026-10-02T17:20:13.759464+00:00; 12 commits, 5 substantive, since 2026-10-02T14:24:29.671380+00:00).*
+
+## What the stretch meant
+
+THE WORLD CAN REFUSE NOW, AND THE FLAT RULE STILL BEATS THE PER-CUSTOMER VIEW. The retake's three-arm run at the belief commit (0cc052102, one seed) finished at 17:16Z. Level leg +£15,701, value arm +£11,493, selection -£4,208. The pre-registered Q1 is refuted on its face. It predicted the level leg would fall below £12,400 once 55 of 64 above-default fixes became refusable. It rose, slightly, from +£15,115. So the refusable fixes were not what carried the level leg. The advantage that exists is still a uniform margin, which is a flat rule and not inference. Q2 holds: the whole advantage is positive. Selection is worse than 1002b's -£259. It still sits inside that floor's range (-£7,542 to -£404), so on one seed and with no floor on this commit I cannot yet say it moved. The belief's own one-variable reading points the same way: diff minus no-diff was -£3,499 on one seed, inside one stdev of a floor drawn on another commit. P1 is +0.29 at n=8, which cannot be told from the no-diff arm's -0.08. The belief is on origin and wall-safe, so the error it remedied is corrected. It is NOT shown to work. On every reading in hand, the per-customer arm does no better than a flat margin, and possibly worse. That is the thesis test, and so far it says "not yet". The floor that would bound this reading never ran. resource_headroom admitted it, then the floor's own inner gate refused it beside a resident depth-vs-width leg, and the unit exited 88 rather than waiting. That is item one. The previous focus bit on all three items. Item one landed (0cc052102, graded 4ed1fa774). Item two produced half its pair. Item three's subject row now reads premise_spent (8c29e03d9), so the tou bind is done: that corrects my carried not_now row for that instance, but its own ledger row reads not_done, because a ledger write has no commit to bind. The shared checkout's ahead leg closed (0 ahead) while the behind leg grew to 43, and 3 of 12 commits were empty merges. Depth-vs-width is 5 of 12 legs in, roughly 6h from done.
+
+## What went wrong
+
+- NOT corrected: MINE, NEW. I directed the retake to be "admitted by resource_headroom" beside the resident depth-vs-width legs. resource_headroom admitted the floor, but the floor's own inner gate refused it, and the unit treated the refusal as terminal (exit 88). Two admission controls disagreed, and the floor that bounds the thesis reading never ran. Corrected in item one, which waits on the depth-vs-width unit's exit.
+- NOT corrected: THE MACHINE'S, NEW. floor_run_headroom_refusal counts a `/usr/bin/time` wrapper and its run_value_cycle_ab child as two legs (pids 347062 and 347063), so every timed leg is priced double. Item two.
+- NOT corrected: THE MACHINE'S. A held change's hold condition is not re-asked when its premise moves. a15532730 and 1ff7b68b3 held "until the retake lands", and now a continuation is clock-held past its own condition. Nothing was built to re-ask it.
+- NOT corrected: THE MACHINE'S. The shared checkout has diverged from origin/main: now 0 ahead and 43 behind (it was 2 ahead and 33 behind), and 3 of 12 commits this stretch were empty merges. Daemons running from the shared tree execute code origin has moved past.
+- NOT corrected: THE MACHINE'S. A long job's world stamp is not tied to HEAD. arms-d-head-1002 and the f18e8b5dc retake were each overtaken within hours. Only value-arms readings are checked for it.
+- NOT corrected: THE MACHINE'S. Four level or park moves stranded in a preserved ref were replayed as written. PB4 build->idle was false by then (a6bd4d77e). Nothing re-asks a stranded move's release condition.
+- NOT corrected: THE MACHINE'S, CARRIED. One item can land twice, on origin through surgical_land and as a local commit on the shared HEAD (75df9efdf after d77ff33d5). No mechanism prevents the next one.
+- NOT corrected: THE MACHINE'S, CARRIED. The launch register recorded hgc-suite-timing as died while its /var/tmp driver ran. That driver called resource_headroom.admitted(), which does not exist. Nothing checks that a hand-written driver calls an API that exists.
+- NOT corrected: THE MACHINE'S, CARRIED. A control or door whose shape changes must re-run every fixture that builds a synthetic tree to drive it, and no control requires it. citation_at_head, red_at_head and fork_state in .publish_gate_state.json still read not_established.
+- NOT corrected: THE MACHINE'S, CARRIED. A refusal naming a commit is not re-asked against the remote ref before a reader sees it. liveness_surface_refusal is still not re-asked.
+- NOT corrected: THE MACHINE'S, CARRIED. The stash-completeness sweep reports a genuinely lost file as safe. It is still not on the map.
+- NOT corrected: THE MACHINE'S, CARRIED. Nothing on the landing path asks whether a same-subject sibling is left behind in the shared tree (the 14-path refusal in 662da7fd3). Separate from H49.
+- corrected: MINE, CARRIED. not_now is prose that nothing reads. The bind I moved into focus last stretch was still never drawn, and the tou row is still not_done. It is item three, and the class stays open. Corrected for this instance: the bind was drawn this stretch, and the tou row reads premise_spent (8c29e03d9). The class is the next row.
+- NOT corrected: MINE, CLASS. not_now is still prose that nothing reads. A rejected item comes back only if I remember to promote it, and nothing re-asks a not_now row's own stated condition, such as "if the ahead leg is still non-zero, it displaces item three".
+- corrected: THE MACHINE'S. The value arm's churn belief prices the move from the household's own last price, and the world prices the gap to the market (r=-0.12). Corrected: 0cc052102 on origin reads the offer's gap to the published default. It is not shown to work: P1 is +0.29 at n=8, and the net is -£3,499 on one seed, inside the noise.
+- NOT corrected: THE MACHINE'S, NEW. A bounded executor turn hit 5400 s three times, the last time mid-gate, and the next tick reset the worktree over finished, graded work. 822218441 exists only because a worker recovered the diff, test and finding from unreachable blobs. Nothing stops a tick from resetting a worktree that holds unlanded work.
+- NOT corrected: THE MACHINE'S, NEW. One Lane 0 change was minted under two ids and drawn by both the worker and the seat executor within a minute. That happened three times on 2026-10-01/02 (the SVT anniversary roll and the two PB4 swap notes). The duplicate-work check caught each one, at a turn's cost each.
+- NOT corrected: THE MACHINE'S. Two life-event rates (new baby, job loss) are per-person statistics applied per household, so the world under-draws income shocks. Filed LATENT by 65f48b276 and not remedied.
+
+## Chosen against
+
+- Pause or stop the depth-vs-width legs so the floor gets the box now.
+- Run the floor now with --ignore-headroom.
+- Buy more seeds or a longer window for the belief's P1, which is unreadable at n=8.
+- Grade depth-vs-width now.
+- Open a fidelity item on why the level leg survived the decline switch.
+- Make the shared checkout's divergence (0 ahead, 43 behind) a focus item.
+- Source per-household new-baby and job-loss rates (65f48b276).
+
+## Focus for the next stretch
+
+- `grade-the-value-arms-retaken-at-the-belief-commit`
+- `a-timed-floor-leg-is-counted-once`
+- `bind-the-ledger-row-of-a-bind-that-was-a-ledger-write`
+
+---
+
+## 2026-10-02 — orientation: THE WORLD CAN NOW REFUSE
+
+<!-- head: 0acd3f20f2f2 -->
+
+*Written by the orientation seat from its own record (2026-10-02T14:24:29.671380+00:00; 10 commits, 4 substantive, since 2026-10-02T11:20:58.923709+00:00).*
+
+## What the stretch meant
+
+THE WORLD CAN NOW REFUSE. THE COMPANY HAS NOT YET BEEN MEASURED IN IT. Two of the last direction's four items are finished and leave focus. The first is the journey decision for an SVT conversion (822218441, bound by the executor). The second is decline-and-stay, graded at 822218441 (72b646431) and switched on in its own commit (757c8cada). The switch was decided on P5 and fidelity alone: with it on, 0/71 retained domestic fixes in the default world and 0/10 in the value arm sit above the default, against 13/78 and 55/64 with it off. That 55/64 is the clearest statement yet of what last stretch's level leg was. Most of the value arm's retained fixes were prices the world could not refuse, which is transfer and not inference. The published +£15,115 level leg is now unreadable as advantage until it is re-taken. P3 and P4 were refuted on one traced mechanism: a decline is also a calendar event, and a household that declines escapes the later high-hazard renewal roll an above-default fix walks it into. So the value arm's net ROSE £1,670 when its customers could say no. Its own above-default fixes were destroying value it could have kept. That is the first result in this book where the world pressed back and the company's pricing was shown to be wrong in a way a better-informed supplier could learn. The per-customer view the thesis claims has still not shown as a measurable selection effect. Selection is negative on all three floor seeds of the last (withdrawn) reading. The belief remedy is the first change aimed at that leg, and its premise was spent at 13:45, but its continuation is clock-embargoed to 17:30. That embargo is a guess the flip outran, so the steer itself is now four hours slow for no reason, and that is item one. The previous focus bit on items one and two (two of four, both landed, though only one was drawn under its own name). Items three and four were never drawn: three correctly, behind its precondition, and four not reached. The tou Lane 0 row is still not_done in the brief, so item four stays. The depth-vs-width legs the director asked for (pin a322166cc, self-consistent, unaffected by the flip) are on the fourth of nine legs. The shared checkout has diverged: 2 ahead, 33 behind, up from 26 behind.
+
+## What went wrong
+
+- corrected: MINE. The belief continuation was embargoed by CLOCK (17:30), not by its CONDITION (the flip on origin). The flip landed at 13:45, and the work would have sat idle for nearly four hours. Corrected in item one by releasing the embargo. The class is the next row.
+- NOT corrected: THE MACHINE'S. A held change's hold condition is not re-asked when its premise moves. a15532730 and 1ff7b68b3 held "until the retake lands", and now a continuation is clock-held past its own condition. Nothing was built to re-ask it.
+- NOT corrected: THE MACHINE'S. The shared checkout has diverged from origin/main: 2 ahead and 33 behind, up from 26 behind, and 2 of 10 commits this stretch were empty merges. Daemons running from the shared tree execute code origin has moved past.
+- NOT corrected: THE MACHINE'S. A long job's world stamp is not tied to HEAD. arms-d-head-1002 and the f18e8b5dc retake were each overtaken within hours. Only value-arms readings are checked for it.
+- NOT corrected: THE MACHINE'S. Four level or park moves stranded in a preserved ref were replayed as written. PB4 build->idle was false by then (a6bd4d77e). Nothing re-asks a stranded move's release condition.
+- NOT corrected: THE MACHINE'S, CARRIED. One item can land twice, on origin through surgical_land and as a local commit on the shared HEAD (75df9efdf after d77ff33d5). No mechanism prevents the next one.
+- NOT corrected: THE MACHINE'S, CARRIED. The launch register recorded hgc-suite-timing as died while its /var/tmp driver ran. That driver called resource_headroom.admitted(), which does not exist. Nothing checks that a hand-written driver calls an API that exists.
+- NOT corrected: THE MACHINE'S, CARRIED. A control or door whose shape changes must re-run every fixture that builds a synthetic tree to drive it, and no control requires it. citation_at_head, red_at_head and fork_state in .publish_gate_state.json still read not_established.
+- NOT corrected: THE MACHINE'S, CARRIED. A refusal naming a commit is not re-asked against the remote ref before a reader sees it. liveness_surface_refusal is still not re-asked.
+- NOT corrected: THE MACHINE'S, CARRIED. The stash-completeness sweep reports a genuinely lost file as safe. It is still not on the map.
+- NOT corrected: THE MACHINE'S, CARRIED. Nothing on the landing path asks whether a same-subject sibling is left behind in the shared tree (the 14-path refusal in 662da7fd3). Separate from H49.
+- NOT corrected: MINE, CARRIED. not_now is prose that nothing reads. The bind I moved into focus last stretch was still never drawn, and the tou row is still not_done. It is item three, and the class stays open.
+- corrected: THE MACHINE'S. 1cd4b03dc said the journey advance was unchanged, but dropped _journey.record_decision for an SVT conversion. Corrected: 822218441 restores it through _record_renewal_decision. It is on origin, and its partition control reds when switched is hard-wired False.
+- NOT corrected: THE MACHINE'S. The value arm's churn belief prices the move from the household's own last price, and the world prices the gap to the market (r=-0.12). The remedy is held, and the belief on origin is unchanged. Item one.
+- corrected: THE MACHINE'S. The world gave a household converting off the SVT no way to decline an offered fix. Corrected: DECLINE_A_FIX_ABOVE_THE_DEFAULT is True on origin (757c8cada), and P5 holds (0/71 and 0/10 above the default with it on).
+- corrected: THE MACHINE'S. A drawn item could end silently after its first artefact, and the journey item was drawn three times. Corrected for that instance: it ended in a bound landing (822218441). The cause is the next row.
+- NOT corrected: THE MACHINE'S, NEW. A bounded executor turn hit 5400 s three times, the last time mid-gate, and the next tick reset the worktree over finished, graded work. 822218441 exists only because a worker recovered the diff, test and finding from unreachable blobs. Nothing stops a tick from resetting a worktree that holds unlanded work.
+- NOT corrected: THE MACHINE'S, NEW. One Lane 0 change was minted under two ids and drawn by both the worker and the seat executor within a minute. That happened three times on 2026-10-01/02 (the SVT anniversary roll and the two PB4 swap notes). The duplicate-work check caught each one, at a turn's cost each.
+- NOT corrected: THE MACHINE'S. Two life-event rates (new baby, job loss) are per-person statistics applied per household, so the world under-draws income shocks. Filed LATENT by 65f48b276 and not remedied.
+
+## Chosen against
+
+- Make grading depth-vs-width a focus item now.
+- Hold item one until the depth-vs-width legs finish, so nothing shares the box.
+- Open a fidelity item on whether an SVT stayer's ongoing hazard is too low against a fix-ender's renewal roll, the mechanism behind the P3/P4 refutation.
+- Source per-household new-baby and job-loss rates (the 65f48b276 finding).
+- Make the shared checkout's divergence (2 ahead, 33 behind) a focus item.
+- Wire the campaign's first-term quote into production and delete ACQUISITION_HELD_AT_CAP_TARIFF_TYPES.
+
+## Focus for the next stretch
+
+- `land-the-belief-reads-the-published-default-now-the-flip-is-on`
+- `retake-the-value-arms-in-a-world-that-can-refuse`
+- `bind-the-spent-tou-lane-0-row`
+
+---
+
+## 2026-10-02 — orientation: THE STEER BIT ON ALL FOUR ITEMS, AND ALL FOUR STALLED ON A HOLD WHOSE REASON WAS ALREADY SPENT
+
+<!-- head: e1fcee749d98 -->
+
+*Written by the orientation seat from its own record (2026-10-02T08:21:33.921320+00:00; 24 commits, 7 substantive, since 2026-10-02T05:22:07.161269+00:00).*
+
+## What the stretch meant
+
+THE STEER BIT ON ALL FOUR ITEMS, AND ALL FOUR STALLED ON A HOLD WHOSE REASON WAS ALREADY SPENT. THAT STALL IS MINE. Every focus item was drawn. Each one did real work and then held its code. The journey diff is embedded in its pre-registration (515703fd3). Decline-and-stay is designed and pre-registered with six predictions and a sourced rule that sizes nothing (a15532730). The belief remedy is built, with six mutations that bite and a static check showing the company's reading of the default reproduces the world's reference on all 21 rows (1ff7b68b3). All three held "until the retake lands", because my last direction ordered them after it. But at 06:22, 28eb35ec7 changed simulation/run_phase2b.py and company/interfaces/growth_desk.py on an arm-coupled path. 57d15843d recorded at 06:38 that no exemption can be argued, so the page withdraws the f18e8b5dc run against any HEAD that carries 28eb35ec7. Both holds were written after that, at 07:08 and 07:24. They protect a reading that is withdrawn whatever they do. The retake runs in its own worktree at f18e8b5dc, so landing on main cannot disturb it. Net effect: three ready changes to the world and the belief, the change that makes the thesis test meaningful, sat out the stretch behind a dead gate. That was a step sideways, not backwards. The three-arm half did produce a reading. Whole advantage +£14,856, level leg +£15,115, selection −£259 (P0, P1 held; P3 refuted, both doubled against 0407ce0e3, unattributed). Selection, the per-customer view the thesis actually claims, is still negative or nil. The level leg, which is what any supplier pricing higher earns, carries the whole advantage. And on about half the repriced decisions the world still cannot refuse a price, so even the level leg is partly transfer. Until decline-and-stay lands, no value-arm figure can be read as inference. The floor's last leg (pid 1897226) is still running. Shape: 24 commits, 7 substantive by the brief's count, 11 empty reconciliation merges. The shared checkout is 16 commits behind origin.
+
+## What went wrong
+
+- NOT corrected: MINE, NEW. My last direction ordered items one, three and four after the retake's landing, so a three-hour run became a gate on three landings. When 28eb35ec7 made the retake unpublishable at 06:22, nothing re-asked the gate. Two holds were written after the reason was spent (07:08, 07:24). This direction drops the dependency. The correction is only shown when items land.
+- NOT corrected: THE MACHINE'S, NEW. A held change's hold condition is not re-asked when its premise moves. a15532730 and 1ff7b68b3 each held "until the retake lands" after 57d15843d had recorded that the retake cannot be admitted at any HEAD carrying 28eb35ec7.
+- NOT corrected: THE MACHINE'S, NEW. The shared checkout is 16 commits behind origin/main, and 11 of 24 commits this stretch were reconciliation merges that authored nothing. Daemons running from the shared tree are executing code origin has moved past.
+- NOT corrected: THE MACHINE'S, NEW. A long job's world stamp is not tied to HEAD. arms-d-head-1002 launched at 0bac2b8be and was overtaken within two hours, and f18e8b5dc's retake was overtaken by 28eb35ec7 within 80 minutes. cbe8d18a4 and f18e8b5dc withdraw stale value-arms readings, but no other long job's output is checked that way. The class stays open.
+- NOT corrected: THE MACHINE'S, NEW. Four level or park moves stranded in a preserved ref were replayed as written. One of them, PB4 build->idle, was false by the time it was replayed (a6bd4d77e). Nothing re-asks a stranded move's release condition before it lands.
+- NOT corrected: THE MACHINE'S, CARRIED. One item can land twice, once on origin through surgical_land and once as a local commit on the shared HEAD (75df9efdf after d77ff33d5). No mechanism prevents the next one.
+- NOT corrected: THE MACHINE'S, CARRIED. The launch register recorded hgc-suite-timing as died while its /var/tmp driver's process was on the box. That driver called resource_headroom.admitted(), which does not exist. Nothing checks that a hand-written /var/tmp driver calls an API that exists.
+- NOT corrected: THE MACHINE'S, CARRIED. A control or door whose shape changes must re-run every fixture that builds a synthetic tree to drive it, and no control requires it. citation_at_head, red_at_head and fork_state in .publish_gate_state.json still read not_established.
+- NOT corrected: THE MACHINE'S, CARRIED. A refusal naming a commit is not re-asked against the remote ref before a reader sees it. liveness_surface_refusal is still not re-asked.
+- NOT corrected: THE MACHINE'S, CARRIED. The stash-completeness sweep reports a genuinely lost file as safe. It is still not on the map.
+- NOT corrected: THE MACHINE'S, CARRIED. Nothing on the landing path asks whether a same-subject sibling is left behind in the shared tree (the 14-path refusal in 662da7fd3). Separate from H49 and still open.
+- NOT corrected: MINE, CARRIED. not_now is prose, and nothing a launch from another lane reads. Two instances are mechanised (b50a03519, 19ca27dbc). The class stays open.
+- NOT corrected: MINE, CARRIED. The world-D arms on the page still come from 0407ce0e3 plus a patch. The f18e8b5dc three-arm half is graded (57d15843d), but its floor is still running and nothing has been copied or published. It will publish as withdrawn against 28eb35ec7. Item four.
+- NOT corrected: THE MACHINE'S, NEW, narrowed. 1cd4b03dc's message said the journey advance was unchanged. Skipping roll_lifecycle_event dropped _journey.record_decision for an SVT conversion, and the journey decision is the only loss. The diff is written (515703fd3) but is still not on origin. Item one.
+- NOT corrected: THE MACHINE'S, NEW, narrowed. The value arm's churn belief prices the move from the household's own last price, and the world prices the gap to the market (r=-0.12; below the world in 17 of 18 rolled renewals). The remedy is built and held (1ff7b68b3), and the belief on origin is unchanged. Item three.
+- NOT corrected: THE MACHINE'S, NEW. The world gives a household converting off the SVT no way to decline an offered fix, and a gas leg rides the electricity decision. 23 of 44 repriced fixed decisions sit where nothing in the world responds to price. Designed and pre-registered (a15532730), but not built. Item two.
+- NOT corrected: THE MACHINE'S, NEW. The journey draw filed a pre-registration at 04:42, then released its claim with no code in any tree and no disposition recorded. This stretch it ended the same way a second time: the ledger reads premise_not_yet_ripe, and no code was landed. A drawn item can end silently after its first artefact.
+
+## Chosen against
+
+- Keep holding items one to three until the f18e8b5dc retake publishes as current.
+- Exempt 28eb35ec7 (simulation/run_phase2b.py, company/interfaces/growth_desk.py) so the retake stays admitted.
+- Relaunch the world-D retake now at origin/main.
+- Make the 11 empty reconciliation merges, and the shared checkout sitting 16 commits behind origin, a focus item this stretch.
+- Wire the campaign's first-term quote into production and delete ACQUISITION_HELD_AT_CAP_TARIFF_TYPES.
+- Re-drawing the not_done 24h ledger rows (ToU first bill at its assumed split; the two republish-dd-opening-arms rows).
+
+## Focus for the next stretch
+
+- `land-the-journey-decision-for-an-svt-conversion-now`
+- `an-svt-household-can-decline-the-fix-build-the-splice`
+- `land-the-belief-reads-the-published-default`
+- `grade-and-publish-the-f18e8b5dc-retake-as-withdrawn`
+
+---
+
+## 2026-10-02 — orientation: THE THESIS TEST IS FINALLY RUNNING ON CODE THE PAGE WILL ADMIT
+
+<!-- head: 513d2a4b6a8e -->
+
+*Written by the orientation seat from its own record (2026-10-02T05:22:07.161269+00:00; 10 commits, 5 substantive, since 2026-10-02T02:24:09.927181+00:00).*
+
+## What the stretch meant
+
+THE THESIS TEST IS FINALLY RUNNING ON CODE THE PAGE WILL ADMIT. THE STRETCH ALSO SHOWED THAT ABOUT HALF OF WHAT THE VALUE ARM PRICES IS PRICED WHERE THE WORLD CANNOT ANSWER, AND THAT IS NOW THE FIRST-ORDER FIDELITY GAP. The value-arms page now asks which code produced its arms (cbe8d18a4) and its floor (f18e8b5dc). Any simulation/ or company/ path that differs from the publishing HEAD withdraws the headline and the verdict unless an argued exemption covers it, so a stale reading can no longer be published as current. That corrects last stretch's world_level_identity row. 3b7a2ae19 deleted the sixth cap implementation. The world-D retake is running now as one serial unit: arms first, then the 3-seed floor. It runs from a clean worktree at f18e8b5dc (pid 1637529, launched 05:03Z, expected around 09:30Z). That corrects my "not serially" row. The page still reads 0407ce0e3 until the retake lands. Item three's measurement (2f6a9ea05) matters more than anything else this stretch, and it went partly against me. The £3,587 cost of uncapping that I quoted as a thesis-level result did NOT reproduce at HEAD. At ed7e89d0e, uncapping earns £2,287. Both figures are single-seed, so neither is the value of uncapping. The belief's defect is now located in one input: it prices the move from the household's own last price, and the world prices the gap to the market. The two correlate at r=-0.12, and the belief is below the world in 17 of 18 rolled renewals. More important is that 23 of the 44 repriced decisions were SVT conversions or gas legs riding the electricity decision. On those, nothing in the world responds to price. In GB, a household that declines its supplier's fix stays on the default tariff (SLC 22/23, in the commons via powertac_2020_followup.md). Here, a household converting off the SVT can only accept the fix. The world therefore cannot defeat the company on half its prices, and an advantage earned there is transfer, not inference. The journey item was drawn and filed a sound pre-registration. Its P1/P2 say customer_events will be identical, and it narrowed the loss to record_decision alone. It then landed nothing: run_phase2b.py is clean in every worktree and the claim store is empty. So the steer bit and the work did not finish. Of 10 commits, 5 were substantive by the brief's count. 2 were heartbeats. Every daemon is on the box.
+
+## What went wrong
+
+- NOT corrected: THE MACHINE'S, NEW. A long job's world stamp is not tied to HEAD. arms-d-head-1002 launched at 0bac2b8be and was overtaken within two hours. cbe8d18a4 and f18e8b5dc now withdraw value-arms readings run on code that differs from HEAD, but no other long job's output is checked that way. The class stays open.
+- NOT corrected: THE MACHINE'S, NEW. Four level or park moves stranded in a preserved ref were replayed as written. One of them, PB4 build->idle, was false by the time it was replayed (a6bd4d77e). Nothing re-asks a stranded move's release condition before it lands.
+- NOT corrected: THE MACHINE'S, CARRIED. One item can land twice, once on origin through surgical_land and once as a local commit on the shared HEAD (75df9efdf after d77ff33d5). No mechanism prevents the next one.
+- NOT corrected: THE MACHINE'S, CARRIED. The launch register recorded hgc-suite-timing as died while its /var/tmp driver's process was on the box. That driver called resource_headroom.admitted(), which does not exist. Nothing checks that a hand-written /var/tmp driver calls an API that exists.
+- NOT corrected: THE MACHINE'S, CARRIED. A control or door whose shape changes must re-run every fixture that builds a synthetic tree to drive it, and no control requires it. citation_at_head, red_at_head and fork_state in .publish_gate_state.json still read not_established.
+- NOT corrected: THE MACHINE'S, CARRIED. A refusal naming a commit is not re-asked against the remote ref before a reader sees it. liveness_surface_refusal is still not re-asked.
+- NOT corrected: THE MACHINE'S, CARRIED. The stash-completeness sweep reports a genuinely lost file as safe. It is still not on the map.
+- NOT corrected: THE MACHINE'S, CARRIED. Nothing on the landing path asks whether a same-subject sibling is left behind in the shared tree (the 14-path refusal in 662da7fd3). Separate from H49 and still open.
+- NOT corrected: MINE, CARRIED. not_now is prose, and nothing a launch from another lane reads. Two instances are mechanised (b50a03519, 19ca27dbc). The class stays open.
+- NOT corrected: MINE, CARRIED. The world-D arms on the page still come from 0407ce0e3 plus a patch. The retake is running at f18e8b5dc (pid 1637529) and has not landed. Item two.
+- corrected: THE MACHINE'S, NEW, now corrected. The value-arms world guard keyed on world_level_identity, which digests only the departure-level anchor. cbe8d18a4 (arms) and f18e8b5dc (floor) now key on every simulation/ and company/ path between the run's commit and HEAD.
+- corrected: THE MACHINE'S, NEW, now corrected. A sixth cap-ceiling implementation (domain_invariants.check_sold_unit_rate_within_cap) had no production caller and graded against min(cap, EPG). It was deleted on origin by 3b7a2ae19.
+- corrected: MINE, NEW, now corrected. My item one did not say to run the three-arm run and the noise floor one at a time, or apart from other world runs. The retake now runs as one serial unit, the floor only after the arms exit 0, with no other world run on the box (513d2a4b6).
+- NOT corrected: THE MACHINE'S, NEW, narrowed. 1cd4b03dc's message said the journey advance was unchanged. Skipping roll_lifecycle_event dropped _journey.record_decision for an SVT conversion. The worker's pre-registration shows the retention and nudge writes survive in a later arm, so the loss is the journey decision alone. Still not restored on origin. Item one.
+- NOT corrected: THE MACHINE'S, NEW, narrowed. The value arm's churn belief prices the move from the household's own last price, and the world prices the gap to the market. They correlate at r=-0.12, and the belief is below the world in 17 of 18 rolled renewals (2f6a9ea05). The belief is unchanged. Item four.
+- corrected: MINE, NEW, corrected beside the claim. Last stretch I quoted the £3,587 single-seed cost of uncapping as a thesis-level result. At HEAD it reverses to +£2,287 with two commits between, and that cannot yet be attributed. 2f6a9ea05 records the reversal beside the claim.
+- NOT corrected: THE MACHINE'S, NEW. The world gives a household converting off the SVT no way to decline an offered fix, and a gas leg rides the electricity decision. 23 of 44 repriced fixed decisions sit where nothing in the world responds to price. Item three.
+- NOT corrected: THE MACHINE'S, NEW. The journey draw filed a pre-registration at 04:42, then released its claim with no code in any tree and no disposition recorded. A drawn item can end silently after its first artefact.
+
+## Chosen against
+
+- Asking the director the finding's practitioner frame question (does a declined fix mostly stay on the default tariff?).
+- Any second world run, or a relaunch of the retake, while pid 1637529 is on the box.
+- Wiring the campaign's first-term quote into production and deleting ACQUISITION_HELD_AT_CAP_TARIFF_TYPES (ed7e89d0e's next increment).
+- Emptying the exemption file's discipline by exempting whole directories so the 1002b run stays admitted.
+- Re-drawing the not_done 24h ledger rows (ToU first bill at its assumed split; the two republish-dd-opening-arms rows).
+
+## Focus for the next stretch
+
+- `restore-the-journey-decision-for-an-svt-conversion`
+- `land-the-world-d-retake-at-f18e8b5dc`
+- `an-svt-household-can-decline-the-fix-and-stay-on-default`
+- `the-belief-reads-the-gap-to-the-published-default`
+
+---
+
 ## 2026-10-02 — orientation: THE BOOK GOT MORE LAWFUL AND MORE HONEST THIS STRETCH
 
 <!-- head: 3b7a2ae19733 -->
