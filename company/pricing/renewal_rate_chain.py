@@ -459,6 +459,14 @@ def decide_renewal_rate(
         # door and must not gain a policy argument, and a second resolution path is how one run
         # comes to be executing two policies. `None` on every ordinary run.
         flat_level_gbp_per_mwh=active_policy().renewal_margin_flat_level_gbp_per_mwh,
+        # The default tariff a domestic household is actually charged for this fuel on the day
+        # (EPG-net, single-rate, ex-VAT like the offer). The churn belief reads the offer's gap
+        # to it, whether or not this term is held at the cap: the household compares against it
+        # either way.
+        published_default_rate_gbp_per_mwh=(
+            cap_ceiling_ex_vat(
+                commodity, date.fromisoformat(term_start[:10]), multi_register=False)
+            if is_domestic and commodity in ("electricity", "gas") else None),
     )
     # THE DENOMINATOR, WRITTEN AT THE SAME SITE AS THE DECISION. Unconditional and before the two
     # branches below, so a renewal cannot reach the funnel through one path and miss it through
