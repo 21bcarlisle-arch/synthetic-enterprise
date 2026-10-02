@@ -1794,3 +1794,75 @@ A trap for whoever repeats this: `cd WT && (A) & (B) & wait` runs B in the calle
 WT, because `&&` binds tighter than `&`. Two of this pass's 90d runs did exactly that. They graded the
 shared tree's copy of the file and showed these five nodes red. The cause was found from the
 traceback's line numbers, which matched the old file. Put `cd` on its own line, ended with `;`.
+
+---
+
+## 27. BUILD pass 18 — 2026-10-02 (worker tick, BUILD lane) — §26.4's 18 failures, classified, and four of them are not pins
+
+The origin is still 400, no level moved, `CAVEAT_COVERAGE_PROBES` untouched. The candidate origin was
+substituted in the process only (§17.4's `flip_plugin`).
+
+### 27.1 The run, and why it read 23
+
+Whole file at 90, `-rEf --tb=short`, in a worktree at origin/main `238cbb6e2`: **23 failed, 555
+passed, 45 errors** (14 min). Pass 17 (`73bb200a0`) was on local main and not yet on origin, and the
+only difference on the two `file_scope` files is pass 17's test diff. The five sibling nodes it
+restated were then re-run at 90 against `73bb200a0`'s copy: **5 passed**. So §26.4's 18 are exactly
+these 23 minus those five, by observation rather than by subtraction.
+
+Prediction, filed before the run returned: the majority register-borne, with 3 to 6 test-side pins.
+**Refuted on both counts**, as the table shows.
+
+### 27.2 The 18, by cause
+
+| cause | nodes | moves with |
+|---|---|---|
+| **R — register, via `own_visible_drifts`.** −370 at a 90 origin is a −280d window, and `build_scenario` refuses it (§25.2) | `test_cli_write_ledger_publishes_the_measured_note_not_a_retired_one`, `test_a_broken_memory_probe_fires_by_name[off its own organ]`, `[CHANGED THE WORLD]` | the register re-declaration |
+| **R — register literals graded by their checks** | `test_the_belief_register_describes_the_draw_size_axis` (declares −333..−308, sweep reads −23..2), `test_the_floor_register_is_measured_not_asserted` (declares 310, sweep 4) | the register re-declaration |
+| **C — census.** `SCENARIO_CONSTANT_CENSUS["DD_FAILURE_WINDOW_DAYS"]["measured_divergence"]` declares 310, and at 90 there is no shadow (divergence 0) | `test_a_shadowed_organ_default_owes_a_measured_divergence` | the census entry: at the flip the constant stops shadowing, so the entry's `shadows_organ_default` and `measured_divergence` go, and MUTATION 1–6 need a constructed shadow |
+| **T1 — test-side, origin-relative drift.** `organ_failure_window_drift_days=-320` means "window 80" only at 400 | `test_the_census_reads_the_window_off_the_scored_company_not_the_constant`, `test_the_inert_verdict_is_falsifiable_in_both_directions`, `test_score_triad_threads_the_scored_company_into_both_predictors` | restatable now: `80 − DD_FAILURE_WINDOW_DAYS` |
+| **T2 — test-side, a saturated value or sentence pinned** | `test_the_memory_grid_carries_a_witness_above_its_saturation_point` (`never_forgets_drift_days == 0`; 1 at 90, §18.1), `test_the_memory_caveat_names_both_edges` (`'NEVER forgets'`), `test_each_belief_figure_publishes_its_own_floor_and_the_sentence_says_it` (`'can move ANY figure here'`), `test_a_sibling_quantity_that_moves_with_the_figure_is_not_a_render_of_it` (a rendered figure), `test_a_declared_floor_the_sweep_contradicts_fires_the_control` (`"the sweep measures 314d"`) | restatable now, in the §26.2 way: assert the saturated branch where the window covers the book, and the unsaturated sentence below it |
+| **F — a published claim that is false at 90** | `test_the_coverage_only_claim_is_measured_not_asserted[7]`, `[11]`, `[23]`, `test_measure_builds_the_second_company_and_publishes_the_subtraction` | **a contract decision, below** |
+
+Count: R 5, C 1, T1 3, T2 5, F 4 = 18. **All 45 errors are R**: every error traceback ends in
+`build_scenario`'s −370 ValueError.
+
+### 27.3 NEW FINDING — the belief's "coverage only" claim holds only because the company never forgets
+
+`measure_coverage_only_residual(n_customers=600, seed=7)`, one process, both origins:
+
+| dimension | residual at 400 | residual at 90 | scored gap at 90 |
+|---|---|---|---|
+| `belief` | 0.0 | **0.0191** | 0.1497 |
+| `belief_population_mix` | 0.0 | **0.0050** | 0.0733 |
+| `ageing` | 0.0 | 0.0 | 0.0901 |
+
+(The 0.0191, 0.0252 and 0.0181 on seeds 7, 11 and 23 come from the failing node's own message.)
+
+`COVERAGE_ONLY_CLAIM_CONTRACT` publishes both belief sides as "same rule, different-coverage inputs".
+With coverage equalised, what survives at 90 is the company's 90-day memory against a truth side that
+forgets nothing. At 400 the memory covers the whole book, so the claim is true **for the same reason
+D27 exists**: the saturation that hides a memory error also hides the memory term from this control.
+The flip therefore **falsifies a published sentence**. It does not only re-declare literals.
+
+This is not a pin, and the remedy is not to restate the test. There are two choices. My
+recommendation is the first:
+
+1. **Restate the contract for the two belief dimensions as coverage AND memory, and publish the
+   coverage-equalised residual as the memory's share.** That residual is the quantity D27 asked the
+   dimension to resolve, already measured by an existing instrument.
+2. Give the truth-side rule the company's window. That makes the truth side read a company
+   parameter, so a memory error would cancel on both sides. That is the blindness D27 was opened to
+   remove, so this is rejected.
+
+`ageing` stays coverage-only at both origins, because it does not read the window.
+
+### 27.4 The flip's change set, now enumerated
+
+- **Test-side, landable ahead of the flip (8):** T1 ×3, T2 ×5, restated to hold at both origins.
+- **Travels with the register re-declaration (5 failures and 45 errors):** R.
+- **Travels with the census (1):** C.
+- **A contract change, which needs its own pass before the flip (4):** F, under §27.3's option 1.
+
+So the flip commit is the register, the census and the contract, and the next pass is the eight
+test-side restatements.
