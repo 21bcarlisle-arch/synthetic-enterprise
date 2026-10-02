@@ -1554,7 +1554,20 @@ def shipped_supply_book():
         rp.ACQUIRED_CUSTOMERS[:] = acquired_before
 
 
-def test_c_the_booked_spend_REACHES_THE_RUN_and_therefore_the_P_AND_L(shipped_supply_book):
+@pytest.fixture(scope="module")
+def shared_fabric_traces():
+    """The two runs below settle the same book over the same window and neither touches the
+    physics, so the second reuses the first's traces -- `fdp.sharing_traces`. The mutation leg's
+    patched `campaign_acquisition_spend_events` feeds spend, not households or weather."""
+    from simulation import fabric_demand_path as fdp
+
+    with fdp.sharing_traces():
+        yield
+
+
+def test_c_the_booked_spend_REACHES_THE_RUN_and_therefore_the_P_AND_L(
+    shipped_supply_book, shared_fabric_traces
+):
     """The wiring, proven by running the thing rather than by reading it.
 
     A helper nothing calls books nothing, and that failure mode is invisible to every
@@ -1583,7 +1596,7 @@ def test_c_the_booked_spend_REACHES_THE_RUN_and_therefore_the_P_AND_L(shipped_su
     assert statement["total_operating_costs_gbp"] >= spent
 
 
-def test_MUTATION_c_the_PRE_BUILD_run_books_none_of_it(shipped_supply_book):
+def test_MUTATION_c_the_PRE_BUILD_run_books_none_of_it(shipped_supply_book, shared_fabric_traces):
     """R15 for the wiring test: the mutation IS `run_phase2b` as it stood before today.
 
     Before this build the run seeded `acquisition_spend_events` with an empty list and
