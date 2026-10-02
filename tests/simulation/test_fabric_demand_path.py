@@ -1301,3 +1301,35 @@ def test_the_registry_eac_rule_is_NOT_AN_ORPHAN():
              if isinstance(n, ast.Call) and getattr(n.func, "id", None) == "registry_eac_from_own_reads"]
     assert calls, "run_phase2b no longer sets a fabric premise's registry EAC from its own reads"
     assert run_phase2b.registry_eac_from_own_reads is fdp.registry_eac_from_own_reads
+
+
+# ---------------------------------------------------------------------------
+# sharing_traces — a reuse scope, keyed on every input
+# ---------------------------------------------------------------------------
+
+def test_a_shared_trace_is_reused_only_for_the_same_inputs_and_only_inside_the_scope(weather):
+    """Three legs, one per branch. Fires if the scope never reuses (the saving is gone), if the
+    key drops the household (a home that changed would settle on its old trace), or if the scope
+    leaks past its `with` (every later run, and any monkeypatched physics, reads stale traces)."""
+    household = make_household("C1")
+    insulated = dataclasses.replace(household, insulation=InsulationLevel.POOR)
+    assert insulated != household
+
+    def build(hh):
+        return fdp.build_fabric_series_for_site(
+            customer_id="C1",
+            household_at_date=constant_household(hh),
+            weather_site="C1",
+            latitude_deg=LATITUDE,
+            start=WINDOW_START,
+            end=WINDOW_START + dt.timedelta(days=13),
+            weather_days_for=lambda _site, *, start, end: weather[:14],
+        )
+
+    with fdp.sharing_traces():
+        first = build(household)
+        assert build(household) is first
+        changed = build(insulated)
+        assert changed is not first and changed.gas_kwh != first.gas_kwh
+    assert build(household) is not first
+    assert build(household).gas_kwh == first.gas_kwh
