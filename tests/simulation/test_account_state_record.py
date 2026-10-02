@@ -130,11 +130,16 @@ def test_the_account_state_record_is_written_OUTSIDE_the_renewal_gate():
         return (isinstance(node.value, ast.Call) and isinstance(node.value.func, ast.Name)
                 and node.value.func.id == callee)
 
+    # The term loop is a `while` over a heap since 2026-10-02 (a declined fix splices default
+    # segments in mid-run), so it is found by the statement that unpacks each term off the heap.
+    def _unpacks_a_term(stmt):
+        return (isinstance(stmt, ast.Assign) and isinstance(stmt.targets[0], ast.Tuple)
+                and [e.id for e in stmt.targets[0].elts if isinstance(e, ast.Name)]
+                == ["term_start_str", "cid", "_", "commodity", "term"])
+
     term_loops = [
         n for n in ast.walk(tree)
-        if isinstance(n, ast.For) and isinstance(n.target, ast.Tuple)
-        and [e.id for e in n.target.elts if isinstance(e, ast.Name)]
-        == ["term_start_str", "cid", "commodity", "term"]
+        if isinstance(n, ast.While) and n.body and _unpacks_a_term(n.body[0])
     ]
     assert len(term_loops) == 1, f"expected exactly one term loop to reason about: {term_loops}"
     body = term_loops[0].body
