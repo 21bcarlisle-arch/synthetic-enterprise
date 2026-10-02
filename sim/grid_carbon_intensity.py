@@ -50,7 +50,7 @@ From residual demand, which is real published data, through the dispatch stack, 
 already built and graded:
 
     residual = national demand outturn + exports - metered wind - imports       [Elexon, HH]
-    rate     = emissions / (demand outturn + exports + embedded solar)       [s19-s21]
+    rate     = emissions / (demand outturn + exports + embedded solar + wind) [s19-s26]
     below the must-run floor          -> near-zero-carbon plant, price-taking
     the CCGT band                     -> gas, at the efficiency actually dispatched
     the coal band above it            -> coal, at the DUKES 5.14 electrical factor
@@ -123,18 +123,19 @@ and are kept here, rewritten, because what replaced them is a smaller gap and no
     stack also serves (s20); losses are still not corrected.
 
 WHICH WAY THE ERRORS POINT, and this is the sentence to read if you read only one. SINCE
-2026-10-02 THE DIRECTION IS MIXED, and that is the change to carry. p95/p5 runs about 1.07x the
+2026-10-02 THE DIRECTION IS MIXED, and that is the change to carry. p95/p5 runs about 1.18x the
 published series'. Split day by day by `neso_carbon_intensity.compare_shapes`, the BETWEEN-day
-swing runs 0.89-1.03x over 2019-2024. The WITHIN-day swing, the only axis a household can act
-on, runs 0.90-1.06x: too wide in 2019-20 and too narrow in 2021-24. So a shifting benefit
-computed here is an upper bound in 2019-20 and more likely an understatement from 2021.
+swing runs 0.95-1.12x over 2019-2024. The WITHIN-day swing, the only axis a household can act
+on, runs 0.94-1.11x: too wide in 2019-20, matched to two places in 2021-22, too narrow in
+2023-24. So a shifting benefit computed here is an upper bound in 2019-20 and an understatement
+in 2023-24.
 
 What flipped it is named. Until s25 the within-day swing was too wide in every year (1.09-1.23x)
 because the model had no pumped storage: no peak generation displacing gas, and no overnight
 pumping loading the troughs (frame doc s24). `pumped_storage_schedule` now dispatches the fleet
 with perfect foresight of the day's residual, which flattens the day by MORE than GB's fleet
-did (s25). Embedded wind, owed in the denominator and not yet in it, would widen within-day
-again by about 0.04-0.06. Nothing here was tuned to the published series: the rule was chosen on
+did (s25). Embedded wind then joined solar in the denominator, on NESO's definition, and widened
+within-day again by 0.04-0.06 and between-day by 0.05-0.09 (s26). Nothing here was tuned to the published series: the rule was chosen on
 how well it tracks measured PS timing, and R12 forbids moving a constant to change the split.
 
 WHAT THAT RE-DIAGNOSED, and it is what the 2026-08-26 build was aimed at. The thermal floor closed
@@ -462,7 +463,8 @@ def emissions_rate_t_per_mwh(
     decided here, from the residual, with no biomass reading in sight. `None` for either falls
     back to the flat `MUST_RUN_BIOMASS_MW` used before 2026-08-26, exactly.
 
-    `embedded_generation_mw` -- zero-carbon output BELOW the INDO metering point (AGWS solar).
+    `embedded_generation_mw` -- zero-carbon output BELOW the INDO metering point (AGWS solar, and
+    since s26 NESO's embedded wind estimate).
     INDO is already net of it, so it must never enter the residual: subtracting it there counted
     it twice and hid ~1.3 GW of gas a year (EP13 frame doc s18). It belongs in the DENOMINATOR
     only, because the intensity is per MWh CONSUMED and GB consumed it. 0.0 is the old series.
@@ -744,7 +746,7 @@ def build_shape(
     dirty half hour out of a gap in the feed (R15 fail-open).
 
     `embedded_generation_by_period`, when given, makes `renewables_by_period` the TRANSMISSION
-    renewables only (wind) and carries embedded solar to the denominator; see
+    renewables only (wind) and carries embedded generation to the denominator; see
     `emissions_rate_t_per_mwh`. A half hour it does not cover is skipped, for the reason above.
     The year's normalisation stays INDO-weighted, so `demand_weighted_mean` still reads 1.0 on
     the demand every caller holds; a consumption weight is a named gap (frame doc s19).
