@@ -1679,3 +1679,43 @@ mutations of the excuse, each red at the node:
 
 The co-read question is closed and off the flip commit. Still pinned: the five D30/D33 sibling
 claims, the four publication surfaces and the register node (§21.1).
+
+---
+
+## 25. BUILD pass 16 — 2026-10-02 (worker tick, BUILD lane) — the four publication surfaces, two restated and two re-classified
+
+The origin is still 400, no level moved, `CAVEAT_COVERAGE_PROBES` untouched (§19.4). The candidate
+origin was substituted in the process through the §17.4 `flip_plugin`, never in the tree.
+
+### 25.1 The two caveat nodes, restated
+
+`test_the_memory_resolution_caveat_travels_with_both_numbers` and
+`test_the_census_caveat_travels_with_both_belief_figures` pinned the saturated sentence. Both caveat
+functions already had the other branch ("NOT saturated", "SITS INSIDE IT … Nd SHORT of it"), so the
+restatement is §18.4's law plus a book coordinate: `saturated is (WINDOW >= _OLDEST_OBSERVED_FAILURE_
+AGE_DAYS[7])` picks which sentence must travel, and `inert is (WINDOW >= _INVOICE_BAND_TOP_DAYS)` picks
+the census sentence, with the headroom asserted as `WINDOW - 92` on one arm and `92 - WINDOW` on the
+other. **Green at 400 and at 90.** R15, four mutations in the process:
+
+| mutation | 400 | 90 |
+|---|---|---|
+| `saturated` forced True in `measure_belief_window_resolution` | red (the short-window leg) | red |
+| `belief_resolution_caveat` always takes the saturated branch | red | red |
+| `scored_company_is_inert` forced True | green — an equivalence, it IS True at 400 | red |
+| census headroom off by one | red | red |
+
+### 25.2 The two CLI nodes are not publication-surface failures — they are the register
+
+`test_cli_runs_and_prints_all_three_gaps` (ERROR) and `test_cli_write_ledger_publishes_the_measured_
+note_not_a_retired_one` (FAILED) red at 90 for one reason, and it is not their prose:
+`measure_own_drift_resolution` unions the register's `own_visible_drifts` (-370, -350, …) into its grid,
+and at a 90d origin `-370` is a -280d window, which `build_scenario` refuses. §17.3 filed them as
+publication surfaces by name; the traceback says they are the register node's subject reached through
+`main()`. They cannot be restated test-side — the CLI must run end to end — so they move with the
+register re-declaration in the flip commit. This is the same shape as §21.1: two nodes off one list
+and onto another, not off the work.
+
+### 25.3 Where §17.3 stands
+
+Publication surfaces: 2 of 4 restated; the other 2 are the register's and travel with it. Still pinned:
+the five D30/D33 sibling claims and the register node (§21.1), which now carries the two CLI nodes.

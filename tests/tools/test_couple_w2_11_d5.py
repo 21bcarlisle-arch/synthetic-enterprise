@@ -4852,14 +4852,24 @@ def test_the_memory_resolution_caveat_travels_with_both_numbers():
     visited carries its own resolution rather than the offline scenario's."""
     records, consumer, _l, as_of = pair.build_scenario(_RES_N, seed=7)
     result = pair.score_triad(records, consumer, as_of)
+    # The LAW plus the book's coordinate (FRAME s18.4), so this holds at the
+    # shipped 400 and at the organ's own 90: which sentence travels is decided
+    # by the window against the oldest observed failure, never pinned.
+    window = pair.DD_FAILURE_WINDOW_DAYS
+    saturated = window >= _OLDEST_OBSERVED_FAILURE_AGE_DAYS[7]
     for dim in ("belief", "belief_population_mix"):
         c = result[dim].components
-        assert c["belief_window_resolution"]["saturated"] is True
+        assert c["belief_window_resolution"]["window_days"] == window
+        assert c["belief_window_resolution"]["saturated"] is saturated
         assert c["memory_blind_band_days"]
         for text in (c["belief_resolution_caveat"], result[dim].note):
-            assert "SATURATED" in text
-            assert "NEVER forgets" in text
-            assert str(c["belief_window_resolution"]["window_days"]) in text
+            assert str(window) in text
+            if saturated:
+                assert "SATURATED" in text and "NOT saturated" not in text
+                assert "NEVER forgets" in text
+            else:
+                assert "NOT saturated" in text
+                assert "NEVER forgets" not in text
     # A DIFFERENT BOOK, a different caveat -- the number that travels is the
     # one this population earned, not a constant.
     short = pair.measure_belief_window_resolution(
@@ -5455,15 +5465,25 @@ def test_the_census_caveat_travels_with_both_belief_figures():
     prose, so a limit only the prose carries is one the machine strips off."""
     records, consumer, _l, as_of = pair.build_scenario(300, seed=7)
     result = pair.score_triad(records, consumer, as_of)
+    # Origin-conditional (FRAME s18.4): the scored company's place in the band
+    # is the window against the INVOICE band top, and the sentence follows it.
+    window = pair.DD_FAILURE_WINDOW_DAYS
+    inert = window >= _INVOICE_BAND_TOP_DAYS
     for dim in ("belief", "belief_population_mix"):
         got = result[dim]
         assert "THE BAND IS THE BOOK'S LENGTH" in got.note
         assert got.components["scenario_constant_census_caveat"] in got.note
-        assert got.components["scored_company_is_inert"] is True
+        assert got.components["scored_company_is_inert"] is inert
         assert set(got.components["band_owning_constants"]) == {
             "AS_OF_BUFFER_DAYS", "N_PERIODS", "PERIOD_SPACING_DAYS",
             "BILLING_CYCLE_SPREAD_DAYS"}
-        assert "308d past the top of the band" in got.note
+        if inert:
+            assert "SITS OUTSIDE IT" in got.note
+            assert (f"{window - _INVOICE_BAND_TOP_DAYS}d past the top of the "
+                    "band") in got.note
+        else:
+            assert "SITS INSIDE IT" in got.note
+            assert f"{_INVOICE_BAND_TOP_DAYS - window}d SHORT of it" in got.note
 
 
 def test_the_caveat_refuses_to_attribute_a_book_the_constants_do_not_describe():
