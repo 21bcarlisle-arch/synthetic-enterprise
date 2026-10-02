@@ -90,7 +90,7 @@ body { background: var(--bg); color: var(--text); font-family: system-ui, sans-s
 </nav>
 <div class="wrap">
   <main>
-    <div id="hero-h" class="hero-h">&nbsp;</div>
+    <h1 id="hero-h" class="hero-h">How GB wholesale electricity prices are formed</h1>
     <div id="hero-sub" class="hero-sub"></div>
     <div id="stale" class="stale"></div>
     <div id="hero-one" class="oneline"></div>
@@ -136,7 +136,6 @@ function badge(cls){ return '<span class="badge '+esc(cls)+'">'+esc(cls)+'</span
 
 function renderHead(d){
   var m=d.meta;
-  set("hero-h", esc(m.title));
   set("hero-sub", esc(m.subtitle));
   set("hero-one", esc(m.one_line));
   var df=m.data_freshness, cf=m.claim_freshness;
@@ -410,7 +409,7 @@ if (typeof window !== "undefined" && window.document && document.getElementById(
   fetch("../../data/knowledge_wholesale.json?t=" + Date.now())
     .then(function(r){ return r.json(); })
     .then(function(d){ renderKnowledge(d); })
-    .catch(function(e){ set("hero-h", "Wholesale price formation"); });
+    .catch(function(e){ set("hero-sub", "The page data could not be loaded."); });
 }
 </script>
 </body>

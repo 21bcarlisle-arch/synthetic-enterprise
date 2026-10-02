@@ -29,7 +29,6 @@ This document supersedes the individual findings listed below, which are **archi
 These documents match this class but carry a different lane. They are NOT archived and NOT superseded: severity is lane-scoped, so filing them here would remove their own lane's finding while recording it under `H_harness`.
 
 - `SEAT_FINDING_A_MULTI_ARM_RUN_REREADS_THE_WEATHER_STORE_FROM_A_TREE_THAT_MOVES_UNDER_IT_2026-09-29.md` — lane `A_strategy_governance`
-- `SEAT_FINDING_THE_SELECTION_RESIDUAL_IS_A_TWO_STATE_SWITCH_PRICED_AS_A_GAUSSIAN_SPREAD_AND_THE_LEVEL_ARM_CARRIES_ALL_OF_IT_2026-09-27.md` — lane `A_strategy_governance`
 
 ## Disposition
 

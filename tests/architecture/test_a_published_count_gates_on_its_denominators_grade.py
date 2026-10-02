@@ -105,6 +105,10 @@ REPAIRED = {
     ("tools/run_value_cycle_ab.py", "priced_decisions_needed"),
     ("tools/run_value_cycle_ab.py", "independent_draws_needed"),
     ("tools/run_value_cycle_ab.py", "priced_decisions_needed_on_the_published_floor"),
+    # LANDED AS DEBT by `d678f063a` (2026-09-27) and caught only on 2026-10-02: the gate selects
+    # by subject stem, so a commit to the decomposition never ran this file. Gated on the family
+    # mean clearing its own bar.
+    ("tools/selection_residual_decomposition.py", "seeds_needed_at_this_depth"),
 }
 
 #: THE SITES THAT DECLARE A BOUNDED DENOMINATOR, pinned for the reason `REPAIRED` is: a `#:
@@ -117,6 +121,11 @@ REPAIRED = {
 #: declaration publishes it, so a control that accepted either would grade that swap as no change.
 DECLARED_BOUNDED = {
     ("tools/fit_year_level_anchor.py", "required_over_re_referenced_recent"),
+    # `bar * sem` = `t(n-1) * stdev / sqrt(n)`: the sign bar in pounds, divided only by a count.
+    # Landed as DEBT by `f9c1bf956`; reachable as BOUNDED only once the census stopped letting the
+    # block's own `unavailable_because` stand in for a gate on this key.
+    ("tools/fold_noise_floor_family.py", "margin_required_over_draws_gbp"),
+    ("tools/fold_noise_floor_family.py", "margin_required_over_seeds_gbp"),
 }
 
 
