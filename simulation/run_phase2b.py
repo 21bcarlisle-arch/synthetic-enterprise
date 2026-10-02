@@ -1641,6 +1641,13 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
     _elec_record_of = {c["customer_id"]: c for c in ELEC_CUSTOMERS + SUCCESSOR_ELEC_CUSTOMERS}
     for _fab_cid, _fab_series in sorted(fabric_series_by_customer.items()):
         _fab_customer = _elec_record_of[_fab_cid]
+        if len(_fab_series.dates()) < 365:
+            # A WINDOW SHORTER THAN A YEAR HOLDS NO REGISTRY EAC TO DERIVE, and the rule's refusal
+            # is right. Only a truncated run reaches this (a full window holds ten years), so the
+            # drawn band stands and the log says so, rather than every short run dying at import.
+            print(f"  registry EAC {_fab_cid}: the window holds {len(_fab_series.dates())} days "
+                  f"of reads, under a year -- drawn {_fab_customer.get('eac_kwh')} kWh kept")
+            continue
         _own_eac, _own_basis = registry_eac_from_own_reads(
             fabric_shape_fn(
                 _fab_series, "electricity",

@@ -873,7 +873,14 @@ def quote_capacity(affordable_quotes: int, pool_size: int = PROSPECTS_PER_YEAR,
 #: §3–§5 above for the
 #: arithmetic and for what the paragraph that held this at 1,200 got wrong. The control that can
 #: fail is `test_the_settlement_ceiling_does_not_outrun_the_measured_memory_curve`.
-SETTLEMENT_CUSTOMER_YEAR_BUDGET = 1250.0
+#: RE-PRICED 2026-10-02, DOWNWARD. The run outgrew that anchor: systemd reported a 6,451.2 MB
+#: `sim-runner.service` peak across 9 runs, and the journal leg
+#: (`test_the_ceiling_still_fits_the_peak_systemds_own_journal_reports_today`) re-priced the same
+#: curve at 1,197.0 + (6,008.0 − 6,451.2) / 4.3402 = 1,094.9 and went red against 1,250, blocking
+#: every landing on this module. Floored to 1,050.0 by the same round-down-to-50 rule, which
+#: leaves 195 MB in hand. The curve itself was not re-measured. To reverse it, re-run
+#: `tools/settlement_ceiling_probe.py` and re-derive from the new curve.
+SETTLEMENT_CUSTOMER_YEAR_BUDGET = 1050.0
 
 
 def _customer_years(win_date: dt.date, horizon_end: dt.date) -> float:
