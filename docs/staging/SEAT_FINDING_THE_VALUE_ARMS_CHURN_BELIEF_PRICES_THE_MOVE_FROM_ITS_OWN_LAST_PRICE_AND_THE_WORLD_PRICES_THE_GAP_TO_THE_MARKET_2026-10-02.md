@@ -221,3 +221,105 @@ caveat to the one-variable reading:** on item three's world, the SVT-conversion 
 price, so P4's "uncapped net falls" compares against a baseline on a different world. Re-run the
 uncapped arm WITHOUT the diff on the same commit as the baseline, which makes three runs, not two.
 The predictions above are unchanged.
+
+## Addendum 2026-10-02 13:00 (local): re-drawn, still blocked, released and handed on
+
+The item was re-drawn at 12:57. Nothing new was built and no run was started, because the
+precondition still does not hold:
+
+- **Item two is done.** `6547ac55e` published the world-D retake.
+- **Item three is built but switched OFF.** `2cfea34b7` and `a0f2496e9` landed the splice with
+  `DECLINE_A_FIX_ABOVE_THE_DEFAULT = False`. The flip waits on its own P1–P6 pair
+  (`grade-the-decline-and-stay-pair-and-flip-the-switch`). That pair waits on
+  `land-the-journey-decision-for-an-svt-conversion-now`, which is not on origin. The box is also
+  busy with the depth-or-width level-arm run.
+- **The held diff is still good.** `git apply --check` passes on origin/main `a0f2496e9`. None of
+  the five paths it touches has moved since `fdabaa5a9`.
+
+Landing the diff now would still be wrong, for two reasons. First, it would withdraw the retake
+`6547ac55e` just published. Second, it would put a moving `company/` input under item three's
+value-arm pair, so neither that pair nor this remedy could be read as one variable.
+
+The claim is released. The work moves under a new id,
+`grade-the-belief-against-the-default-after-the-decline-flip`, and it opens with a precondition
+check so that a draw made before the flip costs one command, not a whole turn.
+
+## Addendum 2026-10-02 15:45 (local): taken, landed, graded run set fixed before it runs
+
+Claim `land-the-belief-reads-the-published-default-now-the-flip-is-on`. The flip is on
+(`757c8cada`, `DECLINE_A_FIX_ABOVE_THE_DEFAULT = True`), so the precondition holds. The held diff
+applied cleanly on origin/main `16b2cd038` and landed as `0cc052102`, and all six mutations were re-run there, each turning
+a control red. One more control reddened on landing:
+`test_the_price_rests_only_on_declared_supplier_observables`. It is right to ask. The published
+default now goes into a separate `MARKET_OBSERVABLES` set, with the argument for it: a published
+figure, not a register about the account.
+
+**Written before the runs. The predictions P1–P4 above are unchanged.** Three serial value-arm runs
+on the landing commit, harness `/var/tmp/se-belief-graded-out/{measure,analyse}.py`:
+*capped* (fixed renewals re-capped, with the diff), *uncapped* (as committed), and *uncapped_nodiff*
+(same commit, the chain withholds the reference, so the belief reads the old move). P1/P2/P4-ratio
+are graded on *uncapped* vs *capped*. P4's net is graded *uncapped* vs *uncapped_nodiff*, which is
+the one-variable reading. This record's £93,913 sits on an older commit and a world that could
+not refuse, so it is reported only for context.
+
+**How the new world's rows are classed (decided now, not after).** A fix above the default is
+now declined and the household stays on the default (`departure_occasion == "declined_fix"`).
+A declined row whose roll was carried over (`departure_rolled` True) counts as a **rolled**
+renewal for P1/P2, because the world did answer the price there. A declined row with no roll
+counts with the SVT conversions for P4. P2 and P4 grade the price the arm **offered**, not the
+price the household paid. A declined offer still counts, because the remedy is about the belief
+that chose it.
+
+## Graded 2026-10-02 17:30 BST: the belief's own test (P1) is unresolved at n=8. P2 and P4 now pass without the diff, so they no longer test it
+
+All three runs are on `0cc052102`'s code. The worktree `/var/tmp/se-belief-graded` reads
+`9fddab225` because `fork_salvage` committed into it mid-run. That commit touches only the
+observability ledgers the runs write, and `git diff 0cc052102 9fddab225 -- company simulation sim
+saas` is empty. Harness `/var/tmp/se-belief-graded-out/analyse.py`, one seed, unchanged since the
+pre-registration.
+
+| | capped | uncapped (diff) | uncapped_nodiff |
+|---|---|---|---|
+| net £ | 94,761 | 92,084 | 95,582 |
+| churned accounts | 78 | 73 | 72 |
+| `declined_fix` events | 30 | 80 | 75 |
+
+| | pre-registered pass | baseline in this record | uncapped (diff) | uncapped_nodiff |
+|---|---|---|---|---|
+| **P1** corr(belief, world) over rolled | ≥ +0.30 | −0.12 | **+0.29**, n=8 | −0.08, n=10 |
+| **P2** rolled ≥1.5× capped / max ratio | ≤ 2 / ≤ 1.6 | 5 / 2.20 | 0 / 1.47 | 0 / 1.35 |
+| **P3** churned, uncapped − capped | ≤ +1 | +1 | −5 | −6 |
+| **P4** unrolled repricings, mean ratio | ≤ 1.20 | 1.42 | 1.00, n=39 | 1.00, n=36 |
+| **P4** net, diff − nodiff | falls | — | **−£3,499** | — |
+
+- **P1: cannot tell.** It misses its bar by 0.01, but that is not a reading. At n=8 the Fisher
+  95% interval on r=+0.29 is about [−0.52, +0.83]. The no-diff arm's −0.08 at n=10 has about
+  [−0.68, +0.58]. The intervals overlap almost entirely, and the two arms do not even grade the same
+  rows (8 vs 10 rolled). The sign moved the predicted way. Nothing more can be said.
+- **P2, P3 and P4's ratio pass, but they no longer test the belief.** The no-diff arm on the same
+  commit passes them too. The movement from the record's baseline (5 → 0, 1.42 → 1.00) belongs to
+  the world change underneath. Since `757c8cada`, a household offered a fix above its default
+  declines and stays (80 and 75 `declined_fix` against the old world's 0), so few repriced fixed
+  terms still roll. The pre-registered baselines came from a world that could not refuse. The
+  P1–P4 comparison is valid only diff-vs-nodiff on one commit, and there these three legs are a
+  tie.
+- **P4 net: fell, as predicted, by £3,499. That is not distinguishable from noise.** This is the
+  one-variable reading (same commit, same seed, only the reference withheld). The only bound we
+  have is the `f18e8b5dc` current-world floor (`value_cycle_ab_s1_noise_floor_20261002b.json`):
+  selection-£ stdev **£3,885** over n=3 household redraws, range £7,138. That floor was drawn
+  **on a different commit, in a world without decline-and-stay** (it could not refuse), and it
+  bounds a different contrast (selection, with households redrawn). The one-seed −£3,499 sits
+  inside one of its stdevs. A paired same-seed contrast probably has less noise than that, but
+  nobody has measured it, so it is not claimed.
+- **Harness defect, minor:** the occasions line prints `'None': 0`, because it compares against
+  the string `'None'`. 6 of the 53 repriced rows have no matching event. It does not touch P1–P4.
+
+**What this means for the remedy.** The diff stays landed. It is wall-safe (a published figure),
+it moved the one discriminating statistic the predicted way, and nothing refutes it. It is **not
+shown to work**. Decline-and-stay has taken most of the selection leg's exposure: an over-priced
+fix is now refused, not paid. So the belief's ranking has fewer rows to show itself on. Getting P1
+to a readable n means more seeds or a longer window. The retake under
+`longjob-value-arms-retake-at-the-belief` (continuation
+`grade-the-value-arms-retake-once-both-artefacts-exist`) runs the three-arm and a floor at
+`0cc052102`. When it reports, it gives the first floor on the right commit, and that is where this
+reading of the −£3,499 should be re-asked. No further run is launched from this record.

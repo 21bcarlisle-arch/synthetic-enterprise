@@ -1896,3 +1896,79 @@ negative in the reducer, the schedule not handed to the rate, and PS dropped fro
 **Next.** (1) Embedded wind in the denominator, its own pass, graded by §24's arithmetic.
 (2) Then biomass at the year's mean (§23). No level move: the Expert Hour still has to weigh how
 much of the 0.93–0.98 correlation is shared inputs (§22).
+
+## 26. 2026-10-02 — EMBEDDED WIND, IN THE DENOMINATOR: the within-day error is now centred, and the between-day swing is too wide
+
+§24 measured embedded wind as owed on NESO's definition, and §25 named it as the next pass.
+INDO is net of embedded wind in the same way it is net of embedded solar, so the dispatch does
+not change: the tonnes are identical and only the divisor moves. `generate()` now hands
+`build_shape` AGWS solar plus NESO's `EMBEDDED_WIND_GENERATION`
+(`generate_grid_intensity_feed.embedded_generation_by_period`). The scratch script and the
+timestamped predictions are in `/var/tmp/se-ep13-s26/` (`feed.py`, `prediction.txt`).
+
+**Coverage first.** The NESO cache held 2018–2025 only, and `build_shape` skips any half hour
+the embedded map lacks, so wiring it unchanged would have dropped 2016–17 from the feed. The two
+pinned resources were fetched from the real CKAN datastore (17,568 and 17,520 periods) and
+appended to `sim/cache/neso_embedded_generation.json`. That cache is gitignored, so this is a
+step to repeat on a fresh checkout (`python3 -m sim.neso_embedded_generation`, all years). After
+the fetch, every AGWS solar half hour has a NESO wind reading: none is dropped, and the feed
+still covers 157,125 half hours. The bound instrument reads per year, so its 2018–25 figures do
+not move. NESO embedded wind averages 1.2 GW (2016) to 2.1 GW (2020) over a year.
+
+**Predictions (15:22Z, before `feed.py`).** P1: within-day rises +0.035 to +0.060 in every year.
+P2: between-day rises +0.02 to +0.09 in every year. P3: correlation moves <0.010. P4: the headline
+within-day mean goes 0.98x → 1.01–1.04x, and p95/p5 goes 1.07x → 1.08–1.13x. P5: 2021–23
+within-day end within 0.03 of 1.00, and 2024 stays under 0.97.
+
+| published feed | 2019 | 2020 | 2021 | 2022 | 2023 | 2024 |
+|---|---|---|---|---|---|---|
+| within-day, s25 | 1.038 | 1.058 | 0.951 | 0.957 | 0.959 | 0.904 |
+| **within-day, s26** | **1.092** | **1.115** | **0.996** | **1.000** | **0.995** | **0.941** |
+| between-day, s25 → s26 | .982→1.065 | 1.030→1.123 | .929→1.006 | .978→1.049 | .988→1.041 | .893→.946 |
+| correlation, s25 → s26 | .9575→.9592 | .9334→.9317 | .9635→.9659 | .9751→.9773 | .9721→.9741 | .9585→.9594 |
+| mean abs error, s25 → s26 | .058→.063 | .093→.105 | .061→.059 | .058→.058 | .070→.071 | .105→.101 |
+
+Headline: within-day mean 0.98x → 1.02x; between-day mean 0.97 → 1.04; p95/p5 1.07x → 1.18x;
+max/min 0.99x → 1.12x.
+
+**Against the predictions.** P1 held: +0.036 to +0.057. P3 held: correlation moved ≤0.003. P5
+held. P4 held on the within-day mean (1.02x) and **was refuted on p95/p5**: it is 1.18x, not
+1.08–1.13x. P2 held in five years and **was refuted narrowly in 2020** (+0.093). The p95/p5 miss
+has the same cause as the between-day rise. Embedded wind is large on windy days, which the
+model already reads as clean, so dividing by it makes clean days cleaner. That widens the
+distribution between days more than within them. p95/p5 is a whole-year statistic and the
+between-day spread dominates it.
+
+**What it changes on the page.** Within-day is now too wide in 2019–20, MATCHED to two places in
+2021–22, and too narrow in 2023–24. 2022 sits at 1.0003. The direction control asked `> 1.0` on
+the unrounded value, so it would have called 2022 too wide. It now reads each year at the two
+places the sentence prints, and asks for three sides (wide, matched, narrow), with every headline
+year on exactly one. `ERROR_DIRECTION` says the shifting benefit is an upper bound in 2019–20,
+about right in 2021–22, and an understatement in 2023–24. It also says p95/p5 is 1.18x and that
+most of it is between days.
+
+**What it establishes.** Every definitional input §18–§24 named is now in the denominator:
+embedded solar, exports and embedded wind. On the axis a household acts on, the mean error is
++0.02. 2019–20 are still wide by 0.09–0.11, and 2024 is still narrow by 0.06.
+
+**What it does NOT establish.**
+- **That the between-day width is a new error.** Before s26 the between-day swing was narrow in
+  most years, partly because the denominator was short on windy days. It now overshoots in five
+  years of six. Two things may be behind that: the fixed 2,400 MW biomass block, which §23 named
+  and which runs flat through windy days, and the PS rule's foresight. Neither has been measured
+  on this axis, so the cause cannot yet be named.
+- **That NESO's embedded wind estimate is right.** It is a weather-model estimate, not a meter
+  read (see `sim/neso_embedded_generation.py`). A gain measured against it is a gain against
+  NESO's estimate.
+
+**Controls.** Two new: the published records carry the shape that divides by wind and solar,
+not solar alone; and both branches of `embedded_generation_by_period` (sum where NESO covers the
+half hour, absent where it does not). The direction control was re-keyed to three sides at the
+printed precision. Mutations: wind dropped from the sum (killed by 2), solar kept where NESO
+has no wind (killed by 1), and `generate()` reverted to solar alone with the feed regenerated
+(killed by 2).
+
+**Next.** (1) Biomass at the year's measured mean (§23), now graded on BETWEEN-day as well as
+within, because the flat block is the first candidate for the new between-day overshoot.
+(2) The 2024 level, +1.3 GW and still unattributed. No level move: the Expert Hour still has to
+weigh the shared-input share of the correlation (§22).
