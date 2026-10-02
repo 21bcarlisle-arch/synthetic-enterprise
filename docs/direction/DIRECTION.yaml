@@ -1,124 +1,149 @@
 version: 1
-oriented_at: "2026-10-02T20:21:37.775542+00:00"
+oriented_at: "2026-10-02T23:21:12.261479+00:00"
 thesis_read: >-
-  NO FURTHER FORWARD ON THE THESIS, AND THE ONE NEGATIVE READING TURNS OUT TO BE ONE ACCOUNT. The
-  three-arm retake at the belief pin (0cc052102) is graded on origin (f666292fd). Q0's world-digest
-  prediction is refuted, because the digest cannot see a behaviour switch. Q1's bold part is refuted
-  too: the level leg rose to +£15,701. That comparison is confounded, because the level itself moved
-  from £49.2 to £60.0/MWh, so the level arm is not the same arm in the two runs. Q2 holds at +£11,493.
-  The selection leg reads -£4,208, which looks like the flat rule beating the per-customer view. But
-  one account, PROS-2016-0098, carries -£8,136 of it. That account is a bad debt. The flat £60 level
-  priced it out of the book by accident: it churned at once, for +£325. The value arm kept it at an
-  £11.5 margin and wrote off £11,241. Without that account, selection is positive in both 1002b and
-  1002c. So the honest reading is not "the flat rule wins". It is that the value arm selects on churn
-  and cannot select on credit risk, and the one reading we have is dominated by that blind spot. That
-  is item two, and it needs no compute.
-  The floor that bounds any of this has STILL not run. My previous item one keyed its wait to
-  longjob-depth-vs-width-20261002. That unit died at 19:07Z (exit 90: its width worktree did not
-  exist), was relaunched as w125b, and died at 20:12Z (exit 94). w125b's crash was a real defect in
-  company code: observed_account_state calls start.replace(year=...) on a 29 February term start
-  (value_based_renewal.py:1473 on origin). The floor's run.sh began at 20:12Z, behind a 20-minute
-  grace. At 20:21Z, w125c relaunched co-resident with a 29 February guard. That guard exists ONLY in
-  the experiment worktree, not on origin. So the floor will meet a resident leg again at about
-  20:32Z. Its pin worktree predates 9153f5752, so it will still price a timed leg double. Expect a
-  second exit 88. The steer bit on 2 of 3 items. The wrapper double-count is fixed on origin
-  (9153f5752). The tou bind's own row now reads premise_spent. Item one, the floor, was the one that
-  mattered, and it did not run. The shared checkout's behind leg grew from 43 to 51, and 5 of 12
-  commits were empty merges.
+  ONE REAL STEP FORWARD ON THE THESIS, AND IT IS A DIAGNOSIS, NOT A RESULT. 792fcf31d split the
+  selection leg using no new compute. Without write-offs, selection is positive in both runs:
+  +£7,736 at 1002b and +£5,475 at 1002c, against the published -£259 and -£4,208. Exactly one
+  account flips sign, PROS-2016-0098, and its decisive renewal fell on a clean record that no
+  observer could have priced. The finding is more important than the sign, though. The value arm
+  cannot see credit at all. renewal_margin_uplift is the only production caller of decide_margin,
+  and it forwards neither arrears_state nor credit_risk. So every value-arm renewal is priced at
+  "unknown" arrears and "medium" credit risk. ae101f936 claimed the opposite, and its controls called
+  decide_margin directly, so they could not see the gap. Against a thesis whose edge must come from
+  INFERENCE, the per-customer view is currently blind to the one per-customer fact that decided the
+  reading. That is the build now, and it is item two.
+  The floor that bounds the thesis reading has STILL not run, for the third stretch running. This
+  time the cause is a wrong estimate of mine, not a collision. The waiter now counts resident legs,
+  not unit names (e745236ba), so two of last stretch's errors are corrected in mechanism. It is
+  correctly WAITING behind longjob-depth-vs-width-w125c. But I priced w125c at about 1h per pair. Its
+  first pair (61001,61002, pid 1040221) has been running for 3h and is on its second seed. At
+  1.25x, a full-window pair is roughly 6h, so three pairs end around midday on 2026-10-03. The
+  floor's own 12h deadline expires at about 08:40Z, so it would refuse (exit 89) before it ever
+  started. My not_now said killing w125c bought only 3h. It buys the thesis floor about a day. So
+  the order flips at the pair boundary, and item one does exactly that.
+  The 29 February crash is closed on origin, with a class control (c28b7b173) and a behavioural
+  leg mutation-proven twice (4d9244a76). The shared checkout is level with origin (0 ahead, 0
+  behind, from 0/51), so that row is corrected. But 5 of 16 commits were still empty merges. The
+  not_done Lane 0 row grade-the-value-arms-retaken-at-the-belief-commit is the same grading as item
+  one, and it is carried there rather than redone. EP13 and D27 moved forward on their own atoms
+  (s27, s28, pass 20) without steer.
 stretch_reviewed:
-  since: "2026-10-02T17:20:13.759464+00:00"
-  commits: 12
-  substantive: 4
+  since: "2026-10-02T20:21:37.775542+00:00"
+  commits: 16
+  substantive: 5
 focus:
-  - id: the-1002c-floor-runs-once-depth-vs-width-has-left-the-box
+  - id: the-1002c-floor-runs-at-the-first-width-pair-boundary
     lane: B_commercial
     what: >-
-      First read /var/tmp/longjob-value-arms-retake-at-the-belief-floor.log and
-      /var/tmp/se-retake-belief/. If the 11111/22222/33333 --redraw-mode all floor at 0cc052102 wrote
-      value_cycle_ab_s1_noise_floor_20261002c.json, skip straight to grading. If it refused again
-      (exit 88), or is still waiting, do the following. Move any refusal JSON at the --out path aside
-      as *.REFUSED_<time>.json. Then relaunch ONLY the floor with launch_long_job as a setsid unit.
-      Before running, it must wait for EVERY resident `python3 -m tools.run_value_cycle_ab` process
-      to exit. Use the pgrep-then-tools.wait_for loop that /var/tmp/se-depthwidth-out/legs_dw.sh
-      already uses, re-asked in a loop until none remains. Do not wait on a unit name or a pid,
-      because depth-vs-width has relaunched under three names today. Give it a 12h deadline and a
-      named refusal. Run the floor at the pin; do not move the pin to pick up 9153f5752. When it
-      lands, grade Q1 seed-for-seed and Q3 in
-      docs/staging/records/SEAT_RESULT_THE_VALUE_ARMS_RETAKEN_AT_THE_BELIEF_COMMIT_2026-10-02.md.
-      Re-ask the belief's -£3,499 against this floor. Then move CURRENT_WORLD_THREE_ARM_PATH and
-      CURRENT_WORLD_NOISE_FLOOR_PATH together onto the 20261002c pair, with the page saying what
-      changed. Bind with delivery_lane --landed.
+      Wait with tools.wait_for --pid 1040221, the width125 61001,61002 leg of
+      longjob-depth-vs-width-w125c, with a 6h deadline. When it exits, check that
+      /var/tmp/se-depthwidth-out/width125_61001_61002.json is non-empty, then immediately run
+      `systemctl --user stop longjob-depth-vs-width-w125c-20261002`. legs_dw.sh skips legs already on
+      disk, so stopping between pairs loses only the seconds of pair two. Do NOT touch
+      longjob-value-arms-1002c-floor-serialised (/var/tmp/se-retake-belief/wait_all_then_floor.sh).
+      It re-asks pgrep every 60s and starts the 11111/22222/33333 floor at pin 0cc052102 by itself,
+      and longjob-value-arms-1002c-floor-handoff-2 hands off the grading. Once the floor's own
+      run_value_cycle_ab process is resident, and not before, relaunch depth-vs-width as a new
+      setsid unit (w125d) running the same /var/tmp/se-depthwidth-out/legs_dw.sh. Its preamble waits
+      on every resident leg, so it will queue behind the floor. If leg 1040221 dies instead of
+      finishing, stop the unit anyway and record why. When the floor lands, grade Q1 seed-for-seed
+      and Q3 in
+      docs/staging/records/SEAT_RESULT_THE_VALUE_ARMS_RETAKEN_AT_THE_BELIEF_COMMIT_2026-10-02.md, and
+      read the selection leg against the floor both with and without write-offs, using 792fcf31d's
+      split. Then move CURRENT_WORLD_THREE_ARM_PATH and CURRENT_WORLD_NOISE_FLOOR_PATH together onto
+      the 20261002c pair, with the page saying what changed. Bind with delivery_lane --landed.
     why: >-
-      This is the only reading that tests the thesis: the value arm against the flat-rule baseline, at
-      the right commit, with a spread. It has been refused once and is about to be refused again, by
-      the same collision. A waiter keyed to a unit name does not follow a lane that relaunches under a
-      new name. DONE when the 20261002c pair is graded and published, or withdrawn with a named reason.
-      If a run_value_cycle_ab leg is still resident at the next orientation, the floor is WAITING.
-      Say so and do not relaunch.
-  - id: read-selection-with-and-without-arrears-write-offs
+      The floor is the only spread on the value-arm-versus-flat-rule reading, and it has missed three
+      stretches. Left alone, its 12h waiter expires about 4h before w125c's third pair ends, so it
+      would refuse without ever starting. Stopping at the pair boundary costs depth-vs-width a
+      relaunch and no compute. DONE when the 20261002c pair is graded and the pointers have moved, or
+      when it is withdrawn with a named reason. If the floor is resident at the next orientation, it
+      is RUNNING: say so and do not relaunch it.
+  - id: the-value-arm-prices-the-arrears-its-own-ledger-holds
     lane: B_commercial
     what: >-
-      From the existing artefacts, with no new run, split the selection leg into a churn-pricing part
-      and a credit part. The artefacts are /var/tmp/se-retake-belief/value_cycle_ab_s1_three_arm_20261002c.json
-      and the 1002b three-arm. Report selection per account with and without arrears write-offs,
-      and name every account whose sign flips. For PROS-2016-0098 and each such account, record what
-      the company could see at its renewal date. Did the arrears state that ae101f936 routes to the
-      renewal reach the value arm's price for that account, and with what effect? Write the result
-      as a finding in docs/staging/records/. If the value arm sees arrears and does not price them,
-      file it as a defect against company/pricing/value_based_renewal.py. If the arm cannot see
-      them, file it as a gap. Do not change any pricing code in this item.
+      Carry out remedies 1 and 2 of
+      docs/staging/SEAT_FINDING_THE_VALUE_ARM_CANNOT_SEE_ARREARS_BECAUSE_THE_PRICING_ADAPTER_NEVER_FORWARDS_IT_2026-10-02.md.
+      In company/pricing/value_based_renewal.py, forward the company's own ledger-derived
+      arrears_state, plus whatever of credit_risk and payment_delay_days the company actually
+      holds, from renewal_rate_chain through renewal_margin_uplift into decide_margin. Add a control
+      that enters at renewal_margin_uplift, NOT decide_margin, and goes red when the forward is
+      dropped. Mutation-prove it by deleting the forward. For remedy 3 (how an observed arrears
+      position moves the expected bad-debt cost in expected_annual_costs), research
+      docs/market_research/, the knowledge map and published Ofgem debt-and-arrears data first. If a
+      sourced relation exists, wire it with its origin declared. If none does, leave the bad-debt
+      term on credit_risk, record the gap in docs/institutional/knowledge_map.md as an explicit None
+      with its reason, and do not invent a coefficient. Run the value-arms controls. Any control that
+      pinned today's priced margin is re-keyed to the property, never deleted.
     why: >-
-      The thesis reading says the flat rule beats the per-customer view by £4,208. 193% of that is
-      one account the flat rule priced out by luck. A seed mean will average that, not explain it,
-      and it will be read as the value arm choosing badly, which is the wrong cause. Settling the
-      cause costs no compute and decides what the floor's verdict means. DONE when the split and
-      the arrears-visibility answer are on origin as a finding.
-  - id: a-29-february-term-start-does-not-crash-the-value-arm
-    lane: B_commercial
+      The thesis says the edge must come from inference over what the supplier can know. A supplier
+      knows its own arrears, and our value arm throws that away before it prices. The one reading we
+      have is decided by exactly that blindness, which makes this the cheapest change that moves the
+      thesis rather than measuring it again. This is company-side, so it does not disturb the floor,
+      which is pinned at 0cc052102. DONE when the forward and its mutation-proven control are on
+      origin, and the bad-debt question is either wired from a source or recorded as an explicit gap.
+  - id: life-events-are-drawn-per-household-from-sourced-rates
+    lane: W2_customer_generator
     what: >-
-      company/pricing/value_based_renewal.py:1473 (observed_account_state) builds window_open with
-      start.replace(year=start.year - OBSERVATION_WINDOW_YEARS). That raises ValueError for any term
-      starting on 29 February. It killed longjob-depth-vs-width-w125b at 20:12Z. Diff the guard in
-      /var/tmp/se-width125-a322166cc/company/pricing/value_based_renewal.py against origin. Land an
-      equivalent on origin, after checking the other replace(year=...) sites in company/ and saas/
-      for the same shape. Ship it with a control that drives a real 29 February term start through
-      observed_account_state. Mutation-prove the control against the unguarded line.
+      Close docs/staging/SEAT_FINDING_TWO_LIFE_EVENT_RATES_ARE_PER_PERSON_FIGURES_APPLIED_PER_HOUSEHOLD_2026-10-02.md
+      in simulation/life_events.py. Either source per-household annual rates for a new baby and for a
+      job loss (ONS births by household, or the LFS household flows), or draw each event per person
+      over the household's own composition, using the existing per-person rates. Prefer the second
+      if the composition is on the household, because it needs no new number. Print the household
+      incidence of both events before and after, across the real book, before you write the test.
+      Then add a control that fails if a per-person rate is applied per household again.
     why: >-
-      A company-code defect is live on origin and patched only inside an experiment's worktree. So
-      depth-vs-width's width arm is measuring code that origin does not run, and any production
-      renewal on a leap-day anniversary crashes the arm. DONE when the guard and its control are on
-      origin.
+      With item two, credit becomes a priced input, so the world must generate the income shocks that
+      make credit vary. Today it under-draws them, so a credit-aware arm would be graded against a
+      world that presses back too gently. That is a fidelity defect, and it is the world's side of the
+      same question. DONE when the finding is dispositioned on origin with the remedy and its control.
 not_now:
-  - what: Stop longjob-depth-vs-width-w125c so the floor gets the box tonight.
+  - what: Stop w125c right now, mid-pair, so the floor starts tonight.
     why: >-
-      w125c started at 20:21Z and has three pairs at roughly 1h each. Killing it buys the floor about
-      3h and costs a whole relaunch plus a fourth broken run of an experiment that died twice today.
-      With item two settling what the selection reading means at no compute, 3h on the floor is the
-      cheaper loss. If w125c refuses or dies again, the floor goes first and depth-vs-width queues
-      behind it.
-  - what: Move the floor's pin forward to pick up 9153f5752, so it prices a timed leg once.
+      Pair one is about half done. Killing it throws away roughly 3h of compute to gain the same 3h.
+      The pair boundary costs nothing, and it still lands the floor about a day sooner than leaving
+      w125c to finish.
+  - what: Leave w125c to finish all three pairs, then run the floor.
     why: >-
-      It changes the commit the three-arm was graded at, so the floor would bound a figure from a
-      different code state. Waiting for an empty box makes the double-count moot for this run.
-  - what: Grade depth-vs-width now.
+      This was my rejected choice last stretch, and it rested on a 1h-per-pair estimate that was
+      about 6x wrong. It would also expire the floor's 12h waiter. Depth-vs-width is a cost-of-evidence
+      question; the floor bounds the thesis reading itself.
+  - what: Write a sourced-looking arrears-to-bad-debt coefficient so item two prices credit end to end.
     why: >-
-      D2019 and D2022 are on disk, but the width arm has zero of three pairs, and it runs a guard that
-      is not on origin. Grade it after item three lands and ALL LEGS DONE appears.
-  - what: Teach the value arm to price credit risk.
+      No figure is established in this tree. An invented one would be load-bearing within a week. A
+      forward plus an honest None still lets the arm see arrears through the churn hazard, and it names
+      the gap.
+  - what: Re-run the three-arm at a commit carrying item two's forward.
     why: >-
-      That is the build item two may justify. Building it before item two has established that the
-      arm cannot see arrears, rather than sees them and ignores them, would be choosing the remedy
-      before the definition.
-  - what: Make the shared checkout's divergence (0 ahead, 51 behind) a focus item.
+      Not until the floor at 0cc052102 has graded the current reading. Changing the arm before its
+      spread exists repeats the confound that broke Q1 (the level moved under the comparison).
+  - what: >-
+      Build a pre-launch check that a long job's worktrees and pinned commits exist (the exit-90
+      row), or a guard against ticks resetting worktrees that hold unlanded work.
     why: >-
-      Landings reach origin through surgical_land regardless, and nothing in this stretch's thesis
-      work was blocked by it. It stays open in wrong. If any daemon is shown acting on stale code,
-      it displaces item three.
-  - what: Source per-household new-baby and job-loss rates (65f48b276).
+      Both are real, and both stay open in wrong. Neither blocks this stretch's thesis work, which
+      runs on existing worktrees under hand-written waiters. They rise if another long job dies at
+      launch, or if a graded diff is lost.
+  - what: Give worker-seat-manager a heartbeat line.
     why: >-
-      A real fidelity defect, but research-first, and it moves collections. The selection question
-      is now about credit, so this rises next stretch if item two finds arrears drive the reading.
+      Its mute state is by construction and is on file. It costs nothing to the thesis today.
 wrong:
+  - what: >-
+      MINE, NEW. I priced w125c at about 1h per pair and rejected stopping it as buying the floor only
+      3h. A full-window 1.25x pair runs roughly 6h, so the floor's 12h waiter would have expired before
+      the box emptied. I did not print the leg timings (depth pairs ran about 2h07 at shorter
+      windows) before choosing. Item one reverses the call.
+    corrected: false
+  - what: >-
+      THE MACHINE'S, NEW. A waiter's deadline is set without pricing the queue ahead of it. The 1002c
+      floor's 12h deadline is shorter than the w125c job it waits behind, so the waiter is built to
+      refuse.
+    corrected: false
+  - what: >-
+      THE MACHINE'S, NEW. ae101f936 said arrears reach the offered margin. On the production path they
+      do not: renewal_margin_uplift drops them before decide_margin. Its controls called decide_margin
+      directly, so they were green on a chain no renewal reaches. Item two.
+    corrected: false
   - what: >-
       MINE, NEW. I directed the retake to be "admitted by resource_headroom" beside the resident
       depth-vs-width legs. resource_headroom admitted the floor, but the floor's own inner gate
@@ -126,17 +151,17 @@ wrong:
       disagreed, and the floor that bounds the thesis reading never ran. Last stretch's correction
       did not hold either: it waited on a unit that died and relaunched under new names. Item one
       waits on the process, not the name.
-    corrected: false
+    corrected: true
   - what: >-
       MINE, NEW. I keyed a wait to longjob-depth-vs-width-20261002 as if a unit name were the
       experiment. The experiment relaunched as w125b, then w125c, and each relaunch was invisible to
       that wait, so the floor was set up to collide again.
-    corrected: false
+    corrected: true
   - what: >-
       THE MACHINE'S, NEW. company/pricing/value_based_renewal.py raises ValueError on a 29 February
       term start. w125b died of it, and the guard exists only in an experiment worktree, so
       depth-vs-width now measures code that origin does not run. Item three.
-    corrected: false
+    corrected: true
   - what: >-
       THE MACHINE'S, NEW. The world digest does not identify behaviour switches, so 1002b and 1002c
       share digest cf823b185f8ca51c and are not the same world. Only the pin separates them.
@@ -146,11 +171,6 @@ wrong:
       and died at exit 90 after 10h. Nothing checks a long job's worktrees before launch.
     corrected: false
   - what: >-
-      THE MACHINE'S, NEW. floor_run_headroom_refusal counts a `/usr/bin/time` wrapper and its
-      run_value_cycle_ab child as two legs (pids 347062 and 347063), so every timed leg is priced
-      double. Corrected on origin by 9153f5752. The 1002c floor still runs at a pin that predates it.
-    corrected: true
-  - what: >-
       THE MACHINE'S. A held change's hold condition is not re-asked when its premise moves. a15532730
       and 1ff7b68b3 held "until the retake lands", and now a continuation is clock-held past its own
       condition. Nothing was built to re-ask it.
@@ -159,7 +179,7 @@ wrong:
       THE MACHINE'S. The shared checkout has diverged from origin/main: now 0 ahead and 51 behind (it
       was 0 ahead and 43 behind), and 5 of 12 commits this stretch were empty merges. Daemons running
       from the shared tree execute code origin has moved past.
-    corrected: false
+    corrected: true
   - what: >-
       THE MACHINE'S. A long job's world stamp is not tied to HEAD. arms-d-head-1002 and the f18e8b5dc
       retake were each overtaken within hours. Only value-arms readings are checked for it.
@@ -215,5 +235,6 @@ wrong:
   - what: >-
       THE MACHINE'S. Two life-event rates (new baby, job loss) are per-person statistics applied per
       household, so the world under-draws income shocks. Filed LATENT by 65f48b276 and not remedied.
+      Item three.
     corrected: false
 for_the_director: []

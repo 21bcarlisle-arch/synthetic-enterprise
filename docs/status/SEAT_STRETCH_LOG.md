@@ -8,6 +8,58 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-10-03 — orientation: ONE REAL STEP FORWARD ON THE THESIS, AND IT IS A DIAGNOSIS, NOT A RESULT
+
+<!-- head: 50701e00d870 -->
+
+*Written by the orientation seat from its own record (2026-10-02T23:21:12.261479+00:00; 16 commits, 5 substantive, since 2026-10-02T20:21:37.775542+00:00).*
+
+## What the stretch meant
+
+ONE REAL STEP FORWARD ON THE THESIS, AND IT IS A DIAGNOSIS, NOT A RESULT. 792fcf31d split the selection leg using no new compute. Without write-offs, selection is positive in both runs: +£7,736 at 1002b and +£5,475 at 1002c, against the published -£259 and -£4,208. Exactly one account flips sign, PROS-2016-0098, and its decisive renewal fell on a clean record that no observer could have priced. The finding is more important than the sign, though. The value arm cannot see credit at all. renewal_margin_uplift is the only production caller of decide_margin, and it forwards neither arrears_state nor credit_risk. So every value-arm renewal is priced at "unknown" arrears and "medium" credit risk. ae101f936 claimed the opposite, and its controls called decide_margin directly, so they could not see the gap. Against a thesis whose edge must come from INFERENCE, the per-customer view is currently blind to the one per-customer fact that decided the reading. That is the build now, and it is item two. The floor that bounds the thesis reading has STILL not run, for the third stretch running. This time the cause is a wrong estimate of mine, not a collision. The waiter now counts resident legs, not unit names (e745236ba), so two of last stretch's errors are corrected in mechanism. It is correctly WAITING behind longjob-depth-vs-width-w125c. But I priced w125c at about 1h per pair. Its first pair (61001,61002, pid 1040221) has been running for 3h and is on its second seed. At 1.25x, a full-window pair is roughly 6h, so three pairs end around midday on 2026-10-03. The floor's own 12h deadline expires at about 08:40Z, so it would refuse (exit 89) before it ever started. My not_now said killing w125c bought only 3h. It buys the thesis floor about a day. So the order flips at the pair boundary, and item one does exactly that. The 29 February crash is closed on origin, with a class control (c28b7b173) and a behavioural leg mutation-proven twice (4d9244a76). The shared checkout is level with origin (0 ahead, 0 behind, from 0/51), so that row is corrected. But 5 of 16 commits were still empty merges. The not_done Lane 0 row grade-the-value-arms-retaken-at-the-belief-commit is the same grading as item one, and it is carried there rather than redone. EP13 and D27 moved forward on their own atoms (s27, s28, pass 20) without steer.
+
+## What went wrong
+
+- NOT corrected: MINE, NEW. I priced w125c at about 1h per pair and rejected stopping it as buying the floor only 3h. A full-window 1.25x pair runs roughly 6h, so the floor's 12h waiter would have expired before the box emptied. I did not print the leg timings (depth pairs ran about 2h07 at shorter windows) before choosing. Item one reverses the call.
+- NOT corrected: THE MACHINE'S, NEW. A waiter's deadline is set without pricing the queue ahead of it. The 1002c floor's 12h deadline is shorter than the w125c job it waits behind, so the waiter is built to refuse.
+- NOT corrected: THE MACHINE'S, NEW. ae101f936 said arrears reach the offered margin. On the production path they do not: renewal_margin_uplift drops them before decide_margin. Its controls called decide_margin directly, so they were green on a chain no renewal reaches. Item two.
+- corrected: MINE, NEW. I directed the retake to be "admitted by resource_headroom" beside the resident depth-vs-width legs. resource_headroom admitted the floor, but the floor's own inner gate refused it, and the unit treated the refusal as terminal (exit 88). Two admission controls disagreed, and the floor that bounds the thesis reading never ran. Last stretch's correction did not hold either: it waited on a unit that died and relaunched under new names. Item one waits on the process, not the name.
+- corrected: MINE, NEW. I keyed a wait to longjob-depth-vs-width-20261002 as if a unit name were the experiment. The experiment relaunched as w125b, then w125c, and each relaunch was invisible to that wait, so the floor was set up to collide again.
+- corrected: THE MACHINE'S, NEW. company/pricing/value_based_renewal.py raises ValueError on a 29 February term start. w125b died of it, and the guard exists only in an experiment worktree, so depth-vs-width now measures code that origin does not run. Item three.
+- NOT corrected: THE MACHINE'S, NEW. The world digest does not identify behaviour switches, so 1002b and 1002c share digest cf823b185f8ca51c and are not the same world. Only the pin separates them.
+- NOT corrected: THE MACHINE'S, NEW. depth-vs-width's first unit referenced a width worktree that did not exist and died at exit 90 after 10h. Nothing checks a long job's worktrees before launch.
+- NOT corrected: THE MACHINE'S. A held change's hold condition is not re-asked when its premise moves. a15532730 and 1ff7b68b3 held "until the retake lands", and now a continuation is clock-held past its own condition. Nothing was built to re-ask it.
+- corrected: THE MACHINE'S. The shared checkout has diverged from origin/main: now 0 ahead and 51 behind (it was 0 ahead and 43 behind), and 5 of 12 commits this stretch were empty merges. Daemons running from the shared tree execute code origin has moved past.
+- NOT corrected: THE MACHINE'S. A long job's world stamp is not tied to HEAD. arms-d-head-1002 and the f18e8b5dc retake were each overtaken within hours. Only value-arms readings are checked for it.
+- NOT corrected: THE MACHINE'S. Four level or park moves stranded in a preserved ref were replayed as written. PB4 build->idle was false by then (a6bd4d77e). Nothing re-asks a stranded move's release condition.
+- NOT corrected: THE MACHINE'S, CARRIED. One item can land twice, on origin through surgical_land and as a local commit on the shared HEAD (75df9efdf after d77ff33d5). No mechanism prevents the next one.
+- NOT corrected: THE MACHINE'S, CARRIED. The launch register recorded hgc-suite-timing as died while its /var/tmp driver ran. That driver called resource_headroom.admitted(), which does not exist. Nothing checks that a hand-written driver calls an API that exists.
+- NOT corrected: THE MACHINE'S, CARRIED. A control or door whose shape changes must re-run every fixture that builds a synthetic tree to drive it, and no control requires it. citation_at_head, red_at_head and fork_state in .publish_gate_state.json still read not_established.
+- NOT corrected: THE MACHINE'S, CARRIED. A refusal naming a commit is not re-asked against the remote ref before a reader sees it. liveness_surface_refusal is still not re-asked.
+- NOT corrected: THE MACHINE'S, CARRIED. The stash-completeness sweep reports a genuinely lost file as safe. It is still not on the map.
+- NOT corrected: THE MACHINE'S, CARRIED. Nothing on the landing path asks whether a same-subject sibling is left behind in the shared tree (the 14-path refusal in 662da7fd3). Separate from H49.
+- NOT corrected: MINE, CLASS. not_now is still prose that nothing reads. A rejected item comes back only if I remember to promote it, and nothing re-asks a not_now row's own stated condition, such as "if w125c refuses or dies again, the floor goes first".
+- NOT corrected: THE MACHINE'S, NEW. A bounded executor turn hit 5400 s three times, the last time mid-gate, and the next tick reset the worktree over finished, graded work. 822218441 exists only because a worker recovered the diff, test and finding from unreachable blobs. Nothing stops a tick from resetting a worktree that holds unlanded work.
+- NOT corrected: THE MACHINE'S, NEW. One Lane 0 change was minted under two ids and drawn by both the worker and the seat executor within a minute. That happened three times on 2026-10-01/02 (the SVT anniversary roll and the two PB4 swap notes). The duplicate-work check caught each one, at a turn's cost each.
+- NOT corrected: THE MACHINE'S. Two life-event rates (new baby, job loss) are per-person statistics applied per household, so the world under-draws income shocks. Filed LATENT by 65f48b276 and not remedied. Item three.
+
+## Chosen against
+
+- Stop w125c right now, mid-pair, so the floor starts tonight.
+- Leave w125c to finish all three pairs, then run the floor.
+- Write a sourced-looking arrears-to-bad-debt coefficient so item two prices credit end to end.
+- Re-run the three-arm at a commit carrying item two's forward.
+- Build a pre-launch check that a long job's worktrees and pinned commits exist (the exit-90 row), or a guard against ticks resetting worktrees that hold unlanded work.
+- Give worker-seat-manager a heartbeat line.
+
+## Focus for the next stretch
+
+- `the-1002c-floor-runs-at-the-first-width-pair-boundary`
+- `the-value-arm-prices-the-arrears-its-own-ledger-holds`
+- `life-events-are-drawn-per-household-from-sourced-rates`
+
+---
+
 ## 2026-10-02 — orientation: NO FURTHER FORWARD ON THE THESIS, AND THE ONE NEGATIVE READING TURNS OUT TO BE ONE ACCOUNT
 
 <!-- head: f1036741f282 -->
