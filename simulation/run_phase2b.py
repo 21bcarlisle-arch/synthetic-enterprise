@@ -2813,8 +2813,8 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                         acq_seed = f"acquire_{billing_account}_{term_start_str}"
 
                         # Phase 47b: cap-aware acquisition gate — the supplier declines
-                        # to go to market when the cap would force resi electricity below
-                        # wholesale cost. KNIFE3 step 27 (register §3v): the budget and
+                        # to go to market when its price is above the published default
+                        # (2026-10-02: both fuels, ex-VAT, on the day). KNIFE3 step 27 (register §3v): the budget and
                         # the gate are ONE question asked through
                         # `company.interfaces.growth_desk`, not two the world answered off
                         # its own copy of the supplier's cost table.
@@ -2823,6 +2823,13 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                             commodity=commodity,
                             company_fwd_gbp_per_mwh=company_fwd,
                             term_start=term_start_str,
+                            # The supplier's own strike for this commodity on this day, which is
+                            # the fix a replacement would be quoted. Only a FIXED term's strike is
+                            # one: an SVT term's rate is the cap itself and would always pass.
+                            quoted_unit_rate_per_mwh=(
+                                term["unit_rate_gbp_per_mwh"]
+                                if term_tariff_type == "fixed" else None
+                            ),
                         )
                         acq_cost = _acq.budget_gbp
                         if not _acq.attempt:

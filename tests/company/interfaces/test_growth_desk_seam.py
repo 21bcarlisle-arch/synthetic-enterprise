@@ -75,11 +75,11 @@ class TestBehaviour:
         )
         assert decision.budget_gbp == expected_budget
 
-    def test_the_gate_fires_only_for_resi_electricity_under_a_binding_cap(self):
-        # 2022-10: cap 305 GBP/MWh, so a 400 forward is above it and the
-        # supplier declines. Pinned including the reason STRING, because the
-        # reason is what reaches the ledger row and a silent reword there is
-        # invisible to a boolean-only assertion.
+    def test_the_gate_fires_for_resi_above_the_published_default_on_either_fuel(self):
+        # 2022-10: the default is the EPG, ex-VAT (323.8 electricity, 98.3 gas), so a 400 forward
+        # is above it on both fuels and the supplier declines. Pinned including the reason STRING,
+        # because the reason is what reaches the ledger row and a silent reword there is
+        # invisible to a boolean-only assertion. Gas was never gated until 2026-10-02.
         blocked = decide_acquisition(
             segment="resi",
             commodity="electricity",
@@ -87,16 +87,29 @@ class TestBehaviour:
             term_start="2022-10-01",
         )
         assert blocked.attempt is False
-        assert blocked.gate_reason == "cap_constrained (cap=305 < fwd=400 GBP/MWh)"
+        assert blocked.gate_reason == (
+            "cap_constrained (electricity default=323.8 < fwd=400.0 GBP/MWh ex-VAT)")
 
-        blocked_2023 = decide_acquisition(
+        blocked_gas = decide_acquisition(
             segment="resi",
-            commodity="electricity",
+            commodity="gas",
             company_fwd_gbp_per_mwh=400.0,
             term_start="2023-01-01",
         )
-        assert blocked_2023.attempt is False
-        assert blocked_2023.gate_reason == "cap_constrained (cap=265 < fwd=400 GBP/MWh)"
+        assert blocked_gas.attempt is False
+        assert blocked_gas.gate_reason == (
+            "cap_constrained (gas default=98.3 < fwd=400.0 GBP/MWh ex-VAT)")
+
+    def test_the_supplier_s_quote_reaches_the_gate_through_the_door(self):
+        # The forward is under the default, the strike is over it: only the quote can refuse.
+        decision = decide_acquisition(
+            segment="resi",
+            commodity="electricity",
+            company_fwd_gbp_per_mwh=150.0,
+            term_start="2024-08-25",
+            quoted_unit_rate_per_mwh=214.4,
+        )
+        assert decision.attempt is False and "quote=214.4" in decision.gate_reason
 
     @pytest.mark.parametrize(
         "segment,commodity,fwd,term_start",
@@ -104,8 +117,8 @@ class TestBehaviour:
             # A cheap forward under the same binding cap year — the cap is not
             # the thing that decides, the COMPARISON is.
             ("resi", "electricity", 40.0, "2022-10-01"),
-            # Gas is never gated, at any forward.
-            ("resi", "gas", 400.0, "2022-10-01"),
+            # A gas forward under the gas default proceeds as electricity does.
+            ("resi", "gas", 60.0, "2022-10-01"),
             # Non-resi is never gated, at any forward.
             ("SME", "electricity", 400.0, "2022-10-01"),
             ("SME", "gas", 400.0, "2023-01-01"),

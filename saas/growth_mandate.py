@@ -124,30 +124,51 @@ def should_attempt_acquisition(
     commodity: str,
     company_fwd_gbp_per_mwh: float,
     date_str: str,
+    *,
+    quoted_unit_rate_per_mwh: float | None = None,
 ) -> tuple[bool, str | None]:
-    """Return (should_attempt, gate_reason).
+    """Return (should_attempt, gate_reason): the supplier's one no-offer rule at acquisition.
 
-    Gate fires for resi electricity when the Ofgem domestic price cap falls
-    below the company's forward cost — meaning any fixed-term deal would be
-    sold below wholesale cost. Non-resi and gas always proceed.
+    A domestic prospect is already on the default tariff, so a fix quoted above it wins nobody,
+    and quoting it at the default when that is below this supplier's own price sells below cost.
+    So the supplier does not go to market when its price exceeds the published default on the
+    prospect's day. That is what real suppliers did in 2021-22: "wholesale costs exceeded the
+    Ofgem price cap ceiling so no viable fixed product could be offered"
+    (`docs/market_research/svt_rates_active_passive_2016_2025.md`).
 
-    gate_reason is None when the attempt should proceed.
+    BOTH SIDES EX-VAT, on the day, net of the EPG. The default is `cap_ceiling_ex_vat`, the one
+    ex-VAT reading of the published cap the renewal chain already clamps with. Net of the EPG
+    because the guarantee is what the prospect paid. The rule this replaced compared the annual
+    inc-VAT figure with an ex-VAT forward on electricity only, and so never refused gas.
+
+    `quoted_unit_rate_per_mwh` is the rate the supplier would strike. Without it the forward
+    stands in, which is a FLOOR on any strike, so that leg can only under-refuse.
+
+    Non-resi always proceeds (no domestic cap). So does a day with no published cap (pre-2019),
+    because then there is no default to price against. gate_reason is None when it proceeds.
     """
-    if segment != "resi" or commodity != "electricity":
+    if segment != "resi":
         return True, None
 
-    from company.pricing.ofgem_price_cap import get_cap_unit_rate_gbp_per_mwh
+    from datetime import date
 
-    year = int(date_str[:4])
-    cap = get_cap_unit_rate_gbp_per_mwh("electricity", year)
-    if cap is None:
+    from company.pricing.renewal_rate_chain import cap_ceiling_ex_vat
+
+    default = cap_ceiling_ex_vat(
+        commodity, date.fromisoformat(date_str[:10]), multi_register=False, net_of_epg=True,
+    )
+    if default is None:
         return True, None
 
-    if cap < company_fwd_gbp_per_mwh:
-        reason = (
-            f"cap_constrained (cap={cap:.0f} < fwd={company_fwd_gbp_per_mwh:.0f} GBP/MWh)"
+    price, basis = (
+        (company_fwd_gbp_per_mwh, "fwd") if quoted_unit_rate_per_mwh is None
+        else (quoted_unit_rate_per_mwh, "quote")
+    )
+    if price > default:
+        return False, (
+            f"cap_constrained ({commodity} default={default:.1f} < {basis}={price:.1f} "
+            f"GBP/MWh ex-VAT)"
         )
-        return False, reason
 
     return True, None
 

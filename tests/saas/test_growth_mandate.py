@@ -124,10 +124,11 @@ def test_should_attempt_nonresi_always_proceeds():
     assert reason is None
 
 
-def test_should_attempt_gas_always_proceeds():
+def test_should_attempt_gates_gas_like_electricity():
+    # Was "gas always proceeds": the 2021-22 first terms the rule had to refuse were mostly gas.
     proceed, reason = should_attempt_acquisition("resi", "gas", 999.0, "2022-01-01")
-    assert proceed is True
-    assert reason is None
+    assert proceed is False
+    assert reason.startswith("cap_constrained (gas ")
 
 
 def test_acquisition_budget_empty():

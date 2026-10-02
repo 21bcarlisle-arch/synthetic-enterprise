@@ -114,6 +114,7 @@ def decide_acquisition(
     commodity: str,
     company_fwd_gbp_per_mwh: float,
     term_start: str,
+    quoted_unit_rate_per_mwh: float | None = None,
 ) -> AcquisitionDecision:
     """Ask the supplier whether to go to market to replace a lost supply point.
 
@@ -125,12 +126,17 @@ def decide_acquisition(
     the supplier's OWN forward — not the world's. There is deliberately no
     parameter through which a caller could supply, or reach, the per-segment
     cost table or the cap lookup behind the gate.
+
+    `quoted_unit_rate_per_mwh` is the supplier's OWN strike for this commodity on this day,
+    when the caller holds one. The gate prices it against the default; without it the forward
+    stands in (see `should_attempt_acquisition`).
     """
     from saas.growth_mandate import cost_per_acquisition_gbp, should_attempt_acquisition
 
     budget_gbp = cost_per_acquisition_gbp(segment)
     attempt, gate_reason = should_attempt_acquisition(
-        segment, commodity, company_fwd_gbp_per_mwh, term_start
+        segment, commodity, company_fwd_gbp_per_mwh, term_start,
+        quoted_unit_rate_per_mwh=quoted_unit_rate_per_mwh,
     )
     return AcquisitionDecision(
         attempt=attempt,
