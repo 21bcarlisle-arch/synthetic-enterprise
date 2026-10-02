@@ -28,7 +28,7 @@ automatically thereafter, never by patching the one instance.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import date, datetime, timedelta
+from datetime import date, datetime
 from decimal import ROUND_HALF_UP, Decimal
 from math import isfinite
 from typing import Optional
@@ -44,10 +44,7 @@ from company.compliance.segment_debt_policy import (
 from company.compliance.segment_debt_policy import (
     select_debt_terms as _select_debt_terms,
 )
-from company.pricing.ofgem_price_cap import (
-    get_cap_unit_rate_for_date,
-    get_cap_unit_rate_gbp_per_mwh,
-)
+from company.pricing.ofgem_price_cap import get_cap_unit_rate_gbp_per_mwh
 
 _CAP_ANCHOR_YEARS = range(2019, 2026)
 _ELEC_CAP_BY_YEAR = {
@@ -377,12 +374,14 @@ class StructuralInvariant:
 # 5% over the law, and the plausibility band above (up to 150% of the cap) cannot see it. That was
 # 28 of 117 first terms in one world before 2026-10-01 (records/SEAT_FINDING_THE_28_ACCOUNTS_ABOVE_
 # THE_CAP_ARE_EX_VAT_STRIKES_CEILINGED_AT_THE_INC_VAT_CAP_2026-10-01.md). Enforced by
-# check_sold_unit_rate_within_cap() below, which de-VATs with this library's own VAT rule.
+# company/pricing/renewal_rate_chain.cap_ceiling_ex_vat(), the one ceiling the company strikes under:
+# a second copy here had no caller and graded an SVT segment against the EPG it is paid above.
 SOLD_UNIT_RATE_WITHIN_CAP_EX_VAT = StructuralInvariant(
     id="sold_unit_rate_within_cap_ex_vat",
     description=(
         "A capped domestic tariff's ex-VAT unit rate, once domestic VAT is added, does not exceed "
-        "the default tariff cap (the binding EPG level where it applied) in force on its date"
+        "the default tariff cap in force on its date -- the multi-register benchmark for a ToU "
+        "tariff, and the Ofgem level, not the EPG, for a default tariff the Treasury made whole"
     ),
     source="Ofgem SLC 28AD (default tariff cap, published inc-VAT); HMRC VAT Notice 701/19",
 )
@@ -1076,24 +1075,6 @@ def check_vat_consistent_with_consumption(
 def check_unit_rate_plausible(fuel: str, year: int, unit_rate_gbp_per_mwh: float) -> bool:
     invariant = UNIT_RATE_ELEC_RESI_BY_YEAR if fuel == "electricity" else UNIT_RATE_GAS_RESI_BY_YEAR
     return invariant.check(unit_rate_gbp_per_mwh, year)
-
-
-def check_sold_unit_rate_within_cap(
-    commodity: str, on_date: date, unit_rate_ex_vat_gbp_per_mwh: float
-) -> bool:
-    """SOLD_UNIT_RATE_WITHIN_CAP_EX_VAT: the ex-VAT rate is held against the published cap
-    de-VATed, never against the published figure itself. Domestic, capped tariffs only -- the
-    caller filters, as for `get_cap_unit_rate_for_date`. Before the cap existed there is no
-    ceiling, so it passes. A rate that is not a finite number cannot be shown lawful: HELD."""
-    if not isinstance(unit_rate_ex_vat_gbp_per_mwh, (int, float)) or not isfinite(
-        unit_rate_ex_vat_gbp_per_mwh
-    ):
-        return False
-    published = get_cap_unit_rate_for_date(commodity, on_date)
-    if published is None:
-        return True
-    ceiling = published / (1.0 + vat_rate_for_segment("resi"))
-    return unit_rate_ex_vat_gbp_per_mwh <= ceiling + 1e-6
 
 
 def check_resi_consumption_plausible(fuel: str, annual_kwh: float) -> bool:

@@ -606,10 +606,7 @@ def test_a_strike_once_VAT_is_added_never_exceeds_the_PUBLISHED_cap(arm_populati
     """
     from datetime import date as _date
 
-    from company.compliance.domain_invariants import (
-        check_sold_unit_rate_within_cap,
-        vat_rate_for_segment,
-    )
+    from company.compliance.domain_invariants import vat_rate_for_segment
     from company.pricing.ofgem_price_cap import get_cap_unit_rate_for_date
     VAT_RATE_DOMESTIC = vat_rate_for_segment("resi")
 
@@ -634,8 +631,7 @@ def test_a_strike_once_VAT_is_added_never_exceeds_the_PUBLISHED_cap(arm_populati
             for entry in result.value_arm_entries:
                 if not entry.get("declined"):
                     assert entry["unit_rate_after"] <= ex_vat + 1e-6
-            assert check_sold_unit_rate_within_cap(
-                "electricity", _date(2021, 6, 1), result.unit_rate_gbp_per_mwh)
+            assert result.unit_rate_gbp_per_mwh <= ex_vat + 1e-6
 
     with policy_scope(CURRENT_POLICY):
         clamped = _drive(is_domestic=True, tariff_type="fixed", term_start="2021-06-01",

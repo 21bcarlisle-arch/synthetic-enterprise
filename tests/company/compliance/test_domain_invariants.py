@@ -600,23 +600,24 @@ def test_a_sold_rate_at_the_PUBLISHED_cap_breaches_and_the_de_VATed_cap_does_not
     """Ofgem publishes the cap inc-VAT and the company sells ex-VAT. The defect this invariant
     closes as a class was a rate sitting AT the published figure, so the published figure itself
     must be refused -- and, so the rule is not one that refuses everything, the de-VATed figure
-    must pass. Pre-cap dates have no ceiling; a non-finite rate cannot be shown lawful.
-    MUTATION: drop the `/ (1.0 + vat_rate_for_segment("resi"))` and the first assert reds."""
+    must pass. Pre-cap dates have no ceiling.
+
+    The invariant is enforced by the chain's own ceiling, not a copy kept here: a copy had no
+    caller and graded an SVT segment against the EPG it is paid above (2026-10-02).
+    MUTATION: drop the `/ (1.0 + vat_rate_for_segment("resi"))` in `cap_ceiling_ex_vat` and the
+    first assert reds."""
     from datetime import date as _date
 
-    from company.compliance.domain_invariants import (
-        SOLD_UNIT_RATE_WITHIN_CAP_EX_VAT,
-        check_sold_unit_rate_within_cap,
-    )
+    from company.compliance.domain_invariants import SOLD_UNIT_RATE_WITHIN_CAP_EX_VAT
     from company.pricing.ofgem_price_cap import get_cap_unit_rate_for_date
+    from company.pricing.renewal_rate_chain import cap_ceiling_ex_vat
 
     assert SOLD_UNIT_RATE_WITHIN_CAP_EX_VAT in ALL_INVARIANTS
     for fuel, on in (("electricity", _date(2021, 6, 1)), ("gas", _date(2023, 1, 15))):
         published = get_cap_unit_rate_for_date(fuel, on)
-        assert not check_sold_unit_rate_within_cap(fuel, on, published), (
+        ceiling = cap_ceiling_ex_vat(fuel, on, multi_register=False)
+        assert published > ceiling + 1e-6, (
             f"{fuel} sold at the inc-VAT published cap {published:.2f} ex-VAT passed -- 5% over the law"
         )
-        assert check_sold_unit_rate_within_cap(fuel, on, published / 1.05)
-        assert not check_sold_unit_rate_within_cap(fuel, on, published / 1.05 + 0.01)
-    assert check_sold_unit_rate_within_cap("electricity", _date(2018, 6, 1), 10_000.0)
-    assert not check_sold_unit_rate_within_cap("electricity", _date(2021, 6, 1), float("nan"))
+        assert abs(ceiling - published / (1.0 + vat_rate_for_segment("resi"))) < 1e-9
+    assert cap_ceiling_ex_vat("electricity", _date(2018, 6, 1), multi_register=False) is None

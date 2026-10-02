@@ -889,7 +889,7 @@ RUFF_BASELINE: dict[str, int] = {
     # 2026-09-06  F401 265 -> 264. `dataclasses.field`, unused in
     #             `company/crm/vulnerability_register.py` at HEAD, removed while that file's
     #             import block was open for the delegation (atom C32, see log).
-    "F401": 264,
+    "F401": 263,  # 264 -> 263 on 2026-10-02: `timedelta` in company/compliance/domain_invariants.py.
     # 173 -> 172 on 2026-09-08: `tests/simulation/test_svt_rates.py` carried a mid-file
     # `from simulation.svt_rates import _quarter_start_month` above its eight tests, and both the
     # function and the tests went when the quarterly key table they walked was replaced by a
@@ -927,6 +927,7 @@ RUFF_BASELINE: dict[str, int] = {
 }
 RUFF_BASELINE_TOTAL = 2277  # 2278 -> 2277 on 2026-10-01: the I001 above, `tests/tools/test_couple_clv.py`.
 RUFF_BASELINE_TOTAL -= 1  # 2277 -> 2276 on 2026-10-01: the I001 above, `company/compliance/domain_invariants.py`.
+RUFF_BASELINE_TOTAL -= 1  # 2276 -> 2275 on 2026-10-02: the F401 above.
 # 2279 -> 2278 on 2026-09-30: the F841 above. 2280 -> 2279 on 2026-09-27: the I001 above, `background/file_api.py`,
 # whose top import block sorted once the retired /query leg's `httpx` import went.
 # 2281 -> 2280 on 2026-09-27: the I001 above, the whole of
