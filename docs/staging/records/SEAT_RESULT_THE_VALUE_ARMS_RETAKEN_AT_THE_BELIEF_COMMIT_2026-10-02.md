@@ -108,3 +108,41 @@ full-window 1.25x pairs. Depth pairs took about 2h each, so w125c should take 7 
 floor runs about 3 x 53 min. So the floor should land around 06:00 to 10:00Z on 2026-10-03, well
 inside the deadline. Q1 seed leg, Q3 and the -£3,499 re-ask are graded by the handed-off item. The
 pointers still stay at 1002b until then.
+
+## Floor status, 2026-10-03 00:00Z: RUNNING. It took the first width-pair boundary
+
+Claim `the-1002c-floor-runs-at-the-first-width-pair-boundary`.
+
+- w125c's first pair (`width125_61001_61002.json`, 958 KB) exited rc=0 at 23:53:21Z, with a 13.4 GB
+  peak. That was 3h32m for a 1.25x full-window pair, and seed 61001 alone took 6,195 s. The
+  unit had started pair two (61003,61004) in the same second. `systemctl --user stop
+  longjob-depth-vs-width-w125c-20261002` killed it within seconds. No pair-two artefact
+  exists, so `legs_dw.sh`'s `-s` skip re-runs that pair whole.
+- At 23:54:36Z the serialised floor unit found no resident leg. It was admitted at 11,200 MB,
+  and `run_value_cycle_ab --level-arm --noise-floor-seeds 11111,22222,33333 --redraw-mode all`
+  is resident at pin `0cc052102` (pid 1933972). **If it is still resident at the next
+  orientation, it is RUNNING. Do not relaunch it.** `longjob-value-arms-1002c-floor-handoff-2`
+  still waits on the unit and hands the grading on when it exits.
+- Depth-vs-width was relaunched as `longjob-depth-vs-width-w125d-20261003`, with the same
+  `legs_dw.sh` and log `legs_dw_w4.log`. **The first launch failed in under a second.** The
+  preamble asked `wait_for` for a 43,200 s deadline, and `wait_for` refuses anything above its
+  21,600 s ceiling. In this case `legs_dw.sh` would have printed `REFUSED: wait on <pid>` and
+  exited 91 before running any leg. So the unit would have died the moment it had to queue
+  behind something, which is the only job its preamble has. It was never exercised before,
+  because w125c launched onto an empty box. The preamble now re-asks twice for 21,600 s per
+  resident leg, and w125d is waiting on pid 1933972.
+
+### Pre-registered before the floor's answer: selection without write-offs (792fcf31d's split)
+
+The 2026-10-02 pre-registration does not cover the split, so it is registered here. The
+reference points are: the 1002b floor's churn-pricing part, which is +7,446 / +6,352 / −1 (mean
++4,599), and the 1002c arms run's +5,475.
+
+- **S1.** On every 1002c floor seed, PROS-2016-0098 is the only account whose selection changes
+  sign when write-offs are removed, as it was on all three 1002b seeds and in both arms runs.
+- **S2.** With write-offs, selection is negative on all three seeds. Q3's "not all on one side
+  of zero" is therefore predicted REFUTED. The credit part on each seed is within £1,000 of the
+  arms run's −£9,683, because 0098 sits in the held book and every redraw reaches it the same
+  way.
+- **S3.** Without write-offs, the seed mean is positive, between +£2,000 and +£8,000. At least
+  one seed is under +£1,000, as 33333 was in 1002b, so n = 3 still cannot call its sign.
