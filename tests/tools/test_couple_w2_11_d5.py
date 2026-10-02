@@ -68,6 +68,12 @@ _SEED = 101
 # and one day short of the band top on seed 7.
 _INVOICE_BAND_TOP_DAYS = 92
 _OLDEST_OBSERVED_FAILURE_AGE_DAYS = {7: 91, 11: 92, 23: 92}
+# `_ABOVE_EDGE_BOOK_RANGE` -- the draw-size axis's above-edge range plus the
+# window: (-333, -308) at 400 and (-23, 2) at 90 are the same (67, 92). Its top
+# is the invoice band top. D30's shipped band, in the same coordinates, was
+# (72, 92) (FRAME s26).
+_ABOVE_EDGE_BOOK_RANGE = (67, 92)
+_D30_ABOVE_EDGE_BOOK_BAND = (72, 92)
 
 
 def _ever_flagged(records, consumer, as_of, dd_channel_only: bool = False):
@@ -5541,10 +5547,10 @@ def test_the_belief_edges_move_on_the_draw_size_alone(belief_band_axis):
     below_spread = max(v for v in belief_band_axis["below_spread_by_seed"].values())
     assert above_spread >= 20, above_spread
     assert below_spread >= 29, below_spread
-    # And the declared asymptote is at the EDGE of what the axis reads, never
-    # in the middle of it -- which is what "asymptote" has to mean here.
-    declared = pair.DIMENSION_DRIFT_RESOLUTION["belief"]["own_saturates_above"]
-    assert declared == belief_band_axis["above_edge_range"][1]
+    # The asymptote is where the window reaches the oldest invoice, at either
+    # origin. The register's declaration of it is checked in the node below.
+    assert (belief_band_axis["above_edge_range"][1]
+            + pair.DD_FAILURE_WINDOW_DAYS) == _INVOICE_BAND_TOP_DAYS
 
 
 def test_the_invoice_span_is_the_null_control_and_does_not_move(belief_band_axis):
@@ -5575,6 +5581,11 @@ def test_the_belief_register_describes_the_draw_size_axis(belief_band_axis):
     measured FROM `DD_FAILURE_WINDOW_DAYS`, so this node moves with the origin
     and its replacement values are FRAME section 15.2 / 16.1's."""
     assert pair.check_belief_band_population_axis(belief_band_axis) == []
+    # And the declared asymptote is at the EDGE of what the axis reads, never
+    # in the middle of it -- which is what "asymptote" has to mean here. The
+    # check above only asks that it lie inside the range.
+    declared = pair.DIMENSION_DRIFT_RESOLUTION["belief"]["own_saturates_above"]
+    assert declared == belief_band_axis["above_edge_range"][1]
 
 
 @pytest.mark.parametrize("mutate,expected", [
@@ -5653,18 +5664,21 @@ def test_the_band_shipped_before_this_repair_is_false_at_the_derived_floor():
     of 17 the sweep reads -333 on seed 23 while the null control stays green,
     so the old band is false over books its own soundness criterion admits. The
     floor decided the verdict, and nothing else did."""
+    window = pair.DD_FAILURE_WINDOW_DAYS
+    d30_band = tuple(age - window for age in _D30_ABOVE_EDGE_BOOK_BAND)
     register = copy.deepcopy(pair.DIMENSION_DRIFT_RESOLUTION)
     for dim in ("belief", "belief_population_mix"):
-        register[dim]["own_draw_size_axis"]["above_edge_range"] = (-328, -308)
+        register[dim]["own_draw_size_axis"]["above_edge_range"] = d30_band
     measured = pair.measure_belief_band_population_axis()
-    assert measured["above_edge_range"] == (-333, -308)
+    assert measured["above_edge_range"] == tuple(
+        age - window for age in _ABOVE_EDGE_BOOK_RANGE)
     assert measured["invoice_spans"] == ((30, 92),), (
         "and the null control is GREEN in the red case -- if it were not, the "
         "reading would be draw noise rather than a false declaration")
     violations = pair.check_belief_band_population_axis(
         measured, register=register)
     assert 2 == len([v for v in violations
-                     if "declares its above edge inside [-328, -308]" in v]), (
+                     if f"declares its above edge inside {list(d30_band)}" in v]), (
         violations)
 
 
@@ -6984,18 +6998,30 @@ def test_an_inert_probe_cannot_certify_its_column(caveat_coverage):
 
 def test_the_two_belief_figures_do_not_share_a_resolution(resolution_floors):
     """THE FINDING, measured not asserted. One sentence, two figures, four days
-    apart -- and the book's bound is neither."""
+    apart -- and the book's bound is neither.
+
+    Only while the window covers the book. Below the edge both figures resolve
+    4d on every seed (FRAME s15.3, re-measured s26): the split was a property
+    of the saturated origin, so it is asserted on that arm only."""
     bel = resolution_floors["belief"]
     mix = resolution_floors["belief_population_mix"]
-    assert bel["floor_days"] == 310
-    assert mix["floor_days"] == 314
-    assert bel["floor_days"] != mix["floor_days"]
-    # THE BOOK BOUND the caveat used to publish as each figure's own resolution.
+    window = pair.DD_FAILURE_WINDOW_DAYS
+    # THE BOOK BOUND the caveat used to publish as each figure's own resolution:
+    # how far inside the window the oldest observed failure sits, and one day
+    # when nothing sits inside it.
     assert bel["book_bound_days"] == mix["book_bound_days"] == {
-        7: 310, 11: 309, 23: 309}
-    # Five days out on seed 11 for the mix figure, which is the whole finding:
-    # the bound is a BOUND, and every figure here is at least as blind as it.
-    assert mix["per_seed_floor_days"][11] - mix["book_bound_days"][11] == 5
+        s: max(1, window - age + 1)
+        for s, age in _OLDEST_OBSERVED_FAILURE_AGE_DAYS.items()}
+    if window >= max(_OLDEST_OBSERVED_FAILURE_AGE_DAYS.values()):
+        assert bel["floor_days"] == 310
+        assert mix["floor_days"] == 314
+        assert bel["floor_days"] != mix["floor_days"]
+        # Five days out on seed 11 for the mix figure, which is the whole
+        # finding: the bound is a BOUND, and every figure here is at least as
+        # blind as it.
+        assert mix["per_seed_floor_days"][11] - mix["book_bound_days"][11] == 5
+    else:
+        assert bel["floor_days"] == mix["floor_days"] == 4
     for row in (bel, mix):
         for seed, bound in row["book_bound_days"].items():
             assert row["per_seed_floor_days"][seed] >= bound, (seed, row)
@@ -7110,6 +7136,15 @@ def test_bit_equality_counts_a_difference_no_consumer_can_render(
     -310..-313 on seed 11 by 1.4e-17, which is what put its declared saturation
     edge at -309 rather than -313 -- and every collapse run and saturation edge
     in this module is derived with the same `repr()` comparison."""
+    if pair.DD_FAILURE_WINDOW_DAYS < max(_OLDEST_OBSERVED_FAILURE_AGE_DAYS.values()):
+        # Below the edge the two predicates agree on every seed and both
+        # figures (FRAME s15.3): the 1.4e-17 wobble only reached the figure
+        # when the nearest drift that moved it was 310 days out.
+        for row in resolution_floors.values():
+            assert row["bit_equality_floor_days"] == row["floor_days"]
+            assert (row["bit_equality_per_seed_floor_days"]
+                    == row["per_seed_floor_days"])
+        return
     mix = resolution_floors["belief_population_mix"]
     assert mix["bit_equality_floor_days"] == 312
     assert mix["floor_days"] == 314
@@ -7127,12 +7162,9 @@ def test_bit_equality_counts_a_difference_no_consumer_can_render(
     assert drifted != base
     assert abs(drifted - base) < pair.published_reading_epsilon(
         "belief_population_mix")
-    # ...and the register says so, with the owning atom, on the dimension where
-    # the two predicates disagree and NOT on the one where they agree.
-    assert pair.DIMENSION_DRIFT_RESOLUTION["belief_population_mix"][
-        "own_floor_predicate_atom"] == pair.BIT_EQUALITY_FLOOR_ATOM
-    assert pair.DIMENSION_DRIFT_RESOLUTION["belief"][
-        "own_floor_predicate_atom"] is None
+    # Whether the register names the owning atom on exactly the diverging
+    # dimension is `test_the_floor_register_is_measured_not_asserted`'s, which
+    # moves with the register at the flip.
 
 
 def test_every_moving_cell_declares_whose_number_its_caveat_states(
@@ -7618,16 +7650,28 @@ def test_a_predicate_divergence_with_no_owner_fires_the_control(
         resolution_floors):
     """A measured divergence between bit-equality and the reader's own precision
     OWES an atom -- and a named owner the sweep cannot find is a debt entry
-    outliving its debt, so both directions fire."""
+    outliving its debt, so both directions fire.
+
+    Both cases are built on the measurement rather than read off it: whether
+    this book diverges depends on the origin (FRAME s15.3), and the rule has to
+    fire at either."""
+    diverging = copy.deepcopy(resolution_floors)
+    row = diverging["belief_population_mix"]
+    row["bit_equality_floor_days"] = row["floor_days"] - 2
     reg = copy.deepcopy(pair.DIMENSION_DRIFT_RESOLUTION)
     reg["belief_population_mix"]["own_floor_predicate_atom"] = None
-    violations = pair.check_published_resolution_floor(resolution_floors, reg)
-    assert any("no atom owns it" in v for v in violations), violations
+    violations = pair.check_published_resolution_floor(diverging, reg)
+    assert any("belief_population_mix:" in v and "no atom owns it" in v
+               for v in violations), violations
 
+    agreeing = copy.deepcopy(resolution_floors)
+    row = agreeing["belief"]
+    row["bit_equality_floor_days"] = row["floor_days"]
     reg = copy.deepcopy(pair.DIMENSION_DRIFT_RESOLUTION)
     reg["belief"]["own_floor_predicate_atom"] = pair.BIT_EQUALITY_FLOOR_ATOM
-    violations = pair.check_published_resolution_floor(resolution_floors, reg)
-    assert any("outliving its debt" in v for v in violations), violations
+    violations = pair.check_published_resolution_floor(agreeing, reg)
+    assert any("belief:" in v and "outliving its debt" in v
+               for v in violations), violations
 
 
 def test_an_undeclared_or_unmeasured_floor_raises(resolution_floors):

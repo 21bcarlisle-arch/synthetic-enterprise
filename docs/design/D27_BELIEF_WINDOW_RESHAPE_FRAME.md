@@ -1719,3 +1719,78 @@ and onto another, not off the work.
 
 Publication surfaces: 2 of 4 restated; the other 2 are the register's and travel with it. Still pinned:
 the five D30/D33 sibling claims and the register node (§21.1), which now carries the two CLI nodes.
+
+---
+
+## 26. BUILD pass 17 — 2026-10-02 (worker tick, BUILD lane) — the five D30/D33 sibling nodes, restated
+
+The origin is still 400, no level moved, `CAVEAT_COVERAGE_PROBES` untouched (§19.4). The candidate
+origin was substituted in the process through the §17.4 `flip_plugin`, never in the tree.
+
+### 26.1 What the two origins measure
+
+`measure_belief_band_population_axis` and `measure_published_resolution_floor(n_customers=300)`, one
+process per origin (the §21.2 cache is keyed by the origin now, but separate processes anyway):
+
+| | 400 | 90 |
+|---|---|---|
+| `above_edge_range` | (−333, −308) | (−23, 2) |
+| `below_edge_range` | (−371, −342) | (−61, −32) |
+| above / below spread by seed | 20,0,25 / 1,29,1 | identical |
+| `belief` floor / bit-equality floor | 310 / 310 | 4 / 4 |
+| `belief_population_mix` floor / bit-equality floor | 314 / 312 | 4 / 4 |
+| book bound by seed (7, 11, 23) | 310, 309, 309 | 1, 1, 1 |
+
+Every edge moves by exactly 310, which is the origin difference, so the edge plus the window is a book
+coordinate: above (67, 92), and its top is `_INVOICE_BAND_TOP_DAYS`. The book bound is
+`max(1, WINDOW − oldest observed failure + 1)` on every seed at both origins. At 90 the two belief
+figures share a 4d resolution and the two predicates agree, which is §15.3 re-measured.
+
+### 26.2 The five nodes
+
+| node | at 90 it failed on | now |
+|---|---|---|
+| `test_the_belief_edges_move_on_the_draw_size_alone` | register `own_saturates_above` (−308) vs the measured top (2) | the spread legs were already origin-free; the top edge is asserted as `92 − WINDOW`. The declaration-equals-top leg moved to `test_the_belief_register_describes_the_draw_size_axis`, which is the register node. `check_belief_band_population_axis` only asks for membership of the range, so dropping that leg would have weakened the control. |
+| `test_the_band_shipped_before_this_repair_is_false_at_the_derived_floor` | the measured range pinned at 400 | the range is `_ABOVE_EDGE_BOOK_RANGE − WINDOW`, and D30's shipped band is `(72, 92) − WINDOW`, which is the same defect at either origin |
+| `test_the_two_belief_figures_do_not_share_a_resolution` | 310 pinned | the book bound is the law above, the "bound is a bound" loop is unconditional, and the 310/314 split is asserted only where the window covers the book; below it, both are 4 |
+| `test_bit_equality_counts_a_difference_no_consumer_can_render` | 312 pinned | below the edge, the predicates agree on every seed and both figures; above it, unchanged. The register-owner legs were dropped here because `test_the_floor_register_is_measured_not_asserted`'s `check_published_resolution_floor` enforces divergence ⇔ owner exactly, in both directions |
+| `test_a_predicate_divergence_with_no_owner_fires_the_control` | at 90 there is no divergence to leave unowned | both cases are BUILT on a copy of the measurement (inject a divergence, inject agreement), so the rule is shown to fire whether or not this book diverges |
+
+**5 passed at 400 and 5 passed at 90.** The two register nodes are red at 90 and green at 400, as
+they should be: they carry the literals the flip rewrites.
+
+### 26.3 R15, in the process
+
+| mutation | 400 | 90 |
+|---|---|---|
+| above-edge top +1 in `measure_belief_band_population_axis` | red (edges, band) | red (edges, band) |
+| book bound +1 on every seed | red | red |
+| mix floor forced equal to belief floor | red | green — an equivalence, they ARE equal at 90 |
+| mix bit-equality floor = readable − 2 | green — an equivalence, it IS 312 = 314 − 2 at 400 | red |
+| owner rule removed from `check_published_resolution_floor` | red | red |
+| debt rule removed | red | red |
+| range comparison removed from `check_belief_band_population_axis` | red | red |
+
+### 26.4 The whole file at both origins
+
+In this worktree (origin/main 407bdb1c3 plus this pass), one process per origin:
+
+| origin | result |
+|---|---|
+| 400 | **623 passed**, 0 failed |
+| 90 | 560 passed, **18 failed, 45 errors** |
+
+The five sibling nodes are green at 90. The tracebacks carry 51 `ValueError` lines, and every one
+of them is §25.2's mechanism: the register's `own_visible_drifts` (−370, −320) asking `build_scenario`
+for a −280d or −230d window. They move with the register. The 18 failures were NOT classified this
+pass. They include the two register nodes and the CLI ledger node, but also nodes this frame has never
+named (for example `test_the_coverage_only_claim_is_measured_not_asserted[7,11,23]`,
+`test_the_inert_verdict_is_falsifiable_in_both_directions` and `test_a_shadowed_organ_default_owes_a_
+measured_divergence`). Whether each one is register-borne or a test-side pin is the next pass's
+question. So §17.3's original list is clear test-side, but **the flip's change set is not yet
+enumerated**.
+
+A trap for whoever repeats this: `cd WT && (A) & (B) & wait` runs B in the caller's directory, not in
+WT, because `&&` binds tighter than `&`. Two of this pass's 90d runs did exactly that. They graded the
+shared tree's copy of the file and showed these five nodes red. The cause was found from the
+traceback's line numbers, which matched the old file. Put `cd` on its own line, ended with `;`.
