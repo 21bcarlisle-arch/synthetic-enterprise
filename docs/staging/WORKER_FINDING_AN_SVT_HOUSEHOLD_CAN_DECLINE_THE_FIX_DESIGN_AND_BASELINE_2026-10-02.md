@@ -199,6 +199,17 @@ stock? If newly rolled households switch at a higher rate in their first months,
 them, and part of this −9 is the world's inertia rate rather than the rule. This is the same gap
 `decline_versus_leave_share` names.
 
+> **Corrected 2026-10-02, beside the claim.** "0.03–0.05 a year" above was a **per-cap-segment**
+> hazard and not an annual rate. In `val_on`, the nine accounts that stop leaving have 0.15–0.23 a
+> year early in their stints and about 0.02 a year at the bottom of their ranges. Across the nine
+> together, C1b expected 8.42 exits. **The open question cannot touch the −9 either.** None of the
+> nine has just rolled. Each sits on the default continuously from 2016–18 to 2025, and C8 has one
+> stint reset, in 2020. Every one declines CONVERSION offers at its anniversaries, so it is
+> long-tenure stock and not an end-of-fix cohort. The published first-weeks spike is real and now
+> in the knowledge layer (`svt_rates_active_passive_2016_2025.md` §4a). It bears on end-of-fix
+> rollovers, not on this −9. See
+> `SEAT_FINDING_A_NEWLY_ROLLED_HOUSEHOLD_SPIKES_FOR_SIX_WEEKS_AND_THE_NINE_ARE_NOT_NEWLY_ROLLED_2026-10-02.md`.
+
 **Reader audit, re-run at `c092d1e12`.** Outside tests, `departure_occasion == "renewal"` appears
 only in `customer_events.py` itself. `tools/measure_churn_heterogeneity`'s `route` is its own
 field, read from the churn-log files, and is not the occasion. The audit above stands.
