@@ -221,3 +221,25 @@ caveat to the one-variable reading:** on item three's world, the SVT-conversion 
 price, so P4's "uncapped net falls" compares against a baseline on a different world. Re-run the
 uncapped arm WITHOUT the diff on the same commit as the baseline, which makes three runs, not two.
 The predictions above are unchanged.
+
+## Addendum 2026-10-02 13:00 (local): re-drawn, still blocked, released and handed on
+
+The item was re-drawn at 12:57. Nothing new was built and no run was started, because the
+precondition still does not hold:
+
+- **Item two is done.** `6547ac55e` published the world-D retake.
+- **Item three is built but switched OFF.** `2cfea34b7` and `a0f2496e9` landed the splice with
+  `DECLINE_A_FIX_ABOVE_THE_DEFAULT = False`. The flip waits on its own P1–P6 pair
+  (`grade-the-decline-and-stay-pair-and-flip-the-switch`). That pair waits on
+  `land-the-journey-decision-for-an-svt-conversion-now`, which is not on origin. The box is also
+  busy with the depth-or-width level-arm run.
+- **The held diff is still good.** `git apply --check` passes on origin/main `a0f2496e9`. None of
+  the five paths it touches has moved since `fdabaa5a9`.
+
+Landing the diff now would still be wrong, for two reasons. First, it would withdraw the retake
+`6547ac55e` just published. Second, it would put a moving `company/` input under item three's
+value-arm pair, so neither that pair nor this remedy could be read as one variable.
+
+The claim is released. The work moves under a new id,
+`grade-the-belief-against-the-default-after-the-decline-flip`, and it opens with a precondition
+check so that a draw made before the flip costs one command, not a whole turn.

@@ -60,7 +60,7 @@ does not score fabric and weather; it scores the seven outputs.
 
 **It does not say the hot-water term was not worth building.** It moved the modelled gas total from
 0.883x to 0.992x the observed metered gas for the same households, which is the model getting closer
-to reality by a fifth of the gap. Fidelity and sample size are different questions and this is the
+to reality by about nine tenths of the gap (0.109 of the 0.117 shortfall; this line said "a fifth" until 2026-10-02, and the Knowledge page built from it said "four fifths"; both were wrong). Fidelity and sample size are different questions and this is the
 clearest example so far that they can move independently: **a change can make the world markedly
 more truthful and leave the sample size untouched.**
 
