@@ -7535,18 +7535,7 @@ def running_floor_legs(proc_root: Path | None = None) -> list[tuple[int, float, 
     and for the same reason.
     """
     proc_root = proc_root or Path("/proc")
-    mine = {os.getpid()}
-    pid = os.getpid()
-    for _ in range(32):  # bounded: a cycle in ppid would otherwise hang the refusal
-        try:
-            stat = (proc_root / str(pid) / "status").read_text(encoding="utf-8")
-            pid = int(next(ln for ln in stat.splitlines()
-                           if ln.startswith("PPid:")).split()[1])
-        except Exception:  # noqa: BLE001 -- an unreadable ancestor just stops the walk
-            break
-        if pid <= 0 or pid in mine:
-            break
-        mine.add(pid)
+    mine = {os.getpid()} | _ancestors(proc_root, os.getpid())
 
     legs = []
     for entry in proc_root.iterdir():
@@ -7574,7 +7563,33 @@ def running_floor_legs(proc_root: Path | None = None) -> list[tuple[int, float, 
         except Exception:  # noqa: BLE001 -- a process that exited mid-read is not a leg
             continue
         legs.append((int(entry.name), rss_kb / 1024.0, peak_mb))
-    return legs
+    # ONE LEG, ONE PRICE, HOWEVER MANY PROCESSES CARRY ITS ARGV. `/usr/bin/time -v python3 -m
+    # tools.run_value_cycle_ab --noise-floor-seeds ...` is a 1.7 MB wrapper whose own argv holds
+    # both tokens, so on 2026-10-02 17:16Z the wrapper and its python child were priced as two
+    # legs and a floor beside them was asked for 33,600 MB where 22,400 MB was owed. A matched
+    # process that is an ANCESTOR of another matched process is that leg's wrapper, not a second
+    # leg; the descendant is kept because it is the one that grows.
+    wrappers = set()
+    pids = {pid for pid, _rss, _peak in legs}
+    for pid, _rss, _peak in legs:
+        wrappers |= _ancestors(proc_root, pid) & pids
+    return [leg for leg in legs if leg[0] not in wrappers]
+
+
+def _ancestors(proc_root: Path, pid: int) -> set[int]:
+    """The ppid chain above `pid` under `proc_root`, excluding `pid` itself."""
+    seen: set[int] = set()
+    for _ in range(32):  # bounded: a cycle in ppid would otherwise hang the refusal
+        try:
+            stat = (proc_root / str(pid) / "status").read_text(encoding="utf-8")
+            pid = int(next(ln for ln in stat.splitlines()
+                           if ln.startswith("PPid:")).split()[1])
+        except Exception:  # noqa: BLE001 -- an unreadable ancestor just stops the walk
+            break
+        if pid <= 0 or pid in seen:
+            break
+        seen.add(pid)
+    return seen
 
 
 def _peak_provenance(own_peak_mb: float) -> str:

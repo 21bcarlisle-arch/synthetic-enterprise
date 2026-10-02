@@ -747,6 +747,7 @@ def decide_margin(
     book_general_margin_gbp_per_mwh: float | None = None,
     ladder_multiplier: float = 1.0,
     flat_level_gbp_per_mwh: float | None = None,
+    published_default_rate_gbp_per_mwh: float | None = None,
 ) -> MarginDecision:
     """The offered margin for ONE customer, under ONE arm.
 
@@ -820,6 +821,10 @@ def decide_margin(
             # An arrears state that moved with the margin would be this model predicting its own
             # collections -- a second, unsourced elasticity beside the churn model's.
             arrears_state=arrears_state,
+            # THE OFFER AGAINST THE PUBLISHED DEFAULT, not against this account's last price.
+            # Constant across candidates: it is the market's level on the day, read from public
+            # data. `None` (non-domestic, or no reading) keeps the move from the current rate.
+            published_default_rate_gbp_per_mwh=published_default_rate_gbp_per_mwh,
         )
         p_stay = max(0.0, 1.0 - float(p_leave))
         return p_stay, expected_value_gbp(
@@ -1272,6 +1277,7 @@ def renewal_margin_uplift(
     segment: str | None = None,
     ladder_multiplier: float = 1.0,
     flat_level_gbp_per_mwh: float | None = None,
+    published_default_rate_gbp_per_mwh: float | None = None,
 ) -> MarginArmUplift:
     """The £/MWh this renewal moves by, under ONE arm, from the supplier's own settled book.
 
@@ -1388,6 +1394,7 @@ def renewal_margin_uplift(
             # ladder block in `decide_margin`. Default 1.0 leaves every existing caller alone.
             ladder_multiplier=ladder_multiplier,
             flat_level_gbp_per_mwh=flat_level_gbp_per_mwh,
+            published_default_rate_gbp_per_mwh=published_default_rate_gbp_per_mwh,
         )
     except MarginDecisionUnavailable as exc:
         # "NO OFFER" IS AN ANSWER, AND A LIVE PRICING CHAIN MUST BE ABLE TO HEAR IT (2026-08-26).
@@ -1463,7 +1470,14 @@ def observed_account_state(
     from datetime import date as _date
 
     start = _date.fromisoformat(term_start)
-    window_open = start.replace(year=start.year - OBSERVATION_WINDOW_YEARS).isoformat()
+    # A TERM STARTING 29 FEBRUARY has no same-day date N years back, and `replace` raises. It crashed
+    # a whole run on 2026-10-02, the first time a book drew one. 1 March errs SHORTER, the safe side
+    # of a point-in-time window, and it is the convention `simulation.customer_events` and
+    # `company/billing/fit_legacy_register` already chose.
+    try:
+        window_open = start.replace(year=start.year - OBSERVATION_WINDOW_YEARS).isoformat()
+    except ValueError:
+        window_open = start.replace(year=start.year - OBSERVATION_WINDOW_YEARS, month=3, day=1).isoformat()
 
     prior = [
         r for r in settled_records
