@@ -645,17 +645,29 @@ def book_depth_price(seeds: list, sems_needed: float) -> dict:
     mean, sd = statistics.mean(sel), statistics.stdev(sel)
     if abs(mean) < 1e-9:
         return {"available": False, "why_not": "the family mean is zero; the ratio has no value"}
-    need = (sems_needed * sd / abs(mean)) ** 2
+    at_the_point_estimate = (sems_needed * sd / abs(mean)) ** 2
+    # THE COUNT IS PUBLISHED ONLY WHERE THE MEAN CLEARS ITS OWN BAR. Where it does not, the mean's
+    # interval contains zero and the arithmetic above has no upper bound, so a `_needed` figure
+    # would tell a reader that buying that many seeds settles a question no finite number settles.
+    # The arithmetic stays on the page under `_at_the_point_estimate`, a name that is not a plan.
+    clears_its_bar = abs(mean) > sems_needed * sd / math.sqrt(len(sel))
+    need = at_the_point_estimate if clears_its_bar else None
     settled = seeds[0].get("billing_accounts_settled_in_window")
     scored = statistics.mean(len({d["account"] for d in s["scored_decisions"]}) for s in seeds)
     ladder = [{"book_multiple": k, "settled_accounts": None if settled is None else int(settled * k),
-               "seeds_needed_at_the_point_estimate": need / k} for k in (1, 2, 5, 10, 50, 100)]
+               "seeds_needed_at_the_point_estimate": at_the_point_estimate / k}
+              for k in (1, 2, 5, 10, 50, 100)]
     return {
         "available": True,
         "seeds_needed_at_this_depth": need,
+        "seeds_needed_at_the_point_estimate": at_the_point_estimate,
+        "seeds_needed_unavailable_because": None if clears_its_bar else (
+            "the family mean does not clear {:.3f} of its own standard errors, so its interval "
+            "contains zero and the seed count has no upper bound at this depth; the figure at "
+            "the point estimate is beside it and is not a plan".format(sems_needed)),
         "settled_accounts_at_this_depth": settled,
         "scored_accounts_at_this_depth": scored,
-        "account_draws_invariant": None if settled is None else need * settled,
+        "account_draws_invariant": None if settled is None else at_the_point_estimate * settled,
         "what_the_invariant_is": (
             "seeds x settled accounts. Under the independence premise this product, not the seed "
             "count, is what a stateable sign costs -- so a deeper book and more seeds are the same "
