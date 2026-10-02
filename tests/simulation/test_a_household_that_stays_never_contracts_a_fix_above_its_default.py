@@ -103,3 +103,35 @@ def test_the_run_loop_takes_the_decision_on_both_legs_and_records_it():
     assert _calls_in_main("declined_fix_event") >= 3
     assert _calls_in_main("position_vs_default") >= 1
     assert isinstance(p2b.DECLINE_A_FIX_ABOVE_THE_DEFAULT, bool)
+
+
+def _appends_of_declines(node: ast.AST) -> list[str]:
+    """The list each `<name>.append(declined_fix_event(...))` under `node` writes to."""
+    return [
+        n.func.value.id for n in ast.walk(node)
+        if isinstance(n, ast.Call) and isinstance(n.func, ast.Attribute) and n.func.attr == "append"
+        and isinstance(n.func.value, ast.Name) and n.args and isinstance(n.args[0], ast.Call)
+        and isinstance(n.args[0].func, ast.Name) and n.args[0].func.id == "declined_fix_event"
+    ]
+
+
+def test_a_decline_on_the_leg_that_does_not_decide_is_not_a_renewal_decision():
+    """The defect: the gas leg of a dual-fuel household takes no stay-or-leave decision, so a
+    `renewed` row for it in `customer_events` is a decision nobody took. Every renewal-decision
+    counter gains it, and under the gas leg's own id the whole-book account denominator gains an
+    account that exists only in the years it declines. So that leg's decline has its own list."""
+    tree = ast.parse(inspect.getsource(p2b._main))
+    riding = [
+        n for n in ast.walk(tree)
+        if isinstance(n, ast.If) and any(
+            isinstance(c, ast.Compare) and isinstance(c.ops[0], ast.NotEq)
+            and isinstance(c.left, ast.Name) and c.left.id == "commodity"
+            and isinstance(c.comparators[0], ast.Name) and c.comparators[0].id == "_decision_leg"
+            for c in ast.walk(n.test)
+        ) and _appends_of_declines(n)
+    ]
+    # Reachability first: the riding leg's decline exists and is recorded somewhere.
+    assert len(riding) == 1, "expected exactly one riding-leg decline branch in _main"
+    assert _appends_of_declines(riding[0]) == ["_declined_on_the_riding_leg"]
+    # ...and the decision leg still writes its declines where the renewal readers find them.
+    assert "customer_events_log" in _appends_of_declines(tree)

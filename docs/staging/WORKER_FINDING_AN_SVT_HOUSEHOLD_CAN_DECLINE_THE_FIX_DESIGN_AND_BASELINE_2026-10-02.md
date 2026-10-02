@@ -104,3 +104,45 @@ both arms.** A household that declined the fix also stayed, so the journey decis
    "renewal"` (`tools/population_anchor._churn_by_year` and kin): a fixed→fixed decline moves out
    of that occasion while still rolled, so it leaves a renewal-occasion denominator. Select it back
    by `departure_rolled`, or keep it out by name. Decide which per reader.
+
+## Reader audit before the flip (autonomous worker, 2026-10-02, base `6547ac55e`)
+
+**No production reader selects on `departure_occasion == "renewal"`.** `git grep` over
+`simulation/ company/ saas/ tools/ site/` finds the occasion constants only in
+`customer_events.py`, `run_phase2b.py` and tests. `tools/population_anchor` counts by
+`event_type`, not occasion, so a fixed→fixed decline stays in its renewal denominator as a
+`renewed` row. The owed item's worry about a renewal-occasion denominator has no reader behind it.
+
+**The readers that count `event_type` do have a defect, on one of the three producers.** A
+conversion decline *replaces* the `svt_conversion` row, and a fixed→fixed decline *replaces* the
+rolled row, so both are net zero for every counter. The **riding leg** is different. That is the gas
+leg of a dual-fuel household, which takes no stay-or-leave decision, and before the splice it wrote
+no row at all. Its decline was *appended* to `customer_events` as `renewed`, under the gas leg's
+own id, so:
+
+- every renewal-decision counter gained a decision nobody took (`population_anchor`'s
+  `sim_churn_rate` is a published gate metric, plus `churn_accuracy_report` true negatives and
+  the annual report's "Renewals (retained)"); and
+- `departure_population.union_by_year` gained an *account* (`Xg`) that is present only in the
+  years it declines. That shape is what `account_denominator_refusal`'s interior-gap leg refuses
+  on, so the whole-book rate could go unreadable for a reason that has nothing to do with the
+  world.
+
+The default-world smoke above shows this producer firing: one dual-fuel gas leg in 2017.
+**Fixed in this commit:** those rows now go to their own result key, `declined_on_the_riding_leg`.
+This follows the precedent `svt_departures` set for the same reason. Control:
+`test_a_decline_on_the_leg_that_does_not_decide_is_not_a_renewal_decision`. Pointing the append
+back at `customer_events_log` reds it (mutation run, 1 red).
+
+Other readers checked and left alone:
+
+- `tools/project_portfolio_to_2026` falls back to `tariff_max` when a last row has a `None` rate.
+  A decliner is on the default, so the fallback is the right price.
+- `tools/generate_customer_data` guards `None`.
+- `grade_renewal_churn_belief` grades a rolled decline as retained, which is correct because it
+  stayed. It skips conversion declines as `no_logged_belief`, as it already skipped
+  `svt_conversion` rows.
+- `_main`'s summary `continue`s on `departure_rolled is False` before it indexes
+  `churn_probability`.
+
+**Still owed:** item one on origin, then the P1–P6 runs at one commit, then the flip.

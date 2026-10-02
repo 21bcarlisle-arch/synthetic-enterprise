@@ -1915,6 +1915,12 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
     #: the decisions where the household COULD have left, which on this book is 1,266 against 50
     #: departures — and without the 1,216 that stayed there is no denominator, no null and no AUC.
     _svt_decisions: list[dict] = []
+    #: A fix refused on the leg that does NOT carry its household's departure. Not
+    #: `customer_events_log`: that leg takes no stay-or-leave decision (its household took it on the
+    #: decision leg, which already has its row), so a `renewed` row there is a decision nobody
+    #: took. Every renewal-decision counter would gain it, and since it names the gas leg's own id
+    #: the whole-book account denominator would gain an account that exists only in decline years.
+    _declined_on_the_riding_leg: list[dict] = []
     administration_event = None
     periods_since_committee = COMMITTEE_COOLDOWN_PERIODS
     last_committee_date: date = date.fromisoformat(REPORT_START) - timedelta(days=COMMITTEE_COOLDOWN_DAYS)
@@ -3010,7 +3016,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                 event_type="renewed", position_vs_default=_offer_vs_default,
             )
             if _renewal_outcome == RENEWAL_DECLINED_FIX:
-                customer_events_log.append(declined_fix_event(
+                _declined_on_the_riding_leg.append(declined_fix_event(
                     customer_id=cid, event_date=term_start_str, commodity=commodity,
                     declined_unit_rate_gbp_per_mwh=unit_rate,
                     position_vs_default=_offer_vs_default,
@@ -4088,6 +4094,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         # `_svt_segment_decisions.json` companion, which is the population every SVT-route reading
         # in `tools/measure_churn_heterogeneity` is computed over.
         "svt_decisions": _svt_decisions,
+        "declined_on_the_riding_leg": _declined_on_the_riding_leg,
         "churned_billing_accounts": sorted(churned_billing_accounts),
         "won_successor_activations": won_successor_activations,
         "hedge_evolution": evolution_logs,
