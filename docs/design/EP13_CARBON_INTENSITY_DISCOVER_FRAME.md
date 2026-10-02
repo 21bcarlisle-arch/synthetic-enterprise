@@ -1722,3 +1722,94 @@ mean removes 0.01–0.05, and the envelope ADDS 0.02–0.06, so it is not betwee
 **For the Expert Hour.** Grade the swing against the FAIR null (measured biomass), not §22's.
 The merit order's own contribution to within-day swing is 0.02–0.06, and the dispatch rule is
 not where most of the swing error lives. No level move.
+
+## 24. 2026-10-02 — THE SHARED INPUTS, ONE AT A TIME: the swing error is a missing fleet, pumped storage, on both legs
+
+§23 left 0.0–0.13 of within-day overshoot in the shared inputs, before any dispatch, and named
+two candidates: embedded wind in the denominator, and pumped storage. This pass adds each to
+§23's FAIR null (measured half-hourly biomass, the whole residual at the year's best CCGT rate).
+The scratch scripts are `/var/tmp/se-ep13-s24/` (`measure.py`, `pump.py`, `shipped.py`, with
+the timestamped predictions in `prediction.txt`). **Instrument checks:** the fair null reproduces
+§23's `null B=meas` row to 0.0006 in every year, and the shipped reimplementation reproduces the
+published feed to 1e-9 (both asserted in the scripts).
+
+**The arms, and what each one is on NESO's definition.**
+- **P: PS generation**, FUELHH, served at zero carbon (NESO's factor is 0) and taken off the
+  residual. It is not added to the denominator, because PS output serves INDO demand and is
+  already inside it. It averages 166–220 MW over a year, about 900 MW in the evening peak.
+- **P′: P plus pumping.** FUELHH PS goes negative when it pumps, at 220–290 MW a year and about
+  1 GW overnight. INDO excludes pumping, but GB generates it, and NESO's mix counts that
+  generation. So pumping is added to load, the same way §20 added exports.
+- **W: NESO's embedded wind estimate** (`sim/neso_embedded_generation.py`), 1.65–2.06 GW a
+  year, added to the denominator as §19 did for solar. It is generation under the metering point.
+  NESO's denominator carries it.
+
+**Predictions (07:41Z, before the script existed).** P1: P lowers within-day by 0.02–0.06 in
+every year. P2: P does not carry the year pattern (its effect spreads <0.03 across years). W1: W
+moves within-day by <0.03, leaning up. The arms add to within 0.01, correlation moves <0.01, and
+2019–20 keep 0.05–0.10 of overshoot after P. **Addendum, after that table and before `pump.py`:**
+P′ lowers within-day a further 0.01–0.03 beyond P.
+
+Fair null, within-day swing ratio (reconstruction ÷ NESO):
+
+| arm | 2019 | 2020 | 2021 | 2022 | 2023 | 2024 |
+|---|---|---|---|---|---|---|
+| fair null | 1.104 | 1.134 | 1.050 | 1.053 | 1.037 | 0.994 |
+| + P | 1.060 | 1.091 | 1.006 | 1.005 | 0.996 | 0.951 |
+| + W | 1.158 | 1.191 | 1.094 | 1.096 | 1.072 | 1.031 |
+| + P + W | 1.114 | 1.149 | 1.051 | 1.048 | 1.032 | 0.989 |
+| + P′ | 0.946 | 0.984 | 0.898 | 0.907 | 0.902 | 0.844 |
+| **+ P′ + W** | **1.004** | **1.045** | **0.946** | **0.955** | **0.941** | **0.886** |
+
+Between-day for + P′ + W: 0.957, 1.015, 0.940, 0.950, 0.938, 0.840 (fair null 0.80–0.94).
+Correlation for + P′ + W: 0.933–0.982 (fair null 0.926–0.972).
+
+**Against the predictions.** P1 and P2 held: P lowers within-day by 0.043–0.048, and the spread
+across years is 0.005. W1 held on the sign and was refuted on the size: +0.035 to +0.057.
+Additivity held (P + W is within 0.005 of the sum). Correlation held: every arm moves it by
+<0.01 except P′, which moves it by up to 0.013. The 2019–20 residual after P held (0.060, 0.091).
+**The addendum was refuted by a factor of about five.** Pumping lowers within-day by a further
+0.10–0.11 beyond P in every year. It is overnight load in the troughs, served at the gas rate,
+so it lifts exactly the half hours the swing is measured from.
+
+**On the shipped merit order** (biomass at the year's measured mean, the permitted correction
+from §23). **Prediction 3 (written before `shipped.py`):** with P′ + W added, within-day lands
+at 0.95–1.10 in every year, and between-day lands within 0.10 of 1.00.
+
+| shipped arm | 2019 | 2020 | 2021 | 2022 | 2023 | 2024 |
+|---|---|---|---|---|---|---|
+| shipped (published feed) | 1.227 | 1.199 | 1.132 | 1.135 | 1.125 | 1.091 |
+| B = year mean | 1.199 | 1.185 | 1.118 | 1.106 | 1.078 | 1.076 |
+| B = year mean + P′ | 1.034 | 1.065 | 0.969 | 0.967 | 0.949 | 0.927 |
+| **B = year mean + P′ + W** | **1.090** | **1.123** | **1.015** | **1.012** | **0.987** | **0.965** |
+
+Between-day for the last row: 1.038, 1.103, 0.990, 1.019, 0.990, 0.917. Correlation:
+0.934–0.980, up 0.003–0.015. **Prediction 3 held in five years and was refuted in 2020**
+(within-day 1.123, between-day 1.103). 2020 is the COVID demand year, and it is the one year
+the fair null also leaves over NESO.
+
+**What it establishes.**
+- **Most of the within-day overshoot is a missing fleet.** The reconstruction has no pumped
+  storage. Its peak generation displaces gas, and its overnight pumping adds load in the
+  troughs. Together they are worth 0.14–0.16 of within-day swing in every year. That is about
+  three times the merit order (§23: 0.02–0.06), and more than every other element measured
+  across §22–§24.
+- **Embedded wind is definitionally owed, and it pushes the other way.** It belongs in the
+  denominator on NESO's definition, and it lifts both swings by 0.04–0.09. Built alone it would
+  make the published within-day overshoot WORSE, which is why it waits for PS.
+- **The 2024 level gap is not addressed here.** These are shape ratios, renormalised per year.
+
+**What it does NOT establish.**
+- **That P′ can be built as measured.** Half-hourly PS is refused by `elexon_fuel_outturn`'s
+  condition 2: it goes negative, so it is a dispatch decision, which makes it the merit order
+  wearing a zero factor. P′ is an ORACLE. The buildable form is the model's own PS rule: pump in
+  the troughs, generate at the peaks, with the year's measured energy as an annual scalar (coal's
+  grain). P′ is the ceiling on what that rule can recover. It is not what the rule will recover.
+- **That pumping is served by gas.** The null burns all residual load at one gas rate. Some
+  overnight pumping is in fact served by surplus wind, so P′ may overstate how much pumping
+  lifts the troughs.
+
+**Candidate build, in order:** (1) a PS rule inside the merit order, at the annual grain,
+graded against the P′ oracle row above; (2) embedded wind in the denominator, landed WITH (1) or
+after it, never alone; (3) biomass at the year's mean (§23). Each moves the published feed, so
+each needs its own pass. No level move and no code change.
