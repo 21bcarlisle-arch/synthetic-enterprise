@@ -1633,3 +1633,92 @@ refuted in size: the null is lower by 0.17–0.25, not 0.02–0.10, and it lands
 of the dispatch. The statistics that can grade the merit order are the within-day and
 between-day swing ratios measured against this null, together with §14's per-fuel oracle.
 No level move.
+
+**Correction, 2026-10-02 (§23):** the claim above that the merit order's visible effect is a
+within-day overshoot was mostly an artefact of the null. The null burned the 2,400 MW biomass
+block as gas, and that flattens the swing. With measured biomass in the null, most of the
+overshoot is still there. See §23.
+
+## 23. 2026-10-02 — THE ELEMENTS ONE AT A TIME: the null's overshoot was the null's own biomass error
+
+§22 removed five elements at once and could not say which one carries the within-day overshoot.
+This pass restores them one at a time. Each element is ADDED to the null alone and REMOVED from
+the shipped arm alone. The five are: **B** the biomass block (a flat 2,400 MW at 120 g, because
+the shipped feed passes no envelope), **F** the thermal floor, **E** the CCGT efficiency curve,
+**C** the coal band and **O** the OCGT tier. The scratch scripts are `/var/tmp/se-ep13-s23/`
+(`measure.py`, `oracle2.py`, with the timestamped predictions in `prediction.txt`).
+**Instrument check:** with all five on, the reimplementation reproduces the shipped arm's
+correlation and within-day ratio to 1e-9 in every year 2019–24 (asserted in the script).
+
+**Prediction 1 (07:30Z, before the script existed).** E would carry the largest share (+0.08–0.15
+of within-day), B +0.03–0.08, F would lower it by 0–0.05, and C and O would each move it <0.02.
+
+Within-day swing ratio (reconstruction ÷ NESO):
+
+| arm | 2019 | 2020 | 2021 | 2022 | 2023 | 2024 |
+|---|---|---|---|---|---|---|
+| null | 0.980 | 1.010 | 0.925 | — | 0.958 | 0.901 |
+| shipped | 1.227 | 1.199 | 1.132 | 1.135 | 1.125 | 1.091 |
+| null + B | 1.172 | 1.212 | 1.099 | 1.128 | 1.118 | 1.065 |
+| null + E | 1.044 | 1.062 | 0.978 | — | 0.986 | 0.936 |
+| null + F / + C / + O | ≤ +0.004 | | | | | (C +0.025 in 2019) |
+| shipped − B | 1.066 | 1.065 | 0.980 | 1.018 | 0.987 | 0.937 |
+| shipped − E | 1.165 | 1.145 | 1.079 | 1.097 | 1.098 | 1.059 |
+| shipped − F | 1.240 | 1.262 | 1.150 | 1.164 | 1.144 | 1.097 |
+| shipped − C / − O | ≤ 0.006 change | | | | | |
+
+**Prediction 1 was refuted on the rank.** B carries +0.16–0.20, and E only +0.03–0.06. F
+lowers the swing, as predicted (removing it raises the swing by 0.006–0.063), and C and O are
+inert after 2019. Correlation moves ≤0.009 for every element, so it still grades nothing here.
+
+**But B being the biggest switch does not make B the error.** In the null, the biomass block
+burns at the gas rate. That error has its own direction: a flat high-carbon block flattens the
+relative swing. So the second question is what the RIGHT biomass does. Three ORACLE arms put
+measured biomass in place of the flat block. They are measurement only: the half-hourly series
+may never reach the shipped dispatch (`elexon_fuel_outturn.biomass_by_period`). FUELHH biomass
+averages 1.5–2.2 GW over 2019–24, below the 2,400 MW constant, and it falls to 50–380 MW at its
+floor.
+
+**Prediction 2 (written after table 1, before the oracle script).** With measured half-hourly
+biomass, within-day would land within 0.05 of 1.00. The year mean would remove less than half
+the overshoot, and the envelope would sit between the two.
+
+| arm | 2019 | 2020 | 2021 | 2022 | 2023 | 2024 |
+|---|---|---|---|---|---|---|
+| shipped (flat 2,400) | 1.227 | 1.199 | 1.132 | 1.135 | 1.125 | 1.091 |
+| shipped, B = year's measured mean | 1.199 | 1.185 | 1.118 | 1.106 | 1.078 | 1.076 |
+| shipped, B = envelope dispatch | 1.276 | 1.220 | 1.174 | 1.164 | 1.170 | 1.152 |
+| shipped, B = measured half-hourly (oracle) | 1.168 | 1.171 | 1.093 | 1.081 | 1.061 | 1.026 |
+| null, B = measured half-hourly (oracle) | 1.104 | 1.134 | 1.050 | 1.053 | 1.037 | 0.994 |
+
+**Prediction 2 was refuted.** Measured biomass leaves the shipped arm at 1.03–1.17. The year
+mean removes 0.01–0.05, and the envelope ADDS 0.02–0.06, so it is not between the two.
+**Prediction 3** (the null with measured biomass would sit at 1.00–1.10 and E would add the last
+0.03–0.06) held in five years. 2020 came in at 1.134.
+
+**What it establishes.**
+- **§22's null was not a fair null.** Its within-day ratio of 0.90–1.01 came from burning
+  biomass as gas. A null that carries biomass at its true output and factor reaches 0.99–1.13,
+  with no merit order at all.
+- **So the overshoot splits three ways** (shipped, 2019–24). Up to 0.13 is in the **shared
+  inputs**: it is there before any dispatch. 0.02–0.06 is the **merit order**, almost all of it
+  E. 0.03–0.07 is the **biomass block being flat and too high**: shipped against shipped with
+  the measured series.
+- **The envelope dispatch is the wrong biomass rule for swing.** It adds overshoot in every year,
+  which agrees with s10's decision not to ship it.
+- **The permitted biomass correction is the year's measured mean** (an annual scalar, coal's
+  grain). It is worth 0.01–0.05 of within-day and leaves correlation within 0.001. It is small,
+  and it is a candidate build, not yet built: it moves the published feed, so it needs its own
+  pass.
+
+**What it does NOT establish.**
+- **Which shared input carries the remaining 0.0–0.13.** 2019–21 carry the most. The candidates
+  are the denominator and the demand definition: NESO's denominator includes embedded wind and
+  solar estimates, and the model's has AGWS solar but no embedded wind. Pumped storage, which
+  sits in neither, is another candidate. That is the next one-variable run, on the fair null.
+- **Whether the overshoot matters at the grain a customer acts on.** The ratio is national and
+  half-hourly. A shifting claim reads the gap between particular half hours.
+
+**For the Expert Hour.** Grade the swing against the FAIR null (measured biomass), not §22's.
+The merit order's own contribution to within-day swing is 0.02–0.06, and the dispatch rule is
+not where most of the swing error lives. No level move.
