@@ -1,9 +1,33 @@
 {
- "generated_at": "2026-10-02T17:25:24.305700+00:00",
+ "generated_at": "2026-10-02T20:26:12.616862+00:00",
  "seat": "delivery",
  "what_it_did": {
   "available": true,
   "commits": [
+   {
+    "sha": "f1036741f",
+    "at": "2026-10-02T20:42:24+01:00",
+    "subject": "D27 pass 19: the eight test-side nodes hold at both origins, and two of them were not pins",
+    "substantive": true
+   },
+   {
+    "sha": "b17da3db3",
+    "at": "2026-10-02T19:56:18+01:00",
+    "subject": "D27 pass 18: the 18 failures at 90 are classified, and four are a published claim the flip falsifies",
+    "substantive": true
+   },
+   {
+    "sha": "73bb200a0",
+    "at": "2026-10-02T19:34:22+01:00",
+    "subject": "D27 pass 17: the five D30/D33 sibling nodes hold at both origins, and the flip's change set is not yet enumerated",
+    "substantive": true
+   },
+   {
+    "sha": "b910320ff",
+    "at": "2026-10-02T18:25:30+01:00",
+    "subject": "delivery seat: direction for the next stretch",
+    "substantive": false
+   },
    {
     "sha": "78f7e3c34",
     "at": "2026-10-02T15:56:33+01:00",
@@ -219,30 +243,6 @@
     "at": "2026-10-02T00:10:08+01:00",
     "subject": "Writer 4 binds the SVT segment at the published cap, which the chain had billed it above",
     "substantive": true
-   },
-   {
-    "sha": "7e4fbb2ca",
-    "at": "2026-10-02T00:00:42+01:00",
-    "subject": "Retire the spent bill-shock swap continuation and mark the PB4 design doc landed",
-    "substantive": true
-   },
-   {
-    "sha": "c3939e7b1",
-    "at": "2026-10-01T23:58:53+01:00",
-    "subject": "Land the bill-shock swap with its value arms retaken in world cf823b185f8ca51c",
-    "substantive": true
-   },
-   {
-    "sha": "8c29e03d9",
-    "at": "2026-10-01T23:21:11+01:00",
-    "subject": "Writer 4 grades a term the company sells as ToU against the multi-register cap (SLC 28AD.4)",
-    "substantive": true
-   },
-   {
-    "sha": "e0f3b2356",
-    "at": "2026-10-01T22:52:11+01:00",
-    "subject": "chore(liveness): publish heartbeat while sim output unchanged (git=5803d08c3ec75a2c8e69c28f1ab2b0d4a9ca9987) -- decouples published liveness from content-change (Fault#1 2026-07-25)",
-    "substantive": false
    }
   ],
   "substantive": 21,
@@ -251,59 +251,55 @@
  },
  "what_it_decided": {
   "available": true,
-  "oriented_at": "2026-10-02T17:20:13.759464+00:00",
+  "oriented_at": "2026-10-02T20:21:37.775542+00:00",
   "age_hours": 0.1,
   "expires_after_hours": 12.0,
   "live": true,
-  "thesis_read": "THE WORLD CAN REFUSE NOW, AND THE FLAT RULE STILL BEATS THE PER-CUSTOMER VIEW. The retake's three-arm run at the belief commit (0cc052102, one seed) finished at 17:16Z. Level leg +\u00a315,701, value arm +\u00a311,493, selection -\u00a34,208. The pre-registered Q1 is refuted on its face. It predicted the level leg would fall below \u00a312,400 once 55 of 64 above-default fixes became refusable. It rose, slightly, from +\u00a315,115. So the refusable fixes were not what carried the level leg. The advantage that exists is still a uniform margin, which is a flat rule and not inference. Q2 holds: the whole advantage is positive. Selection is worse than 1002b's -\u00a3259. It still sits inside that floor's range (-\u00a37,542 to -\u00a3404), so on one seed and with no floor on this commit I cannot yet say it moved. The belief's own one-variable reading points the same way: diff minus no-diff was -\u00a33,499 on one seed, inside one stdev of a floor drawn on another commit. P1 is +0.29 at n=8, which cannot be told from the no-diff arm's -0.08. The belief is on origin and wall-safe, so the error it remedied is corrected. It is NOT shown to work. On every reading in hand, the per-customer arm does no better than a flat margin, and possibly worse. That is the thesis test, and so far it says \"not yet\". The floor that would bound this reading never ran. resource_headroom admitted it, then the floor's own inner gate refused it beside a resident depth-vs-width leg, and the unit exited 88 rather than waiting. That is item one. The previous focus bit on all three items. Item one landed (0cc052102, graded 4ed1fa774). Item two produced half its pair. Item three's subject row now reads premise_spent (8c29e03d9), so the tou bind is done: that corrects my carried not_now row for that instance, but its own ledger row reads not_done, because a ledger write has no commit to bind. The shared checkout's ahead leg closed (0 ahead) while the behind leg grew to 43, and 3 of 12 commits were empty merges. Depth-vs-width is 5 of 12 legs in, roughly 6h from done.",
+  "thesis_read": "NO FURTHER FORWARD ON THE THESIS, AND THE ONE NEGATIVE READING TURNS OUT TO BE ONE ACCOUNT. The three-arm retake at the belief pin (0cc052102) is graded on origin (f666292fd). Q0's world-digest prediction is refuted, because the digest cannot see a behaviour switch. Q1's bold part is refuted too: the level leg rose to +\u00a315,701. That comparison is confounded, because the level itself moved from \u00a349.2 to \u00a360.0/MWh, so the level arm is not the same arm in the two runs. Q2 holds at +\u00a311,493. The selection leg reads -\u00a34,208, which looks like the flat rule beating the per-customer view. But one account, PROS-2016-0098, carries -\u00a38,136 of it. That account is a bad debt. The flat \u00a360 level priced it out of the book by accident: it churned at once, for +\u00a3325. The value arm kept it at an \u00a311.5 margin and wrote off \u00a311,241. Without that account, selection is positive in both 1002b and 1002c. So the honest reading is not \"the flat rule wins\". It is that the value arm selects on churn and cannot select on credit risk, and the one reading we have is dominated by that blind spot. That is item two, and it needs no compute. The floor that bounds any of this has STILL not run. My previous item one keyed its wait to longjob-depth-vs-width-20261002. That unit died at 19:07Z (exit 90: its width worktree did not exist), was relaunched as w125b, and died at 20:12Z (exit 94). w125b's crash was a real defect in company code: observed_account_state calls start.replace(year=...) on a 29 February term start (value_based_renewal.py:1473 on origin). The floor's run.sh began at 20:12Z, behind a 20-minute grace. At 20:21Z, w125c relaunched co-resident with a 29 February guard. That guard exists ONLY in the experiment worktree, not on origin. So the floor will meet a resident leg again at about 20:32Z. Its pin worktree predates 9153f5752, so it will still price a timed leg double. Expect a second exit 88. The steer bit on 2 of 3 items. The wrapper double-count is fixed on origin (9153f5752). The tou bind's own row now reads premise_spent. Item one, the floor, was the one that mattered, and it did not run. The shared checkout's behind leg grew from 43 to 51, and 5 of 12 commits were empty merges.",
   "focus": [
    {
-    "id": "grade-the-value-arms-retaken-at-the-belief-commit",
+    "id": "the-1002c-floor-runs-once-depth-vs-width-has-left-the-box",
     "lane": "B_commercial",
-    "what": "Two parts. FIRST, grade Q0-Q2 now, in docs/staging/records/SEAT_PREREG_THE_VALUE_ARMS_RETAKEN_AT_THE_BELIEF_COMMIT_2026-10-02.md, from /var/tmp/se-retake-belief/value_cycle_ab_s1_three_arm_20261002c.json. Q0: is producing_commit the pin, and did the world digest change from cf823b185f8ca51c? Q1 is refuted (level +\u00a315,701 against its <\u00a312,400 bar). Say so beside the prediction, and say what that means for the 55-refusable-fixes mechanism. Q2 holds (+\u00a311,493). SECOND, relaunch ONLY the noise floor, not the arms. Use the same command (--level-arm --noise-floor-seeds 11111,22222,33333 --redraw-mode all --out .../value_cycle_ab_s1_noise_floor_20261002c.json) in the same locked worktree at the pin, and recreate it from the pin if it is gone. First move the refusal JSON sitting at that --out path aside to *.refused.json. Launch it as a setsid unit (launch_long_job). It must wait on a CONDITION, not a clock: tools.wait_for on longjob-depth-vs-width-20261002.service becoming inactive (deadline 12h). After that, resource_headroom.admit applies at 11,200 MB. If the wait refuses, the unit exits with a named reason. When the floor lands, grade Q3 seed-for-seed against 1002b and re-ask the belief's -\u00a33,499 against this floor, which is the first floor drawn on the right commit. If the floor artefacts carry per-renewal belief and world prices, also pool P1 across the three seeds. Then move CURRENT_WORLD_THREE_ARM_PATH and CURRENT_WORLD_NOISE_FLOOR_PATH onto the 20261002c pair, with the page saying what changed. Bind with delivery_lane --landed.",
-    "why": "This is the thesis's own test: the value arm against the flat-rule baseline, in a world that can refuse. The one reading we have says the flat rule wins by \u00a34,208, with nothing to say whether that is noise. The page has carried a withdrawn reading since 28eb35ec7. DONE when the 20261002c pair is graded and on the page, or withdrawn with a named reason. If depth-vs-width is still running at the next orientation, the floor is WAITING. Say so and do not relaunch."
+    "what": "First read /var/tmp/longjob-value-arms-retake-at-the-belief-floor.log and /var/tmp/se-retake-belief/. If the 11111/22222/33333 --redraw-mode all floor at 0cc052102 wrote value_cycle_ab_s1_noise_floor_20261002c.json, skip straight to grading. If it refused again (exit 88), or is still waiting, do the following. Move any refusal JSON at the --out path aside as *.REFUSED_<time>.json. Then relaunch ONLY the floor with launch_long_job as a setsid unit. Before running, it must wait for EVERY resident `python3 -m tools.run_value_cycle_ab` process to exit. Use the pgrep-then-tools.wait_for loop that /var/tmp/se-depthwidth-out/legs_dw.sh already uses, re-asked in a loop until none remains. Do not wait on a unit name or a pid, because depth-vs-width has relaunched under three names today. Give it a 12h deadline and a named refusal. Run the floor at the pin; do not move the pin to pick up 9153f5752. When it lands, grade Q1 seed-for-seed and Q3 in docs/staging/records/SEAT_RESULT_THE_VALUE_ARMS_RETAKEN_AT_THE_BELIEF_COMMIT_2026-10-02.md. Re-ask the belief's -\u00a33,499 against this floor. Then move CURRENT_WORLD_THREE_ARM_PATH and CURRENT_WORLD_NOISE_FLOOR_PATH together onto the 20261002c pair, with the page saying what changed. Bind with delivery_lane --landed.",
+    "why": "This is the only reading that tests the thesis: the value arm against the flat-rule baseline, at the right commit, with a spread. It has been refused once and is about to be refused again, by the same collision. A waiter keyed to a unit name does not follow a lane that relaunches under a new name. DONE when the 20261002c pair is graded and published, or withdrawn with a named reason. If a run_value_cycle_ab leg is still resident at the next orientation, the floor is WAITING. Say so and do not relaunch."
    },
    {
-    "id": "a-timed-floor-leg-is-counted-once",
-    "lane": "H_harness",
-    "what": "Fix running_floor_legs in tools/run_value_cycle_ab.py, which floor_run_headroom_refusal uses. At 17:16Z it counted the `/usr/bin/time -v` wrapper (pid 347062, 1.7 MB) and its python child (pid 347063) as two legs, each priced at 11,200 MB, so it asked for 33,600 MB where the one leg needed 22,400 MB. Count a wrapper and its run_value_cycle_ab child as one leg. Land it with a control that builds that exact pair, and assert it counts 1 where it used to count 2. Add a second arm in which two genuinely separate legs still count 2, so the fix cannot pass by counting everything as one. Mutation-prove it.",
-    "why": "Every timed leg (the whole depth-vs-width family) is priced double, so a later floor beside any of them gets refused for a reason that is false. Here the refusal was right anyway (22,400 > 19,677), so this defect did not cost the retake. The next refusal may not be. DONE when the fix and its control are on origin."
+    "id": "read-selection-with-and-without-arrears-write-offs",
+    "lane": "B_commercial",
+    "what": "From the existing artefacts, with no new run, split the selection leg into a churn-pricing part and a credit part. The artefacts are /var/tmp/se-retake-belief/value_cycle_ab_s1_three_arm_20261002c.json and the 1002b three-arm. Report selection per account with and without arrears write-offs, and name every account whose sign flips. For PROS-2016-0098 and each such account, record what the company could see at its renewal date. Did the arrears state that ae101f936 routes to the renewal reach the value arm's price for that account, and with what effect? Write the result as a finding in docs/staging/records/. If the value arm sees arrears and does not price them, file it as a defect against company/pricing/value_based_renewal.py. If the arm cannot see them, file it as a gap. Do not change any pricing code in this item.",
+    "why": "The thesis reading says the flat rule beats the per-customer view by \u00a34,208. 193% of that is one account the flat rule priced out by luck. A seed mean will average that, not explain it, and it will be read as the value arm choosing badly, which is the wrong cause. Settling the cause costs no compute and decides what the floor's verdict means. DONE when the split and the arrears-visibility answer are on origin as a finding."
    },
    {
-    "id": "bind-the-ledger-row-of-a-bind-that-was-a-ledger-write",
-    "lane": "H_harness",
-    "what": "The brief lists bind-the-spent-tou-lane-0-row as not_done. Its work was a ledger write: the tou row now reads premise_spent with 8c29e03d9 as its evidence, and a ledger write has no commit for --landed to find. Record it with background/delivery_lane.py --premise-spent bind-the-spent-tou-lane-0-row 8c29e03d9, giving as the reason that its subject row was dispositioned. Nothing else.",
-    "why": "An unbound row makes every brief go looking for finished work in the tree. DONE when the row is absent from the next brief's not_done list."
+    "id": "a-29-february-term-start-does-not-crash-the-value-arm",
+    "lane": "B_commercial",
+    "what": "company/pricing/value_based_renewal.py:1473 (observed_account_state) builds window_open with start.replace(year=start.year - OBSERVATION_WINDOW_YEARS). That raises ValueError for any term starting on 29 February. It killed longjob-depth-vs-width-w125b at 20:12Z. Diff the guard in /var/tmp/se-width125-a322166cc/company/pricing/value_based_renewal.py against origin. Land an equivalent on origin, after checking the other replace(year=...) sites in company/ and saas/ for the same shape. Ship it with a control that drives a real 29 February term start through observed_account_state. Mutation-prove the control against the unguarded line.",
+    "why": "A company-code defect is live on origin and patched only inside an experiment's worktree. So depth-vs-width's width arm is measuring code that origin does not run, and any production renewal on a leap-day anniversary crashes the arm. DONE when the guard and its control are on origin."
    }
   ],
   "not_now": [
    {
-    "what": "Pause or stop the depth-vs-width legs so the floor gets the box now.",
-    "why": "Its pre-registration says nothing else is resident, and 5 of 12 legs are on disk on one pin. Interrupting it costs a re-run of the current leg at minimum and puts its RSS and CPU readings in doubt. Waiting costs the thesis reading about 6h. A reading 6h late is cheaper than two experiments that each invalidate the other."
+    "what": "Stop longjob-depth-vs-width-w125c so the floor gets the box tonight.",
+    "why": "w125c started at 20:21Z and has three pairs at roughly 1h each. Killing it buys the floor about 3h and costs a whole relaunch plus a fourth broken run of an experiment that died twice today. With item two settling what the selection reading means at no compute, 3h on the floor is the cheaper loss. If w125c refuses or dies again, the floor goes first and depth-vs-width queues behind it."
    },
    {
-    "what": "Run the floor now with --ignore-headroom.",
-    "why": "22,400 MB against 19,677 offered is the 2026-09-29 shape. In that run, one of two co-resident legs was OOM-killed and wrote nothing, and here it could take the depth leg down with it."
-   },
-   {
-    "what": "Buy more seeds or a longer window for the belief's P1, which is unreadable at n=8.",
-    "why": "The floor at 0cc052102 brings three more seeds on the right commit at no extra cost. Pay for more only if that pool is still unreadable."
+    "what": "Move the floor's pin forward to pick up 9153f5752, so it prices a timed leg once.",
+    "why": "It changes the commit the three-arm was graded at, so the floor would bound a figure from a different code state. Waiting for an empty box makes the double-count moot for this run."
    },
    {
     "what": "Grade depth-vs-width now.",
-    "why": "7 of 12 legs remain. An item drawn now finds nothing ripe. It belongs to the orientation after ALL LEGS DONE appears in /var/tmp/se-depthwidth-out/legs_dw.log."
+    "why": "D2019 and D2022 are on disk, but the width arm has zero of three pairs, and it runs a guard that is not on origin. Grade it after item three lands and ALL LEGS DONE appears."
    },
    {
-    "what": "Open a fidelity item on why the level leg survived the decline switch.",
-    "why": "That is an argument before the floor exists. If the floor puts +\u00a315,701 inside the 1002b band, the honest statement is \"the decline switch did not move the level leg\", and the question is then what does. Only after that is it a question about the world."
+    "what": "Teach the value arm to price credit risk.",
+    "why": "That is the build item two may justify. Building it before item two has established that the arm cannot see arrears, rather than sees them and ignores them, would be choosing the remedy before the definition."
    },
    {
-    "what": "Make the shared checkout's divergence (0 ahead, 43 behind) a focus item.",
-    "why": "The ahead leg closed, which was the condition I set for it to displace an item, and landings go through surgical_land to origin regardless. It stays open in wrong."
+    "what": "Make the shared checkout's divergence (0 ahead, 51 behind) a focus item.",
+    "why": "Landings reach origin through surgical_land regardless, and nothing in this stretch's thesis work was blocked by it. It stays open in wrong. If any daemon is shown acting on stale code, it displaces item three."
    },
    {
     "what": "Source per-household new-baby and job-loss rates (65f48b276).",
-    "why": "A real fidelity defect, but research-first, and it moves collections, not the selection reading that decides whether the value arm means anything."
+    "why": "A real fidelity defect, but research-first, and it moves collections. The selection question is now about credit, so this rises next stretch if item two finds arrears drive the reading."
    }
   ],
   "for_the_director": [],
@@ -313,6 +309,106 @@
  },
  "what_it_got_wrong": {
   "entries": [
+   {
+    "at": "2026-10-02T20:21:37.775542+00:00",
+    "what": "MINE, NEW. I directed the retake to be \"admitted by resource_headroom\" beside the resident depth-vs-width legs. resource_headroom admitted the floor, but the floor's own inner gate refused it, and the unit treated the refusal as terminal (exit 88). Two admission controls disagreed, and the floor that bounds the thesis reading never ran. Last stretch's correction did not hold either: it waited on a unit that died and relaunched under new names. Item one waits on the process, not the name.",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-02T20:21:37.775542+00:00",
+    "what": "MINE, NEW. I keyed a wait to longjob-depth-vs-width-20261002 as if a unit name were the experiment. The experiment relaunched as w125b, then w125c, and each relaunch was invisible to that wait, so the floor was set up to collide again.",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-02T20:21:37.775542+00:00",
+    "what": "THE MACHINE'S, NEW. company/pricing/value_based_renewal.py raises ValueError on a 29 February term start. w125b died of it, and the guard exists only in an experiment worktree, so depth-vs-width now measures code that origin does not run. Item three.",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-02T20:21:37.775542+00:00",
+    "what": "THE MACHINE'S, NEW. The world digest does not identify behaviour switches, so 1002b and 1002c share digest cf823b185f8ca51c and are not the same world. Only the pin separates them.",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-02T20:21:37.775542+00:00",
+    "what": "THE MACHINE'S, NEW. depth-vs-width's first unit referenced a width worktree that did not exist and died at exit 90 after 10h. Nothing checks a long job's worktrees before launch.",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-02T20:21:37.775542+00:00",
+    "what": "THE MACHINE'S, NEW. floor_run_headroom_refusal counts a `/usr/bin/time` wrapper and its run_value_cycle_ab child as two legs (pids 347062 and 347063), so every timed leg is priced double. Corrected on origin by 9153f5752. The 1002c floor still runs at a pin that predates it.",
+    "corrected": true
+   },
+   {
+    "at": "2026-10-02T20:21:37.775542+00:00",
+    "what": "THE MACHINE'S. A held change's hold condition is not re-asked when its premise moves. a15532730 and 1ff7b68b3 held \"until the retake lands\", and now a continuation is clock-held past its own condition. Nothing was built to re-ask it.",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-02T20:21:37.775542+00:00",
+    "what": "THE MACHINE'S. The shared checkout has diverged from origin/main: now 0 ahead and 51 behind (it was 0 ahead and 43 behind), and 5 of 12 commits this stretch were empty merges. Daemons running from the shared tree execute code origin has moved past.",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-02T20:21:37.775542+00:00",
+    "what": "THE MACHINE'S. A long job's world stamp is not tied to HEAD. arms-d-head-1002 and the f18e8b5dc retake were each overtaken within hours. Only value-arms readings are checked for it.",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-02T20:21:37.775542+00:00",
+    "what": "THE MACHINE'S. Four level or park moves stranded in a preserved ref were replayed as written. PB4 build->idle was false by then (a6bd4d77e). Nothing re-asks a stranded move's release condition.",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-02T20:21:37.775542+00:00",
+    "what": "THE MACHINE'S, CARRIED. One item can land twice, on origin through surgical_land and as a local commit on the shared HEAD (75df9efdf after d77ff33d5). No mechanism prevents the next one.",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-02T20:21:37.775542+00:00",
+    "what": "THE MACHINE'S, CARRIED. The launch register recorded hgc-suite-timing as died while its /var/tmp driver ran. That driver called resource_headroom.admitted(), which does not exist. Nothing checks that a hand-written driver calls an API that exists.",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-02T20:21:37.775542+00:00",
+    "what": "THE MACHINE'S, CARRIED. A control or door whose shape changes must re-run every fixture that builds a synthetic tree to drive it, and no control requires it. citation_at_head, red_at_head and fork_state in .publish_gate_state.json still read not_established.",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-02T20:21:37.775542+00:00",
+    "what": "THE MACHINE'S, CARRIED. A refusal naming a commit is not re-asked against the remote ref before a reader sees it. liveness_surface_refusal is still not re-asked.",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-02T20:21:37.775542+00:00",
+    "what": "THE MACHINE'S, CARRIED. The stash-completeness sweep reports a genuinely lost file as safe. It is still not on the map.",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-02T20:21:37.775542+00:00",
+    "what": "THE MACHINE'S, CARRIED. Nothing on the landing path asks whether a same-subject sibling is left behind in the shared tree (the 14-path refusal in 662da7fd3). Separate from H49.",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-02T20:21:37.775542+00:00",
+    "what": "MINE, CLASS. not_now is still prose that nothing reads. A rejected item comes back only if I remember to promote it, and nothing re-asks a not_now row's own stated condition, such as \"if w125c refuses or dies again, the floor goes first\".",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-02T20:21:37.775542+00:00",
+    "what": "THE MACHINE'S, NEW. A bounded executor turn hit 5400 s three times, the last time mid-gate, and the next tick reset the worktree over finished, graded work. 822218441 exists only because a worker recovered the diff, test and finding from unreachable blobs. Nothing stops a tick from resetting a worktree that holds unlanded work.",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-02T20:21:37.775542+00:00",
+    "what": "THE MACHINE'S, NEW. One Lane 0 change was minted under two ids and drawn by both the worker and the seat executor within a minute. That happened three times on 2026-10-01/02 (the SVT anniversary roll and the two PB4 swap notes). The duplicate-work check caught each one, at a turn's cost each.",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-02T20:21:37.775542+00:00",
+    "what": "THE MACHINE'S. Two life-event rates (new baby, job loss) are per-person statistics applied per household, so the world under-draws income shocks. Filed LATENT by 65f48b276 and not remedied.",
+    "corrected": false
+   },
    {
     "at": "2026-10-02T17:20:13.759464+00:00",
     "what": "MINE, NEW. I directed the retake to be \"admitted by resource_headroom\" beside the resident depth-vs-width legs. resource_headroom admitted the floor, but the floor's own inner gate refused it, and the unit treated the refusal as terminal (exit 88). Two admission controls disagreed, and the floor that bounds the thesis reading never ran. Corrected in item one, which waits on the depth-vs-width unit's exit.",
@@ -3182,61 +3278,6 @@
     "at": "2026-09-27T23:22:56.712660+00:00",
     "what": "MINE, NEW. The last record put the two-seed rerun in not_now, and it was launched 21 minutes later anyway. My not_now carried no mechanism, and a launch from another lane did not read it. The rerun turned out to be two variables, and c2191bd13 recovered with a queued baseline.",
     "corrected": false
-   },
-   {
-    "at": "2026-09-27T20:23:08.204689+00:00",
-    "what": "MINE, CARRIED. The orientation reads git, the map, the staging root, the publisher and the draw ledger, and does NOT read docs/staging/console/DIRECTOR_CONSOLE_<date>.md. This time I read it by hand, and his last turn was 13:06, but the brief's director_inputs is still empty. Grade by whether the orientation itself reads the console capture.",
-    "corrected": false
-   },
-   {
-    "at": "2026-09-27T20:23:08.204689+00:00",
-    "what": "MINE, CARRIED. I named the liveness heartbeat as what manufactures the gate cycles the reconciler cannot keep up with. This stretch was level again, with four non-consecutive heartbeats and no fork, so there is still no one-variable run. I cannot attribute it.",
-    "corrected": false
-   },
-   {
-    "at": "2026-09-27T20:23:08.204689+00:00",
-    "what": "MINE, CARRIED. The publisher's episode fields clear only by the ordinary path, and no rule closes an episode when its cause stops holding. The field has read FAILING since about 13:57Z on a behind_origin cause that has since cleared, and the Monday window means no clean publish can close it before Monday. Now in focus. Grade by a level tree closing the episode, never by what the field reads on a given day.",
-    "corrected": false
-   },
-   {
-    "at": "2026-09-27T20:23:08.204689+00:00",
-    "what": "THE MACHINE'S, CARRIED. A control or door whose shape changes must re-run every fixture that builds a synthetic tree to drive it, and no control requires it. citation_at_head, red_at_head and fork_state in docs/observability/.publish_gate_state.json still read not_established.",
-    "corrected": false
-   },
-   {
-    "at": "2026-09-27T20:23:08.204689+00:00",
-    "what": "THE MACHINE'S, CARRIED. A refusal naming a commit is not re-asked against the remote ref before a reader sees it. liveness_surface_refusal reads None because the field cleared by the ordinary path, not because anything was repaired.",
-    "corrected": false
-   },
-   {
-    "at": "2026-09-27T20:23:08.204689+00:00",
-    "what": "MINE, CARRIED. evaluate_boot_sha_drift() in background/process_reconciler.py grades every daemon against local HEAD, and it read clean with the checkout one behind origin. Not drawn, and moved to not_now while the tree is level.",
-    "corrected": false
-   },
-   {
-    "at": "2026-09-27T20:23:08.204689+00:00",
-    "what": "THE MACHINE'S, CARRIED. The stash-completeness sweep reports a genuinely lost file as safe. It is still not on the map.",
-    "corrected": false
-   },
-   {
-    "at": "2026-09-27T20:23:08.204689+00:00",
-    "what": "MINE, CARRIED AND SPREAD. The design at 1a78b9977 heads itself Lane A_strategy_governance, Atom value-arms-error-bar, when the work is a world rule. The result record at 6ba548633 copied the same header, so the misclassification is now on two files. Neither header is corrected.",
-    "corrected": false
-   },
-   {
-    "at": "2026-09-27T20:23:08.204689+00:00",
-    "what": "MINE, NEW. I put the write-off re-key first because I predicted it would move the leaver's write-off and turn the selection sign toward retention. It moved nothing: the rule has no cure, so a balance written off at close is the same sum that was written off at due+90. The lever was the cure and the stayer provision. Corrected in this record: the next step is sourcing C1 and C6.",
-    "corrected": true
-   },
-   {
-    "at": "2026-09-27T20:23:08.204689+00:00",
-    "what": "THE MACHINE'S, NEW. The executor BUILT the by-eye controls and ended its turn \"LANDED NOTHING\". The brief's lane-0 block (\"no drawn item finished its window without landing\") and the path check (\"nothing to land\") both read HEAD, so finished work stranded in /var/tmp/se-seat-executor looked exactly like work never done. I found it only by opening the worktree. The landing is in focus; the blindness is not fixed.",
-    "corrected": false
-   },
-   {
-    "at": "2026-09-27T20:23:08.204689+00:00",
-    "what": "THE MACHINE'S, NEW. The billing ledger and the P&L write off different sums on the real book (\u00a317,359.26 against \u00a319,135.30 at HEAD), and the ledger's fixture test agrees only because its bills are never held. Now in focus.",
-    "corrected": false
    }
   ],
   "refused_own_records": [
@@ -3247,18 +3288,46 @@
     ]
    }
   ],
-  "outstanding": 464,
+  "outstanding": 473,
   "corrected": 121,
   "correction_not_recorded": 0,
   "empty_means": ""
  },
  "what_next": {
   "focus": [
-   "grade-the-value-arms-retaken-at-the-belief-commit",
-   "a-timed-floor-leg-is-counted-once",
-   "bind-the-ledger-row-of-a-bind-that-was-a-ledger-write"
+   "the-1002c-floor-runs-once-depth-vs-width-has-left-the-box",
+   "read-selection-with-and-without-arrears-write-offs",
+   "a-29-february-term-start-does-not-crash-the-value-arm"
   ],
   "steer_checks": [
+   {
+    "by_class": {
+     "lane_0": {
+      "drawn": [
+       "a-timed-floor-leg-is-counted-once",
+       "bind-the-ledger-row-of-a-bind-that-was-a-ledger-write"
+      ],
+      "focus": [
+       "grade-the-value-arms-retaken-at-the-belief-commit",
+       "a-timed-floor-leg-is-counted-once",
+       "bind-the-ledger-row-of-a-bind-that-was-a-ledger-write"
+      ],
+      "steered": true
+     }
+    },
+    "drawn": [
+     "a-timed-floor-leg-is-counted-once",
+     "bind-the-ledger-row-of-a-bind-that-was-a-ledger-write"
+    ],
+    "focus": [
+     "grade-the-value-arms-retaken-at-the-belief-commit",
+     "a-timed-floor-leg-is-counted-once",
+     "bind-the-ledger-row-of-a-bind-that-was-a-ledger-write"
+    ],
+    "note": "the previous direction named work the draw then took (measured over this stretch only -- the 3.0h since 2026-10-02T17:20:13.759464+00:00; this is the PREVIOUS FOCUS, not every drawn item)",
+    "steered": true,
+    "window": "this stretch only -- the 3.0h since 2026-10-02T17:20:13.759464+00:00"
+   },
    {
     "by_class": {
      "lane_0": {
@@ -3380,34 +3449,6 @@
     "note": "the previous direction named work the draw then took (measured over this stretch only -- the 3.0h since 2026-10-02T05:22:07.161269+00:00; this is the PREVIOUS FOCUS, not every drawn item)",
     "steered": true,
     "window": "this stretch only -- the 3.0h since 2026-10-02T05:22:07.161269+00:00"
-   },
-   {
-    "by_class": {
-     "lane_0": {
-      "drawn": [
-       "restore-the-journey-decision-for-an-svt-conversion",
-       "the-value-arms-churn-belief-calls-a-x2-renewal-optimal"
-      ],
-      "focus": [
-       "restore-the-journey-decision-for-an-svt-conversion",
-       "retake-the-value-arms-on-heads-world-before-the-10-05-publish",
-       "the-value-arms-churn-belief-calls-a-x2-renewal-optimal"
-      ],
-      "steered": true
-     }
-    },
-    "drawn": [
-     "restore-the-journey-decision-for-an-svt-conversion",
-     "the-value-arms-churn-belief-calls-a-x2-renewal-optimal"
-    ],
-    "focus": [
-     "restore-the-journey-decision-for-an-svt-conversion",
-     "retake-the-value-arms-on-heads-world-before-the-10-05-publish",
-     "the-value-arms-churn-belief-calls-a-x2-renewal-optimal"
-    ],
-    "note": "the previous direction named work the draw then took (measured over this stretch only -- the 3.0h since 2026-10-02T02:24:09.927181+00:00; this is the PREVIOUS FOCUS, not every drawn item)",
-    "steered": true,
-    "window": "this stretch only -- the 3.0h since 2026-10-02T02:24:09.927181+00:00"
    }
   ],
   "steered_recently": true,
@@ -3415,10 +3456,10 @@
  },
  "the_queues_link_to_the_map": {
   "available": true,
-  "population": 78,
-  "chained": 78,
+  "population": 76,
+  "chained": 76,
   "minted": 48,
-  "unminted": 30,
+  "unminted": 28,
   "unchained": [],
   "unreadable": 0,
   "why_this_is_here": "Every item waiting for work should say which lane, release epoch and map atom it belongs to, so the queue and the map cannot drift apart unnoticed. An item that says 'unminted' has been read against the map and needs an atom that does not exist yet; an item that says nothing has not been read at all."

@@ -8,6 +8,56 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-10-02 — orientation: NO FURTHER FORWARD ON THE THESIS, AND THE ONE NEGATIVE READING TURNS OUT TO BE ONE ACCOUNT
+
+<!-- head: f1036741f282 -->
+
+*Written by the orientation seat from its own record (2026-10-02T20:21:37.775542+00:00; 12 commits, 4 substantive, since 2026-10-02T17:20:13.759464+00:00).*
+
+## What the stretch meant
+
+NO FURTHER FORWARD ON THE THESIS, AND THE ONE NEGATIVE READING TURNS OUT TO BE ONE ACCOUNT. The three-arm retake at the belief pin (0cc052102) is graded on origin (f666292fd). Q0's world-digest prediction is refuted, because the digest cannot see a behaviour switch. Q1's bold part is refuted too: the level leg rose to +£15,701. That comparison is confounded, because the level itself moved from £49.2 to £60.0/MWh, so the level arm is not the same arm in the two runs. Q2 holds at +£11,493. The selection leg reads -£4,208, which looks like the flat rule beating the per-customer view. But one account, PROS-2016-0098, carries -£8,136 of it. That account is a bad debt. The flat £60 level priced it out of the book by accident: it churned at once, for +£325. The value arm kept it at an £11.5 margin and wrote off £11,241. Without that account, selection is positive in both 1002b and 1002c. So the honest reading is not "the flat rule wins". It is that the value arm selects on churn and cannot select on credit risk, and the one reading we have is dominated by that blind spot. That is item two, and it needs no compute. The floor that bounds any of this has STILL not run. My previous item one keyed its wait to longjob-depth-vs-width-20261002. That unit died at 19:07Z (exit 90: its width worktree did not exist), was relaunched as w125b, and died at 20:12Z (exit 94). w125b's crash was a real defect in company code: observed_account_state calls start.replace(year=...) on a 29 February term start (value_based_renewal.py:1473 on origin). The floor's run.sh began at 20:12Z, behind a 20-minute grace. At 20:21Z, w125c relaunched co-resident with a 29 February guard. That guard exists ONLY in the experiment worktree, not on origin. So the floor will meet a resident leg again at about 20:32Z. Its pin worktree predates 9153f5752, so it will still price a timed leg double. Expect a second exit 88. The steer bit on 2 of 3 items. The wrapper double-count is fixed on origin (9153f5752). The tou bind's own row now reads premise_spent. Item one, the floor, was the one that mattered, and it did not run. The shared checkout's behind leg grew from 43 to 51, and 5 of 12 commits were empty merges.
+
+## What went wrong
+
+- NOT corrected: MINE, NEW. I directed the retake to be "admitted by resource_headroom" beside the resident depth-vs-width legs. resource_headroom admitted the floor, but the floor's own inner gate refused it, and the unit treated the refusal as terminal (exit 88). Two admission controls disagreed, and the floor that bounds the thesis reading never ran. Last stretch's correction did not hold either: it waited on a unit that died and relaunched under new names. Item one waits on the process, not the name.
+- NOT corrected: MINE, NEW. I keyed a wait to longjob-depth-vs-width-20261002 as if a unit name were the experiment. The experiment relaunched as w125b, then w125c, and each relaunch was invisible to that wait, so the floor was set up to collide again.
+- NOT corrected: THE MACHINE'S, NEW. company/pricing/value_based_renewal.py raises ValueError on a 29 February term start. w125b died of it, and the guard exists only in an experiment worktree, so depth-vs-width now measures code that origin does not run. Item three.
+- NOT corrected: THE MACHINE'S, NEW. The world digest does not identify behaviour switches, so 1002b and 1002c share digest cf823b185f8ca51c and are not the same world. Only the pin separates them.
+- NOT corrected: THE MACHINE'S, NEW. depth-vs-width's first unit referenced a width worktree that did not exist and died at exit 90 after 10h. Nothing checks a long job's worktrees before launch.
+- corrected: THE MACHINE'S, NEW. floor_run_headroom_refusal counts a `/usr/bin/time` wrapper and its run_value_cycle_ab child as two legs (pids 347062 and 347063), so every timed leg is priced double. Corrected on origin by 9153f5752. The 1002c floor still runs at a pin that predates it.
+- NOT corrected: THE MACHINE'S. A held change's hold condition is not re-asked when its premise moves. a15532730 and 1ff7b68b3 held "until the retake lands", and now a continuation is clock-held past its own condition. Nothing was built to re-ask it.
+- NOT corrected: THE MACHINE'S. The shared checkout has diverged from origin/main: now 0 ahead and 51 behind (it was 0 ahead and 43 behind), and 5 of 12 commits this stretch were empty merges. Daemons running from the shared tree execute code origin has moved past.
+- NOT corrected: THE MACHINE'S. A long job's world stamp is not tied to HEAD. arms-d-head-1002 and the f18e8b5dc retake were each overtaken within hours. Only value-arms readings are checked for it.
+- NOT corrected: THE MACHINE'S. Four level or park moves stranded in a preserved ref were replayed as written. PB4 build->idle was false by then (a6bd4d77e). Nothing re-asks a stranded move's release condition.
+- NOT corrected: THE MACHINE'S, CARRIED. One item can land twice, on origin through surgical_land and as a local commit on the shared HEAD (75df9efdf after d77ff33d5). No mechanism prevents the next one.
+- NOT corrected: THE MACHINE'S, CARRIED. The launch register recorded hgc-suite-timing as died while its /var/tmp driver ran. That driver called resource_headroom.admitted(), which does not exist. Nothing checks that a hand-written driver calls an API that exists.
+- NOT corrected: THE MACHINE'S, CARRIED. A control or door whose shape changes must re-run every fixture that builds a synthetic tree to drive it, and no control requires it. citation_at_head, red_at_head and fork_state in .publish_gate_state.json still read not_established.
+- NOT corrected: THE MACHINE'S, CARRIED. A refusal naming a commit is not re-asked against the remote ref before a reader sees it. liveness_surface_refusal is still not re-asked.
+- NOT corrected: THE MACHINE'S, CARRIED. The stash-completeness sweep reports a genuinely lost file as safe. It is still not on the map.
+- NOT corrected: THE MACHINE'S, CARRIED. Nothing on the landing path asks whether a same-subject sibling is left behind in the shared tree (the 14-path refusal in 662da7fd3). Separate from H49.
+- NOT corrected: MINE, CLASS. not_now is still prose that nothing reads. A rejected item comes back only if I remember to promote it, and nothing re-asks a not_now row's own stated condition, such as "if w125c refuses or dies again, the floor goes first".
+- NOT corrected: THE MACHINE'S, NEW. A bounded executor turn hit 5400 s three times, the last time mid-gate, and the next tick reset the worktree over finished, graded work. 822218441 exists only because a worker recovered the diff, test and finding from unreachable blobs. Nothing stops a tick from resetting a worktree that holds unlanded work.
+- NOT corrected: THE MACHINE'S, NEW. One Lane 0 change was minted under two ids and drawn by both the worker and the seat executor within a minute. That happened three times on 2026-10-01/02 (the SVT anniversary roll and the two PB4 swap notes). The duplicate-work check caught each one, at a turn's cost each.
+- NOT corrected: THE MACHINE'S. Two life-event rates (new baby, job loss) are per-person statistics applied per household, so the world under-draws income shocks. Filed LATENT by 65f48b276 and not remedied.
+
+## Chosen against
+
+- Stop longjob-depth-vs-width-w125c so the floor gets the box tonight.
+- Move the floor's pin forward to pick up 9153f5752, so it prices a timed leg once.
+- Grade depth-vs-width now.
+- Teach the value arm to price credit risk.
+- Make the shared checkout's divergence (0 ahead, 51 behind) a focus item.
+- Source per-household new-baby and job-loss rates (65f48b276).
+
+## Focus for the next stretch
+
+- `the-1002c-floor-runs-once-depth-vs-width-has-left-the-box`
+- `read-selection-with-and-without-arrears-write-offs`
+- `a-29-february-term-start-does-not-crash-the-value-arm`
+
+---
+
 ## 2026-10-02 — orientation: THE WORLD CAN REFUSE NOW, AND THE FLAT RULE STILL BEATS THE PER-CUSTOMER VIEW
 
 <!-- head: 78f7e3c34c35 -->
