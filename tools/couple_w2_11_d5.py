@@ -1301,9 +1301,18 @@ COVERAGE_ONLY_CLAIM_CONTRACT: Dict[str, Dict[str, object]] = {
             "Its two sides run the SAME thresholding shape (`_severity_label` "
             "mirrors `PaymentObservationConsumer._arrears_risk_belief`) over "
             "different-coverage counts: all-channel unresolved failures on the "
-            "truth side, DD/rail-OBSERVED failures on the belief side. So with "
-            "coverage equalised the residual must be exactly 0."
+            "truth side, DD/rail-OBSERVED failures on the belief side. The "
+            "company's count is also bounded by its MEMORY "
+            "(`_dd_failure_window_days`) and the truth side's is not, so the "
+            "two sides differ in coverage AND memory (atom D27, frame s29). "
+            "With both equalised the residual must be exactly 0; with "
+            "coverage alone equalised what survives is the memory's share, "
+            "published as `memory_share`. At a 400d origin the memory covers "
+            "the book and that share is 0; at the organ's 90d it is not "
+            "(seed 7: 0.0191), and the claim read as coverage-only would be "
+            "false there."
         ),
+        "reads_company_memory": True,
     },
     "belief_population_mix": {
         "claims_coverage_only": True,
@@ -1313,7 +1322,11 @@ COVERAGE_ONLY_CLAIM_CONTRACT: Dict[str, Dict[str, object]] = {
             "rather than an exemption for the same reason it does in "
             "`DIMENSION_AS_OF_CONTRACT`: a dimension that shares another's "
             "inputs is exactly the one an author assumes inherits a declaration."
+            " It reads the company's memory for the same reason `belief` "
+            "does (seed 7 at 90d: 0.0050 coverage-equalised, 0 with the "
+            "memory equalised too)."
         ),
+        "reads_company_memory": True,
     },
     "detection": {
         "claims_coverage_only": False,
@@ -1327,6 +1340,7 @@ COVERAGE_ONLY_CLAIM_CONTRACT: Dict[str, Dict[str, object]] = {
             "the residual and concluded the claim would license this dimension "
             "into a claim it does not make. Nothing here may assert on it."
         ),
+        "reads_company_memory": False,
     },
     "detection_latency": {
         "claims_coverage_only": False,
@@ -1336,6 +1350,7 @@ COVERAGE_ONLY_CLAIM_CONTRACT: Dict[str, Dict[str, object]] = {
                 "on the counterfactual (seeds 7/11/23), which is what stops a "
                 "population that collapsed every dimension to 0 -- a broken "
                 "build, an empty book -- from passing as agreement."),
+        "reads_company_memory": False,
     },
     "ageing": {
         "claims_coverage_only": True,
@@ -1356,6 +1371,7 @@ COVERAGE_ONLY_CLAIM_CONTRACT: Dict[str, Dict[str, object]] = {
             "in the repository able to catch the D20 class was switched off "
             "for the dimension with the strongest mirror of the three."
         ),
+        "reads_company_memory": False,
     },
 }
 
@@ -1386,6 +1402,22 @@ def measure_coverage_only_residual(
     cf_records, cf_consumer, _cf_ledger, cf_as_of = build_scenario(
         n_customers, seed=seed, force_payment_method=DIRECT_DEBIT)
     cf = score_triad(cf_records, cf_consumer, cf_as_of)
+    # THE MEMORY LEG (atom D27, frame s29). For a dimension that reads the
+    # company's failure window, equalising coverage is not enough: the truth
+    # side forgets nothing, so a company whose memory stops short of the cf
+    # book's oldest failure still disagrees on inputs it once saw. The second
+    # company is the NEVER-FORGETS one on THIS book (derived from its oldest
+    # observed failure, never from the origin literal). Where the scored
+    # company already never forgets the drift is 0 and no second build is made.
+    cf_nf_drift = never_forgets_drift_days(
+        cf_records, cf_as_of, window_days=cf_consumer.dd_failure_window_days)
+    if cf_nf_drift:
+        nf_records, nf_consumer, _nf_ledger, nf_as_of = build_scenario(
+            n_customers, seed=seed, force_payment_method=DIRECT_DEBIT,
+            organ_failure_window_drift_days=cf_nf_drift)
+        cf_nf = score_triad(nf_records, nf_consumer, nf_as_of)
+    else:
+        cf_nf = cf
 
     real_records, real_consumer, _r_ledger, real_as_of = build_scenario(
         n_customers, seed=seed)
@@ -1393,9 +1425,18 @@ def measure_coverage_only_residual(
 
     residuals: Dict[str, Dict[str, object]] = {}
     for dim, decl in COVERAGE_ONLY_CLAIM_CONTRACT.items():
+        reads_memory = bool(decl["reads_company_memory"])
+        equalised = cf_nf if reads_memory else cf
         residuals[dim] = {
             "claims_coverage_only": bool(decl["claims_coverage_only"]),
-            "residual": cf[dim].gap,
+            "reads_company_memory": reads_memory,
+            "residual": equalised[dim].gap,
+            # The coverage-equalised gap minus the coverage-AND-memory one: the
+            # whole of what the company's forgetting costs on the cf book. None
+            # for a dimension that does not read the window, which has no
+            # memory to share out.
+            "memory_share": (cf[dim].gap - cf_nf[dim].gap
+                             if reads_memory else None),
             "gap_on_the_scored_book": real[dim].gap,
         }
 
@@ -1416,6 +1457,7 @@ def measure_coverage_only_residual(
             or witnesses["cf_overcall_population"] == 0
             or witnesses["n_exempt_dimensions_nonzero"] == 0
         ),
+        "cf_never_forgets_drift_days": cf_nf_drift,
         "n_customers": n_customers,
         "seed": seed,
     }
@@ -12934,9 +12976,13 @@ def score_triad(
         "permutation probe or an epistemic-wall leak -- never the divergence. "
         "`measure_coverage_only_residual` now equalises the coverage (an all-DD "
         "counterfactual population on which the company observes every failure) "
-        "and the surviving residual, which is rule divergence by construction "
-        "and needs no copy of either rule to say so, must be exactly 0. It is, "
-        "on seeds 7/11/23, with every vacuity witness non-empty. "
+        "AND the company's memory (the never-forgets company on that book, atom "
+        "D27), and the surviving residual, which is rule divergence by "
+        "construction and needs no copy of either rule to say so, must be "
+        "exactly 0. It is, on seeds 7/11/23, with every vacuity witness "
+        "non-empty. With coverage alone equalised, what survives is the "
+        "company's forgetting, published as `memory_share`: 0 while the "
+        "memory covers the book, 0.0191 at seed 7 under the organ's 90d. "
         "RESHAPED 2026-08-10 (atom D19) "
         "and NOT COMPARABLE with any belief figure published before that date: "
         "the retired headline was a population TV distance, which a permutation "
@@ -14820,8 +14866,11 @@ def main() -> None:
               f"n={cov['n_customers']}, VACUOUS={cov['is_vacuous']}")
         for dim, v in cov["residuals"].items():
             claim = "CLAIMS coverage-only" if v["claims_coverage_only"] else "exempt"
-            print(f"      {dim:<24} {claim:<21} residual={v['residual']:.6f} "
-                  f"(on the scored book {v['gap_on_the_scored_book']:.6f})")
+            share = ("" if v["memory_share"] is None
+                     else f" memory_share={v['memory_share']:.6f}")
+            print(f"      {dim:<24} {claim:<21} residual={v['residual']:.6f}"
+                  f"{share} (on the scored book "
+                  f"{v['gap_on_the_scored_book']:.6f})")
         print(f"      witnesses: coverage loss removed from the scored book "
               f"{w['coverage_loss_removed']} non-DD true failures; "
               f"counterfactual non-DD failures {w['cf_non_dd_failures']}; "

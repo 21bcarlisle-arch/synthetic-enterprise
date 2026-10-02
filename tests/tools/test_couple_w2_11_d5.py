@@ -2622,6 +2622,9 @@ def test_the_coverage_only_claim_is_measured_not_asserted(seed):
         "collapsed every gap to 0 would pass this control as agreement")
 
     for dim, v in cov["residuals"].items():
+        # A dimension that does not read the window has no memory to share out,
+        # and a None there is the declaration, not a hole.
+        assert (v["memory_share"] is None) == (not v["reads_company_memory"]), dim
         if not v["claims_coverage_only"]:
             continue
         assert v["residual"] == 0, (
@@ -2648,6 +2651,70 @@ def test_the_coverage_only_contract_reaches_every_published_dimension():
     for dim, decl in pair.COVERAGE_ONLY_CLAIM_CONTRACT.items():
         assert isinstance(decl["claims_coverage_only"], bool)
         assert decl["why"].strip(), f"{dim} declares nothing about why"
+        assert isinstance(decl["reads_company_memory"], bool), dim
+
+
+def test_the_memory_leg_can_be_taken_and_carries_the_whole_residual(
+        monkeypatch):
+    """The coverage-only claim's MEMORY leg (atom D27, frame s29), at an origin
+    where the company forgets.
+
+    The scored origin covers the book, so the never-forgets drift is 0 there and
+    the second build is never made -- the branch exists to be taken rarely, so
+    this asserts it CAN be. At the organ's own 90d, coverage equalised alone
+    leaves the company's forgetting (seed 7: 0.0191 belief, 0.0050 mix); with
+    the memory equalised too, nothing survives. That is the measurement that
+    lets the belief note say "coverage AND memory" rather than "coverage only",
+    which is false below the edge."""
+    monkeypatch.setattr(pair, "DD_FAILURE_WINDOW_DAYS",
+                        pair.organ_default_failure_window_days())
+    cov = pair.measure_coverage_only_residual(n_customers=600, seed=7)
+    assert not cov["is_vacuous"], cov["witnesses"]
+    assert cov["cf_never_forgets_drift_days"] > 0, (
+        "the company's memory covers the all-DD book at its own 90d default, "
+        "so this control cannot reach the memory leg")
+    for dim, v in cov["residuals"].items():
+        if v["reads_company_memory"]:
+            assert v["memory_share"] > 0, (
+                f"{dim}: the company forgets part of this book and the "
+                "coverage-equalised gap does not show it")
+        if v["claims_coverage_only"]:
+            assert v["residual"] == 0, (
+                f"{dim}: {v['residual']} survives with coverage AND memory "
+                "equalised -- that is rule divergence, not forgetting")
+
+
+def test_the_memory_declaration_is_the_set_the_window_moves():
+    """`reads_company_memory` is graded against the scorer, not the author.
+
+    Two windows on one book: the book's oldest failure (the never-forgets
+    company) and a one-day memory that forgets almost every failure. The
+    dimensions whose gap moves between them are the ones that read the
+    company's memory, and the declaration must equal that set -- so an
+    undeclared reader makes the memory leg skip a dimension it should cover, and
+    a false declaration claims a share that is not there.
+
+    NOT one day under the oldest failure: that step moves `belief` alone at
+    seed 7 (the mix is coarser, frame s26.1's 314 against 310), so a one-day
+    probe would grade the mix's resolution and call it a non-reader."""
+    records, _c, _l, as_of = pair.build_scenario(600, seed=7)
+    oldest = pair.measure_belief_window_resolution(
+        records, as_of)["oldest_event_age_days"]
+    gaps = {}
+    for window in (oldest, 1):
+        recs, consumer, _l, when = pair.build_scenario(
+            600, seed=7,
+            organ_failure_window_drift_days=window - pair.DD_FAILURE_WINDOW_DAYS)
+        scored = pair.score_triad(recs, consumer, when)
+        gaps[window] = {d: scored[d].gap for d in pair.COVERAGE_ONLY_CLAIM_CONTRACT}
+    moved = {d for d in pair.COVERAGE_ONLY_CLAIM_CONTRACT
+             if gaps[oldest][d] != gaps[1][d]}
+    declared = {d for d, decl in pair.COVERAGE_ONLY_CLAIM_CONTRACT.items()
+                if decl["reads_company_memory"]}
+    assert moved, "no dimension moved when the company forgot almost everything"
+    assert moved == declared, (
+        f"the window moves {sorted(moved)} but the contract declares "
+        f"{sorted(declared)} as reading the company's memory")
 
 
 def test_a_dimension_whose_published_text_makes_the_claim_must_declare_it():
@@ -10486,13 +10553,19 @@ def test_measure_builds_the_second_company_and_publishes_the_subtraction(
         recency_contribution):
     """`measure()` is the entry point that HAS a builder, so it replaces the
     refusal with the number -- and the number is the subtraction, not a copy of
-    the figure. On the shipped origin it publishes 0.0 with the drift that
-    reached the never-forgets company beside it."""
+    the figure. The drift beside it is the clamp law, `max(0, oldest - WINDOW)`
+    (frame s28.1): where the window covers the book it is 0 and so is the
+    contribution; below it (the organ's 90d: drift 1, belief 0.0190, mix
+    0.0033 at seed 7) the contribution is the forgetting, not 0 (frame s29)."""
+    records, _c, _l, as_of = pair.build_scenario(300, seed=7)
+    oldest = pair.measure_belief_window_resolution(
+        records, as_of)["oldest_event_age_days"]
+    drift = max(0, oldest - pair.DD_FAILURE_WINDOW_DAYS)
     result = pair.measure(300, seed=7)
     for dim in pair.BELIEF_FLOOR_DIMENSIONS:
         comps = result[dim].components
-        assert comps["recency_contribution"] == 0.0, dim
-        assert comps["never_forgets_drift_days"] == 0, dim
+        assert comps["never_forgets_drift_days"] == drift, dim
+        assert (comps["recency_contribution"] == 0.0) == (drift == 0), dim
         assert "NEVER-FORGETS" in comps["recency_contribution_basis"], dim
     assert pair.check_recency_contribution(recency_contribution, result) == []
 

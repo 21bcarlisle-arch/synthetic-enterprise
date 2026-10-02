@@ -1946,3 +1946,82 @@ In this worktree (HEAD `b17da3db3` plus this pass), one process per origin, run 
 Prediction, filed before the run returned: exactly §27.2's R (5), C (1) and F (4), and all 45 errors
 R. **Confirmed**, node for node. So what is left red at 90 is the flip commit's own change set: the
 register (now also carrying §28.3's comment), the census, and §27.3's contract.
+
+---
+
+## 29. BUILD pass 20 — 2026-10-02 (worker tick, BUILD lane) — §27.3's contract, restated as coverage AND memory
+
+The origin is still 400, no level moved, `CAVEAT_COVERAGE_PROBES` untouched. The candidate origin was
+substituted in the process only (§17.4's `flip_plugin`).
+
+### 29.1 The measurement option 1 needed
+
+§27.3 recommended restating the belief contract as coverage AND memory. That holds only if the
+coverage-equalised residual at 90 is ALL memory: with the company's memory also taken to the all-DD
+book's oldest failure (the never-forgets company, `never_forgets_drift_days` on THAT book), nothing
+may survive. Measured, n=600, one process per origin:
+
+| seed | 400: cf drift / belief / mix | 90: cf drift / belief cov-only → cov+memory / mix cov-only → cov+memory |
+|---|---|---|
+| 7 | 0 / 0 / 0 | 2 / 0.0191 → **0** / 0.0050 → **0** |
+| 11 | 0 / 0 / 0 | 2 / 0.0252 → **0** / 0.0067 → **0** |
+| 23 | 0 / 0 / 0 | 2 / 0.0181 → **0** / 0.0050 → **0** |
+
+`ageing` and `detection` read 0 and `detection_latency` 0.93–1.07 either way, at both origins. So the
+whole residual is the company's forgetting and none of it is rule divergence: option 1 is a
+measurement, not a reading.
+
+### 29.2 What changed
+
+- `COVERAGE_ONLY_CLAIM_CONTRACT` gains `reads_company_memory` on every entry (True for the two belief
+  dimensions only), and the belief entries' `why` now says coverage AND memory.
+- `measure_coverage_only_residual` builds the never-forgets company on the all-DD book when the
+  scored one forgets part of it (drift > 0; at 400 the drift is 0 and no second build is made). For a
+  memory-reading dimension `residual` is the coverage-AND-memory gap, which must be 0, and
+  `memory_share` is the coverage-only gap minus it. The result carries `cf_never_forgets_drift_days`,
+  and the CLI prints `memory_share`.
+- The belief note's D20 sentence says the control equalises coverage AND memory, and names the
+  memory's share. No figure moves at 400.
+
+`recency_contribution` (§21.3) is the same forgetting measured on the SCORED book, and
+`memory_share` is the same thing on the all-DD book. They are different populations, so they are
+not the same number, and neither is published as the other.
+
+### 29.3 The four F nodes and two new ones
+
+| node | now |
+|---|---|
+| `test_the_coverage_only_claim_is_measured_not_asserted[7,11,23]` | unchanged assertion (`residual == 0`), now true at both origins because the residual equalises memory; plus `memory_share is None` ⇔ the dimension does not read memory |
+| `test_measure_builds_the_second_company_and_publishes_the_subtraction` | the drift is §28.1's clamp law `max(0, oldest − WINDOW)`, and the contribution is 0.0 iff the drift is 0 (at 90: drift 1, belief 0.0190, mix 0.0033) |
+| NEW `test_the_memory_leg_can_be_taken_and_carries_the_whole_residual` | sets the origin to the organ's default itself, so the rare branch is reached at either shipped origin: drift > 0, `memory_share` > 0 on both memory dimensions, residual 0 |
+| NEW `test_the_memory_declaration_is_the_set_the_window_moves` | the dimensions whose gap moves between the book's oldest failure and one day under it must EQUAL the declared `reads_company_memory` set, so the flag is graded against the scorer and not the author |
+
+The first draft of the declaration node compared the oldest failure with ONE DAY under it, and it
+red at both origins: that step moves `belief` alone at seed 7, because the mix is coarser (§26.1's
+314 against 310). It was grading the mix's resolution and calling the mix a non-reader. It now
+compares the oldest failure with a one-day memory.
+
+### 29.4 R15, in the process
+
+Each mutation is loaded over the worktree's module by a pytest plugin; the unmutated module through the
+same plugin is the placebo arm (2 passed).
+
+| mutation | 400 | 90 |
+|---|---|---|
+| memory leg removed (`cf_nf = cf` always) | red (memory-leg node) | red (memory-leg node + coverage-only ×3) |
+| `belief_population_mix` declared a non-reader | red (declaration node); the coverage-only node green, an equivalence (the mix's cf gap is 0 whether or not memory is equalised at 400) | — |
+| `memory_share` computed as `cf_nf − cf_nf` | red (memory-leg node) | — |
+
+### 29.5 The whole file at both origins
+
+Prediction, filed before the run: at 400, 625 passed (623 + the two new nodes); at 90, 574 passed,
+**6 failed (§27.2's R 5 + C 1), 45 errors (all R)**. The F row of §27.2 is empty.
+
+| origin | result |
+|---|---|
+| 400 | **625 passed**, 0 failed |
+| 90 | 574 passed, **6 failed, 45 errors** |
+
+**Confirmed**, node for node: the six are the two register nodes, the CLI ledger node and the two
+`own_visible_drifts` probe cases (R), plus the census node (C), and every error is R. What is left
+red at 90 is the flip commit: the register, the census, and §28.3's register comment.
