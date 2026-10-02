@@ -75,6 +75,18 @@ DEPARTURE_OCCASION_SVT_SEGMENT = "svt_segment"
 #: no roll behind it -- `svt_conversion_event` is its only producer.
 DEPARTURE_OCCASION_SVT_CONVERSION = "svt_conversion"
 
+#: A household that STAYED and refused a fix priced above the default tariff it would otherwise
+#: pay, so it went onto (or stayed on) that default. Its own occasion because the term the row
+#: names was never contracted: a reader taking `unit_rate_gbp_per_mwh` off a renewal row as the
+#: rate the household signed would otherwise read a price nobody paid. `declined_fix_event` is
+#: the only producer; the rule is `renewal_outcome`.
+DEPARTURE_OCCASION_DECLINED_FIX = "declined_fix"
+
+#: The three outcomes of a renewal decision a household can reach, partitioned by `renewal_outcome`.
+RENEWAL_ACCEPTED = "accepted"
+RENEWAL_DECLINED_FIX = "declined_fix"
+RENEWAL_CHURNED = "churned"
+
 
 def departure_event(
     *,
@@ -311,6 +323,14 @@ def _svt_position(
         return None
     offer = household_price_inc_vat(rate_gbp_per_mwh)
     return round((offer - float(svt)) / float(svt), 4)
+
+
+def position_vs_default(
+    rate_gbp_per_mwh: float | None, term_start_str: str, *, commodity: str
+) -> float | None:
+    """`_svt_position` under the name the run loop reads it by: the offer's position against the
+    default tariff this household's own fuel would otherwise be charged on the day."""
+    return _svt_position(rate_gbp_per_mwh, term_start_str, commodity=commodity)
 
 
 def _market_reference_gbp_per_mwh(
@@ -564,6 +584,86 @@ def svt_conversion_event(
         "company_churn_estimate": company_churn_estimate,
         "churn_estimate_error_pct": None,
         **extra,
+    }
+
+
+def renewal_outcome(*, event_type: str, position_vs_default: float | None) -> str:
+    """Which of the three outcomes a renewal decision reached: left, stayed on the offer, or
+    stayed and refused it.
+
+    THE DOMINANCE RULE (pre-registered 2026-10-02, `docs/staging/records/
+    WORKER_PREREG_A_HOUSEHOLD_THAT_STAYS_NEVER_CONTRACTS_A_FIX_ABOVE_ITS_DEFAULT_2026-10-02.md`):
+    a household that stays with the supplier never contracts a fix priced above the default tariff
+    it would otherwise be on. No threshold is chosen -- parity with the default is where taking
+    the fix costs more than doing nothing with the same supplier, and doing nothing carries no exit
+    fee. The DESTINATION is sourced (SLC 22/23 rollover; SLC 22A forbids auto-rollover to a fix).
+
+    Leaving is decided first and is never changed here: a departure already rolled against the
+    offer stands, so this rule only reprices households that stayed. How many real decliners
+    stay on the default rather than leave is NOT established (`decline_versus_leave_share`,
+    knowledge map), which is why no leave route is added or removed.
+
+    `position_vs_default` is `_svt_position` of the offer -- inc-VAT, unit rate only, against the
+    household's own fuel's default that day -- or None where the rule does not apply (switched
+    off, not domestic, not a fixed renewal, no default published). None never declines.
+    """
+    if event_type == "churned":
+        return RENEWAL_CHURNED
+    if position_vs_default is not None and position_vs_default > 0:
+        return RENEWAL_DECLINED_FIX
+    return RENEWAL_ACCEPTED
+
+
+def declined_fix_event(
+    *,
+    customer_id: str,
+    event_date: str,
+    commodity: str,
+    declined_unit_rate_gbp_per_mwh: float,
+    position_vs_default: float,
+    rolled_event: dict | None = None,
+    **extra,
+) -> dict:
+    """The record of a household that stayed and refused a fix above its default.
+
+    `event_type` is `renewed`: it stayed with the supplier, and every reader counting retentions
+    keeps it. `departure_rolled` is whatever it was -- True on a fixed-to-fixed renewal, whose
+    roll (and its evidence) is carried over unchanged from `rolled_event`; False on a conversion
+    off the default or a gas leg whose household decides on electricity, where nothing was rolled.
+
+    `unit_rate_gbp_per_mwh` is None because no rate was contracted; the refused offer is on
+    `declined_unit_rate_gbp_per_mwh` and its position on `price_position_vs_default`.
+    """
+    # `roll_lifecycle_event` does not write `departure_rolled` (it is the only producer of rolled
+    # events, so the key would be constant there); a decline carried from its roll says so here.
+    base = {**rolled_event, "departure_rolled": True} if rolled_event is not None else {
+        "customer_id": customer_id,
+        "event_date": event_date,
+        "commodity": commodity,
+        "departure_cause": None,
+        "departure_rolled": False,
+        "churn_probability": None,
+        "win_probability": None,
+        "effective_retention_probability": None,
+        "realized_churn_probability": 0.0,
+        "random_roll": None,
+        "home_move_won": False,
+        "company_churn_estimate": None,
+        "churn_estimate_error_pct": None,
+    }
+    if base.get("event_type", "renewed") != "renewed":
+        raise ValueError(
+            f"a declined fix is a household that STAYED; the rolled event says "
+            f"{base.get('event_type')!r}, and a departure cannot also be a refusal"
+        )
+    return {
+        **base,
+        **extra,
+        "event_type": "renewed",
+        "departure_occasion": DEPARTURE_OCCASION_DECLINED_FIX,
+        "unit_rate_gbp_per_mwh": None,
+        "declined_unit_rate_gbp_per_mwh": declined_unit_rate_gbp_per_mwh,
+        "price_position_vs_default": position_vs_default,
     }
 
 

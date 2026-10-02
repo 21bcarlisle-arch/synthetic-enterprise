@@ -27,6 +27,7 @@ market attempt then wins is a separate roll this test has no business pinning.
 """
 import pytest
 
+import simulation.fabric_demand_path as fdp
 import simulation.run_phase2b as rp
 from saas.customers import CUSTOMERS, SUCCESSOR_CUSTOMERS
 from simulation.customer_events import (
@@ -107,6 +108,14 @@ def restore_acquired_book():
     rp.ACQUIRED_CUSTOMERS[:] = before
 
 
+@pytest.fixture(scope="module")
+def shared_fabric_traces():
+    """Both forced legs settle the same 137 premises over the same window, and neither touches the
+    physics, so the second reuses the first's traces (~45 s each) -- `fdp.sharing_traces`."""
+    with fdp.sharing_traces():
+        yield
+
+
 def _force_one_churn_with_a_win(monkeypatch, candidates) -> dict:
     """Turn the FIRST real lifecycle event of any account in `candidates` into a churn that won
     the home-mover, and hold every OTHER account to a renewal for the window. Returns a dict whose
@@ -184,7 +193,7 @@ def _spy_on_going_to_market(monkeypatch) -> list:
 
 
 def test_a_won_home_mover_with_no_successor_still_goes_to_market(
-    monkeypatch, restore_acquired_book
+    monkeypatch, restore_acquired_book, shared_fabric_traces
 ):
     """The BLOCKING defect, run end to end. Reverting the call site to the if/elif
     chain leaves `went_to_market` empty and reds this test.
@@ -226,7 +235,7 @@ def test_a_won_home_mover_with_no_successor_still_goes_to_market(
 
 
 def test_a_won_home_mover_WITH_a_successor_activates_it_and_does_not_go_to_market(
-    monkeypatch, restore_acquired_book
+    monkeypatch, restore_acquired_book, shared_fabric_traces
 ):
     """The other direction: the repair must not turn every win into a market approach."""
     forced = _force_one_churn_with_a_win(monkeypatch, rp.SUCCESSOR_MAP)

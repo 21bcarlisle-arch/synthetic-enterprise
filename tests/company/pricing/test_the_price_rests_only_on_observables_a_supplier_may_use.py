@@ -73,7 +73,18 @@ MECHANISM_PARAMETERS = {
     "ladder_multiplier", "flat_level_gbp_per_mwh",
 }
 
-PERMITTED_OBSERVABLES = ACCOUNT_OBSERVABLES | MECHANISM_PARAMETERS
+#: WHAT THE PRICE RESTS ON THAT IS NOT ABOUT THIS ACCOUNT — published market facts, readable by
+#: every supplier and every household on the day. Separate from the account set because the test of
+#: admission is different: not "does the supplier hold this register about its customer" but "was it
+#: published before the decision".
+#:
+#:   published_default_rate_gbp_per_mwh  Ofgem's default tariff cap unit rate for this fuel on the
+#:       renewal date, EPG-net, ex-VAT -- `renewal_rate_chain.cap_ceiling_ex_vat`, the same
+#:       published lookup writer 4 already clamps with. The churn belief reads the offer's gap to
+#:       it (2026-10-02: the move from the account's own last price ranked churn at r = -0.12).
+MARKET_OBSERVABLES = {"published_default_rate_gbp_per_mwh"}
+
+PERMITTED_OBSERVABLES = ACCOUNT_OBSERVABLES | MARKET_OBSERVABLES | MECHANISM_PARAMETERS
 
 #: The cost-shift, named. Not "discouraged" -- absent.
 FORBIDDEN_TOKENS = ("payment_method", "prepay", "prepayment")

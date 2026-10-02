@@ -661,7 +661,13 @@ def test_the_sentence_cannot_say_MEASURED_when_the_measurement_REFUSED():
     )
     assert refused["reason"] in refusal_prose, "a refusal that does not carry its reason"
 
-    for customer_years, expect_no in ((1029.0, True), (425.0, False)):
+    # THE TWO BOOKS ARE PLACED EITHER SIDE OF THE WORLD'S OWN CAPACITY, never typed. This read
+    # 425 customer-years as the reachable side until `f243bd573` lowered the budget 1,200 ->
+    # 1,050 and 425 x 2.82 = 1,198 crossed it: a literal keyed to the budget of the day, red
+    # for the code being right. The capacity is read off the verdict, so it moves with the world.
+    capacity = _can_this_book_be_built(_buildable_run(100.0), rows)["capacity_customer_years"]
+    boundary = capacity / rows[0]["times_this_book"]
+    for customer_years, expect_no in ((boundary * 1.25, True), (boundary * 0.75, False)):
         prose = _what_is_not_established(
             _can_this_book_be_built(_buildable_run(customer_years), rows))
         assert "now measured" in prose
@@ -684,8 +690,19 @@ def test_the_published_key_no_longer_asks_for_work_this_repo_has_already_done():
     # the field they belong to and nothing else.
     with FEED.open(encoding="utf-8") as handle:
         feed = json.load(handle)
-    block = ((feed.get("current_world") or {}).get("selection_leg") or {}
-             ).get("what_would_settle_the_sign") or {}
+    leg = (feed.get("current_world") or {}).get("selection_leg") or {}
+    block = leg.get("what_would_settle_the_sign") or {}
+    if (leg.get("verdict_stability") or {}).get("sign_determined") is True:
+        # A LEG THAT CARRIES A SIGN HAS NO OPEN QUESTION TO RE-ASK, so the property holds by
+        # absence -- but only if the block SAYS that is why it is absent. Red here as "cannot
+        # run" from the world-D retake (`c3939e7b1`) on, when three redraws all came out
+        # negative: the feed answering the question is not the block reverting. The sentence
+        # itself is controlled at the producer by the test above, which needs no feed.
+        assert not block.get("available") and "sign is undetermined" in str(
+            block.get("why_not")), (
+            "the leg's sign is determined and the remedy block either still prices a book for "
+            "it or refuses for some other reason: {}".format(str(block)[:200]))
+        return
     if not block.get("available"):
         pytest.fail("the remedy block is unavailable, so this control cannot run: {}".format(
             str(block.get("why_not"))[:200]))
