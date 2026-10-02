@@ -5011,7 +5011,9 @@ def test_the_creation_leg_carries_its_own_live_world_bound_and_not_the_advantage
     # page that had become more honest, which is the same shape the comment above records this
     # control being bitten by once already. The clause needs the current-world block to be the
     # later of the two, so the pairing is named here instead of inherited from today's release.
-    headline = gva.build(_load(THREE_ARM_BEFORE_THE_CURRENT_WORLD_RUN), superseded, None, current, floor_live)["headline"]
+    headline = gva.build(_load(THREE_ARM_BEFORE_THE_CURRENT_WORLD_RUN), superseded, None, current,
+                         floor_live, publishing_head=(current.get("producing_commit") or {}
+                                                      ).get("commit"))["headline"]
     assert leg["verdict_withheld_because"], (
         "a verdict was stated on a leg whose own re-draws reverse it, or withheld with no reason")
     # DERIVED FROM THE FLOOR, NOT WRITTEN DOWN. Until 2026-09-08 these four were the literals
@@ -13573,3 +13575,95 @@ def test_a_switch_family_publishes_its_mixture_interval_and_no_standard_error(tm
     switch_part, spread_part = said.split("; ", 1)
     assert "standard error" in spread_part and "no standard error is stated" in switch_part
     assert sw["switch"]["mean_interval_stated"][0] in switch_part
+
+
+#: The world-D arms the page carried on 2026-10-01: run at `0407ce0e3`, world `cf823b185f8ca51c`.
+WORLD_D_ARMS_AT_0407CE0E3 = (
+    PROJECT / "docs" / "observability" / "value_cycle_ab_s1_three_arm_20261001.json")
+#: The SVT-at-the-cap commit. Same departure-level digest as `0407ce0e3`, different code.
+SVT_AT_THE_CAP = "592596b44fc63e85e41e1c98a14b2ee632ca5a6b"
+
+
+def test_a_current_world_run_from_older_code_is_refused_though_its_world_digest_matches():
+    """The 10-01 world-D arms are refused at `592596b44`, with the moved paths named.
+
+    THE DEFECT IT PREVENTS. `world_level_identity` digests the departure level only, and it was
+    identical across `0407ce0e3..592596b44` while the foresight fix and the SVT cap moved the book.
+    The digest guard therefore admitted old-code arms as "the world as it is now".
+
+    Fires on: dropping the path diff, treating an unexempted path as admitted, or the wrapper
+    passing the block through when the code check refuses.
+    """
+    run = _load(WORLD_D_ARMS_AT_0407CE0E3)
+    assert run["producing_commit"]["commit"].startswith("0407ce0e3")
+    code = gva._code_since_the_run(run, head=SVT_AT_THE_CAP)
+    assert code["refused"] is True, code
+    assert "company/pricing/renewal_rate_chain.py" in code["unexempt"], code["moved"]
+    assert "company/pricing/renewal_rate_chain.py" in code["why"]
+    contrast = gva._current_world_contrast(
+        dict(run, world_identity={"digest": _live_digest()}), None)
+    assert gva._current_world_clause(contrast), (
+        "the unrefused block composes no headline, so the silence below proves nothing")
+    block = gva._current_world_admitted_on_its_code(contrast, code)
+    assert block["is_heads_code"] is False
+    assert gva._current_world_clause(block) == "", (
+        "a run from older code was still called the world as it is now in the headline")
+    assert "renewal_rate_chain.py" in block["why_the_headline_omits_it"]
+    assert block["code_since_the_run"]["unexempt"] == code["unexempt"]
+
+
+def test_the_code_guard_admits_heads_code_and_an_argued_exemption_and_refuses_the_rest(tmp_path):
+    """Both branches are reachable: same code admits, a full exemption admits, anything else refuses.
+
+    A guard that refuses everything passes the test above. So this one asserts the admitting
+    branch first, from the same artefact restamped at the publishing commit, and then from the
+    original commit with every moved path argued in an exemption file. An exemption keyed to a blob
+    HEAD does not hold must not admit -- otherwise one argument would cover every later edit.
+    """
+    run = _load(WORLD_D_ARMS_AT_0407CE0E3)
+    restamped = dict(run, producing_commit=dict(run["producing_commit"], commit=SVT_AT_THE_CAP))
+    none = tmp_path / "none.json"
+    none.write_text('{"exemptions": []}')
+    same_code = gva._code_since_the_run(restamped, head=SVT_AT_THE_CAP, exemptions_path=none)
+
+    moved = gva._code_since_the_run(run, head=SVT_AT_THE_CAP, exemptions_path=none)["moved"]
+    blobs = {p: gva.subprocess.run(["git", "rev-parse", "{}:{}".format(SVT_AT_THE_CAP, p)],
+                                   cwd=gva.PROJECT, capture_output=True, text=True
+                                   ).stdout.strip() or None for p in moved}
+    argued = tmp_path / "argued.json"
+    argued.write_text(json.dumps({"exemptions": [
+        {"path": p, "run_commit": run["producing_commit"]["commit"], "head_blob": b,
+         "why": "test argument"} for p, b in blobs.items()]}))
+    exempted = gva._code_since_the_run(run, head=SVT_AT_THE_CAP, exemptions_path=argued)
+
+    stale = tmp_path / "stale.json"
+    stale.write_text(json.dumps({"exemptions": [
+        {"path": p, "run_commit": run["producing_commit"]["commit"], "head_blob": "0" * 40,
+         "why": "argued about another revision"} for p in moved]}))
+    stale_blob = gva._code_since_the_run(run, head=SVT_AT_THE_CAP, exemptions_path=stale)
+    unnamed = gva._code_since_the_run({}, head=SVT_AT_THE_CAP, exemptions_path=none)
+
+    assert moved, "the pair this control is built on no longer differs, so it controls nothing"
+    assert same_code["refused"] is False and same_code["moved"] == []
+    assert exempted["refused"] is False and len(exempted["exempt"]) == len(moved)
+    assert stale_blob["refused"] is True and stale_blob["unexempt"] == moved
+    assert unnamed["refused"] is True and "no producing commit" in unnamed["why"]
+    admitted = gva._current_world_admitted_on_its_code({"available": True}, same_code)
+    assert admitted["is_heads_code"] is True and admitted["code_since_the_run"] is same_code
+    assert "why_the_headline_omits_it" not in admitted
+
+
+def test_the_published_current_world_block_carries_the_code_its_run_executed():
+    """`build` routes the current-world block through the code check, not only the unit above.
+
+    Both controls above call the guard directly and stay green if `build` never reaches it. Keyed
+    to the wiring -- the block names the commit the artefact names -- not to whether today's HEAD
+    happens to refuse it.
+    """
+    current = gva._read(gva.CURRENT_WORLD_THREE_ARM_PATH)
+    data = gva.build(gva._read(gva.THREE_ARM_PATH), gva._read(gva.NOISE_FLOOR_PATH),
+                     current_three_arm=current,
+                     current_floor=gva._read(gva.CURRENT_WORLD_NOISE_FLOOR_PATH))
+    code = data["current_world"]["code_since_the_run"]
+    assert code["run_commit"] == current["producing_commit"]["commit"]
+    assert data["current_world"]["is_heads_code"] is (not code["refused"])

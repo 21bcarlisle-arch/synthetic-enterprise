@@ -15373,6 +15373,97 @@ def _the_selection_switch_root_cause(leg: dict,
     return out
 
 
+#: The code a value-cycle run executes, as far as the arms can tell: the world and the company.
+#: The runner and the generator are left out on purpose -- they read the outcome, they do not make it.
+ARMS_SUBSTRATE_PATHS = ("simulation", "company")
+#: Where a substrate change is argued not to move the arms. Each entry is keyed to the run's commit,
+#: the path, and the path's blob at the publishing HEAD, so an argument about one change cannot
+#: admit the next change to the same file.
+ARMS_SUBSTRATE_EXEMPTIONS_PATH = PROJECT / "docs" / "design" / "value_arms_substrate_exemptions.json"
+
+
+def _code_since_the_run(run: dict | None, head: str | None = None,
+                        exemptions_path: Path | None = None) -> dict:
+    """Which `simulation/` and `company/` paths differ between the commit a run executed and HEAD.
+
+    THE DEFECT THIS EXISTS FOR (2026-10-02). `_current_world_contrast` admits a run as "the world
+    as it is now" when its `world_identity.digest` matches the live one. That digest covers the
+    departure LEVEL and nothing else. Between `0407ce0e3` and `592596b44` it stayed
+    `cf823b185f8ca51c` while the portfolio-premium foresight fix moved book margin by GBP 7,331 and
+    the SVT segment came down to the cap. So the 10-01 arms were published as current-world
+    figures from code the company no longer runs. A path diff is the cheapest thing that cannot
+    miss such a change.
+
+    IT IS DELIBERATELY OVER-SENSITIVE. A docstring edit in `simulation/` refuses the run as surely
+    as a pricing change. That is why the exemption file exists: someone has to say why each moved
+    path cannot move the arms, and the claim is keyed narrowly enough to go stale when the file
+    moves again.
+
+    `refused` is True whenever the question cannot be answered: no producing commit, no HEAD, or
+    git could not diff the pair. Not being able to name the code is a refusal, not a pass.
+    """
+    commit = ((run or {}).get("producing_commit") or {}).get("commit")
+    head = head or PUBLISHING_TREE_COMMIT
+    block = {"run_commit": commit, "head_commit": head, "paths": list(ARMS_SUBSTRATE_PATHS),
+             "moved": None, "exempt": None, "unexempt": None}
+    if not commit or not head:
+        return dict(block, refused=True, why=(
+            "the run names no producing commit, so the code it ran cannot be compared with HEAD"
+            if not commit else "this tree's HEAD could not be read"))
+    try:
+        diffed = subprocess.run(
+            ["git", "diff", "--name-only", commit, head, "--", *ARMS_SUBSTRATE_PATHS],
+            cwd=PROJECT, capture_output=True, text=True, timeout=60)
+    except (OSError, subprocess.SubprocessError) as exc:
+        return dict(block, refused=True, why="git could not diff {} against {} ({})".format(
+            commit[:9], head[:9], exc))
+    if diffed.returncode != 0:
+        return dict(block, refused=True, why="git could not diff {} against {}: {}".format(
+            commit[:9], head[:9], diffed.stderr.strip()[:200]))
+    moved = sorted(line for line in diffed.stdout.splitlines() if line.strip())
+    try:
+        entries = json.loads((exemptions_path or ARMS_SUBSTRATE_EXEMPTIONS_PATH).read_text()
+                             ).get("exemptions") or []
+    except (OSError, ValueError):
+        entries = []
+    exempt = []
+    for path in moved:
+        blob = subprocess.run(["git", "rev-parse", "--verify", "-q", "{}:{}".format(head, path)],
+                              cwd=PROJECT, capture_output=True, text=True, timeout=20)
+        head_blob = (blob.stdout.strip() or None) if blob.returncode == 0 else None
+        for entry in entries:
+            if (entry.get("path") == path and entry.get("run_commit") == commit
+                    and entry.get("head_blob") == head_blob and entry.get("why")):
+                exempt.append({"path": path, "why": entry["why"]})
+                break
+    unexempt = [p for p in moved if p not in {e["path"] for e in exempt}]
+    block.update(moved=moved, exempt=exempt, unexempt=unexempt, refused=bool(unexempt))
+    if unexempt:
+        block["why"] = (
+            "the run executed {run} and this page is published from {head}; {n} path(s) in "
+            "simulation/ and company/ differ between them and no exemption says why they cannot "
+            "move the arms: {paths}".format(run=commit[:9], head=head[:9], n=len(unexempt),
+                                            paths=", ".join(unexempt)))
+    return block
+
+
+def _current_world_admitted_on_its_code(contrast: dict, code: dict) -> dict:
+    """The current-world block, with its claim to be NOW withdrawn when its code is not HEAD's.
+
+    The world digest says the run and HEAD share a departure level; this asks whether they share
+    the code. When they do not, the CURRENCY CLAIM goes and the measurement stays, the cut the
+    run-ordering guard in `_current_world_contrast` makes for the reason it gives: withdrawing the
+    whole block also withdraws the composition and the legs, which were honestly measured and
+    still name their own commit. `_current_world_clause` reads `is_heads_code` and stays silent.
+    """
+    block = dict(contrast, code_since_the_run=code, is_heads_code=not code.get("refused"))
+    if code.get("refused") and contrast.get("available"):
+        block["why_the_headline_omits_it"] = "; ".join(filter(None, (
+            contrast.get("why_the_headline_omits_it"),
+            "this run is not a statement about the world as it is now, because " + code["why"])))
+    return block
+
+
 def _current_world_contrast(current: dict | None, floor: dict | None,
                             floor_current: dict | None = None,
                             superseded_split: dict | None = None,
@@ -15906,6 +15997,10 @@ def _current_world_clause(current_world: dict) -> str:
     # under its own date and its own `why_the_headline_omits_it`; what is withdrawn is the
     # currency claim.
     if current_world.get("is_the_later_run") is False:
+        return ""
+    # AND SILENT WHEN THE RUN IS NOT HEAD'S CODE -- see `_current_world_admitted_on_its_code`.
+    # Absent (a block built without the code check) is not False, and is not silenced here.
+    if current_world.get("is_heads_code") is False:
         return ""
     advantage = current_world.get("value_advantage_gbp")
     if not isinstance(advantage, (int, float)):
@@ -16838,7 +16933,8 @@ def build(three_arm: dict | None, floor: dict | None,
           departure_rerun: dict | None = None,
           departure_baseline: dict | None = None,
           blind_envelope_arms: dict | None = None,
-          auc_family: dict | None = None) -> dict:
+          auc_family: dict | None = None, *,
+          publishing_head: str | None = None) -> dict:
     now = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
     # ONE CALL, TWO PANELS. The renewal block's joining sentence names this
     # block's own counts; two panels deriving one population separately is how
@@ -17018,6 +17114,8 @@ def build(three_arm: dict | None, floor: dict | None,
                                             # IT. See the `book_floor=` comment in
                                             # `_current_world_contrast` for why it is opt-in.
                                             select_by_book=True)
+    current_world = _current_world_admitted_on_its_code(
+        current_world, _code_since_the_run(current_three_arm, head=publishing_head))
     return dict(
         base,
         available=True,

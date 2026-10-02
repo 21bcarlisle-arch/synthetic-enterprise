@@ -502,6 +502,8 @@ _ALSO_BREAK = {
 _ALSO_ADMIT = {
     "_against_the_panels_figure": [
         ("_current_world_contrast", {"is_the_later_run": True}),
+        # `_current_world_clause` is also silent when the run is not HEAD's code.
+        ("_current_world_admitted_on_its_code", {"is_heads_code": True}),
         ("_withdraw_a_verdict_stated_from_a_superseded_run", None),
     ],
 }

@@ -3602,15 +3602,20 @@ def _feed_whose_current_world_block_speaks() -> dict:
     # fixture below failed with a message about the committed runs no longer pairing, which is a
     # sentence about the artefacts and was a sentence about the call. Keywords make the next
     # signature move a TypeError naming the parameter instead.
+    current = json.loads(gvad.CURRENT_WORLD_THREE_ARM_PATH.read_text(encoding="utf-8"))
+    # PUBLISHED FROM THE RUN'S OWN COMMIT, so the code check admits it. Whether HEAD's code still
+    # matches the run is a fact about today's tree, controlled in tests/tools; these rungs need a
+    # spoken clause whatever HEAD is.
     feed = gvad.build(
         json.loads(earlier.read_text(encoding="utf-8")),
         json.loads(gvad.NOISE_FLOOR_PATH.read_text(encoding="utf-8")),
-        current_three_arm=json.loads(
-            gvad.CURRENT_WORLD_THREE_ARM_PATH.read_text(encoding="utf-8")),
+        current_three_arm=current,
         current_floor=json.loads(
-            gvad.CURRENT_WORLD_NOISE_FLOOR_PATH.read_text(encoding="utf-8")))
+            gvad.CURRENT_WORLD_NOISE_FLOOR_PATH.read_text(encoding="utf-8")),
+        publishing_head=(current.get("producing_commit") or {}).get("commit"))
     cw = feed.get("current_world") or {}
-    if not cw.get("available") or cw.get("is_the_later_run") is False:
+    if (not cw.get("available") or cw.get("is_the_later_run") is False
+            or cw.get("is_heads_code") is False):
         pytest.fail(
             "the committed runs no longer pair into a spoken current-world block ({}), so the "
             "rungs below would pass by having nothing to mutate".format(
