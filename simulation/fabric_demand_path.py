@@ -67,6 +67,7 @@ parameters, the away-day calendar and the comfort constraint never cross the wal
 
 from __future__ import annotations
 
+import contextlib
 import datetime as dt
 import math
 from dataclasses import dataclass, field
@@ -555,6 +556,31 @@ def _archive_days(site: str, *, start: dt.date, end: dt.date) -> list[TraceWeath
     return load_trace_weather(site, start=start, end=end)
 
 
+#: Traces already built inside a `sharing_traces()` scope, keyed on every explicit input. None outside one.
+_SHARED_TRACES: dict | None = None
+
+
+@contextlib.contextmanager
+def sharing_traces():
+    """Let every `run_phase2b` inside this scope reuse a trace an earlier one built.
+
+    The trace build is ~45 s of a forced 16-month run (137 premises; profiled 2026-10-02), and it
+    is the same 45 s every time: the window, the households and the weather do not depend on what
+    a test forces into the company. The key is all of those, so a run whose inputs differ builds its own.
+
+    OPT-IN AND SCOPED, NOT A MODULE CACHE, because the inputs are not the whole state: the 2026-08-24
+    note at the end of `fabric_physics` records a cache that served traces computed under one test's
+    monkeypatched physics to another. Enter this only around runs that leave the physics alone.
+    """
+    global _SHARED_TRACES
+    outer = _SHARED_TRACES
+    _SHARED_TRACES = {} if outer is None else outer
+    try:
+        yield
+    finally:
+        _SHARED_TRACES = outer
+
+
 def build_fabric_series_for_site(
     *,
     customer_id: str,
@@ -572,6 +598,23 @@ def build_fabric_series_for_site(
     trace built on invented weather would settle real money against a number with no meaning.
     """
     weather = weather_days_for(weather_site, start=start, end=end)
+    if _SHARED_TRACES is not None:
+        key = (
+            customer_id,
+            tuple(weather),
+            tuple(household_at_date(day.date.isoformat()) for day in weather),
+            latitude_deg,
+            seed,
+        )
+        if key not in _SHARED_TRACES:
+            _SHARED_TRACES[key] = build_fabric_series(
+                customer_id=customer_id,
+                household_at_date=household_at_date,
+                weather=weather,
+                latitude_deg=latitude_deg,
+                seed=seed,
+            )
+        return _SHARED_TRACES[key]
     return build_fabric_series(
         customer_id=customer_id,
         household_at_date=household_at_date,
