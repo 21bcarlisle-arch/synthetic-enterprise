@@ -334,24 +334,32 @@ def census_file(path: pathlib.Path, source: str) -> list[Site]:
             divisors = resolver.divisors(value)
             if not divisors:
                 continue
+            # THE SITE'S OWN FUNCTION, not the whole file: a marker three functions away is
+            # somebody else's claim about somebody else's denominator.
+            lo = getattr(scope, "lineno", 1)
+            hi = getattr(scope, "end_lineno", len(lines))
+            declared = BOUNDED_MARKER.search("\n".join(lines[lo - 1:hi])) is not None
             if all(_is_chosen(d) for d in divisors):
                 grade, why = "BOUNDED", "every denominator is a chosen number, not an estimate"
             elif any(WITHHOLDING.search(k) for k in keys):
                 if resolver.withheld_on_a_grade(value):
                     grade, why = "GATED", (
                         "a sibling names the withholding and the value is withheld on a grade")
+                elif declared:
+                    # THE SIBLING CAN BE THE BLOCK'S, NOT THE SITE'S. A dict-wide
+                    # `unavailable_because` gates the whole block and says nothing about one key
+                    # in it; without this leg a site in such a dict could never reach the bounded
+                    # declaration at all, and `fold_noise_floor_family`'s `bar * sem` margins sat
+                    # as DEBT with no honest way out. Only reached where the gate is NOT read, so
+                    # no GATED site is regraded and a gate cannot be swapped for a declaration.
+                    grade, why = "BOUNDED", "the site declares its denominator bounded"
                 else:
                     grade, why = "DEBT", (
                         "a sibling key names a withholding this site cannot perform: the count is "
                         "computed on every path, so the reason key sits reassuringly beside a "
                         "figure that is always published")
             else:
-                # THE SITE'S OWN FUNCTION, not the whole file: a marker three functions away is
-                # somebody else's claim about somebody else's denominator.
-                lo = getattr(scope, "lineno", 1)
-                hi = getattr(scope, "end_lineno", len(lines))
-                text = "\n".join(lines[lo - 1:hi])
-                if BOUNDED_MARKER.search(text):
+                if declared:
                     grade, why = "BOUNDED", "the site declares its denominator bounded"
                 else:
                     grade, why = "DEBT", (

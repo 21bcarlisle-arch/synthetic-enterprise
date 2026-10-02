@@ -16,6 +16,7 @@ Delegation note: hand-written (orchestration-adjacent, per protocol).
 """
 
 import heapq
+import itertools
 import random
 import statistics
 from collections import defaultdict
@@ -114,10 +115,14 @@ from simulation.competitor_reference import CompanyPositionLedger
 from simulation.customer_events import (
     DEPARTURE_OCCASION_SVT_SEGMENT,
     HOME_MOVE_ACTIVATE_SUCCESSOR,
+    RENEWAL_DECLINED_FIX,
+    declined_fix_event,
     departure_decision_leg,
     departure_event,
     departure_rolled_at_renewal,
     home_move_disposition,
+    position_vs_default,
+    renewal_outcome,
     roll_lifecycle_event,
     svt_conversion_event,
 )
@@ -270,6 +275,22 @@ def effective_report_end(report_end: str | None) -> str:
 # Base: £3,250 per 15,000 kWh of electricity EAC
 ELEC_CUSTOMERS = [c for c in CUSTOMERS if c["commodity"] == "electricity"]
 GAS_CUSTOMERS = [c for c in CUSTOMERS if c["commodity"] == "gas"]
+#: THE DECLINE-AND-STAY RULE'S SWITCH (2026-10-02): a domestic household that stays never
+#: contracts a fixed renewal above the default tariff it would otherwise pay; it goes onto that
+#: default for the term instead (`customer_events.renewal_outcome`). ON since the pre-registered
+#: pair graded it at 822218441 (P1-P6 in `docs/staging/
+#: WORKER_FINDING_AN_SVT_HOUSEHOLD_CAN_DECLINE_THE_FIX_DESIGN_AND_BASELINE_2026-10-02.md`): P5 held,
+#: and the P3/P4 refutations trace to a decline being a calendar event as well as a price one.
+#: Read as a module global at run time, so a paired run can switch it off in-process; off, the
+#: loop's output is byte-identical to the code before the splice existed (P6).
+DECLINE_A_FIX_ABOVE_THE_DEFAULT: bool = True
+
+#: Stamped on a default-tariff segment spliced in for a declined term. Such a segment is not a
+#: boundary the schedule builders counted, so it must not advance `term_indices` -- the loop's
+#: engagement seed `f"{account}_{term_index}"` has to keep agreeing with the builders'
+#: `f"{household}_{len(terms)}"` at every later boundary (PB6, 2026-09-29).
+_DECLINED_FIX_SPLICE = "declined_fix_splice"
+
 # Phase 47a: segment lookup for Ofgem cap — resi customers subject to price cap
 _RESI_CUSTOMER_IDS: frozenset[str] = frozenset(
     c["customer_id"] for c in CUSTOMERS if c.get("segment") == "resi"
@@ -1231,6 +1252,21 @@ class EndedTermMargins:
             (self.electricity if commodity == "electricity" else self.gas).append(rate)
 
 
+def _record_renewal_decision(journey, log: list, *, customer_id: str, event_date: str,
+                             commodity: str, rolled: bool, event: dict | None) -> None:
+    """Every renewal is a decision on the household's journey, rolled or not.
+
+    A household converting off the SVT is not rolled (`departure_rolled_at_renewal`) but it
+    stayed, so it records a stay. Recording only rolled renewals left a converter's journey
+    wherever `advance()` had put it, read as still comparing years after it had decided.
+    `record_decision` draws no random number and nothing in the run loop reads a journey.
+    """
+    switched = event is not None and event["event_type"] == "churned"
+    journey.record_decision(date.fromisoformat(event_date), switched=switched)
+    log.append({"customer_id": customer_id, "event_date": event_date,
+                "commodity": commodity, "rolled": rolled, "switched": switched})
+
+
 def main(report_end: str | None = None, policy: DecisionPolicy | None = None,
          gap_ledger_path=None):
     """Run one simulation under its own fresh competitive-pressure ledger.
@@ -1716,14 +1752,19 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         )
 
     # ---- Interleave all terms chronologically ----
-    all_terms = []
+    # A HEAP KEYED (term_start, cid, seq), not a sorted list, because a declined fix splices
+    # default-tariff segments in mid-run (`DECLINE_A_FIX_ABOVE_THE_DEFAULT`). `seq` is the
+    # insertion order, so with nothing spliced the pop order is exactly the stable sort on
+    # (term_start, cid) this replaced, and the term dicts are never compared.
+    _term_seq = itertools.count()
+    all_terms: list[tuple] = []
     for cid, schedule in elec_schedules.items():
         for term in schedule:
-            all_terms.append((term["acquisition_date"], cid, "electricity", term))
+            all_terms.append((term["acquisition_date"], cid, next(_term_seq), "electricity", term))
     for cid, schedule in gas_schedules.items():
         for term in schedule:
-            all_terms.append((term["acquisition_date"], cid, "gas", term))
-    all_terms.sort(key=lambda x: (x[0], x[1]))
+            all_terms.append((term["acquisition_date"], cid, next(_term_seq), "gas", term))
+    heapq.heapify(all_terms)
 
     # WHICH BILLING ACCOUNTS HOLD AN ELECTRICITY SUPPLY POINT IN THIS RUN, which is the only
     # input `departure_decision_leg` needs to say which leg carries an account's departure roll.
@@ -1789,6 +1830,8 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
     _cx_desk = CustomerExperienceDesk()
     _churn_journey_register = ChurnJourneyRegister()
     churn_journey_log: list[dict] = []
+    # One row per decision the journey records at a renewal (SIM-side ground truth).
+    renewal_decisions_log: list[dict] = []
     # Phase RU: solicited feedback survey engine (FEEDBACK_AND_REPUTATION.md Layer 1)
     feedback_survey_log: list[dict] = []
     reputation_events_log: list[dict] = []
@@ -1890,6 +1933,12 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
     #: the decisions where the household COULD have left, which on this book is 1,266 against 50
     #: departures — and without the 1,216 that stayed there is no denominator, no null and no AUC.
     _svt_decisions: list[dict] = []
+    #: A fix refused on the leg that does NOT carry its household's departure. Not
+    #: `customer_events_log`: that leg takes no stay-or-leave decision (its household took it on the
+    #: decision leg, which already has its row), so a `renewed` row there is a decision nobody
+    #: took. Every renewal-decision counter would gain it, and since it names the gas leg's own id
+    #: the whole-book account denominator would gain an account that exists only in decline years.
+    _declined_on_the_riding_leg: list[dict] = []
     administration_event = None
     periods_since_committee = COMMITTEE_COOLDOWN_PERIODS
     last_committee_date: date = date.fromisoformat(REPORT_START) - timedelta(days=COMMITTEE_COOLDOWN_DAYS)
@@ -1940,7 +1989,9 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
 
     print("=== Processing terms chronologically ===\n")
 
-    for term_start_str, cid, commodity, term in all_terms:
+    while all_terms:
+        term_start_str, cid, _, commodity, term = heapq.heappop(all_terms)
+        _spliced = bool(term.get(_DECLINED_FIX_SPLICE))
         if administration_event:
             break
 
@@ -1959,7 +2010,8 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             accounts_with_an_electricity_leg=_accounts_with_an_electricity_leg,
         )
         if billing_account in churned_billing_accounts:
-            term_indices[cid] += 1
+            if not _spliced:
+                term_indices[cid] += 1
             continue
 
         # Phase 7e: gate successor terms until activated by a home-move win.
@@ -1975,8 +2027,10 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         company_fwd = term.get("company_forward_price_gbp_per_mwh", forward_price)
         unit_rate = term["unit_rate_gbp_per_mwh"]
         term_tariff_type = term.get("tariff_type", "fixed")
-        term_index = term_indices[cid]
-        term_indices[cid] += 1
+        # A spliced segment carries the index of the term it replaced and advances nothing.
+        term_index = term_indices[cid] - 1 if _spliced else term_indices[cid]
+        if not _spliced:
+            term_indices[cid] += 1
 
         # KNIFE step 24 (§3s): EVERY writer that moves this renewal's rate --
         # the portfolio learning premium, the realised-margin recovery
@@ -2026,6 +2080,16 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         value_arm_funnel_log.extend(_chain.arm_funnel_entries)
         if _chain.decomposition is not None:
             rate_decomposition_log.append(_chain.decomposition)
+        # THE OFFER'S POSITION AGAINST THE DEFAULT THIS HOUSEHOLD WOULD OTHERWISE PAY, read once,
+        # here, against the rate the chain struck. None wherever the decline-and-stay rule does
+        # not apply, and None never declines -- so with the switch off nothing below moves.
+        _offer_vs_default = (
+            position_vs_default(unit_rate, term_start_str, commodity=commodity)
+            if (DECLINE_A_FIX_ABOVE_THE_DEFAULT and term_index >= 1 and not _spliced
+                and term_tariff_type == "fixed" and cid in _RESI_CUSTOMER_IDS)
+            else None
+        )
+        _renewal_outcome = None
 
         # Phase 11a: record basis risk (company estimate vs sim ground truth)
         basis_risk_terms.append({
@@ -2060,6 +2124,10 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         # An SVT account therefore cannot depart yet, which is exactly why no roster assigns
         # one; see simulation/svt_product.py on what is owed before assignment.
         _indexed_tariff = term_tariff_type in ("deemed", "flex", SVT_TARIFF_TYPE)
+        # What a refused offer must not leave behind is restored from these (see the decline).
+        _prior_rates = prev_elec_unit_rates if commodity == "electricity" else prev_gas_unit_rates
+        _prior_rate_before_offer = _prior_rates.get(cid)
+        _shock_counted_this_term = False
         if commodity == "electricity" and not _indexed_tariff:
             prev_elec_unit_rates[cid] = unit_rate
         elif commodity == "gas" and not _indexed_tariff:
@@ -2075,6 +2143,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                 if (unit_rate - old_decision_leg_rate) / old_decision_leg_rate > _NG_BILL_SHOCK_THRESHOLD:
                     _rate_shock_counts[cid] = _rate_shock_counts.get(cid, 0) + 1
                     _bill_shock_dates.setdefault(cid, []).append(term_start_str)
+                    _shock_counted_this_term = True
 
         # ═══════════════════════════════════════════════════════════════════════════════════════
         # C1b — AN ACCOUNT ON THE STANDARD VARIABLE PRODUCT CAN NOW LEAVE (2026-08-30)
@@ -2276,7 +2345,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             round((_state_unit_rate - _state_svt_rate) / _state_svt_rate * 100.0, 2)
             if _state_unit_rate is not None and _state_svt_rate else None
         )
-        account_state_log.append({
+        _account_state_row = {
             "customer_id": cid,
             "billing_account": billing_account,
             "commodity": commodity,
@@ -2302,7 +2371,8 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                 _position["portfolio_premium_pct"] if _position else None
             ),
             "data_regime": "historical",
-        })
+        }
+        account_state_log.append(_account_state_row)
 
         if term_index >= 1 and commodity == _decision_leg and not _indexed_tariff:
             company_est_pre = None
@@ -2690,16 +2760,35 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                 # would make the rival's costs a function of the company's forecasting skill.
                 wholesale_gbp_per_mwh=forward_price,
             ) if _rolled else None
+            # STAY, LEAVE, OR STAY AND REFUSE. Leaving is the roll's and stands; the rule only
+            # reprices a household that stayed.
+            _renewal_outcome = renewal_outcome(
+                event_type=event["event_type"] if event is not None else "renewed",
+                position_vs_default=_offer_vs_default,
+            )
             # THE RIVAL SEES THIS OFFER ONLY AFTER THE TERM IT WAS STRUCK IN (2026-08-28, C2).
             # Recorded AFTER the roll, and read back by `position_for()` a quarter later, so no
             # offer can ever reach the reference it is itself being measured against. Recording
             # it before the roll would make the differential partly a function of itself, which
             # is the tautology R15 names first.
-            _competitor_position_ledger.observe(term_start_str, unit_rate, commodity=commodity)
+            # A REFUSED offer is not a price this supplier holds anyone at, so the rival never
+            # sees it: the household is on the default, which is what the ledger must read.
+            if _renewal_outcome != RENEWAL_DECLINED_FIX:
+                _competitor_position_ledger.observe(term_start_str, unit_rate, commodity=commodity)
             # ...but it STAYED, and the record keeps the decision. Appended here and nowhere else:
             # the block below feeds the journey, the retention log and the departure handling, and
             # nothing inside this loop reads `customer_events_log`, so this row changes no outcome.
-            if not _rolled:
+            if not _rolled and _renewal_outcome == RENEWAL_DECLINED_FIX:
+                customer_events_log.append(declined_fix_event(
+                    customer_id=billing_account, event_date=term_start_str, commodity=commodity,
+                    declined_unit_rate_gbp_per_mwh=unit_rate,
+                    position_vs_default=_offer_vs_default,
+                    company_churn_estimate=company_est_pre,
+                    retention_offered=retention_modifier_val is not None,
+                    is_active_renewal=active_renewal,
+                    engagement_level=_engagement_level_str,
+                ))
+            elif not _rolled:
                 customer_events_log.append(svt_conversion_event(
                     customer_id=billing_account, event_date=term_start_str, commodity=commodity,
                     company_churn_estimate=company_est_pre,
@@ -2708,10 +2797,11 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                     engagement_level=_engagement_level_str,
                     unit_rate_gbp_per_mwh=unit_rate,
                 ))
+            _record_renewal_decision(
+                _journey, renewal_decisions_log, customer_id=billing_account,
+                event_date=term_start_str, commodity=commodity, rolled=_rolled, event=event,
+            )
             if event is not None:
-                _journey.record_decision(
-                    date.fromisoformat(term_start_str), switched=(event["event_type"] == "churned"),
-                )
                 event["is_active_renewal"] = active_renewal
                 # Phase 2 Layer 1: SIM-internal ground truth, retained here for
                 # evidence-surface use only (same pattern as credit_bureau_true_
@@ -2720,6 +2810,12 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                 # company/** decision code.
                 event["engagement_level"] = _engagement_level_str
                 event["unit_rate_gbp_per_mwh"] = unit_rate
+                if _renewal_outcome == RENEWAL_DECLINED_FIX:
+                    event = declined_fix_event(
+                        customer_id=cid, event_date=term_start_str, commodity=commodity,
+                        declined_unit_rate_gbp_per_mwh=unit_rate,
+                        position_vs_default=_offer_vs_default, rolled_event=event,
+                    )
                 customer_events_log.append(event)
                 if retention_modifier_val is not None and retention_log:
                     outcome_str = "churned_despite_offer" if event["event_type"] == "churned" else "retained"
@@ -2930,6 +3026,70 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                     ) if RETENTION_EFFECTIVENESS else None,
                     "outcome": "retained",
                 })
+
+        # A LEG THAT DOES NOT CARRY ITS HOUSEHOLD'S DEPARTURE still decides whether to take its own
+        # fuel's fix. The household's leave decision is on the electricity leg, which sorts first
+        # (`X` < `Xg` at one term start), so reaching here means it stayed.
+        if _renewal_outcome is None and commodity != _decision_leg:
+            _renewal_outcome = renewal_outcome(
+                event_type="renewed", position_vs_default=_offer_vs_default,
+            )
+            if _renewal_outcome == RENEWAL_DECLINED_FIX:
+                _declined_on_the_riding_leg.append(declined_fix_event(
+                    customer_id=cid, event_date=term_start_str, commodity=commodity,
+                    declined_unit_rate_gbp_per_mwh=unit_rate,
+                    position_vs_default=_offer_vs_default,
+                ))
+
+        # THE DECLINED TERM IS REPLACED BY THE DEFAULT TARIFF FOR THE SAME WINDOW, and nothing the
+        # refused offer wrote may survive it: the household reads downstream as one on the default.
+        # So the prior rate and the bill-shock count are put back (an SVT segment never writes
+        # either), the account-state row for a term that was never contracted is withdrawn, and
+        # `_last_tariff_type` is put back so the first spliced segment opens -- or, after a
+        # conversion, continues -- the household's SVT stint. The segments are the same
+        # `build_svt_schedule` window the builders splice for a passive renewer (term start to the
+        # day before the anniversary, own fuel), and they settle, hedge and roll C1b's inertia
+        # hazard exactly as any other default-tariff segment does. They never advance
+        # `term_indices` (`_DECLINED_FIX_SPLICE`).
+        if _renewal_outcome == RENEWAL_DECLINED_FIX:
+            if _prior_rate_before_offer is None:
+                _prior_rates.pop(cid, None)
+            else:
+                _prior_rates[cid] = _prior_rate_before_offer
+            if _shock_counted_this_term:
+                _rate_shock_counts[cid] -= 1
+                _bill_shock_dates[cid].pop()
+            if account_state_log and account_state_log[-1] is _account_state_row:
+                account_state_log.pop()
+            if _previous_tariff_type is None:
+                _last_tariff_type.pop(cid, None)
+            else:
+                _last_tariff_type[cid] = _previous_tariff_type
+            _default_end = min(
+                date.fromisoformat(term_start_str) + timedelta(days=CONTRACT_LENGTH_DAYS - 1),
+                date.fromisoformat(effective_end),
+            )
+            try:
+                _default_segments = build_svt_schedule(
+                    cid, term_start_str, _default_end.isoformat(),
+                    elec_records if commodity == "electricity" else gas_records,
+                    lookback_temps_fn=_lookback_temps_fn(cid), fuel=commodity,
+                )
+            except ValueError:
+                # The price history ends inside the window: the builders stop the schedule there,
+                # and so does this.
+                _default_segments = []
+            for _segment in _default_segments:
+                _segment[_DECLINED_FIX_SPLICE] = True
+                heapq.heappush(
+                    all_terms,
+                    (_segment["acquisition_date"], cid, next(_term_seq), commodity, _segment),
+                )
+            print(
+                f"  [DECLINED-FIX] {billing_account} {commodity} at {term_start_str} — offer "
+                f"{_offer_vs_default:+.1%} vs default; {len(_default_segments)} default segment(s)"
+            )
+            continue
 
         # Phase 14b: compute gas company churn estimate for dual-fuel monitoring.
         # The SECONDARY fuel's renewal pressure — a gas leg that does NOT carry its account's
@@ -3953,6 +4113,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         # `_svt_segment_decisions.json` companion, which is the population every SVT-route reading
         # in `tools/measure_churn_heterogeneity` is computed over.
         "svt_decisions": _svt_decisions,
+        "declined_on_the_riding_leg": _declined_on_the_riding_leg,
         "churned_billing_accounts": sorted(churned_billing_accounts),
         "won_successor_activations": won_successor_activations,
         "hedge_evolution": evolution_logs,
@@ -4051,6 +4212,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         # Phase QL Part 2: hidden churn-journey state trajectory (SIM-side shadow
         # tracker -- does not gate the roll_lifecycle_event dice roll itself)
         "churn_journey_log": churn_journey_log,
+        "renewal_decisions_log": renewal_decisions_log,
         # Phase RU: solicited feedback survey engine (FEEDBACK_AND_REPUTATION.md Layer 1)
         "feedback_survey_log": feedback_survey_log,
         "reputation_events_log": reputation_events_log,
