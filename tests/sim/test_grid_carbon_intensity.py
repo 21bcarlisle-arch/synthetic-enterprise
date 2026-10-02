@@ -1044,3 +1044,67 @@ def test_a_half_hour_the_EMBEDDED_series_does_not_cover_is_skipped_and_one_it_co
     shape = build_shape(demand, wind, embedded_generation_by_period=covered)
     assert ("2024-06-01", 23) in shape and ("2024-06-01", 24) not in shape
     assert len(shape) == 47
+
+
+def test_PUMPED_STORAGE_generation_comes_off_the_residual_and_pumping_is_load_in_both_places():
+    """EP13 frame doc s25. Generation displaces gas and stays OUT of the denominator (INDO holds
+    its demand); pumping is load and goes IN, as exports do. Zero is the old series exactly.
+
+    MUTATION (must fire): add generation to the denominator, or leave pumping out of it.
+    """
+    args = dict(demand_mw=30_000.0, renewable_generation_mw=5_000.0, year=2022,
+                thermal_floor_mw=500.0, zero_carbon_must_run_mw=6_000.0)
+    base = gci.emissions_rate_t_per_mwh(**args)
+    assert gci.emissions_rate_t_per_mwh(**args, pumped_storage_mw=0.0) == base
+    gen = gci.emissions_rate_t_per_mwh(**args, pumped_storage_mw=1_000.0)
+    pump = gci.emissions_rate_t_per_mwh(**args, pumped_storage_mw=-1_000.0)
+    assert gen < base < pump
+    # Generation served at zero carbon over an unchanged denominator: the tonnes fall by exactly
+    # the gas it displaced, so the rate scales by the same denominator.
+    as_exports = gci.emissions_rate_t_per_mwh(**args, export_mw=1_000.0)
+    assert pump == pytest.approx(as_exports, rel=1e-12)
+    as_wind = gci.emissions_rate_t_per_mwh(**{**args, "renewable_generation_mw": 6_000.0})
+    assert gen == pytest.approx(as_wind, rel=1e-12)
+
+
+def test_the_PUMPED_STORAGE_schedule_shaves_the_peak_fills_the_trough_and_spends_the_years_energy():
+    """The water-fill: generation only where the residual is highest, pumping only where it is
+    lowest, each day spending the year's mean times its half hours, each leg under its cap. Both
+    legs and both caps must be reachable in one day, and a year with no record gets nothing.
+
+    MUTATION (must fire): invert either leg's ranking, drop a cap, or spend per year not per day.
+    """
+    day = {("2022-06-01", p): 20_000.0 + 1_000.0 * (p % 24) for p in range(1, 49)}
+    other_year = {("2021-06-01", p): 20_000.0 for p in range(1, 49)}
+    record = {2022: {"generation_mean_mw": 200.0, "pumping_mean_mw": 250.0,
+                     "generation_max_mw": 2_000.0, "pumping_max_mw": 2_200.0}}
+    ps = gci.pumped_storage_schedule({**day, **other_year}, record)
+    assert not any(k in ps for k in other_year)
+    gen = {k: v for k, v in ps.items() if v > 0}
+    pump = {k: -v for k, v in ps.items() if v < 0}
+    assert gen and pump
+    assert sum(gen.values()) == pytest.approx(200.0 * 48, rel=1e-6)
+    assert sum(pump.values()) == pytest.approx(250.0 * 48, rel=1e-6)
+    assert min(day[k] for k in gen) > max(day[k] for k in day if k not in gen)
+    assert max(day[k] for k in pump) < min(day[k] for k in day if k not in pump)
+    assert max(gen.values()) <= 2_000.0 + 1e-6 and max(pump.values()) <= 2_200.0 + 1e-6
+    # A cap that binds: the same energy into a fleet that can only do 300 MW must spread wider.
+    tight = gci.pumped_storage_schedule(day, {2022: {**record[2022], "generation_max_mw": 300.0}})
+    assert max(tight.values()) == pytest.approx(300.0, abs=1e-3)
+    assert sum(1 for v in tight.values() if v > 0) > len(gen)
+
+
+def test_build_shape_with_no_PUMPED_STORAGE_is_the_old_series_and_with_it_the_day_is_flatter():
+    """None reproduces the pre-s25 shape exactly; a fleet narrows the within-day range."""
+    from sim.grid_carbon_intensity import build_shape
+
+    demand = {("2022-06-01", p): 22_000.0 + 400.0 * (p % 24) for p in range(1, 49)}
+    wind = {key: 4_000.0 for key in demand}
+    record = {2022: {"generation_mean_mw": 300.0, "pumping_mean_mw": 400.0,
+                     "generation_max_mw": 2_000.0, "pumping_max_mw": 2_000.0}}
+    plain = build_shape(demand, wind, thermal_floor_by_year={2022: 500.0})
+    assert build_shape(demand, wind, thermal_floor_by_year={2022: 500.0},
+                       pumped_storage_by_year=None) == plain
+    flat = build_shape(demand, wind, thermal_floor_by_year={2022: 500.0},
+                       pumped_storage_by_year=record)
+    assert max(flat.values()) - min(flat.values()) < max(plain.values()) - min(plain.values())

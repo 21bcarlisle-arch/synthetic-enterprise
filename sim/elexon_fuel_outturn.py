@@ -165,9 +165,10 @@ BIOMASS_CACHE_PATH = Path("sim/cache/elexon_fuelhh_biomass.json")
 #: THE FUELS NOTHING ELSE HERE READS, fetched for MEASUREMENT ONLY. EP13 frame doc s17 split the
 #: model's daily gas-level error across every fuel the other four caches hold and left 48-90% of it
 #: (2019-2024) as a remainder they cannot see. These four are the rest of FUELHH, so with them the
-#: remainder becomes a measurement. ONLY `WIND` REACHES THE DISPATCH, through `wind_by_period`.
-#: PS is the merit order itself (condition 2 above), and OIL/OTHER carry emissions factors, so
-#: neither has a `*_by_period` view on purpose. WIND passes both conditions, and since s21 it
+#: remainder becomes a measurement. Only `WIND` reaches the dispatch HALF-HOURLY, through
+#: `wind_by_period`. PS is the merit order itself (condition 2 above), so it crosses only at
+#: coal's grain, through `pumped_storage_by_year` (s25); OIL/OTHER carry emissions factors. None
+#: of the three has a `*_by_period` view, on purpose. WIND passes both conditions, and since s21 it
 #: replaces AGWS wind in the residual: INDO is TRANSMISSION demand, so the wind that serves it is
 #: transmission-metered wind, and AGWS offshore reads 0.52-0.70 of DESNZ's in every year (frame
 #: doc s21, decided on the definition before the correlation it moves was run).
@@ -962,6 +963,53 @@ def biomass_envelope_by_year(
         raise FuelOutturnUnavailable(
             "no positive biomass reading in any year, so no envelope can be measured"
         )
+    return out
+
+
+def pumped_storage_by_year(rows: Iterable[Mapping]) -> dict[int, dict[str, float]]:
+    """{year: {generation_mean_mw, pumping_mean_mw, generation_max_mw, pumping_max_mw,
+    half_hours}} -- pumped storage reduced to COAL'S GRAIN, four scalars a year.
+
+    PS FAILS CONDITION 2 (it goes negative when it pumps), so its half-hourly outturn is a
+    dispatch decision and never crosses. What crosses is how much energy the fleet moved in a
+    year, each way, and the most it was seen to generate and to pump: facts about the plant and
+    the year, not about any half hour. WHEN it pumps and generates is decided in
+    `grid_carbon_intensity.pumped_storage_schedule`, from the residual that module computed.
+    There is deliberately no `pumped_storage_by_period` view (EP13 frame doc s25).
+
+    Both means are over the half hours that carry a PS reading, so a dropped half hour does not
+    read as an idle fleet. Last row wins per half hour, as everywhere in this module. Pumping is
+    reported as a POSITIVE MW, the size of the load it adds.
+    """
+    latest: dict[tuple[str, int], float] = {}
+    for row in rows:
+        if row.get("fuelType") != "PS":
+            continue
+        value = row.get("generation")
+        if isinstance(value, bool) or not isinstance(value, (int, float)):
+            continue
+        try:
+            latest[(str(row["settlementDate"])[:10], int(row["settlementPeriod"]))] = float(value)
+        except (KeyError, TypeError, ValueError):
+            continue
+    by_year: dict[int, list[float]] = {}
+    for key, mw in latest.items():
+        try:
+            by_year.setdefault(int(key[0][:4]), []).append(mw)
+        except ValueError:
+            continue
+    out: dict[int, dict[str, float]] = {}
+    for year, values in by_year.items():
+        n = len(values)
+        out[year] = {
+            "generation_mean_mw": sum(max(0.0, v) for v in values) / n,
+            "pumping_mean_mw": sum(max(0.0, -v) for v in values) / n,
+            "generation_max_mw": max(0.0, max(values)),
+            "pumping_max_mw": max(0.0, -min(values)),
+            "half_hours": float(n),
+        }
+    if not out:
+        raise FuelOutturnUnavailable("no PS reading in any year, so pumped storage cannot be sized")
     return out
 
 

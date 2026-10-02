@@ -771,14 +771,22 @@ def test_the_WITHIN_DAY_FIGURES_QUOTED_in_ERROR_DIRECTION_are_the_MEASURED_ones(
             f"{mean_claimed}"
         )
 
-    # THE DIRECTION OF THE CLAIM, not only its arithmetic: the sentence's whole point is that one
-    # axis is right and the other is not. If they ever converge the sentence is wrong even with
-    # every number in range, so the ordering is asserted rather than left to the reader.
-    within = [versus["by_year"][y]["within_day_swing_overstated_by"] for y in years]
-    between = [versus["by_year"][y]["between_day_swing_overstated_by"] for y in years]
-    assert min(within) > max(between), (
-        "the within-day and between-day overstatements now overlap, so 'the whole of the "
-        "exaggeration sits on the intra-day axis' is no longer what the measurement says"
+    # THE DIRECTION OF THE CLAIM, not only its arithmetic. Until s25 the sentence said within-day
+    # was too wide in every year and this asserted `min(within) > max(between)`; pumped storage
+    # made that false, and the control went red as it should. The claim is now per year (too
+    # WIDE in some, too NARROW in others), so the years the sentence names on each side are read
+    # back and held against the measurement. A year can sit on neither side only at exactly 1.0.
+    wide = re.search(r"too WIDE in ([^;]*);", gif.ERROR_DIRECTION)
+    narrow = re.search(r"too NARROW in ([^;]*);", gif.ERROR_DIRECTION)
+    assert wide and narrow, "ERROR_DIRECTION no longer names its wide and narrow years"
+    named_wide = set(re.findall(r"\d{4}", wide.group(1)))
+    named_narrow = set(re.findall(r"\d{4}", narrow.group(1)))
+    within = {y: versus["by_year"][y]["within_day_swing_overstated_by"] for y in years}
+    assert named_wide == {y for y, v in within.items() if v > 1.0}, (
+        f"ERROR_DIRECTION names {sorted(named_wide)} as too wide; the feed measures {within}"
+    )
+    assert named_narrow == {y for y, v in within.items() if v < 1.0}, (
+        f"ERROR_DIRECTION names {sorted(named_narrow)} as too narrow; the feed measures {within}"
     )
 
 
@@ -1204,6 +1212,11 @@ def _exports():
     return gif.exports_by_period()
 
 
+@functools.lru_cache(maxsize=1)
+def _pumped_storage():
+    return gif.pumped_storage_by_year()
+
+
 def _shape_generate_would_build(mix, demand, agws, **knocked_out):
     """`generate()`'s own `build_shape` call, with one correction optionally knocked out.
 
@@ -1220,6 +1233,7 @@ def _shape_generate_would_build(mix, demand, agws, **knocked_out):
     keywords = dict(
         embedded_generation_by_period=gif.aggregate_solar_generation(agws),
         exports_by_period=_exports(),
+        pumped_storage_by_year=_pumped_storage(),
         imports_by_period=imports,
         coal_capacity_by_year=coal_capacity,
         thermal_floor_by_year={year: row["floor_mw"] for year, row in floors.items()},
@@ -1710,6 +1724,23 @@ def test_EXPORTS_are_served_and_divided_by_in_the_published_feed(real_publish):
     )
     assert _published_records_carry(feed, served), (
         "the published records are not the shape that serves exports"
+    )
+
+
+def test_PUMPED_STORAGE_is_dispatched_in_the_published_feed(real_publish):
+    """EP13 frame doc s25. The feed must carry the shape whose model dispatches pumped storage
+    from its annual scalars, and dropping the fleet must CHANGE the series (else it is inert).
+
+    MUTATION (must fire): in `generate()`, drop `pumped_storage_by_year`.
+    """
+    mix, demand, agws, feed = real_publish
+    dispatched = _shape_generate_would_build(mix, demand, agws)
+    dropped = _shape_generate_would_build(mix, demand, agws, pumped_storage_by_year=None)
+    assert not _published_records_carry(feed, dropped), (
+        "the published records are the shape with no pumped storage in the dispatch"
+    )
+    assert _published_records_carry(feed, dispatched), (
+        "the published records are not the shape that dispatches pumped storage"
     )
 
 

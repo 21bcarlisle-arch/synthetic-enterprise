@@ -720,9 +720,10 @@ def test_the_remainder_window_keeps_exactly_the_four_fuels_no_other_cache_holds(
     assert sorted(r["fuelType"] for r in kept) == ["OIL", "OTHER", "PS", "WIND"]
 
 
-def test_only_WIND_of_the_remainder_series_reaches_the_dispatch():
-    """PS, OIL and OTHER are measurement only; WIND reaches the dispatch since s21, and ONLY
-    through `wind_by_period`, which reads nothing else.
+def test_only_WIND_of_the_remainder_series_reaches_the_dispatch_half_hourly():
+    """OIL and OTHER are measurement only. WIND reaches the dispatch since s21, ONLY through
+    `wind_by_period`, which reads nothing else. PS reaches it since s25 ONLY through
+    `pumped_storage_by_year`, four scalars a year.
 
     `grid_carbon_intensity` imports nothing from this module (tested above); the feed generator
     DOES, and is the one place a remainder loader could be wired into `build_shape`.
@@ -733,8 +734,9 @@ def test_only_WIND_of_the_remainder_series_reaches_the_dispatch():
     from tools.python_code_text import searchable
 
     source = searchable((REPO / "tools" / "generate_grid_intensity_feed.py").read_text(encoding="utf-8"))
-    assert source.count("load_cached_remainder") == 1
+    assert source.count("load_cached_remainder") == 2
     assert source.count("fuel.wind_by_period(fuel.load_cached_remainder())") == 1
+    assert source.count("fuel.pumped_storage_by_year(fuel.load_cached_remainder())") == 1
     assert "REMAINDER_CACHE_PATH" not in source
     assert "fetch_remainder" not in source
 
@@ -751,3 +753,29 @@ def test_the_remainder_LOADER_refuses_an_absent_cache():
             fuel.load_cached_remainder()
     finally:
         fuel.REMAINDER_CACHE_PATH = original
+
+
+def test_pumped_storage_crosses_as_four_annual_scalars_each_way_and_never_half_hourly():
+    """EP13 frame doc s25. PS fails condition 2, so only coal's grain crosses. Both legs must be
+    reachable from one input: a year that pumps and generates reports both, pumping as a positive
+    MW, last row wins, a non-numeric reading is not counted, and a year with only other fuels is
+    absent rather than an idle zero.
+
+    MUTATION (must fire): take the pumping mean as `min(0, v)` (signed), or count a revised
+    half hour twice.
+    """
+    rows = [row("PS", 900, period=36), row("PS", 1_500, period=36),  # revised: 1,500 wins
+            row("PS", -1_200, period=4), row("PS", 0, period=12), row("PS", "x", period=13),
+            row("WIND", 6_000, period=4), row("PS", 300, date="2023-03-01", period=1),
+            row("CCGT", 9_000, date="2021-05-05", period=1)]
+    out = fuel.pumped_storage_by_year(rows)
+    assert set(out) == {2022, 2023}
+    y = out[2022]
+    assert y["half_hours"] == 3.0
+    assert y["generation_mean_mw"] == pytest.approx(1_500 / 3)
+    assert y["pumping_mean_mw"] == pytest.approx(1_200 / 3)
+    assert (y["generation_max_mw"], y["pumping_max_mw"]) == (1_500.0, 1_200.0)
+    assert out[2023]["pumping_max_mw"] == 0.0
+    assert not hasattr(fuel, "pumped_storage_by_period")
+    with pytest.raises(fuel.FuelOutturnUnavailable):
+        fuel.pumped_storage_by_year([row("WIND", 6_000)])

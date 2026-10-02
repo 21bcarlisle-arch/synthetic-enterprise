@@ -1813,3 +1813,86 @@ the fair null also leaves over NESO.
 graded against the P′ oracle row above; (2) embedded wind in the denominator, landed WITH (1) or
 after it, never alone; (3) biomass at the year's mean (§23). Each moves the published feed, so
 each needs its own pass. No level move and no code change.
+
+## 25. 2026-10-02 — PUMPED STORAGE, BUILT AS A RULE: the oracle is not a ceiling, and the within-day error changes sign
+
+§24 named the build: a PS rule inside the merit order, at the annual grain, graded against the
+P′ oracle. This pass built it, graded it, and wired it into the published feed. Scratch scripts
+are in `/var/tmp/se-ep13-s25/` (`rule.py`, `timing.py`, `feed.py`, with timestamped predictions
+in `prediction.txt`). **Instrument checks:** each rule spends exactly the year's measured PS
+energy on both legs, and the no-PS shape reproduces the committed feed's records to five places.
+
+**What crosses.** PS fails condition 2, so only coal's grain crosses:
+`elexon_fuel_outturn.pumped_storage_by_year` gives four scalars a year (mean generation, mean
+pumping, largest of each). No half-hourly PS reading reaches the dispatch.
+
+**Two rules, run before choosing.** R1, a rectangle: generate at the year's largest output in
+the day's highest-residual half hours until the day's energy is spent, and pump the same way in
+the lowest. R2, a water-fill: shave the day's residual peak down to one level and fill its
+trough up to another, each leg capped at the year's largest. The residual is the load after
+imports and the zero-carbon must-run.
+
+**Predictions (14:22Z, before `rule.py`).** P1: R2 recovers 60–100% of the oracle's within-day
+cut in every year. P2: R1 recovers less than R2 in every year. P3: neither moves correlation by
+more than 0.015 or between-day by more than 0.03. P4: R2 overshoots the oracle in at most one year.
+
+On §24's base (biomass at the year mean), within-day swing ratio:
+
+| arm | 2019 | 2020 | 2021 | 2022 | 2023 | 2024 |
+|---|---|---|---|---|---|---|
+| B=mean | 1.199 | 1.185 | 1.118 | 1.106 | 1.078 | 1.076 |
+| + P′ (measured PS, the oracle) | 1.034 | 1.065 | 0.969 | 0.967 | 0.949 | 0.927 |
+| + R1 | 1.029 | 1.053 | 0.955 | 0.938 | 0.932 | 0.904 |
+| + R2 | 1.010 | 1.042 | 0.937 | 0.927 | 0.913 | 0.889 |
+
+Share of the oracle's cut recovered: R1 1.03–1.21, R2 1.15–1.29.
+
+**Against the predictions.** P1 was refuted on the high side: R2 recovers 115–129%, not 60–100%.
+P2 held: R1 cuts less than R2 in every year. P3 held: correlation moved ≤0.009, between-day
+≤0.011. P4 was refuted: R2 overshoots in all six years. **So §24's claim that P′ is "the ceiling
+on what the rule can recover" is wrong.** A rule with perfect foresight of the day's residual
+flattens the day MORE than GB's fleet did. Real PS also holds reserve and answers to price and
+frequency, so it does not sit only on the residual's extremes.
+
+**Choosing the rule, on timing and not on the grade.** Half-hourly correlation of each rule's PS
+against measured PS (`timing.py`): R1 0.54–0.69, R2 0.67–0.81, so R2 is higher in every year.
+By settlement-period band (2019–24 pooled, measured / R1 / R2, MW): overnight SP07–12 −917 /
+−1,089 / −969; evening SP37–42 630 / 880 / 818; midday SP25–30 1 / −100 / −81. Both rules pump
+a little into the midday solar trough, where GB does not, and both over-generate at the evening
+peak. **R2 is built** (`grid_carbon_intensity.pumped_storage_schedule`).
+
+**On the published order (flat 2,400 MW biomass).** **Prediction P5 (written before
+`feed.py`):** within-day lands at 1.02–1.07 / 1.04–1.08 / 0.94–0.98 / 0.92–0.96 / 0.92–0.96 /
+0.88–0.92; correlation rises 0.003–0.012; between-day moves <0.02.
+
+| published feed | 2019 | 2020 | 2021 | 2022 | 2023 | 2024 |
+|---|---|---|---|---|---|---|
+| within-day, HEAD | 1.227 | 1.199 | 1.132 | 1.135 | 1.125 | 1.091 |
+| **within-day, s25** | **1.038** | **1.058** | **0.951** | **0.957** | **0.959** | **0.904** |
+| between-day, s25 | 0.982 | 1.030 | 0.929 | 0.978 | 0.988 | 0.894 |
+| correlation, HEAD → s25 | .948→.958 | .931→.933 | .958→.964 | .970→.975 | .969→.972 | .955→.959 |
+
+P5's within-day held in every year, and between-day held. Correlation rose in every year, but
+2020's +0.002 is under the predicted 0.003 floor, so that leg was refuted narrowly. Headline
+means: within-day 1.15x → 0.98x; p95/p5 1.19x → 1.07x; max/min 1.09x → 0.99x; mean absolute
+error 0.080 → 0.074.
+
+**What it changes on the page.** The error-direction sentence said the within-day swing was too
+wide in every year, so any shifting benefit was an upper bound. That is no longer true. It is too
+wide in 2019–20 and too narrow in 2021–24. `ERROR_DIRECTION` now says so, and its control reads
+the wide and narrow years back out of the sentence against the feed, instead of asserting
+`min(within) > max(between)`. That old assertion went red on this change, correctly.
+
+**What it does NOT establish.**
+- **That the narrow years are right.** The rule's foresight and its pumping into the solar trough
+  both narrow the day. The understatement from 2021 is partly the rule's own error, not fidelity.
+- **Embedded wind is still owed** (§24: +0.04–0.06 within-day, on NESO's definition). With PS now
+  in, nothing in §24's sequencing stops it, and it would move 2021–24 back toward 1.0.
+
+**Controls.** Five new or re-keyed. Six mutations were run and all were killed: pumping left out
+of the load, the generation cap dropped, the water-fill bisection inverted, pumping signed
+negative in the reducer, the schedule not handed to the rate, and PS dropped from `generate()`.
+
+**Next.** (1) Embedded wind in the denominator, its own pass, graded by §24's arithmetic.
+(2) Then biomass at the year's mean (§23). No level move: the Expert Hour still has to weigh how
+much of the 0.93–0.98 correlation is shared inputs (§22).

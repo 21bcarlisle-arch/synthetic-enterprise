@@ -122,22 +122,20 @@ and are kept here, rewritten, because what replaced them is a smaller gap and no
     embedded supply GB consumed (EP13 frame doc s19), plus the exports INDO excludes, which the
     stack also serves (s20); losses are still not corrected.
 
-WHICH WAY THE ERRORS POINT, and this is the sentence to read if you read only one. THE RANGE IS
-STILL OVERSTATED — p95/p5 runs about 1.19x the published series' — so ANY BENEFIT COMPUTED FROM
-MOVING LOAD BETWEEN QUIET AND BUSY HALF HOURS IS AN UPPER BOUND on the real one. That is the
-error direction that matters here, because it flatters the mission's own thesis, and it must be
-carried on the face of anything published from this rather than left in a module nobody opens.
+WHICH WAY THE ERRORS POINT, and this is the sentence to read if you read only one. SINCE
+2026-10-02 THE DIRECTION IS MIXED, and that is the change to carry. p95/p5 runs about 1.07x the
+published series'. Split day by day by `neso_carbon_intensity.compare_shapes`, the BETWEEN-day
+swing runs 0.89-1.03x over 2019-2024. The WITHIN-day swing, the only axis a household can act
+on, runs 0.90-1.06x: too wide in 2019-20 and too narrow in 2021-24. So a shifting benefit
+computed here is an upper bound in 2019-20 and more likely an understatement from 2021.
 
-AND THAT 1.19x IS A BLEND OF TWO AXES THAT BEHAVE DIFFERENTLY. Split day by day by
-`neso_carbon_intensity.compare_shapes`, this shape's BETWEEN-day swing matches the published
-series to within 12% in every year 2019-2024 (0.89-1.01x, mean 0.96) and its WITHIN-day swing is
-too wide in every one of them (1.09-1.23x, mean 1.15; 1.35-1.54x before the 2026-09-30 solar and
-export fixes and the 2026-10-01 metered-wind fix, frame doc s19-s21). The aggregate figure averages a term this
-model gets RIGHT with a term it gets WRONG — and the wrong one is the only axis a customer can
-act on, because a household can move the washing from 6pm to 2am and cannot move it to a windier
-Tuesday in March. So the annual correction UNDERSTATES what an intra-day shifting claim needs.
-Nothing here was tuned to that: the split is a measurement and R12 forbids moving a constant to
-change it.
+What flipped it is named. Until s25 the within-day swing was too wide in every year (1.09-1.23x)
+because the model had no pumped storage: no peak generation displacing gas, and no overnight
+pumping loading the troughs (frame doc s24). `pumped_storage_schedule` now dispatches the fleet
+with perfect foresight of the day's residual, which flattens the day by MORE than GB's fleet
+did (s25). Embedded wind, owed in the denominator and not yet in it, would widen within-day
+again by about 0.04-0.06. Nothing here was tuned to the published series: the rule was chosen on
+how well it tracks measured PS timing, and R12 forbids moving a constant to change the split.
 
 WHAT THAT RE-DIAGNOSED, and it is what the 2026-08-26 build was aimed at. The thermal floor closed
 a LEVEL error at the clean end and left CORRELATION untouched at 0.726 in 2024 — the model knew
@@ -360,7 +358,10 @@ SHAPE_BASIS = (
     "assumed flat, with the biomass share of that block still modelled at a constant 2,400 MW "
     "-- the fleet's demonstrated annual envelope is now measured and published beside this "
     "series as a diagnostic, and is NOT dispatched, because doing so was measured to make the "
-    "series worse on four axes of five (see `generate_grid_intensity_feed.BIOMASS_DISPATCH_WIRED`)."
+    "series worse on four axes of five (see `generate_grid_intensity_feed.BIOMASS_DISPATCH_WIRED`). "
+    "Pumped storage is dispatched by the model, a daily water-fill against its own residual, from "
+    "four annual scalars measured out of FUELHH (mean and largest generation and pumping); no "
+    "half-hourly PS reading is used."
 )
 
 #: Biomass, gCO2/kWh, on NESO's own Carbon Intensity methodology -- the same methodology whose
@@ -419,6 +420,7 @@ def emissions_rate_t_per_mwh(
     biomass_floor_mw: float | None = None,
     embedded_generation_mw: float = 0.0,
     export_mw: float = 0.0,
+    pumped_storage_mw: float = 0.0,
 ) -> float:
     """Tonnes CO2 per MWh of demand met, in ONE half hour, on the dispatch above.
 
@@ -470,6 +472,12 @@ def emissions_rate_t_per_mwh(
     denominator: the export is charged the half hour's average rate, never its marginal gas, and
     GB demand keeps the same average (EP13 frame doc s20). 0.0 is the pre-s20 series exactly.
 
+    `pumped_storage_mw` -- the MODEL'S OWN pumped-storage decision for this half hour, from
+    `pumped_storage_schedule`, never a reading. Positive is generation at NESO's zero factor,
+    taken off the residual and NOT added to the denominator, because INDO already contains the
+    demand it serves. Negative is pumping, which INDO excludes and GB generates, so it joins the
+    load and the denominator as exports do. 0.0 is the pre-s25 series exactly.
+
     THE DEFAULTS REPRODUCE THE PRE-2026-08-25 SHAPE EXACTLY, and that is a liability rather than
     a convenience: a caller that forgets them gets the known-wrong series silently. The control
     against that is not in this signature — it is `generate_grid_intensity_feed.generate()`,
@@ -482,13 +490,19 @@ def emissions_rate_t_per_mwh(
         raise ShapeUnavailable("a half hour with no demand has no emissions rate")
     # EVERYTHING THE STACK AND THE CABLES SUPPLY: INDO plus what GB generated for export.
     demand_mw += max(0.0, float(export_mw))
+    # PUMPING IS LOAD, and it is the half of pumped storage worth more to the shape: it lands in
+    # the overnight troughs the within-day swing is measured from (frame doc s24).
+    pumped_storage_mw = float(pumped_storage_mw)
+    demand_mw += max(0.0, -pumped_storage_mw)
 
     # IMPORTS ARE SERVED BEFORE ANYTHING GB BURNS, because that is what a cable does: it delivers
     # whatever the cross-border spread told it to deliver and the GB stack dispatches around the
     # remainder. Clamped at zero (an export is not a negative import — see `elexon_fuel_outturn`)
     # and at demand, because a half hour cannot be met more than once.
     import_mw = min(max(0.0, float(import_mw)), demand_mw)
-    residual_mw = demand_mw - float(renewable_generation_mw) - import_mw
+    residual_mw = (
+        demand_mw - float(renewable_generation_mw) - import_mw - max(0.0, pumped_storage_mw)
+    )
     # MUST-RUN MEANS MUST RUN, and getting this wrong put a hard zero in the series. Written
     # first as `min(max(residual, 0), floor)`, it made the floor the RESIDUAL's leftovers -- so
     # in every half hour where wind and solar exceeded national demand the model switched
@@ -617,6 +631,80 @@ def emissions_rate_t_per_mwh(
     return tonnes / (demand_mw + max(0.0, float(embedded_generation_mw)))
 
 
+def _fill_level(values: list[float], energy: float, cap: float, above: bool) -> float:
+    """The level L at which a fleet capped at `cap` MW spends exactly `energy` MW-half-hours,
+    shaving the values above L (`above`) or filling those below it. Bisection; the spend is
+    monotone in L. An `energy` beyond what the cap allows saturates at the cap."""
+    def spent(level: float) -> float:
+        if above:
+            return sum(min(cap, max(0.0, v - level)) for v in values)
+        return sum(min(cap, max(0.0, level - v)) for v in values)
+
+    lo, hi = min(values) - cap - 1.0, max(values) + cap + 1.0
+    for _ in range(50):
+        mid = (lo + hi) / 2.0
+        # Raising L shaves less from above and fills more from below.
+        if (spent(mid) > energy) == above:
+            lo = mid
+        else:
+            hi = mid
+    return (lo + hi) / 2.0
+
+
+def pumped_storage_schedule(
+    residual_by_period: Mapping[tuple[str, int], float],
+    pumped_storage_by_year: Mapping[int, Mapping[str, float]],
+) -> dict[tuple[str, int], float]:
+    """{(date, period): MW}, the model's own pumped-storage dispatch. Positive generates,
+    negative pumps.
+
+    THE RULE IS A WATER-FILL, PER DAY. Each day the fleet generates the year's mean generation
+    times the day's half hours, shaving the day's residual peak down to one level. It pumps the
+    year's mean pumping the same way, filling the trough up to another level. Each leg is capped
+    at the most the fleet was seen to do that year. That is the arbitrage a storage owner runs on
+    a price that follows the residual. Only the four annual scalars from
+    `elexon_fuel_outturn.pumped_storage_by_year` cross; no PS reading of any half hour does.
+
+    `residual_by_period` is the load the stack must meet after imports and the zero-carbon
+    must-run, before pumped storage. It is the ranking the fleet answers to.
+
+    WHY THIS RULE AND NOT A RECTANGLE AT FULL OUTPUT (frame doc s25). Both were run against the
+    measured PS series. The water-fill tracks its timing better in every year 2019-24
+    (half-hourly correlation 0.67-0.81 against 0.54-0.69). The choice was made on that, not on
+    the swing it produces.
+
+    WHAT IT GETS WRONG, AND WHICH WAY. It is perfect foresight within the day, and it answers
+    only to the residual. Real PS also holds reserve and follows price and frequency. So the rule
+    cuts the within-day swing by MORE than the measured fleet does: 115-129% of the measured
+    fleet's cut (s25). It also pumps a little into the midday solar trough, where GB does not.
+    The error runs toward UNDERSTATING the swing, the conservative direction for a shifting claim.
+
+    A year with no record gets no pumped storage, which is the pre-s25 behaviour.
+    """
+    by_day: dict[str, list[tuple[str, int]]] = {}
+    for key in residual_by_period:
+        by_day.setdefault(key[0], []).append(key)
+    out: dict[tuple[str, int], float] = {}
+    for day, keys in by_day.items():
+        record = pumped_storage_by_year.get(int(day[:4]))
+        if record is None:
+            continue
+        values = [float(residual_by_period[k]) for k in keys]
+        n = len(keys)
+        gen_cap = max(0.0, float(record["generation_max_mw"]))
+        pump_cap = max(0.0, float(record["pumping_max_mw"]))
+        gen_energy = max(0.0, float(record["generation_mean_mw"])) * n
+        pump_energy = max(0.0, float(record["pumping_mean_mw"])) * n
+        gen_level = _fill_level(values, gen_energy, gen_cap, above=True)
+        pump_level = _fill_level(values, pump_energy, pump_cap, above=False)
+        for key, value in zip(keys, values):
+            out[key] = (
+                min(gen_cap, max(0.0, value - gen_level))
+                - min(pump_cap, max(0.0, pump_level - value))
+            )
+    return out
+
+
 def build_shape(
     demand_by_period: Mapping[tuple[str, int], float],
     renewables_by_period: Mapping[tuple[str, int], float],
@@ -628,6 +716,7 @@ def build_shape(
     biomass_envelope_by_year: Mapping[int, Mapping[str, float]] | None = None,
     embedded_generation_by_period: Mapping[tuple[str, int], float] | None = None,
     exports_by_period: Mapping[tuple[str, int], float] | None = None,
+    pumped_storage_by_year: Mapping[int, Mapping[str, float]] | None = None,
 ) -> dict[tuple[str, int], float]:
     """{(settlement date, period): shape}, normalised per CALENDAR YEAR to a demand-weighted
     mean of exactly 1.0.
@@ -663,13 +752,39 @@ def build_shape(
     `exports_by_period` is read like `imports_by_period`: a half hour it does not cover is
     dispatched with no export, not skipped, because a missing cable reading is not a missing
     half hour (frame doc s20).
+
+    `pumped_storage_by_year` is `elexon_fuel_outturn.pumped_storage_by_year`'s four scalars a
+    year. When given, the fleet is dispatched by `pumped_storage_schedule` against the residual
+    of the half hours this shape keeps (frame doc s25). None is the pre-s25 series exactly.
     """
-    rates: dict[tuple[str, int], float] = {}
-    demands: dict[tuple[str, int], float] = {}
+    eligible: list[tuple[tuple[str, int], float, float]] = []
     for key, demand_mw in demand_by_period.items():
         renewable_mw = renewables_by_period.get(key)
         if renewable_mw is None or not demand_mw or float(demand_mw) <= 0.0:
             continue
+        if embedded_generation_by_period is not None and embedded_generation_by_period.get(key) is None:
+            continue
+        eligible.append((key, float(demand_mw), float(renewable_mw)))
+
+    pumped: dict[tuple[str, int], float] = {}
+    if pumped_storage_by_year is not None:
+        residuals: dict[tuple[str, int], float] = {}
+        for key, demand_mw, renewable_mw in eligible:
+            # The same residual `emissions_rate_t_per_mwh` builds before pumped storage, net of
+            # the zero-carbon must-run, so the fleet ranks the half hours gas actually serves.
+            load_mw = demand_mw + max(0.0, float((exports_by_period or {}).get(key, 0.0)))
+            import_mw = (imports_by_period or {}).get(key, (0.0, 0.0))[0]
+            zero_carbon_mw = (zero_carbon_must_run_by_period or {}).get(key)
+            residuals[key] = (
+                load_mw - renewable_mw - min(max(0.0, float(import_mw)), load_mw)
+                - (MUST_RUN_ZERO_CARBON_MW if zero_carbon_mw is None
+                   else max(0.0, float(zero_carbon_mw)))
+            )
+        pumped = pumped_storage_schedule(residuals, pumped_storage_by_year)
+
+    rates: dict[tuple[str, int], float] = {}
+    demands: dict[tuple[str, int], float] = {}
+    for key, demand_mw, renewable_mw in eligible:
         year = int(key[0][:4])
         import_mw, import_rate = (imports_by_period or {}).get(key, (0.0, 0.0))
         # KEYED ON THE REAL YEAR, NEVER THE CLAMPED ONE. `_year_of` exists to keep the DUKES
@@ -724,6 +839,7 @@ def build_shape(
                 ),
                 embedded_generation_mw=float(embedded_mw),
                 export_mw=float((exports_by_period or {}).get(key, 0.0)),
+                pumped_storage_mw=pumped.get(key, 0.0),
             )
         except (ShapeUnavailable, ValueError, KeyError):
             continue

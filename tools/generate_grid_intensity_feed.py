@@ -206,16 +206,20 @@ NAMED_GAPS = [
 #: worth publishing. The remaining cause is named and sized in `NAMED_GAPS`: this model still
 #: lets the thermal stack reach exactly zero, in 16.1% of 2024's half hours.
 ERROR_DIRECTION = (
-    "The RANGE is overstated, and that is the sentence to carry: this shape's p95/p5 spread runs "
-    "about 1.19x the published series', so any benefit computed from moving load between quiet "
-    "and busy half hours is an UPPER BOUND on the real one. THAT 1.19x IS A BLEND OF TWO AXES "
-    "THAT BEHAVE DIFFERENTLY, and the one a household can act on is the worse of them: split "
-    "day-by-day, this shape's BETWEEN-day swing is within 12% of the published series in "
-    "every year 2019-2024 (0.89-1.01x, mean 0.96), while its WITHIN-day "
-    "swing is too large in every one of those years (1.09-1.23x, mean 1.15). A customer can move the "
-    "washing from 6pm to 2am; they cannot move it to a windier Tuesday in March -- so the whole "
-    "of this model's exaggeration sits on the only axis a time-shifting recommendation acts on, "
-    "and the annual figure UNDERSTATES the correction such a claim needs. "
+    "The RANGE is now CLOSE, and the direction is MIXED, and that is the sentence to carry: this "
+    "shape's p95/p5 spread runs about 1.07x the published series', and the axis a household acts "
+    "on no longer errs one way. Split day-by-day, this shape's BETWEEN-day swing runs "
+    "(0.89-1.03x, mean 0.97) of the published series' over 2019-2024, and its WITHIN-day swing "
+    "runs (0.90-1.06x, mean 0.98): too WIDE in 2019 and 2020; too NARROW in 2021, 2022, 2023 and "
+    "2024; A customer can move the washing from 6pm to 2am; they cannot move it to a windier "
+    "Tuesday in March -- so a time-shifting benefit computed from this shape is an UPPER BOUND "
+    "in 2019 and 2020 and more likely an UNDERSTATEMENT from 2021. The reason it flipped is "
+    "named: the model dispatches pumped storage with perfect foresight of the day's residual, "
+    "and so flattens the day by more than GB's fleet did (EP13 frame doc s25). Embedded wind, "
+    "owed in the denominator on NESO's definition and not yet in it, would widen within-day "
+    "again by about 0.04-0.06. "
+    "DISPATCHING PUMPED STORAGE (2026-10-02) took within-day from a mean 1.15x to 0.98x, p95/p5 "
+    "from 1.19x to 1.07x and max/min from 1.09x to 0.99x. "
     "REMOVING THE SOLAR DOUBLE-COUNT (2026-09-30) cut the within-day overstatement from a mean "
     "1.45x to 1.26x and p95/p5 from 1.38x to 1.31x, and moved max/min from 1.01x to 1.08x. "
     "SERVING EXPORTS (2026-09-30) took within-day to 1.19x and p95/p5 to 1.25x, and max/min "
@@ -782,11 +786,24 @@ def transmission_wind_by_period(agws: list[dict]) -> dict[tuple[str, int], float
     return wind
 
 
+def pumped_storage_by_year() -> dict[int, dict[str, float]]:
+    """Pumped storage at coal's grain, four scalars a year, from the remainder cache.
+
+    The fleet is dispatched by the model (`grid_carbon_intensity.pumped_storage_schedule`);
+    only these annual figures cross, because PS fails condition 2 (EP13 frame doc s25).
+    Kept OUT of `fuel_mix()` because that signature is a battery anchor.
+    """
+    from sim import elexon_fuel_outturn as fuel
+
+    return fuel.pumped_storage_by_year(fuel.load_cached_remainder())
+
+
 def generate(out_path: Path | None = None) -> dict:
     demand = aggregate_demand(json.loads(DEMAND_CACHE.read_text(encoding="utf-8")))
     # WIND IN THE RESIDUAL, SOLAR IN THE DENOMINATOR: INDO is already net of embedded solar,
     # so subtracting it again hid its gas (EP13 frame doc s18-s19). EXPORTS INTO BOTH: INDO
     # excludes them, yet GB generated them (s20). The wind is TRANSMISSION-METERED (s21).
+    # PUMPED STORAGE is dispatched by the model from four annual scalars (s25).
     agws = json.loads(AGWS_CACHE.read_text(encoding="utf-8"))
     renewables = transmission_wind_by_period(agws)
     (imports, coal_capacity, coverage, thermal_floors, must_run, must_run_coverage,
@@ -801,6 +818,7 @@ def generate(out_path: Path | None = None) -> dict:
         biomass_envelope_by_year=biomass_envelope if BIOMASS_DISPATCH_WIRED else None,
         embedded_generation_by_period=aggregate_solar_generation(agws),
         exports_by_period=exports_by_period(),
+        pumped_storage_by_year=pumped_storage_by_year(),
     )
     data = build(shape, demand, extra_dates=dates_with_reads(), import_coverage=coverage,
                  coal_capacity_by_year=coal_capacity, thermal_floor_by_year=thermal_floors,
