@@ -13667,3 +13667,73 @@ def test_the_published_current_world_block_carries_the_code_its_run_executed():
     code = data["current_world"]["code_since_the_run"]
     assert code["run_commit"] == current["producing_commit"]["commit"]
     assert data["current_world"]["is_heads_code"] is (not code["refused"])
+
+
+#: The world-D floor the page carried on 2026-10-01, drawn by the same tree as the arms above.
+WORLD_D_FLOOR_AT_0407CE0E3 = (
+    PROJECT / "docs" / "observability" / "value_cycle_ab_s1_noise_floor_20261001.json")
+
+
+def _published_current_world(head):
+    return gva.build(gva._read(gva.THREE_ARM_PATH), gva._read(gva.NOISE_FLOOR_PATH),
+                     current_three_arm=_load(WORLD_D_ARMS_AT_0407CE0E3),
+                     current_floor=_load(WORLD_D_FLOOR_AT_0407CE0E3),
+                     publishing_head=head)["current_world"]
+
+
+def test_the_10_01_floor_decides_no_verdict_on_a_page_published_from_later_code():
+    """At `592596b44` the 10-01 floor is refused and every leg it bounded loses its verdict.
+
+    THE DEFECT IT PREVENTS. The arms guard asked which code drew the figures and never asked which
+    code drew the bar. A floor from `0407ce0e3` would go on deciding `resolved` for arms retaken
+    at HEAD. Asserted through `build`, so the wiring is controlled with the rule; the figures and
+    the spread must survive, because what is withdrawn is the direction, not the measurement.
+
+    Fires on: dropping the call in `build`, forcing `refused` False, the withdrawal leaving
+    `resolved` alone, or the withdrawal also dropping the bound.
+    """
+    floor = _load(WORLD_D_FLOOR_AT_0407CE0E3)
+    assert floor["producing_commit"]["commit"].startswith("0407ce0e3")
+    later = _published_current_world(SVT_AT_THE_CAP)
+    code = later["floor_code_since_its_runs"]
+    assert code["refused"] is True and later["is_the_bound_heads_code"] is False
+    assert "company/pricing/renewal_rate_chain.py" in code["unexempt"]
+    for leg in (later, later["selection_leg"], later["level_leg"]):
+        assert leg["bound_available"] is True and leg["bound"]["stdev_gbp"] is not None
+        assert leg["resolved"] is None
+        assert "WHICH CODE DREW THE BOUND" in leg["verdict_withheld_because"]
+        assert "renewal_rate_chain.py" in leg["verdict_withheld_because"]
+
+
+def test_the_floor_code_guard_reaches_both_branches_on_one_floor(tmp_path):
+    """The same floor admits at its own commit and refuses at a later one; no commit refuses.
+
+    A guard that refuses every floor passes the control above. So the admitting branch is shown on
+    the same artefacts at the commit that drew them -- and it must leave at least one leg resolved,
+    or the withdrawal below proves nothing -- then the refusing branch, then a folded family whose
+    one later member is HEAD's: the older member must still refuse it.
+    """
+    own = _load(WORLD_D_FLOOR_AT_0407CE0E3)["producing_commit"]["commit"]
+    admitted = _published_current_world(own)
+    refused = _published_current_world(SVT_AT_THE_CAP)
+    assert admitted["is_the_bound_heads_code"] is True
+    assert refused["is_the_bound_heads_code"] is False
+    legs = ("selection_leg", "level_leg")
+    assert any(leg.get("resolved") is not None
+               for leg in [admitted] + [admitted[k] for k in legs]), (
+        "no leg resolves even on the floor's own code, so the withdrawal cannot be told from it")
+    assert all(leg.get("resolved") is None for leg in [refused] + [refused[k] for k in legs])
+    assert admitted["value_advantage_gbp"] == refused["value_advantage_gbp"]
+
+    none = tmp_path / "none.json"
+    none.write_text('{"exemptions": []}')
+    folded = {"producing_commit": {"commit": None},
+              "folded_from": {"members": [{"producing_commit": own},
+                                          {"producing_commit": SVT_AT_THE_CAP}]}}
+    fold = gva._floor_code_since_its_runs(folded, head=SVT_AT_THE_CAP, exemptions_path=none)
+    assert fold["refused"] is True and fold["floor_commits"] == [own, SVT_AT_THE_CAP]
+    assert gva._floor_code_since_its_runs(
+        {"folded_from": {"members": [{"producing_commit": SVT_AT_THE_CAP}]}},
+        head=SVT_AT_THE_CAP, exemptions_path=none)["refused"] is False
+    unnamed = gva._floor_code_since_its_runs({}, head=SVT_AT_THE_CAP, exemptions_path=none)
+    assert unnamed["refused"] is True and "no producing commit" in unnamed["why"]

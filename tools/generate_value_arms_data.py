@@ -15464,6 +15464,66 @@ def _current_world_admitted_on_its_code(contrast: dict, code: dict) -> dict:
     return block
 
 
+def _floor_code_since_its_runs(floor: dict | None, head: str | None = None,
+                               exemptions_path: Path | None = None) -> dict:
+    """`_code_since_the_run`, asked of every commit that drew a floor family rather than of one run.
+
+    THE SAME EXPOSURE, ONE ARTEFACT OVER (2026-10-02). The arms guard withdraws the currency claim
+    when the arms ran older code than HEAD; the floor beside them decides `resolved` and was never
+    asked. So once a retake lands at HEAD, a floor still drawn by `0407ce0e3` would go on deciding
+    the direction of HEAD-code figures -- a spread from code that priced renewals differently,
+    standing as the bar on code that does not. A FOLDED floor has no single commit, so every
+    member's commit is asked and one unexempted path from any of them refuses: the family's width
+    carries every tree it pooled. No commit at all refuses, as it does for the arms.
+    """
+    commits = (_which_code_a_family_was_measured_on(floor)["commits"]
+               if isinstance(floor, dict) else [])
+    head = head or PUBLISHING_TREE_COMMIT
+    if not commits:
+        return {"floor_commits": [], "head_commit": head, "per_commit": [], "unexempt": None,
+                "refused": True, "why": ("the floor names no producing commit, so the code that "
+                                         "drew its spread cannot be compared with HEAD")}
+    per = [_code_since_the_run({"producing_commit": {"commit": commit}}, head=head,
+                               exemptions_path=exemptions_path) for commit in commits]
+    refusals = [code["why"] for code in per if code.get("refused")]
+    return {"floor_commits": commits, "head_commit": head, "per_commit": per,
+            "unexempt": sorted({p for code in per for p in (code.get("unexempt") or [])}),
+            "refused": bool(refusals), "why": "; ".join(refusals) or None}
+
+
+def _current_world_bound_admitted_on_its_code(block: dict, floor_code: dict) -> dict:
+    """The current-world block, every leg's verdict withdrawn when its floor is not HEAD's code.
+
+    The cut `_withdraw_a_verdict_stated_from_a_superseded_run` makes, for the floor's code rather
+    than the run's date: `resolved` becomes `None` on all three legs with the reason appended, and
+    the spread, the family and the figures stay. Only a leg that READ a bound is touched -- a leg
+    with no bound has no verdict this floor decided, and a code complaint about a floor it never
+    used would name a cause nobody observed.
+    """
+    block = dict(block, floor_code_since_its_runs=floor_code,
+                 is_the_bound_heads_code=not floor_code.get("refused"))
+    if not floor_code.get("refused") or not block.get("available"):
+        return block
+    withdrawn = (
+        "AND THE VERDICT IS WITHDRAWN FOR WHICH CODE DREW THE BOUND: the floor beside these "
+        "figures is not a measurement of the code that published them, because {why}. Its spread "
+        "and its seed family stand as measured; a direction decided by a bar from other code "
+        "may not.").format(why=floor_code["why"])
+
+    def _withdraw(leg):
+        if not isinstance(leg, dict) or not leg.get("bound_available"):
+            return leg
+        existing = leg.get("verdict_withheld_because")
+        return dict(leg, resolved=None, verdict_withheld_because=(
+            existing + " " + withdrawn if existing else withdrawn))
+
+    block = _withdraw(block)
+    for key in ("selection_leg", "level_leg"):
+        if key in block:
+            block[key] = _withdraw(block[key])
+    return block
+
+
 def _current_world_contrast(current: dict | None, floor: dict | None,
                             floor_current: dict | None = None,
                             superseded_split: dict | None = None,
@@ -17116,6 +17176,8 @@ def build(three_arm: dict | None, floor: dict | None,
                                             select_by_book=True)
     current_world = _current_world_admitted_on_its_code(
         current_world, _code_since_the_run(current_three_arm, head=publishing_head))
+    current_world = _current_world_bound_admitted_on_its_code(
+        current_world, _floor_code_since_its_runs(current_floor, head=publishing_head))
     return dict(
         base,
         available=True,

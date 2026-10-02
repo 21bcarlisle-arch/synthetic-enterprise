@@ -504,6 +504,8 @@ _ALSO_ADMIT = {
         ("_current_world_contrast", {"is_the_later_run": True}),
         # `_current_world_clause` is also silent when the run is not HEAD's code.
         ("_current_world_admitted_on_its_code", {"is_heads_code": True}),
+        # ...and its legs withdraw their verdicts when the floor is not HEAD's code.
+        ("_current_world_bound_admitted_on_its_code", None),
         ("_withdraw_a_verdict_stated_from_a_superseded_run", None),
     ],
 }
