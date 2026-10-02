@@ -109,6 +109,48 @@ Direct published SVT vs fixed churn rates by tariff type are not available; thes
 
 Confidence: M on all SVT-specific rates (structural inference, not directly cited).
 
+### 4a. The first weeks after rolling onto the default are NOT the recent-band average (added 2026-10-02)
+
+One published measurement exists of what a household does right after it lapses onto the default,
+and it is a randomised control arm: **Ofgem, *End of Fixed Term Communications Trial* (27 Sep
+2019)**, ~20,000 customers of one large supplier ("supplier A") on two one-year fixes ending
+28 Feb 2019. The trial took only customers who had **not** acted a few days before the end date,
+so its control arm is the population of households that rolled passively:
+
+| Control arm, 1 Mar – 12 Apr 2019 (six weeks after the fix ended) | Rate |
+|---|---|
+| Requested any tariff change | **19%** |
+| of which, with the same supplier (internal) | ~14% |
+| of which, to another supplier (external) | **6%** |
+| Supplier A's own 2018 baseline, any change, 30 days after a tariff ended | 16% |
+
+The figures count switch *requests*, not completed switches (fn 26). They come from one supplier, one
+cohort and one pre-cap month, with no follow-up past six weeks. Confidence: **H** that the spike
+exists; **M** on its size outside March 2019.
+
+**Against C1b.** The world keys `years_on_svt` to the current default stint, so a household that has
+just rolled already runs the *recent* band. In March 2019 that band gives **2.4%** of households
+leaving over 42 days, or 2.1% after the book's mean `action_propensity` of 0.8635. The trial's
+external rate is **6%**, roughly 3× that. The world also has no internal re-fix move in this window.
+C1b's internal edge, the anniversary conversion, comes up once a year. So for this population
+the world under-prices both kinds of move in the first weeks. Neither 6% nor 19% is annualisable,
+because the rate is a spike and the trial does not say how fast it decays. Two questions stay
+open: how fast the spike decays, and how much of it the world's end-of-fix renewal roll already
+absorbs. Both feed `decline_versus_leave_share` (`knowledge_map.md`).
+
+**How many households it applies to (sized 2026-10-02, runs at 822218441 with the decline switch on).**
+A default-world run has **105** domestic households roll from an ended fix onto the default; the
+value arm has **84**. Most are scheduled rolls, 102 and 73, and the rest are declines of an
+above-default fix, 3 and 11. A scheduled roll gets **no** renewal decision at that boundary: C1b's
+first segment is its only exit, so for most of this population the renewal roll absorbs none of the spike.
+Over 42 days C1b expects **1.9** and **1.5** exits in the two runs. Applying the trial's 6% flat gives
+**+4.4** and **+3.6** extra. Scaled by the world's own switching multiplier, re-referenced to 2019,
+it gives **+2.8** and **+2.2**. The runs churn 78 and 72 accounts, so this is 3–6% of them, spread
+over ten years and inside one run's binomial noise (sd ≈ 2.3). It is a named gap and gets no mechanism. The
+trial's ~14% internal re-fix is a retention move the world has no route for. That would be 12–15
+households per run, and it moves margin, not exits.
+`docs/staging/WORKER_FINDING_THE_END_OF_FIX_SPIKE_IS_WORTH_TWO_TO_FOUR_EXITS_A_RUN_AND_IS_A_NAMED_GAP_2026-10-02.md`.
+
 ---
 
 ## 5. Price Cap / SVT Regulatory Mechanics
