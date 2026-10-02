@@ -1251,6 +1251,21 @@ class EndedTermMargins:
             (self.electricity if commodity == "electricity" else self.gas).append(rate)
 
 
+def _record_renewal_decision(journey, log: list, *, customer_id: str, event_date: str,
+                             commodity: str, rolled: bool, event: dict | None) -> None:
+    """Every renewal is a decision on the household's journey, rolled or not.
+
+    A household converting off the SVT is not rolled (`departure_rolled_at_renewal`) but it
+    stayed, so it records a stay. Recording only rolled renewals left a converter's journey
+    wherever `advance()` had put it, read as still comparing years after it had decided.
+    `record_decision` draws no random number and nothing in the run loop reads a journey.
+    """
+    switched = event is not None and event["event_type"] == "churned"
+    journey.record_decision(date.fromisoformat(event_date), switched=switched)
+    log.append({"customer_id": customer_id, "event_date": event_date,
+                "commodity": commodity, "rolled": rolled, "switched": switched})
+
+
 def main(report_end: str | None = None, policy: DecisionPolicy | None = None,
          gap_ledger_path=None):
     """Run one simulation under its own fresh competitive-pressure ledger.
@@ -1814,6 +1829,8 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
     _cx_desk = CustomerExperienceDesk()
     _churn_journey_register = ChurnJourneyRegister()
     churn_journey_log: list[dict] = []
+    # One row per decision the journey records at a renewal (SIM-side ground truth).
+    renewal_decisions_log: list[dict] = []
     # Phase RU: solicited feedback survey engine (FEEDBACK_AND_REPUTATION.md Layer 1)
     feedback_survey_log: list[dict] = []
     reputation_events_log: list[dict] = []
@@ -2779,10 +2796,11 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                     engagement_level=_engagement_level_str,
                     unit_rate_gbp_per_mwh=unit_rate,
                 ))
+            _record_renewal_decision(
+                _journey, renewal_decisions_log, customer_id=billing_account,
+                event_date=term_start_str, commodity=commodity, rolled=_rolled, event=event,
+            )
             if event is not None:
-                _journey.record_decision(
-                    date.fromisoformat(term_start_str), switched=(event["event_type"] == "churned"),
-                )
                 event["is_active_renewal"] = active_renewal
                 # Phase 2 Layer 1: SIM-internal ground truth, retained here for
                 # evidence-surface use only (same pattern as credit_bureau_true_
@@ -4193,6 +4211,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         # Phase QL Part 2: hidden churn-journey state trajectory (SIM-side shadow
         # tracker -- does not gate the roll_lifecycle_event dice roll itself)
         "churn_journey_log": churn_journey_log,
+        "renewal_decisions_log": renewal_decisions_log,
         # Phase RU: solicited feedback survey engine (FEEDBACK_AND_REPUTATION.md Layer 1)
         "feedback_survey_log": feedback_survey_log,
         "reputation_events_log": reputation_events_log,
