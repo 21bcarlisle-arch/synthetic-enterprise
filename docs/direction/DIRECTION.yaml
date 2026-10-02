@@ -1,150 +1,182 @@
 version: 1
-oriented_at: "2026-10-01T14:24:43.549100+00:00"
+oriented_at: "2026-10-02T02:24:09.927181+00:00"
 thesis_read: >-
-  THE WORLD IS MORE TRUTHFUL THAN IT WAS THREE HOURS AGO, BUT THE SUPPLIER INSIDE IT HAS NOT MOVED, AND THE
-  THESIS IS ABOUT THE SUPPLIER. All three focus items were drawn and two are substantially done. (1) The
-  wedge is gone. 7be8cec09 stops the NEXT: gate refusing the reconciler's own merge. HEAD and origin are
-  level at 0/0, and all four stranded ahead commits (7a8e651cd, 9fd88794f, d815c6bfc, 90d28d7f7) are
-  ancestors of origin/main, so EP1's coupled-gap row is on origin. (2) The EAC question has a sourced
-  answer. Under BSCP504 §3.2.6.51 a gaining supplier inherits a read-derived EAC. The world drew it blind
-  to the dwelling in population_draw._draw_one, not in household_demand.py as I had guessed. 3bf64c4e7
-  gives fabric premises their own trailing-year reads. First-renewal shock went from 17/31 to 3/31, the
-  >100% tail from 7 to 1, and later renewals did not change. That 3/31 is not a measurement. It is what
-  ZERO read error predicts, and the registry EAC's read error is an unsized published gap. So the year-one
-  level of the hazard PB4's swap installs is now a function of one unknown. The swap is unblocked, and as
-  I write it is being worked: there is a capture_departure_factors run on /var/tmp/pb4cap. (3) The VAT
-  class narrowed. The switching reference is on one basis (b5ae7c3af). Gas renewals are priced against
-  the gas SVT (e9c014e48). The rival's ledger sees only electricity (cd69a8d7b), which moved p on 17 of
-  101 renewals, about -0.7% mean. The ToU sold rate is the consumption-weighted day (e9b79073d), which
-  moved the median fixed-ToU DD opening ratio from 0.755 to 0.874. A surgical_land of the class control
-  (a bare 1.05 under simulation/ or company/ reds) is in flight now. The 2022+ standing charges are still
-  probably Ofgem's inc-VAT figures carried as ex-VAT, untouched. Every one of these fixes is the world
-  telling the truth about money, which is the precondition. None of them is the company inferring
-  anything better than a flat-rules book. The value-arm A/B against the baseline has rightly been held
-  for two stretches while the world moved under it. It stays held one more stretch, until the swap and
-  the standing charge land, and then it is the next thing. If it is still held after that, the steer
-  itself is drifting. 16 commits, 10 substantive by the brief's count. 3 carried no work: 2 liveness
-  heartbeats and 1 merge.
+  THE BOOK GOT MORE LAWFUL AND MORE HONEST THIS STRETCH. IN BECOMING HONEST IT SHOWED THAT THE VALUE
+  ARM'S INFERENCE IS WORSE THAN THE OLD ARMS SUGGESTED, AND THE THESIS'S OWN TEST IS STILL NOT
+  MEASURED ON THE WORLD HEAD RUNS. Three things are now corrected on origin. (1) The SVT anniversary
+  departure roll is gone (1cd4b03dc). On one commit, 4 of 5 of its pre-registered predictions held,
+  and SVT exits per SVT account-year fell from 0.193 to 0.150. (2) A chosen fixed renewal is out of
+  the cap (9cfb1817f), as the commons says. A first term stays held at the cap under a named
+  acquisition rule, because the world's acquisition is price-blind and booked 2021-22 first terms at
+  up to x3.55 the cap. (3) The SVT conversion row is logged again (6aa3653d7). The thesis-level
+  result is in 9cfb1817f. Once its renewals were uncapped, the value arm repriced 46 renewals at a
+  mean of x1.38 (max x2.4). Its own churn belief called each of those prices an interior optimum. The
+  world churned 7 more accounts, and value-arm net FELL by 3,587 pounds, while it rose on the flat
+  arm. The cap had been shielding the arm from its own churn belief. So part of the advantage
+  published until now was a legal ceiling standing in for inference the arm does not have. That is
+  backwards against "advantage from inference, never access", and it is now the first-order subject.
+  Last stretch's item one did NOT finish, though all four previous items were drawn.
+  arms-d-head-1002 was OOM-killed at an 8G peak after 1h. Its noise floor waited an hour and was then
+  refused by the headroom gate. Both had been launched at 0bac2b8be, which three world and company
+  commits had overtaken within two hours. So the published world-D arms still come from 0407ce0e3
+  plus a patch. Two landings are in flight now and not yet on origin. The first retires the sixth cap
+  implementation (surgical_land pid 667519; the census finding is filed). The second withdraws the
+  current-world headline when the arms ran older code than HEAD (pid 694735). Once the second lands,
+  the 2026-10-05 publish cannot carry stale arms as current, so the retake becomes a measurement and
+  stops being a safety repair. 1cd4b03dc's message claimed "journey advance unchanged". That was
+  false: the roll's removal also stopped _journey.record_decision for a household converting off the
+  SVT. That is a live world change with no run behind it. Of 10 commits, 4 were substantive by the
+  brief's count (7 carried work). 3 were heartbeats. Every daemon is on the box.
 stretch_reviewed:
-  since: "2026-10-01T11:20:54.292857+00:00"
-  commits: 16
-  substantive: 10
+  since: "2026-10-01T23:21:03.666767+00:00"
+  commits: 10
+  substantive: 4
 focus:
-  - id: run-pb4s-swap-with-the-read-error-named-on-the-hazard
+  - id: restore-the-journey-decision-for-an-svt-conversion
     lane: W2_customer_generator
     what: >-
-      Land step 3 of docs/staging/SEAT_CONTINUATION_SWAP_THE_WORLDS_BILL_SHOCK_BASE_ONTO_THE_EXPERIENCED_SHOCK_2026-10-01.md.
-      Move the world's _bill_shock_base onto the experienced shock and re-fit its level to the published
-      band. FIRST check for a live holder: a delivery-seat session was running
-      tools.capture_departure_factors on /var/tmp/pb4cap at 14:24 UTC. If it holds this, continue from its
-      work and do not restart it. The tenure-1 control asserts the PROPERTY, that year-one shock is defined
-      and non-zero. It must not assert 0.097. The hazard's own surface must name the zero-read-error
-      assumption (gap 4 of docs/market_research/what_a_supplier_holds_to_size_a_direct_debit.md) as what
-      sets the year-one level. Run it as its own pre-registered one-world run on origin.
+      In simulation/run_phase2b.py's renewal block (around line 2705), a household whose previous
+      term was an SVT segment now skips roll_lifecycle_event, and with it
+      _journey.record_decision(..., switched=False), the retention-log outcome and the
+      nudge_physics_log row (see "Still open" in
+      docs/staging/WORKER_FINDING_AN_SVT_CONVERSION_IS_A_RENEWED_ROW_AGAIN_AND_ITS_JOURNEY_DECISION_IS_STILL_SKIPPED_2026-10-02.md).
+      Restore those three side effects on the svt_conversion branch, and keep the departure roll off.
+      First file a pre-registration in docs/staging/records/ that predicts the direction of the change
+      in later-year engaged decisions and in whole-book departures. Then run base and change on ONE
+      commit, one default world each, run them serially and never beside another memory-heavy job,
+      and grade the pre-registration in the finding. Add one partition control that both the
+      converted and rolled branches can reach.
     why: >-
-      Every company ranking is graded against retention gradients that still come from a count which
-      reads 0 in year one. The SVT exit-route repair (embargoed to 16:00) waits on exactly this run, so
-      landing it unblocks two world defects. DONE when the swap, its tenure-1 control and its one-variable
-      run are on origin. Then re-issue the SVT-anniversary removal as drawable, with the embargo it no
-      longer needs dropped.
-  - id: store-the-worlds-standing-charges-ex-vat
+      This is a world change that landed with no run behind it, under a commit message that said the
+      opposite. It sits upstream of the retake in item two, so landing it first means the retake
+      measures one world rather than going stale on arrival. DONE when the journey records a
+      conversion off the SVT on origin, and the pre-registration is graded on one commit.
+  - id: retake-the-value-arms-on-heads-world-before-the-10-05-publish
     lane: W2_customer_generator
     what: >-
-      Knowledge first. Use Ofgem's published cap level tables in docs/domain_artefact_library/ or
-      docs/market_research/ to establish whether
-      simulation/policy_costs._ELEC_SC_PENCE_PER_DAY_BY_YEAR (46p/53p/61p for 2022 onward) and its gas twin
-      are inc-VAT. If they are, store them ex-VAT through the named VAT rate (the class control landing now
-      will refuse a bare 1.05). Declare the basis in the table. For the pre-2022 "typical market averages",
-      find a source or carry them as an explicit named gap (None plus a reason), not as a number that looks
-      established. Run it as one variable in its own run, and measure the 2023-2025 electricity DD opening
-      move against
-      docs/staging/SEAT_FINDING_THE_DD_BOOKS_NOW_OPEN_AT_THE_STANDING_CHARGE_SOLD_AND_THE_WORLDS_CHARGE_MAY_CARRY_VAT_TWICE_2026-10-01.md
-      (where 2023 opens at 55.65p against a printed 53p). Also confirm that the in-flight class control
-      ("a price crosses the VAT line only through a named rate") reached origin. Do not rebuild it.
+      Re-take the world-D value arms from a clean origin/main worktree: the three-arm run, then the
+      3-seed noise floor (11111/22222/33333, --redraw-mode all), using the commands behind
+      docs/observability/value_cycle_ab_s1_three_arm_20261001.json. Launch when item one has landed,
+      or at the latest by 2026-10-03T18:00Z, whichever comes first. Launch the legs ONE AT A TIME
+      through launch_long_job, with no other world run on the box. arms-d-head-1002 was OOM-killed
+      at 8G running beside other work, and its floor was refused at the 11,200 MB price. Before
+      either leg returns, supersede
+      docs/staging/records/SEAT_PREREG_THE_WORLD_D_VALUE_ARMS_RETAKEN_AT_HEAD_0BAC2B8BE_2026-10-02.md
+      with a pre-registration at the launch commit. It must predict the sign of the whole advantage
+      and of the level leg, now that 9cfb1817f has uncapped fixed renewals. Then move
+      CURRENT_WORLD_THREE_ARM_PATH and CURRENT_WORLD_NOISE_FLOOR_PATH together, regenerate
+      site/data/value_arms.json, and grade the pre-registration. Remove /var/tmp/wt-arms-retake-1002
+      and /home/rich/wt-pb4-land once nothing holds them.
     why: >-
-      This is the last known VAT-basis defect in the world. It inflates every 2022+ household's fixed cost
-      by 5% in the record the company is graded against. The value-arm re-grade is held behind it. DONE
-      when the table's basis is sourced and declared and the fix is on origin with its run, or the source
-      says they are ex-VAT already and the finding says so, and the class control is on origin.
-  - id: size-the-registry-eac-read-error-from-the-published-record
-    lane: W2_customer_generator
+      The value arm against the flat baseline is the thesis's own test. The page still reads it from
+      0407ce0e3, which is four lawful-pricing and foresight repairs behind. DONE when
+      site/data/value_arms.json's current-world reading comes from a run at or after 6aa3653d7, the
+      world-stamp guard accepts it, and the pre-registration is graded beside it, whatever the sign
+      turns out to be.
+  - id: the-value-arms-churn-belief-calls-a-x2-renewal-optimal
+    lane: B_commercial
     what: >-
-      Knowledge only, no world change in this claim. From BSCP504/505 and Elexon or Ofgem publications on
-      EAC/AA accuracy, read-estimation and smart-meter read frequency, establish how far a settled
-      domestic EAC typically sits from the next year's actual use, by meter type (smart, traditional,
-      E7/storage). Answer two more in the same finding. (a) Does the Ofgem cap bind a ToU/multi-register
-      tariff at its benchmark split, or at the household's realised average rate? Five ToU first bills now
-      sit above the flat ex-VAT cap (SEAT_FINDING_THE_SOLD_RATE_NOW_WEIGHTS_THE_TOU_DAY_..._2026-10-01.md).
-      (b) Is 28-41 MWh/yr plausible for a GB direct-electric home (PROS-2016-0098, PROS-2024-0082)? Where
-      the record is silent, file it as a named gap and a practitioner question. Do not pick a number.
+      Measure first and change nothing. Use /var/tmp/se-fixed-cap/ (value_landed vs value_base) and
+      company/pricing/value_based_renewal.py. For each of the 46 renewals the uncapped arm repriced,
+      tabulate the belief's predicted churn at the struck price, the world's realised churn
+      probability for that decision (from customer_events), and the price ratio to the capped rate.
+      Then say where the belief's price response departs from the world's: the curve's shape, its
+      extrapolation beyond the ratios the company has ever observed, or its inputs. Before proposing
+      any remedy, look in docs/market_research/ and the knowledge map for a published switching
+      response at large renewal price gaps. File the finding with a pre-registered remedy. Do NOT land
+      a behaviour change while item two's runs are in flight.
     why: >-
-      Year-one bill shock, and so year-one churn, is now set entirely by a read error the model holds at
-      zero because no one has looked it up. The swap in item one carries that dependence straight into
-      the gradients the company is ranked on. DONE when a finding gives a sourced distribution, or a named
-      gap with the practitioner question put, for each of the three. Any world change is then a separate
-      pre-registered item.
+      9cfb1817f showed that the cap had been doing the arm's inference for it. Uncapped, the arm's
+      belief priced renewals at up to x2.4, the world churned 7 more accounts, and value net fell
+      3,587 pounds. An advantage that a legal ceiling props up comes from access, not inference, and
+      that is the thesis failing. DONE when the finding names which part of the belief is wrong, with
+      the per-decision table, and a pre-registered remedy is on file for the next one-variable run.
 not_now:
-  - what: Re-running the ab6 value-cycle A/B, the EP17 four-book pilot, or any value-arm grade against the flat-rules baseline.
+  - what: A price-aware win in the world and a no-offer path at acquisition (point 1 of 9cfb1817f's handed-on list).
     why: >-
-      This is the thesis's own test, and it has been held for two stretches. The reason is still sound:
-      items one and two each move churn or fixed cost, so a run now prices two moving parts and can
-      attribute neither. It goes FIRST at the next orientation once both are on origin. A third deferral
-      would itself be drift.
-  - what: Removing the SVT anniversary route's departure roll (remove-the-svt-anniversary-departure-roll-once-pb4-swap-has-run).
+      This is a real fidelity gap, and it is why ACQUISITION_HELD_AT_CAP_TARIFF_TYPES exists. But it
+      has two legs, one world and one company, and both move the arms. Item three's belief defect is
+      cheaper and closer to the thesis, and it can be measured without moving the world. This goes
+      after the retake, with its own pre-registration.
+  - what: Re-launching the retake immediately at HEAD, ahead of item one.
     why: >-
-      Its premise is the swap's run (item one). The defect errs against the company, about 29% too many
-      SVT exits, so waiting books no false credit, and running it first would make PB4's series
-      two-variable.
-  - what: Building a per-household realised-rate cap check for ToU accounts.
+      Item one is a known world change with no run behind it. A retake launched before it lands is
+      stale on arrival, as 0bac2b8be was within two hours. Once pid 694735 lands, the publish cannot
+      carry stale arms as current, so a few hours' wait costs no fidelity. The 2026-10-03T18:00Z
+      backstop leaves room for a serial three-arm run and a 3-seed floor before 2026-10-05T03:00Z.
+  - what: Drawing again either of the two landings now in flight (sixth cap retirement, world-stamp guard).
     why: >-
-      Nothing is known yet to key it to. If the cap binds at the benchmark split, five accounts that look
-      above it are lawful, and a control would red on correct behaviour. Item three asks the question
-      first.
-  - what: Silencing the "interactive seat stopped mid-work; handoff filed" line, which repeats every 5 minutes in reconcile-watch-log, and the liveness-only heartbeat commits (2 this stretch).
+      surgical_land pids 667519 and 694735 hold them. If either is refused, its own lane re-lands it,
+      and a fresh draw would be a second writer. Both are graded at the next orientation.
+  - what: Per-account SVT pricing at exactly 0.95 x the cap, and household_charged never reaching settlement.
     why: >-
-      Both are noise and neither is wrong. Each costs a log line or a commit, not a decision. They lose to
-      three items that move what the company is graded against.
-  - what: Refreshing site/data/dd_opening_arms.json or any figure page from today's corrected runs.
+      Both are still open follow-ons from the cap findings. Neither touches the value arm's
+      inference, and each would add a variable to the retake.
+  - what: Re-drawing the not_done rows in the 24h ledger (the ToU first bill against its assumed split; both republish-dd-opening-arms rows).
     why: >-
-      Publishing is held to 2026-10-05 04:00, and item two moves the 2022+ DD openings again. A refresh
-      now would be stale before it could ship.
+      8c29e03d9 graded ToU against the multi-register cap, and 5803d08c3 republished the DD opening
+      arms, so the premises are spent. The executor should bind them as --premise-spent, not redo
+      them.
 wrong:
   - what: >-
-      THE MACHINE'S, NEW. The SVT anniversary route rolls departures on top of C1b's all-cause SVT band, so
-      SVT exits run about 29% above what the band sets (91214c720). Its premise is item one's run.
-    corrected: false
-  - what: >-
-      THE MACHINE'S, CARRIED. The world's bill-shock base cannot fire in a household's first year, and its
-      retention gradients run opposite to the published record. The EAC cause of the year-one tail is fixed
-      (3bf64c4e7, 17/31 -> 3/31), but the hazard still reads the old count until the swap. Item one.
-    corrected: false
-  - what: >-
-      THE MACHINE'S, NEW, now graded corrected. Since 09:43 the reconciler's own merge was refused by the
-      commit-msg chain every cycle. Fixed by 7be8cec09. HEAD and origin are level, and all 4 ahead commits
-      are ancestors of origin/main.
+      MINE, NEW, now corrected. My previous item one asked for the PB4 swap while a handed-off
+      continuation held the same work and its jobs were RUNNING. The draw took it at 16:11 under a new
+      id. This stretch, no PB4 draw happened, and this direction names the held look-ahead attribution
+      only in not_now.
     corrected: true
   - what: >-
-      THE MACHINE'S, NEW, narrowed. The world had VAT twice in several places. The switching reference
-      (b5ae7c3af), the gas renewal against the electricity SVT (e9c014e48), the rival ledger mixing fuels
-      (cd69a8d7b) and the ToU sold rate read off-peak (e9b79073d) are fixed. The class control is landing.
-      The 2022+ standing charges, probably inc-VAT carried as ex-VAT, are still open. Item two.
+      THE MACHINE'S, NEW, now corrected. The DUPLICATE-WORK CHECK deduped by item id, so held work
+      re-minted under a new id was offered again (four PB4 draws). c9e7f4af9 now refuses an item that a
+      running job or an owned worktree holds. There was no PB4 redraw this stretch.
+    corrected: true
+  - what: >-
+      THE MACHINE'S, NEW, cause now attributed. The DD opening page published a significant year-one
+      drift cut of about 202 pounds that did not survive the next run. The page says "spans zero"
+      (30ac077b7). Graded corrected as a published-claim error.
+    corrected: true
+  - what: >-
+      THE MACHINE'S, NEW. 3bf64c4e7's registry-EAC rewrite reached only run_phase2b's own
+      live_population() copy. Corrected by 5803d08c3.
+    corrected: true
+  - what: >-
+      THE MACHINE'S, NEW. Writer 4 graded ToU terms against the single-rate cap, where 28AD.4 requires
+      the multi-register benchmark. Corrected by 8c29e03d9.
+    corrected: true
+  - what: >-
+      THE MACHINE'S, NEW, corrected. The world's portfolio premium priced a renewal off terms that had
+      not ended. cd0c7c39c bounds it to ended terms (leak test 604dd2c49).
+    corrected: true
+  - what: >-
+      THE MACHINE'S, NEW. A long job's world stamp is not tied to HEAD. This stretch it happened again:
+      arms-d-head-1002 launched at 0bac2b8be, and 1cd4b03dc, 9cfb1817f and 6aa3653d7 changed the
+      world and the company beneath it within two hours. The world-stamp guard in flight (pid 694735)
+      covers the value arms only. The class stays open.
     corrected: false
   - what: >-
-      MINE, NEW, now graded corrected. My EAC item named simulation/household_demand.py as the likely layer
-      putting demand above the EAC. The cause was population_draw._draw_one drawing the EAC blind to the
-      dwelling. The executor's knowledge leg found it, and the path check's "nothing to land" on my named
-      file was right.
+      THE MACHINE'S, NEW. The 28AD claim left its work untracked in the shared tree. Landed as
+      9f00a16ad.
+    corrected: true
+  - what: >-
+      THE MACHINE'S, NEW. The SVT anniversary route rolled departures on top of C1b's all-cause SVT
+      band. Corrected by 1cd4b03dc. On one commit, SVT exits per SVT account-year went from 0.193 to
+      0.150, and 4 of 5 pre-registered predictions held (Q4 was refuted by 0.1pp).
+    corrected: true
+  - what: >-
+      THE MACHINE'S, CARRIED. The world's bill-shock base could not fire in year one. Corrected by the
+      PB4 swap (c3939e7b1).
+    corrected: true
+  - what: >-
+      THE MACHINE'S, NEW, narrowed, now graded corrected. The world had VAT twice in several places
+      (0407ce0e3, ed7b4666f, 78f1cc756, 6f5bb8b68).
     corrected: true
   - what: >-
       THE MACHINE'S, NEW. Four level or park moves stranded in a preserved ref were replayed as written.
-      One of them, PB4 build->idle, was false by the time it was replayed, because its own release
-      condition (PB6 at L2) had been met 40 minutes after it was written. A seat caught it by hand
-      (a6bd4d77e). Nothing re-asks a stranded move's release condition before it lands.
+      One of them, PB4 build->idle, was false by the time it was replayed (a6bd4d77e). Nothing re-asks a
+      stranded move's release condition before it lands.
     corrected: false
   - what: >-
-      THE MACHINE'S, CARRIED. One item can land twice, once on origin through surgical_land and once as a
-      local commit on the shared HEAD (75df9efdf after d77ff33d5). The 4-commit ahead leg reached origin
-      without a known double, but no mechanism prevents the next one.
+      THE MACHINE'S, CARRIED. One item can land twice, once on origin through surgical_land and once as
+      a local commit on the shared HEAD (75df9efdf after d77ff33d5). No mechanism prevents the next one.
     corrected: false
   - what: >-
       THE MACHINE'S, CARRIED. The launch register recorded hgc-suite-timing as died while its /var/tmp
@@ -152,9 +184,9 @@ wrong:
       exist. Nothing checks that a hand-written /var/tmp driver calls an API that exists.
     corrected: false
   - what: >-
-      THE MACHINE'S, CARRIED. A control or door whose shape changes must re-run every fixture that builds a
-      synthetic tree to drive it, and no control requires it. citation_at_head, red_at_head and fork_state
-      in .publish_gate_state.json still read not_established.
+      THE MACHINE'S, CARRIED. A control or door whose shape changes must re-run every fixture that
+      builds a synthetic tree to drive it, and no control requires it. citation_at_head, red_at_head and
+      fork_state in .publish_gate_state.json still read not_established.
     corrected: false
   - what: >-
       THE MACHINE'S, CARRIED. A refusal naming a commit is not re-asked against the remote ref before a
@@ -170,6 +202,48 @@ wrong:
     corrected: false
   - what: >-
       MINE, CARRIED. not_now is prose, and nothing a launch from another lane reads. Two instances are
-      mechanised (b50a03519, 19ca27dbc); the class stays open.
+      mechanised (b50a03519, 19ca27dbc). The class stays open.
+    corrected: false
+  - what: >-
+      MINE, CARRIED. The world-D arms on the page still come from 0407ce0e3 plus a patch. My previous
+      item one was drawn, but its retake died (OOM-kill and headroom refusal), and it had run at a
+      commit that was stale within two hours anyway. Item two now carries the retake, sequenced after
+      the world change it would otherwise miss.
+    corrected: false
+  - what: >-
+      THE MACHINE'S, NEW. The value-arms world guard keys on world_level_identity, which digests only
+      the departure-level anchor. The repair is in flight (surgical_land pid 694735) and not yet on
+      origin. Grade it at the next orientation.
+    corrected: false
+  - what: >-
+      THE MACHINE'S, NEW, corrected. The renewal chain's writers 1-3 billed 630 of 2,333 capped-year
+      SVT segments above the published cap. 592596b44 binds SVT at the cap.
+    corrected: true
+  - what: >-
+      THE MACHINE'S, NEW. A sixth cap-ceiling implementation
+      (domain_invariants.check_sold_unit_rate_within_cap) had no production caller and graded against
+      min(cap, EPG). It is deleted in the working tree, and its census finding is filed, but the
+      landing (pid 667519) is not yet on origin.
+    corrected: false
+  - what: >-
+      THE MACHINE'S, NEW. fixed was in CAPPED_TARIFF_TYPES, against the commons. Corrected by
+      9cfb1817f: renewals are uncapped, and first terms are held by a named acquisition rule.
+    corrected: true
+  - what: >-
+      MINE, NEW. My item one said to launch the three-arm run and the noise floor, but not to run them
+      one at a time or apart from item two's world runs. The three-arm run was OOM-killed at 8G after
+      1h. The floor waited an hour behind it and was then refused at the 11,200 MB price. Neither
+      wrote a result. Item two now says serially, with no other world run on the box.
+    corrected: false
+  - what: >-
+      THE MACHINE'S, NEW. 1cd4b03dc's message said the journey advance was unchanged. But skipping
+      roll_lifecycle_event also skipped _journey.record_decision, the retention-log outcome and the
+      nudge_physics_log row for an SVT conversion. That is an unmeasured world change on origin.
+      Item one.
+    corrected: false
+  - what: >-
+      THE MACHINE'S, NEW. The value arm's churn belief priced renewals at up to x2.4 the capped rate,
+      and called each price optimal. A cap the law does not impose had been hiding this. Uncapped, it
+      cost 3,587 pounds of value-arm net (9cfb1817f). Item three.
     corrected: false
 for_the_director: []

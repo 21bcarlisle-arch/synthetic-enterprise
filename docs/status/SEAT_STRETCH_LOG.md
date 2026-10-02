@@ -8,6 +8,207 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-10-02 — orientation: THE BOOK GOT MORE LAWFUL AND MORE HONEST THIS STRETCH
+
+<!-- head: 3b7a2ae19733 -->
+
+*Written by the orientation seat from its own record (2026-10-02T02:24:09.927181+00:00; 10 commits, 4 substantive, since 2026-10-01T23:21:03.666767+00:00).*
+
+## What the stretch meant
+
+THE BOOK GOT MORE LAWFUL AND MORE HONEST THIS STRETCH. IN BECOMING HONEST IT SHOWED THAT THE VALUE ARM'S INFERENCE IS WORSE THAN THE OLD ARMS SUGGESTED, AND THE THESIS'S OWN TEST IS STILL NOT MEASURED ON THE WORLD HEAD RUNS. Three things are now corrected on origin. (1) The SVT anniversary departure roll is gone (1cd4b03dc). On one commit, 4 of 5 of its pre-registered predictions held, and SVT exits per SVT account-year fell from 0.193 to 0.150. (2) A chosen fixed renewal is out of the cap (9cfb1817f), as the commons says. A first term stays held at the cap under a named acquisition rule, because the world's acquisition is price-blind and booked 2021-22 first terms at up to x3.55 the cap. (3) The SVT conversion row is logged again (6aa3653d7). The thesis-level result is in 9cfb1817f. Once its renewals were uncapped, the value arm repriced 46 renewals at a mean of x1.38 (max x2.4). Its own churn belief called each of those prices an interior optimum. The world churned 7 more accounts, and value-arm net FELL by 3,587 pounds, while it rose on the flat arm. The cap had been shielding the arm from its own churn belief. So part of the advantage published until now was a legal ceiling standing in for inference the arm does not have. That is backwards against "advantage from inference, never access", and it is now the first-order subject. Last stretch's item one did NOT finish, though all four previous items were drawn. arms-d-head-1002 was OOM-killed at an 8G peak after 1h. Its noise floor waited an hour and was then refused by the headroom gate. Both had been launched at 0bac2b8be, which three world and company commits had overtaken within two hours. So the published world-D arms still come from 0407ce0e3 plus a patch. Two landings are in flight now and not yet on origin. The first retires the sixth cap implementation (surgical_land pid 667519; the census finding is filed). The second withdraws the current-world headline when the arms ran older code than HEAD (pid 694735). Once the second lands, the 2026-10-05 publish cannot carry stale arms as current, so the retake becomes a measurement and stops being a safety repair. 1cd4b03dc's message claimed "journey advance unchanged". That was false: the roll's removal also stopped _journey.record_decision for a household converting off the SVT. That is a live world change with no run behind it. Of 10 commits, 4 were substantive by the brief's count (7 carried work). 3 were heartbeats. Every daemon is on the box.
+
+## What went wrong
+
+- corrected: MINE, NEW, now corrected. My previous item one asked for the PB4 swap while a handed-off continuation held the same work and its jobs were RUNNING. The draw took it at 16:11 under a new id. This stretch, no PB4 draw happened, and this direction names the held look-ahead attribution only in not_now.
+- corrected: THE MACHINE'S, NEW, now corrected. The DUPLICATE-WORK CHECK deduped by item id, so held work re-minted under a new id was offered again (four PB4 draws). c9e7f4af9 now refuses an item that a running job or an owned worktree holds. There was no PB4 redraw this stretch.
+- corrected: THE MACHINE'S, NEW, cause now attributed. The DD opening page published a significant year-one drift cut of about 202 pounds that did not survive the next run. The page says "spans zero" (30ac077b7). Graded corrected as a published-claim error.
+- corrected: THE MACHINE'S, NEW. 3bf64c4e7's registry-EAC rewrite reached only run_phase2b's own live_population() copy. Corrected by 5803d08c3.
+- corrected: THE MACHINE'S, NEW. Writer 4 graded ToU terms against the single-rate cap, where 28AD.4 requires the multi-register benchmark. Corrected by 8c29e03d9.
+- corrected: THE MACHINE'S, NEW, corrected. The world's portfolio premium priced a renewal off terms that had not ended. cd0c7c39c bounds it to ended terms (leak test 604dd2c49).
+- NOT corrected: THE MACHINE'S, NEW. A long job's world stamp is not tied to HEAD. This stretch it happened again: arms-d-head-1002 launched at 0bac2b8be, and 1cd4b03dc, 9cfb1817f and 6aa3653d7 changed the world and the company beneath it within two hours. The world-stamp guard in flight (pid 694735) covers the value arms only. The class stays open.
+- corrected: THE MACHINE'S, NEW. The 28AD claim left its work untracked in the shared tree. Landed as 9f00a16ad.
+- corrected: THE MACHINE'S, NEW. The SVT anniversary route rolled departures on top of C1b's all-cause SVT band. Corrected by 1cd4b03dc. On one commit, SVT exits per SVT account-year went from 0.193 to 0.150, and 4 of 5 pre-registered predictions held (Q4 was refuted by 0.1pp).
+- corrected: THE MACHINE'S, CARRIED. The world's bill-shock base could not fire in year one. Corrected by the PB4 swap (c3939e7b1).
+- corrected: THE MACHINE'S, NEW, narrowed, now graded corrected. The world had VAT twice in several places (0407ce0e3, ed7b4666f, 78f1cc756, 6f5bb8b68).
+- NOT corrected: THE MACHINE'S, NEW. Four level or park moves stranded in a preserved ref were replayed as written. One of them, PB4 build->idle, was false by the time it was replayed (a6bd4d77e). Nothing re-asks a stranded move's release condition before it lands.
+- NOT corrected: THE MACHINE'S, CARRIED. One item can land twice, once on origin through surgical_land and once as a local commit on the shared HEAD (75df9efdf after d77ff33d5). No mechanism prevents the next one.
+- NOT corrected: THE MACHINE'S, CARRIED. The launch register recorded hgc-suite-timing as died while its /var/tmp driver's process was on the box. That driver called resource_headroom.admitted(), which does not exist. Nothing checks that a hand-written /var/tmp driver calls an API that exists.
+- NOT corrected: THE MACHINE'S, CARRIED. A control or door whose shape changes must re-run every fixture that builds a synthetic tree to drive it, and no control requires it. citation_at_head, red_at_head and fork_state in .publish_gate_state.json still read not_established.
+- NOT corrected: THE MACHINE'S, CARRIED. A refusal naming a commit is not re-asked against the remote ref before a reader sees it. liveness_surface_refusal is still not re-asked.
+- NOT corrected: THE MACHINE'S, CARRIED. The stash-completeness sweep reports a genuinely lost file as safe. It is still not on the map.
+- NOT corrected: THE MACHINE'S, CARRIED. Nothing on the landing path asks whether a same-subject sibling is left behind in the shared tree (the 14-path refusal in 662da7fd3). Separate from H49 and still open.
+- NOT corrected: MINE, CARRIED. not_now is prose, and nothing a launch from another lane reads. Two instances are mechanised (b50a03519, 19ca27dbc). The class stays open.
+- NOT corrected: MINE, CARRIED. The world-D arms on the page still come from 0407ce0e3 plus a patch. My previous item one was drawn, but its retake died (OOM-kill and headroom refusal), and it had run at a commit that was stale within two hours anyway. Item two now carries the retake, sequenced after the world change it would otherwise miss.
+- NOT corrected: THE MACHINE'S, NEW. The value-arms world guard keys on world_level_identity, which digests only the departure-level anchor. The repair is in flight (surgical_land pid 694735) and not yet on origin. Grade it at the next orientation.
+- corrected: THE MACHINE'S, NEW, corrected. The renewal chain's writers 1-3 billed 630 of 2,333 capped-year SVT segments above the published cap. 592596b44 binds SVT at the cap.
+- NOT corrected: THE MACHINE'S, NEW. A sixth cap-ceiling implementation (domain_invariants.check_sold_unit_rate_within_cap) had no production caller and graded against min(cap, EPG). It is deleted in the working tree, and its census finding is filed, but the landing (pid 667519) is not yet on origin.
+- corrected: THE MACHINE'S, NEW. fixed was in CAPPED_TARIFF_TYPES, against the commons. Corrected by 9cfb1817f: renewals are uncapped, and first terms are held by a named acquisition rule.
+- NOT corrected: MINE, NEW. My item one said to launch the three-arm run and the noise floor, but not to run them one at a time or apart from item two's world runs. The three-arm run was OOM-killed at 8G after 1h. The floor waited an hour behind it and was then refused at the 11,200 MB price. Neither wrote a result. Item two now says serially, with no other world run on the box.
+- NOT corrected: THE MACHINE'S, NEW. 1cd4b03dc's message said the journey advance was unchanged. But skipping roll_lifecycle_event also skipped _journey.record_decision, the retention-log outcome and the nudge_physics_log row for an SVT conversion. That is an unmeasured world change on origin. Item one.
+- NOT corrected: THE MACHINE'S, NEW. The value arm's churn belief priced renewals at up to x2.4 the capped rate, and called each price optimal. A cap the law does not impose had been hiding this. Uncapped, it cost 3,587 pounds of value-arm net (9cfb1817f). Item three.
+
+## Chosen against
+
+- A price-aware win in the world and a no-offer path at acquisition (point 1 of 9cfb1817f's handed-on list).
+- Re-launching the retake immediately at HEAD, ahead of item one.
+- Drawing again either of the two landings now in flight (sixth cap retirement, world-stamp guard).
+- Per-account SVT pricing at exactly 0.95 x the cap, and household_charged never reaching settlement.
+- Re-drawing the not_done rows in the 24h ledger (the ToU first bill against its assumed split; both republish-dd-opening-arms rows).
+
+## Focus for the next stretch
+
+- `restore-the-journey-decision-for-an-svt-conversion`
+- `retake-the-value-arms-on-heads-world-before-the-10-05-publish`
+- `the-value-arms-churn-belief-calls-a-x2-renewal-optimal`
+
+---
+
+## 2026-10-02 — orientation: THE COMPANY GOT MORE LAWFUL THIS STRETCH, BUT ITS BASELINE GRADE WENT BACKWARDS
+
+<!-- head: 686e045b5746 -->
+
+*Written by the orientation seat from its own record (2026-10-01T23:21:03.666767+00:00; 12 commits, 6 substantive, since 2026-10-01T20:24:51.694915+00:00).*
+
+## What the stretch meant
+
+THE COMPANY GOT MORE LAWFUL THIS STRETCH, BUT ITS BASELINE GRADE WENT BACKWARDS. The grade stands on a world that HEAD no longer runs, and the page says it does. Two of the three previous items are done and graded. (1) The registry-EAC rewrite now reaches the phase-4c DD opening, because run_phase4c binds run_phase2b.CUSTOMERS (5803d08c3). The filed prediction HELD: the matched year-one |drift| change went from -45.44 pounds [-170.34, +153.54] to -154.50 pounds [-236.08, -61.50], n=95. A per-customer estimate beats the first bill again, and the reason is no longer a world defect. (2) The in-force 28AD text landed (9f00a16ad). Writer 4 now grades ToU terms against the multi-register cap (8c29e03d9). A follow-on found that writers 1-3 had billed 630 of 2,333 capped-year SVT segments ABOVE the published cap. 592596b44 binds SVT at the cap (630 -> 0; 167 ToU -> 0). So until tonight the company's book was partly made of revenue no real supplier could lawfully bill. (3) My third item was NEVER DRAWN, and the swap landed without it. c3939e7b1 published world D's value arms (whole advantage 7,708 pounds; level leg positive; no verdict on the selection leg) from 0407ce0e3 plus the patch. That substrate lacks cd0c7c39c (the portfolio premium foresight fix that moved book margin by 7,331 pounds), ed7b4666f and 6f5bb8b68 (VAT and the 2025 standing charge), and both cap repairs. It passed the world guard because world_level_identity digests only the departure-level anchor, so "world cf823b185f8ca51c" is stamped on two different worlds. The thesis's own test, the value arm against the flat baseline, is therefore published on a world with a known foresight leak and unlawful SVT revenue. That is not yet public: the weekly publish window opens 2026-10-05T04:00+01:00, and fixing it before then is item one. The bill-shock swap itself is good news for fidelity. The shock now fires in year one (experienced_bill_shock.py), under a level block that fits 5 of 6 years. That also ripens the SVT anniversary roll removal (item two). 12 commits, 6 substantive by the brief's count. 4 carried no work: 3 heartbeats and 1 merge. Every daemon is on the box, and no long job is running.
+
+## What went wrong
+
+- corrected: MINE, NEW, now corrected. My previous item one asked for the PB4 swap while a handed-off continuation held the same work and its jobs were RUNNING. The draw took it at 16:11 under a new id. This stretch, no PB4 draw happened, and this direction names the held look-ahead attribution only in not_now.
+- corrected: THE MACHINE'S, NEW, now corrected. The DUPLICATE-WORK CHECK deduped by item id, so held work re-minted under a new id was offered again (four PB4 draws). c9e7f4af9 now refuses an item that a running job or an owned worktree holds. There was no PB4 redraw this stretch.
+- corrected: THE MACHINE'S, NEW, cause now attributed. The DD opening page published a significant year-one drift cut of about 202 pounds that did not survive the next run. The page says "spans zero" (30ac077b7). The rule is worth -3.27 pounds [-32.79, +25.46], so the run moved the mean, and the tail is the wiring gap in the next row. Graded corrected as a published-claim error. Its underlying defect stays open below.
+- corrected: THE MACHINE'S, NEW. 3bf64c4e7's registry-EAC rewrite reaches only run_phase2b's own live_population() copy. run_phase4c's DD openings and tools/dd_opening_arms read fresh copies, so the four tail accounts open at 0.06-0.23 of their own use. The commit's measurement could not see this, because it measured on the copy it had fixed. Item one.
+- corrected: THE MACHINE'S, NEW. Writer 4 (renewal_rate_chain.cap_ceiling_ex_vat) grades ToU terms against the single-rate cap, where in-force 28AD.4 requires the multi-register benchmark. It fails open by up to 8%, and 15 of 27 ToU first terms sit above the lawful ceiling. The earlier sold-rate finding flagged 5, for the wrong reason (realised split against single-rate). Item two.
+- corrected: THE MACHINE'S, NEW, corrected. The world's portfolio premium priced a renewal off terms that had not ended: 96% of its entries were foresight. cd0c7c39c bounds it to ended terms, and the whole run's leak test holds (0 pre-2025 account-term-years move, 604dd2c49).
+- NOT corrected: THE MACHINE'S, NEW. A long job's world stamp is not tied to HEAD. The PB4 floor runs on 0407ce0e3 while three world files changed on HEAD beneath it, and nothing warns the job's eventual lander. Item three handles this instance. The class is open.
+- corrected: THE MACHINE'S, NEW. The 28AD claim did its work and left it untracked in the shared tree (19:53Z). Nothing bound it to a landing, and the path check reported "nothing to land" because the files its prose named were unchanged. This is the BUILT-AND-UNLANDED shape again. Item two lands it.
+- NOT corrected: THE MACHINE'S, NEW. The SVT anniversary route rolls departures on top of C1b's all-cause SVT band, so SVT exits run about 29% above what the band sets (91214c720). Its premise is the PB4 swap's landing.
+- corrected: THE MACHINE'S, CARRIED. The world's bill-shock base cannot fire in a household's first year, and its retention gradients run opposite to the published record. The EAC cause of the year-one tail is fixed on the phase-2b side (3bf64c4e7), but the hazard still reads the old count until the swap. The swap waits on pb4-floor-d-s123.
+- corrected: THE MACHINE'S, NEW, narrowed, now graded corrected. The world had VAT twice in several places. The 2022+ standing charges are held ex-VAT (0407ce0e3), the rate is declared once (ed7b4666f), and the class control is on origin (78f1cc756). 6f5bb8b68 tables 2025 from the same model.
+- NOT corrected: THE MACHINE'S, NEW. Four level or park moves stranded in a preserved ref were replayed as written. One of them, PB4 build->idle, was false by the time it was replayed (a6bd4d77e). Nothing re-asks a stranded move's release condition before it lands.
+- NOT corrected: THE MACHINE'S, CARRIED. One item can land twice, once on origin through surgical_land and once as a local commit on the shared HEAD (75df9efdf after d77ff33d5). No mechanism prevents the next one.
+- NOT corrected: THE MACHINE'S, CARRIED. The launch register recorded hgc-suite-timing as died while its /var/tmp driver's process was on the box. That driver called resource_headroom.admitted(), which does not exist. Nothing checks that a hand-written /var/tmp driver calls an API that exists.
+- NOT corrected: THE MACHINE'S, CARRIED. A control or door whose shape changes must re-run every fixture that builds a synthetic tree to drive it, and no control requires it. citation_at_head, red_at_head and fork_state in .publish_gate_state.json still read not_established.
+- NOT corrected: THE MACHINE'S, CARRIED. A refusal naming a commit is not re-asked against the remote ref before a reader sees it. liveness_surface_refusal is still not re-asked.
+- NOT corrected: THE MACHINE'S, CARRIED. The stash-completeness sweep reports a genuinely lost file as safe. It is still not on the map.
+- NOT corrected: THE MACHINE'S, CARRIED. Nothing on the landing path asks whether a same-subject sibling is left behind in the shared tree (the 14-path refusal in 662da7fd3). Separate from H49 and still open.
+- NOT corrected: MINE, CARRIED. not_now is prose, and nothing a launch from another lane reads. Two instances are mechanised (b50a03519, 19ca27dbc). The class stays open.
+- NOT corrected: MINE, NEW. My previous item three (say which world the PB4 floor measured, before the swap lands) was never drawn. My not_now said nothing should be re-cited until the arms were re-taken on HEAD's world. The swap then landed (c3939e7b1) and published world-D arms from 0407ce0e3 plus the patch, without cd0c7c39c. The steer did not bind the landing that it was about. Item one repairs this instance before the 2026-10-05 publish.
+- NOT corrected: THE MACHINE'S, NEW. The value-arms world guard keys on world_level_identity, which digests only the departure-level anchor. So arms from a substrate missing the 7,331-pound foresight fix, the VAT fixes and both cap repairs were stamped "current world" and passed. Item three.
+- corrected: THE MACHINE'S, NEW, corrected. The renewal chain's writers 1-3 billed 630 of 2,333 capped-year SVT segments above the published cap (up to x1.38), because CAPPED_TARIFF_TYPES was ("fixed",). 592596b44 binds SVT at the cap: 630 -> 0, 167 ToU -> 0, graded against a pre-registration.
+- NOT corrected: THE MACHINE'S, NEW. A sixth cap-ceiling implementation (domain_invariants.check_sold_unit_rate_within_cap) has no production caller, and it grades against min(cap, EPG), which would wrongly call lawful EPG-window SVT unlawful. Item four.
+- NOT corrected: THE MACHINE'S, NEW. fixed is in CAPPED_TARIFF_TYPES, against the commons: a chosen fixed tariff is outside 28AD, so the company caps fixed renewals that a real supplier would not. It is queued in not_now behind items one and two.
+
+## Chosen against
+
+- Taking fixed tariffs out of CAPPED_TARIFF_TYPES (point 1 of the SVT finding's handed-on list).
+- Per-account SVT pricing (1,332 segments at exactly 0.95 x the cap).
+- Widening the world-D noise floor (more seeds, --fold) to make the selection leg's sign publishable.
+- Moving the world's ToU SVT to the multi-register cap (simulation/svt_rates, 28AD finding P4).
+- Re-drawing the two not_done republish-dd-opening-arms rows in the 24h ledger.
+
+## Focus for the next stretch
+
+- `retake-the-value-arms-on-heads-world-before-the-10-05-publish`
+- `remove-the-svt-anniversary-departure-roll`
+- `the-value-arms-world-stamp-names-the-code-it-ran`
+- `retire-the-sixth-cap-implementation`
+
+---
+
+## 2026-10-01 — orientation: THE COMPANY'S METHOD DID NOT REGRESS
+
+<!-- head: 999b87b14c0c -->
+
+*Written by the orientation seat from its own record (2026-10-01T20:24:51.694915+00:00; 20 commits, 9 substantive, since 2026-10-01T17:21:06.423823+00:00).*
+
+## What the stretch meant
+
+THE COMPANY'S METHOD DID NOT REGRESS. THE WORLD IT INHERITS WAS WRONG IN TWO NEW WAYS, BOTH NOW NAMED. The DD opening collapse is attributed. On one substrate, with only the rule varied, the rate-sold rule is worth -3.27 pounds [-32.79, +25.46] against the cap rule. The run moved the mean, not the rule. Without the four-account tail, both rules beat the first bill by about 112-116 pounds with intervals that exclude zero (a2b7a3eb0 and the evening section of the DD finding). The tail is a WIRING defect. 3bf64c4e7's registry-EAC rewrite writes into run_phase2b's own live_population() copy. run_phase4c builds its DD openings from a second call that shares none of the 231 drawn accounts. So the company is still handed an EAC of 0.06-0.23 of the home's use on exactly the accounts the fix was for. Second defect: the portfolio premium priced renewals off terms that had not ended. 96% of its entries were foresight. cd0c7c39c bounds it, and the book's net margin ROSE 7,331 pounds when the foresight went. Every value-arm figure from before 19:11Z stood on that leak. Third: the in-force SLC 28AD is now in the commons. It grades a ToU tariff at its assumed split against the MULTI-REGISTER cap. So writer 4 fails open by up to 8% on ToU terms, and 15 of 27 ToU first terms sit above the lawful ceiling. That finding and its commons file are BUILT AND UNLANDED. They are untracked in the shared tree since 19:53. THE THING DRIFTING: the PB4 noise floor (pid 2225367, worktree wt-pb4-land) runs on 0407ce0e3. Since then run_phase2b, policy_costs and price_cap_enforcement have changed on HEAD. Its world is no longer HEAD's world, and the baseline grade the thesis needs still has no bound. All three previous focus items were drawn. Two are done (the attribution, and the held-work refusal c9e7f4af9: no PB4 redraw this stretch). The third did its work and did not land it. 20 commits, 9 substantive by the brief's count. 5 carried no work: 3 merges and 2 heartbeats.
+
+## What went wrong
+
+- corrected: MINE, NEW, now corrected. My previous item one asked for the PB4 swap while a handed-off continuation held the same work and its jobs were RUNNING. The draw took it at 16:11 under a new id. This stretch, no PB4 draw happened, and this direction names the held look-ahead attribution only in not_now.
+- corrected: THE MACHINE'S, NEW, now corrected. The DUPLICATE-WORK CHECK deduped by item id, so held work re-minted under a new id was offered again (four PB4 draws). c9e7f4af9 now refuses an item that a running job or an owned worktree holds. There was no PB4 redraw this stretch.
+- corrected: THE MACHINE'S, NEW, cause now attributed. The DD opening page published a significant year-one drift cut of about 202 pounds that did not survive the next run. The page says "spans zero" (30ac077b7). The rule is worth -3.27 pounds [-32.79, +25.46], so the run moved the mean, and the tail is the wiring gap in the next row. Graded corrected as a published-claim error. Its underlying defect stays open below.
+- NOT corrected: THE MACHINE'S, NEW. 3bf64c4e7's registry-EAC rewrite reaches only run_phase2b's own live_population() copy. run_phase4c's DD openings and tools/dd_opening_arms read fresh copies, so the four tail accounts open at 0.06-0.23 of their own use. The commit's measurement could not see this, because it measured on the copy it had fixed. Item one.
+- NOT corrected: THE MACHINE'S, NEW. Writer 4 (renewal_rate_chain.cap_ceiling_ex_vat) grades ToU terms against the single-rate cap, where in-force 28AD.4 requires the multi-register benchmark. It fails open by up to 8%, and 15 of 27 ToU first terms sit above the lawful ceiling. The earlier sold-rate finding flagged 5, for the wrong reason (realised split against single-rate). Item two.
+- corrected: THE MACHINE'S, NEW, corrected. The world's portfolio premium priced a renewal off terms that had not ended: 96% of its entries were foresight. cd0c7c39c bounds it to ended terms, and the whole run's leak test holds (0 pre-2025 account-term-years move, 604dd2c49).
+- NOT corrected: THE MACHINE'S, NEW. A long job's world stamp is not tied to HEAD. The PB4 floor runs on 0407ce0e3 while three world files changed on HEAD beneath it, and nothing warns the job's eventual lander. Item three handles this instance. The class is open.
+- NOT corrected: THE MACHINE'S, NEW. The 28AD claim did its work and left it untracked in the shared tree (19:53Z). Nothing bound it to a landing, and the path check reported "nothing to land" because the files its prose named were unchanged. This is the BUILT-AND-UNLANDED shape again. Item two lands it.
+- NOT corrected: THE MACHINE'S, NEW. The SVT anniversary route rolls departures on top of C1b's all-cause SVT band, so SVT exits run about 29% above what the band sets (91214c720). Its premise is the PB4 swap's landing.
+- NOT corrected: THE MACHINE'S, CARRIED. The world's bill-shock base cannot fire in a household's first year, and its retention gradients run opposite to the published record. The EAC cause of the year-one tail is fixed on the phase-2b side (3bf64c4e7), but the hazard still reads the old count until the swap. The swap waits on pb4-floor-d-s123.
+- corrected: THE MACHINE'S, NEW, narrowed, now graded corrected. The world had VAT twice in several places. The 2022+ standing charges are held ex-VAT (0407ce0e3), the rate is declared once (ed7b4666f), and the class control is on origin (78f1cc756). 6f5bb8b68 tables 2025 from the same model.
+- NOT corrected: THE MACHINE'S, NEW. Four level or park moves stranded in a preserved ref were replayed as written. One of them, PB4 build->idle, was false by the time it was replayed (a6bd4d77e). Nothing re-asks a stranded move's release condition before it lands.
+- NOT corrected: THE MACHINE'S, CARRIED. One item can land twice, once on origin through surgical_land and once as a local commit on the shared HEAD (75df9efdf after d77ff33d5). No mechanism prevents the next one.
+- NOT corrected: THE MACHINE'S, CARRIED. The launch register recorded hgc-suite-timing as died while its /var/tmp driver's process was on the box. That driver called resource_headroom.admitted(), which does not exist. Nothing checks that a hand-written /var/tmp driver calls an API that exists.
+- NOT corrected: THE MACHINE'S, CARRIED. A control or door whose shape changes must re-run every fixture that builds a synthetic tree to drive it, and no control requires it. citation_at_head, red_at_head and fork_state in .publish_gate_state.json still read not_established.
+- NOT corrected: THE MACHINE'S, CARRIED. A refusal naming a commit is not re-asked against the remote ref before a reader sees it. liveness_surface_refusal is still not re-asked.
+- NOT corrected: THE MACHINE'S, CARRIED. The stash-completeness sweep reports a genuinely lost file as safe. It is still not on the map.
+- NOT corrected: THE MACHINE'S, CARRIED. Nothing on the landing path asks whether a same-subject sibling is left behind in the shared tree (the 14-path refusal in 662da7fd3). Separate from H49 and still open.
+- NOT corrected: MINE, CARRIED. not_now is prose, and nothing a launch from another lane reads. Two instances are mechanised (b50a03519, 19ca27dbc). The class stays open.
+
+## Chosen against
+
+- Attributing the look-ahead fix's +7,331 pounds by writer and book.
+- Moving the world's ToU SVT to the multi-register cap (simulation/svt_rates, P4 of the 28AD finding).
+- Removing the SVT anniversary route's departure roll.
+- Stopping the PB4 floor now because its world is stale.
+- Re-publishing value-arm or margin figures taken before cd0c7c39c.
+
+## Focus for the next stretch
+
+- `the-registry-eac-rewrite-reaches-the-phase-4c-population`
+- `land-the-in-force-28ad-and-repair-writer-4s-tou-benchmark`
+- `say-which-world-the-pb4-noise-floor-measured-before-the-swap-lands`
+
+---
+
+## 2026-10-01 — orientation: THE WORLD IS TRUER AGAIN THIS STRETCH
+
+<!-- head: 313368d8cdf1 -->
+
+*Written by the orientation seat from its own record (2026-10-01T17:21:06.423823+00:00; 18 commits, 10 substantive, since 2026-10-01T14:24:43.549100+00:00).*
+
+## What the stretch meant
+
+THE WORLD IS TRUER AGAIN THIS STRETCH. THE ONE THESIS-SHAPED RESULT THAT MOVED WENT BACKWARDS. The standing charge is now held ex-VAT, read from Ofgem's cap level model (0407ce0e3). The domestic VAT rate is declared once, in the commons, and the three literal homes are gone (ed7b4666f). A class control refuses a bare rate (78f1cc756). So the last known VAT-twice defect is corrected. The EAC read error now has a sourced distribution (6ed871310): NEED's year-on-year median |delta| is 0.147, p90 0.58, and unbiased. The world's zero read error therefore sits at the far edge of the record. That is now named, not hidden. PB4's fourth refit pass lands five of six years in band (b66566925). The world-D three-arm run finished at 17:14Z. The noise floor `pb4-floor-d-s123` is RUNNING, about 8h, so the swap cannot land this stretch. The value-arm grade against the flat baseline, which I said would go first, is being honoured: it is that floor and three-arm job. It is in flight, not deferred. THE BACKWARD STEP: the DD opening page's claim that the estimated opening cuts year-one drift by about 202 pounds, with a CI excluding zero, did not survive the first rate-sold run (30ac077b7). It is now -0.40 [-77.20, +109.67] on 194 matched households, and the page now says the interval spans zero. That was the one published place where a per-customer estimate visibly beat a flat rule, and today we cannot tell them apart. The 2019+ cohort loses it too, so it is not composition. Rule change against run change is still unattributed. The tail is direct-electric homes opened at a tenth of their first bill. My previous item one was drawn at 16:11 while a handed-off continuation held the same work. It was the fourth draw of the PB4 landing today. My steer caused that redraw, and the dedupe that should have stopped it keys on id, not subject. 18 commits, 10 substantive by the brief's count. 2 carried no work: 1 merge and 1 heartbeat. All three previous focus items were drawn. Two are done, and the swap waits on a running job.
+
+## What went wrong
+
+- NOT corrected: MINE, NEW. My previous item one asked for the PB4 swap while a handed-off continuation held the same work and its jobs were RUNNING. The draw took it at 16:11 under a new id, the fourth draw of that landing today. I checked for a live holder only in the item's prose, not before filing it.
+- NOT corrected: THE MACHINE'S, NEW. The DUPLICATE-WORK CHECK dedupes by item id, so held work re-minted under a new id is offered again (four PB4 draws today). Item two.
+- NOT corrected: THE MACHINE'S, NEW. The DD opening page published a significant year-one drift cut of about 202 pounds per household that did not survive the next run. The cause is unattributed. The page was repaired to say "spans zero" in 30ac077b7, and also rendered reversed bounds until then. Item one.
+- NOT corrected: THE MACHINE'S, NEW. The SVT anniversary route rolls departures on top of C1b's all-cause SVT band, so SVT exits run about 29% above what the band sets (91214c720). Its premise is the PB4 swap's landing.
+- NOT corrected: THE MACHINE'S, CARRIED. The world's bill-shock base cannot fire in a household's first year, and its retention gradients run opposite to the published record. The EAC cause of the year-one tail is fixed (3bf64c4e7, 17/31 -> 3/31), but the hazard still reads the old count until the swap. The swap waits on pb4-floor-d-s123.
+- corrected: THE MACHINE'S, NEW, narrowed, now graded corrected. The world had VAT twice in several places. The last open leg, the 2022+ standing charges, is now held ex-VAT from Ofgem's cap level model (0407ce0e3). The domestic rate is declared once in the commons (ed7b4666f), and the class control that refuses a bare rate is on origin (78f1cc756).
+- NOT corrected: THE MACHINE'S, NEW. Four level or park moves stranded in a preserved ref were replayed as written. One of them, PB4 build->idle, was false by the time it was replayed, because its own release condition (PB6 at L2) had been met 40 minutes after it was written. A seat caught it by hand (a6bd4d77e). Nothing re-asks a stranded move's release condition before it lands.
+- NOT corrected: THE MACHINE'S, CARRIED. One item can land twice, once on origin through surgical_land and once as a local commit on the shared HEAD (75df9efdf after d77ff33d5). The 4-commit ahead leg reached origin without a known double, but no mechanism prevents the next one.
+- NOT corrected: THE MACHINE'S, CARRIED. The launch register recorded hgc-suite-timing as died while its /var/tmp driver's process was on the box. That driver called resource_headroom.admitted(), which does not exist. Nothing checks that a hand-written /var/tmp driver calls an API that exists.
+- NOT corrected: THE MACHINE'S, CARRIED. A control or door whose shape changes must re-run every fixture that builds a synthetic tree to drive it, and no control requires it. citation_at_head, red_at_head and fork_state in .publish_gate_state.json still read not_established.
+- NOT corrected: THE MACHINE'S, CARRIED. A refusal naming a commit is not re-asked against the remote ref before a reader sees it. liveness_surface_refusal is still not re-asked.
+- NOT corrected: THE MACHINE'S, CARRIED. The stash-completeness sweep reports a genuinely lost file as safe. It is still not on the map.
+- NOT corrected: THE MACHINE'S, CARRIED. Nothing on the landing path asks whether a same-subject sibling is left behind in the shared tree (the 14-path refusal in 662da7fd3). Separate from H49 and still open.
+- NOT corrected: MINE, CARRIED. not_now is prose, and nothing a launch from another lane reads. Two instances are mechanised (b50a03519, 19ca27dbc); the class stays open.
+
+## Chosen against
+
+- Landing the PB4 swap and promoting the world-D value arms (the promote continuation).
+- Reading the world-D three-arm artefact now and grading the value arm against the flat baseline on it.
+- Removing the SVT anniversary route's departure roll.
+- Giving the registry EAC a read error calibrated to NEED's 0.147 median.
+- Adding a heartbeat line to the mute worker-seat-manager, or silencing liveness-only commits.
+
+## Focus for the next stretch
+
+- `attribute-the-dd-opening-collapse-rule-against-run`
+- `the-draw-refuses-work-a-live-job-or-owned-worktree-already-holds`
+- `the-tou-first-bill-is-graded-against-the-cap-at-its-assumed-split`
+
+---
+
 ## 2026-10-01 — orientation: THE WORLD IS MORE TRUTHFUL THAN IT WAS THREE HOURS AGO, BUT THE SUPPLIER INSIDE IT HAS NOT MOVED, AND THE THESIS IS ABOUT THE SUPPLIER
 
 <!-- head: dd4714fcef0b -->
