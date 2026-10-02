@@ -138,6 +138,19 @@ because the rate is a spike and the trial does not say how fast it decays. Two q
 open: how fast the spike decays, and how much of it the world's end-of-fix renewal roll already
 absorbs. Both feed `decline_versus_leave_share` (`knowledge_map.md`).
 
+**How many households it applies to (sized 2026-10-02, runs at 822218441 with the decline switch on).**
+A default-world run has **105** domestic households roll from an ended fix onto the default; the
+value arm has **84**. Most are scheduled rolls, 102 and 73, and the rest are declines of an
+above-default fix, 3 and 11. A scheduled roll gets **no** renewal decision at that boundary: C1b's
+first segment is its only exit, so for most of this population the renewal roll absorbs none of the spike.
+Over 42 days C1b expects **1.9** and **1.5** exits in the two runs. Applying the trial's 6% flat gives
+**+4.4** and **+3.6** extra. Scaled by the world's own switching multiplier, re-referenced to 2019,
+it gives **+2.8** and **+2.2**. The runs churn 78 and 72 accounts, so this is 3–6% of them, spread
+over ten years and inside one run's binomial noise (sd ≈ 2.3). It is a named gap and gets no mechanism. The
+trial's ~14% internal re-fix is a retention move the world has no route for. That would be 12–15
+households per run, and it moves margin, not exits.
+`docs/staging/WORKER_FINDING_THE_END_OF_FIX_SPIKE_IS_WORTH_TWO_TO_FOUR_EXITS_A_RUN_AND_IS_A_NAMED_GAP_2026-10-02.md`.
+
 ---
 
 ## 5. Price Cap / SVT Regulatory Mechanics
