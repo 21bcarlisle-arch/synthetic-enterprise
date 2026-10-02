@@ -68,7 +68,9 @@ REFERENCE = dict(
     billing_account="C1",
     commodity="electricity",
     term_start="2021-06-01",
-    tariff_type="fixed",
+    # `svt` since 2026-10-02: a fixed RENEWAL the customer chose is outside the cap, so the only
+    # renewal on which all four writers fire is a default tariff.
+    tariff_type="svt",
     term_index=2,
     struck_unit_rate_gbp_per_mwh=200.0,
     portfolio_margin_rates=[-0.04, -0.03, 0.0, 0.01, 0.02],
@@ -115,7 +117,8 @@ def _drive_pre_cut(**over):
     """The exact sequence `run_phase2b.py::main()` ran before step 24.
 
     Transcribed with its own guards and literals, including `term_index >= 1`
-    spelled at two sites and the cap's `tariff_type == "fixed"` test. Returns
+    spelled at two sites and the cap's applicability test (re-transcribed 2026-10-02, when a
+    chosen fixed renewal left the cap). Returns
     the same five things the door does, so control 1 can compare in full.
     """
     args = {**REFERENCE, "settled_records": SETTLED_RECORDS, **over}
@@ -226,7 +229,8 @@ def _drive_pre_cut(**over):
 
     if (unit_rate is not None
             and args["is_domestic"]
-            and term_tariff_type == "fixed"):
+            and (term_tariff_type == "svt"
+                 or (term_index == 0 and term_tariff_type == "fixed"))):
         # Ex-VAT since 2026-10-01: the strike is ex-VAT and the published cap is not. A term sold
         # as ToU is graded against the multi-register benchmark (SLC 28AD.4) since the same day.
         from company.pricing.tou_desk import offers_tou
@@ -315,15 +319,16 @@ def _impl_source() -> str:
 
 
 def test_the_fixture_is_not_degenerate():
+    """Both legs of the cap partition on one reference renewal (2026-10-02): the default tariff
+    is capped, the chosen fixed renewal takes the uplift and is not. A guard that capped
+    everything, or nothing, fails one of them."""
     result = _drive_door()
     causes = [c["cause"] for c in result["components"]]
-    assert causes == [
-        "portfolio_premium",
-        "margin_surcharge",
-        "profitability_uplift",
-        "price_cap",
+    fixed = [c["cause"] for c in _drive_door(tariff_type="fixed")["components"]]
+    assert causes == ["portfolio_premium", "margin_surcharge", "price_cap"] and fixed == [
+        "portfolio_premium", "margin_surcharge", "profitability_uplift",
     ], (
-        f"the reference renewal fired {causes} — a control below would be "
+        f"the reference renewal fired {causes} / {fixed} — a control below would be "
         "comparing a chain that never ran"
     )
     assert result["unit_rate"] != REFERENCE["struck_unit_rate_gbp_per_mwh"]
@@ -471,23 +476,24 @@ def test_the_cap_is_the_last_writer_and_the_order_is_load_bearing():
     blocks in a 2,800-line function and nothing anywhere asserted their order.
     """
     src = _impl_source()
-    # A pure REORDER, not a change of arithmetic: lift writer 3 (the uplift) out
-    # from between the surcharge and the cap, and run it after the clamp. Every
-    # expression is identical; only the order moves. A supplier that adds £5/MWh
-    # to a domestic fixed renewal AFTER clamping it is charging above the cap.
-    start = src.index("    # WRITER 3 —")
-    # ENDS AT WRITER 3b, NOT AT WRITER 4 (retargeted 2026-08-26, when 3b gained the ceiling it
-    # searches under). The mutation this control describes is "lift writer 3 out and run it after
-    # the clamp"; bounding it at writer 4 used to mean the same thing and now sweeps 3b along with
-    # it, which moves three writers instead of one and takes `cap_ceiling`'s definition past its
-    # own use. A mutant that dies of `UnboundLocalError` proves nothing about ORDER.
-    end = src.index("    # WRITER 3b —")
+    # A pure REORDER, not a change of arithmetic: lift writer 2 (the surcharge) out
+    # from before the cap, and run it after the clamp. Every expression is identical;
+    # only the order moves. A supplier that adds a surcharge to a default tariff
+    # AFTER clamping it is charging above the cap.
+    #
+    # WRITER 2, NOT WRITER 3, since 2026-10-02. Writer 3 uplifts only a fixed renewal,
+    # and a chosen fixed renewal is no longer capped, so the two never meet on one
+    # term: lifting writer 3 past the clamp is an equivalent mutant by construction.
+    start = src.index("    # WRITER 2 —")
+    # Ends at writer 3, so the lifted block is writer 2 alone: a mutant that moves more than one
+    # writer, or takes `cap_ceiling`'s definition past its use, proves nothing about ORDER.
+    end = src.index("    # WRITER 3 —")
     uplift_block = src[start:end]
-    assert "pnl_uplift" in uplift_block, "block bounds moved — this is no longer the defect"
+    assert "surcharge" in uplift_block, "block bounds moved — this is no longer the defect"
     close = "    # Close the chain."
     assert close in src, "anchor moved — this mutation is no longer the defect"
     mutated = (src[:start] + src[end:]).replace(
-        close, uplift_block + "    # <-- the defect: the uplift now escapes the cap\n" + close, 1
+        close, uplift_block + "    # <-- the defect: the surcharge now escapes the cap\n" + close, 1
     )
     assert "the defect" in mutated, "the mutation did not take"
     mutant = _load_mutated_desk(mutated)
@@ -495,7 +501,7 @@ def test_the_cap_is_the_last_writer_and_the_order_is_load_bearing():
     capped = _drive_door()["unit_rate"]
     escaped = _drive_door(module=mutant)["unit_rate"]
     assert escaped != capped, (
-        "running the uplift after the clamp changed nothing — the chain's "
+        "running the surcharge after the clamp changed nothing — the chain's "
         "order is not the thing this control thinks it is"
     )
     cap = cap_ceiling_ex_vat(
@@ -512,9 +518,10 @@ def test_the_cap_is_the_last_writer_and_the_order_is_load_bearing():
 # ---------------------------------------------------------------------------
 
 
-def test_the_cap_binds_domestic_fixed_only():
+def test_the_cap_binds_a_domestic_default_tariff_and_not_a_chosen_fixed_renewal():
     assert "price_cap" in [c["cause"] for c in _drive_door()["components"]]
-    for over in ({"is_domestic": False}, {"tariff_type": "pass_through"}):
+    for over in ({"is_domestic": False}, {"tariff_type": "pass_through"},
+                 {"tariff_type": "fixed"}):
         causes = [c["cause"] for c in _drive_door(**over)["components"]]
         assert "price_cap" not in causes, (
             f"the cap clamped a renewal it does not bind ({over})"
@@ -531,7 +538,7 @@ def test_mutation_dropping_the_cap_eligibility_rule_is_caught():
     together, which is exactly the coupling that makes a single read worth having.
     """
     mutated = _impl_source().replace(
-        "    if is_domestic and tariff_type in CAPPED_TARIFF_TYPES:",
+        "    if is_domestic and held_at_published_cap(tariff_type, term_index):",
         "    if True:  # <-- the defect",
         1,
     )

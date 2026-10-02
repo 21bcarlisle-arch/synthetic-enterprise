@@ -59,7 +59,9 @@ def test_in_the_epg_window_svt_is_held_at_the_cap_and_fixed_at_the_epg(commodity
     """Catches an SVT ceiling read net of the EPG. HM Treasury paid the supplier the gap between
     the EPG and the cap on a default tariff, so the world strikes SVT at the cap. A ceiling at the
     EPG would clamp every SVT segment in the window and take the Treasury's half out of revenue.
-    Both legs of the partition are asserted, so a guard that clamps everything, or nothing, fails."""
+    Both legs of the partition are asserted, so a guard that clamps everything, or nothing, fails.
+    The fixed leg is a FIRST term (`term_index` 0), held by the acquisition rule since 2026-10-02;
+    a chosen fixed renewal is not held at all."""
     cap = _published_ex_vat(commodity, IN_EPG)
     svt = _contracted(commodity=commodity, on=IN_EPG, tariff_type="svt", struck=cap)
     fixed = _contracted(commodity=commodity, on=IN_EPG, tariff_type="fixed", struck=cap)

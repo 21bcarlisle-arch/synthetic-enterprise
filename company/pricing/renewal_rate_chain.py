@@ -185,15 +185,28 @@ def portfolio_position(portfolio_margin_rates: list[float]) -> dict | None:
 # `svt` is the product SLC 28AD binds first ("Evergreen (SVT), Deemed, and default fixed-term
 # contracts", `docs/domain_artefact_library/regulatory/slc_28ad_multi_register_cap_test.md`). It
 # was missing until 2026-10-01, and writers 1-3 moved 630 of 2,333 capped-year SVT segments above
-# the published cap, up to x1.38, at the rate settlement bills. `fixed` stays as this supplier's
-# own reading: the commons says a fixed tariff the customer chose is OUTSIDE 28AD, and removing it
-# is a separate decision, filed rather than taken here.
-CAPPED_TARIFF_TYPES = ("fixed", "svt")
+# the published cap, up to x1.38, at the rate settlement bills. A fixed tariff the customer CHOSE
+# is outside 28AD, so a fixed renewal is no longer clamped (2026-10-02): the renewal desk's
+# SVT-anchored competitive ceiling and the household's own churn decision bound it instead.
+CAPPED_TARIFF_TYPES = ("svt",)
+#: NOT the law: this supplier's ACQUISITION rule. A fix quoted to win a customer above the default
+#: tariff they already have wins nobody, so the term a customer is won on is quoted no higher than
+#: the published cap. Without it, writer 4's removal from `fixed` let first terms in 2021-22 sit up
+#: to x3.55 the cap (`SEAT_FINDING_A_CHOSEN_FIXED_RENEWAL_IS_OUTSIDE_THE_CAP_AND_A_FIRST_TERM_IS_HELD_BY_THE_ACQUISITION_RULE_2026-10-02.md`).
+ACQUISITION_HELD_AT_CAP_TARIFF_TYPES = ("fixed",)
 #: The cap binds a default tariff on what the supplier RECEIVES, and during the EPG HM Treasury
 #: paid the supplier the gap between the EPG and the cap. So an SVT segment's ceiling is the
 #: published cap, not min(cap, EPG). The world's SVT strike is that cap, ex-VAT, with the receipt
 #: as its own leg (`simulation/svt_rates`).
 EPG_MADE_WHOLE_TARIFF_TYPES = ("svt",)
+
+
+def held_at_published_cap(tariff_type: str, term_index: int) -> bool:
+    """Whether a domestic term's rate is held at or under the published cap: always for a default
+    tariff (the law), and for a fixed only on the term the customer is won on (`term_index == 0`,
+    the acquisition rule above). A fixed RENEWAL is the customer's choice and is not held."""
+    return tariff_type in CAPPED_TARIFF_TYPES or (
+        term_index == 0 and tariff_type in ACQUISITION_HELD_AT_CAP_TARIFF_TYPES)
 
 
 @dataclass
@@ -411,7 +424,7 @@ def decide_renewal_rate(
     # of one ceiling inside one chain is the shape where a rate gets decided under a bound it is
     # then clamped by a different one.
     cap_ceiling = None
-    if is_domestic and tariff_type in CAPPED_TARIFF_TYPES:
+    if is_domestic and held_at_published_cap(tariff_type, term_index):
         # THE BENCHMARK FOLLOWS THE PRODUCT SOLD. `tou_desk` strikes the ToU pair off the rate
         # this chain returns, revenue-neutral at its assumed split, so the pair is lawful only if
         # this rate is under the MULTI-REGISTER cap (SLC 28AD.4). Read from the same predicate

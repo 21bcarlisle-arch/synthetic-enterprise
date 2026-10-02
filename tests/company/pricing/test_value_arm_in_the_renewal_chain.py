@@ -177,7 +177,7 @@ def test_the_uplift_is_a_DELTA_against_the_flat_rule_and_not_the_margin_itself()
 
 # ── 3. the cap still binds, which is the whole argument for the placement ───────────────────
 
-def test_the_DOMESTIC_PRICE_CAP_still_clamps_what_the_value_arm_added():
+def test_the_DOMESTIC_PRICE_CAP_still_clamps_what_the_value_arm_added(arm_population_capped):
     """MUTATION 3 — placement. Writer 3b sits BEFORE writer 4 so the cap clamps it.
 
     Proven by comparing against the arm's own unclamped answer rather than against a literal: the
@@ -196,6 +196,43 @@ def test_the_DOMESTIC_PRICE_CAP_still_clamps_what_the_value_arm_added():
     )
     assert [c for c in capped.components if c["cause"] == "price_cap"], (
         "the rate was clamped but no component says the cap did it")
+
+
+# ── the arm's population is NOT capped in production since 2026-10-02 ──────────────────────
+#
+# A fixed tariff the customer chose is outside SLC 28AD, so writer 4 no longer holds a fixed
+# RENEWAL, and the arm prices only fixed and pass-through renewals. The ceiling the arm searches
+# under is therefore never handed to it on any production renewal. The controls that take this
+# fixture hold the MECHANISM -- the ceiling threaded into the search, writer 3b before writer 4 --
+# for a population the cap does bind, by re-admitting `fixed`. The production property is
+# `test_a_chosen_fixed_renewal_the_arm_prices_is_handed_no_ceiling` below.
+@pytest.fixture
+def arm_population_capped(monkeypatch):
+    monkeypatch.setattr(chain, "CAPPED_TARIFF_TYPES", ("fixed", "svt"))
+
+
+def test_a_chosen_fixed_renewal_the_arm_prices_is_handed_no_ceiling():
+    """Catches `fixed` back in `CAPPED_TARIFF_TYPES`: a domestic fixed renewal the arm priced is
+    contracted at the arm's own ask, with no `price_cap` component and `ceiling_bound` False.
+    The other leg of the partition is asserted too: the same renewal struck above the cap on the
+    term the customer is WON on (`term_index` 0) is held at it, by the acquisition rule."""
+    cap = chain.cap_ceiling_ex_vat("electricity", date(2021, 6, 1), multi_register=False)
+    domestic = dict(is_domestic=True, tariff_type="fixed", term_start="2021-06-01",
+                    struck_unit_rate_gbp_per_mwh=cap - 2.0,
+                    settled_records=_settled_with_standing_charge())
+    with policy_scope(VALUE_ARM_POLICY):
+        result = _drive(**domestic)
+    priced = [e for e in result.value_arm_entries if not e.get("declined")]
+    assert priced, "the fixture no longer exercises a priced domestic renewal"
+    assert priced[0]["ceiling_bound"] is False
+    assert not [c for c in result.components if c["cause"] == "price_cap"]
+    assert result.unit_rate_gbp_per_mwh > cap, (
+        "the arm's ask stayed under the cap, so this leg cannot tell a ceiling from none")
+    with policy_scope(CURRENT_POLICY):
+        won = _drive(is_domestic=True, tariff_type="fixed", term_start="2021-06-01", term_index=0,
+                     struck_unit_rate_gbp_per_mwh=cap * 1.5)
+    assert won.unit_rate_gbp_per_mwh == pytest.approx(cap, abs=1e-6), (
+        "a first term struck above the cap was not held at it -- the acquisition rule is gone")
 
 
 # ── 4. the arm fires only when the run asked for it ─────────────────────────────────────────
@@ -484,7 +521,7 @@ def test_the_STANDING_CHARGE_FALLBACK_counts_DAYS_and_not_SETTLEMENT_ROWS():
         "the fallback standing charge exceeds the whole bill, which is the 48x shape")
 
 
-def test_the_CAP_is_INSIDE_the_search_and_never_a_CLAMP_on_a_renewal_the_arm_PRICED():
+def test_the_CAP_is_INSIDE_the_search_and_never_a_CLAMP_on_a_renewal_the_arm_PRICED(arm_population_capped):
     """MUTATION 5e — the ORDER, which `decide_margin` refuses in its own body: "Scoring a candidate
     the company may not lawfully offer and then clamping the winner would report an expected value
     nobody can earn, and would make the arm look better than the supplier it describes."
@@ -530,7 +567,7 @@ def test_the_CAP_is_INSIDE_the_search_and_never_a_CLAMP_on_a_renewal_the_arm_PRI
     )
 
 
-def test_the_arm_NEVER_ASKS_for_a_rate_above_the_cap_it_was_given():
+def test_the_arm_NEVER_ASKS_for_a_rate_above_the_cap_it_was_given(arm_population_capped):
     """The population-level form of the invariant above, across the shapes a domestic renewal
     takes. Either the arm prices under the cap, or it declines -- there is no third outcome in
     which it asks for an unlawful rate and is rescued by writer 4.
@@ -553,7 +590,7 @@ def test_the_arm_NEVER_ASKS_for_a_rate_above_the_cap_it_was_given():
             )
 
 
-def test_a_strike_once_VAT_is_added_never_exceeds_the_PUBLISHED_cap():
+def test_a_strike_once_VAT_is_added_never_exceeds_the_PUBLISHED_cap(arm_population_capped):
     """Ofgem publishes the cap INCLUSIVE of 5% VAT, and the strike is ex-VAT. Until 2026-10-01 the
     chain clamped the one against the other, so a strike could sit up to 5% above the law once VAT
     was added on the bill. That was 28 of 117 first terms in the default world, and the company's
@@ -937,7 +974,7 @@ def test_the_adapter_SPENDS_the_fuel_rather_than_merely_having_one(monkeypatch):
     )
 
 
-def test_the_gas_renewal_decides_under_the_GAS_cap_and_not_the_electricity_one():
+def test_the_gas_renewal_decides_under_the_GAS_cap_and_not_the_electricity_one(arm_population_capped):
     """The lawful ceiling is a fact about the fuel. A gas renewal decided under the electricity
     cap is deciding under a bound that does not bind it, and `decide_margin` refuses the
     post-hoc version of that error explicitly.
