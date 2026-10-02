@@ -598,6 +598,10 @@ def regrade_over_distinct_draws(rows: list, key: str = REGRADABLE_LEG) -> dict:
     regraded = _leg(collapsed, key)
     over_seeds = _leg(rows, key)
 
+    #: DENOMINATOR BOUNDED: the margin is `t(n-1) * stdev / sqrt(n)` -- the bar is a function of
+    #: the draw count alone and the only divisor is `sqrt(n)` with n >= 2 (below that the bar is
+    #: None and so is the margin). It is the sign bar restated in pounds, not a count to buy, and
+    #: it stays finite however near zero the family's mean sits.
     def _margin(leg: dict):
         bar, sem = leg["sems_needed_to_state_a_sign"], leg["sem_gbp"]
         return None if bar is None or sem is None else bar * sem
