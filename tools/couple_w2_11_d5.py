@@ -11344,7 +11344,13 @@ def belief_resolution_caveat(
             f"oldest {resolution['oldest_event_age_days']}d before `as_of`, "
             f"against a company window of {resolution['window_days']}d -- NOT "
             "saturated, so a memory error in either direction can move this "
-            "figure by a day."
+            "figure by a day. BOTH EDGES STILL STAND (atoms D27, D29): every "
+            f"company whose memory runs {resolution['oldest_event_age_days']}d "
+            "or longer counts every event here and publishes one figure, and "
+            "every company whose memory runs "
+            f"{resolution['amnesia_floor_window_days']}d or less counts "
+            "nothing -- down to total amnesia. This number resolves a memory "
+            "error only BETWEEN those two edges."
         )
     blind = tuple(e.get("own_invisible_drifts") or ())
     return head + (

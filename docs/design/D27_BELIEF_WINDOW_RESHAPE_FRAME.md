@@ -1866,3 +1866,83 @@ recommendation is the first:
 
 So the flip commit is the register, the census and the contract, and the next pass is the eight
 test-side restatements.
+
+---
+
+## 28. BUILD pass 19 — 2026-10-02 (worker tick, BUILD lane) — §27.4's eight test-side nodes, restated, and two of them were not pins
+
+The origin is still 400, no level moved, `CAVEAT_COVERAGE_PROBES` untouched. The candidate origin was
+substituted in the process only (§17.4's `flip_plugin`).
+
+### 28.1 The eight
+
+| node | at 90 it failed on | now |
+|---|---|---|
+| `test_the_census_reads_the_window_off_the_scored_company_not_the_constant` | drift −320 = a −230d window | the sweep is declared as WINDOWS `(WINDOW, 80, 50, 600, 6000)` and the drifts are derived from them |
+| `test_the_inert_verdict_is_falsifiable_in_both_directions` | the same | `80 − WINDOW` and `600 − WINDOW` |
+| `test_score_triad_threads_the_scored_company_into_both_predictors` | the same, plus a baseline pinned at 400 / inert | drift `80 − WINDOW`; the baseline is `WINDOW`, inert iff `WINDOW ≥` seed 7's oldest failure (91) |
+| `test_the_memory_grid_carries_a_witness_above_its_saturation_point` | `never_forgets_drift_days == 0` | the clamp is the law, `max(0, oldest − WINDOW)`; the "+1 is the accident" leg holds only where the window is strictly past the book (at the edge, +1 is the true witness) |
+| `test_a_declared_floor_the_sweep_contradicts_fires_the_control` | `"the sweep measures 314d"` | built on the measurement: declare `measured + 4`, expect `measured` in the refusal |
+| `test_each_belief_figure_publishes_its_own_floor_and_the_sentence_says_it` | 310/314 and `'can move ANY figure here'` | the per-figure floors are read from the register (the floor-register node grades the register against the sweep, and goes with the flip); the literals 310/314 are asserted only where the window covers the book; the book bound is `max(1, WINDOW − 91 + 1)`; the ANY-figure sentence travels where the window covers the book, "by a day" below it |
+| `test_the_memory_caveat_names_both_edges` | `'NEVER forgets'` absent | **not a pin — see §28.2** |
+| `test_a_sibling_quantity_that_moves_with_the_figure_is_not_a_render_of_it` | seed 23: mix 0.0767, per-case 0.0800 | **not a pin — see §28.3** |
+
+### 28.2 NEW FINDING — the unsaturated caveat named neither edge
+
+`belief_resolution_caveat`'s NOT-saturated branch said only "a memory error in either direction can
+move this figure by a day". Both edges still exist there: every window at or above the oldest observed
+failure counts every event, and every window at or below `newest − 1` counts none. So at the flip, the
+caveat the scenario publishes would have dropped the D29 amnesia edge and the never-forgets edge both,
+which is exactly the state the node's docstring forbids ("a caveat that names only the tail somebody
+swept is the D27 state"). The branch now names both edges, in words that do not use the saturated
+branch's "NEVER forgets" sentence (§25.1's node forbids that sentence when unsaturated, rightly: it
+says THIS company is indistinguishable from one that never forgets). Nothing published moves at 400:
+the scenario is saturated there and the live publisher runs at 6000. The node now scores the shipped
+window, the oldest age, and one day under it in one process, so both branches are graded at either
+origin.
+
+### 28.3 NEW FINDING — the mix/per-case coincidence is a saturation artefact
+
+`PUBLISHED_GAP_CONSUMERS["belief_population_mix"]`'s comment says the mix figure equals belief's
+per-case disagreement "on every book measured … and no real book performs that permutation". Measured,
+one process per origin, `_resolution_population(300, seed)`:
+
+| seed | 400: mix / per-case | 90: mix / per-case |
+|---|---|---|
+| 7 | 0.0800 / 0.0800 | 0.0833 / 0.0900 |
+| 11 | 0.1033 / 0.1033 | 0.1033 / 0.1100 |
+| 23 | 0.0767 / 0.0767 | 0.0767 / 0.0800 |
+| 101 | 0.0867 / 0.0867 | 0.0867 / 0.0967 |
+| 999 | 0.0767 / 0.0767 | 0.0833 / 0.0867 |
+
+A company that forgets performs the permutation: it under-calls accounts without moving the mix by the
+same amount. The node now asserts coincidence on every seed where the window covers the book and
+separation on every seed below it. That makes the D19 claim stronger, not weaker (they are different
+quantities, and a real company shows it). The register comment is prose on the register and goes
+with the flip. **Not explained this pass:** at 90 the reader walk still lists the
+`format_belief_summary` site in `cross_attributed` (the node's first two legs passed at 90). Whether
+the `value_collisions` declaration is still needed below the edge is a question for the flip.
+
+### 28.4 R15, in the process
+
+| mutation | 400 | 90 |
+|---|---|---|
+| §28.2's edge clause removed (HEAD's caveat) | red | red — the node scores an unsaturated window at both origins |
+| clamp removed from `never_forgets_drift_days` | red | green — an equivalence, the clamp does not bind at 90 (91 − 90 = 1) |
+| the unsaturated branch also carries "can move ANY figure here" | green — an equivalence, the scenario never reaches that branch at 400 | red |
+
+The eight passed at 90 and the eight plus every caveat node passed at 400 (27). Whole-file results at
+both origins are in §28.5.
+
+### 28.5 The whole file at both origins
+
+In this worktree (HEAD `b17da3db3` plus this pass), one process per origin, run concurrently:
+
+| origin | result |
+|---|---|
+| 400 | **623 passed**, 0 failed |
+| 90 | 568 passed, **10 failed, 45 errors** |
+
+Prediction, filed before the run returned: exactly §27.2's R (5), C (1) and F (4), and all 45 errors
+R. **Confirmed**, node for node. So what is left red at 90 is the flip commit's own change set: the
+register (now also carrying §28.3's comment), the census, and §27.3's contract.

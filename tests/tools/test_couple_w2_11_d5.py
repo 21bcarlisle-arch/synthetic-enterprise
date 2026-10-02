@@ -5084,11 +5084,16 @@ def test_the_memory_grid_carries_a_witness_above_its_saturation_point():
         assert max(pre_witness) == max(0, saturation_drift)
 
     # AND IT IS NOT THE CLAMPED HELPER. `never_forgets_drift_days` floors at 0
-    # to say something about the SCORED company, so at the shipped origin it
-    # answers 0 and `+ 1` would put the witness at +1 -- above the edge, but
-    # 309 days above it, which is the accident this test exists to replace.
-    assert pair.never_forgets_drift_days(records, as_of) == 0
-    assert 1 not in pair.book_memory_grid(records, as_of)
+    # to say something about the SCORED company, so where the window covers the
+    # book it answers 0 and `+ 1` would put the witness at +1 -- above the edge,
+    # but 309 days above it at the shipped 400, which is the accident this test
+    # exists to replace. Below the edge (the organ's own 90) the clamp does not
+    # bind and the helper IS the saturation drift, already asserted in the grid.
+    w = pair.DD_FAILURE_WINDOW_DAYS
+    clamped = pair.never_forgets_drift_days(records, as_of)
+    assert clamped == max(0, ages[-1] - w)
+    if w > ages[-1]:     # strictly: AT the edge, +1 is the true witness
+        assert clamped + 1 not in pair.book_memory_grid(records, as_of)
 
 
 def test_a_knob_with_no_book_grid_raises_rather_than_asking_the_register():
@@ -5244,12 +5249,29 @@ def test_the_memory_caveat_names_both_edges():
     and the dashboard read `components` and never the prose). A caveat that
     names only the tail somebody swept is the D27 state."""
     records, _c, _l, as_of = pair.build_scenario(60, seed=7)
-    book = pair.measure_belief_window_resolution(records, as_of)
-    caveat = pair.belief_resolution_caveat(book)
-    assert "NEVER forgets" in caveat and "total amnesia" in caveat
-    assert str(book["amnesia_floor_window_days"]) in caveat
-    assert book["amnesia_floor_window_days"] == book[
-        "newest_event_age_days"] - 1
+    # BOTH BRANCHES, in one process whatever the origin: the shipped window,
+    # and one inside the book. The unsaturated sentence named NEITHER edge
+    # until FRAME s28 -- the caveat the organ's own 90 would have published.
+    oldest = pair.measure_belief_window_resolution(records, as_of)[
+        "oldest_event_age_days"]
+    for window in (pair.DD_FAILURE_WINDOW_DAYS, oldest, oldest - 1):
+        book = pair.measure_belief_window_resolution(
+            records, as_of, window_days=window)
+        caveat = pair.belief_resolution_caveat(book)
+        assert "total amnesia" in caveat, window
+        assert f"{book['amnesia_floor_window_days']}d or less" in caveat
+        assert book["amnesia_floor_window_days"] == book[
+            "newest_event_age_days"] - 1
+        assert "BETWEEN those two edges" in caveat, window
+        if book["saturated"]:
+            assert "NEVER forgets" in caveat, window
+        else:
+            assert f"{oldest}d or longer counts every event" in caveat, window
+    # The partition is real: one window on each side of the book's edge.
+    assert pair.measure_belief_window_resolution(
+        records, as_of, window_days=oldest)["saturated"] is True
+    assert pair.measure_belief_window_resolution(
+        records, as_of, window_days=oldest - 1)["saturated"] is False
 
 
 # ---------------------------------------------------------------------------
@@ -7037,16 +7059,35 @@ def test_each_belief_figure_publishes_its_own_floor_and_the_sentence_says_it():
     bel = result["belief"].components
     mix = result["belief_population_mix"].components
     assert bel["belief_resolution_caveat"] != mix["belief_resolution_caveat"]
-    assert bel["measured_resolution_floor_days"] == 310
-    assert mix["measured_resolution_floor_days"] == 314
-    for comps, own, other in ((bel, 310, 314), (mix, 314, 310)):
+    # The per-figure floors are the REGISTER's, which the floor-register node
+    # grades against the sweep; the literals hold where the window covers the
+    # book (FRAME s26.1). The book bound is the law at either origin.
+    window = pair.DD_FAILURE_WINDOW_DAYS
+    covers = window >= _OLDEST_OBSERVED_FAILURE_AGE_DAYS[7]
+    floors = {d: pair.DIMENSION_DRIFT_RESOLUTION[d][
+        "own_readable_resolution_floor_days"]
+        for d in ("belief", "belief_population_mix")}
+    if covers:
+        assert floors == {"belief": 310, "belief_population_mix": 314}
+    assert bel["measured_resolution_floor_days"] == floors["belief"]
+    assert mix["measured_resolution_floor_days"] == floors[
+        "belief_population_mix"]
+    bound = max(1, window - _OLDEST_OBSERVED_FAILURE_AGE_DAYS[7] + 1)
+    for comps, own, other in (
+            (bel, floors["belief"], floors["belief_population_mix"]),
+            (mix, floors["belief_population_mix"], floors["belief"])):
         caveat = comps["belief_resolution_caveat"]
         assert f"{own}d of forgetting" in caveat
         assert f"{other}d" in caveat            # names the sibling's, as the sibling's
         assert "do NOT share a resolution" in caveat
-        # ...and the book bound is stated as a bound on ANY figure here.
-        assert "can move ANY figure here" in caveat
-        assert comps["book_bound_floor_days"] == 310
+        assert comps["book_bound_floor_days"] == bound
+        # ...and the book bound is stated as a bound on ANY figure here where
+        # there is one; below the edge, the sentence that travels is the day.
+        if covers:
+            assert "can move ANY figure here" in caveat
+        else:
+            assert "can move this figure by a day" in caveat
+            assert "can move ANY figure here" not in caveat
     # The retired sentence -- the bound presented as the figure's own -- is gone
     # from both, and from the notes the callers may replace.
     for dim in ("belief", "belief_population_mix"):
@@ -7641,9 +7682,14 @@ def test_a_declared_floor_the_sweep_contradicts_fires_the_control(
     """The register side of the same claim, EXACTLY (the D25/D30 rule): a floor
     declared loosely is a sentence that survives any reshape."""
     reg = copy.deepcopy(pair.DIMENSION_DRIFT_RESOLUTION)
-    reg["belief_population_mix"]["own_readable_resolution_floor_days"] = 310
+    # Built on the measurement, not pinned (FRAME s27.2, T2): 314d is this
+    # sweep only where the window covers the book; at the organ's 90 it is 4d.
+    measured = resolution_floors["belief_population_mix"]["floor_days"]
+    reg["belief_population_mix"]["own_readable_resolution_floor_days"] = (
+        measured + 4)
     violations = pair.check_published_resolution_floor(resolution_floors, reg)
-    assert any("the sweep measures 314d" in v for v in violations), violations
+    assert any(f"the sweep measures {measured}d" in v for v in violations), \
+        violations
 
 
 def test_a_predicate_divergence_with_no_owner_fires_the_control(
@@ -8358,13 +8404,25 @@ def test_a_sibling_quantity_that_moves_with_the_figure_is_not_a_render_of_it(
     # asserts the withdrawal did not silently take it too.
     assert pair.PUBLISHED_GAP_CONSUMERS["belief_population_mix"]["reader_renders"] == ()
     assert ("note", 4) in component_walk["belief_population_mix"]["sites"]
-    # THE COINCIDENCE IS REAL, on more books than the walk itself uses.
+    # THE COINCIDENCE IS REAL, on more books than the walk itself uses -- but
+    # only where the company never forgets (FRAME s28.2). At the organ's own
+    # 90d memory the two separate on every seed (seed 23: 0.0767 against
+    # 0.0800): forgetting under-calls an account without moving the mix by the
+    # same amount, which is the permutation the D19 note said no real book
+    # performs. So the claim is keyed to the window, not pinned.
+    covers = pair.DD_FAILURE_WINDOW_DAYS >= max(
+        _OLDEST_OBSERVED_FAILURE_AGE_DAYS.values())
+    coincide = {}
     for seed in (23, 101, 999):
         records, consumer, _b, as_of = pair._resolution_population(300, seed)
         scored = pair.score_triad(records, consumer, as_of)
         rendered = format_belief_summary(scored["belief"])
         mix = format(scored["belief_population_mix"].gap, ".4f")
-        assert f"per-case disagreement {mix} " in rendered, (seed, mix)
+        coincide[seed] = f"per-case disagreement {mix} " in rendered
+    if covers:
+        assert all(coincide.values()), coincide
+    else:
+        assert not any(coincide.values()), coincide
     # AND THE DECLARATION IS LOAD-BEARING: without it the walk refuses to guess.
     undeclared = {k: dict(v) for k, v in pair.PUBLISHED_GAP_CONSUMERS.items()}
     undeclared["belief_population_mix"] = dict(
@@ -9506,7 +9564,11 @@ def test_the_shared_predicate_still_reads_ordinary_numbers_as_before():
 # 400, the live publisher 6000.
 # ---------------------------------------------------------------------------
 
-_MEMORY_DRIFTS = (0, -320, -350, +200, +5600)
+# WINDOWS, not drifts: a drift means a window only at one origin, and -320 is
+# "window 80" at 400 and a refused -230d window at the organ's own 90 (FRAME
+# s27.2, T1). The first entry is the scored company itself.
+_MEMORY_WINDOWS = (DD_FAILURE_WINDOW_DAYS, 80, 50, 600, 6000)
+_MEMORY_DRIFTS = tuple(w - DD_FAILURE_WINDOW_DAYS for w in _MEMORY_WINDOWS)
 
 
 def test_the_census_reads_the_window_off_the_scored_company_not_the_constant():
@@ -9540,14 +9602,16 @@ def test_the_inert_verdict_is_falsifiable_in_both_directions():
     """`is_inert` is a SWITCH, and a switch that only ever reads True is not
     one. Both directions on the same book."""
     inside, _ci, _l, as_of_in = pair.build_scenario(
-        300, seed=7, organ_failure_window_drift_days=-320)   # window 80
+        300, seed=7,
+        organ_failure_window_drift_days=80 - pair.DD_FAILURE_WINDOW_DAYS)
     cen_in = pair.measure_scenario_constant_census(
         inside, as_of_in, window_days=_ci.dd_failure_window_days)
     assert cen_in["scored_company_is_inert"] is False
     assert cen_in["scored_company_headroom_days"] < 0
 
     outside, _co, _l2, as_of_out = pair.build_scenario(
-        300, seed=7, organ_failure_window_drift_days=+200)   # window 600
+        300, seed=7,
+        organ_failure_window_drift_days=600 - pair.DD_FAILURE_WINDOW_DAYS)
     cen_out = pair.measure_scenario_constant_census(
         outside, as_of_out, window_days=_co.dd_failure_window_days)
     assert cen_out["scored_company_is_inert"] is True
@@ -9626,7 +9690,8 @@ def test_score_triad_threads_the_scored_company_into_both_predictors():
     the census's window and the belief-resolution caveat must differ, which they
     could not while both predictors defaulted to the module constant."""
     records, consumer, _l, as_of = pair.build_scenario(
-        300, seed=7, organ_failure_window_drift_days=-320)
+        300, seed=7,
+        organ_failure_window_drift_days=80 - pair.DD_FAILURE_WINDOW_DAYS)
     result = pair.score_triad(records, consumer, as_of)
     bel = result["belief"]
     assert bel.components["scored_company_window_days"] == 80
@@ -9642,8 +9707,12 @@ def test_score_triad_threads_the_scored_company_into_both_predictors():
     # DIFFERENCE between two companies and not a property of the book.
     base_recs, base_consumer, _bl, base_as_of = pair.build_scenario(300, seed=7)
     baseline = pair.score_triad(base_recs, base_consumer, base_as_of)
-    assert baseline["belief"].components["scored_company_window_days"] == 400
-    assert baseline["belief"].components["scored_company_is_inert"] is True
+    assert baseline["belief"].components["scored_company_window_days"] == (
+        pair.DD_FAILURE_WINDOW_DAYS)
+    # Inert only where the window covers the book: True at the shipped 400,
+    # False at the organ's own 90, whose memory is one day short of seed 7.
+    assert baseline["belief"].components["scored_company_is_inert"] is (
+        pair.DD_FAILURE_WINDOW_DAYS >= _OLDEST_OBSERVED_FAILURE_AGE_DAYS[7])
 
 
 # ---------------------------------------------------------------------------
