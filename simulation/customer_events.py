@@ -50,6 +50,7 @@ from simulation.market_switching_propensity import (
 )
 from simulation.price_cap_enforcement import household_price_inc_vat
 from simulation.satisfaction_churn import satisfaction_churn_multiplier
+from simulation.svt_product import SVT_TARIFF_TYPE
 from simulation.switching_propensity import (
     stress_switching_multiplier,
     tenure_switching_multiplier,
@@ -495,6 +496,25 @@ def departure_decision_leg(
     today's.
     """
     return "electricity" if billing_account in accounts_with_an_electricity_leg else "gas"
+
+
+def departure_rolled_at_renewal(previous_tariff_type: str | None) -> bool:
+    """Whether the renewal-point departure roll applies to a term, given the term BEFORE it.
+
+    False only when the previous term was an SVT segment. A household on the default tariff
+    already carries its exits through C1b's inertia hazard (`inertia_hazard_for_term`), whose
+    all-cause band is what SVT departures are graded against. Rolling again when that household
+    converts to a fixed term at an anniversary gave it a second exit route, and SVT exits ran
+    about 29% above the band (91214c720; pre-registration
+    `WORKER_PREREG_THE_SVT_ANNIVERSARY_CARRIES_NO_DEPARTURE_ROLL_2026-10-01`).
+
+    The anniversary re-draw in the renewal builders stays: it is the household converting off the
+    default tariff, and `tools.published_route_split.svt_internal_conversion_floor` needs that
+    conversion to exist. Only the exit it carried is removed.
+
+    `None` (no previous term recorded) and every non-SVT type roll as before.
+    """
+    return previous_tariff_type != SVT_TARIFF_TYPE
 
 
 def roll_lifecycle_event(

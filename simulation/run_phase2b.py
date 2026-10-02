@@ -116,6 +116,7 @@ from simulation.customer_events import (
     HOME_MOVE_ACTIVATE_SUCCESSOR,
     departure_decision_leg,
     departure_event,
+    departure_rolled_at_renewal,
     home_move_disposition,
     roll_lifecycle_event,
 )
@@ -2248,6 +2249,8 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                     f"p_depart={_svt_p_depart:.4f}  roll={_svt_roll:.4f}  "
                     f"years_on_svt={_years_on_svt:.2f}"
                 )
+        # Read BEFORE the overwrite: the renewal roll below asks what this term converted FROM.
+        _previous_tariff_type = _last_tariff_type.get(cid)
         _last_tariff_type[cid] = term_tariff_type
 
         # ACCOUNT STATE, WRITTEN FOR EVERY TERM AND NOT ONLY FOR THE ONES THAT RENEWED.
@@ -2659,6 +2662,8 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                 "is_burned": _journey.resentment.is_burned,
                 "perceived_bill_saving_gbp": round(_perceived_bill_saving_gbp, 2),
             })
+            # A household converting OFF the SVT has no renewal-point exit: C1b's inertia hazard
+            # above already carried its exits for every SVT segment (`departure_rolled_at_renewal`).
             event = roll_lifecycle_event(
                 cid, term_start_str, commodity, list(all_records), _ALL_KNOWN_CUSTOMERS,
                 old_rate_gbp_per_mwh=old_decision_leg_rate,
@@ -2675,7 +2680,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                 # ACTUALLY cost -- `company_fwd` is the company's belief about that number and
                 # would make the rival's costs a function of the company's forecasting skill.
                 wholesale_gbp_per_mwh=forward_price,
-            )
+            ) if departure_rolled_at_renewal(_previous_tariff_type) else None
             # THE RIVAL SEES THIS OFFER ONLY AFTER THE TERM IT WAS STRUCK IN (2026-08-28, C2).
             # Recorded AFTER the roll, and read back by `position_for()` a quarter later, so no
             # offer can ever reach the reference it is itself being measured against. Recording
