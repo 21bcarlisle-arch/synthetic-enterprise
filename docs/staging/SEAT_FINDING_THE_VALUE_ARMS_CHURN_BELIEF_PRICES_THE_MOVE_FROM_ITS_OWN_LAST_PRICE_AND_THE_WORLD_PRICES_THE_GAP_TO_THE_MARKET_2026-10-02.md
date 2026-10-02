@@ -243,3 +243,29 @@ value-arm pair, so neither that pair nor this remedy could be read as one variab
 The claim is released. The work moves under a new id,
 `grade-the-belief-against-the-default-after-the-decline-flip`, and it opens with a precondition
 check so that a draw made before the flip costs one command, not a whole turn.
+
+## Addendum 2026-10-02 15:45 (local): taken, landed, graded run set fixed before it runs
+
+Claim `land-the-belief-reads-the-published-default-now-the-flip-is-on`. The flip is on
+(`757c8cada`, `DECLINE_A_FIX_ABOVE_THE_DEFAULT = True`), so the precondition holds. The held diff
+applied cleanly on origin/main `16b2cd038` and landed as `0cc052102`, and all six mutations were re-run there, each turning
+a control red. One more control reddened on landing:
+`test_the_price_rests_only_on_declared_supplier_observables`. It is right to ask. The published
+default now goes into a separate `MARKET_OBSERVABLES` set, with the argument for it: a published
+figure, not a register about the account.
+
+**Written before the runs. The predictions P1–P4 above are unchanged.** Three serial value-arm runs
+on the landing commit, harness `/var/tmp/se-belief-graded-out/{measure,analyse}.py`:
+*capped* (fixed renewals re-capped, with the diff), *uncapped* (as committed), and *uncapped_nodiff*
+(same commit, the chain withholds the reference, so the belief reads the old move). P1/P2/P4-ratio
+are graded on *uncapped* vs *capped*. P4's net is graded *uncapped* vs *uncapped_nodiff*, which is
+the one-variable reading. This record's £93,913 sits on an older commit and a world that could
+not refuse, so it is reported only for context.
+
+**How the new world's rows are classed (decided now, not after).** A fix above the default is
+now declined and the household stays on the default (`departure_occasion == "declined_fix"`).
+A declined row whose roll was carried over (`departure_rolled` True) counts as a **rolled**
+renewal for P1/P2, because the world did answer the price there. A declined row with no roll
+counts with the SVT conversions for P4. P2 and P4 grade the price the arm **offered**, not the
+price the household paid. A declined offer still counts, because the remedy is about the belief
+that chose it.
