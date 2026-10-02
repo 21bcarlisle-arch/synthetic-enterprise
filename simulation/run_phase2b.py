@@ -277,12 +277,13 @@ ELEC_CUSTOMERS = [c for c in CUSTOMERS if c["commodity"] == "electricity"]
 GAS_CUSTOMERS = [c for c in CUSTOMERS if c["commodity"] == "gas"]
 #: THE DECLINE-AND-STAY RULE'S SWITCH (2026-10-02): a domestic household that stays never
 #: contracts a fixed renewal above the default tariff it would otherwise pay; it goes onto that
-#: default for the term instead (`customer_events.renewal_outcome`). OFF until the pre-registered
-#: pair of runs on one commit has graded it (P1-P6 in `docs/staging/
-#: WORKER_FINDING_AN_SVT_HOUSEHOLD_CAN_DECLINE_THE_FIX_DESIGN_AND_BASELINE_2026-10-02.md`); read
-#: as a module global at run time so that pair can switch it in-process. Off, the loop's output
-#: is meant to be byte-identical to the code before it existed (P6).
-DECLINE_A_FIX_ABOVE_THE_DEFAULT: bool = False
+#: default for the term instead (`customer_events.renewal_outcome`). ON since the pre-registered
+#: pair graded it at 822218441 (P1-P6 in `docs/staging/
+#: WORKER_FINDING_AN_SVT_HOUSEHOLD_CAN_DECLINE_THE_FIX_DESIGN_AND_BASELINE_2026-10-02.md`): P5 held,
+#: and the P3/P4 refutations trace to a decline being a calendar event as well as a price one.
+#: Read as a module global at run time, so a paired run can switch it off in-process; off, the
+#: loop's output is byte-identical to the code before the splice existed (P6).
+DECLINE_A_FIX_ABOVE_THE_DEFAULT: bool = True
 
 #: Stamped on a default-tariff segment spliced in for a declined term. Such a segment is not a
 #: boundary the schedule builders counted, so it must not advance `term_indices` -- the loop's
