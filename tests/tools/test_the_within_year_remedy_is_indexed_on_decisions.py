@@ -157,11 +157,20 @@ def test_the_requirement_is_stated_in_both_units_and_they_are_not_the_same_numbe
     that carries only one of the two units lets the next reader make the same substitution."""
     remedy = block["what_would_settle_it"]
     assert remedy["available"], remedy
-    decisions_multiple = remedy["the_requirement"]["times_this_run"]
-    pairs_multiple = remedy["in_same_year_pairs"]["times_this_runs_pairs"]
+    requirement, in_pairs = remedy["the_requirement"], remedy["in_same_year_pairs"]
+    # READ ON THE POINT ESTIMATE, which is published in both states. The plan-named keys are
+    # withheld wherever the reading fails its own null (`08c696269`), and this read them until an
+    # artefact retake came out on that side and the control died of a `None ** 2` -- a TypeError
+    # for the code being right. The units property holds of the arithmetic, gated or not.
+    decisions_multiple = requirement["times_this_run_at_the_point_estimate"]
+    pairs_multiple = in_pairs["times_this_runs_pairs_at_the_point_estimate"]
     assert pairs_multiple == pytest.approx(decisions_multiple ** 2)
     assert pairs_multiple > decisions_multiple
-    assert remedy["in_same_year_pairs"]["same_year_pairs_needed"] > block["same_year_pairs"]
+    assert in_pairs["same_year_pairs_at_the_point_estimate"] > block["same_year_pairs"]
+    # AND THE GATE IS ONE GATE: both units are published together or withheld together.
+    clears = requirement["the_reading_clears_its_own_null"]
+    assert (requirement["times_this_run"], in_pairs["times_this_runs_pairs"]) == (
+        (decisions_multiple, pairs_multiple) if clears else (None, None))
 
 
 def test_the_account_count_is_the_population_and_not_the_artefacts_sample(block, rows):
