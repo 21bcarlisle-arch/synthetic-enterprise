@@ -122,8 +122,9 @@ def _churn_by_year(customer_events: list, svt_decisions: Optional[list] = None) 
     """SIM churn rate by year from `customer_events`, ON A DECLARED DENOMINATOR.
 
     `sim_churn_rate` IS AND ALWAYS WAS A RENEWAL-DECISION RATE: churns over `renewals + churns`,
-    both taken from `customer_events`, which C1b's SVT departures deliberately never enter (they
-    carry no `churn_probability` for the twelve consumers that index it unguarded). It is compared
+    both taken from `customer_events`, which C1b's SVT departures deliberately never enter. A
+    household converting off the SVT DOES enter, as a `renewed` with `departure_rolled` False and
+    no roll (`svt_conversion_event`): it stayed, so it is a retention here. It is compared
     here against `ofgem_benchmark`, whose denominator is every GB domestic electricity account.
     Post-C1b those are not merely different denominators -- the renewal one no longer contains most
     of the departures, measured at 39% of them on the 2026-08-31 capture.

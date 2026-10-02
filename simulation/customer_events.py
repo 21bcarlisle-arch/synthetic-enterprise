@@ -70,6 +70,11 @@ DEPARTURE_OCCASION_RENEWAL = "renewal"
 #: reader could tell the resulting move from a change in the world's departure level.
 DEPARTURE_OCCASION_SVT_SEGMENT = "svt_segment"
 
+#: A household converting off the SVT to a fixed term at an anniversary. It stayed, and since
+#: `1cd4b03dc` nothing is rolled there (`departure_rolled_at_renewal`), so it is a retention with
+#: no roll behind it -- `svt_conversion_event` is its only producer.
+DEPARTURE_OCCASION_SVT_CONVERSION = "svt_conversion"
+
 
 def departure_event(
     *,
@@ -515,6 +520,51 @@ def departure_rolled_at_renewal(previous_tariff_type: str | None) -> bool:
     `None` (no previous term recorded) and every non-SVT type roll as before.
     """
     return previous_tariff_type != SVT_TARIFF_TYPE
+
+
+def svt_conversion_event(
+    *,
+    customer_id: str,
+    event_date: str,
+    commodity: str,
+    company_churn_estimate: float | None = None,
+    **extra,
+) -> dict:
+    """The renewal decision of a household converting OFF the SVT, which stayed and was not rolled.
+
+    `departure_rolled_at_renewal` takes the exit off this term, and until this constructor existed
+    it took the ROW too: `renewed` fell 61 -> 35 in one world, so every reader counting retentions
+    (`annual_report`, `population_anchor._churn_by_year`, the company's own churn scoring) lost a
+    household that stayed. The row comes back as a `renewed` that says it was not rolled.
+
+    `departure_rolled` is False and the roll's own fields are None: there was no roll, and a number
+    in them would read as evidence for one. `realized_churn_probability` is 0.0 and that IS the
+    world's value, not a stand-in -- this term gave the household no exit route, so the probability
+    it departed here is exactly zero. The SVT segment before it carries its exit probability on its
+    own `svt_decisions` row, so `departure_population.union_by_year` adds nothing twice.
+
+    Its own occasion, not `"renewal"`: `roll_lifecycle_event` stays the sole producer of rolled
+    renewal-point events, and a reader whose denominator is rolled decisions selects by occasion
+    (or by `departure_rolled`) and excludes this by name.
+    """
+    return {
+        "customer_id": customer_id,
+        "event_date": event_date,
+        "commodity": commodity,
+        "event_type": "renewed",
+        "departure_occasion": DEPARTURE_OCCASION_SVT_CONVERSION,
+        "departure_cause": None,
+        "departure_rolled": False,
+        "churn_probability": None,
+        "win_probability": None,
+        "effective_retention_probability": None,
+        "realized_churn_probability": 0.0,
+        "random_roll": None,
+        "home_move_won": False,
+        "company_churn_estimate": company_churn_estimate,
+        "churn_estimate_error_pct": None,
+        **extra,
+    }
 
 
 def roll_lifecycle_event(

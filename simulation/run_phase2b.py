@@ -119,6 +119,7 @@ from simulation.customer_events import (
     departure_rolled_at_renewal,
     home_move_disposition,
     roll_lifecycle_event,
+    svt_conversion_event,
 )
 from simulation.demand_model import (
     build_demand_shape,
@@ -2664,6 +2665,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             })
             # A household converting OFF the SVT has no renewal-point exit: C1b's inertia hazard
             # above already carried its exits for every SVT segment (`departure_rolled_at_renewal`).
+            _rolled = departure_rolled_at_renewal(_previous_tariff_type)
             event = roll_lifecycle_event(
                 cid, term_start_str, commodity, list(all_records), _ALL_KNOWN_CUSTOMERS,
                 old_rate_gbp_per_mwh=old_decision_leg_rate,
@@ -2680,13 +2682,25 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                 # ACTUALLY cost -- `company_fwd` is the company's belief about that number and
                 # would make the rival's costs a function of the company's forecasting skill.
                 wholesale_gbp_per_mwh=forward_price,
-            ) if departure_rolled_at_renewal(_previous_tariff_type) else None
+            ) if _rolled else None
             # THE RIVAL SEES THIS OFFER ONLY AFTER THE TERM IT WAS STRUCK IN (2026-08-28, C2).
             # Recorded AFTER the roll, and read back by `position_for()` a quarter later, so no
             # offer can ever reach the reference it is itself being measured against. Recording
             # it before the roll would make the differential partly a function of itself, which
             # is the tautology R15 names first.
             _competitor_position_ledger.observe(term_start_str, unit_rate, commodity=commodity)
+            # ...but it STAYED, and the record keeps the decision. Appended here and nowhere else:
+            # the block below feeds the journey, the retention log and the departure handling, and
+            # nothing inside this loop reads `customer_events_log`, so this row changes no outcome.
+            if not _rolled:
+                customer_events_log.append(svt_conversion_event(
+                    customer_id=billing_account, event_date=term_start_str, commodity=commodity,
+                    company_churn_estimate=company_est_pre,
+                    retention_offered=retention_modifier_val is not None,
+                    is_active_renewal=active_renewal,
+                    engagement_level=_engagement_level_str,
+                    unit_rate_gbp_per_mwh=unit_rate,
+                ))
             if event is not None:
                 _journey.record_decision(
                     date.fromisoformat(term_start_str), switched=(event["event_type"] == "churned"),
@@ -3487,6 +3501,9 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         renewals_by_type[evt["event_type"]] = renewals_by_type.get(evt["event_type"], 0) + 1
     print(f"  Renewed: {renewals_by_type.get('renewed', 0)}  Churned: {renewals_by_type.get('churned', 0)}")
     for evt in customer_events_log:
+        if evt.get("departure_rolled") is False:
+            print(f"  {evt['customer_id']} {evt['event_date']}: converted off SVT, not rolled")
+            continue
         flag = " *** CHURNED ***" if evt["event_type"] == "churned" else ""
         print(
             f"  {evt['customer_id']} {evt['event_date']}: "

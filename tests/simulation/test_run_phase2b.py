@@ -597,3 +597,16 @@ def test_the_register_sees_a_drawdown_the_daily_book_cannot():
     assert re_sorted != accumulation, (
         "accumulation order and date order agree on this book, so it cannot distinguish the "
         "register from the re-sorting defect it was built against")
+
+
+def test_a_household_converting_off_the_svt_leaves_a_renewed_row_in_the_run(_phase2b_result_2017):
+    """Defect: skipping the SVT conversion's roll also dropped its row, so `renewed` undercounted.
+
+    Asserts the branch IS taken in this window (19 conversions on 2026-10-02) before asserting what
+    it writes, so a run loop that stopped appending the row cannot pass on an empty list.
+    """
+    events = _phase2b_result_2017["customer_events"]
+    unrolled = [e for e in events if e.get("departure_rolled") is False]
+    assert unrolled, "no SVT conversion was logged in 2016-2018"
+    assert all(e["event_type"] == "renewed" and e["random_roll"] is None for e in unrolled)
+    assert any(e.get("random_roll") is not None for e in events)

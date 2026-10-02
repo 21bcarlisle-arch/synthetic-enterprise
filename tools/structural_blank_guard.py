@@ -109,20 +109,19 @@ SCANNED_PACKAGES = ("company", "saas", "sim", "simulation", "tools", "background
 #: everything, and `test_the_ratchet_has_no_stale_entries` fails when an entry stops matching, so
 #: deleting a site FORCES deleting its entry. Nothing can be added without editing this file.
 #:
-#: Both entries are the SAME name collision: `churn_probability` on a `customer_events` record is
-#: the WORLD's per-event churn draw, not the company's nullable per-account estimate. Measured on
-#: `docs/reports/run_output_latest.json` at the time of writing: 58 events, 0 null and 0 missing
-#: for `churn_probability`, `realized_churn_probability` and `company_churn_estimate`. A field
-#: that is never blank cannot fold a blank into an aggregate. If that ever stops being true these
-#: become real, which is why they are ratcheted rather than filtered out by a record-type
-#: predicate the guard has no way to evaluate.
+#: `churn_probability` on a `customer_events` record is the WORLD's per-event churn draw, not the
+#: company's nullable per-account estimate. It CAN be blank since 2026-10-02: an SVT conversion is
+#: a `renewed` row with no roll (`simulation.customer_events.svt_conversion_event`), so its roll
+#: fields are None. The remaining entry is still not a defect, for a reason that is about the JOIN
+#: and not the field: it looks events up by keys from `no_offer_churn_log`, which only ever holds
+#: rolled churns, so a conversion row is never reached. If that log ever takes a retention, this
+#: becomes real -- which is why it is ratcheted rather than filtered by a record-type predicate the
+#: guard has no way to evaluate. The dashboard's entry left when it began publishing None.
 KNOWN_NON_DEFECTS = {
     "company/analytics/counterfactual_retention.py::churn_probability":
         "reads the WORLD's per-event churn draw off a `customer_events` record (name collision "
-        "with the company's nullable per-account estimate). 58/58 events populated, 0 null.",
-    "tools/generate_dashboard_data.py::churn_probability":
-        "same `customer_events` name collision, feeding the dashboard event table. 58/58 "
-        "events populated, 0 null.",
+        "with the company's nullable per-account estimate), joined only from `no_offer_churn_log`, "
+        "which holds rolled churns and never an unrolled SVT conversion.",
 }
 
 

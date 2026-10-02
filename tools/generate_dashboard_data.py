@@ -1017,8 +1017,10 @@ def extract_customers(data):
             "date": ev.get("event_date", ""),
             "type": ev.get("event_type", ""),
             "commodity": ev.get("commodity", "electricity"),
-            "sim_churn_p": round(float(ev.get("churn_probability", 0)), 3),
-            "company_est": round(float(ev.get("company_churn_estimate", 0)), 3),
+            # None on an SVT conversion, which carries no roll (`svt_conversion_event`).
+            "sim_churn_p": (round(float(ev["churn_probability"]), 3)
+                            if ev.get("churn_probability") is not None else None),
+            "company_est": round(float(ev.get("company_churn_estimate") or 0), 3),
             "retention_offered": bool(ev.get("retention_offered", False)),
             "market_signal": round(float(ev.get("market_switching_multiplier", 0)), 4),
             "realized_churn_p": round(float(ev.get("realized_churn_probability", 0)), 3),

@@ -462,7 +462,7 @@ def _decisions_by_billing_account(result: dict) -> dict[str, dict]:
                                         "successor_of": successors.get(account)})
 
     events = sorted((e for e in (result["phase2b"].get("customer_events") or [])
-                     if isinstance(e, dict) and "random_roll" in e),
+                     if isinstance(e, dict) and e.get("random_roll") is not None),
                     key=lambda e: e["event_date"])
     for event in events:
         r = row(_billing_account_id(event["customer_id"]))

@@ -2707,6 +2707,13 @@ def _customer_lifecycle_events_section(data: dict) -> str:
     lines.append("|---------|------|---------|----------|-------------|-----------|------|")
 
     for evt in events:
+        if evt.get("departure_rolled") is False:
+            # A household converting off the SVT: it stayed, and nothing was rolled to decide it.
+            lines.append(
+                f"| {evt['customer_id']} | {evt['event_date']} | {evt['event_type']} "
+                f"(converted off SVT, not rolled) | – | – | – | – |"
+            )
+            continue
         flag = " **CHURNED**" if evt["event_type"] == "churned" else ""
         lines.append(
             f"| {evt['customer_id']} | {evt['event_date']} | {evt['event_type']}{flag} "
