@@ -1741,3 +1741,69 @@ def _live_total_mb():
     total = sample()["total_mb"]
     assert total, "/proc/meminfo gave no MemTotal"
     return float(total)
+
+
+# ---------------------------------------------------------------------------
+# The quote asked BEFORE the win (`first_term_offer_fn`), 2026-10-02
+# ---------------------------------------------------------------------------
+
+def _offer_by_position(prospect, in_market):
+    """Withholds one prospect in three, quotes the rest dear or cheap by id parity. Positional
+    on the prospect id so the three states are fixed by the stream, not by the funnel."""
+    n = int("".join(ch for ch in prospect.customer_id if ch.isdigit()) or 0)
+    if n % 3 == 0:
+        return {"quoted": False, "reason": f"test: withheld {prospect.customer_id}"}
+    return {"quoted": True, "price_differential_pct": 0.5 if n % 2 else -0.5}
+
+
+def _recording_funnel(seen: dict):
+    """Wins a quote iff it arrives cheaper than the market; records the position it was read at."""
+    def _fn(segment, seed, term_start, credit_bureau, total_amount_gbp,
+            price_differential_pct=None):
+        seen[seed] = price_differential_pct
+        won = price_differential_pct is not None and price_differential_pct < 0
+        return _Result(won, 150.0 if won else 60.0, "cooling_off" if won else "application")
+    return _fn
+
+
+def test_a_quote_the_company_WITHHOLDS_is_neither_spent_nor_won_and_every_state_is_reachable():
+    """The defect: the win was decided price-blind and the rate struck afterwards, so nothing
+    could turn down a fix quoted above the default and `ACQUISITION_HELD_AT_CAP_TARIFF_TYPES`
+    had to sell it at the cap instead. With the quote asked first, a withheld prospect issues
+    no quote, spends nothing and cannot be won, and a quoted one is decided at its OWN position.
+
+    ONE CONTROL OVER THE WHOLE PARTITION -- withheld, quoted and won, quoted and lost -- because
+    a hook that withheld everything, or nothing, would pass a leg written per branch.
+    """
+    seen: dict = {}
+    out = _campaign(run_funnel=_recording_funnel(seen), first_term_offer_fn=_offer_by_position)
+    withheld = {r["prospect_id"] for r in out["quotes_withheld"]}
+    quoted = {r["prospect_id"] for r in out["spend"]}
+    won = {r["prospect_id"] for r in out["spend"] if r["won"]}
+
+    assert withheld and won and (quoted - won), (
+        f"a state of the partition is unreachable: withheld={len(withheld)} won={len(won)} "
+        f"lost={len(quoted - won)}")
+    assert not withheld & quoted, "a withheld prospect was quoted and billed"
+    assert {c.customer_id for c, _ in out["winners"]}.isdisjoint(withheld)
+    assert all(r["reason"].startswith("test: withheld") for r in out["quotes_withheld"]), (
+        "a withheld quote must carry the company's own reason")
+    row = out["by_year"][0]
+    assert row["quotes_withheld"] == len(withheld)
+    assert row["quotes_issued"] == len(quoted), (
+        "the company's quote book counted a quote it never issued -- its planner would read a "
+        "withheld quote as one the market turned down")
+
+
+def test_a_quoted_prospect_is_decided_at_ITS_OWN_position_not_the_run_level_one():
+    """Every quoted prospect reaches the funnel with the position its own offer returned, and
+    with no offer function the funnel is called exactly as before (no position passed)."""
+    seen: dict = {}
+    _campaign(run_funnel=_recording_funnel(seen), first_term_offer_fn=_offer_by_position)
+    assert seen and set(seen.values()) == {0.5, -0.5}
+
+    blind: dict = {}
+    out = _campaign(run_funnel=_recording_funnel(blind))
+    assert blind and set(blind.values()) == {None}, (
+        "with no quote the funnel must keep its own run-level position")
+    assert out["quotes_withheld"] == [] and out["by_year"][0]["quotes_withheld"] == 0

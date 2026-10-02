@@ -1068,6 +1068,7 @@ def plan_growth_campaign(
     segment_weights: Optional[Mapping[str, float]] = None,
     premise_stock_fn=None,
     quote_cutoff: str | None = None,
+    first_term_offer_fn=None,
 ) -> dict:
     """Resolve a multi-year acquisition campaign into won accounts and booked spend.
 
@@ -1099,6 +1100,16 @@ def plan_growth_campaign(
     won. `year_premise_stock` in this module is the shipped implementation; injecting it
     rather than calling it keeps the default byte-identical and lets a control hand in a
     deliberately wrong stock.
+
+    `first_term_offer_fn(prospect, in_market_date) -> dict` (default None) is the QUOTE, asked
+    BEFORE the funnel rather than struck after the win. Without it the win is decided price-blind
+    (`run_funnel` reads the run-level `PRICE_DIFFERENTIAL_PCT`, 0.0) and the rate is only struck
+    later, so nothing here can turn down a fix quoted above the default -- which is why
+    `renewal_rate_chain.ACQUISITION_HELD_AT_CAP_TARIFF_TYPES` exists. Supplied, it returns
+    `{"quoted": False, "reason": ...}` when the company declines to quote (no quote is issued,
+    nothing is spent, the home stays in the remainder) or `{"quoted": True,
+    "price_differential_pct": d}`, this prospect's own position, which the funnel's
+    quote-to-application stage reads in place of the run-level one.
 
     THE WALL, and this is the one place this module could have breached it. An earlier draft
     called `saas.growth_mandate.growth_quote_budget` directly from here -- a SIM module
@@ -1194,6 +1205,9 @@ def plan_growth_campaign(
     # said. The counts are the company's, so they cross back into its plan freely.
     quotes_issued_to_date = 0
     wins_to_date = 0
+    #: One row per prospect the company declined to quote. Kept apart from `spend` because no
+    #: quote was issued and nothing was spent: a withheld quote is not a lost one.
+    withheld: list[dict] = []
 
     for year in years:
         plan = quote_budget_fn(
@@ -1249,6 +1263,7 @@ def plan_growth_campaign(
         # Reported unsplit, an unobservable harness limit reads as company behaviour.
         funnel_wins_this_year = 0
         spent_this_year = 0.0
+        withheld_this_year = 0
 
         if quotes:
             # THE STOCK IS DRAWN WHOLE, not up to the quote count, and that is the
@@ -1293,12 +1308,28 @@ def plan_growth_campaign(
                 segment = prospect.segment
                 cost = cost_per_quote_gbp.get(segment, cost_per_quote_gbp["resi"])
                 in_market = dt.date.fromisoformat(prospect.acquisition_date)
+                offer = (first_term_offer_fn(prospect, in_market)
+                         if first_term_offer_fn is not None else None)
+                if offer is not None and not offer["quoted"]:
+                    withheld_this_year += 1
+                    withheld.append({
+                        "prospect_id": prospect.customer_id,
+                        "event_date": prospect.acquisition_date,
+                        "segment": segment,
+                        "reason": offer["reason"],
+                    })
+                    continue
                 result = run_funnel(
                     segment,
                     f"prospect_{prospect.customer_id}",
                     in_market,
                     credit_bureau,
                     total_amount_gbp=cost,
+                    # Passed only when a quote exists, so a caller with no quote keeps the
+                    # funnel's own run-level position and an injected test funnel needs no
+                    # new parameter.
+                    **({} if offer is None
+                       else {"price_differential_pct": offer["price_differential_pct"]}),
                 )
                 spent_this_year += result.total_cost_gbp
                 spend.append({
@@ -1346,7 +1377,9 @@ def plan_growth_campaign(
         net_assets -= spent_this_year
         # Booked BEFORE the record below, so `planning_on` in each year's row is the basis this
         # year was planned on -- not one retro-fitted from a total that already includes it.
-        quotes_issued_to_date += quotes
+        # A withheld quote was never issued, so it is not in the company's own quote book: counted
+        # in, it would read to the planner as a quote the market turned down.
+        quotes_issued_to_date += quotes - withheld_this_year
         # THE FUNNEL'S WINS, NOT THE BOOK'S, and this line is a WALL fix rather than a tuning
         # one (ruled 2026-08-28, see the module note at `SETTLEMENT_CUSTOMER_YEAR_BUDGET`).
         # The row's `wins` is truncated by THIS MACHINE's settlement budget, which is an
@@ -1362,7 +1395,8 @@ def plan_growth_campaign(
         wins_to_date += funnel_wins_this_year
         by_year.append({
             "year": year,
-            "quotes_issued": quotes,
+            "quotes_issued": quotes - withheld_this_year,
+            "quotes_withheld": withheld_this_year,
             "quotes_affordable": plan["quotes"],
             # FILLED BY THE SAMPLING PASS BELOW, which cannot run until the campaign's whole
             # candidate list exists. Written here as zero rather than left absent so the row's
@@ -1537,6 +1571,7 @@ def plan_growth_campaign(
         # ("did we lose these in the market, or did the machine refuse them?") is asked of
         # the whole run and not of one year.
         "funnel_wins": sum(r["funnel_wins"] for r in by_year),
+        "quotes_withheld": withheld,
         "wins_refused_by_settlement_budget": sum(
             r["wins_refused_by_settlement_budget"] for r in by_year),
     }
