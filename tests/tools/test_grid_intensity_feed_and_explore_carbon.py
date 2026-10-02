@@ -974,7 +974,8 @@ def test_the_UNWIRED_flag_is_a_DECISION_and_not_an_INERT_switch():
     `BIOMASS_DISPATCH_WIRED` is False because the correction was MEASURED to make the published
     series worse on four axes of five, not because the dispatch was never finished. This test
     holds both halves of that sentence to account: while the flag is False the published shape
-    must be exactly the flat-2,400-MW one, and flipping it must actually move the shape --
+    must be a FLAT block (at the year's mean since s27, held by its own control below), and
+    flipping it must actually move the shape --
     otherwise the flag is decoration and the day someone flips it nothing would happen.
 
     MUTATION (must fire): pass the envelope to `build_shape` regardless of the flag, or wire the
@@ -1032,10 +1033,10 @@ def test_the_published_BASIS_says_biomass_is_still_FLAT_while_the_flag_is_off():
     from sim.grid_carbon_intensity import SHAPE_BASIS
 
     if not gif.BIOMASS_DISPATCH_WIRED:
-        assert "constant 2,400 MW" in SHAPE_BASIS
+        assert "FLAT block, held at the fleet's measured annual mean" in SHAPE_BASIS
         assert "NOT dispatched" in SHAPE_BASIS
     else:
-        assert "constant 2,400 MW" not in SHAPE_BASIS
+        assert "FLAT block" not in SHAPE_BASIS
 
 
 def test_the_envelope_REACHES_the_published_feed_with_both_ends_and_the_mean():
@@ -1054,7 +1055,7 @@ def test_the_envelope_REACHES_the_published_feed_with_both_ends_and_the_mean():
     row = built["biomass_envelope_mw"]["2024"]
     assert row["floor_mw"] == 73 and row["capacity_mw"] == 3_328
     assert row["mean_mw"] == 2_143, (
-        "the mean is what makes the flat 2,400 MW assumption checkable by a reader"
+        "the mean is the flat block's level, and a reader checks it here"
     )
     assert gif.build(shape, {k: 30_000.0 for k in shape})["biomass_envelope_mw"] is None
 
@@ -1239,7 +1240,9 @@ def _shape_generate_would_build(mix, demand, agws, **knocked_out):
         coal_capacity_by_year=coal_capacity,
         thermal_floor_by_year={year: row["floor_mw"] for year, row in floors.items()},
         zero_carbon_must_run_by_period=must_run,
-        biomass_envelope_by_year=biomass if gif.BIOMASS_DISPATCH_WIRED else None,
+        biomass_envelope_by_year=(
+            biomass if gif.BIOMASS_DISPATCH_WIRED else gif.biomass_flat_at_year_mean(biomass)
+        ),
     )
     keywords.update(knocked_out)
     return build_shape(demand, renewables, **keywords)
@@ -1760,6 +1763,46 @@ def test_EMBEDDED_WIND_is_divided_by_in_the_published_feed(real_publish):
     )
     assert _published_records_carry(feed, both), (
         "the published records are not the shape that divides by embedded wind and solar"
+    )
+
+
+def test_the_published_BIOMASS_block_sits_at_the_YEARS_MEAN_not_2400_MW(real_publish):
+    """EP13 frame doc s27. The flat block carries each year's measured biomass energy. Holding it
+    at 2,400 MW must CHANGE the series (else the correction is inert).
+
+    MUTATION (must fire): in `generate()`, pass `None` where the flag is False.
+    """
+    mix, demand, agws, feed = real_publish
+    assert not _published_records_carry(
+        feed, _shape_generate_would_build(mix, demand, agws, biomass_envelope_by_year=None)), (
+        "the published records are the shape with biomass flat at 2,400 MW"
+    )
+    assert _published_records_carry(feed, _shape_generate_would_build(mix, demand, agws)), (
+        "the published records are not the shape with biomass flat at the year's mean"
+    )
+
+
+def test_the_YEAR_MEAN_block_is_FLAT_at_the_mean_and_a_year_without_an_envelope_keeps_2400():
+    """The helper sets BOTH ends to `mean_mw`, so it decides nothing about when biomass ran; a
+    year it is not given falls through `build_shape` to the flat 2,400 MW.
+
+    MUTATION (must fire): pass `floor_mw` or `capacity_mw` through instead of the mean.
+    """
+    from sim.grid_carbon_intensity import build_shape
+
+    envelope = {2024: {"capacity_mw": 3_328.0, "floor_mw": 73.0, "p1_mw": 550.0,
+                       "p99_mw": 3_219.0, "mean_mw": 2_142.0, "half_hours": 17_559.0}}
+    block = gif.biomass_flat_at_year_mean(envelope)
+    assert block == {2024: {"capacity_mw": 2_142.0, "floor_mw": 2_142.0}}
+    demand = {(d, p): 30_000.0 for d in ("2023-03-01", "2024-03-01") for p in range(1, 40)}
+    renewables = {key: 5_000.0 + 375.0 * key[1] for key in demand}
+    flat = build_shape(demand, renewables)
+    moved = build_shape(demand, renewables, biomass_envelope_by_year=block)
+    assert any(moved[k] != flat[k] for k in moved if k[0].startswith("2024")), (
+        "the year-mean block moves nothing in the year it is given"
+    )
+    assert all(moved[k] == flat[k] for k in moved if k[0].startswith("2023")), (
+        "a year with no envelope is not at the flat 2,400 MW"
     )
 
 

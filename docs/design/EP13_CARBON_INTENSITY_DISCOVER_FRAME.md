@@ -1972,3 +1972,66 @@ has no wind (killed by 1), and `generate()` reverted to solar alone with the fee
 within, because the flat block is the first candidate for the new between-day overshoot.
 (2) The 2024 level, +1.3 GW and still unattributed. No level move: the Expert Hour still has to
 weigh the shared-input share of the correlation (§22).
+
+## 27. 2026-10-02 — BIOMASS AT THE YEAR'S MEASURED MEAN: the flat block carries the right energy, and the within-day mean lands on 1.00
+
+§23 named the year's measured mean as the permitted biomass correction (an annual scalar, coal's
+grain), and §26 asked for it to be graded on between-day as well. The block stays FLAT: both
+envelope ends are set to FUELHH's `mean_mw` (`generate_grid_intensity_feed.biomass_flat_at_year_mean`),
+which `emissions_rate_t_per_mwh` collapses to a constant. So this decides nothing about WHEN
+biomass ran, and `BIOMASS_DISPATCH_WIRED` stays False. The mean was chosen on definition, as the
+one flat level that carries the year's measured biomass energy, and not on fit. `build_shape`
+used to warn `mean_mw` off as the figure a goal-seeker would reach for; that warning was about
+using it as an envelope END, and it is now worded that way. 2016 has no envelope and keeps
+2,400 MW. 2017's mean comes from Nov–Dec only (2,887 half hours). Scratch and the timestamped
+predictions are in `/var/tmp/se-ep13-s27/` (`measure.py`, `prediction.txt`). **Instrument check:**
+the reimplementation's s26 arm reproduces the committed feed's records to five places.
+
+The means for 2019–24 are 1,965 / 2,048 / 2,170 / 1,708 / 1,526 / 2,142 MW, all below 2,400. The
+`MUST_RUN_BIOMASS_MW` comment and the module's history said 2024's outturn "averages nearer
+2.7 GW". FUELHH says 2,142 MW, and both places are corrected beside the claim.
+
+**Predictions (22:28Z, before `measure.py`).** P1: within-day falls in every year by
+0.010–0.055, with the largest fall in 2023 or 2022. P2: between-day falls in every year by
+0.010–0.060, in the same rank order. P3: correlation moves <0.003. P4: the within-day mean goes
+1.02x → 0.99–1.01x and p95/p5 goes 1.18x → 1.10–1.16x. P5: 2024 moves away from 1.0, to
+0.920–0.935, and 2019–20 stay above 1.04.
+
+| published feed | 2019 | 2020 | 2021 | 2022 | 2023 | 2024 |
+|---|---|---|---|---|---|---|
+| within-day, s26 | 1.092 | 1.115 | 0.996 | 1.000 | 0.995 | 0.941 |
+| **within-day, s27** | **1.064** | **1.097** | **0.983** | **0.972** | **0.950** | **0.926** |
+| between-day, s26 → s27 | 1.065→1.048 | 1.123→1.111 | 1.006→.997 | 1.049→1.027 | 1.041→1.002 | .946→.934 |
+| correlation, s26 → s27 | .9592→.9592 | .9317→.9307 | .9659→.9658 | .9773→.9775 | .9741→.9736 | .9594→.9590 |
+| mean abs error, s26 → s27 | .063→.061 | .105→.104 | .059→.059 | .058→.056 | .071→.069 | .101→.102 |
+
+Headline: the within-day mean goes 1.02x → 1.00x, between-day 1.04 → 1.02, and p95/p5 1.18x →
+1.13x. **max/min goes 1.12x → 1.21x, which is worse and was not predicted.**
+
+**Against the predictions.** P1 held: −0.013 to −0.044, largest in 2023. P3 held (≤0.001). P4
+held. P5 held. P2 held on the sign in every year and on the size in five. **It was refuted in
+2021, at −0.009 against a −0.010 floor.** The rank held: 2023, 2022, 2019, then the rest.
+max/min is two half hours wide, and nothing here was run to say why it moved.
+
+**What it changes on the page.** Within-day is now too wide in 2019–20 and too narrow in
+2021–24. No year rounds to 1.00, so the MATCHED side of the direction control is empty. A
+shifting benefit computed here is an upper bound in 2019–20 and an understatement from 2021,
+by 0.02–0.07 of the swing. Between-day is still over 1.0 in four years of six (2019, 2020,
+2022, 2023), by 0.002–0.11.
+
+**What it does NOT establish.**
+- **Why between-day still overshoots in 2019–20.** The year mean takes out 0.01–0.04 and leaves
+  2020 at 1.11. The PS rule's foresight (§25) is the named candidate left, and it has not been
+  run on between-day.
+- **That a flat block is right.** GB's fleet runs at 0.2–3.1 GW within a year (p1–p99). Its
+  timing is an outage question, refused at condition 1 and unmodelled.
+
+**Controls.** Two new: the published records are the year-mean shape and not the 2,400 MW one;
+and the helper puts the mean at both ends, while a year it is not given keeps 2,400 MW. Two
+mutations, both killed: `generate()` passed `None`, with the feed regenerated, and the helper
+passing `capacity_mw` through as the top end. The `SHAPE_BASIS` control now asks for the
+"FLAT block, held at the fleet's measured annual mean" wording.
+
+**Next.** (1) The PS rule's foresight, graded on between-day. (2) The 2024 level, +1.3 GW and
+still unattributed. No level move: the Expert Hour still has to weigh the shared-input share of
+the correlation (§22).

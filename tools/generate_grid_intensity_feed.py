@@ -169,9 +169,12 @@ NAMED_GAPS = [
     "the must-run block is no longer a constant 8 GW -- nuclear and run-of-river hydro now come "
     "from Elexon's published half-hourly outturn (99.97% of half hours; 544 MW to 9,831 MW "
     "against the 5,600 MW this model used to assume) -- but the BIOMASS half of that block is "
-    "still a flat 2,400 MW. Biomass carries 120 gCO2/kWh on NESO's own table, so its metered "
-    "output is an emissions term and may not cross the wall; it is modelled, it is wrong (2024's "
-    "outturn averages nearer 2.7 GW and swings 1.0-3.0 GW), and it is the next thing to build",
+    "still FLAT. Since 2026-10-02 it sits at each year's measured mean output (1.5-2.2 GW over "
+    "2019-2024, against the 2,400 MW it replaced), so the year's biomass energy is right and its "
+    "timing is not: GB's fleet runs between about 0.2 and 3.1 GW within a year (p1 to p99) and "
+    "this one never moves. Biomass carries 120 gCO2/kWh on NESO's own table, so its half-hourly "
+    "output is an emissions term and may not cross the wall; when it ran is an outage question "
+    "the residual cannot answer",
     "national only -- no regional series is offered, modelled or otherwise",
     "outturn, never forecast: this grades what happened and must not judge shifting advice",
     "no loss correction is applied here and none must be applied downstream either",
@@ -207,17 +210,21 @@ NAMED_GAPS = [
 #: lets the thermal stack reach exactly zero, in 16.1% of 2024's half hours.
 ERROR_DIRECTION = (
     "The WITHIN-day range is now CLOSE and its direction is MIXED, and that is the sentence to "
-    "carry: this shape's p95/p5 spread runs about 1.18x the published series', most of it "
+    "carry: this shape's p95/p5 spread runs about 1.13x the published series', most of it "
     "between days. Split day-by-day, this shape's BETWEEN-day swing runs "
-    "(0.95-1.12x, mean 1.04) of the published series' over 2019-2024, and its WITHIN-day swing "
-    "runs (0.94-1.11x, mean 1.02): too WIDE in 2019 and 2020; MATCHED to two places in 2021 and "
-    "2022; too NARROW in 2023 and 2024; A customer can move the washing from 6pm to 2am; they "
+    "(0.93-1.11x, mean 1.02) of the published series' over 2019-2024, and its WITHIN-day swing "
+    "runs (0.93-1.10x, mean 1.00): too WIDE in 2019 and 2020; too NARROW in 2021, 2022, 2023 "
+    "and 2024; A customer can move the washing from 6pm to 2am; they "
     "cannot move it to a windier Tuesday in March -- so a time-shifting benefit computed from "
-    "this shape is an UPPER BOUND in 2019 and 2020, about right in 2021 and 2022, and an "
-    "UNDERSTATEMENT in 2023 and 2024. Two corrections set that, pulling opposite ways: the model "
+    "this shape is an UPPER BOUND in 2019 and 2020 and an UNDERSTATEMENT from 2021, by 0.02-0.07 "
+    "of the swing. Three corrections set that: the model "
     "dispatches pumped storage with perfect foresight of the day's residual, which flattens the "
-    "day by more than GB's fleet did (EP13 frame doc s25), and embedded wind now sits beside "
-    "embedded solar in the denominator, on NESO's definition, which widens it again (s26). "
+    "day by more than GB's fleet did (EP13 frame doc s25); embedded wind sits beside "
+    "embedded solar in the denominator, on NESO's definition, which widens it again (s26); and "
+    "the flat biomass block sits at each year's measured mean rather than 2,400 MW, which "
+    "narrows it a little (s27). "
+    "HOLDING BIOMASS AT THE YEAR'S MEASURED MEAN (2026-10-02) took within-day from a mean 1.02x "
+    "to 1.00x and p95/p5 from 1.18x to 1.13x, and WORSENED max/min from 1.12x to 1.21x. "
     "ADDING EMBEDDED WIND TO THE DENOMINATOR (2026-10-02) took within-day from a mean 0.98x to "
     "1.02x, p95/p5 from 1.07x to 1.18x and max/min from 0.99x to 1.12x. "
     "DISPATCHING PUMPED STORAGE (2026-10-02) took within-day from a mean 1.15x to 0.98x, p95/p5 "
@@ -605,13 +612,14 @@ def build(shape: dict, demand: dict, *, window_days: int = RECORD_WINDOW_DAYS,
         ),
         # THE BIOMASS ENVELOPE, PUBLISHED AS A MEASUREMENT AND NOT AS AN INPUT. `capacity_mw`
         # and `floor_mw` are what the fleet was observed at its highest and lowest that year;
-        # `mean_mw` is where it actually spent its time. NONE of them reaches the shape above --
-        # see `BIOMASS_DISPATCH_WIRED` for the measurement that decided that and for why the
+        # `mean_mw` is where it actually spent its time. Only the mean reaches the shape, as the
+        # flat block's level (`biomass_flat_at_year_mean`); the ends do not -- see `BIOMASS_DISPATCH_WIRED` for the measurement that decided that and for why the
         # answer is an outage model rather than a tidier percentile.
         #
         # IT IS PUBLISHED ANYWAY, AND THAT IS THE POINT OF PUBLISHING IT: the basis line says
-        # biomass is held at a constant 2,400 MW, and these rows are how a reader checks how
-        # wrong that is without taking this project's word for it. A named gap with its size
+        # biomass is a flat block at the year's mean (`mean_mw`, the one figure here that DOES
+        # reach the shape, since s27), and the ends are how a reader checks how far from flat
+        # GB's fleet ran without taking this project's word for it. A named gap with its size
         # beside it is a different artefact from a named gap alone.
         "biomass_envelope_mw": (
             None if biomass_envelope_by_year is None
@@ -711,6 +719,27 @@ def build(shape: dict, demand: dict, *, window_days: int = RECORD_WINDOW_DAYS,
 #: for biomass -- the only carbon-carrying term in the must-run block -- a lower floor errs PAST
 #: it, into a cleaner clean end. Same doctrine, opposite fuel, opposite direction.
 BIOMASS_DISPATCH_WIRED = False
+
+
+def biomass_flat_at_year_mean(
+    envelope_by_year: dict[int, dict[str, float]],
+) -> dict[int, dict[str, float]]:
+    """The flat biomass block, held at each year's MEASURED mean instead of 2,400 MW (EP13 s27).
+
+    Both ends of the envelope are set to `mean_mw`, which `emissions_rate_t_per_mwh` collapses
+    to a constant: the block is still flat, so this decides nothing about WHEN biomass ran and
+    the dispatch question `BIOMASS_DISPATCH_WIRED` refuses stays refused. The mean is the one
+    value of a flat block that carries the year's measured biomass energy, so it is chosen on
+    definition (coal's grain: one scalar a year), not on fit. Before 2026-10-02 the docstring of
+    `build_shape` warned `mean_mw` off as the number a goal-seeker would reach for; that warning
+    was about using it as an envelope END, where it fits better than either honest end. A year
+    with no envelope (2016) is absent here and keeps the flat 2,400 MW. 2017's mean is from
+    2,887 half hours, the end of that year only, and is published beside the feed as such.
+    """
+    return {
+        year: {"capacity_mw": float(row["mean_mw"]), "floor_mw": float(row["mean_mw"])}
+        for year, row in envelope_by_year.items()
+    }
 
 
 def fuel_mix() -> tuple[
@@ -825,6 +854,7 @@ def generate(out_path: Path | None = None) -> dict:
     # excludes them, yet GB generated them (s20). The wind is TRANSMISSION-METERED (s21).
     # PUMPED STORAGE is dispatched by the model from four annual scalars (s25). EMBEDDED WIND
     # joins solar in the denominator, on NESO's definition (s26).
+    # BIOMASS stays a flat block, at the year's measured mean rather than 2,400 MW (s27).
     agws = json.loads(AGWS_CACHE.read_text(encoding="utf-8"))
     renewables = transmission_wind_by_period(agws)
     (imports, coal_capacity, coverage, thermal_floors, must_run, must_run_coverage,
@@ -836,7 +866,9 @@ def generate(out_path: Path | None = None) -> dict:
         coal_capacity_by_year=coal_capacity,
         thermal_floor_by_year={y: r["floor_mw"] for y, r in thermal_floors.items()},
         zero_carbon_must_run_by_period=must_run,
-        biomass_envelope_by_year=biomass_envelope if BIOMASS_DISPATCH_WIRED else None,
+        biomass_envelope_by_year=(
+            biomass_envelope if BIOMASS_DISPATCH_WIRED else biomass_flat_at_year_mean(biomass_envelope)
+        ),
         embedded_generation_by_period=embedded_generation_by_period(agws),
         exports_by_period=exports_by_period(),
         pumped_storage_by_year=pumped_storage_by_year(),

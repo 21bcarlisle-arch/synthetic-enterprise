@@ -307,8 +307,9 @@ a diagnostic and never a target, and where a date and a test conflict the date i
 THE NEXT GAP IS NAMED AND SIZED, and it is the other half of the same block. BIOMASS is still a
 flat 2,400 MW. It may NOT be handed over the way nuclear and hydro were — it carries 120
 gCO2/kWh on NESO's own table, so its metered output is an emissions term and condition 1 above
-refuses it — and it is wrong in a way that is now measurable: 2024's published outturn averages
-nearer 2.7 GW and swings 1.0-3.0 GW. Closing it means MODELLING biomass dispatch (a CfD-supported
+refuses it — and it is wrong in a way that is now measurable. (This paragraph first said 2024's
+outturn averages nearer 2.7 GW; the FUELHH mean is 2,142 MW, p1-p99 550-3,219 MW. Since
+2026-10-02 the flat block sits at each year's measured mean, EP13 frame doc s27.) Closing it means MODELLING biomass dispatch (a CfD-supported
 plant that is price-responsive but not merit-ordered like gas), not reading it. That is a harder
 build than this one and it is the honest next step rather than a fourth availability series.
 
@@ -356,8 +357,9 @@ SHAPE_BASIS = (
     "CCGT+OCGT fleet's demonstrated annual MINIMUM output, so no half hour is dispatched with no "
     "gas running at all; and the zero-carbon must-run block taken from Elexon's published "
     "half-hourly NUCLEAR+NPSHYD outturn where it exists (99.97% of half hours) rather than "
-    "assumed flat, with the biomass share of that block still modelled at a constant 2,400 MW "
-    "-- the fleet's demonstrated annual envelope is now measured and published beside this "
+    "assumed flat, with the biomass share of that block still modelled as a FLAT block, held at "
+    "the fleet's measured annual mean output (a constant 2,400 MW before 2026-10-02, and still "
+    "for 2016, which has no measurement) -- the fleet's demonstrated annual envelope is now measured and published beside this "
     "series as a diagnostic, and is NOT dispatched, because doing so was measured to make the "
     "series worse on four axes of five (see `generate_grid_intensity_feed.BIOMASS_DISPATCH_WIRED`). "
     "Pumped storage is dispatched by the model, a daily water-fill against its own residual, from "
@@ -388,9 +390,10 @@ MUST_RUN_EMISSIONS_RATE_T_PER_MWH = MUST_RUN_BIOMASS_SHARE * BIOMASS_G_CO2_PER_K
 #:
 #:   * `MUST_RUN_BIOMASS_MW` STAYS MODELLED. Biomass carries 120 gCO2/kWh on NESO's own table, so
 #:     handing over its metered output would hand over an emissions term -- the one thing the
-#:     boundary exists to stop -- and Drax is dispatchable besides. It is wrong (2024's outturn
-#:     averages nearer 2.7 GW and swings 1.0-3.0 GW) and it is left wrong ON PURPOSE, so that this
-#:     build changes exactly one variable and the measurement below means what it says.
+#:     boundary exists to stop -- and Drax is dispatchable besides. Since 2026-10-02 it is only
+#:     the FALLBACK for a year with no measured envelope (2016): the published feed holds the
+#:     flat block at each year's measured mean (`generate_grid_intensity_feed.
+#:     biomass_flat_at_year_mean`, EP13 frame doc s27).
 #:   * `MUST_RUN_ZERO_CARBON_MW` IS THE FALLBACK ONLY. It is what a half hour gets when the
 #:     published nuclear+hydro outturn is absent for it, and it is precisely the number the whole
 #:     series used before 2026-08-26.
@@ -813,8 +816,9 @@ def build_shape(
         # THE WHOLE RECORD IS NEVER PASSED DOWN. `capacity_mw` and `floor_mw` are unpacked here,
         # so the diagnostics beside them (`p1_mw`, `p99_mw`, `mean_mw`) cannot reach the dispatch
         # by accident -- the same guard `thermal_floor_by_year`'s unpacking already provides, and
-        # it matters more here because `mean_mw` is the number a goal-seeking author would reach
-        # for and it would fit the published series better than either honest end (R12/R13).
+        # it matters more here because `mean_mw` used as an END is the number a goal-seeking
+        # author would reach for (R12/R13). The generator may pass mean as BOTH ends, which is a
+        # flat block at the year's measured energy, not a dispatch (EP13 frame doc s27).
         envelope = (biomass_envelope_by_year or {}).get(year)
         embedded_mw = 0.0
         if embedded_generation_by_period is not None:
