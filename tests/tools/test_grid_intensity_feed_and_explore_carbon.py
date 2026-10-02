@@ -773,21 +773,22 @@ def test_the_WITHIN_DAY_FIGURES_QUOTED_in_ERROR_DIRECTION_are_the_MEASURED_ones(
 
     # THE DIRECTION OF THE CLAIM, not only its arithmetic. Until s25 the sentence said within-day
     # was too wide in every year and this asserted `min(within) > max(between)`; pumped storage
-    # made that false, and the control went red as it should. The claim is now per year (too
-    # WIDE in some, too NARROW in others), so the years the sentence names on each side are read
-    # back and held against the measurement. A year can sit on neither side only at exactly 1.0.
-    wide = re.search(r"too WIDE in ([^;]*);", gif.ERROR_DIRECTION)
-    narrow = re.search(r"too NARROW in ([^;]*);", gif.ERROR_DIRECTION)
-    assert wide and narrow, "ERROR_DIRECTION no longer names its wide and narrow years"
-    named_wide = set(re.findall(r"\d{4}", wide.group(1)))
-    named_narrow = set(re.findall(r"\d{4}", narrow.group(1)))
-    within = {y: versus["by_year"][y]["within_day_swing_overstated_by"] for y in years}
-    assert named_wide == {y for y, v in within.items() if v > 1.0}, (
-        f"ERROR_DIRECTION names {sorted(named_wide)} as too wide; the feed measures {within}"
-    )
-    assert named_narrow == {y for y, v in within.items() if v < 1.0}, (
-        f"ERROR_DIRECTION names {sorted(named_narrow)} as too narrow; the feed measures {within}"
-    )
+    # made that false, and the control went red as it should. The claim is now per year, read at
+    # the two places the sentence prints: too WIDE, MATCHED, or too NARROW. Embedded wind (s26)
+    # put 2022 at 1.0003, where an unrounded `> 1.0` would have called it too wide. Every headline
+    # year must sit on exactly one side, and a side the sentence omits is a side with no year.
+    within = {y: round(versus["by_year"][y]["within_day_swing_overstated_by"], 2) for y in years}
+    sides = {
+        "too WIDE": {y for y, v in within.items() if v > 1.0},
+        "MATCHED to two places": {y for y, v in within.items() if v == 1.0},
+        "too NARROW": {y for y, v in within.items() if v < 1.0},
+    }
+    for label in ("too WIDE", "MATCHED to two places", "too NARROW"):
+        found = re.search(label + r" in ([^;]*);", gif.ERROR_DIRECTION)
+        named = set(re.findall(r"\d{4}", found.group(1))) if found else set()
+        assert named == sides[label], (
+            f"ERROR_DIRECTION names {sorted(named)} as {label}; the feed measures {within}"
+        )
 
 
 def test_the_stated_ERROR_DIRECTION_does_not_contradict_the_NAMED_GAPS_beside_it():
@@ -1231,7 +1232,7 @@ def _shape_generate_would_build(mix, demand, agws, **knocked_out):
     imports, coal_capacity, _coverage, floors, must_run, _mrc, biomass = mix
     renewables = knocked_out.pop("renewables", None) or gif.transmission_wind_by_period(agws)
     keywords = dict(
-        embedded_generation_by_period=gif.aggregate_solar_generation(agws),
+        embedded_generation_by_period=gif.embedded_generation_by_period(agws),
         exports_by_period=_exports(),
         pumped_storage_by_year=_pumped_storage(),
         imports_by_period=imports,
@@ -1742,6 +1743,44 @@ def test_PUMPED_STORAGE_is_dispatched_in_the_published_feed(real_publish):
     assert _published_records_carry(feed, dispatched), (
         "the published records are not the shape that dispatches pumped storage"
     )
+
+
+def test_EMBEDDED_WIND_is_divided_by_in_the_published_feed(real_publish):
+    """EP13 frame doc s26. INDO is net of embedded wind as it is of embedded solar, so NESO's
+    denominator carries both. Dividing by solar alone must CHANGE the series (else it is inert).
+
+    MUTATION (must fire): in `generate()`, hand `build_shape` `aggregate_solar_generation(agws)`.
+    """
+    mix, demand, agws, feed = real_publish
+    both = _shape_generate_would_build(mix, demand, agws)
+    solar_only = _shape_generate_would_build(
+        mix, demand, agws, embedded_generation_by_period=gif.aggregate_solar_generation(agws))
+    assert not _published_records_carry(feed, solar_only), (
+        "the published records are the shape whose denominator carries embedded solar only"
+    )
+    assert _published_records_carry(feed, both), (
+        "the published records are not the shape that divides by embedded wind and solar"
+    )
+
+
+def test_EMBEDDED_GENERATION_adds_NESO_wind_to_solar_and_leaves_out_a_half_hour_NESO_lacks(
+        monkeypatch):
+    """Both branches of `embedded_generation_by_period`, asserted reachable before what they do:
+    a half hour NESO covers reads solar PLUS its wind, and one NESO does not cover is absent from
+    the map (which `build_shape` skips), never present at solar alone.
+
+    MUTATION (must fire): return solar where NESO has no wind, or drop the wind from the sum.
+    """
+    from sim import neso_embedded_generation as embedded
+
+    monkeypatch.setattr(gif, "aggregate_solar_generation",
+                        lambda _agws: {("2024-06-01", 24): 3000.0, ("2024-06-01", 25): 2900.0})
+    monkeypatch.setattr(embedded, "load_cached", lambda: [])
+    monkeypatch.setattr(embedded, "to_settlement_periods",
+                        lambda _records: {("2024-06-01", 24): {"wind_mw": 1500.0}})
+    got = gif.embedded_generation_by_period([])
+    assert ("2024-06-01", 24) in got and ("2024-06-01", 25) not in got, got
+    assert got[("2024-06-01", 24)] == 4500.0
 
 
 def test_the_published_feed_subtracts_TRANSMISSION_METERED_wind_not_AGWS(real_publish):
