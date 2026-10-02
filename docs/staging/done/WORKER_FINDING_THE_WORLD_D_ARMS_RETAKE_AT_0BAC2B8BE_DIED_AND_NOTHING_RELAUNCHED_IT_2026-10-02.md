@@ -1,5 +1,7 @@
 **Severity:** LATENT · **Lane:** W2_customer_generator · **Epoch:** 3 · **Atom:** none
 
+**SPENT 2026-10-02 06:06 BST, and the title is now false.** Another lane relaunched the retake while this was gating: `513d2a4b6` runs arms then floor in one unit (`longjob-arms-floor-d-head-1002b`, active), at `f18e8b5dc`, with a prereg addendum. That is the re-pointing this file asked for. Kept for the record and moved to done/.
+
 # The world-D arms retake at 0bac2b8be died overnight, and nothing has relaunched it
 
 Found 2026-10-02 ~04:45Z by the scheduled worker, while it was landing PB4's surface. Nothing
