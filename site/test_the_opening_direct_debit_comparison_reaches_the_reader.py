@@ -78,6 +78,7 @@ def _render(feed: dict) -> dict:
                     "unavailable check is a FAILED check (R15)")
     payload = {
         "../data/dd_opening_arms.json": feed,
+        "../data/engagement_separation.json": published_json("site/data/engagement_separation.json"),
         "../data/value_arms.json": published_json(ARMS_REL),
         "../data/book_growth.json": published_json(GROWTH_REL),
         "../data/capabilities_door.json": published_json(CAPS_REL),

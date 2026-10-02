@@ -5040,6 +5040,13 @@ def _generate_dashboard_json(json_path, git_hash="unknown"):
         from tools.generate_customer_sample import generate as gen_sample
         gen_sample(json_path)
         log("Generated site/data/customer_sample.json")
+    # PB4's surface (2026-10-02): a reading of the world's draw, not of the run, so it moves only
+    # when the world code does -- regenerated here so it follows that code rather than only going
+    # red in tests/tools/test_engagement_separation.py when it drifts.
+    with _ledger.step("Engagement separation", ["site/data/engagement_separation.json"]):
+        from tools.engagement_separation import write as gen_engagement
+        gen_engagement()
+        log("Generated site/data/engagement_separation.json")
     # R11 no-orphan-transition fix (2026-07-14, surfaced by SITE1 Director-door
     # cold-eyes): these two generators were NOT wired into the pipeline, so
     # site/data/director_twin.json + provisional_plan.json froze/drifted after

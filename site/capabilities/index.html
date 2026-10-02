@@ -4590,6 +4590,104 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
     });
 })();
 </script>
+<!-- WHETHER A HOUSEHOLD SHOPS IS NOT HOW FAR PRICE MOVES IT (PB4). Until this section the world
+     drew the two apart and nothing showed a reader that it did. Every figure is fetched from
+     ../data/engagement_separation.json, written by tools/engagement_separation.py; none is
+     authored here. -->
+<section id="engagement-separation" style="max-width:760px;margin:0 auto;padding:0 24px 24px;">
+  <h2 class="sec">Does a household that never shops not care about price?</h2>
+  <p class="sec-lede">Most households never switch, and it is tempting to read that as not caring
+  what they pay. The simulated world keeps two things apart: whether a household looks at all when
+  its deal ends, and how much a price difference moves it once it does look.</p>
+  <p id="engsep-headline" style="margin:0 0 10px;font-weight:600;"></p>
+  <div id="engsep-archetype"></div>
+  <div id="engsep-channel"></div>
+  <p id="engsep-construction" style="margin:14px 0 0;font-size:13px;"></p>
+  <p id="engsep-gap" style="margin:10px 0 0;font-size:13px;"></p>
+  <p id="engsep-note" class="stamp" style="margin-top:12px;"></p>
+</section>
+<script>
+/* Its own fetch and its own IIFE. On any failure every figure is ABSENT with a stated reason,
+   never zero. */
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var esc = function (s) {
+    return String(s == null ? "" : s).replace(/[&<>"]/g, function (c) {
+      return ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c];
+    });
+  };
+  var prose = function (s) { return esc(s).replace(/ -- /g, " &mdash; "); };
+  var pct = function (v) { return (100 * Number(v)).toFixed(1) + "%"; };
+  /* A mean and its bound are one string, as in the direct-debit section above. */
+  var withBound = function (stat) {
+    if (!stat || !stat.n) return "&mdash;";
+    var m = Number(stat.mean).toFixed(2);
+    if (!stat.ci95) {
+      return esc(m) + " <span style=\"color:var(--muted)\">(n=" + esc(stat.n)
+        + ", too few to bound)</span>";
+    }
+    return esc(m) + " <span style=\"color:var(--muted)\">(95% " + esc(Number(stat.ci95[0]).toFixed(2))
+      + " to " + esc(Number(stat.ci95[1]).toFixed(2)) + ")</span>";
+  };
+  var labels = {
+    active: "Active", passive: "Passive", disengaged: "Disengaged",
+    direct_debit: "Direct debit", standard_credit: "Pays on receipt of bill",
+    prepayment: "Prepayment"
+  };
+  var table = function (caption, first, groups, key) {
+    var head = '<tr><th style="text-align:left;padding:4px 8px 4px 0;">' + first + '</th>'
+      + '<th style="text-align:right;padding:4px 8px;">Households</th>'
+      + '<th style="text-align:right;padding:4px 8px;">Looks when the deal ends</th>'
+      + '<th style="text-align:right;padding:4px 8px;">Price sensitivity</th>'
+      + '<th style="text-align:right;padding:4px 0 4px 8px;">Above the book average</th></tr>';
+    var body = (groups || []).map(function (g) {
+      return '<tr><td style="padding:4px 8px 4px 0;">' + esc(labels[g[key]] || g[key])
+        + '</td><td style="padding:4px 8px;text-align:right;">' + esc(g.n)
+        + '</td><td style="padding:4px 8px;text-align:right;">' + esc(pct(g.engagement_mean))
+        + '</td><td style="padding:4px 8px;text-align:right;">' + withBound(g.elasticity)
+        + '</td><td style="padding:4px 0 4px 8px;text-align:right;">'
+        + esc(g.above_book_mean_elasticity) + ' of ' + esc(g.n) + '</td></tr>';
+    }).join("");
+    return '<div class="table-scroll">'
+      + '<table style="width:100%;border-collapse:collapse;margin:16px 0 0;font-size:13px;">'
+      + '<caption style="text-align:left;font-weight:600;padding-bottom:6px;">' + caption
+      + '</caption>' + head + body + '</table></div>';
+  };
+
+  fetch("../data/engagement_separation.json?t=" + Date.now())
+    .then(function (r) { return r.json(); })
+    .then(function (d) {
+      if (!d.available) {
+        $("engsep-note").textContent = "The engagement reading is not available, so it is absent "
+          + "rather than empty. " + (d.reason || "");
+        return;
+      }
+      $("engsep-headline").innerHTML = prose(d.headline);
+      $("engsep-archetype").innerHTML = table(
+        "By how inclined a household is to shop", "Disposition", d.by_archetype, "archetype");
+      $("engsep-channel").innerHTML = table(
+        "By how a household pays (the part a supplier can see)", "Pays by", d.by_channel, "channel");
+      $("engsep-construction").innerHTML = "<strong>What this does and does not show.</strong> "
+        + prose(d.by_construction) + " Looks when the deal ends: " + prose(d.definitions.engagement)
+        + ". Price sensitivity: " + prose(d.definitions.elasticity) + ".";
+      var bs = d.bill_shock_amplitude || {};
+      $("engsep-gap").innerHTML = bs.established
+        ? "<strong>A bill shock</strong> multiplies how likely a household is to look by "
+          + esc(bs.value) + "."
+        : "<strong>What is not known: how much a bill shock makes a household look.</strong> "
+          + "The world can say which households were shocked but carries no figure for how much "
+          + "more likely that makes them to shop, because " + prose(bs.gap) + ".";
+      var stamp = d.published_from || {};
+      $("engsep-note").textContent = "Measured over " + d.households + " households on the "
+        + "simulated book, seed " + d.run_base_seed + ", at commit "
+        + String(stamp.commit || "unknown").slice(0, 9) + ", " + (d.generated_at || "at an unknown time") + ".";
+    })
+    .catch(function (err) {
+      $("engsep-note").textContent = "The engagement reading could not be loaded (" + err
+        + "). The figures are absent, not zero.";
+    });
+})();
+</script>
 <section style="max-width:760px;margin:0 auto;padding:0 24px 48px;">
   <h2 style="font-size:15px;margin:32px 0 10px;">The supplier's own operating detail</h2>
   <p style="margin-bottom:14px;">

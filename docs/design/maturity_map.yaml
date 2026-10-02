@@ -1416,9 +1416,9 @@
   epoch: 3
   # L0->L1 2026-09-15, recorded in gate_authorizations.jsonl. NOT L2, and NOT for want of a
   # build: read this atom's `level_hold_note` in the store before re-deriving either half.
-  level_current: 1
+  level_current: 2
   level_target: 3
-  loop_stage: build
+  loop_stage: harden
   dial_inherited: 45    # R1 -- DIRECTOR_CANON_RERANKING_THE_ARC_2026-09-04 §2/§5.
   provenance: director_ruling
   depends_on: []
@@ -1428,7 +1428,7 @@
   # never updated. A named control that is not on disk is a row nothing can grade -- which is
   # why this atom sat at level 0 with its work landed. `tools/level_zero_contradicted_by_its_
   # own_controls.py` reports that shape rather than grading the survivors.
-  file_scope: ['simulation/household_segments.py', 'simulation/payment_behaviour_source.py', 'tests/simulation/test_payment_channel_carries_the_engagement_antecedent.py', 'simulation/experienced_bill_shock.py', 'simulation/departure_risks.py', 'saas/churn_model.py', 'saas/customer_reaction.py']
+  file_scope: ['simulation/household_segments.py', 'simulation/payment_behaviour_source.py', 'tests/simulation/test_payment_channel_carries_the_engagement_antecedent.py', 'simulation/experienced_bill_shock.py', 'simulation/departure_risks.py', 'saas/churn_model.py', 'saas/customer_reaction.py', 'tools/engagement_separation.py', 'site/test_engagement_separated_from_elasticity_reaches_the_reader.py']
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "the GB retail market's actual switching record: roughly half the domestic book has never switched supplier, and a large part of that half moves when a bill shock or a cap headline makes them look -- disengagement is an attention fact and the price response underneath it is a separate, and often large, quantity"
 - id: PB6_the_engagement_observable_crosses_the_seam

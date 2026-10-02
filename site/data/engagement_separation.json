@@ -1,0 +1,144 @@
+{
+  "available": true,
+  "generated_at": "2026-10-02T05:30:57Z",
+  "published_from": {
+    "commit": "513d2a4b6a8ea094d3196b683990d83c9d3c3403",
+    "tree_was_clean": false,
+    "inputs_are_the_committed_bytes": false,
+    "inputs": [
+      {
+        "path": "simulation/household_segments.py",
+        "state": "committed"
+      },
+      {
+        "path": "simulation/population_draw.py",
+        "state": "committed"
+      },
+      {
+        "path": "simulation/live_population.py",
+        "state": "committed"
+      },
+      {
+        "path": "tools/engagement_separation.py",
+        "state": "not_in_the_commit"
+      }
+    ],
+    "reason": "read off the working tree, not out of this commit: tools/engagement_separation.py \u2014 standing at this commit will not reproduce this feed"
+  },
+  "headline": "Of the 31 disengaged households on the book -- the ones who almost never shop at a renewal -- 12 are MORE price-sensitive than the book's average household. Whether a household shops and how far price moves it once it does are two different facts in this world: across 123 households their rank correlation is -0.07, inside the -0.18 to +0.18 that shuffling the pairs produces.",
+  "definitions": {
+    "engagement": "the probability a household enters a choice at a fixed-term renewal: its persistent disposition to shop, times how much more or less its payment method shops (Ofgem Consumer Impacts of Market Conditions survey, wave 6)",
+    "elasticity": "how far a price gap moves a household once it is choosing, as a weight whose average over the book is 1.0"
+  },
+  "by_construction": "The two are drawn independently for every household, so a correlation near zero is what the world is built to produce; the figure checks the build, it does not discover anything about real households. What it shows a reader is the consequence: disengagement here is not price-insensitivity.",
+  "bill_shock_amplitude": {
+    "established": false,
+    "value": null,
+    "gap": "no published study gives it; the nearest published figures (Ofgem's survey of households in arrears or finding bills hard to pay) describe a household's circumstances rather than its response to an event, and cannot be separated from the payment-method effect the world already applies; and the bill's size is not the trigger -- in 2022 every bill rose and switching collapsed",
+    "code_gap": "the amplitude by which a bill-shock event raises engagement is not established in the published record: no source gives it, the closest published magnitudes (Ofgem CIM w6 Table 56, arrears 1.6x / bill difficulty 1.7x) are ratios over a STATE rather than responses to an EVENT and are unseparated from the payment-channel effect this module already applies, and the bill-LEVEL form was refuted on 2026-09-22 (docs/market_research/is_there_a_bill_level_at_which_switching_rises.md \u00a76)"
+  },
+  "households": 123,
+  "run_base_seed": 20260724,
+  "book_mean_elasticity": 0.9924,
+  "by_archetype": [
+    {
+      "archetype": "active",
+      "n": 49,
+      "engagement_mean": 0.6358,
+      "elasticity": {
+        "mean": 1.03,
+        "ci95": [
+          0.8129,
+          1.2471
+        ],
+        "n": 49
+      },
+      "above_book_mean_elasticity": 19
+    },
+    {
+      "archetype": "passive",
+      "n": 43,
+      "engagement_mean": 0.1518,
+      "elasticity": {
+        "mean": 0.9967,
+        "ci95": [
+          0.8037,
+          1.1897
+        ],
+        "n": 43
+      },
+      "above_book_mean_elasticity": 19
+    },
+    {
+      "archetype": "disengaged",
+      "n": 31,
+      "engagement_mean": 0.0201,
+      "elasticity": {
+        "mean": 0.927,
+        "ci95": [
+          0.7805,
+          1.0734
+        ],
+        "n": 31
+      },
+      "above_book_mean_elasticity": 12
+    }
+  ],
+  "by_channel": [
+    {
+      "channel": "direct_debit",
+      "n": 91,
+      "engagement_mean": 0.3335,
+      "elasticity": {
+        "mean": 0.9523,
+        "ci95": [
+          0.8127,
+          1.0919
+        ],
+        "n": 91
+      },
+      "above_book_mean_elasticity": 33
+    },
+    {
+      "channel": "standard_credit",
+      "n": 14,
+      "engagement_mean": 0.2869,
+      "elasticity": {
+        "mean": 0.9258,
+        "ci95": [
+          0.6813,
+          1.1703
+        ],
+        "n": 14
+      },
+      "above_book_mean_elasticity": 6
+    },
+    {
+      "channel": "prepayment",
+      "n": 18,
+      "engagement_mean": 0.2185,
+      "elasticity": {
+        "mean": 1.2468,
+        "ci95": [
+          0.9828,
+          1.5108
+        ],
+        "n": 18
+      },
+      "above_book_mean_elasticity": 11
+    }
+  ],
+  "association": {
+    "rho": -0.0701,
+    "n": 123,
+    "null_low": -0.1799,
+    "null_high": 0.1844,
+    "outside_the_null": false,
+    "permutations": 2000
+  },
+  "disengaged_but_price_sensitive": {
+    "disengaged": 31,
+    "above_book_mean_elasticity": 12,
+    "max_elasticity": 1.7751
+  }
+}

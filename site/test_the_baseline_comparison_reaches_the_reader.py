@@ -236,6 +236,7 @@ def _render(feed: dict, growth: dict | None = None, raw: bool = False) -> dict:
         # caller did not supply, so every feed the door fetches has to be supplied here
         # or this control reds on a page that is fine.
         "../data/dd_opening_arms.json": _published_json(DD_ARMS_REL),
+        "../data/engagement_separation.json": _published_json("site/data/engagement_separation.json"),
         "../data/book_growth.json": (
             _published_json(GROWTH_REL) if growth is None else growth),
         "../data/capabilities_door.json": _published_json(CAPS_REL),

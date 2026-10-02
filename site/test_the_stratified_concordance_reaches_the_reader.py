@@ -169,6 +169,7 @@ def _render(arms: dict) -> dict:
         "../data/capabilities_door.json": published_json(CAPS_REL),
         "../data/book_growth.json": published_json(GROWTH_REL),
         "../data/dd_opening_arms.json": published_json(DD_ARMS_REL),
+        "../data/engagement_separation.json": published_json("site/data/engagement_separation.json"),
     }
     proc = subprocess.run(
         ["node", str(HARNESS), str(published_file(DOOR_REL))],
