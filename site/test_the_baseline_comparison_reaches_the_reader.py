@@ -5427,6 +5427,18 @@ def test_the_figure_from_the_world_that_is_live_reaches_the_reader_and_never_as_
             "for it, which is silence a reader cannot tell from having nothing to say")
         return
 
+    # THE FOURTH STATE (2026-10-02): the later run, in this world, but not HEAD's code. The
+    # generator's `_current_world_clause` goes silent on `is_heads_code is False`, and this rung
+    # had no branch for it until the arms moved onto a run that is the later one AND older code.
+    if cw.get("is_heads_code") is False:
+        assert "IN THE WORLD AS IT IS NOW" not in rendered, (
+            "the headline claims currency for a run whose code is not HEAD's: {}".format(
+                (cw.get("code_since_the_run") or {}).get("why")))
+        assert "is not a statement about the world as it is now" in (
+            cw.get("why_the_headline_omits_it") or ""), (
+            "the headline is silent about a run withdrawn for its code and the feed does not say so")
+        return
+
     advantage = cw.get("value_advantage_gbp")
     assert isinstance(advantage, (int, float)), (
         "the current-world block is available and carries no advantage figure, so the page has "

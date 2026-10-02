@@ -242,8 +242,13 @@ THREE_ARM_PATH = PROJECT / "docs" / "observability" / "value_cycle_ab_s1_three_a
 #: MOVED 2026-10-01 TOGETHER WITH `CURRENT_WORLD_NOISE_FLOOR_PATH`, to world `cf823b185f8ca51c`:
 #: the PB4 bill-shock swap refits the level anchor, so every run above belongs to a world the
 #: tree no longer runs. Both artefacts were produced by one tree (origin `0407ce0e3` + the swap).
+#:
+#: MOVED 2026-10-02 TOGETHER WITH `CURRENT_WORLD_NOISE_FLOOR_PATH`, same world: the 10-01 pair ran
+#: the renewal foresight leak and the SVT segment above the cap. Both `20261002b` artefacts were
+#: produced by the locked clean tree at `f18e8b5dc`; `_code_since_the_run` decides whether that is
+#: still HEAD's code, so a later book-moving commit withdraws the currency claim on its own.
 CURRENT_WORLD_THREE_ARM_PATH = (
-    PROJECT / "docs" / "observability" / "value_cycle_ab_s1_three_arm_20261001.json")
+    PROJECT / "docs" / "observability" / "value_cycle_ab_s1_three_arm_20261002b.json")
 #: The spread `error_bar` is built from -- the block that owns the page's SELECTION VERDICT, the
 #: one sentence the mission turns on. NOT the same constant as `CURRENT_WORLD_NOISE_FLOOR_PATH`
 #: below, and the difference cost a turn: the 2026-09-17 write-up named THAT constant as the thing
@@ -537,8 +542,10 @@ AUC_FAMILY_SOURCE = "the 12-seed AUC-carrying floor of 2026-09-17"
 #: MOVED 2026-10-01 with `CURRENT_WORLD_THREE_ARM_PATH`, to the 3-seed `--redraw-mode all` floor
 #: of world `cf823b185f8ca51c`, from the same tree as the arms. Back to n=3: no wider family exists
 #: in this world yet, and a 9-draw bound from a superseded world bounds nothing here.
+#: MOVED 2026-10-02 with `CURRENT_WORLD_THREE_ARM_PATH`, to the same 3-seed family re-drawn by the
+#: `f18e8b5dc` tree that ran the arms.
 CURRENT_WORLD_NOISE_FLOOR_PATH = (
-    PROJECT / "docs" / "observability" / "value_cycle_ab_s1_noise_floor_20261001.json")
+    PROJECT / "docs" / "observability" / "value_cycle_ab_s1_noise_floor_20261002b.json")
 #: The ONE redraw mode whose seed spread bounds the published contrast, in the undecomposed
 #: artefact's own words (`redraw_scope.means`): "every household re-drawn -- the undecomposed
 #: floor, and the only mode whose spread bounds the published figure directly".
