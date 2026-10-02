@@ -146,3 +146,64 @@ Other readers checked and left alone:
   `churn_probability`.
 
 **Still owed:** item one on origin, then the P1–P6 runs at one commit, then the flip.
+
+## P1–P6 graded at `822218441`: four held, P3 and P4 refuted on one mechanism, and the switch goes on
+
+Claim `grade-the-decline-and-stay-pair-and-flip-the-switch`. Four full-horizon runs, in-process
+(`SIM_FAST_MODE=1`), at the clean pin `822218441` (item one on origin). Run serially by
+`longjob-decline-and-stay-p1-p6-822218441`, 12:15–13:25 UTC, about 17 min and 5.1 GB peak per leg.
+The depth-vs-width job was also on the box. That affects timing only, because the outputs are
+deterministic. Results are in `/var/tmp/decline-grade-822/{def,val}_{off,on}.json`, with sha256 prefixes
+`708d0216`, `06d48a4c`, `a553fe23`, `05dae1ab`.
+
+| | default off | default on | value off | value on |
+|---|---|---|---|---|
+| conversions accepted / declined | 37 / 0 | 35 / 7 | 35 / 0 | 4 / 64 |
+| fixed→fixed declined, riding-leg declined | 0, 0 | 3, 4 | 0, 0 | 11, 10 |
+| retained domestic fixes at term_index ≥ 1 above the default | **13 of 78** | **0 of 71** | **55 of 64** | **0 of 10** |
+| churned billing accounts | 79 | 78 | 81 | 72 |
+| total net (£) | 79,015 | 80,387 | 93,913 | 95,582 |
+
+- **P1 HELD.** 64 of 68 value-arm conversions decline. No accepted 2017–18 conversion is left; the
+  four that remain are in 2019–20.
+- **P2 HELD.** 7 of 42 default-world conversions decline, which is under a quarter.
+- **P3 REFUTED, −1 against 0…+4.** Exits did not stay untouched. One account (SYN-2016-050) left
+  through the predicted route, C1b inertia, on the default segment its gas decline opened in
+  2021-07. Two accounts stopped leaving:
+  - SYN-2016-034 churned in 2019 on the renewal roll that its accepted +3% fix had created.
+  - PROS-2017-0081 left in 2023 through SVT inertia, on the calendar that its accepted +4%/+21% fix
+    had set.
+- **P4 REFUTED: total net RISES** by £1,670. The value arm's churned accounts fall 81 → 72. All 9
+  accounts that stop leaving declined with the switch on, and all 9 held an above-default fix with
+  it off. The margin these households keep paying at the cap outweighs the transfer they refuse,
+  because they now stay. P4 assumed the opposite.
+- **P5 HELD (the DONE condition).** No retained domestic fix at term_index ≥ 1 sits above the
+  default in either world with the switch on: 0 of 71 and 0 of 10, against 13 of 78 and 55 of 64
+  with it off.
+- **P6 HELD at 1e-9 relative, and byte-identical where it counts.** `def_off` against item one's
+  change run (`/var/tmp/svt-journey/change.json`) differs in exactly two floats by one ULP each: a
+  2025-03-15 churned row's rate and one retention cost. Both carry the BASE value
+  (`275.31995847836555`), the same as `base`, `base2`, `alloc` and `jonly`. That ULP belonged to the
+  change run's code layout, as item one's record says. It is not caused by the splice.
+
+**One mechanism behind both refutations, so I am treating them as wrong predictions, not a defect.**
+The pre-registration modelled a decline as a price event only. It is also a calendar event. An
+accepted above-default fix puts the household onto a later rolled renewal, where the hazard is
+0.2–0.3 at these positions. A decliner sits on the default and faces only C1b inertia, which is
+0.03–0.05 a year. So the rule moves exits in both directions, and on the value arm, where 55 of 64
+fixes sat above the default, it moves them sharply down.
+
+**One question is left open for the practitioner side, and it does not block the flip:** is a
+household that has just rolled onto the default after end-of-fix really as sticky as long-tenure SVT
+stock? If newly rolled households switch at a higher rate in their first months, C1b under-prices
+them, and part of this −9 is the world's inertia rate rather than the rule. This is the same gap
+`decline_versus_leave_share` names.
+
+**Reader audit, re-run at `c092d1e12`.** Outside tests, `departure_occasion == "renewal"` appears
+only in `customer_events.py` itself. `tools/measure_churn_heterogeneity`'s `route` is its own
+field, read from the churn-log files, and is not the occasion. The audit above stands.
+
+**Decision: the switch goes on**, in a separate commit that cites this grading. P5 and P6 hold, and
+the two refutations are traced account by account to the rule doing what it says. To reverse it,
+set `run_phase2b.DECLINE_A_FIX_ABOVE_THE_DEFAULT = False`. Published value-arm figures from runs
+before the flip describe a world in which 55 of 64 value-arm fixes were contracted above the default.
