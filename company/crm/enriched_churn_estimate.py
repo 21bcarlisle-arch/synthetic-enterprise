@@ -176,6 +176,7 @@ def enriched_churn_estimate(
     renewal_year: int | None = None,
     payment_method: str | None = None,
     arrears_state: str = ARREARS_STATE_UNKNOWN,
+    published_default_rate_gbp_per_mwh: float | None = None,
 ) -> float:
     """Return enriched churn probability from rate-sensitivity and payment-behaviour signals.
 
@@ -232,6 +233,10 @@ def enriched_churn_estimate(
         # of the published cap. Netted off inside the rate model so its sensitivity applies to
         # what THIS SUPPLIER did. Zero -- no netting -- when the year is unknown.
         market_move_pct=market_rate_move_pct(renewal_year, fuel=fuel),
+        # When the company has read the published default for this fuel and day, the rate term
+        # reads the offer's gap to it and the netting above is not applied. See
+        # `estimate_churn_probability`'s `reference_rate_gbp_per_mwh`.
+        reference_rate_gbp_per_mwh=published_default_rate_gbp_per_mwh,
     )
     payment_est = combined_churn_probability(bill_shock_count, behaviour_score, satisfaction_score)
     result = _apply_market_conditions(max(rate_est, payment_est),
