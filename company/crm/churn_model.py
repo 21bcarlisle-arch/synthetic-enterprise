@@ -558,6 +558,7 @@ def estimate_churn_probability(
     segment: str = "resi",
     market_move_pct: float = 0.0,
     arrears_state: str = ARREARS_STATE_UNKNOWN,
+    reference_rate_gbp_per_mwh: float | None = None,
 ) -> float:
     """Estimate churn probability from observable renewal signals.
 
@@ -590,6 +591,17 @@ def estimate_churn_probability(
         fraction (0.667 = the market rose 66.7%). The rate response is taken on this
         customer's rate change NET OF IT -- see below. Defaults to 0.0, which is no netting
         and behaviour identical to every estimate this model has ever produced.
+    reference_rate_gbp_per_mwh: the company's own reading of the published default tariff for
+        this fuel on the renewal date, on the offer's VAT basis. When given, the rate term reads
+        the offer's GAP TO IT, and `market_move_pct` is not netted: the reference is today's
+        market level, so the market's move is already inside it. `old_rate` still sets the
+        bill-stress term. `None` is the move from `old_rate`, unchanged.
+
+        Why (2026-10-02): the move from the household's own last price ratchets with the
+        supplier's own uplifts. A household priced 1.7x the default last term reads a further
+        rise as small. Over 18 rolled value-arm renewals that input ranked churn at r = -0.12
+        against the world. See
+        `docs/staging/SEAT_FINDING_THE_VALUE_ARMS_CHURN_BELIEF_PRICES_THE_MOVE_FROM_ITS_OWN_LAST_PRICE_AND_THE_WORLD_PRICES_THE_GAP_TO_THE_MARKET_2026-10-02.md`.
 
     THE RATE RESPONSE IS ON THE SUPPLIER-SPECIFIC MOVE, NOT ON THE BILL (2026-08-25). A
     customer whose bill rises 60% because THIS SUPPLIER raised its price, and one whose bill
@@ -639,13 +651,19 @@ def estimate_churn_probability(
     # stable prices during their last contract → less reactive to headline rate changes.
     effective_rate_sensitivity = rate_sensitivity * (1.0 - hedge_fraction * HEDGE_SENSITIVITY_REDUCTION)
 
-    if old_rate_gbp_per_mwh > 0:
-        rate_increase_pct = (new_rate_gbp_per_mwh - old_rate_gbp_per_mwh) / old_rate_gbp_per_mwh
+    if reference_rate_gbp_per_mwh is not None and reference_rate_gbp_per_mwh > 0:
+        # Already market-relative: the published default IS the market's level today.
+        own_move_pct = (
+            (new_rate_gbp_per_mwh - reference_rate_gbp_per_mwh) / reference_rate_gbp_per_mwh)
     else:
-        rate_increase_pct = 0.0
-    # The part of this customer's rate change that is THIS SUPPLIER'S doing, and therefore the
-    # part against which a cheaper alternative demonstrably exists.
-    own_move_pct = rate_increase_pct - float(market_move_pct)
+        if old_rate_gbp_per_mwh > 0:
+            rate_increase_pct = (
+                (new_rate_gbp_per_mwh - old_rate_gbp_per_mwh) / old_rate_gbp_per_mwh)
+        else:
+            rate_increase_pct = 0.0
+        # The part of this customer's rate change that is THIS SUPPLIER'S doing, and therefore
+        # the part against which a cheaper alternative demonstrably exists.
+        own_move_pct = rate_increase_pct - float(market_move_pct)
 
     tenure_discount = tenure_discount_per_year * min(tenure_years, MAX_TENURE_DISCOUNT_YEARS)
 

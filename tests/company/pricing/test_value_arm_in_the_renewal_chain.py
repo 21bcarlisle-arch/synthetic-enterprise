@@ -1018,3 +1018,78 @@ def test_a_fuel_this_supplier_does_not_sell_is_REFUSED_rather_than_priced_as_ele
 
     with pytest.raises(ValueError, match="hydrogen"):
         standing_charge_rate("hydrogen", "resi")
+
+
+def test_the_belief_reads_the_offer_against_the_published_default_and_not_the_last_price(
+        monkeypatch):
+    """The value arm's churn belief reads the offer's gap to the published default tariff.
+
+    The move from the household's own last price ratchets with the arm's own uplifts: a household
+    the arm priced at 1.7x the default last term reads the next rise as small. The world prices
+    the gap to the default. Over 18 rolled value-arm renewals the old input ranked churn at
+    r = -0.12 against the world (2026-10-02 finding, `..._PRICES_THE_MOVE_FROM_ITS_OWN_LAST_PRICE_
+    AND_THE_WORLD_PRICES_THE_GAP_TO_THE_MARKET_...`).
+
+    Both legs of the partition are asserted reachable first: a domestic renewal gets its own
+    fuel's default, and a non-domestic one gets None (no domestic default applies to it).
+    Dropping the argument at the chain, passing one fuel's default to both, or ignoring it inside
+    the churn model each turns this red.
+    """
+    from datetime import date as _date
+
+    from company.crm.churn_model import estimate_churn_probability
+
+    seen: list[dict] = []
+    real = vbr.decide_margin
+
+    def spy(**kwargs):
+        seen.append(kwargs)
+        return real(**kwargs)
+
+    monkeypatch.setattr(vbr, "decide_margin", spy)
+    book = _dual_fuel_book(year=2020)
+    with policy_scope(VALUE_ARM_POLICY):
+        for commodity, rate, domestic in (("gas", 28.0, True), ("electricity", 150.0, True),
+                                          ("electricity", 150.0, False)):
+            _drive(commodity=commodity, is_domestic=domestic, tariff_type="fixed",
+                   term_start="2021-06-01", struck_unit_rate_gbp_per_mwh=rate,
+                   settled_records=book)
+    defaults = [call.get("published_default_rate_gbp_per_mwh") for call in seen]
+    assert len(defaults) == 3, f"the arm did not reach all three decisions: {defaults!r}"
+    on = _date(2021, 6, 1)
+    assert defaults == [
+        pytest.approx(chain.cap_ceiling_ex_vat("gas", on, multi_register=False)),
+        pytest.approx(chain.cap_ceiling_ex_vat("electricity", on, multi_register=False)),
+        None,
+    ], "the chain did not hand each domestic renewal its own fuel's published default"
+
+    # Inside the model: with a reference, only the gap to it moves the rate term, with no market
+    # netting. `no_debt` silences the bill-stress term, which still reads the last price.
+    ref = defaults[1]
+    offer = ref * 1.5
+    with_ref = estimate_churn_probability(ref * 1.4, offer, 3.0, 3_000.0, market_move_pct=0.3,
+                                          reference_rate_gbp_per_mwh=ref, arrears_state="no_debt")
+    gap_as_a_move = estimate_churn_probability(ref, offer, 3.0, 3_000.0, arrears_state="no_debt")
+    without_ref = estimate_churn_probability(ref * 1.4, offer, 3.0, 3_000.0, market_move_pct=0.3,
+                                             arrears_state="no_debt")
+    assert with_ref == pytest.approx(gap_as_a_move)
+    assert without_ref < with_ref, (
+        "a household already priced 1.4x the default reads a 1.5x offer as a small move without "
+        "the reference; if the two agree this control cannot tell the inputs apart")
+
+
+def test_the_published_default_reaches_the_belief_the_decision_scores():
+    """The middle of the chain: `decide_margin` -> `enriched_churn_estimate` -> the churn model.
+
+    The control above reads the adapter's call and the model directly, so a decision that took
+    the argument and never scored with it would pass both. This one reads the decision's own
+    belief. A household already priced 1.4x the default must be believed likelier to leave at
+    the same offer once the decision sees the default.
+    """
+    kwargs = dict(customer_id="C1", arm=vbr.FLAT_RULES, current_rate_gbp_per_mwh=210.0,
+                  base_rate_gbp_per_mwh=200.0, eac_kwh=3_000.0, tenure_years=3.0,
+                  cost_to_serve_gbp_per_year=60.0, renewal_year=2021)
+    without = vbr.decide_margin(**kwargs)
+    with_default = vbr.decide_margin(**kwargs, published_default_rate_gbp_per_mwh=150.0)
+    assert with_default.p_retain < without.p_retain, (
+        "the published default reached `decide_margin` and did not move its belief")

@@ -1007,6 +1007,69 @@ def test_the_leg_census_does_not_count_a_sibling_shell_quoting_the_command(tmp_p
         "fires on a guest that has room: " + repr(census))
 
 
+def _fake_proc(root, entries):
+    """`entries` is {pid: (ppid, rss_kb, argv)}; writes the two files the census reads."""
+    for pid, (ppid, rss_kb, argv) in entries.items():
+        d = root / str(pid)
+        d.mkdir()
+        (d / "cmdline").write_bytes(("\x00".join(argv) + "\x00").encode())
+        (d / "status").write_text(f"PPid:\t{ppid}\nVmRSS:\t{rss_kb} kB\n", encoding="utf-8")
+
+
+def test_a_timed_floor_leg_is_one_leg_not_its_wrapper_plus_its_child(tmp_path):
+    """`/usr/bin/time -v` around a floor leg is ONE leg, and two unrelated legs are still two.
+
+    THE 2026-10-02 17:16Z PAIR, as it stood: the wrapper (pid 347062, 1.7 MB) carries both the
+    module and `--noise-floor-seeds` as its own argv tokens, so the token test counted it AND its
+    python child (347063) -- two legs at 11,200 MB each -- and a floor beside them was asked for
+    33,600 MB where one leg plus itself needed 22,400 MB. Every timed leg of the depth-vs-width
+    family was priced double.
+
+    THE SECOND ARM IS WHAT STOPS A FIX THAT COUNTS EVERYTHING ONCE: two legs with no ancestry
+    between them must still be two, and the refusal over them must still be reachable.
+
+    Fires on: dropping the wrapper collapse (arm 1 counts 2); collapsing every match to one leg,
+    or keying the collapse to anything but ancestry (arm 2 counts 1); keeping the wrapper instead
+    of the child (arm 1 names 347062).
+    """
+    from tools.run_value_cycle_ab import (
+        FLOOR_RUN_PEAK_MB,
+        floor_run_headroom_refusal,
+        running_floor_legs,
+    )
+
+    leg = ["python3", "-m", "tools.run_value_cycle_ab", "--level-arm",
+           "--noise-floor-seeds", "11111,22222", "--out", "/tmp/x.json"]
+    timed = tmp_path / "timed"
+    timed.mkdir()
+    _fake_proc(timed, {347062: (1, 1741, ["/usr/bin/time", "-v", *leg]),
+                       347063: (347062, 3_000_000, leg)})
+    apart = tmp_path / "apart"
+    apart.mkdir()
+    _fake_proc(apart, {347070: (1, 3_000_000, leg), 347071: (1, 3_000_000, leg)})
+
+    timed_legs = running_floor_legs(proc_root=timed)
+    assert [pid for pid, _rss, _peak in timed_legs] == [347063], (
+        "a timed floor leg was counted as its wrapper plus its child, or as the 1.7 MB wrapper "
+        "instead of the process that grows: " + repr(timed_legs))
+    apart_legs = running_floor_legs(proc_root=apart)
+    assert sorted(pid for pid, _rss, _peak in apart_legs) == [347070, 347071], (
+        "two unrelated floor legs collapsed to one, so the census under-prices the guest in the "
+        "fatal direction: " + repr(apart_legs))
+
+    # The price the refusal then asks for, on a guest whose headroom (available + the RSS the
+    # legs already hold) is 2.5 peaks: one leg plus the caller fits, two legs plus it do not.
+    def verdict(legs):
+        held = sum(rss for _p, rss, _pk in legs)
+        return floor_run_headroom_refusal(
+            sample_fn=lambda: _obs(2.5 * FLOOR_RUN_PEAK_MB - held), legs_fn=lambda: legs)
+
+    assert verdict(timed_legs) is None, (
+        "a floor beside ONE timed leg was refused on a guest that holds both peaks")
+    refused = verdict(apart_legs)
+    assert refused is not None and f"{3 * FLOOR_RUN_PEAK_MB:,.0f}" in refused, refused
+
+
 # ---------------------------------------------------------------------------
 # 8. WHICH BOOK THE FLOOR WAS DRAWN OVER -- and why the two halves of a book
 #    identity behave in opposite ways
