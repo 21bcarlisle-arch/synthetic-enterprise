@@ -9651,8 +9651,8 @@ def test_the_reshape_moves_no_published_figure(detection_resolution):
     numbers do not move. That contract is also what makes a second reading date
     legal at all, so it is re-measured here rather than assumed."""
     m = detection_resolution
-    assert set(m["co_read_dimensions_identical"]) == set(
-        pair.DETECTION_CO_READ_DIMENSIONS)
+    assert set(m["co_read_dimensions_identical"]) | set(
+        m["co_read_condition_unmet"]) == set(pair.DETECTION_CO_READ_DIMENSIONS)
     assert m["own_detection_gap"] == m["shipped_detection_gap"]
     for dim in pair.DETECTION_CO_READ_DIMENSIONS:
         assert pair.DIMENSION_AS_OF_CONTRACT[dim]["gap_is_as_of_invariant"]
@@ -9664,6 +9664,12 @@ def test_the_reshape_moves_no_published_figure(detection_resolution):
     # remembered. The invariance holds exactly when the window reaches the
     # oldest observed failure. Each arm is built at an explicit window, so both
     # sides of the edge run whatever the shipped origin is.
+    #
+    # Below the edge the belief pair is EXCUSED from the co-read rather than
+    # co-read and found moving (s24): at the organ's own 90d rule 5 otherwise
+    # reds on all four seeds measured. The excuse must be taken there, not
+    # above the edge, never on the two unconditional dimensions, and the
+    # excused figure must really move -- or the excuse is a free pass.
     oldest = _OLDEST_OBSERVED_FAILURE_AGE_DAYS[7]
     memory = set(pair.BELIEF_FLOOR_DIMENSIONS)
     arms = {}
@@ -9671,16 +9677,25 @@ def test_the_reshape_moves_no_published_figure(detection_resolution):
         records, consumer, _l, as_of = pair.build_scenario(
             300, seed=7,
             organ_failure_window_drift_days=window - pair.DD_FAILURE_WINDOW_DAYS)
-        arms[window] = pair.measure_detection_resolution(
-            records, consumer, as_of)["co_read_dimensions_identical"]
+        arms[window] = (records, consumer, as_of, pair.measure_detection_resolution(
+            records, consumer, as_of))
     # Both sides of the edge were reached, or the law below proves nothing.
     assert any(w >= oldest for w in arms) and any(w < oldest for w in arms)
-    for window, identical in arms.items():
-        for dim, same in identical.items():
-            if dim not in memory or window >= oldest:
-                assert same, (window, dim)
-        if window < oldest:
-            assert not all(identical[d] for d in memory & set(identical)), (
+    for window, (records, consumer, as_of, mw) in arms.items():
+        identical = mw["co_read_dimensions_identical"]
+        excused = set(mw["co_read_condition_unmet"])
+        assert not excused & set(identical), window
+        assert {"detection", "detection_latency"} <= set(identical), window
+        assert all(identical.values()), (window, identical)
+        assert pair.check_detection_resolution(mw) == [], window
+        if window >= oldest:
+            assert excused == set(), window
+        else:
+            assert excused == memory, window
+            moved = [d for d in memory
+                     if pair.score_triad(records, consumer, as_of)[d].gap
+                     != pair.score_triad(records, consumer, mw["own_as_of"])[d].gap]
+            assert moved, (
                 f"a window of {window}d forgets the {oldest}d failure yet no "
                 f"belief figure moved between the two reading dates")
 

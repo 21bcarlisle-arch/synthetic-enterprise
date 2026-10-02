@@ -1628,3 +1628,54 @@ condition fails, via the same `as_of_gap_invariance_expected`, not by editing th
 The as_of class control (§22.2) is off the list: green at both origins. Must-fire #1 moved with it.
 Still pinned: the five D30/D33 sibling claims, the four publication surfaces and the register node
 (§21.1), plus the co-read question in §23.2, which needs measuring.
+
+---
+
+## 24. BUILD pass 15 — 2026-10-02 (worker tick, BUILD lane) — §23.2's co-read question, measured and closed
+
+The origin is still 400, no level moved, `CAVEAT_COVERAGE_PROBES` untouched (§19.4). The candidate
+origin was substituted in the process through the §17.4 `flip_plugin`, never in the tree.
+
+### 24.1 The measurement §23.2 said was owed
+
+`measure_detection_resolution` → `check_detection_resolution` on the production reading (n=300;
+shipped `as_of` 2024-04-16, own reading date 2024-03-22), one process per origin:
+
+| seed | 400: violations | 90: belief / mix identical at both dates | 90: violations |
+|---|---|---|---|
+| 7 | 0 | False / False | 2 |
+| 11 | 0 | False / False | 2 |
+| 23 | 0 | False / **True** | 1 |
+| 5 | 0 | False / False | 2 |
+
+So yes: at the flip, rule 5 fires on every seed, on a second reading date that is telling the
+truth. Seed 23's mix staying put while belief moves is §23.1's "not per dimension" point again.
+Detection edges are unchanged by the origin (2/1, 4/1, 6/2, 3/1 shipped/own).
+
+### 24.2 The remedy, as §23.2 recommended
+
+The co-read loop now skips a dimension whose `as_of_gap_invariance_expected(...)` is False at
+`max(as_of, own)`, and REPORTS it in a new field `co_read_condition_unmet` rather than dropping it.
+`DETECTION_CO_READ_DIMENSIONS`' derivation is untouched.
+
+§22.1's node read the belief pair out of `co_read_dimensions_identical` on its uncovered arm — the
+empty-intersection trap §23.2 described, arriving by the other door: with the pair excused,
+`all(...)` over nothing is True and the node red at BOTH origins. Restated: the two maps partition
+the co-read set; the unconditional pair is always co-read; every co-read dimension is identical and
+`check_detection_resolution` is clean on every arm; the excuse is empty at or above the edge and is
+exactly the belief pair below it; and below it the excused figure is shown to move by scoring both
+dates directly, so the excuse is load-bearing.
+
+**Green at 400 and at 90**, 14 passed each over the detection/as_of selection. **R15**, three
+mutations of the excuse, each red at the node:
+
+| mutation | fires on |
+|---|---|
+| excuse never taken | the 90d arm: belief co-read and not identical |
+| excuse taken for belief + `detection_latency` regardless | the 400d arm: unconditional dimension excused |
+| excuse taken for belief regardless of the condition | the 400d arm: excuse non-empty above the edge |
+
+### 24.3 Where §17.3 stands
+
+The co-read question is closed and off the flip commit. Still pinned: the five D30/D33 sibling
+claims, the four publication surfaces and the register node (§21.1).

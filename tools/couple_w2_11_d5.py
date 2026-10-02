@@ -6780,12 +6780,22 @@ def measure_detection_resolution(
                 measured_below = k
                 break
 
+    # A CONDITIONAL invariance whose condition fails on this book is not owed
+    # here (D27 FRAME s23.2/s24): at the organ's own 90d window the belief
+    # figures move between the two dates on every seed measured, because a
+    # failure ages out, and rule 5 would read that as the second date lying.
+    # Excused dimensions are REPORTED, never dropped silently.
     co_read: Dict[str, bool] = {}
+    co_read_condition_unmet: List[str] = []
     ageing_moves: Optional[bool] = None
     if own is not None:
         shipped_all = _score(as_of, 0)
         own_all = _score(own, 0)
         for dim in DETECTION_CO_READ_DIMENSIONS:
+            if not as_of_gap_invariance_expected(
+                    dim, records, consumer, max(as_of, own)):
+                co_read_condition_unmet.append(dim)
+                continue
             if dim in shipped_all and dim in own_all:
                 co_read[dim] = shipped_all[dim].gap == own_all[dim].gap
         if "ageing" in shipped_all and "ageing" in own_all:
@@ -6817,6 +6827,7 @@ def measure_detection_resolution(
         "saturates_below_predicted": predicted_below,
         "saturates_below_measured": measured_below,
         "co_read_dimensions_identical": co_read,
+        "co_read_condition_unmet": co_read_condition_unmet,
         "ageing_moves_between_readings": ageing_moves,
         "n_true_failures": len(failures),
         "n_at_distance_one": at_distance_one,
