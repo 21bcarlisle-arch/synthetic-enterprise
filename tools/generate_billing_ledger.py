@@ -27,6 +27,7 @@ from simulation.arrears_engine import (
     bill_substream as _bill_substream,
     stress_for_year as _stress_for_year,
     payment_method as _payment_method,
+    paying_method as _paying_method,
     payment_outcome as _payment_outcome,
     _fuel_poor_for_bill,
     _tone_for_bill,
@@ -158,6 +159,11 @@ def generate(run_json_path=None, out_path=None):
     # account; tests/tools/test_the_ledger_and_the_pnl_write_off_agree_on_the_real_book.py holds
     # that on the real run.
     write_offs, credits_applied = _balance_settlement(bills, behavioral, churned, seed=42)
+    # PB8 L2: the households the supplier stopped collecting by DD, over the bills the engine reads,
+    # so a stopped household's later bills are payable on receipt here as they are in the P&L.
+    from company.interfaces.bill_assembly import issued_bills
+    from simulation.dd_collection_book import supplier_dd_stops
+    dd_stops = supplier_dd_stops(issued_bills(bills), behavioral, seed=42)
 
     # DOMAIN_SENSE_AND_COMPLIANCE.md Phase 3: Tier-1 pre-bill validation gate
     # (director's Principle 1 -- 100% of bills validated before issue, zero
@@ -242,11 +248,12 @@ def generate(run_json_path=None, out_path=None):
             _tone = None
             outcome, days_late = "success", 0
         else:
-            method = _payment_method(segment, amount, cid, commodity)
+            method = _paying_method(segment, amount, cid, commodity, period_end, dd_stops)
             _tone = _tone_for_bill(method, cid, period_end)
             outcome, days_late = _payment_outcome(
                 method, stress, _bill_substream(_outcome_seed, cid, period_end, commodity),
-                segment, _fuel_poor_for_bill(method, cid), _tone, cid,
+                segment, _fuel_poor_for_bill(_payment_method(segment, amount, cid, commodity), cid),
+                _tone, cid,
             )
 
         # Defect 2: meter-read status, opening/closing reads, meter serial,

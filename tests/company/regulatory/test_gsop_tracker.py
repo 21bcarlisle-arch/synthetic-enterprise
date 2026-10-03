@@ -51,13 +51,19 @@ def test_working_days_open_skips_weekends():
         status=GSoPBreachStatus.COMPENSATED,
         resolution_date=date(2023, 3, 20),  # next Monday (7 calendar days, 5 working)
     )
-    assert breach.working_days_open == 5
+    assert breach.working_days_open(date(2023, 6, 1)) == 5
+    # a resolution after the run's own date is not visible to it
+    assert breach.working_days_open(date(2023, 3, 15)) == 2
 
 
-def test_working_days_open_uses_today_when_no_resolution(tracker):
-    # A breach recorded today with no resolution_date should have 0 working days open
-    breach = tracker.record_breach("ACC-001", GSoPStandard.APPOINTMENT_MISSED, date.today())
-    assert breach.working_days_open == 0
+def test_an_unresolved_breach_counts_to_the_runs_date_not_the_wall_clock(tracker):
+    """Was `..._uses_today_when_no_resolution`: the property fell back to `date.today()`.
+    A breach recorded in a 2019 run is measured against 2019, and a missing date is refused."""
+    breach = tracker.record_breach("ACC-001", GSoPStandard.APPOINTMENT_MISSED, date(2019, 3, 4))
+    assert breach.working_days_open(date(2019, 3, 4)) == 0
+    assert breach.working_days_open(date(2019, 3, 11)) == 5
+    with pytest.raises(ValueError, match="as-of date"):
+        breach.working_days_open(None)
 
 
 # ---------------------------------------------------------------------------

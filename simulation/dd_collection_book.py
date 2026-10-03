@@ -170,8 +170,26 @@ def build_dd_collection_book(
     bills: list[dict], behavioral: dict, monthly_amount_by_customer: dict[str, float] | None = None,
     seed: int = 42,
 ):
-    """Run this world's Bacs rails against the supplier's collection instructions,
-    and hand back the supplier's own collection register.
+    """The supplier's own collection register after this world's rails ran. See `_run_rails`."""
+    return _run_rails(bills, behavioral, monthly_amount_by_customer, seed)[0].collection_register()
+
+
+def supplier_dd_stops(bills: list[dict], behavioral: dict, seed: int = 42) -> dict[str, str]:
+    """PB8 L2: the households the supplier has told their Direct Debit is stopped.
+
+    `{customer_id: period_end}` of the last bill the supplier presented by DD. Every later bill
+    is payable on receipt. This is what the household is told, so it is all the world reads.
+    Why it stopped, and on what rule, stay behind the desk.
+    """
+    return _run_rails(bills, behavioral, None, seed)[1]
+
+
+def _run_rails(
+    bills: list[dict], behavioral: dict, monthly_amount_by_customer: dict[str, float] | None,
+    seed: int,
+):
+    """Run this world's Bacs rails against the supplier's collection instructions.
+    Returns the desk and the stop notices it sent (`supplier_dd_stops`).
 
     Resolves each bill from the same per-bill substream compute_emergent_bad_debt()
     uses (`arrears_engine.bill_substream`, C-S2) -- the resulting success/failure
@@ -196,6 +214,7 @@ def build_dd_collection_book(
     # rather than by the state of a stream this loop shares.
     rails_rng = random.Random(seed + 1)
     desk = open_collections_desk()
+    stops: dict[str, str] = {}
     monthly_amount_by_customer = monthly_amount_by_customer or {}
 
     for bill in sorted(bills, key=lambda b: (b["customer_id"], b["period_end"])):
@@ -324,11 +343,12 @@ def build_dd_collection_book(
         # What happened to the money, reported back. The world states the fact
         # (`collected`) and the industry's own ARUDD reason text; the vocabulary the
         # register files it under is the supplier's, behind the door.
-        desk.record_collection_outcome(
+        if desk.record_collection_outcome(
             instruction,
             attempt_date=resolved.expected_outcome_date.isoformat(),
             collected=resolved.status == "success",
             failure_reason=failure_reason,
-        )
+        ):
+            stops[cid] = period_end
 
-    return desk.collection_register()
+    return desk, stops
