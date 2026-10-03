@@ -596,6 +596,7 @@ def _gate_main_over(monkeypatch, map_text: str) -> tuple[int, str]:
     monkeypatch.setattr(gate, "_whole_map", lambda rev_prefix: map_text)
     monkeypatch.setattr(gate, "read_ledger", lambda: [])
     monkeypatch.setattr(gate, "low_water_failures", lambda **kw: [])
+    monkeypatch.setattr(gate, "_git_show", lambda spec: None)  # the split check reads the halves
     err: list[str] = []
     monkeypatch.setattr(gate.sys.stderr, "write", err.append)
     return gate.main(), "".join(err)
@@ -636,3 +637,60 @@ def test_a_map_OVER_the_ceiling_is_still_ALLOWED_by_THIS_gate(monkeypatch):
     rc, err = _gate_main_over(monkeypatch, _map_of_bytes(map_store.MAP_SIZE_CEILING + 500))
     assert rc == 0, "the gate refused a commit for the map's SIZE -- not its subject"
     assert "OVER" in err and "EVERY LANE" in err
+
+
+# ── THE SPLIT (2026-10-03): a hand level move must carry its move between halves ──────────────
+# H47 and H49 reached their targets by hand edit and sat in the drawn half for days; the invariant
+# test that names them is selected only when the store module changes, so nothing at the write
+# asked. These drive `misfiled_by_this_commit` over (live, closed) half pairs.
+def _atom(aid: str, cur: int, tgt: int) -> str:
+    return f"- id: {aid}\n  level_current: {cur}\n  level_target: {tgt}\n"
+
+
+_LIVE_OK = _atom("H1_open", 1, 3)
+_CLOSED_OK = _atom("H2_done", 3, 3)
+
+
+def test_a_level_raised_to_target_IN_THE_DRAWN_HALF_is_refused():
+    """The H47 shape: the raise lands, the record stays where draws look."""
+    out = gate.misfiled_by_this_commit((_LIVE_OK, _CLOSED_OK), (_atom("H1_open", 3, 3), _CLOSED_OK))
+    assert len(out) == 1 and out[0].startswith("H1_open belongs in the closed half")
+
+
+def test_the_same_raise_RE_FILED_passes():
+    """The partition's other leg from the same fixture: a refuse-everything predicate fails here."""
+    assert gate.misfiled_by_this_commit(
+        (_LIVE_OK, _CLOSED_OK), ("", _CLOSED_OK + _atom("H1_open", 3, 3))) == []
+
+
+def test_a_LOWERED_target_left_in_the_closed_half_is_refused_toward_live():
+    """Both directions: work re-opened in the closed half goes dark where no draw looks."""
+    out = gate.misfiled_by_this_commit((_LIVE_OK, _CLOSED_OK), (_LIVE_OK, _atom("H2_done", 3, 4)))
+    assert out == [f"H2_done belongs in the live half ({gate.MAP_PARTS_REL[0]})"]
+
+
+def test_a_misfile_ALREADY_AT_HEAD_bills_nobody():
+    """Scoped to what this commit creates: a lane touching a neighbouring row is not refused for a
+    leftover. The tree-wide test still holds the leftover."""
+    stale = (_atom("H1_open", 3, 3), _CLOSED_OK)
+    assert gate.misfiled_by_this_commit(stale, stale) == []
+
+
+def test_main_REFUSES_a_misfile_and_names_the_remedy(monkeypatch):
+    """The wiring. MUTATION: delete the split block from main() -> rc 0, red here."""
+    halves = {f"HEAD:{gate.MAP_PARTS_REL[0]}": _LIVE_OK, f"HEAD:{gate.MAP_PARTS_REL[1]}": _CLOSED_OK,
+              f":{gate.MAP_PARTS_REL[0]}": _atom("H1_open", 3, 3),
+              f":{gate.MAP_PARTS_REL[1]}": _CLOSED_OK}
+    monkeypatch.setattr(gate, "_git_show", lambda spec: halves.get(spec))
+    monkeypatch.setattr(gate, "_staged_names", lambda: {gate.MAP_REL})
+    monkeypatch.setattr(gate, "_whole_map", lambda rev_prefix: _map(2))
+    monkeypatch.setattr(gate, "read_ledger", lambda: [])
+    monkeypatch.setattr(gate, "low_water_failures", lambda **kw: [])
+    err: list[str] = []
+    monkeypatch.setattr(gate.sys.stderr, "write", err.append)
+    assert gate.main() == 1
+    assert "H1_open belongs in the closed half" in "".join(err) and "refile" in "".join(err)
+    halves[f":{gate.MAP_PARTS_REL[0]}"] = ""
+    halves[f":{gate.MAP_PARTS_REL[1]}"] = _CLOSED_OK + _atom("H1_open", 3, 3)
+    err.clear()
+    assert gate.main() == 0, "".join(err)
