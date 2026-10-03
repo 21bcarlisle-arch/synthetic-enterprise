@@ -785,7 +785,7 @@ RUFF_BASELINE: dict[str, int] = {
     #             a `git archive HEAD` extract overlaid with exactly this commit's files: 1326 there
     #             against 1328 at clean HEAD. A baseline frozen from the dirty tree would red the
     #             live-tree control the moment this landed alone.  SHRINK-ONLY.
-    "I001": 1295,  # 1297 -> 1295 on 2026-10-03: company/crm/cos_process.py and tests/company/crm/test_cos_process.py, sorted when the registration-loss seam (EP12) was wired. 1298 -> 1297 on 2026-10-03: background/live_payment_triad.py, sorted when its default-belief door was added. 1299 -> 1298 on 2026-10-03: tests/test_nh_payment_behaviour_wiring.py, sorted when its TDCV import was added. 1300 -> 1299 on 2026-10-03: simulation/run_scenario.py, the dead loader patch in run_forward_scenario removed with its import block. Before that: lowered 2026-10-02: tests/simulation/test_phase47b_acquisition_gate.py, rewritten
+    "I001": 1291,  # 1293 -> 1291 on 2026-10-03: company/crm/cos_process.py and tests/company/crm/test_cos_process.py, sorted when the registration-loss seam (EP12) was wired. 1297 -> 1293 on 2026-10-03: company/crm/retention_risk.py, tools/generate_shadow_html.py and their tests, sorted when the wall-clock fix touched their imports. 1298 -> 1297 on 2026-10-03: background/live_payment_triad.py, sorted when its default-belief door was added. 1299 -> 1298 on 2026-10-03: tests/test_nh_payment_behaviour_wiring.py, sorted when its TDCV import was added. 1300 -> 1299 on 2026-10-03: simulation/run_scenario.py, the dead loader patch in run_forward_scenario removed with its import block. Before that: lowered 2026-10-02: tests/simulation/test_phase47b_acquisition_gate.py, rewritten
     #             for the both-fuels acquisition rule. Previously 1301,
     #             lowered 2026-10-01: company/compliance/domain_invariants.py, sorted when the
     #             VAT rates moved to the commons (read in a clean worktree). Previously 1302,
@@ -933,7 +933,8 @@ RUFF_BASELINE_TOTAL -= 1  # 2276 -> 2275 on 2026-10-02: the F401 above.
 RUFF_BASELINE_TOTAL -= 1  # 2275 -> 2274 on 2026-10-02: the I001 above, `tests/simulation/test_phase47b_acquisition_gate.py`.
 RUFF_BASELINE_TOTAL -= 1  # 2272 -> 2271 on 2026-10-03: the I001 above, `tests/test_nh_payment_behaviour_wiring.py`.
 RUFF_BASELINE_TOTAL -= 1  # 2271 -> 2270 on 2026-10-03: the I001 above, `background/live_payment_triad.py`.
-RUFF_BASELINE_TOTAL -= 2  # 2270 -> 2268 on 2026-10-03: the I001 above, `company/crm/cos_process.py` and its test.
+RUFF_BASELINE_TOTAL -= 4  # 2270 -> 2266 on 2026-10-03: the I001 above, retention_risk, generate_shadow_html and two tests.
+RUFF_BASELINE_TOTAL -= 2  # 2266 -> 2264 on 2026-10-03: the I001 above, `company/crm/cos_process.py` and its test.
 # 2279 -> 2278 on 2026-09-30: the F841 above. 2280 -> 2279 on 2026-09-27: the I001 above, `background/file_api.py`,
 # whose top import block sorted once the retired /query leg's `httpx` import went.
 # 2281 -> 2280 on 2026-09-27: the I001 above, the whole of

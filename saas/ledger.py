@@ -45,7 +45,7 @@ generated upstream by the simulation loop and merged into the sorted output.
 """
 
 import uuid
-from datetime import date, timedelta
+from datetime import date, datetime, time, timedelta, timezone
 from typing import Any
 
 from company.governance.decision_rights import DecisionClass, log_decision_event
@@ -470,6 +470,10 @@ def build_ledger(
                         "credit-risk model for this account/bill"
                     ),
                     valid_time=date.fromisoformat(payment_date),
+                    # recorded on the day it was booked, on the run's clock -- the same
+                    # convention renewal_desk uses for its pricing decisions
+                    transaction_time=datetime.combine(
+                        date.fromisoformat(payment_date), time(), tzinfo=timezone.utc),
                 )
 
     if extra_events:
