@@ -133,3 +133,46 @@ is not published anywhere for GB domestic energy.
   (`https://www.ofgem.gov.uk/sitemap.xml`, 10 paginated sub-sitemaps) was used instead to enumerate
   every live Ofgem URL containing "prepay", which is how the sources above were found without a
   working search engine.
+
+## Addendum 2026-10-03: a channel change has two authors
+
+**What the PB8 park conflates.** In the real trade, two different parties change a payment channel:
+
+| route | who decides | what it needs |
+|---|---|---|
+| DD -> standard credit after repeated returned collections | **the supplier** stops presenting a mandate that keeps coming back | a collections policy acting on an observable it already holds |
+| credit -> PPM through debt (warrant / remote switch) | **the supplier**, under SLC 28B and the 2024 restart conditions | the same, plus the code of practice |
+| PPM -> credit on the annual SLC 28.1A reassessment | **the supplier** | the same |
+| the household cancels its own mandate, or asks to go onto DD | **the household** | a behavioural rate. **This is the one nothing publishes.** |
+
+The supplier-authored routes are company decisions. They do not need a world-side migration rate,
+and drawing one in the world would be the wrong side of the epistemic wall. The rate they produce
+should come out of the policy acting on the book, not go in as a number.
+
+**What the tree does today (measured):**
+- `simulation/household_segments.py::payment_channel_for_customer` gives each household and fuel a
+  deterministic hash. Its channel is fixed for life.
+- The world does return DDs (`simulation/arrears_engine.py` `_DD_FAILURE_PROB`, through
+  `simulation/bacs_rails.py`), but every return carries ARUDD code 0, "refer to payer". No world
+  household ever cancels its own mandate (code 1).
+- The company already sees every return: `company/billing/dd_collections_desk.py::record_collection_outcome`
+  and `DirectDebitBook.failed_attempts`.
+- **No production path acts on those returns.** The only caller of `cancel_mandate(` is the portal's
+  customer-request route (`company/portal/app.py:556`). A household whose DD bounces every month
+  stays on DD forever.
+
+**What follows.**
+1. **Route 1 can be built now with no new rate.** It is a company collections rule ("stop
+   presenting after N consecutive returns") reading an observable the company already holds. Its
+   migration rate then falls out of the world's DD-failure draw. Two caveats: that draw is itself
+   unsourced (the C1 GAP in `dd_failure_basis_and_live_arrears_provision_rates.md`), and the build
+   lives in `company/billing/`, not PB8's `W2_customer_generator` scope. The world-side half
+   is only the seam: the channel the household pays by has to follow the mandate.
+2. **N is a practitioner question.** The mechanism (British Gas: 2 failed presentations, then the
+   DD is stopped) has one supplier's help page behind it. Whether that is the industry norm, and
+   whether "moved to another payment option" means standard credit or a fresh DD set-up, are things
+   no published source will settle. Per CLAUDE.md's third side of knowledge, the director should
+   confirm this before it is built. This one is reversible, so it is recorded here, not escalated.
+3. **The household-authored route stays parked** on the published-rate gap, unchanged.
+
+PB8's `block_reason` in the maturity map points here.

@@ -1466,7 +1466,7 @@
   level_current: 0
   level_target: 2
   loop_stage: idle
-  block_reason: "SOURCED 2026-09-30, NO RATE: no normal-year gross rate is published for any route (gb_payment_method_migration_rates.md); only 2022's crisis count exists. Release when one does; never build on the 0.58%."
+  block_reason: "SOURCED 2026-09-30, NO RATE: no normal-year gross rate is published (gb_payment_method_migration_rates.md); never build on 2022's 0.58%. 2026-10-03 FRAME: only the HOUSEHOLD-authored route waits on it; supplier-authored DD->credit after repeated returns needs no rate (that file, addendum 2026-10-03)."
   dial_inherited: 45    # PB6's rank: EH-3 is one of the two disqualifiers holding PB6 below L3.
   provenance: worker_finding
   file_scope: ['simulation/household_segments.py', 'tests/company/test_the_engagement_observable_is_the_right_one.py']
