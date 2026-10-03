@@ -25,7 +25,10 @@ def test_real_invoice_maps_id_date_amount_status():
 
 def test_real_invoice_credited_status_for_catchup_overcharge():
     """Expert-Hour finding, 2026-07-12: a credit invoice must not read PAID."""
-    inv = _real_invoice(_raw_invoice(payment_status="credited", total_amount_gbp=-2.03))
+    # The credit is a catch-up overcharge refund large enough to turn the bill negative; the
+    # fixture foots (101.00 - 103.03 = -2.03), as every bill the portal publishes now must.
+    inv = _real_invoice(_raw_invoice(payment_status="credited", total_amount_gbp=-2.03,
+                                     catchup_adjustment_gbp=-103.03))
     assert inv["status"] == "CREDITED"
 
 
@@ -87,7 +90,7 @@ def test_real_invoice_carries_through_catchup_fields():
         catchup_applied=True, catchup_direction="overcharge",
         catchup_periods_covered=3, catchup_raw_delta_gbp=-42.0,
         catchup_adjustment_gbp=-42.0, catchup_written_off_gbp=0.0,
-        catchup_back_billing_cap_applied=False,
+        catchup_back_billing_cap_applied=False, total_amount_gbp=59.0,
     ))
     assert inv["catchup_applied"] is True
     assert inv["catchup_direction"] == "overcharge"
@@ -106,3 +109,34 @@ def test_real_invoices_for_maps_all_invoices():
     assert len(result) == 2
     assert result[0]["id"] == "C1-INV1"
     assert result[1]["id"] == "C1-INV2"
+
+
+# ---------------------------------------------------------------------------
+# D_money_boundary_reconciliation L3 (2026-10-03): the portal is a printed surface downstream of
+# the ledger's pre-bill check, so it crosses the money boundary itself. Partition first: a footing
+# bill IS published (the base fixture, above and here), and each named defect is refused.
+# ---------------------------------------------------------------------------
+import pytest  # noqa: E402
+
+from tools.generate_invoice_data import PortalBillDoesNotFootError  # noqa: E402
+
+
+def test_a_footing_bill_is_published_and_one_that_does_not_foot_is_refused():
+    assert _real_invoice(_raw_invoice())["amount_gbp"] == 101.0          # reachability
+    with pytest.raises(PortalBillDoesNotFootError, match="C1-INV1"):
+        _real_invoice(_raw_invoice(total_amount_gbp=101.02))             # the real 1-2p defect
+
+
+@pytest.mark.parametrize("line", ["commodity_amount_gbp", "standing_charge_gbp",
+                                  "non_commodity_amount_gbp", "vat_gbp", "total_amount_gbp"])
+def test_a_missing_money_figure_is_refused_not_printed_as_zero(line):
+    """`x or 0` printed a missing charge as 0.00 -- a free line on a real bill."""
+    with pytest.raises(Exception, match=line):
+        _real_invoice(_raw_invoice(**{line: None}))
+
+
+def test_a_half_penny_rounds_half_up_as_the_customer_rounds_it():
+    """builtin round(2.675, 2) is 2.67 on the binary float; the boundary prints 2.68."""
+    inv = _real_invoice(_raw_invoice(vat_gbp=2.675, total_amount_gbp=98.87,
+                                     non_commodity_amount_gbp=24.5))
+    assert inv["vat_gbp"] == 2.68
