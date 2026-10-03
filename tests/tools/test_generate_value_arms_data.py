@@ -13747,3 +13747,60 @@ def test_the_floor_code_guard_reaches_both_branches_on_one_floor(tmp_path):
         head=SVT_AT_THE_CAP, exemptions_path=none)["refused"] is False
     unnamed = gva._floor_code_since_its_runs({}, head=SVT_AT_THE_CAP, exemptions_path=none)
     assert unnamed["refused"] is True and "no producing commit" in unnamed["why"]
+
+
+def _split_floor() -> dict:
+    """A two-seed, two-account floor whose split is known by hand. Account A: the value arm keeps
+    it (churn +100) and writes off 300 of it; the level arm earns 40 with no arrears. Account B is
+    absent from the lines, so its whole net is churn pricing."""
+    def lines(pre, released, write_off):
+        return {"pre_4c_net_gbp": pre, "placeholder_bad_debt_released_gbp": released,
+                "write_off_at_close_gbp": write_off, "write_off_statute_barred_gbp": 0.0,
+                "stayer_provision_gbp": 0.0, "line_rounding_gbp": 0.0,
+                "unbooked_bad_debt_gbp": 0.0, "dca_recovery_gbp": 0.0,
+                "unbooked_recovery_gbp": 0.0}
+    ok = {"reconciles": True}
+
+    def seed(sid, b_value):
+        value_net = {"A": 90.0 + 10.0 - 300.0, "B": b_value}
+        level_net = {"A": 40.0, "B": 5.0}
+        return {"seed": sid,
+                "selection_gbp": sum(value_net.values()) - sum(level_net.values()),
+                "value_arm_net_by_account_gbp": value_net,
+                "level_arm_net_by_account_gbp": level_net,
+                "value_arm_arrears_lines_by_account_gbp": {"A": lines(90.0, 10.0, 300.0)},
+                "level_arm_arrears_lines_by_account_gbp": {"A": lines(40.0, 0.0, 0.0)},
+                "value_arm_arrears_reconciliation": ok, "level_arm_arrears_reconciliation": ok}
+    return {"world_identity": {"digest": "w1"}, "redraw_key": "elasticity",
+            "seeds": [seed(1, 25.0), seed(2, 35.0)]}
+
+
+def test_the_selection_split_rebuilds_selection_and_names_the_credit_account():
+    split = gva._selection_split(_split_floor(), "w1")
+    assert split["available"], split.get("why_not")
+    # churn: A (100 - 40) + B (25 - 5 | 35 - 5) = 80 | 90; credit: A -300 on both seeds.
+    assert [round(r["churn_pricing_gbp"], 6) for r in split["seeds"]] == [80.0, 90.0]
+    assert [round(r["credit_gbp"], 6) for r in split["seeds"]] == [-300.0, -300.0]
+    assert split["credit"]["on_every_draw"] == "negative"
+    assert split["churn_pricing"]["on_every_draw"] == "positive"
+    assert split["dominant_credit_account"]["account"] == "A"
+    assert "A holds 100.0% to 100.0%" in split["statement"]
+
+
+def test_MUTATION_a_split_that_does_not_rebuild_selection_is_refused_and_says_which_seed():
+    """Both branches over one partition: the same floor splits, and the same floor with one seed's
+    published selection moved a pound refuses, naming the seed and the residual."""
+    assert gva._selection_split(_split_floor(), "w1")["available"]
+    floor = _split_floor()
+    floor["seeds"][1]["selection_gbp"] += 1.0
+    refused = gva._selection_split(floor, "w1")
+    assert refused["available"] is False
+    assert "seed 2" in refused["why_not"] and "£1.00 away" in refused["why_not"]
+
+
+def test_a_split_of_another_world_or_unreconciled_lines_is_refused_with_its_reason():
+    assert "another world" in gva._selection_split(_split_floor(), "w2")["why_not"]
+    floor = _split_floor()
+    floor["seeds"][0]["level_arm_arrears_reconciliation"] = {"reconciles": False}
+    assert "level arm's arrears lines do not reconcile" in gva._selection_split(
+        floor, "w1")["why_not"]

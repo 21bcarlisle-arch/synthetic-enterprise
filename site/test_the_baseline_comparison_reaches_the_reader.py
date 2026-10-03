@@ -8872,3 +8872,65 @@ def test_MUTATION_the_root_cause_renders_all_three_states_distinctly():
         "the producer refused with a named reason and the page did not say so")
     assert "NO ROOT CAUSE IS STATED" not in absent_text and statement not in absent_text, (
         "a leg the producer never asked about was given a refusal it never made")
+
+
+def _split_or_fail(feed: dict) -> dict:
+    split = (feed.get("current_world") or {}).get("selection_split") or {}
+    if not split.get("available"):
+        pytest.fail("the live feed does not split the selection leg ({}), so this control cannot "
+                    "run -- reported as a failure and never skipped".format(
+                        str(split.get("why_not"))[:200]))
+    return split
+
+
+def test_the_selection_legs_two_parts_reach_the_reader_on_every_draw(live):
+    """THE STATE THIS CLOSES. The page published selection as one signed number, which reads as
+    the per-customer view choosing badly. Split, it is churn pricing winning on every draw and one
+    account's write-off losing on every draw. The record said so and the page could not.
+
+    Fires on: the producer dropping either part or a seed; the parts not adding up to the seed's
+    selection; the page not rendering a part's figure, the dominant account, or the statement.
+    """
+    feed = _live_feed()
+    split = _split_or_fail(feed)
+    assert split["seeds"], "the split names no draws"
+    rendered = live["arms-redraw"]
+    for row in split["seeds"]:
+        for key in ("selection_gbp", "churn_pricing_gbp", "credit_gbp"):
+            assert isinstance(row.get(key), (int, float)), "seed {} has no `{}`".format(
+                row.get("seed"), key)
+        assert abs(row["churn_pricing_gbp"] + row["credit_gbp"] - row["selection_gbp"]) <= (
+            split["tolerance_gbp"]), "seed {}: the parts do not rebuild selection".format(row)
+        for key in ("churn_pricing_gbp", "credit_gbp"):
+            assert _gbp(row[key]) in rendered, "seed {}'s `{}` ({}) is not on the page".format(
+                row["seed"], key, _gbp(row[key]))
+    for part in ("churn_pricing", "credit"):
+        assert _gbp(split[part]["mean_gbp"]) in rendered, "the {} mean is not on the page".format(
+            part)
+    assert split["dominant_credit_account"]["statement"] in rendered
+    assert _door_prose(split["statement"])[:200] in rendered
+
+
+def test_MUTATION_the_split_renders_all_three_states_distinctly():
+    """One control over the whole partition: a split renders its parts, a refusal renders its
+    named reason and no parts, an absent block renders neither.
+    """
+    base = copy.deepcopy(_live_feed())
+    _split_or_fail(base)
+    base["current_world"]["selection_split"]["credit"]["mean_gbp"] = -7311.0
+    stated = _render(base)["arms-redraw"]
+
+    refused = copy.deepcopy(base)
+    refused["current_world"]["selection_split"] = {
+        "available": False, "why_not": "SELECTION IS NOT SPLIT: SEED 4d2e DOES NOT RECONCILE."}
+    refused_text = _render(refused)["arms-redraw"]
+
+    absent = copy.deepcopy(base)
+    absent["current_world"].pop("selection_split")
+    absent_text = _render(absent)["arms-redraw"]
+
+    assert "−£7,311" in stated and "The choosing leg, split" in stated
+    assert "SEED 4d2e DOES NOT RECONCILE" in refused_text
+    assert "The choosing leg, split" not in refused_text and "−£7,311" not in refused_text
+    assert ("SEED 4d2e" not in absent_text and "The choosing leg, split" not in absent_text), (
+        "a split the producer never made was given a rendering")

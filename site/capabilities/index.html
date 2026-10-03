@@ -2455,7 +2455,52 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
       + (cw.changed_since_the_last_reading
           ? '<p class="cw-changed" style="margin:6px 0 0;font-size:11.5px;color:var(--muted);">'
             + prose(cw.changed_since_the_last_reading) + "</p>"
-          : "");
+          : "")
+      + selectionSplit(cw.selection_split);
+  }
+
+  /* THE CHOOSING LEG IN ITS TWO PARTS, per draw. One signed selection figure tells a reader the
+     per-customer view chooses badly; split, it is churn pricing that wins on every draw and one
+     account's write-off that loses on every draw. Every figure is the feed's
+     (`current_world.selection_split`); a refusal renders its reason, an absent block renders
+     nothing because the producer never asked. */
+  function selectionSplit(split) {
+    if (!split) return "";
+    if (!split.available) {
+      return '<p class="cw-split" style="margin:6px 0 0;font-size:11.5px;color:var(--amber);">'
+        + prose(split.why_not || "Selection is not split, and the producer gave no reason.")
+        + "</p>";
+    }
+    var th = function (t, left) {
+      return '<th style="text-align:' + (left ? "left" : "right")
+        + ';padding:1px 10px 1px 0;font-weight:600;">' + t + "</th>";
+    };
+    var td = function (v) {
+      return '<td style="text-align:right;padding:1px 10px 1px 0;">' + esc(gbp(v)) + "</td>";
+    };
+    var rows = (split.seeds || []).map(function (r) {
+      return '<tr><td style="padding:1px 10px 1px 0;">Draw ' + esc(String(r.seed)) + "</td>"
+        + td(r.selection_gbp) + td(r.churn_pricing_gbp) + td(r.credit_gbp) + "</tr>";
+    }).join("");
+    var part = function (p) {
+      return p && p.sem_gbp !== null && p.sem_gbp !== undefined ? gbp(p.sem_gbp) : "none";
+    };
+    rows += '<tr style="font-weight:600;"><td style="padding:1px 10px 1px 0;">Mean (sem)</td>'
+      + '<td></td>'
+      + '<td style="text-align:right;padding:1px 10px 1px 0;">'
+      + esc(gbp(split.churn_pricing.mean_gbp)) + " (" + esc(part(split.churn_pricing)) + ")</td>"
+      + '<td style="text-align:right;padding:1px 10px 1px 0;">'
+      + esc(gbp(split.credit.mean_gbp)) + " (" + esc(part(split.credit)) + ")</td></tr>";
+    return '<div class="cw-split" style="margin:8px 0 0;">'
+      + '<p style="margin:0 0 4px;font-size:12.5px;"><strong>The choosing leg, split.</strong> '
+      + prose(split.statement) + "</p>"
+      + (split.verdict_withheld_because
+          ? '<p style="margin:0 0 4px;font-size:11.5px;color:var(--amber);">'
+            + prose(split.verdict_withheld_because) + "</p>"
+          : "")
+      + '<div class="table-scroll"><table style="font-size:11.5px;color:var(--muted);margin:0;'
+      + 'border-collapse:collapse;"><tr>' + th("", true) + th("Selection") + th("Churn pricing")
+      + th("Credit") + "</tr>" + rows + "</table></div></div>";
   }
 
   fetch("../data/value_arms.json?t=" + Date.now())
