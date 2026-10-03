@@ -71,3 +71,61 @@ On the four 2025 paths (default, 61001, 61002, 61003):
 ## Grading
 
 Filled in below after the runs.
+
+## Grading, all four paths
+
+Source: `/var/tmp/se-probe-out/probe_cl_*.json`, run at c822e470e. Every figure includes bad
+debt and is scored on what the world bills.
+
+| path | offers changed | median margin capped -> learned | learned - capped (SNR) | best flat level | capped - best | learned - best | learned - flat |
+|---|---|---|---|---|---|---|---|
+| default | 21 / 83 | 16.3 -> 20.0 | -44 (1.83) | 55 | -773 | -817 | +4,668 |
+| 61001 | 17 / 80 | 15.2 -> 17.4 | -37 (1.16) | 55 | -1,079 | -1,116 | +6,248 |
+| 61002 | 10 / 78 | 16.7 -> 15.2 | -21 (1.88) | 55 | -992 | -1,013 | +4,964 |
+| 61003 | 18 / 77 | 23.7 -> 24.7 | -53 (2.06) | 55 | -1,093 | -1,146 | +5,746 |
+
+- **L1: REFUTED on 4 of 4.** The median moved -1.5 to +3.7, never +5.
+- **L2: REFUTED on 4 of 4.** learned - capped is -21 to -53, consistently small and negative.
+- **L3: REFUTED on 4 of 4.** The gap to the best flat level widened slightly.
+- **L4: HELD on 4 of 4.** Learned beats the flat rule by 4.7-6.2k. As registered, this is a weak
+  bar: the flat rule's GBP 2 target margin loses money after bad debt on every path.
+
+**My diagnosis was wrong in its mechanism, and I say so beside it.** The slope is learned:
+- the delta is about -0.43 to -0.66 from 2019, against a base slope of 0.8;
+- it is 0 in 2017, when there are no closed years, and +0.13 in 2018.
+
+Learning it moves almost nothing, for two reasons:
+- **From 2019** most offers already sit at the default, which binds before the slope matters.
+- **Before 2019**, where the belief IS too steep, there is no evidence yet to learn from.
+
+## What actually holds the rule below the best flat level: one account
+
+Split by year, capped - flat-55 is within +/-175 of zero in every year except 2017. 2017 alone is
+about -1,160 to -1,200 on each path, and nearly all of it is **one decision: PROS-2016-0098 on
+2017-03-31.**
+- Its true bad-debt share is 0.505-0.565, on 27.6 MWh.
+- The capped rule prices it at the default and keeps it (P(stay) 0.72).
+- The flat-55 offer happens to drive it away (0.10).
+
+| path | capped - flat-55, all | without PROS-2016-0098 (SNR) | that account |
+|---|---|---|---|
+| default | -773 | +298 (1.40) | -1,072 |
+| 61001 | -1,079 | -120 (0.30) | -959 |
+| 61002 | -992 | -32 (0.17) | -961 |
+| 61003 | -1,093 | -131 (0.32) | -962 |
+
+**Without that one household, per-decision choosing with the default known is at parity with the
+best flat price in hindsight.** The best flat price is itself chosen on the same decisions, and
+the parity is reached without hindsight.
+
+**The remaining loss is a world gap, not a choosing failure.** Under SLC 14 a real supplier may
+object to an indebted domestic credit customer's switch, and Ofgem's 2016 review puts the blocked
+share at about 28-30%. The world lets this debtor leave freely. So a high flat price is rewarded
+for driving away a customer a real supplier could have kept liable for the debt.
+- `SEAT_FINDING_THE_WORLD_LETS_A_DEBTOR_SWITCH_AWAY_BECAUSE_THE_DOMESTIC_DEBT_OBJECTION_IS_UNMODELLED_2026-10-03.md`
+  was filed earlier the same day on the law alone.
+- The world-side objection draw is being built on the published rate.
+
+That draw is the next re-run of this comparison. Prediction, written now: with the objection on,
+capped - flat-55 moves toward zero on all four paths, but the debtor still leaves in about 70% of
+draws, so the account's cost shrinks rather than vanishes.

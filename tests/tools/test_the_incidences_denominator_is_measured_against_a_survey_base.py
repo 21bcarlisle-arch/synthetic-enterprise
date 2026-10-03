@@ -65,12 +65,23 @@ import pytest
 
 from tools import fit_year_level_anchor as anchor
 
+#: THE CAPTURE THESE LEGS ARE ABOUT, PINNED (2026-10-03). Until then the fixture read the
+#: instrument's live capture, so the legs below asserted the live world's ANSWER -- a band that
+#: straddles the tightest annual floor -- rather than the reader's behaviour on such a band. When the
+#: instrument was repointed at the PB4 world-D capture (c3939e7b1) the live kind-matched band became
+#: [0.090406, 0.121217], wholly BELOW the 0.167616 floor, and these legs went red for the world
+#: moving, not for the reader breaking. The c6 capture still carries the straddle, is committed, and
+#: is what these legs were written against; the live world's reading is graded by
+#: `test_the_committed_internal_return_reading_reproduces_on_the_live_world` in
+#: `tests/architecture/test_switching_rate_commons.py` and by the last leg of this file.
+STRADDLING_CAPTURE = anchor.PROJECT / "docs" / "reports" / "c6_second_pass_departure_factors.json"
+
 
 @pytest.fixture(scope="module")
 def reading() -> dict:
-    """The committed capture's internal-return reading, driven once."""
-    rows = json.loads(anchor.DEFAULT_TABLE.read_text())
-    svt_rows, reason = anchor.load_svt_decisions(anchor.DEFAULT_TABLE)
+    """The pinned straddling capture's internal-return reading, driven once."""
+    rows = json.loads(STRADDLING_CAPTURE.read_text())
+    svt_rows, reason = anchor.load_svt_decisions(STRADDLING_CAPTURE)
     assert svt_rows is not None, f"the capture carries no SVT decisions to read: {reason}"
     return anchor.svt_internal_return_and_tenure(rows, svt_rows)
 
@@ -292,8 +303,8 @@ def test_a_converting_year_the_denominator_cannot_contain_is_reported_not_absorb
     EXACTLY into the ones the denominator contains and the ones it does not, which no filter error
     can satisfy.
     """
-    rows = json.loads(anchor.DEFAULT_TABLE.read_text())
-    svt_rows, _ = anchor.load_svt_decisions(anchor.DEFAULT_TABLE)
+    rows = json.loads(STRADDLING_CAPTURE.read_text())
+    svt_rows, _ = anchor.load_svt_decisions(STRADDLING_CAPTURE)
     converting = anchor._converting_account_years(rows, svt_rows)
     strays = base["converter_cells_absent_from_the_denominator"]
     named = strays["stint_end_years_with_no_segment_of_their_own"]
@@ -326,3 +337,19 @@ def test_a_capture_with_no_svt_cells_refuses_rather_than_returning_a_number(base
     assert empty["refused"] is not None
     assert "no SVT account-year cell" in empty["refused"]
     assert "incidence" not in empty
+
+
+def test_the_live_capture_is_read_and_not_refused() -> None:
+    """The pin above moves the shape-specific legs off the live world; this keeps the live world read.
+
+    THE DEFECT: pinning every leg to an old capture would leave a live capture the reader refuses,
+    or crashes on, wholly unwatched by this file. Keyed to the property (a reading with an ordered
+    band and an unrefused base), not to which side of the floor the live world currently falls.
+    """
+    rows = json.loads(anchor.DEFAULT_TABLE.read_text())
+    svt_rows, reason = anchor.load_svt_decisions(anchor.DEFAULT_TABLE)
+    assert svt_rows is not None, f"the live capture carries no SVT decisions to read: {reason}"
+    live = anchor.svt_internal_return_and_tenure(rows, svt_rows)
+    low, high = live["as_an_incidence_which_is_what_the_record_bounds"]["the_kind_matched_band"]
+    assert low <= high
+    assert live["the_base_the_lower_endpoint_divides_by"]["refused"] is None

@@ -1521,6 +1521,9 @@ def svt_internal_return_and_tenure(renewal_rows: list[dict], svt_rows: list[dict
         observation.long_stayer_share
         for observation in published_route_split.SVT_TENURE_OBSERVATIONS
     )
+    saturation = svt_route_shortfall_decomposition(renewal_rows, svt_rows)[
+        "bounded_factor_saturation"
+    ]
     return {
         "what_this_is": (
             "the world's INTERNAL re-contract route -- an account leaving the SVT product for a "
@@ -1635,11 +1638,15 @@ def svt_internal_return_and_tenure(renewal_rows: list[dict], svt_rows: list[dict
                 renewal_rows, svt_rows, observed_hull, per_year
             ),
         },
+        # THE SATURATION COUNT IS READ, NOT TYPED. It was the literal "1 year of 7" until
+        # 2026-10-03, true on the c6 capture and false on PB4 world D (0 of 6) -- a measurement
+        # frozen into prose that every regeneration then re-published as current.
         "what_this_does_not_do": (
             "it does not close rung 1, and that is knowable before it runs. The internal return is "
             "a mechanism INSIDE section 9's `exposure` factor, and section 9's saturation bound "
             "already put reach and exposure at their ceilings TOGETHER -- abolishing the renewal "
-            "route with them -- and reached the band's low endpoint in 1 year of 7. Nothing here "
+            "route with them -- and reached the band's low endpoint in "
+            f"{saturation['reaches_band_low_in']} of {saturation['of']} years. Nothing here "
             "can do more than that bound already did."
         ),
         "how_to_regenerate": "python3 -m tools.fit_year_level_anchor --internal-return",
