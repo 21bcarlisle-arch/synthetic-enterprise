@@ -153,14 +153,17 @@ class DecisionPolicy:
 
     # WHERE THE VALUE ARM'S BAD-DEBT BELIEF COMES FROM (2026-10-03).
     #
-    # `"segment_table"` is today's: `saas.payment_behaviour`'s four-segment table, replaced by the
-    # account's own unpaid share where the ledger holds one (`value_based_renewal`). `"own_book"`
-    # is `company/pricing/default_belief.py`: the bad-debt charge the company has itself booked
-    # per GBP billed, learned by payment method x arrears state from outcomes dated before the
-    # renewal, shrunk towards Ofgem's per-method allowance. A real supplier chooses which of its
-    # own estimates it prices on, so this is a company decision and a policy field. The default
-    # is today's, so every existing run, including both arms of the standing A/B, is unchanged.
-    renewal_default_belief: str = DEFAULT_BELIEF_SEGMENT_TABLE
+    # `"own_book"` is `company/pricing/default_belief.py`: the bad-debt charge the company has
+    # itself booked per GBP billed, learned by arrears state (never by payment method) from
+    # outcomes dated before the renewal, shrunk towards a whole-book prior. `"segment_table"` is
+    # `saas.payment_behaviour`'s four-segment table, replaced by the account's own unpaid share
+    # where the ledger holds one (`value_based_renewal`). A real supplier chooses which of its
+    # own estimates it prices on, so this is a company decision and a policy field.
+    #
+    # THE DEFAULT IS `own_book` FROM 2026-10-03, held until the console seat's learned-slope
+    # pre-registration was graded so its L1-L4 stayed attributable. Every run before this date
+    # priced on `segment_table`; a comparison across the flip has two variables.
+    renewal_default_belief: str = DEFAULT_BELIEF_OWN_BOOK
 
     def retention_discount_for_risk(self, company_est: float) -> float:
         """Return the retention discount fraction for a given churn estimate."""

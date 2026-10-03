@@ -53,6 +53,10 @@ PRIOR_DELTA_SD = RATE_SENSITIVITY
 #: The fuels whose price response is learned. I&C is priced by brokers on a different model and
 #: is out of B8's scope; a method or fuel outside these gets no correction (delta 0).
 LEARNED_FUELS = ("electricity", "gas")
+#: Asks `learned_correction` for the response pooled over every channel: what a price may rest on,
+#: because a slope learned per channel prices a clean account by how it pays (see
+#: `enriched_churn_estimate`'s `channel_blind`).
+EVERY_CHANNEL = "*"
 
 
 def own_move(new_rate_gbp_per_mwh: float, old_rate_gbp_per_mwh: float | None, fuel: str,
@@ -148,5 +152,11 @@ def learned_correction(payment_method: str | None, fuel: str | None,
     ledger = active_pressure_ledger()
     if ledger is None or not payment_method or fuel not in LEARNED_FUELS or renewal_year is None:
         return 0.0
-    sums = ledger.closed_slope_sums(str(payment_method), str(fuel), int(renewal_year))
+    if payment_method == EVERY_CHANNEL:
+        sums: dict = {}
+        for method in sorted({m for (m, f, _y) in ledger.slope_sums if f == fuel}):
+            for k, v in ledger.closed_slope_sums(method, str(fuel), int(renewal_year)).items():
+                sums[k] = sums.get(k, 0) + v
+    else:
+        sums = ledger.closed_slope_sums(str(payment_method), str(fuel), int(renewal_year))
     return slope_reading(sums, str(payment_method), str(fuel)).delta

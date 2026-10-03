@@ -177,6 +177,7 @@ def enriched_churn_estimate(
     payment_method: str | None = None,
     arrears_state: str = ARREARS_STATE_UNKNOWN,
     published_default_rate_gbp_per_mwh: float | None = None,
+    channel_blind: bool = False,
 ) -> float:
     """Return enriched churn probability from rate-sensitivity and payment-behaviour signals.
 
@@ -218,7 +219,14 @@ def enriched_churn_estimate(
         shape, same ledger, same no-look-ahead rule: the CIM survey is the prior and the
         company's own leavers by channel are the likelihood. None, an unrecognised method, or
         no run scope all give exactly the published factor.
+
+    channel_blind: the belief a PRICE may rest on (director, 2026-09-23: the estimate of who shops
+        may vary by channel; a price keyed to the meter may not). The channel is ignored: the
+        engagement factor is the book's own 1.0, and the learned price response is the one pooled
+        over every channel rather than this channel's. The churn desk's belief keeps the channel.
     """
+    if channel_blind:
+        payment_method = None
     rate_est = estimate_churn_probability(
         old_rate_gbp_per_mwh,
         new_rate_gbp_per_mwh,
@@ -246,8 +254,13 @@ def enriched_churn_estimate(
     # belief as a correction per unit of the offer's gap to the published default. Zero unless
     # the active policy asks for it and the company has evidence, so every existing caller is
     # byte-identical. Lazy import: pricing imports this module.
-    from company.pricing.discovered_price_sensitivity import learned_correction, own_move
-    delta = learned_correction(payment_method, fuel, renewal_year)
+    from company.pricing.discovered_price_sensitivity import (
+        EVERY_CHANNEL,
+        learned_correction,
+        own_move,
+    )
+    delta = learned_correction(EVERY_CHANNEL if channel_blind else payment_method, fuel,
+                               renewal_year)
     if delta:
         move = own_move(new_rate_gbp_per_mwh, old_rate_gbp_per_mwh, fuel, renewal_year,
                         segment=segment,

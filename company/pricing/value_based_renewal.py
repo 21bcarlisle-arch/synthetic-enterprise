@@ -532,14 +532,20 @@ def observed_non_payment_provision_rate(
     """
     if billed_last_year_gbp is None:
         return None, None
+    if billed_last_year_gbp <= 0.0:
+        return None, "nothing billed in the last year, so no non-payment share can be read"
+    unpaid = sum(float(g) for g, d in (unpaid_bills_by_age or ()) if int(d) < 365)
+    # A CLEAN YEAR IS ZERO ON EVERY ROW, so it needs no row. Until 2026-10-03 the row was looked
+    # up first, and a clean prepayment account -- which has none -- fell back to the 2% segment
+    # prior while a clean DD one read its own zero: GBP 2.00-2.75/MWh more for how it pays, the
+    # cost-shift the director ruled out on 2026-09-23.
+    if unpaid <= 0.0:
+        return 0.0, None
     live_row = _LIVE_PROVISION_ROW_BY_METHOD.get(payment_method or "")
     if live_row is None:
         return None, (
             f"payment method {payment_method!r} has no published live provision row, so this "
             "account's own non-payment cannot be priced and its segment prior stands")
-    if billed_last_year_gbp <= 0.0:
-        return None, "nothing billed in the last year, so no non-payment share can be read"
-    unpaid = sum(float(g) for g, d in (unpaid_bills_by_age or ()) if int(d) < 365)
     share = min(1.0, unpaid / float(billed_last_year_gbp))
     year_mix = sum(_live_rate(live_row, d) for d in range(365)) / 365.0
     return share * year_mix, None
@@ -957,9 +963,9 @@ def decide_margin(
         )
         # THE BOOK'S OWN RATE, WHEN THE POLICY ASKS FOR IT, REPLACES BOTH the segment table and
         # the account's persistence term (`DecisionPolicy.renewal_default_belief`,
-        # `company/pricing/default_belief.py`). It is already conditioned on the account's
-        # method and arrears state, so stacking it on the persistence term would count the same
-        # debt twice. The stock term on money already owed stays: it prices the balance, and the
+        # `company/pricing/default_belief.py`). It is learned by arrears state only -- never by
+        # payment method -- and already prices this account's debt history, so stacking it on the
+        # persistence term would count the same debt twice. The stock term on money already owed stays: it prices the balance, and the
         # book's rate prices the year to come.
         if default_belief_rate is not None:
             costs = dataclasses.replace(costs, bad_debt_gbp=float(default_belief_rate) * max(
@@ -976,13 +982,14 @@ def decide_margin(
             fuel=fuel,
             segment=segment,
             renewal_year=renewal_year,
-            # THE CHANNEL, which this call left out until 2026-10-03 although `decide_margin` has
-            # held it since e0370bf94. Without it the price was set against a churn belief with no
-            # payment-method engagement factor (PB7's learned scaler) and no learned price
-            # response (B8), while the churn desk's belief for the same renewal applied both:
-            # one company, two beliefs about one customer. Found because B8's correction moved the
-            # learned rule's belief on 23 of 76 decisions and its price on none.
-            payment_method=payment_method,
+            # NOT THE CHANNEL, ON PURPOSE. 4e17d1247 passed `payment_method` here so the price
+            # would hear B8's learned response and PB7's engagement factor, as the churn desk's
+            # belief does. Both are learned PER CHANNEL, so in a run whose book had learned that
+            # prepayment shops less, a clean prepayment household was priced up to GBP 112/MWh
+            # above a clean DD one -- the cost-shift onto prepayment the director ruled out on
+            # 2026-09-23. The price reads the channel-blind belief: the book's own engagement and
+            # the price response pooled over every channel, so B8 still reaches the price.
+            channel_blind=True,
             # RESOLVED OUTSIDE THE SCORER AND CONSTANT ACROSS CANDIDATES, for the same reason
             # `departure_cost` is: where this account stands on the company's own receivable is a
             # fact about the account as it is TODAY, not about a price it has not been offered.
