@@ -135,9 +135,15 @@ def test_the_decision_fields_name_when_an_account_left_and_its_first_roll(monkey
     assert decisions["A"] == {
         "left_at": "2020-03-22", "renewal_decisions": 3, "bills_issued": 2, "successor_of": None,
         "first_renewal": {"date": "2017-03-23", "p_retain": 0.6254, "roll": 0.3763,
-                          "outcome": "renewed"}}
+                          "outcome": "renewed"},
+        # Every renewal, in date order, both legs of the billing account folded together.
+        "renewals": [
+            {"date": "2017-03-23", "p_retain": 0.6254, "roll": 0.3763, "outcome": "renewed"},
+            {"date": "2020-03-22", "p_retain": 0.2, "roll": 0.3763, "outcome": "churned"},
+            {"date": "2021-01-05", "p_retain": 0.1, "roll": 0.5, "outcome": "churned"}]}
     assert decisions["B"] == {"left_at": None, "first_renewal": None,
-                              "renewal_decisions": 0, "bills_issued": 1, "successor_of": None}
+                              "renewal_decisions": 0, "bills_issued": 1, "successor_of": None,
+                              "renewals": []}
 
 
 def test_sub_penny_rows_still_reconcile_because_the_fold_does_not_round_each_line():
