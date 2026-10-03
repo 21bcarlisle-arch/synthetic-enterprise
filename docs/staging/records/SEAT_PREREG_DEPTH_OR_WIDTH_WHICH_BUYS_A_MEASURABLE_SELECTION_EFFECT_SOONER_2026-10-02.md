@@ -150,3 +150,25 @@ resolve the width/depth difference at the 95% level. Resolving the gap at two st
 need about 18 seeds per cell by D_lin, or about 45 raw. For width alone that is 20 to 65 more CPU-h,
 at 1.67 CPU-h per seed. That spend would make the existing answer more precise but would not change
 it, so it is not queued.
+
+## Result — width over six seeds (graded 2026-10-03, all of W1.25 on pin a322166cc)
+
+| Cell (2025, seeds 61001-61006) | mean selection | sd | SNR/seed | effective accounts | largest share |
+|---|---|---|---|---|---|
+| x1.0 (ab6) | -3,437 | 4,686 | 0.73 | 8.7 | 0.25 |
+| x1.25 | -1,131 | 3,911 | **0.29** | 11.5 | 0.22 |
+
+Per seed at x1.25: +210, -78, -5,030, -5,905, -809, +4,826.
+
+- **The director's point holds on the TAIL.** A larger book dilutes the heavy accounts: effective
+  accounts rise by a third, and the sd FALLS 17%, although a larger book's total should spread
+  more (~ sqrt 1.25 = +12%).
+- **Book-level SNR does not improve. It falls, 0.73 to 0.29,** because the mean moves toward zero
+  as the sd shrinks. The two-seed lead ("width adds decisions but no visible effect") HOLDS at six
+  seeds.
+- **Superseded as the instrument for this question.** The per-decision probe
+  (`SEAT_PREREG_A_PER_DECISION_COMPARISON_OF_PRICING_RULES_2026-10-03.md`) compares rules on the
+  same customers at the same moments. On ONE book it puts value-against-level at -2,668, SNR
+  2.2, at 0.35 CPU-h. Each W1.25 pair cost 3.3-3.4 CPU-h and 13.0-13.1 GB. Spend no more memory
+  on book-level width: the noise it was meant to beat was mostly the split-path lottery the
+  per-decision measure removes.
