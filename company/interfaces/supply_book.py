@@ -188,5 +188,8 @@ def open_change_of_supplier_register() -> CoSRegister:
     registration is filed in. The world hands it registration-loss notices
     (`interface/contracts/registration_loss_seam.py`) through
     `CoSRegister.receive_loss_notice` and nothing else, the same direction a real
-    registration service talks to a losing supplier."""
-    return CoSRegister()
+    registration service talks to a losing supplier.
+
+    The register asks this book whether it holds a point WHEN THE NOTICE ARRIVES -- points
+    are acquired mid-run, so a snapshot taken here would be stale by the first win."""
+    return CoSRegister(holds=lambda sp: registered_point(sp) is not None)

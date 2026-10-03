@@ -799,6 +799,74 @@ def staged_files() -> list[str]:
     return [ln.strip() for ln in out.splitlines() if ln.strip()]
 
 
+#: Set by `tools/surgical_land.py` to the merge's OTHER parent when it gates a `--merge`. Its
+#: extract is built by `archive`+`init`, not by `git merge`, so it has no `MERGE_HEAD` to read.
+MERGE_PARENT_ENV = "PRE_COMMIT_GATE_MERGE_PARENT"
+
+
+def merge_parent(root: Path = ROOT, env: dict | None = None) -> str | None:
+    """The commit this index is being merged with, or None when this is not a merge.
+
+    Read from `MERGE_PARENT_ENV`, else from `MERGE_HEAD` (a real `git merge` + `git commit`). A
+    token that does not resolve to a commit here is ignored. So is one already contained in HEAD,
+    and that refusal is what keeps this from being a bypass: against an ancestor, a staged path
+    whose bytes REVERT HEAD's change to that ancestor's would count as "already carried" and be
+    deselected. `surgical_land --merge` refuses that shape itself, so a real base advance never
+    reaches it."""
+    env = os.environ if env is None else env
+
+    def _git(*args: str) -> subprocess.CompletedProcess:
+        return subprocess.run(["git", *args], cwd=str(root), capture_output=True, text=True)
+
+    token = (env.get(MERGE_PARENT_ENV) or "").strip()
+    if not token:
+        token = _git("rev-parse", "-q", "--verify", "MERGE_HEAD").stdout.strip()
+    if not token:
+        return None
+    sha = _git("rev-parse", "-q", "--verify", f"{token}^{{commit}}").stdout.strip()
+    if not sha:
+        return None
+    if _git("merge-base", "--is-ancestor", sha, "HEAD").returncode == 0:
+        return None
+    return sha
+
+
+def selection_paths(staged: list[str], root: Path = ROOT,
+                    env: dict | None = None) -> tuple[list[str], str]:
+    """The staged paths test selection keys on, and a line saying why (empty when unchanged).
+
+    FOR A MERGE THIS IS ITS COMBINED DIFF: the staged paths whose content differs from EVERY parent
+    -- `git diff --cached` already differs from HEAD, so it is the ones that also differ from the
+    other parent. Everything else is bytes some parent already carried, and each parent was gated
+    when it landed. Keyed on the whole first-parent diff, a base advance re-ran the tests of
+    everything origin brought in: measured 2026-10-03, 101 of 115 such merges in 48 h authored
+    nothing and spent ~10 h of pytest re-gating code already gated on both sides
+    (docs/staging/SEAT_FINDING_HALF_THE_BASE_ADVANCE_MERGES_AUTHOR_NOTHING_AND_ARE_GATED_ON_
+    EVERYTHING_THE_OTHER_SIDE_BROUGHT_2026-10-03.md).
+
+    WHAT THIS GIVES UP, said once: a union of two green sides can be red -- one side changes a
+    function, the other adds a caller of the old shape -- and no path either side touched is in
+    the combined diff. Every structural check in `main` and the hook chain still reads the FULL
+    staged set; only the pytest selection narrows.
+
+    FAIL-CLOSED: if the merge parent cannot be diffed the full staged set is selected."""
+    parent = merge_parent(root, env)
+    if parent is None:
+        return staged, ""
+    r = subprocess.run(
+        ["git", "diff", "--cached", "--name-only", parent],
+        cwd=str(root), capture_output=True, text=True,
+    )
+    if r.returncode != 0:
+        return staged, (f"[test-gate] merge with {parent[:9]}: could not diff against it "
+                        f"(rc={r.returncode}); selecting on all {len(staged)} staged path(s)")
+    differs = {ln.strip() for ln in r.stdout.splitlines() if ln.strip()}
+    combined = [p for p in staged if p in differs]
+    return combined, (f"[test-gate] merge with {parent[:9]}: selecting on its combined diff, "
+                      f"{len(combined)} of {len(staged)} staged path(s): "
+                      f"{', '.join(combined[:6]) or 'none'}")
+
+
 def tests_for(path: str) -> list[str]:
     """Map a changed file to its test file(s): a changed test file -> itself; a changed *.py ->
     tests/**/test_<stem>.py AND tests/**/test_<stem>_*.py if present.
@@ -2184,7 +2252,10 @@ def main() -> int:
     if detail:
         print(f"[test-gate] ✓ {detail}")
 
-    targets = select_targets(staged)
+    selected, why = selection_paths(staged)
+    if why:
+        print(why)
+    targets = select_targets(selected)
     if not targets:
         return 0  # pure docs/data commit -- nothing that can break a control
     # FLUSHED, AND THE FLUSH IS NOT COSMETIC (2026-08-26). `subprocess.run` below inherits this
@@ -2200,6 +2271,9 @@ def main() -> int:
     # for this call site.
     print(f"[test-gate] {len(targets)} test file(s): {', '.join(targets)}", flush=True)
     gitless_env = _gitless_env(os.environ)
+    # The merge token is this process's, not the suite's: inherited, it would narrow selection
+    # inside every test that calls `main()` while a merge is being gated, and nowhere else.
+    gitless_env.pop(MERGE_PARENT_ENV, None)
     r = subprocess.run(
         [sys.executable, "-m", "pytest", *targets, "-q", "--no-header", "-p", "no:cacheprovider"],
         cwd=str(ROOT),

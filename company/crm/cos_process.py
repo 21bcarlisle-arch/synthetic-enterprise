@@ -3,7 +3,7 @@ from __future__ import annotations
 import datetime as dt
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Mapping, Optional
+from typing import Any, Callable, Mapping, Optional
 
 from company.interfaces.wall_protocol import decode_framed_notification
 from interface.contracts.registration_loss_seam import (
@@ -146,30 +146,55 @@ def decode_loss_payload(raw: Any) -> RegistrationLossNotice:
     )
 
 
+def read_loss_wire(wire: Any) -> WallNotification:
+    """TRANSPORT ONLY: a framed registration-loss message, authenticated, version-checked and
+    decoded, from a sender that is a registration service. It holds no book, so it cannot ask
+    whether this supplier holds the point the notice names -- `CoSRegister.receive_loss_wire`
+    is the reader that can, and the one a caller should use
+    (`tools/wall_channel_census.py::ANCHORED_FEEDS`).
+
+    A sender the registry knows but that is not a registration service (the Bacs bureau, say)
+    is refused: only those services can tell us a registration ended."""
+    sender, notification = decode_framed_notification(wire, decode_payload=decode_loss_payload)
+    if sender not in LOSS_NOTICE_SENDERS:
+        raise ValueError(
+            f"CoSRegister: {sender!r} is not a registration service, so it cannot tell "
+            "this supplier it lost a registration"
+        )
+    return notification
+
+
+#: Why a loss notice was held as an exception rather than filed as a loss.
+NOT_ON_THIS_BOOK = "no registration on this supplier's book"
+
+
 class CoSRegister:
-    def __init__(self) -> None:
+    def __init__(self, holds: Optional[Callable[[str], bool]] = None) -> None:
+        """`holds(supply_point_id)` answers "is this point registered to us?" from the
+        supplier's own book. It is ASKED WHEN A NOTICE ARRIVES, not captured at opening,
+        because points are acquired mid-run. A register opened without it can open switches
+        but refuses to file a loss (`_admit_loss`)."""
         self._processes: dict[str, list[CoSProcess]] = {}
         self._loss_notice_ids: set[tuple[str, str]] = set()
+        self._holds = holds
+        self._loss_exceptions: list[dict] = []
 
     def receive_loss_wire(self, wire: Any) -> bool:
         """A framed registration-loss message as a registration service hands it over:
-        authenticated, version-checked, decoded, then filed by `receive_loss_notice`.
-
-        A sender the registry knows but that is not a registration service (the Bacs
-        bureau, say) is refused: only those services can tell us a registration ended."""
-        sender, notification = decode_framed_notification(wire, decode_payload=decode_loss_payload)
-        if sender not in LOSS_NOTICE_SENDERS:
-            raise ValueError(
-                f"CoSRegister: {sender!r} is not a registration service, so it cannot tell "
-                "this supplier it lost a registration"
-            )
-        return self.receive_loss_notice(notification)
+        read by `read_loss_wire`, then admitted against this supplier's own book."""
+        notification = read_loss_wire(wire)
+        if not self._admit_loss(notification):
+            return False
+        self._file_loss(notification)
+        return True
 
     def receive_loss_notice(self, notification: WallNotification) -> bool:
         """File a registration-loss notice (`interface/contracts/registration_loss_seam`).
 
         Returns False for a redelivery of a notice already filed, keyed on the
-        sender's own (sender, notification_id) -- the stream is at-least-once.
+        sender's own (sender, notification_id) -- the stream is at-least-once --
+        and for a notice naming a point this supplier does not hold, which is
+        kept in `loss_exceptions()` instead.
 
         The process opens at OBJECTION_CLEARED, dated when the notice was observed:
         a Secured Inactive notice is sent once the registration is past the point
@@ -178,6 +203,25 @@ class CoSRegister:
         The switch stays in progress until a final read arrives, which no seam
         delivers yet.
         """
+        if not self._admit_loss(notification):
+            return False
+        self._file_loss(notification)
+        return True
+
+    def _admit_loss(self, notification: WallNotification) -> bool:
+        """THE BOOK'S QUESTION: may this notice be filed as a loss of ours?
+
+        A real registration service sends a losing supplier notices only for its own
+        registrations, so a notice for a point this supplier does not hold is an industry
+        exception to be investigated, not a loss: it goes to `loss_exceptions()` and never
+        opens a process. Asked AFTER the redelivery check, so a redelivered stray is one
+        exception, not one per delivery."""
+        if self._holds is None:
+            raise ValueError(
+                "CoSRegister: opened without the supply book, so it cannot tell whether this "
+                "supplier holds the point a loss notice names -- open it with `holds=` "
+                "(`company.interfaces.supply_book.open_change_of_supplier_register`)"
+            )
         payload = notification.payload
         if not isinstance(payload, _LOSS_PAYLOAD_TYPES):
             raise ValueError(
@@ -188,6 +232,18 @@ class CoSRegister:
         if key in self._loss_notice_ids:
             return False
         self._loss_notice_ids.add(key)
+        if not self._holds(payload.supply_point_id):
+            self._loss_exceptions.append({
+                "supply_point_id": payload.supply_point_id,
+                "registration_ref": payload.registration_ref,
+                "sender": notification.sender,
+                "reason": NOT_ON_THIS_BOOK,
+            })
+            return False
+        return True
+
+    def _file_loss(self, notification: WallNotification) -> None:
+        payload = notification.payload
         proc = CoSProcess(
             payload.supply_point_id, notification.observed_at.date().isoformat(),
             None, THIS_SUPPLIER,
@@ -196,7 +252,10 @@ class CoSRegister:
             registration_ref=payload.registration_ref,
         )
         self._processes.setdefault(payload.supply_point_id, []).append(proc)
-        return True
+
+    def loss_exceptions(self) -> list[dict]:
+        """Loss notices this supplier was sent for points it does not hold."""
+        return list(self._loss_exceptions)
 
     def losses_notified(self) -> list[dict]:
         """Every loss this company has been told of, as it holds them."""
