@@ -2033,6 +2033,35 @@ class PaymentObservationConsumer:
             if e.event_type == LedgerEventType.BILL_DEBIT and start < e.valid_time <= end
         ), 2)
 
+    def default_belief_rate(
+        self,
+        as_of: dt.date,
+        arrears_state: str,
+        *,
+        payment_method_of,
+        arrears_state_at,
+    ) -> float:
+        """The expected bad-debt charge per GBP billed for a renewal on `as_of` by an account in
+        `arrears_state`, learned from THIS company's own book (`company.pricing.default_belief`),
+        from outcomes it knew before then. Not keyed on the account's payment method: the price
+        it feeds may not depend on how a household pays.
+
+        The read lives here for the reason `arrears_state` does: the ledger is this class's, and a
+        bridge that assembled it would import the pricing package across the wall. The two
+        callables are what this class cannot know: which method each account pays by (the
+        company's own register, held outside the ledger, and needed only to read each charge on
+        its published provision row) and the arrears clock (the caller's
+        billing cadence). Each account-year is read once and kept, so asking at every renewal
+        costs one walk of each resolved year.
+        """
+        from company.pricing.default_belief import default_belief, observe_book
+
+        memo = self.__dict__.setdefault("_default_belief_memo", {})
+        observations = observe_book(
+            self.ledger_book, as_of=as_of, payment_method_of=payment_method_of,
+            arrears_state_at=arrears_state_at, memo=memo)
+        return default_belief(observations, decided_on=as_of, arrears_state=arrears_state).rate
+
     def _collections_view(self, account_id: str, segment: Segment, as_of: dt.date) -> dict:
         """This account's collections snapshot at one date, off this company's own ledger."""
         return collections_snapshot(
