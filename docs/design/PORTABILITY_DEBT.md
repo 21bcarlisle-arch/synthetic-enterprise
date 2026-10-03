@@ -171,7 +171,7 @@ market_quantity   company/interfaces/internal_seams.py                 gbp      
 market_quantity   company/interfaces/point_in_time_view.py             gbp          4
 market_quantity   company/interfaces/recorded_sim_interface.py         gbp          5
 market_quantity   company/interfaces/renewal_offer.py                  gbp         12
-market_quantity   company/interfaces/renewal_rate_chain.py             gbp          9
+market_quantity   company/interfaces/renewal_rate_chain.py             gbp          12
 market_quantity   company/interfaces/sim_interface.py                  gbp          12
 market_quantity   company/interfaces/tou_offer.py                       gbp          3
 # EP6 WALL-PROTOCOL ROWS, recorded 2026-08-21 and recorded LATE -- read the note below the
