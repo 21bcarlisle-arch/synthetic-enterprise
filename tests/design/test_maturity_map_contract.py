@@ -153,10 +153,8 @@ LEGACY_NUMBER_COLLISIONS = {
 }
 
 # (e) atoms missing / null on a required field. Keyed by field -> ids.
-# 2026-08-05: exactly one -- D_opening_dd_seasonal_sizing carries no ``epoch``.
-LEGACY_MISSING_REQUIRED = {
-    "epoch": frozenset({"D_opening_dd_seasonal_sizing"}),
-}
+# Emptied 2026-10-03: its one entry, D_opening_dd_seasonal_sizing, now carries its parent's epoch.
+LEGACY_MISSING_REQUIRED: dict[str, frozenset] = {}
 
 
 # ============================================================================
@@ -439,12 +437,15 @@ def test_required_field_mutation_fires_and_restores():
     assert check_required_fields(explicit_null) == [("A1_a", "level_current")]
 
 
-def test_required_field_allowlisted_atom_does_not_fire():
-    field, ids = next(iter(LEGACY_MISSING_REQUIRED.items()))
-    atom_id = next(iter(ids))
-    atom = _atom(id=atom_id)
-    del atom[field]
+def test_required_field_allowlisted_atom_does_not_fire(monkeypatch):
+    # The live allowlist is empty, so the exemption is exercised on a synthetic entry.
+    monkeypatch.setitem(LEGACY_MISSING_REQUIRED, "epoch", frozenset({"X9_legacy"}))
+    atom = _atom(id="X9_legacy")
+    del atom["epoch"]
     assert check_required_fields([atom]) == []
+    other = _atom(id="X8_new")
+    del other["epoch"]
+    assert check_required_fields([other]) == [("X8_new", "epoch")]
 
 
 # ============================================================================
