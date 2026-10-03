@@ -72,6 +72,9 @@ def decide_renewal_rate(
     settled_records: list[dict],
     customer: dict,
     segment: str | None = None,
+    arrears_state: str | None = None,
+    receivable: dict | None = None,
+    payment_method: str | None = None,
 ) -> RenewalRateChain:
     """Ask the company what rate it is contracting this renewal at.
 
@@ -115,4 +118,10 @@ def decide_renewal_rate(
         # as ToU against the multi-register cap (SLC 28AD.4). Required at the door for the reason
         # `segment` crosses here: a parameter on the desk alone is a release whose effect is nothing.
         customer=customer,
+        # THE COMPANY'S OWN PAYMENT HISTORY, read off its own ledger through the payment triad's
+        # doors and the payment-method seam. Crossing here for the reason `segment` does. `None`
+        # is "not asked" and keeps a caller that predates 2026-10-03 exactly where it was.
+        arrears_state=arrears_state,
+        receivable=receivable,
+        payment_method=payment_method,
     )
