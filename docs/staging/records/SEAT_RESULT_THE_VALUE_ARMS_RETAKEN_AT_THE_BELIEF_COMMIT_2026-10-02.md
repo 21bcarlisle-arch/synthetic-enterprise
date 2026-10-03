@@ -213,3 +213,24 @@ the dated 1002b pair, the way `earlier` was already pinned:
 `site/test_the_baseline_comparison_reaches_the_reader.py::_feed_whose_current_world_block_speaks`
 (the mirror's poison round is a no-op when both legs resolve) and
 `tests/tools/test_generate_value_arms_data.py::test_the_creation_leg_carries_its_own_live_world_bound_and_not_the_advantages`.
+
+## The split is on the page (2026-10-03, claim `publish-selection-split-into-churn-pricing-and-credit`)
+
+`tools/generate_value_arms_data.py::_selection_split` publishes `current_world.selection_split`
+from the current-world floor, per seed. It uses the method above: per account and arm, churn
+pricing is `pre_4c_net + placeholder_bad_debt_released`, and credit is net minus that. It refuses,
+naming the seed, if the two parts do not rebuild that seed's `selection_gbp` to the penny, if an
+arm's lines do not reconcile, or if the floor is from another world. Capabilities renders it under
+the re-draw band (`#arms-redraw`). Reading at 1002c, reproduced exactly from the table above:
+churn pricing +£5,753.65 (sem £906.41, 6.3 sems against the 4.30 bar), credit −£9,829.96 (sem
+£73.70). PROS-2016-0098 holds 99.8% to 102.2% of the credit part on every draw. The split
+inherits the floor's code withdrawal: its signs are shown with the same "verdict withdrawn for
+which code drew the bound" line as the legs. Door:
+`site/test_the_baseline_comparison_reaches_the_reader.py::test_the_selection_legs_two_parts_reach_the_reader_on_every_draw`.
+Dropping the credit column from the door reds it and the partition rung, both checked with the change staged.
+
+**Still stale, and not fixed here:** `selection_leg.root_cause.statement` (from the 2026-09-27
+record) still says the residual is a coin flip on whether 0098 crosses its roll, with the level
+arm keeping it on one seed. At 1002c the level arm churns it on every seed, and the credit part is
+nearly constant across draws. The split is now the accurate reading, and the two sit side by side on
+the page. Rewriting or withdrawing `_SELECTION_SWITCH` is the next item for the seat to rank.

@@ -161,6 +161,7 @@ from tools.run_value_cycle_ab import (
     # states where the price stops being reachable, and a second spelling of that ceiling here is
     # how the sentence and the solver come to disagree about what "unreachable" means.
     _SEEDS_SEARCH_CEILING,
+    ARREARS_RECONCILIATION_TOLERANCE_GBP,
     BOOK_REALISED_FIELDS,
     SIGN_TAIL_PROBABILITY_EACH_SIDE,
     _concordance,
@@ -15404,6 +15405,180 @@ def _the_selection_switch_root_cause(leg: dict,
     return out
 
 
+#: Per seed, churn pricing plus credit must rebuild the published selection figure to within this.
+#: The same penny the arrears reconciliation grades each account at, because the split is that
+#: reconciliation summed: a residual above it means the two parts are not of the figure they sit beside.
+SELECTION_SPLIT_TOLERANCE_GBP = ARREARS_RECONCILIATION_TOLERANCE_GBP
+#: The record the split's method and its first reading come from.
+SELECTION_SPLIT_RECORD = ("docs/staging/records/"
+                          "SEAT_RESULT_THE_VALUE_ARMS_RETAKEN_AT_THE_BELIEF_COMMIT_2026-10-02.md")
+
+
+def _churn_and_credit(lines: dict | None, net) -> tuple[float, float]:
+    """One arm's realised net on one account, as (margin with no bad debt charged, the rest).
+
+    The first is `pre_4c_net + placeholder_bad_debt_released`: what the account earned before the
+    arrears engine booked anything. The second is everything that engine realised -- write-offs,
+    provisions, DCA recoveries -- taken as the remainder so the two sum to the net by construction.
+    An account the lines never saw has no arrears booked, so its whole net is churn pricing.
+    """
+    net = float(net or 0.0)
+    if not isinstance(lines, dict):
+        return net, 0.0
+    churn = float(lines["pre_4c_net_gbp"]) + float(lines["placeholder_bad_debt_released_gbp"])
+    return churn, net - churn
+
+
+def _selection_split(floor: dict | None, live_world: str | None) -> dict:
+    """The selection leg as two named parts per seed: churn pricing and credit.
+
+    "SELECTION" IS TWO EXPERIENCES, AND ONE SIGNED NUMBER NAMES THE WRONG CAUSE. Choosing by churn
+    is the per-customer arm pricing who stays; carrying credit risk is who fails to pay after they
+    stayed. On the 1002c floor the first is positive on every draw and the second negative on every
+    draw, from one account's write-off, and their sum is what the page publishes as selection.
+    A reader meeting only the sum is told the per-customer view chooses badly. The record behind
+    this (`SELECTION_SPLIT_RECORD`, method from 792fcf31d) says that is the wrong cause.
+
+    DEFINED BEFORE IT IS DIFFERENCED. Per account and per arm, churn pricing is the net with no bad
+    debt charged and credit is the remainder (`_churn_and_credit`). Each part of selection is the
+    value arm's minus the level arm's, summed over accounts -- the same difference
+    `selection_gbp` is.
+
+    REFUSES, NAMING WHY, when the floor is not of this world, a seed carries no arrears lines or
+    an arm's lines do not reconcile to its net, or the two parts do not rebuild the seed's
+    published `selection_gbp` to the penny. A split that does not add up to the figure it sits
+    beside is two numbers about something else.
+
+    THE STANDARD ERRORS PRICE ONLY THE FLOOR'S RE-DRAW. The floor re-draws `redraw_key` and nothing
+    else, so each part's sem says how much that draw moves it. A tight credit part means the draw
+    does not reach the write-off, not that credit loss is a property of the arm.
+    """
+    if not isinstance(floor, dict) or not floor.get("seeds"):
+        return {"available": False,
+                "why_not": "no current-world noise floor was readable, so selection is not split"}
+    ran_in = (floor.get("world_identity") or {}).get("digest")
+    if live_world is None or ran_in != live_world:
+        return {"available": False,
+                "why_not": ("the floor that would be split ran in world {} and the live world is "
+                            "{}, so its parts would describe another world".format(
+                                ran_in or "none", live_world or "unreadable"))}
+    rows, refusals = [], []
+    for seed in floor["seeds"]:
+        sid = seed.get("seed")
+        lines = {"value": seed.get("value_arm_arrears_lines_by_account_gbp"),
+                 "level": seed.get("level_arm_arrears_lines_by_account_gbp")}
+        nets = {"value": seed.get("value_arm_net_by_account_gbp"),
+                "level": seed.get("level_arm_net_by_account_gbp")}
+        missing = [arm for arm in ("value", "level")
+                   if not isinstance(lines[arm], dict) or not isinstance(nets[arm], dict)]
+        if missing:
+            refusals.append("seed {} carries no per-account arrears lines or net for the {} "
+                            "arm".format(sid, " and ".join(missing)))
+            continue
+        unreconciled = [arm for arm in ("value", "level")
+                        if (seed.get(arm + "_arm_arrears_reconciliation") or {}).get(
+                            "reconciles") is not True]
+        if unreconciled:
+            refusals.append("seed {}: the {} arm's arrears lines do not reconcile to its net, so "
+                            "its net cannot be split".format(sid, " and ".join(unreconciled)))
+            continue
+        churn = credit = 0.0
+        credit_by_account = {}
+        for account in sorted(set(lines["value"]) | set(lines["level"])
+                              | set(nets["value"]) | set(nets["level"])):
+            cv, kv = _churn_and_credit(lines["value"].get(account), nets["value"].get(account))
+            cl, kl = _churn_and_credit(lines["level"].get(account), nets["level"].get(account))
+            churn += cv - cl
+            credit += kv - kl
+            credit_by_account[account] = kv - kl
+        total = _f(seed.get("selection_gbp"))
+        if total is None:
+            refusals.append("seed {} publishes no selection figure to split".format(sid))
+            continue
+        residual = churn + credit - total
+        if abs(residual) > SELECTION_SPLIT_TOLERANCE_GBP:
+            refusals.append(
+                "seed {}: churn pricing {} plus credit {} is {}, which is {} away from the seed's "
+                "published selection {}".format(
+                    sid, _stated_to_the_penny(churn), _stated_to_the_penny(credit),
+                    _stated_to_the_penny(churn + credit), _stated_to_the_penny(residual),
+                    _stated_to_the_penny(total)))
+            continue
+        top = max(credit_by_account, key=lambda a: abs(credit_by_account[a]))
+        rows.append({"seed": sid, "selection_gbp": total, "churn_pricing_gbp": churn,
+                     "credit_gbp": credit, "residual_gbp": residual,
+                     "largest_credit_account": top,
+                     "largest_credit_account_gbp": credit_by_account[top],
+                     "largest_credit_account_share": (credit_by_account[top] / credit
+                                                      if credit else None)})
+    if refusals:
+        return {"available": False,
+                "why_not": "SELECTION IS NOT SPLIT: " + "; ".join(refusals) + "."}
+    n = len(rows)
+    bar = _f(sems_to_state_a_sign(n))
+
+    def _part(key):
+        values = [r[key] for r in rows]
+        mean = statistics.fmean(values)
+        sem = statistics.stdev(values) / math.sqrt(n) if n > 1 else None
+        sems = abs(mean) / sem if sem else None
+        clears = None if sems is None or bar is None else sems > bar
+        return {"mean_gbp": mean, "sem_gbp": sem, "sems_from_zero": sems,
+                "clears_the_bar": clears,
+                "sign": (("positive" if mean > 0 else "negative") if clears else None),
+                "on_every_draw": ("positive" if all(v > 0 for v in values) else
+                                  "negative" if all(v < 0 for v in values) else None)}
+
+    churn_part, credit_part = _part("churn_pricing_gbp"), _part("credit_gbp")
+    accounts = sorted({r["largest_credit_account"] for r in rows})
+    if len(accounts) == 1:
+        shares = [r["largest_credit_account_share"] for r in rows]
+        dominant = {"account": accounts[0],
+                    "share_min": min(shares), "share_max": max(shares),
+                    "statement": "{} holds {:.1%} to {:.1%} of the credit part on every "
+                                 "draw.".format(accounts[0], min(shares), max(shares))}
+    else:
+        dominant = {"account": None,
+                    "statement": "No one account holds the most credit on every draw: "
+                                 + ", ".join("{} on seed {}".format(r["largest_credit_account"],
+                                                                     r["seed"]) for r in rows)
+                                 + "."}
+
+    def _said(part, name):
+        stated = ("{}, {} standard errors from zero against a bar of {:.2f}".format(
+            part["sign"], "{:.1f}".format(part["sems_from_zero"]), bar)
+                  if part["clears_the_bar"] else
+                  "no sign stated at {} draws".format(n))
+        return "{} {} (sem {}; {})".format(
+            name, _stated_to_the_penny(part["mean_gbp"]),
+            _stated_to_the_penny(part["sem_gbp"]) if part["sem_gbp"] is not None else "none",
+            stated)
+
+    return {
+        "available": True,
+        "n": n,
+        "sems_needed_to_state_a_sign": bar,
+        "tolerance_gbp": SELECTION_SPLIT_TOLERANCE_GBP,
+        "redraw_key": floor.get("redraw_key"),
+        "floor_generated_at": floor.get("generated_at"),
+        "seeds": rows,
+        "churn_pricing": churn_part,
+        "credit": credit_part,
+        "dominant_credit_account": dominant,
+        "method": SELECTION_SPLIT_RECORD,
+        "statement": (
+            "Selection is two things, split here per draw. CHURN PRICING is the per-customer arm's "
+            "margin against the flat level's with no bad debt charged: who it kept and at what "
+            "price. CREDIT is what the arrears engine then wrote off or recovered. Over {n} draws: "
+            "{churn}; {credit}. {dom} The two parts add up to the published selection figure on "
+            "every draw. The standard errors measure only the {key} re-draw, so a tight credit "
+            "part means that draw does not reach the write-off. Method: {rec}.").format(
+                n=n, churn=_said(churn_part, "churn pricing"),
+                credit=_said(credit_part, "credit"), dom=dominant["statement"],
+                key=floor.get("redraw_key") or "floor's", rec=SELECTION_SPLIT_RECORD),
+    }
+
+
 #: The code a value-cycle run executes, as far as the arms can tell: the world and the company.
 #: The runner and the generator are left out on purpose -- they read the outcome, they do not make it.
 ARMS_SUBSTRATE_PATHS = ("simulation", "company")
@@ -15552,6 +15727,10 @@ def _current_world_bound_admitted_on_its_code(block: dict, floor_code: dict) -> 
     for key in ("selection_leg", "level_leg"):
         if key in block:
             block[key] = _withdraw(block[key])
+    # The split's two signs are decided by the same floor's bar, so they go with it.
+    split = block.get("selection_split")
+    if isinstance(split, dict) and split.get("available"):
+        block["selection_split"] = dict(split, verdict_withheld_because=withdrawn)
     return block
 
 
@@ -15804,6 +15983,9 @@ def _current_world_contrast(current: dict | None, floor: dict | None,
             # THE SAME SENTENCE THE ERROR-BAR BLOCK'S OWN SELECTION LEG CARRIES, from the one
             # place it is written. See `_LEG_SUBJECTS`.
             what_this_leg_is=_WHAT_THE_SELECTION_LEG_IS)),
+        # THE SAME LEG IN ITS TWO PARTS, beside it and never over it: the signed total stays the
+        # leg's figure. See `_selection_split`.
+        "selection_split": _selection_split(floor_current, live),
         # THE THIRD LEG, NESTED FOR THE SAME REASON -- three legs now share these key names, and
         # flattening any over another is how a page bounds one figure with another's spread. The
         # three are deliberately the same shape: same function, same grammar, same gate, so a
