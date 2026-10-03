@@ -265,6 +265,15 @@ class CompetitivePressureLedger:
     #: for, one layer in. It is set by `observe_competitive_loss` itself the first time a departure
     #: arrives with a channel, so it cannot be armed by a site that does not actually supply one.
     method_loss_reporting_armed: bool = False
+    #: B8 (2026-10-03): the company's own PRICE RESPONSE, learned the same way. Per
+    #: (payment method, fuel, year): renewals, sum and sum-of-squares of the offer's gap to the
+    #: published default, the believed P(leave) summed and summed against that gap, departures,
+    #: and the gap summed over departures -- the sums `discovered_price_sensitivity.slope_reading`
+    #: needs. A departure is attributed to its renewal through the company's OWN account id,
+    #: which is what `pending_move_by_account` holds; it is not a crossing, the company knows its
+    #: customers.
+    slope_sums: dict[tuple[str, str, int], dict] = field(default_factory=dict)
+    pending_move_by_account: dict[str, tuple[str, str, int, float]] = field(default_factory=dict)
 
     def arm_loss_reporting(self) -> None:
         """Declare that departures WILL be reported to this ledger for the rest of the run.
@@ -330,8 +339,39 @@ class CompetitivePressureLedger:
             self.decisions_by_method[key] = self.decisions_by_method.get(key, 0) + 1
             self.expected_pre_by_method[key] = self.expected_pre_by_method.get(key, 0.0) + pre
 
+    def observe_price_response(self, renewal_year: Optional[int], payment_method: Optional[str],
+                               fuel: Optional[str], account_id: Optional[str],
+                               own_move: Optional[float], believed_p_leave: float) -> None:
+        """B8: book one renewal's own price move against what the company believed. Silent when
+        any part is unknown: a move the company could not measure teaches it nothing."""
+        if None in (renewal_year, payment_method, fuel, account_id, own_move):
+            return
+        p, x = float(believed_p_leave), float(own_move)
+        if not (math.isfinite(p) and math.isfinite(x)):
+            return
+        p = max(0.0, min(1.0, p))
+        key = (str(payment_method), str(fuel), int(renewal_year))
+        sums = self.slope_sums.setdefault(
+            key, {"n": 0, "sx": 0.0, "sxx": 0.0, "sp": 0.0, "spx": 0.0, "losses": 0, "loss_x": 0.0})
+        sums["n"] += 1
+        sums["sx"] += x
+        sums["sxx"] += x * x
+        sums["sp"] += p
+        sums["spx"] += p * x
+        self.pending_move_by_account[str(account_id)] = key + (x,)
+
+    def closed_slope_sums(self, payment_method: str, fuel: str, renewal_year: int) -> dict:
+        """B8's sums for one channel and fuel over years STRICTLY before `renewal_year`."""
+        out = {"n": 0, "sx": 0.0, "sxx": 0.0, "sp": 0.0, "spx": 0.0, "losses": 0, "loss_x": 0.0}
+        for (method, f, year), sums in self.slope_sums.items():
+            if method == payment_method and f == fuel and year < renewal_year:
+                for k in out:
+                    out[k] += sums[k]
+        return out
+
     def observe_competitive_loss(
-        self, renewal_year: Optional[int], payment_method: Optional[str] = None
+        self, renewal_year: Optional[int], payment_method: Optional[str] = None,
+        account_id: Optional[str] = None,
     ) -> None:
         """Record that one account left this supplier at a renewal, for a competitor.
 
@@ -351,6 +391,14 @@ class CompetitivePressureLedger:
             key = (str(payment_method), year)
             self.losses_by_method[key] = self.losses_by_method.get(key, 0) + 1
             self.method_loss_reporting_armed = True
+        # B8: the departure is booked against the price move of the renewal it left through.
+        pending = self.pending_move_by_account.pop(str(account_id), None) if account_id else None
+        if pending is not None:
+            method, fuel, pyear, x = pending
+            sums = self.slope_sums.get((method, fuel, pyear))
+            if sums is not None:
+                sums["losses"] += 1
+                sums["loss_x"] += x
 
     def _closed_window(self, renewal_year: int) -> tuple[int, float, int]:
         """Decisions, predicted losses and realised losses over years strictly before this one."""

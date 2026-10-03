@@ -45,6 +45,9 @@ Out (the desk → the world) — three instructions and nothing else:
   * `AmendmentInstruction` — the standing amount has been re-estimated to this;
   * `CollectionInstruction` — collect this amount on this date under this reference.
 
+And one answer: `record_collection_outcome` says whether that return made the desk
+stop the DD (PB8). The world then stops putting that customer's bills on the rails.
+
 NOT crossing, and this is the substance of the cut: `DirectDebitBook`,
 `DirectDebitMandate`, `DDPaymentAttempt`, `next_collection_on_day`, the re-estimation
 window and its materiality floor. The world can no longer construct a mandate, cannot
@@ -109,6 +112,20 @@ from company.billing.direct_debit import (
 AMENDMENT_MATERIALITY_THRESHOLD_GBP = 1.00
 AMENDMENT_WINDOW_BILLS = 12  # roughly a year of monthly billing
 
+# PB8, the supplier-authored route off DD: after this many CONSECUTIVE returned
+# collections the desk stops presenting, cancels the mandate and bills the account on
+# receipt. SINGLE-SUPPLIER SOURCE: British Gas is the only supplier found publishing a
+# count ("If your payment fails for a second time, we'll have to cancel your Direct Debit
+# and send you a bill instead", https://www.britishgas.co.uk/help/struggling-to-pay/what-happens-if-i-dont-pay.html,
+# read 2026-10-03); OVO's help says only that it retries every 7-10 days. BG's 2 counts
+# presentations of ONE collection (original + a re-presentation ~14 days later). This
+# world does not re-present, so each return here is one presentation and the second
+# consecutive return is the first point the desk has seen two fail. Under the other
+# reading of a world "failure" (net of re-presentation; the C1 gap in
+# docs/market_research/dd_failure_basis_and_live_arrears_provision_rates.md) it would be 1.
+# Put to the director as a practitioner question 2026-10-03.
+DD_STOP_THRESHOLD_CONSECUTIVE_RETURNS = 2
+
 # The masked bank detail the register carries. No real bank data exists anywhere in
 # this project and none is invented here; the mask matches `DirectDebitMandate`'s own
 # convention. It is the SUPPLIER's placeholder, which is why it sits on this side.
@@ -163,6 +180,12 @@ class DirectDebitCollectionsDesk:
 
     def has_mandate(self, customer_id: str) -> bool:
         return self._book.get_mandate(customer_id) is not None
+
+    def pays_by_direct_debit(self, customer_id: str) -> bool:
+        """Whether this desk will still present a collection for this customer. False
+        once the desk has stopped the DD: the account is then billed on receipt."""
+        mandate = self._book.get_mandate(customer_id)
+        return mandate is not None and mandate.status != "cancelled"
 
     def collection_register(self) -> DirectDebitBook:
         """The supplier's own collection register, published for reporting.
@@ -277,6 +300,11 @@ class DirectDebitCollectionsDesk:
             raise ValueError(
                 f"no mandate registered for {customer_id}; confirm one before instructing a collection"
             )
+        if mandate.status == "cancelled":
+            raise ValueError(
+                f"{customer_id}'s mandate was cancelled on {mandate.last_status_change_date or 'an unrecorded date'}; "
+                "the account is billed on receipt and a collection cannot be presented against it"
+            )
         return CollectionInstruction(
             reference=f"{mandate.mandate_reference}-{period_end}",
             customer_id=customer_id,
@@ -290,12 +318,18 @@ class DirectDebitCollectionsDesk:
         attempt_date: str,
         collected: bool,
         failure_reason: str = "",
-    ) -> None:
+    ) -> bool:
         """The rails resolved: write the attempt into the register.
 
         `collected` is a fact about the money, which is the world's to report. The
         outcome VOCABULARY the register stores it under is the supplier's, which is
         why the world passes a bool and not a string.
+
+        Returns True when this return was the one that made the desk stop the DD
+        (`DD_STOP_THRESHOLD_CONSECUTIVE_RETURNS` in a row): the mandate is cancelled as of
+        `attempt_date` and the customer's later bills are payable on receipt. That is
+        the supplier's collections decision, taken on returns it observed; the world
+        learns of it the way a household does, by being told.
         """
         mandate = self._book.get_mandate(instruction.customer_id)
         if mandate is None:
@@ -312,3 +346,6 @@ class DirectDebitCollectionsDesk:
                 failure_reason=failure_reason,
             )
         )
+        if collected or mandate.failed_attempts < DD_STOP_THRESHOLD_CONSECUTIVE_RETURNS:
+            return False
+        return self._book.cancel_mandate(instruction.customer_id, as_of=attempt_date)

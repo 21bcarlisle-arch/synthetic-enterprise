@@ -53,6 +53,7 @@ from company.interfaces.collections_communication import collections_tone_for
 from company.policy.decision_policy import (
     CURRENT_POLICY,
     NAIVE_POLICY,
+    VALUE_ARM_LEARNED_POLICY,
     VALUE_ARM_POLICY,
     DecisionPolicy,
     active_policy,
@@ -203,7 +204,33 @@ FIELD_CONSUMPTION = {
         "probe": lambda: _renewal_rate_under_the_active_arm(default_belief_rate=0.30),
         "arms": (VALUE_ARM_POLICY, _OWN_BOOK_POLICY),
     },
+    # B8 (2026-10-03): price with the price response learned from the company's own renewals.
+    # Resolved from `active_policy()` inside `discovered_price_sensitivity.learned_correction`,
+    # which `enriched_churn_estimate` reaches, for the reason the arm fields above are: the rate
+    # chain is a wall door and gains no policy argument. Probed on the churn belief itself,
+    # against a ledger that holds evidence, because with an empty ledger both arms agree.
+    "learn_price_response": {
+        "via": "active_scope",
+        "probe": lambda: _churn_belief_against_learned_evidence(),
+        "arms": (VALUE_ARM_POLICY, VALUE_ARM_LEARNED_POLICY),
+    },
 }
+
+
+def _churn_belief_against_learned_evidence() -> float:
+    """One renewal's churn belief, made with a run ledger that has learned a steeper response."""
+    from company.crm.competitive_pressure import CompetitivePressureLedger, pressure_ledger_scope
+    from company.crm.enriched_churn_estimate import enriched_churn_estimate
+    ledger = CompetitivePressureLedger()
+    ledger.arm_loss_reporting()
+    for i, (move, left) in enumerate([(0.4, True)] * 10 + [(-0.1, False)] * 10):
+        ledger.observe_price_response(2019, "direct_debit", "electricity", f"P{i}", move, 0.2)
+        if left:
+            ledger.observe_competitive_loss(2019, payment_method="direct_debit", account_id=f"P{i}")
+    with pressure_ledger_scope(ledger):
+        return enriched_churn_estimate(
+            250.0, 300.0, 3.0, 2700.0, renewal_year=2020, payment_method="direct_debit",
+            published_default_rate_gbp_per_mwh=260.0)
 
 
 def _renewal_rate_under_the_active_arm(default_belief_rate: float | None = None) -> float | None:

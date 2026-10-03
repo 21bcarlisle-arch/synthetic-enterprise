@@ -1453,13 +1453,13 @@
   lane: W2_customer_generator
   value_stream: meter_to_cash
   epoch: 3
-  level_current: 0
+  level_current: 1
   level_target: 2
   loop_stage: idle
-  block_reason: "SOURCED 2026-09-30, NO RATE: no normal-year gross rate is published (gb_payment_method_migration_rates.md); never build on 2022's 0.58%. 2026-10-03 FRAME: only the HOUSEHOLD-authored route waits on it; supplier-authored DD->credit after repeated returns needs no rate (that file, addendum 2026-10-03)."
+  block_reason: "L1 2026-10-03: supplier-authored route built -- the desk cancels the mandate after DD_STOP_THRESHOLD_CONSECUTIVE_RETURNS (2, British Gas, single supplier) and the rails stop. L2 owed: arrears_engine and get_payment_method still read the fixed-for-life channel. HOUSEHOLD route parked: no normal-year migration rate is published (gb_payment_method_migration_rates.md)."
   dial_inherited: 45    # PB6's rank: EH-3 is one of the two disqualifiers holding PB6 below L3.
   provenance: worker_finding
-  file_scope: ['simulation/household_segments.py', 'tests/company/test_the_engagement_observable_is_the_right_one.py']
+  file_scope: ['company/billing/dd_collections_desk.py', 'tests/company/billing/test_dd_collections_desk.py', 'simulation/household_segments.py']
   frame_saturated: true   # 2026-10-03: FRAME is the addendum in gb_payment_method_migration_rates.md (226976c0f), not a *_FRAME doc, so H23 could not see it and re-drew it.
   depends_on: []
   couples_with: [PB6_the_engagement_observable_crosses_the_seam]

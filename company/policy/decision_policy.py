@@ -142,6 +142,10 @@ class DecisionPolicy:
     # is refused rather than defaulted, because a flat arm whose level was silently 0.0 would
     # reproduce the flat rule and be reported as a level comparison.
     renewal_margin_flat_level_gbp_per_mwh: float | None = None
+    #: B8 (2026-10-03): price with the price-response correction the company has learned from its
+    #: own closed renewals (`company.pricing.discovered_price_sensitivity`). Off on every existing
+    #: policy, so no run that does not ask for it moves.
+    learn_price_response: bool = False
 
     # WHERE THE VALUE ARM'S BAD-DEBT BELIEF COMES FROM (2026-10-03).
     #
@@ -204,6 +208,10 @@ NAIVE_POLICY = DecisionPolicy(
 # `test_the_value_arm_policy_differs_from_current_in_exactly_one_field` pins it.
 VALUE_ARM_POLICY = replace(
     CURRENT_POLICY, name="value_arm", renewal_margin_arm="value_based")
+
+#: The value arm pricing with the price response it learned from its own book (B8).
+VALUE_ARM_LEARNED_POLICY = replace(
+    VALUE_ARM_POLICY, name="value_arm_learned", learn_price_response=True)
 
 
 # ---- THE RUN'S POLICY, for consumers that are not handed one ----------------

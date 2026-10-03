@@ -97,6 +97,13 @@ class RenewalObservation:
     #: Defaults to `unknown`, which leaves the estimate bit-for-bit unchanged; supplying a known
     #: state moves the distress claim off the refuted bill-level knee.
     arrears_state: str = ARREARS_STATE_UNKNOWN
+    #: B8 (2026-10-03): three facts the company holds about its OWN renewal -- which account,
+    #: which day, which fuel -- so the desk can book the offer's gap to the published default
+    #: against the belief, and attribute a later departure to it. None leaves the desk exactly as
+    #: it was: nothing is booked for a renewal the company cannot place.
+    account_id: str | None = None
+    term_start: str | None = None
+    fuel: str | None = None
 
 
 def estimate_renewal_churn(observation: RenewalObservation) -> float:
@@ -125,7 +132,28 @@ def estimate_renewal_churn(observation: RenewalObservation) -> float:
             observation.renewal_year, estimate, payment_method=observation.payment_method,
             pre_factor_p_leave=_pre_engagement_estimate(observation, estimate),
         )
+        _book_price_response(ledger, observation, estimate)
     return estimate
+
+
+def _book_price_response(ledger, observation: RenewalObservation, estimate: float) -> None:
+    """B8: book this renewal's own price move against the belief the company held WITHOUT any
+    learned correction, so the learner never trains on its own output."""
+    if observation.term_start is None or observation.fuel is None:
+        return
+    from company.pricing.discovered_price_sensitivity import (
+        learned_correction,
+        own_move_against_default,
+    )
+    move = own_move_against_default(
+        observation.new_rate_gbp_per_mwh, observation.fuel, observation.term_start)
+    if move is None:
+        return
+    pre = estimate - learned_correction(
+        observation.payment_method, observation.fuel, observation.renewal_year) * move
+    ledger.observe_price_response(
+        observation.renewal_year, observation.payment_method, observation.fuel,
+        observation.account_id, move, pre)
 
 
 def _pre_engagement_estimate(observation: RenewalObservation, estimate: float) -> float:
