@@ -15,7 +15,7 @@ new compute. What still needs runs is named at the end.
 |---|---|
 | Var(total) | 21.96M |
 | Sum of per-account variances | 21.48M |
-| **Design effect** | **1.02** |
+| **Design effect** | **1.02** (account level; see the correction below) |
 | Sum of within-month covariances | -5.78M |
 | Herfindahl effective accounts per seed | 7-10 of ~165 |
 | Accounts holding half the variance | 5 |
@@ -24,6 +24,11 @@ new compute. What still needs runs is named at the end.
 Accounts behave as independent draws. The noise is a few heavy accounts, not correlation between
 them.
 
+**CORRECTED 2026-10-03, beside the figure.** The account-level 1.02 is weak evidence: at six
+seeds its own null band is 0.25-2.12. The sharper test is b35e8cfa4's, clustered by renewal
+ANNIVERSARY DAY: 0.993 against a permutation null of 0.89-1.09 on the same six seeds. That is the
+figure to quote. The conclusion is unchanged, and now rests on the test that can carry it.
+
 ## 2. (c) Flow: refuted as the cause of the noise, upheld as a fidelity defect
 
 - Same-day clustering: Kish n_eff is 0.64-0.73 of n. The largest same-day cluster is 4.
@@ -31,7 +36,10 @@ them.
 - **But the batching was real.** The founder draw read a date-ordered stream and kept the first
   `wanted` candidates, so every drawn founder started between 1 January and 14 August 2016.
   Fixed (de903961c). In-market dates now also follow each year's published months (DESNZ QEP
-  Table 2.7.1: October peak, January trough, 1.56x; b6ce7ce61).
+  Table 2.7.1: October peak, January trough, 1.56x): founders and the trickle in b35e8cfa4,
+  the campaign's prospects in af5a66f52. **CORRECTED 2026-10-03:** this line first cited
+  b6ce7ce61, a second, rival seasonal mechanism this seat built in parallel with b35e8cfa4. It
+  was never promoted and is withdrawn.
 
 So "ten same-day renewals are one observation" does not hold at this scale, and spreading
 acquisition is a fidelity gain more than an information gain. It could start to matter once
@@ -117,6 +125,14 @@ overstates headroom.
 - The flow cause as the director stated it does not hold at this scale; the fidelity defect under
   it did.
 - An "SNR 0.43 with expected values" figure was computed and withdrawn the same hour.
+
+## A red on origin this work ran into
+
+Promoting this work was refused three times by a red that was origin's own. With
+`test_live_population_seam` and the whole-run tests in one selection, 19 tests errored
+(DwellingNotDrawn, PROS-2016-0042). It was bisected to one test that memoised the campaign under
+a different book setting, and the memo was keyed on the seed alone. Fixed at the key in
+e825975e8: the 76-file selection went from 19 errors to 0.
 
 ## Still to run
 
