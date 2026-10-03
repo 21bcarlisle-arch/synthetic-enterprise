@@ -331,6 +331,28 @@ def payment_method(segment: str, amount_gbp: float, customer_id: str | None = No
     return "direct_debit"
 
 
+#: The channel a household pays on once the supplier has stopped its Direct Debit. It is sent a bill
+#: and pays on receipt (British Gas: "we'll have to cancel your Direct Debit and send you a bill
+#: instead"), which is standard credit.
+PAY_ON_RECEIPT_METHOD = "standard_credit"
+
+
+def paying_method(segment: str, amount_gbp: float, customer_id: str | None, fuel: str,
+                  period_end: str, dd_stops: dict[str, str]) -> str:
+    """How this bill is paid: `payment_method`, unless the supplier has stopped the household's DD.
+
+    `dd_stops` is `dd_collection_book.supplier_dd_stops`: a bill after the last one the supplier
+    presented by DD is payable on receipt. Use it for the PAYING channel only. A household trait
+    that the channel conditions (fuel poverty) stays on `payment_method`, because the household's
+    circumstances do not change when its mandate is cancelled.
+    """
+    method = payment_method(segment, amount_gbp, customer_id, fuel)
+    stopped_after = dd_stops.get(customer_id) if customer_id is not None else None
+    if method == "direct_debit" and stopped_after is not None and period_end > stopped_after:
+        return PAY_ON_RECEIPT_METHOD
+    return method
+
+
 def _fuel_poor_for_bill(method: str, customer_id: str | None) -> bool:
     """Resolve the fuel-poverty flag for a resi bill's payment_outcome() call
     -- resi-only concept (bacs/chaps corp methods never apply), and only
@@ -710,6 +732,9 @@ def _resolve_bills(bills: list[dict], behavioral: dict, seed: int) -> list[dict]
     """Each bill's payment outcome, from its own `bill_substream`, in (customer, period_end)
     order. The one place the engine draws an outcome, so every consumer below reads the same one.
     """
+    # PB8 L2: a household whose DD the supplier stopped pays its later bills on receipt.
+    from simulation.dd_collection_book import supplier_dd_stops
+    dd_stops = supplier_dd_stops(bills, behavioral, seed)
     rows = []
     for bill in sorted(bills, key=lambda b: (b["customer_id"], b["period_end"])):
         cid = bill["customer_id"]
@@ -725,11 +750,11 @@ def _resolve_bills(bills: list[dict], behavioral: dict, seed: int) -> list[dict]
                          "outcome": "credit", "days_late": 0})
             continue
         stress = stress_for_year(behavioral.get(cid) or {}, int(period_end[:4]))
-        method = payment_method(segment, amount, cid, commodity)
+        method = paying_method(segment, amount, cid, commodity, period_end, dd_stops)
         outcome, days_late = payment_outcome(
             method, stress, bill_substream(seed, cid, period_end, commodity),
             segment,
-            _fuel_poor_for_bill(method, cid),
+            _fuel_poor_for_bill(payment_method(segment, amount, cid, commodity), cid),
             _tone_for_bill(method, cid, period_end), cid,
         )
         rows.append({"customer_id": cid, "period_end": period_end, "commodity": commodity,
