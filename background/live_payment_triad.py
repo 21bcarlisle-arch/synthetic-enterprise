@@ -822,14 +822,16 @@ class LivePaymentTriad:
         entry is gone from `run_phase2b`."""
         return detection_cell_measurements(self._records, self._consumer, as_of)
 
-    def _method_for(self, customer_id: str) -> str:
-        m = self._method_cache.get(customer_id)
+    def _method_for(self, customer_id: str, fuel: str = "electricity") -> str:
+        """The supply point's method, from the world's one channel draw -- the one
+        `SimInterface.get_payment_method` reports for it. The fuel must be the supply
+        point's own: a gas-only household's gas leg carries no gas suffix, so the id
+        alone cannot say it is gas, and asking it as electricity reads the wrong anchor."""
+        key = (customer_id, fuel)
+        m = self._method_cache.get(key)
         if m is None:
-            # Method is a persistent per-customer archetype (W2_11's own model);
-            # drawn once with a fixed fuel so a customer never flips method
-            # between their gas and electricity months.
-            m = generate_payment_method(customer_id, fuel="electricity")
-            self._method_cache[customer_id] = m
+            m = generate_payment_method(customer_id, fuel=fuel)
+            self._method_cache[key] = m
         return m
 
     def record_period(
@@ -840,6 +842,7 @@ class LivePaymentTriad:
         amount_gbp: float,
         income_stress_value: Optional[str],
         segment: str = "resi",
+        fuel: str = "electricity",
     ) -> dict:
         """Generate the ONE canonical W2_11 payment event for this
         (customer, period), cross the seam + feed the company consumer LIVE,
@@ -850,7 +853,7 @@ class LivePaymentTriad:
         single W2_11 event -- the caller feeds it to `record_payment`. There is
         never a second, independent payment draw."""
         period_index = _period_index_for(due_date)
-        method = self._method_for(customer_id)
+        method = self._method_for(customer_id, fuel)
         account_id = f"ACC-{customer_id}"
         invoice_ref = f"{customer_id}::{period_index}"
         issue_date = due_date - timedelta(days=PAYMENT_TERMS_DAYS)

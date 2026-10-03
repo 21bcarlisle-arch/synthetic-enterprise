@@ -1897,6 +1897,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             amount_gbp=held["amount_gbp"],
             income_stress_value=held["income_stress_value"],
             segment=held["segment"],
+            fuel=held["fuel"],
         )
         _cx_desk.observe_payment(PaymentOutcome(
             customer_id=cid,
@@ -3564,7 +3565,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                     "month": rec_month, "amount_gbp": 0.0,
                     "income_stress_value": (
                         _income_stress.value if _income_stress is not None else None),
-                    "segment": cust_segment}
+                    "segment": cust_segment, "fuel": commodity}
             _held["amount_gbp"] += float(rec.get('revenue_gbp', 0.0) or 0.0)
             # Real-time placeholder only -- simulation.run_phase4c_on_phase2b.main()
             # overwrites this with real, emergent bad debt from the payment/

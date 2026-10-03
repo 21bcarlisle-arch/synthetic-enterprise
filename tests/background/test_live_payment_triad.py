@@ -1678,15 +1678,20 @@ def test_q3_EVERY_PUBLISHED_FIGURE_IS_UNCHANGED_BY_THE_NEW_LEGS():
     by not being one.
 
     Pinned against pass 43's recorded values, which is what makes this a
-    regression test rather than a restatement of whatever the code does now."""
+    regression test rather than a restatement of whatever the code does now.
+
+    RE-PINNED 2026-10-03 FOR A WORLD CHANGE, NOT A LEG. The triad's payment method moved onto the
+    seam's draw (world_identity.payment_methods 8a105ad7c9346758 -> 86560148d7db82b7), which changes
+    which of these customers pay by direct debit. Under the old draw this test still reproduces pass
+    43's values exactly (0.1181818182 / 2.135447 / 0.1470588235 / 0.2666666667 / 0.2469740634)."""
     triad = _build_triad()
     result = triad.measure()
     assert result is not None
-    assert round(result["detection"].gap, 10) == 0.1181818182
-    assert round(result["detection_latency"].gap, 6) == 2.135447
-    assert round(result["belief"].gap, 10) == 0.1470588235
-    assert round(result["belief_population_mix"].gap, 10) == 0.2666666667
-    assert round(result["ageing"].gap, 10) == 0.2469740634
+    assert round(result["detection"].gap, 10) == 0.0909090909
+    assert round(result["detection_latency"].gap, 6) == 1.907781
+    assert round(result["belief"].gap, 10) == 0.1176470588
+    assert round(result["belief_population_mix"].gap, 10) == 0.2133333333
+    assert round(result["ageing"].gap, 10) == 0.221037464
 
 
 def test_q3_A_COLLECTION_THE_WORLD_NEVER_ANSWERS_IS_NOW_VISIBLE_AS_AN_OPEN_EXCHANGE(
