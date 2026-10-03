@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-02T10:22:18.327336Z",
+  "generated_at": "2026-10-03T03:10:42.009702Z",
   "what_this_is": "The same book and the same world, run once per pricing arm, scored on what actually happened. No figure here is anything the company believed.",
   "provisional": true,
   "provisional_note": "PROVISIONAL. This is one run of each arm on one world, and the error bar below is wider than the effect it is measuring. It is published because withholding it while publishing the profitable-looking half would be the misleading choice, not because it is settled.",
@@ -7,8 +7,8 @@
   "sources": [
     "docs/observability/value_cycle_ab_s1_three_arm.json",
     "docs/observability/value_cycle_ab_s1_noise_floor_folded18_single_arm_20260917.json",
-    "docs/observability/value_cycle_ab_s1_three_arm_20261002b.json",
-    "docs/observability/value_cycle_ab_s1_noise_floor_20261002b.json",
+    "docs/observability/value_cycle_ab_s1_three_arm_20261002c.json",
+    "docs/observability/value_cycle_ab_s1_noise_floor_20261002c.json",
     "docs/observability/value_cycle_ab_floor_decomposition.json",
     "docs/observability/value_cycle_ab_s1_three_arm_departure_20260909.json",
     "docs/observability/value_cycle_ab_s1_three_arm_20260909c.json",
@@ -1135,7 +1135,7 @@
     "commit": "b329e702b78496afc9ba96bb159322d884064955",
     "short": "b329e702b",
     "resolved_at": "2026-09-18T04:24:06Z",
-    "publishing_tree_commit": "65f48b276eabec80202b087d83d6ee00498659ed",
+    "publishing_tree_commit": "a5c8c450988db977b0ec37a1f027e00539c2cb7b",
     "produced_by_the_tree_it_publishes_from": false,
     "counts_are_labelled_by_the_code_that_made_them": true,
     "objective": {
@@ -1147,7 +1147,7 @@
       "objective_moved_since_the_run": false,
       "clause": "The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
     },
-    "reading": "Produced at b329e702b and published from 65f48b276 -- the code was replaced between the run and this page, so read every count here as the older tree's. The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
+    "reading": "Produced at b329e702b and published from a5c8c4509 -- the code was replaced between the run and this page, so read every count here as the older tree's. The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
   },
   "world_provenance": {
     "available": true,
@@ -1164,10 +1164,10 @@
       "the three-arm run (2026-09-18T05:43:40Z)"
     ],
     "runs_measured_in_the_live_world": [
-      "the current-world noise floor (2026-10-02T08:44:36Z)",
-      "the current-world three-arm run (2026-10-02T05:55:53Z)"
+      "the current-world noise floor (2026-10-03T02:53:11Z)",
+      "the current-world three-arm run (2026-10-02T17:15:57Z)"
     ],
-    "reason": "THE FIGURES ON THIS PAGE AND THE BOUND ON THEM WERE MEASURED IN DIFFERENT WORLDS. the floor decomposition, the noise floor (2026-09-17T21:39:28Z), the three-arm run (2026-09-18T05:43:40Z) ran over departure level 39a192ce04c1eda8; the current-world noise floor (2026-10-02T08:44:36Z), the current-world three-arm run (2026-10-02T05:55:53Z) ran over cf823b185f8ca51c, which is the live one. A spread measured where customers leave at one rate is not a confidence interval on a figure measured where they leave at another, so nothing here bounds anything else and no contrast below may have its direction read. This is the defect `c30b98048` was filed for on 2026-08-31; the remedy is to re-run every leg in one world, never to quote whichever leg is current.",
+    "reason": "THE FIGURES ON THIS PAGE AND THE BOUND ON THEM WERE MEASURED IN DIFFERENT WORLDS. the floor decomposition, the noise floor (2026-09-17T21:39:28Z), the three-arm run (2026-09-18T05:43:40Z) ran over departure level 39a192ce04c1eda8; the current-world noise floor (2026-10-03T02:53:11Z), the current-world three-arm run (2026-10-02T17:15:57Z) ran over cf823b185f8ca51c, which is the live one. A spread measured where customers leave at one rate is not a confidence interval on a figure measured where they leave at another, so nothing here bounds anything else and no contrast below may have its direction read. This is the defect `c30b98048` was filed for on 2026-08-31; the remedy is to re-run every leg in one world, never to quote whichever leg is current.",
     "what_this_costs": "no figure on this page may be read as the company's CURRENT beat over the flat-rule baseline until every leg is re-run in one world and that world is the live one",
     "what_this_identifies": "the departure LEVEL the world was running at -- `year_level_anchor` for every year inside the published switching record, fitted and declared alike. Two runs sharing this digest ran over the same departure surface; two that do not are different worlds however close their timestamps, and no figure from one bounds a figure from the other."
   },
@@ -1175,46 +1175,46 @@
     "available": true,
     "live_world": "cf823b185f8ca51c",
     "ran_in_world": "cf823b185f8ca51c",
-    "generated_at": "2026-10-02T05:55:53Z",
-    "producing_commit": "f18e8b5dc6a663ebb485dc6e4b5214237fbab88c",
+    "generated_at": "2026-10-02T17:15:57Z",
+    "producing_commit": "0cc052102bdf92f1b6622d01ac78cb81e6927c30",
     "bound_tree_pairing": {
       "rule": "producing_commit",
       "same_tree": true,
-      "floor_producing_commit": "f18e8b5dc6a663ebb485dc6e4b5214237fbab88c",
-      "figure_producing_commit": "f18e8b5dc6a663ebb485dc6e4b5214237fbab88c",
-      "why_this_rule": "This spread and the figure it bounds were drawn by the SAME code, at f18e8b5dc -- so nothing in the width below is a difference between two trees.",
+      "floor_producing_commit": "0cc052102bdf92f1b6622d01ac78cb81e6927c30",
+      "figure_producing_commit": "0cc052102bdf92f1b6622d01ac78cb81e6927c30",
+      "why_this_rule": "This spread and the figure it bounds were drawn by the SAME code, at 0cc052102 -- so nothing in the width below is a difference between two trees.",
       "caveat": null
     },
-    "value_advantage_gbp": 14856.065243999998,
-    "level_advantage_gbp": 15115.139632999999,
-    "selection_gbp": -259.07438900000125,
-    "control_net_gbp": 85910.143376,
-    "value_arm_net_gbp": 100766.20862,
-    "level_arm_net_gbp": 101025.283009,
+    "value_advantage_gbp": 11493.221307,
+    "level_advantage_gbp": 15701.152787999992,
+    "selection_gbp": -4207.931480999992,
+    "control_net_gbp": 88408.372887,
+    "value_arm_net_gbp": 99901.594194,
+    "level_arm_net_gbp": 104109.525675,
     "clock": "settled-realised",
-    "priced_decisions": 94,
-    "renewals_offered": 2215,
+    "priced_decisions": 114,
+    "renewals_offered": 2779,
     "is_the_later_run": true,
     "run_ordering": "later",
-    "how_the_two_runs_order": "THIS BLOCK IS THE LATER OF THE TWO RUNS THIS PAGE CARRIES: it was measured at 2026-10-02T05:55:53Z, and the run it is published against states 2026-09-18T05:43:40Z.",
+    "how_the_two_runs_order": "THIS BLOCK IS THE LATER OF THE TWO RUNS THIS PAGE CARRIES: it was measured at 2026-10-02T17:15:57Z, and the run it is published against states 2026-09-18T05:43:40Z.",
     "superseded_generated_at": "2026-09-18T05:43:40Z",
-    "why_the_headline_omits_it": "this run is not a statement about the world as it is now, because the run executed f18e8b5dc and this page is published from 65f48b276; 4 path(s) in simulation/ and company/ differ between them and no exemption says why they cannot move the arms: company/interfaces/growth_desk.py, simulation/customer_events.py, simulation/fabric_demand_path.py, simulation/run_phase2b.py",
+    "why_the_headline_omits_it": "this run is not a statement about the world as it is now, because the run executed 0cc052102 and this page is published from a5c8c4509; 10 path(s) in simulation/ and company/ differ between them and no exemption says why they cannot move the arms: company/billing/arrears_engine.py, company/billing/meter_assets.py, company/billing/payment_observation_consumer.py, company/interfaces/renewal_rate_chain.py, company/pricing/renewal_rate_chain.py, company/pricing/value_based_renewal.py, simulation/household_physical_layer.py, simulation/life_events.py, simulation/live_population.py, simulation/run_phase2b.py",
     "superseded_floor_ran_in_world": "39a192ce04c1eda8",
     "superseded_value_advantage_gbp": 4579.228659000015,
     "resolved": null,
-    "verdict_withheld_because": "AND THE VERDICT IS WITHDRAWN FOR WHICH CODE DREW THE BOUND: the floor beside these figures is not a measurement of the code that published them, because the run executed f18e8b5dc and this page is published from 65f48b276; 4 path(s) in simulation/ and company/ differ between them and no exemption says why they cannot move the arms: company/interfaces/growth_desk.py, simulation/customer_events.py, simulation/fabric_demand_path.py, simulation/run_phase2b.py. Its spread and its seed family stand as measured; a direction decided by a bar from other code may not.",
+    "verdict_withheld_because": "AND THE VERDICT IS WITHDRAWN FOR WHICH CODE DREW THE BOUND: the floor beside these figures is not a measurement of the code that published them, because the run executed 0cc052102 and this page is published from a5c8c4509; 10 path(s) in simulation/ and company/ differ between them and no exemption says why they cannot move the arms: company/billing/arrears_engine.py, company/billing/meter_assets.py, company/billing/payment_observation_consumer.py, company/interfaces/renewal_rate_chain.py, company/pricing/renewal_rate_chain.py, company/pricing/value_based_renewal.py, simulation/household_physical_layer.py, simulation/life_events.py, simulation/live_population.py, simulation/run_phase2b.py. Its spread and its seed family stand as measured; a direction decided by a bar from other code may not.",
     "verdict_stability": {
       "checked": true,
       "n": 3,
       "redraw_values_gbp": [
-        14203.490781999993,
-        11085.943755,
-        12185.575071
+        11124.217592,
+        11493.221307,
+        9771.692246999999
       ],
       "redraw_resolving": 3,
-      "redraw_min_gbp": 11085.943755,
-      "redraw_max_gbp": 14203.490781999993,
-      "redraw_mean_gbp": 12491.669869333331,
+      "redraw_min_gbp": 9771.692246999999,
+      "redraw_max_gbp": 11493.221307,
+      "redraw_mean_gbp": 10796.377048666667,
       "stable": true,
       "sign_determined": true
     },
@@ -1231,13 +1231,13 @@
     "bound_available": true,
     "floor_ran_in_world": "cf823b185f8ca51c",
     "floor_leg": "all",
-    "floor_generated_at": "2026-10-02T08:44:36Z",
+    "floor_generated_at": "2026-10-03T02:53:11Z",
     "bound": {
       "n": 3,
-      "stdev_gbp": 1581.153182194618,
-      "mean_gbp": 12491.669869333331,
-      "min_gbp": 11085.943755,
-      "max_gbp": 14203.490781999993,
+      "stdev_gbp": 906.3802416734068,
+      "mean_gbp": 10796.377048666667,
+      "min_gbp": 9771.692246999999,
+      "max_gbp": 11493.221307,
       "repetition": {
         "countable": true,
         "draws": 3,
@@ -1246,17 +1246,17 @@
         "redundant_draws": 0,
         "what_this_counts": "re-draws of this floor returning a `value_advantage_gbp` another of its own draws already returned. `draws_that_repeat_another` counts the DRAWS implicated -- a value returned three times implicates three of them; `redundant_draws` counts how many added nothing the family did not already hold, which is two fewer for that same value. A bound computed across repeated draws measures how often the instrument pinned, not how far the quantity moves."
       },
-      "sem_gbp": 912.8792153700962
+      "sem_gbp": 523.2988765182995
     },
     "bound_contrast": "value_advantage_gbp",
     "bound_is_of_the_same_contrast": "The spread below is this contrast's own across the seed re-draws -- not the floor's published `selection_gbp_spread`, which measures a different quantity.",
     "distance_to_a_sign": {
       "available": true,
-      "sems_from_zero": 13.68381452771822,
+      "sems_from_zero": 20.631378229777496,
       "sems_needed_to_state_a_sign": 4.302652729749462,
       "sems_needed_is_derived_from_the_family_size": true,
-      "seeds_needed_to_state_a_sign": 3,
-      "seeds_at_the_point_estimate": 3,
+      "seeds_needed_to_state_a_sign": 2,
+      "seeds_at_the_point_estimate": 2,
       "seeds_needed_interval": null,
       "seeds_in_hand": 3,
       "sign_if_it_were_stateable": "positive",
@@ -1267,23 +1267,23 @@
     "which_sign_question_this_answers": "THE MEAN'S, NOT A SINGLE DRAW'S. `no_sign` and `verdict_stability.sign_determined` above answer whether one draw's sign generalises -- it does not, the re-draws fall on both sides of zero, and no number of further seeds changes that because the spread is the world's own dispersion rather than an estimation error. `distance_to_a_sign` answers whether the FAMILY'S MEAN is distinguishable from zero, whose denominator is the standard error and DOES fall as 1/sqrt(n). That is the question the thesis asks: is the per-customer arm, on average, worse than its own flat-at-level baseline? The two can disagree without contradiction, and until 2026-09-10 this page answered only the first and read as though the second were unanswerable too.",
     "selection_leg": {
       "resolved": null,
-      "verdict_withheld_because": "THE VERDICT WOULD BE ONE DRAW'S. This leg's own figure is a single realisation and the bound stated with it is how far that same quantity moves across 3 re-draws. 1 of those 3 re-draws clear the bound and the rest do not, so whether this page could state a direction depends on which draw the run happened to make. It states none. The re-draws themselves are set out contrast by contrast in the band table directly below this headline, lowest, mean and highest; the published draw sits ABOVE the centre of its own family. AND THE VERDICT IS WITHDRAWN FOR WHICH CODE DREW THE BOUND: the floor beside these figures is not a measurement of the code that published them, because the run executed f18e8b5dc and this page is published from 65f48b276; 4 path(s) in simulation/ and company/ differ between them and no exemption says why they cannot move the arms: company/interfaces/growth_desk.py, simulation/customer_events.py, simulation/fabric_demand_path.py, simulation/run_phase2b.py. Its spread and its seed family stand as measured; a direction decided by a bar from other code may not.",
+      "verdict_withheld_because": "AND THE VERDICT IS WITHDRAWN FOR WHICH CODE DREW THE BOUND: the floor beside these figures is not a measurement of the code that published them, because the run executed 0cc052102 and this page is published from a5c8c4509; 10 path(s) in simulation/ and company/ differ between them and no exemption says why they cannot move the arms: company/billing/arrears_engine.py, company/billing/meter_assets.py, company/billing/payment_observation_consumer.py, company/interfaces/renewal_rate_chain.py, company/pricing/renewal_rate_chain.py, company/pricing/value_based_renewal.py, simulation/household_physical_layer.py, simulation/life_events.py, simulation/live_population.py, simulation/run_phase2b.py. Its spread and its seed family stand as measured; a direction decided by a bar from other code may not.",
       "verdict_stability": {
         "checked": true,
         "n": 3,
         "redraw_values_gbp": [
-          -403.8390800000052,
-          -1314.4935379999952,
-          -7542.322138999996
+          -4207.931480999992,
+          -2470.3168469999946,
+          -5550.677920999995
         ],
-        "redraw_resolving": 1,
-        "redraw_min_gbp": -7542.322138999996,
-        "redraw_max_gbp": -403.8390800000052,
-        "redraw_mean_gbp": -3086.8849189999987,
-        "stable": false,
+        "redraw_resolving": 3,
+        "redraw_min_gbp": -5550.677920999995,
+        "redraw_max_gbp": -2470.3168469999946,
+        "redraw_mean_gbp": -4076.308749666661,
+        "stable": true,
         "sign_determined": true
       },
-      "redraw_band": "The re-draws themselves are set out contrast by contrast in the band table directly below this headline, lowest, mean and highest; the published draw sits ABOVE the centre of its own family.",
+      "redraw_band": "The re-draws themselves are set out contrast by contrast in the band table directly below this headline, lowest, mean and highest; the published draw sits BELOW the centre of its own family.",
       "repetition": {
         "countable": true,
         "draws": 3,
@@ -1296,13 +1296,13 @@
       "bound_available": true,
       "floor_ran_in_world": "cf823b185f8ca51c",
       "floor_leg": "all",
-      "floor_generated_at": "2026-10-02T08:44:36Z",
+      "floor_generated_at": "2026-10-03T02:53:11Z",
       "bound": {
         "n": 3,
-        "stdev_gbp": 3885.294519272612,
-        "mean_gbp": -3086.8849189999987,
-        "min_gbp": -7542.322138999996,
-        "max_gbp": -403.8390800000052,
+        "stdev_gbp": 1544.3929208936252,
+        "mean_gbp": -4076.308749666661,
+        "min_gbp": -5550.677920999995,
+        "max_gbp": -2470.3168469999946,
         "repetition": {
           "countable": true,
           "draws": 3,
@@ -1325,23 +1325,38 @@
         "available": false,
         "why_not": "this leg is not one whose sign is undetermined, so there is nothing here for a larger book to settle. A price for resolving a leg that already carries a direction would be a remedy for a question the page has answered."
       },
-      "figure_gbp": -259.07438900000125,
+      "figure_gbp": -4207.931480999992,
       "bind_asymmetry": {
         "available": true,
-        "value_arm_priced": 94,
+        "value_arm_priced": 114,
         "value_arm_ceiling_bound": 0,
         "value_arm_bound_share": 0.0,
-        "value_arm_extrapolation_bound": 7,
-        "level_arm_priced": 91,
+        "value_arm_extrapolation_bound": 21,
+        "level_arm_priced": 110,
         "level_arm_ceiling_bound": 0,
         "asymmetric": false,
         "the_leg_is_not_the_value_of_choosing": false,
-        "clause": "The cap binds 0 of the value arm's 94 priced decisions and 0 of the level arm's 91. Both rosters carry a bound partition, so this leg contrasts like with like on that axis.",
+        "clause": "The cap binds 0 of the value arm's 114 priced decisions and 0 of the level arm's 110. Both rosters carry a bound partition, so this leg contrasts like with like on that axis.",
         "what_would_remove_it": "A bound flag defined EXOGENOUSLY, so it applies to both arms: per renewal, whether the lawful cap at that term's own window lies below the arm's UNCONSTRAINED optimum -- a shadow score `decide_margin` already computes. Applied to both rosters it partitions both sides. As recorded, `ceiling_bound` is a property of a value-arm decision and is 0 on the level arm by construction, which is not a measurement."
       },
       "population_repair_bias": {
-        "available": false,
-        "run_carries_the_repair": true,
+        "available": true,
+        "run_carries_the_repair": false,
+        "direction": "downward",
+        "never_asked": false,
+        "magnitude_gbp": 810.18,
+        "ci_low_gbp": 778.26,
+        "ci_high_gbp": 842.11,
+        "t": 55.86,
+        "paired_seeds": 12,
+        "measured_on_commit": "18327d977",
+        "measured_against_commit": "a178b56d6",
+        "paths_between_the_two_books": 20,
+        "is_a_correction_to_the_figure_above": false,
+        "total_advantage_moved_gbp": 0.0,
+        "source": "docs/staging/SEAT_RESULT_THE_PAIRED_TWELVE_PRICE_THE_POPULATION_REPAIR_AT_810_POUNDS_AND_THE_STANDALONE_SIGN_GOT_SEVENTEEN_TIMES_HARDER_2026-09-19.md",
+        "level_arm_priced": 110,
+        "value_arm_priced": 114,
         "sign_on_the_shared_population": {
           "available": true,
           "n": 12,
@@ -1380,7 +1395,7 @@
           "may_be_netted_against_the_published_figure": false,
           "source_artefact": "value_cycle_ab_s1_noise_floor_next12_at_18327d977.json"
         },
-        "reason": "this run was taken after the level arm was given the per-customer arm's own refusal frontier, so both arms priced one book and the downward bias this block sizes does not apply to the `selection_gbp` figure it qualifies."
+        "clause": "THE CHOOSING FIGURE IS BIASED DOWNWARD, and here is one measured size for that bias. This run asked whether the two arms priced the same renewals and they did not. The flat arm priced 110 renewals against the per-customer arm's 114. Where the flat arm prices renewals the per-customer arm has already declined, it books margin on them, and the residual called \"the choosing\" carries that difference as a shortfall. Twelve seeds paired across exactly that one repair price it: `selection_gbp` rose by \u00a3810.18 (95% CI \u00a3778.26 to \u00a3842.11, t = 55.86 on 12 paired seeds). THAT SIZE IS NOT A GAIN AND NOT A CORRECTION TO THE CHOOSING FIGURE. On every one of those 12 seeds the WHOLE advantage moved by \u00a30.00 -- not a penny, not a rounding -- because the \u00a3810.18 came OFF the price-level leg and went ONTO the choosing leg by exactly equal and opposite amounts. Nothing was created; one side of the decomposition was handed to the other. A reader who takes this as \"the choosing leg is now positive and significant\" has read it backwards. AND IT IS A DIFFERENT BOOK FROM THIS ONE: it was measured on `18327d977` against `a178b56d6`, 20 paths of pricing code away from the run that produced the choosing figure, so it is the size of the CLASS and not this figure's own error. Subtracting it here would be arithmetic across two instruments. The choosing figure stands as published. AND HERE IS WHAT THE SAME INSTRUMENT SAYS ITS OWN REPAIRED BOOK IS WORTH, which is the question the size above makes a reader ask and does not answer. The 12 seeds drawn on `18327d977` -- where both arms refuse at one frontier, so the populations match by construction and not by restriction -- put `selection_gbp` at a mean of -\u00a3259.29, and THE SIGN IS NOT STATEABLE: 0.166 of the 2.201 SEMs it would need, and NO NUMBER OF SEEDS IS THE PRICE OF CLOSING THAT GAP. The count divides by the very estimate whose interval contains zero, so it has no upper bound: the arithmetic at this family's point estimate gives 1677 seeds, one standard error either side of the denominator gives 37 seeds and 69 seeds, and those are not a range because the quantity diverges between them. So the answer to what the choosing is worth on a population both arms priced is WE CANNOT TELL, and that is this page's result rather than a gap in it. A reader who adds \u00a3810.18 to this page's `selection_gbp` and reads the total as the like-for-like worth of choosing has done arithmetic across two instruments to reach a number this one refuses to state."
       },
       "what_this_leg_is": "What the per-customer CHOOSING was worth once one flat margin at the same price LEVEL is credited with everything a level alone would have earned. The other leg of the advantage is the level itself, which is a price charged rather than a value made -- so this is the only figure on this page that could be value created instead of value moved.",
       "root_cause": {
@@ -1414,23 +1429,23 @@
     },
     "level_leg": {
       "resolved": null,
-      "verdict_withheld_because": "AND THE VERDICT IS WITHDRAWN FOR WHICH CODE DREW THE BOUND: the floor beside these figures is not a measurement of the code that published them, because the run executed f18e8b5dc and this page is published from 65f48b276; 4 path(s) in simulation/ and company/ differ between them and no exemption says why they cannot move the arms: company/interfaces/growth_desk.py, simulation/customer_events.py, simulation/fabric_demand_path.py, simulation/run_phase2b.py. Its spread and its seed family stand as measured; a direction decided by a bar from other code may not.",
+      "verdict_withheld_because": "AND THE VERDICT IS WITHDRAWN FOR WHICH CODE DREW THE BOUND: the floor beside these figures is not a measurement of the code that published them, because the run executed 0cc052102 and this page is published from a5c8c4509; 10 path(s) in simulation/ and company/ differ between them and no exemption says why they cannot move the arms: company/billing/arrears_engine.py, company/billing/meter_assets.py, company/billing/payment_observation_consumer.py, company/interfaces/renewal_rate_chain.py, company/pricing/renewal_rate_chain.py, company/pricing/value_based_renewal.py, simulation/household_physical_layer.py, simulation/life_events.py, simulation/live_population.py, simulation/run_phase2b.py. Its spread and its seed family stand as measured; a direction decided by a bar from other code may not.",
       "verdict_stability": {
         "checked": true,
         "n": 3,
         "redraw_values_gbp": [
-          14607.329861999999,
-          12400.437292999995,
-          19727.897209999996
+          15332.149072999993,
+          13963.538153999994,
+          15322.370167999994
         ],
         "redraw_resolving": 3,
-        "redraw_min_gbp": 12400.437292999995,
-        "redraw_max_gbp": 19727.897209999996,
-        "redraw_mean_gbp": 15578.55478833333,
+        "redraw_min_gbp": 13963.538153999994,
+        "redraw_max_gbp": 15332.149072999993,
+        "redraw_mean_gbp": 14872.685798333327,
         "stable": true,
         "sign_determined": true
       },
-      "redraw_band": "The re-draws themselves are set out contrast by contrast in the band table directly below this headline, lowest, mean and highest; the published draw sits BELOW the centre of its own family.",
+      "redraw_band": "The re-draws themselves are set out contrast by contrast in the band table directly below this headline, lowest, mean and highest; the published draw sits ABOVE the centre of its own family.",
       "repetition": {
         "countable": true,
         "draws": 3,
@@ -1443,13 +1458,13 @@
       "bound_available": true,
       "floor_ran_in_world": "cf823b185f8ca51c",
       "floor_leg": "all",
-      "floor_generated_at": "2026-10-02T08:44:36Z",
+      "floor_generated_at": "2026-10-03T02:53:11Z",
       "bound": {
         "n": 3,
-        "stdev_gbp": 3759.0391860100103,
-        "mean_gbp": 15578.55478833333,
-        "min_gbp": 12400.437292999995,
-        "max_gbp": 19727.897209999996,
+        "stdev_gbp": 787.3601375122987,
+        "mean_gbp": 14872.685798333327,
+        "min_gbp": 13963.538153999994,
+        "max_gbp": 15332.149072999993,
         "repetition": {
           "countable": true,
           "draws": 3,
@@ -1458,17 +1473,17 @@
           "redundant_draws": 0,
           "what_this_counts": "re-draws of this floor returning a `level_advantage_gbp` another of its own draws already returned. `draws_that_repeat_another` counts the DRAWS implicated -- a value returned three times implicates three of them; `redundant_draws` counts how many added nothing the family did not already hold, which is two fewer for that same value. A bound computed across repeated draws measures how often the instrument pinned, not how far the quantity moves."
         },
-        "sem_gbp": 2170.2822859372313
+        "sem_gbp": 454.58258734190645
       },
       "bound_contrast": "level_advantage_gbp",
       "bound_is_of_the_same_contrast": "The spread below is this contrast's own across the seed re-draws -- not the floor's published `selection_gbp_spread`, which measures a different quantity.",
       "distance_to_a_sign": {
         "available": true,
-        "sems_from_zero": 7.178123734998724,
+        "sems_from_zero": 32.71723601490942,
         "sems_needed_to_state_a_sign": 4.302652729749462,
         "sems_needed_is_derived_from_the_family_size": true,
-        "seeds_needed_to_state_a_sign": 3,
-        "seeds_at_the_point_estimate": 3,
+        "seeds_needed_to_state_a_sign": 2,
+        "seeds_at_the_point_estimate": 2,
         "seeds_needed_interval": null,
         "seeds_in_hand": 3,
         "sign_if_it_were_stateable": "positive",
@@ -1477,18 +1492,18 @@
         "how_to_read_the_distance": "`sems_from_zero` below `sems_needed_to_state_a_sign` means the sign is NOT stateable and says by how much. It is not a cue to re-run until a seed agrees (R12): the seed set is fixed before the draw and the answer is whatever it returns."
       },
       "which_sign_question_this_answers": "THE MEAN'S, NOT A SINGLE DRAW'S. `no_sign` and `verdict_stability.sign_determined` above answer whether one draw's sign generalises -- it does not, the re-draws fall on both sides of zero, and no number of further seeds changes that because the spread is the world's own dispersion rather than an estimation error. `distance_to_a_sign` answers whether the FAMILY'S MEAN is distinguishable from zero, whose denominator is the standard error and DOES fall as 1/sqrt(n). That is the question the thesis asks: is the per-customer arm, on average, worse than its own flat-at-level baseline? The two can disagree without contradiction, and until 2026-09-10 this page answered only the first and read as though the second were unanswerable too.",
-      "figure_gbp": 15115.139632999999,
+      "figure_gbp": 15701.152787999992,
       "what_this_leg_is": "What ONE FLAT margin at the same price level earned over flat rules, with no per-customer choosing in it at all. This is value MOVED and not made -- a price charged transfers value from the household to the company rather than creating any. It is published bounded because it looks like the safe half and is not: its own re-draws in this world change its sign."
     },
     "composition": {
       "available": true,
-      "level_share_of_advantage": 1.0174389641365256,
+      "level_share_of_advantage": 1.3661228970190569,
       "level_share_measured_in": "cf823b185f8ca51c",
       "what_each_part_counts": "The numerator is `level_advantage_gbp` -- what one FLAT margin at the same price level earned over flat rules, which is a price charged and therefore value MOVED. The denominator is `value_advantage_gbp`, that plus the per-customer choosing. Both come from the same run and the same clock, so their ratio is a quantity; what is at issue below is not the arithmetic but whether the quantity can be READ.",
       "superseded_panel_share": 0.05507795041077859,
       "published_run": {
-        "artefact": "value_cycle_ab_s1_three_arm_20261002b.json",
-        "generated_at": "2026-10-02T05:55:53Z"
+        "artefact": "value_cycle_ab_s1_three_arm_20261002c.json",
+        "generated_at": "2026-10-02T17:15:57Z"
       },
       "floor_selected_by_book": {
         "the_runs_book": [
@@ -1496,8 +1511,8 @@
           124
         ],
         "selected": {
-          "artefact": "value_cycle_ab_s1_noise_floor_20261002b.json",
-          "generated_at": "2026-10-02T08:44:36Z",
+          "artefact": "value_cycle_ab_s1_noise_floor_20261002c.json",
+          "generated_at": "2026-10-03T02:53:11Z",
           "seeds": 3,
           "also_on_disk_as": [],
           "realised_book": [
@@ -1548,6 +1563,10 @@
           },
           {
             "artefact": "value_cycle_ab_s1_noise_floor_20261002b.json",
+            "refused_because": "older than the run it would bound"
+          },
+          {
+            "artefact": "value_cycle_ab_s1_noise_floor_20261002c.json",
             "refused_because": null
           },
           {
@@ -1620,102 +1639,133 @@
         "mean": 2.084145824229207,
         "stdev": 3.283835055633331,
         "range": 12.006911478564598,
-        "observed_disagreement": 0.962361013725747,
+        "observed_disagreement": 1.3110449466082783,
         "what_each_span_counts": "`range` is the widest minus the narrowest draw of `level_share_of_advantage` across 12 re-runs of ONE world in which nothing moved but the per-household elasticity draw. `observed_disagreement` is the gap between the two draws of that same statistic this page prints. Both are differences of one quantity in one unit, so `times_the_observed_disagreement` counts how many of the second fit inside the first. It is NOT a fold of one share by another.",
-        "times_the_observed_disagreement": 12.476514849744651,
+        "times_the_observed_disagreement": 9.158276006956834,
         "null_is_wider_than_the_disagreement": true,
-        "statement": "THIS SHARE CANNOT BE READ FROM ONE RUN, AND THAT IS A PROPERTY OF THE STATISTIC RATHER THAN OF THESE TWO RUNS. Re-running this same world 12 times with NOTHING moved but the per-household elasticity draw takes `level_share_of_advantage` from 0.067 to 12.074 -- a span of 12.007, which is 12.5 times the 0.962 between the two draws this page prints. The gap between them is therefore smaller than what the statistic does when nothing is done to it, so no arrangement of confounders explains it and none is needed to: a single draw of this share carries no reading, and that stays true however the confounders are cleaned up. WHAT THIS IS NOT MEASURED ON: the null is drawn on 154 settled accounts and the share's own arms were scored over 123-124, so the seed sensitivity is established for this statistic on a NEIGHBOURING book and not on its own. It is published with that named because a measured null one book over is evidence and the alternative already on the page is no ruler at all."
+        "statement": "THIS SHARE CANNOT BE READ FROM ONE RUN, AND THAT IS A PROPERTY OF THE STATISTIC RATHER THAN OF THESE TWO RUNS. Re-running this same world 12 times with NOTHING moved but the per-household elasticity draw takes `level_share_of_advantage` from 0.067 to 12.074 -- a span of 12.007, which is 9.2 times the 1.311 between the two draws this page prints. The gap between them is therefore smaller than what the statistic does when nothing is done to it, so no arrangement of confounders explains it and none is needed to: a single draw of this share carries no reading, and that stays true however the confounders are cleaned up. WHAT THIS IS NOT MEASURED ON: the null is drawn on 154 settled accounts and the share's own arms were scored over 123-124, so the seed sensitivity is established for this statistic on a NEIGHBOURING book and not on its own. It is published with that named because a measured null one book over is evidence and the alternative already on the page is no ruler at all."
       },
-      "why_not_readable": "THIS SHARE CANNOT BE READ FROM ONE RUN, AND THAT IS A PROPERTY OF THE STATISTIC RATHER THAN OF THESE TWO RUNS. Re-running this same world 12 times with NOTHING moved but the per-household elasticity draw takes `level_share_of_advantage` from 0.067 to 12.074 -- a span of 12.007, which is 12.5 times the 0.962 between the two draws this page prints. The gap between them is therefore smaller than what the statistic does when nothing is done to it, so no arrangement of confounders explains it and none is needed to: a single draw of this share carries no reading, and that stays true however the confounders are cleaned up. WHAT THIS IS NOT MEASURED ON: the null is drawn on 154 settled accounts and the share's own arms were scored over 123-124, so the seed sensitivity is established for this statistic on a NEIGHBOURING book and not on its own. It is published with that named because a measured null one book over is evidence and the alternative already on the page is no ruler at all.",
+      "why_not_readable": "THIS SHARE CANNOT BE READ FROM ONE RUN, AND THAT IS A PROPERTY OF THE STATISTIC RATHER THAN OF THESE TWO RUNS. Re-running this same world 12 times with NOTHING moved but the per-household elasticity draw takes `level_share_of_advantage` from 0.067 to 12.074 -- a span of 12.007, which is 9.2 times the 1.311 between the two draws this page prints. The gap between them is therefore smaller than what the statistic does when nothing is done to it, so no arrangement of confounders explains it and none is needed to: a single draw of this share carries no reading, and that stays true however the confounders are cleaned up. WHAT THIS IS NOT MEASURED ON: the null is drawn on 154 settled accounts and the share's own arms were scored over 123-124, so the seed sensitivity is established for this statistic on a NEIGHBOURING book and not on its own. It is published with that named because a measured null one book over is evidence and the alternative already on the page is no ruler at all.",
       "which_arm_moved": {
         "available": true,
         "what_moved": "`level_advantage_gbp`, the numerator of this share, which is the level arm's net minus the control arm's -- so its movement between two runs is the difference of those two arms' movements and of nothing else",
         "direction": "from the run this block publishes to the run the superseded panel states its share from",
         "control_net_gbp": {
-          "published": 85910.143376,
+          "published": 88408.372887,
           "superseded_panel": 157806.875908,
-          "delta": 71896.73253199998,
-          "pct": 83.68829303116397
+          "delta": 69398.50302099998,
+          "pct": 78.4976589374655
         },
         "level_arm_net_gbp": {
-          "published": 101025.283009,
+          "published": 104109.525675,
           "superseded_panel": 158059.090437,
-          "delta": 57033.807428,
-          "pct": 56.45498406861088
+          "delta": 53949.56476200001,
+          "pct": 51.820008219435216
         },
-        "numerator_delta_gbp": -14862.92510399998,
+        "numerator_delta_gbp": -15448.938258999973,
         "the_arm_that_moved": "control",
-        "share_of_the_movement": 0.5576392726991259,
+        "share_of_the_movement": 0.5626233492614514,
         "what_that_share_counts": "the control arm's absolute net change over the SUM of both arms' absolute net changes. Not a share of the advantage, not a share of either net, and not a share of the numerator's own change",
-        "statement": "THE ARM THAT MOVED IS THE ONE THAT PRICES NOTHING. Between the two runs this page prints, the level arm's net moved +57,034 and the control arm's moved +71,897: 55.8% of the two arms' absolute movement is the CONTROL arm, which applies flat rules and takes no per-customer pricing decision. Nothing either pricing arm does can reach it, so what moved between these two runs is the BASELINE the split is measured against and not the choosing. That is as far as this goes: which of the differences counted in `differs_from_the_superseded_panel` moved the control arm is NOT established, because the two producing commits differ and the book count is itself an output of the code they differ in, so the book and the commit cannot be told apart here."
+        "statement": "THE ARM THAT MOVED IS THE ONE THAT PRICES NOTHING. Between the two runs this page prints, the level arm's net moved +53,950 and the control arm's moved +69,399: 56.3% of the two arms' absolute movement is the CONTROL arm, which applies flat rules and takes no per-customer pricing decision. Nothing either pricing arm does can reach it, so what moved between these two runs is the BASELINE the split is measured against and not the choosing. That is as far as this goes: which of the differences counted in `differs_from_the_superseded_panel` moved the control arm is NOT established, because the two producing commits differ and the book count is itself an output of the code they differ in, so the book and the commit cannot be told apart here."
       }
     },
     "what_would_answer_it": null,
     "how_to_read_this": "The same book, the same three arms and the same code as the figures above, re-run over the departure level this world runs at TODAY. It is published beside the 2026-09-18T05:43:40Z run rather than instead of it, because those figures were honestly measured and their fault is only being read as current. Compare the two as two worlds, not as a revision.",
     "code_since_the_run": {
-      "run_commit": "f18e8b5dc6a663ebb485dc6e4b5214237fbab88c",
-      "head_commit": "65f48b276eabec80202b087d83d6ee00498659ed",
+      "run_commit": "0cc052102bdf92f1b6622d01ac78cb81e6927c30",
+      "head_commit": "a5c8c450988db977b0ec37a1f027e00539c2cb7b",
       "paths": [
         "simulation",
         "company"
       ],
       "moved": [
-        "company/interfaces/growth_desk.py",
-        "simulation/customer_events.py",
-        "simulation/fabric_demand_path.py",
+        "company/billing/arrears_engine.py",
+        "company/billing/meter_assets.py",
+        "company/billing/payment_observation_consumer.py",
+        "company/interfaces/renewal_rate_chain.py",
+        "company/pricing/renewal_rate_chain.py",
+        "company/pricing/value_based_renewal.py",
+        "simulation/household_physical_layer.py",
+        "simulation/life_events.py",
+        "simulation/live_population.py",
         "simulation/run_phase2b.py"
       ],
       "exempt": [],
       "unexempt": [
-        "company/interfaces/growth_desk.py",
-        "simulation/customer_events.py",
-        "simulation/fabric_demand_path.py",
+        "company/billing/arrears_engine.py",
+        "company/billing/meter_assets.py",
+        "company/billing/payment_observation_consumer.py",
+        "company/interfaces/renewal_rate_chain.py",
+        "company/pricing/renewal_rate_chain.py",
+        "company/pricing/value_based_renewal.py",
+        "simulation/household_physical_layer.py",
+        "simulation/life_events.py",
+        "simulation/live_population.py",
         "simulation/run_phase2b.py"
       ],
       "refused": true,
-      "why": "the run executed f18e8b5dc and this page is published from 65f48b276; 4 path(s) in simulation/ and company/ differ between them and no exemption says why they cannot move the arms: company/interfaces/growth_desk.py, simulation/customer_events.py, simulation/fabric_demand_path.py, simulation/run_phase2b.py"
+      "why": "the run executed 0cc052102 and this page is published from a5c8c4509; 10 path(s) in simulation/ and company/ differ between them and no exemption says why they cannot move the arms: company/billing/arrears_engine.py, company/billing/meter_assets.py, company/billing/payment_observation_consumer.py, company/interfaces/renewal_rate_chain.py, company/pricing/renewal_rate_chain.py, company/pricing/value_based_renewal.py, simulation/household_physical_layer.py, simulation/life_events.py, simulation/live_population.py, simulation/run_phase2b.py"
     },
     "is_heads_code": false,
     "floor_code_since_its_runs": {
       "floor_commits": [
-        "f18e8b5dc6a663ebb485dc6e4b5214237fbab88c"
+        "0cc052102bdf92f1b6622d01ac78cb81e6927c30"
       ],
-      "head_commit": "65f48b276eabec80202b087d83d6ee00498659ed",
+      "head_commit": "a5c8c450988db977b0ec37a1f027e00539c2cb7b",
       "per_commit": [
         {
-          "run_commit": "f18e8b5dc6a663ebb485dc6e4b5214237fbab88c",
-          "head_commit": "65f48b276eabec80202b087d83d6ee00498659ed",
+          "run_commit": "0cc052102bdf92f1b6622d01ac78cb81e6927c30",
+          "head_commit": "a5c8c450988db977b0ec37a1f027e00539c2cb7b",
           "paths": [
             "simulation",
             "company"
           ],
           "moved": [
-            "company/interfaces/growth_desk.py",
-            "simulation/customer_events.py",
-            "simulation/fabric_demand_path.py",
+            "company/billing/arrears_engine.py",
+            "company/billing/meter_assets.py",
+            "company/billing/payment_observation_consumer.py",
+            "company/interfaces/renewal_rate_chain.py",
+            "company/pricing/renewal_rate_chain.py",
+            "company/pricing/value_based_renewal.py",
+            "simulation/household_physical_layer.py",
+            "simulation/life_events.py",
+            "simulation/live_population.py",
             "simulation/run_phase2b.py"
           ],
           "exempt": [],
           "unexempt": [
-            "company/interfaces/growth_desk.py",
-            "simulation/customer_events.py",
-            "simulation/fabric_demand_path.py",
+            "company/billing/arrears_engine.py",
+            "company/billing/meter_assets.py",
+            "company/billing/payment_observation_consumer.py",
+            "company/interfaces/renewal_rate_chain.py",
+            "company/pricing/renewal_rate_chain.py",
+            "company/pricing/value_based_renewal.py",
+            "simulation/household_physical_layer.py",
+            "simulation/life_events.py",
+            "simulation/live_population.py",
             "simulation/run_phase2b.py"
           ],
           "refused": true,
-          "why": "the run executed f18e8b5dc and this page is published from 65f48b276; 4 path(s) in simulation/ and company/ differ between them and no exemption says why they cannot move the arms: company/interfaces/growth_desk.py, simulation/customer_events.py, simulation/fabric_demand_path.py, simulation/run_phase2b.py"
+          "why": "the run executed 0cc052102 and this page is published from a5c8c4509; 10 path(s) in simulation/ and company/ differ between them and no exemption says why they cannot move the arms: company/billing/arrears_engine.py, company/billing/meter_assets.py, company/billing/payment_observation_consumer.py, company/interfaces/renewal_rate_chain.py, company/pricing/renewal_rate_chain.py, company/pricing/value_based_renewal.py, simulation/household_physical_layer.py, simulation/life_events.py, simulation/live_population.py, simulation/run_phase2b.py"
         }
       ],
       "unexempt": [
-        "company/interfaces/growth_desk.py",
-        "simulation/customer_events.py",
-        "simulation/fabric_demand_path.py",
+        "company/billing/arrears_engine.py",
+        "company/billing/meter_assets.py",
+        "company/billing/payment_observation_consumer.py",
+        "company/interfaces/renewal_rate_chain.py",
+        "company/pricing/renewal_rate_chain.py",
+        "company/pricing/value_based_renewal.py",
+        "simulation/household_physical_layer.py",
+        "simulation/life_events.py",
+        "simulation/live_population.py",
         "simulation/run_phase2b.py"
       ],
       "refused": true,
-      "why": "the run executed f18e8b5dc and this page is published from 65f48b276; 4 path(s) in simulation/ and company/ differ between them and no exemption says why they cannot move the arms: company/interfaces/growth_desk.py, simulation/customer_events.py, simulation/fabric_demand_path.py, simulation/run_phase2b.py"
+      "why": "the run executed 0cc052102 and this page is published from a5c8c4509; 10 path(s) in simulation/ and company/ differ between them and no exemption says why they cannot move the arms: company/billing/arrears_engine.py, company/billing/meter_assets.py, company/billing/payment_observation_consumer.py, company/interfaces/renewal_rate_chain.py, company/pricing/renewal_rate_chain.py, company/pricing/value_based_renewal.py, simulation/household_physical_layer.py, simulation/life_events.py, simulation/live_population.py, simulation/run_phase2b.py"
     },
-    "is_the_bound_heads_code": false
+    "is_the_bound_heads_code": false,
+    "changed_since_the_last_reading": "What changed since the previous reading (run at f18e8b5dc): a household that stays now declines a fixed renewal priced above its default tariff (757c8cada); a default-tariff conversion records its stay decision again (822218441); a prospect is quoted only when both fuels, ex-VAT, beat the default on the day (28eb35ec7); and the per-customer arm's churn belief reads the offer against the published default instead of the household's own last price (0cc052102). Four things moved at once, so no change in these figures can be put down to any one of them. The choosing leg below is negative on every draw because of one household's bad debt, written off after a renewal priced on a clean record: the per-customer arm cannot see arrears, so it kept a debtor that the flat level happened to price away. Without write-offs the choosing leg is positive on every draw."
   },
   "book": {
     "served_segments": [
@@ -1742,7 +1792,7 @@
       "commit": "b329e702b78496afc9ba96bb159322d884064955",
       "short": "b329e702b",
       "resolved_at": "2026-09-18T04:24:06Z",
-      "publishing_tree_commit": "65f48b276eabec80202b087d83d6ee00498659ed",
+      "publishing_tree_commit": "a5c8c450988db977b0ec37a1f027e00539c2cb7b",
       "produced_by_the_tree_it_publishes_from": false,
       "counts_are_labelled_by_the_code_that_made_them": true,
       "objective": {
@@ -1754,7 +1804,7 @@
         "objective_moved_since_the_run": false,
         "clause": "The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
       },
-      "reading": "Produced at b329e702b and published from 65f48b276 -- the code was replaced between the run and this page, so read every count here as the older tree's. The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
+      "reading": "Produced at b329e702b and published from a5c8c4509 -- the code was replaced between the run and this page, so read every count here as the older tree's. The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
     }
   },
   "realised": {
@@ -5426,7 +5476,7 @@
   },
   "headline": "THE FIGURE BELOW AND THE BOUND ON IT WERE MEASURED IN DIFFERENT WORLDS. The runs behind it are dated 2026-09-17 and 2026-09-18. A spread measured where customers leave at one rate is not a confidence interval on a figure measured where they leave at another, so nothing here bounds anything else and no contrast below may have its direction read as resolved. Departure rate is how much book there is to win or lose, so it is the surface this whole comparison sits on. Every leg is kept with its own date rather than deleted; the remedy is to re-run all of them in one world, never to quote whichever leg is current. Running the same book through the per-customer decision engine came out \u00a34,579 from flat rules. Its DIRECTION is not stated here, and the reason is not that no floor has been run: THE ERROR BAR IS OLDER THAN THE FIGURE IT BOUNDS. The seed spread was measured on the run of 2026-09-17T21:39:28Z and the point estimate on the run of 2026-09-18T05:43:40Z. Both runs carry the same world digest 39a192ce04c1eda8, so the departure surface did not move between them. They also did NOT measure the same BOOK, and that is the graver half: billing_accounts_settled_in_window is 164 across the floor's seeds against 154-155 across this run's arms. Re-stamping this floor would not fix it. Read it as the size of this instrument's seed sensitivity; re-running the noise floor on the point estimate's own run is owed work, though the nearest floor on this figure's own book (the 12-seed AUC-carrying floor of 2026-09-17, 12 seeds on the same 154 settled accounts the figure prices) states NEITHER A SIGN NOR A PRICE FOR ONE -- 0.686 of the 2.201 errors from zero, and the seed count that would close that gap divides by an estimate whose own interval contains zero, so it has no upper bound. The owed re-run is still strictly better evidence, because the arms span two books and that floor covers one; but the closest thing to an answer already on disk is that more draws of this instrument do not buy a direction. Once one flat margin at the same price LEVEL is given credit for what a level alone would have earned, \u00a34,327 separates the two on the single run this page publishes. Its DIRECTION is not stated here either, and for the same reason. THE REMEDY'S EVIDENCE IS FROM A DIFFERENT BOOK, so no remedy is stated from it. The floor decomposition was measured where the arm priced 104 of 2,009 renewals; the run this page publishes priced 104 of 2,824. A split of the variance measured on one book is not a price for resolving another, and the priced count is the very quantity the remedy is denominated in -- so quoting it here would state a remedy in units this page no longer has. Re-running it on the current book would NOT clear this: the rest of the book's half carried no variance even on the smaller book above, and a larger priced roster covers MORE of the complement that leg re-draws, not less. What is owed is a floor keyed to something the rest of the book has. What WOULD resolve it has not been established: this spread has not been separated into the priced households' own draw, which a larger settled book shrinks, and the rest of the book's churn cascade, which no book size touches. More seeds do not shrink this SPREAD: re-drawing the dice measures the same width again. What they do buy is how well those draws pin their own MEAN, which is the quantity this page states a side from. How many would be needed is NOT a number this page can give: the count divides by the estimate itself, and it is only ever asked when that estimate's own interval contains zero -- so it has no upper bound. The error bar below publishes that interval and the reason, in place of a count. Read all of it against its size: the per-customer arm priced 104 of the 2,824 renewals the world offered, 3.68% of them, so every figure here is those decisions and what they cascade into.",
   "published_from": {
-    "commit": "65f48b276eabec80202b087d83d6ee00498659ed",
+    "commit": "a5c8c450988db977b0ec37a1f027e00539c2cb7b",
     "tree_was_clean": false,
     "inputs_are_the_committed_bytes": false,
     "inputs": [
@@ -5443,11 +5493,11 @@
         "state": "committed"
       },
       {
-        "path": "docs/observability/value_cycle_ab_s1_three_arm_20261002b.json",
+        "path": "docs/observability/value_cycle_ab_s1_three_arm_20261002c.json",
         "state": "not_in_the_commit"
       },
       {
-        "path": "docs/observability/value_cycle_ab_s1_noise_floor_20261002b.json",
+        "path": "docs/observability/value_cycle_ab_s1_noise_floor_20261002c.json",
         "state": "not_in_the_commit"
       },
       {
@@ -5467,6 +5517,6 @@
         "state": "committed"
       }
     ],
-    "reason": "read off the working tree, not out of this commit: docs/observability/value_cycle_ab_s1_noise_floor_20261002b.json, docs/observability/value_cycle_ab_s1_three_arm_20261002b.json \u2014 standing at this commit will not reproduce this feed"
+    "reason": "read off the working tree, not out of this commit: docs/observability/value_cycle_ab_s1_noise_floor_20261002c.json, docs/observability/value_cycle_ab_s1_three_arm_20261002c.json \u2014 standing at this commit will not reproduce this feed"
   }
 }

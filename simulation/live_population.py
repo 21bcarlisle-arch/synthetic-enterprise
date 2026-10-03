@@ -721,14 +721,29 @@ def _campaign(book: List[dict], seed: int) -> dict:
     # campaigns, and `live_premises()` ended up holding dwellings for winners that were not
     # in the book. Every caller now resolves against the same `_pre_growth_book(seed)`, so
     # the book is not a key at all.
-    if seed not in _CAMPAIGN_MEMO:
-        _CAMPAIGN_MEMO[seed] = _resolve_campaign(book, seed)
+    #
+    # AND ON WHAT SHAPES THE BOOK, alongside the seed (2026-10-03). The pre-growth book is not
+    # a function of the seed alone: which segments are served, whether the population is drawn
+    # and how many founders there are each change it, and all three are read from the
+    # environment or a curriculum file at call time. A campaign resolved under one setting was
+    # handed back under another -- `test_live_population_seam` resolves it with I&C served, and
+    # a later whole run in the same process then held a winner (PROS-2016-0042) its own book
+    # never drew a dwelling for, red on 19 tests whenever both were selected together.
+    key = _campaign_key(seed)
+    if key not in _CAMPAIGN_MEMO:
+        _CAMPAIGN_MEMO[key] = _resolve_campaign(book, seed)
         # AFTER the memo is populated, never inside `_resolve_campaign`: the verdict
         # re-enters `_campaign` to read the winners, and computing it before the memo
         # is set would recurse forever. Recorded here rather than at the seam because
-        # this is the one place a campaign is resolved exactly once per seed.
+        # this is the one place a campaign is resolved exactly once per key.
         _record_subset_verdict(seed)
-    return _CAMPAIGN_MEMO[seed]
+    return _CAMPAIGN_MEMO[key]
+
+
+def _campaign_key(seed: int) -> tuple:
+    """Everything the resolved campaign depends on that a caller does not pass: the seed, and
+    the three settings `_pre_growth_book` reads at call time."""
+    return (seed, tuple(sorted(served_segments())), draw_population_enabled(), founder_accounts())
 
 
 #: The founder-book curriculum file. R13: the number lives in a director-authored artefact, not

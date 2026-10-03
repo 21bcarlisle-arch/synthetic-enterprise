@@ -1,6 +1,6 @@
 **Severity:** ADVISORY · **Lane:** W2_customer_generator · **Epoch:** 3 · **Atom:** none — Lane 0 delivery
 
-# Result: the world-D value arms retaken at the belief commit, partial (arms graded, floor pending)
+# Result: the world-D value arms retaken at the belief commit, arms and floor graded, pointers moved
 
 **Claim:** `grade-the-value-arms-retake-once-both-artefacts-exist`. Grades
 `SEAT_PREREG_THE_VALUE_ARMS_RETAKEN_AT_THE_BELIEF_COMMIT_2026-10-02.md`. Written 2026-10-02 ~19:45Z.
@@ -146,3 +146,70 @@ reference points are: the 1002b floor's churn-pricing part, which is +7,446 / +6
   way.
 - **S3.** Without write-offs, the seed mean is positive, between +£2,000 and +£8,000. At least
   one seed is under +£1,000, as 33333 was in 1002b, so n = 3 still cannot call its sign.
+
+## The floor, graded 2026-10-03 (claim `grade-the-1002c-floor-and-move-the-current-world-pointers`)
+
+The serialised floor exited **rc=0** at 02:53:15Z with an 8.48 GB peak. It wrote
+`value_cycle_ab_s1_noise_floor_20261002c.json` at `0cc052102`, on seeds 11111/22222/33333 with
+`--redraw-mode all`, and it carries no `floor_run_refused`. The world digest is `cf823b185f8ca51c`,
+as in the arms run.
+
+| seed | level leg 1002b → **1002c** | selection 1002b → **1002c** | 1002c churn-pricing part | 1002c credit part |
+|---|---|---|---|---|
+| 11111 | £14,607 → **£15,332** | −£404 → **−£4,208** | +£5,475 | −£9,683 |
+| 22222 | £12,400 → **£13,964** | −£1,314 → **−£2,470** | +£7,444 | −£9,915 |
+| 33333 | £19,728 → **£15,322** | −£7,542 → **−£5,551** | +£4,342 | −£9,892 |
+| mean | £15,578 → £14,873 | −£3,087 → **−£4,076** (SEM £892, 4.57 SEMs from zero against a 4.30 bar) | **+£5,754** | −£9,830 |
+
+The split method is 792fcf31d's: each arm's arrears lines reconcile to its net on all 124
+accounts. Re-run over the 1002b floor, the script reproduces that record's +7,446 / +6,352 / −1,
+so the instrument is the same one.
+
+- **Q1, seed-for-seed leg: REFUTED.** The level leg rose on 11111 and 22222 and fell only on
+  33333. The 1002c floor's minimum is £13,964, which is above the 1002b minimum of £12,400. Together
+  with the arms-run grade above, the level leg did not fall out of the old band on any reading.
+  This is refutation shape (a). As recorded above, the level itself moved from about £49 to
+  £60/MWh, so the level arm is not the same arm across the two commits.
+- **Q3: REFUTED on both halves.** The seed mean, −£4,076, is below −£3,087, not above it. All three
+  seeds are on the same side of zero. This is refutation shape (b), but the split shows it is not
+  the belief choosing worse. On the churn-pricing part the 1002c seed mean (+£5,754) is ABOVE
+  1002b's (+£4,599). The fall in published selection comes from the credit part, −£9,830 against
+  about −£7,690, and that is PROS-2016-0098's write-off growing.
+- **S1: HOLDS.** On every seed, PROS-2016-0098 is the only account that changes sign when
+  write-offs are removed. Its selection is −£8,136 with write-offs and +£1,756 without, on all three
+  seeds. The elasticity redraw does not reach it.
+- **S2: HOLDS.** With write-offs, selection is negative on all three seeds. Each seed's credit part
+  is within £232 of the arms run's −£9,683.
+- **S3: the mean HOLDS and the weak-seed clause is REFUTED.** Without write-offs, the seed mean is
+  +£5,754, inside the predicted +£2,000 to +£8,000. But no seed is under +£1,000; the lowest is
+  +£4,342. The churn-pricing part is positive on every draw.
+
+**What the floor licenses.** By the generator's own bar, the published selection leg now has a
+negative sign (4.57 SEMs against 4.30). That sign belongs to one household's bad debt. The value
+arm cannot see arrears (`SEAT_FINDING_THE_VALUE_ARM_CANNOT_SEE_ARREARS_..._2026-10-02.md`), and the
+flat level priced that household away by accident. On churn pricing, the per-customer arm beats
+the flat level on all three draws. Until the page publishes the churn/credit split per leg, any
+signed selection verdict reads as the wrong cause. The page names this in words beside the figures
+(`changed_since_the_last_reading`).
+
+## Pointers moved, and the reading is withdrawn by mechanism
+
+Both 20261002c artefacts are now in `docs/observability/`. `CURRENT_WORLD_THREE_ARM_PATH` and
+`CURRENT_WORLD_NOISE_FLOOR_PATH` move onto them together. The page now names the four changes since
+`f18e8b5dc` (757c8cada, 822218441, 28eb35ec7 and the belief at 0cc052102) and the write-off cause,
+in a feed field that Capabilities renders. That field carries no figure, so it cannot disagree with
+the feed.
+
+**`is_heads_code` reads False at publish (step 5 of the pre-registration).** Ten
+`simulation/`/`company/` paths moved after the pin. They include `value_based_renewal.py`,
+`renewal_rate_chain.py`, `arrears_engine.py` and `payment_observation_consumer.py`, which is the
+arrears forward landing. So the page publishes the 1002c figures and withdraws both the currency
+claim and the verdict, and this is fail-closed as intended. **A retake at a HEAD that contains the
+arrears forward is the next honest reading.** That retake is the one that can show whether seeing
+arrears closes the credit part.
+
+Two controls were keyed to the live pointers and needed one leg to withhold. Both are now pinned to
+the dated 1002b pair, the way `earlier` was already pinned:
+`site/test_the_baseline_comparison_reaches_the_reader.py::_feed_whose_current_world_block_speaks`
+(the mirror's poison round is a no-op when both legs resolve) and
+`tests/tools/test_generate_value_arms_data.py::test_the_creation_leg_carries_its_own_live_world_bound_and_not_the_advantages`.

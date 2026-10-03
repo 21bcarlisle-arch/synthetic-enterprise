@@ -313,23 +313,24 @@ def test_page_is_reproducible_from_the_sources(payload):
     """DEFECT: a hand-typed figure creeps onto the page and goes stale the moment an atom
     moves -- the stale-cell class this project keeps catching.
 
-    Regenerating from the same sources must reproduce the payload exactly, apart from the
-    stamps that are meant to change."""
-    from tools.generate_evidence_data import build_payload
+    The property is that the payload reproduces from the sources AT THE COMMIT IT RECORDS, and
+    that is graded by `test_a_promoted_feed_still_reproduces_at_the_commit_it_records`, proven
+    able to fail by `test_a_hand_edit_after_publication_reds_at_the_feeds_own_commit`. This leg
+    asserts only that evidence.json is in the set that control grades.
 
+    WHY NOT REGENERATE AND COMPARE HERE, which is what this test did until 2026-10-03: that
+    compared the committed feed against the LIVE map, i.e. against today's answer. Once the
+    figures were held to a weekly publish (`.publish_gate_state.json` `publish_hold`), the first
+    map move after each publish turned it red for the rest of the week -- 21 consecutive census
+    runs on HEAD_RED_REGISTER, every one a stale-but-honest feed and none a hand edit."""
+    from tools.generate_evidence_data import build_payload
+    from tools.published_feed_regeneration_check import COVERED_AT_THEIR_OWN_COMMIT
+
+    assert COVERED_AT_THEIR_OWN_COMMIT.get("evidence.json") == "generate_evidence_data", (
+        "evidence.json is not graded at the commit it records, so nothing catches a hand edit "
+        "to the published page"
+    )
     fresh = build_payload()
-    # `suite` is legitimately volatile: EVERY pytest invocation appends to
-    # test_execution_log.jsonl, so this very test run can move it. The evidence content --
-    # nodes, atoms, citations, ledger, totals -- must be byte-identical.
-    # `published_from` is volatile for the SAME reason `git_hash` is, one step further: it is a
-    # description of the tree at generation time, and in this shared tree the answer moves with
-    # every lane's uncommitted edit. It is not unchecked — it is bound by
-    # `tests/tools/test_a_generators_stamp_describes_the_bytes_it_read.py`, which asserts over its
-    # shape and its refusals rather than over one run's answer.
-    volatile = ("generated_at", "git_hash", "suite", "published_from")
-    assert {k: v for k, v in fresh.items() if k not in volatile} == {
-        k: v for k, v in payload.items() if k not in volatile
-    }, "the published evidence.json is not reproducible from its sources"
     assert fresh["suite"]["test_count"] > 1000, (
         "the published suite figure must be the largest recorded collection, so a partial "
         "run can never shrink it"
@@ -360,9 +361,16 @@ def test_the_publish_cycle_refreshes_the_payload_that_the_capabilities_door_read
     NOT TAUTOLOGICAL: the consumer half is asserted from the CONSUMER's own source, so this
     fails if the door stops reading the payload (in which case the wiring is genuinely
     unnecessary and this control should be deleted) exactly as it fails if the producer is
-    unwired again. R15 MUTATION: delete the `gen_evidence()` call from `_process` -> red on
-    the producer half; delete the `evidence.json` read from `generate_capabilities_door` ->
-    red on the consumer half."""
+    unwired again.
+
+    THE PRODUCER MOVED 2026-09-23 (`7e9c2c935`): `process_run_complete` calls
+    `tools.publish_from_a_clean_tree.publish`, which runs both generators in a clean checkout of
+    HEAD. This leg grepped for the old in-tree import and was red from that commit on. The old
+    ORDER leg is gone with it, deliberately: each clean-tree generator reads the COMMITTED
+    siblings, so the door lags the payload by one cycle by design, and that module's docstring
+    says so. R15 MUTATION: drop `evidence.json` from `PUBLISHED_FROM_A_CLEAN_TREE` -> red."""
+    from tools.publish_from_a_clean_tree import PUBLISHED_FROM_A_CLEAN_TREE
+
     publisher = (PROJECT / "background" / "process_run_complete.py").read_text(encoding="utf-8")
     consumer = (PROJECT / "tools" / "generate_capabilities_door.py").read_text(encoding="utf-8")
 
@@ -371,15 +379,10 @@ def test_the_publish_cycle_refreshes_the_payload_that_the_capabilities_door_read
         "has no live consumer left, delete this control and the publish step with it rather "
         "than keeping a generator running for nobody"
     )
-    assert "from tools.generate_evidence_data import generate" in publisher, (
+    assert ("from tools.publish_from_a_clean_tree import publish" in publisher
+            and PUBLISHED_FROM_A_CLEAN_TREE.get("evidence.json") == "generate_evidence_data"), (
         "the publish cycle does not refresh site/data/evidence.json, but the Capabilities "
         "door published every cycle reads it -- its 'last run' date will freeze silently"
-    )
-    produced = publisher.index("from tools.generate_evidence_data import generate")
-    consumed = publisher.index("from tools.generate_capabilities_door import generate")
-    assert produced < consumed, (
-        "the payload is refreshed AFTER the door that reads it, so the door publishes the "
-        "previous cycle's figures"
     )
 
 
