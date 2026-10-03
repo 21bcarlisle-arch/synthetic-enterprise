@@ -63,3 +63,14 @@ def test_the_probe_leaves_the_reference_run_exactly_as_a_plain_run_leaves_it():
     plain_events = sorted((e["customer_id"], e["event_date"], e["event_type"])
                           for e in plain["customer_events"] if isinstance(e, dict))
     assert dp.LAST_REFERENCE_EVENTS == plain_events
+
+
+def test_the_blind_rule_strips_arguments_the_pricing_door_really_takes():
+    """`value_blind` is the value rule with payment history removed. If the door ever renamed one
+    of these, stripping it would silently do nothing and the blind rule would equal the sighted
+    one -- a comparison that always reads zero and looks like a result."""
+    import inspect
+
+    from company.interfaces.renewal_rate_chain import decide_renewal_rate
+    params = set(inspect.signature(decide_renewal_rate).parameters)
+    assert dp.PAYMENT_HISTORY_ARGS and set(dp.PAYMENT_HISTORY_ARGS) <= params
