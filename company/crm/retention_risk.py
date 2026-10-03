@@ -11,11 +11,21 @@ Returns a risk score 0-5 and tier: LOW / MEDIUM / HIGH.
 """
 
 from __future__ import annotations
+
 from datetime import date
 
 
-def _has_overdue_invoice(account_id: str, invoices: list[dict]) -> bool:
-    today = date.today().isoformat()
+def _required_as_of(as_of: date) -> date:
+    if as_of is None:
+        raise ValueError(
+            "retention_risk needs the as_of date its signals are read on; there is no wall-clock "
+            "default inside a simulated run"
+        )
+    return as_of
+
+
+def _has_overdue_invoice(account_id: str, invoices: list[dict], as_of: date) -> bool:
+    today = _required_as_of(as_of).isoformat()
     return any(
         inv["payment_status"] in ("unpaid", "partially_paid")
         and inv.get("due_date", today) < today
@@ -24,9 +34,10 @@ def _has_overdue_invoice(account_id: str, invoices: list[dict]) -> bool:
     )
 
 
-def _has_recent_complaint(account_id: str, contacts: list[dict], lookback_days: int = 90) -> bool:
+def _has_recent_complaint(account_id: str, contacts: list[dict], as_of: date,
+                          lookback_days: int = 90) -> bool:
     from datetime import timedelta
-    cutoff = (date.today() - timedelta(days=lookback_days)).isoformat()
+    cutoff = (_required_as_of(as_of) - timedelta(days=lookback_days)).isoformat()
     return any(
         c["customer_id"] == account_id
         and c.get("complaint_flag")
@@ -41,20 +52,27 @@ def retention_risk(
     contacts: list[dict],
     renewal_info: dict | None = None,
     rate_cmp: dict | None = None,
+    as_of: date | None = None,
 ) -> dict:
     """Score a customer's churn risk from observable signals.
 
     Returns dict: score (0-5), tier (LOW/MEDIUM/HIGH), signals list.
+
+    `as_of` defaults to the machine's date ONLY because this score's one caller is the portal's
+    admin page (via `portfolio_risk_summary`), which serves a finished book in real time and has
+    no run date to give. A run must pass its own date; `retention_risk_feature_vector` refuses
+    to go without one.
     """
+    as_of = as_of if as_of is not None else date.today()
     account_id = customer.get("customer_id", "")
     score = 0
     signals = []
 
-    if _has_overdue_invoice(account_id, invoices):
+    if _has_overdue_invoice(account_id, invoices, as_of):
         score += 2
         signals.append("Overdue invoice")
 
-    if _has_recent_complaint(account_id, contacts):
+    if _has_recent_complaint(account_id, contacts, as_of):
         score += 1
         signals.append("Recent complaint (90 days)")
 
@@ -89,6 +107,8 @@ def retention_risk_feature_vector(
     contacts: list[dict],
     renewal_info: dict | None = None,
     rate_cmp: dict | None = None,
+    *,
+    as_of: date,
 ) -> dict:
     """Re-express the same observable signals `retention_risk()` scores as a
     numeric feature vector (Phase QL Part 2, docs/design/PROCESS_MODEL.md
@@ -105,12 +125,15 @@ def retention_risk_feature_vector(
     independently. Every feature is something a real UK supplier's own CRM/
     billing systems would already hold -- no SIM-internal read, consistent
     with `retention_risk()` above (unchanged, still epistemically clean).
+
+    `as_of` is the date the company reads these signals on and is REQUIRED; a run reaches this
+    (tools/generate_shadow_html.py, after every run) and must never age its book against today.
     """
     account_id = customer.get("customer_id", "")
     return {
         "customer_id": account_id,
-        "overdue_invoice": 1.0 if _has_overdue_invoice(account_id, invoices) else 0.0,
-        "recent_complaint_90d": 1.0 if _has_recent_complaint(account_id, contacts) else 0.0,
+        "overdue_invoice": 1.0 if _has_overdue_invoice(account_id, invoices, as_of) else 0.0,
+        "recent_complaint_90d": 1.0 if _has_recent_complaint(account_id, contacts, as_of) else 0.0,
         "renewal_window_open": 1.0 if (renewal_info and renewal_info.get("in_notice_window")) else 0.0,
         "renewal_is_fixed": 1.0 if (renewal_info and renewal_info.get("is_fixed")) else 0.0,
         "rate_gap_pct_vs_market": float(rate_cmp.get("delta_p", 0.0)) if rate_cmp else 0.0,

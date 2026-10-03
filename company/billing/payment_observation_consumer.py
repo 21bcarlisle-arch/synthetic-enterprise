@@ -2085,7 +2085,7 @@ class PaymentObservationConsumer:
     def snapshot(
         self,
         account_id: str,
-        as_of: Optional[dt.date] = None,
+        as_of: dt.date,
         disputed_refs: Sequence[str] = (),
         payment_terms_days: int = 14,
         reconciliation_grace_days: int = DEFAULT_RECONCILIATION_GRACE_DAYS,
@@ -2094,8 +2094,16 @@ class PaymentObservationConsumer:
         Pure function of everything `observe()`d so far for this account
         (order-independent, replay-deterministic): calling this twice with
         the same `as_of` after the same set of `observe()` calls (in any
-        order) returns an equal snapshot."""
-        as_of = as_of if as_of is not None else dt.date.today()
+        order) returns an equal snapshot.
+
+        `as_of` is the run's decision date and is REQUIRED; None is refused. It used to fall back
+        to `dt.date.today()`, so a caller that forgot it aged a 2019 book against the machine's
+        calendar and every open item read as years overdue."""
+        if as_of is None:
+            raise ValueError(
+                f"{account_id}: snapshot needs the run's as_of date; there is no wall-clock "
+                "default, because a simulated run must never read today's date"
+            )
         ledger: AccountLedger = self.ledger_book.ledger(account_id)
         allocation = ledger.allocate(disputed_refs=disputed_refs, as_of=as_of)
         aged_items = age_open_items(

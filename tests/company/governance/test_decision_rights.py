@@ -10,14 +10,16 @@ import pytest
 from company.governance.decision_rights import (
     DECISION_RIGHTS_REGISTER,
     DecisionClass,
-    log_decision_event,
     get_decision_log,
-    reset_decision_log,
-    submit_decision_request,
-    resolve_decision_request,
+    log_decision_event,
     pending_decision_requests_as_of,
+    reset_decision_log,
+    resolve_decision_request,
+    submit_decision_request,
 )
 from company.interfaces.bitemporal_event_log import BitemporalEventLog
+
+_TT = dt.datetime(2020, 1, 1, tzinfo=dt.timezone.utc)
 
 
 @pytest.fixture(autouse=True)
@@ -86,14 +88,19 @@ def test_log_decision_event_unregistered_class_raises():
         )
 
 
-def test_log_decision_event_defaults_transaction_time_to_now():
-    before = dt.datetime.now(dt.timezone.utc)
-    event = log_decision_event(
-        DecisionClass.PRICING_MOVE, entity_id="C1", request={}, context={}, decision={},
-        rationale="", valid_time=dt.date(2020, 1, 1),
-    )
-    after = dt.datetime.now(dt.timezone.utc)
-    assert before <= event.transaction_time <= after
+def test_log_decision_event_refuses_a_missing_transaction_time():
+    """It used to default to the machine's clock, stamping a 2020 decision as recorded today."""
+    with pytest.raises(ValueError, match="transaction_time"):
+        log_decision_event(
+            DecisionClass.PRICING_MOVE, entity_id="C1", request={}, context={}, decision={},
+            rationale="", valid_time=dt.date(2020, 1, 1),
+        )
+    with pytest.raises(ValueError, match="submitted_at"):
+        submit_decision_request(
+            DecisionClass.HEDGE_MANDATE_CHANGE, entity_id="m-1", request={}, context={},
+            valid_time=dt.date(2020, 1, 1),
+        )
+    assert len(get_decision_log().all_records()) == 0
 
 
 def test_log_decision_event_accepts_explicit_log_instance():
@@ -102,7 +109,7 @@ def test_log_decision_event_accepts_explicit_log_instance():
     own_log = BitemporalEventLog()
     log_decision_event(
         DecisionClass.PRICING_MOVE, entity_id="C1", request={}, context={}, decision={},
-        rationale="", valid_time=dt.date(2020, 1, 1), log=own_log,
+        rationale="", valid_time=dt.date(2020, 1, 1), transaction_time=_TT, log=own_log,
     )
     assert len(own_log.all_records()) == 1
     assert len(get_decision_log().all_records()) == 0, "must not ALSO land in the shared default log"
@@ -111,7 +118,7 @@ def test_log_decision_event_accepts_explicit_log_instance():
 def test_reset_decision_log_clears_shared_state():
     log_decision_event(
         DecisionClass.PRICING_MOVE, entity_id="C1", request={}, context={}, decision={},
-        rationale="", valid_time=dt.date(2020, 1, 1),
+        rationale="", valid_time=dt.date(2020, 1, 1), transaction_time=_TT,
     )
     assert len(get_decision_log().all_records()) == 1
     reset_decision_log()
@@ -124,7 +131,7 @@ def test_log_decision_event_status_defaults_decided():
     'decided' exactly as if the field never existed for old callers."""
     event = log_decision_event(
         DecisionClass.PRICING_MOVE, entity_id="C1", request={}, context={}, decision={"x": 1},
-        rationale="r", valid_time=dt.date(2020, 1, 1),
+        rationale="r", valid_time=dt.date(2020, 1, 1), transaction_time=_TT,
     )
     assert event.status == "decided"
 

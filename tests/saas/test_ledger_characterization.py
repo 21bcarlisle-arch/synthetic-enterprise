@@ -11,9 +11,10 @@ All inputs are fixed literals. No RNG is drawn: transaction ids are uuid5
 digests, and a few are frozen verbatim so a change to the id scheme (which would
 silently re-key every event in the ledger) cannot pass unnoticed.
 
-RECORDED GAP: `build_ledger` reaches `log_decision_event`, which stamps
-`datetime.now(utc)` and appends to a module-global governance log. That path is
-exercised below but its timestamp is not — there is no clock injection point.
+`build_ledger` reaches `log_decision_event`, which appends to a module-global
+governance log. Until 2026-10-03 it stamped `datetime.now(utc)`; it now records
+each write-off on its own payment date (controlled in
+tests/architecture/test_a_company_run_never_reads_the_wall_clock.py).
 """
 from __future__ import annotations
 
@@ -279,9 +280,8 @@ def test_building_a_ledger_mutates_a_module_global_governance_log():
     # SURPRISE: `build_ledger` is documented as deriving a transaction log from
     # existing outputs, and the P&L functions below it are labelled "pure
     # function — no simulation state". But whenever a provision is raised it
-    # calls `log_decision_event`, which appends to a process-wide decision log
-    # and stamps `datetime.now(utc)`. Deriving the same ledger twice is NOT a
-    # no-op on process state, and the events it writes are not reproducible.
+    # calls `log_decision_event`, which appends to a process-wide decision log.
+    # Deriving the same ledger twice is NOT a no-op on process state.
     from company.governance.decision_rights import get_decision_log
 
     log = get_decision_log()

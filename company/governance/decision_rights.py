@@ -201,6 +201,15 @@ class DecisionEvent:
 _DECISION_LOG = BitemporalEventLog()
 
 
+def _required_stamp(stamp: dt.datetime | None, name: str, entity_id: str) -> dt.datetime:
+    if stamp is None:
+        raise ValueError(
+            f"{entity_id}: a decision event needs {name} (when the company recorded it, on the "
+            "run's own clock); there is no wall-clock default inside a simulated run"
+        )
+    return stamp
+
+
 def log_decision_event(
     decision_class: DecisionClass,
     entity_id: str,
@@ -217,9 +226,14 @@ def log_decision_event(
     """Record one governed decision. Raises KeyError for a decision_class not
     in DECISION_RIGHTS_REGISTER -- the register is the source of truth for
     what counts as a governed decision class at all; logging an unregistered
-    class would silently invent governance scope, not just skip it."""
+    class would silently invent governance scope, not just skip it.
+
+    `transaction_time` (when the company recorded the decision) is REQUIRED; None is refused. It
+    used to default to the machine's clock, so saas/ledger.py's 2016-2025 replay stamped every
+    write-off decision as recorded in 2026, after its own valid time by years, and invisible to
+    any as-known-at read on the run's date."""
     definition = DECISION_RIGHTS_REGISTER[decision_class]
-    tt = transaction_time or dt.datetime.now(dt.timezone.utc)
+    tt = _required_stamp(transaction_time, "transaction_time", entity_id)
     event = DecisionEvent(
         decision_class=decision_class,
         entity_id=entity_id,
@@ -260,9 +274,10 @@ def submit_decision_request(
     R12 discipline (BitemporalEventLog.as_known_at() never fabricates a
     value that doesn't exist) -- never invented, never defaulted to
     something plausible-looking. Raises KeyError for an unregistered
-    decision_class, same discipline as log_decision_event()."""
+    decision_class, same discipline as log_decision_event(). `submitted_at` is
+    REQUIRED, for the same reason as log_decision_event's transaction_time."""
     definition = DECISION_RIGHTS_REGISTER[decision_class]
-    tt = submitted_at or dt.datetime.now(dt.timezone.utc)
+    tt = _required_stamp(submitted_at, "submitted_at", entity_id)
     event = DecisionEvent(
         decision_class=decision_class,
         entity_id=entity_id,
