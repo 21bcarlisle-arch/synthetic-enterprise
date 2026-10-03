@@ -426,23 +426,26 @@ def test_every_association_the_world_draws_between_the_layers_is_declared(
 def test_the_association_control_sees_a_merge_and_a_missing_declaration(
     homes_at_the_end_of_the_record,
 ):
-    """The control above can fail, each way, at a strength smaller than the one it found.
+    """The control above can fail, each way, at a strength close to the ones it found.
 
-    MERGE: one-person homes that were LOW become HIGH one time in four -- occupancy re-merged
-    into the commercial layer, weaker than the build-era path. MISSING: the same real draw with
-    the build-era declaration deleted, which is exactly the tree before 2026-09-30.
+    MERGE: homes with no driveway that were LOW become HIGH one time in eight -- an asset field
+    merged into the commercial layer at Cramer's V 0.137/0.149 (seeds 11/23), near the 0.105-0.114
+    the draw's real paths carry. Thinner is not detectable on this pair at n~2,000 and alpha 1e-4
+    (1-in-16 reads V 0.07-0.10 at p 1e-2 to 1e-4). It poisons a
+    pair DECLARED ABSENT, so it is the contradiction leg that must see it. (It poisoned occupancy
+    until 2026-10-03, when per-person births made occupancy a declared, carried path.)
+    MISSING: the same real draw with the build-era declaration deleted, which is exactly the tree
+    before 2026-09-30.
     """
-    from simulation.household_segments import OccupancyBand
-
     merged = []
     for i, (pid, drawn, at_date) in enumerate(homes_at_the_end_of_the_record):
-        if (i % 4 == 0 and at_date.income_stress is IncomeStress.LOW
-                and occupancy_band_for(pid, drawn.output_area) is OccupancyBand.ONE_PERSON):
+        if (i % 8 == 0 and at_date.income_stress is IncomeStress.LOW
+                and not drawn.has_driveway):
             at_date = dataclasses.replace(at_date, income_stress=IncomeStress.HIGH)
         merged.append((pid, drawn, at_date))
     _, contradicted = _disagreements(measure_layer_associations(merged), LAYER_CORRELATIONS)
-    assert ("occupancy", "income_stress") in contradicted, (
-        "occupancy was merged into income stress and the control did not see it"
+    assert ("has_driveway", "income_stress") in contradicted, (
+        "an asset field was merged into income stress and the control did not see it"
     )
 
     real = measure_layer_associations(homes_at_the_end_of_the_record)
