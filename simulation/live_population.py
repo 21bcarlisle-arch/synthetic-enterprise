@@ -448,6 +448,7 @@ def _drawn_trickle(seed: int):
         draw_region=True,
         assign_cohorts=True,
         premise_stock_fn=lambda year: _trickle_stock(year, seed),
+        seasonal_dates=True,
     )
 
 
@@ -824,6 +825,7 @@ def _drawn_founder_pairs(seed: int) -> "List[tuple]":
         acquisitions_per_year_lambda=float(wanted) * _FOUNDER_DRAW_HEADROOM,
         draw_region=True,
         assign_cohorts=True,
+        seasonal_dates=True,
     ):
         record = customer.to_customer_dict()
         # A DRAWN FOUNDER CAN BE A GAS ACCOUNT IN ITS OWN RIGHT, unlike a campaign win, which
@@ -863,7 +865,10 @@ def _drawn_founder_pairs(seed: int) -> "List[tuple]":
     # month, peaking in October (DESNZ QEP Table 2.7.1, `docs/market_research/
     # gb_domestic_switching_by_calendar_month.md`). Taking every 1-in-r of the whole eligible
     # sequence keeps the draw's own spread of dates. Systematic and deterministic, so no random
-    # stream is consumed and a re-run takes the same founders.
+    # stream is consumed and a re-run takes the same founders. The dates themselves follow 2016's
+    # published switching months (`seasonal_dates=True`), so the year is not flat either: January
+    # is its trough and October its peak. Thinning picks by POSITION, so it keeps the same
+    # households whichever way their dates were drawn.
     if len(out) > wanted:
         # Integer positions, so exactly `wanted` are kept -- a float rate loses one to rounding.
         out = [out[(k * len(out)) // wanted] for k in range(wanted)]
