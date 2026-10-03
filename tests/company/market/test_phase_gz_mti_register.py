@@ -1,10 +1,11 @@
 """Tests for Meter Technical Investigation Register -- Phase GZ (SLC 21A)."""
 import datetime as dt
 import pytest
+from company.compliance.working_days import add_working_days as _add_working_days
 from company.market.meter_technical_investigation_register import (
     Fuel, MeterTestType, MeterTestOutcome, MTIStatus,
     MeterTechnicalInvestigationRegister,
-    _add_working_days, _ELECTRICITY_WITHIN_TOLERANCE_CHARGE_GBP, _SLA_WORKING_DAYS,
+    _ELECTRICITY_WITHIN_TOLERANCE_CHARGE_GBP, _SLA_WORKING_DAYS,
 )
 
 TODAY = dt.date(2024, 6, 10)

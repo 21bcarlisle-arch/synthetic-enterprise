@@ -19,6 +19,8 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Dict, List, Optional
 
+from company.compliance.working_days import add_working_days
+
 
 class CounterpartyType(str, Enum):
     FINANCIAL_COUNTERPARTY = "fc"
@@ -47,12 +49,7 @@ _FCA_EMIR_MAX_FINE_GBP = 7_200_000.0
 
 
 def _add_working_days(from_dt: dt.datetime, days: int) -> dt.datetime:
-    d = from_dt.date()
-    added = 0
-    while added < days:
-        d += dt.timedelta(days=1)
-        if d.weekday() < 5:
-            added += 1
+    d = add_working_days(from_dt.date(), days)
     return dt.datetime(d.year, d.month, d.day, 17, 0, 0, tzinfo=from_dt.tzinfo)
 
 

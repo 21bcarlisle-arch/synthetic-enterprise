@@ -221,3 +221,74 @@ def test_instructing_or_recording_without_a_mandate_raises():
 
 def test_the_seam_hands_back_a_real_desk():
     assert isinstance(open_collections_desk(), DirectDebitCollectionsDesk)
+
+
+# ── 11. PB8: the desk stops presenting after N consecutive returns ──────────
+
+
+def _return_n(desk, n, start_month=2):
+    stopped = []
+    for i in range(n):
+        month = start_month + i
+        instruction = desk.instruct_collection(
+            CID, f"2024-{month:02d}-28", 80.0, f"2024-{month + 1:02d}-01")
+        stopped.append(desk.record_collection_outcome(
+            instruction, attempt_date=f"2024-{month + 1:02d}-11", collected=False,
+            failure_reason="ARUDD 0: refer to payer"))
+    return stopped
+
+
+def test_n_consecutive_returns_take_the_account_off_dd():
+    from company.billing.dd_collections_desk import DD_STOP_THRESHOLD_CONSECUTIVE_RETURNS as N
+    desk = _confirmed_desk()
+    stopped = _return_n(desk, N)
+    assert stopped == [False] * (N - 1) + [True]
+    assert not desk.pays_by_direct_debit(CID)
+    mandate = desk.collection_register().get_mandate(CID)
+    assert mandate.status == "cancelled"
+    assert mandate.last_status_change_date == f"2024-{2 + N:02d}-11"
+    with pytest.raises(ValueError, match="billed on receipt"):
+        desk.instruct_collection(CID, "2024-09-30", 80.0, "2024-10-01")
+
+
+def test_one_return_fewer_leaves_the_account_on_dd():
+    from company.billing.dd_collections_desk import DD_STOP_THRESHOLD_CONSECUTIVE_RETURNS as N
+    desk = _confirmed_desk()
+    assert not any(_return_n(desk, N - 1))
+    assert desk.pays_by_direct_debit(CID)
+    desk.instruct_collection(CID, "2024-09-30", 80.0, "2024-10-01")
+
+
+def test_a_collection_between_returns_resets_the_count():
+    """The rule counts CONSECUTIVE returns: N returns spread across a success are not
+    a mandate that keeps coming back."""
+    from company.billing.dd_collections_desk import DD_STOP_THRESHOLD_CONSECUTIVE_RETURNS as N
+    desk = _confirmed_desk()
+    _return_n(desk, N - 1, start_month=1)
+    ok = desk.instruct_collection(CID, f"2024-{N:02d}-28", 80.0, f"2024-{N + 1:02d}-01")
+    assert desk.record_collection_outcome(ok, attempt_date=f"2024-{N + 1:02d}-11", collected=True) is False
+    assert not any(_return_n(desk, N - 1, start_month=N + 1))
+    assert desk.pays_by_direct_debit(CID)
+
+
+def test_both_branches_are_reached_on_a_real_book(monkeypatch):
+    """Partition control over the world's own rails loop: on a real population some
+    mandates are stopped and some are not. A desk that stopped everyone, or no one,
+    passes the unit legs above and fails here. And a stopped customer gets no attempt
+    after the return that stopped it."""
+    import simulation.dd_collection_book as mod
+    monkeypatch.setattr(mod, "payment_method", lambda *a, **k: "direct_debit")
+    bills, behavioral = [], {}
+    for i in range(40):
+        cid = f"C{i:02d}"
+        behavioral[cid] = {"income_stress_trajectory": [{"year": 2020, "stress": "MODERATE"}]}
+        for m in range(1, 13):
+            bills.append({"customer_id": cid, "segment": "resi", "total_amount_gbp": 90.0,
+                          "period_end": f"2020-{m:02d}-28", "commodity": "electricity"})
+    book = mod.build_dd_collection_book(bills, behavioral, seed=42)
+    statuses = {m.customer_id: m.status for m in book.all_mandates()}
+    assert "cancelled" in statuses.values() and "active" in statuses.values(), statuses
+    for m in book.all_mandates():
+        if m.status == "cancelled":
+            last = book.attempts_for_customer(m.customer_id)[-1]
+            assert last.outcome == "failed" and last.attempt_date == m.last_status_change_date

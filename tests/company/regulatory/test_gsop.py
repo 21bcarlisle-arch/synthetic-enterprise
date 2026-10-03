@@ -1,6 +1,7 @@
 import pytest
 from datetime import date
-from company.regulatory.gsop import GSOPBook, GSOPPayment, GSOPType, _add_working_days
+from company.compliance.working_days import add_working_days as _add_working_days
+from company.regulatory.gsop import GSOPBook, GSOPPayment, GSOPType
 
 
 @pytest.fixture
