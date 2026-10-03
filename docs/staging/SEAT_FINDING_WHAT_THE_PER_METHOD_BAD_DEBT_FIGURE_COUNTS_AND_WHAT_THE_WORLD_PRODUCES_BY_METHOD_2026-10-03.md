@@ -114,6 +114,21 @@ one seed, with 48 paying-SC supply points.
    mandate records. A real supplier knows it cancelled a DD. This was already item 1 of the PB8 L2
    finding's "not done", and it is now the item that lets the company see the per-method shape that
    the world produces. Handed off as `the-seam-reports-the-paying-method-after-a-supplier-dd-stop`.
+
+   **Correction, 2026-10-03 (the hand-off's own seat).** Two parts of this item were wrong. First,
+   the seam half was already on origin when the hand-off was drawn, as `065ac54eb`
+   (`get_payment_method(..., as_of=)`, read by the renewal price). Second, `default_belief` does not
+   learn per-method CELLS: the belief is keyed on arrears state only, by the 2026-09-23 ruling.
+   Method reaches it in one place, which published provision row a charge is read on. So "the
+   company learns 0.39x where it should see 7.7x" overstated the case. The real defect is narrower.
+   `run_phase2b._book_method_of` asked the seam once per account with no date, so a stopped DD's
+   debt stayed on the DD live row, and the `method|*` rows of `tabulate` showed the drawn split.
+   Fixed: the register is now asked `(account, date)`. Each provision is read on the method held on
+   its own date, and the year's covariate is the method at its start.
+   Control: `test_a_dd_the_supplier_stopped_is_provisioned_on_the_pay_on_receipt_row_from_its_notice_on`.
+   Mutation: reading the year-end provision on the start-of-year method reds it.
+   **Not measured:** how far this moves the own-book rate on a run. I cannot yet say. The
+   own-book policy is a switch that is off by default, so the default run does not move.
 2. **A prepayment bill can fail.** `payment_outcome` puts prepayment on the resi credit draw. A
    prepayment customer is not sent a bill to pay; it vends. 907 bills, £1,605 written off. This is an
    absurdity of class, not of calibration. Handed off as

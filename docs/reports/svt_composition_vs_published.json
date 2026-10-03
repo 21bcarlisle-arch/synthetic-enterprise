@@ -10,39 +10,27 @@
     "2019",
     "2020",
     "2021",
-    "2023",
     "2024"
   ],
   "years_measurable": [
     "2017",
     "2018",
     "2019",
-    "2023",
     "2024"
   ],
   "years_refused": {
     "2020": "no established published default-tariff share for 2020; NOT interpolated between 2019 and 2022. The interval spans the crisis, which is the one stretch of this record known to have moved fast and non-monotonically, so an interpolated value would be a manufactured reading in exactly the years the world is hardest to check. Ofgem's per-supplier data portal series may settle it and has not been read.",
     "2021": "no established published default-tariff share for 2021; Ofgem's SotM chart 'Electricity share of customers on each tariff type' STARTS at April 2021 and would settle this, but its values are in an image and are not in the PDF's text layer. Recorded as a gap with a named route to closing it rather than read off a chart by eye."
   },
-  "years_already_reaching_band": [
-    "2023"
-  ],
+  "years_already_reaching_band": [],
   "closes_rung1_at_published_high": {
     "renewal_rescaled": {
-      "all_domestic": [
-        "2023"
-      ],
-      "as_published": [
-        "2023"
-      ]
+      "all_domestic": [],
+      "as_published": []
     },
     "renewal_held": {
-      "all_domestic": [
-        "2023"
-      ],
-      "as_published": [
-        "2023"
-      ]
+      "all_domestic": [],
+      "as_published": []
     }
   },
   "years_newly_closed_by_composition": {
@@ -57,60 +45,60 @@
   },
   "per_year": {
     "2017": {
-      "accounts": 58,
+      "accounts": 85,
       "band_pct": [
         13.5,
         14.0
       ],
-      "world_svt_account_day_share": 0.4326,
-      "world_svt_pp_of_book": 5.7386,
-      "world_renewal_pp_of_book": 1.2105,
-      "world_total_pp_of_book": 6.9491,
+      "world_svt_account_day_share": 0.5037,
+      "world_svt_pp_of_book": 6.6656,
+      "world_renewal_pp_of_book": 1.1268,
+      "world_total_pp_of_book": 7.7924,
       "bases": {
         "all_domestic": {
           "at_published_low": {
             "published_svt_account_day_share": 0.6195,
-            "composition_multiple": 1.4321,
-            "svt_pp_of_book": 8.2183,
+            "composition_multiple": 1.23,
+            "svt_pp_of_book": 8.1985,
             "renewal_rescaled": {
-              "renewal_pp_of_book": 0.8117,
-              "total_pp_of_book": 9.03,
+              "renewal_pp_of_book": 0.8639,
+              "total_pp_of_book": 9.0624,
               "reaches_band_low": false,
-              "hazard_multiple_still_required_at_band_low": 1.5439,
-              "hazard_multiple_at_the_point_estimate": 1.5439,
-              "hazard_multiple_ceiling": 7.1612,
+              "hazard_multiple_still_required_at_band_low": 1.5413,
+              "hazard_multiple_at_the_point_estimate": 1.5413,
+              "hazard_multiple_ceiling": 7.1784,
               "hazard_multiple_unavailable_because": null
             },
             "renewal_held": {
-              "renewal_pp_of_book": 1.2105,
-              "total_pp_of_book": 9.4288,
+              "renewal_pp_of_book": 1.1268,
+              "total_pp_of_book": 9.3254,
               "reaches_band_low": false,
-              "hazard_multiple_still_required_at_band_low": 1.4954,
-              "hazard_multiple_at_the_point_estimate": 1.4954,
-              "hazard_multiple_ceiling": 7.1612,
+              "hazard_multiple_still_required_at_band_low": 1.5092,
+              "hazard_multiple_at_the_point_estimate": 1.5092,
+              "hazard_multiple_ceiling": 7.1784,
               "hazard_multiple_unavailable_because": null
             }
           },
           "at_published_high": {
             "published_svt_account_day_share": 0.6365,
-            "composition_multiple": 1.4714,
-            "svt_pp_of_book": 8.4438,
+            "composition_multiple": 1.2637,
+            "svt_pp_of_book": 8.4235,
             "renewal_rescaled": {
-              "renewal_pp_of_book": 0.7755,
-              "total_pp_of_book": 9.2193,
+              "renewal_pp_of_book": 0.8253,
+              "total_pp_of_book": 9.2488,
               "reaches_band_low": false,
-              "hazard_multiple_still_required_at_band_low": 1.507,
-              "hazard_multiple_at_the_point_estimate": 1.507,
-              "hazard_multiple_ceiling": 7.1612,
+              "hazard_multiple_still_required_at_band_low": 1.5047,
+              "hazard_multiple_at_the_point_estimate": 1.5047,
+              "hazard_multiple_ceiling": 7.1784,
               "hazard_multiple_unavailable_because": null
             },
             "renewal_held": {
-              "renewal_pp_of_book": 1.2105,
-              "total_pp_of_book": 9.6543,
+              "renewal_pp_of_book": 1.1268,
+              "total_pp_of_book": 9.5504,
               "reaches_band_low": false,
-              "hazard_multiple_still_required_at_band_low": 1.4554,
-              "hazard_multiple_at_the_point_estimate": 1.4554,
-              "hazard_multiple_ceiling": 7.1612,
+              "hazard_multiple_still_required_at_band_low": 1.4689,
+              "hazard_multiple_at_the_point_estimate": 1.4689,
+              "hazard_multiple_ceiling": 7.1784,
               "hazard_multiple_unavailable_because": null
             }
           }
@@ -118,47 +106,47 @@
         "as_published": {
           "at_published_low": {
             "published_svt_account_day_share": 0.57,
-            "composition_multiple": 1.3177,
-            "svt_pp_of_book": 7.5616,
+            "composition_multiple": 1.1317,
+            "svt_pp_of_book": 7.5434,
             "renewal_rescaled": {
-              "renewal_pp_of_book": 0.9173,
-              "total_pp_of_book": 8.479,
+              "renewal_pp_of_book": 0.9762,
+              "total_pp_of_book": 8.5197,
               "reaches_band_low": false,
-              "hazard_multiple_still_required_at_band_low": 1.664,
-              "hazard_multiple_at_the_point_estimate": 1.664,
-              "hazard_multiple_ceiling": 7.1612,
+              "hazard_multiple_still_required_at_band_low": 1.6602,
+              "hazard_multiple_at_the_point_estimate": 1.6602,
+              "hazard_multiple_ceiling": 7.1784,
               "hazard_multiple_unavailable_because": null
             },
             "renewal_held": {
-              "renewal_pp_of_book": 1.2105,
-              "total_pp_of_book": 8.7721,
+              "renewal_pp_of_book": 1.1268,
+              "total_pp_of_book": 8.6703,
               "reaches_band_low": false,
-              "hazard_multiple_still_required_at_band_low": 1.6252,
-              "hazard_multiple_at_the_point_estimate": 1.6252,
-              "hazard_multiple_ceiling": 7.1612,
+              "hazard_multiple_still_required_at_band_low": 1.6403,
+              "hazard_multiple_at_the_point_estimate": 1.6403,
+              "hazard_multiple_ceiling": 7.1784,
               "hazard_multiple_unavailable_because": null
             }
           },
           "at_published_high": {
             "published_svt_account_day_share": 0.59,
-            "composition_multiple": 1.3639,
-            "svt_pp_of_book": 7.827,
+            "composition_multiple": 1.1714,
+            "svt_pp_of_book": 7.8081,
             "renewal_rescaled": {
-              "renewal_pp_of_book": 0.8747,
-              "total_pp_of_book": 8.7016,
+              "renewal_pp_of_book": 0.9308,
+              "total_pp_of_book": 8.739,
               "reaches_band_low": false,
-              "hazard_multiple_still_required_at_band_low": 1.6131,
-              "hazard_multiple_at_the_point_estimate": 1.6131,
-              "hazard_multiple_ceiling": 7.1612,
+              "hazard_multiple_still_required_at_band_low": 1.6098,
+              "hazard_multiple_at_the_point_estimate": 1.6098,
+              "hazard_multiple_ceiling": 7.1784,
               "hazard_multiple_unavailable_because": null
             },
             "renewal_held": {
-              "renewal_pp_of_book": 1.2105,
-              "total_pp_of_book": 9.0374,
+              "renewal_pp_of_book": 1.1268,
+              "total_pp_of_book": 8.935,
               "reaches_band_low": false,
-              "hazard_multiple_still_required_at_band_low": 1.5702,
-              "hazard_multiple_at_the_point_estimate": 1.5702,
-              "hazard_multiple_ceiling": 7.1612,
+              "hazard_multiple_still_required_at_band_low": 1.5846,
+              "hazard_multiple_at_the_point_estimate": 1.5846,
+              "hazard_multiple_ceiling": 7.1784,
               "hazard_multiple_unavailable_because": null
             }
           }
@@ -166,60 +154,60 @@
       }
     },
     "2018": {
-      "accounts": 50,
+      "accounts": 71,
       "band_pct": [
         19.5,
         20.0
       ],
-      "world_svt_account_day_share": 0.5854,
-      "world_svt_pp_of_book": 11.1701,
-      "world_renewal_pp_of_book": 3.1483,
-      "world_total_pp_of_book": 14.3184,
+      "world_svt_account_day_share": 0.628,
+      "world_svt_pp_of_book": 12.05,
+      "world_renewal_pp_of_book": 1.6335,
+      "world_total_pp_of_book": 13.6834,
       "bases": {
         "all_domestic": {
           "at_published_low": {
             "published_svt_account_day_share": 0.5855,
-            "composition_multiple": 1.0003,
-            "svt_pp_of_book": 11.1729,
+            "composition_multiple": 0.9323,
+            "svt_pp_of_book": 11.2336,
             "renewal_rescaled": {
-              "renewal_pp_of_book": 3.1472,
-              "total_pp_of_book": 14.3201,
+              "renewal_pp_of_book": 1.8203,
+              "total_pp_of_book": 13.054,
               "reaches_band_low": false,
-              "hazard_multiple_still_required_at_band_low": 1.4636,
-              "hazard_multiple_at_the_point_estimate": 1.4636,
-              "hazard_multiple_ceiling": 4.9783,
+              "hazard_multiple_still_required_at_band_low": 1.5738,
+              "hazard_multiple_at_the_point_estimate": 1.5738,
+              "hazard_multiple_ceiling": 4.9514,
               "hazard_multiple_unavailable_because": null
             },
             "renewal_held": {
-              "renewal_pp_of_book": 3.1483,
-              "total_pp_of_book": 14.3212,
+              "renewal_pp_of_book": 1.6335,
+              "total_pp_of_book": 12.8671,
               "reaches_band_low": false,
-              "hazard_multiple_still_required_at_band_low": 1.4635,
-              "hazard_multiple_at_the_point_estimate": 1.4635,
-              "hazard_multiple_ceiling": 4.9783,
+              "hazard_multiple_still_required_at_band_low": 1.5904,
+              "hazard_multiple_at_the_point_estimate": 1.5904,
+              "hazard_multiple_ceiling": 4.9514,
               "hazard_multiple_unavailable_because": null
             }
           },
           "at_published_high": {
             "published_svt_account_day_share": 0.5855,
-            "composition_multiple": 1.0003,
-            "svt_pp_of_book": 11.1729,
+            "composition_multiple": 0.9323,
+            "svt_pp_of_book": 11.2336,
             "renewal_rescaled": {
-              "renewal_pp_of_book": 3.1472,
-              "total_pp_of_book": 14.3201,
+              "renewal_pp_of_book": 1.8203,
+              "total_pp_of_book": 13.054,
               "reaches_band_low": false,
-              "hazard_multiple_still_required_at_band_low": 1.4636,
-              "hazard_multiple_at_the_point_estimate": 1.4636,
-              "hazard_multiple_ceiling": 4.9783,
+              "hazard_multiple_still_required_at_band_low": 1.5738,
+              "hazard_multiple_at_the_point_estimate": 1.5738,
+              "hazard_multiple_ceiling": 4.9514,
               "hazard_multiple_unavailable_because": null
             },
             "renewal_held": {
-              "renewal_pp_of_book": 3.1483,
-              "total_pp_of_book": 14.3212,
+              "renewal_pp_of_book": 1.6335,
+              "total_pp_of_book": 12.8671,
               "reaches_band_low": false,
-              "hazard_multiple_still_required_at_band_low": 1.4635,
-              "hazard_multiple_at_the_point_estimate": 1.4635,
-              "hazard_multiple_ceiling": 4.9783,
+              "hazard_multiple_still_required_at_band_low": 1.5904,
+              "hazard_multiple_at_the_point_estimate": 1.5904,
+              "hazard_multiple_ceiling": 4.9514,
               "hazard_multiple_unavailable_because": null
             }
           }
@@ -227,47 +215,47 @@
         "as_published": {
           "at_published_low": {
             "published_svt_account_day_share": 0.53,
-            "composition_multiple": 0.9054,
-            "svt_pp_of_book": 10.1138,
+            "composition_multiple": 0.8439,
+            "svt_pp_of_book": 10.1688,
             "renewal_rescaled": {
-              "renewal_pp_of_book": 3.5685,
-              "total_pp_of_book": 13.6824,
+              "renewal_pp_of_book": 2.0641,
+              "total_pp_of_book": 12.2329,
               "reaches_band_low": false,
-              "hazard_multiple_still_required_at_band_low": 1.5752,
-              "hazard_multiple_at_the_point_estimate": 1.5752,
-              "hazard_multiple_ceiling": 4.9783,
+              "hazard_multiple_still_required_at_band_low": 1.7147,
+              "hazard_multiple_at_the_point_estimate": 1.7147,
+              "hazard_multiple_ceiling": 4.9514,
               "hazard_multiple_unavailable_because": null
             },
             "renewal_held": {
-              "renewal_pp_of_book": 3.1483,
-              "total_pp_of_book": 13.2621,
+              "renewal_pp_of_book": 1.6335,
+              "total_pp_of_book": 11.8023,
               "reaches_band_low": false,
-              "hazard_multiple_still_required_at_band_low": 1.6168,
-              "hazard_multiple_at_the_point_estimate": 1.6168,
-              "hazard_multiple_ceiling": 4.9783,
+              "hazard_multiple_still_required_at_band_low": 1.757,
+              "hazard_multiple_at_the_point_estimate": 1.757,
+              "hazard_multiple_ceiling": 4.9514,
               "hazard_multiple_unavailable_because": null
             }
           },
           "at_published_high": {
             "published_svt_account_day_share": 0.53,
-            "composition_multiple": 0.9054,
-            "svt_pp_of_book": 10.1138,
+            "composition_multiple": 0.8439,
+            "svt_pp_of_book": 10.1688,
             "renewal_rescaled": {
-              "renewal_pp_of_book": 3.5685,
-              "total_pp_of_book": 13.6824,
+              "renewal_pp_of_book": 2.0641,
+              "total_pp_of_book": 12.2329,
               "reaches_band_low": false,
-              "hazard_multiple_still_required_at_band_low": 1.5752,
-              "hazard_multiple_at_the_point_estimate": 1.5752,
-              "hazard_multiple_ceiling": 4.9783,
+              "hazard_multiple_still_required_at_band_low": 1.7147,
+              "hazard_multiple_at_the_point_estimate": 1.7147,
+              "hazard_multiple_ceiling": 4.9514,
               "hazard_multiple_unavailable_because": null
             },
             "renewal_held": {
-              "renewal_pp_of_book": 3.1483,
-              "total_pp_of_book": 13.2621,
+              "renewal_pp_of_book": 1.6335,
+              "total_pp_of_book": 11.8023,
               "reaches_band_low": false,
-              "hazard_multiple_still_required_at_band_low": 1.6168,
-              "hazard_multiple_at_the_point_estimate": 1.6168,
-              "hazard_multiple_ceiling": 4.9783,
+              "hazard_multiple_still_required_at_band_low": 1.757,
+              "hazard_multiple_at_the_point_estimate": 1.757,
+              "hazard_multiple_ceiling": 4.9514,
               "hazard_multiple_unavailable_because": null
             }
           }
@@ -275,60 +263,60 @@
       }
     },
     "2019": {
-      "accounts": 41,
+      "accounts": 64,
       "band_pct": [
         20.7,
         21.3
       ],
-      "world_svt_account_day_share": 0.5704,
-      "world_svt_pp_of_book": 11.248,
-      "world_renewal_pp_of_book": 1.6509,
-      "world_total_pp_of_book": 12.8989,
+      "world_svt_account_day_share": 0.6661,
+      "world_svt_pp_of_book": 12.8835,
+      "world_renewal_pp_of_book": 1.0983,
+      "world_total_pp_of_book": 13.9818,
       "bases": {
         "all_domestic": {
           "at_published_low": {
             "published_svt_account_day_share": 0.5685,
-            "composition_multiple": 0.9967,
-            "svt_pp_of_book": 11.2104,
+            "composition_multiple": 0.8535,
+            "svt_pp_of_book": 10.9956,
             "renewal_rescaled": {
-              "renewal_pp_of_book": 1.6583,
-              "total_pp_of_book": 12.8686,
+              "renewal_pp_of_book": 1.4194,
+              "total_pp_of_book": 12.415,
               "reaches_band_low": false,
-              "hazard_multiple_still_required_at_band_low": 1.6986,
-              "hazard_multiple_at_the_point_estimate": 1.6986,
-              "hazard_multiple_ceiling": 4.8176,
+              "hazard_multiple_still_required_at_band_low": 1.7535,
+              "hazard_multiple_at_the_point_estimate": 1.7535,
+              "hazard_multiple_ceiling": 4.9117,
               "hazard_multiple_unavailable_because": null
             },
             "renewal_held": {
-              "renewal_pp_of_book": 1.6509,
-              "total_pp_of_book": 12.8613,
+              "renewal_pp_of_book": 1.0983,
+              "total_pp_of_book": 12.0939,
               "reaches_band_low": false,
-              "hazard_multiple_still_required_at_band_low": 1.6992,
-              "hazard_multiple_at_the_point_estimate": 1.6992,
-              "hazard_multiple_ceiling": 4.8176,
+              "hazard_multiple_still_required_at_band_low": 1.7827,
+              "hazard_multiple_at_the_point_estimate": 1.7827,
+              "hazard_multiple_ceiling": 4.9117,
               "hazard_multiple_unavailable_because": null
             }
           },
           "at_published_high": {
             "published_svt_account_day_share": 0.5855,
-            "composition_multiple": 1.0265,
-            "svt_pp_of_book": 11.5456,
+            "composition_multiple": 0.879,
+            "svt_pp_of_book": 11.3244,
             "renewal_rescaled": {
-              "renewal_pp_of_book": 1.5929,
-              "total_pp_of_book": 13.1385,
+              "renewal_pp_of_book": 1.3635,
+              "total_pp_of_book": 12.6879,
               "reaches_band_low": false,
-              "hazard_multiple_still_required_at_band_low": 1.6549,
-              "hazard_multiple_at_the_point_estimate": 1.6549,
-              "hazard_multiple_ceiling": 4.8176,
+              "hazard_multiple_still_required_at_band_low": 1.7075,
+              "hazard_multiple_at_the_point_estimate": 1.7075,
+              "hazard_multiple_ceiling": 4.9117,
               "hazard_multiple_unavailable_because": null
             },
             "renewal_held": {
-              "renewal_pp_of_book": 1.6509,
-              "total_pp_of_book": 13.1965,
+              "renewal_pp_of_book": 1.0983,
+              "total_pp_of_book": 12.4227,
               "reaches_band_low": false,
-              "hazard_multiple_still_required_at_band_low": 1.6499,
-              "hazard_multiple_at_the_point_estimate": 1.6499,
-              "hazard_multiple_ceiling": 4.8176,
+              "hazard_multiple_still_required_at_band_low": 1.7309,
+              "hazard_multiple_at_the_point_estimate": 1.7309,
+              "hazard_multiple_ceiling": 4.9117,
               "hazard_multiple_unavailable_because": null
             }
           }
@@ -336,156 +324,47 @@
         "as_published": {
           "at_published_low": {
             "published_svt_account_day_share": 0.51,
-            "composition_multiple": 0.8941,
-            "svt_pp_of_book": 10.0568,
+            "composition_multiple": 0.7656,
+            "svt_pp_of_book": 9.8641,
             "renewal_rescaled": {
-              "renewal_pp_of_book": 1.8831,
-              "total_pp_of_book": 11.9399,
+              "renewal_pp_of_book": 1.6119,
+              "total_pp_of_book": 11.476,
               "reaches_band_low": false,
-              "hazard_multiple_still_required_at_band_low": 1.8711,
-              "hazard_multiple_at_the_point_estimate": 1.8711,
-              "hazard_multiple_ceiling": 4.8176,
+              "hazard_multiple_still_required_at_band_low": 1.9351,
+              "hazard_multiple_at_the_point_estimate": 1.9351,
+              "hazard_multiple_ceiling": 4.9117,
               "hazard_multiple_unavailable_because": null
             },
             "renewal_held": {
-              "renewal_pp_of_book": 1.6509,
-              "total_pp_of_book": 11.7077,
+              "renewal_pp_of_book": 1.0983,
+              "total_pp_of_book": 10.9624,
               "reaches_band_low": false,
-              "hazard_multiple_still_required_at_band_low": 1.8941,
-              "hazard_multiple_at_the_point_estimate": 1.8941,
-              "hazard_multiple_ceiling": 4.8176,
+              "hazard_multiple_still_required_at_band_low": 1.9872,
+              "hazard_multiple_at_the_point_estimate": 1.9872,
+              "hazard_multiple_ceiling": 4.9117,
               "hazard_multiple_unavailable_because": null
             }
           },
           "at_published_high": {
             "published_svt_account_day_share": 0.53,
-            "composition_multiple": 0.9292,
-            "svt_pp_of_book": 10.4512,
+            "composition_multiple": 0.7957,
+            "svt_pp_of_book": 10.2509,
             "renewal_rescaled": {
-              "renewal_pp_of_book": 1.8062,
-              "total_pp_of_book": 12.2574,
+              "renewal_pp_of_book": 1.5461,
+              "total_pp_of_book": 11.797,
               "reaches_band_low": false,
-              "hazard_multiple_still_required_at_band_low": 1.8078,
-              "hazard_multiple_at_the_point_estimate": 1.8078,
-              "hazard_multiple_ceiling": 4.8176,
+              "hazard_multiple_still_required_at_band_low": 1.8685,
+              "hazard_multiple_at_the_point_estimate": 1.8685,
+              "hazard_multiple_ceiling": 4.9117,
               "hazard_multiple_unavailable_because": null
             },
             "renewal_held": {
-              "renewal_pp_of_book": 1.6509,
-              "total_pp_of_book": 12.1021,
+              "renewal_pp_of_book": 1.0983,
+              "total_pp_of_book": 11.3493,
               "reaches_band_low": false,
-              "hazard_multiple_still_required_at_band_low": 1.8227,
-              "hazard_multiple_at_the_point_estimate": 1.8227,
-              "hazard_multiple_ceiling": 4.8176,
-              "hazard_multiple_unavailable_because": null
-            }
-          }
-        }
-      }
-    },
-    "2023": {
-      "accounts": 53,
-      "band_pct": [
-        8.9,
-        12.5
-      ],
-      "world_svt_account_day_share": 0.7218,
-      "world_svt_pp_of_book": 6.7521,
-      "world_renewal_pp_of_book": 2.8201,
-      "world_total_pp_of_book": 9.5722,
-      "bases": {
-        "all_domestic": {
-          "at_published_low": {
-            "published_svt_account_day_share": 0.8,
-            "composition_multiple": 1.1084,
-            "svt_pp_of_book": 7.484,
-            "renewal_rescaled": {
-              "renewal_pp_of_book": 2.0271,
-              "total_pp_of_book": 9.5111,
-              "reaches_band_low": true,
-              "hazard_multiple_still_required_at_band_low": 0.9183,
-              "hazard_multiple_at_the_point_estimate": 0.9183,
-              "hazard_multiple_ceiling": 10.155,
-              "hazard_multiple_unavailable_because": null
-            },
-            "renewal_held": {
-              "renewal_pp_of_book": 2.8201,
-              "total_pp_of_book": 10.3041,
-              "reaches_band_low": true,
-              "hazard_multiple_still_required_at_band_low": 0.8124,
-              "hazard_multiple_at_the_point_estimate": 0.8124,
-              "hazard_multiple_ceiling": 10.155,
-              "hazard_multiple_unavailable_because": null
-            }
-          },
-          "at_published_high": {
-            "published_svt_account_day_share": 0.9,
-            "composition_multiple": 1.247,
-            "svt_pp_of_book": 8.4195,
-            "renewal_rescaled": {
-              "renewal_pp_of_book": 1.0136,
-              "total_pp_of_book": 9.4331,
-              "reaches_band_low": true,
-              "hazard_multiple_still_required_at_band_low": 0.9367,
-              "hazard_multiple_at_the_point_estimate": 0.9367,
-              "hazard_multiple_ceiling": 10.155,
-              "hazard_multiple_unavailable_because": null
-            },
-            "renewal_held": {
-              "renewal_pp_of_book": 2.8201,
-              "total_pp_of_book": 11.2396,
-              "reaches_band_low": true,
-              "hazard_multiple_still_required_at_band_low": 0.7221,
-              "hazard_multiple_at_the_point_estimate": 0.7221,
-              "hazard_multiple_ceiling": 10.155,
-              "hazard_multiple_unavailable_because": null
-            }
-          }
-        },
-        "as_published": {
-          "at_published_low": {
-            "published_svt_account_day_share": 0.8,
-            "composition_multiple": 1.1084,
-            "svt_pp_of_book": 7.484,
-            "renewal_rescaled": {
-              "renewal_pp_of_book": 2.0271,
-              "total_pp_of_book": 9.5111,
-              "reaches_band_low": true,
-              "hazard_multiple_still_required_at_band_low": 0.9183,
-              "hazard_multiple_at_the_point_estimate": 0.9183,
-              "hazard_multiple_ceiling": 10.155,
-              "hazard_multiple_unavailable_because": null
-            },
-            "renewal_held": {
-              "renewal_pp_of_book": 2.8201,
-              "total_pp_of_book": 10.3041,
-              "reaches_band_low": true,
-              "hazard_multiple_still_required_at_band_low": 0.8124,
-              "hazard_multiple_at_the_point_estimate": 0.8124,
-              "hazard_multiple_ceiling": 10.155,
-              "hazard_multiple_unavailable_because": null
-            }
-          },
-          "at_published_high": {
-            "published_svt_account_day_share": 0.9,
-            "composition_multiple": 1.247,
-            "svt_pp_of_book": 8.4195,
-            "renewal_rescaled": {
-              "renewal_pp_of_book": 1.0136,
-              "total_pp_of_book": 9.4331,
-              "reaches_band_low": true,
-              "hazard_multiple_still_required_at_band_low": 0.9367,
-              "hazard_multiple_at_the_point_estimate": 0.9367,
-              "hazard_multiple_ceiling": 10.155,
-              "hazard_multiple_unavailable_because": null
-            },
-            "renewal_held": {
-              "renewal_pp_of_book": 2.8201,
-              "total_pp_of_book": 11.2396,
-              "reaches_band_low": true,
-              "hazard_multiple_still_required_at_band_low": 0.7221,
-              "hazard_multiple_at_the_point_estimate": 0.7221,
-              "hazard_multiple_ceiling": 10.155,
+              "hazard_multiple_still_required_at_band_low": 1.9122,
+              "hazard_multiple_at_the_point_estimate": 1.9122,
+              "hazard_multiple_ceiling": 4.9117,
               "hazard_multiple_unavailable_because": null
             }
           }
@@ -493,60 +372,60 @@
       }
     },
     "2024": {
-      "accounts": 57,
+      "accounts": 65,
       "band_pct": [
         12.5,
         16.1
       ],
-      "world_svt_account_day_share": 0.6061,
-      "world_svt_pp_of_book": 6.9433,
-      "world_renewal_pp_of_book": 2.2479,
-      "world_total_pp_of_book": 9.1911,
+      "world_svt_account_day_share": 0.7628,
+      "world_svt_pp_of_book": 7.8623,
+      "world_renewal_pp_of_book": 0.5864,
+      "world_total_pp_of_book": 8.4487,
       "bases": {
         "all_domestic": {
           "at_published_low": {
             "published_svt_account_day_share": 0.8,
-            "composition_multiple": 1.32,
-            "svt_pp_of_book": 9.1649,
+            "composition_multiple": 1.0487,
+            "svt_pp_of_book": 8.2452,
             "renewal_rescaled": {
-              "renewal_pp_of_book": 1.1413,
-              "total_pp_of_book": 10.3062,
+              "renewal_pp_of_book": 0.4946,
+              "total_pp_of_book": 8.7398,
               "reaches_band_low": false,
-              "hazard_multiple_still_required_at_band_low": 1.2394,
-              "hazard_multiple_at_the_point_estimate": 1.2394,
-              "hazard_multiple_ceiling": 8.2925,
+              "hazard_multiple_still_required_at_band_low": 1.4561,
+              "hazard_multiple_at_the_point_estimate": 1.4561,
+              "hazard_multiple_ceiling": 9.2175,
               "hazard_multiple_unavailable_because": null
             },
             "renewal_held": {
-              "renewal_pp_of_book": 2.2479,
-              "total_pp_of_book": 11.4128,
+              "renewal_pp_of_book": 0.5864,
+              "total_pp_of_book": 8.8316,
               "reaches_band_low": false,
-              "hazard_multiple_still_required_at_band_low": 1.1186,
-              "hazard_multiple_at_the_point_estimate": 1.1186,
-              "hazard_multiple_ceiling": 8.2925,
+              "hazard_multiple_still_required_at_band_low": 1.4449,
+              "hazard_multiple_at_the_point_estimate": 1.4449,
+              "hazard_multiple_ceiling": 9.2175,
               "hazard_multiple_unavailable_because": null
             }
           },
           "at_published_high": {
             "published_svt_account_day_share": 0.86,
-            "composition_multiple": 1.419,
-            "svt_pp_of_book": 9.8523,
+            "composition_multiple": 1.1274,
+            "svt_pp_of_book": 8.8636,
             "renewal_rescaled": {
-              "renewal_pp_of_book": 0.7989,
-              "total_pp_of_book": 10.6512,
+              "renewal_pp_of_book": 0.3462,
+              "total_pp_of_book": 9.2098,
               "reaches_band_low": false,
-              "hazard_multiple_still_required_at_band_low": 1.1877,
-              "hazard_multiple_at_the_point_estimate": 1.1877,
-              "hazard_multiple_ceiling": 8.2925,
+              "hazard_multiple_still_required_at_band_low": 1.3712,
+              "hazard_multiple_at_the_point_estimate": 1.3712,
+              "hazard_multiple_ceiling": 9.2175,
               "hazard_multiple_unavailable_because": null
             },
             "renewal_held": {
-              "renewal_pp_of_book": 2.2479,
-              "total_pp_of_book": 12.1002,
+              "renewal_pp_of_book": 0.5864,
+              "total_pp_of_book": 9.45,
               "reaches_band_low": false,
-              "hazard_multiple_still_required_at_band_low": 1.0406,
-              "hazard_multiple_at_the_point_estimate": 1.0406,
-              "hazard_multiple_ceiling": 8.2925,
+              "hazard_multiple_still_required_at_band_low": 1.3441,
+              "hazard_multiple_at_the_point_estimate": 1.3441,
+              "hazard_multiple_ceiling": 9.2175,
               "hazard_multiple_unavailable_because": null
             }
           }
@@ -554,47 +433,47 @@
         "as_published": {
           "at_published_low": {
             "published_svt_account_day_share": 0.8,
-            "composition_multiple": 1.32,
-            "svt_pp_of_book": 9.1649,
+            "composition_multiple": 1.0487,
+            "svt_pp_of_book": 8.2452,
             "renewal_rescaled": {
-              "renewal_pp_of_book": 1.1413,
-              "total_pp_of_book": 10.3062,
+              "renewal_pp_of_book": 0.4946,
+              "total_pp_of_book": 8.7398,
               "reaches_band_low": false,
-              "hazard_multiple_still_required_at_band_low": 1.2394,
-              "hazard_multiple_at_the_point_estimate": 1.2394,
-              "hazard_multiple_ceiling": 8.2925,
+              "hazard_multiple_still_required_at_band_low": 1.4561,
+              "hazard_multiple_at_the_point_estimate": 1.4561,
+              "hazard_multiple_ceiling": 9.2175,
               "hazard_multiple_unavailable_because": null
             },
             "renewal_held": {
-              "renewal_pp_of_book": 2.2479,
-              "total_pp_of_book": 11.4128,
+              "renewal_pp_of_book": 0.5864,
+              "total_pp_of_book": 8.8316,
               "reaches_band_low": false,
-              "hazard_multiple_still_required_at_band_low": 1.1186,
-              "hazard_multiple_at_the_point_estimate": 1.1186,
-              "hazard_multiple_ceiling": 8.2925,
+              "hazard_multiple_still_required_at_band_low": 1.4449,
+              "hazard_multiple_at_the_point_estimate": 1.4449,
+              "hazard_multiple_ceiling": 9.2175,
               "hazard_multiple_unavailable_because": null
             }
           },
           "at_published_high": {
             "published_svt_account_day_share": 0.86,
-            "composition_multiple": 1.419,
-            "svt_pp_of_book": 9.8523,
+            "composition_multiple": 1.1274,
+            "svt_pp_of_book": 8.8636,
             "renewal_rescaled": {
-              "renewal_pp_of_book": 0.7989,
-              "total_pp_of_book": 10.6512,
+              "renewal_pp_of_book": 0.3462,
+              "total_pp_of_book": 9.2098,
               "reaches_band_low": false,
-              "hazard_multiple_still_required_at_band_low": 1.1877,
-              "hazard_multiple_at_the_point_estimate": 1.1877,
-              "hazard_multiple_ceiling": 8.2925,
+              "hazard_multiple_still_required_at_band_low": 1.3712,
+              "hazard_multiple_at_the_point_estimate": 1.3712,
+              "hazard_multiple_ceiling": 9.2175,
               "hazard_multiple_unavailable_because": null
             },
             "renewal_held": {
-              "renewal_pp_of_book": 2.2479,
-              "total_pp_of_book": 12.1002,
+              "renewal_pp_of_book": 0.5864,
+              "total_pp_of_book": 9.45,
               "reaches_band_low": false,
-              "hazard_multiple_still_required_at_band_low": 1.0406,
-              "hazard_multiple_at_the_point_estimate": 1.0406,
-              "hazard_multiple_ceiling": 8.2925,
+              "hazard_multiple_still_required_at_band_low": 1.3441,
+              "hazard_multiple_at_the_point_estimate": 1.3441,
+              "hazard_multiple_ceiling": 9.2175,
               "hazard_multiple_unavailable_because": null
             }
           }

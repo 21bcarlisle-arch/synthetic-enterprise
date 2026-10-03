@@ -133,6 +133,27 @@ FILED_RECORDS = (
             "ratio": 1.6613,
         },
     },
+    {
+        "filed": "2026-10-03",
+        "base": "origin/main after the PB4 fourth refit moved the level digest (c3939e7b1)",
+        "source": "SEAT_RESULT_THE_SETTLEMENT_SELECTION_ON_WORLD_D_GAINS_ON_FABRIC_AND_LOSES_THE_WORST_AXIS_TO_CUSTOMER_YEARS_2026-10-03.md",
+        "world": {
+            "level_digest": "cf823b185f8ca51c",
+            "home_digest": "35f8efe8ff02f245",
+        },
+        #: Measured, not predicted. The worst-axis ratio INVERTS here (0.9465, against 1.553 and
+        #: 1.66 on the earlier worlds): the chooser wins every fabric axis and the joint, and
+        #: loses the worst single axis to customer-years. The record says so; nothing was tuned.
+        "scalars": {
+            "cull_settled": 62,
+            "cull_cy": 1045.1,
+            "chosen_settled": 55,
+            "chosen_cy": 1044.2,
+            "worst_ks_cull": 0.06795,
+            "worst_ks_chosen": 0.07179,
+            "ratio": 0.9465,
+        },
+    },
 )
 
 

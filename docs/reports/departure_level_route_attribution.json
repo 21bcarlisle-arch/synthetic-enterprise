@@ -1,100 +1,92 @@
 {
   "what_this_is": "which of the world's two departure routes supplies the year-to-year AMPLITUDE the published record has, measured at `departure_level_anchor.NO_LEVEL_CORRECTION`. The rung-1 verdict beside this file says the unclamped level fails the band in six years of seven and does not say where the miss comes from; this says. `relative_slope` is dimensionless and taken at the means: 1.0 is a route that tracks the record proportionally, 0.0 is a route that does not move with it at all. Neither is a target and nothing here is fitted.",
   "measured_at_anchor": 1.0,
-  "capture": "docs/reports/c6_second_pass_departure_factors.json",
-  "world_level_digest": "39a192ce04c1eda8",
+  "capture": "docs/reports/pb4_d_fourth_pass_anchor_departure_factors.json",
+  "world_level_digest": "cf823b185f8ca51c",
   "years": [
     "2017",
     "2018",
     "2019",
     "2020",
     "2021",
-    "2023",
     "2024"
   ],
   "regressor": "the published band's MIDPOINT per year. A regressor, not a target -- see `regressor_robustness` for the same attribution against both endpoints.",
   "emergent_pp_of_book": {
-    "2017": 6.9491,
-    "2018": 14.3184,
-    "2019": 12.8989,
-    "2020": 13.5069,
-    "2021": 10.272,
-    "2023": 9.5722,
-    "2024": 9.1911
+    "2017": 7.7924,
+    "2018": 13.6834,
+    "2019": 13.9818,
+    "2020": 13.2703,
+    "2021": 10.6095,
+    "2024": 8.4487
   },
   "routes": {
     "renewal_route": {
       "pp_of_book": {
-        "2017": 1.2105,
-        "2018": 3.1483,
-        "2019": 1.6509,
-        "2020": 2.1145,
-        "2021": 1.959,
-        "2023": 2.8201,
-        "2024": 2.2479
+        "2017": 1.1268,
+        "2018": 1.6335,
+        "2019": 1.0983,
+        "2020": 0.6871,
+        "2021": 0.5956,
+        "2024": 0.5864
       },
       "decisions": {
-        "2017": 20,
-        "2018": 17,
-        "2019": 13,
-        "2020": 13,
-        "2021": 20,
-        "2023": 19,
-        "2024": 16
+        "2017": 28,
+        "2018": 22,
+        "2019": 16,
+        "2020": 11,
+        "2021": 8,
+        "2024": 12
       },
-      "relative_slope": -0.0778,
+      "relative_slope": 0.2687,
       "interval_95": {
         "available": true,
-        "lo": -0.4473,
-        "hi": 0.3082,
+        "lo": 0.0618,
+        "hi": 0.4729,
         "resamples": 4000,
         "seed": 20260904
       },
       "share_of_emergent_level": {
-        "2017": 0.1742,
-        "2018": 0.2199,
-        "2019": 0.128,
-        "2020": 0.1566,
-        "2021": 0.1907,
-        "2023": 0.2946,
-        "2024": 0.2446
+        "2017": 0.1446,
+        "2018": 0.1194,
+        "2019": 0.0786,
+        "2020": 0.0518,
+        "2021": 0.0561,
+        "2024": 0.0694
       }
     },
     "svt_route": {
       "pp_of_book": {
-        "2017": 5.7386,
-        "2018": 11.1701,
-        "2019": 11.248,
-        "2020": 11.3923,
-        "2021": 8.313,
-        "2023": 6.7521,
-        "2024": 6.9433
+        "2017": 6.6656,
+        "2018": 12.05,
+        "2019": 12.8835,
+        "2020": 12.5832,
+        "2021": 10.0139,
+        "2024": 7.8623
       },
       "decisions": {
-        "2017": 118,
-        "2018": 143,
-        "2019": 113,
-        "2020": 135,
-        "2021": 150,
-        "2023": 193,
-        "2024": 170
+        "2017": 207,
+        "2018": 221,
+        "2019": 207,
+        "2020": 207,
+        "2021": 218,
+        "2024": 248
       },
-      "relative_slope": 0.9936,
+      "relative_slope": 1.2338,
       "interval_95": {
         "available": true,
-        "lo": 0.8763,
-        "hi": 1.1049,
+        "lo": 1.106,
+        "hi": 1.3635,
         "resamples": 4000,
         "seed": 20260904
       },
       "share_of_emergent_level": {
-        "2017": 0.8258,
-        "2018": 0.7801,
-        "2019": 0.872,
-        "2020": 0.8434,
-        "2021": 0.8093,
-        "2023": 0.7054,
-        "2024": 0.7554
+        "2017": 0.8554,
+        "2018": 0.8806,
+        "2019": 0.9214,
+        "2020": 0.9482,
+        "2021": 0.9439,
+        "2024": 0.9306
       }
     }
   },
@@ -104,84 +96,79 @@
       {
         "amplification": 1.0,
         "emergent_pp_of_book": {
-          "2017": 6.9491,
-          "2018": 14.3184,
-          "2019": 12.8989,
-          "2020": 13.5069,
-          "2021": 10.272,
-          "2023": 9.5722,
-          "2024": 9.1911
+          "2017": 7.7924,
+          "2018": 13.6834,
+          "2019": 13.9818,
+          "2020": 13.2703,
+          "2021": 10.6095,
+          "2024": 8.4487
         },
-        "relative_slope": 0.782,
-        "in_band": 1
+        "relative_slope": 1.1522,
+        "in_band": 0
       },
       {
         "amplification": 2.0,
         "emergent_pp_of_book": {
-          "2017": 7.7322,
-          "2018": 16.9473,
-          "2019": 14.1366,
-          "2020": 15.2473,
-          "2021": 11.7214,
-          "2023": 11.908,
-          "2024": 11.0648
+          "2017": 8.5054,
+          "2018": 14.8918,
+          "2019": 14.7638,
+          "2020": 13.7456,
+          "2021": 11.0279,
+          "2024": 8.8088
         },
-        "relative_slope": 0.6655,
-        "in_band": 1
+        "relative_slope": 1.1188,
+        "in_band": 0
       },
       {
         "amplification": 4.0,
         "emergent_pp_of_book": {
-          "2017": 9.271,
-          "2018": 21.9542,
-          "2019": 16.5597,
-          "2020": 18.6219,
-          "2021": 14.5386,
-          "2023": 16.52,
-          "2024": 14.7099
+          "2017": 9.9065,
+          "2018": 17.2294,
+          "2019": 16.29,
+          "2020": 14.6762,
+          "2021": 11.8439,
+          "2024": 9.5185
         },
-        "relative_slope": 0.5035,
-        "in_band": 1
+        "relative_slope": 1.0612,
+        "in_band": 0
       },
       {
         "amplification": 8.0,
         "emergent_pp_of_book": {
-          "2017": 12.2389,
-          "2018": 30.4807,
-          "2019": 21.1966,
-          "2020": 23.7628,
-          "2021": 19.8463,
-          "2023": 25.505,
-          "2024": 21.5913
+          "2017": 12.6103,
+          "2018": 21.5879,
+          "2019": 19.1921,
+          "2020": 16.4576,
+          "2021": 13.3928,
+          "2024": 10.8963
         },
-        "relative_slope": 0.2595,
-        "in_band": 1
+        "relative_slope": 0.9715,
+        "in_band": 0
       }
     ],
     "ceiling_rung": {
       "what_this_is": "both opportunity hazards at `departure_risks.WORLD_MAX_CHURN_PROBABILITY` for every renewal household in every year -- the upper bound on what amplifying this leg can do to the world, not a world anybody proposes.",
       "emergent_pp_of_book": {
-        "2017": 40.1362,
-        "2018": 45.0862,
-        "2019": 42.877,
-        "2020": 39.5834,
-        "2021": 47.4318,
-        "2023": 42.5127,
-        "2024": 34.9441
+        "2017": 39.5254,
+        "2018": 42.9594,
+        "2019": 37.8218,
+        "2020": 30.2813,
+        "2021": 23.773,
+        "2024": 26.2783
       },
-      "relative_slope": 0.0947,
+      "relative_slope": 0.116,
       "in_band": 0
     },
     "reading": "no amplification of the household opportunity response moves the relative slope toward 1.0 -- it falls monotonically, and at the world's own churn ceiling, which is the most this leg can ever do, the world's amplitude is essentially gone while its level overshoots every band. So the household-level amplitude gap -- however it is eventually answered -- is not what is holding rung 1."
   },
   "regressor_robustness": {
     "band_low_endpoint": {
-      "renewal_route": -0.1163,
-      "svt_route": 0.8205
+      "renewal_route": 0.3464,
+      "svt_route": 1.0681
     },
     "band_high_endpoint": {
-      "renewal_route": -0.0007,
-      "svt_route": 1.1922
+      "renewal_route": 0.1275,
+      "svt_route": 1.3771
     }
   },
   "how_to_regenerate": "python3 -m tools.fit_year_level_anchor --route-attribution"

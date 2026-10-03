@@ -133,6 +133,17 @@ the gap above); one of the five reaches the band's low endpoint, and that year �
 reaching it before the counterfactual ran. `years_newly_closed_by_composition` is empty on both
 accountings and on both published bases.
 
+**RE-MEASURED 2026-10-03 on the PB4 world-D capture, and the paragraph above is the c6 world's.**
+Re-derived with `python3 -m tools.fit_year_level_anchor --composition` on
+`pb4_d_fourth_pass_anchor_departure_factors.json`: 2023 is no longer a fitted year, so four years
+are measurable (2017, 2018, 2019, 2024) and **none** reaches the band's low endpoint before or after
+the counterfactual — the "one of five" above was 2023 and it is gone. The verdict "it closes
+nothing" stands. The world's SVT account-day share in that artefact also moved: 2018 0.585 → 0.628
+and 2019 0.570 → 0.666, against a published 0.586 on the all-domestic basis, so in those two years
+the capture-based share is now ABOVE the published one. §4's table comes from a different instrument
+(`tools.svt_generated_share_check`, built schedules) and was not re-run here; its "below in every
+year" sentence should not be re-quoted for world D until it is.
+
 That **confirms** §9 of the finding, which had it as a ceiling argument, and strengthens it: the
 ceiling bound showed composition fails at values nobody claims are real, and this shows it fails at
 the value the record published. **The hazard per SVT-account-year remains the leg.**

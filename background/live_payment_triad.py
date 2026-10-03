@@ -790,8 +790,8 @@ class LivePaymentTriad:
         renewal on `as_of` by an account in `arrears_state` -- a
         plain float, the same door shape as `arrears_state`. The learning is
         `PaymentObservationConsumer.default_belief_rate`, inside `company/`; what this class
-        supplies is the cadence, as it does for `arrears_state`. `payment_method_of(account_id)`
-        is the run's reading of the company's own method register, used only to read each charge
+        supplies is the cadence, as it does for `arrears_state`. `payment_method_of(account_id, on)`
+        is the run's reading of the company's own method register on a date, used only to read each charge
         on its published row, `None` for an account the renewal price does not learn from.
         """
         return self._consumer.default_belief_rate(

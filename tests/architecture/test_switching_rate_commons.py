@@ -4112,20 +4112,9 @@ def test_a_year_the_mixed_pair_never_refused_cannot_be_reported_as_a_flip():
         )
 
 
-def test_a_joint_phi_above_one_is_not_reported_as_a_refusal():
-    """MUTATION: flag `phi[1] > 1` as a refusal, or clip phi into [0, 1], and this fires.
-
-    THE RECORD REFUSES THE PAIR IN TWO DIFFERENT SENTENCES AND THEY ARE NOT THE SAME FINDING. A phi
-    interval entirely below zero says the fixed route would have to contribute negative departures.
-    A phi interval entirely above one says the record needs more external switching from fixed
-    households than the published active-renewal share can supply. Collapsing them into one boolean
-    would make §12's "the record refuses the pair in no year" unreadable -- and 2023 and 2024 carry
-    phi intervals whose UPPER end exceeds 1.0 while their lower end does not, which is neither
-    refusal and would be miscounted as one under either collapse.
-    """
-    joint = _joint()
-    split = _split_module()
-    straddles_one = 0
+def _assert_the_two_phi_refusals_are_distinct(joint: dict, split) -> tuple[int, int]:
+    """Assert both refusal flags over every cell; return (straddling 1.0, wholly above 1.0)."""
+    straddles_one = wholly_above_one = 0
     for year_s, row in joint["per_year"].items():
         for basis in split.BASES:
             for endpoint, cell in row[basis].items():
@@ -4144,10 +4133,61 @@ def test_a_joint_phi_above_one_is_not_reported_as_a_refusal():
                     ), f"{where}: both refusals are flagged at once, which no interval can be."
                     if lo <= 1.0 < hi:
                         straddles_one += 1
-    assert straddles_one, (
-        "no phi interval straddles 1.0 anywhere in the reading, so a flag that fired on 'phi "
-        "reaches above 1' would be indistinguishable from one that fires on 'phi exceeds 1' and "
-        "this leg is asserting nothing."
+                    if lo > 1.0:
+                        wholly_above_one += 1
+    return straddles_one, wholly_above_one
+
+
+def test_a_joint_phi_above_one_is_not_reported_as_a_refusal(tmp_path, monkeypatch):
+    """MUTATION: flag `phi[1] > 1` as a refusal, or clip phi into [0, 1], and this fires.
+
+    THE RECORD REFUSES THE PAIR IN TWO DIFFERENT SENTENCES AND THEY ARE NOT THE SAME FINDING. A phi
+    interval entirely below zero says the fixed route would have to contribute negative departures.
+    A phi interval entirely above one says the record needs more external switching from fixed
+    households than the published active-renewal share can supply. Collapsing them into one boolean
+    would make §12's "the record refuses the pair in no year" unreadable -- an interval whose UPPER
+    end exceeds 1.0 while its lower end does not is neither refusal and would be miscounted as one
+    under either collapse.
+
+    THE STRADDLING CASE IS SUPPLIED BY PERTURBATION, NOT BY THE LIVE WORLD. Until 2026-10-03 this
+    leg required the live reading itself to carry an interval straddling 1.0, and on the c6 capture
+    2023 and 2024 did. The PB4 world-D capture has no fitted 2023 and its 2024 interval is
+    0.071-0.805, so the live world carries none and the leg went red for the world moving, not for
+    the flag breaking -- a control keyed to today's answer. The flag property is now asserted over
+    the live reading AND over the same reading with the composition's still-required multiple
+    walked DOWN (a smaller joint hazard leaves more for the fixed route, so phi rises), which must
+    produce at least one straddling interval and one wholly-above-1 interval, or this leg asserts
+    nothing.
+    """
+    split = _split_module()
+    live_straddles, live_above = _assert_the_two_phi_refusals_are_distinct(_joint(), split)
+
+    straddles, above = live_straddles, live_above
+    source = json.loads(split.COMPOSITION_ARTEFACT.read_text())
+    for scale in (0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1):
+        perturbed = json.loads(json.dumps(source))
+        for row in perturbed["per_year"].values():
+            for basis in row["bases"].values():
+                for endpoint in basis.values():
+                    for accounting in ("renewal_rescaled", "renewal_held"):
+                        cell = endpoint[accounting]
+                        if cell["hazard_multiple_still_required_at_band_low"] is not None:
+                            cell["hazard_multiple_still_required_at_band_low"] *= scale
+        moved = tmp_path / f"composition_{scale}.json"
+        moved.write_text(json.dumps(perturbed))
+        monkeypatch.setattr(split, "COMPOSITION_ARTEFACT", moved)
+        s, a = _assert_the_two_phi_refusals_are_distinct(split.where_the_worlds_joint_point_falls(),
+                                                         split)
+        straddles += s
+        above += a
+    assert straddles, (
+        "no phi interval straddles 1.0 anywhere in the live reading or its perturbations, so a flag "
+        "that fired on 'phi reaches above 1' would be indistinguishable from one that fires on 'phi "
+        "exceeds 1' and this leg is asserting nothing."
+    )
+    assert above, (
+        "no phi interval lies wholly above 1.0 in the live reading or its perturbations, so the "
+        "over-supply flag is never asked to fire and a flag that never fires passes this leg."
     )
 
 

@@ -2058,7 +2058,7 @@ class PaymentObservationConsumer:
 
         The read lives here for the reason `arrears_state` does: the ledger is this class's, and a
         bridge that assembled it would import the pricing package across the wall. The two
-        callables are what this class cannot know: which method each account pays by (the
+        callables are what this class cannot know: which method each account paid by on a date (the
         company's own register, held outside the ledger, and needed only to read each charge on
         its published provision row) and the arrears clock (the caller's
         billing cadence). Each account-year is read once and kept, so asking at every renewal
