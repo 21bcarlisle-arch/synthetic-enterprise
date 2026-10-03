@@ -1,6 +1,7 @@
 """Tests for Phase HK: BSC Performance Assurance Register."""
 import datetime as dt
 import pytest
+from company.compliance.working_days import add_working_days as _add_working_days
 from company.market.bsc_performance_assurance_register import (
     BSCPerformanceAssuranceRegister,
     PAAgentType,
@@ -9,7 +10,6 @@ from company.market.bsc_performance_assurance_register import (
     PAMetricScore,
     PAStatus,
     _METRIC_THRESHOLDS,
-    _add_working_days,
 )
 
 

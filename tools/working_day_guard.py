@@ -89,25 +89,14 @@ BASELINE_ALLOWLIST = frozenset(
         # `_working_days_between` entries are gone. This one stays as a NAME COLLISION only: the
         # method is a domain read-out that delegates to the canonical count, and its name is
         # fixed by `company/interfaces/credit_refund_requests.py`'s published key.
-        "company/billing/credit_refund.py::working_days_to_pay",
-        "company/crm/change_of_tenancy_register.py::_add_working_days",
-        "company/crm/onboarding_journey.py::_add_working_days",
-        "company/crm/service_log.py::_add_working_days",
-        "company/crm/service_ticket.py::_add_working_days",
-        "company/market/bsc_performance_assurance_register.py::_add_working_days",
-        "company/market/bsc_settlement_dispute_register.py::_add_working_days",
-        "company/market/css_performance_register.py::_add_working_days",
-        "company/market/dcc_meter_registration.py::_add_working_days",
-        "company/market/erroneous_transfer.py::working_days_open",
-        "company/market/meter_technical_investigation_register.py::_add_working_days",
-        "company/market/mop_appointment_register.py::_add_working_days",
-        "company/market/mpas_standing_data_correction_register.py::_add_working_days",
-        "company/market/transfer_objection_register.py::_add_wd",
-        "company/regulatory/annual_compliance_attestation_register.py::_add_wd",
-        "company/regulatory/gsop.py::_add_working_days",
-        "company/regulatory/gsop_tracker.py::working_days_open",
-        "company/trading/bsc_credit_register.py::is_cdn_overdue",
-        "company/trading/emir_reporting_register.py::_add_working_days",
+        # -- and that entry is gone too, below: a delegate now passes by rule, not by entry.
+        #
+        # Pass 2 complete for company/ (2026-10-03): every company copy now calls
+        # `company.compliance.working_days`, and the ones whose NAME is fixed by a caller
+        # (`credit_refund.py::working_days_to_pay`, `erroneous_transfer.py::working_days_open`,
+        # `gsop_tracker.py::working_days_open`, the EMIR datetime adapter) pass as canonical
+        # delegates rather than by allowlist entry. What remains is the world's: simulation/ is
+        # not the company's to migrate.
         "simulation/bacs_rails.py::_add_working_days",
         "simulation/credit_refund_events.py::_add_working_days",
     }
@@ -142,6 +131,31 @@ def _has_weekend_skip_shape(node: ast.AST) -> bool:
     return False
 
 
+CANONICAL_IMPORT = "company.compliance.working_days"
+
+
+def _canonical_names(tree: ast.AST) -> set:
+    """Local names this file binds from the canonical module (`from ... import x as y` -> y)."""
+    names = set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.ImportFrom) and node.module == CANONICAL_IMPORT:
+            names.update(a.asname or a.name for a in node.names)
+    return names
+
+
+def _is_canonical_delegate(node: ast.AST, canonical: set) -> bool:
+    """A function that merely CARRIES a flagged name -- a read-out or adapter whose name is fixed
+    by its callers -- and does its arithmetic by calling the canonical module. Not a second
+    definition. Only ever consulted for a NAME match: a body with the weekend-skip loop shape is
+    flagged whatever else it calls, so a copy cannot launder itself by also calling the primitive."""
+    for inner in ast.walk(node):
+        if isinstance(inner, ast.Call):
+            func = inner.func
+            if isinstance(func, ast.Name) and func.id in canonical:
+                return True
+    return False
+
+
 def _iter_python_files(roots=SCAN_ROOTS):
     for root in roots:
         base = PROJECT_DIR / root
@@ -171,12 +185,15 @@ def verify(paths) -> list[str]:
         except (OSError, SyntaxError) as exc:
             raise GuardError(f"cannot read/parse {rel}: {exc}") from exc
 
+        canonical = _canonical_names(tree)
         for node in ast.walk(tree):
             if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
                 continue
             by_name = node.name in FLAGGED_NAMES
             by_shape = _has_weekend_skip_shape(node)
             if not (by_name or by_shape):
+                continue
+            if not by_shape and _is_canonical_delegate(node, canonical):
                 continue
             key = f"{rel}::{node.name}"
             if key in BASELINE_ALLOWLIST:

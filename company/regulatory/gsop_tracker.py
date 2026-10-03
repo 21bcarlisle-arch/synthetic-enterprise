@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 import dataclasses
-from datetime import date
+from datetime import date, timedelta
 from enum import Enum
 from typing import Dict, List, Optional
+
+from company.compliance.working_days import working_days_between
 
 
 class GSoPStandard(Enum):
@@ -48,13 +50,10 @@ class GSoPBreach:
     @property
     def working_days_open(self) -> int:
         end = self.resolution_date or date.today()
-        count = 0
-        current = self.breach_date
-        while current < end:
-            if current.weekday() < 5:
-                count += 1
-            current = date.fromordinal(current.toordinal() + 1)
-        return count
+        # [breach_date, end), the interval this property has always used; only the calendar
+        # changes (bank holidays out). See erroneous_transfer.working_days_open for the shift.
+        one = timedelta(days=1)
+        return working_days_between(self.breach_date - one, end - one)
 
 
 class GSoPTracker:

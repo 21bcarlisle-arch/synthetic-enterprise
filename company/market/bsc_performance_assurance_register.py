@@ -19,15 +19,7 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import List, Optional, Tuple
 
-
-def _add_working_days(date: dt.date, days: int) -> dt.date:
-    current = date
-    added = 0
-    while added < days:
-        current += dt.timedelta(days=1)
-        if current.weekday() < 5:
-            added += 1
-    return current
+from company.compliance.working_days import add_working_days
 
 
 class PAAgentType(Enum):
@@ -129,7 +121,7 @@ class PAAssessmentRecord:
     def rap_due_date(self) -> Optional[dt.date]:
         if not self.rap_required:
             return None
-        return _add_working_days(self.assessment_date, 20)
+        return add_working_days(self.assessment_date, 20)
 
     def is_rap_overdue(self, as_of: dt.date) -> bool:
         if not self.rap_required or self.status == PAStatus.RAP_CLOSED:

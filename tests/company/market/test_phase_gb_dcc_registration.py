@@ -1,11 +1,11 @@
 """Tests for Phase GB: DCC Meter Registration Register."""
 import datetime as dt
 import pytest
+from company.compliance.working_days import add_working_days as _add_working_days
 from company.market.dcc_meter_registration import (
     DCCRegistrationStatus,
     DCCRegistrationRecord,
     DCCMeterRegistrationRegister,
-    _add_working_days,
     _DCC_REGISTRATION_DEADLINE_DAYS,
     _DCC_ORPHAN_THRESHOLD_DAYS,
 )
