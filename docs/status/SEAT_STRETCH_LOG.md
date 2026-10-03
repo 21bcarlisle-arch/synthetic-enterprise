@@ -8,6 +8,93 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-10-03 — orientation: THE INFERENCE WORK NOW HAS A CLEAN READING, AND THE QUESTION OF WHETHER ITS "TRUTH" IS FAITHFUL IS STILL OPEN
+
+<!-- head: 543dcff6d417 -->
+
+*Written by the orientation seat from its own record (2026-10-03T20:21:41.690495+00:00; 31 commits, 10 substantive, since 2026-10-03T17:24:46.921462+00:00).*
+
+## What the stretch meant
+
+THE INFERENCE WORK NOW HAS A CLEAN READING, AND THE QUESTION OF WHETHER ITS "TRUTH" IS FAITHFUL IS STILL OPEN. The console seat's probe now records the company's believed P(stay) beside the world's at every offer (ac465ac38). Its new pre-registration (c822e470e) splits the belief's error in two. The LEVEL error is by regime: too pessimistic before the cap, and from 2019 near 0.9+ while the world keeps 0.2-0.7. The SLOPE is about 1.7x too steep. Its argument that the slope, not the level, holds the price down is sound: a level error that scales every candidate alike leaves the argmax where it is. So the next inference step is B8's learned slope under the stayer-pays cap, being run now (pids 1538042, 1542480). That is the thesis working as designed: an advantage sought from inference over the company's own renewals, against a flat-level baseline, with predictions filed first. BUT the world's P(stay) at margin 10 in 2020 is 0.37. That is 63% of renewing households leaving in a year whose published whole-market switching rate is 20.2%. The renewal sub-population has no published comparator, so this is not a conviction, but it is the number the slope is being learned against. The departure-rate item is in hand and has a pre-registration on file (/var/tmp/se-seat-executor, executor pid 1758163, untracked). The pre-registration itself says the book's 45-50 electricity accounts a year earn a +-8-12pp bound, so it cannot convict any single year. That is my error in how I framed the item, recorded in wrong. The item stays first and now asks for the pooled measurement. ONE ITEM IS FINISHED AND LEAVES FOCUS. The one-payment-method home landed as 067ade9ac. Ledger and seam agree 178 of 178, where 112 of 178 agreed before. The control reds at 71/178 and 21/178 under its two mutations. world_identity gained a payment_methods part. W2_payment_channel_dd_consistency_invariant was re-graded and held at L2 with a named reason (non-DD failures still carry DD_FAILED), and the console seat has its re-read note. So the W2 row in wrong is now corrected. THE STEER HALF-BIT AGAIN. The prepayment-ruling item has gone two stretches undrawn, and so has the base-advance item. Both controls guarding the ruling are unchanged on origin since 0cc052102, so still red. The machine is no better: 15 of 31 commits carried no work, and three base-advancing surgical_land runs are live now. HEAD is 82 behind origin. My last direction commit, 543dcff6d, is on no remote ref 2.9h after it was written. The base-advance item moves to second, ahead of the ruling, because its cost taxes every other lane's landing including the ruling's. The ruling's own-book flip has a release condition that is now MET: four probe_capped files exist and the stayer-pays landing is on origin (3475058ef). I am holding the flip one step more, until the console seat grades its learned-slope run, because flipping the default path under a live pre-registration would make its L1-L4 unattributable. That hold is written into the item so it is re-asked, not remembered. Eight worktrees hold unlanded commits. The executor's (4ec466d6c, salvage) holds the departure finding, and it is locked and live. The three agent-* SALVAGE worktrees are owned by the console seat's agents, so they are not mine to reap or land.
+
+## What went wrong
+
+- NOT corrected: THE MACHINE'S, CARRIED. A waiter's deadline is set without pricing the queue ahead of it. launch_after_width.sh loops four 6h rounds by hand because wait_for caps at 21600 s. Still not a mechanism.
+- NOT corrected: THE MACHINE'S, CARRIED. The world digest does not identify behaviour switches, so 1002b and 1002c share digest cf823b185f8ca51c and are not the same world. Only the pin separates them. (067ade9ac added a payment_methods part by hand for its own change. The class, a switch the digest is not told about, is unchanged.)
+- NOT corrected: THE MACHINE'S, CARRIED. depth-vs-width's first unit referenced a width worktree that did not exist and died at exit 90 after 10h. Nothing checks a long job's worktrees before launch.
+- NOT corrected: THE MACHINE'S, CARRIED. A held change's hold condition is not re-asked when its premise moves. a15532730 and 1ff7b68b3 held "until the retake lands"; nothing was built to re-ask it. (Recurred again: the own_book flip's condition was met at 3475058ef and nothing noticed. I re-asked it by hand at this orientation.)
+- NOT corrected: THE MACHINE'S, CARRIED. A long job's world stamp is not tied to HEAD. The 1002c floor graded at pin 0cc052102 was published with is_heads_code False, because ten simulation/ and company/ paths had moved after it. The overtaking recurs every run.
+- NOT corrected: THE MACHINE'S, CARRIED. Four level or park moves stranded in a preserved ref were replayed as written. PB4 build->idle was false by then (a6bd4d77e). Nothing re-asks a stranded move's release condition.
+- NOT corrected: THE MACHINE'S, CARRIED. One item can land twice, on origin through surgical_land and as a local commit on the shared HEAD (75df9efdf after d77ff33d5). No mechanism prevents the next one.
+- NOT corrected: THE MACHINE'S, CARRIED. The launch register recorded hgc-suite-timing as died while its /var/tmp driver ran. That driver called resource_headroom.admitted(), which does not exist. Nothing checks that a hand-written driver calls an API that exists.
+- NOT corrected: THE MACHINE'S, CARRIED. A control or door whose shape changes must re-run every fixture that builds a synthetic tree to drive it, and no control requires it. citation_at_head, red_at_head and fork_state in .publish_gate_state.json still read not_established.
+- NOT corrected: THE MACHINE'S, CARRIED. A refusal naming a commit is not re-asked against the remote ref before a reader sees it. liveness_surface_refusal is still not re-asked.
+- NOT corrected: THE MACHINE'S, CARRIED. The stash-completeness sweep reports a genuinely lost file as safe. It is still not on the map.
+- NOT corrected: THE MACHINE'S, CARRIED. Nothing on the landing path asks whether a same-subject sibling is left behind in the shared tree (the 14-path refusal in 662da7fd3). Separate from H49.
+- NOT corrected: MINE, CLASS. not_now is still prose that nothing reads. A rejected item comes back only if I remember to promote it. This stretch I again re-asked the own_book flip's release by hand.
+- NOT corrected: THE MACHINE'S, CARRIED. A bounded executor turn can be reset over finished, unlanded work. It is live again: the departure finding's pre-registration exists only untracked in /var/tmp/se-seat-executor, kept by an auto SALVAGE commit (4ec466d6c) on no remote ref.
+- NOT corrected: THE MACHINE'S, CARRIED. One Lane 0 change is drawn twice. 1cdf561e4 skips an id held in the other claim store, which closes that shape. The F5 shape (drawn, noted as a non-act, redrawn) has no fix.
+- NOT corrected: THE MACHINE'S, CARRIED. A pre-registration that dates itself by its first commit can sit untracked after its subject commit lands. The class is still unrefused.
+- NOT corrected: THE MACHINE'S, CARRIED. Base-advance merges carry no work and each costs a full gate cycle. The landing door still advances the base as its own gated commit. This stretch 15 of 31 commits carried nothing, and three base-advancing surgical_land runs were live at orientation. Focus item two takes it.
+- NOT corrected: THE MACHINE'S, CARRIED. A launch chain dies silently when its waiter hits DEADLINE. The launch register shows width as finished and does not show that P/C, chained behind it, never started.
+- NOT corrected: THE MACHINE'S, CARRIED. The pre-commit gate selects controls by module stem, so e0370bf94 landed with the control guarding a director ruling red. It is still TWO tests red at HEAD, unchanged on origin since 0cc052102, and neither is on HEAD_RED_REGISTER.md. Focus item three fixes the instance. The class, a control whose file name lacks its subject's stem, is unrefused.
+- corrected: THE MACHINE'S, CARRIED. W2_payment_channel_dd_consistency_invariant sat at L2 while the world held two independent method draws that agreed on 51% of households. Corrected by 067ade9ac: 178 of 178 agree, the control reds under both mutations, and the level was re-graded and held at L2 with a named reason.
+- NOT corrected: THE MACHINE'S, CARRIED. The launch register records a deliberate seat stop as DIED. payment-history-pc-legs ended rc=143 beside C_61001_61002.STOPPED, which says "stopped by seat: superseded". A stop that says why is not a death.
+- NOT corrected: THE MACHINE'S, CARRIED. A commons artefact refuted by its own publisher (switching rate, 2026-09-07, 8 of 10 years) has stayed load-bearing for 26 days, because correcting it needs a coupled re-capture nobody scheduled. The company's price slope is now being learned against the world it shapes. Nothing re-asks a superseded artefact's consumers when they become the subject of an experiment.
+- NOT corrected: MINE, NEW. I framed the departure-rate item over "all domestic electricity accounts in the book". The book holds 45-50 electricity accounts a year, which earns a +-8-12pp bound. That cannot convict any single year against the record, as the worker's own pre-registration says. I asked a decisive question of an instrument too small to decide it. This record re-frames focus item one to pool until each year is decided or named as undecidable. It is corrected when that pooled table is on origin.
+- NOT corrected: THE MACHINE'S, NEW. A direction commit can sit on no remote ref for hours. 543dcff6d is on the shared HEAD and in /var/tmp/se-origin-reconcile, 2.9h after it was written, while HEAD is 82 behind origin. reconcile-watch is running, so nothing is absent. The record the director reviews is simply not on the branch he reads.
+
+## Chosen against
+
+- Keep one-payment-method-home-in-the-world in focus to chase the H27 calibration book re-draw it left owed.
+- Calibrate the churn belief's LEVEL, or learn its slope, from a Lane 0 worker.
+- Correct the switching commons artefact and re-capture the world's departure level now.
+- Flip own_book to the default immediately because its release condition is met.
+- Relaunch the payment-history P/C or depth A/B legs.
+- Model the domestic debt objection (a debtor cannot switch away).
+- Give worker-seat-manager a heartbeat line.
+
+## Focus for the next stretch
+
+- `the-worlds-departure-rate-against-the-published-year`
+- `base-advance-merges-select-by-their-combined-diff`
+- `the-renewal-price-honours-the-prepayment-ruling-at-default`
+
+---
+
+## 2026-10-03 — the choice is held down by a too-steep churn belief, and knowing the default is what lets learning the slope help
+
+<!-- head: 543dcff6d417 -->
+
+**Selection.**
+- **Stayer-pays v2 graded on four paths.** Above-default offers fell from ~55 to 11-14 per path.
+- **Versus the value rule:** +202 to +619.
+- **Versus flat at its own median:** wins, +0.6k to +2.0k. That is an artefact of the clipping
+  dragging its median to GBP 18-26.
+- **Versus the best flat level in hindsight (GBP 55-60):** loses, by 0.8-1.2k.
+
+The first belief curves locate why.
+- **The slope** is ~1.7x too steep: believed 0.26 against a true 0.155 drop from margin 10 to 55.
+- **The level** is wrong by regime: pessimistic pre-cap, 0.9+ against a true 0.2-0.7 from 2019.
+
+Only the slope moves the argmax. `VALUE_ARM_CAPPED_LEARNED_POLICY` (B8 slope learning plus
+stayer-pays) is pre-registered, L1-L4, with four runs in flight.
+
+**Interfaces.**
+- **EP12 0->1.** A departure now reaches the company as a REC Schedule 23-shaped registration-loss
+  notice (e231f4adf); the SVT route previously reached it not at all.
+- **Next, in flight:** the losing supplier checks its own book, the objection window is corrected
+  to the REC's 1 working day, and the cited-constant walker is fixed so it is not blind from
+  `.claude/worktrees` checkouts.
+
+**Supplier and the machine.**
+- Retention risk now counts "overdue" invoices and no longer reads complaints from the future.
+- C-S5 declarations were added for my two L3 closures (an origin red I caused).
+- A stale bad-debt fixture was repaired.
+
+---
+
 ## 2026-10-03 — orientation: THE NEXT INFERENCE STEP IS ABOUT TO BE GRADED AGAINST A WORLD THE KNOWLEDGE LAYER ALREADY SAYS IS OFF THE RECORD
 
 <!-- head: b81763deaafc -->
