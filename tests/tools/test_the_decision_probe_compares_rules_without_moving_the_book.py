@@ -74,3 +74,36 @@ def test_the_blind_rule_strips_arguments_the_pricing_door_really_takes():
     from company.interfaces.renewal_rate_chain import decide_renewal_rate
     params = set(inspect.signature(decide_renewal_rate).parameters)
     assert dp.PAYMENT_HISTORY_ARGS and set(dp.PAYMENT_HISTORY_ARGS) <= params
+
+
+def test_a_stayer_is_scored_on_what_they_pay_not_on_what_was_offered():
+    """The world's decline rule bills a stayer the default when the fix is above it; the score
+    must follow the bill. Defect it names: crediting the full offer to a household that refused
+    it, which overstated the value rule's margin about twice over on the 2025 probes."""
+    offered = _row(stayer_pays_gbp_per_mwh={"flat": 202.0, "value": 210.0})
+    billed = _row(offer_gbp_per_mwh={"flat": 202.0, "value": 210.0})
+    assert dp.expected_term_margin_gbp(offered, "value") == dp.expected_term_margin_gbp(
+        billed, "value")
+    [r] = dp.with_level([_row(stayer_pays_gbp_per_mwh={"flat": 202.0, "value": 210.0},
+                              level_grid={"30": {"offer": 230.0, "p": 0.7, "paid": 211.0}})], 30.0)
+    assert r["stayer_pays_gbp_per_mwh"]["level"] == 211.0
+
+
+def test_the_worlds_decline_rule_can_be_taken_and_is_the_only_thing_that_moves_the_bill():
+    """Both branches over one date: an offer far above the default is billed the default, one
+    below it is billed as offered, and an undeclinable decision is never repriced."""
+    above, below = dp.stayer_pays(900.0, "2020-06-01", "electricity", True), \
+        dp.stayer_pays(50.0, "2020-06-01", "electricity", True)
+    assert above is not None and above < 900.0 and below == 50.0
+    assert dp.stayer_pays(900.0, "2020-06-01", "electricity", False) == 900.0
+
+
+def test_the_belief_is_read_from_the_last_priced_entry_and_is_none_where_nothing_priced():
+    """The belief column is the company's own P(stay) at the offer it struck; an arm that priced
+    nothing must read None, never a neighbouring arm's belief or a default."""
+    from types import SimpleNamespace
+    priced = SimpleNamespace(value_arm_entries=[{"believed_p_retain": 0.4},
+                                                {"believed_p_retain": None},
+                                                {"believed_p_retain": 0.7}])
+    assert dp._believed(priced) == 0.7
+    assert dp._believed(SimpleNamespace(value_arm_entries=[])) is None

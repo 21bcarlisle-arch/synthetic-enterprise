@@ -861,6 +861,7 @@ def decide_margin(
     payment_method: str | None = None,
     billed_last_year_gbp: float | None = None,
     default_belief_rate: float | None = None,
+    stayer_default_rate_gbp_per_mwh: float | None = None,
 ) -> MarginDecision:
     """The offered margin for ONE customer, under ONE arm.
 
@@ -932,7 +933,20 @@ def decide_margin(
         unpaid_bills_by_age, billed_last_year_gbp, payment_method)
     receivable_unsourced = "; ".join(r for r in (receivable_unsourced, flow_unsourced) if r) or None
 
+    # WHAT A STAYER IS BILLED IS NOT ALWAYS WHAT IS OFFERED (2026-10-03). A household offered a
+    # fix above its default that does not leave refuses the fix and lands on the default (SLC
+    # 22C.2/22C.5: no silent renewal of a fix; 22C.7/22C.8: doing nothing means the default). So
+    # where the caller passes that default (the policy says the company knows this), a candidate's
+    # margin, revenue and bad debt are taken at the default while its P(stay) stays at the offer --
+    # and every candidate above the default is dominated, costing customers for no margin. Without it the scorer credited ~90%
+    # of the value arm's renewals with margin no stayer pays.
+    paid_cap = (float(stayer_default_rate_gbp_per_mwh) - float(base_rate_gbp_per_mwh)
+                if stayer_default_rate_gbp_per_mwh else None)
+
     def _score(margin: float) -> tuple[float, float, ExpectedAnnualCosts]:
+        offered_margin = margin
+        if paid_cap is not None:
+            margin = min(margin, paid_cap)
         costs = expected_annual_costs(
             cost_to_serve_gbp_per_year=cost_to_serve_gbp_per_year,
             annual_revenue_gbp=observed_revenue + (margin - current_margin) * eac_mwh,
@@ -953,7 +967,7 @@ def decide_margin(
         elif flow_rate is not None:
             costs = dataclasses.replace(costs, bad_debt_gbp=flow_rate * max(
                 0.0, observed_revenue + (margin - current_margin) * eac_mwh))
-        offered = base_rate_gbp_per_mwh + margin
+        offered = base_rate_gbp_per_mwh + offered_margin
         p_leave = enriched_churn_estimate(
             current_rate_gbp_per_mwh, offered, tenure_years, float(eac_kwh),
             bill_shock_count=bill_shock_count,
@@ -1444,6 +1458,7 @@ def renewal_margin_uplift(
     payment_method: str | None = None,
     billed_last_year_gbp: float | None = None,
     default_belief_rate: float | None = None,
+    stayer_default_rate_gbp_per_mwh: float | None = None,
 ) -> MarginArmUplift:
     """The £/MWh this renewal moves by, under ONE arm, from the supplier's own settled book.
 
@@ -1572,6 +1587,7 @@ def renewal_margin_uplift(
             payment_method=payment_method,
             billed_last_year_gbp=billed_last_year_gbp,
             default_belief_rate=default_belief_rate,
+            stayer_default_rate_gbp_per_mwh=stayer_default_rate_gbp_per_mwh,
         )
     except MarginDecisionUnavailable as exc:
         # "NO OFFER" IS AN ANSWER, AND A LIVE PRICING CHAIN MUST BE ABLE TO HEAR IT (2026-08-26).

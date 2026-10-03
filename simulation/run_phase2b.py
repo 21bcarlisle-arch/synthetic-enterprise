@@ -70,6 +70,7 @@ from company.interfaces.renewal_rate_chain import decide_renewal_rate, portfolio
 from company.interfaces.statutory_obligations import build_statutory_obligations
 from company.interfaces.supply_book import (
     acquired_supply_points,
+    open_change_of_supplier_register,
     successor_supply_points,
 )
 from company.interfaces.supply_book import (
@@ -197,6 +198,7 @@ from simulation.policy_costs import (
     get_gas_network_cost_per_mwh,
     get_ggl_per_mwh,
 )
+from simulation.registration_loss_feed import RegistrationLossFeed, supply_points_on_supply
 from simulation.renewal_engagement import passive_churn_cap_for, rolls_active_renewal
 from simulation.renewals import NOTICE_DAYS, build_renewal_schedule
 from simulation.reputation_index import ReputationEventType
@@ -1992,6 +1994,21 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
     # opponent moves on its own cycle rather than inside the term the company is pricing.
     _competitor_position_ledger = CompanyPositionLedger()
     churned_billing_accounts: set[str] = set()
+    # EP12: HOW THE SUPPLIER HEARS IT LOST A HOUSEHOLD -- a registration-loss notice per supply
+    # point, from the registration service, filed in its change-of-supplier register. Called at
+    # every site that adds to `churned_billing_accounts` and handed only the household and the
+    # date, so nothing from the departure event can ride on the notice. It crosses framed and on
+    # the wire (`interface/contracts/registration_loss_seam.py`), like the bureau's ADDACS advices.
+    _registration_loss_feed = RegistrationLossFeed()
+    _change_of_supplier_register = open_change_of_supplier_register()
+
+    def _notify_registration_loss(household: str, effective_from: str) -> None:
+        for _wire in _registration_loss_feed.wire_notices_for_departure(
+            supply_points_on_supply(household, effective_from, elec_schedules, gas_schedules),
+            effective_from,
+        ):
+            _change_of_supplier_register.receive_loss_wire(_wire)
+
     # C1b. THE DAY THIS ACCOUNT'S CURRENT STINT ON THE STANDARD VARIABLE PRODUCT BEGAN, which is
     # what the published inertia bands are cut on (under 3 years / 3+ years on the default
     # tariff). Reset when a household takes a fixed deal again, because "years on SVT" is
@@ -2174,6 +2191,12 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             receivable=_chain_receivable,
             payment_method=_company_payment_method,
             default_belief_rate=_chain_default_belief,
+            # THE COMPANY'S OWN DEFAULT TARIFF on the day: what it bills a household on its SVT,
+            # which is the published series this world bills that product at. A supplier knows
+            # its own default price; before the 2019 cap there is no ceiling to read it from.
+            own_default_tariff_inc_vat_gbp_per_mwh=(
+                _account_state_svt_rate(commodity, term_start_str)
+                if cid in _RESI_CUSTOMER_IDS else None),
         )
         unit_rate = _chain.unit_rate_gbp_per_mwh
         dynamic_pricing_log.extend(_chain.dynamic_pricing_entries)
@@ -2388,6 +2411,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             })
             if _svt_roll < _svt_p_depart:
                 churned_billing_accounts.add(billing_account)
+                _notify_registration_loss(billing_account, term_start_str)
                 _svt_event = departure_event(
                     customer_id=billing_account,
                     event_date=term_start_str,
@@ -2957,6 +2981,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                             "would_be_discount_pct": _would_be_discount_pct,
                         })
                     churned_billing_accounts.add(billing_account)
+                    _notify_registration_loss(billing_account, term_start_str)
                     # THE COMPANY'S COMPETITIVE OBSERVABLE, BOOKED WHERE EVERY DEPARTURE PASSES
                     # -- unconditionally. A `notify_churn` call sat eight lines below behind
                     # `if sim_interface is not None`, and that guard is why the first live
@@ -4233,6 +4258,8 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         "svt_decisions": _svt_decisions,
         "declined_on_the_riding_leg": _declined_on_the_riding_leg,
         "churned_billing_accounts": sorted(churned_billing_accounts),
+        # What the SUPPLIER holds about those departures, read from its own register.
+        "registration_losses_notified": _change_of_supplier_register.losses_notified(),
         "won_successor_activations": won_successor_activations,
         "hedge_evolution": evolution_logs,
         "total_gross": total_gross,

@@ -41,7 +41,7 @@ import json
 import statistics
 from pathlib import Path
 
-RULES = ("flat", "value", "value_blind", "value_learned")
+RULES = ("flat", "value", "value_blind", "value_learned", "value_capped")
 #: The value arm with the company's payment history taken away -- arrears state, unpaid bills and
 #: payment method stripped from the door, exactly what it saw before e0370bf94. Scored against
 #: "value" on the same decision, it is the payment-history fix measured rule against rule.
@@ -67,6 +67,36 @@ def _annual_mwh(records, customer_id: str, commodity: str, term_start: str) -> f
     return sum(kwh) / 1000.0 if kwh else None
 
 
+def stayer_pays(offer: float | None, term_start_str: str, commodity: str,
+                declinable: bool) -> float | None:
+    """The rate a STAYER pays on `offer`, by the world's own rule: a household that stays never
+    contracts a fix above the default it would otherwise be on, and is billed the default
+    (`renewal_outcome`'s dominance rule, live while `DECLINE_A_FIX_ABOVE_THE_DEFAULT`). The
+    default is read at the term start; the SVT segment it rolls onto reprices at each cap
+    period, which this one-term score does not follow."""
+    import simulation.customer_events as events
+    import simulation.run_phase2b as runner
+    from simulation.svt_product import _ex_vat as _svt_ex_vat
+
+    if not declinable or offer is None:
+        return offer
+    outcome = events.renewal_outcome(
+        event_type="renewed",
+        position_vs_default=events.position_vs_default(offer, term_start_str,
+                                                       commodity=commodity))
+    if outcome != events.RENEWAL_DECLINED_FIX:
+        return offer
+    default = runner._account_state_svt_rate(commodity, term_start_str)
+    return _svt_ex_vat(default) if default else offer
+
+
+def _believed(chain) -> float | None:
+    """The company's own P(stay) at the offer a priced chain struck, or None where the arm did
+    not price (declined, or no decision)."""
+    return next((e.get("believed_p_retain") for e in reversed(chain.value_arm_entries)
+                 if e.get("believed_p_retain") is not None), None)
+
+
 def probe(report_end: str | None = None, roll_seed: int | None = None) -> list[dict]:
     """Run the control path once and return one row per probed renewal.
 
@@ -81,6 +111,7 @@ def probe(report_end: str | None = None, roll_seed: int | None = None) -> list[d
     import simulation.run_phase2b as runner
     from company.policy.decision_policy import (
         CURRENT_POLICY,
+        VALUE_ARM_CAPPED_POLICY,
         VALUE_ARM_LEARNED_POLICY,
         VALUE_ARM_POLICY,
         policy_scope,
@@ -105,12 +136,17 @@ def probe(report_end: str | None = None, roll_seed: int | None = None) -> list[d
                 learned = real_price(**kw)
                 learned_delta = learned_correction(
                     kw.get("payment_method"), kw["commodity"], int(kw["term_start"][:4]))
-            levels = {}
+            # The value arm that knows a stayer is billed at most the default.
+            with policy_scope(VALUE_ARM_CAPPED_POLICY):
+                capped = real_price(**kw)
+            levels, believed_at_level = {}, {}
             for level in LEVEL_GRID:
                 with policy_scope(replace(CURRENT_POLICY, name="level_arm",
                                           renewal_margin_arm=FLAT_AT_LEVEL,
                                           renewal_margin_flat_level_gbp_per_mwh=float(level))):
-                    levels[level] = real_price(**kw).unit_rate_gbp_per_mwh
+                    at_level = real_price(**kw)
+                levels[level] = at_level.unit_rate_gbp_per_mwh
+                believed_at_level[level] = _believed(at_level)
             offers[(kw["customer_id"], kw["term_start"][:10], kw["commodity"])] = {
                 "billing_account": kw["billing_account"],
                 "base_gbp_per_mwh": float(kw["struck_unit_rate_gbp_per_mwh"])
@@ -118,15 +154,21 @@ def probe(report_end: str | None = None, roll_seed: int | None = None) -> list[d
                 "offer": {"flat": result.unit_rate_gbp_per_mwh,
                           "value": value.unit_rate_gbp_per_mwh,
                           "value_blind": blind.unit_rate_gbp_per_mwh,
-                          "value_learned": learned.unit_rate_gbp_per_mwh},
+                          "value_learned": learned.unit_rate_gbp_per_mwh,
+                          "value_capped": capped.unit_rate_gbp_per_mwh},
                 "learned_delta": learned_delta,
                 "levels": levels,
+                "believed_at_level": believed_at_level,
+                "believed_p_retain_capped": _believed(capped),
+                # Whether the world's decline-and-stay rule can reach this decision: the run loop's
+                # own conditions, less the splice (a mid-term join is not a renewal this probes).
+                "declinable": bool(runner.DECLINE_A_FIX_ABOVE_THE_DEFAULT
+                                   and kw.get("tariff_type") == "fixed"
+                                   and (kw.get("segment") or "resi") == "resi"),
                 # WHAT THE COMPANY BELIEVED about this customer staying, at its own offer: the
                 # value arm's churn belief, set beside the world's truth so the belief error is
                 # measured per decision. None where the arm declined or did not price.
-                "believed_p_retain": next((e.get("believed_p_retain")
-                                           for e in reversed(value.value_arm_entries)
-                                           if e.get("believed_p_retain") is not None), None),
+                "believed_p_retain": _believed(value),
             }
         return result
 
@@ -151,13 +193,24 @@ def probe(report_end: str | None = None, roll_seed: int | None = None) -> list[d
             "annual_mwh": _annual_mwh(records, cid, commodity, term_start_str),
             "base_gbp_per_mwh": round(held["base_gbp_per_mwh"], 4),
             "offer_gbp_per_mwh": {k: round(v, 4) for k, v in held["offer"].items()},
+            # What a household that STAYS is billed under each rule's offer: the offer, or the
+            # default where the world's decline rule refuses a fix above it.
+            "stayer_pays_gbp_per_mwh": {
+                k: round(stayer_pays(v, term_start_str, commodity, held["declinable"]), 4)
+                for k, v in held["offer"].items()},
             "true_p_retain": p,
             # The household's price before this renewal, as the roll was told it: with each rule's
             # offer it gives the company's OWN move, which is what a price slope is learned from.
             "old_rate_gbp_per_mwh": kw.get("old_rate_gbp_per_mwh"),
             "learned_delta": held["learned_delta"],
             "believed_p_retain_value": held["believed_p_retain"],
-            "level_grid": {str(lv): {"offer": round(o, 4), "p": level_p[lv]}
+            "believed_p_retain_capped": held["believed_p_retain_capped"],
+            # The company's own P(stay) at each grid offer beside the world's: the belief curve
+            # against the truth curve, per decision.
+            "level_grid": {str(lv): {"offer": round(o, 4), "p": level_p[lv],
+                                     "believed": held["believed_at_level"][lv],
+                                     "paid": round(stayer_pays(o, term_start_str, commodity,
+                                                        held["declinable"]), 4)}
                            for lv, o in held["levels"].items()},
         })
         return event
@@ -222,21 +275,25 @@ def expected_term_margin_gbp(row: dict, rule: str, bad_debt: bool = True,
     vol = row.get("annual_mwh")
     if not vol:
         return None
-    offer = row["offer_gbp_per_mwh"][rule]
+    # A stayer is billed what the world's decline rule leaves them on, not what was offered.
+    # Rows written before 2026-10-03 carry no such column and are scored on the offer.
+    offer = (row.get("stayer_pays_gbp_per_mwh") or row["offer_gbp_per_mwh"])[rule]
     stay = (offer - row["base_gbp_per_mwh"]) * vol
     if bad_debt and row.get("true_bad_debt_share") is not None:
         stay -= row["true_bad_debt_share"] * offer * vol
     if continuation:
-        flat_margin = (row["offer_gbp_per_mwh"]["flat"] - row["base_gbp_per_mwh"]) * vol
+        flat_margin = ((row.get("stayer_pays_gbp_per_mwh") or row["offer_gbp_per_mwh"])["flat"]
+                       - row["base_gbp_per_mwh"]) * vol
         stay += row.get("reference_renewals_after", 0) * flat_margin
     return row["true_p_retain"][rule] * stay
 
 
-def value_median_margin(rows: list[dict]) -> float | None:
-    """The value rule's median chosen margin over the decisions it priced: the level the book-level
+def value_median_margin(rows: list[dict], rule: str = "value") -> float | None:
+    """A value rule's median chosen margin over the decisions it priced: the level the book-level
     A/B holds its third arm at, taken from THIS book."""
-    m = [r["offer_gbp_per_mwh"]["value"] - r["base_gbp_per_mwh"] for r in rows
-         if r["offer_gbp_per_mwh"]["value"] != r["offer_gbp_per_mwh"]["flat"]]
+    m = [r["offer_gbp_per_mwh"][rule] - r["base_gbp_per_mwh"] for r in rows
+         if r["offer_gbp_per_mwh"].get(rule) is not None
+         and r["offer_gbp_per_mwh"][rule] != r["offer_gbp_per_mwh"]["flat"]]
     return statistics.median(m) if m else None
 
 
@@ -248,7 +305,12 @@ def with_level(rows: list[dict], level: float) -> list[dict]:
         if not grid:
             continue
         key = min(grid, key=lambda k: abs(float(k) - level))
-        out.append({**r,
+        extra = {}
+        if r.get("stayer_pays_gbp_per_mwh") is not None:
+            extra["stayer_pays_gbp_per_mwh"] = {
+                **r["stayer_pays_gbp_per_mwh"],
+                "level": grid[key].get("paid", grid[key]["offer"])}
+        out.append({**r, **extra,
                     "offer_gbp_per_mwh": {**r["offer_gbp_per_mwh"], "level": grid[key]["offer"]},
                     "true_p_retain": {**r["true_p_retain"], "level": grid[key]["p"]}})
     return out
@@ -276,6 +338,16 @@ def score(rows: list[dict], a: str = "value", b: str = "flat", resamples: int = 
     return {"decisions": n, "accounts": len(accounts), "total_gbp": round(total, 2),
             "bootstrap_sd_gbp": round(sd, 2) if sd else None,
             "snr": round(abs(total) / sd, 2) if sd else None}
+
+
+def capped_scores(rows: list[dict]) -> dict:
+    """The value rule that knows a stayer pays at most the default, against the value rule and
+    against a flat price at ITS OWN median margin."""
+    level = value_median_margin(rows, "value_capped")
+    levelled = with_level(rows, level) if level is not None else []
+    return {"capped_median_margin_gbp_per_mwh": level,
+            "capped_vs_value": score(rows, a="value_capped", b="value"),
+            "capped_vs_level": score(levelled, a="value_capped", b="level")}
 
 
 def main(argv=None) -> int:
@@ -313,6 +385,7 @@ def main(argv=None) -> int:
               "score_learned": {
                   "learned_vs_value": score(rows, a="value_learned", b="value"),
                   "learned_vs_flat": score(rows, a="value_learned", b="flat")},
+              "score_capped": capped_scores(rows),
               "score_value_vs_level": {
                   "margin_only": score(levelled, b="level", bad_debt=False),
                   "with_bad_debt": score(levelled, b="level"),
@@ -321,7 +394,8 @@ def main(argv=None) -> int:
     args.out.write_text(json.dumps(result, indent=1), encoding="utf-8")
     print(json.dumps({k: result[k] for k in ("value_median_margin_gbp_per_mwh",
                                               "score_value_vs_flat", "score_value_vs_level",
-                                              "score_payment_history", "score_learned")}))
+                                              "score_payment_history", "score_learned",
+                                              "score_capped")}))
     return 0
 
 

@@ -434,6 +434,14 @@ FLEX_NETWORK_OPERATOR_SENDER = "NETWORK-OPERATOR-01"
 #: document cannot say who handed it over.
 CONVERSATION_PLATFORM_SENDER = "CONTACT-PLATFORM-01"
 
+#: The company's counterparties on the REGISTRATION-LOSS seam (EP12) -- the
+#: services that tell a losing supplier a supply point has been registered away:
+#: the Central Switching Service from 18 July 2022, and before it MPAS for
+#: electricity and UK Link for gas. Three rows because they are three operators.
+CSS_PROVIDER_SENDER = "CSS-PROVIDER-01"
+MPAS_SENDER = "MPAS-01"
+UK_LINK_SENDER = "UK-LINK-01"
+
 #: Every counterparty this build will accept a message from. A sender absent
 #: from this mapping is REFUSED -- there is deliberately no default record and
 #: no wildcard, because a registry with a fallback is a registry that cannot
@@ -480,6 +488,30 @@ COUNTERPARTY_REGISTRY: Mapping[str, CounterpartyRecord] = MappingProxyType(
             # counterparty's CURRENT release, not what this build can read.
             speaks_schema_versions=frozenset({1}),
             # `simulation/conversation_response.py::PARTICIPANT_CREDENTIAL`.
+            nature=CounterpartyNature.STAND_IN,
+        ),
+        # The registration-loss seam's first release is v2 (dialect 1 has no
+        # notification). Credentials: `simulation/registration_loss_feed.py::
+        # CSS_PROVIDER_CREDENTIAL`, `MPAS_CREDENTIAL`, `UK_LINK_CREDENTIAL`.
+        CSS_PROVIDER_SENDER: CounterpartyRecord(
+            credential_sha256=(
+                "2ab1dd8b0fd21c106f706813af91bc6c80f81b35b02ae023eb87dfab43b49919"
+            ),
+            speaks_schema_versions=frozenset({2}),
+            nature=CounterpartyNature.STAND_IN,
+        ),
+        MPAS_SENDER: CounterpartyRecord(
+            credential_sha256=(
+                "1eac58b09f4bf25d55c4074d4a598d046bf45b53edc00dcd22fe65fc6ae4fba0"
+            ),
+            speaks_schema_versions=frozenset({2}),
+            nature=CounterpartyNature.STAND_IN,
+        ),
+        UK_LINK_SENDER: CounterpartyRecord(
+            credential_sha256=(
+                "073dce12675eee68de0a20bf71cca55d00063a6a416d8f4ff748850a81aee09b"
+            ),
+            speaks_schema_versions=frozenset({2}),
             nature=CounterpartyNature.STAND_IN,
         ),
     }

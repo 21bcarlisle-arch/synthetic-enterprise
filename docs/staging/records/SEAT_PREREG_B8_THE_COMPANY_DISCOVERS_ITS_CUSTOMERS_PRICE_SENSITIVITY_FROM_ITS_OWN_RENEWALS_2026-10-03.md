@@ -159,3 +159,15 @@ P(stay): sd 0.42 per decision), so correcting the slope while the level stays wr
 price the wrong way. **The next target is the LEVEL of the churn belief, not its slope.** Step 2's
 mechanism still lands: it closes a real learn/use mismatch, and the learned policy stays opt-in, so
 no default run moves.
+
+## Correction, 2026-10-03 (later the same day)
+
+Every probe margin above was scored on the OFFER. The world's decline-and-stay rule bills a stayer
+offered a fix above its default the default instead. The value-family rules priced above the
+default on most decisions, so their margins here are overstated.
+
+B8's comparisons are between two value rules that both sit mostly above the default. The
+direction of learned - value, and the step-2 refutation that learning a lower slope prices
+further the wrong way, are unaffected in kind; the sizes are not exact.
+
+See `SEAT_PREREG_A_STAYER_PAYS_THE_DEFAULT_SO_THE_VALUE_RULE_SHOULD_NOT_PRICE_ABOVE_IT_2026-10-03.md`.
