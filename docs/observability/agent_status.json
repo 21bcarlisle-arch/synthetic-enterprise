@@ -1,6 +1,6 @@
 {
   "_schema_version": "1",
-  "last_updated": "2026-10-03T01:03:45.054607+00:00",
+  "last_updated": "2026-10-03T03:04:54.755666+00:00",
   "agents": [
     {
       "name": "session-watchdog",
@@ -15,7 +15,7 @@
     {
       "name": "staging-watcher",
       "status": "idle",
-      "last_heartbeat": "2026-10-03T01:03:25.422655+00:00",
+      "last_heartbeat": "2026-10-03T03:04:54.755666+00:00",
       "last_action": "Watcher started",
       "last_action_ts": "2026-10-01T20:32:08.838241+00:00",
       "anomaly": null,
@@ -75,9 +75,9 @@
     {
       "name": "background-worker",
       "status": "idle",
-      "last_heartbeat": "2026-10-03T01:03:45.054607+00:00",
+      "last_heartbeat": "2026-10-03T02:34:55.801820+00:00",
       "last_action": "Worker started",
-      "last_action_ts": "2026-10-03T01:03:45.054607+00:00",
+      "last_action_ts": "2026-10-03T02:33:50.278626+00:00",
       "anomaly": null,
       "role": "Runs background automation tasks via local Qwen; respects 16-19 UTC peak hours",
       "produces": "docs/observability/background-worker-log.md"
@@ -85,9 +85,9 @@
     {
       "name": "epistemic-verifier",
       "status": "idle",
-      "last_heartbeat": "2026-10-02T14:31:24.417975+00:00",
+      "last_heartbeat": "2026-10-03T01:14:20.661486+00:00",
       "last_action": "Scan complete \u2014 PASS (0 violations)",
-      "last_action_ts": "2026-10-02T14:31:24.417975+00:00",
+      "last_action_ts": "2026-10-03T01:14:20.661486+00:00",
       "anomaly": null,
       "role": "Scans phase-close diffs for SIM/company epistemic barrier violations",
       "produces": "PASS/FAIL report to stdout"
@@ -95,9 +95,9 @@
     {
       "name": "discovery-agent",
       "status": "idle",
-      "last_heartbeat": "2026-09-30T05:20:19.655130+00:00",
-      "last_action": "Researched GB payment-method migration rates (DD<->SC<->PPM) 2016-2025 \u2014 H confidence for one Ofgem count (150,000 involuntary PPM installs/switches, Jan2022-Jan2023, combined not split); DD->non-DD and PPM->credit gross rates confirmed NOT ESTABLISHED anywhere published; DESNZ QEP payment-method series confirmed NET share only. Written to docs/market_research/gb_payment_method_migration_rates.md",
-      "last_action_ts": "2026-09-30T05:20:19.655130+00:00",
+      "last_heartbeat": "2026-10-03T01:41:46.732104+00:00",
+      "last_action": "Verified GB domestic switching seasonality (Jan trough, Oct peak, 1.56x ratio 2016-2025) -- H confidence, DESNZ/Ofgem Table 2.7.1 -- contradicts sim batch acquisition pattern in docs/market_research/gb_domestic_switching_by_calendar_month.md",
+      "last_action_ts": "2026-10-03T01:41:46.732104+00:00",
       "anomaly": null,
       "role": "Validates simulation assumptions against real UK market benchmarks",
       "produces": "docs/market_research/*.md, ASSUMPTIONS.md entries"
@@ -105,7 +105,7 @@
     {
       "name": "supervisor",
       "status": "idle",
-      "last_heartbeat": "2026-10-03T01:03:00.082571+00:00",
+      "last_heartbeat": "2026-10-03T03:02:35.386439+00:00",
       "last_action": "Supervisor started",
       "last_action_ts": "2026-10-02T06:32:24.629606+00:00",
       "anomaly": null,
@@ -115,9 +115,9 @@
     {
       "name": "sanity-daemon",
       "status": "idle",
-      "last_heartbeat": "2026-10-03T00:52:38.363005+00:00",
+      "last_heartbeat": "2026-10-03T02:52:39.404588+00:00",
       "last_action": "Cycle complete",
-      "last_action_ts": "2026-10-03T00:52:38.363005+00:00",
+      "last_action_ts": "2026-10-03T02:52:39.404588+00:00",
       "anomaly": null,
       "role": "Detective/sampling control: population-level consumption/unit-rate/estimated-read checks against domain_invariants.py every 30min",
       "produces": "sanity-daemon-log.md entries + one NTFY per new/changed finding set"
