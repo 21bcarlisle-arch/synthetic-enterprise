@@ -75,6 +75,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from company.crm.cos_process import CoSRegister
 from saas.customers import (
     ACQUIRED_CUSTOMERS,
     CUSTOMERS,
@@ -180,3 +181,12 @@ def register_acquired_point(
     hand back the live list.
     """
     return make_acquired_customer(customer_id, predecessor, acquisition_date)
+
+
+def open_change_of_supplier_register() -> CoSRegister:
+    """The supplier's change-of-supplier register for one run -- the book a lost
+    registration is filed in. The world hands it registration-loss notices
+    (`interface/contracts/registration_loss_seam.py`) through
+    `CoSRegister.receive_loss_notice` and nothing else, the same direction a real
+    registration service talks to a losing supplier."""
+    return CoSRegister()

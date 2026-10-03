@@ -1,7 +1,6 @@
 import pytest
-from company.crm.cos_process import (
-    CoSRegister, CoSProcess, CoSStage, ObjectionReason
-)
+
+from company.crm.cos_process import CoSProcess, CoSRegister, CoSStage, ObjectionReason
 
 
 def test_initial_stage_is_requested():
@@ -146,3 +145,93 @@ def test_cos_summary_objected_count():
     s = reg.cos_summary()
     assert s['objected'] == 1
     assert s['completed'] == 0
+
+
+# --- registration-loss notices (EP12, interface/contracts/registration_loss_seam.py) ---
+
+_CSS_CREDENTIAL = "css-provider-01::participant-credential::v1"
+
+
+def _loss_wire(point="C1", sefd="2023-03-01", seq=0, sender="CSS-PROVIDER-01",
+               credential=_CSS_CREDENTIAL, **extra_payload):
+    """A framed notice exactly as a registration service hands it over."""
+    payload = {"registration_ref": f"{point}@{sefd}", "supply_point_id": point,
+               "supply_effective_from_date": sefd, **extra_payload}
+    observed = "2023-02-28T17:00:00"
+    return {
+        "sender": sender, "credential": credential, "handed_over_at": observed,
+        "envelope": {
+            "notification_id": f"{sender}-{seq}",
+            "notification_type": "css_registration_secured_inactive",
+            "schema_version": 2, "sender": sender, "sequence": seq,
+            "observed_at": observed, "valid_time": sefd, "payload": payload,
+        },
+    }
+
+
+def test_a_loss_notice_opens_a_losing_side_process_once():
+    """Defect guarded: a notice filed twice on redelivery (the stream is
+    at-least-once), or filed as if this supplier had sent the request."""
+    reg = CoSRegister()
+    assert reg.receive_loss_wire(_loss_wire()) is True
+    assert reg.receive_loss_wire(_loss_wire()) is False
+    assert reg.losses_notified() == [{
+        "supply_point_id": "C1", "registration_ref": "C1@2023-03-01",
+        "supply_effective_from": "2023-03-01", "notified_on": "2023-02-28",
+        "stage": CoSStage.OBJECTION_CLEARED.value,
+    }]
+    (proc,) = reg.active_for_account("C1")
+    assert proc.gaining_supplier is None
+
+
+def test_the_company_refuses_a_notice_carrying_world_truth_by_name():
+    """Defect guarded: the company-side belt -- a departure field riding on the
+    notice is refused AS A LEAK (not merely as an unexpected key), and nothing is filed."""
+    reg = CoSRegister()
+    with pytest.raises(Exception, match="carries world truth: \\['random_roll'\\]"):
+        reg.receive_loss_wire(_loss_wire(random_roll=0.42))
+    assert reg.losses_notified() == []
+
+
+def test_only_a_registration_service_can_report_a_lost_registration():
+    """Defect guarded: an authenticated counterparty of another seam (the Bacs
+    bureau) filing a loss. The control arm is the CSS notice above, which files."""
+    from simulation.payment_seam_adapter import PARTICIPANT_CREDENTIAL as BACS_CREDENTIAL
+
+    reg = CoSRegister()
+    with pytest.raises(ValueError, match="is not a registration service"):
+        reg.receive_loss_wire(_loss_wire(sender="BACS-BUREAU-01", credential=BACS_CREDENTIAL))
+    assert reg.losses_notified() == []
+
+
+def test_a_forged_credential_is_refused_before_anything_is_filed():
+    """Defect guarded: a loss believed because it was well-formed."""
+    reg = CoSRegister()
+    with pytest.raises(Exception, match="BAD_CREDENTIAL|did not present"):
+        reg.receive_loss_wire(_loss_wire(credential="guess"))
+    assert reg.losses_notified() == []
+
+
+def test_a_payload_that_is_not_a_loss_notice_is_refused():
+    """Defect guarded: any unsolicited payload filed as a lost registration."""
+    from interface.contracts.wall_envelope import WallNotification
+
+    class NotALoss:
+        supply_point_id = "C1"
+
+    notification = WallNotification(
+        notification_id="x", notification_type="t", schema_version=2, sender="CSS-PROVIDER-01",
+        sequence=0, observed_at=__import__("datetime").datetime(2023, 2, 28, 17),
+        valid_time=None, payload=NotALoss(),
+    )
+    with pytest.raises(ValueError, match="not a registration-loss notice"):
+        CoSRegister().receive_loss_notice(notification)
+
+
+def test_a_gaining_side_process_is_not_reported_as_a_loss():
+    """Defect guarded: `losses_notified` reading every process, so a switch this
+    supplier is GAINING would be counted as one it lost."""
+    reg = CoSRegister()
+    reg.open_switch("C9", "2023-01-01", gaining="us", losing="them")
+    reg.receive_loss_wire(_loss_wire())
+    assert [r["supply_point_id"] for r in reg.losses_notified()] == ["C1"]

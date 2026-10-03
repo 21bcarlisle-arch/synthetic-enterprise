@@ -1590,6 +1590,12 @@ class ConversationVerdict:
       * `silent`      -- neither role is live. The seam describes an exchange this build does not
         have at either end. `envelope_wire_conformance` drops these before scoring ("no crossing,
         so nothing to red"); here they are the reason the question is being asked.
+    `notified` is the PASSING bucket for a seam that declares NO exchange: it specialises only
+    `WallNotification`, and its notification payload is constructed. Unsolicited inbound with no
+    request behind it is what that primitive is for, and it is the second repair `unsolicited`
+    names -- scoring it `silent` would red the very shape that bucket recommends. A
+    notification-only seam whose payload nobody constructs is still `silent`.
+
     `versionless` and `legless` are reported and NOT scored, carrying the same honesty the
     transport verdict carries: `wall_envelope` defines the shape rather than crossing, and a seam
     that specialises neither envelope has UNKNOWN roles, not absent ones.
@@ -1609,6 +1615,7 @@ class ConversationVerdict:
     silent: tuple[str, ...] = ()
     versionless: tuple[str, ...] = ()
     legless: tuple[str, ...] = ()
+    notified: tuple[str, ...] = ()
 
     @property
     def ok(self) -> bool:
@@ -1616,14 +1623,17 @@ class ConversationVerdict:
 
     def report(self) -> str:
         scored = (
-            len(self.conversant) + len(self.unsolicited)
+            len(self.conversant) + len(self.notified) + len(self.unsolicited)
             + len(self.unanswered) + len(self.silent)
         )
         lines = [
-            f"channel C conversations: {len(self.conversant)} of {scored} versioned seam(s) have "
-            "BOTH ends of the exchange they declare live in this build"
+            f"channel C conversations: {len(self.conversant) + len(self.notified)} of {scored} "
+            "versioned seam(s) have every role they declare live in this build"
         ]
         lines += [f"    * {s} -- both roles live" for s in self.conversant]
+        lines += [
+            f"    * {s} -- notification-only, and its notification is sent" for s in self.notified
+        ]
         lines += [
             f"    ! {s} -- UNSOLICITED INBOUND: the response role is live and NOTHING IN THIS "
             "BUILD EVER ASKS. The company receives these as answers to a request it never sent, "
@@ -1675,6 +1685,7 @@ def seam_conversation_conformance(root: str) -> ConversationVerdict:
         return ConversationVerdict()
     constructed = constructed_type_names(root)
     conversant: list[str] = []
+    notified: list[str] = []
     unsolicited: list[str] = []
     unanswered: list[str] = []
     silent: list[str] = []
@@ -1691,7 +1702,9 @@ def seam_conversation_conformance(root: str) -> ConversationVerdict:
         payloads = leg_payload_types(root, seam)
         asks = bool(payloads[REQUEST_LEG] & constructed)
         answers = bool(payloads[RESPONSE_LEG] & constructed)
-        if asks and answers:
+        if seam_legs(root, seam) == {NOTIFICATION_LEG}:
+            (notified if payloads[NOTIFICATION_LEG] & constructed else silent).append(seam)
+        elif asks and answers:
             conversant.append(seam)
         elif answers:
             unsolicited.append(seam)
@@ -1713,6 +1726,7 @@ def seam_conversation_conformance(root: str) -> ConversationVerdict:
         silent=tuple(silent),
         versionless=tuple(versionless),
         legless=tuple(legless),
+        notified=tuple(notified),
     )
 
 
@@ -2078,6 +2092,11 @@ SURFACE_PINS: dict[str, tuple[int, str]] = {
     # is observable (printed on every real ARUDD line, and a pure function of the
     # category v2 already carried) is recorded at the version constant in the seam.
     "interface.contracts.payment_observable_seam": (3, "a1450e3f87c751a5"),
+    # v2, EP12, 2026-10-03: the seam's FIRST release, numbered 2 because dialect 1 has no
+    # notification. Pinned in the commit that gave it a producer and a consumer. Its three
+    # fields are what REC Schedule 23 establishes about the registration a Secured Inactive
+    # notice concerns; the judgement is at the dataclass in the seam.
+    "interface.contracts.registration_loss_seam": (2, "a0bfe68a49ca5cb1"),
 }
 
 
