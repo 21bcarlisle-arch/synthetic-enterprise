@@ -777,6 +777,7 @@
   level_current: 0
   level_target: 3
   loop_stage: idle
+  frame_saturated: true   # 2026-10-03: pass 4 drawn hours after pass 3 (724291cf8) with no company/saas/simulation commit since; nothing to re-grade. Owed: BUILD (ten-module adjudication, F9 clamp), epoch-gated; F10 losses is a world-fidelity item first.
   dial_inherited: 45    # R2 -- DIRECTOR_CANON_RERANKING_THE_ARC_2026-09-04 §2/§5.
   provenance: director_ruling
   depends_on: []
