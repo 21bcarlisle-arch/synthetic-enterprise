@@ -924,7 +924,7 @@
   lane: W4_the_wall
   value_stream: meter_to_cash
   epoch: 3
-  level_current: 0
+  level_current: 1
   level_target: 3
   loop_stage: idle
   block_reason: null    # LIFTED by DIRECTOR_CANON_RERANKING_THE_ARC_2026-09-04 §4.
@@ -934,7 +934,7 @@
   couples_with: []
   records_rehomed: [evidence]
   simplifications_count: 1
-  file_scope: []
+  file_scope: [interface/contracts/registration_loss_seam.py, simulation/registration_loss_feed.py, company/crm/cos_process.py, tests/interface/test_registration_loss_seam.py, tests/simulation/test_registration_loss_feed.py]
 - id: EP13_adapter_carbon_intensity
   title: "Carbon from the actual grid, half-hour by half-hour"
   notes_rehomed: [gain, level_hold_note, name, origin_note]
