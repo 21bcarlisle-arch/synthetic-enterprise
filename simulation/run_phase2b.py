@@ -1881,7 +1881,28 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
     # Phase NH: payment behaviour analytics -- three-signal churn model wiring
     # (now one arm of the customer-experience desk above, §3p)
     _payment_rng = random.Random(42 + 7919)
-    _payment_month_seen: set[tuple[str, str]] = set()  # (cid, YYYY-MM)
+    # ONE BILL PER LEG PER MONTH, POSTED WHEN THE MONTH CLOSES (2026-10-03). The bill is the month's
+    # settled revenue summed, not the first settlement record's (a half-hour, median GBP 0.023 over
+    # a decade). Terms run in date order across customers and a renewal splits a month between two
+    # terms of one leg, so a month is held open per leg and posted when that leg's next month starts
+    # or the run ends -- never twice, since the ledger keys a bill on (customer, month).
+    _payment_month_open: dict[str, dict] = {}  # cid -> the month being accumulated
+
+    def _post_month_bill(cid: str, held: dict) -> None:
+        _pm_rec = _payment_triad.record_period(
+            customer_id=cid,
+            due_date=date.fromisoformat(held["month"] + '-28'),
+            amount_gbp=held["amount_gbp"],
+            income_stress_value=held["income_stress_value"],
+            segment=held["segment"],
+        )
+        _cx_desk.observe_payment(PaymentOutcome(
+            customer_id=cid,
+            due_date=_pm_rec["due_date"],
+            result=_pm_rec["result"],
+            days_late=_pm_rec["days_late"],
+            amount_gbp=_pm_rec["amount_gbp"],
+        ))
     # L3 payment coupled triad (W2_11 source / W4_4 seam / D5 consumer / gap),
     # LIVE per-run. W2_11's generate_payment_event is now the CANONICAL payment
     # truth: the analytics dict below is DERIVED from that single event (one
@@ -3509,24 +3530,17 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             # ALSO crosses the W4_4 seam into the D5 consumer belief LIVE. The
             # analytics dict fed here is DERIVED from that single event -- one
             # coherent reality per customer/period, no second independent draw.
-            _pm_key = (cid, rec['settlement_date'][:7])
-            if _pm_key not in _payment_month_seen:
-                _payment_month_seen.add(_pm_key)
-                _pm_due = date.fromisoformat(rec['settlement_date'][:7] + '-28')
-                _pm_rec = _payment_triad.record_period(
-                    customer_id=cid,
-                    due_date=_pm_due,
-                    amount_gbp=rec.get('revenue_gbp', 0.0),
-                    income_stress_value=(_income_stress.value if _income_stress is not None else None),
-                    segment=cust_segment,
-                )
-                _cx_desk.observe_payment(PaymentOutcome(
-                    customer_id=cid,
-                    due_date=_pm_rec["due_date"],
-                    result=_pm_rec["result"],
-                    days_late=_pm_rec["days_late"],
-                    amount_gbp=_pm_rec["amount_gbp"],
-                ))
+            _held = _payment_month_open.get(cid)
+            if _held is not None and _held["month"] != rec_month:
+                _post_month_bill(cid, _payment_month_open.pop(cid))
+                _held = None
+            if _held is None:
+                _held = _payment_month_open[cid] = {
+                    "month": rec_month, "amount_gbp": 0.0,
+                    "income_stress_value": (
+                        _income_stress.value if _income_stress is not None else None),
+                    "segment": cust_segment}
+            _held["amount_gbp"] += float(rec.get('revenue_gbp', 0.0) or 0.0)
             # Real-time placeholder only -- simulation.run_phase4c_on_phase2b.main()
             # overwrites this with real, emergent bad debt from the payment/
             # arrears model (simulation.arrears_engine) once bills exist (Phase QD).
@@ -3709,6 +3723,10 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             f"unit_rate={_rate_str}  "
             f"actual_net=£{actual_net:8.2f}  naked_net=£{naked_net:8.2f}"
         )
+
+    # The months still open when the run ended are billed: the last month of every leg.
+    for _open_cid in list(_payment_month_open):
+        _post_month_bill(_open_cid, _payment_month_open.pop(_open_cid))
 
     # =================== REPORTING ===================
 
