@@ -1,8 +1,9 @@
-# EP3_pricing_engine_late_truth — DISCOVER passes 1–2
+# EP3_pricing_engine_late_truth — DISCOVER passes 1–3
 
 *Pass 1 (2026-08-17) is the body below. Pass 2 (2026-08-18) is appended at the end and **corrects pass
 1's live-path census**: the census seeded from one door and missed the other, so pass 1's headline
-"the decided margin is 1.0%" measured one of two live legs. Read pass 2's F5 before citing pass 1's F1.*
+"the decided margin is 1.0%" measured one of two live legs. Read pass 2's F5 before citing pass 1's F1. Pass 3 (2026-10-03) re-grades F1–F8 against a run seven
+weeks and ~30 pricing commits later, and does the ten-module adjudication both earlier passes owed.*
 
 **DISCOVER/FRAME ONLY.** `level_current` stays 0, `loop_stage` stays `idle`, no BUILD code written,
 nothing in `file_scope` touched (it is empty). EPOCH_GATING_AND_ATOM_AUTHORSHIP rule 1 makes
@@ -367,3 +368,121 @@ the standing charge (pass 1 F1b).
    have: `EP5_settlement_true_ups` is itself level 0 / idle, so `EP3 depends_on EP5` is a *sequencing
    claim* — it would say EP3 cannot build until EP5 does — and that is a BUILD-order decision, not a
    DISCOVER one. Whoever opens either atom takes it with that consequence stated.
+
+---
+
+# DISCOVER pass 3 — 2026-10-03
+
+**DISCOVER/FRAME ONLY.** `level_current` stays 0, `loop_stage` stays `idle`, no BUILD code written,
+nothing in `file_scope` touched (it is empty). Measured at HEAD `a0144d9df` against the published run
+`docs/reports/run_output_latest.json`, whose `producing_commit` stamp is `5583b9121` (2026-10-03
+10:20Z), so the run's code is today's. R9 labels throughout.
+
+Thirty-two commits have touched the pricing lane since pass 2: the value arm, bad-debt cost read
+from arrears, writer 3's supply-point fix, the ex-VAT cap ceiling, the end of the portfolio premium's
+look-ahead, and others. So every earlier finding is first a claim to re-check before anything is built
+on it.
+
+## Re-grade of F1–F8
+
+| Finding | At HEAD `a0144d9df` | Evidence |
+|---|---|---|
+| F1 `eac_kwh` dead in `price_fixed_tariff` | **Still true** | Same call as pass 1 over 500 / 2,000 / 3,000 / 10,000 / 50,000 kWh: one distinct rate, £196.761/MWh. *observed* |
+| F1b standing charge recovers CTS | Not re-run | No commit touched `simulation/policy_costs.py` standing-charge values for the sampled years in a way that would flip it. The standing charge is now ex-VAT (10-01), which lowers it by 1/1.05 and does not close the margin. *inferred* |
+| F1c the fixed line is not a company decision | **Still true** | The standing charge is still a world table. No `company/` module decides it. *observed (grep)* |
+| F2 no true-up mechanism | **Still true** | `true_up\|trueup\|true-up` over company/ saas/ simulation/ sim/ gives 2 lines, both prose. No `def`/`class` match. EP5 is still level 0 / idle with `depends_on: []`. *observed* |
+| F4 carbon guard named a moved path | **Fixed 2026-08-22** | `tests/company/test_carbon_not_a_target.py:133-136` now names `company/pricing/`. *observed* |
+| F5 two live legs | **Still true, plus a third that is NOT live** | The value arm (`company/pricing/value_based_renewal.py`) prices per customer, but the published run carries no `value_arm_log` key, so it ran `flat_rules`. The value arm reaches only the A/B tools (`tools/run_value_cycle_ab.py`). *observed* |
+| F6 a third of firings sit on a clamp | **Worse: now 65%** | See F9. *observed* |
+| F7 writer 3 cannot fire | **Resolved** | `profitability_uplift` fires 13 of 2,235 (0.58%), every one at exactly £5.00/MWh, which is `NET_NEGATIVE_UPLIFT_GBP_PER_MWH` (`company/crm/customer_profitability.py:191`), labelled there as a belief awaiting a ruling. The cause pass 2 named (`term_start` absent from settled rows) is no longer the binding one: `28ba48dd4` fixed the billing-account vs supply-point mismatch. Whether the `term_start` leg was also fixed, or is fed some other way, I did not trace. *observed (counts) / not traced (cause)* |
+| F8 the falsifier is satisfiable by back-calculation | **Still true as worded** | Nothing in the first-term strike changed (F1). |
+
+## F9 — The controller is now on its clamp in two firings of every three, and in five whole years it is a flat −5%.
+
+*observed.* `rate_decomposition_log`, n = 2,235 renewals (pass 2: 118). 1,459 electricity, 776 gas. No
+renewal is unmoved.
+
+| Writer | Fires | At a hard-coded bound | Bound |
+|---|---|---|---|
+| `portfolio_premium` | 2,213 | **1,463 (66.1%)**: 1,246 at −5.00%, 217 at +15.00% | `PORTFOLIO_PREMIUM_MIN/MAX`, `company/pricing/tariff_engine.py:75-76` |
+| `margin_surcharge` | 276 | **149 (54.0%)** at 20.00% | `FEEDBACK_MAX_SURCHARGE`, `company/pricing/margin_feedback.py:30` |
+| `profitability_uplift` | 13 | 13 (100%) at £5.00/MWh | flat by design (F7 row) |
+| `price_cap` | 590 | n/a (a ceiling, correctly binding) | ex-VAT cap |
+
+Premium plus surcharge: **1,612 of 2,489 firings (64.8%) are set by a bound, not by an input.** Pass 2
+measured 30.5% of 167. Median total move is −5.00% (pass 2: −1.44%); range −63.72% to +41.46%.
+
+By term-start year, the premium's share at the −5% floor: 2016 37/37, 2020 215/217, 2023 276/303,
+2024 230/235. In those years the company's "explicit margin decision" is a single literal applied to
+every renewal. 2022 is the mirror image, with 189 of 275 at the +15% ceiling.
+
+**What the −5% floor means.** `compute_portfolio_premium` is `clamp((0.08 − mean_margin) × 0.5, −0.05,
++0.15)`. A −5% clamp is reached when the mean realised margin rate of the last four *ended* terms
+is ≥ 18%, against a target of 8%. *inferred from the formula.* So in four of ten years the book earns
+more than twice its target and the controller could cut further, but is not allowed to. The +15%
+ceiling in 2022 is the opposite case: the book is losing and the controller is not allowed to raise
+the price further.
+
+**Why it moved since pass 2:** I cannot yet say. The book is about nineteen times larger. The
+look-ahead fix (10-01) changed what the premium reads. The ex-VAT cap ceiling, bad debt from arrears
+and the VAT basis all moved margins. More than one thing changed. The one-variable runs would be
+HEAD with each of those reverted in turn, and I have not run them.
+
+**Why it matters for EP3:** pass 2 said the margin decision "is already built, as a controller". It
+is still built, but for two-thirds of decisions its output is a constant. Nothing about a customer,
+a cost or the market sets the price. That is the strongest current form of the director's Q1
+suspicion. The price is not back-calculated from costs. In most years it is not calculated at all.
+**None of the four bounds and none of the 0.08 setpoint and 0.5 half-life have a cited source.** Their
+comments state intent only (`tariff_engine.py:72-76`, `margin_feedback.py:30`).
+
+## F10 — "Losses" is missing on BOTH sides of the wall.
+
+*observed (grep).* EP3's cost stack names losses first after wholesale. On the company side, `losses`
+has no term in `price_fixed_tariff` (pass 1). `company/market/llf_register.py` (172 lines) models LLFs
+and has no non-test importer. On the world side, `llf|line.loss|loss_factor|transmission loss` over
+`simulation/` and `sim/` source matches nothing but three binary data files. **The world settles the
+supplier at metered volume.** A real GB supplier is charged for metered volume grossed up by the
+distribution LLF and the transmission loss multiplier.
+
+Consequence: the company cannot be wrong about losses, because the world never charges them. Adding a
+losses term to the price alone would be an R12-shaped move: a price term with no matching cost would
+read as extra margin. The order is world first, as a fidelity change decided blind to company results,
+and only then the company term. The size of the gap is **not established here**. The published LLF and
+TLM values are the knowledge to research before any number is written. File it as a world-fidelity gap
+rather than carry it as an EP3 build item.
+
+## The ten-module adjudication (owed since pass 1)
+
+Re-confirmed: all ten still have zero non-test importers, at the same line counts as pass 2, and none
+has a commit since 2026-08-24 (most since late June). The method: an AST import census over every
+tracked `.py`. The string references found by grep were checked and are name collisions (for example,
+`saas/cost_to_serve.py` is a different module from `company/pricing/cost_to_serve.py`) or comments
+(`renewal_desk.py:130,174` cite `renewal_pricing_engine` in prose only).
+
+| Module | Verdict | Why |
+|---|---|---|
+| `pricing/renewal_pricing_engine` (192) | **DELETE** | Its contract (CTS floor, SVT ceiling, elasticity, expected margin) is now held by `pricing/value_based_renewal.py`, which has real callers. Two engines with the same contract is pass 1's "biggest risk", realised twice. |
+| `pricing/price_elasticity` (217) | **DELETE or FOLD** | The company's churn belief lives in `crm/churn_model.py` and the value arm. Its CMA/Ofgem citations should be checked against `docs/market_research/` before deleting, so a sourced figure is not lost the way £55 CAC nearly was. |
+| `crm/portfolio_repricing` (181) | **DELETE** | It reprices on EAC drift. The price does not depend on EAC (F1), so the action it schedules cannot change anything. Revisit only if a size-sensitive term is built. |
+| `pricing/tariff_smoothing` (86) | **DELETE** | A per-year smoothing reserve with no caller. The live controller already smooths (half-life 0.5). |
+| `pricing/cost_to_serve` (138) | **FOLD into `saas/cost_to_serve.py`** | The live CTS is `saas/cost_to_serve.py`, with ~50 importers. Fold any segment breakdown it uniquely holds, then delete. |
+| `pricing/segment_profitability` (153) + `finance/segment_profitability` (154) | **Out of EP3. Dedupe to one** | These are reporting, not pricing. Same name, two packages, different content. Hand them to the finance lane. |
+| `market/llf_register` (172) | **PARK behind F10** | It is the company-side half of losses. It is only meaningful once the world charges losses. |
+| `pricing/price_transparency_register` (181) | **Out of EP3** | SLC 31 publication is a compliance duty, not a price decision. It belongs with risk and compliance. |
+| `billing/tariff_change_log` (101) | **Out of EP3** | SLC 22 notice timing. Note that `crm/tariff_notification.py` has no non-test caller either, so the notice duty has no live implementation at all. Compliance lane. |
+
+So **four of the ten are not EP3's subject at all**: they are named here only because they sit in
+`company/pricing/`. Of EP3's own modules, five are dead weight or folds, and one waits on a world change.
+
+## What EP3's BUILD should be, restated
+
+1. **Replace the clamp-bound controller's literals with sourced or derived values, or remove the
+   controller.** This is F9. It is the largest live effect and has no source. The value arm is the
+   designed replacement, so the real BUILD question is *what stops the value arm from being the
+   published run's arm*. That question has an answer in the value-cycle A/B record, and BUILD should
+   start by reading it.
+2. **Late truth (EP5) stays a sequencing dependency.** It is unchanged since pass 2's note. Do not
+   write `depends_on` until whoever opens either atom decides the order.
+3. **The deletes in the adjudication** are cheap and reversible. They can land in any lane without
+   opening EP3, because they remove code nothing runs.
+4. **Losses (F10)** go to the world lane as a fidelity item first.
