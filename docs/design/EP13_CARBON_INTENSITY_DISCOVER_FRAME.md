@@ -2175,3 +2175,65 @@ leg this pass could not test). (2) The numerator on windy days: emissions per MW
 binned by wind decile, against NESO's implied figure. (3) The 2024 level, +1.3 GW and still
 unattributed. No level move: the Expert Hour still has to weigh the shared-input share of the
 correlation (§22).
+
+## 30. 2026-10-03 — EMBEDDED WIND'S MAGNITUDE AGAINST DESNZ: NESO is not high, so the energy is not the overshoot
+
+§29 left the magnitude leg open: WT borrowed NESO's annual embedded energy, so if NESO ran high,
+part of the between-day overshoot would be magnitude. This pass measured it and built nothing. No
+fetch. Scratch and the timestamped predictions are in `/var/tmp/se-ep13-s30/` (`measure.py`,
+`prediction.txt`, `out.txt`).
+
+**The quantity.** DESNZ does not publish embedded wind as such. It publishes all wind
+(`docs/market_research/w1_7_dukes_generation_and_load_factor_annual.json`, ET 6.1, onshore plus
+offshore). FUELHH `WIND` is the transmission-metered part (§21 showed it agrees with DESNZ wherever
+the two can be compared). So **DESNZ-implied embedded wind = ET 6.1 total wind − FUELHH WIND**,
+per calendar year. NESO's figure is the annual sum of `wind_mw` in the cached embedded series.
+Both caches cover 100% of the half hours in every year. **The bases differ:** ET 6.1 is UK, so it
+includes Northern Ireland; FUELHH and NESO are GB. Northern Ireland's wind output is not in the
+knowledge layer, so the implied figure is an upper bound on GB embedded wind, by an unsized amount.
+
+**Predictions (02:15Z, before `measure.py` was written).** P1: NESO / implied lies in 0.75–1.00
+in every year 2019–24. P2: NESO never exceeds the implied UK figure. P3: the ratio varies by less
+than 0.15 across 2019–24.
+
+| GWh | 2016 | 2017 | 2018 | 2019 | 2020 | 2021 | 2022 | 2023 | 2024 |
+|---|---|---|---|---|---|---|---|---|---|
+| ET 6.1 wind (UK) | 37,159 | 49,641 | 56,908 | 63,835 | 75,623 | 64,924 | 80,214 | 82,767 | 83,618 |
+| FUELHH WIND (GB) | 21,193 | 32,337 | 39,413 | 46,431 | 54,680 | 48,954 | 61,641 | 63,396 | 65,642 |
+| implied embedded (UK) | 15,967 | 17,304 | 17,495 | 17,404 | 20,943 | 15,969 | 18,573 | 19,372 | 17,976 |
+| NESO embedded (GB) | 10,708 | 13,590 | 14,625 | 15,545 | 18,242 | 14,827 | 16,580 | 15,567 | 16,972 |
+| **NESO / implied** | 0.671 | 0.785 | 0.836 | **0.893** | **0.871** | **0.928** | **0.893** | **0.804** | **0.944** |
+| gap, mean MW | 599 | 424 | 328 | 212 | 308 | 130 | 228 | 434 | 114 |
+
+**Against the predictions.** All three held. P3 held only just, with a spread of 0.140 against
+0.15.
+
+**What it establishes.**
+- **NESO's embedded wind is not too large.** In 2019–24 it is 0.80–0.94 of the UK figure DESNZ
+  implies. That figure still includes Northern Ireland. The magnitude leg §29 left open therefore
+  cannot explain the between-day overshoot. If NESO's figure is wrong, it is LOW, and more embedded
+  energy on windy days would widen between-day further, not narrow it.
+- **2020, the outlier year on between-day (1.111), is unremarkable here** (0.871, mid-range). So
+  magnitude does not single out the year the overshoot is worst in.
+- §29's conclusion stands. The overshoot is in what the numerator does on windy days, and the next
+  pass is the numerator by wind decile.
+
+**What it does NOT establish.**
+- **How much of the 114–434 MW gap is Northern Ireland.** Northern Ireland's wind generation is an
+  unsourced gap, so the gap cannot be split between NI and a GB shortfall in NESO's estimate. In
+  2023 the ratio dips to 0.804, a 434 MW gap, and nothing here attributes that.
+- **That FUELHH carries every transmission-connected wind unit.** A non-BM transmission unit would
+  sit in the implied figure and push the ratio down. In that case NESO would be even less likely to
+  be high, so the direction of the conclusion holds.
+- 2016–18 ratios of 0.67–0.84 are reported and not weighed. Those years are outside the 2019–24
+  comparison window.
+
+**Side reading, not a leg of this pass.** NESO's embedded SOLAR is 0.90–0.97 of ET 6.1 solar
+(also UK) in every year. The model does not consume it (its solar is AGWS, §19).
+
+**Controls.** None. Nothing shipped changed and the feed is byte-identical.
+
+**Next.** (1) The numerator on windy days: emissions per MWh of residual, binned by wind decile,
+against NESO's implied figure. (2) The 2024 level, +1.3 GW and still unattributed. (3) A
+Northern Ireland wind figure (DfE NI publishes annual renewable generation), which would close
+the basis gap in this table. No level move.
