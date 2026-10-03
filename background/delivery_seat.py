@@ -1977,37 +1977,48 @@ def write_stretch_entry(row: dict, append_fn=None) -> bool:
     return row["stretch_entry"]
 
 
-def commit_direction() -> tuple[bool, str]:
+#: Gate runs a direction landing may spend after losing the race to another writer -- the publish
+#: landing's argument (`process_run_complete.PUBLISH_LAND_ATTEMPTS`): the second covers the one
+#: commit that arrived during the first, and the next orientation is a cheaper place for a third.
+DIRECTION_LAND_ATTEMPTS = 2
+
+
+def commit_direction(lander=None) -> tuple[bool, str]:
     """Commit ONLY `direction.WRITE_SCOPE`. THE PATHSPEC IS THE CONTROL, not a promise: anything
     the session touched outside it is left where it is, so this seat cannot become a writer on
-    the code tree even if its session tries to be one."""
+    the code tree even if its session tries to be one.
+
+    THROUGH `surgical_land.land`, NOT `git commit` (2026-10-03). Of the 11 failed commits since
+    the reason was logged (09-30), 10 were contention and not a verdict: HEAD moved under the
+    ~18-minute gate six times ("cannot lock ref 'HEAD'"), and another writer held `index.lock`
+    at `git add` four times. Neither was retried, so the record and the feed stayed uncommitted
+    until the next orientation, three hours on -- and that held H45's level, which waits on this
+    feed. The landing door gates the tree the commit would create, never takes the shared index,
+    and re-gates against the new HEAD when the race is lost; a red gate stays terminal."""
     present = [p for p in (*direction_mod.WRITE_SCOPE, *SEAT_WRITTEN) if (PROJECT_DIR / p).exists()]
     if not present:
         return False, "nothing in the write scope exists to commit"
-    add = subprocess.run(["git", "add", "--", *present], cwd=str(PROJECT_DIR),
-                         capture_output=True, text=True)
-    if add.returncode != 0:
-        # `git add` rc has been unchecked here before and surfaced later as a misleading
-        # "pathspec did not match any file(s) known to git". It is checked.
-        return False, f"git add rc={add.returncode}: {add.stderr.strip()[:200]}"
-    staged = _git("diff", "--cached", "--name-only", "--", *present).split()
-    if not staged:
+    if not _git("status", "--porcelain", "--", *present).strip():
         return True, "nothing changed in the write scope"
-    commit = subprocess.run(
-        ["git", "commit", "-m", "delivery seat: direction for the next stretch", "--", *present],
-        cwd=str(PROJECT_DIR), capture_output=True, text=True)
-    if commit.returncode != 0:
-        # WHY, NOT ONLY THAT (2026-09-30): 18 of 40 orientations since 09-24 failed here -- rc=1 ten
-        # times, rc=128 eight -- and the log carried only the number, so nothing could say whether
-        # it was a hook refusal, index-lock contention on the shared tree, or something else. Git's
-        # own words are the diagnosis; the tail is enough to classify them.
-        why = " | ".join((commit.stderr or commit.stdout or "").strip().splitlines()[-3:])[:300]
-        return False, f"commit rc={commit.returncode}: {why or 'git gave no message'}"
+    from tools import surgical_land
+    content = {p: (PROJECT_DIR / p).read_bytes() for p in present}
+    try:
+        sha = (lander or surgical_land.land)(
+            PROJECT_DIR, present, "delivery seat: direction for the next stretch",
+            attempts=DIRECTION_LAND_ATTEMPTS, content=content)
+    except surgical_land.IndexNotRefreshed as exc:
+        # THE COMMIT LANDED; only the shared index disagrees. Calling it unlanded is the one
+        # reading this type exists to make impossible -- the record is on HEAD.
+        sha = exc.sha
+    except Exception as exc:  # noqa: BLE001 -- a refusal is a value; the record is already on disk
+        # The refusal's own words are the diagnosis (2026-09-30: a bare rc classified nothing).
+        why = " | ".join(str(exc).strip().splitlines()[:3])[:300]
+        return False, f"landing refused ({type(exc).__name__}): {why or 'no message'}"
     # AND THEN SEND IT. `ok` stays keyed to the COMMIT and never to the push: the direction record
     # exists once the commit lands, and reporting `committed: false` for a rejected push would
     # make the row lie about the thing it names. The push outcome rides out in the detail, which
     # is what `orient` logs.
-    return True, f"commit rc=0; {_push_direction_or_say_why()['reason']}"
+    return True, f"commit rc=0; landed {sha[:9]}; {_push_direction_or_say_why()['reason']}"
 
 
 def out_of_scope_writes() -> list[str]:

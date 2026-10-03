@@ -430,6 +430,64 @@ def test_the_direction_commit_is_PUSHED_and_the_row_still_reports_the_COMMIT():
     assert "return True, f\"commit rc=0;" in source
 
 
+def test_the_direction_LANDS_through_the_landing_door_and_every_outcome_is_REACHABLE(
+        tmp_path, monkeypatch):
+    """2026-10-03: 10 of the 11 direction commits that failed with a logged reason since 09-30 were
+    contention -- HEAD moved under the gate, or another writer held `index.lock` -- and a bare
+    `git commit` retried neither, so the record and the feed sat uncommitted for a whole stretch.
+    `surgical_land.land` re-gates against the new HEAD and never takes the shared index.
+
+    The whole partition at once: unchanged, landed, refused, landed-with-a-stale-index -- a commit_direction that returned
+    one verdict for every input passes any single leg.
+
+    MUTATIONS (must fire): restore the `git add` + `git commit` path (the stubbed door is never
+    called); read the content from anywhere but the scope's own bytes; return `True` on a refusal;
+    drop the `IndexNotRefreshed` arm (a landed record would read `committed: false`).
+    """
+    from tools import surgical_land
+
+    monkeypatch.setattr(seat, "PROJECT_DIR", tmp_path)
+    monkeypatch.setattr(seat.direction_mod, "WRITE_SCOPE", ("docs/direction/DIRECTION.yaml",))
+    monkeypatch.setattr(seat, "SEAT_WRITTEN", ("docs/status/SEAT_STRETCH_LOG.md",))
+    monkeypatch.setattr(seat, "_push_direction_or_say_why", lambda: {"reason": "pushed"})
+    (tmp_path / "docs/direction").mkdir(parents=True)
+    (tmp_path / "docs/direction/DIRECTION.yaml").write_bytes(b"focus: []\n")
+    # SEAT_STRETCH_LOG.md is deliberately absent: a missing scope path is not landed.
+
+    calls = []
+
+    def door(root, paths, message, attempts, content):
+        calls.append({"root": root, "paths": paths, "attempts": attempts, "content": content})
+        if refuse == "refused":
+            raise surgical_land.LandingRefused("HEAD moved under the gate on all 2 attempt(s)")
+        if refuse == "index":
+            raise surgical_land.IndexNotRefreshed("the commit LANDED; index lock", sha="fedcba9876543")
+        return "abcdef1234567"
+
+    monkeypatch.setattr(surgical_land, "land", door)
+
+    monkeypatch.setattr(seat, "_git", lambda *a: "")
+    refuse = None
+    unchanged = seat.commit_direction()
+    assert unchanged == (True, "nothing changed in the write scope") and not calls
+
+    monkeypatch.setattr(seat, "_git", lambda *a: " M docs/direction/DIRECTION.yaml")
+    landed = seat.commit_direction()
+    refuse = "refused"
+    refused = seat.commit_direction()
+    refuse = "index"
+    landed_index_stale = seat.commit_direction()
+
+    assert landed[0] is True and "abcdef123" in landed[1]
+    assert refused[0] is False and "HEAD moved under the gate" in refused[1]
+    # IndexNotRefreshed is a LandingRefused whose commit is ON HEAD: it must read as committed.
+    assert landed_index_stale[0] is True and "fedcba987" in landed_index_stale[1]
+    assert len(calls) == 3
+    assert calls[0]["paths"] == ["docs/direction/DIRECTION.yaml"]
+    assert calls[0]["content"] == {"docs/direction/DIRECTION.yaml": b"focus: []\n"}
+    assert calls[0]["attempts"] == seat.DIRECTION_LAND_ATTEMPTS >= 2
+
+
 def test_out_of_scope_writes_are_REPORTED_and_never_reverted():
     """Reverting would stamp on whatever concurrent lane is legitimately mid-edit, which is the
     second-writer problem one worse rather than solved."""
