@@ -19,7 +19,8 @@ import json
 import sys
 from pathlib import Path
 
-from saas.money import display_rate_p_per_kwh
+from company.compliance.domain_invariants import check_printed_bill_foots_exactly
+from saas.money import display_rate_p_per_kwh, quantize_gbp
 
 PROJECT = Path(__file__).resolve().parent.parent
 RUN_OUTPUT = PROJECT / "docs" / "reports" / "run_output_latest.json"
@@ -44,6 +45,15 @@ _STATUS_MAP = dict(
 )
 
 
+class PortalBillDoesNotFootError(ValueError):
+    """A customer-portal invoice whose printed lines do not add to its printed total."""
+
+
+#: The printed money lines, each taken through the money boundary rather than builtin round().
+_PRINTED_MONEY = ("commodity_amount_gbp", "standing_charge_gbp", "non_commodity_amount_gbp",
+                  "vat_gbp", "total_amount_gbp")
+
+
 def _real_invoice(inv):
     """Map one billing_ledger.json invoice record onto the customer-portal
     invoice schema, adding the derived unit rate the bill equation needs.
@@ -56,9 +66,17 @@ def _real_invoice(inv):
     just mapped, same as every other field in this function.
     Defect 3 (2026-07-09): the register/period-structured consumption list
     (single-register today, schema supports N) carried through the same way."""
+    # THE PORTAL IS A PRINTED SURFACE, SO IT CROSSES THE MONEY BOUNDARY TOO (D_money_boundary_
+    # reconciliation, 2026-10-03). The ledger's pre-bill check holds a non-footing bill, but this
+    # module sits AFTER it: it re-rounded every line with builtin round() and printed a missing
+    # figure as 0.00 (`x or 0`) -- the independent rounding site and the treat-missing-as-zero
+    # path the boundary exists to forbid, on the surface the customer actually reads. Each line
+    # now goes through saas.money.quantize_gbp, which refuses a None, and the assembled portal
+    # invoice must foot or this raises rather than publishing it.
+    printed = {k: quantize_gbp(inv.get(k), field=f"{inv.get('customer_id')}#{k}")
+               for k in _PRINTED_MONEY}
     kwh = inv.get("consumption_kwh", 0) or 0
-    commodity_amt = inv.get("commodity_amount_gbp", 0) or 0
-    printed_commodity_amt = round(commodity_amt, 2)
+    printed_commodity_amt = printed["commodity_amount_gbp"]
     # D_printed_figure_rederivation (2026-08-03): this used to be
     # round(commodity_amt / kwh * 100, 2), which made the usage line fail its
     # own multiplication on 86.1% of rendered invoices -- "317.9 kWh x 11.90p
@@ -78,7 +96,7 @@ def _real_invoice(inv):
     if unit_rate_p_per_kwh is None and kwh:
         derived = display_rate_p_per_kwh(kwh, printed_commodity_amt)
         unit_rate_p_per_kwh = None if derived is None else derived[0]
-    return dict(
+    out = dict(
         id="%s-INV%d" % (inv["customer_id"], inv["invoice_number"]),
         date=inv["period_end"],
         period_start=inv["period_start"],
@@ -87,15 +105,15 @@ def _real_invoice(inv):
         consumption_kwh=kwh,
         unit_rate_p_per_kwh=unit_rate_p_per_kwh,
         commodity_amount_gbp=printed_commodity_amt,
-        standing_charge_gbp=round(inv.get("standing_charge_gbp", 0) or 0, 2),
+        standing_charge_gbp=printed["standing_charge_gbp"],
         # Calculation-transparency breakdown (2026-07-10, director page comment:
         # "Days x standing charges... explain the maths properly") -- carried
         # through from the ledger record, same as every other field here.
         days_in_period=inv.get("days_in_period"),
         standing_charge_gbp_per_day=inv.get("standing_charge_gbp_per_day"),
-        non_commodity_amount_gbp=round(inv.get("non_commodity_amount_gbp", 0) or 0, 2),
-        vat_gbp=round(inv.get("vat_gbp", 0) or 0, 2),
-        amount_gbp=round(inv.get("total_amount_gbp", 0) or 0, 2),
+        non_commodity_amount_gbp=printed["non_commodity_amount_gbp"],
+        vat_gbp=printed["vat_gbp"],
+        amount_gbp=printed["total_amount_gbp"],
         status=_STATUS_MAP.get(inv.get("payment_status"), "PAID"),
         # What is still owed on this bill after account credit is netted (SLC 27.16); `amount_gbp`
         # is the face. None on a record that predates the field, never a guessed face.
@@ -121,6 +139,14 @@ def _real_invoice(inv):
         catchup_written_off_gbp=inv.get("catchup_written_off_gbp"),
         catchup_back_billing_cap_applied=inv.get("catchup_back_billing_cap_applied"),
     )
+    # The same zero-tolerance check the ledger runs, on the portal's own figures: the portal
+    # names its total `amount_gbp`, the invariant reads `total_amount_gbp`.
+    if not check_printed_bill_foots_exactly({**out, "total_amount_gbp": out["amount_gbp"]}):
+        raise PortalBillDoesNotFootError(
+            f"{out['id']}: the portal invoice's printed lines do not add to its printed total "
+            f"{out['amount_gbp']} -- refusing to publish a bill the customer cannot re-add"
+        )
+    return out
 
 
 def real_invoices_for(cid, ledger_customers):

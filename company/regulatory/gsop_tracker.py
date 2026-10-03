@@ -47,11 +47,24 @@ class GSoPBreach:
     def is_compensated(self) -> bool:
         return self.status == GSoPBreachStatus.COMPENSATED
 
-    @property
-    def working_days_open(self) -> int:
-        end = self.resolution_date or date.today()
-        # [breach_date, end), the interval this property has always used; only the calendar
-        # changes (bank holidays out). See erroneous_transfer.working_days_open for the shift.
+    def working_days_open(self, as_of: date) -> int:
+        """Working days this breach has been open, as seen on `as_of` -- the SIMULATION's date.
+
+        `as_of` IS REQUIRED and None is refused. Until 2026-10-03 this was a property that fell
+        back to `date.today()` for an unresolved breach, so a run replaying 2019 measured its open
+        breaches against the machine's calendar in 2026: every one read as years overdue, and the
+        answer changed with the day the run happened to be launched. A resolved breach counts to
+        its resolution date, or to `as_of` if that comes first -- nothing after the run's own
+        date is visible to it.
+        """
+        if as_of is None:
+            raise ValueError(
+                f"{self.breach_id}: working_days_open needs the run's as-of date; there is no "
+                "wall-clock default, because a simulated run must never read today's date"
+            )
+        end = as_of if self.resolution_date is None else min(self.resolution_date, as_of)
+        # [breach_date, end), the interval this has always used; only the calendar changed
+        # (bank holidays out). See erroneous_transfer.working_days_open for the shift.
         one = timedelta(days=1)
         return working_days_between(self.breach_date - one, end - one)
 
