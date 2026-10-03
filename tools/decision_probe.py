@@ -90,6 +90,13 @@ def stayer_pays(offer: float | None, term_start_str: str, commodity: str,
     return _svt_ex_vat(default) if default else offer
 
 
+def _believed(chain) -> float | None:
+    """The company's own P(stay) at the offer a priced chain struck, or None where the arm did
+    not price (declined, or no decision)."""
+    return next((e.get("believed_p_retain") for e in reversed(chain.value_arm_entries)
+                 if e.get("believed_p_retain") is not None), None)
+
+
 def probe(report_end: str | None = None, roll_seed: int | None = None) -> list[dict]:
     """Run the control path once and return one row per probed renewal.
 
@@ -132,12 +139,14 @@ def probe(report_end: str | None = None, roll_seed: int | None = None) -> list[d
             # The value arm that knows a stayer is billed at most the default.
             with policy_scope(VALUE_ARM_CAPPED_POLICY):
                 capped = real_price(**kw)
-            levels = {}
+            levels, believed_at_level = {}, {}
             for level in LEVEL_GRID:
                 with policy_scope(replace(CURRENT_POLICY, name="level_arm",
                                           renewal_margin_arm=FLAT_AT_LEVEL,
                                           renewal_margin_flat_level_gbp_per_mwh=float(level))):
-                    levels[level] = real_price(**kw).unit_rate_gbp_per_mwh
+                    at_level = real_price(**kw)
+                levels[level] = at_level.unit_rate_gbp_per_mwh
+                believed_at_level[level] = _believed(at_level)
             offers[(kw["customer_id"], kw["term_start"][:10], kw["commodity"])] = {
                 "billing_account": kw["billing_account"],
                 "base_gbp_per_mwh": float(kw["struck_unit_rate_gbp_per_mwh"])
@@ -149,6 +158,8 @@ def probe(report_end: str | None = None, roll_seed: int | None = None) -> list[d
                           "value_capped": capped.unit_rate_gbp_per_mwh},
                 "learned_delta": learned_delta,
                 "levels": levels,
+                "believed_at_level": believed_at_level,
+                "believed_p_retain_capped": _believed(capped),
                 # Whether the world's decline-and-stay rule can reach this decision: the run loop's
                 # own conditions, less the splice (a mid-term join is not a renewal this probes).
                 "declinable": bool(runner.DECLINE_A_FIX_ABOVE_THE_DEFAULT
@@ -157,9 +168,7 @@ def probe(report_end: str | None = None, roll_seed: int | None = None) -> list[d
                 # WHAT THE COMPANY BELIEVED about this customer staying, at its own offer: the
                 # value arm's churn belief, set beside the world's truth so the belief error is
                 # measured per decision. None where the arm declined or did not price.
-                "believed_p_retain": next((e.get("believed_p_retain")
-                                           for e in reversed(value.value_arm_entries)
-                                           if e.get("believed_p_retain") is not None), None),
+                "believed_p_retain": _believed(value),
             }
         return result
 
@@ -195,7 +204,11 @@ def probe(report_end: str | None = None, roll_seed: int | None = None) -> list[d
             "old_rate_gbp_per_mwh": kw.get("old_rate_gbp_per_mwh"),
             "learned_delta": held["learned_delta"],
             "believed_p_retain_value": held["believed_p_retain"],
+            "believed_p_retain_capped": held["believed_p_retain_capped"],
+            # The company's own P(stay) at each grid offer beside the world's: the belief curve
+            # against the truth curve, per decision.
             "level_grid": {str(lv): {"offer": round(o, 4), "p": level_p[lv],
+                                     "believed": held["believed_at_level"][lv],
                                      "paid": round(stayer_pays(o, term_start_str, commodity,
                                                         held["declinable"]), 4)}
                            for lv, o in held["levels"].items()},
