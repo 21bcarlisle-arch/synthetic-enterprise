@@ -38,3 +38,82 @@ blind to company results, and not a reason to change the company's belief.
    on supply.
 
 Until then, read any A/B result that turns on a debtor's departure as carrying this gap.
+
+## Update 2026-10-03 (delivery seat): step 1 is done; the rates are extracted
+
+Both Ofgem 2016 PDFs extract cleanly with `pdftotext -layout`; the earlier "compressed streams"
+failure was tooling. Full tables: `docs/market_research/domestic_debt_objection_rates_gb.md`.
+- **Indebted credit customer who attempts to switch: about 28-30% blocked** (Ofgem's own ratio,
+  ~170k blocked vs ~430k allowed a year, 2013-2015).
+- **Statutory threshold:** debt unpaid 28 days after written notice.
+- **Prepayment debt** moves with the customer under the DAP (GBP 500 from 2016), so the block does
+  not apply there.
+- **About half of blocked customers repay.** Most blocked customers are still with the supplier a
+  year later. That is a derived composite and is labelled as one.
+
+Applying 2013-2015 rates to 2016-2025 (including after CSS) is a named gap: no later figure is
+published.
+
+Why this is now load-bearing (stated plainly, because the world must change for fidelity and
+not for results): in the 2026-10-03 capped-learned probe runs, the value rule's whole remaining
+gap to the best flat price in hindsight is one 2017 decision, this account. The finding was
+filed earlier the same day on the published law alone. That rule is the reason to build the draw.
+The result only sets its priority.
+
+## Resolved 2026-10-03: the world draws the SLC 14 objection at the renewal roll
+
+`simulation/debt_objection.py`, wired into `customer_events.roll_lifecycle_event` and the
+`run_phase2b` renewal call site.
+
+- **Rate.** `DEBT_OBJECTION_BLOCKED_SHARE = 170,000 / (170,000 + 430,000) = 0.283`, computed from
+  Ofgem's two counts. It is not typed in as a number.
+- **Who.** The predicate is `WorldDebtBook.owes_objectionable_debt`. It is true for a domestic
+  household with a bill on a credit-meter leg that is still unpaid more than 28 days after its due
+  date at the renewal date. It reads the triad's world-side `PeriodRecord` truth, never the
+  company ledger. Prepayment is never eligible.
+- **Effect on the roll.** P(stay) becomes `p + (1 - p) * share`, inside the returned
+  `effective_retention_probability`, so `tools/decision_probe.py` sees it. The block takes the
+  bottom `share` of the departure tail on the same roll, and `roll <= P(stay)` still decides the
+  outcome. The event carries `debt_objection_eligible` and `departure_blocked_by_debt_objection`.
+  Both are on the company-wall guard.
+- **Switch.** `SE_DEBT_OBJECTION=0` turns it off. It is on by default because it is the published
+  law.
+
+**Measured, full default run (to 2025-06-07), ON vs OFF, single seed, about 24 min and 5.2 GB
+each:**
+
+| | OFF | ON |
+|---|---|---|
+| rolled renewal decisions | 83 | 84 |
+| decisions with an eligible debtor | 0 | 47 (56%) |
+| departures blocked | 0 | 6 |
+| renewal departures | 28 | 23 |
+| SVT-route departures | 46 | 48 |
+| churned billing accounts | 74 | 71 |
+| total bad debt (GBP) | 23,154 | 23,769 |
+
+**The eligible share is not credible. Read it before using any of these numbers.** In this world,
+56% of renewal decisions carry an objectionable debt. Ofgem's counts give about 600k indebted
+switch attempts a year. Electricity switches were about 4.8m in 2016. That rough comparison
+(different years, and fuels de-duplicated on one side only) puts real indebted attempts on the
+order of 10-15% of switches. The reason is upstream of this draw. In the triad's truth, a failed
+or disputed bill is never paid afterwards, because re-presentation and arrangement paydown are not
+modelled. So once a debt is 28 days old it stays objectionable for the rest of the run. Real
+blocked customers repay about half the time (IA §1.38). Until repayment is modelled, the block's
+reach here is an upper bound.
+
+**Level.** `departure_level_anchor` is fitted to published realised switching. That record
+already nets out blocked switches, so with the block on the world departs below the record until
+the anchor is re-fitted. The re-fit was not done here; it is a separate decision. The world digest
+covers only the anchor values, so it does not move. 8 `test_switching_rate_commons` controls are
+red, and they are red identically at the HEAD this was built on, so this change did not cause
+them.
+
+**Gaps still open:**
+- The 2013-2015 rates are applied to 2016-2025, including after CSS.
+- The objection is the losing supplier's decision. This draw stands in for industry practice until
+  EP12's CSS objection window lets the company decide it.
+- C1b SVT-route exits are not blocked.
+- There is no repay-and-leave-later route.
+- `interface/contracts/registration_loss_seam.GAPS["failed_switch_outcomes"]` still says no failed
+  switch exists. A blocked departure is now one, and that text belongs to the interface steward.

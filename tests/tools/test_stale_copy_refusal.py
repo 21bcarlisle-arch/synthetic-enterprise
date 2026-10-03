@@ -592,7 +592,9 @@ def test_surgical_land_hands_the_hook_the_tree_it_actually_judged(repo: Path) ->
     call = src.index("stale_copy_refusal.violations(")
     pin = src.index("gated_tree = result_tree", call)
     rederive = src.index("result_tree, rederived = rederive_in(", call)
-    gate = src.index("run_gate(checkout, hook_rel, gated_tree=gated_tree)", call)
+    # No closing paren: the call gained `merge_parent=` (3c5702901); what is pinned is that the
+    # judged tree is handed over, not the argument list's length.
+    gate = src.index("run_gate(checkout, hook_rel, gated_tree=gated_tree", call)
     assert call < pin < rederive < gate, (
         "the token must be pinned to the judged tree BEFORE the re-derive can rebind it")
     assert "env[stale_copy_refusal.ALREADY_GATED_ENV] = gated_tree" in src

@@ -129,6 +129,7 @@ from simulation.customer_events import (
     roll_lifecycle_event,
     svt_conversion_event,
 )
+from simulation.debt_objection import WorldDebtBook
 from simulation.demand_model import (
     build_demand_shape,
     eac_scaled_shape_fn,
@@ -1913,6 +1914,9 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
     # consumer.observe forms the company's observable-only belief and the gap is
     # measured + written at run end (background.live_payment_triad).
     _payment_triad = LivePaymentTriad()
+    # SLC 14: the world's own record of who owes, read from the triad's TRUTH (never the company's
+    # ledger), for the debt objection at the renewal roll. See `simulation/debt_objection.py`.
+    _world_debt_book = WorldDebtBook(_payment_triad.records)
     # The company's own method register, as the renewal price reads it, for every resi account the
     # book's default rate learns over (`DecisionPolicy.renewal_default_belief`), ON A DATE: a DD the
     # supplier stopped is pay-on-receipt from its notice on, and the learner reads each provision
@@ -2904,6 +2908,12 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                 # ACTUALLY cost -- `company_fwd` is the company's belief about that number and
                 # would make the rival's costs a function of the company's forecasting skill.
                 wholesale_gbp_per_mwh=forward_price,
+                # Domestic only: SLC 14's domestic objection. Credit meters only is the book's own
+                # filter (a prepayment debt moves under the Debt Assignment Protocol).
+                debt_objection_eligible=(
+                    segment_for_churn == "resi"
+                    and _world_debt_book.owes_objectionable_debt(
+                        billing_account, date.fromisoformat(term_start_str))),
             ) if _rolled else None
             # STAY, LEAVE, OR STAY AND REFUSE. Leaving is the roll's and stands; the rule only
             # reprices a household that stayed.

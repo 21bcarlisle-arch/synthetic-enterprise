@@ -30,6 +30,11 @@ from datetime import date
 from company.crm.churn_model import estimate_churn_probability
 from saas.churn_model import build_churn_risk, churn_probability
 from saas.home_move_win_rate import build_home_move_win_rates
+from simulation.debt_objection import (
+    debt_objection_active,
+    retention_with_debt_objection,
+    unblocked_tail_roll,
+)
 from simulation.departure_level_anchor import year_level_anchor
 from simulation.departure_risks import (
     DECLARED_SENSITIVITY_SCALE,
@@ -684,9 +689,16 @@ def roll_lifecycle_event(
     market_year: int | None = None,
     position_ledger=None,
     wholesale_gbp_per_mwh: float | None = None,
+    debt_objection_eligible: bool | None = None,
 ) -> dict | None:
     """Compute and roll the churn/renewal event for a billing account at a
     renewal point.
+
+    `debt_objection_eligible` is the WORLD's answer to "does this domestic household owe debt on a
+    credit meter unpaid more than 28 days past due, as of this renewal" (the run loop asks
+    `simulation.debt_objection.WorldDebtBook`). True makes P(stay) `p + (1 - p) * share` and lets
+    the SLC 14 objection turn a departure into a stay -- see `simulation/debt_objection.py`. None
+    (the default) or False: no block, so every other caller is unchanged.
 
     Call once per billing account per renewal cycle, at `term_index >= 1`, on the account's
     DEPARTURE DECISION LEG — see `departure_decision_leg` above for which leg that is and why the
@@ -973,6 +985,12 @@ def roll_lifecycle_event(
     risks_pre_offer = build_departure_risks(
         retention_offer_retained_fraction=1.0, **_risk_inputs)
     effective_p_retain_pre_offer = 1.0 - total_departure_probability(risks_pre_offer)
+    # THE DEBT OBJECTION IS INSIDE THE PROBABILITY, not only the outcome: `tools/decision_probe.py`
+    # re-asks this function at other prices and reads `effective_retention_probability`, so a block
+    # applied only after the roll would be invisible to every reader of the world's P(stay).
+    _objection_applies = bool(debt_objection_eligible) and debt_objection_active()
+    effective_p_retain_pre_offer = retention_with_debt_objection(
+        effective_p_retain_pre_offer, _objection_applies)
     # P6, AND IT IS THE FIRST ACTIONABLE CONSEQUENCE IN THIS PROGRAMME. A retention offer is a
     # PRICE cut, so it scales the price-position hazard and nothing else: a discount cannot retain
     # a service-driven churner. The composed form scaled the whole probability, which modelled a
@@ -988,7 +1006,17 @@ def roll_lifecycle_event(
     # ONE ROLL, SAME DIRECTION AS THE FORM THIS REPLACES: a departure is the upper tail, and the
     # cause is read from WHERE in that tail the roll landed, so it costs no second draw and cannot
     # decorrelate from the departure it explains.
-    departed, departure_cause = resolve_departure(risks, roll)
+    # THE DEBT OBJECTION TAKES THE BOTTOM `share` OF THE DEPARTURE TAIL, ON THE SAME ROLL. So
+    # `roll <= effective_retention_probability` still decides stay/leave for every reader that
+    # checks it, a household the block does not reach rolls exactly as before, and the departures
+    # it lets through are mapped back onto the full tail so their cause mix is unchanged.
+    _p_before_objection = effective_p_retain
+    effective_p_retain = retention_with_debt_objection(effective_p_retain, _objection_applies)
+    blocked_by_debt_objection = _p_before_objection < roll <= effective_p_retain
+    departed, departure_cause = resolve_departure(
+        risks, unblocked_tail_roll(roll, _p_before_objection, effective_p_retain))
+    if blocked_by_debt_objection:
+        departed, departure_cause = False, None
     retained = not departed
 
     # Phase 7e: when an account churns, roll whether we win the home-mover's
@@ -1048,6 +1076,10 @@ def roll_lifecycle_event(
         "effective_retention_probability": round(effective_p_retain, 4),
         "realized_churn_probability": realized_churn_probability,
         "random_roll": round(roll, 4),
+        # SLC 14 debt objection (SIM ground truth): whether the world held this household eligible,
+        # and whether the objection turned its departure into a stay.
+        "debt_objection_eligible": _objection_applies,
+        "departure_blocked_by_debt_objection": blocked_by_debt_objection,
         "home_move_won": home_move_won,
         "company_churn_estimate": company_churn_estimate,
         "churn_estimate_error_pct": churn_estimate_error_pct,
