@@ -96,3 +96,11 @@ window about 4–5 years past 2025 is the ceiling, and it needs SPINE_1 wired in
 which is real work. **Not established here:** width's SNR (four of its six seeds unrun) and whether a
 scenario year past 2025 compounds like a historical one. The remaining width pairs rerun when no
 other value-cycle A/B is resident (`legs_dw.sh` skips finished legs).
+
+**Width pairs two and three, 2026-10-03 00:50Z: queued, not yet run.** `longjob-depth-vs-width-w125d-20261003`
+is waiting behind the resident 1002c noise floor (pid 1933972, started ~23:55Z) and will run 61003,61004 then
+61005,61006, about 3.5 h each. `longjob-depth-vs-width-handoff` waits on its `legs_dw.sh` and, on exit,
+hands off the grading as continuation `grade-width-snr-over-six-seeds`. The waiter was started with a plain
+`systemd-run`: `launch_long_job` refuses every launch while w125d is resident, a 200 MB waiter included,
+because it counts w125d's declared 14.5 GB peak on top of resident memory. The width SNR and the verdict on
+the two-seed lead are still owed here.
