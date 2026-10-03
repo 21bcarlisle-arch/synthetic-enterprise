@@ -6,6 +6,8 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import List, Optional
 
+from company.compliance.working_days import working_days_between
+
 
 class DDIndemnityStatus(str, Enum):
     RECEIVED = "received"           # bank has recalled funds
@@ -26,16 +28,6 @@ class DDIndemnityReason(str, Enum):
 _INVESTIGATION_DEADLINE_WORKING_DAYS = 10
 
 
-def _working_days_between(start: dt.date, end: dt.date) -> int:
-    days = 0
-    current = start
-    while current < end:
-        current += dt.timedelta(days=1)
-        if current.weekday() < 5:
-            days += 1
-    return days
-
-
 @dataclass(frozen=True)
 class DDIndemnityClaim:
     claim_id: str
@@ -52,7 +44,7 @@ class DDIndemnityClaim:
         if self.status in (DDIndemnityStatus.UPHELD, DDIndemnityStatus.REJECTED,
                            DDIndemnityStatus.WRITTEN_OFF):
             return False
-        return _working_days_between(self.receipt_date, as_of) > _INVESTIGATION_DEADLINE_WORKING_DAYS
+        return working_days_between(self.receipt_date, as_of) > _INVESTIGATION_DEADLINE_WORKING_DAYS
 
     def is_active(self) -> bool:
         return self.status in (

@@ -42,6 +42,7 @@ from pathlib import Path
 import pytest
 
 import company.interfaces.credit_refund_requests as seam
+from company.compliance.working_days import add_working_days
 from company.interfaces.credit_refund_requests import refund_on_account_closure
 from simulation.credit_refund_events import generate_credit_refund_log
 
@@ -111,12 +112,10 @@ class _Mutant:
 
 
 def _add_working_days(start: dt.date, n: int) -> dt.date:
-    cur, added = start, 0
-    while added < n:
-        cur += dt.timedelta(days=1)
-        if cur.weekday() < 5:
-            added += 1
-    return cur
+    # The company's own calendar (bank holidays out), so a paid date n working days on reads
+    # back as n. A weekend-only copy lived here until 2026-10-03 and disagreed with the door
+    # once the door stopped counting Good Friday 2021 as a working day.
+    return add_working_days(start, n)
 
 
 # ── 1-2. The door exposes the outcome and nothing else ──────────────────────

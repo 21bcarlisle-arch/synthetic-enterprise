@@ -54,8 +54,12 @@ class TestDDIndemnityClaim:
         assert c.is_investigation_overdue(dt.date(2023, 5, 8)) is False
 
     def test_investigation_overdue_true_after_10_working_days(self):
+        # Mon 8 May 2023 was the Coronation bank holiday, so (1 May, 16 May] holds 10 working
+        # days, not 11: the 11th is Wed 17 May. Pinned 16 May until 2026-10-03, when the
+        # module's weekend-only count was replaced by company.compliance.working_days.
         c = make_claim(receipt=dt.date(2023, 5, 1))
-        assert c.is_investigation_overdue(dt.date(2023, 5, 16)) is True
+        assert c.is_investigation_overdue(dt.date(2023, 5, 16)) is False
+        assert c.is_investigation_overdue(dt.date(2023, 5, 17)) is True
 
     def test_frozen(self):
         c = make_claim()
@@ -104,7 +108,7 @@ class TestDDIndemnityRegister:
     def test_overdue_investigations(self):
         reg = DDIndemnityRegister()
         reg.receive_claim(make_claim(claim_id="C1", receipt=dt.date(2023, 5, 1)))
-        assert len(reg.overdue_investigations(dt.date(2023, 5, 16))) == 1
+        assert len(reg.overdue_investigations(dt.date(2023, 5, 17))) == 1   # 8 May was a holiday
         assert len(reg.overdue_investigations(dt.date(2023, 5, 8))) == 0
 
     def test_total_exposure(self):
