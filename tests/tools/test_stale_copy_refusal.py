@@ -2419,3 +2419,30 @@ def test_a_binary_blob_is_judged_rather_than_crashing_the_landing(repo: Path) ->
     head = _run(repo, "rev-parse", "HEAD").strip()
     assert scr.blob_at(repo, head, "f.csv.gz") is not None
     assert scr.violations(repo, f"{head}~1", head, ["f.csv.gz"]) == []
+
+
+def test_a_copy_reverting_an_earlier_landing_is_refused_when_the_last_has_no_evidence(
+        repo: Path) -> None:
+    """THE DEFECT: asking only the LAST landing. Live 2026-10-03 on `maturity_map.yaml`: a 09:49
+    copy reverted D27's one distinctive line (10:03) and H45's `loop_stage: harden` (10:30, a line
+    repeated on dozens of rows, so no evidence). Only H45 was asked, its silence read as no opinion,
+    `refresh_to_head` refused the refresh, and the draw re-handed D27's spent FRAME out from disk.
+
+    The mutation it is written for: `_newest_evidenced_landing_since` asking only `shas[0]`."""
+    stale = "stage: build\nstage: build\nstage: idle\n"
+    _commit(repo, "map.yaml", stale, "minted")
+    evidenced = _commit(repo, "map.yaml",
+                        "stage: build\nstage: build\nstage: idle\nframe_saturated: true  # D27\n",
+                        "the evidenced landing")
+    silent = _commit(repo, "map.yaml",
+                     "stage: build\nstage: build\nstage: build\nframe_saturated: true  # D27\n",
+                     "a landing whose only line repeats")
+    assert scr.distinctive_lines(repo, "map.yaml", silent) == (), (
+        "the fixture's last landing carries evidence, so it no longer reaches the defect")
+    (repo / "map.yaml").write_text(stale)
+    landed_at = scr.committed_at(repo, evidenced)
+    os.utime(repo / "map.yaml", (landed_at - 60, landed_at - 60))
+    loss = scr.clock_judge(repo, "map.yaml", scr.blob_at(repo, "HEAD", "map.yaml"), stale)
+    assert loss is not None and loss.commit == evidenced, (
+        "a copy older than two landings, reverting the evidenced one, was waved through because "
+        "the newest had nothing to ask: {}".format(loss))

@@ -1794,6 +1794,27 @@ def committed_at(root: Path, commit: str) -> int:
     return int(text)
 
 
+def _newest_evidenced_landing_since(root: Path, path: str, new_text: str,
+                                    upto: str) -> tuple[str | None, tuple[str, ...]]:
+    """The newest landing on `path` the copy predates that leaves any evidence to ask, with it.
+
+    ASKING ONLY THE LAST LANDING WAS A FAIL-OPEN, and it was live. On 2026-10-03 the shared
+    `maturity_map.yaml` was a 09:49 copy reverting two later landings: D27's `frame_saturated: true`
+    (10:03, one distinctive line) and H45's `loop_stage: harden` (10:30, a line repeated on dozens
+    of rows, so no evidence at all). Only H45 was asked, its empty evidence read as no opinion, and
+    `refresh_to_head` refused the refresh as "an ordinary edit" -- while the draw, which reads the
+    map from disk, handed D27's spent FRAME out again. Walking back stops at the first landing the
+    copy is NOT older than, so it can reach only landings the copy was taken before."""
+    shas = _git_answer(root, "log", "--format=%H", upto, "--", path).split()
+    for sha in shas:
+        if not taken_before(root, path, new_text, sha):
+            break
+        distinctive = distinctive_lines(root, path, sha)
+        if distinctive:
+            return sha, distinctive
+    return (shas[0] if shas else None), ()
+
+
 def clock_judge(root: Path, path: str, head_text: str | None, new_text: str | None,
                 parent: str = "HEAD") -> Loss | None:
     """Rule 1's line evidence, carried to the paths rule 1 has NO READER FOR, and made safe there by
@@ -1850,10 +1871,7 @@ def clock_judge(root: Path, path: str, head_text: str | None, new_text: str | No
     because its mtime is on the wrong side of the landing."""
     if head_text is None or new_text is None or Path(path).suffix in READABLE:
         return None
-    commit = last_commit_touching(root, path, parent)
-    if not commit or not taken_before(root, path, new_text, commit):
-        return None
-    distinctive = distinctive_lines(root, path, commit)
+    commit, distinctive = _newest_evidenced_landing_since(root, path, new_text, parent)
     if not distinctive:
         return None
     present = {ln.strip() for ln in new_text.splitlines()}
