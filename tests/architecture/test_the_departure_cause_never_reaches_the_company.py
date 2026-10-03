@@ -47,6 +47,11 @@ C2_GROUND_TRUTH_FIELDS = frozenset({
     "sim_experienced_bill_shock",
     # The retired month-count base, kept beside the new one so the PB4 swap can be attributed.
     "sim_month_count_bill_shock_base",
+    # SLC 14 debt objection, 2026-10-03: whether the WORLD's payment truth held the household
+    # indebted, and whether the objection stopped its departure. The company's own view of what it
+    # is owed is its ledger; reading these would hand it the world's answer instead.
+    "debt_objection_eligible",
+    "departure_blocked_by_debt_objection",
 })
 
 
