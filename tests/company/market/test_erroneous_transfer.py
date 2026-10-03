@@ -11,7 +11,12 @@ from company.market.erroneous_transfer import (
     ErroneousTransferRegister,
 )
 
+# Mon 3 Jan 2022 was a BANK HOLIDAY (the substitute day for New Year's Day, a Saturday). Until
+# 2026-10-03 the claim clock was weekend-only and counted it; on the committed E&W calendar it is
+# not a working day, so every count below from this claim date is one lower than it was, and the
+# 21st working day moves from Tue 1 Feb to Wed 2 Feb.
 MONDAY = datetime.date(2022, 1, 3)
+OVERDUE = datetime.date(2022, 2, 2)
 
 
 def make_claim(claim_id="ET-001", status=ETStatus.OPEN, claim_date=MONDAY):
@@ -38,7 +43,7 @@ class TestETClaim:
     def test_working_days_open_skips_weekends(self):
         claim = make_claim(claim_date=MONDAY)
         as_of = datetime.date(2022, 1, 10)
-        assert claim.working_days_open(as_of) == 5
+        assert claim.working_days_open(as_of) == 4   # 4-7 Jan; the 3rd is a bank holiday
 
     def test_working_days_open_same_day(self):
         claim = make_claim(claim_date=MONDAY)
@@ -46,24 +51,24 @@ class TestETClaim:
 
     def test_is_overdue_false_at_exactly_20_days(self):
         claim = make_claim(claim_date=MONDAY)
-        as_of = datetime.date(2022, 1, 31)
+        as_of = datetime.date(2022, 2, 1)
         assert claim.working_days_open(as_of) == 20
         assert not claim.is_overdue(as_of)
 
     def test_is_overdue_true_at_21_days(self):
         claim = make_claim(claim_date=MONDAY)
-        as_of = datetime.date(2022, 2, 1)
+        as_of = OVERDUE
         assert claim.working_days_open(as_of) == 21
         assert claim.is_overdue(as_of)
 
     def test_compensation_gbp_when_overdue_and_open(self):
         claim = make_claim(status=ETStatus.OPEN)
-        overdue_date = datetime.date(2022, 2, 1)
+        overdue_date = OVERDUE
         assert claim.compensation_gbp(overdue_date) == 30.0
 
     def test_compensation_gbp_zero_when_resolved(self):
         claim = make_claim(status=ETStatus.RESOLVED_CORRECTED)
-        overdue_date = datetime.date(2022, 2, 1)
+        overdue_date = OVERDUE
         assert claim.compensation_gbp(overdue_date) == 0.0
 
     def test_compensation_gbp_zero_when_not_yet_overdue(self):
@@ -114,7 +119,7 @@ class TestErroneousTransferRegister:
         reg = ErroneousTransferRegister()
         reg.raise_claim(make_claim(claim_id="ET-005", claim_date=MONDAY))
         reg.raise_claim(make_claim(claim_id="ET-006", claim_date=datetime.date(2022, 1, 28)))
-        overdue_date = datetime.date(2022, 2, 1)
+        overdue_date = OVERDUE
         overdue = reg.overdue_claims(overdue_date)
         assert len(overdue) == 1
         assert overdue[0].claim_id == "ET-005"
@@ -133,7 +138,7 @@ class TestErroneousTransferRegister:
         reg = ErroneousTransferRegister()
         reg.raise_claim(make_claim(claim_id="ET-A", claim_date=MONDAY))
         reg.raise_claim(make_claim(claim_id="ET-B", claim_date=MONDAY))
-        overdue_date = datetime.date(2022, 2, 1)
+        overdue_date = OVERDUE
         assert reg.compensation_outstanding_gbp(overdue_date) == 60.0
 
     def test_claims_by_status_covers_all_statuses(self):

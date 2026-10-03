@@ -1,9 +1,10 @@
 """Tests for Customer Service Ticket Book (Phase EW)."""
 import datetime as dt
 import pytest
+from company.compliance.working_days import add_working_days as _add_working_days
 from company.crm.service_ticket import (
     TicketCategory, TicketStatus, ServiceTicket, ServiceTicketBook,
-    _add_working_days, _ACKNOWLEDGEMENT_DEADLINE_WD, _FULL_RESPONSE_DEADLINE_DAYS,
+    _ACKNOWLEDGEMENT_DEADLINE_WD, _FULL_RESPONSE_DEADLINE_DAYS,
 )
 
 DATE = dt.date(2024, 1, 15)

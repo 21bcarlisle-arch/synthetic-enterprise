@@ -1,12 +1,12 @@
 """Tests for Phase GA: CSS Performance Register."""
 import datetime as dt
 import pytest
+from company.compliance.working_days import add_working_days as _add_working_days
 from company.market.css_performance_register import (
     SwitchOutcome,
     CSSPerformanceRecord,
     CSSPerformanceRegister,
     _CSS_GO_LIVE,
-    _add_working_days,
 )
 
 # ── helpers ──────────────────────────────────────────────────────────────────

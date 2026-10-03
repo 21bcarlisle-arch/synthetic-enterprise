@@ -5,6 +5,8 @@ import datetime
 from enum import Enum
 from typing import Dict, List, Optional
 
+from company.compliance.working_days import working_days_between
+
 
 class ETStatus(str, Enum):
     OPEN = "open"
@@ -38,13 +40,13 @@ class ETClaim:
     resolution_type: Optional[ETResolutionType] = None
 
     def working_days_open(self, as_of: datetime.date) -> int:
-        current = self.claim_date
-        count = 0
-        while current < as_of:
-            if current.weekday() < 5:
-                count += 1
-            current += datetime.timedelta(days=1)
-        return count
+        # Working days in [claim_date, as_of) -- the claim day counts, as_of does not. That is
+        # the interval this method has always used, and it is NOT the canonical (start, end];
+        # only the calendar changes here (bank holidays out), so the shift is one day back at
+        # both ends. Whether the claim day should count is a separate question for the ETCC
+        # rule this models, not settled by a calendar migration.
+        one = datetime.timedelta(days=1)
+        return working_days_between(self.claim_date - one, as_of - one)
 
     def is_overdue(self, as_of: datetime.date) -> bool:
         return self.working_days_open(as_of) > 20
