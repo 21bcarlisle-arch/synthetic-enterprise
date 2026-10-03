@@ -230,9 +230,9 @@ def _racing_gate(repo: Path, lose_until: int, calls: list[int]):
     move rather than an empty commit that git would refuse."""
     real_run_gate = sl.run_gate
 
-    def gate(checkout, hook_rel=sl.HOOK_REL, gated_tree=None):
+    def gate(checkout, hook_rel=sl.HOOK_REL, gated_tree=None, merge_parent=None):
         calls.append(len(calls) + 1)
-        rc, out, err = real_run_gate(checkout, hook_rel, gated_tree)
+        rc, out, err = real_run_gate(checkout, hook_rel, gated_tree, merge_parent)
         if len(calls) <= lose_until:
             name = "colleague_{}.txt".format(len(calls))
             (repo / name).write_text("landed mid-gate\n")
@@ -308,9 +308,9 @@ def test_a_RED_gate_is_never_retried_however_many_attempts_are_allowed(
     real_run_gate = sl.run_gate
     calls: list[int] = []
 
-    def counting_gate(checkout, hook_rel=sl.HOOK_REL, gated_tree=None):
+    def counting_gate(checkout, hook_rel=sl.HOOK_REL, gated_tree=None, merge_parent=None):
         calls.append(len(calls) + 1)
-        return real_run_gate(checkout, hook_rel, gated_tree)
+        return real_run_gate(checkout, hook_rel, gated_tree, merge_parent)
 
     monkeypatch.setattr(sl, "run_gate", counting_gate)
     with pytest.raises(sl.LandingRefused, match="GATE RED"):
@@ -508,8 +508,8 @@ def test_a_content_sourced_retry_commits_the_same_bytes_the_caller_gave(
     calls: list[int] = []
     racing = _racing_gate(repo, lose_until=1, calls=calls)
 
-    def gate(checkout, hook_rel=sl.HOOK_REL, gated_tree=None):
-        rc, out, err = racing(checkout, hook_rel, gated_tree)
+    def gate(checkout, hook_rel=sl.HOOK_REL, gated_tree=None, merge_parent=None):
+        rc, out, err = racing(checkout, hook_rel, gated_tree, merge_parent)
         (repo / "code.py").write_text("VALUE = 99  # the mover rewrote it mid-gate\n")
         return rc, out, err
 
@@ -1650,8 +1650,8 @@ def test_the_hook_can_re_derive_the_gated_tree_from_inside_the_extract(repo: Pat
     seen: dict[str, str] = {}
     real_run_gate = sl.run_gate
 
-    def gate(checkout, hook_rel=sl.HOOK_REL, gated_tree=None):
-        rc, out, err = real_run_gate(checkout, hook_rel, gated_tree)
+    def gate(checkout, hook_rel=sl.HOOK_REL, gated_tree=None, merge_parent=None):
+        rc, out, err = real_run_gate(checkout, hook_rel, gated_tree, merge_parent)
         for line in out.splitlines():
             if "=" in line:
                 key, _, value = line.partition("=")

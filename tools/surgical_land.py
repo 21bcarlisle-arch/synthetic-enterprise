@@ -147,7 +147,11 @@ from background.tree_lock import (  # noqa: E402  (needs the path insert above)
     TreeLockTimeout,
     tree_lock,
 )
-from tools import live_hook_drift, stale_copy_refusal  # noqa: E402  (needs the path insert)
+from tools import (  # noqa: E402  (needs the path insert)
+    live_hook_drift,
+    pre_commit_test_gate,
+    stale_copy_refusal,
+)
 
 # The gate is the repo's OWN hook, named in ONE place. Running a hand-picked subset here would
 # recreate the accretion the ruling forbids: the tool must face what `git commit` faces.
@@ -862,7 +866,8 @@ GATE_TIMEOUT_SECONDS = 3600
 
 
 def run_gate(checkout: Path, hook_rel: str = HOOK_REL,
-             gated_tree: str | None = None) -> tuple[int, str, str]:
+             gated_tree: str | None = None,
+             merge_parent: str | None = None) -> tuple[int, str, str]:
     """Run the repo's own pre-commit hook inside the extract. Returns (rc, stdout, stderr).
 
     `gated_tree` IS THE TREE THIS TOOL HAS ALREADY JUDGED with `stale_copy_refusal.violations`,
@@ -871,6 +876,12 @@ def run_gate(checkout: Path, hook_rel: str = HOOK_REL,
     being a bypass: the hook re-derives the tree from the index it is about to commit and ignores a
     token naming anything else. Omitting it is safe and merely costs the duplicate ask -- but a
     landing that legitimately declared `--drops` would then be refused at the only legal door.
+
+    `merge_parent` is handed over for the same kind of reason: the extract has no `MERGE_HEAD`, so
+    without it `pre_commit_test_gate` cannot tell a merge from a commit that authored everything
+    the other side brought, and selects tests for all of it. With it, selection keys on the
+    merge's combined diff (`pre_commit_test_gate.selection_paths`); the gate re-derives the
+    parent and ignores a token that is not a commit outside HEAD's history.
 
     THE TWO STREAMS ARE KEPT APART, and that is load-bearing rather than tidy (2026-08-24,
     WORKER_FINDING_THE_GATES_REFUSAL_QUOTES_SIX_GREEN_LINES_WHEN_A_NON_PYTEST_GATE_REDS). This
@@ -892,6 +903,8 @@ def run_gate(checkout: Path, hook_rel: str = HOOK_REL,
     env = _gitless_env()
     if gated_tree:
         env[stale_copy_refusal.ALREADY_GATED_ENV] = gated_tree
+    if merge_parent:
+        env[pre_commit_test_gate.MERGE_PARENT_ENV] = merge_parent
     try:
         r = subprocess.run(["sh", hook_rel], cwd=str(checkout), env=env,
                            capture_output=True, text=True, timeout=GATE_TIMEOUT_SECONDS)
@@ -1723,7 +1736,8 @@ def _land_once(root: Path, paths: list[str], message: str, hook_rel: str = HOOK_
         # landing -- every error inside it is swallowed and the body's exceptions pass through.
         with staging_root_resurrection_watch.bracket(
                 root, "surgical-land gate: " + message.splitlines()[0][:80]):
-            rc, gate_out, gate_err = run_gate(checkout, hook_rel, gated_tree=gated_tree)
+            rc, gate_out, gate_err = run_gate(checkout, hook_rel, gated_tree=gated_tree,
+                                              merge_parent=merge_parent)
         tests = _test_summary(gate_out + gate_err)
         if rc != 0:
             raise LandingRefused(
