@@ -976,23 +976,23 @@
  "where_the_worlds_point_falls": {
   "source": "docs/reports/svt_route_shortfall_decomposition.json",
   "measured_at_anchor": 1.0,
-  "world_level_digest": "39a192ce04c1eda8",
+  "world_level_digest": "cf823b185f8ca51c",
   "per_year": {
    "2017": {
-    "world_hazard": 0.13266,
-    "required_hazard_at_band_low": 0.284098,
+    "world_hazard": 0.132341,
+    "required_hazard_at_band_low": 0.245661,
     "as_published": {
      "admissible_svt_churn": [
       -0.027193,
       0.245614
      ],
      "phi_admitting_world": [
-      0.394577,
-      0.430178
+      0.395785,
+      0.43149
      ],
      "phi_admitting_required": [
-      -0.227302,
-      -0.145753
+      -0.069268,
+      -0.000178
      ]
     },
     "all_domestic": {
@@ -1001,30 +1001,30 @@
       0.225989
      ],
      "phi_admitting_world": [
-      0.396599,
-      0.436722
+      0.398083,
+      0.438318
      ],
      "phi_admitting_required": [
-      -0.360215,
-      -0.270311
+      -0.167917,
+      -0.091511
      ]
     }
    },
    "2018": {
-    "world_hazard": 0.190827,
-    "required_hazard_at_band_low": 0.279348,
+    "world_hazard": 0.191864,
+    "required_hazard_at_band_low": 0.284477,
     "as_published": {
      "admissible_svt_churn": [
       0.057547,
       0.377358
      ],
      "phi_admitting_world": [
-      0.570588,
-      0.600983
+      0.567247,
+      0.597642
      ],
      "phi_admitting_required": [
-      0.285383,
-      0.315778
+      0.268858,
+      0.299253
      ]
     },
     "all_domestic": {
@@ -1033,30 +1033,30 @@
       0.341588
      ],
      "phi_admitting_world": [
-      0.573984,
-      0.608449
+      0.569799,
+      0.604264
      ],
      "phi_admitting_required": [
-      0.216728,
-      0.251192
+      0.196028,
+      0.230493
      ]
     }
    },
    "2019": {
-    "world_hazard": 0.197192,
-    "required_hazard_at_band_low": 0.333955,
+    "world_hazard": 0.193414,
+    "required_hazard_at_band_low": 0.29427,
     "as_published": {
      "admissible_svt_churn": [
       0.069608,
       0.417647
      ],
      "phi_admitting_world": [
-      0.620595,
-      0.659503
+      0.63183,
+      0.671675
      ],
      "phi_admitting_required": [
-      0.182394,
-      0.24888
+      0.310255,
+      0.366894
      ]
     },
     "all_domestic": {
@@ -1065,18 +1065,18 @@
       0.37467
      ],
      "phi_admitting_world": [
-      0.628349,
-      0.67237
+      0.64257,
+      0.687617
      ],
      "phi_admitting_required": [
-      0.079058,
-      0.153263
+      0.239221,
+      0.302649
      ]
     }
    },
    "2020": {
-    "world_hazard": 0.191026,
-    "required_hazard_at_band_low": 0.341823,
+    "world_hazard": 0.185288,
+    "required_hazard_at_band_low": 0.321194,
     "as_published": {
      "admissible_svt_churn": null,
      "phi_admitting_world": null,
@@ -1089,8 +1089,8 @@
     }
    },
    "2021": {
-    "world_hazard": 0.141431,
-    "required_hazard_at_band_low": 0.271207,
+    "world_hazard": 0.134461,
+    "required_hazard_at_band_low": 0.232355,
     "as_published": {
      "admissible_svt_churn": null,
      "phi_admitting_world": null,
@@ -1100,55 +1100,23 @@
      "admissible_svt_churn": null,
      "phi_admitting_world": null,
      "phi_admitting_required": null
-    }
-   },
-   "2023": {
-    "world_hazard": 0.09355,
-    "required_hazard_at_band_low": 0.084237,
-    "as_published": {
-     "admissible_svt_churn": [
-      0.02375,
-      0.15625
-     ],
-     "phi_admitting_world": [
-      0.137286,
-      1.165857
-     ],
-     "phi_admitting_required": [
-      0.30872,
-      1.405334
-     ]
-    },
-    "all_domestic": {
-     "admissible_svt_churn": [
-      0.02375,
-      0.15625
-     ],
-     "phi_admitting_world": [
-      0.137286,
-      1.165857
-     ],
-     "phi_admitting_required": [
-      0.30872,
-      1.405334
-     ]
     }
    },
    "2024": {
-    "world_hazard": 0.114562,
-    "required_hazard_at_band_low": 0.169157,
+    "world_hazard": 0.103065,
+    "required_hazard_at_band_low": 0.156172,
     "as_published": {
      "admissible_svt_churn": [
       0.06875,
       0.20125
      ],
      "phi_admitting_world": [
-      0.476434,
-      1.275034
+      0.607829,
+      1.476818
      ],
      "phi_admitting_required": [
-      -0.417858,
-      0.366777
+      -0.189958,
+      0.544736
      ]
     },
     "all_domestic": {
@@ -1157,12 +1125,12 @@
       0.20125
      ],
      "phi_admitting_world": [
-      0.476434,
-      1.275034
+      0.607829,
+      1.476818
      ],
      "phi_admitting_required": [
-      -0.417858,
-      0.366777
+      -0.189958,
+      0.544736
      ]
     }
    }
@@ -1176,13 +1144,12 @@
    "share_and_still_required_multiple": "docs/reports/svt_composition_vs_published.json"
   },
   "measured_at_anchor": 1.0,
-  "world_level_digest": "39a192ce04c1eda8",
+  "world_level_digest": "cf823b185f8ca51c",
   "headline_accounting": "renewal_rescaled",
   "years_measurable": [
    "2017",
    "2018",
    "2019",
-   "2023",
    "2024"
   ],
   "years_refused": {
@@ -1200,120 +1167,104 @@
      "renewal_rescaled": {
       "years": {
        "2017": [
-        0.060931,
-        0.095774
+        0.064841,
+        0.099684
        ],
        "2018": [
-        0.216941,
-        0.247336
+        0.125446,
+        0.155841
        ],
        "2019": [
-        0.10978,
-        0.146283
-       ],
-       "2023": [
-        0.289566,
-        1.318137
+        0.093989,
+        0.130463
        ],
        "2024": [
-        0.162941,
-        0.897635
+        0.070594,
+        0.805351
        ]
       },
       "intersection": [
-       0.289566,
-       0.095774
+       0.125446,
+       0.099684
       ],
       "is_non_empty": false
      },
      "renewal_held": {
       "years": {
        "2017": [
-        0.080456,
-        0.119172
+        0.07485,
+        0.113396
        ],
        "2018": [
-        0.191366,
-        0.221761
+        0.099297,
+        0.129692
        ],
        "2019": [
-        0.096294,
-        0.136817
-       ],
-       "2023": [
-        0.402857,
-        1.834377
+        0.064026,
+        0.103232
        ],
        "2024": [
-        0.321154,
-        1.193404
+        0.083783,
+        0.854371
        ]
       },
       "intersection": [
-       0.402857,
-       0.119172
+       0.099297,
+       0.103232
       ],
-      "is_non_empty": false
+      "is_non_empty": true
      }
     },
     "all_domestic": {
      "renewal_rescaled": {
       "years": {
        "2017": [
-        0.060928,
-        0.100228
+        0.064849,
+        0.104156
        ],
        "2018": [
-        0.216945,
-        0.25141
+        0.125485,
+        0.15995
        ],
        "2019": [
-        0.109789,
-        0.151177
-       ],
-       "2023": [
-        0.289566,
-        1.318137
+        0.093976,
+        0.135353
        ],
        "2024": [
-        0.162941,
-        0.897635
+        0.070594,
+        0.805351
        ]
       },
       "intersection": [
-       0.289566,
-       0.100228
+       0.125485,
+       0.104156
       ],
       "is_non_empty": false
      },
      "renewal_held": {
       "years": {
        "2017": [
-        0.090885,
-        0.134479
+        0.08461,
+        0.12786
        ],
        "2018": [
-        0.217022,
-        0.251487
+        0.112631,
+        0.147096
        ],
        "2019": [
-        0.109341,
-        0.155157
-       ],
-       "2023": [
-        0.402857,
-        1.834377
+        0.072715,
+        0.117086
        ],
        "2024": [
-        0.321154,
-        1.193404
+        0.083783,
+        0.854371
        ]
       },
       "intersection": [
-       0.402857,
-       0.134479
+       0.112631,
+       0.117086
       ],
-      "is_non_empty": false
+      "is_non_empty": true
      }
     }
    },
@@ -1321,58 +1272,50 @@
     "as_published": {
      "years": {
       "2017": [
-       0.394577,
-       0.430178
+       0.395785,
+       0.43149
       ],
       "2018": [
-       0.570588,
-       0.600983
+       0.567247,
+       0.597642
       ],
       "2019": [
-       0.620595,
-       0.659503
-      ],
-      "2023": [
-       0.137286,
-       1.165857
+       0.63183,
+       0.671675
       ],
       "2024": [
-       0.476434,
-       1.275034
+       0.607829,
+       1.476818
       ]
      },
      "intersection": [
-      0.620595,
-      0.430178
+      0.63183,
+      0.43149
      ],
      "is_non_empty": false
     },
     "all_domestic": {
      "years": {
       "2017": [
-       0.396599,
-       0.436722
+       0.398083,
+       0.438318
       ],
       "2018": [
-       0.573984,
-       0.608449
+       0.569799,
+       0.604264
       ],
       "2019": [
-       0.628349,
-       0.67237
-      ],
-      "2023": [
-       0.137286,
-       1.165857
+       0.64257,
+       0.687617
       ],
       "2024": [
-       0.476434,
-       1.275034
+       0.607829,
+       1.476818
       ]
      },
      "intersection": [
-      0.628349,
-      0.436722
+      0.64257,
+      0.438318
      ],
      "is_non_empty": false
     }
@@ -1388,9 +1331,9 @@
   },
   "per_year": {
    "2017": {
-    "world_hazard": 0.13266,
-    "required_hazard_holding_the_worlds_share_fixed": 0.284098,
-    "world_svt_account_day_share": 0.4326,
+    "world_hazard": 0.132341,
+    "required_hazard_holding_the_worlds_share_fixed": 0.245661,
+    "world_svt_account_day_share": 0.5037,
     "band_pct": [
      13.5,
      14.0
@@ -1398,34 +1341,34 @@
     "as_published": {
      "at_published_low": {
       "published_svt_account_day_share": 0.57,
-      "composition_multiple": 1.3177,
+      "composition_multiple": 1.1317,
       "admissible_svt_churn_at_this_share": [
        -0.027193,
        0.245614
       ],
       "phi_admitting_the_worlds_current_hazard": [
-       0.394577,
-       0.427799
+       0.395785,
+       0.429008
       ],
       "accountings": {
        "renewal_rescaled": {
-        "hazard_multiple_still_required": 1.664,
-        "joint_required_hazard": 0.220746,
+        "hazard_multiple_still_required": 1.6602,
+        "joint_required_hazard": 0.219713,
         "joint_hazard_is_admissible": true,
         "phi_admitting_joint": [
-         0.060962,
-         0.094185
+         0.064874,
+         0.098097
         ],
         "record_refuses_the_joint_pair": false,
         "record_needs_more_than_the_fixed_route_can_supply": false
        },
        "renewal_held": {
-        "hazard_multiple_still_required": 1.6252,
-        "joint_required_hazard": 0.215599,
+        "hazard_multiple_still_required": 1.6403,
+        "joint_required_hazard": 0.217079,
         "joint_hazard_is_admissible": true,
         "phi_admitting_joint": [
-         0.080456,
-         0.113678
+         0.07485,
+         0.108073
         ],
         "record_refuses_the_joint_pair": false,
         "record_needs_more_than_the_fixed_route_can_supply": false
@@ -1434,34 +1377,34 @@
      },
      "at_published_high": {
       "published_svt_account_day_share": 0.59,
-      "composition_multiple": 1.3639,
+      "composition_multiple": 1.1714,
       "admissible_svt_churn_at_this_share": [
        -0.014407,
        0.237288
       ],
       "phi_admitting_the_worlds_current_hazard": [
-       0.395335,
-       0.430178
+       0.396647,
+       0.43149
       ],
       "accountings": {
        "renewal_rescaled": {
-        "hazard_multiple_still_required": 1.6131,
-        "joint_required_hazard": 0.213994,
+        "hazard_multiple_still_required": 1.6098,
+        "joint_required_hazard": 0.213043,
         "joint_hazard_is_admissible": true,
         "phi_admitting_joint": [
-         0.060931,
-         0.095774
+         0.064841,
+         0.099684
         ],
         "record_refuses_the_joint_pair": false,
         "record_needs_more_than_the_fixed_route_can_supply": false
        },
        "renewal_held": {
-        "hazard_multiple_still_required": 1.5702,
-        "joint_required_hazard": 0.208303,
+        "hazard_multiple_still_required": 1.5846,
+        "joint_required_hazard": 0.209708,
         "joint_hazard_is_admissible": true,
         "phi_admitting_joint": [
-         0.084329,
-         0.119172
+         0.078552,
+         0.113396
         ],
         "record_refuses_the_joint_pair": false,
         "record_needs_more_than_the_fixed_route_can_supply": false
@@ -1472,34 +1415,34 @@
     "all_domestic": {
      "at_published_low": {
       "published_svt_account_day_share": 0.6195,
-      "composition_multiple": 1.4321,
+      "composition_multiple": 1.23,
       "admissible_svt_churn_at_this_share": [
        0.002946,
        0.225989
       ],
       "phi_admitting_the_worlds_current_hazard": [
-       0.396599,
-       0.434144
+       0.398083,
+       0.435628
       ],
       "accountings": {
        "renewal_rescaled": {
-        "hazard_multiple_still_required": 1.5439,
-        "joint_required_hazard": 0.204814,
+        "hazard_multiple_still_required": 1.5413,
+        "joint_required_hazard": 0.203977,
         "joint_hazard_is_admissible": true,
         "phi_admitting_joint": [
-         0.060955,
-         0.0985
+         0.064849,
+         0.102393
         ],
         "record_refuses_the_joint_pair": false,
         "record_needs_more_than_the_fixed_route_can_supply": false
        },
        "renewal_held": {
-        "hazard_multiple_still_required": 1.4954,
-        "joint_required_hazard": 0.19838,
+        "hazard_multiple_still_required": 1.5092,
+        "joint_required_hazard": 0.199729,
         "joint_hazard_is_admissible": true,
         "phi_admitting_joint": [
-         0.090885,
-         0.128429
+         0.08461,
+         0.122154
         ],
         "record_refuses_the_joint_pair": false,
         "record_needs_more_than_the_fixed_route_can_supply": false
@@ -1508,34 +1451,34 @@
      },
      "at_published_high": {
       "published_svt_account_day_share": 0.6365,
-      "composition_multiple": 1.4714,
+      "composition_multiple": 1.2637,
       "admissible_svt_churn_at_this_share": [
        0.012215,
        0.219953
       ],
       "phi_admitting_the_worlds_current_hazard": [
-       0.397421,
-       0.436722
+       0.399017,
+       0.438318
       ],
       "accountings": {
        "renewal_rescaled": {
-        "hazard_multiple_still_required": 1.507,
-        "joint_required_hazard": 0.199919,
+        "hazard_multiple_still_required": 1.5047,
+        "joint_required_hazard": 0.199134,
         "joint_hazard_is_admissible": true,
         "phi_admitting_joint": [
-         0.060928,
-         0.100228
+         0.064855,
+         0.104156
         ],
         "record_refuses_the_joint_pair": false,
         "record_needs_more_than_the_fixed_route_can_supply": false
        },
        "renewal_held": {
-        "hazard_multiple_still_required": 1.4554,
-        "joint_required_hazard": 0.193073,
+        "hazard_multiple_still_required": 1.4689,
+        "joint_required_hazard": 0.194396,
         "joint_hazard_is_admissible": true,
         "phi_admitting_joint": [
-         0.095178,
-         0.134479
+         0.088559,
+         0.12786
         ],
         "record_refuses_the_joint_pair": false,
         "record_needs_more_than_the_fixed_route_can_supply": false
@@ -1545,9 +1488,9 @@
     }
    },
    "2018": {
-    "world_hazard": 0.190827,
-    "required_hazard_holding_the_worlds_share_fixed": 0.279348,
-    "world_svt_account_day_share": 0.5854,
+    "world_hazard": 0.191864,
+    "required_hazard_holding_the_worlds_share_fixed": 0.284477,
+    "world_svt_account_day_share": 0.628,
     "band_pct": [
      19.5,
      20.0
@@ -1555,34 +1498,34 @@
     "as_published": {
      "at_published_low": {
       "published_svt_account_day_share": 0.53,
-      "composition_multiple": 0.9054,
+      "composition_multiple": 0.8439,
       "admissible_svt_churn_at_this_share": [
        0.057547,
        0.377358
       ],
       "phi_admitting_the_worlds_current_hazard": [
-       0.570588,
-       0.600983
+       0.567247,
+       0.597642
       ],
       "accountings": {
        "renewal_rescaled": {
-        "hazard_multiple_still_required": 1.5752,
-        "joint_required_hazard": 0.300591,
+        "hazard_multiple_still_required": 1.7147,
+        "joint_required_hazard": 0.328989,
         "joint_hazard_is_admissible": true,
         "phi_admitting_joint": [
-         0.216941,
-         0.247336
+         0.125446,
+         0.155841
         ],
         "record_refuses_the_joint_pair": false,
         "record_needs_more_than_the_fixed_route_can_supply": false
        },
        "renewal_held": {
-        "hazard_multiple_still_required": 1.6168,
-        "joint_required_hazard": 0.308529,
+        "hazard_multiple_still_required": 1.757,
+        "joint_required_hazard": 0.337105,
         "joint_hazard_is_admissible": true,
         "phi_admitting_joint": [
-         0.191366,
-         0.221761
+         0.099297,
+         0.129692
         ],
         "record_refuses_the_joint_pair": false,
         "record_needs_more_than_the_fixed_route_can_supply": false
@@ -1591,34 +1534,34 @@
      },
      "at_published_high": {
       "published_svt_account_day_share": 0.53,
-      "composition_multiple": 0.9054,
+      "composition_multiple": 0.8439,
       "admissible_svt_churn_at_this_share": [
        0.057547,
        0.377358
       ],
       "phi_admitting_the_worlds_current_hazard": [
-       0.570588,
-       0.600983
+       0.567247,
+       0.597642
       ],
       "accountings": {
        "renewal_rescaled": {
-        "hazard_multiple_still_required": 1.5752,
-        "joint_required_hazard": 0.300591,
+        "hazard_multiple_still_required": 1.7147,
+        "joint_required_hazard": 0.328989,
         "joint_hazard_is_admissible": true,
         "phi_admitting_joint": [
-         0.216941,
-         0.247336
+         0.125446,
+         0.155841
         ],
         "record_refuses_the_joint_pair": false,
         "record_needs_more_than_the_fixed_route_can_supply": false
        },
        "renewal_held": {
-        "hazard_multiple_still_required": 1.6168,
-        "joint_required_hazard": 0.308529,
+        "hazard_multiple_still_required": 1.757,
+        "joint_required_hazard": 0.337105,
         "joint_hazard_is_admissible": true,
         "phi_admitting_joint": [
-         0.191366,
-         0.221761
+         0.099297,
+         0.129692
         ],
         "record_refuses_the_joint_pair": false,
         "record_needs_more_than_the_fixed_route_can_supply": false
@@ -1629,34 +1572,34 @@
     "all_domestic": {
      "at_published_low": {
       "published_svt_account_day_share": 0.5855,
-      "composition_multiple": 1.0003,
+      "composition_multiple": 0.9323,
       "admissible_svt_churn_at_this_share": [
        0.085269,
        0.341588
       ],
       "phi_admitting_the_worlds_current_hazard": [
-       0.573984,
-       0.608449
+       0.569799,
+       0.604264
       ],
       "accountings": {
        "renewal_rescaled": {
-        "hazard_multiple_still_required": 1.4636,
-        "joint_required_hazard": 0.279294,
+        "hazard_multiple_still_required": 1.5738,
+        "joint_required_hazard": 0.301956,
         "joint_hazard_is_admissible": true,
         "phi_admitting_joint": [
-         0.216945,
-         0.25141
+         0.125485,
+         0.15995
         ],
         "record_refuses_the_joint_pair": false,
         "record_needs_more_than_the_fixed_route_can_supply": false
        },
        "renewal_held": {
-        "hazard_multiple_still_required": 1.4635,
-        "joint_required_hazard": 0.279275,
+        "hazard_multiple_still_required": 1.5904,
+        "joint_required_hazard": 0.305141,
         "joint_hazard_is_admissible": true,
         "phi_admitting_joint": [
-         0.217022,
-         0.251487
+         0.112631,
+         0.147096
         ],
         "record_refuses_the_joint_pair": false,
         "record_needs_more_than_the_fixed_route_can_supply": false
@@ -1665,34 +1608,34 @@
      },
      "at_published_high": {
       "published_svt_account_day_share": 0.5855,
-      "composition_multiple": 1.0003,
+      "composition_multiple": 0.9323,
       "admissible_svt_churn_at_this_share": [
        0.085269,
        0.341588
       ],
       "phi_admitting_the_worlds_current_hazard": [
-       0.573984,
-       0.608449
+       0.569799,
+       0.604264
       ],
       "accountings": {
        "renewal_rescaled": {
-        "hazard_multiple_still_required": 1.4636,
-        "joint_required_hazard": 0.279294,
+        "hazard_multiple_still_required": 1.5738,
+        "joint_required_hazard": 0.301956,
         "joint_hazard_is_admissible": true,
         "phi_admitting_joint": [
-         0.216945,
-         0.25141
+         0.125485,
+         0.15995
         ],
         "record_refuses_the_joint_pair": false,
         "record_needs_more_than_the_fixed_route_can_supply": false
        },
        "renewal_held": {
-        "hazard_multiple_still_required": 1.4635,
-        "joint_required_hazard": 0.279275,
+        "hazard_multiple_still_required": 1.5904,
+        "joint_required_hazard": 0.305141,
         "joint_hazard_is_admissible": true,
         "phi_admitting_joint": [
-         0.217022,
-         0.251487
+         0.112631,
+         0.147096
         ],
         "record_refuses_the_joint_pair": false,
         "record_needs_more_than_the_fixed_route_can_supply": false
@@ -1702,9 +1645,9 @@
     }
    },
    "2019": {
-    "world_hazard": 0.197192,
-    "required_hazard_holding_the_worlds_share_fixed": 0.333955,
-    "world_svt_account_day_share": 0.5704,
+    "world_hazard": 0.193414,
+    "required_hazard_holding_the_worlds_share_fixed": 0.29427,
+    "world_svt_account_day_share": 0.6661,
     "band_pct": [
      20.7,
      21.3
@@ -1712,34 +1655,34 @@
     "as_published": {
      "at_published_low": {
       "published_svt_account_day_share": 0.51,
-      "composition_multiple": 0.8941,
+      "composition_multiple": 0.7656,
       "admissible_svt_churn_at_this_share": [
        0.069608,
        0.417647
       ],
       "phi_admitting_the_worlds_current_hazard": [
-       0.620595,
-       0.655581
+       0.63183,
+       0.666816
       ],
       "accountings": {
        "renewal_rescaled": {
-        "hazard_multiple_still_required": 1.8711,
-        "joint_required_hazard": 0.368966,
+        "hazard_multiple_still_required": 1.9351,
+        "joint_required_hazard": 0.374275,
         "joint_hazard_is_admissible": true,
         "phi_admitting_joint": [
-         0.10978,
-         0.144766
+         0.093993,
+         0.128978
         ],
         "record_refuses_the_joint_pair": false,
         "record_needs_more_than_the_fixed_route_can_supply": false
        },
        "renewal_held": {
-        "hazard_multiple_still_required": 1.8941,
-        "joint_required_hazard": 0.373501,
+        "hazard_multiple_still_required": 1.9872,
+        "joint_required_hazard": 0.384352,
         "joint_hazard_is_admissible": true,
         "phi_admitting_joint": [
-         0.096294,
-         0.13128
+         0.064026,
+         0.099012
         ],
         "record_refuses_the_joint_pair": false,
         "record_needs_more_than_the_fixed_route_can_supply": false
@@ -1748,34 +1691,34 @@
      },
      "at_published_high": {
       "published_svt_account_day_share": 0.53,
-      "composition_multiple": 0.9292,
+      "composition_multiple": 0.7957,
       "admissible_svt_churn_at_this_share": [
        0.080189,
        0.401887
       ],
       "phi_admitting_the_worlds_current_hazard": [
-       0.623029,
-       0.659503
+       0.635201,
+       0.671675
       ],
       "accountings": {
        "renewal_rescaled": {
-        "hazard_multiple_still_required": 1.8078,
-        "joint_required_hazard": 0.356484,
+        "hazard_multiple_still_required": 1.8685,
+        "joint_required_hazard": 0.361394,
         "joint_hazard_is_admissible": true,
         "phi_admitting_joint": [
-         0.109808,
-         0.146283
+         0.093989,
+         0.130463
         ],
         "record_refuses_the_joint_pair": false,
         "record_needs_more_than_the_fixed_route_can_supply": false
        },
        "renewal_held": {
-        "hazard_multiple_still_required": 1.8227,
-        "joint_required_hazard": 0.359422,
+        "hazard_multiple_still_required": 1.9122,
+        "joint_required_hazard": 0.369846,
         "joint_hazard_is_admissible": true,
         "phi_admitting_joint": [
-         0.100342,
-         0.136817
+         0.066758,
+         0.103232
         ],
         "record_refuses_the_joint_pair": false,
         "record_needs_more_than_the_fixed_route_can_supply": false
@@ -1786,34 +1729,34 @@
     "all_domestic": {
      "at_published_low": {
       "published_svt_account_day_share": 0.5685,
-      "composition_multiple": 0.9967,
+      "composition_multiple": 0.8535,
       "admissible_svt_churn_at_this_share": [
        0.098461,
        0.37467
       ],
       "phi_admitting_the_worlds_current_hazard": [
-       0.628349,
-       0.668077
+       0.64257,
+       0.682299
       ],
       "accountings": {
        "renewal_rescaled": {
-        "hazard_multiple_still_required": 1.6986,
-        "joint_required_hazard": 0.33495,
+        "hazard_multiple_still_required": 1.7535,
+        "joint_required_hazard": 0.339151,
         "joint_hazard_is_admissible": true,
         "phi_admitting_joint": [
-         0.109789,
-         0.149518
+         0.093976,
+         0.133704
         ],
         "record_refuses_the_joint_pair": false,
         "record_needs_more_than_the_fixed_route_can_supply": false
        },
        "renewal_held": {
-        "hazard_multiple_still_required": 1.6992,
-        "joint_required_hazard": 0.335069,
+        "hazard_multiple_still_required": 1.7827,
+        "joint_required_hazard": 0.344799,
         "joint_hazard_is_admissible": true,
         "phi_admitting_joint": [
-         0.109341,
-         0.14907
+         0.072715,
+         0.112443
         ],
         "record_refuses_the_joint_pair": false,
         "record_needs_more_than_the_fixed_route_can_supply": false
@@ -1822,191 +1765,34 @@
      },
      "at_published_high": {
       "published_svt_account_day_share": 0.5855,
-      "composition_multiple": 1.0265,
+      "composition_multiple": 0.879,
       "admissible_svt_churn_at_this_share": [
        0.105764,
        0.363792
       ],
       "phi_admitting_the_worlds_current_hazard": [
-       0.631012,
-       0.67237
+       0.64626,
+       0.687617
       ],
       "accountings": {
        "renewal_rescaled": {
-        "hazard_multiple_still_required": 1.6549,
-        "joint_required_hazard": 0.326333,
+        "hazard_multiple_still_required": 1.7075,
+        "joint_required_hazard": 0.330254,
         "joint_hazard_is_admissible": true,
         "phi_admitting_joint": [
-         0.109819,
-         0.151177
+         0.093995,
+         0.135353
         ],
         "record_refuses_the_joint_pair": false,
         "record_needs_more_than_the_fixed_route_can_supply": false
        },
        "renewal_held": {
-        "hazard_multiple_still_required": 1.6499,
-        "joint_required_hazard": 0.325347,
+        "hazard_multiple_still_required": 1.7309,
+        "joint_required_hazard": 0.33478,
         "joint_hazard_is_admissible": true,
         "phi_admitting_joint": [
-         0.113799,
-         0.155157
-        ],
-        "record_refuses_the_joint_pair": false,
-        "record_needs_more_than_the_fixed_route_can_supply": false
-       }
-      }
-     }
-    }
-   },
-   "2023": {
-    "world_hazard": 0.09355,
-    "required_hazard_holding_the_worlds_share_fixed": 0.084237,
-    "world_svt_account_day_share": 0.7218,
-    "band_pct": [
-     8.9,
-     12.5
-    ],
-    "as_published": {
-     "at_published_low": {
-      "published_svt_account_day_share": 0.8,
-      "composition_multiple": 1.1084,
-      "admissible_svt_churn_at_this_share": [
-       0.02375,
-       0.15625
-      ],
-      "phi_admitting_the_worlds_current_hazard": [
-       0.202286,
-       0.716571
-      ],
-      "accountings": {
-       "renewal_rescaled": {
-        "hazard_multiple_still_required": 0.9183,
-        "joint_required_hazard": 0.085907,
-        "joint_hazard_is_admissible": true,
-        "phi_admitting_joint": [
-         0.289634,
-         0.80392
-        ],
-        "record_refuses_the_joint_pair": false,
-        "record_needs_more_than_the_fixed_route_can_supply": false
-       },
-       "renewal_held": {
-        "hazard_multiple_still_required": 0.8124,
-        "joint_required_hazard": 0.076,
-        "joint_hazard_is_admissible": true,
-        "phi_admitting_joint": [
-         0.402857,
-         0.917143
-        ],
-        "record_refuses_the_joint_pair": false,
-        "record_needs_more_than_the_fixed_route_can_supply": false
-       }
-      }
-     },
-     "at_published_high": {
-      "published_svt_account_day_share": 0.9,
-      "composition_multiple": 1.247,
-      "admissible_svt_churn_at_this_share": [
-       0.06,
-       0.138889
-      ],
-      "phi_admitting_the_worlds_current_hazard": [
-       0.137286,
-       1.165857
-      ],
-      "accountings": {
-       "renewal_rescaled": {
-        "hazard_multiple_still_required": 0.9367,
-        "joint_required_hazard": 0.087628,
-        "joint_hazard_is_admissible": true,
-        "phi_admitting_joint": [
-         0.289566,
-         1.318137
-        ],
-        "record_refuses_the_joint_pair": false,
-        "record_needs_more_than_the_fixed_route_can_supply": false
-       },
-       "renewal_held": {
-        "hazard_multiple_still_required": 0.7221,
-        "joint_required_hazard": 0.067552,
-        "joint_hazard_is_admissible": true,
-        "phi_admitting_joint": [
-         0.805806,
-         1.834377
-        ],
-        "record_refuses_the_joint_pair": false,
-        "record_needs_more_than_the_fixed_route_can_supply": false
-       }
-      }
-     }
-    },
-    "all_domestic": {
-     "at_published_low": {
-      "published_svt_account_day_share": 0.8,
-      "composition_multiple": 1.1084,
-      "admissible_svt_churn_at_this_share": [
-       0.02375,
-       0.15625
-      ],
-      "phi_admitting_the_worlds_current_hazard": [
-       0.202286,
-       0.716571
-      ],
-      "accountings": {
-       "renewal_rescaled": {
-        "hazard_multiple_still_required": 0.9183,
-        "joint_required_hazard": 0.085907,
-        "joint_hazard_is_admissible": true,
-        "phi_admitting_joint": [
-         0.289634,
-         0.80392
-        ],
-        "record_refuses_the_joint_pair": false,
-        "record_needs_more_than_the_fixed_route_can_supply": false
-       },
-       "renewal_held": {
-        "hazard_multiple_still_required": 0.8124,
-        "joint_required_hazard": 0.076,
-        "joint_hazard_is_admissible": true,
-        "phi_admitting_joint": [
-         0.402857,
-         0.917143
-        ],
-        "record_refuses_the_joint_pair": false,
-        "record_needs_more_than_the_fixed_route_can_supply": false
-       }
-      }
-     },
-     "at_published_high": {
-      "published_svt_account_day_share": 0.9,
-      "composition_multiple": 1.247,
-      "admissible_svt_churn_at_this_share": [
-       0.06,
-       0.138889
-      ],
-      "phi_admitting_the_worlds_current_hazard": [
-       0.137286,
-       1.165857
-      ],
-      "accountings": {
-       "renewal_rescaled": {
-        "hazard_multiple_still_required": 0.9367,
-        "joint_required_hazard": 0.087628,
-        "joint_hazard_is_admissible": true,
-        "phi_admitting_joint": [
-         0.289566,
-         1.318137
-        ],
-        "record_refuses_the_joint_pair": false,
-        "record_needs_more_than_the_fixed_route_can_supply": false
-       },
-       "renewal_held": {
-        "hazard_multiple_still_required": 0.7221,
-        "joint_required_hazard": 0.067552,
-        "joint_hazard_is_admissible": true,
-        "phi_admitting_joint": [
-         0.805806,
-         1.834377
+         0.075728,
+         0.117086
         ],
         "record_refuses_the_joint_pair": false,
         "record_needs_more_than_the_fixed_route_can_supply": false
@@ -2016,9 +1802,9 @@
     }
    },
    "2024": {
-    "world_hazard": 0.114562,
-    "required_hazard_holding_the_worlds_share_fixed": 0.169157,
-    "world_svt_account_day_share": 0.6061,
+    "world_hazard": 0.103065,
+    "required_hazard_holding_the_worlds_share_fixed": 0.156172,
+    "world_svt_account_day_share": 0.7628,
     "band_pct": [
      12.5,
      16.1
@@ -2026,34 +1812,34 @@
     "as_published": {
      "at_published_low": {
       "published_svt_account_day_share": 0.8,
-      "composition_multiple": 1.32,
+      "composition_multiple": 1.0487,
       "admissible_svt_churn_at_this_share": [
        0.06875,
        0.20125
       ],
       "phi_admitting_the_worlds_current_hazard": [
-       0.476434,
-       0.99072
+       0.607829,
+       1.122114
       ],
       "accountings": {
        "renewal_rescaled": {
-        "hazard_multiple_still_required": 1.2394,
-        "joint_required_hazard": 0.141988,
+        "hazard_multiple_still_required": 1.4561,
+        "joint_required_hazard": 0.150073,
         "joint_hazard_is_admissible": true,
         "phi_admitting_joint": [
-         0.162994,
-         0.67728
+         0.070594,
+         0.58488
         ],
         "record_refuses_the_joint_pair": false,
         "record_needs_more_than_the_fixed_route_can_supply": false
        },
        "renewal_held": {
-        "hazard_multiple_still_required": 1.1186,
-        "joint_required_hazard": 0.128149,
+        "hazard_multiple_still_required": 1.4449,
+        "joint_required_hazard": 0.148919,
         "joint_hazard_is_admissible": true,
         "phi_admitting_joint": [
-         0.321154,
-         0.83544
+         0.083783,
+         0.598069
         ],
         "record_refuses_the_joint_pair": false,
         "record_needs_more_than_the_fixed_route_can_supply": false
@@ -2062,34 +1848,34 @@
      },
      "at_published_high": {
       "published_svt_account_day_share": 0.86,
-      "composition_multiple": 1.419,
+      "composition_multiple": 1.1274,
       "admissible_svt_churn_at_this_share": [
        0.088372,
        0.187209
       ],
       "phi_admitting_the_worlds_current_hazard": [
-       0.54034,
-       1.275034
+       0.742124,
+       1.476818
       ],
       "accountings": {
        "renewal_rescaled": {
-        "hazard_multiple_still_required": 1.1877,
-        "joint_required_hazard": 0.136065,
+        "hazard_multiple_still_required": 1.3712,
+        "joint_required_hazard": 0.141323,
         "joint_hazard_is_admissible": true,
         "phi_admitting_joint": [
-         0.162941,
-         0.897635
+         0.070658,
+         0.805351
         ],
         "record_refuses_the_joint_pair": false,
         "record_needs_more_than_the_fixed_route_can_supply": false
        },
        "renewal_held": {
-        "hazard_multiple_still_required": 1.0406,
-        "joint_required_hazard": 0.119213,
+        "hazard_multiple_still_required": 1.3441,
+        "joint_required_hazard": 0.13853,
         "joint_hazard_is_admissible": true,
         "phi_admitting_joint": [
-         0.458711,
-         1.193404
+         0.119678,
+         0.854371
         ],
         "record_refuses_the_joint_pair": false,
         "record_needs_more_than_the_fixed_route_can_supply": false
@@ -2100,34 +1886,34 @@
     "all_domestic": {
      "at_published_low": {
       "published_svt_account_day_share": 0.8,
-      "composition_multiple": 1.32,
+      "composition_multiple": 1.0487,
       "admissible_svt_churn_at_this_share": [
        0.06875,
        0.20125
       ],
       "phi_admitting_the_worlds_current_hazard": [
-       0.476434,
-       0.99072
+       0.607829,
+       1.122114
       ],
       "accountings": {
        "renewal_rescaled": {
-        "hazard_multiple_still_required": 1.2394,
-        "joint_required_hazard": 0.141988,
+        "hazard_multiple_still_required": 1.4561,
+        "joint_required_hazard": 0.150073,
         "joint_hazard_is_admissible": true,
         "phi_admitting_joint": [
-         0.162994,
-         0.67728
+         0.070594,
+         0.58488
         ],
         "record_refuses_the_joint_pair": false,
         "record_needs_more_than_the_fixed_route_can_supply": false
        },
        "renewal_held": {
-        "hazard_multiple_still_required": 1.1186,
-        "joint_required_hazard": 0.128149,
+        "hazard_multiple_still_required": 1.4449,
+        "joint_required_hazard": 0.148919,
         "joint_hazard_is_admissible": true,
         "phi_admitting_joint": [
-         0.321154,
-         0.83544
+         0.083783,
+         0.598069
         ],
         "record_refuses_the_joint_pair": false,
         "record_needs_more_than_the_fixed_route_can_supply": false
@@ -2136,34 +1922,34 @@
      },
      "at_published_high": {
       "published_svt_account_day_share": 0.86,
-      "composition_multiple": 1.419,
+      "composition_multiple": 1.1274,
       "admissible_svt_churn_at_this_share": [
        0.088372,
        0.187209
       ],
       "phi_admitting_the_worlds_current_hazard": [
-       0.54034,
-       1.275034
+       0.742124,
+       1.476818
       ],
       "accountings": {
        "renewal_rescaled": {
-        "hazard_multiple_still_required": 1.1877,
-        "joint_required_hazard": 0.136065,
+        "hazard_multiple_still_required": 1.3712,
+        "joint_required_hazard": 0.141323,
         "joint_hazard_is_admissible": true,
         "phi_admitting_joint": [
-         0.162941,
-         0.897635
+         0.070658,
+         0.805351
         ],
         "record_refuses_the_joint_pair": false,
         "record_needs_more_than_the_fixed_route_can_supply": false
        },
        "renewal_held": {
-        "hazard_multiple_still_required": 1.0406,
-        "joint_required_hazard": 0.119213,
+        "hazard_multiple_still_required": 1.3441,
+        "joint_required_hazard": 0.13853,
         "joint_hazard_is_admissible": true,
         "phi_admitting_joint": [
-         0.458711,
-         1.193404
+         0.119678,
+         0.854371
         ],
         "record_refuses_the_joint_pair": false,
         "record_needs_more_than_the_fixed_route_can_supply": false
