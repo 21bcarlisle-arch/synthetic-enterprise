@@ -56,3 +56,43 @@ Per arm: selection per seed, its mean, sd and SNR (|mean| / sd), raw and by ab6'
 **Honest limit, stated up front:** six seeds per cell estimate SNR to about ±0.4, so cell-by-cell
 SNR differences may not be resolvable. **The primary answer is P2** (decisions per customer-year),
 which is far less noisy; P1 is graded on the pooled trend across all four cells, not on any pair.
+
+## Result — graded 2026-10-03 (depth complete; width on one seed pair)
+
+**What ran.** Depth, all six seeds at 2019 and 2022 (`/var/tmp/se-depthwidth-out/depth_*.json`).
+Width: one pair (61001, 61002). Its first two launches were invalid on my side: single-seed legs,
+which the noise floor rightly refuses ("one seed is a run, not a spread"), then a crash on a term
+starting 29 February 2020, a real defect fixed as a class in `c28b7b173`. Its remaining two pairs
+were stopped at 23:53Z by an executor turn freeing memory for the retake noise floor, which is
+arbitration between two lanes that each need about 11–14 GB serially, not a fault. The pinned width
+copy differs from `a322166cc` in the two lever lines and the leap-day guard, and the 80-founder depth
+runs never drew a 29 February start, so the cells stay comparable.
+
+**Customer-years are not recorded in the artefact**, so P2 cannot be read as worded. It is graded on
+what "cheaper" costs in practice, which IS measured: CPU-hours and peak memory per two-seed leg (the
+2025 cell from ab6's own unit record, X1: 2.90 CPU-h, 10.8 GB).
+
+| cell (seeds 61001, 61002) | decisions/seed | selection | peak | CPU-h | decisions/CPU-h | decisions/GB |
+|---|---|---|---|---|---|---|
+| depth 4y (2019) | 78 | +£424, −£1,651 | 6.4 GB | 1.00 | 156 | 12.3 |
+| depth 7y (2022) | 104 | −£1,029, −£10,610 | 8.7 GB | 1.91 | 109 | 11.9 |
+| depth 10y (2025) | 134 | −£1,152, −£12,726 | 10.8 GB | 2.90 | 92 | 12.4 |
+| width ×1.25, 10y | 183 | **+£210, −£78** | 13.4 GB | 3.31 | 111 | 13.7 |
+
+All six depth seeds: SNR **0.19 (4y), 0.33 (7y), 0.73 (10y)**, with the mean moving +£419 → −£1,654 → −£3,437.
+
+| | prediction | result |
+|---|---|---|
+| P1 | SNR rises with decisions, ∝ √decisions | **Direction HELD, form REFUTED.** Decisions grow 1.66× from 4 to 10 years while SNR grows 3.8×, and the mean effect itself builds. Selection compounds with tenure; it is not a fixed effect per decision diluted by noise. |
+| P2 | depth buys more decisions per unit cost than width | **REFUTED on measured cost.** Width delivers as many or more decisions per GB (13.7 vs ~12) and per CPU-hour (111 vs 92 at the same window). |
+| P3 | width ~1.25× memory; depth mainly CPU | **Width HELD** (13.4 vs 10.8 GB, 1.24×). **Depth REFUTED**: memory rises with the window, about 0.7 GB per year of a two-seed leg (6.4 → 8.7 → 10.8 GB). |
+| P4 | depth is the cheaper route | **Mixed, and the useful answer.** Per decision, the two levers cost about the same memory. Per unit of SIGNAL they differ: years build the effect, while the 1.25× book's extra 49 decisions per seed came with no visible effect on its two seeds (+£210, −£78 against −£1,152, −£12,726). Two seeds cannot grade width's SNR. That is a lead, not a result. |
+
+**The answer to the director's question.** A measurable selection effect is bought by YEARS, not by
+accounts: the effect compounds with tenure, so an extra year of window grows it while extra width so
+far adds young accounts whose decisions carry little of it. Years are not free. They cost memory at
+about 0.7 GB per year of a two-seed leg, so on this guest (23 GB admissible, ~3–8 GB resident) a
+window about 4–5 years past 2025 is the ceiling, and it needs SPINE_1 wired into the run loop first,
+which is real work. **Not established here:** width's SNR (four of its six seeds unrun) and whether a
+scenario year past 2025 compounds like a historical one. The remaining width pairs rerun when no
+other value-cycle A/B is resident (`legs_dw.sh` skips finished legs).
