@@ -256,6 +256,35 @@ def test_the_chain_step_can_both_refuse_and_pass_and_an_edit_is_not_a_filing(rep
         f"the refusal does not name the document and what it lacks: {detail}")
 
 
+def test_an_edit_may_not_strip_a_chain_the_item_carried(repo):
+    """DEFECT: on 2026-10-01 a register re-render rewrote the header with Severity + Lane only,
+    wiping a chain stamped a day earlier, and the filing check could not see it -- an edit is
+    not a filing. Whole partition on one commit: stripping a carried chain is refused by name;
+    an edit that keeps it passes; a legacy gap edited in place still passes (it had no chain to
+    lose), so a step that refuses every edit and one that refuses none are both red here.
+    """
+    stamped = "docs/staging/SEAT_FINDING_STAMPED_2026-09-01.md"
+    kept = "docs/staging/SEAT_FINDING_KEPT_2026-09-01.md"
+    legacy = "docs/staging/SEAT_FINDING_LEGACY_UNCHAINED_2026-09-01.md"
+    for p, text in ((stamped, _CHAINED), (kept, _CHAINED), (legacy, _UNCHAINED)):
+        (repo / p).write_text(text)
+    _git(repo, "add", stamped, kept, legacy)
+    _git(repo, "commit", "-q", "-m", "three items already in the queue")
+
+    (repo / stamped).write_text(_UNCHAINED)  # the re-render: Severity + Lane only
+    (repo / kept).write_text(_CHAINED + "\nan edit\n")
+    (repo / legacy).write_text(_UNCHAINED + "\nan edit\n")
+    _git(repo, "add", stamped, kept, legacy)
+
+    refused, detail = gate._staging_chain_check([stamped])
+    passed = [gate._staging_chain_check([p])[0] for p in (kept, legacy)]
+
+    assert not refused and passed == [True, True], (
+        f"partition wrong: stripping edit refused={not refused}, [kept, legacy] passed={passed}")
+    assert "SEAT_FINDING_STAMPED" in detail and "epoch, atom" in detail, (
+        f"the refusal does not name the document and what the edit removed: {detail}")
+
+
 def test_a_chain_refusal_reaches_main_and_stops_the_commit(monkeypatch, capsys):
     """R15 both-ways at the CALLER, on the staging-only commit that selects no targets."""
     monkeypatch.setattr(gate, "staged_files", lambda: ["docs/staging/WORKER_FINDING_X.md"])

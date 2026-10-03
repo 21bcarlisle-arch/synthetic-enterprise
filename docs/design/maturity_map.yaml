@@ -807,6 +807,7 @@
   level_current: 0
   level_target: 3
   loop_stage: idle
+  frame_saturated: true   # 2026-10-03: four passes; pass 3 (09-21) re-verified at 4e6ba2c74, nothing moved. Owed: BUILD (provisional run-stamped close), epoch-gated.
   dial_inherited: 3
   provenance: director_ruling
   depends_on: []
@@ -1391,7 +1392,7 @@
   depends_on: []
   couples_with: [H41_the_map_ratchet_has_no_ongoing_drain, A45_the_canon_is_a_standing_subject]
   file_scope: ['background/staging_rooms.py', 'tests/background/test_staging_rooms.py', 'tools/staging_migrate_rooms.py', 'background/staging_watcher.py']   # docs/design/knowledge/ is where the REMAINING joint (a knowledge page that names its atoms) will live and does not exist yet; a file_scope is EVIDENCE for the level claimed, not a plan, so an unbuilt path may not sit in it (scope-evidence gate, 2026-08-28).
-  expert_hour: {status: not_attempted, last: null, findings: []}
+  expert_hour: {status: attempted_finding_open, last: '2026-10-03 blind pass (delivery-portfolio COO), tools/blind_review.py, 12 questions. FAIL, held at 2: EH-1 ~14 of 33 minted items name their thread''s first atom, not their subject''s; EH-2 none-yet share untrended (25 of 66). Edit back door closed.'}
   real_world_twin: "an engineering organisation where every ticket carries its component and its release train, so 'what is in flight for this subsystem' is a query rather than a conversation -- and where a design document that no longer matches any live component is flagged by the tooling rather than by whoever happens to reread it"
 - id: A45_the_canon_is_a_standing_subject
   title: "Something other than the director must ask what the page claims that the code no longer supports"
