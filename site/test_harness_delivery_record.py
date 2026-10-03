@@ -228,6 +228,34 @@ def test_the_queues_link_to_the_map_reaches_the_reader_as_all_three_counts():
     assert "maintenance_due_202610.md — missing lane, atom" in body
 
 
+def test_the_queue_panel_names_ghost_atoms_and_epochs_that_are_not_their_atoms():
+    """H45's epoch joint on the page. The named-atom count overclaimed while `none` and retired
+    ids read as real atoms, and typed epochs scattered work across epochs the map does not hold
+    it in. Both lists must reach the reader by name, with where the work accretes; a feed
+    written before the check must say it is unmeasured, not that every epoch matches.
+
+    MUTATIONS (must fire): drop either list; render the counts for a feed without the fields.
+    """
+    base = {"available": True, "population": 3, "chained": 3, "minted": 2, "unminted": 0,
+            "unchained": [], "unreadable": 0}
+    body = _text(_with_queue_chain({
+        **base,
+        "unresolved": [{"name": "SEAT_FINDING_X.md", "atom": "none"}],
+        "epoch_contradicted": [{"name": "SEAT_FINDING_Y.md",
+                                "why": "epoch 3 but atom `PB3` is epoch 2 on the map"}],
+        "by_epoch": {"2": 2},
+    })["delivery-queue-chain"]["innerHTML"])
+
+    assert "1 name an atom the map does not hold" in body
+    assert "SEAT_FINDING_X.md — atom `none` is not on the map" in body
+    assert "1 declare an epoch that is not their atom's own" in body
+    assert "SEAT_FINDING_Y.md — epoch 3 but atom `PB3` is epoch 2 on the map" in body
+    assert "epoch 2: 2" in body
+
+    old = _text(_with_queue_chain(base)["delivery-queue-chain"]["innerHTML"])
+    assert "so that is not measured here" in old and "name an atom the map" not in old
+
+
 def test_a_feed_WITHOUT_the_queue_count_says_not_measured_and_not_no_gaps():
     """A delivery record written before the field existed says nothing about the queue. Rendered
     as zeros it would read as a fully tied queue -- the flattering claim, made on no evidence.

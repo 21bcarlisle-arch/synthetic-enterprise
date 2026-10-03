@@ -289,13 +289,89 @@ def test_the_published_chain_census_partitions_the_queue_into_all_three_states(t
            f"**Atom:** `{sr.UNMINTED}`\n\n# x\n")
     gap = _write(tmp_path, "WORKER_FINDING_C_2026-08-28.md",
                  "**Severity:** LATENT · **Lane:** H_harness\n\n# x\n")
-    census = sr.chain_census(tmp_path)
+    census = sr.chain_census(tmp_path, epochs={"H45_x": 3})
 
     assert census["minted"] and census["unminted"] and census["unchained"]
     assert (census["minted"], census["unminted"]) == (1, 1)
     assert census["unchained"] == [{"name": gap.name, "missing": ["epoch", "atom"]}]
     assert census["chained"] + len(census["unchained"]) + census["unreadable"] \
         == census["population"] == 3
+
+
+_EPOCHS = {"E2": 2, "E3": 3, "NOEPOCH": None}
+
+
+def _chain_line(epoch, atom):
+    return (f"**Severity:** LATENT · **Lane:** H_harness · **Epoch:** {epoch} · "
+            f"**Atom:** `{atom}`\n\n# x\n")
+
+
+def test_minted_work_accretes_to_its_ATOMS_epoch_over_the_whole_partition(tmp_path):
+    """H45's epoch joint. A minted item's epoch is its atom's, and a named atom must exist.
+    One control over every state at once: agreeing, contradicting, `unassigned` beside an atom
+    that has an epoch, a ghost atom (`none` read as an id), an atom with no epoch on the map,
+    unminted, and a gap -- so a census that put everything in one bucket cannot pass.
+
+    MUTATIONS (must fire): count a ghost as minted; read `unassigned` as agreeing; key
+    `by_epoch` to the item's declared epoch instead of the atom's."""
+    _write(tmp_path, "WORKER_FINDING_A_2026-10-03.md", _chain_line(2, "E2"))
+    _write(tmp_path, "WORKER_FINDING_B_2026-10-03.md", _chain_line(3, "E2"))
+    _write(tmp_path, "WORKER_FINDING_C_2026-10-03.md", _chain_line("unassigned", "E2"))
+    _write(tmp_path, "WORKER_FINDING_D_2026-10-03.md", _chain_line(3, "none"))
+    _write(tmp_path, "WORKER_FINDING_E_2026-10-03.md", _chain_line(3, "NOEPOCH"))
+    _write(tmp_path, "WORKER_FINDING_F_2026-10-03.md", _chain_line(3, sr.UNMINTED))
+    _write(tmp_path, "WORKER_FINDING_G_2026-10-03.md")
+    census = sr.chain_census(tmp_path, epochs=_EPOCHS)
+
+    assert census["minted"] and census["unresolved"] and census["epoch_contradicted"]
+    assert (census["minted"], census["unminted"]) == (4, 1)
+    assert census["unresolved"] == [{"name": "WORKER_FINDING_D_2026-10-03.md", "atom": "none"}]
+    contradicted = {r["name"][15] for r in census["epoch_contradicted"]}
+    assert contradicted == {"B", "C"}, census["epoch_contradicted"]
+    assert census["by_epoch"] == {"2": 3, "none on the map": 1}
+    assert census["minted"] + census["unminted"] + len(census["unresolved"]) == census["chained"]
+    assert census["chained"] + len(census["unchained"]) + census["unreadable"] \
+        == census["population"] == 7
+
+
+def test_a_FILING_must_attach_to_its_atoms_epoch_and_an_unreadable_map_refuses(monkeypatch):
+    """The write-time leg. Both directions reachable: agreeing and unminted filings pass, a
+    contradicting epoch and a ghost atom are refused with their reason named, and a map that
+    cannot be read refuses rather than waving the filing through.
+
+    MUTATIONS (must fire): skip the epoch check on a minted filing; treat an unreadable map
+    as nothing to check."""
+    ok = {"WORKER_FINDING_A_2026-10-03.md": _chain_line(2, "E2"),
+          "WORKER_FINDING_F_2026-10-03.md": _chain_line("unassigned", sr.UNMINTED)}
+    assert sr.unchained_filings(ok, epochs=_EPOCHS) == []
+    bad = {"WORKER_FINDING_B_2026-10-03.md": _chain_line(3, "E2"),
+           "WORKER_FINDING_D_2026-10-03.md": _chain_line(2, "none")}
+    lines = sr.unchained_filings(bad, epochs=_EPOCHS)
+    assert len(lines) == 2
+    assert "epoch 3 but atom `E2` is epoch 2" in lines[0]
+    assert "`none` is on neither the live map" in lines[1]
+
+    def unreadable():
+        raise RuntimeError("closed half missing")
+
+    monkeypatch.setattr(sr, "atom_epochs", unreadable)
+    refused = sr.unchained_filings({"WORKER_FINDING_A_2026-10-03.md": _chain_line(2, "E2")})
+    assert refused and "could not be read" in refused[0] and "closed half missing" in refused[0]
+    assert sr.unchained_filings(ok_unminted := {
+        "WORKER_FINDING_F_2026-10-03.md": _chain_line("unassigned", sr.UNMINTED)}) == [], \
+        f"an unminted filing needs no map, yet {ok_unminted} was refused"
+
+
+def test_the_atom_epochs_read_spans_BOTH_halves_of_the_map():
+    """A finished atom lives in the closed store; a read of the live half alone would call
+    every item naming one a ghost. Keyed to the property, not to today's ids."""
+    from tools import maturity_map_store as store
+
+    epochs = sr.atom_epochs()
+    live = [a["id"] for a in store.load_live_atoms() if isinstance(a, dict)]
+    closed = [a["id"] for a in store.load_closed_atoms() if isinstance(a, dict)]
+    assert live and closed
+    assert set(live) <= set(epochs) and set(closed) <= set(epochs)
 
 
 @pytest.mark.skipif(__import__("os").geteuid() == 0, reason="root can read a 000 file")

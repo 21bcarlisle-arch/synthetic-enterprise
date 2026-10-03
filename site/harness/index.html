@@ -668,7 +668,33 @@ function renderQueueChain(d) {
           return "<li>" + esc(g.name) + " — missing " + esc((g.missing || []).join(", ")) + "</li>";
         }).join("") + "</ul>"
       : "") +
+    renderQueueEpochs(q) +
     "<p>" + esc(q.why_this_is_here || "") + "</p>";
+}
+
+/* WHETHER THE NAMED ATOMS EXIST AND THE EPOCHS ARE THEIRS (H45's epoch joint). An item's epoch
+   is its atom's; an item that types another scatters work across epochs the map does not hold it
+   in. A feed written before the check says nothing either way, and says so. */
+function renderQueueEpochs(q) {
+  var unres = q.unresolved, contra = q.epoch_contradicted;
+  if (!Array.isArray(unres) || !Array.isArray(contra)) {
+    return "<p>This record does not check whether each named atom is on the map or whether an " +
+      "item's epoch is its atom's, so that is not measured here.</p>";
+  }
+  var by = q.by_epoch || {};
+  var spread = Object.keys(by).map(function (k) {
+    return "epoch " + esc(k) + ": <b>" + n(by[k]) + "</b>";
+  }).join(", ");
+  var li = function (rows, field) {
+    return rows.length ? "<ul>" + rows.map(function (r) {
+      return "<li>" + esc(r.name) + " — " + esc(field === "atom"
+        ? "atom `" + r.atom + "` is not on the map" : r.why) + "</li>";
+    }).join("") + "</ul>" : "";
+  };
+  return "<p><b>" + n(unres.length) + "</b> name an atom the map does not hold. Of those naming a " +
+    "real atom, <b>" + n(contra.length) + "</b> declare an epoch that is not their atom's own." +
+    (spread ? " By their atom's epoch the named work sits at " + spread + "." : "") + "</p>" +
+    li(unres, "atom") + li(contra, "why");
 }
 
 /* THE ONE FIGURE A PROGRAMME IS GATED ON, and the correction that moved it. A search over 45

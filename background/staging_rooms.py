@@ -486,7 +486,8 @@ class Chain:
 
     @property
     def is_minted(self) -> bool:
-        """Chained to a REAL atom, not to `unminted`. This is the number that should fall as
+        """Chained to a NAMED atom, not to `unminted` -- whether the map holds it is
+        `epoch_disagreement`'s question, which needs the map. This is the number that should fall as
         the queue is worked; `is_chained` is the number that should be 100%."""
         return self.is_chained and self.atom != UNMINTED
 
@@ -827,22 +828,75 @@ def unchained(root: Path | str = DEFAULT_STAGING_ROOT) -> list[Chain]:
     return out
 
 
-def chain_census(root: Path | str = DEFAULT_STAGING_ROOT) -> dict:
+def atom_epochs(live_path: Path | str | None = None) -> dict[str, int | None]:
+    """Every atom id on the map, live half and closed store, to the epoch its row declares.
+
+    None for a row that declares no epoch: that is a gap in the MAP, and an item naming such an
+    atom has nothing to attach to, so it is not the item's to answer for. Raises
+    `MapStoreError` on a map that cannot be read whole -- callers fail closed on that.
+    """
+    from tools import maturity_map_store as store
+
+    atoms = store.load_atoms() if live_path is None else store.load_atoms(live_path)
+    return {str(a["id"]): (a["epoch"] if isinstance(a.get("epoch"), int) else None)
+            for a in atoms if isinstance(a, dict) and a.get("id")}
+
+
+def epoch_disagreement(chain: Chain, epochs: dict[str, int | None]) -> str | None:
+    """Why a minted item does not attach to its atom's epoch, or None when it does.
+
+    THE EPOCH IS THE ATOM'S, NOT THE WRITER'S. Measured 2026-10-03 over the 41 root items the
+    census counted as minted: 13 declared their atom's own epoch, 6 typed another (the default
+    `3` against epoch-2 atoms), 2 said `unassigned` beside an atom that has one, 8 named an atom
+    on no map at all -- `none` among them, which `is_minted` read as a real id -- and 12 named
+    `D_opening_dd_seasonal_sizing`, whose row declares no epoch: a map gap, not theirs.
+    A chain whose epoch disagrees with its atom scatters work across epochs the map does not
+    hold it in; the director's P8 asks for work to accrete to the epoch it belongs to.
+    """
+    if not chain.is_minted:
+        return None
+    if chain.atom not in epochs:
+        return (f"atom `{chain.atom}` is on neither the live map nor the closed store "
+                f"(write `{UNMINTED}` if no atom exists yet)")
+    own = epochs[chain.atom]
+    if own is None or chain.epoch == own:
+        return None
+    declared = chain.epoch if chain.epoch is not None else UNASSIGNED
+    return f"epoch {declared} but atom `{chain.atom}` is epoch {own} on the map"
+
+
+def chain_census(root: Path | str = DEFAULT_STAGING_ROOT,
+                 epochs: dict[str, int | None] | None = None) -> dict:
     """The queue's link to the map as disjoint counts over one population, for a reader.
 
-    `chained + len(unchained) + unreadable == population`; `minted` is the part of `chained`
-    naming a real atom and `unminted` the part that said `unminted` -- triaged, not yet minted.
+    `chained + len(unchained) + unreadable == population`, and `chained` splits three ways:
+    `minted` (names an atom the map holds), `unminted` (said `unminted` -- triaged, not yet
+    minted) and `unresolved` (names an atom the map does not hold, which `is_minted` alone
+    cannot see). `epoch_contradicted` lists the minted items whose declared epoch is not their
+    atom's; `by_epoch` is where the minted work accretes, keyed by the ATOM's epoch.
     The gaps ARE `unchained()`, the list the commit gate refuses on, so the page and the gate
     cannot become two opinions; an unreadable item is neither, and is counted as such.
     """
+    if epochs is None:
+        epochs = atom_epochs()
     queue = work_queue(root)
     chained = [c for c in (chain_of(i.path) for i in queue) if c.is_chained]
     gaps = unchained(root)
+    minted = [c for c in chained if c.is_minted and c.atom in epochs]
+    by_epoch: dict[str, int] = {}
+    for c in minted:
+        key = str(epochs[c.atom]) if epochs[c.atom] is not None else "none on the map"
+        by_epoch[key] = by_epoch.get(key, 0) + 1
     return {
         "population": len(queue),
         "chained": len(chained),
-        "minted": sum(1 for c in chained if c.is_minted),
+        "minted": len(minted),
         "unminted": sum(1 for c in chained if not c.is_minted),
+        "unresolved": [{"name": c.path.name, "atom": c.atom}
+                       for c in chained if c.is_minted and c.atom not in epochs],
+        "epoch_contradicted": [{"name": c.path.name, "why": why} for c in minted
+                               if (why := epoch_disagreement(c, epochs))],
+        "by_epoch": dict(sorted(by_epoch.items())),
         "unchained": [{"name": c.path.name, "missing": list(c.missing)} for c in gaps],
         "unreadable": len(queue) - len(chained) - len(gaps),
     }
@@ -859,7 +913,8 @@ def chain_owed(name: str) -> bool:
     return kind_of(name) not in CHAIN_EXEMPT_KINDS
 
 
-def unchained_filings(filed: dict[str, str]) -> list[str]:
+def unchained_filings(filed: dict[str, str],
+                      epochs: dict[str, int | None] | None = None) -> list[str]:
     """Refusal lines for NEWLY FILED root documents that owe a chain and carry none.
 
     `filed` maps a root document NAME to its text in the tree being created. The caller
@@ -868,6 +923,10 @@ def unchained_filings(filed: dict[str, str]) -> list[str]:
     while 28 of the 96 work items filed in the week to 2026-09-30 arrived without one --
     counted, never refused, so the count was a description rather than a control. Keyed to
     the WRITE, so the legacy gaps bill nobody and a new one bills only its author.
+
+    A minted filing must also ATTACH (`epoch_disagreement`): its atom is on the map and its
+    epoch is that atom's. The map is read only when some filing names a real atom, and a map
+    that cannot be read refuses that filing rather than waving it through.
     """
     out = []
     for name in sorted(filed):
@@ -876,6 +935,19 @@ def unchained_filings(filed: dict[str, str]) -> list[str]:
         chain = chain_of_text(filed[name], path=Path(name))
         if not chain.is_chained:
             out.append(f"{name}: missing {', '.join(chain.missing)}")
+            continue
+        if not chain.is_minted:
+            continue
+        if epochs is None:
+            try:
+                epochs = atom_epochs()
+            except Exception as e:  # noqa: BLE001 -- unreadable map: fail closed
+                out.append(f"{name}: the map could not be read to check atom `{chain.atom}` "
+                           f"({type(e).__name__}: {e})")
+                continue
+        why = epoch_disagreement(chain, epochs)
+        if why:
+            out.append(f"{name}: {why}")
     return out
 
 
@@ -1296,13 +1368,19 @@ def render(root: Path | str = DEFAULT_STAGING_ROOT) -> str:
         lines.append(f"  {i:>3}. [{item.kind}] {item.name}")
     lines.append("")
     gaps = unchained(root)
-    minted = sum(1 for i in queue if chain_of(i.path).is_minted)
+    census = chain_census(root)
     lines.append(f"Unchained work items (P8): {len(gaps)} of {len(queue)}")
     for chain in gaps:
         lines.append(f"  - {chain.path.name}: missing {', '.join(chain.missing)}")
     lines.append("")
-    lines.append(f"Chained to a REAL atom: {minted} of {len(queue)} "
-                 f"(the rest say `{UNMINTED}` — triaged, not yet minted)")
+    lines.append(f"Chained to an atom the map holds: {census['minted']} of {len(queue)} "
+                 f"({census['unminted']} say `{UNMINTED}` — triaged, not yet minted)")
+    for r in census["unresolved"]:
+        lines.append(f"  - {r['name']}: atom `{r['atom']}` is on no map")
+    lines.append(f"Epoch not the atom's own: {len(census['epoch_contradicted'])} "
+                 f"(minted work by its atom's epoch: {census['by_epoch']})")
+    for r in census["epoch_contradicted"]:
+        lines.append(f"  - {r['name']}: {r['why']}")
     lines.append("")
     violations = population_floor_violations(root)
     lines.append(f"Population floors: {len(violations)} violation(s)")
