@@ -1841,6 +1841,50 @@ def _under_pass_ceiling(candidates: list, where: str) -> list | None:
     return under_ceiling
 
 
+def _within_buildable_depth(candidates: list, atoms: list, where: str) -> list:
+    """H45 (P8, director 2026-08-28): "discovery ran eight passes deep on atoms that could
+    never build". The pass ceiling bounds how LONG an atom is investigated; this bounds how
+    FAR AHEAD of the buildable frontier. An idle atom whose prerequisite has not reached the
+    level this atom would step to cannot build that step, so investigating it is depth the
+    chain cannot spend -- the discovery belongs to the prerequisite, which is in this pool
+    itself when it is idle and in the BUILD draw when it is not.
+
+    The met rule is `_dependencies_met`'s level-matched one (at its own target, or at
+    `level_current + 1`) WITHOUT its idle exemption. The BUILD draw skips idle prerequisites
+    because a parked link is a deliberate deferral of BUILD; for discovery that exemption is
+    exactly the hole -- measured 2026-10-03, 6 of the 18 atoms this tier offered sat behind
+    an unmet prerequisite, SITE9 behind SITE8 behind SITE6 among them. A prerequisite id not
+    on the map counts as unmet, as it does in the BUILD draw.
+
+    No fallback when it empties the set: an acyclic chain always has a root, so an empty
+    result means every root is itself blocked, frame-saturated or over the ceiling -- and
+    those already surface as decisions."""
+    by_id = {a["id"]: a for a in atoms if isinstance(a, dict) and "id" in a}
+    kept, held = [], []
+    for a in candidates:
+        my_level = a.get("level_current")
+        required = (my_level + 1) if isinstance(my_level, int) else None
+        unmet = []
+        for dep_id in a.get("depends_on") or []:
+            dep = by_id.get(dep_id)
+            dl = dep.get("level_current") if dep else None
+            dt_ = dep.get("level_target") if dep else None
+            at_own_target = isinstance(dl, int) and isinstance(dt_, int) and dl >= dt_
+            advanced_enough = isinstance(dl, int) and required is not None and dl >= required
+            if not (at_own_target or advanced_enough):
+                unmet.append(dep_id if dep else f"missing:{dep_id}")
+        if unmet:
+            held.append(f"{a.get('id')} (behind {', '.join(unmet)})")
+        else:
+            kept.append(a)
+    if held:
+        log(
+            f"{where}: {len(held)} idle atom(s) held at the buildable frontier -- their "
+            f"prerequisite cannot yet build the step they would investigate: {'; '.join(held)}"
+        )
+    return kept
+
+
 def _idle_discover_frame_draw(rng: Any = None) -> dict | None:
     """EPOCH_GATING_AND_ATOM_AUTHORSHIP.md (P0, 2026-07-12, director-prompted
     "why can't it think of its own work for future epochs"): Rule 1 --
@@ -1891,6 +1935,7 @@ def _idle_discover_frame_draw(rng: Any = None) -> dict | None:
 
     candidates = [a for a in atoms if _is_valid_idle_candidate(a)]
     candidates = [a for a in candidates if not _is_externally_blocked(a)]  # never draw director-blocked atoms
+    candidates = _within_buildable_depth(candidates, atoms, "IDLE DISCOVER/FRAME draw")
     # H23: hard-skip FRAME-saturated atoms (no fallback -- unlike the stall
     # soft-deprioritise, which falls back). Preferring an un-saturated idle
     # atom is the whole point; if EVERY idle atom is saturated this is a TRUE
@@ -1991,6 +2036,7 @@ def _idle_discover_frame_draw_concurrent(
 
     candidates = [a for a in atoms if _is_valid_idle_candidate(a)]
     candidates = [a for a in candidates if not _is_externally_blocked(a)]  # never draw director-blocked atoms
+    candidates = _within_buildable_depth(candidates, atoms, "IDLE DISCOVER/FRAME concurrent draw")
     # H23: hard-skip FRAME-saturated atoms BEFORE the stall soft-filter (this
     # skip has no fallback -- all-saturated is a true empty FRAME feasible set,
     # returned as [], not a re-hand). This is the production path that was
