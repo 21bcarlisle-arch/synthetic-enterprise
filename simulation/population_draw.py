@@ -185,6 +185,58 @@ DEFAULT_ACQUISITIONS_PER_YEAR_LAMBDA = 1.0
 DEFAULT_START_YEAR = 2021
 DEFAULT_END_YEAR = 2025  # inclusive
 
+# GB domestic supplier switches by calendar month, Jan..Dec, in thousands: electricity plus gas
+# meter-point transfers. DESNZ Quarterly Energy Prices Table 2.7.1 (monthly sheet), counts collected
+# by Ofgem, transcribed in `docs/market_research/gb_domestic_switching_by_calendar_month.md` §3, and
+# held to that table by `tests/simulation/test_acquisition_dates_follow_the_published_switching_
+# months.py`. It counts TRANSFER EVENTS, not households, and a dual-fuel switch is two. That is the
+# right population for a SHAPE through the year and the wrong one for a level, so only the shape is
+# read here. Each year carries its own row. 2022 is a fact, not an average: its market had almost
+# no tariffs on open sale and its shape is its own. From April 2016 the publisher strips
+# non-domestic transfers, so Jan-Mar 2016 may read slightly high (its own warning, §2).
+GB_DOMESTIC_TRANSFERS_BY_MONTH_THOUSANDS: Dict[int, Tuple[int, ...]] = {
+    2016: (437, 697, 817, 660, 606, 589, 524, 519, 620, 871, 684, 741),
+    2017: (560, 694, 901, 776, 719, 695, 657, 763, 974, 996, 816, 711),
+    2018: (576, 773, 817, 819, 864, 844, 807, 861, 958, 1029, 844, 729),
+    2019: (651, 786, 1072, 1160, 851, 759, 890, 889, 982, 958, 853, 917),
+    2020: (770, 834, 991, 763, 746, 805, 926, 825, 842, 964, 847, 831),
+    2021: (613, 736, 986, 949, 635, 681, 701, 609, 728, 585, 169, 194),
+    2022: (111, 124, 149, 113, 106, 111, 136, 136, 117, 102, 128, 127),
+    2023: (140, 196, 235, 202, 197, 226, 267, 302, 297, 332, 362, 307),
+    2024: (307, 319, 343, 365, 347, 327, 395, 463, 515, 625, 410, 359),
+    2025: (384, 421, 579, 517, 425, 315, 484, 452, 521, 654, 476, 389),
+}
+# Its own salt, so the seasonal date draw never shares a sequence with the acquisition `rng`.
+SEASONAL_DAY_SALT = "acquisition_day_by_published_switching_month"
+
+
+def _seasonal_day_offsets(base_seed: int, year: int, n: int) -> List[int]:
+    """`n` sorted day-of-year offsets, each day weighted by its month's published switches / days.
+
+    NO SHAPE IS INVENTED FOR A YEAR THE RECORD DOES NOT COVER. Outside 2016-2025 this raises
+    rather than falling back to a uniform year or an average, because either fallback would read
+    as the record.
+    """
+    month_totals = GB_DOMESTIC_TRANSFERS_BY_MONTH_THOUSANDS.get(year)
+    if month_totals is None:
+        raise ValueError(
+            f"no published monthly switching shape for {year}: DESNZ Table 2.7.1 is transcribed "
+            f"for {min(GB_DOMESTIC_TRANSFERS_BY_MONTH_THOUSANDS)}-"
+            f"{max(GB_DOMESTIC_TRANSFERS_BY_MONTH_THOUSANDS)} only, so a seasonal date cannot be "
+            "drawn for this year. Transcribe the year's row before asking for one."
+        )
+    first = dt.date(year, 1, 1)
+    days = (dt.date(year, 12, 31) - first).days + 1
+    weights = []
+    for offset in range(days):
+        day = first + dt.timedelta(days=offset)
+        days_in_month = ((day.replace(day=28) + dt.timedelta(days=4)).replace(day=1)
+                         - day.replace(day=1)).days
+        weights.append(month_totals[day.month - 1] / days_in_month)
+    rng = _substream(base_seed, f"{SEASONAL_DAY_SALT}:{year}")
+    return sorted(rng.choices(range(days), weights=weights, k=n))
+
+
 STREAM_NAME = "W2_2_population_draw"
 # PB2 step 1: the named salt for the claim-order shuffle over the premise stock.
 # Its own salt, so the claim order can never share a sequence with the acquisition
@@ -490,6 +542,7 @@ def iter_acquisition_events(
     draw_region: bool = False,
     premise_stock: Optional[Sequence["DrawnPremise"]] = None,
     premise_stock_fn: Optional[Callable[[int], Sequence["DrawnPremise"]]] = None,
+    seasonal_dates: bool = False,
 ) -> Iterator[SyntheticCustomer]:
     """Yield synthetic acquisition EVENTS one at a time, in date order
     (C-S1 event-arrival tolerance: a consumer must NOT assume batch
@@ -548,6 +601,11 @@ def iter_acquisition_events(
     when the stock grows (`PB2_JOIN_KEY_BUILD.md` §5 recorded that the flat
     `premise_stock` shuffle above re-rolls the book whenever `n` changes, and named
     fixing it as step 3's job -- this is that fix).
+
+    `seasonal_dates` (default False, 2026-10-03): when True, each year's acquisition days are
+    drawn in proportion to that year's published GB domestic switches by month
+    (`GB_DOMESTIC_TRANSFERS_BY_MONTH_THOUSANDS`) instead of uniformly. Real switching is lowest
+    in January and highest in October. Off by default so the stream stays byte-identical.
 
     The two are MUTUALLY EXCLUSIVE and supplying both raises. They are one mechanism
     with two shapes, not two mechanisms: `premise_stock` remains the flat form that
@@ -623,6 +681,11 @@ def iter_acquisition_events(
         # chronological order within the year.
         days_in_year = (dt.date(year, 12, 31) - dt.date(year, 1, 1)).days
         day_offsets = sorted(rng.randint(0, days_in_year) for _ in range(n))
+        if seasonal_dates:
+            # The uniform draw above is still CONSUMED, so `rng` reaches `_draw_one` in the same
+            # state and every attribute of acquisition i is byte-identical. Only the date moves,
+            # which is what lets a run with this on be read as a one-variable change.
+            day_offsets = _seasonal_day_offsets(base_seed, year, n)
         for i, offset in enumerate(day_offsets, start=1):
             acq_date = dt.date(year, 1, 1) + dt.timedelta(days=offset)
             cid = f"SYN-{year}-{i:03d}"

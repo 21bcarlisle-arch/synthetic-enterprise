@@ -89,6 +89,7 @@ not this one.
 """
 from __future__ import annotations
 
+import dataclasses
 from dataclasses import dataclass, field
 
 from company.crm.churn_model import (
@@ -391,6 +392,11 @@ class MarginDecision:
     #: company cannot make and, for the broker-acquired segments, is false — see
     #: `replacement_cost_gbp`.
     departure_cost_unsourced: str | None = None
+    #: The money this account ALREADY owes, priced at the chosen offer: P(stay) x the live
+    #: provision on it + P(leave) x the final-bill provision. Inside `expected_value_gbp` already;
+    #: carried so a reader can see how much of a decision was the debt.
+    receivable_expected_loss_gbp: float = 0.0
+    receivable_provision_unsourced: str | None = None
 
     @property
     def rate_increase_pct(self) -> float | None:
@@ -434,6 +440,109 @@ class ExpectedAnnualCosts:
     @property
     def total_gbp(self) -> float:
         return self.cost_to_serve_gbp + self.bad_debt_gbp + self.collections_gbp + self.carrying_gbp
+
+
+#: WHAT AN UNPAID BILL IS EXPECTED TO COST, by how long it has been unpaid and on what footing.
+#: Centrica plc Annual Report 2025, Note 17 p.175, UK residential energy, 2025 column: provision
+#: as a share of gross billed receivables at 31 December, by days beyond invoice date
+#: (`docs/market_research/dd_failure_basis_and_live_arrears_provision_rates.md`, row C6). One
+#: supplier and one year, held for every year -- the only published cross-tab; Ofgem considered
+#: an industry table and declined to publish one. Each band is (upper bound in days, None = open,
+#: rate). The world carries the same live rows (`simulation.arrears_engine`) for its own books;
+#: these are the COMPANY's copy of a public figure, read off the same page, not a crossing.
+RECEIVABLE_PROVISION_RATE_LIVE_DIRECT_DEBIT = ((30, 0.0), (90, 0.014), (None, 0.074))
+#: Same source, same note, pay-on-receipt row.
+RECEIVABLE_PROVISION_RATE_LIVE_PAY_ON_RECEIPT = ((30, 0.045), (90, 0.151), (None, 0.503))
+#: Centrica ARA 2025 Note 17, the FINAL-BILL row: what the same unpaid money is expected to cost
+#: once the account has closed. It is the whole reason arrears belong in a renewal price: a
+#: household that leaves turns a live balance into a closed one, and the loss rate on it rises
+#: several-fold.
+RECEIVABLE_PROVISION_RATE_FINAL_BILL = ((30, 0.316), (90, 0.576), (None, 0.878))
+#: A direct debit that failed is re-presented within thirty days and, if it fails again, stopped
+#: (Bacs: up to two re-presentations inside 30 days; British Gas: DD stopped and the customer moved
+#: off it -- `docs/institutional/knowledge_map.md`, *Debt lifecycle* (a), ESTABLISHED 2026-09-27).
+#: So money a DD account still owes past the re-presentation window is owed on a pay-on-receipt
+#: footing, and is provisioned on that row. Inside the window it is still a DD receivable.
+DIRECT_DEBIT_REPRESENTATION_WINDOW_DAYS = 30
+
+_LIVE_PROVISION_ROW_BY_METHOD = {
+    "direct_debit": RECEIVABLE_PROVISION_RATE_LIVE_DIRECT_DEBIT,
+    "standard_credit": RECEIVABLE_PROVISION_RATE_LIVE_PAY_ON_RECEIPT,
+}
+
+
+def _banded_rate(row, days: int) -> float:
+    for upper, rate in row:
+        if upper is None or days < upper:
+            return rate
+    raise AssertionError("the last band is open")
+
+
+def receivable_provision_rates(
+    unpaid_bills_by_age, payment_method: str | None,
+) -> tuple[float, float, str | None]:
+    """`(GBP expected lost if they STAY, GBP expected lost if they LEAVE, unsourced reason)` on
+    the money this account already owes the company.
+
+    Both legs are read off the same published table, so the DIFFERENCE between them -- which is
+    all a renewal price can move -- is a sourced quantity. A payment method with no published live
+    row (prepayment, or a method the company does not know) returns `(0.0, 0.0, reason)`: no term
+    rather than a borrowed row, with the gap named beside the decision.
+    """
+    bills = tuple(unpaid_bills_by_age or ())
+    if not bills:
+        return 0.0, 0.0, None
+    live_row = _LIVE_PROVISION_ROW_BY_METHOD.get(payment_method or "")
+    if live_row is None:
+        return 0.0, 0.0, (
+            f"payment method {payment_method!r} has no published live provision row (Centrica "
+            "Note 17 publishes direct debit and pay-on-receipt only), so the money this account "
+            "owes does not enter its price")
+    stay = leave = 0.0
+    for gbp, days in bills:
+        stay += float(gbp) * _live_rate(live_row, int(days))
+        leave += float(gbp) * _banded_rate(RECEIVABLE_PROVISION_RATE_FINAL_BILL, int(days))
+    return stay, leave, None
+
+
+def _live_rate(live_row, days: int) -> float:
+    """The live provision on one unpaid bill this many days old. A direct-debit bill still unpaid
+    past the re-presentation window is owed on a pay-on-receipt footing (see the window's note)."""
+    if (live_row is RECEIVABLE_PROVISION_RATE_LIVE_DIRECT_DEBIT
+            and days >= DIRECT_DEBIT_REPRESENTATION_WINDOW_DAYS):
+        live_row = RECEIVABLE_PROVISION_RATE_LIVE_PAY_ON_RECEIPT
+    return _banded_rate(live_row, days)
+
+
+def observed_non_payment_provision_rate(
+    unpaid_bills_by_age, billed_last_year_gbp: float | None, payment_method: str | None,
+) -> tuple[float | None, str | None]:
+    """`(share of a year's bill expected to be lost, unsourced reason)` from this account's OWN
+    record -- or `(None, reason)` when the record cannot say, and the segment prior stands.
+
+    TWO NUMBERS FROM ONE LEDGER, AND WHAT EACH COUNTS. The numerator is the money billed in the 365
+    days to the renewal that is still unpaid; the denominator is all the money billed in those same
+    365 days. So the share is "of what we billed this household last year, how much has it not
+    paid", and it is read as what it will not pay of next year's bill if it stays. That is the
+    persistence assumption, and it is the account's own behaviour rather than a picked rate.
+
+    The unpaid money a year of billing leaves behind is spread across ages 0-364 days, so it is
+    provisioned at the published live rate averaged over those ages -- the same Centrica table the
+    stock term reads, and no number that is not on it.
+    """
+    if billed_last_year_gbp is None:
+        return None, None
+    live_row = _LIVE_PROVISION_ROW_BY_METHOD.get(payment_method or "")
+    if live_row is None:
+        return None, (
+            f"payment method {payment_method!r} has no published live provision row, so this "
+            "account's own non-payment cannot be priced and its segment prior stands")
+    if billed_last_year_gbp <= 0.0:
+        return None, "nothing billed in the last year, so no non-payment share can be read"
+    unpaid = sum(float(g) for g, d in (unpaid_bills_by_age or ()) if int(d) < 365)
+    share = min(1.0, unpaid / float(billed_last_year_gbp))
+    year_mix = sum(_live_rate(live_row, d) for d in range(365)) / 365.0
+    return share * year_mix, None
 
 
 def expected_annual_costs(
@@ -748,6 +857,9 @@ def decide_margin(
     ladder_multiplier: float = 1.0,
     flat_level_gbp_per_mwh: float | None = None,
     published_default_rate_gbp_per_mwh: float | None = None,
+    unpaid_bills_by_age: tuple[tuple[float, int], ...] = (),
+    payment_method: str | None = None,
+    billed_last_year_gbp: float | None = None,
 ) -> MarginDecision:
     """The offered margin for ONE customer, under ONE arm.
 
@@ -797,6 +909,28 @@ def decide_margin(
     # unsourced elasticity smuggled in beside the churn model's.
     departure_cost, departure_cost_unsourced = replacement_cost_gbp(segment)
 
+    # ARREARS MOVE THE BAD-DEBT COST, NOT ONLY THE CHURN HAZARD (director, 2026-10-03). The money
+    # already owed is a fact about the account today, so it is resolved once, here; what the offer
+    # moves is the chance it is still owed by a LIVE account a year from now rather than by a
+    # closed one, and the published loss rates on those two differ by five- to fifty-fold. So the
+    # term enters every candidate through that candidate's own P(stay), and an arm that prices a
+    # debtor out is charged the final-bill loss it causes.
+    stock_if_stay, stock_if_leave, receivable_unsourced = receivable_provision_rates(
+        unpaid_bills_by_age, payment_method)
+
+    def _stock_loss(p_stay: float) -> float:
+        return p_stay * stock_if_stay + (1.0 - p_stay) * stock_if_leave
+
+    # AND THE NON-PAYMENT STILL TO COME, which the stock term alone would leave out -- and leaving
+    # it out is not neutral: printed at real inputs, a household owing GBP 12k was priced DOWN to
+    # GBP 11/MWh to keep it, because the term saw what leaving converts and nothing of what staying
+    # adds. Where the company holds this account's ledger, its own non-payment share REPLACES the
+    # segment prior on every candidate's bill, so the cost grows with the price. Where it does not,
+    # the prior stands, unchanged.
+    flow_rate, flow_unsourced = observed_non_payment_provision_rate(
+        unpaid_bills_by_age, billed_last_year_gbp, payment_method)
+    receivable_unsourced = "; ".join(r for r in (receivable_unsourced, flow_unsourced) if r) or None
+
     def _score(margin: float) -> tuple[float, float, ExpectedAnnualCosts]:
         costs = expected_annual_costs(
             cost_to_serve_gbp_per_year=cost_to_serve_gbp_per_year,
@@ -806,6 +940,9 @@ def decide_margin(
             collections_gbp_per_year=collections_gbp_per_year,
             fixed_revenue_gbp_per_year=fixed_revenue_gbp_per_year,
         )
+        if flow_rate is not None:
+            costs = dataclasses.replace(costs, bad_debt_gbp=flow_rate * max(
+                0.0, observed_revenue + (margin - current_margin) * eac_mwh))
         offered = base_rate_gbp_per_mwh + margin
         p_leave = enriched_churn_estimate(
             current_rate_gbp_per_mwh, offered, tenure_years, float(eac_kwh),
@@ -833,7 +970,7 @@ def decide_margin(
             p_retain=p_stay, expected_periods=periods,
             departure_cost_gbp=departure_cost,
             fixed_revenue_gbp_per_year=costs.fixed_revenue_gbp,
-        ), costs
+        ) - _stock_loss(p_stay), costs
 
     if arm == FLAT_RULES:
         # THE CONTROL DOES NOT SEARCH. It prices the constant and then reports what that choice
@@ -851,6 +988,8 @@ def decide_margin(
                 float(base_rate_gbp_per_mwh) + TARGET_MARGIN_GBP_PER_MWH),
             departure_cost_gbp=departure_cost,
             departure_cost_unsourced=departure_cost_unsourced,
+            receivable_expected_loss_gbp=_stock_loss(p_stay),
+            receivable_provision_unsourced=receivable_unsourced,
         )
 
     # BOTH BOUNDS ARE COMPUTED ONCE, ABOVE BOTH ARMS THAT ANSWER TO THEM (2026-09-18). The
@@ -959,6 +1098,8 @@ def decide_margin(
             offered_rate_gbp_per_mwh=float(base_rate_gbp_per_mwh) + level,
             departure_cost_gbp=departure_cost,
             departure_cost_unsourced=departure_cost_unsourced,
+            receivable_expected_loss_gbp=_stock_loss(p_stay),
+            receivable_provision_unsourced=receivable_unsourced,
         )
 
     if not candidates:
@@ -1115,6 +1256,8 @@ def decide_margin(
         offered_rate_gbp_per_mwh=float(base_rate_gbp_per_mwh) + best_margin,
         departure_cost_gbp=departure_cost,
         departure_cost_unsourced=departure_cost_unsourced,
+        receivable_expected_loss_gbp=_stock_loss(best_p),
+        receivable_provision_unsourced=receivable_unsourced,
     )
 
 
@@ -1278,6 +1421,11 @@ def renewal_margin_uplift(
     ladder_multiplier: float = 1.0,
     flat_level_gbp_per_mwh: float | None = None,
     published_default_rate_gbp_per_mwh: float | None = None,
+    arrears_state: str = ARREARS_STATE_UNKNOWN,
+    credit_risk: str = DEFAULT_CREDIT_RISK,
+    unpaid_bills_by_age: tuple[tuple[float, int], ...] = (),
+    payment_method: str | None = None,
+    billed_last_year_gbp: float | None = None,
 ) -> MarginArmUplift:
     """The £/MWh this renewal moves by, under ONE arm, from the supplier's own settled book.
 
@@ -1395,6 +1543,16 @@ def renewal_margin_uplift(
             ladder_multiplier=ladder_multiplier,
             flat_level_gbp_per_mwh=flat_level_gbp_per_mwh,
             published_default_rate_gbp_per_mwh=published_default_rate_gbp_per_mwh,
+            # PAYMENT HISTORY, which this adapter forwarded none of until 2026-10-03 -- so every
+            # renewal it priced was priced as though the company kept no ledger. The STATE moves
+            # the churn hazard (Ofgem CIM w6 Table 56); the unpaid BILLS move the bad-debt cost
+            # (`receivable_provision_rates`); the credit-risk segment moves the provision on the
+            # bill to come. All four are the company's own records, read at `term_start`.
+            arrears_state=arrears_state,
+            credit_risk=credit_risk,
+            unpaid_bills_by_age=unpaid_bills_by_age,
+            payment_method=payment_method,
+            billed_last_year_gbp=billed_last_year_gbp,
         )
     except MarginDecisionUnavailable as exc:
         # "NO OFFER" IS AN ANSWER, AND A LIVE PRICING CHAIN MUST BE ABLE TO HEAR IT (2026-08-26).

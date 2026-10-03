@@ -247,8 +247,30 @@ THREE_ARM_PATH = PROJECT / "docs" / "observability" / "value_cycle_ab_s1_three_a
 #: the renewal foresight leak and the SVT segment above the cap. Both `20261002b` artefacts were
 #: produced by the locked clean tree at `f18e8b5dc`; `_code_since_the_run` decides whether that is
 #: still HEAD's code, so a later book-moving commit withdraws the currency claim on its own.
+#:
+#: MOVED 2026-10-03 TOGETHER WITH `CURRENT_WORLD_NOISE_FLOOR_PATH`, same world digest, other
+#: behaviour: the `20261002c` pair ran at `0cc052102`, a world that can refuse a fix above the
+#: default. What changed since `f18e8b5dc` is `CURRENT_WORLD_CHANGED_SINCE_THE_LAST_READING`.
 CURRENT_WORLD_THREE_ARM_PATH = (
-    PROJECT / "docs" / "observability" / "value_cycle_ab_s1_three_arm_20261002b.json")
+    PROJECT / "docs" / "observability" / "value_cycle_ab_s1_three_arm_20261002c.json")
+#: WHAT MOVED BETWEEN THE LAST PUBLISHED PAIR AND THIS ONE, IN WORDS A READER CAN CHECK. The world
+#: digest is the same across them, so nothing generated says the worlds differ -- the digest
+#: identifies the departure level and the homes and is blind to a behaviour switch (graded Q0 of
+#: `SEAT_PREREG_THE_VALUE_ARMS_RETAKEN_AT_THE_BELIEF_COMMIT_2026-10-02.md`). Hand-written because
+#: it is a statement about commits, and it carries no figure, so it cannot disagree with the feed.
+#: Rewrite it whenever the pair moves; it names the commit it is relative to so a stale copy reads
+#: as stale.
+CURRENT_WORLD_CHANGED_SINCE_THE_LAST_READING = (
+    "What changed since the previous reading (run at f18e8b5dc): a household that stays now "
+    "declines a fixed renewal priced above its default tariff (757c8cada); a default-tariff "
+    "conversion records its stay decision again (822218441); a prospect is quoted only when both "
+    "fuels, ex-VAT, beat the default on the day (28eb35ec7); and the per-customer arm's churn "
+    "belief reads the offer against the published default instead of the household's own last "
+    "price (0cc052102). Four things moved at once, so no change in these figures can be put down "
+    "to any one of them. The choosing leg below is negative on every draw because of one "
+    "household's bad debt, written off after a renewal priced on a clean record: the per-customer "
+    "arm cannot see arrears, so it kept a debtor that the flat level happened to price away. "
+    "Without write-offs the choosing leg is positive on every draw.")
 #: The spread `error_bar` is built from -- the block that owns the page's SELECTION VERDICT, the
 #: one sentence the mission turns on. NOT the same constant as `CURRENT_WORLD_NOISE_FLOOR_PATH`
 #: below, and the difference cost a turn: the 2026-09-17 write-up named THAT constant as the thing
@@ -544,8 +566,10 @@ AUC_FAMILY_SOURCE = "the 12-seed AUC-carrying floor of 2026-09-17"
 #: in this world yet, and a 9-draw bound from a superseded world bounds nothing here.
 #: MOVED 2026-10-02 with `CURRENT_WORLD_THREE_ARM_PATH`, to the same 3-seed family re-drawn by the
 #: `f18e8b5dc` tree that ran the arms.
+#: MOVED 2026-10-03 with `CURRENT_WORLD_THREE_ARM_PATH`, to the same seeds and redraw mode re-drawn
+#: at `0cc052102`, so each seed compares with itself across the two commits.
 CURRENT_WORLD_NOISE_FLOOR_PATH = (
-    PROJECT / "docs" / "observability" / "value_cycle_ab_s1_noise_floor_20261002b.json")
+    PROJECT / "docs" / "observability" / "value_cycle_ab_s1_noise_floor_20261002c.json")
 #: The ONE redraw mode whose seed spread bounds the published contrast, in the undecomposed
 #: artefact's own words (`redraw_scope.means`): "every household re-drawn -- the undecomposed
 #: floor, and the only mode whose spread bounds the published figure directly".
@@ -17185,6 +17209,9 @@ def build(three_arm: dict | None, floor: dict | None,
         current_world, _code_since_the_run(current_three_arm, head=publishing_head))
     current_world = _current_world_bound_admitted_on_its_code(
         current_world, _floor_code_since_its_runs(current_floor, head=publishing_head))
+    if current_world.get("available"):
+        current_world = dict(current_world, changed_since_the_last_reading=(
+            CURRENT_WORLD_CHANGED_SINCE_THE_LAST_READING))
     return dict(
         base,
         available=True,
