@@ -186,6 +186,7 @@ from simulation.live_population import (
     live_drawn_households,
     live_dwellings,
     live_population,
+    run_base_seed,
 )
 from simulation.nudge_physics import framing_effectiveness_multiplier, susceptibility_for
 from simulation.payment_timing import generate_payment_record, stress_bad_debt_multiplier
@@ -595,6 +596,20 @@ def _weather_adjusted_shape_fn(
         return shape
 
     return shape_fn
+
+
+def refuse_a_window_past_the_record_without_a_world(effective_end: str) -> None:
+    """THE PRICE RECORD ENDS AT REPORT_END, before the weather record does, so this is the first
+    thing a run past the record meets. Without a named world it would settle on whatever prices the
+    cache happened to hold and print nothing (2026-10-03)."""
+    if effective_end <= REPORT_END:
+        return
+    from simulation.run_scenario import active_forward_world
+    if active_forward_world() is None:
+        raise ValueError(
+            f"this run ends {effective_end}, past the record's last price ({REPORT_END}). A run "
+            "past the record must name the world it lives through: run it inside "
+            "simulation.run_scenario.forward_world(...).")
 
 
 def _clamp_term_end(term_start: str, end_date: str = REPORT_END) -> str:
@@ -1330,6 +1345,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         the real ledger and republished the public Proof door 2.68x too low.
     """
     effective_end = effective_report_end(report_end)
+    refuse_a_window_past_the_record_without_a_world(effective_end)
     policy = policy or CURRENT_POLICY
     # A run's policy identity must be ONE thing (2026-08-12, closing
     # WORKER_FINDING_THE_NAIVE_ARM_KEEPS_THE_LIVE_TONE_2026-08-10). Fields this
@@ -1418,6 +1434,22 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
     # per-cell architecture exists to make impossible.
     _weather_source = WeatherWorldSource.load()
     _weather_world = _weather_source.world
+    # PAST THE RECORD THERE IS NO WEATHER, and a run that reaches there must say which world it is
+    # living through (2026-10-03). Inside `run_scenario.forward_world` the store is extended by
+    # analogue years, keyed on the world and the run's base seed -- never on a noise-floor seed, so
+    # every seed of one A/B lives through the same weather, as it lives through the same prices.
+    # Outside one it REFUSES: an empty sky past the record would settle nothing and say nothing.
+    from simulation.run_scenario import active_forward_world
+    _forward = active_forward_world()
+    if effective_end > _weather_world.record_end():
+        if _forward is None:
+            raise ValueError(
+                f"this run ends {effective_end} and the weather record ends "
+                f"{_weather_world.record_end()}. A run past the record must name the world it lives "
+                "through: run it inside simulation.run_scenario.forward_world(...).")
+        _weather_world = _weather_world.extended_by_analogue_years(
+            effective_end, seed=f"{_forward['world_id']}:{run_base_seed()}")
+        _weather_source = WeatherWorldSource(_weather_world)
     # W1_14 step 3, 2026-09-21: the GAS/HDD leg reads the store too, and it is the one leg that
     # cannot be handed the world -- `get_hdd(date_str, customer_id)` sits five frames under
     # `run_gas_term` with no world in any signature on the way down. Adopting the store the line
@@ -4063,6 +4095,18 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
     return {
         "all_records": all_records,
         "administration_event": administration_event,
+        # THE WORLD PAST THE RECORD, as the run actually lived it, or None for a run inside it.
+        # Every input that is not the record is named: the spine world and price scenario, the
+        # record year each forward year's weather replays, and the conventions held at the last
+        # published value -- so a forward result can never read as a historical one.
+        "beyond_the_record": (None if effective_end <= REPORT_END else {
+            **(_forward or {}),
+            "weather_analogue_years": getattr(_weather_world, "analogue_years", {}),
+            "held_at_last_published": (
+                "the domestic price cap carries its last published window forward "
+                "(company.pricing.ofgem_price_cap); year-keyed world tables past their last "
+                "published year return that year (simulation.policy_costs and peers)"),
+        }),
         # W1_11: which generator settled each electricity customer's demand, and
         # why a premise is not fabric-driven -- recorded so an unexplained
         # population change is visible in the run, not inferred from its numbers.

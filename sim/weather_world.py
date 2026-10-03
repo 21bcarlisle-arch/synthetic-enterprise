@@ -72,7 +72,9 @@ which that module says on its face rather than implying a coverage it does not h
 from __future__ import annotations
 
 import csv
+import datetime as dt
 import gzip
+import hashlib
 import json
 import math
 from dataclasses import dataclass
@@ -276,5 +278,58 @@ class WeatherWorld:
 
     def for_location(self, latitude: float, longitude: float, **kw) -> list[dict]:
         return self.for_cell(self.cell_id_for(latitude, longitude), **kw)
+
+    def record_end(self) -> str:
+        """The last date the store holds, across every regime."""
+        return max(max(series) for series in self.daily.values())
+
+    def extended_by_analogue_years(self, through: str, seed: str) -> "WeatherWorld":
+        """This world, with the days after its record filled from ANALOGUE YEARS through `through`.
+
+        Past the record there is no weather to replay, and the run still needs some. Each forward
+        calendar year replays ONE complete year of the record, the SAME year in every regime, so
+        the spatial structure between regimes and the seasonal shape within a year are the
+        record's own, exactly; nothing is fitted. The year is drawn from the complete years the
+        store holds, deterministically from `(seed, year)`, so a re-run lives through the same
+        weather.
+
+        A NAMED SIMPLIFICATION, and the error runs one known way: analogue weather is independent of
+        the synthetic wholesale series it sits beside, so a cold year no longer moves the price the
+        way 2021-22 did. That coupling is the price generator's to model; this does not pretend to.
+        29 February is read from the analogue year's 28 February when that year is not a leap year.
+        The record itself is never altered. Which record year each forward year replays is on
+        `analogue_years`, so a run can say what weather it lived through.
+        """
+        end = dt.date.fromisoformat(self.record_end())
+        stop = dt.date.fromisoformat(through)
+        if stop <= end:
+            return self
+        complete = sorted({int(d[:4]) for series in self.daily.values() for d in series
+                           if d.endswith("-12-31")} & {int(d[:4]) for series in self.daily.values()
+                                                        for d in series if d.endswith("-01-01")})
+        if not complete:
+            raise WeatherWorldRefusal("the store holds no complete year to draw an analogue from")
+        daily = {regime: dict(series) for regime, series in self.daily.items()}
+        # A SEEDED PERMUTATION of the complete years, taken in turn, so no record year repeats until
+        # every one has been used -- drawing each forward year independently repeated 2021 and 2016
+        # inside four years on the first seed tried.
+        order = sorted(complete, key=lambda y: hashlib.sha256(f"{seed}:{y}".encode()).hexdigest())
+        day = end + dt.timedelta(days=1)
+        analogue_of: dict[int, int] = {}
+        while day <= stop:
+            year = analogue_of.setdefault(day.year, order[len(analogue_of) % len(order)])
+            try:
+                source = day.replace(year=year)
+            except ValueError:
+                source = dt.date(year, 2, 28)
+            key, src = day.isoformat(), source.isoformat()
+            for regime, series in daily.items():
+                row = self.daily[regime].get(src)
+                if row is not None:
+                    series[key] = dict(row)
+            day += dt.timedelta(days=1)
+        forward = WeatherWorld(self.cells, daily, self.regime_of_cell)
+        forward.analogue_years = dict(sorted(analogue_of.items()))
+        return forward
 
 

@@ -484,6 +484,15 @@ def _decisions_by_billing_account(result: dict) -> dict[str, dict]:
             r["left_at"] = event["event_date"]
     for bill in issued_bills(result.get("bills") or []):
         row(_billing_account_id(bill["customer_id"]))["bills_issued"] += 1
+    # THE YEARS AN ACCOUNT SPENT ON THE DEFAULT TARIFF, counted beside its fixed-term renewals
+    # (2026-10-03). 86 of 165 settled accounts reached no priced renewal on the 2025 seeds, and the
+    # SVT segment's yearly decisions are logged apart, in `svt_decisions`, never in
+    # `customer_events`. Counted here so "those accounts were on the cap, where the arm has no lever"
+    # is a number in the artefact rather than an inference.
+    for decision in (result["phase2b"].get("svt_decisions") or []):
+        if isinstance(decision, dict) and decision.get("customer_id"):
+            r = row(_billing_account_id(decision["customer_id"]))
+            r["svt_segment_decisions"] = r.get("svt_segment_decisions", 0) + 1
     return out
 
 
@@ -5510,6 +5519,8 @@ def run_value_cycle_ab(report_end: str | None = None, level_arm: bool = False) -
         # and a reader citing them is not citing a run. See `RUN_IDENTITY_DECLARATION`.
         "run_identity_fields": _RUN_IDENTITY_FIELDS,
         "report_end": report_end,
+        # The named world a run past the record lived through; None inside the record.
+        "forward_world": __import__("simulation.run_scenario", fromlist=["x"]).active_forward_world(),
         # EVERY CLOCK USED IN THIS FILE, defined once and above every figure. `clock_audit`
         # resolves each figure's label against this and refuses a label that is not in it.
         "clock_definitions": dict(CLOCK_DEFINITIONS),
@@ -7008,6 +7019,8 @@ def noise_floor(seeds: list[int], report_end: str | None = None,
         # directions. See `floor_book_identity`.
         "book_identity": floor_book_identity(seed_books),
         "report_end": report_end,
+        # The named world a run past the record lived through; None inside the record.
+        "forward_world": __import__("simulation.run_scenario", fromlist=["x"]).active_forward_world(),
         "what_this_is": (
             "The three-arm A/B re-run once per seed with ONLY the per-household {} re-drawn. The "
             "spread below is the error bar on `selection_gbp` -- the figure the "
@@ -8530,6 +8543,10 @@ def book_seeds(seeds: list[int], report_end: str | None, member_dir: Path,
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--end-year", help="truncate the window, e.g. 2019 (faster iteration)")
+    ap.add_argument(
+        "--world", default=None,
+        help=("the SPINE_1 world (sim/scenario/curriculum) a run past the record lives through, "
+              "e.g. neso_central. Required for an --end-year past 2025; refused without one."))
     ap.add_argument("--out", type=Path, default=OUTPUT_PATH)
     ap.add_argument(
         "--level-arm", action="store_true",
@@ -8601,6 +8618,18 @@ def main(argv: list[str] | None = None) -> int:
               "names the priced roster the cut is made along. Read, never hand-written."))
     args = ap.parse_args(argv)
     report_end = f"{args.end_year}-12-31" if args.end_year else None
+
+    # PAST THE RECORD, EVERY ARM LIVES THROUGH ONE NAMED WORLD (2026-10-03). The whole A/B runs
+    # inside `forward_world`, so control, value and level arms -- and every seed -- read the same
+    # forward prices and the same analogue-year weather. Re-entered once with the world active.
+    from simulation.run_scenario import active_forward_world, forward_world
+    if args.world and active_forward_world() is None:
+        if not report_end:
+            print("REFUSED: --world names a forward world, and a full-window run never leaves the "
+                  "record. Give --end-year past 2025.")
+            return 2
+        with forward_world(args.world, report_end):
+            return main(argv)
 
     if args.book_seeds:
         seeds = [int(s) for s in args.book_seeds.split(",") if s.strip()]

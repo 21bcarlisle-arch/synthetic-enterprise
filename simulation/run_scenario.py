@@ -19,7 +19,8 @@ Or from the command line:
 from __future__ import annotations
 
 import json
-from datetime import date, timedelta
+from contextlib import contextmanager
+from datetime import date
 from pathlib import Path
 
 from sim.scenario.bimodal_generator import SCENARIOS as ELEC_SCENARIOS, generate_scenario_prices
@@ -158,11 +159,18 @@ def build_extended_price_feeds(
     _seed = seed or f"{scenario}_{year_from}_{year_to}"
     spine = load_world(world_id)
 
-    # Find the latest historical date to avoid overlapping with scenario data
+    # THE SYNTHETIC SERIES STARTS THE DAY AFTER THE RECORD ENDS, not on the next 1 January
+    # (2026-10-03). The record ends 2025-06-07, so starting at `latest.year + 1` left every forward
+    # run with no electricity price from 8 June to 31 December 2025: a seven-month hole the
+    # settlement lookup would meet on its first forward bill. The generator is asked for the
+    # record's own last year, and only the days after the record are kept.
+    latest_hist_date_str = None
     if historical_elec:
         latest_hist_date_str = max(r["settlementDate"] for r in historical_elec)
         latest_hist_date = date.fromisoformat(latest_hist_date_str)
-        scenario_actual_from = max(year_from, latest_hist_date.year + 1)
+        # The record's own last year, whatever `year_from` says: a caller asking for 2026 onwards
+        # still needs the rest of 2025, because the record does not reach it.
+        scenario_actual_from = latest_hist_date.year
     else:
         scenario_actual_from = year_from
 
@@ -181,6 +189,8 @@ def build_extended_price_feeds(
         return historical_elec, historical_gas
 
     elec_daily = generate_scenario_prices(scenario_actual_from, year_to, scenario, seed=_seed)
+    if latest_hist_date_str is not None:
+        elec_daily = [r for r in elec_daily if r["settlementDate"] > latest_hist_date_str]
     elec_hh = _expand_daily_to_hh(elec_daily, seed=_seed)
     for _r in elec_hh:
         _r["data_regime"] = "synthetic"
@@ -268,6 +278,67 @@ def reconcile_baseline_fidelity(
     return F.check_scenario_fidelity(generated_returns, reference_returns)
 
 
+#: The forward world a run is living through past the record, or None. Set only by
+#: `forward_world`, read by `run_phase2b` when its window runs past what the record holds.
+_ACTIVE_FORWARD_WORLD: dict | None = None
+
+
+def active_forward_world() -> dict | None:
+    """`{"world_id", "version", "through", "scenario"}` while inside `forward_world`, else None."""
+    return dict(_ACTIVE_FORWARD_WORLD) if _ACTIVE_FORWARD_WORLD else None
+
+
+@contextmanager
+def forward_world(world_id: str, through: str, scenario: str = "central_2027",
+                  seed: str | None = None, historical_elec: list[dict] | None = None,
+                  historical_gas: list[dict] | None = None):
+    """Live through `world_id` past the record, through `through`, for every run inside the block.
+
+    THE RUNNER'S OWN BINDINGS ARE PATCHED, NOT THE MODULES THEY CAME FROM (2026-10-03).
+    `run_phase2b` binds `get_cached_prices` and `load_nbp_history` by name at import, so patching
+    `sim.cache_store` and `sim.gas_prices_history`, as `run_forward_scenario` did, reached nothing:
+    every forward run settled on the historical feeds alone, and nothing said so.
+
+    What the block supplies past the record, each named on the run:
+      * electricity and gas prices, from the scenario generators and the spine world, starting the
+        day after the record (`build_extended_price_feeds`);
+      * weather, by analogue years (`WeatherWorld.extended_by_analogue_years`), which
+        `run_phase2b` applies because it reads this world.
+    Inside the block a run is still `run_phase2b.main`; the block changes the world it reads.
+    """
+    global _ACTIVE_FORWARD_WORLD
+    import simulation.run_phase2b as runner
+    from sim.gas_prices_history import load_nbp_history as _historical_gas
+    from sim.system_prices_history import get_system_prices_range
+    from simulation.run_phase2b import EARLIEST_SSP_DATE, REPORT_END
+
+    spine = load_world(world_id)
+    year_to = int(through[:4])
+    _seed = seed or f"{world_id}:{scenario}:{year_to}"
+    # The record, read through the runner's own bindings unless a caller hands it in (a control
+    # that should not load the 128 MB cache to ask whether the patch lands).
+    hist_elec = historical_elec if historical_elec is not None else (
+        runner.get_cached_prices(EARLIEST_SSP_DATE, REPORT_END)
+        or get_system_prices_range(EARLIEST_SSP_DATE, REPORT_END))
+    hist_gas = historical_gas if historical_gas is not None else _historical_gas()
+    elec, gas = build_extended_price_feeds(
+        list(hist_elec), list(hist_gas), scenario=scenario, year_from=year_to, year_to=year_to,
+        seed=_seed, world_id=world_id)
+
+    def _elec(start, end, *a, **kw):
+        return [r for r in elec if start <= r["settlementDate"] <= end]
+
+    saved = (runner.get_cached_prices, runner.load_nbp_history, _ACTIVE_FORWARD_WORLD)
+    runner.get_cached_prices = _elec
+    runner.load_nbp_history = lambda: list(gas)
+    _ACTIVE_FORWARD_WORLD = {"world_id": spine.world_id, "version": spine.version,
+                             "through": through, "scenario": scenario}
+    try:
+        yield active_forward_world()
+    finally:
+        runner.get_cached_prices, runner.load_nbp_history, _ACTIVE_FORWARD_WORLD = saved
+
+
 def run_forward_scenario(
     scenario: str = "central_2027",
     year_from: int = 2026,
@@ -293,74 +364,19 @@ def run_forward_scenario(
     The world stamp is written from the LOADED artefact, never from the ``world_id`` argument:
     a run that claims a world must be answered for by the artefact it actually resolved to.
     """
-    from datetime import date as _date
-    import sim.cache_store as _cache
-    from sim.gas_prices_history import load_nbp_history as _load_nbp
-    # NOT `sim.system_prices` -- that module defines only `_fetch_system_prices` and
-    # `get_latest_system_prices`. This import named a symbol that does not exist there, so
-    # `run_forward_scenario` raised ImportError on EVERY call; nothing noticed because its
-    # only callers are `scenario_comparison` and this module's `__main__`, neither of which
-    # is on the published path. Found by the symbol-landing gate, 2026-08-29.
-    from sim.system_prices_history import get_system_prices_range
-    from sim.cache_store import get_cached_prices, log_cache_access
-    from simulation.run_phase2b import (
-        ELEC_CUSTOMERS, GAS_CUSTOMERS, EARLIEST_SSP_DATE, REPORT_START,
-    )
-
     report_end = f"{year_to}-12-31"
     _seed = seed or f"{scenario}_{year_from}_{year_to}"
-
-    # Load historical price feeds (same logic as run_phase2b.main)
-    earliest_acq = min(
-        _date.fromisoformat(c["acquisition_date"])
-        for c in ELEC_CUSTOMERS + GAS_CUSTOMERS
-    )
-    fetch_start_natural = (earliest_acq - timedelta(days=365)).isoformat()
-    fetch_start = max(fetch_start_natural, EARLIEST_SSP_DATE)
-
-    cached = get_cached_prices(fetch_start, report_end)
-    if cached is not None:
-        hist_elec = cached
-        log_cache_access("elexon_ssp_full.json", hit=True, phase="36a_scenario")
-    else:
-        from simulation.run_phase2b import REPORT_END as _REPORT_END
-        hist_elec = get_system_prices_range(fetch_start, _REPORT_END)
-        log_cache_access("elexon_ssp_full.json", hit=False, phase="36a_scenario")
-
-    hist_gas = _load_nbp()
-
-    # Extend with scenario prices
-    extended_elec, extended_gas = build_extended_price_feeds(
-        hist_elec, hist_gas, scenario=scenario,
-        year_from=year_from, year_to=year_to, seed=_seed, world_id=world_id,
-    )
-
+    import simulation.run_phase2b as _runner
     _world = load_world(world_id)
     print(f"[Scenario: {scenario!r}, {year_from}-{year_to}]")
     print(f"  World: {_world.world_id!r} v{_world.version or '?'} "
           f"({'baseline, no overrides' if _world.selects_no_overrides else 'exogenous overrides ACTIVE'})")
-    print(f"  Electricity: {len(hist_elec):,} historical + {len(extended_elec) - len(hist_elec):,} scenario = {len(extended_elec):,} total")
-    print(f"  Gas: {len(hist_gas):,} historical + {len(extended_gas) - len(hist_gas):,} scenario = {len(extended_gas):,} total")
-
-    # Inject the extended records into run_phase2b by patching the module-level loaders.
-    # This is the minimal-invasive approach — avoids refactoring main() internals.
-    import simulation.run_phase2b as _runner
-    _orig_get_cached = _cache.get_cached_prices
-    _orig_load_nbp = None
-
-    try:
-        import sim.gas_prices_history as _gas_mod
-        _orig_load_nbp = _gas_mod.load_nbp_history
-
-        # Patch loaders to return our extended records
-        _cache.get_cached_prices = lambda *a, **kw: extended_elec
-        _gas_mod.load_nbp_history = lambda: extended_gas
-
+    # THROUGH `forward_world`, which patches the runner's own bindings. The patch that stood here
+    # replaced `sim.cache_store.get_cached_prices` and `sim.gas_prices_history.load_nbp_history`,
+    # which `run_phase2b` had already bound by name at import -- so it reached nothing, and every
+    # run this function made settled on the historical feeds alone.
+    with forward_world(world_id, report_end, scenario=scenario, seed=_seed):
         result = _runner.main(report_end=report_end)
-    finally:
-        _cache.get_cached_prices = _orig_get_cached
-        if _orig_load_nbp is not None:
-            _gas_mod.load_nbp_history = _orig_load_nbp
 
     if isinstance(result, dict):
         result["world_id"] = _world.world_id
