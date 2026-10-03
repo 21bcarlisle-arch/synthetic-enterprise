@@ -1328,7 +1328,8 @@ def _staging_chain_check(staged: list[str]) -> tuple[bool, str]:
     The predicate is `staging_rooms.unchained_filings`; this is its caller on the write.
 
     FILED MEANS ABSENT FROM THE PARENT. An edit to a document already in the queue is not a
-    filing, so the 7 legacy gaps bill nobody -- only the author of a new one, in one line.
+    filing, so the 7 legacy gaps bill nobody -- only the author of a new one, in one line. An
+    edit that REMOVES a whole chain the parent carried is refused (`stripped_chain`).
     Directives and console messages are exempt there (the director's words, not the machine's).
 
     Same subject as its siblings: the tree this commit would create; a deletion is skipped.
@@ -1337,7 +1338,7 @@ def _staging_chain_check(staged: list[str]) -> tuple[bool, str]:
     if str(ROOT) not in sys.path:
         sys.path.insert(0, str(ROOT))
     try:
-        from background.staging_rooms import chain_owed, unchained_filings
+        from background.staging_rooms import chain_owed, stripped_chain, unchained_filings
     except Exception as e:  # noqa: BLE001 -- an unavailable check is a FAILED check
         return False, (
             f"staging-chain predicate UNAVAILABLE: {type(e).__name__}: {e}\n"
@@ -1361,14 +1362,13 @@ def _staging_chain_check(staged: list[str]) -> tuple[bool, str]:
         return False, f"could not determine the tree this commit would create: {e}"
 
     filed: dict[str, str] = {}
+    stripped: list[str] = []
     for path in owed:
         try:
             at_parent = subprocess.run(
-                ["git", "cat-file", "-e", f"HEAD:{path}"],
+                ["git", "cat-file", "blob", f"HEAD:{path}"],
                 cwd=ROOT, capture_output=True, text=True, timeout=30,
             )
-            if at_parent.returncode == 0:
-                continue  # already in the queue: an edit, not a filing
             blob = subprocess.run(
                 ["git", "cat-file", "blob", f"{tree}:{path}"],
                 cwd=ROOT, capture_output=True, text=True, timeout=30,
@@ -1377,11 +1377,19 @@ def _staging_chain_check(staged: list[str]) -> tuple[bool, str]:
             return False, f"could not read {path} out of tree {tree[:9]}: {e}"
         if blob.returncode != 0:
             continue  # not in the tree this commit creates -- a deletion
+        if at_parent.returncode == 0:
+            # Already in the queue: an edit, not a filing -- but an edit may not REMOVE a
+            # chain the item carried (the 10-01 register re-render did exactly that).
+            lost = stripped_chain(at_parent.stdout, blob.stdout)
+            if lost:
+                stripped.append(f"{path}: this edit strips the chain it carried "
+                                f"(now missing {', '.join(lost)})")
+            continue
         filed[path[len(STAGING_ROOM_PREFIX):]] = blob.stdout
 
-    failures = unchained_filings(filed)
+    failures = stripped + [f"{STAGING_ROOM_PREFIX}{f}" for f in unchained_filings(filed)]
     if failures:
-        return False, "\n".join(f"  - {STAGING_ROOM_PREFIX}{f}" for f in failures)
+        return False, "\n".join(f"  - {f}" for f in failures)
     return True, (f"{len(filed)} filed work item(s) chained to the map" if filed else "")
 
 

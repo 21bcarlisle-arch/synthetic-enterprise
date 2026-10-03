@@ -913,6 +913,20 @@ def chain_owed(name: str) -> bool:
     return kind_of(name) not in CHAIN_EXEMPT_KINDS
 
 
+def stripped_chain(before: str, after: str) -> tuple[str, ...]:
+    """The chain fields an EDIT removed from an item that carried a whole chain, else ().
+
+    The filing check cannot see an edit, and an edit is how chains were actually lost: on
+    2026-10-01 every `finding_classes --render` rewrote the class registers' header with
+    Severity + Lane only, wiping the chain 0ac9815b7 had stamped, and the census named the four
+    registers again a day later. Only a chain that WAS whole is protected, so a legacy gap
+    edited in place still bills nobody.
+    """
+    if not chain_of_text(before).is_chained:
+        return ()
+    return chain_of_text(after).missing
+
+
 def unchained_filings(filed: dict[str, str],
                       epochs: dict[str, int | None] | None = None) -> list[str]:
     """Refusal lines for NEWLY FILED root documents that owe a chain and carry none.
