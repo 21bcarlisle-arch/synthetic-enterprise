@@ -669,7 +669,7 @@ function renderQueueChain(d) {
           return "<li>" + esc(g.name) + " — missing " + esc((g.missing || []).join(", ")) + "</li>";
         }).join("") + "</ul>"
       : "") +
-    renderQueueEpochs(q) +
+    renderQueueEpochs(q) + renderQueueLanes(q) +
     "<p>" + esc(q.why_this_is_here || "") + "</p>";
 }
 
@@ -705,6 +705,23 @@ function renderQueueEpochs(q) {
     "real atom, <b>" + n(contra.length) + "</b> declare an epoch that is not their atom's own." +
     (spread ? " By their atom's epoch the named work sits at " + spread + "." : "") + "</p>" +
     li(unres, "atom") + li(contra, "why");
+}
+
+/* WHETHER EACH NAMED ATOM IS IN THE ITEM'S OWN LANE (H45 EH-1). An item naming the atom its
+   thread began on, not the one its subject serves, contradicts its own header when the two lanes
+   differ. A wrong atom in the right lane is not caught, and the sentence says so. */
+function renderQueueLanes(q) {
+  var rows = q.lane_contradicted;
+  if (!Array.isArray(rows)) {
+    return "<p>This record does not check whether an item's lane is its atom's, so that is not " +
+      "measured here.</p>";
+  }
+  return "<p><b>" + n(rows.length) + "</b> of the items naming a real atom declare a lane that " +
+    "atom is not in, so the atom is probably the one their thread began on rather than the one " +
+    "their subject serves. A wrong atom in the right lane is not caught by this.</p>" +
+    (rows.length ? "<ul>" + rows.map(function (r) {
+      return "<li>" + esc(r.name) + " — " + esc(r.why) + "</li>";
+    }).join("") + "</ul>" : "");
 }
 
 /* THE ONE FIGURE A PROGRAMME IS GATED ON, and the correction that moved it. A search over 45

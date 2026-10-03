@@ -381,6 +381,40 @@ def test_a_FILING_must_attach_to_its_atoms_epoch_and_an_unreadable_map_refuses(m
         f"an unminted filing needs no map, yet {ok_unminted} was refused"
 
 
+def _laned(lane, atom, epoch=2):
+    return (f"**Severity:** LATENT · **Lane:** {lane} · **Epoch:** {epoch} · "
+            f"**Atom:** `{atom}`\n\n# x\n")
+
+
+_LANES = {"E2": "W2_customer_generator", "E3": "H_harness", "NOLANE": None}
+
+
+def test_a_minted_items_lane_is_its_ATOMS_over_the_whole_partition(tmp_path):
+    """H45 EH-1's decidable part: an item naming its thread's atom instead of its subject's
+    contradicts its own header when the two sit in different lanes. Every state at once --
+    agreeing, contradicting, an atom with no lane, unminted, a ghost -- so a census that listed
+    every minted item, or none, cannot pass; and the filing gate refuses the same item.
+
+    MUTATIONS (must fire): never disagree; disagree on every minted item; count a lane-less
+    atom as contradicting; drop the lane check from the filing gate."""
+    epochs = {"E2": 2, "E3": 2, "NOLANE": 2}
+    _write(tmp_path, "WORKER_FINDING_A_2026-10-03.md", _laned("W2_customer_generator", "E2"))
+    _write(tmp_path, "WORKER_FINDING_B_2026-10-03.md", _laned("W2_customer_generator", "E3"))
+    _write(tmp_path, "WORKER_FINDING_C_2026-10-03.md", _laned("B_commercial", "NOLANE"))
+    _write(tmp_path, "WORKER_FINDING_D_2026-10-03.md", _laned("B_commercial", sr.UNMINTED))
+    _write(tmp_path, "WORKER_FINDING_E_2026-10-03.md", _laned("B_commercial", "ghost"))
+    census = sr.chain_census(tmp_path, epochs=epochs, lanes=_LANES)
+
+    assert census["minted"] == 3 and census["lane_contradicted"]
+    assert [r["name"][15] for r in census["lane_contradicted"]] == ["B"]
+    assert "atom `E3` is lane H_harness" in census["lane_contradicted"][0]["why"]
+
+    filed = {n: (tmp_path / n).read_text() for n in
+             ("WORKER_FINDING_A_2026-10-03.md", "WORKER_FINDING_B_2026-10-03.md")}
+    refused = sr.unchained_filings(filed, epochs=epochs, lanes=_LANES)
+    assert len(refused) == 1 and refused[0].startswith("WORKER_FINDING_B")
+
+
 def test_the_atom_epochs_read_spans_BOTH_halves_of_the_map():
     """A finished atom lives in the closed store; a read of the live half alone would call
     every item naming one a ghost. Keyed to the property, not to today's ids."""

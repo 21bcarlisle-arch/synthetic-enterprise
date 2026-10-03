@@ -2098,8 +2098,8 @@ def main() -> int:
                 "and `unminted` are answers, absence is not:\n"
                 "[test-gate]   **Severity:** … · **Lane:** <lane> · **Epoch:** <n>|unassigned "
                 "· **Atom:** `<atom_id>`|`unminted`\n"
-                "[test-gate] A named atom must be on the map, and the epoch is THAT ATOM'S "
-                "`epoch:` -- not a default.\n"
+                "[test-gate] A named atom must be on the map, and the epoch and lane are "
+                "THAT ATOM'S -- not a default, and not the atom your thread began on.\n"
                 "[test-gate] Reproduce: `python3 -m background.staging_rooms` (Unchained work "
                 "items)\n"
             )
