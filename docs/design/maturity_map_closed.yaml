@@ -4461,3 +4461,21 @@
   #   SEAT_FINDING_THE_ORIGIN_FORK_ALARM_WRITES_THE_FILE_THAT_BLOCKS_THE_FAST_FORWARD_IT_REPORTS_2026-09-30.md.
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a filing room that will not accept this week's minutes because last week's draft of them is still in the tray."
+
+- id: C33_collections_reads_the_registers_it_already_has
+  title: "C29 Half B: the dunning path can enforce through a statutory moratorium, and 'expected retention value' carries no probability -- neither is selection work, so neither is epoch-gated"
+  records_rehomed: [evidence]
+  lane: C_customer_ops
+  value_stream: meter_to_cash
+  epoch: 3
+  level_current: 2
+  level_target: 2
+  loop_stage: idle
+  dial_inherited: 45
+  provenance: proposal
+  blocked_on: null
+  depends_on: []
+  couples_with: [C29_decisions_stop_being_lookup_tables, C32_one_obligation_one_vulnerability_scorer]
+  file_scope: ['company/billing/arrears_engine.py', 'company/billing/breathing_space_register.py', 'company/billing/capacity_to_pay.py', 'company/crm/customer_retention.py', 'company/crm/portfolio_churn_risk.py', 'tests/company/']
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a collections desk that sends a final notice to a customer whose debt adviser filed a Breathing Space moratorium three weeks ago, because the moratorium register and the dunning calendar are different systems that have never been introduced -- and a retention desk reporting the value of saves it was never at risk of losing"
