@@ -124,6 +124,9 @@ _FLAT_AT_LEVEL_HIGH = dataclasses.replace(
     CURRENT_POLICY, name="flat_at_level_high",
     renewal_margin_arm="flat_at_level", renewal_margin_flat_level_gbp_per_mwh=60.0)
 
+_OWN_BOOK_POLICY = dataclasses.replace(
+    VALUE_ARM_POLICY, name="value_arm_own_book", renewal_default_belief="own_book")
+
 FIELD_CONSUMPTION = {
     "name": {"via": "label"},
     "retention_discount_mode": {"via": "run_argument"},
@@ -191,10 +194,19 @@ FIELD_CONSUMPTION = {
         "probe": lambda: _renewal_rate_under_the_active_arm(),
         "arms": (_FLAT_AT_LEVEL_LOW, _FLAT_AT_LEVEL_HIGH),
     },
+    # WHERE THE VALUE ARM'S BAD-DEBT BELIEF COMES FROM (2026-10-03). Resolved from `active_policy()`
+    # in the rate chain beside the arm, for the arm's reason. The witnessing pair is the value arm
+    # with and without the book's rate: the run hands the chain the same number either way, and
+    # only the policy decides whether the price reads it.
+    "renewal_default_belief": {
+        "via": "active_scope",
+        "probe": lambda: _renewal_rate_under_the_active_arm(default_belief_rate=0.30),
+        "arms": (VALUE_ARM_POLICY, _OWN_BOOK_POLICY),
+    },
 }
 
 
-def _renewal_rate_under_the_active_arm() -> float | None:
+def _renewal_rate_under_the_active_arm(default_belief_rate: float | None = None) -> float | None:
     """Drive the renewal rate chain on one account and return the rate it decided.
 
     Deliberately an SME account (`is_domestic=False`) so the domestic price cap -- writer 4, the
@@ -231,6 +243,7 @@ def _renewal_rate_under_the_active_arm() -> float | None:
         is_domestic=False,
         settled_records=settled,
         customer={"metering": "NHH", "smart_meter": False},
+        default_belief_rate=default_belief_rate,
     ).unit_rate_gbp_per_mwh
 
 

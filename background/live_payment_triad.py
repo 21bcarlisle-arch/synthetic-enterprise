@@ -93,12 +93,12 @@ from company.billing.account_ledger import (
     LedgerEvent,
     LedgerEventType,
 )
-from company.interfaces.collection_submission import encode_collection_request
 from company.billing.payment_observation_consumer import (
     DEFAULT_RECONCILIATION_GRACE_DAYS,
     HandOverAssessment,
     PaymentObservationConsumer,
 )
+from company.interfaces.collection_submission import encode_collection_request
 from interface.contracts.payment_observable_seam import (
     COLLECTION_REQUEST_TYPE,
     CollectionRequest,
@@ -784,6 +784,22 @@ class LivePaymentTriad:
             "billed_last_year_gbp": self._consumer.billed_gbp_between(
                 account, as_of - timedelta(days=365), as_of),
         }
+
+    def default_belief_rate(self, as_of: date, arrears_state: str, *, payment_method_of) -> float:
+        """The bad-debt charge per GBP billed the COMPANY has learned from its own book, for a
+        renewal on `as_of` by an account in `arrears_state` -- a
+        plain float, the same door shape as `arrears_state`. The learning is
+        `PaymentObservationConsumer.default_belief_rate`, inside `company/`; what this class
+        supplies is the cadence, as it does for `arrears_state`. `payment_method_of(account_id)`
+        is the run's reading of the company's own method register, used only to read each charge
+        on its published row, `None` for an account the renewal price does not learn from.
+        """
+        return self._consumer.default_belief_rate(
+            as_of, arrears_state,
+            payment_method_of=payment_method_of,
+            arrears_state_at=lambda account, on: self._consumer.arrears_state(
+                account, on, _one_billing_period_before(on)),
+        )
 
     def detection_cells(self, as_of: date) -> dict:
         """The per-cell DETECTION measurements for the fidelity grid.
