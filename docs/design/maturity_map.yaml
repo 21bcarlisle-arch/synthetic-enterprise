@@ -807,6 +807,7 @@
   level_current: 0
   level_target: 3
   loop_stage: idle
+  frame_saturated: true   # 2026-10-03: four passes; pass 3 (09-21) re-verified at 4e6ba2c74, nothing moved. Owed: BUILD (provisional run-stamped close), epoch-gated.
   dial_inherited: 3
   provenance: director_ruling
   depends_on: []
