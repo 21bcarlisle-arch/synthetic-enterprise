@@ -77,9 +77,11 @@ from simulation.population_draw import (
     DEFAULT_BAND_WEIGHTS,
     DEFAULT_COMMODITY_WEIGHTS,
     DEFAULT_SEGMENT_WEIGHTS,
+    GB_DOMESTIC_TRANSFERS_BY_MONTH_THOUSANDS,
     SyntheticCustomer,
     _draw_one,
     _load_cohort_curriculum,
+    _seasonal_day_offsets,
     _substream,
     draw_region_for_customer,
 )
@@ -335,6 +337,14 @@ def iter_prospects(
     rng = _substream(base_seed, salt=f"{STREAM_NAME}:{year}")
     days_in_year = (dt.date(year, 12, 31) - dt.date(year, 1, 1)).days
     offsets = sorted(rng.randint(0, days_in_year) for _ in range(n))
+    # THE CAMPAIGN'S PROSPECTS COME TO MARKET IN THE PUBLISHED MONTHS TOO (2026-10-03). b35e8cfa4
+    # gave founders and the trickle each year's DESNZ Table 2.7.1 month shape and left this draw --
+    # the campaign, most of the book -- uniform. Same helper, same rule: the uniform draw above is
+    # still CONSUMED, so `rng` reaches `_draw_one` in the same state and only the date moves. Past
+    # the record there is no published shape; a forward run keeps the uniform draw and says so in
+    # its `beyond_the_record` stamp, rather than borrowing another year's months.
+    if year in GB_DOMESTIC_TRANSFERS_BY_MONTH_THOUSANDS:
+        offsets = _seasonal_day_offsets(base_seed, year, n)
     for i, offset in enumerate(offsets, start=1):
         in_market = dt.date(year, 1, 1) + dt.timedelta(days=offset)
         pid = f"{PROSPECT_ID_PREFIX}-{year}-{i:04d}"
