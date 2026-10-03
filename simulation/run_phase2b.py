@@ -4282,6 +4282,10 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         "total_gross": total_gross,
         "total_capital": total_capital,
         "total_bad_debt": total_bad_debt,
+        # EP4: each account's collections journey on the COMPANY's own ledger -- dated stages from
+        # a missed payment to an exit, or `exit: None` while still open at the run's end.
+        "collections_journeys": _payment_triad.collections_journeys(
+            date.fromisoformat(effective_end)),
         "total_net": total_net,
         "final_treasury": final_treasury,
         "starting_treasury": STARTING_TREASURY_GBP,

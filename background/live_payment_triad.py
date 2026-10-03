@@ -706,6 +706,9 @@ class LivePaymentTriad:
         # inside them: a counterparty that batches badly is a fact about the
         # counterparty, and no belief may move on it (R12).
         self._hand_overs: List[HandOverAssessment] = []
+        # account -> segment, for walking every collections journey to the run's end (EP4).
+        self._journey_segments: dict = {}
+        self._journey_last_due: dict = {}
 
     @property
     def records(self) -> List[PeriodRecord]:
@@ -1067,7 +1070,29 @@ class LivePaymentTriad:
             days_late=event.days_late,
         ))
 
+        # THE COLLECTIONS JOURNEY ADVANCES TO THE PREVIOUS BILL'S DUE DATE (atom EP4). Two bounds,
+        # and this date is inside both. COMPLETENESS: this account's bills post in date order and
+        # each bill's cash crosses with it, so every value date up to the previous due date is on
+        # the ledger (this bill was issued after it). THE RUN'S CLOCK: a month is posted once its
+        # records have started, so the previous month's due date has been lived through -- whereas
+        # THIS bill's due date has not when the run's last, part-month is flushed at its end, and a
+        # walk to it decided steps after the run was over (seen: a 2016-03-04 run dunning on 03-27).
+        # The rest of the walk is `collections_journeys`, to the run's own last day.
+        previous_due = self._journey_last_due.get(account_id)
+        self._journey_segments[account_id] = segment
+        self._journey_last_due[account_id] = due_date
+        if previous_due is not None:
+            self._consumer.advance_collections_journey(account_id, previous_due, segment=segment)
+
         return _derive_analytics_record(customer_id, due_date, amount_gbp, event)
+
+    def collections_journeys(self, through: date) -> List[dict]:
+        """Every account's collections journey on the COMPANY's own ledger, walked to `through`
+        (the run's last day), as plain records -- the door shape of `arrears_state`: the run gets
+        dated stages back and never the desk. Call once every bill has been posted."""
+        for account_id, segment in self._journey_segments.items():
+            self._consumer.advance_collections_journey(account_id, through, segment=segment)
+        return self._consumer.collections_journeys.journeys()
 
     def measure(self, as_of: Optional[date] = None) -> Optional[dict]:
         """Score the accumulated triad (detection / belief / ageing). Returns
