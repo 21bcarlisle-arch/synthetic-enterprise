@@ -660,7 +660,8 @@ function renderQueueChain(d) {
     "<p>Of <b>" + n(q.population) + "</b> item(s) waiting for work, <b>" + n(q.chained) +
     "</b> say which part of the map they belong to: <b>" + n(q.minted) + "</b> name a real atom, " +
     "and <b>" + n(q.unminted) + "</b> were read against the map and need an atom that does not " +
-    "exist yet. <b>" + n(gaps.length) + "</b> say nothing at all." +
+    "exist yet" + renderUnmintedKinds(q.unminted_by_kind) + ". <b>" + n(gaps.length) +
+    "</b> say nothing at all." +
     (q.unreadable ? " <b>" + n(q.unreadable) + "</b> could not be read, so are not counted " +
                     "either way." : "") + "</p>" +
     (gaps.length
@@ -670,6 +671,15 @@ function renderQueueChain(d) {
       : "") +
     renderQueueEpochs(q) +
     "<p>" + esc(q.why_this_is_here || "") + "</p>";
+}
+
+/* WHAT THE NONE-YET ITEMS ARE. Most are machine alarm repeats and standing registers, which no
+   atom is owed for; undivided, the count reads as that many orphaned pieces of work. A feed
+   written before the split says so rather than implying they are all findings. */
+function renderUnmintedKinds(by) {
+  if (!by || typeof by !== "object") return " (what kind of item they are is not recorded here)";
+  var parts = Object.keys(by).map(function (k) { return esc(k) + " <b>" + n(by[k]) + "</b>"; });
+  return parts.length ? " (by kind: " + parts.join(", ") + ")" : "";
 }
 
 /* WHETHER THE NAMED ATOMS EXIST AND THE EPOCHS ARE THEIRS (H45's epoch joint). An item's epoch

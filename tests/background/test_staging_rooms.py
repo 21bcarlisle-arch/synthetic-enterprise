@@ -298,6 +298,24 @@ def test_the_published_chain_census_partitions_the_queue_into_all_three_states(t
         == census["population"] == 3
 
 
+def test_the_none_yet_share_is_split_by_what_kind_of_item_each_is(tmp_path):
+    """H45 EH-2: 25 of 66 items said `unminted` and the page gave no reason. 13 were alarm
+    repeats and 5 registers, which no atom is owed for. Two kinds must be reachable at once and
+    the split must sum to `unminted`, or a census naming one kind for all would pass.
+
+    MUTATIONS (must fire): count minted items in the split; key every item to one kind."""
+    _write(tmp_path, "WORKER_FINDING_A_2026-10-03.md",
+           _chain_line(3, sr.UNMINTED))
+    _write(tmp_path, "WORKER_FINDING_REPEATING_ALARM_X_2026-10-03.md",
+           _chain_line(3, sr.UNMINTED))
+    _write(tmp_path, "WORKER_FINDING_B_2026-10-03.md",
+           _chain_line(3, "H45_x"))
+    census = sr.chain_census(tmp_path, epochs={"H45_x": 3})
+
+    assert census["unminted_by_kind"] == {"alarm": 1, "finding": 1}
+    assert sum(census["unminted_by_kind"].values()) == census["unminted"] == 2
+
+
 _EPOCHS = {"E2": 2, "E3": 3, "NOEPOCH": None}
 
 
@@ -329,6 +347,7 @@ def test_minted_work_accretes_to_its_ATOMS_epoch_over_the_whole_partition(tmp_pa
     contradicted = {r["name"][15] for r in census["epoch_contradicted"]}
     assert contradicted == {"B", "C"}, census["epoch_contradicted"]
     assert census["by_epoch"] == {"2": 3, "none on the map": 1}
+    assert census["unminted_by_kind"] == {"finding": 1}
     assert census["minted"] + census["unminted"] + len(census["unresolved"]) == census["chained"]
     assert census["chained"] + len(census["unchained"]) + census["unreadable"] \
         == census["population"] == 7
