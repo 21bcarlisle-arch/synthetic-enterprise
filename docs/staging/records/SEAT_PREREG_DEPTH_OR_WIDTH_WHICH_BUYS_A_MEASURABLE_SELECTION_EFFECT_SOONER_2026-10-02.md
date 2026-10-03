@@ -104,3 +104,49 @@ hands off the grading as continuation `grade-width-snr-over-six-seeds`. The wait
 `systemd-run`: `launch_long_job` refuses every launch while w125d is resident, a 200 MB waiter included,
 because it counts w125d's declared 14.5 GB peak on top of resident memory. The width SNR and the verdict on
 the two-seed lead are still owed here.
+
+**Width ×1.25 on all six seeds, graded 2026-10-03.** Pairs two and three ran unattended on the pin
+(`longjob-depth-vs-width-w125d`, all legs rc=0, finished 10:02Z). The grader is
+`/var/tmp/se-depthwidth-out/grade_width6.py` (sha256 `870f2d61…4136`). It reads every leg's
+`selection_gbp`, its `scored_decisions` and the `.time` file, and gets D_lin ex-0098 by running ab6's
+`grade_lineage.py` (sha256 `71b82d07…5df7`) over each cell's artefacts. The weather-store digest equals
+`e11451b5…` in every cell. The same script reproduces depth's recorded raw SNRs exactly (0.19 and
+0.33), so all four cells are graded on one instrument. The 10y cell is ab6's P1/P2/X1, put through
+the same lineage grader.
+
+| cell, six seeds | scored decisions/seed | raw mean | raw sd | **raw SNR** | D_lin mean | D_lin sd | **D_lin SNR** | peak / CPU-h per pair |
+|---|---|---|---|---|---|---|---|---|
+| depth 4y (2019) | 79.5 | +£419 | £2,191 | **0.19** | +£383 | £2,333 | **0.16** | 6.3–6.5 GB / 0.96–1.00 |
+| depth 7y (2022) | 103.7 | −£1,654 | £4,965 | **0.33** | −£471 | £3,118 | **0.15** | 8.7–8.9 GB / 1.89–1.92 |
+| depth 10y (2025) | 132.3 | −£3,437 | £4,686 | **0.73** | −£2,376 | £2,413 | **0.98** | 10.8 GB / 2.90 (X1) |
+| width ×1.25, 10y | 175.5 | −£1,131 | £3,911 | **0.29** | −£1,009 | £3,852 | **0.26** | 13.0–13.4 GB / 3.26–3.43 |
+
+Width per seed, raw selection (D_lin): 61001 +£210 (+£276), 61002 −£78 (+£105), 61003 −£5,030 (−£4,833),
+61004 −£5,905 (−£5,718), 61005 −£809 (−£738), 61006 +£4,826 (+£4,857). Each pair's CPU-h and peak:
+3.31 / 13.4 GB, 3.43 / 13.0 GB, 3.26 / 13.1 GB. That gives 105 decisions per CPU-h and 13.3 decisions
+per GB, against depth 10y's 92 and 12.3.
+
+**The two-seed lead HOLDS in direction and is NOT established.** Width adds 1.33× the decisions of
+depth 10y, but its six-seed SNR is 0.29 raw and 0.26 by D_lin. Depth 10y's is 0.73 and 0.98. P1's
+√decisions form predicted 0.82 for width. So adding accounts did not buy a larger measurable effect,
+and on these six seeds it bought a smaller one. **The bound:** at six seeds an SNR estimate carries
+about ±0.42–0.50 (one standard error, √((1+SNR²/2)/6)). The raw gap, 0.73 against 0.29, is about one
+standard error, and the D_lin gap, 0.98 against 0.26, is about 1.6. A Welch test on the D_lin means
+(−£2,376 against −£1,009) gives t ≈ 0.7. The data cannot say that width's effect is smaller. They say
+that width's is not larger, which is what the lead claimed.
+
+**Correction to the two-seed wording, kept beside it:** the pair-1 phrase "no visible effect" does not
+survive. Pair two moved about −£5,000 on each seed, and 61006 moved +£4,826. Width's seeds do carry
+effects of depth's size. What they lack is a consistent sign: four seeds negative and two positive
+raw, three and three by D_lin. Depth 10y has five of six negative on both readings.
+
+**P-grades, updated.** P1: the √decisions form is REFUTED on width too (0.29 against 0.82 predicted),
+which agrees with the depth finding that selection compounds with tenure rather than accumulating per
+decision. P2: unchanged. Per unit of cost the levers are about equal: width is slightly ahead per
+CPU-h and per GB. P3: width's memory comes out at 1.22× on six seeds (13.2 against 10.8 GB), so it
+HOLDS. P4: the answer stands. Years, not accounts, are what build a measurable effect. The six-seed
+width grade weakens that claim nowhere and supports it everywhere it can be read, but it does not
+resolve the width/depth difference at the 95% level. Resolving the gap at two standard errors would
+need about 18 seeds per cell by D_lin, or about 45 raw. For width alone that is 20 to 65 more CPU-h,
+at 1.67 CPU-h per seed. That spend would make the existing answer more precise but would not change
+it, so it is not queued.
