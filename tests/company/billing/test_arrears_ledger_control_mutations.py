@@ -548,7 +548,7 @@ def test_collections_snapshot_FIRES_at_read_time_if_the_clock_is_re_clamped(monk
     led.post(_bill("b1", "A", 100.0, 1, ref="INV1"))
     with pytest.raises(OverdueClockFloorError):
         collections_snapshot(led, Segment.IC, True, dt.date(2024, 4, 1),
-                             payment_terms_days=14)
+                             payment_terms_days=14, moratorium_active=False)
 
 
 # ===========================================================================
@@ -563,7 +563,7 @@ def test_dunning_selector_control_passes_on_the_shipped_selector():
 
 
 def test_dunning_selector_control_FIRES_on_the_zero_sentinel():
-    def sentinel(items, segment):
+    def sentinel(items, segment, *, moratorium_active):
         # MUTATION: the pre-D24 expression — "nothing here" reads as day 0.
         undisputed = [it for it in items if not it.disputed]
         worst = max((it.days_overdue for it in undisputed), default=0)
@@ -574,7 +574,7 @@ def test_dunning_selector_control_FIRES_on_the_zero_sentinel():
 
 
 def test_dunning_selector_control_FIRES_when_a_disputed_item_duns():
-    def duns_disputes(items, segment):
+    def duns_disputes(items, segment, *, moratorium_active):
         # MUTATION: the disputed exclusion dropped.
         if not items:
             return None, None
@@ -588,7 +588,7 @@ def test_dunning_selector_control_FIRES_when_a_disputed_item_duns():
 def test_dunning_selector_control_FIRES_when_a_not_yet_due_item_duns():
     """The D24 defect itself, one layer up from the clock: with the clamp back in
     the selector, an invoice that is not yet due reaches the trigger-0 step."""
-    def clamped(items, segment):
+    def clamped(items, segment, *, moratorium_active):
         undisputed = [it for it in items if not it.disputed]
         if not undisputed:
             return None, None
@@ -603,7 +603,8 @@ def test_dunning_selector_control_FIRES_on_an_INERT_selector():
     """VACUITY guard — the check that keeps the other three from being free. A
     selector that never duns anyone satisfies every negative trivially."""
     with pytest.raises(DunningWithoutAnItemError) as exc:
-        assert_dunning_requires_an_item(lambda items, segment: (None, None))
+        assert_dunning_requires_an_item(
+            lambda items, segment, *, moratorium_active: (None, None))
     assert "inert selector" in str(exc.value)
 
 

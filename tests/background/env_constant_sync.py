@@ -28,7 +28,10 @@ longer make the rest of the session's results depend on collection order. Report
 repairing would leave the cascade intact.
 
 SCOPE DISCIPLINE (fail-open avoidance). Only assignments whose RHS is directly `os.environ.get`
-/ `os.getenv` / `os.environ[...]` with a LITERAL default are registered. A wrapped read
+/ `os.getenv` / `os.environ[...]` with a LITERAL default, or a default that is a bare NAME, are
+registered. A bare name is recomputable without re-running anything: a fresh import would read
+the module's own binding of it, so the check reads that binding too (`MODEL =
+os.environ.get("SE_EXECUTOR_MODEL", _OPUS_TIER)` is the case that made this needed). A wrapped read
 (`Path(os.environ.get(...))`) is deliberately NOT registered: the expected value could not be
 recomputed without re-running the wrapper, and a guard that compares apples to oranges would
 fire on honest code and get silenced. Narrow-and-true beats broad-and-noisy.
@@ -52,23 +55,31 @@ _MISSING = object()
 class EnvConstant:
     """One registered (module, attribute) <- (env var, literal default) binding."""
 
-    __slots__ = ("module", "attr", "env_var", "default", "required")
+    __slots__ = ("module", "attr", "env_var", "default", "required", "default_name")
 
-    def __init__(self, module: str, attr: str, env_var: str, default, required: bool):
+    def __init__(self, module: str, attr: str, env_var: str, default, required: bool,
+                 default_name: str | None = None):
         self.module = module
         self.attr = attr
         self.env_var = env_var
         self.default = default
         self.required = required  # True for os.environ["X"] (no default -> KeyError form)
+        self.default_name = default_name  # the default is this module-level name, read live
 
     @property
     def dotted(self) -> str:
         return f"{self.module}.{self.attr}"
 
-    def expected(self):
+    def expected(self, modules=None):
         """The value a FRESH import would compute from the CURRENT os.environ."""
         if self.required:
             return os.environ.get(self.env_var, _MISSING)
+        if self.default_name is not None:
+            mod = (sys.modules if modules is None else modules).get(self.module)
+            default = getattr(mod, self.default_name, _MISSING)
+            if default is _MISSING:
+                return _MISSING
+            return os.environ.get(self.env_var, default)
         return os.environ.get(self.env_var, self.default)
 
     def __repr__(self) -> str:  # pragma: no cover - diagnostics only
@@ -76,13 +87,15 @@ class EnvConstant:
 
 
 def _env_read(node: ast.AST):
-    """If `node` is DIRECTLY an environment read, return (env_var, default, required).
+    """If `node` is DIRECTLY an environment read, return (env_var, default, required, name).
 
     Recognised forms (and only these -- see SCOPE DISCIPLINE in the module docstring):
         os.environ.get("X")            -> ("X", None,  False)
         os.environ.get("X", <literal>) -> ("X", lit,   False)
         os.getenv("X"[, <literal>])    -> ("X", ...,   False)
+        os.environ.get("X", NAME)      -> ("X", None,  False, "NAME")
         os.environ["X"]                -> ("X", None,  True)
+    `name` is None except in the bare-name form.
     Anything else -> None.
     """
     # os.environ["X"]
@@ -96,7 +109,7 @@ def _env_read(node: ast.AST):
             and isinstance(sl, ast.Constant)
             and isinstance(sl.value, str)
         ):
-            return sl.value, None, True
+            return sl.value, None, True, None
         return None
 
     if not isinstance(node, ast.Call):
@@ -123,15 +136,18 @@ def _env_read(node: ast.AST):
     name_node = node.args[0]
     if not (isinstance(name_node, ast.Constant) and isinstance(name_node.value, str)):
         return None
-    default = None
+    default, default_name = None, None
     if len(node.args) >= 2:
-        try:
-            default = ast.literal_eval(node.args[1])
-        except (ValueError, SyntaxError):
-            return None  # non-literal default: cannot recompute, so do not register
+        if isinstance(node.args[1], ast.Name):
+            default_name = node.args[1].id
+        else:
+            try:
+                default = ast.literal_eval(node.args[1])
+            except (ValueError, SyntaxError):
+                return None  # a call or expression default: cannot recompute, do not register
     if len(node.args) > 2:
         return None
-    return name_node.value, default, False
+    return name_node.value, default, False, default_name
 
 
 def _scan_module_file(path: Path, module_name: str) -> list[EnvConstant]:
@@ -152,10 +168,11 @@ def _scan_module_file(path: Path, module_name: str) -> list[EnvConstant]:
         read = _env_read(value)
         if read is None:
             continue
-        env_var, default, required = read
+        env_var, default, required, default_name = read
         for target in targets:
             if isinstance(target, ast.Name):
-                found.append(EnvConstant(module_name, target.id, env_var, default, required))
+                found.append(EnvConstant(module_name, target.id, env_var, default, required,
+                                         default_name))
     return found
 
 
@@ -189,7 +206,7 @@ def diverged(registry, modules=None) -> list[tuple[EnvConstant, object, object]]
         actual = getattr(mod, const.attr, _MISSING)
         if actual is _MISSING:
             continue  # attribute genuinely absent (e.g. os.environ["X"] form, var unset)
-        expected = const.expected()
+        expected = const.expected(mods)
         if expected is _MISSING:
             continue
         if actual != expected:
@@ -201,7 +218,7 @@ def repair(const: EnvConstant, modules=None) -> None:
     """Reset one constant to what a fresh import would compute, so the leak stops here."""
     mods = sys.modules if modules is None else modules
     mod = mods.get(const.module)
-    expected = const.expected()
+    expected = const.expected(mods)
     if mod is not None and expected is not _MISSING:
         setattr(mod, const.attr, expected)
 

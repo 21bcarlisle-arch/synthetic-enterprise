@@ -11,15 +11,15 @@ import random
 import unittest
 from datetime import date
 
-from simulation.payment_timing import generate_payment_record
-from simulation.household import IncomeStress
+from company.compliance.domain_invariants import TDCV_ELEC_MEDIUM
+from company.crm.enriched_churn_estimate import enriched_churn_estimate
 from company.crm.payment_behaviour_analytics import (
     BehaviourScore,
     PaymentBehaviourAnalytics,
 )
-from company.crm.enriched_churn_estimate import enriched_churn_estimate
 from company.crm.payment_churn_model import CHURN_UPLIFT_BY_SCORE
-
+from simulation.household import IncomeStress
+from simulation.payment_timing import generate_payment_record
 
 _DUE = date(2020, 1, 28)
 _RNG_LOW = random.Random(1001)
@@ -122,15 +122,23 @@ class TestPaymentBehaviourAnalytics(unittest.TestCase):
         self.assertIsNotNone(analytics.get_score("C5"))
 
 
+#: A TYPICAL household, at the middle of Ofgem's TDCV electricity Medium band. The two "raises"
+#: tests below used 12,000 kWh until 2026-10-03, which was harmless while the rate response
+#: ignored size; since fc390b918 (2026-09-23) it scales the rate leg by consumption against this
+#: same band, so at ~5x typical the rate leg reaches 0.40 and, under the max() combination,
+#: masks every behaviour score -- red at HEAD for 11 days on an input, not a regression.
+_TYPICAL_KWH = (TDCV_ELEC_MEDIUM.low + TDCV_ELEC_MEDIUM.high) / 2
+
+
 class TestEnrichedChurnWithBehaviourScore(unittest.TestCase):
     def test_critical_raises_churn_vs_none(self):
         """CRITICAL behaviour score raises enriched churn above behaviour_score=None baseline."""
         base = enriched_churn_estimate(
-            100.0, 110.0, 2.0, 12000.0,
+            100.0, 110.0, 2.0, _TYPICAL_KWH,
             bill_shock_count=0, behaviour_score=None, satisfaction_score=None,
         )
         critical = enriched_churn_estimate(
-            100.0, 110.0, 2.0, 12000.0,
+            100.0, 110.0, 2.0, _TYPICAL_KWH,
             bill_shock_count=0, behaviour_score=BehaviourScore.CRITICAL, satisfaction_score=None,
         )
         self.assertGreater(critical, base)
@@ -158,11 +166,11 @@ class TestEnrichedChurnWithBehaviourScore(unittest.TestCase):
     def test_poor_score_pushes_above_rate_only_modest_rise(self):
         """POOR score with modest rate rise should exceed rate-only churn estimate."""
         rate_only = enriched_churn_estimate(
-            100.0, 108.0, 3.0, 12000.0,
+            100.0, 108.0, 3.0, _TYPICAL_KWH,
             bill_shock_count=0, behaviour_score=None, satisfaction_score=None,
         )
         with_poor = enriched_churn_estimate(
-            100.0, 108.0, 3.0, 12000.0,
+            100.0, 108.0, 3.0, _TYPICAL_KWH,
             bill_shock_count=0, behaviour_score=BehaviourScore.POOR, satisfaction_score=None,
         )
         self.assertGreater(with_poor, rate_only)

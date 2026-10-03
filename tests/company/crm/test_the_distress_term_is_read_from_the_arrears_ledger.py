@@ -228,13 +228,15 @@ def test_the_state_is_read_from_the_engines_OWN_snapshot():
     clear = AccountLedger("CLEAR")
     clear.post(_bill("b1", "CLEAR", 400.0, 1))
     clear.post(_payment("p1", "CLEAR", 400.0, 10))
-    snap_clear = collections_snapshot(clear, Segment.RESIDENTIAL, False, dt.date(2024, 4, 1))
+    snap_clear = collections_snapshot(clear, Segment.RESIDENTIAL, False, dt.date(2024, 4, 1),
+                                      moratorium_active=False)
     assert ARREARS_LEDGER_FIELD in snap_clear
     assert arrears_state_from_collections(snap_clear) == ARREARS_STATE_NO_DEBT
 
     owing = AccountLedger("OWING")
     owing.post(_bill("b1", "OWING", 400.0, 1))
-    snap_owing = collections_snapshot(owing, Segment.RESIDENTIAL, False, dt.date(2024, 4, 1))
+    snap_owing = collections_snapshot(owing, Segment.RESIDENTIAL, False, dt.date(2024, 4, 1),
+                                      moratorium_active=False)
     assert snap_owing[ARREARS_LEDGER_FIELD] > 0.0
     assert arrears_state_from_collections(snap_owing) != ARREARS_STATE_NO_DEBT
 
@@ -247,7 +249,8 @@ def test_one_reading_of_a_household_IN_ARREARS_is_a_LEVEL_and_not_a_DIRECTION():
     """
     owing = AccountLedger("OWING")
     owing.post(_bill("b1", "OWING", 400.0, 1))
-    snap = collections_snapshot(owing, Segment.RESIDENTIAL, False, dt.date(2024, 4, 1))
+    snap = collections_snapshot(owing, Segment.RESIDENTIAL, False, dt.date(2024, 4, 1),
+                                moratorium_active=False)
     assert arrears_state_from_collections(snap, previous=None) == ARREARS_STATE_UNKNOWN
 
 
@@ -260,8 +263,10 @@ def test_the_direction_is_keyed_to_the_AMOUNT_and_NOT_to_the_AGE():
     """
     led = AccountLedger("A")
     led.post(_bill("b1", "A", 400.0, 1))
-    earlier = collections_snapshot(led, Segment.RESIDENTIAL, False, dt.date(2024, 3, 1))
-    later = collections_snapshot(led, Segment.RESIDENTIAL, False, dt.date(2024, 4, 1))
+    earlier = collections_snapshot(led, Segment.RESIDENTIAL, False, dt.date(2024, 3, 1),
+                                   moratorium_active=False)
+    later = collections_snapshot(led, Segment.RESIDENTIAL, False, dt.date(2024, 4, 1),
+                                 moratorium_active=False)
     assert later["max_days_overdue"] > earlier["max_days_overdue"], "probe is not ageing"
     assert later[ARREARS_LEDGER_FIELD] == earlier[ARREARS_LEDGER_FIELD], "probe amount moved"
     assert arrears_state_from_collections(later, previous=earlier) == \
@@ -269,13 +274,15 @@ def test_the_direction_is_keyed_to_the_AMOUNT_and_NOT_to_the_AGE():
 
     # And the DIRECTION leg is reachable: a household that fell further behind IS the column.
     led.post(_bill("b2", "A", 300.0, 1, month=3))
-    worse = collections_snapshot(led, Segment.RESIDENTIAL, False, dt.date(2024, 4, 1))
+    worse = collections_snapshot(led, Segment.RESIDENTIAL, False, dt.date(2024, 4, 1),
+                                 moratorium_active=False)
     assert arrears_state_from_collections(worse, previous=earlier) == ARREARS_STATE_WORSENING
 
     # ...and a household PAYING ITS ARREARS DOWN is not, which is the other side of the same
     # partition and the one a magnitude-blind test would never reach.
     led.post(_payment("p1", "A", 500.0, 2, month=4))
-    better = collections_snapshot(led, Segment.RESIDENTIAL, False, dt.date(2024, 4, 15))
+    better = collections_snapshot(led, Segment.RESIDENTIAL, False, dt.date(2024, 4, 15),
+                                  moratorium_active=False)
     assert arrears_state_from_collections(better, previous=worse) != ARREARS_STATE_WORSENING
 
 

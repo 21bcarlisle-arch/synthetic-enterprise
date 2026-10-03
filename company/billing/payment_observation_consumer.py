@@ -149,6 +149,7 @@ from company.billing.arrears_engine import (
     collections_snapshot,
     fifo_unpaid_bills,
 )
+from company.billing.breathing_space_register import BreathingSpaceRegister
 from company.crm.account_hierarchy import Segment
 from company.crm.churn_model import (
     ARREARS_STATE_UNKNOWN,
@@ -847,6 +848,7 @@ class PaymentObservationConsumer:
         dd_failure_window_days: int = 90,
         posture: Any = DECLARED_POSTURE,
         supplied_accounts: Optional[Iterable[str]] = None,
+        breathing_space: Optional[BreathingSpaceRegister] = None,
     ) -> None:
         # THE STARTUP ASSERTION (atom EP6, pass 40 -- the blind review's Q14).
         # This constructor is the startup of the only framed crossing the
@@ -857,6 +859,14 @@ class PaymentObservationConsumer:
         # why an unrecognised posture counts as production.
         assert_registry_fit_for_posture(posture)
         self.ledger_book: LedgerBook = ledger_book if ledger_book is not None else LedgerBook()
+        # THE DEBT RESPITE REGISTER (atom C33). Every collections view this consumer takes asks it
+        # whether the account is inside a moratorium, because the dunning selector will not pick a
+        # step without the answer. EMPTY BY DEFAULT, AND THAT IS A STATEMENT ABOUT THE WORLD: no
+        # Secretary of State moratorium notification crosses the seam yet, so no account here can
+        # be in one -- not that the company declined to look.
+        self.breathing_space: BreathingSpaceRegister = (
+            breathing_space if breathing_space is not None else BreathingSpaceRegister()
+        )
         self._dd_failures: Dict[str, List[DDFailureObservation]] = {}
         self._rail_failures: Dict[str, List[RailFailureNote]] = {}
         self._mandate_beliefs: Dict[str, MandateBelief] = {}
@@ -2040,6 +2050,7 @@ class PaymentObservationConsumer:
             segment,
             accounting_model_is_open_item=segment.is_business,
             as_of=as_of,
+            moratorium_active=self.breathing_space.moratorium_active(account_id, as_of),
         )
 
     def snapshot(

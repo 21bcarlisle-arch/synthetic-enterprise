@@ -193,7 +193,7 @@ def test_collections_snapshot_open_item_excludes_disputed():
     led.post(_bill("b1", "A", 100.0, 1, ref="INV1"))   # disputed
     led.post(_bill("b2", "A", 200.0, 1, ref="INV2"))
     snap = collections_snapshot(led, Segment.IC, True, dt.date(2024, 4, 1),
-                                disputed_refs=["INV1"])
+                                disputed_refs=["INV1"], moratorium_active=False)
     assert snap["disputed_excluded_count"] == 1
     assert snap["undisputed_overdue_gbp"] == 200.0
     assert snap["interest_bearing"] is True
@@ -201,7 +201,8 @@ def test_collections_snapshot_open_item_excludes_disputed():
 def test_collections_snapshot_balance_based_resi():
     led = AccountLedger("A")
     led.post(_bill("b1", "A", 120.0, 1))
-    snap = collections_snapshot(led, Segment.RESIDENTIAL, False, dt.date(2024, 3, 1))
+    snap = collections_snapshot(led, Segment.RESIDENTIAL, False, dt.date(2024, 3, 1),
+                                moratorium_active=False)
     assert snap["accounting_model"] == "balance_based"
     assert snap["undisputed_overdue_gbp"] == 120.0
     assert snap["interest_bearing"] is False

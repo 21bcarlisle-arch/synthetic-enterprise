@@ -4812,6 +4812,27 @@ def _live_holders() -> list[dict]:
     return holders
 
 
+def held_in_other_stores(own: Path, now: float | None = None,
+                         stores: list[tuple[Path, float]] | None = None) -> set[str]:
+    """Ids held and not stale in every claim store except `own`, each on its own deadline.
+
+    Reads, never sweeps -- `rival_claims`' reason: a draw must not change what another writer holds.
+    """
+    out: set[str] = set()
+    for other, deadline in (stores if stores is not None else claim_stores()):
+        if other == own:
+            continue
+        try:
+            rows = claims_mod._load(other)
+            stale = {w for w, _rec, _idle in
+                     claims_mod.stale_claims(path=other, now=now, stale_after=deadline)}
+        except Exception:  # noqa: BLE001 - an unreadable store must not stop the draw
+            continue
+        if isinstance(rows, dict):
+            out |= {w for w, rec in rows.items() if isinstance(rec, dict) and w not in stale}
+    return out
+
+
 def held_by(item: dict, holders: list[dict]) -> tuple[dict, str] | None:
     """(holder, reason) when a live holder already holds `item`'s subject, else None.
 
@@ -4870,6 +4891,14 @@ def next_item(now: float | None = None, path: Path | None = None, *,
     store = path or CLAIMS_FILE
     sweep_stale(now=now, path=store)
     taken = held(store)
+    # AN ID HELD IN THE OTHER STORE IS TAKEN TOO (2026-10-03). `rival_claims` already said so in
+    # the doorbell, but only AFTER the draw, so the executor drew
+    # `build-the-supplier-dd-stopping-rule` twice in one afternoon while a scheduled worker held it
+    # in `.seat_work_in_hand.json` -- and `run_once` then claimed the same id into that store,
+    # overwriting the holder's row with its own and releasing it at hand-back. Only on the
+    # production call: an explicit `path` is a test's isolated store, and it must not read live.
+    if path is None:
+        taken |= held_in_other_stores(store, now=now)
     # SUPERSESSION IS A FACT ABOUT THE INSTRUCTION, AND IT IS HELD IN TWO STORES (2026-09-03).
     # `live()` retires a refuted continuation, so the loop below inherits the filter for free. The
     # `focus` loop does NOT: `seat_executor` promotes a continuation into `focus` at derivation, so
