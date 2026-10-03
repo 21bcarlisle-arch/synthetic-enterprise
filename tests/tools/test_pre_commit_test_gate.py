@@ -405,8 +405,12 @@ def test_pytest_subprocess_env_strips_GIT_star(monkeypatch):
     # before the pytest launch. Its own contract, fail-closed branches included, is proven in
     # tests/tools/test_wall_channel_census.py.
     monkeypatch.setattr(gate, "_wall_channel_census_check", lambda staged: (True, ""))
+    # The merge-parent read (2026-10-03) shells out to `git rev-parse` for the same reason; its
+    # contract is tests/tools/test_a_merge_is_selected_by_its_combined_diff.py.
+    monkeypatch.setattr(gate, "selection_paths", lambda staged: (staged, ""))
     for k in ("GIT_INDEX_FILE", "GIT_DIR", "GIT_WORK_TREE", "GIT_PREFIX"):
         monkeypatch.setenv(k, "/should/not/leak")
+    monkeypatch.setenv(gate.MERGE_PARENT_ENV, "deadbeef")
     captured = {}
 
     class _R:
@@ -422,6 +426,9 @@ def test_pytest_subprocess_env_strips_GIT_star(monkeypatch):
     assert env is not None, "the pytest subprocess must be given an explicit (scrubbed) env"
     leaked = sorted(k for k in env if k.startswith("GIT_"))
     assert leaked == [], f"GIT_* leaked into the gate's pytest subprocess: {leaked}"
+    assert gate.MERGE_PARENT_ENV not in env, (
+        "the merge token leaked into the suite: tests that call main() would select by a merge "
+        "they are not part of, only while a merge is being gated")
 
 
 def test_gitless_env_strips_all_GIT_star_directly():
