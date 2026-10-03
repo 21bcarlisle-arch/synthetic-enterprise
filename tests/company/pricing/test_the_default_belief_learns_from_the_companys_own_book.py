@@ -40,7 +40,7 @@ def _post_year(book, acct, first, *, months, unpaid_months=(), amount=100.0):
 
 
 def _observe(book, as_of, methods):
-    return observe_book(book, as_of=as_of, payment_method_of=methods.get,
+    return observe_book(book, as_of=as_of, payment_method_of=lambda a, d: methods.get(a),
                         arrears_state_at=lambda a, d: "no_debt")
 
 
@@ -194,7 +194,7 @@ def test_the_runs_door_answers_off_the_ledger_record_period_built():
             triad.record_period(customer_id=cid, due_date=due, amount_gbp=120.0,
                                 income_stress_value="high", segment="resi")
 
-    def method_of(account):
+    def method_of(account, on):
         return SC
 
     early = triad.default_belief_rate(dt.date(2017, 12, 1), "unknown", payment_method_of=method_of)
@@ -217,3 +217,33 @@ def test_on_the_book_rate_a_clean_prepayment_household_pays_what_a_clean_direct_
     margins = {m: decide_margin(**base, payment_method=m, default_belief_rate=0.02).margin_gbp_per_mwh
                for m in ("direct_debit", "standard_credit", "prepayment")}
     assert len(set(margins.values())) == 1, margins
+
+
+def test_a_dd_the_supplier_stopped_is_provisioned_on_the_pay_on_receipt_row_from_its_notice_on():
+    """PB8: the company's own desk stops a failing DD and the household then pays on receipt. Read
+    once per account, the method never moved and the stopped household's debt stayed on the DD row,
+    so the book's charge was the household's drawn channel, not the supplier's own mandate record.
+    The year's covariate stays the method at its start: that is what a renewal then could see."""
+    first = dt.date(2018, 1, 1)
+    stop = dt.date(2018, 9, 1)
+    asked: list = []
+
+    def stopped(account, on):
+        asked.append(on)
+        return SC if on >= stop else DD
+
+    def observe(method_of):
+        book = LedgerBook()
+        _post_year(book, "A", first, months=24, unpaid_months=(8, 9, 10))
+        return observe_book(book, as_of=dt.date(2020, 6, 1), payment_method_of=method_of,
+                            arrears_state_at=lambda a, d: "no_debt")
+
+    moved = observe(stopped)
+    never = observe(lambda a, d: DD)
+    assert asked and max(asked) <= dt.date(2020, 6, 1), "the register was asked past the decision date"
+    assert any(d < stop for d in asked) and any(d >= stop for d in asked), (
+        "the register was never asked on both sides of the stop, so the stop could not reach a charge")
+    assert [o.payment_method for o in moved] == [DD, SC], (
+        "a year's method is the one at its start: the stopped household's first year began on DD")
+    assert moved[0].charge_gbp > never[0].charge_gbp, (
+        "the stopped account's year-end debt was still provisioned on the direct-debit row")
