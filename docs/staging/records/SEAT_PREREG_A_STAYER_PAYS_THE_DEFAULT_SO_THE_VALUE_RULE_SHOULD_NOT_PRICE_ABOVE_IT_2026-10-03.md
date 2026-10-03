@@ -126,3 +126,43 @@ belief's reference is untouched, so CURRENT_POLICY moves nothing.
 - **V2'.** value_capped - value is larger than v1's on every path (default path: > +408).
 - **V3'.** value_capped - level (its own median) is still negative on at least 3 of 4 paths,
   because the churn belief's year-level error is untouched.
+
+## Grading v2 (own default known before the cap), all four paths
+
+Source: `/var/tmp/se-probe-out/probe_v2_*.json`, run at the v2 code (landed 3475058ef). With bad
+debt.
+
+| path | capped above default by >0.5 | of which default<base / ==value / other | capped - value (v1 -> v2) | capped - level at its median (SNR) | capped median | best flat level | capped - best level (SNR) |
+|---|---|---|---|---|---|---|---|
+| default | 14 | 8 / 4 / 2 | +408 -> +433 | +599 (1.34) | 23.7 | 55 | -776 (0.70) |
+| 61001 | 11 | 7 / 2 / 2 | +406 -> +619 | +1,966 (2.36) | 20.7 | 55 | -1,057 (1.05) |
+| 61002 | 14 | 9 / 3 / 2 | +191 -> +202 | +1,459 (2.64) | 18.2 | 55 | -956 (0.98) |
+| 61003 | 14 | 7 / 3 / 4 | +285 -> +285 | +1,289 (1.76) | 26.4 | 60 | -1,190 (1.08) |
+
+- **V1': refuted on 3 of 4** (14, 11, 14, 14 against <=12).
+  - **Above-default offers fell from 51-59 to 11-14.** What remains is mostly the default-below-cost
+    case, where pricing the stayer out is the scorer working as designed (7-9 per path).
+  - **2-4 per path are the value rule's offer exactly.** Those never reached the stayer term; the
+    fallback is still untraced.
+- **V2': held on 4 of 4, but barely on two paths** (+11 and +1). Knowing the default before 2019
+  adds little: those pre-cap offers now sit at the default, and the world's churn at those prices
+  was already high.
+- **V3': refuted on 4 of 4,** with the sign reversed. Against a flat price at its OWN median, the
+  rule that knows the default WINS: +599 to +1,966, SNR 1.3-2.6.
+
+**That win must not be read as the choosing working.**
+- **Clipping at the default drags the rule's median down** to GBP 18-26/MWh, so the comparison is
+  against a flat price the rule's own clipping made low.
+- **Against the best flat level it still loses,** by 776-1,190 at SNR 0.7-1.1. The best level is
+  GBP 55-60, which the default also caps for any stayer.
+- **But that comparison flatters flat.** The best level is chosen with hindsight, over the very
+  decisions it is scored on.
+
+The fair reading is that the choosing with the default known sits **between** a flat price at its
+own median and the best flat price in hindsight. It has not yet beaten a flat rule a company could
+have chosen in advance.
+
+The next lever is the churn belief's level. The best flat level is GBP 55-60, about 2-3x the
+capped rule's median. What sends the rule's choices so far below it has not been measured.
+The probe now records the company's believed P(stay) at every grid offer beside the world's, so
+the next run can answer that directly.

@@ -96,3 +96,14 @@ def test_the_worlds_decline_rule_can_be_taken_and_is_the_only_thing_that_moves_t
         dp.stayer_pays(50.0, "2020-06-01", "electricity", True)
     assert above is not None and above < 900.0 and below == 50.0
     assert dp.stayer_pays(900.0, "2020-06-01", "electricity", False) == 900.0
+
+
+def test_the_belief_is_read_from_the_last_priced_entry_and_is_none_where_nothing_priced():
+    """The belief column is the company's own P(stay) at the offer it struck; an arm that priced
+    nothing must read None, never a neighbouring arm's belief or a default."""
+    from types import SimpleNamespace
+    priced = SimpleNamespace(value_arm_entries=[{"believed_p_retain": 0.4},
+                                                {"believed_p_retain": None},
+                                                {"believed_p_retain": 0.7}])
+    assert dp._believed(priced) == 0.7
+    assert dp._believed(SimpleNamespace(value_arm_entries=[])) is None
