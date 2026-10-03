@@ -158,8 +158,14 @@ def test_append_preserves_existing_rows(tmp_path):
 def _bill(cid, period_end, amount, segment="resi"):
     return {
         "customer_id": cid,
+        # Every issued bill carries its period; pre-bill validation reads both ends.
+        "period_start": period_end[:8] + "01",
         "period_end": period_end,
         "total_amount_gbp": amount,
+        # ...and its components foot to its total at 5% domestic VAT, or pre-bill validation
+        # holds it and it never issues, so nothing on it can be written off (2bb03a094).
+        "commodity_amount_gbp": round(amount / 1.05, 2),
+        "vat_gbp": round(amount - round(amount / 1.05, 2), 2),
         "segment": segment,
         "commodity": "electricity",
     }

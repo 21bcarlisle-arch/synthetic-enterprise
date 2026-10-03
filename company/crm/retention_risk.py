@@ -27,7 +27,9 @@ def _required_as_of(as_of: date) -> date:
 def _has_overdue_invoice(account_id: str, invoices: list[dict], as_of: date) -> bool:
     today = _required_as_of(as_of).isoformat()
     return any(
-        inv["payment_status"] in ("unpaid", "partially_paid")
+        # "overdue" is what the billing ledger writes for a failed collection
+        # (tools/generate_billing_ledger.py); without it this read 0 on every ledger invoice.
+        inv["payment_status"] in ("unpaid", "partially_paid", "overdue")
         and inv.get("due_date", today) < today
         for inv in invoices
         if inv["customer_id"] == account_id
@@ -37,11 +39,13 @@ def _has_overdue_invoice(account_id: str, invoices: list[dict], as_of: date) -> 
 def _has_recent_complaint(account_id: str, contacts: list[dict], as_of: date,
                           lookback_days: int = 90) -> bool:
     from datetime import timedelta
-    cutoff = (_required_as_of(as_of) - timedelta(days=lookback_days)).isoformat()
+    day = _required_as_of(as_of)
+    cutoff = (day - timedelta(days=lookback_days)).isoformat()
+    # Bounded on both sides: a complaint dated after `as_of` had not happened yet.
     return any(
         c["customer_id"] == account_id
         and c.get("complaint_flag")
-        and c.get("event_date", "") >= cutoff
+        and cutoff <= c.get("event_date", "")[:10] <= day.isoformat()
         for c in contacts
     )
 
