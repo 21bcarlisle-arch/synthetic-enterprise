@@ -4495,3 +4495,19 @@
   blocked_on: null
   simplifications_count: 3
   records_rehomed: [evidence]
+
+- id: D_money_boundary_reconciliation
+  notes_rehomed: [name]
+  lane: D_billing_metering
+  value_stream: price_to_bill
+  epoch: 2
+  level_current: 3
+  level_target: 3
+  loop_stage: harden
+  dial_inherited: 3
+  provenance: proposal
+  file_scope: [saas/money.py, company/billing, company/compliance/domain_invariants.py, tools/generate_billing_ledger.py, tests/saas/test_money_boundary.py, tests/company/compliance/test_printed_bill_foots.py]
+  depends_on: []
+  blocked_on: null
+  simplifications_count: 7
+  records_rehomed: [evidence]
