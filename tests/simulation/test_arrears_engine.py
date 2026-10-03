@@ -504,6 +504,20 @@ def test_every_non_dd_method_gets_a_method_appropriate_opening_stage():
         assert 'direct debit' not in opening['note'].lower(), method
 
 
+def test_a_prepayment_bill_cannot_fail_or_be_late_because_the_meter_is_paid_before_use():
+    """Defect: `payment_outcome` put prepayment on the resi credit draw, so 4.63% of a PPM
+    household's bills "failed" and were written off (907 bills, GBP 1,605, seed 42 at
+    3b5dbfdc4). The control arm runs the SAME draws for standard credit at HIGH stress and asserts
+    it does fail and late, so a guard that zeroed every resi failure would red it."""
+    import random
+    credit = [payment_outcome("standard_credit", "HIGH", random.Random(i), "resi", True)
+              for i in range(400)]
+    assert any(o == "failed" for o, _ in credit) and any(d > 0 for _, d in credit)
+    ppm = [payment_outcome("prepayment", "HIGH", random.Random(i), "resi", True)
+           for i in range(400)]
+    assert set(ppm) == {("success", 0)}
+
+
 def test_an_unknown_method_does_not_fall_back_to_a_direct_debit_failure():
     """Fail-closed: a method nobody anticipated must not inherit the DD
     vocabulary by default."""

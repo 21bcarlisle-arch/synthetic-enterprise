@@ -393,6 +393,18 @@ def _tone_for_bill(method: str, customer_id: str | None, period_end: str) -> str
     return collections_tone_for(customer_id, period_end)
 
 
+#: A prepayment meter is paid before use (SLC 27A), so its "bill" is a statement of vends, not a
+#: demand that can go unpaid. `payment_outcome` never fails or lates one.
+#:
+#: What a PPM household's debt really is, and why the world produces none of it: standing charge
+#: accrued while self-disconnected (63% of PPM customers self-disconnect at least once a year),
+#: unrepaid emergency credit, and credit-account debt recovered through the meter (41% of
+#: electricity repayment plans) -- `docs/market_research/company_debt_management.md` s.3. None is
+#: modelled, and nothing published sizes the GBP left unrecovered on a meter at exit. Ofgem's cap
+#: allows 0.6% of the PPM cap for PPM debt cost (App.2 Dec 2024 Table 2.1), so the world's zero
+#: UNDERSTATES the PPM cell. That is a named gap, not an answer.
+PREPAYMENT_METHOD = "prepayment"
+
 FUEL_POVERTY_DD_FAIL_MULTIPLIER = 1.3
 FUEL_POVERTY_ON_TIME_MULTIPLIER = 0.9
 
@@ -445,6 +457,12 @@ def payment_outcome(method: str, stress: str, rng: random.Random, segment: str =
         # Unreachable by construction: `payment_method` only returns a
         # corporate method for a business segment. Left as-is rather than
         # raised, so an unforeseen caller degrades exactly as it always has.
+        return ("success", 0)
+    if method == PREPAYMENT_METHOD:
+        # Paid before use: a vend buys the energy, so there is no bill payment to miss or be late
+        # with. A PPM household's real debt -- standing charge accrued while self-disconnected,
+        # unrepaid emergency credit, credit-account debt recovered through the meter -- is not
+        # modelled (see `PREPAYMENT_METHOD`). Until it is, this world writes off nothing on a meter.
         return ("success", 0)
     dd_fail_prob = _DD_FAILURE_PROB.get(stress, 0.03)
     on_time_prob = _ON_TIME_PROB.get(stress, 0.92)
