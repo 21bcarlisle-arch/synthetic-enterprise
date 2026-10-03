@@ -555,7 +555,7 @@ def test_the_wire_fed_company_and_the_object_fed_company_believe_the_same_thing(
     assert object_fed.observe(_OK_RESPONSE) is True
     assert wire_fed.observe_wire(_framed_json(_OK_RESPONSE)) is True
 
-    assert wire_fed.snapshot(_ADVICE.account_id) == object_fed.snapshot(_ADVICE.account_id)
+    assert wire_fed.snapshot(_ADVICE.account_id, as_of=_VALUE_DATE) == object_fed.snapshot(_ADVICE.account_id, as_of=_VALUE_DATE)
 
 
 def test_idempotency_survives_the_transport_swap():
@@ -1032,14 +1032,14 @@ def test_a_refused_sender_never_reaches_the_belief_code():
 
     with pytest.raises(WallProtocolError):
         consumer.observe_wire(impostor)
-    refused = consumer.snapshot(_ADVICE.account_id)
+    refused = consumer.snapshot(_ADVICE.account_id, as_of=_VALUE_DATE)
     assert refused.allocation.allocations == []
     assert refused.allocation.unallocated_credit_gbp == 0.0
     # ...and the correlation id was not consumed, so the genuine delivery lands
     # and DOES move the belief -- which is what makes the two lines above a
     # measurement of the refusal rather than of an inert consumer.
     assert consumer.observe_wire(_framed_json(_OK_RESPONSE)) is True
-    assert consumer.snapshot(_ADVICE.account_id).allocation.unallocated_credit_gbp > 0.0
+    assert consumer.snapshot(_ADVICE.account_id, as_of=_VALUE_DATE).allocation.unallocated_credit_gbp > 0.0
 
 
 # ---------------------------------------------------------------------------

@@ -5,13 +5,14 @@ Pages: index, customers, supplier, sim, project
 """
 import json
 import re
+from datetime import date, datetime, timezone
 from pathlib import Path
-from datetime import datetime, timezone
 
-from company.crm.retention_risk import retention_risk_feature_vector
 from company.analytics.decision_event_ledger import (
-    build_customer_ledger, build_portfolio_event_stream,
+    build_customer_ledger,
+    build_portfolio_event_stream,
 )
+from company.crm.retention_risk import retention_risk_feature_vector
 from simulation.acquisition_funnel import FUNNEL_STAGES
 
 PROJECT = Path(__file__).resolve().parent.parent
@@ -1132,7 +1133,12 @@ def _churn_journey_case_study(journey_log, ledger, cid):
 
     ledger_cust = (ledger or {}).get("customers", {}).get(cid, {})
     invoices = ledger_cust.get("invoices", [])
-    feature_vec = retention_risk_feature_vector({"customer_id": cid}, invoices, [])
+    # Read on the journey's own last date: the company's exhaust as it stood at that point,
+    # never against the machine's calendar (which aged a 2016-2025 book against 2026).
+    feature_vec = retention_risk_feature_vector(
+        {"customer_id": cid}, invoices, [],
+        as_of=date.fromisoformat(trajectory[-1]["date"]),
+    )
     feature_rows = "".join(
         _row(k.replace("_", " "), v) for k, v in feature_vec.items() if k != "customer_id"
     )

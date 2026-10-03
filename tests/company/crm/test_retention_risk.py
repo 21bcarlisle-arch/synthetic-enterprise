@@ -1,9 +1,14 @@
 """Phase 108: Retention risk scoring tests."""
 
-from company.crm.retention_risk import (
-    retention_risk, portfolio_risk_summary, retention_risk_feature_vector,
-)
+from datetime import date
 
+import pytest
+
+from company.crm.retention_risk import (
+    portfolio_risk_summary,
+    retention_risk,
+    retention_risk_feature_vector,
+)
 
 _CUSTOMER = {
     "customer_id": "C1", "segment": "resi",
@@ -162,7 +167,7 @@ def test_portfolio_customers_list_matches_count():
 # --- Phase QL Part 2: retention_risk_feature_vector tests ---
 
 def test_feature_vector_all_zero_for_no_signals():
-    vec = retention_risk_feature_vector(_CUSTOMER, [], [])
+    vec = retention_risk_feature_vector(_CUSTOMER, [], [], as_of=date.today())
     assert vec["customer_id"] == "C1"
     assert vec["overdue_invoice"] == 0.0
     assert vec["recent_complaint_90d"] == 0.0
@@ -177,7 +182,7 @@ def test_feature_vector_overdue_invoice_flag():
     from datetime import date, timedelta
     overdue = {"customer_id": "C1", "payment_status": "unpaid",
                "due_date": (date.today() - timedelta(days=5)).isoformat()}
-    vec = retention_risk_feature_vector(_CUSTOMER, [overdue], [])
+    vec = retention_risk_feature_vector(_CUSTOMER, [overdue], [], as_of=date.today())
     assert vec["overdue_invoice"] == 1.0
 
 
@@ -185,32 +190,49 @@ def test_feature_vector_recent_complaint_flag():
     from datetime import date
     contact = {"customer_id": "C1", "complaint_flag": True,
                "event_date": date.today().isoformat()}
-    vec = retention_risk_feature_vector(_CUSTOMER, [], [contact])
+    vec = retention_risk_feature_vector(_CUSTOMER, [], [contact], as_of=date.today())
     assert vec["recent_complaint_90d"] == 1.0
 
 
 def test_feature_vector_renewal_window_and_fixed():
     renewal = {"in_notice_window": True, "is_fixed": True}
-    vec = retention_risk_feature_vector(_CUSTOMER, [], [], renewal_info=renewal)
+    vec = retention_risk_feature_vector(_CUSTOMER, [], [], renewal_info=renewal, as_of=date.today())
     assert vec["renewal_window_open"] == 1.0
     assert vec["renewal_is_fixed"] == 1.0
 
 
 def test_feature_vector_rate_gap_and_protected():
     rate_cmp = {"protected": True, "delta_p": 3.5}
-    vec = retention_risk_feature_vector(_CUSTOMER, [], [], rate_cmp=rate_cmp)
+    vec = retention_risk_feature_vector(_CUSTOMER, [], [], rate_cmp=rate_cmp, as_of=date.today())
     assert vec["rate_gap_pct_vs_market"] == 3.5
     assert vec["rate_protected"] == 1.0
 
 
 def test_feature_vector_smart_meter_installed():
     cust = {**_CUSTOMER, "smart_meter": True}
-    vec = retention_risk_feature_vector(cust, [], [])
+    vec = retention_risk_feature_vector(cust, [], [], as_of=date.today())
     assert vec["smart_meter_installed"] == 1.0
 
 
 def test_feature_vector_returns_raw_features_not_collapsed_score():
     """Unlike retention_risk(), this must not collapse to a single score/tier."""
-    vec = retention_risk_feature_vector(_CUSTOMER, [], [])
+    vec = retention_risk_feature_vector(_CUSTOMER, [], [], as_of=date.today())
     assert "score" not in vec
     assert "tier" not in vec
+
+
+def test_the_feature_vector_reads_its_signals_on_the_date_it_is_given():
+    """A run reads this on its own date: a 2019 invoice due in May is overdue on 2019-06-01 and
+    not on 2019-04-01, whatever the machine's calendar says."""
+    inv = {"customer_id": "C1", "payment_status": "unpaid", "due_date": "2019-05-15"}
+    complaint = {"customer_id": "C1", "complaint_flag": True, "event_date": "2019-05-20"}
+    on = retention_risk_feature_vector(_CUSTOMER, [inv], [complaint], as_of=date(2019, 6, 1))
+    before = retention_risk_feature_vector(_CUSTOMER, [inv], [complaint], as_of=date(2019, 4, 1))
+    late = retention_risk_feature_vector(_CUSTOMER, [inv], [complaint], as_of=date(2019, 12, 1))
+    assert (on["overdue_invoice"], on["recent_complaint_90d"]) == (1.0, 1.0)
+    assert (before["overdue_invoice"], late["recent_complaint_90d"]) == (0.0, 0.0)
+
+
+def test_the_feature_vector_refuses_a_missing_date():
+    with pytest.raises(ValueError, match="as_of"):
+        retention_risk_feature_vector(_CUSTOMER, [], [], as_of=None)
