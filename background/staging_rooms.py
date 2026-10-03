@@ -865,8 +865,40 @@ def epoch_disagreement(chain: Chain, epochs: dict[str, int | None]) -> str | Non
     return f"epoch {declared} but atom `{chain.atom}` is epoch {own} on the map"
 
 
+def atom_lanes(live_path: Path | str | None = None) -> dict[str, str | None]:
+    """Every atom id on the map, both halves, to the lane its row declares (None if none)."""
+    from tools import maturity_map_store as store
+
+    atoms = store.load_atoms() if live_path is None else store.load_atoms(live_path)
+    return {str(a["id"]): (str(a["lane"]) if a.get("lane") else None)
+            for a in atoms if isinstance(a, dict) and a.get("id")}
+
+
+def lane_disagreement(chain: Chain, lanes: dict[str, str | None]) -> str | None:
+    """Why a minted item's lane is not its atom's, or None when it is (or cannot be asked).
+
+    THE LANE IS THE ATOM'S, for the same reason the epoch is: the work an item names an atom for
+    is that atom's work. H45's Expert Hour (EH-1, 2026-10-03) found minted items naming the atom
+    their THREAD began on rather than the one their subject serves, and no machine reads
+    "serves". This is the part of it that IS decidable, because the writer's own header
+    contradicts itself: measured the same day over 34 minted items, 21 declared a lane their
+    atom does not hold -- draw-mechanics findings typed `H_harness` and hung on PB4 or EP1, cap
+    and VAT findings typed `B_commercial` and hung on a D_billing atom. One of the two fields is
+    wrong; which one is the writer's call. NOT caught: a wrong atom IN THE RIGHT LANE (the EAC
+    read-error items on PB4 are both W2). A ghost atom is `epoch_disagreement`'s question.
+    """
+    if not chain.is_minted or chain.atom not in lanes:
+        return None
+    own = lanes[chain.atom]
+    if own is None or chain.lane == own:
+        return None
+    return (f"lane {chain.lane} but atom `{chain.atom}` is lane {own} on the map -- name the "
+            f"atom this item's subject serves (or `{UNMINTED}`), not the one its thread began on")
+
+
 def chain_census(root: Path | str = DEFAULT_STAGING_ROOT,
-                 epochs: dict[str, int | None] | None = None) -> dict:
+                 epochs: dict[str, int | None] | None = None,
+                 lanes: dict[str, str | None] | None = None) -> dict:
     """The queue's link to the map as disjoint counts over one population, for a reader.
 
     `chained + len(unchained) + unreadable == population`, and `chained` splits three ways:
@@ -877,11 +909,15 @@ def chain_census(root: Path | str = DEFAULT_STAGING_ROOT,
     marker; only 7 were findings that might want an atom -- one undivided count read as 25 orphaned pieces of work.
     `epoch_contradicted` lists the minted items whose declared epoch is not their
     atom's; `by_epoch` is where the minted work accretes, keyed by the ATOM's epoch.
+    `lane_contradicted` lists the minted items whose lane is not their atom's (EH-1's
+    decidable part, `lane_disagreement`).
     The gaps ARE `unchained()`, the list the commit gate refuses on, so the page and the gate
     cannot become two opinions; an unreadable item is neither, and is counted as such.
     """
     if epochs is None:
         epochs = atom_epochs()
+    if lanes is None:
+        lanes = atom_lanes()
     queue = work_queue(root)
     chained = [c for c in (chain_of(i.path) for i in queue) if c.is_chained]
     gaps = unchained(root)
@@ -904,6 +940,8 @@ def chain_census(root: Path | str = DEFAULT_STAGING_ROOT,
                        for c in chained if c.is_minted and c.atom not in epochs],
         "epoch_contradicted": [{"name": c.path.name, "why": why} for c in minted
                                if (why := epoch_disagreement(c, epochs))],
+        "lane_contradicted": [{"name": c.path.name, "why": why} for c in minted
+                              if (why := lane_disagreement(c, lanes))],
         "by_epoch": dict(sorted(by_epoch.items())),
         "unchained": [{"name": c.path.name, "missing": list(c.missing)} for c in gaps],
         "unreadable": len(queue) - len(chained) - len(gaps),
@@ -936,7 +974,8 @@ def stripped_chain(before: str, after: str) -> tuple[str, ...]:
 
 
 def unchained_filings(filed: dict[str, str],
-                      epochs: dict[str, int | None] | None = None) -> list[str]:
+                      epochs: dict[str, int | None] | None = None,
+                      lanes: dict[str, str | None] | None = None) -> list[str]:
     """Refusal lines for NEWLY FILED root documents that owe a chain and carry none.
 
     `filed` maps a root document NAME to its text in the tree being created. The caller
@@ -947,8 +986,9 @@ def unchained_filings(filed: dict[str, str],
     the WRITE, so the legacy gaps bill nobody and a new one bills only its author.
 
     A minted filing must also ATTACH (`epoch_disagreement`): its atom is on the map and its
-    epoch is that atom's. The map is read only when some filing names a real atom, and a map
-    that cannot be read refuses that filing rather than waving it through.
+    epoch is that atom's, and so is its lane (`lane_disagreement`). The map is read only when
+    some filing names a real atom, and a map that cannot be read refuses that filing rather
+    than waving it through.
     """
     out = []
     for name in sorted(filed):
@@ -960,14 +1000,15 @@ def unchained_filings(filed: dict[str, str],
             continue
         if not chain.is_minted:
             continue
-        if epochs is None:
+        if epochs is None or lanes is None:
             try:
-                epochs = atom_epochs()
+                epochs = atom_epochs() if epochs is None else epochs
+                lanes = atom_lanes() if lanes is None else lanes
             except Exception as e:  # noqa: BLE001 -- unreadable map: fail closed
                 out.append(f"{name}: the map could not be read to check atom `{chain.atom}` "
                            f"({type(e).__name__}: {e})")
                 continue
-        why = epoch_disagreement(chain, epochs)
+        why = epoch_disagreement(chain, epochs) or lane_disagreement(chain, lanes)
         if why:
             out.append(f"{name}: {why}")
     return out
@@ -1402,6 +1443,9 @@ def render(root: Path | str = DEFAULT_STAGING_ROOT) -> str:
     lines.append(f"Epoch not the atom's own: {len(census['epoch_contradicted'])} "
                  f"(minted work by its atom's epoch: {census['by_epoch']})")
     for r in census["epoch_contradicted"]:
+        lines.append(f"  - {r['name']}: {r['why']}")
+    lines.append(f"Lane not the atom's own: {len(census['lane_contradicted'])}")
+    for r in census["lane_contradicted"]:
         lines.append(f"  - {r['name']}: {r['why']}")
     lines.append("")
     violations = population_floor_violations(root)

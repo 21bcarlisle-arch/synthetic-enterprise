@@ -270,6 +270,23 @@ def test_the_queue_panel_names_ghost_atoms_and_epochs_that_are_not_their_atoms()
     assert "so that is not measured here" in old and "name an atom the map" not in old
 
 
+def test_the_queue_panel_names_items_whose_lane_is_not_their_atoms():
+    """H45 EH-1's decidable part on the page. MUTATIONS (must fire): drop the list; render a
+    count for a feed written before the field existed."""
+    base = {"available": True, "population": 2, "chained": 2, "minted": 2, "unminted": 0,
+            "unchained": [], "unreadable": 0}
+    body = _text(_with_queue_chain({**base, "lane_contradicted": [
+        {"name": "SEAT_FINDING_Z.md", "why": "lane H_harness but atom `PB4` is lane W2 on the map"},
+    ]})["delivery-queue-chain"]["innerHTML"])
+
+    assert "1 of the items naming a real atom declare a lane that atom is not in" in body
+    assert "SEAT_FINDING_Z.md — lane H_harness but atom `PB4` is lane W2" in body
+
+    old = _text(_with_queue_chain(base)["delivery-queue-chain"]["innerHTML"])
+    assert "lane is its atom's, so that is not measured here" in old
+    assert "declare a lane that atom" not in old
+
+
 def test_a_feed_WITHOUT_the_queue_count_says_not_measured_and_not_no_gaps():
     """A delivery record written before the field existed says nothing about the queue. Rendered
     as zeros it would read as a fully tied queue -- the flattering claim, made on no evidence.
