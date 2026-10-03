@@ -76,6 +76,7 @@ def decide_renewal_rate(
     receivable: dict | None = None,
     payment_method: str | None = None,
     default_belief_rate: float | None = None,
+    own_default_tariff_inc_vat_gbp_per_mwh: float | None = None,
 ) -> RenewalRateChain:
     """Ask the company what rate it is contracting this renewal at.
 
@@ -126,4 +127,5 @@ def decide_renewal_rate(
         receivable=receivable,
         payment_method=payment_method,
         default_belief_rate=default_belief_rate,
+        own_default_tariff_inc_vat_gbp_per_mwh=own_default_tariff_inc_vat_gbp_per_mwh,
     )

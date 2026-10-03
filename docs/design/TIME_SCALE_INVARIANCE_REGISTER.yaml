@@ -18,7 +18,19 @@
 schema_version: 1
 
 # ── declarations: an atom's owner has answered the question ───────────────────
-declarations: []
+declarations:
+  - atom_id: SP2_1_working_day_calculator
+    invariant: true
+    statement: >-
+      Working-day counts are calendar arithmetic on the dates the caller passes, against one
+      published holiday calendar; nothing reads the wall clock or how many events have
+      accumulated, so nine simulated minutes and nine real years give the same deadline.
+  - atom_id: D_money_boundary_reconciliation
+    invariant: true
+    statement: >-
+      Rounding a computed bill to printed figures and refusing a bill that does not foot is a
+      pure function of that bill's own amounts; it does not depend on when, or how fast,
+      bills are produced.
 
 # ── exceptions: logic KNOWN not to be time-scale invariant, named per R10 ─────
 exceptions:

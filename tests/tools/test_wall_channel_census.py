@@ -2558,7 +2558,7 @@ def test_the_REAL_seams_are_pinned_and_still_mean_what_their_versions_say():
     verdict = wcc.surface_pin_conformance(str(wcc.PROJECT_DIR))
 
     assert verdict.ok, verdict.report()
-    assert len(verdict.pinned) == 3, verdict.report()
+    assert len(verdict.pinned) == 4, verdict.report()
     assert not verdict.unpinned, (
         "a channel C seam has landed with no pin, so its observable surface can widen "
         "silently: " + verdict.report()
@@ -2931,7 +2931,7 @@ def test_the_REAL_seams_all_carry_a_belt_BOTH_LEGS_refuse_on():
     verdict = wcc.second_belt_conformance(str(wcc.PROJECT_DIR))
 
     assert verdict.ok, verdict.report()
-    assert len(verdict.belted) == 3, verdict.report()
+    assert len(verdict.belted) == 4, verdict.report()
     assert not verdict.unbelted, (
         "a channel C seam has landed with no truth-field denylist, so its closed set is its "
         "only belt: " + verdict.report()
@@ -2946,6 +2946,10 @@ def test_the_REAL_seams_all_carry_a_belt_BOTH_LEGS_refuse_on():
     assert sides["interface.contracts.conversation_seam"] == (
         ("company/comms/susceptibility_estimator.py",),
         ("simulation/conversation_response.py",),
+    ), verdict.report()
+    assert sides["interface.contracts.registration_loss_seam"] == (
+        ("company/crm/cos_process.py",),
+        ("simulation/registration_loss_feed.py",),
     ), verdict.report()
 
 
@@ -3630,6 +3634,88 @@ def test_MUTATION_a_seam_live_at_NEITHER_end_is_SILENT_where_the_transport_quest
     assert TWO_LEG_SEAM not in [s for s, _ in transport.half_wired]
 
 
+NOTIFY_ONLY_SEAM = "interface.contracts.registration_loss_seam"
+
+
+def _notify_only_tree(root: Path, *, sent: bool) -> Path:
+    """A notification-only seam beside the two-leg one; `sent` says whether anybody builds it."""
+    _write(root, "interface/contracts/registration_loss_seam.py", """
+        from interface.contracts.wall_envelope import WallNotification
+
+        SCHEMA_VERSION = 2
+
+        class LossNotice:
+            pass
+
+        LossWallNotification = WallNotification[LossNotice]
+    """)
+    _write(root, "simulation/registration_loss_feed.py", """
+        from interface.contracts.registration_loss_seam import LossNotice
+
+        def emit():
+            return LossNotice()
+    """ if sent else """
+        from interface.contracts.registration_loss_seam import LossNotice
+
+        def is_loss(x):
+            return isinstance(x, LossNotice)
+    """)
+    return root
+
+
+def test_a_NOTIFICATION_ONLY_seam_whose_notice_is_sent_is_NOTIFIED_and_passes(two_leg_tree):
+    """Unsolicited inbound with no request behind it is what `WallNotification` is FOR, and it is
+    the second repair the UNSOLICITED bucket names. Scoring it silent would red that repair."""
+    verdict = wcc.seam_conversation_conformance(str(_notify_only_tree(two_leg_tree, sent=True)))
+
+    assert verdict.notified == (NOTIFY_ONLY_SEAM,), verdict.report()
+    assert NOTIFY_ONLY_SEAM not in verdict.silent + verdict.conversant + verdict.unsolicited
+    assert verdict.ok, verdict.report()
+    assert "notification-only, and its notification is sent" in verdict.report()
+
+
+def test_MUTATION_a_NOTIFICATION_ONLY_seam_nobody_sends_is_still_SILENT(two_leg_tree):
+    """The bucket must not be an escape: declaring only a notification earns nothing unless the
+    notice is actually built somewhere. Same tree as above; the module still IMPORTS the seam (so
+    the census still enumerates it) and reads the type, but never constructs one."""
+    verdict = wcc.seam_conversation_conformance(str(_notify_only_tree(two_leg_tree, sent=False)))
+
+    assert verdict.silent == (NOTIFY_ONLY_SEAM,), verdict.report()
+    assert verdict.notified == ()
+    assert not verdict.ok
+
+
+def test_MUTATION_a_seam_with_a_RESPONSE_and_a_notification_is_scored_on_its_exchange(
+    two_leg_tree,
+):
+    """A seam that declares an exchange AND a notification (the payment seam's shape) is not
+    notification-only: its unasked response still makes it UNSOLICITED, whatever it notifies."""
+    _write(two_leg_tree, "interface/contracts/conversation_seam.py", """
+        from interface.contracts.wall_envelope import WallNotification, WallResponse
+
+        SCHEMA_VERSION = 2
+
+        class InboundReply:
+            pass
+
+        class Advice:
+            pass
+
+        ReplyWallResponse = WallResponse[InboundReply]
+        AdviceWallNotification = WallNotification[Advice]
+    """)
+    _write(two_leg_tree, "simulation/conversation_response.py", """
+        from interface.contracts.conversation_seam import Advice, InboundReply
+
+        def emit():
+            return InboundReply(), Advice()
+    """)
+    verdict = wcc.seam_conversation_conformance(str(two_leg_tree))
+
+    assert verdict.unsolicited == (TWO_LEG_SEAM,), verdict.report()
+    assert verdict.notified == ()
+
+
 def test_NULL_CONTROL_an_unrelated_module_constructing_an_unrelated_type_moves_nothing(
     two_leg_tree,
 ):
@@ -3746,6 +3832,11 @@ def test_THE_LIVE_WALL_IS_UNSOLICITED_ON_EXACTLY_THE_TWO_SEAMS_THE_WALK_NAMED():
     }, (
         "the set of genuinely two-way conversations on the wall has changed, which is either a "
         "further repair or a regression: " + verdict.report()
+    )
+    # EP12: the first seam that declares no exchange at all -- registration services TELL a
+    # losing supplier; nobody asks them. Notified, and named so a second one is a decision.
+    assert set(verdict.notified) == {"interface.contracts.registration_loss_seam"}, (
+        verdict.report()
     )
 
 
@@ -4498,9 +4589,14 @@ def test_THE_LIVE_UNBOOKED_POPULATION_IS_THE_TWO_READERS_WITH_NO_BOOK():
     """Named, so that a third one appearing is a test failure and not a silent widening of the
     part of the wall this control does not cover."""
     v = wcc.anchored_read_conformance(str(Path(wcc.__file__).parent.parent))
+    # EP12, 2026-10-03: the change-of-supplier register files a registration-loss notice without
+    # asking the supply book whether this supplier holds that supply point. A real loser is only
+    # sent notices for its own registrations, so the anchor is owed, not optional; named here so
+    # it stays a decision until it is paid.
     assert v.unbooked == (
         "company/billing/payment_observation_consumer.py",
         "company/comms/susceptibility_estimator.py",
+        "company/crm/cos_process.py",
     ), v.unbooked
 
 
@@ -4852,10 +4948,11 @@ def test_THE_LIVE_TREE_authenticates_every_business_side_decode():
     v = wcc.authenticated_decode_conformance(str(Path(wcc.__file__).parent.parent))
     assert v.ok, v.report()
     assert not v.unauthenticated, v.unauthenticated
-    assert len(v.authenticated) == 7, v.authenticated
+    assert len(v.authenticated) == 8, v.authenticated
     assert {e.split(":")[0] for e in v.authenticated} == {
         "company/billing/payment_observation_consumer.py",
         "company/comms/susceptibility_estimator.py",
+        "company/crm/cos_process.py",
         "company/market/flex_participation.py",
     }, v.authenticated
 

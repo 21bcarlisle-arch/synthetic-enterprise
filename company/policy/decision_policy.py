@@ -146,6 +146,10 @@ class DecisionPolicy:
     #: own closed renewals (`company.pricing.discovered_price_sensitivity`). Off on every existing
     #: policy, so no run that does not ask for it moves.
     learn_price_response: bool = False
+    #: (2026-10-03) The value scorer knows a household that STAYS pays at most its default: a
+    #: domestic fix cannot auto-renew, so a stayer refuses one above the default and is billed the
+    #: default. Off on every existing policy; `VALUE_ARM_CAPPED_POLICY` turns it on.
+    renewal_stayer_pays_at_most_default: bool = False
 
     # WHERE THE VALUE ARM'S BAD-DEBT BELIEF COMES FROM (2026-10-03).
     #
@@ -212,6 +216,10 @@ VALUE_ARM_POLICY = replace(
 #: The value arm pricing with the price response it learned from its own book (B8).
 VALUE_ARM_LEARNED_POLICY = replace(
     VALUE_ARM_POLICY, name="value_arm_learned", learn_price_response=True)
+
+#: The value arm scoring a stayer at what it is billed, which is never above the default.
+VALUE_ARM_CAPPED_POLICY = replace(
+    VALUE_ARM_POLICY, name="value_arm_capped", renewal_stayer_pays_at_most_default=True)
 
 
 # ---- THE RUN'S POLICY, for consumers that are not handed one ----------------

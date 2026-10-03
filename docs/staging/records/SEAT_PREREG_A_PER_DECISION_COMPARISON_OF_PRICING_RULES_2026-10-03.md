@@ -86,3 +86,28 @@ measure. On the same customers at the same moments, the value rule's selection i
 negative, and bad payers are where it loses. That is a finding about the pricing rule (its churn
 belief and its value function), not about compute or years. It is now testable rule by rule at
 minutes per book.
+
+## Correction, 2026-10-03 (later the same day)
+
+**Every margin above was scored on the OFFER, and a stayer offered a fix above its default does not
+pay it.**
+
+The world's decline-and-stay rule is live (`DECLINE_A_FIX_ABOVE_THE_DEFAULT`). A household that
+stays refuses any fix above its default and is billed the default. The probe credited the offer.
+
+The value rule priced above the default on 68-74 of 77-82 decisions per path; the level rule at the
+value median did so on 59-67. Re-scored offline with the world's own rule, value - level on the
+four 2025 paths:
+
+| path | was | now (SNR) |
+|---|---|---|
+| default | -2,668 | -1,184 (1.25) |
+| 61001 | -3,046 | -1,482 (1.69) |
+| 61002 | -2,146 | -1,019 (1.43) |
+| 61003 | -2,827 | -1,560 (1.79) |
+
+value - flat roughly halves (e.g. 7,250 -> 3,663).
+
+**The direction of every conclusion here holds; the sizes do not.** The probe now records
+`stayer_pays_gbp_per_mwh` and scores on it. See
+`SEAT_PREREG_A_STAYER_PAYS_THE_DEFAULT_SO_THE_VALUE_RULE_SHOULD_NOT_PRICE_ABOVE_IT_2026-10-03.md`.

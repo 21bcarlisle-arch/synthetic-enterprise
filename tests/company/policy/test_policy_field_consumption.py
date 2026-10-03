@@ -53,6 +53,7 @@ from company.interfaces.collections_communication import collections_tone_for
 from company.policy.decision_policy import (
     CURRENT_POLICY,
     NAIVE_POLICY,
+    VALUE_ARM_CAPPED_POLICY,
     VALUE_ARM_LEARNED_POLICY,
     VALUE_ARM_POLICY,
     DecisionPolicy,
@@ -214,6 +215,14 @@ FIELD_CONSUMPTION = {
         "probe": lambda: _churn_belief_against_learned_evidence(),
         "arms": (VALUE_ARM_POLICY, VALUE_ARM_LEARNED_POLICY),
     },
+    # (2026-10-03) A stayer pays at most its default. Resolved from `active_policy()` in the rate
+    # chain beside the arm. DOMESTIC, because only a domestic renewal has a published default; a
+    # struck rate well under it so the value arm, left alone, prices above it.
+    "renewal_stayer_pays_at_most_default": {
+        "via": "active_scope",
+        "probe": lambda: _renewal_rate_under_the_active_arm(is_domestic=True, struck=140.0),
+        "arms": (VALUE_ARM_POLICY, VALUE_ARM_CAPPED_POLICY),
+    },
 }
 
 
@@ -233,7 +242,9 @@ def _churn_belief_against_learned_evidence() -> float:
             published_default_rate_gbp_per_mwh=260.0)
 
 
-def _renewal_rate_under_the_active_arm(default_belief_rate: float | None = None) -> float | None:
+def _renewal_rate_under_the_active_arm(default_belief_rate: float | None = None,
+                                       is_domestic: bool = False,
+                                       struck: float = 200.0) -> float | None:
     """Drive the renewal rate chain on one account and return the rate it decided.
 
     Deliberately an SME account (`is_domestic=False`) so the domestic price cap -- writer 4, the
@@ -263,11 +274,11 @@ def _renewal_rate_under_the_active_arm(default_belief_rate: float | None = None)
         term_start="2021-01-01",
         tariff_type="fixed",
         term_index=2,
-        struck_unit_rate_gbp_per_mwh=200.0,
+        struck_unit_rate_gbp_per_mwh=struck,
         portfolio_margin_rates=[],
         prior_term_margin_gbp=None,
         prior_term_revenue_gbp=0.0,
-        is_domestic=False,
+        is_domestic=is_domestic,
         settled_records=settled,
         customer={"metering": "NHH", "smart_meter": False},
         default_belief_rate=default_belief_rate,

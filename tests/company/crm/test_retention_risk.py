@@ -236,3 +236,23 @@ def test_the_feature_vector_reads_its_signals_on_the_date_it_is_given():
 def test_the_feature_vector_refuses_a_missing_date():
     with pytest.raises(ValueError, match="as_of"):
         retention_risk_feature_vector(_CUSTOMER, [], [], as_of=None)
+
+
+def test_an_invoice_the_ledger_marks_overdue_is_an_overdue_invoice():
+    """The billing ledger writes "overdue" for a failed collection; the feature read 0 on it."""
+    from datetime import date
+
+    from company.crm.retention_risk import _has_overdue_invoice
+    inv = [{"customer_id": "A", "payment_status": "overdue", "due_date": "2019-01-28"}]
+    assert _has_overdue_invoice("A", inv, date(2019, 3, 1))
+    assert not _has_overdue_invoice("A", [{**inv[0], "payment_status": "paid"}], date(2019, 3, 1))
+
+
+def test_a_complaint_after_the_day_asked_about_is_not_recent():
+    """No look-ahead: a complaint dated after `as_of` had not happened yet."""
+    from datetime import date
+
+    from company.crm.retention_risk import _has_recent_complaint
+    c = [{"customer_id": "A", "complaint_flag": True, "event_date": "2019-03-10"}]
+    assert not _has_recent_complaint("A", c, date(2019, 3, 1))
+    assert _has_recent_complaint("A", c, date(2019, 3, 10))
