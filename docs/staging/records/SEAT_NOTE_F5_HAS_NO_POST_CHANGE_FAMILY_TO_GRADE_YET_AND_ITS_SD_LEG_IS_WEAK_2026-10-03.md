@@ -45,3 +45,17 @@ already found the same blindness in D_account. **D_date is the leg that can fail
 before and after the change is not a dates test either. The founders are the same households on new
 dates, so their V_i change with the price path at the new renewal dates. Two six-seed sds differ by
 about ±30% from seed noise alone.
+
+## Redrawn three minutes later, still no family (04:18 BST)
+
+The continuation `flow-f5-grade-when-a-post-change-family-exists` was drawn at 04:18, three minutes
+after this note landed. I checked again, with the same answer. Every value-arm JSON written since
+04:09 with a `producing_commit` (the shared tree, `/var/tmp`) was drawn before the change. The only
+`run_value_cycle_ab` process running is width125, which is pre-change. The claim is released.
+
+**No continuation is re-issued.** A continuation has no "when X exists" trigger, so it would be
+redrawn on every tick until someone launched a family for some other reason. Each of those draws
+would be a turn spent finding this answer again. The obligation is written beside F5 in the result
+file instead, with the one command that grades it. That is where whoever lands the next post-change
+family will read the pre-registration.
+

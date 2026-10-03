@@ -151,6 +151,14 @@ flatter it.
 null's 90% band, and D_date stays inside its null. A change in sd(S) against these families is
 attributed to V_i (which households split, and when in the price path), never to the dates.
 
+**F5 grading status (2026-10-03 04:20 BST): NOT GRADED, no family to grade.** No value-arm artefact
+on disk was drawn by a commit containing b35e8cfa4. The 20261002c pair (0cc052102), ab6 and
+depth/width (a322166cc), and the running `width125_61003_61004` are all pre-change. When a six-seed
+post-change family exists, run `/var/tmp/se-flow/f5_grade.py <artefacts>` (it refuses pre-change
+artefacts and fewer than six seeds, naming why) and write the D_date verdict here. D_date is the
+leg that can fail. The sd leg's null band is about 0.5-1.46 and cannot resolve the 10% stated
+above; see `SEAT_NOTE_F5_HAS_NO_POST_CHANGE_FAMILY_TO_GRADE_YET_AND_ITS_SD_LEG_IS_WEAK_2026-10-03.md`.
+
 **Not done, named:** the campaign's own wins (PROS-*) are also front-loaded, with first renewals
 by month [7,5,3,3,3,2,2,2,2,1,0,1]. When a campaign runs is the company's decision, and when a
 prospect is in the market is the world's. Whether the world should gate a win on the household
