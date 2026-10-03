@@ -141,12 +141,10 @@ def _book_price_response(ledger, observation: RenewalObservation, estimate: floa
     learned correction, so the learner never trains on its own output."""
     if observation.term_start is None or observation.fuel is None:
         return
-    from company.pricing.discovered_price_sensitivity import (
-        learned_correction,
-        own_move_against_default,
-    )
-    move = own_move_against_default(
-        observation.new_rate_gbp_per_mwh, observation.fuel, observation.term_start)
+    from company.pricing.discovered_price_sensitivity import learned_correction, own_move
+    move = own_move(
+        observation.new_rate_gbp_per_mwh, observation.old_rate_gbp_per_mwh, observation.fuel,
+        observation.renewal_year, segment=observation.segment, on_date=observation.term_start)
     if move is None:
         return
     pre = estimate - learned_correction(

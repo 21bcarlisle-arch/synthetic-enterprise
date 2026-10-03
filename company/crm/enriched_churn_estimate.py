@@ -246,12 +246,14 @@ def enriched_churn_estimate(
     # belief as a correction per unit of the offer's gap to the published default. Zero unless
     # the active policy asks for it and the company has evidence, so every existing caller is
     # byte-identical. Lazy import: pricing imports this module.
-    if published_default_rate_gbp_per_mwh:
-        from company.pricing.discovered_price_sensitivity import learned_correction
-        delta = learned_correction(payment_method, fuel, renewal_year)
-        if delta:
-            result += delta * ((new_rate_gbp_per_mwh - published_default_rate_gbp_per_mwh)
-                               / published_default_rate_gbp_per_mwh)
+    from company.pricing.discovered_price_sensitivity import learned_correction, own_move
+    delta = learned_correction(payment_method, fuel, renewal_year)
+    if delta:
+        move = own_move(new_rate_gbp_per_mwh, old_rate_gbp_per_mwh, fuel, renewal_year,
+                        segment=segment,
+                        published_default_rate_gbp_per_mwh=published_default_rate_gbp_per_mwh)
+        if move is not None:
+            result += delta * move
     return max(0.0, min(result, MAX_CHURN_PROBABILITY))
 
 
