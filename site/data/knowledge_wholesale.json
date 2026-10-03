@@ -878,7 +878,11 @@
           "source": "GB multi-plant SRMC dispatch stack DISCOVER",
           "why_void": "Held deliberately at 2026-07-25 by the note in meta.claim_freshness, which was right that authorship is not verification -- and the badge went on reading Reviewed 2026-07-25 over a body five-sevenths written a month later. The note was honest; what it rendered was not."
         }
-      }
+      },
+      "atoms": [
+        "W1_6_physics_price_signal",
+        "W1_6b_merit_order_reconstruction"
+      ]
     },
     {
       "id": "gas-wholesale",
@@ -900,7 +904,10 @@
           "source": "National Gas Transmission; DESNZ gas storage & flexibility (2023); HoC Library",
           "why_void": "Recorded against the body this page served from knowledge_topics.json, which it stopped serving on 2026-08-24 and which was deleted at 2a33bfa4f. The body served today was written 2026-08-24 to replace a stub and has never been checked against a published source, so the date it inherited described text no reader can reach."
         }
-      }
+      },
+      "atoms": [
+        "SPINE_3_gas_storage_crisis_regime"
+      ]
     },
     {
       "id": "gb-electricity-market",
@@ -922,7 +929,11 @@
           "source": "Ofgem regulatory framework; CMA Energy Market Investigation appendix 2.1",
           "why_void": "Recorded against the body this page served from knowledge_topics.json, which it stopped serving on 2026-08-24 and which was deleted at 2a33bfa4f. The body served today was written 2026-08-24 to replace a stub and has never been checked against a published source, so the date it inherited described text no reader can reach."
         }
-      }
+      },
+      "atoms": [
+        "W3_2_settlement_timetable",
+        "W1_8_zonal_locational_pricing"
+      ]
     },
     {
       "id": "merit-order-residual-demand",
@@ -944,7 +955,11 @@
           "source": "Ofgem/Elexon NETA+BETTA self-dispatch; DESNZ REMA",
           "why_void": "Recorded against the body this page served from knowledge_topics.json, which it stopped serving on 2026-08-24 and which was deleted at 2a33bfa4f. The body served today was written 2026-08-24 to replace a stub and has never been checked against a published source, so the date it inherited described text no reader can reach."
         }
-      }
+      },
+      "atoms": [
+        "W1_6b_merit_order_reconstruction",
+        "W1_7_renewable_capacity_trends"
+      ]
     },
     {
       "id": "carbon-price",
@@ -966,7 +981,10 @@
           "source": "GOV.UK UK ETS policy overview; HoC Library SN05927; HMRC CCL1/6",
           "why_void": "Recorded against the body this page served from knowledge_topics.json, which it stopped serving on 2026-08-24 and which was deleted at 2a33bfa4f. The body served today was written 2026-08-24 to replace a stub and has never been checked against a published source, so the date it inherited described text no reader can reach."
         }
-      }
+      },
+      "atoms": [
+        "W1_6b_merit_order_reconstruction"
+      ]
     },
     {
       "id": "imbalance-cashout-settlement",
@@ -988,7 +1006,11 @@
           "source": "Elexon BSC Imbalance Pricing Guidance + glossary; Ofgem Balancing SCR",
           "why_void": "Recorded against the body this page served from knowledge_topics.json, which it stopped serving on 2026-08-24 and which was deleted at 2a33bfa4f. The body served today was written 2026-08-24 to replace a stub and has never been checked against a published source, so the date it inherited described text no reader can reach."
         }
-      }
+      },
+      "atoms": [
+        "W3_2_settlement_timetable",
+        "EP5_settlement_true_ups"
+      ]
     },
     {
       "id": "hedging-forward-market",
@@ -1010,7 +1032,12 @@
           "source": "Ofgem cap wholesale methodology decisions 2022/2025; Ofgem resilience CfI 2021",
           "why_void": "Recorded against the body this page served from knowledge_topics.json, which it stopped serving on 2026-08-24 and which was deleted at 2a33bfa4f. The body served today was written 2026-08-24 to replace a stub and has never been checked against a published source, so the date it inherited described text no reader can reach."
         }
-      }
+      },
+      "atoms": [
+        "B3_hedge_tariff_alignment",
+        "B4_traded_product_ladder",
+        "G15_forward_curve_series_to_backtest_hedging_by_physics"
+      ]
     },
     {
       "id": "price-cap",
@@ -1031,7 +1058,11 @@
           "The headline level represents a typical dual-fuel customer at TDCV.",
           "The lag is real: Ofgem moved to quarterly updates in 2022 expressly 'so prices don't lag behind changes in the market'."
         ]
-      }
+      },
+      "atoms": [
+        "W3_1_price_cap_binding",
+        "W3_1b_intra_year_price_cap_granularity"
+      ]
     },
     {
       "id": "metering-and-reads",
@@ -1042,7 +1073,12 @@
       "reviewed": {
         "last_verified": "2026-08-24",
         "source": "Elexon BSC settlement arrangements and load-profile guidance; Ofgem licence conditions on billing and back-billing; the MHHS programme's milestones"
-      }
+      },
+      "atoms": [
+        "D3_catchup_rebilling",
+        "EP8_adapter_dcc_duis",
+        "EP9_adapter_n3rgy_consented_metering"
+      ]
     },
     {
       "id": "non-commodity-costs",
@@ -1053,7 +1089,10 @@
       "reviewed": {
         "last_verified": "2026-08-24",
         "source": "HMRC CCL rate tables; Ofgem RO buy-out and mutualisation publications; LCCC CfD determinations; DESNZ Green Gas Levy rates; Ofgem cap methodology annexes"
-      }
+      },
+      "atoms": [
+        "EP14_adapter_published_cost_stack"
+      ]
     },
     {
       "id": "acquisition-and-retention-economics",
@@ -1064,7 +1103,11 @@
       "reviewed": {
         "last_verified": "2026-08-28",
         "source": "Ofgem SLC 22B and its Market-wide Derogation (consultation 27 Aug 2025); CMA Energy Market Investigation 2016 Appendix 9.10 §§64, 74"
-      }
+      },
+      "atoms": [
+        "PB2_opening_book_won_not_assigned",
+        "PB3_book_growth_as_earned_outcome"
+      ]
     },
     {
       "id": "how-households-choose",
@@ -1075,7 +1118,12 @@
       "reviewed": {
         "last_verified": "2026-08-30",
         "source": "Ofgem State of the Market (April 2025); Ofgem Consumer Impacts of Market Conditions survey waves 5 and 6; Ofgem non-domestic 2024 research"
-      }
+      },
+      "atoms": [
+        "PB4_engagement_separated_from_elasticity",
+        "PB5_pounds_or_percent_resolved",
+        "B10_competitor_switching_response"
+      ]
     },
     {
       "id": "the-price-a-household-is-shown",
@@ -1086,7 +1134,8 @@
       "reviewed": {
         "last_verified": "2026-08-30",
         "source": "Ofgem State of the Market (April 2025); Ofgem Confidence Code for domestic price comparison websites; CMA Energy Market Investigation 2016 Appendix 9.10"
-      }
+      },
+      "atoms": "none -- no atom has the price a comparison site or the cap headline quotes a household as its subject; the switching atoms read the gap to the market, not what the household is shown"
     },
     {
       "id": "what-a-customer-is-worth",
@@ -1097,7 +1146,11 @@
       "reviewed": {
         "last_verified": "2026-09-05",
         "source": "OVO/SSE 2020 and E.ON/OVO 2026 transaction prices as reported; Ofgem price cap cost allowances and EBIT allowance; Ofgem CIM survey wave 6 switching by payment method; DESNZ TDCV bands; DCC published charges. Practitioner estimates marked in place; ten hypotheses stated falsifiably and none yet measured."
-      }
+      },
+      "atoms": [
+        "EP1_clv_three_horizon",
+        "W2_17_dual_fuel_leg_clv_attribution"
+      ]
     },
     {
       "id": "weather-cells",
@@ -1108,7 +1161,17 @@
       "reviewed": {
         "last_verified": "2026-09-06",
         "source": "Met Office HadUK-Grid 1 km 1991-2020 normals; 2021 E&W and 2022 Scotland censuses joined by postcode through the ONS Postcode Directory"
-      }
+      },
+      "atoms": [
+        "W1_14_weather_cells_for_household_heat_load",
+        "W1_19_the_three_drivers_per_land_cell_from_the_normals",
+        "W1_20_household_weights_per_cell_from_the_census",
+        "W1_21_the_cells_and_the_level_coverage_curve",
+        "W1_22_cold_spell_persistence_and_cross_cell_synchrony",
+        "W1_25_the_cells_per_driver_and_what_each_driver_is_actually_for",
+        "W1_27_the_cell_decision_and_the_solar_gain_check",
+        "W1_28_the_weather_partition_is_joint_over_a_stock_with_varying_fabric"
+      ]
     },
     {
       "id": "how-many-synthetic-households",
@@ -1119,7 +1182,12 @@
       "reviewed": {
         "last_verified": "2026-09-07",
         "source": "demand vector coverage measurement, NEED + Census + HadUK"
-      }
+      },
+      "atoms": [
+        "PB1_population_target_and_its_price",
+        "W2_27_how_many_household_cases_cover_demand",
+        "W2_22_the_sample_is_space_filling_and_rejects_on_outputs"
+      ]
     },
     {
       "id": "what-a-house-does-to-its-energy",
@@ -1130,7 +1198,11 @@
       "reviewed": {
         "last_verified": "2026-10-02",
         "source": "see the page's own sources"
-      }
+      },
+      "atoms": [
+        "W1_11_fabric_physics_core",
+        "W2_18_the_housing_joint_the_sample_and_the_ceiling"
+      ]
     },
     {
       "id": "who-lives-where",
@@ -1141,7 +1213,10 @@
       "reviewed": {
         "last_verified": "2026-10-02",
         "source": "see the page's own sources"
-      }
+      },
+      "atoms": [
+        "W2_19_who_lives_where_money_and_composition"
+      ]
     },
     {
       "id": "the-first-year-blind-spot",
@@ -1152,7 +1227,8 @@
       "reviewed": {
         "last_verified": "2026-10-02",
         "source": "see the page's own sources"
-      }
+      },
+      "atoms": "none -- the page is the account of a measurement defect, not a mechanism the code implements"
     },
     {
       "id": "what-a-supplier-can-see-of-a-house",
@@ -1163,7 +1239,11 @@
       "reviewed": {
         "last_verified": "2026-10-02",
         "source": "see the page's own sources"
-      }
+      },
+      "atoms": [
+        "W2_23_housing_phase2_what_the_company_can_see_of_a_house",
+        "C14_thermal_parameter_inference"
+      ]
     },
     {
       "id": "how-houses-change",
@@ -1174,7 +1254,10 @@
       "reviewed": {
         "last_verified": "2026-10-02",
         "source": "see the page's own sources"
-      }
+      },
+      "atoms": [
+        "W2_24_housing_phase3_houses_change_on_their_own_timeline"
+      ]
     },
     {
       "id": "how-households-behave-toward-a-supplier",
@@ -1185,7 +1268,10 @@
       "reviewed": {
         "last_verified": "2026-10-02",
         "source": "see the page's own sources"
-      }
+      },
+      "atoms": [
+        "W2_25_people_phase2_shape_and_attitudes"
+      ]
     },
     {
       "id": "the-residual-and-the-change",
@@ -1196,7 +1282,10 @@
       "reviewed": {
         "last_verified": "2026-10-02",
         "source": "see the page's own sources"
-      }
+      },
+      "atoms": [
+        "W2_26_people_phase3_the_residual_and_the_change"
+      ]
     }
   ],
   "edges": [

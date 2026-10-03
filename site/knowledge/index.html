@@ -33,6 +33,8 @@ body { background: var(--bg); color: var(--text); font-family: system-ui, sans-s
 a.card:hover { border-color: var(--teal); }
 .card-h { font-size: 16px; font-weight: 700; margin-bottom: 4px; color: var(--text); }
 .card-p { font-size: 13px; color: var(--muted); }
+.card-a { font-size: 11px; color: var(--muted); margin-top: 6px; font-family: ui-monospace, monospace; word-break: break-word; }
+.card-a:empty { display: none; }
 .muted { color: var(--muted); font-size: 12px; }
 .inline-link { color: var(--blue); text-decoration: none; border-bottom: 1px dashed var(--border); }
 .inline-link:hover { border-bottom-color: var(--blue); }
@@ -97,94 +99,117 @@ footer { max-width: 860px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
   <a class="card" href="./electricity-wholesale/">
     <div class="card-h">GB electricity wholesale <span class="state-badge" id="state-electricity-wholesale"></span></div>
     <div class="card-p">How the GB wholesale electricity price is set at the margin.</div>
+    <div class="card-a" id="atoms-electricity-wholesale"></div>
   </a>
   <a class="card" href="./gas-wholesale/">
     <div class="card-h">GB gas wholesale <span class="state-badge" id="state-gas-wholesale"></span></div>
     <div class="card-p">The GB gas market whose price sets the marginal plant's bid for most hours -- a market in its own right, not a driver-stub of electricity.</div>
+    <div class="card-a" id="atoms-gas-wholesale"></div>
   </a>
   <a class="card" href="./how-many-synthetic-households/">
     <div class="card-h">How many synthetic households represent Britain <span class="state-badge" id="state-how-many-synthetic-households"></span></div>
     <div class="card-p">Why the sample size depends on strata rather than on variety, why adding a driver changes nothing, and what the current figure is still measured against.</div>
+    <div class="card-a" id="atoms-how-many-synthetic-households"></div>
   </a>
   <a class="card" href="./what-a-house-does-to-its-energy/">
     <div class="card-h">What a house does to its energy use, and where the potential sits across Britain <span class="state-badge" id="state-what-a-house-does-to-its-energy"></span></div>
     <div class="card-p">Size, fabric and the fuel at the meter set most of what a home uses. Where it sits sets less than you would think. And the potential to save is not where the average home is.</div>
+    <div class="card-a" id="atoms-what-a-house-does-to-its-energy"></div>
   </a>
   <a class="card" href="./who-lives-where/">
     <div class="card-h">Who lives where: an address explains a tenth of who is inside, and the way a household pays marks where the risk is <span class="state-badge" id="state-who-lives-where"></span></div>
     <div class="card-p">A supplier knows a customer's address before it knows anything else. For the number of people inside, that address is worth surprisingly little. For money, the payment method a household chooses tells you more, and the reason it does is not the reason it looks like.</div>
+    <div class="card-a" id="atoms-who-lives-where"></div>
   </a>
   <a class="card" href="./the-first-year-blind-spot/">
     <div class="card-h">The first-year blind spot: how a shock count that could not see year one invented a loyalty pattern <span class="state-badge" id="state-the-first-year-blind-spot"></span></div>
     <div class="card-p">In this project's simulated world, new customers looked more loyal than long-standing ones. Real GB evidence points the other way. All of the difference came from one measure that needed a year of history, and so read zero in every household's first year.</div>
+    <div class="card-a" id="atoms-the-first-year-blind-spot"></div>
   </a>
   <a class="card" href="./what-a-supplier-can-see-of-a-house/">
     <div class="card-h">What an energy supplier can see of a house <span class="state-badge" id="state-what-a-supplier-can-see-of-a-house"></span></div>
     <div class="card-p">A supplier knows an address, a meter and a monthly total. Whether that house is worth an offer has to be inferred from that, and from an energy certificate that often does not exist.</div>
+    <div class="card-a" id="atoms-what-a-supplier-can-see-of-a-house"></div>
   </a>
   <a class="card" href="./how-houses-change/">
     <div class="card-h">How houses change on their own <span class="state-badge" id="state-how-houses-change"></span></div>
     <div class="card-p">Boilers die and are replaced, solar panels and cars arrive, homes are extended — mostly without a supplier hearing about it.</div>
+    <div class="card-a" id="atoms-how-houses-change"></div>
   </a>
   <a class="card" href="./how-households-behave-toward-a-supplier/">
     <div class="card-h">How households behave toward a supplier <span class="state-badge" id="state-how-households-behave-toward-a-supplier"></span></div>
     <div class="card-p">How readily a household shops, how it likes to be contacted, whether it would rather have a stable bill or a cheaper one that moves with the clock, and whether it will let anyone control its battery or car. The scope is decided; the research and the build are not done.</div>
+    <div class="card-a" id="atoms-how-households-behave-toward-a-supplier"></div>
   </a>
   <a class="card" href="./the-residual-and-the-change/">
     <div class="card-h">How households change <span class="state-badge" id="state-the-residual-and-the-change"></span></div>
     <div class="card-p">Jobs are lost and found, babies arrive, children leave, people buy solar panels and electric cars without anyone selling them one. And a household that is glad to be saved money is not the same as one that will buy something. The scope is decided; the research and the build are not done.</div>
+    <div class="card-a" id="atoms-the-residual-and-the-change"></div>
   </a>
   <a class="card" href="./metering-and-reads/">
     <div class="card-h">Metering and meter reads <span class="state-badge" id="state-metering-and-reads"></span></div>
     <div class="card-p">The market settles every half hour; most meters are read a few times a year.</div>
+    <div class="card-a" id="atoms-metering-and-reads"></div>
   </a>
   <a class="card" href="./gb-electricity-market/">
     <div class="card-h">The GB electricity market (structure &amp; settlement) <span class="state-badge" id="state-gb-electricity-market"></span></div>
     <div class="card-p">The half-hourly settled market these prices live in.</div>
+    <div class="card-a" id="atoms-gb-electricity-market"></div>
   </a>
   <a class="card" href="./merit-order-residual-demand/">
     <div class="card-h">Merit order &amp; residual demand <span class="state-badge" id="state-merit-order-residual-demand"></span></div>
     <div class="card-p">The cheapest-first dispatch queue and the demand left after renewables.</div>
+    <div class="card-a" id="atoms-merit-order-residual-demand"></div>
   </a>
   <a class="card" href="./non-commodity-costs/">
     <div class="card-h">The non-commodity cost stack <span class="state-badge" id="state-non-commodity-costs"></span></div>
     <div class="card-p">Network and policy costs -- roughly a third of a bill, set administratively rather than cleared in a market.</div>
+    <div class="card-a" id="atoms-non-commodity-costs"></div>
   </a>
   <a class="card" href="./weather-cells/">
     <div class="card-h">Weather cells <span class="state-badge" id="state-weather-cells"></span></div>
     <div class="card-p">How finely Britain has to be divided before every household's weather is described well enough to price -- and why the answer is a price list rather than a number.</div>
+    <div class="card-a" id="atoms-weather-cells"></div>
   </a>
   <a class="card" href="./carbon-price/">
     <div class="card-h">The UK carbon price (UK ETS + CPS) <span class="state-badge" id="state-carbon-price"></span></div>
     <div class="card-p">The traded ETS price, charged per tonne emitted, plus Carbon Price Support, charged per unit of fuel burned for generation.</div>
+    <div class="card-a" id="atoms-carbon-price"></div>
   </a>
   <a class="card" href="./imbalance-cashout-settlement/">
     <div class="card-h">Imbalance &amp; cash-out <span class="state-badge" id="state-imbalance-cashout-settlement"></span></div>
     <div class="card-p">How the system prices being short or long, up to the £6,000/MWh ceiling.</div>
+    <div class="card-a" id="atoms-imbalance-cashout-settlement"></div>
   </a>
   <a class="card" href="./hedging-forward-market/">
     <div class="card-h">Hedging &amp; the forward market <span class="state-badge" id="state-hedging-forward-market"></span></div>
     <div class="card-p">How a supplier buys ahead to blunt the price it would otherwise face.</div>
+    <div class="card-a" id="atoms-hedging-forward-market"></div>
   </a>
   <a class="card" href="./price-cap/">
     <div class="card-h">The retail price cap <span class="state-badge" id="state-price-cap"></span></div>
     <div class="card-p">How the wholesale price reaches the household through Ofgem's cap -- a retail boundary of the wholesale domain.</div>
+    <div class="card-a" id="atoms-price-cap"></div>
   </a>
   <a class="card" href="./acquisition-and-retention-economics/">
     <div class="card-h">Winning a customer, and keeping one <span class="state-badge" id="state-acquisition-and-retention-economics"></span></div>
     <div class="card-p">Acquisition is a commission you pay someone else; retention is margin you give up yourself. Since 2022 a licence condition says so.</div>
+    <div class="card-a" id="atoms-acquisition-and-retention-economics"></div>
   </a>
   <a class="card" href="./how-households-choose/">
     <div class="card-h">How a household chooses, and why most don't <span class="state-badge" id="state-how-households-choose"></span></div>
     <div class="card-p">Almost nobody deliberately chooses a standard variable tariff and most of the country is on one -- the stock is an outcome of behaviour, not an input to it.</div>
+    <div class="card-a" id="atoms-how-households-choose"></div>
   </a>
   <a class="card" href="./what-a-customer-is-worth/">
     <div class="card-h">What a customer is worth, and what drives it <span class="state-badge" id="state-what-a-customer-is-worth"></span></div>
     <div class="card-p">Value is contribution multiplied by survival, which makes the drivers an order rather than a list: pays, stays, the size of the margin bet, then everything else.</div>
+    <div class="card-a" id="atoms-what-a-customer-is-worth"></div>
   </a>
   <a class="card" href="./the-price-a-household-is-shown/">
     <div class="card-h">The price a household is shown <span class="state-badge" id="state-the-price-a-household-is-shown"></span></div>
     <div class="card-p">The cap headline and every comparison listing quote a year's money at an assumed consumption, for a tariff whose rate may not last the year.</div>
+    <div class="card-a" id="atoms-the-price-a-household-is-shown"></div>
   </a>
 </div>
 <script>
@@ -235,12 +260,35 @@ function renderBadges(feed, today){
   }
 }
 
+// WHICH ATOMS BUILD THIS PAGE'S MECHANISM -- H45's knowledge joint (the director's P8:
+// "knowledge pages describe mechanisms with no link to the atoms implementing them"). A list
+// names map atoms; "none -- <reason>" says someone looked and none builds it; a topic with
+// no field says nobody looked, and is shown as that gap rather than left blank.
+// site/knowledge/test_a_page_names_the_atoms_that_build_it.py fails when a named atom
+// leaves the map.
+function atomsLine(topic){
+  var a = topic && topic.atoms;
+  if (Array.isArray(a) && a.length) { return "Built by: " + a.join(" \u00b7 "); }
+  if (typeof a === "string" && a.indexOf("none -- ") === 0 && a.length > 8) {
+    return "Built by no atom: " + a.slice(8);
+  }
+  return "No atom named: nobody has recorded which atom builds this.";
+}
+
+function renderAtoms(feed){
+  var topics = (feed && feed.topics) || [];
+  for (var i = 0; i < topics.length; i++) {
+    var el = document.getElementById("atoms-" + topics[i].id);
+    if (el) { el.textContent = atomsLine(topics[i]); }
+  }
+}
+
 // FAIL-CLOSED. An unreadable feed leaves every badge EMPTY and says so. It must never
 // leave the cards looking checked -- an unavailable check is a failed check (R15), and
 // the shape that reaches a reader is the feed 404ing after a good deploy.
 fetch("../data/knowledge_wholesale.json?t=" + Date.now())
   .then(function (r) { return r.json(); })
-  .then(function (feed) { renderBadges(feed, new Date()); })
+  .then(function (feed) { renderBadges(feed, new Date()); renderAtoms(feed); })
   .catch(function () {
     document.getElementById("review-note").textContent =
       "The review record could not be loaded, so these cards show the pages without their " +
