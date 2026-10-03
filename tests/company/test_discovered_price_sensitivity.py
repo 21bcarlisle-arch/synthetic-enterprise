@@ -1,0 +1,81 @@
+"""B8: the company learns its own customers' price response from its own renewals.
+
+Five ways it can go wrong, one control each:
+  1. it moves the belief on no evidence (a correction from nothing reads as a finding);
+  2. it learns the wrong DIRECTION (departures rising with the price move must steepen it);
+  3. a departure is booked against the wrong renewal (the move must be the account's own);
+  4. a renewal the company cannot place is booked anyway;
+  5. it reaches a policy that did not ask for it (the control and level arms must not move).
+"""
+from __future__ import annotations
+
+from company.crm.competitive_pressure import CompetitivePressureLedger, pressure_ledger_scope
+from company.crm.enriched_churn_estimate import enriched_churn_estimate
+from company.policy.decision_policy import (
+    CURRENT_POLICY,
+    VALUE_ARM_LEARNED_POLICY,
+    VALUE_ARM_POLICY,
+    policy_scope,
+)
+from company.pricing import discovered_price_sensitivity as dps
+
+
+def _book(ledger, year, moves_and_left, method="direct_debit", believed=0.2):
+    for i, (move, left) in enumerate(moves_and_left):
+        account = f"A{year}-{i}"
+        ledger.observe_price_response(year, method, "electricity", account, move, believed)
+        if left:
+            ledger.observe_competitive_loss(year, payment_method=method, account_id=account)
+
+
+def test_no_evidence_moves_nothing():
+    r = dps.slope_reading({}, "direct_debit", "electricity")
+    assert r.delta == 0.0 and r.weight == 0.0 and not r.moved_from_prior
+    flat = {"n": 10, "sx": 1.0, "sxx": 0.1, "sp": 2.0, "spx": 0.2, "losses": 3, "loss_x": 0.3}
+    assert dps.slope_reading(flat, "direct_debit", "electricity").delta == 0.0  # no spread in move
+
+
+def test_departures_that_rise_with_the_move_teach_a_steeper_response():
+    ledger = CompetitivePressureLedger()
+    ledger.arm_loss_reporting()
+    # Accounts priced well above the default left; those priced at or below it stayed.
+    _book(ledger, 2019, [(0.4, True)] * 6 + [(0.3, True)] * 4 + [(-0.1, False)] * 10)
+    sums = ledger.closed_slope_sums("direct_debit", "electricity", 2020)
+    reading = dps.slope_reading(sums, "direct_debit", "electricity")
+    assert reading.raw_delta > 0 and 0 < reading.weight < 1 and 0 < reading.delta < reading.raw_delta
+    # Not yet closed: the same year's evidence cannot price that year (no look-ahead).
+    assert ledger.closed_slope_sums("direct_debit", "electricity", 2019)["n"] == 0
+
+
+def test_a_departure_is_booked_against_its_own_renewals_move():
+    ledger = CompetitivePressureLedger()
+    ledger.observe_price_response(2019, "direct_debit", "electricity", "X", 0.37, 0.2)
+    ledger.observe_price_response(2019, "direct_debit", "electricity", "Y", -0.05, 0.2)
+    ledger.observe_competitive_loss(2019, payment_method="direct_debit", account_id="X")
+    sums = ledger.slope_sums[("direct_debit", "electricity", 2019)]
+    assert sums["losses"] == 1 and abs(sums["loss_x"] - 0.37) < 1e-12
+
+
+def test_a_renewal_the_company_cannot_place_books_nothing():
+    ledger = CompetitivePressureLedger()
+    ledger.observe_price_response(2019, "direct_debit", "electricity", None, 0.2, 0.2)
+    ledger.observe_price_response(2019, "direct_debit", "electricity", "A", None, 0.2)
+    assert ledger.slope_sums == {}
+
+
+def test_only_the_learned_policy_prices_with_what_was_learned():
+    ledger = CompetitivePressureLedger()
+    ledger.arm_loss_reporting()
+    _book(ledger, 2019, [(0.4, True)] * 6 + [(0.3, True)] * 4 + [(-0.1, False)] * 10)
+    args = dict(old_rate_gbp_per_mwh=250.0, new_rate_gbp_per_mwh=300.0, tenure_years=3.0,
+                annual_consumption_kwh=2700.0, renewal_year=2020, payment_method="direct_debit",
+                published_default_rate_gbp_per_mwh=260.0)
+    with pressure_ledger_scope(ledger):
+        with policy_scope(CURRENT_POLICY):
+            control = enriched_churn_estimate(**args)
+        with policy_scope(VALUE_ARM_POLICY):
+            value = enriched_churn_estimate(**args)
+        with policy_scope(VALUE_ARM_LEARNED_POLICY):
+            learned = enriched_churn_estimate(**args)
+    assert control == value, "a policy that did not ask for the learned response moved"
+    assert learned > value, "the learned, steeper response did not raise P(leave) above the default"

@@ -41,7 +41,7 @@ import json
 import statistics
 from pathlib import Path
 
-RULES = ("flat", "value", "value_blind")
+RULES = ("flat", "value", "value_blind", "value_learned")
 #: The value arm with the company's payment history taken away -- arrears state, unpaid bills and
 #: payment method stripped from the door, exactly what it saw before e0370bf94. Scored against
 #: "value" on the same decision, it is the payment-history fix measured rule against rule.
@@ -79,7 +79,13 @@ def probe(report_end: str | None = None, roll_seed: int | None = None) -> list[d
 
     import simulation.customer_events as events
     import simulation.run_phase2b as runner
-    from company.policy.decision_policy import CURRENT_POLICY, VALUE_ARM_POLICY, policy_scope
+    from company.policy.decision_policy import (
+        CURRENT_POLICY,
+        VALUE_ARM_LEARNED_POLICY,
+        VALUE_ARM_POLICY,
+        policy_scope,
+    )
+    from company.pricing.discovered_price_sensitivity import learned_correction
     from company.pricing.value_based_renewal import FLAT_AT_LEVEL
     from saas.tariff_pricing import TARGET_MARGIN_GBP_PER_MWH
 
@@ -94,6 +100,11 @@ def probe(report_end: str | None = None, roll_seed: int | None = None) -> list[d
                 value = real_price(**kw)
                 blind = real_price(**{k: v for k, v in kw.items()
                                       if k not in PAYMENT_HISTORY_ARGS})
+            # B8: the value arm pricing with the price response it learned from its own renewals.
+            with policy_scope(VALUE_ARM_LEARNED_POLICY):
+                learned = real_price(**kw)
+                learned_delta = learned_correction(
+                    kw.get("payment_method"), kw["commodity"], int(kw["term_start"][:4]))
             levels = {}
             for level in LEVEL_GRID:
                 with policy_scope(replace(CURRENT_POLICY, name="level_arm",
@@ -106,7 +117,9 @@ def probe(report_end: str | None = None, roll_seed: int | None = None) -> list[d
                 - TARGET_MARGIN_GBP_PER_MWH,
                 "offer": {"flat": result.unit_rate_gbp_per_mwh,
                           "value": value.unit_rate_gbp_per_mwh,
-                          "value_blind": blind.unit_rate_gbp_per_mwh},
+                          "value_blind": blind.unit_rate_gbp_per_mwh,
+                          "value_learned": learned.unit_rate_gbp_per_mwh},
+                "learned_delta": learned_delta,
                 "levels": levels,
                 # WHAT THE COMPANY BELIEVED about this customer staying, at its own offer: the
                 # value arm's churn belief, set beside the world's truth so the belief error is
@@ -139,6 +152,10 @@ def probe(report_end: str | None = None, roll_seed: int | None = None) -> list[d
             "base_gbp_per_mwh": round(held["base_gbp_per_mwh"], 4),
             "offer_gbp_per_mwh": {k: round(v, 4) for k, v in held["offer"].items()},
             "true_p_retain": p,
+            # The household's price before this renewal, as the roll was told it: with each rule's
+            # offer it gives the company's OWN move, which is what a price slope is learned from.
+            "old_rate_gbp_per_mwh": kw.get("old_rate_gbp_per_mwh"),
+            "learned_delta": held["learned_delta"],
             "believed_p_retain_value": held["believed_p_retain"],
             "level_grid": {str(lv): {"offer": round(o, 4), "p": level_p[lv]}
                            for lv, o in held["levels"].items()},
@@ -293,6 +310,9 @@ def main(argv=None) -> int:
                   "with_bad_debt": score(rows, a="value", b="value_blind"),
                   "with_bad_debt_and_continuation": score(rows, a="value", b="value_blind",
                                                           continuation=True)},
+              "score_learned": {
+                  "learned_vs_value": score(rows, a="value_learned", b="value"),
+                  "learned_vs_flat": score(rows, a="value_learned", b="flat")},
               "score_value_vs_level": {
                   "margin_only": score(levelled, b="level", bad_debt=False),
                   "with_bad_debt": score(levelled, b="level"),
@@ -301,7 +321,7 @@ def main(argv=None) -> int:
     args.out.write_text(json.dumps(result, indent=1), encoding="utf-8")
     print(json.dumps({k: result[k] for k in ("value_median_margin_gbp_per_mwh",
                                               "score_value_vs_flat", "score_value_vs_level",
-                                              "score_payment_history")}))
+                                              "score_payment_history", "score_learned")}))
     return 0
 
 
