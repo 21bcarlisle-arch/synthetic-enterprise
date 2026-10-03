@@ -50,3 +50,38 @@ width pairs that are already waiting.
 P1 by equality. P2 and P3 off the value-arm log at C against P, joined on (customer, commodity,
 term start). P4 off the same join for one row. Written up beneath this section as a `## Result`,
 with each prediction marked held or refuted. A refuted one stays beside its result.
+
+## Result (2026-10-03 18:40): P ran, C was stopped, and the question was answered another way
+
+**Nothing here is graded. P1-P4 are all C-minus-P contrasts, and C does not exist.**
+
+- **P** ran in full on 61001,61002 at c2ba8649c: 2 h 23 min, 8.8 GB peak, survived the window.
+  The output is `/var/tmp/se-pc-out/P_61001_61002.json` (not committed; /var/tmp).
+- **C** was killed partway through the run (rc 143, 16:32Z, simulated mid-2020). The seat stopped it on
+  purpose (`C_61001_61002.STOPPED`: "superseded by the per-decision probe"). It was not a defect,
+  so the 18:30 grading tick did not relaunch it. Another ~4 h, 11 GB leg would answer a question
+  that already has a cleaner answer.
+
+**The answer, from the probe** (`585ea9746`, graded in
+`SEAT_PREREG_WHICH_BELIEF_THE_CHOOSING_LOSES_ON_2026-10-03.md`). The same fix e0370bf94 is scored
+as `value - value_blind` on the same decisions, over three reference paths for the full decade:
+**+147 / +213 / +291 GBP, SNR 2.1-2.7.** So reading arrears does move the credit part of
+selection, and it moves it the right way, but only by a little. A payment-knowledge oracle is
+worth +191 to +393, while a churn-belief oracle is worth +2,175 to +2,620. The value arm still
+loses about 2,100-3,000 against level at its own median, and the loss is the churn belief, not
+blindness to who pays.
+
+Per prediction, using only what the probe can stand in for:
+- **P1 (control untouched)**: not gradable. The probe asks every rule on one book, so no control
+  arm is re-run.
+- **P2 (fix reaches the run)**: held in substance. `value_blind` differs from `value` on real
+  decisions, and a control reds if a stripped argument stops being a real pricing parameter.
+- **P3 (debtors priced up on average)**: not graded here. The probe reports earnings, not the
+  per-debtor margin join this prediction named.
+- **P4 (PROS-2016-0098 2017 offer higher at C)**: not graded. It needs the per-renewal join from
+  a C leg.
+- **P5**: stands. A book-level two-seed sign could not have carried this anyway, and the probe's
+  per-decision SNR is the reason it replaced the book-level legs.
+
+**Reopen only if** a book-level confirmation is wanted. In that case, relaunch C with the
+unchanged `legs_pc.sh`, which skips P because P is already on disk.
