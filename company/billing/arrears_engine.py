@@ -31,6 +31,17 @@ NAMED SIMPLIFICATION (R10 — deliberate L2 gap, to close at the seam-crossing a
       is NOT live-verified against a real customer vulnerability/ability-to-pay
       signal — there is no live recall of an SLC-27 hold here. The step sequence
       is the correct shape; the per-customer verification is future wiring.
+  (5) A DEBT RESPITE MORATORIUM HOLDS THE WHOLE ACCOUNT. SI 2020/1311 forbids any
+      step to collect a moratorium debt -- reg 7(7)(a) makes "a step to collect"
+      itself enforcement action and reg 11(1) forbids contact "to demand payment"
+      -- so `select_dunning_step` cannot run without being told whether the
+      account is in one, and while it is, every step is held, the trigger-0
+      reminder included. The hold is ACCOUNT-level, which over-protects: energy
+      used DURING the moratorium is an ongoing liability (reg 2(1)), not
+      moratorium debt (reg 6), and the law lets a supplier pursue it. Separating
+      the two needs the debt as it stood at the application date, which no
+      notification reaching this company carries yet. The law is read from
+      `docs/domain_artefact_library/regulatory/debt_respite_breathing_space_moratorium.json`.
 """
 from __future__ import annotations
 
@@ -287,6 +298,13 @@ _DUNNING_PATHS: Dict[Segment, List[DunningStep]] = {
 }
 
 
+#: What `select_dunning_step` returns for an overdue account inside a Debt Respite moratorium.
+#: A STEP, not `None`, on purpose: `None` already means "nothing is overdue enough to dun", and a
+#: held account owes money -- the two must not read as one (the same sentinel collision D24 lifted
+#: out of the overdue clock).
+MORATORIUM_HOLD = DunningStep(0, "moratorium_hold", "none")
+
+
 def dunning_path(segment: Segment) -> List[DunningStep]:
     return list(_DUNNING_PATHS[segment])
 
@@ -335,6 +353,12 @@ class DunningWithoutAnItemError(Exception):
     """Raised when a dunning step is selected with no overdue item behind it --
     the sentinel-zero shape, where "nothing here" and "due today" are both 0 and
     the trigger-0 step fires on an account that owes nothing yet (atom D24)."""
+
+
+class DunningThroughAMoratoriumError(Exception):
+    """Raised when the dunning selector can collect from an account inside a Debt Respite
+    moratorium (SI 2020/1311 reg 7), OR cannot select a collection step at all -- a selector that
+    holds everything passes the first check vacuously (atom C33)."""
 
 
 class DunningPathError(Exception):
@@ -483,12 +507,17 @@ def assert_overdue_clock_resolves_before_due(
 
 
 def select_dunning_step(
-    items: Sequence[AgedItem], segment: Segment,
+    items: Sequence[AgedItem], segment: Segment, *, moratorium_active: bool,
 ) -> tuple:
     """The dunning selection, as ONE function of the aged items rather than an
     expression inside `collections_snapshot` -- so it can be PROBED by a control
     (atom D24). Returns `(max_days_overdue, step)`, both None when no undisputed
     item is present.
+
+    `moratorium_active` IS REQUIRED AND HAS NO DEFAULT (atom C33). Whether the account is inside
+    a Debt Respite moratorium is the one fact that turns every step into an offence, so a caller
+    that has not asked the register cannot get a step out of this function. While one is active an
+    overdue account gets `MORATORIUM_HOLD` -- see NAMED SIMPLIFICATION (5).
 
     NONE, NOT ZERO, when there is nothing to dun. `max(..., default=0)` made
     "this account has no open items" indistinguishable from "an item falls due
@@ -499,7 +528,50 @@ def select_dunning_step(
     if not undisputed:
         return None, None
     max_overdue = max(it.days_overdue for it in undisputed)
-    return max_overdue, current_dunning_step(segment, max_overdue)
+    step = current_dunning_step(segment, max_overdue)
+    if step is not None and moratorium_active:
+        return max_overdue, MORATORIUM_HOLD
+    return max_overdue, step
+
+
+def assert_no_dunning_through_a_moratorium(
+    selector=select_dunning_step, segment: Segment = Segment.RESIDENTIAL,
+) -> None:
+    """R15 CONTROL -- no collection step is selected for an account inside a moratorium, over the
+    WHOLE partition and reachability first (atom C33):
+
+      1. outside a moratorium, an item past every trigger CAN select a real collection step --
+         else a selector that holds everything would pass leg 2 vacuously;
+      2. inside one, an item at EVERY trigger of the path selects `MORATORIUM_HOLD` -- the
+         trigger-0 reminder too, because reg 7(7)(a) forbids "a step to collect", not only the
+         enforcement end of the ladder;
+      3. inside one, an account owing nothing is still "nothing to dun" (None), never a hold.
+    """
+    due = _CLOCK_PROBE_ISSUE_DATE + dt.timedelta(days=14)
+
+    def _items(days: int) -> list:
+        return [AgedItem("__PROBE__", 100.0, due, days, False)]
+
+    path = _DUNNING_PATHS[segment]
+    deepest = max(s.trigger_days_overdue for s in path)
+    _, free = selector(_items(deepest), segment, moratorium_active=False)
+    if free is None or free == MORATORIUM_HOLD:
+        raise DunningThroughAMoratoriumError(
+            f"outside any moratorium, an item {deepest} days overdue selected {free!r} -- the "
+            "selector cannot collect at all, so its refusal inside one proves nothing"
+        )
+    for s in path:
+        _, held = selector(_items(s.trigger_days_overdue), segment, moratorium_active=True)
+        if held != MORATORIUM_HOLD:
+            raise DunningThroughAMoratoriumError(
+                f"inside a moratorium, an item {s.trigger_days_overdue} days overdue selected "
+                f"{held!r} -- SI 2020/1311 reg 7(7)(a) forbids any step to collect moratorium debt"
+            )
+    _, nothing = selector([], segment, moratorium_active=True)
+    if nothing is not None:
+        raise DunningThroughAMoratoriumError(
+            f"inside a moratorium, an account owing nothing selected {nothing!r}"
+        )
 
 
 def assert_dunning_requires_an_item(
@@ -528,13 +600,13 @@ def assert_dunning_requires_an_item(
         ("only a disputed item", [_item(120, disputed=True)]),
         ("an item that is not yet due", [_item(-1)]),
     ):
-        max_overdue, step = selector(items, segment)
+        max_overdue, step = selector(items, segment, moratorium_active=False)
         if step is not None:
             raise DunningWithoutAnItemError(
                 f"dunning step {step.action!r} selected with {label} "
                 f"(max_days_overdue={max_overdue!r})"
             )
-    max_overdue, step = selector([_item(120)], segment)
+    max_overdue, step = selector([_item(120)], segment, moratorium_active=False)
     if step is None:
         raise DunningWithoutAnItemError(
             "the dunning selector returned NO step for an item 120 days overdue "
@@ -810,10 +882,16 @@ def collections_snapshot(
     as_of: dt.date,
     payment_terms_days: int = 14,
     disputed_refs: Sequence[str] = (),
+    *,
+    moratorium_active: bool,
 ) -> dict:
     """One collections view over either accounting model. Returns ageing buckets,
     the current dunning step, and the undisputed overdue total that would bear
-    statutory interest (B2B)."""
+    statutory interest (B2B).
+
+    `moratorium_active` is REQUIRED (atom C33): the caller answers it from the company's
+    `BreathingSpaceRegister`. A moratorium changes the step, never the money -- the overdue total
+    is still owed and still read by the churn and pricing beliefs."""
     if accounting_model_is_open_item:
         items = age_open_items(ledger, as_of, payment_terms_days, disputed_refs)
     else:
@@ -828,7 +906,8 @@ def collections_snapshot(
     #   - this segment's dunning path is well-formed before a step is selected;
     #   - a B2C segment's path advertises NO statutory-interest action (LPCDA B2B-only);
     #   - the overdue clock still RESOLVES A DAY before the due date (atom D24);
-    #   - no dunning step is selected without an item that reached its trigger (D24).
+    #   - no dunning step is selected without an item that reached its trigger (D24);
+    #   - no collection step is selected inside a Debt Respite moratorium, and one CAN be outside (C33).
     assert_age_buckets_partition(age_bucket)
     assert_ageing_conserves_value(items, aggregator=ageing_buckets)
     assert_dunning_path_valid(segment)
@@ -836,9 +915,11 @@ def collections_snapshot(
     assert_overdue_clock_resolves_before_due(
         age_open_items, payment_terms_days=payment_terms_days)
     assert_dunning_requires_an_item(select_dunning_step, segment=segment)
+    assert_no_dunning_through_a_moratorium(select_dunning_step, segment=segment)
 
     undisputed = [it for it in items if not it.disputed]
-    max_overdue, step = select_dunning_step(items, segment)
+    max_overdue, step = select_dunning_step(
+        items, segment, moratorium_active=moratorium_active)
     total_undisputed_overdue = round(
         sum(it.outstanding_gbp for it in undisputed if it.is_overdue), 2
     )
@@ -853,5 +934,6 @@ def collections_snapshot(
         "max_days_overdue": max_overdue,
         "dunning_action": step.action if step else None,
         "dunning_channel": step.channel if step else None,
+        "moratorium_active": moratorium_active,
         "interest_bearing": segment.is_business,
     }

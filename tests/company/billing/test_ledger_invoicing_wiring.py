@@ -303,7 +303,7 @@ def test_collections_snapshot_runs_controls_and_FIRES_on_bad_dunning_path(monkey
     monkeypatch.setitem(arrears_engine._DUNNING_PATHS, Segment.IC, [])
     with pytest.raises(DunningPathError):
         collections_snapshot(led, Segment.IC, True, dt.date(2024, 4, 1),
-                             disputed_refs=["INV1"])
+                             disputed_refs=["INV1"], moratorium_active=False)
 
 
 def test_collections_snapshot_clean_snapshot_still_works():
@@ -311,5 +311,5 @@ def test_collections_snapshot_clean_snapshot_still_works():
     led.post(_bill("b1", "A", 100.0, 1, ref="INV1"))
     led.post(_bill("b2", "A", 200.0, 1, ref="INV2"))
     snap = collections_snapshot(led, Segment.IC, True, dt.date(2024, 4, 1),
-                                disputed_refs=["INV1"])
+                                disputed_refs=["INV1"], moratorium_active=False)
     assert snap["undisputed_overdue_gbp"] == 200.0
