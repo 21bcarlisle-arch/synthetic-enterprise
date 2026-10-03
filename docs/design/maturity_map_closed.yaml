@@ -4479,3 +4479,19 @@
   file_scope: ['company/billing/arrears_engine.py', 'company/billing/breathing_space_register.py', 'company/billing/capacity_to_pay.py', 'company/crm/customer_retention.py', 'company/crm/portfolio_churn_risk.py', 'tests/company/']
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a collections desk that sends a final notice to a customer whose debt adviser filed a Breathing Space moratorium three weeks ago, because the moratorium register and the dunning calendar are different systems that have never been introduced -- and a retention desk reporting the value of saves it was never at risk of losing"
+
+- id: SP2_1_working_day_calculator
+  notes_rehomed: [name]
+  lane: D_billing_metering
+  value_stream: meter_to_cash
+  epoch: 2
+  level_current: 3
+  level_target: 3
+  loop_stage: build
+  dial_inherited: 3
+  provenance: proposal
+  file_scope: [company/compliance, simulation/bacs_rails.py, sim/profile_class_1.py, sim/profile_class_3.py, tests/company/compliance, tests/simulation, tools/working_day_guard.py, tests/tools/test_working_day_guard.py]
+  depends_on: []
+  blocked_on: null
+  simplifications_count: 3
+  records_rehomed: [evidence]
