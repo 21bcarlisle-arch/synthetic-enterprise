@@ -156,3 +156,57 @@ class TestBaselineIsHonest:
         """The primitive itself is exempt by rule, not by allowlist entry -- an
         allowlist entry would make the exemption invisible to the shrink test."""
         assert not any(e.startswith("company/compliance/working_days.py") for e in BASELINE_ALLOWLIST)
+
+
+# ---------------------------------------------------------------------------
+# A NAME that is fixed by a caller is not a second definition when it delegates (2026-10-03).
+# Pass 2 left four functions whose names the guard flags but whose callers fix them -- a published
+# read-out key, an EMIR datetime adapter -- and which now do their arithmetic by calling the
+# canonical module. Each leg below is a way the exemption could be too wide.
+# ---------------------------------------------------------------------------
+
+DELEGATE = """
+    import datetime as dt
+    from company.compliance.working_days import add_working_days
+
+    def _add_working_days(from_dt, days):
+        d = add_working_days(from_dt.date(), days)
+        return dt.datetime(d.year, d.month, d.day, 17)
+"""
+
+IMPORTS_BUT_DOES_ITS_OWN = """
+    import datetime as dt
+    from company.compliance.working_days import add_working_days
+
+    def _add_working_days(start, n):
+        return start + dt.timedelta(days=n + 2 * (n // 5))
+"""
+
+LAUNDERED_COPY = """
+    import datetime as dt
+    from company.compliance.working_days import is_working_day
+
+    def _add_working_days(start, n):
+        d = start
+        while n > 0:
+            d += dt.timedelta(days=1)
+            if d.weekday() < 5 and is_working_day(d):
+                n -= 1
+        return d
+"""
+
+
+class TestCanonicalDelegates:
+    def test_a_name_fixed_by_its_caller_passes_when_it_calls_the_canonical_module(
+            self, tmp_path, monkeypatch):
+        assert verify([_plant(tmp_path, monkeypatch, DELEGATE)]) == []
+
+    def test_importing_the_canonical_module_is_not_enough_it_must_be_CALLED(
+            self, tmp_path, monkeypatch):
+        violations = verify([_plant(tmp_path, monkeypatch, IMPORTS_BUT_DOES_ITS_OWN)])
+        assert len(violations) == 1 and "_add_working_days" in violations[0]
+
+    def test_a_weekend_loop_is_flagged_even_when_it_also_calls_the_canonical_module(
+            self, tmp_path, monkeypatch):
+        violations = verify([_plant(tmp_path, monkeypatch, LAUNDERED_COPY)])
+        assert len(violations) == 1 and "_add_working_days" in violations[0]

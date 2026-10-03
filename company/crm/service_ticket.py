@@ -25,6 +25,8 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import List, Optional
 
+from company.compliance.working_days import add_working_days
+
 
 class TicketCategory(str, Enum):
     BILLING_QUERY = "billing_query"
@@ -50,16 +52,6 @@ _ACKNOWLEDGEMENT_DEADLINE_WD = 3     # SLC 18.7
 _FULL_RESPONSE_DEADLINE_DAYS = 56    # 8 weeks, SLC 18.9
 
 
-def _add_working_days(date: dt.date, wd: int) -> dt.date:
-    current = date
-    added = 0
-    while added < wd:
-        current += dt.timedelta(days=1)
-        if current.weekday() < 5:
-            added += 1
-    return current
-
-
 @dataclass(frozen=True)
 class ServiceTicket:
     ticket_id: str
@@ -74,7 +66,7 @@ class ServiceTicket:
 
     @property
     def acknowledgement_deadline(self) -> dt.date:
-        return _add_working_days(self.opened_at, _ACKNOWLEDGEMENT_DEADLINE_WD)
+        return add_working_days(self.opened_at, _ACKNOWLEDGEMENT_DEADLINE_WD)
 
     @property
     def full_response_deadline(self) -> dt.date:

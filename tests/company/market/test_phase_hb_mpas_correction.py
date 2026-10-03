@@ -1,10 +1,11 @@
 """Tests for MPAS Standing Data Correction Register -- Phase HB."""
 import datetime as dt
 import pytest
+from company.compliance.working_days import add_working_days as _add_working_days
 from company.market.mpas_standing_data_correction_register import (
     StandingDataField, CorrectionStatus,
     MPASCorrectionRecord, MPASStandingDataCorrectionRegister,
-    _add_working_days, _ACK_WORKING_DAYS, _RESOLUTION_WORKING_DAYS,
+    _ACK_WORKING_DAYS, _RESOLUTION_WORKING_DAYS,
     _SETTLEMENT_IMPACTING,
 )
 

@@ -590,7 +590,7 @@ def test_every_payload_type_the_contract_defines_can_cross():
     would be a hole the day a fourth is emitted. The subject is the CONTRACT's
     own enumeration, so adding a payload type to the seam reds this test until
     it crosses."""
-    assert len(OBSERVABLE_RESPONSE_PAYLOAD_TYPES) == 6
+    assert len(OBSERVABLE_RESPONSE_PAYLOAD_TYPES) == 7  # v3: BacsArruddOutcomeV3 (the ARUDD line with its Bacs code)
     for payload_type in OBSERVABLE_RESPONSE_PAYLOAD_TYPES:
         hints = typing.get_type_hints(payload_type)
         built = payload_type(**{

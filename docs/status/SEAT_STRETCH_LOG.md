@@ -8,6 +8,185 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-10-03 — orientation: THE LOSS IS NOW LOCATED, AND IT IS ON THE CHURN SIDE, NOT THE CREDIT SIDE
+
+<!-- head: 28bc126f4e14 -->
+
+*Written by the orientation seat from its own record (2026-10-03T14:21:21.041545+00:00; 31 commits, 12 substantive, since 2026-10-03T11:24:52.263480+00:00).*
+
+## What the stretch meant
+
+THE LOSS IS NOW LOCATED, AND IT IS ON THE CHURN SIDE, NOT THE CREDIT SIDE. I had that wrong. Last stretch I steered credit-side inference first. The console seat's probe (585ea9746) then scored rule against rule on three reference paths. Value against a flat level at its own median: -2,668 / -3,046 / -2,146. Letting the price see who pays (value minus value_blind): +147 / +213 / +291. The oracles split the remaining gap: perfect payment knowledge is worth +191 to +393, perfect churn knowledge +2,175 to +2,620. The company's believed P(stay) misses the world's with sd 0.42 per decision. It applies one price slope of 0.08 per +10%, against a world median of 0.036 that varies seventy-fold, and some of that variation is observable by payment method. So the thesis's inference gap is the churn belief. The console seat is building B8 on the director's own instruction: per-method price sensitivity learned from the company's own closed renewals. The credit work was still worth doing, and it found real things. The default table is right on level and wrong on shape (no_debt 0.42%, worsening 5.55%, table 2.0% flat). The persistence term that prices every DD and standard-credit account is about 3x high (6.48 believed against 2.17 charged). A book-learned belief is closest in every arrears state (42b0a43f1, 28bc126f4). It sits behind a switch that is off by default. TWO FIDELITY DEFECTS SIT UNDER THE INSTRUMENT, and the first one bites B8 directly. (1) A household's payment method has two independent homes in the world, and they agree on about half the book (153 of 300). The triad draws the method that produces the ledger's payment events. The seam reports a different one to the company. B8 will key its learned slopes on the seam's method, and nobody has asked which of the two the world's churn response actually follows. The atom that claims this invariant, W2_payment_channel_dd_consistency_invariant, sits at L2. (2) The company's ledger posts one settlement record a month as the month's bill, so the median bill is GBP 0.023. Every absolute GBP figure, including the renewal's stock term, is near zero. A director ruling is also being broken on the default path. Since e0370bf94 a clean prepayment household is priced GBP 2.00-2.75/MWh above an identical clean DD one, and the control that guards the ruling is red at HEAD. The gate never selected it, because selection goes by module stem. THE STEER BIT, ALL THREE. The default belief landed in two commits. The September 15 worktree was dispositioned as superseded (326dc55e9). The DD stopping rule was drawn as a Lane 0 key and BUILT. That corrects my PB8 routing error. But PB8 is not landed. Its holder, pid 2590080, is dead. Its L0->L1 edit and the code sit uncommitted in the shared tree, where the next sweep or reset can lose them. THE MACHINE GOT WORSE. 15 of 31 commits carried nothing, and three base-advancing surgical_land merges were running at the same time at orientation.
+
+## What went wrong
+
+- NOT corrected: THE MACHINE'S, CARRIED. A waiter's deadline is set without pricing the queue ahead of it. launch_after_width.sh loops four 6h rounds by hand because wait_for caps at 21600 s. Still not a mechanism. (It cost the payment-history P/C legs last stretch. This stretch a C leg is running again by hand at /var/tmp/se-pc-out, still not through a mechanism.)
+- NOT corrected: THE MACHINE'S, CARRIED. The world digest does not identify behaviour switches, so 1002b and 1002c share digest cf823b185f8ca51c and are not the same world. Only the pin separates them. (renewal_default_belief is now one more switch the digest cannot see.)
+- NOT corrected: THE MACHINE'S, CARRIED. depth-vs-width's first unit referenced a width worktree that did not exist and died at exit 90 after 10h. Nothing checks a long job's worktrees before launch.
+- NOT corrected: THE MACHINE'S, CARRIED. A held change's hold condition is not re-asked when its premise moves. a15532730 and 1ff7b68b3 held "until the retake lands"; nothing was built to re-ask it.
+- NOT corrected: THE MACHINE'S, CARRIED. A long job's world stamp is not tied to HEAD. The 1002c floor graded at pin 0cc052102 was published with is_heads_code False, because ten simulation/ and company/ paths had moved after it. The overtaking recurs every run.
+- NOT corrected: THE MACHINE'S, CARRIED. Four level or park moves stranded in a preserved ref were replayed as written. PB4 build->idle was false by then (a6bd4d77e). Nothing re-asks a stranded move's release condition.
+- NOT corrected: THE MACHINE'S, CARRIED. One item can land twice, on origin through surgical_land and as a local commit on the shared HEAD (75df9efdf after d77ff33d5). No mechanism prevents the next one.
+- NOT corrected: THE MACHINE'S, CARRIED. The launch register recorded hgc-suite-timing as died while its /var/tmp driver ran. That driver called resource_headroom.admitted(), which does not exist. Nothing checks that a hand-written driver calls an API that exists.
+- NOT corrected: THE MACHINE'S, CARRIED. A control or door whose shape changes must re-run every fixture that builds a synthetic tree to drive it, and no control requires it. citation_at_head, red_at_head and fork_state in .publish_gate_state.json still read not_established.
+- NOT corrected: THE MACHINE'S, CARRIED. A refusal naming a commit is not re-asked against the remote ref before a reader sees it. liveness_surface_refusal is still not re-asked.
+- NOT corrected: THE MACHINE'S, CARRIED. The stash-completeness sweep reports a genuinely lost file as safe. It is still not on the map.
+- NOT corrected: THE MACHINE'S, CARRIED. Nothing on the landing path asks whether a same-subject sibling is left behind in the shared tree (the 14-path refusal in 662da7fd3). Separate from H49.
+- NOT corrected: MINE, CLASS. not_now is still prose that nothing reads. A rejected item comes back only if I remember to promote it. This stretch I re-asked the conditions by hand again: the base-advance trigger was re-read at 15 of 31 no-work commits, and PB7's condition was overtaken by B8, which the console seat took directly from the director.
+- NOT corrected: THE MACHINE'S, CARRIED. A bounded executor turn can be reset over finished, unlanded work. It recurred this stretch: the DD stopping rule's builder (pid 2590080) died with PB8's L0->L1 build uncommitted in the shared tree, so the work survives only by luck until focus item one lands it.
+- NOT corrected: THE MACHINE'S, CARRIED. One Lane 0 change is drawn twice. It recurred: build-the-supplier-dd-stopping-rule was drawn twice while a worker built it. 1cdf561e4 now skips an id held in the other claim store, which closes that shape. The F5 shape (drawn, noted as a non-act, redrawn) has no fix.
+- NOT corrected: THE MACHINE'S, CARRIED. A pre-registration that dates itself by its first commit can sit untracked after its subject commit lands. The class is still unrefused.
+- NOT corrected: THE MACHINE'S, CARRIED. Base-advance merges carry no work and each costs a full gate cycle. The landing door still advances the base as its own gated commit. (This stretch: 15 of 31 commits carried nothing, 12 of them merges, and three base-advancing surgical_land runs were live at once at orientation.)
+- corrected: MINE. I named SPINE_1 and PB8 by atom id and expected their BUILD, but an atom id biases the draw toward the atom's current loop stage. Corrected: re-routed as the Lane 0 key build-the-supplier-dd-stopping-rule, PB8 was drawn and built this stretch (its L0->L1 edit is in the tree). The landing failure is a different error, carried in the executor-reset row.
+- NOT corrected: THE MACHINE'S, CARRIED. A launch chain dies silently when its waiter hits DEADLINE. The launch register shows width as finished and does not show that P/C, chained behind it, never started.
+- corrected: MINE, NEW. Last stretch I put credit-side inference first and called the default belief "the binding question". The oracles in 585ea9746 put payment knowledge at +191 to +393 and churn knowledge at +2,175 to +2,620. The credit work found real defects, but I misjudged where the loss is. Churn belief is now the console seat's B8, and this record serves it with the second focus item rather than competing with it.
+- NOT corrected: THE MACHINE'S, NEW. The pre-commit gate selects controls by module stem, so e0370bf94 landed with the control guarding a director ruling (test_the_price_rests_only_on_observables_a_supplier_may_use) red, and it stayed red at HEAD unlisted on HEAD_RED_REGISTER.md. The fourth focus item fixes the instance. The class, a control whose file name lacks its subject's stem, is unrefused.
+- NOT corrected: THE MACHINE'S, NEW. W2_payment_channel_dd_consistency_invariant sits at L2 while the world holds two independent method draws that agree on 51% of households. A 2026-09-05 finding called the disagreement "not live" because its search missed background/. The self-contradicting-levels census cannot see a level whose control tests the wrong population.
+
+## Chosen against
+
+- Build the company's calibrated churn belief or per-method price slopes (B8) from a Lane 0 worker.
+- Correct the persistence term, which is 3x high, by editing its constant.
+- Stop the landing door from advancing the base as its own gated commit.
+- Wire SPINE_1 deeper or run more years past 2025.
+- Build PB8's household-authored route (a household moves itself off DD).
+- Give worker-seat-manager a heartbeat line.
+
+## Focus for the next stretch
+
+- `land-the-unlanded-dd-stopping-rule`
+- `one-payment-method-home-in-the-world`
+- `the-company-ledger-posts-the-months-bill`
+- `the-renewal-price-honours-the-prepayment-ruling-at-default`
+
+---
+
+## 2026-10-03 — C33 closed at target; depth through the probe is a weak lever; B8's learning reaches the price
+
+<!-- head: 7accbee68f91 -->
+
+Supplier:
+- C33 landed by the billing agent (d7d931421): collections hold every step for a debtor under a Breathing Space moratorium (SI 2020/1311 reg 7(7)(a), now in the commons). The 61-day protection is corrected to 60, and "expected retention value" now carries the churn probability. Eight mutations red.
+- The seat recorded the level 0 -> 2 (target) and refiled the row to closed (1dba82e95).
+- Honest limit: no live account is ever in a moratorium, so the gate has never fired live. The notification across the seam is queued with the interface agent.
+- The billing agent's next piece is DD seasonal sizing L2 or the working-day calculator. The write-off re-key waits on the director's frame.
+
+World:
+- Depth through the probe: the default book lived to 2029 in neso_central adds 21 decisions.
+- Selection SNR goes from 2.2 to 2.4, and the sign and cause are unchanged.
+- 53 min, 6 GB, against about 20 machine-hours for the held A/B legs.
+
+Selection, B8:
+- The learned price response never reached the price at first. decide_margin's scorer did not pass payment_method into the churn estimate, so pricing ignored PB7's engagement factor as well, while the churn desk applied both. That is fixed.
+- It now moves 13 of 76 offers to 2021. The decade run is in flight.
+
+---
+
+## 2026-10-03 — the choosing loses on the churn belief; a calibrated, payment-method-keyed belief turns it positive (bound)
+
+<!-- head: 272ac984d46e -->
+
+Arrears experiment graded on three paths. The fix is worth +147/+213/+291 rule against rule.
+Oracles against level:
+- payment only +191..+393
+- churn only +2,175..+2,620
+- both ~+3,000, the whole headroom (P1 refuted: predicted >5k)
+
+The loss is the churn belief:
+- Believed minus true P(stay) has sd 0.42 per decision.
+- The company uses one price slope of 0.08 per +10%; the world's median is 0.036, varying 70-fold.
+- By payment method (observable): prepay -0.118, DD -0.038, standard credit -0.014.
+- Offline bound with the level calibrated: one slope +367..+1,337; per-method slopes +878..+1,626. The choosing turns positive.
+
+Landed or landing:
+- probe v2 (value_blind, roll seeds, --world, believed P(stay))
+- the design-allowlist red at origin, repaired
+- the interfaces agent's real Bacs ARUDD codes on the DD-failure crossing (37ded8752); it is now doing the schema-v3 field
+
+Running:
+- the billing/collections agent
+- the 2029 world probe
+- a survey of any existing churn-learning organ (D27, EP1) before building one
+
+---
+
+## 2026-10-03 — go-hard week: the arrears fix is worth +147; the choosing loses on its churn belief, not its payment view
+
+<!-- head: bed9ea4671ed -->
+
+Director, 2026-10-03: go hard to Monday's reset, spread across the four areas, finish and grade the arrears experiment.
+
+Arrears experiment: the fix (e0370bf94) was already in the value rule the probe scores.
+- Rule against rule (value vs value_blind): +147, SNR 2.1.
+- Pre-registered an oracle decomposition (SEAT_PREREG_WHICH_BELIEF_THE_CHOOSING_LOSES_ON). On the default path, against level at value's median:
+  - value -2,668;
+  - O_full (true churn and true bad debt) +2,952;
+  - O_churn_only +2,175;
+  - O_debt_only +288.
+- P1 (headroom > 5k) REFUTED; P2 and P3 HELD. The loss is the churn belief, not the payment view.
+- Belief error at the value offer (2017 window): believed minus true P(stay) has mean -0.18, sd 0.21.
+
+Areas:
+- Knowledge: all seven pages and the headline guard are on origin. Not public until Monday 04:00, because the weekly publish hold is the director's own cadence.
+- World: SPINE_1 and spread acquisition are on origin. The run past 2025 is queued through the probe (--world neso_central --end-year 2029), not the 20-hour A/B.
+- Supplier: payment history is done. An agent is taking stage 1's owed billing/collections piece.
+- Interfaces: an agent is taking the cheapest move toward a real industry message shape.
+- Cadence: tick mode normal; worker every 10 minutes, executor every 10 minutes, seat every 3 hours. All three timers are live.
+
+---
+
+## 2026-10-03 — orientation: THE THESIS WENT BACKWARDS, AND THAT IS PROGRESS
+
+<!-- head: 724291cf8213 -->
+
+*Written by the orientation seat from its own record (2026-10-03T11:24:52.263480+00:00; 16 commits, 9 substantive, since 2026-10-03T08:24:57.013013+00:00).*
+
+## What the stretch meant
+
+THE THESIS WENT BACKWARDS, AND THAT IS PROGRESS. On the director's challenge, the console seat built a per-decision probe (23c9e81b2, still only in the locked /var/tmp/se-probe worktree; the live console seat owns it, and it is NOT disposable). The probe asks every pricing rule for its price on the same customer at the same renewal, and asks the world for the true P(stay). Over the full decade of the default book, 82 decisions on 44 accounts: value beats flat by +7,250 (SNR 6.8), but value LOSES to a flat level set at its own median by -2,668 (SNR 2.2). Its whole lead over the flat rule is the price level. Its per-customer choosing, the part the thesis claims as inference, destroys money, and bad payers are where: bad debt moves value-against-level from -1,661 to -2,668, with PROS-2016-0098 the largest term. So today the supplier is worse than average at exactly the thing it exists to do. The result is one book, with three more roll seeds running now (pid 1535212, run_probes.sh). This is the first measurement sharp enough to say so, at 0.35 CPU-h and 5.1 GB against 3.3 CPU-h and 11-13 GB for a two-seed A/B leg. The cost of an experiment has dropped about tenfold, which answers most of the director's compute question. Width x1.25 was graded over six seeds (3eefc4188) and superseded as the instrument (e5657398d). THE STEER HALF-BIT. PB8 was drawn, but at its FRAME stage: the worker flagged the frame (af3b5d493) and built nothing. SPINE_1 was never drawn. list-commits-no-ref-will-keep landed (1bbce29ce), and this brief's at-risk list is its output. That corrects the unlanded-worktree class row, and on its first reading it surfaced a second instance nobody had remembered: three 2026-09-15 commits at /var/tmp/se-lane0-merge-20260915 whose owner pid 128849 is gone. WHAT IT MEANS FOR THE ORDER. Inference on the credit side is now the binding question, and two things on that side are knowably wrong without reading any result. First, the company's default table (saas.payment_behaviour, 0.5% to 8% by segment) has never been measured against the write-offs its own ledger records. Second, no production path stops presenting a DD that bounces every month. Neither is tuning to the probe; both are what a real supplier would know. Grading the probe and its seeds stays with the console seat. The machine's shape was quieter: four of 16 commits were heartbeats, and no merge landed under the stretch window.
+
+## What went wrong
+
+- corrected: THE MACHINE'S, NEW. Finished work commits can live only in a scratch worktree reachable from no ref: 18c3ecb8c (SPINE_1) and af5a66f52 (prospects by month) sit only at /var/tmp/se-combo's detached HEAD. A worktree prune, a reset or a teardown loses them, and nothing lists unlanded commits outside origin's ancestry. (Instance resolved: both are ancestors of origin/main now. The class is focus item three.)
+- NOT corrected: THE MACHINE'S, CARRIED. A waiter's deadline is set without pricing the queue ahead of it. launch_after_width.sh loops four 6h rounds by hand because wait_for caps at 21600 s. Still not a mechanism. (This stretch, both chained waiters hit the DEADLINE and rolled to round 2.) (This stretch it cost a whole leg. The P/C waiter in launch_after_width.log hit DEADLINE at 09:01Z, nothing re-armed round 2, and width finished about 10:05Z. So the payment-history P/C legs never launched: /var/tmp/se-pc-out holds no legs_pc.log. The per-decision probe has since superseded them, so they are not relaunched.)
+- NOT corrected: THE MACHINE'S, CARRIED. The world digest does not identify behaviour switches, so 1002b and 1002c share digest cf823b185f8ca51c and are not the same world. Only the pin separates them.
+- NOT corrected: THE MACHINE'S, CARRIED. depth-vs-width's first unit referenced a width worktree that did not exist and died at exit 90 after 10h. Nothing checks a long job's worktrees before launch.
+- NOT corrected: THE MACHINE'S, CARRIED. A held change's hold condition is not re-asked when its premise moves. a15532730 and 1ff7b68b3 held "until the retake lands"; nothing was built to re-ask it.
+- NOT corrected: THE MACHINE'S, CARRIED. A long job's world stamp is not tied to HEAD. The 1002c floor graded at pin 0cc052102 was published with is_heads_code False, because ten simulation/ and company/ paths had moved after it. The page withdrew the verdict by mechanism, which is the correct fail-closed behaviour, but the overtaking itself recurs every run.
+- NOT corrected: THE MACHINE'S, CARRIED. Four level or park moves stranded in a preserved ref were replayed as written. PB4 build->idle was false by then (a6bd4d77e). Nothing re-asks a stranded move's release condition.
+- NOT corrected: THE MACHINE'S, CARRIED. One item can land twice, on origin through surgical_land and as a local commit on the shared HEAD (75df9efdf after d77ff33d5). No mechanism prevents the next one.
+- NOT corrected: THE MACHINE'S, CARRIED. The launch register recorded hgc-suite-timing as died while its /var/tmp driver ran. That driver called resource_headroom.admitted(), which does not exist. Nothing checks that a hand-written driver calls an API that exists.
+- NOT corrected: THE MACHINE'S, CARRIED. A control or door whose shape changes must re-run every fixture that builds a synthetic tree to drive it, and no control requires it. citation_at_head, red_at_head and fork_state in .publish_gate_state.json still read not_established.
+- NOT corrected: THE MACHINE'S, CARRIED. A refusal naming a commit is not re-asked against the remote ref before a reader sees it. liveness_surface_refusal is still not re-asked.
+- NOT corrected: THE MACHINE'S, CARRIED. The stash-completeness sweep reports a genuinely lost file as safe. It is still not on the map.
+- NOT corrected: THE MACHINE'S, CARRIED. Nothing on the landing path asks whether a same-subject sibling is left behind in the shared tree (the 14-path refusal in 662da7fd3). Separate from H49.
+- NOT corrected: MINE, CLASS. not_now is still prose that nothing reads. A rejected item comes back only if I remember to promote it. This stretch I re-asked the conditions by hand again: merges at 9 of 19 did not cross half, the P/C reading has not arrived, so neither the retake nor PB7 fires. (This stretch I re-asked them by hand again. The per-decision probe overtook the retake and PB7 conditions rather than firing them.)
+- NOT corrected: THE MACHINE'S, CARRIED. A bounded executor turn can be reset over finished, unlanded work. It recurred in a new shape this stretch: the 02:52Z worker's P/C grading handoff (handoff_on_exit.sh, pids 2940485-2940489) was SIGKILLed at teardown, so a wired grader was lost with its turn. (/var/tmp/se-pc-out/handoff.log is still empty.)
+- NOT corrected: THE MACHINE'S, CARRIED. One Lane 0 change is drawn twice. It recurred this stretch: F5 was drawn, noted as having no post-change family (700d067db), then redrawn and released (5cc7913e9), two turns for one non-act.
+- NOT corrected: THE MACHINE'S, CARRIED. A pre-registration that dates itself by its first commit can sit untracked after its subject commit lands. The payment-history and control-variate pre-registrations are still untracked, while e0370bf94 is on origin and their legs are chained to start. Item one lands the instance; nothing refuses the class. (Instance landed at 595004fc0 before any leg ran. The class is still unrefused.)
+- NOT corrected: THE MACHINE'S, CARRIED. Base-advance merges carry no work and each costs a full gate cycle: six of 22 commits this stretch (three base advances, three automatic reconciliations). The landing door still advances the base as its own gated commit. (This stretch: nine merges of 19 commits, eight of the 19 carrying no work.)
+- NOT corrected: MINE, NEW. I named SPINE_1 and PB8 by atom id and expected their BUILD. An atom id biases the ordinary draw toward the atom at its current loop stage, not toward my instruction. Lane 3 handed PB8 out for FRAME, and the worker landed a frame-saturation flag (af3b5d493), not the stopping rule. SPINE_1 was never drawn at all. This record routes the PB8 build as a Lane 0 key and withdraws SPINE_1. Nothing yet proves the re-route works.
+- corrected: MINE, NEW. Last stretch I read the selection noise as a compute problem. I called depth the one lever with a compounding effect on SNR, and I steered SPINE_1 hardening so the depth legs could read it. The director's fairness point was right: the book-level A/B compares different books once the arms diverge. Decision by decision on one book (23c9e81b2), the per-decision SNR is 6.8 against a book-level 0.73. Most of the noise was the measure. Depth leaves focus.
+- NOT corrected: THE MACHINE'S, NEW. A launch chain dies silently when its waiter hits DEADLINE. The launch register shows width as finished and does not show that P/C, chained behind it, never started, so nothing on the brief listed a leg that was owed and absent. Found by reading /var/tmp/se-pc-out by hand.
+
+## Chosen against
+
+- Grade the per-decision probe, its three roll-seed books, or rule-by-rule variants of the value function from a Lane 0 worker.
+- Harden SPINE_1's forward path to L3 (last stretch's item one).
+- Relaunch the payment-history P/C legs that never started.
+- Build the lean experiment harness the director asked about, separating the engine from the experiments.
+- Wire the learned channel factor into the renewal price (PB7).
+- Make wait_for chains a queue that re-arms and records an owed-but-absent leg.
+- Stop the landing door from advancing the base as its own gated commit.
+
+## Focus for the next stretch
+
+- `the-company-default-belief-is-measured-against-its-own-ledger`
+- `build-the-supplier-dd-stopping-rule`
+- `disposition-the-september-15-lane0-merge-worktree`
+
+---
+
 ## 2026-10-03 — orientation: THE STEER BIT, AND THE THESIS DID NOT MOVE THIS STRETCH
 
 <!-- head: d2b9087c852c -->

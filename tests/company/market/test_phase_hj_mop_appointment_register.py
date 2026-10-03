@@ -2,13 +2,13 @@
 import datetime as dt
 import pytest
 
+from company.compliance.working_days import add_working_days as _add_working_days
 from company.market.mop_appointment_register import (
     MOPAppointmentRegister,
     MOPAppointmentRecord,
     MOPAppointmentStatus,
     MOPChangeReason,
     MOPServiceTier,
-    _add_working_days,
 )
 
 TODAY = dt.date(2024, 1, 15)

@@ -1,7 +1,8 @@
 """Phase 94: Complaint deadline tracking tests."""
 
 from datetime import date, timedelta
-from company.crm.service_log import ServiceLog, ServiceEvent, _add_working_days
+from company.compliance.working_days import add_working_days as _add_working_days
+from company.crm.service_log import ServiceLog, ServiceEvent
 from starlette.testclient import TestClient
 from company.portal.app import app
 

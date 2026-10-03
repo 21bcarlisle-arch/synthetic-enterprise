@@ -587,24 +587,112 @@ def test_every_category_has_a_code_or_a_named_gap_and_both_branches_are_taken():
     assert all(reason.strip() for reason in ARUDD_REASON_CODE_GAP.values())
 
 
-def test_an_arudd_line_reports_the_code_its_category_denotes():
-    """Defect guarded: the property ignoring the line's own category (a
-    constant answer, or always None)."""
+def _arudd_line(cls, category, **extra):
+    return cls(
+        mandate_ref="MREF-1",
+        account_id="ACC-1",
+        amount_gbp=85.50,
+        outcome=DDOutcomeStatus.FAILURE,
+        reason_category=category,
+        reason_text="",
+        value_date=dt.date(2026, 7, 4),
+        **extra,
+    )
 
-    def line(category):
-        return BacsArruddOutcome(
-            mandate_ref="MREF-1",
-            account_id="ACC-1",
-            amount_gbp=85.50,
-            outcome=DDOutcomeStatus.FAILURE,
-            reason_category=category,
-            reason_text="",
-            value_date=dt.date(2026, 7, 4),
-        )
 
-    assert line(BacsReasonCategory.INSUFFICIENT_FUNDS).arudd_reason_code == "0"
-    assert line(BacsReasonCategory.PAYER_DECEASED).arudd_reason_code == "2"
-    assert line(BacsReasonCategory.ACCOUNT_CLOSED).arudd_reason_code is None
-    assert "arudd_reason_code" not in {
-        f.name for f in dataclasses.fields(BacsArruddOutcome)
-    }, "the code became a wire field -- that is a release, bump SCHEMA_VERSION"
+def test_the_code_for_a_category_is_the_one_its_table_row_names():
+    """Defect guarded: the lookup ignoring its category (a constant answer,
+    or always None)."""
+    from interface.contracts.payment_observable_seam import arudd_reason_code_for
+
+    assert arudd_reason_code_for(BacsReasonCategory.INSUFFICIENT_FUNDS) == "0"
+    assert arudd_reason_code_for(BacsReasonCategory.PAYER_DECEASED) == "2"
+    assert arudd_reason_code_for(BacsReasonCategory.ACCOUNT_CLOSED).value == "not_sourced"
+
+
+def test_the_wire_code_set_is_the_sourced_table_and_one_named_gap():
+    """Defect guarded: a code member the sourced table does not hold (an
+    invented code on the wire), or the gap member spelt like a real code."""
+    from interface.contracts.payment_observable_seam import AruddReasonCode
+    from simulation.bacs_rails import ARUDD_REASON_CODES
+
+    gap = AruddReasonCode.NOT_SOURCED
+    codes = {m.value for m in AruddReasonCode if m is not gap}
+    assert codes == {str(k) for k in ARUDD_REASON_CODES}
+    assert len(gap.value) > 1, "the gap member must not look like a one-character code"
+
+
+def test_the_v3_line_carries_the_code_and_the_v2_line_does_not():
+    """Defect guarded: the code added to the v2 type (which would refuse every
+    v2 line in flight, since the decode leg requires every declared field), or
+    the v3 type losing it. Also holds SCHEMA_VERSION at the release that
+    introduced the field."""
+    from interface.contracts.payment_observable_seam import BacsArruddOutcomeV3
+
+    def names(t):
+        return {f.name for f in dataclasses.fields(t)}
+
+    assert names(BacsArruddOutcomeV3) - names(BacsArruddOutcome) == {"arudd_reason_code"}
+    assert "arudd_reason_code" not in names(BacsArruddOutcome)
+    assert issubclass(BacsArruddOutcomeV3, BacsArruddOutcome)
+    assert SCHEMA_VERSION == 3
+
+
+def test_the_adapter_puts_the_real_code_on_the_wire_and_the_company_reads_it():
+    """Defect guarded: the sim adapter emitting the v2 line (no code), or a
+    code that disagrees with the line's own category, at the point it crosses.
+    Driven through the real encoder and the company's real decoder."""
+    from company.billing.payment_observation_consumer import decode_observable_payload
+    from interface.contracts.payment_observable_seam import BacsArruddOutcomeV3
+    from simulation.payment_behaviour_source import (
+        DIRECT_DEBIT,
+        INSUFFICIENT_FUNDS,
+        PaymentEvent,
+    )
+    from simulation.payment_seam_adapter import (
+        emit_wall_responses,
+        encode_observable_payload,
+    )
+
+    event = PaymentEvent(
+        customer_id="C1", period_index=3, due_date="2026-07-01",
+        amount_gbp=85.5, payment_method=DIRECT_DEBIT, result="failed",
+        days_late=0, payment_date=None, dd_failure_reason=INSUFFICIENT_FUNDS,
+    )
+    (response,) = emit_wall_responses(event)
+    wire = encode_observable_payload(response.payload)
+    assert wire["payload_type"] == "BacsArruddOutcomeV3"
+    assert wire["fields"]["arudd_reason_code"] == "0"
+    decoded = decode_observable_payload(wire)
+    assert isinstance(decoded, BacsArruddOutcomeV3)
+    assert decoded.arudd_reason_code == "0"
+    assert response.schema_version == 3
+
+
+def test_a_v2_arudd_line_still_reads_after_the_v3_release():
+    """Defect guarded: the v3 release refusing a v2 line already in flight --
+    at the payload (the v2 tag must still decode without the code) and at the
+    envelope (the bureau must still be recorded as speaking 2). The v3 leg is
+    asserted beside it so a decoder that refuses everything cannot pass."""
+    from company.billing.payment_observation_consumer import decode_observable_payload
+    from company.interfaces.wall_protocol import (
+        COUNTERPARTY_REGISTRY,
+        PAYMENT_SEAM_SENDER,
+    )
+    from interface.contracts.payment_observable_seam import (
+        AruddReasonCode,
+        BacsArruddOutcomeV3,
+    )
+    from simulation.payment_seam_adapter import encode_observable_payload
+
+    v2 = _arudd_line(BacsArruddOutcome, BacsReasonCategory.INSUFFICIENT_FUNDS)
+    got = decode_observable_payload(encode_observable_payload(v2))
+    assert type(got) is BacsArruddOutcome and got == v2
+    v3 = _arudd_line(
+        BacsArruddOutcomeV3,
+        BacsReasonCategory.ACCOUNT_CLOSED,
+        arudd_reason_code=AruddReasonCode.NOT_SOURCED,
+    )
+    assert decode_observable_payload(encode_observable_payload(v3)) == v3
+    speaks = COUNTERPARTY_REGISTRY[PAYMENT_SEAM_SENDER].speaks_schema_versions
+    assert {2, SCHEMA_VERSION} <= speaks
