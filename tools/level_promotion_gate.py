@@ -100,7 +100,9 @@ instead of being silently counted as a pass.
 """
 from __future__ import annotations
 
+import ast
 import os
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -169,6 +171,28 @@ def atom_file_scopes(map_text: str) -> dict:
             if isinstance(aid, str) and "level_current" in o:
                 scope = o.get("file_scope")
                 out[aid] = [p for p in scope if isinstance(p, str)] if isinstance(scope, list) else []
+            for v in o.values():
+                walk(v)
+        elif isinstance(o, list):
+            for x in o:
+                walk(x)
+
+    for d in yaml.safe_load_all(map_text):
+        walk(d)
+    return out
+
+
+def atom_rows(map_text: str) -> dict:
+    """{atom_id: the whole row} for every atom, mirroring atom_levels' walk. The minimum landable
+    unit is computed over the WHOLE row -- a level's evidence is cited in prose far more often than
+    it is declared in `file_scope`, which is the finding that made this necessary."""
+    out: dict = {}
+
+    def walk(o):
+        if isinstance(o, dict):
+            aid = o.get("id")
+            if isinstance(aid, str) and "level_current" in o:
+                out[aid] = o
             for v in o.values():
                 walk(v)
         elif isinstance(o, list):
@@ -410,6 +434,210 @@ def unbuilt_level_increases(increases: list, scope_status: dict) -> list:
 
 
 # ═══════════════════════════════════════════════════════════════════════════════════════════════
+# FIFTH CONTROL (2026-09-09): ABSENT EVIDENCE, and the MINIMUM LANDABLE UNIT in the refusal.
+# ═══════════════════════════════════════════════════════════════════════════════════════════════
+#
+# WHY. The SECOND CONTROL above asks `git status --porcelain -- <file_scope>` and refuses on a
+# dirty worktree column. Measured on the live tree 2026-09-09:
+#
+#     $ git --no-optional-locks status --porcelain -- sim/forecast_publication.py
+#     $ echo $?
+#     0
+#
+# A path that exists NOWHERE -- not at HEAD, not in the index, not in the tree -- contributes no
+# porcelain output, so `dirty_source_paths("")` returns `[]` and the raise reads CLEAN. That is a
+# fail-open, and it is the generator behind two consecutive stretches of publisher wedge: W2_30
+# last stretch, W2_28 this one, the same shape both times -- a level written on evidence that is
+# not in the tree, sailing past this gate, and surfacing 36 hours later as a publisher refusal
+# raised at a lane with no part in it and with no path in the message.
+#
+# The instance keeps getting cured and the generator keeps producing, so the fix is here: an
+# absent path is refused AT THE RAISE, by the gate whose subject the raise is, instead of being
+# discovered downstream by whoever commits next.
+#
+# WIDER SCOPE THAN THE DIRTY CHECK, DELIBERATELY. `dirty_source_paths` is scoped to `.py` because
+# this shared tree holds `site/data/*.json` and `docs/observability/*` permanently dirty by design,
+# so an all-suffix DIRT predicate would be unpassable (the measurement is in the SCOPED TO SOURCE
+# note above). ABSENCE is the opposite case: a regenerated output being dirty is ordinary, and a
+# regenerated output being absent from the tree entirely is not. Measured over all 348 atoms with
+# the full file_scope and directory-pathspec semantics: 20 carry a path the tree does not contain,
+# every one of them at level_current 0 (planned-but-unbuilt rows like `sim/product_ladder.py`).
+# Zero atoms above level 0 are affected, so this refuses nothing that stands today and refuses
+# exactly the raise that cannot be true.
+#
+# THE REFUSAL IS KEYED TO file_scope; THE PRINTED UNIT IS WIDER. Prose citations and `.exists()`
+# citations go into the MINIMUM LANDABLE UNIT that the refusal PRINTS, and are never themselves a
+# refusal -- because prose legitimately names paths that must NOT exist ("`saas/demand_response.py`
+# was deleted"), and a predicate over them would be a control that cannot pass, which this project
+# routes around within a day. A report cannot wedge anything; a predicate can.
+
+CITED_PATH_RE = re.compile(
+    r"\b(?:tools|tests|background|company|saas|simulation|sim|site|docs|scripts)"
+    r"/[\w./-]+\.(?:py|md|ya?ml|json|js|html|csv|txt)\b"
+)
+
+
+def cited_paths(text: str) -> list:
+    """Repo-relative paths a piece of prose names. Pure -> mutation-testable."""
+    if not isinstance(text, str):
+        return []
+    return sorted(set(CITED_PATH_RE.findall(text)))
+
+
+def row_cited_paths(row) -> list:
+    """Every repo path cited anywhere in an atom row EXCEPT its file_scope (which the caller
+    already holds). Pure. Walks strings at any depth, because the evidence for a level move lives
+    in `build_note`, `exit_criteria`, `block_reason` and free YAML comment prose in roughly equal
+    measure -- and the incident that produced this control took a hand-read of a thirty-line
+    comment to recover four paths."""
+    found: set = set()
+
+    def walk(o, key=None):
+        if isinstance(o, str):
+            if key != "file_scope":
+                found.update(cited_paths(o))
+        elif isinstance(o, dict):
+            for k, v in o.items():
+                walk(v, k)
+        elif isinstance(o, list):
+            for v in o:
+                walk(v, key)
+
+    walk(row)
+    return sorted(found)
+
+
+def exists_cited_paths(source_text: str) -> list:
+    """Path literals a control asserts are PRESENT, via `.exists()`. Pure -> mutation-testable.
+
+    A document a control reaches is part of the claim whether or not the row remembered to name
+    it: `test_every_outstanding_row_names_a_document_that_still_exists` goes red the day its cited
+    finding is archived, so that finding is in the minimum landable unit of every atom that names
+    the control -- and nothing said so.
+
+    NEGATIVE CITATIONS ARE EXCLUDED, and that is the whole reason this is an AST walk and not a
+    grep. `assert not (REPO / "saas" / "demand_response.py").exists()` asserts the path is GONE;
+    putting it in a set called "what the commit must contain" would invert the control it came
+    from. Any `.exists()` under a `not` is dropped.
+
+    MODULE-LEVEL CONSTANTS ARE RESOLVED, because measured over all 1,693 controls in the tree the
+    inline-literal rule alone yielded 6 citations from 6 files. The dominant real shape is
+    `PAGE = PROJECT / "site/ladder/index.html"` at module level and `PAGE.exists()` in the body,
+    and a rule that misses it is decorative rather than wrong.
+
+    DECLARED CONTROL-SET HOLE: only literal path components are recovered. `(project / path)
+    .exists()` over a loop variable yields nothing here, so a control that computes its citations
+    at runtime contributes no rows -- stated rather than hidden, because the printed unit is a
+    floor on what the commit needs and never a ceiling.
+    """
+    try:
+        tree = ast.parse(source_text)
+    except Exception:  # noqa: BLE001 -- unparseable source cites nothing; never raise into a gate
+        return []
+    consts: dict = {}
+    for node in tree.body:
+        if isinstance(node, (ast.Assign, ast.AnnAssign)) and node.value is not None:
+            targets = node.targets if isinstance(node, ast.Assign) else [node.target]
+            names = [t.id for t in targets if isinstance(t, ast.Name)]
+            if names:
+                lits = _path_literals(node.value)
+                for n in names:
+                    consts[n] = lits
+    negated: set = set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.UnaryOp) and isinstance(node.op, ast.Not):
+            for inner in ast.walk(node.operand):
+                if isinstance(inner, ast.Call):
+                    negated.add(id(inner))
+    found: set = set()
+    for node in ast.walk(tree):
+        if not (isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute)
+                and node.func.attr == "exists" and id(node) not in negated):
+            continue
+        subject = node.func.value
+        parts = _path_literals(subject)
+        if not parts and isinstance(subject, ast.Name):
+            parts = consts.get(subject.id, [])
+        for one in parts:
+            found.update(cited_paths(one))
+        if len(parts) > 1:
+            # `REPO / "saas" / "demand_response.py"` -- the path only matches once rejoined.
+            found.update(cited_paths("/".join(parts)))
+    return sorted(found)
+
+
+def _path_literals(node) -> list:
+    """String constants in an expression, in SOURCE order. Pure.
+
+    Source order is the point: `REPO / "saas" / "demand_response.py"` is a left-leaning BinOp
+    chain, and `ast.walk`'s breadth-first order returns its components reversed -- rejoining that
+    yields `demand_response.py/saas`, which matches nothing and would make the whole rejoin leg a
+    silent no-op. This recurses left-then-right instead.
+    """
+    out: list = []
+    if isinstance(node, ast.Constant) and isinstance(node.value, str):
+        return [node.value]
+    for child in ast.iter_child_nodes(node):
+        out.extend(_path_literals(child))
+    return out
+
+
+def minimum_landable_unit(file_scope: list, row=None, control_sources=None) -> list:
+    """The explicit set of paths a commit must contain for one row's level claim to hold. Pure.
+
+    Three sources, in the order the incident found them: the row's own `file_scope`; every repo
+    path its prose cites; every path a control in that file_scope asserts `.exists()`.
+    `control_sources` maps a file_scope path -> its source text (or None when it could not be
+    read, which contributes nothing rather than raising).
+    """
+    unit = set(p for p in (file_scope or []) if isinstance(p, str))
+    if row is not None:
+        unit.update(row_cited_paths(row))
+    for text in (control_sources or {}).values():
+        if isinstance(text, str):
+            unit.update(exists_cited_paths(text))
+    return sorted(unit)
+
+
+def absent_evidence_increases(increases: list, scopes: dict, presence) -> list:
+    """THE fifth predicate: level increases whose file_scope names a path the commit's tree does
+    NOT contain. Pure -> mutation-testable.
+
+    `presence` maps path -> bool (is it in the tree this commit would create), or is None when the
+    probe could not be run at all -- an unavailable check is a FAILED check (R15 fail-silent), so
+    every increase carrying a scope is refused rather than passed for want of an answer. An atom
+    with no file_scope has nothing to check and is passed through: that is the same declared
+    control-set hole `main()` already reports, not a second silent one.
+    """
+    out = []
+    for inc in increases:
+        scope = [p for p in (scopes.get(inc["atom"]) or []) if isinstance(p, str)]
+        if not scope:
+            continue
+        if presence is None:
+            out.append({**inc, "absent": [], "unverifiable": True})
+            continue
+        absent = [p for p in scope if not presence.get(p)]
+        if absent:
+            out.append({**inc, "absent": sorted(absent), "unverifiable": False})
+    return out
+
+
+def format_minimum_landable_unit(unit: list, presence) -> str:
+    """The refusal's most useful line: the unit, each path marked against the commit's tree. Pure.
+
+    `presence` None (probe failed) marks every path `?` rather than claiming either answer.
+    """
+    if not unit:
+        return "    (nothing -- the row declares no file_scope and cites no path)"
+    lines = []
+    for p in unit:
+        mark = "?" if presence is None else ("present" if presence.get(p) else "MISSING")
+        lines.append(f"    [{mark}] {p}")
+    return "\n".join(lines)
+
+
+# ═══════════════════════════════════════════════════════════════════════════════════════════════
 # THIRD CONTROL (OPS11, 2026-08-13): a level may not be RAISED in a lane a BLOCKING finding holds.
 # ═══════════════════════════════════════════════════════════════════════════════════════════════
 #
@@ -592,6 +820,47 @@ def _scope_status(paths: list) -> str | None:
     return r.stdout if r.returncode == 0 else None
 
 
+def _tracked_in_commit(paths: list) -> dict | None:
+    """{path: is it in the tree THIS COMMIT would create}, or None if the probe failed.
+
+    THE INDEX IS THE RIGHT SUBJECT HERE, said out loud because this repo carries a filed finding
+    about a control that was green only because `git ls-files` sees the index. There the index was
+    the wrong subject; here it is the only correct one -- the index IS the tree the commit creates,
+    so `present` covers both "already at HEAD and untouched" and "landing in this very commit",
+    which is exactly what the claim needs and what "absent from HEAD" alone would get wrong for a
+    path the raise lands alongside itself.
+
+    DIRECTORY PATHSPECS MATTER: 106 of the map's file_scope entries are directories
+    (`docs/design`, `tools`, `tests/sim`). An exact-match membership test reads all 106 as absent
+    and this control becomes unpassable; the prefix test reads 20, all of them genuinely absent.
+    Read-only, one process for the whole set.
+    """
+    wanted = [p for p in dict.fromkeys(paths) if isinstance(p, str) and p.strip()]
+    if not wanted:
+        return {}
+    env = {k: v for k, v in os.environ.items() if k != "GIT_PREFIX"}
+    try:
+        r = subprocess.run(["git", "ls-files", "--cached", "--", *wanted],
+                           cwd=str(ROOT), env=env, capture_output=True, text=True, timeout=60)
+    except Exception:  # noqa: BLE001 -- probe unavailable == probe failed (R15 fail-silent)
+        return None
+    if r.returncode != 0:
+        return None
+    tracked = {ln.strip() for ln in r.stdout.splitlines() if ln.strip()}
+    out = {}
+    for p in wanted:
+        rel = p.rstrip("/")
+        out[p] = rel in tracked or any(t.startswith(rel + "/") for t in tracked)
+    return out
+
+
+def _control_sources(paths: list) -> dict:
+    """{path: source text} for the `.py` members of a file_scope, read from the INDEX (the commit's
+    own content, matching `_tracked_in_commit`'s subject). An unreadable member maps to None and
+    contributes no citations."""
+    return {p: _git_show(f":{p}") for p in paths if isinstance(p, str) and p.endswith(".py")}
+
+
 def _whole_map(rev_prefix: str) -> str | None:
     """The WHOLE map at a revision: both halves, concatenated. The map became two files on
     2026-08-26 (`maturity_map.yaml` + `maturity_map_closed.yaml`), and this gate compares atom
@@ -672,6 +941,47 @@ def main() -> int:
         scopes = atom_file_scopes(new_text)
     except Exception:  # noqa: BLE001 -- new_text already parsed above; unreachable in practice
         scopes = {}
+    try:
+        rows = atom_rows(new_text)
+    except Exception:  # noqa: BLE001 -- as above; an unread row contributes no cited paths
+        rows = {}
+
+    # ── FIFTH CONTROL: the evidence must EXIST, and the refusal names what the commit must hold ──
+    # This runs BEFORE the dirty check because absence is the stronger statement and the one that
+    # check is blind to: a path that exists nowhere emits no porcelain, so it reads clean there.
+    units = {}
+    for inc in increases:
+        scope = scopes.get(inc["atom"]) or []
+        units[inc["atom"]] = minimum_landable_unit(
+            scope, rows.get(inc["atom"]), _control_sources(scope))
+    presence = _tracked_in_commit(sorted({p for u in units.values() for p in u}))
+    absent = absent_evidence_increases(increases, scopes, presence)
+    if absent:
+        lines = []
+        for a in absent:
+            unit = format_minimum_landable_unit(units.get(a["atom"]) or [], presence)
+            if a["unverifiable"]:
+                lines.append(
+                    f"§0: level_current {a['from']}->{a['to']} on {a['atom']} could not be verified "
+                    f"as EVIDENCED -- the `git ls-files` probe over its file_scope failed. An "
+                    f"unavailable check is a failed check (R15), so the raise is refused rather "
+                    f"than assumed clean.\n  MINIMUM LANDABLE UNIT (presence unknown):\n{unit}")
+                continue
+            lines.append(
+                f"§0: level_current {a['from']}->{a['to']} on {a['atom']} raises a level on "
+                f"evidence that is NOT IN THE TREE THIS COMMIT WOULD CREATE. Absent:\n    "
+                + "\n    ".join(a["absent"]) + "\n"
+                "  A path that exists nowhere emits no `git status` output, so the built-check "
+                "below reads it as clean -- which is how W2_30 and W2_28 each reached the "
+                "publisher 36 hours later as a refusal with no path in it. Fix: land the evidence "
+                "in THIS commit, or take the path out of the atom's file_scope if it is not part "
+                "of the claim.\n"
+                f"  MINIMUM LANDABLE UNIT -- what a commit must contain for {a['atom']} at level "
+                f"{a['to']} to hold:\n{unit}")
+        sys.stderr.write("\n[level-gate] ❌ COMMIT REFUSED (a level move's evidence must EXIST in "
+                         "the commit that declares it):\n" + "\n".join(lines) + "\n")
+        return 1
+
     scope_status, no_scope = {}, []
     for inc in increases:
         paths = scopes.get(inc["atom"]) or []
@@ -704,7 +1014,10 @@ def main() -> int:
                 "(WORKER_FINDING_A_LEVEL_CAN_BE_DECLARED_FOR_UNCOMMITTED_CODE_2026-08-10). Fix: "
                 "`git add` that source into THIS commit (or commit it first), then re-commit the "
                 "level move. If the file genuinely is not part of the claim, take it out of the "
-                "atom's file_scope."
+                f"atom's file_scope.\n"
+                f"  MINIMUM LANDABLE UNIT -- what a commit must contain for {u['atom']} at level "
+                f"{u['to']} to hold:\n"
+                + format_minimum_landable_unit(units.get(u["atom"]) or [], presence)
             )
         sys.stderr.write("\n[level-gate] ❌ COMMIT REFUSED (a level move must be BUILT in the commit "
                          "that declares it):\n" + "\n".join(lines) + "\n")
