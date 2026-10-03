@@ -542,3 +542,69 @@ def test_the_belt_is_a_LITERAL_and_not_derived_from_the_payloads_it_guards():
     assert all(
         isinstance(e, ast.Constant) and isinstance(e.value, str) for e in node.value.elts
     )
+
+
+# ---------------------------------------------------------------------------
+# The real ARUDD code -- the seam re-spelt in the bank's own vocabulary.
+# ---------------------------------------------------------------------------
+
+
+def test_every_arudd_code_the_contract_names_is_the_sourced_code_and_text():
+    """Defect guarded: the contract declaring an ARUDD code or text that the
+    repo's sourced table does not hold -- an invented code read as a real one.
+    The contract may not import `simulation/`, so it duplicates the table; this
+    holds the two copies equal. It also holds the adapter's emitted
+    `reason_text` to the published text, so the line that actually crosses
+    says what a bank would print beside that code."""
+    from interface.contracts.payment_observable_seam import ARUDD_REASON_CODE
+    from simulation.bacs_rails import ARUDD_REASON_CODES
+    from simulation.payment_seam_adapter import _REASON_CATEGORY_TEXT
+
+    coded = {c: e for c, e in ARUDD_REASON_CODE.items() if e is not None}
+    assert coded, "no category carries a code -- the table is all gap"
+    for category, (code, text) in coded.items():
+        assert int(code) in ARUDD_REASON_CODES, (category, code)
+        assert ARUDD_REASON_CODES[int(code)] == text, (category, code, text)
+        assert _REASON_CATEGORY_TEXT[category] == text, category
+    codes = [code for code, _ in coded.values()]
+    assert len(codes) == len(set(codes)), "two categories claim one code"
+
+
+def test_every_category_has_a_code_or_a_named_gap_and_both_branches_are_taken():
+    """Defect guarded: a category added to the enum with no code and no
+    reason (a silent hole), a `None` with no named gap, or a gap entry left
+    standing beside a code. The partition control asserts both branches are
+    reachable first, so an all-None or all-coded table cannot pass."""
+    from interface.contracts.payment_observable_seam import (
+        ARUDD_REASON_CODE,
+        ARUDD_REASON_CODE_GAP,
+    )
+
+    assert set(ARUDD_REASON_CODE) == set(BacsReasonCategory)
+    uncoded = {c for c, e in ARUDD_REASON_CODE.items() if e is None}
+    assert uncoded and uncoded != set(BacsReasonCategory)
+    assert set(ARUDD_REASON_CODE_GAP) == uncoded
+    assert all(reason.strip() for reason in ARUDD_REASON_CODE_GAP.values())
+
+
+def test_an_arudd_line_reports_the_code_its_category_denotes():
+    """Defect guarded: the property ignoring the line's own category (a
+    constant answer, or always None)."""
+
+    def line(category):
+        return BacsArruddOutcome(
+            mandate_ref="MREF-1",
+            account_id="ACC-1",
+            amount_gbp=85.50,
+            outcome=DDOutcomeStatus.FAILURE,
+            reason_category=category,
+            reason_text="",
+            value_date=dt.date(2026, 7, 4),
+        )
+
+    assert line(BacsReasonCategory.INSUFFICIENT_FUNDS).arudd_reason_code == "0"
+    assert line(BacsReasonCategory.PAYER_DECEASED).arudd_reason_code == "2"
+    assert line(BacsReasonCategory.ACCOUNT_CLOSED).arudd_reason_code is None
+    assert "arudd_reason_code" not in {
+        f.name for f in dataclasses.fields(BacsArruddOutcome)
+    }, "the code became a wire field -- that is a release, bump SCHEMA_VERSION"
