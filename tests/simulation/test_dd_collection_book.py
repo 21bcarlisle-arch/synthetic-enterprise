@@ -300,6 +300,16 @@ class TestOutcomeSequenceMatchesGroundTruth:
             )
             expected_outcomes.append("collected" if outcome == "success" else "failed")
 
+        # PB8: the desk stops presenting after N consecutive returns, so the register
+        # is the ground-truth sequence up to and including that return, then nothing.
+        from company.billing.dd_collections_desk import DD_STOP_THRESHOLD_CONSECUTIVE_RETURNS
+        run = 0
+        for i, o in enumerate(expected_outcomes):
+            run = run + 1 if o == "failed" else 0
+            if run == DD_STOP_THRESHOLD_CONSECUTIVE_RETURNS:
+                expected_outcomes = expected_outcomes[: i + 1]
+                break
+
         book = build_dd_collection_book(bills, behavioral, seed=42)
         actual_outcomes = [a.outcome for a in book.attempts_for_customer("C1")]
 
@@ -318,6 +328,10 @@ class TestOutcomeSequenceMatchesGroundTruth:
         from simulation.arrears_engine import _fuel_poor_for_bill, _tone_for_bill
 
         monkeypatch.setattr("simulation.dd_collection_book.payment_method", lambda *a, **k: "direct_debit")
+        # The subject here is RNG sync through the amendment path over a full year, so
+        # the PB8 stop (which would end the sequence early at HIGH stress) is held off.
+        monkeypatch.setattr(
+            "company.billing.dd_collections_desk.DD_STOP_THRESHOLD_CONSECUTIVE_RETURNS", 10**6)
 
         # A genuine sustained step change partway through the year, with a
         # clear majority at the new level within the 12-bill window (a
@@ -360,6 +374,8 @@ class TestOutcomeSequenceMatchesGroundTruth:
         import simulation.dd_collection_book as mod
         monkeypatch.setattr(mod, "payment_method", lambda *a, **k: "direct_debit")
         monkeypatch.setattr("simulation.arrears_engine.payment_method", lambda *a, **k: "direct_debit")
+        monkeypatch.setattr(
+            "company.billing.dd_collections_desk.DD_STOP_THRESHOLD_CONSECUTIVE_RETURNS", 10**6)
 
         bills = [_resi_bill("C1", f"2020-{m:02d}-28") for m in range(1, 13)]
         behavioral = {"C1": {"income_stress_trajectory": [{"year": 2020, "stress": "HIGH"}]}}
