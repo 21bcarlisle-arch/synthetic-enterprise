@@ -1,6 +1,6 @@
 {
   "_schema_version": "1",
-  "last_updated": "2026-10-03T11:05:33.660556+00:00",
+  "last_updated": "2026-10-03T11:41:21.402292+00:00",
   "agents": [
     {
       "name": "session-watchdog",
@@ -15,7 +15,7 @@
     {
       "name": "staging-watcher",
       "status": "idle",
-      "last_heartbeat": "2026-10-03T11:05:33.660556+00:00",
+      "last_heartbeat": "2026-10-03T11:41:21.402292+00:00",
       "last_action": "Watcher started",
       "last_action_ts": "2026-10-03T11:05:33.660201+00:00",
       "anomaly": null,
@@ -75,7 +75,7 @@
     {
       "name": "background-worker",
       "status": "idle",
-      "last_heartbeat": "2026-10-03T11:05:31.158821+00:00",
+      "last_heartbeat": "2026-10-03T11:11:40.508751+00:00",
       "last_action": "Worker started",
       "last_action_ts": "2026-10-03T11:05:31.158821+00:00",
       "anomaly": null,
@@ -85,9 +85,9 @@
     {
       "name": "epistemic-verifier",
       "status": "idle",
-      "last_heartbeat": "2026-10-03T01:14:20.661486+00:00",
+      "last_heartbeat": "2026-10-03T11:40:46.653806+00:00",
       "last_action": "Scan complete \u2014 PASS (0 violations)",
-      "last_action_ts": "2026-10-03T01:14:20.661486+00:00",
+      "last_action_ts": "2026-10-03T11:40:46.653806+00:00",
       "anomaly": null,
       "role": "Scans phase-close diffs for SIM/company epistemic barrier violations",
       "produces": "PASS/FAIL report to stdout"
@@ -105,9 +105,9 @@
     {
       "name": "supervisor",
       "status": "idle",
-      "last_heartbeat": "2026-10-03T11:03:25.318199+00:00",
+      "last_heartbeat": "2026-10-03T11:40:32.007573+00:00",
       "last_action": "Supervisor started",
-      "last_action_ts": "2026-10-03T10:05:33.049734+00:00",
+      "last_action_ts": "2026-10-03T11:05:34.762880+00:00",
       "anomaly": null,
       "role": "Sole authority for turn-granting: polls every 2min, grants one turn via the locked relay when idle+work exists, escalates if grants stop producing progress",
       "produces": "tmux turn-grants + stuck-state NTFY escalation"
@@ -115,9 +115,9 @@
     {
       "name": "sanity-daemon",
       "status": "idle",
-      "last_heartbeat": "2026-10-03T10:52:43.532293+00:00",
+      "last_heartbeat": "2026-10-03T11:22:43.764220+00:00",
       "last_action": "Cycle complete",
-      "last_action_ts": "2026-10-03T10:52:43.532293+00:00",
+      "last_action_ts": "2026-10-03T11:22:43.764220+00:00",
       "anomaly": null,
       "role": "Detective/sampling control: population-level consumption/unit-rate/estimated-read checks against domain_invariants.py every 30min",
       "produces": "sanity-daemon-log.md entries + one NTFY per new/changed finding set"
