@@ -226,6 +226,20 @@ def test_the_queues_link_to_the_map_reaches_the_reader_as_all_three_counts():
     assert "6 name a real atom" in body and "29 were read against the map" in body
     assert "1 say nothing at all" in body and "1 could not be read" in body
     assert "maintenance_due_202610.md — missing lane, atom" in body
+    assert "(what kind of item they are is not recorded here)" in body
+
+
+def test_the_none_yet_count_says_what_kind_of_item_each_is():
+    """H45 EH-2: the none-yet share was one undivided number, 13 of whose 25 were machine alarm
+    repeats. The split must reach the reader. MUTATION (must fire): drop the split from the
+    sentence, or render it for a feed without the field."""
+    body = _text(_with_queue_chain({
+        "available": True, "population": 3, "chained": 3, "minted": 0, "unminted": 3,
+        "unminted_by_kind": {"alarm": 2, "finding": 1}, "unchained": [], "unreadable": 0,
+    })["delivery-queue-chain"]["innerHTML"])
+
+    assert "need an atom that does not exist yet (by kind: alarm 2" in body
+    assert "finding 1" in body and "not recorded here" not in body
 
 
 def test_the_queue_panel_names_ghost_atoms_and_epochs_that_are_not_their_atoms():

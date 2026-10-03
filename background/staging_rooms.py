@@ -872,7 +872,10 @@ def chain_census(root: Path | str = DEFAULT_STAGING_ROOT,
     `chained + len(unchained) + unreadable == population`, and `chained` splits three ways:
     `minted` (names an atom the map holds), `unminted` (said `unminted` -- triaged, not yet
     minted) and `unresolved` (names an atom the map does not hold, which `is_minted` alone
-    cannot see). `epoch_contradicted` lists the minted items whose declared epoch is not their
+    cannot see). `unminted_by_kind` says why the none-yet share is what it is: on 2026-10-03,
+    13 of its 25 were machine alarm repeats, 4 standing registers and 1 the monthly maintenance
+    marker; only 7 were findings that might want an atom -- one undivided count read as 25 orphaned pieces of work.
+    `epoch_contradicted` lists the minted items whose declared epoch is not their
     atom's; `by_epoch` is where the minted work accretes, keyed by the ATOM's epoch.
     The gaps ARE `unchained()`, the list the commit gate refuses on, so the page and the gate
     cannot become two opinions; an unreadable item is neither, and is counted as such.
@@ -883,6 +886,10 @@ def chain_census(root: Path | str = DEFAULT_STAGING_ROOT,
     chained = [c for c in (chain_of(i.path) for i in queue) if c.is_chained]
     gaps = unchained(root)
     minted = [c for c in chained if c.is_minted and c.atom in epochs]
+    by_kind: dict[str, int] = {}
+    for c in chained:
+        if not c.is_minted:
+            by_kind[kind_of(c.path.name)] = by_kind.get(kind_of(c.path.name), 0) + 1
     by_epoch: dict[str, int] = {}
     for c in minted:
         key = str(epochs[c.atom]) if epochs[c.atom] is not None else "none on the map"
@@ -892,6 +899,7 @@ def chain_census(root: Path | str = DEFAULT_STAGING_ROOT,
         "chained": len(chained),
         "minted": len(minted),
         "unminted": sum(1 for c in chained if not c.is_minted),
+        "unminted_by_kind": dict(sorted(by_kind.items())),
         "unresolved": [{"name": c.path.name, "atom": c.atom}
                        for c in chained if c.is_minted and c.atom not in epochs],
         "epoch_contradicted": [{"name": c.path.name, "why": why} for c in minted

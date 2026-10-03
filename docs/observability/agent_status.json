@@ -1,6 +1,6 @@
 {
   "_schema_version": "1",
-  "last_updated": "2026-10-03T10:20:15.894957+00:00",
+  "last_updated": "2026-10-03T11:05:33.660556+00:00",
   "agents": [
     {
       "name": "session-watchdog",
@@ -15,9 +15,9 @@
     {
       "name": "staging-watcher",
       "status": "idle",
-      "last_heartbeat": "2026-10-03T10:20:09.237747+00:00",
+      "last_heartbeat": "2026-10-03T11:05:33.660556+00:00",
       "last_action": "Watcher started",
-      "last_action_ts": "2026-10-03T10:05:31.907624+00:00",
+      "last_action_ts": "2026-10-03T11:05:33.660201+00:00",
       "anomaly": null,
       "role": "Monitors docs/staging/ for new files; sends NTFY to alert CC",
       "produces": "NTFY notifications on new staging files"
@@ -75,9 +75,9 @@
     {
       "name": "background-worker",
       "status": "idle",
-      "last_heartbeat": "2026-10-03T10:05:32.071000+00:00",
+      "last_heartbeat": "2026-10-03T11:05:31.158821+00:00",
       "last_action": "Worker started",
-      "last_action_ts": "2026-10-03T10:05:30.065514+00:00",
+      "last_action_ts": "2026-10-03T11:05:31.158821+00:00",
       "anomaly": null,
       "role": "Runs background automation tasks via local Qwen; respects 16-19 UTC peak hours",
       "produces": "docs/observability/background-worker-log.md"
@@ -105,7 +105,7 @@
     {
       "name": "supervisor",
       "status": "idle",
-      "last_heartbeat": "2026-10-03T10:16:49.314316+00:00",
+      "last_heartbeat": "2026-10-03T11:03:25.318199+00:00",
       "last_action": "Supervisor started",
       "last_action_ts": "2026-10-03T10:05:33.049734+00:00",
       "anomaly": null,
@@ -115,9 +115,9 @@
     {
       "name": "sanity-daemon",
       "status": "idle",
-      "last_heartbeat": "2026-10-03T09:52:42.911876+00:00",
+      "last_heartbeat": "2026-10-03T10:52:43.532293+00:00",
       "last_action": "Cycle complete",
-      "last_action_ts": "2026-10-03T09:52:42.911876+00:00",
+      "last_action_ts": "2026-10-03T10:52:43.532293+00:00",
       "anomaly": null,
       "role": "Detective/sampling control: population-level consumption/unit-rate/estimated-read checks against domain_invariants.py every 30min",
       "produces": "sanity-daemon-log.md entries + one NTFY per new/changed finding set"
