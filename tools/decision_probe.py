@@ -41,7 +41,7 @@ import json
 import statistics
 from pathlib import Path
 
-RULES = ("flat", "value", "value_blind", "value_learned", "value_capped")
+RULES = ("flat", "value", "value_blind", "value_learned", "value_capped", "value_capped_learned")
 #: The value arm with the company's payment history taken away -- arrears state, unpaid bills and
 #: payment method stripped from the door, exactly what it saw before e0370bf94. Scored against
 #: "value" on the same decision, it is the payment-history fix measured rule against rule.
@@ -111,6 +111,7 @@ def probe(report_end: str | None = None, roll_seed: int | None = None) -> list[d
     import simulation.run_phase2b as runner
     from company.policy.decision_policy import (
         CURRENT_POLICY,
+        VALUE_ARM_CAPPED_LEARNED_POLICY,
         VALUE_ARM_CAPPED_POLICY,
         VALUE_ARM_LEARNED_POLICY,
         VALUE_ARM_POLICY,
@@ -139,6 +140,8 @@ def probe(report_end: str | None = None, roll_seed: int | None = None) -> list[d
             # The value arm that knows a stayer is billed at most the default.
             with policy_scope(VALUE_ARM_CAPPED_POLICY):
                 capped = real_price(**kw)
+            with policy_scope(VALUE_ARM_CAPPED_LEARNED_POLICY):
+                capped_learned = real_price(**kw)
             levels, believed_at_level = {}, {}
             for level in LEVEL_GRID:
                 with policy_scope(replace(CURRENT_POLICY, name="level_arm",
@@ -155,11 +158,13 @@ def probe(report_end: str | None = None, roll_seed: int | None = None) -> list[d
                           "value": value.unit_rate_gbp_per_mwh,
                           "value_blind": blind.unit_rate_gbp_per_mwh,
                           "value_learned": learned.unit_rate_gbp_per_mwh,
-                          "value_capped": capped.unit_rate_gbp_per_mwh},
+                          "value_capped": capped.unit_rate_gbp_per_mwh,
+                          "value_capped_learned": capped_learned.unit_rate_gbp_per_mwh},
                 "learned_delta": learned_delta,
                 "levels": levels,
                 "believed_at_level": believed_at_level,
                 "believed_p_retain_capped": _believed(capped),
+                "believed_p_retain_capped_learned": _believed(capped_learned),
                 # Whether the world's decline-and-stay rule can reach this decision: the run loop's
                 # own conditions, less the splice (a mid-term join is not a renewal this probes).
                 "declinable": bool(runner.DECLINE_A_FIX_ABOVE_THE_DEFAULT
@@ -205,6 +210,7 @@ def probe(report_end: str | None = None, roll_seed: int | None = None) -> list[d
             "learned_delta": held["learned_delta"],
             "believed_p_retain_value": held["believed_p_retain"],
             "believed_p_retain_capped": held["believed_p_retain_capped"],
+            "believed_p_retain_capped_learned": held["believed_p_retain_capped_learned"],
             # The company's own P(stay) at each grid offer beside the world's: the belief curve
             # against the truth curve, per decision.
             "level_grid": {str(lv): {"offer": round(o, 4), "p": level_p[lv],

@@ -221,6 +221,12 @@ VALUE_ARM_LEARNED_POLICY = replace(
 VALUE_ARM_CAPPED_POLICY = replace(
     VALUE_ARM_POLICY, name="value_arm_capped", renewal_stayer_pays_at_most_default=True)
 
+#: Both: a stayer is billed at most the default, and the price response is learned from the
+#: company's own closed renewals (B8) -- the slope learning without the above-default offers that
+#: made it push the wrong way.
+VALUE_ARM_CAPPED_LEARNED_POLICY = replace(
+    VALUE_ARM_CAPPED_POLICY, name="value_arm_capped_learned", learn_price_response=True)
+
 
 # ---- THE RUN'S POLICY, for consumers that are not handed one ----------------
 #
