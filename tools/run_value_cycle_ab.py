@@ -492,13 +492,21 @@ RENEWAL_DECISION_FIELDS = ("customer_id", "commodity", "term_start", "declined",
                            "chosen_margin_gbp_per_mwh", "offered_rate_gbp_per_mwh")
 
 
+#: What the arm BELIEVED about the money a renewal's household owes, carried beside the decision
+#: and never compared as one (2026-10-03): the bad debt the arm charged this renewal per year, and
+#: the expected loss on the balance it already owed. A run reports them so a reader can see the
+#: payment history reached the price; `decided_differently_by_account` never reads them.
+RENEWAL_BELIEF_FIELDS = ("believed_bad_debt_gbp_per_year", "receivable_expected_loss_gbp")
+
+
 def _renewal_decision_rows(arm_result: dict | None) -> list[dict] | None:
     """Every row of one arm's renewal log, declines included, cut to what the arm decided.
     None when the arm did not run -- absent, never an empty list that reads as "decided nothing"."""
     if arm_result is None:
         return None
     log = (arm_result.get("phase2b") or {}).get("value_arm_log") or []
-    return [{f: e.get(f) for f in RENEWAL_DECISION_FIELDS} for e in log if isinstance(e, dict)]
+    return [{f: e.get(f) for f in (*RENEWAL_DECISION_FIELDS, *RENEWAL_BELIEF_FIELDS)}
+            for e in log if isinstance(e, dict)]
 
 
 def decided_differently_by_account(value_rows: list[dict] | None,
