@@ -75,6 +75,7 @@ def decide_renewal_rate(
     arrears_state: str | None = None,
     receivable: dict | None = None,
     payment_method: str | None = None,
+    default_belief_rate: float | None = None,
 ) -> RenewalRateChain:
     """Ask the company what rate it is contracting this renewal at.
 
@@ -124,4 +125,5 @@ def decide_renewal_rate(
         arrears_state=arrears_state,
         receivable=receivable,
         payment_method=payment_method,
+        default_belief_rate=default_belief_rate,
     )
