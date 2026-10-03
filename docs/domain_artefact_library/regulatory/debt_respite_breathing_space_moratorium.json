@@ -1,0 +1,91 @@
+{
+  "artefact": "debt_respite_breathing_space_moratorium",
+  "version": 1,
+  "published_by": "UK Parliament (Statutory Instrument, made by HM Treasury)",
+  "what_this_is": "THE LAW, NOT A READING OF IT. The durations of the two Debt Respite Scheme moratoria and the enumeration of what a creditor may not do to moratorium debt while one is in force, quoted from the made text. Which dunning step counts as which prohibited step is a READING, and it lives in the lane that reads it (`company/billing/arrears_engine.py`).",
+  "source": {
+    "document": "The Debt Respite Scheme (Breathing Space Moratorium and Mental Health Crisis Moratorium) (England and Wales) Regulations 2020, SI 2020/1311",
+    "url": "https://www.legislation.gov.uk/uksi/2020/1311/made",
+    "fetched": "2026-10-03",
+    "regulations_read": ["1", "2", "6", "7", "11", "16", "25", "26", "32"]
+  },
+  "the_rule_in_one_sentence": "While a moratorium is in force, a creditor may not take ANY step to collect a debt the debtor owed when the application was made -- not only enforcement in the everyday sense: reg 7(7)(a) makes 'a step to collect a moratorium debt' itself enforcement action, and reg 11(1) forbids contact 'to demand payment'.",
+  "in_force_from": {
+    "date": "2021-05-04",
+    "quoted": "these Regulations come into force on 4th May 2021",
+    "regulation": "1(2)"
+  },
+  "territory": {
+    "quoted": "These Regulations extend to England and Wales only. ... apply in respect of debtors domiciled or ordinarily resident in England or Wales.",
+    "regulation": "1(8), 1(9)"
+  },
+  "breathing_space_moratorium": {
+    "starts": {
+      "quoted": "A breathing space moratorium starts on the day following the day on which the Secretary of State causes an entry to be made on the register",
+      "regulation": "26(1)"
+    },
+    "duration_days": 60,
+    "duration_counts_the_start_day": true,
+    "quoted": "A moratorium continues for 60 days beginning with the date on which it started",
+    "regulation": "26(2)",
+    "the_last_protected_day": "start + 59 days. 'Beginning with' counts the start date as day 1, so a moratorium starting 1 June protects 1 June to 30 July inclusive and 31 July is unprotected. Until 2026-10-03 `breathing_space_register.py` read it as start + 60 inclusive -- 61 days."
+  },
+  "mental_health_crisis_moratorium": {
+    "post_treatment_days": 30,
+    "quoted": "A mental health crisis moratorium ends on the earliest of -- (a) the end of the period of 30 days beginning with the day on which the debtor stops receiving mental health crisis treatment, ...",
+    "regulation": "32(2)",
+    "no_fixed_end": "It has no duration of its own: its end is keyed to a treatment end date the supplier learns only from the register, so a supplier holding no end notification must treat it as in force."
+  },
+  "moratorium_debt": {
+    "quoted": "any qualifying debt -- (a) that was incurred by a debtor in relation to whom a moratorium is in place, (b) that was owed by the debtor at the point at which the application for the moratorium was made, and (c) about which information has been provided to the Secretary of State by a debt advice provider",
+    "regulation": "6"
+  },
+  "energy_supply_is_an_ongoing_liability": {
+    "quoted": "'ongoing liabilities' means any payment, other than in respect of a payment shortfall, which is due in relation to -- ... the supply of water, sewerage, electricity, gas, heating oil or solid fuel",
+    "regulation": "2(1)",
+    "consequence": "Energy consumed DURING the moratorium is not moratorium debt; the debtor must keep paying it (reg 16(2)(b)) and the creditor may contact the debtor about it (reg 11(2)(b)(i))."
+  },
+  "a_creditor_may_not": {
+    "regulation": "7(6)",
+    "steps": {
+      "a": "require a debtor to pay interest that accrues on a moratorium debt during a moratorium period",
+      "b": "require a debtor to pay fees, penalties or charges in relation to a moratorium debt that accrue during a moratorium period",
+      "c": "take any enforcement action in respect of a moratorium debt",
+      "d": "instruct an agent to take any of the actions mentioned in sub-paragraphs (a) to (c)"
+    }
+  },
+  "enforcement_action_includes": {
+    "regulation": "7(7)",
+    "energy_relevant_limbs": {
+      "a": "take a step to collect a moratorium debt from a debtor",
+      "f": "start any action or legal proceedings against a debtor relating to or as a consequence of non-payment of a moratorium debt",
+      "h": "take steps to install a pre-payment meter under paragraph 7(3)(a) of Schedule 2B to the Gas Act 1986 or paragraph 2(1)(a) of Schedule 6 to the Electricity Act 1989 to take payments in respect of a moratorium debt, or use a pre-payment meter already installed to take such payments, unless a debtor had provided their consent for the installation of the pre-payment meter before the moratorium started",
+      "i": "take steps to disconnect a debtor's premises from a supply of gas ... or electricity ... unless the debtor had taken the supply of gas or electricity illegally",
+      "l": "contact a debtor for the purpose of enforcement of a moratorium debt"
+    }
+  },
+  "contact_is_restricted_too": {
+    "quoted": "During a moratorium period neither a creditor nor the creditor's agent must contact a debtor in relation to the enforcement of a moratorium debt, including to demand payment ...",
+    "regulation": "11(1)",
+    "still_permitted": "contact with the debt advice provider; with the debtor about ongoing liabilities, at the debtor's request, or in response to a query or complaint (reg 11(2))"
+  },
+  "NOT_ESTABLISHED_declared_rather_than_assumed": [
+    "How often a GB energy customer enters a moratorium. The Insolvency Service publishes monthly registration counts across all creditors; no source here splits them by creditor type, so nothing in this repository can yet say how many of a supplier's debtors would be in one.",
+    "Scotland. Scottish debtors fall under a different scheme (the Debt Arrangement Scheme / Scottish moratorium under the Bankruptcy (Scotland) Act 2016); this artefact covers England and Wales only and says nothing about it."
+  ],
+  "r13_wall": "BASELINE. Published statute, not a curriculum value.",
+  "portability": "Any lane may read this. A supplier learns of a moratorium from the Secretary of State's notification of its start (reg 25(2)(b); the Insolvency Service runs the register), so it is an observable a real supplier holds -- not ground truth.",
+  "source_check": {
+    "publication": "SI 2020/1311, The Debt Respite Scheme (Breathing Space Moratorium and Mental Health Crisis Moratorium) (England and Wales) Regulations 2020, as made",
+    "url": "https://www.legislation.gov.uk/uksi/2020/1311/made",
+    "fetched": "2026-10-03",
+    "version_token": null,
+    "version_token_is": "none_published",
+    "how_to_recheck": "GET https://www.legislation.gov.uk/changes/affected/uksi/2020/1311 and read the result count: any amending instrument that touches regs 7, 11, 26 or 32 is listed there. GET https://www.legislation.gov.uk/uksi/2020/1311/data.xml currently REDIRECTS to /made/data.xml (no revised text is published), so a fetch that stops redirecting is itself a signal that a revised version now exists.",
+    "checked_for_supersession": {
+      "on": "2026-10-03",
+      "found": "current",
+      "note": "The legislation.gov.uk changes register returned 0 recorded changes affecting SI 2020/1311, and the un-pinned data URL redirects to the made text."
+    }
+  }
+}

@@ -57,17 +57,35 @@ class TestRetentionOfferProperties:
         offer = book.generate_offer(risk, -50.0, 3500.0, 25.0)
         assert offer.is_offer_made is False
 
-    def test_expected_retention_value_positive(self):
+    def test_retention_value_if_retained_positive(self):
         risk = make_risk()
         book = CustomerRetentionBook()
         offer = book.generate_offer(risk, 200.0, 3500.0, 25.0)
-        assert offer.expected_retention_value_gbp > 0.0
+        assert offer.retention_value_if_retained_gbp > 0.0
 
-    def test_expected_retention_value_zero_when_no_offer(self):
+    def test_retention_value_if_retained_zero_when_no_offer(self):
         risk = make_risk()
         book = CustomerRetentionBook()
         offer = book.generate_offer(risk, -50.0, 3500.0, 25.0)
-        assert offer.expected_retention_value_gbp == 0.0
+        assert offer.retention_value_if_retained_gbp == 0.0
+
+    def test_the_offer_carries_the_probability_it_was_handed_not_only_the_band(self):
+        """C33 L1: the continuous P(churn) arrives on the risk and must survive onto the offer --
+        two risks in ONE band with different probabilities must stay distinguishable."""
+        book = CustomerRetentionBook()
+        a = book.generate_offer(make_risk(churn_probability=0.41), 200.0, 3500.0, 25.0)
+        b = book.generate_offer(make_risk(churn_probability=0.63), 200.0, 3500.0, 25.0)
+        assert a.churn_risk_band == b.churn_risk_band
+        assert (a.churn_probability, b.churn_probability) == (0.41, 0.63)
+
+    def test_the_conditional_value_is_not_published_as_an_expectation(self):
+        """C33 L1: the figure is value GIVEN retention, so no published name may call it expected."""
+        book = CustomerRetentionBook()
+        book.generate_offer(make_risk(), 200.0, 3500.0, 25.0)
+        keys = book.retention_summary()
+        assert not [k for k in keys if "expected" in k]
+        assert keys["total_retention_value_if_all_retained_gbp"] > 0.0
+        assert not hasattr(RetentionOffer, "expected_retention_value_gbp")
 
 
 # ---- Offer type selection ----
@@ -170,9 +188,9 @@ class TestCustomerRetentionBook:
         # C1 (0) + C3 (0) + C4 (70) = 70
         assert book.total_retention_spend_gbp == pytest.approx(70.0)
 
-    def test_total_expected_retention_value(self):
+    def test_total_retention_value_if_retained(self):
         book = self._populated_book()
-        assert book.total_expected_retention_value_gbp > 0.0
+        assert book.total_retention_value_if_retained_gbp > 0.0
 
     def test_retention_summary_keys(self):
         book = self._populated_book()

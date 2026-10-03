@@ -154,9 +154,8 @@ LEGACY_NUMBER_COLLISIONS = {
 
 # (e) atoms missing / null on a required field. Keyed by field -> ids.
 # 2026-08-05: exactly one -- D_opening_dd_seasonal_sizing carries no ``epoch``.
-LEGACY_MISSING_REQUIRED = {
-    "epoch": frozenset({"D_opening_dd_seasonal_sizing"}),
-}
+# 2026-10-03: none. a0144d9df gave it ``epoch: 3`` and the ratchet shrank to empty.
+LEGACY_MISSING_REQUIRED: dict = {}
 
 
 # ============================================================================
@@ -439,12 +438,15 @@ def test_required_field_mutation_fires_and_restores():
     assert check_required_fields(explicit_null) == [("A1_a", "level_current")]
 
 
-def test_required_field_allowlisted_atom_does_not_fire():
-    field, ids = next(iter(LEGACY_MISSING_REQUIRED.items()))
-    atom_id = next(iter(ids))
-    atom = _atom(id=atom_id)
-    del atom[field]
+def test_required_field_allowlisted_atom_does_not_fire(monkeypatch):
+    # The live allowlist is empty since 2026-10-03, so the mechanism is exercised on a synthetic
+    # entry -- and the same atom must FIRE once the entry is gone, or the exemption is the default.
+    atom = _atom(id="A1_a")
+    del atom["epoch"]
+    monkeypatch.setitem(globals(), "LEGACY_MISSING_REQUIRED", {"epoch": frozenset({"A1_a"})})
     assert check_required_fields([atom]) == []
+    monkeypatch.setitem(globals(), "LEGACY_MISSING_REQUIRED", {})
+    assert check_required_fields([atom]) == [("A1_a", "epoch")]
 
 
 # ============================================================================
