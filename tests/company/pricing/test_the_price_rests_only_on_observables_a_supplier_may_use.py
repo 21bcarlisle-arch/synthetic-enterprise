@@ -13,18 +13,19 @@ tenure, cost to serve, credit position, how late the account pays and what colle
 one is a supplier-side register a real retailer holds — a credit segment from its own checks, a
 payment history from its own ledger. None is a world internal.
 
-**AND PAYMENT METHOD IS NOT IN IT.** This is the cost-shift the director named, and it is refused by
-CONSTRUCTION rather than by policy: `payment_method` is not a parameter of `decide_margin` and the
-word appears nowhere in the pricing module, so a prepayment customer cannot be priced differently
-from a direct-debit one for being a prepayment customer. It reaches the churn BELIEF through the
-CIM engagement factor — which is a published, sourced reading — but the pricing path never passes
-it, so the belief takes the published default.
+**AND PAYMENT METHOD MAY NOT MOVE A CLEAN ACCOUNT'S PRICE.** This is the cost-shift the director
+named. Until 2026-10-03 it was refused by a word ban: `payment_method` was not a parameter and the
+word appeared nowhere in the module. `e0370bf94` made the method a parameter on purpose -- money a
+household already owes is provisioned on the published row for how it pays -- and the ban went red
+while a clean prepayment household was priced GBP 2.00-2.75/MWh above a clean DD one. The ban could
+not tell the two apart. The PROPERTY can: method may price DEBT (which row an unpaid bill is
+provisioned on), and may never price a household with none
+(`test_a_clean_account_is_not_priced_for_how_it_pays`).
 
 WHY THIS IS A CONTROL AND NOT A COMMENT. The property is a negative one, and negative properties rot
-silently: adding `payment_method=` to one call site would be a one-line change that no existing test
-would notice, and the result would be a book that prices prepayment customers by their meter type.
-The audit that answered the director's question was a `grep` run once by hand; this is that grep
-with a reason attached and a failure message a reader can act on.
+silently: a channel-keyed term anywhere on the pricing path would be a one-line change that no
+other test would notice, and the result would be a book that prices prepayment customers by their
+meter type.
 """
 from __future__ import annotations
 
@@ -64,6 +65,17 @@ ACCOUNT_OBSERVABLES = {
     "bill_shock_count", "satisfaction_score", "renewal_year", "annual_revenue_gbp",
     "credit_risk", "behaviour_score", "payment_delay_days", "collections_gbp_per_year",
     "fixed_revenue_gbp_per_year", "is_deemed_contract", "arrears_state",
+    # THE ACCOUNT'S OWN LEDGER (2026-10-03, `e0370bf94`): every unpaid bill with its age, and what
+    # was billed in the 365 days to the renewal. Both read off the company's own receivable.
+    "unpaid_bills_by_age", "billed_last_year_gbp",
+    # The company's own mandate register: how this account pays it. Admitted to price DEBT (which
+    # published provision row an unpaid bill sits on) and never a clean account -- the property
+    # `test_a_clean_account_is_not_priced_for_how_it_pays` holds that line.
+    "payment_method",
+    # The bad-debt charge per GBP billed the company has booked on its OWN accounts in this arrears
+    # state, learned from outcomes dated before the renewal (`company/pricing/default_belief.py`).
+    # Learned by arrears state only: the account's payment method cannot move it.
+    "default_belief_rate",
 }
 
 #: HOW THE SEARCH RUNS — not observables about anyone. Kept in a separate set on purpose: rolling
@@ -82,12 +94,13 @@ MECHANISM_PARAMETERS = {
 #:       renewal date, EPG-net, ex-VAT -- `renewal_rate_chain.cap_ceiling_ex_vat`, the same
 #:       published lookup writer 4 already clamps with. The churn belief reads the offer's gap to
 #:       it (2026-10-02: the move from the account's own last price ranked churn at r = -0.12).
-MARKET_OBSERVABLES = {"published_default_rate_gbp_per_mwh"}
+#:   stayer_default_rate_gbp_per_mwh  the company's OWN default tariff for this fuel on the day,
+#:       ex-VAT: what a household that refuses the fix is billed (SLC 22C.7/22C.8). Published by the
+#:       company itself, so it is the most observable number on the page.
+MARKET_OBSERVABLES = {"published_default_rate_gbp_per_mwh", "stayer_default_rate_gbp_per_mwh"}
 
 PERMITTED_OBSERVABLES = ACCOUNT_OBSERVABLES | MARKET_OBSERVABLES | MECHANISM_PARAMETERS
 
-#: The cost-shift, named. Not "discouraged" -- absent.
-FORBIDDEN_TOKENS = ("payment_method", "prepay", "prepayment")
 
 
 def test_the_price_rests_only_on_declared_supplier_observables():
@@ -107,21 +120,141 @@ def test_the_price_rests_only_on_declared_supplier_observables():
     )
 
 
-def test_payment_method_cannot_reach_the_price_at_all():
-    """The director's named cost-shift, refused by construction.
+METHODS = ("direct_debit", "standard_credit", "prepayment")
 
-    Asserted over the whole module rather than the signature, because the leak that matters is a
-    call site quietly threading it into the churn belief -- which would price prepayment customers
-    differently without ever appearing as a parameter of `decide_margin`.
+#: Real renewal inputs (2,700 kWh is Ofgem's TDCV for electricity; GBP 99 a year is a standing
+#: charge on the 2022-23 cap's scale), across the rates the book has seen. The first two are the
+#: inputs the cost-shift was MEASURED at (finding of 2026-10-03, 106.50 vs 108.50), uncapped; the
+#: rest are capped at the published default, where most real renewals sit.
+_CASES = [
+    dict(current_rate_gbp_per_mwh=215.0, base_rate_gbp_per_mwh=205.0),
+    dict(current_rate_gbp_per_mwh=300.0, base_rate_gbp_per_mwh=280.0),
+    dict(current_rate_gbp_per_mwh=215.0, base_rate_gbp_per_mwh=180.0,
+         max_offered_rate_gbp_per_mwh=240.0, published_default_rate_gbp_per_mwh=240.0),
+    dict(current_rate_gbp_per_mwh=300.0, base_rate_gbp_per_mwh=250.0,
+         max_offered_rate_gbp_per_mwh=330.0, published_default_rate_gbp_per_mwh=330.0),
+]
+_EACS = (1800.0, 2700.0, 4200.0)
+#: Before, during and after the crisis. 2022's market pressure makes the belief so flat that the
+#: uncapped cases go to the top candidate, where no cost can move a margin; the other two years
+#: price in the interior, which is where the cost-shift was measured.
+_YEARS = (2019, 2022, 2023)
+#: The two settings of `DecisionPolicy.renewal_default_belief`, as `decide_margin` receives them:
+#: the rate chain passes the book's rate only under `own_book` and `None` otherwise.
+_DEFAULT_BELIEF = {"segment_table": None, "own_book": 0.02}
+
+
+def _book_that_tells_the_channels_apart():
+    """A run's pressure ledger in which the channels have taught the company DIFFERENT things:
+    DD shops ~4x as often as prepayment (engagement ~1.54 vs ~0.35), and only DD has closed renewals
+    from which a price response could be learned. Outside a run every channel reads the same
+    prior, so a check without this would pass whatever the pricing did with the method."""
+    from company.crm.competitive_pressure import CompetitivePressureLedger
+    ledger = CompetitivePressureLedger()
+    ledger.arm_loss_reporting()
+    for year in (2019, 2020, 2021):
+        for method, losses in (("direct_debit", 60), ("prepayment", 10)):
+            for _ in range(400):
+                ledger.observe_renewal_decision(year, 0.05, payment_method=method)
+            for _ in range(losses):
+                ledger.observe_competitive_loss(year, payment_method=method)
+        for i, (move, left) in enumerate([(0.4, True)] * 6 + [(0.3, True)] * 4
+                                         + [(-0.1, False)] * 10):
+            account = f"D{year}-{i}"
+            ledger.observe_price_response(year, "direct_debit", "electricity", account, move, 0.2)
+            if left:
+                ledger.observe_competitive_loss(year, payment_method="direct_debit",
+                                                account_id=account)
+    return ledger
+
+
+def _margins_by_method(*, learn: bool, unpaid=()) -> dict:
+    """`{(scope, belief, case, eac, year): {method: margin}}` over the whole grid."""
+    import dataclasses
+
+    from company.crm.competitive_pressure import pressure_ledger_scope
+    from company.policy.decision_policy import VALUE_ARM_POLICY, policy_scope
+
+    out = {}
+    policy = dataclasses.replace(VALUE_ARM_POLICY, learn_price_response=learn)
+    # BOTH SCOPES, because each hides what the other shows: outside a run every channel reads the
+    # same belief and the arm prices in the interior, where a channel-keyed COST moves the margin;
+    # in a run the book teaches channel-keyed BELIEFS, and that same belief is flat enough to send
+    # the uncapped cases to the top candidate.
+    for scope, ledger in (("no_run", None), ("run", _book_that_tells_the_channels_apart())):
+        with pressure_ledger_scope(ledger), policy_scope(policy):
+            for belief, rate in _DEFAULT_BELIEF.items():
+                for n, case in enumerate(_CASES):
+                    for eac in _EACS:
+                        for year in _YEARS:
+                            out[(scope, belief, n, eac, year)] = {m: vbr.decide_margin(
+                                customer_id="X", arm="value_based", eac_kwh=eac, tenure_years=2.0,
+                                cost_to_serve_gbp_per_year=60.0, fixed_revenue_gbp_per_year=99.0,
+                                renewal_year=year, fuel="electricity", unpaid_bills_by_age=unpaid,
+                                billed_last_year_gbp=case["current_rate_gbp_per_mwh"] * eac / 1000.0,
+                                payment_method=m, default_belief_rate=rate, **case,
+                            ).margin_gbp_per_mwh for m in METHODS}
+    return out
+
+
+def test_a_clean_account_is_not_priced_for_how_it_pays():
+    """The director's named cost-shift, as a property of the price rather than a word in a file.
+
+    A household that owes nothing is priced the same whether it pays by direct debit, on receipt or
+    through a prepayment meter -- on both settings of `renewal_default_belief`, in a run whose book
+    has taught the company that the channels shop differently. Method may still price DEBT; the
+    control below shows that branch is reachable, so this one is not passing because the method
+    reaches nothing.
+
+    MUTATION (must fire): in `observed_non_payment_provision_rate`, move the clean-year return
+    back below the live-row lookup -- the segment-table path then prices clean prepayment at the
+    2% prior and the first two cases diverge by GBP 2.00-2.75/MWh.
     """
-    source = PRICING_MODULE.read_text()
-    assert len(source) > 1000, "population floor: the pricing module read as near-empty"
-    found = [t for t in FORBIDDEN_TOKENS if t in source.lower()]
-    assert not found, (
-        f"{PRICING_MODULE.name} now mentions {found}. Payment method reaching the pricing path is "
-        "how a book comes to charge prepayment customers more for being prepayment customers -- the "
-        "cost-shift the director named as the line between ordinary practice and not."
-    )
+    grid = _margins_by_method(learn=False)
+    assert len(grid) == 2 * len(_DEFAULT_BELIEF) * len(_CASES) * len(_EACS) * len(_YEARS)
+    interior = [k for k, row in grid.items()
+                if 0 < row["direct_debit"] < max(vbr.CANDIDATE_MARGINS_GBP_PER_MWH)
+                and k[2] < 2]
+    assert interior, ("population floor: every uncapped cell priced at the top candidate, so no "
+                      "channel-keyed cost could have moved a margin and this check is blind")
+    shifted = {k: row for k, row in grid.items() if len(set(row.values())) != 1}
+    assert not shifted, (
+        f"a clean account's price depends on how it pays in {len(shifted)} cell(s), e.g. "
+        f"{next(iter(shifted.items()))}. That is the cost-shift onto prepayment the director ruled "
+        "out on 2026-09-23: payment method may price debt, never a household that has none.")
+
+
+def test_the_method_still_prices_debt_so_the_clean_check_is_not_vacuous():
+    """The rare branch, shown reachable: a household owing money IS priced on its method's
+    published provision row (Centrica Note 17 publishes DD and pay-on-receipt rows, and none for
+    prepayment). If the method stopped reaching the price altogether, the property above would pass
+    for the wrong reason."""
+    grid = _margins_by_method(learn=False, unpaid=((150.0, 45), (150.0, 15)))
+    assert any(len(set(row.values())) > 1 for row in grid.values()), (
+        "no debtor's price moved with its payment method anywhere on the grid, so the clean-account "
+        "property can no longer distinguish 'method is ignored for clean accounts' from 'method "
+        "reaches nothing'")
+
+
+def test_a_clean_account_is_not_priced_for_how_it_pays_when_the_price_response_is_learned():
+    """The same property with B8 on, where the response is learned PER CHANNEL: in this book only
+    DD has closed renewals, so a per-channel slope prices a clean DD household below a clean
+    prepayment one (measured 2026-10-03: up to GBP 2.75/MWh at 215/180 capped at 240). The price
+    reads the slope pooled over every channel instead.
+
+    And the learning must still REACH the price, or channel-blind would have been bought by
+    switching B8 off. MUTATION (must fire): `channel_blind` passing `payment_method` through to
+    `learned_correction` reds the first assert; passing `None` reds the second.
+    """
+    learned = _margins_by_method(learn=True)
+    shifted = {k: row for k, row in learned.items() if len(set(row.values())) != 1}
+    assert not shifted, (
+        f"with the price response learned, a clean account's price depends on how it pays in "
+        f"{len(shifted)} cell(s), e.g. {next(iter(shifted.items()))}")
+    unlearned = _margins_by_method(learn=False)
+    assert any(learned[k] != unlearned[k] for k in learned if k[0] == "run"), (
+        "B8's learned response moved no price anywhere on the grid, so the property above holds "
+        "because the learning never reaches the price, not because it reaches it channel-blind")
 
 
 def test_the_belief_still_hears_payment_method_and_that_is_a_different_thing():
