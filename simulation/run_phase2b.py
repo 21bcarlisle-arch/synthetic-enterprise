@@ -2590,6 +2590,11 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                     active_renewal=active_renewal,
                     payment_method=_company_payment_method,
                     arrears_state=_company_arrears_state,
+                    # B8: the company's own facts about this renewal, so it can learn its price
+                    # response: which account, which day, which fuel.
+                    account_id=billing_account,
+                    term_start=term_start_str,
+                    fuel=commodity,
                 ))
                 if hangover_periods > 0:
                     hangover_remaining[cid] = hangover_periods - 1
@@ -2927,7 +2932,8 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                         # arming is set BY this argument rather than by a call beside it, so it
                         # cannot survive the argument being dropped.
                         _pressure_ledger.observe_competitive_loss(
-                            int(term_start_str[:4]), payment_method=_company_payment_method
+                            int(term_start_str[:4]), payment_method=_company_payment_method,
+                            account_id=billing_account,
                         )
                     print(
                         f"  [CHURN] {billing_account} at {term_start_str} — "

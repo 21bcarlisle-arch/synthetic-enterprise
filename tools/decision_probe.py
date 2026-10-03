@@ -41,7 +41,11 @@ import json
 import statistics
 from pathlib import Path
 
-RULES = ("flat", "value")
+RULES = ("flat", "value", "value_blind", "value_learned")
+#: The value arm with the company's payment history taken away -- arrears state, unpaid bills and
+#: payment method stripped from the door, exactly what it saw before e0370bf94. Scored against
+#: "value" on the same decision, it is the payment-history fix measured rule against rule.
+PAYMENT_HISTORY_ARGS = ("arrears_state", "receivable", "payment_method")
 #: The flat-at-level margins each decision is also priced at, GBP/MWh. The book-level A/B holds its
 #: third arm at the value arm's own MEDIAN margin, which is only known after the value arm has
 #: chosen; recording a grid lets `score` take the level the value rule actually produced, after
@@ -63,12 +67,25 @@ def _annual_mwh(records, customer_id: str, commodity: str, term_start: str) -> f
     return sum(kwh) / 1000.0 if kwh else None
 
 
-def probe(report_end: str | None = None) -> list[dict]:
-    """Run the control path once and return one row per probed renewal."""
+def probe(report_end: str | None = None, roll_seed: int | None = None) -> list[dict]:
+    """Run the control path once and return one row per probed renewal.
+
+    `roll_seed` re-draws every account's renewal dice (`churn_roll_for_renewal`) at that seed, as
+    the A/B's churn-roll noise floor does: the same book and world, a different reference PATH. It
+    never touches a rule's offer or the world's P(stay); it changes which renewals happen.
+    """
+    import random
     from dataclasses import replace
 
+    import simulation.customer_events as events
     import simulation.run_phase2b as runner
-    from company.policy.decision_policy import CURRENT_POLICY, VALUE_ARM_POLICY, policy_scope
+    from company.policy.decision_policy import (
+        CURRENT_POLICY,
+        VALUE_ARM_LEARNED_POLICY,
+        VALUE_ARM_POLICY,
+        policy_scope,
+    )
+    from company.pricing.discovered_price_sensitivity import learned_correction
     from company.pricing.value_based_renewal import FLAT_AT_LEVEL
     from saas.tariff_pricing import TARGET_MARGIN_GBP_PER_MWH
 
@@ -81,6 +98,13 @@ def probe(report_end: str | None = None) -> list[dict]:
         if kw.get("term_index", 0) >= 1 and kw.get("struck_unit_rate_gbp_per_mwh"):
             with policy_scope(VALUE_ARM_POLICY):
                 value = real_price(**kw)
+                blind = real_price(**{k: v for k, v in kw.items()
+                                      if k not in PAYMENT_HISTORY_ARGS})
+            # B8: the value arm pricing with the price response it learned from its own renewals.
+            with policy_scope(VALUE_ARM_LEARNED_POLICY):
+                learned = real_price(**kw)
+                learned_delta = learned_correction(
+                    kw.get("payment_method"), kw["commodity"], int(kw["term_start"][:4]))
             levels = {}
             for level in LEVEL_GRID:
                 with policy_scope(replace(CURRENT_POLICY, name="level_arm",
@@ -92,8 +116,17 @@ def probe(report_end: str | None = None) -> list[dict]:
                 "base_gbp_per_mwh": float(kw["struck_unit_rate_gbp_per_mwh"])
                 - TARGET_MARGIN_GBP_PER_MWH,
                 "offer": {"flat": result.unit_rate_gbp_per_mwh,
-                          "value": value.unit_rate_gbp_per_mwh},
+                          "value": value.unit_rate_gbp_per_mwh,
+                          "value_blind": blind.unit_rate_gbp_per_mwh,
+                          "value_learned": learned.unit_rate_gbp_per_mwh},
+                "learned_delta": learned_delta,
                 "levels": levels,
+                # WHAT THE COMPANY BELIEVED about this customer staying, at its own offer: the
+                # value arm's churn belief, set beside the world's truth so the belief error is
+                # measured per decision. None where the arm declined or did not price.
+                "believed_p_retain": next((e.get("believed_p_retain")
+                                           for e in reversed(value.value_arm_entries)
+                                           if e.get("believed_p_retain") is not None), None),
             }
         return result
 
@@ -119,12 +152,21 @@ def probe(report_end: str | None = None) -> list[dict]:
             "base_gbp_per_mwh": round(held["base_gbp_per_mwh"], 4),
             "offer_gbp_per_mwh": {k: round(v, 4) for k, v in held["offer"].items()},
             "true_p_retain": p,
+            # The household's price before this renewal, as the roll was told it: with each rule's
+            # offer it gives the company's OWN move, which is what a price slope is learned from.
+            "old_rate_gbp_per_mwh": kw.get("old_rate_gbp_per_mwh"),
+            "learned_delta": held["learned_delta"],
+            "believed_p_retain_value": held["believed_p_retain"],
             "level_grid": {str(lv): {"offer": round(o, 4), "p": level_p[lv]}
                            for lv, o in held["levels"].items()},
         })
         return event
 
     runner.decide_renewal_rate, runner.roll_lifecycle_event = priced, rolled
+    real_dice = events.churn_roll_for_renewal
+    if roll_seed is not None:
+        events.churn_roll_for_renewal = lambda account, term_start: random.Random(
+            f"probe_roll:{roll_seed}:{account}:{term_start}").random()
     try:
         with policy_scope(CURRENT_POLICY):
             # THROUGH PHASE 4C, because that is where the world's EMERGENT bad debt is booked. The
@@ -134,6 +176,7 @@ def probe(report_end: str | None = None) -> list[dict]:
             phase2b = run_phase4c(report_end=report_end, policy=CURRENT_POLICY)["phase2b"]
     finally:
         runner.decide_renewal_rate, runner.roll_lifecycle_event = real_price, real_roll
+        events.churn_roll_for_renewal = real_dice
     LAST_REFERENCE_EVENTS[:] = sorted(
         (e["customer_id"], e["event_date"], e["event_type"])
         for e in phase2b.get("customer_events") or [] if isinstance(e, dict))
@@ -239,8 +282,23 @@ def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--end-year")
     ap.add_argument("--out", type=Path, required=True)
+    ap.add_argument("--world", default=None,
+                    help="the SPINE_1 world a run past the record lives through, e.g. neso_central")
+    ap.add_argument("--roll-seed", type=int, default=None,
+                    help="re-draw every renewal's dice at this seed (same book, different path)")
     args = ap.parse_args(argv)
-    rows = probe(f"{args.end_year}-12-31" if args.end_year else None)
+    report_end = f"{args.end_year}-12-31" if args.end_year else None
+    if args.world:
+        # PAST THE RECORD, inside one named world, as the A/B does with --world: every rule and
+        # every re-asked roll reads the same forward prices and analogue-year weather.
+        from simulation.run_scenario import forward_world
+        if not report_end:
+            print("REFUSED: --world names a forward world; give --end-year past 2025.")
+            return 2
+        with forward_world(args.world, report_end):
+            rows = probe(report_end, roll_seed=args.roll_seed)
+    else:
+        rows = probe(report_end, roll_seed=args.roll_seed)
     level = value_median_margin(rows)
     levelled = with_level(rows, level) if level is not None else []
     result = {"rows": rows, "value_median_margin_gbp_per_mwh": level,
@@ -248,6 +306,13 @@ def main(argv=None) -> int:
                   "margin_only": score(rows, bad_debt=False),
                   "with_bad_debt": score(rows),
                   "with_bad_debt_and_continuation": score(rows, continuation=True)},
+              "score_payment_history": {
+                  "with_bad_debt": score(rows, a="value", b="value_blind"),
+                  "with_bad_debt_and_continuation": score(rows, a="value", b="value_blind",
+                                                          continuation=True)},
+              "score_learned": {
+                  "learned_vs_value": score(rows, a="value_learned", b="value"),
+                  "learned_vs_flat": score(rows, a="value_learned", b="flat")},
               "score_value_vs_level": {
                   "margin_only": score(levelled, b="level", bad_debt=False),
                   "with_bad_debt": score(levelled, b="level"),
@@ -255,7 +320,8 @@ def main(argv=None) -> int:
               }
     args.out.write_text(json.dumps(result, indent=1), encoding="utf-8")
     print(json.dumps({k: result[k] for k in ("value_median_margin_gbp_per_mwh",
-                                              "score_value_vs_flat", "score_value_vs_level")}))
+                                              "score_value_vs_flat", "score_value_vs_level",
+                                              "score_payment_history", "score_learned")}))
     return 0
 
 

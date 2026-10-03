@@ -242,6 +242,16 @@ def enriched_churn_estimate(
     result = _apply_market_conditions(max(rate_est, payment_est),
                                       derived_market_pressure_multiplier(renewal_year))
     result *= derived_payment_method_engagement_factor(payment_method, renewal_year)
+    # B8: the price response the company has learned from its own renewals, applied to the final
+    # belief as a correction per unit of the offer's gap to the published default. Zero unless
+    # the active policy asks for it and the company has evidence, so every existing caller is
+    # byte-identical. Lazy import: pricing imports this module.
+    if published_default_rate_gbp_per_mwh:
+        from company.pricing.discovered_price_sensitivity import learned_correction
+        delta = learned_correction(payment_method, fuel, renewal_year)
+        if delta:
+            result += delta * ((new_rate_gbp_per_mwh - published_default_rate_gbp_per_mwh)
+                               / published_default_rate_gbp_per_mwh)
     return max(0.0, min(result, MAX_CHURN_PROBABILITY))
 
 

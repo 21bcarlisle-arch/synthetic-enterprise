@@ -952,6 +952,13 @@ def decide_margin(
             fuel=fuel,
             segment=segment,
             renewal_year=renewal_year,
+            # THE CHANNEL, which this call left out until 2026-10-03 although `decide_margin` has
+            # held it since e0370bf94. Without it the price was set against a churn belief with no
+            # payment-method engagement factor (PB7's learned scaler) and no learned price
+            # response (B8), while the churn desk's belief for the same renewal applied both:
+            # one company, two beliefs about one customer. Found because B8's correction moved the
+            # learned rule's belief on 23 of 76 decisions and its price on none.
+            payment_method=payment_method,
             # RESOLVED OUTSIDE THE SCORER AND CONSTANT ACROSS CANDIDATES, for the same reason
             # `departure_cost` is: where this account stands on the company's own receivable is a
             # fact about the account as it is TODAY, not about a price it has not been offered.
