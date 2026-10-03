@@ -2102,3 +2102,76 @@ not between O and R2.
 its per-year scaled mean, and against none, graded on between-day and p95/p5. (2) The 2024 level,
 +1.3 GW and still unattributed. No level move: the Expert Hour still has to weigh the
 shared-input share of the correlation (§22).
+
+## 29. 2026-10-03 — EMBEDDED WIND ON THE BETWEEN-DAY AXIS: the overshoot is carried by WHEN the wind blows, and the meters agree with NESO on when
+
+§28 put embedded wind first in line for the between-day overshoot (2019 1.048, 2020 1.111). This
+pass measured it and built nothing. Scratch and the timestamped predictions are in
+`/var/tmp/se-ep13-s29/` (`measure.py`, `prediction.txt`, `out.txt`). **Instrument check:** the
+shipped arm reproduces the committed feed's records to five places.
+
+**Four arms on the s27 base**, with only the embedded map passed to `build_shape` changed. S: the
+shipped map, AGWS solar plus NESO's embedded wind each half hour. W0: solar only. WM: NESO's
+wind held flat at its own year mean, so the energy is right but there is no timing. WT: metered
+transmission wind (FUELHH) scaled each year to NESO's embedded energy, so the timing comes from
+meters and not from NESO's weather model. NESO's embedded wind averages 1.65–2.06 GW over
+2019–24.
+
+**Predictions (01:55Z, before `measure.py`).** P1: between-day W0 < S by 0.03–0.09 in every
+year, with 2020 landing 1.02–1.08. P2: between-day |WM − W0| < 0.015 in every year. P3:
+between-day |WT − S| < 0.02 in every year. P4: headline p95/p5 W0 1.06–1.10x, S 1.13x. P5:
+correlation W0 below S by 0.000–0.005 in every year.
+
+| between-day | 2019 | 2020 | 2021 | 2022 | 2023 | 2024 |
+|---|---|---|---|---|---|---|
+| **S shipped** | **1.048** | **1.111** | **0.997** | **1.027** | **1.002** | **0.934** |
+| W0 solar only | 0.963 | 1.019 | 0.920 | 0.955 | 0.948 | 0.881 |
+| WM wind flat | 0.974 | 1.026 | 0.926 | 0.957 | 0.953 | 0.889 |
+| WT metered timing | 1.051 | 1.116 | 1.005 | 1.033 | 1.005 | 0.928 |
+
+| within-day | 2019 | 2020 | 2021 | 2022 | 2023 | 2024 |
+|---|---|---|---|---|---|---|
+| **S shipped** | **1.064** | **1.097** | **0.983** | **0.972** | **0.950** | **0.926** |
+| W0 solar only | 1.009 | 1.040 | 0.937 | 0.927 | 0.914 | 0.889 |
+| WM wind flat | 1.043 | 1.070 | 0.962 | 0.938 | 0.923 | 0.904 |
+| WT metered timing | 1.071 | 1.102 | 0.989 | 0.978 | 0.955 | 0.931 |
+
+Headline p95/p5 (max/min): S 1.13x (1.21x), W0 1.02x (1.06x), WM 1.04x (1.08x), WT 1.13x
+(1.20x). Correlation: S .959/.931/.966/.978/.974/.959; W0 is 0.001–0.002 below it except
+2020 (+0.002), WM is −0.004 to +0.005, and WT is −0.004 to −0.001. Mean absolute error is lower
+without timed wind in 2019–20 (W0 .057/.093 against S .061/.104) and higher in 2021–24.
+
+**Against the predictions.** P2 held (≤0.012). P3 held (≤0.008). P1 held in five years and **was
+refuted in 2020**: S − W0 is 0.093, and W0 lands at 1.019, just under the 1.02 floor. P4 held on
+S and **was refuted on W0**: without embedded wind p95/p5 is 1.02x, narrower than predicted. So
+nearly all of s26's p95/p5 rise came from wind. P5 **was refuted in 2020**, where W0 correlates
+better than S.
+
+**What it establishes.**
+- **The between-day overshoot is carried by the TIMING of embedded wind, not its energy.** Adding
+  the year's embedded energy flat moves between-day by ≤0.012. Putting it on the right days moves
+  it +0.05 to +0.09. Without timed wind, between-day is narrow in every year but 2020.
+- **NESO's timing is not the error.** Metered transmission wind, scaled to the same energy,
+  reproduces NESO's between-day to 0.008 and p95/p5 exactly. The between-day effect comes from
+  real windiness, not from NESO's weather model.
+- **So the overshoot is not in the denominator input. It is in what the model does on windy days.**
+  Embedded wind is owed by definition (§24) and its timing is corroborated by meters. Once it is
+  in the denominator, windy days come out cleaner relative to calm days than NESO publishes them.
+  The model therefore over-cleans windy days, or under-cleans calm ones, in the numerator, and it
+  did so before s26 too: the old short denominator was hiding it.
+
+**What it does NOT establish.**
+- **That NESO's embedded wind ENERGY is right.** WT borrows NESO's annual energy, so magnitude is
+  untested. A DUKES check on embedded wind energy, like §21's AGWS check, is the cheap test. If
+  NESO runs high, part of the overshoot is magnitude.
+- **Which part of the numerator over-cleans windy days.** Candidates are gas displaced too
+  readily on windy days (the merit order's swing, §23) and interconnector imports that do not
+  track wind. Neither was run here.
+
+**Controls.** None. Nothing shipped changed, and the feed is byte-identical.
+
+**Next.** (1) DUKES embedded-wind energy against NESO's annual estimate, per year (the magnitude
+leg this pass could not test). (2) The numerator on windy days: emissions per MWh of residual,
+binned by wind decile, against NESO's implied figure. (3) The 2024 level, +1.3 GW and still
+unattributed. No level move: the Expert Hour still has to weigh the shared-input share of the
+correlation (§22).
