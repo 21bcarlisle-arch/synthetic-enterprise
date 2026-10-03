@@ -23,11 +23,13 @@ from simulation.household import IncomeStress, make_household
 from simulation.life_events import (
     _DIVORCE_ANNUAL_PROB,
     _ILLNESS_ANNUAL_PROB,
-    _JOB_LOSS_ANNUAL_PROB,
+    _JOB_LOSS_ANNUAL_PROB_PER_EMPLOYED_PERSON,
     _LIFE_EVENT_SUBSTREAMS,
-    _NEW_BABY_ANNUAL_PROB,
+    _NEW_BABY_ANNUAL_PROB_PER_PERSON,
     _RETIREMENT_PROB_BY_ERA,
     _base_seed_for,
+    _household_draw_prob,
+    _household_persons,
     _substream,
     generate_life_events,
 )
@@ -140,7 +142,9 @@ def test_year_one_job_loss_decision_comes_from_job_loss_substream():
     fired_year_one = any(
         e.event_type == "job_loss" and e.event_date.startswith("2016") for e in events
     )
-    assert fired_year_one == (first < _JOB_LOSS_ANNUAL_PROB)
+    _, employed = _household_persons(hh)
+    prob = _household_draw_prob(_JOB_LOSS_ANNUAL_PROB_PER_EMPLOYED_PERSON, employed)
+    assert fired_year_one == (first < prob)
 
 
 def test_year_one_retirement_decision_comes_from_retirement_substream():
@@ -177,4 +181,4 @@ def test_illness_and_divorce_probs_have_plausible_magnitudes():
     # divorce: 102,678 E&W divorces 2023 / 28.4M UK households = ~0.36%/hh/yr.
     assert 0.001 <= _ILLNESS_ANNUAL_PROB <= 0.05
     assert _DIVORCE_ANNUAL_PROB == pytest.approx(102678 / 28_400_000, abs=5e-5)
-    assert 0 < _NEW_BABY_ANNUAL_PROB < 0.05
+    assert 0 < _NEW_BABY_ANNUAL_PROB_PER_PERSON < 0.05
