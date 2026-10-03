@@ -1,6 +1,6 @@
 {
   "_schema_version": "1",
-  "last_updated": "2026-10-03T09:31:06.250177+00:00",
+  "last_updated": "2026-10-03T10:20:15.894957+00:00",
   "agents": [
     {
       "name": "session-watchdog",
@@ -15,9 +15,9 @@
     {
       "name": "staging-watcher",
       "status": "idle",
-      "last_heartbeat": "2026-10-03T09:31:06.250177+00:00",
+      "last_heartbeat": "2026-10-03T10:20:09.237747+00:00",
       "last_action": "Watcher started",
-      "last_action_ts": "2026-10-03T07:25:03.010577+00:00",
+      "last_action_ts": "2026-10-03T10:05:31.907624+00:00",
       "anomaly": null,
       "role": "Monitors docs/staging/ for new files; sends NTFY to alert CC",
       "produces": "NTFY notifications on new staging files"
@@ -35,9 +35,9 @@
     {
       "name": "sim-runner",
       "status": "idle",
-      "last_heartbeat": "2026-10-02T19:23:01.058714+00:00",
-      "last_action": "Run complete in 890s \u2014 22801 KB (run_output_b17da3db3_20261002T190810Z.json)",
-      "last_action_ts": "2026-10-02T19:23:01.058714+00:00",
+      "last_heartbeat": "2026-10-03T10:20:15.894957+00:00",
+      "last_action": "Run complete in 905s \u2014 24496 KB (run_output_5583b9121_20261003T100510Z.json)",
+      "last_action_ts": "2026-10-03T10:20:15.894957+00:00",
       "anomaly": null,
       "role": "Runs full 10-year simulation in a loop; writes run_complete markers",
       "produces": "docs/reports/run_output_*.json, docs/staging/run_complete_*.md"
@@ -75,9 +75,9 @@
     {
       "name": "background-worker",
       "status": "idle",
-      "last_heartbeat": "2026-10-03T09:01:12.238140+00:00",
+      "last_heartbeat": "2026-10-03T10:05:32.071000+00:00",
       "last_action": "Worker started",
-      "last_action_ts": "2026-10-03T08:25:02.866928+00:00",
+      "last_action_ts": "2026-10-03T10:05:30.065514+00:00",
       "anomaly": null,
       "role": "Runs background automation tasks via local Qwen; respects 16-19 UTC peak hours",
       "produces": "docs/observability/background-worker-log.md"
@@ -105,9 +105,9 @@
     {
       "name": "supervisor",
       "status": "idle",
-      "last_heartbeat": "2026-10-03T09:27:16.373060+00:00",
+      "last_heartbeat": "2026-10-03T10:16:49.314316+00:00",
       "last_action": "Supervisor started",
-      "last_action_ts": "2026-10-03T07:25:04.075576+00:00",
+      "last_action_ts": "2026-10-03T10:05:33.049734+00:00",
       "anomaly": null,
       "role": "Sole authority for turn-granting: polls every 2min, grants one turn via the locked relay when idle+work exists, escalates if grants stop producing progress",
       "produces": "tmux turn-grants + stuck-state NTFY escalation"
@@ -115,9 +115,9 @@
     {
       "name": "sanity-daemon",
       "status": "idle",
-      "last_heartbeat": "2026-10-03T09:22:42.694139+00:00",
+      "last_heartbeat": "2026-10-03T09:52:42.911876+00:00",
       "last_action": "Cycle complete",
-      "last_action_ts": "2026-10-03T09:22:42.694139+00:00",
+      "last_action_ts": "2026-10-03T09:52:42.911876+00:00",
       "anomaly": null,
       "role": "Detective/sampling control: population-level consumption/unit-rate/estimated-read checks against domain_invariants.py every 30min",
       "produces": "sanity-daemon-log.md entries + one NTFY per new/changed finding set"
