@@ -4166,11 +4166,15 @@ def test_the_saturation_rule_is_not_keyed_to_a_register_state():
     # ATOM D29 re-derived these on a grid the register did not choose, and the
     # two ceilings turned out NOT to be the same number: the mix dimension is
     # one day blinder, which the register had asserted away by copying its
-    # sibling's edge to a point nobody scored.
+    # sibling's edge to a point nobody scored. The LAW, so it holds at either
+    # origin (-308/-309 at the old 400, +2/+1 at the organ's 90): `belief`
+    # saturates where the window reaches the book's oldest failure on every
+    # seed, and the mix a day earlier.
+    oldest = max(_OLDEST_OBSERVED_FAILURE_AGE_DAYS.values())
     assert pair.DIMENSION_DRIFT_RESOLUTION["belief"]["own_saturates_above"] \
-        == -308
+        == oldest - pair.DD_FAILURE_WINDOW_DAYS
     assert pair.DIMENSION_DRIFT_RESOLUTION["belief_population_mix"][
-        "own_saturates_above"] == -309
+        "own_saturates_above"] == oldest - pair.DD_FAILURE_WINDOW_DAYS - 1
     for dim in ("belief", "belief_population_mix"):
         e = pair.DIMENSION_DRIFT_RESOLUTION[dim]
         assert e["own_saturation_atom"] == e["own_debt_atom"]
@@ -4234,12 +4238,13 @@ def test_the_off_path_saturation_declaration_is_tried_too(own_drift_resolution):
     same shared function -- the point of the class fix is that this test and
     the one above are testing one rule."""
     register = copy.deepcopy(pair.DIMENSION_DRIFT_RESOLUTION)
+    edge = register["belief"]["own_saturates_above"]
     register["belief"]["own_collapsed_runs"] = ()
     register["belief"]["own_saturates_above"] = None
     violations = pair.check_own_drift_resolution(
         own_drift_resolution, register=register)
     assert any("publish ONE bit-identical reading" in v for v in violations)
-    assert any("measured saturates_above=-308" in v for v in violations)
+    assert any(f"measured saturates_above={edge}" in v for v in violations)
 
 
 def test_the_registers_own_grid_cannot_see_six_of_the_seven_collapses(
@@ -4822,59 +4827,61 @@ def test_every_off_path_entry_now_owes_a_graded_band(own_drift_resolution):
         "degenerate is not a resolution measurement")
 
 
-def test_the_belief_memory_band_is_unbounded_above(own_drift_resolution):
-    """THE FINDING, kept as a live measurement rather than a note. Both belief
-    dimensions read exactly one company parameter -- how far back
-    `_arrears_risk_belief` still counts an observed failure -- and this book's
-    oldest failure event is ~91d old against a 400d memory. So no event can
-    fall out: every window from the book's span to INFINITY publishes a
-    bit-identical figure, and the dimension cannot distinguish this company
-    from one that never forgets a failure (the direction that keeps a recovered
-    customer in collections).
+def test_the_scored_company_is_inside_its_own_book(own_drift_resolution):
+    """THE D27 FINDING, CLOSED, kept as a live measurement (exit criterion 1).
+    Both belief dimensions read exactly one company parameter -- how far back
+    `_arrears_risk_belief` still counts an observed failure. Until 2026-10-03
+    the harness built the company with a 400d memory against a book whose
+    oldest failure is ~91d old, so no event could fall out: every window from
+    the book's span to infinity published one figure, and the dimension could
+    not tell the scored company from one that never forgets (the direction
+    that keeps a recovered customer in collections).
 
-    The drifts stay declared rather than dropped when D27's reshape lands, so a
-    book that goes back to fitting inside the company's memory fails HERE, by
-    name, instead of quietly re-widening the caveat."""
+    Now the company remembers for the organ's own 90d, inside the book. If the
+    harness ever widens the window past the book again this fires by name --
+    the mutation is putting the 400 back."""
     for dim in ("belief", "belief_population_mix"):
         row = own_drift_resolution[dim]
         entry = pair.DIMENSION_DRIFT_RESOLUTION[dim]
-        assert row["book"]["saturated"] is True
-        assert row["book"]["headroom_days"] > 300, row["book"]
-        # LENGTHENING the memory is invisible at every magnitude swept --
-        # including +500d, a company that has more than doubled how long it
-        # holds a failure against a customer.
-        assert [k for k in row["unmoved"] if k > 0] == \
-            sorted(k for k in entry["own_invisible_drifts"] if k > 0)
-        assert 500 in row["unmoved"] and 1 in row["unmoved"]
-        assert not [k for k in row["moved"] if k > 0], (
-            f"{dim}: a LONGER memory moved the reading -- the saturation claim "
-            "in this band and in the published caveat is wrong")
+        assert row["book"]["saturated"] is False, (
+            f"{dim}: the scored company's memory covers the whole book again "
+            f"-- it cannot be told from one that never forgets ({row['book']})")
+        assert row["book"]["headroom_days"] <= 0, row["book"]
+        # A LONGER memory is now a different company: the never-forgets run
+        # sits above the scored company, not around it. `belief` reads it
+        # apart on every seed; the mix, blunter (atom D19), on two of three.
+        longer = [k for k in row["by_seed"][row["seeds"][0]]["by_drift"]
+                  if k > 0]
+        seen = [k for k in longer
+                if any(not pair._same_reading(
+                    row["by_seed"][s]["baseline"], row["by_seed"][s][
+                        "by_drift"][k]) for s in row["seeds"])]
+        assert seen, f"{dim}: no longer memory moves the reading on any seed"
+        assert entry["own_saturates_above"] > 0
+        assert not [k for k in entry["own_invisible_drifts"] if k > 0], (
+            f"{dim}: declares a longer memory invisible -- the D27 shape")
 
 
-def test_the_shipped_company_sits_inside_its_own_blind_band(own_drift_resolution):
-    """And it is not a near miss. The harness builds the company with
-    `DD_FAILURE_WINDOW_DAYS`, 4.4x the organ's OWN shipped default, which puts
-    the scored company ~300d deep inside the band this dimension cannot see --
-    while the organ's default sits just BELOW the edge, publishing a different
-    number. The 400 was deliberate (the constant's comment gives the reason);
-    what was never measured is what it costs the dimension's resolution."""
+def test_the_scored_company_is_the_organs_own(own_drift_resolution):
+    """EXIT CRITERION 2, and the cost of the old choice kept measurable. The
+    harness's window is the organ's own shipped default, read off its
+    signature. The 400 it replaced published a DIFFERENT belief figure -- the
+    never-forgets company's -- which is what made 400 a choice and not a
+    harmless margin."""
     import inspect as _inspect
     default = _inspect.signature(
         pair.PaymentObservationConsumer.__init__
     ).parameters["dd_failure_window_days"].default
-    assert pair.DD_FAILURE_WINDOW_DAYS > default, (
-        "the harness no longer widens the window past the organ's default -- "
-        "re-derive D27's band, this test and the caveat")
+    assert pair.DD_FAILURE_WINDOW_DAYS == default, (
+        "the harness no longer scores the organ's own memory -- re-derive "
+        "D27's band, this test and the caveat")
     book = own_drift_resolution["belief"]["book"]
-    assert book["window_days"] - book["oldest_event_age_days"] > 250, book
-    # The organ's own default is NOT in the blind band: the difference between
-    # the shipped harness company and the shipped organ is a real published
-    # difference this dimension can see, which is why 400 is a CHOICE.
-    at_default = pair.build_scenario(
+    assert book["window_days"] < book["oldest_event_age_days"], book
+    at_400 = pair.build_scenario(
         _RES_N, seed=7,
-        organ_failure_window_drift_days=default - pair.DD_FAILURE_WINDOW_DAYS)
+        organ_failure_window_drift_days=400 - pair.DD_FAILURE_WINDOW_DAYS)
     shipped = pair.build_scenario(_RES_N, seed=7)
-    assert pair.score_triad(at_default[0], at_default[1], at_default[3])[
+    assert pair.score_triad(at_400[0], at_400[1], at_400[3])[
         "belief"].gap != pair.score_triad(
             shipped[0], shipped[1], shipped[3])["belief"].gap
 
@@ -4888,8 +4895,18 @@ def test_the_book_predicts_the_band_the_sweep_measured(own_drift_resolution):
     dimension's own shipped scorer. They agree on the number."""
     row = own_drift_resolution["belief"]
     predicted = row["book"]["smallest_visible_shortening_days"]
-    measured = min(-k for k in row["moved"]) if row["moved"] else None
-    assert measured == predicted, (predicted, measured, row["book"])
+    shortenings = [-k for k in row["moved"] if k < 0]
+    measured = min(shortenings) if shortenings else None
+    # A BOUND, not an equality. The book says the smallest shortening at which
+    # SOME event changes side; the figure moves only when that moves a
+    # severity tier on every seed. At the old 400 origin the two coincided
+    # (310 = 310), because the first shortening that reached the book dropped
+    # whole invoices at once. At the organ's 90 the book bound is 1d and the
+    # figure first moves on every seed at 4d -- the same split the published
+    # components already carry as `book_bound_floor_days` against
+    # `measured_resolution_floor_days` (atom D33).
+    assert measured is not None and measured >= predicted, (
+        predicted, measured, row["book"])
     # THE CODE, not the prose: the docstring names the organ on purpose (it is
     # explaining what the predictor deliberately does NOT read), so a bare
     # substring ban over the whole source would refuse the honest sentence that
@@ -4934,7 +4951,12 @@ def test_the_memory_resolution_caveat_travels_with_both_numbers():
         c = result[dim].components
         assert c["belief_window_resolution"]["window_days"] == window
         assert c["belief_window_resolution"]["saturated"] is saturated
-        assert c["memory_blind_band_days"]
+        # The register's own band, stamped: non-empty wherever the window
+        # covers the book, and at the organ's 90 empty on `belief`.
+        assert c["memory_blind_band_days"] == tuple(
+            pair.DIMENSION_DRIFT_RESOLUTION[dim]["own_invisible_drifts"])
+        if saturated:
+            assert c["memory_blind_band_days"]
         for text in (c["belief_resolution_caveat"], result[dim].note):
             assert str(window) in text
             if saturated:
@@ -4964,19 +4986,24 @@ def test_the_memory_resolution_control_runs_in_the_cli_not_only_in_tests():
     # discharging itself with an indiscriminate degenerate.
     (lambda r: r["belief"].pop("own_drift"),
      "measures NO resolution"),
-    (lambda r: r["belief"].__setitem__("own_invisible_drifts", (1, 500)),
+    # The two "hole" mutations act on the MIX: at the organ's default `belief`
+    # has no invisible drift left to understate or leave unowned, and the mix
+    # is still blind at -1 (its own bluntness, atom D19).
+    (lambda r: r["belief_population_mix"].__setitem__(
+        "own_invisible_drifts", ()),
      "understates the blindness"),
     (lambda r: r["belief"].__setitem__("own_visible_drifts", (-380, -1)),
      "blinder than this register admits"),
     (lambda r: r["belief"].__setitem__(
         "own_invisible_drifts", (-320, -308, -100, -1, 1, 500)),
      "declared INVISIBLE but moved"),
-    (lambda r: r["belief"].__setitem__("own_debt_atom", None),
+    (lambda r: r["belief_population_mix"].__setitem__("own_debt_atom", None),
      "unowned hole"),
     (lambda r: r["belief"].__setitem__("own_visible_drifts", (-380, -999)),
      "never scored"),
-    (lambda r: (r["belief"].__setitem__("own_invisible_drifts", ()),
-                r["belief"].__setitem__("own_debt_atom", None)),
+    (lambda r: (r["belief_population_mix"].__setitem__(
+                    "own_invisible_drifts", ()),
+                r["belief_population_mix"].__setitem__("own_debt_atom", None)),
      "understates the blindness"),
 ))
 def test_a_lying_memory_band_fires_by_name(own_drift_resolution, mutate,
@@ -7652,8 +7679,17 @@ def test_the_pre_hour_caveat_fires_the_control(caveat_coverage,
                 "book_bound_floor_days"]
     violations = pair.check_published_figure_caveat_coverage(
         caveat_coverage, rendered=view, floors=resolution_floors)
-    assert any("publishes a resolution floor of 310d and the sweep measures "
-               "314d" in v for v in violations), violations
+    # Keyed to the property, not to the old origin's 310/314: every figure
+    # whose book bound differs from its own floor on some seed must fire.
+    differs = [d for d in ("belief", "belief_population_mix")
+               if any(int(c["book_bound_floor_days"])
+                      != int(resolution_floors[d]["floor_days"])
+                      for c in view[d].values()
+                      if c.get("book_bound_floor_days") is not None)]
+    assert differs, "the book bound equals every floor -- no defect to put back"
+    for dim in differs:
+        assert any(v.startswith(f"{dim}/") and "is atom D33's finding" in v
+                   for v in violations), (dim, violations)
 
 
 def test_stamping_the_siblings_floor_fires_the_control(caveat_coverage,
@@ -7663,12 +7699,23 @@ def test_stamping_the_siblings_floor_fires_the_control(caveat_coverage,
     Hours, and nothing could see it."""
     view = {d: copy.deepcopy(caveat_coverage[d].get("_rendered", {}))
             for d in caveat_coverage}
+    sibling = pair.DIMENSION_DRIFT_RESOLUTION["belief"][
+        "own_readable_resolution_floor_days"]
     for seed, comps in view["belief_population_mix"].items():
-        comps["measured_resolution_floor_days"] = pair.DIMENSION_DRIFT_RESOLUTION[
-            "belief"]["own_readable_resolution_floor_days"]
+        comps["measured_resolution_floor_days"] = sibling
     violations = pair.check_published_figure_caveat_coverage(
         caveat_coverage, rendered=view, floors=resolution_floors)
-    assert any("is atom D33's finding" in v for v in violations), violations
+    fired = any(v.startswith("belief_population_mix/")
+                and "is atom D33's finding" in v for v in violations)
+    # AN EQUIVALENCE AT THE ORGAN'S DEFAULT, stated rather than hidden: there
+    # the two figures share a 4d floor (310 vs 314 at the old 400), so the
+    # sibling's number IS the mix's own and nothing may fire. The firing leg
+    # is the same comparison `test_the_pre_hour_caveat_fires_the_control`
+    # proves.
+    if sibling == resolution_floors["belief_population_mix"]["floor_days"]:
+        assert not fired, violations
+    else:
+        assert fired, violations
 
 
 def test_a_floor_the_sentence_never_states_fires_the_control(caveat_coverage,
@@ -10237,8 +10284,10 @@ def test_a_shadowed_organ_default_owes_a_measured_divergence():
     measured = pair.measure_scored_window_provenance(records, as_of)
     assert measured["organ_default_window_days"] == 90
     assert measured["harness_window_days"] == pair.DD_FAILURE_WINDOW_DAYS
-    assert measured["divergence_days"] == 310
-    assert measured["origin_is_organ_default"] is False
+    # Closed by the flip (310 at the old 400): the shadow is still found by
+    # the AST, so the entry still owes the fields, and they now read zero.
+    assert measured["divergence_days"] == 0
+    assert measured["origin_is_organ_default"] is True
     assert pair.check_scored_window_provenance(measured) == []
 
     def _census():

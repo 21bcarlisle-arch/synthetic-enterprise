@@ -2025,3 +2025,97 @@ Prediction, filed before the run: at 400, 625 passed (623 + the two new nodes); 
 **Confirmed**, node for node: the six are the two register nodes, the CLI ledger node and the two
 `own_visible_drifts` probe cases (R), plus the census node (C), and every error is R. What is left
 red at 90 is the flip commit: the register, the census, and §28.3's register comment.
+
+---
+
+## 30. BUILD pass 21 — 2026-10-03 (worker tick, BUILD lane) — THE FLIP
+
+**The origin is now the organ's.** `DD_FAILURE_WINDOW_DAYS = organ_default_failure_window_days()`
+(90), read off `PaymentObservationConsumer.__init__`'s signature (§4 item 1), and the same commit
+carries what §27.4 enumerated: the register, the census, the probe grid and §28.3's comment.
+
+### 30.1 What changed in `tools/couple_w2_11_d5.py`
+
+- **The register**, both belief entries: §15.2's ten fields, transcribed (`own_invisible_drifts`
+  `()` / `(-1,)`, `own_visible_drifts` `(-60, -45, -30, -4)`, the collapsed runs, edges −61 and
+  +2/+1, draw-size ranges (−23, 2) and (−61, −32), floors 4/4, and the mix's
+  `own_floor_predicate_atom` back to `None` per §15.3). Both `own_why` sentences now describe a
+  readable company rather than one 308 days inside its blind band.
+- **`CAVEAT_COVERAGE_PROBES`** memory row `(-370, -350, -310)` → `(-1, 1, 5)` (§19: the matched pair).
+- **The census**: `measured_divergence`'s live fields now read `harness_window_days` 90,
+  `divergence_days` 0, `never_forgets_drift_days` 1, `scored_saturated` False. The shadow stays: the
+  AST still hands the constant to the organ's parameter, so the entry still owes the fields, and
+  `check_scored_window_provenance` returns `[]` on them. The dated `cost` block is kept as the
+  measurement that justified the flip ("harness origin" in it means the 400).
+- **§28.3's comment** on `PUBLISHED_GAP_CONSUMERS["belief_population_mix"]["value_collisions"]`:
+  the coincidence was a saturation artefact. The declaration is kept, because §28.3 left open why
+  the reader walk still lists the site.
+
+### 30.2 The whole file after the source edits, before any test edit — prediction REFUTED
+
+Prediction, filed before the run: 625 passed, or a handful of prose pins; 0 errors.
+**Result: 613 passed, 12 failed, 0 errors** (15 min). The errors went, as predicted. The 12 are
+not §27.2's six, and that is the lesson of this pass. Passes 18–20 measured "the whole file at 90"
+by substituting the ORIGIN in-process and leaving the REGISTER at its 400-origin values. A node that
+reads a register field directly and asserts the defect's shape (`own_saturates_above == -308`, an
+invisible `+500`, a 310d floor) was therefore green in those runs and could only go red once the
+register itself moved. §27.4's "the flip commit is the register, the census and the contract" was
+right about the source and blind to the test-side nodes that pin the register.
+
+| node | at the flip it failed on | now |
+|---|---|---|
+| `test_the_saturation_rule_is_not_keyed_to_a_register_state` | `own_saturates_above == -308` / `-309` | the law: `oldest − WINDOW` and one less for the mix |
+| `test_the_off_path_saturation_declaration_is_tried_too` | `"measured saturates_above=-308"` | the entry's own edge, read before the mutation |
+| `test_the_belief_memory_band_is_unbounded_above` | the finding itself | **renamed `test_the_scored_company_is_inside_its_own_book`** = exit criterion 1 |
+| `test_the_shipped_company_sits_inside_its_own_blind_band` | `WINDOW > organ default` | **renamed `test_the_scored_company_is_the_organs_own`** = exit criterion 2, plus the 400 company still reads a different gap |
+| `test_the_book_predicts_the_band_the_sweep_measured` | `measured == predicted` | **a bound, see §30.3** |
+| `test_the_memory_resolution_caveat_travels_with_both_numbers` | `memory_blind_band_days` truthy | equals the register's band; non-empty only where saturated |
+| `test_a_lying_memory_band_fires_by_name` ×3 | `belief` has no blind drift left to understate or leave unowned | the three hole mutations act on the mix, still blind at −1 |
+| `test_the_pre_hour_caveat_fires_the_control` | `"310d … 314d"` | every figure whose book bound differs from its floor must fire, and at least one must |
+| `test_stamping_the_siblings_floor_fires_the_control` | nothing fired | **an equivalence, see §30.4** |
+| `test_a_shadowed_organ_default_owes_a_measured_divergence` | `divergence_days == 310` | 0, and `origin_is_organ_default` True |
+
+### 30.3 NEW FINDING — the book predictor equals the sweep only at the saturated origin
+
+`test_the_book_predicts_the_band_the_sweep_measured` asserted that the population-side predictor
+(`smallest_visible_shortening_days`, from event dates) and the all-seed sweep agree on the number.
+At 400 they did (310 = 310). At 90 the book says 1 day and the figure first moves on every seed at
+4. The equality was another saturation artefact: the first shortening that reached the book at 400
+dropped whole invoices at once, and at 90 the first one drops a single age that need not move a
+severity tier. The predictor is a **floor** on the readable floor. That is the split the published
+components already carry (`book_bound_floor_days` against `measured_resolution_floor_days`, atom
+D33). The node now asserts `measured ≥ predicted`. Its independence leg (the AST ban on the organ)
+is unchanged. The node also read the smallest *positive* moved drift as a shortening, because at
+400 no positive drift moved. It now reads shortenings only.
+
+### 30.4 An equivalence, stated
+
+At 90 both figures have a 4d floor, so stamping `belief`'s floor on the mix stamps the mix's own
+number, and nothing may fire. The node asserts that, and asserts firing wherever the floors differ.
+The firing comparison is the same one `test_the_pre_hour_caveat_fires_the_control` proves. The
+shared-sentence defect D33 named does not exist at the organ's default.
+
+The first restatement of `test_the_scored_company_is_inside_its_own_book` asserted that a longer
+memory moves BOTH figures on every seed. It was red on the mix: §19.1 already measured the mix
+moving on two seeds of three at every positive drift. The node now asks for a longer memory read
+apart on at least one seed.
+
+### 30.5 R15, in the process
+
+| arm | `…is_inside_its_own_book` | `…is_the_organs_own` |
+|---|---|---|
+| mutation: `DD_FAILURE_WINDOW_DAYS = 400` (pytest plugin, never in the tree) | red | red |
+| placebo: unmutated | green | green |
+
+### 30.6 The whole file, and what is left
+
+After the test edits: **625 passed, 0 failed** (14 min). Eight dependent test files
+(`site/test_published_caveat_reaches_the_reader.py`, the D6/D7 ageing suites, the gap-ledger
+reconciler, the gap-metric class tests, the live-triad bridge, map-assertion provenance): **246
+passed**.
+
+Not done, and not D27's to do in this commit. The live `W2_11` ledger row is `support_changed`
+(truth 717 → 417): that is a population decision outside this atom. The register-sourced floor the
+live run stamps (`measured_resolution_floor_days`, 310 → 4) reaches the door only when that row is
+re-measured and landed. No level moved here. The note tenant for this atom is 32.7k of a 32,768 B
+ceiling, so this record lives here and not on the map row.

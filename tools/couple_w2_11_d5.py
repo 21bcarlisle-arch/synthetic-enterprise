@@ -210,35 +210,29 @@ FIRST_DUE_DATE = date(2024, 1, 15)
 PAYMENT_TERMS_DAYS = 14          # matches account_ledger/arrears_engine's own default
 BILL_AMOUNT_GBP = 120.0
 AS_OF_BUFFER_DAYS = 30           # comfortably past payment_terms + the ARUDD lag window
-# Generous on purpose: isolates the CHANNEL blind spot as the thing this
-# scenario measures, rather than letting the belief's own recency-decay
-# window (default 90d in PaymentObservationConsumer) confound the reading.
-DD_FAILURE_WINDOW_DAYS = 400
+# `DD_FAILURE_WINDOW_DAYS` -- the company's failure memory -- is assigned
+# below `organ_default_failure_window_days()`, because it IS that value.
 
 # ---------------------------------------------------------------------------
 # THE ORIGIN, AND WHY IT IS NOT A BAND CONSTANT (atom D27)
 # ---------------------------------------------------------------------------
 # `DD_FAILURE_WINDOW_DAYS` is the ORIGIN every memory-drift declaration in this
 # file is measured from -- `organ_failure_window_drift_days == 0` IS this value,
-# and the register's bands are stated in that coordinate. So the literal above
-# is not one constant among five: it is the zero of the axis two published
-# figures declare their resolution along.
+# and the register's bands are stated in that coordinate. So it is not one
+# constant among five: it is the zero of the axis two published figures declare
+# their resolution along, and moving it re-declares every band (which is why
+# the 400 -> organ-default flip re-derived the whole register in one commit).
 #
-# WHAT THE COMMENT ABOVE SAYS, AND WHAT IT DOES NOT. The 400 is deliberate and
-# its stated reason is sound -- a short recency window would let the belief's
-# own decay confound the CHANNEL blind spot this scenario exists to measure.
-# What was never measured or declared is that the same choice costs the two
-# belief dimensions ALL resolution on the only company parameter they read. The
-# two properties are in direct conflict by construction: a dimension can only
-# resolve a memory window if some event falls OUT of memory, which is exactly
-# the confound the 400 removes. A design note stood in for a measurement, and
+# WHY THE ORGAN'S OWN DEFAULT. A scored company whose memory outruns the book
+# cannot be told from one that never forgets, and the only non-arbitrary memory
+# to score is the one the company actually ships with. Derived from the organ's
+# signature, never hand-typed: a hand-copy is the D20 defect one field over.
 # `SCENARIO_CONSTANT_CENSUS["DD_FAILURE_WINDOW_DAYS"]["measured_divergence"]`
-# is that measurement -- put beside the constant, re-derived on every run, and
-# refused by `check_scored_window_provenance` if it drifts from the organ.
+# carries what the old 400 cost, measured, and `check_scored_window_provenance`
+# re-derives its live fields on every run.
 #
-# R12: nothing here proposes a value. 90 is not recommended by its output and
-# 400 is not defended by its output; what is refused is a shadowed organ
-# default whose divergence has never been costed.
+# R12: 90 was fixed as the candidate before any figure at it was read; nothing
+# here is chosen for its output.
 
 _ORGAN_WINDOW_PARAM = "dd_failure_window_days"
 
@@ -279,6 +273,17 @@ def organ_default_failure_window_days() -> int:
             "and guessing one would be the D20 hand-copy (atom D27)"
         )
     return int(default)
+
+
+# The scored company remembers a failed collection for exactly as long as the
+# organ it is built from does (atom D27). It was 400 until 2026-10-03 --
+# "generous on purpose", so the belief's recency decay could not confound the
+# CHANNEL blind spot -- and that put the company 308 days past the oldest
+# failure on the book: the two belief figures read the never-forgets company
+# and resolved no memory error at all. The confound the 400 removed is now
+# PUBLISHED instead (`recency_contribution`, and the coverage-only control's
+# `memory_share`), which is the honest place for it.
+DD_FAILURE_WINDOW_DAYS = organ_default_failure_window_days()
 
 
 # ---------------------------------------------------------------------------
@@ -4510,10 +4515,12 @@ _ROUNDING_SLACK = 1e-5
 CAVEAT_COVERAGE_PROBES: Dict[str, Tuple[int, ...]] = {
     "organ_terms_drift_days": (-1, 1, 5),
     "organ_reconciliation_drift_days": (-1, 1, 5),
-    # The memory knob's readable band is far from zero on this book (atom
-    # D29/D30: everything from -308 up is one number), so +-1 would probe an
-    # inert region and hand every cell a free pass.
-    "organ_failure_window_drift_days": (-370, -350, -310),
+    # A MATCHED PAIR WITH THE ORIGIN (atom D27, FRAME 19.4): at the organ's
+    # default the memory knob reaches both belief figures within a day, so it
+    # takes the same small grid as its siblings. At the old 400 origin this
+    # grid was (-370, -350, -310), because there everything from -308 up was
+    # one number; each grid is invalid at the other's origin.
+    "organ_failure_window_drift_days": (-1, 1, 5),
 }
 
 
@@ -5190,53 +5197,28 @@ DIMENSION_DRIFT_RESOLUTION: Dict[str, Dict[str, object]] = {
         # belief dimensions were off-path for the register's single drift, so
         # two of five published dimensions had no measured resolution at all.
         "own_drift": "organ_failure_window_drift_days",
-        # -307 JOINED THE BAND (atom D27, BUILD pass 4) with the never-forgets
-        # witness `book_memory_grid` was missing: seeds 11/23 read their oldest
-        # failure at 92d, so -307 is the first window that covers their whole
-        # book with a day to spare, and it was never scored while the grid
-        # stopped AT the saturation point. Invisible on every seed, as the
-        # construction proves it must be.
-        "own_invisible_drifts": (-308, -307, -100, -1, 1, 500),
-        # -370 REPLACED -380 (atom D29). -380 does differ from the baseline,
-        # which is all D27's sparse grid could ask -- but it takes the memory
-        # to 20 days on a book whose youngest failure is 30 days old, so it
-        # counts nothing, exactly like total amnesia. That is PROVED by the
-        # population-side predictor rather than merely swept: no event is young
-        # enough to survive any window below 30, so every one of those
-        # companies is one company here. Differing from the scored company is
-        # not resolution; -370 is the first drift the sweep reads apart from
-        # both its neighbours.
-        "own_visible_drifts": (-370, -350, -320, -310),
+        # RE-DERIVED AT THE ORGAN'S OWN DEFAULT (atom D27, 2026-10-03), on the
+        # book-derived memory grid, n=300, seeds 7/11/23 (FRAME sections 14.2,
+        # 15.2). At the old 400 origin this entry declared a blind band from
+        # -308 to infinity with the scored company inside it; at 90 the band is
+        # EMPTY -- no drift near the scored company is invisible on every seed.
+        "own_invisible_drifts": (),
+        # -60 is the first drift outside the low saturated run [-90, -61] (the
+        # same reason -370 replaced -380 at the old origin, atom D29), and -4
+        # is the readable floor below.
+        "own_visible_drifts": (-60, -45, -30, -4),
         "own_debt_atom": "D27_belief_window_saturates_on_this_book",
-        # RE-DERIVED ON THE BOOK-DERIVED MEMORY GRID (atom D29, Expert Hour
-        # #11, 66 book points + the declarations, n=300, seeds 7/11/23, every
-        # run identical on all three). D28 gave these fields the shared checker
-        # and D27's sparse grid supplied the readings, so the entry declared
-        # ONE collapse and a bounded band. On a grid the register did not
-        # choose there are FIVE, and the low tail saturates too.
-        #
-        # THE TOP RUN GAINED -307 (atom D27, BUILD pass 4), and the edge did
-        # not move: -308 was already the first drift bit-identical to the
-        # baseline on all three seeds, and the witness point adds a member to
-        # the run rather than extending resolution. That is the expected shape
-        # -- if the edge HAD moved, the old one was an artefact of the missing
-        # point rather than a measurement.
+        # (2, 3) is the never-forgets run: 2 is seed 11/23's oldest failure
+        # (92d) minus the window, and 3 the witness point `book_memory_grid`
+        # adds above it so a run of two can be seen at all (FRAME 9.3).
         "own_collapsed_runs": (
-            (-400, -371), (-358, -357, -356), (-333, -332),
-            (-331, -330), (-308, -307, -100, -1, 0, 1, 500),
+            (-90, -61), (-48, -47, -46), (-23, -22), (-21, -20), (2, 3),
         ),
-        "own_saturates_below": -371,
-        "own_saturates_above": -308,
-        # AND BOTH EDGES CARRY THEIR DRAW SIZE (atom D30, 2026-08-18), which is
-        # the same repair D28 landed on the detection register that morning,
-        # one register over. The pair above is not a property of this
-        # instrument: it is the LARGE-n ASYMPTOTE of a quantity that moves 20
-        # days (above) and 29 days (below) on the DRAW SIZE alone, because both
-        # are read off the OBSERVED-FAILURE span and a failure has to LAND on
-        # the extreme invoice for the span to reach it. `own_draw_size_axis` is
-        # the counterexample held beside the declaration so
-        # `check_belief_band_population_axis` can put it on trial against a
-        # re-measurement rather than against a copy of itself.
+        "own_saturates_below": -61,
+        "own_saturates_above": 2,
+        # Both edges are the large-n asymptote of a quantity the draw size
+        # moves (atom D30): the span is read off OBSERVED failures, and one has
+        # to land on the extreme invoice for the span to reach it.
         "own_saturation_scope": {
             "atom": "D30_the_belief_band_is_this_books_length",
             "n_customers": 300,
@@ -5244,114 +5226,55 @@ DIMENSION_DRIFT_RESOLUTION: Dict[str, Dict[str, object]] = {
         },
         "own_draw_size_axis": {
             "atom": "D30_the_belief_band_is_this_books_length",
-            # THE FLOOR IS DERIVED, NOT CHOSEN (2026-08-18, the repair
-            # WORKER_FINDING_THE_BELIEF_AXIS_NULL_CONTROL_CANNOT_FAIL_BECAUSE_
-            # ITS_FLOOR_SITS_ABOVE_WHERE_IT_BREAKS asked for). D30 shipped this
-            # floor at 24 with its reason living only in a discovery note --
-            # "the invoice span reads [30, 92] at every n from 24 up" -- and no
-            # comment beside the literal deriving 24 from anything. The reason
-            # is true and it is not the measurement: the span reaches the
-            # constants-predicted (30, 92) on all three seeds from n = 17. The
-            # seven extra customers are exactly what removed the counterexample,
-            # because at n = 17 and n = 18 the sweep is SOUND BY ITS OWN NULL
-            # CONTROL and seed 23 reads -333, outside the band D30 declared. The
-            # verdict was decided by the floor and by nothing else, and the
-            # floor was the one input no mutation in the battery moved: the
-            # class this axis exists to close -- a declaration certified only on
-            # the population that produced it -- recurring inside the repair,
-            # one level out.
-            #
-            # So 17 is not a literal to be trusted either. It is RE-DERIVED on
-            # every run by `measure_belief_axis_null_control_floor` off the
-            # constants-side span predictor, and `check_belief_axis_floor_is_
-            # derived` fires if this tuple's smallest n is anything other than
-            # what that derivation returns -- above it (a floor that can be
-            # pushed up until the declared band comes true) or below it (a floor
-            # admitting books where the sweep perturbs the law).
+            # 17 is RE-DERIVED on every run by
+            # `measure_belief_axis_null_control_floor`, and
+            # `check_belief_axis_floor_is_derived` fires if this tuple's
+            # smallest n is anything else -- a floor pushed up until the band
+            # comes true, or one admitting books where the sweep moves the law.
             "n_customers": (17, 24, 40, 60, 120, 300, 600, 1200),
             "seeds": (7, 11, 23),
-            # WIDENED (-328 -> -333) BY THE FLOOR MOVE, which is the order these
-            # two must be settled in: the band is whatever the derived floor
-            # admits, never the floor whatever makes the band true. -333 is seed
-            # 23's reading at n = 17/18; it is in D30's own n=12 table, and the
-            # band written from that table excluded it.
-            "above_edge_range": (-333, -308),
-            "below_edge_range": (-371, -342),
-            # THE NULL CONTROL, declared rather than left to the test: the
-            # INVOICE-side span must NOT move along this axis. If it did, the
-            # sweep would be moving the law rather than the sample and the
-            # failure-side movement would be evidence of nothing.
+            # The origin move shifts both ranges and moves neither the floor
+            # (17) nor the invoice span (30, 92): the law is the book's, the
+            # coordinate is the company's (FRAME 16.1).
+            "above_edge_range": (-23, 2),
+            "below_edge_range": (-61, -32),
+            # THE NULL CONTROL: the INVOICE-side span must NOT move along this
+            # axis, or the sweep is moving the law rather than the sample.
             "invoice_span_invariant": (30, 92),
-            # WHERE THE FLOOR IS SEARCHED FOR, inclusive both ends. Not a second
-            # free literal: the checker refuses a probe range whose own bottom
-            # already satisfies the null control, because a search that starts
-            # above the break returns its own starting point and calls it a
-            # derivation.
+            # Searched inclusive; the checker refuses a range whose bottom
+            # already satisfies the null control (a search that starts above
+            # the break returns its own starting point).
             "floor_probe_range": (10, 30),
         },
         "own_saturation_atom": "D27_belief_window_saturates_on_this_book",
-        # TWO TAILS, TWO CAUSES, TWO OWNERS (atom D29). Below: `as_of` sits
-        # AS_OF_BUFFER_DAYS past the last event, so nothing is young enough to
-        # survive a short memory. A single `own_saturation_atom` could name
-        # only one, and named the one that had been looked at.
-        #
-        # THE UPPER OWNER MOVED D27 -> D30 (Expert Hour #12). D29 recorded it
-        # as "the company's memory outruns the book", which is a restatement:
-        # the book stops at 92 days because N_PERIODS is 3 and
-        # PERIOD_SPACING_DAYS is 21, and that attributes the HARNESS's own
-        # calendar to the company being graded. The arithmetic was even written
-        # out in `own_why` two lines down -- and no rule was ever built from
-        # it, which is Hour #11's "a lead is not a control" one register field
-        # over. `_check_edge_owners_are_censused` is that rule: an edge owner
-        # outside SCENARIO_CONSTANT_CENSUS now raises. D27 keeps `own_debt_atom`
-        # -- it owns where the SCORED COMPANY sits (308d of headroom), which is
-        # a different fact from where the edge is.
+        # TWO TAILS, TWO OWNERS. Below: `as_of` sits AS_OF_BUFFER_DAYS past the
+        # last event, so nothing is young enough to survive a short memory
+        # (D29). Above: the book stops at 92 days because of the harness
+        # calendar, not the company (D30); `_check_edge_owners_are_censused`
+        # refuses an owner outside SCENARIO_CONSTANT_CENSUS.
         "own_saturation_atom_below": "D29_the_as_of_buffer_floors_the_memory_grid",
         "own_saturation_atom_above": "D30_the_belief_band_is_this_books_length",
-        # THIS FIGURE'S OWN RESOLUTION, and the number its caveat may state
-        # (atom D33). Measured through this dimension's own shipped scorer at
-        # the precision every consumer renders it -- 310d on this book against
-        # the BOOK's bound of 310/309/309 on seeds 7/11/23, so the bound is
-        # tight here and a day loose on two seeds. `own_bit_equality_...` is the
-        # witness for the predicate itself; the two agree on this dimension,
-        # which is what makes the sibling's disagreement a reading and not an
-        # artefact of the measurement.
-        "own_readable_resolution_floor_days": 310,
-        "own_bit_equality_floor_days": 310,
+        # THIS FIGURE'S OWN RESOLUTION (atom D33), through its own shipped
+        # scorer at the 4dp every consumer renders: 4 days (310 at the old
+        # origin). Bit-equality agrees.
+        "own_readable_resolution_floor_days": 4,
+        "own_bit_equality_floor_days": 4,
         "own_floor_predicate_atom": None,
         "own_why": (
-            "UNBOUNDED-BLIND ABOVE, and the shipped company sits 308 days "
-            "inside the blind band. The book's oldest observed failure is 92d "
-            "old at `as_of` (N_PERIODS x PERIOD_SPACING_DAYS + "
-            "AS_OF_BUFFER_DAYS + the cycle spread) while the harness builds "
-            "the company with DD_FAILURE_WINDOW_DAYS=400, so no event can EVER "
-            "fall out of its memory: every window from 92 days to infinity "
-            "publishes a bit-identical figure (measured seeds 7/11/23; +1d, "
-            "+500d and -308d all read the baseline exactly). The dimension "
-            "therefore cannot distinguish this company from one that never "
-            "forgets a failure -- the direction that keeps a recovered "
-            "customer in collections -- and the organ's OWN shipped default "
-            "(90d) sits just BELOW the edge, publishing a different number "
-            "(0.1519 -> 0.1709 at seed 7). The 400 was deliberate and its "
-            "reason is still in the constant's comment ('generous on purpose', "
-            "to stop the recency window confounding the CHANNEL blind spot "
-            "this scenario measures) -- what was never measured or declared is "
-            "that the same choice costs the dimension all resolution on the "
-            "only company parameter it reads. A design note stood in for a "
-            "measurement, which is Hour #5's lesson. Same shape as D25 and "
-            "D26: the book has no event sitting BESIDE the boundary this "
-            "dimension reads. AND IT SATURATES BELOW TOO (atom D29): the "
-            "book's YOUNGEST observed failure is 30d old -- AS_OF_BUFFER_DAYS, "
-            "a second harness constant chosen to remove a confounder -- so "
-            "every company memory of 29 days or less counts nothing at all and "
-            "publishes ONE figure. A supplier that forgets a failed collection "
-            "after three weeks and one that never remembers it are the same "
-            "number here. D27's sparse grid could not see that: a collapsed "
-            "run needs two points and the register's own claims put exactly "
-            "one below the book. Four further interior collapses "
-            "({-358,-357,-356}, {-333,-332}, {-331,-330}) show the sighted "
-            "region is quantised rather than continuous, at exactly the window "
-            "values where this book happens to have no event."
+            "READABLE AT THE SCORED COMPANY: a 4-day memory error moves this "
+            "figure on every seed. The harness builds the company at the "
+            "organ's own shipped default (90d) against a book whose oldest "
+            "observed failure is 91/92/92d old at `as_of`, so the company "
+            "forgets the oldest failures and a longer or shorter memory "
+            "publishes a different number. Until 2026-10-03 it was built at "
+            "400d, every window from 92d to infinity published one figure, "
+            "and this dimension could not tell the scored company from one "
+            "that never forgets (atom D27). The band is still bounded both "
+            "ways by the harness: every memory of 29 days or less counts "
+            "nothing (AS_OF_BUFFER_DAYS, atom D29) and every memory from the "
+            "oldest failure up counts everything (the book's length, atom "
+            "D30), and the interior collapses ({-48,-47,-46}, {-23,-22}, "
+            "{-21,-20}) are window values where this book has no event."
         ),
         "why": (
             "OFF PATH FOR THE TERMS DRIFT -- which is a claim about the "
@@ -5379,47 +5302,22 @@ DIMENSION_DRIFT_RESOLUTION: Dict[str, Dict[str, object]] = {
         "debt_atom": None,
         "exercised_by": "HEADLINE_DIRECTION_COVERAGE",
         "own_drift": "organ_failure_window_drift_days",
-        # -309 JOINED THE BAND (atom D29): the sparse grid never scored it, and
-        # it is invisible here on every seed while `belief` splits on it. -310
-        # and -311 are still declared NEITHER way on purpose: they move this
-        # dimension on seed 7 and not on 11/23. The register's bands are
-        # all-seed claims (a band that holds on one seed is not structural), so
-        # a seed-split drift belongs in neither list -- and saying so here
-        # stops a later reader "completing" the band from the other
-        # dimension's.
-        # -307 JOINED IT TOO (atom D27, BUILD pass 4) -- the never-forgets
-        # witness, invisible here for the same construction reason as on
-        # `belief`. The two entries' bands still differ at -309, which is this
-        # dimension's own bluntness and not a property of the grid.
-        "own_invisible_drifts": (-309, -308, -307, -100, -1, 1, 500),
-        # -370 REPLACED -380 for the same reason as `belief`: -380 sits inside
-        # the low saturated run (atom D29).
-        "own_visible_drifts": (-370, -350, -320),
+        # RE-DERIVED AT THE ORGAN'S OWN DEFAULT with its sibling (atom D27).
+        # -1 is invisible here on every seed while `belief` moves on one:
+        # dropping the oldest events moves an account's tier without always
+        # moving the population MIX. That is this dimension's own bluntness
+        # (atom D19), and it is why the bands are per-entry.
+        "own_invisible_drifts": (-1,),
+        "own_visible_drifts": (-60, -45, -30, -4),
         "own_debt_atom": "D27_belief_window_saturates_on_this_book",
-        # RE-DERIVED ON THE BOOK-DERIVED GRID (atom D29). This entry is where
-        # the grid's provenance shows most plainly: the register put this
-        # dimension's ceiling at its SIBLING's -308, because -309 was never
-        # scored. It is one day blinder than `belief` -- dropping the oldest
-        # events moves an account's tier without moving the population MIX --
-        # and that is a real difference between two published numbers that the
-        # register asserted away by never asking. The seed-split {-311,-310}
-        # collapse is declared as a collapse, which it is on every seed, while
-        # neither member is declared visible or invisible, which they are not.
-        # The top run gained -307 here as well (atom D27, BUILD pass 4), one
-        # member further down than its sibling's because this dimension is
-        # already blind at -309.
         "own_collapsed_runs": (
-            (-400, -371), (-333, -332), (-311, -310),
-            (-309, -308, -307, -100, -1, 0, 1, 500),
+            (-90, -61), (-23, -22), (-1, 0), (1, 2, 3),
         ),
-        "own_saturates_below": -371,
-        "own_saturates_above": -309,
-        # SCOPED FOR THE SAME REASON AS ITS SIBLING (atom D30, 2026-08-18), and
-        # this entry is why the scope has to be per-entry rather than shared:
-        # the -309 is this dimension's own bluntness on the n=300 book, so the
-        # number and the draw size that produced it are one claim. The AXIS is
-        # shared, because both dimensions read the same observed-failure span
-        # and it is the span, not the dimension, that the draw size moves.
+        "own_saturates_below": -61,
+        "own_saturates_above": 1,
+        # SCOPED PER ENTRY because the edge is this dimension's own on the
+        # n=300 book; the AXIS is shared, because both read the same
+        # observed-failure span (atom D30).
         "own_saturation_scope": {
             "atom": "D30_the_belief_band_is_this_books_length",
             "n_customers": 300,
@@ -5427,55 +5325,36 @@ DIMENSION_DRIFT_RESOLUTION: Dict[str, Dict[str, object]] = {
         },
         "own_draw_size_axis": {
             "atom": "D30_the_belief_band_is_this_books_length",
-            # THE SAME DERIVED FLOOR, and it has to be the same one: the axis is
-            # shared because both dimensions read the same observed-failure
-            # span. `check_belief_axis_floor_is_derived` puts BOTH entries on
-            # trial against one derivation, so this entry cannot keep a floor
-            # its sibling has moved off -- which is how D28's repair came to
-            # leave half of this class standing one register over.
+            # THE SAME DERIVED FLOOR: `check_belief_axis_floor_is_derived` puts
+            # both entries on trial against one derivation.
             "n_customers": (17, 24, 40, 60, 120, 300, 600, 1200),
             "seeds": (7, 11, 23),
-            "above_edge_range": (-333, -308),
-            "below_edge_range": (-371, -342),
+            "above_edge_range": (-23, 2),
+            "below_edge_range": (-61, -32),
             "invoice_span_invariant": (30, 92),
             "floor_probe_range": (10, 30),
         },
         "own_saturation_atom": "D27_belief_window_saturates_on_this_book",
-        # UPPER OWNER D27 -> D30 for the same reason as `belief` (Expert Hour
-        # #12): this edge is set by N_PERIODS/PERIOD_SPACING_DAYS/
-        # BILLING_CYCLE_SPREAD_DAYS/AS_OF_BUFFER_DAYS, four harness constants,
-        # and naming the company's memory as its owner attributes the harness's
-        # calendar to the company. The one-day difference from `belief` (-309
-        # vs -308) is this dimension's own bluntness and stays D19's.
         "own_saturation_atom_below": "D29_the_as_of_buffer_floors_the_memory_grid",
         "own_saturation_atom_above": "D30_the_belief_band_is_this_books_length",
-        # THIS FIGURE'S OWN RESOLUTION (atom D33), and the number Expert Hour
-        # #15 found nobody had ever asked for. 314d, measured through this
-        # dimension's own scorer at the 4dp its consumers render -- FIVE days
-        # past the BOOK bound its caveat was publishing as its resolution (309d
-        # on seed 11) and FOUR days past its sibling's 310d, which it shared a
-        # byte-identical sentence with. `own_why` below already SAID this
-        # dimension was blunter; nothing turned that into the number the reader
-        # gets, which is Hour #11's "a lead is not a control" one field over.
-        "own_readable_resolution_floor_days": 314,
-        # AND THE PREDICATE (atom D33). Bit-equality reports 312d, because at
-        # seed 11 this figure "moves" at -310..-313 by 1.4e-17 -- a difference no
-        # 4dp consumer can render, counted as one company being told apart from
-        # another. That is what put `own_saturates_above` at -309 rather than
-        # -313, and every collapse run above is derived with the same predicate.
-        "own_bit_equality_floor_days": 312,
-        "own_floor_predicate_atom": "D33_the_collapse_predicate_is_bit_equality",
+        # 4 days, and bit-equality agrees. At the old 400 origin this read 314
+        # against a bit-equality 312 -- a 1.4e-17 wobble counted as resolution
+        # because the only drifts reaching the figure were 310 days out -- and
+        # this entry named D33 as its predicate atom. At the organ default the
+        # wobble is nowhere near the floor and the two predicates agree, so
+        # D33's witness on this pair does not survive the reshape (FRAME 15.3).
+        "own_readable_resolution_floor_days": 4,
+        "own_bit_equality_floor_days": 4,
+        "own_floor_predicate_atom": None,
         "own_why": (
-            "SATURATED for the same reason as `belief` and one step blunter: "
-            "it is the same labels under a distribution distance (atom D19), "
-            "so it needs the dropped events to move the population MIX, not "
-            "merely one account's tier. Every window from 91d up publishes a "
-            "bit-identical figure on seeds 7/11/23 -- one day EARLIER than "
-            "`belief`, which the register could not see while its grid was its "
-            "own claims -- and a 310d shortening moves `belief` on all three "
-            "seeds while moving this one on only seed 7. It saturates BELOW at "
-            "the same -371d and for the same AS_OF_BUFFER_DAYS reason (atom "
-            "D29)."
+            "READABLE AT THE SCORED COMPANY for the same reason as `belief`, "
+            "and a step blunter: it is the same labels under a distribution "
+            "distance (atom D19), so it needs dropped events to move the "
+            "population MIX, not merely one account's tier -- a one-day "
+            "shortening moves `belief` on one seed and this figure on none. "
+            "Both resolve a 4-day memory error on every seed. It saturates "
+            "BELOW at the same -61d for the same AS_OF_BUFFER_DAYS reason "
+            "(atom D29), and ABOVE at +1, a day before its sibling."
         ),
         "why": (
             "OFF PATH FOR THE TERMS DRIFT for the same organ reason as "
@@ -7922,10 +7801,11 @@ def _axis_declared_floor_violation(
 # N_PERIODS is 3 and PERIOD_SPACING_DAYS is 21, two constants no Hour had
 # asked. The upper edge was attributed AWAY FROM THE HARNESS ENTIRELY.
 #
-# AND THE INSTRUMENT CANNOT RESOLVE THE COMPANY IT SCORES. The scored company
-# holds `DD_FAILURE_WINDOW_DAYS = 400` days of memory; the resolvable band tops
-# out at 92. So the shipped reading is taken 308 days INSIDE the saturated
-# tail: every `belief` and `belief_population_mix` figure this pair publishes
+# AND THE INSTRUMENT COULD NOT RESOLVE THE COMPANY IT SCORED. Until
+# 2026-10-03 the scored company held `DD_FAILURE_WINDOW_DAYS = 400` days of
+# memory; the resolvable band tops out at 92. So the shipped reading was taken
+# 308 days INSIDE the saturated tail (since closed: atom D27 moved the origin to
+# the organ's 90d default, inside the book): every `belief` and `belief_population_mix` figure this pair publishes
 # is read at a point where the one company parameter those dimensions depend on
 # is inert by construction. R12: this is REPORTED, never tuned -- the reshape
 # is atom D30 and no published number moves in this commit.
@@ -8077,8 +7957,9 @@ SCENARIO_CONSTANT_CENSUS: Dict[str, Dict[str, object]] = {
         "why": (
             "NOT A BAND CONSTANT -- it is the ORIGIN the band is measured "
             "from. The book's ages fix where resolution stops; this fixes "
-            "where the scored company sits relative to that, which is the "
-            "308d of saturated headroom D27 owns. Censused as inert on the "
+            "where the scored company sits relative to that -- 308d of "
+            "saturated headroom at the old 400, and inside the book at the "
+            "organ's default (atom D27). Censused as inert on the "
             "EDGES so the two roles stop being one field."
         ),
         # THE ORGAN DEFAULT THIS CONSTANT SHADOWS, and the fact that it does is
@@ -8105,14 +7986,19 @@ SCENARIO_CONSTANT_CENSUS: Dict[str, Dict[str, object]] = {
         # honest way to carry a number too expensive to re-derive per run is to
         # say when it was taken and on what, never to let it read as live.
         "measured_divergence": {
+            # NONE SINCE 2026-10-03: the constant IS the organ's default, read
+            # off its signature. The shadow stays (the AST still hands this
+            # constant to the organ's parameter), so the entry still owes the
+            # live fields -- and they now say the gap is closed.
             "organ_default_window_days": 90,
-            "harness_window_days": 400,
-            "divergence_days": 310,
-            # 0 = the SCORED company already never forgets (see
-            # `never_forgets_drift_days`): its memory reaches past the oldest
-            # observed failure this book has, on every seed.
-            "never_forgets_drift_days": 0,
-            "scored_saturated": True,
+            "harness_window_days": 90,
+            "divergence_days": 0,
+            # 1 = the scored company is ONE day short of never forgetting on
+            # seed 7 (oldest failure 91d); 0 was the old 400, already past it.
+            "never_forgets_drift_days": 1,
+            "scored_saturated": False,
+            # WHAT THE OLD 400 COST, kept as the dated measurement that
+            # justified the flip. "harness origin" below means the 400.
             "cost": {
                 "measured": "2026-08-22",
                 "at_head": "34ee29090",
@@ -8923,17 +8809,18 @@ PUBLISHED_GAP_CONSUMERS: Dict[str, Dict[str, object]] = {
         # is EMPTY, so every surface it has left is a component of the published
         # note, and the per-dimension vacuity guard below is carrying it alone.
         "reader_renders": (),
-        # THE SIBLING COINCIDENCE (Expert Hour #19). This figure's value turns
+        # THE SIBLING COINCIDENCE (Expert Hour #19). This figure's value can turn
         # up at 4dp inside `format_belief_summary`, which does not render it:
         # what that renderer prints there is belief's PER-CASE DISAGREEMENT
-        # rate, and the two are equal on every book measured (seeds 7, 11, 23,
-        # 101, 999 -- 0.0800/0.1033/0.0767/0.0867/0.0767 both sides). They are
-        # not the same quantity: the D19 note records that they separate under a
-        # permutation of which account holds which severity belief (TV distance
-        # held at 0.0713 while per-case agreement fell 0.9287 -> 0.6432), and no
-        # real book performs that permutation. So a value-only sweep can never
-        # tell them apart, and must not move this figure's epsilon on the
-        # strength of the other one's render precision.
+        # rate. At the old 400 origin the two were equal on every book measured
+        # (seeds 7/11/23/101/999), and this comment said no real book performs
+        # the permutation that separates them (D19). That was a saturation
+        # artefact (atom D27, FRAME 28.3): a company that FORGETS performs it,
+        # under-calling accounts without moving the mix as far, and at the
+        # organ's default the two separate on all five seeds (e.g. seed 7
+        # 0.0833 / 0.0900). Kept declared because the reader walk still lists
+        # the site as cross-attributed, and a value-only sweep must never move
+        # this figure's epsilon on the strength of the other one's precision.
         "value_collisions": (
             "renderer:background/gap_metric.py::format_belief_summary",
         ),
@@ -11337,7 +11224,7 @@ def belief_resolution_caveat(
     now naming WHICH figure it is about (atom D33).
 
     `dimension` is not optional in spirit: the two belief dimensions have
-    different measured floors (310d and 314d on this book) and carried one
+    different measured floors (310d and 314d at the old 400 origin) and carried one
     byte-identical sentence between them for six Hours. A caller that will not
     say which figure it is stamping gets the shared bound and an explicit
     refusal to name a per-figure resolution -- never the sibling's number.
