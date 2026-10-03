@@ -130,3 +130,44 @@ def test_the_publish_commit_actually_reaches_that_list():
         "run_history.json and run_insights.json are back to being regenerated every cycle and "
         "committed by none. If the call moved, move this assertion to where it went -- do not "
         "delete it.")
+
+
+def test_the_publish_commit_carries_the_run_output_the_customer_book_is_made_from(tmp_path,
+                                                                              monkeypatch):
+    """THE DEFECT: `site/data/customers.json` was committed every cycle and its input never.
+
+    From 2026-09-09 every publish shipped the book without `run_output_latest.json`, so the
+    committed surface was underivable from the committed tree. The pathspec is captured at the
+    first git-touching seam (`_provenance_is_publishable`), refused there so nothing runs.
+
+    CAN-FAIL ARM FIRST: with the generator's input absent the path must NOT be named (an
+    unmatched pathspec rejects the whole commit), so the leg that names it is not unconditional."""
+    import tools.generate_customers_json as gen
+
+    def _captured(input_exists):
+        project = tmp_path / ("with" if input_exists else "without")
+        (project / "site" / "data").mkdir(parents=True)
+        (project / "site" / "data" / "customers.json").write_text("{}")
+        run_output = project / "docs" / "reports" / "run_output_latest.json"
+        if input_exists:
+            run_output.parent.mkdir(parents=True)
+            run_output.write_text("{}")
+        monkeypatch.setattr(prc, "PROJECT_DIR", project)
+        monkeypatch.setattr(gen, "RUN_OUTPUT", run_output)
+        seen = {}
+
+        def _refuse(files, label=None):
+            seen["files"] = list(files)
+            return False
+        monkeypatch.setattr(prc, "_provenance_is_publishable", _refuse)
+        monkeypatch.setattr(prc, "PUBLISH_CAUSE_FILE", tmp_path / "cause.json")
+        prc.git_commit_push("abc1234", 0.0)
+        return seen["files"], str(run_output)
+
+    files, run_output = _captured(input_exists=False)
+    assert str(tmp_path / "without" / "site" / "data" / "customers.json") in files
+    assert run_output not in files
+    files, run_output = _captured(input_exists=True)
+    assert run_output in files, (
+        "git_commit_push names site/data/customers.json but not the run output it is generated "
+        "from, so the published book is again underivable from the commit that publishes it.")

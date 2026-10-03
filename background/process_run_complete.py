@@ -6984,6 +6984,13 @@ def git_commit_push(git_hash, net_margin, outcome=None):
     site_data_customers = PROJECT_DIR / "site" / "data" / "customers.json"
     if site_data_customers.exists():
         files.append(str(site_data_customers))
+        # ITS INPUT TRAVELS WITH IT. 0247f3061 committed run_output_latest.json once by hand
+        # (2026-09-01) and accepted the cost per changed book, but never put it on this list, so
+        # from 09-09 every publish shipped customers.json without the run it was made from and
+        # `test_a_published_surface_is_reproducible_from_its_committed_input` stood red at HEAD.
+        from tools.generate_customers_json import RUN_OUTPUT as _customers_input
+        if _customers_input.exists():
+            files.append(str(_customers_input))
     site_data_supplier = PROJECT_DIR / "site" / "data" / "supplier.json"
     if site_data_supplier.exists():
         files.append(str(site_data_supplier))

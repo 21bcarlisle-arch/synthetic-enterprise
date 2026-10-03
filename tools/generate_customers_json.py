@@ -3,6 +3,9 @@ import json
 import pathlib
 
 PROJECT = pathlib.Path(__file__).resolve().parent.parent
+#: The input, named at module level because the publisher must commit it beside the output:
+#: `process_run_complete.git_commit_push` reads this constant rather than repeating the path.
+RUN_OUTPUT = PROJECT / "docs" / "reports" / "run_output_latest.json"
 
 
 def _base_id(cid: str) -> str:
@@ -13,7 +16,7 @@ def _base_id(cid: str) -> str:
 
 def generate(run_json_path=None, out_path=None):
     if run_json_path is None:
-        run_json_path = PROJECT / "docs" / "reports" / "run_output_latest.json"
+        run_json_path = RUN_OUTPUT
     if out_path is None:
         out_path = PROJECT / "site" / "data" / "customers.json"
 
