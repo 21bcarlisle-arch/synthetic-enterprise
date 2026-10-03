@@ -81,8 +81,12 @@ CALIBRATION = {
     "company/crm/change_of_tenancy_register.py": None,
     # imported by simulation/run_phase2b.py, the live run loop
     "simulation/demand_model.py": "imported",
-    # no importer anywhere; run as a script by tools/git-hooks/commit-msg
-    "tools/write_time_gate.py": "invoked",
+    # run as a script by tools/git-hooks/pre-commit (`python3 tools/consolidation_rhythm.py --gate`);
+    # its only importer is its own test. This entry was tools/write_time_gate.py until 2026-10-03,
+    # when tools/next_step_gate.py began importing it and the hand-verified "no importer" stopped
+    # being true -- the PROPERTY pinned here is "a hook-run script nothing imports", so the example
+    # moved and the property did not.
+    "tools/consolidation_rhythm.py": "invoked",
 }
 
 

@@ -215,6 +215,11 @@ def build_dd_collection_book(
         # did not.
         if method != "direct_debit":
             continue
+        # PB8: the supplier stopped this customer's DD after repeated returns, so the
+        # bill is payable on receipt and nothing is put on the rails for it. The world
+        # does not re-open a mandate the household never asked for.
+        if desk.has_mandate(cid) and not desk.pays_by_direct_debit(cid):
+            continue
         stress = stress_for_year(behavioral.get(cid) or {}, year)
         outcome, _days_late = payment_outcome(
             method, stress, bill_substream(seed, cid, period_end, bill.get("commodity", "electricity")),
