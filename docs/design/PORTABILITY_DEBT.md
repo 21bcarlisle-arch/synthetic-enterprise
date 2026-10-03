@@ -182,7 +182,11 @@ market_quantity   company/interfaces/tou_offer.py                       gbp     
 # EP6's own design work and not a thing to do while the publish queue is stopped.
 market_quantity   company/interfaces/collection_submission.py          gbp          3
 market_quantity   interface/contracts/flex_observable_seam.py          gbp          6
-market_quantity   interface/contracts/payment_observable_seam.py       gbp         11
+# 2026-10-03, payment seam v3: 11 -> 12 records NO new quantity. `BacsArruddOutcomeV3`
+# subclasses the v2 ARUDD line and carries the same `amount_gbp`; its row in the seam's
+# OBSERVABLE_PAYLOAD_FIELDS must restate the name because the census reads that map as a
+# literal. The Money-type remediation above still covers it and is still EP6's.
+market_quantity   interface/contracts/payment_observable_seam.py       gbp         12
 market_quantity   simulation/payment_seam_adapter.py                   gbp          9
 ```
 <!-- END market-at-the-seams baseline -->

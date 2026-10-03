@@ -130,13 +130,14 @@ from interface.contracts.payment_observable_seam import (
     UNSOLICITED_PAYLOAD_TYPES,
     AddacsAdvice,
     AddacsAdviceType,
-    BacsArruddOutcome,
+    BacsArruddOutcomeV3,
     BacsInputReport,
     BacsReasonCategory,
     CollectionRequest,
     DDOutcomeStatus,
     PaymentRail,
     RemittanceAdvice,
+    arudd_reason_code_for,
 )
 from interface.contracts.wall_envelope import (
     ErrorDetail,
@@ -427,7 +428,7 @@ def _map_event_to_responses(
 
     Returns:
       * SUCCESS  -> [WallResponse[RemittanceAdvice]]
-      * FAILED + DIRECT_DEBIT rail -> [WallResponse[BacsArruddOutcome]]
+      * FAILED + DIRECT_DEBIT rail -> [WallResponse[BacsArruddOutcomeV3]]
       * FAILED + any other rail -> []  (the no-remittance blind spot, C-S3)
       * DISPUTE -> [WallResponse(status=NOT_KNOWABLE_YET, payload=None)]
     """
@@ -478,7 +479,7 @@ def _map_event_to_responses(
     reason_category = bacs_reason_category_for(event.dd_failure_reason)
     lag_rng = _adapter_substream(event.customer_id, event.period_index, "arudd_lag")
     lag_days = lag_rng.randint(0, ARUDD_NOTIFICATION_LAG_DAYS)
-    payload = BacsArruddOutcome(
+    payload = BacsArruddOutcomeV3(
         mandate_ref=mandate_ref,
         account_id=account_id,
         amount_gbp=event.amount_gbp,
@@ -486,6 +487,7 @@ def _map_event_to_responses(
         reason_category=reason_category,
         reason_text=_REASON_CATEGORY_TEXT[reason_category],
         value_date=due,
+        arudd_reason_code=arudd_reason_code_for(reason_category),
     )
     return [
         WallResponse(
@@ -1132,7 +1134,7 @@ def encode_wall_interim(interim: WallInterim) -> dict:
     """
     if not isinstance(interim, WallInterim):
         raise SeamEncodeError(f"expected a WallInterim, got {type(interim).__name__}")
-    return {
+    wire = {
         "correlation_id": interim.correlation_id,
         "leg": interim.leg,
         "interim_type": interim.interim_type,
@@ -1142,6 +1144,24 @@ def encode_wall_interim(interim: WallInterim) -> dict:
             interim.payload, permitted=_ENCODABLE_INTERIM_PAYLOAD_TYPES
         ),
     }
+    # The v3 wire's interim carries `branch` (EP6 pass 60), null on the trunk.
+    # This seam reached v3 for the ARUDD code, and its interim must then speak
+    # the v3 dialect. A branch label on an older release is refused rather than
+    # dropped, for the reason `company.interfaces.wall_protocol.encode_interim`
+    # gives: dropping it would send a trunk leg in its place.
+    if interim.schema_version >= _INTERIM_BRANCH_FROM_VERSION:
+        wire["branch"] = interim.branch
+    elif interim.branch is not None:
+        raise SeamEncodeError(
+            f"interim on branch {interim.branch!r} is stamped schema_version "
+            f"{interim.schema_version}, whose interim carries no 'branch' key"
+        )
+    return wire
+
+
+#: The first wire release whose interim carries `branch`. A literal, not read
+#: from `company.interfaces.wall_protocol` (this module may not import company).
+_INTERIM_BRANCH_FROM_VERSION = 3
 
 
 def encode_wall_notification(notification: WallNotification) -> dict:
