@@ -55,6 +55,34 @@ PRIOR_DELTA_SD = RATE_SENSITIVITY
 LEARNED_FUELS = ("electricity", "gas")
 
 
+def own_move(new_rate_gbp_per_mwh: float, old_rate_gbp_per_mwh: float | None, fuel: str,
+             renewal_year: int | None, segment: str = "resi", on_date: str | dt.date | None = None,
+             published_default_rate_gbp_per_mwh: float | None = None) -> float | None:
+    """THE company's own price move at a renewal: the one definition learning and pricing share.
+
+    A household with a published default to compare against (the cap, from 2019): the offer's gap
+    to it, ex VAT, which is what the pricing chain prices against. Everything else -- every renewal
+    before 2019, and every business account at any date, which the chain hands no default: the
+    household's own price change net of the market's move as the company reads it, the same
+    fallback `churn_model.estimate_churn_probability` uses. Until 2026-10-03 the desk measured every
+    account against the domestic cap and pricing measured a business account by the fallback, so
+    the learner was taught on one quantity and priced on another (B8 step 2).
+    """
+    if segment == "resi":
+        default = published_default_rate_gbp_per_mwh
+        if default is None and on_date is not None:
+            gap = own_move_against_default(new_rate_gbp_per_mwh, fuel, on_date)
+            if gap is not None:
+                return gap
+        elif default:
+            return (float(new_rate_gbp_per_mwh) - float(default)) / float(default)
+    if not old_rate_gbp_per_mwh or not new_rate_gbp_per_mwh or renewal_year is None:
+        return None
+    from company.crm.market_conditions import market_rate_move_pct
+    return ((float(new_rate_gbp_per_mwh) - float(old_rate_gbp_per_mwh))
+            / float(old_rate_gbp_per_mwh) - float(market_rate_move_pct(renewal_year, fuel=fuel)))
+
+
 def own_move_against_default(new_rate_gbp_per_mwh: float, fuel: str, on_date: str | dt.date
                              ) -> float | None:
     """The offer's gap to the published default tariff for this fuel on this day, ex VAT --

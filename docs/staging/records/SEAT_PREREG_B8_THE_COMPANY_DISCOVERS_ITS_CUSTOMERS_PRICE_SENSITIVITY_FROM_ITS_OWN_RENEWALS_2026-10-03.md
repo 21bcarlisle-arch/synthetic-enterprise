@@ -113,3 +113,49 @@ constraint, not its maths. The bound said a calibrated belief could make the cho
 2. calibrating the belief's LEVEL as well as its slope (the bound held the level at truth);
 3. a deliberate price test to learn faster.
 Next: (1), because it lengthens the window at no cost, then re-grade B3.
+
+## Step 2, pre-registered before its decade run (2026-10-03)
+
+**Change.** One definition of the company's own move, used by both the desk's booking and the
+pricing correction (`own_move`):
+- a household with a published default: the offer's gap to it;
+- everything else: the household's own price change net of the market's move as the company reads
+  it. That is every renewal before 2019, and every business account at any date.
+Learning can therefore start in 2017, and the business-account mismatch (learned against the
+domestic cap, priced by the fallback) is closed.
+
+**Predictions.**
+- **B3' (the step's purpose).** With learning from 2017, `value_learned - value` on the default book
+  over the decade is at least +300, against step 1's +18.
+- **B6.** The learned rule changes more than 30 of the 82 offers (step 1: 15).
+- **B7 (written to fail if the fallback is the wrong measure).** The correction learned by 2019 has
+  the same sign as step 1's late-window correction: negative, the company's customers are less
+  price-sensitive than 0.8 says. If it is positive, the pre-cap move measures something else and
+  the fallback should not be trusted.
+
+## Step 2 result (graded 2026-10-03, default book, full decade)
+
+| | total | sd | SNR |
+|---|---|---|---|
+| value_learned - value | **-37** | 77 | 0.5 |
+| value - level | -2,651 | 1,196 | 2.2 |
+| value_learned - level | -2,688 | 1,194 | 2.3 |
+
+The learned rule changes 29 of 82 offers. Electricity correction by year: 0 (2016-17); -0.02 to +0.28
+(2018); -0.11 to -0.25 (2019); -0.23 to -0.74 (2020); -0.16 to -0.70 (2024-25). Gas -0.38 by 2019.
+
+- **B7, HELD.** Learning from the pre-cap fallback points the same way as the post-cap window, so
+  the fallback measures the same thing.
+- **B6, REFUTED narrowly**: 29 offers, not more than 30.
+- **B3', REFUTED, with the sign reversed**: -37, not at least +300.
+
+**Why, and what it changes.** Learning the slope earlier made pricing slightly WORSE, and the
+level sweep already in the record says why. The value rule already over-charges: its median margin
+is 51 GBP/MWh, and it beats a uniform level only below about 30. Learning that customers are LESS
+sensitive than 0.8 moves its price UP, the wrong way, even though the slope learned is the
+world's direction. The offline bound that promised +367 to +1,337 held the belief's LEVEL (P(stay)
+at the level price) at the world's truth. The company's level error is large (believed minus true
+P(stay): sd 0.42 per decision), so correcting the slope while the level stays wrong pushes the
+price the wrong way. **The next target is the LEVEL of the churn belief, not its slope.** Step 2's
+mechanism still lands: it closes a real learn/use mismatch, and the learned policy stays opt-in, so
+no default run moves.
