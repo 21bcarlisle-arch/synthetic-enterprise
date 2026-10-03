@@ -159,25 +159,40 @@ def oldest_unpaid_bill_date(
     This is the FIFO a rolling balance IMPLIES: a payment reduces the oldest debt
     first, so once early bills are settled the arrears age from a LATER bill, not
     from the account's first-ever bill. Pure function of the event set (C-S2)."""
+    unpaid = fifo_unpaid_bills(ledger, as_of)
+    return unpaid[0][0] if unpaid else None  # None: every bill fully covered by credits
+
+
+def fifo_unpaid_bills(
+    ledger: AccountLedger,
+    as_of: dt.date,
+) -> List[tuple]:
+    """`(bill date, unpaid GBP)` for every bill a rolling balance still owes, oldest first.
+
+    THE SAME FIFO WALK `oldest_unpaid_bill_date` takes -- it now reads the first row of this --
+    carried on past the first uncovered bill. A balance aged whole from its oldest bill puts last
+    month's bill in the 90+ band beside the one that is really that old, and a provision rate
+    keyed to age then charges the recent money at the old money's rate.
+    """
     bills = sorted(
         (e for e in ledger.events()
          if e.event_type == LedgerEventType.BILL_DEBIT and e.valid_time <= as_of),
         key=lambda e: (e.valid_time, e.event_id),
     )
-    if not bills:
-        return None
     # Total credit magnitude available to appropriate against bills, oldest-first.
     credit = round(sum(
         e.amount_gbp for e in ledger.events()
         if not e.event_type.is_debit and e.valid_time <= as_of
     ), 2)
+    unpaid: List[tuple] = []
     for b in bills:
         if credit >= round(b.amount_gbp, 2) - 0.005:
             credit = round(credit - b.amount_gbp, 2)
             continue
-        # this bill is only partially (or not) covered → oldest unpaid
-        return b.valid_time
-    return None  # every bill fully covered by credits
+        # this bill is only partially (or not) covered; the credit is spent from here on
+        unpaid.append((b.valid_time, round(b.amount_gbp - credit, 2)))
+        credit = 0.0
+    return unpaid
 
 
 def age_balance(

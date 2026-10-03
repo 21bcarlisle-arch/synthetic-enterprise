@@ -93,6 +93,11 @@ THREE_ARM_BEFORE_THE_CURRENT_WORLD_RUN = (
 #: floor is published" reads this; a test that needs a PARTICULAR floor pins its dated name, as
 #: `THREE_ARM_20260829` does above.
 NOISE_FLOOR = gva.NOISE_FLOOR_PATH
+#: The last current-world pair whose selection leg WITHHOLDS, for the rung that needs one.
+CURRENT_WORLD_THREE_ARM_1002B = (
+    gva.PROJECT / "docs" / "observability" / "value_cycle_ab_s1_three_arm_20261002b.json")
+CURRENT_WORLD_NOISE_FLOOR_1002B = (
+    gva.PROJECT / "docs" / "observability" / "value_cycle_ab_s1_noise_floor_20261002b.json")
 #: A FOLD, PINNED BY NAME, because the seed-row fallback below needs one and the published floor is
 #: not always one. It was read off `NOISE_FLOOR` while that constant happened to name a fold; on
 #: 2026-09-19 the constant moved onto the twelve at `18327d977`, which carries a realised summary,
@@ -4953,9 +4958,14 @@ def test_the_creation_leg_carries_its_own_live_world_bound_and_not_the_advantage
         which is what stops every assertion above being satisfied by "never state a verdict".
     """
     live = _live_digest()
-    current = _load(gva.CURRENT_WORLD_THREE_ARM_PATH)
+    # THE LIVE SUBJECT IS PINNED BY ITS DATED NAMES (2026-10-03). The count, the band and the
+    # placement below render only on a WITHHELD leg, and on the 20261002c pair the selection
+    # leg's three re-draws all clear their bar, so reading `CURRENT_WORLD_*_PATH` made this rung
+    # red on a page whose leg had earned a sign. The 1002b pair is the same world, and its leg
+    # withholds. UNANIMOUS below still witnesses the resolving branch.
+    current = _load(CURRENT_WORLD_THREE_ARM_1002B)
     superseded = _load(NOISE_FLOOR)
-    floor_live = _load(gva.CURRENT_WORLD_NOISE_FLOOR_PATH)
+    floor_live = _load(CURRENT_WORLD_NOISE_FLOOR_1002B)
     assert ((current.get("world_identity") or {}).get("digest")) == live, (
         "the committed current-world run no longer names the live world, so this control's "
         "subject is gone -- re-run the arms rather than re-pointing the constant")

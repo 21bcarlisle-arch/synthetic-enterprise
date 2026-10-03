@@ -448,6 +448,7 @@ def _drawn_trickle(seed: int):
         draw_region=True,
         assign_cohorts=True,
         premise_stock_fn=lambda year: _trickle_stock(year, seed),
+        seasonal_dates=True,
     )
 
 
@@ -720,14 +721,29 @@ def _campaign(book: List[dict], seed: int) -> dict:
     # campaigns, and `live_premises()` ended up holding dwellings for winners that were not
     # in the book. Every caller now resolves against the same `_pre_growth_book(seed)`, so
     # the book is not a key at all.
-    if seed not in _CAMPAIGN_MEMO:
-        _CAMPAIGN_MEMO[seed] = _resolve_campaign(book, seed)
+    #
+    # AND ON WHAT SHAPES THE BOOK, alongside the seed (2026-10-03). The pre-growth book is not
+    # a function of the seed alone: which segments are served, whether the population is drawn
+    # and how many founders there are each change it, and all three are read from the
+    # environment or a curriculum file at call time. A campaign resolved under one setting was
+    # handed back under another -- `test_live_population_seam` resolves it with I&C served, and
+    # a later whole run in the same process then held a winner (PROS-2016-0042) its own book
+    # never drew a dwelling for, red on 19 tests whenever both were selected together.
+    key = _campaign_key(seed)
+    if key not in _CAMPAIGN_MEMO:
+        _CAMPAIGN_MEMO[key] = _resolve_campaign(book, seed)
         # AFTER the memo is populated, never inside `_resolve_campaign`: the verdict
         # re-enters `_campaign` to read the winners, and computing it before the memo
         # is set would recurse forever. Recorded here rather than at the seam because
-        # this is the one place a campaign is resolved exactly once per seed.
+        # this is the one place a campaign is resolved exactly once per key.
         _record_subset_verdict(seed)
-    return _CAMPAIGN_MEMO[seed]
+    return _CAMPAIGN_MEMO[key]
+
+
+def _campaign_key(seed: int) -> tuple:
+    """Everything the resolved campaign depends on that a caller does not pass: the seed, and
+    the three settings `_pre_growth_book` reads at call time."""
+    return (seed, tuple(sorted(served_segments())), draw_population_enabled(), founder_accounts())
 
 
 #: The founder-book curriculum file. R13: the number lives in a director-authored artefact, not
@@ -824,6 +840,7 @@ def _drawn_founder_pairs(seed: int) -> "List[tuple]":
         acquisitions_per_year_lambda=float(wanted) * _FOUNDER_DRAW_HEADROOM,
         draw_region=True,
         assign_cohorts=True,
+        seasonal_dates=True,
     ):
         record = customer.to_customer_dict()
         # A DRAWN FOUNDER CAN BE A GAS ACCOUNT IN ITS OWN RIGHT, unlike a campaign win, which
@@ -856,8 +873,20 @@ def _drawn_founder_pairs(seed: int) -> "List[tuple]":
             record = {**record, "aq_kwh": aq,
                       "cv_factor": GAS_CV_FACTOR, "cf": GAS_CORRECTION_FACTOR}
         out.append((record, premise))
-        if len(out) >= wanted:
-            break
+    # SPREAD THROUGH THE YEAR, NOT TRUNCATED TO ITS START (2026-10-03). The stream is in DATE
+    # order, so keeping the first `wanted` eligible candidates kept the first ~1/headroom of 2016:
+    # every drawn founder began between 1 January and 14 August, none in September-December, and
+    # their renewals bunched the same way for a decade. The real record has switching in every
+    # month, peaking in October (DESNZ QEP Table 2.7.1, `docs/market_research/
+    # gb_domestic_switching_by_calendar_month.md`). Taking every 1-in-r of the whole eligible
+    # sequence keeps the draw's own spread of dates. Systematic and deterministic, so no random
+    # stream is consumed and a re-run takes the same founders. The dates themselves follow 2016's
+    # published switching months (`seasonal_dates=True`), so the year is not flat either: January
+    # is its trough and October its peak. Thinning picks by POSITION, so it keeps the same
+    # households whichever way their dates were drawn.
+    if len(out) > wanted:
+        # Integer positions, so exactly `wanted` are kept -- a float rate loses one to rounding.
+        out = [out[(k * len(out)) // wanted] for k in range(wanted)]
     return out
 
 
@@ -870,7 +899,7 @@ def _drawn_founder_pairs(seed: int) -> "List[tuple]":
 _FOUNDER_SEED_OFFSET = 811_000
 
 #: Ask for more than we need so the Poisson count is very unlikely to fall short of the
-#: director's number; the surplus is discarded by the truncation above.
+#: director's number; the surplus is thinned evenly through the year above, never cut off its end.
 _FOUNDER_DRAW_HEADROOM = 1.6
 
 

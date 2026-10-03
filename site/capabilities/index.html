@@ -2449,6 +2449,12 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
       + (cw.how_to_read_this
           ? '<p style="margin:6px 0 0;font-size:11.5px;color:var(--muted);">'
             + prose(cw.how_to_read_this) + "</p>"
+          : "")
+      /* WHAT MOVED SINCE THE LAST PAIR. The world digest cannot say -- it is blind to behaviour
+         switches -- so without this the two readings look like one world re-drawn. */
+      + (cw.changed_since_the_last_reading
+          ? '<p class="cw-changed" style="margin:6px 0 0;font-size:11.5px;color:var(--muted);">'
+            + prose(cw.changed_since_the_last_reading) + "</p>"
           : "");
   }
 

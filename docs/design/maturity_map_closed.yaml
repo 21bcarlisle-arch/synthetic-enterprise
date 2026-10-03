@@ -4415,3 +4415,49 @@
   file_scope: ['tests/design/test_simplifications_store.py', 'tests/design/test_atom_notes_store.py', 'tools/simplifications_store.py', 'tools/migrate_gain_to_store.py', 'tools/maturity_map_store.py', 'docs/design/maturity_map.yaml']
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a disk-space alarm cleared by deleting last month's logs, which fires again next month because nothing changed the write rate"
+
+- id: H47_the_orientation_header_states_a_figure_it_computes
+  title: "the first thing every session reads is a hand-typed sentence, and it was 15x wrong"
+  notes_rehomed: [gain]
+  lane: H_harness
+  value_stream: price_to_bill
+  epoch: 3
+  level_current: 3   # L2->L3 2026-09-30 on its SECOND blind pass (PASS), recorded in
+  #   gate_authorizations.jsonl. The first (2026-09-17) FAILED; its repairs are graded in the store.
+  level_target: 3
+  loop_stage: idle   # EH-4 (band width) and EH-5 (scope) stay open, minor, in the store.
+  dial_inherited: 12    # presentation, not product. Ranked with H31, below the R-set: the header
+  #   is now correct and gated for STALENESS, so what is left is preventing the next drift rather
+  #   than repairing a live wrong page.
+  provenance: seat_finding
+  depends_on: []
+  couples_with: []
+  file_scope: ['docs/PROJECT_OVERVIEW.md', 'tools/startup_anchor_freshness.py', 'tests/tools/test_the_startup_header_states_the_figures_it_computes.py']
+  #   The test path is named because the control now EXISTS (56d746816): the header's four figures
+  #   are graded against the sources the header names, mutation-proven in both directions. Until
+  #   this line the row named no control a runner could execute, which is the only reason it read
+  #   as ungradable -- the subject was on disk the whole time. It names the file the control was
+  #   MOVED INTO (aff4b153f) and not the freshness suite it was first appended to: the grader dates
+  #   a control by its FILE's birth, so a row can only be graded by a file younger than itself.
+  records_rehomed: [expert_hour_findings]
+  expert_hour: {status: passed, last: '2026-09-30 SECOND blind pass PASS, graded in the store. FIRST: 2026-09-17 blind pass, persona a veteran of corporate reporting and disclosure controls, via tools/blind_review.py -- packet and 16-question battery recorded verbatim in docs/observability/blind_review_ledger.jsonl, blindfold re-derived PASS by --audit, independence false per 3c. VERDICT FAIL, level held. EH-1 (UNGRADED was an unearned escape hatch) and EH-2 (a hedged figure read as no figure, so the real incident never reached the grading legs) repaired with mutation-proven controls; EH-3 repaired in part the same day and its prediction CONFIRMED LIVE: the tests figure was graded only against CLAUDE.md''s hand-typed Build line, both documents said 26,731, a real collection returned 36,838, and the check said AGREES while the site published it. That leg now carries a floor computed from the test functions in the git index, at no extra cost. Residual: floored, not capped.'}
+  real_world_twin: "an annual report whose 'about us' page still gives the headcount from three acquisitions ago. Everyone reads it, nobody owns it, and every outsider's first number is wrong."
+
+- id: H49_an_untracked_copy_of_an_earlier_origin_revision_is_cleared_like_a_twin
+  title: "A shared-tree copy whose bytes equal an EARLIER origin revision of its path is lossless to clear, and the reconciler refuses it"
+  lane: H_harness
+  value_stream: close_to_learn
+  epoch: 3
+  level_current: 2    # 2026-10-01: built + mutation-proven, real git. Class: `earlier_revision_twins`.
+  #   Page: `fork_open_streak` now names the refusing paths. Not L3: no HARDEN / Expert Hour yet.
+  level_target: 2
+  loop_stage: build
+  dial_inherited: 12    # machinery; it recurs at every fast-forward, measured 3 of 12 blockers 2026-10-01.
+  provenance: seat_finding
+  depends_on: []
+  couples_with: []
+  file_scope: ['background/origin_reconcile.py', 'background/supervisor.py', 'tests/background/test_origin_reconcile_earlier_revision_twin.py']
+  #   Writer: `supervisor._sync_origin_staging` never refreshes a copy origin later revises. See
+  #   SEAT_FINDING_THE_ORIGIN_FORK_ALARM_WRITES_THE_FILE_THAT_BLOCKS_THE_FAST_FORWARD_IT_REPORTS_2026-09-30.md.
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a filing room that will not accept this week's minutes because last week's draft of them is still in the tray."

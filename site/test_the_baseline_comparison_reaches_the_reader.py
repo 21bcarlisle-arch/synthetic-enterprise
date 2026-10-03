@@ -3603,7 +3603,19 @@ def _feed_whose_current_world_block_speaks() -> dict:
     # fixture below failed with a message about the committed runs no longer pairing, which is a
     # sentence about the artefacts and was a sentence about the call. Keywords make the next
     # signature move a TypeError naming the parameter instead.
-    current = json.loads(gvad.CURRENT_WORLD_THREE_ARM_PATH.read_text(encoding="utf-8"))
+    # THE CURRENT-WORLD PAIR IS PINNED BY ITS DATED NAMES TOO (2026-10-03), for the reason
+    # `earlier` is. The mirror rung needs the two legs to carry DIFFERENT verdicts, or trading them
+    # is a no-op and its poison round cannot fire. On the 20261002c pair both legs clear their bar,
+    # so reading `CURRENT_WORLD_*_PATH` made the rung's subject today's publish. The 1002b pair is
+    # the one where the advantage resolves and the selection leg withholds.
+    obs = SITE.parent / "docs" / "observability"
+    current_path = obs / "value_cycle_ab_s1_three_arm_20261002b.json"
+    current_floor_path = obs / "value_cycle_ab_s1_noise_floor_20261002b.json"
+    for pinned in (current_path, current_floor_path):
+        if not pinned.is_file():
+            pytest.fail("{} is missing -- this fixture's subject is UNAVAILABLE, and an "
+                        "unavailable check is a FAILED check (R15)".format(pinned))
+    current = json.loads(current_path.read_text(encoding="utf-8"))
     # PUBLISHED FROM THE RUN'S OWN COMMIT, so the code check admits it. Whether HEAD's code still
     # matches the run is a fact about today's tree, controlled in tests/tools; these rungs need a
     # spoken clause whatever HEAD is.
@@ -3611,8 +3623,7 @@ def _feed_whose_current_world_block_speaks() -> dict:
         json.loads(earlier.read_text(encoding="utf-8")),
         json.loads(gvad.NOISE_FLOOR_PATH.read_text(encoding="utf-8")),
         current_three_arm=current,
-        current_floor=json.loads(
-            gvad.CURRENT_WORLD_NOISE_FLOOR_PATH.read_text(encoding="utf-8")),
+        current_floor=json.loads(current_floor_path.read_text(encoding="utf-8")),
         publishing_head=(current.get("producing_commit") or {}).get("commit"))
     cw = feed.get("current_world") or {}
     if (not cw.get("available") or cw.get("is_the_later_run") is False

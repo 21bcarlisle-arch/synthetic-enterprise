@@ -83,6 +83,7 @@ from dataclasses import dataclass, field
 from datetime import date
 
 from company.compliance.domain_invariants import vat_rate_for_segment
+from company.crm.churn_model import ARREARS_STATE_UNKNOWN
 from company.interfaces.customer_profitability import renewal_unit_rate_uplift
 from company.policy.decision_policy import active_policy
 from company.pricing.margin_feedback import compute_margin_surcharge
@@ -99,6 +100,7 @@ from company.pricing.value_based_renewal import (
     STAGE_PRICED as VALUE_ARM_STAGE_PRICED,
 )
 from company.pricing.value_based_renewal import renewal_margin_uplift
+from saas.payment_behaviour import CREDIT_RISK_BY_CUSTOMER, DEFAULT_CREDIT_RISK
 from saas.tariff_pricing import TARGET_MARGIN_GBP_PER_MWH
 
 __all__ = ["RenewalRateChain", "cap_ceiling_ex_vat", "decide_renewal_rate"]
@@ -261,6 +263,9 @@ def decide_renewal_rate(
     segment: str | None = None,
     settled_records: list[dict],
     customer: dict,
+    arrears_state: str | None = None,
+    receivable: dict | None = None,
+    payment_method: str | None = None,
 ) -> RenewalRateChain:
     """Decide the rate this renewal is contracted at.
 
@@ -467,6 +472,14 @@ def decide_renewal_rate(
             cap_ceiling_ex_vat(
                 commodity, date.fromisoformat(term_start[:10]), multi_register=False)
             if is_domestic and commodity in ("electricity", "gas") else None),
+        # WHAT THIS ACCOUNT HAS AND HAS NOT PAID, which the arm priced blind to until 2026-10-03.
+        # The credit-risk segment is the company's own register and is read here rather than
+        # crossing: it never left `company/`.
+        arrears_state=arrears_state or ARREARS_STATE_UNKNOWN,
+        credit_risk=CREDIT_RISK_BY_CUSTOMER.get(customer_id, DEFAULT_CREDIT_RISK),
+        unpaid_bills_by_age=tuple((receivable or {}).get("unpaid_bills_by_age") or ()),
+        billed_last_year_gbp=(receivable or {}).get("billed_last_year_gbp"),
+        payment_method=payment_method,
     )
     # THE DENOMINATOR, WRITTEN AT THE SAME SITE AS THE DECISION. Unconditional and before the two
     # branches below, so a renewal cannot reach the funnel through one path and miss it through
@@ -522,6 +535,12 @@ def decide_renewal_rate(
             # company's beliefs are worth acting on.
             "believed_p_retain": round(decision.p_retain, 4),
             "believed_expected_value_gbp": round(decision.expected_value_gbp, 2),
+            # WHAT THE PAYMENT HISTORY COST THIS DECISION, so a run shows the ledger reached the
+            # price rather than every default standing in for it (2026-10-03).
+            "believed_bad_debt_gbp_per_year": round(decision.costs.bad_debt_gbp, 2)
+            if decision.costs else None,
+            "receivable_expected_loss_gbp": round(decision.receivable_expected_loss_gbp, 2),
+            "receivable_provision_unsourced": decision.receivable_provision_unsourced,
             "endpoint_bound": decision.endpoint_bound,
             "endpoint_side": decision.endpoint_side,
             # WHICH BOUND ACTUALLY DECIDED, carried out of the decision rather than inferred from

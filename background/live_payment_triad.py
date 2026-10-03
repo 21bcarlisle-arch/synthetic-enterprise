@@ -765,6 +765,26 @@ class LivePaymentTriad:
             segment=segment,
         )
 
+    def receivable(self, customer_id: str, as_of: date, segment: str = "resi"):
+        """What the COMPANY's own ledger says this account owes and was billed, as plain values --
+        the same door shape as `arrears_state`, and for the same reason: the run asks what the
+        company believes and no company object comes back. `None` for an account the company has
+        never billed.
+
+        `unpaid_bills_by_age` is `(unpaid GBP, days since the bill)` per bill still owed;
+        `billed_last_year_gbp` is everything billed in the 365 days to `as_of`. Read at the
+        renewal, before this term's bills post -- the no-look-ahead bound `arrears_state` keeps.
+        """
+        account = f"ACC-{customer_id}"
+        unpaid = self._consumer.unpaid_bills_by_age(account, as_of, segment=segment)
+        if unpaid is None:
+            return None
+        return {
+            "unpaid_bills_by_age": unpaid,
+            "billed_last_year_gbp": self._consumer.billed_gbp_between(
+                account, as_of - timedelta(days=365), as_of),
+        }
+
     def detection_cells(self, as_of: date) -> dict:
         """The per-cell DETECTION measurements for the fidelity grid.
 

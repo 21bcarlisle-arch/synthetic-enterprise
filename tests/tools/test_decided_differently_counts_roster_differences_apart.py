@@ -11,6 +11,7 @@ partitions on.
 from __future__ import annotations
 
 from tools.run_value_cycle_ab import (
+    RENEWAL_BELIEF_FIELDS,
     RENEWAL_DECISION_FIELDS,
     _renewal_decision_rows,
     decided_differently_by_account,
@@ -85,6 +86,6 @@ def test_the_decision_rows_keep_declines_and_only_the_decision_fields():
     ]}}
     rows = _renewal_decision_rows(arm)
     assert len(rows) == 2
-    assert all(set(r) == set(RENEWAL_DECISION_FIELDS) for r in rows)
+    assert all(set(r) == {*RENEWAL_DECISION_FIELDS, *RENEWAL_BELIEF_FIELDS} for r in rows)
     assert rows[1]["declined"] is True
 

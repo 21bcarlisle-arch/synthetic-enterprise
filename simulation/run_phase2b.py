@@ -2081,6 +2081,26 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             portfolio_elec_margin_rates if commodity == "electricity"
             else portfolio_gas_margin_rates
         )
+        # WHAT THIS ACCOUNT HAS PAID, ASKED BEFORE THE PRICE IS STRUCK (2026-10-03). The value arm
+        # priced every renewal blind to payment history -- the arrears state reached the churn
+        # estimate below, AFTER the rate was set, and never reached the rate. Asked through the
+        # same doors and on the same no-look-ahead bound as that estimate: the company's own ledger
+        # (the triad) and the payment-method seam. Pure reads, so a control-arm run, which never
+        # looks at them, is unchanged. An acquisition term has nothing on the ledger to ask about.
+        # `_company_payment_method` is resolved HERE for the price and again, identically, in the
+        # churn block below, which resets it every term -- one name for the one fact, so the run
+        # can only ever hand the company the method it resolved.
+        _chain_arrears_state = _chain_receivable = _company_payment_method = None
+        if term_index >= 1 and not _spliced:
+            _chain_segment = _SEGMENT_OF.get(cid, "resi")
+            _chain_asof = date.fromisoformat(term_start_str)
+            _chain_arrears_state = _payment_triad.arrears_state(
+                cid, _chain_asof, segment=_chain_segment)
+            _chain_receivable = _payment_triad.receivable(cid, _chain_asof, segment=_chain_segment)
+            if _chain_segment == "resi":
+                from company.interfaces.sim_interface import LiveSimInterface
+                _company_payment_method = LiveSimInterface().get_payment_method(
+                    billing_account, commodity)
         _chain = decide_renewal_rate(
             customer_id=cid,
             billing_account=billing_account,
@@ -2103,6 +2123,9 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             # The same record the ToU offer below is handed, for the same metering facts: the
             # company grades a term it sells as ToU against the multi-register cap.
             customer=get_customer(cid),
+            arrears_state=_chain_arrears_state,
+            receivable=_chain_receivable,
+            payment_method=_company_payment_method,
         )
         unit_rate = _chain.unit_rate_gbp_per_mwh
         dynamic_pricing_log.extend(_chain.dynamic_pricing_entries)

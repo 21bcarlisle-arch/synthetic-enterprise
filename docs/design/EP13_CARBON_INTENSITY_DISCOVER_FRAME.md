@@ -2102,3 +2102,211 @@ not between O and R2.
 its per-year scaled mean, and against none, graded on between-day and p95/p5. (2) The 2024 level,
 +1.3 GW and still unattributed. No level move: the Expert Hour still has to weigh the
 shared-input share of the correlation (§22).
+
+## 29. 2026-10-03 — EMBEDDED WIND ON THE BETWEEN-DAY AXIS: the overshoot is carried by WHEN the wind blows, and the meters agree with NESO on when
+
+§28 put embedded wind first in line for the between-day overshoot (2019 1.048, 2020 1.111). This
+pass measured it and built nothing. Scratch and the timestamped predictions are in
+`/var/tmp/se-ep13-s29/` (`measure.py`, `prediction.txt`, `out.txt`). **Instrument check:** the
+shipped arm reproduces the committed feed's records to five places.
+
+**Four arms on the s27 base**, with only the embedded map passed to `build_shape` changed. S: the
+shipped map, AGWS solar plus NESO's embedded wind each half hour. W0: solar only. WM: NESO's
+wind held flat at its own year mean, so the energy is right but there is no timing. WT: metered
+transmission wind (FUELHH) scaled each year to NESO's embedded energy, so the timing comes from
+meters and not from NESO's weather model. NESO's embedded wind averages 1.65–2.06 GW over
+2019–24.
+
+**Predictions (01:55Z, before `measure.py`).** P1: between-day W0 < S by 0.03–0.09 in every
+year, with 2020 landing 1.02–1.08. P2: between-day |WM − W0| < 0.015 in every year. P3:
+between-day |WT − S| < 0.02 in every year. P4: headline p95/p5 W0 1.06–1.10x, S 1.13x. P5:
+correlation W0 below S by 0.000–0.005 in every year.
+
+| between-day | 2019 | 2020 | 2021 | 2022 | 2023 | 2024 |
+|---|---|---|---|---|---|---|
+| **S shipped** | **1.048** | **1.111** | **0.997** | **1.027** | **1.002** | **0.934** |
+| W0 solar only | 0.963 | 1.019 | 0.920 | 0.955 | 0.948 | 0.881 |
+| WM wind flat | 0.974 | 1.026 | 0.926 | 0.957 | 0.953 | 0.889 |
+| WT metered timing | 1.051 | 1.116 | 1.005 | 1.033 | 1.005 | 0.928 |
+
+| within-day | 2019 | 2020 | 2021 | 2022 | 2023 | 2024 |
+|---|---|---|---|---|---|---|
+| **S shipped** | **1.064** | **1.097** | **0.983** | **0.972** | **0.950** | **0.926** |
+| W0 solar only | 1.009 | 1.040 | 0.937 | 0.927 | 0.914 | 0.889 |
+| WM wind flat | 1.043 | 1.070 | 0.962 | 0.938 | 0.923 | 0.904 |
+| WT metered timing | 1.071 | 1.102 | 0.989 | 0.978 | 0.955 | 0.931 |
+
+Headline p95/p5 (max/min): S 1.13x (1.21x), W0 1.02x (1.06x), WM 1.04x (1.08x), WT 1.13x
+(1.20x). Correlation: S .959/.931/.966/.978/.974/.959; W0 is 0.001–0.002 below it except
+2020 (+0.002), WM is −0.004 to +0.005, and WT is −0.004 to −0.001. Mean absolute error is lower
+without timed wind in 2019–20 (W0 .057/.093 against S .061/.104) and higher in 2021–24.
+
+**Against the predictions.** P2 held (≤0.012). P3 held (≤0.008). P1 held in five years and **was
+refuted in 2020**: S − W0 is 0.093, and W0 lands at 1.019, just under the 1.02 floor. P4 held on
+S and **was refuted on W0**: without embedded wind p95/p5 is 1.02x, narrower than predicted. So
+nearly all of s26's p95/p5 rise came from wind. P5 **was refuted in 2020**, where W0 correlates
+better than S.
+
+**What it establishes.**
+- **The between-day overshoot is carried by the TIMING of embedded wind, not its energy.** Adding
+  the year's embedded energy flat moves between-day by ≤0.012. Putting it on the right days moves
+  it +0.05 to +0.09. Without timed wind, between-day is narrow in every year but 2020.
+- **NESO's timing is not the error.** Metered transmission wind, scaled to the same energy,
+  reproduces NESO's between-day to 0.008 and p95/p5 exactly. The between-day effect comes from
+  real windiness, not from NESO's weather model.
+- **So the overshoot is not in the denominator input. It is in what the model does on windy days.**
+  Embedded wind is owed by definition (§24) and its timing is corroborated by meters. Once it is
+  in the denominator, windy days come out cleaner relative to calm days than NESO publishes them.
+  The model therefore over-cleans windy days, or under-cleans calm ones, in the numerator, and it
+  did so before s26 too: the old short denominator was hiding it.
+
+**What it does NOT establish.**
+- **That NESO's embedded wind ENERGY is right.** WT borrows NESO's annual energy, so magnitude is
+  untested. A DUKES check on embedded wind energy, like §21's AGWS check, is the cheap test. If
+  NESO runs high, part of the overshoot is magnitude.
+- **Which part of the numerator over-cleans windy days.** Candidates are gas displaced too
+  readily on windy days (the merit order's swing, §23) and interconnector imports that do not
+  track wind. Neither was run here.
+
+**Controls.** None. Nothing shipped changed, and the feed is byte-identical.
+
+**Next.** (1) DUKES embedded-wind energy against NESO's annual estimate, per year (the magnitude
+leg this pass could not test). (2) The numerator on windy days: emissions per MWh of residual,
+binned by wind decile, against NESO's implied figure. (3) The 2024 level, +1.3 GW and still
+unattributed. No level move: the Expert Hour still has to weigh the shared-input share of the
+correlation (§22).
+
+## 30. 2026-10-03 — EMBEDDED WIND'S MAGNITUDE AGAINST DESNZ: NESO is not high, so the energy is not the overshoot
+
+§29 left the magnitude leg open: WT borrowed NESO's annual embedded energy, so if NESO ran high,
+part of the between-day overshoot would be magnitude. This pass measured it and built nothing. No
+fetch. Scratch and the timestamped predictions are in `/var/tmp/se-ep13-s30/` (`measure.py`,
+`prediction.txt`, `out.txt`).
+
+**The quantity.** DESNZ does not publish embedded wind as such. It publishes all wind
+(`docs/market_research/w1_7_dukes_generation_and_load_factor_annual.json`, ET 6.1, onshore plus
+offshore). FUELHH `WIND` is the transmission-metered part (§21 showed it agrees with DESNZ wherever
+the two can be compared). So **DESNZ-implied embedded wind = ET 6.1 total wind − FUELHH WIND**,
+per calendar year. NESO's figure is the annual sum of `wind_mw` in the cached embedded series.
+Both caches cover 100% of the half hours in every year. **The bases differ:** ET 6.1 is UK, so it
+includes Northern Ireland; FUELHH and NESO are GB. Northern Ireland's wind output is not in the
+knowledge layer, so the implied figure is an upper bound on GB embedded wind, by an unsized amount.
+
+**Predictions (02:15Z, before `measure.py` was written).** P1: NESO / implied lies in 0.75–1.00
+in every year 2019–24. P2: NESO never exceeds the implied UK figure. P3: the ratio varies by less
+than 0.15 across 2019–24.
+
+| GWh | 2016 | 2017 | 2018 | 2019 | 2020 | 2021 | 2022 | 2023 | 2024 |
+|---|---|---|---|---|---|---|---|---|---|
+| ET 6.1 wind (UK) | 37,159 | 49,641 | 56,908 | 63,835 | 75,623 | 64,924 | 80,214 | 82,767 | 83,618 |
+| FUELHH WIND (GB) | 21,193 | 32,337 | 39,413 | 46,431 | 54,680 | 48,954 | 61,641 | 63,396 | 65,642 |
+| implied embedded (UK) | 15,967 | 17,304 | 17,495 | 17,404 | 20,943 | 15,969 | 18,573 | 19,372 | 17,976 |
+| NESO embedded (GB) | 10,708 | 13,590 | 14,625 | 15,545 | 18,242 | 14,827 | 16,580 | 15,567 | 16,972 |
+| **NESO / implied** | 0.671 | 0.785 | 0.836 | **0.893** | **0.871** | **0.928** | **0.893** | **0.804** | **0.944** |
+| gap, mean MW | 599 | 424 | 328 | 212 | 308 | 130 | 228 | 434 | 114 |
+
+**Against the predictions.** All three held. P3 held only just, with a spread of 0.140 against
+0.15.
+
+**What it establishes.**
+- **NESO's embedded wind is not too large.** In 2019–24 it is 0.80–0.94 of the UK figure DESNZ
+  implies. That figure still includes Northern Ireland. The magnitude leg §29 left open therefore
+  cannot explain the between-day overshoot. If NESO's figure is wrong, it is LOW, and more embedded
+  energy on windy days would widen between-day further, not narrow it.
+- **2020, the outlier year on between-day (1.111), is unremarkable here** (0.871, mid-range). So
+  magnitude does not single out the year the overshoot is worst in.
+- §29's conclusion stands. The overshoot is in what the numerator does on windy days, and the next
+  pass is the numerator by wind decile.
+
+**What it does NOT establish.**
+- **How much of the 114–434 MW gap is Northern Ireland.** Northern Ireland's wind generation is an
+  unsourced gap, so the gap cannot be split between NI and a GB shortfall in NESO's estimate. In
+  2023 the ratio dips to 0.804, a 434 MW gap, and nothing here attributes that.
+- **That FUELHH carries every transmission-connected wind unit.** A non-BM transmission unit would
+  sit in the implied figure and push the ratio down. In that case NESO would be even less likely to
+  be high, so the direction of the conclusion holds.
+- 2016–18 ratios of 0.67–0.84 are reported and not weighed. Those years are outside the 2019–24
+  comparison window.
+
+**Side reading, not a leg of this pass.** NESO's embedded SOLAR is 0.90–0.97 of ET 6.1 solar
+(also UK) in every year. The model does not consume it (its solar is AGWS, §19).
+
+**Controls.** None. Nothing shipped changed and the feed is byte-identical.
+
+**Next.** (1) The numerator on windy days: emissions per MWh of residual, binned by wind decile,
+against NESO's implied figure. (2) The 2024 level, +1.3 GW and still unattributed. (3) A
+Northern Ireland wind figure (DfE NI publishes annual renewable generation), which would close
+the basis gap in this table. No level move.
+
+## 31. 2026-10-03 — THE NUMERATOR BY WIND DECILE: windy days come out too clean in every year, and the model's gas runs high on calm days, not low on windy ones
+
+§29 placed the between-day overshoot in the numerator on windy days. This pass binned it by wind
+and built nothing. No fetch. Scratch and the timestamped predictions are in `/var/tmp/se-ep13-s31/`
+(`measure.py`, `prediction.txt`, `out.txt`, `out.json`). **Instrument check:** the shipped arm
+reproduces the committed feed's records to five places. The fuel split comes from an exec'd copy
+of `emissions_rate_t_per_mwh` with one recording line added before its `return`, so it is the
+shipped dispatch's own numbers.
+
+**The quantities.** Days are ranked within each year by **wind share** = (FUELHH transmission
+wind + NESO embedded wind) / (INDO + embedded), then cut into deciles D1 (calm) to D10 (windy).
+Per decile: **M/P** is the demand-weighted mean of the model's shape over NESO's, both
+renormalised over the common half hours of the year. Below 1 means the model calls those days
+cleaner than NESO does. **Gas gap** is the model's gas (CCGT band plus peakers) minus metered
+FUELHH CCGT+OCGT, as mean MW. The second is a diagnostic reading, not an input: half-hourly gas
+still never crosses into the dispatch.
+
+**Predictions (02:27Z, before `measure.py`).** P1: M/P(D10) < M/P(D1) in every year 2019–24. P2:
+D10 − D1 lies in −0.20 to −0.05 in every year. P3: the gas gap is lower in D10 than in D1 in at
+least 5 of 6 years. P4: 2020 has the most negative D10 − D1.
+
+| | 2019 | 2020 | 2021 | 2022 | 2023 | 2024 |
+|---|---|---|---|---|---|---|
+| M/P calm D1 | 1.028 | 1.044 | 1.019 | 1.013 | 1.000 | 0.989 |
+| M/P windy D10 | 0.935 | **0.833** | 0.981 | 0.954 | 0.983 | 0.945 |
+| **M/P D10 − D1** | −0.093 | **−0.211** | −0.038 | −0.059 | −0.017 | −0.044 |
+| gas gap D1, MW | +402 | +667 | +669 | +1,066 | +1,428 | +2,149 |
+| gas gap D10, MW | −330 | −758 | −274 | −371 | +75 | +54 |
+| **gas gap D10 − D1** | −732 | −1,425 | −943 | −1,437 | −1,353 | −2,095 |
+
+In 2019–20 M/P falls steadily across the deciles: 1.03 to 0.93 in 2019, and 1.04 to 0.83 in
+2020. From 2021 it is flat within about ±0.02 from D1 to D9, and the fall is all in D10. The gas
+gap falls in every year. It is positive on calm days and turns negative on the windiest days in
+2019–22. In 2023–24 it is positive in every decile and only reaches about zero at D10. The full
+per-decile table is in `out.txt`.
+
+**Against the predictions.** P1 held in all six years. P3 held in all six. P4 held. **P2 was
+refuted in four years of six:** 2020 is steeper than the −0.20 floor (−0.211), and 2021, 2023 and
+2024 are shallower than −0.05. The gradient is steep in 2019–20 and small after.
+
+**What it establishes.**
+- **The over-clean is a wind effect, and it is monotone where it is large.** Windy days come out
+  too clean relative to calm days in every year. 2020's between-day overshoot (1.111) is the
+  steepest gradient, at −0.21.
+- **In gas MW, the model's error is mostly too MUCH gas on calm days.** It is not too little on
+  windy days. On calm days the model burns 0.4–2.1 GW more than the meters show; on the windiest
+  days it is within 0.8 GW, either side. §29's either/or ("over-cleans windy days or under-cleans
+  calm ones") resolves toward the calm side. The exception is D10 in 2019–22, where the model runs
+  below metered gas. 2020 D10 is the clearest case: 758 MW short, at M/P 0.833.
+- **The 2024 level gap is in the calm days.** 2024's +1.3 GW (NEXT (2) in §29–30) is a gas gap of
+  about 2.1 GW in D1–D5, falling to zero at D10. So whatever supplies it runs when the wind does
+  not.
+
+**What it does NOT establish.**
+- **What the calm-day excess gas actually is.** The candidates are fleets FUELHH CCGT+OCGT does
+  not count but the remainder does (§17: OIL, OTHER, the INDO remainder), and demand the model
+  serves that GB met some other way. Neither was split here.
+- **Why the windiest decile runs short of metered gas.** One industry reading is that
+  transmission constraints curtail wind north of the boundaries while gas runs south of them. The
+  model curtails wind only when wind beats national demand. That is a hypothesis; nothing here
+  measures it, and constraint volumes are not in the knowledge layer.
+- **How the gas gap converts to M/P.** In 2023 a 1,353 MW gap gradient goes with an M/P gradient
+  of −0.017, and in 2020 a 1,425 MW gradient goes with −0.211. Imports, the flat biomass block and
+  the denominator all sit between the two. The two columns count different things, so they are
+  not divided.
+
+**Controls.** None. Nothing shipped changed, and the feed is byte-identical.
+
+**Next.** (1) Split the calm-day excess: model gas against FUELHH CCGT+OCGT+OIL+OTHER by decile,
+and INDO against the stack's own total. (2) Size the D10 shortfall against published constraint
+volumes, if a source exists (else file the gap). (3) A Northern Ireland wind figure (§30). No level
+move.

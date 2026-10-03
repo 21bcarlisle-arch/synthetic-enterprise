@@ -385,6 +385,195 @@ def test_one_lane_is_scanned_ONCE_however_many_atoms_it_holds():
         [{"atom": "H99_thing", "from": 1, "to": 2}, {"atom": "H99_thing", "from": 2, "to": 3},
          {"atom": "D9_bill", "from": 1, "to": 2}], gate.atom_lane_names(_LANE_MAP), counting)
     assert calls == ["H_harness", "D_billing_metering"]
+
+
+# ═══════════════════════════════════════════════════════════════════════════════════════════════
+# FIFTH CONTROL (2026-09-09): ABSENT EVIDENCE + the MINIMUM LANDABLE UNIT in the refusal.
+# ═══════════════════════════════════════════════════════════════════════════════════════════════
+_ABSENT_SCOPES = {"B3_forecast": ["sim/forecast_publication.py", "tests/sim/test_forecast.py"]}
+_B3 = [{"atom": "B3_forecast", "from": 0, "to": 1}]
+
+
+def test_evidence_ABSENT_from_the_commit_tree_REFUSES_the_increase():
+    """(a) THE named defect: the raise declares a level for evidence that is in no tree at all --
+    not at HEAD, not in the index. This is the test the neuter must turn RED."""
+    absent = gate.absent_evidence_increases(
+        _B3, _ABSENT_SCOPES, {"sim/forecast_publication.py": False, "tests/sim/test_forecast.py": False})
+    assert len(absent) == 1
+    assert absent[0]["absent"] == ["sim/forecast_publication.py", "tests/sim/test_forecast.py"]
+    assert absent[0]["unverifiable"] is False
+
+
+def test_the_absent_path_is_INVISIBLE_to_the_dirty_check_so_this_is_not_an_equivalence():
+    """THE GENERATOR, asserted directly so this control can never be mistaken for a restatement of
+    the SECOND one. `git status --porcelain -- <path that exists nowhere>` exits 0 with NO output,
+    measured on the live tree 2026-09-09. The dirty predicate therefore reads the B3 raise CLEAN,
+    and only the absence predicate refuses it -- which is the whole reason the fifth control
+    exists. If a future edit made `unbuilt_level_increases` catch this, the two would be the same
+    control wearing two names and one of them should go."""
+    assert gate.dirty_source_paths("") == []
+    assert gate.unbuilt_level_increases(_B3, {"B3_forecast": ""}) == []   # the fail-open, live
+    assert gate.absent_evidence_increases(                                # what actually catches it
+        _B3, _ABSENT_SCOPES, {"sim/forecast_publication.py": False,
+                              "tests/sim/test_forecast.py": False}) != []
+
+
+def test_evidence_PRESENT_ALLOWS_the_increase():
+    """(b) THE PASSING DIRECTION, and the reason this control is passable at all: measured over
+    all 348 atoms, every row carrying an absent file_scope path stands at level_current 0, so an
+    ordinary raise on landed evidence sails through. A path already at HEAD and a path landing in
+    THIS commit are both `present` -- the index is the tree the commit creates."""
+    assert gate.absent_evidence_increases(
+        _B3, _ABSENT_SCOPES, {"sim/forecast_publication.py": True,
+                              "tests/sim/test_forecast.py": True}) == []
+
+
+def test_neuter_everything_present_turns_the_defect_test_RED():
+    """(c) INDEPENDENCE: replace the presence probe with one that finds everything (the fail-open
+    mutation) and the (a) assertion collapses -- so (a) is really carried by the predicate."""
+    all_present = dict.fromkeys(_ABSENT_SCOPES["B3_forecast"], True)
+    assert gate.absent_evidence_increases(_B3, _ABSENT_SCOPES, all_present) == []
+    # restored: the real answer refuses again
+    assert gate.absent_evidence_increases(
+        _B3, _ABSENT_SCOPES, dict.fromkeys(_ABSENT_SCOPES["B3_forecast"], False)) != []
+
+
+def test_the_absence_probe_FAILING_is_a_refusal_not_a_pass():
+    """R15 fail-silent: an unavailable check is a FAILED check. `presence` None is the probe
+    itself failing, which is not evidence that the evidence is there."""
+    out = gate.absent_evidence_increases(_B3, _ABSENT_SCOPES, None)
+    assert len(out) == 1 and out[0]["unverifiable"] is True and out[0]["absent"] == []
+
+
+def test_the_whole_partition_is_REACHABLE_not_only_the_refusing_leg():
+    """ONE control over all three outcomes, because a predicate that refuses EVERYTHING passes
+    every refusal test above and a predicate that refuses NOTHING passes the clean one. Both
+    directions and the fail-closed middle have to be reachable from the same predicate."""
+    scopes = _ABSENT_SCOPES
+    refuses = gate.absent_evidence_increases(_B3, scopes, dict.fromkeys(scopes["B3_forecast"], False))
+    clears = gate.absent_evidence_increases(_B3, scopes, dict.fromkeys(scopes["B3_forecast"], True))
+    cannot_tell = gate.absent_evidence_increases(_B3, scopes, None)
+    assert refuses and not clears and cannot_tell
+
+
+def test_an_atom_with_no_file_scope_is_the_DECLARED_hole_not_a_second_silent_one():
+    """53 atoms carry an empty file_scope. They pass here for the same stated reason they pass the
+    built-check -- there is nothing to look for -- and `main()` prints that hole on stderr."""
+    assert gate.absent_evidence_increases(_B3, {"B3_forecast": []}, {}) == []
+    assert gate.absent_evidence_increases(_B3, {}, {}) == []
+
+
+# ── the minimum landable unit ────────────────────────────────────────────────────────────────
+def test_a_NEGATED_exists_is_NOT_in_the_minimum_landable_unit():
+    """THE INVERSION, and the reason this is an AST walk and not a grep. `assert not (REPO /
+    "saas" / "demand_response.py").exists()` asserts the path is GONE. A grep would put it in the
+    set of paths the commit must CONTAIN, i.e. demand the opposite of the control it came from --
+    and `tests/architecture/test_demand_response_is_world_physics.py` carries exactly that line."""
+    src = ('from pathlib import Path\nR = Path(".")\n'
+           'def t():\n    assert not (R / "saas" / "demand_response.py").exists()\n')
+    assert gate.exists_cited_paths(src) == []
+    positive = src.replace("assert not (", "assert (")
+    assert gate.exists_cited_paths(positive) == ["saas/demand_response.py"]
+
+
+def test_the_rejoined_path_is_read_in_SOURCE_order():
+    """`R / "saas" / "demand_response.py"` is a left-leaning BinOp chain, and `ast.walk`'s
+    breadth-first order returns its parts REVERSED -- rejoining that yields
+    `demand_response.py/saas`, which matches no path, silently turning the whole multi-component
+    leg into a no-op that still looks implemented."""
+    assert gate._path_literals(
+        __import__("ast").parse('R / "saas" / "demand_response.py"').body[0].value
+    ) == ["saas", "demand_response.py"]
+
+
+def test_a_module_level_constant_path_is_recovered():
+    """The dominant real shape: measured over all 1,693 controls in the tree, the inline-literal
+    rule alone found 6 citations; resolving module-level constants found 10. `PAGE = PROJECT /
+    "..."` at the top and `PAGE.exists()` in the body is how these are actually written."""
+    src = ('from pathlib import Path\nPROJECT = Path(".")\n'
+           'PAGE = PROJECT / "site/ladder/index.html"\ndef t():\n    assert PAGE.exists()\n')
+    assert gate.exists_cited_paths(src) == ["site/ladder/index.html"]
+
+
+def test_a_runtime_computed_citation_is_the_stated_hole_not_a_crash():
+    """`(project / path).exists()` over a loop variable yields nothing -- the printed unit is a
+    FLOOR on what the commit needs and never a ceiling, which is why this is a report and not a
+    predicate. Unparseable source contributes nothing rather than raising into a pre-commit hook."""
+    assert gate.exists_cited_paths(
+        'def t():\n    for p in x:\n        assert (project / p).exists()\n') == []
+    assert gate.exists_cited_paths("def t(:\n  syntax error") == []
+
+
+def test_the_minimum_landable_unit_names_all_THREE_sources():
+    """§(b): file_scope, the row's PROSE citations, and a control's `.exists()` citation. The
+    incident that produced this recovered its four paths by hand-reading a thirty-line YAML
+    comment -- the prose leg is the one that reads that comment. Measured on the live map: 31 of
+    348 atoms get a wider unit than their file_scope, recovering 54 paths nothing else names."""
+    row = {"id": "X", "level_current": 1,
+           "file_scope": ["tools/thing.py"],
+           "block_reason": "waiting on docs/staging/SEAT_FINDING_A_THING_2026-09-01.md to discharge"}
+    unit = gate.minimum_landable_unit(
+        ["tools/thing.py"], row,
+        {"tools/thing.py": 'from pathlib import Path\nP = Path(".") / "site/data/world.json"\n'
+                           'def t():\n    assert P.exists()\n'})
+    assert unit == ["docs/staging/SEAT_FINDING_A_THING_2026-09-01.md",
+                    "site/data/world.json", "tools/thing.py"]
+
+
+def test_the_unit_is_WIDER_than_the_refusal_and_that_is_the_scoping_decision():
+    """KEYED TO THE PROPERTY: the refusal is over `file_scope`; the PRINTED unit is over all three
+    sources. Measured 2026-09-09: KNIFE3_wall_crossing_paydown's prose cites
+    `sim/cache/elexon_ssp_full.json`, which is not tracked -- so a refusal keyed to the wider unit
+    would wedge that atom permanently, which is the control-that-cannot-pass shape this project
+    routes around within a day. A report cannot wedge anything."""
+    scopes = {"X": ["tools/thing.py"]}
+    incs = [{"atom": "X", "from": 1, "to": 2}]
+    # the prose-cited path is absent, the file_scope path is present -> NO refusal
+    assert gate.absent_evidence_increases(incs, scopes, {"tools/thing.py": True}) == []
+    # ...but it is still printed, marked MISSING, so the reader sees it
+    rendered = gate.format_minimum_landable_unit(
+        ["docs/staging/GONE.md", "tools/thing.py"],
+        {"docs/staging/GONE.md": False, "tools/thing.py": True})
+    assert "[MISSING] docs/staging/GONE.md" in rendered
+    assert "[present] tools/thing.py" in rendered
+
+
+def test_the_unit_says_UNKNOWN_when_the_probe_failed_rather_than_guessing():
+    """A failed probe must not render as `present` (a fail-open the reader would act on) nor as
+    `MISSING` (sending them to land a path that is already there)."""
+    assert gate.format_minimum_landable_unit(["a/b.py"], None).strip() == "[?] a/b.py"
+    assert "declares no file_scope" in gate.format_minimum_landable_unit([], {})
+
+
+def test_cited_paths_reads_prose_and_ignores_the_file_scope_key():
+    """The row's own file_scope is passed separately, so counting it twice from the prose walk
+    would make the two legs indistinguishable in the printed unit."""
+    assert gate.cited_paths("see tools/a.py and docs/design/B_2026-01-01.md, not a.out") == [
+        "docs/design/B_2026-01-01.md", "tools/a.py"]
+    assert gate.row_cited_paths({"file_scope": ["tools/only_here.py"],
+                                 "note": "cites tools/in_prose.py"}) == ["tools/in_prose.py"]
+
+
+def test_a_DIRECTORY_file_scope_entry_is_present_when_the_tree_holds_files_under_it():
+    """THE MEASUREMENT THAT DECIDED THE PROBE (real git, read-only). 106 of the map's file_scope
+    entries are directories. An exact-match membership test reads all 106 as absent and this
+    control becomes unpassable; the prefix test reads 20, every one of them genuinely absent."""
+    got = gate._tracked_in_commit(["tools", "tools/level_promotion_gate.py",
+                                   "sim/forecast_publication.py"])
+    assert got == {"tools": True, "tools/level_promotion_gate.py": True,
+                   "sim/forecast_publication.py": False}
+    assert gate._tracked_in_commit([]) == {}
+
+
+def test_atom_rows_returns_the_whole_row_not_only_its_level():
+    """The unit is computed over the WHOLE row: a level's evidence is cited in prose at least as
+    often as it is declared in file_scope."""
+    rows = gate.atom_rows(_SCOPED_MAP.format(lvl=2))
+    assert set(rows) == {"H39_the_texture"}
+    assert rows["H39_the_texture"]["level_current"] == 2
+    assert rows["H39_the_texture"]["file_scope"]
+
+
 # ── the size warning on the surface this gate already owns ───────────────────────────────────
 #
 # SEAT_FINDING_THE_MAP_IS_185_BYTES_FROM_ITS_RATCHET_CEILING_2026-09-17. The gate is where the
@@ -407,6 +596,7 @@ def _gate_main_over(monkeypatch, map_text: str) -> tuple[int, str]:
     monkeypatch.setattr(gate, "_whole_map", lambda rev_prefix: map_text)
     monkeypatch.setattr(gate, "read_ledger", lambda: [])
     monkeypatch.setattr(gate, "low_water_failures", lambda **kw: [])
+    monkeypatch.setattr(gate, "_git_show", lambda spec: None)  # the split check reads the halves
     err: list[str] = []
     monkeypatch.setattr(gate.sys.stderr, "write", err.append)
     return gate.main(), "".join(err)
@@ -447,3 +637,60 @@ def test_a_map_OVER_the_ceiling_is_still_ALLOWED_by_THIS_gate(monkeypatch):
     rc, err = _gate_main_over(monkeypatch, _map_of_bytes(map_store.MAP_SIZE_CEILING + 500))
     assert rc == 0, "the gate refused a commit for the map's SIZE -- not its subject"
     assert "OVER" in err and "EVERY LANE" in err
+
+
+# ── THE SPLIT (2026-10-03): a hand level move must carry its move between halves ──────────────
+# H47 and H49 reached their targets by hand edit and sat in the drawn half for days; the invariant
+# test that names them is selected only when the store module changes, so nothing at the write
+# asked. These drive `misfiled_by_this_commit` over (live, closed) half pairs.
+def _atom(aid: str, cur: int, tgt: int) -> str:
+    return f"- id: {aid}\n  level_current: {cur}\n  level_target: {tgt}\n"
+
+
+_LIVE_OK = _atom("H1_open", 1, 3)
+_CLOSED_OK = _atom("H2_done", 3, 3)
+
+
+def test_a_level_raised_to_target_IN_THE_DRAWN_HALF_is_refused():
+    """The H47 shape: the raise lands, the record stays where draws look."""
+    out = gate.misfiled_by_this_commit((_LIVE_OK, _CLOSED_OK), (_atom("H1_open", 3, 3), _CLOSED_OK))
+    assert len(out) == 1 and out[0].startswith("H1_open belongs in the closed half")
+
+
+def test_the_same_raise_RE_FILED_passes():
+    """The partition's other leg from the same fixture: a refuse-everything predicate fails here."""
+    assert gate.misfiled_by_this_commit(
+        (_LIVE_OK, _CLOSED_OK), ("", _CLOSED_OK + _atom("H1_open", 3, 3))) == []
+
+
+def test_a_LOWERED_target_left_in_the_closed_half_is_refused_toward_live():
+    """Both directions: work re-opened in the closed half goes dark where no draw looks."""
+    out = gate.misfiled_by_this_commit((_LIVE_OK, _CLOSED_OK), (_LIVE_OK, _atom("H2_done", 3, 4)))
+    assert out == [f"H2_done belongs in the live half ({gate.MAP_PARTS_REL[0]})"]
+
+
+def test_a_misfile_ALREADY_AT_HEAD_bills_nobody():
+    """Scoped to what this commit creates: a lane touching a neighbouring row is not refused for a
+    leftover. The tree-wide test still holds the leftover."""
+    stale = (_atom("H1_open", 3, 3), _CLOSED_OK)
+    assert gate.misfiled_by_this_commit(stale, stale) == []
+
+
+def test_main_REFUSES_a_misfile_and_names_the_remedy(monkeypatch):
+    """The wiring. MUTATION: delete the split block from main() -> rc 0, red here."""
+    halves = {f"HEAD:{gate.MAP_PARTS_REL[0]}": _LIVE_OK, f"HEAD:{gate.MAP_PARTS_REL[1]}": _CLOSED_OK,
+              f":{gate.MAP_PARTS_REL[0]}": _atom("H1_open", 3, 3),
+              f":{gate.MAP_PARTS_REL[1]}": _CLOSED_OK}
+    monkeypatch.setattr(gate, "_git_show", lambda spec: halves.get(spec))
+    monkeypatch.setattr(gate, "_staged_names", lambda: {gate.MAP_REL})
+    monkeypatch.setattr(gate, "_whole_map", lambda rev_prefix: _map(2))
+    monkeypatch.setattr(gate, "read_ledger", lambda: [])
+    monkeypatch.setattr(gate, "low_water_failures", lambda **kw: [])
+    err: list[str] = []
+    monkeypatch.setattr(gate.sys.stderr, "write", err.append)
+    assert gate.main() == 1
+    assert "H1_open belongs in the closed half" in "".join(err) and "refile" in "".join(err)
+    halves[f":{gate.MAP_PARTS_REL[0]}"] = ""
+    halves[f":{gate.MAP_PARTS_REL[1]}"] = _CLOSED_OK + _atom("H1_open", 3, 3)
+    err.clear()
+    assert gate.main() == 0, "".join(err)
