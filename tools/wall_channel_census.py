@@ -2646,13 +2646,16 @@ def second_belt_conformance_at(
 # legible in the refusal rather than mysterious.
 
 #: {feed module (repo-relative) -> (the class that holds this company's own book, the method that
-#: admits a payload against it)}. HAND-WRITTEN, one row, because one feed has a book. What is NOT
+#: admits a payload against it)}. HAND-WRITTEN, one row per feed that has a book. What is NOT
 #: hand-written is which functions in that module are the bookless readers -- see above.
+#: The registration-loss row (EP12): a losing supplier is sent notices only for its own
+#: registrations, so the register files a loss only for a point its supply book holds.
 #:
 #: A ROW WHOSE SUBJECT HAS GONE IS A FAILED CHECK, not a quiet pass: an absent module, an absent
 #: class, an absent anchor method or a module with no bookless reader left all raise, because each
 #: of those is also what "somebody deleted the belt" looks like from here.
 ANCHORED_FEEDS: dict[str, tuple[str, str]] = {
+    "company/crm/cos_process.py": ("CoSRegister", "_admit_loss"),
     "company/market/flex_participation.py": ("FlexEnrolmentBook", "_admit"),
 }
 

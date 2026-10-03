@@ -64,7 +64,7 @@ def test_a_world_notice_is_accepted_by_the_company_end_to_end():
     do not speak to each other (credential, version, key set, sender)."""
     from company.crm.cos_process import CoSRegister
 
-    reg = CoSRegister()
+    reg = CoSRegister(holds={"C1", "C1g"}.__contains__)
     for wire in RegistrationLossFeed().wire_notices_for_departure(
             [("C1", "electricity"), ("C1g", "gas")], "2023-03-01"):
         assert reg.receive_loss_wire(wire)
@@ -113,6 +113,13 @@ def test_every_departure_reaches_the_company_as_exactly_one_notice_per_supply_po
         effective, _ = departures[household_of(n["supply_point_id"])]
         assert n["supply_effective_from"] == effective
         assert n["notified_on"] <= effective
+
+
+def test_every_live_departure_is_on_the_losing_suppliers_book_when_its_notice_arrives(_run):
+    """Defect guarded, in its live direction: the book check refusing a REAL departure --
+    a register that refuses everything passes the unit leg's refusal arm, not this one."""
+    assert _run["registration_losses_notified"]
+    assert _run["registration_loss_exceptions"] == []
 
 
 def test_nothing_the_world_knows_about_a_departure_crosses(_run):

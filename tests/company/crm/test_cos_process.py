@@ -151,6 +151,9 @@ def test_cos_summary_objected_count():
 
 _CSS_CREDENTIAL = "css-provider-01::participant-credential::v1"
 
+#: The points this test supplier holds on its book.
+_BOOK = frozenset({"C1"})
+
 
 def _loss_wire(point="C1", sefd="2023-03-01", seq=0, sender="CSS-PROVIDER-01",
                credential=_CSS_CREDENTIAL, **extra_payload):
@@ -172,7 +175,7 @@ def _loss_wire(point="C1", sefd="2023-03-01", seq=0, sender="CSS-PROVIDER-01",
 def test_a_loss_notice_opens_a_losing_side_process_once():
     """Defect guarded: a notice filed twice on redelivery (the stream is
     at-least-once), or filed as if this supplier had sent the request."""
-    reg = CoSRegister()
+    reg = CoSRegister(holds=_BOOK.__contains__)
     assert reg.receive_loss_wire(_loss_wire()) is True
     assert reg.receive_loss_wire(_loss_wire()) is False
     assert reg.losses_notified() == [{
@@ -187,7 +190,7 @@ def test_a_loss_notice_opens_a_losing_side_process_once():
 def test_the_company_refuses_a_notice_carrying_world_truth_by_name():
     """Defect guarded: the company-side belt -- a departure field riding on the
     notice is refused AS A LEAK (not merely as an unexpected key), and nothing is filed."""
-    reg = CoSRegister()
+    reg = CoSRegister(holds=_BOOK.__contains__)
     with pytest.raises(Exception, match="carries world truth: \\['random_roll'\\]"):
         reg.receive_loss_wire(_loss_wire(random_roll=0.42))
     assert reg.losses_notified() == []
@@ -198,7 +201,7 @@ def test_only_a_registration_service_can_report_a_lost_registration():
     bureau) filing a loss. The control arm is the CSS notice above, which files."""
     from simulation.payment_seam_adapter import PARTICIPANT_CREDENTIAL as BACS_CREDENTIAL
 
-    reg = CoSRegister()
+    reg = CoSRegister(holds=_BOOK.__contains__)
     with pytest.raises(ValueError, match="is not a registration service"):
         reg.receive_loss_wire(_loss_wire(sender="BACS-BUREAU-01", credential=BACS_CREDENTIAL))
     assert reg.losses_notified() == []
@@ -206,7 +209,7 @@ def test_only_a_registration_service_can_report_a_lost_registration():
 
 def test_a_forged_credential_is_refused_before_anything_is_filed():
     """Defect guarded: a loss believed because it was well-formed."""
-    reg = CoSRegister()
+    reg = CoSRegister(holds=_BOOK.__contains__)
     with pytest.raises(Exception, match="BAD_CREDENTIAL|did not present"):
         reg.receive_loss_wire(_loss_wire(credential="guess"))
     assert reg.losses_notified() == []
@@ -225,13 +228,46 @@ def test_a_payload_that_is_not_a_loss_notice_is_refused():
         valid_time=None, payload=NotALoss(),
     )
     with pytest.raises(ValueError, match="not a registration-loss notice"):
-        CoSRegister().receive_loss_notice(notification)
+        CoSRegister(holds=_BOOK.__contains__).receive_loss_notice(notification)
 
 
 def test_a_gaining_side_process_is_not_reported_as_a_loss():
     """Defect guarded: `losses_notified` reading every process, so a switch this
     supplier is GAINING would be counted as one it lost."""
-    reg = CoSRegister()
+    reg = CoSRegister(holds=_BOOK.__contains__)
     reg.open_switch("C9", "2023-01-01", gaining="us", losing="them")
     reg.receive_loss_wire(_loss_wire())
     assert [r["supply_point_id"] for r in reg.losses_notified()] == ["C1"]
+
+
+def test_a_loss_notice_for_a_point_off_this_book_is_an_exception_not_a_loss():
+    """Defect guarded: a notice filed as a loss for a point this supplier never held -- a
+    real registration service sends a loser notices only for its own registrations, so one
+    that is not is an exception to investigate. Both branches in one register, both
+    non-empty, so a register that refuses everything cannot pass."""
+    reg = CoSRegister(holds=_BOOK.__contains__)
+    assert reg.receive_loss_wire(_loss_wire(point="C1", seq=0)) is True
+    assert reg.receive_loss_wire(_loss_wire(point="STRANGER", seq=1)) is False
+    assert reg.receive_loss_wire(_loss_wire(point="STRANGER", seq=1)) is False  # redelivered
+    assert [r["supply_point_id"] for r in reg.losses_notified()] == ["C1"]
+    assert reg.loss_exceptions() == [{
+        "supply_point_id": "STRANGER", "registration_ref": "STRANGER@2023-03-01",
+        "sender": "CSS-PROVIDER-01", "reason": "no registration on this supplier's book",
+    }]
+    assert reg.active_for_account("STRANGER") == []
+
+
+def test_the_book_is_asked_when_the_notice_arrives_not_when_the_register_opens():
+    """Defect guarded: a register that snapshots the book at opening, so a point won
+    mid-run is an exception when it later leaves."""
+    book: set[str] = set()
+    reg = CoSRegister(holds=book.__contains__)
+    book.add("C1")
+    assert reg.receive_loss_wire(_loss_wire(point="C1")) is True
+    assert reg.loss_exceptions() == []
+
+
+def test_a_register_with_no_book_refuses_to_file_a_loss_by_name():
+    """Defect guarded: a register opened without the book quietly filing everything."""
+    with pytest.raises(ValueError, match="opened without the supply book"):
+        CoSRegister().receive_loss_wire(_loss_wire())
