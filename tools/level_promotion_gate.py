@@ -134,7 +134,7 @@ MAP_REL = "docs/design/maturity_map.yaml"
 RETIRED_REL = "docs/design/maturity_map_retired.yaml"
 # Both halves of the map -- see _whole_map below. Imported rather than restated so the two
 # files can never drift apart from the store that defines them.
-from tools.maturity_map_store import MAP_PARTS_REL, size_warning  # noqa: E402
+from tools.maturity_map_store import MAP_PARTS_REL, is_closed, size_warning  # noqa: E402
 
 
 # ── pure map parsing (mutation-testable) ────────────────────────────────────────────────────
@@ -874,6 +874,40 @@ def _whole_map(rev_prefix: str) -> str | None:
     return "\n".join(parts)
 
 
+def _misfiled(live_text: str | None, closed_text: str | None) -> dict:
+    """{atom_id: the half it should be in} for every atom sitting in the wrong half by
+    `is_closed`. An unreadable half raises: the caller decides what that means."""
+    out = {}
+    for text, belongs_closed, should in ((live_text, True, "closed"), (closed_text, False, "live")):
+        for atom in (yaml.safe_load(text) if text else None) or []:
+            if isinstance(atom, dict) and "id" in atom and is_closed(atom) is belongs_closed:
+                out[atom["id"]] = should
+    return out
+
+
+def misfiled_by_this_commit(old_halves: tuple, new_halves: tuple) -> list:
+    """Atoms this commit leaves in the half the split forbids, that were NOT already there at HEAD.
+
+    The fold door (`merge_atom_status`) re-files in the same call that moves a level; a hand
+    edit does not, and the tree-wide invariant
+    (`test_the_split_predicate_agrees_with_where_every_atom_actually_SITS`) is selected only when
+    the store module changes -- so H47 (L3/3, 2026-09-30) and H49 (L2/2, 2026-10-01) sat in the
+    drawn half until a HEAD-red census named them, and that red had stood nine runs with other
+    atoms before them. Scoped to what THIS commit creates, so a leftover never bills a lane that
+    only touched a neighbouring row."""
+    try:
+        before = _misfiled(*old_halves)
+    except yaml.YAMLError:
+        before = {}  # HEAD unreadable: everything misfiled now is attributed to this commit
+    try:
+        after = _misfiled(*new_halves)
+    except yaml.YAMLError as exc:
+        return [f"a staged half of the map is not parseable YAML, so where its atoms sit cannot "
+                f"be checked ({exc})"]
+    return [f"{aid} belongs in the {should} half ({MAP_PARTS_REL[0 if should == 'live' else 1]})"
+            for aid, should in sorted(after.items()) if aid not in before]
+
+
 def main() -> int:
     # The retirement register is in the trigger set as well as the map's two halves: rung 2 below
     # guards a commit that touches ONLY the register, and a trigger keyed to the map alone would
@@ -931,6 +965,20 @@ def main() -> int:
         sys.stderr.write("\n[level-gate] ❌ COMMIT REFUSED (MATURITY_MAP.md §0 -- a level move must be "
                          "RECORDED, self-certified or director's, R16/2026-07-29 ruling item 2):\n"
                          + result["message"] + "\n")
+        return 1
+
+    # ── THE SPLIT: before the no-increase return, because a LOWERED target misfiles too ─────────
+    misfiled = misfiled_by_this_commit(
+        tuple(_git_show(f"HEAD:{rel}") for rel in MAP_PARTS_REL),
+        tuple(_git_show(f":{rel}") for rel in MAP_PARTS_REL))
+    if misfiled:
+        sys.stderr.write(
+            "\n[level-gate] ❌ COMMIT REFUSED (an atom at its target lives in the closed half, and "
+            "one below it in the drawn half -- `maturity_map_store.is_closed`):\n  "
+            + "\n  ".join(misfiled) + "\n"
+            "  Fix: python3 -c \"from tools.maturity_map_store import refile; print(refile())\" "
+            "then stage BOTH halves. For a --content landing, pass refile() the path of your live "
+            "copy with its closed sibling beside it.\n")
         return 1
 
     # ── SECOND CONTROL: the level must be declared for code this commit CONTAINS ────────────────
