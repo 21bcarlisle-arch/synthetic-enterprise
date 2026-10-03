@@ -264,6 +264,19 @@ simplifications:
   both EP3 and EP5 are company-side. depends_on is the only available form, and it is a SEQUENCING claim
 
   (EP5 is itself level 0 / idle), so it is a BUILD-order decision rather than a DISCOVER one.'
+- '2026-10-03 DISCOVER pass 3, DISCOVER/FRAME ONLY, level stays 0 (worker tick, LANE 3 idle draw). No BUILD code and nothing in `file_scope` touched. The full pass is appended to `docs/design/frame/EP3_PRICING_ENGINE_LATE_TRUTH_FRAME.md`. Measured at HEAD a0144d9df against the published run stamped producing_commit 5583b9121.
+
+
+  RE-GRADE. F1 (eac dead), F1c, F2 (no true-up) and F8 are still true. F4 was fixed 2026-08-22. F7 is resolved: profitability_uplift fires 13/2,235, all at the £5.00/MWh literal. F5: the value arm is built but is NOT the published arm, because the run carries no value_arm_log.
+
+
+  F9 -- THE CONTROLLER IS ON ITS CLAMP IN 64.8% OF FIRINGS (pass 2: 30.5%). portfolio_premium is at -5%/+15% on 1,463/2,213. margin_surcharge is at 20% on 149/276. The median move is -5.00%. In 2016, 2020, 2023 and 2024 nearly every renewal gets the same -5%. That means the last four ended terms averaged >=18% margin against an 8% setpoint, and the controller is not allowed to act on it. None of the setpoint, half-life or four bounds has a source. Attribution of the move since pass 2 is not yet possible: the book is 19x larger and look-ahead, VAT, cap and arrears all changed.
+
+
+  F10 -- LOSSES ARE ABSENT ON BOTH SIDES. The world settles at metered volume (no LLF/TLM in simulation/ or sim/), and the company has no loss term (llf_register is dark). This is a world-fidelity gap first. A company-only term would be R12-shaped. Not sized.
+
+
+  ADJUDICATION of the ten dark modules. DELETE: renewal_pricing_engine (superseded by value_based_renewal), portfolio_repricing (it acts on EAC, which the price ignores), tariff_smoothing. DELETE or FOLD price_elasticity, after checking its citations against the knowledge layer. FOLD pricing/cost_to_serve into saas/cost_to_serve. PARK llf_register behind F10. OUT OF EP3: both segment_profitability (dedupe, finance lane), price_transparency_register and tariff_change_log (compliance lane; crm/tariff_notification is dark too, so the SLC 22 notice duty has no live implementation). The BUILD restatement: start from why the value arm is not the published arm.'
 map_notes:
   origin_note: 'Portability constraint binds at design time, not on remediation: product must be first-class wherever fuel is one, and the cost stack keyed by REGIME rather than implicitly Ofgem, or a second market never fits behind this seam. The intra-year price cap (W3_1b) is a live constraint the engine must price INSIDE, not around. R12: the cap is a binding constraint, never a target to approach.'
   name: 'The pricing engine: ex-ante cost stack (wholesale, losses, network, policy, cost-to-serve, bad debt, capital) plus an explicit margin decision, priced against ESTIMATED costs and then reconciled as true-ups arrive. EPOCH2_EVIDENCE Q1 tested the director''s suspicion that prices are back-calculated rather than decided; this atom is the answer''s build half. Named in the ruling §1 as an Epoch-2 floor item.'
