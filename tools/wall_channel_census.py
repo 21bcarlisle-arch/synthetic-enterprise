@@ -2072,7 +2072,12 @@ SURFACE_PINS: dict[str, tuple[int, str]] = {
     # the surface gained is `BacsInputReport`, the interim leg's payload; the
     # observable-vs-hidden judgement on its seven fields is recorded at the
     # version constant in the seam itself, where an editor will meet it.
-    "interface.contracts.payment_observable_seam": (2, "5db4f5d7fbce6fc7"),
+    # v3, 2026-10-03: re-pinned in the same edit that bumped the seam's
+    # SCHEMA_VERSION. What the surface gained is `BacsArruddOutcomeV3`, the ARUDD
+    # line carrying the real Bacs return reason code; the judgement that the code
+    # is observable (printed on every real ARUDD line, and a pure function of the
+    # category v2 already carried) is recorded at the version constant in the seam.
+    "interface.contracts.payment_observable_seam": (3, "a1450e3f87c751a5"),
 }
 
 

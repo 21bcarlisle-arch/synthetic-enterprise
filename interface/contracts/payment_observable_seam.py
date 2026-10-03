@@ -83,7 +83,17 @@ from interface.contracts.wall_envelope import (
 # carries both, because a release that stopped reading the previous one would
 # refuse every message already in flight -- which is the big-bang cutover Q10
 # names as the defect.
-SCHEMA_VERSION = 2
+# v3 (2026-10-03): the ARUDD line carries the real Bacs return reason CODE as
+# a field of its own -- `BacsArruddOutcomeV3`. The judgement the bump forces:
+# the code is printed on every real ARUDD report line, and here it is a pure
+# function of `reason_category`, which v2 already carried, so the company can
+# know nothing it could not know before; the message just says it the way a
+# bank does. Added as a NEW payload type, not an edit to `BacsArruddOutcome`,
+# for the reason `company.interfaces.wall_protocol` gives for envelope
+# releases (and the way DTC flow versions land): the decode leg requires every
+# declared field, so editing the v2 type would refuse every v2 line in flight.
+# Both are declared; a v2 counterparty keeps sending `BacsArruddOutcome`.
+SCHEMA_VERSION = 3
 
 
 class PaymentRail(str, Enum):
@@ -164,10 +174,9 @@ class BacsReasonCategory(str, Enum):
 # a 0, not the bank's. A consumer keying logic on the code rather than the
 # category is keying on what a real bank sends.
 #
-# NOTHING NEW CROSSES. The code is a pure function of `reason_category`, which
-# already crosses, so the observable surface (and `SCHEMA_VERSION`) is
-# unchanged. Putting the code on the WIRE as its own field is the next step
-# and is a release: it needs the adapter to fill it and a version bump.
+# ON THE WIRE FROM v3: `BacsArruddOutcomeV3.arudd_reason_code` carries it,
+# filled from `arudd_reason_code_for` below. It stays a pure function of
+# `reason_category`, so the knowable set did not widen.
 ARUDD_REASON_CODE: dict[BacsReasonCategory, tuple[str, str] | None] = {
     BacsReasonCategory.INSUFFICIENT_FUNDS: ("0", "Refer to Payer"),
     BacsReasonCategory.INSTRUCTION_CANCELLED: ("1", "Instruction Cancelled"),
@@ -200,6 +209,30 @@ ARUDD_REASON_CODE_GAP: dict[BacsReasonCategory, str] = {
         "a catch-all of the seam's own; no single ARUDD code denotes it"
     ),
 }
+
+
+class AruddReasonCode(str, Enum):
+    """The ARUDD return reason codes the repo has sourced, as they appear on
+    the wire, plus ONE member that is not a code.
+
+    `NOT_SOURCED` is how an absent code crosses. It would be `None`, but the
+    company's decode leg reads Enum/date/str/float/int and has no Optional
+    branch, so a None could not cross at all. A named member that no bank
+    would ever print is the explicit form that can: it cannot be mistaken
+    for a real code, and `ARUDD_REASON_CODE_GAP` says why it was sent."""
+
+    REFER_TO_PAYER = "0"
+    INSTRUCTION_CANCELLED = "1"
+    PAYER_DECEASED = "2"
+    ACCOUNT_TRANSFERRED = "3"
+    NOT_SOURCED = "not_sourced"
+
+
+def arudd_reason_code_for(category: BacsReasonCategory) -> AruddReasonCode:
+    """The real ARUDD return reason code `category` denotes, or `NOT_SOURCED`
+    where the code is not sourced (`ARUDD_REASON_CODE_GAP` names why)."""
+    entry = ARUDD_REASON_CODE[category]
+    return AruddReasonCode.NOT_SOURCED if entry is None else AruddReasonCode(entry[0])
 
 
 class AddacsAdviceType(str, Enum):
@@ -326,13 +359,20 @@ class BacsArruddOutcome:
     reason_text: str
     value_date: dt.date
 
-    @property
-    def arudd_reason_code(self) -> str | None:
-        """The real ARUDD return reason code this line's category denotes,
-        or None where the code is not sourced (`ARUDD_REASON_CODE_GAP` names
-        why). Derived, not a field: it adds nothing to what crosses."""
-        entry = ARUDD_REASON_CODE[self.reason_category]
-        return None if entry is None else entry[0]
+
+@dataclass(frozen=True)
+class BacsArruddOutcomeV3(BacsArruddOutcome):
+    """The v3 ARUDD line: everything the v2 line carries, plus the Bacs
+    return reason CODE the bank prints on it. `AruddReasonCode.NOT_SOURCED`
+    where the code is not in the sourced table -- the line still crosses, and
+    `ARUDD_REASON_CODE_GAP` names why the code is absent; it is never
+    fabricated.
+
+    A SUBCLASS so that every consumer dispatching on `BacsArruddOutcome`
+    reads a v3 line unchanged; a distinct TYPE so that its wire tag is
+    distinct and the v2 tag keeps decoding against the v2 field set."""
+
+    arudd_reason_code: AruddReasonCode
 
 
 @dataclass(frozen=True)
@@ -397,6 +437,7 @@ class SettlementConfirmation:
 PaymentCollectionWallRequest = WallRequest[CollectionRequest]
 RemittanceAdviceWallResponse = WallResponse[RemittanceAdvice]
 BacsArruddWallResponse = WallResponse[BacsArruddOutcome]
+BacsArruddV3WallResponse = WallResponse[BacsArruddOutcomeV3]
 AddacsWallResponse = WallResponse[AddacsAdvice]
 AuddisWallResponse = WallResponse[AuddisReport]
 PaymentNotificationWallResponse = WallResponse[PaymentNotification]
@@ -478,6 +519,7 @@ UNSOLICITED_PAYLOAD_TYPES: tuple[type, ...] = (AddacsAdvice,)
 OBSERVABLE_RESPONSE_PAYLOAD_TYPES: tuple[type, ...] = (
     RemittanceAdvice,
     BacsArruddOutcome,
+    BacsArruddOutcomeV3,
     AddacsAdvice,
     AuddisReport,
     PaymentNotification,
@@ -509,6 +551,10 @@ OBSERVABLE_PAYLOAD_FIELDS: dict[str, tuple[str, ...]] = {
     "BacsArruddOutcome": (
         "mandate_ref", "account_id", "amount_gbp", "outcome",
         "reason_category", "reason_text", "value_date",
+    ),
+    "BacsArruddOutcomeV3": (
+        "mandate_ref", "account_id", "amount_gbp", "outcome",
+        "reason_category", "reason_text", "value_date", "arudd_reason_code",
     ),
     "AddacsAdvice": (
         "mandate_ref", "account_id", "advice_type", "advice_text", "value_date",
