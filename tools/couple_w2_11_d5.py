@@ -158,24 +158,6 @@ from html.parser import HTMLParser
 from pathlib import Path
 from typing import Callable, Dict, Iterable, List, Optional, Sequence, Tuple
 
-from simulation.payment_behaviour_source import (
-    DIRECT_DEBIT,
-    INSUFFICIENT_FUNDS,
-    generate_payment_event,
-    generate_payment_method,
-)
-from simulation.payment_seam_adapter import SeamAdapterInput, emit_wall_responses
-
-from company.billing.account_ledger import (
-    LedgerBook,
-    LedgerEvent,
-    LedgerEventType,
-)
-from company.billing.payment_observation_consumer import (
-    DEFAULT_RECONCILIATION_GRACE_DAYS,
-    PaymentObservationConsumer,
-)
-
 from background.gap_metric import (
     NORMALISATION_NONE,
     GapResult,
@@ -188,13 +170,36 @@ from background.gap_metric import (
     format_detection_summary,
     write_gap_entry,
 )
+
 # The shared-quantity CLASS register (R10) lives outside this module on purpose
 # -- see its own docstring. Re-exported here because this triad is its first
 # registrant and its consumers read it through the pair.
-from background.shared_quantity_contract import (   # noqa: F401
+from background.shared_quantity_contract import (  # noqa: F401
     SHARED_QUANTITY_CONTRACT,
     shared_quantity_measurements,
 )
+from company.billing.account_ledger import (
+    LedgerBook,
+    LedgerEvent,
+    LedgerEventType,
+)
+from company.billing.payment_observation_consumer import (
+    DEFAULT_RECONCILIATION_GRACE_DAYS,
+    PaymentObservationConsumer,
+)
+from simulation.household_segments import DIRECT_DEBIT_SHARE_BY_FUEL, NON_DD_PREPAYMENT_SHARE
+from simulation.payment_behaviour_source import (
+    _STANDARD_CREDIT_SUBMETHOD_SHARE,
+    CARD,
+    DIRECT_DEBIT,
+    INSUFFICIENT_FUNDS,
+    PREPAYMENT,
+    STANDING_ORDER,
+    _base_seed_for,
+    _substream,
+    generate_payment_event,
+)
+from simulation.payment_seam_adapter import SeamAdapterInput, emit_wall_responses
 
 WORLD_ATOM_ID = "W2_11_payment_behaviour_source"
 TWIN_ATOM_ID = "D5_account_hierarchy_payments"
@@ -407,11 +412,35 @@ def _same_reading(left, right) -> bool:
 BILLING_CYCLE_SPREAD_DAYS = PERIOD_SPACING_DAYS
 
 
+def _calibration_book_method(customer_id: str) -> str:
+    """The payment method of one account in THIS HARNESS's synthetic book.
+
+    NOT A HOUSEHOLD'S METHOD IN THE WORLD, and that is why it is not `generate_payment_method`.
+    That function became the world's one draw on 2026-10-03, so the run's ledger is paid by the
+    method the seam reports. These `H27S...` ids are never billed by a run and nothing asks the seam
+    about them, so no seam can disagree with them. What they are is the sample that every
+    register in this module was measured over: re-drawing them moved 36 of those measured counts.
+    This keeps that sample byte-identical (the pre-2026-10-03 rule on its own streams), reading the
+    world's anchors, so the mix still follows the world. Re-drawing the book through the world's
+    draw is a re-calibration of those registers, owed separately and named in
+    `SEAT_FINDING_THE_LEDGER_PAYS_BY_ONE_METHOD_DRAW_AND_THE_SEAM_REPORTS_ANOTHER_2026-10-03.md`.
+    """
+    base_seed = _base_seed_for(f"{customer_id}::electricity", None)
+    r_method = _substream(base_seed, "payment_method")
+    if r_method.random() < DIRECT_DEBIT_SHARE_BY_FUEL["electricity"]:
+        return DIRECT_DEBIT
+    if r_method.random() < NON_DD_PREPAYMENT_SHARE:
+        return PREPAYMENT
+    r_sub = _substream(base_seed, "payment_method_submethod")
+    return (STANDING_ORDER if r_sub.random() < _STANDARD_CREDIT_SUBMETHOD_SHARE[STANDING_ORDER]
+            else CARD)
+
+
 def _billing_cycle_offset(customer_id: str, spread_days: int) -> int:
     """This account's place in the billing cycle, in days after
     `FIRST_DUE_DATE` -- a deterministic per-customer draw from its OWN named
     substream (C-S2), so adding it never shifts `_pick_stress`,
-    `generate_payment_method` or `generate_payment_event`'s draws.
+    `_calibration_book_method` or `generate_payment_event`'s draws.
 
     `spread_days == 1` is the FLAT BOOK: every account falls due on the same
     three dates, which is the pre-D25 scenario and is kept reachable as a
@@ -557,7 +586,7 @@ def build_scenario(
     `PeriodRecord`/`PaymentEvent` (R15 independence, proven in the test
     suite's `test_consumer_never_receives_theta`).
 
-    `force_payment_method` overrides `generate_payment_method` for every
+    `force_payment_method` overrides `_calibration_book_method` for every
     customer. It exists for ONE named purpose -- the COUNTERFACTUAL population
     `measure_coverage_only_residual` needs (atom `D20`), on which the company
     observes every failure channel -- and is never used by the scored
@@ -646,7 +675,7 @@ def build_scenario(
         stress = (force_income_stress if force_income_stress is not None
                   else _pick_stress(cid))
         method = (force_payment_method if force_payment_method is not None
-                  else generate_payment_method(cid, fuel="electricity"))
+                  else _calibration_book_method(cid))
         account_id = f"ACC-{cid}"
 
         # This account's place in the billing cycle (atom D25): the book is

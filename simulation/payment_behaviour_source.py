@@ -132,15 +132,15 @@ or any other subsystem's sequence (proven by
 from __future__ import annotations
 
 import hashlib
+import json
 import random
 from dataclasses import dataclass
 from datetime import date, timedelta
 from typing import Optional, Sequence
 
 from simulation.arrears_engine import payment_outcome as _core_payment_outcome
-from simulation.household_segments import (
-    NON_DD_PREPAYMENT_SHARE as _PREPAYMENT_SHARE_OF_NON_DD,
-)
+from simulation.household import household_of
+from simulation.household_segments import PaymentChannel, payment_channel_for_customer
 from simulation.rng_substream import substream
 from simulation.segment_vocabulary import is_business
 
@@ -151,8 +151,7 @@ STREAM_NAMESPACE = "W2_11_payment_behaviour_source"
 # period index (see `_period_substream`) -- still a single deterministic
 # sha256 key per (base_seed, name), so C-S2 isolation holds identically.
 _SUBSTREAMS = (
-    "payment_method",              # persistent per-customer method archetype
-    "payment_method_submethod",    # standing_order vs card sub-draw (non-DD, non-prepay)
+    "payment_method_submethod",    # standing_order vs card sub-draw (standard credit only)
 )
 _PERIOD_SUBSTREAM_BASE = "payment_event"       # + "::<period_index>"
 _REASON_SUBSTREAM_BASE = "dd_failure_reason"   # + "::<period_index>"
@@ -194,15 +193,8 @@ STANDING_ORDER = "standing_order"
 CARD = "card"
 PREPAYMENT = "prepayment"
 
-# DESNZ June 2026 (via simulation.household_segments.DIRECT_DEBIT_SHARE_BY_FUEL):
-# DD share of standard credit/DD customers by fuel.
-_DD_SHARE_BY_FUEL = {"electricity": 0.72, "gas": 0.75}
-
-# Ofgem 2026 (via simulation.dd_attribution's own ANCHORS): ~74% DD / 13%
-# standard credit / 13% prepayment -> non-DD residual splits ~50/50.
-# ONE HOME (2026-09-05): `_PREPAYMENT_SHARE_OF_NON_DD` is imported at the top of this module from
-# `household_segments`, which now draws the three-way channel for the whole world. Until then it
-# was a second, numerically identical literal here -- the state a value drifts out of silently.
+# The DD share and the non-DD prepayment ratio live in `household_segments` alone, and are reached
+# here only through `payment_channel_for_customer` (see `generate_payment_method`).
 
 # ESTIMATE (R10 calibration gap, not sourced): standard-credit sub-instrument.
 _STANDARD_CREDIT_SUBMETHOD_SHARE = {STANDING_ORDER: 0.50, CARD: 0.50}
@@ -222,30 +214,73 @@ def generate_payment_method(
     seed: Optional[int] = None,
 ) -> str:
     """Persistent per-customer payment-method archetype: one of DIRECT_DEBIT,
-    STANDING_ORDER, CARD, PREPAYMENT. Deterministic in (customer_id, seed, fuel).
+    STANDING_ORDER, CARD, PREPAYMENT.
 
-    Reuses the fuel-specific DD anchor (`_DD_SHARE_BY_FUEL`, same figure
-    `simulation.household_segments` already cites) for the DD/non-DD split,
-    then the Ofgem non-DD ratio to place the non-DD residual into
-    prepayment vs standard-credit, then (ESTIMATE, see module docstring) an
-    even sub-split of standard-credit into standing_order/card.
+    ONE HOME (2026-10-03). The three-way channel -- direct debit, standard credit, prepayment -- is
+    `household_segments.payment_channel_for_customer`'s, the same draw the seam reports, the
+    arrears engine bills and the churn response reads. This function only refines standard credit
+    into its instrument. Until today it took its own DD/non-DD draw on its own stream, and the
+    triad paid the company's ledger by it: the ledger and the seam agreed on 112 of the 178 resi
+    supply points of the live book, which is what two independent 72% coins give. The DD and
+    prepayment households here are exactly the seam's, so `seed` can move only the standing-order /
+    card split and never a household's channel.
+
+    The instrument split is keyed on the household's electricity leg, so both fuels of one
+    household name the same instrument whenever both are standard credit.
     """
-    base_seed = _base_seed_for(f"{customer_id}::{fuel}", seed)
-    dd_share = _DD_SHARE_BY_FUEL.get(fuel, _DD_SHARE_BY_FUEL["electricity"])
-
-    r_method = _substream(base_seed, "payment_method")
-    if r_method.random() < dd_share:
+    channel = payment_channel_for_customer(customer_id, fuel)
+    if channel is PaymentChannel.DIRECT_DEBIT:
         return DIRECT_DEBIT
-
-    if r_method.random() < _PREPAYMENT_SHARE_OF_NON_DD:
+    if channel is PaymentChannel.PREPAYMENT:
         return PREPAYMENT
-
+    base_seed = _base_seed_for(f"{household_of(customer_id)}::electricity", seed)
     r_sub = _substream(base_seed, "payment_method_submethod")
     return (
         STANDING_ORDER
         if r_sub.random() < _STANDARD_CREDIT_SUBMETHOD_SHARE[STANDING_ORDER]
         else CARD
     )
+
+
+#: The seam's three-way vocabulary for each of this module's four methods. Standing order and card
+#: are both standard credit -- the instrument is a refinement the company is not told.
+SEAM_CHANNEL_FOR_METHOD: dict[str, str] = {
+    DIRECT_DEBIT: PaymentChannel.DIRECT_DEBIT.value,
+    STANDING_ORDER: PaymentChannel.STANDARD_CREDIT.value,
+    CARD: PaymentChannel.STANDARD_CREDIT.value,
+    PREPAYMENT: PaymentChannel.PREPAYMENT.value,
+}
+
+
+#: The probe `payment_method_identity` digests: these ids, both fuels. Fixed so that the digest moves
+#: only when the draw does.
+PAYMENT_PROBE_IDS: tuple[str, ...] = tuple(f"PROS-2016-{i:04d}" for i in range(400))
+
+
+def payment_method_identity() -> dict:
+    """WHICH PAYMENT METHODS the world gives its households, as a digest a later artefact can compare.
+
+    The departure part of `world_identity` and its `homes` part are both blind to this: on
+    2026-10-03 the triad's method moved onto the seam's draw for a third of the book and neither
+    digest could move. Digested over the four-way method, so a change to the standing-order / card
+    split moves it too, while the seam's three-way channel moves it whenever the channel moves.
+    """
+    rows = [[cid, fuel, generate_payment_method(cid, fuel=fuel)]
+            for cid in PAYMENT_PROBE_IDS for fuel in ("electricity", "gas")]
+    canonical = json.dumps(rows, separators=(",", ":"))
+    return {
+        "digest": hashlib.sha256(canonical.encode("utf-8")).hexdigest()[:16],
+        "probe_size": len(PAYMENT_PROBE_IDS),
+        "what_this_identifies": (
+            "the payment method each household pays by -- `generate_payment_method` over {} fixed "
+            "ids on both fuels, the one draw the ledger is paid by and the seam reports. Two runs "
+            "sharing this digest billed the same households by the same method.".format(
+                len(PAYMENT_PROBE_IDS))),
+        "what_this_does_not_cover": (
+            "how a method behaves -- failure rates, lateness and arrears are the payment events, "
+            "not the method -- and it is not the departure level or the home stock, each of which "
+            "is its own part."),
+    }
 
 
 @dataclass(frozen=True)

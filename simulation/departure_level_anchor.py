@@ -498,7 +498,16 @@ def world_level_identity() -> dict:
             "`homes` part beside this one, and this part alone is NOT the world."
         ),
         "homes": home_stock_identity(),
+        # Deferred: the payment draw imports the arrears engine, which this module must not load
+        # for every reader of a departure rate.
+        "payment_methods": _payment_method_identity(),
     }
+
+
+def _payment_method_identity() -> dict:
+    from simulation.payment_behaviour_source import payment_method_identity
+
+    return payment_method_identity()
 
 
 __all__ = [

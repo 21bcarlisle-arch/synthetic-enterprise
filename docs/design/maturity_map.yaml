@@ -637,7 +637,7 @@
   file_scope: [simulation, company/compliance/domain_invariants.py, tests/simulation, tests/company/compliance, tools/generate_billing_ledger.py, tests/tools/test_generate_billing_ledger.py]
   depends_on: []
   blocked_on: null
-  simplifications_count: 6
+  simplifications_count: 7
   records_rehomed: [evidence]
 - id: W2_non_dd_miss_vocabulary
   notes_rehomed: [name]
