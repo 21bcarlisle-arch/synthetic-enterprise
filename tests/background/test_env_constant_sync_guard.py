@@ -135,7 +135,7 @@ def test_scanner_recognises_direct_env_reads(tmp_path, source, expect):
     "source",
     [
         'G = Path(os.environ.get("X"))',          # wrapped: expected value not recomputable
-        'H = os.environ.get("X", COMPUTED)',      # non-literal default
+        'H = os.environ.get("X", compute())',     # a call default: recomputing it re-runs code
         'def f():\n    I = os.environ.get("X")',  # not top-level: no import-time snapshot
         'J = os.environ.get(NAME)',               # non-literal var name
     ],
@@ -150,6 +150,26 @@ def test_scanner_refuses_forms_it_cannot_recompute(tmp_path, source):
 # ── divergence detection: fires on the leak, silent when in sync ─────────────────────────────
 class _FakeMod:
     pass
+
+
+def test_a_bare_name_default_is_registered_and_read_from_the_module_live(tmp_path, monkeypatch):
+    """DEFECT: `seat_executor.MODEL = os.environ.get("SE_EXECUTOR_MODEL", _OPUS_TIER)` was
+    refused as a "non-literal default" while the grep leg below saw it, which held
+    `test_registry_covers_every_grep_visible_env_constant` red at HEAD from 2026-09-27. A bare
+    name IS recomputable -- a fresh import reads the module's own binding -- so it is registered
+    and the check reads that binding. Mutation: return the old refusal for an `ast.Name` default
+    and the first assert reds; resolve the default to None instead of the binding and the last
+    two do."""
+    path = tmp_path / "m.py"
+    path.write_text("import os\nTIER = 'opus'\nMODEL = os.environ.get('X_MODEL', TIER)\n")
+    (c,) = ecs._scan_module_file(path, "fake.mod")
+    assert (c.attr, c.env_var, c.default_name) == ("MODEL", "X_MODEL", "TIER")
+    monkeypatch.delenv("X_MODEL", raising=False)
+    mod = _FakeMod()
+    mod.TIER, mod.MODEL = "opus", "opus"
+    assert ecs.diverged([c], {"fake.mod": mod}) == []
+    mod.MODEL = "sonnet"  # leaked from a test that set X_MODEL and reloaded
+    assert [(h[1], h[2]) for h in ecs.diverged([c], {"fake.mod": mod})] == [("sonnet", "opus")]
 
 
 def _one_registry(default=None):
