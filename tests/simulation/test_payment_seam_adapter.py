@@ -1331,11 +1331,12 @@ def _notification(payload=None, sender=None, sequence=0):
 def test_the_interim_wire_form_is_the_schemas_key_set_and_carries_NO_status():
     """The absence is the type. An interim that could carry a resolution is a
     response, and the third leg collapses back into the second."""
+    from company.interfaces.wall_protocol import WIRE_VOCABULARY_BY_VERSION
+
     wire = encode_wall_interim(_interim())
-    assert set(wire) == {
-        "correlation_id", "leg", "interim_type", "schema_version",
-        "observed_at", "payload",
-    }
+    # Keyed to the schema of the version stamped, not a literal: v3 added
+    # `branch`, and a literal would red each release while proving nothing.
+    assert set(wire) == WIRE_VOCABULARY_BY_VERSION[wire["schema_version"]]["interim"]
     assert "status" not in wire
     assert wire["leg"] == BACS_INPUT_REPORT_LEG
     assert wire["payload"]["payload_type"] == "BacsInputReport"

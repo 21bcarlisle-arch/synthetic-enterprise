@@ -85,7 +85,7 @@ from datetime import date
 from company.compliance.domain_invariants import vat_rate_for_segment
 from company.crm.churn_model import ARREARS_STATE_UNKNOWN
 from company.interfaces.customer_profitability import renewal_unit_rate_uplift
-from company.policy.decision_policy import active_policy
+from company.policy.decision_policy import DEFAULT_BELIEF_OWN_BOOK, active_policy
 from company.pricing.margin_feedback import compute_margin_surcharge
 from company.pricing.ofgem_price_cap import (
     get_cap_unit_rate_for_date,
@@ -266,6 +266,7 @@ def decide_renewal_rate(
     arrears_state: str | None = None,
     receivable: dict | None = None,
     payment_method: str | None = None,
+    default_belief_rate: float | None = None,
 ) -> RenewalRateChain:
     """Decide the rate this renewal is contracted at.
 
@@ -480,6 +481,12 @@ def decide_renewal_rate(
         unpaid_bills_by_age=tuple((receivable or {}).get("unpaid_bills_by_age") or ()),
         billed_last_year_gbp=(receivable or {}).get("billed_last_year_gbp"),
         payment_method=payment_method,
+        # THE BOOK'S OWN DEFAULT RATE, resolved from the SAME active policy as the arm, at the
+        # same site and for the same reason: the run supplies the number, the policy decides
+        # whether the price reads it. `None` on every ordinary run.
+        default_belief_rate=(
+            default_belief_rate
+            if active_policy().renewal_default_belief == DEFAULT_BELIEF_OWN_BOOK else None),
     )
     # THE DENOMINATOR, WRITTEN AT THE SAME SITE AS THE DECISION. Unconditional and before the two
     # branches below, so a renewal cannot reach the funnel through one path and miss it through
