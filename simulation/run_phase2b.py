@@ -2153,6 +2153,12 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             receivable=_chain_receivable,
             payment_method=_company_payment_method,
             default_belief_rate=_chain_default_belief,
+            # THE COMPANY'S OWN DEFAULT TARIFF on the day: what it bills a household on its SVT,
+            # which is the published series this world bills that product at. A supplier knows
+            # its own default price; before the 2019 cap there is no ceiling to read it from.
+            own_default_tariff_inc_vat_gbp_per_mwh=(
+                _account_state_svt_rate(commodity, term_start_str)
+                if cid in _RESI_CUSTOMER_IDS else None),
         )
         unit_rate = _chain.unit_rate_gbp_per_mwh
         dynamic_pricing_log.extend(_chain.dynamic_pricing_entries)

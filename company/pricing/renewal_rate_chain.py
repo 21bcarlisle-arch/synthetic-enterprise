@@ -247,6 +247,18 @@ class RenewalRateChain:
     decomposition: dict | None = None
 
 
+def _stayer_default_ex_vat(commodity: str, term_start: str,
+                           own_default_inc_vat: float | None) -> float | None:
+    """What a domestic household that refuses this fix is billed: the company's OWN default
+    tariff, ex-VAT. Before the cap (2019) there is no published ceiling but there is still a
+    default the household rolls onto; from 2019 the cap is that default's price."""
+    if own_default_inc_vat:
+        return float(own_default_inc_vat) / (1.0 + vat_rate_for_segment("resi"))
+    if commodity not in ("electricity", "gas"):
+        return None
+    return cap_ceiling_ex_vat(commodity, date.fromisoformat(term_start[:10]), multi_register=False)
+
+
 def decide_renewal_rate(
     *,
     customer_id: str,
@@ -267,6 +279,7 @@ def decide_renewal_rate(
     receivable: dict | None = None,
     payment_method: str | None = None,
     default_belief_rate: float | None = None,
+    own_default_tariff_inc_vat_gbp_per_mwh: float | None = None,
 ) -> RenewalRateChain:
     """Decide the rate this renewal is contracted at.
 
@@ -487,6 +500,13 @@ def decide_renewal_rate(
         default_belief_rate=(
             default_belief_rate
             if active_policy().renewal_default_belief == DEFAULT_BELIEF_OWN_BOOK else None),
+        # A HOUSEHOLD THAT STAYS PAYS AT MOST THE DEFAULT, which the licence makes true of every
+        # domestic fix: it cannot auto-renew, and doing nothing lands on the default. Resolved
+        # from the same active policy, at the same site. Only a fixed term can be refused.
+        stayer_default_rate_gbp_per_mwh=(
+            _stayer_default_ex_vat(commodity, term_start, own_default_tariff_inc_vat_gbp_per_mwh)
+            if (active_policy().renewal_stayer_pays_at_most_default and tariff_type == "fixed"
+                and is_domestic) else None),
     )
     # THE DENOMINATOR, WRITTEN AT THE SAME SITE AS THE DECISION. Unconditional and before the two
     # branches below, so a renewal cannot reach the funnel through one path and miss it through

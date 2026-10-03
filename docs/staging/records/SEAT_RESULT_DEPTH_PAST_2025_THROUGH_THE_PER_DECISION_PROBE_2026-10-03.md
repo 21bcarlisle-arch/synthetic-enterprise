@@ -25,3 +25,38 @@ the record without a named world refuses, as 18c3ecb8c built.
 
 Caveat, carried from the world's stamp: the cap past December 2026 is held, not modelled, so
 forward wholesale moving under a frozen cap is in these 21 decisions.
+
+## Correction, 2026-10-03 (later the same day)
+
+**Every margin above was scored on the OFFER, and a stayer offered a fix above its default does not
+pay it.**
+
+The world's decline-and-stay rule is live (`DECLINE_A_FIX_ABOVE_THE_DEFAULT`). A household that
+stays refuses any fix above its default and is billed the default. The probe credited the offer.
+
+The value rule priced above the default on 68-74 of 77-82 decisions per path; the level rule at the
+value median did so on 59-67. Re-scored offline with the world's own rule, value - level on the
+four 2025 paths:
+
+| path | was | now (SNR) |
+|---|---|---|
+| default | -2,668 | -1,184 (1.25) |
+| 61001 | -3,046 | -1,482 (1.69) |
+| 61002 | -2,146 | -1,019 (1.43) |
+| 61003 | -2,827 | -1,560 (1.79) |
+
+value - flat roughly halves (e.g. 7,250 -> 3,663).
+
+**The direction of every conclusion here holds; the sizes do not.** The probe now records
+`stayer_pays_gbp_per_mwh` and scores on it. See
+`SEAT_PREREG_A_STAYER_PAYS_THE_DEFAULT_SO_THE_VALUE_RULE_SHOULD_NOT_PRICE_ABOVE_IT_2026-10-03.md`.
+
+**The 2029 run, re-scored the same way:**
+- value - level: -3,083 -> **-1,418, SNR 1.29**, against the default path's 1.25 to 2025;
+- value - flat: 8,787 -> 4,946;
+- 94 of 103 value offers sit above the default.
+
+The re-score read the default outside the forward-world scope, so past 2025 it takes whatever
+the SVT series returns there. It is approximate for the 21 decisions past the record, and exact once
+the probe re-runs with the column inside the world. **Depth is an even weaker lever than reported:
+four more years buy SNR +0.04.**
