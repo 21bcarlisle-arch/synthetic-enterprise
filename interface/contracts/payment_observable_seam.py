@@ -125,7 +125,10 @@ class BacsReasonCategory(str, Enum):
     report TEXT field today -- a coarser, honest observable, not a
     re-derivation of Bacs' internal numbering. Any consumer building
     logic against the exact numeric code must treat this as the gap to
-    close, not assume this enum already closes it."""
+    close, not assume this enum already closes it. The part of that gap
+    the published record DOES close is now carried: `ARUDD_REASON_CODE`
+    below names the real ARUDD code each category denotes, or why it
+    cannot."""
 
     INSUFFICIENT_FUNDS = "insufficient_funds"
     INSTRUCTION_CANCELLED = "instruction_cancelled"
@@ -136,6 +139,67 @@ class BacsReasonCategory(str, Enum):
     AMOUNT_DIFFERS = "amount_differs"
     ADVANCE_NOTICE_INVALID = "advance_notice_invalid"
     OTHER = "other"
+
+
+# THE REAL ARUDD CODE EACH CATEGORY DENOTES -- the seam's first step from a
+# house vocabulary toward the message a bank actually sends. A real ARUDD
+# (Automated Return of Unpaid Direct Debit) report line carries a single-
+# character Bacs return reason CODE; `BacsReasonCategory` is this seam's own
+# name for it. The codes and their published texts are the ones already
+# sourced in the repo -- `simulation/bacs_rails.py::ARUDD_REASON_CODES`,
+# WebSearch-verified 2026-07-11 against Pay.UK's "Bacs System Principles" and
+# the AccessPaySuite / Hafiz Didarali ARUDD reason-code references. They are
+# DUPLICATED here, not imported, because this contract may import nothing from
+# `simulation/`; `tests/interface/test_payment_observable_seam.py` holds the
+# two copies equal, so the duplication cannot drift silently.
+#
+# STRINGS, NOT INTS: ARUDD codes are alphanumeric on the wire (numerals then
+# letters), so an int key would have no room for the half of the set that is
+# not yet sourced.
+#
+# DIRECTION. This maps category -> code, which is injective on the coded
+# members and is therefore a faithful re-spelling. The REVERSE is not a fact
+# the bank states: code 0 is "Refer to Payer", and the bank does not say WHY
+# the payer was referred -- `INSUFFICIENT_FUNDS` is the supplier's reading of
+# a 0, not the bank's. A consumer keying logic on the code rather than the
+# category is keying on what a real bank sends.
+#
+# NOTHING NEW CROSSES. The code is a pure function of `reason_category`, which
+# already crosses, so the observable surface (and `SCHEMA_VERSION`) is
+# unchanged. Putting the code on the WIRE as its own field is the next step
+# and is a release: it needs the adapter to fill it and a version bump.
+ARUDD_REASON_CODE: dict[BacsReasonCategory, tuple[str, str] | None] = {
+    BacsReasonCategory.INSUFFICIENT_FUNDS: ("0", "Refer to Payer"),
+    BacsReasonCategory.INSTRUCTION_CANCELLED: ("1", "Instruction Cancelled"),
+    BacsReasonCategory.PAYER_DECEASED: ("2", "Payer Deceased"),
+    BacsReasonCategory.ACCOUNT_CLOSED: None,
+    BacsReasonCategory.NO_ACCOUNT: None,
+    BacsReasonCategory.MANDATE_DISPUTED: None,
+    BacsReasonCategory.AMOUNT_DIFFERS: None,
+    BacsReasonCategory.ADVANCE_NOTICE_INVALID: None,
+    BacsReasonCategory.OTHER: None,
+}
+
+_UNSOURCED = (
+    "the ARUDD code for this reason is not in the repo's sourced table "
+    "(simulation/bacs_rails.py::ARUDD_REASON_CODES holds codes 0-3 only), and "
+    "the Bacs rulebook that defines the full set is members-only"
+)
+
+#: Why a category has no code -- one entry per `None` above, so a missing code
+#: is always a named gap and never a silent hole.
+ARUDD_REASON_CODE_GAP: dict[BacsReasonCategory, str] = {
+    BacsReasonCategory.ACCOUNT_CLOSED: _UNSOURCED,
+    BacsReasonCategory.NO_ACCOUNT: _UNSOURCED + (
+        "; 5 'No Account' is sourced for AUDDIS, not ARUDD"
+    ),
+    BacsReasonCategory.MANDATE_DISPUTED: _UNSOURCED,
+    BacsReasonCategory.AMOUNT_DIFFERS: _UNSOURCED,
+    BacsReasonCategory.ADVANCE_NOTICE_INVALID: _UNSOURCED,
+    BacsReasonCategory.OTHER: (
+        "a catch-all of the seam's own; no single ARUDD code denotes it"
+    ),
+}
 
 
 class AddacsAdviceType(str, Enum):
@@ -261,6 +325,14 @@ class BacsArruddOutcome:
     reason_category: BacsReasonCategory
     reason_text: str
     value_date: dt.date
+
+    @property
+    def arudd_reason_code(self) -> str | None:
+        """The real ARUDD return reason code this line's category denotes,
+        or None where the code is not sourced (`ARUDD_REASON_CODE_GAP` names
+        why). Derived, not a field: it adds nothing to what crosses."""
+        entry = ARUDD_REASON_CODE[self.reason_category]
+        return None if entry is None else entry[0]
 
 
 @dataclass(frozen=True)
