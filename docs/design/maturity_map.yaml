@@ -761,7 +761,7 @@
   lane: C_customer_ops
   value_stream: meter_to_cash
   epoch: 2
-  level_current: 0
+  level_current: 1
   level_target: 3
   loop_stage: idle
   dial_inherited: 50    # R2 -- DIRECTOR_CANON_RERANKING_THE_ARC_2026-09-04 §2/§5.
@@ -769,7 +769,7 @@
   depends_on: []
   couples_with: []
   records_rehomed: [evidence]
-  file_scope: []
+  file_scope: [company/billing/collections_journey.py, company/billing/payment_observation_consumer.py, company/compliance/domain_invariants.py, tests/company/billing/test_collections_journey.py]
 - id: EP5_settlement_true_ups
   title: "Cost truth arriving fourteen months late, and landing properly"
   notes_rehomed: [gain, name, origin_note]
