@@ -31,6 +31,14 @@ as closed, so the jump to the final-bill row lands in the year the account left.
 earlier cannot see it. Its covariates are what the decision at `T` could see: payment method, and
 the arrears state at `T` (`unknown` in an account's first year, before anything was billed).
 
+METHOD IS ASKED AS OF A DATE, because it changes: the company's own collections desk stops a
+failing direct debit and the household then pays on receipt (PB8). Each provision is read on the
+row for the method the company held ON THAT PROVISION'S DATE, so an account stopped mid-year is
+re-provisioned on the pay-on-receipt row at the year's end. That re-rating is a charge a supplier
+books. The year's method covariate is the one at `T`. Read once per account for its whole life,
+the stopped household stayed on the DD row, and the book's per-method shape was the household's
+drawn channel rather than the supplier's own mandate record.
+
 THE BELIEF. Per arrears state, the money-weighted charge share observed so far, shrunk towards a
 whole-book prior by `PRIOR_ACCOUNT_YEARS` account-years of weight. With no resolved observation in
 the state the belief IS the prior. NOT KEYED ON PAYMENT METHOD, on purpose: the price this feeds may
@@ -113,7 +121,7 @@ def observe_book(
     book: LedgerBook,
     *,
     as_of: dt.date,
-    payment_method_of: Callable[[str], Optional[str]],
+    payment_method_of: Callable[[str, dt.date], Optional[str]],
     arrears_state_at: Callable[[str, dt.date], str],
     memo: Optional[dict] = None,
 ) -> list[AccountYear]:
@@ -122,6 +130,9 @@ def observe_book(
     `memo`, if given, keeps each account-year once it has been read, keyed by account and year
     start, so a run that asks at every renewal walks each resolved year once. What is kept is what
     the company knew when it first read it, which is the point-in-time reading in any case.
+
+    `payment_method_of(account, date)` is the company's own method register on that date; it is
+    only ever asked of dates at or before `as_of`.
 
     `arrears_state_at(account, date)` is the company's own arrears read
     (`PaymentObservationConsumer.arrears_state` with its previous-period clock); it is passed in
@@ -134,7 +145,9 @@ def observe_book(
                        if e.event_type == LedgerEventType.BILL_DEBIT)
         if not bills:
             continue
-        method = payment_method_of(account) or ""
+
+        def method_on(day: dt.date, _account=account) -> str:
+            return payment_method_of(_account, day) or ""
         first, last = bills[0][0], bills[-1][0]
         closes_on = last + dt.timedelta(days=CLOSED_IF_UNBILLED_DAYS)
         opened = first
@@ -160,16 +173,17 @@ def observe_book(
                 if memo is not None:
                     memo[(account, start)] = None
                 continue
-            charge = _provision(ledger, resolved, method, closes_on)
+            charge = _provision(ledger, resolved, method_on(resolved), closes_on)
             if charge is not None:
-                before = _provision(ledger, opened, method, closes_on) if k > 1 else 0.0
+                before = (_provision(ledger, opened, method_on(opened), closes_on)
+                          if k > 1 else 0.0)
                 written_off = sum(
                     float(e.amount_gbp) for e in ledger.events()
                     if e.event_type == LedgerEventType.WRITE_OFF_CREDIT and opened < e.valid_time <= resolved)
                 charge = None if before is None else charge - before + written_off
             year = AccountYear(
                 account_id=account,
-                payment_method=method,
+                payment_method=method_on(start),
                 arrears_state=ARREARS_STATE_UNKNOWN if k == 1 else arrears_state_at(account, start),
                 year_start=start,
                 resolved_on=resolved,

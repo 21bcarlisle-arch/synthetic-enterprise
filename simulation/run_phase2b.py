@@ -1914,18 +1914,21 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
     # measured + written at run end (background.live_payment_triad).
     _payment_triad = LivePaymentTriad()
     # The company's own method register, as the renewal price reads it, for every resi account the
-    # book's default rate learns over (`DecisionPolicy.renewal_default_belief`). Asked once per
-    # account; read only when the policy prices on the book.
+    # book's default rate learns over (`DecisionPolicy.renewal_default_belief`), ON A DATE: a DD the
+    # supplier stopped is pay-on-receipt from its notice on, and the learner reads each provision
+    # on the row for the method held that day. Asked once per account and date; read only when the
+    # policy prices on the book.
     _book_methods: dict = {}
 
-    def _book_method_of(account_id: str):
+    def _book_method_of(account_id: str, on: date):
         cid = account_id[len("ACC-"):] if account_id.startswith("ACC-") else account_id
         if _SEGMENT_OF.get(cid, "resi") != "resi":
             return None
-        if cid not in _book_methods:
+        if (cid, on) not in _book_methods:
             from company.interfaces.sim_interface import LiveSimInterface
-            _book_methods[cid] = LiveSimInterface().get_payment_method(cid, "electricity")
-        return _book_methods[cid]
+            _book_methods[(cid, on)] = LiveSimInterface().get_payment_method(
+                cid, "electricity", as_of=on.isoformat())
+        return _book_methods[(cid, on)]
     _NG_BILL_SHOCK_THRESHOLD = 0.20  # matches simulation.bill_shock_tracker.BILL_SHOCK_THRESHOLD
     CRISIS_HANGOVER_LOSS_THRESHOLD = 0.20  # trigger: net loss > 20% of term revenue
 
