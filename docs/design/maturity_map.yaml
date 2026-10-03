@@ -1490,7 +1490,7 @@
   file_scope: ['company/crm/enriched_churn_estimate.py', 'company/crm/competitive_pressure.py',
                'company/crm/churn_desk.py', 'simulation/run_phase2b.py',
                'tests/company/crm/test_the_company_learns_engagement_from_its_own_book.py']
-  records_rehomed: [expert_hour_findings]
+  records_rehomed: [expert_hour_findings, evidence]
   expert_hour: {status: attempted_finding_open, last: '2026-09-29, run under PB6 on this row''s code. FAIL, held at 2; EH-1 remedied, EH-2 grades only near PB1 scale.'}
   real_world_twin: "a supplier's own retention analytics. It has its own churn by payment method, measured on its own leavers, and it trusts that over a national survey the moment it has enough of them -- which is also when it starts beating the market rather than tracking it."
 - id: H46_the_consistency_gate_disagreement_before_the_next_publish
