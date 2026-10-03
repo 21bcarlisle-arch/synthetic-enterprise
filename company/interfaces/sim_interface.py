@@ -172,7 +172,8 @@ class SimInterface:
         """
         raise NotImplementedError
 
-    def get_payment_method(self, account_id: str, fuel: str = "electricity") -> str:
+    def get_payment_method(self, account_id: str, fuel: str = "electricity",
+                           as_of: str | None = None) -> str:
         """How does this customer pay? 'direct_debit', 'standard_credit' or 'prepayment'.
 
         OBSERVABLE, and among the least arguable things on this seam: a supplier SET THIS
@@ -187,6 +188,9 @@ class SimInterface:
         clear. A trait that is learnable in the world and invisible at the wall satisfies the
         letter of R1's claim and none of its point: the company would face a world it could in
         principle learn from and still have nothing to learn it with.
+
+        `as_of` (PB8 L2): on that date. A household whose DD the supplier had stopped by then pays
+        on receipt, which is standard credit. Without it, the arrangement the account was set up on.
 
         Returns: one of 'direct_debit', 'standard_credit', 'prepayment'.
         """
@@ -329,7 +333,8 @@ class StubSimInterface(SimInterface):
     def get_customer_status(self, account_id: str) -> str:
         return self._customer_statuses.get(account_id, "active")
 
-    def get_payment_method(self, account_id: str, fuel: str = "electricity") -> str:
+    def get_payment_method(self, account_id: str, fuel: str = "electricity",
+                           as_of: str | None = None) -> str:
         """Settable, defaulting to direct debit -- the majority channel (72% electricity).
 
         A stub that returned a FIXED method for every account would make every test of a
@@ -517,7 +522,8 @@ class LiveSimInterface(SimInterface):
     def get_customer_status(self, account_id: str) -> str:
         return "active"
 
-    def get_payment_method(self, account_id: str, fuel: str = "electricity") -> str:
+    def get_payment_method(self, account_id: str, fuel: str = "electricity",
+                           as_of: str | None = None) -> str:
         """The customer's own billing arrangement. See the observability audit above.
 
         Deferred import, matching how this class reaches its price history: it keeps
@@ -539,7 +545,26 @@ class LiveSimInterface(SimInterface):
                 "payment method for every account it bills, so a lookup with no account is a "
                 "caller defect, not a CRM miss -- refusing rather than booking it as direct debit")
         from simulation.household_segments import payment_channel_for_customer
-        return payment_channel_for_customer(account_id, fuel).value
+        drawn = payment_channel_for_customer(account_id, fuel).value
+        if as_of is None or drawn != "direct_debit":
+            return drawn
+        # PB8 L2: the supplier's own collections desk may have stopped this DD, and told the
+        # household. Asked of the run's board, cut at `as_of`, so nothing after the date leaks in.
+        # REFUSES with no board rather than answering the drawn method: a date was asked about, and
+        # "direct debit" would be a claim that no stop had happened, which nothing here checked.
+        from simulation.arrears_engine import PAY_ON_RECEIPT_METHOD
+        from simulation.dd_collection_book import active_stop_notice_board
+        from simulation.household import GAS_LEG_ID_SUFFIX, household_of
+        board = active_stop_notice_board()
+        if board is None:
+            raise ValueError(
+                f"get_payment_method({account_id!r}, as_of={as_of!r}): no run has installed a DD "
+                "stop-notice board, so whether the supplier had stopped this DD by then cannot be "
+                "said. Ask without as_of for the arrangement the account was set up on.")
+        supply_point = household_of(account_id) + GAS_LEG_ID_SUFFIX if fuel == "gas" else account_id
+        if board.notice_as_of(supply_point, as_of) is not None:
+            return PAY_ON_RECEIPT_METHOD
+        return drawn
 
     def notify_churn(self, account_id, event_date, *, reason="non-renewal",
                  sim_churn_probability=None, company_churn_estimate=None):

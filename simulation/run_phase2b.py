@@ -1960,6 +1960,15 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
     account_state_log: list[dict] = []
 
     all_records: list[dict] = []
+    # PB8 L2: WHETHER THE SUPPLIER HAD STOPPED A HOUSEHOLD'S DD BY A DATE, for the payment-method seam
+    # the renewal price and the engagement antecedent read. Fed beside `all_records`, so it bills
+    # only what the run has settled. Stress is the household's drawn trajectory, the same one
+    # `_build_behavioral_trajectories` hands the money side, fixed before the first term.
+    from simulation.dd_collection_book import StopNoticeBoard, install_stop_notice_board
+    _dd_stop_board = StopNoticeBoard(
+        lambda _cid: household_demand_register.income_stress_trajectory(_cid, list(range(2016, 2026)))
+        if household_demand_register is not None else [])
+    install_stop_notice_board(_dd_stop_board)
     # THE FOLD, fed at exactly one place -- the line that extends `all_records` below.
     # Fed anywhere else it would see records the list has not, and the point-in-time window
     # `_company_eac_estimate` depends on would quietly widen. `simulation/settlement_fold.py`
@@ -2159,7 +2168,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             if _chain_segment == "resi":
                 from company.interfaces.sim_interface import LiveSimInterface
                 _company_payment_method = LiveSimInterface().get_payment_method(
-                    billing_account, commodity)
+                    billing_account, commodity, as_of=term_start_str)
                 # THE BOOK'S OWN DEFAULT RATE, asked only when the policy prices on it, so a
                 # run on the default policy makes no extra read. The method register it learns
                 # over is the same seam read, per resi account, kept for the run.
@@ -2587,7 +2596,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                 if segment_for_churn == "resi":
                     from company.interfaces.sim_interface import LiveSimInterface
                     _company_payment_method = LiveSimInterface().get_payment_method(
-                        billing_account, commodity)
+                        billing_account, commodity, as_of=term_start_str)
                 # THE COMPANY'S OWN RECEIVABLE, ASKED FOR AT THE RENEWAL (2026-09-25). The
                 # distress term in `churn_model` used to be a knee on the household's BILL, and
                 # the bill is the wrong variable: Ofgem/BMG puts the bill-to-switching
@@ -3688,7 +3697,9 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         # periods and prices each on its own rate (director ruling, GATE 13).
         period_registers.add(settled_this_term, segment_of=_SEGMENT_OF)
         treasury_drawdown.add(settled_this_term)
-        all_records.extend(fold_to_days(settled_this_term))
+        _folded_this_term = fold_to_days(settled_this_term)
+        all_records.extend(_folded_this_term)
+        _dd_stop_board.observe(_folded_this_term)
         settled_fold.add(settled_this_term)
         if administration_event:
             break
@@ -4192,6 +4203,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             f"{REPORT_START}..{effective_end}"
         )
 
+    install_stop_notice_board(None)
     return {
         "all_records": all_records,
         "administration_event": administration_event,

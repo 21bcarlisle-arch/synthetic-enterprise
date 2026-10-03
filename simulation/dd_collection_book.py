@@ -181,7 +181,81 @@ def supplier_dd_stops(bills: list[dict], behavioral: dict, seed: int = 42) -> di
     is payable on receipt. This is what the household is told, so it is all the world reads.
     Why it stopped, and on what rule, stay behind the desk.
     """
-    return _run_rails(bills, behavioral, None, seed)[1]
+    return {cid: stop[0] for cid, stop in _run_rails(bills, behavioral, None, seed)[1].items()}
+
+
+def supplier_dd_stop_notices(bills: list[dict], behavioral: dict, seed: int = 42) -> dict[str, str]:
+    """`{customer_id: notice_date}`: the day the household learnt its DD was stopped.
+
+    That is the day of the return that made the supplier stop it. It is the as-of key for anything
+    asked mid-run ("how does this household pay, on this date?"), where `supplier_dd_stops`'s
+    period_end is the key for which bills are payable on receipt.
+    """
+    return {cid: stop[1] for cid, stop in _run_rails(bills, behavioral, None, seed)[1].items()}
+
+
+class StopNoticeBoard:
+    """PB8 L2, the seam half: has the supplier stopped this supply point's DD, as of a date?
+
+    Answered mid-run, from the run's own settled records so far, by the money side's own route:
+    the supplier's monthly bills over those records, through `issued_bills`, through the rails.
+    Only records from calendar months that ended before `as_of` are billed. A stop's notice comes
+    after its bill's due date, so the month containing `as_of` cannot carry a notice on or before
+    it, and a partial month must not stand in for the full month's bill the money side sees.
+
+    The rails resolve each customer on its own lag stream (`_run_rails`), so a customer's notices
+    are a function of its own bills only. That is what makes this per-customer, as-of answer equal
+    the money side's register cut at `as_of`.
+    """
+
+    def __init__(self, stress_trajectory_of, seed: int = 42) -> None:
+        self._stress_trajectory_of = stress_trajectory_of
+        self._seed = seed
+        self._records: dict[str, list[dict]] = {}
+        self._stopped: dict[str, str] = {}
+        self._clear_through: dict[str, date] = {}
+
+    def observe(self, records: list[dict]) -> None:
+        """Take a term's settled records as the run settles them."""
+        for r in records:
+            self._records.setdefault(r["customer_id"], []).append(r)
+
+    def notice_as_of(self, supply_point: str, as_of: str) -> str | None:
+        """The notice date of the stop, if the household had been told by `as_of`; else None."""
+        notice = self._stopped.get(supply_point)
+        if notice is not None:
+            return notice if notice <= as_of else None
+        cutoff = date.fromisoformat(as_of).replace(day=1)
+        if self._clear_through.get(supply_point, date.min) >= cutoff:
+            return None
+        records = [r for r in self._records.get(supply_point, [])
+                   if r.get("settlement_date", "9999") < cutoff.isoformat()]
+        if not records:
+            return None
+        from company.interfaces.bill_assembly import issued_bills
+        from simulation.run_phase4c_on_phase2b import build_monthly_bills
+        bills = issued_bills(build_monthly_bills(records, set()))
+        behavioral = {supply_point: {
+            "income_stress_trajectory": self._stress_trajectory_of(supply_point)}}
+        notices = supplier_dd_stop_notices(bills, behavioral, self._seed)
+        if supply_point in notices:
+            self._stopped[supply_point] = notices[supply_point]
+            return notices[supply_point] if notices[supply_point] <= as_of else None
+        self._clear_through[supply_point] = cutoff
+        return None
+
+
+_ACTIVE_BOARD: StopNoticeBoard | None = None
+
+
+def install_stop_notice_board(board: StopNoticeBoard | None) -> None:
+    """The run hands the seam its board for the run's duration, and None at the end."""
+    global _ACTIVE_BOARD
+    _ACTIVE_BOARD = board
+
+
+def active_stop_notice_board() -> StopNoticeBoard | None:
+    return _ACTIVE_BOARD
 
 
 def _run_rails(
@@ -212,9 +286,13 @@ def _run_rails(
     # converse (extra rails draws desyncing outcomes) is now structurally
     # impossible, since each bill's outcome is keyed by its own identity
     # rather than by the state of a stream this loop shares.
-    rails_rng = random.Random(seed + 1)
+    #
+    # ONE LAG STREAM PER CUSTOMER (PB8 L2, 2026-10-03). A single stream walked in customer order
+    # made one household's notice date depend on every household sorted before it, so a stop could
+    # not be asked about mid-run from that household's own bills (`StopNoticeBoard`).
+    rails_rngs: dict[str, random.Random] = {}
     desk = open_collections_desk()
-    stops: dict[str, str] = {}
+    stops: dict[str, tuple[str, str]] = {}
     monthly_amount_by_customer = monthly_amount_by_customer or {}
 
     for bill in sorted(bills, key=lambda b: (b["customer_id"], b["period_end"])):
@@ -334,6 +412,7 @@ def _run_rails(
             date.fromisoformat(instruction.collection_date),
         )
         decided = "success" if outcome == "success" else "failed"
+        rails_rng = rails_rngs.setdefault(cid, random.Random(f"{seed + 1}:{cid}"))
         resolved = resolve_submission(submission, decided, rng=rails_rng)
 
         failure_reason = ""
@@ -343,12 +422,13 @@ def _run_rails(
         # What happened to the money, reported back. The world states the fact
         # (`collected`) and the industry's own ARUDD reason text; the vocabulary the
         # register files it under is the supplier's, behind the door.
+        attempt_date = resolved.expected_outcome_date.isoformat()
         if desk.record_collection_outcome(
             instruction,
-            attempt_date=resolved.expected_outcome_date.isoformat(),
+            attempt_date=attempt_date,
             collected=resolved.status == "success",
             failure_reason=failure_reason,
         ):
-            stops[cid] = period_end
+            stops[cid] = (period_end, attempt_date)
 
     return desk, stops
