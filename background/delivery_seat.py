@@ -762,6 +762,21 @@ def _mute_sentence(declared_rows: list) -> str:
     return out
 
 
+def _unlanded_worktree_commits() -> dict:
+    """`tools.unlanded_worktree_commits.census`, fail-closed: a census that raised is
+    `available: False`, never an empty list."""
+    try:
+        from tools.unlanded_worktree_commits import census
+        return census(PROJECT_DIR)
+    except Exception as exc:  # noqa: BLE001
+        return {"available": False, "why": repr(exc)}
+
+
+def _render_unlanded(reading: dict | None) -> str:
+    from tools.unlanded_worktree_commits import render
+    return render(reading or {"available": False, "why": "the reading was not taken"})
+
+
 def running_now(floor_seconds: int = ELAPSED_FLOOR_SECONDS) -> dict:
     """WHAT IS ON THE BOX, with the DECLARED permanent daemons subtracted.
 
@@ -1397,6 +1412,10 @@ def build_brief(now: datetime | None = None) -> dict:
         # AND WHAT STOPPED, beside it. A job that died is in neither `running` nor any tree
         # reading, which is exactly how two deaths on 2026-09-29 went unseen for over an hour.
         "ended": ended_since(since),
+        # AND WHAT ONLY A WORKTREE'S HEAD HOLDS. Finished commits on no remote ref are in no tree
+        # reading either -- SPINE_1 lived for hours only at a detached HEAD and survived because
+        # the console seat happened to remember it.
+        "unlanded_worktree_commits": _unlanded_worktree_commits(),
         "findings": findings_now(),
         "levels_moved": moved,
         "levels_recorded": levels_recorded_since(since),
@@ -1799,6 +1818,7 @@ def _prompt(brief: dict) -> str:
         + absence_sentence
         + running_sentence
         + ended_sentence
+        + "\n\n" + _render_unlanded(brief.get("unlanded_worktree_commits"))
         + "\n\nWHAT THE STRETCH ABOVE WAS MEASURED OVER. Everything you are about to grade -- the "
           "commits, the substantive count, the shape -- was read from HEAD *and* origin/main "
           "together, so it does not change with whether this checkout has fast-forwarded:\n\n"
