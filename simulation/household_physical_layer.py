@@ -190,12 +190,15 @@ LAYER_CORRELATIONS: tuple[LayerCorrelation, ...] = (
             "published cross-tabulation of household size against income, which no "
             "source in the commons carries. The FRS/HBAI low-income rates by family type "
             "(POPULATION_COVERAGE_SOURCE_LANDSCAPE.md, 'apply') are the nearest candidate and "
-            "are keyed on composition, not headcount. Until then the two are drawn "
-            "independently and the sample is NOT claimed to span the joint. MEASURED "
-            "2026-09-30 at 2025-12-31: chi2 5.6/6 dof (seed 11, n 1954) and 6.9/6 (seed 23, "
-            "n 2040) -- independent, as declared."
+            "are keyed on composition, not headcount. The draw has carried it SINCE 2026-10-03, "
+            "through one mechanical path and not an income model: a birth is drawn per person "
+            "(life_events._NEW_BABY_ANNUAL_PROB_PER_PERSON), so a bigger home has more births, "
+            "and each birth moves LOW -> MODERATE. MEASURED at 2025-12-31: chi2 44.8/6 dof, "
+            "Cramer's V 0.107 (seed 11, n 1954) and 0.105 (seed 23, n 2040). Before that change "
+            "it was 5.6/6 and 6.9/6, independent. The published income-by-size joint is still "
+            "unestablished; this is the birth path only."
         ),
-        in_the_world=False,
+        in_the_world=True,
         measured_as=("occupancy",),
     ),
     LayerCorrelation(

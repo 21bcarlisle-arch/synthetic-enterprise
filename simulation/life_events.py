@@ -50,7 +50,7 @@ from __future__ import annotations
 import hashlib
 import math
 import random
-from dataclasses import dataclass, fields
+from dataclasses import dataclass, fields, replace
 from datetime import date, timedelta
 from typing import Literal
 
@@ -170,16 +170,51 @@ _BATTERY_INSTALL_PROB_WITH_SOLAR_BY_YEAR: dict[int, float] = {
 
 
 # Economic life events: income stress
-# Job loss: UK annual unemployment entry rate ~2.2% of working-age employed
+#
+# BOTH RATES BELOW ARE PER PERSON, and they are drawn over the household's own composition
+# (`_household_draw_prob`). Until 2026-10-03 each was applied once per HOUSEHOLD, so a home of four
+# drew one person's chance of a birth and a retired couple drew a worker's chance of losing a job
+# (finding SEAT_FINDING_TWO_LIFE_EVENT_RATES_ARE_PER_PERSON_FIGURES_APPLIED_PER_HOUSEHOLD_2026-10-02).
+# The names carry their unit so the next reader cannot apply one per household again;
+# `tests/simulation/test_a_per_person_life_event_rate_is_drawn_per_person.py` refuses it.
+#
+# Job loss: UK annual unemployment entry rate ~2.2% of working-age EMPLOYED people.
 # Source: ONS Labour Market Statistics 2016-2025
-_JOB_LOSS_ANNUAL_PROB = 0.022
+_JOB_LOSS_ANNUAL_PROB_PER_EMPLOYED_PERSON = 0.022
 
-# Income recovery: conditional on HIGH stress; median UK unemployment spell ~6 months
+# Income recovery: conditional on HIGH stress; median UK unemployment spell ~6 months.
+# A household state transition, so per household is the right unit here.
 _INCOME_RECOVERY_ANNUAL_PROB = 0.50
 
-# New baby: UK birth rate ~10.7/1,000 population ≈ 1.1% per resi household/year
+# New baby: UK crude birth rate 10.7 per 1,000 POPULATION (all ages, so every person in the home
+# counts toward it -- that is what makes the book's total births match the published rate).
 # Source: ONS Birth Summary Tables
-_NEW_BABY_ANNUAL_PROB = 0.011
+_NEW_BABY_ANNUAL_PROB_PER_PERSON = 0.0107
+
+
+def _household_draw_prob(per_person: float, persons: int) -> float:
+    """Chance at least one of `persons` independent people has the event this year."""
+    return 1.0 - (1.0 - per_person) ** max(0, persons)
+
+
+def _household_persons(household: Household) -> tuple[int, int]:
+    """`(people, employed_people)` for this home, from the world's own composition record.
+
+    The same draws every other reader of this home sees (`dwelling_records`), so the life-event
+    stream cannot disagree with the demand model about who lives here.
+
+    EMPLOYED PEOPLE IS A LOWER BOUND, AND THE GAP IS NAMED. The record carries
+    `someone_employed` -- whether ANYONE works -- not how many do. So a working home counts one
+    employed person and a workless one counts none. A two-earner home therefore draws job loss
+    for one earner. The published per-household figure that would close this is the ONS
+    "working and workless households" release (employed adults per working household). It has
+    not been sourced into the knowledge layer, so no multiplier is invented to stand in for it.
+    """
+    from simulation.dwelling_records import composition_cuts_for, people_count_for_area
+
+    people = people_count_for_area(household.customer_id, household.output_area)
+    _pensioner, someone_employed = composition_cuts_for(household.customer_id)
+    return people, (1 if someone_employed else 0)
 
 # Retirement: calibrated to build era. Typical UK retirement age ~65.
 # ERA_1945_1964 occupants: born 1945–64, aged 52–71 in 2016 — peak cohort.
@@ -403,6 +438,10 @@ def generate_life_events(
     heating = household.heating_system
     income_stress = household.income_stress
     is_retired = False
+    if household.is_residential:
+        _people, _employed = _household_persons(household)
+        job_loss_prob = _household_draw_prob(_JOB_LOSS_ANNUAL_PROB_PER_EMPLOYED_PERSON, _employed)
+        new_baby_prob = _household_draw_prob(_NEW_BABY_ANNUAL_PROB_PER_PERSON, _people)
 
     for year in range(sim_start_year, sim_end_year + 1):
 
@@ -516,10 +555,11 @@ def generate_life_events(
         # _RESIDENTIAL_ONLY_DEMOGRAPHIC_EVENTS and stay inside this gate -- the
         # business-exclusion control test enforces that.
         if household.is_residential:
+            first_demographic = len(events)
             # Job loss (only when not already in high stress)
             if income_stress != IncomeStress.HIGH:
                 _s = sub["job_loss"]
-                if _s.random() < _JOB_LOSS_ANNUAL_PROB:
+                if _s.random() < job_loss_prob:
                     events.append(LifeEvent(
                         customer_id=household.customer_id,
                         event_date=_random_date_in_year(year, _s),
@@ -543,7 +583,7 @@ def generate_life_events(
             # New baby (only when stable income)
             if income_stress == IncomeStress.LOW:
                 _s = sub["new_baby"]
-                if _s.random() < _NEW_BABY_ANNUAL_PROB:
+                if _s.random() < new_baby_prob:
                     events.append(LifeEvent(
                         customer_id=household.customer_id,
                         event_date=_random_date_in_year(year, _s),
@@ -594,8 +634,39 @@ def generate_life_events(
                     ))
                     income_stress = IncomeStress.MODERATE
 
+            events[first_demographic:] = _dated_in_gate_order(events[first_demographic:], year)
+
     events.sort(key=lambda e: e.event_date)
     return events
+
+
+def _dated_in_gate_order(year_events: list[LifeEvent], year: int) -> list[LifeEvent]:
+    """Give one year's demographic events their dates in the order their gates were evaluated.
+
+    Each gate above reads `income_stress` as the events BEFORE it in processing order left it, but
+    every consumer replays `apply_events` in DATE order. Each event's date is an independent
+    substream draw, so a same-year `income_recovery` could be dated after the `new_baby` it
+    enabled. The birth then landed while the replayed household was still HIGH-stress: a gate
+    held in the generator and broken in the timeline anyone reads (the W2_5 queued defect in
+    `tests/simulation/test_phase_b_life_events.py`). It went live on the book on 2026-10-03,
+    once births were drawn per person and became twice as common.
+
+    The fix keeps every substream's draws, so C-S2 still holds. The year's dates are sorted and
+    handed out in emission order, made strictly increasing so no two events share a day. A shared
+    day would leave the order to a sort's tie-break.
+    """
+    if len(year_events) < 2:
+        return year_events
+    dates = sorted(date.fromisoformat(e.event_date) for e in year_events)
+    for i in range(1, len(dates)):
+        if dates[i] <= dates[i - 1]:
+            dates[i] = dates[i - 1] + timedelta(days=1)
+    ceiling = date(year, 12, 31)
+    for i in range(len(dates) - 1, -1, -1):
+        if dates[i] > ceiling:
+            dates[i] = ceiling
+        ceiling = dates[i] - timedelta(days=1)
+    return [replace(e, event_date=d.isoformat()) for e, d in zip(year_events, dates)]
 
 
 def apply_events(household: Household, events: list[LifeEvent]) -> Household:

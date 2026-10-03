@@ -456,7 +456,10 @@ def test_demographic_gate_is_load_bearing():
     # residential household -- so the exclusion above is the is_residential
     # gate doing real work, not the events simply never firing. If the gate
     # were removed, test_no_demographic_events_for_business_property would fail.
-    h = _semi()
+    # T2: composition draws someone employed, so job loss is reachable (T1's home is workless,
+    # and a workless home draws no job loss since 2026-10-03).
+    h = make_household({"customer_id": "T2", "home_type": "suburban_semi", "epc_rating": "D",
+                        "bedrooms": 3, "segment": "resi"})
     assert h.is_residential
     fired = set()
     for seed in range(300):
@@ -525,15 +528,12 @@ def test_real_roster_business_segment_never_residential():
 # authoritative timeline (a "divorce only when stable income" event happening
 # to a HIGH-stress household).
 #
-# QUEUED DEFECT, not fixed here (SELF_INTERRUPT_DISCIPLINE + R4 + R10): the fix
-# is a core-generation-loop change (evaluate the within-year demographic gates
-# in date order) that shifts every household's event stream -> full sim re-run
-# + downstream triage -> a BUILD, not a bounded HARDEN patch. See the W2_5
-# maturity-map simplifications entry. These two controls MECHANISE the defect
-# (MAKE_IT_STICK): the seed-42 control proves it is NOT live in production; the
-# xfail(strict) control encodes the invariant, is proven to FIRE on the live
-# defect (R15 can-fail), and auto-alarms (XPASS -> strict failure) the day the
-# generator is fixed, forcing this note + the map entry to be closed.
+# CLOSED 2026-10-03. Per-person birth draws doubled births and made this live at
+# PROS-2020-0102. `life_events._dated_in_gate_order` now dates each year's
+# demographic events in gate-evaluation order, and the two invariant controls
+# below, strict xfails until then, are plain tests. Mutation: make
+# `_dated_in_gate_order` return its input unchanged and the HIGH-start invariant
+# goes red.
 # ---------------------------------------------------------------------------
 
 from simulation.household import IncomeStress
@@ -594,18 +594,8 @@ def test_lowgated_demographic_events_hold_on_real_roster_seed42():
         )
 
 
-@pytest.mark.xfail(strict=True, reason=(
-    "W2_5 QUEUED DEFECT (2026-07-24): new_baby/divorce are gated on "
-    "income_stress==LOW in the generator's fixed PROCESSING order, but "
-    "apply_events (the value consumers see) replays in DATE order, so a "
-    "same-year later income_recovery can leave the LOW-gated event landing "
-    "while the household is still HIGH-stress (~1.4% of such events on the "
-    "real roster across seeds). Fix = date-order the within-year gate "
-    "evaluation (a BUILD: shifts every event stream, needs a full sim run). "
-    "When fixed, this XPASSes -> strict failure -> close this note + the map."
-))
 def test_lowgated_demographic_gate_holds_in_canonical_timeline():
-    # THE INVARIANT (currently violated -> xfail): every LOW-gated demographic
+    # THE INVARIANT (held since 2026-10-03, `_dated_in_gate_order`): every LOW-gated demographic
     # event must land at a date when the reconstructed income_stress is LOW.
     # Proven to FIRE on the real defect (R15 can-fail): a HIGH-start
     # residential household over seeds 0-999 contains real violations today.
@@ -692,19 +682,8 @@ def test_highgated_demographic_events_hold_on_real_roster_seed42():
         )
 
 
-@pytest.mark.xfail(strict=True, reason=(
-    "W2_5 QUEUED DEFECT sibling half (2026-07-27): illness is gated on "
-    "income_stress!=HIGH in the generator's fixed PROCESSING order, but "
-    "apply_events (the value consumers see) replays in DATE order, so a same-year "
-    "illness dated before the income_recovery that re-enabled it lands while the "
-    "canonical timeline is still HIGH. SAME root cause and SAME BUILD fix as the "
-    "LOW-gated xfail above (date-order the within-year gate evaluation); "
-    "mechanised so the fix is proven to close the WHOLE class, not one branch. "
-    "When fixed, this XPASSes -> strict failure -> close alongside the LOW-gated "
-    "note + the W2_5 maturity-map simplifications entry."
-))
 def test_highgated_demographic_gate_holds_in_canonical_timeline():
-    # THE INVARIANT (currently violated -> xfail): every HIGH-gated demographic
+    # THE INVARIANT (held since 2026-10-03, `_dated_in_gate_order`): every HIGH-gated demographic
     # event must land at a date when the reconstructed income_stress is NOT
     # already HIGH. Proven to FIRE on the real defect (R15 can-fail): a HIGH-start
     # residential household over seeds 0-999 contains real violations today.

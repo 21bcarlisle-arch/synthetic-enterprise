@@ -16,8 +16,8 @@ from simulation.life_events import (
     _DIVORCE_ANNUAL_PROB,
     _ILLNESS_ANNUAL_PROB,
     _INCOME_RECOVERY_ANNUAL_PROB,
-    _JOB_LOSS_ANNUAL_PROB,
-    _NEW_BABY_ANNUAL_PROB,
+    _JOB_LOSS_ANNUAL_PROB_PER_EMPLOYED_PERSON,
+    _NEW_BABY_ANNUAL_PROB_PER_PERSON,
     _RETIREMENT_PROB_BY_ERA,
     apply_events,
     generate_life_events,
@@ -129,7 +129,7 @@ def test_retirement_does_not_lower_high_stress():
 # ── 16-18: Probability constants ─────────────────────────────────────────────
 
 def test_job_loss_prob_is_positive():
-    assert 0 < _JOB_LOSS_ANNUAL_PROB < 0.1
+    assert 0 < _JOB_LOSS_ANNUAL_PROB_PER_EMPLOYED_PERSON < 0.1
 
 
 def test_income_recovery_prob_is_plausible():

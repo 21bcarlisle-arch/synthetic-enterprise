@@ -290,7 +290,7 @@
   epoch: 3
   level_current: 0
   level_target: 2
-  loop_stage: build
+  loop_stage: idle   # PARKED 2026-10-03: the reshape LANDED (913e69958, pass 21: scored at the organ's 90d). L0->L2 waits on the live W2_11 ledger row re-measured at a run containing 913e69958 (last read b17da3db3, pre-flip). UNBLOCK: that row's run_git_commit descends from 913e69958 -- then read its caveat and promote.
   dial_inherited: 3
   size: L  # 2026-08-23 XL->L when the last unmeasured item was measured (basis below)
   size_basis: >-
