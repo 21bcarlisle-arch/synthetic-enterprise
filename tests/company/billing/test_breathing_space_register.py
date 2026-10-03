@@ -40,10 +40,15 @@ def test_debt_frozen_stored():
     assert r.debt_frozen_gbp == 350.0
 
 
-def test_standard_expected_end_date_60_days():
+def test_standard_expected_end_date_is_the_sixtieth_day_counting_the_start():
+    # SI 2020/1311 reg 26(2): "60 days beginning with the date on which it started" -- the start
+    # date is day 1, so the last protected day is START + 59. This test pinned START + 60 (a 61-day
+    # moratorium) until 2026-10-03.
     reg = _reg()
     r = reg.register_entry("C1", BreathingSpaceType.STANDARD, START, 100.0)
-    assert r.expected_end_date == START + dt.timedelta(days=60)
+    assert r.expected_end_date == START + dt.timedelta(days=59)
+    assert r.is_active_as_of(START + dt.timedelta(days=59)) is True
+    assert r.is_active_as_of(START + dt.timedelta(days=60)) is False
 
 
 def test_mh_crisis_expected_end_date_none():

@@ -42,8 +42,9 @@ def make_record(
 class TestBreathingSpaceRecord:
 
     def test_expected_end_date_standard(self):
+        # 60 days beginning with 1 June (reg 26(2)) is 1 June .. 30 July inclusive.
         r = make_record(start_date=dt.date(2023, 6, 1))
-        assert r.expected_end_date == dt.date(2023, 7, 31)
+        assert r.expected_end_date == dt.date(2023, 7, 30)
 
     def test_expected_end_date_mh_is_none(self):
         r = make_record(bs_type=BreathingSpaceType.MENTAL_HEALTH_CRISIS)
@@ -51,11 +52,16 @@ class TestBreathingSpaceRecord:
 
     def test_is_active_within_60_days(self):
         r = make_record(start_date=dt.date(2023, 6, 1))
-        assert r.is_active_as_of(dt.date(2023, 7, 31))
+        assert r.is_active_as_of(dt.date(2023, 7, 30))
 
     def test_is_active_false_after_60_days(self):
         r = make_record(start_date=dt.date(2023, 6, 1))
-        assert not r.is_active_as_of(dt.date(2023, 8, 1))
+        assert not r.is_active_as_of(dt.date(2023, 7, 31))
+
+    def test_is_active_false_before_it_starts(self):
+        r = make_record(
+            bs_type=BreathingSpaceType.MENTAL_HEALTH_CRISIS, start_date=dt.date(2023, 6, 1))
+        assert not r.is_active_as_of(dt.date(2023, 5, 31))
 
     def test_is_active_false_when_completed(self):
         r = make_record(status=BreathingSpaceStatus.COMPLETED)
@@ -74,7 +80,7 @@ class TestBreathingSpaceRecord:
 
     def test_days_remaining_standard_mid_period(self):
         r = make_record(start_date=dt.date(2023, 6, 1))
-        # 60 days from Jun 1 = Jul 31; from Jun 11 = 50 days remaining
+        # Jun 11 is day 11 of 60 (Jun 1 .. Jul 30), so 50 days remain counting today
         remaining = r.days_remaining(dt.date(2023, 6, 11))
         assert remaining == 50
 

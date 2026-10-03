@@ -65,6 +65,10 @@ class RetentionOffer:
     churn_risk_band: ChurnRiskBand
     dominant_driver: ChurnRiskDriver
     decline_reason: Optional[OfferDeclineReason] = None
+    #: The continuous P(churn) the band was cut from. Carried, not dropped: until 2026-10-03 the
+    #: offer kept only the band, so nothing downstream could turn the conditional value below into
+    #: an expectation even though the probability had been handed in (atom C33).
+    churn_probability: Optional[float] = None
 
     @property
     def is_affordable(self) -> bool:
@@ -75,8 +79,15 @@ class RetentionOffer:
         return self.offer_type != OfferType.NO_OFFER
 
     @property
-    def expected_retention_value_gbp(self) -> float:
-        """Net benefit if customer is retained: margin saved minus cost of offer."""
+    def retention_value_if_retained_gbp(self) -> float:
+        """Net benefit IF the customer is retained: margin kept minus the cost of the offer.
+
+        CONDITIONAL, NOT EXPECTED, and named so (atom C33, L1). It was published as
+        `expected_retention_value_gbp`, but an expectation needs P(the offer changes the outcome),
+        and no source here establishes that: P(churn) alone is not it, because most at-risk
+        customers who are made an offer would have stayed anyway or leave regardless. The correct
+        expectation of the no-action loss is `CustomerChurnRisk.expected_loss_gbp`; this figure is
+        the other quantity, and multiplying it by `churn_probability` would still not be one."""
         if not self.is_offer_made:
             return 0.0
         return round(self.net_margin_gbp - self.offer_value_gbp, 2)
@@ -171,6 +182,7 @@ class CustomerRetentionBook:
             churn_risk_band=risk.risk_band,
             dominant_driver=risk.dominant_driver,
             decline_reason=decline_reason,
+            churn_probability=risk.churn_probability,
         )
         self._offers.append(offer)
         return offer
@@ -193,8 +205,10 @@ class CustomerRetentionBook:
         return round(sum(o.offer_value_gbp for o in self.offers_made()), 2)
 
     @property
-    def total_expected_retention_value_gbp(self) -> float:
-        return round(sum(o.expected_retention_value_gbp for o in self.offers_made()), 2)
+    def total_retention_value_if_retained_gbp(self) -> float:
+        """The sum of CONDITIONAL values -- what the offers are worth if every one of them saves its
+        customer. An upper bound on what the programme returns, not a forecast of it."""
+        return round(sum(o.retention_value_if_retained_gbp for o in self.offers_made()), 2)
 
     def retention_summary(self) -> dict:
         return {
@@ -205,5 +219,5 @@ class CustomerRetentionBook:
             "price_matches": len(self.by_offer_type(OfferType.PRICE_MATCH)),
             "loyalty_discounts": len(self.by_offer_type(OfferType.LOYALTY_DISCOUNT)),
             "total_retention_spend_gbp": self.total_retention_spend_gbp,
-            "total_expected_retention_value_gbp": self.total_expected_retention_value_gbp,
+            "total_retention_value_if_all_retained_gbp": self.total_retention_value_if_retained_gbp,
         }

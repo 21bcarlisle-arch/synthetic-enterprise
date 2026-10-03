@@ -82,6 +82,8 @@ from company.interfaces.tou_offer import request_tou_offer
 from company.interfaces.tpi_commission import build_tpi_commission
 from company.policy.decision_policy import (
     CURRENT_POLICY,
+    DEFAULT_BELIEF_OWN_BOOK,
+    DEFAULT_BELIEF_SOURCES,
     DecisionPolicy,
     active_policy,
     framing_type_for,
@@ -1366,6 +1368,10 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             "resolve the same policy this run claims to be executing."
             % (policy.name, active_policy().name)
         )
+    if policy.renewal_default_belief not in DEFAULT_BELIEF_SOURCES:
+        raise ValueError(
+            f"renewal_default_belief={policy.renewal_default_belief!r} is not one of "
+            f"{DEFAULT_BELIEF_SOURCES}: a misspelt source would silently price on the segment table")
     print("=== Phase 2b — Gas Dual Fuel ===")
     print(f"Electricity customers: {[c['customer_id'] for c in ELEC_CUSTOMERS]}")
     print(f"Gas customers:         {[c['customer_id'] for c in GAS_CUSTOMERS]}")
@@ -1883,6 +1889,19 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
     # consumer.observe forms the company's observable-only belief and the gap is
     # measured + written at run end (background.live_payment_triad).
     _payment_triad = LivePaymentTriad()
+    # The company's own method register, as the renewal price reads it, for every resi account the
+    # book's default rate learns over (`DecisionPolicy.renewal_default_belief`). Asked once per
+    # account; read only when the policy prices on the book.
+    _book_methods: dict = {}
+
+    def _book_method_of(account_id: str):
+        cid = account_id[len("ACC-"):] if account_id.startswith("ACC-") else account_id
+        if _SEGMENT_OF.get(cid, "resi") != "resi":
+            return None
+        if cid not in _book_methods:
+            from company.interfaces.sim_interface import LiveSimInterface
+            _book_methods[cid] = LiveSimInterface().get_payment_method(cid, "electricity")
+        return _book_methods[cid]
     _NG_BILL_SHOCK_THRESHOLD = 0.20  # matches simulation.bill_shock_tracker.BILL_SHOCK_THRESHOLD
     CRISIS_HANGOVER_LOSS_THRESHOLD = 0.20  # trigger: net loss > 20% of term revenue
 
@@ -2091,6 +2110,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         # churn block below, which resets it every term -- one name for the one fact, so the run
         # can only ever hand the company the method it resolved.
         _chain_arrears_state = _chain_receivable = _company_payment_method = None
+        _chain_default_belief = None
         if term_index >= 1 and not _spliced:
             _chain_segment = _SEGMENT_OF.get(cid, "resi")
             _chain_asof = date.fromisoformat(term_start_str)
@@ -2101,6 +2121,12 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                 from company.interfaces.sim_interface import LiveSimInterface
                 _company_payment_method = LiveSimInterface().get_payment_method(
                     billing_account, commodity)
+                # THE BOOK'S OWN DEFAULT RATE, asked only when the policy prices on it, so a
+                # run on the default policy makes no extra read. The method register it learns
+                # over is the same seam read, per resi account, kept for the run.
+                if active_policy().renewal_default_belief == DEFAULT_BELIEF_OWN_BOOK:
+                    _chain_default_belief = _payment_triad.default_belief_rate(
+                        _chain_asof, _chain_arrears_state, payment_method_of=_book_method_of)
         _chain = decide_renewal_rate(
             customer_id=cid,
             billing_account=billing_account,
@@ -2126,6 +2152,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             arrears_state=_chain_arrears_state,
             receivable=_chain_receivable,
             payment_method=_company_payment_method,
+            default_belief_rate=_chain_default_belief,
         )
         unit_rate = _chain.unit_rate_gbp_per_mwh
         dynamic_pricing_log.extend(_chain.dynamic_pricing_entries)

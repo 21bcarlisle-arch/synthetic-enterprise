@@ -24,17 +24,56 @@ The Breathing Space period is NOT a write-off.
 Observable: Insolvency Service notification (companies receive via the
 Breathing Space online service, forwarded by the debt adviser).
 Supplier cannot contact customer about debt during active period.
+
+THE STATUTORY NUMBERS ARE READ FROM THE COMMONS, not written here:
+`docs/domain_artefact_library/regulatory/debt_respite_breathing_space_moratorium.json`
+quotes SI 2020/1311 regs 1(2), 26(2) and 32(2). They were module literals until
+2026-10-03, and the 60 was read one day long: "60 days BEGINNING WITH the date on
+which it started" counts the start date as day 1, so the last protected day is
+start + 59, not start + 60. `moratorium_active` is the one question the dunning
+selector asks (`arrears_engine.select_dunning_step`, atom C33).
 """
 from __future__ import annotations
 
 import datetime as dt
+import json
 from dataclasses import dataclass
 from enum import Enum
+from pathlib import Path
 from typing import List, Optional
 
-_BREATHING_SPACE_START_DATE = dt.date(2021, 5, 4)   # scheme commencement
-_STANDARD_DURATION_DAYS = 60
-_MH_POST_TREATMENT_DAYS = 30                          # extra days after MH treatment
+DEBT_RESPITE_COMMONS = (
+    Path(__file__).resolve().parents[2]
+    / "docs" / "domain_artefact_library" / "regulatory"
+    / "debt_respite_breathing_space_moratorium.json"
+)
+
+
+def _load_debt_respite_law() -> tuple:
+    """`(in force from, standard duration days, MH post-treatment days)` from the commons.
+
+    Reading the commons is not a wall crossing: it is published statute, readable by every lane.
+    RAISES on a missing or malformed artefact and never falls back to a literal -- a statutory
+    duration that silently defaults is the defect this replaced."""
+    raw = json.loads(DEBT_RESPITE_COMMONS.read_text())
+    start = dt.date.fromisoformat(raw["in_force_from"]["date"])
+    standard = raw["breathing_space_moratorium"]
+    if standard.get("duration_counts_the_start_day") is not True:
+        raise ValueError(
+            f"{DEBT_RESPITE_COMMONS}: the reading below assumes reg 26(2)'s 'beginning with' "
+            "counts the start day; the artefact no longer says so"
+        )
+    days = standard["duration_days"]
+    mh = raw["mental_health_crisis_moratorium"]["post_treatment_days"]
+    for name, v in (("duration_days", days), ("post_treatment_days", mh)):
+        if not isinstance(v, int) or v <= 0:
+            raise ValueError(f"{DEBT_RESPITE_COMMONS}: {name} is {v!r}, not a positive int")
+    return start, days, mh
+
+
+_BREATHING_SPACE_START_DATE, _STANDARD_DURATION_DAYS, _MH_POST_TREATMENT_DAYS = (
+    _load_debt_respite_law()
+)
 
 
 class BreathingSpaceType(str, Enum):
@@ -62,15 +101,18 @@ class BreathingSpaceRecord:
 
     @property
     def expected_end_date(self) -> Optional[dt.date]:
+        """The LAST PROTECTED DAY of a standard moratorium (reg 26(2): day 1 is the start)."""
         if self.bs_type == BreathingSpaceType.STANDARD:
-            return self.start_date + dt.timedelta(days=_STANDARD_DURATION_DAYS)
+            return self.start_date + dt.timedelta(days=_STANDARD_DURATION_DAYS - 1)
         return None  # MH: no fixed expected end
 
     def is_active_as_of(self, as_of: dt.date) -> bool:
         if self.status != BreathingSpaceStatus.ACTIVE:
             return False
+        if as_of < self.start_date:
+            return False
         if self.bs_type == BreathingSpaceType.STANDARD:
-            return as_of <= self.start_date + dt.timedelta(days=_STANDARD_DURATION_DAYS)
+            return as_of < self.start_date + dt.timedelta(days=_STANDARD_DURATION_DAYS)
         return True  # MH: active until adviser closes
 
     def days_elapsed(self, as_of: dt.date) -> int:
@@ -154,6 +196,11 @@ class BreathingSpaceRegister:
 
     def records_for_account(self, account_id: str) -> List[BreathingSpaceRecord]:
         return [r for r in self._records if r.account_id == account_id]
+
+    def moratorium_active(self, account_id: str, as_of: dt.date) -> bool:
+        """Whether this account is inside a moratorium on `as_of` -- the input dunning cannot
+        select a step without (`arrears_engine.select_dunning_step`)."""
+        return any(r.is_active_as_of(as_of) for r in self.records_for_account(account_id))
 
     def active_records(self, as_of: dt.date) -> List[BreathingSpaceRecord]:
         return [r for r in self._records if r.is_active_as_of(as_of)]

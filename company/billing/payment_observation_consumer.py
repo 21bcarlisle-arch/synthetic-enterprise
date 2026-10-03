@@ -149,6 +149,7 @@ from company.billing.arrears_engine import (
     collections_snapshot,
     fifo_unpaid_bills,
 )
+from company.billing.breathing_space_register import BreathingSpaceRegister
 from company.crm.account_hierarchy import Segment
 from company.crm.churn_model import (
     ARREARS_STATE_UNKNOWN,
@@ -847,6 +848,7 @@ class PaymentObservationConsumer:
         dd_failure_window_days: int = 90,
         posture: Any = DECLARED_POSTURE,
         supplied_accounts: Optional[Iterable[str]] = None,
+        breathing_space: Optional[BreathingSpaceRegister] = None,
     ) -> None:
         # THE STARTUP ASSERTION (atom EP6, pass 40 -- the blind review's Q14).
         # This constructor is the startup of the only framed crossing the
@@ -857,6 +859,14 @@ class PaymentObservationConsumer:
         # why an unrecognised posture counts as production.
         assert_registry_fit_for_posture(posture)
         self.ledger_book: LedgerBook = ledger_book if ledger_book is not None else LedgerBook()
+        # THE DEBT RESPITE REGISTER (atom C33). Every collections view this consumer takes asks it
+        # whether the account is inside a moratorium, because the dunning selector will not pick a
+        # step without the answer. EMPTY BY DEFAULT, AND THAT IS A STATEMENT ABOUT THE WORLD: no
+        # Secretary of State moratorium notification crosses the seam yet, so no account here can
+        # be in one -- not that the company declined to look.
+        self.breathing_space: BreathingSpaceRegister = (
+            breathing_space if breathing_space is not None else BreathingSpaceRegister()
+        )
         self._dd_failures: Dict[str, List[DDFailureObservation]] = {}
         self._rail_failures: Dict[str, List[RailFailureNote]] = {}
         self._mandate_beliefs: Dict[str, MandateBelief] = {}
@@ -2033,6 +2043,35 @@ class PaymentObservationConsumer:
             if e.event_type == LedgerEventType.BILL_DEBIT and start < e.valid_time <= end
         ), 2)
 
+    def default_belief_rate(
+        self,
+        as_of: dt.date,
+        arrears_state: str,
+        *,
+        payment_method_of,
+        arrears_state_at,
+    ) -> float:
+        """The expected bad-debt charge per GBP billed for a renewal on `as_of` by an account in
+        `arrears_state`, learned from THIS company's own book (`company.pricing.default_belief`),
+        from outcomes it knew before then. Not keyed on the account's payment method: the price
+        it feeds may not depend on how a household pays.
+
+        The read lives here for the reason `arrears_state` does: the ledger is this class's, and a
+        bridge that assembled it would import the pricing package across the wall. The two
+        callables are what this class cannot know: which method each account pays by (the
+        company's own register, held outside the ledger, and needed only to read each charge on
+        its published provision row) and the arrears clock (the caller's
+        billing cadence). Each account-year is read once and kept, so asking at every renewal
+        costs one walk of each resolved year.
+        """
+        from company.pricing.default_belief import default_belief, observe_book
+
+        memo = self.__dict__.setdefault("_default_belief_memo", {})
+        observations = observe_book(
+            self.ledger_book, as_of=as_of, payment_method_of=payment_method_of,
+            arrears_state_at=arrears_state_at, memo=memo)
+        return default_belief(observations, decided_on=as_of, arrears_state=arrears_state).rate
+
     def _collections_view(self, account_id: str, segment: Segment, as_of: dt.date) -> dict:
         """This account's collections snapshot at one date, off this company's own ledger."""
         return collections_snapshot(
@@ -2040,6 +2079,7 @@ class PaymentObservationConsumer:
             segment,
             accounting_model_is_open_item=segment.is_business,
             as_of=as_of,
+            moratorium_active=self.breathing_space.moratorium_active(account_id, as_of),
         )
 
     def snapshot(

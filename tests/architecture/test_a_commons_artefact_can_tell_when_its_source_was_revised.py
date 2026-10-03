@@ -132,7 +132,10 @@ def test_the_live_commons_is_askable() -> None:
     This is the leg that refused 9 of 9 before the blocks were written, and it is the one that
     fires when the NEXT artefact is added without one.
     """
-    refusals = check(today=TODAY)
+    # THE REAL DATE, NOT `TODAY`. `TODAY` is the fixture date the poison rounds are built around;
+    # graded against it, any artefact fetched after 2026-09-07 read as "fetched in the future", so
+    # the live pass refused the first artefact added since -- keyed to the day it was written.
+    refusals = check(today=date.today())
     assert refusals == [], "\n".join(str(r) for r in refusals)
 
 

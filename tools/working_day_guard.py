@@ -84,11 +84,12 @@ FLAGGED_NAMES = frozenset(
 # Recorded here because it is the evidence that rule 2 earns its place.
 BASELINE_ALLOWLIST = frozenset(
     {
-        "company/billing/credit_refund.py::_working_days_between",
+        # Pass 2, billing batch (2026-10-03): credit_refund, dd_indemnity, deemed_contract and
+        # energy_theft_book now import the canonical `working_days_between`; their four
+        # `_working_days_between` entries are gone. This one stays as a NAME COLLISION only: the
+        # method is a domain read-out that delegates to the canonical count, and its name is
+        # fixed by `company/interfaces/credit_refund_requests.py`'s published key.
         "company/billing/credit_refund.py::working_days_to_pay",
-        "company/billing/dd_indemnity.py::_working_days_between",
-        "company/billing/deemed_contract.py::_working_days_between",
-        "company/billing/energy_theft_book.py::_working_days_between",
         "company/crm/change_of_tenancy_register.py::_add_working_days",
         "company/crm/onboarding_journey.py::_add_working_days",
         "company/crm/service_log.py::_add_working_days",

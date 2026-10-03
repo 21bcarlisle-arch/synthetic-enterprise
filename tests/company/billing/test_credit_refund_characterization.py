@@ -19,7 +19,6 @@ from company.billing.credit_refund import (
     CreditRefundRecord,
     RefundStatus,
     RefundTrigger,
-    _working_days_between,
 )
 
 MON_1_JAN_2024 = dt.date(2024, 1, 1)   # a Monday
@@ -39,35 +38,40 @@ def rec(account_id="A1", request_date=MON_1_JAN_2024, amount=120.0,
 
 
 # ---------------------------------------------------------------------------
-# _working_days_between: the counting convention
+# The refund clock: the counting convention, read through the record
 # ---------------------------------------------------------------------------
 
 
+def _wd(request: dt.date, paid: dt.date) -> int:
+    return rec(request_date=request, paid_date=paid).working_days_to_pay()
+
+
 def test_working_days_excludes_the_start_day_and_includes_the_end_day():
-    """The loop advances BEFORE testing, so the start date is never counted and
+    """The count advances BEFORE testing, so the start date is never counted and
     the end date is. Mon 1 Jan -> Mon 8 Jan is 5 working days, not 6."""
-    assert _working_days_between(MON_1_JAN_2024, MON_8_JAN_2024) == 5
-    assert _working_days_between(FRI_5_JAN_2024, MON_8_JAN_2024) == 1
+    assert _wd(MON_1_JAN_2024, MON_8_JAN_2024) == 5
+    assert _wd(FRI_5_JAN_2024, MON_8_JAN_2024) == 1
 
 
 def test_working_days_same_day_is_zero():
-    assert _working_days_between(MON_1_JAN_2024, MON_1_JAN_2024) == 0
+    assert _wd(MON_1_JAN_2024, MON_1_JAN_2024) == 0
 
 
-def test_working_days_skips_weekends_only_not_bank_holidays():
-    """SURPRISE (unit class): 1 Jan 2024 was a bank holiday and Good Friday /
-    Easter Monday are working days here. Only Sat/Sun are excluded, so the
-    modelled SLC 14 clock runs FASTER than the real one over a holiday week and
-    will report a breach the real rule would not."""
-    # Thu 28 Mar 2024 -> Tue 2 Apr 2024 spans Good Friday and Easter Monday.
-    assert _working_days_between(dt.date(2024, 3, 28), dt.date(2024, 4, 2)) == 3
+def test_the_refund_clock_skips_bank_holidays_not_only_weekends():
+    """WAS A PINNED SURPRISE, NOW CORRECTED (SP2_1 Pass 2, 2026-10-03). The module's own
+    weekend-only loop counted Good Friday and Easter Monday as working days, so the
+    SLC 14 clock ran FASTER than the real one over a holiday week and reported breaches
+    the real rule would not. It now counts on `company.compliance.working_days`.
+    Thu 28 Mar 2024 -> Tue 2 Apr 2024 spans Good Friday (29th) and Easter Monday (1 Apr):
+    the only working day in (28 Mar, 2 Apr] is Tue 2 Apr. Was 3."""
+    assert _wd(dt.date(2024, 3, 28), dt.date(2024, 4, 2)) == 1
 
 
 def test_working_days_with_end_before_start_silently_returns_zero():
-    """SURPRISE (boundary class): the `while current < end` loop simply never runs
-    for an inverted range, so a transposed pair reports 0 working days rather than
-    raising. Downstream, that reads as "paid instantly"."""
-    assert _working_days_between(MON_8_JAN_2024, MON_1_JAN_2024) == 0
+    """SURPRISE (boundary class), unchanged by the migration: an inverted range
+    reports 0 working days rather than raising. Downstream, that reads as "paid
+    instantly"."""
+    assert _wd(MON_8_JAN_2024, MON_1_JAN_2024) == 0
 
 
 # ---------------------------------------------------------------------------

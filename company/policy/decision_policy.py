@@ -31,6 +31,11 @@ from contextlib import contextmanager
 from contextvars import ContextVar
 from dataclasses import dataclass, replace
 
+#: Where the value arm's bad-debt belief comes from; see `DecisionPolicy.renewal_default_belief`.
+DEFAULT_BELIEF_SEGMENT_TABLE = "segment_table"
+DEFAULT_BELIEF_OWN_BOOK = "own_book"
+DEFAULT_BELIEF_SOURCES = (DEFAULT_BELIEF_SEGMENT_TABLE, DEFAULT_BELIEF_OWN_BOOK)
+
 
 @dataclass(frozen=True)
 class DecisionPolicy:
@@ -141,6 +146,17 @@ class DecisionPolicy:
     #: own closed renewals (`company.pricing.discovered_price_sensitivity`). Off on every existing
     #: policy, so no run that does not ask for it moves.
     learn_price_response: bool = False
+
+    # WHERE THE VALUE ARM'S BAD-DEBT BELIEF COMES FROM (2026-10-03).
+    #
+    # `"segment_table"` is today's: `saas.payment_behaviour`'s four-segment table, replaced by the
+    # account's own unpaid share where the ledger holds one (`value_based_renewal`). `"own_book"`
+    # is `company/pricing/default_belief.py`: the bad-debt charge the company has itself booked
+    # per GBP billed, learned by payment method x arrears state from outcomes dated before the
+    # renewal, shrunk towards Ofgem's per-method allowance. A real supplier chooses which of its
+    # own estimates it prices on, so this is a company decision and a policy field. The default
+    # is today's, so every existing run, including both arms of the standing A/B, is unchanged.
+    renewal_default_belief: str = DEFAULT_BELIEF_SEGMENT_TABLE
 
     def retention_discount_for_risk(self, company_est: float) -> float:
         """Return the retention discount fraction for a given churn estimate."""

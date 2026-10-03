@@ -860,6 +860,7 @@ def decide_margin(
     unpaid_bills_by_age: tuple[tuple[float, int], ...] = (),
     payment_method: str | None = None,
     billed_last_year_gbp: float | None = None,
+    default_belief_rate: float | None = None,
 ) -> MarginDecision:
     """The offered margin for ONE customer, under ONE arm.
 
@@ -940,7 +941,16 @@ def decide_margin(
             collections_gbp_per_year=collections_gbp_per_year,
             fixed_revenue_gbp_per_year=fixed_revenue_gbp_per_year,
         )
-        if flow_rate is not None:
+        # THE BOOK'S OWN RATE, WHEN THE POLICY ASKS FOR IT, REPLACES BOTH the segment table and
+        # the account's persistence term (`DecisionPolicy.renewal_default_belief`,
+        # `company/pricing/default_belief.py`). It is already conditioned on the account's
+        # method and arrears state, so stacking it on the persistence term would count the same
+        # debt twice. The stock term on money already owed stays: it prices the balance, and the
+        # book's rate prices the year to come.
+        if default_belief_rate is not None:
+            costs = dataclasses.replace(costs, bad_debt_gbp=float(default_belief_rate) * max(
+                0.0, observed_revenue + (margin - current_margin) * eac_mwh))
+        elif flow_rate is not None:
             costs = dataclasses.replace(costs, bad_debt_gbp=flow_rate * max(
                 0.0, observed_revenue + (margin - current_margin) * eac_mwh))
         offered = base_rate_gbp_per_mwh + margin
@@ -1433,6 +1443,7 @@ def renewal_margin_uplift(
     unpaid_bills_by_age: tuple[tuple[float, int], ...] = (),
     payment_method: str | None = None,
     billed_last_year_gbp: float | None = None,
+    default_belief_rate: float | None = None,
 ) -> MarginArmUplift:
     """The £/MWh this renewal moves by, under ONE arm, from the supplier's own settled book.
 
@@ -1560,6 +1571,7 @@ def renewal_margin_uplift(
             unpaid_bills_by_age=unpaid_bills_by_age,
             payment_method=payment_method,
             billed_last_year_gbp=billed_last_year_gbp,
+            default_belief_rate=default_belief_rate,
         )
     except MarginDecisionUnavailable as exc:
         # "NO OFFER" IS AN ANSWER, AND A LIVE PRICING CHAIN MUST BE ABLE TO HEAR IT (2026-08-26).
