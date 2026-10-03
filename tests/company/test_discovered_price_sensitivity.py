@@ -79,3 +79,33 @@ def test_only_the_learned_policy_prices_with_what_was_learned():
             learned = enriched_churn_estimate(**args)
     assert control == value, "a policy that did not ask for the learned response moved"
     assert learned > value, "the learned, steeper response did not raise P(leave) above the default"
+
+
+# ---- step 2: one definition of the company's own move, at both ends (2026-10-03) ----------
+
+def test_a_household_with_a_published_default_is_measured_against_it():
+    assert dps.own_move(300.0, 250.0, "electricity", 2020, segment="resi",
+                        published_default_rate_gbp_per_mwh=260.0) == (300.0 - 260.0) / 260.0
+
+
+def test_a_business_account_never_uses_the_domestic_default_even_when_handed_one():
+    """The desk used to measure every account against the domestic cap, while pricing measured a
+    business account by the fallback: the learner was taught on one quantity and priced on another."""
+    from company.crm.market_conditions import market_rate_move_pct
+    expected = (300.0 - 250.0) / 250.0 - market_rate_move_pct(2020, fuel="electricity")
+    got = dps.own_move(300.0, 250.0, "electricity", 2020, segment="SME",
+                       published_default_rate_gbp_per_mwh=260.0, on_date="2020-04-01")
+    assert got == expected
+
+
+def test_a_renewal_before_the_cap_is_booked_so_learning_can_start_in_2017():
+    from company.crm.churn_desk import RenewalObservation, estimate_renewal_churn
+    ledger = CompetitivePressureLedger()
+    obs = RenewalObservation(
+        old_rate_gbp_per_mwh=120.0, new_rate_gbp_per_mwh=132.0, tenure_years=1.0,
+        renewal_year=2017, payment_method="direct_debit", account_id="PRE", term_start="2017-03-01",
+        fuel="electricity", segment="resi")
+    with pressure_ledger_scope(ledger):
+        estimate_renewal_churn(obs)
+    sums = ledger.slope_sums.get(("direct_debit", "electricity", 2017))
+    assert sums is not None and sums["n"] == 1, "a pre-cap renewal taught the company nothing"
