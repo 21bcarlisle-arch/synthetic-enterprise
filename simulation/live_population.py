@@ -856,8 +856,17 @@ def _drawn_founder_pairs(seed: int) -> "List[tuple]":
             record = {**record, "aq_kwh": aq,
                       "cv_factor": GAS_CV_FACTOR, "cf": GAS_CORRECTION_FACTOR}
         out.append((record, premise))
-        if len(out) >= wanted:
-            break
+    # SPREAD THROUGH THE YEAR, NOT TRUNCATED TO ITS START (2026-10-03). The stream is in DATE
+    # order, so keeping the first `wanted` eligible candidates kept the first ~1/headroom of 2016:
+    # every drawn founder began between 1 January and 14 August, none in September-December, and
+    # their renewals bunched the same way for a decade. The real record has switching in every
+    # month, peaking in October (DESNZ QEP Table 2.7.1, `docs/market_research/
+    # gb_domestic_switching_by_calendar_month.md`). Taking every 1-in-r of the whole eligible
+    # sequence keeps the draw's own spread of dates. Systematic and deterministic, so no random
+    # stream is consumed and a re-run takes the same founders.
+    if len(out) > wanted:
+        # Integer positions, so exactly `wanted` are kept -- a float rate loses one to rounding.
+        out = [out[(k * len(out)) // wanted] for k in range(wanted)]
     return out
 
 
@@ -870,7 +879,7 @@ def _drawn_founder_pairs(seed: int) -> "List[tuple]":
 _FOUNDER_SEED_OFFSET = 811_000
 
 #: Ask for more than we need so the Poisson count is very unlikely to fall short of the
-#: director's number; the surplus is discarded by the truncation above.
+#: director's number; the surplus is thinned evenly through the year above, never cut off its end.
 _FOUNDER_DRAW_HEADROOM = 1.6
 
 
