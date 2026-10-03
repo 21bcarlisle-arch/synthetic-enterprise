@@ -106,5 +106,23 @@ def test_the_rehome_did_not_move_the_published_finding_count():
     """The measurement that makes this a REHOME and not a deletion. THE PROOF publishes
     `findings_caught_total`; if moving 11 findings out of the map changed it, the store copy is
     not being read (or is being double-counted)."""
-    vs = gp._verification_stack(gp._load_atoms())
-    assert vs["findings_caught_total"] == 57, vs["findings_caught_total"]
+    # KEYED TO THE PROPERTY, not to a count. This pinned `== 57`, the total on the day of the
+    # rehome; findings accrue, and by 2026-10-03 the honest total was 67 with the literal red.
+    # The property: each reviewed atom's findings are counted once, from whichever home holds
+    # them, and the store home is actually reached by at least one atom.
+    from tools import simplifications_store as store
+    atoms = gp._load_atoms()
+    expected, store_only = 0, 0
+    for a in atoms:
+        eh = a.get("expert_hour") or {}
+        if eh.get("status") not in ("passed", "reviewed_readonly_no_defects"):
+            continue
+        inline = eh.get("findings") or []
+        stored = store.records_for_atom(
+            str(a.get("id") or ""), gp.MATURITY_MAP_YAML.parent / "simplifications"
+        ).get("expert_hour_findings") or []
+        expected += len(inline) if inline else len(stored)
+        store_only += bool(stored) and not inline
+    vs = gp._verification_stack(atoms)
+    assert store_only > 0, "no reviewed atom reads its findings from the store: the rehome is untested"
+    assert vs["findings_caught_total"] == expected, (vs["findings_caught_total"], expected)

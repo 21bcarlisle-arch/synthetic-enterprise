@@ -38,3 +38,24 @@ blind to company results, and not a reason to change the company's belief.
    on supply.
 
 Until then, read any A/B result that turns on a debtor's departure as carrying this gap.
+
+## Update 2026-10-03 (delivery seat): step 1 is done; the rates are extracted
+
+Both Ofgem 2016 PDFs extract cleanly with `pdftotext -layout`; the earlier "compressed streams"
+failure was tooling. Full tables: `docs/market_research/domestic_debt_objection_rates_gb.md`.
+- **Indebted credit customer who attempts to switch: about 28-30% blocked** (Ofgem's own ratio,
+  ~170k blocked vs ~430k allowed a year, 2013-2015).
+- **Statutory threshold:** debt unpaid 28 days after written notice.
+- **Prepayment debt** moves with the customer under the DAP (GBP 500 from 2016), so the block does
+  not apply there.
+- **About half of blocked customers repay.** Most blocked customers are still with the supplier a
+  year later. That is a derived composite and is labelled as one.
+
+Applying 2013-2015 rates to 2016-2025 (including after CSS) is a named gap: no later figure is
+published.
+
+Why this is now load-bearing (stated plainly, because the world must change for fidelity and
+not for results): in the 2026-10-03 capped-learned probe runs, the value rule's whole remaining
+gap to the best flat price in hindsight is one 2017 decision, this account. The finding was
+filed earlier the same day on the published law alone. That rule is the reason to build the draw.
+The result only sets its priority.
