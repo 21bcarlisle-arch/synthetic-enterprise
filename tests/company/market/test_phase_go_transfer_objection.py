@@ -1,8 +1,13 @@
 import datetime as dt
+
 import pytest
+
+from company.compliance.working_days import is_working_day
 from company.market.transfer_objection_register import (
-    ObjectionGround, ObjectionStatus, TransferObjectionRecord,
-    TransferObjectionRegister, _OBJECTION_WINDOW_WD,
+    ObjectionGround,
+    ObjectionStatus,
+    TransferObjectionRecord,
+    TransferObjectionRegister,
 )
 
 OBJ_DATE = dt.date(2024, 3, 4)  # Monday
@@ -26,10 +31,19 @@ class TestTransferObjectionRecord:
         assert not make_record(ObjectionStatus.INVALID).is_open
     def test_is_not_open_resolved(self):
         assert not make_record(ObjectionStatus.RESOLVED).is_open
-    def test_objection_deadline_5wd_from_monday(self):
-        # Mon 2024-03-04 + 5WD = Mon 2024-03-11
-        r = make_record()
-        assert r.objection_deadline == dt.date(2024, 3, 11)
+    def test_the_window_counts_from_the_switch_request_not_the_objection(self):
+        # REC Schedule 23 v2.2 para 6.2(a): domestic, 1st working day after submission.
+        # Submitted on the Friday before a weekend, the deadline is the next working day,
+        # whatever day the objection itself was raised.
+        submitted = dt.date(2024, 3, 1)  # Friday
+        for raised in (submitted, OBJ_DATE):
+            r = TransferObjectionRecord(
+                objection_id="X", mpan=MPAN, switch_ref=SWITCH, objection_date=raised,
+                ground=ObjectionGround.UNPAID_DEBT, switch_request_submitted=submitted)
+            d = r.objection_deadline
+            assert is_working_day(d) and d > submitted
+            assert not any(is_working_day(submitted + dt.timedelta(k))
+                           for k in range(1, (d - submitted).days))
     def test_resolution_days_no_resolution(self):
         r = make_record()
         assert r.resolution_days(OBJ_DATE + dt.timedelta(10)) == 10

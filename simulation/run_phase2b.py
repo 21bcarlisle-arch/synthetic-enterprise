@@ -4260,6 +4260,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         "churned_billing_accounts": sorted(churned_billing_accounts),
         # What the SUPPLIER holds about those departures, read from its own register.
         "registration_losses_notified": _change_of_supplier_register.losses_notified(),
+        "registration_loss_exceptions": _change_of_supplier_register.loss_exceptions(),
         "won_successor_activations": won_successor_activations,
         "hedge_evolution": evolution_logs,
         "total_gross": total_gross,

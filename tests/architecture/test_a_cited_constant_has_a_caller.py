@@ -140,9 +140,11 @@ def _py_files(root: Path, scope: tuple[str, ...]) -> list[Path]:
         d = root / pkg
         if not d.is_dir():
             continue
+        # RELATIVE parts: asked of the absolute path, `.claude` matched the checkout's own
+        # location whenever it sat under `.claude/worktrees/`, and the walker saw nothing.
         files.extend(
             p for p in sorted(d.rglob("*.py"))
-            if "__pycache__" not in p.parts and ".claude" not in p.parts
+            if "__pycache__" not in p.parts and ".claude" not in p.relative_to(root).parts
         )
     return files
 
@@ -463,6 +465,20 @@ def test_it_fires_on_the_historical_defect(tmp_path):
     assert [(r, n) for r, n, _ in unreached] == [
         ("saas/opex_ledger.py", "CAC_ONE_OFF_GBP_PER_DUAL_FUEL_CUSTOMER")
     ], "the control did not fire on the defect it was built for"
+
+
+def test_a_checkout_under_dot_claude_is_walked_and_a_dot_claude_inside_it_is_not(tmp_path):
+    """Defect guarded: `.claude` asked of the ABSOLUTE path, so every checkout under
+    `.claude/worktrees/` walked nothing and the leg above passed blind. Both arms in one tree:
+    a checkout located under `.claude` is seen, a `.claude` directory inside it is not."""
+    root = tmp_path / ".claude" / "worktrees" / "agent-x"
+    _write_tree(root, {
+        "saas/ledger.py": "FEE_GBP = 1.0\n",
+        "saas/.claude/scratch.py": "FEE_GBP = 2.0\n",
+    })
+    assert [p.relative_to(root).as_posix() for p in _py_files(root, ("saas",))] == [
+        "saas/ledger.py"
+    ]
 
 
 def test_it_goes_green_when_the_accessor_gains_a_caller(tmp_path):

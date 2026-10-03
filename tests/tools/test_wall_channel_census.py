@@ -4305,6 +4305,28 @@ def test_the_status_check_REPORTS_and_the_status_FLOOR_gates_and_both_reach_a_re
 # site the only unit that can express this question.
 
 FLEX_REL = "company/market/flex_participation.py"
+COS_REL = "company/crm/cos_process.py"
+
+#: The second ANCHORED_FEEDS row in miniature, so every fixture below runs over both rows.
+_COS_MODULE = """
+    from company.interfaces.wall_protocol import decode_framed_notification
+
+
+    def read_loss_wire(wire):
+        sender, notification = decode_framed_notification(wire, decode_payload=_payload)
+        return notification
+
+
+    class CoSRegister:
+        def _admit_loss(self, notification):
+            return self._holds(notification.payload.supply_point_id)
+
+        def receive_loss_wire(self, wire):
+            notification = read_loss_wire(wire)
+            if not self._admit_loss(notification):
+                return False
+            return True
+"""
 
 _FLEX_MODULE = """
     from company.interfaces.wall_protocol import decode_framed_response
@@ -4348,6 +4370,7 @@ def flex_tree(tmp_path: Path) -> Path:
     """
     root = tmp_path / "repo"
     _write(root, FLEX_REL, _FLEX_MODULE)
+    _write(root, COS_REL, _COS_MODULE)
     _write(root, "company/interfaces/wall_protocol.py", """
         def decode_framed_response(wire, *, decode_payload):
             return "sender", wire
@@ -4366,6 +4389,19 @@ def _verdict(root: Path) -> "wcc.AnchoredReadVerdict":
     return wcc.anchored_read_conformance(str(root))
 
 
+def test_a_loss_register_that_stops_asking_its_book_is_UNANCHORED(flex_tree: Path):
+    """The registration-loss row: `receive_loss_wire` reading the wire without `_admit_loss`
+    in its body is the belt removed, and it reds here. The control arm is the fixture's
+    unmodified register, which every other test in this block runs green over."""
+    assert _verdict(flex_tree).ok
+    _write(flex_tree, COS_REL, _COS_MODULE.replace(
+        "            if not self._admit_loss(notification):\n                return False\n", ""))
+    v = _verdict(flex_tree)
+    assert not v.ok
+    assert any("CoSRegister.receive_loss_wire -> read_loss_wire" in u for u in v.unanchored), (
+        v.report())
+
+
 def test_the_bookless_readers_are_DERIVED_from_the_decode_entry_points(flex_tree: Path):
     """Not a name list: the seed is the codec's own decoders, closed under "calls one of these".
 
@@ -4381,7 +4417,7 @@ def test_the_bookless_readers_are_DERIVED_from_the_decode_entry_points(flex_tree
 def test_a_tree_that_reads_every_booked_feed_through_its_BOOK_is_conformant(flex_tree: Path):
     v = _verdict(flex_tree)
     assert v.ok, v.report()
-    assert len(v.anchored) == 2 and not v.unanchored, v.report()
+    assert sum(FLEX_REL in a for a in v.anchored) == 2 and not v.unanchored, v.report()
     assert "FlexEnrolmentBook.observe_feed" in " ".join(v.anchored)
 
 
@@ -4416,7 +4452,7 @@ def test_NULL_CONTROL_a_NEW_OUTSIDE_READER_going_through_the_BOOK_moves_nothing(
     """)
     v = _verdict(flex_tree)
     assert v.ok, "the anchored path through the book was refused: " + v.report()
-    assert len(v.anchored) == 2, v.report()
+    assert sum(FLEX_REL in a for a in v.anchored) == 2, v.report()
 
 
 def test_MUTATION_STRIPPING_THE_ANCHORING_CALL_out_of_the_method_reds_it(flex_tree: Path):
@@ -4580,23 +4616,21 @@ def test_THE_LIVE_TREE_reads_both_flex_feeds_through_the_BOOK():
     """
     v = wcc.anchored_read_conformance(str(Path(wcc.__file__).parent.parent))
     assert v.ok, v.report()
-    assert v.readers == ("observe_response_wire", "observe_settlement_wire")
-    assert len(v.anchored) == 2 and not v.unanchored, v.report()
-    assert all(FLEX_REL in a for a in v.anchored), v.anchored
+    assert v.readers == ("observe_response_wire", "observe_settlement_wire", "read_loss_wire")
+    assert len(v.anchored) == 3 and not v.unanchored, v.report()
+    assert sum(FLEX_REL in a for a in v.anchored) == 2, v.anchored
+    assert [a for a in v.anchored if COS_REL in a] == [
+        a for a in v.anchored if "CoSRegister.receive_loss_wire -> read_loss_wire" in a
+    ] != [], v.anchored
 
 
 def test_THE_LIVE_UNBOOKED_POPULATION_IS_THE_TWO_READERS_WITH_NO_BOOK():
     """Named, so that a third one appearing is a test failure and not a silent widening of the
     part of the wall this control does not cover."""
     v = wcc.anchored_read_conformance(str(Path(wcc.__file__).parent.parent))
-    # EP12, 2026-10-03: the change-of-supplier register files a registration-loss notice without
-    # asking the supply book whether this supplier holds that supply point. A real loser is only
-    # sent notices for its own registrations, so the anchor is owed, not optional; named here so
-    # it stays a decision until it is paid.
     assert v.unbooked == (
         "company/billing/payment_observation_consumer.py",
         "company/comms/susceptibility_estimator.py",
-        "company/crm/cos_process.py",
     ), v.unbooked
 
 
