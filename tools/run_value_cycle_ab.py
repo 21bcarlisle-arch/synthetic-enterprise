@@ -459,7 +459,8 @@ def _decisions_by_billing_account(result: dict) -> dict[str, dict]:
     def row(account: str) -> dict:
         return out.setdefault(account, {"left_at": None, "first_renewal": None,
                                         "renewal_decisions": 0, "bills_issued": 0,
-                                        "successor_of": successors.get(account)})
+                                        "successor_of": successors.get(account),
+                                        "renewals": []})
 
     events = sorted((e for e in (result["phase2b"].get("customer_events") or [])
                      if isinstance(e, dict) and e.get("random_roll") is not None),
@@ -467,6 +468,14 @@ def _decisions_by_billing_account(result: dict) -> dict[str, dict]:
     for event in events:
         r = row(_billing_account_id(event["customer_id"]))
         r["renewal_decisions"] += 1
+        # EVERY RENEWAL, not only the first (2026-10-03). Most of a seed's selection variance sits
+        # on accounts whose survival paths split between the arms, and a split can happen at any
+        # renewal. Estimating what a split is worth in EXPECTATION, rather than by the one roll
+        # that landed, needs both arms' P(stay) at each renewal, and the shared roll says which
+        # renewals could have split.
+        r["renewals"].append({"date": event["event_date"],
+                              "p_retain": event.get("effective_retention_probability"),
+                              "roll": event["random_roll"], "outcome": event["event_type"]})
         if r["first_renewal"] is None:
             r["first_renewal"] = {"date": event["event_date"],
                                   "p_retain": event.get("effective_retention_probability"),
