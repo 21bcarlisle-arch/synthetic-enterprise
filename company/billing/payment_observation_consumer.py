@@ -147,6 +147,7 @@ from company.billing.arrears_engine import (
     age_open_items,
     ageing_buckets,
     collections_snapshot,
+    fifo_unpaid_bills,
 )
 from company.crm.account_hierarchy import Segment
 from company.crm.churn_model import (
@@ -1991,6 +1992,46 @@ class PaymentObservationConsumer:
             self._collections_view(account_id, ar_segment, as_of),
             self._collections_view(account_id, ar_segment, previous_as_of),
         )
+
+    def unpaid_bills_by_age(
+        self, account_id: str, as_of: dt.date, segment: str = "resi",
+    ) -> Optional[Tuple[Tuple[float, int], ...]]:
+        """`(unpaid GBP, days since the bill)` for every bill this company is still owed on this
+        account at `as_of`, oldest first, off its OWN ledger -- or `None` for an account it holds
+        no ledger for, which is "never billed" and not "owes nothing".
+
+        DAYS SINCE THE BILL, not days past due, because that is the clock the published provision
+        rates are stated on ("days beyond invoice date", Centrica ARA 2025 Note 17) and the pricing
+        arm prices against those rates. Each accounting model is read its own way, as
+        `collections_snapshot` reads it: a rolling (residential) balance by FIFO, bill by bill, and
+        an open-item (business) account invoice by invoice, disputed invoices left out.
+        """
+        if account_id not in self.ledger_book.accounts():
+            return None
+        ledger = self.ledger_book.ledger(account_id)
+        if self._AR_SEGMENTS.get(segment, Segment.RESIDENTIAL).is_business:
+            terms = 14  # `collections_snapshot`'s own default, so due - terms is the issue date
+            return tuple(
+                (it.outstanding_gbp, it.days_overdue + terms)
+                for it in age_open_items(ledger, as_of, terms)
+                if not it.disputed and it.outstanding_gbp > 0.005
+            )
+        return tuple(
+            (gbp, (as_of - billed).days)
+            for billed, gbp in fifo_unpaid_bills(ledger, as_of)
+            if gbp > 0.005
+        )
+
+    def billed_gbp_between(self, account_id: str, start: dt.date, end: dt.date) -> Optional[float]:
+        """Money this company BILLED this account in `(start, end]`, off its own ledger -- the
+        denominator a non-payment share is taken over, read from the same book as its numerator.
+        `None` for an account it holds no ledger for."""
+        if account_id not in self.ledger_book.accounts():
+            return None
+        return round(sum(
+            e.amount_gbp for e in self.ledger_book.ledger(account_id).events()
+            if e.event_type == LedgerEventType.BILL_DEBIT and start < e.valid_time <= end
+        ), 2)
 
     def _collections_view(self, account_id: str, segment: Segment, as_of: dt.date) -> dict:
         """This account's collections snapshot at one date, off this company's own ledger."""
