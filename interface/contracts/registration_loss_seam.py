@@ -163,8 +163,12 @@ GAPS: dict[str, str] = {
     ),
     "failed_switch_outcomes": (
         "Cancelled (objection, para 6.7), Withdrawn (para 9) and Annulled (para 10) "
-        "registrations each notify the loser (paras 13.2.16, 13.3.5). The world's departure is "
-        "a single roll that always succeeds, so no failed switch exists to notify."
+        "registrations each notify the loser (paras 13.2.16, 13.3.5). Since bf0d37c2f the world "
+        "CAN fail a switch: a domestic credit debtor's departure is blocked by a debt objection "
+        "(simulation/debt_objection.py, at the regulator's published 2016 blocked share). That blocked departure is never "
+        "notified across this seam -- no Cancelled notice is sent -- because the objection is "
+        "drawn by the world on the supplier's behalf; once the company raises it itself through "
+        "the objection window, the Cancelled notice belongs here."
     ),
     "gaining_supplier_identity": (
         "Whether the loser's notices name the gaining supplier is not established by Schedule 23; "
