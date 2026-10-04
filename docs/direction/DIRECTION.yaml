@@ -283,3 +283,22 @@ for_the_director:
   status: open
   resolution: ''
   evidence: docs/staging/records/SEAT_PREREG_THE_LARGER_BOOK_TEST_OF_THE_VALUE_RULE_AGAINST_A_FLAT_PRICE_SET_IN_ADVANCE_2026-10-04.md
+- id: no-atom-can-reach-l3-while-an
+  raised: '2026-10-04'
+  kind: canon_intent
+  what: 'No atom can reach L3 while an Expert Hour counts reviewer independence as a finding against it:
+    the blind-review tool records independence false on every pass by construction, and reserves external
+    review for the few verdicts you choose. H45 (the queue chained to the map) has closed every other
+    question its two blind passes raised -- edit back door, re-link, doubt route, trend -- and is held
+    at L2 on that one alone. Its specific form: whether a queue item serves its atom is read by a tick
+    of the same machine that files it, and nothing outside audits that read.'
+  proposal: Rule that an Expert Hour whose only open disqualifying question is reviewer independence passes
+    for L3, with the limit carried in the atom's simplification record, and that external review stays
+    at your choosing for the highest-stakes verdicts. On that ruling I would record H45's move to L3 through
+    the level gate. If you want H45 audited from outside instead, the read record (serves_by_hand on the
+    harness page) is what you or a relayed model would sample. Meanwhile H45 parks so it stops being drawn
+    for a question no build can answer.
+  status: open
+  resolution: ''
+  evidence: docs/design/simplifications/H45_the_queue_is_chained_to_the_map.yaml (10-03 and 10-04 HARDEN
+    entries); tools/blind_review.py HONEST_LIMIT; docs/observability/blind_review_ledger.jsonl
