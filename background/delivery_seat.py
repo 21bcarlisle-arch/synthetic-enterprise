@@ -1955,7 +1955,7 @@ def _cut_direction_worktree(root: Path, worktree: Path) -> None:
 
 def land_direction_on_origin(root: Path, paths: list[str], message: str,
                              content: dict[str, bytes], *, worktree: Path | None = None,
-                             lander=None, promoter=None,
+                             lander=None, promoter=None, regenerate=None,
                              attempts: int = 2) -> str:
     """Land `content` onto `origin/main` itself, never onto the shared HEAD, and return the sha.
 
@@ -1986,8 +1986,17 @@ def land_direction_on_origin(root: Path, paths: list[str], message: str,
         for rel, data in content.items():
             (worktree / rel).parent.mkdir(parents=True, exist_ok=True)
             (worktree / rel).write_bytes(data)
+        landing, landed_content = list(paths), dict(content)
+        page = (regenerate or regenerate_startup_anchors)(worktree)
+        if page is not None:
+            landed_content[STARTUP_ANCHORS_PAGE] = page
+            # The worktree's copy carries the bytes too, as the record's do above.
+            (worktree / STARTUP_ANCHORS_PAGE).parent.mkdir(parents=True, exist_ok=True)
+            (worktree / STARTUP_ANCHORS_PAGE).write_bytes(page)
+            if STARTUP_ANCHORS_PAGE not in landing:
+                landing.append(STARTUP_ANCHORS_PAGE)
         try:
-            sha = lander(worktree, paths, message, attempts=1, content=content)
+            sha = lander(worktree, landing, message, attempts=1, content=landed_content)
         except surgical_land.IndexNotRefreshed as exc:
             # THE COMMIT LANDED; only this worktree's index lags it, and the index is ours alone.
             sha = exc.sha
@@ -2003,6 +2012,36 @@ def land_direction_on_origin(root: Path, paths: list[str], message: str,
             moved.append(str(exc).splitlines()[0][:160])
     raise DirectionNotLanded(f"origin/main moved under the gate on all {attempts} attempt(s): "
                              + " | ".join(moved))
+
+
+#: THE PAGE AN ADVISOR ORIENTS FROM, refreshed on every orientation (director, 2026-10-04: "It's only
+#: refreshed on publish, which is weekly now, so the page an advisor orients from can be a week
+#: stale. Regenerate it whenever an anchor changes."). The anchors change every stretch -- this seat's
+#: own DIRECTION.yaml, decisions.jsonl and stretch log are three of them -- and this seat is the one
+#: writer that lands on origin every three hours, so the page is at most a stretch old. A change to the
+#: anchor SET is refused in the same commit unless the page is regenerated
+#: (`startup_anchor_freshness.anchor_set_refusal`).
+STARTUP_ANCHORS_PAGE = "docs/status/STARTUP_ANCHORS.md"
+
+
+def regenerate_startup_anchors(worktree: Path) -> bytes | None:
+    """The startup-anchor page as the worktree's OWN tool computes it from the worktree's history,
+    or None. Generated in the landing worktree, cut at origin, never from the shared tree: the shared
+    tree lags origin, and a page computed there would describe a stale anchor set and could REGRESS
+    origin's copy. The page is downstream of the record, so any failure returns None and the record
+    lands without it."""
+    tool = worktree / "tools" / "startup_anchor_freshness.py"
+    out = worktree / STARTUP_ANCHORS_PAGE
+    if not tool.is_file():
+        return None
+    try:
+        before = out.read_bytes() if out.is_file() else None
+        subprocess.run([sys.executable, str(tool)], cwd=str(worktree), capture_output=True,
+                       timeout=300, env=dict(os.environ, PYTHONPATH=str(worktree)))
+        after = out.read_bytes() if out.is_file() else None
+    except (OSError, subprocess.SubprocessError):
+        return None
+    return after if after is not None and after != before else None
 
 
 #: WHAT THE SEAT ITSELF WRITES AND COMMITS BESIDE THE DIRECTION RECORD -- written by this module's own

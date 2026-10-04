@@ -415,3 +415,50 @@ def test_the_table_says_WHAT_EACH_ANCHOR_IS_FOR():
     assert "What it is for" in table
     assert "the reasoning behind a call" in table, "the stretch log's purpose must reach the reader"
     assert "orienting, read this table first" in table
+
+
+def test_an_anchor_may_name_its_repository_path_instead_of_a_pages_url():
+    """The director's advisor reads origin through the GitHub API; github.io is only the fallback.
+    Defect it names: a repository-path anchor line silently parsed as no anchor at all."""
+    from tools import startup_anchor_freshness as saf
+    text = ("- Op model: `docs/operations/OPERATING_MODEL.md`\n"
+            "- Annual: https://21bcarlisle-arch.github.io/synthetic-enterprise/reports/ANNUAL_REPORT.md\n"
+            "- Bare: docs/status/LATEST.md\n"
+            "- Fourth: https://21bcarlisle-arch.github.io/synthetic-enterprise/status/X.md\n")
+    assert saf.anchor_paths(text) == ["docs/operations/OPERATING_MODEL.md",
+                                      "docs/reports/ANNUAL_REPORT.md", "docs/status/LATEST.md",
+                                      "docs/status/X.md"]
+
+
+def test_a_commit_that_changes_the_anchor_set_must_stage_a_page_listing_it(monkeypatch):
+    """Defect it names: an anchor added on 2026-10-04 was absent from the page an advisor orients by,
+    which still listed the 2026-09-28 set. Both branches reachable: refused without the regenerated
+    page, passed with it, and an unchanged set is never asked."""
+    from tools import startup_anchor_freshness as saf
+    pages = "https://21bcarlisle-arch.github.io/synthetic-enterprise/"
+    old = "".join(f"- a{i}: {pages}status/A{i}.md\n" for i in range(4))
+    new = old + "- op: `docs/operations/OPERATING_MODEL.md`\n"
+    table = lambda paths: "".join(f"| `{p}` | x | 2026-10-04 | 0 | FRESH |\n" for p in paths)  # noqa: E731
+    store = {}
+    monkeypatch.setattr(saf, "_staged_or_head", lambda rel, rev: store.get((rel, rev)))
+    ov, out = str(saf.OVERVIEW.relative_to(saf.PROJECT)), str(saf.OUT.relative_to(saf.PROJECT))
+    store[(ov, "HEAD")], store[(ov, ":")] = old, new
+    store[(out, ":")] = table(saf.anchor_paths(old))
+    assert "OPERATING_MODEL" in (saf.anchor_set_refusal() or "")
+    store[(out, ":")] = table(saf.anchor_paths(new))
+    assert saf.anchor_set_refusal() is None
+    store[(ov, ":")] = old
+    store[(out, ":")] = ""
+    assert saf.anchor_set_refusal() is None
+
+
+def test_the_anchor_set_check_is_wired_into_the_gate(monkeypatch):
+    """Through `main(["--gate"])`, the entry point the pre-commit hook runs: a helper tested alone stays
+    green when it is unwired."""
+    from tools import startup_anchor_freshness as saf
+    monkeypatch.setattr(saf, "assess", lambda *a, **k: [])
+    monkeypatch.setattr(saf, "staged_anchors", lambda paths: set())
+    monkeypatch.setattr(saf, "anchor_set_refusal", lambda: "the page does not list the new set")
+    assert saf.main(["--gate"]) == 1
+    monkeypatch.setattr(saf, "anchor_set_refusal", lambda: None)
+    assert saf.main(["--gate"]) == 0

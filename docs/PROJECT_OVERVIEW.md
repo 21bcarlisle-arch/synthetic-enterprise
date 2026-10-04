@@ -18,9 +18,11 @@ lines across 3,176 tracked Python modules (all `*.py` in the index, tests includ
 > Two hand-typed numbers agreeing with each other read as a check passing. That figure now also
 > carries a floor computed from the test functions in the index, which is what caught this.)*
 
-**GitHub Pages (live):**
+**GitHub Pages (live):** *(a line naming a repository path instead, like the operating model's, is
+read by the advisor through the GitHub API; the github.io links are the fallback when its token
+lapses)*
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
-- How the seat operates — what it gets on with, what it escalates to the director with a proposal, what is reserved, and the end-to-end check it owns: https://21bcarlisle-arch.github.io/synthetic-enterprise/operations/OPERATING_MODEL.md
+- How the seat operates — what it gets on with, what it escalates to the director with a proposal, what is reserved, and the end-to-end check it owns: `docs/operations/OPERATING_MODEL.md`
 - The book's own annual report, regenerated each publish: https://21bcarlisle-arch.github.io/synthetic-enterprise/reports/ANNUAL_REPORT.md
 - Every sourced assumption the world is built on, with its anchor and its gaps: https://21bcarlisle-arch.github.io/synthetic-enterprise/market_research/ASSUMPTIONS.md
 - What just happened and what the machine is working on now: https://21bcarlisle-arch.github.io/synthetic-enterprise/status/LATEST.md

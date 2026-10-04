@@ -139,8 +139,13 @@ DECLARED_DATE_TOLERANCE_DAYS = 3
 #: Nothing refuses on it -- see the module docstring.
 REPORTED_STALE_AFTER_DAYS = 14
 
+#: An anchor line names its document by a Pages URL (the fallback a reader can open) OR by its
+#: repository path, in backticks or bare. The director's advisor reads origin through the GitHub API,
+#: for which the repository path is exactly what it needs (director, 2026-10-04: "Don't add full
+#: github.io addresses ... github.io is now only the fallback when the token lapses").
 _ANCHOR_LINE_RE = re.compile(
-    r"^\s*-\s+(?P<label>[^:]+?):\s*(?P<url>" + re.escape(PAGES_ROOT) + r"\S+)\s*$", re.M)
+    r"^\s*-\s+(?P<label>[^:]+?):\s*`?(?P<url>(?:" + re.escape(PAGES_ROOT) + r"|docs/)[^\s`]+)`?\s*$",
+    re.M)
 #: A document's own claim about when it was last touched. Deliberately narrow: only the leading
 #: lines are read, because a date deep in an append-log is a fact ABOUT the log, not about the file.
 _DECLARED_RE = re.compile(
@@ -378,7 +383,10 @@ def anchor_paths(overview_text: str | None = None) -> list[str]:
     paths = []
     for m in _ANCHOR_LINE_RE.finditer(overview_text):
         url = m.group("url")
-        rest = url[len(PAGES_ROOT):].split("#", 1)[0].split("?", 1)[0]
+        if url.startswith(PAGES_ROOT):
+            rest = url[len(PAGES_ROOT):].split("#", 1)[0].split("?", 1)[0]
+        else:  # a repository path, already rooted at docs/
+            rest = url[len(DOCS_ROOT) + 1:].split("#", 1)[0]
         if rest and not rest.endswith("/"):
             rel = f"{DOCS_ROOT}/{rest}"
             paths.append(rel)
@@ -922,6 +930,46 @@ def staged_anchors(paths: list[str]) -> set[str]:
     return {line for line in out.splitlines() if line}
 
 
+def _staged_or_head(rel: str, rev: str) -> str | None:
+    """`rev` is ":" for the staged copy or a commit; None when the path is absent there."""
+    r = subprocess.run(["git", "show", f"{rev}{rel}" if rev == ":" else f"{rev}:{rel}"],
+                       cwd=PROJECT, capture_output=True, text=True)
+    return r.stdout if r.returncode == 0 else None
+
+
+def tabled_anchors(page_text: str) -> list[str]:
+    """The anchor paths the published table lists, in its first column."""
+    return re.findall(r"^\|\s*`(docs/[^`]+)`\s*\|", page_text, re.M)
+
+
+def anchor_set_refusal() -> str | None:
+    """THE PAGE MUST LIST THE SET THE COMMIT DECLARES (director, 2026-10-04). `STARTUP_ANCHORS.md` was
+    regenerated only on publish, weekly since the publish hold, so an anchor added on 2026-10-04 was
+    absent from the page an advisor orients by, which still listed the 2026-09-28 set. A commit that
+    changes the anchor set in `PROJECT_OVERVIEW.md` must stage a regenerated page whose table lists
+    exactly the new set. Changes to an anchor's CONTENT are refreshed by the delivery seat's
+    three-hourly landing (`delivery_seat.land_direction_on_origin`), never gated here: anchors such as
+    DIRECTION.yaml change every stretch, and gating each would make every lane rewrite one file."""
+    rel = str(OVERVIEW.relative_to(PROJECT))
+    staged, head = _staged_or_head(rel, ":"), _staged_or_head(rel, "HEAD")
+    if staged is None or head is None:
+        return None
+    new, old = anchor_paths(staged), anchor_paths(head)
+    if set(new) == set(old):
+        return None
+    page = _staged_or_head(str(OUT.relative_to(PROJECT)), ":")
+    listed = set(tabled_anchors(page or ""))
+    if listed == set(new):
+        return None
+    added, gone = sorted(set(new) - listed), sorted(listed - set(new))
+    return (f"this commit changes the startup anchor set ({', '.join(sorted(set(new) ^ set(old)))}) "
+            f"and {OUT.relative_to(PROJECT)} does not list it"
+            + (f" -- missing: {', '.join(added)}" if added else "")
+            + (f" -- listed but no longer an anchor: {', '.join(gone)}" if gone else "")
+            + ". An advisor orients from that page; regenerate it with `python3 "
+            "tools/startup_anchor_freshness.py` and stage it in the same commit.")
+
+
 def main(argv: list[str] | None = None) -> int:
     argv = list(argv if argv is not None else sys.argv[1:])
     write = "--check" not in argv and "--gate" not in argv
@@ -945,6 +993,10 @@ def main(argv: list[str] | None = None) -> int:
         gated = "--gate" in argv
         if gated:
             touched = staged_anchors([r["path"] for r in rows])
+            stale_set = anchor_set_refusal()
+            if stale_set:
+                print(f"[startup-anchors] REFUSED: {stale_set}", file=sys.stderr)
+                return 1
             if not touched:
                 return 0
             rows = [r for r in rows if r["path"] in touched]
