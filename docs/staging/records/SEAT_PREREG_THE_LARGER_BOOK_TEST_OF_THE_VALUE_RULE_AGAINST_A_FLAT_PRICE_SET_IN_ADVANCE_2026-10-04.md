@@ -282,6 +282,8 @@ touch the refit (`departure_level_anchor`), `plan_offer_response` (+162), `colle
 7.7 GBP, and the E-true early levels moved from 15/55 to 95/30 on three paths. The one-variable
 check is the old book on the new code with the pre-refit anchor. It is not run, and nothing here
 depends on it.
+*Answered below (22:35Z): the refit carries all of the rise, pooled 3.22 GBP a decision on the
+reverted arm against 3.2 old and 7.7 new.*
 
 #### The one-variable attribution check: prediction, written before launch (2026-10-04, ~20:49Z; the job started 20:50:03Z as `longjob-attr-stage-a-refit-revert`)
 
@@ -347,6 +349,37 @@ Against the predictions:
   45 → 30/40 and E-belief 60 → 25-50.
 - **P3 is pending** the three roll-seed passes (61001 started 21:17Z, ≈22:40Z for all three).
   Most of the pooled 3.2 → 7.7 sits on those paths.
+
+#### The attribution check, pooled over four paths: the refit carries all of it (22:35Z)
+
+The three roll-seed passes ran serially from 21:17Z to 22:34:44Z, each about 26 min, all rc 0. **Peak
+RSS was 5,095, 5,199 and 5,160 MB (61001, 61002, 61003), so two of the three, like the default pass, were over
+the declared 5,100 MB.** The 5,100 figure is a floor for this arm, not a ceiling. They were scored with the same
+`attr_grade.py` and the Stage A base's `ex_ante_scores`. The output is in `/var/tmp/se-probe-out/attr_grade.txt`.
+
+| path | harder chooser | pre-refit `4bf859f0b` | **new code, refit reverted** | refitted `0859ac1a3` |
+|---|---|---|---|---|
+| default | E-belief | +528 / 57, 9.27 | **+528.15 / 57, 9.27** | +767 / 58, 13.22 |
+| 61001 | E-belief | +69 / 57, 1.21 | **+70.92 / 57, 1.24** | +52 / 53, 0.98 |
+| 61002 | E-true | +99 / 56, 1.78 | **+99.47 / 56, 1.78** | +270 / 50, 5.40 |
+| 61003 | E-belief | +29 / 56, 0.51 | **+28.44 / 56, 0.51** | +598 / 57, 10.5 |
+| **pooled** | | +181 / ~56, **3.2** | **+181.7 / 56.5, 3.22** (joint SD 212, SNR 0.86) | +422 / 54.5, **7.7** |
+
+The levels chosen match the pre-refit rows too: E-true 15 in 2018 then 55 on the roll seeds, and
+E-belief 55-60 throughout.
+
+- **P3 HELD.** The pooled edge is 3.22, below 5.45 and within 0.02 of the old figure.
+- **Attribution: the anchor (the refit), not the code.** The new code in the pre-refit world reproduces
+  the pre-refit edge on every path, to the penny on two and within 2 GBP on the others. The 95 commits
+  of company and world-mechanics code are inert on this comparison. So the rise from 3.2 to 7.7 GBP a
+  decision is the world's departure anchor making the flat chooser's job harder. It is not the
+  company inferring better. No second split is needed for this question.
+- **What it does NOT separate.** The refit includes the company's own read of the v2 switching commons
+  through `market_conditions` (see the prediction above). The split that would separate the world's
+  anchor from the company's view of it is the reverted world with the v2 commons fed to
+  `market_conditions` only. It is needed only if anyone wants to claim part of the rise as the
+  company's. **For EP17, read 7.7 as an easier comparison, not a better rule:** on the same world the
+  rule's edge did not move.
 
 ### E1-E5, re-graded against the record this follows (harder chooser read as there)
 
