@@ -132,9 +132,13 @@ def test_a_departure_without_a_measured_cause_says_so_rather_than_naming_one():
     )
     assert event["departure_cause"] is None
 
-    renewal = _real_renewal_event()
+    # THE FIRST ACCOUNT THAT RENEWS, not a pinned one: `C5` renewed until the QEP 2.7.1 level refit
+    # (2026-10-04) moved its draw, and which id stays is a fact about the departure level, not
+    # about the schema. Twenty ids at a published ~10-20% rate all leaving would itself be a defect.
+    events = [_real_renewal_event("C{}".format(n)) for n in range(5, 25)]
+    renewal = next((e for e in events if e["event_type"] == "renewed"), None)
+    assert renewal is not None, "none of twenty fixture accounts renewed"
     assert "departure_cause" in renewal, "the real producer does not carry the cause field at all"
-    assert renewal["event_type"] == "renewed", "the fixture account stopped renewing"
     assert renewal["departure_cause"] is None, (
         "an account that STAYED was given a departure cause -- that is a reason mix with no "
         "departure under it"

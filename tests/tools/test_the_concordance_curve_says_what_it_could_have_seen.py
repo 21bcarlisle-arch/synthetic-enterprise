@@ -703,6 +703,13 @@ def test_the_published_key_no_longer_asks_for_work_this_repo_has_already_done():
             "the leg's sign is determined and the remedy block either still prices a book for "
             "it or refuses for some other reason: {}".format(str(block)[:200]))
         return
+    if leg.get("bound_available") is False:
+        # NO BOUND, SO NO SIGN TO SETTLE (the QEP pair, 2026-10-04): the property holds by absence
+        # only if the block is absent and the leg says why it carries no bound.
+        assert not block.get("available") and leg.get("why_no_bound"), (
+            "the leg carries no bound and the remedy block still prices a book for it: {}".format(
+                str(block)[:200]))
+        return
     if not block.get("available"):
         pytest.fail("the remedy block is unavailable, so this control cannot run: {}".format(
             str(block.get("why_not"))[:200]))

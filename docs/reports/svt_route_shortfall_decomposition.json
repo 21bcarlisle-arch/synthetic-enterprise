@@ -1,8 +1,8 @@
 {
   "what_this_is": "which of the three factors under the SVT route's LEVEL is short of the published record, measured at `departure_level_anchor.NO_LEVEL_CORRECTION`. `departure_level_route_attribution.json` beside this file establishes that the SVT route carries the record's year-to-year shape at about half its level and that the renewal route cannot supply the rest; this says which leg of the SVT route the level is missing from. The reading is a BOUND on each factor's ceiling, not a fit, and nothing here chooses a value.",
   "measured_at_anchor": 1.0,
-  "capture": "docs/reports/pb4_d_fourth_pass_anchor_departure_factors.json",
-  "world_level_digest": "cf823b185f8ca51c",
+  "capture": "docs/reports/qep_g_second_qep_pass_anchor_departure_factors.json",
+  "world_level_digest": "cdba75ebb9197b33",
   "years": [
     "2017",
     "2018",
@@ -44,9 +44,13 @@
   },
   "bounded_factor_saturation": {
     "what_this_is": "reach AND exposure both at 1.0 -- the entire book on the SVT product every day of the year -- with the renewal route at zero, because that world has no renewal decision left to price. The SVT route then carries the whole band alone at the hazard this world runs. This is the two named factors at the most they can ever do.",
-    "reaches_band_low_in": 0,
+    "reaches_band_low_in": 3,
     "of": 6,
-    "years_reached": []
+    "years_reached": [
+      "2017",
+      "2018",
+      "2019"
+    ]
   },
   "base_window_comparison": {
     "what_this_is": "`svt_inertia_hazard` re-references the published pair by `market_switching_multiplier / svt_inertia_base_multiplier()`. That divisor is the MEAN of the multiplier over `SVT_INERTIA_BASE_WINDOW`, so the factor is 1.0 ACROSS the window and not within each of its years -- see `re_referencing_factor` per year below. Inside the window the world runs the published rate to within a few per cent; everywhere else the factor is 0.56 to 0.90 and a ratio quoted against the published rate would be measuring the re-referencing instead of the source. Both ratios are given because they differ, and quoting one as the other is how two correct figures become a quantity that is not one.",
@@ -59,208 +63,208 @@
     "window_mean_re_referencing_factor": 1.0,
     "years": {
       "2019": {
-        "re_referencing_factor": 0.9616,
-        "world_hazard": 0.193414,
-        "required_hazard_at_band_low": 0.29427,
-        "required_over_published_recent": 1.4713,
-        "required_over_re_referenced_recent": 1.5301,
-        "share_of_decisions_on_the_long_stayer_branch": 0.0483
+        "re_referencing_factor": 1.0148,
+        "world_hazard": 0.213029,
+        "required_hazard_at_band_low": 0.30746,
+        "required_over_published_recent": 1.5373,
+        "required_over_re_referenced_recent": 1.5148,
+        "share_of_decisions_on_the_long_stayer_branch": 0.0505
       },
       "2020": {
-        "re_referencing_factor": 1.0384,
-        "world_hazard": 0.185288,
-        "required_hazard_at_band_low": 0.321194,
-        "required_over_published_recent": 1.606,
-        "required_over_re_referenced_recent": 1.5466,
-        "share_of_decisions_on_the_long_stayer_branch": 0.2415
+        "re_referencing_factor": 0.9852,
+        "world_hazard": 0.173838,
+        "required_hazard_at_band_low": 0.305997,
+        "required_over_published_recent": 1.53,
+        "required_over_re_referenced_recent": 1.553,
+        "share_of_decisions_on_the_long_stayer_branch": 0.2683
       }
     }
   },
   "per_year": {
     "2017": {
-      "accounts": 85,
-      "svt_pp_of_book": 6.6656,
-      "renewal_pp_of_book": 1.1268,
+      "accounts": 81,
+      "svt_pp_of_book": 7.8242,
+      "renewal_pp_of_book": 1.8729,
       "band_pct": [
-        13.5,
-        14.0
+        18.192,
+        18.197
       ],
       "factors": {
-        "reach": 0.741176,
-        "exposure": 0.679552,
-        "hazard": 0.132341
+        "reach": 0.703704,
+        "exposure": 0.588062,
+        "hazard": 0.189071
       },
       "required_multiple": {
-        "at_band_low": 1.8563,
-        "at_band_midpoint": 1.8938,
-        "at_band_high": 1.9313
+        "at_band_low": 2.0857,
+        "at_band_midpoint": 2.086,
+        "at_band_high": 2.0864
       },
       "headroom_to_ceiling": {
-        "reach": 1.3492,
-        "exposure": 1.4716,
-        "hazard": 7.1784
+        "reach": 1.4211,
+        "exposure": 1.7005,
+        "hazard": 5.0246
       },
       "required_hazard": {
-        "at_band_low": 0.245661,
-        "at_band_midpoint": 0.250625,
-        "at_band_high": 0.255588
+        "at_band_low": 0.394352,
+        "at_band_midpoint": 0.394412,
+        "at_band_high": 0.394472
       },
-      "saturated_pp_of_book": 13.2341,
-      "saturation_reaches_band": false
+      "saturated_pp_of_book": 18.9071,
+      "saturation_reaches_band": true
     },
     "2018": {
-      "accounts": 71,
-      "svt_pp_of_book": 12.05,
-      "renewal_pp_of_book": 1.6335,
+      "accounts": 70,
+      "svt_pp_of_book": 12.5234,
+      "renewal_pp_of_book": 1.6489,
       "band_pct": [
-        19.5,
-        20.0
+        19.062,
+        19.066
       ],
       "factors": {
-        "reach": 0.873239,
-        "exposure": 0.719216,
-        "hazard": 0.191864
+        "reach": 0.8,
+        "exposure": 0.778039,
+        "hazard": 0.201202
       },
       "required_multiple": {
-        "at_band_low": 1.4827,
-        "at_band_midpoint": 1.5035,
-        "at_band_high": 1.5242
+        "at_band_low": 1.3904,
+        "at_band_midpoint": 1.3906,
+        "at_band_high": 1.3908
       },
       "headroom_to_ceiling": {
-        "reach": 1.1452,
-        "exposure": 1.3904,
-        "hazard": 4.9514
+        "reach": 1.25,
+        "exposure": 1.2853,
+        "hazard": 4.7216
       },
       "required_hazard": {
-        "at_band_low": 0.284477,
-        "at_band_midpoint": 0.288458,
-        "at_band_high": 0.292438
+        "at_band_low": 0.279759,
+        "at_band_midpoint": 0.279791,
+        "at_band_high": 0.279824
       },
-      "saturated_pp_of_book": 19.1864,
-      "saturation_reaches_band": false
+      "saturated_pp_of_book": 20.1202,
+      "saturation_reaches_band": true
     },
     "2019": {
-      "accounts": 64,
-      "svt_pp_of_book": 12.8835,
-      "renewal_pp_of_book": 1.0983,
+      "accounts": 61,
+      "svt_pp_of_book": 13.7186,
+      "renewal_pp_of_book": 1.0203,
       "band_pct": [
-        20.7,
-        21.3
+        20.82,
+        20.824
       ],
       "factors": {
-        "reach": 0.84375,
-        "exposure": 0.789464,
-        "hazard": 0.193414
+        "reach": 0.836066,
+        "exposure": 0.770249,
+        "hazard": 0.213029
       },
       "required_multiple": {
-        "at_band_low": 1.5215,
-        "at_band_midpoint": 1.5447,
-        "at_band_high": 1.568
+        "at_band_low": 1.4433,
+        "at_band_midpoint": 1.4434,
+        "at_band_high": 1.4436
       },
       "headroom_to_ceiling": {
-        "reach": 1.1852,
-        "exposure": 1.2667,
-        "hazard": 4.9117
+        "reach": 1.1961,
+        "exposure": 1.2983,
+        "hazard": 4.4595
       },
       "required_hazard": {
-        "at_band_low": 0.29427,
-        "at_band_midpoint": 0.298774,
-        "at_band_high": 0.303278
+        "at_band_low": 0.30746,
+        "at_band_midpoint": 0.307491,
+        "at_band_high": 0.307522
       },
-      "saturated_pp_of_book": 19.3414,
-      "saturation_reaches_band": false
+      "saturated_pp_of_book": 21.3029,
+      "saturation_reaches_band": true
     },
     "2020": {
-      "accounts": 62,
-      "svt_pp_of_book": 12.5832,
-      "renewal_pp_of_book": 0.6871,
+      "accounts": 54,
+      "svt_pp_of_book": 10.7378,
+      "renewal_pp_of_book": 1.3099,
       "band_pct": [
-        22.5,
-        23.0
+        20.211,
+        20.215
       ],
       "factors": {
-        "reach": 0.887097,
-        "exposure": 0.765553,
-        "hazard": 0.185288
+        "reach": 0.777778,
+        "exposure": 0.794172,
+        "hazard": 0.173838
       },
       "required_multiple": {
-        "at_band_low": 1.7335,
-        "at_band_midpoint": 1.7534,
-        "at_band_high": 1.7732
+        "at_band_low": 1.7602,
+        "at_band_midpoint": 1.7604,
+        "at_band_high": 1.7606
       },
       "headroom_to_ceiling": {
-        "reach": 1.1273,
-        "exposure": 1.3062,
-        "hazard": 5.1272
+        "reach": 1.2857,
+        "exposure": 1.2592,
+        "hazard": 5.4649
       },
       "required_hazard": {
-        "at_band_low": 0.321194,
-        "at_band_midpoint": 0.324875,
-        "at_band_high": 0.328557
+        "at_band_low": 0.305997,
+        "at_band_midpoint": 0.30603,
+        "at_band_high": 0.306062
       },
-      "saturated_pp_of_book": 18.5288,
+      "saturated_pp_of_book": 17.3838,
       "saturation_reaches_band": false
     },
     "2021": {
-      "accounts": 58,
-      "svt_pp_of_book": 10.0139,
-      "renewal_pp_of_book": 0.5956,
+      "accounts": 48,
+      "svt_pp_of_book": 7.4289,
+      "renewal_pp_of_book": 1.2411,
       "band_pct": [
-        17.9,
-        18.4
+        15.567,
+        15.571
       ],
       "factors": {
-        "reach": 0.965517,
-        "exposure": 0.771341,
-        "hazard": 0.134461
+        "reach": 0.895833,
+        "exposure": 0.735017,
+        "hazard": 0.112824
       },
       "required_multiple": {
-        "at_band_low": 1.728,
-        "at_band_midpoint": 1.753,
-        "at_band_high": 1.778
+        "at_band_low": 1.9284,
+        "at_band_midpoint": 1.9287,
+        "at_band_high": 1.9289
       },
       "headroom_to_ceiling": {
-        "reach": 1.0357,
-        "exposure": 1.2964,
-        "hazard": 7.0652
+        "reach": 1.1163,
+        "exposure": 1.3605,
+        "hazard": 8.4202
       },
       "required_hazard": {
-        "at_band_low": 0.232355,
-        "at_band_midpoint": 0.235711,
-        "at_band_high": 0.239068
+        "at_band_low": 0.217568,
+        "at_band_midpoint": 0.217599,
+        "at_band_high": 0.217629
       },
-      "saturated_pp_of_book": 13.4461,
+      "saturated_pp_of_book": 11.2824,
       "saturation_reaches_band": false
     },
     "2024": {
-      "accounts": 65,
-      "svt_pp_of_book": 7.8623,
-      "renewal_pp_of_book": 0.5864,
+      "accounts": 49,
+      "svt_pp_of_book": 4.1076,
+      "renewal_pp_of_book": 0.287,
       "band_pct": [
-        12.5,
-        16.1
+        9.026,
+        9.031
       ],
       "factors": {
-        "reach": 0.984615,
-        "exposure": 0.774769,
-        "hazard": 0.103065
+        "reach": 0.918367,
+        "exposure": 0.708677,
+        "hazard": 0.063114
       },
       "required_multiple": {
-        "at_band_low": 1.5153,
-        "at_band_midpoint": 1.7442,
-        "at_band_high": 1.9732
+        "at_band_low": 2.1275,
+        "at_band_midpoint": 2.1281,
+        "at_band_high": 2.1287
       },
       "headroom_to_ceiling": {
-        "reach": 1.0156,
-        "exposure": 1.2907,
-        "hazard": 9.2175
+        "reach": 1.0889,
+        "exposure": 1.4111,
+        "hazard": 15.0521
       },
       "required_hazard": {
-        "at_band_low": 0.156172,
-        "at_band_midpoint": 0.179768,
-        "at_band_high": 0.203364
+        "at_band_low": 0.134275,
+        "at_band_midpoint": 0.134313,
+        "at_band_high": 0.134352
       },
-      "saturated_pp_of_book": 10.3065,
+      "saturated_pp_of_book": 6.3114,
       "saturation_reaches_band": false
     }
   },

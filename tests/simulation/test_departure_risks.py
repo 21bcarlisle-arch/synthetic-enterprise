@@ -641,13 +641,17 @@ def test_a_year_inside_the_published_record_with_no_fitted_anchor_refuses_instea
     record = _published_departure_rates()
 
     # (a) THE PREMISE, MEASURED RATHER THAN ASSERTED. The reference year's anchor is not a
-    #     conservative stand-in for a record year: it has no direction at all.
+    #     stand-in for another record year: borrowing it moves some fitted year's anchor by more
+    #     than half. Until 2026-10-03 this asserted it had NO DIRECTION (some ratios below 1, some
+    #     above). On the QEP 2.7.1 re-fit 2024's anchor is the largest, so every ratio is >= 1 and
+    #     the borrow has a direction -- up, 2.5-10x -- which makes it a bigger claim, not a smaller
+    #     one. Keyed to the size of the claim, which holds on both blocks.
     ref = YEAR_LEVEL_ANCHOR[MULTIPLIER_REFERENCE_YEAR]
     ratios = {y: ref / YEAR_LEVEL_ANCHOR[y] for y in record if y in YEAR_LEVEL_ANCHOR}
-    assert min(ratios.values()) < 1.0 < max(ratios.values()), (
-        "the reference year's anchor is on one side of every fitted year's, so the old docstring's "
-        "'fails toward the record' claim would be defensible and this control is arguing with "
-        f"something that is not there. ratios: {ratios}"
+    assert max(max(ratios.values()), 1.0 / min(ratios.values())) > 1.5, (
+        "the reference year's anchor is within 1.5x of every fitted year's, so borrowing it for a "
+        "record year would be a small claim and this control is arguing with something that is "
+        f"not there. ratios: {ratios}"
     )
 
     # (b) THE PARTITION, WHICH REPLACED "EVERY RECORD YEAR IS FITTED" ON 2026-09-02. That older

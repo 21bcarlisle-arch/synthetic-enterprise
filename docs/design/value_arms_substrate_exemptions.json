@@ -1,4 +1,23 @@
 {
   "what_this_is": "Each entry argues that one simulation/ or company/ path, changed between the commit a value-cycle run executed and the publishing HEAD, cannot move the value arms. Read by tools/generate_value_arms_data.py::_code_since_the_run. An entry applies only while run_commit, path and head_blob (git rev-parse HEAD:path) all match.",
-  "exemptions": []
+  "exemptions": [
+    {
+      "path": "company/crm/market_conditions.py",
+      "run_commit": "96517e68cc5f9ebd49d6567f7d154f1fd7e2f874",
+      "head_blob": "226c5f0496270cd1f05323deb8dacaa0d05d8910",
+      "why": "The QEP 2.7.1 level-anchor refit, which the 20261004r arms executed uncommitted on top of 96517e68c and which lands in the same commit as those arms. This blob is byte-identical to the file the run imported (git hash-object in /var/tmp/se-qep-arms2), so the run executed this code; it moved only from uncommitted to committed."
+    },
+    {
+      "path": "company/market/market_report.py",
+      "run_commit": "96517e68cc5f9ebd49d6567f7d154f1fd7e2f874",
+      "head_blob": "663b2ba1a2396def378c73e7ca625f51319a5c80",
+      "why": "The QEP 2.7.1 level-anchor refit, which the 20261004r arms executed uncommitted on top of 96517e68c and which lands in the same commit as those arms. This blob is byte-identical to the file the run imported (git hash-object in /var/tmp/se-qep-arms2), so the run executed this code; it moved only from uncommitted to committed."
+    },
+    {
+      "path": "simulation/departure_level_anchor.py",
+      "run_commit": "96517e68cc5f9ebd49d6567f7d154f1fd7e2f874",
+      "head_blob": "32697245c79636628159061d2e69dc78e0aff23d",
+      "why": "The QEP 2.7.1 level-anchor refit, which the 20261004r arms executed uncommitted on top of 96517e68c and which lands in the same commit as those arms. This blob is byte-identical to the file the run imported (git hash-object in /var/tmp/se-qep-arms2), so the run executed this code; it moved only from uncommitted to committed."
+    }
+  ]
 }

@@ -317,8 +317,14 @@ def test_the_commons_declares_both_a_numerator_and_a_denominator():
     number says so. An artefact that omits either half is not a record, it is a decoration.
     """
     basis = _commons()["basis"]
-    for key in ("numerator", "denominator", "units", "denominator_count_millions"):
+    for key in ("numerator", "denominator", "units"):
         assert basis.get(key), f"the commons basis omits {key!r}: a figure without its basis is R14"
+    # The denominator's SIZE, flat in `basis` (version 1) or per year on every row (version 2,
+    # the publisher's own column). MUTATION: drop `accounts_millions` from one row and this fires.
+    rows_without = [r["year"] for r in _commons()["rates"] if not r.get("accounts_millions")]
+    assert basis.get("denominator_count_millions") or not rows_without, (
+        f"the commons states no denominator count, flat or for years {rows_without}: R14"
+    )
     assert "electricity" in basis["numerator"].lower()
     assert "electricity" in basis["denominator"].lower()
 
@@ -4160,26 +4166,32 @@ def test_a_joint_phi_above_one_is_not_reported_as_a_refusal(tmp_path, monkeypatc
     nothing.
     """
     split = _split_module()
-    live_straddles, live_above = _assert_the_two_phi_refusals_are_distinct(_joint(), split)
-
-    straddles, above = live_straddles, live_above
-    source = json.loads(split.COMPOSITION_ARTEFACT.read_text())
-    for scale in (0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1):
-        perturbed = json.loads(json.dumps(source))
-        for row in perturbed["per_year"].values():
-            for basis in row["bases"].values():
-                for endpoint in basis.values():
-                    for accounting in ("renewal_rescaled", "renewal_held"):
-                        cell = endpoint[accounting]
-                        if cell["hazard_multiple_still_required_at_band_low"] is not None:
-                            cell["hazard_multiple_still_required_at_band_low"] *= scale
-        moved = tmp_path / f"composition_{scale}.json"
-        moved.write_text(json.dumps(perturbed))
-        monkeypatch.setattr(split, "COMPOSITION_ARTEFACT", moved)
-        s, a = _assert_the_two_phi_refusals_are_distinct(split.where_the_worlds_joint_point_falls(),
-                                                         split)
+    original = split.COMPOSITION_ARTEFACT
+    straddles = above = 0
+    # And on a band with width too: on the live QEP record no perturbation of the composition
+    # alone produces a straddle (measured 2026-10-03).
+    for band in _band_sources(monkeypatch):
+        monkeypatch.setattr(split, "COMPOSITION_ARTEFACT", original)
+        s, a = _assert_the_two_phi_refusals_are_distinct(_joint(), split)
         straddles += s
         above += a
+        source = json.loads(original.read_text())
+        for scale in (0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1):
+            perturbed = json.loads(json.dumps(source))
+            for row in perturbed["per_year"].values():
+                for basis in row["bases"].values():
+                    for endpoint in basis.values():
+                        for accounting in ("renewal_rescaled", "renewal_held"):
+                            cell = endpoint[accounting]
+                            if cell["hazard_multiple_still_required_at_band_low"] is not None:
+                                cell["hazard_multiple_still_required_at_band_low"] *= scale
+            moved = tmp_path / f"composition_{band}_{scale}.json"
+            moved.write_text(json.dumps(perturbed))
+            monkeypatch.setattr(split, "COMPOSITION_ARTEFACT", moved)
+            s, a = _assert_the_two_phi_refusals_are_distinct(
+                split.where_the_worlds_joint_point_falls(), split)
+            straddles += s
+            above += a
     assert straddles, (
         "no phi interval straddles 1.0 anywhere in the live reading or its perturbations, so a flag "
         "that fired on 'phi reaches above 1' would be indistinguishable from one that fires on 'phi "
@@ -4339,6 +4351,29 @@ def _carrying() -> dict:
     return _split_module().how_much_of_the_records_move_the_share_series_can_carry()
 
 
+#: A BAND WITH WIDTH, for the reachability arms of the legs below and for nothing else. Since
+#: 2026-10-03 the commons states each year as DESNZ QEP 2.7.1 prints it, a published count's
+#: rounding about 0.004pp wide, so on the live record the phi spans have almost no width and
+#: several branches these legs must prove reachable cannot be reached from live data at all
+#: (measured: all six went red on that edit alone). These are the commons' version-1 bands, retired
+#: as a RECORD because the publisher refuted them in 8 of 10 years, and kept here only as an input
+#: whose width is known to reach both branches. Every value check still runs on the live record.
+_A_BAND_WITH_WIDTH = {
+    2016: (17.0, 17.6), 2017: (13.5, 14.0), 2018: (19.5, 20.0), 2019: (20.7, 21.3),
+    2020: (22.5, 23.0), 2021: (17.9, 18.4), 2022: (2.9, 4.3), 2023: (8.9, 12.5),
+    2024: (12.5, 16.1), 2025: (14.3, 17.9),
+}
+
+
+def _band_sources(monkeypatch):
+    """Yield `"live"`, then `"with_width"` with the route split reading `_A_BAND_WITH_WIDTH`."""
+    yield "live"
+    monkeypatch.setattr(
+        _split_module(), "published_departure_band", lambda: dict(_A_BAND_WITH_WIDTH)
+    )
+    yield "with_width"
+
+
 def test_the_phi_span_widens_with_the_segment_band():
     """MUTATION: swap the endpoints in `phi_span_at_a_segment_band` and this fires.
 
@@ -4383,7 +4418,7 @@ def test_the_phi_span_widens_with_the_segment_band():
     )
 
 
-def test_the_constant_phi_verdict_is_recomputed_from_the_published_series():
+def test_the_constant_phi_verdict_is_recomputed_from_the_published_series(monkeypatch):
     """MUTATION: write any intersection down, drop a band, or key a verdict to today's answer.
 
     THE LEG THAT HOLDS §13's HEADLINE. Every verdict is recomputed longhand here from
@@ -4397,49 +4432,52 @@ def test_the_constant_phi_verdict_is_recomputed_from_the_published_series():
     be, because a constant would break the other band in the same run.
     """
     split = _split_module()
-    reading = _constant_phi()
     seen_verdicts = set()
-    for basis in split.BASES:
-        for band_name, band in reading["published_segment_bands"].items():
-            for set_name, years in reading["year_sets"].items():
-                cell = reading["verdicts"][basis][band_name][set_name]
-                assert cell["years"] == years, (
-                    f"{basis}/{band_name}/{set_name}: the intersected year set is not the one the "
-                    f"reading declares it is."
-                )
-                spans = []
-                for year_s in years:
-                    year = int(year_s)
-                    r_lo, r_hi = split.published_departure_band()[year]
-                    s_band = split.default_tariff_share(year, basis)
-                    phis = [
-                        (r / 100.0 - s * h)
-                        / ((1.0 - s) * split.FIXED_ACTIVE_RENEWAL_SHARE)
-                        for r in (r_lo, r_hi) for s in s_band for h in band
-                    ]
-                    longhand = [round(min(phis), 6), round(max(phis), 6)]
-                    assert reading["per_year"][year_s][basis][band_name] == longhand, (
-                        f"{year_s}/{basis}/{band_name}: the published phi span is not the one the "
-                        f"identity gives at the corners of the two published bands."
+    # Both branches were live on version 1's bands; on the QEP record every verdict refuses
+    # (2026-10-03), so the pass branch is reached on a band with width.
+    for _source in _band_sources(monkeypatch):
+        reading = _constant_phi()
+        for basis in split.BASES:
+            for band_name, band in reading["published_segment_bands"].items():
+                for set_name, years in reading["year_sets"].items():
+                    cell = reading["verdicts"][basis][band_name][set_name]
+                    assert cell["years"] == years, (
+                        f"{basis}/{band_name}/{set_name}: the intersected year set is not the one the "
+                        f"reading declares it is."
                     )
-                    spans.append(longhand)
-                lo, hi = max(s[0] for s in spans), min(s[1] for s in spans)
-                assert cell["intersection"] == [round(lo, 6), round(hi, 6)], (
-                    f"{basis}/{band_name}/{set_name}: the intersection was written down rather "
-                    f"than taken over the per-year spans."
-                )
-                assert cell["is_non_empty"] == (lo <= hi), (
-                    f"{basis}/{band_name}/{set_name}: the verdict disagrees with the interval it "
-                    f"is read off."
-                )
-                seen_verdicts.add(cell["is_non_empty"])
-                for a, b in cell["minimal_refusing_pairs"]:
-                    pa = reading["per_year"][str(a)][basis][band_name]
-                    pb = reading["per_year"][str(b)][basis][band_name]
-                    assert max(pa[0], pb[0]) > min(pa[1], pb[1]), (
-                        f"{basis}/{band_name}/{set_name}: {a}/{b} is listed as a refusing pair and "
-                        f"its two spans overlap."
+                    spans = []
+                    for year_s in years:
+                        year = int(year_s)
+                        r_lo, r_hi = split.published_departure_band()[year]
+                        s_band = split.default_tariff_share(year, basis)
+                        phis = [
+                            (r / 100.0 - s * h)
+                            / ((1.0 - s) * split.FIXED_ACTIVE_RENEWAL_SHARE)
+                            for r in (r_lo, r_hi) for s in s_band for h in band
+                        ]
+                        longhand = [round(min(phis), 6), round(max(phis), 6)]
+                        assert reading["per_year"][year_s][basis][band_name] == longhand, (
+                            f"{year_s}/{basis}/{band_name}: the published phi span is not the one the "
+                            f"identity gives at the corners of the two published bands."
+                        )
+                        spans.append(longhand)
+                    lo, hi = max(s[0] for s in spans), min(s[1] for s in spans)
+                    assert cell["intersection"] == [round(lo, 6), round(hi, 6)], (
+                        f"{basis}/{band_name}/{set_name}: the intersection was written down rather "
+                        f"than taken over the per-year spans."
                     )
+                    assert cell["is_non_empty"] == (lo <= hi), (
+                        f"{basis}/{band_name}/{set_name}: the verdict disagrees with the interval it "
+                        f"is read off."
+                    )
+                    seen_verdicts.add(cell["is_non_empty"])
+                    for a, b in cell["minimal_refusing_pairs"]:
+                        pa = reading["per_year"][str(a)][basis][band_name]
+                        pb = reading["per_year"][str(b)][basis][band_name]
+                        assert max(pa[0], pb[0]) > min(pa[1], pb[1]), (
+                            f"{basis}/{band_name}/{set_name}: {a}/{b} is listed as a refusing pair and "
+                            f"its two spans overlap."
+                        )
     assert seen_verdicts == {True, False}, (
         f"only {seen_verdicts} appears across every band, basis and year set. One of the two "
         f"branches is unreachable, and a control whose pass branch cannot be reached reports a "
@@ -4447,7 +4485,7 @@ def test_the_constant_phi_verdict_is_recomputed_from_the_published_series():
     )
 
 
-def test_a_structural_break_is_excluded_by_name_and_still_reported():
+def test_a_structural_break_is_excluded_by_name_and_still_reported(monkeypatch):
     """MUTATION: drop 2022 from the scored set, or from `STRUCTURAL_BREAK_YEARS`, and this fires.
 
     Excluding a year from a headline is a judgement, and this repository's rule for one is that it
@@ -4458,40 +4496,43 @@ def test_a_structural_break_is_excluded_by_name_and_still_reported():
     exactly the scored set less the named breaks.
     """
     split = _split_module()
-    reading = _constant_phi()
-    breaks = reading["structural_breaks"]
-    assert breaks, "the structural-break register is empty; an exclusion with no reason is a drop."
-    scored = reading["year_sets"]["every_scored_year"]
-    headline = reading["year_sets"]["every_scored_year_less_structural_breaks"]
-    assert headline == [y for y in scored if y not in breaks], (
-        "the headline year set is not the scored set less exactly the NAMED breaks. Either a year "
-        "is being excluded without a reason or a named break is still in the headline."
-    )
-    for year_s, reason in breaks.items():
-        assert year_s in reading["per_year"], (
-            f"{year_s} is excluded from the headline and its own reading is not published. An "
-            f"exclusion the reader cannot check is an assertion."
+    changed = []
+    # On the QEP record no verdict turns on the break (2026-10-03); on a band with width one does.
+    for _source in _band_sources(monkeypatch):
+        reading = _constant_phi()
+        breaks = reading["structural_breaks"]
+        assert breaks, "the structural-break register is empty; an exclusion with no reason is a drop."
+        scored = reading["year_sets"]["every_scored_year"]
+        headline = reading["year_sets"]["every_scored_year_less_structural_breaks"]
+        assert headline == [y for y in scored if y not in breaks], (
+            "the headline year set is not the scored set less exactly the NAMED breaks. Either a year "
+            "is being excluded without a reason or a named break is still in the headline."
         )
-        assert reading["per_year"][year_s]["is_a_structural_break"], (
-            f"{year_s} is in the break register and its own row does not say so."
-        )
-        assert len(reason) > 80 and "." in reason, (
-            f"{year_s}'s exclusion reason is too short to be one."
-        )
-        for basis in split.BASES:
-            span = reading["per_year"][year_s][basis]["tenure_composed"]
-            assert span is not None, f"{year_s}/{basis}: the excluded year has no published span."
-    # AND THE EXCLUSION HAS TO MATTER. If the break years did not change the verdict there would be
-    # nothing to justify, and a register nobody's answer turns on is a register that will rot.
-    changed = [
-        (basis, band)
-        for basis in split.BASES
-        for band in reading["published_segment_bands"]
-        if reading["verdicts"][basis][band]["every_scored_year"]["is_non_empty"]
-        != reading["verdicts"][basis][band]["every_scored_year_less_structural_breaks"][
-            "is_non_empty"
+        for year_s, reason in breaks.items():
+            assert year_s in reading["per_year"], (
+                f"{year_s} is excluded from the headline and its own reading is not published. An "
+                f"exclusion the reader cannot check is an assertion."
+            )
+            assert reading["per_year"][year_s]["is_a_structural_break"], (
+                f"{year_s} is in the break register and its own row does not say so."
+            )
+            assert len(reason) > 80 and "." in reason, (
+                f"{year_s}'s exclusion reason is too short to be one."
+            )
+            for basis in split.BASES:
+                span = reading["per_year"][year_s][basis]["tenure_composed"]
+                assert span is not None, f"{year_s}/{basis}: the excluded year has no published span."
+        # AND THE EXCLUSION HAS TO MATTER. If the break years did not change the verdict there would be
+        # nothing to justify, and a register nobody's answer turns on is a register that will rot.
+        changed += [
+            (basis, band)
+            for basis in split.BASES
+            for band in reading["published_segment_bands"]
+            if reading["verdicts"][basis][band]["every_scored_year"]["is_non_empty"]
+            != reading["verdicts"][basis][band]["every_scored_year_less_structural_breaks"][
+                "is_non_empty"
+            ]
         ]
-    ]
     assert changed, (
         "excluding the structural break changes no verdict on any band or basis. Either the "
         "exclusion is doing nothing and should go, or the year sets have been wired to the same "
@@ -4499,7 +4540,7 @@ def test_a_structural_break_is_excluded_by_name_and_still_reported():
     )
 
 
-def test_the_mix_dependence_flag_is_derived_and_not_frozen():
+def test_the_mix_dependence_flag_is_derived_and_not_frozen(monkeypatch):
     """MUTATION: freeze `verdict_is_mix_dependent`, either way, and this fires.
 
     §11 built this flag and §12's one-phi reading never applied it to itself. §13's headline turns
@@ -4511,23 +4552,25 @@ def test_the_mix_dependence_flag_is_derived_and_not_frozen():
     year, where 2022 refuses on both bands -- so a constant of either polarity breaks this.
     """
     split = _split_module()
-    reading = _constant_phi()
     seen = set()
-    for basis in split.BASES:
-        flags = reading["verdicts"][basis]["verdict_is_mix_dependent"]
-        assert set(flags) == set(reading["year_sets"]), (
-            f"{basis}: the mix-dependence flag does not cover every year set."
-        )
-        for set_name, flag in flags.items():
-            expected = (
-                reading["verdicts"][basis]["tenure_composed"][set_name]["is_non_empty"]
-                != reading["verdicts"][basis]["mix_free_envelope"][set_name]["is_non_empty"]
+    # True is unreachable on the QEP record (2026-10-03); a band with width reaches it.
+    for _source in _band_sources(monkeypatch):
+        reading = _constant_phi()
+        for basis in split.BASES:
+            flags = reading["verdicts"][basis]["verdict_is_mix_dependent"]
+            assert set(flags) == set(reading["year_sets"]), (
+                f"{basis}: the mix-dependence flag does not cover every year set."
             )
-            assert flag == expected, (
-                f"{basis}/{set_name}: the mix-dependence flag disagrees with the two verdicts it "
-                f"is supposed to be derived from. It has been written down."
-            )
-            seen.add(flag)
+            for set_name, flag in flags.items():
+                expected = (
+                    reading["verdicts"][basis]["tenure_composed"][set_name]["is_non_empty"]
+                    != reading["verdicts"][basis]["mix_free_envelope"][set_name]["is_non_empty"]
+                )
+                assert flag == expected, (
+                    f"{basis}/{set_name}: the mix-dependence flag disagrees with the two verdicts it "
+                    f"is supposed to be derived from. It has been written down."
+                )
+                seen.add(flag)
     assert seen == {True, False}, (
         f"the mix-dependence flag takes only {seen} across every basis and year set, so a frozen "
         f"constant would satisfy every assertion above."
@@ -4573,7 +4616,7 @@ def test_the_constant_pair_sweep_reports_its_slack_and_not_only_its_verdict():
         ), f"{basis}: the constant-pair verdict disagrees with its own count."
 
 
-def test_a_pair_the_record_requires_no_move_from_is_not_counted_as_carried():
+def test_a_pair_the_record_requires_no_move_from_is_not_counted_as_carried(monkeypatch):
     """MUTATION: count every pair in the denominator and this fires.
 
     THE PASS BRANCH THAT COULD NOT FAIL, caught on this reading's first run and repaired rather
@@ -4587,40 +4630,42 @@ def test_a_pair_the_record_requires_no_move_from_is_not_counted_as_carried():
     named in the exclusion list, and the count must be over what is left.
     """
     split = _split_module()
-    carrying = _carrying()
     vacuous_seen = False
-    for band_name, by_basis in carrying["by_band"].items():
-        for basis in split.BASES:
-            cell = by_basis[basis]
-            pairs = cell["pairs"]
-            for name, pair in pairs.items():
-                lo, hi = pair["record_move_pp"]
-                requires = not (lo <= 0.0 <= hi)
-                assert pair["record_requires_a_move"] == requires, (
-                    f"{band_name}/{basis}/{name}: `record_requires_a_move` disagrees with whether "
-                    f"the record's own move interval {pair['record_move_pp']} contains zero."
-                )
-                if not requires:
-                    vacuous_seen = True
-                    assert name in cell["pairs_excluded_because_the_record_requires_no_move"], (
-                        f"{band_name}/{basis}/{name}: the record requires no move here and the "
-                        f"pair is not in the exclusion list. It will be counted as carried."
+    # A ~0.004pp QEP band requires a move from every pair (2026-10-03); a band with width does not.
+    for _source in _band_sources(monkeypatch):
+        carrying = _carrying()
+        for band_name, by_basis in carrying["by_band"].items():
+            for basis in split.BASES:
+                cell = by_basis[basis]
+                pairs = cell["pairs"]
+                for name, pair in pairs.items():
+                    lo, hi = pair["record_move_pp"]
+                    requires = not (lo <= 0.0 <= hi)
+                    assert pair["record_requires_a_move"] == requires, (
+                        f"{band_name}/{basis}/{name}: `record_requires_a_move` disagrees with whether "
+                        f"the record's own move interval {pair['record_move_pp']} contains zero."
                     )
-            judged = {
-                k: v for k, v in pairs.items()
-                if v["record_requires_a_move"] and not v["spans_a_gap"]
-            }
-            assert cell["n_pairs_judged"] == len(judged), (
-                f"{band_name}/{basis}: the denominator is not the set of pairs the record requires "
-                f"a move from and which do not span the 2020-2021 gap."
-            )
-            assert cell["n_pairs_the_share_series_can_carry"] == sum(
-                1 for v in judged.values() if v["share_can_carry"]
-            ), (
-                f"{band_name}/{basis}: the numerator counts pairs the denominator excludes, which "
-                f"is how a vacuous carry becomes evidence."
-            )
-            assert cell["n_pairs_the_share_series_can_carry"] <= cell["n_pairs_judged"]
+                    if not requires:
+                        vacuous_seen = True
+                        assert name in cell["pairs_excluded_because_the_record_requires_no_move"], (
+                            f"{band_name}/{basis}/{name}: the record requires no move here and the "
+                            f"pair is not in the exclusion list. It will be counted as carried."
+                        )
+                judged = {
+                    k: v for k, v in pairs.items()
+                    if v["record_requires_a_move"] and not v["spans_a_gap"]
+                }
+                assert cell["n_pairs_judged"] == len(judged), (
+                    f"{band_name}/{basis}: the denominator is not the set of pairs the record requires "
+                    f"a move from and which do not span the 2020-2021 gap."
+                )
+                assert cell["n_pairs_the_share_series_can_carry"] == sum(
+                    1 for v in judged.values() if v["share_can_carry"]
+                ), (
+                    f"{band_name}/{basis}: the numerator counts pairs the denominator excludes, which "
+                    f"is how a vacuous carry becomes evidence."
+                )
+                assert cell["n_pairs_the_share_series_can_carry"] <= cell["n_pairs_judged"]
     assert vacuous_seen, (
         "no pair in the whole reading has a record move interval containing zero, so the exclusion "
         "this leg holds is never exercised and a denominator over every pair would pass it."
@@ -4915,10 +4960,19 @@ def test_the_observed_mix_verdict_flips_when_an_observation_that_would_flip_it_i
             f"{basis}: the record no longer refuses at every observed mix over the fitted years. "
             f"That is §14's headline and it has moved -- report it, do not adjust this leg."
         )
-        assert cell["admits_only_outside_every_observed_mix"] is True, (
-            f"{basis}: the mix-free envelope no longer admits where every observed mix refuses."
-        )
         assert cell["the_verdict_is_the_same_at_every_observed_mix"] is True
+    # §14'S SECOND HEADLINE MOVED 2026-10-03 AND IS REPORTED, NOT ADJUSTED AWAY: on the QEP record
+    # the mix-free envelope REFUSES too, so "admits only outside every observed mix" is False live
+    # (the result file for the QEP re-fit says so). The injection below needs an envelope that
+    # admits, so it runs on a band with width, where the pre-injection state is the one it flips.
+    monkeypatch.setattr(split, "published_departure_band", lambda: dict(_A_BAND_WITH_WIDTH))
+    for basis, by_set in _turns_on_one_survey()["by_basis"].items():
+        cell = by_set["fitted_years"]
+        assert cell["refuses_at_every_observed_mix"] is True
+        assert cell["admits_only_outside_every_observed_mix"] is True, (
+            f"{basis}: on the band with width the mix-free envelope no longer admits where every "
+            f"observed mix refuses, so the injection below cannot reach the branch it flips."
+        )
 
     extreme = tuple(split.SVT_TENURE_OBSERVATIONS) + (
         split.TenureObservation(

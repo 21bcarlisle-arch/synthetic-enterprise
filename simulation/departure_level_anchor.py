@@ -240,14 +240,31 @@ NO_LEVEL_CORRECTION = 1.0
 #: standing-charge change did not move this fit. 2020, 2021 and 2024 now all stand above 17, on
 #: 8-12 renewal decisions each. The values are graded on capture D:
 #: `docs/staging/records/SEAT_PREREGISTRATION_THE_PB4_FOURTH_PASS_IN_THE_EX_VAT_STANDING_CHARGE_WORLD_2026-10-01.md`.
+#: ─────────────────────────────────────────────────────────────────────────────────────────────
+#: FIFTH AND SIXTH PASSES, 2026-10-03, AND THE TARGET ITSELF MOVED. The commons was re-sited from
+#: the refuted version-1 bands onto DESNZ QEP 2.7.1 (`gb_domestic_switching_rate.json` version 2),
+#: so every block above was fitted to a record the publisher contradicts in 8 of 10 years. The
+#: correction reaches the world twice: `market_departure_rate` (this fit's target) fell in every
+#: year but 2017, and `market_switching_multiplier`, a ratio over 2024, roughly doubled in
+#: 2017-2021 because 2024 fell the most. So the world departs harder before 2022 at ANY anchor,
+#: the book is smaller after it (2024: 49 accounts and 4 renewal decisions, against 65 and 12 under
+#: the fourth pass), and 2024's anchor ROSE although its target fell 16.1 -> 9.03.
+#: Captured E (new record, fourth-pass block), fitted, captured F, re-fitted 2021 and 2024 only
+#: (2017-2020 sat on target to 0.01pp), captured G. On G every fitted year is within 0.3pp of the
+#: record, which is under 0.15 of one expected departure on its book. 2023 now has NO renewal
+#: decisions in the capture and sits at its SVT floor, 4.52% against 6.33%, LOW, with no lever;
+#: its value is kept and multiplies nothing. 2024's 20.8 stands on 4 renewal decisions: the clamp
+#: carries more of the level than ever, and that is the rung-1 debt, stated. Captures and grades:
+#: `docs/staging/records/SEAT_PREREGISTRATION_THE_LEVEL_ANCHOR_REFIT_ONTO_DESNZ_QEP_2_7_1_2026-10-03.md`
+#: and its sibling result.
 YEAR_LEVEL_ANCHOR: dict[int, float] = {
-    2017: 6.990171,
-    2018: 5.269958,
-    2019: 8.583067,
-    2020: 19.550406,
-    2021: 18.474462,
+    2017: 6.202429,
+    2018: 4.295421,
+    2019: 8.081564,
+    2020: 8.402043,
+    2021: 7.733780,
     2023: 2.033232,
-    2024: 17.128306,
+    2024: 20.817509,
 }
 
 #: `{year inside the published record with no fitted anchor: WHY}`. This is the half of the
@@ -299,7 +316,9 @@ UNFITTED_YEARS: dict[int, str] = {
         "ANCHOR still does not reach `svt_inertia` -- `departure_risks`'s `CAUSE_SVT_INERTIA` line "
         "carries no `level_anchor`. THE FLOOR IS WHAT MOVED. `c628cb37d` gave `svt_inertia_hazard` "
         "a required `market_switching_multiplier`, and recomputed under that hazard its SVT floor "
-        "is 2.54% against a published 4.30% ceiling -- BELOW the target, not 7.8pp above it. THAT "
+        "was 2.54% against a published 4.30% ceiling -- BELOW the target, not 7.8pp above it. "
+        "Since the commons moved onto DESNZ QEP 2.7.1 (2026-10-03) the same rows give: SVT floor "
+        "is 1.94% against a published 3.06% ceiling -- still BELOW, so the conclusion stands. THAT "
         "FIGURE READ 2.34% UNTIL 2026-09-02 AND ITS CAPTURE WAS NOT COMMITTED: it was re-driven "
         "from `c2_departure_factors.json` paired with an UNTRACKED SVT sibling, which is why the "
         "leg holding it was green in one worktree and red at clean HEAD in every other. It is now "

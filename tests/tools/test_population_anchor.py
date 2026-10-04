@@ -240,7 +240,10 @@ def test_churn_by_year_includes_ofgem_multiplier():
     # OFGEM_SWITCHING_RATE_PCT_BY_YEAR[2016]/[2024] so its derivation control can assert equality;
     # a 2dp constant would be a hand-authored number that merely resembles the ratio.
     assert result[2016]["calibrated_multiplier"] == round(CALIBRATED_MULTIPLIER[2016], 2)
-    assert result[2016]["ofgem_benchmark_band_pct"] == [17.0, 17.6]
+    # KEYED TO THE COMMONS, not to a literal: the 17.0-17.6 pin went red when the commons moved
+    # onto DESNZ QEP 2.7.1 (2026-10-04), which is the band becoming more honest, not the code breaking.
+    from tools.measure_departure_level import published_bands
+    assert result[2016]["ofgem_benchmark_band_pct"] == list(published_bands()[2016])
 
 
 # ── CONTROLS FOR THE FAIL-CLOSED 2022 READS (d374b1977) ───────────────────────────────────────

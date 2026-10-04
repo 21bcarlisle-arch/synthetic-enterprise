@@ -51,19 +51,24 @@
  },
  "years_above_the_band_on_every_tenure_mix": {
   "as_published": [
-   "2017",
-   "2022"
+   "2018",
+   "2022",
+   "2023",
+   "2024",
+   "2025"
   ],
   "all_domestic": [
-   "2017",
-   "2022"
+   "2022",
+   "2023",
+   "2024",
+   "2025"
   ]
  },
  "per_year": {
   "2016": {
    "band_pct": [
-    17.0,
-    17.6
+    15.813,
+    15.818
    ],
    "as_published": {
     "default_tariff_share": [
@@ -72,16 +77,16 @@
     ],
     "admissible_svt_churn": {
      "at_phi_1": [
-      0.077273,
-      0.114865
+      0.059288,
+      0.090784
      ],
      "at_phi_0": [
-      0.22973,
-      0.266667
+      0.213689,
+      0.239667
      ],
      "admissible": [
-      0.077273,
-      0.266667
+      0.059288,
+      0.239667
      ],
      "record_refuses_phi_1": false
     },
@@ -91,10 +96,10 @@
       21.4192
      ],
      "band_pct": [
-      17.0,
-      17.6
+      15.813,
+      15.818
      ],
-     "verdict": "overlaps"
+     "verdict": "above"
     },
     "forward_at_phi_1_mix_free": {
      "composed_pct": [
@@ -102,22 +107,22 @@
       25.1
      ],
      "band_pct": [
-      17.0,
-      17.6
+      15.813,
+      15.818
      ],
      "verdict": "overlaps"
     },
     "phi_admitting_published_svt_band": [
      [
-      0.905946,
-      1.167792
+      0.806198,
+      0.971968
      ],
      [
-      0.628635,
-      0.761198
+      0.528887,
+      0.565374
      ]
     ],
-    "verdict_is_mix_dependent": false
+    "verdict_is_mix_dependent": true
    },
    "all_domestic": {
     "default_tariff_share": [
@@ -126,16 +131,16 @@
     ],
     "admissible_svt_churn": {
      "at_phi_1": [
-      0.077273,
-      0.114865
+      0.059288,
+      0.090784
      ],
      "at_phi_0": [
-      0.22973,
-      0.266667
+      0.213689,
+      0.239667
      ],
      "admissible": [
-      0.077273,
-      0.266667
+      0.059288,
+      0.239667
      ],
      "record_refuses_phi_1": false
     },
@@ -145,10 +150,10 @@
       21.4192
      ],
      "band_pct": [
-      17.0,
-      17.6
+      15.813,
+      15.818
      ],
-     "verdict": "overlaps"
+     "verdict": "above"
     },
     "forward_at_phi_1_mix_free": {
      "composed_pct": [
@@ -156,28 +161,28 @@
       25.1
      ],
      "band_pct": [
-      17.0,
-      17.6
+      15.813,
+      15.818
      ],
      "verdict": "overlaps"
     },
     "phi_admitting_published_svt_band": [
      [
-      0.905946,
-      1.167792
+      0.806198,
+      0.971968
      ],
      [
-      0.628635,
-      0.761198
+      0.528887,
+      0.565374
      ]
     ],
-    "verdict_is_mix_dependent": false
+    "verdict_is_mix_dependent": true
    }
   },
   "2017": {
    "band_pct": [
-    13.5,
-    14.0
+    18.192,
+    18.197
    ],
    "as_published": {
     "default_tariff_share": [
@@ -186,18 +191,18 @@
     ],
     "admissible_svt_churn": {
      "at_phi_1": [
-      -0.027193,
-      -0.005932
+      0.055123,
+      0.065203
      ],
      "at_phi_0": [
-      0.228814,
-      0.245614
+      0.308339,
+      0.319246
      ],
      "admissible": [
-      -0.027193,
-      0.245614
+      0.055123,
+      0.319246
      ],
-     "record_refuses_phi_1": true
+     "record_refuses_phi_1": false
     },
     "forward_at_phi_1": {
      "composed_pct": [
@@ -205,8 +210,8 @@
       23.2712
      ],
      "band_pct": [
-      13.5,
-      14.0
+      18.192,
+      18.197
      ],
      "verdict": "above"
     },
@@ -216,22 +221,22 @@
       26.45
      ],
      "band_pct": [
-      13.5,
-      14.0
+      18.192,
+      18.197
      ],
-     "verdict": "above"
+     "verdict": "overlaps"
     },
     "phi_admitting_published_svt_band": [
      [
-      0.540122,
-      0.588179
+      0.851883,
+      0.880653
      ],
      [
-      0.347761,
-      0.383976
+      0.662514,
+      0.675078
      ]
     ],
-    "verdict_is_mix_dependent": false
+    "verdict_is_mix_dependent": true
    },
    "all_domestic": {
     "default_tariff_share": [
@@ -240,16 +245,16 @@
     ],
     "admissible_svt_churn": {
      "at_phi_1": [
-      0.002946,
-      0.020071
+      0.078684,
+      0.086009
      ],
      "at_phi_0": [
-      0.212097,
-      0.225989
+      0.285813,
+      0.293737
      ],
      "admissible": [
-      0.002946,
-      0.225989
+      0.078684,
+      0.293737
      ],
      "record_refuses_phi_1": false
     },
@@ -259,8 +264,8 @@
       22.2526
      ],
      "band_pct": [
-      13.5,
-      14.0
+      18.192,
+      18.197
      ],
      "verdict": "above"
     },
@@ -270,28 +275,28 @@
       25.7075
      ],
      "band_pct": [
-      13.5,
-      14.0
+      18.192,
+      18.197
      ],
-     "verdict": "above"
+     "verdict": "overlaps"
     },
     "phi_admitting_published_svt_band": [
      [
-      0.575362,
-      0.62898
+      0.927681,
+      0.958868
      ],
      [
-      0.339532,
-      0.380318
+      0.695092,
+      0.708721
      ]
     ],
-    "verdict_is_mix_dependent": false
+    "verdict_is_mix_dependent": true
    }
   },
   "2018": {
    "band_pct": [
-    19.5,
-    20.0
+    19.062,
+    19.066
    ],
    "as_published": {
     "default_tariff_share": [
@@ -300,16 +305,16 @@
     ],
     "admissible_svt_churn": {
      "at_phi_1": [
-      0.057547,
-      0.066981
+      0.049283,
+      0.049358
      ],
      "at_phi_0": [
-      0.367925,
-      0.377358
+      0.35966,
+      0.359736
      ],
      "admissible": [
-      0.057547,
-      0.377358
+      0.049283,
+      0.359736
      ],
      "record_refuses_phi_1": false
     },
@@ -319,8 +324,8 @@
       24.0942
      ],
      "band_pct": [
-      19.5,
-      20.0
+      19.062,
+      19.066
      ],
      "verdict": "above"
     },
@@ -330,22 +335,22 @@
       27.05
      ],
      "band_pct": [
-      19.5,
-      20.0
+      19.062,
+      19.066
      ],
-     "verdict": "overlaps"
+     "verdict": "above"
     },
     "phi_admitting_published_svt_band": [
      [
-      0.881809,
-      0.912204
+      0.855183,
+      0.855426
      ],
      [
-      0.720715,
-      0.75111
+      0.694089,
+      0.694332
      ]
     ],
-    "verdict_is_mix_dependent": true
+    "verdict_is_mix_dependent": false
    },
    "all_domestic": {
     "default_tariff_share": [
@@ -354,16 +359,16 @@
     ],
     "admissible_svt_churn": {
      "at_phi_1": [
-      0.085269,
-      0.093809
+      0.077788,
+      0.077857
      ],
      "at_phi_0": [
-      0.333049,
-      0.341588
+      0.325568,
+      0.325636
      ],
      "admissible": [
-      0.085269,
-      0.341588
+      0.077788,
+      0.325636
      ],
      "record_refuses_phi_1": false
     },
@@ -373,8 +378,8 @@
       22.9522
      ],
      "band_pct": [
-      19.5,
-      20.0
+      19.062,
+      19.066
      ],
      "verdict": "above"
     },
@@ -384,19 +389,19 @@
       26.2175
      ],
      "band_pct": [
-      19.5,
-      20.0
+      19.062,
+      19.066
      ],
      "verdict": "overlaps"
     },
     "phi_admitting_published_svt_band": [
      [
-      0.963831,
-      0.998296
+      0.933639,
+      0.933915
      ],
      [
-      0.762039,
-      0.796504
+      0.731847,
+      0.732123
      ]
     ],
     "verdict_is_mix_dependent": true
@@ -404,8 +409,8 @@
   },
   "2019": {
    "band_pct": [
-    20.7,
-    21.3
+    20.82,
+    20.824
    ],
    "as_published": {
     "default_tariff_share": [
@@ -414,16 +419,16 @@
     ],
     "admissible_svt_churn": {
      "at_phi_1": [
-      0.069608,
-      0.091509
+      0.071961,
+      0.082528
      ],
      "at_phi_0": [
-      0.390566,
-      0.417647
+      0.39283,
+      0.408314
      ],
      "admissible": [
-      0.069608,
-      0.417647
+      0.071961,
+      0.408314
      ],
      "record_refuses_phi_1": false
     },
@@ -433,8 +438,8 @@
       24.5058
      ],
      "band_pct": [
-      20.7,
-      21.3
+      20.82,
+      20.824
      ],
      "verdict": "above"
     },
@@ -444,19 +449,19 @@
       27.35
      ],
      "band_pct": [
-      20.7,
-      21.3
+      20.82,
+      20.824
      ],
      "verdict": "overlaps"
     },
     "phi_admitting_published_svt_band": [
      [
-      0.926777,
-      0.991231
+      0.933774,
+      0.962295
      ],
      [
-      0.778089,
-      0.830137
+      0.785086,
+      0.801201
      ]
     ],
     "verdict_is_mix_dependent": true
@@ -468,16 +473,16 @@
     ],
     "admissible_svt_churn": {
      "at_phi_1": [
-      0.098461,
-      0.116012
+      0.100572,
+      0.107882
      ],
      "at_phi_0": [
-      0.353544,
-      0.37467
+      0.355594,
+      0.366297
      ],
      "admissible": [
-      0.098461,
-      0.37467
+      0.100572,
+      0.366297
      ],
      "record_refuses_phi_1": false
     },
@@ -487,8 +492,8 @@
       23.302
      ],
      "band_pct": [
-      20.7,
-      21.3
+      20.82,
+      20.824
      ],
      "verdict": "overlaps"
     },
@@ -498,19 +503,19 @@
       26.4725
      ],
      "band_pct": [
-      20.7,
-      21.3
+      20.82,
+      20.824
      ],
      "verdict": "overlaps"
     },
     "phi_admitting_published_svt_band": [
      [
-      1.015922,
-      1.087905
+      1.023868,
+      1.055094
      ],
      [
-      0.827709,
-      0.886112
+      0.835654,
+      0.853302
      ]
     ],
     "verdict_is_mix_dependent": false
@@ -518,8 +523,8 @@
   },
   "2022": {
    "band_pct": [
-    2.9,
-    4.3
+    3.053,
+    3.058
    ],
    "as_published": {
     "default_tariff_share": [
@@ -528,18 +533,18 @@
     ],
     "admissible_svt_churn": {
      "at_phi_1": [
-      -0.05125,
-      0.008889
+      -0.049337,
+      -0.004911
      ],
      "at_phi_0": [
-      0.032222,
-      0.05375
+      0.033922,
+      0.038225
      ],
      "admissible": [
-      -0.05125,
-      0.05375
+      -0.049337,
+      0.038225
      ],
-     "record_refuses_phi_1": false
+     "record_refuses_phi_1": true
     },
     "forward_at_phi_1": {
      "composed_pct": [
@@ -547,8 +552,8 @@
       18.5385
      ],
      "band_pct": [
-      2.9,
-      4.3
+      3.053,
+      3.058
      ],
      "verdict": "above"
     },
@@ -558,19 +563,19 @@
       23.0
      ],
      "band_pct": [
-      2.9,
-      4.3
+      3.053,
+      3.058
      ],
      "verdict": "above"
     },
     "phi_admitting_published_svt_band": [
      [
-      -1.594511,
-      -0.46264
+      -1.550797,
+      -0.640069
      ],
      [
-      -2.880226,
-      -1.034069
+      -2.836511,
+      -1.211497
      ]
     ],
     "verdict_is_mix_dependent": false
@@ -582,18 +587,18 @@
     ],
     "admissible_svt_churn": {
      "at_phi_1": [
-      -0.05125,
-      0.008889
+      -0.049337,
+      -0.004911
      ],
      "at_phi_0": [
-      0.032222,
-      0.05375
+      0.033922,
+      0.038225
      ],
      "admissible": [
-      -0.05125,
-      0.05375
+      -0.049337,
+      0.038225
      ],
-     "record_refuses_phi_1": false
+     "record_refuses_phi_1": true
     },
     "forward_at_phi_1": {
      "composed_pct": [
@@ -601,8 +606,8 @@
       18.5385
      ],
      "band_pct": [
-      2.9,
-      4.3
+      3.053,
+      3.058
      ],
      "verdict": "above"
     },
@@ -612,19 +617,19 @@
       23.0
      ],
      "band_pct": [
-      2.9,
-      4.3
+      3.053,
+      3.058
      ],
      "verdict": "above"
     },
     "phi_admitting_published_svt_band": [
      [
-      -1.594511,
-      -0.46264
+      -1.550797,
+      -0.640069
      ],
      [
-      -2.880226,
-      -1.034069
+      -2.836511,
+      -1.211497
      ]
     ],
     "verdict_is_mix_dependent": false
@@ -632,8 +637,8 @@
   },
   "2023": {
    "band_pct": [
-    8.9,
-    12.5
+    6.329,
+    6.334
    ],
    "as_published": {
     "default_tariff_share": [
@@ -642,16 +647,16 @@
     ],
     "admissible_svt_churn": {
      "at_phi_1": [
-      0.02375,
-      0.1
+      -0.008387,
+      0.031489
      ],
      "at_phi_0": [
-      0.098889,
-      0.15625
+      0.070322,
+      0.079175
      ],
      "admissible": [
-      0.02375,
-      0.15625
+      -0.008387,
+      0.079175
      ],
      "record_refuses_phi_1": false
     },
@@ -661,10 +666,10 @@
       18.5385
      ],
      "band_pct": [
-      8.9,
-      12.5
+      6.329,
+      6.334
      ],
-     "verdict": "overlaps"
+     "verdict": "above"
     },
     "forward_at_phi_1_mix_free": {
      "composed_pct": [
@@ -672,19 +677,19 @@
       23.0
      ],
      "band_pct": [
-      8.9,
-      12.5
+      6.329,
+      6.334
      ],
-     "verdict": "overlaps"
+     "verdict": "above"
     },
     "phi_admitting_published_svt_band": [
      [
-      0.119774,
-      1.148346
+      -0.614797,
+      -0.172069
      ],
      [
-      -1.16594,
-      0.13736
+      -1.900511,
+      -0.743497
      ]
     ],
     "verdict_is_mix_dependent": false
@@ -696,16 +701,16 @@
     ],
     "admissible_svt_churn": {
      "at_phi_1": [
-      0.02375,
-      0.1
+      -0.008387,
+      0.031489
      ],
      "at_phi_0": [
-      0.098889,
-      0.15625
+      0.070322,
+      0.079175
      ],
      "admissible": [
-      0.02375,
-      0.15625
+      -0.008387,
+      0.079175
      ],
      "record_refuses_phi_1": false
     },
@@ -715,10 +720,10 @@
       18.5385
      ],
      "band_pct": [
-      8.9,
-      12.5
+      6.329,
+      6.334
      ],
-     "verdict": "overlaps"
+     "verdict": "above"
     },
     "forward_at_phi_1_mix_free": {
      "composed_pct": [
@@ -726,19 +731,19 @@
       23.0
      ],
      "band_pct": [
-      8.9,
-      12.5
+      6.329,
+      6.334
      ],
-     "verdict": "overlaps"
+     "verdict": "above"
     },
     "phi_admitting_published_svt_band": [
      [
-      0.119774,
-      1.148346
+      -0.614797,
+      -0.172069
      ],
      [
-      -1.16594,
-      0.13736
+      -1.900511,
+      -0.743497
      ]
     ],
     "verdict_is_mix_dependent": false
@@ -746,8 +751,8 @@
   },
   "2024": {
    "band_pct": [
-    12.5,
-    16.1
+    9.026,
+    9.031
    ],
    "as_published": {
     "default_tariff_share": [
@@ -756,16 +761,16 @@
     ],
     "admissible_svt_churn": {
      "at_phi_1": [
-      0.06875,
-      0.130233
+      0.025325,
+      0.048035
      ],
      "at_phi_0": [
-      0.145349,
-      0.20125
+      0.104953,
+      0.112888
      ],
      "admissible": [
-      0.06875,
-      0.20125
+      0.025325,
+      0.112888
      ],
      "record_refuses_phi_1": false
     },
@@ -775,10 +780,10 @@
       18.5385
      ],
      "band_pct": [
-      12.5,
-      16.1
+      9.026,
+      9.031
      ],
-     "verdict": "overlaps"
+     "verdict": "above"
     },
     "forward_at_phi_1_mix_free": {
      "composed_pct": [
@@ -786,19 +791,19 @@
       23.0
      ],
      "band_pct": [
-      12.5,
-      16.1
+      9.026,
+      9.031
      ],
-     "verdict": "overlaps"
+     "verdict": "above"
     },
     "phi_admitting_published_svt_band": [
      [
-      0.708789,
-      1.631864
+      0.188191,
+      0.213217
      ],
      [
-      0.019619,
-      0.754313
+      -0.68936,
+      -0.358211
      ]
     ],
     "verdict_is_mix_dependent": false
@@ -810,16 +815,16 @@
     ],
     "admissible_svt_churn": {
      "at_phi_1": [
-      0.06875,
-      0.130233
+      0.025325,
+      0.048035
      ],
      "at_phi_0": [
-      0.145349,
-      0.20125
+      0.104953,
+      0.112888
      ],
      "admissible": [
-      0.06875,
-      0.20125
+      0.025325,
+      0.112888
      ],
      "record_refuses_phi_1": false
     },
@@ -829,10 +834,10 @@
       18.5385
      ],
      "band_pct": [
-      12.5,
-      16.1
+      9.026,
+      9.031
      ],
-     "verdict": "overlaps"
+     "verdict": "above"
     },
     "forward_at_phi_1_mix_free": {
      "composed_pct": [
@@ -840,19 +845,19 @@
       23.0
      ],
      "band_pct": [
-      12.5,
-      16.1
+      9.026,
+      9.031
      ],
-     "verdict": "overlaps"
+     "verdict": "above"
     },
     "phi_admitting_published_svt_band": [
      [
-      0.708789,
-      1.631864
+      0.188191,
+      0.213217
      ],
      [
-      0.019619,
-      0.754313
+      -0.68936,
+      -0.358211
      ]
     ],
     "verdict_is_mix_dependent": false
@@ -860,8 +865,8 @@
   },
   "2025": {
    "band_pct": [
-    14.3,
-    17.9
+    10.398,
+    10.402
    ],
    "as_published": {
     "default_tariff_share": [
@@ -870,18 +875,18 @@
     ],
     "admissible_svt_churn": {
      "at_phi_1": [
-      0.026563,
-      0.105714
+      -0.034406,
+      -0.0014
      ],
      "at_phi_0": [
-      0.204286,
-      0.279687
+      0.148543,
+      0.162531
      ],
      "admissible": [
-      0.026563,
-      0.279687
+      -0.034406,
+      0.162531
      ],
-     "record_refuses_phi_1": false
+     "record_refuses_phi_1": true
     },
     "forward_at_phi_1": {
      "composed_pct": [
@@ -889,10 +894,10 @@
       21.8308
      ],
      "band_pct": [
-      14.3,
-      17.9
+      10.398,
+      10.402
      ],
-     "verdict": "overlaps"
+     "verdict": "above"
     },
     "forward_at_phi_1_mix_free": {
      "composed_pct": [
@@ -900,19 +905,19 @@
       25.4
      ],
      "band_pct": [
-      14.3,
-      17.9
+      10.398,
+      10.402
      ],
-     "verdict": "overlaps"
+     "verdict": "above"
     },
     "phi_admitting_published_svt_band": [
      [
-      0.656287,
-      1.076555
+      0.346604,
+      0.36246
      ],
      [
-      0.400365,
-      0.743222
+      0.028746,
+      0.092954
      ]
     ],
     "verdict_is_mix_dependent": false
@@ -924,18 +929,18 @@
     ],
     "admissible_svt_churn": {
      "at_phi_1": [
-      0.026563,
-      0.105714
+      -0.034406,
+      -0.0014
      ],
      "at_phi_0": [
-      0.204286,
-      0.279687
+      0.148543,
+      0.162531
      ],
      "admissible": [
-      0.026563,
-      0.279687
+      -0.034406,
+      0.162531
      ],
-     "record_refuses_phi_1": false
+     "record_refuses_phi_1": true
     },
     "forward_at_phi_1": {
      "composed_pct": [
@@ -943,10 +948,10 @@
       21.8308
      ],
      "band_pct": [
-      14.3,
-      17.9
+      10.398,
+      10.402
      ],
-     "verdict": "overlaps"
+     "verdict": "above"
     },
     "forward_at_phi_1_mix_free": {
      "composed_pct": [
@@ -954,19 +959,19 @@
       25.4
      ],
      "band_pct": [
-      14.3,
-      17.9
+      10.398,
+      10.402
      ],
-     "verdict": "overlaps"
+     "verdict": "above"
     },
     "phi_admitting_published_svt_band": [
      [
-      0.656287,
-      1.076555
+      0.346604,
+      0.36246
      ],
      [
-      0.400365,
-      0.743222
+      0.028746,
+      0.092954
      ]
     ],
     "verdict_is_mix_dependent": false
@@ -976,107 +981,107 @@
  "where_the_worlds_point_falls": {
   "source": "docs/reports/svt_route_shortfall_decomposition.json",
   "measured_at_anchor": 1.0,
-  "world_level_digest": "cf823b185f8ca51c",
+  "world_level_digest": "cdba75ebb9197b33",
   "per_year": {
    "2017": {
-    "world_hazard": 0.132341,
-    "required_hazard_at_band_low": 0.245661,
+    "world_hazard": 0.189071,
+    "required_hazard_at_band_low": 0.394352,
     "as_published": {
      "admissible_svt_churn": [
-      -0.027193,
-      0.245614
+      0.055123,
+      0.319246
      ],
      "phi_admitting_world": [
-      0.395785,
-      0.43149
+      0.49037,
+      0.49302
      ],
      "phi_admitting_required": [
-      -0.069268,
-      -0.000178
+      -0.353642,
+      -0.284456
      ]
     },
     "all_domestic": {
      "admissible_svt_churn": [
-      0.002946,
-      0.225989
+      0.078684,
+      0.293737
      ],
      "phi_admitting_world": [
-      0.398083,
-      0.438318
+      0.483995,
+      0.486882
      ],
      "phi_admitting_required": [
-      -0.167917,
-      -0.091511
+      -0.543015,
+      -0.468039
      ]
     }
    },
    "2018": {
-    "world_hazard": 0.191864,
-    "required_hazard_at_band_low": 0.284477,
+    "world_hazard": 0.201202,
+    "required_hazard_at_band_low": 0.279759,
     "as_published": {
      "admissible_svt_churn": [
-      0.057547,
-      0.377358
+      0.049283,
+      0.359736
      ],
      "phi_admitting_world": [
-      0.567247,
-      0.597642
+      0.510535,
+      0.510778
      ],
      "phi_admitting_required": [
-      0.268858,
-      0.299253
+      0.257433,
+      0.257676
      ]
     },
     "all_domestic": {
      "admissible_svt_churn": [
-      0.085269,
-      0.341588
+      0.077788,
+      0.325636
      ],
      "phi_admitting_world": [
-      0.569799,
-      0.604264
+      0.501921,
+      0.502197
      ],
      "phi_admitting_required": [
-      0.196028,
-      0.230493
+      0.184878,
+      0.185153
      ]
     }
    },
    "2019": {
-    "world_hazard": 0.193414,
-    "required_hazard_at_band_low": 0.29427,
+    "world_hazard": 0.213029,
+    "required_hazard_at_band_low": 0.30746,
     "as_published": {
      "admissible_svt_churn": [
-      0.069608,
-      0.417647
+      0.071961,
+      0.408314
      ],
      "phi_admitting_world": [
-      0.63183,
-      0.671675
+      0.579299,
+      0.58073
      ],
      "phi_admitting_required": [
-      0.310255,
-      0.366894
+      0.275053,
+      0.299915
      ]
     },
     "all_domestic": {
      "admissible_svt_churn": [
-      0.098461,
-      0.37467
+      0.100572,
+      0.366297
      ],
      "phi_admitting_world": [
-      0.64257,
-      0.687617
+      0.575368,
+      0.576944
      ],
      "phi_admitting_required": [
-      0.239221,
-      0.302649
+      0.194259,
+      0.22148
      ]
     }
    },
    "2020": {
-    "world_hazard": 0.185288,
-    "required_hazard_at_band_low": 0.321194,
+    "world_hazard": 0.173838,
+    "required_hazard_at_band_low": 0.305997,
     "as_published": {
      "admissible_svt_churn": null,
      "phi_admitting_world": null,
@@ -1089,8 +1094,8 @@
     }
    },
    "2021": {
-    "world_hazard": 0.134461,
-    "required_hazard_at_band_low": 0.232355,
+    "world_hazard": 0.112824,
+    "required_hazard_at_band_low": 0.217568,
     "as_published": {
      "admissible_svt_churn": null,
      "phi_admitting_world": null,
@@ -1103,34 +1108,34 @@
     }
    },
    "2024": {
-    "world_hazard": 0.103065,
-    "required_hazard_at_band_low": 0.156172,
+    "world_hazard": 0.063114,
+    "required_hazard_at_band_low": 0.134275,
     "as_published": {
      "admissible_svt_churn": [
-      0.06875,
-      0.20125
+      0.025325,
+      0.112888
      ],
      "phi_admitting_world": [
-      0.607829,
-      1.476818
+      0.568126,
+      0.735346
      ],
      "phi_admitting_required": [
-      -0.189958,
-      0.544736
+      -0.514622,
+      -0.244429
      ]
     },
     "all_domestic": {
      "admissible_svt_churn": [
-      0.06875,
-      0.20125
+      0.025325,
+      0.112888
      ],
      "phi_admitting_world": [
-      0.607829,
-      1.476818
+      0.568126,
+      0.735346
      ],
      "phi_admitting_required": [
-      -0.189958,
-      0.544736
+      -0.514622,
+      -0.244429
      ]
     }
    }
@@ -1144,7 +1149,7 @@
    "share_and_still_required_multiple": "docs/reports/svt_composition_vs_published.json"
   },
   "measured_at_anchor": 1.0,
-  "world_level_digest": "cf823b185f8ca51c",
+  "world_level_digest": "cdba75ebb9197b33",
   "headline_accounting": "renewal_rescaled",
   "years_measurable": [
    "2017",
@@ -1167,104 +1172,104 @@
      "renewal_rescaled": {
       "years": {
        "2017": [
-        0.064841,
-        0.099684
+        0.091271,
+        0.091657
        ],
        "2018": [
-        0.125446,
-        0.155841
+        0.124762,
+        0.125005
        ],
        "2019": [
-        0.093989,
-        0.130463
+        0.081871,
+        0.082141
        ],
        "2024": [
-        0.070594,
-        0.805351
+        0.023474,
+        0.02453
        ]
       },
       "intersection": [
-       0.125446,
-       0.099684
+       0.124762,
+       0.02453
       ],
       "is_non_empty": false
      },
      "renewal_held": {
       "years": {
        "2017": [
-        0.07485,
-        0.113396
+        0.124479,
+        0.130876
        ],
        "2018": [
-        0.099297,
-        0.129692
+        0.100257,
+        0.1005
        ],
        "2019": [
-        0.064026,
-        0.103232
+        0.059509,
+        0.062236
        ],
        "2024": [
-        0.083783,
-        0.854371
+        0.040994,
+        0.059632
        ]
       },
       "intersection": [
-       0.099297,
-       0.103232
+       0.124479,
+       0.059632
       ],
-      "is_non_empty": true
+      "is_non_empty": false
      }
     },
     "all_domestic": {
      "renewal_rescaled": {
       "years": {
        "2017": [
-        0.064849,
-        0.104156
+        0.09125,
+        0.091647
        ],
        "2018": [
-        0.125485,
-        0.15995
+        0.124739,
+        0.125015
        ],
        "2019": [
-        0.093976,
-        0.135353
+        0.081869,
+        0.082171
        ],
        "2024": [
-        0.070594,
-        0.805351
+        0.023474,
+        0.02453
        ]
       },
       "intersection": [
-       0.125485,
-       0.104156
+       0.124739,
+       0.02453
       ],
       "is_non_empty": false
      },
      "renewal_held": {
       "years": {
        "2017": [
-        0.08461,
-        0.12786
+        0.14068,
+        0.147645
        ],
        "2018": [
-        0.112631,
-        0.147096
+        0.113693,
+        0.113969
        ],
        "2019": [
-        0.072715,
-        0.117086
+        0.067553,
+        0.070627
        ],
        "2024": [
-        0.083783,
-        0.854371
+        0.040994,
+        0.059632
        ]
       },
       "intersection": [
-       0.112631,
-       0.117086
+       0.14068,
+       0.059632
       ],
-      "is_non_empty": true
+      "is_non_empty": false
      }
     }
    },
@@ -1272,50 +1277,50 @@
     "as_published": {
      "years": {
       "2017": [
-       0.395785,
-       0.43149
+       0.49037,
+       0.49302
       ],
       "2018": [
-       0.567247,
-       0.597642
+       0.510535,
+       0.510778
       ],
       "2019": [
-       0.63183,
-       0.671675
+       0.579299,
+       0.58073
       ],
       "2024": [
-       0.607829,
-       1.476818
+       0.568126,
+       0.735346
       ]
      },
      "intersection": [
-      0.63183,
-      0.43149
+      0.579299,
+      0.49302
      ],
      "is_non_empty": false
     },
     "all_domestic": {
      "years": {
       "2017": [
-       0.398083,
-       0.438318
+       0.483995,
+       0.486882
       ],
       "2018": [
-       0.569799,
-       0.604264
+       0.501921,
+       0.502197
       ],
       "2019": [
-       0.64257,
-       0.687617
+       0.575368,
+       0.576944
       ],
       "2024": [
-       0.607829,
-       1.476818
+       0.568126,
+       0.735346
       ]
      },
      "intersection": [
-      0.64257,
-      0.438318
+      0.575368,
+      0.486882
      ],
      "is_non_empty": false
     }
@@ -1323,52 +1328,54 @@
   },
   "years_the_mixed_pair_refused_and_the_joint_pair_admits": {
    "as_published": [
-    "2017"
+    "2017",
+    "2024"
    ],
    "all_domestic": [
-    "2017"
+    "2017",
+    "2024"
    ]
   },
   "per_year": {
    "2017": {
-    "world_hazard": 0.132341,
-    "required_hazard_holding_the_worlds_share_fixed": 0.245661,
-    "world_svt_account_day_share": 0.5037,
+    "world_hazard": 0.189071,
+    "required_hazard_holding_the_worlds_share_fixed": 0.394352,
+    "world_svt_account_day_share": 0.4138,
     "band_pct": [
-     13.5,
-     14.0
+     18.192,
+     18.197
     ],
     "as_published": {
      "at_published_low": {
       "published_svt_account_day_share": 0.57,
-      "composition_multiple": 1.1317,
+      "composition_multiple": 1.3774,
       "admissible_svt_churn_at_this_share": [
-       -0.027193,
-       0.245614
+       0.055123,
+       0.319246
       ],
       "phi_admitting_the_worlds_current_hazard": [
-       0.395785,
-       0.429008
+       0.492688,
+       0.49302
       ],
       "accountings": {
        "renewal_rescaled": {
-        "hazard_multiple_still_required": 1.6602,
-        "joint_required_hazard": 0.219713,
+        "hazard_multiple_still_required": 1.5605,
+        "joint_required_hazard": 0.295045,
         "joint_hazard_is_admissible": true,
         "phi_admitting_joint": [
-         0.064874,
-         0.098097
+         0.091325,
+         0.091657
         ],
         "record_refuses_the_joint_pair": false,
         "record_needs_more_than_the_fixed_route_can_supply": false
        },
        "renewal_held": {
-        "hazard_multiple_still_required": 1.6403,
-        "joint_required_hazard": 0.217079,
+        "hazard_multiple_still_required": 1.5142,
+        "joint_required_hazard": 0.286291,
         "joint_hazard_is_admissible": true,
         "phi_admitting_joint": [
-         0.07485,
-         0.108073
+         0.124479,
+         0.124811
         ],
         "record_refuses_the_joint_pair": false,
         "record_needs_more_than_the_fixed_route_can_supply": false
@@ -1377,34 +1384,34 @@
      },
      "at_published_high": {
       "published_svt_account_day_share": 0.59,
-      "composition_multiple": 1.1714,
+      "composition_multiple": 1.4257,
       "admissible_svt_churn_at_this_share": [
-       -0.014407,
-       0.237288
+       0.065119,
+       0.308424
       ],
       "phi_admitting_the_worlds_current_hazard": [
-       0.396647,
-       0.43149
+       0.49037,
+       0.490719
       ],
       "accountings": {
        "renewal_rescaled": {
-        "hazard_multiple_still_required": 1.6098,
-        "joint_required_hazard": 0.213043,
+        "hazard_multiple_still_required": 1.5134,
+        "joint_required_hazard": 0.28614,
         "joint_hazard_is_admissible": true,
         "phi_admitting_joint": [
-         0.064841,
-         0.099684
+         0.091271,
+         0.09162
         ],
         "record_refuses_the_joint_pair": false,
         "record_needs_more_than_the_fixed_route_can_supply": false
        },
        "renewal_held": {
-        "hazard_multiple_still_required": 1.5846,
-        "joint_required_hazard": 0.209708,
+        "hazard_multiple_still_required": 1.4629,
+        "joint_required_hazard": 0.276592,
         "joint_hazard_is_admissible": true,
         "phi_admitting_joint": [
-         0.078552,
-         0.113396
+         0.130528,
+         0.130876
         ],
         "record_refuses_the_joint_pair": false,
         "record_needs_more_than_the_fixed_route_can_supply": false
@@ -1415,34 +1422,34 @@
     "all_domestic": {
      "at_published_low": {
       "published_svt_account_day_share": 0.6195,
-      "composition_multiple": 1.23,
+      "composition_multiple": 1.497,
       "admissible_svt_churn_at_this_share": [
-       0.002946,
-       0.225989
+       0.078684,
+       0.293737
       ],
       "phi_admitting_the_worlds_current_hazard": [
-       0.398083,
-       0.435628
+       0.486507,
+       0.486882
       ],
       "accountings": {
        "renewal_rescaled": {
-        "hazard_multiple_still_required": 1.5413,
-        "joint_required_hazard": 0.203977,
+        "hazard_multiple_still_required": 1.4494,
+        "joint_required_hazard": 0.27404,
         "joint_hazard_is_admissible": true,
         "phi_admitting_joint": [
-         0.064849,
-         0.102393
+         0.09125,
+         0.091625
         ],
         "record_refuses_the_joint_pair": false,
         "record_needs_more_than_the_fixed_route_can_supply": false
        },
        "renewal_held": {
-        "hazard_multiple_still_required": 1.5092,
-        "joint_required_hazard": 0.199729,
+        "hazard_multiple_still_required": 1.3932,
+        "joint_required_hazard": 0.263414,
         "joint_hazard_is_admissible": true,
         "phi_admitting_joint": [
-         0.08461,
-         0.122154
+         0.14068,
+         0.141055
         ],
         "record_refuses_the_joint_pair": false,
         "record_needs_more_than_the_fixed_route_can_supply": false
@@ -1451,34 +1458,34 @@
      },
      "at_published_high": {
       "published_svt_account_day_share": 0.6365,
-      "composition_multiple": 1.2637,
+      "composition_multiple": 1.5381,
       "admissible_svt_churn_at_this_share": [
-       0.012215,
-       0.219953
+       0.085931,
+       0.285892
       ],
       "phi_admitting_the_worlds_current_hazard": [
-       0.399017,
-       0.438318
+       0.483995,
+       0.484388
       ],
       "accountings": {
        "renewal_rescaled": {
-        "hazard_multiple_still_required": 1.5047,
-        "joint_required_hazard": 0.199134,
+        "hazard_multiple_still_required": 1.4152,
+        "joint_required_hazard": 0.267573,
         "joint_hazard_is_admissible": true,
         "phi_admitting_joint": [
-         0.064855,
-         0.104156
+         0.091254,
+         0.091647
         ],
         "record_refuses_the_joint_pair": false,
         "record_needs_more_than_the_fixed_route_can_supply": false
        },
        "renewal_held": {
-        "hazard_multiple_still_required": 1.4689,
-        "joint_required_hazard": 0.194396,
+        "hazard_multiple_still_required": 1.356,
+        "joint_required_hazard": 0.25638,
         "joint_hazard_is_admissible": true,
         "phi_admitting_joint": [
-         0.088559,
-         0.12786
+         0.147252,
+         0.147645
         ],
         "record_refuses_the_joint_pair": false,
         "record_needs_more_than_the_fixed_route_can_supply": false
@@ -1488,44 +1495,44 @@
     }
    },
    "2018": {
-    "world_hazard": 0.191864,
-    "required_hazard_holding_the_worlds_share_fixed": 0.284477,
-    "world_svt_account_day_share": 0.628,
+    "world_hazard": 0.201202,
+    "required_hazard_holding_the_worlds_share_fixed": 0.279759,
+    "world_svt_account_day_share": 0.6224,
     "band_pct": [
-     19.5,
-     20.0
+     19.062,
+     19.066
     ],
     "as_published": {
      "at_published_low": {
       "published_svt_account_day_share": 0.53,
-      "composition_multiple": 0.8439,
+      "composition_multiple": 0.8515,
       "admissible_svt_churn_at_this_share": [
-       0.057547,
-       0.377358
+       0.049283,
+       0.359736
       ],
       "phi_admitting_the_worlds_current_hazard": [
-       0.567247,
-       0.597642
+       0.510535,
+       0.510778
       ],
       "accountings": {
        "renewal_rescaled": {
-        "hazard_multiple_still_required": 1.7147,
-        "joint_required_hazard": 0.328989,
+        "hazard_multiple_still_required": 1.5951,
+        "joint_required_hazard": 0.320937,
         "joint_hazard_is_admissible": true,
         "phi_admitting_joint": [
-         0.125446,
-         0.155841
+         0.124762,
+         0.125005
         ],
         "record_refuses_the_joint_pair": false,
         "record_needs_more_than_the_fixed_route_can_supply": false
        },
        "renewal_held": {
-        "hazard_multiple_still_required": 1.757,
-        "joint_required_hazard": 0.337105,
+        "hazard_multiple_still_required": 1.6329,
+        "joint_required_hazard": 0.328543,
         "joint_hazard_is_admissible": true,
         "phi_admitting_joint": [
-         0.099297,
-         0.129692
+         0.100257,
+         0.1005
         ],
         "record_refuses_the_joint_pair": false,
         "record_needs_more_than_the_fixed_route_can_supply": false
@@ -1534,34 +1541,34 @@
      },
      "at_published_high": {
       "published_svt_account_day_share": 0.53,
-      "composition_multiple": 0.8439,
+      "composition_multiple": 0.8515,
       "admissible_svt_churn_at_this_share": [
-       0.057547,
-       0.377358
+       0.049283,
+       0.359736
       ],
       "phi_admitting_the_worlds_current_hazard": [
-       0.567247,
-       0.597642
+       0.510535,
+       0.510778
       ],
       "accountings": {
        "renewal_rescaled": {
-        "hazard_multiple_still_required": 1.7147,
-        "joint_required_hazard": 0.328989,
+        "hazard_multiple_still_required": 1.5951,
+        "joint_required_hazard": 0.320937,
         "joint_hazard_is_admissible": true,
         "phi_admitting_joint": [
-         0.125446,
-         0.155841
+         0.124762,
+         0.125005
         ],
         "record_refuses_the_joint_pair": false,
         "record_needs_more_than_the_fixed_route_can_supply": false
        },
        "renewal_held": {
-        "hazard_multiple_still_required": 1.757,
-        "joint_required_hazard": 0.337105,
+        "hazard_multiple_still_required": 1.6329,
+        "joint_required_hazard": 0.328543,
         "joint_hazard_is_admissible": true,
         "phi_admitting_joint": [
-         0.099297,
-         0.129692
+         0.100257,
+         0.1005
         ],
         "record_refuses_the_joint_pair": false,
         "record_needs_more_than_the_fixed_route_can_supply": false
@@ -1572,34 +1579,34 @@
     "all_domestic": {
      "at_published_low": {
       "published_svt_account_day_share": 0.5855,
-      "composition_multiple": 0.9323,
+      "composition_multiple": 0.9407,
       "admissible_svt_churn_at_this_share": [
-       0.085269,
-       0.341588
+       0.077788,
+       0.325636
       ],
       "phi_admitting_the_worlds_current_hazard": [
-       0.569799,
-       0.604264
+       0.501921,
+       0.502197
       ],
       "accountings": {
        "renewal_rescaled": {
-        "hazard_multiple_still_required": 1.5738,
-        "joint_required_hazard": 0.301956,
+        "hazard_multiple_still_required": 1.4645,
+        "joint_required_hazard": 0.29466,
         "joint_hazard_is_admissible": true,
         "phi_admitting_joint": [
-         0.125485,
-         0.15995
+         0.124739,
+         0.125015
         ],
         "record_refuses_the_joint_pair": false,
         "record_needs_more_than_the_fixed_route_can_supply": false
        },
        "renewal_held": {
-        "hazard_multiple_still_required": 1.5904,
-        "joint_required_hazard": 0.305141,
+        "hazard_multiple_still_required": 1.4781,
+        "joint_required_hazard": 0.297397,
         "joint_hazard_is_admissible": true,
         "phi_admitting_joint": [
-         0.112631,
-         0.147096
+         0.113693,
+         0.113969
         ],
         "record_refuses_the_joint_pair": false,
         "record_needs_more_than_the_fixed_route_can_supply": false
@@ -1608,34 +1615,34 @@
      },
      "at_published_high": {
       "published_svt_account_day_share": 0.5855,
-      "composition_multiple": 0.9323,
+      "composition_multiple": 0.9407,
       "admissible_svt_churn_at_this_share": [
-       0.085269,
-       0.341588
+       0.077788,
+       0.325636
       ],
       "phi_admitting_the_worlds_current_hazard": [
-       0.569799,
-       0.604264
+       0.501921,
+       0.502197
       ],
       "accountings": {
        "renewal_rescaled": {
-        "hazard_multiple_still_required": 1.5738,
-        "joint_required_hazard": 0.301956,
+        "hazard_multiple_still_required": 1.4645,
+        "joint_required_hazard": 0.29466,
         "joint_hazard_is_admissible": true,
         "phi_admitting_joint": [
-         0.125485,
-         0.15995
+         0.124739,
+         0.125015
         ],
         "record_refuses_the_joint_pair": false,
         "record_needs_more_than_the_fixed_route_can_supply": false
        },
        "renewal_held": {
-        "hazard_multiple_still_required": 1.5904,
-        "joint_required_hazard": 0.305141,
+        "hazard_multiple_still_required": 1.4781,
+        "joint_required_hazard": 0.297397,
         "joint_hazard_is_admissible": true,
         "phi_admitting_joint": [
-         0.112631,
-         0.147096
+         0.113693,
+         0.113969
         ],
         "record_refuses_the_joint_pair": false,
         "record_needs_more_than_the_fixed_route_can_supply": false
@@ -1645,44 +1652,44 @@
     }
    },
    "2019": {
-    "world_hazard": 0.193414,
-    "required_hazard_holding_the_worlds_share_fixed": 0.29427,
-    "world_svt_account_day_share": 0.6661,
+    "world_hazard": 0.213029,
+    "required_hazard_holding_the_worlds_share_fixed": 0.30746,
+    "world_svt_account_day_share": 0.644,
     "band_pct": [
-     20.7,
-     21.3
+     20.82,
+     20.824
     ],
     "as_published": {
      "at_published_low": {
       "published_svt_account_day_share": 0.51,
-      "composition_multiple": 0.7656,
+      "composition_multiple": 0.792,
       "admissible_svt_churn_at_this_share": [
-       0.069608,
-       0.417647
+       0.071961,
+       0.408314
       ],
       "phi_admitting_the_worlds_current_hazard": [
-       0.63183,
-       0.666816
+       0.580497,
+       0.58073
       ],
       "accountings": {
        "renewal_rescaled": {
-        "hazard_multiple_still_required": 1.9351,
-        "joint_required_hazard": 0.374275,
+        "hazard_multiple_still_required": 1.7871,
+        "joint_required_hazard": 0.380704,
         "joint_hazard_is_admissible": true,
         "phi_admitting_joint": [
-         0.093993,
-         0.128978
+         0.081871,
+         0.082105
         ],
         "record_refuses_the_joint_pair": false,
         "record_needs_more_than_the_fixed_route_can_supply": false
        },
        "renewal_held": {
-        "hazard_multiple_still_required": 1.9872,
-        "joint_required_hazard": 0.384352,
+        "hazard_multiple_still_required": 1.8224,
+        "joint_required_hazard": 0.388224,
         "joint_hazard_is_admissible": true,
         "phi_admitting_joint": [
-         0.064026,
-         0.099012
+         0.059509,
+         0.059742
         ],
         "record_refuses_the_joint_pair": false,
         "record_needs_more_than_the_fixed_route_can_supply": false
@@ -1691,34 +1698,34 @@
      },
      "at_published_high": {
       "published_svt_account_day_share": 0.53,
-      "composition_multiple": 0.7957,
+      "composition_multiple": 0.823,
       "admissible_svt_churn_at_this_share": [
-       0.080189,
-       0.401887
+       0.082453,
+       0.392906
       ],
       "phi_admitting_the_worlds_current_hazard": [
-       0.635201,
-       0.671675
+       0.579299,
+       0.579542
       ],
       "accountings": {
        "renewal_rescaled": {
-        "hazard_multiple_still_required": 1.8685,
-        "joint_required_hazard": 0.361394,
+        "hazard_multiple_still_required": 1.7247,
+        "joint_required_hazard": 0.367411,
         "joint_hazard_is_admissible": true,
         "phi_admitting_joint": [
-         0.093989,
-         0.130463
+         0.081898,
+         0.082141
         ],
         "record_refuses_the_joint_pair": false,
         "record_needs_more_than_the_fixed_route_can_supply": false
        },
        "renewal_held": {
-        "hazard_multiple_still_required": 1.9122,
-        "joint_required_hazard": 0.369846,
+        "hazard_multiple_still_required": 1.7537,
+        "joint_required_hazard": 0.373589,
         "joint_hazard_is_admissible": true,
         "phi_admitting_joint": [
-         0.066758,
-         0.103232
+         0.061993,
+         0.062236
         ],
         "record_refuses_the_joint_pair": false,
         "record_needs_more_than_the_fixed_route_can_supply": false
@@ -1729,34 +1736,34 @@
     "all_domestic": {
      "at_published_low": {
       "published_svt_account_day_share": 0.5685,
-      "composition_multiple": 0.8535,
+      "composition_multiple": 0.8828,
       "admissible_svt_churn_at_this_share": [
-       0.098461,
-       0.37467
+       0.100572,
+       0.366297
       ],
       "phi_admitting_the_worlds_current_hazard": [
-       0.64257,
-       0.682299
+       0.576679,
+       0.576944
       ],
       "accountings": {
        "renewal_rescaled": {
-        "hazard_multiple_still_required": 1.7535,
-        "joint_required_hazard": 0.339151,
+        "hazard_multiple_still_required": 1.617,
+        "joint_required_hazard": 0.344468,
         "joint_hazard_is_admissible": true,
         "phi_admitting_joint": [
-         0.093976,
-         0.133704
+         0.081907,
+         0.082171
         ],
         "record_refuses_the_joint_pair": false,
         "record_needs_more_than_the_fixed_route_can_supply": false
        },
        "renewal_held": {
-        "hazard_multiple_still_required": 1.7827,
-        "joint_required_hazard": 0.344799,
+        "hazard_multiple_still_required": 1.6349,
+        "joint_required_hazard": 0.348281,
         "joint_hazard_is_admissible": true,
         "phi_admitting_joint": [
-         0.072715,
-         0.112443
+         0.067553,
+         0.067818
         ],
         "record_refuses_the_joint_pair": false,
         "record_needs_more_than_the_fixed_route_can_supply": false
@@ -1765,34 +1772,34 @@
      },
      "at_published_high": {
       "published_svt_account_day_share": 0.5855,
-      "composition_multiple": 0.879,
+      "composition_multiple": 0.9092,
       "admissible_svt_churn_at_this_share": [
-       0.105764,
-       0.363792
+       0.107814,
+       0.355662
       ],
       "phi_admitting_the_worlds_current_hazard": [
-       0.64626,
-       0.687617
+       0.575368,
+       0.575644
       ],
       "accountings": {
        "renewal_rescaled": {
-        "hazard_multiple_still_required": 1.7075,
-        "joint_required_hazard": 0.330254,
+        "hazard_multiple_still_required": 1.574,
+        "joint_required_hazard": 0.335308,
         "joint_hazard_is_admissible": true,
         "phi_admitting_joint": [
-         0.093995,
-         0.135353
+         0.081869,
+         0.082145
         ],
         "record_refuses_the_joint_pair": false,
         "record_needs_more_than_the_fixed_route_can_supply": false
        },
        "renewal_held": {
-        "hazard_multiple_still_required": 1.7309,
-        "joint_required_hazard": 0.33478,
+        "hazard_multiple_still_required": 1.5874,
+        "joint_required_hazard": 0.338162,
         "joint_hazard_is_admissible": true,
         "phi_admitting_joint": [
-         0.075728,
-         0.117086
+         0.070351,
+         0.070627
         ],
         "record_refuses_the_joint_pair": false,
         "record_needs_more_than_the_fixed_route_can_supply": false
@@ -1802,44 +1809,44 @@
     }
    },
    "2024": {
-    "world_hazard": 0.103065,
-    "required_hazard_holding_the_worlds_share_fixed": 0.156172,
-    "world_svt_account_day_share": 0.7628,
+    "world_hazard": 0.063114,
+    "required_hazard_holding_the_worlds_share_fixed": 0.134275,
+    "world_svt_account_day_share": 0.6508,
     "band_pct": [
-     12.5,
-     16.1
+     9.026,
+     9.031
     ],
     "as_published": {
      "at_published_low": {
       "published_svt_account_day_share": 0.8,
-      "composition_multiple": 1.0487,
+      "composition_multiple": 1.2292,
       "admissible_svt_churn_at_this_share": [
-       0.06875,
-       0.20125
+       0.025325,
+       0.112888
       ],
       "phi_admitting_the_worlds_current_hazard": [
-       0.607829,
-       1.122114
+       0.568126,
+       0.56884
       ],
       "accountings": {
        "renewal_rescaled": {
-        "hazard_multiple_still_required": 1.4561,
-        "joint_required_hazard": 0.150073,
+        "hazard_multiple_still_required": 1.7551,
+        "joint_required_hazard": 0.110771,
         "joint_hazard_is_admissible": true,
         "phi_admitting_joint": [
-         0.070594,
-         0.58488
+         0.023474,
+         0.024189
         ],
         "record_refuses_the_joint_pair": false,
         "record_needs_more_than_the_fixed_route_can_supply": false
        },
        "renewal_held": {
-        "hazard_multiple_still_required": 1.4449,
-        "joint_required_hazard": 0.148919,
+        "hazard_multiple_still_required": 1.7308,
+        "joint_required_hazard": 0.109238,
         "joint_hazard_is_admissible": true,
         "phi_admitting_joint": [
-         0.083783,
-         0.598069
+         0.040994,
+         0.041709
         ],
         "record_refuses_the_joint_pair": false,
         "record_needs_more_than_the_fixed_route_can_supply": false
@@ -1848,34 +1855,34 @@
      },
      "at_published_high": {
       "published_svt_account_day_share": 0.86,
-      "composition_multiple": 1.1274,
+      "composition_multiple": 1.3214,
       "admissible_svt_churn_at_this_share": [
-       0.088372,
-       0.187209
+       0.047977,
+       0.105012
       ],
       "phi_admitting_the_worlds_current_hazard": [
-       0.742124,
-       1.476818
+       0.734326,
+       0.735346
       ],
       "accountings": {
        "renewal_rescaled": {
-        "hazard_multiple_still_required": 1.3712,
-        "joint_required_hazard": 0.141323,
+        "hazard_multiple_still_required": 1.6417,
+        "joint_required_hazard": 0.103614,
         "joint_hazard_is_admissible": true,
         "phi_admitting_joint": [
-         0.070658,
-         0.805351
+         0.023509,
+         0.02453
         ],
         "record_refuses_the_joint_pair": false,
         "record_needs_more_than_the_fixed_route_can_supply": false
        },
        "renewal_held": {
-        "hazard_multiple_still_required": 1.3441,
-        "joint_required_hazard": 0.13853,
+        "hazard_multiple_still_required": 1.61,
+        "joint_required_hazard": 0.101614,
         "joint_hazard_is_admissible": true,
         "phi_admitting_joint": [
-         0.119678,
-         0.854371
+         0.058611,
+         0.059632
         ],
         "record_refuses_the_joint_pair": false,
         "record_needs_more_than_the_fixed_route_can_supply": false
@@ -1886,34 +1893,34 @@
     "all_domestic": {
      "at_published_low": {
       "published_svt_account_day_share": 0.8,
-      "composition_multiple": 1.0487,
+      "composition_multiple": 1.2292,
       "admissible_svt_churn_at_this_share": [
-       0.06875,
-       0.20125
+       0.025325,
+       0.112888
       ],
       "phi_admitting_the_worlds_current_hazard": [
-       0.607829,
-       1.122114
+       0.568126,
+       0.56884
       ],
       "accountings": {
        "renewal_rescaled": {
-        "hazard_multiple_still_required": 1.4561,
-        "joint_required_hazard": 0.150073,
+        "hazard_multiple_still_required": 1.7551,
+        "joint_required_hazard": 0.110771,
         "joint_hazard_is_admissible": true,
         "phi_admitting_joint": [
-         0.070594,
-         0.58488
+         0.023474,
+         0.024189
         ],
         "record_refuses_the_joint_pair": false,
         "record_needs_more_than_the_fixed_route_can_supply": false
        },
        "renewal_held": {
-        "hazard_multiple_still_required": 1.4449,
-        "joint_required_hazard": 0.148919,
+        "hazard_multiple_still_required": 1.7308,
+        "joint_required_hazard": 0.109238,
         "joint_hazard_is_admissible": true,
         "phi_admitting_joint": [
-         0.083783,
-         0.598069
+         0.040994,
+         0.041709
         ],
         "record_refuses_the_joint_pair": false,
         "record_needs_more_than_the_fixed_route_can_supply": false
@@ -1922,34 +1929,34 @@
      },
      "at_published_high": {
       "published_svt_account_day_share": 0.86,
-      "composition_multiple": 1.1274,
+      "composition_multiple": 1.3214,
       "admissible_svt_churn_at_this_share": [
-       0.088372,
-       0.187209
+       0.047977,
+       0.105012
       ],
       "phi_admitting_the_worlds_current_hazard": [
-       0.742124,
-       1.476818
+       0.734326,
+       0.735346
       ],
       "accountings": {
        "renewal_rescaled": {
-        "hazard_multiple_still_required": 1.3712,
-        "joint_required_hazard": 0.141323,
+        "hazard_multiple_still_required": 1.6417,
+        "joint_required_hazard": 0.103614,
         "joint_hazard_is_admissible": true,
         "phi_admitting_joint": [
-         0.070658,
-         0.805351
+         0.023509,
+         0.02453
         ],
         "record_refuses_the_joint_pair": false,
         "record_needs_more_than_the_fixed_route_can_supply": false
        },
        "renewal_held": {
-        "hazard_multiple_still_required": 1.3441,
-        "joint_required_hazard": 0.13853,
+        "hazard_multiple_still_required": 1.61,
+        "joint_required_hazard": 0.101614,
         "joint_hazard_is_admissible": true,
         "phi_admitting_joint": [
-         0.119678,
-         0.854371
+         0.058611,
+         0.059632
         ],
         "record_refuses_the_joint_pair": false,
         "record_needs_more_than_the_fixed_route_can_supply": false
@@ -2020,345 +2027,345 @@
   "per_year": {
    "2016": {
     "band_pct": [
-     17.0,
-     17.6
+     15.813,
+     15.818
     ],
     "is_a_structural_break": false,
     "as_published": {
      "tenure_composed": [
-      0.628635,
-      1.167792
+      0.528887,
+      0.971968
      ],
      "mix_free_envelope": [
-      0.241758,
-      1.527473
+      0.111319,
+      1.331648
      ],
      "tenure_composed_2025": [
-      0.524405,
-      1.01497
+      0.412003,
+      0.819145
      ],
      "observed_mix_hull": [
-      0.524405,
-      1.167792
+      0.412003,
+      0.971968
      ]
     },
     "all_domestic": {
      "tenure_composed": [
-      0.628635,
-      1.167792
+      0.528887,
+      0.971968
      ],
      "mix_free_envelope": [
-      0.241758,
-      1.527473
+      0.111319,
+      1.331648
      ],
      "tenure_composed_2025": [
-      0.524405,
-      1.01497
+      0.412003,
+      0.819145
      ],
      "observed_mix_hull": [
-      0.524405,
-      1.167792
+      0.412003,
+      0.971968
      ]
     }
    },
    "2017": {
     "band_pct": [
-     13.5,
-     14.0
+     18.192,
+     18.197
     ],
     "is_a_structural_break": false,
     "as_published": {
      "tenure_composed": [
-      0.347761,
-      0.588179
+      0.662514,
+      0.880653
      ],
      "mix_free_envelope": [
-      0.118467,
-      0.770035
+      0.445436,
+      1.062509
      ],
      "tenure_composed_2025": [
-      0.270494,
-      0.510912
+      0.591338,
+      0.803386
      ],
      "observed_mix_hull": [
-      0.270494,
-      0.588179
+      0.591338,
+      0.880653
      ]
     },
     "all_domestic": {
      "tenure_composed": [
-      0.339532,
-      0.62898
+      0.695092,
+      0.958868
      ],
      "mix_free_envelope": [
-      0.060523,
-      0.850265
+      0.429318,
+      1.180153
      ],
      "tenure_composed_2025": [
-      0.245512,
-      0.53496
+      0.607671,
+      0.864848
      ],
      "observed_mix_hull": [
-      0.245512,
-      0.62898
+      0.607671,
+      0.958868
      ]
     }
    },
    "2018": {
     "band_pct": [
-     19.5,
-     20.0
+     19.062,
+     19.066
     ],
     "is_a_structural_break": false,
     "as_published": {
      "tenure_composed": [
-      0.720715,
-      0.912204
+      0.694089,
+      0.855426
      ],
      "mix_free_envelope": [
-      0.541033,
-      1.054711
+      0.514407,
+      0.997933
      ],
      "tenure_composed_2025": [
-      0.660166,
-      0.851655
+      0.63354,
+      0.794877
      ],
      "observed_mix_hull": [
-      0.660166,
-      0.912204
+      0.63354,
+      0.855426
      ]
     },
     "all_domestic": {
      "tenure_composed": [
-      0.762039,
-      0.998296
+      0.731847,
+      0.933915
      ],
      "mix_free_envelope": [
-      0.536964,
-      1.176805
+      0.506772,
+      1.112425
      ],
      "tenure_composed_2025": [
-      0.686193,
-      0.92245
+      0.656002,
+      0.85807
      ],
      "observed_mix_hull": [
-      0.686193,
-      0.998296
+      0.656002,
+      0.933915
      ]
     }
    },
    "2019": {
     "band_pct": [
-     20.7,
-     21.3
+     20.82,
+     20.824
     ],
     "is_a_structural_break": false,
     "as_published": {
      "tenure_composed": [
-      0.778089,
-      0.991231
+      0.785086,
+      0.962295
      ],
      "mix_free_envelope": [
-      0.612245,
-      1.133739
+      0.619242,
+      1.104802
      ],
      "tenure_composed_2025": [
-      0.722203,
-      0.930683
+      0.7292,
+      0.901746
      ],
      "observed_mix_hull": [
-      0.722203,
-      0.991231
+      0.7292,
+      0.962295
      ]
     },
     "all_domestic": {
      "tenure_composed": [
-      0.827709,
-      1.087905
+      0.835654,
+      1.055094
      ],
      "mix_free_envelope": [
-      0.617779,
-      1.266414
+      0.625724,
+      1.233603
      ],
      "tenure_composed_2025": [
-      0.756966,
-      1.012059
+      0.764912,
+      0.979248
      ],
      "observed_mix_hull": [
-      0.756966,
-      1.087905
+      0.764912,
+      1.055094
      ]
     }
    },
    "2022": {
     "band_pct": [
-     2.9,
-     4.3
+     3.053,
+     3.058
     ],
     "is_a_structural_break": true,
     "as_published": {
      "tenure_composed": [
-      -2.880226,
-      -0.46264
+      -2.836511,
+      -0.640069
      ],
      "mix_free_envelope": [
-      -4.314286,
-      0.042857
+      -4.270571,
+      -0.134571
      ],
      "tenure_composed_2025": [
-      -3.363474,
-      -0.677417
+      -3.31976,
+      -0.854846
      ],
      "observed_mix_hull": [
-      -3.363474,
-      -0.46264
+      -3.31976,
+      -0.640069
      ]
     },
     "all_domestic": {
      "tenure_composed": [
-      -2.880226,
-      -0.46264
+      -2.836511,
+      -0.640069
      ],
      "mix_free_envelope": [
-      -4.314286,
-      0.042857
+      -4.270571,
+      -0.134571
      ],
      "tenure_composed_2025": [
-      -3.363474,
-      -0.677417
+      -3.31976,
+      -0.854846
      ],
      "observed_mix_hull": [
-      -3.363474,
-      -0.46264
+      -3.31976,
+      -0.640069
      ]
     }
    },
    "2023": {
     "band_pct": [
-     8.9,
-     12.5
+     6.329,
+     6.334
     ],
     "is_a_structural_break": false,
     "as_published": {
      "tenure_composed": [
-      -1.16594,
-      1.148346
+      -1.900511,
+      -0.172069
      ],
      "mix_free_envelope": [
-      -2.6,
-      2.285714
+      -3.334571,
+      0.524
      ],
      "tenure_composed_2025": [
-      -1.649189,
-      0.665097
+      -2.38376,
+      -0.386846
      ],
      "observed_mix_hull": [
-      -1.649189,
-      1.148346
+      -2.38376,
+      -0.172069
      ]
     },
     "all_domestic": {
      "tenure_composed": [
-      -1.16594,
-      1.148346
+      -1.900511,
+      -0.172069
      ],
      "mix_free_envelope": [
-      -2.6,
-      2.285714
+      -3.334571,
+      0.524
      ],
      "tenure_composed_2025": [
-      -1.649189,
-      0.665097
+      -2.38376,
+      -0.386846
      ],
      "observed_mix_hull": [
-      -1.649189,
-      1.148346
+      -2.38376,
+      -0.172069
      ]
     }
    },
    "2024": {
     "band_pct": [
-     12.5,
-     16.1
+     9.026,
+     9.031
     ],
     "is_a_structural_break": false,
     "as_published": {
      "tenure_composed": [
-      0.019619,
-      1.631864
+      -0.68936,
+      0.213217
      ],
      "mix_free_envelope": [
-      -0.959184,
-      2.408163
+      -1.668163,
+      0.96551
      ],
      "tenure_composed_2025": [
-      -0.310217,
-      1.302028
+      -1.019197,
+      -0.00156
      ],
      "observed_mix_hull": [
-      -0.310217,
-      1.631864
+      -1.019197,
+      0.213217
      ]
     },
     "all_domestic": {
      "tenure_composed": [
-      0.019619,
-      1.631864
+      -0.68936,
+      0.213217
      ],
      "mix_free_envelope": [
-      -0.959184,
-      2.408163
+      -1.668163,
+      0.96551
      ],
      "tenure_composed_2025": [
-      -0.310217,
-      1.302028
+      -1.019197,
+      -0.00156
      ],
      "observed_mix_hull": [
-      -0.310217,
-      1.631864
+      -1.019197,
+      0.213217
      ]
     }
    },
    "2025": {
     "band_pct": [
-     14.3,
-     17.9
+     10.398,
+     10.402
     ],
     "is_a_structural_break": false,
     "as_published": {
      "tenure_composed": [
-      0.400365,
-      1.076555
+      0.028746,
+      0.36246
      ],
      "mix_free_envelope": [
-      0.028571,
-      1.371429
+      -0.343048,
+      0.657333
      ],
      "tenure_composed_2025": [
-      0.275078,
-      0.951269
+      -0.096541,
+      0.251465
      ],
      "observed_mix_hull": [
-      0.275078,
-      1.076555
+      -0.096541,
+      0.36246
      ]
     },
     "all_domestic": {
      "tenure_composed": [
-      0.400365,
-      1.076555
+      0.028746,
+      0.36246
      ],
      "mix_free_envelope": [
-      0.028571,
-      1.371429
+      -0.343048,
+      0.657333
      ],
      "tenure_composed_2025": [
-      0.275078,
-      0.951269
+      -0.096541,
+      0.251465
      ],
      "observed_mix_hull": [
-      0.275078,
-      1.076555
+      -0.096541,
+      0.36246
      ]
     }
    }
@@ -2376,18 +2383,34 @@
        "2024"
       ],
       "intersection": [
-       0.778089,
-       0.588179
+       0.785086,
+       -0.172069
       ],
       "is_non_empty": false,
       "minimal_refusing_pairs": [
        [
         2017,
-        2018
+        2023
        ],
        [
         2017,
-        2019
+        2024
+       ],
+       [
+        2018,
+        2023
+       ],
+       [
+        2018,
+        2024
+       ],
+       [
+        2019,
+        2023
+       ],
+       [
+        2019,
+        2024
        ]
       ]
      },
@@ -2404,45 +2427,81 @@
        "2025"
       ],
       "intersection": [
-       0.778089,
-       -0.46264
+       0.785086,
+       -0.640069
       ],
       "is_non_empty": false,
       "minimal_refusing_pairs": [
        [
         2016,
-        2017
+        2022
        ],
        [
         2016,
+        2023
+       ],
+       [
+        2016,
+        2024
+       ],
+       [
+        2016,
+        2025
+       ],
+       [
+        2017,
         2022
        ],
        [
         2017,
-        2018
+        2023
        ],
        [
         2017,
-        2019
+        2024
        ],
        [
         2017,
-        2022
+        2025
        ],
        [
         2018,
         2022
        ],
        [
+        2018,
+        2023
+       ],
+       [
+        2018,
+        2024
+       ],
+       [
+        2018,
+        2025
+       ],
+       [
         2019,
         2022
        ],
        [
-        2022,
+        2019,
+        2023
+       ],
+       [
+        2019,
         2024
        ],
        [
+        2019,
+        2025
+       ],
+       [
         2022,
+        2025
+       ],
+       [
+        2023,
         2025
        ]
       ]
@@ -2459,22 +2518,62 @@
        "2025"
       ],
       "intersection": [
-       0.778089,
-       0.588179
+       0.785086,
+       -0.172069
       ],
       "is_non_empty": false,
       "minimal_refusing_pairs": [
        [
         2016,
-        2017
+        2023
+       ],
+       [
+        2016,
+        2024
+       ],
+       [
+        2016,
+        2025
        ],
        [
         2017,
-        2018
+        2023
        ],
        [
         2017,
-        2019
+        2024
+       ],
+       [
+        2017,
+        2025
+       ],
+       [
+        2018,
+        2023
+       ],
+       [
+        2018,
+        2024
+       ],
+       [
+        2018,
+        2025
+       ],
+       [
+        2019,
+        2023
+       ],
+       [
+        2019,
+        2024
+       ],
+       [
+        2019,
+        2025
+       ],
+       [
+        2023,
+        2025
        ]
       ]
      }
@@ -2490,11 +2589,16 @@
        "2024"
       ],
       "intersection": [
-       0.612245,
-       0.770035
+       0.619242,
+       0.524
       ],
-      "is_non_empty": true,
-      "minimal_refusing_pairs": []
+      "is_non_empty": false,
+      "minimal_refusing_pairs": [
+       [
+        2019,
+        2023
+       ]
+      ]
      },
      "every_scored_year": {
       "n_years": 8,
@@ -2509,8 +2613,8 @@
        "2025"
       ],
       "intersection": [
-       0.612245,
-       0.042857
+       0.619242,
+       -0.134571
       ],
       "is_non_empty": false,
       "minimal_refusing_pairs": [
@@ -2529,6 +2633,10 @@
        [
         2019,
         2022
+       ],
+       [
+        2019,
+        2023
        ]
       ]
      },
@@ -2544,11 +2652,16 @@
        "2025"
       ],
       "intersection": [
-       0.612245,
-       0.770035
+       0.619242,
+       0.524
       ],
-      "is_non_empty": true,
-      "minimal_refusing_pairs": []
+      "is_non_empty": false,
+      "minimal_refusing_pairs": [
+       [
+        2019,
+        2023
+       ]
+      ]
      }
     },
     "tenure_composed_2025": {
@@ -2562,22 +2675,34 @@
        "2024"
       ],
       "intersection": [
-       0.722203,
-       0.510912
+       0.7292,
+       -0.386846
       ],
       "is_non_empty": false,
       "minimal_refusing_pairs": [
        [
         2017,
-        2018
+        2023
        ],
        [
         2017,
-        2019
+        2024
+       ],
+       [
+        2018,
+        2023
+       ],
+       [
+        2018,
+        2024
        ],
        [
         2019,
         2023
+       ],
+       [
+        2019,
+        2024
        ]
       ]
      },
@@ -2594,34 +2719,58 @@
        "2025"
       ],
       "intersection": [
-       0.722203,
-       -0.677417
+       0.7292,
+       -0.854846
       ],
       "is_non_empty": false,
       "minimal_refusing_pairs": [
        [
         2016,
-        2017
+        2022
        ],
        [
         2016,
+        2023
+       ],
+       [
+        2016,
+        2024
+       ],
+       [
+        2016,
+        2025
+       ],
+       [
+        2017,
         2022
        ],
        [
         2017,
-        2018
+        2023
        ],
        [
         2017,
-        2019
+        2024
        ],
        [
         2017,
-        2022
+        2025
        ],
        [
         2018,
         2022
+       ],
+       [
+        2018,
+        2023
+       ],
+       [
+        2018,
+        2024
+       ],
+       [
+        2018,
+        2025
        ],
        [
         2019,
@@ -2632,11 +2781,19 @@
         2023
        ],
        [
-        2022,
+        2019,
         2024
        ],
        [
+        2019,
+        2025
+       ],
+       [
         2022,
+        2025
+       ],
+       [
+        2023,
         2025
        ]
       ]
@@ -2653,26 +2810,62 @@
        "2025"
       ],
       "intersection": [
-       0.722203,
-       0.510912
+       0.7292,
+       -0.386846
       ],
       "is_non_empty": false,
       "minimal_refusing_pairs": [
        [
         2016,
-        2017
+        2023
+       ],
+       [
+        2016,
+        2024
+       ],
+       [
+        2016,
+        2025
        ],
        [
         2017,
-        2018
+        2023
        ],
        [
         2017,
-        2019
+        2024
+       ],
+       [
+        2017,
+        2025
+       ],
+       [
+        2018,
+        2023
+       ],
+       [
+        2018,
+        2024
+       ],
+       [
+        2018,
+        2025
        ],
        [
         2019,
         2023
+       ],
+       [
+        2019,
+        2024
+       ],
+       [
+        2019,
+        2025
+       ],
+       [
+        2023,
+        2025
        ]
       ]
      }
@@ -2688,18 +2881,34 @@
        "2024"
       ],
       "intersection": [
-       0.722203,
-       0.588179
+       0.7292,
+       -0.172069
       ],
       "is_non_empty": false,
       "minimal_refusing_pairs": [
        [
         2017,
-        2018
+        2023
        ],
        [
         2017,
-        2019
+        2024
+       ],
+       [
+        2018,
+        2023
+       ],
+       [
+        2018,
+        2024
+       ],
+       [
+        2019,
+        2023
+       ],
+       [
+        2019,
+        2024
        ]
       ]
      },
@@ -2716,8 +2925,8 @@
        "2025"
       ],
       "intersection": [
-       0.722203,
-       -0.46264
+       0.7292,
+       -0.640069
       ],
       "is_non_empty": false,
       "minimal_refusing_pairs": [
@@ -2726,31 +2935,71 @@
         2022
        ],
        [
-        2017,
-        2018
+        2016,
+        2023
        ],
        [
-        2017,
-        2019
+        2016,
+        2024
+       ],
+       [
+        2016,
+        2025
        ],
        [
         2017,
         2022
+       ],
+       [
+        2017,
+        2023
+       ],
+       [
+        2017,
+        2024
+       ],
+       [
+        2017,
+        2025
        ],
        [
         2018,
         2022
        ],
        [
+        2018,
+        2023
+       ],
+       [
+        2018,
+        2024
+       ],
+       [
+        2018,
+        2025
+       ],
+       [
         2019,
         2022
        ],
        [
-        2022,
+        2019,
+        2023
+       ],
+       [
+        2019,
         2024
        ],
        [
+        2019,
+        2025
+       ],
+       [
         2022,
+        2025
+       ],
+       [
+        2023,
         2025
        ]
       ]
@@ -2767,26 +3016,70 @@
        "2025"
       ],
       "intersection": [
-       0.722203,
-       0.588179
+       0.7292,
+       -0.172069
       ],
       "is_non_empty": false,
       "minimal_refusing_pairs": [
        [
-        2017,
-        2018
+        2016,
+        2023
+       ],
+       [
+        2016,
+        2024
+       ],
+       [
+        2016,
+        2025
        ],
        [
         2017,
-        2019
+        2023
+       ],
+       [
+        2017,
+        2024
+       ],
+       [
+        2017,
+        2025
+       ],
+       [
+        2018,
+        2023
+       ],
+       [
+        2018,
+        2024
+       ],
+       [
+        2018,
+        2025
+       ],
+       [
+        2019,
+        2023
+       ],
+       [
+        2019,
+        2024
+       ],
+       [
+        2019,
+        2025
+       ],
+       [
+        2023,
+        2025
        ]
       ]
      }
     },
     "verdict_is_mix_dependent": {
-     "fitted_years": true,
+     "fitted_years": false,
      "every_scored_year": false,
-     "every_scored_year_less_structural_breaks": true
+     "every_scored_year_less_structural_breaks": false
     },
     "the_verdict_is_the_same_at_every_observed_mix": {
      "fitted_years": true,
@@ -2806,18 +3099,34 @@
        "2024"
       ],
       "intersection": [
-       0.827709,
-       0.62898
+       0.835654,
+       -0.172069
       ],
       "is_non_empty": false,
       "minimal_refusing_pairs": [
        [
         2017,
-        2018
+        2023
        ],
        [
         2017,
-        2019
+        2024
+       ],
+       [
+        2018,
+        2023
+       ],
+       [
+        2018,
+        2024
+       ],
+       [
+        2019,
+        2023
+       ],
+       [
+        2019,
+        2024
        ]
       ]
      },
@@ -2834,8 +3143,8 @@
        "2025"
       ],
       "intersection": [
-       0.827709,
-       -0.46264
+       0.835654,
+       -0.640069
       ],
       "is_non_empty": false,
       "minimal_refusing_pairs": [
@@ -2844,31 +3153,71 @@
         2022
        ],
        [
-        2017,
-        2018
+        2016,
+        2023
        ],
        [
-        2017,
-        2019
+        2016,
+        2024
+       ],
+       [
+        2016,
+        2025
        ],
        [
         2017,
         2022
+       ],
+       [
+        2017,
+        2023
+       ],
+       [
+        2017,
+        2024
+       ],
+       [
+        2017,
+        2025
        ],
        [
         2018,
         2022
        ],
        [
+        2018,
+        2023
+       ],
+       [
+        2018,
+        2024
+       ],
+       [
+        2018,
+        2025
+       ],
+       [
         2019,
         2022
        ],
        [
-        2022,
+        2019,
+        2023
+       ],
+       [
+        2019,
         2024
        ],
        [
+        2019,
+        2025
+       ],
+       [
         2022,
+        2025
+       ],
+       [
+        2023,
         2025
        ]
       ]
@@ -2885,18 +3234,62 @@
        "2025"
       ],
       "intersection": [
-       0.827709,
-       0.62898
+       0.835654,
+       -0.172069
       ],
       "is_non_empty": false,
       "minimal_refusing_pairs": [
        [
-        2017,
-        2018
+        2016,
+        2023
+       ],
+       [
+        2016,
+        2024
+       ],
+       [
+        2016,
+        2025
        ],
        [
         2017,
-        2019
+        2023
+       ],
+       [
+        2017,
+        2024
+       ],
+       [
+        2017,
+        2025
+       ],
+       [
+        2018,
+        2023
+       ],
+       [
+        2018,
+        2024
+       ],
+       [
+        2018,
+        2025
+       ],
+       [
+        2019,
+        2023
+       ],
+       [
+        2019,
+        2024
+       ],
+       [
+        2019,
+        2025
+       ],
+       [
+        2023,
+        2025
        ]
       ]
      }
@@ -2912,11 +3305,16 @@
        "2024"
       ],
       "intersection": [
-       0.617779,
-       0.850265
+       0.625724,
+       0.524
       ],
-      "is_non_empty": true,
-      "minimal_refusing_pairs": []
+      "is_non_empty": false,
+      "minimal_refusing_pairs": [
+       [
+        2019,
+        2023
+       ]
+      ]
      },
      "every_scored_year": {
       "n_years": 8,
@@ -2931,8 +3329,8 @@
        "2025"
       ],
       "intersection": [
-       0.617779,
-       0.042857
+       0.625724,
+       -0.134571
       ],
       "is_non_empty": false,
       "minimal_refusing_pairs": [
@@ -2951,6 +3349,10 @@
        [
         2019,
         2022
+       ],
+       [
+        2019,
+        2023
        ]
       ]
      },
@@ -2966,11 +3368,16 @@
        "2025"
       ],
       "intersection": [
-       0.617779,
-       0.850265
+       0.625724,
+       0.524
       ],
-      "is_non_empty": true,
-      "minimal_refusing_pairs": []
+      "is_non_empty": false,
+      "minimal_refusing_pairs": [
+       [
+        2019,
+        2023
+       ]
+      ]
      }
     },
     "tenure_composed_2025": {
@@ -2984,26 +3391,34 @@
        "2024"
       ],
       "intersection": [
-       0.756966,
-       0.53496
+       0.764912,
+       -0.386846
       ],
       "is_non_empty": false,
       "minimal_refusing_pairs": [
        [
         2017,
-        2018
+        2023
        ],
        [
         2017,
-        2019
+        2024
        ],
        [
         2018,
         2023
        ],
        [
+        2018,
+        2024
+       ],
+       [
         2019,
         2023
+       ],
+       [
+        2019,
+        2024
        ]
       ]
      },
@@ -3020,8 +3435,8 @@
        "2025"
       ],
       "intersection": [
-       0.756966,
-       -0.677417
+       0.764912,
+       -0.854846
       ],
       "is_non_empty": false,
       "minimal_refusing_pairs": [
@@ -3030,39 +3445,71 @@
         2022
        ],
        [
-        2017,
-        2018
-       ],
-       [
-        2017,
-        2019
-       ],
-       [
-        2017,
-        2022
-       ],
-       [
-        2018,
-        2022
-       ],
-       [
-        2018,
+        2016,
         2023
        ],
        [
-        2019,
-        2022
-       ],
-       [
-        2019,
-        2023
-       ],
-       [
-        2022,
+        2016,
         2024
        ],
        [
+        2016,
+        2025
+       ],
+       [
+        2017,
+        2022
+       ],
+       [
+        2017,
+        2023
+       ],
+       [
+        2017,
+        2024
+       ],
+       [
+        2017,
+        2025
+       ],
+       [
+        2018,
+        2022
+       ],
+       [
+        2018,
+        2023
+       ],
+       [
+        2018,
+        2024
+       ],
+       [
+        2018,
+        2025
+       ],
+       [
+        2019,
+        2022
+       ],
+       [
+        2019,
+        2023
+       ],
+       [
+        2019,
+        2024
+       ],
+       [
+        2019,
+        2025
+       ],
+       [
         2022,
+        2025
+       ],
+       [
+        2023,
         2025
        ]
       ]
@@ -3079,26 +3526,62 @@
        "2025"
       ],
       "intersection": [
-       0.756966,
-       0.53496
+       0.764912,
+       -0.386846
       ],
       "is_non_empty": false,
       "minimal_refusing_pairs": [
        [
-        2017,
-        2018
+        2016,
+        2023
+       ],
+       [
+        2016,
+        2024
+       ],
+       [
+        2016,
+        2025
        ],
        [
         2017,
-        2019
+        2023
+       ],
+       [
+        2017,
+        2024
+       ],
+       [
+        2017,
+        2025
        ],
        [
         2018,
         2023
        ],
        [
+        2018,
+        2024
+       ],
+       [
+        2018,
+        2025
+       ],
+       [
         2019,
         2023
+       ],
+       [
+        2019,
+        2024
+       ],
+       [
+        2019,
+        2025
+       ],
+       [
+        2023,
+        2025
        ]
       ]
      }
@@ -3114,18 +3597,34 @@
        "2024"
       ],
       "intersection": [
-       0.756966,
-       0.62898
+       0.764912,
+       -0.172069
       ],
       "is_non_empty": false,
       "minimal_refusing_pairs": [
        [
         2017,
-        2018
+        2023
        ],
        [
         2017,
-        2019
+        2024
+       ],
+       [
+        2018,
+        2023
+       ],
+       [
+        2018,
+        2024
+       ],
+       [
+        2019,
+        2023
+       ],
+       [
+        2019,
+        2024
        ]
       ]
      },
@@ -3142,8 +3641,8 @@
        "2025"
       ],
       "intersection": [
-       0.756966,
-       -0.46264
+       0.764912,
+       -0.640069
       ],
       "is_non_empty": false,
       "minimal_refusing_pairs": [
@@ -3152,31 +3651,71 @@
         2022
        ],
        [
-        2017,
-        2018
+        2016,
+        2023
        ],
        [
-        2017,
-        2019
+        2016,
+        2024
+       ],
+       [
+        2016,
+        2025
        ],
        [
         2017,
         2022
+       ],
+       [
+        2017,
+        2023
+       ],
+       [
+        2017,
+        2024
+       ],
+       [
+        2017,
+        2025
        ],
        [
         2018,
         2022
        ],
        [
+        2018,
+        2023
+       ],
+       [
+        2018,
+        2024
+       ],
+       [
+        2018,
+        2025
+       ],
+       [
         2019,
         2022
        ],
        [
-        2022,
+        2019,
+        2023
+       ],
+       [
+        2019,
         2024
        ],
        [
+        2019,
+        2025
+       ],
+       [
         2022,
+        2025
+       ],
+       [
+        2023,
         2025
        ]
       ]
@@ -3193,26 +3732,70 @@
        "2025"
       ],
       "intersection": [
-       0.756966,
-       0.62898
+       0.764912,
+       -0.172069
       ],
       "is_non_empty": false,
       "minimal_refusing_pairs": [
        [
-        2017,
-        2018
+        2016,
+        2023
+       ],
+       [
+        2016,
+        2024
+       ],
+       [
+        2016,
+        2025
        ],
        [
         2017,
-        2019
+        2023
+       ],
+       [
+        2017,
+        2024
+       ],
+       [
+        2017,
+        2025
+       ],
+       [
+        2018,
+        2023
+       ],
+       [
+        2018,
+        2024
+       ],
+       [
+        2018,
+        2025
+       ],
+       [
+        2019,
+        2023
+       ],
+       [
+        2019,
+        2024
+       ],
+       [
+        2019,
+        2025
+       ],
+       [
+        2023,
+        2025
        ]
       ]
      }
     },
     "verdict_is_mix_dependent": {
-     "fitted_years": true,
+     "fitted_years": false,
      "every_scored_year": false,
-     "every_scored_year_less_structural_breaks": true
+     "every_scored_year_less_structural_breaks": false
     },
     "the_verdict_is_the_same_at_every_observed_mix": {
      "fitted_years": true,
@@ -3238,11 +3821,11 @@
     "n_h_values_admitting_a_common_phi": 0,
     "any_constant_pair_admitted": false,
     "widest_slack": {
-     "at_h_svt": 0.0685,
-     "slack": -0.309322,
+     "at_h_svt": 0.009,
+     "slack": -0.0572,
      "crossed_phi_interval": [
-      1.003294,
-      0.693972
+      1.18723,
+      1.13003
      ]
     }
    },
@@ -3262,11 +3845,11 @@
     "n_h_values_admitting_a_common_phi": 0,
     "any_constant_pair_admitted": false,
     "widest_slack": {
-     "at_h_svt": 0.0542,
-     "slack": -0.337357,
+     "at_h_svt": 0.0,
+     "slack": -0.064363,
      "crossed_phi_interval": [
-      1.16661,
-      0.829253
+      1.37858,
+      1.314217
      ]
     }
    }
@@ -3282,8 +3865,8 @@
      "pairs": {
       "2016->2017": {
        "record_move_pp": [
-        -4.1,
-        -3.0
+        2.374,
+        2.384
        ],
        "share_reachable_move_pp": [
         -2.451927,
@@ -3291,12 +3874,12 @@
        ],
        "record_requires_a_move": true,
        "spans_a_gap": false,
-       "share_can_carry": false
+       "share_can_carry": true
       },
       "2017->2018": {
        "record_move_pp": [
-        5.5,
-        6.5
+        0.865,
+        0.874
        ],
        "share_reachable_move_pp": [
         -0.865386,
@@ -3304,12 +3887,12 @@
        ],
        "record_requires_a_move": true,
        "spans_a_gap": false,
-       "share_can_carry": false
+       "share_can_carry": true
       },
       "2018->2019": {
        "record_move_pp": [
-        0.7,
-        1.8
+        1.754,
+        1.762
        ],
        "share_reachable_move_pp": [
         -0.288462,
@@ -3321,8 +3904,8 @@
       },
       "2019->2022": {
        "record_move_pp": [
-        -18.4,
-        -16.4
+        -17.771,
+        -17.762
        ],
        "share_reachable_move_pp": [
         -9.974991,
@@ -3334,8 +3917,8 @@
       },
       "2022->2023": {
        "record_move_pp": [
-        4.6,
-        9.6
+        3.271,
+        3.281
        ],
        "share_reachable_move_pp": [
         -2.55769,
@@ -3347,37 +3930,34 @@
       },
       "2023->2024": {
        "record_move_pp": [
-        0.0,
-        7.2
+        2.692,
+        2.702
        ],
        "share_reachable_move_pp": [
         -1.534614,
         2.55769
        ],
-       "record_requires_a_move": false,
+       "record_requires_a_move": true,
        "spans_a_gap": false,
-       "share_can_carry": true
+       "share_can_carry": false
       },
       "2024->2025": {
        "record_move_pp": [
-        -1.8,
-        5.4
+        1.367,
+        1.376
        ],
        "share_reachable_move_pp": [
         -3.173082,
         5.626918
        ],
-       "record_requires_a_move": false,
+       "record_requires_a_move": true,
        "spans_a_gap": false,
        "share_can_carry": true
       }
      },
-     "n_pairs_judged": 4,
-     "n_pairs_the_share_series_can_carry": 0,
-     "pairs_excluded_because_the_record_requires_no_move": [
-      "2023->2024",
-      "2024->2025"
-     ],
+     "n_pairs_judged": 6,
+     "n_pairs_the_share_series_can_carry": 3,
+     "pairs_excluded_because_the_record_requires_no_move": [],
      "pairs_excluded_because_they_span_a_gap": [
       "2019->2022"
      ]
@@ -3386,8 +3966,8 @@
      "pairs": {
       "2016->2017": {
        "record_move_pp": [
-        -4.1,
-        -3.0
+        2.374,
+        2.384
        ],
        "share_reachable_move_pp": [
         -1.737984,
@@ -3395,12 +3975,12 @@
        ],
        "record_requires_a_move": true,
        "spans_a_gap": false,
-       "share_can_carry": false
+       "share_can_carry": true
       },
       "2017->2018": {
        "record_move_pp": [
-        5.5,
-        6.5
+        0.865,
+        0.874
        ],
        "share_reachable_move_pp": [
         -0.735578,
@@ -3408,12 +3988,12 @@
        ],
        "record_requires_a_move": true,
        "spans_a_gap": false,
-       "share_can_carry": false
+       "share_can_carry": true
       },
       "2018->2019": {
        "record_move_pp": [
-        0.7,
-        1.8
+        1.754,
+        1.762
        ],
        "share_reachable_move_pp": [
         -0.245193,
@@ -3425,8 +4005,8 @@
       },
       "2019->2022": {
        "record_move_pp": [
-        -18.4,
-        -16.4
+        -17.771,
+        -17.762
        ],
        "share_reachable_move_pp": [
         -8.478742,
@@ -3438,8 +4018,8 @@
       },
       "2022->2023": {
        "record_move_pp": [
-        4.6,
-        9.6
+        3.271,
+        3.281
        ],
        "share_reachable_move_pp": [
         -2.55769,
@@ -3451,37 +4031,34 @@
       },
       "2023->2024": {
        "record_move_pp": [
-        0.0,
-        7.2
+        2.692,
+        2.702
        ],
        "share_reachable_move_pp": [
         -1.534614,
         2.55769
        ],
-       "record_requires_a_move": false,
+       "record_requires_a_move": true,
        "spans_a_gap": false,
-       "share_can_carry": true
+       "share_can_carry": false
       },
       "2024->2025": {
        "record_move_pp": [
-        -1.8,
-        5.4
+        1.367,
+        1.376
        ],
        "share_reachable_move_pp": [
         -3.173082,
         5.626918
        ],
-       "record_requires_a_move": false,
+       "record_requires_a_move": true,
        "spans_a_gap": false,
        "share_can_carry": true
       }
      },
-     "n_pairs_judged": 4,
-     "n_pairs_the_share_series_can_carry": 0,
-     "pairs_excluded_because_the_record_requires_no_move": [
-      "2023->2024",
-      "2024->2025"
-     ],
+     "n_pairs_judged": 6,
+     "n_pairs_the_share_series_can_carry": 3,
+     "pairs_excluded_because_the_record_requires_no_move": [],
      "pairs_excluded_because_they_span_a_gap": [
       "2019->2022"
      ]
@@ -3492,8 +4069,8 @@
      "pairs": {
       "2016->2017": {
        "record_move_pp": [
-        -4.1,
-        -3.0
+        2.374,
+        2.384
        ],
        "share_reachable_move_pp": [
         -3.4,
@@ -3505,8 +4082,8 @@
       },
       "2017->2018": {
        "record_move_pp": [
-        5.5,
-        6.5
+        0.865,
+        0.874
        ],
        "share_reachable_move_pp": [
         -1.2,
@@ -3514,12 +4091,12 @@
        ],
        "record_requires_a_move": true,
        "spans_a_gap": false,
-       "share_can_carry": false
+       "share_can_carry": true
       },
       "2018->2019": {
        "record_move_pp": [
-        0.7,
-        1.8
+        1.754,
+        1.762
        ],
        "share_reachable_move_pp": [
         -0.4,
@@ -3531,8 +4108,8 @@
       },
       "2019->2022": {
        "record_move_pp": [
-        -18.4,
-        -16.4
+        -17.771,
+        -17.762
        ],
        "share_reachable_move_pp": [
         -11.7,
@@ -3544,8 +4121,8 @@
       },
       "2022->2023": {
        "record_move_pp": [
-        4.6,
-        9.6
+        3.271,
+        3.281
        ],
        "share_reachable_move_pp": [
         -3.0,
@@ -3557,37 +4134,34 @@
       },
       "2023->2024": {
        "record_move_pp": [
-        0.0,
-        7.2
+        2.692,
+        2.702
        ],
        "share_reachable_move_pp": [
         -2.0,
         3.0
        ],
-       "record_requires_a_move": false,
+       "record_requires_a_move": true,
        "spans_a_gap": false,
        "share_can_carry": true
       },
       "2024->2025": {
        "record_move_pp": [
-        -1.8,
-        5.4
+        1.367,
+        1.376
        ],
        "share_reachable_move_pp": [
         -4.4,
         6.6
        ],
-       "record_requires_a_move": false,
+       "record_requires_a_move": true,
        "spans_a_gap": false,
        "share_can_carry": true
       }
      },
-     "n_pairs_judged": 4,
-     "n_pairs_the_share_series_can_carry": 1,
-     "pairs_excluded_because_the_record_requires_no_move": [
-      "2023->2024",
-      "2024->2025"
-     ],
+     "n_pairs_judged": 6,
+     "n_pairs_the_share_series_can_carry": 4,
+     "pairs_excluded_because_the_record_requires_no_move": [],
      "pairs_excluded_because_they_span_a_gap": [
       "2019->2022"
      ]
@@ -3596,8 +4170,8 @@
      "pairs": {
       "2016->2017": {
        "record_move_pp": [
-        -4.1,
-        -3.0
+        2.374,
+        2.384
        ],
        "share_reachable_move_pp": [
         -2.41,
@@ -3605,12 +4179,12 @@
        ],
        "record_requires_a_move": true,
        "spans_a_gap": false,
-       "share_can_carry": false
+       "share_can_carry": true
       },
       "2017->2018": {
        "record_move_pp": [
-        5.5,
-        6.5
+        0.865,
+        0.874
        ],
        "share_reachable_move_pp": [
         -1.02,
@@ -3618,12 +4192,12 @@
        ],
        "record_requires_a_move": true,
        "spans_a_gap": false,
-       "share_can_carry": false
+       "share_can_carry": true
       },
       "2018->2019": {
        "record_move_pp": [
-        0.7,
-        1.8
+        1.754,
+        1.762
        ],
        "share_reachable_move_pp": [
         -0.34,
@@ -3635,8 +4209,8 @@
       },
       "2019->2022": {
        "record_move_pp": [
-        -18.4,
-        -16.4
+        -17.771,
+        -17.762
        ],
        "share_reachable_move_pp": [
         -9.945,
@@ -3648,8 +4222,8 @@
       },
       "2022->2023": {
        "record_move_pp": [
-        4.6,
-        9.6
+        3.271,
+        3.281
        ],
        "share_reachable_move_pp": [
         -3.0,
@@ -3661,37 +4235,34 @@
       },
       "2023->2024": {
        "record_move_pp": [
-        0.0,
-        7.2
+        2.692,
+        2.702
        ],
        "share_reachable_move_pp": [
         -2.0,
         3.0
        ],
-       "record_requires_a_move": false,
+       "record_requires_a_move": true,
        "spans_a_gap": false,
        "share_can_carry": true
       },
       "2024->2025": {
        "record_move_pp": [
-        -1.8,
-        5.4
+        1.367,
+        1.376
        ],
        "share_reachable_move_pp": [
         -4.4,
         6.6
        ],
-       "record_requires_a_move": false,
+       "record_requires_a_move": true,
        "spans_a_gap": false,
        "share_can_carry": true
       }
      },
-     "n_pairs_judged": 4,
-     "n_pairs_the_share_series_can_carry": 0,
-     "pairs_excluded_because_the_record_requires_no_move": [
-      "2023->2024",
-      "2024->2025"
-     ],
+     "n_pairs_judged": 6,
+     "n_pairs_the_share_series_can_carry": 4,
+     "pairs_excluded_because_the_record_requires_no_move": [],
      "pairs_excluded_because_they_span_a_gap": [
       "2019->2022"
      ]
@@ -3702,8 +4273,8 @@
      "pairs": {
       "2016->2017": {
        "record_move_pp": [
-        -4.1,
-        -3.0
+        2.374,
+        2.384
        ],
        "share_reachable_move_pp": [
         -2.771408,
@@ -3711,12 +4282,12 @@
        ],
        "record_requires_a_move": true,
        "spans_a_gap": false,
-       "share_can_carry": false
+       "share_can_carry": true
       },
       "2017->2018": {
        "record_move_pp": [
-        5.5,
-        6.5
+        0.865,
+        0.874
        ],
        "share_reachable_move_pp": [
         -0.978144,
@@ -3724,12 +4295,12 @@
        ],
        "record_requires_a_move": true,
        "spans_a_gap": false,
-       "share_can_carry": false
+       "share_can_carry": true
       },
       "2018->2019": {
        "record_move_pp": [
-        0.7,
-        1.8
+        1.754,
+        1.762
        ],
        "share_reachable_move_pp": [
         -0.326048,
@@ -3741,8 +4312,8 @@
       },
       "2019->2022": {
        "record_move_pp": [
-        -18.4,
-        -16.4
+        -17.771,
+        -17.762
        ],
        "share_reachable_move_pp": [
         -9.242064,
@@ -3754,8 +4325,8 @@
       },
       "2022->2023": {
        "record_move_pp": [
-        4.6,
-        9.6
+        3.271,
+        3.281
        ],
        "share_reachable_move_pp": [
         -2.36976,
@@ -3767,37 +4338,34 @@
       },
       "2023->2024": {
        "record_move_pp": [
-        0.0,
-        7.2
+        2.692,
+        2.702
        ],
        "share_reachable_move_pp": [
         -1.63024,
         2.36976
        ],
-       "record_requires_a_move": false,
+       "record_requires_a_move": true,
        "spans_a_gap": false,
-       "share_can_carry": true
+       "share_can_carry": false
       },
       "2024->2025": {
        "record_move_pp": [
-        -1.8,
-        5.4
+        1.367,
+        1.376
        ],
        "share_reachable_move_pp": [
         -3.586528,
         5.213472
        ],
-       "record_requires_a_move": false,
+       "record_requires_a_move": true,
        "spans_a_gap": false,
        "share_can_carry": true
       }
      },
-     "n_pairs_judged": 4,
-     "n_pairs_the_share_series_can_carry": 0,
-     "pairs_excluded_because_the_record_requires_no_move": [
-      "2023->2024",
-      "2024->2025"
-     ],
+     "n_pairs_judged": 6,
+     "n_pairs_the_share_series_can_carry": 3,
+     "pairs_excluded_because_the_record_requires_no_move": [],
      "pairs_excluded_because_they_span_a_gap": [
       "2019->2022"
      ]
@@ -3806,8 +4374,8 @@
      "pairs": {
       "2016->2017": {
        "record_move_pp": [
-        -4.1,
-        -3.0
+        2.374,
+        2.384
        ],
        "share_reachable_move_pp": [
         -1.964439,
@@ -3815,12 +4383,12 @@
        ],
        "record_requires_a_move": true,
        "spans_a_gap": false,
-       "share_can_carry": false
+       "share_can_carry": true
       },
       "2017->2018": {
        "record_move_pp": [
-        5.5,
-        6.5
+        0.865,
+        0.874
        ],
        "share_reachable_move_pp": [
         -0.831422,
@@ -3828,12 +4396,12 @@
        ],
        "record_requires_a_move": true,
        "spans_a_gap": false,
-       "share_can_carry": false
+       "share_can_carry": true
       },
       "2018->2019": {
        "record_move_pp": [
-        0.7,
-        1.8
+        1.754,
+        1.762
        ],
        "share_reachable_move_pp": [
         -0.277141,
@@ -3845,8 +4413,8 @@
       },
       "2019->2022": {
        "record_move_pp": [
-        -18.4,
-        -16.4
+        -17.771,
+        -17.762
        ],
        "share_reachable_move_pp": [
         -7.855754,
@@ -3858,8 +4426,8 @@
       },
       "2022->2023": {
        "record_move_pp": [
-        4.6,
-        9.6
+        3.271,
+        3.281
        ],
        "share_reachable_move_pp": [
         -2.36976,
@@ -3871,37 +4439,34 @@
       },
       "2023->2024": {
        "record_move_pp": [
-        0.0,
-        7.2
+        2.692,
+        2.702
        ],
        "share_reachable_move_pp": [
         -1.63024,
         2.36976
        ],
-       "record_requires_a_move": false,
+       "record_requires_a_move": true,
        "spans_a_gap": false,
-       "share_can_carry": true
+       "share_can_carry": false
       },
       "2024->2025": {
        "record_move_pp": [
-        -1.8,
-        5.4
+        1.367,
+        1.376
        ],
        "share_reachable_move_pp": [
         -3.586528,
         5.213472
        ],
-       "record_requires_a_move": false,
+       "record_requires_a_move": true,
        "spans_a_gap": false,
        "share_can_carry": true
       }
      },
-     "n_pairs_judged": 4,
-     "n_pairs_the_share_series_can_carry": 0,
-     "pairs_excluded_because_the_record_requires_no_move": [
-      "2023->2024",
-      "2024->2025"
-     ],
+     "n_pairs_judged": 6,
+     "n_pairs_the_share_series_can_carry": 3,
+     "pairs_excluded_because_the_record_requires_no_move": [],
      "pairs_excluded_because_they_span_a_gap": [
       "2019->2022"
      ]
@@ -3912,8 +4477,8 @@
      "pairs": {
       "2016->2017": {
        "record_move_pp": [
-        -4.1,
-        -3.0
+        2.374,
+        2.384
        ],
        "share_reachable_move_pp": [
         -2.771408,
@@ -3921,12 +4486,12 @@
        ],
        "record_requires_a_move": true,
        "spans_a_gap": false,
-       "share_can_carry": false
+       "share_can_carry": true
       },
       "2017->2018": {
        "record_move_pp": [
-        5.5,
-        6.5
+        0.865,
+        0.874
        ],
        "share_reachable_move_pp": [
         -0.978144,
@@ -3934,12 +4499,12 @@
        ],
        "record_requires_a_move": true,
        "spans_a_gap": false,
-       "share_can_carry": false
+       "share_can_carry": true
       },
       "2018->2019": {
        "record_move_pp": [
-        0.7,
-        1.8
+        1.754,
+        1.762
        ],
        "share_reachable_move_pp": [
         -0.326048,
@@ -3951,8 +4516,8 @@
       },
       "2019->2022": {
        "record_move_pp": [
-        -18.4,
-        -16.4
+        -17.771,
+        -17.762
        ],
        "share_reachable_move_pp": [
         -9.974991,
@@ -3964,8 +4529,8 @@
       },
       "2022->2023": {
        "record_move_pp": [
-        4.6,
-        9.6
+        3.271,
+        3.281
        ],
        "share_reachable_move_pp": [
         -2.55769,
@@ -3977,37 +4542,34 @@
       },
       "2023->2024": {
        "record_move_pp": [
-        0.0,
-        7.2
+        2.692,
+        2.702
        ],
        "share_reachable_move_pp": [
         -1.63024,
         2.55769
        ],
-       "record_requires_a_move": false,
+       "record_requires_a_move": true,
        "spans_a_gap": false,
-       "share_can_carry": true
+       "share_can_carry": false
       },
       "2024->2025": {
        "record_move_pp": [
-        -1.8,
-        5.4
+        1.367,
+        1.376
        ],
        "share_reachable_move_pp": [
         -3.586528,
         5.626918
        ],
-       "record_requires_a_move": false,
+       "record_requires_a_move": true,
        "spans_a_gap": false,
        "share_can_carry": true
       }
      },
-     "n_pairs_judged": 4,
-     "n_pairs_the_share_series_can_carry": 0,
-     "pairs_excluded_because_the_record_requires_no_move": [
-      "2023->2024",
-      "2024->2025"
-     ],
+     "n_pairs_judged": 6,
+     "n_pairs_the_share_series_can_carry": 3,
+     "pairs_excluded_because_the_record_requires_no_move": [],
      "pairs_excluded_because_they_span_a_gap": [
       "2019->2022"
      ]
@@ -4016,8 +4578,8 @@
      "pairs": {
       "2016->2017": {
        "record_move_pp": [
-        -4.1,
-        -3.0
+        2.374,
+        2.384
        ],
        "share_reachable_move_pp": [
         -1.964439,
@@ -4025,12 +4587,12 @@
        ],
        "record_requires_a_move": true,
        "spans_a_gap": false,
-       "share_can_carry": false
+       "share_can_carry": true
       },
       "2017->2018": {
        "record_move_pp": [
-        5.5,
-        6.5
+        0.865,
+        0.874
        ],
        "share_reachable_move_pp": [
         -0.831422,
@@ -4038,12 +4600,12 @@
        ],
        "record_requires_a_move": true,
        "spans_a_gap": false,
-       "share_can_carry": false
+       "share_can_carry": true
       },
       "2018->2019": {
        "record_move_pp": [
-        0.7,
-        1.8
+        1.754,
+        1.762
        ],
        "share_reachable_move_pp": [
         -0.277141,
@@ -4055,8 +4617,8 @@
       },
       "2019->2022": {
        "record_move_pp": [
-        -18.4,
-        -16.4
+        -17.771,
+        -17.762
        ],
        "share_reachable_move_pp": [
         -8.478742,
@@ -4068,8 +4630,8 @@
       },
       "2022->2023": {
        "record_move_pp": [
-        4.6,
-        9.6
+        3.271,
+        3.281
        ],
        "share_reachable_move_pp": [
         -2.55769,
@@ -4081,37 +4643,34 @@
       },
       "2023->2024": {
        "record_move_pp": [
-        0.0,
-        7.2
+        2.692,
+        2.702
        ],
        "share_reachable_move_pp": [
         -1.63024,
         2.55769
        ],
-       "record_requires_a_move": false,
+       "record_requires_a_move": true,
        "spans_a_gap": false,
-       "share_can_carry": true
+       "share_can_carry": false
       },
       "2024->2025": {
        "record_move_pp": [
-        -1.8,
-        5.4
+        1.367,
+        1.376
        ],
        "share_reachable_move_pp": [
         -3.586528,
         5.626918
        ],
-       "record_requires_a_move": false,
+       "record_requires_a_move": true,
        "spans_a_gap": false,
        "share_can_carry": true
       }
      },
-     "n_pairs_judged": 4,
-     "n_pairs_the_share_series_can_carry": 0,
-     "pairs_excluded_because_the_record_requires_no_move": [
-      "2023->2024",
-      "2024->2025"
-     ],
+     "n_pairs_judged": 6,
+     "n_pairs_the_share_series_can_carry": 3,
+     "pairs_excluded_because_the_record_requires_no_move": [],
      "pairs_excluded_because_they_span_a_gap": [
       "2019->2022"
      ]
@@ -4205,65 +4764,114 @@
     "fitted_years": {
      "is_non_empty_by_band": {
       "tenure_composed": false,
-      "mix_free_envelope": true,
+      "mix_free_envelope": false,
       "tenure_composed_2025": false,
       "observed_mix_hull": false
      },
      "intersection_by_band": {
       "tenure_composed": [
-       0.778089,
-       0.588179
+       0.785086,
+       -0.172069
       ],
       "mix_free_envelope": [
-       0.612245,
-       0.770035
+       0.619242,
+       0.524
       ],
       "tenure_composed_2025": [
-       0.722203,
-       0.510912
+       0.7292,
+       -0.386846
       ],
       "observed_mix_hull": [
-       0.722203,
-       0.588179
+       0.7292,
+       -0.172069
       ]
      },
      "the_verdict_is_the_same_at_every_observed_mix": true,
      "refuses_at_every_observed_mix": true,
-     "admits_only_outside_every_observed_mix": true,
+     "admits_only_outside_every_observed_mix": false,
      "minimal_refusing_pairs_by_band": {
       "tenure_composed": [
        [
         2017,
-        2018
+        2023
        ],
        [
         2017,
-        2019
+        2024
+       ],
+       [
+        2018,
+        2023
+       ],
+       [
+        2018,
+        2024
+       ],
+       [
+        2019,
+        2023
+       ],
+       [
+        2019,
+        2024
        ]
       ],
-      "mix_free_envelope": [],
-      "tenure_composed_2025": [
-       [
-        2017,
-        2018
-       ],
-       [
-        2017,
-        2019
-       ],
+      "mix_free_envelope": [
        [
         2019,
         2023
        ]
       ],
-      "observed_mix_hull": [
+      "tenure_composed_2025": [
        [
         2017,
-        2018
+        2023
        ],
        [
         2017,
-        2019
+        2024
+       ],
+       [
+        2018,
+        2023
+       ],
+       [
+        2018,
+        2024
+       ],
+       [
+        2019,
+        2023
+       ],
+       [
+        2019,
+        2024
+       ]
+      ],
+      "observed_mix_hull": [
+       [
+        2017,
+        2023
+       ],
+       [
+        2017,
+        2024
+       ],
+       [
+        2018,
+        2023
+       ],
+       [
+        2018,
+        2024
+       ],
+       [
+        2019,
+        2023
+       ],
+       [
+        2019,
+        2024
        ]
       ]
      }
@@ -4277,20 +4885,20 @@
      },
      "intersection_by_band": {
       "tenure_composed": [
-       0.778089,
-       -0.46264
+       0.785086,
+       -0.640069
       ],
       "mix_free_envelope": [
-       0.612245,
-       0.042857
+       0.619242,
+       -0.134571
       ],
       "tenure_composed_2025": [
-       0.722203,
-       -0.677417
+       0.7292,
+       -0.854846
       ],
       "observed_mix_hull": [
-       0.722203,
-       -0.46264
+       0.7292,
+       -0.640069
       ]
      },
      "the_verdict_is_the_same_at_every_observed_mix": true,
@@ -4300,38 +4908,74 @@
       "tenure_composed": [
        [
         2016,
-        2017
+        2022
        ],
        [
         2016,
+        2023
+       ],
+       [
+        2016,
+        2024
+       ],
+       [
+        2016,
+        2025
+       ],
+       [
+        2017,
         2022
        ],
        [
         2017,
-        2018
+        2023
        ],
        [
         2017,
-        2019
+        2024
        ],
        [
         2017,
-        2022
+        2025
        ],
        [
         2018,
         2022
        ],
        [
+        2018,
+        2023
+       ],
+       [
+        2018,
+        2024
+       ],
+       [
+        2018,
+        2025
+       ],
+       [
         2019,
         2022
        ],
        [
-        2022,
+        2019,
+        2023
+       ],
+       [
+        2019,
         2024
        ],
        [
+        2019,
+        2025
+       ],
+       [
         2022,
+        2025
+       ],
+       [
+        2023,
         2025
        ]
       ],
@@ -4351,32 +4995,60 @@
        [
         2019,
         2022
+       ],
+       [
+        2019,
+        2023
        ]
       ],
       "tenure_composed_2025": [
        [
         2016,
-        2017
+        2022
        ],
        [
         2016,
+        2023
+       ],
+       [
+        2016,
+        2024
+       ],
+       [
+        2016,
+        2025
+       ],
+       [
+        2017,
         2022
        ],
        [
         2017,
-        2018
+        2023
        ],
        [
         2017,
-        2019
+        2024
        ],
        [
         2017,
-        2022
+        2025
        ],
        [
         2018,
         2022
+       ],
+       [
+        2018,
+        2023
+       ],
+       [
+        2018,
+        2024
+       ],
+       [
+        2018,
+        2025
        ],
        [
         2019,
@@ -4387,11 +5059,19 @@
         2023
        ],
        [
-        2022,
+        2019,
         2024
        ],
        [
+        2019,
+        2025
+       ],
+       [
         2022,
+        2025
+       ],
+       [
+        2023,
         2025
        ]
       ],
@@ -4401,31 +5081,71 @@
         2022
        ],
        [
-        2017,
-        2018
+        2016,
+        2023
        ],
        [
-        2017,
-        2019
+        2016,
+        2024
+       ],
+       [
+        2016,
+        2025
        ],
        [
         2017,
         2022
+       ],
+       [
+        2017,
+        2023
+       ],
+       [
+        2017,
+        2024
+       ],
+       [
+        2017,
+        2025
        ],
        [
         2018,
         2022
        ],
        [
+        2018,
+        2023
+       ],
+       [
+        2018,
+        2024
+       ],
+       [
+        2018,
+        2025
+       ],
+       [
         2019,
         2022
        ],
        [
-        2022,
+        2019,
+        2023
+       ],
+       [
+        2019,
         2024
        ],
        [
+        2019,
+        2025
+       ],
+       [
         2022,
+        2025
+       ],
+       [
+        2023,
         2025
        ]
       ]
@@ -4434,73 +5154,198 @@
     "every_scored_year_less_structural_breaks": {
      "is_non_empty_by_band": {
       "tenure_composed": false,
-      "mix_free_envelope": true,
+      "mix_free_envelope": false,
       "tenure_composed_2025": false,
       "observed_mix_hull": false
      },
      "intersection_by_band": {
       "tenure_composed": [
-       0.778089,
-       0.588179
+       0.785086,
+       -0.172069
       ],
       "mix_free_envelope": [
-       0.612245,
-       0.770035
+       0.619242,
+       0.524
       ],
       "tenure_composed_2025": [
-       0.722203,
-       0.510912
+       0.7292,
+       -0.386846
       ],
       "observed_mix_hull": [
-       0.722203,
-       0.588179
+       0.7292,
+       -0.172069
       ]
      },
      "the_verdict_is_the_same_at_every_observed_mix": true,
      "refuses_at_every_observed_mix": true,
-     "admits_only_outside_every_observed_mix": true,
+     "admits_only_outside_every_observed_mix": false,
      "minimal_refusing_pairs_by_band": {
       "tenure_composed": [
        [
         2016,
-        2017
+        2023
        ],
-       [
-        2017,
-        2018
-       ],
-       [
-        2017,
-        2019
-       ]
-      ],
-      "mix_free_envelope": [],
-      "tenure_composed_2025": [
        [
         2016,
-        2017
+        2024
+       ],
+       [
+        2016,
+        2025
        ],
        [
         2017,
-        2018
+        2023
        ],
        [
         2017,
-        2019
+        2024
        ],
+       [
+        2017,
+        2025
+       ],
+       [
+        2018,
+        2023
+       ],
+       [
+        2018,
+        2024
+       ],
+       [
+        2018,
+        2025
+       ],
+       [
+        2019,
+        2023
+       ],
+       [
+        2019,
+        2024
+       ],
+       [
+        2019,
+        2025
+       ],
+       [
+        2023,
+        2025
+       ]
+      ],
+      "mix_free_envelope": [
        [
         2019,
         2023
        ]
       ],
-      "observed_mix_hull": [
+      "tenure_composed_2025": [
        [
-        2017,
-        2018
+        2016,
+        2023
+       ],
+       [
+        2016,
+        2024
+       ],
+       [
+        2016,
+        2025
        ],
        [
         2017,
-        2019
+        2023
+       ],
+       [
+        2017,
+        2024
+       ],
+       [
+        2017,
+        2025
+       ],
+       [
+        2018,
+        2023
+       ],
+       [
+        2018,
+        2024
+       ],
+       [
+        2018,
+        2025
+       ],
+       [
+        2019,
+        2023
+       ],
+       [
+        2019,
+        2024
+       ],
+       [
+        2019,
+        2025
+       ],
+       [
+        2023,
+        2025
+       ]
+      ],
+      "observed_mix_hull": [
+       [
+        2016,
+        2023
+       ],
+       [
+        2016,
+        2024
+       ],
+       [
+        2016,
+        2025
+       ],
+       [
+        2017,
+        2023
+       ],
+       [
+        2017,
+        2024
+       ],
+       [
+        2017,
+        2025
+       ],
+       [
+        2018,
+        2023
+       ],
+       [
+        2018,
+        2024
+       ],
+       [
+        2018,
+        2025
+       ],
+       [
+        2019,
+        2023
+       ],
+       [
+        2019,
+        2024
+       ],
+       [
+        2019,
+        2025
+       ],
+       [
+        2023,
+        2025
        ]
       ]
      }
@@ -4510,69 +5355,114 @@
     "fitted_years": {
      "is_non_empty_by_band": {
       "tenure_composed": false,
-      "mix_free_envelope": true,
+      "mix_free_envelope": false,
       "tenure_composed_2025": false,
       "observed_mix_hull": false
      },
      "intersection_by_band": {
       "tenure_composed": [
-       0.827709,
-       0.62898
+       0.835654,
+       -0.172069
       ],
       "mix_free_envelope": [
-       0.617779,
-       0.850265
+       0.625724,
+       0.524
       ],
       "tenure_composed_2025": [
-       0.756966,
-       0.53496
+       0.764912,
+       -0.386846
       ],
       "observed_mix_hull": [
-       0.756966,
-       0.62898
+       0.764912,
+       -0.172069
       ]
      },
      "the_verdict_is_the_same_at_every_observed_mix": true,
      "refuses_at_every_observed_mix": true,
-     "admits_only_outside_every_observed_mix": true,
+     "admits_only_outside_every_observed_mix": false,
      "minimal_refusing_pairs_by_band": {
       "tenure_composed": [
        [
         2017,
-        2018
+        2023
        ],
        [
         2017,
-        2019
-       ]
-      ],
-      "mix_free_envelope": [],
-      "tenure_composed_2025": [
-       [
-        2017,
-        2018
-       ],
-       [
-        2017,
-        2019
+        2024
        ],
        [
         2018,
         2023
        ],
        [
+        2018,
+        2024
+       ],
+       [
         2019,
         2023
+       ],
+       [
+        2019,
+        2024
+       ]
+      ],
+      "mix_free_envelope": [
+       [
+        2019,
+        2023
+       ]
+      ],
+      "tenure_composed_2025": [
+       [
+        2017,
+        2023
+       ],
+       [
+        2017,
+        2024
+       ],
+       [
+        2018,
+        2023
+       ],
+       [
+        2018,
+        2024
+       ],
+       [
+        2019,
+        2023
+       ],
+       [
+        2019,
+        2024
        ]
       ],
       "observed_mix_hull": [
        [
         2017,
-        2018
+        2023
        ],
        [
         2017,
-        2019
+        2024
+       ],
+       [
+        2018,
+        2023
+       ],
+       [
+        2018,
+        2024
+       ],
+       [
+        2019,
+        2023
+       ],
+       [
+        2019,
+        2024
        ]
       ]
      }
@@ -4586,20 +5476,20 @@
      },
      "intersection_by_band": {
       "tenure_composed": [
-       0.827709,
-       -0.46264
+       0.835654,
+       -0.640069
       ],
       "mix_free_envelope": [
-       0.617779,
-       0.042857
+       0.625724,
+       -0.134571
       ],
       "tenure_composed_2025": [
-       0.756966,
-       -0.677417
+       0.764912,
+       -0.854846
       ],
       "observed_mix_hull": [
-       0.756966,
-       -0.46264
+       0.764912,
+       -0.640069
       ]
      },
      "the_verdict_is_the_same_at_every_observed_mix": true,
@@ -4612,31 +5502,71 @@
         2022
        ],
        [
-        2017,
-        2018
+        2016,
+        2023
        ],
        [
-        2017,
-        2019
+        2016,
+        2024
+       ],
+       [
+        2016,
+        2025
        ],
        [
         2017,
         2022
+       ],
+       [
+        2017,
+        2023
+       ],
+       [
+        2017,
+        2024
+       ],
+       [
+        2017,
+        2025
        ],
        [
         2018,
         2022
        ],
        [
+        2018,
+        2023
+       ],
+       [
+        2018,
+        2024
+       ],
+       [
+        2018,
+        2025
+       ],
+       [
         2019,
         2022
        ],
        [
-        2022,
+        2019,
+        2023
+       ],
+       [
+        2019,
         2024
        ],
        [
+        2019,
+        2025
+       ],
+       [
         2022,
+        2025
+       ],
+       [
+        2023,
         2025
        ]
       ],
@@ -4656,6 +5586,10 @@
        [
         2019,
         2022
+       ],
+       [
+        2019,
+        2023
        ]
       ],
       "tenure_composed_2025": [
@@ -4664,39 +5598,71 @@
         2022
        ],
        [
-        2017,
-        2018
-       ],
-       [
-        2017,
-        2019
-       ],
-       [
-        2017,
-        2022
-       ],
-       [
-        2018,
-        2022
-       ],
-       [
-        2018,
+        2016,
         2023
        ],
        [
-        2019,
-        2022
-       ],
-       [
-        2019,
-        2023
-       ],
-       [
-        2022,
+        2016,
         2024
        ],
        [
+        2016,
+        2025
+       ],
+       [
+        2017,
+        2022
+       ],
+       [
+        2017,
+        2023
+       ],
+       [
+        2017,
+        2024
+       ],
+       [
+        2017,
+        2025
+       ],
+       [
+        2018,
+        2022
+       ],
+       [
+        2018,
+        2023
+       ],
+       [
+        2018,
+        2024
+       ],
+       [
+        2018,
+        2025
+       ],
+       [
+        2019,
+        2022
+       ],
+       [
+        2019,
+        2023
+       ],
+       [
+        2019,
+        2024
+       ],
+       [
+        2019,
+        2025
+       ],
+       [
         2022,
+        2025
+       ],
+       [
+        2023,
         2025
        ]
       ],
@@ -4706,31 +5672,71 @@
         2022
        ],
        [
-        2017,
-        2018
+        2016,
+        2023
        ],
        [
-        2017,
-        2019
+        2016,
+        2024
+       ],
+       [
+        2016,
+        2025
        ],
        [
         2017,
         2022
+       ],
+       [
+        2017,
+        2023
+       ],
+       [
+        2017,
+        2024
+       ],
+       [
+        2017,
+        2025
        ],
        [
         2018,
         2022
        ],
        [
+        2018,
+        2023
+       ],
+       [
+        2018,
+        2024
+       ],
+       [
+        2018,
+        2025
+       ],
+       [
         2019,
         2022
        ],
        [
-        2022,
+        2019,
+        2023
+       ],
+       [
+        2019,
         2024
        ],
        [
+        2019,
+        2025
+       ],
+       [
         2022,
+        2025
+       ],
+       [
+        2023,
         2025
        ]
       ]
@@ -4739,69 +5745,198 @@
     "every_scored_year_less_structural_breaks": {
      "is_non_empty_by_band": {
       "tenure_composed": false,
-      "mix_free_envelope": true,
+      "mix_free_envelope": false,
       "tenure_composed_2025": false,
       "observed_mix_hull": false
      },
      "intersection_by_band": {
       "tenure_composed": [
-       0.827709,
-       0.62898
+       0.835654,
+       -0.172069
       ],
       "mix_free_envelope": [
-       0.617779,
-       0.850265
+       0.625724,
+       0.524
       ],
       "tenure_composed_2025": [
-       0.756966,
-       0.53496
+       0.764912,
+       -0.386846
       ],
       "observed_mix_hull": [
-       0.756966,
-       0.62898
+       0.764912,
+       -0.172069
       ]
      },
      "the_verdict_is_the_same_at_every_observed_mix": true,
      "refuses_at_every_observed_mix": true,
-     "admits_only_outside_every_observed_mix": true,
+     "admits_only_outside_every_observed_mix": false,
      "minimal_refusing_pairs_by_band": {
       "tenure_composed": [
        [
-        2017,
-        2018
+        2016,
+        2023
+       ],
+       [
+        2016,
+        2024
+       ],
+       [
+        2016,
+        2025
        ],
        [
         2017,
-        2019
-       ]
-      ],
-      "mix_free_envelope": [],
-      "tenure_composed_2025": [
-       [
-        2017,
-        2018
+        2023
        ],
        [
         2017,
-        2019
+        2024
+       ],
+       [
+        2017,
+        2025
        ],
        [
         2018,
         2023
        ],
        [
+        2018,
+        2024
+       ],
+       [
+        2018,
+        2025
+       ],
+       [
+        2019,
+        2023
+       ],
+       [
+        2019,
+        2024
+       ],
+       [
+        2019,
+        2025
+       ],
+       [
+        2023,
+        2025
+       ]
+      ],
+      "mix_free_envelope": [
+       [
         2019,
         2023
        ]
       ],
-      "observed_mix_hull": [
+      "tenure_composed_2025": [
        [
-        2017,
-        2018
+        2016,
+        2023
+       ],
+       [
+        2016,
+        2024
+       ],
+       [
+        2016,
+        2025
        ],
        [
         2017,
-        2019
+        2023
+       ],
+       [
+        2017,
+        2024
+       ],
+       [
+        2017,
+        2025
+       ],
+       [
+        2018,
+        2023
+       ],
+       [
+        2018,
+        2024
+       ],
+       [
+        2018,
+        2025
+       ],
+       [
+        2019,
+        2023
+       ],
+       [
+        2019,
+        2024
+       ],
+       [
+        2019,
+        2025
+       ],
+       [
+        2023,
+        2025
+       ]
+      ],
+      "observed_mix_hull": [
+       [
+        2016,
+        2023
+       ],
+       [
+        2016,
+        2024
+       ],
+       [
+        2016,
+        2025
+       ],
+       [
+        2017,
+        2023
+       ],
+       [
+        2017,
+        2024
+       ],
+       [
+        2017,
+        2025
+       ],
+       [
+        2018,
+        2023
+       ],
+       [
+        2018,
+        2024
+       ],
+       [
+        2018,
+        2025
+       ],
+       [
+        2019,
+        2023
+       ],
+       [
+        2019,
+        2024
+       ],
+       [
+        2019,
+        2025
+       ],
+       [
+        2023,
+        2025
        ]
       ]
      }

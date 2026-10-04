@@ -507,6 +507,9 @@ _ALSO_ADMIT = {
         # ...and its legs withdraw their verdicts when the floor is not HEAD's code.
         ("_current_world_bound_admitted_on_its_code", None),
         ("_withdraw_a_verdict_stated_from_a_superseded_run", None),
+        # ...and no leg is bounded at all when the floor's realised book is disjoint from the
+        # arms' (the `20261004r` pair, 2026-10-04).
+        ("_realised_book_pairing", {"refusal": None, "disjoint_on": {}}),
     ],
 }
 

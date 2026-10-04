@@ -3,6 +3,12 @@
 **Claim:** `refit-the-level-anchor-onto-desnz-qep-2-7-1` (Lane 0 delivery). **Written:** 2026-10-04 by the delivery seat.
 **Graded result:** `docs/staging/records/SEAT_RESULT_THE_LEVEL_ANCHOR_REFIT_ONTO_DESNZ_QEP_2_7_1_2026-10-03.md`.
 
+
+**LANDED 2026-10-04** with the `20261004r` arms, under claim
+`land-the-qep-refit-once-the-one-process-floor-finishes`. The page publishes no current-world bound:
+see `docs/staging/SEAT_FINDING_THE_QEP_REFIT_LANDS_AND_ITS_FLOOR_IS_REFUSED_AS_A_DIFFERENT_BOOK_ON_ONE_CHURN_COUNTED_FIELD_2026-10-04.md`.
+What follows is the record of how it got there, and the patch below is spent.
+
 ## Why this is not landed yet
 
 The patch below re-sites the switching commons onto QEP 2.7.1 and lands the second QEP-pass level
