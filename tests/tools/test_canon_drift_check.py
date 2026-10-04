@@ -77,7 +77,7 @@ EXPECTED_CLAIM_IDS = frozenset({
     # 2026-08-28. The canon page now states the arm's REACH (2.07% of renewals, electricity only),
     # which is a claim about a constant and therefore registerable. It reports SUPERSEDED the day
     # the arm widens -- the moment the coverage figures beside it stop being true.
-    "MISSION_the_pricing_arm_is_electricity_only",
+    "MISSION_the_pricing_arm_prices_both_fuels",  # re-pointed 2026-10-04, see _retired
 })
 
 PAGE_TEXT = """# A PAGE

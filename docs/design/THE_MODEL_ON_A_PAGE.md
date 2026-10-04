@@ -188,11 +188,15 @@ carrying: the world's own switching response is calibrated **dual-fuel**
 (`MARKET_SAVINGS_BY_YEAR`), so **the arm is narrower than the world it is scored against** —
 an electricity-only policy judged by a dual-fuel switching curve. Finding:
 `WORKER_FINDING_THE_ARM_IS_NARROWER_THAN_THE_WORLD_IT_IS_SCORED_AGAINST_2026-08-28`.
+*(Corrected 2026-10-04, a factual correction: since `3088f8c71` (2026-09-07) the pricing arm prices
+gas renewals too — the electricity-only guard `UPLIFTABLE_COMMODITY` was removed when its stated
+reason had stopped being true. The 2.07% above is the 2026-08-28 measurement, not the arm today.)*
 **Discovery loop:** company clusters its book from observables only, scored on worst-cell
 belief-vs-truth; first refuted assumption already recoupled (renters/heat-pumps).
 **Carbon:** designed ledger (SAVED/SPENT/NET), honestly *not yet instrumented* — the site says so
 plainly.
-**Method:** the harness itself — gates, R1–R17, twin approvals, daily self-note — the third product.
+**Method:** the harness itself — gates, R1–R17, daily self-note — the third product. *(Corrected
+2026-10-04: "twin approvals" removed; the twin last acted on 2026-07-16.)*
 
 ## TIMEFRAME 2 — EVOLUTION (registered, sequenced, not yet true)
 
