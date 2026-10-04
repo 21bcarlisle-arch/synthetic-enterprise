@@ -132,7 +132,10 @@ def observe_book(
     the company knew when it first read it, which is the point-in-time reading in any case.
 
     `payment_method_of(account, date)` is the company's own method register on that date; it is
-    only ever asked of dates at or before `as_of`.
+    only ever asked of dates at or before `as_of`. `None` means the account is not one the price
+    learns from, and none of its years is read. This used to become `""` and the year was kept: the
+    run's SME accounts (C5, C6) entered the resi belief's `unknown` cell, one of them with the
+    whole of a GBP 75 final-bill charge.
 
     `arrears_state_at(account, date)` is the company's own arrears read
     (`PaymentObservationConsumer.arrears_state` with its previous-period clock); it is passed in
@@ -169,7 +172,7 @@ def observe_book(
                     opened = kept.resolved_on
                 continue
             billed = sum(g for d, g in bills if start <= d < end)
-            if billed <= 0.0:
+            if billed <= 0.0 or payment_method_of(account, start) is None:
                 if memo is not None:
                     memo[(account, start)] = None
                 continue

@@ -2,13 +2,13 @@
 
 **Severity:** BLOCKING · **Lane:** H_harness · **Epoch:** unassigned · **Atom:** `unminted`
 
-**Instances:** 92 · **Class:** `publish_gate_and_wedge` · **Source's own count:** ~18 (`DIRECTOR_RULING_FINDING_SEVERITY_AND_INTERLEAVE_2026-08-12`, clause 1, "publish-gate/wedge")
+**Instances:** 93 · **Class:** `publish_gate_and_wedge` · **Source's own count:** ~18 (`DIRECTOR_RULING_FINDING_SEVERITY_AND_INTERLEAVE_2026-08-12`, clause 1, "publish-gate/wedge")
 
 **THIS IS A REGISTER, NOT A QUEUE ITEM. Do not archive it.** Since 2026-09-01 an accruing class register is DRAWN as work (`background/class_debt.py`, rank 35), and a drawn document is normally actioned and moved to `done/`. Doing that here is the 2026-08-23 failure: a bulk archive carried all five registers out of the root and wedged four consecutive publish cycles behind `MISSING CLASS DOC` while the files sat intact in `done/`. **You action this document by writing a decision into its `## Disposition` section** — repaired and closed by a named mechanism, or accepted as a limitation with its cost beside it. That is what takes it out of the draw, and it stays exactly where it is.
 
 This document supersedes the individual findings listed below, which are **archived, not deleted**, in `docs/staging/done/`. **Membership has two halves and they carry different guarantees.** The LIVE half is DERIVED, never hand-kept: `python3 -m background.finding_classes --check` re-derives it from the filesystem and fails if a live finding belongs to this class and is not listed here, if a listed instance is missing from the archive or has come back to the root, or if the count above stops equalling the length of the list below. The ARCHIVED half is CARRIED — these names are read back out of this document and kept because the file is still in the archive, and `--check` does not re-classify them. So a change to this class's patterns can leave an archived instance counted here that the classifier can no longer place; the one leg that re-reads the archive and refuses that is `tests/background/test_finding_classes.py::test_no_archived_instance_is_stranded_in_a_class_it_no_longer_classifies_into`.
 
-## The 92 instances
+## The 93 instances
 
 - `SEAT_DECISION_THE_PAGES_ROOT_PUBLISHES_A_NAMED_MANIFEST_NOT_THE_DOCS_TREE_2026-09-20.md` — BLOCKING
 - `SEAT_FINDING_A_CLEAN_PUBLISH_INSIDE_AN_OPEN_EPISODE_LEFT_NO_TRACE_SO_A_BACKLOG_READ_AS_AN_OUTAGE_2026-09-04.md` — BLOCKING
@@ -70,6 +70,7 @@ This document supersedes the individual findings listed below, which are **archi
 - `WORKER_FINDING_THE_GENERATED_PATH_ORACLE_MISSES_A_TERMINAL_OUTPUT_NOBODY_RE_SPELLS_AND_THE_WEDGE_REMEDY_THEN_SAYS_TO_LAND_IT_2026-09-10.md` — LATENT
 - `WORKER_FINDING_THE_GHOST_PUSHER_GUARD_FIRES_ON_A_CONCURRENT_WRITER_2026-08-09.md` — LATENT
 - `WORKER_FINDING_THE_HEADROOM_SURFACE_PUBLISHES_A_TEST_FIXTURE_AS_THE_GATES_DURATION_2026-08-20.md` — RECORDED
+- `WORKER_FINDING_THE_HEAD_REDS_TURNING_COMMITS_AND_WHY_THE_GATE_DID_NOT_SELECT_THEM_2026-10-04.md` — BLOCKING
 - `WORKER_FINDING_THE_IN_FLIGHT_GATE_DETECTOR_COUNTED_THE_WORKER_READING_ABOUT_THE_GATE_2026-09-04.md` — LATENT
 - `WORKER_FINDING_THE_LANDING_TOOL_EXTRACTS_INTO_THE_TMPFS_THE_GATE_WAS_MOVED_OFF_2026-08-14.md` — RECORDED
 - `WORKER_FINDING_THE_NAMED_BLOCKING_TEST_PASSES_WHEN_YOU_RUN_IT_2026-08-10.md` — LATENT
@@ -105,7 +106,7 @@ This document supersedes the individual findings listed below, which are **archi
 
 ## Cumulative cost, measured from the instances' own recorded evidence
 
-**672.2 recorded episode-hours** across 26 of the 92 instances; largest single recorded episode **146h**; 10 instance(s) name a published figure in scope.
+**672.2 recorded episode-hours** across 26 of the 93 instances; largest single recorded episode **146h**; 10 instance(s) name a published figure in scope.
 
 **The definition, because a bare sum here would be the very defect this class catalogues.** Each instance contributes the LARGEST duration it records with evidence — one figure per document, so a finding that states the same episode twice is not billed twice. The sum is then over DOCUMENTS, not over distinct outages: two findings describing the same wedge from different angles each contribute, so this is *recorded episode-hours*, not a claim that this many distinct hours were lost. An instance that never measured its own damage contributes zero, which makes the figure a floor on attention spent and never an estimate. Every line below is traceable to the document and the sentence it came from — a cost that cannot be traced is the mirror class this consolidation itself lists.
 
@@ -138,7 +139,7 @@ This document supersedes the individual findings listed below, which are **archi
 
 ## What is owed
 
-14 of these instances are BLOCKING, so this class document is BLOCKING in `H_harness` (the class inherits the MAXIMUM severity of its members — consolidation must never launder a blocker into a housekeeping note). Each is discharged the way clause 2 allows: repaired, or the limitation explicitly recorded and accepted.
+15 of these instances are BLOCKING, so this class document is BLOCKING in `H_harness` (the class inherits the MAXIMUM severity of its members — consolidation must never launder a blocker into a housekeeping note). Each is discharged the way clause 2 allows: repaired, or the limitation explicitly recorded and accepted.
 
 - `SEAT_DECISION_THE_PAGES_ROOT_PUBLISHES_A_NAMED_MANIFEST_NOT_THE_DOCS_TREE_2026-09-20.md`
 - `SEAT_FINDING_A_CLEAN_PUBLISH_INSIDE_AN_OPEN_EPISODE_LEFT_NO_TRACE_SO_A_BACKLOG_READ_AS_AN_OUTAGE_2026-09-04.md`
@@ -151,6 +152,7 @@ This document supersedes the individual findings listed below, which are **archi
 - `SEAT_FINDING_THE_REPAIR_THAT_CLEARS_THE_PUBLISH_WEDGE_RUNS_45_MINUTES_BEFORE_THE_GATE_THAT_READS_IT_2026-09-04.md`
 - `SEAT_FINDING_THE_TWO_ROOMS_REPAIRS_RECORDED_CAUSE_IS_REFUTED_AND_THE_ROOT_COPY_COMES_BACK_FROM_ORIGIN_2026-09-09.md`
 - `WORKER_FINDING_THE_GATE_EXHAUSTS_TMP_AND_THE_ENOSPC_IS_RECORDED_AS_TWELVE_TEST_REGRESSIONS_2026-09-05.md`
+- `WORKER_FINDING_THE_HEAD_REDS_TURNING_COMMITS_AND_WHY_THE_GATE_DID_NOT_SELECT_THEM_2026-10-04.md`
 - `WORKER_FINDING_THE_WEDGE_WAS_A_TREE_LOCK_TIMEOUT_FILED_AS_A_TEST_REGRESSION_2026-08-30.md`
 - `WORKER_RESULT_THE_GATES_RED_HAD_A_REPAIR_ON_ORIGIN_AND_THE_RECONCILER_THAT_CARRIES_IT_LOST_95_RACES_TO_THE_GATES_OWN_LOCK_TODAY_2026-09-18.md`
 - `WORKER_RESULT_THE_WEDGES_RED_WAS_REAL_ON_A_FORK_THAT_DIED_THREE_MINUTES_LATER_AND_THE_RECORD_COULD_NOT_SAY_SO_2026-09-18.md`

@@ -1,9 +1,21 @@
 {
- "generated_at": "2026-10-03T14:27:04.042256+00:00",
+ "generated_at": "2026-10-03T20:26:37.637972+00:00",
  "seat": "delivery",
  "what_it_did": {
   "available": true,
   "commits": [
+   {
+    "sha": "543dcff6d",
+    "at": "2026-10-03T18:53:13+01:00",
+    "subject": "delivery seat: direction for the next stretch",
+    "substantive": false
+   },
+   {
+    "sha": "b81763dea",
+    "at": "2026-10-03T15:48:37+01:00",
+    "subject": "delivery seat: direction for the next stretch",
+    "substantive": false
+   },
    {
     "sha": "28bc126f4",
     "at": "2026-10-03T15:09:50+01:00",
@@ -231,81 +243,67 @@
     "at": "2026-10-03T10:03:09+01:00",
     "subject": "D27 is frame-saturated: it was parked this morning on a run, and the park lived only in a comment the draw cannot read",
     "substantive": true
-   },
-   {
-    "sha": "4ccb35736",
-    "at": "2026-10-03T09:55:07+01:00",
-    "subject": "chore(liveness): publish heartbeat while sim output unchanged (git=af3b5d4933f7833c90cda5eeb5c0853c97df5d8a) -- decouples published liveness from content-change (Fault#1 2026-07-25)",
-    "substantive": false
-   },
-   {
-    "sha": "af3b5d493",
-    "at": "2026-10-03T09:51:12+01:00",
-    "subject": "PB8 is frame-saturated: its frame landed this morning as a market-research addendum the draw could not see",
-    "substantive": true
    }
   ],
-  "substantive": 17,
-  "mechanical": 23,
+  "substantive": 16,
+  "mechanical": 24,
   "what_the_split_means": "A mechanical commit republishes an unchanged net -- the report, the dashboard, the state files. Counting those as work would make a quiet day look busy, so they are separated rather than filtered: they happened, they are just not progress."
  },
  "what_it_decided": {
   "available": true,
-  "oriented_at": "2026-10-03T14:21:21.041545+00:00",
+  "oriented_at": "2026-10-03T20:21:41.690495+00:00",
   "age_hours": 0.1,
   "expires_after_hours": 12.0,
   "live": true,
-  "thesis_read": "THE LOSS IS NOW LOCATED, AND IT IS ON THE CHURN SIDE, NOT THE CREDIT SIDE. I had that wrong. Last stretch I steered credit-side inference first. The console seat's probe (585ea9746) then scored rule against rule on three reference paths. Value against a flat level at its own median: -2,668 / -3,046 / -2,146. Letting the price see who pays (value minus value_blind): +147 / +213 / +291. The oracles split the remaining gap: perfect payment knowledge is worth +191 to +393, perfect churn knowledge +2,175 to +2,620. The company's believed P(stay) misses the world's with sd 0.42 per decision. It applies one price slope of 0.08 per +10%, against a world median of 0.036 that varies seventy-fold, and some of that variation is observable by payment method. So the thesis's inference gap is the churn belief. The console seat is building B8 on the director's own instruction: per-method price sensitivity learned from the company's own closed renewals. The credit work was still worth doing, and it found real things. The default table is right on level and wrong on shape (no_debt 0.42%, worsening 5.55%, table 2.0% flat). The persistence term that prices every DD and standard-credit account is about 3x high (6.48 believed against 2.17 charged). A book-learned belief is closest in every arrears state (42b0a43f1, 28bc126f4). It sits behind a switch that is off by default. TWO FIDELITY DEFECTS SIT UNDER THE INSTRUMENT, and the first one bites B8 directly. (1) A household's payment method has two independent homes in the world, and they agree on about half the book (153 of 300). The triad draws the method that produces the ledger's payment events. The seam reports a different one to the company. B8 will key its learned slopes on the seam's method, and nobody has asked which of the two the world's churn response actually follows. The atom that claims this invariant, W2_payment_channel_dd_consistency_invariant, sits at L2. (2) The company's ledger posts one settlement record a month as the month's bill, so the median bill is GBP 0.023. Every absolute GBP figure, including the renewal's stock term, is near zero. A director ruling is also being broken on the default path. Since e0370bf94 a clean prepayment household is priced GBP 2.00-2.75/MWh above an identical clean DD one, and the control that guards the ruling is red at HEAD. The gate never selected it, because selection goes by module stem. THE STEER BIT, ALL THREE. The default belief landed in two commits. The September 15 worktree was dispositioned as superseded (326dc55e9). The DD stopping rule was drawn as a Lane 0 key and BUILT. That corrects my PB8 routing error. But PB8 is not landed. Its holder, pid 2590080, is dead. Its L0->L1 edit and the code sit uncommitted in the shared tree, where the next sweep or reset can lose them. THE MACHINE GOT WORSE. 15 of 31 commits carried nothing, and three base-advancing surgical_land merges were running at the same time at orientation.",
+  "thesis_read": "THE INFERENCE WORK NOW HAS A CLEAN READING, AND THE QUESTION OF WHETHER ITS \"TRUTH\" IS FAITHFUL IS STILL OPEN. The console seat's probe now records the company's believed P(stay) beside the world's at every offer (ac465ac38). Its new pre-registration (c822e470e) splits the belief's error in two. The LEVEL error is by regime: too pessimistic before the cap, and from 2019 near 0.9+ while the world keeps 0.2-0.7. The SLOPE is about 1.7x too steep. Its argument that the slope, not the level, holds the price down is sound: a level error that scales every candidate alike leaves the argmax where it is. So the next inference step is B8's learned slope under the stayer-pays cap, being run now (pids 1538042, 1542480). That is the thesis working as designed: an advantage sought from inference over the company's own renewals, against a flat-level baseline, with predictions filed first. BUT the world's P(stay) at margin 10 in 2020 is 0.37. That is 63% of renewing households leaving in a year whose published whole-market switching rate is 20.2%. The renewal sub-population has no published comparator, so this is not a conviction, but it is the number the slope is being learned against. The departure-rate item is in hand and has a pre-registration on file (/var/tmp/se-seat-executor, executor pid 1758163, untracked). The pre-registration itself says the book's 45-50 electricity accounts a year earn a +-8-12pp bound, so it cannot convict any single year. That is my error in how I framed the item, recorded in wrong. The item stays first and now asks for the pooled measurement. ONE ITEM IS FINISHED AND LEAVES FOCUS. The one-payment-method home landed as 067ade9ac. Ledger and seam agree 178 of 178, where 112 of 178 agreed before. The control reds at 71/178 and 21/178 under its two mutations. world_identity gained a payment_methods part. W2_payment_channel_dd_consistency_invariant was re-graded and held at L2 with a named reason (non-DD failures still carry DD_FAILED), and the console seat has its re-read note. So the W2 row in wrong is now corrected. THE STEER HALF-BIT AGAIN. The prepayment-ruling item has gone two stretches undrawn, and so has the base-advance item. Both controls guarding the ruling are unchanged on origin since 0cc052102, so still red. The machine is no better: 15 of 31 commits carried no work, and three base-advancing surgical_land runs are live now. HEAD is 82 behind origin. My last direction commit, 543dcff6d, is on no remote ref 2.9h after it was written. The base-advance item moves to second, ahead of the ruling, because its cost taxes every other lane's landing including the ruling's. The ruling's own-book flip has a release condition that is now MET: four probe_capped files exist and the stayer-pays landing is on origin (3475058ef). I am holding the flip one step more, until the console seat grades its learned-slope run, because flipping the default path under a live pre-registration would make its L1-L4 unattributable. That hold is written into the item so it is re-asked, not remembered. Eight worktrees hold unlanded commits. The executor's (4ec466d6c, salvage) holds the departure finding, and it is locked and live. The three agent-* SALVAGE worktrees are owned by the console seat's agents, so they are not mine to reap or land.",
   "focus": [
    {
-    "id": "land-the-unlanded-dd-stopping-rule",
+    "id": "the-worlds-departure-rate-against-the-published-year",
     "lane": "W2_customer_generator",
-    "what": "Land PB8's supplier-authored DD stopping rule. It is built and uncommitted in the shared tree, and its holder, pid 2590080, is dead. The paths are company/billing/dd_collections_desk.py, simulation/dd_collection_book.py, tests/company/billing/test_dd_collections_desk.py, tests/simulation/test_dd_collection_book.py and the PB8_a_households_payment_channel_changes_over_its_tenure row in docs/design/maturity_map.yaml (L0->L1, block_reason, file_scope). First run ps for a rival surgical_land or worker on these paths. Then build HEAD-plus-these-hunks with tools/isolate_hunks.py, because other lanes have edits in the same files. Run both test files plus the partition control that the build was asked for: on a real book, both the N and N-1 branches are reachable. Land through surgical_land --content, record the level through the level gate, and bind the commit with delivery_lane --landed build-the-supplier-dd-stopping-rule. Then release the row in .seat_work_in_hand.json (seat_work_in_hand.release) as well. If the domain_constant_origins entry for DD_STOP_THRESHOLD_CONSECUTIVE_RETURNS or the partition control is missing, write it before landing.",
-    "why": "Finished work in the shared tree with a dead holder is the loss shape this project has paid for repeatedly. Until the rule lands, every household whose DD bounces every month stays on DD for life in every run. That is fidelity on the side B8 and the payment-history work both read. DONE when PB8 at L1 is on origin/main with its controls, both claim stores are clear, and git status no longer shows these paths modified. The L2 leg is NOT part of this item: arrears and get_payment_method following the mandate waits on the second focus item."
+    "what": "Finish and land docs/staging/SEAT_FINDING_THE_WORLDS_DEPARTURE_RATE_BY_YEAR_AGAINST_DESNZ_QEP_2_7_1_2026-10-03.md. Its pre-registration (P1-P4) is already written, untracked, in /var/tmp/se-seat-executor. If executor pid 1758163 is still live, wait for it and do not start a second copy; if it is gone, carry that file forward unchanged. Section 1 must not be rewritten. Grade P1-P4 on the single run it names (run_output_543dcff6d_20261003T185017Z.json). Then answer the question one book cannot. Pool electricity account-years per calendar year across every run_output and probe world on disk that shares the current departure digest, or run additional roll seeds until 2020, 2023, 2024 and 2025 each earn a bound narrower than their distance from the DESNZ QEP 2.7.1 figure. Report the per-year table with its bound, and say which years the world is outside the record. Separately, report the world's per-renewal-decision departure share for 2019-2021 from the probe's own rows (/var/tmp/se-probe-out/probe_bel_default.json), labelled as having no published comparator. Do not change the world, the commons artefact or any company belief. Leave a note for the console seat in docs/staging/.",
+    "why": "The console seat is now teaching the company a flatter price slope from its own renewals, learned against a world in which 2020's renewing households keep P(stay) 0.31-0.37. If that world over-churns against the record, the learned slope is an advantage from a fidelity defect, which the thesis forbids and the book would show as a gain. The single book cannot settle it: its own pre-registration says so. DONE when the finding is on origin/main with P1-P4 graded and the pooled per-year table. Each year must either have a bound that decides it or be named as undecidable at the pool size reached. The console seat must have the note. If any year is outside the record, the finding names the coupled correction and prices it, including the roughly 25 value-arm controls a level re-fit reds."
    },
    {
-    "id": "one-payment-method-home-in-the-world",
-    "lane": "W2_customer_generator",
-    "what": "Give a household's payment method one home in the world. Today background/live_payment_triad.LivePaymentTriad._method_for draws it through simulation.payment_behaviour_source.generate_payment_method. SimInterface.get_payment_method draws it separately through simulation.household_segments.payment_channel_for_customer. The two agree on 153 of 300 households. FIRST, before changing anything, establish which of the two draws the world's own churn response and arrears_engine.payment_method follow, and write that down in the finding SEAT_FINDING_THE_LEDGER_PAYS_BY_ONE_METHOD_DRAW_AND_THE_SEAM_REPORTS_ANOTHER_2026-10-03.md. Then make one draw canonical, keeping the four-way vocabulary (DD / standing order / card / prepayment) and mapping it to the seam's three. Make every reader derive from it, including the triad, the seam and the arrears engine. One control: over a real book, the ledger's paying method equals the seam's for every household, and the mutation that restores the second stream reds it. Re-grade W2_payment_channel_dd_consistency_invariant against that control, and record the world change as a fidelity change with its new digest. Leave a staging note for the console seat that names the change, so B8's per-method slopes are re-read on the unified method. Do not touch company/pricing/discovered_price_sensitivity.py or /var/tmp/se-b8.",
-    "why": "The console seat is building per-method churn slopes now, the oracles say churn belief is the large lever, and half the book's method is two different facts. A slope learned on the seam's method from events produced by the triad's method is keyed to noise, and it would read as an inference failure when it is a fidelity one. The world changes for fidelity, decided blind to results. This is also the prerequisite for PB8 L2: get_payment_method cannot follow a cancelled mandate while it has two sources. DONE when one draw serves every reader, the agreement control is green and mutation-proven, the atom's level is re-graded on it, and the console seat has the note."
-   },
-   {
-    "id": "the-company-ledger-posts-the-months-bill",
-    "lane": "W2_customer_generator",
-    "what": "Fix simulation/run_phase2b.py's Phase NH block so that _payment_triad.record_period posts each customer-month's bill as the sum of that customer's settlement records in the month, dated at the month's due date. Today it posts the first record's revenue_gbp. Build the one leg named in SEAT_FINDING_THE_COMPANY_LEDGER_BILLS_ONE_SETTLEMENT_RECORD_A_MONTH_NOT_THE_MONTHS_BILL_2026-10-03.md: for a run, the ledger's billed total equals the run's own billed revenue for the same accounts, to the pound. Check whether arrears_state_from_collections and the coupled-triad gap measures depend on absolute amounts, and say so in the finding. Before landing, print the renewal stock term and the default-belief comparison in docs/institutional/knowledge_map.md at real inputs before and after, and record both.",
-    "why": "A median posted bill of GBP 0.023 makes every absolute figure the company reads from its own ledger near zero. That includes the stock term on money already owed, which the renewal price added this week. A supplier that cannot see what it is owed cannot price on it. The ratio readings survived, which is why the defect hid. DONE when the to-the-pound control is green and mutation-proven, the before and after readings are recorded, and the finding is archived with what changed."
+    "id": "base-advance-merges-select-by-their-combined-diff",
+    "lane": "H_harness",
+    "what": "First measure the gate wall-time spent this stretch and last on surgical_land --merge origin/main commits whose combined diff is empty: 15 of 31 this stretch, 23 of 38 last. Read it from the gate receipts and docs/observability/, and record the figure in a new docs/staging/ finding. Then change tools/pre_commit_test_gate.py so that, for a merge commit, test selection keys on the merge's COMBINED diff: paths whose merged content differs from every parent. Today it keys on everything either side touched. Every fixed structural gate still runs, so this is selection, not a bypass. Add one control with two legs. A merge with a non-empty combined diff must still select its subject's tests. A merge with an empty combined diff must select none beyond the fixed gates. Mutation-prove both legs, and run the control in a linked worktree and in the shared tree before landing.",
+    "why": "This is the third stretch running in which about half the commits carried nothing. Three base-advancing landings are live at this orientation, and each re-gates code already gated on both parents. That queue is why other lanes' landings lose the race to origin and merge again, and why HEAD is 82 behind. It taxes every other focus item, the ruling's included, which is why it now ranks above it. Hook bypass is a wall, so the saving must come out of selection. DONE when the measured cost is on file and the combined-diff selection is landed with its two-leg, mutation-proven control. The next brief's no-work share is then read against that figure."
    },
    {
     "id": "the-renewal-price-honours-the-prepayment-ruling-at-default",
     "lane": "B_commercial",
-    "what": "Make tests/company/pricing/test_the_price_rests_only_on_observables_a_supplier_may_use.py green at HEAD, and make the pre-commit gate select it whenever company/pricing/value_based_renewal.py changes. The fix goes in tools/pre_commit_test_gate.py's selection, or as a stem alias, not by renaming the control. My decision on the open question in SEAT_FINDING_THE_RENEWAL_PRICE_NOW_CHARGES_A_CLEAN_PREPAYMENT_HOUSEHOLD_MORE_THAN_A_CLEAN_DIRECT_DEBIT_ONE_2026-10-03.md is as follows. The ruling forbids shifting cost ONTO prepayment. The stock term's per-method live row moves a prepayment debtor's price down, not up, so it may stay: the control declares billed_last_year_gbp, unpaid_bills_by_age and default_belief_rate with that argument. The control then changes to assert the property, that no clean account is priced higher for its payment method, at real inputs on both switch settings. It no longer asserts that the word does not appear. Remove the clean-account shift on the segment_table path now, so it cannot recur while the switch is off. Flip DecisionPolicy.renewal_default_belief to own_book ONLY after the console seat's B8 landing from /var/tmp/se-b8 is on origin/main. If it is not, leave the flip and say so in the finding.",
-    "why": "A director ruling is broken on the default path of every run, and the control that guards it has been red since e0370bf94 without any gate noticing. The flip waits so that B8's B0-B5 grading is not confounded mid-experiment. Reversible: the switch and the declaration are one commit each. DONE when the control is green at HEAD and asserts the property, the gate selects it for value_based_renewal.py, a clean prepayment household is priced the same as a clean DD one on both switch settings, and either the default is own_book or the finding names the B8 landing that will release the flip."
+    "what": "Make both red tests in tests/company/pricing/test_the_price_rests_only_on_observables_a_supplier_may_use.py green at HEAD. Make tools/pre_commit_test_gate.py select that file whenever company/pricing/value_based_renewal.py, company/pricing/default_belief.py or company/pricing/discovered_price_sensitivity.py changes, using a selection alias rather than a rename. The ruling forbids shifting cost ONTO prepayment. So declare billed_last_year_gbp, unpaid_bills_by_age, default_belief_rate and payment_method in the control, each with its observable argument. Replace the word-ban test with the property: no CLEAN account is priced higher for its payment method. Check it at real inputs on both renewal_default_belief settings, with learn_price_response on and off. Remove any clean-account method shift on the segment_table path. The own_book flip's release condition is MET: the probe_capped files exist and 3475058ef is on origin. Flip DecisionPolicy.renewal_default_belief to own_book only once the Grading section of docs/staging/records/SEAT_PREREG_THE_CHOICE_IS_HELD_DOWN_BY_A_TOO_STEEP_BELIEF_SO_LEARN_THE_SLOPE_UNDER_THE_DEFAULT_2026-10-03.md is filled in on origin/main. Until then, record in SEAT_FINDING_THE_RENEWAL_PRICE_NOW_CHARGES_A_CLEAN_PREPAYMENT_HOUSEHOLD_MORE_THAN_A_CLEAN_DIRECT_DEBIT_ONE_2026-10-03.md that the flip is held for that grading and for nothing else.",
+    "why": "A director ruling has been unguarded on the default path since e0370bf94, and this item has gone two stretches undrawn. The property survives per-method pricing and learned slopes, both of which the company now has, and still refuses the shift he ruled out. The flip waits one step because changing the default path under the console seat's live pre-registration would leave its L1-L4 unattributable. DONE when both tests are green at HEAD and assert the property, the gate selects them for all three pricing modules, and a clean prepayment household prices equal to a clean DD one in every setting checked. The finding must record either the flip or the named grading still holding it."
    }
   ],
   "not_now": [
    {
-    "what": "Build the company's calibrated churn belief or per-method price slopes (B8) from a Lane 0 worker.",
-    "why": "It is the largest lever the oracles found, and the console seat is building and grading it now on the director's 13:15Z and 14:18Z instructions. A second builder on /var/tmp/se-b8 is the land-twice shape. The second focus item serves it by making the method it keys on one fact."
+    "what": "Keep one-payment-method-home-in-the-world in focus to chase the H27 calibration book re-draw it left owed.",
+    "why": "The item is done: change, control, re-grade and digest are all on origin in 067ade9ac. The re-draw is named in its finding and is harness hygiene. It loses to the departure measurement, which decides whether the inference work is learning truth."
    },
    {
-    "what": "Correct the persistence term, which is 3x high, by editing its constant.",
-    "why": "Its replacement is already built: own_book replaces both the table and the persistence term, and the fourth focus item flips to it once B8 lands. Re-tuning the constant now would be a number picked to fill a slot."
+    "what": "Calibrate the churn belief's LEVEL, or learn its slope, from a Lane 0 worker.",
+    "why": "It is the console seat's work on the director's instruction, and its run is live now. A second builder is the land-twice shape. The first focus item serves it instead."
    },
    {
-    "what": "Stop the landing door from advancing the base as its own gated commit.",
-    "why": "Worse this stretch: 15 of 31 commits carried nothing, and 12 were merges. It still loses. The director said on 2026-10-03 \"machinery only when nothing can land\", and four product items can land. It returns if work-carrying commits fall below half."
+    "what": "Correct the switching commons artefact and re-capture the world's departure level now.",
+    "why": "It is a coupled change that reds about 25 value-arm controls and changes the world under two live probe runs. Measure first, over the published denominator at a pool size that can decide it, and only then price and order the re-capture."
    },
    {
-    "what": "Wire SPINE_1 deeper or run more years past 2025.",
-    "why": "The probe already runs inside a SPINE_1 world (--world, 585ea9746), and the oracle split is the same on every path. No open question needs more years yet."
+    "what": "Flip own_book to the default immediately because its release condition is met.",
+    "why": "Met, but the console seat's learned-slope pre-registration is being graded on the default path right now. One variable at a time. The hold is written into focus item three with a file-level release, so it is re-asked, not remembered."
    },
    {
-    "what": "Build PB8's household-authored route (a household moves itself off DD).",
-    "why": "It still has no published normal-year rate (gb_payment_method_migration_rates.md), and building on 2022's 0.58% is refused."
+    "what": "Relaunch the payment-history P/C or depth A/B legs.",
+    "why": "They are superseded by the per-decision probe. The director's console record says they are held unless decided."
+   },
+   {
+    "what": "Model the domestic debt objection (a debtor cannot switch away).",
+    "why": "It moves the same departure draw the first item is measuring. Changing the world before measuring it would leave neither change attributable."
    },
    {
     "what": "Give worker-seat-manager a heartbeat line.",
-    "why": "It is mute by construction and not wedged (hrtimer_nanosleep). It is a behaviour change to the daemon that seeds the worker seat, and it loses to product work this week."
+    "why": "It is mute by construction and its wait channel is still hrtimer_nanosleep. It is a behaviour change to the daemon that seeds the worker seat, and it loses to product work and to the merge cost."
    }
   ],
   "for_the_director": [],
@@ -315,6 +313,241 @@
  },
  "what_it_got_wrong": {
   "entries": [
+   {
+    "at": "2026-10-03T20:21:41.690495+00:00",
+    "what": "THE MACHINE'S, CARRIED. A waiter's deadline is set without pricing the queue ahead of it. launch_after_width.sh loops four 6h rounds by hand because wait_for caps at 21600 s. Still not a mechanism.",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-03T20:21:41.690495+00:00",
+    "what": "THE MACHINE'S, CARRIED. The world digest does not identify behaviour switches, so 1002b and 1002c share digest cf823b185f8ca51c and are not the same world. Only the pin separates them. (067ade9ac added a payment_methods part by hand for its own change. The class, a switch the digest is not told about, is unchanged.)",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-03T20:21:41.690495+00:00",
+    "what": "THE MACHINE'S, CARRIED. depth-vs-width's first unit referenced a width worktree that did not exist and died at exit 90 after 10h. Nothing checks a long job's worktrees before launch.",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-03T20:21:41.690495+00:00",
+    "what": "THE MACHINE'S, CARRIED. A held change's hold condition is not re-asked when its premise moves. a15532730 and 1ff7b68b3 held \"until the retake lands\"; nothing was built to re-ask it. (Recurred again: the own_book flip's condition was met at 3475058ef and nothing noticed. I re-asked it by hand at this orientation.)",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-03T20:21:41.690495+00:00",
+    "what": "THE MACHINE'S, CARRIED. A long job's world stamp is not tied to HEAD. The 1002c floor graded at pin 0cc052102 was published with is_heads_code False, because ten simulation/ and company/ paths had moved after it. The overtaking recurs every run.",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-03T20:21:41.690495+00:00",
+    "what": "THE MACHINE'S, CARRIED. Four level or park moves stranded in a preserved ref were replayed as written. PB4 build->idle was false by then (a6bd4d77e). Nothing re-asks a stranded move's release condition.",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-03T20:21:41.690495+00:00",
+    "what": "THE MACHINE'S, CARRIED. One item can land twice, on origin through surgical_land and as a local commit on the shared HEAD (75df9efdf after d77ff33d5). No mechanism prevents the next one.",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-03T20:21:41.690495+00:00",
+    "what": "THE MACHINE'S, CARRIED. The launch register recorded hgc-suite-timing as died while its /var/tmp driver ran. That driver called resource_headroom.admitted(), which does not exist. Nothing checks that a hand-written driver calls an API that exists.",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-03T20:21:41.690495+00:00",
+    "what": "THE MACHINE'S, CARRIED. A control or door whose shape changes must re-run every fixture that builds a synthetic tree to drive it, and no control requires it. citation_at_head, red_at_head and fork_state in .publish_gate_state.json still read not_established.",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-03T20:21:41.690495+00:00",
+    "what": "THE MACHINE'S, CARRIED. A refusal naming a commit is not re-asked against the remote ref before a reader sees it. liveness_surface_refusal is still not re-asked.",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-03T20:21:41.690495+00:00",
+    "what": "THE MACHINE'S, CARRIED. The stash-completeness sweep reports a genuinely lost file as safe. It is still not on the map.",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-03T20:21:41.690495+00:00",
+    "what": "THE MACHINE'S, CARRIED. Nothing on the landing path asks whether a same-subject sibling is left behind in the shared tree (the 14-path refusal in 662da7fd3). Separate from H49.",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-03T20:21:41.690495+00:00",
+    "what": "MINE, CLASS. not_now is still prose that nothing reads. A rejected item comes back only if I remember to promote it. This stretch I again re-asked the own_book flip's release by hand.",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-03T20:21:41.690495+00:00",
+    "what": "THE MACHINE'S, CARRIED. A bounded executor turn can be reset over finished, unlanded work. It is live again: the departure finding's pre-registration exists only untracked in /var/tmp/se-seat-executor, kept by an auto SALVAGE commit (4ec466d6c) on no remote ref.",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-03T20:21:41.690495+00:00",
+    "what": "THE MACHINE'S, CARRIED. One Lane 0 change is drawn twice. 1cdf561e4 skips an id held in the other claim store, which closes that shape. The F5 shape (drawn, noted as a non-act, redrawn) has no fix.",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-03T20:21:41.690495+00:00",
+    "what": "THE MACHINE'S, CARRIED. A pre-registration that dates itself by its first commit can sit untracked after its subject commit lands. The class is still unrefused.",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-03T20:21:41.690495+00:00",
+    "what": "THE MACHINE'S, CARRIED. Base-advance merges carry no work and each costs a full gate cycle. The landing door still advances the base as its own gated commit. This stretch 15 of 31 commits carried nothing, and three base-advancing surgical_land runs were live at orientation. Focus item two takes it.",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-03T20:21:41.690495+00:00",
+    "what": "THE MACHINE'S, CARRIED. A launch chain dies silently when its waiter hits DEADLINE. The launch register shows width as finished and does not show that P/C, chained behind it, never started.",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-03T20:21:41.690495+00:00",
+    "what": "THE MACHINE'S, CARRIED. The pre-commit gate selects controls by module stem, so e0370bf94 landed with the control guarding a director ruling red. It is still TWO tests red at HEAD, unchanged on origin since 0cc052102, and neither is on HEAD_RED_REGISTER.md. Focus item three fixes the instance. The class, a control whose file name lacks its subject's stem, is unrefused.",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-03T20:21:41.690495+00:00",
+    "what": "THE MACHINE'S, CARRIED. W2_payment_channel_dd_consistency_invariant sat at L2 while the world held two independent method draws that agreed on 51% of households. Corrected by 067ade9ac: 178 of 178 agree, the control reds under both mutations, and the level was re-graded and held at L2 with a named reason.",
+    "corrected": true
+   },
+   {
+    "at": "2026-10-03T20:21:41.690495+00:00",
+    "what": "THE MACHINE'S, CARRIED. The launch register records a deliberate seat stop as DIED. payment-history-pc-legs ended rc=143 beside C_61001_61002.STOPPED, which says \"stopped by seat: superseded\". A stop that says why is not a death.",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-03T20:21:41.690495+00:00",
+    "what": "THE MACHINE'S, CARRIED. A commons artefact refuted by its own publisher (switching rate, 2026-09-07, 8 of 10 years) has stayed load-bearing for 26 days, because correcting it needs a coupled re-capture nobody scheduled. The company's price slope is now being learned against the world it shapes. Nothing re-asks a superseded artefact's consumers when they become the subject of an experiment.",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-03T20:21:41.690495+00:00",
+    "what": "MINE, NEW. I framed the departure-rate item over \"all domestic electricity accounts in the book\". The book holds 45-50 electricity accounts a year, which earns a +-8-12pp bound. That cannot convict any single year against the record, as the worker's own pre-registration says. I asked a decisive question of an instrument too small to decide it. This record re-frames focus item one to pool until each year is decided or named as undecidable. It is corrected when that pooled table is on origin.",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-03T20:21:41.690495+00:00",
+    "what": "THE MACHINE'S, NEW. A direction commit can sit on no remote ref for hours. 543dcff6d is on the shared HEAD and in /var/tmp/se-origin-reconcile, 2.9h after it was written, while HEAD is 82 behind origin. reconcile-watch is running, so nothing is absent. The record the director reviews is simply not on the branch he reads.",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-03T17:24:46.921462+00:00",
+    "what": "THE MACHINE'S, CARRIED. A waiter's deadline is set without pricing the queue ahead of it. launch_after_width.sh loops four 6h rounds by hand because wait_for caps at 21600 s. Still not a mechanism. (This stretch the C leg ended by a deliberate seat stop, not a deadline, but the hand-looped chain is unchanged.)",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-03T17:24:46.921462+00:00",
+    "what": "THE MACHINE'S, CARRIED. The world digest does not identify behaviour switches, so 1002b and 1002c share digest cf823b185f8ca51c and are not the same world. Only the pin separates them. (The one-payment-home change is one more world change the digest must be told about by hand.)",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-03T17:24:46.921462+00:00",
+    "what": "THE MACHINE'S, CARRIED. depth-vs-width's first unit referenced a width worktree that did not exist and died at exit 90 after 10h. Nothing checks a long job's worktrees before launch.",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-03T17:24:46.921462+00:00",
+    "what": "THE MACHINE'S, CARRIED. A held change's hold condition is not re-asked when its premise moves. a15532730 and 1ff7b68b3 held \"until the retake lands\"; nothing was built to re-ask it. (Recurred: the own_book flip's condition, \"B8 on origin\", was met at 4e17d1247 and nothing noticed. Focus item two re-asks it by hand.)",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-03T17:24:46.921462+00:00",
+    "what": "THE MACHINE'S, CARRIED. A long job's world stamp is not tied to HEAD. The 1002c floor graded at pin 0cc052102 was published with is_heads_code False, because ten simulation/ and company/ paths had moved after it. The overtaking recurs every run.",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-03T17:24:46.921462+00:00",
+    "what": "THE MACHINE'S, CARRIED. Four level or park moves stranded in a preserved ref were replayed as written. PB4 build->idle was false by then (a6bd4d77e). Nothing re-asks a stranded move's release condition.",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-03T17:24:46.921462+00:00",
+    "what": "THE MACHINE'S, CARRIED. One item can land twice, on origin through surgical_land and as a local commit on the shared HEAD (75df9efdf after d77ff33d5). No mechanism prevents the next one.",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-03T17:24:46.921462+00:00",
+    "what": "THE MACHINE'S, CARRIED. The launch register recorded hgc-suite-timing as died while its /var/tmp driver ran. That driver called resource_headroom.admitted(), which does not exist. Nothing checks that a hand-written driver calls an API that exists.",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-03T17:24:46.921462+00:00",
+    "what": "THE MACHINE'S, CARRIED. A control or door whose shape changes must re-run every fixture that builds a synthetic tree to drive it, and no control requires it. citation_at_head, red_at_head and fork_state in .publish_gate_state.json still read not_established.",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-03T17:24:46.921462+00:00",
+    "what": "THE MACHINE'S, CARRIED. A refusal naming a commit is not re-asked against the remote ref before a reader sees it. liveness_surface_refusal is still not re-asked.",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-03T17:24:46.921462+00:00",
+    "what": "THE MACHINE'S, CARRIED. The stash-completeness sweep reports a genuinely lost file as safe. It is still not on the map.",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-03T17:24:46.921462+00:00",
+    "what": "THE MACHINE'S, CARRIED. Nothing on the landing path asks whether a same-subject sibling is left behind in the shared tree (the 14-path refusal in 662da7fd3). Separate from H49.",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-03T17:24:46.921462+00:00",
+    "what": "MINE, CLASS. not_now is still prose that nothing reads. A rejected item comes back only if I remember to promote it. This stretch my own condition on base-advance merges fired (work-carrying 15 of 38), and I caught it by re-reading the row by hand.",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-03T17:24:46.921462+00:00",
+    "what": "THE MACHINE'S, CARRIED. A bounded executor turn can be reset over finished, unlanded work. The PB8 instance survived: it landed as 1c34f6ef1. Nothing made it survive except a later draw, so the class is unchanged.",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-03T17:24:46.921462+00:00",
+    "what": "THE MACHINE'S, CARRIED. One Lane 0 change is drawn twice. 1cdf561e4 skips an id held in the other claim store, which closes that shape. The F5 shape (drawn, noted as a non-act, redrawn) has no fix.",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-03T17:24:46.921462+00:00",
+    "what": "THE MACHINE'S, CARRIED. A pre-registration that dates itself by its first commit can sit untracked after its subject commit lands. The class is still unrefused.",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-03T17:24:46.921462+00:00",
+    "what": "THE MACHINE'S, CARRIED. Base-advance merges carry no work and each costs a full gate cycle. The landing door still advances the base as its own gated commit. Worse this stretch: 23 of 38 commits carried nothing, and five base-advancing surgical_land runs were live at orientation. Focus item four takes it.",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-03T17:24:46.921462+00:00",
+    "what": "THE MACHINE'S, CARRIED. A launch chain dies silently when its waiter hits DEADLINE. The launch register shows width as finished and does not show that P/C, chained behind it, never started.",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-03T17:24:46.921462+00:00",
+    "what": "THE MACHINE'S, CARRIED. The pre-commit gate selects controls by module stem, so e0370bf94 landed with the control guarding a director ruling red. Re-run at orientation, it is now TWO tests red at HEAD, after B8 added payment_method to pricing, and neither is on HEAD_RED_REGISTER.md. Focus item two fixes the instance; the class, a control whose file name lacks its subject's stem, is unrefused.",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-03T17:24:46.921462+00:00",
+    "what": "THE MACHINE'S, CARRIED. W2_payment_channel_dd_consistency_invariant sits at L2 while the world holds two independent method draws that agree on 51% of households. The fix is landing (pid 121436) but the level is not yet re-graded. The self-contradicting-levels census still cannot see a level whose control tests the wrong population.",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-03T17:24:46.921462+00:00",
+    "what": "MINE, NEW. I put the company-ledger bill fix in focus while the console seat was building the same fix in /var/tmp/se-bill. That is a second claim on one piece of work, the shape I warned about for B8 in the same record. Corrected: dropped from focus to not_now in this record, with the console seat's commit named.",
+    "corrected": true
+   },
+   {
+    "at": "2026-10-03T17:24:46.921462+00:00",
+    "what": "THE MACHINE'S, NEW. The launch register records a deliberate seat stop as DIED. payment-history-pc-legs ended rc=143 beside C_61001_61002.STOPPED, which says \"stopped by seat: superseded\", and the brief tells the reader to decide whether to relaunch it. A stop that says why is not a death.",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-03T17:24:46.921462+00:00",
+    "what": "THE MACHINE'S, NEW. A commons artefact refuted by its own publisher (switching rate, 2026-09-07, 8 of 10 years) has stayed load-bearing for 26 days, because correcting it needs a coupled re-capture nobody scheduled. Meanwhile the company's churn belief became the thing being tuned against the world it shapes. Nothing re-asks a superseded artefact's consumers when they become the subject of an experiment.",
+    "corrected": false
+   },
    {
     "at": "2026-10-03T14:21:21.041545+00:00",
     "what": "THE MACHINE'S, CARRIED. A waiter's deadline is set without pricing the queue ahead of it. launch_after_width.sh loops four 6h rounds by hand because wait_for caps at 21600 s. Still not a mechanism. (It cost the payment-history P/C legs last stretch. This stretch a C leg is running again by hand at /var/tmp/se-pc-out, still not through a mechanism.)",
@@ -3359,121 +3592,6 @@
     "at": "2026-09-28T23:21:49.041482+00:00",
     "what": "MINE, CARRIED. not_now is prose, and nothing a launch from another lane reads. It is still true of this file.",
     "corrected": false
-   },
-   {
-    "at": "2026-09-28T20:22:19.798811+00:00",
-    "what": "MINE, CARRIED. I named the liveness heartbeat as what manufactures the gate cycles the reconciler cannot keep up with. Withdrawn by measurement in 7a97d25a8. It is 6.5% of behind time, and the dirty-path and conflict classes are 45%. If 7a97d25a8 has not reached origin by the next orientation, reopen this row.",
-    "corrected": true
-   },
-   {
-    "at": "2026-09-28T20:22:19.798811+00:00",
-    "what": "MINE, NEW. Last stretch's not_now said HEAD was one behind origin and \"the reconciler will take\" it. It did not. HEAD is now 11 behind, pinned by dirty shared-tree paths (7a97d25a8). I predicted a reconcile without asking what was holding the tree. Corrected in this thesis_read and in not_now's first row.",
-    "corrected": true
-   },
-   {
-    "at": "2026-09-28T20:22:19.798811+00:00",
-    "what": "THE MACHINE'S, NEW. Item two's surgical_land (pid 837396) ran 1h25m, exited, and put nothing on any ref. Its three paths sit uncommitted in the shared tree, and no finding or disposition records the failure. The cause is not established here, and focus item one reads it before rebuilding anything.",
-    "corrected": false
-   },
-   {
-    "at": "2026-09-28T20:22:19.798811+00:00",
-    "what": "THE MACHINE'S, CARRIED. A control or door whose shape changes must re-run every fixture that builds a synthetic tree to drive it, and no control requires it. citation_at_head, red_at_head and fork_state in docs/observability/.publish_gate_state.json still read not_established.",
-    "corrected": false
-   },
-   {
-    "at": "2026-09-28T20:22:19.798811+00:00",
-    "what": "THE MACHINE'S, CARRIED. A refusal naming a commit is not re-asked against the remote ref before a reader sees it. liveness_surface_refusal is still not re-asked.",
-    "corrected": false
-   },
-   {
-    "at": "2026-09-28T20:22:19.798811+00:00",
-    "what": "MINE, CARRIED. evaluate_boot_sha_drift() in background/process_reconciler.py grades every daemon against local HEAD, and misreads when HEAD and origin diverge during a reconcile. The function now diffs each daemon's boot blobs against disk (boot_sha.changed_paths_since), so the claim may describe code that has since changed. Not re-established, so not withdrawn.",
-    "corrected": false
-   },
-   {
-    "at": "2026-09-28T20:22:19.798811+00:00",
-    "what": "THE MACHINE'S, CARRIED. The stash-completeness sweep reports a genuinely lost file as safe. It is still not on the map.",
-    "corrected": false
-   },
-   {
-    "at": "2026-09-28T20:22:19.798811+00:00",
-    "what": "THE MACHINE'S, CARRIED. The lane-0 block and the path check read HEAD, so stranded work reads as work never done and a working copy reads as landed. This stretch's instance is item two. Its built instrument is in the working copy only, and the lane-0 block lists the item as nothing more than drawn.",
-    "corrected": false
-   },
-   {
-    "at": "2026-09-28T20:22:19.798811+00:00",
-    "what": "THE MACHINE'S, CARRIED. Nothing on the landing path asks whether a same-subject untracked sibling is left behind in the shared tree. 551f5a736 left the shared copy of test_fold_noise_floor_family.py, which deletes live controls, behind in place.",
-    "corrected": false
-   },
-   {
-    "at": "2026-09-28T20:22:19.798811+00:00",
-    "what": "MINE, CARRIED. not_now is prose, and nothing a launch from another lane reads. It is still true of this file.",
-    "corrected": false
-   },
-   {
-    "at": "2026-09-28T17:21:48.049122+00:00",
-    "what": "MINE, NEW. I framed PROS-2016-0098 as a stayer in one state and a leaver in the other, and wrote the \"stay/leave split\" into last stretch's focus item one, as the C1 prereg's C5 and C6 had already done. It leaves in every run, and only the date changes. Corrected by 875322e5a, which refuted the frame and graded C5 and C6 on it in 8924da6ec.",
-    "corrected": true
-   },
-   {
-    "at": "2026-09-28T17:21:48.049122+00:00",
-    "what": "MINE, NEW. Last stretch's thesis_read said the inference question \"rests on one household\". It understated the problem. The value arm treats that household identically in both states, so it rests on no evidence of inference at all. Corrected in this thesis_read, and made focus item one.",
-    "corrected": true
-   },
-   {
-    "at": "2026-09-28T17:21:48.049122+00:00",
-    "what": "MINE. My focus item three handed built-and-unlanded work to lane 0 while its original holder was still landing it. Both landed about a minute apart (75b5f6ce6 and d3b12ad3d), and 8fe6eefb0 had to merge them by hand. Corrected as behaviour: last stretch's focus held no built-and-unlanded work, and its three items landed once each (875322e5a, 8924da6ec, 27aba4242) with no hand merge. The machine half is the lane-0-reads-HEAD row below.",
-    "corrected": true
-   },
-   {
-    "at": "2026-09-28T17:21:48.049122+00:00",
-    "what": "THE MACHINE'S. The re-armed C1 doorbell wrote its finding through an unquoted heredoc, so its backticked shas ran as commands. Closed by expiry, not by a fix. The script fired once and is spent, and its finding is in done/. 8924da6ec took the commits from the SEAT_RESULT, so no reader relied on the blanks. The shape recurs in any future hand-written doorbell.",
-    "corrected": true
-   },
-   {
-    "at": "2026-09-28T17:21:48.049122+00:00",
-    "what": "MINE, CARRIED. I named the liveness heartbeat as what manufactures the gate cycles the reconciler cannot keep up with. Three more heartbeat-only commits landed this stretch (c671ce31b, 67baae0be, 080bdb5ba), and it is still not a one-variable run. It is now focus item three.",
-    "corrected": false
-   },
-   {
-    "at": "2026-09-28T17:21:48.049122+00:00",
-    "what": "THE MACHINE'S, CARRIED. A control or door whose shape changes must re-run every fixture that builds a synthetic tree to drive it, and no control requires it. citation_at_head, red_at_head and fork_state in docs/observability/.publish_gate_state.json still read not_established.",
-    "corrected": false
-   },
-   {
-    "at": "2026-09-28T17:21:48.049122+00:00",
-    "what": "THE MACHINE'S, CARRIED. A refusal naming a commit is not re-asked against the remote ref before a reader sees it. liveness_surface_refusal is still not re-asked.",
-    "corrected": false
-   },
-   {
-    "at": "2026-09-28T17:21:48.049122+00:00",
-    "what": "MINE, CARRIED. evaluate_boot_sha_drift() in background/process_reconciler.py grades every daemon against local HEAD, and misreads when HEAD and origin diverge during a reconcile. The function now diffs each daemon's boot blobs against disk (boot_sha.changed_paths_since), so the claim may describe code that has since changed. Not re-established, so not withdrawn.",
-    "corrected": false
-   },
-   {
-    "at": "2026-09-28T17:21:48.049122+00:00",
-    "what": "THE MACHINE'S, CARRIED. The stash-completeness sweep reports a genuinely lost file as safe. It is still not on the map.",
-    "corrected": false
-   },
-   {
-    "at": "2026-09-28T17:21:48.049122+00:00",
-    "what": "MINE, CARRIED. The design at 1a78b9977 headed itself Lane A_strategy_governance, Atom value-arms-error-bar, and six records copied it. Corrected by faf691609. The write-off and C1-bracket chain now reads D_billing_metering \u00b7 unminted, and the waiter finding reads H_harness. The records still carrying that header are arms-page and selection-residual records. Those were filed under that direction item, and A_strategy_governance is right for them.",
-    "corrected": true
-   },
-   {
-    "at": "2026-09-28T17:21:48.049122+00:00",
-    "what": "THE MACHINE'S, CARRIED. The lane-0 block and the path check read HEAD, so stranded work reads as work never done and a working copy reads as landed. Another instance this window: at 07:39Z the PROS-2016-0098 classification item was drawn by the isolated-worktree seat while the scheduled-tick worker's surgical_land of the same work (254b4c1e4) was in flight.",
-    "corrected": false
-   },
-   {
-    "at": "2026-09-28T17:21:48.049122+00:00",
-    "what": "THE MACHINE'S, CARRIED. Nothing on the landing path asks whether a same-subject untracked sibling is left behind in the shared tree. 551f5a736 left the shared copy of test_fold_noise_floor_family.py, which deletes live controls, behind in place.",
-    "corrected": false
-   },
-   {
-    "at": "2026-09-28T17:21:48.049122+00:00",
-    "what": "MINE, CARRIED. not_now is prose, and nothing a launch from another lane reads. It is still true of this file.",
-    "corrected": false
    }
   ],
   "refused_own_records": [
@@ -3484,19 +3602,78 @@
     ]
    }
   ],
-  "outstanding": 510,
-  "corrected": 122,
+  "outstanding": 539,
+  "corrected": 117,
   "correction_not_recorded": 0,
   "empty_means": ""
  },
  "what_next": {
   "focus": [
-   "land-the-unlanded-dd-stopping-rule",
-   "one-payment-method-home-in-the-world",
-   "the-company-ledger-posts-the-months-bill",
+   "the-worlds-departure-rate-against-the-published-year",
+   "base-advance-merges-select-by-their-combined-diff",
    "the-renewal-price-honours-the-prepayment-ruling-at-default"
   ],
   "steer_checks": [
+   {
+    "by_class": {
+     "lane_0": {
+      "drawn": [
+       "the-worlds-departure-rate-against-the-published-year",
+       "one-payment-method-home-in-the-world"
+      ],
+      "focus": [
+       "the-worlds-departure-rate-against-the-published-year",
+       "the-renewal-price-honours-the-prepayment-ruling-at-default",
+       "one-payment-method-home-in-the-world",
+       "base-advance-merges-select-by-their-combined-diff"
+      ],
+      "steered": true
+     }
+    },
+    "drawn": [
+     "the-worlds-departure-rate-against-the-published-year",
+     "one-payment-method-home-in-the-world"
+    ],
+    "focus": [
+     "the-worlds-departure-rate-against-the-published-year",
+     "the-renewal-price-honours-the-prepayment-ruling-at-default",
+     "one-payment-method-home-in-the-world",
+     "base-advance-merges-select-by-their-combined-diff"
+    ],
+    "note": "the previous direction named work the draw then took (measured over this stretch only -- the 2.9h since 2026-10-03T17:24:46.921462+00:00; this is the PREVIOUS FOCUS, not every drawn item)",
+    "steered": true,
+    "window": "this stretch only -- the 2.9h since 2026-10-03T17:24:46.921462+00:00"
+   },
+   {
+    "by_class": {
+     "lane_0": {
+      "drawn": [
+       "land-the-unlanded-dd-stopping-rule",
+       "one-payment-method-home-in-the-world"
+      ],
+      "focus": [
+       "land-the-unlanded-dd-stopping-rule",
+       "one-payment-method-home-in-the-world",
+       "the-company-ledger-posts-the-months-bill",
+       "the-renewal-price-honours-the-prepayment-ruling-at-default"
+      ],
+      "steered": true
+     }
+    },
+    "drawn": [
+     "land-the-unlanded-dd-stopping-rule",
+     "one-payment-method-home-in-the-world"
+    ],
+    "focus": [
+     "land-the-unlanded-dd-stopping-rule",
+     "one-payment-method-home-in-the-world",
+     "the-company-ledger-posts-the-months-bill",
+     "the-renewal-price-honours-the-prepayment-ruling-at-default"
+    ],
+    "note": "the previous direction named work the draw then took (measured over this stretch only -- the 3.1h since 2026-10-03T14:21:21.041545+00:00; this is the PREVIOUS FOCUS, not every drawn item)",
+    "steered": true,
+    "window": "this stretch only -- the 3.1h since 2026-10-03T14:21:21.041545+00:00"
+   },
    {
     "by_class": {
      "lane_0": {
@@ -3599,70 +3776,6 @@
     "note": "the previous direction named work the draw then took (measured over this stretch only -- the 3.1h since 2026-10-03T05:20:02.278268+00:00; this is the PREVIOUS FOCUS, not every drawn item)",
     "steered": true,
     "window": "this stretch only -- the 3.1h since 2026-10-03T05:20:02.278268+00:00"
-   },
-   {
-    "by_class": {
-     "atom": {
-      "drawn": [],
-      "focus": [
-       "SPINE_1_scenario_world_state"
-      ],
-      "steered": false
-     },
-     "lane_0": {
-      "drawn": [
-       "flow-how-many-renewal-decisions-are-independent",
-       "the-queued-legs-are-graded-against-their-preregs"
-      ],
-      "focus": [
-       "flow-how-many-renewal-decisions-are-independent",
-       "the-queued-legs-are-graded-against-their-preregs"
-      ],
-      "steered": true
-     }
-    },
-    "drawn": [
-     "flow-how-many-renewal-decisions-are-independent",
-     "the-queued-legs-are-graded-against-their-preregs"
-    ],
-    "focus": [
-     "flow-how-many-renewal-decisions-are-independent",
-     "SPINE_1_scenario_world_state",
-     "the-queued-legs-are-graded-against-their-preregs"
-    ],
-    "note": "the previous direction named work the draw then took (measured over this stretch only -- the 3.0h since 2026-10-03T02:23:00.762681+00:00; this is the PREVIOUS FOCUS, not every drawn item)",
-    "steered": true,
-    "window": "this stretch only -- the 3.0h since 2026-10-03T02:23:00.762681+00:00"
-   },
-   {
-    "by_class": {
-     "lane_0": {
-      "drawn": [
-       "the-1002c-floor-runs-at-the-first-width-pair-boundary",
-       "the-value-arm-prices-the-arrears-its-own-ledger-holds",
-       "life-events-are-drawn-per-household-from-sourced-rates"
-      ],
-      "focus": [
-       "the-1002c-floor-runs-at-the-first-width-pair-boundary",
-       "the-value-arm-prices-the-arrears-its-own-ledger-holds",
-       "life-events-are-drawn-per-household-from-sourced-rates"
-      ],
-      "steered": true
-     }
-    },
-    "drawn": [
-     "the-1002c-floor-runs-at-the-first-width-pair-boundary",
-     "the-value-arm-prices-the-arrears-its-own-ledger-holds",
-     "life-events-are-drawn-per-household-from-sourced-rates"
-    ],
-    "focus": [
-     "the-1002c-floor-runs-at-the-first-width-pair-boundary",
-     "the-value-arm-prices-the-arrears-its-own-ledger-holds",
-     "life-events-are-drawn-per-household-from-sourced-rates"
-    ],
-    "note": "the previous direction named work the draw then took (measured over this stretch only -- the 3.0h since 2026-10-02T23:21:12.261479+00:00; this is the PREVIOUS FOCUS, not every drawn item)",
-    "steered": true,
-    "window": "this stretch only -- the 3.0h since 2026-10-02T23:21:12.261479+00:00"
    }
   ],
   "steered_recently": true,
@@ -3670,21 +3783,21 @@
  },
  "the_queues_link_to_the_map": {
   "available": true,
-  "population": 67,
-  "chained": 67,
-  "minted": 26,
+  "population": 66,
+  "chained": 66,
+  "minted": 25,
   "unminted": 41,
   "unminted_by_kind": {
-   "alarm": 13,
+   "alarm": 14,
    "finding": 22,
    "reference": 4,
-   "unknown": 2
+   "unknown": 1
   },
   "unresolved": [],
   "epoch_contradicted": [],
   "lane_contradicted": [],
   "by_epoch": {
-   "2": 15,
+   "2": 14,
    "3": 11
   },
   "unchained": [],
