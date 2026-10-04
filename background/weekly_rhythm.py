@@ -70,6 +70,10 @@ LONDON = ZoneInfo("Europe/London")
 
 MONDAY, FRIDAY = 0, 4
 MONDAY_STEP = "monday_ranking"
+#: A step still open this many days after its due date has missed its week and LAPSES (see
+#: `tick`). Seven, because the next occurrence of the same step is then due: past it, the open step
+#: is holding a baton that should be on the following week.
+LAPSE_AFTER_DAYS = 7
 FRIDAY_STEP = "friday_review"
 #: Which weekday each step falls on, and which step follows it. The chain is this dict.
 STEPS = {
@@ -559,8 +563,10 @@ def _finding_body(step: str, due_on: date, today: date, overdue: list[dict]) -> 
 def tick(now: datetime | None = None, path: Path | None = None, staging: Path | None = None) -> dict:
     """The daily due check. Returns what it did, and does at most one thing.
 
-    Dispositions, all four reachable: BOOTSTRAP (no baton), WAITING (armed, not yet due), OPENED
-    (due today or later, staged for the queue), FINDING (still open the day after it was due).
+    Dispositions, all five reachable: BOOTSTRAP (no baton), WAITING (armed, not yet due), OPENED
+    (due today or later, staged for the queue), FINDING (still open the day after it was due), and
+    LAPSED (still open a week after it was due: recorded as lapsed, the next Monday armed). A lapse
+    that lands on a Monday opens that Monday in the same tick and reports OPENED with `lapsed`.
     """
     today = london_today(now)
     staging_dir = staging or STAGING
@@ -587,6 +593,25 @@ def tick(now: datetime | None = None, path: Path | None = None, staging: Path | 
         return out
 
     step, due_on = record["step"], date.fromisoformat(record["due_on"])
+    lapsed = None
+    if not record.get("closed_at") and today >= due_on + timedelta(days=LAPSE_AFTER_DAYS):
+        # A STEP A WEEK PAST ITS DAY LAPSES, AND THE CHAIN RE-ARMS ITS MONDAY (2026-10-04). Before
+        # this, a step that was never closed held the baton for ever: its finding was filed once,
+        # every later tick returned WAITING, and the rhythm stopped -- for four weeks, from the
+        # 2026-09-07 Monday, with nothing on any surface saying so. Its week is over; doing it late
+        # would rank a week already spent. So it is recorded as LAPSED (never as done), its
+        # documents and its finding go to `done/` as the record, and the next Monday is armed --
+        # today, if today is a Monday, so this same tick opens it.
+        record["closed_at"] = datetime.now(LONDON).isoformat()
+        record["lapsed"] = True
+        write_baton(record, path)
+        archive_step_documents(step, due_on, staging_dir)
+        lapsed = {"step": step, "due_on": record["due_on"]}
+        record = _blank(MONDAY_STEP, next_weekday_after(today - timedelta(days=1), MONDAY), "lapse")
+        write_baton(record, path)
+        step, due_on = record["step"], date.fromisoformat(record["due_on"])
+    if lapsed is not None and today < due_on:
+        return {"action": "LAPSED", "lapsed": lapsed, "step": step, "due_on": record["due_on"]}
     if record.get("closed_at"):
         return {"action": "WAITING", "step": step, "due_on": record["due_on"],
                 "why": "the armed step is already closed"}
@@ -601,8 +626,11 @@ def tick(now: datetime | None = None, path: Path | None = None, staging: Path | 
         doc.write_text(_step_body(step, due_on, overdue))
         record["opened_at"] = datetime.now(LONDON).isoformat()
         write_baton(record, path)
-        return {"action": "OPENED", "step": step, "due_on": record["due_on"],
-                "doc": str(doc), "overdue": [r["id"] for r in overdue]}
+        out = {"action": "OPENED", "step": step, "due_on": record["due_on"],
+               "doc": str(doc), "overdue": [r["id"] for r in overdue]}
+        if lapsed is not None:
+            out["lapsed"] = lapsed
+        return out
 
     if today > due_on and record.get("finding_filed_for") != record["due_on"]:
         finding = staging_dir / _finding_doc(step, due_on).name
