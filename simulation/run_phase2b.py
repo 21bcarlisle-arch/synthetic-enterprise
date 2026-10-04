@@ -4315,6 +4315,10 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         # a missed payment to an exit, or `exit: None` while still open at the run's end.
         "collections_journeys": _payment_triad.collections_journeys(
             date.fromisoformat(effective_end)),
+        # ...and what became of the world's later lump settlements: crossed, replaced by an agreed
+        # plan, or crossed for a bill a plan covers (the arrears paid twice). AFTER the journeys,
+        # whose end-of-run forced crossing is the last that can move these counts.
+        "later_settlements": _payment_triad.later_settlements(),
         "total_net": total_net,
         "final_treasury": final_treasury,
         "starting_treasury": STARTING_TREASURY_GBP,

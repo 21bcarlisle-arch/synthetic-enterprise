@@ -12,6 +12,8 @@ What each control names as its own defect:
   * `test_the_order_check_*` -- the lawful-order table accepts any walk.
   * `test_a_short_live_run_*` -- the journey is not reached by a production run, or a run decides
     steps after its own last day.
+  * `test_a_live_run_publishes_what_became_of_the_later_lump_settlements` -- the run summary drops
+    the lump counters, so arrears paid twice are visible only inside a triad test.
   * `test_the_household_s_answer_*` / `test_an_agreed_plan_*` -- the world's answer to a plan offer
     does not reach the journey, or reaches it only one way: agree, decline and no-answer are
     asserted reachable in ONE control, and a kept plan and a broken one in another.
@@ -290,10 +292,23 @@ LIVE_WINDOW_END = "2016-05-31"
 
 
 @pytest.fixture(scope="module")
-def live_journeys():
+def live_run():
     from simulation.run_phase2b import main
 
-    return main(report_end=LIVE_WINDOW_END)["collections_journeys"]
+    return main(report_end=LIVE_WINDOW_END)
+
+
+@pytest.fixture(scope="module")
+def live_journeys(live_run):
+    return live_run["collections_journeys"]
+
+
+def test_a_live_run_publishes_what_became_of_the_later_lump_settlements(live_run):
+    """The run summary carries the lump counters, so a lump paid twice is seen on the surface and
+    not only in a triad test. Published basis: no plan is agreed, so none can be paid twice."""
+    lumps = live_run["later_settlements"]
+    assert set(lumps) == {"delivered", "withdrawn", "crossed_despite_a_plan"}
+    assert lumps["withdrawn"] == lumps["crossed_despite_a_plan"] == 0
 
 
 def test_a_short_live_run_records_journeys_in_lawful_order_and_reaches_both_exits(live_journeys):
