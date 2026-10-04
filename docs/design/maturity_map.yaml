@@ -1802,7 +1802,7 @@
   depends_on: [A47_the_score_has_no_household_side, PB4_engagement_separated_from_elasticity]
   couples_with: [C30_advice_reaches_a_household]
   file_scope: ['simulation/', 'company/crm/', 'docs/design/', 'tests/']
-  simplifications_count: 1
+  simplifications_count: 2
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "the reason a household stays on a bad tariff for years while a better one is one form away -- the switch costs attention it will not spend, which is a real cost to a real person and appears in no supplier's P&L"
 - id: W1_23_weather_phase2_the_other_loads_the_cells_do_not_carry

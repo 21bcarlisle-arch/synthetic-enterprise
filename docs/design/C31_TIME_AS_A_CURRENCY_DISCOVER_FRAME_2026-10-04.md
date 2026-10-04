@@ -1,4 +1,4 @@
-# C31: time as a currency. DISCOVER/FRAME pass 1
+# C31: time as a currency. DISCOVER/FRAME passes 1 and 2
 
 **Atom:** `C31_time_is_the_currency_that_does_not_exist` · lane `C_customer_ops` · epoch 4 ·
 `level_current: 0` · `level_target: 3` · `loop_stage: idle` · depends on
@@ -122,10 +122,86 @@ event census, and it lights up T3, the class the regulator already prices. No ne
 
 ## 6. Not established this pass, stated so it is not read as done
 - The CSS (faster-switching) go-live date and the switch duration before and after it. Not fetched.
+  *Pass 2: the date is now established (§7.3). The measured durations still are not.*
 - The DfT TAG non-work £/hour figure. Not fetched, and not recommended for use (Q1).
 - Any published minutes-per-switch, minutes-per-complaint or minutes-per-meter-read figure. None found.
 - The `~7 min → ~2 min` call-wait series in `company_customer_comms.md`. Inherited, not re-verified.
+  *Pass 2: re-verified against the source series (§7.1). The peak median was 388 s (6.5 min, Q1 2022)
+  and Q2 2024 was 106 s (1.8 min). The shape holds; "~7" rounds up.*
 
 Sources: [Ofgem GSOP switching compensation consultation, 2018](https://www.ofgem.gov.uk/sites/default/files/docs/2018/06/policy_consultation_on_gsop_switching_compensation_for_publn_v2.pdf) ·
 [CMA EMI final report summary, 2016](https://assets.publishing.service.gov.uk/media/576c23e4ed915d622c000087/Energy-final-report-summary.pdf) ·
 [Citizens Advice, "Worst customer service on record", 2022](https://www.citizensadvice.org.uk/wales/about-us/media-centre/press-releases/worst-customer-service-on-record-from-energy-companies-says-citizens-advice/)
+
+---
+
+## 7. DISCOVER pass 2 (2026-10-04): answering Q3 and the §6 gaps from source
+
+The level stays at 0 and there is no BUILD code. MATURITY_MAP L1 means "built in any form".
+
+### 7.1 T2 has a full quarterly series, per supplier, Q4 2017 to Q2 2024 (the L2 calibration target)
+Citizens Advice publishes its star-rating call-wait data as a CSV per supplier per quarter, under
+"Historic Star Rating Data", chart 5. I downloaded it this pass (2,613 bytes, sha256 `064c0b84…5ad6dbe`).
+The **median across suppliers** of each supplier's average wait, in seconds:
+
+| | Q1 | Q2 | Q3 | Q4 |
+|---|---|---|---|---|
+| 2017 | | | | 121 |
+| 2018 | 95 | 82 | 133 | 170 |
+| 2019 | 170 | 146 | 123 | 154 |
+| 2020 | 125 | 79 | 157 | 175 |
+| 2021 | 200 | 150 | 278 | 283 |
+| 2022 | **388** | 328 | 277 | 372 |
+| 2023 | 245 | 138 | 231 | 200 |
+| 2024 | 119 | 106 | – | – |
+
+From Q3 2024 the chart's column is `-`. The CA press figures for 2025–26 (e.g. a median of 77 s, then
+68 s, in 2026) come from a newer methodology that I did not reconcile with the series.
+**Two things this statistic is NOT**, said before anyone differences it:
+(a) It is a **median of supplier means**, not the mean household wait. The press release's 224 s for
+Q1 2021 is a different statistic from this series' 200 s for the same quarter.
+(b) The chart covers **current suppliers only**, so failed suppliers drop out. The 2021–22 peak is
+therefore probably an UNDER-statement, because the suppliers that failed are absent. I have not tested this.
+The per-supplier spread is wide (Q1 2022 runs from 30 s to 944 s), so an L2 queue should be calibrated
+to a band, not to the median.
+
+### 7.2 T3 is published as CONTACTS and ELAPSED DAYS, not minutes
+Ofgem *Complaints handling survey 2014* (Ofgem report, 8 Aug 2014). It surveyed 2,744 telephone
+interviews with people who complained in Dec 2013, base 2,457 domestic. I read it directly from the PDF:
+- The **average domestic complainant contacted their supplier six times** about one complaint, and a
+  micro business nine times. Nine in ten complaints were made by telephone.
+- Elapsed time to resolution, domestic, base 1,326 resolved: same day 17%, ≤1 day 2%, ≤2 days 3%,
+  3–7 days 12%, 8–14 days 10%, 15–28 days 15%, **>28 days 38%**, don't know 3%. That makes 53% over two weeks.
+- 11% of domestic complainants said "I have given up". The jointly commissioned Ofgem/CA 2019 survey
+  (n=3,300) put "gave up" at 27% (Energy Ombudsman, 12 Mar 2019).
+- The 8-week deadlock rule (a complaint can go to the Ombudsman after eight weeks) is the regulatory
+  clock on T3 elapsed time.
+
+**This does not establish minutes per complaint.** "Six contacts × the §7.1 wait" is a *composition*.
+It omits handle time and any non-phone contact, and it uses a 2013 cohort, outside the 2016–2025
+window. It is not a published figure, and it must not enter code as one. The L1 ledger can count
+contacts per complaint as events, and each contact's minutes stay `None`.
+
+### 7.3 T1 (switching): the date is established, the minutes are not
+CSS go-live was **18 July 2022** (Ofgem, formal designation of "CSS Go-Live"; REC Co, "green light
+for go-live"). After it, a domestic switch is next-working-day unless the customer chooses a later
+date. Before it, Ofgem's 2018 GSOP consultation (§2.3) gives the incidence: ~9% of switches took over
+21 days. This changes **elapsed days**, not the household's minutes of effort, so it remains a T1/T3
+event clock, not a time saving. The household minutes of a switch remain unpublished.
+
+### 7.4 What pass 2 changes in the FRAME
+- **L2's falsifier is now concrete:** the world's quarterly median wait must sit inside the §7.1 band
+  for 2018–2024, with the 2021 Q3 to 2023 Q1 crisis rise present, before the company may read its own
+  queue as an observable.
+- **L1 gains one countable:** contacts per complaint. Six is published (2014, pre-window) and can be a
+  bound for a test. It is not a constant. If a constant is ever written, it is pre-window and must say so.
+- **Q3 is answered:** no published minutes-per-event figure exists for T1, T3 or T4 in the sources
+  searched (Ofgem 2014 complaints survey, Ofgem 2018 GSOP consultation, CA star rating, Energy
+  Ombudsman 2019). T2 is the only class published in time units. The gap stays named.
+
+Pass 2 sources: [CA Historic Star Rating Data](https://www.citizensadvice.org.uk/policy/publications/historic-star-rating-data/) ·
+[CA chart 5 call-wait CSV](https://docs.google.com/spreadsheets/d/e/2PACX-1vTmgaUkvHeN8ZU92hrnvr9FILte56_RU_z3v442AiY2Gaos52ZE-xmaWtpa9ahb0Lw9i8ZF-NWRcVIn/pubhtml) ·
+[Ofgem Complaints handling survey 2014](https://www.ofgem.gov.uk/sites/default/files/docs/2014/09/ofgem_complaints_report_final_8_august_2014_0.pdf) ·
+[Energy Ombudsman, 2019](https://www.energyombudsman.org/news/how-good-are-energy-suppliers-at-handling-complaints) ·
+[Ofgem, CSS go-live designation](https://ofgem.gov.uk/decision/formal-designation-css-go-live) ·
+[REC Co, go-live 18 July 2022](https://www.retailenergycode.co.uk/switching-programme-gives-green-light-for-go-live-on-18-july-2022/)
