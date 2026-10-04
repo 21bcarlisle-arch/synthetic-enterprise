@@ -1185,159 +1185,94 @@ def _make_foreign(home, monkeypatch):
 
 # ── Fault #1 (2026-07-25 overnight publish-freeze): published liveness decoupled from content-change ──
 class TestRefreshPublishedLivenessOnSkip:
-    """The on-disk worker-tick heartbeat updates every 60s but only reached origin via a CONTENT
-    publish; a byte-identical-output night (change-detection SKIP every cycle) froze the PUBLISHED
-    heartbeat ~4h though every daemon was healthy. `_refresh_published_liveness_on_skip` publishes
-    ONLY the liveness surface on a SKIP, throttled to the same 30-min push cadence. Proven both ways:
-    throttled -> no-op; due -> commits ONLY the liveness paths and records a verified push."""
+    """The on-disk worker-tick heartbeat updates every 60s but only reached a reader via a CONTENT
+    publish; a byte-identical-output night froze the PUBLISHED heartbeat ~4h though every daemon
+    was healthy. `_refresh_published_liveness_on_skip` publishes ONLY the liveness surface on a
+    SKIP, throttled -- and since 2026-10-04 to the ops repo and the `liveness` branch, never main.
+    The real-git control for "never main" is
+    `test_the_idle_heartbeat_makes_no_commit_on_main.py`; these pin the leg bookkeeping."""
 
-    def _wire(self, tmp_path, monkeypatch, *, push_due, commit_rc=0, reached=True):
-        from contextlib import nullcontext
-        # RESIDENT seat, via a real marker file under a throwaway HOME and NO SE_SEAT
-        # override -- so these behaviour tests run the PRODUCTION discriminator rather
-        # than an escape hatch, and stay valid on a resident machine and a cloud
-        # sandbox alike (see the seat-guard tests below).
+    def _wire(self, tmp_path, monkeypatch, *, due, ops_why=None, branch=("SHA123456", None)):
         _make_resident(tmp_path / "home", monkeypatch)
         monkeypatch.setattr(prc, "PROJECT_DIR", tmp_path)
         (tmp_path / "site" / "data").mkdir(parents=True, exist_ok=True)
         (tmp_path / "docs" / "observability").mkdir(parents=True, exist_ok=True)
         (tmp_path / "site" / "data" / "tick_heartbeat.json").write_text('{"ts": 1}')
         (tmp_path / "docs" / "observability" / "agent_status.json").write_text('{"a": 1}')
-        monkeypatch.setattr(prc, "tree_lock", lambda *a, **k: nullcontext())
-        monkeypatch.setattr(prc, "_push_due", lambda: push_due)
-        # The stand-down has its own class below; here it answers "commit" so these tests keep
-        # asking what they asked before it existed.
-        monkeypatch.setattr(prc, "_heartbeat_stand_down", lambda: None)
-        recorded = []
-        monkeypatch.setattr(prc, "_record_push_time", lambda: recorded.append(True))
-        monkeypatch.setattr(prc, "_push_reached_origin", lambda *a, **k: reached)
-        calls = []
-
-        def fake_run(argv, **kwargs):
-            calls.append(argv)
-            rc = 0
-            if argv[:2] == ["git", "commit"]:
-                rc = commit_rc
-            out = ""
-            if argv[:2] == ["git", "rev-parse"]:
-                out = "LOCALHEAD\n"
-            if argv[:2] == ["git", "ls-remote"]:
-                out = "LOCALHEAD\trefs/heads/main\n"
-            return type("R", (), {"returncode": rc, "stdout": out, "stderr": ""})()
-
-        monkeypatch.setattr(prc.subprocess, "run", fake_run)
-        return calls, recorded
+        monkeypatch.setattr(prc, "_liveness_due", lambda: due)
+        seen = {"ops": [], "branch": [], "recorded": [], "published": [], "refused": []}
+        monkeypatch.setattr(prc, "_publish_liveness_to_ops",
+                            lambda files, msg: seen["ops"].append([Path(f).name for f in files])
+                            or ops_why)
+        monkeypatch.setattr(prc, "_publish_liveness_branch",
+                            lambda hb, msg: seen["branch"].append(Path(hb).name) or branch)
+        monkeypatch.setattr(prc, "_record_liveness_push_time",
+                            lambda: seen["recorded"].append(True))
+        monkeypatch.setattr(prc, "_record_liveness_surface_publish",
+                            lambda label, sha: seen["published"].append(sha))
+        monkeypatch.setattr(prc, "_record_liveness_surface_refusal",
+                            lambda label, cause, evidence, git_hash: seen["refused"].append(
+                                (cause, evidence)))
+        monkeypatch.setattr(prc, "_commit_and_push_paths",
+                            lambda *a, **k: pytest.fail("the heartbeat reached the main commit"))
+        monkeypatch.setattr(prc, "_record_push_time",
+                            lambda: pytest.fail("the heartbeat stamped the CONTENT push clock"))
+        return seen
 
     def test_throttled_is_a_noop(self, tmp_path, monkeypatch):
-        calls, recorded = self._wire(tmp_path, monkeypatch, push_due=False)
+        seen = self._wire(tmp_path, monkeypatch, due=False)
         assert prc._refresh_published_liveness_on_skip("abc123") is False
-        assert calls == []            # no git calls at all while throttled
-        assert recorded == []
+        assert seen["ops"] == [] and seen["branch"] == [] and seen["recorded"] == []
 
-    def test_due_commits_only_liveness_paths_and_records_push(self, tmp_path, monkeypatch):
-        calls, recorded = self._wire(tmp_path, monkeypatch, push_due=True, reached=True)
+    def test_due_writes_both_legs_and_records_its_own_clock(self, tmp_path, monkeypatch):
+        seen = self._wire(tmp_path, monkeypatch, due=True)
         assert prc._refresh_published_liveness_on_skip("abc123") is True
-        commit = next(c for c in calls if c[:2] == ["git", "commit"])
-        # commit pathspec is EXACTLY the liveness files -- never the whole index (no concurrent sweep)
-        assert "--" in commit
-        committed_paths = commit[commit.index("--") + 1:]
-        assert {Path(p).name for p in committed_paths} == {"tick_heartbeat.json", "agent_status.json"}
-        assert any(c[:2] == ["git", "push"] for c in calls)
-        assert recorded == [True]      # throttle recorded ONLY on a verified advance
+        assert seen["ops"] == [["tick_heartbeat.json", "agent_status.json"]]
+        assert seen["branch"] == ["tick_heartbeat.json"]
+        assert seen["recorded"] == [True]
+        assert seen["published"] == ["SHA123456"] and seen["refused"] == []
 
-    def test_due_but_phantom_push_does_not_record(self, tmp_path, monkeypatch):
-        calls, recorded = self._wire(tmp_path, monkeypatch, push_due=True, reached=False)
-        assert prc._refresh_published_liveness_on_skip("abc123") is False
-        assert recorded == []          # phantom push (origin did not advance) never resets throttle
+    def test_every_outcome_of_the_two_legs_is_reachable(self, tmp_path, monkeypatch):
+        """The partition first: a writer that refused everything would pass each refusal leg."""
+        outcomes = {}
+        for name, ops_why, branch in (("both", None, ("S", None)),
+                                      ("ops_only", None, (None, "rejected")),
+                                      ("branch_only", "no clone", ("S", None)),
+                                      ("neither", "no clone", (None, "rejected"))):
+            seen = self._wire(tmp_path / name, monkeypatch, due=True, ops_why=ops_why,
+                              branch=branch)
+            ok = prc._refresh_published_liveness_on_skip("abc")
+            outcomes[name] = (ok, bool(seen["recorded"]), bool(seen["refused"]))
+        assert outcomes == {"both": (True, True, False), "ops_only": (False, True, True),
+                            "branch_only": (False, True, True),
+                            "neither": (False, False, True)}, outcomes
 
-    def test_nothing_to_commit_skips_push(self, tmp_path, monkeypatch):
-        calls, recorded = self._wire(tmp_path, monkeypatch, push_due=True, commit_rc=1)
-        assert prc._refresh_published_liveness_on_skip("abc123") is False
-        assert not any(c[:2] == ["git", "push"] for c in calls)
-        assert recorded == []
-
-
-class TestHeartbeatStandsDownWhenItsCommitWouldReachNoReader:
-    """`_heartbeat_stand_down` skips the two heartbeats measured as paid for nothing (`daf2155d9`):
-    one whose `site/` liveness files are identical to HEAD (deploy-pages.yml deploys on `site/**`
-    only), and one committed onto a tree origin is ahead of while origin's published copy is still
-    far from the reader's own `stale_after_seconds`. Keyed to those properties, never to counts."""
-
-    NOW = 1_000_000.0
-    STALE_AFTER = 8 * 86400
-
-    def _runner(self, *, site_differs, published_age=3600.0, show_rc=0):
-        published = json.dumps({"ts": self.NOW - published_age,
-                                "content_publish": {"stale_after_seconds": self.STALE_AFTER}})
-
-        def run(argv, **kwargs):
-            if argv[:3] == ["git", "diff", "--quiet"]:
-                return types.SimpleNamespace(returncode=1 if site_differs else 0,
-                                             stdout="", stderr="")
-            if argv[:2] == ["git", "show"]:
-                return types.SimpleNamespace(returncode=show_rc, stdout=published, stderr="")
-            raise AssertionError("unexpected git call {}".format(argv))
-        return run
-
-    def _ask(self, *, site_differs, ahead, advanced=False, ahead_after=None, **kw):
-        answers = iter([ahead, ahead if ahead_after is None else ahead_after])
-        return prc._heartbeat_stand_down(
-            runner=self._runner(site_differs=site_differs, **kw),
-            ahead_fn=lambda: next(answers),
-            advance_fn=lambda: {"advanced": advanced, "reason": "test"},
-            now=self.NOW)
-
-    def test_both_the_commit_branch_and_each_stand_down_branch_are_reachable(self):
-        """The partition first: a stand-down that refused everything would pass every leg below."""
-        verdicts = {
-            "commit": self._ask(site_differs=True, ahead=0),
-            "site": self._ask(site_differs=False, ahead=0),
-            "behind": self._ask(site_differs=True, ahead=3),
-        }
-        assert verdicts["commit"] is None
-        assert verdicts["site"] and verdicts["behind"]
-        assert verdicts["site"] != verdicts["behind"]
-
-    def test_no_site_change_stands_down_even_when_level_with_origin(self):
-        assert "deploy nothing" in self._ask(site_differs=False, ahead=0)
-
-    def test_behind_origin_stands_down_and_names_the_bound(self):
-        why = self._ask(site_differs=True, ahead=3)
-        assert "3 commit(s) ahead" in why and "192.0h bound" in why
-
-    def test_a_successful_advance_that_levels_the_tree_commits(self):
-        assert self._ask(site_differs=True, ahead=3, advanced=True, ahead_after=0) is None
-
-    def test_behind_beats_anyway_once_origins_copy_nears_the_readers_bound(self):
-        """Fault #1's guard: the tree can be pinned behind for days, and the heartbeat must not
-        freeze on origin past the age its one reader calls stale."""
-        from background.publish_freshness import PUSH_LAG_AFTER_SECONDS
-        edge = self.STALE_AFTER - PUSH_LAG_AFTER_SECONDS
-        assert self._ask(site_differs=True, ahead=3, published_age=edge - 60)
-        assert self._ask(site_differs=True, ahead=3, published_age=edge) is None
-
-    def test_an_unreadable_origin_copy_beats(self):
-        assert self._ask(site_differs=True, ahead=3, show_rc=128) is None
-
-    def test_an_unreadable_ahead_count_beats(self):
-        assert self._ask(site_differs=True, ahead=None) is None
-
-    def test_a_stand_down_commits_nothing_and_leaves_the_throttle(self, tmp_path, monkeypatch):
-        _make_resident(tmp_path / "home", monkeypatch)
-        monkeypatch.setattr(prc, "PROJECT_DIR", tmp_path)
-        (tmp_path / "site" / "data").mkdir(parents=True)
-        (tmp_path / "site" / "data" / "tick_heartbeat.json").write_text('{"ts": 1}')
-        monkeypatch.setattr(prc, "_push_due", lambda: True)
-        monkeypatch.setattr(prc, "_landing_in_flight", lambda: {"live": False, "why": ""})
-        monkeypatch.setattr(prc, "_heartbeat_stand_down", lambda: "a named reason")
-        monkeypatch.setattr(prc, "_commit_and_push_paths",
-                            lambda *a, **k: pytest.fail("a stood-down heartbeat committed"))
-        monkeypatch.setattr(prc, "_record_push_time",
-                            lambda: pytest.fail("a stood-down heartbeat recorded a push"))
-        logged = []
-        monkeypatch.setattr(prc, "log", logged.append)
+    def test_a_refused_leg_is_named_in_the_record(self, tmp_path, monkeypatch):
+        seen = self._wire(tmp_path, monkeypatch, due=True, branch=(None, "push rejected: x"))
         assert prc._refresh_published_liveness_on_skip("abc") is False
-        assert any("a named reason" in line for line in logged), logged
+        (cause, evidence), = seen["refused"]
+        assert "liveness branch: push rejected: x" in evidence, evidence
+        assert "ops repo" not in evidence, evidence
+
+
+class TestTheLivenessWritersRefuseTheRealDestinationsUnderTest:
+    """Both writers push somewhere real by default, so each refuses a test process that did not
+    point it elsewhere -- and says so, rather than raising into the publish path."""
+
+    def test_the_ops_writer_refuses_before_copying_anything(self, tmp_path):
+        src = tmp_path / "tick_heartbeat.json"
+        src.write_text("{}")
+        why = prc._publish_liveness_to_ops([src], "m")
+        assert why and "refused before any copy" in why, why
+
+    def test_the_branch_writer_refuses_a_non_local_remote(self, tmp_path):
+        subprocess.run(["git", "init", "-q", str(tmp_path / "r")], check=True)
+        subprocess.run(["git", "-C", str(tmp_path / "r"), "remote", "add", "origin",
+                        "https://github.com/example/never.git"], check=True)
+        hb = tmp_path / "tick_heartbeat.json"
+        hb.write_text("{}")
+        sha, why = prc._publish_liveness_branch(hb, "m", cwd=tmp_path / "r")
+        assert sha is None and "only to a local directory" in why, why
 
 
 # ── THE GHOST PUSHER (issue #11): the seat guard sits on the SIDE-EFFECT ─────────────────────
@@ -1366,8 +1301,8 @@ class TestLivenessPublishRefusesForeignSoil:
         (tmp_path / "site" / "data" / "tick_heartbeat.json").write_text('{"ts": 1}')
         (tmp_path / "docs" / "observability" / "agent_status.json").write_text('{"a": 1}')
         monkeypatch.setattr(prc, "tree_lock", lambda *a, **k: contextlib.nullcontext())
-        monkeypatch.setattr(prc, "_push_due", lambda: True)
-        monkeypatch.setattr(prc, "_record_push_time",
+        monkeypatch.setattr(prc, "_liveness_due", lambda: True)
+        monkeypatch.setattr(prc, "_record_liveness_push_time",
                             lambda: pytest.fail("a foreign seat recorded a push time"))
         calls = []
         monkeypatch.setattr(prc.subprocess, "run",
@@ -1392,10 +1327,10 @@ class TestLivenessPublishRefusesForeignSoil:
 
     def test_the_seat_is_checked_before_anything_else(self, tmp_path, monkeypatch):
         """Ordering lock: the guard is the FIRST act, not merely present somewhere.
-        `_push_due` is the next thing the function would touch -- if it is reached on
+        `_liveness_due` is the next thing the function would touch -- if it is reached on
         foreign soil the guard has drifted below it and this reds."""
         self._wire_foreign_but_otherwise_ready(tmp_path, monkeypatch)
-        monkeypatch.setattr(prc, "_push_due",
+        monkeypatch.setattr(prc, "_liveness_due",
                             lambda: pytest.fail("throttle state read before the seat check"))
         assert prc._refresh_published_liveness_on_skip("abc") is False
 

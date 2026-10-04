@@ -1229,7 +1229,8 @@ def _check_content_publishing() -> None:
               "only when another writer happens to sweep the regenerated files along. The "
               "PUBLISH PATH itself is what stopped."
               if snap.get("committed_but_unpublished") else
-              " The tick may look healthy and the heartbeat may still be landing on origin: "
+              " The tick may look healthy and the heartbeat may still be beating on the "
+              "liveness branch and the ops repo: "
               "those are the LIVENESS surface and they do not move with the figures.")
     msg = (
         f"[PUBLISHING DOWN] The published figures have not reached origin for {hours:.1f}h "

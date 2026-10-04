@@ -67,6 +67,32 @@
     return new URL("/data/tick_heartbeat.json", window.location.origin).href;
   }
 
+  /* THE IDLE-BUT-HEALTHY BEAT IS NOT ON MAIN ANY MORE (director, 2026-10-04). It committed to main
+     every thirty minutes to keep the copy above fresh -- a fifth of origin's advances, and a full
+     site deploy each time. The publisher now force-pushes the same file as one parentless commit
+     on the repository's `liveness` branch, which GitHub serves cross-origin. So there are TWO
+     copies and they answer two different questions:
+       - the BRANCH copy is the freshest statement of the machine's state, so every sentence about
+         the publisher reads whichever copy was WRITTEN later;
+       - the DEPLOYED copy is the only one that arrived WITH this page, so "is this page arriving?"
+         is asked of it and nothing else -- a fresh branch copy must never vouch for a site whose
+         deploys have stopped.
+     A missing or unreadable branch copy leaves the deployed one in sole charge, exactly as before. */
+  var LIVE_HEARTBEAT_URL =
+    "https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/liveness/tick_heartbeat.json";
+
+  function writtenAt(hb) {
+    var t = hb && typeof hb.ts_iso === "string" ? Date.parse(hb.ts_iso) : NaN;
+    return isNaN(t) ? null : t;
+  }
+
+  function newerOf(deployed, live) {
+    var d = writtenAt(deployed), l = writtenAt(live);
+    if (l === null) { return deployed; }
+    if (d === null || l > d) { return live; }
+    return deployed;
+  }
+
   function esc(s) {
     return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
       return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
@@ -413,7 +439,10 @@
     return !!cp && (cp.state === "stale" || cp.state === "unpublished" || cp.state === "unknown");
   }
 
-  function render(d, unknown, hb) {
+  function render(d, unknown, hb, deployedHb) {
+    /* `deployedHb` is the copy that shipped with this page; see LIVE_HEARTBEAT_URL. Absent means
+       the caller had only one copy, which is then both. */
+    if (deployedHb === undefined) { deployedHb = hb; }
     var noFigures = carriesNoFigures();
     var stale = (unknown || noFigures) ? "" : stalenessSentence(hb);
     var failing = (unknown || noFigures) ? "" : publisherFailureSentence(hb);
@@ -430,7 +459,7 @@
        ruling is recorded, while this reading of it is mine. Reversing it is a judgement about
        what a reference page is FOR, which is not this repair's subject, so it keeps the
        existing scope and the disagreement is filed rather than settled here. */
-    var notArriving = (unknown || noFigures) ? "" : feedNotArrivingSentence(hb);
+    var notArriving = (unknown || noFigures) ? "" : feedNotArrivingSentence(deployedHb);
     /* THREE SUBJECTS, ONE VERDICT FOR THE BAR. The age says the deadline has not come; the
        refusal says the thing that would meet it is broken; the write stamp says nothing has
        reached the reader at all. Any of the three is enough to make the bar loud. */
@@ -491,10 +520,10 @@
     STATE.rendered = true;
   }
 
-  function heartbeat() {
+  function heartbeat(url) {
     /* Resolves to null on any failure -- see stalenessSentence for why this one fetch is allowed
        to be quiet where the provenance fetch is not. */
-    return fetch(heartbeatUrl(), { cache: "no-store" })
+    return fetch(url, { cache: "no-store" })
       .then(function (r) { return r.ok ? r.json() : null; })
       .catch(function () { return null; });
   }
@@ -505,12 +534,15 @@
         if (!r.ok) { throw new Error("HTTP " + r.status); }
         return r.json();
       }),
-      heartbeat(),
+      heartbeat(heartbeatUrl()),
+      heartbeat(LIVE_HEARTBEAT_URL),
     ])
-      .then(function (both) {
-        STATE.data = both[0];
-        STATE.heartbeat = both[1];
-        render(both[0], false, both[1]);
+      .then(function (all) {
+        var newest = newerOf(all[1], all[2]);
+        STATE.data = all[0];
+        STATE.heartbeat = newest;
+        STATE.heartbeatSource = newest && newest === all[2] ? "liveness-branch" : "site";
+        render(all[0], false, newest, all[1]);
       })
       .catch(function (e) { STATE.error = String(e); render(null, true, null); });
   }

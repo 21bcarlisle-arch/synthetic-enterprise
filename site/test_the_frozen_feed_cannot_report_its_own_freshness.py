@@ -255,3 +255,63 @@ def test_the_live_published_feed_carries_the_two_fields_this_check_needs():
     assert isinstance(interval, (int, float)) and interval > 0, (
         "the published heartbeat declares no publish interval, so its age has nothing to be "
         "judged against and the outage sentence is silently disabled: {!r}".format(cp))
+
+
+# ── THE IDLE-BUT-HEALTHY BEAT LEFT MAIN (director, 2026-10-04) ─────────────────────────────────
+#
+# The heartbeat stopped committing to main every thirty minutes. Its fresh copy now lives on the
+# repository's parentless `liveness` branch and the banner reads it cross-origin, beside the copy
+# deployed with the page. Two copies, two questions: the NEWER one says how the publisher is, and
+# only the DEPLOYED one may say whether this page is arriving. Both directions are asserted over
+# one pair of fixtures, so a banner that ignored the branch, or let it vouch for a dead deploy,
+# fails here.
+LIVE_BRANCH = ("https://raw.githubusercontent.com/21bcarlisle-arch/synthetic-enterprise/"
+               "liveness/tick_heartbeat.json")
+
+
+def _render_two(deployed, live, now):
+    result = subprocess.run(
+        [NODE, str(HARNESS), str(ASSET)],
+        input=json.dumps({PROV: VERIFIED_PROVENANCE, HEARTBEAT: deployed, LIVE_BRANCH: live}),
+        capture_output=True, text=True, timeout=60,
+        env={**os.environ, "POESYS_FRESHNESS_NOW": now},
+    )
+    assert result.returncode == 0, result.stderr
+    return json.loads(result.stdout)
+
+
+def _branch_copy(ts_iso, state):
+    hb = _deep_copy(FROZEN_BUT_HEALTHY_LOOKING)
+    hb["ts_iso"] = ts_iso
+    hb["content_publish"]["state"] = state
+    if state == "stale":
+        hb["content_publish"]["published_age_seconds"] = 9 * 86400.0
+        hb["content_publish"]["committed_age_seconds"] = 9 * 86400.0
+    return hb
+
+
+def test_the_newer_branch_copy_is_what_the_publisher_sentences_read():
+    """THE PARTITION over which copy speaks: identical bytes on the branch, only its write stamp
+    moved either side of the deployed copy's. Newer -> its verdict renders; older -> ignored."""
+    deployed = FROZEN_BUT_HEALTHY_LOOKING                      # stamped 2026-09-01T07:00Z
+    newer = _render_two(deployed, _branch_copy("2026-09-04T06:00:00Z", "stale"), WITHIN_CADENCE)
+    older = _render_two(deployed, _branch_copy("2026-08-31T07:00:00Z", "stale"), WITHIN_CADENCE)
+
+    assert "PUBLISHING IS DOWN" in newer["text"] and newer["state"] == "stale", newer
+    assert "PUBLISHING IS DOWN" not in older["text"] and older["state"] == "verified", older
+
+
+def test_a_fresh_branch_copy_does_not_vouch_for_a_page_that_stopped_arriving():
+    """The deploy died 23 days ago; the machine is fine and its branch beat is minutes old. The
+    reader is still looking at a 23-day-old page, and must be told so."""
+    live = _branch_copy("2026-09-24T20:50:00Z", "publishing")
+    out = _render_two(FROZEN_BUT_HEALTHY_LOOKING, live, LONG_PAST_CADENCE)
+
+    assert NOT_ARRIVING in out["text"], out["text"]
+    assert "23.6 days" in out["text"], out["text"]
+    assert out["state"] == "stale", out
+
+
+def test_an_unreachable_branch_copy_leaves_the_deployed_copy_in_charge():
+    out = _render_two(FROZEN_BUT_HEALTHY_LOOKING, None, WITHIN_CADENCE)
+    assert out["state"] == "verified" and NOT_ARRIVING not in out["text"], out

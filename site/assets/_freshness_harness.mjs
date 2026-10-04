@@ -61,10 +61,14 @@ const document = {
 
 // The layer resolves both feeds with `new URL(path, window.location.origin)`, so key the fixture
 // by pathname -- the caller supplies paths, never fully-qualified urls.
+//
+// A FULLY-QUALIFIED key is matched first, so a feed on ANOTHER origin (the `liveness` branch copy
+// of the heartbeat) can be supplied without colliding with a same-path feed on this one. Unsupplied
+// it rejects, like any other unknown url -- so every fixture written before it keeps its meaning.
 function fetchImpl(url) {
-  const path = new URL(url).pathname;
+  const path = (url in feeds) ? url : new URL(url).pathname;
   if (!(path in feeds)) {
-    return Promise.reject(new Error("no fixture for " + path));
+    return Promise.reject(new Error("no fixture for " + url));
   }
   const payload = feeds[path];
   if (payload === null) {
