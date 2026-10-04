@@ -19,10 +19,12 @@ import subprocess
 from pathlib import Path
 
 from tools import pre_commit_test_gate as gate
+from tools import site_lane_gate as site
 from tools import surgical_land as sl
 
 SUBJECT = "tools/surgical_land.py"        # the other side's change: has tests/tools/test_surgical_land.py
 OURS = "tools/live_hook_drift.py"         # this side's change: has tests/tools/test_live_hook_drift.py
+SITE_SUBJECT = "site/data/example.json"   # a broad trigger: the site lane runs all of site/ for it
 
 
 def _git(repo: Path, *args: str) -> str:
@@ -36,18 +38,19 @@ def _write(repo: Path, rel: str, text: str) -> None:
     p.write_text(text)
 
 
-def _two_sides(repo: Path) -> tuple[str, str]:
-    """base -> ours (HEAD) and base -> theirs; returns (ours, theirs) and leaves HEAD at ours."""
+def _two_sides(repo: Path, subject: str = SUBJECT) -> tuple[str, str]:
+    """base -> ours (HEAD) and base -> theirs, where theirs changes `subject`; returns (ours,
+    theirs) and leaves HEAD at ours."""
     repo.mkdir(parents=True, exist_ok=True)
     _git(repo, "init", "-q", "-b", "main")
     _git(repo, "config", "user.email", "t@t")
     _git(repo, "config", "user.name", "t")
-    _write(repo, SUBJECT, "A = 0\n")
+    _write(repo, subject, "A = 0\n")
     _write(repo, OURS, "B = 0\n")
     _git(repo, "add", "-A")
     _git(repo, "commit", "-q", "-m", "base")
     _git(repo, "checkout", "-q", "-b", "theirs")
-    _write(repo, SUBJECT, "A = 1\n")
+    _write(repo, subject, "A = 1\n")
     _git(repo, "commit", "-q", "-am", "theirs")
     theirs = _git(repo, "rev-parse", "HEAD")
     _git(repo, "checkout", "-q", "main")
@@ -133,3 +136,67 @@ def test_the_gate_selects_on_what_selection_paths_returns(monkeypatch):
     monkeypatch.setattr(gate, "select_targets", lambda files: seen.append(list(files)) or [])
     assert gate.main() == 0
     assert seen == [[]]
+
+
+def test_the_site_lane_selects_a_merge_by_its_combined_diff(tmp_path, monkeypatch):
+    """The site-lane gate keyed on the same first-parent diff, so a base advance that brought in
+    someone else's `site/data/**` re-ran `pytest site/` (~150 s) on work gated on origin. Run
+    through the gate's own `main` against a real two-parent repo; only the pytest launch is
+    intercepted. The precondition -- no token, the union DOES launch the full suite -- is what
+    keeps the empty leg from passing by never launching anything."""
+    real_run = subprocess.run
+    launched: list[dict] = []
+
+    class _Green:
+        returncode = 0
+
+    def _run(cmd, *a, **k):
+        if "pytest" in cmd:
+            launched.append({"cmd": cmd, "env": k.get("env") or {}})
+            return _Green()
+        return real_run(cmd, *a, **k)
+
+    monkeypatch.setattr(site.subprocess, "run", _run)
+    monkeypatch.setattr(site.shutil, "which", lambda _name: "/usr/bin/node")
+    monkeypatch.delenv(gate.MERGE_PARENT_ENV, raising=False)  # set when THIS runs in a merge's gate
+
+    def _launches(repo: Path, token: str | None) -> list[dict]:
+        launched.clear()
+        monkeypatch.setattr(site, "ROOT", repo)
+        if token is None:
+            monkeypatch.delenv(gate.MERGE_PARENT_ENV, raising=False)
+        else:
+            monkeypatch.setenv(gate.MERGE_PARENT_ENV, token)
+        assert site.main() == 0
+        return list(launched)
+
+    empty = tmp_path / "empty"
+    _, theirs = _two_sides(empty, SITE_SUBJECT)
+    _write(empty, SITE_SUBJECT, "A = 1\n")
+    _git(empty, "add", SITE_SUBJECT)
+    assert _staged(empty) == [SITE_SUBJECT]
+    assert len(_launches(empty, None)) == 1, (
+        "precondition: keyed on the first-parent diff, the union launches the site suite")
+    assert _launches(empty, theirs) == [], "a merge that authored nothing re-ran pytest site/"
+
+    full = tmp_path / "full"
+    _, theirs = _two_sides(full, SITE_SUBJECT)
+    _write(full, SITE_SUBJECT, "A = 2  # resolved to neither side\n")
+    _git(full, "add", SITE_SUBJECT)
+    runs = _launches(full, theirs)
+    assert len(runs) == 1 and runs[0]["cmd"][3] == str(full / "site"), runs
+    assert gate.MERGE_PARENT_ENV not in runs[0]["env"], (
+        "the merge token leaked into the site suite, where it narrows any gate a test calls")
+
+
+def test_the_receipt_says_no_tests_selected_when_the_chain_ran_no_pytest():
+    """'not parsed' read as a parser fault on every landing whose combined diff was empty. It is
+    kept for the case it names: a step launched pytest and no count came back."""
+    narrowed = ("[test-gate] merge with abc123def: selecting on its combined diff, 0 of 41 "
+                "staged path(s): none\n[site-lane] merge with abc123def: selecting on its "
+                "combined diff, 0 of 41 staged path(s): none\n")
+    assert sl._test_summary(narrowed) == "no tests selected"
+    assert sl._test_summary("[test-gate] 2 test file(s): tests/a.py, tests/b.py\n") == "not parsed"
+    assert sl._test_summary("[site-lane] running whole site/ suite\n") == "not parsed"
+    assert sl._test_summary("[test-gate] 1 test file(s): t.py\n12 passed in 3.1s\n") == (
+        "12 passed in 3.1s")

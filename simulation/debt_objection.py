@@ -28,12 +28,12 @@ NAMED GAPS, each moving the effect in a stated direction:
 2. WHO DECIDES. An objection is legally the losing SUPPLIER's decision. This draw stands in for
    industry-average objection practice until the company decides it itself through the CSS
    objection window (EP12, `interface/contracts/registration_loss_seam.py`).
-3. THE WORLD'S DEBTOR POPULATION IS NOT 2013-2015's. In the triad's truth a failed or disputed bill
-   is never paid afterwards (re-presentation and arrangement paydown are not modelled; see
-   `arrears_engine.balance_settlement_from_outcomes`), so a debt, once 28 days old, stays
-   objectionable for the rest of the run. Real debts are mostly repaid (IA §1.38: "just over half"
-   of blocked customers had repaid by the time of reporting). This OVERSTATES how many households
-   are eligible, so the block's effect is an upper bound on this count.
+3. THE WORLD'S DEBTOR POPULATION. Since 2026-10-04 a failed domestic bill can be paid off later
+   (`payment_behaviour_source.later_settlement_date`, Ofgem IA §1.39: about half repaid, 70% of
+   those within three months), and the book honours that date. Its named gaps -- re-presentation
+   unmodelled, each repayment dated at the end of its window, drawn per bill rather than per
+   household -- all lean toward holding a household in debt longer, so eligibility is still
+   more likely over- than under-stated. A business dispute is never cured.
 4. A BLOCK IS FINAL FOR THIS DECISION. A blocked household stays this renewal and is asked again
    at the next one; no repay-and-leave-later route between renewals is modelled.
 5. ONE DECISION PER HOUSEHOLD. Objections are per fuel; a debt on any credit-meter leg makes the
@@ -128,7 +128,8 @@ class WorldDebtBook:
                 continue
             due = r.due_date if isinstance(r.due_date, date) else date.fromisoformat(r.due_date)
             if r.result in _UNPAID_RESULTS:
-                paid_on = None
+                # Paid off later, if the world says so; never, if it does not.
+                paid_on = r.settled_on
             elif r.result == "success" and (r.days_late or 0) > DEBT_OBJECTION_MIN_DAYS_OUTSTANDING:
                 paid_on = due + timedelta(days=r.days_late)
             else:
