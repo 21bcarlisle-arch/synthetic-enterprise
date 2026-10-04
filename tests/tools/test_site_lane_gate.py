@@ -122,6 +122,8 @@ def test_pure_company_change_is_skipped():
 
 def test_main_skips_and_returns_0_on_non_site_change(monkeypatch):
     monkeypatch.setattr(gate, "staged_files", lambda: ["tests/background/test_supervisor.py"])
+    # `subprocess.run` is patched process-wide below, and merge detection asks git through it.
+    monkeypatch.setattr(gate, "selection_paths", lambda staged, *a, **k: (staged, ""))
     # If it wrongly ran pytest, this would blow up (no such call is set up); assert clean skip.
     called = {"pytest": False}
     monkeypatch.setattr(gate.subprocess, "run",
@@ -172,6 +174,8 @@ def test_r15_fail_closed_when_node_missing(monkeypatch):
     green-with-skips run is a FALSE pass. With a site-touching change and node missing, the gate
     must REFUSE the commit (an unavailable check is a FAILED check) and must NOT reach pytest."""
     monkeypatch.setattr(gate, "staged_files", lambda: [_example_door()[0]])
+    # `subprocess.run` is patched process-wide below, and merge detection asks git through it.
+    monkeypatch.setattr(gate, "selection_paths", lambda staged, *a, **k: (staged, ""))
     monkeypatch.setattr(gate.shutil, "which", lambda _name: None)
     reached_pytest = {"yes": False}
     monkeypatch.setattr(gate.subprocess, "run",
@@ -197,6 +201,8 @@ def test_gitless_env_strips_all_GIT_star():
 
 def test_pytest_subprocess_gets_gitless_env(monkeypatch):
     monkeypatch.setattr(gate, "staged_files", lambda: ["site/data/proof.json"])
+    # `subprocess.run` is patched process-wide below, and merge detection asks git through it.
+    monkeypatch.setattr(gate, "selection_paths", lambda staged, *a, **k: (staged, ""))
     monkeypatch.setattr(gate.shutil, "which", lambda _name: "/usr/bin/node")
     for k in ("GIT_INDEX_FILE", "GIT_DIR", "GIT_WORK_TREE"):
         monkeypatch.setenv(k, "/should/not/leak")
