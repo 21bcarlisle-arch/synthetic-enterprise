@@ -271,8 +271,9 @@ def test_every_disposition_is_reachable(rhythm):
     seen = {wr.tick(now=_at(2026, 9, 4))["action"],
             wr.tick(now=_at(2026, 9, 5))["action"],
             wr.tick(now=_at(2026, 9, 7))["action"],
-            wr.tick(now=_at(2026, 9, 8))["action"]}
-    assert seen == {"BOOTSTRAP", "WAITING", "OPENED", "FINDING"}
+            wr.tick(now=_at(2026, 9, 8))["action"],
+            wr.tick(now=_at(2026, 9, 16))["action"]}
+    assert seen == {"BOOTSTRAP", "WAITING", "OPENED", "FINDING", "LAPSED"}
 
 
 def test_the_rhythm_is_live_on_the_daily_tick(monkeypatch, tmp_path):
@@ -544,3 +545,37 @@ def test_monday_cannot_close_until_its_END_TO_END_CHECK_is_written(rhythm):
     assert armed["step"] == wr.FRIDAY_STEP
     assert wr.close(wr.FRIDAY_STEP, now=_at(2026, 9, 11))["step"] == wr.MONDAY_STEP, (
         "Friday carries no end-to-end check and must never be refused for one")
+
+
+def test_a_step_a_week_past_its_day_lapses_and_the_next_monday_opens(rhythm):
+    """Defect it names: the 2026-09-07 Monday was never closed, its finding was filed once, and every
+    tick after returned WAITING -- the rhythm stopped for four weeks with nothing saying so. A step
+    still open a week after its day LAPSES, is recorded as lapsed (never as done), and the chain
+    re-arms the next Monday; a Monday tick opens that Monday in the same call."""
+    wr.tick(now=_at(2026, 9, 4))
+    wr.tick(now=_at(2026, 9, 7))
+    wr.tick(now=_at(2026, 9, 8))
+    on_monday = wr.tick(now=_at(2026, 9, 14))
+    assert on_monday["action"] == "OPENED" and on_monday["due_on"] == "2026-09-14"
+    assert on_monday["lapsed"] == {"step": "monday_ranking", "due_on": "2026-09-07"}
+    staging = rhythm / "staging"
+    assert (staging / "WEEKLY_RHYTHM_MONDAY_RANKING_2026-09-14.md").is_file()
+    assert not (staging / "WEEKLY_RHYTHM_MONDAY_RANKING_2026-09-07.md").exists()
+    assert (staging / "done" / "WEEKLY_RHYTHM_MONDAY_RANKING_2026-09-07.md").is_file()
+
+
+def test_a_lapse_mid_week_arms_the_coming_monday_and_opens_nothing(rhythm):
+    wr.tick(now=_at(2026, 9, 4))
+    wr.tick(now=_at(2026, 9, 7))
+    mid = wr.tick(now=_at(2026, 9, 16))
+    assert mid["action"] == "LAPSED" and mid["due_on"] == "2026-09-21"
+    assert wr.read_baton()["armed_by"] == "lapse"
+    assert not list((rhythm / "staging").glob("WEEKLY_RHYTHM_MONDAY_RANKING_2026-09-2*.md"))
+
+
+def test_a_step_six_days_late_is_not_lapsed(rhythm):
+    """The lapse must not eat a step that is merely late within its own week."""
+    wr.tick(now=_at(2026, 9, 4))
+    wr.tick(now=_at(2026, 9, 7))
+    assert wr.tick(now=_at(2026, 9, 13))["action"] != "LAPSED"
+    assert wr.read_baton()["due_on"] == "2026-09-07"
