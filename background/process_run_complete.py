@@ -48,6 +48,7 @@ if _PROJECT_ROOT not in sys.path:
 from background.live_ledger_guard import (  # noqa: E402 -- ditto
     guard_live_ledger_write,
     guard_site_publish_pipeline,
+    in_test_process,
     shared_tree_live_record,
 )
 
@@ -7382,11 +7383,7 @@ def git_commit_push(git_hash, net_margin, outcome=None):
         log("TWO ROOMS, not safely repairable, so the landing below is expected to be REFUSED "
             "and every other commit in the tree with it: {} -- resolve by hand."
             .format(", ".join(_rooms["conflicts"])))
-    # THE MARKER SPANS THE LANDING, not the commit: what the heartbeat must not interrupt is the
-    # GATE, because that is the window in which a HEAD move turns a passing verdict into a verdict
-    # about a tree that no longer exists. See `LANDING_IN_FLIGHT_FILE`.
-    with _landing_in_flight_marker(git_hash):
-        landing = _land_publish_commit(pathspec, msg, git_hash)
+    landing = _land_publish_commit(pathspec, msg, git_hash)
     if not landing["sha"]:
         _text = landing["refusal"]
         if "are already at HEAD" in _text:
@@ -7618,8 +7615,11 @@ def git_commit_push(git_hash, net_margin, outcome=None):
                          _recovery, push.returncode))
 
 
-def _origin_main_sha(label: str = "Push verify") -> str:
-    """The sha `origin/main` REALLY points at, read from the remote itself.
+def _origin_main_sha(label: str = "Push verify", *, ref: str = "refs/heads/main",
+                     remote: str = "origin", cwd=None) -> str:
+    """The sha `origin/main` REALLY points at, read from the remote itself. `ref`/`remote`/`cwd`
+    exist for the liveness branch's push (`_publish_liveness_branch`), so that it too reads the
+    remote through this one reader rather than a second copy.
 
     ONE READER FOR EVERY PUSH SITE. The content push and the liveness push each carried their own
     copy of this six-line read, and `_push_reached_origin`'s whole lesson is that the evidence must
@@ -7627,8 +7627,9 @@ def _origin_main_sha(label: str = "Push verify") -> str:
     one. Empty string on any failure: a remote we could not read is not a remote that agrees.
     """
     try:
-        ls = subprocess.run(["git", "ls-remote", "origin", "refs/heads/main"],
-                            cwd=str(PROJECT_DIR), capture_output=True, text=True, timeout=30)
+        ls = subprocess.run(["git", "ls-remote", remote, ref],
+                            cwd=str(cwd or PROJECT_DIR), capture_output=True, text=True,
+                            timeout=30)
     except Exception as exc:  # noqa: BLE001 -- an unverifiable push reads as NOT pushed
         log("{}: ls-remote failed ({}) -- cannot confirm origin advanced".format(label, exc))
         return ""
@@ -7905,233 +7906,165 @@ def _record_push_time() -> None:
     guard_live_ledger_write(LAST_PUSH_FILE, writer="process_run_complete._record_push_time").write_text(json.dumps({"ts": datetime.now(timezone.utc).timestamp()}))
 
 
-# ── THE SAME INVARIANT, THE OTHER DIMENSION (2026-09-16) ─────────────────────────────────
-#
-# "LIVENESS MUST NEVER BE EASIER TO PUBLISH THAN CONTENT" is the director's ruling of
-# 2026-08-13, and until today it was wired on ONE dimension: the hook-chain DEADLINE (see
-# GIT_COMMIT_HOOK_TIMEOUT_SECONDS above, and `test_liveness_is_never_easier_to_publish_than_
-# content`, whose own docstring records that the two paths stopped sharing a constant on
-# 2026-09-08). Equal deadlines, and liveness is still the easier publish -- because the two
-# paths differ in a way no deadline describes:
-#
-#   * CONTENT lands through `surgical_land`: a full gate in a clean extract, and if HEAD moved
-#     while that gate ran the verdict describes a tree that no longer exists, so it re-gates.
-#     Two attempts (PUBLISH_LAND_ATTEMPTS), then it gives up until the next completed run.
-#   * LIVENESS lands through `_commit_and_push_paths`: a narrow pathspec, and -- its own comment
-#     -- "never-hold-the-lock-across-commit". Short, and every thirty minutes.
-#
-# So the heartbeat WINS THE RACE THE CONTENT PUBLISH LOSES, and worse, it is what the content
-# publish loses the race TO. Measured on 2026-09-16 (publish failure #41, the first of its
-# class in 41): the landing's attempt 1/2 lost its base 96b99dea4 to 3be374b75 -- which IS the
-# `chore(liveness)` heartbeat, landed at 17:21:49 by this very module, one minute into the gate
-# it invalidated. Attempt 2/2 then lost to a seat commit and the publish was refused with
-# `total_red: 0` and the publisher's own scoped suite GREEN.
-#
-# AND THE HEARTBEAT'S TRIGGER IS THE WEDGE ITSELF. It fires "while sim output unchanged" -- which
-# is by construction the state that holds WHILE a content publish has not landed. The two are not
-# independent writers who happened to collide; the condition that arms the heartbeat is the
-# condition the content publish exists to end. 2026-08-12 is the same picture through the deadline
-# door: twenty-one killed content commits with a heartbeat landing throughout. The masked freeze
-# came back by the one route the fix for it did not cover.
-#
-# WHY SKIPPING IS NOT SUPPRESSION. The heartbeat's premise is "content is not being published".
-# While a landing is in flight that premise is FALSE, so declining is the heartbeat answering its
-# own question correctly, not liveness being starved for content's benefit.
-LANDING_IN_FLIGHT_FILE = PROJECT_DIR / "docs" / "observability" / ".publish_landing_in_flight.json"
-
-#: How long a landing marker is believed before it is read as a CORPSE.
-#:
-#: DERIVED, and the derivation is the whole point: liveness may yield AT MOST ONE BEAT to a
-#: content landing. Beyond one throttle interval the heartbeat publishes regardless of what the
-#: marker says, because a publisher that died mid-landing must not be able to freeze the liveness
-#: surface -- that is Fault #1 (2026-07-25) exactly, and re-manufacturing it while closing a
-#: publish race would be the more expensive trade. So the bound is the heartbeat's own cadence.
-#:
-#: It covers the real case with room: the worst landing yet OBSERVED is 1381.52s over two attempts
-#: (`docs/observability/commit_hook_duration.jsonl`, 2026-09-16T17:43:46Z, the failure above) and
-#: the ordinary one is 250-330s. It is deliberately NOT `PUBLISH_LAND_ATTEMPTS *
-#: surgical_land.GATE_TIMEOUT_SECONDS` (7200s), which is the landing's worst permitted cost: that
-#: would let one crashed publish hold the heartbeat down for two hours to cover a case the record
-#: has never shown.
-LANDING_MARKER_TRUSTED_SECONDS = PUSH_THROTTLE_SECONDS
-
-
-def _landing_in_flight() -> dict:
-    """`{"live": bool, "why": str}` -- is a content publish landing running right now?
-
-    FAIL OPEN, ON PURPOSE, AND THE DIRECTION IS ARGUED. Every unreadable, absent, malformed or
-    expired marker answers "not in flight", so the heartbeat publishes. The asymmetry is that the
-    two failures cost different things: a heartbeat that publishes during a landing costs ONE
-    content publish, retried on the next completed run; a heartbeat that does not publish costs
-    the liveness surface, which is the only signal anyone outside has that the machine is alive,
-    and whose freeze is what Fault #1 was. R15 says an unavailable check is a failed check -- and
-    here the safe direction for a check that cannot answer is "beat".
-    """
-    try:
-        raw = json.loads(LANDING_IN_FLIGHT_FILE.read_text(encoding="utf-8"))
-        started = float(raw["started"])
-    except (FileNotFoundError, ValueError, KeyError, TypeError, OSError):
-        return {"live": False, "why": "no readable landing marker, so no landing is claimed"}
-    age = datetime.now(timezone.utc).timestamp() - started
-    if age > LANDING_MARKER_TRUSTED_SECONDS:
-        return {"live": False,
-                "why": "a landing marker exists and is {:.0f}s old, past the {}s a marker is "
-                       "believed -- read as a publisher that died mid-landing, so liveness stops "
-                       "yielding to it".format(age, LANDING_MARKER_TRUSTED_SECONDS)}
-    return {"live": True,
-            "why": "a content publish landing has been in flight for {:.0f}s (marker written by "
-                   "{})".format(age, raw.get("writer") or "an unnamed caller")}
-
-
-@contextmanager
-def _landing_in_flight_marker(git_hash):
-    """Hold the landing marker across a content landing. Never fails the landing.
-
-    The marker is cleared in a `finally`, so the only way it outlives the landing is the process
-    dying -- which is the case `LANDING_MARKER_TRUSTED_SECONDS` exists to bound.
-    """
-    try:
-        LANDING_IN_FLIGHT_FILE.parent.mkdir(parents=True, exist_ok=True)
-        # THROUGH THE LEDGER GUARD, like `_record_push_time` beside it. This is a live
-        # observability write, and `test_the_narrowing_to_measurement_ledgers_is_measured_not_
-        # assumed` refused the first draft of this commit for bypassing it -- correctly, and its
-        # refusal names the right remedy: widen the guard, never the bound.
-        guard_live_ledger_write(
-            LANDING_IN_FLIGHT_FILE,
-            writer="process_run_complete._landing_in_flight_marker").write_text(json.dumps({
-                "started": datetime.now(timezone.utc).timestamp(),
-                "git_hash": git_hash,
-                "writer": "process_run_complete._land_publish_commit"}), encoding="utf-8")
-    except OSError as exc:
-        # An unwritable marker means the heartbeat is not interlocked this cycle. Said out loud,
-        # because the failure it re-opens is a silent one.
-        log("Publish landing marker could not be written ({}), so this cycle's liveness heartbeat "
-            "is NOT interlocked against the landing and may take the race from it.".format(exc))
-    try:
-        yield
-    finally:
-        try:
-            LANDING_IN_FLIGHT_FILE.unlink()
-        except OSError:
-            pass
-
-
 # ── Fault #1 (2026-07-25 overnight publish-freeze): liveness publication must NOT
 # be coupled to business-output-change ──────────────────────────────────────────
 #
 # THE DECLARATION MOVED TO THE LEAF on 2026-09-21 and is imported back here. This module remains
-# its only WRITER -- nothing else commits these files -- but it acquired two readers that must
-# stay off the publish path (`commit_narrative`, `delivery_lane`), and `delivery_lane` is reached
-# from the supervisor, so importing it from here re-enrolled the whole harness suite in the
-# publish gate. See `publish_gate_blocking_read.LIVENESS_SURFACE_FILES` for the full argument.
-# A fourth liveness file is still added in ONE place; that place is now the leaf.
+# its only WRITER, and it acquired two readers that must stay off the publish path
+# (`commit_narrative`, `delivery_lane`); they classify the HISTORICAL `chore(liveness)` commits on
+# main and the content publishes that still carry these files. See
+# `publish_gate_blocking_read.LIVENESS_SURFACE_FILES` for the full argument.
 from background.publish_gate_blocking_read import (  # noqa: E402
     LIVENESS_SURFACE_FILES,
 )
 
+# ── THE HEARTBEAT IS OFF MAIN (director, 2026-10-04) ───────────────────────────────────────────
+#
+# "Move the heartbeat out of main ... They're runtime state, not work, and because they commit
+# every few minutes they advance origin constantly -- so every other lane has to merge around
+# them." Measured over the fortnight before: 199 non-merge commits touched nothing but these two
+# files, 185 of 890 first-parent advances of origin/main (21%), and each one that touched `site/`
+# also triggered a full Cloudflare deploy.
+#
+# So the idle-but-healthy beat now goes to two places, and main is neither:
+#   * the PRIVATE ops repo (`background/ops_repo.py`), `liveness/<file>` -- the authoritative copy,
+#     read by the director's advisor beside the alert mirror;
+#   * a single parentless commit force-pushed to the PUBLIC origin's `liveness` branch, carrying
+#     `tick_heartbeat.json` at its root -- because the public site cannot read a private repo, and
+#     raw.githubusercontent.com serves a branch file with `Access-Control-Allow-Origin: *`. No
+#     history accumulates there and no workflow triggers on it (every `.github/workflows` push
+#     trigger is `branches: [main]`, and a parentless tree carries no workflow file of its own).
+#     The file sits at the tree ROOT, not under `site/data/`, so no `git log --all -- <path>`
+#     scan in tools/ can mistake it for a revision of the tracked file.
+#
+# WHAT WAS DELETED WITH THE MAIN COMMIT, AND WHY EACH ONE STOPPED MEANING ANYTHING:
+#   * `_heartbeat_stand_down` -- it skipped heartbeats whose main commit deployed nothing or could
+#     only reach origin through a reconcile merge. Both are costs of a commit on main.
+#   * the landing-in-flight interlock (`_landing_in_flight`, its marker, 2026-09-16 publish #41)
+#     -- the heartbeat's main commit moved HEAD under a content landing's gate. Neither leg below
+#     touches HEAD, the index or main's ref, so there is no race left to yield.
+#   * the SHARED throttle -- `_record_push_time` stamps the CONTENT push clock too, so a heartbeat
+#     used to defer the next content push by up to thirty minutes. It now has its own clock.
+LIVENESS_BRANCH = "liveness"
+LIVENESS_OPS_SUBDIR = "liveness"
+#: The heartbeat leg's own throttle stamp -- see the block above for why it is not LAST_PUSH_FILE.
+LIVENESS_LAST_PUSH_FILE = PROJECT_DIR / "docs" / "observability" / ".liveness_last_push.json"
 
-def _heartbeat_stand_down(*, runner=None, ahead_fn=None, advance_fn=None, now=None):
-    """The reason this heartbeat should NOT be committed, or `None` when it should.
 
-    TWO COSTS THE HEARTBEAT PAID FOR NOTHING (measured 2026-09-28, 136 heartbeats over 7 days,
-    `daf2155d9`). Every heartbeat runs the full pre-commit chain. 54 of them changed no `site/`
-    path -- `deploy-pages.yml` deploys only on `site/**`, so they reached no reader that needs a
-    commit. 40 were committed onto a tree origin was already ahead of, so they could only reach
-    origin as the first parent of a gated reconcile merge.
-
-    WHY THE BEHIND LEG IS BOUNDED, NOT ABSOLUTE. The shared tree was behind origin 37h of 95h in
-    that record, pinned by dirty paths no cadence clears. An unconditional stand-down would freeze
-    the published heartbeat for the whole of such a stretch -- Fault #1 again. The one reader that
-    needs the commit (`site/assets/freshness-banner.js`) holds the heartbeat's age to the feed's
-    own `content_publish.stale_after_seconds`, so the heartbeat stands down only while ORIGIN'S
-    copy is further than `PUSH_LAG_AFTER_SECONDS` (the delivery-lag horizon) from that bound.
-
-    EVERY UNREADABLE ANSWER BEATS, for the reason `_landing_in_flight` argues: a wasted heartbeat
-    costs a gate cycle, a withheld one costs the only outside signal that the machine is alive.
-    """
-    run = runner or subprocess.run
-    site_paths = [rel for rel in LIVENESS_SURFACE_FILES if rel.startswith("site/")]
+def _liveness_due() -> bool:
+    """True when PUSH_THROTTLE_SECONDS have passed since the heartbeat last reached a reader.
+    Unreadable reads as due, for the reason Fault #1 gives: a withheld beat is the expensive one."""
     try:
-        diff = run(["git", "diff", "--quiet", "HEAD", "--"] + site_paths,
-                   cwd=str(PROJECT_DIR), capture_output=True, text=True, timeout=30)
-        site_unchanged = diff.returncode == 0
-    except (OSError, subprocess.SubprocessError):
-        site_unchanged = False
-    if site_unchanged:
-        return ("no site/ liveness file ({}) differs from HEAD, so the commit would deploy "
-                "nothing -- deploy-pages.yml deploys on site/** only".format(", ".join(site_paths)))
-    ahead_fn = ahead_fn or _commits_origin_is_ahead_by
-    ahead = ahead_fn()
-    if not ahead:
-        return None
-    advance = (advance_fn or _advance_to_origin_or_say_why)()
-    if advance.get("advanced"):
-        ahead = ahead_fn()
-        if not ahead:
-            return None
-    # FETCH_HEAD is origin's tip: `_commits_origin_is_ahead_by` fetched it just now.
+        last = float(json.loads(LIVENESS_LAST_PUSH_FILE.read_text())["ts"])
+    except (OSError, ValueError, KeyError, TypeError):
+        return True
+    return (datetime.now(timezone.utc).timestamp() - last) >= PUSH_THROTTLE_SECONDS
+
+
+def _record_liveness_push_time() -> None:
+    LIVENESS_LAST_PUSH_FILE.parent.mkdir(parents=True, exist_ok=True)
+    guard_live_ledger_write(
+        LIVENESS_LAST_PUSH_FILE, writer="process_run_complete._record_liveness_push_time",
+    ).write_text(json.dumps({"ts": datetime.now(timezone.utc).timestamp()}))
+
+
+def _publish_liveness_to_ops(files, msg, *, ops_dir=None, commit=None):
+    """Copy `files` into the private ops repo under `liveness/` and commit+push there.
+    Returns None on success, else the refusal reason. Never raises.
+
+    The commit and push are `ops_repo.commit_and_push`, under `ops_tree_lock` -- the shape
+    `ntfy_mirror` uses. A test process with nothing injected is refused BEFORE any byte is copied:
+    the default destination is the real clone, and `commit_and_push` refuses only after the copy
+    would already sit in its working tree."""
     try:
-        shown = run(["git", "show", "FETCH_HEAD:site/data/tick_heartbeat.json"],
-                    cwd=str(PROJECT_DIR), capture_output=True, text=True, timeout=30)
-        published = json.loads(shown.stdout) if shown.returncode == 0 else None
-        published_ts = float(published["ts"])
-        stale_after = float(published["content_publish"]["stale_after_seconds"])
-    except (OSError, subprocess.SubprocessError, ValueError, KeyError, TypeError):
+        from background import ops_repo
+        if commit is None and in_test_process():
+            return ("a test process reached the real ops repo writer with nothing injected -- "
+                    "refused before any copy")
+        ops_dir = Path(ops_dir) if ops_dir is not None else ops_repo.OPS_REPO_DIR
+        commit = commit or ops_repo.commit_and_push
+        lock = ops_repo.ops_tree_lock() if ops_dir == ops_repo.OPS_REPO_DIR else nullcontext()
+        with lock:
+            dest = ops_dir / LIVENESS_OPS_SUBDIR
+            dest.mkdir(parents=True, exist_ok=True)
+            rels = []
+            for src in files:
+                name = Path(src).name
+                shutil.copyfile(src, dest / name)
+                rels.append("{}/{}".format(LIVENESS_OPS_SUBDIR, name))
+            commit(rels, msg)
         return None
-    from background.publish_freshness import PUSH_LAG_AFTER_SECONDS
-    age = (now if now is not None else time.time()) - published_ts
-    if age >= stale_after - PUSH_LAG_AFTER_SECONDS:
-        return None
-    return ("origin/main is still {} commit(s) ahead after the advance attempt ({}), so this "
-            "commit could reach origin only through a reconcile merge; origin's heartbeat is "
-            "{:.1f}h old against the reader's {:.1f}h bound, so it can wait".format(
-                ahead, advance.get("reason", "no reason given"), age / 3600, stale_after / 3600))
+    except Exception as exc:  # noqa: BLE001 -- a liveness leg must never raise into the publish path
+        return "ops repo write failed ({}: {})".format(type(exc).__name__, exc)
+
+
+def _publish_liveness_branch(heartbeat, msg, *, cwd=None, remote="origin"):
+    """Force-push `heartbeat` as ONE parentless commit on `remote`'s `liveness` branch.
+    Returns `(sha, None)` once the remote ref reads back at that commit, else `(None, why)`.
+
+    Plumbing only -- `hash-object`, `mktree`, `commit-tree`, then `push --force` to an explicit
+    `refs/heads/liveness` refspec. Nothing here reads or writes HEAD, the index or any local
+    branch, and the commit has no parent, so it can never enter main's history. This is not the
+    hook-bypass wall's subject: no tree a gate grades is committed, and nothing lands on main.
+
+    Under a test process the remote must be a LOCAL directory: this pushes to whatever `remote`
+    names in `cwd`, and a worktree's origin is the real public repo."""
+    cwd = Path(cwd) if cwd is not None else PROJECT_DIR
+    if not LIVENESS_BRANCH or LIVENESS_BRANCH in ("main", "master", "HEAD"):
+        return None, "LIVENESS_BRANCH is {!r}, which would write main's history".format(
+            LIVENESS_BRANCH)
+
+    def git(*args, stdin=None, timeout=30):
+        r = subprocess.run(["git", *args], cwd=str(cwd), input=stdin, capture_output=True,
+                           text=True, timeout=timeout)
+        if r.returncode != 0:
+            raise RuntimeError("git {} rc={}: {}".format(
+                args[0], r.returncode, (r.stderr or r.stdout or "").strip()[:300]))
+        return r.stdout.strip()
+
+    try:
+        if in_test_process():
+            url = git("remote", "get-url", remote)
+            if not Path(url).is_dir():
+                return None, ("a test process may push the liveness branch only to a local "
+                              "directory, and {!r} is {!r}".format(remote, url))
+        blob = git("hash-object", "-w", "--", str(heartbeat))
+        tree = git("mktree", stdin="100644 blob {}\t{}\n".format(blob, Path(heartbeat).name))
+        sha = git("commit-tree", tree, "-m", msg)
+        git("push", "--force", "--quiet", remote,
+            "{}:refs/heads/{}".format(sha, LIVENESS_BRANCH), timeout=60)
+        listed = _origin_main_sha("Liveness branch push verify", remote=remote, cwd=cwd,
+                                  ref="refs/heads/{}".format(LIVENESS_BRANCH))
+        if listed != sha:
+            return None, "the push returned and {} reads {!r}, not {}".format(
+                remote, listed[:9] or "nothing", sha[:9])
+        return sha, None
+    except Exception as exc:  # noqa: BLE001 -- a liveness leg must never raise into the publish path
+        return None, "liveness branch push failed ({}: {})".format(type(exc).__name__, exc)
 
 
 def _refresh_published_liveness_on_skip(git_hash: str) -> bool:
-    """Publish ONLY the liveness surface on a change-detection SKIP. Returns True
-    iff a fresh liveness commit reached origin this call.
+    """Publish ONLY the liveness surface on a SKIP/HOLD -- to the ops repo and the public
+    `liveness` branch, NEVER to main. Returns True iff both legs landed this call.
 
     ROOT CAUSE (director-flagged, 2026-07-25): the worker-tick heartbeat
-    (site/data/tick_heartbeat.json) is rewritten on disk every 60s, but it only
-    reaches origin as a SIDE-EFFECT of a CONTENT publish (commit_and_push_if_
-    changed of site/). When the sim output is byte-identical across runs -- the
-    common at-rest case, net=£1,521,070 for hours -- the change-detection gate
-    SKIPs every cycle, so no content publish happens and the PUBLISHED heartbeat
-    freezes for hours while every daemon is healthy. Overnight this froze the live
-    site's liveness signal for ~4h though nothing had died. A liveness signal whose
-    freshness depends on the business OUTPUT changing is the defect -- fail-silent:
-    a heartbeat frozen because healthy-and-unchanged is indistinguishable on origin
-    from one frozen because dead.
+    (site/data/tick_heartbeat.json) is rewritten on disk every 60s, but it only reached a reader
+    as a SIDE-EFFECT of a CONTENT publish. When the sim output is byte-identical across runs the
+    change-detection gate SKIPs every cycle, so the published heartbeat froze for ~4h while every
+    daemon was healthy -- a heartbeat frozen because healthy-and-unchanged is indistinguishable
+    from one frozen because dead. Content publishes still carry these files on main; this covers
+    the idle-but-healthy stretch between them, and since 2026-10-04 it does so OFF main (see the
+    block above `LIVENESS_BRANCH` for the measurement and the route).
 
-    Fix: on a SKIP, when a push is DUE (the SAME 30-min throttle as content, so no
-    per-cycle commit spam -- the very thing the change-detection gate exists to
-    prevent), commit+push ONLY the liveness files via the SAME self-verifying push
-    (ground-truth ls-remote, records the throttle only on a verified advance). This
-    bounds published-heartbeat staleness to <= PUSH_THROTTLE_SECONDS instead of
-    unbounded, with no regen/report/site/test. Commits ONLY the explicit paths
-    (never the whole index) so a concurrent writer's staged work is never swept in.
+    SEAT GUARD, FIRST ACT -- THE GHOST PUSHER (issue #11). Anything that IMPORTS this module and
+    calls `_process()` on a fingerprint-matching marker lands here without passing `__main__`, so
+    the guard sits on the side-effect: only the resident seat pushes. A foreign caller gets one
+    stderr line and False. Deliberately NOT wrapped in a try/except: if the guard itself cannot
+    load, the ImportError propagates and nothing is pushed (R15 FAIL-SILENT).
 
-    SEAT GUARD, FIRST ACT -- THE GHOST PUSHER (issue #11, closed here). The
-    `__main__` guard at the bottom of this file stops the DAEMON on foreign soil,
-    but this function is the only place in the module that commits and pushes
-    without going through `__main__` at all: anything that IMPORTS
-    process_run_complete and calls `_process()` on a fingerprint-matching marker
-    lands here directly, entrypoint guard untouched. That is not hypothetical --
-    tests/background/test_process_run_complete.py did exactly that, and every
-    unexplained `main` push this week was a test run manufacturing a real
-    `chore(liveness)` commit against whatever checkout it happened to be in.
-
-    So the guard moves to the SIDE-EFFECT, not the entrypoint: no matter who
-    calls, on what soil, via which import path, the commit+push below is reached
-    only from the resident seat. A foreign caller gets one stderr line and False
-    (never sys.exit -- this runs inside a live publish path that must survive a
-    refusal; the caller treats False exactly as it treats "throttled").
-
-    Deliberately NOT wrapped in a try/except: if the seat guard itself cannot
-    load, the ImportError propagates and nothing is committed. R15 FAIL-SILENT --
-    an unavailable check is a FAILED check, and the safe direction for a check
-    that cannot answer is "do not push".
+    EVERY LEG NAMES ITS REFUSAL, and the throttle is recorded when EITHER leg landed: a leg that
+    is refused every cycle must not turn the other into a beat-per-cycle writer, and the reader of
+    the failed leg is told why in the log and in `liveness_surface_refusal`.
     """
     try:  # seat guard, FIRST act -- see the docstring (background/_seat.py)
         from background._seat import is_resident_seat
@@ -8141,36 +8074,38 @@ def _refresh_published_liveness_on_skip(git_hash: str) -> bool:
         print("seat-guard: foreign, liveness publish refused "
               "(process_run_complete._refresh_published_liveness_on_skip)", file=sys.stderr)
         return False
-    if not _push_due():
+    if not _liveness_due():
         return False
-    # THE CONTENT PUBLISH GETS THE TREE (2026-09-16, publish failure #41). Checked AFTER the
-    # throttle and BEFORE any work, because this is the heartbeat's own precondition failing: it
-    # publishes "while sim output unchanged", and a landing in flight is content being published.
-    # See `LANDING_IN_FLIGHT_FILE` for the measurement and for why this is at most a one-beat
-    # yield rather than a suppression.
-    _flight = _landing_in_flight()
-    if _flight["live"]:
-        log("Liveness heartbeat STOOD DOWN this cycle: {}. Landing during that gate moves HEAD "
-            "under it and refuses the content publish -- which is exactly what took publish #41. "
-            "The heartbeat is one beat late, not skipped: the next cycle publishes it.".format(
-                _flight["why"]))
-        return False
-    files = [str(PROJECT_DIR / rel) for rel in LIVENESS_SURFACE_FILES
-             if (PROJECT_DIR / rel).exists()]
+    files = [PROJECT_DIR / rel for rel in LIVENESS_SURFACE_FILES if (PROJECT_DIR / rel).exists()]
     if not files:
         return False
-    _stand_down = _heartbeat_stand_down()
-    if _stand_down:
-        log("Liveness heartbeat not committed this cycle: {}.".format(_stand_down))
+    label = "Liveness heartbeat"
+    msg = "liveness: heartbeat while sim output unchanged (git={})".format(git_hash)
+    refusals = []
+    ops_why = _publish_liveness_to_ops(files, msg)
+    if ops_why:
+        refusals.append("ops repo: " + ops_why)
+    heartbeat = PROJECT_DIR / "site" / "data" / "tick_heartbeat.json"
+    sha = None
+    if heartbeat.exists():
+        sha, branch_why = _publish_liveness_branch(heartbeat, msg)
+        if branch_why:
+            refusals.append("{} branch: {}".format(LIVENESS_BRANCH, branch_why))
+    else:
+        refusals.append("{} branch: no site/data/tick_heartbeat.json on disk".format(
+            LIVENESS_BRANCH))
+    landed = (ops_why is None) + (sha is not None)
+    if landed:
+        _record_liveness_push_time()
+    if refusals:
+        log("{} NOT fully published ({} of 2 legs landed): {}".format(
+            label, landed, "; ".join(refusals)))
+        _record_liveness_surface_refusal(
+            label, publish_cause.PUSH_NEVER_LANDED, "; ".join(refusals), git_hash)
         return False
-    msg = ("chore(liveness): publish heartbeat while sim output unchanged (git={}) -- "
-           "decouples published liveness from content-change (Fault#1 2026-07-25)".format(git_hash))
-    # Shared with the provenance banner (_commit_and_push_paths): same narrow-pathspec,
-    # never-hold-the-lock-across-commit, self-verifying-push discipline. Extracted rather than
-    # cloned when the banner needed the identical shape -- SP3's own instruction.
-    if not _commit_and_push_paths(files, msg, label="Liveness heartbeat", git_hash=git_hash):
-        return False
-    _record_push_time()
+    log("{} published to the ops repo and the {} branch ({}).".format(
+        label, LIVENESS_BRANCH, sha[:9]))
+    _record_liveness_surface_publish(label, sha)
     return True
 
 
@@ -8548,6 +8483,8 @@ def _commit_and_push_paths(paths, msg, *, label, git_hash="unknown"):
     banner on a red gate -- and both for the same reason: a surface whose whole job is to say
     the system is alive/behind must not be published as a side-effect of publishing content,
     because the case it exists for is exactly the case where content does not publish.
+    (Since 2026-10-04 the heartbeat no longer comes here -- it never commits to main; see
+    `LIVENESS_BRANCH`. The provenance banner is the remaining caller.)
 
     Three properties every caller inherits, none of them optional:
       * NARROW PATHSPEC -- commits ONLY these paths, never the whole index, so a concurrent

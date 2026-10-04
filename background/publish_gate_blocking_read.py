@@ -106,9 +106,12 @@ PUBLISH_GATE_WINDOW_SECONDS = 60 * 60       # 1h: a wedge fails every ~10min, so
 
 # ── THE DECLARED LIVENESS SURFACE (moved here 2026-09-21, the THIRD cut of the same edge) ──
 #
-# The files the publisher commits when it has nothing to say but is still alive
+# The files the publisher publishes when it has nothing to say but is still alive
 # (`process_run_complete._refresh_published_liveness_on_skip`). Born 2026-07-25 as fault #1 of the
 # overnight publish-freeze: liveness publication must not be coupled to business-output change.
+# SINCE 2026-10-04 THAT BEAT NEVER COMMITS TO MAIN (director: runtime state, not work); it goes to
+# the private ops repo and the public `liveness` branch. Main still carries these files inside
+# CONTENT publishes, and the readers below still classify the historical `chore(liveness)` commits.
 #
 # WHY IT IS IN THE LEAF AND NOT WITH ITS WRITER. It acquired a second and third READER --
 # `commit_narrative`, deciding whether a commit carried work, and `delivery_lane`, deciding

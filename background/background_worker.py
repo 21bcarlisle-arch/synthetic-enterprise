@@ -354,8 +354,10 @@ def beat_liveness() -> bool:
     But it could only ever run INSIDE a publish cycle, so it inherited the cadence it exists to be
     independent of. Here it runs every worker cycle (~30 min) with no content publish required.
 
-    Cheap by construction: two small files, its own narrow pathspec, and `_push_due()` throttles the
-    push. Wrapped, because a liveness beat may never take the sweep down — it is a passenger.
+    Cheap by construction: two small files, its own `_liveness_due()` throttle, and since
+    2026-10-04 no commit on main at all -- it writes the private ops repo and the public `liveness`
+    branch (see `process_run_complete.LIVENESS_BRANCH`). Wrapped, because a liveness beat may never
+    take the sweep down — it is a passenger.
     """
     try:
         from background import process_run_complete as _prc
