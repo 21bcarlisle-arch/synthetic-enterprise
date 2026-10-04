@@ -9,7 +9,9 @@ paid or missed once its date has passed.
 THE PUBLISHED BASIS IS EMPTY, AND THE WORLD SAYS SO. No published source gives the share of
 domestic debtors who take up an offered plan, or the share of instalments kept
 (`docs/market_research/domestic_repayment_plan_take_up_and_keep_rates.md`). Ofgem publishes only
-quarter-end STOCKS, which multiply take-up, keeping, plan length and spell length together. So
+quarter-end STOCKS, which multiply take-up, keeping, plan length and spell length together, and
+bound none of them (worked in the research doc). The one published break figure is an annual
+share of customers with a miss (Ofgem, 2012-2015), not a per-instalment rate. So
 `PUBLISHED_BASIS` holds None in each slot with its reason, and every offer is answered
 `accepted=None` naming the first missing piece. The draw below runs only on a basis someone has
 sourced; tests inject one to prove both branches of each draw are reachable.
@@ -69,15 +71,20 @@ class PlanResponseBasis:
 PUBLISHED_BASIS = PlanResponseBasis(
     take_up_rate=None,
     take_up_gap=(
-        "no published rate of plan take-up among domestic debtors offered one: Ofgem publishes "
-        f"only quarter-end stocks of accounts in arrears and in debt ({_RESEARCH})"),
+        "no published rate of plan take-up among domestic debtors offered one: no published source "
+        "counts offers, and Ofgem's quarter-end stocks of accounts in arrears and in debt do not "
+        f"bound it ({_RESEARCH})"),
     instalment_keep_rate=None,
     instalment_keep_gap=(
-        f"no published rate of repayment-plan instalments kept, or of plans broken ({_RESEARCH})"),
+        "no published per-instalment keep rate: Ofgem's last published break figure (2015 social "
+        "obligations report, Fig. 13: about 40% of large-supplier credit plans had at least one "
+        "failed repayment in the year) counts customer-years, and the payments each was exposed to "
+        f"are unpublished; the quarterly failure counts since 2019 are not published ({_RESEARCH})"),
     monthly_instalment_gbp=None,
     monthly_instalment_gap=(
-        "the published average weekly repayment is a mean over plans in force, not what an "
-        f"offered household can afford, and is not wired while take-up is unknown ({_RESEARCH})"),
+        "the published average weekly repayment is over prepayment meters installed for debt, not "
+        "over credit-account plans, and is not wired while take-up is unknown "
+        f"({_RESEARCH})"),
 )
 
 
