@@ -301,6 +301,23 @@ class SimInterface:
         """
         raise NotImplementedError
 
+    def answer_plan_offer(self, account_id: str, offered_on, debt: float) -> dict:
+        """The household's answer to a repayment-plan offer (WORLD -> COMPANY, atom EP4).
+
+        OBSERVABLE: a supplier that offers an arrangement (SLC 27.8) learns in that conversation
+        whether the household agrees and at what instalment. Never why, nor what it could really
+        afford. Returns ``{"accepted": bool | None, "instalment": float | None, "reason": str}``, the
+        instalment in the account's billing currency;
+        ``accepted`` None means the world cannot answer, and ``reason`` says why.
+        """
+        raise NotImplementedError
+
+    def get_plan_instalments(self, account_id: str, agreed_on, through) -> list[dict]:
+        """Each instalment of an agreed plan that fell due after `agreed_on` and by `through`, as
+        ``{"due": iso date, "paid": bool}`` -- what the supplier's own collection records show.
+        Nothing after `through` crosses."""
+        raise NotImplementedError
+
 
 class StubSimInterface(SimInterface):
     """Stub implementation for testing and development.
@@ -389,6 +406,13 @@ class StubSimInterface(SimInterface):
 
     def enrol_flex(self, enrolment, *, as_of) -> Any:
         return self._flex_desk.enrol(enrolment, as_of=as_of)
+
+    def answer_plan_offer(self, account_id, offered_on, debt) -> dict:
+        return {"accepted": None, "instalment": None,
+                "reason": "stub seam: no household behind it to answer"}
+
+    def get_plan_instalments(self, account_id, agreed_on, through) -> list[dict]:
+        return []
 
     def get_flex_settlement_lines(self, unit_id: str) -> list:
         # Stub: no live settlement feed (mirrors get_settlement_data zeros).
@@ -610,6 +634,19 @@ class LiveSimInterface(SimInterface):
         annual_consumption_kwh: float = 0.0,
     ) -> float:
         return estimate_churn_probability(old_rate_gbp_per_mwh, new_rate_gbp_per_mwh, tenure_years, annual_consumption_kwh)
+
+    def answer_plan_offer(self, account_id, offered_on, debt) -> dict:
+        """The world's answer, reduced to what the conversation tells a supplier. Deferred import,
+        as for the price history. While no take-up rate is published the answer is None with the
+        world's named reason (`simulation/plan_offer_response.py`)."""
+        from simulation.plan_offer_response import answer_plan_offer
+        answer = answer_plan_offer(account_id, offered_on, debt)
+        return {"accepted": answer.accepted, "instalment": answer.instalment,
+                "reason": answer.reason}
+
+    def get_plan_instalments(self, account_id, agreed_on, through) -> list[dict]:
+        from simulation.plan_offer_response import plan_instalments
+        return plan_instalments(account_id, agreed_on, through)
 
     def enrol_flex(self, enrolment, *, as_of) -> Any:
         """The SAME exchange the stub runs, deliberately -- one desk, one codec

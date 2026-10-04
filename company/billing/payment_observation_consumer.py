@@ -851,6 +851,7 @@ class PaymentObservationConsumer:
         posture: Any = DECLARED_POSTURE,
         supplied_accounts: Optional[Iterable[str]] = None,
         breathing_space: Optional[BreathingSpaceRegister] = None,
+        plan_offers: Any = None,
     ) -> None:
         # THE STARTUP ASSERTION (atom EP6, pass 40 -- the blind review's Q14).
         # This constructor is the startup of the only framed crossing the
@@ -877,6 +878,9 @@ class PaymentObservationConsumer:
             refuse_dunning_of_cleared_debt=lambda journey, _account: (
                 refuse_dunning_of_a_cleared_debt(
                     journey, lambda acc, on: self.ledger_book.ledger(acc).balance(on))),
+            # The seam a plan offer is answered through (`SimInterface.answer_plan_offer`). None
+            # records each offer unanswered, with the reason saying so.
+            plan_offers=plan_offers,
         )
         self._dd_failures: Dict[str, List[DDFailureObservation]] = {}
         self._rail_failures: Dict[str, List[RailFailureNote]] = {}

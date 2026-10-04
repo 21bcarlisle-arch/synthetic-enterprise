@@ -12,6 +12,9 @@ What each control names as its own defect:
   * `test_the_order_check_*` -- the lawful-order table accepts any walk.
   * `test_a_short_live_run_*` -- the journey is not reached by a production run, or a run decides
     steps after its own last day.
+  * `test_the_household_s_answer_*` / `test_an_agreed_plan_*` -- the world's answer to a plan offer
+    does not reach the journey, or reaches it only one way: agree, decline and no-answer are
+    asserted reachable in ONE control, and a kept plan and a broken one in another.
 """
 from __future__ import annotations
 
@@ -24,6 +27,7 @@ import pytest
 from company.billing.account_ledger import LedgerBook, LedgerEvent, LedgerEventType
 from company.billing.arrears_engine import dunning_path
 from company.billing.collections_journey import (
+    ARRANGEMENT,
     ARRANGEMENT_ACCEPTANCE_GAP,
     ARRANGEMENT_OFFERED,
     CURED,
@@ -31,11 +35,12 @@ from company.billing.collections_journey import (
     PLAN_OFFER_STEP,
     UNREACHED_EXITS,
     CollectionsJourneyDesk,
+    PlanPaydownNotOnLedgerError,
     UnlawfulJourneyOrderError,
     assert_journey_order_lawful,
 )
 from company.billing.payment_observation_consumer import PaymentObservationConsumer
-from company.billing.payment_plan import PaymentPlanStatus
+from company.billing.payment_plan import PaymentPlanBook, PaymentPlanStatus
 from company.compliance import obligations_register as orr
 from company.compliance.domain_invariants import (
     ALL_INVARIANTS,
@@ -264,6 +269,11 @@ def test_the_obligation_is_registered_and_enforced_by_its_invariant():
     (((MISSED_PAYMENT, "2024-01-16"), (PLAN_OFFER_STEP, "2024-02-12"),
       (ARRANGEMENT_OFFERED, "2024-02-12"), (PLAN_OFFER_STEP, "2024-02-13"),
       (ARRANGEMENT_OFFERED, "2024-02-13")), None, "the same step re-entered to re-offer"),
+    (((MISSED_PAYMENT, "2024-01-16"), (PLAN_OFFER_STEP, "2024-02-12"), (ARRANGEMENT, "2024-02-12")),
+     ARRANGEMENT, "an arrangement agreed with no offer recorded"),
+    (((MISSED_PAYMENT, "2024-01-16"), (PLAN_OFFER_STEP, "2024-02-12"),
+      (ARRANGEMENT_OFFERED, "2024-02-12"), (ARRANGEMENT, "2024-02-12"),
+      ("final_notice", "2024-03-11")), None, "dunning after the plan was agreed"),
 ])
 def test_the_order_check_refuses_an_unlawful_walk(stages, exit, why):
     with pytest.raises(UnlawfulJourneyOrderError):
@@ -319,5 +329,98 @@ def test_a_live_run_offers_arrangements_only_straight_after_the_plan_offer_step(
     for journey, i in offered:
         assert journey["stages"][i - 1]["stage"] == PLAN_OFFER_STEP
         assert journey["stages"][i]["household_acceptance"] is None
+        # The live run asks the WORLD: the reason is the world's, not the desk's no-seam text.
+        assert journey["stages"][i]["acceptance_gap"] not in (None, ARRANGEMENT_ACCEPTANCE_GAP)
     assert all(j["exit"] in (CURED, None) for j in live_journeys), (
         "an exit other than cured/open was recorded with no world answer behind it")
+
+
+class _World:
+    """A stand-in household behind the seam: it answers every offer `accepted` at `instalment`,
+    and pays (or misses) every instalment, one each 30 days after the plan was agreed."""
+
+    def __init__(self, accepted, instalment=None, paid=True):
+        self.accepted, self.instalment, self.paid = accepted, instalment, paid
+
+    def answer_plan_offer(self, account_id, offered_on, debt_gbp):
+        reason = {True: "agreed", False: "declined", None: "the world cannot say"}[self.accepted]
+        return {"accepted": self.accepted, "instalment": self.instalment, "reason": reason}
+
+    def get_plan_instalments(self, account_id, agreed_on, through):
+        out, n = [], 1
+        while (due := agreed_on + dt.timedelta(days=30 * n)) <= through:
+            out.append({"due": due.isoformat(), "paid": self.paid})
+            n += 1
+        return out
+
+
+def _answered(account, world, *bills):
+    """An account billed GBP 100 on each issue date and never paying, behind `world`."""
+    consumer = PaymentObservationConsumer(ledger_book=LedgerBook(), plan_offers=world)
+    for n, issued in enumerate(bills or (ISSUE,), 1):
+        consumer.ledger_book.post(_event(LedgerEventType.BILL_DEBIT, account, 100.0, issued, n))
+    return consumer
+
+
+def test_the_household_s_answer_reaches_the_journey_and_every_answer_is_reachable():
+    """Agree, decline and no-answer, in one control before what any of them does."""
+    walks = {}
+    for accepted in (True, False, None):
+        consumer = _answered("ACC-A", _World(accepted, instalment=20.0 if accepted else None))
+        consumer.advance_collections_journey("ACC-A", dt.date(2024, 4, 1))
+        (journey,) = consumer.collections_journeys.journeys()
+        (plan,) = consumer.collections_journeys.arrangements.plans_for_customer("ACC-A")
+        walks[accepted] = journey, plan
+        assert_journey_order_lawful(journey, Segment.RESIDENTIAL)
+    agreed, declined, unanswered = walks[True], walks[False], walks[None]
+    assert agreed[0]["exit"] == ARRANGEMENT and agreed[0]["stages"][-1]["stage"] == ARRANGEMENT
+    assert agreed[1].status == PaymentPlanStatus.ACTIVE and agreed[1].installment_gbp == 20.0
+    offer = next(s for s in agreed[0]["stages"] if s["stage"] == ARRANGEMENT_OFFERED)
+    assert offer["household_acceptance"] is True and offer["acceptance_gap"] is None
+    for journey, plan in (declined, unanswered):
+        assert journey["exit"] is None and ARRANGEMENT not in [s["stage"] for s in journey["stages"]]
+        assert "final_notice" in [s["stage"] for s in journey["stages"]], "the ladder must resume"
+    assert declined[1].status == PaymentPlanStatus.CANCELLED
+    assert unanswered[1].status == PaymentPlanStatus.OFFERED
+    gap = next(s for s in unanswered[0]["stages"] if s["stage"] == ARRANGEMENT_OFFERED)
+    assert gap["household_acceptance"] is None and gap["acceptance_gap"] == "the world cannot say"
+
+
+def test_an_agreed_plan_holds_the_account_while_kept_and_a_broken_one_lets_collections_resume():
+    """Three unpaid bills. The plan agreed on the first's offer (02-12) is kept, or misses its
+    03-13 and 04-12 instalments and defaults (two misses). The third bill's miss (05-16) opens a
+    new journey only on the broken plan. Both legs in one control."""
+    bills = (ISSUE, dt.date(2024, 3, 1), dt.date(2024, 5, 1))
+    kept = _answered("ACC-K", _World(True, instalment=10.0, paid=True), *bills)
+    broken = _answered("ACC-B", _World(True, instalment=10.0, paid=False), *bills)
+    for consumer, account in ((kept, "ACC-K"), (broken, "ACC-B")):
+        consumer.advance_collections_journey(account, dt.date(2024, 6, 30))
+    kept_journeys = kept.collections_journeys.journeys()
+    broken_journeys = broken.collections_journeys.journeys()
+    assert [j["exit"] for j in kept_journeys] == [ARRANGEMENT]
+    assert [j["exit"] for j in broken_journeys][0] == ARRANGEMENT and len(broken_journeys) == 2
+    assert broken_journeys[1]["stages"][0] == {**broken_journeys[1]["stages"][0],
+                                              "stage": MISSED_PAYMENT, "on": "2024-05-16"}
+    (kept_plan,) = kept.collections_journeys.arrangements.plans_for_customer("ACC-K")
+    (broken_plan,) = broken.collections_journeys.arrangements.plans_for_customer("ACC-B")
+    # Instalments are read at evaluation dates (simplification 3), so not every one due by 06-30.
+    assert kept_plan.status == PaymentPlanStatus.ACTIVE and kept_plan.missed_payments == 0
+    assert kept_plan.payments_made >= 2
+    assert broken_plan.status == PaymentPlanStatus.DEFAULTED and broken_plan.missed_payments == 2
+
+
+def test_an_agreed_plan_repaid_in_full_refuses_because_its_paydown_never_reached_the_ledger():
+    repaid = _answered("ACC-R", _World(True, instalment=60.0), ISSUE, dt.date(2024, 5, 1))
+    with pytest.raises(PlanPaydownNotOnLedgerError, match="ACC-R"):
+        repaid.advance_collections_journey("ACC-R", dt.date(2024, 6, 30))
+
+
+def test_only_an_offered_plan_can_be_agreed_and_only_at_a_positive_instalment():
+    book = PaymentPlanBook()
+    plan = book.offer_plan("C", 100.0, ISSUE)
+    for bad in (None, 0.0, -5.0):
+        with pytest.raises(ValueError):
+            book.accept_offer(plan.plan_id, bad)
+    assert book.accept_offer(plan.plan_id, 25.0).status == PaymentPlanStatus.ACTIVE
+    with pytest.raises(ValueError, match="active"):
+        book.accept_offer(plan.plan_id, 25.0)

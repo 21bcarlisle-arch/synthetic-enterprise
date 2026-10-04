@@ -785,7 +785,7 @@ RUFF_BASELINE: dict[str, int] = {
     #             a `git archive HEAD` extract overlaid with exactly this commit's files: 1326 there
     #             against 1328 at clean HEAD. A baseline frozen from the dirty tree would red the
     #             live-tree control the moment this landed alone.  SHRINK-ONLY.
-    "I001": 1286,  # 1288 -> 1286 on 2026-10-04: tests/background/test_delivery_seat.py, sorted when the push tests were replaced by the origin landing route. 1290 -> 1288 on 2026-10-03: tests/company/market/test_transfer_objection_register.py and test_phase_go_transfer_objection.py, sorted when the objection window was corrected to REC Schedule 23. 1291 -> 1290 on 2026-10-03: tools/couple_w2_11_d5.py, sorted when the payment method moved to one draw. 1293 -> 1291 on 2026-10-03: company/crm/cos_process.py and tests/company/crm/test_cos_process.py, sorted when the registration-loss seam (EP12) was wired. 1297 -> 1293 on 2026-10-03: company/crm/retention_risk.py, tools/generate_shadow_html.py and their tests, sorted when the wall-clock fix touched their imports. 1298 -> 1297 on 2026-10-03: background/live_payment_triad.py, sorted when its default-belief door was added. 1299 -> 1298 on 2026-10-03: tests/test_nh_payment_behaviour_wiring.py, sorted when its TDCV import was added. 1300 -> 1299 on 2026-10-03: simulation/run_scenario.py, the dead loader patch in run_forward_scenario removed with its import block. Before that: lowered 2026-10-02: tests/simulation/test_phase47b_acquisition_gate.py, rewritten
+    "I001": 1285,  # 1286 -> 1285 on 2026-10-04: company/billing/payment_plan.py, sorted when a plan offer got the world's answer (EP4). 1288 -> 1286 on 2026-10-04: tests/background/test_delivery_seat.py, sorted when the push tests were replaced by the origin landing route. 1290 -> 1288 on 2026-10-03: tests/company/market/test_transfer_objection_register.py and test_phase_go_transfer_objection.py, sorted when the objection window was corrected to REC Schedule 23. 1291 -> 1290 on 2026-10-03: tools/couple_w2_11_d5.py, sorted when the payment method moved to one draw. 1293 -> 1291 on 2026-10-03: company/crm/cos_process.py and tests/company/crm/test_cos_process.py, sorted when the registration-loss seam (EP12) was wired. 1297 -> 1293 on 2026-10-03: company/crm/retention_risk.py, tools/generate_shadow_html.py and their tests, sorted when the wall-clock fix touched their imports. 1298 -> 1297 on 2026-10-03: background/live_payment_triad.py, sorted when its default-belief door was added. 1299 -> 1298 on 2026-10-03: tests/test_nh_payment_behaviour_wiring.py, sorted when its TDCV import was added. 1300 -> 1299 on 2026-10-03: simulation/run_scenario.py, the dead loader patch in run_forward_scenario removed with its import block. Before that: lowered 2026-10-02: tests/simulation/test_phase47b_acquisition_gate.py, rewritten
     #             for the both-fuels acquisition rule. Previously 1301,
     #             lowered 2026-10-01: company/compliance/domain_invariants.py, sorted when the
     #             VAT rates moved to the commons (read in a clean worktree). Previously 1302,
@@ -891,7 +891,7 @@ RUFF_BASELINE: dict[str, int] = {
     # 2026-09-06  F401 265 -> 264. `dataclasses.field`, unused in
     #             `company/crm/vulnerability_register.py` at HEAD, removed while that file's
     #             import block was open for the delegation (atom C32, see log).
-    "F401": 262,  # 263 -> 262 on 2026-10-03: `REPORT_START` and `timedelta` in simulation/run_scenario.py went with that patch. Before that: 264 -> 263 on 2026-10-02: `timedelta` in company/compliance/domain_invariants.py.
+    "F401": 261,  # 262 -> 261 on 2026-10-04: `timedelta` in company/billing/payment_plan.py, with that sort. 263 -> 262 on 2026-10-03: `REPORT_START` and `timedelta` in simulation/run_scenario.py went with that patch. Before that: 264 -> 263 on 2026-10-02: `timedelta` in company/compliance/domain_invariants.py.
     # 173 -> 172 on 2026-09-08: `tests/simulation/test_svt_rates.py` carried a mid-file
     # `from simulation.svt_rates import _quarter_start_month` above its eight tests, and both the
     # function and the tests went when the quarterly key table they walked was replaced by a
@@ -938,6 +938,7 @@ RUFF_BASELINE_TOTAL -= 2  # 2266 -> 2264 on 2026-10-03: the I001 above, `company
 RUFF_BASELINE_TOTAL -= 1  # 2264 -> 2263 on 2026-10-03: the I001 above, `tools/couple_w2_11_d5.py`.
 RUFF_BASELINE_TOTAL -= 2  # 2263 -> 2261 on 2026-10-03: the I001 above, the two transfer-objection test modules.
 RUFF_BASELINE_TOTAL -= 2  # 2261 -> 2259 on 2026-10-04: the I001 above, tests/background/test_delivery_seat.py.
+RUFF_BASELINE_TOTAL -= 2  # 2259 -> 2257 on 2026-10-04: the I001 and F401 above, `company/billing/payment_plan.py`.
 # 2279 -> 2278 on 2026-09-30: the F841 above. 2280 -> 2279 on 2026-09-27: the I001 above, `background/file_api.py`,
 # whose top import block sorted once the retired /query leg's `httpx` import went.
 # 2281 -> 2280 on 2026-09-27: the I001 above, the whole of

@@ -1,10 +1,10 @@
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass, field
-from datetime import date, timedelta
+from datetime import date
 from enum import Enum
 from typing import List, Optional
-import math
 
 
 class PaymentPlanStatus(str, Enum):
@@ -92,6 +92,22 @@ class PaymentPlanBook:
         self._plans.append(plan)
         self._next_id += 1
         return plan
+
+    def accept_offer(self, plan_id: int, installment_gbp: float) -> PaymentPlan:
+        """The household AGREED offer `plan_id` at `installment_gbp` -- a fact the caller received
+        from outside the company (the world's answer through the seam), never one it inferred.
+        Refuses anything but an OFFERED plan, and an instalment that is not a positive amount."""
+        if not installment_gbp or installment_gbp <= 0:
+            raise ValueError(f"plan {plan_id}: an agreed instalment must be positive, "
+                             f"got {installment_gbp!r}")
+        for plan in self._plans:
+            if plan.plan_id == plan_id:
+                if plan.status != PaymentPlanStatus.OFFERED:
+                    raise ValueError(f"plan {plan_id} is {plan.status.value}, not offered")
+                plan.installment_gbp = installment_gbp
+                plan.status = PaymentPlanStatus.ACTIVE
+                return plan
+        raise KeyError(plan_id)
 
     def offered_plans(self) -> List[PaymentPlan]:
         return [p for p in self._plans if p.status == PaymentPlanStatus.OFFERED]

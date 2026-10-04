@@ -19,18 +19,28 @@ the ladder CAN change -- which, for a ledger-driven selector, are fully enumerab
 Between two such dates the selector's inputs do not move, so nothing is lost. An account with no
 open journey is evaluated only where it could open one (each bill's due + 1, and any non-bill debit).
 
-WHAT ENDS A JOURNEY. Only `cured` is reachable from the company's own records today: the overdue
-balance is cleared on the ledger. The other exits the atom names are listed in `UNREACHED_EXITS`
+WHAT ENDS A JOURNEY. `cured` is reached from the company's own records: the overdue balance is
+cleared on the ledger. `arrangement` is reached when the household AGREES an offered plan, a fact
+the world answers through the seam. The other exits the atom names are listed in `UNREACHED_EXITS`
 with the reason each cannot happen yet. A journey still open at the run's end carries `exit: None`
 -- "we cannot tell how it ends" -- and is never coerced into an exit.
 
-THE ARRANGEMENT IS OFFERED, NOT AGREED. When the selector reaches the plan-offer step the desk puts
-an offer on its `PaymentPlanBook` and the journey records `arrangement_offered` straight after the
-step. The `arrangement` EXIT (plan agreed, kept, debt reducing) needs the household to answer, and
-no answer crosses the wall: the world models no response to an offer. So the offer carries
-`household_acceptance: None` and the journey goes on exactly as the ledger then dictates -- which is
-also what a broken plan would look like, so "the journey resumes" is today the only reachable
-branch. The day the world answers, the exit is a fact the company receives, not one it infers.
+THE HOUSEHOLD ANSWERS THE OFFER, THROUGH THE SEAM. When the selector reaches the plan-offer step
+the desk puts an offer on its `PaymentPlanBook`, asks `plan_offers.answer_plan_offer` (the
+SimInterface), and records `arrangement_offered` straight after the step with the answer:
+  * agreed -- the plan goes ACTIVE at the household's instalment, and the journey ends on the
+    `arrangement` exit: the debt has left the dunning ladder for an agreed plan, which is also the
+    line Ofgem draws between "in arrears" and "in debt";
+  * declined, or no answer (`household_acceptance: None` with the WORLD's reason) -- the journey
+    goes on exactly as the ledger dictates.
+While a plan is ACTIVE no new journey opens on the account. Each instalment is read from the seam
+once its date has passed, and a plan the company's own rule defaults (`payment_plan
+._DEFAULT_THRESHOLD` misses) stops holding the account, so the next missed bill opens a new
+journey: a broken plan sends the household back into collections.
+
+TODAY EVERY ANSWER IS None: no published rate of take-up or keeping exists
+(`docs/market_research/domestic_repayment_plan_take_up_and_keep_rates.md`), so the world answers
+None and names why. The agreed branch is reachable through an injected world only.
 
 NAMED SIMPLIFICATIONS.
   (1) Value time, not knowledge time: the ledger's existing reads filter on `valid_time` only, so a
@@ -39,16 +49,22 @@ NAMED SIMPLIFICATIONS.
   (2) A moratorium starting between two evaluation dates is seen at the next one. No Secretary of
       State notification crosses the seam yet (`PaymentObservationConsumer.__init__`), so no live
       account can enter `moratorium_hold`; the stage is reachable at unit level only.
+  (3) A plan instalment is read at the next evaluation date on or after it falls due, not on the
+      day, so a default is seen up to one ladder-trigger later than a daily batch would see it.
+  (4) Instalments move the plan book and NOT the ledger, so a plan's paydown does not reduce the
+      overdue balance the ladder reads. A plan that COMPLETES therefore refuses
+      (`PlanPaydownNotOnLedgerError`): the ledger would still show the repaid debt as overdue and
+      the next bill would dun it.
 """
 from __future__ import annotations
 
 import datetime as dt
 from dataclasses import dataclass, field
-from typing import Callable, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional
 
 from company.billing.account_ledger import AccountLedger, LedgerEventType
 from company.billing.arrears_engine import MORATORIUM_HOLD, dunning_path
-from company.billing.payment_plan import PaymentPlanBook
+from company.billing.payment_plan import PaymentPlanBook, PaymentPlanStatus
 from company.crm.account_hierarchy import Segment
 
 MISSED_PAYMENT = "missed_payment"
@@ -59,17 +75,24 @@ PLAN_OFFER_STEP = "repayment_plan_offer"
 #: same date as `PLAN_OFFER_STEP` and only straight after it, with the offer kept in the desk's
 #: `PaymentPlanBook`. The household's acceptance is not observed -- see ARRANGEMENT_ACCEPTANCE_GAP.
 ARRANGEMENT_OFFERED = "arrangement_offered"
-#: Why each offered arrangement carries `household_acceptance: None`.
+#: The exit taken when the household agrees an offered plan: the debt leaves the dunning ladder.
+ARRANGEMENT = "arrangement"
+#: Why an offered arrangement carries `household_acceptance: None` when the desk has no seam to ask.
+#: With one, the reason recorded is the world's own.
 ARRANGEMENT_ACCEPTANCE_GAP = (
-    "no household answers a plan offer: the world has no response to one (simulation/"
-    "arrears_engine.py: 'arrangement paydown ... unbuilt', C3b), so neither the instalment the "
-    "household can afford (SLC 27.8) nor whether it agrees ever reaches the company")
+    "this desk was built with no seam to ask, so no household answer to the offer reaches the "
+    "company: neither the instalment it can afford (SLC 27.8) nor whether it agrees")
+
+
+class PlanPaydownNotOnLedgerError(Exception):
+    """An agreed plan was repaid in full, and its instalments never reached the ledger."""
 
 #: The exits the atom names that the company's own records cannot reach yet, and why. A journey is
 #: never closed on one of these by inference.
 UNREACHED_EXITS = {
-    "arrangement": ("plans are OFFERED (stage arrangement_offered) but none can be agreed or kept: "
-                    + ARRANGEMENT_ACCEPTANCE_GAP),
+    "arrangement": ("reachable when the world agrees an offer, and unreached live: the world answers "
+                    "every offer None, because no published rate of plan take-up exists (simulation/"
+                    "plan_offer_response.py)"),
     "disconnection_equivalent": "no prepayment-under-warrant or agency hand-over is taken live",
     "write_off": "arrears_engine.build_write_off_event has no production caller",
 }
@@ -89,7 +112,8 @@ def lawful_successors(segment: Segment) -> Dict[Optional[str], frozenset]:
     journey, so a cured account is never dunned inside the journey that recorded its cure.
 
     The offered arrangement follows the plan-offer step and nothing else, and is followed by what
-    could have followed that step: the journey resumes on the ladder, holds, or cures."""
+    could have followed that step -- the journey resumes on the ladder, holds, or cures -- or by
+    the `arrangement` exit when the household agrees. Nothing follows that exit."""
     ladder = frozenset(ladder_actions(segment))
     working = ladder | {MORATORIUM_HOLD.action, CURED}
     table: Dict[Optional[str], frozenset] = {None: frozenset({MISSED_PAYMENT}),
@@ -98,7 +122,8 @@ def lawful_successors(segment: Segment) -> Dict[Optional[str], frozenset]:
         table[stage] = working - {stage}
     if PLAN_OFFER_STEP in ladder:
         table[PLAN_OFFER_STEP] = table[PLAN_OFFER_STEP] | {ARRANGEMENT_OFFERED}
-        table[ARRANGEMENT_OFFERED] = working - {PLAN_OFFER_STEP}
+        table[ARRANGEMENT_OFFERED] = (working - {PLAN_OFFER_STEP}) | {ARRANGEMENT}
+        table[ARRANGEMENT] = frozenset()
     return table
 
 
@@ -181,11 +206,16 @@ class CollectionsJourneyDesk:
     """
 
     def __init__(self, view_at: Callable[[str, Segment, dt.date], dict],
-                 refuse_dunning_of_cleared_debt: Callable[[dict, str], None]) -> None:
+                 refuse_dunning_of_cleared_debt: Callable[[dict, str], None],
+                 plan_offers: Optional[Any] = None) -> None:
         self._view_at = view_at
         self._refuse = refuse_dunning_of_cleared_debt
-        #: Every arrangement this desk has offered. All OFFERED: see ARRANGEMENT_ACCEPTANCE_GAP.
+        #: The seam a plan offer is answered through (`SimInterface.answer_plan_offer` and
+        #: `get_plan_instalments`). None: offers are recorded unanswered, ARRANGEMENT_ACCEPTANCE_GAP.
+        self._plan_offers = plan_offers
+        #: Every arrangement this desk has offered, and what became of each.
         self.arrangements = PaymentPlanBook()
+        self._instalments_read: Dict[int, int] = {}
         self._open: Dict[str, _Journey] = {}
         self._closed: List[_Journey] = []
         self._through: Dict[str, dt.date] = {}
@@ -219,12 +249,13 @@ class CollectionsJourneyDesk:
         self._through[account_id] = through
 
     def _step(self, account_id: str, segment: Segment, on: dt.date) -> None:
+        held_by_plan = self._read_instalments(account_id, on)
         view = self._view_at(account_id, segment, on)
         overdue = (view.get("max_days_overdue") or 0) > 0 and (
             view.get("undisputed_overdue_gbp") or 0.0) > 0
         journey = self._open.get(account_id)
         if journey is None:
-            if not overdue:
+            if not overdue or held_by_plan:
                 return
             journey = self._open[account_id] = _Journey(account_id, segment)
             journey.enter(MISSED_PAYMENT, on, "journey opened: a bill is unpaid past its due date",
@@ -241,6 +272,33 @@ class CollectionsJourneyDesk:
             if action == PLAN_OFFER_STEP:
                 self._offer_arrangement(journey, on, view)
         self._refuse(journey.as_record(), account_id)
+        if journey.exit == ARRANGEMENT:
+            self._closed.append(self._open.pop(account_id))
+
+    def _read_instalments(self, account_id: str, on: dt.date) -> bool:
+        """Post every instalment of this account's ACTIVE plans that fell due by `on` to the plan
+        book, each once. Returns whether an ACTIVE plan still holds the account."""
+        held = False
+        for plan in self.arrangements.plans_for_customer(account_id):
+            if plan.status != PaymentPlanStatus.ACTIVE:
+                continue
+            due = self._plan_offers.get_plan_instalments(account_id, plan.start_date, on)
+            for instalment in due[self._instalments_read.get(plan.plan_id, 0):]:
+                if instalment["paid"]:
+                    self.arrangements.record_payment(plan.plan_id, dt.date.fromisoformat(
+                        instalment["due"]))
+                else:
+                    self.arrangements.record_missed(plan.plan_id)
+                if plan.status != PaymentPlanStatus.ACTIVE:
+                    break
+            self._instalments_read[plan.plan_id] = len(due)
+            if plan.status == PaymentPlanStatus.COMPLETED:
+                raise PlanPaydownNotOnLedgerError(
+                    f"{account_id}: plan {plan.plan_id} repaid GBP {plan.total_paid_gbp} by {on}, "
+                    "and plan instalments do not post to the ledger, so the ledger still shows it "
+                    "overdue and the next bill would dun a repaid debt")
+            held = held or plan.status == PaymentPlanStatus.ACTIVE
+        return held
 
     def _offer_arrangement(self, journey: _Journey, on: dt.date, view: dict) -> None:
         """SLC 27.8: the plan-offer step makes an offer, and the offer goes on the plan book.
@@ -248,11 +306,24 @@ class CollectionsJourneyDesk:
         What the company knows here is what it did: the date, the overdue sum it offered against,
         the plan id. The instalment and the household's answer are carried as None with the reason
         -- they are the household's, and nothing brings them back across the wall today."""
-        plan = self.arrangements.offer_plan(
-            journey.account_id, view.get("undisputed_overdue_gbp") or 0.0, on)
+        debt = view.get("undisputed_overdue_gbp") or 0.0
+        plan = self.arrangements.offer_plan(journey.account_id, debt, on)
+        if self._plan_offers is None:
+            answer = {"accepted": None, "instalment": None,
+                      "reason": ARRANGEMENT_ACCEPTANCE_GAP}
+        else:
+            answer = self._plan_offers.answer_plan_offer(journey.account_id, on, debt)
+        accepted = answer["accepted"]
         journey.enter(ARRANGEMENT_OFFERED, on, "affordable arrangement offered (SLC 27.8)", view,
-                      plan_id=plan.plan_id, instalment_gbp=None, household_acceptance=None,
-                      acceptance_gap=ARRANGEMENT_ACCEPTANCE_GAP)
+                      plan_id=plan.plan_id, instalment_gbp=answer["instalment"],
+                      household_acceptance=accepted,
+                      acceptance_gap=answer["reason"] if accepted is None else None)
+        if accepted is True:
+            self.arrangements.accept_offer(plan.plan_id, answer["instalment"])
+            journey.enter(ARRANGEMENT, on, answer["reason"], view, plan_id=plan.plan_id)
+            journey.exit = ARRANGEMENT
+        elif accepted is False:
+            self.arrangements.cancel_plan(plan.plan_id)
 
     def journeys(self) -> List[dict]:
         """Every journey this desk has recorded, closed first then open, as plain records."""

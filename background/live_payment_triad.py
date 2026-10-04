@@ -101,6 +101,7 @@ from company.billing.payment_observation_consumer import (
     PaymentObservationConsumer,
 )
 from company.interfaces.collection_submission import encode_collection_request
+from company.interfaces.sim_interface import LiveSimInterface
 from interface.contracts.payment_observable_seam import (
     COLLECTION_REQUEST_TYPE,
     CollectionRequest,
@@ -686,9 +687,12 @@ class LivePaymentTriad:
 
     def __init__(self, dd_failure_window_days: int = _RUN_SPANNING_WINDOW_DAYS) -> None:
         self._ledger_book = LedgerBook()
+        # The plan-offer answers cross the company's one seam, as every world answer does (EP4).
+        plan_offers = LiveSimInterface()
         self._consumer = PaymentObservationConsumer(
             ledger_book=self._ledger_book,
             dd_failure_window_days=dd_failure_window_days,
+            plan_offers=plan_offers,
         )
         # THE D8 SHADOW COMPANY: identical construction, fed the identical
         # observations with the invoice remittance reference restored. Never
@@ -698,6 +702,7 @@ class LivePaymentTriad:
         self._cf_consumer = PaymentObservationConsumer(
             ledger_book=self._cf_ledger_book,
             dd_failure_window_days=dd_failure_window_days,
+            plan_offers=plan_offers,
         )
         # THE COUNTERPARTY'S UNSOLICITED FEED (atom EP6 -- the blind review's
         # Q2). ONE stream for the run, because the sequence numbering is the
