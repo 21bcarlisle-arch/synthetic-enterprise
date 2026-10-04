@@ -116,6 +116,7 @@ from saas.customer_reaction import _billing_account_id
 from saas.tariff_pricing import TARGET_MARGIN_GBP_PER_MWH
 from simulation.arrears_engine import ARREARS_LINE_KEYS
 from simulation.run_phase4c_on_phase2b import main as run_phase4c
+from tools import book_seed_authorisation as _book_auth
 
 # ONE COUNTERFACTUAL, NOT TWO. The choice of reference (Ofgem cap where published, the pre-2019
 # SVT series before it) is argued at length where it is defined; a second copy here would be a
@@ -8375,13 +8376,10 @@ def decompose_floor(undecomposed: dict, priced_only: dict, priced_except: dict,
 # is R13 curriculum. The flag is built so that his yes costs one file and no code. It refuses
 # until that file exists, and this module never writes the file.
 
-#: The atom whose ruling a non-default book seed needs, named in every refusal it causes.
-BOOK_SEED_ATOM = "EP17_varied_population_draw"
-
-#: Where the director's ruling would live, in `population_draw_activation.json`'s shape. It does
-#: NOT exist as of 2026-09-30, and its absence is what keeps `--book-seeds` refusing.
-BOOK_SEED_AUTHORISATION = (
-    PROJECT_DIR / "docs" / "design" / "curriculum" / "varied_population_draw_activation.json")
+# The check itself lives in `tools.book_seed_authorisation`, which assembles no book, so a caller
+# that must decide BEFORE rebinding the seed (`tools.decision_probe --book-seed`) can ask it.
+BOOK_SEED_ATOM = _book_auth.BOOK_SEED_ATOM
+BOOK_SEED_AUTHORISATION = _book_auth.BOOK_SEED_AUTHORISATION
 
 #: The member entrypoint, run with `python3 -c` so that the rebind in its first two lines happens
 #: before `tools.run_value_cycle_ab` (and so `run_phase4c_on_phase2b`) is imported. argv:
@@ -8395,50 +8393,10 @@ BOOK_MEMBER_BOOTSTRAP = BOOK_MEMBER_PREAMBLE + (
     "raise SystemExit(book_member_main(int(sys.argv[1]), sys.argv[2] or None, sys.argv[3]))\n")
 
 
-def _default_book_seed() -> int:
-    """The seed every published run's book is drawn at, read off the module that owns it."""
-    from simulation.live_population import _DEFAULT_BASE_SEED
-    return _DEFAULT_BASE_SEED
-
-
 def book_seed_authorisation_refusal(seeds: list[int], record: Path | None = None) -> str | None:
-    """Why this family may not run without the director, or None if it may.
-
-    Only the DEFAULT seed is free: it is the book every published run already uses. Any other
-    seed needs a record that is activated and lists THAT seed. A general "yes, vary the book"
-    does not authorise every seed anyone later types.
-    """
-    default = _default_book_seed()
-    foreign = sorted({int(s) for s in seeds} - {default})
-    if not foreign:
-        return None
-    record = BOOK_SEED_AUTHORISATION if record is None else record
-    head = ("book seed(s) {} are not the default {}. A different book seed draws a different "
-            "cast of households, which is {} -- R13 curriculum, the director's alone".format(
-                foreign, default, BOOK_SEED_ATOM))
-    try:
-        doc = json.loads(record.read_text(encoding="utf-8"))
-    except FileNotFoundError:
-        return ("{}. No ruling is recorded: {} does not exist. It is written only on his word, "
-                "in the shape of population_draw_activation.json, and never by this tool."
-                .format(head, record))
-    except (OSError, ValueError) as exc:
-        return "{}. {} is unreadable ({}), so no ruling can be read from it.".format(
-            head, record, exc)
-    try:
-        activated = doc["activated"]["value"] is True
-        authority = str(doc["_meta"]["authority"]).strip()
-        listed = {int(s) for s in doc["base_seeds"]["value"]}
-    except (KeyError, TypeError, ValueError) as exc:
-        return ("{}. {} is not in population_draw_activation.json's shape (needs _meta.authority, "
-                "activated.value, base_seeds.value; {!r}).".format(head, record, exc))
-    if not activated or not authority:
-        return "{}. {} exists but is not activated with the director's words.".format(
-            head, record)
-    unlisted = sorted(set(foreign) - listed)
-    if unlisted:
-        return "{}. {} does not list seed(s) {}.".format(head, record, unlisted)
-    return None
+    """`tools.book_seed_authorisation`'s check, defaulting to THIS module's record path."""
+    return _book_auth.book_seed_authorisation_refusal(
+        seeds, BOOK_SEED_AUTHORISATION if record is None else record)
 
 
 def book_seeds_refusal(seeds: list[int]) -> str | None:

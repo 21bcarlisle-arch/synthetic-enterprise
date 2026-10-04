@@ -309,7 +309,7 @@ def liveness_probe(runner=subprocess.run):
     """
     def probe(unit: str) -> dict | None:
         return _show(unit, "ActiveState", "Result", "ExecMainStatus", "LoadState",
-                     "ExecMainExitTimestamp", runner=runner)
+                     "ExecMainExitTimestamp", "WorkingDirectory", runner=runner)
     return probe
 
 
@@ -458,7 +458,7 @@ def launch(job: str, command: list, *, artefact: str, workdir: str | None = None
     workdir = str(Path(workdir).resolve()) if workdir else str(_REPO)
     log = str(Path(log).resolve()) if log else f"/var/tmp/{unit}.log"
     Path(log).parent.mkdir(parents=True, exist_ok=True)
-    Path(artefact).parent.mkdir(parents=True, exist_ok=True)
+    (Path(workdir) / artefact).parent.mkdir(parents=True, exist_ok=True)
 
     if name_is_held(unit, runner=runner):
         raise LaunchRefused(
@@ -525,7 +525,7 @@ def launch(job: str, command: list, *, artefact: str, workdir: str | None = None
     try:
         entry = launch_liveness.record(
             job, unit, artefact, log=log, asserted_live_by=list(asserted_live_by),
-            launched_at=launched_at, path=records_path, peak_mb=peak_mb)
+            launched_at=launched_at, path=records_path, peak_mb=peak_mb, workdir=workdir)
     except Exception as exc:  # noqa: BLE001 -- see the docstring: unrecorded must not stay running
         stop(unit, runner=runner)
         raise LaunchRefused(
