@@ -1008,6 +1008,87 @@ def chain_census(root: Path | str = DEFAULT_STAGING_ROOT,
     }
 
 
+def chain_trend(*, days: int | None = None, ref: str = "HEAD",
+                epochs: dict[str, int | None] | None = None,
+                repo: Path | str = REPO_ROOT) -> dict:
+    """The none-yet share and the unread backlog, one point per day, read from the COMMITTED record.
+
+    The 10-04 blind pass's Q1/Q3: `chain_census` is a snapshot, so "is it falling" had no answer.
+    Each point is the last first-parent commit on `ref` at the end of that day, and its root items
+    are classified by `chain_of_text` exactly as the live census does, so every point is one
+    instrument. It is NOT the live census: items written to disk and never committed are absent,
+    the class registers `work_queue` splices in are absent, and a finding counts as RECORDED by its
+    header alone (no discharge check). Today's point can therefore read lower than the panel's
+    headline, and the panel says so.
+
+    `unread` is None, not 0, on a day whose commit carries no hand-read record: the record began on
+    2026-10-04, and a day before it was not measured. Minted means the atom is on TODAY's map, so a
+    later retirement of an atom moves past points; the series is about the queue, not the map.
+    An unreadable git answers `readable: False` with why: "could not measure" never reads as flat.
+    """
+    import datetime as dt
+    import subprocess
+    import tempfile
+
+    from background.finding_severity import parse_severity_text
+    from tools.maturity_map_store import MapStoreError
+
+    days = GROWTH_WINDOW_DAYS if days is None else days
+    repo = str(repo)
+
+    def git(*args: str, stdin: str | None = None) -> str:
+        proc = subprocess.run(["git", *args], cwd=repo, capture_output=True, text=True,
+                              input=stdin, timeout=120, check=False)
+        if proc.returncode != 0:
+            raise RuntimeError(f"git {args[0]} exited {proc.returncode}: {proc.stderr.strip()[:200]}")
+        return proc.stdout
+
+    try:
+        if epochs is None:
+            epochs = atom_epochs()
+        today = dt.date.fromisoformat(
+            git("log", "-1", "--format=%cs", ref).strip() or dt.date.today().isoformat())
+        points = []
+        for back in range(days, -1, -1):
+            day = today - dt.timedelta(days=back)
+            sha = git("rev-list", "-1", "--first-parent", f"--before={day}T23:59:59", ref).strip()
+            if not sha:
+                continue
+            blobs: dict[str, str] = {}
+            reads_blob = None
+            for line in git("ls-tree", sha, "docs/staging/", "docs/design/queue_serves_reads.json"
+                            ).splitlines():
+                meta, _, path = line.partition("\t")
+                blob = meta.split()[2]
+                if path.endswith("queue_serves_reads.json"):
+                    reads_blob = blob
+                elif path.endswith(".md") and kind_of(Path(path).name) not in NOT_WORK:
+                    blobs[Path(path).name] = blob
+            texts = {n: git("cat-file", "blob", b) for n, b in blobs.items()}
+            chains = [chain_of_text(t, path=Path(n)) for n, t in texts.items()
+                      if not (kind_of(n) == KIND_FINDING
+                              and parse_severity_text(t).severity == "RECORDED")]
+            chained = [c for c in chains if c.is_chained]
+            minted = {c.path.name: c.atom for c in chained if c.is_minted and c.atom in epochs}
+            unread = None
+            if reads_blob is not None:
+                with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False) as fh:
+                    fh.write(git("cat-file", "blob", reads_blob))
+                try:
+                    served = serves_by_hand(minted, fh.name)
+                finally:
+                    Path(fh.name).unlink(missing_ok=True)
+                if served.get("recorded"):
+                    unread = len(served["not_yet_read"])
+            points.append({"date": day.isoformat(), "commit": sha[:9], "population": len(chains),
+                           "chained": len(chained), "minted": len(minted),
+                           "unminted": sum(1 for c in chained if not c.is_minted),
+                           "unread": unread})
+    except (OSError, subprocess.SubprocessError, RuntimeError, ValueError, MapStoreError) as exc:
+        return {"readable": False, "why": f"the committed record could not be read ({exc})"}
+    return {"readable": True, "days": days, "ref": ref, "points": points}
+
+
 #: Kinds the chain is NOT owed on at filing. NOT_WORK is outside the queue; a directive and a
 #: console message carry the director's words, and P8 asks the MACHINE to connect its own
 #: queue to the map -- refusing his words at the door would be a ceremony on his path.

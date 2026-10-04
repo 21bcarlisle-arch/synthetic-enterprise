@@ -18,6 +18,7 @@ The filenames are the real ones from `docs/staging/` on the morning of 2026-08-2
 from __future__ import annotations
 
 import json
+import subprocess
 
 import pytest
 
@@ -979,3 +980,64 @@ def test_the_unreadable_record_is_a_violation_and_never_a_pass(tmp_path, monkeyp
     assert out and out[0].startswith("STRANDED DISPOSITIONS UNREADABLE:"), out
     assert "not evidence that it does" in out[0], (
         "an unreadable probe must say that silence is not agreement")
+
+
+def _commit_on(repo, day, files):
+    import os
+
+    for rel, text in files.items():
+        p = repo / rel
+        p.parent.mkdir(parents=True, exist_ok=True)
+        if text is None:
+            p.unlink()
+        else:
+            p.write_text(text, encoding="utf-8")
+    env = {**os.environ, "GIT_AUTHOR_DATE": f"{day}T12:00:00", "GIT_COMMITTER_DATE": f"{day}T12:00:00"}
+    subprocess.run(["git", "add", "-A"], cwd=repo, check=True, env=env)
+    subprocess.run(["git", "-c", "user.name=t", "-c", "user.email=t@t", "commit", "-qm", day],
+                   cwd=repo, check=True, env=env)
+
+
+def test_the_chain_trend_reads_one_point_a_day_from_the_committed_record(tmp_path):
+    """H45, the 10-04 blind pass's Q1/Q3: whether the none-yet share and the unread backlog are
+    falling. One record holds every case: a minted item, an unminted one, a RECORDED finding and a
+    reference (both out), a day before the hand-read record (unread None) and a day with it (unread
+    counted), and an item on disk but never committed (absent).
+    MUTATIONS (must fire): read the working tree instead of the commit; report unread 0 on a day
+    with no record; count RECORDED findings; one point for every day (the last commit's)."""
+    repo = tmp_path / "r"
+    repo.mkdir()
+    subprocess.run(["git", "init", "-q"], cwd=repo, check=True)
+    head = "**Severity:** {sev} · **Lane:** H_harness · **Epoch:** 2 · **Atom:** `{atom}`\n\nbody\n"
+    st = "docs/staging/"
+    _commit_on(repo, "2026-10-01", {
+        st + "SEAT_FINDING_A_2026-10-01.md": head.format(sev="LATENT", atom="H45_q"),
+        st + "SEAT_FINDING_B_2026-10-01.md": head.format(sev="LATENT", atom="unminted"),
+        st + "SEAT_FINDING_DONE_2026-10-01.md": head.format(sev="RECORDED", atom="H45_q"),
+        st + "CLASS_X_2026-08-12.md": head.format(sev="LATENT", atom="unminted"),
+    })
+    _commit_on(repo, "2026-10-03", {
+        st + "SEAT_FINDING_C_2026-10-03.md": head.format(sev="LATENT", atom="H45_q"),
+        "docs/design/queue_serves_reads.json": json.dumps(
+            {"reads": [{"date": "2026-10-03", "items": ["SEAT_FINDING_A_2026-10-01.md"]}]}),
+    })
+    (repo / st / "SEAT_FINDING_DISK_2026-10-03.md").write_text(
+        head.format(sev="LATENT", atom="unminted"), encoding="utf-8")
+
+    t = sr.chain_trend(days=2, epochs={"H45_q": 2}, repo=repo)
+
+    assert t["readable"] is True
+    by_day = {p["date"]: p for p in t["points"]}
+    assert set(by_day) == {"2026-10-01", "2026-10-02", "2026-10-03"}
+    assert by_day["2026-10-01"] == {**by_day["2026-10-01"], "population": 2, "minted": 1,
+                                    "unminted": 1, "unread": None}
+    assert by_day["2026-10-02"]["commit"] == by_day["2026-10-01"]["commit"]
+    assert by_day["2026-10-03"] == {**by_day["2026-10-03"], "population": 3, "minted": 2,
+                                    "unminted": 1, "unread": 1}
+
+
+def test_an_unreadable_record_gives_no_trend_rather_than_a_flat_one(tmp_path):
+    """Not a repository: the answer is `readable: False` with why, never an empty or flat series.
+    MUTATION (must fire): swallow the git failure and return `points: []` as readable."""
+    t = sr.chain_trend(days=1, epochs={}, repo=tmp_path)
+    assert t["readable"] is False and "could not be read" in t["why"]

@@ -206,6 +206,7 @@ def the_queues_link_to_the_map() -> dict:
     return {
         "available": True,
         **staging_rooms.chain_census(),
+        "trend": staging_rooms.chain_trend(),
         "why_this_is_here": (
             "Every item waiting for work should say which lane, release epoch and map atom it "
             "belongs to, so the queue and the map cannot drift apart unnoticed. An item that says "

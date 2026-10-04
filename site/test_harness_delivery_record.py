@@ -313,6 +313,29 @@ def test_the_queue_panel_states_that_serving_an_atom_is_read_by_hand_and_names_t
     assert "Last read" not in old
 
 
+def test_the_queue_panel_shows_whether_the_none_yet_share_and_unread_backlog_are_falling():
+    """H45, the 10-04 blind pass's Q1/Q3, on the page: one row per day, a day before the hand-read
+    record reads "not measured" and never 0, and a feed without the history says so.
+    MUTATIONS (must fire): unwire the renderer; render unread None as a number; render the table
+    for a feed whose trend is unreadable."""
+    base = {"available": True, "population": 3, "chained": 3, "minted": 2, "unminted": 1,
+            "unchained": [], "unreadable": 0}
+    body = _text(_with_queue_chain({**base, "trend": {"readable": True, "days": 1, "points": [
+        {"date": "2026-10-03", "population": 75, "minted": 47, "unminted": 20, "unread": None},
+        {"date": "2026-10-04", "population": 66, "minted": 32, "unminted": 34, "unread": 1},
+    ]}})["delivery-queue-chain"]["innerHTML"])
+
+    assert "work written but not yet committed is not in it" in body
+    assert "2026-10-03 75 47 20 not measured" in body
+    assert "2026-10-04 66 32 34 1" in body
+
+    rows = [{"date": "2026-10-04", "population": 1, "minted": 1, "unminted": 0, "unread": 0}]
+    for trend in (None, {"readable": False, "why": "git exited 128", "points": rows}):
+        old = _text(_with_queue_chain({**base, "trend": trend})["delivery-queue-chain"]["innerHTML"])
+        assert "whether they are falling is not measured here" in old
+        assert "Day by day" not in old
+
+
 def test_a_feed_WITHOUT_the_queue_count_says_not_measured_and_not_no_gaps():
     """A delivery record written before the field existed says nothing about the queue. Rendered
     as zeros it would read as a fully tied queue -- the flattering claim, made on no evidence.
