@@ -129,6 +129,7 @@ from simulation.payment_seam_adapter import (
     emit_wire_responses,
     mandate_ref_for,
 )
+from simulation.plan_offer_response import HouseholdPlanBook
 from tools.couple_w2_11_d5 import (
     AS_OF_BUFFER_DAYS,
     PAYMENT_TERMS_DAYS,
@@ -688,7 +689,10 @@ class LivePaymentTriad:
     def __init__(self, dd_failure_window_days: int = _RUN_SPANNING_WINDOW_DAYS) -> None:
         self._ledger_book = LedgerBook()
         # The plan-offer answers cross the company's one seam, as every world answer does (EP4).
-        plan_offers = LiveSimInterface()
+        # A yes is recorded on the world's own book of agreed plans, which the later-settlement
+        # queue asks before any lump crosses (`_deliver_settlements_through`).
+        self._household_plans = HouseholdPlanBook()
+        plan_offers = LiveSimInterface(household_plans=self._household_plans)
         self._consumer = PaymentObservationConsumer(
             ledger_book=self._ledger_book,
             dd_failure_window_days=dd_failure_window_days,
@@ -719,7 +723,18 @@ class LivePaymentTriad:
         # run has reached it (`_deliver_settlements_through`). The ledger's reads are as-of anyway;
         # holding it back means the company never holds a payment from its own future at all.
         self._pending_settlements: list = []
+        # Lumps whose day has come but whose account's journey cannot yet be walked to the day
+        # before them, per account, oldest first (`_settle_held`).
+        self._held_settlements: dict = {}
         self._n_settlements_delivered = 0
+        # Later settlements the household's agreed plan replaced (withdrawn, never crossed), and
+        # every one that did cross, as (account, bill due, paid on), so a plan agreed only AFTER a
+        # lump crossed is counted rather than assumed away (`settlements_crossed_despite_a_plan`).
+        self._n_settlements_withdrawn = 0
+        self._crossed_settlements: list = []
+        # The latest date the run is known to have lived through: the bound every journey walk
+        # takes (`record_period`'s previous due date, or the run's last day).
+        self._lived_through: Optional[date] = None
         # persistent per-customer method archetype cache (drawn once, C-S2)
         self._method_cache: dict = {}
         # WHAT THE DELIVERIES LOOKED LIKE (atom EP6, pass 49 -- Q6). One
@@ -782,7 +797,7 @@ class LivePaymentTriad:
         any account is the previous month. The consumer requires that date and refuses to default
         it -- a window nobody chose is how a DIRECTION column becomes a made-up interval.
         """
-        self._deliver_settlements_through(as_of)
+        self._deliver_settlements_through(as_of, force=f"ACC-{customer_id}")
         return self._consumer.arrears_state(
             f"ACC-{customer_id}",
             as_of,
@@ -800,7 +815,7 @@ class LivePaymentTriad:
         `billed_last_year_gbp` is everything billed in the 365 days to `as_of`. Read at the
         renewal, before this term's bills post -- the no-look-ahead bound `arrears_state` keeps.
         """
-        self._deliver_settlements_through(as_of)
+        self._deliver_settlements_through(as_of, force=f"ACC-{customer_id}")
         account = f"ACC-{customer_id}"
         unpaid = self._consumer.unpaid_bills_by_age(account, as_of, segment=segment)
         if unpaid is None:
@@ -820,7 +835,7 @@ class LivePaymentTriad:
         is the run's reading of the company's own method register on a date, used only to read each charge
         on its published row, `None` for an account the renewal price does not learn from.
         """
-        self._deliver_settlements_through(as_of)
+        self._deliver_settlements_through(as_of, force=True)
         return self._consumer.default_belief_rate(
             as_of, arrears_state,
             payment_method_of=payment_method_of,
@@ -847,10 +862,10 @@ class LivePaymentTriad:
         whatever this returned). What it asserts instead is REACHABILITY: that
         the world can no longer get the consumer, and that the second bridge
         entry is gone from `run_phase2b`."""
-        self._deliver_settlements_through(as_of)
+        self._deliver_settlements_through(as_of, force=True)
         return detection_cell_measurements(self._records, self._consumer, as_of)
 
-    def _deliver_settlements_through(self, through: date) -> None:
+    def _deliver_settlements_through(self, through: date, *, force=None) -> None:
         """Cross every queued later settlement dated on or before `through`, oldest first.
 
         WHAT CROSSES IS CASH, AND ONLY CASH: a remittance for the bill's amount, valued and observed
@@ -859,31 +874,94 @@ class LivePaymentTriad:
         rail is OTHER because how arrears are repaid is not modelled. Nothing says the household
         "intended" to clear a particular bill or that it had been drawn to -- the world's reason
         stays here. The shadow company (D8) gets the same cash with the invoice reference
-        restored, as it does for every other credit."""
+        restored, as it does for every other credit.
+
+        A PLAN REPLACES THE LUMP (EP4). A lump crosses only once its account's collections journey
+        has been walked to the day before it, so a plan offer the company would make by then has
+        been made and answered; if the household agreed a plan after the bill fell due, it is
+        repaying that bill through the plan, and the lump is withdrawn from both companies. A walk
+        stays inside the bounds `record_period` keeps (`_walk_bound`), so a lump dated past them
+        waits on its account's hold, valued on its own day, until a later bill extends the bound.
+        A READER cannot wait: `force` (an account id, or True for every account) crosses that
+        account's held lumps up to `through` unwalked, and `settlements_crossed_despite_a_plan`
+        counts any a later agreement turns out to cover."""
         while self._pending_settlements and self._pending_settlements[0][0] <= through:
-            settled_on, _seq, event, account_id, invoice_ref, correlation_id = heapq.heappop(
-                self._pending_settlements)
-            hand_over = self._consumer.observe_hand_over(
-                emit_wire_responses(
-                    event, SeamAdapterInput(account_id=account_id, correlation_id=correlation_id)),
-                received_at=datetime.combine(settled_on, time(12, 0)),
-            )
-            self._hand_overs.append(hand_over)
-            for cf_wire in emit_wire_responses(
-                event,
-                SeamAdapterInput(account_id=account_id, correlation_id=correlation_id,
-                                 bank_reference=_counterfactual_correlation_id(
-                                     invoice_ref, correlation_id)),
-            ):
-                self._cf_consumer.observe_wire(cf_wire)
-            self._n_ambiguous_records += 1
-            self._n_ambiguous_credits += 1
-            self._n_settlements_delivered += 1
+            item = heapq.heappop(self._pending_settlements)
+            self._held_settlements.setdefault(item[3], []).append(item)
+        for account_id in list(self._held_settlements):
+            self._settle_held(account_id)
+            if force is True or force == account_id:
+                for item in self._held_settlements.pop(account_id, []):
+                    if item[0] <= through:
+                        self._cross_settlement(item)
+                    else:
+                        self._held_settlements.setdefault(account_id, []).append(item)
+
+    def _walk_bound(self, account_id: str) -> Optional[date]:
+        """How far this account's journey may be walked now: its ledger is complete to its latest
+        posted due date (every earlier lump of its has been settled, oldest first), and the run has
+        lived through `_lived_through`. None before either is known."""
+        last_due = self._journey_last_due.get(account_id)
+        if last_due is None or self._lived_through is None:
+            return None
+        return min(last_due, self._lived_through)
+
+    def _settle_held(self, account_id: str, bound: Optional[date] = None) -> None:
+        """Walk the account to the day before each held lump, oldest first, and settle it, as far
+        as `bound` (default `_walk_bound`) allows. A lump beyond the bound stays held."""
+        bound = bound or self._walk_bound(account_id)
+        held = self._held_settlements.get(account_id, [])
+        while held and bound is not None and held[0][0] - timedelta(days=1) <= bound:
+            item = held.pop(0)
+            self._consumer.advance_collections_journey(
+                account_id, item[0] - timedelta(days=1),
+                segment=self._journey_segments[account_id])
+            self._cross_settlement(item)
+        if not held:
+            self._held_settlements.pop(account_id, None)
+
+    def _cross_settlement(self, item) -> None:
+        """Withdraw one lump the household's plan replaced, or cross it to both companies."""
+        settled_on, _seq, event, account_id, invoice_ref, correlation_id = item
+        bill_due = date.fromisoformat(event.due_date)
+        if self._household_plans.repays_through_plan(account_id, bill_due, settled_on):
+            self._n_settlements_withdrawn += 1
+            return
+        self._crossed_settlements.append((account_id, bill_due, settled_on))
+        hand_over = self._consumer.observe_hand_over(
+            emit_wire_responses(
+                event, SeamAdapterInput(account_id=account_id, correlation_id=correlation_id)),
+            received_at=datetime.combine(settled_on, time(12, 0)),
+        )
+        self._hand_overs.append(hand_over)
+        for cf_wire in emit_wire_responses(
+            event,
+            SeamAdapterInput(account_id=account_id, correlation_id=correlation_id,
+                             bank_reference=_counterfactual_correlation_id(
+                                 invoice_ref, correlation_id)),
+        ):
+            self._cf_consumer.observe_wire(cf_wire)
+        self._n_ambiguous_records += 1
+        self._n_ambiguous_credits += 1
+        self._n_settlements_delivered += 1
 
     @property
     def settlements_delivered(self) -> int:
         """How many later settlements have crossed to the company so far."""
         return self._n_settlements_delivered
+
+    @property
+    def settlements_withdrawn(self) -> int:
+        """How many later settlements an agreed plan replaced, so never crossed."""
+        return self._n_settlements_withdrawn
+
+    @property
+    def settlements_crossed_despite_a_plan(self) -> int:
+        """Lumps that crossed for a bill a plan agreed BEFORE the lump's day now covers -- the
+        arrears the company is paid twice. The pre-walk exists to keep this at zero; it is counted
+        here, against the world's book as it stands, so a walk that falls short is seen."""
+        return sum(self._household_plans.repays_through_plan(*crossed)
+                   for crossed in self._crossed_settlements)
 
     def _method_for(self, customer_id: str, fuel: str = "electricity") -> str:
         """The supply point's method, from the world's one channel draw -- the one
@@ -1168,6 +1246,8 @@ class LivePaymentTriad:
         self._journey_segments[account_id] = segment
         self._journey_last_due[account_id] = due_date
         if previous_due is not None:
+            self._lived_through = max(self._lived_through or previous_due, previous_due)
+            self._settle_held(account_id)
             self._consumer.advance_collections_journey(account_id, previous_due, segment=segment)
 
         return _derive_analytics_record(customer_id, due_date, amount_gbp, event)
@@ -1176,7 +1256,12 @@ class LivePaymentTriad:
         """Every account's collections journey on the COMPANY's own ledger, walked to `through`
         (the run's last day), as plain records -- the door shape of `arrears_state`: the run gets
         dated stages back and never the desk. Call once every bill has been posted."""
+        self._lived_through = max(self._lived_through or through, through)
         self._deliver_settlements_through(through)
+        # Every bill has been posted, so each ledger is complete to `through`.
+        for account_id in list(self._held_settlements):
+            self._settle_held(account_id, through)
+        self._deliver_settlements_through(through, force=True)
         for account_id, segment in self._journey_segments.items():
             self._consumer.advance_collections_journey(account_id, through, segment=segment)
         return self._consumer.collections_journeys.journeys()
@@ -1192,7 +1277,7 @@ class LivePaymentTriad:
             return None
         if as_of is None:
             as_of = max(r.due_date for r in self._records) + timedelta(days=AS_OF_BUFFER_DAYS)
-        self._deliver_settlements_through(as_of)
+        self._deliver_settlements_through(as_of, force=True)
         result = score_triad(self._records, self._consumer, as_of)
         result["remittance_attribution"] = self._attribute_remittance(result, as_of)
         return result

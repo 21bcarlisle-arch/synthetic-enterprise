@@ -503,8 +503,12 @@ class LiveSimInterface(SimInterface):
         infrastructure convenience, not for SIM internals.
     """
 
-    def __init__(self, *, flex_venue_clock=None, flex_registrations=None):
+    def __init__(self, *, flex_venue_clock=None, flex_registrations=None, household_plans=None):
         from company.crm.event_log import CompanyEventLog
+        # The world's book of agreed plans (`simulation.plan_offer_response.HouseholdPlanBook`):
+        # a yes answered here is recorded there, so the world's other repayment route knows the
+        # arrears are being repaid through the plan. Never read company-side.
+        self._household_plans = household_plans
         self._engine = CompanyTariffEngine()
         self._price_cache: dict[str, list[dict]] = {}
         self._event_log = CompanyEventLog()
@@ -640,7 +644,8 @@ class LiveSimInterface(SimInterface):
         as for the price history. While no take-up rate is published the answer is None with the
         world's named reason (`simulation/plan_offer_response.py`)."""
         from simulation.plan_offer_response import answer_plan_offer
-        answer = answer_plan_offer(account_id, offered_on, debt)
+        answer = answer_plan_offer(account_id, offered_on, debt,
+                                   agreements=self._household_plans)
         return {"accepted": answer.accepted, "instalment": answer.instalment,
                 "reason": answer.reason}
 
