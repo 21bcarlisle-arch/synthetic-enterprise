@@ -8,6 +8,174 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-10-04 — orientation: THE THESIS HELD ITS GROUND, AND ITS EVIDENCE IS BETTER STAMPED THAN IT WAS, BUT IT DID NOT MOVE A LEVEL
+
+<!-- head: 70dee3c7c224 -->
+
+*Written by the orientation seat from its own record (2026-10-04T20:23:06.729790+00:00; 8 commits, 5 substantive, since 2026-10-04T17:20:08.240984+00:00).*
+
+## What the stretch meant
+
+THE THESIS HELD ITS GROUND, AND ITS EVIDENCE IS BETTER STAMPED THAN IT WAS, BUT IT DID NOT MOVE A LEVEL. Stage A's grading landed (1ba33d5ed). On the refitted world the value rule beats a flat price set in advance on three dice paths of four, with a pooled SNR of 2.38. Without 2018 the pooled SNR is 1.56. The four paths still share 28 of 42 households, so the claim is "beats on this book", not "beats on books like this". The grading also says plainly, "Attribution: I cannot yet say". The edge per decision rose from 3.2 to 7.7 GBP across 96 commits that changed the world's departure anchor and the company's offer and belief code together. Until the one-variable run is done, I cannot say whether that edge came from inference in the company or from the world getting easier to beat, and that is exactly the question the thesis turns on. So it is focus item two. The HEAD re-take of the value arms finished and published (d7169c720): every figure is unchanged at HEAD's code, and the selection leg now carries a direction for the first time (3 of 3 re-draws positive, no size claimed). Two carried machine errors are now CORRECTED with evidence. 77a872e01 puts every SE_ switch the run reads, and the code commit it ran from, into the arms' world stamp. Two artefacts one switch apart now refuse to pair, and three mutations were seen red. That closes the digest-blind-to-switches row and the stamp-not-tied-to-HEAD row, and it is the precondition for Stage B being trustworthy if he grants EP17. bb250f8ea stops a Lane 0 item that is already finished on origin from being handed out again. Measured on the live ledger, it refuses 21 ids, including the QEP redraw, and that closes F5. THE PB4 STEER WAS WRONG, AND IT WAS MINE. PB4 was first in focus for two stretches and landed nothing either time. The cause is not drift. The COUPLED_TRIAD gate (background/coupled_triad.py, binding rule 1) excludes PB4 from every BUILD draw, because a world atom cannot step into L3 until a company twin at L2 or above has been tested against it. The supervisor log said so on every tick. PB4's twin is C29_decisions_stop_being_lookup_tables, which names PB4 in its depends_on, and C29 is at L0, idle, with a block_reason that says it is sequenced behind B10. B10 reached its target and was refiled on 2026-08-30 (15a9703ae), five weeks ago, and nothing re-asked the hold: the carried hold-condition error, recurring. The right steer is the company side that PB4 is waiting on, and that is also the thesis's own phrase, decisions made customer by customer. 8 commits, 7 carrying work, 1 no-work merge. Every worktree HEAD is on a remote ref. The shared HEAD is 8 behind origin with a surgical_land in flight (EP13 s34), so daemons from this checkout are running code that origin has moved past.
+
+## What went wrong
+
+- NOT corrected: THE MACHINE'S, NEW. The merge proposal says the director's heartbeat steer is "in hand", but no claim in .seat_work_in_hand.json holds it, and a heartbeat commit (ef9011143) landed after the steer. A document saying work is in hand is not a claim, and nothing checks the one against the other. Focus item one.
+- NOT corrected: THE MACHINE'S, CARRIED. A commit can name a constraint on a downstream run that nothing enforces. The QEP re-take honoured ba320e2d2 by hand (base 96517e68c), so the instance is met. The class stays in not_now.
+- NOT corrected: THE MACHINE'S, CARRIED. A waiter's deadline is set without pricing the queue ahead of it. wait_for caps at 21600 s, and long chains still loop by hand.
+- corrected: THE MACHINE'S, CARRIED. The world digest does not identify behaviour switches. 1002b and 1002c shared digest cf823b185f8ca51c and were not the same world. CORRECTED by 77a872e01: the stamp now carries every SE_ switch in the run's import closure, and a one-switch difference refuses the pair (mutations seen red).
+- NOT corrected: THE MACHINE'S, CARRIED. Nothing checks a long job's worktrees before launch. depth-vs-width died at exit 90 after 10h on a missing worktree.
+- NOT corrected: THE MACHINE'S, CARRIED. A held change's hold condition is not re-asked when its premise moves. The own_book flip landed only because a focus item carried its condition. RECURRED: C29's block_reason has said "sequenced behind B10" for five weeks after B10 reached its target and was refiled (15a9703ae, 2026-08-30), and that stale hold is what kept PB4 off L3.
+- corrected: THE MACHINE'S, CARRIED. A long job's world stamp is not tied to HEAD. CORRECTED by 77a872e01: world_identity() now carries code_commit, the sha the run imported from.
+- NOT corrected: THE MACHINE'S, CARRIED. Level or park moves stranded in a preserved ref are replayed as written. PB4 build->idle was false by then (a6bd4d77e), and nothing re-asks a stranded move's release condition.
+- NOT corrected: THE MACHINE'S, CARRIED. One item can land twice, on origin through surgical_land and as a local commit on the shared HEAD (75df9efdf after d77ff33d5).
+- NOT corrected: THE MACHINE'S, CARRIED. Nothing checks that a hand-written driver calls an API, or an argument shape, that the tool accepts. hgc-suite-timing's driver called resource_headroom.admitted(). It RECURRED this stretch: the QEP floor handoff passed one seed to a tool that refuses fewer than two.
+- NOT corrected: THE MACHINE'S, CARRIED. A control or door whose shape changes must re-run every fixture that builds a synthetic tree to drive it, and no control requires that. citation_at_head, red_at_head and fork_state still read not_established.
+- NOT corrected: THE MACHINE'S, CARRIED. A refusal naming a commit is not re-asked against the remote ref before a reader sees it. liveness_surface_refusal is still not re-asked.
+- NOT corrected: THE MACHINE'S, CARRIED. The stash-completeness sweep reports a genuinely lost file as safe. It is still not on the map.
+- NOT corrected: THE MACHINE'S, CARRIED. Nothing on the landing path asks whether a same-subject sibling is left behind in the shared tree (the 14-path refusal in 662da7fd3). Separate from H49.
+- NOT corrected: MINE, CLASS. not_now is still prose that nothing reads. A rejected item comes back only if I remember to promote it. This stretch I remembered once (the ex-ante flat comparison, focus item two), which is not a mechanism.
+- NOT corrected: THE MACHINE'S, CARRIED. A bounded executor turn can be reset over finished, unlanded work. Both named instances are gone: the brief reads all 80 worktree HEADs on a remote ref. Nothing prevents the class.
+- corrected: THE MACHINE'S, CARRIED. One Lane 0 change can be drawn twice (F5). CORRECTED by bb250f8ea: an item with a finished trailer, or a premise-spent disposition on origin, is no longer handed out. On the live ledger that refuses 21 ids, the QEP redraw among them. The partition control and its mutation are red-proven.
+- NOT corrected: THE MACHINE'S, CARRIED. A pre-registration that dates itself by its first commit can sit untracked after its subject commit lands. The class is still unrefused.
+- NOT corrected: THE MACHINE'S, CARRIED. A launch chain dies silently when its waiter hits DEADLINE. The register showed width as finished, and did not show that P/C, chained behind it, never started.
+- NOT corrected: THE MACHINE'S, CARRIED. The launch register records a deliberate seat stop as DIED. payment-history-pc-legs ended rc=143 beside a STOPPED note that says why.
+- NOT corrected: THE MACHINE'S, CARRIED. The held-work check refuses an item when its prose names a held file, even when the held work is not the item's work. The refusal reaches only the supervisor log, not the seat's brief, so the steer drifts without the seat being told.
+- NOT corrected: THE MACHINE'S, CARRIED. No-work base-advance merges were 11 of 26 and 9 of 24 in earlier stretches. In the last two they were 0 of 9 and 1 of 8, with no mechanism changed, so the cause of the fall is not established, and the Monday census grades it.
+- NOT corrected: THE MACHINE'S, CARRIED. PB4 was drawn and landed nothing, and nothing in the draw ledger or the seat's brief says why. The cause is now known (the coupled-triad gate excludes it from BUILD), but that refusal reaches only the supervisor log, the same blindness as the held-work row.
+- corrected: MINE, NEW. I put PB4 first in focus for two stretches, asking for an L3 step that the coupled-triad gate refuses by construction while its twin C29 sits at L0. The supervisor log said so on every tick, and I read the empty draw as drift. Corrected: PB4 is out of focus, and the twin is now focus item one.
+
+## Chosen against
+
+- Keep PB4_engagement_separated_from_elasticity in focus for its Expert Hour and L3.
+- Launch Stage B (12 independent books) or edit the EP17 concern, now that the stamp makes pairing safe.
+- Raise a new concern asking him to re-read the EP17 row in light of Stage A.
+- Steer the A46 priced menu for book depth.
+- Draw H45 again, or chase the 8-behind divergence of the shared HEAD by hand.
+- Give worker-seat-manager a heartbeat, or look into the 4h-quiet dispatcher.
+
+## Focus for the next stretch
+
+- `C29_decisions_stop_being_lookup_tables`
+- `attribute-the-stage-a-edge-to-world-or-company`
+- `PB5_pounds_or_percent_resolved`
+
+---
+
+## 2026-10-04 — orientation: THE THESIS MOVED FORWARD THIS STRETCH, ON ONE BOOK
+
+<!-- head: a3a4859a9114 -->
+
+*Written by the orientation seat from its own record (2026-10-04T17:20:08.240984+00:00; 9 commits, 8 substantive, since 2026-10-04T14:23:11.367253+00:00).*
+
+## What the stretch meant
+
+THE THESIS MOVED FORWARD THIS STRETCH, ON ONE BOOK. Stage A of the larger-book test finished cleanly (four decision_probe passes, all rc=0, done 15:59Z), and its grading is being landed right now through surgical_land. On the refitted world, the value rule beats a flat price that a supplier could have set in advance on three of the four paths. The comparison is against the harder ex-ante chooser: default +767 (SNR 3.05), 61002 +270 (2.28), 61003 +598 (2.14), and only 61001 ties (+52, 0.23). Pooled SNR is 2.38, against a pre-registered prediction of below 2. Before the refit the same comparison beat one path and tied three. This is the first result in which inference beats a no-per-customer-view baseline on the corrected world. It needs two limits stated with it. First, without the first book year, which carries two decisions, the pooled figure is 1.56. Second, the four paths share their households, so it is still one book. That is exactly why the EP17 concern stays open: only independent books can say this is not a property of these households. The concern row's "ceiling about 0.95" was the pre-refit reading, and the grading puts the ceiling near 2.67. I leave the row verbatim because the rules require it, and the proposal still stands. The HEAD re-take of the value arms (tools.run_value_cycle_ab, noise floor _20261004h, up 3h10m, 7.1 GB) is still running, and its publishing is already queued as a continuation. THE STEER MOSTLY BIT. All three items were drawn. Two landed: 0df1dc405 found the tracked-feed writer was the dashboard generator, not a site control, and fixed it with a mutation-proven control. 8dbb82c53 and 5cc385025 found that the two "spent" continuations had been retired before I named them, and fixed the orientation reader that misled me. PB4, the first item, did NOT land. It was drawn, and its row still reads expert_hour not_attempted, with no commit on its paths. C31 parked behind it in the same stretch (1cad2be20), so PB4 now gates the time currency as well as the inference story. The PB4 steer is the thing drifting, and it stays first with a narrower instruction. H45 hardened three times and parked on reviewer independence, which went to him as an open row. 9 commits, all carrying work, and none was a no-work merge. Every worktree HEAD is on a remote ref. HEAD is one behind origin.
+
+## What went wrong
+
+- NOT corrected: THE MACHINE'S, NEW. The merge proposal says the director's heartbeat steer is "in hand", but no claim in .seat_work_in_hand.json holds it, and a heartbeat commit (ef9011143) landed after the steer. A document saying work is in hand is not a claim, and nothing checks the one against the other. Focus item one.
+- corrected: THE MACHINE'S, NEW. A control in a clean origin extract rewrites a tracked file (site/data/dd_opening_arms.json), which dirtied the checkout and killed the head-red bisect at its first checkout. A control that writes a tracked artefact makes every extract-based census fragile.
+- NOT corrected: THE MACHINE'S, CARRIED. A commit can name a constraint on a downstream run that nothing enforces. The QEP re-take honoured ba320e2d2 by hand (base 96517e68c), so the instance is met. The class stays in not_now.
+- NOT corrected: THE MACHINE'S, CARRIED. A waiter's deadline is set without pricing the queue ahead of it. wait_for caps at 21600 s, and long chains still loop by hand.
+- NOT corrected: THE MACHINE'S, CARRIED. The world digest does not identify behaviour switches. 1002b and 1002c share digest cf823b185f8ca51c and are not the same world, and SE_DEBT_OBJECTION is one more switch the digest may not be told about.
+- NOT corrected: THE MACHINE'S, CARRIED. Nothing checks a long job's worktrees before launch. depth-vs-width died at exit 90 after 10h on a missing worktree.
+- NOT corrected: THE MACHINE'S, CARRIED. A held change's hold condition is not re-asked when its premise moves. The own_book flip landed only because a focus item carried its condition.
+- NOT corrected: THE MACHINE'S, CARRIED. A long job's world stamp is not tied to HEAD. This stretch's re-take was correct only because its base was chosen by hand.
+- NOT corrected: THE MACHINE'S, CARRIED. Level or park moves stranded in a preserved ref are replayed as written. PB4 build->idle was false by then (a6bd4d77e), and nothing re-asks a stranded move's release condition.
+- NOT corrected: THE MACHINE'S, CARRIED. One item can land twice, on origin through surgical_land and as a local commit on the shared HEAD (75df9efdf after d77ff33d5).
+- NOT corrected: THE MACHINE'S, CARRIED. Nothing checks that a hand-written driver calls an API, or an argument shape, that the tool accepts. hgc-suite-timing's driver called resource_headroom.admitted(). It RECURRED this stretch: the QEP floor handoff passed one seed to a tool that refuses fewer than two.
+- NOT corrected: THE MACHINE'S, CARRIED. A control or door whose shape changes must re-run every fixture that builds a synthetic tree to drive it, and no control requires that. citation_at_head, red_at_head and fork_state still read not_established.
+- NOT corrected: THE MACHINE'S, CARRIED. A refusal naming a commit is not re-asked against the remote ref before a reader sees it. liveness_surface_refusal is still not re-asked.
+- NOT corrected: THE MACHINE'S, CARRIED. The stash-completeness sweep reports a genuinely lost file as safe. It is still not on the map.
+- NOT corrected: THE MACHINE'S, CARRIED. Nothing on the landing path asks whether a same-subject sibling is left behind in the shared tree (the 14-path refusal in 662da7fd3). Separate from H49.
+- NOT corrected: MINE, CLASS. not_now is still prose that nothing reads. A rejected item comes back only if I remember to promote it. This stretch I remembered once (the ex-ante flat comparison, focus item two), which is not a mechanism.
+- NOT corrected: THE MACHINE'S, CARRIED. A bounded executor turn can be reset over finished, unlanded work. agent-a586580d5e6a366fe holds only the auto SALVAGE commit 1e852bcbc, on no remote ref. A second instance this stretch: /tmp/hr_wt_394097 holds SALVAGE 278606ed4 with a dead owner (focus item four).
+- NOT corrected: THE MACHINE'S, CARRIED. One Lane 0 change can be drawn twice. The F5 shape (drawn, noted as a non-act, redrawn) has no fix. The two landed_unbound instances are now dispositioned premise_spent (d06af26a5), and bind-the-two-landed-unbound-lane-0-rows was itself drawn twice (244c04249). The class is open. It recurred this stretch: the QEP item was redrawn 16 minutes after its own delivery.
+- NOT corrected: THE MACHINE'S, CARRIED. A pre-registration that dates itself by its first commit can sit untracked after its subject commit lands. The class is still unrefused.
+- NOT corrected: THE MACHINE'S, CARRIED. A launch chain dies silently when its waiter hits DEADLINE. The register showed width as finished, and did not show that P/C, chained behind it, never started.
+- NOT corrected: THE MACHINE'S, CARRIED. The launch register records a deliberate seat stop as DIED. payment-history-pc-legs ended rc=143 beside a STOPPED note that says why.
+- NOT corrected: THE MACHINE'S, CARRIED. The held-work check refuses an item when its prose names a held file, even when the held work is not the item's work. The refusal reaches only the supervisor log, not the seat's brief, so the steer drifts without the seat being told.
+- NOT corrected: THE MACHINE'S, CARRIED. No-work base-advance merges were 11 of 26 commits last stretch and 9 of 24 this stretch, plus one heartbeat-only commit (44d1a3430). The proportion has not moved.
+- corrected: THE MACHINE'S, NEW. Two queued continuations, the-20261004r-floor-book-mismatch-is-explained and the-20261004r-arms-are-not-heads-code-seven-paths-moved, outlived the commits that spent them (e83ef71ef and f5ee6000b). Nothing retires a continuation when a landing spends it. Focus item two.
+- corrected: MINE, NEW. The 14:23Z record called those two continuations queued and made retiring them a focus item. They had been retired at 12:58Z and 13:46Z. I read them from a raw store projection that drops retired_at, and a worker tick was spent proving the item empty (8dbb82c53). The reader is fixed (5cc385025): the brief now carries the live and retired continuations separately.
+- NOT corrected: THE MACHINE'S, NEW. PB4 was the first focus item. It was drawn, and it landed nothing: no commit on its paths, and its row still reads expert_hour not_attempted. Nothing in the draw ledger says why the draw ended empty, so a drawn-and-dropped atom looks the same as a steered one. It is focus item one again, with an instruction to commit partial findings rather than release empty.
+
+## Chosen against
+
+- Put the Stage A grading or the 20261004h HEAD-arms publishing in focus.
+- Rewrite or withdraw the EP17 concern because Stage A cleared SNR 2 on one book.
+- Advance C31 (time as a currency) to FRAME.
+- Draw H45 again to chase L3.
+- Stop every pytest session appending to the tracked test_execution_log.jsonl.
+- Act on the structural merge-pressure change (a separate daemon checkout).
+- Give worker-seat-manager a heartbeat line.
+
+## Focus for the next stretch
+
+- `PB4_engagement_separated_from_elasticity`
+- `the-arms-world-stamp-names-every-behaviour-switch-and-the-head-sha`
+- `a-lane-0-item-finished-by-its-own-commit-is-not-handed-out-again`
+
+---
+
+## 2026-10-04 — orientation: THE THESIS DID NOT MOVE ON ITS VERDICT, BUT BOTH TESTS THAT CAN MOVE IT ARE NOW RUNNING ON THE CURRENT WORLD
+
+<!-- head: dccb6837f499 -->
+
+*Written by the orientation seat from its own record (2026-10-04T14:23:11.367253+00:00; 21 commits, 9 substantive, since 2026-10-04T11:23:31.380827+00:00).*
+
+## What the stretch meant
+
+THE THESIS DID NOT MOVE ON ITS VERDICT, BUT BOTH TESTS THAT CAN MOVE IT ARE NOW RUNNING ON THE CURRENT WORLD. The world is refitted onto DESNZ QEP 2.7.1 (b9ede156f). The world ran its 2024 departure level at 1.80x the published switching rate, and the refitted world sits within 0.3pp in every fitted year. The switching-rate commons artefact its publisher refuted is retired as version 2, so that carried row is corrected. The verdict on the value arms is still withheld, and that is honest rather than a regression. The 20261004r floor now pairs as one book (e83ef71ef), and the page carries a bound of a 24.1k..27.5k value advantage over 3 re-draws. The arms are not HEAD's code, though. f5ee6000b found that the substrate check saw only simulation/ and company/, while the run imports saas/, sim/, background/ and tools/ too. It widened the check to the import closure and launched a re-take at HEAD (longjob-heads-arms-retake, worktree /var/tmp/se-heads-arms, floor running now). Stage A of the larger-book test was launched at 14:02Z on the refitted world, at origin 0859ac1a3 (0fd40e81e). It runs four serial decision_probe passes, and the first is on the box now. Both gradings are already queued as continuations: grade-stage-a-of-the-larger-book-test (not before 17:45 local) and publish-the-20261004h-heads-arms-pair (not before 18:45 local). So neither is a focus item here, because a second door to the same work is the drawn-twice shape. Stage B, the decisive one, now waits only on his EP17 ruling. The --book-seed door is built and refuses without his record (66444285e). THE STEER BIT: all four previous items were drawn and all four landed (3373f3523, 0fd40e81e, 66444285e, dff51d513), so all four leave focus. The heartbeat item was drawn once more AFTER 3373f3523 landed it and was released (4820efe96), which is another F5 instance. No heartbeat-only commit reached origin this stretch, against three last stretch. 6 of 21 commits carried no work, and five of those six are "advance the base under a seat landing". The merge proposal (3cc1281c4) leaves those to Monday's census. Every worktree HEAD is on a remote ref. HEAD is level with origin. Two continuations in the store are already spent: the-20261004r-floor-book-mismatch-is-explained (answered by e83ef71ef) and the-20261004r-arms-are-not-heads-code-seven-paths-moved (superseded by f5ee6000b's re-take). Each will be drawn onto nothing unless it is retired, so that is focus item two. With the thesis tests queued, the first item is the household atom the inference rests on. PB4 sits at L2 in harden, and its Expert Hour has never been attempted.
+
+## What went wrong
+
+- corrected: THE MACHINE'S, NEW. The launch register reads qep3-arms-floor as live 2.6 h after its unit exited and its artefact was written. It resolves the artefact path against the shared tree, and the job wrote it in its own worktree (/var/tmp/se-qep-arms2). Focus item four.
+- NOT corrected: THE MACHINE'S, NEW. The merge proposal says the director's heartbeat steer is "in hand", but no claim in .seat_work_in_hand.json holds it, and a heartbeat commit (ef9011143) landed after the steer. A document saying work is in hand is not a claim, and nothing checks the one against the other. Focus item one.
+- NOT corrected: THE MACHINE'S, NEW. A control in a clean origin extract rewrites a tracked file (site/data/dd_opening_arms.json), which dirtied the checkout and killed the head-red bisect at its first checkout. A control that writes a tracked artefact makes every extract-based census fragile.
+- NOT corrected: THE MACHINE'S, CARRIED. A commit can name a constraint on a downstream run that nothing enforces. The QEP re-take honoured ba320e2d2 by hand (base 96517e68c), so the instance is met. The class stays in not_now.
+- NOT corrected: THE MACHINE'S, CARRIED. A waiter's deadline is set without pricing the queue ahead of it. wait_for caps at 21600 s, and long chains still loop by hand.
+- NOT corrected: THE MACHINE'S, CARRIED. The world digest does not identify behaviour switches. 1002b and 1002c share digest cf823b185f8ca51c and are not the same world, and SE_DEBT_OBJECTION is one more switch the digest may not be told about.
+- NOT corrected: THE MACHINE'S, CARRIED. Nothing checks a long job's worktrees before launch. depth-vs-width died at exit 90 after 10h on a missing worktree.
+- NOT corrected: THE MACHINE'S, CARRIED. A held change's hold condition is not re-asked when its premise moves. The own_book flip landed only because a focus item carried its condition.
+- NOT corrected: THE MACHINE'S, CARRIED. A long job's world stamp is not tied to HEAD. This stretch's re-take was correct only because its base was chosen by hand.
+- NOT corrected: THE MACHINE'S, CARRIED. Level or park moves stranded in a preserved ref are replayed as written. PB4 build->idle was false by then (a6bd4d77e), and nothing re-asks a stranded move's release condition.
+- NOT corrected: THE MACHINE'S, CARRIED. One item can land twice, on origin through surgical_land and as a local commit on the shared HEAD (75df9efdf after d77ff33d5).
+- NOT corrected: THE MACHINE'S, CARRIED. Nothing checks that a hand-written driver calls an API, or an argument shape, that the tool accepts. hgc-suite-timing's driver called resource_headroom.admitted(). It RECURRED this stretch: the QEP floor handoff passed one seed to a tool that refuses fewer than two.
+- NOT corrected: THE MACHINE'S, CARRIED. A control or door whose shape changes must re-run every fixture that builds a synthetic tree to drive it, and no control requires that. citation_at_head, red_at_head and fork_state still read not_established.
+- NOT corrected: THE MACHINE'S, CARRIED. A refusal naming a commit is not re-asked against the remote ref before a reader sees it. liveness_surface_refusal is still not re-asked.
+- NOT corrected: THE MACHINE'S, CARRIED. The stash-completeness sweep reports a genuinely lost file as safe. It is still not on the map.
+- NOT corrected: THE MACHINE'S, CARRIED. Nothing on the landing path asks whether a same-subject sibling is left behind in the shared tree (the 14-path refusal in 662da7fd3). Separate from H49.
+- NOT corrected: MINE, CLASS. not_now is still prose that nothing reads. A rejected item comes back only if I remember to promote it. This stretch I remembered once (the ex-ante flat comparison, focus item two), which is not a mechanism.
+- NOT corrected: THE MACHINE'S, CARRIED. A bounded executor turn can be reset over finished, unlanded work. agent-a586580d5e6a366fe holds only the auto SALVAGE commit 1e852bcbc, on no remote ref. A second instance this stretch: /tmp/hr_wt_394097 holds SALVAGE 278606ed4 with a dead owner (focus item four).
+- NOT corrected: THE MACHINE'S, CARRIED. One Lane 0 change can be drawn twice. The F5 shape (drawn, noted as a non-act, redrawn) has no fix. The two landed_unbound instances are now dispositioned premise_spent (d06af26a5), and bind-the-two-landed-unbound-lane-0-rows was itself drawn twice (244c04249). The class is open. It recurred this stretch: the QEP item was redrawn 16 minutes after its own delivery.
+- NOT corrected: THE MACHINE'S, CARRIED. A pre-registration that dates itself by its first commit can sit untracked after its subject commit lands. The class is still unrefused.
+- NOT corrected: THE MACHINE'S, CARRIED. A launch chain dies silently when its waiter hits DEADLINE. The register showed width as finished, and did not show that P/C, chained behind it, never started.
+- NOT corrected: THE MACHINE'S, CARRIED. The launch register records a deliberate seat stop as DIED. payment-history-pc-legs ended rc=143 beside a STOPPED note that says why.
+- corrected: THE MACHINE'S, CARRIED. A commons artefact refuted by its own publisher (switching rate, 2026-09-07) is still load-bearing. The three-arm leg is done and the one-process floor is running (launched 05:31:54Z). It is retired only when the refit lands.
+- NOT corrected: THE MACHINE'S, CARRIED. The held-work check refuses an item when its prose names a held file, even when the held work is not the item's work. The refusal reaches only the supervisor log, not the seat's brief, so the steer drifts without the seat being told.
+- NOT corrected: THE MACHINE'S, CARRIED. No-work base-advance merges were 11 of 26 commits last stretch and 9 of 24 this stretch, plus one heartbeat-only commit (44d1a3430). The proportion has not moved.
+- corrected: THE MACHINE'S, NEW. The value arms' code check (ARMS_SUBSTRATE_PATHS) covered only simulation/ and company/. The run also imports saas/, sim/, interface/, background/ and tools/, so background/live_payment_triad.py could move unseen under a published arm. f5ee6000b keys the check to the import closure and adds a control.
+- NOT corrected: THE MACHINE'S, NEW. Two queued continuations, the-20261004r-floor-book-mismatch-is-explained and the-20261004r-arms-are-not-heads-code-seven-paths-moved, outlived the commits that spent them (e83ef71ef and f5ee6000b). Nothing retires a continuation when a landing spends it. Focus item two.
+
+## Chosen against
+
+- Put the Stage A grading, or the publishing of the 20261004h HEAD arms, in focus.
+- Run Stage B's twelve books now, on the grounds that the --book-seed door exists.
+- Attack the five "advance the base under a seat landing" merges this stretch.
+- Advance C31 to FRAME or BUILD.
+- Give worker-seat-manager a heartbeat line.
+- Re-open the plan take-up gap with the director as a practitioner question.
+
+## Focus for the next stretch
+
+- `PB4_engagement_separated_from_elasticity`
+- `retire-the-spent-continuations-before-they-are-drawn`
+- `a-site-control-stops-rewriting-a-tracked-feed`
+
+---
+
 ## 2026-10-04 — orientation: NO MOVEMENT ON THE THESIS THIS STRETCH
 
 <!-- head: ca07e2f9576f -->
