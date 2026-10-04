@@ -107,3 +107,25 @@ def test_the_belief_is_read_from_the_last_priced_entry_and_is_none_where_nothing
                                                 {"believed_p_retain": 0.7}])
     assert dp._believed(priced) == 0.7
     assert dp._believed(SimpleNamespace(value_arm_entries=[])) is None
+
+
+def test_a_decision_is_charged_only_the_bad_debt_of_the_term_it_priced():
+    """Defect it names: a LIFETIME bad-debt share charged a 2017 renewal with arrears the household
+    ran up years later, which no rule could have priced (PROS-2016-0098). The first term here is
+    clean and the second goes bad; only the second decision may carry the loss."""
+    # The second decision comes BEFORE a year is up, so "until the next decision" and "a year"
+    # disagree: a window that ignored the next decision would pull the bad bills into the first.
+    rows = [_row(customer_id="A", term_start="2017-03-31"),
+            _row(customer_id="A", term_start="2017-12-31")]
+    bills = [{"customer_id": "A", "commodity": "electricity", "period_end": f"2017-{m:02d}-28",
+              "total_amount_gbp": 100.0} for m in range(4, 13)]
+    bills += [{"customer_id": "A", "commodity": "electricity", "period_end": f"2018-{m:02d}-28",
+               "total_amount_gbp": 100.0} for m in range(1, 13)]
+    write_offs = {("A", f"2018-{m:02d}-28", "electricity"): {"amount_gbp": 50.0}
+                  for m in range(1, 13)}
+    dp.term_bad_debt_shares(rows, bills, write_offs)
+    assert rows[0]["term_bad_debt_share"] == 0.0
+    assert rows[1]["term_bad_debt_share"] == 0.5
+    lifetime = {**rows[0], "true_bad_debt_share": 0.25}
+    assert dp.expected_term_margin_gbp(lifetime, "value") > dp.expected_term_margin_gbp(
+        lifetime, "value", bad_debt_basis="lifetime")
