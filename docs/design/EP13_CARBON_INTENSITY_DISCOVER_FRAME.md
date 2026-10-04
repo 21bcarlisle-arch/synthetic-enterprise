@@ -2938,3 +2938,80 @@ be argued before an arm runs. Graded against F and M here, and against the meter
 profile. (2) Whether `CCGT_CAPACITY_MW = 30,000` is also wrong as a capacity: DUKES 5.11's CCGT
 nameplate, de-rated by availability. Knowledge first. (3) §40's ROC recycle and 2019's missing
 biomass unit stand. No level move: the shipped swing is still too wide in every year.
+
+## 42. 2026-10-05 — COAL AT THE TOP OF THE MODEL'S OWN STACK: the right energy in the right season, run as a peaker, and every year gets worse
+
+§41's NEXT (1). Measured, and nothing shipped changed. The scratch script, its output and the timestamped
+predictions are in `/var/tmp/se-ep13-s42/` (`arm.py`, `out.txt`, `prediction.txt`). **Instrument check:**
+an exec'd copy of `emissions_rate_t_per_mwh` reproduces the committed feed to five places (max diff 0.0).
+It also matches the uninstrumented shape exactly.
+
+**What crosses, argued before the arm ran.** §41 offered a candidate: the metered gas level at which coal
+comes on. It is not used here. It is one number a year, but it is read off the half hours in which two
+carbon-bearing fleets ran together. That makes it a statistic of the dispatch decision, which condition 1
+exists to keep out. It is not a fact about steel. This arm takes a position that needs no gas reading.
+Coal fills the top of the model's OWN thermal: `coal = min(cap_y, max(0, thermal − L_y))`, displacing
+CCGT. `L_y` is solved each year so the model's mean coal equals the year's measured coal mean. Only coal's
+two annual scalars cross. One is the mean, which §41's buildable arm F already uses. The other is the
+maximum, the shipped `coal_capacity_by_year`. This is the coal counterpart of §25's PS water-fill and
+§36's biomass envelope. The 30 GW threshold is replaced by `L_y`.
+
+**Predictions (23:10Z, before `arm.py`).** P1: L runs coal above 50 MW in ≤30% of half hours in each of
+2019–22. P2: L's calm-to-windy coal ratio exceeds the meters' in 2019 and 2021. P3: L raises correlation
+over base by ≥0.005 in 2019 and 2020, and beats §41's F in each of 2019–21. P4: L widens between-day
+against base in 2019–21. P5: 2024's correlation moves ≤0.003. P6: the solved 2019 level is 15–25 GW of
+model thermal.
+
+**Placebo Z** is the same code with `L_y = ∞` (no coal at all). It reproduces base's statistics to four
+places in 2020–24 and differs only in 2019, by the shipped band's 19 MW. That matches §41's placebo.
+
+| base → L | 2019 | 2020 | 2021 | 2022 | 2023 | 2024 |
+|---|---|---|---|---|---|---|
+| solved `L_y`, GW of model thermal (coal cap, GW) | 18.6 (7.6) | 16.6 (4.4) | 17.2 (3.9) | 17.1 (3.0) | 15.0 (2.0) | 16.5 (1.9) |
+| correlation | .959/**.943** | .931/**.924** | .970/**.950** | .982/**.961** | .978/**.968** | .972/.971 |
+| within-day overstated by | 1.06/1.38 | 1.10/1.32 | 1.00/1.23 | 1.00/1.14 | 1.02/1.12 | 1.07/1.11 |
+| between-day overstated by | 1.05/1.27 | 1.11/1.27 | 1.01/1.14 | 1.07/1.17 | 1.07/1.15 | 1.07/1.13 |
+| mean abs error | .061/.097 | .104/.129 | .055/.083 | .053/.092 | .068/.097 | .089/.100 |
+| half hours with coal > 50 MW, L / meters | .19/.56 | .18/.40 | .22/.60 | .25/.56 | .19/.50 | .11/.36 |
+| coal on calm / windy decile days, MW, L | 2,459/0 | 1,921/0 | 1,391/0 | 1,480/0 | 1,040/0 | 637/0 |
+| the same, meters | 1,419/313 | 1,039/157 | 960/145 | 846/99 | 506/146 | 190/93 |
+| Oct–Mar share of coal, L / meters | .92/.86 | .75/.91 | .82/.65 | .65/.68 | .84/.79 | .97/.66 |
+| half-hourly correlation of L's coal with metered coal | .78 | .51 | .68 | .43 | .51 | .28 |
+
+Headline p95/p5 goes from 1.22 to **1.45**, and max/min from 1.21 to 1.40.
+
+**Against the predictions.** P1 held (0.11–0.25). P2 held, and to the limit: L serves no coal at all on
+the windiest tenth of days in any year, where the meters ran 93–313 MW. **P3 was refuted outright.**
+Correlation FELL in every year, by 0.007 to 0.021, against base and against F. P4 held, and by far
+more than predicted: between-day overstatement went from 1.01–1.11 to 1.13–1.27. P5 held (−0.001). P6
+held (18.6 GW).
+
+**What it establishes.**
+- **Coal was not a peaker on GB's residual, in any year 2019–24.** Put at the top of the model's stack
+  with the right annual energy, coal gets its season roughly right. Its winter share is within 0.17 of
+  the meters' in four years of six. Its half-hourly timing correlates 0.28–0.78 with the meters. But
+  it runs in a third to a half as many half hours as the real fleet did, at two to three times the
+  output, and never on a windy day. The real fleet kept 93–313 MW running on the windiest days.
+  Concentrating the energy that much adds carbon at the dirty end of every day and every calm week.
+  Both swings get wider, and they were already too wide.
+- **Two buildable shapes now bracket coal, and both fail.** §41's flat block is too flat: correlation
+  falls 0.005 in 2019–20. This top-fill is too peaked: correlation falls 0.007–0.021 everywhere. The
+  only arm that has improved anything is §41's monthly oracle (2020 correlation .931 to .953), and it
+  times coal by the month. That is the same signal §41's P3 refutation pointed at. Coal ran through
+  the summer of 2021 and from July 2022 because of the gas price, not the season and not the residual.
+- **The same failure as §36.** An annual-grain envelope run as a rule on the model's own residual comes
+  out bang-bang, for coal as it did for biomass. The fleet's real dispatch sits between "always on"
+  and "only at the top", and no annual scalar we hold says where.
+- **What does NOT follow.** That a blend of F and L would work. A mixing weight between them is a
+  number nobody has published, so it is not tried here.
+
+**Controls.** None. Nothing shipped changed, and the feed is byte-identical.
+
+**Next.** (1) Coal's within-year timing as a PRICE question, not a residual one. `merit_order_
+reconstruction.coal_srmc_gbp_per_mwh` already orders coal against gas, but the tree holds no coal
+price series to feed it. Knowledge first: is a monthly published coal price (for example, the World
+Bank Pink Sheet's monthly coal series, free) a fair input under condition 1? It is a traded index with
+no NESO term, the same argument §40 made for MID. Would its monthly gas-coal switching grade against
+§41's M oracle? (2) §41 NEXT (2) stands: whether `CCGT_CAPACITY_MW = 30,000` is right as a de-rated
+capacity (DUKES 5.11). (3) §40's ROC recycle and 2019's missing biomass unit stand. No level move: the
+shipped swing is still too wide in every year.
