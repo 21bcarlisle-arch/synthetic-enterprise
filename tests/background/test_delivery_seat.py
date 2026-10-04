@@ -24,12 +24,11 @@ from __future__ import annotations
 
 import json
 from datetime import datetime, timedelta, timezone
-from types import SimpleNamespace
 
 import pytest
 
-from background import direction as d
 from background import delivery_seat as seat
+from background import direction as d
 
 NOW = datetime(2026, 8, 25, 12, 0, tzinfo=timezone.utc)
 
@@ -320,169 +319,48 @@ def test_the_seat_COMMITS_only_its_write_scope():
     assert "-A" not in source and "--all" not in source
 
 
-# --------------------------------------------------------------------------- #
-# The direction commit was never PUSHED, and that is what refused the advance   #
-# --------------------------------------------------------------------------- #
-#
-# 2026-09-04. `commit_direction` committed and stopped, and nothing else pushes it. The one
-# commit it left on the shared tree is verbatim what `_advance_to_origin_or_say_why` refused on
-# at 19:59Z ("this tree holds 1 commit(s) of its own, so the fork is REAL") -- the advance landed
-# hours earlier, under the claim this seat was working, and could not fire while this seat kept
-# manufacturing the state it correctly refuses.
-
-
-def _push_rc(code):
-    """A stand-in for `origin_reconcile._push`'s CompletedProcess, counting its own calls."""
-    calls = []
-
-    def pusher(project):
-        calls.append(project)
-        return SimpleNamespace(returncode=code)
-
-    return pusher, calls
-
-
-def test_every_push_verdict_is_REACHABLE_and_they_say_DIFFERENT_things():
-    """THE PARTITION, in one control rather than a leg per branch. A `_push_direction_or_say_why`
-    that returned the same refusal for every input would pass each of the tests below separately;
-    only asking the whole partition at once can see that. CLAUDE.md's rule, learned by entering
-    the same trap three times in one afternoon.
-
-    MUTATION (must fire): collapse any two branches onto one reason string.
-    """
-    pusher, _ = _push_rc(0)
-    reasons = {
-        state: seat._push_direction_or_say_why(pusher=pusher, ahead_fn=lambda _p, a=ahead: a)
-        for state, ahead in (("pushed", 0), ("local_only", 1), ("unreadable", None))
-    }
-
-    assert reasons["pushed"]["pushed"] is True
-    assert reasons["local_only"]["pushed"] is False
-    assert reasons["unreadable"]["pushed"] is False
-    assert len({r["reason"] for r in reasons.values()}) == 3
-
-
-def test_a_PHANTOM_rc0_that_left_the_commit_LOCAL_is_not_reported_as_pushed():
-    """SUCCESS IS GROUND TRUTH, never the push's own rc -- `_push_reached_origin`'s lesson, which
-    cost a 3.5h origin freeze recorded as a series of successful publishes. Here the rc is 0 and
-    the tree still holds its own commit, which is the state the publisher's advance refuses on:
-    calling that a push would republish exactly the defect this function exists to remove.
-
-    MUTATION (must fire): `return {"pushed": push.returncode == 0, ...}`.
-    """
-    pusher, _ = _push_rc(0)
-
-    verdict = seat._push_direction_or_say_why(pusher=pusher, ahead_fn=lambda _p: 1)
-
-    assert verdict["pushed"] is False
-    assert "LOCAL-ONLY" in verdict["reason"]
-
-
-def test_a_REJECTED_push_is_attempted_ONCE_and_never_retried():
-    """THE RETRY IS THE THING THAT WIDENS THE FORK (`_divergence_refusal`, 2026-09-01: three local
-    commits, 23 behind, because a rejected push was re-attempted identically). Being behind origin
-    is a STATE. This function may cost one round trip and must never cost a loop.
-
-    MUTATION (must fire): wrap the push in `for _ in range(3)`.
-    """
-    pusher, calls = _push_rc(1)
-
-    verdict = seat._push_direction_or_say_why(pusher=pusher, ahead_fn=lambda _p: 1)
-
-    assert len(calls) == 1
-    assert verdict["pushed"] is False
-    # It names the owner of the case it is declining, so the reader is not left to guess which
-    # mechanism closes a real fork.
-    assert "origin_reconcile" in verdict["reason"]
-
-
-def test_a_push_that_could_not_RUN_loses_neither_the_record_nor_the_reason():
-    """A recovery attempt may only ever cost the refusal that would have happened anyway --
-    `_advance_to_origin_or_say_why`'s argument for its own broad except, inherited. An exception
-    here must not take down the orientation whose record has already been committed.
-
-    MUTATION (must fire): remove the `try`/`except` around the push.
-    """
-    def explode(_project):
-        raise OSError("git is not on the path")
-
-    verdict = seat._push_direction_or_say_why(pusher=explode, ahead_fn=lambda _p: 0)
-
-    assert verdict["pushed"] is False
-    assert "OSError" in verdict["reason"] and "git is not on the path" in verdict["reason"]
-
-
-def test_the_direction_commit_is_PUSHED_and_the_row_still_reports_the_COMMIT():
-    """Source-level for the same reason the sibling above gives -- the alternative is running a
-    commit inside a test. Two properties, and the second is the one worth stating: `ok` is keyed
-    to the commit rc and NOT to the push, because the direction record exists once the commit
-    lands and a row reading `committed: false` after a rejected push would lie about the thing it
-    names.
-
-    MUTATION (must fire): delete the `_push_direction_or_say_why` call, or `and` the push verdict
-    into the returned bool.
-    """
-    import inspect
-
-    source = inspect.getsource(seat.commit_direction)
-
-    assert "_push_direction_or_say_why" in source
-    assert "return True, f\"commit rc=0;" in source
-
-
 def test_the_direction_LANDS_through_the_landing_door_and_every_outcome_is_REACHABLE(
         tmp_path, monkeypatch):
     """2026-10-03: 10 of the 11 direction commits that failed with a logged reason since 09-30 were
-    contention -- HEAD moved under the gate, or another writer held `index.lock` -- and a bare
-    `git commit` retried neither, so the record and the feed sat uncommitted for a whole stretch.
-    `surgical_land.land` re-gates against the new HEAD and never takes the shared index.
+    contention, and a bare `git commit` retried neither. The landing door re-gates when the race is
+    lost; since 2026-10-04 it lands onto origin (`test_the_direction_record_lands_on_origin.py`).
 
-    The whole partition at once: unchanged, landed, refused, landed-with-a-stale-index -- a commit_direction that returned
-    one verdict for every input passes any single leg.
+    The whole partition at once: unchanged, landed, refused -- a commit_direction that returned one
+    verdict for every input passes any single leg.
 
-    MUTATIONS (must fire): restore the `git add` + `git commit` path (the stubbed door is never
-    called); read the content from anywhere but the scope's own bytes; return `True` on a refusal;
-    drop the `IndexNotRefreshed` arm (a landed record would read `committed: false`).
+    MUTATIONS (must fire): read the content from anywhere but the scope's own bytes; return `True`
+    on a refusal; skip the unchanged check.
     """
     from tools import surgical_land
 
     monkeypatch.setattr(seat, "PROJECT_DIR", tmp_path)
     monkeypatch.setattr(seat.direction_mod, "WRITE_SCOPE", ("docs/direction/DIRECTION.yaml",))
     monkeypatch.setattr(seat, "SEAT_WRITTEN", ("docs/status/SEAT_STRETCH_LOG.md",))
-    monkeypatch.setattr(seat, "_push_direction_or_say_why", lambda: {"reason": "pushed"})
     (tmp_path / "docs/direction").mkdir(parents=True)
     (tmp_path / "docs/direction/DIRECTION.yaml").write_bytes(b"focus: []\n")
     # SEAT_STRETCH_LOG.md is deliberately absent: a missing scope path is not landed.
 
     calls = []
 
-    def door(root, paths, message, attempts, content):
+    def door(root, paths, message, content, attempts):
         calls.append({"root": root, "paths": paths, "attempts": attempts, "content": content})
-        if refuse == "refused":
+        if refuse:
             raise surgical_land.LandingRefused("HEAD moved under the gate on all 2 attempt(s)")
-        if refuse == "index":
-            raise surgical_land.IndexNotRefreshed("the commit LANDED; index lock", sha="fedcba9876543")
         return "abcdef1234567"
 
-    monkeypatch.setattr(surgical_land, "land", door)
-
     monkeypatch.setattr(seat, "_git", lambda *a: "")
-    refuse = None
-    unchanged = seat.commit_direction()
+    refuse = False
+    unchanged = seat.commit_direction(lander=door)
     assert unchanged == (True, "nothing changed in the write scope") and not calls
 
-    monkeypatch.setattr(seat, "_git", lambda *a: " M docs/direction/DIRECTION.yaml")
-    landed = seat.commit_direction()
-    refuse = "refused"
-    refused = seat.commit_direction()
-    refuse = "index"
-    landed_index_stale = seat.commit_direction()
+    monkeypatch.setattr(seat, "_git", lambda *a: "docs/direction/DIRECTION.yaml\n")
+    landed = seat.commit_direction(lander=door)
+    refuse = True
+    refused = seat.commit_direction(lander=door)
 
     assert landed[0] is True and "abcdef123" in landed[1]
     assert refused[0] is False and "HEAD moved under the gate" in refused[1]
-    # IndexNotRefreshed is a LandingRefused whose commit is ON HEAD: it must read as committed.
-    assert landed_index_stale[0] is True and "fedcba987" in landed_index_stale[1]
-    assert len(calls) == 3
+    assert len(calls) == 2
     assert calls[0]["paths"] == ["docs/direction/DIRECTION.yaml"]
     assert calls[0]["content"] == {"docs/direction/DIRECTION.yaml": b"focus: []\n"}
     assert calls[0]["attempts"] == seat.DIRECTION_LAND_ATTEMPTS >= 2
@@ -605,6 +483,7 @@ def test_the_drawn_atom_check_reads_the_DRAWS_OWN_TRACKER_not_commit_subjects(mo
     MUTATION (must fire): infer drawn atoms from commit subjects again.
     """
     import json as _json
+
     from background import supervisor
 
     tracker = tmp_path / ".atom_stall_tracker.json"
