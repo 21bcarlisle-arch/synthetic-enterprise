@@ -49,3 +49,37 @@ handoff that read it as done.
 The landing sequence in that doc: fold, regenerate the verdicts, move the pointers, re-key the reds,
 and land the refit with its arms in one commit. That waits on all four artefacts, about 9 hours of
 runs. It is handed on as a continuation.
+
+## Third attempt (06:31 BST, claim `land-the-qep-level-anchor-refit-with-its-value-arms`): a per-seed floor leg cannot run
+
+### What was found
+
+- **The second attempt's three-arm leg FINISHED.** `/var/tmp/se-qep-arms2/docs/observability/value_cycle_ab_s1_three_arm_20261004r.json`
+  is on digest `cdba75ebb9197b33`. It took 68 min with an 8.1 GB peak.
+- **Its floor handoff died in 8 seconds.** `/var/tmp/se-qep-arms2-handoff.sh` ran each seed as its
+  own process (`--noise-floor-seeds 11111`). `tools/run_value_cycle_ab.py::noise_floor` raises
+  `AssertionError: a noise floor needs at least two seeds; got 1`. The refusal is correct, and it is
+  the floor's own subject: one seed has no spread. The handoff's stop on "exited with no artefact"
+  worked as designed (`STOP s11111 ... later seeds not launched`).
+- Both handoffs ran the same way: "one seed per leg, fold afterwards". The landing sequence's
+  "fold the three s*.json" step and the first attempt's `-s<seed>` legs inherited it. `--fold` pools
+  runs that already exist, and each of those runs needs at least two seeds. A per-seed leg can
+  never exist, so it can never be folded.
+
+The latent class: a plan's split into legs was never checked against the tool's own lower bound on
+a leg. A five-second dry run of one leg would have shown it. That dry run was skipped because each
+leg was priced in hours.
+
+### What was done
+
+- `longjob-qep3-arms-floor` was launched at 05:31:54Z in `/var/tmp/se-qep-arms2`:
+  `--noise-floor-seeds 11111,22222,33333 --redraw-mode all`, peak 11,200 MB. Admission was 18.9 of
+  23.0 GB. It writes `docs/observability/value_cycle_ab_s1_noise_floor_20261004r.json` directly, so no
+  fold is needed. Expected end is about 09:00Z (9 passes at the three-arm's 23 min per pass).
+- `docs/design/UNLANDED_QEP_LEVEL_ANCHOR_REFIT_2026-10-04.md` records the outcome and marks landing
+  step 1 (the fold) as spent.
+
+### Not done
+
+Landing steps 2–6 wait on the floor. They are handed on as a continuation, embargoed to the floor's
+expected end.

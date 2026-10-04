@@ -35,6 +35,14 @@ there reads `cdba75ebb9197b33`. Artefacts carry the suffix **`20261004r`**, not 
    counted as done; a seed that exits with no artefact stops the chain. It ends with
    `END all three seeds DONE` or a `STOP` line naming why, in `/var/tmp/longjob-qep2-arms-floor-handoff.log`.
 
+**Outcome (2026-10-04 05:31Z).** Step 1 FINISHED: `value_cycle_ab_s1_three_arm_20261004r.json`, digest
+`cdba75ebb9197b33`, 68 minutes, 8.1 GB peak. Step 2 died in 8 seconds. `noise_floor` raises on fewer
+than two seeds ("one seed is a run, not a spread"), so a one-seed-per-process floor cannot exist, and
+nothing folds per-seed legs into one. In its place, `longjob-qep3-arms-floor` runs
+`--noise-floor-seeds 11111,22222,33333 --redraw-mode all` in ONE process (peak 11,200 MB, about 3.5 h)
+and writes `docs/observability/value_cycle_ab_s1_noise_floor_20261004r.json` directly. **Step 1 of
+the landing sequence (the fold) is therefore spent.**
+
 Re-ask with `python3 -m background.launch_liveness --check`. In the landing sequence below, read
 `20261004r` for `20261004q` and `/var/tmp/se-qep-arms2` for the snapshot; `_code_since_the_run`
 will name only what moved on origin after `96517e68c`.
