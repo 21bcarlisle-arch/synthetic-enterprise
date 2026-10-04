@@ -277,7 +277,7 @@ def test_no_dunning_before_day_zero(segment):
 @pytest.mark.parametrize(
     "segment,days,action",
     [
-        (Segment.RESIDENTIAL, 0, "reminder"),
+        (Segment.RESIDENTIAL, 7, "reminder"),
         (Segment.RESIDENTIAL, 28, "repayment_plan_offer"),
         (Segment.RESIDENTIAL, 89, "final_notice"),
         (Segment.RESIDENTIAL, 90, "prepayment_or_debt_agency"),

@@ -24,6 +24,14 @@ balance is cleared on the ledger. The other exits the atom names are listed in `
 with the reason each cannot happen yet. A journey still open at the run's end carries `exit: None`
 -- "we cannot tell how it ends" -- and is never coerced into an exit.
 
+THE ARRANGEMENT IS OFFERED, NOT AGREED. When the selector reaches the plan-offer step the desk puts
+an offer on its `PaymentPlanBook` and the journey records `arrangement_offered` straight after the
+step. The `arrangement` EXIT (plan agreed, kept, debt reducing) needs the household to answer, and
+no answer crosses the wall: the world models no response to an offer. So the offer carries
+`household_acceptance: None` and the journey goes on exactly as the ledger then dictates -- which is
+also what a broken plan would look like, so "the journey resumes" is today the only reachable
+branch. The day the world answers, the exit is a fact the company receives, not one it infers.
+
 NAMED SIMPLIFICATIONS.
   (1) Value time, not knowledge time: the ledger's existing reads filter on `valid_time` only, so a
       payment the bank reported late is known on its value date. That is `collections_snapshot`'s
@@ -40,15 +48,28 @@ from typing import Callable, Dict, List, Optional
 
 from company.billing.account_ledger import AccountLedger, LedgerEventType
 from company.billing.arrears_engine import MORATORIUM_HOLD, dunning_path
+from company.billing.payment_plan import PaymentPlanBook
 from company.crm.account_hierarchy import Segment
 
 MISSED_PAYMENT = "missed_payment"
 CURED = "cured"
+#: The ladder step on which SLC 27.8 has the company offer an affordable arrangement.
+PLAN_OFFER_STEP = "repayment_plan_offer"
+#: The arrangement stage in the only state the company can reach alone: OFFERED. Entered on the
+#: same date as `PLAN_OFFER_STEP` and only straight after it, with the offer kept in the desk's
+#: `PaymentPlanBook`. The household's acceptance is not observed -- see ARRANGEMENT_ACCEPTANCE_GAP.
+ARRANGEMENT_OFFERED = "arrangement_offered"
+#: Why each offered arrangement carries `household_acceptance: None`.
+ARRANGEMENT_ACCEPTANCE_GAP = (
+    "no household answers a plan offer: the world has no response to one (simulation/"
+    "arrears_engine.py: 'arrangement paydown ... unbuilt', C3b), so neither the instalment the "
+    "household can afford (SLC 27.8) nor whether it agrees ever reaches the company")
 
 #: The exits the atom names that the company's own records cannot reach yet, and why. A journey is
 #: never closed on one of these by inference.
 UNREACHED_EXITS = {
-    "arrangement": "company/billing/payment_plan.py has no production caller; no plan is offered",
+    "arrangement": ("plans are OFFERED (stage arrangement_offered) but none can be agreed or kept: "
+                    + ARRANGEMENT_ACCEPTANCE_GAP),
     "disconnection_equivalent": "no prepayment-under-warrant or agency hand-over is taken live",
     "write_off": "arrears_engine.build_write_off_event has no production caller",
 }
@@ -65,13 +86,19 @@ def lawful_successors(segment: Segment) -> Dict[Optional[str], frozenset]:
     A journey opens on a missed payment; it then moves between ladder steps (DOWN as well as up: a
     part-payment that clears the oldest bill re-ages the balance from a younger one), into and out
     of a moratorium hold, and ends on a cure. Nothing follows a cure: a later miss opens a NEW
-    journey, so a cured account is never dunned inside the journey that recorded its cure."""
+    journey, so a cured account is never dunned inside the journey that recorded its cure.
+
+    The offered arrangement follows the plan-offer step and nothing else, and is followed by what
+    could have followed that step: the journey resumes on the ladder, holds, or cures."""
     ladder = frozenset(ladder_actions(segment))
     working = ladder | {MORATORIUM_HOLD.action, CURED}
     table: Dict[Optional[str], frozenset] = {None: frozenset({MISSED_PAYMENT}),
                                              MISSED_PAYMENT: working, CURED: frozenset()}
     for stage in ladder | {MORATORIUM_HOLD.action}:
         table[stage] = working - {stage}
+    if PLAN_OFFER_STEP in ladder:
+        table[PLAN_OFFER_STEP] = table[PLAN_OFFER_STEP] | {ARRANGEMENT_OFFERED}
+        table[ARRANGEMENT_OFFERED] = working - {PLAN_OFFER_STEP}
     return table
 
 
@@ -81,12 +108,20 @@ class UnlawfulJourneyOrderError(Exception):
 
 def assert_journey_order_lawful(journey: dict, segment: Segment) -> None:
     """R15 CONTROL -- every stage of `journey` is a lawful successor of the one before it, dates
-    never run backwards, and an exit is the last stage. FAIL-CLOSED on an empty journey: a journey
-    with no stages is not a journey that took no wrong turn."""
+    never run backwards, an exit is the last stage, and every plan-offer step is followed by the
+    offer it made (a step that SAYS a plan was offered with no offer on the book is the SLC 27.8
+    failure this stage exists to rule out). FAIL-CLOSED on an empty journey: a journey with no
+    stages is not a journey that took no wrong turn."""
     stages = journey.get("stages") or []
     if not stages:
         raise UnlawfulJourneyOrderError(f"{journey.get('account_id')}: a journey with no stages")
     table = lawful_successors(segment)
+    for s, following in zip(stages, list(stages[1:]) + [None]):
+        if s["stage"] == PLAN_OFFER_STEP and (
+                following is None or following["stage"] != ARRANGEMENT_OFFERED):
+            raise UnlawfulJourneyOrderError(
+                f"{journey.get('account_id')}: {PLAN_OFFER_STEP} on {s['on']} with no "
+                f"{ARRANGEMENT_OFFERED} recorded after it")
     previous, previous_on = None, None
     for s in stages:
         if s["stage"] not in table.get(previous, frozenset()):
@@ -110,16 +145,21 @@ class _Journey:
     exit: Optional[str] = None
 
     @property
-    def current(self) -> Optional[str]:
-        return self.stages[-1]["stage"] if self.stages else None
+    def current_step(self) -> Optional[str]:
+        """The stage the SELECTOR last put this journey in. An offered arrangement is recorded
+        beside its plan-offer step, not instead of it, so it is skipped: reading it as the current
+        step would make the next read of the same step look like a new one, and re-offer daily."""
+        steps = [s["stage"] for s in self.stages if s["stage"] != ARRANGEMENT_OFFERED]
+        return steps[-1] if steps else None
 
-    def enter(self, stage: str, on: dt.date, decision: str, view: dict) -> None:
+    def enter(self, stage: str, on: dt.date, decision: str, view: dict, **extra) -> None:
         self.stages.append({
             "stage": stage,
             "on": on.isoformat(),
             "decision": decision,
             "overdue_gbp": view.get("undisputed_overdue_gbp"),
             "days_overdue": view.get("max_days_overdue"),
+            **extra,
         })
 
     def as_record(self) -> dict:
@@ -144,6 +184,8 @@ class CollectionsJourneyDesk:
                  refuse_dunning_of_cleared_debt: Callable[[dict, str], None]) -> None:
         self._view_at = view_at
         self._refuse = refuse_dunning_of_cleared_debt
+        #: Every arrangement this desk has offered. All OFFERED: see ARRANGEMENT_ACCEPTANCE_GAP.
+        self.arrangements = PaymentPlanBook()
         self._open: Dict[str, _Journey] = {}
         self._closed: List[_Journey] = []
         self._through: Dict[str, dt.date] = {}
@@ -194,9 +236,23 @@ class CollectionsJourneyDesk:
             self._closed.append(self._open.pop(account_id))
             return
         action = view.get("dunning_action")
-        if action is not None and action != journey.current:
+        if action is not None and action != journey.current_step:
             journey.enter(action, on, f"{action} by {view.get('dunning_channel')}", view)
+            if action == PLAN_OFFER_STEP:
+                self._offer_arrangement(journey, on, view)
         self._refuse(journey.as_record(), account_id)
+
+    def _offer_arrangement(self, journey: _Journey, on: dt.date, view: dict) -> None:
+        """SLC 27.8: the plan-offer step makes an offer, and the offer goes on the plan book.
+
+        What the company knows here is what it did: the date, the overdue sum it offered against,
+        the plan id. The instalment and the household's answer are carried as None with the reason
+        -- they are the household's, and nothing brings them back across the wall today."""
+        plan = self.arrangements.offer_plan(
+            journey.account_id, view.get("undisputed_overdue_gbp") or 0.0, on)
+        journey.enter(ARRANGEMENT_OFFERED, on, "affordable arrangement offered (SLC 27.8)", view,
+                      plan_id=plan.plan_id, instalment_gbp=None, household_acceptance=None,
+                      acceptance_gap=ARRANGEMENT_ACCEPTANCE_GAP)
 
     def journeys(self) -> List[dict]:
         """Every journey this desk has recorded, closed first then open, as plain records."""
