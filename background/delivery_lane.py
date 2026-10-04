@@ -4692,6 +4692,80 @@ def _result_landed(item: dict) -> bool:
     return prereg_result(_item_prose(item), float(item.get("written_at") or 0.0)) is not None
 
 
+def finished_on_origin(item: dict, *, path: Path | None = None) -> str | None:
+    """The origin/main sha that already FINISHED this item, or None. Read by both draw loops.
+
+    F5, THE OLDEST OPEN MACHINE ERROR: an item drawn after its own delivery. The heartbeat item,
+    the QEP item and `a-site-control-stops-rewriting-a-tracked-feed` (finished at `0df1dc405`) each
+    cost a tick and a non-act note, because the focus row outlives its finish -- the seat re-orients
+    every three hours and still names it. Retire-on-NAMING was refuted for continuations
+    (`8dbb82c53`): a message naming an id is a hand-off, a progress note or a rival as often as a
+    finish. Two signals here are narrower than naming, and each is a statement that the work is
+    done, written by the tick that did it:
+
+      * a `NEXT: none -- direction item <id>, finished` trailer on an origin/main commit -- the
+        shape the `NEXT:` gate makes every Lane 0 landing state, so it costs no tick anything new;
+      * a `--premise-spent` disposition on this id's ledger row, whose commit is on origin/main.
+
+    `--landed` IS NOT ONE OF THEM: the doorbell tells a tick to run it after EVERY increment, so a
+    bound landing says the work moved, never that it ended. `--landed-under` is not read either:
+    its row names a sibling id, not a commit, so there is nothing to ask origin about.
+
+    ORIGIN ONLY. A finishing commit on a local ref may still be refused by its gate or stranded in a
+    worktree, and withholding the item on its word is how finished-looking work goes undelivered.
+
+    THE WINDOW IS THIS INCARNATION'S. A continuation carries its own `written_at`, so a finish older
+    than the entry belongs to an earlier use of the id and does not count. A focus row has no such
+    stamp -- it is re-derived wholesale, which is the defect -- so the ledger's `first_drawn_at` is
+    the edge. Neither means the id was never drawn and nothing can have finished it: None.
+
+    NEVER RAISES, and an unanswerable git is None: a skip that fires on a hiccup is an idle lane.
+    """
+    try:
+        focus_id = str(item.get("id") or "")
+        if not focus_id:
+            return None
+        row = claims_mod._load(_ledger_path(path or CLAIMS_FILE)).get(focus_id)
+        row = row if isinstance(row, dict) else {}
+        written = item.get("written_at")
+        if isinstance(written, (int, float)) and not isinstance(written, bool) and written > 0:
+            since = float(written)
+        else:
+            since = float(row.get("first_drawn_at") or 0.0)
+        if since <= 0.0:
+            return None
+        spent = row.get("premise_spent")
+        if (isinstance(spent, dict) and spent.get("commit") and _stated_at(spent) >= since
+                and _git("merge-base", "--is-ancestor", str(spent["commit"]),
+                         PUBLISHED_REF) is not None):
+            return str(spent["commit"])
+        out = _git("log", PUBLISHED_REF, f"--since=@{int(since)}", "-F",
+                   f"--grep=direction item {focus_id}", "--format=%H%x1f%B%x1e")
+        trailer = re.compile(r"^NEXT:\s*none\s*--\s*direction item\s+" + re.escape(focus_id)
+                             + r"\s*,\s*finished\b", re.MULTILINE)
+        for record in (out or "").split("\x1e"):
+            sha, _, body = record.strip().partition("\x1f")
+            if sha and trailer.search(body):
+                return sha
+        return None
+    except Exception:
+        return None
+
+
+def finished_note(skipped: list[tuple[dict, str]]) -> str:
+    """The doorbell line naming every item the draw walked past because origin already finished it."""
+    if not skipped:
+        return ""
+    named = "; ".join(f"`{item.get('id')}` at {sha[:9]}" for item, sha in skipped)
+    return ("FINISHED CHECK (origin/main, run at draw time): the draw REFUSED "
+            f"{len(skipped)} item(s) whose finish is already published -- {named}. If one is NOT "
+            "finished, say so in docs/staging/ and hand it off under a new id. ")
+
+
+#: The (item, sha) pairs the last `next_item` walk refused as finished. Read by `draw`.
+LAST_FINISHED_SKIPS: list[tuple[dict, str]] = []
+
+
 #: A code identifier in an item's prose: lower snake case with at least one underscore, eight
 #: characters or more. The underscore is what separates a symbol from an English word, and the
 #: floor drops `to_dict`-sized names that half the diffs on the machine touch.
@@ -4975,7 +5049,14 @@ def next_item(now: float | None = None, path: Path | None = None, *,
     # the ordinary walk ends at the first unclaimed row. The skips are kept so `draw` can name the
     # holder: a refusal that does not say why is how a wrong refusal stays invisible.
     LAST_HELD_SKIPS.clear()
+    LAST_FINISHED_SKIPS.clear()
     probed: list[list[dict]] = []
+
+    def _finished(item) -> bool:
+        sha = finished_on_origin(item, path=store)
+        if sha:
+            LAST_FINISHED_SKIPS.append((item, sha))
+        return sha is not None
 
     def _held(item) -> bool:
         if not probed:
@@ -4992,6 +5073,7 @@ def next_item(now: float | None = None, path: Path | None = None, *,
             for item in seat_continuation.live(now=now):
                 if (item.get("id") and item["id"] not in taken and not _embargoed(item, now)
                         and (admit is None or admit(item)) and not _result_landed(item)
+                        and not _finished(item)
                         and not _held(item)):
                     return item
         except Exception:
@@ -5003,6 +5085,7 @@ def next_item(now: float | None = None, path: Path | None = None, *,
             if (item.get("id") and item["id"] not in taken
                     and item["id"] not in retired and not _embargoed(item, now)
                     and (admit is None or admit(item)) and not _result_landed(item)
+                    and not _finished(item)
                     and not _held(item)):
                 return item
         return None
@@ -5049,7 +5132,7 @@ def draw(now: float | None = None, path: Path | None = None, *, claim: bool = Tr
     """
     try:
         item = next_item(now=now, path=path)
-        held = held_note(list(LAST_HELD_SKIPS))
+        held = held_note(list(LAST_HELD_SKIPS)) + finished_note(list(LAST_FINISHED_SKIPS))
         if item is None:
             return None
         if not claim:
