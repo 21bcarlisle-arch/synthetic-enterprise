@@ -3015,3 +3015,101 @@ no NESO term, the same argument §40 made for MID. Would its monthly gas-coal sw
 §41's M oracle? (2) §41 NEXT (2) stands: whether `CCGT_CAPACITY_MW = 30,000` is right as a de-rated
 capacity (DUKES 5.11). (3) §40's ROC recycle and 2019's missing biomass unit stand. No level move: the
 shipped swing is still too wide in every year.
+
+## 43. 2026-10-05 — COAL'S MONTH IS NOT ITS PRICE: the coal-gas cost gap ranks coal's months no better than demand does, and a monthly block shaped by the model's own thermal narrows the swing a household acts on
+
+§42's NEXT (1), measured, with one follow-on arm. Nothing shipped changed. The scratch scripts, outputs and
+timestamped predictions are in `/var/tmp/se-ep13-s43/` (`arm.py`, `arm2.py`, `armR.py`, `out*.txt`,
+`prediction.txt`).
+
+**What crosses, argued first.** The input is the World Bank Pink Sheet's monthly "Coal, South African"
+series: f.o.b. Richards Bay, 6,000 kcal/kg NAR, $/t. It is free, and it is a traded index with no NESO
+term and no GB dispatch statistic in it. That is the argument §40 made for MID, so condition 1 passes.
+Gas is the Pink Sheet's TTF, the same series the tree already uses through FRED PNGASEUUSDM. The two
+sources agree to cents in sampled months, but differ by $18 in October 2022 ($39 against $21). FX is
+FRED EXUSUK, by month. Both fuels go through the tree's own `coal_srmc_gbp_per_mwh` and
+`ccgt_srmc_gbp_per_mwh`, at fleet-average efficiency. `gap` is coal SRMC minus CCGT SRMC, in £/MWh
+electrical; negative means coal was cheaper. Freight to ARA and the NAR-to-gross basis are left out. Both
+are level shifts within a year, and a 5.4% gross bracket changes no month's sign in any year.
+
+**An instrument fact found on the way.** The tree's ETS series is a NAMED GAP for 2022–24, and there
+`carbon_price_total_gbp_per_tonne` returns CPS alone (£18/t). That makes coal look cheaper than gas in
+every month of 2022–24. The carbon term is constant within a year, so within-year ranks are unaffected.
+But for those years the SIGN is graded below by break-even carbon, not by the tree's total.
+
+**Predictions (23:20Z, before any price was read).** P1: gap < 0 in ≥6 months of 2022, and ≤2 in each of
+2019, 2020 and 2024. P2: the within-year Spearman ρ(−gap, metered monthly coal) is ≥0.5 in 2021 and 2022,
+and |ρ| < 0.5 in at least 2 of 2019, 2020, 2023 and 2024. P3: pooled over 108 months (2016–24),
+Pearson(gap, coal load factor) ≤ −0.3. P4: Newcastle coal in place of Richards Bay changes no P2 verdict.
+
+| | 2017 | 2018 | 2019 | 2020 | 2021 | 2022 | 2023 | 2024 |
+|---|---|---|---|---|---|---|---|---|
+| ρ(−gap, metered coal), by month | .78 | .02 | .62 | .34 | **.03** | **.01** | .83 | −.90 |
+| ρ(demand, metered coal), by month | .86 | .90 | .87 | .94 | .60 | .69 | .69 | .17 |
+| ρ(−gap, demand) | .82 | −.21 | .69 | .47 | −.12 | −.32 | .81 | −.03 |
+| months with coal cheaper (gap < 0) | 0 | 1 | 0 | 0 | 4 | 12 | (12) | (12) |
+| total carbon at which coal = gas, £/t, min–max | 2–15 | 7–33 | −17–12 | −10–10 | 7–261 | 122–520 | 32–87 | 30–89 |
+
+The demand row is the month's mean of the tree's demand cache, which starts in March 2016, so 2016 is not
+in this table.
+
+**Against the predictions.** P1 held where it can be graded. In 2019 and 2020 no month had coal cheaper,
+and break-even carbon never exceeded £12/t against the tree's £40. In 2022 coal was cheaper in every month
+at any carbon below £122/t. P1's 2024 leg is UNGRADED: break-even is £30–89/t, which straddles any
+plausible 2024 total, and the tree holds none. **P2 was refuted in both legs.** The price ranks coal's
+months at 0.03 in 2021 and 0.01 in 2022. Of 2019, 2020, 2023 and 2024, only 2020 is under 0.5. **P3 was
+refuted** (−0.04, n = 108). P4 held. With Newcastle coal, 2019 is 0.80, 2020 0.45, 2021 0.03, 2022 0.19,
+2023 0.59 and 2024 −0.87, so every verdict is unchanged.
+
+**What it establishes.**
+- **The month's price does not time GB coal, 2017–24.** In every year 2017–22, demand ranks coal's months
+  better than the price gap does: 0.60–0.94 against 0.01–0.78. The years where the price looks right
+  (2017, 2019, 2023) are the years where the price itself tracks demand (0.69–0.82), through gas's winter
+  premium. Where price and demand part (2018, 2021, 2022), the price explains nothing (0.01–0.03).
+- **The switch has no within-year variation in the years that matter.** In 2019 and 2020 coal was out of
+  merit against fleet-average CCGT in every month. Even so it ran 2.0–2.4 GW in January and almost nothing
+  in summer. In 2022 it was in merit in every month, and still ran from 9 MW to 990 MW by season. Coal's
+  timing at monthly grain follows the residual in both regimes, not its own cost. §41's monthly oracle helps
+  because it carries the SEASON, not the price.
+- **2024's −0.90 is a closure, not a price.** Coal ran at 0 MW from October 2024, after Ratcliffe closed.
+  The annual `coal_capacity_by_year` cannot see that, so every arm that sizes coal by year serves coal in
+  Q4 2024.
+
+**Arm R, the season with no price (predictions filed at 23:22Z, after P1–P4 were read).** Coal is
+`min(cap_y, thermal_hh, k_y × the model's mean thermal for that month)`, flat within the month. `k_y` is
+solved so the year's mean equals the measured mean. Only s42's two annual scalars cross, and the monthly
+weight is the model's own thermal. P5: correlation rises ≥0.003 in 2019 and 2020, and moves ≤0.003 in
+2023–24. P6: between-day ≤ base in 2019–21. P7: R's monthly coal ranks against the meters at ≥0.6 in each
+of 2019–22. The instrument reproduces the committed feed exactly (max diff 0.0). The no-coal placebo is
+§42's Z.
+
+| base → R | 2019 | 2020 | 2021 | 2022 | 2023 | 2024 |
+|---|---|---|---|---|---|---|
+| correlation | .959/.958 | .931/.929 | .970/.970 | .982/.982 | .978/.978 | .972/.973 |
+| within-day overstated by | 1.06/**0.93** | 1.10/0.99 | 1.00/**0.90** | 1.00/**0.93** | 1.02/**0.95** | 1.07/1.03 |
+| between-day overstated by | 1.05/0.97 | 1.11/1.04 | 1.01/0.95 | 1.07/1.02 | 1.07/1.01 | 1.07/1.05 |
+| mean abs error | .061/.058 | .104/.097 | .055/.055 | .053/.049 | .068/.063 | .089/.085 |
+| monthly ρ, R's coal vs meters | .71 | .63 | .61 | −.02 | .49 | −.03 |
+| half hours with coal > 50 MW, R / meters | 1.00/.56 | 1.00/.40 | 1.00/.60 | 1.00/.56 | 1.00/.50 | 1.00/.36 |
+
+Headline p95/p5 goes from 1.22 to 1.07, and max/min from 1.21 to 0.89, which is now an understatement.
+**P5 was refuted:** correlation fell 0.001 in 2019 and 0.002 in 2020. The 2023–24 leg held. P6 held. **P7
+was refuted on 2022** (−0.02): in 2022 coal ran by something the model's thermal does not carry.
+
+**Why R does not ship.** It improves between-day in every year, the headline in both statistics, and MAE in
+5 of 6 years. But it moves within-day, the swing a household can act on, from at-or-above truth to BELOW it
+in 4 of 6 years: 2021 goes from 1.00 to 0.90, and 2022 from 1.00 to 0.93. A coal block that runs all day
+adds flat carbon to every half hour and compresses each day's ratio. The meters ran coal in only 36–60% of
+half hours. That is the same failure as §41's F, at monthly rather than annual grain. Trading the axis the
+product sells on for the axis it does not is not a fix. Correlation did not move.
+
+**Controls.** None. Nothing shipped changed, and the feed is byte-identical.
+
+**Next.** (1) Coal capacity by MONTH from published closure dates, which are public facts about steel. It
+removes the coal every arm serves in Q4 2024 and in each closure year's tail. Measure it with base's
+shape, not R's. (2) Coal's within-DAY shape is still the open question. F and R run it always on, L
+runs it as a peaker, and the meters show neither (36–60% of half hours, 93–313 MW on windy days). No
+annual or monthly scalar we hold has located it. (3) The tree's UK ETS is a named gap for 2022–24, so any
+price-based coal arm in those years is ungradable for sign. That is already filed. (4) Still owed from
+earlier passes: §41 NEXT (2), 30 GW as de-rated CCGT capacity (DUKES 5.11); §40's ROC recycle; and 2019's
+missing biomass unit. No level move.
