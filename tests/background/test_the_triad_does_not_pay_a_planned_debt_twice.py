@@ -54,6 +54,9 @@ def test_a_plan_replaces_the_lump_and_no_lump_crosses_for_a_planned_bill(sourced
         "both partitions must be reachable: some lumps cross, some a plan replaces")
     assert triad.settlements_crossed_despite_a_plan == 0, (
         "a lump crossed for a bill an agreed plan was already repaying -- the arrears paid twice")
+    assert triad.later_settlements() == {
+        "delivered": triad.settlements_delivered, "withdrawn": triad.settlements_withdrawn,
+        "crossed_despite_a_plan": 0}, "the summary the run publishes drops or renames a counter"
 
 
 def test_the_published_basis_withdraws_nothing():

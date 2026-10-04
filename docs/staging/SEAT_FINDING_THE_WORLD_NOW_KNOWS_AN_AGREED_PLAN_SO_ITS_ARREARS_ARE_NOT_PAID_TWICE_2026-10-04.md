@@ -99,8 +99,14 @@ recorded, the window open at either end, and the seam dropping the book.
 1. **A forced crossing is unwalked.** A reader at a renewal forces lumps dated after the account's
    latest due date across before an offer in that window is decided. It is small, because an offer
    comes 28 days after its bill and the lump 3 or 22 months after that. It is counted live on
-   `settlements_crossed_despite_a_plan`, but the run does not publish that counter yet. Done
-   would mean the run's summary carries it beside `settlements_withdrawn`.
+   `settlements_crossed_despite_a_plan`. **Published 2026-10-04:** the run summary carries
+   `later_settlements` (`delivered`, `withdrawn`, `crossed_despite_a_plan`), read after the
+   end-of-run forced crossing; `test_a_live_run_publishes_what_became_of_the_later_lump_settlements`
+   holds it. Under the published basis (no plan agreed) the last two are 0 by construction, so the
+   residue is only live once a sourced take-up rate lands. Printed at a run to 2017-06-30: `{delivered: 13, withdrawn: 0,
+   crossed_despite_a_plan: 0}`. Unguarded: reading the counters BEFORE `collections_journeys` in
+   the summary would drop the end-of-run forced crossings; on the published basis that is an
+   equivalence for the two plan counters (both 0), and the live control does not pin `delivered`.
 2. **The world does not end a plan, and a broken plan does not return the debt to the lump route**
    (module simplifications 2 and 3). Both are conservative. Neither moves cash twice.
 3. The company-side open items 2 and 3 of the predecessor finding still stand: a plan's debt is

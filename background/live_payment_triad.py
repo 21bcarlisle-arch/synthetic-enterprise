@@ -963,6 +963,17 @@ class LivePaymentTriad:
         return sum(self._household_plans.repays_through_plan(*crossed)
                    for crossed in self._crossed_settlements)
 
+    def later_settlements(self) -> dict:
+        """The three lump counters as the run summary publishes them (EP4). Read it after
+        `collections_journeys`, whose forced crossing at the run's end is the last that can move
+        them: `crossed_despite_a_plan` is the residue a forced, unwalked crossing leaves, and it is
+        only seen if the summary carries it."""
+        return {
+            "delivered": self.settlements_delivered,
+            "withdrawn": self.settlements_withdrawn,
+            "crossed_despite_a_plan": self.settlements_crossed_despite_a_plan,
+        }
+
     def _method_for(self, customer_id: str, fuel: str = "electricity") -> str:
         """The supply point's method, from the world's one channel draw -- the one
         `SimInterface.get_payment_method` reports for it. The fuel must be the supply
