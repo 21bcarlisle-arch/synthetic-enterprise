@@ -582,9 +582,17 @@ function renderDeliveryDecided(d) {
       return "<p><b>" + esc(f.what) + "</b><br>" + esc(f.why || "") + "</p>"; }).join("") ||
       "<p>Nothing recorded.</p>") +
     "</div></div>" +
+    /* THE CONCERNS LIST (2026-10-04): each row is a concern AND the proposal it came with, and its
+       status -- an answered row with no visible answer reads as a question that vanished. Open
+       rows never block the work listed above; the page says so. */
     ((dec.for_the_director || []).length
-      ? '<div class="note"><strong>Waiting on the director.</strong> ' +
-        (dec.for_the_director || []).map(function (f) { return esc(f.what); }).join("; ") + "</div>"
+      ? '<div class="note"><strong>Raised with the director, each with a proposal.</strong> ' +
+        "None of these blocks the work above." +
+        (dec.for_the_director || []).map(function (f) {
+          return "<p><b>" + esc(f.status || "open") + "</b> &middot; " + esc(f.what || "") +
+            "<br>Proposal: " + esc(f.proposal || "none recorded") +
+            (f.resolution ? "<br>Resolution: " + esc(f.resolution) : "") + "</p>";
+        }).join("") + "</div>"
       : "<p>Nothing on this list is waiting on a human.</p>");
 }
 

@@ -11,21 +11,33 @@ from `cf823b185f8ca51c` to **`cdba75ebb9197b33`**, so about 20 value-arms and pa
 until the arms are re-taken in that world. That is the same shape as the PB4 swap
 (`c3939e7b1`), and it lands the same way: one commit with the arms that bound it.
 
-## What is running (started 2026-10-04 ~00:00Z)
+## What is running (re-taken 2026-10-04 03:22Z, claim `the-qep-value-arms-are-retaken-at-origin-one-leg-at-a-time`)
 
-From the snapshot worktree `/var/tmp/se-qep-arms` (origin `24ece7adb` plus the world files of this
-patch, locked). Its `producing_commit` will read `24ece7adb` with the patch uncommitted.
+The first attempt (`/var/tmp/se-qep-arms`, base `24ece7adb`) is DEAD and its base predates
+`ba320e2d2`: `longjob-qep-arms-three-arm` was OOM-killed at 2023-01 sharing memory with the console
+seat's term probes, and its handoff then launched all three floor seeds, each of which wrote a
+`floor_run_refused` artefact (11,200 MB needed, 4,680 offered) and exited 2. Its handoff printed
+`END all three seeds exited` over three refusals. Do not reuse it.
 
-1. `longjob-qep-arms-three-arm`: `python3 -m tools.run_value_cycle_ab --level-arm --out
-   docs/observability/value_cycle_ab_s1_three_arm_20261004q.json`. It waits on another lane's
-   `decision_probe` (pid 2873381) for memory, then about 50 minutes.
-2. `longjob-qep-arms-floor-handoff` (`/var/tmp/se-qep-arms-handoff.sh`): when the three-arm unit
-   exits it launches `longjob-qep-arms-floor-s11111`, then `-s22222`, then `-s33333`, one at a
-   time (`--noise-floor-seeds <s> --redraw-mode all`, about 2h40m each; memory does not allow two).
-   It retries a refused admission every 5 minutes. It writes `END all three seeds exited` to
-   `/var/tmp/longjob-qep-arms-floor-handoff.log`.
+The re-take runs from `/var/tmp/se-qep-arms2`: origin `96517e68c` (contains `ba320e2d2`) plus this
+patch applied with `git apply --3way` (clean), locked, owner file written. `world_level_identity`
+there reads `cdba75ebb9197b33`. Artefacts carry the suffix **`20261004r`**, not `q`.
 
-Total about 9 hours. Re-ask with `python3 -m background.launch_liveness --check`.
+1. `longjob-qep2-arms-three-arm`: `--level-arm --out
+   docs/observability/value_cycle_ab_s1_three_arm_20261004r.json`, peak declared 11,200 MB, queued
+   behind another lane's 4.6 GB `channel_blind/measure.py` (pid 1726839) rather than admitted
+   beside it with 1 GB of slack. About 50 minutes once it starts.
+2. `longjob-qep2-arms-floor-handoff` (script
+   `/var/tmp/se-qep-arms2-handoff.sh`): when the three-arm unit exits it STOPS unless that
+   artefact parses and is not a refusal; then runs `-s11111`, `-s22222`, `-s33333` one at a time
+   (`--noise-floor-seeds <s> --redraw-mode all`, peak 11,200 MB, about 2h40m each). A floor artefact
+   carrying `floor_run_refused` is deleted and retried every 5 minutes (at most 48 times), never
+   counted as done; a seed that exits with no artefact stops the chain. It ends with
+   `END all three seeds DONE` or a `STOP` line naming why, in `/var/tmp/longjob-qep2-arms-floor-handoff.log`.
+
+Re-ask with `python3 -m background.launch_liveness --check`. In the landing sequence below, read
+`20261004r` for `20261004q` and `/var/tmp/se-qep-arms2` for the snapshot; `_code_since_the_run`
+will name only what moved on origin after `96517e68c`.
 
 ## The landing sequence, when all four artefacts exist
 

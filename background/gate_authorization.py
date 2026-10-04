@@ -31,6 +31,7 @@ provenance field records the trace for the prevention pass to verify.
 from __future__ import annotations
 
 import json
+import re
 import time
 from dataclasses import dataclass
 from pathlib import Path
@@ -298,6 +299,40 @@ def current_atom_lanes(path: Path | None = None) -> dict:
         return {}
 
 
+def atom_level_target(atom: str, *, map_path: Path | None = None) -> int | None:
+    """The atom's `level_target`, or None when the map cannot say. Same walk as the lanes."""
+    try:
+        docs = list(yaml.safe_load_all(map_store.map_text(map_path or MAP_PATH)))
+    except Exception:  # noqa: BLE001 -- unreadable map: the lane refusal below already fails closed
+        return None
+    found: list = []
+
+    def walk(o):
+        if isinstance(o, dict):
+            if o.get("id") == atom and "level_target" in o:
+                found.append(o.get("level_target"))
+            for v in o.values():
+                walk(v)
+        elif isinstance(o, list):
+            for x in o:
+                walk(x)
+
+    walk(docs)
+    try:
+        return int(found[0]) if found else None
+    except (TypeError, ValueError):
+        return None
+
+
+#: THE MILESTONE'S END-TO-END CHECK (director, 2026-10-04: the end-to-end check runs "at
+#: milestones", and an atom reaching its target level is the milestone). A self-certified move
+#: TO OR PAST the target must say, in its provenance, what the check found -- an `End-to-end:`
+#: clause naming the canon, logic, work and findings read together and any concern raised with
+#: `background.director_concerns`. Refused HERE, the one writer every level increase must pass
+#: through for `tools/level_promotion_gate.py` to accept the map move.
+END_TO_END_CLAUSE = re.compile(r"end-to-end:\s*\S.{11,}", re.IGNORECASE | re.DOTALL)
+
+
 def lane_for_atom(atom: str, *, map_path: Path | None = None) -> str | None:
     """The atom's lane, or None when the map cannot answer (absent atom, unreadable map, or a
     lane that is not a string). None means UNKNOWN, never 'no lane to check'."""
@@ -491,6 +526,14 @@ def record_level_up_self_certified(atom: str, level: int | None, provenance: str
         )
     if not isinstance(atom, str) or not atom.strip():
         raise ValueError("record_level_up_self_certified requires a non-empty atom id.")
+    target = atom_level_target(atom, map_path=map_path) if level is not None else None
+    if target is not None and level >= target and not END_TO_END_CLAUSE.search(provenance):
+        raise ValueError(
+            f"{atom} reaches its target level {target} with this move, which is a milestone, and "
+            "a milestone carries the END-TO-END CHECK (director, 2026-10-04): add an "
+            "'End-to-end: <what reading canon, logic, work and findings together found; each "
+            "surprise's explanations ranked by evidence; concerns raised>' clause to the "
+            "provenance. See .claude/skills/phase-close/SKILL.md.")
     # The lane refusal runs AFTER the shape checks (so a malformed call still reports the thing
     # wrong with the call) and BEFORE the append (so a refused raise leaves NO row -- a refusal
     # that still recorded would satisfy the commit gate it exists to hold).

@@ -309,12 +309,46 @@ def write_baton(record: dict, path: Path | None = None) -> None:
     target.write_text(json.dumps(record, indent=2, sort_keys=True) + "\n")
 
 
-def close(step: str, now: datetime | None = None, path: Path | None = None) -> dict:
+class EndToEndCheckMissing(ValueError):
+    """Monday's step cannot close until its end-to-end check is written. The message says why."""
+
+
+def end_to_end_refusal(step: str, due_on: date, staging: Path | None = None) -> str | None:
+    """Why this step may not close for want of its end-to-end check, or None.
+
+    MONDAY ONLY, and the document must EXIST. Director, 2026-10-04: the end-to-end check is "added
+    to the Monday retrospective". A Monday closed with no document at all carried no check either,
+    so absence refuses too -- the cure is `--tick` (which stages it) and writing the section.
+    """
+    if step != MONDAY_STEP:
+        return None
+    from background.director_concerns import end_to_end_unfilled
+
+    doc = (staging or STAGING) / _step_doc(step, due_on).name
+    try:
+        text = doc.read_text(encoding="utf-8")
+    except OSError:
+        return (f"Monday's document {doc.name} is not in the staging root, so it carries no "
+                "end-to-end check -- `--tick` stages it if the step was never opened; if it was "
+                "opened and moved, bring it back from done/ -- then write the check in it")
+    why = end_to_end_unfilled(text)
+    return None if why is None else (
+        f"{doc.name}: {why}. Monday's retrospective closes only once the end-to-end check is "
+        "written (director, 2026-10-04) -- canon, logic, work and findings read together, each "
+        "surprise's explanations ranked by evidence, each concern raised with "
+        "`python3 -m background.director_concerns --raise`")
+
+
+def close(step: str, now: datetime | None = None, path: Path | None = None,
+          staging: Path | None = None) -> dict:
     """Record a step done, and ARM THE NEXT ONE. This is the whole chain.
 
     Nothing else arms a step. There is no schedule that says "Friday happens on Fridays" — Friday
     happens because Monday finished and said so, which is what makes the rhythm self-firing rather
     than a calendar somebody has to keep believing in.
+
+    REFUSES MONDAY WITHOUT ITS END-TO-END CHECK (`end_to_end_refusal`), before anything is written,
+    so a refused close leaves the baton exactly as it was.
     """
     today = london_today(now)
     record = read_baton(path) or _blank(step, today, "bootstrap")
@@ -322,6 +356,9 @@ def close(step: str, now: datetime | None = None, path: Path | None = None) -> d
         raise ValueError(
             f"the rhythm is waiting on {record['step']}, not {step} -- closing a step that is not "
             "armed would silently skip the one that is")
+    refusal = end_to_end_refusal(step, date.fromisoformat(record["due_on"]), staging)
+    if refusal:
+        raise EndToEndCheckMissing(refusal)
     record["closed_at"] = datetime.now(LONDON).isoformat()
     write_baton(record, path)
     archive_step_documents(step, date.fromisoformat(record["due_on"]))
@@ -441,6 +478,8 @@ def _step_body(step: str, due_on: date, overdue: list[dict]) -> str:
               "stands, and re-listing it every week would make this rhythm the noise it exists to "
               "replace.", ""]
     if step == MONDAY_STEP:
+        from background.director_concerns import end_to_end_section
+        lines += end_to_end_section()
         lines += ["## The ranking for this week", "",
                   "_Written by the Monday step. Ordered. Anything above the line outranks new "
                   "feature work; nothing here outranks a live defect._", "",
@@ -591,7 +630,11 @@ def main(argv=None) -> int:
         if record is None:
             print("no baton -- run --tick once to bootstrap")
             return 1
-        armed = close(record["step"])
+        try:
+            armed = close(record["step"])
+        except EndToEndCheckMissing as exc:
+            print(f"REFUSED: {exc}")
+            return 1
         print(f"closed {record['step']}; armed {armed['step']} for {armed['due_on']}")
         return 0
     if args.status or not args.tick:

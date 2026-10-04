@@ -389,6 +389,12 @@ def escalate(message: str, *, key: str, first_ts: float, repeats: int | None = N
     # the map at the moment it is filed, and saying so is the honest value; what would be
     # dishonest is guessing an epoch, and what would be useless is leaving the field out and
     # letting "nobody looked" and "looked, nothing yet" render identically.
+    # THE TEMPLATE IS THE MECHANISM HERE, and deliberately not a refusal: these documents are
+    # archived by `reask` when the CONDITION clears, not by a reader closing them, and gating a
+    # machine disposition on prose would wedge the queue it drains. Imported here, not at module
+    # level, because `notify()` imports this module on every page.
+    from background.director_concerns import end_to_end_section
+    end_to_end = "\n".join(end_to_end_section())
     body = f"""**Severity:** LATENT · **Lane:** H_harness · **Epoch:** unassigned · **Atom:** `unminted`
 
 # {message.strip().splitlines()[0][:180]}
@@ -419,6 +425,11 @@ Archive to `docs/staging/done/` when the condition is resolved. While this docum
 filing a second document (2026-08-24). A condition that returns AFTER this has been archived
 files a fresh document, because that is a new episode and an R3 two-strike signal.
 
+A REPEATING FAILURE IS ONE OF THE THREE TRIGGERS FOR THE END-TO-END CHECK (director,
+2026-10-04): before fixing the instance, write the section below -- the loop may be the world,
+the maths, the canon or the frame, not the code that is alarming.
+
+{end_to_end}
 ## Still live
 
 ## Instances seen

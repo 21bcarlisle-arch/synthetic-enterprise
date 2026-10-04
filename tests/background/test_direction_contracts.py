@@ -189,7 +189,8 @@ def test_a_SINGLE_HOME_field_may_still_point_and_the_refusal_is_not_the_whole_re
     """
     assert d.validate(_record(
         not_now=[{"what": "the other thing", "why": _POINTS_AT_ITSELF}],
-        for_the_director=[{"what": _POINTS_AT_ITSELF}],
+        for_the_director=[{"id": "c-1", "what": _POINTS_AT_ITSELF, "proposal": "investigate: it",
+                           "status": "open"}],
         wrong=[{"what": _POINTS_AT_ITSELF, "corrected": True}],
     )) == []
 
@@ -316,3 +317,57 @@ def test_an_UNRECORDED_correction_state_is_None_and_never_False(stored, expected
     read rather than rewritten.
     """
     assert d.wrong_rows({"wrong": stored}) == expected
+
+
+# ── for_the_director: THE CONCERNS LIST (director, 2026-10-04) ──────────────
+
+
+_CONCERN = {"id": "canon-split", "kind": "canon_intent", "what": "The canon reads the split as fixed.",
+            "proposal": "investigate: whether a fixed split was meant", "status": "open",
+            "resolution": ""}
+
+
+@pytest.mark.parametrize("row, refused_for", [
+    (dict(_CONCERN), None),                                              # the passing branch
+    (dict(_CONCERN, status="answered", resolution="Rich 2026-10-04: yes"), None),
+    (dict(_CONCERN, proposal=""), "bare ask"),                           # no proposal
+    (dict(_CONCERN, id=""), "no id"),
+    (dict(_CONCERN, what="  "), "no what"),
+    (dict(_CONCERN, status="pending"), "status must be one of"),
+    (dict(_CONCERN, status="answered"), "no resolution"),
+    (dict(_CONCERN, status="withdrawn", resolution=" "), "no resolution"),
+    (dict(_CONCERN, kind="tactics"), "kind must be one of"),
+    ("a bare string concern", "not a mapping"),
+])
+def test_a_concern_row_is_refused_WITHOUT_its_id_what_proposal_or_status(row, refused_for):
+    """Defect: `for_the_director` accepted ANY shape, so a concern with no proposal -- a bare ask,
+    the one form the director has ruled out -- or a closed one with no answer, validated, was
+    recorded and was published. ONE CONTROL OVER THE PARTITION: both passing rows validate and
+    every refusing branch is reached with its own named reason.
+
+    MUTATION (must fire): drop `"proposal"` from the required tuple in `_concern_problems`, or the
+    resolution clause, or the status clause."""
+    problems = d.validate(_record(for_the_director=[row]))
+    if refused_for is None:
+        assert problems == []
+    else:
+        assert problems and any(refused_for in p for p in problems), problems
+
+
+def test_concern_ids_must_be_unique_and_the_legacy_EMPTY_list_still_reads():
+    """Defect: two rows under one id make "carried forward by id" ambiguous -- the carry check
+    could match the wrong one. And the file carried `[]` (or nothing) for its whole life before
+    rows had a shape, so both must still validate."""
+    assert any("repeats id" in p for p in d.validate(
+        _record(for_the_director=[dict(_CONCERN), dict(_CONCERN)])))
+    assert d.validate(_record(for_the_director=[])) == []
+    assert d.validate(_record(for_the_director=None)) == []
+    assert d.validate(_record()) == []
+
+
+def test_an_open_concern_never_licenses_an_EMPTY_focus():
+    """The seat never idles on a concern: a record whose only content is a question to the
+    director is refused for its empty focus, exactly as any other record. This is the existing
+    `focus is empty` clause, asserted here for the concerns case so removing it reds."""
+    problems = d.validate(_record(focus=[], for_the_director=[dict(_CONCERN)]))
+    assert any("focus is empty" in p for p in problems)

@@ -33,3 +33,10 @@ have not run one. The prediction, written before any run: a gas leg whose DD was
 provisions read on the pay-on-receipt row instead of the DD row after the notice, so the DD row's
 learned rate falls slightly and the pay-on-receipt row's rate rises. I expect the size to be small,
 because only stopped gas legs move.
+
+**Corrected 2026-10-04, by measurement:** see `SEAT_FINDING_THE_OWN_BOOK_BELIEF_SHIFT_FROM_ASKING_GAS_LEGS_ON_GAS_2026-10-04.md`.
+"The default policy never reads the register" is wrong: `renewal_default_belief` defaults to `own_book`, so
+every run reads the register. Only the value arm's price reads the rate. The prediction above was
+refuted on mechanism and on the belief's sign. Of 48 moved gas account-years, only 5 are stops. The
+rest are gas legs that had been given their electricity leg's channel. The `worsening` belief FALLS,
+by up to 1.10 pp.

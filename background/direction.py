@@ -107,6 +107,57 @@ REQUIRED_KEYS = ("version", "oriented_at", "focus", "not_now")
 #: a new two-home field, and this list is the only thing that would not notice on its own.
 _TWO_HOME_FOCUS_FIELDS = ("what", "why")
 
+#: THE DIRECTOR'S CONCERNS LIST (director, 2026-10-04): *"Escalate with a proposal, and don't
+#: wait: concerns about strategy, vision or canon intent. Raise it, propose the change or ask me to
+#: investigate, then carry on with everything else. An open question to me sits in a list and never
+#: blocks the queue."* `for_the_director` IS that list, and its rows are written by
+#: `background/director_concerns.py` or by the orienting session. A row with no proposal is a bare
+#: ask, which is the one shape the director has ruled out; a resolved row with no resolution is a
+#: question that vanished without an answer anyone can read.
+CONCERN_STATUSES = ("open", "answered", "withdrawn")
+CONCERN_KINDS = ("strategy", "vision", "canon_intent", "reserved")
+
+
+def _concern_problems(rows) -> list[str]:
+    """Every reason `for_the_director` is not a usable concerns list. `None` and `[]` are both an
+    empty list -- the file carried `[]` for its whole life before rows had a shape."""
+    if rows is None:
+        return []
+    if not isinstance(rows, list):
+        return ["for_the_director is not a list"]
+    problems: list[str] = []
+    seen: set[str] = set()
+    for i, row in enumerate(rows):
+        if not isinstance(row, dict):
+            problems.append(
+                f"for_the_director[{i}] is not a mapping -- a concern needs an id, a what, a "
+                "proposal and a status, or it cannot be carried forward or answered")
+            continue
+        missing = [k for k in ("id", "what", "proposal")
+                   if not str(row.get(k) or "").strip()]
+        if missing:
+            problems.append(
+                "for_the_director[{}] has no {} -- {}".format(
+                    i, ", ".join(missing),
+                    "a concern with no proposal is a bare ask, and the director ruled those out"
+                    if missing[-1] == "proposal" else "it cannot be carried forward by id"))
+        rid = str(row.get("id") or "").strip()
+        if rid and rid in seen:
+            problems.append(f"for_the_director[{i}] repeats id {rid!r} -- ids must be unique")
+        seen.add(rid)
+        status = row.get("status")
+        if status not in CONCERN_STATUSES:
+            problems.append(f"for_the_director[{i}].status must be one of "
+                            f"{', '.join(CONCERN_STATUSES)}, got {status!r}")
+        elif status != "open" and not str(row.get("resolution") or "").strip():
+            problems.append(f"for_the_director[{i}] is {status} with no resolution -- a closed "
+                            "concern must say how it closed")
+        kind = row.get("kind")
+        if kind is not None and kind not in CONCERN_KINDS:
+            problems.append(f"for_the_director[{i}].kind must be one of "
+                            f"{', '.join(CONCERN_KINDS)}, got {kind!r}")
+    return problems
+
 
 @dataclass(frozen=True)
 class Direction:
@@ -267,6 +318,7 @@ def validate(record) -> list[str]:
                     f"wrong[{i}] needs corrected: true|false -- an error with no correction "
                     "state cannot be graded next stretch"
                 )
+    problems.extend(_concern_problems(record.get("for_the_director")))
     forbidden = sorted(_forbidden_keys_in(record))
     if forbidden:
         problems.append(
