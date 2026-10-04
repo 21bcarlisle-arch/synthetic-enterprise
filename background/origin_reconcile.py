@@ -1615,7 +1615,8 @@ def _drop_worktree(project: Path, path: Path) -> None:
 
 #: (the tag each `commit-msg` gate prefixes its refusal with, the gate it names)
 _MESSAGE_GATES = (("[next-step-gate]", "NEXT: gate (tools/next_step_gate.py)"),
-                  ("[write-time-gate]", "REUSE gate (tools/write_time_gate.py)"))
+                  ("[write-time-gate]", "REUSE gate (tools/write_time_gate.py)"),
+                  ("[director-doc-gate]", "Director-doc: gate (tools/director_document_gate.py)"))
 
 
 def _classify_merge_failure(output: str) -> tuple[str, str]:

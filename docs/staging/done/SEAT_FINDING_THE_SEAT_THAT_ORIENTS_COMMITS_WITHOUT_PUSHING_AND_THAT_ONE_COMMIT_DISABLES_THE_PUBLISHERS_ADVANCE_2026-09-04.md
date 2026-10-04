@@ -5,11 +5,10 @@
 
 **Filed:** 2026-09-04, delivery seat (isolated worktree). **Repaired in the same commit.**
 
-**Discharged:** `tests/background/test_delivery_seat.py::test_every_push_verdict_is_REACHABLE_and_they_say_DIFFERENT_things`,
-`tests/background/test_delivery_seat.py::test_a_PHANTOM_rc0_that_left_the_commit_LOCAL_is_not_reported_as_pushed`,
-`tests/background/test_delivery_seat.py::test_a_REJECTED_push_is_attempted_ONCE_and_never_retried`,
-`tests/background/test_delivery_seat.py::test_a_push_that_could_not_RUN_loses_neither_the_record_nor_the_reason`,
-`tests/background/test_delivery_seat.py::test_the_direction_commit_is_PUSHED_and_the_row_still_reports_the_COMMIT`
+**Discharged:** `tests/background/test_the_direction_record_lands_on_origin.py::test_the_seats_commit_REACHES_ORIGIN_from_a_behind_and_diverged_shared_tree`,
+`tests/background/test_the_direction_record_lands_on_origin.py::test_every_landing_outcome_is_REACHABLE_and_only_an_origin_move_is_retried`
+*(Repointed 2026-10-04. The five `test_delivery_seat.py` push-verdict falsifiers first cited here were deleted with their subject by
+`3911189ac`, which replaced the seat's push with the landing door. These two are its controls for the same defect.)*
 
 LATENT rather than BLOCKING: nothing published is wrong because of this, and the repair landed
 today (`ab6240611`) is not wrong either. What it did was make a correct repair unable to fire, by

@@ -214,11 +214,24 @@ class StopNoticeBoard:
         self._records: dict[str, list[dict]] = {}
         self._stopped: dict[str, str] = {}
         self._clear_through: dict[str, date] = {}
+        self._billed: dict[tuple[str, str], str] = {}
 
     def observe(self, records: list[dict]) -> None:
         """Take a term's settled records as the run settles them."""
+        from simulation.household import household_of
         for r in records:
             self._records.setdefault(r["customer_id"], []).append(r)
+            self._billed.setdefault((household_of(r["customer_id"]), r.get("commodity")),
+                                    r["customer_id"])
+
+    def supply_point_billed(self, household: str, fuel: str) -> str | None:
+        """The supply point this run has billed for the household's `fuel`, or None if none yet.
+
+        Asked rather than spelled from the id: a dual-fuel household's gas leg is `C1g`, but a
+        gas-only household's one leg carries no suffix (`SYN-2016-021`), and the records -- so the
+        stops -- are keyed by the leg the run billed. None means nothing billed, so nothing stopped.
+        """
+        return self._billed.get((household, fuel))
 
     def notice_as_of(self, supply_point: str, as_of: str) -> str | None:
         """The notice date of the stop, if the household had been told by `as_of`; else None."""

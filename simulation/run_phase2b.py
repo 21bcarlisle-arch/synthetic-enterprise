@@ -1924,6 +1924,11 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
     # supplier stopped is pay-on-receipt from its notice on, and the learner reads each provision
     # on the row for the method held that day. Asked once per account and date; read only when the
     # policy prices on the book.
+    # ASKED ON THE ACCOUNT'S OWN FUEL (2026-10-04): this used to ask "electricity" of every account,
+    # so a gas leg, or a gas-only household, was answered off the electricity branch, and its own
+    # gas stop never reached the row its provisions were read on. The fuel is read off the live
+    # roster, acquisitions included, and an account the roster does not hold is refused, not
+    # guessed: the method register has no fuel to ask on for it.
     _book_methods: dict = {}
 
     def _book_method_of(account_id: str, on: date):
@@ -1932,8 +1937,14 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             return None
         if (cid, on) not in _book_methods:
             from company.interfaces.sim_interface import LiveSimInterface
+            fuel = next((c["commodity"] for c in _ALL_KNOWN_CUSTOMERS + ACQUIRED_CUSTOMERS
+                         if c["customer_id"] == cid), None)
+            if fuel is None:
+                raise ValueError(
+                    f"_book_method_of({account_id!r}): no account on the roster, so there is no "
+                    "fuel to ask its payment method on")
             _book_methods[(cid, on)] = LiveSimInterface().get_payment_method(
-                cid, "electricity", as_of=on.isoformat())
+                cid, fuel, as_of=on.isoformat())
         return _book_methods[(cid, on)]
     _NG_BILL_SHOCK_THRESHOLD = 0.20  # matches simulation.bill_shock_tracker.BILL_SHOCK_THRESHOLD
     CRISIS_HANGOVER_LOSS_THRESHOLD = 0.20  # trigger: net loss > 20% of term revenue

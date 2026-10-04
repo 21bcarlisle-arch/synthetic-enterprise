@@ -24,6 +24,16 @@ python3 tools/write_time_gate.py "$1" || exit 1
 # could draw it, and the queue went on offering machinery because machinery was what was in it.
 python3 tools/next_step_gate.py "$1" || exit 1
 
+# DIRECTOR-DOCUMENT GATE (director, 2026-10-04): a commit that changes the CONTENT of a director
+# document -- `docs/**/DIRECTOR_*.md` bar the console transcripts, THE_MODEL_ON_A_PAGE, or CLAUDE.md's
+# mission block -- must say which kind of change it is: `Director-doc: correction|his-words|record
+# -- <reason>`. Anything else is a change of his INTENT, which goes to docs/staging/ as a proposal
+# instead of landing. His words: "a check that a commit changing a director document's intent goes
+# to staging as a proposal, while a marked factual correction can land." Archive moves (R100, or
+# D+A into done/) and new documents are never asked. The escape is counted, not prevented:
+# `python3 tools/director_document_gate.py --report`.
+python3 tools/director_document_gate.py "$1" || exit 1
+
 # STAMP THE HOOK-GATE MARK (2026-09-24). LAST LINE, AFTER the message gates above: the mark says the
 # WHOLE chain completed, so stamping before they ran would overstate it. Only stamps when the index
 # still writes out to the tree `pre-commit` recorded, which is what stops a record left behind by an
