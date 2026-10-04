@@ -77,7 +77,7 @@ whole 3-period scenario for the identical reason).
 from __future__ import annotations
 
 from datetime import date, datetime, time, timedelta, timezone
-from typing import List, Optional
+from typing import Callable, List, Optional
 
 from background.gap_metric import (
     GapResult,
@@ -108,6 +108,7 @@ from interface.contracts.payment_observable_seam import (
     SCHEMA_VERSION as SEAM_SCHEMA_VERSION,
 )
 from interface.contracts.wall_envelope import WallRequest
+from simulation.arrears_engine import PAY_ON_RECEIPT_METHOD
 from simulation.payment_behaviour_source import (
     DIRECT_DEBIT,
     generate_payment_event,
@@ -846,6 +847,7 @@ class LivePaymentTriad:
         income_stress_value: Optional[str],
         segment: str = "resi",
         fuel: str = "electricity",
+        dd_stopped_by: Optional[Callable[[str, date], bool]] = None,
     ) -> dict:
         """Generate the ONE canonical W2_11 payment event for this
         (customer, period), cross the seam + feed the company consumer LIVE,
@@ -854,9 +856,17 @@ class LivePaymentTriad:
 
         Returns the analytics record (ON_TIME/LATE/DD_FAILED) DERIVED from the
         single W2_11 event -- the caller feeds it to `record_payment`. There is
-        never a second, independent payment draw."""
+        never a second, independent payment draw.
+
+        `dd_stopped_by(customer_id, due_date)` is the run's answer to "had the supplier stopped this
+        DD by the due date?" -- the stop-notice board the seam reads. A stopped household is billed
+        and pays on receipt from then on, so its bills stop being collection requests here too;
+        the drawn arrangement stays in the cache because the household's trait does not change."""
         period_index = _period_index_for(due_date)
         method = self._method_for(customer_id, fuel)
+        if method == DIRECT_DEBIT and dd_stopped_by is not None and dd_stopped_by(
+                customer_id, due_date):
+            method = PAY_ON_RECEIPT_METHOD
         account_id = f"ACC-{customer_id}"
         invoice_ref = f"{customer_id}::{period_index}"
         issue_date = due_date - timedelta(days=PAYMENT_TERMS_DAYS)
