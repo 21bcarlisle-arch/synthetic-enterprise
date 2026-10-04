@@ -37,6 +37,19 @@ def _at(y, m, d, hour=7):
     return datetime(y, m, d, hour, tzinfo=LONDON)
 
 
+CHECK = "Surprise: churn, not credit, carries the loss. Ranked: the maths wrong (sd 0.42 belief miss)."
+
+
+def _do_the_check(rhythm, due: str = "2026-09-07") -> Path:
+    """Write Monday's end-to-end check -- into the staged document if `--tick` opened one, or into
+    a minimal one if the test closes Monday without ever ticking it open."""
+    doc = rhythm / "staging" / f"WEEKLY_RHYTHM_MONDAY_RANKING_{due}.md"
+    doc.parent.mkdir(parents=True, exist_ok=True)
+    text = doc.read_text() if doc.is_file() else "# Monday\n\n## End-to-end check\n\n- \n"
+    doc.write_text(text.replace("## End-to-end check\n", f"## End-to-end check\n\n{CHECK}\n", 1))
+    return doc
+
+
 # ── the clock, which is the constraint he named twice ────────────────────────────────────────────
 
 def test_the_day_is_londons_not_the_machines():
@@ -92,6 +105,7 @@ def test_closing_a_step_is_the_only_thing_that_arms_the_next(rhythm):
     wr.tick(now=_at(2026, 9, 4))                       # bootstrap, a Friday
     assert wr.read_baton()["step"] == wr.MONDAY_STEP
 
+    _do_the_check(rhythm)
     armed = wr.close(wr.MONDAY_STEP, now=_at(2026, 9, 7))
     assert armed["step"] == wr.FRIDAY_STEP
     assert armed["due_on"] == "2026-09-11"
@@ -329,7 +343,9 @@ def test_a_friday_with_no_monday_says_so_rather_than_inventing_one(rhythm):
     """The fail-closed direction. A review with no ranking to review IS the finding, and the
     document must say that rather than inviting a reconstruction from memory."""
     wr.tick(now=_at(2026, 9, 4))
-    wr.close(wr.MONDAY_STEP, now=_at(2026, 9, 7))          # closed without ever opening a document
+    _do_the_check(rhythm)
+    wr.close(wr.MONDAY_STEP, now=_at(2026, 9, 7))          # closed without ever ticking it open
+    (rhythm / "staging" / "done" / "WEEKLY_RHYTHM_MONDAY_RANKING_2026-09-07.md").unlink()
     opened = wr.tick(now=_at(2026, 9, 11))
     assert opened["action"] == "OPENED"
     body = (rhythm / "staging" / opened["doc"].split("/")[-1]).read_text()
@@ -408,6 +424,7 @@ def test_the_rhythm_disposes_of_everything_it_files(rhythm):
     root = rhythm / "staging"
     assert len(list(root.glob("*.md"))) == 2, "precondition: both documents are in the queue root"
 
+    _do_the_check(rhythm)
     wr.close(wr.MONDAY_STEP, now=_at(2026, 9, 8))
 
     assert not list(root.glob("*.md")), "the rhythm left its own documents in the queue root"
@@ -426,6 +443,7 @@ def test_a_document_that_will_not_move_is_left_not_deleted(rhythm, monkeypatch):
 
     monkeypatch.setattr(wr.Path, "rename",
                         lambda self, target: (_ for _ in ()).throw(OSError("read-only")))
+    _do_the_check(rhythm)
     wr.close(wr.MONDAY_STEP, now=_at(2026, 9, 7))
     assert staged[0].is_file(), "a document that could not be archived was lost instead"
 
@@ -488,3 +506,41 @@ def test_the_step_document_carries_a_severity_so_it_cannot_wedge_every_lanes_com
             body, Path(f"WEEKLY_RHYTHM_{step.upper()}_2026-09-07.md"))
         assert graded.severity == fs.RECORDED, (
             f"{step}: the gate that guards every commit read {graded.severity} ({graded.reason})")
+
+
+# ── the end-to-end check (director, 2026-10-04) ──────────────────────────────────────────────────
+
+def test_monday_cannot_close_until_its_END_TO_END_CHECK_is_written(rhythm):
+    """THE DEFECT: the end-to-end check -- canon, logic, work and findings read together, each
+    surprise's explanations ranked by evidence -- was asked for at the Monday retrospective and
+    had no home there, so it would run when someone remembered. The CLOSE is the only thing that
+    arms Friday, so the close is where it is enforced.
+
+    ONE CONTROL OVER THE PARTITION: absent document, template-only section, and section deleted
+    all REFUSE and leave the baton untouched; the written check CLOSES. Friday is never gated.
+
+    MUTATION (must fire): return None from `end_to_end_refusal`, drop the template strip in
+    `end_to_end_unfilled`, or drop the section from `_step_body`."""
+    wr.tick(now=_at(2026, 9, 4))
+    with pytest.raises(wr.EndToEndCheckMissing, match="not in the staging root"):
+        wr.close(wr.MONDAY_STEP, now=_at(2026, 9, 7))           # absent document
+
+    opened = wr.tick(now=_at(2026, 9, 7))
+    doc = rhythm / "staging" / opened["doc"].split("/")[-1]
+    body = doc.read_text()
+    assert "## End-to-end check" in body and "world wrong" in body and "director_concerns" in body
+    with pytest.raises(wr.EndToEndCheckMissing, match="still only the template"):
+        wr.close(wr.MONDAY_STEP, now=_at(2026, 9, 7))           # untouched template
+
+    doc.write_text(body.replace("## End-to-end check", "## Something else"))
+    with pytest.raises(wr.EndToEndCheckMissing, match="has no `## End-to-end check` section"):
+        wr.close(wr.MONDAY_STEP, now=_at(2026, 9, 7))           # section deleted
+    assert wr.read_baton()["step"] == wr.MONDAY_STEP and not wr.read_baton()["closed_at"], (
+        "a refused close still wrote the baton")
+
+    doc.write_text(body)
+    _do_the_check(rhythm)
+    armed = wr.close(wr.MONDAY_STEP, now=_at(2026, 9, 7))       # the passing branch
+    assert armed["step"] == wr.FRIDAY_STEP
+    assert wr.close(wr.FRIDAY_STEP, now=_at(2026, 9, 11))["step"] == wr.MONDAY_STEP, (
+        "Friday carries no end-to-end check and must never be refused for one")

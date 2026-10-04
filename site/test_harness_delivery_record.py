@@ -1267,3 +1267,39 @@ def test_the_two_ceiling_panels_are_WIRED_and_not_merely_defined():
 
     assert gen.R3_ARTEFACT.name == "r3_carbon_score_ceiling.json"
     assert gen.R4_ARTEFACT.name == "r4_product_ceiling.json"
+
+
+def test_a_concern_for_the_director_reaches_the_reader_with_its_PROPOSAL_and_STATUS():
+    """Defect: the page rendered only each concern's `what`, under "Waiting on the director" --
+    so a concern's proposal never reached him, and an ANSWERED row read exactly like an open one.
+    The concerns list (director, 2026-10-04) is a concern AND what is proposed about it.
+
+    Both branches in one control: a feed with an open and an answered row renders what, proposal,
+    status and resolution; a feed with none says nothing is waiting.
+
+    MUTATION (must fire): drop the `Proposal:` line, or the status, from `renderDeliveryDecided`.
+    """
+    feed = json.loads((DATA / "delivery.json").read_text(encoding="utf-8"))
+    decided = dict(feed.get("what_it_decided") or {})
+    decided.update({"available": True, "live": True, "focus": [{"id": "a", "why": "b"}],
+                    "not_now": [{"what": "c", "why": "d"}], "for_the_director": [
+                        {"id": "canon-split", "what": "The canon reads the split as fixed.",
+                         "proposal": "investigate: whether a fixed split was meant",
+                         "status": "open", "resolution": ""},
+                        {"id": "tariff-cap", "what": "The cap is binding on the menu.",
+                         "proposal": "price under the cap and report the gap",
+                         "status": "answered", "resolution": "Rich 2026-10-04: agreed"}]})
+    out = _text(_render({"../data/delivery.json": dict(feed, what_it_decided=decided)})
+                ["delivery-decided"]["innerHTML"])
+    for needle in ("open · The canon reads the split as fixed.",
+                   "Proposal: investigate: whether a fixed split was meant",
+                   "answered · The cap is binding on the menu.",
+                   "Resolution: Rich 2026-10-04: agreed",
+                   "None of these blocks the work above."):
+        assert needle in out, f"the concerns panel lost {needle!r}"
+
+    empty = _text(_render({"../data/delivery.json": dict(
+        feed, what_it_decided=dict(decided, for_the_director=[]))})
+        ["delivery-decided"]["innerHTML"])
+    assert "Nothing on this list is waiting on a human." in empty
+    assert "Proposal:" not in empty

@@ -46,7 +46,7 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 from background import direction as direction_mod
-from background import direction_path_check
+from background import direction_path_check, director_concerns
 from tools import maturity_map_store as map_store
 from tools import stretch_log as stretch_log_mod
 
@@ -136,7 +136,14 @@ WHAT TO PRODUCE: overwrite `docs/direction/DIRECTION.yaml` with exactly this sha
     wrong:            # What the machine got wrong this stretch. Empty list only if genuinely none.
       - what: <the error>
         corrected: true|false
-    for_the_director: []   # Almost always empty. See below.
+    for_the_director: # Concerns raised WITH A PROPOSAL; usually empty. See below.
+      - id: <stable kebab-case id; an open row from the brief keeps its id>
+        raised: "<ISO date it was first raised>"
+        kind: strategy|vision|canon_intent|reserved
+        what: <the concern, stated -- not asked>
+        proposal: <the change you propose, or "investigate: <what>">
+        status: open|answered|withdrawn
+        resolution: <empty while open; his words, dated, or why it was withdrawn>
 
 RULES ON THE CONTENT, and the record is refused if it breaks them:
 
@@ -151,11 +158,22 @@ RULES ON THE CONTENT, and the record is refused if it breaks them:
     with the evidence in `thesis_read`. An uncorrected error that silently stops being listed has
     not been fixed; it has been forgotten, and that is the failure this section exists to catch.
     A row with an empty `what`, or with `corrected` missing or non-boolean, is REFUSED outright.
-  * `for_the_director` is for what genuinely needs HIM: spending real money, contacting real
-    people, an irretractable public claim in the company's name, a real person's safety -- or a
-    genuine CHANGE OF DIRECTION that is his to make and not yours. Everything else is yours to
-    decide and record. Interrupting him with what you should have decided is a failure; so is
-    deciding something that was really a change of direction.
+  * `for_the_director` IS THE DIRECTOR'S CONCERNS LIST (2026-10-04): *"Escalate with a proposal,
+    and don't wait: concerns about strategy, vision or canon intent. Raise it, propose the change
+    or ask me to investigate, then carry on with everything else. An open question to me sits in a
+    list and never blocks the queue."* A row belongs here for the four reserved classes (real
+    money, real people, an irretractable public claim in the company's name, a real person's
+    safety) OR a concern about strategy, vision or canon intent -- and EVERY row carries a
+    `proposal`. A row with no proposal, no id or no status is REFUSED. Everything else is yours
+    to decide and record; interrupting him with what you should have decided is a failure.
+  * OPEN ROWS ARE CARRIED FORWARD VERBATIM. The brief hands you `previous_for_the_director`, the
+    open rows of the current record. Every one must appear in yours under the same `id`: still
+    `status: open` with `what` and `proposal` unchanged, or `answered`/`withdrawn` with a
+    `resolution` (his words, dated, or why). A record that drops or rewrites an open row is
+    REFUSED and the previous record is restored. A concern NEVER blocks the focus: keep working
+    everything else, and never put "waiting on the director" in focus. Raising a new one outside
+    an orientation: `python3 -m background.director_concerns --raise --kind <k> --what ...
+    --proposal ...`. He is paged once, for a row whose id is new.
   * GIVE EVERY FOCUS ITEM A `lane` unless its `id` is already an atom. Under a product-only tick
     mode the executor admits only items that can show they are product work, and an item whose
     prose names no atom, lane or path cannot -- on 2026-09-27 that was one of the director's own
@@ -1357,6 +1375,17 @@ def _drawn_never_landed(now: datetime) -> list[dict]:
     return delivery_lane.drawn_without_landing(now=now.timestamp())
 
 
+def _previous_concern_ids() -> list[str]:
+    """The concern ids the most recent ORIENTED decision row recorded -- the set a concern is
+    "new" against for paging. A legacy row stored bare strings and yields no ids, so a row open at
+    the first orientation after the shape changed is paged once, which is the honest reading."""
+    for row in direction_mod.read_decisions(limit=50):
+        if row.get("outcome") == "oriented":
+            return [str(r.get("id")) for r in row.get("for_the_director") or []
+                    if isinstance(r, dict) and r.get("id")]
+    return []
+
+
 def build_brief(now: datetime | None = None) -> dict:
     now = now or datetime.now(timezone.utc)
     since = stretch_since(now)
@@ -1444,6 +1473,13 @@ def build_brief(now: datetime | None = None) -> dict:
         # grade, and it is the same shape as `previous_focus_drawn`: the seat measures whether its
         # own last steer took, and now whether its own last errors were fixed.
         "previous_wrong": direction_mod.wrong_rows(previous),
+        # THE CONCERNS STILL WAITING ON THE DIRECTOR, handed back so the session CARRIES them
+        # rather than rewriting the list from memory -- the same shape as `previous_wrong`, and
+        # `orient` refuses a record that drops one. `concerns_unpaged` is the open ids the last
+        # ORIENTED row did not record, i.e. raised by the CLI since and not yet paged.
+        "previous_for_the_director": director_concerns.open_rows(director_concerns.read_raw()),
+        "concerns_unpaged": director_concerns.new_open_ids(
+            _previous_concern_ids(), director_concerns.read_raw()),
         "atoms_drawn": atoms_drawn_since(since),
         # THE WINDOW IS PASSED, NOT ASSUMED. This one is the STRETCH -- `focus_drawn_since(since)`
         # and nothing older -- while `lane_0_drawn_never_landed` above is a day of the draw
@@ -1526,6 +1562,10 @@ def is_material(brief: dict) -> tuple[bool, str]:
         return True, f"{len(brief['levels_moved'])} atom level(s) moved"
     if brief["director_inputs"]:
         return True, f"the director spoke: {', '.join(brief['director_inputs'][:3])}"
+    if brief.get("concerns_unpaged"):
+        return True, "{} concern(s) for the director raised since the last orientation and not " \
+            "yet paged: {}".format(len(brief["concerns_unpaged"]),
+                                   ", ".join(brief["concerns_unpaged"][:3]))
     findings = brief["findings"]
     if findings.get("blocking"):
         return True, f"{len(findings['blocking'])} BLOCKING finding(s) open"
@@ -1806,9 +1846,19 @@ def _prompt(brief: dict) -> str:
                     "DIED" if j["claim"] == "died" else j["claim"], j["job"], _when(j),
                     j["result"] or "?", j["exit_status"] or "?", j["log"] or "none")
                 for j in ended["jobs"]))
+    concerns = brief.get("previous_for_the_director") or []
+    carried = (
+        "\n\nTHE DIRECTOR'S OPEN CONCERNS -- CARRY EVERY ONE FORWARD under its id, verbatim and "
+        "still open, or answered/withdrawn with a resolution. Dropping or rewording one refuses "
+        "your record. None of them blocks your focus.\n\n"
+        + "\n".join("- [{}] {} ({}): {} -- proposal: {}".format(
+            r.get("status"), r.get("id"), r.get("kind") or "no kind", r.get("what"),
+            r.get("proposal")) for r in concerns)
+    ) if concerns else "\n\nNO OPEN CONCERNS are waiting on the director."
     return (
         CHARTER
         + graded
+        + carried
         + "\n\nTHE LAST STRETCH OF COMMITS, as a person would read them. `!!` marks a commit that "
           "CARRIED NO WORK -- either its tree is identical to one of its own parents, or its whole "
           "diff was the liveness surface and all it did was prove the machine was alive. A run of "
@@ -2090,6 +2140,14 @@ def orient(now: datetime | None = None, dry_run: bool = False) -> dict:
         return row
 
     before = direction_mod.read_direction()
+    # THE RAW RECORD AND ITS BYTES, read before the session can overwrite them: the carry check
+    # needs the open concerns the session was handed, and a refusal restores these bytes so a
+    # dropped concern is not lost to the overwrite and then read as "never raised" next stretch.
+    try:
+        before_bytes = direction_mod.DIRECTION_PATH.read_bytes()
+    except OSError:
+        before_bytes = None
+    before_raw = director_concerns.read_raw()
     try:
         from background import tick_mode
         tick_mode.note_spawn("delivery-seat")
@@ -2104,8 +2162,17 @@ def orient(now: datetime | None = None, dry_run: bool = False) -> dict:
         after_raw = None
     problems = direction_mod.validate(after_raw) if after_raw is not None else [
         "the session wrote no direction record"]
+    dropped = director_concerns.carry_problems(before_raw, after_raw) if after_raw is not None \
+        else []
+    problems = problems + dropped
 
     if problems:
+        if dropped and before_bytes is not None:
+            # RESTORED, because the file IS the list: leave the session's overwrite on disk and
+            # the next orientation reads a record with the concern already gone, carries nothing,
+            # and passes. This file is inside the seat's own write scope.
+            direction_mod.DIRECTION_PATH.write_bytes(before_bytes)
+            row["restored_previous_record"] = True
         # FAIL-CLOSED ON THE ARTEFACT, and this is the one place the seat does not fail soft: a
         # malformed direction record is not direction. The PREVIOUS record keeps steering (it is
         # untouched on disk unless the session overwrote it, and if it did the reader's own
@@ -2119,6 +2186,7 @@ def orient(now: datetime | None = None, dry_run: bool = False) -> dict:
         return row
 
     parsed = direction_mod.read_direction()
+    previous_ids = _previous_concern_ids()   # BEFORE this row is appended and becomes "previous"
     row.update({
         "outcome": "oriented",
         "why": why,
@@ -2135,7 +2203,11 @@ def orient(now: datetime | None = None, dry_run: bool = False) -> dict:
         # list of complaints, not an audit.
         "wrong": [{"what": r.get("what"), "corrected": bool(r.get("corrected"))}
                   for r in (parsed.wrong if parsed else ())],
-        "for_the_director": [r.get("what") for r in (parsed.for_the_director if parsed else ())],
+        # THE WHOLE ROW, NOT ITS `what` (2026-10-04): the id is what the next orientation pages
+        # against, and the status and resolution are the half of a concern the director reads.
+        "for_the_director": [
+            {k: r.get(k) for k in ("id", "kind", "what", "proposal", "status", "resolution")}
+            for r in (parsed.for_the_director if parsed else ())],
         "thesis_read": parsed.thesis_read if parsed else "",
         "out_of_scope_writes": out_of_scope_writes(),
         # THE RECORD IT JUST WROTE, GRADED BEFORE IT IS COMMITTED, and this is the leg the brief
@@ -2162,9 +2234,16 @@ def orient(now: datetime | None = None, dry_run: bool = False) -> dict:
         # and the id tell them which item to go and look at, which is the whole point of asking
         # the door before the record is filed rather than after it is drawn.
         _log("path check [{}] {}: {}".format(concern["class"], concern["id"], concern["says"]))
-    if row["for_the_director"]:
-        _notify("delivery seat: something is genuinely yours -- "
-                + "; ".join(row["for_the_director"][:2]), topic_class="decision_waiting")
+    # PAGED ONCE PER CONCERN, NOT ONCE PER STRETCH. Until 2026-10-04 this paged on every record
+    # whose list was non-empty, so a row carried forward -- which the carry check now REQUIRES --
+    # would have re-paged him every three hours until he answered.
+    fresh = director_concerns.new_open_ids(previous_ids, parsed.raw if parsed else None)
+    if fresh:
+        by_id = {r["id"]: r for r in row["for_the_director"]}
+        _notify("delivery seat: a concern for you, with a proposal -- " + "; ".join(
+            "[{}] {} -- proposal: {}".format(i, by_id[i]["what"], by_id[i]["proposal"])
+            for i in fresh[:2]), topic_class="decision_waiting")
+    row["concerns_paged"] = fresh
     return row
 
 

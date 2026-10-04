@@ -90,6 +90,39 @@ def test_record_level_up_self_certified_writes_honest_envelope_and_requires_evid
     assert len(G.read_ledger(led)) == 1  # only the valid entry was ever written
 
 
+def test_a_move_that_REACHES_THE_TARGET_needs_an_END_TO_END_clause(tmp_path):
+    """Defect: an atom reaching its target level is the milestone at which the director asked for
+    the end-to-end check (2026-10-04), and the one writer every level increase passes through
+    recorded it on any evidence at all -- so the check ran when someone remembered.
+
+    ONE CONTROL OVER THE PARTITION: below target with no clause RECORDS; at target with no clause,
+    or with an empty one, is REFUSED and writes nothing; at target with the clause RECORDS; and
+    past target is still a milestone.
+
+    MUTATION (must fire): drop the `level >= target` clause, or make `atom_level_target` return
+    None."""
+    led = tmp_path / "ledger.jsonl"
+    world = _world(tmp_path, {"H99_thing": "H_harness"}, {})
+    doc = yaml.safe_load(world["map_path"].read_text(encoding="utf-8"))
+    doc["atoms"][0]["level_target"] = 2
+    world["map_path"].write_text(yaml.safe_dump(doc), encoding="utf-8")
+    assert G.atom_level_target("H99_thing", map_path=world["map_path"]) == 2
+
+    G.record_level_up_self_certified("H99_thing", 1, "tests green", path=led, **world)
+    for bare in ("tests green", "tests green. End-to-end: "):
+        with pytest.raises(ValueError, match="END-TO-END CHECK"):
+            G.record_level_up_self_certified("H99_thing", 2, bare, path=led, **world)
+    assert len(G.read_ledger(led)) == 1, "a refused milestone still wrote a row"
+    G.record_level_up_self_certified(
+        "H99_thing", 2, "tests green. End-to-end: canon and findings agree; no concern raised",
+        path=led, **world)
+    with pytest.raises(ValueError, match="END-TO-END CHECK"):
+        G.record_level_up_self_certified("H99_thing", 3, "tests green", path=led, **world)
+    G.record_level_up_self_certified(
+        "H99_thing", 3, "end-to-end: re-read past target, nothing new", path=led, **world)
+    assert [e["level"] for e in G.read_ledger(led)] == [1, 2, 3]
+
+
 def test_record_level_correction_writes_an_honest_envelope_and_requires_evidence(tmp_path):
     led = tmp_path / "ledger.jsonl"
     G.record_level_correction_self_certified(

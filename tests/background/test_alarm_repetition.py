@@ -84,6 +84,28 @@ def test_escalate_files_a_finding_naming_the_alarm_and_its_count(tmp_path):
         "the document must state what IT can establish, not only what the caller reported")
 
 
+def test_a_repeating_alarm_asks_its_reader_for_the_END_TO_END_CHECK(tmp_path):
+    """Defect: a repeat failure is one of the director's three triggers for the end-to-end check
+    (2026-10-04), and the finding asked only for a diagnosis of the instance -- so the loop was
+    fixed where it alarmed, never asked whether the world, the maths or the frame was wrong.
+
+    The section arrives UNFILLED (so it reads as owed, not done) and BEFORE `## Still live`, whose
+    appenders key on that heading. A continuing condition's appended lines must not land inside it.
+
+    MUTATION (must fire): drop `{end_to_end}` from the body."""
+    from background.director_concerns import END_TO_END_HEADING, end_to_end_unfilled
+
+    p = ar.escalate(FAIL_252, key="k", repeats=3, first_ts=time.time(), staging_dir=tmp_path)
+    body = p.read_text(encoding="utf-8")
+    assert END_TO_END_HEADING in body and "world wrong" in body
+    assert body.index(END_TO_END_HEADING) < body.index("## Still live")
+    assert end_to_end_unfilled(body) == f"its `{END_TO_END_HEADING}` section is still only the template"
+    ar.escalate(FAIL_255, key="k", repeats=4, first_ts=time.time() - 86400 * 2,
+                staging_dir=tmp_path, now=time.time() + 86400)
+    assert end_to_end_unfilled(p.read_text(encoding="utf-8")) is not None, (
+        "a still-live line was appended INSIDE the end-to-end section and reads as the check done")
+
+
 def test_MUTATION_the_SAME_alarm_on_the_same_day_files_nothing_further(tmp_path):
     """The defect this remedy could most easily become. A process re-creating one finding
     hourly cost four manual clears on 2026-08-19; an escalation that filed per repetition
