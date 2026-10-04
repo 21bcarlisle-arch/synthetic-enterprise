@@ -2730,3 +2730,54 @@ published pellet index with a stated efficiency. Then grade the switch against i
 value (`docs/domain_artefact_library/regulatory/ro_obligation_and_buyout.json`). (2) Only if (1)
 holds: a Drax 2-4 rule as a supply curve around that cost, with its prediction written first. (3)
 Coal's short level, 2019's missing biomass unit, and coverage by year all stand. No level move.
+
+## 39. 2026-10-04 — WHAT LOCATES DRAX'S SWITCH: the published fuel cost grades only 2019, and in 2022 Drax names an opportunity cost instead
+
+§38's NEXT (1), the knowledge pass. Nothing shipped changed. Filed in the knowledge layer as
+`docs/market_research/drax_biomass_cost_and_the_ro_switch_2026-10-04.md`, which carries the sources
+and tables. Scratch, fetched documents and the timestamped prediction are in `/var/tmp/se-ep13-s39/`.
+
+**Prediction (23:16Z, before any cost or ROC figure was read).** H5 is §38's P5: the switch is fuel
+cost per MWh_e minus the ROC value. P5a: the switch lies within £20 of that in at least 4 of 5 years
+2020-24. P5b: the sourced fuel cost moves less than the switch's ~£100 rise from 2020 to 2022,
+because the pellets are under long-term contract, so P5a fails in 2022. P5c: the ROC value moves by
+less than £15 over 2020-24. P6 was added after reading Drax's FY2022 statement and before reading
+output: H2 minus H1 output in 2022 exceeds every other year's by at least 150 MW.
+
+**What is published.** Drax gives a biomass cost per MWh in only two places. One is c.£75-80 in 2019
+(Capital Markets Day). The other is a December 2022 forecast of "over £100/MWh" all-in for 2023.
+Every other year carries a $/t *production* cost FOB its own plants ($161 to $153 to $143), which
+excludes shipping, third-party fibre and FX, so it is not a cost per MWh generated. The ROC side has
+buy-out in the commons (£50.05 to £64.73 over OY2020-24). The recycle payment is not sourced, so
+buy-out is only a lower bound on what a ROC earns.
+
+**Graded.** P5a is **ungraded**. Fuel cost is published for none of 2020-24 except as 2023's
+"over £100", and with both bounds pointing the same way that gives no bound on the switch. 2019 is
+outside P5a's window. There, fuel minus buy-out is at most £26-31, and §38 found no day cheap enough
+to show a switch below the £20-30 bin. That is **consistent, not a test.** P5b is ungraded in £/MWh,
+but its alternative is now **stated by Drax**. The FY2022 results say it bought back first-half
+positions, reprofiled generation to the second half, and that the European spot price of biomass
+"created opportunities for the sale of biomass in addition to generation". In 2022 the pellet's
+resale or later-half value set the switch, not its contract cost. P5c **held narrowly on buy-out
+alone** (+£14.68). P6 is **refuted on its margin.** H2−H1 is +56 / −224 / +240 / **+306** / −84 / −11 MW,
+so 2022 is the largest, but only 66 MW above 2021, and a half-year split carries outage season and
+the price path.
+
+**What it means.** The switch §38 found cannot take its location from published data. Fuel cost is
+missing in five years of six, and in 2022 fuel cost is the wrong quantity even if it were known. A
+Drax 2-4 rule whose location is "fuel cost minus ROC" would carry an honest `None` in those years.
+§38's NEXT (2) was conditional on (1) holding, so it does not start. What remains buildable without
+a picked number is a rule whose location is an *observable the world already holds*. The
+reconstruction already uses FUELHH biomass output as an input. So a rule that dispatches the year's
+measured biomass energy against the day's MID, in the shape of §25's PS water-fill with the price
+ranking the days, needs no cost. Whether that is fair to the target is the question to settle
+before it is built.
+
+**Controls.** None. Nothing shipped changed.
+
+**Next.** (1) Decide, and write down before any arm, whether "the year's measured biomass energy,
+ranked across days by MID" is a fair reconstruction input under the independence test that
+`sim/neso_carbon_intensity.py` passes. MID is a market observable and is not NESO's output. If it is
+fair, build it as one variable with its prediction written first. (2) The ROC recycle value by year,
+from Ofgem's annual RO reports, closes the ROC side of the bound. (3) Coal's short level, 2019's
+missing biomass unit, and coverage by year all stand. No level move.
