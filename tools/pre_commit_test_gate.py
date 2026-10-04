@@ -957,6 +957,9 @@ DISCHARGE_SURFACE_TESTS = [
 CANON_SURFACE_FILES = (
     "CLAUDE.md",
     "docs/design/SURGICAL_LANDING.md",
+    # The operating model's published copy: an edit to it alone must meet the check that it still
+    # equals CLAUDE.md's section (`claude_md_integrity.operating_model_drift`).
+    "docs/operations/OPERATING_MODEL.md",
 )
 CANON_SURFACE_TESTS = [
     "tests/tools/test_interim_bypass_retirement.py",

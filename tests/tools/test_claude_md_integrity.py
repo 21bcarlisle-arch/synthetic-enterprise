@@ -536,3 +536,45 @@ def test_bytes_exceed_chars_on_the_real_file_and_the_limit_is_still_chars():
     assert integ.size_violations(text) == [], integ.size_report(text)
     assert n_chars <= integ.MAX_CHARS < n_bytes or n_bytes <= integ.MAX_CHARS, (
         "the file is over the limit in chars, which is a real breach and not a unit confusion")
+
+
+# ── the operating model's published copy (director, 2026-10-04) ──────────────────────────────
+
+_MODEL = ("# Rules\n\n## The operating model\n\n**Get on with:** knowledge.\n\n---\n\n## The walls\n")
+
+
+def test_the_published_operating_model_must_equal_claude_mds_section(tmp_path):
+    """Defect it names: the advisor's copy of the operating model drifting from the rulebook every
+    session loads, so an advisor and a seat steer by two different models."""
+    published = tmp_path / integ.PUBLISHED_OPERATING_MODEL
+    published.parent.mkdir(parents=True)
+    published.write_text(integ.render_operating_model(_MODEL), encoding="utf-8")
+    assert integ.operating_model_drift(_MODEL, tmp_path) == []
+    published.write_text(integ.render_operating_model(_MODEL) + "an edit to the copy alone\n",
+                         encoding="utf-8")
+    assert integ.operating_model_drift(_MODEL, tmp_path)
+    changed = _MODEL.replace("knowledge.", "knowledge and canon.")
+    published.write_text(integ.render_operating_model(_MODEL), encoding="utf-8")
+    assert integ.operating_model_drift(changed, tmp_path)
+
+
+def test_a_missing_section_or_missing_copy_is_named(tmp_path):
+    assert integ.operating_model_drift("# Rules\n\n## The walls\n", tmp_path)
+    assert integ.operating_model_drift(_MODEL, tmp_path)
+
+
+def test_the_section_stops_at_its_rule_and_takes_nothing_after_it():
+    section = integ.operating_model_section(_MODEL)
+    assert "knowledge" in section and "The walls" not in section
+
+
+def test_the_real_operating_model_is_published_and_current():
+    text = (integ.PROJECT_DIR / "CLAUDE.md").read_text(encoding="utf-8")
+    assert integ.operating_model_drift(text) == []
+
+
+def test_the_full_check_reports_operating_model_drift(tmp_path):
+    """Through `check()`, the entry point the gate and the health check run: a drift test that only
+    calls the helper stays green when the helper is unwired."""
+    problems = integ.check(_MODEL, tmp_path)
+    assert any(str(integ.PUBLISHED_OPERATING_MODEL) in p for p in problems)
