@@ -91,8 +91,17 @@ def test_a_shared_record_this_checkouts_schema_refuses_still_names_its_orientati
     The control below it keeps the fallback from answering for a file it cannot parse at all."""
     main, worktree = _trees(tmp_path)
     shared = main / "docs" / "direction" / "DIRECTION.yaml"
-    lines = [ln for ln in shared.read_text(encoding="utf-8").splitlines()
-             if not ln.startswith("for_the_director:")]
+    # Drop the WHOLE `for_the_director` block, not only its key line: with a concern on the list the
+    # block spans indented rows, and leaving them would test a malformed file rather than an old row.
+    lines, in_block = [], False
+    for ln in shared.read_text(encoding="utf-8").splitlines():
+        if ln.startswith("for_the_director:"):
+            in_block = True
+            continue
+        if in_block and (ln.startswith((" ", "-")) or not ln.strip()):
+            continue
+        in_block = False
+        lines.append(ln)
     shared.write_text("\n".join(lines) + "\nfor_the_director:\n  - what: a row the schema refuses\n",
                       encoding="utf-8")
     assert delivery_lane.direction_mod.read_direction(shared) is None   # the schema does refuse it
