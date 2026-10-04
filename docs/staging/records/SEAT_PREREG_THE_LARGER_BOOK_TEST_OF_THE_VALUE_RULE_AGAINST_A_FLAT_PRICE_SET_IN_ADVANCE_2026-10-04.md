@@ -320,6 +320,34 @@ Predictions:
   split is the company's commons read on its own: the reverted world with the v2 commons fed to
   `market_conditions` only.
 
+#### The attribution check, default path: the refit carries all of it (21:17Z)
+
+The default pass ran 20:50-21:17Z (27 min). **Peak RSS was 5,225 MB, which is 125 MB over the declared
+5,100.** It was scored with `/var/tmp/se-probe-out/attr_grade.py`, which is `stage_a_grade.py`
+re-pointed at `probe_attr_*.json`, using the Stage A base's `ex_ante_scores`.
+
+| default path | E-true levels 2018/19/20/21/24/25 | E-belief levels | harder chooser | capped − chooser | SD | SNR | per decision |
+|---|---|---|---|---|---|---|---|
+| old base `4bf859f0b` | 95/30/30/45/45/45 | 60/60/60/55/55/55 | E-belief | +528 / 57 | 226 | 2.34 | 9.27 |
+| **new code, refit reverted** | 95/30/30/45/45/45 | 60/60/60/55/55/55 | E-belief | **+528.15 / 57** | 225.8 | 2.34 | **9.27** |
+| Stage A base `0859ac1a3` | 95/30/30/30/40/40 | 50/40/25/50/55/55 | E-true | +767 / 58 | 252 | 3.05 | 13.22 |
+
+**On the default path the whole rise is the refit.** The new code with the pre-refit world
+reproduces the old figure to the penny. The rows are not identical. On 44 of 83 rows the code
+moves `believed_p_retain_value` (e.g. 0.3801 → 0.3735) and the uncapped `value` offer and its
+`true_p_retain`. None of that reaches `value_capped` or the level, which are what the score
+compares. **So the 95 commits of company and world-mechanics code are inert on this comparison,
+and the departure world is what made the flat chooser's job harder.**
+
+Against the predictions:
+- **P1 HELD:** 9.27, below 11.2.
+- **P2 FAILED, and its premise was wrong.** E-true's 2018 level is 95 here, and it was 95 on the
+  default path before the refit too. The "15/55 → 95/30 on three paths" in the paragraph above
+  describes the roll-seed paths. The default path's change is in the later years: E-true
+  45 → 30/40 and E-belief 60 → 25-50.
+- **P3 is pending** the three roll-seed passes (61001 started 21:17Z, ≈22:40Z for all three).
+  Most of the pooled 3.2 → 7.7 sits on those paths.
+
 ### E1-E5, re-graded against the record this follows (harder chooser read as there)
 
 | | pre-refit (`4bf859f0b`) | refitted (`0859ac1a3`) |
