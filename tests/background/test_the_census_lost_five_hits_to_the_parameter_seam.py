@@ -259,7 +259,8 @@ def _claim_over(raw, tmp_path):
     OTHER lanes' claims where the state is readable. Returns (store_after, sidecars).
 
     The store gets its OWN directory: `tmp_path` itself carries other fixtures' files, and
-    listing it whole once made this read three unrelated names as preserved copies."""
+    listing it whole once made this read three unrelated names as preserved copies. The store's
+    own `.lock` (the claim-store flock, since `2d3b87a6b`) is the writer's, not a preserved copy."""
     d = tmp_path / "claims_store"
     d.mkdir()
     p = d / "claims.json"
@@ -267,7 +268,8 @@ def _claim_over(raw, tmp_path):
         p.write_text(raw)
     swh.claim("mine", "new work", ["z.py"], path=p, now=9000.0)
     return json.loads(p.read_text()), sorted(q.name for q in d.iterdir()
-                                             if q.name != "claims.json")
+                                             if q.name not in ("claims.json",
+                                                               "claims.json.lock"))
 
 
 def test_a_readable_store_keeps_every_other_lanes_claim(tmp_path):

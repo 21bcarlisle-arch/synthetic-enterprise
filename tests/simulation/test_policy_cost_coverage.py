@@ -133,7 +133,11 @@ def _note(window=("2016-01-31", "2025-06-07")):
 def test_the_note_reaches_the_published_report():
     note = _note()
     assert "EXTRAPOLATED RATES" in note
-    assert "13 of 13" in note
+    # The count is the census's, not a literal: "13 of 13" was true until 2025 rows were tabled
+    # (`6f5bb8b68`) and then red for a note that had become MORE accurate.
+    report = pc.coverage_report("2016-01-31", "2025-06-07")
+    assert 0 < report["extrapolated_count"] <= report["table_count"]
+    assert f"{report['extrapolated_count']} of {report['table_count']}" in note
     assert "2025-04-01" in note and "2025-01-01" in note
     # It states the limitation without claiming the numbers are wrong -- the finding graded this
     # LATENT precisely because it establishes the former and not the latter.

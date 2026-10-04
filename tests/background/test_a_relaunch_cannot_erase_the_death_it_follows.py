@@ -100,12 +100,14 @@ def _rows(records: Path, job="a-long-run") -> list:
 def _launch(records, runner, *, job="a-long-run", **over):
     """Drive the real `launch()` through a fake runner, with the two unpatchable externals stubbed.
 
-    `systemd-run` on PATH and the detach verification are not this suite's subject -- the
-    neighbouring `test_launch_long_job.py` owns both -- but `launch()` refuses outright without
-    them, so a test of the settling could not reach the settling at all.
+    `systemd-run` on PATH, the detach verification and the memory admission are not this suite's
+    subject -- the neighbouring `test_launch_long_job.py` owns all three -- but `launch()` refuses
+    outright without them, so a test of the settling could not reach the settling at all. The
+    admission is satisfied the way that suite does it: a declared peak on an empty box.
     """
     kw = dict(artefact="/var/tmp/artefact.json", records_path=records, runner=runner,
-              out=open("/dev/null", "w"))  # noqa: SIM115 -- closed by the interpreter; not a leak
+              out=open("/dev/null", "w"),  # noqa: SIM115 -- closed by the interpreter; not a leak
+              peak_mb=1000, residents=lambda: [], guest_total_mb=24000)
     kw.update(over)
     return llj.launch(job, ["/bin/true"], **kw)
 
