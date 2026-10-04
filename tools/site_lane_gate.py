@@ -45,6 +45,10 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
+if str(ROOT) not in sys.path:  # run as `python3 tools/site_lane_gate.py`, sys.path[0] is tools/
+    sys.path.insert(0, str(ROOT))
+
+from tools.pre_commit_test_gate import MERGE_PARENT_ENV, selection_paths  # noqa: E402
 
 SITE_DATA_PREFIX = "site/data/"
 SITE_PREFIX = "site/"
@@ -122,12 +126,20 @@ def _gitless_env(env: dict) -> dict:
     """Strip every GIT_* key -- same H24 hazard as `pre_commit_test_gate.py`: during a `git commit`
     the hook inherits GIT_INDEX_FILE/GIT_DIR/GIT_WORK_TREE pointing at the in-progress commit; a
     subprocess obeying them can corrupt the real index. Site tests spawn a node harness; scrubbing
-    keeps any stray git invocation off the commit's index."""
-    return {k: v for k, v in env.items() if not k.startswith("GIT_")}
+    keeps any stray git invocation off the commit's index. The merge token goes with them, for the
+    test gate's reason: inherited, it would narrow selection inside any test that calls a gate's
+    `main()` while a merge is being gated, and nowhere else."""
+    return {k: v for k, v in env.items() if not k.startswith("GIT_") and k != MERGE_PARENT_ENV}
 
 
 def main() -> int:
-    mode, targets = plan(staged_files())
+    # A merge is selected by its combined diff, exactly as the test gate selects it: a base
+    # advance that brought in someone else's site/** or generate_*_data change re-ran `pytest
+    # site/` (~150 s) on work already gated on origin. Same function, so the lanes cannot drift.
+    selected, why = selection_paths(staged_files(), ROOT, label="site-lane")
+    if why:
+        print(why)
+    mode, targets = plan(selected)
     if mode is None:
         return 0  # no site-relevant change -- the site lane has nothing to guard
 
