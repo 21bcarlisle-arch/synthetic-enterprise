@@ -411,6 +411,12 @@ class SeamAdapterInput:
     #: `NONE`, so every existing caller and every committed run is bit-identical
     #: -- see `TransportFault` for why this is caller-driven rather than drawn.
     transport_fault: TransportFault = TransportFault.NONE
+    #: The reference the payer quotes on a remittance, when it is not the crossing's own id. None
+    #: (the default) means the id itself, which is every crossing but one: a later settlement of a
+    #: failed bill (2026-10-04) is a NEW crossing, so it needs its own id, while the D8 shadow's copy
+    #: of it must still quote the invoice -- and the consumer drops a second OK on an id already
+    #: resolved, so one field cannot carry both.
+    bank_reference: Optional[str] = None
 
 
 def _map_event_to_responses(
@@ -441,7 +447,7 @@ def _map_event_to_responses(
     if event.result == "success":
         value_date = date.fromisoformat(event.payment_date) if event.payment_date else due
         payload = RemittanceAdvice(
-            bank_reference=correlation_id,
+            bank_reference=seam_input.bank_reference or correlation_id,
             account_id=account_id,
             amount_gbp=event.amount_gbp,
             rail=rail,

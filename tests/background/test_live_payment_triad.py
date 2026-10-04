@@ -550,8 +550,13 @@ def test_R15_MUTANT_an_unexercised_channel_reports_undefined_not_zero(monkeypatc
     """MUTATION: an all-Direct-Debit population. Every credit already carries its
     invoice reference, so the shadow company IS the company and every delta is
     trivially 0.0. Publishing 0.0 would claim the channel was measured and found
-    harmless. It must say undefined instead (the D7 vacuity rule)."""
+    harmless. It must say undefined instead (the D7 vacuity rule).
+
+    Since 2026-10-04 a failed bill can be paid off later, and that cash is a push payment with no
+    invoice reference even for a DD household, so "every credit referenced" now also needs the
+    later settlements switched off."""
     monkeypatch.setattr(lpt, "generate_payment_method", lambda cid, fuel=None: "direct_debit")
+    monkeypatch.setattr(lpt, "later_settlement_date", lambda *a, **k: None)
     attr = _build_triad().measure()["remittance_attribution"]
 
     assert attr["n_ambiguous_credits"] == 0
@@ -1683,7 +1688,12 @@ def test_q3_EVERY_PUBLISHED_FIGURE_IS_UNCHANGED_BY_THE_NEW_LEGS():
     RE-PINNED 2026-10-03 FOR A WORLD CHANGE, NOT A LEG. The triad's payment method moved onto the
     seam's draw (world_identity.payment_methods 8a105ad7c9346758 -> 86560148d7db82b7), which changes
     which of these customers pay by direct debit. Under the old draw this test still reproduces pass
-    43's values exactly (0.1181818182 / 2.135447 / 0.1470588235 / 0.2666666667 / 0.2469740634)."""
+    43's values exactly (0.1181818182 / 2.135447 / 0.1470588235 / 0.2666666667 / 0.2469740634).
+
+    RE-PINNED 2026-10-04 FOR A SECOND WORLD CHANGE: a failed bill can now be paid off later, and the
+    cash crosses unreferenced and is allocated oldest-first, which moves ONLY the ageing gap
+    (0.221037464 -> 0.2954225352). With later settlement switched off this test reproduces the
+    2026-10-03 values exactly -- the second assertion block below holds that."""
     triad = _build_triad()
     result = triad.measure()
     assert result is not None
@@ -1691,7 +1701,12 @@ def test_q3_EVERY_PUBLISHED_FIGURE_IS_UNCHANGED_BY_THE_NEW_LEGS():
     assert round(result["detection_latency"].gap, 6) == 1.907781
     assert round(result["belief"].gap, 10) == 0.1176470588
     assert round(result["belief_population_mix"].gap, 10) == 0.2133333333
-    assert round(result["ageing"].gap, 10) == 0.221037464
+    assert round(result["ageing"].gap, 10) == 0.2954225352
+
+    with pytest.MonkeyPatch.context() as mp:
+        mp.setattr(lpt, "later_settlement_date", lambda *a, **k: None)
+        before = _build_triad().measure()
+    assert round(before["ageing"].gap, 10) == 0.221037464
 
 
 def test_q3_A_COLLECTION_THE_WORLD_NEVER_ANSWERS_IS_NOW_VISIBLE_AS_AN_OPEN_EXCHANGE(

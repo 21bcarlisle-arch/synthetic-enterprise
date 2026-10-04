@@ -19,6 +19,7 @@ from simulation.debt_objection import (
     unblocked_tail_roll,
 )
 from simulation.payment_behaviour_source import CARD, DIRECT_DEBIT, PREPAYMENT
+from simulation.segment_vocabulary import is_business
 from simulation.settlement import CONTRACT_LENGTH_DAYS
 
 _PROJECT = Path(__file__).resolve().parents[2]
@@ -49,9 +50,11 @@ def _pair(cid: str, eligible):
 class _Rec:
     """The triad's `PeriodRecord` shape, for the fields the book reads."""
 
-    def __init__(self, customer_id, due_date, result, payment_method, days_late=0):
+    def __init__(self, customer_id, due_date, result, payment_method, days_late=0,
+                 settled_on=None):
         self.customer_id, self.due_date, self.result = customer_id, due_date, result
         self.payment_method, self.days_late = payment_method, days_late
+        self.settled_on = settled_on
 
 
 def test_the_blocked_share_is_ofgems_ratio_and_the_cited_file_carries_both_counts():
@@ -136,19 +139,65 @@ def test_the_book_holds_a_credit_meter_debt_28_days_past_due_and_never_a_prepaym
     assert book.owes_objectionable_debt("H6", day_30)
 
 
+def test_a_later_settlement_ends_the_debt_on_its_date_and_an_unsettled_debt_never_ends():
+    """Defect: a failed bill was never paid afterwards in the world's truth, so one missed bill
+    made a household objectionable for the rest of the run (56% of renewals on a full run)."""
+    due = date(2018, 3, 15)
+    paid = due + timedelta(days=120)
+    book = WorldDebtBook([_Rec("H1", due, "failed", DIRECT_DEBIT, settled_on=paid),
+                          _Rec("H2", due, "failed", CARD)])
+    assert book.owes_objectionable_debt("H1", due + timedelta(days=30))
+    assert book.owes_objectionable_debt("H1", paid - timedelta(days=1))
+    assert not book.owes_objectionable_debt("H1", paid)  # the cure is read
+    assert book.owes_objectionable_debt("H2", due + timedelta(days=3650))  # the non-payer stays
+
+
 @pytest.fixture(scope="module")
 def _live_run():
+    import background.live_payment_triad as lpt
     from simulation.run_phase2b import main as run_phase2b
 
-    return run_phase2b(report_end="2017-06-30")
+    captured, segments = [], {}
+    original, original_record = lpt.LivePaymentTriad.__init__, lpt.LivePaymentTriad.record_period
+
+    def _capture(self, *a, **k):
+        original(self, *a, **k)
+        captured.append(self)
+
+    def _record(self, **k):
+        segments[(k["customer_id"], k["due_date"])] = k.get("segment", "resi")
+        return original_record(self, **k)
+
+    mp = pytest.MonkeyPatch()
+    mp.setattr(lpt.LivePaymentTriad, "__init__", _capture)
+    mp.setattr(lpt.LivePaymentTriad, "record_period", _record)
+    try:
+        result = run_phase2b(report_end="2017-06-30")
+    finally:
+        mp.undo()
+    result["_triad_records"] = list(captured[-1].records)
+    result["_triad_segments"] = segments
+    return result
 
 
 def test_a_live_run_holds_an_indebted_credit_household_at_a_renewal(_live_run):
     """The rare branch is takeable in the real world: the first window with a renewal by a
     household the triad's own truth says owes debt 28 days past due (8 of 15 renewals here,
-    2026-10-03)."""
+    2026-10-03; 6 of 15 once a failed bill could be paid off later, 2026-10-04)."""
     rolled = [e for e in _live_run["customer_events"] if "debt_objection_eligible" in e]
     assert rolled, "no renewal was rolled, so this proves nothing"
     eligible = [e for e in rolled if e["debt_objection_eligible"]]
     assert eligible
     assert len(eligible) < len(rolled)
+
+
+def test_a_live_run_cures_some_unpaid_bills_and_leaves_others_unpaid(_live_run):
+    """The rare branches are takeable in the real world: on the run's own records at least one
+    failed bill is paid off later and at least one never is."""
+    segments = _live_run["_triad_segments"]
+    failed = [r for r in _live_run["_triad_records"] if r.result == "failed"
+              and not is_business(segments[(r.customer_id, r.due_date)])]
+    cured = [r for r in failed if r.settled_on is not None]
+    never = [r for r in failed if r.settled_on is None]
+    assert cured and never, (len(cured), len(never))
+    assert all(r.settled_on > r.due_date + timedelta(days=28) for r in cured)
