@@ -2633,3 +2633,38 @@ its ROC units, Lynemouth, the others), from published scheme registers and annua
 rule that flexes only the ROC share, written and predicted before it is graded. (2) Coal's short
 level: split the merit order's coal band against FUELHH coal by decile. (3) Coverage by year. No
 level move: the shipped swing is still too wide in every year, a one-sided error.
+
+## 37. 2026-10-04 — THE BIOMASS FLEET BY SUPPORT SCHEME: Drax's RO units carry the calm-day excess, and the scheme is not the mechanism
+
+§36's NEXT (1), a knowledge pass. Nothing shipped changed. Sourced and tabled in
+`docs/market_research/gb_biomass_fleet_by_support_scheme_2026-10-04.md`. Per-unit Elexon B1610
+pull, the prediction (filed before the pull) and the outputs are in `/var/tmp/se-ep13-s37/scratch/`.
+
+**The fleet.** Drax 1 is on a CfD (from 2016-12-21). Drax 2-4 are on the RO (4 from Aug 2018),
+about 1,975 MW. Lynemouth (420 MW) and Tees REP (285 MW, from 2023) are on CfDs. Wilton and Rothes
+are small. Together they are 0.90-0.98 of FUELHH BIOMASS's mean.
+
+**§36's premise was wrong.** "A CfD plant runs on availability" is not what the contract says. The
+biomass CfDs settle against a season-ahead baseload reference price. So a CfD unit, like an RO unit,
+earns the day's price plus a constant, and both can flex. Above the strike, the CfD constant is
+negative. Drax held unit 1 back in 2022-23 (mean 440 -> 260 -> 129 MW).
+
+**Measured (pre-registered P1-P5: 1 held, 4 refuted).** On year deciles, Drax 2-4 carry 0.86-1.33 of
+the metered calm-day gap in 2020 and 2022-24, but about 0 in 2019 and 0.22 in 2021. On post-hoc
+within-quarter deciles (calm days cluster in the summer outage season), Drax 2-4 carry **0.39 / 0.89
+/ 0.57 / 0.85 / 0.86 / 0.96** (2019-24). Lynemouth is about 0 in every year. Drax 1 is small,
+except 2021 (+220 MW). In 2019 the listed units miss most of the metered gap. That unit is not
+established.
+
+**What it means for the rule.** Flexing only the RO share is the right population, but not a
+complete rule. Their capacity is flat at about 1,975 MW, while their within-season gradient runs
+177-945 MW by year. A rule bounded by capacity alone gives roughly the same gradient every year, and
+the real one varies fivefold. What sets the size (the clean-spark-to-biomass spread, the ROC cap,
+pellet supply) is a knowledge item. It is not a slope to fit.
+
+**Controls.** None. The feed is byte-identical.
+
+**Next.** (1) Measure what sets the RO units' flex by year. The candidate is the day's price
+against a biomass marginal cost net of ROC value, from published pellet prices and ROC buy-out.
+Then build a rule that flexes only Drax 2-4 when that spread is negative, with a prediction written
+first. (2) Coal's short level (§36 NEXT 2). (3) 2019's missing biomass unit. No level move.
