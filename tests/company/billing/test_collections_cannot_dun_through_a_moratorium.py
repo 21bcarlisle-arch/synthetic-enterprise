@@ -97,7 +97,7 @@ def _ignores_the_moratorium(items, segment, *, moratorium_active):
 
 def _holds_only_the_enforcement_end(items, segment, *, moratorium_active):
     # MUTATION: the narrow reading -- hold final notices and agency steps, keep sending reminders.
-    # Reg 7(7)(a) forbids "a step to collect", so the day-0 reminder is an offence too.
+    # Reg 7(7)(a) forbids "a step to collect", so the first reminder is an offence too.
     worst, step = _ignores_the_moratorium(items, segment, moratorium_active=moratorium_active)
     if step is not None and moratorium_active and step.trigger_days_overdue >= 56:
         return worst, MORATORIUM_HOLD
@@ -118,7 +118,7 @@ def _holds_an_account_that_owes_nothing(items, segment, *, moratorium_active):
 
 @pytest.mark.parametrize("selector,said", [
     (_ignores_the_moratorium, "reg 7(7)(a)"),
-    (_holds_only_the_enforcement_end, "0 days overdue"),
+    (_holds_only_the_enforcement_end, "7 days overdue"),
     (_holds_everything, "cannot collect at all"),
     (_holds_an_account_that_owes_nothing, "owing nothing"),
 ])

@@ -8,6 +8,10 @@ import math
 
 
 class PaymentPlanStatus(str, Enum):
+    # Offered by the company and not (yet) agreed. An offer is a fact the company holds; agreement
+    # is the household's act, and until something tells the company the household agreed, an
+    # offered plan is never ACTIVE (atom EP4: the arrangement exit is a world answer).
+    OFFERED = "offered"
     ACTIVE = "active"
     COMPLETED = "completed"
     DEFAULTED = "defaulted"
@@ -22,7 +26,9 @@ class PaymentPlan:
     plan_id: int
     customer_id: str
     original_debt_gbp: float
-    installment_gbp: float       # monthly agreed amount
+    # Monthly agreed amount. None on an OFFERED plan: SLC 27.8 sets it from the household's ability
+    # to pay, which the company learns only in the affordability conversation an offer opens.
+    installment_gbp: Optional[float]
     start_date: date
     status: PaymentPlanStatus = PaymentPlanStatus.ACTIVE
     payments_made: int = 0
@@ -30,7 +36,9 @@ class PaymentPlan:
     missed_payments: int = 0
 
     @property
-    def expected_months(self) -> int:
+    def expected_months(self) -> Optional[int]:
+        if self.installment_gbp is None:
+            return None
         return math.ceil(self.original_debt_gbp / self.installment_gbp)
 
     @property
@@ -66,6 +74,27 @@ class PaymentPlanBook:
         self._plans.append(plan)
         self._next_id += 1
         return plan
+
+    def offer_plan(self, customer_id: str, debt_gbp: float, offered_on: date) -> PaymentPlan:
+        """Record that the company OFFERED an arrangement against `debt_gbp` on `offered_on`.
+
+        The instalment is left None and the status OFFERED: what the household can afford, and
+        whether it agrees, are its answers, not the company's (SLC 27.8). Nothing here may promote
+        an offer to ACTIVE; an agreement must arrive as a fact from outside the company."""
+        plan = PaymentPlan(
+            plan_id=self._next_id,
+            customer_id=customer_id,
+            original_debt_gbp=debt_gbp,
+            installment_gbp=None,
+            start_date=offered_on,
+            status=PaymentPlanStatus.OFFERED,
+        )
+        self._plans.append(plan)
+        self._next_id += 1
+        return plan
+
+    def offered_plans(self) -> List[PaymentPlan]:
+        return [p for p in self._plans if p.status == PaymentPlanStatus.OFFERED]
 
     def record_payment(self, plan_id: int, payment_date: date) -> bool:
         """Record a successful installment. Returns False if plan not found."""
@@ -109,11 +138,12 @@ class PaymentPlanBook:
         n = len(self._plans)
         if n == 0:
             return {
-                "total_plans": 0, "active": 0, "completed": 0,
+                "total_plans": 0, "offered": 0, "active": 0, "completed": 0,
                 "defaulted": 0, "cancelled": 0, "avg_original_debt_gbp": 0.0
             }
         return {
             "total_plans": n,
+            "offered": sum(1 for p in self._plans if p.status == PaymentPlanStatus.OFFERED),
             "active": sum(1 for p in self._plans if p.status == PaymentPlanStatus.ACTIVE),
             "completed": sum(1 for p in self._plans if p.status == PaymentPlanStatus.COMPLETED),
             "defaulted": sum(1 for p in self._plans if p.status == PaymentPlanStatus.DEFAULTED),
