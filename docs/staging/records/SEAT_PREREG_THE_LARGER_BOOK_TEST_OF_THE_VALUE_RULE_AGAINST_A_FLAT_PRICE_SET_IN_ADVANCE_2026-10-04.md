@@ -144,11 +144,14 @@ below names the commit.
    - `tools/decision_probe` has a `--book-seed` argument that refuses through the same check
      `run_value_cycle_ab.book_seed_authorisation_refusal` makes.
 
-   **That argument does not exist today.** Building it is the next increment of this item. One
-   constraint has to be named before anyone tries it: `run_value_cycle_ab` imports
-   `run_phase4c_on_phase2b` at module scope, which fixes the book at import. So the refusal must be
-   lifted into a module that assembles no book, or the probe must check it in a parent before
-   spawning the member. Otherwise importing the check freezes the default book before the rebind.
+   **The argument exists (2026-10-04).** `python3 -m tools.decision_probe --book-seed N` asks
+   `tools.book_seed_authorisation.book_seed_authorisation_refusal`, the A/B's own check lifted into
+   a module that assembles no book (`run_value_cycle_ab` now delegates to it), then rebinds
+   `live_population._DEFAULT_BASE_SEED` before `probe()` imports `simulation.run_phase2b`. It
+   refuses if that module is already imported, and refuses after the run if `_RUN_BASE_SEED` is
+   not the seed asked for. Run today with 61101 it refuses, naming the absent record. Control:
+   `tests/tools/test_the_decision_probe_takes_a_book_seed_only_with_the_directors_record.py`,
+   refused and admitted in one test. So condition 3 now waits only on his record.
 
 ### Stage A launch attempt, 2026-10-04 11:52Z: premise_not_yet_ripe, nothing launched
 

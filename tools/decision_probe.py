@@ -476,6 +476,43 @@ def capped_scores(rows: list[dict]) -> dict:
             "capped_vs_level": score(levelled, a="value_capped", b="level")}
 
 
+def book_seed_refusal(seed: int | None) -> str | None:
+    """Why `--book-seed` may not run, or None after rebinding the book to it.
+
+    A non-default book is `EP17_varied_population_draw`, the director's, so it takes the A/B's
+    own check, asked from `tools.book_seed_authorisation` because that module assembles no book.
+    `simulation.run_phase2b` draws the book at import; this module imports it only inside
+    `probe()`, so the rebind here lands first. If something has already imported it, the book
+    is fixed and the seed would be silently ignored, so that refuses too.
+    """
+    if seed is None:
+        return None
+    import sys
+
+    from tools.book_seed_authorisation import book_seed_authorisation_refusal, default_book_seed
+    refusal = book_seed_authorisation_refusal([seed])
+    if refusal:
+        return refusal
+    if seed != default_book_seed() and "simulation.run_phase2b" in sys.modules:
+        return ("book seed {}: simulation.run_phase2b is already imported in this process, so "
+                "its book is drawn and a rebind now would be ignored".format(seed))
+    import simulation.live_population as lp
+    lp._DEFAULT_BASE_SEED = seed
+    return None
+
+
+def book_seed_drawn_refusal(seed: int | None) -> str | None:
+    """Why the run did not draw the book it was asked for, or None. Read the RECORDED seed:
+    after the rebind, `run_base_seed()` would fall back to the rebound default and agree."""
+    if seed is None:
+        return None
+    import simulation.live_population as lp
+    if lp._RUN_BASE_SEED != seed:
+        return "book seed {}: the run recorded _RUN_BASE_SEED = {!r}".format(
+            seed, lp._RUN_BASE_SEED)
+    return None
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--end-year")
@@ -484,8 +521,14 @@ def main(argv=None) -> int:
                     help="the SPINE_1 world a run past the record lives through, e.g. neso_central")
     ap.add_argument("--roll-seed", type=int, default=None,
                     help="re-draw every renewal's dice at this seed (same book, different path)")
+    ap.add_argument("--book-seed", type=int, default=None,
+                    help="draw the book at this base seed (EP17; refused without his record)")
     args = ap.parse_args(argv)
     report_end = f"{args.end_year}-12-31" if args.end_year else None
+    refusal = book_seed_refusal(args.book_seed)
+    if refusal:
+        print(f"REFUSED: {refusal}")
+        return 2
     if args.world:
         # PAST THE RECORD, inside one named world, as the A/B does with --world: every rule and
         # every re-asked roll reads the same forward prices and analogue-year weather.
@@ -497,9 +540,14 @@ def main(argv=None) -> int:
             rows = probe(report_end, roll_seed=args.roll_seed)
     else:
         rows = probe(report_end, roll_seed=args.roll_seed)
+    refusal = book_seed_drawn_refusal(args.book_seed)
+    if refusal:
+        print(f"REFUSED: {refusal}")
+        return 2
     level = value_median_margin(rows)
     levelled = with_level(rows, level) if level is not None else []
-    result = {"rows": rows, "value_median_margin_gbp_per_mwh": level,
+    result = {"rows": rows, "book_seed": args.book_seed,
+              "value_median_margin_gbp_per_mwh": level,
               "score_value_vs_flat": {
                   "margin_only": score(rows, bad_debt=False),
                   "with_bad_debt": score(rows),
