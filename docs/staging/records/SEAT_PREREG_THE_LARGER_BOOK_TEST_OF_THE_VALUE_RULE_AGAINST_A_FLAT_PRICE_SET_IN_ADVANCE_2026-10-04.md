@@ -224,3 +224,96 @@ that cleared, the default, is one of four draws of the same households. Whether 
 average is a question about books like this one. It can be asked only across books, and the cast of
 books is the director's to grant. The ask, priced at 7.2 box-hours with the Stage A re-take first,
 is raised on `for_the_director`.
+
+## Stage A grading (2026-10-04, 16:50Z, item `grade-stage-a-of-the-larger-book-test`)
+
+**Base:** origin `0859ac1a3` (contains the refit b9ede156f and ba320e2d2). The run is the command
+above, unchanged: four serial passes, `ALL DONE 15:59:08Z`. Scored offline with that base's
+`tools.decision_probe.ex_ante_scores`. Scripts and raw output are in
+`/var/tmp/se-probe-out/stage_a_{grade,split}.{py,txt}` (the power script's method, re-pointed at
+`probe_qep_*.json`).
+
+**Memory and time.** The peak RSS was 4,882 / 4,846 / 4,739 / 4,951 MB (default, 61001, 61002,
+61003). **All four peaks were under the declared 5,100 MB.** Wall times were 28-30 min a pass,
+against 36 declared.
+
+### Levels chosen, GBP/MWh
+
+| path | hindsight | E-true 2018 / 19 / 20 / 21 / 24 / 25 | E-belief by year |
+|---|---|---|---|
+| default | 45 | 95 / 30 / 30 / 30 / 40 / 40 | 50 / 40 / 25 / 50 / 55 / 55 |
+| 61001 | 45 | 95 / 30 / 35 / 40 / 45 / 45 | 50 / 45 / 40 / 50 / 50 / 50 |
+| 61002 | 55 | 95 / 30 / 30 / 50 / 50 / 50 | 50 / 45 / 40 / 50 / 50 / 50 |
+| 61003 | 50 | 95 / 30 / 30 / 35 / 50 / 50 | 50 / 40 / 30 / 50 / 55 / 55 |
+
+### Scores: capped value rule minus the flat level, term basis, 2018-2025, GBP (SNR)
+
+| path | n | − E-true | − E-belief | hindsight − E-true | verdict vs the harder chooser |
+|---|---|---|---|---|---|
+| default | 58 | **+767 (3.05)** | +814 (3.14) | +476 (2.23) | **BEATS** (E-true, SNR 3.05) |
+| 61001 | 53 | +630 (1.86) | **+52 (0.23)** | +627 (1.91) | **TIES** (E-belief, SNR 0.23) |
+| 61002 | 50 | +647 (2.71) | **+270 (2.28)** | +563 (2.71) | **BEATS** (E-belief, SNR 2.28) |
+| 61003 | 57 | +714 (2.54) | **+598 (2.14)** | +499 (2.20) | **BEATS** (E-belief, SNR 2.14) |
+
+**Pre-refit: beats on one path, ties on three. Refitted base: beats on three, ties on one.**
+
+### L1 and L2
+
+- **L1 FAILED.** The pooled four-path SNR of capped − harder chooser is **2.38**: a mean total of
+  +421.6 GBP over ~54.5 decisions (7.7 GBP a decision), with a joint-account SD of 177.3. I predicted
+  below 2 at 85%. The "one book cannot say" claim is false on this base. **The SNR ceiling on this
+  book was 0.95 and is now ≈2.67** (RMS single-path SD 226, ρ 0.49).
+- **L2 HELD.** The pairwise per-account ρ is 0.34-0.76, mean **0.53**. ρ from the joint SD is
+  **0.49**. Dice pooling is worth what the record said, so there is no roll-seed extension.
+
+**How far it holds.** Drop the first book year (2018, chosen on two closed decisions) and the pooled
+SNR is **1.56** (+303 over ~40 decisions, joint SD 195). 2018 is ~28% of the edge. Before the refit
+it was most of it. So the edge now persists after the book has a year in it, at the same ~7.5 GBP a
+decision, but **2019-2025 alone does not clear 2.** On 61001 it is −22 (SNR 0.09).
+
+**What this does NOT establish.** The SD is an in-book account bootstrap. It sees dice and
+account-sampling noise, not CAST noise: these are 42 households, 28 shared by all four paths. "Beats
+on this book" is now separable. "Beats on books like this one" is still Stage B's question, and L5
+says the between-book SD is larger.
+
+**Attribution: I cannot yet say.** The two bases are 96 commits apart (`4bf859f0b..0859ac1a3`). They
+touch the refit (`departure_level_anchor`), `plan_offer_response` (+162), `collections_journey`,
+`default_belief`, `run_phase2b` and `decision_probe` itself. The edge per decision rose from 3.2 to
+7.7 GBP, and the E-true early levels moved from 15/55 to 95/30 on three paths. The one-variable
+check is the old book on the new code with the pre-refit anchor. It is not run, and nothing here
+depends on it.
+
+### E1-E5, re-graded against the record this follows (harder chooser read as there)
+
+| | pre-refit (`4bf859f0b`) | refitted (`0859ac1a3`) |
+|---|---|---|
+| **E1** (E-true off hindsight by ≥10 in some year, ≥2/4) | HELD 4/4 | **HELD 4/4.** 2018 is 95 everywhere, against 45-55 |
+| **E2** (capped − E-true > 0 on ≥3/4) | HELD 4/4 | **HELD 4/4**: +767, +630, +647, +714 |
+| **E3** (SNR vs E-true < 2 on every path) | FAILED, 1 path above | **FAILED, 3 above** (3.05, 2.71, 2.54; 61001 1.86) |
+| **E4** (− E-belief ≥ − E-true on every path) | FAILED, holds on 61002 only | **FAILED, holds on default only** |
+| **E5** (hindsight − E-true < 300 on ≥3/4) | FAILED, 1/4 | **FAILED, 0/4**: 476, 627, 563, 499 |
+
+**E4 and E5 point the same way as before, more strongly.** E-true's first two levels (95, then 30)
+are the noisiest choice in the table, and E-belief's smooth belief is the harder comparator on
+three paths.
+
+### What it does to Stage B
+
+Stage B's power was priced on a single-book SNR of 0.68. On this base, the single-path SNR on the
+pooled edge is ≈1.86 (full window) or ≈1.23 (2019-25). Let s be that SNR shrunk by the unknown
+ratio of between-book to in-book SD. The t-test at K books then reads:
+
+| s | K=4 | K=6 | K=8 | K=12 | t crit (K=12, df 11) |
+|---|---|---|---|---|---|
+| 1.86 (between = in-book) | 3.73 | 4.57 | 5.27 | 6.46 | 2.20 |
+| 1.24 (1.5× in-book, or the 2019-25 edge) | 2.49 | 3.04 | 3.51 | 4.30 | 2.20 |
+| 0.93 (2× in-book) | 1.86 | 2.28 | 2.64 | 3.23 | 2.20 |
+| 0.62 (2019-25 edge, 2× in-book) | 1.24 | 1.52 | 1.75 | 2.15 | 2.20 |
+
+**Twelve books stay the right ask.** It is the only size that clears the threshold over three of
+these four rows, and it misses the fourth only narrowly. Fewer books save box-hours by betting on a
+between-book SD nobody has measured. L4's 45% was priced on 1.8-2.4. On this base it projects 2.2-6.5.
+The `for_the_director` row `whether-per-customer-pricing-beats-a-flat` quoted the old ceiling (0.95).
+That is a plain factual error, corrected in the same landing.
+
+**Disposition:** Stage A is graded and its worktree `/var/tmp/se-stageA` is removed.

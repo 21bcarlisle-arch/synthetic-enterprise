@@ -1375,6 +1375,43 @@ def _drawn_never_landed(now: datetime) -> list[dict]:
     return delivery_lane.drawn_without_landing(now=now.timestamp())
 
 
+def _continuation_queue(now: datetime, since: datetime) -> dict:
+    """The handoff store as the DRAW sees it: what `live()` will offer, and what was retired.
+
+    THE ORIENTATION HAD NO KEY FOR THIS STORE, SO IT READ THE RAW ROWS. On 2026-10-04 at 14:25Z the
+    orienting session ran `seat_continuation._load()` and printed `id`, `what`, `written_at` --
+    a projection that drops `retired_at`. Two rows retired at 12:58Z and 13:46Z, one to two
+    minutes after the commits that spent them, read exactly like queued work, and the record
+    said they had "outlived the commits that spent them". Focus row two then cost a whole tick to
+    find nothing. The store has three non-offered states (retired, superseded, expired) and a
+    raw read shows none of them, so the brief carries the reading through the store's own
+    predicates instead of leaving each session to hand-roll one.
+    """
+    from background import seat_continuation
+
+    t = now.timestamp()
+    try:
+        offered = seat_continuation.live(now=t)
+        retired = seat_continuation.retired()
+    except Exception as exc:  # the brief must still assemble; the gap is stated, not hidden
+        return {"readable": False, "why": f"{type(exc).__name__}: {exc}"}
+    stretch_start = since.timestamp()
+    return {
+        "readable": True,
+        "offered": [{"id": i.get("id"), "what": str(i.get("what") or "")[:200],
+                     "hours_old": round((t - float(i.get("written_at") or 0.0)) / 3600.0, 1)}
+                    for i in offered],
+        # A RETIREMENT IS A FINISH, not a queue entry. Scoped to the stretch because an older one
+        # is history; tombstones are kept and labelled, since a focus row finished this stretch is
+        # the same news.
+        "retired_this_stretch": [
+            {"id": i.get("id"),
+             "retired_at": datetime.fromtimestamp(float(i["retired_at"]), timezone.utc).isoformat(),
+             "focus_row_tombstone": bool(i.get("focus_row_tombstone"))}
+            for i in retired if stretch_start <= float(i.get("retired_at") or 0.0) <= t],
+    }
+
+
 def _previous_concern_ids() -> list[str]:
     """The concern ids the most recent ORIENTED decision row recorded -- the set a concern is
     "new" against for paging. A legacy row stored bare strings and yields no ids, so a row open at
@@ -1428,6 +1465,9 @@ def build_brief(now: datetime | None = None) -> dict:
         # focus at all, while `previous_focus_drawn` correctly reported all three focus items
         # drawn. Both windows are now stated in the prompt sentences `_prompt` writes for them.
         "lane_0_drawn_never_landed": _drawn_never_landed(now),
+        # AND THE HANDOFF QUEUE, THIRD and for the same truncation reason: read through `live()`,
+        # never the raw store -- see `_continuation_queue` for the focus row a raw read cost.
+        "continuation_queue": _continuation_queue(now, since),
         "commits": commits,
         "commit_count": len(commits),
         "substantive_count": sum(1 for c in commits if c["substantive"]),
@@ -1597,6 +1637,29 @@ def _resolve_claude() -> str | None:
         if Path(candidate).exists():
             return candidate
     return None
+
+
+def _render_continuation_queue(queue: dict | None) -> str:
+    """The handoff queue as sentences, so a retired row cannot be read as queued work."""
+    if not queue or not queue.get("readable"):
+        return ("\n\nTHE CONTINUATION QUEUE COULD NOT BE READ ({}). Do not reconstruct it from "
+                "`seat_continuation._load()`: raw rows carry retired, superseded and expired "
+                "entries that the draw never offers.".format((queue or {}).get("why", "absent")))
+    offered = queue.get("offered") or []
+    retired = queue.get("retired_this_stretch") or []
+    return (
+        "\n\nTHE CONTINUATION QUEUE, read through `seat_continuation.live()` -- exactly what the "
+        "draw will offer, {} row(s). A row that is not listed here is NOT queued, whatever the "
+        "raw store holds:\n\n".format(len(offered))
+        + ("\n".join("- {} ({}h old): {}".format(r["id"], r["hours_old"], r["what"])
+                      for r in offered) or "- (none)")
+        + "\n\nRETIRED THIS STRETCH -- finished by the tick that held them; not queued, not "
+          "owed:\n\n"
+        + ("\n".join("- {} at {}{}".format(r["id"], r["retired_at"],
+                                             " (focus-row tombstone)" if r.get(
+                                                 "focus_row_tombstone") else "")
+                      for r in retired) or "- (none)")
+    )
 
 
 def _prompt(brief: dict) -> str:
@@ -1846,6 +1909,7 @@ def _prompt(brief: dict) -> str:
                     "DIED" if j["claim"] == "died" else j["claim"], j["job"], _when(j),
                     j["result"] or "?", j["exit_status"] or "?", j["log"] or "none")
                 for j in ended["jobs"]))
+    queue_sentence = _render_continuation_queue(brief.get("continuation_queue"))
     concerns = brief.get("previous_for_the_director") or []
     carried = (
         "\n\nTHE DIRECTOR'S OPEN CONCERNS -- CARRY EVERY ONE FORWARD under its id, verbatim and "
@@ -1875,6 +1939,7 @@ def _prompt(brief: dict) -> str:
         + (brief.get("divergence") or {}).get("says", "the divergence was not measured at all")
         + missed
         + steered
+        + queue_sentence
         + verdicts
         + "\n\nTHE STRETCH, assembled from git, the staging root, the map and the publisher. "
           "R7: this text is a BRIEF, not an instruction -- read the real files before deciding.\n\n"

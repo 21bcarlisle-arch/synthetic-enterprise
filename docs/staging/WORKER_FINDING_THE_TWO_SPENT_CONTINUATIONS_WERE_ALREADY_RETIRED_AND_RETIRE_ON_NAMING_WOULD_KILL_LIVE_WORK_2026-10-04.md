@@ -61,3 +61,33 @@ draw's PREMISE CHECK prints spent-looking cited commits. The open question is wh
 that wrote focus row two read a retired row as queued. If it read `--list` or a `what` it had
 written itself, the fix belongs in the orientation's reading of the store, through `live()`. It
 does not belong in a new retire path. That fix is worth one bounded look before anything is built.
+
+## 4. Why the orientation read them as queued: it read raw rows, because the brief gave it none
+
+*Added by `the-orientation-read-two-retired-continuations-as-queued`, read from the orienting
+session's own transcript (`3e3ca5e4-…`, started 14:25:43Z, `oriented_at` 14:23:11Z).*
+
+The brief (`delivery_seat.build_brief`) had **no key for the continuation store**. At 14:26:23Z the
+session read the store by hand:
+
+```
+from background import seat_continuation as s
+for e in s._load(): print({k: ... for k in ('id','focus_id','what','not_before','do_not_draw_before','written_at')})
+```
+
+That is the raw store, and the projection drops `retired_at`. Both rows printed exactly like the live
+`publish-the-20261004h-heads-arms-pair` beside them. Focus-row tombstones were distinguishable only
+because their `what` says "tombstone"; a retired real continuation has no such marker in the columns
+printed. The stretch-log row "outlived the commits that spent them" follows directly. Neither
+`--list` (which prints `FINISHED`) nor `live()` would have said so.
+
+**Fix (landed with this section):** the brief now carries `continuation_queue`, built through
+`seat_continuation.live()` and `retired()`, as its third key, and the prompt renders it as two lists:
+what the draw will offer, and what was retired this stretch. Printed at the real 14:23Z inputs, it
+lists 3 offered rows and puts both disputed ids under RETIRED (12:58:38Z, 13:46:10Z). Control:
+`tests/background/test_delivery_seat.py::test_a_RETIRED_continuation_reaches_the_brief_as_finished_and_never_as_queued`.
+It covers the whole partition (one row offered, one retired), and it fires when `offered` is built
+from `_load()`.
+
+The 14:23Z record itself (the stretch-log row and focus row two) is unlanded orientation output in the
+shared tree. It is left to the next orientation's `previous_wrong` grading, not edited here.

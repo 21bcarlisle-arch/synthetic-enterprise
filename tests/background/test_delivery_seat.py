@@ -1055,3 +1055,39 @@ def test_the_brief_says_WHETHER_A_RUNNER_RAN_and_never_infers_it_from_an_empty_v
         "the defect")
     assert (idle["reached_the_runner"], idle["clears_every_cheap_leg"]) == (0, 0), (
         "a pass where no control was executed reported that one had been: {}".format(idle))
+
+
+def test_a_RETIRED_continuation_reaches_the_brief_as_finished_and_never_as_queued(
+        monkeypatch, tmp_path):
+    """The orientation must read the handoff queue through `live()`, not the raw store.
+
+    On 2026-10-04 the orienting session had no brief key for this store, hand-rolled
+    `seat_continuation._load()`, and read two rows retired at 12:58Z and 13:46Z as queued work.
+    The control is over the whole partition: one live row IS offered (so an empty reader cannot
+    pass), one retired row is not offered and IS reported finished.
+
+    MUTATION (must fire): build `offered` from `seat_continuation._load()` instead of `live()`.
+    """
+    from background import seat_continuation
+
+    now = datetime(2026, 10, 4, 14, 23, tzinfo=timezone.utc)
+    since = datetime(2026, 10, 4, 11, 23, tzinfo=timezone.utc)
+    t = now.timestamp()
+    store = tmp_path / "continuations.json"
+    store.write_text(json.dumps([
+        {"id": "still-queued", "what": "w", "written_at": t - 3600},
+        {"id": "spent-and-retired", "what": "w", "written_at": t - 7200,
+         "retired_at": t - 1800},
+    ]))
+    monkeypatch.setattr(seat_continuation, "STORE", store)
+
+    queue = seat._continuation_queue(now, since)
+    offered = [r["id"] for r in queue["offered"]]
+    retired = [r["id"] for r in queue["retired_this_stretch"]]
+    assert offered == ["still-queued"]
+    assert retired == ["spent-and-retired"]
+
+    said = seat._render_continuation_queue(queue)
+    queued_part = said.split("RETIRED THIS STRETCH")[0]
+    assert "still-queued" in queued_part and "spent-and-retired" not in queued_part
+    assert "spent-and-retired" in said.split("RETIRED THIS STRETCH")[1]
