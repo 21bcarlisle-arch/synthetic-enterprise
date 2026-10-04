@@ -284,8 +284,12 @@ def probe(report_end: str | None = None, roll_seed: int | None = None) -> list[d
 def term_bad_debt_shares(rows: list[dict], bills: list[dict], write_offs: dict) -> None:
     """Set each row's `term_bad_debt_share`: GBP written off on this leg's bills whose period ends
     inside the term the decision priced, over the GBP billed on those bills. The term runs from
-    the decision to the leg's next probed decision, or a year where there is none. `write_offs`
-    is `arrears_engine.balance_write_offs`, keyed (customer, period_end, commodity)."""
+    the decision for ONE YEAR -- the fixed term it priced -- or to the leg's next probed decision if
+    that comes sooner. Ending it at the next probed decision alone was wrong: a leg with no decision
+    for years (on the SVT, or unrolled) swept every later year's arrears into one fix's score, which
+    put PROS-2016-0098's 2017 term at 0.49 when that term is one year. `write_offs` is
+    `arrears_engine.balance_write_offs`, keyed (customer, period_end, commodity). Each row also
+    keeps its term's bills and write-offs (`term_bills`), so a run can be re-scored offline."""
     import datetime as _dt
     starts: dict[tuple, list[str]] = {}
     for r in rows:
@@ -299,16 +303,21 @@ def term_bad_debt_shares(rows: list[dict], bills: list[dict], write_offs: dict) 
         key = (r["customer_id"], r["commodity"])
         begin = r["term_start"][:10]
         later = [d for d in starts[key] if d > begin]
-        end = later[0] if later else (
-            _dt.date.fromisoformat(begin) + _dt.timedelta(days=365)).isoformat()
+        year_on = (_dt.date.fromisoformat(begin) + _dt.timedelta(days=365)).isoformat()
+        end = min(later[0], year_on) if later else year_on
         billed = lost = 0.0
+        kept = []
         for b in by_leg.get(key, []):
             pe = str(b.get("period_end", ""))[:10]
             if begin <= pe < end:
-                billed += float(b.get("total_amount_gbp") or 0.0)
+                amount = float(b.get("total_amount_gbp") or 0.0)
                 wo = write_offs.get((r["customer_id"], b.get("period_end"), b.get("commodity")))
-                lost += float((wo or {}).get("amount_gbp") or 0.0)
+                gone = float((wo or {}).get("amount_gbp") or 0.0)
+                billed += amount
+                lost += gone
+                kept.append([pe, round(amount, 2), round(gone, 2)])
         r["term_bad_debt_share"] = round(lost / billed, 5) if billed > 0 else None
+        r["term_bills"] = kept
 
 
 def expected_term_margin_gbp(row: dict, rule: str, bad_debt: bool = True,

@@ -126,6 +126,15 @@ def test_a_decision_is_charged_only_the_bad_debt_of_the_term_it_priced():
     dp.term_bad_debt_shares(rows, bills, write_offs)
     assert rows[0]["term_bad_debt_share"] == 0.0
     assert rows[1]["term_bad_debt_share"] == 0.5
+    # AND A TERM IS ONE YEAR when the leg's next decision is years away: a fix priced in 2017
+    # may not carry arrears from 2019 just because no decision came between.
+    far = [_row(customer_id="B", term_start="2017-03-31"),
+           _row(customer_id="B", term_start="2021-03-30")]
+    far_bills = [{"customer_id": "B", "commodity": "electricity", "period_end": f"{y}-06-28",
+                  "total_amount_gbp": 100.0} for y in (2017, 2019)]
+    far_offs = {("B", "2019-06-28", "electricity"): {"amount_gbp": 100.0}}
+    dp.term_bad_debt_shares(far, far_bills, far_offs)
+    assert far[0]["term_bad_debt_share"] == 0.0 and len(far[0]["term_bills"]) == 1
     lifetime = {**rows[0], "true_bad_debt_share": 0.25}
     assert dp.expected_term_margin_gbp(lifetime, "value") > dp.expected_term_margin_gbp(
         lifetime, "value", bad_debt_basis="lifetime")
