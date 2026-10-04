@@ -132,3 +132,19 @@ single quoted argument. pytest read it as "not found", which the step script cou
 and 5 groups reported "environment red, not a commit". That was false. A test in the sweep also
 writes `site/data/dd_opening_arms.json`, a tracked file, which blocked a non-forced checkout.
 **Every row above comes from the second, clean sweep**: arguments fixed, every checkout forced.
+
+## Result of the follow-on (2026-10-04, Lane 0 claim `origin-goes-red-by-the-stem-mismatch-and-the-four-standing-reds`)
+
+- **S1–S4 are green at origin in `351623c4f`**, each fixed on its merits. S1 and S2 now declare a
+  peak on an empty box. S3's listing no longer reads the store's own `.lock` as a preserved copy.
+  S4 asserts the coverage report's own count instead of the literal "13 of 13".
+- **A correction to the follow-on as written above.** The suggested `git grep` shape,
+  `from <dotted.module> import`, matches none of S1–S4. All four import as
+  `from <package> import <stem>`. The selection reads imports by AST after a `git grep -w <stem>`
+  prefilter. Coverage on the turning commits is as predicted: 5 of 8 rows, 4 of 7 commits.
+- **The unbounded selection cannot ship.** On five recent ordinary commits it adds 6–28 files
+  net, and one of them (`1aa97f1a4`, 16 files) ran past 25 minutes. Four importer files run
+  whole simulations, and file size does not predict cost. It therefore runs after the main
+  selection, one file at a time: 30 s per file, 180 s in all. Every file it could not grade is
+  named. The transitive depth (S5, S7, S8) inherits that cost problem, and each level down
+  multiplies it.

@@ -8,7 +8,7 @@
 
 This document supersedes the individual findings listed below, which are **archived, not deleted**, in `docs/staging/done/`. **Membership has two halves and they carry different guarantees.** The LIVE half is DERIVED, never hand-kept: `python3 -m background.finding_classes --check` re-derives it from the filesystem and fails if a live finding belongs to this class and is not listed here, if a listed instance is missing from the archive or has come back to the root, or if the count above stops equalling the length of the list below. The ARCHIVED half is CARRIED — these names are read back out of this document and kept because the file is still in the archive, and `--check` does not re-classify them. So a change to this class's patterns can leave an archived instance counted here that the classifier can no longer place; the one leg that re-reads the archive and refuses that is `tests/background/test_finding_classes.py::test_no_archived_instance_is_stranded_in_a_class_it_no_longer_classifies_into`.
 
-## The 36 instances
+## The 35 instances
 
 - `SEAT_FINDING_A_CONTENT_LANDED_RENAME_LEFT_THE_PRE_RENAME_DRAFT_IN_THE_TREE_AND_IT_WEDGED_EVERY_LANE_FOR_22_HOURS_2026-09-07.md` — LATENT
 - `SEAT_FINDING_FIVE_CONTROLS_ARE_GREEN_ONLY_BECAUSE_OF_UNCOMMITTED_WORK_AND_GATE_NOTHING_2026-09-03.md` — LATENT
@@ -18,7 +18,6 @@ This document supersedes the individual findings listed below, which are **archi
 - `SEAT_FINDING_THE_PUBLISH_DAEMON_COMMITTED_A_NOTE_DECLARATION_WITHOUT_ITS_CONTENT_SO_ONLY_AN_ISOLATED_WORKTREE_CAN_SEE_THE_RED_2026-09-04.md` — BLOCKING
 - `SEAT_FINDING_THE_REPAIR_FOR_THE_WEDGE_WAS_SITTING_UNLANDED_INSIDE_THE_WEDGE_2026-09-04.md` — LATENT
 - `SEAT_FINDING_THE_SHARED_INDEX_STILL_HELD_THE_FAILED_CYCLES_PRE_LANDING_BLOBS_SO_THE_NEXT_PLAIN_COMMIT_WOULD_HAVE_REVERTED_THE_CONTROL_2026-09-09.md` — LATENT
-- `SEAT_FINDING_THE_SHARED_TREES_CATCH_UP_PARKED_TWO_UNLANDED_LANE_EDITS_IN_A_PRESERVED_REF_2026-10-04.md`
 - `SEAT_FINDING_THE_SHARED_TREE_HOLDS_AN_ELEVEN_DAY_BACKLOG_OF_UNLANDED_SOURCE_AND_IT_IS_WHAT_HOLDS_THE_FAST_FORWARD_OPEN_2026-09-10.md` — BLOCKING
 - `SEAT_FINDING_THE_TURN_RESET_DELETED_A_DETACHED_RUNS_FINISHED_ARTEFACT_SEVENTEEN_MINUTES_AFTER_IT_LANDED_2026-09-03.md` — LATENT
 - `SEAT_RESULT_ONE_QUANTITY_TWO_VINTAGES_AND_THE_RUN_LEDGER_HAS_BEEN_UNCOMMITTED_FOR_64_DAYS_2026-09-19.md` — BLOCKING
