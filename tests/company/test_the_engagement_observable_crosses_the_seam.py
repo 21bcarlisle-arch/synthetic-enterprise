@@ -164,3 +164,34 @@ def test_the_run_hands_the_company_its_payment_method_through_the_seam():
             f"the run resolves the company's payment method via {ast.unparse(value)}, "
             "not SimInterface.get_payment_method"
         )
+
+
+def test_every_method_read_in_the_run_asks_on_the_accounts_own_fuel():
+    """THE DEFECT: `_book_method_of`, the method register the own-book default belief learns over,
+    asked `get_payment_method(cid, "electricity", ...)` of every resi account, gas legs and gas-only
+    households included. The seam's gas branch finds a stop on the leg the run billed; asked on
+    electricity, a gas account's own stop never reached the row its provisions were read on.
+
+    Keyed to the property, not to today's call sites: no read of the method in the run may pin its
+    fuel as a literal. It also demands the register's own read exists, so deleting it cannot pass.
+    """
+    import ast
+    from pathlib import Path
+
+    tree = ast.parse(Path("simulation/run_phase2b.py").read_text(encoding="utf-8"))
+    register = [n for n in ast.walk(tree)
+                if isinstance(n, ast.FunctionDef) and n.name == "_book_method_of"]
+    assert register, "the run no longer holds the own-book method register at all"
+    in_register = [n for n in ast.walk(register[0])
+                   if isinstance(n, ast.Call) and isinstance(n.func, ast.Attribute)
+                   and n.func.attr == "get_payment_method"]
+    assert in_register, "the own-book method register no longer reads the seam"
+    reads = [n for n in ast.walk(tree)
+             if isinstance(n, ast.Call) and isinstance(n.func, ast.Attribute)
+             and n.func.attr == "get_payment_method"]
+    for call in reads:
+        fuel = call.args[1] if len(call.args) > 1 else next(
+            (k.value for k in call.keywords if k.arg == "fuel"), None)
+        assert fuel is not None and not isinstance(fuel, ast.Constant), (
+            f"{ast.unparse(call)} asks on a fixed fuel (or the seam's electricity default), "
+            "not the account's own")
