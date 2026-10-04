@@ -26,7 +26,10 @@ Sources: Ofgem debt/arrears indicators, Citizens Advice, Watt-Logic, Ofgem PPM r
 
 **Mechanism:** SLC 27.8 requires affordable repayment arrangements. Fuel Direct (benefits deduction) floor: £3.70/week for arrears + current usage.
 
-**Typical terms (Q4 2025 Ofgem data):**
+**Typical terms (Ofgem debt and arrears indicators, calendar 2025):** *corrected 2026-10-04 -- the
+duration and weekly rows are for PREPAYMENT METERS INSTALLED FOR DEBT in the year (length agreed,
+weighted by new installs), not for all plans and not realised durations; no credit-account figure is
+published. See `domestic_repayment_plan_take_up_and_keep_rates.md`.*
 
 | Metric | Electricity | Gas |
 |--------|------------|-----|
