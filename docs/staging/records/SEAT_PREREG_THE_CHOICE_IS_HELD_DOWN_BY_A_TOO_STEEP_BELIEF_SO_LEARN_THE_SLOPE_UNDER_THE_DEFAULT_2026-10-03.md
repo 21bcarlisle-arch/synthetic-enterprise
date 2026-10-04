@@ -129,3 +129,48 @@ for driving away a customer a real supplier could have kept liable for the debt.
 That draw is the next re-run of this comparison. Prediction, written now: with the objection on,
 capped - flat-55 moves toward zero on all four paths, but the debtor still leaves in about 70% of
 draws, so the account's cost shrinks rather than vanishes.
+
+## Grading the debt-objection prediction (2026-10-04)
+
+The prediction was that, with the world's debt objection on (bf0d37c2f), capped - flat-55 moves
+toward zero on all four paths, while the debtor still leaves in ~70% of draws. Probe runs
+`/var/tmp/se-probe-out/probe_obj_*.json`, at origin with bf0d37c2f. The objection's REACH is an
+upper bound here: the world's payment records never cure a failed bill, so 56% of renewal
+decisions are "eligible". A cure is being built.
+
+| path | capped - flat-55, objection off | on | without PROS-2016-0098, off -> on | PROS 2017-03-31 P(stay) at flat-55, off -> on |
+|---|---|---|---|---|
+| default | -773 | -779 | +298 -> +292 | 0.10 -> 0.10 |
+| 61001 | -1,079 | -1,098 | -120 -> -139 | 0.10 -> 0.10 |
+| 61002 | -992 | -1,089 | -32 -> +7 | 0.10 -> 0.10 |
+| 61003 | -1,093 | **-165** | -131 -> +82 | 0.10 -> **0.41** |
+
+**REFUTED on 3 of 4; held on 61003.**
+
+The objection does not reach the decisive decision on three paths. At 2017-03-31 PROS-2016-0098
+has no bill more than 28 days unpaid in the world's own records, so it is not an eligible debtor.
+On 61003, the re-drawn renewal dice put an older unpaid bill in front of the date, the block
+applies, and the gap almost closes. The 2021 renewal is reached on every path (0.03 -> 0.31),
+but it carries little value.
+
+**What the company could see.** The company's OWN ledger, read through the new collections
+journey (`result["collections_journeys"]`, run to 2017-03-31): ACC-PROS-2016-0098 had one missed
+payment, GBP 486.84 on 2016-11-29, cured on 2016-12-10, and nothing open at the decision. To any
+supplier this account was a customer with one late payment, since cleared. The arrears that later
+make it the worst account in the book had not happened.
+
+**So the flat-55 win on this household is luck, not knowledge.** A price that happened to be high
+drove away a customer whose future debt no rule could have priced at the time. This is the
+director's fairness point about book-level comparisons, showing up inside the per-decision
+probe: the probe holds the book fixed, but `true_bad_debt_share` is a LIFETIME truth, and scoring
+one decision with it charges that decision for debt that accrues years later.
+
+**What this means for the selection question.** With the default known, per-decision choosing is
+at parity with the best flat price in hindsight on every decision except one that the flat price
+won by luck on unforeseeable future debt. That is as close to "the choosing works" as this
+instrument can show without a second book.
+
+**The instrument's defect is now named.** Scoring a decision with a lifetime bad-debt share lets
+debt that accrues after the next renewal count against this one. The fair score charges each
+decision only the bad debt of the term it priced. That is the next probe change, and it is
+recorded here before any run.
