@@ -2781,3 +2781,68 @@ ranked across days by MID" is a fair reconstruction input under the independence
 fair, build it as one variable with its prediction written first. (2) The ROC recycle value by year,
 from Ofgem's annual RO reports, closes the ROC side of the bound. (3) Coal's short level, 2019's
 missing biomass unit, and coverage by year all stand. No level move.
+
+## 40. 2026-10-04 — PRICE AS THE BIOMASS RANKING: fair as an input, and refuted, because the meters follow the residual more closely than the price in every year
+
+§39's NEXT (1). Nothing shipped changed. The scratch script, the output and the timestamped decision
+and prediction are in `/var/tmp/se-ep13-s40-scratch/`.
+
+**The decision, written before any arm (22:25Z).** The year's measured biomass energy, ranked across
+half hours by MID, is a fair input. MID is Elexon's traded index, and nothing of NESO's factors, mix
+or intensity goes into it. Only the three annual scalars §27 and §36 already use cross from the
+meters, so condition 1's refusal of half-hourly biomass is not engaged: the timing comes from a
+price, not from the meters. The named risk is that MID carries more than the residual, including
+the gas price path. That is why a gain needed the timing leg against the meters before it could be
+read as the mechanism.
+
+**The one variable.** §36's rule, unchanged, with its ranking key changed from the pre-PS residual to
+the half hour's MID. To change only the order, the year's residual values were re-assigned to half
+hours in MID's rank order. Half hours with no MID (1-153 a year) got the flat block. The base arm
+reproduces the committed feed to five places (max diff 0.0, 959 records). §36's arm B was re-run in
+the same process.
+
+| predicted (22:25Z) | measured | |
+|---|---|---|
+| P1 still bang-bang (cap + floor ≥ 0.6) | identical shares to B | **not a test.** Re-ordering the same values leaves the output's distribution unchanged by construction. I should have seen that before filing it. |
+| P2 within-day < 1.0 in ≥ 5 of 6 | 0.92-0.98, 6 of 6 | held |
+| P3 timing vs meters beats B in ≥ 4 of 6 | below B in **6 of 6**, about 0 in 2019-21 | **refuted, so H is refuted** |
+| P4 calm-windy gradient below B in ≥ 4 of 6 and above metered in ≥ 4 of 6 | 6 of 6, and 5 of 6 | held |
+| P5 corr within ±0.010 of B, below base in ≥ 4 of 6 | 2019 −0.012 and 2022 −0.013 off B; below base in 6 of 6 | refuted in 2 of 6, held |
+| P6 nothing ships | within-day inside 0.95-1.05 in 2 of 6; corr down 0.010-0.024 | held |
+
+| C (MID-ranked) vs B (residual-ranked) vs base | 2019 | 2020 | 2021 | 2022 | 2023 | 2024 |
+|---|---|---|---|---|---|---|
+| correlation, base / B / C | .959/.940/.928 | .931/.912/.905 | .970/.954/.957 | .982/.972/.959 | .978/.964/.958 | .972/.963/.962 |
+| within-day overstated by, base / B / C | 1.06/.86/.96 | 1.10/.92/.98 | 1.00/.83/.95 | 1.00/.84/.93 | 1.02/.83/.92 | 1.07/.87/.94 |
+| between-day overstated by, base / B / C | 1.05/.91/.98 | 1.11/.97/1.05 | 1.01/.90/1.00 | 1.07/.92/.98 | 1.07/.91/1.00 | 1.07/.93/.99 |
+| rule vs metered biomass, half-hourly corr, B / C | .29/.04 | .45/.09 | .31/−.01 | .42/.39 | .35/.30 | .59/.41 |
+| metered biomass, daily corr with MID / with residual | .01/.37 | .17/.49 | .10/.41 | .45/.50 | .37/.53 | .48/.58 |
+
+**What it establishes.**
+- **Within a year, the fleet follows the residual more closely than the price.** That holds in every
+  year with no rule involved: daily corr 0.37-0.58 with the residual, and 0.01-0.48 with MID. In
+  2019-21 the price ranking is about orthogonal to what the fleet did. That is the gas path: a
+  year's absolute MID ranks its months by fuel cost (2021's second half) before it ranks its days by
+  scarcity. §38 saw the switch only after demeaning output by month, so its finding stands and does
+  not carry over to a year-wide ranking.
+- **C's swing being nearest 1.0 is not progress.** Headline p95/p5 is 1.01x and between-day sits at
+  0.98-1.05, the closest this atom has published. But it comes from a schedule that is uncorrelated
+  with the fleet in three years of six. It is narrower than B because a near-random order makes a
+  smaller calm-windy gradient. Correlation fell in every year. Quoting the swing would be choosing
+  the flattering statistic.
+- §36's diagnosis stands: the failure is the envelope's ends, not the ranking key. The best key
+  available (the residual) cannot rescue a rule whose amplitude is set by outages.
+
+**What it does NOT establish.**
+- Whether MID ranked *within month* would beat the residual. That is a different variable, it was
+  chosen after seeing this result, and it would carry a picked window. It was not tried.
+- What sets the size of the flex (177-945 MW by year, §37). That is still the gap, and §39 found it
+  cannot be located from published cost.
+
+**Controls.** None. Nothing shipped changed, and the feed is byte-identical.
+
+**Next.** (1) Coal's short level (§36 NEXT 2): split the merit order's coal band against FUELHH coal
+by wind decile. It is the largest gradient term in 2019 and 2021, and it touches no biomass number.
+(2) The ROC recycle value by year (§39 NEXT 2). (3) 2019's missing biomass unit, and coverage by
+year. The biomass gradient is parked on its amplitude, which is knowledge-limited. No level move:
+the shipped swing is still too wide in every year.
