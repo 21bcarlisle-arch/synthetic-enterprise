@@ -15628,9 +15628,31 @@ def _selection_split(floor: dict | None, live_world: str | None) -> dict:
     }
 
 
-#: The code a value-cycle run executes, as far as the arms can tell: the world and the company.
-#: The runner and the generator are left out on purpose -- they read the outcome, they do not make it.
-ARMS_SUBSTRATE_PATHS = ("simulation", "company")
+#: The code a value-cycle run executes: every repo module `simulation.run_phase2b` imports, by
+#: directory where the whole directory is substrate, by file where only some of it is. The runner
+#: and the generator are left out on purpose -- they read the outcome, they do not make it.
+#: `simulation` and `company` alone missed `background/live_payment_triad.py`, which hosts the
+#: company's payment consumer and the world's settlement queue and changed between `96517e68c` and
+#: `efe1b7dee` unseen. `test_the_arms_substrate_covers_every_module_the_run_imports` keeps this list
+#: equal to the import closure.
+ARMS_SUBSTRATE_PATHS = (
+    "simulation", "company", "saas", "sim", "interface",
+    "background/boot_sha.py", "background/coupled_triad.py",
+    "background/fidelity_evidence_ledger.py", "background/fidelity_grid_scorer.py",
+    "background/fidelity_inspection_chain.py", "background/gap_metric.py",
+    "background/live_fidelity_evidence.py", "background/live_ledger_guard.py",
+    "background/live_payment_triad.py", "background/scope_of_need_scoring_frame.py",
+    "background/shared_quantity_contract.py",
+    "tools/acquisition_funnel_port.py", "tools/book_seed_authorisation.py",
+    "tools/contact_centre_port.py", "tools/couple_w2_11_d5.py", "tools/credit_adapters",
+    "tools/credit_bureau_port.py", "tools/decisions_by_account_class.py",
+    "tools/decisions_that_existed.py", "tools/demand_case_coverage.py",
+    "tools/demand_vector_coverage.py", "tools/market_data_port.py", "tools/maturity_map_store.py",
+    "tools/meter_read_port.py", "tools/need_stock_joint.py", "tools/product_gate_refusal.py",
+    "tools/reduction_dimension.py", "tools/run_price_ladder.py", "tools/stock_joint_generator.py",
+)
+#: Imported by the run and deliberately NOT substrate: the runner itself.
+ARMS_SUBSTRATE_EXCLUDED = ("tools/run_value_cycle_ab.py",)
 #: Where a substrate change is argued not to move the arms. Each entry is keyed to the run's commit,
 #: the path, and the path's blob at the publishing HEAD, so an argument about one change cannot
 #: admit the next change to the same file.
@@ -15696,7 +15718,7 @@ def _code_since_the_run(run: dict | None, head: str | None = None,
     if unexempt:
         block["why"] = (
             "the run executed {run} and this page is published from {head}; {n} path(s) in "
-            "simulation/ and company/ differ between them and no exemption says why they cannot "
+            "the code the run imports differ between them and no exemption says why they cannot "
             "move the arms: {paths}".format(run=commit[:9], head=head[:9], n=len(unexempt),
                                             paths=", ".join(unexempt)))
     return block

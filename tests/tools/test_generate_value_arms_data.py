@@ -13704,6 +13704,42 @@ def test_the_code_guard_admits_heads_code_and_an_argued_exemption_and_refuses_th
     assert "why_the_headline_omits_it" not in admitted
 
 
+def test_the_arms_substrate_covers_every_module_the_run_imports():
+    """Every repo module a value-cycle run imports is in `ARMS_SUBSTRATE_PATHS` or named excluded.
+
+    THE DEFECT IT PREVENTS. The substrate was `simulation/` and `company/`, and the run also
+    imports `background/live_payment_triad.py` -- the company's payment consumer and the world's
+    settlement queue. It changed between `96517e68c` and `efe1b7dee` (when a later lump crosses)
+    and the code check could not see it. Keyed to the import closure, not to today's list, so a new
+    import from an unwatched file reds here. Deferred imports inside functions are not seen.
+
+    Fires on: dropping any covered entry the run imports (e.g. `background/live_payment_triad.py`).
+    """
+    import subprocess
+    import sys
+
+    probe = (
+        "import os, sys; sys.path.insert(0, os.getcwd()); "
+        "import simulation.run_phase2b, tools.run_value_cycle_ab; "
+        "root = os.getcwd() + os.sep; "
+        "print('\\n'.join(sorted({m.__file__[len(root):] for m in list(sys.modules.values()) "
+        "if (getattr(m, '__file__', None) or '').startswith(root)})))")
+    out = subprocess.run([sys.executable, "-c", probe], cwd=gva.PROJECT, capture_output=True,
+                         text=True, timeout=300)
+    assert out.returncode == 0, out.stderr[-2000:]
+    imported = [p for p in out.stdout.splitlines() if p.endswith(".py")]
+    assert "background/live_payment_triad.py" in imported, (
+        "the probe no longer sees the run's own imports, so an empty miss list proves nothing")
+
+    def covered(path):
+        return any(path == s or path.startswith(s.rstrip("/") + "/")
+                   for s in gva.ARMS_SUBSTRATE_PATHS + gva.ARMS_SUBSTRATE_EXCLUDED)
+
+    missed = [p for p in imported if not covered(p)]
+    assert missed == [], (
+        "the run imports these and the arms' code check cannot see them change: {}".format(missed))
+
+
 def test_the_published_current_world_block_carries_the_code_its_run_executed():
     """`build` routes the current-world block through the code check, not only the unit above.
 
