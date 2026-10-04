@@ -210,19 +210,22 @@ NAMED_GAPS = [
 #: lets the thermal stack reach exactly zero, in 16.1% of 2024's half hours.
 ERROR_DIRECTION = (
     "The WITHIN-day range is now CLOSE and its direction is MIXED, and that is the sentence to "
-    "carry: this shape's p95/p5 spread runs about 1.13x the published series', most of it "
+    "carry: this shape's p95/p5 spread runs about 1.15x the published series', most of it "
     "between days. Split day-by-day, this shape's BETWEEN-day swing runs "
-    "(0.93-1.11x, mean 1.02) of the published series' over 2019-2024, and its WITHIN-day swing "
-    "runs (0.93-1.10x, mean 1.00): too WIDE in 2019 and 2020; too NARROW in 2021, 2022, 2023 "
+    "(0.97-1.11x, mean 1.03) of the published series' over 2019-2024, and its WITHIN-day swing "
+    "runs (0.95-1.10x, mean 1.01): too WIDE in 2019 and 2020; too NARROW in 2021, 2022, 2023 "
     "and 2024; A customer can move the washing from 6pm to 2am; they "
     "cannot move it to a windier Tuesday in March -- so a time-shifting benefit computed from "
-    "this shape is an UPPER BOUND in 2019 and 2020 and an UNDERSTATEMENT from 2021, by 0.02-0.07 "
+    "this shape is an UPPER BOUND in 2019 and 2020 and an UNDERSTATEMENT from 2021, by 0.02-0.05 "
     "of the swing. Three corrections set that: the model "
     "dispatches pumped storage with perfect foresight of the day's residual, which flattens the "
     "day by more than GB's fleet did (EP13 frame doc s25); embedded wind sits beside "
     "embedded solar in the denominator, on NESO's definition, which widens it again (s26); and "
     "the flat biomass block sits at each year's measured mean rather than 2,400 MW, which "
     "narrows it a little (s27). "
+    "SERVING VIKING AND ELECLINK OUTSIDE THE MIX (2026-10-04), as NESO's own series does (s34), "
+    "took 2024's within-day from 0.93x to 0.97x and between-day from 0.93x to 0.97x, and "
+    "WORSENED p95/p5 from 1.13x to 1.15x and max/min from 1.21x to 1.23x. "
     "HOLDING BIOMASS AT THE YEAR'S MEASURED MEAN (2026-10-02) took within-day from a mean 1.02x "
     "to 1.00x and p95/p5 from 1.18x to 1.13x, and WORSENED max/min from 1.12x to 1.21x. "
     "ADDING EMBEDDED WIND TO THE DENOMINATOR (2026-10-02) took within-day from a mean 0.98x to "
@@ -515,6 +518,13 @@ def published_forecast_skill(shape: dict, parsed: dict | None, why_unavailable: 
     }
 
 
+def _cables(rule) -> list[str]:
+    """The cables `rule(cable, market, adapter)` selects, named from the adapter's own tables."""
+    from sim import elexon_fuel_outturn as fuel
+
+    return [f"{c} ({m})" for c, m in fuel.INTERCONNECTOR_MARKETS.items() if rule(c, m, fuel)]
+
+
 def build(shape: dict, demand: dict, *, window_days: int = RECORD_WINDOW_DAYS,
           extra_dates: set[str] | None = None,
           import_coverage: dict | None = None,
@@ -570,19 +580,24 @@ def build(shape: dict, demand: dict, *, window_days: int = RECORD_WINDOW_DAYS,
             "NESO's own published figures (Carbon Intensity Forecast Methodology, Table 1)."
         ),
         # WHAT THE MODELLED SLICE OF IMPORTS ACTUALLY IS, as a measured fraction of imported
-        # MWh rather than as an adjective. Two of GB's nine cables -- North Sea Link and Viking
-        # Link -- postdate NESO's published factor table, so their flow is left modelled as GB
-        # generation and this number says how much of the answer that is. A gap quoted in per
-        # cent can be argued with; "some imports are not covered" cannot.
+        # MWh rather than as an adjective. North Sea Link is inside NESO's mix and has no
+        # published factor, so its flow is left modelled as GB generation and this number says
+        # how much of the answer that is. Viking and ElecLink are outside NESO's mix (s33-s34)
+        # and so outside the fraction. A gap quoted in per cent can be argued with; "some
+        # imports are not covered" cannot.
         "import_coverage": (
             None if import_coverage is None else {
                 "covered_fraction": round(float(import_coverage["covered_fraction"]), 4),
-                "uncovered_cables": ["INTNSL (Norway)", "INTVKL (Denmark)"],
+                "uncovered_cables": _cables(lambda c, m, fuel: c not in fuel.OUTSIDE_NESO_MIX
+                                            and m not in fuel.IMPORT_INTENSITY_G_CO2_PER_KWH),
+                "outside_neso_mix_cables": _cables(lambda c, m, fuel: c in fuel.OUTSIDE_NESO_MIX),
                 "what_it_means": (
-                    "The share of GB's imported MWh, over the whole series, whose carbon "
-                    "intensity NESO publishes a factor for. The remainder is dispatched as GB "
-                    "generation exactly as it was before imports were modelled at all, which "
-                    "reads DIRTIER than it was for a Norwegian hydro import."
+                    "The share of the imported MWh inside NESO's published mix, over the whole "
+                    "series, whose carbon intensity NESO publishes a factor for. The remainder "
+                    "(North Sea Link) is dispatched as GB generation, which reads DIRTIER than "
+                    "it was for a Norwegian hydro import. Viking Link and ElecLink are left out "
+                    "of NESO's mix, so they meet demand here and are counted in neither the "
+                    "emissions nor the denominator."
                 ),
             }
         ),
@@ -802,6 +817,17 @@ def exports_by_period() -> dict[tuple[str, int], float]:
     return fuel.exports_by_period(fuel.load_cached())
 
 
+def unmixed_imports_by_period() -> dict[tuple[str, int], float]:
+    """Imports on the cables NESO's mix leaves out (Viking, ElecLink), from the FUELHH cache.
+
+    Served by the dispatch, kept out of the tonnes and the denominator (EP13 frame doc s34).
+    Kept OUT of `fuel_mix()` because that signature is a battery anchor.
+    """
+    from sim import elexon_fuel_outturn as fuel
+
+    return fuel.unmixed_imports_by_period(fuel.to_settlement_periods(fuel.load_cached()))
+
+
 def transmission_wind_by_period(agws: list[dict]) -> dict[tuple[str, int], float]:
     """The wind the residual subtracts: FUELHH `WIND` where metered, AGWS wind where it is not.
 
@@ -855,6 +881,7 @@ def generate(out_path: Path | None = None) -> dict:
     # PUMPED STORAGE is dispatched by the model from four annual scalars (s25). EMBEDDED WIND
     # joins solar in the denominator, on NESO's definition (s26).
     # BIOMASS stays a flat block, at the year's measured mean rather than 2,400 MW (s27).
+    # VIKING AND ELECLINK are served but left out of the mix, as NESO's series does (s34).
     agws = json.loads(AGWS_CACHE.read_text(encoding="utf-8"))
     renewables = transmission_wind_by_period(agws)
     (imports, coal_capacity, coverage, thermal_floors, must_run, must_run_coverage,
@@ -872,6 +899,7 @@ def generate(out_path: Path | None = None) -> dict:
         embedded_generation_by_period=embedded_generation_by_period(agws),
         exports_by_period=exports_by_period(),
         pumped_storage_by_year=pumped_storage_by_year(),
+        unmixed_imports_by_period=unmixed_imports_by_period(),
     )
     data = build(shape, demand, extra_dates=dates_with_reads(), import_coverage=coverage,
                  coal_capacity_by_year=coal_capacity, thermal_floor_by_year=thermal_floors,

@@ -2471,3 +2471,47 @@ mix". This is one variable with no factor to pick. Write the prediction before t
 (2) NSL's factor. Either establish it from Norway's published mix (ENTSO-E, or an annual national
 statistic as a coarser fallback), or keep the honest gap and name it. (3) §32's coverage by year
 and the biomass rule stand. No level move.
+
+## 34. 2026-10-04 — VIKING AND ELECLINK ARE SERVED AND LEFT OUT OF THE MIX: the 2024 within-day and between-day both reach 0.97x, and the headline spread widens
+
+§33's NEXT (1), built. There was no factor to pick. `elexon_fuel_outturn.OUTSIDE_NESO_MIX`
+(`INTELEC`, `INTVKL`) sends their import to a new `unmixed_import_mw`. The dispatch serves that
+flow before the stack, adds no tonnes for it, and takes its MW out of the denominator. That is the
+half hour with their MW taken off demand, and the control checks it to 1e-12. North Sea Link stays
+uncovered and is still served as GB gas. The feed's `import_coverage` now counts only the imports
+inside NESO's mix: 0.86 over the series, and 0.71 in 2022–2024 by year. The cable lists are
+derived from the adapter's own tables.
+
+**Prediction (filed before the arm ran, `/var/tmp/se-ep13-s34/prediction.txt`):**
+
+| | predicted | measured | |
+|---|---|---|---|
+| P1 2019–21 bit-identical | identical | 2019–20 identical; **2021 not** | **refuted**: ElecLink metered flow starts 2021-09-18 (commissioning, 12 GWh), not May 2022 |
+| P2 2024 correlation | 0.960–0.968 | 0.9590 → **0.9619** | held |
+| P3 2024 between-day | 0.95–1.02 | 0.9336 → **0.9724** | held |
+| P4 2022/23 correlation | moves <0.005 | −0.0002 / −0.0006 | held |
+| P5 2024 within-day | 0.94–1.00 | 0.9264 → **0.9703** | held |
+
+**Not predicted, and worse:** the headline p95/p5 goes from 1.13x to 1.15x and max/min from
+1.21x to 1.23x. MAE improves in 2024 (0.102 → 0.097) and worsens slightly in 2022–23
+(+0.0003 / +0.0011). This is a correction to the target's definition, not a tuning, so the worse
+headline ships and is published in `ERROR_DIRECTION` beside the better years.
+
+U0 (§32: NSL and Viking at 0 g, both in the denominator) reached 2024 corr 0.973. This arm reaches
+0.962 with NSL still served as gas. So the remaining 2024 gap is mostly North Sea Link's, which is
+consistent with §33's finding that its factor is low.
+
+**Controls (each mutation-proven):** `test_the_cables_outside_NESOs_mix_are_unmixed_...` (drop
+the cable from the set), `test_an_UNMIXED_import_displaces_gas_and_leaves_the_denominator_...`
+(keep its MW in the denominator), `test_VIKING_and_ELECLINK_are_served_and_left_out_of_the_mix_in_the_published_feed`
+(drop the input from `generate()`).
+
+**A retired artefact moved, and its finding did not.** `docs/observability/ep13_embedded_generation_bound.json`
+is reproduced by its producer under test, and the producer reads `fuel_mix()`'s priced imports.
+ElecLink has now left those imports, so the artefact was regenerated. Its oracle headroom is still
+negative in every year (2024: −0.091 → −0.105), so the embedded-generation retirement stands.
+
+**Next.** (1) NSL's factor, from Norway's published mix, or keep the honest gap and name it. The
+ENTSO-E token is not on the box. An annual national statistic is the coarser fallback, and it has
+to be sourced, not picked. (2) §32's coverage by year and the biomass rule stand. No level move:
+correlation is 0.93–0.97 against the 0.97 peer bound, and 2020 is still the outlier at 0.931.

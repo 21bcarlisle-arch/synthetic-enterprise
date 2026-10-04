@@ -83,12 +83,12 @@ and are kept here, rewritten, because what replaced them is a smaller gap and no
     genuinely went below gas in merit) it UNDERSTATES coal, erring back toward the no-coal
     behaviour rather than past it.
   * INTERCONNECTOR IMPORTS ARE NOW MODELLED, at NESO's OWN published per-cable factors, from
-    the same FUELHH outturn. REMAINING GAP, AND IT IS GROWING: two of GB's nine cables postdate
-    NESO's published factor table — North Sea Link (Norway, Oct 2021) and Viking Link (Denmark,
-    Dec 2023) — so their flow is still dispatched as GB gas. That is 0% of imported MWh in
-    2019-2020, 5% in 2021, 28% in 2022, 27% in 2023 and 34% in 2024. Inventing factors for them
-    is the fabricated constant R10 forbids; the honest handling is to publish the share, which
-    `elexon_fuel_outturn.import_coverage` measures and the feed carries.
+    the same FUELHH outturn. Viking Link and ElecLink are outside NESO's published mix (measured,
+    EP13 frame s33), so since s34 they are served before the stack and left out of the tonnes and
+    the denominator, which needs no factor. REMAINING GAP: North Sea Link (Norway, Oct 2021) is
+    inside NESO's mix and has no published factor, so its flow is still dispatched as GB gas.
+    Inventing a factor for it is the fabricated constant R10 forbids; the honest handling is to
+    publish the share, which `elexon_fuel_outturn.import_coverage` measures and the feed carries.
   * THE MUST-RUN FLOOR IS A CONSTANT 8 GW. Nuclear outages, hydro seasonality and biomass
     dispatch all move it and none of them is modelled.
   * THE THERMAL STACK NO LONGER REACHES ZERO, and this gap is kept, rewritten, because what
@@ -425,6 +425,7 @@ def emissions_rate_t_per_mwh(
     embedded_generation_mw: float = 0.0,
     export_mw: float = 0.0,
     pumped_storage_mw: float = 0.0,
+    unmixed_import_mw: float = 0.0,
 ) -> float:
     """Tonnes CO2 per MWh of demand met, in ONE half hour, on the dispatch above.
 
@@ -483,6 +484,11 @@ def emissions_rate_t_per_mwh(
     demand it serves. Negative is pumping, which INDO excludes and GB generates, so it joins the
     load and the denominator as exports do. 0.0 is the pre-s25 series exactly.
 
+    `unmixed_import_mw` -- imports on the cables NESO's mix leaves out (Viking, ElecLink; see
+    `elexon_fuel_outturn.OUTSIDE_NESO_MIX`). Served before the stack like any import, because the
+    flow is real, but it carries no tonnes and is taken OUT of the denominator, because the
+    target's mix does not count it (EP13 frame doc s33-s34). 0.0 is the pre-s34 series exactly.
+
     THE DEFAULTS REPRODUCE THE PRE-2026-08-25 SHAPE EXACTLY, and that is a liability rather than
     a convenience: a caller that forgets them gets the known-wrong series silently. The control
     against that is not in this signature — it is `generate_grid_intensity_feed.generate()`,
@@ -505,8 +511,10 @@ def emissions_rate_t_per_mwh(
     # remainder. Clamped at zero (an export is not a negative import — see `elexon_fuel_outturn`)
     # and at demand, because a half hour cannot be met more than once.
     import_mw = min(max(0.0, float(import_mw)), demand_mw)
+    unmixed_import_mw = min(max(0.0, float(unmixed_import_mw)), demand_mw - import_mw)
     residual_mw = (
-        demand_mw - float(renewable_generation_mw) - import_mw - max(0.0, pumped_storage_mw)
+        demand_mw - float(renewable_generation_mw) - import_mw - unmixed_import_mw
+        - max(0.0, pumped_storage_mw)
     )
     # MUST-RUN MEANS MUST RUN, and getting this wrong put a hard zero in the series. Written
     # first as `min(max(residual, 0), floor)`, it made the floor the RESIDUAL's leftovers -- so
@@ -633,7 +641,7 @@ def emissions_rate_t_per_mwh(
         + coal_mw * EF_COAL_TCO2_PER_MWH_E_BY_YEAR[y]
         + peaker_mw * (EF_GAS_TCO2_PER_MWH_TH / OCGT_REFERENCE_EFFICIENCY)
     )
-    return tonnes / (demand_mw + max(0.0, float(embedded_generation_mw)))
+    return tonnes / (demand_mw + max(0.0, float(embedded_generation_mw)) - unmixed_import_mw)
 
 
 def _fill_level(values: list[float], energy: float, cap: float, above: bool) -> float:
@@ -722,6 +730,7 @@ def build_shape(
     embedded_generation_by_period: Mapping[tuple[str, int], float] | None = None,
     exports_by_period: Mapping[tuple[str, int], float] | None = None,
     pumped_storage_by_year: Mapping[int, Mapping[str, float]] | None = None,
+    unmixed_imports_by_period: Mapping[tuple[str, int], float] | None = None,
 ) -> dict[tuple[str, int], float]:
     """{(settlement date, period): shape}, normalised per CALENDAR YEAR to a demand-weighted
     mean of exactly 1.0.
@@ -761,6 +770,9 @@ def build_shape(
     `pumped_storage_by_year` is `elexon_fuel_outturn.pumped_storage_by_year`'s four scalars a
     year. When given, the fleet is dispatched by `pumped_storage_schedule` against the residual
     of the half hours this shape keeps (frame doc s25). None is the pre-s25 series exactly.
+
+    `unmixed_imports_by_period` is `elexon_fuel_outturn.unmixed_imports_by_period`, read like
+    `exports_by_period`: an uncovered half hour has no unmixed import. None is the pre-s34 series.
     """
     eligible: list[tuple[tuple[str, int], float, float]] = []
     for key, demand_mw in demand_by_period.items():
@@ -778,10 +790,12 @@ def build_shape(
             # The same residual `emissions_rate_t_per_mwh` builds before pumped storage, net of
             # the zero-carbon must-run, so the fleet ranks the half hours gas actually serves.
             load_mw = demand_mw + max(0.0, float((exports_by_period or {}).get(key, 0.0)))
-            import_mw = (imports_by_period or {}).get(key, (0.0, 0.0))[0]
+            import_mw = min(max(0.0, float(
+                (imports_by_period or {}).get(key, (0.0, 0.0))[0]
+                + (unmixed_imports_by_period or {}).get(key, 0.0))), load_mw)
             zero_carbon_mw = (zero_carbon_must_run_by_period or {}).get(key)
             residuals[key] = (
-                load_mw - renewable_mw - min(max(0.0, float(import_mw)), load_mw)
+                load_mw - renewable_mw - import_mw
                 - (MUST_RUN_ZERO_CARBON_MW if zero_carbon_mw is None
                    else max(0.0, float(zero_carbon_mw)))
             )
@@ -846,6 +860,7 @@ def build_shape(
                 embedded_generation_mw=float(embedded_mw),
                 export_mw=float((exports_by_period or {}).get(key, 0.0)),
                 pumped_storage_mw=pumped.get(key, 0.0),
+                unmixed_import_mw=float((unmixed_imports_by_period or {}).get(key, 0.0)),
             )
         except (ShapeUnavailable, ValueError, KeyError):
             continue

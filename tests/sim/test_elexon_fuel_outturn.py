@@ -120,8 +120,8 @@ def test_a_cable_with_no_published_factor_is_reported_separately_and_never_price
 
     They are not given a factor, and specifically not given ZERO -- "Norway is hydro so its
     imports are carbon-free" is the exact shape of the assumption that makes a clean end
-    cleaner than reality. Their MW go to `uncovered_import_mw`, which is a number a reader can
-    divide by.
+    cleaner than reality. North Sea Link's MW go to `uncovered_import_mw`, which is a number a
+    reader can divide by. Viking's go to `unmixed_import_mw` (next test), which needs no factor.
 
     MUTATION (must fire): add "Norway" or "Denmark" to `IMPORT_INTENSITY_G_CO2_PER_KWH` with any
     value at all, including 0.
@@ -130,11 +130,33 @@ def test_a_cable_with_no_published_factor_is_reported_separately_and_never_price
     assert "Denmark" not in fuel.IMPORT_INTENSITY_G_CO2_PER_KWH
     series = fuel.to_settlement_periods([row("INTNSL", 1400), row("INTVKL", 800), row("INTFR", 2000)])
     entry = series[KEY]
-    assert entry["uncovered_import_mw"] == pytest.approx(2200.0)
+    assert entry["uncovered_import_mw"] == pytest.approx(1400.0)
     assert entry["covered_import_mw"] == pytest.approx(2000.0)
     # The rate is the rate of the COVERED cables only. Averaging the uncovered MW in at zero is
     # the same fabrication wearing an arithmetic disguise.
     assert entry["covered_import_t_per_mwh"] == pytest.approx(0.053)
+
+
+def test_the_cables_outside_NESOs_mix_are_unmixed_whatever_their_market_has_a_factor_for():
+    """EP13 frame s33 measured that NESO's published mix leaves out Viking AND ElecLink, though
+    ElecLink lands on the French border whose factor NESO does publish. So the split is by CABLE,
+    not by market: IFA on the same border stays priced. All three legs in one half hour, so the
+    branch to `unmixed_import_mw` is shown reachable before what it does is asserted.
+
+    MUTATION (must fire): drop either cable from `OUTSIDE_NESO_MIX`, or key the split on market.
+    """
+    assert fuel.OUTSIDE_NESO_MIX == {"INTELEC", "INTVKL"}
+    series = fuel.to_settlement_periods([
+        row("INTELEC", 900), row("INTVKL", 800), row("INTFR", 2000), row("INTNSL", 1400)])
+    entry = series[KEY]
+    assert entry["unmixed_import_mw"] == pytest.approx(1700.0)
+    assert entry["covered_import_mw"] == pytest.approx(2000.0)
+    assert entry["uncovered_import_mw"] == pytest.approx(1400.0)
+    assert fuel.unmixed_imports_by_period(series) == {KEY: pytest.approx(1700.0)}
+    coverage = fuel.import_coverage(series)
+    # The fraction is of NESO's mix only: the unmixed MW are beside it, never in it.
+    assert coverage["covered_fraction"] == pytest.approx(2000 / 3400)
+    assert coverage["unmixed_mw_sum"] == pytest.approx(1700.0)
 
 
 def test_every_import_factor_is_one_NESO_publishes():

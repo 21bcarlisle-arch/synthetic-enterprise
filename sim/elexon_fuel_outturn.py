@@ -71,11 +71,14 @@ North Sea Link (Norway, Oct 2021), Viking Link (Denmark, Dec 2023) and ElecLink 
 2022) have no published factor in it. ElecLink lands on the French border and is given the
 French factor, which is the methodology's own rule applied to the same network -- but NESO's own
 series does NOT do this: measured 2026-10-04, ElecLink and Viking are absent from NESO's published
-mix, and North Sea Link is inside its imports at a low factor (EP13 frame s33). The other two
-are NOT given a factor — a plausible one is exactly the fabricated number R10 forbids — so their
-flow is reported SEPARATELY as `uncovered_import_mw` and `import_coverage()` states, as a
-measured fraction of imported MWh, how much of the answer that leaves outside. A gap you can
-quote in per cent is a different object from a gap you can only name.
+mix, and North Sea Link is inside its imports at a low factor (EP13 frame s33). So since s34
+ElecLink and Viking are `unmixed_import_mw`: their flow still meets GB demand, so the dispatch
+serves it before the stack, but it carries no tonnes and leaves the denominator, which is NESO's
+own treatment and needs no factor. North Sea Link is NOT given a factor -- a plausible one is
+exactly the fabricated number R10 forbids -- so its flow is reported SEPARATELY as
+`uncovered_import_mw` and `import_coverage()` states, as a measured fraction of the imported MWh
+inside NESO's mix, how much of the answer that leaves outside. A gap you can quote in per cent is
+a different object from a gap you can only name.
 
 Run:  python3 -m sim.elexon_fuel_outturn --from 2016-01-01 --to 2025-12-31
 """
@@ -215,6 +218,13 @@ INTERCONNECTOR_MARKETS = {
     "INTNSL": "Norway",       # North Sea Link, 1.4 GW, from Oct 2021
     "INTVKL": "Denmark",      # Viking Link, 1.4 GW, from Dec 2023
 }
+
+#: The cables NESO's published generation mix leaves OUT, measured rather than stated anywhere:
+#: regressing NESO's implied import MW on each cable's metered flow gives Viking 0.00-0.22 and
+#: ElecLink 0.00-0.45 in every month of 2022 and 2024, North Sea Link ~1.0 (EP13 frame s33,
+#: `docs/market_research/neso_carbon_intensity_interconnector_treatment_2026-10-04.md`). Their
+#: flow is real supply to GB, so the dispatch serves it; the target simply does not count it.
+OUTSIDE_NESO_MIX = frozenset({"INTELEC", "INTVKL"})
 
 #: NESO's OWN published import factors (gCO2/kWh), Carbon Intensity Forecast Methodology Table 1
 #: and `api.carbonintensity.org.uk/intensity/factors`. NOT this project's numbers and not tuned:
@@ -387,7 +397,7 @@ def fetch_remainder(start_date: str, end_date: str, *, pause_s: float = 0.1) -> 
 
 def to_settlement_periods(rows: Iterable[Mapping]) -> dict[tuple[str, int], dict[str, float]]:
     """Raw rows -> {(settlement date, period): {coal_mw, covered_import_mw, uncovered_import_mw,
-    covered_import_t_per_mwh}}.
+    unmixed_import_mw, covered_import_t_per_mwh}}.
 
     THE SIGN IS THE SUBSTANCE. An interconnector row is negative when GB is EXPORTING, and an
     export is not a negative import: it is GB generating for somebody else. Netting the two
@@ -413,6 +423,7 @@ def to_settlement_periods(rows: Iterable[Mapping]) -> dict[tuple[str, int], dict
     covered: dict[tuple[str, int], float] = {}
     covered_tonnes: dict[tuple[str, int], float] = {}
     uncovered: dict[tuple[str, int], float] = {}
+    unmixed: dict[tuple[str, int], float] = {}
     # Deduplicate per (key, fuel) FIRST, because "last row wins" has to be resolved before the
     # cables are summed — summing as we go would add a revised reading to the one it revises.
     latest: dict[tuple[tuple[str, int], str], float] = {}
@@ -445,6 +456,9 @@ def to_settlement_periods(rows: Iterable[Mapping]) -> dict[tuple[str, int], dict
             covered.setdefault(key, 0.0)
             uncovered.setdefault(key, 0.0)
             continue
+        if fuel in OUTSIDE_NESO_MIX:
+            unmixed[key] = unmixed.get(key, 0.0) + imported
+            continue
         factor = IMPORT_INTENSITY_G_CO2_PER_KWH.get(market)
         if factor is None:
             uncovered[key] = uncovered.get(key, 0.0) + imported
@@ -454,7 +468,7 @@ def to_settlement_periods(rows: Iterable[Mapping]) -> dict[tuple[str, int], dict
         covered_tonnes[key] = covered_tonnes.get(key, 0.0) + imported * factor / 1000.0
         uncovered.setdefault(key, 0.0)
 
-    keys = set(coal) | set(covered) | set(uncovered)
+    keys = set(coal) | set(covered) | set(uncovered) | set(unmixed)
     if not keys:
         raise FuelOutturnUnavailable(
             "no half hour carried a usable coal or interconnector reading. This is an absence, "
@@ -467,6 +481,7 @@ def to_settlement_periods(rows: Iterable[Mapping]) -> dict[tuple[str, int], dict
             "coal_mw": coal.get(key, 0.0),
             "covered_import_mw": covered_mw,
             "uncovered_import_mw": uncovered.get(key, 0.0),
+            "unmixed_import_mw": unmixed.get(key, 0.0),
             # The MW-weighted mean factor of the cables actually importing in THIS half hour, in
             # tonnes per MWh so the reconstruction never has to convert units at a call site.
             "covered_import_t_per_mwh": (
@@ -544,21 +559,31 @@ def imports_by_period(
     }
 
 
+def unmixed_imports_by_period(
+    series: Mapping[tuple[str, int], Mapping[str, float]],
+) -> dict[tuple[str, int], float]:
+    """{(date, period): MW imported on the cables outside NESO's mix} -- see `OUTSIDE_NESO_MIX`."""
+    return {key: float(value.get("unmixed_import_mw") or 0.0) for key, value in series.items()}
+
+
 def import_coverage(
     series: Mapping[tuple[str, int], Mapping[str, float]], year: str | None = None
 ) -> dict[str, float]:
-    """How much of GB's imported energy this module can actually price, as a MEASURED fraction.
+    """How much of the imported energy INSIDE NESO's mix this module can price, as a MEASURED
+    fraction. The cables outside that mix need no factor and are reported beside it as
+    `unmixed_mw_sum`, never in the fraction.
 
     The number the NAMED GAP paragraph is allowed to quote. Reported in MWh-share rather than
     cable-count because two of the nine cables being unpriced says nothing about how much energy
     that is: Norway's 1.4 GW link runs harder than Ireland's 0.5 GW pair combined.
     """
-    covered = uncovered = 0.0
+    covered = uncovered = unmixed = 0.0
     for key, value in series.items():
         if year is not None and key[0][:4] != year:
             continue
         covered += float(value.get("covered_import_mw") or 0.0)
         uncovered += float(value.get("uncovered_import_mw") or 0.0)
+        unmixed += float(value.get("unmixed_import_mw") or 0.0)
     total = covered + uncovered
     if total <= 0.0:
         raise FuelOutturnUnavailable(
@@ -568,6 +593,7 @@ def import_coverage(
     return {
         "covered_mw_sum": covered,
         "uncovered_mw_sum": uncovered,
+        "unmixed_mw_sum": unmixed,
         "covered_fraction": covered / total,
     }
 

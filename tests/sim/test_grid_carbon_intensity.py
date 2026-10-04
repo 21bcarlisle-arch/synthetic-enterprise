@@ -1067,6 +1067,26 @@ def test_PUMPED_STORAGE_generation_comes_off_the_residual_and_pumping_is_load_in
     assert gen == pytest.approx(as_wind, rel=1e-12)
 
 
+def test_an_UNMIXED_import_displaces_gas_and_leaves_the_denominator_as_if_the_demand_were_smaller():
+    """EP13 frame doc s34. Viking and ElecLink meet GB demand, so the stack never burns for them,
+    and NESO's mix does not count them, so they carry no tonnes and no MWh. Together that is
+    exactly the half hour with their MW taken off demand. Zero is the old series exactly.
+
+    MUTATION (must fire): leave the unmixed MW in the denominator, price them as a covered import
+    at any factor, or leave them in the residual.
+    """
+    args = dict(renewable_generation_mw=5_000.0, year=2024,
+                thermal_floor_mw=500.0, zero_carbon_must_run_mw=6_000.0)
+    base = gci.emissions_rate_t_per_mwh(demand_mw=30_000.0, **args)
+    assert gci.emissions_rate_t_per_mwh(demand_mw=30_000.0, **args, unmixed_import_mw=0.0) == base
+    unmixed = gci.emissions_rate_t_per_mwh(demand_mw=30_000.0, **args, unmixed_import_mw=1_500.0)
+    smaller = gci.emissions_rate_t_per_mwh(demand_mw=28_500.0, **args)
+    assert unmixed == pytest.approx(smaller, rel=1e-12)
+    # And it is NOT a zero-carbon priced import, which would keep its MWh in the denominator.
+    at_zero = gci.emissions_rate_t_per_mwh(demand_mw=30_000.0, **args, import_mw=1_500.0)
+    assert unmixed != pytest.approx(at_zero, rel=1e-6)
+
+
 def test_the_PUMPED_STORAGE_schedule_shaves_the_peak_fills_the_trough_and_spends_the_years_energy():
     """The water-fill: generation only where the residual is highest, pumping only where it is
     lowest, each day spending the year's mean times its half hours, each leg under its cap. Both

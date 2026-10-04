@@ -81,7 +81,9 @@ def test_the_published_import_coverage_is_the_MEASURED_one_and_not_a_sentence():
                       coal_capacity_by_year={2024: 1873.0, 2025: 110.0})
 
     assert built["import_coverage"]["covered_fraction"] == pytest.approx(0.6612)
-    assert built["import_coverage"]["uncovered_cables"] == ["INTNSL (Norway)", "INTVKL (Denmark)"]
+    assert built["import_coverage"]["uncovered_cables"] == ["INTNSL (Norway)"]
+    assert built["import_coverage"]["outside_neso_mix_cables"] == [
+        "INTELEC (France)", "INTVKL (Denmark)"]
     # The coal fleet closing has to be legible AS a closure, which needs the zero row present.
     assert built["coal_demonstrated_max_mw"]["2025"] == 110
 
@@ -1219,6 +1221,11 @@ def _pumped_storage():
     return gif.pumped_storage_by_year()
 
 
+@functools.lru_cache(maxsize=1)
+def _unmixed_imports():
+    return gif.unmixed_imports_by_period()
+
+
 def _shape_generate_would_build(mix, demand, agws, **knocked_out):
     """`generate()`'s own `build_shape` call, with one correction optionally knocked out.
 
@@ -1236,6 +1243,7 @@ def _shape_generate_would_build(mix, demand, agws, **knocked_out):
         embedded_generation_by_period=gif.embedded_generation_by_period(agws),
         exports_by_period=_exports(),
         pumped_storage_by_year=_pumped_storage(),
+        unmixed_imports_by_period=_unmixed_imports(),
         imports_by_period=imports,
         coal_capacity_by_year=coal_capacity,
         thermal_floor_by_year={year: row["floor_mw"] for year, row in floors.items()},
@@ -1728,6 +1736,23 @@ def test_EXPORTS_are_served_and_divided_by_in_the_published_feed(real_publish):
     )
     assert _published_records_carry(feed, served), (
         "the published records are not the shape that serves exports"
+    )
+
+
+def test_VIKING_and_ELECLINK_are_served_and_left_out_of_the_mix_in_the_published_feed(real_publish):
+    """EP13 frame doc s34. NESO's mix leaves both cables out (s33), so the feed must carry the
+    shape whose stack is relieved of their flow, and dropping it must CHANGE the series.
+
+    MUTATION (must fire): in `generate()`, drop `unmixed_imports_by_period`.
+    """
+    mix, demand, agws, feed = real_publish
+    served = _shape_generate_would_build(mix, demand, agws)
+    dropped = _shape_generate_would_build(mix, demand, agws, unmixed_imports_by_period=None)
+    assert not _published_records_carry(feed, dropped), (
+        "the published records are the shape with Viking and ElecLink served as GB gas"
+    )
+    assert _published_records_carry(feed, served), (
+        "the published records are not the shape that serves Viking and ElecLink"
     )
 
 
