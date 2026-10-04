@@ -85,6 +85,15 @@ forces the edit. Planned change, reversible:
 The cost is that slack of up to a week's improvements can be spent by a regression before Monday.
 That is bounded and visible. **I'll make this change unless you object.**
 
+**Done differently, and better, the same day.** The change landed with no weekly lowering at all.
+The shrink-only property moved to the files themselves:
+`test_no_changed_file_gains_a_ruff_violation` refuses any file the commit changes that holds more
+violations of any code than it did at HEAD.
+- **No slack.** A regression is caught in the commit that makes it, not at the next Monday.
+- **No shared literal to edit.** The counts are now a ceiling nobody is required to lower.
+- **127 lines removed.** The pile of `RUFF_BASELINE_TOTAL -= N` lines and their comments is gone.
+- **Reversible.** Restore the two tests from git history to undo it.
+
 ## In hand, in this order
 
 1. **Heartbeat off main, per your steer.** The liveness-only commit is replaced with a write to the
