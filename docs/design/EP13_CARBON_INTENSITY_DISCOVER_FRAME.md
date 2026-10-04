@@ -2846,3 +2846,95 @@ by wind decile. It is the largest gradient term in 2019 and 2021, and it touches
 (2) The ROC recycle value by year (§39 NEXT 2). (3) 2019's missing biomass unit, and coverage by
 year. The biomass gradient is parked on its amplitude, which is knowledge-limited. No level move:
 the shipped swing is still too wide in every year.
+
+## 41. 2026-10-04 — COAL'S SHORT LEVEL: the shipped merit order serves almost no coal in any year, because the coal band sits above 30 GW of gas that the model never reaches
+
+§40's NEXT (1). Measured, nothing shipped changed. Scratch, outputs and the timestamped predictions
+are in `/var/tmp/se-ep13-s41/` (`measure.py`, `bracket.py`, `prediction.txt`, with `out.txt` and
+`bracket.txt`). **Instrument check:** an exec'd copy of `emissions_rate_t_per_mwh` records each
+served component. The shipped arm reproduces the committed feed's 959 records to five places.
+
+**The mechanism, read from the code before measuring.** Coal is served only above the CCGT band:
+`coal_mw = min(thermal_mw − CCGT_CAPACITY_MW, coal_capacity_mw)`, with `CCGT_CAPACITY_MW = 30,000`.
+`coal_capacity_by_year` (the fleet's demonstrated maximum, 1.9–7.6 GW over 2019–24) only caps a band
+that the model's thermal has to climb past 30 GW to enter.
+
+**Predictions (22:55Z, before `measure.py`).** P1: model coal is 0 in ≥95% of half hours in every
+year. P2: metered coal is above 50 MW in ≥40% of 2019's half hours and ≥25% of 2021's. P3: Oct–Mar
+carries ≥70% of metered coal in each of 2019–22. P4: when metered coal ran, the model's thermal sat a
+median ≥8 GW below the threshold in 2019 and 2021. P5: metered coal's calm-minus-windy difference is
+≥70% of §32's coal gradient term.
+
+| | 2019 | 2020 | 2021 | 2022 | 2023 | 2024 |
+|---|---|---|---|---|---|---|
+| model coal, year mean MW | **19** | 0 | 0.03 | 0 | 0.1 | 0 |
+| metered coal, year mean MW | 652 | 507 | 575 | 480 | 316 | 179 |
+| half hours with model coal at 0 | 0.992 | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 |
+| half hours with metered coal > 50 MW | 0.56 | 0.40 | 0.60 | 0.56 | 0.50 | 0.36 |
+| Oct–Mar share of metered coal | 0.86 | 0.91 | 0.65 | 0.68 | 0.79 | 0.66 |
+| model thermal's median distance below 30 GW when metered coal ran, GW | 14.8 | 16.4 | 14.9 | 14.4 | 18.3 | 21.7 |
+| metered gas (CCGT+OCGT) median, coal on / coal off, GW | 14.7/11.0 | 12.5/8.6 | 14.8/9.3 | 14.9/11.4 | 11.3/8.5 | 8.1/6.1 |
+| metered coal, calm decile / windy decile, MW | 1,419/313 | 1,039/157 | 960/145 | 846/99 | 506/146 | 190/93 |
+| metered coal by hour, 2019, MW | 188–230 overnight, 842–1,034 from 08:00 to 20:00 | | | | | |
+
+**Against the predictions.** P1 held (99.2–100%). P2 held (0.56 and 0.60). **P3 was refuted in 2021
+and 2022** (0.65 and 0.68): coal ran through the summer of 2021 and from July 2022, which is the gas
+price, not the season. P4 held, and by twice the margin (14.8 and 14.9 GW). P5 held: metered coal
+carries 100–117% of the coal-gap gradient in 2019 and 2021. **But this pass's deciles are not §32's
+population.** §32 also needed NESO's mix and the FUELHH remainder rows in each half hour, and on its
+days the 2019 coal gradient was −329 MW against −942 MW here. I cannot yet say which days carry the
+difference. The direction and the conclusion are the same in both.
+
+**What it establishes.**
+- **Coal is a dead dial in the shipped model.** `coal_capacity_by_year` crosses, is tested, and moves
+  nothing. The model serves 0–3% of metered coal in every year. That is the "no coal at all"
+  behaviour the input was added to fix. §17's "coal carried 0.93/0.77 in 2017/18" and §32's "model
+  coal short of metered by 179–640 MW" were both describing this, without naming the cause.
+- **The ordering's stated simplification is wrong as written.** The comment above `coal_mw` says the
+  half hours that mis-order are "few and their coal volume small". The direction it gives (coal
+  understated) is right. The size is all of it. The flaw is in the threshold, not the ordering: a
+  peaking fleet does run after mid-merit, but GB's mid-merit band ended where *running* gas ended,
+  12–15 GW in the half hours coal ran. It did not end at 30 GW of nameplate. Corrected beside the
+  claim in `sim/grid_carbon_intensity.py`.
+- **Real coal ran as a daytime, winter, calm-day plant.** It ran 4–5x higher by day than overnight
+  in 2019, and 2.0–8.5x higher on calm days than windy ones. Its on/off line in metered gas moved by
+  year.
+
+**The bracket (P6–P8 appended at 22:57Z, after `measure.py` and before `bracket.py`).** One variable:
+coal served from the bottom of the thermal stack, displacing CCGT, as a flat block. Arm F is the
+year's measured mean, which is coal's annual grain and so buildable. Arm M is each month's measured
+mean, which is finer than that grain, so it is an oracle and not buildable. **Placebo Z** (a block of
+0) reproduces the shipped statistics to four places in 2020–24. It differs only in 2019, where the
+shipped band's 19 MW is worth +0.0015 of correlation.
+
+| base → F → M | 2019 | 2020 | 2021 | 2022 | 2023 | 2024 |
+|---|---|---|---|---|---|---|
+| correlation | .959/.954/.959 | .931/.925/**.953** | .970/.968/.975 | .982/.982/.979 | .978/.979/.976 | .972/.972/.973 |
+| within-day overstated by | 1.06/.93/.92 | 1.10/1.00/.98 | 1.00/.91/.90 | 1.00/.93/.92 | 1.02/.95/.94 | 1.07/1.03/1.03 |
+| between-day overstated by | 1.05/.95/1.04 | 1.11/1.03/1.04 | 1.01/.95/.97 | 1.07/1.01/1.00 | 1.07/1.01/1.01 | 1.07/1.04/1.05 |
+| mean abs error | .061/.061/.057 | .104/.099/**.077** | .055/.058/.050 | .053/.048/.053 | .068/.062/.065 | .089/.085/.084 |
+
+Headline p95/p5 is 1.22 (base), 1.06 (F) and 1.08 (M). **P6 was refuted in 2019 and 2020**: F's
+correlation fell by 0.0054 and 0.0053, against a bound of 0.005, and it fell rather than rose. It held
+in the other four years. F's narrowing of 2019–21 held, and it overshoots below 1.0 within the day.
+**P7 held** (M over F by +0.006 in 2019 and +0.028 in 2020). P8 held (2024 moves ≤0.001).
+
+**What the bracket establishes.**
+- **Coal's level is worth swing, and coal's timing is worth correlation.** Serving the right energy
+  as a flat block takes the between-day overstatement to 0.95–1.04 and the headline p95/p5 from 1.22
+  to 1.06. It also lowers correlation in 2019–21, because a flat block is clean on the calm days and
+  dirty on the windy ones in the wrong proportion: the same failure as §27's biomass block. Timing
+  the energy by month recovers 2020's correlation to 0.953, the largest move on that year since §21,
+  and cuts its mean error by a quarter.
+- **Neither arm ships.** F lowers correlation where coal matters. M reads coal's monthly energy from
+  the meters, which condition 1 refuses at that grain.
+
+**Controls.** None. Nothing shipped changed. The code comment correction moves no number.
+
+**Next.** (1) A coal *position* from coal's own annual scalars, in place of the 30 GW threshold.
+Candidate: the year's metered gas level at which coal comes on, as one scalar a year, at coal's
+grain like the thermal floor. Whether an annual scalar read from metered gas passes condition 1 must
+be argued before an arm runs. Graded against F and M here, and against the meters' daytime, calm-day
+profile. (2) Whether `CCGT_CAPACITY_MW = 30,000` is also wrong as a capacity: DUKES 5.11's CCGT
+nameplate, de-rated by availability. Knowledge first. (3) §40's ROC recycle and 2019's missing
+biomass unit stand. No level move: the shipped swing is still too wide in every year.

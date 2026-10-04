@@ -600,6 +600,12 @@ def emissions_rate_t_per_mwh(
     # weeks; by then the fleet measured below was a fraction of a gigawatt, so the half hours
     # that mis-orders are few and their coal volume small. Where it is wrong it UNDERSTATES coal,
     # i.e. it errs toward the pre-existing no-coal-at-all behaviour rather than away from it.
+    #
+    # CORRECTED 2026-10-04 (EP13 s41): "few and small" is false. The direction is right, and the
+    # size is all of it. Thermal must pass 30 GW of NAMEPLATE before coal enters, and the model
+    # almost never gets there, so it serves 0-3% of metered coal in every year 2019-24 (19 MW
+    # against 652 in 2019, ~0 after). Real coal ran when metered gas was 12-15 GW. This band is
+    # the no-coal-at-all behaviour it was added to fix. See the design doc's section 41.
     above_ccgt_mw = max(0.0, thermal_mw - CCGT_CAPACITY_MW)
     coal_mw = min(above_ccgt_mw, max(0.0, float(coal_capacity_mw)))
     peaker_mw = max(0.0, above_ccgt_mw - coal_mw)
