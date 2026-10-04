@@ -69,7 +69,9 @@ reconstruction is graded against (Carbon Intensity Forecast Methodology, Table 1
 NAMED GAP, MEASURED RATHER THAN ASSERTED: that table predates three of GB's interconnectors.
 North Sea Link (Norway, Oct 2021), Viking Link (Denmark, Dec 2023) and ElecLink (France, May
 2022) have no published factor in it. ElecLink lands on the French border and is given the
-French factor, which is the methodology's own rule applied to the same network. The other two
+French factor, which is the methodology's own rule applied to the same network -- but NESO's own
+series does NOT do this: measured 2026-10-04, ElecLink and Viking are absent from NESO's published
+mix, and North Sea Link is inside its imports at a low factor (EP13 frame s33). The other two
 are NOT given a factor — a plausible one is exactly the fabricated number R10 forbids — so their
 flow is reported SEPARATELY as `uncovered_import_mw` and `import_coverage()` states, as a
 measured fraction of imported MWh, how much of the answer that leaves outside. A gap you can

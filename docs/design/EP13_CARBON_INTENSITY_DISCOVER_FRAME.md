@@ -2425,3 +2425,49 @@ hole. This is a small generator change. (3) The biomass block's timing is the la
 gradient term in 2020, 2022 and 2024. A dispatch rule from annual scalars, in the shape of §25's PS
 water-fill, is the candidate, and §10's retirement of biomass as a *target* still binds. No level
 move.
+
+## 33. 2026-10-04 — WHAT NESO DOES WITH THE CABLES IT HAS NO FACTOR FOR: North Sea Link is in its imports and priced low, and Viking and ElecLink are not in its mix at all
+
+§32's NEXT (1), the knowledge pass. Measured, nothing shipped changed. Filed in the knowledge layer as
+`docs/market_research/neso_carbon_intensity_interconnector_treatment_2026-10-04.md`, which carries the
+tables. Scratch and the timestamped prediction are in `/var/tmp/se-ep13-s33/`.
+
+**The published record does not answer it.** NESO's methodology was last revised 2021-09-24, before
+either cable existed. Its import rule is a daily factor computed from each connected network's
+ENTSO-E mix. Table 1's import rows are only the fallback defaults. The live factor endpoint has no
+Norway or Denmark row.
+
+**So it was measured from NESO's own outputs.** NESO's `/generation` imports share over its nuclear
+share equals metered imports over metered nuclear, whatever denominator it uses. The instrument
+check holds: gas/nuclear matches FUELHH to the third decimal place in every month.
+
+**Prediction (19:40Z, before any of it ran).** P1: NESO's import share includes NSL *and* Viking.
+**Half refuted.** NSL is in (a per-cable coefficient of about 1.0 in all 24 months of 2022 and
+2024). Viking is out (0.00–0.22). **ElecLink is out too** (0.00–0.45), which nobody predicted. "All
+but Viking and ElecLink" fits 2024 at MAE 0.04–0.12, against 0.21–0.44 for all cables.
+
+**NSL's factor is low and not identified as a number.** Fitting NESO's actual intensity on its own
+mix (scale 1.006 and 0.998) puts NSL at 23–36 g in the joint fit. Monthly estimates scatter from
+−191 to +152. Pooled, the error rises steadily as the factor rises from 0: 2024 gives 6.17 g at
+0, 7.26 at 120 and 10.93 at 394. **NSL is not priced like GB gas.** That matches Table 1 applied to
+Norway's mostly-hydro mix.
+
+**What it means for the build (decided here, before any arm is run against the grade):**
+- **Viking: out of the numerator and out of the denominator**, which is NESO's own treatment.
+  Its flow still physically displaces GB gas, so the dispatch should see it as an import. That
+  leaves no factor to choose, so it is buildable now.
+- **ElecLink: the shipped French factor is a reasonable reading of the rule, and it is not what the
+  target does.** NESO leaves ElecLink out of its mix. Repricing it is a change to the target's
+  definition, so it is the same build as Viking's, under the same rule.
+- **NSL: in the denominator, at a factor that is still owed.** U0 (0 g) remains a bracket end. It is
+  now the end the evidence favours, and it is still not a measured factor. The number is Norway's
+  ENTSO-E mix with Table 1 applied. That needs an ENTSO-E token, which the box does not hold.
+- The `elexon_fuel_outturn` docstring's ElecLink sentence is corrected beside the claim.
+
+**Controls.** None. Nothing shipped changed.
+
+**Next.** (1) Build "Viking and ElecLink are seen by the dispatch and left out of the target's
+mix". This is one variable with no factor to pick. Write the prediction before the arm runs.
+(2) NSL's factor. Either establish it from Norway's published mix (ENTSO-E, or an annual national
+statistic as a coarser fallback), or keep the honest gap and name it. (3) §32's coverage by year
+and the biomass rule stand. No level move.
