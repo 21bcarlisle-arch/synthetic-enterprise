@@ -1851,75 +1851,108 @@ def run_session(brief: dict) -> tuple[bool, str]:
     return proc.returncode == 0, f"rc={proc.returncode}"
 
 
-def _push_direction_or_say_why(*, pusher=None, ahead_fn=None) -> dict:
-    """Send the direction commit to origin, ONCE, and say what became of it. Never raises.
+#: The seat's own linked worktree, cut at `origin/main` for every direction landing. Locked and
+#: owner-marked on creation: unlocked scratch worktrees under /var/tmp have been reaped mid-landing.
+DIRECTION_WORKTREE = Path(os.environ.get("SE_DIRECTION_WORKTREE", "/var/tmp/se-direction-seat"))
 
-    Returns `{"pushed": bool, "reason": str}` -- deliberately the shape of
-    `process_run_complete._advance_to_origin_or_say_why`, because this is the same question asked
-    at the other end of the same fork, and a sibling that merely LOOKS like it forks the fix
-    history (CLAUDE.md, and the note on `_git_add_or_refuse`).
+#: Files the seat only ever appends to. Their working copy is landed over origin's only when
+#: origin's copy is a prefix of it -- otherwise the landing would delete a row someone else put on
+#: origin, and that is refused by name rather than merged by guesswork.
+APPEND_ONLY = ("docs/direction/decisions.jsonl", "docs/status/SEAT_STRETCH_LOG.md")
 
-    WHY AN UNPUSHED COMMIT HERE IS NOT A HARMLESS ONE (2026-09-04). `commit_direction` has always
-    committed and never pushed, and nothing else pushes it: `origin_reconcile.commits_ahead`'s
-    docstring is explicit that *"nothing else pushes a `surgical_land` landing"*, and the publish
-    path only carries other commits along when a publish happens to succeed. So one orientation
-    left the shared tree one commit AHEAD of origin, indefinitely.
 
-    That single commit is what disables the mechanical advance landed the same day. Measured, from
-    `docs/observability/sim-runner-log.md` at 2026-09-04 19:59Z, verbatim:
+class DirectionNotLanded(RuntimeError):
+    """The direction record did not reach origin. The message names why."""
 
-        Liveness heartbeat is behind origin (...). Advance attempt: this tree holds 1 commit(s)
-        of its own, so the fork is REAL and closing it is a judgement
 
-    The advance is RIGHT to refuse -- `ahead > 0` genuinely needs the gated merge door. But the
-    `ahead` it refuses on was manufactured here, by a commit nobody was ever going to push, and
-    `origin_reconcile` (which owns that case) stands down for the running gate. Two mechanisms
-    each correctly standing down, and the tree stays behind. Removing the cause is cheaper than
-    teaching either of them a new exception.
+def _git_in(root: Path, *args: str) -> subprocess.CompletedProcess:
+    return subprocess.run(["git", *args], cwd=str(root), capture_output=True, timeout=300)
 
-    ONE ATTEMPT, NEVER A RETRY, and the asymmetry is the whole safety argument -- inherited from
-    `_divergence_refusal`, which exists because a rejected push was re-attempted identically and
-    every attempt widened the fork. Being behind origin is a STATE, not a moment. A rejected push
-    creates nothing and costs one round trip; re-running it is the 2026-09-01 incident.
 
-    NO TREE LOCK, and that is not an oversight: a push reads refs and writes neither the working
-    tree nor the index, so it cannot sweep a concurrent lane's work the way a merge could.
+def _origin_bytes(root: Path, path: str) -> bytes | None:
+    out = _git_in(root, "show", f"origin/main:{path}")
+    return out.stdout if out.returncode == 0 else None
 
-    IT MAY CARRY ANOTHER LANE'S GATED LANDING TO ORIGIN, and that is the point rather than a side
-    effect. `origin_reconcile.reconcile` already does exactly this ("pushed N gated landing(s)
-    that were sitting local-only") for the same reason: a landing that never leaves the machine
-    reads as landed and is not.
 
-    SUCCESS IS GROUND TRUTH, never the push's own rc -- `_push_reached_origin`'s lesson, a phantom
-    "Everything up-to-date" recorded as a publish for 3.5h. The question asked afterwards is the
-    one the defect is actually about: does this tree still hold a commit of its own? `commits_ahead`
-    reads the tracking ref, which `git push` updates in both directions; a ref too stale to have
-    learned anything degrades to "still local-only", which is the safe direction.
-    """
-    from background import origin_reconcile
+def _refuse_an_append_only_rewrite(root: Path, content: dict[str, bytes]) -> None:
+    for path in APPEND_ONLY:
+        theirs = _origin_bytes(root, path)
+        if path in content and theirs is not None and not content[path].startswith(theirs):
+            raise DirectionNotLanded(
+                f"{path} on origin/main is not a prefix of this tree's copy, so landing it would "
+                f"delete what origin holds beyond it. Not merged by guesswork: the file needs a "
+                f"hand landing that keeps both sides")
 
-    try:
-        # REUSED, NOT RESTATED: `_push` centralises the remote, the branch and the timeout.
-        push = (pusher or origin_reconcile._push)(PROJECT_DIR)
-    except Exception as exc:  # noqa: BLE001 -- a push that failed to run must not lose the record
-        return {"pushed": False,
-                "reason": f"the push could not be run ({type(exc).__name__}: {exc}), so the "
-                          f"direction commit is LOCAL-ONLY and origin_reconcile owns it"}
-    ahead = (ahead_fn or origin_reconcile.commits_ahead)(PROJECT_DIR)
-    if ahead is None:
-        return {"pushed": False,
-                "reason": f"the push reported rc={push.returncode} and whether this tree still "
-                          f"holds commits of its own could NOT be established -- recorded as "
-                          f"LOCAL-ONLY, because an unreadable answer must not read as a push"}
-    if ahead == 0:
-        return {"pushed": True,
-                "reason": "pushed to origin/main; this tree holds no commit of its own, so the "
-                          "publisher's mechanical advance is not blocked by this seat"}
-    return {"pushed": False,
-            "reason": f"the direction commit is LOCAL-ONLY (push rc={push.returncode}; this tree "
-                      f"still holds {ahead} commit(s) of its own), which is what refuses the "
-                      f"publisher's mechanical advance. NOT retried -- behind-origin is a state, "
-                      f"and `background/origin_reconcile` is what closes it"}
+
+def _cut_direction_worktree(root: Path, worktree: Path) -> None:
+    """Put `worktree` at the freshly fetched `origin/main`. The worktree is the seat's alone and
+    holds nothing the shared tree does not: every landing's bytes are re-read from the shared
+    copy, so resetting it discards at most a landing origin has already moved past."""
+    if (worktree / ".git").exists():
+        reset = _git_in(worktree, "reset", "--hard", "--quiet", "origin/main")
+        if reset.returncode != 0:
+            raise DirectionNotLanded(f"could not reset {worktree} to origin/main: "
+                                     f"{reset.stderr.decode(errors='replace')[-300:]}")
+    else:
+        _git_in(root, "worktree", "prune")
+        add = _git_in(root, "worktree", "add", "--detach", str(worktree), "origin/main")
+        if add.returncode != 0:
+            raise DirectionNotLanded(f"could not cut {worktree} at origin/main: "
+                                     f"{add.stderr.decode(errors='replace')[-300:]}")
+        _git_in(root, "worktree", "lock", str(worktree), "--reason", "the delivery seat's own")
+    (worktree / ".se_worktree_owner").write_text(str(os.getpid()))
+
+
+def land_direction_on_origin(root: Path, paths: list[str], message: str,
+                             content: dict[str, bytes], *, worktree: Path | None = None,
+                             lander=None, promoter=None,
+                             attempts: int = 2) -> str:
+    """Land `content` onto `origin/main` itself, never onto the shared HEAD, and return the sha.
+
+    WHY NOT THE SHARED HEAD (2026-10-04). The shared tree sits behind AND diverged from origin as
+    a standing state, not a moment, so a direction commit made there and then pushed was refused
+    every time: 543dcff6d and 7234966b2 stayed local-only while origin's DIRECTION.yaml -- the
+    record the director reads -- stood at the 10-03 14:21 orientation for two stretches. Here the
+    landing is gated in the seat's own worktree cut at `origin/main`, so it is a fast-forward by
+    construction, and `promote_worktree_landing` pushes it and verifies origin moved.
+
+    THE LOOP IS ONLY OVER ORIGIN MOVING under the gate. Any other refusal -- a red gate, a dirty
+    worktree, a duplicate claim -- is raised on the first attempt; retrying a verdict is how a
+    flaky test becomes a landed regression."""
+    from tools import promote_worktree_landing as promote_mod
+    from tools import surgical_land
+
+    worktree = worktree or DIRECTION_WORKTREE
+    lander = lander or surgical_land.land
+    promoter = promoter or promote_mod.promote
+    _refuse_an_append_only_rewrite(root, content)
+    moved = []
+    for _attempt in range(attempts):
+        _git_in(root, "fetch", "--quiet", "origin")
+        _cut_direction_worktree(root, worktree)
+        # THE WORKTREE'S FILES CARRY THE BYTES TOO. The door commits `content` without touching the
+        # working copy, which then still holds origin's old bytes -- and promotion refuses that as
+        # uncommitted work. Found on this route's first hand landing, 2026-10-04.
+        for rel, data in content.items():
+            (worktree / rel).parent.mkdir(parents=True, exist_ok=True)
+            (worktree / rel).write_bytes(data)
+        try:
+            sha = lander(worktree, paths, message, attempts=1, content=content)
+        except surgical_land.IndexNotRefreshed as exc:
+            # THE COMMIT LANDED; only this worktree's index lags it, and the index is ours alone.
+            sha = exc.sha
+            _git_in(worktree, "reset", "--quiet")
+        try:
+            promoter(worktree)
+            return sha
+        except promote_mod.PromotionRefused as exc:
+            _git_in(worktree, "fetch", "--quiet", "origin")
+            if _git_in(worktree, "merge-base", "--is-ancestor", "origin/main", sha).returncode == 0:
+                raise DirectionNotLanded(f"landed {sha[:9]} in {worktree} and the push "
+                                         f"was refused: {exc}") from exc
+            moved.append(str(exc).splitlines()[0][:160])
+    raise DirectionNotLanded(f"origin/main moved under the gate on all {attempts} attempt(s): "
+                             + " | ".join(moved))
 
 
 #: WHAT THE SEAT ITSELF WRITES AND COMMITS BESIDE THE DIRECTION RECORD -- written by this module's own
@@ -2014,31 +2047,28 @@ def commit_direction(lander=None) -> tuple[bool, str]:
     at `git add` four times. Neither was retried, so the record and the feed stayed uncommitted
     until the next orientation, three hours on -- and that held H45's level, which waits on this
     feed. The landing door gates the tree the commit would create, never takes the shared index,
-    and re-gates against the new HEAD when the race is lost; a red gate stays terminal."""
+    and re-gates when the race is lost; a red gate stays terminal.
+
+    ONTO ORIGIN, NOT THE SHARED HEAD (2026-10-04) -- see `land_direction_on_origin`. The shared
+    working copy is left as it is; it reads dirty against its own HEAD until the tree advances."""
     present = [p for p in (*direction_mod.WRITE_SCOPE, *SEAT_WRITTEN) if (PROJECT_DIR / p).exists()]
     if not present:
         return False, "nothing in the write scope exists to commit"
-    if not _git("status", "--porcelain", "--", *present).strip():
+    # ASKED OF ORIGIN, NOT HEAD: the landing goes to origin and the shared HEAD lags it, so a
+    # record already on origin still reads dirty against HEAD and would be landed as a no-op.
+    _git("fetch", "--quiet", "origin")
+    if not _git("diff", "--name-only", "origin/main", "--", *present).strip():
         return True, "nothing changed in the write scope"
-    from tools import surgical_land
     content = {p: (PROJECT_DIR / p).read_bytes() for p in present}
     try:
-        sha = (lander or surgical_land.land)(
-            PROJECT_DIR, present, "delivery seat: direction for the next stretch",
-            attempts=DIRECTION_LAND_ATTEMPTS, content=content)
-    except surgical_land.IndexNotRefreshed as exc:
-        # THE COMMIT LANDED; only the shared index disagrees. Calling it unlanded is the one
-        # reading this type exists to make impossible -- the record is on HEAD.
-        sha = exc.sha
+        sha = (lander or land_direction_on_origin)(
+            PROJECT_DIR, present, "delivery seat: direction for the next stretch", content,
+            attempts=DIRECTION_LAND_ATTEMPTS)
     except Exception as exc:  # noqa: BLE001 -- a refusal is a value; the record is already on disk
         # The refusal's own words are the diagnosis (2026-09-30: a bare rc classified nothing).
         why = " | ".join(str(exc).strip().splitlines()[:3])[:300]
         return False, f"landing refused ({type(exc).__name__}): {why or 'no message'}"
-    # AND THEN SEND IT. `ok` stays keyed to the COMMIT and never to the push: the direction record
-    # exists once the commit lands, and reporting `committed: false` for a rejected push would
-    # make the row lie about the thing it names. The push outcome rides out in the detail, which
-    # is what `orient` logs.
-    return True, f"commit rc=0; landed {sha[:9]}; {_push_direction_or_say_why()['reason']}"
+    return True, f"commit rc=0; landed {sha[:9]} on origin/main"
 
 
 def out_of_scope_writes() -> list[str]:
