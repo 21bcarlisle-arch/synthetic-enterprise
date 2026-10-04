@@ -283,6 +283,43 @@ touch the refit (`departure_level_anchor`), `plan_offer_response` (+162), `colle
 check is the old book on the new code with the pre-refit anchor. It is not run, and nothing here
 depends on it.
 
+#### The one-variable attribution check: prediction, written before launch (2026-10-04, ~20:49Z; the job started 20:50:03Z as `longjob-attr-stage-a-refit-revert`)
+
+Item `attribute-the-stage-a-edge-to-world-or-company`. **The variable is the refit, b9ede156f's four
+runtime files**, which are `simulation/departure_level_anchor.py`, the switching commons
+`gb_domestic_switching_rate.json`, `company/crm/market_conditions.py` and
+`company/market/market_report.py`. They are reverted to `b9ede156f^` in the locked worktree
+`/var/tmp/se-attrib`, which is otherwise the Stage A base `0859ac1a3`. Those four files are
+byte-identical at `4bf859f0b` and at `b9ede156f^`, and none of them moved between `b9ede156f` and
+`0859ac1a3`. So the arm is the old world anchor and commons with everything else at the new code.
+`world_level_identity` in that tree reads `cf823b185f8ca51c`, the pre-refit digest.
+
+Two things this variable does NOT cleanly separate:
+- **The refit is not purely world-side.** The company reads the same commons through
+  `market_conditions`, so "the refit" includes the company's view of published switching.
+- **"The code" is not purely company-side.** The other 95 commits include world mechanics:
+  `plan_offer_response` reaches the seam, and later lumps are replaced by agreed plans.
+
+**The comparison is path by path, not against 3.2 and 7.7 directly.** 3.2 and 7.7 GBP a decision
+are four-path pooled figures. One default pass compares with the default path only, which was
+**9.27** before the refit (harder chooser E-belief, +528 over 57) and **13.22** after it (E-true,
++767 over 58). Most of the pooled rise is on the roll-seed paths: 61003 went from 0.51 to 10.5, and
+61002 from 1.78 to 5.4. So the job runs all four paths serially, default first. Default is graded
+when it lands, and the pooled figure when all four have landed (≈2 h).
+
+Predictions:
+- **P1 (default path):** the reverted arm's edge per decision is nearer 9.27 than 13.22, so below
+  11.2. 60%.
+- **P2 (default path):** the E-true 2018 level is not 95; it falls back to 45-60. 65%. 95 in 2018
+  on every refitted path is the most visible change, and the refit is what made pre-2022 departures
+  harder.
+- **P3 (pooled, if all four land):** the reverted pooled edge is below 5.45 GBP a decision, the
+  midpoint of 3.2 and 7.7. So the refit carries most of the rise. 60%.
+- **How it will be read.** The reverted arm near the old figure means the refit. Near the new figure
+  means the code. Between the two (within 25% of the gap of neither end) means both, and the next
+  split is the company's commons read on its own: the reverted world with the v2 commons fed to
+  `market_conditions` only.
+
 ### E1-E5, re-graded against the record this follows (harder chooser read as there)
 
 | | pre-refit (`4bf859f0b`) | refitted (`0859ac1a3`) |
