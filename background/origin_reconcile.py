@@ -171,6 +171,25 @@ ORPHAN_PRESERVED_PREFIX = "refs/preserved/origin-reconcile-orphan/"
 #: orphans' because an orphan's ref is its ONLY home and a reader must be able to tell which.
 EARLIER_PRESERVED_PREFIX = "refs/preserved/origin-reconcile-earlier-revision/"
 
+#: Where an ABANDONED unique working copy's bytes go before it is cleared -- the seventh class
+#: (`abandoned_copy_verdicts`). Held apart from the orphans' prefix because the two are recovered
+#: for different reasons: an orphan was a draft of something origin has since landed, while a copy
+#: under this prefix is work NOBODY landed, and the ref is the only place it now exists.
+ABANDONED_PRESERVED_PREFIX = "refs/preserved/origin-reconcile-abandoned/"
+
+#: How long a blocking working copy must sit untouched before it is presumed ABANDONED and aged
+#: out. A POLICY, NOT A MEASUREMENT, and the measurement it is set against is this: over the ten
+#: days to 2026-10-04 the shared tree was out of step with origin for 157 of 231 hours, and 50.5
+#: of the attributable hours were this module refusing on a unique copy no class could take. The
+#: blockers that cleared by themselves did so within HOURS (a lane landing its own work); the ones
+#: that did not sat 2 to 10 days -- `tests/tools/test_the_concordance_curve_says_what_it_could_have_
+#: seen.py`, last written 2026-09-24, refused 127 cadences, and four staging notes and a test from
+#: 2026-10-02 about 100 each. 48 h sits above the whole self-clearing population and at the bottom
+#: of the abandoned one. The cost of being wrong is bounded by the preservation: an aged-out copy is
+#: on a ref and named in a staging item, so a lane that comes back after 48 h loses a `git show`,
+#: not its work. Re-measure from the reconciler's log before moving it.
+ABANDONED_AFTER_HOURS = 48
+
 FF_MODIFIED = "modified here, and origin changes it too"
 FF_UNTRACKED = "untracked here, and origin adds its own copy"
 UNREADABLE = "UNREADABLE"
@@ -996,7 +1015,8 @@ def untracked_orphan_verdicts(project: Path | None = None,
     come back in one command. Tracked holder work -- a lane's edit to a file that already exists --
     stays refused, because there the working copy is the only form the work has and the lane is
     mid-turn on it; that class is landed, never displaced, and `stale_copy_verdicts` keeps saying
-    so by name.
+    so by name -- until nobody has touched it for `ABANDONED_AFTER_HOURS`, when the lane is
+    presumed gone and `abandoned_copy_verdicts` preserves and clears it instead.
     """
     project = project or PROJECT_DIR
     if paths is None:
@@ -1136,11 +1156,260 @@ def preserve_untracked_orphans(project: Path | None = None, paths: list[str] | N
     return commit, ""
 
 
+def _paths_held_open(project: Path, paths: list[str]) -> set[str] | None:
+    """Which of `paths` some live process holds an open file descriptor on. `None` if unaskable.
+
+    READ FROM `/proc/<pid>/fd`, the cheapest question Linux answers: one `readlink` per descriptor,
+    no subprocess. ITS BLIND SPOTS ARE NAMED RATHER THAN HIDDEN. It sees only processes this user
+    may inspect (another user's are skipped, not guessed at), and only descriptors open NOW -- an
+    editor that reads a file and closes it, which is how every editor and every agent's edit tool
+    works, holds nothing. So this catches a writer mid-write and little else; the age is the real
+    test of liveness, and this is the cheap second leg beside it. No `/proc` at all is `None`, and
+    the caller treats that as "could not establish" -- nothing is aged out on an unasked question.
+    """
+    proc = Path("/proc")
+    if not proc.is_dir():
+        return None
+    wanted = {}
+    for path in paths:
+        try:
+            wanted[str((project / path).resolve())] = path
+        except OSError:
+            continue
+    held: set[str] = set()
+    try:
+        pids = [d for d in os.listdir(proc) if d.isdigit()]
+    except OSError:
+        return None
+    for pid in pids:
+        try:
+            fds = os.listdir(proc / pid / "fd")
+        except OSError:
+            continue  # another user's process, or one that exited between the two reads
+        for fd in fds:
+            try:
+                target = os.readlink(proc / pid / "fd" / fd)
+            except OSError:
+                continue
+            if target in wanted:
+                held.add(wanted[target])
+    return held
+
+
+def _age_hours(project: Path, path: str, now: float | None = None) -> float | None:
+    """Hours since the working copy at `path` was last written, or `None` if it cannot be read."""
+    try:
+        mtime = os.lstat(project / path).st_mtime
+    except OSError:
+        return None
+    return ((now if now is not None else datetime.now().timestamp()) - mtime) / 3600.0
+
+
+def abandoned_copy_verdicts(project: Path | None = None, paths: list[str] | None = None,
+                            now: float | None = None) -> dict[str, tuple[bool, str]] | None:
+    """For each path NO OTHER CLASS could take, `(is_abandoned, why)`. `None` if `paths` is None.
+
+    THE SEVENTH CLASS, AND IT IS THE FIRST THAT DISPLACES WORK RATHER THAN PROVING IT SAFE. The six
+    classes before it each find (or, for the orphans, build) an argument that the bytes cost
+    nobody anything. A unique working copy -- a lane's edit to a tracked file, or a draft at a path
+    origin writes -- has no such argument, and the all-or-nothing rule then refuses the WHOLE
+    advance on it. That is right while the lane is mid-turn. It is wrong when the lane is gone:
+    measured over ten days to 2026-10-04, 50.5 hours of the shared tree's lag were this refusal
+    holding on copies nobody had touched for 2 to 10 days, while every daemon ran stale code.
+
+    SO AGE IS THE QUESTION. A copy untouched for `ABANDONED_AFTER_HOURS` is presumed abandoned; its
+    bytes are committed to a ref and read back before anything is cleared (the orphans' machinery,
+    reused), and one staging item names every path and its recovery command. A copy touched more
+    recently is LIVE WORK and stays exactly as refused as it was -- this class never shortens the
+    all-or-nothing rule for a lane that is still here.
+
+    THREE MORE REFUSALS, each cheap and each fail-closed: a path a live process holds open
+    (`_paths_held_open`; its blind spots are named there); a path whose INDEX holds a third version
+    equal to neither HEAD nor the disk (preserving the disk would lose the staged one); and a path
+    whose age or bytes cannot be read.
+
+    REFUSES OUTRIGHT UNDER PYTEST ON THIS MODULE'S OWN REPOSITORY. Several reconciler tests inject
+    fake blockers but leave `project` defaulted, and a fake blocker can name a real, old file here;
+    without this, a test run would commit refs into the shared repository and restore real files.
+    A test of this class runs on its own throwaway repository, where the guard does not apply --
+    the same scoping `alarm_repetition.escalate` gives its pytest guard, for the same reason.
+    """
+    project = project or PROJECT_DIR
+    if paths is None:
+        return None
+    if not paths:
+        return {}
+    try:
+        on_this_repo = project.resolve() == PROJECT_DIR.resolve()
+    except OSError:
+        on_this_repo = True
+    if os.environ.get("PYTEST_CURRENT_TEST") is not None and on_this_repo:
+        return {p: (False, "under pytest the module's own repository is never aged out")
+                for p in paths}
+    open_paths = _paths_held_open(project, list(paths))
+    verdicts: dict[str, tuple[bool, str]] = {}
+    for path in sorted(set(paths)):
+        age = _age_hours(project, path, now)
+        if age is None or not (project / path).is_file():
+            verdicts[path] = (False, "no readable working-copy file here, so there are no bytes "
+                                     "to preserve and its age is unknown")
+            continue
+        if age < ABANDONED_AFTER_HOURS:
+            verdicts[path] = (False, "last written {:.1f}h ago, under the {}h abandonment line, "
+                                     "so it is LIVE work and holds the advance".format(
+                                         age, ABANDONED_AFTER_HOURS))
+            continue
+        if open_paths is None:
+            verdicts[path] = (False, "untouched {:.1f}h, but whether a live process holds it open "
+                                     "could not be asked (no /proc), so it is not aged out".format(
+                                         age))
+            continue
+        if path in open_paths:
+            verdicts[path] = (False, "untouched {:.1f}h, but a live process holds it OPEN, so it "
+                                     "is not abandoned".format(age))
+            continue
+        try:
+            staged = _git(project, "rev-parse", "-q", "--verify", ":{}".format(path))
+        except (OSError, subprocess.SubprocessError) as exc:
+            verdicts[path] = (False, "untouched {:.1f}h, but its index entry could not be read "
+                                     "({}), so it is not aged out".format(age, exc))
+            continue
+        if staged.returncode == 0:
+            index_blob = (staged.stdout or "").strip()
+            if index_blob not in (_blob_in_head(project, path), _blob_here(project, path)):
+                verdicts[path] = (False, "untouched {:.1f}h, but the index holds a THIRD version, "
+                                         "equal to neither HEAD nor the disk, and preserving the "
+                                         "disk would lose it".format(age))
+                continue
+        verdicts[path] = (True, "untouched {:.1f}h (over the {}h abandonment line) and in none of "
+                                "the six lossless classes, so it is ABANDONED: preserved on a ref, "
+                                "read back, then cleared".format(age, ABANDONED_AFTER_HOURS))
+    return verdicts
+
+
+def preserve_abandoned_copies(project: Path | None = None, paths: list[str] | None = None,
+                              slug: str | None = None,
+                              now: float | None = None) -> tuple[str | None, str]:
+    """Re-prove the age, commit the bytes to a ref, read them back. `(commit, "")` or `(None, why)`.
+
+    THE AGE IS RE-ASKED HERE, INSIDE THE LOCK, because the verdict was read outside it: a lane
+    that came back in between has written the file, and its mtime is now fresh. The read-back is
+    the exact route the staging item advertises -- `git show <ref>:<path>` -- so a preservation
+    whose advertised command would not return the bytes refuses, and nothing is cleared.
+    """
+    project = project or PROJECT_DIR
+    if not paths:
+        return None, "nothing to preserve"
+    slug = slug or refresh_slug(project)
+    paths = sorted(paths)
+    again = abandoned_copy_verdicts(project, paths, now) or {}
+    revived = [p for p in paths if not again.get(p, (False, ""))[0]]
+    if revived:
+        return None, "{} -- no longer abandoned when re-asked inside the lock ({})".format(
+            "; ".join(revived[:6]),
+            " ".join(str(again.get(revived[0], (False, "unread"))[1]).split()))
+    ref = ABANDONED_PRESERVED_PREFIX + slug
+    commit, failure = _commit_disk_bytes_to_ref(
+        project, paths, ref,
+        "preserved ABANDONED shared-tree working copies (untouched {}h+) before origin-reconcile "
+        "cleared them for the fast-forward: {}".format(ABANDONED_AFTER_HOURS, ", ".join(paths)))
+    if failure:
+        return None, failure
+    for path in paths:
+        try:
+            local = (project / path).read_bytes()
+            shown = subprocess.run(["git", "show", "{}:{}".format(ref, path)], cwd=str(project),
+                                   capture_output=True, check=False, timeout=60)
+        except (OSError, subprocess.SubprocessError) as exc:
+            return None, "{} could not be read back ({}), so nothing was removed".format(path, exc)
+        if shown.returncode != 0 or shown.stdout != local:
+            return None, "`git show {}:{}` did not return the bytes on disk, so nothing was " \
+                         "removed".format(ref, path)
+    return commit, ""
+
+
+#: The family key the abandoned-copy staging item is filed under. `alarm_repetition` keys one
+#: document per FAMILY, so every aging-out lands in one live item; the ref is the INSTANCE, so a
+#: recurring ref refreshes its own section in place rather than filing a second document.
+ABANDONED_FINDING_KEY = "origin-reconcile-abandoned"
+
+_ABANDONED_MESSAGE = ("[RECONCILE] origin_reconcile aged out ABANDONED working copies onto "
+                      "preserved refs so the shared tree could fast-forward onto origin/main")
+
+
+def _abandoned_heading(ref: str) -> str:
+    return "## Aged out at `{}`".format(ref)
+
+
+def _abandoned_section(ref: str, commit: str, entries: list[dict], now: float) -> str:
+    stamp = datetime.fromtimestamp(now).astimezone().strftime("%Y-%m-%d %H:%M %Z")
+    lines = [_abandoned_heading(ref), "",
+             "Preserved as commit `{}` at {}. Each path below held the shared tree behind {}/{}, "
+             "fitted none of the reconciler's six lossless classes, and had not been written for "
+             "at least {} h. Its bytes were committed to the ref and read back, then the working "
+             "copy was cleared (a tracked edit restored to HEAD, an untracked file removed).".format(
+                 (commit or "-")[:12], stamp, REMOTE, BRANCH, ABANDONED_AFTER_HOURS), "",
+             "**What to do:** for each path, decide whether the work is wanted. If it is, recover "
+             "it with the command in its row and land it; if not, there is nothing to undo. "
+             "Archive this item once every path has been decided.", "",
+             "| Path | Kind | Untouched for | Recover |", "|---|---|---|---|"]
+    for e in entries:
+        age = e.get("age_hours")
+        lines.append("| `{}` | {} | {} | `git show {}:{}` |".format(
+            e["path"], e.get("kind", "?"), "{:.1f} h".format(age) if age is not None else "?",
+            ref, e["path"]))
+    return "\n".join(lines) + "\n"
+
+
+def file_abandoned_copies(project: Path | None = None, entries: list[dict] | None = None,
+                          ref: str = "", commit: str = "", *, staging_dir: Path | None = None,
+                          now: float | None = None) -> str:
+    """Name every aged-out path in ONE staging item. `""` on success, else why it was not filed.
+
+    Filed through `alarm_repetition.escalate`, the one idempotent filer every repeating condition
+    uses: one live document for the family, refreshed in place while it stays open. This writes a
+    section per REF into it and replaces that section if the same ref recurs (a preservation
+    followed by a refused fast-forward is re-made under the same slug the next cadence), so there
+    is never one file per cadence and never one section per cadence either.
+    """
+    project = project or PROJECT_DIR
+    if not entries:
+        return "nothing to file"
+    staging = staging_dir or (project / "docs" / "staging")
+    now = datetime.now().timestamp() if now is None else now
+    try:
+        from background import alarm_repetition
+        key = "{}:{}".format(ABANDONED_FINDING_KEY, ref)
+        filed = alarm_repetition.escalate(_ABANDONED_MESSAGE, key=key, first_ts=now,
+                                          staging_dir=staging, now=now)
+        target = filed or alarm_repetition._live_finding_for(_ABANDONED_MESSAGE, key=key,
+                                                             staging_dir=staging)
+        if target is None:
+            return "no staging item was filed (the filer declined -- under pytest it never " \
+                   "writes the real staging root)"
+        text = target.read_text(encoding="utf-8", errors="replace")
+        section = _abandoned_section(ref, commit, entries, now)
+        heading = _abandoned_heading(ref)
+        at = text.find(heading)
+        if at >= 0:
+            end = text.find("\n## ", at + len(heading))
+            text = text[:at] + section + ("\n" + text[end + 1:] if end >= 0 else "")
+        else:
+            text = text.rstrip("\n") + "\n\n" + section
+        failure = alarm_repetition._write_document(target, text)
+        if failure is not None:
+            return "the staging item {} could not be written ({})".format(target.name, failure)
+    except Exception as exc:  # filing must never take down the advance it reports on
+        return "filing raised {}: {}".format(type(exc).__name__, exc)
+    return ""
+
+
 def advance_shared_tree(project: Path | None = None, *, blockers_fn=None, twins_fn=None,
                         tracked_twins_fn=None, ff_fn=None, remover=None, restorer=None,
                         locker=None, ahead_fn=None, stale_fn=None, refresher=None,
                         orphans_fn=None, preserver=None, generated_fn=None,
-                        earlier_fn=None, earlier_preserver=None) -> dict:
+                        earlier_fn=None, earlier_preserver=None, abandoned_fn=None,
+                        abandoned_preserver=None, filer=None, now=None) -> dict:
     """Fast-forward the shared tree onto `origin/main`, clearing every blocker it can prove lossless.
 
     Returns `{"advanced": bool, "cleared": list[str], "reason": str}`. `advanced` is claimed only
@@ -1161,6 +1430,13 @@ def advance_shared_tree(project: Path | None = None, *, blockers_fn=None, twins_
     `generated_output_verdicts`. The sixth, added 2026-10-01, is a copy of an EARLIER origin
     revision of its own path -- see `earlier_revision_twins`. All six are resolvable; a blocker in
     none of them refuses everything, by name and with its reason attached.
+
+    THE SEVENTH, added 2026-10-04, is the one exception to that sentence, and it is keyed to AGE:
+    a blocker in none of the six that nobody has written for `ABANDONED_AFTER_HOURS` is ABANDONED
+    work, not live work. It is preserved like an orphan (ref, then read back), cleared, and named
+    in one staging item -- see `abandoned_copy_verdicts`. It is asked only when EVERY path still
+    held is that old: one live copy anywhere keeps the refusal all-or-nothing exactly as before,
+    and touches nothing, abandoned copies included.
 
     THE THREE THAT PROVE AND THE ONE THAT MANUFACTURES. Classes one to three each rest on an
     argument that the bytes are already safe somewhere. The fourth cannot: untracked means on no
@@ -1348,6 +1624,19 @@ def advance_shared_tree(project: Path | None = None, *, blockers_fn=None, twins_
     orphans = sorted(p for p, (ok, _) in orphan_verdicts.items() if ok)
     resolvable = sorted(set(resolvable) | set(stale) | set(generated) | set(orphans))
     held = sorted(blocked_paths - set(resolvable))
+    # THE SEVENTH CLASS, ASKED ONLY OF WHAT ALL SIX LEFT, and it moves `held` only if it takes ALL
+    # of it: one live copy keeps the whole advance refused and nothing aged out is touched either.
+    abandoned_verdicts: dict[str, tuple[bool, str]] = {}
+    abandoned: list[str] = []
+    if held:
+        abandoned_verdicts = (abandoned_fn or (
+            lambda _project, paths: abandoned_copy_verdicts(_project, paths, now)))(
+                project, list(held)) or {}
+        aged_out = sorted(p for p, (ok, _) in abandoned_verdicts.items() if ok)
+        if set(aged_out) >= set(held):
+            abandoned = aged_out
+            resolvable = sorted(set(resolvable) | set(abandoned))
+            held = []
     if held:
         # KEYED TO THE PROPERTY AND NOT TO TODAY'S PATHS: what reaches this list is a blocker NO
         # available proof could show costs its holding lane nothing -- neither hash equality with
@@ -1358,7 +1647,10 @@ def advance_shared_tree(project: Path | None = None, *, blockers_fn=None, twins_
         for path in held[:12]:
             why = (verdicts.get(path) or gen_verdicts.get(path) or orphan_verdicts.get(path)
                    or (False, "not byte-identical to what origin brings"))[1]
-            named.append("{} -- {}".format(path, " ".join(str(why).split())[:220]))
+            age = abandoned_verdicts.get(path)
+            named.append("{} -- {}{}".format(
+                path, " ".join(str(why).split())[:220],
+                " [age: {}]".format(" ".join(str(age[1]).split())[:140]) if age else ""))
         return {"advanced": False, "cleared": [],
                 "reason": "{} of {} blocking path(s) could NOT be proven lossless, so clearing the "
                           "{} that could would touch files and still not advance. Nothing was "
@@ -1383,6 +1675,11 @@ def advance_shared_tree(project: Path | None = None, *, blockers_fn=None, twins_
     _preserve = preserver or (lambda p: preserve_untracked_orphans(project, p, slug))
     _preserve_earlier = earlier_preserver or (
         lambda m: preserve_earlier_revision_twins(project, m, slug))
+    _preserve_abandoned = abandoned_preserver or (
+        lambda p: preserve_abandoned_copies(project, p, slug, now))
+    _file = filer or (lambda entries, ref, commit: file_abandoned_copies(
+        project, entries, ref, commit, now=now))
+    abandoned_ref = ABANDONED_PRESERVED_PREFIX + slug
     # An earlier-revision copy is cleared by the twin act for its kind: restored if git tracks the
     # path (an index entry an `unlink` would strand), removed if it does not.
     modified_paths = {b["path"] for b in blocking if b.get("kind") == FF_MODIFIED}
@@ -1394,7 +1691,13 @@ def advance_shared_tree(project: Path | None = None, *, blockers_fn=None, twins_
     # branch in the loop below, keeps the acts at three and the grounds at five.
     tracked_set, stale_set, orphan_set = (
         set(tracked) | set(generated), set(stale), set(orphans))
-    orphan_commit = earlier_commit = ""
+    abandoned_set = set(abandoned)
+    # READ BEFORE THE CLEARING, which rewrites every mtime it touches: the staging item reports
+    # how long each copy had sat, and after the restore that answer is gone.
+    abandoned_entries = [{"path": p, "age_hours": _age_hours(project, p, now),
+                          "kind": "tracked edit" if p in modified_paths else "untracked file"}
+                         for p in sorted(abandoned_set)]
+    orphan_commit = earlier_commit = abandoned_commit = ""
     try:
         with _lock():
             # BEFORE ANYTHING IS CLEARED, and with the origin proof re-asked against the disk as it
@@ -1421,6 +1724,16 @@ def advance_shared_tree(project: Path | None = None, *, blockers_fn=None, twins_
                                       "bytes that are on no branch are never destroyed on a "
                                       "preservation that did not verify: {}".format(
                                           len(orphan_set), failure)}
+            # THE ABANDONED COPIES ARE PRESERVED BESIDE THE ORPHANS AND FOR THE SAME REASON: their
+            # bytes are on no branch, so the ref is built and READ BACK before anything is written.
+            # The age is re-asked in there too -- a lane that came back since the verdict wins.
+            if abandoned_set:
+                abandoned_commit, failure = _preserve_abandoned(sorted(abandoned_set))
+                if failure:
+                    return {"advanced": False, "cleared": [],
+                            "reason": "the {} abandoned working cop(y/ies) could not be PRESERVED, "
+                                      "so nothing was removed and the advance was not attempted: "
+                                      "{}".format(len(abandoned_set), failure)}
             # THE REFRESH GOES NEXT AND IT IS ALL-OR-NOTHING WITH ITSELF. `refresh_to_head`
             # writes nothing unless every path it is handed is refreshable, so a failure here has
             # touched no byte and the twins beside it are still on disk untouched.
@@ -1442,7 +1755,7 @@ def advance_shared_tree(project: Path | None = None, *, blockers_fn=None, twins_
                 # `unlink` on a path with an index entry leaves that entry behind, and the
                 # fast-forward stays refused on a file that is no longer even on disk.
                 try:
-                    if path in tracked_set or (path in earlier_set
+                    if path in tracked_set or (path in earlier_set | abandoned_set
                                                and path in modified_paths):
                         failure = _restore(path)
                     else:
@@ -1463,6 +1776,19 @@ def advance_shared_tree(project: Path | None = None, *, blockers_fn=None, twins_
                 "reason": "another writer held the tree lock ({}), so nothing was removed and "
                           "nothing was moved; the next cadence tries again".format(exc)}
 
+    # NAMED ONCE, OUTSIDE THE LOCK, whatever the fast-forward did: the copies are on the ref and
+    # off the disk either way, and a filing failure is reported, never allowed to undo the advance.
+    abandoned_clause = ""
+    if abandoned_set:
+        filing = _file(abandoned_entries, abandoned_ref, abandoned_commit)
+        abandoned_clause = (". {} ABANDONED cop(y/ies) untouched {}h+ ({}) are on NO branch and "
+                            "come back only from {} ({}): `git show {}:<path>`. {}".format(
+                                len(abandoned_set), ABANDONED_AFTER_HOURS,
+                                "; ".join(sorted(abandoned_set)[:12]), abandoned_ref,
+                                (abandoned_commit or "-")[:9], abandoned_ref,
+                                "Named in one staging item." if not filing else
+                                "The staging item was NOT filed: {}".format(filing)))
+
     if second.returncode == 0:
         return {"advanced": True, "cleared": cleared,
                 "reason": "cleared {} blocking path(s) ({} tracked twin(s), {} untracked twin(s), "
@@ -1472,13 +1798,13 @@ def advance_shared_tree(project: Path | None = None, *, blockers_fn=None, twins_
                           "one is on disk, tracked, holding origin's bytes: {}".format(
                               len(cleared), len(tracked_set),
                               len(cleared) - len(tracked_set) - len(earlier_set) - len(stale_set)
-                              - len(orphan_set),
+                              - len(orphan_set) - len(abandoned_set),
                               len(earlier_set), EARLIER_PRESERVED_PREFIX, slug,
                               (earlier_commit or "-")[:9],
                               len(stale_set), REFRESH_PRESERVED_PREFIX, slug,
                               len(orphan_set), ORPHAN_PRESERVED_PREFIX, slug,
                               (orphan_commit or "-")[:9],
-                              "; ".join(cleared[:12]))}
+                              "; ".join(cleared[:12])) + abandoned_clause}
     # THE TWINS ARE NOT RESTORED HERE, AND THAT IS DELIBERATE. Their content is on origin by the
     # hash equality that selected them, so `git checkout origin/main -- <path>` returns any of them
     # exactly; re-writing them from a second guess at what they held would be this module inventing
@@ -1493,7 +1819,8 @@ def advance_shared_tree(project: Path | None = None, *, blockers_fn=None, twins_
                       "means the cause was not the collision this cleared. Recover a twin with "
                       "`git checkout {}/{} -- <path>`: {}.{}{}{} git: {}".format(
                           len(cleared), REMOTE, BRANCH, "; ".join(sorted(
-                              set(cleared) - stale_set - orphan_set - earlier_set)[:12]),
+                              set(cleared) - stale_set - orphan_set - earlier_set
+                              - abandoned_set)[:12]),
                           (" The {} earlier-revision cop(y/ies) ({}) come back from the origin "
                            "commit each was matched to, or from {}{} ({}).".format(
                                len(earlier_set), "; ".join(
@@ -1509,7 +1836,7 @@ def advance_shared_tree(project: Path | None = None, *, blockers_fn=None, twins_
                                len(orphan_set), "; ".join(sorted(orphan_set)[:12]),
                                ORPHAN_PRESERVED_PREFIX, slug,
                                (orphan_commit or "-")[:9])) if orphan_set else "",
-                          (second.stderr or second.stdout or "").strip()[:200])}
+                          (second.stderr or second.stdout or "").strip()[:200]) + abandoned_clause}
 
 
 def commits_ahead(project: Path | None = None) -> int | None:

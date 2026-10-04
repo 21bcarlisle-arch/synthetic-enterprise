@@ -230,7 +230,12 @@ def test_the_recovery_runs_the_reconciler_and_re_reads_the_REMOTE(monkeypatch):
         "without a fetch, `merge-base --is-ancestor` cannot be asked about the merge the "
         "reconciler just pushed -- it answers only about objects this repository holds")
     assert any(a[:2] == ["git", "ls-remote"] for a in seen["argv"])
-    assert not any("rev-parse" in a for a in seen["argv"]), (
+    # KEYED TO THE TRACKING REF, NOT TO `rev-parse` AS A WORD (2026-10-04). The patch is on the
+    # global `subprocess.run`, so it also sees `rev-parse --git-common-dir`, which locates the main
+    # worktree for the log path and says nothing about origin. Banning every `rev-parse` turned
+    # this red at HEAD for a reason unrelated to its property.
+    assert not any("rev-parse" in a and any("origin" in x or "refs/remotes" in x for x in a)
+                   for a in seen["argv"]), (
         "the evidence must be the remote, never the local tracking ref")
 
 
