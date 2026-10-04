@@ -1811,6 +1811,17 @@ def _the_runs_realised_book(three_arm: dict) -> tuple[dict, str | None]:
                     "no realised count is carried by every arm of the run this floor would bound")
 
 
+#: REALISED FIELDS A FLOOR'S OWN RE-DRAW MOVES, each with the reason, so a disjoint range there is
+#: not evidence of a different book. See `_realised_book_pairing`. The other four count who was
+#: settled in the window at all, ceased or not, which a churn re-draw cannot change.
+BOOK_FIELDS_THE_FLOORS_REDRAW_MOVES = {
+    "accounts_at_end_of_window": (
+        "counts accounts still on supply at the window's edge, which is a churn outcome; the "
+        "floor re-draws the churn in every arm, the control included, so its range is not a "
+        "re-run of the figure's"),
+}
+
+
 def _realised_book_pairing(floor: dict, three_arm: dict) -> dict:
     """Whether the floor's book and the figure's book are provably DIFFERENT populations.
 
@@ -1845,13 +1856,29 @@ def _realised_book_pairing(floor: dict, three_arm: dict) -> dict:
 
     IT ADDS A REFUSAL AND NEVER REMOVES ONE. Nothing admitted before is admitted on fewer grounds
     now; a pair must clear the declared half AND fail to be proven different on the realised one.
+
+    EXCEPT ON A FIELD THE FLOOR'S OWN RE-DRAW MOVES (2026-10-04, 20261004r). "A moving field widens
+    its own range" assumed the floor's seeds bracket the run's draw. They need not. The floor
+    re-draws elasticity in EVERY arm, the control included, and never at the run's base seed.
+    So its control arm is a different realisation of the churn, not a re-run of the figure's.
+    On 20261004r all three seeds churned the same two near-miss households that the base draw had
+    retained: PROS-2016-0046 at 0.7608 against roll 0.7455, and PROS-2016-0092 at 0.6562 against
+    roll 0.6384. That puts the floor at 42..42 against the figure's 44..56, while the other four
+    fields agreed exactly. `accounts_at_end_of_window` counts who is still on supply at the edge,
+    which is a churn OUTCOME, so a disjoint range there proves nothing about the book. It is
+    stated in `not_compared` rather than compared.
     """
     floor_ranges, why_floor = _floor_realised_book(floor)
     run_ranges, why_run = _the_runs_realised_book(three_arm)
-    compared = sorted(set(floor_ranges) & set(run_ranges))
+    not_compared = {
+        field: BOOK_FIELDS_THE_FLOORS_REDRAW_MOVES[field]
+        for field in sorted(set(floor_ranges) & set(run_ranges))
+        if field in BOOK_FIELDS_THE_FLOORS_REDRAW_MOVES}
+    compared = sorted((set(floor_ranges) & set(run_ranges)) - set(not_compared))
     if not compared:
         return {
             "fields_compared": [],
+            "not_compared": not_compared,
             "disjoint_on": {},
             "refusal": None,
             # FAIL-SILENT IS THE FAILURE MODE HERE, so the reason is carried rather than left as
@@ -1867,6 +1894,7 @@ def _realised_book_pairing(floor: dict, three_arm: dict) -> dict:
     }
     return {
         "fields_compared": compared,
+        "not_compared": not_compared,
         "disjoint_on": disjoint,
         "unavailable_because": None,
         "refusal": (None if not disjoint else (
@@ -12619,17 +12647,33 @@ def _current_world_bound(floor_current: dict | None, current: dict | None, live:
         # "any one customer's draw could go either way, and the book-level average is negative
         # anyway". Publishing only (a) told a reader the leg was unanswerable when the answerable
         # half had merely not been drawn enough times.
+        #
+        # THE STRADDLE IS READ OFF THE SPREAD, NOT ASSERTED (2026-10-04). The sentence was written
+        # when every family straddled zero. The 20261004r advantage re-draws are all positive, and
+        # the literal told the reader they were not.
         "which_sign_question_this_answers": (
             "THE MEAN'S, NOT A SINGLE DRAW'S. `no_sign` and `verdict_stability.sign_determined` "
-            "above answer whether one draw's sign generalises -- it does not, the re-draws fall on "
-            "both sides of zero, and no number of further seeds changes that because the spread is "
-            "the world's own dispersion rather than an estimation error. `distance_to_a_sign` "
+            "above answer whether one draw's sign generalises -- {single}. `distance_to_a_sign` "
             "answers whether the FAMILY'S MEAN is distinguishable from zero, whose denominator is "
             "the standard error and DOES fall as 1/sqrt(n). That is the question the thesis asks: "
             "is the per-customer arm, on average, worse than its own flat-at-level baseline? The "
             "two can disagree without contradiction, and until 2026-09-10 this page answered only "
-            "the first and read as though the second were unanswerable too."),
+            "the first and read as though the second were unanswerable too.").format(single=(
+                "it does not, the re-draws fall on both sides of zero, and no number of further "
+                "seeds changes that because the spread is the world's own dispersion rather than "
+                "an estimation error"
+                if _straddles_zero(spread) else
+                "here it does, every re-draw falls on one side of zero, though a family of {n} "
+                "cannot rule out a draw on the other".format(n=spread.get("n")))),
     }
+
+
+def _straddles_zero(spread: dict) -> bool:
+    """Whether the re-draws fall on both sides of zero. Fails toward the straddle when unreadable."""
+    low, high = spread.get("min_gbp"), spread.get("max_gbp")
+    if not all(isinstance(v, (int, float)) for v in (low, high)):
+        return True
+    return low < 0 < high
 
 
 def _verdict_stability(floor_current: dict | None, spread: dict | None,

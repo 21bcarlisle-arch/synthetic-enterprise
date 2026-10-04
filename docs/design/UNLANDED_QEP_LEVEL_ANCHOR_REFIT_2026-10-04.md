@@ -6,7 +6,7 @@
 
 **LANDED 2026-10-04** with the `20261004r` arms, under claim
 `land-the-qep-refit-once-the-one-process-floor-finishes`. The page publishes no current-world bound:
-see `docs/staging/SEAT_FINDING_THE_QEP_REFIT_LANDS_AND_ITS_FLOOR_IS_REFUSED_AS_A_DIFFERENT_BOOK_ON_ONE_CHURN_COUNTED_FIELD_2026-10-04.md`.
+see `docs/staging/records/SEAT_FINDING_THE_QEP_REFIT_LANDS_AND_ITS_FLOOR_IS_REFUSED_AS_A_DIFFERENT_BOOK_ON_ONE_CHURN_COUNTED_FIELD_2026-10-04.md`.
 What follows is the record of how it got there, and the patch below is spent.
 
 ## Why this is not landed yet

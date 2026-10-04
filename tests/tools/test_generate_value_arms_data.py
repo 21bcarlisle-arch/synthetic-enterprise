@@ -771,6 +771,46 @@ def test_the_realised_counts_ADMIT_an_honest_re_run_and_REFUSE_a_different_book(
         "adding the realised leg removed the declared refusal instead of adding to it")
 
 
+def test_a_gap_ONLY_on_the_churn_outcome_count_admits_and_a_gap_on_a_settled_leg_still_refuses():
+    """THE DEFECT (20261004r): the floor read 42..42 accounts at the window's edge, the arms read
+    44..56, and the other four counts agreed exactly. The page refused the floor as a different
+    book. It was not one. The floor re-draws the churn in every arm, the control included, and all
+    three seeds churned the same two near-miss households the run's base draw had retained.
+
+    BOTH LEGS, the admitting one first. Dropping a field could have made the rule refuse nothing.
+
+    MUTATION: empty `BOOK_FIELDS_THE_FLOORS_REDRAW_MOVES` and leg one reds on the 20261004r shape.
+    Drop the `- set(not_compared)` and leg one reds too. Exclude every field and leg two reds.
+    """
+    three_arm = _load(THREE_ARM)
+    arms = [block for block in three_arm["book_identity"].values()
+            if isinstance(block, dict) and "served_segments" in block]
+
+    def run_range(field, shift=0):
+        values = [block[field] for block in arms]
+        return {"min": min(values) + shift, "max": max(values) + shift, "n": 3}
+
+    def floor_with(**shifts):
+        return _floor_declaring(_the_runs_own_segments(), realised={
+            field: run_range(field, shifts.get(field, 0)) for field in gva.BOOK_REALISED_FIELDS})
+
+    # LEG ONE: the 20261004r shape, disjoint below on the edge count alone.
+    edge_gap = min(b["accounts_at_end_of_window"] for b in arms) - 2 - max(
+        b["accounts_at_end_of_window"] for b in arms)
+    pairing = gva._realised_book_pairing(floor_with(accounts_at_end_of_window=edge_gap), three_arm)
+    assert pairing["refusal"] is None and pairing["disjoint_on"] == {}, (
+        "a floor that differs from the run only in who churned was refused as a different book")
+    assert "accounts_at_end_of_window" in pairing["not_compared"], (
+        "the uncompared field was dropped silently; the pairing must say what it did not ask")
+    assert pairing["fields_compared"], "the pairing compared nothing, so it can refuse nothing"
+
+    # LEG TWO: the same floor, three more gas legs than any arm settled, is still refused.
+    refused = gva._realised_book_pairing(
+        floor_with(accounts_at_end_of_window=edge_gap, with_a_gas_leg=3), three_arm)
+    assert refused["refusal"] and "with_a_gas_leg" in refused["disjoint_on"], (
+        "a floor over a book with more gas legs was admitted as this figure's error bar")
+
+
 def _run_in_weather(three_arm: dict, store: str) -> dict:
     """The run with every arm's before/after bracket naming one store -- the live artefact predates
     the brackets, so the known-store states are constructed rather than found."""
@@ -13808,3 +13848,31 @@ def test_a_split_of_another_world_or_unreconciled_lines_is_refused_with_its_reas
     floor["seeds"][0]["level_arm_arrears_reconciliation"] = {"reconciles": False}
     assert "level arm's arrears lines do not reconcile" in gva._selection_split(
         floor, "w1")["why_not"]
+
+
+def test_the_sign_sentence_says_the_re_draws_STRADDLE_zero_only_when_they_do():
+    """THE DEFECT (2026-10-04): `which_sign_question_this_answers` was a literal that said the
+    re-draws fall on both sides of zero. It went live for the first time over the 20261004r floor,
+    whose three advantage re-draws are all positive, and told the reader the opposite.
+
+    BOTH LEGS from one floor, with the values set here, so this does not hang on today's numbers.
+    MUTATION: make the condition constant either way and one leg reds.
+    """
+    floor = _load(PROJECT / "docs" / "observability"
+                  / "value_cycle_ab_s1_noise_floor_20261004r.json")
+    run = _load(PROJECT / "docs" / "observability"
+                / "value_cycle_ab_s1_three_arm_20261004r.json")
+    live = floor["world_identity"]["digest"]
+
+    def sentence(values):
+        drawn = copy.deepcopy(floor)
+        for row, value in zip(drawn["seeds"], values):
+            row["value_advantage_gbp"] = value
+        block = gva._current_world_bound(drawn, run, live)
+        assert block["bound_available"] is True, block.get("why_no_bound")
+        return block["which_sign_question_this_answers"]
+
+    assert "both sides of zero" not in sentence([24000.0, 26000.0, 27000.0]), (
+        "three positive re-draws were published as falling on both sides of zero")
+    assert "both sides of zero" in sentence([-5000.0, 26000.0, 27000.0]), (
+        "re-draws that straddle zero were published as all falling on one side")

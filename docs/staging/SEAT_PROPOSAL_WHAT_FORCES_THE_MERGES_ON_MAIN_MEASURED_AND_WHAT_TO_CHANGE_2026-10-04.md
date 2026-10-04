@@ -111,6 +111,47 @@ the structural fix for item 1 of the answer, and the expensive one. If the race 
 hours a day after 1 to 3 and the selection fix have had a fortnight, the census will say so, and I'll
 bring it to you with that number.
 
+## Addendum, 13:30 — the shared tree is out of step with origin 68% of the time
+
+Re-run while landing the heartbeat, because the shared tree refused its fast-forward again. Measured
+from the reconciler's own log, 2026-09-24 21:00 to 2026-10-04 12:12: the shared tree that every
+daemon runs from was out of step with origin for **157 of 231 hours**, with a median of 15 commits
+behind while out. So a landed fix is usually not the code that is running. The 129.6 hours the log
+can attribute (gaps over an hour are left unattributed):
+
+| cause | hours | what it is |
+|---|---|---|
+| a lane's uncommitted edit collides with an incoming commit | 50.5 | the reconciler is all-or-nothing, so ONE such path holds the whole tree |
+| the reconciler's own merge gate still running | 48.5 | 30.8 h of it logged as `ERROR` ("another writer holds /var/tmp/se-origin-reconcile"); that is its previous cadence, not a fault |
+| merge conflicts | 27.2 | mostly Saturday's stranded seat records, now resolved mechanically |
+| other | 3.4 | |
+
+**The commonest blockers are abandoned work, not live work.**
+- A test edit from 24 September blocked 127 cadences.
+- The next four were staging notes and a test from 2 October.
+- Each sat for days, and each held every daemon on old code.
+- Today it happened twice: at 07:20, 45 paths; at 13:15, 9 paths, of which 6 were the seat's own
+  records, byte-identical to origin's.
+
+**Why it recurs.** Runtime and lane work share one working copy. Daemons run from the tree that
+lanes leave work in, and many daemons write runtime state into tracked files there. The reconciler
+cannot advance without discarding someone's bytes, and it is right not to. The heartbeat move is the
+first piece of the separation you named: runtime state out of main.
+
+**What I would do, in order:**
+1. **Now, reversible.** An abandoned copy ages out. A unique working copy that is blocking the
+   fast-forward and has been untouched for 48 hours is preserved to a ref, restored to HEAD, and
+   named in one staging item, inside the reconciler's existing preserve-then-clear sequence. Live
+   work under 48 hours is never touched. Today's 10-day blocker would have cleared on day 2.
+2. **Next, the structural fix.** Daemons run from their own checkout, which only ever fast-forwards
+   to origin and which no lane writes in. Lanes already land from worktrees, so the shared tree stops
+   mattering to what runs. It needs the runtime state the daemons write into tracked files moved out
+   first, the same move as the heartbeat, file by file. I'll measure which daemons write which
+   tracked files before sizing it, and bring you that number.
+
+The 48.5 hours of the reconciler waiting on its own gate fall with the merge-selection fix
+(`3c5702901`), which is already landed. Next Monday's census will show by how much.
+
 ## The general rule, recorded
 
 When a class of wasted work keeps recurring, ask why it recurs, not only how to clear this instance.

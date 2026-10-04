@@ -140,7 +140,7 @@ def systemd_probe(unit: str) -> dict | None:
         out = subprocess.check_output(
             ["systemctl", "--user", "show", "--timestamp=utc", unit,
              "-p", "ActiveState", "-p", "Result", "-p", "ExecMainStatus", "-p", "LoadState",
-             "-p", "ExecMainExitTimestamp"],
+             "-p", "ExecMainExitTimestamp", "-p", "WorkingDirectory"],
             text=True, timeout=15, stderr=subprocess.DEVNULL)
     except Exception:
         return None
@@ -150,6 +150,29 @@ def systemd_probe(unit: str) -> dict | None:
             key, _, value = line.partition("=")
             fields[key.strip()] = value.strip()
     return fields
+
+
+def artefact_path(entry: dict, fields: dict | None = None) -> Path | None:
+    """Where the job's artefact is, resolved against the directory the JOB ran in.
+
+    A relative artefact is relative to the unit's cwd, not to whoever asks. Read against the asker's
+    cwd, a job launched in a worktree that wrote `docs/observability/x.json` there reads as "no
+    artefact" from the shared tree for as long as nobody copies the file across -- `qep3-arms-floor`
+    sat `live` for hours after its unit had exited 0 with its artefact written under
+    /var/tmp/se-qep-arms2. Every long job now runs in a worktree, so this was every job.
+
+    The record's own `workdir` (written at launch) comes first; the unit's `WorkingDirectory` is the
+    fallback for records written before that field existed, and only exists until the unit is
+    collected. With neither, the asker's cwd is all there is, as before.
+    """
+    artefact = entry.get("artefact")
+    if not artefact:
+        return None
+    path = Path(artefact)
+    if path.is_absolute():
+        return path
+    base = entry.get("workdir") or (fields or {}).get("WorkingDirectory") or ""
+    return Path(base) / path if base else path
 
 
 def reask(entry: dict, probe=systemd_probe) -> dict:
@@ -174,8 +197,9 @@ def reask(entry: dict, probe=systemd_probe) -> dict:
             f"the user manager reports `{unit}` ActiveState={state}, which is a verdict from "
             "outside the job's own cgroup and therefore survives the kill it would report")}
 
-    artefact = entry.get("artefact")
-    on_disk = bool(artefact) and Path(artefact).exists()
+    resolved = artefact_path(entry, fields)
+    artefact = str(resolved) if resolved else entry.get("artefact")
+    on_disk = bool(resolved) and resolved.exists()
     rc = _read_rc(entry.get("rc_path"))
     result = (fields or {}).get("Result") or ""
     status = (fields or {}).get("ExecMainStatus") or ""
@@ -337,7 +361,7 @@ def save(records: list, path: Path | None = None) -> None:
 def record(job: str, unit: str, artefact: str, *, log: str | None = None,
            rc_path: str | None = None, asserted_live_by: list | None = None,
            launched_at: str | None = None, path: Path | None = None,
-           peak_mb=None) -> dict:
+           peak_mb=None, workdir: str | None = None) -> dict:
     """Write the launch record for `job`. Always writes the claim `live`.
 
     `peak_mb` is the job's declared size, kept so the NEXT launch counts this one at its peak
@@ -399,6 +423,9 @@ def record(job: str, unit: str, artefact: str, *, log: str | None = None,
     }
     if peak_mb:
         entry["peak_mb"] = float(peak_mb)
+    if workdir:
+        # What a relative `artefact` is relative to -- see `artefact_path()`.
+        entry["workdir"] = str(workdir)
     records, verdict = load_register(path)
     if prior_unreadable(verdict):
         # BEFORE `save` below, which is the only ordering that keeps anything: `save` writes the
