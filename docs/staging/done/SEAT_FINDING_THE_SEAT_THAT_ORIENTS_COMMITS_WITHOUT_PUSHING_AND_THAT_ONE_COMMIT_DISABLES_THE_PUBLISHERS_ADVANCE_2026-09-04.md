@@ -5,11 +5,21 @@
 
 **Filed:** 2026-09-04, delivery seat (isolated worktree). **Repaired in the same commit.**
 
-**Discharged:** `tests/background/test_delivery_seat.py::test_every_push_verdict_is_REACHABLE_and_they_say_DIFFERENT_things`,
-`tests/background/test_delivery_seat.py::test_a_PHANTOM_rc0_that_left_the_commit_LOCAL_is_not_reported_as_pushed`,
-`tests/background/test_delivery_seat.py::test_a_REJECTED_push_is_attempted_ONCE_and_never_retried`,
-`tests/background/test_delivery_seat.py::test_a_push_that_could_not_RUN_loses_neither_the_record_nor_the_reason`,
-`tests/background/test_delivery_seat.py::test_the_direction_commit_is_PUSHED_and_the_row_still_reports_the_COMMIT`
+**Discharged:** `tests/background/test_the_direction_record_lands_on_origin.py::test_the_seats_commit_REACHES_ORIGIN_from_a_behind_and_diverged_shared_tree`,
+`tests/background/test_the_direction_record_lands_on_origin.py::test_every_landing_outcome_is_REACHABLE_and_only_an_origin_move_is_retried`
+
+*Falsifiers re-pointed 2026-10-04 (delivery seat), a factual correction.* 3911189ac deleted the
+seat's push function and all five tests this line cited. The direction record now lands
+through the landing door: it is gated in a linked worktree and promoted as a fast-forward. So
+there is no local commit left to push, and the five tests named a mechanism that no longer
+exists. This record's property, that the seat's direction commit really reaches origin and that
+every outcome is distinguishable with only an origin move retried, is now held by the two tests
+in `test_the_direction_record_lands_on_origin.py` named above. The retired five were the four below and
+`test_the_direction_commit_is_PUSHED_and_the_row_still_reports_the_COMMIT`:
+- `test_every_push_verdict_is_REACHABLE_and_they_say_DIFFERENT_things`
+- `test_a_PHANTOM_rc0_that_left_the_commit_LOCAL_is_not_reported_as_pushed`
+- `test_a_REJECTED_push_is_attempted_ONCE_and_never_retried`
+- `test_a_push_that_could_not_RUN_loses_neither_the_record_nor_the_reason`
 
 LATENT rather than BLOCKING: nothing published is wrong because of this, and the repair landed
 today (`ab6240611`) is not wrong either. What it did was make a correct repair unable to fire, by
