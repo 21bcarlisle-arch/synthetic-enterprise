@@ -93,8 +93,8 @@ ROOT = Path(__file__).resolve().parent.parent
 #: invocation-by-invocation comparison.
 #:
 #: WHAT THIS COMMENT USED TO SAY, AND WHY IT WAS WRONG (2026-09-25): "only `pre-commit` carries the
-#: gate chain". `commit-msg` carries two gates -- `write_time_gate` and `next_step_gate` -- and
-#: since `68717e7e1` `surgical_land` runs that chain on every landing, from the EXTRACT, while
+#: gate chain". `commit-msg` carries three gates -- `write_time_gate`, `next_step_gate` and
+#: `director_document_gate` -- and since `68717e7e1` `surgical_land` runs that chain on every landing, from the EXTRACT, while
 #: `git commit` runs the shared tree's WORKING COPY of it. So the two doors can disagree about the
 #: message gates for exactly the reason this module exists, and the byte-identity leg below is the
 #: thing that catches it. A reader who believed the old sentence would have skipped that row.
