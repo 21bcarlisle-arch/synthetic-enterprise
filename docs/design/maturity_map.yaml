@@ -1797,12 +1797,12 @@
   loop_stage: idle
   dial_inherited: 45    # R4 -- DIRECTOR_CANON_RERANKING_THE_ARC_2026-09-04 §2/§5.
   provenance: director_ruling
-  blocked_on: null
-  block_reason: "Sequencing, and the director's own instruction to note rather than fix. Time cannot be SAVED before there is a household model of what things COST in attention, and that model belongs behind the wall with the other hidden traits -- so it sits behind the household atoms (PB4/PB5) and the two-sided objective (A47). DISCOVER and FRAME on this atom are drawable NOW."
+  blocked_on: [PB4_engagement_separated_from_elasticity]
+  block_reason: "Sequencing. Time cannot be SAVED before there is a household model of what things COST in attention, behind the wall, so it sits behind PB4 (A47 is closed). DISCOVER/FRAME are spent (frame doc §8, 2026-10-04): a further pass finds nothing; the open question is the director's (time-is-scored-in-minutes-not-converted-to-money) and does not block."
   depends_on: [A47_the_score_has_no_household_side, PB4_engagement_separated_from_elasticity]
   couples_with: [C30_advice_reaches_a_household]
   file_scope: ['simulation/', 'company/crm/', 'docs/design/', 'tests/']
-  simplifications_count: 2
+  simplifications_count: 3
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "the reason a household stays on a bad tariff for years while a better one is one form away -- the switch costs attention it will not spend, which is a real cost to a real person and appears in no supplier's P&L"
 - id: W1_23_weather_phase2_the_other_loads_the_cells_do_not_carry

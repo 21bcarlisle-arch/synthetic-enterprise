@@ -1,4 +1,4 @@
-# C31: time as a currency. DISCOVER/FRAME passes 1 and 2
+# C31: time as a currency. DISCOVER/FRAME passes 1 to 3
 
 **Atom:** `C31_time_is_the_currency_that_does_not_exist` · lane `C_customer_ops` · epoch 4 ·
 `level_current: 0` · `level_target: 3` · `loop_stage: idle` · depends on
@@ -205,3 +205,41 @@ Pass 2 sources: [CA Historic Star Rating Data](https://www.citizensadvice.org.uk
 [Energy Ombudsman, 2019](https://www.energyombudsman.org/news/how-good-are-energy-suppliers-at-handling-complaints) ·
 [Ofgem, CSS go-live designation](https://ofgem.gov.uk/decision/formal-designation-css-go-live) ·
 [REC Co, go-live 18 July 2022](https://www.retailenergycode.co.uk/switching-programme-gives-green-light-for-go-live-on-18-july-2022/)
+
+---
+
+## 8. DISCOVER pass 3 (2026-10-04): does national time-use data isolate energy admin?
+
+This answers the open question the knowledge map carried after pass 2.
+
+**No. The finest published code covers banking and every bill together, and the finest published
+average is a 35-minute aggregate that is mostly shopping.**
+
+- **UK Time Use Survey 2014-15 (CTUR, UK Data Service SN 8128), activity coding list.** The codes that
+  could contain T4 (routine admin) are `3620` "Commercial and administrative services", `3710`
+  "Household management not using the internet" and `3727` "Banking and bill paying via the internet".
+  No code names utilities, energy, meter reading or a supplier. `3727` is the closest one, and it pools
+  banking with every bill a household pays.
+- **The published average is an aggregate.** Scottish Government (CTUR, 2019) reports **35 minutes per
+  adult per day** on "shopping, services and household management", for both Scotland and the rest of
+  the UK in 2014-15 (36 in Scotland in 2000-01). This is an upper bound on T4 and much too loose to
+  use. Nothing published says what share of it is energy, so no share is stated here.
+- **ONS Online Time Use Survey (2020-2023 waves).** "Household administration (such as paying bills)"
+  is folded into *unpaid household work*, 158 min/day in March 2023, and is not published separately.
+- **What would answer it:** the UKTUS 2014-15 diary microdata (UK Data Service, registered end-user
+  licence) give per-diary minutes on `3727`/`3710`. Even those cannot separate energy from other bills.
+  That is the measurement limit, not a fetch we have not yet done. *Not pursued:* registering for a
+  licence is a real-world commitment under a name, which `one_way_door.py` reserves.
+
+**What this changes in the FRAME:** nothing in the levels. It confirms Q3's answer from the other
+direction: neither the sector's sources (passes 1 and 2) nor national time-use statistics (this pass)
+publish household minutes per energy event. L1's `None` costs are therefore the *permanent* honest
+state for T1, T3 and T4 until someone publishes them, not a gap the next pass will close. T2 (queue
+wait) stays the only class that can carry minutes. **The DISCOVER question set for C31 is exhausted.**
+The atom's next motion is the director's ruling on Q1 (`for_the_director`:
+`time-is-scored-in-minutes-not-converted-to-money`) and the epoch opening for L1. A further DISCOVER
+pass would find nothing new.
+
+Pass 3 sources: [UKTUS 2014-15 CTUR report and activity codes](https://doc.ukdataservice.ac.uk/doc/8128/mrdoc/pdf/8128_ctur_report.pdf) ·
+[Scottish Government, CTUR 2014-15 results, §3](https://www.gov.scot/publications/centre-time-use-research-time-use-survey-2014-15-results-scotland/pages/4/) ·
+[ONS, Time use in the UK, March 2023](https://www.ons.gov.uk/peoplepopulationandcommunity/personalandhouseholdfinances/incomeandwealth/bulletins/timeuseintheuk/march2023)
