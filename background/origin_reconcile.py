@@ -80,6 +80,7 @@ import re
 import subprocess
 import sys
 import tempfile
+from datetime import datetime
 from pathlib import Path
 
 PROJECT_DIR = Path(__file__).resolve().parent.parent
@@ -1767,7 +1768,7 @@ def shared_tree(start: Path | None = None) -> Path | None:
 def reconcile(project: Path | None = None, *, worktree: Path | None = None,
               state_fn=None, behind_fn=None, ahead_fn=None, runner=None, pusher=None,
               make_worktree=None, drop_worktree=None, gate_fn=None, blockers_fn=None,
-              advance_fn=None, budget_fn=None, fetcher=None) -> dict:
+              advance_fn=None, budget_fn=None, fetcher=None, resolver=None) -> dict:
     """Close the fork with origin, or say exactly why it stayed open. Never raises.
 
     Returns {"status", "detail", "behind", "pushed"}. Fully injectable, because every one of its
@@ -1874,9 +1875,26 @@ def reconcile(project: Path | None = None, *, worktree: Path | None = None,
                               "nothing was pushed. A cause that recurs every cadence is a gate "
                               "slower than any receipt it brings in -- time the selection, do "
                               "not raise the base".format(budget, budget_why)}
+        resolved_note = ""
         if merge.returncode != 0:
-            status, detail = _classify_merge_failure((merge.stdout or "") + (merge.stderr or ""))
-            return {"status": status, "behind": behind, "pushed": False, "detail": detail}
+            said = (merge.stdout or "") + (merge.stderr or "")
+            status, detail = _classify_merge_failure(said)
+            resolutions = ((resolver or mechanical_resolutions)(worktree, said)
+                           if status == REFUSED_CONFLICT else None)
+            if not resolutions:
+                return {"status": status, "behind": behind, "pushed": False, "detail": detail}
+            try:
+                merge = (runner(worktree, resolve=resolutions) if runner
+                         else _run_merge(worktree, budget, resolve=resolutions))
+            except subprocess.TimeoutExpired:
+                return {"status": ERROR, "behind": behind, "pushed": False,
+                        "detail": "the mechanical re-merge outran its budget of {}s".format(budget)}
+            if merge.returncode != 0:
+                status, detail = _classify_merge_failure((merge.stdout or "") + (merge.stderr or ""))
+                return {"status": status, "behind": behind, "pushed": False, "detail": detail}
+            resolved_note = ("resolved {} seat record path(s) to origin's copy, which already held "
+                             "the local side: {}; ".format(len(resolutions),
+                                                           ", ".join(sorted(resolutions))))
 
         pushed = (pusher or _push)(worktree)
         catchups = 0
@@ -1944,9 +1962,9 @@ def reconcile(project: Path | None = None, *, worktree: Path | None = None,
                                   adv["reason"])}
         return {"status": RECONCILED, "behind": behind, "pushed": True,
                 "cleared_paths": adv["cleared"],
-                "detail": "merged {} commit(s) from origin in an isolated worktree, gated, pushed, "
+                "detail": "{}merged {} commit(s) from origin in an isolated worktree, gated, pushed, "
                           "and the shared tree is level with origin -- re-read after the fact, not "
-                          "assumed from the steps succeeding".format(behind)}
+                          "assumed from the steps succeeding".format(resolved_note, behind)}
     except Exception as exc:  # noqa: BLE001 - a reconciler that raises takes the cadence down
         return {"status": ERROR, "behind": behind, "pushed": False,
                 "detail": "{}: {}".format(type(exc).__name__, str(exc)[:300])}
@@ -1991,10 +2009,97 @@ def merge_budget(project: Path | None = None, *, log_fn=None) -> tuple[int, str]
         MERGE_TIMEOUT_SECONDS, int(slowest + 0.5), which)
 
 
-def _run_merge(worktree: Path, timeout: int = MERGE_TIMEOUT_SECONDS) -> subprocess.CompletedProcess:
+#: THE ONE CONFLICT THIS RECONCILER RESOLVES ITSELF, AND WHY IT IS NOT A JUDGEMENT (2026-10-04).
+#: The delivery seat's own record files. A conflict on these arises when the seat's record was
+#: committed on the shared HEAD and ALSO carried to origin by another route: on 2026-10-03 two such
+#: commits stranded the shared tree 2 ahead / 156 behind for about seventeen hours, refused every five
+#: minutes, while every daemon ran replaced code. Whether origin's copy loses anything is a fact,
+#: checked per path, not a choice between two lanes' edits:
+#:   append  -- every line the local side added since the merge base is already in origin's copy;
+#:   snapshot -- origin's record is the same orientation or a later one (`oriented_at`).
+#: Only when EVERY conflicted path passes is the merge re-run with those paths taken from origin.
+#: Any other conflict is still refused, which is the split this module's design rests on.
+SEAT_RECORD_FILES = {
+    "docs/direction/DIRECTION.yaml": "snapshot",
+    "docs/direction/decisions.jsonl": "append",
+    "docs/status/SEAT_STRETCH_LOG.md": "append",
+}
+_ORIENTED_AT = re.compile(r'^oriented_at:\s*"?([0-9T:.+\-]+)"?\s*$', re.M)
+
+
+def conflicted_paths(output: str) -> list[str]:
+    """The paths `surgical_land --merge` names under its MERGE CONFLICT line."""
+    lines = output.splitlines()
+    for i, line in enumerate(lines):
+        if "conflicted path(s), nothing was committed" in line:
+            paths = []
+            for nxt in lines[i + 1:]:
+                if not nxt.startswith("  ") or nxt.strip().startswith("("):
+                    break
+                paths.append(nxt.strip())
+            return paths
+    return []
+
+
+def _show(worktree: Path, rev: str, rel: str) -> str | None:
+    r = _git(worktree, "show", "{}:{}".format(rev, rel))
+    return r.stdout if r.returncode == 0 else None
+
+
+def origin_already_holds(worktree: Path, rel: str, kind: str) -> bool:
+    """True only when origin's copy of `rel` provably loses nothing the local side wrote."""
+    upstream = "{}/{}".format(REMOTE, BRANCH)
+    local, theirs = _show(worktree, "HEAD", rel), _show(worktree, upstream, rel)
+    if local is None or theirs is None:
+        return False
+    if kind == "append":
+        base_rev = _git(worktree, "merge-base", "HEAD", upstream).stdout.strip()
+        base = _show(worktree, base_rev, rel) if base_rev else None
+        if base is None:
+            return False
+        had, have = set(base.splitlines()), set(theirs.splitlines())
+        return all(line in have for line in local.splitlines() if line not in had)
+    if kind == "snapshot":
+        mine, upstream_at = _ORIENTED_AT.search(local), _ORIENTED_AT.search(theirs)
+        if not mine or not upstream_at:
+            return False
+        try:
+            return (datetime.fromisoformat(upstream_at.group(1))
+                    >= datetime.fromisoformat(mine.group(1)))
+        except ValueError:
+            return False
+    return False
+
+
+def mechanical_resolutions(worktree: Path, output: str) -> dict[str, bytes] | None:
+    """Origin's bytes for every conflicted path, or None when ANY path is not a seat record file
+    origin already holds -- one path that needs reading keeps the whole merge a refusal."""
+    paths = conflicted_paths(output)
+    if not paths or any(p not in SEAT_RECORD_FILES for p in paths):
+        return None
+    if not all(origin_already_holds(worktree, p, SEAT_RECORD_FILES[p]) for p in paths):
+        return None
+    out = {}
+    for p in paths:
+        data = _show(worktree, "{}/{}".format(REMOTE, BRANCH), p)
+        if data is None:
+            return None
+        out[p] = data.encode("utf-8")
+    return out
+
+
+def _run_merge(worktree: Path, timeout: int = MERGE_TIMEOUT_SECONDS,
+               resolve: dict[str, bytes] | None = None) -> subprocess.CompletedProcess:
+    extra: list[str] = []
+    if resolve:
+        held = Path(tempfile.mkdtemp(prefix="origin-reconcile-resolve-"))
+        for i, (rel, data) in enumerate(sorted(resolve.items())):
+            src = held / "{}_{}".format(i, Path(rel).name)
+            src.write_bytes(data)
+            extra += ["--resolve", "{}={}".format(rel, src)]
     return subprocess.run(
         [sys.executable, "-m", "tools.surgical_land", "--merge",
-         "{}/{}".format(REMOTE, BRANCH), "-m", _MERGE_MESSAGE],
+         "{}/{}".format(REMOTE, BRANCH), *extra, "-m", _MERGE_MESSAGE],
         cwd=str(worktree), capture_output=True, text=True, timeout=timeout,
         env=dict(os.environ, PYTHONPATH=str(PROJECT_DIR)))
 

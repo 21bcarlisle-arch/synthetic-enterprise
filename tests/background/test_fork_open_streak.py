@@ -326,3 +326,39 @@ def test_a_streak_with_no_refusal_says_so_rather_than_naming_a_stale_cause():
 
     assert text and "old/path.py" not in text, text
     assert "No verdict in this streak was a refusal" in text, text
+
+
+# ── THE FORK IS THE SEAT'S WORK, NOT ONLY A PAGE (2026-10-04) ─────────────────────────────────
+def test_a_fork_open_past_the_threshold_is_filed_as_work_on_EVERY_tick_and_a_short_one_is_not():
+    """Defect it names: on 2026-10-03 this paged once, at the threshold, for a fork that then stood
+    open about seventeen hours while every daemon ran stale code -- a transition-only page to the
+    director and nothing in the queue the autonomous side draws from. Past the threshold the fork
+    is filed as a staging work item on every tick (the filer is idempotent and refreshes in place);
+    below it, nothing is filed. Both legs in one pass, so neither "always" nor "never" passes."""
+    filed = []
+    record = lambda text, streak: filed.append((text, streak["minutes"]))  # noqa: E731
+    short = [_line(i * 5, "GATE_RUNNING", settled=False) for i in range(11)]
+    conflict = [_line(i * 5, "REFUSED_CONFLICT", settled=False) for i in range(101)]
+
+    F.check(notify=lambda *a, **k: None, now=T0 + timedelta(minutes=50), lines=short, state={},
+            escalate=record)
+    assert filed == [], "a self-clearing 50-minute streak was filed as work"
+
+    paged = {}
+    for minute in (500, 505):   # the second tick: already paged, must STILL be filed
+        lines = conflict + [_line(minute, "REFUSED_CONFLICT", settled=False)] if minute == 505 else conflict
+        F.check(notify=lambda *a, **k: None, now=T0 + timedelta(minutes=minute), lines=lines,
+                state=paged, escalate=record)
+        paged = {"paged_for_since": T0.isoformat()}
+    assert len(filed) == 2, f"filed {len(filed)} times over two open ticks, expected every tick"
+    assert "REFUSED_CONFLICT" in filed[0][0] and "--resolve" in filed[0][0], (
+        "the work item must name the refusal and the door, or the drawer starts from nothing")
+
+
+def test_a_settled_fork_files_nothing():
+    filed = []
+    lines = [_line(i * 5, "REFUSED_CONFLICT", settled=False) for i in range(101)]
+    lines.append(_line(510, "FAST_FORWARDED", settled=True))
+    F.check(notify=lambda *a, **k: None, now=T0 + timedelta(minutes=510), lines=lines, state={},
+            escalate=lambda text, streak: filed.append(text))
+    assert filed == []

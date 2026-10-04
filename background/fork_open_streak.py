@@ -206,7 +206,27 @@ def _read_log() -> list[str] | None:
         return None
 
 
-def check(notify=None, now=None, lines=None, state=None) -> str | None:
+def _work_item_text(streak: dict) -> str:
+    refusal = streak.get("refusal") or {}
+    return ("The shared tree's fork with origin has been open for {:.0f} minutes ({} behind, {} ahead) "
+            "and the reconciler cannot close it alone. Newest refusal: {} -- {}. The door: resolve "
+            "each named path in an isolated worktree with `python3 -m tools.surgical_land --merge "
+            "origin/main --resolve <path>=<file-outside-the-repo>` after reading both sides, then "
+            "push as `background/origin_reconcile` does. Every daemon runs from the shared tree, so "
+            "until this closes they run code that origin has replaced.").format(
+                streak["minutes"], streak["behind"], streak["ahead"],
+                refusal.get("status", "none named"), refusal.get("detail") or "(no paths named)")
+
+
+def _escalate_fork(text: str, streak: dict):
+    from background import alarm_repetition
+    since = streak.get("since")
+    return alarm_repetition.escalate(
+        text, key="fork_open_streak",
+        first_ts=since.timestamp() if since else datetime.now(timezone.utc).timestamp())
+
+
+def check(notify=None, now=None, lines=None, state=None, escalate=None) -> str | None:
     """One pass: read the log, decide, page on a transition, remember. Returns the page text or
     `None`. Every input is injectable because a control that has to own a live log file, a live
     clock and a live NTFY topic is a control nobody runs."""
@@ -216,6 +236,16 @@ def check(notify=None, now=None, lines=None, state=None) -> str | None:
         if lines is None:
             return None            # the log is unreadable; the host logs that, we do not page it
     streak = open_streak(verdicts(lines), now)
+    # THE FORK IS THE SEAT'S TO CLOSE, NOT THE DIRECTOR'S (2026-10-04). This used to page him once
+    # when a streak crossed the threshold -- "every longer streak on record needed a person" -- and
+    # do nothing more. On 2026-10-03 it paged at 14:41 for a fork opened at 13:41; the page was
+    # transition-only, so it never repeated, and nothing put the fork in front of the autonomous side.
+    # It stayed open about seventeen hours while every daemon ran code up to 156 commits stale. Under
+    # the director's operating model a machine fault with a known door is the seat's to fix, so on
+    # every tick past the threshold it is filed as WORK: a staging finding, which the draw ranks, via
+    # the one idempotent filer every repeating alarm uses (refreshed in place while it stays open).
+    if streak["open"] and streak["minutes"] >= UNATTENDED_MINUTES:
+        (escalate or _escalate_fork)(_work_item_text(streak), streak)
     text, new_state = page_for(streak, _load_state() if state is None else state, now)
     if text is not None:
         if notify is None:
