@@ -1,7 +1,7 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-09-17. 10,474 commits. 36,838 tests collected (full suite). Codebase: 960,622
-lines across 2,948 tracked Python modules (all `*.py` in the index, tests included).*
+*Last updated: 2026-10-04. 12,283 commits. 38,426 tests collected (full suite). Codebase: 1,083,934
+lines across 3,176 tracked Python modules (all `*.py` in the index, tests included).*
 
 > **Do not judge any of these documents' freshness by this sentence, or by the HTTP
 > `last-modified` header of the URLs below.** This sentence is hand-typed and rots; the header is
@@ -20,6 +20,7 @@ lines across 2,948 tracked Python modules (all `*.py` in the index, tests includ
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
+- How the seat operates — what it gets on with, what it escalates to the director with a proposal, what is reserved, and the end-to-end check it owns: https://21bcarlisle-arch.github.io/synthetic-enterprise/operations/OPERATING_MODEL.md
 - The book's own annual report, regenerated each publish: https://21bcarlisle-arch.github.io/synthetic-enterprise/reports/ANNUAL_REPORT.md
 - Every sourced assumption the world is built on, with its anchor and its gaps: https://21bcarlisle-arch.github.io/synthetic-enterprise/market_research/ASSUMPTIONS.md
 - What just happened and what the machine is working on now: https://21bcarlisle-arch.github.io/synthetic-enterprise/status/LATEST.md

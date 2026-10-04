@@ -394,6 +394,57 @@ def hollow_skills(text: str, root: Path = PROJECT_DIR) -> list[str]:
     return problems
 
 
+#: THE OPERATING MODEL HAS ONE HOME AND ONE PUBLISHED COPY (director, 2026-10-04: "Make sure the
+#: startup anchors point at it, so a fresh advisor session reads it too"). The advisor reads the Pages
+#: mirror, which publishes only `docs/` (`tools/pages_publish_manifest.PUBLISHED`), so CLAUDE.md at the
+#: repo root is out of its reach. The section is copied, not moved: CLAUDE.md stays the single source
+#: every session loads, and the copy is checked to equal it, so neither can be edited alone.
+OPERATING_MODEL_HEADING = "## The operating model"
+PUBLISHED_OPERATING_MODEL = Path("docs/operations/OPERATING_MODEL.md")
+_PUBLISHED_PREAMBLE = (
+    "# The operating model\n\n"
+    "*Generated from the `## The operating model` section of `CLAUDE.md` by "
+    "`python3 -m background.claude_md_integrity --publish`. Edit CLAUDE.md, never this copy: "
+    "`background/claude_md_integrity.py` refuses the two disagreeing.*\n"
+)
+
+
+def operating_model_section(text: str) -> str | None:
+    """The section's body, from the line after its heading up to the next `---` rule."""
+    lines = text.splitlines()
+    try:
+        start = lines.index(OPERATING_MODEL_HEADING)
+    except ValueError:
+        return None
+    body = []
+    for line in lines[start + 1:]:
+        if line.strip() == "---":
+            break
+        body.append(line)
+    return "\n".join(body).strip() + "\n"
+
+
+def render_operating_model(text: str) -> str | None:
+    section = operating_model_section(text)
+    return None if section is None else _PUBLISHED_PREAMBLE + "\n" + section
+
+
+def operating_model_drift(text: str, root: Path = PROJECT_DIR) -> list[str]:
+    """Empty when CLAUDE.md carries the section and its published copy equals it."""
+    rendered = render_operating_model(text)
+    if rendered is None:
+        return [f"CLAUDE.md has no `{OPERATING_MODEL_HEADING}` section; the published operating model "
+                f"at {PUBLISHED_OPERATING_MODEL} would describe a rule the rulebook no longer holds"]
+    published = root / PUBLISHED_OPERATING_MODEL
+    if not published.is_file():
+        return [f"{PUBLISHED_OPERATING_MODEL} is missing; run `python3 -m "
+                "background.claude_md_integrity --publish`"]
+    if published.read_text(encoding="utf-8") != rendered:
+        return [f"{PUBLISHED_OPERATING_MODEL} disagrees with CLAUDE.md's `{OPERATING_MODEL_HEADING}`; "
+                "edit CLAUDE.md and run `python3 -m background.claude_md_integrity --publish`"]
+    return []
+
+
 def check(text: str | None = None, root: Path = PROJECT_DIR) -> list[str]:
     """Full integrity check. Empty list ⇒ healthy; else the violations."""
     if text is None:
@@ -410,6 +461,7 @@ def check(text: str | None = None, root: Path = PROJECT_DIR) -> list[str]:
     problems += rules_matching_no_files(text, root)
     problems += inert_skills(text, root)
     problems += hollow_skills(text, root)
+    problems += operating_model_drift(text, root)
     return problems
 
 
@@ -421,6 +473,14 @@ if __name__ == "__main__":
     refuse_if_foreign("claude_md_integrity")
     import sys
 
+    if "--publish" in sys.argv:
+        rendered = render_operating_model(CLAUDE_MD.read_text(encoding="utf-8"))
+        if rendered is None:
+            print(f"CLAUDE.md has no `{OPERATING_MODEL_HEADING}` section; nothing published")
+            sys.exit(1)
+        (PROJECT_DIR / PUBLISHED_OPERATING_MODEL).write_text(rendered, encoding="utf-8")
+        print(f"wrote {PUBLISHED_OPERATING_MODEL}")
+        sys.exit(0)
     issues = check()
     if issues:
         print("CLAUDE.md INTEGRITY FAIL:")
