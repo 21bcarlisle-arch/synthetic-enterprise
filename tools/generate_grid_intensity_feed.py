@@ -159,10 +159,12 @@ NAMED_GAPS = [
     "WIND (AGWS only where FUELHH has no reading); why the AGWS series is short is not established. "
     "Exports are served and divided by at the half hour's AVERAGE rate, the basis NESO publishes "
     "on; charging them the MARGINAL gas instead would be a different, defensible convention",
-    "interconnector imports are counted at NESO's own published per-cable factors, but two of "
-    "GB's nine cables postdate that table -- North Sea Link (Norway) and Viking Link (Denmark) -- "
-    "so their flow is still dispatched as GB gas and reads dirtier than it was; that is 34% of "
-    "imported MWh in 2024 and it is growing",
+    "interconnector imports are counted at NESO's own published per-cable factors. Two of GB's "
+    "nine cables postdate that table: Viking Link is left out of NESO's mix and is left out here, "
+    "and North Sea Link is priced by the same table applied to Norway's ANNUAL published mix "
+    "(4-7 gCO2/kWh, Statistics Norway), where NESO applies it to the previous day's. A year with "
+    "no published Norwegian mix leaves North Sea Link dispatched as GB gas, which reads dirtier "
+    "than it was",
     "coal is dispatched from the fleet's demonstrated annual maximum, but its place in merit is "
     "fixed above the CCGT band rather than recomputed from the gas/coal spread, so the 2021-22 "
     "gas spike understates coal",
@@ -209,15 +211,19 @@ NAMED_GAPS = [
 #: worth publishing. The remaining cause is named and sized in `NAMED_GAPS`: this model still
 #: lets the thermal stack reach exactly zero, in 16.1% of 2024's half hours.
 ERROR_DIRECTION = (
-    "The WITHIN-day range is now CLOSE and its direction is MIXED, and that is the sentence to "
-    "carry: this shape's p95/p5 spread runs about 1.15x the published series', most of it "
+    "The WITHIN-day range is CLOSE and never too narrow, and that is the sentence to "
+    "carry: this shape's p95/p5 spread runs about 1.22x the published series', most of it "
     "between days. Split day-by-day, this shape's BETWEEN-day swing runs "
-    "(0.97-1.11x, mean 1.03) of the published series' over 2019-2024, and its WITHIN-day swing "
-    "runs (0.95-1.10x, mean 1.01): too WIDE in 2019 and 2020; too NARROW in 2021, 2022, 2023 "
-    "and 2024; A customer can move the washing from 6pm to 2am; they "
+    "(1.01-1.11x, mean 1.06) of the published series' over 2019-2024, and its WITHIN-day swing "
+    "runs (1.00-1.10x, mean 1.04): too WIDE in 2019, 2020, 2023 and 2024; MATCHED to two places "
+    "in 2021 and 2022; A customer can move the washing from 6pm to 2am; they "
     "cannot move it to a windier Tuesday in March -- so a time-shifting benefit computed from "
-    "this shape is an UPPER BOUND in 2019 and 2020 and an UNDERSTATEMENT from 2021, by 0.02-0.05 "
-    "of the swing. Three corrections set that: the model "
+    "this shape is an UPPER BOUND, by up to 0.10 of the swing, and an understatement in no year. "
+    "PRICING NORTH SEA LINK AT NORWAY'S PUBLISHED MIX (2026-10-04, s35) instead of as GB gas took "
+    "2024's within-day from 0.97x to 1.07x and between-day from 0.97x to 1.07x, raised "
+    "correlation in 2021-2024, WORSENED p95/p5 from 1.15x to 1.22x and improved max/min from "
+    "1.23x to 1.21x: the unpriced cable had been hiding an over-swing (s32). Three earlier "
+    "corrections set the within-day picture: the model "
     "dispatches pumped storage with perfect foresight of the day's residual, which flattens the "
     "day by more than GB's fleet did (EP13 frame doc s25); embedded wind sits beside "
     "embedded solar in the denominator, on NESO's definition, which widens it again (s26); and "
@@ -580,22 +586,24 @@ def build(shape: dict, demand: dict, *, window_days: int = RECORD_WINDOW_DAYS,
             "NESO's own published figures (Carbon Intensity Forecast Methodology, Table 1)."
         ),
         # WHAT THE MODELLED SLICE OF IMPORTS ACTUALLY IS, as a measured fraction of imported
-        # MWh rather than as an adjective. North Sea Link is inside NESO's mix and has no
-        # published factor, so its flow is left modelled as GB generation and this number says
-        # how much of the answer that is. Viking and ElecLink are outside NESO's mix (s33-s34)
+        # MWh rather than as an adjective. A cable inside NESO's mix with neither a Table 1 row
+        # nor a published annual mix for the year is left modelled as GB generation, and this
+        # number says how much of the answer that is. Viking and ElecLink are outside NESO's mix (s33-s34)
         # and so outside the fraction. A gap quoted in per cent can be argued with; "some
         # imports are not covered" cannot.
         "import_coverage": (
             None if import_coverage is None else {
                 "covered_fraction": round(float(import_coverage["covered_fraction"]), 4),
                 "uncovered_cables": _cables(lambda c, m, fuel: c not in fuel.OUTSIDE_NESO_MIX
-                                            and m not in fuel.IMPORT_INTENSITY_G_CO2_PER_KWH),
+                                            and m not in fuel.IMPORT_INTENSITY_G_CO2_PER_KWH
+                                            and m not in fuel.ANNUAL_MIX_GWH),
                 "outside_neso_mix_cables": _cables(lambda c, m, fuel: c in fuel.OUTSIDE_NESO_MIX),
                 "what_it_means": (
                     "The share of the imported MWh inside NESO's published mix, over the whole "
-                    "series, whose carbon intensity NESO publishes a factor for. The remainder "
-                    "(North Sea Link) is dispatched as GB generation, which reads DIRTIER than "
-                    "it was for a Norwegian hydro import. Viking Link and ElecLink are left out "
+                    "series, that this feed can price: at NESO's Table 1 factor, or for North "
+                    "Sea Link at Table 1 applied to Norway's published annual mix. Any remainder "
+                    "is dispatched as GB generation, which reads DIRTIER than it was. Viking "
+                    "Link and ElecLink are left out "
                     "of NESO's mix, so they meet demand here and are counted in neither the "
                     "emissions nor the denominator."
                 ),

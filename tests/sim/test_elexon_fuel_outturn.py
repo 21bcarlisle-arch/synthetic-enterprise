@@ -115,26 +115,54 @@ def test_WIND_is_read_alone_from_the_remainder_last_row_wins_and_an_absent_readi
 # The factor NESO never published                                             #
 # --------------------------------------------------------------------------- #
 
-def test_a_cable_with_no_published_factor_is_reported_separately_and_never_priced():
+def test_a_cable_with_no_published_factor_or_mix_is_reported_separately_and_never_priced():
     """North Sea Link (Norway) and Viking Link (Denmark) postdate NESO's Table 1.
 
-    They are not given a factor, and specifically not given ZERO -- "Norway is hydro so its
-    imports are carbon-free" is the exact shape of the assumption that makes a clean end
-    cleaner than reality. North Sea Link's MW go to `uncovered_import_mw`, which is a number a
-    reader can divide by. Viking's go to `unmixed_import_mw` (next test), which needs no factor.
+    Neither gets a fixed factor, and specifically not ZERO -- "Norway is hydro so its imports are
+    carbon-free" is the exact shape of the assumption that makes a clean end cleaner than
+    reality. North Sea Link is priced only for a year Norway's published mix covers (next test);
+    in a year it does not, its MW go to `uncovered_import_mw`, a number a reader can divide by.
+    Viking's go to `unmixed_import_mw`, which needs no factor.
 
     MUTATION (must fire): add "Norway" or "Denmark" to `IMPORT_INTENSITY_G_CO2_PER_KWH` with any
-    value at all, including 0.
+    value at all, including 0; or price a year `NORWAY_PRODUCTION_GWH` does not carry.
     """
     assert "Norway" not in fuel.IMPORT_INTENSITY_G_CO2_PER_KWH
     assert "Denmark" not in fuel.IMPORT_INTENSITY_G_CO2_PER_KWH
-    series = fuel.to_settlement_periods([row("INTNSL", 1400), row("INTVKL", 800), row("INTFR", 2000)])
-    entry = series[KEY]
+    assert "2019" not in fuel.NORWAY_PRODUCTION_GWH
+    unpublished = ("2019-01-15", 20)
+    series = fuel.to_settlement_periods([
+        row(fuel_type, mw, date=unpublished[0])
+        for fuel_type, mw in (("INTNSL", 1400), ("INTVKL", 800), ("INTFR", 2000))])
+    entry = series[unpublished]
     assert entry["uncovered_import_mw"] == pytest.approx(1400.0)
     assert entry["covered_import_mw"] == pytest.approx(2000.0)
     # The rate is the rate of the COVERED cables only. Averaging the uncovered MW in at zero is
     # the same fabrication wearing an arithmetic disguise.
     assert entry["covered_import_t_per_mwh"] == pytest.approx(0.053)
+
+
+def test_NORTH_SEA_LINK_is_priced_by_table_1_applied_to_norways_published_mix():
+    """EP13 frame s33 measured NSL inside NESO's imports at a low factor; NESO's rule is Table 1
+    applied to the connected network's mix. 08307 publishes Norway's thermal share and nothing
+    else carries carbon under Table 1, so 2022's factor is 2,319/145,942 of the thermal factor.
+
+    MUTATION (must fire): price NSL at zero (the hydro assumption), at the GB CCGT factor flat,
+    or drop the thermal share; or move the shipped factor outside the Table 1 bracket.
+    """
+    low, high = fuel.NORWAY_THERMAL_FACTOR_BRACKET_G_CO2_PER_KWH
+    assert (low, high) == (fuel.NESO_PUBLISHED_FACTOR_G_CO2_PER_KWH["BIOMASS"],
+                           fuel.NESO_PUBLISHED_FACTOR_G_CO2_PER_KWH["CCGT"])
+    assert low <= fuel.NORWAY_THERMAL_FACTOR_G_CO2_PER_KWH <= high
+    expected_g = 2319.0 / 145942.0 * fuel.NORWAY_THERMAL_FACTOR_G_CO2_PER_KWH
+    assert fuel.import_factor("Norway", "2022") == pytest.approx(expected_g)
+    assert 1.0 < expected_g < 10.0
+    series = fuel.to_settlement_periods([row("INTNSL", 1400), row("INTFR", 2000)])
+    entry = series[KEY]
+    assert entry["uncovered_import_mw"] == pytest.approx(0.0)
+    assert entry["covered_import_mw"] == pytest.approx(3400.0)
+    assert entry["covered_import_t_per_mwh"] == pytest.approx(
+        (2000 * 53.0 + 1400 * expected_g) / 3400 / 1000.0)
 
 
 def test_the_cables_outside_NESOs_mix_are_unmixed_whatever_their_market_has_a_factor_for():
@@ -150,12 +178,12 @@ def test_the_cables_outside_NESOs_mix_are_unmixed_whatever_their_market_has_a_fa
         row("INTELEC", 900), row("INTVKL", 800), row("INTFR", 2000), row("INTNSL", 1400)])
     entry = series[KEY]
     assert entry["unmixed_import_mw"] == pytest.approx(1700.0)
-    assert entry["covered_import_mw"] == pytest.approx(2000.0)
-    assert entry["uncovered_import_mw"] == pytest.approx(1400.0)
+    assert entry["covered_import_mw"] == pytest.approx(3400.0)
+    assert entry["uncovered_import_mw"] == pytest.approx(0.0)
     assert fuel.unmixed_imports_by_period(series) == {KEY: pytest.approx(1700.0)}
     coverage = fuel.import_coverage(series)
     # The fraction is of NESO's mix only: the unmixed MW are beside it, never in it.
-    assert coverage["covered_fraction"] == pytest.approx(2000 / 3400)
+    assert coverage["covered_fraction"] == pytest.approx(1.0)
     assert coverage["unmixed_mw_sum"] == pytest.approx(1700.0)
 
 
@@ -188,9 +216,9 @@ def test_every_cable_in_the_dataset_is_mapped_to_a_market():
     }
     unpriced = {
         market for market in fuel.INTERCONNECTOR_MARKETS.values()
-        if market not in fuel.IMPORT_INTENSITY_G_CO2_PER_KWH
+        if market not in fuel.IMPORT_INTENSITY_G_CO2_PER_KWH and market not in fuel.ANNUAL_MIX_GWH
     }
-    assert unpriced == {"Norway", "Denmark"}, (
+    assert unpriced == {"Denmark"}, (
         "the set of markets with no published factor has changed; if a factor has been ADDED it "
         "must be NESO's own, and if a market has been added it needs one or needs naming here"
     )
@@ -426,7 +454,8 @@ def test_import_coverage_is_measured_in_MWh_and_not_in_cables():
     MUTATION (must fire): report the fraction of CABLES with a factor instead of the fraction of
     imported MWh, which here would read 7/9 = 78% against the true 33%.
     """
-    series = fuel.to_settlement_periods([row("INTFR", 1000), row("INTNSL", 2000)])
+    series = fuel.to_settlement_periods(
+        [row("INTFR", 1000, date="2019-01-15"), row("INTNSL", 2000, date="2019-01-15")])
     coverage = fuel.import_coverage(series)
     assert coverage["covered_fraction"] == pytest.approx(1000 / 3000)
 

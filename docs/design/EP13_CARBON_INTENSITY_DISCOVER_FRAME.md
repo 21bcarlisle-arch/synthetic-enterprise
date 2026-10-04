@@ -2515,3 +2515,57 @@ negative in every year (2024: −0.091 → −0.105), so the embedded-generation
 ENTSO-E token is not on the box. An annual national statistic is the coarser fallback, and it has
 to be sourced, not picked. (2) §32's coverage by year and the biomass rule stand. No level move:
 correlation is 0.93–0.97 against the 0.97 peer bound, and 2020 is still the outlier at 0.931.
+
+## 35. 2026-10-04 — NORTH SEA LINK IS PRICED AT NORWAY'S PUBLISHED MIX: correlation reaches the peer bound in 2021–2024, and the shape now swings too wide in every year
+
+§34's NEXT (1), built from a source rather than a pick. NESO's rule for an import is Table 1
+applied to the connected network's mix. The daily ENTSO-E mix needs a token the box does not
+hold. The annual national mix does not: Statistics Norway table 08307 publishes Norway's
+production split into hydro, wind, solar and thermal. Under Table 1, only thermal carries
+carbon. Thermal is 1.0–1.7% of production, and 08307 does not split it by fuel, so Table 1
+brackets it between biomass (120) and CCGT (394). NSL therefore comes in at 1.2–6.5 g. The
+shipped end is the HIGH one (4.0–6.8 g by year), because it cannot make Norway cleaner than
+its fired plant. `elexon_fuel_outturn.import_factor` derives it per year, and a year 08307 does
+not cover leaves the cable `uncovered`, served as gas. Sourced and tabled in
+`docs/market_research/neso_carbon_intensity_interconnector_treatment_2026-10-04.md` (new section).
+
+**Prediction (filed before the arm ran, `/var/tmp/se-ep13-s35/prediction.txt`):**
+
+| | predicted | measured | |
+|---|---|---|---|
+| P1 2019–20 identical | identical | identical | held |
+| P2 2024 correlation | 0.968–0.975 | 0.9619 → **0.9722** | held |
+| P3 2024 between-day | 0.99–1.08 | 0.9724 → **1.0706** | held, at the top |
+| P4 2024 within-day | 0.97–1.02 | 0.9703 → **1.0650** | **refuted**: over the band |
+| P5 2022/23 correlation | +0.001–0.010 | +0.0047 / +0.0046 | held |
+| P6 low end vs high end | < 0.001 on every statistic | correlation identical; swing up to 0.0015 | **refuted, narrowly** |
+| P7 import coverage | ~1.0 | 1.0 in every year | held |
+
+**By year (high end, shipped):** correlation 0.959 / 0.931 / 0.970 / 0.982 / 0.978 / 0.972
+(2019–24). Within-day 1.06 / 1.10 / 1.00 / 1.00 / 1.02 / 1.07. Between-day 1.05 / 1.11 / 1.01 / 1.07
+/ 1.07 / 1.07. MAE in 2024 0.097 → 0.089. Headline p95/p5 **1.15 → 1.22x (worse)**, max/min
+1.23 → 1.21x.
+
+**What it means.** §32 said "the hole hid the over-swing", and this confirms it at the shipped
+factor: with the last cable in NESO's mix priced, the shape swings too WIDE between days in
+every year and within the day in four of six. 2021–22 within-day sit at 1.00. The error
+direction is no longer mixed. A time-shifting benefit read from this shape is an upper bound
+in every year, and `ERROR_DIRECTION` now says so. Correlation is at or above the 0.97 peer
+bound in 2021–2024. 2019 (0.959) and 2020 (0.931) are not, and neither had NSL. Their gap is
+§32's gradient (the flat biomass block and coal), which this pass did not touch.
+
+**The bracket is immaterial at this grade.** It moves correlation by less than 0.0001 and swing by
+up to 0.0015, against a 0.10 move from pricing the cable at all. Narrowing it is owed to the
+daily ENTSO-E mix, not to a choice. That is a named gap, not a blocker.
+
+**Controls (each mutation-proven):** `test_NORTH_SEA_LINK_is_priced_by_table_1_applied_to_norways_published_mix`
+(price at 0, price at 394 flat, price a year the table lacks: all fire).
+`test_a_cable_with_no_published_factor_or_mix_is_reported_separately_and_never_priced` keeps the
+uncovered branch reachable in a year with no published mix. The feed's `uncovered_cables` is now
+empty, and its control says so. The retired embedded-generation artefact was regenerated: its
+oracle headroom is still negative in every year (2024 −0.105 → −0.083), so the retirement stands.
+
+**Next.** (1) §32's GRADIENT, now the largest visible error: the flat biomass block and coal, which
+carry 2019–20's correlation and the over-swing in every year. Write the prediction before the
+arm runs. (2) Coverage by year. No level move: L3 needs the reconstruction to fail like
+reality, and a swing that is too wide in every year is a one-sided error, not a reality-like one.

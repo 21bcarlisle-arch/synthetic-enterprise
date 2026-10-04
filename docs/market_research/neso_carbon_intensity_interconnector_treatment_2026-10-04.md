@@ -63,4 +63,29 @@ exact figure is not established here.
   established: whether either rule changed in 2025.
 - **A second gap this exposes:** `sim/elexon_fuel_outturn.py` gives ElecLink the French factor, which
   is a reasonable reading of the rule. NESO's series does not do that, so the reconstruction prices a
-  cable its target leaves out.
+  cable its target leaves out. *(Closed by EP13 s34, 2026-10-04: ElecLink and Viking are now served
+  and left out of the mix.)*
+
+## Norway's annual mix: the coarse reading of NESO's rule (added 2026-10-04, EP13 s35)
+
+The daily ENTSO-E mix needs a token. The ANNUAL national mix does not. Statistics Norway table
+08307 (*Production, imports, exports and consumption of electric energy*, GWh, `data.ssb.no`,
+fetched 2026-10-04) splits production into hydro, wind, solar and thermal. Under Table 1, hydro,
+wind and solar are zero. Thermal is not split by fuel in 08307, so Table 1 brackets it between
+biomass (120) and CCGT (394).
+
+| year | total GWh | thermal GWh | thermal share | NSL factor at 120 | at 394 |
+|---|---|---|---|---|---|
+| 2020 | 154,197 | 2,670 | 1.73% | 2.1 | 6.8 |
+| 2021 | 157,113 | 1,612 | 1.03% | 1.2 | 4.0 |
+| 2022 | 145,942 | 2,319 | 1.59% | 1.9 | 6.3 |
+| 2023 | 153,973 | 2,528 | 1.64% | 2.0 | 6.5 |
+| 2024 | 157,136 | 2,357 | 1.50% | 1.8 | 5.9 |
+| 2025 | 161,793 | 2,070 | 1.28% | 1.5 | 5.0 |
+
+**Established:** on NESO's own rule, applied to Norway's published annual mix, North Sea Link
+imports at 1–7 gCO2/kWh. That agrees with §"What factor" above, where 0 g fitted best and 50 g
+was already worse. **Not established:** the daily figure, which NESO actually uses. The annual
+figure flattens Norway's seasonal thermal. It also ignores that NSL lands in bidding zone NO2,
+not the national average. Both effects work inside a band of a few grams, and against a GB
+average near 150 g they are second-order.

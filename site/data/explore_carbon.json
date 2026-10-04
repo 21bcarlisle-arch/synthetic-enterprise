@@ -1,5 +1,5 @@
 {
- "generated": "2026-10-04T20:16:28Z",
+ "generated": "2026-10-04T21:04:59Z",
  "basis": "Electricity emissions only. Company estimate: its own published ANNUAL grid intensity (company/regulatory/carbon_emissions.py, the single owner) given half-hourly resolution by the published shape feed. Generation-based, national, outturn, no loss correction. NOT abatement -- there is no counterfactual here and none is implied.",
  "not_included": [
   "gas -- a near-constant factor per kWh burned, and the only lever on it is using less",
@@ -92,24 +92,24 @@
     "year": 2021.0,
     "half_hours": 16646.0,
     "days": 355.0,
-    "reconstructed_within_day_sd": 0.1568,
+    "reconstructed_within_day_sd": 0.1594,
     "published_within_day_sd": 0.1595,
-    "reconstructed_between_day_sd": 0.2576,
+    "reconstructed_between_day_sd": 0.2615,
     "published_between_day_sd": 0.2583,
-    "within_day_swing_overstated_by": 0.983,
-    "between_day_swing_overstated_by": 0.9972,
-    "reconstructed_min": 0.1795,
+    "within_day_swing_overstated_by": 0.9991,
+    "between_day_swing_overstated_by": 1.0126,
+    "reconstructed_min": 0.1816,
     "published_min": 0.1949,
-    "reconstructed_max": 1.7978,
+    "reconstructed_max": 1.726,
     "published_max": 1.7694,
-    "reconstructed_spread": 10.0135,
+    "reconstructed_spread": 9.5029,
     "published_spread": 9.0789,
-    "reconstructed_p95_over_p5": 3.2667,
+    "reconstructed_p95_over_p5": 3.3753,
     "published_p95_over_p5": 3.2588,
-    "mean_error": 0.0018,
-    "mean_abs_error": 0.059,
-    "correlation": 0.9658,
-    "reconstructed_renormalisation_divisor": 1.00203638,
+    "mean_error": 0.0019,
+    "mean_abs_error": 0.055,
+    "correlation": 0.9699,
+    "reconstructed_renormalisation_divisor": 1.00219129,
     "published_renormalisation_divisor": 1.00310182,
     "counts_toward_headline": true
    },
@@ -117,24 +117,24 @@
     "year": 2022.0,
     "half_hours": 14929.0,
     "days": 343.0,
-    "reconstructed_within_day_sd": 0.1589,
+    "reconstructed_within_day_sd": 0.1633,
     "published_within_day_sd": 0.1634,
-    "reconstructed_between_day_sd": 0.3193,
+    "reconstructed_between_day_sd": 0.332,
     "published_between_day_sd": 0.3108,
-    "within_day_swing_overstated_by": 0.9724,
-    "between_day_swing_overstated_by": 1.0272,
-    "reconstructed_min": 0.1395,
+    "within_day_swing_overstated_by": 0.9993,
+    "between_day_swing_overstated_by": 1.0681,
+    "reconstructed_min": 0.1448,
     "published_min": 0.2108,
-    "reconstructed_max": 1.7459,
+    "reconstructed_max": 1.7167,
     "published_max": 1.7406,
-    "reconstructed_spread": 12.5134,
+    "reconstructed_spread": 11.8525,
     "published_spread": 8.2564,
-    "reconstructed_p95_over_p5": 4.2779,
+    "reconstructed_p95_over_p5": 4.7542,
     "published_p95_over_p5": 4.1045,
-    "mean_error": -0.0034,
-    "mean_abs_error": 0.0565,
-    "correlation": 0.9773,
-    "reconstructed_renormalisation_divisor": 0.99881024,
+    "mean_error": -0.0025,
+    "mean_abs_error": 0.0525,
+    "correlation": 0.982,
+    "reconstructed_renormalisation_divisor": 0.99876507,
     "published_renormalisation_divisor": 0.99072712,
     "counts_toward_headline": true
    },
@@ -142,24 +142,24 @@
     "year": 2023.0,
     "half_hours": 17362.0,
     "days": 364.0,
-    "reconstructed_within_day_sd": 0.1807,
+    "reconstructed_within_day_sd": 0.1924,
     "published_within_day_sd": 0.1895,
-    "reconstructed_between_day_sd": 0.3507,
+    "reconstructed_between_day_sd": 0.372,
     "published_between_day_sd": 0.3488,
-    "within_day_swing_overstated_by": 0.9534,
-    "between_day_swing_overstated_by": 1.0053,
-    "reconstructed_min": 0.1078,
+    "within_day_swing_overstated_by": 1.0154,
+    "between_day_swing_overstated_by": 1.0665,
+    "reconstructed_min": 0.1177,
     "published_min": 0.1647,
-    "reconstructed_max": 2.0799,
+    "reconstructed_max": 2.2514,
     "published_max": 1.9579,
-    "reconstructed_spread": 19.2975,
+    "reconstructed_spread": 19.125,
     "published_spread": 11.8846,
-    "reconstructed_p95_over_p5": 5.2302,
+    "reconstructed_p95_over_p5": 5.6598,
     "published_p95_over_p5": 4.3448,
-    "mean_error": -0.0011,
-    "mean_abs_error": 0.0701,
-    "correlation": 0.973,
-    "reconstructed_renormalisation_divisor": 1.00062688,
+    "mean_error": -0.0067,
+    "mean_abs_error": 0.0676,
+    "correlation": 0.9776,
+    "reconstructed_renormalisation_divisor": 1.00024869,
     "published_renormalisation_divisor": 0.99947368,
     "counts_toward_headline": true
    },
@@ -167,30 +167,30 @@
     "year": 2024.0,
     "half_hours": 17492.0,
     "days": 366.0,
-    "reconstructed_within_day_sd": 0.2204,
+    "reconstructed_within_day_sd": 0.2419,
     "published_within_day_sd": 0.2271,
-    "reconstructed_between_day_sd": 0.3781,
+    "reconstructed_between_day_sd": 0.4163,
     "published_between_day_sd": 0.3889,
-    "within_day_swing_overstated_by": 0.9703,
-    "between_day_swing_overstated_by": 0.9724,
-    "reconstructed_min": 0.0869,
+    "within_day_swing_overstated_by": 1.065,
+    "between_day_swing_overstated_by": 1.0706,
+    "reconstructed_min": 0.0967,
     "published_min": 0.1053,
-    "reconstructed_max": 2.1067,
+    "reconstructed_max": 2.3407,
     "published_max": 2.2795,
-    "reconstructed_spread": 24.2438,
+    "reconstructed_spread": 24.2116,
     "published_spread": 21.6429,
-    "reconstructed_p95_over_p5": 6.2527,
+    "reconstructed_p95_over_p5": 7.1615,
     "published_p95_over_p5": 5.0638,
-    "mean_error": 0.0044,
-    "mean_abs_error": 0.0971,
-    "correlation": 0.9619,
-    "reconstructed_renormalisation_divisor": 0.99957459,
+    "mean_error": -0.0055,
+    "mean_abs_error": 0.0891,
+    "correlation": 0.9722,
+    "reconstructed_renormalisation_divisor": 0.99960011,
     "published_renormalisation_divisor": 0.99937155,
     "counts_toward_headline": true
    }
   },
-  "spread_overstated_by": 1.23,
-  "p95_spread_overstated_by": 1.15,
+  "spread_overstated_by": 1.21,
+  "p95_spread_overstated_by": 1.22,
   "headline_years": [
    "2019",
    "2020",
@@ -209,11 +209,11 @@
   "panels_measured": 3,
   "panels_on_page": 5,
   "panels_without_published_series": 2,
-  "mean_gap_pp": 0.84,
-  "max_gap_pp": 5.85,
+  "mean_gap_pp": 2.56,
+  "max_gap_pp": 7.06,
   "belief_overstates_on": 2,
   "sign_flips": 1,
-  "statement": "On 3 of 5 household-days this page shows, the company's own grid shape can be checked against NESO's published series. It overstates the timing effect on 2 of them, by 0.8 percentage points on average and 5.8 at the widest, and on 1 the two disagree about whether the household drew cleaner or dirtier than average at all. The company is not shown the published series and is not corrected by it: the gap IS the score."
+  "statement": "On 3 of 5 household-days this page shows, the company's own grid shape can be checked against NESO's published series. It overstates the timing effect on 2 of them, by 2.6 percentage points on average and 7.1 at the widest, and on 1 the two disagree about whether the household drew cleaner or dirtier than average at all. The company is not shown the published series and is not corrected by it: the gap IS the score."
  },
  "counts": {
   "measured": 3,
@@ -224,14 +224,14 @@
  "accounts_on_book": 244,
  "grid": {
   "year": "2025",
-  "published_at": "2026-10-04T20:16:26.798455+00:00",
+  "published_at": "2026-10-04T21:04:57.857950+00:00",
   "source": "Elexon Insights half-hourly demand outturn (INDO), wind+solar generation outturn (AGWS) and generation-by-fuel-type outturn (FUELHH, for coal availability and interconnector flow), through the dispatch stack in sim/merit_order_reconstruction.py (DUKES 5.10.C efficiencies, DUKES 5.14 coal emission factors, DESNZ GHG conversion factors). Import carbon intensities are NESO's own published figures (Carbon Intensity Forecast Methodology, Table 1).",
-  "error_direction": "The WITHIN-day range is now CLOSE and its direction is MIXED, and that is the sentence to carry: this shape's p95/p5 spread runs about 1.15x the published series', most of it between days. Split day-by-day, this shape's BETWEEN-day swing runs (0.97-1.11x, mean 1.03) of the published series' over 2019-2024, and its WITHIN-day swing runs (0.95-1.10x, mean 1.01): too WIDE in 2019 and 2020; too NARROW in 2021, 2022, 2023 and 2024; A customer can move the washing from 6pm to 2am; they cannot move it to a windier Tuesday in March -- so a time-shifting benefit computed from this shape is an UPPER BOUND in 2019 and 2020 and an UNDERSTATEMENT from 2021, by 0.02-0.05 of the swing. Three corrections set that: the model dispatches pumped storage with perfect foresight of the day's residual, which flattens the day by more than GB's fleet did (EP13 frame doc s25); embedded wind sits beside embedded solar in the denominator, on NESO's definition, which widens it again (s26); and the flat biomass block sits at each year's measured mean rather than 2,400 MW, which narrows it a little (s27). SERVING VIKING AND ELECLINK OUTSIDE THE MIX (2026-10-04), as NESO's own series does (s34), took 2024's within-day from 0.93x to 0.97x and between-day from 0.93x to 0.97x, and WORSENED p95/p5 from 1.13x to 1.15x and max/min from 1.21x to 1.23x. HOLDING BIOMASS AT THE YEAR'S MEASURED MEAN (2026-10-02) took within-day from a mean 1.02x to 1.00x and p95/p5 from 1.18x to 1.13x, and WORSENED max/min from 1.12x to 1.21x. ADDING EMBEDDED WIND TO THE DENOMINATOR (2026-10-02) took within-day from a mean 0.98x to 1.02x, p95/p5 from 1.07x to 1.18x and max/min from 0.99x to 1.12x. DISPATCHING PUMPED STORAGE (2026-10-02) took within-day from a mean 1.15x to 0.98x, p95/p5 from 1.19x to 1.07x and max/min from 1.09x to 0.99x. REMOVING THE SOLAR DOUBLE-COUNT (2026-09-30) cut the within-day overstatement from a mean 1.45x to 1.26x and p95/p5 from 1.38x to 1.31x, and moved max/min from 1.01x to 1.08x. SERVING EXPORTS (2026-09-30) took within-day to 1.19x and p95/p5 to 1.25x, and max/min to 1.12x. SUBTRACTING TRANSMISSION-METERED WIND (2026-10-01) took within-day to 1.15x, p95/p5 to 1.19x and max/min to 1.09x. MEASURING THE MUST-RUN FLEET (2026-08-26) IMPROVED THAT AXIS AND WORSENED THE HEADLINE, and both halves are published because reporting only the first is how a correction becomes a claim: within-day overstatement fell from 1.48x to 1.45x (and from 1.44x to 1.35x in 2024), max/min overstatement fell from 1.04x to 1.01x, correlation and mean absolute error improved in ALL SIX measured years -- while p95/p5 overstatement rose from 1.36x to 1.38x, worse in four years of six. p95/p5 and max/min are two statistics under one word 'spread' and they moved in opposite directions here, so neither is quoted alone. What is no longer true, and was until the thermal floor was measured on 2026-08-25, is that the clean END is uniformly optimistic: flooring the stack at the gas fleet's demonstrated annual minimum moved the quietest half hours from about 3.2x too clean to a MIXED picture -- still cleaner than published in 2022, 2023 and 2024, and DIRTIER than published in 2019, 2020 and 2021. That is MEASURED, year by year, in `versus_published` below and never inferred from the gap list, which is the same reason the gaps are not all pushing one way: an import's sign depends on what it displaced -- against the mid-merit gas band a Dutch import is dirtier than what it replaced, against a peaker it is cleaner -- so only the net is knowable. AND THERE IS A SECOND FACTOR ON THE SAME SIDE THAT IS NOT ABOUT THIS MODEL AT ALL, measured 2026-08-26 and carried in `published_forecast_skill` below. Every figure here is computed with hindsight; a household has to act on a FORECAST. Graded against NESO's own outturn, NESO's own published forecast picks a three-hour window that delivers about 86% of that day's achievable within-day saving on the mean day, about 55% on the worst day in twenty, and on a handful of days a window DIRTIER than simply not shifting. That ceiling cannot be built away by improving this model, so the honest reading of any timing benefit on this feed is this model's overstatement TIMES what a forecast could actually pick.",
+  "error_direction": "The WITHIN-day range is CLOSE and never too narrow, and that is the sentence to carry: this shape's p95/p5 spread runs about 1.22x the published series', most of it between days. Split day-by-day, this shape's BETWEEN-day swing runs (1.01-1.11x, mean 1.06) of the published series' over 2019-2024, and its WITHIN-day swing runs (1.00-1.10x, mean 1.04): too WIDE in 2019, 2020, 2023 and 2024; MATCHED to two places in 2021 and 2022; A customer can move the washing from 6pm to 2am; they cannot move it to a windier Tuesday in March -- so a time-shifting benefit computed from this shape is an UPPER BOUND, by up to 0.10 of the swing, and an understatement in no year. PRICING NORTH SEA LINK AT NORWAY'S PUBLISHED MIX (2026-10-04, s35) instead of as GB gas took 2024's within-day from 0.97x to 1.07x and between-day from 0.97x to 1.07x, raised correlation in 2021-2024, WORSENED p95/p5 from 1.15x to 1.22x and improved max/min from 1.23x to 1.21x: the unpriced cable had been hiding an over-swing (s32). Three earlier corrections set the within-day picture: the model dispatches pumped storage with perfect foresight of the day's residual, which flattens the day by more than GB's fleet did (EP13 frame doc s25); embedded wind sits beside embedded solar in the denominator, on NESO's definition, which widens it again (s26); and the flat biomass block sits at each year's measured mean rather than 2,400 MW, which narrows it a little (s27). SERVING VIKING AND ELECLINK OUTSIDE THE MIX (2026-10-04), as NESO's own series does (s34), took 2024's within-day from 0.93x to 0.97x and between-day from 0.93x to 0.97x, and WORSENED p95/p5 from 1.13x to 1.15x and max/min from 1.21x to 1.23x. HOLDING BIOMASS AT THE YEAR'S MEASURED MEAN (2026-10-02) took within-day from a mean 1.02x to 1.00x and p95/p5 from 1.18x to 1.13x, and WORSENED max/min from 1.12x to 1.21x. ADDING EMBEDDED WIND TO THE DENOMINATOR (2026-10-02) took within-day from a mean 0.98x to 1.02x, p95/p5 from 1.07x to 1.18x and max/min from 0.99x to 1.12x. DISPATCHING PUMPED STORAGE (2026-10-02) took within-day from a mean 1.15x to 0.98x, p95/p5 from 1.19x to 1.07x and max/min from 1.09x to 0.99x. REMOVING THE SOLAR DOUBLE-COUNT (2026-09-30) cut the within-day overstatement from a mean 1.45x to 1.26x and p95/p5 from 1.38x to 1.31x, and moved max/min from 1.01x to 1.08x. SERVING EXPORTS (2026-09-30) took within-day to 1.19x and p95/p5 to 1.25x, and max/min to 1.12x. SUBTRACTING TRANSMISSION-METERED WIND (2026-10-01) took within-day to 1.15x, p95/p5 to 1.19x and max/min to 1.09x. MEASURING THE MUST-RUN FLEET (2026-08-26) IMPROVED THAT AXIS AND WORSENED THE HEADLINE, and both halves are published because reporting only the first is how a correction becomes a claim: within-day overstatement fell from 1.48x to 1.45x (and from 1.44x to 1.35x in 2024), max/min overstatement fell from 1.04x to 1.01x, correlation and mean absolute error improved in ALL SIX measured years -- while p95/p5 overstatement rose from 1.36x to 1.38x, worse in four years of six. p95/p5 and max/min are two statistics under one word 'spread' and they moved in opposite directions here, so neither is quoted alone. What is no longer true, and was until the thermal floor was measured on 2026-08-25, is that the clean END is uniformly optimistic: flooring the stack at the gas fleet's demonstrated annual minimum moved the quietest half hours from about 3.2x too clean to a MIXED picture -- still cleaner than published in 2022, 2023 and 2024, and DIRTIER than published in 2019, 2020 and 2021. That is MEASURED, year by year, in `versus_published` below and never inferred from the gap list, which is the same reason the gaps are not all pushing one way: an import's sign depends on what it displaced -- against the mid-merit gas band a Dutch import is dirtier than what it replaced, against a peaker it is cleaner -- so only the net is knowable. AND THERE IS A SECOND FACTOR ON THE SAME SIDE THAT IS NOT ABOUT THIS MODEL AT ALL, measured 2026-08-26 and carried in `published_forecast_skill` below. Every figure here is computed with hindsight; a household has to act on a FORECAST. Graded against NESO's own outturn, NESO's own published forecast picks a three-hour window that delivers about 86% of that day's achievable within-day saving on the mean day, about 55% on the worst day in twenty, and on a handful of days a window DIRTIER than simply not shifting. That ceiling cannot be built away by improving this model, so the honest reading of any timing benefit on this feed is this model's overstatement TIMES what a forecast could actually pick.",
   "named_gaps": [
    "the thermal stack is floored at the CCGT+OCGT fleet's demonstrated annual MINIMUM output, so no half hour is dispatched with no gas running -- but that floor is the year's single lowest reading (303 MW in 2024, against a 1st percentile of 1,720 MW), deliberately the most conservative number available, so quiet half hours still run less gas than GB actually ran",
    "the shape's TIMING against the published series is now 0.93-0.97 correlation in every year 2019-2024 (0.95 in 2024). Four corrections moved it: measuring the fleet GB actually ran (2026-08-26), no longer subtracting embedded solar from a demand series already net of it (2026-09-30), serving the exports INDO excludes (2026-09-30), and subtracting transmission-METERED wind instead of AGWS wind (2026-10-01), which alone took 2024 from 0.72 to 0.95 and 2023 from 0.81 to 0.97. NESO's own day-ahead forecast scores 0.97, so the rest is within reach of a peer, not closed",
    "the model's gas LEVEL still overshoots metered CCGT in 2024 by about 1.3 GW and in 2016-2017 by 0.8-1.2 GW, for reasons not yet established. AGWS offshore wind reads 0.52-0.70 of DESNZ's offshore generation in every year 2016-2024, which is why the wind now subtracted is FUELHH WIND (AGWS only where FUELHH has no reading); why the AGWS series is short is not established. Exports are served and divided by at the half hour's AVERAGE rate, the basis NESO publishes on; charging them the MARGINAL gas instead would be a different, defensible convention",
-   "interconnector imports are counted at NESO's own published per-cable factors, but two of GB's nine cables postdate that table -- North Sea Link (Norway) and Viking Link (Denmark) -- so their flow is still dispatched as GB gas and reads dirtier than it was; that is 34% of imported MWh in 2024 and it is growing",
+   "interconnector imports are counted at NESO's own published per-cable factors. Two of GB's nine cables postdate that table: Viking Link is left out of NESO's mix and is left out here, and North Sea Link is priced by the same table applied to Norway's ANNUAL published mix (4-7 gCO2/kWh, Statistics Norway), where NESO applies it to the previous day's. A year with no published Norwegian mix leaves North Sea Link dispatched as GB gas, which reads dirtier than it was",
    "coal is dispatched from the fleet's demonstrated annual maximum, but its place in merit is fixed above the CCGT band rather than recomputed from the gas/coal spread, so the 2021-22 gas spike understates coal",
    "the must-run block is no longer a constant 8 GW -- nuclear and run-of-river hydro now come from Elexon's published half-hourly outturn (99.97% of half hours; 544 MW to 9,831 MW against the 5,600 MW this model used to assume) -- but the BIOMASS half of that block is still FLAT. Since 2026-10-02 it sits at each year's measured mean output (1.5-2.2 GW over 2019-2024, against the 2,400 MW it replaced), so the year's biomass energy is right and its timing is not: GB's fleet runs between about 0.2 and 3.1 GW within a year (p1 to p99) and this one never moves. Biomass carries 120 gCO2/kWh on NESO's own table, so its half-hourly output is an emissions term and may not cross the wall; when it ran is an outage question the residual cannot answer",
    "national only -- no regional series is offered, modelled or otherwise",
@@ -242,62 +242,62 @@
   "year_stats": {
    "half_hours": 7570,
    "demand_weighted_mean": 1.0,
-   "p5": 0.234,
-   "p50": 0.9359,
-   "p95": 1.6665,
-   "min": 0.1199,
-   "max": 2.0613,
-   "p95_over_p5": 7.12
+   "p5": 0.2322,
+   "p50": 0.9135,
+   "p95": 1.7253,
+   "min": 0.1319,
+   "max": 2.1806,
+   "p95_over_p5": 7.43
   },
   "typical_day": [
-   0.8254,
-   0.8311,
-   0.8239,
-   0.8142,
-   0.8092,
-   0.8011,
-   0.7927,
-   0.7905,
-   0.7995,
+   0.7924,
+   0.7978,
+   0.7896,
+   0.7806,
+   0.7764,
+   0.7678,
+   0.7579,
+   0.7558,
+   0.765,
+   0.7683,
+   0.815,
+   0.8483,
+   0.9229,
+   0.9846,
+   1.0151,
+   1.0263,
+   1.0174,
+   0.9973,
+   0.9712,
+   0.9303,
+   0.8904,
+   0.8551,
+   0.8273,
+   0.8129,
+   0.806,
    0.8026,
-   0.8433,
-   0.8724,
-   0.9373,
-   0.9918,
-   1.0161,
-   1.0245,
-   1.0153,
-   0.9955,
-   0.9688,
-   0.9294,
-   0.89,
-   0.8553,
-   0.8284,
-   0.8132,
-   0.8055,
-   0.8017,
-   0.7992,
-   0.8019,
-   0.8118,
-   0.8286,
-   0.8573,
-   0.9005,
-   0.9608,
-   1.0185,
-   1.0702,
-   1.099,
-   1.1286,
-   1.1454,
-   1.1613,
-   1.164,
-   1.1595,
-   1.1441,
-   1.1247,
-   1.0895,
-   1.0351,
-   0.9707,
-   0.9002,
-   0.8597
+   0.8003,
+   0.8029,
+   0.8128,
+   0.83,
+   0.8596,
+   0.9063,
+   0.9693,
+   1.031,
+   1.0858,
+   1.1159,
+   1.1465,
+   1.1637,
+   1.1787,
+   1.1798,
+   1.173,
+   1.1545,
+   1.1305,
+   1.0886,
+   1.0261,
+   0.9536,
+   0.8728,
+   0.8273
   ]
  },
  "abatement": {
@@ -312,9 +312,9 @@
    "year": "2021",
    "belief_vs_truth": {
     "available": true,
-    "belief_pct": 26.2,
+    "belief_pct": 27.67,
     "truth_pct": 31.1,
-    "gap_pp": -4.9,
+    "gap_pp": -3.42,
     "sign_differs": false,
     "half_hours": 48,
     "half_hours_without_published": 0,
@@ -355,318 +355,318 @@
    "year_stats": {
     "half_hours": 16834,
     "demand_weighted_mean": 1.0,
-    "p5": 0.4288,
-    "p50": 1.0049,
-    "p95": 1.4134,
-    "min": 0.1799,
-    "max": 1.8014,
-    "p95_over_p5": 3.3
+    "p5": 0.4153,
+    "p50": 1.0092,
+    "p95": 1.4176,
+    "min": 0.182,
+    "max": 1.7298,
+    "p95_over_p5": 3.41
    },
    "kwh": 89.2149,
-   "co2e_kg_timed": 27.38,
+   "co2e_kg_timed": 27.7045,
    "co2e_kg_flat": 21.6525,
-   "timing_effect_pct": 26.45,
+   "timing_effect_pct": 27.95,
    "half_hours": 48,
    "cleanest": {
     "period": 47,
     "clock": "23:00",
     "kwh": 0.1837,
-    "shape": 0.8718
+    "shape": 0.8821
    },
    "dirtiest": {
     "period": 14,
     "clock": "06:30",
     "kwh": 4.0388,
-    "shape": 1.4089
+    "shape": 1.4256
    },
    "profile": [
     {
      "period": 1,
      "clock": "00:00",
      "kwh": 1.1238,
-     "shape": 1.1176
+     "shape": 1.1308
     },
     {
      "period": 2,
      "clock": "00:30",
      "kwh": 1.105,
-     "shape": 1.1266
+     "shape": 1.1399
     },
     {
      "period": 3,
      "clock": "01:00",
      "kwh": 1.0938,
-     "shape": 1.129
+     "shape": 1.1424
     },
     {
      "period": 4,
      "clock": "01:30",
      "kwh": 1.0862,
-     "shape": 1.1375
+     "shape": 1.1509
     },
     {
      "period": 5,
      "clock": "02:00",
      "kwh": 1.0825,
-     "shape": 1.1517
+     "shape": 1.1653
     },
     {
      "period": 6,
      "clock": "02:30",
      "kwh": 1.0788,
-     "shape": 1.1491
+     "shape": 1.1627
     },
     {
      "period": 7,
      "clock": "03:00",
      "kwh": 1.0788,
-     "shape": 1.1724
+     "shape": 1.1863
     },
     {
      "period": 8,
      "clock": "03:30",
      "kwh": 1.075,
-     "shape": 1.1773
+     "shape": 1.1912
     },
     {
      "period": 9,
      "clock": "04:00",
      "kwh": 0.075,
-     "shape": 1.1845
+     "shape": 1.1985
     },
     {
      "period": 10,
      "clock": "04:30",
      "kwh": 0.0788,
-     "shape": 1.1927
+     "shape": 1.2069
     },
     {
      "period": 11,
      "clock": "05:00",
      "kwh": 0.0825,
-     "shape": 1.275
+     "shape": 1.2901
     },
     {
      "period": 12,
      "clock": "05:30",
      "kwh": 0.09,
-     "shape": 1.2933
+     "shape": 1.3087
     },
     {
      "period": 13,
      "clock": "06:00",
      "kwh": 3.9987,
-     "shape": 1.3714
+     "shape": 1.3877
     },
     {
      "period": 14,
      "clock": "06:30",
      "kwh": 4.0388,
-     "shape": 1.4089
+     "shape": 1.4256
     },
     {
      "period": 15,
      "clock": "07:00",
      "kwh": 4.1037,
-     "shape": 1.3812
+     "shape": 1.3976
     },
     {
      "period": 16,
      "clock": "07:30",
      "kwh": 4.1588,
-     "shape": 1.3977
+     "shape": 1.4142
     },
     {
      "period": 17,
      "clock": "08:00",
      "kwh": 4.1537,
-     "shape": 1.3884
+     "shape": 1.4049
     },
     {
      "period": 18,
      "clock": "08:30",
      "kwh": 4.1288,
-     "shape": 1.3761
+     "shape": 1.3924
     },
     {
      "period": 19,
      "clock": "09:00",
      "kwh": 4.1037,
-     "shape": 1.3441
+     "shape": 1.3601
     },
     {
      "period": 20,
      "clock": "09:30",
      "kwh": 4.0938,
-     "shape": 1.33
+     "shape": 1.3458
     },
     {
      "period": 21,
      "clock": "10:00",
      "kwh": 0.1837,
-     "shape": 1.2962
+     "shape": 1.3116
     },
     {
      "period": 22,
      "clock": "10:30",
      "kwh": 0.18,
-     "shape": 1.284
+     "shape": 1.2992
     },
     {
      "period": 23,
      "clock": "11:00",
      "kwh": 0.1762,
-     "shape": 1.2979
+     "shape": 1.3133
     },
     {
      "period": 24,
      "clock": "11:30",
      "kwh": 0.1762,
-     "shape": 1.2945
+     "shape": 1.3098
     },
     {
      "period": 25,
      "clock": "12:00",
      "kwh": 0.1837,
-     "shape": 1.2655
+     "shape": 1.2805
     },
     {
      "period": 26,
      "clock": "12:30",
      "kwh": 0.1837,
-     "shape": 1.2601
+     "shape": 1.2751
     },
     {
      "period": 27,
      "clock": "13:00",
      "kwh": 0.1762,
-     "shape": 1.2811
+     "shape": 1.2962
     },
     {
      "period": 28,
      "clock": "13:30",
      "kwh": 0.1688,
-     "shape": 1.2706
+     "shape": 1.2857
     },
     {
      "period": 29,
      "clock": "14:00",
      "kwh": 0.165,
-     "shape": 1.2898
+     "shape": 1.3051
     },
     {
      "period": 30,
      "clock": "14:30",
      "kwh": 0.1725,
-     "shape": 1.2962
+     "shape": 1.3115
     },
     {
      "period": 31,
      "clock": "15:00",
      "kwh": 0.1762,
-     "shape": 1.3067
+     "shape": 1.3222
     },
     {
      "period": 32,
      "clock": "15:30",
      "kwh": 0.1988,
-     "shape": 1.3304
+     "shape": 1.3461
     },
     {
      "period": 33,
      "clock": "16:00",
      "kwh": 0.24,
-     "shape": 1.3075
+     "shape": 1.323
     },
     {
      "period": 34,
      "clock": "16:30",
      "kwh": 3.9818,
-     "shape": 1.2868
+     "shape": 1.3021
     },
     {
      "period": 35,
      "clock": "17:00",
      "kwh": 4.0506,
-     "shape": 1.2784
+     "shape": 1.2936
     },
     {
      "period": 36,
      "clock": "17:30",
      "kwh": 4.0693,
-     "shape": 1.2528
+     "shape": 1.2676
     },
     {
      "period": 37,
      "clock": "18:00",
      "kwh": 4.0693,
-     "shape": 1.2508
+     "shape": 1.2656
     },
     {
      "period": 38,
      "clock": "18:30",
      "kwh": 4.0631,
-     "shape": 1.2577
+     "shape": 1.2726
     },
     {
      "period": 39,
      "clock": "19:00",
      "kwh": 4.0443,
-     "shape": 1.2878
+     "shape": 1.303
     },
     {
      "period": 40,
      "clock": "19:30",
      "kwh": 4.0193,
-     "shape": 1.2622
+     "shape": 1.2772
     },
     {
      "period": 41,
      "clock": "20:00",
      "kwh": 3.9943,
-     "shape": 1.1998
+     "shape": 1.2141
     },
     {
      "period": 42,
      "clock": "20:30",
      "kwh": 3.9818,
-     "shape": 1.1457
+     "shape": 1.1593
     },
     {
      "period": 43,
      "clock": "21:00",
      "kwh": 3.9756,
-     "shape": 1.0776
+     "shape": 1.0904
     },
     {
      "period": 44,
      "clock": "21:30",
      "kwh": 3.9443,
-     "shape": 1.0101
+     "shape": 1.0221
     },
     {
      "period": 45,
      "clock": "22:00",
      "kwh": 0.2513,
-     "shape": 0.9761
+     "shape": 0.9877
     },
     {
      "period": 46,
      "clock": "22:30",
      "kwh": 0.2213,
-     "shape": 0.9466
+     "shape": 0.9578
     },
     {
      "period": 47,
      "clock": "23:00",
      "kwh": 0.1837,
-     "shape": 0.8718
+     "shape": 0.8821
     },
     {
      "period": 48,
      "clock": "23:30",
      "kwh": 0.1537,
-     "shape": 1.0603
+     "shape": 1.0729
     }
    ]
   },
@@ -684,9 +684,9 @@
    "year": "2022",
    "belief_vs_truth": {
     "available": true,
-    "belief_pct": 39.27,
+    "belief_pct": 41.74,
     "truth_pct": 37.7,
-    "gap_pp": 1.57,
+    "gap_pp": 4.04,
     "sign_differs": false,
     "half_hours": 48,
     "half_hours_without_published": 0,
@@ -727,318 +727,318 @@
    "year_stats": {
     "half_hours": 14967,
     "demand_weighted_mean": 1.0,
-    "p5": 0.3451,
-    "p50": 1.0248,
-    "p95": 1.4756,
-    "min": 0.1394,
-    "max": 1.7438,
-    "p95_over_p5": 4.28
+    "p5": 0.3146,
+    "p50": 1.0224,
+    "p95": 1.4957,
+    "min": 0.1447,
+    "max": 1.7146,
+    "p95_over_p5": 4.75
    },
    "kwh": 86.9861,
-   "co2e_kg_timed": 28.6783,
+   "co2e_kg_timed": 29.1844,
    "co2e_kg_flat": 20.6157,
-   "timing_effect_pct": 39.11,
+   "timing_effect_pct": 41.56,
    "half_hours": 48,
    "cleanest": {
     "period": 1,
     "clock": "00:00",
     "kwh": 0.1403,
-    "shape": 1.1182
+    "shape": 1.1608
    },
    "dirtiest": {
     "period": 22,
     "clock": "10:30",
     "kwh": 0.204,
-    "shape": 1.4711
+    "shape": 1.512
    },
    "profile": [
     {
      "period": 1,
      "clock": "00:00",
      "kwh": 0.1403,
-     "shape": 1.1182
+     "shape": 1.1608
     },
     {
      "period": 2,
      "clock": "00:30",
      "kwh": 0.119,
-     "shape": 1.12
+     "shape": 1.1626
     },
     {
      "period": 3,
      "clock": "01:00",
      "kwh": 0.1062,
-     "shape": 1.1381
+     "shape": 1.1814
     },
     {
      "period": 4,
      "clock": "01:30",
      "kwh": 0.0978,
-     "shape": 1.1306
+     "shape": 1.1736
     },
     {
      "period": 5,
      "clock": "02:00",
      "kwh": 0.0935,
-     "shape": 1.1231
+     "shape": 1.1658
     },
     {
      "period": 6,
      "clock": "02:30",
      "kwh": 0.0892,
-     "shape": 1.1322
+     "shape": 1.1752
     },
     {
      "period": 7,
      "clock": "03:00",
      "kwh": 0.0892,
-     "shape": 1.1353
+     "shape": 1.1785
     },
     {
      "period": 8,
      "clock": "03:30",
      "kwh": 0.085,
-     "shape": 1.1526
+     "shape": 1.1965
     },
     {
      "period": 9,
      "clock": "04:00",
      "kwh": 0.085,
-     "shape": 1.1651
+     "shape": 1.2095
     },
     {
      "period": 10,
      "clock": "04:30",
      "kwh": 0.0892,
-     "shape": 1.1717
+     "shape": 1.2162
     },
     {
      "period": 11,
      "clock": "05:00",
      "kwh": 0.0935,
-     "shape": 1.2032
+     "shape": 1.249
     },
     {
      "period": 12,
      "clock": "05:30",
      "kwh": 0.102,
-     "shape": 1.2391
+     "shape": 1.2863
     },
     {
      "period": 13,
      "clock": "06:00",
      "kwh": 4.213,
-     "shape": 1.2991
+     "shape": 1.3485
     },
     {
      "period": 14,
      "clock": "06:30",
      "kwh": 4.257,
-     "shape": 1.3709
+     "shape": 1.4231
     },
     {
      "period": 15,
      "clock": "07:00",
      "kwh": 4.3285,
-     "shape": 1.4037
+     "shape": 1.4571
     },
     {
      "period": 16,
      "clock": "07:30",
      "kwh": 4.389,
-     "shape": 1.4451
+     "shape": 1.4878
     },
     {
      "period": 17,
      "clock": "08:00",
      "kwh": 4.3835,
-     "shape": 1.4517
+     "shape": 1.507
     },
     {
      "period": 18,
      "clock": "08:30",
      "kwh": 4.356,
-     "shape": 1.4363
+     "shape": 1.4568
     },
     {
      "period": 19,
      "clock": "09:00",
      "kwh": 4.3285,
-     "shape": 1.393
+     "shape": 1.4329
     },
     {
      "period": 20,
      "clock": "09:30",
      "kwh": 4.3175,
-     "shape": 1.3884
+     "shape": 1.4264
     },
     {
      "period": 21,
      "clock": "10:00",
      "kwh": 0.2082,
-     "shape": 1.3452
+     "shape": 1.383
     },
     {
      "period": 22,
      "clock": "10:30",
      "kwh": 0.204,
-     "shape": 1.4711
+     "shape": 1.512
     },
     {
      "period": 23,
      "clock": "11:00",
      "kwh": 0.1997,
-     "shape": 1.2915
+     "shape": 1.3318
     },
     {
      "period": 24,
      "clock": "11:30",
      "kwh": 0.1997,
-     "shape": 1.2729
+     "shape": 1.3134
     },
     {
      "period": 25,
      "clock": "12:00",
      "kwh": 0.2082,
-     "shape": 1.2724
+     "shape": 1.3203
     },
     {
      "period": 26,
      "clock": "12:30",
      "kwh": 0.2082,
-     "shape": 1.2635
+     "shape": 1.3116
     },
     {
      "period": 27,
      "clock": "13:00",
      "kwh": 0.1997,
-     "shape": 1.2565
+     "shape": 1.3018
     },
     {
      "period": 28,
      "clock": "13:30",
      "kwh": 0.1913,
-     "shape": 1.2552
+     "shape": 1.3003
     },
     {
      "period": 29,
      "clock": "14:00",
      "kwh": 0.187,
-     "shape": 1.28
+     "shape": 1.3286
     },
     {
      "period": 30,
      "clock": "14:30",
      "kwh": 0.1955,
-     "shape": 1.3036
+     "shape": 1.3518
     },
     {
      "period": 31,
      "clock": "15:00",
      "kwh": 0.1997,
-     "shape": 1.3725
+     "shape": 1.4072
     },
     {
      "period": 32,
      "clock": "15:30",
      "kwh": 0.2253,
-     "shape": 1.4002
+     "shape": 1.4285
     },
     {
      "period": 33,
      "clock": "16:00",
      "kwh": 0.272,
-     "shape": 1.3819
+     "shape": 1.3951
     },
     {
      "period": 34,
      "clock": "16:30",
      "kwh": 4.2878,
-     "shape": 1.3592
+     "shape": 1.3723
     },
     {
      "period": 35,
      "clock": "17:00",
      "kwh": 4.3648,
-     "shape": 1.3649
+     "shape": 1.379
     },
     {
      "period": 36,
      "clock": "17:30",
      "kwh": 4.3858,
-     "shape": 1.3702
+     "shape": 1.3843
     },
     {
      "period": 37,
      "clock": "18:00",
      "kwh": 4.3858,
-     "shape": 1.383
+     "shape": 1.3973
     },
     {
      "period": 38,
      "clock": "18:30",
      "kwh": 4.3788,
-     "shape": 1.4051
+     "shape": 1.4197
     },
     {
      "period": 39,
      "clock": "19:00",
      "kwh": 4.3578,
-     "shape": 1.4357
+     "shape": 1.424
     },
     {
      "period": 40,
      "clock": "19:30",
      "kwh": 4.3298,
-     "shape": 1.4258
+     "shape": 1.4116
     },
     {
      "period": 41,
      "clock": "20:00",
      "kwh": 4.3018,
-     "shape": 1.4096
+     "shape": 1.4115
     },
     {
      "period": 42,
      "clock": "20:30",
      "kwh": 4.2878,
-     "shape": 1.3985
+     "shape": 1.403
     },
     {
      "period": 43,
      "clock": "21:00",
      "kwh": 4.2808,
-     "shape": 1.4151
+     "shape": 1.4381
     },
     {
      "period": 44,
      "clock": "21:30",
      "kwh": 4.2458,
-     "shape": 1.386
+     "shape": 1.4093
     },
     {
      "period": 45,
      "clock": "22:00",
      "kwh": 0.2848,
-     "shape": 1.3887
+     "shape": 1.4305
     },
     {
      "period": 46,
      "clock": "22:30",
      "kwh": 0.2507,
-     "shape": 1.3549
+     "shape": 1.3975
     },
     {
      "period": 47,
      "clock": "23:00",
      "kwh": 0.2082,
-     "shape": 1.3474
+     "shape": 1.3986
     },
     {
      "period": 48,
      "clock": "23:30",
      "kwh": 0.1742,
-     "shape": 1.3296
+     "shape": 1.3801
     }
    ]
   },
@@ -1445,318 +1445,318 @@
    "year_stats": {
     "half_hours": 7570,
     "demand_weighted_mean": 1.0,
-    "p5": 0.234,
-    "p50": 0.9359,
-    "p95": 1.6665,
-    "min": 0.1199,
-    "max": 2.0613,
-    "p95_over_p5": 7.12
+    "p5": 0.2322,
+    "p50": 0.9135,
+    "p95": 1.7253,
+    "min": 0.1319,
+    "max": 2.1806,
+    "p95_over_p5": 7.43
    },
    "kwh": 82.0649,
-   "co2e_kg_timed": 24.5075,
+   "co2e_kg_timed": 25.3956,
    "co2e_kg_flat": 14.3778,
-   "timing_effect_pct": 70.45,
+   "timing_effect_pct": 76.63,
    "half_hours": 48,
    "cleanest": {
     "period": 1,
     "clock": "00:00",
     "kwh": 0.198,
-    "shape": 1.0693
+    "shape": 1.0561
    },
    "dirtiest": {
-    "period": 39,
-    "clock": "19:00",
-    "kwh": 3.574,
-    "shape": 1.7915
+    "period": 33,
+    "clock": "16:00",
+    "kwh": 0.384,
+    "shape": 1.8656
    },
    "profile": [
     {
      "period": 1,
      "clock": "00:00",
      "kwh": 0.198,
-     "shape": 1.0693
+     "shape": 1.0561
     },
     {
      "period": 2,
      "clock": "00:30",
      "kwh": 0.168,
-     "shape": 1.0871
+     "shape": 1.0737
     },
     {
      "period": 3,
      "clock": "01:00",
      "kwh": 0.15,
-     "shape": 1.1002
+     "shape": 1.0857
     },
     {
      "period": 4,
      "clock": "01:30",
      "kwh": 0.138,
-     "shape": 1.1105
+     "shape": 1.0959
     },
     {
      "period": 5,
      "clock": "02:00",
      "kwh": 0.132,
-     "shape": 1.1151
+     "shape": 1.1013
     },
     {
      "period": 6,
      "clock": "02:30",
      "kwh": 0.126,
-     "shape": 1.1275
+     "shape": 1.1136
     },
     {
      "period": 7,
      "clock": "03:00",
      "kwh": 0.126,
-     "shape": 1.136
+     "shape": 1.1216
     },
     {
      "period": 8,
      "clock": "03:30",
      "kwh": 0.12,
-     "shape": 1.1563
+     "shape": 1.1415
     },
     {
      "period": 9,
      "clock": "04:00",
      "kwh": 0.12,
-     "shape": 1.1872
+     "shape": 1.1718
     },
     {
      "period": 10,
      "clock": "04:30",
      "kwh": 0.126,
-     "shape": 1.2227
+     "shape": 1.2067
     },
     {
      "period": 11,
      "clock": "05:00",
      "kwh": 0.132,
-     "shape": 1.4384
+     "shape": 1.4427
     },
     {
      "period": 12,
      "clock": "05:30",
      "kwh": 0.144,
-     "shape": 1.4976
+     "shape": 1.5112
     },
     {
      "period": 13,
      "clock": "06:00",
      "kwh": 4.4193,
-     "shape": 1.6103
+     "shape": 1.6419
     },
     {
      "period": 14,
      "clock": "06:30",
      "kwh": 4.4633,
-     "shape": 1.6737
+     "shape": 1.7194
     },
     {
      "period": 15,
      "clock": "07:00",
      "kwh": 4.5348,
-     "shape": 1.6139
+     "shape": 1.6632
     },
     {
      "period": 16,
      "clock": "07:30",
      "kwh": 4.5953,
-     "shape": 1.688
+     "shape": 1.7475
     },
     {
      "period": 17,
      "clock": "08:00",
      "kwh": 4.5898,
-     "shape": 1.7203
+     "shape": 1.7857
     },
     {
      "period": 18,
      "clock": "08:30",
      "kwh": 4.5623,
-     "shape": 1.7472
+     "shape": 1.8171
     },
     {
      "period": 19,
      "clock": "09:00",
      "kwh": 4.5348,
-     "shape": 1.7424
+     "shape": 1.8153
     },
     {
      "period": 20,
      "clock": "09:30",
      "kwh": 4.5238,
-     "shape": 1.7047
+     "shape": 1.7758
     },
     {
      "period": 21,
      "clock": "10:00",
      "kwh": 0.294,
-     "shape": 1.6917
+     "shape": 1.7619
     },
     {
      "period": 22,
      "clock": "10:30",
      "kwh": 0.288,
-     "shape": 1.6718
+     "shape": 1.7408
     },
     {
      "period": 23,
      "clock": "11:00",
      "kwh": 0.282,
-     "shape": 1.665
+     "shape": 1.7331
     },
     {
      "period": 24,
      "clock": "11:30",
      "kwh": 0.282,
-     "shape": 1.6776
+     "shape": 1.7464
     },
     {
      "period": 25,
      "clock": "12:00",
      "kwh": 0.294,
-     "shape": 1.6663
+     "shape": 1.7333
     },
     {
      "period": 26,
      "clock": "12:30",
      "kwh": 0.294,
-     "shape": 1.6793
+     "shape": 1.7471
     },
     {
      "period": 27,
      "clock": "13:00",
      "kwh": 0.282,
-     "shape": 1.6734
+     "shape": 1.7401
     },
     {
      "period": 28,
      "clock": "13:30",
      "kwh": 0.27,
-     "shape": 1.6548
+     "shape": 1.7189
     },
     {
      "period": 29,
      "clock": "14:00",
      "kwh": 0.264,
-     "shape": 1.6534
+     "shape": 1.7169
     },
     {
      "period": 30,
      "clock": "14:30",
      "kwh": 0.276,
-     "shape": 1.6739
+     "shape": 1.7382
     },
     {
      "period": 31,
      "clock": "15:00",
      "kwh": 0.282,
-     "shape": 1.7194
+     "shape": 1.7869
     },
     {
      "period": 32,
      "clock": "15:30",
      "kwh": 0.318,
-     "shape": 1.7749
+     "shape": 1.848
     },
     {
      "period": 33,
      "clock": "16:00",
      "kwh": 0.384,
-     "shape": 1.7901
+     "shape": 1.8656
     },
     {
      "period": 34,
      "clock": "16:30",
      "kwh": 3.519,
-     "shape": 1.7613
+     "shape": 1.8355
     },
     {
      "period": 35,
      "clock": "17:00",
      "kwh": 3.5795,
-     "shape": 1.7523
+     "shape": 1.8261
     },
     {
      "period": 36,
      "clock": "17:30",
      "kwh": 3.596,
-     "shape": 1.7513
+     "shape": 1.8256
     },
     {
      "period": 37,
      "clock": "18:00",
      "kwh": 3.596,
-     "shape": 1.7476
+     "shape": 1.8217
     },
     {
      "period": 38,
      "clock": "18:30",
      "kwh": 3.5905,
-     "shape": 1.7721
+     "shape": 1.8471
     },
     {
      "period": 39,
      "clock": "19:00",
      "kwh": 3.574,
-     "shape": 1.7915
+     "shape": 1.8656
     },
     {
      "period": 40,
      "clock": "19:30",
      "kwh": 3.552,
-     "shape": 1.7706
+     "shape": 1.8407
     },
     {
      "period": 41,
      "clock": "20:00",
      "kwh": 3.53,
-     "shape": 1.7482
+     "shape": 1.8144
     },
     {
      "period": 42,
      "clock": "20:30",
      "kwh": 3.519,
-     "shape": 1.7372
+     "shape": 1.8001
     },
     {
      "period": 43,
      "clock": "21:00",
      "kwh": 3.5135,
-     "shape": 1.7055
+     "shape": 1.7618
     },
     {
      "period": 44,
      "clock": "21:30",
      "kwh": 3.486,
-     "shape": 1.6822
+     "shape": 1.7335
     },
     {
      "period": 45,
      "clock": "22:00",
      "kwh": 0.402,
-     "shape": 1.6494
+     "shape": 1.6933
     },
     {
      "period": 46,
      "clock": "22:30",
      "kwh": 0.354,
-     "shape": 1.6012
+     "shape": 1.636
     },
     {
      "period": 47,
      "clock": "23:00",
      "kwh": 0.294,
-     "shape": 1.5271
+     "shape": 1.5488
     },
     {
      "period": 48,
      "clock": "23:30",
      "kwh": 0.246,
-     "shape": 1.4993
+     "shape": 1.5156
     }
    ]
   },
@@ -1767,9 +1767,9 @@
    "year": "2021",
    "belief_vs_truth": {
     "available": true,
-    "belief_pct": 3.62,
+    "belief_pct": 4.83,
     "truth_pct": -2.23,
-    "gap_pp": 5.85,
+    "gap_pp": 7.06,
     "sign_differs": true,
     "half_hours": 48,
     "half_hours_without_published": 0,
@@ -1810,318 +1810,318 @@
    "year_stats": {
     "half_hours": 16834,
     "demand_weighted_mean": 1.0,
-    "p5": 0.4288,
-    "p50": 1.0049,
-    "p95": 1.4134,
-    "min": 0.1799,
-    "max": 1.8014,
-    "p95_over_p5": 3.3
+    "p5": 0.4153,
+    "p50": 1.0092,
+    "p95": 1.4176,
+    "min": 0.182,
+    "max": 1.7298,
+    "p95_over_p5": 3.41
    },
    "kwh": 14.4983,
-   "co2e_kg_timed": 3.6535,
+   "co2e_kg_timed": 3.6968,
    "co2e_kg_flat": 3.5187,
-   "timing_effect_pct": 3.83,
+   "timing_effect_pct": 5.06,
    "half_hours": 48,
    "cleanest": {
     "period": 31,
     "clock": "15:00",
     "kwh": 0.21,
-    "shape": 0.8757
+    "shape": 0.8861
    },
    "dirtiest": {
     "period": 16,
     "clock": "07:30",
     "kwh": 0.5046,
-    "shape": 1.1923
+    "shape": 1.2064
    },
    "profile": [
     {
      "period": 1,
      "clock": "00:00",
      "kwh": 0.162,
-     "shape": 1.0917
+     "shape": 1.1047
     },
     {
      "period": 2,
      "clock": "00:30",
      "kwh": 0.138,
-     "shape": 1.0808
+     "shape": 1.0936
     },
     {
      "period": 3,
      "clock": "01:00",
      "kwh": 0.126,
-     "shape": 1.0891
+     "shape": 1.102
     },
     {
      "period": 4,
      "clock": "01:30",
      "kwh": 0.12,
-     "shape": 1.0879
+     "shape": 1.1008
     },
     {
      "period": 5,
      "clock": "02:00",
      "kwh": 0.114,
-     "shape": 1.0671
+     "shape": 1.0797
     },
     {
      "period": 6,
      "clock": "02:30",
      "kwh": 0.114,
-     "shape": 1.0646
+     "shape": 1.0772
     },
     {
      "period": 7,
      "clock": "03:00",
      "kwh": 0.108,
-     "shape": 1.042
+     "shape": 1.0543
     },
     {
      "period": 8,
      "clock": "03:30",
      "kwh": 0.108,
-     "shape": 1.036
+     "shape": 1.0483
     },
     {
      "period": 9,
      "clock": "04:00",
      "kwh": 0.108,
-     "shape": 1.0113
+     "shape": 1.0233
     },
     {
      "period": 10,
      "clock": "04:30",
      "kwh": 0.108,
-     "shape": 1.0101
+     "shape": 1.022
     },
     {
      "period": 11,
      "clock": "05:00",
      "kwh": 0.114,
-     "shape": 1.0414
+     "shape": 1.0537
     },
     {
      "period": 12,
      "clock": "05:30",
      "kwh": 0.12,
-     "shape": 1.069
+     "shape": 1.0817
     },
     {
      "period": 13,
      "clock": "06:00",
      "kwh": 0.4056,
-     "shape": 1.132
+     "shape": 1.1454
     },
     {
      "period": 14,
      "clock": "06:30",
      "kwh": 0.4441,
-     "shape": 1.1865
+     "shape": 1.2006
     },
     {
      "period": 15,
      "clock": "07:00",
      "kwh": 0.4881,
-     "shape": 1.192
+     "shape": 1.2061
     },
     {
      "period": 16,
      "clock": "07:30",
      "kwh": 0.5046,
-     "shape": 1.1923
+     "shape": 1.2064
     },
     {
      "period": 17,
      "clock": "08:00",
      "kwh": 0.5101,
-     "shape": 1.1093
+     "shape": 1.1224
     },
     {
      "period": 18,
      "clock": "08:30",
      "kwh": 0.4936,
-     "shape": 1.0827
+     "shape": 1.0955
     },
     {
      "period": 19,
      "clock": "09:00",
      "kwh": 0.4881,
-     "shape": 1.0782
+     "shape": 1.0909
     },
     {
      "period": 20,
      "clock": "09:30",
      "kwh": 0.4826,
-     "shape": 1.062
+     "shape": 1.0746
     },
     {
      "period": 21,
      "clock": "10:00",
      "kwh": 0.228,
-     "shape": 1.0512
+     "shape": 1.0636
     },
     {
      "period": 22,
      "clock": "10:30",
      "kwh": 0.222,
-     "shape": 1.0392
+     "shape": 1.0516
     },
     {
      "period": 23,
      "clock": "11:00",
      "kwh": 0.222,
-     "shape": 1.0339
+     "shape": 1.0462
     },
     {
      "period": 24,
      "clock": "11:30",
      "kwh": 0.222,
-     "shape": 1.0067
+     "shape": 1.0186
     },
     {
      "period": 25,
      "clock": "12:00",
      "kwh": 0.234,
-     "shape": 0.9817
+     "shape": 0.9934
     },
     {
      "period": 26,
      "clock": "12:30",
      "kwh": 0.228,
-     "shape": 0.9588
+     "shape": 0.9701
     },
     {
      "period": 27,
      "clock": "13:00",
      "kwh": 0.216,
-     "shape": 0.9497
+     "shape": 0.961
     },
     {
      "period": 28,
      "clock": "13:30",
      "kwh": 0.21,
-     "shape": 0.947
+     "shape": 0.9582
     },
     {
      "period": 29,
      "clock": "14:00",
      "kwh": 0.204,
-     "shape": 0.9267
+     "shape": 0.9377
     },
     {
      "period": 30,
      "clock": "14:30",
      "kwh": 0.21,
-     "shape": 0.901
+     "shape": 0.9117
     },
     {
      "period": 31,
      "clock": "15:00",
      "kwh": 0.21,
-     "shape": 0.8757
+     "shape": 0.8861
     },
     {
      "period": 32,
      "clock": "15:30",
      "kwh": 0.234,
-     "shape": 0.8947
+     "shape": 0.9053
     },
     {
      "period": 33,
      "clock": "16:00",
      "kwh": 0.264,
-     "shape": 0.9448
+     "shape": 0.956
     },
     {
      "period": 34,
      "clock": "16:30",
      "kwh": 0.481,
-     "shape": 0.9685
+     "shape": 0.9799
     },
     {
      "period": 35,
      "clock": "17:00",
      "kwh": 0.503,
-     "shape": 0.9722
+     "shape": 0.9837
     },
     {
      "period": 36,
      "clock": "17:30",
      "kwh": 0.4975,
-     "shape": 0.9763
+     "shape": 0.9879
     },
     {
      "period": 37,
      "clock": "18:00",
      "kwh": 0.492,
-     "shape": 0.975
+     "shape": 0.9866
     },
     {
      "period": 38,
      "clock": "18:30",
      "kwh": 0.481,
-     "shape": 0.9929
+     "shape": 1.0047
     },
     {
      "period": 39,
      "clock": "19:00",
      "kwh": 0.47,
-     "shape": 1.0158
+     "shape": 1.0278
     },
     {
      "period": 40,
      "clock": "19:30",
      "kwh": 0.459,
-     "shape": 1.0351
+     "shape": 1.0473
     },
     {
      "period": 41,
      "clock": "20:00",
      "kwh": 0.4535,
-     "shape": 1.0491
+     "shape": 1.0615
     },
     {
      "period": 42,
      "clock": "20:30",
      "kwh": 0.4645,
-     "shape": 1.0774
+     "shape": 1.0902
     },
     {
      "period": 43,
      "clock": "21:00",
      "kwh": 0.4755,
-     "shape": 1.0811
+     "shape": 1.0939
     },
     {
      "period": 44,
      "clock": "21:30",
      "kwh": 0.4865,
-     "shape": 1.0384
+     "shape": 1.0507
     },
     {
      "period": 45,
      "clock": "22:00",
      "kwh": 0.33,
-     "shape": 1.034
+     "shape": 1.0462
     },
     {
      "period": 46,
      "clock": "22:30",
      "kwh": 0.294,
-     "shape": 0.9458
+     "shape": 0.957
     },
     {
      "period": 47,
      "clock": "23:00",
      "kwh": 0.246,
-     "shape": 0.9052
+     "shape": 0.916
     },
     {
      "period": 48,
      "clock": "23:30",
      "kwh": 0.204,
-     "shape": 1.1478
+     "shape": 1.1615
     }
    ]
   }

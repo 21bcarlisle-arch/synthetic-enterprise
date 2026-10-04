@@ -85,10 +85,11 @@ and are kept here, rewritten, because what replaced them is a smaller gap and no
   * INTERCONNECTOR IMPORTS ARE NOW MODELLED, at NESO's OWN published per-cable factors, from
     the same FUELHH outturn. Viking Link and ElecLink are outside NESO's published mix (measured,
     EP13 frame s33), so since s34 they are served before the stack and left out of the tonnes and
-    the denominator, which needs no factor. REMAINING GAP: North Sea Link (Norway, Oct 2021) is
-    inside NESO's mix and has no published factor, so its flow is still dispatched as GB gas.
-    Inventing a factor for it is the fabricated constant R10 forbids; the honest handling is to
-    publish the share, which `elexon_fuel_outturn.import_coverage` measures and the feed carries.
+    the denominator, which needs no factor. North Sea Link (Norway, Oct 2021) is inside NESO's mix
+    with no Table 1 row; since s35 it is priced by Table 1 applied to Norway's published ANNUAL
+    mix (4-7 g), the coarse reading of NESO's daily ENTSO-E rule. A year with no published mix
+    leaves it uncovered and dispatched as GB gas, and `elexon_fuel_outturn.import_coverage`
+    measures that share for the feed.
   * THE MUST-RUN FLOOR IS A CONSTANT 8 GW. Nuclear outages, hydro seasonality and biomass
     dispatch all move it and none of them is modelled.
   * THE THERMAL STACK NO LONGER REACHES ZERO, and this gap is kept, rewritten, because what

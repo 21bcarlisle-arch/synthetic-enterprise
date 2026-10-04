@@ -74,11 +74,12 @@ series does NOT do this: measured 2026-10-04, ElecLink and Viking are absent fro
 mix, and North Sea Link is inside its imports at a low factor (EP13 frame s33). So since s34
 ElecLink and Viking are `unmixed_import_mw`: their flow still meets GB demand, so the dispatch
 serves it before the stack, but it carries no tonnes and leaves the denominator, which is NESO's
-own treatment and needs no factor. North Sea Link is NOT given a factor -- a plausible one is
-exactly the fabricated number R10 forbids -- so its flow is reported SEPARATELY as
-`uncovered_import_mw` and `import_coverage()` states, as a measured fraction of the imported MWh
-inside NESO's mix, how much of the answer that leaves outside. A gap you can quote in per cent is
-a different object from a gap you can only name.
+own treatment and needs no factor. North Sea Link is inside NESO's mix and Table 1 has no Norway
+row, so since s35 it is priced by NESO's own RULE rather than a picked number: Table 1 applied to
+Norway's published annual mix (`NORWAY_PRODUCTION_GWH`, 4-7 g). A cable or year no published mix
+covers is reported SEPARATELY as `uncovered_import_mw`, and `import_coverage()` states, as a
+measured fraction of the imported MWh inside NESO's mix, how much of the answer that leaves
+outside. A gap you can quote in per cent is a different object from a gap you can only name.
 
 Run:  python3 -m sim.elexon_fuel_outturn --from 2016-01-01 --to 2025-12-31
 """
@@ -231,15 +232,61 @@ OUTSIDE_NESO_MIX = frozenset({"INTELEC", "INTVKL"})
 #: the reconstruction is graded against the series these factors build, so using anything else
 #: would put a factor difference into a comparison meant to measure a TIMING difference.
 #:
-#: Norway and Denmark are absent ON PURPOSE. See the module docstring: the published table has no
-#: factor for them, and the honest handling of a missing published number is to report the hole,
-#: not to fill it.
+#: Norway and Denmark are absent ON PURPOSE: the published table has no row for them. Norway is
+#: priced by the same table applied to its own published mix (`ANNUAL_MIX_GWH`); Denmark (Viking)
+#: is outside NESO's mix and needs no factor.
 IMPORT_INTENSITY_G_CO2_PER_KWH = {
     "France": 53.0,
     "Netherlands": 474.0,
     "Belgium": 179.0,
     "Ireland": 458.0,
 }
+
+#: Norway's annual electricity production, GWh: (total, thermal). Statistics Norway table 08307
+#: (data.ssb.no, fetched 2026-10-04). NESO's rule for an import is Table 1 applied to the
+#: connected network's generation mix (methodology, "Interconnectors"); that daily ENTSO-E mix
+#: needs a token the box does not hold, so this is the ANNUAL national mix, the coarser reading
+#: of the same rule. Hydro, wind and solar are Table 1's zero rows; only thermal carries carbon.
+#: A year not in this table has no factor, and its North Sea Link flow stays `uncovered`.
+#: `_GWH` is the only unit: these are published energies, the factor is derived in `import_factor`.
+NORWAY_PRODUCTION_GWH = {
+    "2020": (154197.0, 2670.0),
+    "2021": (157113.0, 1612.0),
+    "2022": (145942.0, 2319.0),
+    "2023": (153973.0, 2528.0),
+    "2024": (157136.0, 2357.0),
+    "2025": (161793.0, 2070.0),
+}
+
+#: 08307 does not split Norway's thermal into gas, waste and biofuel, so Table 1 brackets it:
+#: BIOMASS (120) at the low end, CCGT (394) at the high. Not a picked number: the shipped end is
+#: the HIGH one, which cannot make Norway cleaner than its fired plant, and EP13 frame s35
+#: measured that the two ends move no graded statistic by more than 0.0015, against a 0.10 move
+#: from pricing the cable at all. Narrowing the bracket is owed to the daily ENTSO-E mix.
+NORWAY_THERMAL_FACTOR_BRACKET_G_CO2_PER_KWH = (
+    NESO_PUBLISHED_FACTOR_G_CO2_PER_KWH["BIOMASS"],
+    NESO_PUBLISHED_FACTOR_G_CO2_PER_KWH["CCGT"],
+)
+NORWAY_THERMAL_FACTOR_G_CO2_PER_KWH = NORWAY_THERMAL_FACTOR_BRACKET_G_CO2_PER_KWH[1]
+
+#: Markets priced from their own published annual mix rather than a fixed Table 1 row.
+ANNUAL_MIX_GWH = {"Norway": NORWAY_PRODUCTION_GWH}
+
+
+def import_factor(market: str, year: str) -> float | None:
+    """gCO2/kWh for an import from `market` in `year`, or None when nothing publishes one.
+
+    The four Table 1 markets carry NESO's fixed defaults. Norway carries its own annual mix under
+    Table 1 (`ANNUAL_MIX_GWH`). Denmark is None: Viking is outside NESO's mix and never asks.
+    """
+    fixed = IMPORT_INTENSITY_G_CO2_PER_KWH.get(market)
+    if fixed is not None:
+        return fixed
+    mix = ANNUAL_MIX_GWH.get(market, {})
+    if year in mix:
+        total, thermal = mix[year]
+        return thermal / total * NORWAY_THERMAL_FACTOR_G_CO2_PER_KWH
+    return None
 
 
 class FuelOutturnUnavailable(Exception):
@@ -459,7 +506,7 @@ def to_settlement_periods(rows: Iterable[Mapping]) -> dict[tuple[str, int], dict
         if fuel in OUTSIDE_NESO_MIX:
             unmixed[key] = unmixed.get(key, 0.0) + imported
             continue
-        factor = IMPORT_INTENSITY_G_CO2_PER_KWH.get(market)
+        factor = import_factor(market, key[0][:4])
         if factor is None:
             uncovered[key] = uncovered.get(key, 0.0) + imported
             covered.setdefault(key, 0.0)

@@ -81,7 +81,8 @@ def test_the_published_import_coverage_is_the_MEASURED_one_and_not_a_sentence():
                       coal_capacity_by_year={2024: 1873.0, 2025: 110.0})
 
     assert built["import_coverage"]["covered_fraction"] == pytest.approx(0.6612)
-    assert built["import_coverage"]["uncovered_cables"] == ["INTNSL (Norway)"]
+    # North Sea Link is priced from Norway's published mix since s35, so no cable is unpriced.
+    assert built["import_coverage"]["uncovered_cables"] == []
     assert built["import_coverage"]["outside_neso_mix_cables"] == [
         "INTELEC (France)", "INTVKL (Denmark)"]
     # The coal fleet closing has to be legible AS a closure, which needs the zero row present.
