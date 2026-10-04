@@ -209,13 +209,43 @@ def test_the_census_puts_pytest_temp_on_real_disk_not_the_tmpfs():
     every `tmp_path` into RAM. `tests/background/conftest.py` has four autouse fixtures each taking
     `tmp_path`, which is why 820 of the 830 reds were in that one directory.
 
-    MUTATION: drop the `TMPDIR` line and this fails.
+    Asked of the env the suite subprocess RECEIVES, not of `run_suite`'s source: the pass-through
+    moved into `_run_admitted_suite` when the memory governor wrapped the run, and a grep for
+    `env=env` in one function went red on a refactor that kept the property.
+
+    MUTATION: drop the `TMPDIR` line, or call `subprocess.run` without `env=`, and this fails.
     """
+    import contextlib
+
+    from background import process_run_complete as prc
+    from background import resource_headroom
     from tools import head_green_census as census
-    src = inspect.getsource(census.run_suite)
-    assert 'env.setdefault("TMPDIR"' in src
-    assert "HEAD_CHECKOUT_ROOT" in src, "it must land where the subject already does, not /tmp"
-    assert "env=env" in src, "setting it without passing it would be the same defect one line down"
+
+    seen: dict = {}
+
+    def _capture(*a, **k):
+        seen["env"] = k.get("env")
+        return subprocess.CompletedProcess(a, 0, "", "")
+
+    @contextlib.contextmanager
+    def _subject():
+        yield Path("/nonexistent-subject")
+
+    @contextlib.contextmanager
+    def _admit(*a, **k):
+        yield {"admitted": True}
+
+    with pytest.MonkeyPatch.context() as m:
+        m.delenv("TMPDIR", raising=False)
+        m.setattr(census, "head_subject_checkout", _subject)
+        m.setattr(census, "overlay_shortfall", lambda subject: [])
+        m.setattr(census.subprocess, "run", _capture)
+        m.setattr(resource_headroom, "admitted", _admit)
+        census.run_suite(timeout=1)
+
+    assert seen.get("env") is not None, "setting it without passing it is the same defect one line down"
+    assert seen["env"].get("TMPDIR") == str(prc.HEAD_CHECKOUT_ROOT), (
+        "it must land where the subject already does, not /tmp")
 
 
 def test_the_suite_timeout_fires_before_systemd_kills_the_unit():
@@ -256,18 +286,32 @@ def test_a_timed_out_run_reports_unproven_and_discards_its_partial_output():
 
     partial = "FAILED tests/a.py::one\nFAILED tests/b.py::two\n"
 
+    reached: list = []
+
     def _timeout(*a, **k):
+        reached.append(True)
         raise sp.TimeoutExpired(cmd="pytest", timeout=1, output=partial)
 
     @contextlib.contextmanager
     def _subject():
         yield Path("/nonexistent-subject")
 
+    @contextlib.contextmanager
+    def _admit(*a, **k):
+        yield {"admitted": True}
+
+    from background import resource_headroom
+
     with pytest.MonkeyPatch.context() as m:
         m.setattr(census, "head_subject_checkout", _subject)
+        m.setattr(census, "overlay_shortfall", lambda subject: [])
         m.setattr(census.subprocess, "run", _timeout)
+        m.setattr(resource_headroom, "admitted", _admit)
         out = census.run_suite(timeout=1)
 
+    # The overlay check and the memory governor each return "" BEFORE the suite runs, so without
+    # this leg the "" below is satisfied by never reaching the timeout at all.
+    assert reached, "the suite was never run, so the timeout branch was not exercised"
     assert out == "", "the partial FAILED lines must not escape as a complete red list"
     assert census.parse_failures(out) == []
     # and the fail-safe downstream reads that as UNPROVEN, never as green
