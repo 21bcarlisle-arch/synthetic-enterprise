@@ -1,6 +1,6 @@
 # For the console seat: a household's payment method now has one home, so re-read B8's per-method slopes on it
 
-**Severity:** RECORDED · **Lane:** W2_customer_generator · **Epoch:** 2 · **Atom:** `W2_payment_channel_dd_consistency_invariant` · **Claim:** `one-payment-method-home-in-the-world` (Lane 0 delivery)
+**Severity:** RECORDED · **Lane:** B_commercial · **Epoch:** 3 · **Atom:** `B8_discovered_price_sensitivity_holdout` · **Claim:** `one-payment-method-home-in-the-world` (Lane 0 delivery)
 
 **2026-10-03.** This is the hand-off the delivery item asked for. Nothing here touched
 `company/pricing/discovered_price_sensitivity.py` or `/var/tmp/se-b8`.

@@ -1,5 +1,5 @@
 {
-  "what_this_is": "Hand reads of minted staging items against the atom each names (H45 EH-1). The commit gate checks that the atom exists and that the item's lane and epoch are the atom's; whether the item serves that atom is a reader's judgement, recorded here. Append a read; never edit an earlier one. `items` lists the root item names the read covered; `atoms` maps each item to the atom it was read against: an item later re-linked to another atom is unread again, and its doubt goes with the old atom (reads without `atoms` cover by name alone). `questioned` names any the reader doubted, with why.",
+  "what_this_is": "Hand reads of minted staging items against the atom each names (H45 EH-1). The commit gate checks that the atom exists and that the item's lane and epoch are the atom's; whether the item serves that atom is a reader's judgement, recorded here. Append a read; never edit an earlier one. `items` lists the root item names the read covered; `atoms` maps each item to the atom it was read against: an item later re-linked to another atom is unread again, and its doubt goes with the old atom (reads without `atoms` cover by name alone). `questioned` names any the reader doubted, with why; a later read covering a doubted item ends the doubt only by listing it in `settled` with why, and silence leaves it standing.",
   "reads": [
     {
       "date": "2026-10-04",
@@ -49,6 +49,21 @@
         "SEAT_FINDING_THE_WORLD_NOW_KNOWS_AN_AGREED_PLAN_SO_ITS_ARREARS_ARE_NOT_PAID_TWICE_2026-10-04.md"
       ],
       "questioned": {}
+    },
+    {
+      "date": "2026-10-04",
+      "by": "autonomous worker tick (H45 harden, the doubt's disposition)",
+      "how": "the doubted note read in full against B8's map row (lane B_commercial, epoch 3): its only ask is that B8's per-method churn slopes be re-fitted on a run carrying the unified payment-method digest, and it touches no W2 code; the W2 change it reports has its own finding, so the note was re-linked to B8 rather than settled on W2",
+      "items": [
+        "SEAT_NOTE_FOR_THE_CONSOLE_SEAT_B8_PER_METHOD_SLOPES_MUST_BE_RE_READ_ON_THE_UNIFIED_PAYMENT_METHOD_2026-10-03.md"
+      ],
+      "atoms": {
+        "SEAT_NOTE_FOR_THE_CONSOLE_SEAT_B8_PER_METHOD_SLOPES_MUST_BE_RE_READ_ON_THE_UNIFIED_PAYMENT_METHOD_2026-10-03.md": "B8_discovered_price_sensitivity_holdout"
+      },
+      "questioned": {},
+      "settled": {
+        "SEAT_NOTE_FOR_THE_CONSOLE_SEAT_B8_PER_METHOD_SLOPES_MUST_BE_RE_READ_ON_THE_UNIFIED_PAYMENT_METHOD_2026-10-03.md": "re-linked from W2 to B8, the atom whose work it asks for; the first read recorded no `atoms`, so the re-link alone could not end its doubt"
+      }
     }
   ]
 }

@@ -345,7 +345,7 @@ def test_serves_its_atom_is_a_dated_hand_read_and_the_unread_minted_items_are_na
     assert got == {"recorded": True, "last_read": "2026-10-04", "read": 2,
                    "not_yet_read": ["SEAT_FINDING_NEW_2026-10-04.md"],
                    "questioned": [{"name": "SEAT_FINDING_DOUBTED_2026-10-04.md",
-                                   "why": "serves B8, not H45_x"}]}
+                                   "why": "serves B8, not H45_x"}], "settled": []}
     missing = sr.chain_census(room, epochs={"H45_x": 3}, serves_reads=tmp_path / "absent.json")
     assert missing["serves_by_hand"] == {"recorded": False}
 
@@ -381,6 +381,40 @@ def test_a_read_covers_an_item_only_while_it_names_the_atom_it_was_read_against(
     assert got["not_yet_read"] == ["SEAT_FINDING_MOVED_2026-10-04.md"]
     assert got["questioned"] == []
 
+
+
+def test_a_doubt_ends_only_when_a_later_read_settles_it_with_a_reason(tmp_path):
+    """The 10-04 blind pass's Q5: a doubted item had no route off the list. Four states over one
+    record -- settled, still doubted after a silent re-read, settled then re-doubted, and a
+    `settled` entry for an item nobody doubted -- so a census that cleared every doubt on any
+    later read, or never cleared one, cannot pass.
+
+    MUTATIONS (must fire): a later covering read clears the doubt without `settled`; `settled` is
+    ignored; a re-doubt after a settle is lost; a never-doubted item is reported settled."""
+    room = tmp_path / "staging"
+    room.mkdir()
+    names = ["SEAT_FINDING_SETTLED_2026-10-04.md", "SEAT_FINDING_SILENT_2026-10-04.md",
+             "SEAT_FINDING_REOPENED_2026-10-04.md", "SEAT_FINDING_CLEAN_2026-10-04.md"]
+    for name in names:
+        _write(room, name, _chain_line(3, "H45_x"))
+    on_x = {n: "H45_x" for n in names}
+    reads = tmp_path / "reads.json"
+    reads.write_text(json.dumps({"reads": [
+        {"date": "2026-10-03", "items": names[:3], "atoms": on_x,
+         "questioned": {n: "doubt" for n in names[:3]}},
+        {"date": "2026-10-04", "items": names, "atoms": on_x,
+         "settled": {names[0]: "the atom stands", names[2]: "the atom stands",
+                     names[3]: "never doubted"}},
+        {"date": "2026-10-05", "items": [names[2]], "atoms": on_x,
+         "questioned": {names[2]: "doubted again"}},
+    ]}), encoding="utf-8")
+
+    got = sr.chain_census(room, epochs={"H45_x": 3}, serves_reads=reads)["serves_by_hand"]
+
+    assert got["settled"] and got["questioned"]
+    assert got["settled"] == [{"name": names[0], "why": "the atom stands"}]
+    assert got["questioned"] == [{"name": names[2], "why": "doubted again"},
+                                 {"name": names[1], "why": "doubt"}]
 
 _EPOCHS = {"E2": 2, "E3": 3, "NOEPOCH": None}
 

@@ -289,20 +289,24 @@ def test_the_queue_panel_names_items_whose_lane_is_not_their_atoms():
 
 def test_the_queue_panel_states_that_serving_an_atom_is_read_by_hand_and_names_the_unread():
     """H45 EH-1's undecidable part on the page: the limit is stated, dated by the last hand read,
-    and the minted items filed since that read are NAMED. MUTATIONS (must fire): drop the unread
-    list; render a read for a feed without the record; unwire the renderer."""
+    the minted items filed since that read are NAMED, and a settled doubt shows its reason.
+    MUTATIONS (must fire): drop the unread list; render a read for a feed without the record;
+    unwire the renderer; drop the settled list."""
     base = {"available": True, "population": 3, "chained": 3, "minted": 3, "unminted": 0,
             "unchained": [], "unreadable": 0}
     body = _text(_with_queue_chain({**base, "serves_by_hand": {
         "recorded": True, "last_read": "2026-10-04", "read": 2,
         "not_yet_read": ["SEAT_FINDING_NEW.md"],
         "questioned": [{"name": "SEAT_NOTE_Q.md", "why": "the work it asks for is B8's"}],
+        "settled": [{"name": "SEAT_NOTE_S.md", "why": "the atom stands"}],
     }})["delivery-queue-chain"]["innerHTML"])
 
     assert "Whether the item actually serves the atom it names is not something it can" in body
     assert "Last read 2026-10-04 : 2 of the items naming a real atom have been read, and 1" in body
     assert "SEAT_FINDING_NEW.md — not yet read" in body
     assert "SEAT_NOTE_Q.md — the work it asks for is B8's" in body
+    assert "A later read settled 1 earlier doubt, each with its reason" in body
+    assert "SEAT_NOTE_S.md — settled: the atom stands" in body
 
     old = _text(_with_queue_chain(base)["delivery-queue-chain"]["innerHTML"])
     assert "carries no hand read, so whether any item serves its atom is not measured" in old

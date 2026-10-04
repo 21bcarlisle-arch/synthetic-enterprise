@@ -744,14 +744,17 @@ function renderQueueServes(s) {
     return "<p>" + limit + " This record carries no hand read, so whether any item serves its " +
       "atom is not measured here.</p>";
   }
-  var unread = s.not_yet_read || [], doubt = s.questioned || [];
+  var unread = s.not_yet_read || [], doubt = s.questioned || [], ended = s.settled || [];
   return "<p>" + limit + " Last read <b>" + esc(s.last_read || "on an unrecorded date") +
     "</b>: <b>" + n(s.read) + "</b> of the items naming a real atom have been read, and <b>" +
     n(unread.length) + "</b> filed since have not." +
-    (doubt.length ? " The reader doubted <b>" + n(doubt.length) + "</b>." : "") + "</p>" +
-    (unread.length || doubt.length ? "<ul>" +
+    (doubt.length ? " The reader doubted <b>" + n(doubt.length) + "</b>." : "") +
+    (ended.length ? " A later read settled <b>" + n(ended.length) + "</b> earlier doubt" +
+      (ended.length === 1 ? "" : "s") + ", each with its reason." : "") + "</p>" +
+    (unread.length || doubt.length || ended.length ? "<ul>" +
       unread.map(function (u) { return "<li>" + esc(u) + " — not yet read</li>"; }).join("") +
       doubt.map(function (r) { return "<li>" + esc(r.name) + " — " + esc(r.why) + "</li>"; }).join("") +
+      ended.map(function (r) { return "<li>" + esc(r.name) + " — settled: " + esc(r.why) + "</li>"; }).join("") +
       "</ul>" : "");
 }
 

@@ -914,6 +914,12 @@ def serves_by_hand(minted: dict[str, str],
     only while it still names the atom it was read against: a re-link is a new claim and goes back
     to `not_yet_read` (the 10-04 blind pass's re-link question). Reads written before `atoms`
     existed cover by name alone.
+
+    A doubt ends one of two ways (the blind pass's Q5: a doubt that can only stay on the list is a
+    second backlog nobody drains). Re-link the item, and the doubt goes with the old atom; or a
+    LATER read covering it against the same atom lists it in `settled` with why the atom stands.
+    Reads apply in file order, so a later doubt re-opens it. A later read that covers a doubted
+    item and says nothing leaves the doubt standing: silence is not a resolution.
     """
     import json
 
@@ -923,13 +929,19 @@ def serves_by_hand(minted: dict[str, str],
         return {"recorded": False}
     covered: set[str] = set()
     questioned: dict[str, str] = {}
+    settled: dict[str, str] = {}
     for r in reads:
         read_against = r.get("atoms")
         still = {n for n in r.get("items", [])
                  if read_against is None or read_against.get(n) == minted.get(n)}
         covered.update(still)
-        doubts = r.get("questioned", {})
-        questioned.update({n: doubts[n] for n in still & doubts.keys()})
+        doubts, ends = r.get("questioned", {}), r.get("settled", {})
+        for n in still & ends.keys() & questioned.keys():
+            settled[n] = ends[n]
+            del questioned[n]
+        for n in still & doubts.keys():
+            questioned[n] = doubts[n]
+            settled.pop(n, None)
     current = set(minted)
     return {
         "recorded": True,
@@ -937,6 +949,7 @@ def serves_by_hand(minted: dict[str, str],
         "read": len(current & covered),
         "not_yet_read": sorted(current - covered),
         "questioned": [{"name": n, "why": questioned[n]} for n in sorted(current & set(questioned))],
+        "settled": [{"name": n, "why": settled[n]} for n in sorted(current & set(settled))],
     }
 
 
