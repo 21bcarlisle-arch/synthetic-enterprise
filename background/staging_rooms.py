@@ -900,7 +900,7 @@ def lane_disagreement(chain: Chain, lanes: dict[str, str | None]) -> str | None:
             f"atom this item's subject serves (or `{UNMINTED}`), not the one its thread began on")
 
 
-def serves_by_hand(minted_names: list[str],
+def serves_by_hand(minted: dict[str, str],
                    reads_path: Path | str = DEFAULT_SERVES_READS) -> dict:
     """Which of today's minted items a recorded hand read has covered, and which it has not.
 
@@ -909,6 +909,11 @@ def serves_by_hand(minted_names: list[str],
     the last read. `not_yet_read` is the part that rots: every minted filing since the last read
     lands there until someone reads it. An absent or unreadable record is `recorded: False`,
     never "all read".
+
+    `minted` maps each item to the atom it names NOW. A read that records `atoms` covers an item
+    only while it still names the atom it was read against: a re-link is a new claim and goes back
+    to `not_yet_read` (the 10-04 blind pass's re-link question). Reads written before `atoms`
+    existed cover by name alone.
     """
     import json
 
@@ -919,9 +924,13 @@ def serves_by_hand(minted_names: list[str],
     covered: set[str] = set()
     questioned: dict[str, str] = {}
     for r in reads:
-        covered.update(r.get("items", []))
-        questioned.update(r.get("questioned", {}))
-    current = set(minted_names)
+        read_against = r.get("atoms")
+        still = {n for n in r.get("items", [])
+                 if read_against is None or read_against.get(n) == minted.get(n)}
+        covered.update(still)
+        doubts = r.get("questioned", {})
+        questioned.update({n: doubts[n] for n in still & doubts.keys()})
+    current = set(minted)
     return {
         "recorded": True,
         "last_read": max((r.get("date", "") for r in reads), default=None) or None,
@@ -982,7 +991,7 @@ def chain_census(root: Path | str = DEFAULT_STAGING_ROOT,
         "by_epoch": dict(sorted(by_epoch.items())),
         "unchained": [{"name": c.path.name, "missing": list(c.missing)} for c in gaps],
         "unreadable": len(queue) - len(chained) - len(gaps),
-        "serves_by_hand": serves_by_hand([c.path.name for c in minted], serves_reads),
+        "serves_by_hand": serves_by_hand({c.path.name: c.atom for c in minted}, serves_reads),
     }
 
 

@@ -350,6 +350,38 @@ def test_serves_its_atom_is_a_dated_hand_read_and_the_unread_minted_items_are_na
     assert missing["serves_by_hand"] == {"recorded": False}
 
 
+def test_a_read_covers_an_item_only_while_it_names_the_atom_it_was_read_against(tmp_path):
+    """A re-link is a new claim: an item read against one atom and later pointed at another is
+    unread again, and a doubt raised against the old atom goes with it. A read without `atoms`
+    (written before the field existed) still covers by name, so both kinds must be reachable.
+
+    MUTATIONS (must fire): ignore `atoms` (a re-linked item stays read); compare against the
+    read's own atom for every item (the legacy read covers nothing); keep the doubt after a
+    re-link."""
+    room = tmp_path / "staging"
+    room.mkdir()
+    _write(room, "SEAT_FINDING_KEPT_2026-10-04.md", _chain_line(3, "H45_x"))
+    _write(room, "SEAT_FINDING_MOVED_2026-10-04.md", _chain_line(3, "H45_y"))
+    _write(room, "SEAT_FINDING_LEGACY_2026-10-04.md", _chain_line(3, "H45_y"))
+    reads = tmp_path / "reads.json"
+    reads.write_text(json.dumps({"reads": [
+        {"date": "2026-10-03", "items": ["SEAT_FINDING_LEGACY_2026-10-04.md"]},
+        {"date": "2026-10-04",
+         "items": ["SEAT_FINDING_KEPT_2026-10-04.md", "SEAT_FINDING_MOVED_2026-10-04.md"],
+         "atoms": {"SEAT_FINDING_KEPT_2026-10-04.md": "H45_x",
+                   "SEAT_FINDING_MOVED_2026-10-04.md": "H45_x"},
+         "questioned": {"SEAT_FINDING_MOVED_2026-10-04.md": "serves H45_y, not H45_x"}},
+    ]}), encoding="utf-8")
+
+    got = sr.chain_census(room, epochs={"H45_x": 3, "H45_y": 3},
+                          serves_reads=reads)["serves_by_hand"]
+
+    assert got["read"] and got["not_yet_read"]
+    assert got["read"] == 2
+    assert got["not_yet_read"] == ["SEAT_FINDING_MOVED_2026-10-04.md"]
+    assert got["questioned"] == []
+
+
 _EPOCHS = {"E2": 2, "E3": 3, "NOEPOCH": None}
 
 

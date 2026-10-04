@@ -1,5 +1,5 @@
 {
-  "what_this_is": "Hand reads of minted staging items against the atom each names (H45 EH-1). The commit gate checks that the atom exists and that the item's lane and epoch are the atom's; whether the item serves that atom is a reader's judgement, recorded here. Append a read; never edit an earlier one. `items` lists the root item names the read covered; `questioned` names any the reader doubted, with why.",
+  "what_this_is": "Hand reads of minted staging items against the atom each names (H45 EH-1). The commit gate checks that the atom exists and that the item's lane and epoch are the atom's; whether the item serves that atom is a reader's judgement, recorded here. Append a read; never edit an earlier one. `items` lists the root item names the read covered; `atoms` maps each item to the atom it was read against: an item later re-linked to another atom is unread again, and its doubt goes with the old atom (reads without `atoms` cover by name alone). `questioned` names any the reader doubted, with why.",
   "reads": [
     {
       "date": "2026-10-04",
