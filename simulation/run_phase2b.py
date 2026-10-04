@@ -1899,6 +1899,8 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             income_stress_value=held["income_stress_value"],
             segment=held["segment"],
             fuel=held["fuel"],
+            dd_stopped_by=lambda _cid, _due: _dd_stop_board.notice_as_of(
+                _cid, _due.isoformat()) is not None,
         )
         _cx_desk.observe_payment(PaymentOutcome(
             customer_id=cid,
@@ -3556,6 +3558,10 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         _stress_bd_mult = stress_bad_debt_multiplier(_income_stress)
 
         settled_this_term: list[dict] = []
+        # Months this term closes are posted once the stop board has seen the term (below): a bill
+        # asks whether its DD was stopped by its due date, and the board can only answer from every
+        # month before it. Nothing in this loop reads the triad, so the posting order is unchanged.
+        _months_closed_this_term: list = []
         for rec in term_records:
             rec_year = rec["settlement_date"][:4]
             if rec_year != current_year_str:
@@ -3580,7 +3586,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             # coherent reality per customer/period, no second independent draw.
             _held = _payment_month_open.get(cid)
             if _held is not None and _held["month"] != rec_month:
-                _post_month_bill(cid, _payment_month_open.pop(cid))
+                _months_closed_this_term.append((cid, _payment_month_open.pop(cid)))
                 _held = None
             if _held is None:
                 _held = _payment_month_open[cid] = {
@@ -3713,6 +3719,8 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         _folded_this_term = fold_to_days(settled_this_term)
         all_records.extend(_folded_this_term)
         _dd_stop_board.observe(_folded_this_term)
+        for _closed_cid, _closed in _months_closed_this_term:
+            _post_month_bill(_closed_cid, _closed)
         settled_fold.add(settled_this_term)
         if administration_event:
             break

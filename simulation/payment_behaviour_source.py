@@ -138,6 +138,7 @@ from dataclasses import dataclass
 from datetime import date, timedelta
 from typing import Optional, Sequence
 
+from simulation.arrears_engine import PAY_ON_RECEIPT_METHOD
 from simulation.arrears_engine import payment_outcome as _core_payment_outcome
 from simulation.household import household_of
 from simulation.household_segments import PaymentChannel, payment_channel_for_customer
@@ -249,6 +250,8 @@ SEAM_CHANNEL_FOR_METHOD: dict[str, str] = {
     STANDING_ORDER: PaymentChannel.STANDARD_CREDIT.value,
     CARD: PaymentChannel.STANDARD_CREDIT.value,
     PREPAYMENT: PaymentChannel.PREPAYMENT.value,
+    # Not drawn: what a DD household pays on once the supplier has stopped its mandate.
+    PAY_ON_RECEIPT_METHOD: PaymentChannel.STANDARD_CREDIT.value,
 }
 
 

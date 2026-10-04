@@ -108,7 +108,7 @@ _epoch 2 · lane B_commercial · L2→L3 · build_
 
 ## EP4_collections_journey
 **The whole road from missed payment to resolution**  
-_epoch 2 · lane C_customer_ops · L1→L3 · idle_
+_epoch 2 · lane C_customer_ops · L2→L3 · idle_
 
 - `2026-08-08` · `docs/design/D6_PAYMENT_AGEING_GAP_VALIDITY_DISCOVER.md` (discover) — Clayton's-Case appropriation of unreferenced payments misdates debt while leaving the balance exactly right, so the collections road from missed payment to resolution is walked against wrong dates; the wrongful-dunning exposure this creates
 
