@@ -170,6 +170,7 @@ from tools.run_value_cycle_ab import (
     remedy_price_table,
     seeds_to_state_a_sign,
     sems_to_state_a_sign,
+    world_stamps_pair,
 )
 from tools.selection_residual_decomposition import gaussian_or_mixture_bound
 
@@ -6314,6 +6315,17 @@ def _seed_spreads(floor: dict | None, three_arm: dict | None = None) -> dict:
             "world {point_world}. A spread from one world is not a bound on a figure from "
             "another however the two runs are stamped, so no contrast on this page takes its "
             "direction from it").format(world=world, point_world=point_world),
+            "what_this_costs": ("no contrast on this page can have its direction stated until a "
+                                "noise floor measured in the figure's own world is run")}
+    # ONE DIGEST IS NOT ONE WORLD: 1002b and 1002c shared `cf823b185f8ca51c` across a served-segment
+    # switch. `world_stamps_pair` asks the switches each run read.
+    switched = (world_stamps_pair(floor.get("world_identity"), three_arm.get("world_identity"))
+                if three_arm is not None and point_world else None)
+    if switched:
+        return {"available": False, "world_measured_in": world, "reason": (
+            "the seed spread and the figure it would bound are not one world: {}. A spread from "
+            "one world is not a bound on a figure from another, so no contrast on this page takes "
+            "its direction from it").format(switched),
             "what_this_costs": ("no contrast on this page can have its direction stated until a "
                                 "noise floor measured in the figure's own world is run")}
     stale = _staleness_caveat(floor or {}, three_arm or {}) if three_arm is not None else None

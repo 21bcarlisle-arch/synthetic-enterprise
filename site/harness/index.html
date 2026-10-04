@@ -692,13 +692,14 @@ function renderQueueTrend(t) {
       "measured here.</p>";
   }
   return "<p>Day by day, from what was committed at the end of each day (so work written but not " +
-    "yet committed is not in it):</p><table><tr><th>Day</th><th>Items</th><th>Name a real atom</th>" +
+    "yet committed is not in it):</p>" +
+    '<div class="table-scroll"><table><tr><th>Day</th><th>Items</th><th>Name a real atom</th>' +
     "<th>Need an atom that does not exist yet</th><th>Named, not yet read</th></tr>" +
     t.points.map(function (p) {
       return "<tr><td>" + esc(p.date) + "</td><td>" + n(p.population) + "</td><td>" + n(p.minted) +
         "</td><td>" + n(p.unminted) + "</td><td>" +
         (p.unread === null || p.unread === undefined ? "not measured" : n(p.unread)) + "</td></tr>";
-    }).join("") + "</table>";
+    }).join("") + "</table></div>";
 }
 
 /* WHAT THE NONE-YET ITEMS ARE. Most are machine alarm repeats and standing registers, which no

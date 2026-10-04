@@ -73,6 +73,7 @@ import json
 import math
 import os
 import random
+import re
 import statistics
 import subprocess
 import sys
@@ -169,8 +170,91 @@ def world_identity() -> dict:
     Fails closed rather than omitting the key: a run that could not read the world's level block
     says so, because a consumer that cannot tell "no world stamp" from "some world stamp" is the
     fail-open shape this field replaces.
+
+    THE DIGEST IS NOT THE WHOLE WORLD, so two more keys ride with it. `behaviour_switches` is every
+    `SE_*` variable the run's code reads, with this process's value; 1002b and 1002c share digest
+    `cf823b185f8ca51c` and ran different worlds through `SE_SERVED_SEGMENTS`. `code_commit` is the
+    sha the run imported from, so a long job's world is tied to a tree rather than to a base someone
+    chose by hand. `world_stamps_pair` is the rule that reads them.
     """
-    return dict(WORLD_IDENTITY)
+    return dict(WORLD_IDENTITY, behaviour_switches=behaviour_switches(),
+                code_commit=PRODUCING_COMMIT)
+
+
+#: Read from the run's own import closure, never from a hand list, so a switch added to any module
+#: the run imports is stamped without anyone remembering to add it here.
+_SWITCH_NAME = re.compile(r"""["'](SE_[A-Z0-9_]+)["']""")
+_BEHAVIOUR_SWITCHES: dict | None = None
+
+
+def behaviour_switches(closure: set[str] | None = None, environ=None) -> dict:
+    """Every `SE_*` name the run's import closure reads, and its value in THIS process.
+
+    Unset is recorded as None rather than omitted: "off" and "not asked" are different stamps, and
+    `world_stamps_pair` refuses a name one side lacks. Cached because the closure costs a parse of
+    the tree (~5 s) and the environment cannot change under a running process. The name set is read
+    when first asked, which can be a later tree than the one imported; a name added since is only
+    ever an extra unset entry, which refuses a pair and never admits one.
+    """
+    global _BEHAVIOUR_SWITCHES
+    default = closure is None and environ is None
+    if default and _BEHAVIOUR_SWITCHES is not None:
+        return dict(_BEHAVIOUR_SWITCHES)
+    env = os.environ if environ is None else environ
+    try:
+        # Code, not comments: a docstring naming a switch is not a read of it.
+        from tools.python_code_text import searchable
+
+        if closure is None:
+            from background.code_closure import import_closure
+
+            closure = import_closure("tools/run_value_cycle_ab.py", PROJECT_DIR)
+        if not closure:
+            raise ValueError("the import closure of tools/run_value_cycle_ab.py came back empty")
+        names: set[str] = set()
+        for rel in closure:
+            names |= set(_SWITCH_NAME.findall(searchable(
+                (PROJECT_DIR / rel).read_text(errors="ignore"))))
+        values = {name: env.get(name) for name in sorted(names)}
+        block = {"values": values,
+                 "digest": hashlib.sha256(json.dumps(values, sort_keys=True).encode()
+                                          ).hexdigest()[:16],
+                 "unavailable_because": None}
+    except Exception as exc:  # noqa: BLE001 -- any failure is "cannot establish", not "fine"
+        block = {"values": None, "digest": None, "unavailable_because": (
+            "the switches this run reads could not be listed ({}), so it cannot be shown to "
+            "share a world with any other run".format(exc))}
+    if default:
+        _BEHAVIOUR_SWITCHES = block
+    return dict(block)
+
+
+def world_stamps_pair(a: dict | None, b: dict | None) -> str | None:
+    """None when two `world_identity` stamps describe one world, else the reason they do not.
+
+    A stamp with no switch block cannot be shown to match anything, so it refuses unless NEITHER
+    side has one: two artefacts that both predate the block are left to their digest, which is all
+    either of them ever said. Admitting that legacy pair is a stated limit, not a match.
+    """
+    a, b = a or {}, b or {}
+    if a.get("digest") != b.get("digest") or not a.get("digest"):
+        return "the departure digests differ or one is missing ({} against {})".format(
+            a.get("digest"), b.get("digest"))
+    sa = (a.get("behaviour_switches") or {}).get("values")
+    sb = (b.get("behaviour_switches") or {}).get("values")
+    if sa is None and sb is None:
+        return None
+    if sa is None or sb is None:
+        return ("one artefact names the switches it ran under and the other does not, so they "
+                "cannot be shown to share a world beyond the departure digest {}"
+                .format(a.get("digest")))
+    differ = sorted(n for n in set(sa) | set(sb) if n not in sa or n not in sb or sa[n] != sb[n])
+    if differ:
+        return ("the two runs share departure digest {} and ran under different switches: {}"
+                .format(a.get("digest"), "; ".join(
+                    "{}={!r} against {!r}".format(n, sa.get(n, "<not read>"),
+                                                  sb.get(n, "<not read>")) for n in differ)))
+    return None
 
 
 def _resolve_world_identity() -> dict:
@@ -7935,6 +8019,14 @@ def decompose_floor(undecomposed: dict, priced_only: dict, priced_except: dict,
                             "partition one call stream and their ratio is not a reconciliation"
                             .format(len(set(worlds.values())),
                                     ", ".join(f"{n}={d}" for n, d in sorted(worlds.items()))))}
+    # One digest is not one world: the switches are asked too.
+    for name, leg in (("only", priced_only), ("except", priced_except), ("three_arm", three_arm)):
+        refusal = world_stamps_pair((undecomposed or {}).get("world_identity"),
+                                    (leg or {}).get("world_identity"))
+        if refusal:
+            return {"available": False,
+                    "why_not": "the undecomposed leg and `{}` are not one world: {}".format(
+                        name, refusal)}
 
     # THE UNDECOMPOSED LEG MAY PREDATE THE KEY, AND ONLY THAT LEG. Every floor run before
     # 2026-08-29 re-drew the whole book because no other mode existed, so a missing `redraw_scope`
