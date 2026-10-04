@@ -15,6 +15,9 @@ What each control names as its own defect:
   * `test_the_household_s_answer_*` / `test_an_agreed_plan_*` -- the world's answer to a plan offer
     does not reach the journey, or reaches it only one way: agree, decline and no-answer are
     asserted reachable in ONE control, and a kept plan and a broken one in another.
+  * `test_a_paid_instalment_posts_*` -- plan cash never reaches the ledger (a repaid debt is dunned
+    again), a missed instalment posts cash, or the posting takes the instalment rather than what
+    the plan book took on the final payment.
 """
 from __future__ import annotations
 
@@ -35,7 +38,6 @@ from company.billing.collections_journey import (
     PLAN_OFFER_STEP,
     UNREACHED_EXITS,
     CollectionsJourneyDesk,
-    PlanPaydownNotOnLedgerError,
     UnlawfulJourneyOrderError,
     assert_journey_order_lawful,
 )
@@ -409,10 +411,39 @@ def test_an_agreed_plan_holds_the_account_while_kept_and_a_broken_one_lets_colle
     assert broken_plan.status == PaymentPlanStatus.DEFAULTED and broken_plan.missed_payments == 2
 
 
-def test_an_agreed_plan_repaid_in_full_refuses_because_its_paydown_never_reached_the_ledger():
-    repaid = _answered("ACC-R", _World(True, instalment=60.0), ISSUE, dt.date(2024, 5, 1))
-    with pytest.raises(PlanPaydownNotOnLedgerError, match="ACC-R"):
-        repaid.advance_collections_journey("ACC-R", dt.date(2024, 6, 30))
+def test_a_paid_instalment_posts_to_the_ledger_as_cash_and_a_repaid_plan_frees_the_account():
+    """Two unpaid GBP 100 bills (01-01, 05-01). The plan agreed on the first at GBP 60 is paid
+    (03-13 GBP 60, 04-12 GBP 40) or missed. Paid: exactly the plan's takings post as cash on the
+    due dates, the plan completes, and the May miss opens a journey on GBP 100 -- the repaid debt
+    is not dunned again. Missed: nothing posts and the May journey carries both bills. Both legs
+    in one control."""
+    walks = {}
+    for paid in (True, False):
+        consumer = _answered("ACC-R", _World(True, instalment=60.0, paid=paid),
+                             ISSUE, dt.date(2024, 5, 1))
+        consumer.advance_collections_journey("ACC-R", dt.date(2024, 6, 30))
+        ledger = consumer.ledger_book.ledger("ACC-R")
+        credits = [(e.valid_time, e.amount_gbp) for e in ledger.events()
+                   if e.event_type == LedgerEventType.PAYMENT_CREDIT]
+        first_plan = consumer.collections_journeys.arrangements.plans_for_customer("ACC-R")[0]
+        journeys = consumer.collections_journeys.journeys()
+        walks[paid] = credits, first_plan, journeys
+        for journey in journeys:
+            assert_journey_order_lawful(journey, Segment.RESIDENTIAL)
+    (paid_credits, paid_plan, paid_journeys) = walks[True]
+    (missed_credits, missed_plan, missed_journeys) = walks[False]
+    assert paid_plan.status == PaymentPlanStatus.COMPLETED
+    assert paid_credits == [(dt.date(2024, 3, 13), 60.0), (dt.date(2024, 4, 12), 40.0)]
+    assert sum(gbp for _, gbp in paid_credits) == paid_plan.original_debt_gbp
+    assert paid_journeys[1]["stages"][0]["overdue_gbp"] == 100.0
+    assert missed_plan.status == PaymentPlanStatus.DEFAULTED and missed_credits == []
+    assert missed_journeys[1]["stages"][0]["overdue_gbp"] == 200.0
+
+
+def test_a_desk_that_can_agree_plans_refuses_to_be_built_without_the_cash_seam():
+    with pytest.raises(ValueError, match="cash seam"):
+        CollectionsJourneyDesk(view_at=lambda *a: {}, refuse_dunning_of_cleared_debt=lambda *a: None,
+                               plan_offers=_World(True, instalment=10.0))
 
 
 def test_only_an_offered_plan_can_be_agreed_and_only_at_a_positive_instalment():

@@ -38,6 +38,14 @@ once its date has passed, and a plan the company's own rule defaults (`payment_p
 ._DEFAULT_THRESHOLD` misses) stops holding the account, so the next missed bill opens a new
 journey: a broken plan sends the household back into collections.
 
+PLAN CASH IS CASH. Each instalment the seam reports PAID is posted to the company ledger as an
+ordinary received payment, through the consumer's own cash seam (`post_cash`), on the instalment's
+due date and for the amount the plan book took. A domestic account is balance-based and ages FIFO
+(`docs/market_research/account_hierarchy_payment_allocation.md` s1), so plan cash discharges the
+oldest arrears first -- the debt the plan was agreed against -- with no matching to the plan needed.
+A plan repaid in full therefore leaves the ledger showing that debt cleared, stops holding the
+account, and only a bill missed since can open a new journey. A missed instalment posts nothing.
+
 TODAY EVERY ANSWER IS None: no published rate of take-up or keeping exists
 (`docs/market_research/domestic_repayment_plan_take_up_and_keep_rates.md`), so the world answers
 None and names why. The agreed branch is reachable through an injected world only.
@@ -51,10 +59,9 @@ NAMED SIMPLIFICATIONS.
       account can enter `moratorium_hold`; the stage is reachable at unit level only.
   (3) A plan instalment is read at the next evaluation date on or after it falls due, not on the
       day, so a default is seen up to one ladder-trigger later than a daily batch would see it.
-  (4) Instalments move the plan book and NOT the ledger, so a plan's paydown does not reduce the
-      overdue balance the ladder reads. A plan that COMPLETES therefore refuses
-      (`PlanPaydownNotOnLedgerError`): the ledger would still show the repaid debt as overdue and
-      the next bill would dun it.
+  (4) The plan's debt is fixed at the overdue sum on the offer date and is not re-stated when
+      other payments land meanwhile. A household that also pays down the same arrears by its
+      ordinary payments ends its plan with the ledger in credit; a real desk would re-state the plan.
 """
 from __future__ import annotations
 
@@ -83,9 +90,6 @@ ARRANGEMENT_ACCEPTANCE_GAP = (
     "this desk was built with no seam to ask, so no household answer to the offer reaches the "
     "company: neither the instalment it can afford (SLC 27.8) nor whether it agrees")
 
-
-class PlanPaydownNotOnLedgerError(Exception):
-    """An agreed plan was repaid in full, and its instalments never reached the ledger."""
 
 #: The exits the atom names that the company's own records cannot reach yet, and why. A journey is
 #: never closed on one of these by inference.
@@ -207,12 +211,20 @@ class CollectionsJourneyDesk:
 
     def __init__(self, view_at: Callable[[str, Segment, dt.date], dict],
                  refuse_dunning_of_cleared_debt: Callable[[dict, str], None],
-                 plan_offers: Optional[Any] = None) -> None:
+                 plan_offers: Optional[Any] = None,
+                 post_cash: Optional[Callable[[str, float, dt.date, str], None]] = None) -> None:
+        if plan_offers is not None and post_cash is None:
+            raise ValueError(
+                "a desk that can agree plans needs the cash seam to post their instalments: "
+                "without it a repaid plan's debt would still read overdue and be dunned")
         self._view_at = view_at
         self._refuse = refuse_dunning_of_cleared_debt
         #: The seam a plan offer is answered through (`SimInterface.answer_plan_offer` and
         #: `get_plan_instalments`). None: offers are recorded unanswered, ARRANGEMENT_ACCEPTANCE_GAP.
         self._plan_offers = plan_offers
+        #: `post_cash(account_id, amount_gbp, value_date, reference)`: the consumer's received-cash
+        #: seam, idempotent on `reference`. Every paid plan instalment goes through it.
+        self._post_cash = post_cash
         #: Every arrangement this desk has offered, and what became of each.
         self.arrangements = PaymentPlanBook()
         self._instalments_read: Dict[int, int] = {}
@@ -277,26 +289,26 @@ class CollectionsJourneyDesk:
 
     def _read_instalments(self, account_id: str, on: dt.date) -> bool:
         """Post every instalment of this account's ACTIVE plans that fell due by `on` to the plan
-        book, each once. Returns whether an ACTIVE plan still holds the account."""
+        book, each once, and each PAID one to the ledger as cash. Returns whether an ACTIVE plan
+        still holds the account."""
         held = False
         for plan in self.arrangements.plans_for_customer(account_id):
             if plan.status != PaymentPlanStatus.ACTIVE:
                 continue
             due = self._plan_offers.get_plan_instalments(account_id, plan.start_date, on)
-            for instalment in due[self._instalments_read.get(plan.plan_id, 0):]:
+            already = self._instalments_read.get(plan.plan_id, 0)
+            for n, instalment in enumerate(due[already:], already + 1):
                 if instalment["paid"]:
-                    self.arrangements.record_payment(plan.plan_id, dt.date.fromisoformat(
-                        instalment["due"]))
+                    paid_on = dt.date.fromisoformat(instalment["due"])
+                    before = plan.total_paid_gbp
+                    self.arrangements.record_payment(plan.plan_id, paid_on)
+                    self._post_cash(account_id, round(plan.total_paid_gbp - before, 2), paid_on,
+                                    f"plan:{account_id}:{plan.plan_id}:{n}")
                 else:
                     self.arrangements.record_missed(plan.plan_id)
                 if plan.status != PaymentPlanStatus.ACTIVE:
                     break
             self._instalments_read[plan.plan_id] = len(due)
-            if plan.status == PaymentPlanStatus.COMPLETED:
-                raise PlanPaydownNotOnLedgerError(
-                    f"{account_id}: plan {plan.plan_id} repaid GBP {plan.total_paid_gbp} by {on}, "
-                    "and plan instalments do not post to the ledger, so the ledger still shows it "
-                    "overdue and the next bill would dun a repaid debt")
             held = held or plan.status == PaymentPlanStatus.ACTIVE
         return held
 

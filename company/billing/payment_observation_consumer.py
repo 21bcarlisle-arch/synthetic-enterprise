@@ -881,6 +881,9 @@ class PaymentObservationConsumer:
             # The seam a plan offer is answered through (`SimInterface.answer_plan_offer`). None
             # records each offer unanswered, with the reason saying so.
             plan_offers=plan_offers,
+            # A paid plan instalment is received cash like any other, so it posts through the
+            # same seam and allocates by the same ledger rule.
+            post_cash=self._post_plan_instalment if plan_offers is not None else None,
         )
         self._dd_failures: Dict[str, List[DDFailureObservation]] = {}
         self._rail_failures: Dict[str, List[RailFailureNote]] = {}
@@ -1556,6 +1559,15 @@ class PaymentObservationConsumer:
         self.ledger_book.post(event)
         if remittance_ref:
             self._recognised_cash_refs.add(remittance_ref)
+
+    def _post_plan_instalment(self, account_id: str, amount_gbp: float, value_date: dt.date,
+                              reference: str) -> None:
+        """A paid plan instalment, as the collections desk read it from the seam. Known on its
+        value date (the desk's simplification 1) and earmarked to no invoice: it is a payment
+        against the account's balance."""
+        self._post_cash(account_id=account_id, amount_gbp=amount_gbp, value_date=value_date,
+                        observed_at=dt.datetime.combine(value_date, dt.time(0, 0)),
+                        correlation_id=reference, remittance_ref=None)
 
     def _observe_remittance(self, payload: RemittanceAdvice, response: WallResponse) -> None:
         self._post_cash(

@@ -56,7 +56,10 @@ collections. Live: still none beyond `cured` and open, because the world cannot 
 
 1. **The rates.** Take-up, keeping and the affordable instalment are all unpublished. A practitioner
    (or a supplier's collections data) is the third side here. The stock shares cannot stand in.
-2. **Plan cash never reaches the ledger.** Instalments move the plan book only, so the ladder's
+2. ~~**Plan cash never reaches the ledger.**~~ **Closed 2026-10-04** by
+   `plan-instalments-post-to-the-ledger`: paid instalments now post as ledger cash
+   (`SEAT_FINDING_PLAN_INSTALMENTS_NOW_POST_TO_THE_LEDGER_AND_A_REPAID_PLAN_FREES_THE_ACCOUNT_2026-10-04.md`).
+   As first written: Instalments move the plan book only, so the ladder's
    overdue balance never falls. A plan repaid in full therefore REFUSES
    (`PlanPaydownNotOnLedgerError`) rather than letting the next bill dun a repaid debt. Posting plan
    payments as ledger credits through the payment seam is the next piece. It is needed before any
