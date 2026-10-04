@@ -47,6 +47,9 @@ post on a missed instalment, and drop the seam guard.
    repaid through the plan. If the world's ordinary payment stream also pays down those arrears,
    the company receives the cash twice. This is inert live because every answer is None, but it
    must be settled before a sourced take-up rate is switched on.
+   **SETTLED 2026-10-04**, and the route turned out to be the world's later lump settlement of the
+   same bill, not ordinary payments:
+   `SEAT_FINDING_THE_WORLD_NOW_KNOWS_AN_AGREED_PLAN_SO_ITS_ARREARS_ARE_NOT_PAID_TWICE_2026-10-04.md`.
 2. **A plan's debt is fixed at the offer.** Ordinary payments that land meanwhile can leave the
    ledger in credit when the plan ends. A real desk would re-state the plan (docstring
    simplification 4).

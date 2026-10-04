@@ -14,9 +14,24 @@ quarter-end STOCKS, which multiply take-up, keeping, plan length and spell lengt
 `accepted=None` naming the first missing piece. The draw below runs only on a basis someone has
 sourced; tests inject one to prove both branches of each draw are reachable.
 
-NAMED SIMPLIFICATION, for the day a basis exists: each instalment is kept independently at one
-rate. Real breakage is probably front-loaded (a plan set above ability to pay fails early), so an
-independent rate spreads misses too evenly across a plan's life.
+THE PLAN IS HOW THE HOUSEHOLD REPAYS, SO THE WORLD REMEMBERS IT. An agreement is recorded on the
+world's `HouseholdPlanBook` when the household says yes, and the world's other route for repaying
+arrears -- a later lump settlement of an unpaid bill (`payment_behaviour_source.later_settlement_date`)
+-- asks it first: a bill already overdue when the plan was agreed is repaid through the plan's
+instalments, not paid a second time as a lump. Without this the supplier would receive the same
+arrears twice once a take-up rate is sourced.
+
+NAMED SIMPLIFICATIONS, for the day a basis exists:
+  1. Each instalment is kept independently at one rate. Real breakage is probably front-loaded (a
+     plan set above ability to pay fails early), so an independent rate spreads misses too evenly
+     across a plan's life.
+  2. A broken plan does not hand the debt back to the lump route: a settlement withdrawn by a plan
+     stays withdrawn when the plan defaults. Understates what a household that breaks a plan later
+     pays -- the conservative side, as for the never-repaid half of the lump route.
+  3. The instalment's cash is the agreed instalment (the final one the remainder), which both sides
+     know from the agreement, so an instalment crosses as paid or missed with no amount. The world
+     does not end the plan itself: instalments keep being drawn after the debt is cleared, and only
+     the supplier's plan book knows to stop reading them.
 """
 from __future__ import annotations
 
@@ -66,6 +81,22 @@ PUBLISHED_BASIS = PlanResponseBasis(
 )
 
 
+class HouseholdPlanBook:
+    """The arrangements this world's households have agreed, as the world knows them: account and
+    date. One per run, shared by every seam that answers offers for it."""
+
+    def __init__(self) -> None:
+        self._agreed: dict[str, list[dt.date]] = {}
+
+    def record(self, account_id: str, agreed_on: dt.date) -> None:
+        self._agreed.setdefault(account_id, []).append(agreed_on)
+
+    def repays_through_plan(self, account_id: str, bill_due: dt.date, paid_on: dt.date) -> bool:
+        """Whether a bill due on `bill_due`, unpaid until `paid_on`, is repaid through a plan rather
+        than as a lump that day: a plan was agreed after the bill fell due and before the day."""
+        return any(bill_due < agreed < paid_on for agreed in self._agreed.get(account_id, ()))
+
+
 @dataclass(frozen=True)
 class PlanOfferAnswer:
     """What the supplier learns from the conversation an offer opens: nothing more."""
@@ -78,8 +109,10 @@ class PlanOfferAnswer:
 
 def answer_plan_offer(account_id: str, offered_on: dt.date, debt_gbp: float, *,
                       base_seed: int = 0,
-                      basis: PlanResponseBasis = PUBLISHED_BASIS) -> PlanOfferAnswer:
-    """The household's answer to one offer. Deterministic in (seed, account, offer date)."""
+                      basis: PlanResponseBasis = PUBLISHED_BASIS,
+                      agreements: Optional[HouseholdPlanBook] = None) -> PlanOfferAnswer:
+    """The household's answer to one offer. Deterministic in (seed, account, offer date). A yes is
+    recorded on `agreements`, the world's own book of plans."""
     gap = basis.first_gap()
     if gap is not None:
         return PlanOfferAnswer(None, None, gap)
@@ -87,6 +120,8 @@ def answer_plan_offer(account_id: str, offered_on: dt.date, debt_gbp: float, *,
     if rng.random() >= basis.take_up_rate:
         return PlanOfferAnswer(False, None, "household declined the arrangement offered")
     instalment = round(min(basis.monthly_instalment_gbp, debt_gbp), 2)
+    if agreements is not None:
+        agreements.record(account_id, offered_on)
     return PlanOfferAnswer(True, instalment, "household agreed the arrangement offered")
 
 
