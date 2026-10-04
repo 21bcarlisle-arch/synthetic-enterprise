@@ -223,7 +223,7 @@ goes stale and the code cannot.
 | The rule | Where it is enforced |
 |---|---|
 | A control must be able to fail (mutation-proven) | `docs/staging/reference/CLASS_CONTROLS_THAT_CANNOT_FAIL_2026-08-12.md`; every `test_*` naming its own defect |
-| Done means the rendered value changed | `site/test_*_door.py` — the page's own JavaScript, against the real feed |
+| Done means the rendered value changed | `site/**/test_*door*.py` — the page's own JavaScript, against the real feed |
 | Every financial figure carries its clock | `tools/generate_dashboard_data.py` basis gate |
 | A level move is recorded, never authorised | `background/gate_authorization.py`, `tools/level_promotion_gate.py` |
 | An absurdity is fixed as a class, not an instance | `company/compliance/domain_invariants.py` |
@@ -246,7 +246,7 @@ re-fetch and diff before first run).
 ## Working here
 
 **Orient first.** Poll `docs/staging/` — the root is the work queue, ranked. `docs/status/LATEST.md`
-is live state. `docs/design/maturity_map.yaml` (read via `tools/maturity_map_store`) is what exists
+is the weekly published state. `docs/design/maturity_map.yaml` (read via `tools/maturity_map_store`) is what exists
 and at what level.
 
 **Then review INTERCONNECTION, not only priority.** Every orientation already asks what matters
@@ -271,10 +271,11 @@ map recorded the sourced figure and listed the same subject as a gap, in one fil
 reader to look. **When something does not add up, follow the thread** rather than routing around it:
 that gap was found by asking where one constant came from.
 
-**Commits take more than ten minutes** — nine gates, a test selection, the site lane. Background
+**Commits take more than ten minutes** — twenty pre-commit gates and three commit-msg gates, a
+test selection, the site lane. Background
 them and act on the notification. Pre-run the cheap gates first; they fire in a fixed order and
 serially, and each refusal costs a full cycle:
-`background/finding_classes --check`, `background/finding_severity`,
+`python3 -m background.finding_classes --check`, `python3 -m background.finding_severity`,
 `tools/write_time_gate.py --explain <new module>`, `ruff check --select I001`,
 `pytest tests/design/ tests/architecture/test_static_quality_ratchet.py`.
 
@@ -322,20 +323,22 @@ procedure nobody points at is a procedure nobody runs: closing a phase or an ato
   disabled; its callers were retired 2026-09-27. Thirteen early `sim/`, `simulation/` and `saas/`
   modules say in their docstrings that local qwen2.5-coder drafted them. Everything since was written
   by a Claude session in this seat.
-- **Other Claude sessions and daemons** — `process_run_complete`, the executor, the supervisor's
-  ticks. Concurrent, in this tree, right now. `background/process_manifest.yaml` is the roster.
+- **Other Claude sessions and daemons** — `process_run_complete`, the supervisor's ticks, the
+  3-hourly orienting seat (`delivery-seat.timer`), `seat-executor`, `worker-tick` and
+  `reconcile-watch`. Concurrent, in this tree, right now. `background/process_manifest.yaml` lists the
+  long-running daemons only; the timers live in `~/.config/systemd/user/`.
 
 **Environment.** WSL2 on Windows; RTX 3060. The binding memory figure is the guest's and it moves —
 read it, never quote it: `background.resource_headroom.sample()["total_mb"]`. Data: Elexon, NESO,
 Open-Meteo. NTFY topic loads from `~/.config/synthetic-enterprise/.env.ntfy`; there is no committed
 default.
 
-**Build:** 38,426 tests collected, epistemic verifier PASS. *This figure is parsed by
+**Build:** 39,465 tests collected, epistemic verifier PASS. *This figure is parsed by
 `generate_dashboard_data._derive_build_from_claude_md` for the live site — correct it at each phase
 close, never delete it. It sat at 26,731 for 20 days and 1,440 commits while the real count reached
 36,838, and nothing noticed because the only check on it compared it to a second hand-typed copy of
 itself in `docs/PROJECT_OVERVIEW.md`. `startup_anchor_freshness` now floors it with the test
-functions in the git index, which no collection can be smaller than. Re-collected 2026-09-27 in a HEAD extract: 38,426.*
+functions in the git index, which no collection can be smaller than. Re-collected 2026-10-04 in an `origin/main` worktree: 39,465.*
 
 → Architecture and module inventory: `docs/PROJECT_OVERVIEW.md` · Phase history:
 `docs/claude/phase-history.md`
