@@ -72,3 +72,45 @@ now ALSO carries the world's debt cure (471ab8960): failed bills are paid later 
 rates, and indebted renewals fell from 56% to 47%. So the lifetime-basis figures will differ from
 the earlier runs for that reason too. T1-T4 are graded on the re-launched runs, term basis against
 lifetime basis on the same rows. The predictions above are unchanged.
+
+## Grading, all four paths (2026-10-04)
+
+`/var/tmp/se-probe-out/probe_term_*.json`, at base `4bf859f0b` (the world's debt objection and
+debt cure on), with the fixed one-year term window (ddfbc61f6). Term basis and lifetime basis are
+scored on the SAME rows.
+
+| path | PROS-2016-0098 2017 term share (lifetime) | capped - flat-55, lifetime | capped - flat-55, term (SNR) | best flat level, term | capped - best, term (SNR) | term totals: capped / capped_learned / value / flat |
+|---|---|---|---|---|---|---|
+| default | 0.000 (0.565) | -797 | **+478 (1.63)** | 45 | **+341 (1.29)** | 3,470 / 3,406 / 3,148 / -1,666 |
+| 61001 | 0.000 (0.505) | -1,139 | -3 (0.01) | 50 | -37 (0.10) | 5,433 / 5,289 / 5,220 / -1,272 |
+| 61002 | 0.000 (0.565) | -1,147 | +125 (0.47) | 50 | +79 (0.31) | 2,943 / 2,883 / 2,794 / -2,336 |
+| 61003 | 0.000 (0.506) | -1,101 | +40 (0.09) | 55 | +40 (0.09) | 4,914 / 4,906 / 4,633 / -1,386 |
+
+- **T1 HELD 4/4.** The 2017 term carries no write-off at all. Its debt is later.
+- **T2 HELD 4/4.** -3 to +478, all at least -300.
+- **T3 HELD, 3 of 4 positive.** But read it plainly: against the best flat price IN HINDSIGHT the
+  margins are +341, -37, +79 and +40, at SNR 0.1-1.3. This is parity with a slight lean positive,
+  NOT a demonstrated win. I held T3 at 50/50 and it came out on the favourable side by noise-sized
+  margins.
+- **T4 HELD 4/4.** capped >= capped_learned > value > flat on every path.
+
+**What this establishes about the selection question.** Once each decision is charged only what its
+own term costs, per-customer choosing is at least as good as the best flat price chosen in
+hindsight, on all four paths. It needs two things to get there:
+- knowing the household's default (that a stayer pays at most it);
+- the company's own payment history (the value rule's inputs).
+
+It needs no hindsight. Every earlier "the choosing loses" was carried by two instrument defects, now
+both fixed:
+- crediting stayers with margin above the default they never pay (3475058ef);
+- charging a decision with arrears accrued after its term (ddfbc61f6).
+
+The world gaps found on the way (the debt objection and repayment of failed bills) were fixed on
+published law and rates, not on these results.
+
+**What it does not establish.** That the choosing BEATS a flat price a company could have set in
+advance by a margin worth having. The comparator is the best level in hindsight, chosen on the very
+rows it is scored on, so it is biased toward flat. Even so, a fourth-path SNR of 0.09 says the
+difference is inside the noise. The next test of the thesis is a flat level fixed IN ADVANCE from
+the company's own pre-period book, scored out of sample. Learning the price slope (capped_learned)
+still adds nothing: about -10 to -140 a path.
