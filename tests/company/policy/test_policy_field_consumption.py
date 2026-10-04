@@ -128,6 +128,8 @@ _FLAT_AT_LEVEL_HIGH = dataclasses.replace(
 
 _OWN_BOOK_POLICY = dataclasses.replace(
     VALUE_ARM_POLICY, name="value_arm_own_book", renewal_default_belief="own_book")
+_SEGMENT_TABLE_POLICY = dataclasses.replace(
+    VALUE_ARM_POLICY, name="value_arm_segment_table", renewal_default_belief="segment_table")
 
 FIELD_CONSUMPTION = {
     "name": {"via": "label"},
@@ -203,7 +205,7 @@ FIELD_CONSUMPTION = {
     "renewal_default_belief": {
         "via": "active_scope",
         "probe": lambda: _renewal_rate_under_the_active_arm(default_belief_rate=0.30),
-        "arms": (VALUE_ARM_POLICY, _OWN_BOOK_POLICY),
+        "arms": (_SEGMENT_TABLE_POLICY, _OWN_BOOK_POLICY),
     },
     # B8 (2026-10-03): price with the price response learned from the company's own renewals.
     # Resolved from `active_policy()` inside `discovered_price_sensitivity.learned_correction`,

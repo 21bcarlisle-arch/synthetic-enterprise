@@ -264,12 +264,29 @@ class DunningStep:
     channel: str
 
 
+#: The residential first reminder, in days past the due date: the LOWER bound of the row
+#: "Overdue / first reminder | T+7-14d post-due" in docs/market_research/company_debt_management.md
+#: section 1 (sources there: Ofgem debt/arrears indicators, Citizens Advice, Watt-Logic; SLC 27).
+#: It was 0, and a day-0 trigger dunned ordinary late payment: a household paying four days late
+#: was reminded the day after its due date. DOMESTIC ONLY -- that table describes domestic supply
+#: under SLC 27, and nothing in the tree gives a micro-business first-reminder day, so MICRO_SME
+#: keeps its day-0 trigger as an unestablished value rather than borrowing the domestic one.
+RESIDENTIAL_FIRST_REMINDER_THRESHOLD_DAYS = 7
+
 # Resi/micro-SME: Ofgem SLC 27 (ability-to-pay) shapes the path — reminder,
 # then a proactive contact / repayment-plan offer BEFORE any enforcement, and no
 # statutory interest. B2B: commercial recovery, faster, interest-bearing.
+#
+# THE REST OF THE RESIDENTIAL LADDER, READ AGAINST THE SAME TABLE (2026-10-04); none of it is
+# contradicted, so none of it moved. `reminder_2` (14) has no row. The plan offer (28) precedes
+# every enforcement step, as SLC 27.8 orders. `final_notice` (56) is at least 28 days after any
+# written demand the ladder could have sent by day 28 (the table's "demand + 28d"). The agency /
+# prepayment step (90) is past final notice + 7 and inside "External DCA referral ~60-90 days".
+# The table's "Formal written demand ~T+3-4 weeks" names a step this ladder has no action for: it
+# is recorded here, not invented as a new rung.
 _DUNNING_PATHS: Dict[Segment, List[DunningStep]] = {
     Segment.RESIDENTIAL: [
-        DunningStep(0, "reminder", "email/sms"),
+        DunningStep(RESIDENTIAL_FIRST_REMINDER_THRESHOLD_DAYS, "reminder", "email/sms"),
         DunningStep(14, "reminder_2", "letter"),
         DunningStep(28, "repayment_plan_offer", "phone/letter"),   # SLC 27 ability-to-pay
         DunningStep(56, "final_notice", "letter"),

@@ -558,6 +558,15 @@ SUBJECT_TESTS = {
     "tools/generate_value_arms_data.py": [
         "tests/tools/test_the_value_arms_pages_undriven_pointers.py",  # |10|43
     ],
+    # The director's prepayment ruling (2026-09-23), as a property of the price. Its file was never
+    # selected by stem, so `e0370bf94` landed it red and it stayed red unnoticed. ~3s. Not a rename:
+    # three staging records cite the path. Every module that can move a clean account's price by
+    # how it pays: the price, the book's default rate, the learned slope, and the churn belief the
+    # price reads (`channel_blind`).
+    **{module: ["tests/company/pricing/test_the_price_rests_only_on_observables_a_supplier_may_use.py"]
+       for module in ("company/pricing/value_based_renewal.py", "company/pricing/default_belief.py",
+                      "company/pricing/discovered_price_sensitivity.py",
+                      "company/crm/enriched_churn_estimate.py")},
 }
 
 # A staged path under any of these = a code/config change that could break a control or its own

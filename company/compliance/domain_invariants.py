@@ -825,6 +825,75 @@ PAYMENT_CHANNEL_DD_CONSISTENCY = StructuralInvariant(
 )
 
 
+# --- No dunning of a debt the ledger shows cleared (atom EP4, 2026-10-03) ---
+#
+# The collections journey (company/billing/collections_journey.py) now RECORDS each dunning step,
+# dated, per account. Before that record existed this rule had nothing to read: the step was
+# selected and thrown away. The harm is concrete -- a reminder, final notice or agency hand-over sent
+# to a household that has paid -- and EP4's origin note binds R10: the class fails here, for every
+# journey, rather than one selector being patched.
+#
+# THE WITNESS IS THE LEDGER'S BALANCE, NOT THE SELECTOR'S INPUT. `select_dunning_step` reads FIFO-
+# aged items; this reads only the rolling balance on the step's date. A selector that dunned off a
+# stale item list, a mis-dated item, or nothing at all is caught by a read it does not share.
+DUNNING_REQUIRES_AN_UNCLEARED_DEBT = StructuralInvariant(
+    id="dunning_requires_an_uncleared_debt",
+    description=(
+        "No dunning step -- reminder, notice, plan offer, agency or recovery step -- may be issued "
+        "on a date when the company's own ledger shows the account owes nothing, and none may be "
+        "issued on or after the date the same journey recorded the debt cured. One-directional: it "
+        "never requires a step to be taken, so a hold or a forbearance passes untouched."
+    ),
+    # No clause number is invented here. A collection step presupposes a sum owed; a demand for
+    # money not owed is information that is not accurate, which Ofgem's Standards of Conduct (SLC 0)
+    # forbid. The commons holds no quoted text of SLC 0 or SLC 27 yet -- a named gap, not a citation.
+    source=(
+        "Ofgem SLC 0 Standards of Conduct (accurate, not misleading information) and SLC 27 "
+        "(debt recovery presupposes a debt owed); statute text not yet in the regulation commons"
+    ),
+)
+
+#: Journey stages that are not a step to collect: the opening, the hold, the exit.
+_NON_DUNNING_JOURNEY_STAGES = frozenset({"missed_payment", "moratorium_hold", "cured"})
+
+
+def dunning_of_a_cleared_debt(journey: dict, balance_on) -> list[dict]:
+    """DUNNING_REQUIRES_AN_UNCLEARED_DEBT over one journey record: every dunning stage taken when
+    the ledger shows the account owing nothing, or on/after the journey's own cure.
+
+    `balance_on(account_id, date)` is the company ledger's rolling balance on that date. A penny or
+    less reads as cleared -- the threshold `arrears_engine.age_balance` already treats as not in
+    arrears. Returns findings, empty when lawful; `refuse_dunning_of_a_cleared_debt` raises on them.
+    """
+    account = journey["account_id"]
+    cured_on = min((s["on"] for s in journey["stages"] if s["stage"] == "cured"), default=None)
+    findings = []
+    for s in journey["stages"]:
+        if s["stage"] in _NON_DUNNING_JOURNEY_STAGES:
+            continue
+        balance = balance_on(account, date.fromisoformat(s["on"]))
+        if balance <= 0.005 or (cured_on is not None and s["on"] >= cured_on):
+            findings.append({
+                "check": DUNNING_REQUIRES_AN_UNCLEARED_DEBT.id,
+                "account_id": account, "stage": s["stage"], "on": s["on"],
+                "ledger_balance_gbp": balance, "cured_on": cured_on,
+            })
+    return findings
+
+
+class DunningOfAClearedDebtError(Exception):
+    """A dunning step was issued to an account whose ledger shows the debt cleared."""
+
+
+def refuse_dunning_of_a_cleared_debt(journey: dict, balance_on) -> None:
+    """The preventive form: RAISES naming each step, its date and the balance the ledger held."""
+    findings = dunning_of_a_cleared_debt(journey, balance_on)
+    if findings:
+        raise DunningOfAClearedDebtError("; ".join(
+            f"{f['account_id']} {f['stage']} on {f['on']} with the ledger at "
+            f"GBP {f['ledger_balance_gbp']} (cured {f['cured_on']})" for f in findings))
+
+
 # --- The Ban on Acquisition-only Tariffs (roadmap R4, 2026-08-28) ---
 #
 # WHY THIS IS BASELINE AND NOT CURRICULUM, stated because R13 turns on it. This registers a
@@ -978,6 +1047,7 @@ ALL_INVARIANTS: list = [
     DEBT_TARIFF_ELIGIBILITY_PAYMENT_CONDITIONED,
     PAYMENT_CHANNEL_DD_CONSISTENCY,
     SUPPLY_START_NOT_BEFORE_FIRST_OBSERVABLE,
+    DUNNING_REQUIRES_AN_UNCLEARED_DEBT,
 ]
 
 

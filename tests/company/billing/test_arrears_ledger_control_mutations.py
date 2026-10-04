@@ -562,6 +562,14 @@ def test_dunning_selector_control_passes_on_the_shipped_selector():
     assert_dunning_requires_an_item(select_dunning_step)
 
 
+#: The zero-sentinel and clamp defects below dun only through a TRIGGER-0 step. The residential
+#: path's first reminder moved to day 7 (EP4, 2026-10-04), so on that path both mutations select
+#: nothing -- an equivalence there, not a missing test -- while every business path still has a
+#: day-0 step, so the mutations are probed on one that can express them.
+_A_DAY_ZERO_PATH = next(s for s in Segment
+                        if arrears_engine.dunning_path(s)[0].trigger_days_overdue == 0)
+
+
 def test_dunning_selector_control_FIRES_on_the_zero_sentinel():
     def sentinel(items, segment, *, moratorium_active):
         # MUTATION: the pre-D24 expression — "nothing here" reads as day 0.
@@ -569,7 +577,7 @@ def test_dunning_selector_control_FIRES_on_the_zero_sentinel():
         worst = max((it.days_overdue for it in undisputed), default=0)
         return worst, current_dunning_step(segment, worst)
     with pytest.raises(DunningWithoutAnItemError) as exc:
-        assert_dunning_requires_an_item(sentinel)
+        assert_dunning_requires_an_item(sentinel, segment=_A_DAY_ZERO_PATH)
     assert "no items at all" in str(exc.value)
 
 
@@ -595,7 +603,7 @@ def test_dunning_selector_control_FIRES_when_a_not_yet_due_item_duns():
         worst = max(max(0, it.days_overdue) for it in undisputed)   # MUTATION
         return worst, current_dunning_step(segment, worst)
     with pytest.raises(DunningWithoutAnItemError) as exc:
-        assert_dunning_requires_an_item(clamped)
+        assert_dunning_requires_an_item(clamped, segment=_A_DAY_ZERO_PATH)
     assert "not yet due" in str(exc.value)
 
 

@@ -484,6 +484,29 @@ REGISTER: list[Obligation] = [
         tracker_paths=("company/billing/disconnection_warning.py",),
         testing_frequency=ValidationFrequency.CONTINUOUS,
     ),
+    Obligation(
+        id="no_dunning_of_a_paid_debt",
+        name="No collection step against an account whose ledger shows the debt cleared",
+        source=(
+            "Ofgem SLC 0 Standards of Conduct (accurate, not misleading information) and SLC 27 "
+            "(debt recovery presupposes a debt owed); statute text not yet in the regulation commons"
+        ),
+        regime="Ofgem",
+        impact=ImpactTier.CUSTOMER_FINANCIAL,
+        likelihood=Likelihood.MEDIUM,
+        rationale=(
+            "Dunning a household that has paid is a real-world harm with a regulator behind it, and "
+            "D7 measured the company's arrears belief overstating more often than it misses. The "
+            "collections journey records every step it takes, dated; the enforcing invariant reads "
+            "each step against the ledger's balance on its date and the journey's own cure, and the "
+            "journey desk REFUSES a step that fails it -- checked by execution, not file presence."
+        ),
+        existing_tracker="company/billing/collections_journey.py",
+        tracker_paths=("company/billing/collections_journey.py",
+                       "company/compliance/domain_invariants.py"),
+        enforcing_invariant_key="dunning_requires_an_uncleared_debt",
+        testing_frequency=ValidationFrequency.CONTINUOUS,
+    ),
     # --- F7: previously-absent regimes (C7b), each with a real live tracker. ---
     Obligation(
         id="complaints_ombudsman_timescales",

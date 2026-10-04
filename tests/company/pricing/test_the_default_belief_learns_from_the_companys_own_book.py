@@ -167,17 +167,19 @@ def test_the_book_rate_reaches_the_price_only_when_the_policy_prices_on_it():
 
     from company.policy.decision_policy import (
         DEFAULT_BELIEF_OWN_BOOK,
+        DEFAULT_BELIEF_SEGMENT_TABLE,
         VALUE_ARM_POLICY,
         policy_scope,
     )
 
     rates = (0.0, 0.10)
-    with policy_scope(VALUE_ARM_POLICY):
+    with policy_scope(dataclasses.replace(
+            VALUE_ARM_POLICY, renewal_default_belief=DEFAULT_BELIEF_SEGMENT_TABLE)):
         off = [_chain_rate(r) for r in rates]
     with policy_scope(dataclasses.replace(
             VALUE_ARM_POLICY, renewal_default_belief=DEFAULT_BELIEF_OWN_BOOK)):
         on = [_chain_rate(r) for r in rates]
-    assert off[0] == off[1], f"the default policy read the book's rate: {off}"
+    assert off[0] == off[1], f"the segment-table policy read the book's rate: {off}"
     assert on[0] < on[1], f"a higher learned default did not raise the price: {on}"
 
 

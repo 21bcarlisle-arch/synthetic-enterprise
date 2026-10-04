@@ -150,6 +150,8 @@ from company.billing.arrears_engine import (
     fifo_unpaid_bills,
 )
 from company.billing.breathing_space_register import BreathingSpaceRegister
+from company.billing.collections_journey import CollectionsJourneyDesk
+from company.compliance.domain_invariants import refuse_dunning_of_a_cleared_debt
 from company.crm.account_hierarchy import Segment
 from company.crm.churn_model import (
     ARREARS_STATE_UNKNOWN,
@@ -866,6 +868,15 @@ class PaymentObservationConsumer:
         # be in one -- not that the company declined to look.
         self.breathing_space: BreathingSpaceRegister = (
             breathing_space if breathing_space is not None else BreathingSpaceRegister()
+        )
+        # THE COLLECTIONS JOURNEY (atom EP4). It reads the SAME collections view the arrears state
+        # reads, so the step a journey records is the step this company would have selected, and it
+        # refuses any step the ledger says is taken against a cleared debt.
+        self.collections_journeys = CollectionsJourneyDesk(
+            view_at=self._collections_view,
+            refuse_dunning_of_cleared_debt=lambda journey, _account: (
+                refuse_dunning_of_a_cleared_debt(
+                    journey, lambda acc, on: self.ledger_book.ledger(acc).balance(on))),
         )
         self._dd_failures: Dict[str, List[DDFailureObservation]] = {}
         self._rail_failures: Dict[str, List[RailFailureNote]] = {}
@@ -2071,6 +2082,20 @@ class PaymentObservationConsumer:
             self.ledger_book, as_of=as_of, payment_method_of=payment_method_of,
             arrears_state_at=arrears_state_at, memo=memo)
         return default_belief(observations, decided_on=as_of, arrears_state=arrears_state).rate
+
+    def advance_collections_journey(
+        self, account_id: str, through: dt.date, segment: str = "resi",
+    ) -> None:
+        """Walk this account's collections journey forward to `through` on its own ledger (EP4).
+
+        The caller guarantees every event with a value date up to `through` has been posted -- the
+        same no-look-ahead the arrears state keeps. An account this company has never billed has no
+        journey and is left alone."""
+        if account_id not in self.ledger_book.accounts():
+            return
+        ar_segment = self._AR_SEGMENTS.get(segment, Segment.RESIDENTIAL)
+        self.collections_journeys.advance(
+            self.ledger_book.ledger(account_id), ar_segment, through)
 
     def _collections_view(self, account_id: str, segment: Segment, as_of: dt.date) -> dict:
         """This account's collections snapshot at one date, off this company's own ledger."""

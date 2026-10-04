@@ -79,7 +79,7 @@ from __future__ import annotations
 import dataclasses
 import heapq
 from datetime import date, datetime, time, timedelta, timezone
-from typing import List, Optional
+from typing import Callable, List, Optional
 
 from background.gap_metric import (
     GapResult,
@@ -110,6 +110,7 @@ from interface.contracts.payment_observable_seam import (
     SCHEMA_VERSION as SEAM_SCHEMA_VERSION,
 )
 from interface.contracts.wall_envelope import WallRequest
+from simulation.arrears_engine import PAY_ON_RECEIPT_METHOD
 from simulation.payment_behaviour_source import (
     ARREARS_REPAYMENT,
     DIRECT_DEBIT,
@@ -721,6 +722,9 @@ class LivePaymentTriad:
         # inside them: a counterparty that batches badly is a fact about the
         # counterparty, and no belief may move on it (R12).
         self._hand_overs: List[HandOverAssessment] = []
+        # account -> segment, for walking every collections journey to the run's end (EP4).
+        self._journey_segments: dict = {}
+        self._journey_last_due: dict = {}
 
     @property
     def records(self) -> List[PeriodRecord]:
@@ -897,6 +901,7 @@ class LivePaymentTriad:
         income_stress_value: Optional[str],
         segment: str = "resi",
         fuel: str = "electricity",
+        dd_stopped_by: Optional[Callable[[str, date], bool]] = None,
     ) -> dict:
         """Generate the ONE canonical W2_11 payment event for this
         (customer, period), cross the seam + feed the company consumer LIVE,
@@ -905,10 +910,18 @@ class LivePaymentTriad:
 
         Returns the analytics record (ON_TIME/LATE/DD_FAILED) DERIVED from the
         single W2_11 event -- the caller feeds it to `record_payment`. There is
-        never a second, independent payment draw."""
+        never a second, independent payment draw.
+
+        `dd_stopped_by(customer_id, due_date)` is the run's answer to "had the supplier stopped this
+        DD by the due date?" -- the stop-notice board the seam reads. A stopped household is billed
+        and pays on receipt from then on, so its bills stop being collection requests here too;
+        the drawn arrangement stays in the cache because the household's trait does not change."""
         self._deliver_settlements_through(due_date)
         period_index = _period_index_for(due_date)
         method = self._method_for(customer_id, fuel)
+        if method == DIRECT_DEBIT and dd_stopped_by is not None and dd_stopped_by(
+                customer_id, due_date):
+            method = PAY_ON_RECEIPT_METHOD
         account_id = f"ACC-{customer_id}"
         invoice_ref = f"{customer_id}::{period_index}"
         issue_date = due_date - timedelta(days=PAYMENT_TERMS_DAYS)
@@ -1136,7 +1149,32 @@ class LivePaymentTriad:
             settled_on=settled_on,
         ))
 
+        # THE COLLECTIONS JOURNEY ADVANCES TO THE PREVIOUS BILL'S DUE DATE (atom EP4). Two bounds,
+        # and this date is inside both. COMPLETENESS: this account's bills post in date order and
+        # each bill's cash crosses with it, so every value date up to the previous due date is on
+        # the ledger (this bill was issued after it). THE RUN'S CLOCK: a month is posted once its
+        # records have started, so the previous month's due date has been lived through -- whereas
+        # THIS bill's due date has not when the run's last, part-month is flushed at its end, and a
+        # walk to it decided steps after the run was over (seen: a 2016-03-04 run dunning on 03-27).
+        # The rest of the walk is `collections_journeys`, to the run's own last day.
+        # A later settlement dated on or before the previous due date has already crossed: this
+        # call delivered every one up to THIS due date before anything else.
+        previous_due = self._journey_last_due.get(account_id)
+        self._journey_segments[account_id] = segment
+        self._journey_last_due[account_id] = due_date
+        if previous_due is not None:
+            self._consumer.advance_collections_journey(account_id, previous_due, segment=segment)
+
         return _derive_analytics_record(customer_id, due_date, amount_gbp, event)
+
+    def collections_journeys(self, through: date) -> List[dict]:
+        """Every account's collections journey on the COMPANY's own ledger, walked to `through`
+        (the run's last day), as plain records -- the door shape of `arrears_state`: the run gets
+        dated stages back and never the desk. Call once every bill has been posted."""
+        self._deliver_settlements_through(through)
+        for account_id, segment in self._journey_segments.items():
+            self._consumer.advance_collections_journey(account_id, through, segment=segment)
+        return self._consumer.collections_journeys.journeys()
 
     def measure(self, as_of: Optional[date] = None) -> Optional[dict]:
         """Score the accumulated triad (detection / belief / ageing). Returns
