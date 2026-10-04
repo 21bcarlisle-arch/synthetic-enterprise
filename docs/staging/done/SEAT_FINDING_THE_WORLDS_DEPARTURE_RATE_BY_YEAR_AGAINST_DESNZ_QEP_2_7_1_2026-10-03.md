@@ -150,3 +150,10 @@ note (no mid-fixed-term exit route) — a gap, not a fix. Handed on as
 
 The draw's duplicate-work note named a live claim under this same id. `ps` at draw time showed no
 rival seat or `surgical_land` on this subject; the claim was the draw's own write. Carried on.
+
+## 7. Disposition (2026-10-04, delivery seat)
+
+Actioned under `refit-the-level-anchor-onto-desnz-qep-2-7-1`. The measurements landed as `24ece7adb`
+and with this file. The graded result is
+`docs/staging/records/SEAT_RESULT_THE_LEVEL_ANCHOR_REFIT_ONTO_DESNZ_QEP_2_7_1_2026-10-03.md`. The
+world change and its value arms are in `docs/design/UNLANDED_QEP_LEVEL_ANCHOR_REFIT_2026-10-04.md`.
