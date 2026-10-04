@@ -138,6 +138,8 @@ toward zero on all four paths, while the debtor still leaves in ~70% of draws. P
 upper bound here: the world's payment records never cure a failed bill, so 56% of renewal
 decisions are "eligible". A cure is being built.
 
+*Correction, 2026-10-04: `bf0d37c2f` predates `ba320e2d2` (the `own_book` default and the channel-blind clean price), and the probe reaches both. So this table grades the pre-flip company, and a post-flip re-run is owed. See `../SEAT_NOTE_FOR_THE_CONSOLE_SEAT_THE_OBJECTION_PROBES_GRADED_THE_PRE_FLIP_COMPANY_2026-10-04.md`.*
+
 | path | capped - flat-55, objection off | on | without PROS-2016-0098, off -> on | PROS 2017-03-31 P(stay) at flat-55, off -> on |
 |---|---|---|---|---|
 | default | -773 | -779 | +298 -> +292 | 0.10 -> 0.10 |
