@@ -554,15 +554,18 @@ class LiveSimInterface(SimInterface):
         # "direct debit" would be a claim that no stop had happened, which nothing here checked.
         from simulation.arrears_engine import PAY_ON_RECEIPT_METHOD
         from simulation.dd_collection_book import active_stop_notice_board
-        from simulation.household import GAS_LEG_ID_SUFFIX, household_of
+        from simulation.household import household_of
         board = active_stop_notice_board()
         if board is None:
             raise ValueError(
                 f"get_payment_method({account_id!r}, as_of={as_of!r}): no run has installed a DD "
                 "stop-notice board, so whether the supplier had stopped this DD by then cannot be "
                 "said. Ask without as_of for the arrangement the account was set up on.")
-        supply_point = household_of(account_id) + GAS_LEG_ID_SUFFIX if fuel == "gas" else account_id
-        if board.notice_as_of(supply_point, as_of) is not None:
+        # The gas leg is the one the run BILLED, asked of the board, not `household + "g"`: a
+        # gas-only household's only leg has no suffix, so spelling it missed every such stop.
+        supply_point = (board.supply_point_billed(household_of(account_id), "gas")
+                        if fuel == "gas" else account_id)
+        if supply_point is not None and board.notice_as_of(supply_point, as_of) is not None:
             return PAY_ON_RECEIPT_METHOD
         return drawn
 

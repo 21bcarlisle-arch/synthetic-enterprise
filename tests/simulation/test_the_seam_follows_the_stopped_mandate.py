@@ -112,6 +112,9 @@ def test_the_gas_question_asks_the_gas_supply_point():
     asked = []
 
     class _Recording:
+        def supply_point_billed(self, household, fuel):
+            return household + "g"
+
         def notice_as_of(self, supply_point, as_of):
             asked.append(supply_point)
             return None
@@ -126,3 +129,32 @@ def test_the_gas_question_asks_the_gas_supply_point():
     finally:
         dcb.install_stop_notice_board(None)
     assert asked == [dd + "g", dd]
+
+
+@pytest.mark.parametrize("leg", ["", "g"], ids=["gas_only_no_suffix", "dual_fuel_gas_leg"])
+def test_the_gas_question_finds_the_stop_on_the_leg_the_run_billed(monkeypatch, leg):
+    """The gas question used to spell the leg `household + "g"`. A gas-only household's one leg has
+    no suffix (`SYN-2016-021`), so its stop was never found and it read direct debit at every later
+    renewal while the money side paid it on receipt. The same book billed as gas, under each id
+    shape: both must find the stop after its notice, and not before it."""
+    book, stress = _book()
+    bills = [{**b, "customer_id": b["customer_id"] + leg, "commodity": "gas"} for b in book]
+    behavioral = {cid + leg: v for cid, v in stress.items()}
+    monkeypatch.setattr(p4c, "build_monthly_bills", lambda records, churned: list(records))
+    monkeypatch.setattr("company.interfaces.bill_assembly.issued_bills", lambda b: b)
+    full = dcb.supplier_dd_stop_notices(bills, behavioral, 42)
+    from simulation.household import household_of
+    from simulation.household_segments import PaymentChannel, payment_channel_for_customer
+    cid, notice = next((household_of(sp), n) for sp, n in sorted(full.items())
+                       if payment_channel_for_customer(sp, "gas") is PaymentChannel.DIRECT_DEBIT)
+    board = dcb.StopNoticeBoard(lambda sp: behavioral[sp]["income_stress_trajectory"])
+    board.observe([{**b, "settlement_date": b["period_end"]} for b in bills])
+    seam = LiveSimInterface()
+    day_before = (dcb.date.fromisoformat(notice) - dcb.timedelta(days=1)).isoformat()
+    dcb.install_stop_notice_board(board)
+    try:
+        after = seam.get_payment_method(cid, "gas", as_of=notice)
+        before = seam.get_payment_method(cid, "gas", as_of=day_before)
+    finally:
+        dcb.install_stop_notice_board(None)
+    assert (before, after) == ("direct_debit", "standard_credit"), (cid + leg, notice)
