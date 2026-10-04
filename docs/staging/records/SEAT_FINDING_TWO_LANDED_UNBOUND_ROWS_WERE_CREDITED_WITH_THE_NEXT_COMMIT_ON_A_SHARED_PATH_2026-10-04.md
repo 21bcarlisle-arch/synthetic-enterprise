@@ -38,3 +38,18 @@ would have recorded the wrong commit. Read the commit against the item's text be
 Neither row is `landed_unbound` or `not_done`. Both stay in `lane_0_drawn_never_landed` until they
 leave its 24h horizon (around 17:12 BST on 2026-10-04 for the later one), shown as dispositioned rows
 that are "not yours to redo".
+
+## Redrawn at 05:03 BST, after this record landed. Released, nothing redone
+
+The focus id itself was drawn again 18 minutes after `d06af26a5` landed. That landing dispositioned
+both rows but never ran `--release bind-the-two-landed-unbound-lane-0-rows`, so the DIRECTION.yaml
+row stayed drawable. Again, the duplicate-work note's "held by another writer" was the draw's own
+write. `ps` showed no rival.
+
+When the redraw read it, `drawn_without_landing()` listed both rows as `premise_spent` with their
+commits. That is the outcome this item wanted. The focus row's "DONE when neither id appears in the
+drawn-never-landed list" cannot be met by any disposition: the list keeps every row drawn in the
+last 24h and labels it, so both ids drop off only by age. Read it as "neither row is still
+`landed_unbound`/`not_done`", which already held. `--premise-spent` on the focus id was refused
+because the ledger already credits it with a landing after its last draw. `--release` then retired
+it, and `_retired_ids()` keeps `_focus` from offering it again before the seat re-orients.
