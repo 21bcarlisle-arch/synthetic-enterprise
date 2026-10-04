@@ -2406,7 +2406,11 @@ def generate(run_json_path=None):
     # organ, not a figure of this run -- and because a fail-closed block belongs in a
     # feed the page fetches, so an absent artefact renders a stated absence on screen
     # instead of a key the renderer silently skips.
-    _write_dd_opening_arms_feed()
+    # A SIBLING of `OUTPUT_PATH`, not a second absolute path: a caller that redirects the
+    # dashboard redirects this feed with it. Three tests patched only `OUTPUT_PATH` and
+    # rewrote the tracked feed in every extract they ran in, which dirtied the head-red
+    # bisect's checkout on 2026-10-04.
+    _write_dd_opening_arms_feed(OUTPUT_PATH.parent / DD_ARMS_FEED.name)
 
     OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
     with open(OUTPUT_PATH, "w") as f:
@@ -2574,7 +2578,7 @@ _BASIS_DECLARED_UNLABELLED = {
 }
 
 
-def _write_dd_opening_arms_feed():
+def _write_dd_opening_arms_feed(feed):
     """Publish the two-arm opening-direct-debit comparison, or a named absence.
 
     `tools.dd_opening_arms.publish_view` decides what a reader meets; this function
@@ -2592,9 +2596,9 @@ def _write_dd_opening_arms_feed():
         except (json.JSONDecodeError, OSError):
             result = None
     block = publish_view(result)
-    DD_ARMS_FEED.parent.mkdir(parents=True, exist_ok=True)
-    DD_ARMS_FEED.write_text(json.dumps(block, indent=2, sort_keys=True) + "\n")
-    print(f"Wrote {DD_ARMS_FEED} (available={block.get('available')})")
+    feed.parent.mkdir(parents=True, exist_ok=True)
+    feed.write_text(json.dumps(block, indent=2, sort_keys=True) + "\n")
+    print(f"Wrote {feed} (available={block.get('available')})")
 
 
 def _basis_required_portfolio_keys(portfolio):
