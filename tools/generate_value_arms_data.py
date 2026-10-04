@@ -258,8 +258,13 @@ THREE_ARM_PATH = PROJECT / "docs" / "observability" / "value_cycle_ab_s1_three_a
 #: the level anchor refit onto DESNZ QEP 2.7.1 lands with this pair. Both `20261004r` artefacts ran
 #: at origin `96517e68c` plus that refit, uncommitted; the refit's own paths are argued in
 #: `value_arms_substrate_exemptions.json`.
+#:
+#: MOVED 2026-10-04 TOGETHER WITH `CURRENT_WORLD_NOISE_FLOOR_PATH`, same world: the `20261004h`
+#: pair re-took both at committed origin `efe1b7dee`, because the default belief and the payment
+#: triad had moved under `20261004r`. Every figure in both artefacts is identical to `20261004r`
+#: (two floats differ in the 15th digit, summation order), so those changes are inert here.
 CURRENT_WORLD_THREE_ARM_PATH = (
-    PROJECT / "docs" / "observability" / "value_cycle_ab_s1_three_arm_20261004r.json")
+    PROJECT / "docs" / "observability" / "value_cycle_ab_s1_three_arm_20261004h.json")
 #: WHAT MOVED BETWEEN THE LAST PUBLISHED PAIR AND THIS ONE, IN WORDS A READER CAN CHECK. The world
 #: digest is the same across them, so nothing generated says the worlds differ -- the digest
 #: identifies the departure level and the homes and is blind to a behaviour switch (graded Q0 of
@@ -268,14 +273,10 @@ CURRENT_WORLD_THREE_ARM_PATH = (
 #: Rewrite it whenever the pair moves; it names the commit it is relative to so a stale copy reads
 #: as stale.
 CURRENT_WORLD_CHANGED_SINCE_THE_LAST_READING = (
-    "What changed since the previous reading (run at 0cc052102): this is a different world. The "
-    "departure level was refitted onto the published switching record, DESNZ QEP table 2.7.1, "
-    "which every fitted year now matches within 0.3 percentage points; the old fit ran 2024 at "
-    "1.8 times the published rate. About forty company and world commits also landed between "
-    "the two runs, among them the debt objection that blocks an indebted household from "
-    "switching, the dated collections journey, the supplier stopping a bouncing direct debit, "
-    "and the default rate learned from the company's own book. All of that moved at once, so no "
-    "change in these figures can be put down to any one of them.")
+    "What changed since the previous reading (run at 96517e68c): the same world, re-taken on "
+    "committed code. Between the two runs the company began learning its default rate from its "
+    "own book, and the code that settles each household's payment outcomes changed. Every figure "
+    "came out the same as before, so in this world neither change moves the result.")
 #: The spread `error_bar` is built from -- the block that owns the page's SELECTION VERDICT, the
 #: one sentence the mission turns on. NOT the same constant as `CURRENT_WORLD_NOISE_FLOOR_PATH`
 #: below, and the difference cost a turn: the 2026-09-17 write-up named THAT constant as the thing
@@ -575,8 +576,9 @@ AUC_FAMILY_SOURCE = "the 12-seed AUC-carrying floor of 2026-09-17"
 #: at `0cc052102`, so each seed compares with itself across the two commits.
 #: MOVED 2026-10-04 with `CURRENT_WORLD_THREE_ARM_PATH`, to the same seeds and redraw mode in world
 #: `cdba75ebb9197b33`, drawn in one process by the tree that ran the arms.
+#: MOVED 2026-10-04 with `CURRENT_WORLD_THREE_ARM_PATH`, to the same seeds re-drawn at `efe1b7dee`.
 CURRENT_WORLD_NOISE_FLOOR_PATH = (
-    PROJECT / "docs" / "observability" / "value_cycle_ab_s1_noise_floor_20261004r.json")
+    PROJECT / "docs" / "observability" / "value_cycle_ab_s1_noise_floor_20261004h.json")
 #: The ONE redraw mode whose seed spread bounds the published contrast, in the undecomposed
 #: artefact's own words (`redraw_scope.means`): "every household re-drawn -- the undecomposed
 #: floor, and the only mode whose spread bounds the published figure directly".

@@ -73,12 +73,15 @@ def test_the_gate_is_reachable_at_all(tmp_path):
         "the shipped front door disagrees with the shipped feed about the selection leg"
     )
 
+    # The poison is the OPPOSITE of whatever the live feed says, so this stays a control when
+    # the leg resolves (it did on the 20261004h pair) or withdraws again.
     live = json.loads(gdd.VALUE_ARMS_FEED_PATH.read_text())
-    live["current_world"]["selection_leg"]["resolved"] = "level"
+    leg = live["current_world"]["selection_leg"]
+    leg["resolved"] = None if leg["resolved"] else "level"
     poisoned = _feed_file(tmp_path, live)
     assert gdd._check_front_door_selection_verdict(feed_path=poisoned) is False, (
-        "the feed resolved the leg and the real front door still says 'withheld', and the "
-        "gate did not notice -- it is reading neither side"
+        "the feed's verdict was flipped and the real front door was not, and the gate did not "
+        "notice -- it is reading neither side"
     )
 
 

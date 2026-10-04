@@ -7440,7 +7440,12 @@ def test_MUTATION_a_leg_with_no_verdict_and_no_reason_renders_as_unread_not_as_q
     assert "NO DIRECTION IS STATED FOR THIS LEG, AND NO REASON IS GIVEN" in rendered
     assert "this leg is unread rather than unremarkable" in rendered
     # It is NOT the resolved sentence, and the figure still renders -- an unread leg is still a leg.
-    assert "A direction IS stated for this leg" not in rendered
+    # Counted against the live render, not asserted absent: the OTHER leg may carry a direction
+    # of its own (selection did from the 20261004h pair), and that sentence is not this leg's.
+    resolved_sentence = "A direction IS stated for this leg"
+    live = _render(copy.deepcopy(_live_feed()))["arms-legs-first"]
+    live_level_resolved = 1 if _live_feed()["current_world"]["level_leg"].get("resolved") else 0
+    assert rendered.count(resolved_sentence) == live.count(resolved_sentence) - live_level_resolved
     assert _gbp(feed["current_world"]["level_leg"]["figure_gbp"]) in rendered
 
 
@@ -7670,7 +7675,16 @@ def test_MUTATION_a_leg_the_feed_prices_no_remedy_for_renders_the_reason_not_a_s
     not a leg it asked about and refused. A renderer that showed the same thing for both, or
     nothing for both, passes a control that only drove one.
     """
-    refused = copy.deepcopy(_live_feed())
+    # The remedy belongs to a leg that names no direction, so both halves put the selection leg
+    # in that state whatever the live feed says -- it resolved on the 20261004h pair, and a
+    # resolved leg renders no remedy at all.
+    def _withheld(feed):
+        leg = feed["current_world"]["selection_leg"]
+        leg["resolved"] = None
+        leg["verdict_withheld_because"] = None
+        return feed
+
+    refused = _withheld(copy.deepcopy(_live_feed()))
     refused["current_world"]["selection_leg"]["what_would_settle_the_sign"] = {
         "available": False, "why_not": "THIS LEG WAS NEVER PRICED for a reason of its own."}
     refused_text = _render(refused)["arms-legs-first"]
@@ -7680,7 +7694,7 @@ def test_MUTATION_a_leg_the_feed_prices_no_remedy_for_renders_the_reason_not_a_s
         "fail-open reading: no remedy shown looks like no remedy needed")
     assert "But what it would take IS stated" not in refused_text
 
-    absent = copy.deepcopy(_live_feed())
+    absent = _withheld(copy.deepcopy(_live_feed()))
     absent["current_world"]["selection_leg"].pop("what_would_settle_the_sign", None)
     absent_text = _render(absent)["arms-legs-first"]
     assert "NO PRICE IS STATED FOR SETTLING IT" not in absent_text, (
