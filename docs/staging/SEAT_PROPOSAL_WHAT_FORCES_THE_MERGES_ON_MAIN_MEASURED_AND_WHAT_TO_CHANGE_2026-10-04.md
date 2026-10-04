@@ -149,6 +149,21 @@ first piece of the separation you named: runtime state out of main.
    first, the same move as the heartbeat, file by file. I'll measure which daemons write which
    tracked files before sizing it, and bring you that number.
 
+   **Measured the same afternoon, and the answer is smaller: not doing this now.** Daemons do keep
+   runtime state in tracked files: about 28 files under `docs/observability` and `site/data` are
+   rewritten within the hour in the shared tree. But 21 of those 28 had no commits on origin in the
+   fortnight, and a fast-forward collides only on a file origin also changes.
+   - **Heartbeat:** `agent_status.json` (200 commits) and `tick_heartbeat.json` (149) collided, and
+     both left main today.
+   - **Still collision-prone:** `naive_organ_log.jsonl` and `site/data/agent_status.json`, about 19
+     commits each.
+   - **Everything else that held the tree:** lane leftovers, now aged out after 48 hours (landed
+     `471f96d0d`), and the seat's own records, which clear as twins once nothing unique is beside
+     them.
+   
+   A separate daemon checkout would solve a much larger problem than the one measured. If the
+   Monday census still shows the tree held behind, the next step is the two files named above.
+
 The 48.5 hours of the reconciler waiting on its own gate fall with the merge-selection fix
 (`3c5702901`), which is already landed. Next Monday's census will show by how much.
 
