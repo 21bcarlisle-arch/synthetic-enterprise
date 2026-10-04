@@ -7,7 +7,8 @@ Defect each control names:
   * a persistent debtor reads as clean because FIFO moved its debt onto its newest bills;
   * a closed account's unpaid money is provisioned on the live row (the 5-50x understatement the
     final-bill row exists to stop);
-  * an outcome is read before the company could know it.
+  * an outcome is read before the company could know it;
+  * an account the register answers `None` for (not one the price learns from) is learned from anyway.
 """
 
 import datetime as dt
@@ -249,3 +250,18 @@ def test_a_dd_the_supplier_stopped_is_provisioned_on_the_pay_on_receipt_row_from
         "a year's method is the one at its start: the stopped household's first year began on DD")
     assert moved[0].charge_gbp > never[0].charge_gbp, (
         "the stopped account's year-end debt was still provisioned on the direct-debit row")
+
+
+def test_an_account_the_register_does_not_answer_for_is_not_learned_from():
+    """The run's register answers `None` for its SME accounts: the resi price does not learn from
+    them. `observe_book` used to turn that `None` into `""` and keep the year, so C6's GBP 75
+    final-bill charge sat in the resi belief's `unknown` cell. The control runs over BOTH answers on
+    the same book, so a reader that dropped every account would fail the first assertion."""
+    def observe(methods):
+        book = LedgerBook()
+        _post_year(book, "SME", dt.date(2017, 1, 1), months=12, unpaid_months=(10, 11))
+        _post_year(book, "HOME", dt.date(2017, 1, 1), months=12)
+        return {o.account_id for o in _observe(book, dt.date(2019, 1, 1), methods)}
+
+    assert observe({"SME": SC, "HOME": DD}) == {"SME", "HOME"}, "an answered account was not read"
+    assert observe({"HOME": DD}) == {"HOME"}, "an account the register does not answer for was read"
