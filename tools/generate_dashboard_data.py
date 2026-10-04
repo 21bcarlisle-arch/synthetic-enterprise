@@ -2780,7 +2780,7 @@ def _check_front_door_segment_claim(dashboard, front_door_path=FRONT_DOOR_PATH):
 # ---------------------------------------------------------------------------
 VALUE_ARMS_FEED_PATH = PROJECT / "site" / "data" / "value_arms.json"
 _SELECTION_VERDICT_RE = re.compile(r'data-selection-verdict="(withheld|resolved)"')
-_SELECTION_DRAWS_RE = re.compile(r'data-selection-draws="(\d+)"')
+_SELECTION_DRAWS_RE = re.compile(r'data-selection-draws="(\d+|none)"')
 #: How the front door SPELLS a draw count in prose. The attribute above is what a gate can read;
 #: this is what a reader actually meets, and the two must not be allowed to drift apart -- the
 #: front door said "Re-drawn nine times" in two places with nothing checking either.
@@ -2863,6 +2863,19 @@ def _check_front_door_selection_draw_count(
 
     leg = (feed.get("current_world") or {}).get("selection_leg") or {}
     n = ((leg.get("verdict_stability") or {}).get("n"))
+    # `none` IS A CLAIM TOO, and it is held to the feed the same way: the door may say it rests on
+    # no re-draws only while the feed holds no usable family for this leg (2026-10-04, the QEP
+    # pair, whose floor is refused as a different book). The day a family lands, `none` goes red.
+    if stated == ["none"]:
+        if isinstance(n, int) and n >= 2:
+            print(
+                'FRONT-DOOR SELECTION-DRAWS GATE FAILED: the front door says data-selection-draws='
+                '"none" and this run\'s feed holds a family of {} re-draws for the selection leg. '
+                "State the count, in the attribute and in the prose.".format(n),
+                file=sys.stderr,
+            )
+            return False
+        return True
     if not isinstance(n, int) or n < 2:
         print(
             "FRONT-DOOR SELECTION-DRAWS GATE FAILED: the feed carries no usable "

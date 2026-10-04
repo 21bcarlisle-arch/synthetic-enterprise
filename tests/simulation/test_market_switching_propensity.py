@@ -75,15 +75,18 @@ class TestMarketSwitchingMultiplier:
         published record is NOT monotone in those savings, and that is precisely why a
         savings-only curve can never reproduce it:
 
-            2021 carries 0 GBP of savings and a published 17.9-18.4%.
-            2017 carries 200 GBP and a published 13.5-14.0%.
+            2021 carries 0 GBP of savings and a published 15.57% (DESNZ QEP 2.7.1).
+            2024 carries 150 GBP and a published 9.03%.
 
-        So 2021 must come out ABOVE 2017 despite offering nothing to switch for -- the H2-2021
+        So 2021 must come out ABOVE 2024 despite offering nothing to switch for -- the H2-2021
         collapse was suppliers withdrawing products, and the households who moved that year mostly
         did so through SoLR rather than by shopping. A multiplier that still ranked these two by
         savings would be reporting the curve, not the world.
         """
-        assert market_switching_multiplier(2021) > market_switching_multiplier(2017)
+        # The pair was 2021 vs 2017 until 2026-10-03; on the QEP record 2017 (18.20%) is above
+        # 2021, so savings and record agree there and the pair no longer discriminates.
+        assert market_switching_multiplier(2021) > market_switching_multiplier(2024)
+        assert market_switching_multiplier(2021) > market_switching_multiplier(2023)
         assert market_switching_multiplier(2020) > market_switching_multiplier(2016)
         # The crisis trough is still the bottom, and by more than the curve knew.
         assert market_switching_multiplier(2022) < market_switching_multiplier(2023) < 1.0

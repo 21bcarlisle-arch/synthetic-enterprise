@@ -252,8 +252,13 @@ THREE_ARM_PATH = PROJECT / "docs" / "observability" / "value_cycle_ab_s1_three_a
 #: MOVED 2026-10-03 TOGETHER WITH `CURRENT_WORLD_NOISE_FLOOR_PATH`, same world digest, other
 #: behaviour: the `20261002c` pair ran at `0cc052102`, a world that can refuse a fix above the
 #: default. What changed since `f18e8b5dc` is `CURRENT_WORLD_CHANGED_SINCE_THE_LAST_READING`.
+#:
+#: MOVED 2026-10-04 TOGETHER WITH `CURRENT_WORLD_NOISE_FLOOR_PATH`, to world `cdba75ebb9197b33`:
+#: the level anchor refit onto DESNZ QEP 2.7.1 lands with this pair. Both `20261004r` artefacts ran
+#: at origin `96517e68c` plus that refit, uncommitted; the refit's own paths are argued in
+#: `value_arms_substrate_exemptions.json`.
 CURRENT_WORLD_THREE_ARM_PATH = (
-    PROJECT / "docs" / "observability" / "value_cycle_ab_s1_three_arm_20261002c.json")
+    PROJECT / "docs" / "observability" / "value_cycle_ab_s1_three_arm_20261004r.json")
 #: WHAT MOVED BETWEEN THE LAST PUBLISHED PAIR AND THIS ONE, IN WORDS A READER CAN CHECK. The world
 #: digest is the same across them, so nothing generated says the worlds differ -- the digest
 #: identifies the departure level and the homes and is blind to a behaviour switch (graded Q0 of
@@ -262,16 +267,14 @@ CURRENT_WORLD_THREE_ARM_PATH = (
 #: Rewrite it whenever the pair moves; it names the commit it is relative to so a stale copy reads
 #: as stale.
 CURRENT_WORLD_CHANGED_SINCE_THE_LAST_READING = (
-    "What changed since the previous reading (run at f18e8b5dc): a household that stays now "
-    "declines a fixed renewal priced above its default tariff (757c8cada); a default-tariff "
-    "conversion records its stay decision again (822218441); a prospect is quoted only when both "
-    "fuels, ex-VAT, beat the default on the day (28eb35ec7); and the per-customer arm's churn "
-    "belief reads the offer against the published default instead of the household's own last "
-    "price (0cc052102). Four things moved at once, so no change in these figures can be put down "
-    "to any one of them. The choosing leg below is negative on every draw because of one "
-    "household's bad debt, written off after a renewal priced on a clean record: the per-customer "
-    "arm cannot see arrears, so it kept a debtor that the flat level happened to price away. "
-    "Without write-offs the choosing leg is positive on every draw.")
+    "What changed since the previous reading (run at 0cc052102): this is a different world. The "
+    "departure level was refitted onto the published switching record, DESNZ QEP table 2.7.1, "
+    "which every fitted year now matches within 0.3 percentage points; the old fit ran 2024 at "
+    "1.8 times the published rate. About forty company and world commits also landed between "
+    "the two runs, among them the debt objection that blocks an indebted household from "
+    "switching, the dated collections journey, the supplier stopping a bouncing direct debit, "
+    "and the default rate learned from the company's own book. All of that moved at once, so no "
+    "change in these figures can be put down to any one of them.")
 #: The spread `error_bar` is built from -- the block that owns the page's SELECTION VERDICT, the
 #: one sentence the mission turns on. NOT the same constant as `CURRENT_WORLD_NOISE_FLOOR_PATH`
 #: below, and the difference cost a turn: the 2026-09-17 write-up named THAT constant as the thing
@@ -569,8 +572,10 @@ AUC_FAMILY_SOURCE = "the 12-seed AUC-carrying floor of 2026-09-17"
 #: `f18e8b5dc` tree that ran the arms.
 #: MOVED 2026-10-03 with `CURRENT_WORLD_THREE_ARM_PATH`, to the same seeds and redraw mode re-drawn
 #: at `0cc052102`, so each seed compares with itself across the two commits.
+#: MOVED 2026-10-04 with `CURRENT_WORLD_THREE_ARM_PATH`, to the same seeds and redraw mode in world
+#: `cdba75ebb9197b33`, drawn in one process by the tree that ran the arms.
 CURRENT_WORLD_NOISE_FLOOR_PATH = (
-    PROJECT / "docs" / "observability" / "value_cycle_ab_s1_noise_floor_20261002c.json")
+    PROJECT / "docs" / "observability" / "value_cycle_ab_s1_noise_floor_20261004r.json")
 #: The ONE redraw mode whose seed spread bounds the published contrast, in the undecomposed
 #: artefact's own words (`redraw_scope.means`): "every household re-drawn -- the undecomposed
 #: floor, and the only mode whose spread bounds the published figure directly".

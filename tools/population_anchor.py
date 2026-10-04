@@ -63,7 +63,7 @@ if not _PUBLISHED_BAND_PCT:  # pragma: no cover - fail-closed; `published_bands`
 #: out. Not the high end -- that tie-break is a CURRICULUM value governing where the WORLD is
 #: aimed (commons `reserved`), and this is a measuring stick, not a dial.
 OFGEM_SWITCHING_RATE_PCT_BY_YEAR: dict[int, float] = {
-    year: round((lo + hi) / 2.0, 2) for year, (lo, hi) in sorted(_PUBLISHED_BAND_PCT.items())
+    year: round((lo + hi) / 2.0, 3) for year, (lo, hi) in sorted(_PUBLISHED_BAND_PCT.items())
 }
 
 #: The FRACTION form, derived by construction and never authored. Everything downstream of this
@@ -618,10 +618,10 @@ def generate(run_json_path=None, out_path=None, billing_ledger_path=None):
     if out_path is None:
         out_path = OUT_PATH
     data = json.loads(Path(run_json_path).read_text())
-    
+
     events = data.get("customer_events", [])
     years_data = data.get("years", {})
-    
+
     # C1b's second departure route. `svt_decisions` is every SVT segment evaluated (the
     # denominator); `svt_departures` is only the ones that fired. A run output carrying the
     # numerator alone can state how many left that way and NOT a rate, which is why the two are
@@ -714,7 +714,7 @@ def generate(run_json_path=None, out_path=None, billing_ledger_path=None):
         "arrears_vs_benchmark": arrears_findings,
         "acquisition_funnel_vs_benchmark": acquisition_funnel_findings,
     }
-    
+
     Path(out_path).parent.mkdir(parents=True, exist_ok=True)
     Path(out_path).write_text(json.dumps(result, indent=2))
     return result

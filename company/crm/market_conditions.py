@@ -110,7 +110,9 @@ def _load_published_rate_pct() -> dict[int, float]:
                 f"switching commons entry for {entry.get('year')} has band ({lo}, {hi}), which "
                 "is not an ordered rate range"
             )
-        series[int(entry["year"])] = round((lo + hi) / 2.0, 2)
+        # Three places, the precision the commons publishes since version 2 (2026-10-03): its
+        # bands are a published count's rounding, ~0.004pp wide, and a 2dp midpoint falls outside.
+        series[int(entry["year"])] = round((lo + hi) / 2.0, 3)
     return series
 
 
@@ -139,9 +141,9 @@ def market_conditions_multiplier(renewal_year: int | None) -> float:
     """Return the published market-switching-opportunity multiplier for `renewal_year`.
 
     Normalised so `MULTIPLIER_REFERENCE_YEAR` (2024, post-fairer-pricing-rule) = 1.0. Below 1.0
-    means the published record shows less switching than that baseline (2022 crisis: 0.25, on a
-    published 2.9-4.3%); above 1.0 means more (2020 high-water mark: 1.59, on a published
-    22.5-23.0%).
+    means the published record shows less switching than that baseline (2022 crisis: 0.34, on a
+    published 3.06%); above 1.0 means more (2019: 2.31, on a published 20.82%). DESNZ QEP 2.7.1,
+    via the commons.
 
     Returns DEFAULT_MULTIPLIER (1.0) for `None` or a year outside the published window.
     """

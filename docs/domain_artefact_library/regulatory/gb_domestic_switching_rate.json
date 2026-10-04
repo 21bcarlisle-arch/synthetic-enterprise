@@ -1,113 +1,123 @@
 {
   "artefact": "gb_domestic_switching_rate",
-  "version": 1,
+  "version": 2,
   "published_by": "DESNZ (Quarterly Domestic Energy Switching Statistics) and Energy UK, with Ofgem Retail Market Indicators as the live monthly series",
   "what_this_is": "THE PUBLISHED RECORD, NOT A READING OF IT. How many GB domestic electricity accounts changed supplier in each year, and how many accounts there were to change. Nothing here converts that into a supplier's book loss rate, a hazard, a per-renewal probability or a multiplier -- those are READINGS and each lane owns its own. The whole reason this artefact exists is that the world's departure LEVEL had never been compared with it: see docs/market_research/gb_switching_rate_denominators.md.",
   "basis": {
     "numerator": "EXTERNAL changes of supplier on a GB domestic ELECTRICITY meter point (MPAN), counted once per transfer. NOT tariff switches within the same supplier, which Ofgem's survey instruments do count and which are a different quantity.",
     "denominator": "ALL GB domestic electricity accounts, whether or not the account was at a decision point that year. A household mid-way through a fixed term is in the denominator and cannot be in the numerator. Any comparison that narrows the denominator to accounts AT a renewal point is measuring something else and will read high.",
     "units": "per cent of domestic electricity accounts per calendar year",
-    "denominator_count_millions": 28.0,
-    "denominator_count_note": "CORRECTED 2026-09-07, AND THE CORRECTION IS LEFT BESIDE THE CLAIM IT REPLACES. This field used to say GB domestic electricity accounts sat between 27.5m and 28.3m across 2016-2025 (company/market/market_report.py::_UK_DOMESTIC_ACCOUNTS_M, from Ofgem Retail Market Indicators), and that a 28.0m flat denominator moves any year by less than 0.4pp. BOTH ARE FALSE against the publisher. DESNZ QEP table 2.7.1 publishes the denominator on the same table as the numerator, and it runs 27.947m (2016) to 30.249m (2025) -- 2025 is 1.9m outside the old stated band, and the flat 28.0m moves 2025 by 0.84pp. The annual figure is the mean of that year's four quarters, which is the right convention for a whole-year rate. `denominator_count_millions` is deliberately NOT changed here: it is part of the band repair described in `source_check.checked_for_supersession`, which must land with the re-fit rather than piecemeal.",
+    "denominator_count_millions": null,
+    "denominator_count_note": "PER YEAR SINCE VERSION 2: each row carries `accounts_millions`, the publisher's own denominator from the same table as the numerator (27.947m in 2016 to 30.249m in 2025). The flat 28.0m version 1 held moved 2025 by 0.84pp and is retired.",
     "what_this_is_NOT": "A supplier's churn rate is not read off this for free ONLY in the cross-sectional sense: switching is concentrated in engaged households, so individual suppliers vary. In AGGREGATE the identity is exact -- total switches equals the sum of suppliers' external losses, and total accounts equals the sum of their books, so the account-weighted mean supplier loss rate IS this rate. An average-engagement book loses at this rate; it is not an upper bound on one."
   },
-  "series_source": "REFUTED 2026-09-07 AS A READING OF DESNZ SWITCHING STATISTICS -- see `source_check`. The table number was wrong at the root: the derivation cites 'DESNZ Quarterly Energy Prices Table 2.1', which is a PRICES table; the switching table is 2.7.1, and its figures disagree with this series in 8 of 10 years. Kept verbatim below because it is what these `rates` were built from and the band has not yet been re-sited. Original: docs/market_research/churn_price_elasticity.md section 1 (DESNZ Quarterly Energy Prices Table 2.1; Energy UK switching statistics; Ofgem State of the Market). That series was live-adjudicated against Energy UK and GOV.UK in docs/market_research/f5_simulated_competitor_field.md section 9, which confirmed 2020 ~5.9m and 2021 5.1m switches and DISCONFIRMED the competing in-repo series by ~3x at 2021.",
-  "band_meaning": "lo and hi are the range the published record bears for that year, not a confidence interval. Where the source states a switch COUNT the band is that count over the denominator with a rounding allowance; where it states a range of counts the band is that range. A reading inside the band is consistent with the published record; a reading outside it is not.",
+  "series_source": "DESNZ Quarterly Energy Prices table 2.7.1 (Annual sheet), edition 2026-06-30 (data to Jan-Mar 2026), sha256 6cd4dee481faf8f71068fa1ca7f86ef9cf049e546336d93c54d35368740c75b4: 'Electricity Transfers' over 'Total Electricity Customers'. RE-SITED 2026-10-03. Version 1's rates came from docs/market_research/churn_price_elasticity.md section 1, which cited 'DESNZ Quarterly Energy Prices Table 2.1' (a PRICES table) and disagreed with the publisher in 8 of 10 years; that refutation is in docs/staging/done/SEAT_FINDING_THE_SWITCHING_BANDS_OWN_PUBLISHER_DISAGREES_WITH_IT_IN_EIGHT_OF_TEN_YEARS_2026-09-07.md and the retired bands are in git history at version 1.",
+  "band_meaning": "lo and hi are the range the published COUNT bears at the precision DESNZ prints it (thousands of transfers), over that year's published accounts. They are not a confidence interval and not a statement about revisions: DESNZ revises the rolling table quarterly, and `source_check.how_to_recheck` is what notices.",
   "provenance_legend": {
-    "primary": "the value was read from the PUBLISHER's own release for THIS year -- a named DESNZ Quarterly Domestic Energy Switching Statistics edition, or the Energy UK release for that year -- during the pass that wrote the entry. NO ENTRY IN THIS FILE IS PRIMARY, and the level is defined here because reaching it is this artefact's own stated open job: `how_to_recheck` already says this file cites a derivation and not an edition, and names the missing thing as the specific DESNZ release each rate was read from.",
-    "secondary": "the band was taken from the in-repo derivation named in `series_source` (docs/market_research/churn_price_elasticity.md section 1, itself built from a DESNZ quarterly series), not from the publisher's own release for that year. Two years were separately live-adjudicated against Energy UK and GOV.UK -- 2020 at ~5.9m switches and 2021 at 5.1m, which also DISCONFIRMED a competing in-repo series by ~3x -- and that is why the series is believed. It is not why any single entry would be primary. EVERY ENTRY IN THIS FILE IS SECONDARY.",
+    "primary": "the value was read from the PUBLISHER's own table -- DESNZ QEP 2.7.1, a single rolling table whose Annual sheet carries every year, so there is no per-year edition and the edition read is named in `series_source`. EVERY ENTRY IN THIS FILE IS PRIMARY since version 2.",
+    "secondary": "the band was taken from an in-repo derivation rather than the publisher. Version 1 was entirely secondary and was refuted by the publisher; none remain.",
     "recalled": "author recall, NEVER fetched. There are none in this file. The level is kept so that an unsourced year added later has somewhere honest to go instead of taking the strongest level in the file because it is the only one defined."
   },
   "rates": [
     {
       "year": 2016,
-      "switches_millions_lo": 4.76,
-      "switches_millions_hi": 4.93,
-      "rate_pct_lo": 17.0,
-      "rate_pct_hi": 17.6,
-      "provenance": "secondary",
-      "note": "4.82m stated; peak challenger era."
+      "switches_millions_lo": 4.4195,
+      "switches_millions_hi": 4.4205,
+      "accounts_millions": 27.947,
+      "rate_pct_lo": 15.813,
+      "rate_pct_hi": 15.818,
+      "provenance": "primary",
+      "note": "4.420m electricity transfers over 27.947m electricity customers (mean of the year's quarters), DESNZ QEP 2.7.1 (Annual), edition 2026-06-30. Band = the published count's rounding (+/-0.0005m). peak challenger era."
     },
     {
       "year": 2017,
-      "switches_millions_lo": 3.78,
-      "switches_millions_hi": 3.92,
-      "rate_pct_lo": 13.5,
-      "rate_pct_hi": 14.0,
-      "provenance": "secondary",
-      "note": "3.84m stated; market consolidation."
+      "switches_millions_lo": 5.1175,
+      "switches_millions_hi": 5.1185,
+      "accounts_millions": 28.129,
+      "rate_pct_lo": 18.192,
+      "rate_pct_hi": 18.197,
+      "provenance": "primary",
+      "note": "5.118m electricity transfers over 28.129m electricity customers (mean of the year's quarters), DESNZ QEP 2.7.1 (Annual), edition 2026-06-30. Band = the published count's rounding (+/-0.0005m). a RISE on 2016, not consolidation -- the retired band held 3.84m here."
     },
     {
       "year": 2018,
-      "switches_millions_lo": 5.46,
-      "switches_millions_hi": 5.6,
-      "rate_pct_lo": 19.5,
-      "rate_pct_hi": 20.0,
-      "provenance": "secondary",
-      "note": "5.54m stated; pre-cap surge."
+      "switches_millions_lo": 5.4015,
+      "switches_millions_hi": 5.4025,
+      "accounts_millions": 28.336,
+      "rate_pct_lo": 19.062,
+      "rate_pct_hi": 19.066,
+      "provenance": "primary",
+      "note": "5.402m electricity transfers over 28.336m electricity customers (mean of the year's quarters), DESNZ QEP 2.7.1 (Annual), edition 2026-06-30. Band = the published count's rounding (+/-0.0005m). pre-cap surge."
     },
     {
       "year": 2019,
-      "switches_millions_lo": 5.8,
-      "switches_millions_hi": 5.96,
-      "rate_pct_lo": 20.7,
-      "rate_pct_hi": 21.3,
-      "provenance": "secondary",
-      "note": "5.88m stated, corroborated live by Energy UK. Default Tariff Cap live from January."
+      "switches_millions_lo": 5.9455,
+      "switches_millions_hi": 5.9465,
+      "accounts_millions": 28.556,
+      "rate_pct_lo": 20.82,
+      "rate_pct_hi": 20.824,
+      "provenance": "primary",
+      "note": "5.946m electricity transfers over 28.556m electricity customers (mean of the year's quarters), DESNZ QEP 2.7.1 (Annual), edition 2026-06-30. Band = the published count's rounding (+/-0.0005m). Default Tariff Cap live from January; the record's high-water mark on this table."
     },
     {
       "year": 2020,
-      "switches_millions_lo": 6.3,
-      "switches_millions_hi": 6.44,
-      "rate_pct_lo": 22.5,
-      "rate_pct_hi": 23.0,
-      "provenance": "secondary",
-      "note": "6.39m stated, corroborated live (~5.9m on the Energy UK count). The record's high-water mark."
+      "switches_millions_lo": 5.8105,
+      "switches_millions_hi": 5.8115,
+      "accounts_millions": 28.749,
+      "rate_pct_lo": 20.211,
+      "rate_pct_hi": 20.215,
+      "provenance": "primary",
+      "note": "5.811m electricity transfers over 28.749m electricity customers (mean of the year's quarters), DESNZ QEP 2.7.1 (Annual), edition 2026-06-30. Band = the published count's rounding (+/-0.0005m)."
     },
     {
       "year": 2021,
-      "switches_millions_lo": 5.01,
-      "switches_millions_hi": 5.15,
-      "rate_pct_lo": 17.9,
-      "rate_pct_hi": 18.4,
-      "provenance": "secondary",
-      "note": "5.06m stated; Energy UK 5.1m, '14% lower than 2020'. H2 near zero as suppliers withdrew products."
+      "switches_millions_lo": 4.5015,
+      "switches_millions_hi": 4.5025,
+      "accounts_millions": 28.916,
+      "rate_pct_lo": 15.567,
+      "rate_pct_hi": 15.571,
+      "provenance": "primary",
+      "note": "4.502m electricity transfers over 28.916m electricity customers (mean of the year's quarters), DESNZ QEP 2.7.1 (Annual), edition 2026-06-30. Band = the published count's rounding (+/-0.0005m). H2 near zero as suppliers withdrew products."
     },
     {
       "year": 2022,
-      "switches_millions_lo": 0.8,
-      "switches_millions_hi": 1.2,
-      "rate_pct_lo": 2.9,
-      "rate_pct_hi": 4.3,
-      "provenance": "secondary",
-      "note": "The crisis trough. Nothing was cheaper than a capped SVT, so there was nowhere to go."
+      "switches_millions_lo": 0.8925,
+      "switches_millions_hi": 0.8935,
+      "accounts_millions": 29.224,
+      "rate_pct_lo": 3.053,
+      "rate_pct_hi": 3.058,
+      "provenance": "primary",
+      "note": "0.893m electricity transfers over 29.224m electricity customers (mean of the year's quarters), DESNZ QEP 2.7.1 (Annual), edition 2026-06-30. Band = the published count's rounding (+/-0.0005m). The crisis trough. Nothing was cheaper than a capped SVT, so there was nowhere to go."
     },
     {
       "year": 2023,
-      "switches_millions_lo": 2.5,
-      "switches_millions_hi": 3.5,
-      "rate_pct_lo": 8.9,
-      "rate_pct_hi": 12.5,
-      "provenance": "secondary",
-      "note": "Recovery begins; fairer-pricing rule in force."
+      "switches_millions_lo": 1.8665,
+      "switches_millions_hi": 1.8675,
+      "accounts_millions": 29.487,
+      "rate_pct_lo": 6.329,
+      "rate_pct_hi": 6.334,
+      "provenance": "primary",
+      "note": "1.867m electricity transfers over 29.487m electricity customers (mean of the year's quarters), DESNZ QEP 2.7.1 (Annual), edition 2026-06-30. Band = the published count's rounding (+/-0.0005m). Recovery begins; fairer-pricing rule in force."
     },
     {
       "year": 2024,
-      "switches_millions_lo": 3.5,
-      "switches_millions_hi": 4.5,
-      "rate_pct_lo": 12.5,
-      "rate_pct_hi": 16.1,
-      "provenance": "secondary",
-      "note": "Post-ban equilibrium. Ofgem describes switching as still below pre-crisis levels, and it is -- against a 2020 of 23%."
+      "switches_millions_lo": 2.6805,
+      "switches_millions_hi": 2.6815,
+      "accounts_millions": 29.695,
+      "rate_pct_lo": 9.026,
+      "rate_pct_hi": 9.031,
+      "provenance": "primary",
+      "note": "2.681m electricity transfers over 29.695m electricity customers (mean of the year's quarters), DESNZ QEP 2.7.1 (Annual), edition 2026-06-30. Band = the published count's rounding (+/-0.0005m). Post-ban; still about half the pre-crisis rate."
     },
     {
       "year": 2025,
-      "switches_millions_lo": 4.0,
-      "switches_millions_hi": 5.0,
-      "rate_pct_lo": 14.3,
-      "rate_pct_hi": 17.9,
-      "provenance": "secondary",
-      "note": "Continued normalisation."
+      "switches_millions_lo": 3.1455,
+      "switches_millions_hi": 3.1465,
+      "accounts_millions": 30.249,
+      "rate_pct_lo": 10.398,
+      "rate_pct_hi": 10.402,
+      "provenance": "primary",
+      "note": "3.146m electricity transfers over 30.249m electricity customers (mean of the year's quarters), DESNZ QEP 2.7.1 (Annual), edition 2026-06-30. Band = the published count's rounding (+/-0.0005m). Continued normalisation."
     }
   ],
   "unreconciled_cross_check": {
@@ -126,138 +136,9 @@
     "version_token_is": "publisher_page_date",
     "how_to_recheck": "GET https://www.gov.uk/api/content/government/statistical-data-sets/quarterly-domestic-energy-switching-statistics and read `public_updated_at`; a value later than `version_token` means a new quarter has been published. THE ATTACHMENT URL IS A ROLLING ASSET AND MUST NOT BE THE KEY -- take `details.attachments[0].url` from that same response rather than storing it, because the asset hash changes at every edition (the RO artefact's rolling-window failure, one publication over). The workbook states its own edition on the Cover Sheet -- publication date, data period, next update -- so an edition read from the file needs no page metadata to be stamped. The figures are on the '2.7.1 (Annual)' sheet: 'Electricity Transfers' over 'Total Electricity Customers', both of which are GB domestic meter points (Note 4), non-domestic filtered since April 2016 (Note 5), NI excluded. NOT A PER-YEAR RELEASE: DESNZ publishes one rolling table revised quarterly whose Annual sheet carries every year from 2003, so there is no 'edition for 2019' to fetch and the `provenance_legend.primary` definition, which asks for one, is unreachable as written.",
     "checked_for_supersession": {
-      "on": "2026-09-07",
-      "found": "superseded",
-      "note": "SETTLED FROM `cannot_tell` ON 2026-09-07 BY FETCHING THE PUBLISHER, AND THE ANSWER IS WORSE THAN A STALE EDITION -- the publisher's own figures fall OUTSIDE the band in 8 of the 10 years, including every year from 2020 on. Edition read: publication date 30/06/2026, data period Jan-Mar 2026, sha256 6cd4dee481faf8f71068fa1ca7f86ef9cf049e546336d93c54d35368740c75b4. Published rates, electricity transfers over that year's electricity customers: 2016 15.82, 2017 18.19, 2018 19.06, 2019 20.82, 2020 20.21, 2021 15.57, 2022 3.06, 2023 6.33, 2024 9.03, 2025 10.40. Only 2019 and 2022 are inside. THE VERDICT IS ROBUST TO BOTH OBVIOUS RESCUES, CHECKED BEFORE IT WAS CLAIMED: against this artefact's own flat 28.0m denominator it is still 8 of 10 outside and the same 8 years; read as both fuels it is 8 of 10 outside too, and inside on DIFFERENT years (2023, 2024) than the electricity reading (2019, 2022). 2017 is not merely off but inverted -- the artefact holds 3.84m and calls it consolidation, the publisher has 5.118m, a 16 per cent RISE. THE BAND IS NOT REPAIRED IN THIS PASS AND THAT IS A JUDGEMENT: simulation/departure_level_anchor.py's YEAR_LEVEL_ANCHOR is fitted to each band's HIGH endpoint with 0.00pp of room above in all ten years, the new figures sit 3.5-7.1pp below it in 2023-2025, and re-siting `rates` without a re-capture and re-fit would put a whole-tree red at HEAD and wedge every lane. The band change and the re-fit are one atom and must land together.",
-      "open_finding": "docs/staging/done/SEAT_FINDING_THE_SWITCHING_BANDS_OWN_PUBLISHER_DISAGREES_WITH_IT_IN_EIGHT_OF_TEN_YEARS_2026-09-07.md"
+      "on": "2026-10-03",
+      "found": "current",
+      "note": "Version 2's rates ARE the edition read on 2026-09-07 (publication 30/06/2026, sha256 above), so they agree with it by construction. The refutation of version 1 that stood here, and the machine-readable `values_refuted_by_the_publisher` block, are retired with the values they refuted."
     }
-  },
-  "values_refuted_by_the_publisher": {
-    "what_this_is": "THE MACHINE-READABLE FORM of the refutation stated in prose in `source_check.checked_for_supersession.note`, added 2026-09-07 by a second lane that reached the same conclusion independently and concurrently. It is not a second opinion and it does not restate the verdict -- it exists so the claim can be CHECKED rather than read. `tests/architecture/test_a_refuted_commons_artefact_cannot_quietly_become_current.py` recomputes every flag below from the bands in `rates` on every run.",
-    "why_it_is_not_redundant": "A refutation written as prose beside the values it refutes goes stale silently and in the flattering direction. The cheapest way to make this finding disappear is not to correct a value -- it is to WIDEN one band until it swallows the publisher's figure, which moves no rate and reads as a refinement. Nothing held that shut. The control also fires the other way: when the real repair lands, every flag flips true and it forces this block to be regenerated or removed rather than left accusing the file of a defect it has fixed.",
-    "headline": "8 of 10 bands do not contain the publisher's own figure for that year.",
-    "comparison": [
-      {
-        "year": 2016,
-        "published_switches_millions": 4.42,
-        "published_accounts_millions": 27.947,
-        "published_gas_switches_millions_not_in_numerator": 3.347,
-        "published_rate_pct": 15.816,
-        "this_files_band_pct": [
-          17.0,
-          17.6
-        ],
-        "band_contains_the_publisher": false
-      },
-      {
-        "year": 2017,
-        "published_switches_millions": 5.118,
-        "published_accounts_millions": 28.129,
-        "published_gas_switches_millions_not_in_numerator": 4.144,
-        "published_rate_pct": 18.195,
-        "this_files_band_pct": [
-          13.5,
-          14.0
-        ],
-        "band_contains_the_publisher": false
-      },
-      {
-        "year": 2018,
-        "published_switches_millions": 5.402,
-        "published_accounts_millions": 28.336,
-        "published_gas_switches_millions_not_in_numerator": 4.517,
-        "published_rate_pct": 19.064,
-        "this_files_band_pct": [
-          19.5,
-          20.0
-        ],
-        "band_contains_the_publisher": false
-      },
-      {
-        "year": 2019,
-        "published_switches_millions": 5.946,
-        "published_accounts_millions": 28.556,
-        "published_gas_switches_millions_not_in_numerator": 4.822,
-        "published_rate_pct": 20.822,
-        "this_files_band_pct": [
-          20.7,
-          21.3
-        ],
-        "band_contains_the_publisher": true
-      },
-      {
-        "year": 2020,
-        "published_switches_millions": 5.811,
-        "published_accounts_millions": 28.749,
-        "published_gas_switches_millions_not_in_numerator": 4.336,
-        "published_rate_pct": 20.213,
-        "this_files_band_pct": [
-          22.5,
-          23.0
-        ],
-        "band_contains_the_publisher": false
-      },
-      {
-        "year": 2021,
-        "published_switches_millions": 4.502,
-        "published_accounts_millions": 28.916,
-        "published_gas_switches_millions_not_in_numerator": 3.082,
-        "published_rate_pct": 15.569,
-        "this_files_band_pct": [
-          17.9,
-          18.4
-        ],
-        "band_contains_the_publisher": false
-      },
-      {
-        "year": 2022,
-        "published_switches_millions": 0.893,
-        "published_accounts_millions": 29.224,
-        "published_gas_switches_millions_not_in_numerator": 0.566,
-        "published_rate_pct": 3.056,
-        "this_files_band_pct": [
-          2.9,
-          4.3
-        ],
-        "band_contains_the_publisher": true
-      },
-      {
-        "year": 2023,
-        "published_switches_millions": 1.867,
-        "published_accounts_millions": 29.487,
-        "published_gas_switches_millions_not_in_numerator": 1.195,
-        "published_rate_pct": 6.332,
-        "this_files_band_pct": [
-          8.9,
-          12.5
-        ],
-        "band_contains_the_publisher": false
-      },
-      {
-        "year": 2024,
-        "published_switches_millions": 2.681,
-        "published_accounts_millions": 29.695,
-        "published_gas_switches_millions_not_in_numerator": 2.092,
-        "published_rate_pct": 9.028,
-        "this_files_band_pct": [
-          12.5,
-          16.1
-        ],
-        "band_contains_the_publisher": false
-      },
-      {
-        "year": 2025,
-        "published_switches_millions": 3.146,
-        "published_accounts_millions": 30.249,
-        "published_gas_switches_millions_not_in_numerator": 2.474,
-        "published_rate_pct": 10.4,
-        "this_files_band_pct": [
-          14.3,
-          17.9
-        ],
-        "band_contains_the_publisher": false
-      }
-    ],
-    "what_this_block_does_not_settle": "Anything about the world. The world reads `rate_pct_hi` live, so the repair drops its target 16.1% on the mean and 42-49% in 2023-2025, and simulation/departure_level_anchor.py records six of seven fitted years BELOW their band by 3.3-9.0pp -- so the record is about to move TOWARD the world and part of that standing gap is this file being wrong rather than the world being wrong. HOW MUCH IS NOT ESTABLISHED AND MUST NOT BE GUESSED. Written down before the re-capture runs so it cannot be filed as a prediction afterwards, and so that a gap shrinking because its target moved is not read as the mechanism improving."
   }
 }

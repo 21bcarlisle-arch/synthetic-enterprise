@@ -1,61 +1,61 @@
 {
   "what_this_is": "the world's departure LEVEL measured with NO per-year level anchor fitted -- every year at `departure_level_anchor.NO_LEVEL_CORRECTION`, the multiplicative identity -- against the published GB domestic switching band. This is rung 1 of DIRECTOR_CANON_WORLD_VALIDATION_LADDER_2026-08-31: a check the world can fail. The fitted per-year table in `simulation/departure_level_anchor.py` achieves the published rate to four decimals in every fitted year by construction and therefore answers a different question -- whether the world has DRIFTED off its anchor, not whether its mechanism produces the record's level.",
   "measured_at_anchor": 1.0,
-  "capture": "docs/reports/pb4_d_fourth_pass_anchor_departure_factors.json",
-  "world_level_digest": "cf823b185f8ca51c",
+  "capture": "docs/reports/qep_g_second_qep_pass_anchor_departure_factors.json",
+  "world_level_digest": "cdba75ebb9197b33",
   "years": {
     "2017": {
       "band_pct": [
-        13.5,
-        14.0
+        18.192,
+        18.197
       ],
-      "emergent_pct": 7.7924,
-      "pp_outside_band": -5.7,
+      "emergent_pct": 9.6971,
+      "pp_outside_band": -8.495,
       "verdict": "LOW"
     },
     "2018": {
       "band_pct": [
-        19.5,
-        20.0
+        19.062,
+        19.066
       ],
-      "emergent_pct": 13.6834,
-      "pp_outside_band": -5.8,
+      "emergent_pct": 14.1723,
+      "pp_outside_band": -4.89,
       "verdict": "LOW"
     },
     "2019": {
       "band_pct": [
-        20.7,
-        21.3
+        20.82,
+        20.824
       ],
-      "emergent_pct": 13.9818,
-      "pp_outside_band": -6.7,
+      "emergent_pct": 14.7389,
+      "pp_outside_band": -6.081,
       "verdict": "LOW"
     },
     "2020": {
       "band_pct": [
-        22.5,
-        23.0
+        20.211,
+        20.215
       ],
-      "emergent_pct": 13.2703,
-      "pp_outside_band": -9.2,
+      "emergent_pct": 12.0476,
+      "pp_outside_band": -8.163,
       "verdict": "LOW"
     },
     "2021": {
       "band_pct": [
-        17.9,
-        18.4
+        15.567,
+        15.571
       ],
-      "emergent_pct": 10.6095,
-      "pp_outside_band": -7.3,
+      "emergent_pct": 8.6701,
+      "pp_outside_band": -6.897,
       "verdict": "LOW"
     },
     "2024": {
       "band_pct": [
-        12.5,
-        16.1
+        9.026,
+        9.031
       ],
-      "emergent_pct": 8.4487,
-      "pp_outside_band": -4.1,
+      "emergent_pct": 4.3947,
+      "pp_outside_band": -4.631,
       "verdict": "LOW"
     }
   },
@@ -69,6 +69,6 @@
   ],
   "in_band": 0,
   "n_years": 6,
-  "worst_pp_outside": -9.2,
+  "worst_pp_outside": -8.495,
   "how_to_regenerate": "python3 -m tools.fit_year_level_anchor --emergent-verdict"
 }

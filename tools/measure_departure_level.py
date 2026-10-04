@@ -96,7 +96,10 @@ COMMONS = PROJECT / "docs" / "domain_artefact_library" / "regulatory" / "gb_dome
 #: block was refitted twice (third and fourth pass). `pb4_d_fourth_pass_anchor_departure_factors.json`
 #: is the capture under the fourth block that lands with it. It has 104 renewal and 2,013 SVT
 #: decisions, and both halves are tracked.
-DEFAULT_TABLE = PROJECT / "docs" / "reports" / "pb4_d_fourth_pass_anchor_departure_factors.json"
+#: REPOINTED 2026-10-03 FOR THE QEP 2.7.1 RE-SITE of the commons: the record moved under the fit, and
+#: `qep_g_second_qep_pass_anchor_departure_factors.json` is the capture under the second QEP-pass
+#: block that lands with it. Both halves are tracked.
+DEFAULT_TABLE = PROJECT / "docs" / "reports" / "qep_g_second_qep_pass_anchor_departure_factors.json"
 
 #: Active domestic electricity accounts per year in the live run, from the opening finding's own
 #: table. NOT re-derived here: the factor table holds renewals, not the active book, so the

@@ -3615,7 +3615,12 @@ def _feed_whose_current_world_block_speaks() -> dict:
         if not pinned.is_file():
             pytest.fail("{} is missing -- this fixture's subject is UNAVAILABLE, and an "
                         "unavailable check is a FAILED check (R15)".format(pinned))
-    current = json.loads(current_path.read_text(encoding="utf-8"))
+    # STAMPED ONTO THE LIVE WORLD (2026-10-04), the way `_feed_whose_selection_leg_has_no_sign`
+    # is: the QEP refit moved the world to `cdba75ebb9197b33`, whose pair publishes no bound at all,
+    # so it has no resolved leg to trade. The world is incidental to the mirror; the verdicts are not.
+    from simulation.departure_level_anchor import world_level_identity
+    live_world = {"digest": world_level_identity()["digest"], "unavailable_because": None}
+    current = dict(json.loads(current_path.read_text(encoding="utf-8")), world_identity=live_world)
     # PUBLISHED FROM THE RUN'S OWN COMMIT, so the code check admits it. Whether HEAD's code still
     # matches the run is a fact about today's tree, controlled in tests/tools; these rungs need a
     # spoken clause whatever HEAD is.
@@ -3623,7 +3628,8 @@ def _feed_whose_current_world_block_speaks() -> dict:
         json.loads(earlier.read_text(encoding="utf-8")),
         json.loads(gvad.NOISE_FLOOR_PATH.read_text(encoding="utf-8")),
         current_three_arm=current,
-        current_floor=json.loads(current_floor_path.read_text(encoding="utf-8")),
+        current_floor=dict(json.loads(current_floor_path.read_text(encoding="utf-8")),
+                           world_identity=live_world),
         publishing_head=(current.get("producing_commit") or {}).get("commit"))
     cw = feed.get("current_world") or {}
     if (not cw.get("available") or cw.get("is_the_later_run") is False
@@ -6034,10 +6040,15 @@ def test_MUTATION_a_figure_whose_family_is_missing_never_renders_bare(live):
       * drop the mean column from `redrawBand` -> the same rung reds on `redraw_mean_gbp`.
       * render the band for the whole advantage and neither leg -> reds on the choosing row.
     """
-    feed = copy.deepcopy(_live_feed())
+    # ON THE BOUNDED FIXTURE (2026-10-04): the QEP pair publishes no family, so on the live feed
+    # the mean this rung removes is already absent and `'' not in rendered` cannot fail.
+    base = _feed_whose_current_world_block_speaks()
+    base_rendered = _render(base)["arms-redraw"]
+    feed = copy.deepcopy(base)
     cw = feed.get("current_world") or {}
     if not cw.get("available"):
-        pytest.skip("no current-world contrast in this publish, so there is no band to remove")
+        pytest.fail("the bounded fixture carries no current-world contrast, so there is no band "
+                    "to remove")
     cw.pop("verdict_stability", None)
     for key in ("selection_leg", "level_leg"):
         if cw.get(key):
@@ -6049,12 +6060,13 @@ def test_MUTATION_a_figure_whose_family_is_missing_never_renders_bare(live):
     assert "NOT RE-DRAWN" in rendered, (
         "a contrast with no re-draw family rendered without saying so -- the fail-open this "
         "whole block exists for")
-    live_mean = ((_live_feed().get("current_world") or {}).get("verdict_stability") or {}).get(
+    live_mean = ((base.get("current_world") or {}).get("verdict_stability") or {}).get(
         "redraw_mean_gbp")
+    assert live_mean is not None, "the bounded fixture carries no re-draw mean to remove"
     assert _door_gbp(live_mean) not in rendered, (
         "the mean survived the removal of the family it comes from, so the assertion in the rung "
         "above is satisfied by some other text and is an equivalence, not a control")
-    assert live["arms-redraw"] != rendered, (
+    assert base_rendered != rendered, (
         "the door rendered the same band with and without the re-draw families, so it is not "
         "reading them")
 
@@ -7153,14 +7165,16 @@ def test_the_selection_legs_withheld_verdict_reaches_the_reader(live):
     Fires on: dropping `verdict_withheld_because` from the render; printing a direction for a
     leg the feed refuses to give one for.
     """
-    feed = _live_feed()
+    # ON THE BOUNDED FIXTURE (2026-10-04): the QEP pair's leg carries no bound, so it withholds
+    # nothing -- it has no verdict to withhold. Its own refusal is held by the rung below this one.
+    feed = _feed_whose_current_world_block_speaks()
     selection = feed["current_world"]["selection_leg"]
     if not selection.get("verdict_withheld_because"):
-        pytest.fail("the live feed states a direction for the selection leg, so this control "
-                    "cannot run -- reported as a failure and never skipped, because a control "
-                    "that quietly stops asking is the failure it was written against")
+        pytest.fail("the bounded fixture states a direction for the selection leg, so this "
+                    "control cannot run -- reported as a failure and never skipped, because a "
+                    "control that quietly stops asking is the failure it was written against")
 
-    rendered = live["arms-legs-first"]
+    rendered = _render(feed)["arms-legs-first"]
     assert "NO DIRECTION IS STATED FOR THIS LEG" in rendered
     # The REASON, in the feed's own words, not a paraphrase this page composed.
     assert _door_prose(selection["verdict_withheld_because"])[:120] in rendered, (
@@ -8504,13 +8518,16 @@ def test_the_CURRENT_WORLD_panels_own_legs_carry_their_repeat_counts_to_the_read
     count that renders only when it is bad news teaches a reader its absence means the question
     was not asked.
     """
-    panel = _live_feed().get("current_world") or {}
+    # ON THE BOUNDED FIXTURE (2026-10-04): no leg of the QEP pair is bounded, so the live feed
+    # leaves this control nothing to count.
+    feed = _feed_whose_current_world_block_speaks()
+    panel = feed.get("current_world") or {}
     legs = {name: leg for name, leg in panel.items()
             if isinstance(leg, dict) and "verdict_withheld_because" in leg}
     assert legs, (
         "the current-world panel publishes no legs at all, so this control has no subject and is "
         "passing on absence")
-    rendered = live["arms-legs-first"]
+    rendered = _render(feed)["arms-legs-first"]
 
     counted = 0
     for name, leg in legs.items():
@@ -8832,7 +8849,9 @@ def test_the_selection_legs_root_cause_reaches_the_reader_and_no_seed_count_does
     # NO GAUSSIAN PRICE, read off the feed rather than the page, because the page never rendered
     # these keys and a page-only check would be green before the change too.
     distance = leg.get("distance_to_a_sign") or {}
-    assert distance.get("available") is False and distance.get("voided_because"), (
+    # ABSENT IS ALSO NO PRICE: a leg with no bound (the QEP pair) carries no distance block at all.
+    assert not distance or (distance.get("available") is False
+                            and distance.get("voided_because")), (
         "the selection leg still publishes a distance to a sign: {}".format(distance))
     for key in ("sems_from_zero", "seeds_needed_to_state_a_sign", "seeds_at_the_point_estimate",
                 "seeds_needed_interval"):

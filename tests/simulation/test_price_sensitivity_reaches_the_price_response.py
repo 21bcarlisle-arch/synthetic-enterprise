@@ -426,11 +426,15 @@ def _one_renewal(monkeypatch, sensitivity) -> float:
     event = roll_lifecycle_event(
         "C5", renewal, "electricity",
         _build_one_year_records(), _make_customers(),
-        # Ex-VAT, like every struck rate: the household sees it 20% above the inc-VAT SVT.
-        old_rate_gbp_per_mwh=svt, new_rate_gbp_per_mwh=svt * 1.20 / (1.0 + DOMESTIC_VAT_RATE),
+        # Ex-VAT, like every struck rate: the household sees it 10% above the inc-VAT SVT. It was
+        # 20% until 2026-10-03; under the QEP 2.7.1 re-fit this 2016 roll borrows 2024's anchor
+        # (20.8) at a 1.75 multiplier, and at +20% both households sit on the churn ceiling
+        # (0.9831), so the difference this asks about is saturated away, not unwired. At +10%
+        # they read 0.8935 and 0.8598.
+        old_rate_gbp_per_mwh=svt, new_rate_gbp_per_mwh=svt * 1.10 / (1.0 + DOMESTIC_VAT_RATE),
     )
     assert event is not None, "the fixture stopped reaching a renewal — it can no longer see this"
-    assert event["price_differential_vs_svt"] == pytest.approx(0.20), (
+    assert event["price_differential_vs_svt"] == pytest.approx(0.10), (
         "the fixture is no longer priced away from the market, so the weight has nothing to bite "
         "on and this whole section would pass vacuously")
     return event["realized_churn_probability"]

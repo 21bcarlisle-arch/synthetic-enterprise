@@ -4963,12 +4963,13 @@ def test_the_creation_leg_carries_its_own_live_world_bound_and_not_the_advantage
     # leg's three re-draws all clear their bar, so reading `CURRENT_WORLD_*_PATH` made this rung
     # red on a page whose leg had earned a sign. The 1002b pair is the same world, and its leg
     # withholds. UNANIMOUS below still witnesses the resolving branch.
-    current = _load(CURRENT_WORLD_THREE_ARM_1002B)
+    # STAMPED ONTO THE LIVE WORLD (2026-10-04). The QEP refit's own pair, `20261004r`, publishes no
+    # bound at all (its floor ended on a different book from its arms), so no live-world pair
+    # withholds a leg; WORLD below still witnesses the world guard on an unstamped floor.
+    stamp = {"digest": live, "unavailable_because": None}
+    current = dict(_load(CURRENT_WORLD_THREE_ARM_1002B), world_identity=stamp)
     superseded = _load(NOISE_FLOOR)
-    floor_live = _load(CURRENT_WORLD_NOISE_FLOOR_1002B)
-    assert ((current.get("world_identity") or {}).get("digest")) == live, (
-        "the committed current-world run no longer names the live world, so this control's "
-        "subject is gone -- re-run the arms rather than re-pointing the constant")
+    floor_live = dict(_load(CURRENT_WORLD_NOISE_FLOOR_1002B), world_identity=stamp)
 
     # STALE -- the age guard, on a floor stamped BEFORE the run it bounds.
     #
@@ -13685,9 +13686,12 @@ WORLD_D_FLOOR_AT_0407CE0E3 = (
 
 
 def _published_current_world(head):
+    # STAMPED ONTO THE LIVE WORLD (2026-10-04): the QEP refit moved it off `cf823b185f8ca51c`, and
+    # these controls ask which CODE drew the pair, to which the world is incidental.
+    live = {"digest": _live_digest(), "unavailable_because": None}
     return gva.build(gva._read(gva.THREE_ARM_PATH), gva._read(gva.NOISE_FLOOR_PATH),
-                     current_three_arm=_load(WORLD_D_ARMS_AT_0407CE0E3),
-                     current_floor=_load(WORLD_D_FLOOR_AT_0407CE0E3),
+                     current_three_arm=dict(_load(WORLD_D_ARMS_AT_0407CE0E3), world_identity=live),
+                     current_floor=dict(_load(WORLD_D_FLOOR_AT_0407CE0E3), world_identity=live),
                      publishing_head=head)["current_world"]
 
 

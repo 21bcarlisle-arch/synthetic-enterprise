@@ -56,9 +56,13 @@ _UK_DOMESTIC_ACCOUNTS_M: dict[int, float] = {
 # or retired before anything calibrated against it; nothing had. It reached no caller, so no shipped
 # figure moves -- but it is exactly the clean importable accessor a future build would have reached
 # for as a calibration target, which is what §9 predicted and why it is corrected rather than left.
+#
+# RE-READ 2026-10-03 ONTO DESNZ QEP 2.7.1 (the commons' version 2). The midpoints above were of
+# bands the publisher refuted in 8 of 10 years. These are the published rates themselves --
+# electricity transfers over that year's electricity customers -- to the precision the band bears.
 _UK_SWITCHING_RATE_PCT: dict[int, float] = {
-    2016: 17.3, 2017: 13.8, 2018: 19.8, 2019: 21.0, 2020: 22.8,
-    2021: 18.2, 2022: 3.6,  2023: 10.7, 2024: 14.3, 2025: 16.1,
+    2016: 15.816, 2017: 18.195, 2018: 19.064, 2019: 20.822, 2020: 20.213,
+    2021: 15.569, 2022: 3.056,  2023: 6.332,  2024: 9.028,  2025: 10.400,
 }
 
 

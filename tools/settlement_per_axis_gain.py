@@ -154,6 +154,27 @@ FILED_RECORDS = (
             "ratio": 0.9465,
         },
     },
+    {
+        "filed": "2026-10-04",
+        "base": "the QEP 2.7.1 re-fit of the level anchor (world cdba75ebb9197b33), before it landed",
+        "source": "SEAT_RESULT_THE_LEVEL_ANCHOR_REFIT_ONTO_DESNZ_QEP_2_7_1_2026-10-03.md",
+        "world": {
+            "level_digest": "cdba75ebb9197b33",
+            "home_digest": "35f8efe8ff02f245",
+        },
+        #: Measured, not predicted. Seeds 43-45 read 0.891 / 0.855 / 1.225 the same night: the
+        #: chooser is at or below parity with the cull on its worst axis, as on world D, and P1b
+        #: holds on all four seeds.
+        "scalars": {
+            "cull_settled": 62,
+            "cull_cy": 1044.9,
+            "chosen_settled": 57,
+            "chosen_cy": 1047.0,
+            "worst_ks_cull": 0.06522,
+            "worst_ks_chosen": 0.06958,
+            "ratio": 0.9373,
+        },
+    },
 )
 
 
