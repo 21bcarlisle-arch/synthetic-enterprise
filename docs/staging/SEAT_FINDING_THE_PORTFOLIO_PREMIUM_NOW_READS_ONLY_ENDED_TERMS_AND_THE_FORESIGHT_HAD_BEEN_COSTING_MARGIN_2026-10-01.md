@@ -1,4 +1,4 @@
-**Severity:** LATENT · **Lane:** B_commercial · **Epoch:** 3 · **Atom:** `D_opening_dd_seasonal_sizing` — Lane 0 delivery
+**Severity:** LATENT · **Lane:** B_commercial · **Epoch:** 2 · **Atom:** `EP3_pricing_engine_late_truth` — Lane 0 delivery
 
 # The portfolio premium now reads only ended terms, and the foresight had been costing margin
 

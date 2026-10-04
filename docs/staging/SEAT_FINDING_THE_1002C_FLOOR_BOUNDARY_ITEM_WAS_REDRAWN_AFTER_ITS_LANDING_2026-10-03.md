@@ -1,4 +1,4 @@
-**Severity:** LATENT · **Lane:** H_harness · **Epoch:** 3 · **Atom:** `EP1_clv_three_horizon` (value-arm floor)
+**Severity:** LATENT · **Lane:** H_harness · **Epoch:** unassigned · **Atom:** `unminted` (value-arm floor)
 
 # The 1002c floor boundary item was redrawn after its landing; its premise is spent
 

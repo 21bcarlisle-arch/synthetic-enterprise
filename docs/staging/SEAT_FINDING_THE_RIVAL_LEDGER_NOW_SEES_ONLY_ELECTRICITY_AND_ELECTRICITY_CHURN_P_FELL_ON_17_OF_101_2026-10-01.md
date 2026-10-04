@@ -1,4 +1,4 @@
-**Severity:** LATENT · **Lane:** B_commercial · **Epoch:** 3 · **Atom:** none — Lane 0 delivery
+**Severity:** LATENT · **Lane:** B_commercial · **Epoch:** 3 · **Atom:** `unminted` — Lane 0 delivery
 
 # The rival's ledger now sees only electricity strikes, and electricity churn p fell on 17 of 101 renewals
 

@@ -1,4 +1,4 @@
-**Severity:** LATENT · **Lane:** B_commercial · **Epoch:** 3 · **Atom:** none — Lane 0 delivery
+**Severity:** LATENT · **Lane:** B_commercial · **Epoch:** 3 · **Atom:** `unminted` — Lane 0 delivery
 
 # A gas renewal is now priced against the gas SVT, and the rival's ledger mixes both fuels
 

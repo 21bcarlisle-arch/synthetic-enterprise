@@ -1,4 +1,4 @@
-**Severity:** LATENT · **Lane:** H_harness · **Epoch:** unassigned · **Atom:** `H49_an_untracked_copy_of_an_earlier_origin_revision_is_cleared_like_a_twin`
+**Severity:** LATENT · **Lane:** H_harness · **Epoch:** 3 · **Atom:** `H49_an_untracked_copy_of_an_earlier_origin_revision_is_cleared_like_a_twin`
 
 # The shared tree was held 29 behind by four lanes' stranded level moves, and the fast-forward is now done
 

@@ -1,4 +1,4 @@
-**Severity:** LATENT · **Lane:** H_harness · **Epoch:** 3 · **Atom:** none · **Claim:** `the-forced-run-phase2b-legs-stop-building-fabric-for-the-whole-book` (Lane 0 delivery)
+**Severity:** LATENT · **Lane:** H_harness · **Epoch:** 3 · **Atom:** `unminted` · **Claim:** `the-forced-run-phase2b-legs-stop-building-fabric-for-the-whole-book` (Lane 0 delivery)
 
 # The second forced home-move leg reuses the first's fabric traces
 

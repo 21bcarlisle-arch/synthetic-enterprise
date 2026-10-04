@@ -1,4 +1,4 @@
-**Severity:** LATENT · **Lane:** B_commercial · **Epoch:** 3 · **Atom:** `W3_1b_intra_year_price_cap_granularity` · **Claim:** `does-a-chosen-fixed-tariff-belong-under-the-cap` (Lane 0 delivery)
+**Severity:** LATENT · **Lane:** W3_industry_systems · **Epoch:** 2 · **Atom:** `W3_1b_intra_year_price_cap_granularity` · **Claim:** `does-a-chosen-fixed-tariff-belong-under-the-cap` (Lane 0 delivery)
 
 # A chosen fixed renewal is outside the cap; a first term is held by an acquisition rule, because the world's acquisition cannot see a price
 

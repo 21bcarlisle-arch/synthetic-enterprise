@@ -1,4 +1,4 @@
-**Severity:** LATENT · **Lane:** B_commercial · **Epoch:** 3 · **Atom:** `PB3_book_growth_as_earned_outcome` · **Claim:** `make-acquisition-see-the-price-so-the-first-term-cap-rule-can-go` (Lane 0 delivery)
+**Severity:** LATENT · **Lane:** W2_customer_generator · **Epoch:** 2 · **Atom:** `PB3_book_growth_as_earned_outcome` · **Claim:** `make-acquisition-see-the-price-so-the-first-term-cap-rule-can-go` (Lane 0 delivery)
 
 # The acquisition no-offer rule now prices both fuels, ex-VAT, against the default on the day
 

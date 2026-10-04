@@ -1,4 +1,4 @@
-**Severity:** LATENT · **Lane:** W2_customer_generator · **Epoch:** 3 · **Atom:** none · **Claim:** `the-value-arms-world-stamp-names-the-code-it-ran` (Lane 0 delivery)
+**Severity:** LATENT · **Lane:** W2_customer_generator · **Epoch:** 3 · **Atom:** `unminted` · **Claim:** `the-value-arms-world-stamp-names-the-code-it-ran` (Lane 0 delivery)
 
 # The current-world arms now check which code they ran, and the 10-01 run is not HEAD's
 

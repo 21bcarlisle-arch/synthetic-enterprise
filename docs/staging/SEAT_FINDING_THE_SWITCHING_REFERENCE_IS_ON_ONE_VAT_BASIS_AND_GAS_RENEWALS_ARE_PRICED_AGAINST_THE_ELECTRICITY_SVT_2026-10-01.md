@@ -1,4 +1,4 @@
-**Severity:** LATENT · **Lane:** B_commercial · **Epoch:** 3 · **Atom:** none — Lane 0 delivery
+**Severity:** LATENT · **Lane:** B_commercial · **Epoch:** 3 · **Atom:** `unminted` — Lane 0 delivery
 
 # The switching reference is on one VAT basis, and gas renewals are priced against the electricity SVT
 

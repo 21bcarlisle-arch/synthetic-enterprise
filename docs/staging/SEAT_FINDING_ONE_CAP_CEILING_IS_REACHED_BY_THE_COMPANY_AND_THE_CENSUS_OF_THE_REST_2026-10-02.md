@@ -1,4 +1,4 @@
-**Severity:** LATENT · **Lane:** B_commercial · **Epoch:** 3 · **Atom:** `W3_1b_intra_year_price_cap_granularity` · **Claim:** `retire-the-sixth-cap-implementation` (Lane 0 delivery)
+**Severity:** LATENT · **Lane:** W3_industry_systems · **Epoch:** 2 · **Atom:** `W3_1b_intra_year_price_cap_granularity` · **Claim:** `retire-the-sixth-cap-implementation` (Lane 0 delivery)
 
 # One cap ceiling is reached by the company. This is the census of the others.
 

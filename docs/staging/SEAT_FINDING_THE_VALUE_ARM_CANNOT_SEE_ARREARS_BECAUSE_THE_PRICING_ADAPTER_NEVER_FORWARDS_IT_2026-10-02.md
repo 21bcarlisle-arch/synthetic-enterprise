@@ -1,4 +1,4 @@
-**Severity:** LATENT · **Lane:** B_commercial · **Epoch:** 3 · **Atom:** `value-arms-error-bar` · **Claim:** `read-selection-with-and-without-arrears-write-offs` (Lane 0 delivery)
+**Severity:** LATENT · **Lane:** B_commercial · **Epoch:** 3 · **Atom:** `unminted` · **Claim:** `read-selection-with-and-without-arrears-write-offs` (Lane 0 delivery)
 **Class:** `no_caller_and_never_runs`
 
 # The value arm cannot see arrears, because the pricing adapter never forwards them

@@ -1,4 +1,4 @@
-**Severity:** LATENT · **Lane:** H_harness · **Epoch:** 3 · **Atom:** `EP1_clv_three_horizon` (upstream world fidelity)
+**Severity:** LATENT · **Lane:** H_harness · **Epoch:** unassigned · **Atom:** `unminted` (upstream world fidelity)
 
 # The SVT anniversary roll removal was drawn twice, and the worker holds it
 
