@@ -1982,6 +1982,13 @@ def test_the_receipt_appended_after_the_message_gate_cannot_change_either_verdic
     assert write_time_gate.evaluate(owed, record + receipt, rows)["status"] == "OK", \
         "the receipt broke a valid REUSE record"
 
+    # DIRECTOR-DOCUMENT GATE: the third gate in the chain, the same equivalence.
+    from tools import director_document_gate as ddg
+    changed = ["M docs/design/DIRECTOR_CANON.md"]
+    marked = "fix\n\nDirector-doc: correction -- the date was wrong; the console says 10-01\n"
+    assert ddg.verdict("fix" + receipt, changed)[0] is False, "the receipt satisfied the gate"
+    assert ddg.verdict(marked + receipt, changed)[0] is True, "the receipt broke a valid trailer"
+
 
 def test_a_REAL_merge_landing_is_the_thing_that_declares_its_other_parent(
         repo: Path, witness: Path):

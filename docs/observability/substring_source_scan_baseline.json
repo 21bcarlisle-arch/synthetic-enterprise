@@ -1916,6 +1916,18 @@
       "path": "tools/write_time_gate.py",
       "function": "parse_records",
       "subject": "unknown"
+    },
+    {
+      "path": "tests/tools/test_director_document_gate.py",
+      "function": "test_the_REAL_hook_runs_the_gate_before_the_mark_is_stamped",
+      "subject": "unknown",
+      "why_frozen": "THE SUBJECT IS /bin/sh (2026-10-04). It reads tools/git-hooks/commit-msg -- a shell script -- and asserts the director-document gate is invoked BEFORE the hook_gate_mark stamp line. The `.py` the census cites is the gate's own path inside the shell line being searched for, not a file being read. Sits beside test_both_hooks_actually_invoke_the_mark_module and test_the_hook_line_exists_and_cannot_refuse_a_commit, frozen for the identical reason on the identical kind of file; tools/python_code_text.py parses Python and would be handed /bin/sh. Added by hand, not by --freeze."
+    },
+    {
+      "path": "tools/director_document_gate.py",
+      "function": "parse_trailer",
+      "subject": "unknown",
+      "why_frozen": "THE SUBJECT IS A COMMIT MESSAGE (2026-10-04). The taint reaches parse_trailer from main()'s read of the commit-msg hook's message file, and the match is a `Director-doc:` trailer regex over that message -- the same dismissal as write_time_gate.parse_records, which reads the REUSE record out of the same file. No Python is read; routing a commit message through tools/python_code_text.py would hand a Python parser prose. Added by hand, not by --freeze."
     }
   ]
 }
