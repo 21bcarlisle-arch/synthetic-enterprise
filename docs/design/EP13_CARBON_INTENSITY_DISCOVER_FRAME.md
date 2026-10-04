@@ -2569,3 +2569,67 @@ oracle headroom is still negative in every year (2024 −0.105 → −0.083), so
 carry 2019–20's correlation and the over-swing in every year. Write the prediction before the
 arm runs. (2) Coverage by year. No level move: L3 needs the reconstruction to fail like
 reality, and a swing that is too wide in every year is a one-sided error, not a reality-like one.
+
+## 36. 2026-10-04 — A BIOMASS RULE FROM THE ENVELOPE: the fleet's honest ends make it bang-bang, and every year swings too narrow
+
+§35's NEXT (1), the biomass half of §32's gradient. Measured, nothing shipped changed. Scratch, the
+rule as a patch (`armB.patch`) and the timestamped prediction are in `/var/tmp/se-ep13-s36-scratch/`.
+**Instrument check:** the reimplemented base arm reproduces the committed feed's records to five
+places (max diff 0.0, 959 records). On §31's wind-share deciles, the metered D1−D10 biomass gap is
+within about 0.1 GW of §32's biomass column in every year.
+
+**The rule (arm B), decided before it ran.** Biomass is dispatched by the model in the shape of
+§25's PS rule, but over the year rather than the day, because the gradient sits between days. The
+fleet ranks on the same pre-PS residual PS uses: b = clamp(R − L, `floor_mw`, `capacity_mw`), with
+one level L a year set so the year's mean equals the measured `mean_mw`. Three annual scalars cross,
+all from `biomass_envelope_by_year`, and no half-hourly biomass reading does. PS keeps its own
+input, so its schedule is unchanged. The ends are the envelope's honest ones, the observed minimum
+and maximum. `p1`/`p99` were not tried, because choosing ends after seeing the grade is fitting.
+
+| predicted (21:44Z) | measured | |
+|---|---|---|
+| P1 between-day falls every year by 0.03–0.12 | falls every year, by 0.12–0.16 | **refuted on size** in 5 of 6 |
+| P2 within-day falls every year by 0.02–0.08 | falls every year, by 0.16–0.20 | **refuted on size** in 6 of 6 |
+| P3 correlation moves <0.010 | −0.009 to −0.019 every year | **refuted** in 5 of 6 (2024 held at −0.0095) |
+| P4 rule vs metered timing positive, 0.2–0.6 | half-hourly 0.29–0.59 | held |
+| P5 rule's D1−D10 exceeds metered in ≥4 of 6 | 6 of 6, by 2.2–8x | held |
+| P6 headline p95/p5 falls from 1.22x | 1.22 → 0.90x (max/min 1.21 → 0.96x) | held, and now overshoots below 1.0 |
+
+| arm B vs shipped | 2019 | 2020 | 2021 | 2022 | 2023 | 2024 |
+|---|---|---|---|---|---|---|
+| correlation | .959→.940 | .931→.912 | .970→.954 | .982→.972 | .978→.964 | .972→.963 |
+| within-day overstated by | 1.06→0.86 | 1.10→0.92 | 1.00→0.83 | 1.00→0.84 | 1.02→0.83 | 1.07→0.87 |
+| between-day overstated by | 1.05→0.91 | 1.11→0.97 | 1.01→0.90 | 1.07→0.92 | 1.07→0.91 | 1.07→0.93 |
+| mean abs error | .061→.071 | .104→.104 | .055→.073 | .053→.067 | .068→.087 | .089→.096 |
+| D1−D10 biomass, rule / metered (MW) | 2,003 / 280 | 2,335 / 1,121 | 2,000 / 294 | 2,637 / 786 | 2,748 / 344 | 2,424 / 1,042 |
+| share of half hours at cap / at floor | .51/.32 | .53/.28 | .57/.28 | .43/.41 | .37/.45 | .53/.26 |
+
+**What it establishes.**
+- **The envelope cannot carry a dispatch rule.** Its ends are the most and least the whole fleet
+  ever produced. The least is set by outages (50–383 MW against means of 1.5–2.2 GW). A rule
+  between those ends that conserves energy runs bang-bang: at capacity for about half the year and
+  at the outage floor for about a third. GB's fleet never behaves like that. The swing flips from
+  too wide in every year to too narrow in every year, by more than it was wrong before.
+- **Biomass does follow the residual, but only partly.** The rule's timing correlates with the
+  meters at 0.29–0.59, and the fleet's calm-day excess is real in every year (+0.28 to +1.12 GW).
+  But the rule's gradient is 2.2–8x that. Most of the fleet does not move with price. §10's
+  "a CfD plant runs on availability" is consistent with this.
+- §10's 2026-08-27 envelope-dispatch result (worse on four axes of five) is reproduced on today's
+  model in a stronger form. It was not a relic of the old one.
+
+**What it does NOT establish.**
+- **Which part of the fleet follows price.** GB biomass sits under two support schemes. CfD units
+  are paid per MWh at a strike price and run on availability. ROC units earn per MWh too, but on
+  top of a wholesale price they can flex against. A rule that dispatches only the ROC share, at
+  published capacities by year, needs no fitted slope. **That split is a knowledge item, not a
+  number to pick.** It is not in the knowledge layer.
+- Coal, the other half of §32's gradient, was not touched (0.2–0.8 GW short of the meters through
+  2022, the largest term in 2019 and 2021).
+
+**Controls.** None. Nothing shipped changed, and the feed is byte-identical.
+
+**Next.** (1) A knowledge pass: GB biomass capacity by support scheme and year (Drax's CfD unit and
+its ROC units, Lynemouth, the others), from published scheme registers and annual reports. Then a
+rule that flexes only the ROC share, written and predicted before it is graded. (2) Coal's short
+level: split the merit order's coal band against FUELHH coal by decile. (3) Coverage by year. No
+level move: the shipped swing is still too wide in every year, a one-sided error.
