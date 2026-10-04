@@ -737,7 +737,6 @@ LEGACY_UNGRADABLE_BUILD_ROWS = frozenset({
     # `test_ungradable_build_rows_allowlist_has_no_FIXED_entries` is what makes the fix complete.
     "C_supply_start_consumer_routing",
     "D46_the_validator_holds_against_the_varied_population",
-    "G14_half_hourly_grid_carbon_intensity_aligned_to_settlement",
     "G15_forward_curve_series_to_backtest_hedging_by_physics",
     "H40_full_suite_pollution_bisect",
     "H46_the_consistency_gate_disagreement_before_the_next_publish",

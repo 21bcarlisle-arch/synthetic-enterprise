@@ -943,13 +943,13 @@
   epoch: 3
   level_current: 2
   level_target: 3
-  loop_stage: build
+  loop_stage: idle   # 2026-10-05 parked on block_reason (director), after s43
   # BLOCK DISCHARGED 2026-08-25 by the director's own instruction, quoted: "Wire the carbon
   # ledger to live meter reads and grid intensity, publish it with its provenance, and say
   # plainly what it does and does not yet include." The block was curriculum SEQUENCING -- this
   # atom was parked because the epoch-3 commitment set did not include it and pull-forward was
   # proposal-only. Being asked for it directly is what a pull-forward proposal exists to obtain.
-  block_reason: null
+  block_reason: "PARKED by the director 2026-10-05: history comes from NESO's published half-hourly series and futures from a statistical fit on it (G14); a plant-by-plant rebuild returns only if first-principles carbon is ever needed. Its record so far: docs/design/EP13_CARBON_INTENSITY_DISCOVER_FRAME.md; the findings write-up follows."
   dial_inherited: 3
   provenance: director_ruling
   depends_on: ['EP6_wall_protocol_typing']
@@ -1664,12 +1664,17 @@
   level_current: 0
   level_target: 3
   loop_stage: build
-  dial_inherited: 45    # authorised but NOT stage 1: the world and billing come first, and the
+  dial_inherited: 3     # 2026-10-05 the director took this instead of EP13; was 45, authorised but NOT stage 1: the world and billing come first, and the
   #   use case this feeds is stage 3. Ranked so it is drawable without displacing W2_18/19/21/22.
   provenance: director_ruling
   depends_on: []
   couples_with: []
-  file_scope: ['docs/market_research/', 'tools/fetch_grid_carbon_intensity.py']
+  # 2026-10-05 the director moved carbon here from EP13: history = NESO's published series aligned
+  # to settlement, gap before 2018-05-11 filled from Elexon's fuel mix at NESO's own factors;
+  # futures = a statistical fit on wind, solar and demand, which the world generates from weather.
+  file_scope: ['docs/market_research/', 'sim/grid_carbon_history.py',
+    'tests/sim/test_grid_carbon_history.py', 'sim/grid_carbon_future.py',
+    'tests/sim/test_grid_carbon_future.py']
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a supplier publishing a customer's carbon footprint from an annual national average, then being asked which hour it was saved in."
 - id: G15_forward_curve_series_to_backtest_hedging_by_physics
