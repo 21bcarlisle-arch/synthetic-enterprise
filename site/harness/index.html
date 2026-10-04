@@ -677,7 +677,7 @@ function renderQueueChain(d) {
           return "<li>" + esc(g.name) + " — missing " + esc((g.missing || []).join(", ")) + "</li>";
         }).join("") + "</ul>"
       : "") +
-    renderQueueEpochs(q) + renderQueueLanes(q) +
+    renderQueueEpochs(q) + renderQueueLanes(q) + renderQueueServes(q.serves_by_hand) +
     "<p>" + esc(q.why_this_is_here || "") + "</p>";
 }
 
@@ -730,6 +730,29 @@ function renderQueueLanes(q) {
     (rows.length ? "<ul>" + rows.map(function (r) {
       return "<li>" + esc(r.name) + " — " + esc(r.why) + "</li>";
     }).join("") + "</ul>" : "");
+}
+
+/* WHETHER EACH ITEM SERVES THE ATOM IT NAMES (H45 EH-1's undecidable part). No check can say
+   that, so it is stated as a limit and dated by the last hand read, with the minted items filed
+   since that read named -- they are the part nobody has looked at. A feed without the record
+   says so rather than implying every item was read. */
+function renderQueueServes(s) {
+  var limit = "The gate checks that a named atom exists, and that the item's lane and epoch are " +
+    "that atom's. Whether the item actually serves the atom it names is not something it can " +
+    "check; that is read by hand.";
+  if (!s || !s.recorded) {
+    return "<p>" + limit + " This record carries no hand read, so whether any item serves its " +
+      "atom is not measured here.</p>";
+  }
+  var unread = s.not_yet_read || [], doubt = s.questioned || [];
+  return "<p>" + limit + " Last read <b>" + esc(s.last_read || "on an unrecorded date") +
+    "</b>: <b>" + n(s.read) + "</b> of the items naming a real atom have been read, and <b>" +
+    n(unread.length) + "</b> filed since have not." +
+    (doubt.length ? " The reader doubted <b>" + n(doubt.length) + "</b>." : "") + "</p>" +
+    (unread.length || doubt.length ? "<ul>" +
+      unread.map(function (u) { return "<li>" + esc(u) + " — not yet read</li>"; }).join("") +
+      doubt.map(function (r) { return "<li>" + esc(r.name) + " — " + esc(r.why) + "</li>"; }).join("") +
+      "</ul>" : "");
 }
 
 /* THE ONE FIGURE A PROGRAMME IS GATED ON, and the correction that moved it. A search over 45

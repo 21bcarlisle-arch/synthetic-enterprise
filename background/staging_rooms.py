@@ -74,6 +74,10 @@ from background.finding_severity import LANES, header_block
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_STAGING_ROOT = REPO_ROOT / "docs" / "staging"
+#: Who read which minted items against their atoms, and when. "Serves its atom" is a reader's
+#: judgement -- three instruments for it failed both ways (H45 EH-1) -- so it is recorded, not
+#: computed; what IS computed is which minted items no recorded read has covered.
+DEFAULT_SERVES_READS = REPO_ROOT / "docs" / "design" / "queue_serves_reads.json"
 
 #: The room a standing reference document lives in. A CLASS register is the machine's own
 #: index of a family of defects; it is re-rendered in place and never archived, so it is the
@@ -896,9 +900,41 @@ def lane_disagreement(chain: Chain, lanes: dict[str, str | None]) -> str | None:
             f"atom this item's subject serves (or `{UNMINTED}`), not the one its thread began on")
 
 
+def serves_by_hand(minted_names: list[str],
+                   reads_path: Path | str = DEFAULT_SERVES_READS) -> dict:
+    """Which of today's minted items a recorded hand read has covered, and which it has not.
+
+    The gate can check that a named atom exists and that the item's lane and epoch are its; it
+    cannot check that the item SERVES it (H45 EH-1). The page states that limit and dates it by
+    the last read. `not_yet_read` is the part that rots: every minted filing since the last read
+    lands there until someone reads it. An absent or unreadable record is `recorded: False`,
+    never "all read".
+    """
+    import json
+
+    try:
+        reads = json.loads(Path(reads_path).read_text(encoding="utf-8"))["reads"]
+    except (OSError, ValueError, KeyError, TypeError):
+        return {"recorded": False}
+    covered: set[str] = set()
+    questioned: dict[str, str] = {}
+    for r in reads:
+        covered.update(r.get("items", []))
+        questioned.update(r.get("questioned", {}))
+    current = set(minted_names)
+    return {
+        "recorded": True,
+        "last_read": max((r.get("date", "") for r in reads), default=None) or None,
+        "read": len(current & covered),
+        "not_yet_read": sorted(current - covered),
+        "questioned": [{"name": n, "why": questioned[n]} for n in sorted(current & set(questioned))],
+    }
+
+
 def chain_census(root: Path | str = DEFAULT_STAGING_ROOT,
                  epochs: dict[str, int | None] | None = None,
-                 lanes: dict[str, str | None] | None = None) -> dict:
+                 lanes: dict[str, str | None] | None = None,
+                 serves_reads: Path | str = DEFAULT_SERVES_READS) -> dict:
     """The queue's link to the map as disjoint counts over one population, for a reader.
 
     `chained + len(unchained) + unreadable == population`, and `chained` splits three ways:
@@ -910,7 +946,8 @@ def chain_census(root: Path | str = DEFAULT_STAGING_ROOT,
     `epoch_contradicted` lists the minted items whose declared epoch is not their
     atom's; `by_epoch` is where the minted work accretes, keyed by the ATOM's epoch.
     `lane_contradicted` lists the minted items whose lane is not their atom's (EH-1's
-    decidable part, `lane_disagreement`).
+    decidable part, `lane_disagreement`). `serves_by_hand` is EH-1's undecidable part, stated
+    as a limit and dated by the last recorded read (`serves_by_hand()`).
     The gaps ARE `unchained()`, the list the commit gate refuses on, so the page and the gate
     cannot become two opinions; an unreadable item is neither, and is counted as such.
     """
@@ -945,6 +982,7 @@ def chain_census(root: Path | str = DEFAULT_STAGING_ROOT,
         "by_epoch": dict(sorted(by_epoch.items())),
         "unchained": [{"name": c.path.name, "missing": list(c.missing)} for c in gaps],
         "unreadable": len(queue) - len(chained) - len(gaps),
+        "serves_by_hand": serves_by_hand([c.path.name for c in minted], serves_reads),
     }
 
 

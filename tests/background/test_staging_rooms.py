@@ -17,6 +17,8 @@ The filenames are the real ones from `docs/staging/` on the morning of 2026-08-2
 """
 from __future__ import annotations
 
+import json
+
 import pytest
 
 from background import alarm_repetition as sr_alarm
@@ -314,6 +316,38 @@ def test_the_none_yet_share_is_split_by_what_kind_of_item_each_is(tmp_path):
 
     assert census["unminted_by_kind"] == {"alarm": 1, "finding": 1}
     assert sum(census["unminted_by_kind"].values()) == census["unminted"] == 2
+
+
+def test_serves_its_atom_is_a_dated_hand_read_and_the_unread_minted_items_are_named(tmp_path):
+    """H45 EH-1's undecidable part, stated as a limit. Read, not-yet-read and questioned must all
+    be reachable at once over the census's own minted list, or a reader that marked every item
+    read (or none) would pass; an absent record must say so, never "all read".
+
+    MUTATIONS (must fire): count every minted item as read; drop `not_yet_read`; read the
+    unminted items too; report a missing record as recorded."""
+    room = tmp_path / "staging"
+    room.mkdir()
+    for name in ("SEAT_FINDING_READ_2026-10-04.md", "SEAT_FINDING_DOUBTED_2026-10-04.md",
+                 "SEAT_FINDING_NEW_2026-10-04.md"):
+        _write(room, name, _chain_line(3, "H45_x"))
+    _write(room, "SEAT_FINDING_NONE_2026-10-04.md", _chain_line(3, sr.UNMINTED))
+    reads = tmp_path / "reads.json"
+    reads.write_text(json.dumps({"reads": [{
+        "date": "2026-10-04",
+        "items": ["SEAT_FINDING_READ_2026-10-04.md", "SEAT_FINDING_DOUBTED_2026-10-04.md",
+                  "SEAT_FINDING_NONE_2026-10-04.md", "SEAT_FINDING_ARCHIVED_2026-10-01.md"],
+        "questioned": {"SEAT_FINDING_DOUBTED_2026-10-04.md": "serves B8, not H45_x"},
+    }]}), encoding="utf-8")
+
+    got = sr.chain_census(room, epochs={"H45_x": 3}, serves_reads=reads)["serves_by_hand"]
+
+    assert got["read"] and got["not_yet_read"] and got["questioned"]
+    assert got == {"recorded": True, "last_read": "2026-10-04", "read": 2,
+                   "not_yet_read": ["SEAT_FINDING_NEW_2026-10-04.md"],
+                   "questioned": [{"name": "SEAT_FINDING_DOUBTED_2026-10-04.md",
+                                   "why": "serves B8, not H45_x"}]}
+    missing = sr.chain_census(room, epochs={"H45_x": 3}, serves_reads=tmp_path / "absent.json")
+    assert missing["serves_by_hand"] == {"recorded": False}
 
 
 _EPOCHS = {"E2": 2, "E3": 3, "NOEPOCH": None}
