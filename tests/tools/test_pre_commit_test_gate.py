@@ -408,6 +408,9 @@ def test_pytest_subprocess_env_strips_GIT_star(monkeypatch):
     # The merge-parent read (2026-10-03) shells out to `git rev-parse` for the same reason; its
     # contract is tests/tools/test_a_merge_is_selected_by_its_combined_diff.py.
     monkeypatch.setattr(gate, "selection_paths", lambda staged: (staged, ""))
+    # The import-derived run (2026-10-04) shells out to `git grep` after the main pytest; its
+    # contract is tests/tools/test_pre_commit_test_gate_import_selection.py.
+    monkeypatch.setattr(gate, "import_derived_extras", lambda files, already: [])
     for k in ("GIT_INDEX_FILE", "GIT_DIR", "GIT_WORK_TREE", "GIT_PREFIX"):
         monkeypatch.setenv(k, "/should/not/leak")
     monkeypatch.setenv(gate.MERGE_PARENT_ENV, "deadbeef")

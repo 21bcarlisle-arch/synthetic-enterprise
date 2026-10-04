@@ -21,12 +21,14 @@ this repo's own one_way_door.py flags as a dangerous pattern; none of our commit
 """
 from __future__ import annotations
 
+import ast
 import os
 import re
 import shutil
 import subprocess
 import sys
 import tempfile
+import time
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -1079,6 +1081,82 @@ def data_surface_tests(path: str) -> list[str]:
         elif ref.startswith(CODE_PREFIXES):
             targets.update(tests_for(ref))
     return sorted(t for t in targets if (ROOT / t).exists())
+
+
+def _imports_module(source: str, dotted: str) -> bool:
+    """Does this source import `dotted` by name, at any depth of the file (a function-local import
+    counts)? `from pkg import mod` is the commonest shape here and is a module import even though
+    no single string in it spells `pkg.mod`; a regex on `from <dotted> import` misses it, and all
+    four stem reds of 2026-10-04 were written that way."""
+    try:
+        tree = ast.parse(source)
+    except (SyntaxError, ValueError):
+        return True  # cannot read it -> run it; an unparseable test fails loudly on its own
+    parent = dotted.rpartition(".")[0]
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            if any(a.name == dotted for a in node.names):
+                return True
+        elif isinstance(node, ast.ImportFrom) and node.level == 0 and node.module:
+            if node.module == dotted:
+                return True
+            if node.module == parent and any(a.name == dotted.rpartition(".")[2]
+                                             for a in node.names):
+                return True
+    return False
+
+
+def importing_tests(path: str, rev: str | None = None) -> list[str]:
+    """The `test_*.py` files that IMPORT a changed module directly (2026-10-04, the stem-mismatch
+    census). `tests_for` asks which tests are NAMED for a module, and 7 of 17 commits that turned a
+    test red at origin changed a module whose consumer was named for its aspect instead -- seven
+    days, five lanes, every one through a green gate. This asks the other question: which tests
+    LOAD it. Kept separate from `tests_for` for the reason that function gives.
+
+    ONE LEVEL, deliberately. A test that reaches the module through another module is not
+    selected; that depth was not priced and is its own item. `__init__.py` is skipped: every
+    submodule import executes it, so "who imports it" is the whole package's suite.
+
+    `git grep -w <stem>` narrows the candidates over the index, then the AST decides. `rev` reads
+    a past tree instead, which is how the coverage on the turning commits was printed."""
+    p = Path(path)
+    if (p.suffix != ".py" or p.name == "__init__.py" or p.name.startswith("test_")
+            or not path.startswith(CODE_PREFIXES) or path.startswith("tests/")):
+        return []
+    dotted = ".".join(p.with_suffix("").parts)
+    tree = [rev] if rev else []
+    r = subprocess.run(
+        ["git", "grep", "-l", "-w", "--fixed-strings", "-I", p.stem, *tree, "--",
+         "tests/*test_*.py"],
+        cwd=str(ROOT), capture_output=True, text=True,
+    )
+    if r.returncode > 1:
+        return []  # git failed: no claim -- the named and curated selections still stand
+    hits = []
+    for ln in r.stdout.splitlines():
+        cand = ln.strip().split(":", 1)[1] if rev else ln.strip()
+        if not Path(cand).name.startswith("test_"):
+            continue
+        if rev:
+            src = subprocess.run(["git", "show", f"{rev}:{cand}"], cwd=str(ROOT),
+                                 capture_output=True, text=True).stdout
+        else:
+            try:
+                src = (ROOT / cand).read_text(encoding="utf-8")
+            except OSError:
+                continue
+        if _imports_module(src, dotted):
+            hits.append(cand)
+    return sorted(hits)
+
+
+# THE IMPORT-DERIVED RUN'S BOUNDS (2026-10-04). Cost dials, not measured truths, sized on a
+# measurement: over the 57 importer files five ordinary commits would have added, 45 finished inside
+# 30s and four ran past 120s (whole-simulation tests), while every standing stem red's consumer
+# finished inside 10s. Unbounded, the extras of ONE ordinary commit (`1aa97f1a4`, 16 files) ran past
+# 25 minutes. A file over the cap is NOT GRADED and is named as such; it is never read as green.
+IMPORT_DERIVED_FILE_CAP_S = 30
+IMPORT_DERIVED_BUDGET_S = 180
 
 
 def select_targets(files: list[str]) -> list[str]:
@@ -2302,7 +2380,61 @@ def main() -> int:
         )
         return 1
     print("[test-gate] ✓ all targeted tests green")
+    extras = import_derived_extras(selected, targets)
+    if not extras:
+        return 0
+    print(f"[test-gate] {len(extras)} more test file(s) IMPORT a changed module "
+          f"(each capped at {IMPORT_DERIVED_FILE_CAP_S}s, {IMPORT_DERIVED_BUDGET_S}s in all)",
+          flush=True)
+    green, over_cap, unreached = run_import_derived(extras, gitless_env)
+    if not green:
+        sys.stderr.write(
+            "\n[test-gate] ❌ TESTS FAILED -- COMMIT REFUSED (import-derived selection).\n")
+        return 1
+    for label, rows in (("over the per-file cap", over_cap), ("past the budget", unreached)):
+        if rows:
+            print(f"[test-gate] NOT GRADED, {label}: {', '.join(rows)}")
+    print("[test-gate] ✓ every graded importer green")
     return 0
+
+
+# BELOW `main()` ON PURPOSE: `commit_refusal_attribution.gate_ranks` ranks RED TEST by the first
+# pytest call in this file, and this run comes AFTER the main one, so byte order is run order.
+def import_derived_extras(files: list[str], already: list[str]) -> list[str]:
+    """The importer tests of the changed modules that the main selection did not already run.
+    Run SEPARATELY from `select_targets`' answer, under `IMPORT_DERIVED_*`, because their cost is
+    unbounded where the named selection's is not -- see `run_import_derived`."""
+    have = set(already)
+    extra: set[str] = set()
+    for f in files:
+        extra.update(t for t in importing_tests(f) if t not in have)
+    return sorted(t for t in extra if (ROOT / t).exists())
+
+
+def run_import_derived(extras: list[str], env: dict) -> tuple[bool, list[str], list[str]]:
+    """Run each extra file in its own pytest under the per-file cap, until the budget is spent.
+    Returns (green, over_cap, unreached). One file per process so a slow file costs only its cap
+    and the files nobody graded can be NAMED -- one capped run would say only "ran out"."""
+    over_cap: list[str] = []
+    spent = 0.0
+    for i, t in enumerate(extras):
+        if spent >= IMPORT_DERIVED_BUDGET_S:
+            return True, over_cap, extras[i:]
+        start = time.monotonic()
+        try:
+            r = subprocess.run(
+                [sys.executable, "-m", "pytest", t, "-q", "--no-header", "-p", "no:cacheprovider"],
+                cwd=str(ROOT), env=env, timeout=IMPORT_DERIVED_FILE_CAP_S,
+            )
+        except subprocess.TimeoutExpired:
+            over_cap.append(t)
+        else:
+            if r.returncode not in (0, 5):  # 5 = nothing collected, not a red
+                print(f"[test-gate] ❌ {t} -- a test that IMPORTS a changed module is red",
+                      flush=True)
+                return False, over_cap, []
+        spent += time.monotonic() - start
+    return True, over_cap, []
 
 
 if __name__ == "__main__":
