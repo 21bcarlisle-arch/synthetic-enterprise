@@ -193,6 +193,10 @@ DIRECT_DEBIT = "direct_debit"
 STANDING_ORDER = "standing_order"
 CARD = "card"
 PREPAYMENT = "prepayment"
+#: Not a payment method a household is ON: the label of the cash that pays off an unpaid bill
+#: later (`later_settlement_date`). How arrears are repaid is not modelled, so it maps to no
+#: named rail at the seam.
+ARREARS_REPAYMENT = "arrears_repayment"
 
 # The DD share and the non-DD prepayment ratio live in `household_segments` alone, and are reached
 # here only through `payment_channel_for_customer` (see `generate_payment_method`).
@@ -382,6 +386,104 @@ def generate_payment_event(
         payment_date=payment_date,
         dd_failure_reason=dd_failure_reason,
     )
+
+
+# ---------------------------------------------------------------------------
+# WHAT HAPPENS AFTER THE DUE DATE: the later settlement of an unpaid domestic bill.
+#
+# `generate_payment_event` decides whether a bill is paid, paid late or not paid at all, and this
+# never changes that draw. Until 2026-10-04 a bill that was not paid stayed unpaid for the rest of
+# the run, so every household that ever missed a bill read as a debtor for ever after (56% of
+# renewal decisions on a full run were by an "indebted" household). Real unpaid domestic debt is
+# mostly repaid. This is the smallest sourced account of that, and of nothing else.
+#
+# THE ONE PUBLISHED RATE. Ofgem, *Impact assessment on review of domestic objections* (July 2016)
+# §1.38-1.39: of the domestic customers debt-blocked in November 2013 and April 2014, "just over
+# half ... had paid back their debt at the time of reporting (September 2015). Around 70% of those
+# that had paid off their debt at the time of reporting did so within three months."
+# `docs/market_research/domestic_debt_objection_rates_gb.md` row 22. That population is debts old
+# enough to object to, so the clock here starts on the day an unpaid bill becomes objectionable:
+# its due date plus SLC 14's 28 days.
+#
+# NAMED GAPS, each with the direction it moves eligibility for the debt objection:
+#   1. RE-PRESENTATION. A returned DD is re-presented (British Gas: 14 days later), but no success
+#      rate is published (`dd_failure_basis_and_live_arrears_provision_rates.md` C1), and the
+#      world's DD failure rate has no stated basis either -- if it is already net of
+#      re-presentation, adding a cure here would count it twice. `REPRESENTATION_SUCCESS_SHARE` is
+#      None, and nothing is cured inside the 28 days. Overstates debtors if the failure rate is
+#      first-presentation.
+#   2. DATING, AND THE OTHER HALF. Ofgem gives two windows, not a curve. Each settlement is dated
+#      at the END of its window (3 months, or the longer cohort's 22 months), the latest date the
+#      source allows. The half not repaid by the report is never repaid here, though Ofgem saw no
+#      further than 22 months. Both overstate time in debt; on a full run the second dominates
+#      (one never-repaid bill holds a household eligible at every later renewal).
+#   3. THE CLOCK START. Ofgem's clock starts at the block, which may be later than day 28.
+#      Understates time in debt; partly offsets gap 2.
+#   4. PER BILL, NOT PER HOUSEHOLD. Ofgem counts a customer's whole debt; each bill is drawn here on
+#      its own, so a household with n unpaid bills clears all of them with probability 0.5^n, not
+#      0.5. Chronic non-payers therefore stay in debt -- the conservative side.
+#   5. ONE LUMP, NO ARRANGEMENT. The debt is repaid in full on the settlement date; instalments
+#      under an SLC 27 arrangement are not modelled, and the debt counts as outstanding until then.
+#   6. VINTAGE AND MIX. 2013-2015, all payment methods (PPM "took longest"), applied to credit-meter
+#      domestic bills 2016-2025. Business bills (I&C/SME failures and disputes) are never cured:
+#      the source is domestic.
+#   7. LEAVERS. A bill is drawn at its due date, so a household that later leaves repays at the
+#      same rate as one that stays. Final-account debt recovers far worse (Centrica ARA 2025 Note
+#      17: 84-88% provisioned), so this overstates what leavers repay.
+
+#: "just over half" of debt-blocked domestic customers had repaid by the time of reporting -- read
+#: at its floor. Ofgem IA July 2016 §1.39; domestic_debt_objection_rates_gb.md row 22.
+LATER_SETTLEMENT_REPAID_SHARE = 0.5
+
+#: "Around 70% of those that had paid off their debt ... did so within three months." Same source.
+LATER_SETTLEMENT_WITHIN_FIRST_WINDOW_SHARE = 0.7
+
+#: The first window, "within three months". Same source.
+LATER_SETTLEMENT_FIRST_WINDOW_MONTHS = 3
+
+#: The longer of the two cohorts' spans to the report: blocked November 2013, reported September
+#: 2015. Computed from those months, never typed. Same source, §1.38-1.39.
+LATER_SETTLEMENT_REPORTING_WINDOW_MONTHS = (2015 * 12 + 9) - (2013 * 12 + 11)
+
+#: P(a returned DD is collected on re-presentation): NOT ESTABLISHED (named gap 1 above). None, so
+#: nothing settles inside the 28 days.
+REPRESENTATION_SUCCESS_SHARE: Optional[float] = None
+
+_LATER_SETTLEMENT_SUBSTREAM_BASE = "later_settlement"  # + "::<period_index>"
+
+
+def _add_months(d: date, months: int) -> date:
+    y, m = divmod(d.month - 1 + months, 12)
+    year, month = d.year + y, m + 1
+    for day in (d.day, 30, 29, 28):
+        try:
+            return date(year, month, day)
+        except ValueError:
+            continue
+    raise AssertionError("every month has a 28th")
+
+
+def later_settlement_date(event: PaymentEvent, segment: str = "resi",
+                          seed: Optional[int] = None) -> Optional[date]:
+    """The date the world's household pays an unpaid domestic bill off, or None if it does not.
+
+    Only a domestic `failed` bill is ever settled here: a paid or late bill already carries its
+    payment date, and a business failure or dispute has no sourced cure. Drawn from its own
+    period-isolated substream, so it never moves `generate_payment_event`'s draws or any other
+    period's. See the block above for the source and the seven named gaps.
+    """
+    if event.result != "failed" or is_business(segment):
+        return None
+    from simulation.debt_objection import DEBT_OBJECTION_MIN_DAYS_OUTSTANDING
+    objectionable_from = (date.fromisoformat(event.due_date)
+                          + timedelta(days=DEBT_OBJECTION_MIN_DAYS_OUTSTANDING))
+    u = _period_substream(_base_seed_for(event.customer_id, seed),
+                          _LATER_SETTLEMENT_SUBSTREAM_BASE, event.period_index).random()
+    if u < LATER_SETTLEMENT_REPAID_SHARE * LATER_SETTLEMENT_WITHIN_FIRST_WINDOW_SHARE:
+        return _add_months(objectionable_from, LATER_SETTLEMENT_FIRST_WINDOW_MONTHS)
+    if u < LATER_SETTLEMENT_REPAID_SHARE:
+        return _add_months(objectionable_from, LATER_SETTLEMENT_REPORTING_WINDOW_MONTHS)
+    return None
 
 
 def arrears_age_days(due_date: str, as_of_date: str, payment_date: Optional[str]) -> int:

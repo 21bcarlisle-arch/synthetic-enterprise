@@ -545,12 +545,12 @@ class PeriodRecord:
     __slots__ = (
         "customer_id", "period_index", "invoice_ref", "account_id",
         "due_date", "issue_date", "payment_method", "result",
-        "dd_failure_reason", "correlation_id", "days_late",
+        "dd_failure_reason", "correlation_id", "days_late", "settled_on",
     )
 
     def __init__(self, customer_id, period_index, invoice_ref, account_id,
                  due_date, issue_date, payment_method, result,
-                 dd_failure_reason, correlation_id, days_late=None):
+                 dd_failure_reason, correlation_id, days_late=None, settled_on=None):
         self.customer_id = customer_id
         self.period_index = period_index
         self.invoice_ref = invoice_ref
@@ -570,6 +570,15 @@ class PeriodRecord:
         # excluded from the denominator with a published witness rather than
         # quietly counted as one the company should not have flagged.
         self.days_late = days_late
+        # THE DAY A FAILED BILL WAS PAID OFF AFTER ALL, or None if the world never pays it
+        # (`payment_behaviour_source.later_settlement_date`, 2026-10-04). A failure is still a
+        # failure -- detection is about the day it happened -- but it is no longer OWED after this.
+        self.settled_on = settled_on
+
+    def is_unpaid_at(self, as_of) -> bool:
+        """True iff this is a failed bill still owed on `as_of` (its later settlement, if any, is
+        after `as_of`)."""
+        return self.result == "failed" and (self.settled_on is None or self.settled_on > as_of)
 
 
 def build_scenario(
@@ -12670,14 +12679,19 @@ def score_triad(
             # `as_of` says "current", which is precisely the disagreement that
             # made 94 of this dimension's 101 false ageings land on cases the
             # sibling dimension holds the company was RIGHT about.
+            # A failed bill the world paid off by `as_of` (`settled_on`) is NOT overdue at
+            # `as_of`: it is scored the way a payment past grace is -- excluded -- because the
+            # company was right it was owed and right it is now paid.
+            owed_now = r.is_unpaid_at(as_of)
             ageing_case_keys.append((r.customer_id, r.period_index))
             ageing_excluded.append(
-                r.result != "failed"
+                not owed_now
                 and (r.customer_id, r.period_index) not in never_flaggable
             )
             if r.result == "failed":
                 n_true_dd_failures += 1 if r.payment_method == DIRECT_DEBIT else 0
                 n_true_non_dd_failures += 1 if r.payment_method != DIRECT_DEBIT else 0
+            if owed_now:
                 true_days_overdue = (as_of - r.due_date).days
                 # Resolved THROUGH the ownership register (atom D21) rather
                 # than by a bare name, so what the control inspects is what

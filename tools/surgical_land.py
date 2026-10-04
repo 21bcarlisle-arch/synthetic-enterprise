@@ -119,6 +119,7 @@ from __future__ import annotations
 import argparse
 import atexit
 import os
+import re
 import shutil
 import signal
 import subprocess
@@ -1003,12 +1004,21 @@ def run_message_gate(checkout: Path, message: str, msg_hook_rel: str = MSG_HOOK_
 _PYTEST_SUMMARY = child_diagnostics.PYTEST_SUMMARY
 
 
+#: What each pytest-running step prints immediately before it hands over to pytest. Neither
+#: present means the chain ran no pytest at all -- the common case for a merge whose combined diff
+#: is empty -- and the receipt says so rather than 'not parsed', which reads as a parser fault.
+_PYTEST_LAUNCH = re.compile(r"^\[test-gate\] \d+ test file\(s\):|^\[site-lane\] running ",
+                            re.MULTILINE)
+
+
 def _test_summary(output: str) -> str:
     """Best-effort one-line count from the gate's own pytest output, for the receipt. Purely
     descriptive -- nothing branches on it, so a parse miss degrades to 'not parsed', never to a
     wrong pass/fail claim (the receipt's falsifiable fields are the shas and the path list)."""
     hits = _PYTEST_SUMMARY.findall(output)
-    return hits[-1].strip() if hits else "not parsed"
+    if hits:
+        return hits[-1].strip()
+    return "not parsed" if _PYTEST_LAUNCH.search(output) else "no tests selected"
 
 
 # THE SELECTOR MOVED (2026-08-24), and the move IS the class fix (R10). This refusal header

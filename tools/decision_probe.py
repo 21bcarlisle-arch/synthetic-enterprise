@@ -232,7 +232,8 @@ def probe(report_end: str | None = None, roll_seed: int | None = None) -> list[d
             # settlement pass's own `bad_debt_gbp` is a flat placeholder (1-6% by segment) and
             # read alone it showed every household as an ordinary payer.
             from simulation.run_phase4c_on_phase2b import main as run_phase4c
-            phase2b = run_phase4c(report_end=report_end, policy=CURRENT_POLICY)["phase2b"]
+            out = run_phase4c(report_end=report_end, policy=CURRENT_POLICY)
+            phase2b = out["phase2b"]
     finally:
         runner.decide_renewal_rate, runner.roll_lifecycle_event = real_price, real_roll
         events.churn_roll_for_renewal = real_dice
@@ -253,6 +254,18 @@ def probe(report_end: str | None = None, roll_seed: int | None = None) -> list[d
                 + float(lines["stayer_provision_gbp"]) - float(lines["unbooked_bad_debt_gbp"])
                 - (float(lines["dca_recovery_gbp"]) - float(lines["unbooked_recovery_gbp"])))
         billed[cid] = (max(0.0, lost), revenue.get(cid, 0.0))
+    # THE TERM'S OWN BAD DEBT (2026-10-04). A lifetime share charges a decision with debt that
+    # accrues after the next renewal -- PROS-2016-0098's 2017 renewal was scored with arrears it ran
+    # up years later, which no rule could have priced. Each decision is charged only the write-offs
+    # on bills dated inside the term it priced.
+    from simulation.arrears_engine import balance_write_offs
+    from simulation.household import supply_points_that_left
+    bills = out.get("bills") or []
+    churned = supply_points_that_left(
+        phase2b.get("churned_billing_accounts", []),
+        {r["customer_id"] for r in phase2b.get("all_records") or [] if isinstance(r, dict)})
+    term_bad_debt_shares(rows, bills, balance_write_offs(
+        bills, phase2b.get("per_customer_behavioral", {}), churned))
     later: dict[tuple, int] = {}
     for r in rows:
         later[(r["customer_id"], r["commodity"])] = later.get((r["customer_id"], r["commodity"]), 0) + 1
@@ -268,8 +281,39 @@ def probe(report_end: str | None = None, roll_seed: int | None = None) -> list[d
     return rows
 
 
+def term_bad_debt_shares(rows: list[dict], bills: list[dict], write_offs: dict) -> None:
+    """Set each row's `term_bad_debt_share`: GBP written off on this leg's bills whose period ends
+    inside the term the decision priced, over the GBP billed on those bills. The term runs from
+    the decision to the leg's next probed decision, or a year where there is none. `write_offs`
+    is `arrears_engine.balance_write_offs`, keyed (customer, period_end, commodity)."""
+    import datetime as _dt
+    starts: dict[tuple, list[str]] = {}
+    for r in rows:
+        starts.setdefault((r["customer_id"], r["commodity"]), []).append(r["term_start"][:10])
+    for v in starts.values():
+        v.sort()
+    by_leg: dict[tuple, list[dict]] = {}
+    for b in bills:
+        by_leg.setdefault((b.get("customer_id"), b.get("commodity", "electricity")), []).append(b)
+    for r in rows:
+        key = (r["customer_id"], r["commodity"])
+        begin = r["term_start"][:10]
+        later = [d for d in starts[key] if d > begin]
+        end = later[0] if later else (
+            _dt.date.fromisoformat(begin) + _dt.timedelta(days=365)).isoformat()
+        billed = lost = 0.0
+        for b in by_leg.get(key, []):
+            pe = str(b.get("period_end", ""))[:10]
+            if begin <= pe < end:
+                billed += float(b.get("total_amount_gbp") or 0.0)
+                wo = write_offs.get((r["customer_id"], b.get("period_end"), b.get("commodity")))
+                lost += float((wo or {}).get("amount_gbp") or 0.0)
+        r["term_bad_debt_share"] = round(lost / billed, 5) if billed > 0 else None
+
+
 def expected_term_margin_gbp(row: dict, rule: str, bad_debt: bool = True,
-                             continuation: bool = False) -> float | None:
+                             continuation: bool = False,
+                             bad_debt_basis: str = "term") -> float | None:
     """What `rule` would have earned on this customer, in expectation, from this decision.
 
     Stay: the term's margin over the shared base x annual volume, less the household's TRUE
@@ -285,8 +329,13 @@ def expected_term_margin_gbp(row: dict, rule: str, bad_debt: bool = True,
     # Rows written before 2026-10-03 carry no such column and are scored on the offer.
     offer = (row.get("stayer_pays_gbp_per_mwh") or row["offer_gbp_per_mwh"])[rule]
     stay = (offer - row["base_gbp_per_mwh"]) * vol
-    if bad_debt and row.get("true_bad_debt_share") is not None:
-        stay -= row["true_bad_debt_share"] * offer * vol
+    # The term's own write-offs by default; the lifetime share where the row predates the column
+    # or the caller asks for it (`bad_debt_basis="lifetime"`), so old runs still score.
+    share = row.get("term_bad_debt_share") if bad_debt_basis == "term" else None
+    if share is None:
+        share = row.get("true_bad_debt_share")
+    if bad_debt and share is not None:
+        stay -= share * offer * vol
     if continuation:
         flat_margin = ((row.get("stayer_pays_gbp_per_mwh") or row["offer_gbp_per_mwh"])["flat"]
                        - row["base_gbp_per_mwh"]) * vol

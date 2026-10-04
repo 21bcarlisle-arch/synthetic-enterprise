@@ -840,8 +840,8 @@ def merge_parent(root: Path = ROOT, env: dict | None = None) -> str | None:
     return sha
 
 
-def selection_paths(staged: list[str], root: Path = ROOT,
-                    env: dict | None = None) -> tuple[list[str], str]:
+def selection_paths(staged: list[str], root: Path = ROOT, env: dict | None = None,
+                    label: str = "test-gate") -> tuple[list[str], str]:
     """The staged paths test selection keys on, and a line saying why (empty when unchanged).
 
     FOR A MERGE THIS IS ITS COMBINED DIFF: the staged paths whose content differs from EVERY parent
@@ -858,6 +858,9 @@ def selection_paths(staged: list[str], root: Path = ROOT,
     the combined diff. Every structural check in `main` and the hook chain still reads the FULL
     staged set; only the pytest selection narrows.
 
+    `tools/site_lane_gate.py` selects through this too, so the two lanes cannot disagree about
+    what a merge authored; `label` only names which lane is speaking.
+
     FAIL-CLOSED: if the merge parent cannot be diffed the full staged set is selected."""
     parent = merge_parent(root, env)
     if parent is None:
@@ -867,11 +870,11 @@ def selection_paths(staged: list[str], root: Path = ROOT,
         cwd=str(root), capture_output=True, text=True,
     )
     if r.returncode != 0:
-        return staged, (f"[test-gate] merge with {parent[:9]}: could not diff against it "
+        return staged, (f"[{label}] merge with {parent[:9]}: could not diff against it "
                         f"(rc={r.returncode}); selecting on all {len(staged)} staged path(s)")
     differs = {ln.strip() for ln in r.stdout.splitlines() if ln.strip()}
     combined = [p for p in staged if p in differs]
-    return combined, (f"[test-gate] merge with {parent[:9]}: selecting on its combined diff, "
+    return combined, (f"[{label}] merge with {parent[:9]}: selecting on its combined diff, "
                       f"{len(combined)} of {len(staged)} staged path(s): "
                       f"{', '.join(combined[:6]) or 'none'}")
 

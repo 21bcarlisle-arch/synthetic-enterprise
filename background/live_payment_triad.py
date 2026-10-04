@@ -76,6 +76,8 @@ whole 3-period scenario for the identical reason).
 """
 from __future__ import annotations
 
+import dataclasses
+import heapq
 from datetime import date, datetime, time, timedelta, timezone
 from typing import Callable, List, Optional
 
@@ -110,9 +112,11 @@ from interface.contracts.payment_observable_seam import (
 from interface.contracts.wall_envelope import WallRequest
 from simulation.arrears_engine import PAY_ON_RECEIPT_METHOD
 from simulation.payment_behaviour_source import (
+    ARREARS_REPAYMENT,
     DIRECT_DEBIT,
     generate_payment_event,
     generate_payment_method,
+    later_settlement_date,
 )
 from simulation.payment_seam_adapter import (
     MandateNotificationStream,
@@ -360,10 +364,14 @@ def unpursued_arrears(
                 still_flagged.add(case)
 
     truth = {(r.customer_id, r.period_index) for r in records if r.result == "failed"}
-    detected = truth & ever_flagged
+    # A failed invoice the world paid off by `as_of` is no longer an arrears case, so the company
+    # letting it go is right, not a lost case (2026-10-04, `PeriodRecord.settled_on`).
+    owed = {(r.customer_id, r.period_index) for r in records if r.is_unpaid_at(as_of)}
+    detected = truth & owed & ever_flagged
     unpursued = detected - still_flagged
     return {
         "n_true_failures": len(truth),
+        "n_still_owed": len(owed),
         "n_ever_detected": len(detected),
         "n_unpursued": len(unpursued),
         # Vacuity is explicit: with nothing detected there is nothing that could
@@ -700,6 +708,13 @@ class LivePaymentTriad:
         self._n_ambiguous_records = 0
         self._n_ambiguous_credits = 0
         self._records: List[PeriodRecord] = []
+        # LATER SETTLEMENTS NOT YET DUE TO CROSS (2026-10-04). A failed bill the world pays off
+        # later is known to the world at its due date, but its cash may not reach the company
+        # before the day it is paid: it waits here, ordered by that day, and crosses only when the
+        # run has reached it (`_deliver_settlements_through`). The ledger's reads are as-of anyway;
+        # holding it back means the company never holds a payment from its own future at all.
+        self._pending_settlements: list = []
+        self._n_settlements_delivered = 0
         # persistent per-customer method archetype cache (drawn once, C-S2)
         self._method_cache: dict = {}
         # WHAT THE DELIVERIES LOOKED LIKE (atom EP6, pass 49 -- Q6). One
@@ -762,6 +777,7 @@ class LivePaymentTriad:
         any account is the previous month. The consumer requires that date and refuses to default
         it -- a window nobody chose is how a DIRECTION column becomes a made-up interval.
         """
+        self._deliver_settlements_through(as_of)
         return self._consumer.arrears_state(
             f"ACC-{customer_id}",
             as_of,
@@ -779,6 +795,7 @@ class LivePaymentTriad:
         `billed_last_year_gbp` is everything billed in the 365 days to `as_of`. Read at the
         renewal, before this term's bills post -- the no-look-ahead bound `arrears_state` keeps.
         """
+        self._deliver_settlements_through(as_of)
         account = f"ACC-{customer_id}"
         unpaid = self._consumer.unpaid_bills_by_age(account, as_of, segment=segment)
         if unpaid is None:
@@ -798,6 +815,7 @@ class LivePaymentTriad:
         is the run's reading of the company's own method register on a date, used only to read each charge
         on its published row, `None` for an account the renewal price does not learn from.
         """
+        self._deliver_settlements_through(as_of)
         return self._consumer.default_belief_rate(
             as_of, arrears_state,
             payment_method_of=payment_method_of,
@@ -824,7 +842,43 @@ class LivePaymentTriad:
         whatever this returned). What it asserts instead is REACHABILITY: that
         the world can no longer get the consumer, and that the second bridge
         entry is gone from `run_phase2b`."""
+        self._deliver_settlements_through(as_of)
         return detection_cell_measurements(self._records, self._consumer, as_of)
+
+    def _deliver_settlements_through(self, through: date) -> None:
+        """Cross every queued later settlement dated on or before `through`, oldest first.
+
+        WHAT CROSSES IS CASH, AND ONLY CASH: a remittance for the bill's amount, valued and observed
+        on the day it was paid, unreferenced (a household paying off arrears quotes its account,
+        not an invoice, so the company allocates it oldest-first like any other push payment). The
+        rail is OTHER because how arrears are repaid is not modelled. Nothing says the household
+        "intended" to clear a particular bill or that it had been drawn to -- the world's reason
+        stays here. The shadow company (D8) gets the same cash with the invoice reference
+        restored, as it does for every other credit."""
+        while self._pending_settlements and self._pending_settlements[0][0] <= through:
+            settled_on, _seq, event, account_id, invoice_ref, correlation_id = heapq.heappop(
+                self._pending_settlements)
+            hand_over = self._consumer.observe_hand_over(
+                emit_wire_responses(
+                    event, SeamAdapterInput(account_id=account_id, correlation_id=correlation_id)),
+                received_at=datetime.combine(settled_on, time(12, 0)),
+            )
+            self._hand_overs.append(hand_over)
+            for cf_wire in emit_wire_responses(
+                event,
+                SeamAdapterInput(account_id=account_id, correlation_id=correlation_id,
+                                 bank_reference=_counterfactual_correlation_id(
+                                     invoice_ref, correlation_id)),
+            ):
+                self._cf_consumer.observe_wire(cf_wire)
+            self._n_ambiguous_records += 1
+            self._n_ambiguous_credits += 1
+            self._n_settlements_delivered += 1
+
+    @property
+    def settlements_delivered(self) -> int:
+        """How many later settlements have crossed to the company so far."""
+        return self._n_settlements_delivered
 
     def _method_for(self, customer_id: str, fuel: str = "electricity") -> str:
         """The supply point's method, from the world's one channel draw -- the one
@@ -862,6 +916,7 @@ class LivePaymentTriad:
         DD by the due date?" -- the stop-notice board the seam reads. A stopped household is billed
         and pays on receipt from then on, so its bills stop being collection requests here too;
         the drawn arrangement stays in the cache because the household's trait does not change."""
+        self._deliver_settlements_through(due_date)
         period_index = _period_index_for(due_date)
         method = self._method_for(customer_id, fuel)
         if method == DIRECT_DEBIT and dd_stopped_by is not None and dd_stopped_by(
@@ -1070,6 +1125,19 @@ class LivePaymentTriad:
         ):
             self._cf_consumer.observe_wire(cf_wire)
 
+        # WHAT HAPPENS AFTER THE DUE DATE (2026-10-04). The world decides now whether, and when,
+        # the household pays this bill off after all -- its own substream, so no draw above moves
+        # -- and the cash waits in the queue until the run reaches that day.
+        settled_on = later_settlement_date(event, segment=segment)
+        if settled_on is not None:
+            heapq.heappush(self._pending_settlements, (
+                settled_on, len(self._records),
+                dataclasses.replace(
+                    event, result="success", payment_method=ARREARS_REPAYMENT,
+                    days_late=(settled_on - due_date).days,
+                    payment_date=settled_on.isoformat(), dd_failure_reason=None),
+                account_id, invoice_ref, f"{customer_id}::p{period_index}::settlement"))
+
         self._records.append(PeriodRecord(
             customer_id=customer_id, period_index=period_index,
             invoice_ref=invoice_ref, account_id=account_id,
@@ -1078,6 +1146,7 @@ class LivePaymentTriad:
             dd_failure_reason=event.dd_failure_reason,
             correlation_id=correlation_id,
             days_late=event.days_late,
+            settled_on=settled_on,
         ))
 
         # THE COLLECTIONS JOURNEY ADVANCES TO THE PREVIOUS BILL'S DUE DATE (atom EP4). Two bounds,
@@ -1088,6 +1157,8 @@ class LivePaymentTriad:
         # THIS bill's due date has not when the run's last, part-month is flushed at its end, and a
         # walk to it decided steps after the run was over (seen: a 2016-03-04 run dunning on 03-27).
         # The rest of the walk is `collections_journeys`, to the run's own last day.
+        # A later settlement dated on or before the previous due date has already crossed: this
+        # call delivered every one up to THIS due date before anything else.
         previous_due = self._journey_last_due.get(account_id)
         self._journey_segments[account_id] = segment
         self._journey_last_due[account_id] = due_date
@@ -1100,6 +1171,7 @@ class LivePaymentTriad:
         """Every account's collections journey on the COMPANY's own ledger, walked to `through`
         (the run's last day), as plain records -- the door shape of `arrears_state`: the run gets
         dated stages back and never the desk. Call once every bill has been posted."""
+        self._deliver_settlements_through(through)
         for account_id, segment in self._journey_segments.items():
             self._consumer.advance_collections_journey(account_id, through, segment=segment)
         return self._consumer.collections_journeys.journeys()
@@ -1115,6 +1187,7 @@ class LivePaymentTriad:
             return None
         if as_of is None:
             as_of = max(r.due_date for r in self._records) + timedelta(days=AS_OF_BUFFER_DAYS)
+        self._deliver_settlements_through(as_of)
         result = score_triad(self._records, self._consumer, as_of)
         result["remittance_attribution"] = self._attribute_remittance(result, as_of)
         return result
