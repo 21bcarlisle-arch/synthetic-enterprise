@@ -125,6 +125,33 @@ BASELINE_ALLOWLIST: dict[tuple[str, str], str] = {
         "copy is how one VAT rule became five). Post-seam and deliberate, "
         "not debt: it moves only if the formula gets a home both domains own."
     ),
+    # The own-book default belief (2026-10-03) crosses both ways: the walk reads
+    # billing's ledger, and each charge is read on pricing's per-method provision
+    # rows. Remedy: move `observe_book` (the ledger walk) into billing and hand
+    # pricing plain observations through a typed seam message.
+    (
+        "company/pricing/default_belief.py",
+        "company.billing.account_ledger",
+    ): (
+        "PRICING->BILLING: observe_book walks the company's own LedgerBook "
+        "(bill debits, write-off credits) to learn its default rate. Debt; "
+        "remedy above."
+    ),
+    (
+        "company/pricing/default_belief.py",
+        "company.billing.arrears_engine",
+    ): (
+        "PRICING->BILLING: the arrears age of unpaid money is billing's FIFO "
+        "(fifo_unpaid_bills), shared, not copied. Debt; remedy above."
+    ),
+    (
+        "company/billing/payment_observation_consumer.py",
+        "company.pricing.default_belief",
+    ): (
+        "BILLING->PRICING: the ledger's owner asks pricing's belief for a "
+        "renewal's bad-debt rate (default_belief_rate), a function-local "
+        "import. Debt; remedy above."
+    ),
 }
 
 
