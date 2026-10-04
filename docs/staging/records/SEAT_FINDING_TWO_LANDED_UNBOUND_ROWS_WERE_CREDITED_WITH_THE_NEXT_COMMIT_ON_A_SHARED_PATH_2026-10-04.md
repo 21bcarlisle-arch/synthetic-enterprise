@@ -53,3 +53,28 @@ last 24h and labels it, so both ids drop off only by age. Read it as "neither ro
 `landed_unbound`/`not_done`", which already held. `--premise-spent` on the focus id was refused
 because the ledger already credits it with a landing after its last draw. `--release` then retired
 it, and `_retired_ids()` keeps `_focus` from offering it again before the seat re-orients.
+
+## Drawn a third time at 05:31 BST. Correction: the redraws were a defect, not the `_retired_ids` limit
+
+The paragraph above says `--release` retired the id and `_retired_ids()` would hold it. It did not
+hold. The executor log shows the full cycle twice: retired at 03:54Z, re-promoted at 03:59Z, and
+again at 04:24Z. Each re-promotion was followed by a draw.
+
+**Cause, measured.** A worktree runs origin's code. Origin's `direction.validate` refuses the shared
+tree's `DIRECTION.yaml`: the orienting seat wrote it with code 158 commits behind, and it has a
+`for_the_director` row with no `id`, `proposal` or `status`. `read_direction` returns None for a
+refused record, so `current_orientation()` returned None in every worktree. The shared tree's own
+code reads the stamp `2026-10-04T02:22:43Z`. Every worktree `--release` therefore stamped its
+retirement with no orientation. `hand_off_focus` reads None as "do not refuse", so the executor's
+next stand-down re-promoted the row, and `hand_off` replaced the retired entry. This hits every
+item a worktree finished while the schemas disagreed, not just this one.
+
+**Fix.** `current_orientation` now falls back to the record's raw `oriented_at` when this checkout's
+schema refuses the record. The question it answers is which orientation the record is, and schema
+validity does not bear on that. Control:
+`test_a_shared_record_this_checkouts_schema_refuses_still_names_its_orientation`. With the fallback
+removed, that test fails.
+
+**Disposition.** The premise is still spent: both rows read `premise_spent` with their commits. This
+draw did nothing to the rows. It lands the fix and releases the focus id under the stamped
+orientation.

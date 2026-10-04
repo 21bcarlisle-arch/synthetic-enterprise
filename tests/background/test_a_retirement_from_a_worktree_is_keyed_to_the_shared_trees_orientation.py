@@ -81,3 +81,22 @@ def test_a_release_from_the_worktree_blocks_the_executors_re_promotion(tmp_path,
         assert "RETIRED" in str(refusal)
     else:
         raise AssertionError("a finished row was re-promoted under the orientation it finished in")
+
+
+def test_a_shared_record_this_checkouts_schema_refuses_still_names_its_orientation(tmp_path, monkeypatch):
+    """2026-10-04: the shared record failed origin's `validate` (an older `for_the_director` row), so
+    every worktree release stamped None and a landed focus row was redrawn three times.
+
+    Mutation: drop the raw-stamp fallback in `current_orientation`. The first assertion reds.
+    The control below it keeps the fallback from answering for a file it cannot parse at all."""
+    main, worktree = _trees(tmp_path)
+    shared = main / "docs" / "direction" / "DIRECTION.yaml"
+    lines = [ln for ln in shared.read_text(encoding="utf-8").splitlines()
+             if not ln.startswith("for_the_director:")]
+    shared.write_text("\n".join(lines) + "\nfor_the_director:\n  - what: a row the schema refuses\n",
+                      encoding="utf-8")
+    assert delivery_lane.direction_mod.read_direction(shared) is None   # the schema does refuse it
+    monkeypatch.setattr(seat_continuation, "PROJECT_DIR", worktree)
+    assert delivery_lane.current_orientation() == SHARED_STAMP
+    shared.write_text("oriented_at: [unclosed\n", encoding="utf-8")
+    assert delivery_lane.current_orientation() is None

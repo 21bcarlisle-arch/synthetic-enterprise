@@ -3327,10 +3327,24 @@ def current_orientation(path: Path | None = None) -> str | None:
     `a-long-job-that-dies-is-shown-dead-in-the-brief` was redrawn twice after landing that way.
     The retirement and the guard must read one record, so this default resolves the way
     `seat_continuation.STORE` does. See `orientation_path`.
+
+    THE STAMP, NOT THE VALIDATED RECORD (2026-10-04). The shared tree's daemons can run code many
+    commits behind the worktree's, and the orienting seat writes the record with its own code's
+    schema. On 2026-10-04 origin's `validate` refused the shared record (an older `for_the_director`
+    row shape), so every worktree `--release` stamped None, `hand_off_focus` read None as "do not
+    refuse", and `bind-the-two-landed-unbound-lane-0-rows` was re-promoted and redrawn three times
+    after it landed. Whether a record satisfies THIS checkout's schema says nothing about which
+    orientation it is, so a record `read_direction` refuses still yields its `oriented_at`.
     """
+    target = orientation_path() if path is None else path
     try:
-        record = direction_mod.read_direction(orientation_path() if path is None else path)
-        return record.oriented_at.isoformat() if record is not None else None
+        record = direction_mod.read_direction(target)
+        if record is not None:
+            return record.oriented_at.isoformat()
+        import yaml
+        raw = yaml.safe_load(target.read_text(encoding="utf-8"))
+        stamp = direction_mod._iso(raw.get("oriented_at")) if isinstance(raw, dict) else None
+        return stamp.isoformat() if stamp is not None else None
     except Exception:  # noqa: BLE001 - the draw must never go down for want of a timestamp
         return None
 
