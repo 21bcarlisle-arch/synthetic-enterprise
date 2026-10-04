@@ -166,6 +166,22 @@ a commit, and its paths, including both `20261004r` artefacts, are still staged 
 not run on the pre-refit world. The next draw re-checks condition 1 against origin. Once the refit
 commit is an ancestor, the command below is unchanged.
 
+### Stage A launched, 2026-10-04 14:02Z, on the refitted world
+
+Drawn again under the same id. **Condition 1 held.** The refit's world change landed as
+b9ede156f (`world_level_identity` cf823b185f8ca51c → cdba75ebb9197b33). The run's base is origin
+`0859ac1a3`, and both b9ede156f and ba320e2d2 are its ancestors. **Condition 2 held:** available_mb
+was 12,199. The heads-arms re-take (`longjob-heads-arms-retake`, declared 11,200 MB) was resident
+at 7.7 GB at the time. The launcher admitted 12,884 MB resident plus 6,500 MB declared, which is
+19,384 MB against 23,008 MB.
+
+The command below is run unchanged. It is wrapped in `/var/tmp/se-stageA-handoff.sh`, which is
+strictly serial, in the locked worktree `/var/tmp/se-stageA` at the base. It runs as unit
+`longjob-stage-a-qep-probe` via `background.launch_long_job` and not via `setsid`, because a
+tick's cgroup teardown kills a `setsid` child. The queue log is `/var/tmp/se-probe-out/qep_queue.log`,
+and the last artefact is `probe_qep_61003.json`. E1-E5, ρ and L1/L2 are graded when all four
+passes exit (≈16:30Z), under the continuation `grade-stage-a-of-the-larger-book-test`.
+
 ### Stage A, exact command. It passes `decision_probe.main`'s argument checks today
 
 The only refusal is `--world` without `--end-year`, and neither is given.
