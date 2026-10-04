@@ -138,3 +138,42 @@ def test_a_decision_is_charged_only_the_bad_debt_of_the_term_it_priced():
     lifetime = {**rows[0], "true_bad_debt_share": 0.25}
     assert dp.expected_term_margin_gbp(lifetime, "value") > dp.expected_term_margin_gbp(
         lifetime, "value", bad_debt_basis="lifetime")
+
+
+def _ex_ante_book():
+    """A 2016 decision that prefers level 30, a 2017 one that strongly prefers 20 but has not
+    CLOSED by 2018-01-01, and the 2018 decision being priced."""
+    prefers_20 = {"20": {"offer": 220.0, "p": 0.9, "believed": 0.1},
+                  "30": {"offer": 230.0, "p": 0.1, "believed": 0.9}}
+    return [_row(term_start="2016-06-01"),
+            _row(billing_account="B", customer_id="B", term_start="2017-06-01",
+                 level_grid=prefers_20),
+            _row(billing_account="C", customer_id="C", term_start="2018-03-01")]
+
+
+def test_a_flat_level_set_in_advance_reads_only_the_decisions_closed_before_its_year():
+    """The 2017 decision's term runs into 2018, so 2018's level cannot have seen it; 2016 has no
+    closed book at all. Both branches are reachable on one book: a year with no book and a year
+    with one."""
+    levels = dp.ex_ante_levels(_ex_ante_book())
+    assert levels[2016] is None and levels[2017] is None and levels[2018] is not None
+    assert levels[2018] == 30.0
+    # With the open 2017 decision counted, the level would have been 20: the look-ahead it refuses.
+    assert dp.best_level(_ex_ante_book()[:2]) == 20.0
+
+
+def test_the_runnable_chooser_scores_the_book_on_the_companys_belief_not_the_worlds():
+    book = _ex_ante_book()[1:2]
+    assert dp.best_level(book) == 20.0 and dp.best_level(book, p_key="believed") == 30.0
+    # A decision the arm formed no belief on teaches the belief chooser nothing, and does not crash.
+    blind = _row(level_grid={"20": {"offer": 220.0, "p": 0.9, "believed": None},
+                             "30": {"offer": 230.0, "p": 0.1, "believed": None}})
+    assert dp.best_level(book + [blind], p_key="believed") == 30.0
+
+
+def test_the_ex_ante_score_drops_the_book_less_years_and_scores_the_rest_at_their_own_level():
+    out = dp.ex_ante_scores(_ex_ante_book(), a="value")
+    assert out["decisions_unscored_no_book"] == 2 and out["vs_ex_ante"]["decisions"] == 1
+    assert out["hindsight_level"] == 30.0
+    # The 2018 decision at level 30: value (230, p 0.8) against 230 at p 0.7 is 0.1 x 30 x 3.
+    assert abs(out["vs_ex_ante"]["total_gbp"] - 9.0) < 1e-6

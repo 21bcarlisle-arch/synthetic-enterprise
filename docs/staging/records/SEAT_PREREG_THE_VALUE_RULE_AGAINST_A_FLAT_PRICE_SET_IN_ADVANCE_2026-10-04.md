@@ -72,6 +72,97 @@ It is the current world as at `4bf859f0b`, on the historical record. The QEP ref
 level anchors has not reached these rows, and it will move every level's P(stay). So these figures
 are re-taken when it lands.
 
-## Grading
+## Grading (2026-10-04, same day)
 
-Below, after the scores.
+Scored offline on the four term-probe runs named above, so nothing was re-run. The tool is
+`tools/decision_probe.ex_ante_scores`, landed with this grading. The raw output is in
+`/var/tmp/se-probe-out/ex_ante_scores.{txt,json}`. **World:** the historical record to 2025 at base
+`4bf859f0b`, with the debt objection and debt cure on. **The QEP refit will move every figure
+here**, because it moves the P(stay) at every level.
+
+### Two of my own framings were wrong, corrected here beside the claims
+
+- **"One mechanical fact ... capped − E-true ≥ capped − hindsight."** This is false as stated. The
+  hindsight comparator is the best SINGLE level for all of 2018-2025. An ex-ante chooser re-picks
+  every year, so it can beat it. On 61003 E-belief does, by 34 GBP (SNR 0.75). The fact holds only
+  against a chooser that is held to one level.
+- **"E-true is the STRICTEST comparator."** Also false. E-true reads the world's true response, but
+  in 2018 it reads it on TWO closed decisions, and two noisy rows pick 95 or 15 GBP/MWh. E-belief
+  reads the company's smooth churn belief and picks 55-60 from the first year. That is closer to the
+  right level, and E-belief is the harder comparator on 3 of 4 paths. **So the verdict below is read
+  against whichever chooser is harder on each path**, not against E-true alone.
+
+### Levels chosen, GBP/MWh
+
+| path | hindsight (2018-25) | E-true by year 2018 / 19 / 20 / 21 / 24 / 25 | E-belief by year |
+|---|---|---|---|
+| default | 45 | 95 / 30 / 30 / 45 / 45 / 45 | 60 / 60 / 60 / 55 / 55 / 55 |
+| 61001 | 50 | 15 / 55 / 55 / 55 / 50 / 50 | 60 / 60 / 55 / 55 / 55 / 55 |
+| 61002 | 50 | 15 / 55 / 55 / 55 / 50 / 50 | 60 / 60 / 60 / 55 / 55 / 55 |
+| 61003 | 55 | 15 / 55 / 55 / 55 / 55 / 55 | 60 / 55 / 55 / 55 / 55 / 55 |
+
+The 2018 level is chosen on the two 2016 decisions, the only ones closed before 2018. From 2019
+the book holds about 25 closed decisions, and both choosers settle within 5-10 of the hindsight
+level. By 2024 E-true **coincides** with it on every path. **That is a finding about the book, not
+a win:** after one full year of closed decisions the company's own book teaches the right flat
+level. The ex-ante handicap is concentrated in the first year it has a book.
+
+### The scores: capped value rule minus the flat level, term basis, GBP, SNR in brackets
+
+Out of sample, 2018-2025. 25 or 26 decisions a path (2016-2017) are unscored for want of a book.
+
+| path | n | − E-true | − E-belief | − hindsight, same rows | hindsight − E-true | verdict vs the harder ex-ante chooser |
+|---|---|---|---|---|---|---|
+| default | 57 | **+744 (4.22)** | **+528 (2.34)** | +215 (1.52) | +529 (2.62) | **BEATS** (+528, SNR 2.34) |
+| 61001 | 57 | +399 (0.76) | +69 (0.19) | -42 (0.15) | +440 (1.01) | **TIES** (+69, SNR 0.19) |
+| 61002 | 56 | +99 (0.93) | +190 (1.56) | +25 (0.20) | +74 (1.48) | **TIES**, leaning positive (+99, SNR 0.93) |
+| 61003 | 56 | +482 (0.77) | +29 (0.09) | +63 (0.21) | +419 (0.83) | **TIES** (+29, SNR 0.09) |
+
+Within 2019-2025 alone, with the two-decision first year removed: capped − E-belief is +392 (2.89),
++4 (0.01), +159 (1.44) and -72 (0.25). capped − E-true is +527 (2.98), -64 (0.23), +89 (0.90) and
+-72 (0.25). Once the book has a year in it, the only path the per-customer rule clears is the
+default.
+
+**Secondary, all years (pre-registered).** A company with no book charges its own flat rule in
+2016-2017. On that basis capped − ex-ante is +2,401 to +2,854, at SNR 2.3-3.8, on every path. **Do
+not read that as the choosing winning.** About 2,000-2,300 of it is 2017 alone, and it is there
+because the company's own flat rule prices BELOW the base cost. On the default path, its 2017
+renewal margin has a median of -2.8 GBP/MWh, and 20 of 24 decisions are below base. This is the
+same fact as T4's negative flat totals. It measures how bad the house flat margin is, not what inference earns.
+It is reported because I said I would.
+
+**The four paths are not independent samples.** They are the same book under four renewal-dice
+seeds, so their SNRs are not pooled here.
+
+### The predictions
+
+- **E1 HELD, 4/4.** E-true's 2018 level is 95 or 15 against a hindsight level of 45-55, and the
+  default's 2019-20 level is 30 against 45.
+- **E2 HELD, 4/4.** capped − E-true is positive on all four: +744, +399, +99, +482.
+- **E3 FAILED, 1 of 4.** On the default path capped − E-true is SNR 4.22, and against E-belief it is
+  2.34. I predicted below 2 everywhere.
+- **E4 FAILED, 1 of 4 (only 61002).** I predicted that the company's too-steep belief would steer a
+  flat chooser further from the right level. It steered it closer: smooth beliefs beat two noisy
+  true rows. The miss is the same one that made "E-true is strictest" wrong.
+- **E5 FAILED, 1 of 4.** E-true's shortfall to hindsight is 529, 440, 74 and 419 GBP, so under 300
+  only on 61002. But the shortfall is mostly the first book year (2018: +217, +463, +11, +554 of the
+  capped − E-true difference). After that, it is small.
+
+### What this establishes, and what it does not
+
+- **Against a flat price a supplier could actually have set in advance from its own book, choosing
+  per customer is never worse on any path.** Its point estimate is positive against both ex-ante
+  choosers on all 8 path-chooser pairs. But it **clears the noise on one path of four (default,
+  SNR 2.34 against the harder chooser)** and ties on the other three (SNR 0.09-0.93).
+- **The flat-in-advance baseline is weak mainly in its first year with a book**, when it chooses on
+  two closed decisions. From the second year it is close to hindsight. So the advantage
+  measured here is largely the advantage of not having to WAIT for a book: the value rule prices
+  each customer on their own history from the first renewal. That is a real, but narrower, claim
+  than "inference beats average".
+- **The 2016-2017 years, where a flat supplier has no book at all, are left unscored.** The only
+  flat price available there is the house margin, and it loses money. A fairer book-less baseline
+  (a market-published margin) is a knowledge question, not a number to pick. It is filed as the
+  open edge of this result.
+- **Next test of the thesis.** It needs more decisions per path, not another comparator. 56 scored
+  decisions a path cannot separate a ~100 GBP edge from noise (SD 107-625). That means the longer or
+  larger book the QEP-refit world will run.

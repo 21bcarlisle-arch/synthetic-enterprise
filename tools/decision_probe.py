@@ -361,8 +361,9 @@ def value_median_margin(rows: list[dict], rule: str = "value") -> float | None:
     return statistics.median(m) if m else None
 
 
-def with_level(rows: list[dict], level: float) -> list[dict]:
-    """Rows with a `level` rule added at the grid point nearest `level`."""
+def with_level(rows: list[dict], level: float, p_key: str = "p") -> list[dict]:
+    """Rows with a `level` rule added at the grid point nearest `level`, kept with the grid's
+    `p_key` chance: the world's P(stay), or `believed` for the company's own belief."""
     out = []
     for r in rows:
         grid = r.get("level_grid") or {}
@@ -376,8 +377,69 @@ def with_level(rows: list[dict], level: float) -> list[dict]:
                 "level": grid[key].get("paid", grid[key]["offer"])}
         out.append({**r, **extra,
                     "offer_gbp_per_mwh": {**r["offer_gbp_per_mwh"], "level": grid[key]["offer"]},
-                    "true_p_retain": {**r["true_p_retain"], "level": grid[key]["p"]}})
+                    "true_p_retain": {**r["true_p_retain"], "level": grid[key][p_key]}})
     return out
+
+
+def _closes_on(row: dict) -> str:
+    """The day a decision's one-year term ends: the first day the company has seen whether the
+    household stayed and what that term wrote off."""
+    import datetime as _dt
+    return (_dt.date.fromisoformat(row["term_start"][:10]) + _dt.timedelta(days=365)).isoformat()
+
+
+def best_level(rows: list[dict], p_key: str = "p") -> float | None:
+    """The grid level with the highest summed term-basis margin over `rows`, the lower on a tie.
+    `p_key="believed"` scores each level on the company's own churn belief instead of the
+    world's P(stay): what a flat-rule supplier could actually compute from its book. A decision
+    with no `p_key` chance at some level (the arm formed no belief there) teaches it nothing."""
+    rows = [r for r in rows
+            if all(g.get(p_key) is not None for g in (r.get("level_grid") or {}).values())]
+    grid = sorted({float(k) for r in rows for k in (r.get("level_grid") or {})})
+    if not grid:
+        return None
+    def total(level):
+        return sum(expected_term_margin_gbp(r, "level") or 0.0
+                   for r in with_level(rows, level, p_key=p_key))
+    return max(grid, key=lambda level: (total(level), -level))
+
+
+def ex_ante_levels(rows: list[dict], p_key: str = "p") -> dict[int, float | None]:
+    """For each decision year, the flat level `best_level` picks from the decisions CLOSED before
+    that year began -- no look-ahead in time. None where nothing had closed yet."""
+    out = {}
+    for year in sorted({int(r["term_start"][:4]) for r in rows}):
+        book = [r for r in rows if _closes_on(r) < f"{year}-01-01"]
+        out[year] = best_level(book, p_key) if book else None
+    return out
+
+
+def ex_ante_scores(rows: list[dict], a: str = "value_capped", p_key: str = "p") -> dict:
+    """`a` against a flat level set in advance each year from the company's closed book, scored
+    out of sample on the years that HAD a closed book, beside the hindsight level chosen on those
+    same rows. The book-less years are reported, not filled."""
+    levels = ex_ante_levels(rows, p_key)
+    scored, unscored = [], 0
+    for r in rows:
+        level = levels[int(r["term_start"][:4])]
+        if level is None:
+            unscored += 1
+            continue
+        scored.extend(with_level([r], level))
+    hindsight = best_level(scored)
+    both = []
+    for e, h in zip(scored, with_level(scored, hindsight) if hindsight is not None else []):
+        # One row, two flat rules: `level` at the hindsight level, `ex_ante` at the year's own.
+        row = dict(h)
+        for col in ("offer_gbp_per_mwh", "true_p_retain", "stayer_pays_gbp_per_mwh"):
+            if h.get(col) is not None:
+                row[col] = {**h[col], "ex_ante": e[col]["level"]}
+        both.append(row)
+    return {"levels_by_year": levels, "hindsight_level": hindsight,
+            "decisions_unscored_no_book": unscored,
+            "vs_ex_ante": score(both, a=a, b="ex_ante"),
+            "vs_hindsight": score(both, a=a, b="level"),
+            "hindsight_vs_ex_ante": score(both, a="level", b="ex_ante")}
 
 
 def score(rows: list[dict], a: str = "value", b: str = "flat", resamples: int = 2000,
