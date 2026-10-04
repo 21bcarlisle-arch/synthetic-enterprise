@@ -150,6 +150,19 @@ below names the commit.
    lifted into a module that assembles no book, or the probe must check it in a parent before
    spawning the member. Otherwise importing the check freezes the default book before the rebind.
 
+### Stage A launch attempt, 2026-10-04 11:52Z: premise_not_yet_ripe, nothing launched
+
+Drawn as `stage-a-of-the-larger-book-test-runs-on-the-refitted-world`. Condition 2 held:
+available_mb was 15,299. **Condition 1 failed.** origin/main `7b1330fac` holds only the refit's
+fit and arms commits (6b9c13e87, dec33ff4e, 3771794a5). The world change is still the patch in
+`docs/design/UNLANDED_QEP_LEVEL_ANCHOR_REFIT_2026-10-04.md`, and `world_level_identity` at origin
+is still the pre-refit `cf823b185f8ca51c`. The landing is in flight. The seat-executor's
+`surgical_land` ("The level anchor is refitted onto DESNZ QEP 2.7.1 and the value arms are
+re-taken in that world") ran in `/var/tmp/se-seat-executor` 11:31-11:46Z. It exited without
+a commit, and its paths, including both `20261004r` artefacts, are still staged there. Stage A was
+not run on the pre-refit world. The next draw re-checks condition 1 against origin. Once the refit
+commit is an ancestor, the command below is unchanged.
+
 ### Stage A, exact command. It passes `decision_probe.main`'s argument checks today
 
 The only refusal is `--world` without `--end-year`, and neither is given.
