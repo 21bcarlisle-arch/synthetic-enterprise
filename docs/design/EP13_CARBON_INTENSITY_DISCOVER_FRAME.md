@@ -2668,3 +2668,65 @@ pellet supply) is a knowledge item. It is not a slope to fit.
 against a biomass marginal cost net of ROC value, from published pellet prices and ROC buy-out.
 Then build a rule that flexes only Drax 2-4 when that spread is negative, with a prediction written
 first. (2) Coal's short level (§36 NEXT 2). (3) 2019's missing biomass unit. No level move.
+
+## 38. 2026-10-04 — WHAT SETS DRAX'S RO FLEX: a price switch exists and moves by year, but how far windy days sit below it does not explain the size
+
+§37's NEXT (1), measured. Nothing shipped changed. Elexon MID for 2021-24 was fetched with
+`sim/market_index_history.get_market_index_range`, because the cache ends in 2020. The scripts, the
+fetched series and the timestamped prediction are in `/var/tmp/se-ep13-s38/`.
+
+**Prediction (filed 22:06Z, before any price-vs-output reading).** H: Drax 2-4 run when the day's
+MID is above a switch price (fuel cost per MWh_e minus the ROC value) and back off below it. The flex
+size is how far the calm and windy days straddle that switch. P1: in at least 5 of 6 years, output
+on days below the year's best split is at least 300 MW lower than above it. P2: the 2022 switch is at
+least £40 above 2019-20. P3: the rank correlation across years between the RO gap and the
+windy-minus-calm share of days below the switch is at least 0.7. P4: 2019 and 2021 have under 15% of
+days below their switch. P5: the switch lies within £20 of sourced fuel cost minus ROC. **A refuted
+P1 or P3 refutes H as the mechanism.**
+
+**The switch is real.** Drax 2-4 daily output, demeaned by calendar month so that outage season
+drops out, binned by absolute daily MID:
+
+| year | where output falls off | month-demeaned output below it |
+|---|---|---|
+| 2019 | no day is cheap enough to show one (the lowest bin is £20-30) | flat, ±40 MW |
+| 2020 | ~£20 | −570 MW below £20 |
+| 2021 | ~£55 | −324 (£40-50), −94 (£50-60) |
+| 2022 | ~£125 | −304 to −156 across £60-130 |
+| 2023 | ~£75, graded rather than a step | −285 to −311 below £60, −88 at £60-80 |
+| 2024 | ~£55 | −767 below £20, −349 at £40-50, −76 at £50-60 |
+
+The switch rises about £100 from 2020 to 2022 and falls back, which is the shape a fuel-cost switch
+would have. It is not yet graded against a fuel cost (P5). No sourced pellet or Drax generation cost
+is in the knowledge layer, and a recalled figure is not evidence.
+
+**Graded.** P1 **held, 5 of 6.** The month-demeaned best-split gaps are +24 / +866 / +339 / +443 /
++534 / +860 MW, and 2019 fails. On raw output the 2019 gap is +167, still under 300. P2 **refuted
+narrowly by its own instrument.** The best split is £78 in 2022 against £39 in 2019, which is +39.
+2019's split is noise at a 24 MW gap, and against 2020 (£16) it is +62. The bin reading puts 2022 near
+£125. P3 **refuted: rank 0.09.** With a 15-day minimum tail, the best split leaves only 4-6% of days
+below it in five years out of six, and the windy-minus-calm share barely moves (0.25-0.36). P4: 2019
+**refuted** (0.39 below its noise split) and 2021 held (0.06). P5 **ungraded.**
+
+**Post-hoc, not pre-registered.** The switch was read off the table above, and depth was taken as
+max(0, switch − MID) on within-quarter windy-decile days minus calm. Depth against the RO gap gives
+rank 0.54 and Pearson 0.40. 2020 breaks it: the depth is about £4, and its flex is the largest in the
+record. The response is not linear in depth. 2020's windy days sat right at the switch (£24 against
+~£20), and its below-£20 days were the COVID demand trough. Per unit, Unit 4 is under the 125,000
+ROC station cap, so most of its output earns no ROC. It does not switch higher than units 2 and 3 in
+any year, so the cap is not the lever either. This rests on the BM-unit-to-Drax-unit mapping, which
+is still an assumption (§37).
+
+**What it means.** By H's own refutation rule, "flex size is how far the days straddle a step
+switch" is refuted. What survives is narrower: Drax 2-4 respond to the day's price, around a level
+that moves by year roughly as fuel cost would. The response is graded (2023 climbs smoothly from
+£40 to £150), so a reconstruction rule needs a supply curve, not a step. Its location needs a
+sourced fuel cost, not a fitted one.
+
+**Controls.** None. The feed is byte-identical.
+
+**Next.** (1) Source Drax's biomass generation cost per MWh by year from its annual reports, or a
+published pellet index with a stated efficiency. Then grade the switch against it net of the ROC
+value (`docs/domain_artefact_library/regulatory/ro_obligation_and_buyout.json`). (2) Only if (1)
+holds: a Drax 2-4 rule as a supply curve around that cost, with its prediction written first. (3)
+Coal's short level, 2019's missing biomass unit, and coverage by year all stand. No level move.
