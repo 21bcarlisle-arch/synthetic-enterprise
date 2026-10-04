@@ -2310,3 +2310,118 @@ refuted in four years of six:** 2020 is steeper than the −0.20 floor (−0.211
 and INDO against the stack's own total. (2) Size the D10 shortfall against published constraint
 volumes, if a source exists (else file the gap). (3) A Northern Ireland wind figure (§30). No level
 move.
+
+## 32. 2026-10-04 — THE CALM-DAY EXCESS, SPLIT: the level is the unpriced Norway and Denmark imports, and the gradient is biomass and coal
+
+§31's NEXT (1). Measured, nothing shipped changed. No fetch. Scratch and the timestamped predictions
+are in `/var/tmp/se-ep13-s32/` (`measure.py`, `decompose.py`, `bracket.py`, `prediction.txt`, and an
+`out.txt`, `decompose.txt` and `bracket.txt` beside each). **Instrument check:** §31's deciles, and
+the same exec'd copy of `emissions_rate_t_per_mwh` recording every served component before its
+`return`. The shipped arm reproduces the committed feed's records to five places, and the D1/D10
+gas gaps reproduce §31's to the megawatt.
+
+**The quantities.** Per decile, mean MW. Each **gap** is the model's component minus the matching
+metered FUELHH fuel: coal, biomass, pumped storage, and imports. The import gap is against *all*
+clamped cables, so it equals minus the flow of the two cables with no published factor (INTNSL and
+INTVKL). The model serves that flow as GB generation (`imports_by_period`, by design since 2026-08-25).
+**OIL+OTHER** is metered only, because the model has no such fleet. The **INDO residual** is INDO
+minus (all FUELHH generation plus clamped imports minus exports). Together these close the identity
+gas gap = −coal − biomass − PS − import gaps + OIL+OTHER + INDO residual. It closes **to 0 MW at D1 in
+every year, and to 15–92 MW at D10.** The D10 remainder is the model's own wind curtailment.
+
+**Predictions (17:18Z, before `measure.py`).** P1: OIL+OTHER closes under a quarter of the D1 gap in
+2023 and 2024. P2: metered biomass is higher at D1 than at D10 in ≥5 of 6 years. P3: the INDO
+residual differs between D1 and D10 by under 300 MW in every year. P4: model coal sits below metered
+coal at D1 in 2019 and 2020.
+
+| year-mean, MW | 2019 | 2020 | 2021 | 2022 | 2023 | 2024 |
+|---|---|---|---|---|---|---|
+| gas gap (model − CCGT+OCGT) | +146 | +99 | +363 | +697 | +1,018 | **+1,549** |
+| unpriced imports served as GB gas | 0 | 0 | 172 | 531 | 1,034 | **1,702** |
+| OIL+OTHER (no model fleet) | 89 | 167 | 211 | 292 | 294 | 382 |
+| model coal short of metered | 640 | 509 | 579 | 479 | 315 | 179 |
+| INDO residual | −593 | −581 | −590 | −594 | −625 | −716 |
+| priced share of imported MWh | 1.00 | 1.00 | 0.95 | 0.72 | 0.73 | **0.66** |
+
+| D10 − D1, MW | 2019 | 2020 | 2021 | 2022 | 2023 | 2024 |
+|---|---|---|---|---|---|---|
+| gas gap | −748 | −1,425 | −944 | −1,462 | −1,353 | −2,068 |
+| from biomass (flat block vs timed fleet) | −279 | **−1,051** | −305 | −683 | −337 | **−1,032** |
+| from coal | −329 | −224 | **−601** | −393 | −211 | −97 |
+| from unpriced imports | 0 | 0 | +145 | −153 | **−501** | −523 |
+| from pumped storage | −124 | −162 | −120 | −144 | −203 | −277 |
+| from OIL+OTHER | +18 | −21 | −88 | −114 | −21 | −51 |
+| from the INDO residual | −34 | −59 | +1 | −14 | −95 | −106 |
+
+**Against the predictions.** All four held. P1: 22% and 20%. P2: 6 of 6. P3: largest 106 MW. P4: −775
+and −699 MW. The predictions were safe ones, and they establish less than the identity does.
+
+**What it establishes.**
+- **The level is the unpriced cables.** From 2021 the gas gap's year mean grows step for step with
+  NSL plus Viking flow. In 2023–24 that flow exceeds the whole gap, and coal, biomass and the
+  constant INDO residual net out the rest. §29–31's unattributed 2024 "+1.3 GW" is this flow. The
+  hole is already named and quoted on the feed, but as **0.84 over the whole series**. By year it
+  is 0.95 in 2021, 0.72 in 2022, 0.73 in 2023 and **0.66 in 2024**. The whole-series figure reads
+  as small exactly in the years where the gap is large.
+- **The calm-to-windy gradient is mostly biomass and coal**, and how the split falls changes by
+  year. The flat block under-serves calm days and over-serves windy ones in every year: metered
+  biomass is higher at D1 in 6 of 6. It is the largest single term in 2020, 2022 and 2024, around
+  −1.0 GW in 2020 and 2024. Coal is the largest term in 2019 and 2021. The model burns 0.2–0.8 GW
+  less coal than the meters in every decile through 2022. Pumped storage contributes 0.12–0.28 GW
+  in every year (consistent with §28: the rule's even daily split). The unpriced cables join the
+  gradient from 2023, because they import harder on calm days.
+- **OIL+OTHER is a level, not a mechanism**: 0.07–0.43 GW, nearly flat across deciles.
+- **The INDO residual is constant**, at −0.6 to −0.7 GW. Metered supply exceeds INDO by about that
+  much on every kind of day (station load and pumping are outside INDO's definition), so it is not
+  why calm days differ.
+
+**The bracket (one variable, predictions P5–P7 appended at 17:21Z, after the decomposition and before
+`bracket.py`).** Arm U0 hands the two unpriced cables to the dispatch as imports at 0 g/kWh. Zero is
+the cleanest end a supply can have, so U0 is a **bracket end for a sensitivity**, not a proposed
+factor. P5: correlation moves less than 0.01 in every year. P6: between-day moves less than 0.02 in
+every year. P7: 2019–20 identical.
+
+| shipped → U0 | 2019 | 2020 | 2021 | 2022 | 2023 | 2024 |
+|---|---|---|---|---|---|---|
+| correlation | 0.9592 = | 0.9307 = | 0.9658→0.9699 | 0.9775→0.9820 | 0.9736→0.9780 | **0.9590→0.9729** |
+| within-day overstated by | = | = | 0.983→1.000 | 0.972→1.000 | 0.950→1.013 | **0.926→1.062** |
+| between-day overstated by | = | = | 0.997→1.013 | 1.027→1.069 | 1.002→1.066 | **0.934→1.078** |
+| mean abs error | = | = | 0.059→0.055 | 0.056→0.052 | 0.069→0.067 | **0.102→0.089** |
+
+P7 held. **P5 was refuted in 2024** (+0.014) and held elsewhere (+0.004 to +0.005). **P6 was refuted
+in 2022, 2023 and 2024** (+0.04 to +0.14). Headline p95/p5 1.13→1.21, max/min 1.21→1.19.
+
+**What the bracket establishes.**
+- **The hole now matters to grading, and the 2026-08-25 test that dismissed it is superseded.** That
+  pass imputed the covered cables' rate and found 2024's correlation moved 0.726→0.737 (and the
+  wrong way in 2023), and it called the hole a coincidence. That was true of the model as it stood
+  then. On today's model, correlation sits at 0.96. At the clean bracket end the hole is worth
+  +0.014 in 2024, the largest single-year correlation move since §21, and −0.013 of mean error.
+- **Two blockers were hiding each other.** Serving 1.7 GW of imports as GB gas damps the 2023–24
+  swing, both within and between days. That is why those years read as *under*-swung (0.93) while
+  2019–20 read as over-swung. Remove the hole and every year from 2021 is over-swung between days
+  (1.01–1.08). That is the same direction as 2019–20, and it is the over-cleaned windy day of §29–31.
+  The "narrow 2021–24" of §25–27 was partly this hole.
+
+**What it does NOT establish.**
+- **What NESO itself does with NSL and Viking flow** in the national actual it publishes. The
+  factor table this module reads has no row for either. Whether NESO's series prices them at zero,
+  at a generic rate, or leaves them out of its denominator is the question that decides where
+  between the two arms the truth sits. It is not in the knowledge layer, and **it is the next
+  knowledge item, not a number to pick.** Until it is answered, no factor ships, and U0 stays a
+  bracket end.
+- Why the model burns less coal than the meters in every decile through 2022. It is a level of
+  0.2–0.8 GW, and the merit order's coal band was not split here.
+- §31's NEXT (2), the D10 shortfall against constraint volumes, and (3), Northern Ireland wind.
+  Neither was touched.
+
+**Controls.** None. Nothing shipped changed, and the feed is byte-identical.
+
+**Next.** (1) A knowledge pass: NESO's methodology for interconnectors with no factor (NSL and
+Viking), from its own published methodology or API notes, filed in the knowledge layer. Then a
+build decided on that answer, without looking at the correlation it moves. (2) Publish the import
+coverage **by year** beside the whole-series 0.84, since 0.66 in 2024 is the figure that sizes the
+hole. This is a small generator change. (3) The biomass block's timing is the largest remaining
+gradient term in 2020, 2022 and 2024. A dispatch rule from annual scalars, in the shape of §25's PS
+water-fill, is the candidate, and §10's retirement of biomass as a *target* still binds. No level
+move.
