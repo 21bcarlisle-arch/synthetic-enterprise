@@ -48,3 +48,27 @@ which is still landing. So the objection's reach is still the upper bound.
 ## Grading
 
 Below, after the runs.
+
+## Correction, before grading: my first term window was wrong (2026-10-04 ~02:35)
+
+The first two paths (`/var/tmp/se-probe-out/term_v1/`) put PROS-2016-0098's 2017-03-31
+`term_bad_debt_share` at 0.49 (default) and 0.44 (61001), against a lifetime share of 0.56 and
+0.50. So T1 failed as built, and the cause is the instrument, not the world.
+
+The window ended at the leg's NEXT PROBED DECISION. This household has no probed decision
+between 2017-03-31 and 2021-03-30, so its "2017 term" swept in four years of later arrears. A
+2017 fix prices one year.
+
+Fixed: the term ends at whichever comes first, one year or the next decision. The control now
+holds a leg whose next decision is four years away, and ending at the next decision alone reds it.
+Each row also keeps its term's bills and write-offs (`term_bills`), so the next mistake of this
+kind can be re-scored offline rather than re-run.
+
+On the lifetime basis the two v1 paths reproduce the earlier figures (capped - flat-55: -771 and
+-1,139). On the faulty term basis they read -603 and -987.
+
+**The runs that grade T1-T4 are re-launched** (`probe_term_*.json`) at base `4bf859f0b`. That base
+now ALSO carries the world's debt cure (471ab8960): failed bills are paid later at Ofgem's 2016
+rates, and indebted renewals fell from 56% to 47%. So the lifetime-basis figures will differ from
+the earlier runs for that reason too. T1-T4 are graded on the re-launched runs, term basis against
+lifetime basis on the same rows. The predictions above are unchanged.
