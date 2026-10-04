@@ -14,10 +14,12 @@ tests/architecture/test_epistemic_wall_ratchet.py for the house idiom):
 
   * RUFF RATCHET — a dated baseline {rule_code: count} frozen from today's tree.
     A NEW rule code (count > 0, not in the baseline) fails. An EXISTING code
-    whose count rises above its baseline fails (a regression). A code whose
-    count FALLS below its baseline fails as STALE until the baseline is
-    shrunk to match — so the baseline can only ratchet down, never silently
-    absorb a fix without recording it.
+    whose count rises above its baseline fails (a regression). The baseline is
+    a CEILING: lowering it is welcome and required of no one (2026-10-04).
+  * SHRINK-ONLY, PER FILE — no file a commit changes may gain a violation of
+    any code against HEAD (`test_no_changed_file_gains_a_ruff_violation`).
+    This is what holds the debt down; it needs no shared literal, so a fix no
+    longer obliges every lane to edit one block of this module.
 
 The ratchet fixes nothing. It freezes the debt at today's level and makes every
 future delta visible and reviewable — exactly what the lint wall cannot do.
@@ -91,6 +93,8 @@ import sys
 from functools import lru_cache
 from importlib import metadata
 from pathlib import Path
+
+import pytest
 
 # --------------------------------------------------------------------------
 # Pins, scope, and paths.
@@ -927,133 +931,13 @@ RUFF_BASELINE: dict[str, int] = {
     "F601": 1,
     "invalid-syntax": 1,
 }
-RUFF_BASELINE_TOTAL = 2275  # 2277 -> 2275 on 2026-10-03: the I001 and F401 above, simulation/run_scenario.py. Before that: 2278 -> 2277 on 2026-10-01: the I001 above, `tests/tools/test_couple_clv.py`.
-RUFF_BASELINE_TOTAL -= 1  # 2277 -> 2276 on 2026-10-01: the I001 above, `company/compliance/domain_invariants.py`.
-RUFF_BASELINE_TOTAL -= 1  # 2276 -> 2275 on 2026-10-02: the F401 above.
-RUFF_BASELINE_TOTAL -= 1  # 2275 -> 2274 on 2026-10-02: the I001 above, `tests/simulation/test_phase47b_acquisition_gate.py`.
-RUFF_BASELINE_TOTAL -= 1  # 2272 -> 2271 on 2026-10-03: the I001 above, `tests/test_nh_payment_behaviour_wiring.py`.
-RUFF_BASELINE_TOTAL -= 1  # 2271 -> 2270 on 2026-10-03: the I001 above, `background/live_payment_triad.py`.
-RUFF_BASELINE_TOTAL -= 4  # 2270 -> 2266 on 2026-10-03: the I001 above, retention_risk, generate_shadow_html and two tests.
-RUFF_BASELINE_TOTAL -= 2  # 2266 -> 2264 on 2026-10-03: the I001 above, `company/crm/cos_process.py` and its test.
-RUFF_BASELINE_TOTAL -= 1  # 2264 -> 2263 on 2026-10-03: the I001 above, `tools/couple_w2_11_d5.py`.
-RUFF_BASELINE_TOTAL -= 2  # 2263 -> 2261 on 2026-10-03: the I001 above, the two transfer-objection test modules.
-RUFF_BASELINE_TOTAL -= 2  # 2261 -> 2259 on 2026-10-04: the I001 above, tests/background/test_delivery_seat.py.
-RUFF_BASELINE_TOTAL -= 2  # 2259 -> 2257 on 2026-10-04: the I001 and F401 above, `company/billing/payment_plan.py`.
-# 2279 -> 2278 on 2026-09-30: the F841 above. 2280 -> 2279 on 2026-09-27: the I001 above, `background/file_api.py`,
-# whose top import block sorted once the retired /query leg's `httpx` import went.
-# 2281 -> 2280 on 2026-09-27: the I001 above, the whole of
-# `tests/company/compliance/test_internal_audit.py`, deleted with the retired Qwen audit.
-# 2282 -> 2281 on 2026-09-25: the I001 above, attributed to
-# `tests/background/test_reconcile_watch.py`, whose mid-file R10 marker block the fork-drain
-# controls had open anyway.
-# 2283 -> 2282 on 2026-09-21: the I001 above, attributed to
-# `tests/sim/test_weather_hdd.py`, whose block W1_14 step 3 had open anyway.
-# 2285 -> 2283 on 2026-09-19: the I001 and the F841 above, both
-# `tests/background/test_naive_organ.py`, the one file T6's first coverage opened.
-# 2286 -> 2285 on 2026-09-16: the I001 above, same attribution --
-# `tests/simulation/test_run_phase2b.py`, whose block this commit had open anyway.
-# 2287 -> 2286 on 2026-09-08: the earlier I001, same attribution --
-# this commit's own `tests/background/test_process_reconciler.py`, and NOT the neighbouring
-# lane's second uncommitted I001 fix, which the dirty shared tree also shows.
-# 2288 -> 2287 on 2026-09-08: the E402 above, same attribution.
-# 2289 -> 2288: the one I001 in test_phase30a_cm_levy.py above.
-                            # 2291 -> 2289 (a51): the two I001s above.
-                            # `tests/company/test_phase_nx_ic_flexibility.py` -- a file already red
-                            # at HEAD at COLLECTION, so this commit had to open it regardless. A
-                            # detached HEAD extract totals 2292, the figure this line replaces, so
-                            # the whole -1 is this overlay and none of it another lane's.
-                            #
-                            # (superseded) 2292, was 2296; -4 on 2026-09-07, the Capacity Market price leg: -3 I001
-                            # and -1 F841, every one of them that commit's and attributable with
-                            # certainty because it landed from an isolated worktree. See the two
-                            # entries above for the file-by-file split.
-                            #
-                            # (superseded) 2296, was 2298; -2 (I001) on 2026-09-06, the gas SVT leg: this commit opens
-                            # both `tests/simulation/test_svt_rates.py` (the gas tests needed their
-                            # imports at the top, since mid-file blocks took E402 above ITS
-                            # baseline, and hoisting sorted the header block) and
-                            # `simulation/svt_rates.py` (its own unsorted `__future__`/`datetime`
-                            # block). Measured in a `git archive HEAD` extract overlaid with exactly
-                            # this commit's files, one file at a time: clean HEAD green at 2298;
-                            # + everything but `svt_rates.py`, 2297; + `svt_rates.py`, 2296.
-                            # The shared tree reads 2295 — that further -1 is another lane's fix in
-                            # flight, and this entry deliberately does not bank it.
-                            # Was 2300; -2 (I001) on 2026-09-06, one Elexon timetable: the sourced
-                            # run months became public so the register and the published feed could
-                            # read them instead of copying, opening two import blocks that were
-                            # unsorted at clean HEAD. Measured in the overlaid HEAD extract (2298),
-                            # not the shared tree (2297) — a third I001 fix in flight is another
-                            # lane's.
-                            # Was 2302; -2 (I001) on 2026-09-06, atom C32's second turn: the last
-                            # two vulnerability vocabularies converged and both suites' import
-                            # blocks were opened to do it. Measured in the overlaid HEAD extract
-                            # (2300), not the shared tree (2299) — a third I001 fix in flight
-                            # belongs to another lane.
-                            # Was 2306; -3 (I001) and -1 (F401) on 2026-09-06, atom C32 again:
-                            # the delegation of both regulatory outcomes to
-                            # `priority_services_register` opened three import blocks and one dead
-                            # `dataclasses.field` went with them. Measured on the tree the commit
-                            # would create, not the shared one — see the SHRINK LOG entry.
-                            # Was 2309; -2 (I001) and -1 (E402) on 2026-09-05 from atom C32,
-                            # which DELETED `company/crm/vulnerability_index.py` (a scorer with no
-                            # production caller whose `disconnection_protected` rule bore no
-                            # relation to the published one), its dedicated suite, and the mid-file
-                            # import block that reached it from
-                            # `tests/company/test_phase_ir_coverage_expansion.py`. Attributed
-                            # per-file against `git show HEAD:` with no shortfall; the shared tree
-                            # reads one I001 lower and that -1 belongs to another lane. See the
-                            # dated I001 entry in the SHRINK LOG.
-                            # Before that it was 2310; -1 (I001) on 2026-09-05 from
-                            # tools/generate_project_state.py, whose import block lost
-                            # `re` when the duplicate CLAUDE.md parser was deleted.
-                            # Measured as a whole-tree census in a `git archive HEAD`
-                            # extract overlaid with exactly this commit's files: 1329
-                            # I001 there, 1328 here. The SHARED tree reads 1327 -- another
-                            # lane holds a second I001 fix uncommitted, which is their
-                            # floor to lower; a baseline frozen from the dirty tree would
-                            # fail the live-tree control. See the dated I001 SHRINK LOG.
-                            # Before that it was 2311; -1 (F841) on 2026-09-05 from
-                            # tests/background/test_remote_staging_bridge.py, whose unread
-                            # `result = check_remote(seen)` binding went with the rewrite onto the
-                            # shared `_bridge` helper. Attributed per-file against `git show HEAD:`:
-                            # 2 at HEAD, 1 now; the other three files in that commit read 0 on both
-                            # sides. See the dated F841 note in the SHRINK LOG.
-                            # Before that it was 2312; -1 (I001) on 2026-09-04 from
-                            # tests/background/test_process_run_complete.py, whose function-local
-                            # import block went with the publish-block isolation repair.
-                            # Attributed per-file: 1 at `git archive HEAD`, 0 now. See the dated
-                            # I001 note.
-                            # Before that it was 2313; -1 (I001) on 2026-09-04 from
-                            # tests/background/test_publish_gate_wedge_draw.py, attributed
-                            # per-file: 1 at `git archive HEAD`, 0 now. See the dated I001 note.
-                            # Before that it was 2315; -2 (I001) on 2026-09-02 from the two files named on the
-                            # I001 entry above (atom `D_opening_dd_seasonal_sizing`).
-                            # Before that it was 2317; -2 (W293) on 2026-09-02 from `tools/population_anchor.py`,
-                            # attributed per-file: that file reported 2 W293 at `git show HEAD:`
-                            # and reports 0 now. See the dated note on the W293 entry above.
-                            # Before that it was 2319; -1 (F401) and -1 (F811) on 2026-09-02, from
-                            # `tests/saas/reporting/test_phase_aw_bill_shock.py`, which defined
-                            # `test_elevated_flag_shown` TWICE (F811) with the second copy
-                            # re-importing a name already imported at module level (F401). The
-                            # shadowed first copy had never run. Renaming the second un-shadows
-                            # it. Earned, and attributed per-file: that file reported exactly 2
-                            # F401/F811 errors at `git show HEAD:` and reports 0 now, which is
-                            # the whole delta.
-                            # Before that: was 2320; -1 (I001) on 2026-09-01 (FOURTH entry):
-                            # `background/deadmans_switch.py`'s function-local tree_lock
-                            # import, sorted while the reaper's caller was added to the
-                            # same file. Earned; measured per-file against `git show HEAD:`.
-                            # Before that: was 2321; -1 (I001) on 2026-09-01 (THIRD entry): `tools/
-                            # surgical_land.py`'s import block, sorted while adding `import time`
-                            # for the index-lock retry. Earned by that commit, unlike the entry
-                            # below it.
-                            # Before that: was 2322; -1 (I001) on 2026-09-01, and NOT earned by
-                            # that commit — see the SECOND 2026-09-01 entry in the log above.
-                            # Before that: was 2327; -4 (I001) on 2026-08-31: the import blocks
-                            # by the tests-write-the-evidence-base work were sorted on the way
-                            # past, four of them net-new to the census. Sorted, never suppressed —
-                            # a ratchet that falls because a rule stopped being counted is the
-                            # failure this file exists to make impossible.
+# NO TOTAL, AND NO REQUIREMENT TO LOWER (2026-10-04). Until today the baseline had to EQUAL the
+# measured counts, so every lane that sorted one import edited this block -- a pile of
+# `RUFF_BASELINE_TOTAL -= N` lines grew here one per fix, and the block conflicted on four merges
+# in five days (`tools.merge_pressure_census`). The shrink-only property now lives where it can
+# be checked without a shared literal: no file a commit changes may gain a violation against
+# HEAD (`test_no_changed_file_gains_a_ruff_violation`). The counts above are a CEILING, lowered by
+# anyone who wants to and required of no one. The pile they replace is in git history.
 
 
 # --------------------------------------------------------------------------
@@ -1083,21 +967,6 @@ def new_keys(baseline: dict[str, int], counts: dict[str, int]) -> dict[str, int]
     must be type-clean. Returns {key: current_count}.
     """
     return {k: v for k, v in counts.items() if v > 0 and k not in baseline}
-
-
-def stale_keys(
-    baseline: dict[str, int], counts: dict[str, int]
-) -> dict[str, tuple[int, int]]:
-    """Baseline keys whose CURRENT count is below the frozen count (stale).
-
-    The debt was paid down but the baseline was not shrunk to match. Returns
-    {key: (baseline_count, current_count)}; forces the ratchet to only shrink.
-    """
-    return {
-        k: (baseline[k], counts.get(k, 0))
-        for k in baseline
-        if counts.get(k, 0) < baseline[k]
-    }
 
 
 def _merge(baseline: dict[str, int], delta: dict[str, int]) -> dict[str, int]:
@@ -1263,26 +1132,64 @@ def test_ruff_no_unknown_new_rule_codes():
     )
 
 
-def test_ruff_no_stale_baseline_entries():
-    """A baseline code whose count fell must be shrunk (shrink-only ratchet)."""
-    stale = stale_keys(RUFF_BASELINE, real_ruff_counts())
-    assert not stale, (
-        "STALE ruff baseline entries — these codes have FEWER violations than "
-        "frozen. Good news, but you must LOWER (or delete) their baseline counts "
-        "so the ratchet holds the new floor:\n" + _fmt_exceed(stale)
-    )
+def changed_python_files(cwd: Path = REPO_ROOT) -> list[str]:
+    """The .py files this commit changes against HEAD, staged or not, that still exist.
+
+    In the gate's extract HEAD is the PARENT and the commit's paths are staged, so this is exactly
+    the commit (`tools/surgical_land.py`, the extract's construction). In a working tree it is the
+    uncommitted work. Raises if git cannot answer: a check that cannot see the change must not
+    pass as if there were none."""
+    # One question covers both: `git diff HEAD` compares the working tree with HEAD for every path
+    # the index knows, which includes a file staged new. A second `--cached` leg was measured
+    # redundant (removing it left every proof green) and is not kept.
+    proc = subprocess.run(["git", "diff", "--name-only", "HEAD", "--", "*.py"], cwd=str(cwd),
+                          capture_output=True, text=True)
+    if proc.returncode != 0:
+        raise RuntimeError(f"git diff HEAD failed: {proc.stderr.strip()}")
+    return sorted(n for n in proc.stdout.splitlines() if n and (cwd / n).is_file())
 
 
-def test_ruff_baseline_matches_frozen_census():
-    """On today's tree the ruff counts equal the frozen baseline exactly."""
-    counts = real_ruff_counts()
-    assert counts == RUFF_BASELINE, (
-        "ruff census drifted from the frozen baseline. Diff:\n"
-        f"  only-now : { {k: counts[k] for k in counts.keys() - RUFF_BASELINE.keys()} }\n"
-        f"  only-base: { {k: RUFF_BASELINE[k] for k in RUFF_BASELINE.keys() - counts.keys()} }\n"
-        f"  changed  : { {k: (RUFF_BASELINE[k], counts[k]) for k in RUFF_BASELINE.keys() & counts.keys() if RUFF_BASELINE[k] != counts[k]} }"
-    )
-    assert sum(counts.values()) == RUFF_BASELINE_TOTAL
+def ruff_counts_of_text(text: str, rel: str, cwd: Path = REPO_ROOT) -> dict[str, int]:
+    """Counts by code for `text` linted as if it lived at `rel` (same config, via stdin)."""
+    proc = subprocess.run([sys.executable, "-m", "ruff", "check", "--output-format=json",
+                           "--stdin-filename", rel, "-"], cwd=str(cwd), input=text,
+                          capture_output=True, text=True)
+    if proc.returncode not in (0, 1):
+        raise RuntimeError(f"ruff invocation failed (exit {proc.returncode}):\n{proc.stderr}")
+    counts: dict[str, int] = {}
+    for item in json.loads(proc.stdout or "[]"):
+        code = item.get("code") or "invalid-syntax"
+        counts[code] = counts.get(code, 0) + 1
+    return counts
+
+
+def files_gaining_violations(cwd: Path = REPO_ROOT) -> dict[str, dict[str, tuple[int, int]]]:
+    """{path: {code: (at HEAD, now)}} for every changed file whose count of any code rose. A file
+    new at this commit is compared against nothing, so it must be clean of every code."""
+    out: dict[str, dict[str, tuple[int, int]]] = {}
+    for rel in changed_python_files(cwd):
+        head = subprocess.run(["git", "show", f"HEAD:{rel}"], cwd=str(cwd),
+                              capture_output=True, text=True)
+        before = ruff_counts_of_text(head.stdout, rel, cwd) if head.returncode == 0 else {}
+        after = ruff_counts_of_text((cwd / rel).read_text(encoding="utf-8"), rel, cwd)
+        rose = {k: (before.get(k, 0), v) for k, v in after.items() if v > before.get(k, 0)}
+        if rose:
+            out[rel] = rose
+    return out
+
+
+def test_no_changed_file_gains_a_ruff_violation():
+    """THE SHRINK-ONLY PROPERTY, WITHOUT A SHARED LITERAL (2026-10-04). Every file this commit
+    changes holds no more violations of any code than it did at HEAD, so the debt can only fall,
+    and a fix needs no edit to this module. Replaces the stale-entry and exact-census tests, which
+    made every lane that sorted an import edit one block here (four merge conflicts in five days,
+    `tools.merge_pressure_census`)."""
+    gained = files_gaining_violations()
+    assert not gained, (
+        "These files gained ruff violations against HEAD. Fix them; the baseline is not the "
+        "place to absorb them:\n" + "\n".join(
+            f"    {rel}: " + ", ".join(f"{k} {b}->{a}" for k, (b, a) in sorted(codes.items()))
+            for rel, codes in sorted(gained.items())))
 
 
 # ==========================================================================
@@ -1299,7 +1206,6 @@ def test_mutation_ruff_new_code_reds_only_new_check():
     mutated = _merge(RUFF_BASELINE, {"B008": 1})  # B008 not in select -> never natural
     assert new_keys(RUFF_BASELINE, mutated) == {"B008": 1}
     assert not keys_exceeding_baseline(RUFF_BASELINE, mutated)  # existing codes untouched
-    assert not stale_keys(RUFF_BASELINE, mutated)               # adding never staleifies
 
 
 # --- ruff: an existing code regresses above baseline ---
@@ -1310,17 +1216,6 @@ def test_mutation_ruff_regression_reds_only_exceeds_check():
     f401 = RUFF_BASELINE["F401"]
     mutated = _merge(RUFF_BASELINE, {"F401": 1})  # one new unused import
     assert keys_exceeding_baseline(RUFF_BASELINE, mutated) == {"F401": (f401, f401 + 1)}
-    assert not new_keys(RUFF_BASELINE, mutated)
-    assert not stale_keys(RUFF_BASELINE, mutated)
-
-
-# --- ruff: a fixed code leaves a stale (un-shrunk) baseline entry ---
-def test_mutation_ruff_stale_reds_only_stale_check():
-    f401 = RUFF_BASELINE["F401"]
-    mutated = dict(RUFF_BASELINE)
-    mutated["F401"] = f401 - 1  # one unused import removed but baseline not shrunk
-    assert stale_keys(RUFF_BASELINE, mutated) == {"F401": (f401, f401 - 1)}
-    assert not keys_exceeding_baseline(RUFF_BASELINE, mutated)
     assert not new_keys(RUFF_BASELINE, mutated)
 
 
@@ -1348,7 +1243,6 @@ def test_mutation_ruff_ondisk_violation_is_detected_and_reds_only_new_violation(
         "F401": (f401, f401 + tmp_counts["F401"])
     }
     assert not new_keys(RUFF_BASELINE, mutated)
-    assert not stale_keys(RUFF_BASELINE, mutated)
 
 
 # ==========================================================================
@@ -1388,3 +1282,43 @@ def test_requirements_cross_check_reads_the_real_file():
     """Independence: on the real tree the two sources genuinely AGREE (so the
     passing cross-check above is evidence, not a fixture artefact)."""
     assert requirements_ruff_pin() == RUFF_PIN == _installed_version("ruff")
+
+
+# ==========================================================================
+# R15 MUTATION PROOFS — the per-file shrink-only property, in a real git repo.
+# The rare branch first: a file that DID gain a violation must be named, or a
+# function that names nothing would pass every other test here.
+# ==========================================================================
+
+def _repo_with(tmp_path: Path, files: dict[str, str]) -> Path:
+    def git(*args: str) -> None:
+        subprocess.run(["git", *args], cwd=str(tmp_path), check=True, capture_output=True)
+    git("init", "-q")
+    git("config", "user.email", "t@t")
+    git("config", "user.name", "t")
+    for rel, text in files.items():
+        (tmp_path / rel).write_text(text)
+    git("add", "-A")
+    git("commit", "-q", "-m", "base")
+    return tmp_path
+
+
+def test_mutation_a_file_that_gains_a_violation_is_named_and_one_that_sheds_one_is_not(tmp_path):
+    repo = _repo_with(tmp_path, {"gains.py": "x = 1\n", "sheds.py": "import os\nimport sys\n",
+                                 "untouched.py": "import os\n"})
+    (repo / "gains.py").write_text("import os\nx = 1\n")       # +1 F401
+    (repo / "sheds.py").write_text("import os\n")               # -1 F401: an improvement
+    (repo / "new.py").write_text("import json\n")
+    subprocess.run(["git", "add", "new.py"], cwd=str(repo), check=True)  # staged, as in the gate
+
+    gained = files_gaining_violations(repo)
+
+    assert gained == {"gains.py": {"F401": (0, 1)}, "new.py": {"F401": (0, 1)}}
+    # The untouched file's standing debt is not this commit's, and is never asked about.
+    assert "untouched.py" not in changed_python_files(repo)
+
+
+def test_a_check_that_cannot_ask_git_refuses_rather_than_passing(tmp_path):
+    """Outside a repository there is no HEAD to compare with: that is an error, not 'no change'."""
+    with pytest.raises(RuntimeError):
+        changed_python_files(tmp_path)

@@ -484,6 +484,7 @@ def _step_body(step: str, due_on: date, overdue: list[dict]) -> str:
     if step == MONDAY_STEP:
         from background.director_concerns import end_to_end_section
         lines += end_to_end_section()
+        lines += _merge_pressure_section()
         lines += ["## The ranking for this week", "",
                   "_Written by the Monday step. Ordered. Anything above the line outranks new "
                   "feature work; nothing here outranks a live defect._", "",
@@ -499,6 +500,22 @@ def _step_body(step: str, due_on: date, overdue: list[dict]) -> str:
               "— nothing else does — and archives this document to `done/` itself, so the rhythm "
               "disposes of everything it files.", ""]
     return "\n".join(lines)
+
+
+def _merge_pressure_section(days: float = 7.0) -> list[str]:
+    """WHAT THE WEEK SPENT ON THE REPOSITORY RATHER THAN THE PRODUCT (director, 2026-10-04: "Nothing
+    measures which files cause merges or what each merge costs, so the fixes went to symptoms").
+    Read beside the end-to-end check, because a recurring class of waste is a hypothesis under test
+    like any other: did last week's change move these numbers?"""
+    try:
+        from tools.merge_pressure_census import render
+        measured = render(days)
+    except Exception as exc:  # noqa: BLE001 -- a review that cannot measure says so on its face
+        measured = f"NOT MEASURED -- `tools.merge_pressure_census` raised {type(exc).__name__}: {exc}"
+    return ["## Merge pressure, this week", "", measured, "",
+            "**Ask why it recurs, not how to clear it.** If one kind or one path dominates, that is "
+            "the next item; if the wait has not fallen since the last change aimed at it, say so.",
+            ""]
 
 
 def _burn_section(days: float = 7.0) -> list[str]:

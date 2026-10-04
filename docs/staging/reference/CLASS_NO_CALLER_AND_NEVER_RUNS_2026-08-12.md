@@ -42,7 +42,6 @@ This document supersedes the individual findings listed below, which are **archi
 These documents match this class but carry a different lane. They are NOT archived and NOT superseded: severity is lane-scoped, so filing them here would remove their own lane's finding while recording it under `H_harness`.
 
 - `SEAT_FINDING_THE_VALUE_ARM_CANNOT_SEE_ARREARS_BECAUSE_THE_PRICING_ADAPTER_NEVER_FORWARDS_IT_2026-10-02.md` — lane `B_commercial`
-- `WORKER_FINDING_A_LAUNCH_TIME_MEMORY_CHECK_WOULD_NOT_HAVE_STOPPED_1907Z_BECAUSE_THE_NEIGHBOURS_ARRIVED_AFTER_2026-09-29.md` — lane `A_strategy_governance`
 
 ## Disposition
 
