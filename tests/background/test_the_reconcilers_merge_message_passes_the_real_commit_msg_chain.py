@@ -108,3 +108,17 @@ def test_a_message_gate_refusal_names_the_gate_and_quotes_its_text():
             "[surgical-land] refused: " + header + tag + " " + said)
         assert status == "REFUSED_GATE"
         assert tag in detail and said.splitlines()[-1] in detail, detail
+
+
+def test_a_test_gate_refusal_quotes_the_refusing_steps_banner_not_the_live_hook_preamble():
+    """2026-10-05: the 400-character cut kept `[live-hook]` and the passing steps, never the `❌`."""
+    out = ("[surgical-land] REFUSED: GATE RED on the resulting tree (rc=1). This is the tree the "
+           "commit WOULD create.\n  gate stdout (the verdict, and the tail the refusing gate wrote):\n"
+           "[live-hook] core.hooksPath is NOT set here, " + "x" * 400 + "\n"
+           "[test-gate] \u2713 finding-class consolidation holds\n"
+           "  gate stderr (usually library noise -- read it when stdout names nothing):\n"
+           "[test-gate] \u274c A WALKER-INVISIBLE WALL CHANNEL HAS GROWN IN THIS COMMIT'S TREE\n"
+           "    + triad_log -> saas/reporting/annual_report.py\n")
+    status, detail = _classify_merge_failure(out)
+    assert status == "REFUSED_GATE"
+    assert "WALKER-INVISIBLE" in detail and "triad_log" in detail, detail

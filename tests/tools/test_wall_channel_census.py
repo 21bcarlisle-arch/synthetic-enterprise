@@ -5076,3 +5076,20 @@ def test_the_GATE_names_the_authenticated_decode_in_its_own_source():
     assert (
         "authenticated_decode_conformance_at" in source and "authenticated.ok" in source
     ), "the authenticated-decode check is not wired into the commit gate"
+
+
+def test_a_producer_changed_on_a_FORK_the_artefact_never_saw_is_staleness_not_undetermined(git_tree):
+    """2026-10-05: a publish and origin's producer edit were siblings until a merge joined them.
+    Neither commit is the other's ancestor, and that is an answer -- the artefact cannot carry a
+    change outside its own history -- not git failing to answer."""
+    _commit(git_tree, PRODUCER, "x = 1\n", "producer v1")
+    _git(git_tree, "checkout", "-q", "-b", "side")
+    _commit(git_tree, PRODUCER, "x = 2\n", "producer v2 on the other side")
+    _git(git_tree, "checkout", "-q", "-")
+    _commit(git_tree, wcc.ARTEFACT_REL, '{"meter_read_log": []}\n', "publish")
+    _git(git_tree, "merge", "-q", "--no-edit", "side")
+
+    prov = wcc.artefact_provenance([PRODUCER], rev="HEAD", repo_root=git_tree)
+
+    assert prov.undetermined == [] and prov.determined
+    assert prov.predates == [PRODUCER]

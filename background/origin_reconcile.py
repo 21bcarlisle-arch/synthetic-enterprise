@@ -1997,7 +1997,13 @@ def _classify_merge_failure(output: str) -> tuple[str, str]:
                     gate, tag, " " + said[:600])
         return REFUSED_GATE, output.split("MESSAGE GATE RED", 1)[1].strip()[-600:]
     if "GATE RED" in output:
-        return REFUSED_GATE, output.split("GATE RED", 1)[1].strip()[:400]
+        said = output.split("GATE RED", 1)[1].strip()
+        # SAME CUT, SAME LOSS, ON THE TEST-GATE SIDE. `[live-hook]` and the `✓` lines run to ~600
+        # characters before the refusing step's `❌` banner, so from 2026-10-05 22:06 every cycle
+        # logged the live-hook boilerplate while the wall-channel census named ten keys on stderr.
+        if "❌" in said:
+            said = said[said.index("❌"):]
+        return REFUSED_GATE, said[:600]
     return ERROR, output.strip()[-400:]
 
 

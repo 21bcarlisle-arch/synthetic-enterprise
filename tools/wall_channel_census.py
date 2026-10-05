@@ -808,6 +808,18 @@ def _strictly_precedes(earlier: str, later: str, repo_root: Path) -> bool | None
     return None
 
 
+def _is_not_ancestor(commit: str, of: str, repo_root: Path) -> bool:
+    """True only when git ANSWERS that `commit` is not in `of`'s history -- rc 1, never a failure."""
+    try:
+        proc = subprocess.run(
+            ["git", "-C", str(repo_root), "merge-base", "--is-ancestor", commit, of],
+            capture_output=True, text=True, check=False,
+        )
+    except OSError:
+        return False
+    return proc.returncode == 1
+
+
 @dataclass(frozen=True)
 class ArtefactProvenance:
     """Where the artefact sits in commit order relative to the code that produces its rows."""
@@ -904,6 +916,12 @@ def artefact_provenance(
             undetermined.append(path)
             continue
         order = _strictly_precedes(artefact_commit, commit, repo_root)
+        if order is None and _is_not_ancestor(commit, artefact_commit, repo_root):
+            # A FORK IS AN ANSWER. The question is whether the artefact could carry this producer's
+            # last change, and it can only if that change is in the artefact's history. On a fork it
+            # is not: on 2026-10-05 a publish and origin's D48 producer edit met in a merge, and
+            # this read UNDETERMINED at the merge and on every commit after it, red on the trunk.
+            order = True
         if order is None:
             undetermined.append(path)
         elif order:
