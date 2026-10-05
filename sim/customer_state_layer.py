@@ -55,6 +55,17 @@ uses. Onset (`move_hazard`) and the date (`move_date`) are separate streams, so 
 is drawn cannot change WHICH occupancies move. `SUBSTREAMS` is the registry; a draw from an
 unregistered name raises rather than falling back to a shared generator.
 
+THE RUN (slice 2)
+----------------
+`run_phase2b` asks `first_move_out` once per domestic household, at its first term, over the
+household's own supply window, and `term_window_under_move` then cuts the term the move falls in at
+the move date and drops every later term. The move goes on the churn journey as
+`HOME_MOVE_CHURNED`, which is the only state `is_catchable()` excludes and which nothing set until
+now. It is NOT a registration loss: the supplier keeps the premise on deemed terms. That incoming
+leg is not yet supplied in the run, so with the layer on the premise simply stops — which is why
+`moves_active()` reads a curriculum file that defaults OFF (whether this world has moves is the
+director's), and why it should stay off until the incoming deemed leg exists.
+
 WALL. Everything here is ground truth. The move date, the occupancy ids and the void are exactly
 what a supplier cannot see; the seam that will let the company see the shadows (a final read, a
 cancelled DD, settled volume at a premise with nobody contracted) is a later slice.
@@ -63,9 +74,11 @@ from __future__ import annotations
 
 import datetime as dt
 import hashlib
+import json
 import math
 import random
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Optional
 
 from simulation.arrival_route import (
@@ -73,7 +86,7 @@ from simulation.arrival_route import (
     home_move_rate_per_household_year,
 )
 from simulation.final_bill_outcome import FinalBillExposure, open_final_bill_exposure
-from simulation.household_segments import TenureType
+from simulation.household_segments import TenureType, tenure_for_customer
 
 NAMESPACE = "customer_state"
 
@@ -197,3 +210,59 @@ def draw_home_move(occupancy: Occupancy, year: int, base_seed: int) -> Optional[
             start_date_unknown_reason=None,
         ),
     )
+
+
+ACTIVATION_PATH = (Path(__file__).resolve().parents[1]
+                   / "docs" / "design" / "curriculum" / "home_moves_activation.json")
+
+
+def moves_active(path: Path = ACTIVATION_PATH) -> bool:
+    """Whether the run draws home moves. A missing file or a non-bool value raises: on or off is
+    the director's, and neither may be inferred from a file that does not say."""
+    value = json.loads(Path(path).read_text())["activated"]["value"]
+    if not isinstance(value, bool):
+        raise ValueError(f"{path}: activated.value must be true or false, got {value!r}")
+    return value
+
+
+def first_move_out(occupancy: Occupancy, supply_start: dt.date, supply_end: dt.date,
+                   base_seed: int) -> Optional[HomeMove]:
+    """The first move strictly inside (supply_start, supply_end), or None.
+
+    Each year's draw is the slice-1 draw unchanged, so a household's moves do not depend on the
+    window it is asked over. A move drawn on or before `supply_start` happened before this
+    supplier held the account and is not a departure from the book.
+    """
+    if supply_end <= supply_start:
+        raise ValueError(f"empty supply window {supply_start} .. {supply_end}")
+    for year in range(supply_start.year, supply_end.year + 1):
+        move = draw_home_move(occupancy, year, base_seed)
+        if move is not None and supply_start < move.move_date < supply_end:
+            return move
+    return None
+
+
+def term_window_under_move(term_start: dt.date, term_end: dt.date,
+                           move_out: Optional[dt.date]) -> tuple[Optional[dt.date], bool]:
+    """(the term's end once the move is applied, whether the move falls inside this term).
+
+    `term_end` and `move_out` are both EXCLUSIVE: the move date is the first day the mover is not
+    liable, the same day the incoming occupancy may start. A term starting on or after the move
+    is not supplied to this occupancy at all, which returns (None, False).
+    """
+    if move_out is None or move_out >= term_end:
+        return term_end, False
+    if move_out <= term_start:
+        return None, False
+    return move_out, True
+
+
+def account_move_out(customer: Optional[dict], supply_start: dt.date, supply_end: dt.date,
+                     base_seed: int) -> Optional[HomeMove]:
+    """The run's question for one account record. Domestic only: a business site does not move
+    home, and an account with no record has no tenure to draw a hazard from."""
+    if customer is None or customer.get("segment", "resi") != "resi":
+        return None
+    cid = customer["customer_id"]
+    return first_move_out(Occupancy.of_customer(cid, tenure_for_customer(cid)),
+                          supply_start, supply_end, base_seed)

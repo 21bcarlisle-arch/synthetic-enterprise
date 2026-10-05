@@ -1,0 +1,14 @@
+{
+  "_meta": {
+    "artefact": "home_moves_activation",
+    "version": 1,
+    "status": "OFF -- 2026-10-05",
+    "r13_discipline": "Whether this world contains home moves is a CURRICULUM question, the director's (B7 frame: 'WHETHER THE LAYER IS ACTIVE in a live run ... activation director-facing'). This file is on/off only. The move hazard is not set here: it is the EHS 2024-25 move-in rate by tenure, imported by sim/customer_state_layer.py from simulation/arrival_route.py.",
+    "consumed_by": "sim.customer_state_layer.moves_active(), read once per run by simulation.run_phase2b._main"
+  },
+  "activated": {
+    "value": false,
+    "basis": "Off because the run models only the mover's exit. The incoming occupant who, in a real supplier's book, keeps the premise on deemed terms is not yet supplied, so switching this on would make every move a lost premise and understate the book. Recommendation: switch on once the incoming deemed leg is in the run (B7 slice 3).",
+    "effect": "When true, each domestic household is asked for its first home move over its own supply window. The term the move falls in ends at the move date, later terms are not supplied, and the churn journey records HOME_MOVE_CHURNED, so is_catchable() excludes it from churn recall. It is not a registration loss: no change-of-supplier notice is sent. REVERT is this one field."
+  }
+}

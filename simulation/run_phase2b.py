@@ -92,6 +92,7 @@ from company.policy.decision_policy import (
     framing_type_for,
 )
 from sim.cache_store import get_cached_prices, log_cache_access
+from sim.customer_state_layer import account_move_out, moves_active, term_window_under_move
 from sim.forward_curve import (
     BASE_TERM_PREMIUM,
     DEFAULT_RISK_FACTOR,
@@ -2034,6 +2035,10 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
     # opponent moves on its own cycle rather than inside the term the company is pricing.
     _competitor_position_ledger = CompanyPositionLedger()
     churned_billing_accounts: set[str] = set()
+    # B7 slice 2 (`sim/customer_state_layer.py`). Read once per run; with it off nothing below asks.
+    _home_moves_on = moves_active()
+    _move_out_by_household: dict[str, date | None] = {}
+    home_move_outs: list[dict] = []
     # EP12: HOW THE SUPPLIER HEARS IT LOST A HOUSEHOLD -- a registration-loss notice per supply
     # point, from the registration service, filed in its change-of-supplier register. Called at
     # every site that adds to `churned_billing_accounts` and handed only the household and the
@@ -2152,6 +2157,42 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                 continue
 
         term_end_str = term.get("term_end") or _clamp_term_end(term_start_str, end_date=effective_end)
+
+        # B7 slice 2: a home move ends this household's supply at the move date. Asked once, at
+        # the household's first term (the heap is chronological), over its own supply window, so
+        # a household won in 2020 cannot lose a term to a move drawn in 2018. Off unless the curriculum
+        # file says on.
+        if _home_moves_on:
+            if billing_account not in _move_out_by_household:
+                _mover = next(
+                    (c for c in _ALL_KNOWN_CUSTOMERS if c["customer_id"] == billing_account), None
+                )
+                _move = account_move_out(
+                    _mover, date.fromisoformat(term_start_str),
+                    date.fromisoformat(effective_end) + timedelta(days=1), run_base_seed(),
+                )
+                _move_out_by_household[billing_account] = _move.move_date if _move else None
+            _move_end, _moved_in_term = term_window_under_move(
+                date.fromisoformat(term_start_str), date.fromisoformat(term_end_str[:10]),
+                _move_out_by_household[billing_account],
+            )
+            if _move_end is None:
+                if not _spliced:
+                    term_indices[cid] += 1
+                continue
+            if _moved_in_term:
+                term_end_str = _move_end.isoformat()
+                if _churn_journey_register.get_journey(billing_account) is None:
+                    _churn_journey_register.register_customer(billing_account)
+                _mover_journey = _churn_journey_register.get_journey(billing_account)
+                _mover_journey.record_home_move(_move_end)
+                home_move_outs.append({
+                    "household": billing_account, "customer_id": cid,
+                    "commodity": commodity, "move_date": _move_end.isoformat(),
+                    "journey_state": _mover_journey.state.value,
+                    "catchable": _mover_journey.is_catchable(),
+                })
+
         forward_price = term["forward_price_gbp_per_mwh"]        # sim's sophisticated estimate
         company_fwd = term.get("company_forward_price_gbp_per_mwh", forward_price)
         unit_rate = term["unit_rate_gbp_per_mwh"]
@@ -4444,6 +4485,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         # Phase QL Part 2: hidden churn-journey state trajectory (SIM-side shadow
         # tracker -- does not gate the roll_lifecycle_event dice roll itself)
         "churn_journey_log": churn_journey_log,
+        **({"home_move_outs": home_move_outs} if _home_moves_on else {}),
         "renewal_decisions_log": renewal_decisions_log,
         # Phase RU: solicited feedback survey engine (FEEDBACK_AND_REPUTATION.md Layer 1)
         "feedback_survey_log": feedback_survey_log,

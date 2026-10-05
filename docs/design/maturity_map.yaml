@@ -576,7 +576,7 @@
   file_scope: [sim/customer_state_layer.py, tests/sim/test_customer_state_layer.py, docs/market_research/home_moves.md]
   depends_on: []
   couples_with: [D48_billing_accuracy_the_company_measures_what_it_billed_against_what_was_used]
-  simplifications_count: 3
+  simplifications_count: 4
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "the churn a real supplier''s book actually experiences: roughly one in ten households moves home each year, each move closing one account into a final bill and opening two deemed-contract accounts at either end -- plus income shocks that show up as arrears months before anyone tells the supplier anything"
   records_rehomed: [evidence]

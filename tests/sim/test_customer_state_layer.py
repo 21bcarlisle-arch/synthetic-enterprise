@@ -140,3 +140,102 @@ def test_a_malformed_tenure_or_hazard_fails_closed(monkeypatch):
     monkeypatch.setattr(csl, "home_move_rate_per_household_year", lambda t: float("nan"))
     with pytest.raises(ValueError, match="not a probability"):
         draw_home_move(Occupancy.of_customer("C1", TenureType.OWNER_OCCUPIER), 2020, 1)
+
+
+# --- slice 2: the run asks the layer --------------------------------------------------------
+
+import datetime as dt  # noqa: E402
+import json  # noqa: E402
+
+from sim.customer_state_layer import (  # noqa: E402
+    first_move_out,
+    moves_active,
+    term_window_under_move,
+)
+
+_T0, _T1 = dt.date(2020, 3, 1), dt.date(2021, 3, 1)
+
+
+def test_every_outcome_of_the_term_window_is_reachable():
+    """Defect: a gate that cuts every term (or none) passes each per-branch assertion."""
+    outcomes = {
+        term_window_under_move(_T0, _T1, None),
+        term_window_under_move(_T0, _T1, dt.date(2020, 9, 1)),
+        term_window_under_move(_T0, _T1, _T0),
+        term_window_under_move(_T0, _T1, _T1),
+    }
+    assert outcomes == {(_T1, False), (dt.date(2020, 9, 1), True), (None, False)}
+
+
+def test_a_move_on_the_terms_first_day_takes_the_whole_term_and_on_its_end_takes_none():
+    """Defect: an off-by-one that bills the mover a day after leaving, or drops a supplied term."""
+    assert term_window_under_move(_T0, _T1, _T0) == (None, False)
+    assert term_window_under_move(_T0, _T1, _T0 + dt.timedelta(days=1)) == (
+        _T0 + dt.timedelta(days=1), True)
+    assert term_window_under_move(_T0, _T1, _T1) == (_T1, False)
+
+
+def test_the_first_move_out_is_the_yearly_draw_unchanged():
+    """Defect: the run's window re-keying the draw, so a household's moves depend on its start."""
+    found = 0
+    for i in range(400):
+        occ = Occupancy.of_customer(f"R{i}", TenureType.PRIVATE_RENTER)
+        move = first_move_out(occ, dt.date(2016, 1, 1), dt.date(2025, 6, 8), 7)
+        if move is None:
+            continue
+        found += 1
+        assert move == draw_home_move(occ, move.move_date.year, 7)
+        assert all(draw_home_move(occ, y, 7) is None for y in range(2016, move.move_date.year))
+    assert found > 0
+
+
+def test_a_move_before_the_supply_window_is_not_a_departure_from_the_book():
+    """Defect: a household won mid-run losing its first term to a move drawn before it joined."""
+    occ = next(
+        o for o in (Occupancy.of_customer(f"P{i}", TenureType.PRIVATE_RENTER) for i in range(500))
+        if draw_home_move(o, 2019, 3) is not None
+    )
+    moved = draw_home_move(occ, 2019, 3).move_date
+    later = first_move_out(occ, moved, dt.date(2025, 1, 1), 3)
+    assert later is None or later.move_date > moved
+
+
+def test_the_book_moves_at_the_sourced_rate_over_a_year():
+    """Defect: the window reading drops or doubles a year, so the run's rate is not the EHS one."""
+    p = home_move_rate_per_household_year(TenureType.PRIVATE_RENTER)
+    n = 4000
+    moved = sum(
+        first_move_out(Occupancy.of_customer(f"Y{i}", TenureType.PRIVATE_RENTER),
+                       dt.date(2021, 1, 1), dt.date(2022, 1, 1), 5) is not None
+        for i in range(n)
+    )
+    # Window is (Jan 1, Jan 1): a move drawn ON Jan 1 is excluded, about 1/365 of moves.
+    assert abs(moved / n - p) < 4 * math.sqrt(p * (1 - p) / n)
+
+
+def test_the_activation_file_says_on_or_off_and_nothing_else(tmp_path):
+    """Defect: a malformed or absent switch silently read as one of its two values."""
+    f = tmp_path / "a.json"
+    for value in (True, False):
+        f.write_text(json.dumps({"activated": {"value": value}}))
+        assert moves_active(f) is value
+    f.write_text(json.dumps({"activated": {"value": "true"}}))
+    with pytest.raises(ValueError):
+        moves_active(f)
+    with pytest.raises(FileNotFoundError):
+        moves_active(tmp_path / "absent.json")
+    assert isinstance(moves_active(), bool)
+
+
+def test_only_a_domestic_account_record_moves_home():
+    """Defect: the domestic EHS hazard applied to an I&C or SME site, or to a missing record."""
+    from sim.customer_state_layer import account_move_out
+
+    window = (dt.date(2016, 1, 1), dt.date(2025, 6, 8), 9)
+    domestic = [{"customer_id": f"H{i}", "segment": "resi"} for i in range(200)]
+    movers = [c for c in domestic if account_move_out(c, *window) is not None]
+    assert movers
+    for segment in ("ic", "sme"):
+        assert all(account_move_out({**c, "segment": segment}, *window) is None for c in movers)
+    assert account_move_out(None, *window) is None
+    assert account_move_out({"customer_id": movers[0]["customer_id"]}, *window) is not None
