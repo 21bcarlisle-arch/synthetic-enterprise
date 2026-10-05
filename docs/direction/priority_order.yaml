@@ -1,0 +1,34 @@
+# The director's priority order, expressed in the map's terms. The order and its wording are the
+# director's: docs/staging/DIRECTOR_CANON_THE_PRIORITY_ORDER_2026-10-05.md. Which atoms carry each
+# step is the delivery seat's ("how the map expresses it"), and this file is that expression.
+# `tools/draw_follows_the_order.py` grades the live draw and the landed work against it.
+canon: docs/staging/DIRECTOR_CANON_THE_PRIORITY_ORDER_2026-10-05.md
+since: "2026-10-05"
+steps:
+  1:
+    name: knowledge, now and wide
+    atoms: []   # knowledge pages in their own folder; drawn as Lane 0 work, not atoms
+  2:
+    name: unbilled energy and billing accuracy
+    atoms: [W2_36_unbilled_energy_arises_the_way_it_does_in_reality,
+            D48_billing_accuracy_the_company_measures_what_it_billed_against_what_was_used]
+  3:
+    name: forward CLV
+    atoms: [B11_forward_clv_backtested_on_held_back_history, EP1_clv_three_horizon]
+  4:
+    name: per-customer decisions
+    atoms: [C29_decisions_stop_being_lookup_tables, PB4_engagement_separated_from_elasticity,
+            PB5_pounds_or_percent_resolved]
+  5:
+    name: the levers, in merit order
+    atoms: [EP4_collections_journey, B7_customer_state_layer_moves_and_shocks,
+            C30_advice_reaches_a_household,
+            W2_34_the_company_has_one_piece_of_advice_that_costs_the_customer_nothing,
+            G14_half_hourly_grid_carbon_intensity_aligned_to_settlement, C4_adoption_physics,
+            C5_key_moment_conversion, W1_10_ev_heatpump_geography]
+  6:
+    name: forward simulation
+    atoms: [EP16_anchored_generators, SPINE_1_scenario_world_state]
+  7:
+    name: communications, sentiment and NPS
+    atoms: []

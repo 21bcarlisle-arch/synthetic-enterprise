@@ -374,6 +374,9 @@ REVIEWED_CLOSE_TO_LEARN = {
     # EP2_variance_learning_loop: literally the "learn" half of the stream's name -- expected-minus-
     # realised decomposed per cohort and fed back into belief. No candidate alternative exists.
     "EP1_clv_three_horizon",
+    # 2026-10-05: forecast from earlier years, graded on what later years did -- the atom IS the
+    # learning loop, the same stream as EP1 it couples to.
+    "B11_forward_clv_backtested_on_held_back_history",
     "EP2_variance_learning_loop",
     # EP6_wall_protocol_typing: the-wall architecture, the same class as W4_1_typed_adapters (already
     # close_to_learn above). It moves no money; it decides the message shapes money later moves in.
