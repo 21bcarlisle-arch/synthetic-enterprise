@@ -1,179 +1,155 @@
 version: 1
-oriented_at: "2026-10-05T02:22:55.731853+00:00"
+oriented_at: "2026-10-05T05:24:52.527698+00:00"
 thesis_read: >-
-  THE STEER BIT, AND TWO PIECES OF THE THESIS MOVED. THE DIRECTOR HAS NOW SET A NEW ORDER, AND IT DECIDES
-  WHAT COMES NEXT. Four of last record's five focus items were drawn, and three finished. EP13 is parked at
-  s43 with its findings kept in a knowledge note (de323eb13, f98a30805, d11cadc56). G14 now uses NESO's
-  published series from 2018-05-11, with Elexon fuel mix at NESO's own factors before that, aligned to
-  settlement (09e2bf07f). Its futures are fitted on the wind, solar and demand the world makes, on today's
-  fleet, and graded on a year the fit never saw (bb7c45646, 4059a392b). For carbon, that replaces
-  reconstruction with the series a real supplier would actually have. G14's row still reads L0, so the
-  level is owed and not yet earned. C29 has its frame (5ce4ce27d): eleven company decisions are still
-  lookups. Its first build (635bd7dfd) is the first thing this stretch that speaks to the thesis itself.
-  A per-account engagement estimate, using only what the company can see, ranks the world's hidden trait
-  at 0.73, against 0.19 for the channel alone. That is inference, not access, and it is graded against
-  ground truth the company never touches. It is not yet value. No decision reads the estimate, and the
-  flat baseline is still not beaten on this book. Last stretch's attribution stands: on a fixed world the
-  rule's edge does not move. C29's retention follow-up is being landed now (surgical_land pid 4084498).
-  The unmerged-work guard fix exists as c73db7751, but only in a locked worktree owned by live worker
-  2946775, and is on no remote ref yet. So the guard row stays open, and PB5, the one undrawn item, is
-  still exposed to the guard. The shared checkout is now 36 commits behind origin, up from 23, so
-  reconcile-watch is falling further behind, not catching up. The heartbeat steer resolved as a
-  measurement: the separate daemon checkout is not needed now (3cc1281c4). That commit sits
-  landed_unbound in the draw ledger, which binds the instance but not the in-hand-without-a-claim class.
-  At 02:24Z the director issued DIRECTOR_CANON_THE_PRIORITY_ORDER_2026-10-05. It supersedes the
-  4 September re-ranking: (1) knowledge, wide and in parallel; (2) unbilled energy and billing accuracy;
-  (3) forward CLV tested on held-back history; (4) per-customer decisions alongside; (5) the levers;
-  (6) forward simulation; (7) communications and NPS last. I agree with it and am not asking him. One
-  consequence is worth stating. Step 3's test of forecasting from earlier years and checking against
-  later ones needs only ONE book. EP1's CLV has been blocked at L2 waiting for a second book, so step 3
-  gives the CLV spine a falsifiable test on the book we already have. His open EP17 row, which separates
-  per-customer pricing from a flat price across books, stays a different question. So this record drops
-  the in-flight finishing items, which their holders are already landing, and turns focus to his four
-  work items. Knowledge comes first because it runs in parallel and steps 2 and 3 rest on it. Then atoms
-  for steps 2 and 3, then a measured check that the draw follows the order: on 4 September the dials
-  moved and the work did not. 13 commits, 9 substantive, 2 no-work merges. One worktree commit is on no
-  remote ref (the guard, held by its live owner). No long job launched or died.
+  STEP 1 IS DONE, AND IT FOUND THAT THE WORLD CANNOT YET REWARD INFERENCE WHERE STEPS 2 TO 4 WANT IT.
+  NONE OF THIS STRETCH'S WORK HAS REACHED THE SITE: NO FIGURES HAVE PUBLISHED SINCE 2026-09-28. All five
+  of last record's focus items are finished or being landed by their holder, so all five leave focus.
+  The six step-1 knowledge pages landed (666ed5fe0), and the director's carbon investigation was added
+  (d6fb6e5e4). They paid for themselves at once: eight plain errors in company/ were corrected
+  (65329aa39), including EV load counted twice and dissatisfaction raising departure, and invented
+  figures became stated gaps. The customer-facing carbon figure now counts gas (0074cd746). G14 reached
+  L2 (1279b164d). W2_36, D48 and B11 were minted, and EP1's block was re-scoped so forward CLV no longer
+  waits on a second book (77bf72bab). The check on whether the draw follows the order (9a2356731) is on
+  origin, and the draw change is being landed now from /var/tmp/se-draw-order by live worker 1364549
+  (acff52923: 81% of last week's atom draws served no step). Against the thesis, the important result is
+  a negative one. The knowledge says the world cannot yet press back where the company is meant to
+  infer. Used, settled and billed energy are one number, so there is no unbilled energy to find. The
+  world's retention response is a flat 0.20 hazard cut, so ranking on risk and ranking on effect score
+  the same. C29 found the world's engagement tail about twice as sticky as Ofgem's control arm
+  (ce096a86e). A company cannot beat the flat baseline by inference in a world that gives inference
+  nothing to find. So the next work is fidelity first, which is what the canon's step 2 already says.
+  The direction has not gone backwards, but the baseline is no closer to being beaten. B11 and D48 were
+  both drawn this stretch, and none of the three new atoms' subject files exist on disk or on origin. The
+  steer is reaching the draw and producing nothing yet, which is why those atoms lead this focus. The
+  machine finding comes first, though. The last auto-process publish on origin is 1526f5267
+  (2026-09-28 05:46). At least five run_complete markers since then (10-01 twice, 10-03, 10-04, 10-05)
+  never published. The publish state calls this "1 consecutive attempt failed over 1.0h", so a week-long
+  stall reads as one hour, and the newest refusal (behind_origin, an edited STARTUP_ANCHORS.md in the
+  shared tree blocking the fast-forward) is the same cause as the checkout lag. Under "done means the
+  rendered value changed", nothing has been done for a week. Grading last stretch's errors: the
+  unmerged-work guard fix c73db7751 is on origin/main, so that row is corrected. C29's stale "behind B10"
+  hold was rewritten in its block_reason, which fixes the instance but not the class. The checkout lag
+  fell from 36 to 10 behind with no mechanism changed, so its cause is not established. The brief itself
+  read the behind checkout: it listed four open concerns when origin carries six, and both rows raised at
+  05:02 (2b404892e) are carried here from origin. 19 commits, 8 substantive, 6 that changed nothing.
 stretch_reviewed:
-  since: "2026-10-04T23:22:10.483863+00:00"
-  commits: 13
-  substantive: 9
+  since: "2026-10-05T02:22:55.731853+00:00"
+  commits: 19
+  substantive: 8
 focus:
-  - id: knowledge-step-one-unbilled-energy-debt-and-home-moves
-    lane: D_billing_metering
-    what: >-
-      Director canon 2026-10-05, step 1, first wave. These are the three areas that steps 2, 3 and 5 rest
-      on: (a) unbilled energy and revenue assurance, (b) debt and collections, (c) home moves. For each
-      area, write one knowledge note under docs/market_research/ with a `**Knowledge:** <topic>` line.
-      Split each note into what the published record ESTABLISHES (Ofgem, Elexon/BSC, RECCo, Energy UK,
-      supplier annual reports, each cited) and what it does NOT, with every gap named. For (a), say how
-      unbilled energy actually arises: estimated and missing reads, meter faults and exchanges, CoT/CoS
-      read disputes, theft, unregistered or unbilled sites, and the gap between settled and billed volume.
-      Also say what a real supplier measures to catch it. For (b), cover the journey from arrears to
-      write-off and the debt-cashflow forecasting levers. For (c), cover move-in, move-out and
-      occupier-account handling, and the debt that follows a move. Read what we already hold BEFORE
-      searching: docs/market_research/unbilled_revenue_accrual_e3.md, company_debt_management.md,
-      gb_domestic_bill_payment_failure_and_arrears_prevalence.md and life_event_stream_w2_5.md, the
-      closed E3/D1/D3 simplification records, and the Bad debt row of
-      docs/institutional/knowledge_map.md. Add or update one knowledge_map row per area. Knowledge goes
-      in the knowledge layer and machine findings go in the registers.
-    why: >-
-      The director asked for this to start straight away. Step 2 (unbilled energy) cannot be minted as an
-      honest atom until we know how unbilled energy arises in reality, and the debt levers rest on knowing
-      what was actually billed. DONE when all three notes are on origin with their Knowledge lines, each
-      has a knowledge_map row, and the named gaps are filed rather than filled with a number.
-  - id: mint-atoms-for-unbilled-energy-and-forward-clv
-    lane: A_strategy_governance
-    what: >-
-      Director canon 2026-10-05, work item 2. Mint two atoms in docs/design/maturity_map.yaml so steps 2
-      and 3 are drawable. (i) Lane D_billing_metering: the world generates unbilled energy the way it
-      arises in reality, and the company measures it through what it can see across
-      company/interfaces/sim_interface.py. Its depends_on must name the knowledge note from the first
-      focus item. Reuse the closed E3_accrual_restatement, D1_bill_correctness and D3_catchup_rebilling
-      rather than restating them, and say in the row what they already cover. (ii) Lane B_commercial:
-      forward CLV per customer, meaning base-case cashflow plus churn risk, forecast from earlier years of
-      the book and graded against what later years actually did. State in the row how it relates to
-      EP1_clv_three_horizon. EP1 is blocked at L2 on a second book, and the held-back-history test does
-      not need one, so either re-scope EP1's block_reason to this test or couple the new atom to it. Give
-      both atoms loop_stage build and a file_scope that names generators and doors, not generated
-      artefacts. Run `python3 -m tools.maturity_map_store` for headroom first (34,081 bytes at
-      orientation), and put long reasoning in docs/design/simplifications/<atom_id>.yaml.
-    why: >-
-      Until the near work is an atom, it is description that no draw can take. DONE when both rows are on
-      origin with loop_stage build, and EP1's block_reason no longer says CLV can only move with a second
-      book.
-  - id: the-draw-follows-the-directors-priority-order-not-only-the-dials
+  - id: figures-reach-the-site-again-after-a-week-without-a-publish
     lane: H_harness
     what: >-
-      Director canon 2026-10-05, work item 3. First MEASURE. Read the draw ledger for the last seven days.
-      Classify every atom drawn by the canon step it serves (1 knowledge, 2 unbilled and billing accuracy,
-      3 forward CLV, 4 per-customer decisions, 5 levers, 6 forward simulation, 7 communications and NPS,
-      or none), and print the shares. Then find where the 4 September re-ranking was meant to bite
-      (background/supervisor.py near line 2685, which names that canon) and say why the dials did not move
-      the work. Then make the draw read the order. Record the step-by-atom mapping once, in a file the draw
-      reads, rather than as prose on rows. Prove it with a control where, at equal dials, a step-2 atom
-      outranks a step-6 or step-7 atom, and see the current code go red on that control. Also assert that
-      a claimed in-flight atom is NOT pre-empted, since the canon says in-flight work finishes first.
-      Leave sequencing within a step to the dials, because the canon gives that to the seat.
+      No auto-process publish has reached origin since 1526f5267 (2026-09-28 05:46), while run_complete
+      markers kept arriving (20261001T055550Z, 20261001T155057Z, 20261003T203729Z, 20261004T190804Z,
+      20261005T032309Z, per staging-watcher-log.md). For EACH marker, establish from
+      docs/observability/.publish_gate_state.json history, publish_gate_duration.jsonl and the
+      process_run_complete journal why its commit did not land: the latest says behind_origin, with an
+      edited docs/status/STARTUP_ANCHORS.md blocking the fast-forward. Fix the cause that stops the
+      publish from landing, using the doors the refusal names (background.origin_reconcile in an
+      isolated worktree, never a merge in the shared index). Then make the publish state count
+      consecutive failures since the last publish that actually landed on origin, not per episode, so a
+      week reads as a week. Show that the new count would have read about seven days on today's history
+      and one on a fresh failure.
     why: >-
-      The director asked for this check explicitly, because a re-ranking once moved the weights and not
-      the work. DONE when the measured shares are written up, the draw reads the order through a control
-      that can fail, and the next orientation's atoms_drawn shows steps 1 to 3 being taken.
-  - id: knowledge-step-one-nba-comms-upsell-and-low-carbon-products
-    lane: C_customer_ops
+      A week of work, including the gas-inclusive carbon figure and G14, is invisible on the surface the
+      director steers from, and the instrument reports an hour. DONE when a run_complete's figures are on
+      origin with a site/data/dashboard.json commit newer than 2026-09-28, and the publish state's failure
+      count is keyed to the last landed publish.
+  - id: W2_36_unbilled_energy_arises_the_way_it_does_in_reality
     what: >-
-      Director canon 2026-10-05, step 1, second wave. Write one knowledge note per area under
-      docs/market_research/, each with a `**Knowledge:** <topic>` line and an established-versus-gap
-      split. The areas are: (d) next best action, meaning what a GB supplier can actually act on per
-      account and which actions the record shows moving retention or arrears; (e) communications,
-      sentiment and NPS, keeping to what is published (Ofgem complaints data, Citizens Advice star
-      ratings, UKCSI) and saying plainly where the trigger differs by payment population, as with bill
-      shock; (f) upsell and cross-sell; (g) EV, solar and batteries as products, covering adoption
-      triggers, the losses when a customer gets the kit (export, lower import, tariff switching), lead
-      generation, and the published ROI evidence. Read docs/market_research/what_bill_shock_is.md,
-      satisfaction_drivers_and_the_three_bill_shocks.md, company_customer_comms.md and the
-      W1_10_ev_heatpump_geography and C4_adoption_physics rows first. Add a knowledge_map row per area.
+      Canon step 2, world half. Build simulation/unbilled_energy.py so that, per household, used, settled
+      and billed energy are three different numbers. Start with the two kinds the knowledge note
+      (docs/market_research/unbilled_energy_and_revenue_assurance.md) establishes best: estimated reads,
+      with their later true-up from a persistent per-household read state rather than independent
+      monthly draws, and consumption the supplier is charged for in settlement but does not bill (theft
+      and unknown occupiers, sized against the published UIG record and not invented). Feed it to
+      settlement (simulation/settlement_run_series.py) and to the bill catch-up, so the supplier is
+      charged for energy it never billed. Expose to the company only the observables a real supplier
+      gets (reads, read type, settlement volumes) across company/interfaces/sim_interface.py. Where the
+      read-state question needs the practitioner answer the step-1 proposal asks him, carry that leg as a
+      named None and build the rest.
     why: >-
-      The rest of step 1. It is placed after the atoms and the draw check because steps 5 and 7, which it
-      feeds, come later in his order, and any of the four may change that order, which is what he wants
-      proposed back with evidence. DONE when all four notes and knowledge_map rows are on origin. If one
-      changes the order, a concern is raised with its evidence.
-  - id: g14-records-its-level-now-the-series-and-futures-are-on-origin
-    lane: G_data_learning
+      The company cannot measure a gap the world does not make, so this is the precondition for D48 and
+      for every debt and cashflow lever after it. It is step 2 in his order, and it is also the first item
+      of the sequence the step-1 proposal puts to him, so it does not wait on his ruling. DONE when a run
+      shows non-zero settled-minus-billed volume, attributed by kind, and the subject and its test are on
+      origin.
+  - id: D48_billing_accuracy_the_company_measures_what_it_billed_against_what_was_used
     what: >-
-      Finish G14_half_hourly_grid_carbon_intensity_aligned_to_settlement, which is in flight. Its
-      history (09e2bf07f) and futures (bb7c45646, 4059a392b) are on origin, but the row reads L0. Check
-      the remaining part of last record's step (4): the WORLD's carbon callers, as opposed to the
-      company's, read the G14 series, and the switch is recorded in
-      docs/design/simplifications/EP13_adapter_carbon_intensity.yaml. Then record the level G14's
-      controls support through tools/level_promotion_gate.py, with its End-to-end clause. If a caller
-      still reads the parked EP13 path, switch it first, or name it in the row as the gap that holds the
-      level.
+      Canon step 2, company half. First, correct the ledger's "unbilled revenue" definition: the step-1
+      knowledge found it sums billed-on-estimate, not used-but-unbilled (find it via saas/ledger and the
+      closed E3 record), and this needs no world change. Then build company/billing/billing_accuracy.py,
+      measuring billed against settled volume per account and by kind (estimated versus actual reads,
+      true-ups, the back-billing limit), from what the company sees only. Before differencing, write
+      down what each quantity counts. Grade the measure against the world's truth from W2_36 in a test
+      the company never imports.
     why: >-
-      The canon says in-flight work finishes first, and G14 is the last unfinished piece of last
-      stretch's carbon steer. A built capability whose row reads L0 is invisible to everything that ranks
-      by level. DONE when G14's row reads the level its controls earn, or names the single caller that
-      holds it.
+      D48 was drawn this stretch and nothing was built. The definition fix is cheap, already established,
+      and wrong today in a published-adjacent ledger line. DONE when the corrected definition and
+      billing_accuracy.py with its test are on origin, and the measure on a W2_36 run is reported against
+      the world's truth.
+  - id: B11_forward_clv_backtested_on_held_back_history
+    what: >-
+      Canon step 3. Build company/analytics/forward_clv.py: per customer, base-case cashflow plus churn
+      risk, fitted only on the book's earlier years (state the cut year), and graded against what the
+      later years actually did, per customer and in aggregate, with the error bound its sample size earns.
+      Departures cannot yet be split into switches and moves, because the world has no move event (step-1
+      knowledge, home_moves.md). Carry that as a named limitation of the churn leg, not a correction
+      factor. Report the flat-rule forecast (same CLV for every customer in a segment) beside it on the
+      same held-back years, so the per-customer view has a baseline to beat.
+    why: >-
+      The spine every lever is judged against, testable on the one book we have. B11 was drawn this
+      stretch and its subject does not exist. DONE when the backtest is on origin with the flat
+      comparison beside it. If it does not beat the flat rule, that is the result and it gets written up.
+  - id: bind-the-heartbeat-steers-landing-and-the-salvaged-worktrees
+    lane: H_harness
+    what: >-
+      Run `python3 -m background.delivery_lane --landed the-heartbeat-leaves-main-per-the-directors-steer
+      --commit 3cc1281c4` (the commit resolved the steer as a measurement). Then, for the four SALVAGE
+      commits on no remote ref (worktrees agent-a8d680d38d1b13aa5, agent-a9438a8c3dfb9f678,
+      agent-ac644f84641851c1c and agent-ac88a852da9c24f8c, owner pid 2197437), diff each against
+      origin/main. Say whether its bytes are already landed, are live work for the owner, or are
+      disposable, and record that verdict in the worktree's lock reason.
+    why: >-
+      The first command closes a wrong row that has sat 17h on one missing command. The second stops
+      unlanded work being reaped silently. DONE when the draw ledger shows the heartbeat item bound, and
+      each of the four worktrees is either locked with a verdict or its commit is on a remote ref.
 not_now:
-  - what: Keep PB5 as a Lane 0 item.
+  - what: Wait for the director's ruling on the step-1 order proposal before starting step 2.
     why: >-
-      PB5 is step 4 work, which the canon runs alongside and not ahead of steps 1 to 3. It is
-      loop_stage build, so once the guard fix (c73db7751) lands the ordinary draw can take it. Spending a
-      Lane 0 slot on it would push his knowledge and minting work back.
-  - what: Re-issue the unmerged-work guard as a focus item.
+      An open concern never blocks the queue. Making used, settled and billed three numbers is step 2 in
+      his canon AND the first item of the proposal's re-sequence, so W2_36 is right under either answer.
+      The parts that differ (home moves into step 2, debt graded before the lever) wait for his row.
+  - what: Put the C29 world refit (the engagement tail twice too sticky) in focus.
     why: >-
-      Worker 2946775 holds it, the commit exists, and it is being landed. Re-issuing it would make a
-      second writer on the same file. Its wrong row stays open until the commit is on origin.
-  - what: Steer C29 further builds as Lane 0, such as a decision that reads the engagement estimate.
+      It is queued as continuation c29-refit-..., a surgical_land of its first step is running now
+      (pid 2889635), and it is step 4, which runs alongside and not ahead of steps 2 and 3. A focus item
+      would be a second writer.
+  - what: Re-issue the draw-follows-the-order item, which the ledger lists as not_done.
     why: >-
-      C29 is loop_stage build with a filed frame, so the atom draw reaches it. Its retention follow-up
-      is being landed now. Step 4 continues alongside, and putting it in Lane 0 would put it ahead of
-      steps 1 to 3, against the canon.
-  - what: Take forward simulation further now that G14 has weather-fitted futures.
+      The ledger reads its named path, background/supervisor.py, as clean. The work is commit acff52923
+      in /var/tmp/se-draw-order, locked by live worker 1364549, with its base-advance merge running
+      (pid 2976393). Re-issuing it would duplicate work that is being landed.
+  - what: Re-rank next best action with heating above flex, per the carbon proposal.
     why: >-
-      That is step 6, and he deliberately places it after the levers. G14's futures were built to
-      follow the world's weather year, which meets his "build nothing that forecloses" rule without
-      building forward runs.
-  - what: Start building comms, sentiment or NPS mechanics.
+      That is step 5, and it is his open row. The fact the carbon work established, that the shown figure
+      must count gas, already landed (0074cd746) without needing a ruling.
+  - what: Start the step-4 world change in which households respond to contact by offer size and sometimes badly.
     why: >-
-      That is step 7, which comes last. Its knowledge (focus five) is what must come first, and the
-      definitions split by payment population, as bill shock did.
-  - what: Route forward CLV through a second book (EP1's standing block, or his EP17 row).
+      The step-1 proposal argues for it, but it re-sequences his step 4 and is his open row. Steps 2 and 3
+      come first in the canon in force.
+  - what: Fast-forward the 10-behind shared checkout by hand.
     why: >-
-      Step 3 asks for held-back history, which one book supports. The cross-book question is his open
-      row and stays there, and it is not needed to test the CLV spine.
-  - what: Fast-forward the 36-behind shared checkout by hand.
-    why: >-
-      That is reconcile-watch's job. A hand merge in a tree with three live writers (a surgical_land, a
-      worker and a seat turn are running now) risks sweeping their work. The growing lag is recorded in
-      wrong.
+      Three surgical_lands are running in the shared tree now. Focus item one reaches the same cause
+      through the reconcile door in an isolated worktree, which is the door the refusal names.
 wrong:
   - what: >-
       THE MACHINE'S, NEW. The supervisor's UNMERGED-WORK guard diffs worktree branches against LOCAL
       main, so while the shared checkout is behind origin it counts already-landed work as unmerged. Live
       today it holds origin-landed docs and company/pricing files, and it drops PB5 and G14 from every
       BUILD draw. Focus item four.
-    corrected: false
+    corrected: true
   - what: >-
       THE MACHINE'S, NEW. The merge proposal says the director's heartbeat steer is "in hand", but no
       claim in .seat_work_in_hand.json holds it, and a heartbeat commit (ef9011143) landed after the
@@ -278,6 +254,24 @@ wrong:
       `--landed`. The heartbeat steer's resolution (3cc1281c4) is named by the ledger and bound to
       nothing 14h after its draw, so the ledger keeps reporting an item drawn with nothing landed under
       its own name.
+    corrected: false
+  - what: >-
+      THE MACHINE'S, NEW. No figures have published to origin since 1526f5267 (2026-09-28 05:46), with at
+      least five run_complete markers since then unpublished. The publish state reports "1 consecutive
+      attempt failed over 1.0h", because its failure count resets per episode, so a week-long stall
+      reads as one hour and no orientation flagged it. Focus item one.
+    corrected: false
+  - what: >-
+      THE MACHINE'S, NEW. The seat's brief reads the director's open concerns from the behind shared
+      checkout. It listed four open rows when origin/main carries six (both rows raised in 2b404892e were
+      missing), so a record written from the brief alone would have dropped two open concerns. Carried
+      here from origin by hand.
+    corrected: false
+  - what: >-
+      THE MACHINE'S, NEW. The draw ledger graded the draw-follows-the-order item not_done by asking only
+      its named path (background/supervisor.py) on origin, while the work sits finished as acff52923 in a
+      locked worktree that its live owner is landing. not_done reads the same for work never started and
+      for work mid-landing.
     corrected: false
 for_the_director:
 - id: the-end-to-end-review-of-claude
