@@ -45,9 +45,11 @@ FOUR THINGS THE DATA SHOWED THAT NOTHING HAD WRITTEN DOWN
      monthly mean of OTHER is 932-1,817 MW before the split and 66-135 MW after. So before the
      first BIOMASS reading, OTHER is priced at NESO's BIOMASS factor (`PRE_SPLIT_OTHER_PRICED_AS`).
      The CLI prints the bracket with OTHER at its own factor.
-  3. NESO's PUBLISHED LEVEL STEPS DOWN AROUND 2020-04-28. Published over arithmetic is about 1.10
-     to 1.13 from 2018-05 to 2020-04, then about 0.94 to 1.00 from 2020-05. The cause is NOT
-     ESTABLISHED. Pre-2018 values join the series at 2018-05-11, so the scale is fitted on the
+  3. NESO's PUBLISHED LEVEL STEPS DOWN AT 2020-04-27 PERIOD 34. Published over arithmetic is about
+     1.10 to 1.13 from 2018-05 to 2020-04, then about 0.94 to 1.00 from 2020-05. It is a change in
+     the API's own calculation: our inputs are smooth across that half hour, every fuel's implied
+     factor moves together, and NESO's Historic Generation Mix series has no step there (G14
+     knowledge page). Which term NESO changed is not recorded. Pre-2018 values join the series at 2018-05-11, so the scale is fitted on the
      regime they join (`CALIBRATION_FIT_WINDOW`, exactly two years, seasonally balanced). The
      whole-overlap fit is printed beside it. Averaging across the step would give a basis NESO
      never published.

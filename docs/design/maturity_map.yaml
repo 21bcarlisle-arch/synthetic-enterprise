@@ -1675,7 +1675,7 @@
   file_scope: ['docs/market_research/', 'sim/grid_carbon_history.py',
     'tests/sim/test_grid_carbon_history.py', 'sim/grid_carbon_future.py',
     'tests/sim/test_grid_carbon_future.py']
-  expert_hour: {status: not_attempted, last: null, findings: []}
+  expert_hour: {status: attempted_finding_open, last: '2026-10-05 cold-eyes, veteran GB grid-carbon persona, priors first: FAIL', findings: ['MAJOR-1 since 2020-04-27 P34 NESO actual is generation basis (0.97x arithmetic, no loss uplift) but feed, footprint and nci basis strings say loss-corrected', 'MAJOR-2 basis step at 2020-04-27 P34: 2016 to 2020-04 sits ~11% high; rebase on NESO Historic Generation Mix', 'MINOR fills ~20 g low pre-step; feed named_gaps stale; feed ends 2025-06-07 (INDO weight); futures level_error 11.3 g vs out-of-sample -40..+23 g; CO2 named co2e; import factors fixed', 'detail: docs/staging/SEAT_FINDING_G14_NESOS_2020_04_28_LEVEL_STEP_2026-10-05.md']}
   real_world_twin: "a supplier publishing a customer's carbon footprint from an annual national average, then being asked which hour it was saved in."
 - id: G15_forward_curve_series_to_backtest_hedging_by_physics
   title: "a published forward-curve or hedge-cost series good enough to backtest hedging by physics"

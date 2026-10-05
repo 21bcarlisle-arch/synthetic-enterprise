@@ -32,16 +32,54 @@ EP13 write-up.
 - **[measured]** On the 2018-2025 overlap the fuel-mix estimate tracks NESO at correlation 0.976
   (0.965-0.996 by year). Adding embedded generation to the denominator took the post-2020 bias from
   +12.6 g to +2.4 g.
-- **[fitted]** NESO's level sits 10-13% above the fuel-mix arithmetic until a step near 2020-04-28.
-  **[open]** The cause of that step is not established. The pre-2018 estimate is scaled by 1.1287,
-  fitted on 2018-05-11 to 2020-04-27 (the level at the join). That takes the window's bias from
-  -25.3 g to -0.6 g.
+- **[fitted]** NESO's level sits 10-13% above the fuel-mix arithmetic until a step at 2020-04-27
+  period 34. That step is a change in how the API calculates its figure (below), not a change in the
+  fleet. The pre-2018 estimate is scaled by 1.1287, fitted on 2018-05-11 to 2020-04-27 (the level
+  at the join). That takes the window's bias from -25.3 g to -0.6 g. It puts 2016 to 2020-04 on the
+  API's pre-step basis, about 11% above everything after it.
 - **Inside NESO's coverage** a NESO outage or null is filled from the fuel mix and tagged
   `fuelmix_fill`. A half hour with neither source is a gap with its reason, never a zero. Every value
   carries `neso_published`, `fuelmix_estimate` or `fuelmix_fill`.
 - **[measured] A publication defect found on the way.** Through 2022 Elexon's FUELHH row labelled
   (D, 48) starts at D-1 23:30Z. All FUELHH readers now key by start time; about 1.3% of half hours
   moved.
+
+### The 2020-04-27 step is a change in NESO's calculation, not in the fleet
+
+*Established 2026-10-05; the pre-registration and the runs are in
+`docs/staging/SEAT_FINDING_G14_NESOS_2020_04_28_LEVEL_STEP_2026-10-05.md`.*
+
+- **[measured] It happens at one half hour.** At 2020-04-27 period 33 the API's actual is 210 g. At
+  period 34 it is 195 g. Over the same two half hours CCGT rose 860 MW and the fuel-mix arithmetic
+  rose from 191 g to 198 g. Embedded generation, every FUELHH fuel and the import mix are smooth
+  across the boundary, so none of our inputs moved: the cause is on NESO's side.
+- **[measured] It is not one factor revised.** The implied per-fuel factors were fitted on a year
+  either side of the step. Before it, CCGT is 430 g/kWh, coal 1,066 and biomass 165. After it they
+  are 400, 984 and 122, against NESO's table of 394, 937 and 120. Every well-identified factor is
+  9-14% high before the step and back near the table after it. That is a uniform multiplier, not a
+  revision to one fuel.
+- **[measured] It is not embedded generation leaving the denominator.** Dropping embedded wind and
+  solar fits the pre-step API worse: the ratio's SD goes from 0.076 to 0.083, and its slope on
+  embedded share from +0.35 to -0.84.
+- **[measured] NESO's other published series has no step.** NESO's Open Data Portal "Historic GB
+  Generation Mix" (`df_fuel_ckan.csv`) is half-hourly from 2009-01-01 and carries its own
+  `CARBON_INTENSITY`. Across the 28 days either side of the step, historic-mix/arithmetic goes 0.961
+  → 0.959, while API/historic-mix goes 1.151 → 1.048. A placebo cut on 2019-04-27 moves neither
+  (0.978 → 0.970 and 1.130 → 1.125). After the step the two NESO series agree half hour by half
+  hour within 1-3%. Before it, the API runs 13-18% above NESO's own historic mix.
+- **[sourced] The likely mechanism.** NESO's methodology says the API's figure is "corrected to
+  account for transmission losses to give the intensity of consumption". A loss correction is the
+  one uniform, fuel-independent multiplier of about this size. NESO's FOI response FOI/25/152 says
+  NESO "does not hold recorded information on an historical time series of the net percentage or
+  multiplier used to convert generated electricity to delivered/final-use electricity". **[open]**
+  So which term changed cannot be established from NESO. The classification can: **a methodology
+  change in the API's live calculation**, not a factor revision and not a fleet change.
+- **[measured] What it does to G14 as shipped.** The series takes the API from 2018-05-11. So
+  2018-05-11 to 2020-04-27, and the pre-2018 estimate scaled to join it, sit on the old basis, about
+  11% above 2020-04-27 onwards. Part of the published decline from 2019 to 2021 is therefore the
+  calculation change and not the fleet. The same part sits inside the 2018-2020 rows of the weather
+  fit's per-year table below. For 2019 that is roughly 24 of its +45.6 g (214 g × the ~11% step).
+  The futures fit is unaffected, because its window is 2024-25.
 
 The company reads this series through `docs/market_data/grid_intensity_feed.json`
 (`tools/generate_grid_intensity_feed.py`), the same route as the price and consumption feeds; the
@@ -124,4 +162,13 @@ week beside the record week it replays.
   carries history only. The smallest honest wiring is forward-year blocks in the grid-intensity
   feed. Before that, the feed's per-year typical-day blocks must be shown readable at earlier
   simulated dates (point in time).
-- **[open]** The 2020-04-28 step in NESO's level against the fuel-mix arithmetic.
+- **[measured] Since the step the API is not loss-corrected, whatever its methodology text says.**
+  From 2020-04-27 P34 NESO's actual is 0.97× the generation-only fuel-mix arithmetic (2021-25). A
+  loss correction would be about 1.08×. The ×1.10-1.14 before the step was that correction, and the
+  step is where it stopped. Any label calling the post-step series "per kWh consumed" or
+  "loss-corrected" is wrong (Expert Hour MAJOR-1, 2026-10-05). The quantity defined at the top of
+  this page is what NESO's methodology describes, not what the series has measured since 2020-04-27.
+- **[open] One basis across the step.** The cause is classified (above), but the shipped series
+  still changes basis at 2020-04-27 P34. NESO's Historic GB Generation Mix publishes one basis from
+  2009. It is the candidate source for the whole history and would replace the fitted 1.1287 scale.
+  The exact term NESO changed is not recorded anywhere NESO holds (FOI/25/152).
