@@ -48,23 +48,38 @@ def step_of(order: dict) -> dict[str, int]:
     return {a: k for k, v in order["steps"].items() for a in (v.get("atoms") or [])}
 
 
-def live_draw() -> tuple[list[dict], list[float]]:
-    """The candidates and weights the supervisor's BUILD draw would use now, captured from it."""
+def live_draw() -> tuple[list[dict], list[dict], list[float]]:
+    """What the supervisor's BUILD draw would use now, captured from it: every surviving candidate,
+    the pool the priority order lets the primary come from, and that pool's weights. Since the draw
+    began reading the order (2026-10-05) these differ: a later step's atom can be a candidate and
+    still be outside the pool, and only the candidates say whether a step is drawable at all."""
     os.environ.setdefault("SE_NTFY_TOPIC", "draw-follows-the-order-dry-run")
     from background import supervisor
 
     captured: dict = {}
+    tier = getattr(supervisor, "_follow_the_priority_order", None)
+
+    def _seen(cands, steps, in_flight):
+        captured["all"] = list(cands)
+        return tier(cands, steps, in_flight)
 
     class _Capture:
         def choices(self, cands, weights=None, k=1):
             captured["c"], captured["w"] = list(cands), list(weights)
             return [cands[0]]
 
-    # THE SUPERVISOR LOGS TO STDOUT, so its gate lines would precede this tool's JSON and make
-    # `--json` unparseable; measured on the first live run. Swallowed here, never re-printed.
-    with contextlib.redirect_stdout(io.StringIO()):
-        supervisor._maturity_map_draw_concurrent(rng=_Capture(), exclude_stalled=False)
-    return captured.get("c", []), [float(w) for w in captured.get("w", [])]
+    if tier is not None:
+        supervisor._follow_the_priority_order = _seen
+    try:
+        # THE SUPERVISOR LOGS TO STDOUT, so its gate lines would precede this tool's JSON and make
+        # `--json` unparseable; measured on the first live run. Swallowed here, never re-printed.
+        with contextlib.redirect_stdout(io.StringIO()):
+            supervisor._maturity_map_draw_concurrent(rng=_Capture(), exclude_stalled=False)
+    finally:
+        if tier is not None:
+            supervisor._follow_the_priority_order = tier
+    pool = captured.get("c", [])
+    return captured.get("all", pool), pool, [float(w) for w in captured.get("w", [])]
 
 
 def live_shares(cands: list[dict], weights: list[float], steps: dict[str, int]) -> dict:
@@ -105,12 +120,29 @@ def violations(shares: dict, order: dict, atoms_by_id: dict, drawable: set[str])
     return out
 
 
+#: A file_scope entry covering more tracked files than this names a TREE, not a subject, and
+#: cannot attribute a commit to a step. Measured 2026-10-05: C30's scope lists `tests` (1,946 files)
+#: and `simulation` (109), W1_10's lists `docs/design` (928), and between them they credited step 5
+#: with 137 of the 252 Lane 0 items drawn in the week, harness work included. The largest
+#: directory an ordered atom names that IS its subject is `company/crm` (C29), at 95.
+SUBJECT_MAX_FILES = 100
+
+
+def names_a_subject(scope: str) -> bool:
+    out = subprocess.run(["git", "ls-files", "--", scope], cwd=str(ROOT), capture_output=True,
+                         text=True)
+    return len(out.stdout.splitlines()) <= SUBJECT_MAX_FILES
+
+
 def outcome(order: dict, atoms_by_id: dict, since: str, ref: str = "origin/main") -> dict:
     """Landed non-merge commits since `since`, attributed to steps by file_scope coverage."""
+    steps = step_of(order)
     scopes = {}
     for aid, a in atoms_by_id.items():
-        scopes[aid] = [str(p).rstrip("/") for p in (a.get("file_scope") or []) if p]
-    steps = step_of(order)
+        if aid not in steps:
+            continue
+        scopes[aid] = [s for s in (str(p).rstrip("/") for p in (a.get("file_scope") or []) if p)
+                       if names_a_subject(s)]
     # A BARE DATE IS READ AS THAT DATE AT THE CURRENT TIME OF DAY by git's approxidate, which
     # silently drops every commit earlier in the day; measured empty on the canon's own date.
     since = since if " " in since else since + " 00:00"
@@ -133,8 +165,8 @@ def report() -> dict:
     atoms = yaml.safe_load(MAP.read_text(encoding="utf-8"))
     atoms = atoms.get("atoms", atoms) if isinstance(atoms, dict) else atoms
     atoms_by_id = {x["id"]: x for x in atoms if isinstance(x, dict) and x.get("id")}
-    cands, weights = live_draw()
-    shares = live_shares(cands, weights, step_of(order))
+    cands, pool, weights = live_draw()
+    shares = live_shares(pool, weights, step_of(order))
     return {
         "live_share_by_step": {str(k): round(v, 3) for k, v in sorted(shares.items())},
         "violations": violations(shares, order, atoms_by_id, {c.get("id") for c in cands}),
