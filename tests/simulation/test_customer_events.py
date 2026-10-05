@@ -262,7 +262,9 @@ def test_win_roll_uses_independent_seed():
         win_roll = win_rng.random()
         # The churn roll uses seed "C5_{FIRST_RENEWAL}" and the win roll uses "win_C5_{FIRST_RENEWAL}"
         churn_rng = _random.Random(f"C5_{FIRST_RENEWAL}")
-        assert churn_rng.random() == pytest.approx(churn_roll)
+        # The event carries the roll rounded to 4 dp (`customer_events`), so equality is to that
+        # rounding. Latent until 2026-10-05: before then C5 renewed and this branch never ran.
+        assert churn_rng.random() == pytest.approx(churn_roll, abs=5e-5)
         # Win roll is from a different RNG — must differ from churn roll
         assert win_roll != churn_roll
 

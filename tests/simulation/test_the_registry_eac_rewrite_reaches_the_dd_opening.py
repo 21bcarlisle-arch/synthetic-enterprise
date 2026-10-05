@@ -27,8 +27,13 @@ def test_every_record_phase_4c_reads_is_the_record_phase_2b_rewrites():
 
 
 def test_a_rewritten_eac_moves_the_opening_phase_4c_sets(monkeypatch):
-    cid = "PROS-2024-0082"
-    record = next(c for c in p2b.ELEC_CUSTOMERS if c["customer_id"] == cid)
+    # Any drawn account phase 4c opens. A named one (PROS-2024-0082, the account the defect was
+    # seen on) left the book when the draw moved, and `next()` raised before the property was asked.
+    drawn = [c for c in p2b.ELEC_CUSTOMERS if c["customer_id"].startswith("PROS-")]
+    opened = p4c._opening_dd_by_customer(drawn)
+    assert opened, "no drawn electricity account has an opening: nothing here can be moved"
+    record = next(c for c in drawn if c["customer_id"] in opened)
+    cid = record["customer_id"]
     before = p4c._opening_dd_by_customer(
         [c for c in p4c._get_all_customers() if c["customer_id"] == cid])[cid]
     # The rewrite's own write, done in place on phase 2b's record exactly as main() does.

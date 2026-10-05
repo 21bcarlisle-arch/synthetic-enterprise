@@ -24,6 +24,7 @@ R15 — each mutation proven by reverting, not asserted:
 """
 from __future__ import annotations
 
+import re
 from datetime import date, timedelta
 
 import pytest
@@ -209,10 +210,15 @@ def test_the_run_builds_exactly_one_fold_and_feeds_it_where_the_list_is_extended
     # daily rows (2026-08-24), so the property is asserted on the ORDER rather than on one
     # literal line: the registers and the fold both see the same term, and both see it only
     # after the loop has finished asking questions about the book as it stood before it.
+    # The fold of the term may be bound to a name first (2026-10-03, `f2bc0cff2`, so the DD stop
+    # board reads the same rows) -- the property is that the book is extended with it, not the
+    # spelling of one line.
     block = src.split("period_registers.add(settled_this_term")[1].split("\n\n")[0]
-    assert "all_records.extend(fold_to_days(settled_this_term))" in block
+    folded = re.search(r"(\w+) = fold_to_days\(settled_this_term\)", block)
+    extend = "all_records.extend({})".format(
+        folded.group(1) if folded else "fold_to_days(settled_this_term)")
+    assert extend in block, "the book is not extended with this term's daily fold"
     assert "settled_fold.add(settled_this_term)" in block
-    assert src.index("settled_fold.add(settled_this_term)") > \
-        src.index("all_records.extend(fold_to_days(settled_this_term))"), (
+    assert block.index("settled_fold.add(settled_this_term)") > block.index(extend), (
             "the fold is fed before the book is extended, which is the point-in-time drift "
             "this test exists to catch")
