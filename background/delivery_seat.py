@@ -2035,9 +2035,12 @@ def run_session(brief: dict) -> tuple[bool, str]:
 #: owner-marked on creation: unlocked scratch worktrees under /var/tmp have been reaped mid-landing.
 DIRECTION_WORKTREE = Path(os.environ.get("SE_DIRECTION_WORKTREE", "/var/tmp/se-direction-seat"))
 
-#: Files the seat only ever appends to. Their working copy is landed over origin's only when
-#: origin's copy is a prefix of it -- otherwise the landing would delete a row someone else put on
-#: origin, and that is refused by name rather than merged by guesswork.
+#: Files the seat only ever adds to. Their working copy is landed over origin's only when it is
+#: origin's copy with ONE block inserted -- otherwise the landing would delete a row someone else
+#: put on origin, and that is refused by name rather than merged by guesswork.
+#: NOT "origin's copy is a prefix" (the rule until 2026-10-04): the stretch log PREPENDS after its
+#: header (`tools/stretch_log.append`), so a prefix rule refused every orientation that wrote an
+#: entry -- 02:30Z and 08:25Z on 10-04 -- and the feed carrying H45's hand-read field sat on disk.
 APPEND_ONLY = ("docs/direction/decisions.jsonl", "docs/status/SEAT_STRETCH_LOG.md")
 
 
@@ -2054,14 +2057,21 @@ def _origin_bytes(root: Path, path: str) -> bytes | None:
     return out.stdout if out.returncode == 0 else None
 
 
+def keeps_all_of(ours: bytes, theirs: bytes) -> bool:
+    """True when `ours` is `theirs` with one contiguous block inserted anywhere -- appended rows
+    and an entry prepended under a header both qualify; a changed or dropped byte does not."""
+    head = len(os.path.commonprefix([ours, theirs]))
+    return len(ours) >= len(theirs) and ours.endswith(theirs[head:])
+
+
 def _refuse_an_append_only_rewrite(root: Path, content: dict[str, bytes]) -> None:
     for path in APPEND_ONLY:
         theirs = _origin_bytes(root, path)
-        if path in content and theirs is not None and not content[path].startswith(theirs):
+        if path in content and theirs is not None and not keeps_all_of(content[path], theirs):
             raise DirectionNotLanded(
-                f"{path} on origin/main is not a prefix of this tree's copy, so landing it would "
-                f"delete what origin holds beyond it. Not merged by guesswork: the file needs a "
-                f"hand landing that keeps both sides")
+                f"{path} on origin/main is not kept whole by this tree's copy (it is not origin's "
+                f"copy plus one inserted block), so landing it would delete what origin holds. Not "
+                f"merged by guesswork: the file needs a hand landing that keeps both sides")
 
 
 def _cut_direction_worktree(root: Path, worktree: Path) -> None:

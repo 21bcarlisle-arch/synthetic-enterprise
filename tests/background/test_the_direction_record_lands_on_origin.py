@@ -159,9 +159,37 @@ def test_every_landing_outcome_is_REACHABLE_and_only_an_origin_move_is_retried(w
     state["duplicate"] = False
     (world["shared"] / ROWS).write_text('{"at": "rewritten"}\n')
     rewrite = seat.commit_direction()
-    assert rewrite[0] is False and "not a prefix" in rewrite[1]
+    assert rewrite[0] is False and "not kept whole" in rewrite[1]
     assert len(calls) == raced_calls + 2
     assert _on_origin(world["origin"], ROWS).count('"at"') == 3
+
+
+def test_a_stretch_entry_PREPENDED_under_the_header_lands_and_a_dropped_one_is_refused(
+        world, monkeypatch):
+    """Defect it names: the append-only rule asked that origin's copy be a PREFIX of the tree's,
+    and `tools/stretch_log.append` prepends under the header, so every orientation that wrote an
+    entry was refused (02:30Z and 08:25Z, 2026-10-04) and the delivery feed never reached origin.
+
+    MUTATIONS (must fire): restore `startswith` (the prepended leg is refused); make
+    `keeps_all_of` always true (the dropped leg lands and deletes origin's entry)."""
+    log = "docs/status/SEAT_STRETCH_LOG.md"
+    header = "# Stretch log\n\n---\n"
+    _push_from(world["origin"], world["origin"].parent, log, header + "\n## old entry\n\n---\n")
+    _git(world["shared"], "fetch", "-q")
+    monkeypatch.setattr(seat.direction_mod, "WRITE_SCOPE", (RECORD, ROWS, log))
+    (world["shared"] / log).parent.mkdir(parents=True, exist_ok=True)
+
+    (world["shared"] / log).write_text(header + "\n## new entry\n\n---\n\n## old entry\n\n---\n")
+    ok, detail = seat.commit_direction()
+    assert ok is True, detail
+    on_origin = _on_origin(world["origin"], log)
+    assert "## new entry" in on_origin and "## old entry" in on_origin
+
+    (world["shared"] / RECORD).write_text("oriented_at: newest\n")
+    (world["shared"] / log).write_text(header + "\n## newest entry\n\n---\n")
+    dropped = seat.commit_direction()
+    assert dropped[0] is False and "not kept whole" in dropped[1]
+    assert "## old entry" in _on_origin(world["origin"], log)
 
 
 def test_the_startup_anchor_page_lands_with_every_record(world, monkeypatch):
