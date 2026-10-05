@@ -2,7 +2,7 @@ import pytest
 from datetime import date
 from company.crm.complaints import (
     ComplaintCategory, ComplaintStatus, Complaint, ComplaintBook,
-    OMBUDSMAN_ESCALATION_DAYS,
+    OMBUDSMAN_ESCALATION_DAYS, OMBUDSMAN_ESCALATION_SOURCE,
 )
 
 
@@ -151,3 +151,10 @@ def test_escalated_date_default_none(billing_complaint):
 
 def test_ombudsman_escalation_days_constant():
     assert OMBUDSMAN_ESCALATION_DAYS == 56
+
+
+def test_the_56_day_rule_cites_the_complaints_handling_regulations_not_slc_2_7():
+    """The defect: "8 weeks per Ofgem SLC 2.7". The value was right and the source wrong."""
+    assert OMBUDSMAN_ESCALATION_DAYS == 56
+    assert "Complaints Handling Standards) Regulations 2008" in OMBUDSMAN_ESCALATION_SOURCE
+    assert "SLC" not in OMBUDSMAN_ESCALATION_SOURCE

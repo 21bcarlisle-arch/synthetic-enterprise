@@ -108,7 +108,7 @@ if str(PROJECT) not in sys.path:
 from company.carbon.half_hourly_footprint import INTENSITY_FEED, load_shape  # noqa: E402
 from company.regulatory.carbon_emissions import (  # noqa: E402
     grid_intensity_g_co2e_per_kwh,
-    grid_intensity_is_extrapolated,
+    grid_intensity_level,
 )
 
 OUT_PATH = PROJECT / "docs" / "observability" / "r3_carbon_score_ceiling.json"
@@ -421,13 +421,18 @@ def _grams_per_shifted_kwh(days: dict[str, list[float]], window: int, seed: int)
     hindsight: list[float] = []
     null_draws: list[list[float]] = [[] for _ in range(NULL_DRAWS)]
     per_year: dict[str, list[float]] = {}
-    extrapolated: set[str] = set()
+    partial: set[str] = set()
 
     for date_str, day in sorted(days.items()):
         year = int(date_str[:4])
-        if grid_intensity_is_extrapolated(year):
-            extrapolated.add(str(year))
-        annual = grid_intensity_g_co2e_per_kwh(year)
+        # A day's shape lies inside the span its year's level was averaged over, so a part-year
+        # level is the right multiplier here; the year is still named as partial.
+        level = grid_intensity_level(year)
+        if level.g_co2_per_kwh is None:
+            raise ValueError(f"no published grid intensity for {date_str}: {level.reason}")
+        if not level.complete:
+            partial.add(str(year))
+        annual = level.g_co2_per_kwh
         grams = achievable_saving_per_kwh(day, window) * annual
         hindsight.append(grams)
         per_year.setdefault(str(year), []).append(grams)
@@ -443,7 +448,7 @@ def _grams_per_shifted_kwh(days: dict[str, list[float]], window: int, seed: int)
         "by_year_g_per_kwh": {y: round(statistics.fmean(v), 4) for y, v in sorted(per_year.items())},
         "days": len(days),
         "years": sorted(per_year),
-        "extrapolated_intensity_years": sorted(extrapolated),
+        "partial_intensity_years": sorted(partial),
     }
 
 
@@ -651,7 +656,9 @@ def typical_day_check(typical: dict[str, list[float]], window: int) -> dict:
     for year, day in sorted(typical.items()):
         if len(day) < MIN_PERIODS_PER_DAY:
             continue
-        annual = grid_intensity_g_co2e_per_kwh(int(year))
+        annual = grid_intensity_g_co2e_per_kwh(int(year), allow_partial=True)
+        if annual is None:
+            continue
         out[year] = round(achievable_saving_per_kwh(list(day), window) * annual, 4)
     if not out:
         return {"available": False, "why": "no year's typical day carries a full set of periods"}

@@ -1,6 +1,6 @@
 # UK Energy Supplier Customer Communications and Renewal Lifecycle — Research Findings
 
-Sources: Ofgem SLC 22A/22B, Ofgem Consumer Standards Dec 2023, Energy UK, Citizens Advice, KPMG CLV
+Sources: Ofgem SLC 22A/22B, SLC 23 (price-rise notice), Ofgem Consumer Standards Dec 2023, Energy UK, Citizens Advice, KPMG CLV
 
 ## 1. Renewal Cycle: Regulatory Notice Requirements
 
@@ -8,7 +8,7 @@ Sources: Ofgem SLC 22A/22B, Ofgem Consumer Standards Dec 2023, Energy UK, Citize
 |---------|----------------------|-------------------|
 | End of domestic fixed-term | **42–49 days before end** (SLC 22A) | End date, roll-over tariff, exit fee status |
 | End of micro-business fixed-term | **60–120 days before end** | Renewal rates, switching rights |
-| Tariff change on variable rate | **30 days** (SLC 22B) | New unit rate, standing charge |
+| Tariff change on variable rate | **30 days** (SLC 23; corrected 2026-10-05 from "SLC 22B", which is the ban on acquisition-only tariffs) | New unit rate, standing charge |
 | Missed payment (monthly DD) | Contact after **2nd consecutive miss** | Support offer, repayment plan options |
 | Missed payment (quarterly) | Contact after **1st miss** | Same |
 | New customer welcome pack | Within **5 working days** of supply start (SLC 23) | Principal terms, cooling-off rights |
@@ -120,7 +120,7 @@ Sources: Ofgem SLC 22A/22B, Ofgem Consumer Standards Dec 2023, Energy UK, Citize
 |--------|-------|
 | Domestic renewal notice window | 42–49 days before expiry (SLC 22A) |
 | SME renewal notice window | 60–120 days before expiry |
-| Tariff change notice (variable) | 30 days (SLC 22B) |
+| Tariff change notice (variable) | 30 days (SLC 23; corrected 2026-10-05 from "SLC 22B") |
 | Exit fee free window | Final 49 days of fixed contract |
 | Missed payment contact trigger (monthly) | After 2nd consecutive miss |
 | Welcome pack | Within 5 working days of supply start |

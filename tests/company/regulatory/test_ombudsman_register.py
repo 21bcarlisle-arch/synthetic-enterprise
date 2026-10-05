@@ -4,7 +4,7 @@ import pytest
 from company.regulatory.ombudsman_register import (
     OmbudsmanOutcome, OmbudsmanAwardType, OmbudsmanAward,
     OmbudsmanCase, OmbudsmanRegister,
-    _FINAL_RESPONSE_TO_REFERRAL_WINDOW_DAYS, _HIGH_UPHOLD_RATE_PCT,
+    _HIGH_UPHOLD_RATE_PCT,
 )
 
 DATE_FR = dt.date(2024, 1, 1)   # final response
@@ -34,10 +34,23 @@ class TestOmbudsmanCase:
     def test_is_in_window_false(self):
         c = OmbudsmanCase(
             "OSE-000001", ACCT, "TKT-000001",
-            referred_at=DATE_FR + dt.timedelta(days=200),
+            referred_at=dt.date(2025, 1, 2),
             supplier_final_response_date=DATE_FR,
         )
         assert not c.is_in_window
+
+    def test_referral_window_is_twelve_months_not_six(self):
+        """The defect: a 182-day window, so a referral at day 200 was refused. The Energy
+        Ombudsman accepts a referral up to 12 months after the final response."""
+        def case(referred, fr=DATE_FR):
+            return OmbudsmanCase("OSE-000001", ACCT, "TKT-000001",
+                                 referred_at=referred, supplier_final_response_date=fr)
+        assert case(DATE_FR + dt.timedelta(days=200)).is_in_window
+        assert case(dt.date(2025, 1, 1)).is_in_window
+        assert not case(dt.date(2025, 1, 2)).is_in_window
+        assert case(dt.date(2025, 2, 28), fr=dt.date(2024, 2, 29)).is_in_window
+        assert not case(dt.date(2025, 3, 1), fr=dt.date(2024, 2, 29)).is_in_window
+        assert not case(DATE_FR - dt.timedelta(days=1)).is_in_window
 
     def test_is_pending(self):
         assert make_case().is_pending

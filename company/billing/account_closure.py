@@ -49,7 +49,10 @@ class ClosureStatus(str, Enum):
 
 
 _FINAL_BILL_DEADLINE_DAYS = 42  # Ofgem SLC 21B: 6 weeks
-_FINAL_BILL_PAYMENT_WINDOW_DAYS = 28  # matches company/billing/cot.py::_OVERDUE_DAYS
+#: UNSOURCED. It was copied from company/billing/cot.py's `_OVERDUE_DAYS`, a "28-day regulatory
+#: trigger" no regulation backs; that module was retired 2026-10-05. Kept, not re-picked: a final
+#: bill's payment window is the supplier's own term and no published figure has been found for it.
+_FINAL_BILL_PAYMENT_WINDOW_DAYS = 28
 
 
 class FinalBillOutcome(str, Enum):

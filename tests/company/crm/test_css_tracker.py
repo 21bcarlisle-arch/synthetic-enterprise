@@ -66,25 +66,21 @@ def test_book_avg_score():
     assert avg == pytest.approx(7.5)
 
 
-def test_book_performance_band_top():
+def test_no_invented_regulator_benchmark_is_reported_as_one():
+    """The defect: an "Ofgem CSS" industry average on a 0-10 scale (2022 = 5.2) and a quartile
+    trigger at 6.0 / 7.8, matching no publication. The real Ofgem/Citizens Advice survey is
+    five-point, reported as % satisfied. The band and the comparison now say "not established"."""
     book = CSSBook()
-    book.record_response("C1", YEAR, SURVEY_DATE, 8.5, 9.0, 8.0, 8.0, 9.0)
-    book.record_response("C2", YEAR, SURVEY_DATE, 8.0, 8.5, 8.5, 8.0, 8.5)
-    assert book.performance_band(YEAR) == CSSPerformanceBand.TOP
-
-
-def test_book_performance_band_bottom():
-    book = CSSBook()
-    book.record_response("C1", YEAR, SURVEY_DATE, 5.0, 5.5, 5.0, 4.5, 5.0)
-    assert book.performance_band(YEAR) == CSSPerformanceBand.BOTTOM
-
-
-def test_book_vs_industry_avg_2022_crisis():
-    book = CSSBook()
-    # 2022: industry avg is 5.2; supplier at 5.5 = +0.3 above average even in crisis
     book.record_response("C1", 2022, dt.date(2022, 9, 1), 5.5, 5.0, 5.0, 4.0, 6.0)
-    delta = book.vs_industry_avg(2022)
-    assert delta == pytest.approx(0.3, abs=0.01)
+    book.record_response("C2", YEAR, SURVEY_DATE, 8.5, 9.0, 8.0, 8.0, 9.0)
+    for year in (2022, YEAR):
+        assert book.vs_industry_avg(year) is None
+        assert book.performance_band(year) == CSSPerformanceBand.NOT_ESTABLISHED
+        s = book.css_summary(year)
+        assert s["vs_industry"] is None
+        assert s["vs_industry_basis"].startswith("not established")
+        assert s["avg_overall"] is not None  # the company's own survey still aggregates
+    assert CSSBook().performance_band(YEAR) == "unrated"
 
 
 def test_book_recommend_rate():

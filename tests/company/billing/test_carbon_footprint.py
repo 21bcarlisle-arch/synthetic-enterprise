@@ -3,28 +3,29 @@
 from company.billing.carbon_footprint import electricity_intensity, estimate_carbon, carbon_trend
 
 
-# 2026-08-14: these pinned 266 and 115 -- the local `_ELECTRICITY_INTENSITY_G_CO2E_PER_KWH`
-# table, the LOWEST of three disagreeing series and the only one nothing rendered. The table is
-# deleted and this module now delegates to the single owner, whose values are the ones the annual
-# report has been publishing all along. The numbers below are that published series, not a new
-# choice -- see tests/company/regulatory/test_carbon_emissions_single_series.py.
-def test_electricity_intensity_2016():
-    assert electricity_intensity(2016) == 315.4
+# 2026-08-14: these pinned 266 and 115 (a deleted local table), then 315.4 and 175.2 (the hand
+# fuel-mix table). Since 2026-10-05 the owner reads NESO's published level from the grid-intensity
+# feed, so they are keyed to the property -- this delegates, and a year with no whole published
+# level has none -- rather than to a value a republished feed would legitimately move.
+def test_electricity_intensity_is_the_published_level():
+    from company.regulatory.carbon_emissions import grid_intensity_g_co2e_per_kwh
+
+    assert electricity_intensity(2024) == grid_intensity_g_co2e_per_kwh(2024) is not None
 
 
-def test_electricity_intensity_2025():
-    assert electricity_intensity(2025) == 175.2
+def test_electricity_intensity_has_no_value_for_a_part_year():
+    assert electricity_intensity(2025) is None
 
 
 def test_electricity_intensity_falls_over_time():
-    assert electricity_intensity(2025) < electricity_intensity(2016)
+    assert electricity_intensity(2024) < electricity_intensity(2017)
 
 
 def test_estimate_electricity_carbon():
-    result = estimate_carbon(3500, "electricity", 2025)
+    result = estimate_carbon(3500, "electricity", 2024)
     assert result["kg_co2e"] > 0
     assert result["tonnes_co2e"] < result["kg_co2e"]
-    assert "gCO2e/kWh" in result["unit"]
+    assert "NESO" in result["unit"]
 
 
 def test_estimate_gas_carbon():
@@ -38,9 +39,9 @@ def test_estimate_gas_carbon():
 
 def test_electricity_carbon_decreasing():
     # Same EAC but decreasing intensity year on year
-    c2016 = estimate_carbon(3000, "electricity", 2016)["kg_co2e"]
-    c2025 = estimate_carbon(3000, "electricity", 2025)["kg_co2e"]
-    assert c2025 < c2016
+    c2017 = estimate_carbon(3000, "electricity", 2017)["kg_co2e"]
+    c2024 = estimate_carbon(3000, "electricity", 2024)["kg_co2e"]
+    assert c2024 < c2017
 
 
 def test_carbon_trend_returns_list():

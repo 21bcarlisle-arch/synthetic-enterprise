@@ -5,6 +5,8 @@ found on an `EP13_adapter_carbon_intensity` LANE 3 DISCOVER/FRAME draw, which fo
 (EPOCH_GATING_AND_ATOM_AUTHORSHIP Rule 1). Full context:
 `docs/design/EP13_CARBON_INTENSITY_DISCOVER_FRAME.md` §1.
 
+**Discharged:** 2026-08-14 de-duplicated to one owner (option 1, the class control `tools/grid_intensity_guard.py`); 2026-10-05 the survivor is the sourced series option 1 asked for. `tests/company/regulatory/test_carbon_emissions_single_series.py::test_the_companys_annual_level_is_the_feeds_published_mean` (falsifier: it reds when the hand fuel-mix level is put back) and `tests/tools/test_grid_intensity_feed_and_explore_carbon.py::test_the_annual_level_times_the_shape_is_the_published_half_hour`. See the 2026-10-05 section at the foot.
+
 **Why BLOCKING and not LATENT.** The ruling's own test is "a published figure may be wrong."
 `docs/reports/ANNUAL_REPORT.md:2159` publishes a `Grid Intensity` column and an `Elec CO2 (t)` column
 derived from it. Three series in this tree claim to measure the same quantity from the same cited
@@ -188,3 +190,49 @@ the convenient one — stated so it is not mistaken for the whole story.
 the rehoming lane has landed. The discharge itself is recorded in
 `docs/design/EP13_CARBON_INTENSITY_DISCOVER_FRAME.md` §1 and §7 in the meantime, which is the
 document the atom's `evidence` already points at.
+
+---
+
+# DISCHARGED IN FULL 2026-10-05: the survivor is now the sourced series
+
+The 08-14 discharge met option 1's "one owner, a control against a second" and not its "cited to
+a named publication and vintage": the surviving construction was the hand `UK_GRID_FUEL_MIX` x
+lifecycle factors, kept because no source had been fetched and keeping it changed no published
+value. That was the right call that day, and this section is where it stops being one.
+
+**What the finding meant the company to use.** Option 1: a single series cited to a named
+publication. `tools/generate_grid_intensity_feed.py` already published NESO's national
+half-hourly series as the shape the company multiplies by the annual level (G14, 09e2bf07f /
+4059a392b). It now publishes the level too (`annual_level`): each year's DEMAND-weighted mean
+of that same history, over the half hours the shape is normalised over, with its source mix and
+its coverage. `company/regulatory/carbon_emissions.py::grid_intensity_g_co2e_per_kwh` reads it.
+Basis: NESO Carbon Intensity API national `actual` from 2018-05-11, corrected for transmission
+losses to a consumption basis (NESO methodology; FOI/25/152, 24 Nov 2025), CO2 at the generator;
+the fuel-mix estimate scaled to NESO before that date.
+
+| year | hand table (published until now) | NESO, demand-weighted | change |
+|---|---|---|---|
+| 2016 | 315.4 | 298.3 over 2016-03-01..12-31 only: **refused as an annual figure** | n/a |
+| 2017 | 289.7 | 275.5 | -4.9% |
+| 2018 | 273.8 | 258.1 | -5.7% |
+| 2019 | 243.9 | 221.0 | -9.4% |
+| 2020 | 225.3 | 187.8 | -16.6% |
+| 2021 | 242.7 | 193.9 | -20.1% |
+| 2022 | 237.0 | 187.0 | -21.1% |
+| 2023 | 219.3 | 157.9 | -28.0% |
+| 2024 | 196.1 | 133.1 | -32.1% |
+| 2025 | 175.2 | 147.1 over 2025-01-01..06-07 only: **refused as an annual figure** | n/a |
+
+The published annual-report column was 5-47% high in every whole year. It is not one of the
+three series the finding tabled, which bracketed the truth from above and below; the deleted
+`carbon_footprint` literal (126 for 2024) sat closest.
+
+**The hand table stays, for decomposition only** (`Low Carbon %` and the reconciliation against
+`company/billing/fuel_mix.py`). It has no level role, and
+`test_nothing_derives_the_national_level_from_the_mix` holds that.
+
+**What is still open, and is not this finding.** The other fuel-mix finding
+(`WORKER_FINDING_TWO_PUBLISHED_FUEL_MIX_TABLES_DISAGREE_ON_LOW_CARBON_2026-08-14.md`) is
+untouched: both `Low Carbon %` tables are still unsourced. 2016 and 2025 have no whole-year
+level, because Elexon's demand record spans 2016-03-01..2025-06-07. Extending that record, or
+choosing a different weighting for those two years, would close it; neither is done here.

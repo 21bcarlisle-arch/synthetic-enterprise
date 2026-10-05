@@ -1,50 +1,57 @@
 """Scope 2 emissions intensity from supplied electricity: fuel mix reporting.
 
-SOLE OWNER OF THE ANNUAL UK GRID INTENSITY SERIES (2026-08-14, discharge of
-`WORKER_FINDING_THREE_LIVE_GRID_INTENSITY_SERIES_DISAGREE_BY_HALF_2026-08-14.md`, BLOCKING,
-lane `F_risk_compliance`).
+SOLE READER OF THE ANNUAL UK GRID INTENSITY (single owner since 2026-08-14; the LEVEL comes from
+NESO's published series since 2026-10-05). `tools/grid_intensity_guard.py` fails if a second
+year-keyed intensity table appears anywhere under `company/` or `saas/` (R10 -- the class).
 
-Three series in this tree claimed to measure the same quantity from the same cited source and
-disagreed by up to 55.6% (2024: 196.1 published / 126 / 181). At most one could be right and the
-published one was not obviously it. This module is now the ONE place an annual grid intensity may
-be declared; `tools/grid_intensity_guard.py` (proved both ways in `tests/tools/test_grid_intensity_guard.py`,
-and run on every code commit via the gate's `CONTROL_TESTS`) fails if a second year-keyed
-intensity table reappears anywhere under `company/` or `saas/` (R10 — the class, not the instance).
+WHERE THE NUMBER COMES FROM. `grid_intensity_g_co2e_per_kwh(year)` reads the per-year annual
+mean that `tools/generate_grid_intensity_feed.py` publishes in
+`docs/market_data/grid_intensity_feed.json` (`annual_level`). That mean is taken from the same
+half-hourly history as the feed's shape: NESO's published national carbon intensity from
+2018-05-11, its own arithmetic on Elexon's fuel mix before. Reading a published file is the
+crossing the epistemic wall sanctions; a real GB supplier reads exactly this series.
 
-WHY THE PUBLISHED CONSTRUCTION SURVIVED, and not one of the two literal tables:
+Basis, stated because every joiner must carry it: gCO2/kWh, national, DEMAND-WEIGHTED annual mean,
+LOSS-CORRECTED to a consumption basis (NESO's methodology), CO2 at the generator only -- not
+lifecycle, and not CO2e despite this function's name, which the guard pins. The feed's
+`annual_level.basis` and `.weighting` are the full statement.
 
-* It is the only one with a consumer. `docs/reports/ANNUAL_REPORT.md` publishes it as the
-  `Grid Intensity` column of the Carbon Emissions Reporting Observatory. The other two had zero
-  renderers between them, so keeping either would have silently revalued a published table.
-* It is DERIVED and therefore decomposable — mix x factor, both visible — where the other two
-  were opaque literals. `EP13_adapter_carbon_intensity` eventually replaces the mix side with a
-  real feed; it cannot replace a bare number it cannot take apart.
-* The finding made NO claim about which series is correct (no network that tick, no external
-  source fetched). So this reconciliation deliberately CHANGES NO PUBLISHED VALUE: it removes
-  duplicates, it does not pick a winner on the merits. Naming a true value is EP13's job against
-  a named publication, and the basis question below is the director's under R13.
+WHAT IT REPLACED, measured (2026-10-05): `UK_GRID_FUEL_MIX` x lifecycle factors, an undated
+hand table, which read 196.1 for 2024 against NESO's 133.1 and was 5-47% high in every whole
+year 2017-2024. The finding that made this module the owner
+(`docs/staging/done/WORKER_FINDING_THREE_LIVE_GRID_INTENSITY_SERIES_DISAGREE_BY_HALF_2026-08-14.md`)
+asked for "a single sourced series ... cited to a named publication and vintage"; the 08-14
+repair kept the hand table only because no source had been fetched. One now has.
 
-PROVENANCE, and what is NOT verified (R9 labelling):
-* `inferred` — the per-fuel factors below are lifecycle (gCO2eq/kWh) medians; the values match
-  those commonly published as IPCC AR5 WG3 Annex III. No external source was fetched to confirm
-  the edition or vintage. Treat the citation as unverified until EP13 sources it.
-* `observed-with-evidence` — the mix percentages are those the annual report has been publishing;
-  header text cites "DESNZ/National Grid annual fuel mix data" without a vintage.
-* The series is therefore a LIFECYCLE-basis, GENERATION-mix, national annual average. It is NOT
-  the DESNZ consumption conversion factor and NOT the NESO operational-CO2 series; those are
-  different quantities and would give different numbers legitimately. Anything joining this
-  series must state that basis.
+THE MIX TABLE STAYS, FOR DECOMPOSITION ONLY. `UK_GRID_FUEL_MIX` still renders the annual report's
+`Low Carbon %` column and is reconciled against the other fuel-mix table in
+`fuel_mix_reconciliation.py`. It has NO level role: nothing may multiply it by
+`_EMISSION_FACTORS_G_CO2_PER_KWH` to get a national intensity. `FuelMixRecord` remains a generic
+mix calculator for a mix a caller supplies.
+
+COVERAGE, never clamped. A year the feed does not publish returns None, and a year it publishes
+only in part (`complete: false` -- 2016 from 2016-03-01, 2025 through 2025-06-07, both bounded by
+Elexon's demand record) returns None for an annual figure. `allow_partial=True` is for a caller
+multiplying the feed's own half-hourly SHAPE inside the covered span, where shape x level is the
+published value exactly. `grid_intensity_unavailable_reason(year)` says why.
+
+POINT IN TIME. The feed is published after a run, as a whole-history record, and is never read at
+a simulated date: every caller (annual report, explore carbon, R3 ceiling, footprints) is
+post-run. A year mean exists only for the dates the history covers, and is marked partial
+otherwise, so no caller can take a part year for the whole.
 """
 from __future__ import annotations
 
 import datetime as dt
+import json
 from dataclasses import dataclass
 from enum import Enum
+from pathlib import Path
 from typing import Dict, List, Optional
 
-
-#: Lifecycle emission factors, gCO2eq/kWh generated. See PROVENANCE in the module docstring —
-#: `inferred` citation, unverified vintage.
+#: Lifecycle emission factors, gCO2eq/kWh generated, for `FuelMixRecord`'s generic calculator.
+#: `inferred` citation (values match IPCC AR5 WG3 Annex III medians), unverified vintage. NOT the
+#: national level: applied to `UK_GRID_FUEL_MIX` they gave 196.1 for 2024 against NESO's 133.1.
 _EMISSION_FACTORS_G_CO2_PER_KWH = {
     'coal': 820.0,
     'gas': 490.0,
@@ -98,10 +105,12 @@ class FuelMixRecord:
         return round(intensity, 1)
 
 
-#: The UK national generation fuel mix, percent by year. Moved here 2026-08-14 from a local
-#: declared INSIDE the function body of `saas/reporting/annual_report.py::_section_carbon_emissions`
-#: — values unchanged, so every published figure is byte-identical across the move. This is the
-#: single owned mix; a second one under `company/` or `saas/` is a control failure, not a variant.
+#: The UK national generation fuel mix, percent by year. DECOMPOSITION ONLY since 2026-10-05: it
+#: renders `Low Carbon %` and nothing else. Its `emission_intensity_g_per_kwh` is not the national
+#: level and no caller may use it as one -- the level is `grid_intensity_g_co2e_per_kwh(year)`.
+#: Moved here 2026-08-14 from a local inside `annual_report._section_carbon_emissions`; values
+#: unsourced ("DESNZ/National Grid annual fuel mix data", no vintage), and the guard keeps it the
+#: single owned mix.
 UK_GRID_FUEL_MIX: Dict[int, 'FuelMixRecord'] = {
     2016: FuelMixRecord(2016, coal_pct=9.0, gas_pct=42.0, nuclear_pct=21.0, wind_pct=11.0, solar_pct=3.0, hydro_pct=2.0, biomass_pct=8.0, imports_pct=4.0),
     2017: FuelMixRecord(2017, coal_pct=7.0, gas_pct=40.0, nuclear_pct=21.0, wind_pct=15.0, solar_pct=3.0, hydro_pct=2.0, biomass_pct=8.0, imports_pct=4.0),
@@ -114,12 +123,6 @@ UK_GRID_FUEL_MIX: Dict[int, 'FuelMixRecord'] = {
     2024: FuelMixRecord(2024, coal_pct=0.0, gas_pct=29.0, nuclear_pct=14.0, wind_pct=32.0, solar_pct=5.0, hydro_pct=2.0, biomass_pct=11.0, imports_pct=7.0),
     2025: FuelMixRecord(2025, coal_pct=0.0, gas_pct=25.0, nuclear_pct=13.0, wind_pct=36.0, solar_pct=6.0, hydro_pct=3.0, biomass_pct=10.0, imports_pct=7.0),
 }
-
-#: The window the mix actually covers. Outside it the accessor CLAMPS to the nearest end and says
-#: so via `grid_intensity_is_extrapolated`, rather than inventing a value or reading 0.0 — the
-#: fail-open family E5's control C1 names by name.
-GRID_INTENSITY_FIRST_YEAR = min(UK_GRID_FUEL_MIX)
-GRID_INTENSITY_LAST_YEAR = max(UK_GRID_FUEL_MIX)
 
 #: THE ONE HOME OF THE GAS FACTOR. DESNZ, *Greenhouse gas reporting: conversion factors*, flat
 #: file for each reporting year, Scope 1 > Fuels > Gaseous fuels > Natural gas, kWh (Gross CV),
@@ -172,35 +175,100 @@ def gas_factor_kg_co2e_per_kwh(year: int) -> float:
 GAS_EMISSION_FACTOR_G_CO2E_PER_KWH = float(round(
     1000.0 * DESNZ_NATURAL_GAS_KG_CO2E_PER_KWH_GROSS_CV[max(DESNZ_NATURAL_GAS_KG_CO2E_PER_KWH_GROSS_CV)]))
 
-#: Machine-readable provenance for anything that republishes the series. See the module docstring.
+#: The published feed the level is read from. A path, not an import: the wall's sanctioned crossing.
+GRID_INTENSITY_FEED = (
+    Path(__file__).resolve().parents[2] / "docs" / "market_data" / "grid_intensity_feed.json")
+
+#: Machine-readable provenance for anything that republishes the series. The feed's own
+#: `annual_level.basis` is the long form; this is what a table footnote needs.
 GRID_INTENSITY_PROVENANCE = {
-    'quantity': 'UK national annual average grid electricity intensity',
-    'unit': 'gCO2eq/kWh',
-    'basis': 'lifecycle factors x annual generation mix',
-    'source': 'DESNZ/National Grid annual fuel mix data (vintage unstated in tree)',
-    'factor_source': 'lifecycle medians matching IPCC AR5 WG3 Annex III (inferred, unverified)',
-    'status': 'PROVISIONAL — no external source fetched; EP13_adapter_carbon_intensity owns sourcing',
+    'quantity': 'GB national annual grid electricity carbon intensity',
+    'unit': 'gCO2/kWh',
+    'basis': 'demand-weighted annual mean of the half-hourly national series; loss-corrected, '
+             'consumption basis; CO2 at the generator, not lifecycle',
+    'source': 'NESO Carbon Intensity API national actual from 2018-05-11; NESO methodology on '
+              'Elexon FUELHH before, scaled to NESO -- read from '
+              'docs/market_data/grid_intensity_feed.json',
+    'status': 'published series; a part-year level is refused for an annual figure',
 }
 
 
-def grid_intensity_g_co2e_per_kwh(year: int) -> float:
-    """The ONE annual UK grid intensity in this codebase, gCO2eq/kWh.
+@dataclass(frozen=True)
+class GridIntensityLevel:
+    """One year's published level and what it covers. `g_co2_per_kwh` None: not published."""
 
-    Derived from `UK_GRID_FUEL_MIX` x `_EMISSION_FACTORS_G_CO2_PER_KWH` — never a literal, so a
-    caller can always decompose the number it was given. Years outside the covered window clamp
-    to the nearest end; `grid_intensity_is_extrapolated(year)` reports that so a caller can refuse
-    it rather than have a clamp look like a measurement.
+    year: int
+    g_co2_per_kwh: Optional[float]
+    complete: bool
+    covers_from: Optional[str]
+    covers_to: Optional[str]
+    reason: Optional[str]
+
+
+_FEED_CACHE: Dict[tuple, dict] = {}
+
+
+def _annual_levels(feed_path: Optional[Path] = None) -> tuple:
+    """({year str: row}, why-unreadable). Re-read when the file changes, never served stale."""
+    path = Path(feed_path or GRID_INTENSITY_FEED)
+    try:
+        stat = path.stat()
+    except OSError:
+        return {}, f"the grid-intensity feed {path} is not on disk"
+    stamp = (str(path), stat.st_mtime_ns, stat.st_size)
+    if stamp not in _FEED_CACHE:
+        try:
+            feed = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, ValueError) as exc:
+            return {}, f"the grid-intensity feed {path} could not be read: {exc}"
+        _FEED_CACHE.clear()
+        _FEED_CACHE[stamp] = (feed.get("annual_level") or {}).get("by_year") or {}
+    levels = _FEED_CACHE[stamp]
+    if not levels:
+        return {}, f"the grid-intensity feed {path} publishes no annual level"
+    return levels, None
+
+
+def grid_intensity_level(year: int, *, feed_path: Optional[Path] = None) -> GridIntensityLevel:
+    """The published annual level for `year`, with its coverage. Never a neighbouring year's."""
+    year = int(year)
+    levels, why = _annual_levels(feed_path)
+    row = levels.get(str(year))
+    if why or row is None or row.get("mean_g_co2_per_kwh") is None:
+        reason = why or (
+            f"the grid-intensity feed publishes no annual level for {year}; it covers "
+            f"{min(levels)}-{max(levels)}. Not clamped to a neighbouring year")
+        return GridIntensityLevel(year, None, False, None, None, reason)
+    covers = row.get("covers") or {}
+    complete = bool(row.get("complete"))
+    reason = None if complete else (
+        f"the published {year} level is a mean of {covers.get('from')}..{covers.get('to')} only "
+        "(Elexon's demand record bounds it), not of the year")
+    return GridIntensityLevel(year, float(row["mean_g_co2_per_kwh"]), complete,
+                              covers.get("from"), covers.get("to"), reason)
+
+
+def grid_intensity_g_co2e_per_kwh(year: int, *, allow_partial: bool = False,
+                                  feed_path: Optional[Path] = None) -> Optional[float]:
+    """The ONE annual UK grid intensity in this codebase, gCO2/kWh, as NESO's series publishes it.
+
+    None, never a clamp, when the feed has no level for the year, or only a part-year one and
+    `allow_partial` is False; `grid_intensity_unavailable_reason(year)` says which. See the module
+    docstring for the basis and for when `allow_partial` is right.
     """
-    if year < GRID_INTENSITY_FIRST_YEAR:
-        year = GRID_INTENSITY_FIRST_YEAR
-    elif year > GRID_INTENSITY_LAST_YEAR:
-        year = GRID_INTENSITY_LAST_YEAR
-    return UK_GRID_FUEL_MIX[year].emission_intensity_g_per_kwh
+    level = grid_intensity_level(year, feed_path=feed_path)
+    if level.g_co2_per_kwh is None or (not level.complete and not allow_partial):
+        return None
+    return level.g_co2_per_kwh
 
 
-def grid_intensity_is_extrapolated(year: int) -> bool:
-    """True when `grid_intensity_g_co2e_per_kwh(year)` clamped rather than looked up."""
-    return not (GRID_INTENSITY_FIRST_YEAR <= year <= GRID_INTENSITY_LAST_YEAR)
+def grid_intensity_unavailable_reason(year: int, *, allow_partial: bool = False,
+                                      feed_path: Optional[Path] = None) -> Optional[str]:
+    """Why `grid_intensity_g_co2e_per_kwh(year, ...)` returned None; None when it did not."""
+    level = grid_intensity_level(year, feed_path=feed_path)
+    if level.g_co2_per_kwh is None or (not level.complete and not allow_partial):
+        return level.reason
+    return None
 
 
 @dataclass(frozen=True)

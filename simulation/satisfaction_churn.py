@@ -13,6 +13,7 @@ register's §3g.
 from __future__ import annotations
 
 from simulation.churn_ceiling import WORLD_MAX_CHURN_PROBABILITY
+from simulation.sim_satisfaction import BASELINE_SATISFACTION
 
 _HIGH_SATISFACTION_THRESHOLD = 0.80
 _LOW_SATISFACTION_THRESHOLD = 0.50
@@ -25,11 +26,24 @@ _LOW_SATISFACTION_THRESHOLD = 0.50
 #: satisfaction levels and switching rates, never the two crossed at the individual level).
 #: Registered in `WORKER_PREREGISTRATION_WHAT_A_CONTINUOUS_SATISFACTION_RESPONSE_MUST_SHOW_2026-08-31.md`.
 _HIGH_SATISFACTION_MULTIPLIER = 0.85
-_LOW_SATISFACTION_MULTIPLIER = 1.30
+#: NEUTRAL, NOT 1.30, AND THE OBVIOUS "DISSATISFIED HOUSEHOLDS LEAVE MORE" IS REFUTED (2026-10-05).
+#: Ofgem's Consumer Impacts of Market Conditions survey, wave 6 (Jan-Feb 2025, n=3,458), Table 56,
+#: switching in the last six months: satisfied 5.4%, not satisfied 4.9%, DISSATISFIED 3.0%.
+#: Dissatisfaction is a disengaged state, so a dose >1 had the direction backwards. The evidence
+#: gives no dose either way, so the low end is neutral rather than inverted to some new number.
+#: docs/market_research/communications_sentiment_and_nps.md §3.4(a). The 0.85 above is still
+#: unsourced and CIM w6 does not support it either; it stays filed, not fixed.
+_LOW_SATISFACTION_MULTIPLIER = 1.0
 
 
 def satisfaction_churn_multiplier(satisfaction_score: float) -> float:
-    """Churn multiplier for one household's satisfaction, CONTINUOUS between the two thresholds.
+    """Churn multiplier for one household's satisfaction: neutral up to the baseline, then falling.
+
+    CORRECTED 2026-10-05: the low end is 1.0, not 1.30 (see `_LOW_SATISFACTION_MULTIPLIER`), and the
+    interpolation now runs from BASELINE_SATISFACTION to the high threshold. The 1.30-line arithmetic
+    below is kept as the record of what this was; it no longer describes the curve. Measured on
+    `docs/reports/ladder_churn_factors.json` (102 scores): population-mean multiplier 0.9891 -> 0.9616
+    (-2.8%), tied-pair fraction 0.000 -> 0.159 (the 41 households below baseline now share 1.0).
 
     WHY THIS IS NOT THREE STEPS ANY MORE (2026-08-31, ladder rung 3).
     `sim_satisfaction` produces a continuous per-household score -- 434 distinct values across the
@@ -67,10 +81,13 @@ def satisfaction_churn_multiplier(satisfaction_score: float) -> float:
     """
     if satisfaction_score >= _HIGH_SATISFACTION_THRESHOLD:
         return _HIGH_SATISFACTION_MULTIPLIER
-    if satisfaction_score <= _LOW_SATISFACTION_THRESHOLD:
+    # The line now starts at the model's own neutral household, not at the low threshold: with the
+    # low end at 1.0, a line from 0.50 would put the BASELINE household at 0.90 -- a protective
+    # effect nobody measured. Everything at or below baseline is neutral.
+    if satisfaction_score <= BASELINE_SATISFACTION:
         return _LOW_SATISFACTION_MULTIPLIER
-    span = _HIGH_SATISFACTION_THRESHOLD - _LOW_SATISFACTION_THRESHOLD
-    fraction = (satisfaction_score - _LOW_SATISFACTION_THRESHOLD) / span
+    span = _HIGH_SATISFACTION_THRESHOLD - BASELINE_SATISFACTION
+    fraction = (satisfaction_score - BASELINE_SATISFACTION) / span
     return _LOW_SATISFACTION_MULTIPLIER + (
         _HIGH_SATISFACTION_MULTIPLIER - _LOW_SATISFACTION_MULTIPLIER
     ) * fraction

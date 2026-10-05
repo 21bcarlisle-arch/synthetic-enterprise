@@ -59,7 +59,7 @@ class TestBackBillingAssessment:
         assert not a.cap_applies
 
     def test_cap_not_apply_before_rules_start(self):
-        # Billing before SLC 31A effective date (May 2018)
+        # Billing before SLC 21BA effective date (May 2018)
         a = _assessment(
             billing_date=dt.date(2017, 12, 1),
             period_start=dt.date(2014, 1, 1),

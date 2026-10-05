@@ -1882,3 +1882,85 @@ def test_EMBEDDED_SOLAR_is_out_of_the_residual_and_in_the_denominator_of_the_rec
     assert _reconstruction_is(reconstruction, corrected), (
         "the reconstruction is not the shape with solar in the denominator only"
     )
+
+
+# --------------------------------------------------------------------------- #
+# The annual LEVEL travels with the shape (2026-10-05)                          #
+# --------------------------------------------------------------------------- #
+#
+# The company used to multiply this feed's NESO shape by a level from an undated hand fuel-mix
+# table (196.1 gCO2/kWh for 2024 against NESO's 133.1). The feed now publishes the level, from the
+# same history and over the same half hours the shape is normalised over.
+
+def _two_years():
+    """2019 whole (1 Jan - 31 Dec), 2020 only to 30 June; uneven grams and demand."""
+    grams, demand = {}, {}
+    for i, day in enumerate(("2019-01-01", "2019-06-15", "2019-12-31", "2020-01-01", "2020-06-30")):
+        for period in (1, 2):
+            key = (day, period)
+            grams[key] = 100.0 + 40.0 * i + 25.0 * period
+            demand[key] = 20_000.0 + 7_000.0 * period + 1_000.0 * i
+    return grams, demand
+
+
+def test_the_annual_level_times_the_shape_is_the_published_half_hour():
+    """THE REASON THE WEIGHTING IS DEMAND: the shape is grams over the year's DEMAND-weighted
+    mean, so only that level gives NESO's own figure back half hour by half hour.
+
+    MUTATION (must fire): make `annual_level` publish the time-weighted mean as
+    `mean_g_co2_per_kwh`.
+    """
+    from sim import neso_carbon_intensity as neso
+
+    grams, demand = _two_years()
+    shape = neso.published_shape(grams, demand)
+    levels = gif.annual_level({k: (v, "neso_published") for k, v in grams.items()}, demand)
+    for key, value in grams.items():
+        level = levels[key[0][:4]]["mean_g_co2_per_kwh"]
+        assert shape[key] * level == pytest.approx(value, abs=0.01), key
+    assert all(r["time_weighted_mean_g_co2_per_kwh"] != r["mean_g_co2_per_kwh"]
+               for r in levels.values()), "the fixture cannot tell the two weightings apart"
+
+
+def test_a_year_the_demand_record_spans_only_in_part_is_published_as_partial():
+    """Both branches reachable in one fixture: a whole year and a part one."""
+    grams, demand = _two_years()
+    levels = gif.annual_level({k: (v, "neso_published") for k, v in grams.items()}, demand)
+    assert levels["2019"]["complete"] is True and levels["2019"]["partial_through"] is None
+    assert levels["2020"]["complete"] is False
+    assert levels["2020"]["partial_through"] == "2020-06-30"
+    assert levels["2020"]["covers"] == {"from": "2020-01-01", "to": "2020-06-30"}
+    assert levels["2019"]["sources"] == {"neso_published": 6}
+
+
+def test_a_half_hour_without_demand_is_out_of_the_level_and_a_year_without_any_is_absent():
+    grams = {("2021-01-01", 1): 200.0, ("2021-12-31", 1): 100.0, ("2022-03-01", 1): 150.0}
+    demand = {("2021-01-01", 1): 10.0, ("2021-12-31", 1): 0.0}
+    levels = gif.annual_level({k: (v, "x") for k, v in grams.items()}, demand)
+    assert levels["2021"]["mean_g_co2_per_kwh"] == 200.0
+    assert levels["2021"]["complete"] is False and levels["2021"]["time_weighted_half_hours"] == 2
+    assert "2022" not in levels
+
+
+def test_the_published_feed_carries_an_annual_level_for_every_year_with_its_basis():
+    assert FEED.name == "grid_intensity_feed.json"  # the subject is the JSON feed, not Python
+    feed = json.loads(FEED.read_text(encoding="utf-8"))
+    level = feed["annual_level"]
+    assert set(level["by_year"]) == set(feed["by_year"]), "a summarised year has no level"
+    assert "LOSS" in level["basis"].upper() and "CO2 at the generator" in level["basis"]
+    assert level["weighting"].split(" ")[0] == "demand-weighted"
+    assert any(r["complete"] for r in level["by_year"].values())
+    for year, row in level["by_year"].items():
+        assert sum(row["sources"].values()) == row["half_hours"], year
+        assert row["complete"] == (row["partial_from"] is None and row["partial_through"] is None)
+    assert "annual_level" in feed["how_to_use"]
+
+
+def test_generate_publishes_the_level_beside_the_shape():
+    """A level computed and never passed to `build` would publish an empty `by_year`."""
+    import inspect
+
+    from tools.python_code_text import searchable
+
+    code = searchable(inspect.getsource(gif.generate))
+    assert "levels=annual_level(" in code

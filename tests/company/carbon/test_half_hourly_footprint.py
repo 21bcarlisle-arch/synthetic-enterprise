@@ -27,6 +27,9 @@ CONSUMPTION_FEED = REPO / "docs" / "market_data" / "consumption_feed.json"
 
 DAY = "2025-06-06"
 YEAR = 2025
+#: 2025 is a PART year in the published level (to 2025-06-07), so a profiled -- annual -- figure
+#: for it is refused; a measured one inside the covered span is not. A whole year for the former.
+WHOLE_YEAR = 2024
 
 
 def _reads(kwh_by_period):
@@ -43,7 +46,7 @@ def test_a_measured_footprint_is_consumption_times_the_intensity_of_ITS_OWN_half
     both sides multiplied by anything at all."""
     shape = {(DAY, 1): 0.5, (DAY, 2): 1.5}
     reads = _reads({1: 10.0, 2: 10.0})
-    level = grid_intensity_g_co2e_per_kwh(YEAR)
+    level = grid_intensity_g_co2e_per_kwh(YEAR, allow_partial=True)
 
     fp = hf.measured_footprint("C7", reads, shape)
 
@@ -93,12 +96,12 @@ def test_a_PROFILED_account_RAISES_on_its_timing_effect_rather_than_returning_ze
 
     MUTATION (must fire): return 0.0 for a None `co2e_kg_timed`.
     """
-    fp = hf.profiled_footprint("C1", annual_kwh=3_100.0, year=YEAR)
+    fp = hf.profiled_footprint("C1", annual_kwh=3_100.0, year=WHOLE_YEAR)
 
     assert fp.method == hf.PROFILED
     assert fp.co2e_kg_timed is None
     assert fp.co2e_kg_flat == pytest.approx(
-        3_100.0 * grid_intensity_g_co2e_per_kwh(YEAR) / 1000.0
+        3_100.0 * grid_intensity_g_co2e_per_kwh(WHOLE_YEAR) / 1000.0
     )
     with pytest.raises(hf.FootprintUnavailable):
         fp.timing_effect_pct
@@ -228,3 +231,19 @@ def test_the_LIVE_feeds_produce_a_measurement_for_every_account_that_has_reads()
             f"{account_id}'s timing effect is {fp.timing_effect_pct:+.1f}%, which is outside "
             "anything the published shape's spread can produce over two days -- check the units"
         )
+
+
+def test_a_part_year_has_no_ANNUAL_figure_but_its_covered_half_hours_are_still_measured():
+    """The published 2025 level is a mean of 2025-01-01..2025-06-07. As the year's it would be a
+    winter-heavy half year passed off as the whole; inside the span, shape x level is the
+    published half-hourly value exactly. Both branches taken here, on the real feed.
+
+    MUTATION (must fire): drop `allow_partial=True` from `measured_footprint`'s level read.
+    """
+    with pytest.raises(hf.FootprintUnavailable, match="2025-06-07"):
+        hf.profiled_footprint("C1", annual_kwh=3_100.0, year=YEAR)
+    leg = hf.electricity_leg(YEAR, 3_100.0, 12)
+    assert leg.co2e_kg is None and "2025-06-07" in leg.reason
+    fp = hf.measured_footprint("C7", _reads({1: 10.0}), {(DAY, 1): 1.0})
+    assert fp.co2e_kg_flat == pytest.approx(
+        10.0 * grid_intensity_g_co2e_per_kwh(YEAR, allow_partial=True) / 1000.0)

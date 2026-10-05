@@ -215,7 +215,10 @@ def test_the_carbon_figure_reaches_the_reader_on_a_measured_household():
     """MUTATION (must fire): drop the `carbonPanels()` call from `stageUsed`."""
     html = _stage("C7")
 
-    assert "kg CO&#8322;e" in html or "kg CO₂e" in html, (
+    # KEYED TO A CARBON FIGURE RENDERING, NOT TO ONE UNIT'S SPELLING (2026-10-05): the day's figure
+    # is electricity at NESO's basis, which is CO2, so its label became "kg CO2" and the old
+    # literal went red on a correction.
+    assert re.search(r"[\d.,]+ kg CO(?:&#8322;|₂)", html), (
         "stage 3 renders no carbon figure at all for a household whose meter reports every "
         "half hour, which is the only kind that can have one"
     )

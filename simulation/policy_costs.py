@@ -715,13 +715,14 @@ def year_key_for_basis(date_str: str, basis: str) -> int:
 # that you did".
 #
 # DERIVED, NEVER DECLARED. The finding proposed a coverage declaration per table. This derives it
-# from the table itself instead, for the reason `carbon_emissions.GRID_INTENSITY_FIRST_YEAR` does
+# from the table itself instead, for the reason `carbon_emissions.GRID_INTENSITY_FIRST_YEAR` did
 # the same: a hand-kept first/last pair is a second copy of a fact the dict already states, and
 # the copy is wrong the first time somebody appends a year and forgets. `YEAR_KEY_BASIS` still
 # has to be hand-kept because a table cannot state its own year convention; coverage it can.
 #
-# THE SIBLING THIS COPIES. `company/regulatory/carbon_emissions.grid_intensity_is_extrapolated`
-# solved this exact problem on the intensity series and the remedy sat in the tree, unwired to
+# THE SIBLING THIS COPIED. `company/regulatory/carbon_emissions.grid_intensity_is_extrapolated`
+# (retired 2026-10-05, when the series stopped clamping and began returning None) solved this
+# exact problem on the intensity series and the remedy sat in the tree, unwired to
 # this module, while 8.09% of the cost stack published without it. The finding's own words: the
 # common shape here is an orphaned control, not an absent one.
 

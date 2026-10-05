@@ -59,6 +59,8 @@ __all__ = [
     "growth_mandate_label",
     "mandate_permits_replacement",
     "replacement_cost_avoided_gbp",
+    "retention_engagement",
+    "retention_value_protected",
 ]
 
 
@@ -359,3 +361,28 @@ def quote_cost_gbp(*, segment: str) -> float:
     from saas.growth_mandate import cost_per_acquisition_gbp
 
     return cost_per_acquisition_gbp(segment)
+
+
+def retention_engagement(account_id: str, as_of: str, *, terms, departures, channel_by_account,
+                         fuel: str, contract_length_days: int) -> float | None:
+    """C29: the supplier's belief that this account looks at all at its renewal, or `None`.
+
+    The world hands over the supplier's own term rows and renewal departures, as DATA, and the
+    channels it has read through the seam; it takes back one number. The fit and its point-in-time
+    cut are `company.crm.engagement_estimate.engagement_at`'s.
+    """
+    from company.crm.engagement_estimate import engagement_at
+
+    est = engagement_at(account_id, as_of, terms=terms, departures=departures,
+                        channel_by_account=channel_by_account, fuel=fuel,
+                        contract_length_days=contract_length_days)
+    return None if est is None else est.estimate
+
+
+def retention_value_protected(expected_margin: float, acq_cost_saved: float,
+                                  engagement: float | None) -> float:
+    """What the retention guard weighs against the offer's cost. Unweighted when `engagement` is
+    `None`, which is every standing policy."""
+    from company.crm.engagement_estimate import value_protected
+
+    return value_protected(expected_margin, acq_cost_saved, engagement)

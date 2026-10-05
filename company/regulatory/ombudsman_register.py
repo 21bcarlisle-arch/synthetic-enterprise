@@ -3,9 +3,12 @@
 When a customer is not satisfied with a supplier's final response, they can
 escalate to the Energy Ombudsman (Ombudsman Services Energy).
 
-Key rules (SLC 18.9 + EOS rules):
+Key rules (Gas and Electricity (Consumer Complaints Handling Standards) Regulations 2008,
+SI 2008/1898, and the Energy Ombudsman's scheme rules; not "SLC 18.9", which an earlier draft cited
+and which is not the source of either rule):
 - Supplier must issue Final Response or 8-week deadlock letter
-- Customer has 6 months to refer to Ombudsman after Final Response
+- Customer has 12 months to refer to Ombudsman after Final Response (Energy Ombudsman, "Our process";
+  an earlier draft had 6)
 - Ombudsman investigates and can order: apology, explanation, remedial action,
   financial award (up to £10,000 domestic, higher commercial)
 - Ombudsman decisions are binding on the supplier
@@ -37,10 +40,22 @@ class OmbudsmanAwardType(str, Enum):
     REMEDIAL_ACTION = "remedial_action"
 
 
-_FINAL_RESPONSE_TO_REFERRAL_WINDOW_DAYS = 182   # 6 months
+_FINAL_RESPONSE_TO_REFERRAL_WINDOW_MONTHS = 12   # calendar months, not a day count
 _INVESTIGATION_TARGET_WEEKS = 8
 _MAX_FINANCIAL_AWARD_DOMESTIC_GBP = 10_000.0
 _HIGH_UPHOLD_RATE_PCT = 50.0   # Ofgem watchlist threshold
+
+
+def _referral_deadline(final_response: dt.date) -> dt.date:
+    """The last day a referral is in time: the same calendar day 12 months on (28 Feb from 29 Feb)."""
+    months = final_response.month - 1 + _FINAL_RESPONSE_TO_REFERRAL_WINDOW_MONTHS
+    year, month = final_response.year + months // 12, months % 12 + 1
+    day = final_response.day
+    while True:
+        try:
+            return dt.date(year, month, day)
+        except ValueError:
+            day -= 1
 
 
 @dataclass(frozen=True)
@@ -63,8 +78,8 @@ class OmbudsmanCase:
 
     @property
     def is_in_window(self) -> bool:
-        delta = (self.referred_at - self.supplier_final_response_date).days
-        return 0 <= delta <= _FINAL_RESPONSE_TO_REFERRAL_WINDOW_DAYS
+        start = self.supplier_final_response_date
+        return start <= self.referred_at <= _referral_deadline(start)
 
     @property
     def is_pending(self) -> bool:

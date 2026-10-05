@@ -67,6 +67,18 @@ This is a **primary corroboration** of the bound derived on 2026-09-01 in
 Ofgem CIM wave 5 with Wave 20 by Bayes and got ~2.98×. Two disjoint instruments, two methods, ~3×.
 **`simulation/satisfaction_churn._LOW_SATISFACTION_MULTIPLIER` is 1.30.**
 
+> **Correction, 2026-10-05 (the paragraphs above are kept as written).** The "~3×" mixes intention
+> with action. The 52% (Ofgem biennial complaints survey, published 22 Sep 2016, fieldwork end of
+> 2015, n=3,049 domestic) is complainants who *"had or were planning to switch"*; it is not a
+> departure rate. In the 2014 survey the same measure was 44%, and only **18%** had actually
+> switched (Ofgem/GfK, *Complaints to energy companies*, 2014, domestic n=2,457). So "~3×" holds for
+> the switched-or-planning share and is **not established as a realised departure multiplier**; the
+> base-rate comparison would also need the 2013 switching base, which is outside the record's window.
+> Separately, a STATE measure points the other way: in Ofgem CIM wave 6 (2025, n=3,458) dissatisfied
+> households switched *less* (3.0% in six months) than satisfied ones (5.4%). On that evidence
+> `_LOW_SATISFACTION_MULTIPLIER` is now **1.0**, not 1.30. Source:
+> `communications_sentiment_and_nps.md` §3.4(a) and (c).
+
 ### What this does NOT establish
 
 No published source gives a **per-unit dose-response** — how much a one-point movement in a

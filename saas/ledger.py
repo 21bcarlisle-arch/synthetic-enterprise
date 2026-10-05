@@ -306,29 +306,38 @@ def make_revenue_restatement_event(bill: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def unbilled_revenue_accrual(bills: list[dict[str, Any]]) -> dict[str, Any]:
-    """E3_accrual_restatement: the accrual-accounting counterpart to D3's
-    customer-facing catch-up mechanism.
+#: Why `unbilled_revenue_gbp` is None in `estimated_billing_outstanding`'s result.
+UNBILLED_REVENUE_NOT_COMPUTED = (
+    "not computed: unbilled revenue is energy USED but not yet BILLED, priced; nothing here "
+    "measures consumption since each account's last bill. The figure beside it counts bills "
+    "ISSUED on an estimate and not yet trued up, which is a different quantity"
+)
 
-    An estimated-basis bill's revenue is already recognised in full via its
-    own billing_event (Phase 7a) -- that cash/revenue effect is correct and
-    unchanged. What accrual accounting additionally requires is a way to
-    tell HOW MUCH of currently-recognised revenue is still PROVISIONAL
-    (estimated, not yet confirmed against an actual meter read) versus
-    CONFIRMED -- the real "unbilled revenue" asset a real supplier's
-    accounts would carry until the true-up lands.
 
-    A bill is OUTSTANDING (still provisional) if it is `billing_basis ==
-    "estimated"` and no LATER bill for the same customer has a
-    `catchup_applied` covering its period (`catchup_period_start` <=
-    this bill's `period_end` <= `catchup_period_end`) -- exactly the same
-    real period-range D3's own `_resolve_catchup()` already computes and
-    stamps on the resolving bill, reused here rather than re-derived.
+def estimated_billing_outstanding(bills: list[dict[str, Any]]) -> dict[str, Any]:
+    """The WHOLE VALUE of every estimated bill not yet trued up by a catch-up -- "billed on estimate".
 
-    Returns a dict: `unbilled_revenue_gbp` (portfolio total, GBP still
-    provisional as of the last bill in `bills`), `outstanding_bill_count`,
-    and `by_customer` (customer_id -> outstanding GBP, only customers with
-    a non-zero balance).
+    RENAMED 2026-10-05 from `unbilled_revenue_accrual`, and its total from `unbilled_revenue_gbp`
+    to `estimated_billing_outstanding_gbp`, because that is what it has always counted. Unbilled
+    revenue is energy consumed and not yet billed; this is energy BILLED, on an estimate, whose
+    read has not arrived. It is the billed-on-estimate half of what Centrica reports as "unread
+    revenue", and it is not the estimate's error either (a bill within 1p of the truth still counts
+    in full until the catch-up lands). docs/market_research/unbilled_energy_and_revenue_assurance.md
+    K1. True unbilled revenue is NOT computed: `unbilled_revenue_gbp` is returned as None with
+    `unbilled_revenue_reason`, so no reader can mistake this total for it.
+
+    E3_accrual_restatement: the accrual-side view of the D3 customer-facing catch-up mechanism.
+    An estimated-basis bill's revenue is already recognised in full via its own billing_event
+    (Phase 7a); this says how much of that recognised revenue rests on an estimate.
+
+    A bill is OUTSTANDING if it is `billing_basis == "estimated"` and no bill for the same customer
+    has a `catchup_applied` covering its period (`catchup_period_start` <= this bill's `period_end`
+    <= `catchup_period_end`) -- the period range D3's own `_resolve_catchup()` stamps on the
+    resolving bill, reused here rather than re-derived.
+
+    Returns a dict: `estimated_billing_outstanding_gbp` (portfolio total), `outstanding_bill_count`,
+    `by_customer` (customer_id -> outstanding GBP, only customers with a non-zero balance),
+    `unbilled_revenue_gbp` (None) and `unbilled_revenue_reason`.
     """
     by_customer_estimated: dict[str, list[dict[str, Any]]] = {}
     resolved_ranges: dict[str, list[tuple[str, str]]] = {}
@@ -358,9 +367,11 @@ def unbilled_revenue_accrual(bills: list[dict[str, Any]]) -> dict[str, Any]:
             unbilled_total += customer_total
 
     return {
-        "unbilled_revenue_gbp": round(unbilled_total, 2),
+        "estimated_billing_outstanding_gbp": round(unbilled_total, 2),
         "outstanding_bill_count": outstanding_count,
         "by_customer": by_customer,
+        "unbilled_revenue_gbp": None,
+        "unbilled_revenue_reason": UNBILLED_REVENUE_NOT_COMPUTED,
     }
 
 

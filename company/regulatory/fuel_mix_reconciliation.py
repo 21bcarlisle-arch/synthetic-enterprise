@@ -142,6 +142,6 @@ def divergence_note(section: str) -> str:
         f"**At most one of the two is right, and this report does not assert which** — neither "
         f"table carries a publication vintage, and no external source has been fetched to "
         f"adjudicate them. The figures are unchanged rather than silently reconciled to a guess; "
-        f"sourcing them is `EP13_adapter_carbon_intensity`. The grid INTENSITY series has a single "
-        f"owner and is not affected: it derives from the {OBSERVATORY_SECTION} mix only."
+        f"sourcing them is `EP13_adapter_carbon_intensity`. The grid INTENSITY column has a single "
+        f"owner and is not affected: it is NESO's published series, not either mix."
     )

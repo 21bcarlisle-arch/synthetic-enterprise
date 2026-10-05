@@ -6500,10 +6500,15 @@ def _section_carbon_emissions(data: dict) -> str:
     # body, which is how the tree ended up with three disagreeing grid-intensity series and nothing
     # able to see that they disagreed. Single owner as of 2026-08-14; values are unchanged by the
     # move, so every figure this section publishes is identical to the one it published before.
+    #
+    # THE LEVEL IS THE PUBLISHED SERIES, the mix is the Low Carbon % column only (2026-10-05).
+    # This column read `_UK_FUEL_MIX[yr].emission_intensity_g_per_kwh` -- 196 for 2024 against
+    # NESO's 133. A year with no whole-year published level prints n/a and is out of the total.
     from company.regulatory.carbon_emissions import (
         GAS_EMISSION_FACTOR_G_CO2E_PER_KWH as _GAS_G_PER_KWH,
     )
     from company.regulatory.carbon_emissions import UK_GRID_FUEL_MIX as _UK_FUEL_MIX
+    from company.regulatory.carbon_emissions import grid_intensity_g_co2e_per_kwh as _grid_level
 
     ma = data.get("management_accounts") or {}
     if not ma:
@@ -6512,11 +6517,14 @@ def _section_carbon_emissions(data: dict) -> str:
     lines = ["## Carbon Emissions Reporting Observatory"]
     lines.append("")
     lines.append("Scope 2 emissions from customer electricity consumption (UK grid emission intensity).")
-    lines.append("Scope 1 emissions from gas supply (183g CO2/kWh). Source: DESNZ/National Grid annual fuel mix data.")
+    lines.append("Scope 1 emissions from gas supply (183g CO2/kWh, DESNZ). Grid intensity: NESO's published national "
+                 "series, demand-weighted annual mean, loss-corrected, CO2 at the generator "
+                 "(docs/market_data/grid_intensity_feed.json). Low Carbon %: annual fuel mix table, unsourced vintage.")
     lines.append("")
     lines.append("| Year | Elec MWh | Grid Intensity | Elec CO2 (t) | Gas MWh | Gas CO2 (t) | Total CO2 (t) | Low Carbon % |")
     lines.append("|------|----------|---------------|-------------|---------|------------|-------------|-------------|")
     total_co2 = 0.0
+    unavailable: list = []
     for yr in sorted(ma.keys()):
         yr_int = int(yr)
         yr_ma = ma.get(str(yr), {})
@@ -6526,13 +6534,20 @@ def _section_carbon_emissions(data: dict) -> str:
         fm = _UK_FUEL_MIX.get(yr_int)
         if not fm:
             continue
-        intensity = fm.emission_intensity_g_per_kwh
-        elec_co2_t = round(elec_kwh * intensity / 1_000_000, 1)
+        intensity = _grid_level(yr_int)
         low_c_pct = fm.low_carbon_pct
         # Gas rough proxy: 10% of electricity revenue
         gas_mwh = elec_mwh * 0.10
         gas_kwh = gas_mwh * 1000.0
         gas_co2_t = round(gas_kwh * _GAS_G_PER_KWH / 1_000_000, 1)
+        if intensity is None:
+            unavailable.append(yr)
+            lines.append(
+                "| " + yr + " | " + f"{elec_mwh:,.0f}" + " | n/a | n/a | " + f"{gas_mwh:,.0f}"
+                + " | " + f"{gas_co2_t:,.1f}" + " | n/a | " + f"{low_c_pct:.0f}%" + " |"
+            )
+            continue
+        elec_co2_t = round(elec_kwh * intensity / 1_000_000, 1)
         total_yr = round(elec_co2_t + gas_co2_t, 1)
         total_co2 += total_yr
         trend = " (decarbonising)" if yr_int >= 2020 else ""
@@ -6555,14 +6570,22 @@ def _section_carbon_emissions(data: dict) -> str:
     # DIRECTLY ABOVE IT on both counts: the 2016 row reads 315g/kWh (290 is the 2017 value), and
     # the fall is 44%, not 40%. A summary of a table that is not computed from the table is a
     # second, unowned copy of the same series in prose -- the same defect one layer up.
-    _first, _last = min(_UK_FUEL_MIX), max(_UK_FUEL_MIX)
-    _i0 = _UK_FUEL_MIX[_first].emission_intensity_g_per_kwh
-    _i1 = _UK_FUEL_MIX[_last].emission_intensity_g_per_kwh
-    _fall = (1.0 - _i1 / _i0) * 100.0 if _i0 else 0.0
-    lines.append(
-        f"> Grid emission intensity declining: {_first} {_i0:.0f}g/kWh -> {_last} {_i1:.0f}g/kWh "
-        f"({_fall:.0f}% reduction). Carbon disclosure per SECR/ESOS."
-    )
+    # From the first to the last WHOLE published year, so the sentence and the rows share a source.
+    _whole = [y for y in sorted(_UK_FUEL_MIX) if _grid_level(y) is not None]
+    if _whole:
+        _first, _last = _whole[0], _whole[-1]
+        _i0, _i1 = _grid_level(_first), _grid_level(_last)
+        _fall = (1.0 - _i1 / _i0) * 100.0 if _i0 else 0.0
+        lines.append(
+            f"> Grid emission intensity declining: {_first} {_i0:.0f}g/kWh -> {_last} {_i1:.0f}g/kWh "
+            f"({_fall:.0f}% reduction). Carbon disclosure per SECR/ESOS."
+        )
+    if unavailable:
+        lines.append(
+            f"> No whole-year published grid intensity for {', '.join(unavailable)}: the series "
+            "covers only part of the year, so those rows carry no electricity CO2 and are not in "
+            "the total."
+        )
     # This report publishes `Low Carbon %` TWICE for the same years, from two tables that disagree
     # by up to 3.4pp with the sign flipping. Stating that under the table is the finding's own
     # second discharge; the alternative -- picking a winner with no fetched source -- would revalue
@@ -9112,32 +9135,37 @@ def _section_net_margin_bridge(data: dict) -> str:
     return "\n".join(lines)
 
 
-def _section_unbilled_revenue_accrual(data: dict) -> str:
-    """E3_accrual_restatement: accrual-accounting view of estimated-basis
-    billing -- how much currently-recognised revenue is still PROVISIONAL
-    (estimated, not yet confirmed against an actual meter read), and how
-    much revenue has been RESTATED this run as D3's catch-up-rebilling
-    mechanism resolved prior estimates against real reads."""
+def _section_estimated_billing_outstanding(data: dict) -> str:
+    """E3_accrual_restatement: how much currently-recognised revenue rests on an ESTIMATED bill not
+    yet trued up, and how much has been RESTATED this run by the D3 catch-up rebilling.
+
+    Renamed 2026-10-05 from `_section_unbilled_revenue_accrual`: the figure was headed "unbilled
+    revenue accrual" and is not one (see `saas.ledger.estimated_billing_outstanding`). The section
+    now says so, and says that true unbilled revenue is not computed."""
     bills = data.get("bills") or []
     if not bills:
         return ""
-    from saas.ledger import unbilled_revenue_accrual
-    accrual = unbilled_revenue_accrual(bills)
+    from saas.ledger import estimated_billing_outstanding
+    accrual = estimated_billing_outstanding(bills)
     total_restated = sum(
         b.get("catchup_raw_delta_gbp", 0.0) for b in bills if b.get("catchup_applied")
     )
     restatement_count = sum(1 for b in bills if b.get("catchup_applied"))
     lines = [
-        "## Unbilled Revenue Accrual (Accrual Accounting View)",
+        "## Billed on Estimate, Not Yet Trued Up (Accrual Accounting View)",
         "",
         "An estimated-basis bill's revenue is recognised in full when issued (Phase 7a) -- that "
         "cash effect is correct and unchanged. This section shows how much of currently-recognised "
-        "revenue is still PROVISIONAL (estimated, awaiting confirmation against a real meter read) "
-        "versus already CONFIRMED, and how much has been RESTATED this run as D3's catch-up-rebilling "
-        "resolved prior estimates.",
+        "revenue rests on an ESTIMATED bill awaiting confirmation against a real meter read, and how "
+        "much has been RESTATED this run as D3's catch-up-rebilling resolved prior estimates.",
         "",
-        f"**Outstanding unbilled revenue accrual: {_fmt_gbp(accrual['unbilled_revenue_gbp'])}** "
-        f"across {accrual['outstanding_bill_count']} bill(s) not yet confirmed by an actual read.",
+        f"**Billed on estimate, not yet trued up: "
+        f"{_fmt_gbp(accrual['estimated_billing_outstanding_gbp'])}** across "
+        f"{accrual['outstanding_bill_count']} bill(s) not yet confirmed by an actual read. "
+        "This is the whole value of those bills, not the error in them.",
+        "",
+        "**Unbilled revenue (energy used but not yet billed): not established** -- "
+        f"{accrual['unbilled_revenue_reason']}.",
         "",
         f"**Revenue restated this run: {_fmt_gbp(total_restated)}** across {restatement_count} "
         "catch-up correction(s) -- see the Net Margin Bridge above for the settlement-clock view "
@@ -9146,7 +9174,7 @@ def _section_unbilled_revenue_accrual(data: dict) -> str:
     ]
     if accrual["by_customer"]:
         lines += [
-            "| Customer | Outstanding Accrual £ |",
+            "| Customer | Billed on Estimate £ |",
             "|----------|------------------------|",
         ]
         for cid, gbp in sorted(accrual["by_customer"].items(), key=lambda kv: -kv[1])[:10]:
@@ -10963,7 +10991,7 @@ def generate_annual_report(data: dict) -> str:
     sections.append(_section_clv_evolution(data))                  # Phase BG
     sections.append(_section_gross_margin_bridge(data))            # Phase BE
     sections.append(_section_net_margin_bridge(data))             # Phase NT
-    sections.append(_section_unbilled_revenue_accrual(data))       # E3_accrual_restatement
+    sections.append(_section_estimated_billing_outstanding(data))  # E3_accrual_restatement
     sections.append(_section_payment_health(data))               # Phase NU
     sections.append(_section_portfolio_composition(data))         # Phase NV
     sections.append(_section_shadow_retention(data))              # Phase NW

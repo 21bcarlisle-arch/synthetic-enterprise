@@ -1,4 +1,11 @@
-"""Back-billing compliance: Ofgem SLC 31A 12-month cap on retrospective charges."""
+"""Back-billing compliance: the 12-month cap on retrospective charges, SLC 21BA.
+
+The licence condition is SLC 21BA (Ofgem decision, 5 March 2018), and it protects MICROBUSINESS
+customers as well as domestic ones. This module used to call it "SLC 31A" and refuse the cap to every
+non-domestic account. The module now applies it to either; whether a given non-domestic account is
+a microbusiness is the CALLER'S fact, and no production caller supplies it yet -- the registered gap
+`microbusiness_back_billing_cap` in company/compliance/obligations_register.py.
+"""
 from __future__ import annotations
 
 import datetime as dt
@@ -7,7 +14,7 @@ from enum import Enum
 from typing import Dict, List, Optional
 
 
-# Ofgem SLC 31A: domestic customers cannot be back-billed for energy consumed
+# SLC 21BA: domestic and microbusiness customers cannot be back-billed for energy consumed
 # more than 12 months before the billing date where the supplier failed to bill.
 # Applies from 01 May 2018.
 _BACK_BILLING_LIMIT_DAYS = 365
@@ -30,6 +37,7 @@ class BackBillingAssessment:
     billed_amount_gbp: float
     reason: BackBillingReason
     is_domestic: bool = True
+    is_microbusiness: bool = False
 
     @property
     def _protected_start(self) -> dt.date:
@@ -37,7 +45,7 @@ class BackBillingAssessment:
 
     @property
     def cap_applies(self) -> bool:
-        if not self.is_domestic:
+        if not (self.is_domestic or self.is_microbusiness):
             return False
         if self.billing_date < _BACK_BILLING_RULES_START:
             return False
@@ -61,14 +69,14 @@ class BackBillingAssessment:
 
 
 class BackBillingBook:
-    """Tracks back-billing assessments and compliance with Ofgem SLC 31A.
+    """Tracks back-billing assessments and compliance with SLC 21BA.
 
     Real context:
-    - Ofgem SLC 31A effective 01 May 2018: domestic-only rule
+    - SLC 21BA effective 01 May 2018: domestic AND microbusiness customers
     - Triggered most often when SMETS2 install reveals years of estimated reads
     - Estimated: suppliers collectively waived ~GBP90M in back-billing 2018-2022
     - Non-compliance: Ofgem enforcement action, restitution order
-    - Non-domestic customers NOT protected (B2B commercial terms apply)
+    - Non-domestic customers that are NOT microbusinesses are not protected (commercial terms)
     """
 
     def __init__(self) -> None:
