@@ -337,3 +337,44 @@ def test_a_path_git_will_not_answer_for_is_a_failure_not_a_silent_pass(repo: Pat
     assert failure is not None, \
         "git holds this path in neither HEAD nor the index, so nothing was cleared and saying so " \
         "is the difference between a refusal and an advance onto a tree still holding the blocker"
+
+
+def test_a_deletion_origin_also_makes_is_a_twin_and_one_origin_does_not_make_is_not(repo: Path):
+    """THE 2026-10-05 SHAPE. W2_36 slice 2 deleted two files; the shared tree held the same two
+    deletions uncommitted. Neither side has a blob, both hashes fail, and the sweep read that as
+    "git would not answer" -- so it returned `None` and refused all eleven blockers, nine of them
+    byte-identical to origin, and the publish sat behind origin for hours.
+
+    Controls first, so the repair cannot have merely made every missing file a twin: a deletion
+    origin does NOT make is a lane's work; and a staged add since removed from disk has no blob on
+    either side either, but its content lives only in the index, which no fast-forward restores.
+
+    MUTATION: drop the deletion-twin branch and the sweep answers `None` for both legs. Make
+    `_absent_here_and_on_origin` return True unconditionally and the staged-add control reds.
+    """
+    (repo / "kept.txt").write_text("origin keeps this\n", encoding="utf-8")
+    _git(repo, "add", "kept.txt")
+    _git(repo, "commit", "--quiet", "-m", "add kept")
+    _git(repo, "rm", "--quiet", "tracked.txt")
+    _git(repo, "commit", "--quiet", "-m", "origin deletes tracked.txt")
+    _git(repo, "update-ref", "refs/remotes/origin/main", "HEAD")
+    _git(repo, "reset", "--quiet", "--hard", "HEAD~1")
+    (repo / "tracked.txt").unlink()
+    (repo / "kept.txt").unlink()
+    (repo / "staged.txt").write_text("only the index has this\n", encoding="utf-8")
+    _git(repo, "add", "staged.txt")
+    (repo / "staged.txt").unlink()
+
+    assert "kept.txt" not in (orc.identical_tracked_twins(repo, [_modified("kept.txt")]) or []), \
+        "origin still holds kept.txt, so deleting it here is work origin has not seen"
+    assert orc.identical_tracked_twins(repo, [_modified("staged.txt")]) == [], \
+        "a staged add gone from disk holds bytes only the index has; it is not a twin of anything"
+    assert orc.identical_tracked_twins(repo, [_modified("tracked.txt")]) == ["tracked.txt"], \
+        "origin deletes tracked.txt too, so the fast-forward leaves the disk exactly as it is"
+
+    assert orc.restore_tracked_twin(repo, "tracked.txt") is None
+    _git(repo, "rm", "--cached", "--quiet", "staged.txt")
+    (repo / "kept.txt").write_text("origin keeps this\n", encoding="utf-8")
+    assert _git(repo, "merge", "--ff-only", "origin/main").returncode == 0, \
+        "the restored deletion twin must leave the fast-forward nothing to refuse on"
+    assert not (repo / "tracked.txt").exists()

@@ -576,11 +576,40 @@ def identical_tracked_twins(project: Path | None = None,
             continue
         path = entry["path"]
         here, theirs = _blob_here(project, path), _blob_on_origin(project, path)
+        if here is None and theirs is None:
+            # A DELETION TWIN: gone from disk, and origin deletes it too. Both hashes fail, and
+            # reading that as "git would not answer" refused every path beside it -- the shared
+            # tree sat behind origin on 2026-10-05 holding nine byte-identical twins hostage to two
+            # deletions that matched origin's. Absence is asked, not inferred from a failed hash.
+            absent = _absent_here_and_on_origin(project, path)
+            if absent is None:
+                return None
+            if absent:
+                twins.append(path)
+            continue
         if here is None or theirs is None:
             return None
         if here == theirs:
             twins.append(path)
     return sorted(twins)
+
+
+def _absent_here_and_on_origin(project: Path, path: str) -> bool | None:
+    """True when HEAD holds `path`, the disk does not, and origin's tree has no entry there.
+
+    `None` when git would not answer. HEAD must hold it so `restore_tracked_twin` has a copy to
+    write back; the fast-forward then deletes that copy, which is the state the disk was already in.
+    """
+    full = project / path
+    if full.exists() or full.is_symlink() or _blob_in_head(project, path) is None:
+        return False
+    try:
+        res = _git(project, "ls-tree", "--name-only", "{}/{}".format(REMOTE, BRANCH), "--", path)
+    except (OSError, subprocess.SubprocessError):
+        return None
+    if res.returncode != 0:
+        return None
+    return not (res.stdout or "").strip()
 
 
 def restore_tracked_twin(project: Path | None = None, path: str = "") -> str | None:
