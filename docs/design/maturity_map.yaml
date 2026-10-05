@@ -719,7 +719,7 @@
   file_scope: ['company/analytics/clv_three_horizon.py', 'tests/company/analytics/test_clv_three_horizon.py', 'company/analytics/customer_value_view.py', 'tools/couple_clv.py', 'tests/tools/test_couple_clv.py']
   simplifications_count: 19   # 2026-10-01 LEVEL STAYS 2. Ledger row landed 7a8e651cd: gap 1.081 n=69 (H2 on the book's tenure-year life table). Best single scale leaves 0.991: no per-account information left to recover company-side. Tenure is unrankable because the world holds no tenure signal (world lane); the margin ranking is the fuel split. See SEAT_FINDING_EP1_LEGS_THEN_RATE_*.
   blocked_on: ['EP17_varied_population_draw']
-  block_reason: "Replicating EP1's legs-then-rate ranking needs a second book; which book the company lives through is the director's (R13). Recommendation (two measurement-only book seeds) is in SEAT_FINDING_EP1_LEGS_THEN_RATE_*; clear this field when the ruling lands."
+  block_reason: "Only the legs-then-rate RANKING's replication needs a second book (R13; recommendation in SEAT_FINDING_EP1_LEGS_THEN_RATE_*). Forward CLV moves without one: B11 grades it on this book's held-back later years. See simplifications/B11_*.yaml."
 - id: EP2_variance_learning_loop
   title: "Expected minus realised, fed back into belief"
   notes_rehomed: [gain, name, origin_note]
@@ -2196,12 +2196,15 @@
   loop_stage: build
   # MINTED 2026-10-05, canon step 2's company half. "Debt and cashflow work rests on knowing
   # what was actually billed, which is why this comes before them." Steps 3 and 5 read it.
+  # Reuses closed D1 (bill content), D3 (catch-up rebill) and E3 (unbilled accrual, saas/ledger);
+  # the knowledge note it rests on is W2_36's first file. simplifications/D48_*.yaml.
   dial_inherited: 100
   provenance: director_ruling
   depends_on: []
   couples_with: [W2_36_unbilled_energy_arises_the_way_it_does_in_reality]
   file_scope: ['company/billing/billing_accuracy.py',
     'tests/company/billing/test_billing_accuracy.py']
+  simplifications_count: 1
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a revenue-assurance team reconciling billed kWh against settled kWh and finding the gap lives in a few hundred estimated accounts."
 - id: B11_forward_clv_backtested_on_held_back_history
@@ -2221,5 +2224,6 @@
   couples_with: [EP1_clv_three_horizon]
   file_scope: ['company/analytics/forward_clv.py',
     'tests/company/analytics/test_forward_clv_backtest.py']
+  simplifications_count: 1
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a finance team whose customer-value model is only ever checked against the same years it was fitted on."
