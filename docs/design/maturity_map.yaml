@@ -567,11 +567,15 @@
   epoch: 3
   level_current: 0
   level_target: 3
-  loop_stage: idle
-  dial_inherited: 3
+  loop_stage: build   # 2026-10-05 the director approved home moves into step 2 of the order
+  # Change of tenancy is where 20-40% of GB domestic debt starts (Ofgem, 9 Dec 2025) and the unnamed
+  # occupier on a deemed contract is unbilled energy as it arises: docs/market_research/home_moves.md.
+  # A switch and a move are different departures; the world must generate them apart.
+  dial_inherited: 100
   provenance: proposal
-  file_scope: [sim/customer_state_layer.py, tests/sim/test_customer_state_layer.py]
+  file_scope: [sim/customer_state_layer.py, tests/sim/test_customer_state_layer.py, docs/market_research/home_moves.md]
   depends_on: []
+  couples_with: [D48_billing_accuracy_the_company_measures_what_it_billed_against_what_was_used]
   simplifications_count: 2
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "the churn a real supplier''s book actually experiences: roughly one in ten households moves home each year, each move closing one account into a final bill and opening two deemed-contract accounts at either end -- plus income shocks that show up as arrears months before anyone tells the supplier anything"
@@ -2227,3 +2231,79 @@
   simplifications_count: 1
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a finance team whose customer-value model is only ever checked against the same years it was fitted on."
+- id: W2_37_complaints_arise_from_billing_failures_and_the_silent_unhappy_are_modelled
+  title: "the world raises complaints from the billing failures that cause most of them, and models the unhappy who never complain -- complaint figures are a floor on dissatisfaction, not a measure of it"
+  lane: W2_customer_generator
+  value_stream: meter_to_cash
+  epoch: 4
+  level_current: 0
+  level_target: 3
+  loop_stage: build
+  # 2026-10-05 the director, approving step 2: "The data only sees people who complain ... model the
+  # silent unhappy rather than building dissatisfaction around complaints." Billing is 56-58% of
+  # Ombudsman cases; the silent unhappy are probably the disengaged who switch LESS (CIM w6).
+  dial_inherited: 95
+  provenance: director_ruling
+  depends_on: [W2_36_unbilled_energy_arises_the_way_it_does_in_reality]
+  couples_with: [C34_next_best_action_is_one_decision_across_debt_retention_upsell_and_carbon_judged_by_clv]
+  file_scope: ['docs/market_research/communications_sentiment_and_nps.md',
+    'simulation/complaint_generation.py', 'tests/simulation/test_complaint_generation.py']
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a supplier whose complaint count falls while its quietly unhappy customers pile up on the default tariff."
+- id: W2_38_the_worlds_debt_is_graded_against_ofgems_quarterly_series
+  title: "the world's arrears are graded against Ofgem's published quarterly debt series, 2016-2025, before any debt lever is drawn -- graded, never tuned toward company results"
+  lane: W2_customer_generator
+  value_stream: meter_to_cash
+  epoch: 4
+  level_current: 0
+  level_target: 3
+  loop_stage: build
+  # 2026-10-05 approved. The world draws payment failure at an invented 3/12/35% by income stress; a
+  # forecast built on it learns those back. Ofgem's series is downloadable: docs/market_research/debt_and_collections.md.
+  dial_inherited: 90
+  provenance: director_ruling
+  depends_on: []
+  couples_with: [EP4_collections_journey]
+  file_scope: ['docs/market_research/debt_and_collections.md',
+    'tools/grade_world_debt_against_ofgem.py', 'tests/tools/test_grade_world_debt_against_ofgem.py']
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a credit model validated against its own simulated defaults rather than the regulator's published arrears."
+- id: W2_39_households_respond_to_contact_including_badly
+  title: "households respond to a contact or offer in proportion to its size, differently from one another, sometimes negatively, and with a lasting trace"
+  lane: W2_customer_generator
+  value_stream: meter_to_cash
+  epoch: 4
+  level_current: 0
+  level_target: 3
+  loop_stage: build
+  # 2026-10-05 approved as step 4's first item. Today a retention offer is a flat 0.20 cut in hazard,
+  # never negative and the same for any discount, so a decision targeted on EFFECT and one targeted
+  # on RISK score identically: docs/market_research/next_best_action_and_cross_sell.md.
+  dial_inherited: 85
+  provenance: director_ruling
+  depends_on: []
+  couples_with: [C34_next_best_action_is_one_decision_across_debt_retention_upsell_and_carbon_judged_by_clv]
+  file_scope: ['simulation/contact_response.py', 'tests/simulation/test_contact_response.py']
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a retention campaign that raises churn among the customers it reminded they could leave."
+- id: C34_next_best_action_is_one_decision_across_debt_retention_upsell_and_carbon_judged_by_clv
+  title: "next best action is one per-customer decision across debt handling, retention, upsell and carbon advice -- the customer's benefit first, then ours -- chosen by its effect on CLV, never a fixed ranking of measures"
+  lane: C_customer_ops
+  value_stream: meter_to_cash
+  epoch: 4
+  level_current: 0
+  level_target: 3
+  loop_stage: build
+  # 2026-10-05 the director: "treat next best action as the decision that spans debt, retention,
+  # upsell and carbon advice, judged by CLV, rather than as a fixed ranking of measures." For a
+  # customer in arrears the right action is a decision like a retention offer or an insulation
+  # suggestion. Graded on EFFECT against tools/decision_probe.py's true counterfactual.
+  dial_inherited: 75
+  provenance: director_ruling
+  depends_on: [B11_forward_clv_backtested_on_held_back_history]
+  couples_with: [W2_39_households_respond_to_contact_including_badly, B8_discovered_price_sensitivity_holdout]
+  file_scope: ['company/crm/next_best_action.py', 'tests/company/crm/test_next_best_action.py',
+    'docs/market_research/next_best_action_and_cross_sell.md',
+    'docs/market_research/household_carbon_and_the_measures_that_save_it.md']
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a supplier whose debt desk, retention desk and energy-advice team each send the same customer a different letter in the same week."

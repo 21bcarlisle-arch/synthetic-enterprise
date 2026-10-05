@@ -277,10 +277,19 @@ for_the_director:
     households that respond to contact, including badly.'
   proposal: Adopt the sequence in docs/staging/SEAT_PROPOSAL_WHAT_STEP_ONE_TAUGHT_ABOUT_THE_ORDER_2026-10-05.md;
     it also carries four practitioner questions only the trade can answer.
-  status: open
-  resolution: ''
+  status: answered
+  resolution: 'APPROVED by the director 2026-10-05, with amendments. (1) Complaints: complaint statistics
+    see only those who complain (the 9/17/23% switching figures describe complainants; Ombudsman figures
+    the escalated few); treat them as a FLOOR on dissatisfaction, not a measure of it, and model the silent
+    unhappy (probably the disengaged, who switch less) rather than building dissatisfaction around complaints.
+    (2) Next best action is the per-customer decision spanning debt, retention, upsell and carbon advice
+    -- the customer''s benefit first, then ours -- judged by CLV; debt handling for a customer in arrears
+    is one of its decisions. (3) The practitioner questions are the seat''s to own: research, derive or
+    estimate; where unpublished, an assumption toggle with a plausible range, tested for whether any decision
+    changes across it; escalate only if decision-changing AND unresolvable.'
   evidence: docs/market_research/unbilled_energy_and_revenue_assurance.md, home_moves.md, debt_and_collections.md,
     next_best_action_and_cross_sell.md, communications_sentiment_and_nps.md
+  resolved: '2026-10-05'
 - id: household-carbon-is-mostly-heating-gas-is
   raised: '2026-10-05'
   kind: strategy
@@ -290,9 +299,13 @@ for_the_director:
   proposal: Rank heating measures above flex in next best action (heating behaviour, insulation, heat
     pump with our own tariff, EV smart charging, solar and battery as money products, then time-of-use),
     and add home heating as a step-1 product; see docs/staging/SEAT_PROPOSAL_HEATING_ABOVE_FLEX_AND_GAS_IN_THE_CARBON_A_CUSTOMER_IS_SHOWN_2026-10-05.md.
-  status: open
-  resolution: ''
+  status: answered
+  resolution: 'APPROVED by the director 2026-10-05, amended: his measure ordering was approximate. The
+    goal is TAILORED next best action per customer -- their benefit first, then ours -- not a fixed ranking
+    of measures; heating''s weight enters through each household''s own numbers. Carbon''s main job is
+    showing customers what they saved and could save; we save customers cash, carbon and convenience.'
   evidence: docs/market_research/household_carbon_and_the_measures_that_save_it.md
+  resolved: '2026-10-05'
 - id: a-household-s-electricity-carbon-is-shown
   raised: '2026-10-05'
   kind: strategy

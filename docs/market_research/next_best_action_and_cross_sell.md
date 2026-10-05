@@ -2,6 +2,13 @@
 
 **Knowledge:** next-best-action-and-cross-sell
 
+> **Director's ruling, 2026-10-05.** The goal is TAILORED next best action per customer — their
+> benefit first, then ours. Debt management is a form of next best action: for a customer in arrears
+> the right action is a decision like a retention offer or an insulation suggestion. Next best action
+> is therefore ONE decision spanning debt, retention, upsell and carbon advice, judged by CLV (atom
+> C34), not a fixed ranking of measures; the heating-first ordering in the carbon page is evidence
+> about typical magnitudes, which enter each household's decision through its own numbers.
+
 **Research completed 2026-10-05, knowledge lane (director canon step 1, "now and wide").** Opened by
 `docs/staging/done/DIRECTOR_CANON_THE_PRIORITY_ORDER_2026-10-05.md`, which names next best action (NBA)
 and upsell/cross-sell as step-5 levers and asks the knowledge for them now. Primary sources were

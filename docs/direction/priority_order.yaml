@@ -2,6 +2,9 @@
 # director's: docs/staging/done/DIRECTOR_CANON_THE_PRIORITY_ORDER_2026-10-05.md. Which atoms carry each
 # step is the delivery seat's ("how the map expresses it"), and this file is that expression.
 # `tools/draw_follows_the_order.py` grades the live draw and the landed work against it.
+# 2026-10-05: amended by the director's approval of SEAT_PROPOSAL_WHAT_STEP_ONE_TAUGHT_ABOUT_THE_ORDER
+# (home moves and billing complaints into step 2; world debt graded before step 3's CLV; step 4 opens
+# with households that respond to contact; next best action as one CLV-judged decision).
 canon: docs/staging/done/DIRECTOR_CANON_THE_PRIORITY_ORDER_2026-10-05.md
 since: "2026-10-05"
 steps:
@@ -11,17 +14,22 @@ steps:
   2:
     name: unbilled energy and billing accuracy
     atoms: [W2_36_unbilled_energy_arises_the_way_it_does_in_reality,
-            D48_billing_accuracy_the_company_measures_what_it_billed_against_what_was_used]
+            D48_billing_accuracy_the_company_measures_what_it_billed_against_what_was_used,
+            B7_customer_state_layer_moves_and_shocks,
+            W2_37_complaints_arise_from_billing_failures_and_the_silent_unhappy_are_modelled]
   3:
     name: forward CLV
-    atoms: [B11_forward_clv_backtested_on_held_back_history, EP1_clv_three_horizon]
+    atoms: [B11_forward_clv_backtested_on_held_back_history, EP1_clv_three_horizon,
+            W2_38_the_worlds_debt_is_graded_against_ofgems_quarterly_series]
   4:
     name: per-customer decisions
-    atoms: [C29_decisions_stop_being_lookup_tables, PB4_engagement_separated_from_elasticity,
+    atoms: [W2_39_households_respond_to_contact_including_badly,
+            C34_next_best_action_is_one_decision_across_debt_retention_upsell_and_carbon_judged_by_clv,
+            C29_decisions_stop_being_lookup_tables, PB4_engagement_separated_from_elasticity,
             PB5_pounds_or_percent_resolved]
   5:
     name: the levers, in merit order
-    atoms: [EP4_collections_journey, B7_customer_state_layer_moves_and_shocks,
+    atoms: [EP4_collections_journey,
             C30_advice_reaches_a_household,
             W2_34_the_company_has_one_piece_of_advice_that_costs_the_customer_nothing,
             G14_half_hourly_grid_carbon_intensity_aligned_to_settlement, C4_adoption_physics,

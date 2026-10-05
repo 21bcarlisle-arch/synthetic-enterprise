@@ -2,6 +2,13 @@
 
 **Knowledge:** communications-sentiment-and-nps
 
+> **Director's ruling, 2026-10-05 — read every complaint figure below through it.** The data only
+> sees people who complain. The 9% / 17% / 23% switching gradient describes complainants alone, and
+> Ombudsman figures the escalated few. The unhappy-but-silent are invisible, and are probably the
+> same disengaged group the 2025 survey shows switching LESS (3.0% vs 5.4%). So complaint statistics
+> are a **floor on dissatisfaction, not a measure of it**. The world models the silent unhappy as a
+> population of their own (atom W2_37) rather than building dissatisfaction around complaints.
+
 *Knowledge pass, step 1 of the director's priority order (`docs/staging/done/DIRECTOR_CANON_THE_PRIORITY_ORDER_2026-10-05.md`),
 for the area that order puts last (step 7). Written 2026-10-05. Every figure is from a published source fetched this
 pass or already held in this repository, and is attributed to its own instrument, wave and sample. Where the record runs
