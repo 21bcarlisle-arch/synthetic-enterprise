@@ -83,7 +83,8 @@ Its new MINORs:
 - **Partial-year panels are labelled as "the year" (it says this must be fixed).** Day panels use
   `allow_partial=True`, so the 2025-01-10 panel's "year's average" is the 1 Jan to 7 Jun mean,
   about 6% above the full year, and "Across 2025 as a whole" quotes 7,582 half hours. The timed kg
-  is still NESO's value; only the comparator's label is wrong. Handed on.
+  is still NESO's value; only the comparator's label is wrong. Handed on; fixed the same day
+  (`SEAT_FINDING_G14_PART_YEAR_PANELS_NAME_THEIR_SPAN_2026-10-05.md`).
 - `site/data/proof.json` and `site/data/simplified.json` still quote "already loss-corrected" and
   "consumption basis counts imports at the exporting country's intensity". The source is the
   2026-08-14 log entry in `docs/design/simplifications/archive/EP13_adapter_carbon_intensity.001.yaml`,

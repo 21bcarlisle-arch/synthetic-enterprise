@@ -1,5 +1,5 @@
 {
- "generated": "2026-10-05T12:07:01Z",
+ "generated": "2026-10-05T13:27:12Z",
  "basis": "The day panels are the ELECTRICITY leg only -- for a gas-heated home a minority of its carbon; the household's year below adds its gas. Company estimate: its own published ANNUAL grid intensity (company/regulatory/carbon_emissions.py, the single owner) given half-hourly resolution by the published shape feed -- both NESO's national series, so shape x level is NESO's own half-hourly figure. National, outturn, generation basis (transmission and distribution losses not included), CO2 at the generator. NOT abatement -- there is no counterfactual here and none is implied.",
  "not_included": [
   "gas in the half-hourly day panels -- a gas meter is not read by the half hour; the household's gas is in its yearly figure, from its billed gas",
@@ -398,6 +398,7 @@
     "max": 1.7444,
     "p95_over_p5": 3.4
    },
+   "level_covers": null,
    "kwh": 89.2149,
    "co2e_kg_timed": 22.2629,
    "co2e_kg_flat": 16.9294,
@@ -765,6 +766,7 @@
     "max": 1.7375,
     "p95_over_p5": 4.2
    },
+   "level_covers": null,
    "kwh": 16.4498,
    "co2e_kg_timed": 3.7462,
    "co2e_kg_flat": 3.0485,
@@ -1132,6 +1134,7 @@
     "max": 1.7375,
     "p95_over_p5": 4.2
    },
+   "level_covers": null,
    "kwh": 86.9861,
    "co2e_kg_timed": 22.1275,
    "co2e_kg_flat": 16.1203,
@@ -1490,6 +1493,10 @@
     "min": 0.3475,
     "max": 1.6424,
     "p95_over_p5": 2.12
+   },
+   "level_covers": {
+    "from": "2016-03-01",
+    "to": "2016-12-31"
    },
    "kwh": 9.9281,
    "co2e_kg_timed": 2.2793,
@@ -1858,6 +1865,10 @@
     "max": 2.045,
     "p95_over_p5": 5.06
    },
+   "level_covers": {
+    "from": "2025-01-01",
+    "to": "2025-06-07"
+   },
    "kwh": 82.0649,
    "co2e_kg_timed": 19.9211,
    "co2e_kg_flat": 11.8379,
@@ -2225,6 +2236,7 @@
     "max": 1.7444,
     "p95_over_p5": 3.4
    },
+   "level_covers": null,
    "kwh": 14.4983,
    "co2e_kg_timed": 2.7514,
    "co2e_kg_flat": 2.7512,

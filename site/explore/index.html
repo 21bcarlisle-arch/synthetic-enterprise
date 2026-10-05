@@ -950,10 +950,23 @@ function carbonDayPanel(row) {
       "the answer is absent rather than zero.</p>");
   }
   var up = row.timing_effect_pct >= 0;
+  /* A PART YEAR IS NAMED AS ITS SPAN (G14 Expert Hour, 2026-10-05). In 2016 and 2025 the
+     comparator is the mean of only the dates the published record covers -- 2025's runs 1 Jan
+     to 7 Jun and sits about 6% above the full year -- so "the year's average" and "as a whole"
+     told a household a part-year mean was the year. `level_covers` is null for a whole year. */
+  var part = row.level_covers;
+  var span = part ? dt(part.from) + " to " + dt(part.to) : "";
+  var avg = part ? "<b>average intensity over " + span + "</b> (the part of " +
+    esc(String(row.year)) + " the published record covers, not the whole year) "
+    : "year's <b>average</b> intensity ";
+  var across = part ? "From " + span + ", the part of " + esc(String(row.year)) +
+    " the published record covers, the dirtiest 5% of half hours ran <b>"
+    : "Across " + esc(String(row.year)) + " as a whole the dirtiest 5% of half hours ran <b>";
   return panel("customer", esc(dt(row.date)),
     '<p style="font-size:22px;margin:2px 0 6px"><b>' + num(row.co2e_kg_timed, 1) +
     " kg CO&#8322;</b> <span style=\"font-size:12px\">from electricity this day</span></p>" +
-    "<p>Measured half hour by half hour. The same kWh valued at the year's <b>average</b> " +
+    "<p>Measured half hour by half hour. The same kWh valued at the " +
+    avg +
     /* "WHEN THIS HOUSEHOLD DREW" WAS AN ATTRIBUTION THE PIPELINE CANNOT SUPPORT (2026-08-25).
        86-94% of the kWh on these winter days is placed by HEATING_PERIOD_WEIGHTS -- ONE
        national constant in simulation/demand_model.py, uniform over the same two windows for
@@ -961,13 +974,14 @@ function carbonDayPanel(row) {
        meter file, but the clause credited a HOME for a shape a module-level constant chose.
        "has it drawing" is the smallest true edit: it names a profile without pretending the
        profile is a measurement. The magnitude is measured underneath, not estimated here. */
-    "intensity would read " + num(row.co2e_kg_flat, 1) + " kg &mdash; so <b>when</b> this " +
+    "would read " + num(row.co2e_kg_flat, 1) + " kg &mdash; so <b>when</b> this " +
     "household's profile has it drawing made its carbon <b>" +
     Math.abs(row.timing_effect_pct).toFixed(0) + "% " +
-    (up ? "higher" : "lower") + "</b> than the annual-average method reports.</p>" +
+    (up ? "higher" : "lower") + "</b> than " +
+    (part ? "that part-year average reports" : "the annual-average method reports") + ".</p>" +
     '<p style="font-size:12px;color:var(--muted);margin-top:8px">Cleanest half hour <b>' +
-    esc(row.cleanest.clock) + "</b> (" + row.cleanest.shape.toFixed(2) + "&times; the year's " +
-    "average), dirtiest <b>" + esc(row.dirtiest.clock) + "</b> (" +
+    esc(row.cleanest.clock) + "</b> (" + row.cleanest.shape.toFixed(2) + "&times; " +
+    (part ? "that" : "the year's") + " average), dirtiest <b>" + esc(row.dirtiest.clock) + "</b> (" +
     row.dirtiest.shape.toFixed(2) + "&times;). " + row.half_hours + " metered half hours. " +
     /* The spread is the panel's OWN year. Quoting the page's newest year here put 2025's
        figure under a February 2021 day on this panel's first render. */
@@ -996,7 +1010,7 @@ function carbonDayPanel(row) {
     (row.year_stats && row.year_stats.p95_over_p5 && CARBON.versus_published &&
      CARBON.versus_published.available && CARBON.versus_published.shape_is_neso &&
      CARBON.versus_published.p95_spread_overstated_by
-      ? "Across " + esc(String(row.year)) + " as a whole the dirtiest 5% of half hours ran <b>" +
+      ? across +
         row.year_stats.p95_over_p5.toFixed(1) + "&times;</b> the cleanest 5% in NESO&rsquo;s " +
         "Historic Generation Mix, which is what this shape is. NESO&rsquo;s other published " +
         "series, the Carbon Intensity API, puts the same spread at " +
@@ -1005,14 +1019,14 @@ function carbonDayPanel(row) {
         "have saved: it is outturn, and a household has to act on a forecast."
       : row.year_stats && row.year_stats.p95_over_p5 && CARBON.versus_published &&
      CARBON.versus_published.available && CARBON.versus_published.by_construction
-      ? "Across " + esc(String(row.year)) + " as a whole the dirtiest 5% of half hours ran <b>" +
+      ? across +
         row.year_stats.p95_over_p5.toFixed(1) + "&times;</b> the cleanest 5% in NESO&rsquo;s " +
         "published series, which is what this shape is wherever NESO published. The figure is " +
         "still an upper bound on what advice could have saved: it is outturn, and a household " +
         "has to act on a forecast."
       : row.year_stats && row.year_stats.p95_over_p5 && CARBON.versus_published &&
      CARBON.versus_published.available && CARBON.versus_published.p95_spread_overstated_by
-      ? "Across " + esc(String(row.year)) + " as a whole the dirtiest 5% of half hours ran <b>" +
+      ? across +
         row.year_stats.p95_over_p5.toFixed(1) + "&times;</b> the cleanest 5% <em>on this " +
         "model's own shape</em> &mdash; which is <b>" +
         CARBON.versus_published.p95_spread_overstated_by.toFixed(1) + "&times; wider</b> than " +

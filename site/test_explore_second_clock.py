@@ -565,3 +565,54 @@ def test_a_household_that_switched_gas_away_is_never_shown_a_carbon_fall_from_it
     assert "Gas now supplied elsewhere since" in panel
     assert "not a saving we can see" in panel
     assert "Gas meter removed" not in panel and "fell" not in panel
+
+
+def _en_gb(iso: str) -> str:
+    """The page's own `dt()` for a date: "1 Jan 2025"."""
+    from datetime import date
+    d = date.fromisoformat(iso)
+    return "{} {} {}".format(d.day, d.strftime("%b"), d.year)
+
+
+def test_a_PART_YEAR_comparator_is_named_as_its_span_and_never_as_the_year():
+    """G14 EXPERT HOUR, 2026-10-05: a part year was labelled as the year. In 2016 and 2025 the
+    flat comparator is the mean of only the dates Elexon's demand record covers (2025: 1 Jan to
+    7 Jun, about 6% above the full year), and the panel called it "the year's average" and its
+    spread "Across 2025 as a whole". The timed kilograms were right; the yardstick was misnamed.
+
+    ONE HOUSEHOLD WITH BOTH KINDS OF DAY, so the whole-year branch is shown still reachable on
+    the same render: a page that dropped "the year" everywhere would pass the refusal alone.
+
+    MUTATION (must fire): render `var part = null;` in `carbonDayPanel`.
+    """
+    carbon = _load(CARBON)
+    levels = _load(SITE.parent / "docs" / "market_data" / "grid_intensity_feed.json")
+    rows = [r for r in carbon.get("accounts") or [] if "co2e_kg_timed" in r]
+    for r in rows:
+        level = levels["annual_level"]["by_year"][r["year"]]
+        expected = None if level["complete"] else level["covers"]
+        assert r.get("level_covers") == expected, (
+            "{} {}: the feed names the comparator's span as {} but the published level covers "
+            "{}".format(r["account_id"], r["date"], r.get("level_covers"), expected))
+    by_account: dict = {}
+    for r in rows:
+        by_account.setdefault(r["account_id"], []).append(r)
+    both = [(a, rs) for a, rs in sorted(by_account.items())
+            if any(r["level_covers"] for r in rs) and any(not r["level_covers"] for r in rs)]
+    if not both:
+        pytest.skip("no household shows both a part-year and a whole-year day")
+    account, rs = both[0]
+    part = next(r for r in rs if r["level_covers"])
+    whole = next(r for r in rs if not r["level_covers"])
+
+    html = _stage(account)
+    span = "{} to {}".format(_en_gb(part["level_covers"]["from"]),
+                             _en_gb(part["level_covers"]["to"]))
+    assert "average intensity over " + span in html and "not the whole year" in html, (
+        "the {} panel does not name its comparator as the {} span it covers".format(
+            part["date"], span))
+    assert "Across {} as a whole".format(part["year"]) not in html, (
+        "a part-year spread is still described as {} as a whole".format(part["year"]))
+    assert "year&#x27;s <b>average</b>" in html or "year's <b>average</b>" in html, (
+        "the whole-year day ({}) lost its year's-average label, so the part-year branch is "
+        "taken everywhere rather than only where it is true".format(whole["date"]))

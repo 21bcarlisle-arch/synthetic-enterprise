@@ -81,6 +81,7 @@ from company.regulatory.carbon_emissions import (
     GasFactorUnavailable,
     gas_factor_kg_co2e_per_kwh,
     grid_intensity_g_co2e_per_kwh,
+    grid_intensity_level,
     grid_intensity_unavailable_reason,
 )
 
@@ -144,6 +145,11 @@ class Footprint:
     half_hours: int
     period_from: str
     period_to: str
+    # THE FLAT COMPARATOR'S OWN SPAN when it is not a whole year: ((from, to), ...) per part year
+    # whose level priced a read. 2025's level is the 1 Jan..7 Jun mean, about 6% above the full
+    # year, so a page calling it "the year's average" misnames the very thing the timed figure is
+    # measured against. Empty means every level used was a whole calendar year's.
+    partial_level_spans: tuple[tuple[str, str], ...] = ()
 
     @property
     def timing_effect_pct(self) -> float:
@@ -268,6 +274,7 @@ def measured_footprint(
     kwh_total = 0.0
     used = 0
     dates: list[str] = []
+    partial_spans: dict[str, tuple[str, str] | None] = {}
     for read in reads:
         date_str = str(read.get("date") or "")
         period = read.get("period")
@@ -285,6 +292,10 @@ def measured_footprint(
                 f"{account_id}: a published shape half hour on {date_str} has no published "
                 "annual level -- "
                 + str(grid_intensity_unavailable_reason(int(date_str[:4]), allow_partial=True)))
+        if date_str[:4] not in partial_spans:
+            published = grid_intensity_level(int(date_str[:4]))
+            partial_spans[date_str[:4]] = None if published.complete else (
+                str(published.covers_from), str(published.covers_to))
         timed_g += float(kwh) * level * factor
         flat_g += float(kwh) * level
         kwh_total += float(kwh)
@@ -305,6 +316,7 @@ def measured_footprint(
         half_hours=used,
         period_from=min(dates),
         period_to=max(dates),
+        partial_level_spans=tuple(span for _y, span in sorted(partial_spans.items()) if span),
     )
 
 

@@ -572,6 +572,12 @@ def build(hh_days: dict, shape: dict, feed: dict, meter: dict,
                 # and reads as if it had corrected the figure.
                 "shape_provenance": shape_provenance(reads),
                 "year_stats": (feed.get("by_year") or {}).get(row_year),
+                # A PART YEAR IS NAMED AS ITS SPAN, never as "the year". The flat comparator and
+                # `year_stats` are normalised over the same half hours (both 7,582 in 2025), so
+                # one span labels both. None: the level is a whole calendar year's.
+                "level_covers": ({"from": fp.partial_level_spans[0][0],
+                                  "to": fp.partial_level_spans[0][1]}
+                                 if fp.partial_level_spans else None),
                 "kwh": fp.kwh,
                 "co2e_kg_timed": fp.co2e_kg_timed,
                 "co2e_kg_flat": fp.co2e_kg_flat,
