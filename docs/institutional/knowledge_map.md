@@ -188,6 +188,7 @@ established. They are knowledge, not settings: no figure on them is wired into c
 | Next best action, upsell and cross-sell | site/knowledge/next-best-action-and-cross-sell/ | docs/market_research/next_best_action_and_cross_sell.md |
 | EV, solar and batteries as products | site/knowledge/ev-solar-and-batteries-as-products/ | docs/market_research/ev_solar_and_batteries_as_products.md |
 | Communications, sentiment and NPS | site/knowledge/communications-sentiment-and-nps/ | docs/market_research/communications_sentiment_and_nps.md |
+| Household carbon and the measures that save it (the director's carbon investigation) | site/knowledge/household-carbon-and-the-measures-that-save-it/ | docs/market_research/household_carbon_and_the_measures_that_save_it.md |
 
 ## What we don't know (priority gap list)
 

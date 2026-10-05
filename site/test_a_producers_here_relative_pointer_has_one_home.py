@@ -113,6 +113,10 @@ _STABLE_ENOUGH = 25
 _PRODUCERS = sorted((PROJECT / "tools").glob("generate_*.py"))
 
 
+def _is_identifier(value: str) -> bool:
+    return not any(ch.isspace() for ch in value)
+
+
 def _slots(node, where: str, out: list) -> None:
     """`(container, key, where)` for every long string in a payload.
 
@@ -120,17 +124,21 @@ def _slots(node, where: str, out: list) -> None:
     back down a `.a.b[0].c` path and died on `data/*.json` keys that contain a literal dot -- and a
     path parser that throws on real data is a probe that silently covers less than it claims.
     """
+    # AN IDENTIFIER IS NOT PROSE (2026-10-05). A string with no whitespace cannot carry a
+    # here-relative sentence, and marking one moves a door off its own path when the door matches
+    # it for equality: the knowledge pages find their topic by `t.id === m.topic_id`, and a 46-char
+    # topic id was the first long enough to be marked, so its page stopped rendering under the probe.
     if isinstance(node, dict):
         for key, value in node.items():
             child = "{}.{}".format(where, key)
-            if isinstance(value, str) and len(value) >= _LONG_ENOUGH:
+            if isinstance(value, str) and len(value) >= _LONG_ENOUGH and not _is_identifier(value):
                 out.append((node, key, child))
             else:
                 _slots(value, child, out)
     elif isinstance(node, list):
         for index, value in enumerate(node):
             child = "{}[{}]".format(where, index)
-            if isinstance(value, str) and len(value) >= _LONG_ENOUGH:
+            if isinstance(value, str) and len(value) >= _LONG_ENOUGH and not _is_identifier(value):
                 out.append((node, index, child))
             else:
                 _slots(value, child, out)
