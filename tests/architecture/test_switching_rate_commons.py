@@ -1620,6 +1620,14 @@ _NOT_A_LEVEL_READING: dict[str, str] = {
         "the caller of the share above -- turns it into a product label for one drawn arrival. It "
         "carries no series of its own and holds no level; it compares a caller-supplied roll "
         "against the share and returns a string or `None`.",
+    # --- tools/run_value_cycle_ab: an ENVIRONMENT-SWITCH regex, not a switching rate ---
+    # Not authored here. The world-stamp lane landed it (77a872e01's line) and left this leg red
+    # for every lane; classified in the same pass as the C29 landing that met it.
+    "tools.run_value_cycle_ab:_SWITCH_NAME":
+        "`re.compile(...SE_[A-Z0-9_]+...)` -- the pattern that finds the names of the `SE_*` "
+        "environment switches a run reads, for the world stamp. 'Switch' here is a behaviour "
+        "flag, not a household changing supplier: it returns strings, reads no published "
+        "series, and has no year or rate to hold to the switching band.",
     # --- tools/fit_year_level_anchor: a SWEEP GRID, not a series ---
     # Not authored here. It landed with the exposure-restricted incidence measurement on
     # 2026-09-19 and left this census leg red for every lane, which is why it is classified in
