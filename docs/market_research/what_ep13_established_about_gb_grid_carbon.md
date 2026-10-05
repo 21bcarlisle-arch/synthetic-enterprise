@@ -510,6 +510,12 @@ owner, `company/regulatory/carbon_emissions.py::grid_intensity_g_co2e_per_kwh`, 
 `tools/grid_intensity_guard.py` (`5103f6fbf`). The reconstruction therefore publishes a
 dimensionless shape and never grams.
 
+**[measured, 2026-10-05]** The surviving owner was still the hand fuel-mix table x lifecycle
+factors (196.1 for 2024). It now reads the annual level the grid-intensity feed publishes from
+NESO's series (`annual_level`: demand-weighted, loss-corrected, 133.1 for 2024), and the hand
+table keeps only its `Low Carbon %` role. 2016 and 2025 have no whole-year level because Elexon's
+demand record spans 2016-03-01..2025-06-07.
+
 ---
 
 ## If first-principles carbon is resumed

@@ -19,17 +19,18 @@ from __future__ import annotations
 from company.regulatory.carbon_emissions import (
     GAS_EMISSION_FACTOR_G_CO2E_PER_KWH,
     grid_intensity_g_co2e_per_kwh,
+    grid_intensity_unavailable_reason,
 )
 
 # Gas: Scope 1 conversion factor kgCO2e/kWh, derived from the single owned gram figure.
 _GAS_KG_CO2E_PER_KWH = GAS_EMISSION_FACTOR_G_CO2E_PER_KWH / 1000.0
 
 
-def electricity_intensity(year: int) -> float:
-    """Return UK grid electricity carbon intensity in gCO2e/kWh for given year.
+def electricity_intensity(year: int) -> float | None:
+    """GB grid electricity carbon intensity, gCO2/kWh, for the year -- the single owner's.
 
-    Delegates to the single owner. Years outside the covered window clamp there, preserving this
-    function's long-standing pre-2016/post-2025 behaviour.
+    None when the published series has no whole-year level for it (since 2026-10-05; it used to
+    clamp to the nearest year of a hand table). `estimate_carbon` carries the reason.
     """
     return grid_intensity_g_co2e_per_kwh(year)
 
@@ -53,9 +54,12 @@ def estimate_carbon(
         unit = "gCO2e/kWh (gas, DESNZ)"
     else:
         g_per_kwh = electricity_intensity(year)
+        unit = "gCO2/kWh (grid, NESO published national, loss-corrected)"
+        if g_per_kwh is None:
+            return {"kg_co2e": None, "tonnes_co2e": None, "intensity": None, "unit": unit,
+                    "year": year, "unavailable": grid_intensity_unavailable_reason(year)}
         kg = round(eac_kwh * g_per_kwh / 1000.0, 1)
         intensity = float(g_per_kwh)
-        unit = "gCO2e/kWh (grid, DESNZ)"
 
     return {
         "kg_co2e": kg,

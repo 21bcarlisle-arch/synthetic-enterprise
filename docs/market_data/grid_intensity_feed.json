@@ -1,7 +1,182 @@
 {
- "published_at": "2026-10-04T23:49:03.931516+00:00",
+ "published_at": "2026-10-05T04:43:10.849887+00:00",
  "basis": "dimensionless: each half hour's gCO2/kWh from sim/grid_carbon_history.py divided by its calendar year's DEMAND-WEIGHTED mean (Elexon INDO demand), so each year averages 1.0. The gCO2/kWh is NESO's published national outturn from 2018-05-11 (consumption basis, loss-corrected, imports at the exporting country's intensity). Before that, and where NESO published nothing usable, it is NESO's own methodology applied to Elexon's published half-hourly fuel mix (FUELHH) plus NESO's embedded wind and solar estimate, at NESO's published factors. Every record carries its `source`.",
- "how_to_use": "Multiply by YOUR OWN published annual grid intensity for the record's calendar year. This series is deliberately dimensionless and there is no absolute grid-intensity figure in it: this repository has exactly one annual series and company/regulatory/carbon_emissions.py owns it.",
+ "how_to_use": "Multiply `shape` by `annual_level.by_year[<the record's calendar year>].mean_g_co2_per_kwh` to get the published gCO2/kWh for that half hour. The annual level is published here, beside the shape it was normalised with; the company reads it in exactly one place, company/regulatory/carbon_emissions.py, and a year with `complete: false` is a mean of the dates it covers, never the year's.",
+ "annual_level": {
+  "unit": "gCO2/kWh",
+  "basis": "gCO2/kWh, national, per calendar year: the DEMAND-WEIGHTED mean (Elexon INDO) of the half-hourly series this feed's shape is built from, over exactly the half hours the shape is normalised over -- so `shape x mean` gives back the published half-hourly value. From 2018-05-11 it is NESO's published national `actual`, which NESO's methodology corrects for transmission losses to give the intensity of CONSUMPTION (Carbon Intensity API methodology; NESO FOI/25/152, 24 Nov 2025): losses INCLUDED, no further loss adjustment is to be applied. CO2 at the generator from NESO's factor table (DUKES emission factors): not lifecycle, not CO2e, no upstream. Before 2018-05-11 it is the fuel-mix ESTIMATE scaled to NESO's level, and `fuelmix_fill` half hours are unscaled; `sources` gives the mix per year. A year whose demand record does not span 1 Jan - 31 Dec is published with `complete: false` and the dates it covers; it is a mean of that span, never the year's.",
+  "weighting": "demand-weighted (Elexon INDO). Two reasons. (1) It is the divisor the shape is normalised by, so a household's half-hourly carbon, shape x level, is NESO's own number half hour by half hour; any other level would rescale every half hour by a constant that is not 1. (2) A household's annual kWh times one annual figure is only right if that figure is weighted the way consumption falls, and consumption is heaviest in the high-demand, dirtier half hours: the time-weighted mean UNDERSTATES it (2024: 125 against 133). National demand is not a domestic profile -- it includes industry and commerce -- and the domestic Profile Class 1 weighting reads within 2 g of it in every whole year 2017-2024 (docs/market_research/household_carbon_and_the_measures_that_save_it.md s2). The time-weighted mean is published beside it as a diagnostic and is never the level.",
+  "by_year": {
+   "2016": {
+    "mean_g_co2_per_kwh": 298.33,
+    "complete": false,
+    "covers": {
+     "from": "2016-03-01",
+     "to": "2016-12-31"
+    },
+    "partial_from": "2016-03-01",
+    "partial_through": null,
+    "half_hours": 14551,
+    "sources": {
+     "fuelmix_estimate": 14551
+    },
+    "time_weighted_mean_g_co2_per_kwh": 298.18,
+    "time_weighted_half_hours": 17548
+   },
+   "2017": {
+    "mean_g_co2_per_kwh": 275.51,
+    "complete": true,
+    "covers": {
+     "from": "2017-01-01",
+     "to": "2017-12-31"
+    },
+    "partial_from": null,
+    "partial_through": null,
+    "half_hours": 17296,
+    "sources": {
+     "fuelmix_estimate": 17296
+    },
+    "time_weighted_mean_g_co2_per_kwh": 261.66,
+    "time_weighted_half_hours": 17510
+   },
+   "2018": {
+    "mean_g_co2_per_kwh": 258.08,
+    "complete": true,
+    "covers": {
+     "from": "2018-01-01",
+     "to": "2018-12-31"
+    },
+    "partial_from": null,
+    "partial_through": null,
+    "half_hours": 17367,
+    "sources": {
+     "fuelmix_estimate": 6229,
+     "fuelmix_fill": 47,
+     "neso_published": 11091
+    },
+    "time_weighted_mean_g_co2_per_kwh": 247.64,
+    "time_weighted_half_hours": 17511
+   },
+   "2019": {
+    "mean_g_co2_per_kwh": 220.96,
+    "complete": true,
+    "covers": {
+     "from": "2019-01-01",
+     "to": "2019-12-31"
+    },
+    "partial_from": null,
+    "partial_through": null,
+    "half_hours": 17424,
+    "sources": {
+     "fuelmix_fill": 308,
+     "neso_published": 17116
+    },
+    "time_weighted_mean_g_co2_per_kwh": 212.85,
+    "time_weighted_half_hours": 17520
+   },
+   "2020": {
+    "mean_g_co2_per_kwh": 187.81,
+    "complete": true,
+    "covers": {
+     "from": "2020-01-01",
+     "to": "2020-12-31"
+    },
+    "partial_from": null,
+    "partial_through": null,
+    "half_hours": 17398,
+    "sources": {
+     "fuelmix_fill": 84,
+     "neso_published": 17314
+    },
+    "time_weighted_mean_g_co2_per_kwh": 180.13,
+    "time_weighted_half_hours": 17568
+   },
+   "2021": {
+    "mean_g_co2_per_kwh": 193.91,
+    "complete": true,
+    "covers": {
+     "from": "2021-01-01",
+     "to": "2021-12-31"
+    },
+    "partial_from": null,
+    "partial_through": null,
+    "half_hours": 17280,
+    "sources": {
+     "fuelmix_fill": 188,
+     "neso_published": 17092
+    },
+    "time_weighted_mean_g_co2_per_kwh": 187.28,
+    "time_weighted_half_hours": 17520
+   },
+   "2022": {
+    "mean_g_co2_per_kwh": 187.01,
+    "complete": true,
+    "covers": {
+     "from": "2022-01-01",
+     "to": "2022-12-31"
+    },
+    "partial_from": null,
+    "partial_through": null,
+    "half_hours": 17518,
+    "sources": {
+     "fuelmix_fill": 51,
+     "neso_published": 17467
+    },
+    "time_weighted_mean_g_co2_per_kwh": 182.81,
+    "time_weighted_half_hours": 17520
+   },
+   "2023": {
+    "mean_g_co2_per_kwh": 157.89,
+    "complete": true,
+    "covers": {
+     "from": "2023-01-01",
+     "to": "2023-12-31"
+    },
+    "partial_from": null,
+    "partial_through": null,
+    "half_hours": 17515,
+    "sources": {
+     "fuelmix_fill": 98,
+     "neso_published": 17417
+    },
+    "time_weighted_mean_g_co2_per_kwh": 152.14,
+    "time_weighted_half_hours": 17517
+   },
+   "2024": {
+    "mean_g_co2_per_kwh": 133.06,
+    "complete": true,
+    "covers": {
+     "from": "2024-01-01",
+     "to": "2024-12-31"
+    },
+    "partial_from": null,
+    "partial_through": null,
+    "half_hours": 17568,
+    "sources": {
+     "fuelmix_fill": 31,
+     "neso_published": 17537
+    },
+    "time_weighted_mean_g_co2_per_kwh": 125.19,
+    "time_weighted_half_hours": 17568
+   },
+   "2025": {
+    "mean_g_co2_per_kwh": 147.08,
+    "complete": false,
+    "covers": {
+     "from": "2025-01-01",
+     "to": "2025-06-07"
+    },
+    "partial_from": null,
+    "partial_through": "2025-06-07",
+    "half_hours": 7582,
+    "sources": {
+     "neso_published": 7582
+    },
+    "time_weighted_mean_g_co2_per_kwh": 129.17,
+    "time_weighted_half_hours": 17520
+   }
+  }
+ },
  "error_direction": "This shape IS NESO's published national carbon intensity wherever NESO published one (from 2018-05-11), aligned to settlement periods -- not a model of it. Before that date it is NESO's own arithmetic applied to Elexon's published fuel mix, and that estimate is MEASURED against NESO on 2018-05-11..2020-04-27 at correlation 0.978, mean bias -0.6 gCO2/kWh and RMSE 13.3 gCO2/kWh after the fitted scale. THE ERROR THAT REMAINS IS NOT ABOUT THIS SHAPE. Every figure here is OUTTURN, computed with hindsight, and a household has to act on a FORECAST. Graded against NESO's own outturn, NESO's own published forecast picks a three-hour window that delivers about 84% of that day's achievable within-day saving on the mean day, about 45% on the worst day in twenty, and on some days a window DIRTIER than not shifting at all. So a timing benefit read off this feed is an UPPER BOUND on what advice could have delivered, and that ceiling cannot be built away by improving any model.",
  "named_gaps": [
   "before 2018-05-11 every value is an ESTIMATE (`source: fuelmix_estimate`). It is NESO's methodology on Elexon's fuel mix, scaled by a factor fitted where both exist. NESO's own level steps down around 2020-04-28 for a reason not established, so the scale is fitted on 2018-05-11..2020-04-27, the level the estimate joins at 2018-05-11. On the later basis the same arithmetic would read about 13% lower",

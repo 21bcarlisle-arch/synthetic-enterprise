@@ -63,6 +63,7 @@ SCOPE = ("simulation", "company", "saas")
 COMMONS_DIR = ROOT / "docs" / "domain_artefact_library" / "regulatory"
 CCL_COMMONS = COMMONS_DIR / "ccl_main_rates.json"
 RO_COMMONS = COMMONS_DIR / "ro_obligation_and_buyout.json"
+NATGAS_COMMONS = COMMONS_DIR / "desnz_natural_gas_conversion_factor.json"
 
 _MIN_YEAR, _MAX_YEAR = 1990, 2100
 _MIN_ENTRIES = 3
@@ -157,6 +158,8 @@ _PINNED: dict[str, str] = {
     "company/regulatory/ccl_ledger.py::_CCL_ELECTRICITY_P_KWH": "ccl_electricity_pence_per_kwh",
     "company/regulatory/ccl_ledger.py::_CCL_GAS_P_KWH": "ccl_gas_pence_per_kwh",
     "simulation/policy_costs.py::_RO_COST_BY_OY_START": "ro_effective_gbp_per_mwh_1dp",
+    "company/regulatory/carbon_emissions.py::DESNZ_NATURAL_GAS_KG_CO2E_PER_KWH_GROSS_CV":
+        "desnz_natural_gas_kg_co2e_per_kwh_gross_cv",
 }
 
 # status "published_unpinned": a real publication exists; no commons pin yet. RATCHETED DOWN.
@@ -548,6 +551,12 @@ def _expected_for(conversion: str, asserted_only: bool = True) -> tuple[dict[int
         # reading, declared: 0.05 is the widest a 1dp rounding can be, and nothing wider is
         # admitted. The shipped table's worst residual under it is 0.023.
         return _ro_pins(), 0.05
+    if conversion == "desnz_natural_gas_kg_co2e_per_kwh_gross_cv":
+        # Transcribed per year from DESNZ's flat files (see the artefact's legend); 2022 is absent
+        # on purpose, and the window leg below holds the code to the same absence.
+        return {int(e["year"]): float(e["kg_co2e_per_kwh_gross_cv"])
+                for e in _load_commons(NATGAS_COMMONS, "factors")
+                if e["provenance"] == "transcribed"}, 0.000005
     raise ValueError(f"unknown conversion: {conversion!r}")
 
 

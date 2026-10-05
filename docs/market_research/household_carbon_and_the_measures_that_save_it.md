@@ -26,7 +26,7 @@ differently, are measured differently, and are visible to a supplier differently
 |---|---|---|---|
 | **Gas burnt at home** | Combustion of natural gas for space heating, hot water and (a small, unmeasured share) cooking | DESNZ *Scope 1* natural-gas factor, per kWh **gross CV**. Almost exactly constant over 2016–2025 (§2) because the chemistry does not change | Yes — its own gas meter |
 | **Upstream of the gas** | Extraction, processing, transport of that gas ("well-to-tank", WTT) | DESNZ *WTT – fuels*, natural gas, 0.03021 kgCO2e/kWh gross CV in the 2023–2025 sets [sourced] | Derivable from the same meter |
-| **Electricity used at home** | Generation emissions of the kWh imported | Either NESO's half-hourly national series (generation only, no losses), or DESNZ *Scope 2* "electricity generated" (+ separate *T&D* and *WTT* factors) | Yes — its own electricity meter, half-hourly if smart and settled half-hourly |
+| **Electricity used at home** | Generation emissions of the kWh imported | Either NESO's half-hourly national series (generation only, loss-corrected -- see the correction in §2), or DESNZ *Scope 2* "electricity generated" (+ separate *T&D* and *WTT* factors) | Yes — its own electricity meter, half-hourly if smart and settled half-hourly |
 | **The car** | Petrol/diesel burnt, or electricity charged | DESNZ *Passenger vehicles* per km | Only the electricity, and only as unlabelled load |
 | **Embodied carbon of kit** | Manufacturing a battery, panels, a heat pump, insulation | Lifecycle studies (ICCT, IPCC AR5, UNECE) | No |
 
@@ -73,6 +73,15 @@ from 2018-05-11, Elexon fuel-mix arithmetic before), **weighted by the Elexon Pr
 load shape** (`sim/profile_class_1.py`), because a household does not consume evenly across the day.
 NESO's series is generation intensity and **excludes T&D losses**. The DESNZ column uses that reporting
 year's "electricity generated" + "T&D" factors.
+*Corrected 2026-10-05: NESO's national series does **not** exclude losses. Its methodology divides
+generation-weighted CO2 by national demand and "is then corrected to account for transmission
+losses to give the intensity of consumption", and its scope lists "transmission and distribution
+losses" [sourced: NESO, National Carbon Intensity Forecast Methodology, as supplied with NESO
+FOI/25/152, 24 Nov 2025, which also confirms the correction and says NESO holds no published
+series of the loss multiplier]. So NESO and "DESNZ generated + T&D" are both per kWh consumed; the
+gap between them is DESNZ's two-year lag and factor basis, not losses. The company's annual level
+(`docs/market_data/grid_intensity_feed.json`, `annual_level`) is NESO demand-weighted (Elexon
+INDO), which reads within 2 g of the PC1-weighted figures below in every whole year 2017-2024.*
 
 | Year | TDCV gas / elec kWh | Gas kgCO2e | Elec kgCO2e (NESO, PC1-weighted) | **Ratio (NESO)** | Elec kgCO2e (DESNZ gen+T&D) | Ratio (DESNZ) |
 |---|---|---|---|---|---|---|

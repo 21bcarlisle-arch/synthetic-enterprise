@@ -81,6 +81,7 @@ from company.regulatory.carbon_emissions import (
     GasFactorUnavailable,
     gas_factor_kg_co2e_per_kwh,
     grid_intensity_g_co2e_per_kwh,
+    grid_intensity_unavailable_reason,
 )
 
 PROJECT = Path(__file__).resolve().parent.parent.parent
@@ -98,7 +99,9 @@ FOOTPRINT_BASIS = (
     "carbon; the household's year below adds its gas. Company estimate: its own published "
     "ANNUAL grid intensity "
     "(company/regulatory/carbon_emissions.py, the single owner) given half-hourly resolution "
-    "by the published shape feed. Generation-based, national, outturn, no loss correction. "
+    "by the published shape feed -- both NESO's national series, so shape x level is NESO's own "
+    "half-hourly figure. National, outturn, loss-corrected to a consumption basis, CO2 at the "
+    "generator. "
     "NOT abatement -- there is no counterfactual here and none is implied."
 )
 
@@ -107,7 +110,8 @@ FOOTPRINT_BASIS = (
 NOT_INCLUDED = [
     "gas in the half-hourly day panels -- a gas meter is not read by the half hour; the "
     "household's gas is in its yearly figure, from its billed gas",
-    "upstream (well-to-tank) emissions of the gas, and electricity transmission losses",
+    "upstream (well-to-tank) emissions of the gas, and the lifecycle and upstream emissions of "
+    "the electricity's generation (NESO's factors are CO2 at the generator)",
     "fuels this supplier does not sell the household: gas or electricity bought elsewhere, oil, "
     "petrol",
     "abatement: what the household would have emitted otherwise. A counterfactual, not measured",
@@ -270,7 +274,14 @@ def measured_footprint(
         factor = shape.get((date_str, int(period)))
         if factor is None:
             continue
-        level = grid_intensity_g_co2e_per_kwh(int(date_str[:4]))
+        # PART YEARS ARE RIGHT HERE, and only here: a published shape value lies inside the span
+        # its year's level was averaged over, so shape x level is the published gram figure.
+        level = grid_intensity_g_co2e_per_kwh(int(date_str[:4]), allow_partial=True)
+        if level is None:
+            raise FootprintUnavailable(
+                f"{account_id}: a published shape half hour on {date_str} has no published "
+                "annual level -- "
+                + str(grid_intensity_unavailable_reason(int(date_str[:4]), allow_partial=True)))
         timed_g += float(kwh) * level * factor
         flat_g += float(kwh) * level
         kwh_total += float(kwh)
@@ -322,6 +333,10 @@ def profiled_footprint(account_id: str, annual_kwh: float, year: int) -> Footpri
     249 against 3.
     """
     level = grid_intensity_g_co2e_per_kwh(int(year))
+    if level is None:
+        raise FootprintUnavailable(
+            f"{account_id or 'household'} {year}: no whole-year grid intensity -- "
+            + str(grid_intensity_unavailable_reason(int(year))))
     return Footprint(
         account_id=account_id,
         method=PROFILED,
@@ -365,7 +380,8 @@ FULL_YEAR_MONTHS = 12
 ELECTRICITY_LEG_BASIS = (
     "Electricity this supplier billed the household for in the year, times the company's own "
     "published annual grid intensity for that year (company/regulatory/carbon_emissions.py). "
-    "Generation-based, national, annual; no loss correction."
+    "NESO's published national series, demand-weighted over the year, loss-corrected, CO2 at "
+    "the generator. A year the series covers only in part has no figure."
 )
 GAS_LEG_BASIS = (
     "Gas this supplier billed the household for in the year -- kWh read from its own gas meter, "
@@ -413,8 +429,14 @@ def electricity_leg(year: int, billed_kwh: float | None, months_billed: int) -> 
     if billed_kwh is None:
         return _no_supply("electricity")
     kwh = float(billed_kwh)
-    return Leg(fuel="electricity", status=BILLED, kwh=round(kwh, 4),
-               co2e_kg=profiled_footprint("", kwh, int(year)).co2e_kg_flat,
+    try:
+        co2e_kg = profiled_footprint("", kwh, int(year)).co2e_kg_flat
+    except FootprintUnavailable:
+        return Leg(fuel="electricity", status=BILLED, kwh=round(kwh, 4), co2e_kg=None,
+                   months_billed=int(months_billed), basis=ELECTRICITY_LEG_BASIS,
+                   reason=f"grid intensity not established for {year}: "
+                          + str(grid_intensity_unavailable_reason(int(year))))
+    return Leg(fuel="electricity", status=BILLED, kwh=round(kwh, 4), co2e_kg=co2e_kg,
                months_billed=int(months_billed), basis=ELECTRICITY_LEG_BASIS)
 
 

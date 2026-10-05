@@ -1,88 +1,160 @@
-"""The reconciliation must not have revalued anything published (2026-08-14).
+"""The company's ONE annual grid intensity is NESO's published level, read from the feed.
 
-Discharging `WORKER_FINDING_THREE_LIVE_GRID_INTENSITY_SERIES_DISAGREE_BY_HALF_2026-08-14.md`
-(BLOCKING, `F_risk_compliance`) meant deleting two of three grid-intensity series. The finding
-explicitly made NO claim about which was correct — no network that tick, no external source
-fetched — so the repair had to be a pure de-duplication, not a pick-the-winner.
+THE DEFECT (2026-10-05). `grid_intensity_g_co2e_per_kwh(year)` was `UK_GRID_FUEL_MIX` x lifecycle
+factors -- an undated hand table -- and read 196.1 gCO2/kWh for 2024 against NESO's published
+133.1, while the half-hourly SHAPE the company multiplies it by was already NESO's. Since then
+`tools/generate_grid_intensity_feed.py` publishes each year's demand-weighted mean beside the
+shape (`annual_level`), and the owner reads that.
 
-That is the thing this file pins. The ten values below were MEASURED at the pre-repair HEAD by
-executing the shipped code (the published column is a blend, not a table lookup) and are recorded
-verbatim in the finding's own table. If a future change to the mix, the factors or the accessor
-moves any of them, this goes red and whoever moved it owes a sourced reason — which is exactly
-what the class control (`tools/grid_intensity_guard.py`) cannot say for itself: it enforces that
-there is ONE series, never that the one is right.
+The 2026-08-14 version of this file pinned the hand-table values as "unchanged by the
+reconciliation". That pin was correct for a de-duplication that fetched no source, and it is
+exactly the control that has to invert now a source exists: the mutation below puts the hand
+table back and must red here.
 
-The R11 counterpart lives in `docs/reports/ANNUAL_REPORT.md`, whose `Grid Intensity` column is
-these same numbers rendered.
+MUTATION (must fire): in `carbon_emissions.grid_intensity_g_co2e_per_kwh`, return
+`UK_GRID_FUEL_MIX[year].emission_intensity_g_per_kwh` (clamped to the table's window, as it was)
+-> `test_the_companys_annual_level_is_the_feeds_published_mean` and
+`test_a_year_the_feed_does_not_cover_returns_none_with_a_reason_not_a_clamp` red.
 """
 
 from __future__ import annotations
 
+import json
+
 import pytest
 
-from company.billing.carbon_footprint import electricity_intensity
+from company.billing.carbon_footprint import electricity_intensity, estimate_carbon
+from company.regulatory import carbon_emissions as ce
 from company.regulatory.carbon_emissions import (
     GAS_EMISSION_FACTOR_G_CO2E_PER_KWH,
-    GRID_INTENSITY_FIRST_YEAR,
-    GRID_INTENSITY_LAST_YEAR,
+    GRID_INTENSITY_FEED,
     GRID_INTENSITY_PROVENANCE,
     UK_GRID_FUEL_MIX,
     grid_intensity_g_co2e_per_kwh,
-    grid_intensity_is_extrapolated,
+    grid_intensity_level,
+    grid_intensity_unavailable_reason,
 )
 
-#: gCO2eq/kWh, as published in the Carbon Emissions Reporting Observatory before the repair.
-PUBLISHED_SERIES = {
-    2016: 315.4, 2017: 289.7, 2018: 273.8, 2019: 243.9, 2020: 225.3,
-    2021: 242.7, 2022: 237.0, 2023: 219.3, 2024: 196.1, 2025: 175.2,
-}
+
+def _published() -> dict:
+    return json.loads(GRID_INTENSITY_FEED.read_text(encoding="utf-8"))["annual_level"]["by_year"]
 
 
-@pytest.mark.parametrize("year,expected", sorted(PUBLISHED_SERIES.items()))
-def test_the_published_value_is_unchanged_by_the_reconciliation(year, expected):
-    assert grid_intensity_g_co2e_per_kwh(year) == pytest.approx(expected, abs=0.05)
+def _write_feed(tmp_path, by_year: dict):
+    path = tmp_path / "grid_intensity_feed.json"
+    path.write_text(json.dumps({"annual_level": {"by_year": by_year}}))
+    return path
 
 
-def test_the_published_gas_factor_is_unchanged():
-    """0.18316 kg/kWh also existed in the tree; the PUBLISHED 183.0 g/kWh is what survived."""
-    assert GAS_EMISSION_FACTOR_G_CO2E_PER_KWH == 183.0
+# --------------------------------------------------------------------------- #
+# The level is the published one                                               #
+# --------------------------------------------------------------------------- #
+
+def test_the_companys_annual_level_is_the_feeds_published_mean():
+    """Every whole year the feed publishes, read back exactly -- and the control can be taken:
+    it asserts there ARE whole years before asserting what they say."""
+    published = _published()
+    whole = {y: r for y, r in published.items() if r["complete"]}
+    assert len(whole) >= 7, f"the feed publishes almost no whole years: {sorted(whole)}"
+    for year, row in whole.items():
+        assert grid_intensity_g_co2e_per_kwh(int(year)) == row["mean_g_co2_per_kwh"], year
 
 
-def test_the_window_is_the_mix_it_actually_has():
-    assert GRID_INTENSITY_FIRST_YEAR == min(UK_GRID_FUEL_MIX) == 2016
-    assert GRID_INTENSITY_LAST_YEAR == max(UK_GRID_FUEL_MIX) == 2025
+def test_the_2024_level_is_neso_and_not_the_hand_fuel_mix():
+    """The measured gap that made this a defect: 196.1 (mix x lifecycle factors) against NESO's
+    133. Keyed to the property -- the level is the feed's and is far from the mix's -- not to a
+    literal that a republished feed would legitimately move."""
+    level = grid_intensity_g_co2e_per_kwh(2024)
+    assert level == _published()["2024"]["mean_g_co2_per_kwh"]
+    assert abs(level - UK_GRID_FUEL_MIX[2024].emission_intensity_g_per_kwh) > 30.0
+
+
+def test_the_level_is_read_from_the_file_it_is_given(tmp_path):
+    """ANTI-TAUTOLOGY: a feed written here, with a value no real year has, must come back."""
+    feed = _write_feed(tmp_path, {"2021": {"mean_g_co2_per_kwh": 111.25, "complete": True,
+                                           "covers": {"from": "2021-01-01", "to": "2021-12-31"}}})
+    assert grid_intensity_g_co2e_per_kwh(2021, feed_path=feed) == 111.25
+
+
+# --------------------------------------------------------------------------- #
+# Coverage: None with a reason, never a clamp                                  #
+# --------------------------------------------------------------------------- #
+
+def test_a_year_the_feed_does_not_cover_returns_none_with_a_reason_not_a_clamp():
+    published = _published()
+    before, after = int(min(published)) - 1, int(max(published)) + 1
+    for year in (before, after):
+        assert grid_intensity_g_co2e_per_kwh(year) is None, year
+        assert grid_intensity_g_co2e_per_kwh(year, allow_partial=True) is None, year
+        reason = grid_intensity_unavailable_reason(year)
+        assert reason and str(year) in reason and "Not clamped" in reason, reason
+
+
+def test_a_part_year_is_refused_for_an_annual_figure_and_given_for_the_shape():
+    """2025's published mean covers only the dates Elexon's demand record reaches. Read as the
+    year's it would be a winter-heavy half year passed off as the whole one. Branch control
+    first: both outcomes must be reachable on the real feed."""
+    published = _published()
+    partial = [y for y, r in published.items() if not r["complete"]]
+    assert partial and any(r["complete"] for r in published.values()), (
+        "the real feed no longer has both a whole and a part year, so this control cannot be taken")
+    for year in partial:
+        row = published[year]
+        assert grid_intensity_g_co2e_per_kwh(int(year)) is None
+        assert grid_intensity_g_co2e_per_kwh(int(year), allow_partial=True) == row["mean_g_co2_per_kwh"]
+        reason = grid_intensity_unavailable_reason(int(year))
+        assert row["covers"]["from"] in reason and row["covers"]["to"] in reason, reason
+        assert grid_intensity_unavailable_reason(int(year), allow_partial=True) is None
+
+
+def test_a_missing_or_levelless_feed_fails_closed_with_its_reason(tmp_path):
+    absent = tmp_path / "absent.json"
+    assert grid_intensity_g_co2e_per_kwh(2024, feed_path=absent) is None
+    assert "not on disk" in grid_intensity_unavailable_reason(2024, feed_path=absent)
+    old_feed = tmp_path / "old.json"
+    old_feed.write_text(json.dumps({"records": [], "by_year": {"2024": {"p50": 1.0}}}))
+    assert grid_intensity_g_co2e_per_kwh(2024, feed_path=old_feed) is None
+    assert "no annual level" in grid_intensity_unavailable_reason(2024, feed_path=old_feed)
+
+
+# --------------------------------------------------------------------------- #
+# The mix stays, for decomposition only                                        #
+# --------------------------------------------------------------------------- #
+
+def test_the_mix_is_kept_whole_for_the_low_carbon_column():
     assert sorted(UK_GRID_FUEL_MIX) == list(range(2016, 2026))
-
-
-def test_every_mix_year_sums_to_one_hundred_percent():
     off = {y: r.total_pct for y, r in UK_GRID_FUEL_MIX.items() if abs(r.total_pct - 100.0) > 0.05}
     assert not off, f"mix years that do not sum to 100%: {off}"
 
 
-def test_the_series_is_derived_not_a_literal():
-    """Decomposability is the reason this construction survived and the two literals did not."""
-    for year, expected in PUBLISHED_SERIES.items():
-        assert UK_GRID_FUEL_MIX[year].emission_intensity_g_per_kwh == pytest.approx(expected, abs=0.05)
+def test_nothing_derives_the_national_level_from_the_mix():
+    """The level role is gone from every caller that had it. A grep over code, comments
+    stripped, so the docstrings that record the history cannot satisfy it."""
+    import inspect
+
+    from saas.reporting import annual_report
+    from tools.python_code_text import searchable
+
+    for fn in (ce.grid_intensity_g_co2e_per_kwh, annual_report._section_carbon_emissions):
+        code = searchable(inspect.getsource(fn))
+        assert "emission_intensity_g_per_kwh" not in code, fn.__name__
 
 
-def test_out_of_window_clamps_and_admits_it():
-    """A clamp that cannot be distinguished from a measurement is the fail-open shape E5 names."""
-    assert grid_intensity_g_co2e_per_kwh(2010) == grid_intensity_g_co2e_per_kwh(2016)
-    assert grid_intensity_g_co2e_per_kwh(2030) == grid_intensity_g_co2e_per_kwh(2025)
-    assert grid_intensity_is_extrapolated(2010) is True
-    assert grid_intensity_is_extrapolated(2030) is True
-    assert grid_intensity_is_extrapolated(2020) is False
+def test_the_provenance_names_the_published_series():
+    assert GRID_INTENSITY_PROVENANCE["unit"] == "gCO2/kWh"
+    assert "NESO" in GRID_INTENSITY_PROVENANCE["source"]
+    assert "loss-corrected" in GRID_INTENSITY_PROVENANCE["basis"]
 
 
-def test_the_provenance_says_it_is_unverified():
-    """R9: the citation is `inferred`. A block that quietly claimed a source would be worse."""
-    assert "PROVISIONAL" in GRID_INTENSITY_PROVENANCE["status"]
-    assert GRID_INTENSITY_PROVENANCE["unit"] == "gCO2eq/kWh"
-    assert "lifecycle" in GRID_INTENSITY_PROVENANCE["basis"]
+def test_the_published_gas_factor_is_unchanged():
+    assert GAS_EMISSION_FACTOR_G_CO2E_PER_KWH == 183.0
 
+
+# --------------------------------------------------------------------------- #
+# The readers                                                                  #
+# --------------------------------------------------------------------------- #
 
 def test_the_two_deleted_series_are_gone_from_their_old_homes():
-    """Named directly, so a revert of the repair reds here as well as in the class guard."""
     import company.billing.carbon_footprint as footprint
     import company.sustainability.carbon_intensity_register as register
 
@@ -91,43 +163,53 @@ def test_the_two_deleted_series_are_gone_from_their_old_homes():
 
 
 def test_the_surviving_consumers_all_read_the_owner():
-    """The old tables disagreed with the published one by up to 55.6%. Now they cannot."""
-    for year in PUBLISHED_SERIES:
+    for year in range(2015, 2027):
         assert electricity_intensity(year) == grid_intensity_g_co2e_per_kwh(year)
 
 
-def test_the_annual_report_section_uses_the_owned_mix():
-    """The published section imported a LOCAL copy; that local is what made the split invisible."""
-    import inspect
+def test_an_estimate_for_a_year_with_no_level_has_no_kg_and_says_why():
+    whole = estimate_carbon(2_700.0, "electricity", 2024)
+    assert whole["kg_co2e"] == round(2_700.0 * grid_intensity_g_co2e_per_kwh(2024) / 1000.0, 1)
+    refused = estimate_carbon(2_700.0, "electricity", 2030)
+    assert refused["kg_co2e"] is None and "2030" in refused["unavailable"]
 
-    from saas.reporting import annual_report
 
-    source = inspect.getsource(annual_report._section_carbon_emissions)
-    assert "UK_GRID_FUEL_MIX as _UK_FUEL_MIX" in source
-    assert "FuelMixRecord(2016" not in source, "the local mix copy is back"
+def _rendered():
+    from saas.reporting.annual_report import _section_carbon_emissions
+
+    accounts = {str(y): {"income_statement": {"revenue_gbp": 1_000_000.0}} for y in UK_GRID_FUEL_MIX}
+    return _section_carbon_emissions({"management_accounts": accounts})
+
+
+def test_the_annual_reports_intensity_column_is_the_published_level():
+    rendered = _rendered()
+    for year in UK_GRID_FUEL_MIX:
+        row = next(ln for ln in rendered.splitlines() if ln.startswith(f"| {year} |"))
+        level = grid_intensity_level(year)
+        if level.complete:
+            assert f"| {level.g_co2_per_kwh:.0f}g/kWh |" in row, row
+        else:
+            assert "| n/a |" in row, row
+    assert "NESO" in rendered
 
 
 def test_the_sections_closing_sentence_agrees_with_its_own_table():
-    """It used to say "2016 ~290g/kWh ... (40% reduction)" directly under a table reading 315
-    and falling 44% — a third copy of the series, in prose, contradicting the rows above it.
-
-    The summary is located BY CONTENT, not as `splitlines()[-1]` (2026-08-14). Position was a
-    harness convenience that quietly made "the last line" the control's subject: appending the
-    fuel-mix divergence disclosure below it turned this red without touching the sentence it is
-    actually about. A locator that breaks when a NEIGHBOUR moves is not measuring its own subject.
-    """
-    from saas.reporting.annual_report import _section_carbon_emissions
-
-    accounts = {str(y): {"income_statement": {"revenue_gbp": 1_000_000.0}} for y in PUBLISHED_SERIES}
-    rendered = _section_carbon_emissions({"management_accounts": accounts})
+    """Located by content, not position. From the first to the last WHOLE published year."""
+    rendered = _rendered()
     summaries = [ln for ln in rendered.splitlines() if "Grid emission intensity declining" in ln]
-    assert len(summaries) == 1, f"expected exactly one intensity summary, got {summaries}"
-    summary = summaries[0]
+    assert len(summaries) == 1, summaries
+    whole = [y for y in sorted(UK_GRID_FUEL_MIX) if grid_intensity_g_co2e_per_kwh(y) is not None]
+    first, last = whole[0], whole[-1]
+    i0, i1 = grid_intensity_g_co2e_per_kwh(first), grid_intensity_g_co2e_per_kwh(last)
+    assert f"{first} {i0:.0f}g/kWh" in summaries[0]
+    assert f"{last} {i1:.0f}g/kWh" in summaries[0]
+    assert f"({round((1.0 - i1 / i0) * 100.0)}% reduction)" in summaries[0]
 
-    first, last = min(PUBLISHED_SERIES), max(PUBLISHED_SERIES)
-    fall = round((1.0 - PUBLISHED_SERIES[last] / PUBLISHED_SERIES[first]) * 100.0)
-    assert f"{first} {PUBLISHED_SERIES[first]:.0f}g/kWh" in summary, summary
-    assert f"{last} {PUBLISHED_SERIES[last]:.0f}g/kWh" in summary, summary
-    assert f"({fall}% reduction)" in summary, summary
-    first_row = next(ln for ln in rendered.splitlines() if ln.startswith(f"| {first} |"))
-    assert f"{PUBLISHED_SERIES[first]:.0f}g/kWh" in first_row, first_row
+
+def test_the_register_compares_against_the_published_level_and_refuses_without_one():
+    from company.sustainability.carbon_intensity_register import FuelMixSnapshot, FuelSource
+
+    mix = {FuelSource.NATURAL_GAS: 1.0}
+    whole = FuelMixSnapshot(year=2024, fuel_mix=mix, total_kwh_supplied=1.0)
+    assert whole.vs_grid_average == pytest.approx(394.0 - grid_intensity_g_co2e_per_kwh(2024))
+    assert FuelMixSnapshot(year=2030, fuel_mix=mix, total_kwh_supplied=1.0).vs_grid_average is None

@@ -259,6 +259,83 @@ def typical_day(shape: dict) -> dict:
     }
 
 
+#: What `annual_level` publishes, stated so a reader can repeat it. Since 2026-10-05 this is the
+#: ONLY annual grid-intensity level the company reads (`company/regulatory/carbon_emissions.py`).
+ANNUAL_LEVEL_BASIS = (
+    "gCO2/kWh, national, per calendar year: the DEMAND-WEIGHTED mean (Elexon INDO) of the "
+    "half-hourly series this feed's shape is built from, over exactly the half hours the shape is "
+    "normalised over -- so `shape x mean` gives back the published half-hourly value. From "
+    "2018-05-11 it is NESO's published national `actual`, which NESO's methodology corrects for "
+    "transmission losses to give the intensity of CONSUMPTION (Carbon Intensity API "
+    "methodology; NESO FOI/25/152, 24 Nov 2025): losses INCLUDED, no further loss adjustment is "
+    "to be applied. CO2 at the generator from NESO's factor table (DUKES emission factors): not "
+    "lifecycle, not CO2e, no upstream. Before 2018-05-11 it is the fuel-mix ESTIMATE scaled to "
+    "NESO's level, and `fuelmix_fill` half hours are unscaled; `sources` gives the mix per year. "
+    "A year whose demand record does not span 1 Jan - 31 Dec is published with `complete: false` "
+    "and the dates it covers; it is a mean of that span, never the year's."
+)
+
+#: Why demand weighting and not a plain time mean, said once. Kept beside the basis because it is
+#: the choice a reader is most likely to undo.
+ANNUAL_LEVEL_WEIGHTING = (
+    "demand-weighted (Elexon INDO). Two reasons. (1) It is the divisor the shape is normalised "
+    "by, so a household's half-hourly carbon, shape x level, is NESO's own number half hour by "
+    "half hour; any other level would rescale every half hour by a constant that is not 1. "
+    "(2) A household's annual kWh times one annual figure is only right if that figure is "
+    "weighted the way consumption falls, and consumption is heaviest in the high-demand, "
+    "dirtier half hours: the time-weighted mean UNDERSTATES it (2024: 125 against 133). "
+    "National demand is not a domestic profile -- it includes industry and commerce -- and the "
+    "domestic Profile Class 1 weighting reads within 2 g of it in every whole year 2017-2024 "
+    "(docs/market_research/household_carbon_and_the_measures_that_save_it.md s2). The time-"
+    "weighted mean is published beside it as a diagnostic and is never the level."
+)
+
+
+def annual_level(readings: dict, demand: dict) -> dict:
+    """{year: the published annual level and what it covers}, from `{key: (grams, source)}`.
+
+    The mean is over the half hours that have BOTH a value and a positive demand weight, which is
+    the set `sim.neso_carbon_intensity.published_shape` normalises over -- held equal by a test,
+    because if they drift apart `shape x level` stops being the published value. A year with no
+    such half hour is ABSENT, never 0 and never a neighbour's.
+    """
+    acc: dict[str, dict] = {}
+    for (date_str, _period), (grams, source) in readings.items():
+        if grams is None:
+            continue
+        year = date_str[:4]
+        row = acc.setdefault(year, {"num": 0.0, "den": 0.0, "n": 0, "tw": 0.0, "tw_n": 0,
+                                    "from": None, "to": None, "sources": {}})
+        row["tw"] += float(grams)
+        row["tw_n"] += 1
+        weight = demand.get((date_str, _period))
+        if weight is None or float(weight) <= 0.0:
+            continue
+        row["num"] += float(grams) * float(weight)
+        row["den"] += float(weight)
+        row["n"] += 1
+        row["from"] = date_str if row["from"] is None else min(row["from"], date_str)
+        row["to"] = date_str if row["to"] is None else max(row["to"], date_str)
+        row["sources"][str(source)] = row["sources"].get(str(source), 0) + 1
+    out = {}
+    for year, row in sorted(acc.items()):
+        if row["den"] <= 0.0:
+            continue
+        complete = row["from"] == f"{year}-01-01" and row["to"] == f"{year}-12-31"
+        out[year] = {
+            "mean_g_co2_per_kwh": round(row["num"] / row["den"], 2),
+            "complete": complete,
+            "covers": {"from": row["from"], "to": row["to"]},
+            "partial_from": None if row["from"] == f"{year}-01-01" else row["from"],
+            "partial_through": None if row["to"] == f"{year}-12-31" else row["to"],
+            "half_hours": row["n"],
+            "sources": dict(sorted(row["sources"].items())),
+            "time_weighted_mean_g_co2_per_kwh": round(row["tw"] / row["tw_n"], 2),
+            "time_weighted_half_hours": row["tw_n"],
+        }
+    return out
+
+
 def published_series(demand: dict) -> tuple[dict | None, str, dict | None]:
     """(NESO's published shape on our normalisation, why-not, the parsed half hours).
 
@@ -514,7 +591,8 @@ def _history_block(meta: dict) -> dict:
 def build(shape: dict, demand: dict, *, window_days: int = RECORD_WINDOW_DAYS,
           extra_dates: set[str] | None = None,
           sources: dict | None = None,
-          history: dict | None = None) -> dict:
+          history: dict | None = None,
+          levels: dict | None = None) -> dict:
     if not shape:
         raise ShapeUnavailable("no shape to publish")
     last_date = max(key[0] for key in shape)
@@ -550,11 +628,18 @@ def build(shape: dict, demand: dict, *, window_days: int = RECORD_WINDOW_DAYS,
         "published_at": datetime.now(timezone.utc).isoformat(),
         "basis": HISTORY_BASIS,
         "how_to_use": (
-            "Multiply by YOUR OWN published annual grid intensity for the record's calendar "
-            "year. This series is deliberately dimensionless and there is no absolute "
-            "grid-intensity figure in it: this repository has exactly one annual series and "
-            "company/regulatory/carbon_emissions.py owns it."
+            "Multiply `shape` by `annual_level.by_year[<the record's calendar year>]."
+            "mean_g_co2_per_kwh` to get the published gCO2/kWh for that half hour. The annual "
+            "level is published here, beside the shape it was normalised with; the company "
+            "reads it in exactly one place, company/regulatory/carbon_emissions.py, and a year "
+            "with `complete: false` is a mean of the dates it covers, never the year's."
         ),
+        "annual_level": {
+            "unit": "gCO2/kWh",
+            "basis": ANNUAL_LEVEL_BASIS,
+            "weighting": ANNUAL_LEVEL_WEIGHTING,
+            "by_year": levels or {},
+        },
         "error_direction": ERROR_DIRECTION,
         "named_gaps": NAMED_GAPS,
         "source": (
@@ -816,11 +901,19 @@ def history_shape(demand: dict) -> tuple[dict, dict, dict]:
     return shape, {key: series[key].source for key in shape}, meta
 
 
+def history_readings() -> dict:
+    """{key: (gCO2/kWh, source tag)} for every half hour the published history has a value for."""
+    from sim import grid_carbon_history as history
+
+    series, _meta = history.load_series()
+    return {key: (r.value, r.source) for key, r in series.items() if r.value is not None}
+
+
 def generate(out_path: Path | None = None) -> dict:
     demand = aggregate_demand(json.loads(DEMAND_CACHE.read_text(encoding="utf-8")))
     shape, sources, meta = history_shape(demand)
     data = build(shape, demand, extra_dates=dates_with_reads(), sources=sources,
-                 history=_history_block(meta))
+                 history=_history_block(meta), levels=annual_level(history_readings(), demand))
     dest = OUT_PATH if out_path is None else out_path
     dest.parent.mkdir(parents=True, exist_ok=True)
     dest.write_text(json.dumps(data, indent=1) + "\n", encoding="utf-8")

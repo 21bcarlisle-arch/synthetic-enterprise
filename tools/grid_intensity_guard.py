@@ -35,6 +35,11 @@ THREE ARMS, because each historical instance would have escaped the other two:
 
 All three walk the whole AST, not module scope: a function body is where the published copy hid.
 
+THE ONE HOME, since 2026-10-05: the owner no longer DERIVES the level from `UK_GRID_FUEL_MIX`; it
+reads the annual mean `tools/generate_grid_intensity_feed.py` publishes in
+`docs/market_data/grid_intensity_feed.json` (`annual_level`), NESO's series. The mix stays in the
+owner for decomposition (`Low Carbon %`) only, which is why both names are still required below.
+
 FAIL-CLOSED ON ITS OWN SUBJECT (R15 killer patterns 2 and 3, FAIL-OPEN and FAIL-SILENT). The guard
 exits rc=2, not rc=0, when it cannot see the thing it is guarding: if the owner module is missing
 from the declared path, or no longer declares the canonical series, or the scanned packages are

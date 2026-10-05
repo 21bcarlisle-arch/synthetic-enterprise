@@ -69,9 +69,11 @@ def test_a_closed_gas_account_with_more_electricity_shows_a_net_fall_only_when_t
     """The heat-pump case. Gas closed and electricity up is a FALL exactly when the gas no longer
     burnt outweighs the extra electricity's carbon -- and a RISE otherwise. Both branches are
     asserted reachable, so a change that always reports a fall cannot pass."""
-    before = _home(2024, 2_700, 11_500)
-    after = _home(2025, 2_700 + 3_400, 0.0, gas_closed_on="2024-12-31")
-    assert after.gas.status == GAS_CLOSED and "closed 2024-12-31" in after.gas.reason
+    # 2023 -> 2024: two WHOLE published grid years (2025's level is a part year, so it has no
+    # annual electricity figure and no change can be taken against it).
+    before = _home(2023, 2_700, 11_500)
+    after = _home(2024, 2_700 + 3_400, 0.0, gas_closed_on="2023-12-31")
+    assert after.gas.status == GAS_CLOSED and "closed 2023-12-31" in after.gas.reason
     change = household_change(before, after)
 
     assert change["gas_closed"] is True
@@ -80,7 +82,7 @@ def test_a_closed_gas_account_with_more_electricity_shows_a_net_fall_only_when_t
     assert change["net_fall"] is True and change["total_change_kg"] < 0
 
     # The same closure with a tiny gas bill before it: the extra electricity now outweighs it.
-    small_gas = _home(2024, 2_700, 500)
+    small_gas = _home(2023, 2_700, 500)
     worse = household_change(small_gas, after)
     assert worse["gas_closed"] is True and worse["net_fall"] is False
 

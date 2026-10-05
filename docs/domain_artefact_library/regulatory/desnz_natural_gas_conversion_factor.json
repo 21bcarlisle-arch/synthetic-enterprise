@@ -1,0 +1,89 @@
+{
+ "artefact": "desnz_natural_gas_conversion_factor",
+ "version": 1,
+ "published_by": "DESNZ (formerly BEIS), 'Greenhouse gas reporting: conversion factors', one set per reporting year (gov.uk collection 'government-conversion-factors-for-company-reporting')",
+ "what_this_is": "THE PUBLISHED FACTOR, NOT A READING OF IT. DESNZ's Scope 1 natural-gas factor for each reporting year: Fuels > Gaseous fuels > Natural gas, unit kWh (Gross CV), kgCO2e. Combustion at the point of use only. Well-to-tank is a separate DESNZ factor and is not in this file.",
+ "basis": {
+  "units": "kgCO2e per kWh, gross calorific value -- GB gas is billed in kWh converted at gross CV",
+  "year_key": "the DESNZ reporting year whose factor set states the value",
+  "scope": "Scope 1 combustion only; CO2e, not the CO2-only column the same sheet also carries"
+ },
+ "provenance_legend": {
+  "transcribed": "read from that year's DESNZ flat file (2021 from the full set's Fuels sheet) by the 2026-10-05 knowledge pass and transcribed in docs/market_research/household_carbon_and_the_measures_that_save_it.md section 2; the per-year file URL was not recorded. Asserted as an equality by the year-keyed rate census."
+ },
+ "r13_wall": "Published conversion factors, transcribed blind to company results. No value here may be moved because a carbon figure looks wrong.",
+ "portability": "One factor per reporting year. Another market supplies its own artefact behind the same loader.",
+ "open_items": [
+  "2022: both DESNZ 2022 spreadsheets failed to parse; bracketed by 2021 (0.18316) and 2023 (0.18293) and deliberately absent, never borrowed.",
+  "Per-year source URLs to be recorded on the next read, which would lift these entries to a primary level."
+ ],
+ "factors": [
+  {
+   "year": 2016,
+   "kg_co2e_per_kwh_gross_cv": 0.184,
+   "provenance": "transcribed",
+   "source": "docs/market_research/household_carbon_and_the_measures_that_save_it.md"
+  },
+  {
+   "year": 2017,
+   "kg_co2e_per_kwh_gross_cv": 0.18416,
+   "provenance": "transcribed",
+   "source": "docs/market_research/household_carbon_and_the_measures_that_save_it.md"
+  },
+  {
+   "year": 2018,
+   "kg_co2e_per_kwh_gross_cv": 0.18396,
+   "provenance": "transcribed",
+   "source": "docs/market_research/household_carbon_and_the_measures_that_save_it.md"
+  },
+  {
+   "year": 2019,
+   "kg_co2e_per_kwh_gross_cv": 0.18385,
+   "provenance": "transcribed",
+   "source": "docs/market_research/household_carbon_and_the_measures_that_save_it.md"
+  },
+  {
+   "year": 2020,
+   "kg_co2e_per_kwh_gross_cv": 0.18387,
+   "provenance": "transcribed",
+   "source": "docs/market_research/household_carbon_and_the_measures_that_save_it.md"
+  },
+  {
+   "year": 2021,
+   "kg_co2e_per_kwh_gross_cv": 0.18316,
+   "provenance": "transcribed",
+   "source": "docs/market_research/household_carbon_and_the_measures_that_save_it.md"
+  },
+  {
+   "year": 2023,
+   "kg_co2e_per_kwh_gross_cv": 0.18293,
+   "provenance": "transcribed",
+   "source": "docs/market_research/household_carbon_and_the_measures_that_save_it.md"
+  },
+  {
+   "year": 2024,
+   "kg_co2e_per_kwh_gross_cv": 0.1829,
+   "provenance": "transcribed",
+   "source": "docs/market_research/household_carbon_and_the_measures_that_save_it.md"
+  },
+  {
+   "year": 2025,
+   "kg_co2e_per_kwh_gross_cv": 0.18296,
+   "provenance": "transcribed",
+   "source": "docs/market_research/household_carbon_and_the_measures_that_save_it.md"
+  }
+ ],
+ "source_check": {
+  "publication": "DESNZ, 'UK government conversion factors for company reporting of greenhouse gas emissions' (gov.uk collection; one factor set per reporting year)",
+  "url": "https://www.gov.uk/government/collections/government-conversion-factors-for-company-reporting",
+  "fetched": "2026-10-05",
+  "version_token": "2026-06-11T09:30:08+01:00",
+  "version_token_is": "publisher_page_date",
+  "how_to_recheck": "GET https://www.gov.uk/api/content/government/collections/government-conversion-factors-for-company-reporting and read `public_updated_at`. A later value means a set was added or revised; DESNZ publishes a new year's set each June, which adds a year to this artefact rather than changing an old one. The token was read on 2026-10-05; the factor values themselves were read by the 2026-10-05 knowledge pass (see the legend).",
+  "checked_for_supersession": {
+   "on": "2026-10-05",
+   "found": "current",
+   "note": "collection page date read from the gov.uk content API on 2026-10-05; the 2026 set (June 2026) is not yet transcribed and is a new year, not a revision of the years held."
+  }
+ }
+}
