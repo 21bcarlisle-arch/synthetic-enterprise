@@ -79,7 +79,8 @@ the old `PUBLISHED_BASIS` text. They are the recorded outputs of a parked atom's
 they will carry the new text when those instruments next run. Rewriting a recorded measurement
 by hand is not a correction. **Whether household figures ADD losses** is a definition decision,
 raised to the director with a recommendation: a separate named line at DESNZ's T&D factor, never
-folded in.
+folded in. *(Corrected 2026-10-05, Expert Hour re-take: it had NOT been raised; no row was in
+`for_the_director`. Raised now as `a-household-s-electricity-carbon-is-shown`.)*
 
 G14 stays at L2. The Expert Hour's two MAJORs are addressed in code, and L3 needs a re-take.
 

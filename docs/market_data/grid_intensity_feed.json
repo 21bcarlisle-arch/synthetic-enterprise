@@ -1,11 +1,11 @@
 {
- "published_at": "2026-10-05T09:12:47.119206+00:00",
+ "published_at": "2026-10-05T10:43:07.237367+00:00",
  "basis": "dimensionless: each half hour's gCO2/kWh from sim/grid_carbon_history.py divided by its calendar year's DEMAND-WEIGHTED mean (Elexon INDO demand), so each year averages 1.0. The gCO2/kWh is NESO's Historic GB Generation Mix CARBON_INTENSITY, national outturn, on a GENERATION basis: CO2 at the generator per kWh generated, the generation counted including embedded wind and solar and imports at NESO's import factors. Transmission and distribution losses are NOT included. Where that series has no usable value it is NESO's own methodology applied to Elexon's published half-hourly fuel mix (FUELHH) plus NESO's embedded wind and solar estimate, at NESO's published factors. Every record carries its `source`.",
  "how_to_use": "Multiply `shape` by `annual_level.by_year[<the record's calendar year>].mean_g_co2_per_kwh` to get the published gCO2/kWh for that half hour. The annual level is published here, beside the shape it was normalised with; the company reads it in exactly one place, company/regulatory/carbon_emissions.py, and a year with `complete: false` is a mean of the dates it covers, never the year's.",
  "annual_level": {
   "unit": "gCO2/kWh",
   "basis": "gCO2/kWh, national, per calendar year: the DEMAND-WEIGHTED mean (Elexon INDO) of the half-hourly series this feed's shape is built from, over exactly the half hours the shape is normalised over -- so `shape x mean` gives back the published half-hourly value. It is NESO's Historic GB Generation Mix intensity, GENERATION basis: CO2 per kWh generated, transmission and distribution losses NOT included (measured: its implied fuel factors are NESO's table with no loss multiplier). CO2 at the generator from NESO's factor table (DUKES emission factors): not lifecycle, not CO2e, no upstream. `fuelmix_fill` half hours are NESO's arithmetic on Elexon's mix, unscaled; `sources` gives the mix per year. A year whose demand record does not span 1 Jan - 31 Dec is published with `complete: false` and the dates it covers; it is a mean of that span, never the year's.",
-  "weighting": "demand-weighted (Elexon INDO). Two reasons. (1) It is the divisor the shape is normalised by, so a household's half-hourly carbon, shape x level, is NESO's own number half hour by half hour; any other level would rescale every half hour by a constant that is not 1. (2) A household's annual kWh times one annual figure is only right if that figure is weighted the way consumption falls, and consumption is heaviest in the high-demand, dirtier half hours: the time-weighted mean UNDERSTATES it (2024: 125 against 133). National demand is not a domestic profile -- it includes industry and commerce -- and the domestic Profile Class 1 weighting reads within 2 g of it in every whole year 2017-2024 (docs/market_research/household_carbon_and_the_measures_that_save_it.md s2). The time-weighted mean is published beside it as a diagnostic and is never the level.",
+  "weighting": "demand-weighted (Elexon INDO). Two reasons. (1) It is the divisor the shape is normalised by, so a household's half-hourly carbon, shape x level, is NESO's own number half hour by half hour; any other level would rescale every half hour by a constant that is not 1. (2) A household's annual kWh times one annual figure is only right if that figure is weighted the way consumption falls, and consumption is heaviest in the high-demand, dirtier half hours: the time-weighted mean UNDERSTATES it (2024: 124 against 132). National demand is not a domestic profile -- it includes industry and commerce -- and the domestic Profile Class 1 weighting reads within 2.5 g of it in every whole year 2017-2024 (docs/market_research/household_carbon_and_the_measures_that_save_it.md s2). The time-weighted mean is published beside it as a diagnostic and is never the level.",
   "by_year": {
    "2016": {
     "mean_g_co2_per_kwh": 273.39,
@@ -533,7 +533,7 @@
  },
  "versus_published": {
   "available": true,
-  "source": "gCO2/kWh, national, half-hourly, NESO/National Grid Carbon Intensity API (api.carbonintensity.org.uk, key-free, openly licensed). Consumption basis: LOSS-CORRECTED, INCLUDES interconnector imports at the exporting country's intensity, INCLUDES coal. Both forecast and actual are published; 'actual' is outturn.",
+  "source": "gCO2/kWh, national, half-hourly, NESO/National Grid Carbon Intensity API (api.carbonintensity.org.uk, key-free, openly licensed). TWO BASES: up to 2020-04-27 period 33 the actual carries a loss uplift (about 1.14x NESO's Historic GB Generation Mix); from period 34 it is generation basis (about 1.02x), whatever the methodology text says. INCLUDES interconnector imports at NESO's fixed import factors, INCLUDES coal. Both forecast and actual are published; 'actual' is outturn.",
   "by_construction": false,
   "shape_is_neso": true,
   "compared_with": "NESO Carbon Intensity API",
@@ -756,7 +756,7 @@
  },
  "published_forecast_skill": {
   "available": true,
-  "source": "gCO2/kWh, national, half-hourly, NESO/National Grid Carbon Intensity API (api.carbonintensity.org.uk, key-free, openly licensed). Consumption basis: LOSS-CORRECTED, INCLUDES interconnector imports at the exporting country's intensity, INCLUDES coal. Both forecast and actual are published; 'actual' is outturn.",
+  "source": "gCO2/kWh, national, half-hourly, NESO/National Grid Carbon Intensity API (api.carbonintensity.org.uk, key-free, openly licensed). TWO BASES: up to 2020-04-27 period 33 the actual carries a loss uplift (about 1.14x NESO's Historic GB Generation Mix); from period 34 it is generation basis (about 1.02x), whatever the methodology text says. INCLUDES interconnector imports at NESO's fixed import factors, INCLUDES coal. Both forecast and actual are published; 'actual' is outturn.",
   "by_year": {
    "2018": {
     "year": 2018,

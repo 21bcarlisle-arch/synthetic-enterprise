@@ -28,5 +28,25 @@
     "subject": "G14_half_hourly_grid_carbon_intensity_aligned_to_settlement",
     "task_class": "docs_discovery",
     "verdict": "needs_work"
+  },
+  {
+    "defects_found_post_close": 0,
+    "evaluated_at": "2026-10-05",
+    "evaluator_name": "cold-eyes-walk",
+    "notes": "Expert Hour RE-TAKE 2026-10-05 on cd30ba424 (veteran GB grid-carbon persona, priors first): FAIL on one MAJOR, both prior MAJORs addressed. MAJOR-2 (basis step) resolved: no step in the shipped history at 2020-04-27, inside placebo spread. MAJOR-1 resolved in code, live on the page: feed and explore_carbon.json generated before the last label edit still said loss-corrected. Fixed in the same landing by regeneration plus a control on the shipped bytes. 7 MINOR.",
+    "rework_required": true,
+    "subject": "G14_half_hourly_grid_carbon_intensity_aligned_to_settlement",
+    "task_class": "docs_discovery",
+    "verdict": "needs_work"
+  },
+  {
+    "defects_found_post_close": 0,
+    "evaluated_at": "2026-10-05",
+    "evaluator_name": "cold-eyes-walk",
+    "notes": "Expert Hour SECOND re-take 2026-10-05 on the regenerated feed + explore_carbon.json (same persona, fresh context, priors first): no MAJOR on the files landed with it; its only MAJOR was that they were not yet committed. MINORs: partial-year day panels labelled as the year; proof/simplified quote an archived EP13 loss-corrected note; fill named but unused; INDO-hole half hours unnamed. Same-model review: blindness, not independence.",
+    "rework_required": false,
+    "subject": "G14_half_hourly_grid_carbon_intensity_aligned_to_settlement",
+    "task_class": "docs_discovery",
+    "verdict": "pass"
   }
 ]

@@ -26,7 +26,7 @@ EP13 write-up.
 
 **Rebased 2026-10-05 onto NESO's Historic GB Generation Mix** (`df_fuel_ckan.csv`, NESO Open Data
 Portal), after the step below showed the API changes basis. Pre-registration and runs:
-`docs/staging/SEAT_FINDING_G14_REBASED_ON_NESO_HISTORIC_GENERATION_MIX_2026-10-05.md`.
+`docs/staging/done/SEAT_FINDING_G14_REBASED_ON_NESO_HISTORIC_GENERATION_MIX_2026-10-05.md`.
 
 - **[measured] One source, one basis, the whole decade.** Every 2016-2025 half hour is the historic
   mix's `CARBON_INTENSITY` (`neso_historic_mix`) except 20 gaps where both it and FUELHH carry an
@@ -63,7 +63,7 @@ Portal), after the step below showed the API changes basis. Pre-registration and
 ### The 2020-04-27 step is a change in NESO's calculation, not in the fleet
 
 *Established 2026-10-05; the pre-registration and the runs are in
-`docs/staging/SEAT_FINDING_G14_NESOS_2020_04_28_LEVEL_STEP_2026-10-05.md`.*
+`docs/staging/done/SEAT_FINDING_G14_NESOS_2020_04_28_LEVEL_STEP_2026-10-05.md`.*
 
 - **[measured] It happens at one half hour.** At 2020-04-27 period 33 the API's actual is 210 g. At
   period 34 it is 195 g. Over the same two half hours CCGT rose 860 MW and the fuel-mix arithmetic

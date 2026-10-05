@@ -1661,7 +1661,7 @@
   # instead, which the stale-id control caught in the same run.
   value_stream: price_to_bill
   epoch: 3
-  level_current: 2   # 2026-10-05: published history on the feed + futures fit graded per year; L3 owes an Expert Hour
+  level_current: 2   # 2026-10-05: Expert Hour passed (2nd re-take); L3 held on the open independence ruling, as H45
   level_target: 3
   loop_stage: harden
   dial_inherited: 45    # 2026-10-05 restored: the dial is a draw WEIGHT (higher = more likely), and the earlier 3 lowered it by mistake; in flight, step 5 value-add
@@ -1675,7 +1675,7 @@
   file_scope: ['docs/market_research/', 'sim/grid_carbon_history.py',
     'tests/sim/test_grid_carbon_history.py', 'sim/grid_carbon_future.py',
     'tests/sim/test_grid_carbon_future.py']
-  expert_hour: {status: attempted_finding_open, last: '2026-10-05 cold-eyes, veteran GB grid-carbon persona, priors first: FAIL', findings: ['MAJOR-1 since 2020-04-27 P34 NESO actual is generation basis (0.97x arithmetic, no loss uplift) but feed, footprint and nci basis strings say loss-corrected', 'MAJOR-2 basis step at 2020-04-27 P34: 2016 to 2020-04 sits ~11% high; rebase on NESO Historic Generation Mix', 'MINOR fills ~20 g low pre-step; feed named_gaps stale; feed ends 2025-06-07 (INDO weight); futures level_error 11.3 g vs out-of-sample -40..+23 g; CO2 named co2e; import factors fixed', 'detail: docs/staging/SEAT_FINDING_G14_NESOS_2020_04_28_LEVEL_STEP_2026-10-05.md']}
+  expert_hour: {status: passed, last: '2026-10-05 second re-take, cold-eyes, veteran GB grid-carbon persona, priors first: no MAJOR on the regenerated feed + Explore (first re-take FAILED: page lagged the code)', findings: ['MAJOR-1 (loss-corrected label) and MAJOR-2 (2020-04-27 step) closed; shipped strings now held to their constants by a control', 'MINOR partial-year day panels labelled the year (2025 = Jan..Jun 7); proof/simplified quote an archived EP13 loss-corrected note; fill named but reaches no value; INDO-hole half hours unnamed', 'MINOR non-blocking: feed ends 2025-06-07; futures level_error in-sample; CO2 named co2e; import factors fixed; second API regime ~2021-04', 'detail: docs/staging/SEAT_FINDING_G14_EXPERT_HOUR_RETAKE_ON_THE_HISTORIC_MIX_2026-10-05.md']}
   real_world_twin: "a supplier publishing a customer's carbon footprint from an annual national average, then being asked which hour it was saved in."
 - id: G15_forward_curve_series_to_backtest_hedging_by_physics
   title: "a published forward-curve or hedge-cost series good enough to backtest hedging by physics"

@@ -1,9 +1,10 @@
 {
- "generated": "2026-10-05T09:13:28Z",
- "basis": "The day panels are the ELECTRICITY leg only -- for a gas-heated home a minority of its carbon; the household's year below adds its gas. Company estimate: its own published ANNUAL grid intensity (company/regulatory/carbon_emissions.py, the single owner) given half-hourly resolution by the published shape feed -- both NESO's national series, so shape x level is NESO's own half-hourly figure. National, outturn, loss-corrected to a consumption basis, CO2 at the generator. NOT abatement -- there is no counterfactual here and none is implied.",
+ "generated": "2026-10-05T10:43:09Z",
+ "basis": "The day panels are the ELECTRICITY leg only -- for a gas-heated home a minority of its carbon; the household's year below adds its gas. Company estimate: its own published ANNUAL grid intensity (company/regulatory/carbon_emissions.py, the single owner) given half-hourly resolution by the published shape feed -- both NESO's national series, so shape x level is NESO's own half-hourly figure. National, outturn, generation basis (transmission and distribution losses not included), CO2 at the generator. NOT abatement -- there is no counterfactual here and none is implied.",
  "not_included": [
   "gas in the half-hourly day panels -- a gas meter is not read by the half hour; the household's gas is in its yearly figure, from its billed gas",
   "upstream (well-to-tank) emissions of the gas, and the lifecycle and upstream emissions of the electricity's generation (NESO's factors are CO2 at the generator)",
+  "transmission and distribution losses: the grid figure is per kWh GENERATED, and the electricity lost between the power station and the meter is not added. Whether it should be is an open definition decision; if it is, it will be its own named line",
   "fuels this supplier does not sell the household: gas or electricity bought elsewhere, oil, petrol",
   "abatement: what the household would have emitted otherwise. A counterfactual, not measured",
   "embodied carbon in any measure or asset fitted",
@@ -13,7 +14,7 @@
  "coverage_statement": "3 of 244 account(s) are MEASURED -- a real half-hourly meter read met with the grid's intensity in that half hour. 241 are PROFILED: their emissions are known but their TIMING EFFECT IS UNAVAILABLE, not zero -- a traditional meter does not record when anything happened, and no estimate recovers it.",
  "versus_published": {
   "available": true,
-  "source": "gCO2/kWh, national, half-hourly, NESO/National Grid Carbon Intensity API (api.carbonintensity.org.uk, key-free, openly licensed). Consumption basis: LOSS-CORRECTED, INCLUDES interconnector imports at the exporting country's intensity, INCLUDES coal. Both forecast and actual are published; 'actual' is outturn.",
+  "source": "gCO2/kWh, national, half-hourly, NESO/National Grid Carbon Intensity API (api.carbonintensity.org.uk, key-free, openly licensed). TWO BASES: up to 2020-04-27 period 33 the actual carries a loss uplift (about 1.14x NESO's Historic GB Generation Mix); from period 34 it is generation basis (about 1.02x), whatever the methodology text says. INCLUDES interconnector imports at NESO's fixed import factors, INCLUDES coal. Both forecast and actual are published; 'actual' is outturn.",
   "by_construction": false,
   "shape_is_neso": true,
   "compared_with": "NESO Carbon Intensity API",
@@ -256,7 +257,7 @@
  "accounts_on_book": 244,
  "grid": {
   "year": "2025",
-  "published_at": "2026-10-05T09:12:47.119206+00:00",
+  "published_at": "2026-10-05T10:43:07.237367+00:00",
   "source": "NESO Data Portal, Historic GB Generation Mix (df_fuel_ckan.csv), national half-hourly CARBON_INTENSITY. In its empty or outage half hours: Elexon Insights generation by fuel type (FUELHH) and NESO's embedded wind and solar estimate (Historic Demand Data), combined at NESO's published factors (Carbon Intensity Forecast Methodology, Table 1). Cross-checked against NESO's Carbon Intensity API (api.carbonintensity.org.uk), from 2018-05-11. Normalised with Elexon's demand outturn (INDO). Built by sim/grid_carbon_history.py.",
   "error_direction": "This shape IS NESO's published national carbon intensity -- its Historic GB Generation Mix, one generation basis for the whole decade -- aligned to settlement periods, not a model of it. NESO's other published series, the Carbon Intensity API, is measured beside it and agrees to within about 2% after 2020-04-27; before that date the API carried a loss uplift and reads about 14% higher. THE ERROR THAT REMAINS IS NOT ABOUT THIS SHAPE. Every figure here is OUTTURN, computed with hindsight, and a household has to act on a FORECAST. Graded against NESO's own outturn, NESO's own published forecast picks a three-hour window that delivers about 84% of that day's achievable within-day saving on the mean day, about 45% on the worst day in twenty, and on some days a window DIRTIER than not shifting at all. So a timing benefit read off this feed is an UPPER BOUND on what advice could have delivered, and that ceiling cannot be built away by improving any model.",
   "named_gaps": [
@@ -2534,7 +2535,7 @@
   }
  ],
  "household_basis": {
-  "electricity": "Electricity this supplier billed the household for in the year, times the company's own published annual grid intensity for that year (company/regulatory/carbon_emissions.py). NESO's published national series, demand-weighted over the year, loss-corrected, CO2 at the generator. A year the series covers only in part has no figure.",
+  "electricity": "Electricity this supplier billed the household for in the year, times the company's own published annual grid intensity for that year (company/regulatory/carbon_emissions.py). NESO's published national series (Historic GB Generation Mix), demand-weighted over the year, generation basis with transmission and distribution losses not included, CO2 at the generator. A year the series covers only in part has no figure.",
   "gas": "Gas this supplier billed the household for in the year -- kWh read from its own gas meter, converted at gross calorific value -- times DESNZ's natural-gas conversion factor for that year (Scope 1, kgCO2e per kWh gross CV). Combustion at the home only; the upstream well-to-tank factor is excluded.",
   "total": "Electricity plus gas, each on its own basis. Emissions, not abatement: nothing here says what the household would have emitted otherwise.",
   "change": "This supplier's own billed kWh in two whole years. Weather is not removed: a cold year raises gas with nothing in the home changed."

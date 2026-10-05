@@ -841,6 +841,39 @@ def test_the_stated_ERROR_DIRECTION_does_not_contradict_the_NAMED_GAPS_beside_it
         assert re.search(r"losses (are )?not (included|in this series)", said.lower()), said[:80]
 
 
+def test_the_SHIPPED_files_carry_the_basis_text_the_code_now_holds():
+    """THE FINDING (G14 Expert Hour re-take, 2026-10-05): the relabel to generation basis landed in
+    the constants, but both published files had been generated before the last label edit, so the
+    page still read "loss-corrected to a consumption basis". The control above reads the Python;
+    this one reads the bytes the page loads.
+
+    MUTATION (must fire): put "loss-corrected" back into `FOOTPRINT_BASIS` or
+    `neso.PUBLISHED_BASIS` without regenerating, or regenerate from the old constant.
+    """
+    from company.carbon import half_hourly_footprint as hhf
+    from sim import neso_carbon_intensity as neso
+
+    feed = json.loads(FEED.read_text(encoding="utf-8"))
+    carbon = json.loads(CARBON.read_text(encoding="utf-8"))
+    shipped = {
+        "feed versus_published": (feed["versus_published"]["source"], neso.PUBLISHED_BASIS),
+        "feed forecast skill": (feed["published_forecast_skill"]["source"], neso.PUBLISHED_BASIS),
+        "explore versus_published": (carbon["versus_published"]["source"], neso.PUBLISHED_BASIS),
+        "explore basis": (carbon["basis"], hhf.FOOTPRINT_BASIS),
+        "explore household electricity": (carbon["household_basis"]["electricity"],
+                                          hhf.ELECTRICITY_LEG_BASIS),
+    }
+    stale = [k for k, (said, held) in shipped.items() if said != held]
+    assert not stale, f"regenerate the feed and Explore: these shipped strings lag the code: {stale}"
+    assert FEED.suffix == CARBON.suffix == ".json"  # the substring subject is data, not code
+    feed_text = FEED.read_text(encoding="utf-8").lower()
+    carbon_text = CARBON.read_text(encoding="utf-8").lower()
+    for said in ("loss-corrected", "consumption basis"):
+        assert said not in feed_text, f"the feed still says {said!r}"
+        assert said not in carbon_text, f"Explore still says {said!r}"
+    assert "not included" in carbon["household_basis"]["electricity"].lower()
+
+
 # --------------------------------------------------------------------------- #
 # The CONSUMPTION side of the multiplication (2026-08-25)                      #
 # --------------------------------------------------------------------------- #
