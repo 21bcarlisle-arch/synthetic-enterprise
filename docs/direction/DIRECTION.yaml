@@ -280,31 +280,88 @@ wrong:
       its own name.
     corrected: false
 for_the_director:
-  - id: the-end-to-end-review-of-claude
-    raised: "2026-10-04"
-    kind: canon_intent
-    what: "The end-to-end review of CLAUDE.md found it contradicting the code on the reserved action walls, pointing every session at a staging procedure that still described the July rules, using one name for several seats, and claiming enforcement for two rows that only report; three of its findings touch canon or wall wording that is yours (the curriculum wall reads stricter than your 2026-09-04 canon; DIRECTOR_CANON.md lists seven one-way doors and the twin as standing approver; DIRECTOR_AXES.md cites a pricing law that no longer exists)."
-    proposal: "Approve the cleanup as proposed in docs/staging/SEAT_PROPOSAL_CLAUDE_MD_CLEANUP_FROM_THE_END_TO_END_REVIEW_2026-10-04.md, item by item, or strike the items you disagree with; on the three canon items, rule on the wording and I will carry it into the canon documents. Already done without asking: the plain factual corrections it marks, the reserved-actions list restated from the code, and the two withdrawn rules in the staging procedure."
-    status: open
-    resolution: ""
-  - id: time-is-scored-in-minutes-not-converted-to-money
-    raised: "2026-10-04"
-    kind: vision
-    what: "The mission names three currencies, and time does not exist in the model. The C31 frame (70ea47ac5, docs/design/C31_TIME_AS_A_CURRENCY_DISCOVER_FRAME_2026-10-04.md, Q1) has to decide whether household time is scored in its own unit or converted to money at a value of time. Converting it would fold one of your three currencies into money. The only regulator pricing found (GSOP, GBP 30 or 15) prices failure events, not hours, and it is a transfer."
-    proposal: "Score time in its own unit: household minutes, per class (shopping, servicing, recovery, routine admin), never summed across classes and never converted to GBP. A GSOP payment stays a money transfer and is not a measure of time. This does not block L1, which counts events in minutes either way, so work carries on unless you rule otherwise."
-    status: open
-    resolution: ""
-  - id: whether-per-customer-pricing-beats-a-flat
-    raised: "2026-10-04"
-    kind: strategy
-    what: "Whether per-customer pricing beats a flat price a supplier could have set in advance cannot be answered on one book: the four probe paths share their households, and their SNR ceiling is about 0.95 however often they are re-run. Only independent books separate it. Varying the book seed is EP17_varied_population_draw, which is your curriculum."
-    proposal: "Authorise book seeds 61101-61112 for EP17 by recording docs/design/curriculum/varied_population_draw_activation.json in the shape of population_draw_activation.json. I would run 12 books at about 36 min and 5.1 GB each, 7.2 box-hours serial, after the QEP refit lands, and only after a 2.4 h re-take on the default book. Projected SNR is 1.8-2.4. If you decline, the result stands as: not separable on this book."
-    status: open
-    resolution: ""
-  - id: no-atom-can-reach-l3-while-an
-    raised: "2026-10-04"
-    kind: canon_intent
-    what: "No atom can reach L3 while an Expert Hour counts reviewer independence as a finding against it: the blind-review tool records independence false on every pass by construction, and reserves external review for the few verdicts you choose. H45 (the queue chained to the map) has closed every other question its two blind passes raised -- edit back door, re-link, doubt route, trend -- and is held at L2 on that one alone. Its specific form: whether a queue item serves its atom is read by a tick of the same machine that files it, and nothing outside audits that read."
-    proposal: "Rule that an Expert Hour whose only open disqualifying question is reviewer independence passes for L3, with the limit carried in the atom's simplification record, and that external review stays at your choosing for the highest-stakes verdicts. On that ruling I would record H45's move to L3 through the level gate. If you want H45 audited from outside instead, the read record (serves_by_hand on the harness page) is what you or a relayed model would sample. Meanwhile H45 parks so it stops being drawn for a question no build can answer."
-    status: open
-    resolution: ""
+- id: the-end-to-end-review-of-claude
+  raised: '2026-10-04'
+  kind: canon_intent
+  what: The end-to-end review of CLAUDE.md found it contradicting the code on the reserved action walls,
+    pointing every session at a staging procedure that still described the July rules, using one name
+    for several seats, and claiming enforcement for two rows that only report; three of its findings touch
+    canon or wall wording that is yours (the curriculum wall reads stricter than your 2026-09-04 canon;
+    DIRECTOR_CANON.md lists seven one-way doors and the twin as standing approver; DIRECTOR_AXES.md cites
+    a pricing law that no longer exists).
+  proposal: 'Approve the cleanup as proposed in docs/staging/SEAT_PROPOSAL_CLAUDE_MD_CLEANUP_FROM_THE_END_TO_END_REVIEW_2026-10-04.md,
+    item by item, or strike the items you disagree with; on the three canon items, rule on the wording
+    and I will carry it into the canon documents. Already done without asking: the plain factual corrections
+    it marks, the reserved-actions list restated from the code, and the two withdrawn rules in the staging
+    procedure.'
+  status: open
+  resolution: ''
+- id: time-is-scored-in-minutes-not-converted-to-money
+  raised: '2026-10-04'
+  kind: vision
+  what: The mission names three currencies, and time does not exist in the model. The C31 frame (70ea47ac5,
+    docs/design/C31_TIME_AS_A_CURRENCY_DISCOVER_FRAME_2026-10-04.md, Q1) has to decide whether household
+    time is scored in its own unit or converted to money at a value of time. Converting it would fold
+    one of your three currencies into money. The only regulator pricing found (GSOP, GBP 30 or 15) prices
+    failure events, not hours, and it is a transfer.
+  proposal: 'Score time in its own unit: household minutes, per class (shopping, servicing, recovery,
+    routine admin), never summed across classes and never converted to GBP. A GSOP payment stays a money
+    transfer and is not a measure of time. This does not block L1, which counts events in minutes either
+    way, so work carries on unless you rule otherwise.'
+  status: open
+  resolution: ''
+- id: whether-per-customer-pricing-beats-a-flat
+  raised: '2026-10-04'
+  kind: strategy
+  what: 'Whether per-customer pricing beats a flat price a supplier could have set in advance cannot be
+    answered on one book: the four probe paths share their households, and their SNR ceiling is about
+    0.95 however often they are re-run. Only independent books separate it. Varying the book seed is EP17_varied_population_draw,
+    which is your curriculum.'
+  proposal: 'Authorise book seeds 61101-61112 for EP17 by recording docs/design/curriculum/varied_population_draw_activation.json
+    in the shape of population_draw_activation.json. I would run 12 books at about 36 min and 5.1 GB each,
+    7.2 box-hours serial, after the QEP refit lands, and only after a 2.4 h re-take on the default book.
+    Projected SNR is 1.8-2.4. If you decline, the result stands as: not separable on this book.'
+  status: open
+  resolution: ''
+- id: no-atom-can-reach-l3-while-an
+  raised: '2026-10-04'
+  kind: canon_intent
+  what: 'No atom can reach L3 while an Expert Hour counts reviewer independence as a finding against it:
+    the blind-review tool records independence false on every pass by construction, and reserves external
+    review for the few verdicts you choose. H45 (the queue chained to the map) has closed every other
+    question its two blind passes raised -- edit back door, re-link, doubt route, trend -- and is held
+    at L2 on that one alone. Its specific form: whether a queue item serves its atom is read by a tick
+    of the same machine that files it, and nothing outside audits that read.'
+  proposal: Rule that an Expert Hour whose only open disqualifying question is reviewer independence passes
+    for L3, with the limit carried in the atom's simplification record, and that external review stays
+    at your choosing for the highest-stakes verdicts. On that ruling I would record H45's move to L3 through
+    the level gate. If you want H45 audited from outside instead, the read record (serves_by_hand on the
+    harness page) is what you or a relayed model would sample. Meanwhile H45 parks so it stops being drawn
+    for a question no build can answer.
+  status: open
+  resolution: ''
+- id: step-1-s-knowledge-says-the-priority
+  raised: '2026-10-05'
+  kind: strategy
+  what: 'Step 1''s knowledge says the priority order needs changes before step 2 starts: the world must
+    make used, settled and billed energy three numbers; home moves and billing complaints belong in step
+    2; world debt must be graded against Ofgem''s series before the debt lever; step 4 should start with
+    households that respond to contact, including badly.'
+  proposal: Adopt the sequence in docs/staging/SEAT_PROPOSAL_WHAT_STEP_ONE_TAUGHT_ABOUT_THE_ORDER_2026-10-05.md;
+    it also carries four practitioner questions only the trade can answer.
+  status: open
+  resolution: ''
+  evidence: docs/market_research/unbilled_energy_and_revenue_assurance.md, home_moves.md, debt_and_collections.md,
+    next_best_action_and_cross_sell.md, communications_sentiment_and_nps.md
+- id: household-carbon-is-mostly-heating-gas-is
+  raised: '2026-10-05'
+  kind: strategy
+  what: Household carbon is mostly heating (gas is 4-6x a gas-heated home's electricity carbon since 2020),
+    yet our knowledge and the next-best-action plan lean on electricity timing, where shifting a kWh saves
+    about 36 g against 183 g for a kWh of gas not burned.
+  proposal: Rank heating measures above flex in next best action (heating behaviour, insulation, heat
+    pump with our own tariff, EV smart charging, solar and battery as money products, then time-of-use),
+    and add home heating as a step-1 product; see docs/staging/SEAT_PROPOSAL_HEATING_ABOVE_FLEX_AND_GAS_IN_THE_CARBON_A_CUSTOMER_IS_SHOWN_2026-10-05.md.
+  status: open
+  resolution: ''
+  evidence: docs/market_research/household_carbon_and_the_measures_that_save_it.md
