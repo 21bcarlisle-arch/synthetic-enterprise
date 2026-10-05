@@ -126,3 +126,30 @@ def test_the_brief_prints_the_reason_beside_the_atom(repo):
     assert later == []
     prompt = delivery_seat._prompt({"atoms_stalled_with_reason": rows})
     assert "- D48 (2 unchanged draws): no commit touched its file_scope" in prompt
+
+
+def test_a_stalled_focus_atom_the_draw_stopped_taking_still_gets_its_reason(repo, monkeypatch):
+    """The anti-livelock draw prefers the least-stalled candidate, so the most-stalled atoms are
+    the ones it stops taking, and a reason written only on a draw never reaches them. B11 and D48,
+    the two this was built for, were last drawn hours before the brief that should have shown them."""
+    _commit(repo, "company/b11.py", "B11 slice landed under a Lane 0 slug")
+    b11 = {"id": "B11", "file_scope": ["company/b11.py"], "level_current": 0, "loop_stage": "build"}
+    monkeypatch.setattr(delivery_seat.map_store, "load_live_atoms", lambda: [b11])
+    supervisor.ATOM_STALL_STATE_FILE.write_text(json.dumps({
+        "B11": {"fingerprint": MOVED_FP, "consecutive_unchanged": 151, "stalled": True,
+                "last_drawn_at": 0.0},
+        "D48": {"fingerprint": MOVED_FP, "consecutive_unchanged": 151, "stalled": True,
+                "last_drawn_at": 0.0}}))
+    since = datetime.now(timezone.utc) - timedelta(hours=3)
+    assert delivery_seat.atoms_stalled_with_reason(since) == []      # the draw leg alone: blind
+    rows = delivery_seat.atoms_stalled_with_reason(since, focus=({"id": "B11"},))
+    assert [(r["id"], r["drawn_this_stretch"]) for r in rows] == [("B11", False)]
+    assert "1 commit(s) landed on its file_scope" in rows[0]["stop_reason"]
+    assert "B11 slice landed under a Lane 0 slug" in rows[0]["stop_reason"]
+    prompt = delivery_seat._prompt({"atoms_stalled_with_reason": rows})
+    assert "- B11 (151 unchanged draws; not drawn this stretch): 1 commit(s)" in prompt
+    gone = delivery_seat.atoms_stalled_with_reason(since, focus=("NOT_ON_THE_MAP",))
+    assert gone == []
+    monkeypatch.setattr(delivery_seat.map_store, "load_live_atoms", lambda: [])
+    [row] = delivery_seat.atoms_stalled_with_reason(since, focus=("B11",))
+    assert row["stop_reason"].endswith("-- cannot say")

@@ -73,3 +73,54 @@ reading an empty reason as a fault.
 the seat's hands, not in more machinery: a focus atom gets worked when the seat writes a Lane 0
 slice for it, as B11's two slices show. The open "focus atom drawn repeatedly and lands nothing"
 row can be graded corrected once a brief shows the two reasons.
+
+## Graded 2026-10-05 18:40 BST (claim `stalled-atom-stop-reasons-reach-the-brief`)
+
+**The pre-registration holds.** `_atom_stop_reason` was run at real inputs: the live map rows, and
+the shared tree's tracker read from an `origin/main` worktree.
+- **B11:** "2 commit(s) landed on its file_scope … latest `4e4637853` B11 slice 2 …, but its map
+  row did not move (level 0, build)". This is as predicted.
+- **D48:** "no commit touched its file_scope …; 0 of 2 scope path(s) exist on disk". This is as
+  predicted.
+- Both windows say "7 days; the streak's start is unrecorded". That is correct: both streaks
+  predate `episode_started_at`.
+
+**The route to the brief was wrong, and the "Not covered" note above understated it.** A
+supervisor restart would not have put the reasons on these two rows.
+- The anti-livelock draw (`_prefer_least_stalled`) takes the LEAST-stalled candidate. Once B11 and
+  D48 were the most-stalled rows at 151, the draw stopped taking them. Their last draw was 15:51
+  BST. At 18:30 the least-stalled rows were B7 and W2_39, at 40.
+- A reason written only on a draw is never written for the atoms most in need of one.
+- `atoms_stalled_with_reason` listed only rows drawn in the stretch, so B11 would have dropped out
+  of the brief at 18:51 BST with no reason ever shown.
+
+This is the anti-correlated screen: the worse the stall, the less the screen can see it.
+
+Two further facts held at that time:
+- The shared checkout was still on `4e4637853`, behind `f1cbb15ca`.
+- The supervisor had been up 7.8h. `deploy_restart --report` graded 0 of 10 daemons (all
+  `unstamped`), so it could not say whether the supervisor was stale.
+
+**Repair (this landing):** `atoms_stalled_with_reason` now takes the focus as an input.
+- It includes stalled atoms in the previous focus and the live focus, even when the draw no longer
+  takes them. It marks those rows `drawn_this_stretch: False`, and the prompt prints "not drawn
+  this stretch".
+- When the supervisor has not stored a reason, it reads one with the supervisor's own
+  `_atom_stop_reason`. The brief therefore no longer depends on a daemon restart.
+- `tests/background/test_a_stalled_atom_says_why.py` was mutation-checked. Removing the focus leg
+  turns it red, and so does dropping the not-drawn marker.
+
+**The open "focus atom drawn repeatedly and lands nothing" row** in `DIRECTION.yaml`'s `wrong` list
+is NOT graded here. The orienting seat writes that file.
+- The condition for grading it corrected is the first brief built on a checkout that contains this
+  landing, with B11 shown beside its reason.
+- B11 is in the live focus, so it will appear.
+- D48 is no longer in focus. It appears only if it is drawn, which is correct: the seat has no
+  steer on it to correct.
+
+**Still open, as before:** the trailing `-- ?` atom line has no consumer.
+
+**A caveat on reading the reasons:** H45 and PB4 also read "N commit(s) landed … landing under
+other ids". Their scopes are shared with other atoms' work, for example PB4's latest is a C29
+commit. That reason is evidence that the scope moved. It is not evidence that the atom moved, and
+the text already says "if that is its work".

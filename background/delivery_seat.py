@@ -1329,14 +1329,21 @@ def atoms_drawn_since(since: datetime) -> list[str]:
                   if isinstance(row, dict) and float(row.get("last_drawn_at") or 0.0) >= cutoff)
 
 
-def atoms_stalled_with_reason(since: datetime) -> list[dict]:
-    """Atoms the draw took in the stretch that are past the anti-livelock streak, each with the
+def atoms_stalled_with_reason(since: datetime, focus: tuple = (),
+                              now: datetime | None = None) -> list[dict]:
+    """Stalled atoms the draw took in the stretch, AND stalled atoms in focus, each with the
     `stop_reason` the supervisor wrote beside its counter (`_atom_stop_reason`).
 
     `atoms_drawn` says only that an atom was drawn. B11 and D48 were each drawn 151 times with
     nothing beside the count, and the seat re-issued the same steer blind. B11 had landed twice
     under Lane 0 slugs, and D48's scope file had never existed. A row from a supervisor that has
-    not written a reason yet says so rather than dropping out.
+    not written a reason yet (one still running code older than the field) has it read here.
+
+    THE FOCUS LEG, because the draw leg cannot reach the atoms it was built for: the anti-livelock
+    draw prefers the LEAST-stalled candidate, so once B11 and D48 were the most-stalled rows the
+    draw stopped taking them (last drawn 15:51Z on 2026-10-05, measured at 18:30Z) and a reason
+    written only on a draw was never written. A stalled focus atom the draw no longer takes has
+    its reason read here, from git, with `drawn_this_stretch: False` saying why.
     """
     try:
         from background.supervisor import ATOM_STALL_STATE_FILE
@@ -1344,11 +1351,31 @@ def atoms_stalled_with_reason(since: datetime) -> list[dict]:
     except Exception:
         return []
     cutoff = since.timestamp()
-    return [{"id": aid, "consecutive_unchanged": row.get("consecutive_unchanged"),
-             "stop_reason": row.get("stop_reason") or "no reason recorded by the supervisor yet"}
-            for aid, row in sorted(state.items())
-            if isinstance(row, dict) and row.get("stalled")
-            and float(row.get("last_drawn_at") or 0.0) >= cutoff]
+    focus_ids = {str(f.get("id") if isinstance(f, dict) else f) for f in focus}
+    rows = []
+    for aid, row in sorted(state.items()):
+        if not (isinstance(row, dict) and row.get("stalled")):
+            continue
+        drawn = float(row.get("last_drawn_at") or 0.0) >= cutoff
+        if not (drawn or aid in focus_ids):
+            continue
+        reason = ((drawn and row.get("stop_reason"))
+                  or _stop_reason_read_now(aid, row, now or datetime.now(timezone.utc)))
+        rows.append({"id": aid, "consecutive_unchanged": row.get("consecutive_unchanged"),
+                     "drawn_this_stretch": drawn, "stop_reason": reason})
+    return rows
+
+
+def _stop_reason_read_now(atom_id: str, row: dict, now: datetime) -> str:
+    """The supervisor's own reader, run here for a focus atom the draw no longer takes."""
+    try:
+        from background.supervisor import _atom_stop_reason
+        atom = next((a for a in map_store.load_live_atoms() if a.get("id") == atom_id), None)
+    except Exception as exc:  # noqa: BLE001 - the brief must not fail on its own diagnostic
+        return f"the map could not be read ({type(exc).__name__}) -- cannot say"
+    if atom is None:
+        return "not on the live map, so its file_scope cannot be read -- cannot say"
+    return _atom_stop_reason(atom, row.get("episode_started_at"), now.timestamp())
 
 
 def focus_drawn_since(since: datetime) -> list[str]:
@@ -1489,7 +1516,8 @@ def build_brief(now: datetime | None = None) -> dict:
         "lane_0_drawn_never_landed": _drawn_never_landed(now),
         # AND THE ATOMS THE DRAW KEEPS TAKING WITHOUT MOVING, each with its reason, for the same
         # truncation reason: a counter alone sent the seat back to the same steer for three stretches.
-        "atoms_stalled_with_reason": atoms_stalled_with_reason(since),
+        "atoms_stalled_with_reason": atoms_stalled_with_reason(
+            since, prev_focus + tuple(live.focus if live else ()), now),
         # AND THE HANDOFF QUEUE, THIRD and for the same truncation reason: read through `live()`,
         # never the raw store -- see `_continuation_queue` for the focus row a raw read cost.
         "continuation_queue": _continuation_queue(now, since),
@@ -1796,11 +1824,14 @@ def _prompt(brief: dict) -> str:
     stalled_rows = brief.get("atoms_stalled_with_reason") or []
     if stalled_rows:
         steered += (
-            "\n\nATOMS THE DRAW TOOK THIS STRETCH WITHOUT THEM MOVING, each with the reason the "
-            "supervisor read from git over the atom's own file_scope. Working the atom happens "
-            "through a Lane 0 slice that names it, not through the draw:\n\n"
-            + "\n".join("- {} ({} unchanged draws): {}".format(
-                r.get("id"), r.get("consecutive_unchanged"), r.get("stop_reason"))
+            "\n\nSTALLED ATOMS, drawn this stretch or in focus, each with the reason read from "
+            "git over the atom's own file_scope. A focus atom marked 'not drawn' is one the "
+            "anti-livelock draw has stopped taking, so nothing reaches it unless a Lane 0 slice "
+            "names it. Working the atom happens through such a slice, not through the draw:\n\n"
+            + "\n".join("- {} ({} unchanged draws{}): {}".format(
+                r.get("id"), r.get("consecutive_unchanged"),
+                "" if r.get("drawn_this_stretch", True) else "; not drawn this stretch",
+                r.get("stop_reason"))
                 for r in stalled_rows))
     # THE LANDING DOOR'S VERDICT ON THE ITEMS YOU ARE ABOUT TO CARRY FORWARD, and it is a SENTENCE
     # for the same reason the two blocks above are: a key buried in 60k of JSON is a key that gets
