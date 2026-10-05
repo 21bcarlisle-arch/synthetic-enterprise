@@ -65,8 +65,10 @@ advice was ever going to help it. Publishing the flat number beside the timed on
 refutable instead of assumed.
 
 THE ERROR DIRECTION, carried from the feed and repeated here because it will be quoted from
-here: the shape's clean end is optimistic (no coal, no interconnector imports), so a timing
-benefit computed from it is an UPPER BOUND on the real one.
+here. Since 2026-10-05 the feed is NESO's published series wherever NESO published (from
+2018-05-11), with an estimate from Elexon's fuel mix before that date. So the shape is no longer
+a model's. A timing benefit computed from it is still an UPPER BOUND on what advice could have
+delivered, because it is outturn read with hindsight and a household acts on a forecast.
 """
 from __future__ import annotations
 

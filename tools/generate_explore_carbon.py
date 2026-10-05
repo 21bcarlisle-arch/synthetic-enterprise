@@ -199,9 +199,9 @@ def _why_unavailable(date_str: str, feed: dict) -> str:
             "{}..{} -- Elexon's half-hourly outturn does not go back further.".format(first, last)
         )
     return (
-        "This day falls inside the published series but has no half hours in it: the "
-        "wind-and-solar outturn is missing for it, and a missing renewable reading is not a "
-        "windless day, so those half hours are skipped rather than counted as dirty."
+        "This day falls inside the published series but has no half hours in it: neither "
+        "NESO's published value nor Elexon's fuel mix is usable for them, and a missing reading "
+        "is not a clean grid, so they are absent rather than estimated."
     )
 
 
@@ -219,15 +219,30 @@ def published_shape_from_feed(feed: dict) -> dict:
     }
 
 
+def sources_from_feed(feed: dict) -> dict:
+    """{(date, period): source tag} from the feed's records -- which series each value is."""
+    return {
+        (str(r["date"]), int(r["period"])): r.get("source")
+        for r in (feed.get("records") or [])
+        if r.get("date") is not None and r.get("period") is not None
+    }
+
+
 def belief_versus_truth(
     reads: Sequence[Mapping],
     shape: Mapping[tuple[str, int], float],
     published: Mapping[tuple[str, int], float],
     feed: dict,
     year: str,
+    sources: Mapping[tuple[str, int], str] | None = None,
 ) -> dict:
     """THIS household's timing effect computed twice: through the company's shape, and through
     NESO's published series. The coupled-triad rung, at the grain a reader can check.
+
+    SINCE 2026-10-05 THE COMPANY'S SHAPE IS NESO'S PUBLISHED SERIES wherever NESO published, so
+    on those half hours the two answers agree by construction and `by_construction` says so. What
+    follows describes the comparison as it was while the shape was EP13's reconstruction; the
+    arithmetic is unchanged and still catches a feed whose values drift from the published ones.
 
     WHY THIS IS NOT THE SPREAD RATIO ALREADY ON THE PAGE. The feed says this model overstates
     the grid's total range by about 3.2x, and until now the page asked the reader to discount
@@ -265,6 +280,7 @@ def belief_versus_truth(
 
     kwh = belief = truth = 0.0
     used = missing = 0
+    from_published = 0
     for read in reads:
         key = (str(read.get("date") or ""), int(read.get("period") or 0))
         our_value, their_value = shape.get(key), published.get(key)
@@ -276,6 +292,7 @@ def belief_versus_truth(
         belief += k * (our_value / ours_divisor)
         truth += k * (their_value / theirs_divisor)
         used += 1
+        from_published += (sources or {}).get(key) == "neso_published"
 
     if used == 0 or kwh <= 0.0:
         return {
@@ -297,12 +314,18 @@ def belief_versus_truth(
         "sign_differs": (belief_pct >= 0.0) != (truth_pct >= 0.0),
         "half_hours": used,
         "half_hours_without_published": missing,
+        # TRUE when every half hour compared came from NESO's published series in the feed, so
+        # BELIEF and TRUTH are the same numbers and the gap is zero BY CONSTRUCTION (since
+        # 2026-10-05). Keyed to the feed's own source tags and not to the gap being small, so a
+        # real disagreement can never be relabelled as agreement.
+        "by_construction": used > 0 and from_published == used,
         "basis": (
             "Both figures are this household's own metered half hours weighted by a grid shape "
-            "and compared with the flat annual method. BELIEF uses the company's reconstructed "
-            "shape; TRUTH uses NESO's published half-hourly carbon intensity. Both series "
-            "re-normalised over the half hours they share in {}, so the difference is physics "
-            "and not coverage.".format(year)
+            "and compared with the flat annual method. BELIEF uses the shape the company is "
+            "published (since 2026-10-05, NESO's published series where NESO published); TRUTH "
+            "uses NESO's published half-hourly carbon intensity. Both series re-normalised over "
+            "the half hours they share in {}, so the difference is physics and not "
+            "coverage.".format(year)
         ),
     }
 
@@ -332,6 +355,31 @@ def _household_gap_summary(accounts: list) -> dict:
     gaps = [row["gap_pp"] for row in measured]
     overstated = sum(1 for g in gaps if g > 0.0)
     flips = sum(1 for row in measured if row["sign_differs"])
+    agreed = sum(1 for row in measured if row.get("by_construction"))
+    if agreed == len(measured):
+        # SINCE 2026-10-05 the company reads NESO's published series for history, so on these
+        # days there is no company model left to score. Saying "the gap IS the score" over a
+        # gap of zero would publish a perfect score for a comparison of a series with itself.
+        statement = (
+            "On {} of {} household-days this page shows, the company's grid shape IS NESO's "
+            "published series, so the two agree by construction (the largest difference is {} "
+            "percentage points, from each side's year divisor). There is no company model left "
+            "to score on these days. The other days fall before NESO began publishing, or where "
+            "it published nothing usable, and their grid figures are an estimate from Elexon's "
+            "fuel mix."
+        ).format(len(measured), total, round(max(gaps, key=abs), 1))
+    else:
+        statement = (
+            "On {} of {} household-days this page shows, the company's grid shape can be "
+            "checked against NESO's published series, and on {} of them the shape IS that "
+            "series. It overstates the timing effect on {} of them, by {} percentage points on "
+            "average and {} at the widest{}."
+        ).format(
+            len(measured), total, agreed, overstated,
+            round(sum(gaps) / len(gaps), 1), round(max(gaps, key=abs), 1),
+            (", and on {} the two disagree about whether the household drew cleaner or dirtier "
+             "than average at all".format(flips)) if flips else "",
+        )
     return {
         "available": True,
         "panels_measured": len(measured),
@@ -341,23 +389,15 @@ def _household_gap_summary(accounts: list) -> dict:
         "max_gap_pp": round(max(gaps, key=abs), 2),
         "belief_overstates_on": overstated,
         "sign_flips": flips,
-        "statement": (
-            "On {} of {} household-days this page shows, the company's own grid shape can be "
-            "checked against NESO's published series. It overstates the timing effect on {} of "
-            "them, by {} percentage points on average and {} at the widest{}. The company is not "
-            "shown the published series and is not corrected by it: the gap IS the score."
-        ).format(
-            len(measured), total, overstated,
-            round(sum(gaps) / len(gaps), 1), round(max(gaps, key=abs), 1),
-            (", and on {} the two disagree about whether the household drew cleaner or dirtier "
-             "than average at all".format(flips)) if flips else "",
-        ),
+        "panels_by_construction": agreed,
+        "statement": statement,
     }
 
 
 def build(hh_days: dict, shape: dict, feed: dict, meter: dict) -> dict:
     accounts = []
     published = published_shape_from_feed(feed)
+    sources = sources_from_feed(feed)
     for account_id, day_record in sorted((hh_days.get("accounts") or {}).items()):
         if not isinstance(day_record, dict):
             continue
@@ -398,7 +438,8 @@ def build(hh_days: dict, shape: dict, feed: dict, meter: dict) -> dict:
                 "panel": panel_name,
                 "date": fp.period_from,
                 "year": row_year,
-                "belief_vs_truth": belief_versus_truth(reads, shape, published, feed, row_year),
+                "belief_vs_truth": belief_versus_truth(reads, shape, published, feed, row_year,
+                                                       sources),
                 # THE OTHER HALF OF THE MULTIPLICATION. `belief_vs_truth` measures the GRID
                 # side's error; this measures how much of the answer the CONSUMPTION side's
                 # national template placed. Both, or the page corrects one of two overstatements

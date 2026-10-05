@@ -22,10 +22,10 @@ At mint (2026-08-08) the ruling measured **82 harness vs 7 commercial across 206
 | `W2_customer_generator` | 51 | 44 | 7 |
 | `D_billing_metering` | 47 | 36 | 11 |
 | `W1_market_weather` | 31 | 22 | 9 |
-| `C_customer_ops` | 22 | 14 | 8 |
+| `C_customer_ops` | 22 | 15 | 7 |
 | `A_strategy_governance` | 16 | 9 | 7 |
 | `G_data_learning` | 15 | 9 | 6 |
-| `W4_the_wall` | 15 | 4 | 11 |
+| `W4_the_wall` | 15 | 3 | 12 |
 | `F_risk_compliance` | 11 | 6 | 5 |
 | `B_commercial` | 10 | 5 | 5 |
 | `E_finance_treasury` | 8 | 5 | 3 |
@@ -43,7 +43,7 @@ Matched on the atom id, as the ruling measured it; a floor, not a census.
 | Subject | Atoms | Of which survive a park-filtering reader |
 |---|---:|---:|
 | `clv` | 2 | 2 |
-| `counterparty_adapter` | 8 | 1 |
+| `counterparty_adapter` | 8 | 0 |
 | `forecast_feed` | 1 | 0 |
 | `tournament` | 1 | 0 |
 

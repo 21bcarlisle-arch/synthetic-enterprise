@@ -431,10 +431,13 @@ def test_the_reconstruction_is_handed_no_half_hourly_gas():
 
     from tools import generate_grid_intensity_feed as feed
 
-    source = inspect.getsource(feed.generate)
+    # `reconstruction_shape()` holds the dispatch call since 2026-10-05, when `generate()` began
+    # publishing `sim/grid_carbon_history.py` instead.
+    source = inspect.getsource(feed.reconstruction_shape)
+    assert "build_shape(" in source, "the subject no longer makes the dispatch call at all"
     assert "thermal_by_period" not in source, (
-        "generate() must hand build_shape the per-YEAR floor only; thermal_by_period is a "
-        "measurement input and must not reach the dispatch"
+        "reconstruction_shape() must hand build_shape the per-YEAR floor only; "
+        "thermal_by_period is a measurement input and must not reach the dispatch"
     )
     floors = fuel.thermal_floor_by_year(
         fuel.thermal_by_period(thermal_rows([(4000.0, 100.0)], date="2024-03-01"))
@@ -830,3 +833,48 @@ def test_pumped_storage_crosses_as_four_annual_scalars_each_way_and_never_half_h
     assert not hasattr(fuel, "pumped_storage_by_period")
     with pytest.raises(fuel.FuelOutturnUnavailable):
         fuel.pumped_storage_by_year([row("WIND", 6_000)])
+
+
+# --------------------------------------------------------------------------- #
+# Keyed by startTime: FUELHH's period-48 label is a day late up to 2022         #
+# --------------------------------------------------------------------------- #
+
+def _stamped(fuel_type: str, generation, label_date: str, label_period: int, start: str) -> dict:
+    return {"settlementDate": label_date, "settlementPeriod": label_period,
+            "startTime": start, "fuelType": fuel_type, "generation": generation}
+
+
+def test_a_row_labelled_D_48_starting_D_minus_1_2330Z_lands_on_D_minus_1_period_48():
+    """THE DEFECT: every reader here keyed FUELHH by its label. Up to 2022, the row labelled
+    (D, 48) is really D-1's last half hour: its `startTime` is D-1 23:30Z and its value continues
+    D-1's period 47. So one half hour in 48 landed on the wrong day in every coal, import, export,
+    wind, thermal, must-run, biomass and pumped-storage series the reconstruction reads.
+
+    MUTATION (must fire): make `row_settlement_key` read `settlementDate`/`settlementPeriod` first.
+    """
+    stamp = ("2016-01-07", 48, "2016-01-06T23:30:00Z")
+    rows = [_stamped("COAL", 900, *stamp), _stamped("INTFR", 1500, *stamp),
+            _stamped("CCGT", 8000, *stamp), _stamped("OCGT", 0, *stamp),
+            _stamped("WIND", 3000, *stamp)]
+    assert fuel.row_settlement_key(rows[0]) == ("2016-01-06", 48)
+    series = fuel.to_settlement_periods(rows)
+    assert set(series) == {("2016-01-06", 48)}
+    assert series[("2016-01-06", 48)]["coal_mw"] == 900.0
+    assert set(fuel.thermal_by_period(rows)) == {("2016-01-06", 48)}
+    assert set(fuel.wind_by_period(rows)) == {("2016-01-06", 48)}
+
+
+def test_the_autumn_clock_change_day_keeps_its_fiftieth_period():
+    """The same label defect on a 50-period day. The label tops out at 49, so the half hour
+    starting 2016-10-30T23:30Z (local 23:30 GMT) has to be that day's period 50."""
+    stamped = _stamped("CCGT", 7000, "2016-10-31", 48, "2016-10-30T23:30:00Z")
+    assert fuel.row_settlement_key(stamped) == ("2016-10-30", 50)
+
+
+def test_a_row_without_start_time_uses_its_label_and_a_malformed_one_is_skipped():
+    """Hand-built fixtures carry only the label. A malformed `startTime` must not fall back to
+    the label, because the label is the thing known to be wrong."""
+    assert fuel.row_settlement_key({"settlementDate": "2024-03-01", "settlementPeriod": 7}) == (
+        "2024-03-01", 7)
+    assert fuel.row_settlement_key({"settlementDate": "2024-03-01", "settlementPeriod": 7,
+                                    "startTime": "garbage"}) is None

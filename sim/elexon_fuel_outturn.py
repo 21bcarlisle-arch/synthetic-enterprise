@@ -91,8 +91,10 @@ import urllib.error
 import urllib.request
 from collections.abc import Iterable, Mapping
 from datetime import date as date_cls
-from datetime import timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
+
+from sim.neso_carbon_intensity import settlement_key
 
 BASE_URL = "https://data.elexon.co.uk/bmrs/api/v1"
 DATASET_ENDPOINT = "/datasets/FUELHH"
@@ -289,6 +291,35 @@ def import_factor(market: str, year: str) -> float | None:
     return None
 
 
+def row_settlement_key(row: Mapping) -> tuple[str, int] | None:
+    """(settlement date, period) for one FUELHH row, from its `startTime` and not its label.
+
+    THE LABEL IS WRONG FOR PERIOD 48 ON EVERY DAY UP TO 2022. The row labelled (D, 48) carries
+    `startTime` D-1 23:30Z, and its value continues D-1's period 47: the mean step to it is
+    1,056 MW, against 2,523 MW to D's own period 47 (measured 2026-10-05 over 2016-2021 CCGT).
+    So every reader here took D-1's last half hour and filed it as D's, a one-day shift on one
+    period in 48. The clock-change days were wrong the same way, with a missing period 46 or 50
+    and a stray one in its place. `settlement_key` counts elapsed half hours from local midnight,
+    so it gets 46 and 50 right. The label is used only when a row has no `startTime`. Real
+    FUELHH rows always carry one; the fallback is for hand-built fixtures.
+    """
+    start = row.get("startTime")
+    if start:
+        try:
+            stamp = str(start).rstrip("Z").replace("T", " ")[:16]
+            instant = datetime.strptime(stamp, "%Y-%m-%d %H:%M").replace(tzinfo=timezone.utc)
+            return settlement_key(instant)
+        except ValueError:
+            return None
+    date_str, period = row.get("settlementDate"), row.get("settlementPeriod")
+    if date_str is None or period is None:
+        return None
+    try:
+        return str(date_str)[:10], int(period)
+    except (TypeError, ValueError):
+        return None
+
+
 class FuelOutturnUnavailable(Exception):
     """The published mix could not be obtained or held nothing usable.
 
@@ -475,17 +506,12 @@ def to_settlement_periods(rows: Iterable[Mapping]) -> dict[tuple[str, int], dict
     # cables are summed — summing as we go would add a revised reading to the one it revises.
     latest: dict[tuple[tuple[str, int], str], float] = {}
     for row in rows:
-        date_str = row.get("settlementDate")
-        period = row.get("settlementPeriod")
+        key = row_settlement_key(row)
         fuel = row.get("fuelType")
         value = row.get("generation")
-        if date_str is None or period is None or fuel is None or value is None:
+        if key is None or fuel is None or value is None:
             continue
         if isinstance(value, bool) or not isinstance(value, (int, float)):
-            continue
-        try:
-            key = (str(date_str), int(period))
-        except (TypeError, ValueError):
             continue
         latest[(key, str(fuel))] = float(value)
 
@@ -554,9 +580,8 @@ def exports_by_period(rows: Iterable[Mapping]) -> dict[tuple[str, int], float]:
             continue
         if isinstance(value, bool) or not isinstance(value, (int, float)):
             continue
-        try:
-            key = (str(row["settlementDate"]), int(row["settlementPeriod"]))
-        except (KeyError, TypeError, ValueError):
+        key = row_settlement_key(row)
+        if key is None:
             continue
         latest[(key, str(fuel))] = float(value)
     out: dict[tuple[str, int], float] = {}
@@ -581,9 +606,8 @@ def wind_by_period(rows: Iterable[Mapping]) -> dict[tuple[str, int], float]:
             continue
         if isinstance(value, bool) or not isinstance(value, (int, float)):
             continue
-        try:
-            key = (str(row["settlementDate"]), int(row["settlementPeriod"]))
-        except (KeyError, TypeError, ValueError):
+        key = row_settlement_key(row)
+        if key is None:
             continue
         out[key] = max(0.0, float(value))
     return out
@@ -696,19 +720,14 @@ def thermal_by_period(rows: Iterable[Mapping]) -> dict[tuple[str, int], float]:
     """
     latest: dict[tuple[tuple[str, int], str], float] = {}
     for row in rows:
-        date_str = row.get("settlementDate")
-        period = row.get("settlementPeriod")
+        key = row_settlement_key(row)
         fuel = row.get("fuelType")
         value = row.get("generation")
-        if date_str is None or period is None or fuel is None or value is None:
+        if key is None or fuel is None or value is None:
             continue
         if str(fuel) not in THERMAL_FUEL_TYPES:
             continue
         if isinstance(value, bool) or not isinstance(value, (int, float)):
-            continue
-        try:
-            key = (str(date_str), int(period))
-        except (TypeError, ValueError):
             continue
         # LAST ROW WINS, the same revision rule the coal and cable parse applies.
         latest[(key, str(fuel))] = float(value)
@@ -832,19 +851,14 @@ def zero_carbon_must_run_by_period(
     """
     latest: dict[tuple[tuple[str, int], str], float] = {}
     for row in rows:
-        date_str = row.get("settlementDate")
-        period = row.get("settlementPeriod")
+        key = row_settlement_key(row)
         fuel = row.get("fuelType")
         value = row.get("generation")
-        if date_str is None or period is None or fuel is None or value is None:
+        if key is None or fuel is None or value is None:
             continue
         if str(fuel) not in ZERO_CARBON_MUST_RUN_FUEL_TYPES:
             continue
         if isinstance(value, bool) or not isinstance(value, (int, float)):
-            continue
-        try:
-            key = (str(date_str), int(period))
-        except (TypeError, ValueError):
             continue
         # LAST ROW WINS, the same revision rule the coal, cable and thermal parses apply.
         latest[(key, str(fuel))] = float(value)
@@ -882,20 +896,16 @@ def zero_carbon_must_run_coverage(rows: Iterable[Mapping]) -> dict[str, float]:
     """
     latest: dict[tuple[tuple[str, int], str], float] = {}
     for row in rows:
-        date_str = row.get("settlementDate")
-        period = row.get("settlementPeriod")
+        key = row_settlement_key(row)
         fuel = row.get("fuelType")
         value = row.get("generation")
-        if date_str is None or period is None or fuel is None or value is None:
+        if key is None or fuel is None or value is None:
             continue
         if str(fuel) not in ZERO_CARBON_MUST_RUN_FUEL_TYPES:
             continue
         if isinstance(value, bool) or not isinstance(value, (int, float)):
             continue
-        try:
-            latest[((str(date_str), int(period)), str(fuel))] = float(value)
-        except (TypeError, ValueError):
-            continue
+        latest[(key, str(fuel))] = float(value)
 
     keys = {k for k, _ in latest}
     usable = 0
@@ -950,13 +960,15 @@ def biomass_by_period(rows: Iterable[Mapping]) -> dict[tuple[str, int], float]:
     for row in rows:
         if str(row.get("fuelType")) != BIOMASS_FUEL_TYPE:
             continue
-        settlement_date = str(row.get("settlementDate") or "")[:10]
+        key = row_settlement_key(row)
         try:
-            period = int(row.get("settlementPeriod"))
             mw = float(row.get("generation"))
         except (TypeError, ValueError):
             continue
-        if not settlement_date or not (1 <= period <= 50):
+        if key is None or not key[0]:
+            continue
+        settlement_date, period = key
+        if not (1 <= period <= 50):
             continue
         # LAST ROW WINS, the same rule `to_settlement_periods` keeps: FUELHH is republished with
         # revisions and the later row is the corrected one.
@@ -1063,10 +1075,10 @@ def pumped_storage_by_year(rows: Iterable[Mapping]) -> dict[int, dict[str, float
         value = row.get("generation")
         if isinstance(value, bool) or not isinstance(value, (int, float)):
             continue
-        try:
-            latest[(str(row["settlementDate"])[:10], int(row["settlementPeriod"]))] = float(value)
-        except (KeyError, TypeError, ValueError):
+        key = row_settlement_key(row)
+        if key is None:
             continue
+        latest[key] = float(value)
     by_year: dict[int, list[float]] = {}
     for key, mw in latest.items():
         try:

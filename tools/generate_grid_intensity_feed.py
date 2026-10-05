@@ -8,8 +8,19 @@ INDEX: searched "feed", "market_data", "publish", "generate", "intensity", "carb
        price_feed.json` and `consumption_feed.json` are already how a world quantity reaches
        the company layer, both `{published_at, records}`, both written by a producer on the
        world side and read by name on the company side. This is the third feed of that shape
-       and it deliberately looks identical. The SHAPE itself comes from
-       `sim/grid_carbon_intensity.py`; nothing is recomputed here.
+       and it deliberately looks identical. The VALUES come from `sim/grid_carbon_history.py`;
+       nothing is recomputed here except the per-year normalisation.
+
+WHERE THE NUMBERS COME FROM (since 2026-10-05). The director's ruling: "For historical periods,
+take the published series and align it to settlement." So this feed is NESO's published national
+carbon intensity wherever NESO published one (from 2018-05-11), aligned to settlement periods by
+`sim/grid_carbon_history.py`. Before that date, and in the few half hours NESO left empty or
+published as an outage, the value is NESO's own arithmetic on Elexon's published fuel mix, and
+every record says which (`source`). Until that date this feed published EP13's dispatch
+RECONSTRUCTION (`sim/grid_carbon_intensity.py`), and the page measured that model against NESO.
+`reconstruction_shape()` below still builds it, for EP13 to be graded with, but it is no longer
+published. So the household belief-versus-published comparison now agrees by construction
+wherever NESO published. It is kept as a plumbing control, not a score.
 
 WHY A FEED AND NOT AN IMPORT. The company may not import `sim.*` -- that is the epistemic wall,
 and `tests/architecture/test_epistemic_wall_ratchet.py` refuses a new crossing. But a GB supplier
@@ -61,7 +72,6 @@ from sim.generation_demand_history import (  # noqa: F401
     aggregate_wind_generation,
 )
 from sim.grid_carbon_intensity import (
-    SHAPE_BASIS,
     ShapeUnavailable,
     aggregate_demand,
     build_shape,
@@ -138,135 +148,57 @@ def dates_with_reads(paths=READ_BEARING_ARTEFACTS) -> set[str]:
             continue
     return found
 
+#: What the published numbers are. `published_shape`'s normalisation, stated so a reader can undo it.
+HISTORY_BASIS = (
+    "dimensionless: each half hour's gCO2/kWh from sim/grid_carbon_history.py divided by its "
+    "calendar year's DEMAND-WEIGHTED mean (Elexon INDO demand), so each year averages 1.0. The "
+    "gCO2/kWh is NESO's published national outturn from 2018-05-11 (consumption basis, "
+    "loss-corrected, imports at the exporting country's intensity). Before that, and where NESO "
+    "published nothing usable, it is NESO's own methodology applied to Elexon's published "
+    "half-hourly fuel mix (FUELHH) plus NESO's embedded wind and solar estimate, at NESO's "
+    "published factors. Every record carries its `source`."
+)
+
 #: Named on the face of the feed, because a consumer that does not know these cannot state them
 #: and the advisor's scope brief makes stating them the condition of publishing at all
 #: ("a carbon figure without its basis is not a measurement, it is a slogan").
 NAMED_GAPS = [
-    "the thermal stack is floored at the CCGT+OCGT fleet's demonstrated annual MINIMUM output, so "
-    "no half hour is dispatched with no gas running -- but that floor is the year's single lowest "
-    "reading (303 MW in 2024, against a 1st percentile of 1,720 MW), deliberately the most "
-    "conservative number available, so quiet half hours still run less gas than GB actually ran",
-    "the shape's TIMING against the published series is now 0.93-0.97 correlation in every year "
-    "2019-2024 (0.95 in 2024). Four corrections moved it: measuring the fleet GB actually ran "
-    "(2026-08-26), no longer subtracting embedded solar from a demand series already net of it "
-    "(2026-09-30), serving the exports INDO excludes (2026-09-30), and subtracting "
-    "transmission-METERED wind instead of AGWS wind (2026-10-01), which alone took 2024 from 0.72 "
-    "to 0.95 and 2023 from 0.81 to 0.97. NESO's own day-ahead forecast scores 0.97, so the rest is "
-    "within reach of a peer, not closed",
-    "the model's gas LEVEL still overshoots metered CCGT in 2024 by about 1.3 GW and in 2016-2017 "
-    "by 0.8-1.2 GW, for reasons not yet established. AGWS offshore wind reads 0.52-0.70 of DESNZ's "
-    "offshore generation in every year 2016-2024, which is why the wind now subtracted is FUELHH "
-    "WIND (AGWS only where FUELHH has no reading); why the AGWS series is short is not established. "
-    "Exports are served and divided by at the half hour's AVERAGE rate, the basis NESO publishes "
-    "on; charging them the MARGINAL gas instead would be a different, defensible convention",
-    "interconnector imports are counted at NESO's own published per-cable factors. Two of GB's "
-    "nine cables postdate that table: Viking Link is left out of NESO's mix and is left out here, "
-    "and North Sea Link is priced by the same table applied to Norway's ANNUAL published mix "
-    "(4-7 gCO2/kWh, Statistics Norway), where NESO applies it to the previous day's. A year with "
-    "no published Norwegian mix leaves North Sea Link dispatched as GB gas, which reads dirtier "
-    "than it was",
-    "coal is dispatched from the fleet's demonstrated annual maximum, but its place in merit is "
-    "fixed above the CCGT band rather than recomputed from the gas/coal spread, so the 2021-22 "
-    "gas spike understates coal",
-    "the must-run block is no longer a constant 8 GW -- nuclear and run-of-river hydro now come "
-    "from Elexon's published half-hourly outturn (99.97% of half hours; 544 MW to 9,831 MW "
-    "against the 5,600 MW this model used to assume) -- but the BIOMASS half of that block is "
-    "still FLAT. Since 2026-10-02 it sits at each year's measured mean output (1.5-2.2 GW over "
-    "2019-2024, against the 2,400 MW it replaced), so the year's biomass energy is right and its "
-    "timing is not: GB's fleet runs between about 0.2 and 3.1 GW within a year (p1 to p99) and "
-    "this one never moves. Biomass carries 120 gCO2/kWh on NESO's own table, so its half-hourly "
-    "output is an emissions term and may not cross the wall; when it ran is an outage question "
-    "the residual cannot answer",
+    "before 2018-05-11 every value is an ESTIMATE (`source: fuelmix_estimate`). It is NESO's "
+    "methodology on Elexon's fuel mix, scaled by a factor fitted where both exist. NESO's own "
+    "level steps down around 2020-04-28 for a reason not established, so the scale is fitted on "
+    "2018-05-11..2020-04-27, the level the estimate joins at 2018-05-11. On the later basis the "
+    "same arithmetic would read about 13% lower",
+    "before 2017-11-01 Elexon publishes no BIOMASS fuel type and biomass sits inside OTHER; that "
+    "OTHER is priced at NESO's biomass factor, which is the larger share of it by an order of "
+    "magnitude. Priced at OTHER's own factor it would read about 10 gCO2/kWh higher",
+    "inside NESO's coverage, a half hour NESO left empty or published as an outage (a null or "
+    "zero `actual`) is filled from the fuel mix UNSCALED (`source: fuelmix_fill`), about 0.6% of "
+    "2018-05-11..2025",
+    "a half hour with neither source is ABSENT from the feed, never interpolated. Elexon's mix "
+    "has its own outage signature, every fuel at 0 MW, which is refused rather than priced",
     "national only -- no regional series is offered, modelled or otherwise",
     "outturn, never forecast: this grades what happened and must not judge shifting advice",
-    "no loss correction is applied here and none must be applied downstream either",
+    "NESO's series is already loss-corrected to a consumed basis, and no further correction must "
+    "be applied downstream",
+    "normalised per calendar year over the half hours Elexon's demand record covers, which runs "
+    "2016-03-01..2025-06-07, so 2016 and 2025 are normalised over the part of the year it covers",
 ]
 
-#: The one a reader should take away. The CONCLUSION is measured; the REASON is not a tidy story.
-#:
-#: THE REASON WAS WRONG AND CONTRADICTED THE LIST TWENTY LINES ABOVE IT (2026-08-25, Expert Hour
-#: finding). This sentence used to say "no coal and no interconnector imports BOTH make quiet half
-#: hours look cleaner". `NAMED_GAPS` says the opposite on both limbs, in the same module, in the
-#: same feed: coal omission is a DIRTY-end error ("coal-heavy years read cleaner than GB was at
-#: the dirty end"), and the import omission makes half hours read DIRTIER, not cleaner -- GB is a
-#: net importer of French nuclear and Norwegian hydro, and NESO's consumption basis counts them at
-#: the exporting country's intensity. So the two gaps push in OPPOSITE directions and only their
-#: NET effect is knowable, which is precisely why it has to be measured rather than argued.
-#:
-#: It is measured, and the conclusion survives its broken reasoning: over the years both series
-#: cover this shape's clean end sits near 0.06 of average against NESO's 0.19. The clean end IS
-#: optimistic. What could not be asserted from the gap list -- and was -- is WHY.
-#:
-#: MEASURED, NOT RECALLED, AND THE DIFFERENCE COST SOMETHING (2026-08-25). This sentence used
-#: to continue "measured over 2016-2025 this shape's quietest half hours sit around 0.05 of
-#: average against NESO's published series bottoming out nearer 0.16". That comparison had
-#: never been run: no NESO series existed in this tree and no fetch had ever happened. It was
-#: a recollection written in the grammar of a measurement, in the one sentence whose job is to
-#: say which way the errors point, and it was repeated as evidence in a level certification.
-#: `sim/neso_carbon_intensity.py` now fetches the published series and measures it. The
-#: qualitative claim survived; the SIZE did not, and the headline had never been stated at all.
-#: STILL OPTIMISTIC AFTER THE TWO LARGEST GAPS WERE CLOSED (2026-08-25). Coal is now dispatched
-#: and interconnector imports are now carried, and the clean end moved from 3.2x too clean to
-#: 2.3x — a real improvement that does not change the sentence's direction, which is the point
-#: worth publishing. The remaining cause is named and sized in `NAMED_GAPS`: this model still
-#: lets the thermal stack reach exactly zero, in 16.1% of 2024's half hours.
+#: The one a reader should take away, and it is no longer about a model. The feed IS the published
+#: series where one exists; what remains is the estimate before it, measured, and the forecast
+#: ceiling, which no series can remove. Both quoted figures are held to the feed by a test.
 ERROR_DIRECTION = (
-    "The WITHIN-day range is CLOSE and never too narrow, and that is the sentence to "
-    "carry: this shape's p95/p5 spread runs about 1.22x the published series', most of it "
-    "between days. Split day-by-day, this shape's BETWEEN-day swing runs "
-    "(1.01-1.11x, mean 1.06) of the published series' over 2019-2024, and its WITHIN-day swing "
-    "runs (1.00-1.10x, mean 1.04): too WIDE in 2019, 2020, 2023 and 2024; MATCHED to two places "
-    "in 2021 and 2022; A customer can move the washing from 6pm to 2am; they "
-    "cannot move it to a windier Tuesday in March -- so a time-shifting benefit computed from "
-    "this shape is an UPPER BOUND, by up to 0.10 of the swing, and an understatement in no year. "
-    "PRICING NORTH SEA LINK AT NORWAY'S PUBLISHED MIX (2026-10-04, s35) instead of as GB gas took "
-    "2024's within-day from 0.97x to 1.07x and between-day from 0.97x to 1.07x, raised "
-    "correlation in 2021-2024, WORSENED p95/p5 from 1.15x to 1.22x and improved max/min from "
-    "1.23x to 1.21x: the unpriced cable had been hiding an over-swing (s32). Three earlier "
-    "corrections set the within-day picture: the model "
-    "dispatches pumped storage with perfect foresight of the day's residual, which flattens the "
-    "day by more than GB's fleet did (EP13 frame doc s25); embedded wind sits beside "
-    "embedded solar in the denominator, on NESO's definition, which widens it again (s26); and "
-    "the flat biomass block sits at each year's measured mean rather than 2,400 MW, which "
-    "narrows it a little (s27). "
-    "SERVING VIKING AND ELECLINK OUTSIDE THE MIX (2026-10-04), as NESO's own series does (s34), "
-    "took 2024's within-day from 0.93x to 0.97x and between-day from 0.93x to 0.97x, and "
-    "WORSENED p95/p5 from 1.13x to 1.15x and max/min from 1.21x to 1.23x. "
-    "HOLDING BIOMASS AT THE YEAR'S MEASURED MEAN (2026-10-02) took within-day from a mean 1.02x "
-    "to 1.00x and p95/p5 from 1.18x to 1.13x, and WORSENED max/min from 1.12x to 1.21x. "
-    "ADDING EMBEDDED WIND TO THE DENOMINATOR (2026-10-02) took within-day from a mean 0.98x to "
-    "1.02x, p95/p5 from 1.07x to 1.18x and max/min from 0.99x to 1.12x. "
-    "DISPATCHING PUMPED STORAGE (2026-10-02) took within-day from a mean 1.15x to 0.98x, p95/p5 "
-    "from 1.19x to 1.07x and max/min from 1.09x to 0.99x. "
-    "REMOVING THE SOLAR DOUBLE-COUNT (2026-09-30) cut the within-day overstatement from a mean "
-    "1.45x to 1.26x and p95/p5 from 1.38x to 1.31x, and moved max/min from 1.01x to 1.08x. "
-    "SERVING EXPORTS (2026-09-30) took within-day to 1.19x and p95/p5 to 1.25x, and max/min "
-    "to 1.12x. SUBTRACTING TRANSMISSION-METERED WIND (2026-10-01) took within-day to 1.15x, "
-    "p95/p5 to 1.19x and max/min to 1.09x. "
-    "MEASURING THE MUST-RUN FLEET (2026-08-26) IMPROVED THAT AXIS AND WORSENED THE HEADLINE, "
-    "and both halves are published because reporting only the first is how a correction becomes "
-    "a claim: within-day overstatement fell from 1.48x to 1.45x (and from 1.44x to 1.35x in "
-    "2024), max/min overstatement fell from 1.04x to 1.01x, correlation and mean absolute error "
-    "improved in ALL SIX measured years -- while p95/p5 overstatement rose from 1.36x to 1.38x, "
-    "worse in four years of six. p95/p5 and max/min are two statistics under one word 'spread' "
-    "and they moved in opposite directions here, so neither is quoted alone. What "
-    "is no longer true, and was "
-    "until the thermal floor was measured on 2026-08-25, is that the clean END is uniformly "
-    "optimistic: flooring the stack at the gas fleet's demonstrated annual minimum moved the "
-    "quietest half hours from about 3.2x too clean to a MIXED picture -- still cleaner than "
-    "published in 2022, 2023 and 2024, and DIRTIER than published in 2019, 2020 and 2021. "
-    "That is MEASURED, year by year, in `versus_published` below and never inferred from the gap "
-    "list, which is the same reason the gaps are not all pushing one way: an import's sign "
-    "depends on what it displaced -- against the mid-merit gas band a Dutch import is dirtier "
-    "than what it replaced, against a peaker it is cleaner -- so only the net is knowable. "
-    "AND THERE IS A SECOND FACTOR ON THE SAME SIDE THAT IS NOT ABOUT THIS MODEL AT ALL, "
-    "measured 2026-08-26 and carried in `published_forecast_skill` below. Every figure here is "
-    "computed with hindsight; a household has to act on a FORECAST. Graded against NESO's own "
-    "outturn, NESO's own published forecast picks a three-hour window that delivers about 86% "
-    "of that day's achievable within-day saving on the mean day, about 55% on the worst day in "
-    "twenty, and on a handful of days a window DIRTIER than simply not shifting. That ceiling "
-    "cannot be built away by improving this model, so the honest reading of any timing benefit "
-    "on this feed is this model's overstatement TIMES what a forecast could actually pick."
+    "This shape IS NESO's published national carbon intensity wherever NESO published one (from "
+    "2018-05-11), aligned to settlement periods -- not a model of it. Before that date it is NESO's "
+    "own arithmetic applied to Elexon's published fuel mix, and that estimate is MEASURED against "
+    "NESO on 2018-05-11..2020-04-27 at correlation 0.978, mean bias -0.6 gCO2/kWh and RMSE 13.3 "
+    "gCO2/kWh after the fitted scale. THE ERROR THAT REMAINS IS NOT ABOUT THIS SHAPE. Every figure "
+    "here is OUTTURN, computed with hindsight, and a household has to act on a FORECAST. Graded "
+    "against NESO's own outturn, NESO's own published forecast picks a three-hour window that "
+    "delivers about 84% of that day's achievable within-day saving on the mean day, about 45% "
+    "on the worst day in twenty, and on some days a window DIRTIER than not shifting at all. So "
+    "a timing benefit read off this feed is an UPPER BOUND on what advice could have delivered, "
+    "and that ceiling cannot be built away by improving any model."
 )
 
 
@@ -342,9 +274,11 @@ def published_series(demand: dict) -> tuple[dict | None, str, dict | None]:
     stated in.
     """
     try:
+        from sim import grid_carbon_history as history
         from sim import neso_carbon_intensity as neso
 
-        parsed = neso.to_settlement_periods(neso.load_cached())
+        # The live cache plus the 2018 and 2025 windows it does not hold (`history`'s loader).
+        parsed = neso.to_settlement_periods(history.load_neso_records())
         return neso.published_shape(neso.actual_by_period(parsed), demand), "", parsed
     except Exception as exc:  # noqa: BLE001 -- an absent comparison is reported, never fatal
         return None, "{}: {}".format(type(exc).__name__, exc), None
@@ -425,6 +359,14 @@ def versus_published(shape: dict, demand: dict, published: dict | None = None,
     return {
         "available": True,
         "source": neso.PUBLISHED_BASIS,
+        # TRUE when the shape compared IS the published series on every shared half hour, which
+        # is what the feed publishes since 2026-10-05. Then every ratio below is 1.0 and the
+        # correlation 1.0 BY CONSTRUCTION. That is the control that the feed carries NESO's values
+        # and not a model's; it is not evidence of a model agreeing with NESO.
+        "by_construction": all(
+            row["mean_abs_error"] is not None and row["mean_abs_error"] < 1e-9
+            for row in years.values()
+        ),
         "by_year": years,
         "spread_overstated_by": round(sum(overstatement) / len(overstatement), 2),
         "p95_spread_overstated_by": (
@@ -436,6 +378,11 @@ def versus_published(shape: dict, demand: dict, published: dict | None = None,
             for y, r in years.items() if not r["counts_toward_headline"]
         },
         "what_it_means": (
+            "Since 2026-10-05 this feed's shape IS NESO's published series wherever NESO "
+            "published, so on the half hours the two share this comparison agrees by construction "
+            "(`by_construction`) and measures nothing about the grid. It stays as the check that "
+            "the feed carries the published values. The error the feed DOES carry is the estimate "
+            "before 2018-05-11, measured in `history`. "
             "Both series re-normalised over the half hours they share, so this is a difference "
             "in the physics and not in the coverage. `spread_overstated_by` compares max/min on "
             "both sides -- the whole range, two half hours wide. `p95_spread_overstated_by` "
@@ -524,39 +471,67 @@ def published_forecast_skill(shape: dict, parsed: dict | None, why_unavailable: 
     }
 
 
-def _cables(rule) -> list[str]:
-    """The cables `rule(cable, market, adapter)` selects, named from the adapter's own tables."""
-    from sim import elexon_fuel_outturn as fuel
+def _history_block(meta: dict) -> dict:
+    """The estimate's measured error and the source counts, copied from `grid_carbon_history`.
 
-    return [f"{c} ({m})" for c, m in fuel.INTERCONNECTOR_MARKETS.items() if rule(c, m, fuel)]
+    Rounded for publishing. Every figure here is computed in `sim/grid_carbon_history.py` and only
+    copied, so a sentence quoting it can be held to it.
+    """
+    def stats(table: dict) -> dict:
+        return {
+            year: {
+                "half_hours": int(row["n"]),
+                "correlation": round(float(row["correlation"]), 4),
+                "mean_bias_g_co2_per_kwh": round(float(row["mean_bias"]), 2),
+                "rmse_g_co2_per_kwh": round(float(row["rmse"]), 2),
+            }
+            for year, row in table.items()
+        }
+
+    return {
+        "module": "sim/grid_carbon_history.py",
+        "sources": {
+            "neso_published": "NESO's published national `actual`, from 2018-05-11",
+            "fuelmix_estimate": "before 2018-05-11: NESO's arithmetic on Elexon FUELHH, scaled",
+            "fuelmix_fill": "inside NESO's coverage where NESO published nothing usable; unscaled",
+        },
+        "scale_fitted": round(float(meta["scale_fitted"]), 4),
+        "scale_fit_window": list(meta["scale_fit_window"]),
+        "scale_whole_overlap_not_applied": round(float(meta["scale_whole_overlap"]), 4),
+        "estimate_versus_published_raw": stats(meta["overlap_statistics"]),
+        "estimate_versus_published_fit_window_after_scale": stats(
+            {"ALL": meta["overlap_statistics_fit_window_scaled"]["ALL"]})["ALL"],
+        "half_hours_by_source_and_year": meta.get("coverage_by_year"),
+        "what_it_means": (
+            "`estimate_versus_published_raw` is the unscaled fuel-mix arithmetic against NESO, "
+            "by year, wherever both exist: the error a `fuelmix_fill` value carries. The "
+            "`..._after_scale` row is the error a `fuelmix_estimate` value carries, as far as it "
+            "can be measured, which is in-sample on the window the scale was fitted on."
+        ),
+    }
 
 
 def build(shape: dict, demand: dict, *, window_days: int = RECORD_WINDOW_DAYS,
           extra_dates: set[str] | None = None,
-          import_coverage: dict | None = None,
-          coal_capacity_by_year: dict | None = None,
-          thermal_floor_by_year: dict | None = None,
-          zero_carbon_must_run_coverage: dict | None = None,
-          biomass_envelope_by_year: dict | None = None) -> dict:
+          sources: dict | None = None,
+          history: dict | None = None) -> dict:
     if not shape:
         raise ShapeUnavailable("no shape to publish")
     last_date = max(key[0] for key in shape)
     first_kept = (datetime.fromisoformat(last_date) - timedelta(days=window_days)).date().isoformat()
     wanted = set(extra_dates or ())
+    sources = sources or {}
 
-    # THE PUBLISHED SERIES TRAVELS WITH THE RECORDS, not only as a year-level summary. A reader
-    # given "this model overstates the range by 3.2x" can only apply it as a hand-wave to a
-    # particular household's day; the two values side by side in the same half hour let the same
-    # arithmetic be done twice and the ANSWERS compared, which is the coupled-triad rung: the
-    # company's belief, the world's published truth, and the gap between them for THIS meter.
-    # `null` where NESO published nothing -- an absence, never a substituted 1.0, which would be
-    # the flat method smuggled in and would always pull the gap toward zero.
+    # THE PUBLISHED SERIES TRAVELS WITH THE RECORDS. Since 2026-10-05 `shape` and `published` are
+    # the same numbers wherever `source` is `neso_published`, up to each side's year divisor.
+    # `null` where NESO published nothing -- an absence, never a substituted 1.0.
     published, published_why, published_parsed = published_series(demand)
     records = [
         {
             "date": date_str,
             "period": period,
             "shape": round(value, 5),
+            "source": sources.get((date_str, period)),
             "published": (
                 None if published is None or (date_str, period) not in published
                 else round(published[(date_str, period)], 5)
@@ -566,9 +541,14 @@ def build(shape: dict, demand: dict, *, window_days: int = RECORD_WINDOW_DAYS,
         if date_str >= first_kept or date_str in wanted
     ]
     by_year = summarise(shape, demand)
+    source_by_year: dict[str, dict[str, int]] = {}
+    for (date_str, _period), tag in sources.items():
+        if (date_str, _period) in shape:
+            row = source_by_year.setdefault(date_str[:4], {})
+            row[str(tag)] = row.get(str(tag), 0) + 1
     return {
         "published_at": datetime.now(timezone.utc).isoformat(),
-        "basis": SHAPE_BASIS,
+        "basis": HISTORY_BASIS,
         "how_to_use": (
             "Multiply by YOUR OWN published annual grid intensity for the record's calendar "
             "year. This series is deliberately dimensionless and there is no absolute "
@@ -578,114 +558,15 @@ def build(shape: dict, demand: dict, *, window_days: int = RECORD_WINDOW_DAYS,
         "error_direction": ERROR_DIRECTION,
         "named_gaps": NAMED_GAPS,
         "source": (
-            "Elexon Insights half-hourly demand outturn (INDO), wind+solar generation outturn "
-            "(AGWS) and generation-by-fuel-type outturn (FUELHH, for coal availability and "
-            "interconnector flow), through the dispatch stack in "
-            "sim/merit_order_reconstruction.py (DUKES 5.10.C efficiencies, DUKES 5.14 coal "
-            "emission factors, DESNZ GHG conversion factors). Import carbon intensities are "
-            "NESO's own published figures (Carbon Intensity Forecast Methodology, Table 1)."
+            "NESO Carbon Intensity API (api.carbonintensity.org.uk) national half-hourly outturn "
+            "from 2018-05-11. Before that, and in NESO's empty or outage half hours: Elexon "
+            "Insights generation by fuel type (FUELHH) and NESO's embedded wind and solar "
+            "estimate (Historic Demand Data), combined at NESO's published factors (Carbon "
+            "Intensity Forecast Methodology, Table 1). Normalised with Elexon's demand outturn "
+            "(INDO). Built by sim/grid_carbon_history.py."
         ),
-        # WHAT THE MODELLED SLICE OF IMPORTS ACTUALLY IS, as a measured fraction of imported
-        # MWh rather than as an adjective. A cable inside NESO's mix with neither a Table 1 row
-        # nor a published annual mix for the year is left modelled as GB generation, and this
-        # number says how much of the answer that is. Viking and ElecLink are outside NESO's mix (s33-s34)
-        # and so outside the fraction. A gap quoted in per cent can be argued with; "some
-        # imports are not covered" cannot.
-        "import_coverage": (
-            None if import_coverage is None else {
-                "covered_fraction": round(float(import_coverage["covered_fraction"]), 4),
-                "uncovered_cables": _cables(lambda c, m, fuel: c not in fuel.OUTSIDE_NESO_MIX
-                                            and m not in fuel.IMPORT_INTENSITY_G_CO2_PER_KWH
-                                            and m not in fuel.ANNUAL_MIX_GWH),
-                "outside_neso_mix_cables": _cables(lambda c, m, fuel: c in fuel.OUTSIDE_NESO_MIX),
-                "what_it_means": (
-                    "The share of the imported MWh inside NESO's published mix, over the whole "
-                    "series, that this feed can price: at NESO's Table 1 factor, or for North "
-                    "Sea Link at Table 1 applied to Norway's published annual mix. Any remainder "
-                    "is dispatched as GB generation, which reads DIRTIER than it was. Viking "
-                    "Link and ElecLink are left out "
-                    "of NESO's mix, so they meet demand here and are counted in neither the "
-                    "emissions nor the denominator."
-                ),
-            }
-        ),
-        # A CAPACITY THAT MEASURES ITSELF TO ZERO. Published so a reader can see the coal fleet
-        # close in the data rather than trust that a hand-written end date was right.
-        "coal_demonstrated_max_mw": (
-            None if coal_capacity_by_year is None
-            else {str(y): round(float(mw)) for y, mw in sorted(coal_capacity_by_year.items())}
-        ),
-        # WHAT THE FLEET WAS NEVER OBSERVED BELOW, and the diagnostic that says whether to
-        # believe it. `floor_mw` is the year's smallest CCGT+OCGT reading and is the number the
-        # dispatch uses; `p1_mw` is the 1st percentile of the same year, published ONLY so a
-        # reader can see whether that minimum is a lone outlier. Using p1 instead would raise the
-        # floor, narrow the modelled swing and improve this model's score against the published
-        # series -- which is why the robust statistic is the one that is reported and the raw
-        # minimum is the one that is consumed (R12).
-        "thermal_floor_mw": (
-            None if thermal_floor_by_year is None
-            else {
-                str(y): {
-                    "floor_mw": round(float(r["floor_mw"])),
-                    "p1_mw": round(float(r["p1_mw"])),
-                    "half_hours": int(r["half_hours"]),
-                }
-                for y, r in sorted(thermal_floor_by_year.items())
-            }
-        ),
-        # THE BIOMASS ENVELOPE, PUBLISHED AS A MEASUREMENT AND NOT AS AN INPUT. `capacity_mw`
-        # and `floor_mw` are what the fleet was observed at its highest and lowest that year;
-        # `mean_mw` is where it actually spent its time. Only the mean reaches the shape, as the
-        # flat block's level (`biomass_flat_at_year_mean`); the ends do not -- see `BIOMASS_DISPATCH_WIRED` for the measurement that decided that and for why the
-        # answer is an outage model rather than a tidier percentile.
-        #
-        # IT IS PUBLISHED ANYWAY, AND THAT IS THE POINT OF PUBLISHING IT: the basis line says
-        # biomass is a flat block at the year's mean (`mean_mw`, the one figure here that DOES
-        # reach the shape, since s27), and the ends are how a reader checks how far from flat
-        # GB's fleet ran without taking this project's word for it. A named gap with its size
-        # beside it is a different artefact from a named gap alone.
-        "biomass_envelope_mw": (
-            None if biomass_envelope_by_year is None
-            else {
-                str(y): {
-                    "floor_mw": round(float(r["floor_mw"])),
-                    "capacity_mw": round(float(r["capacity_mw"])),
-                    "p1_mw": round(float(r["p1_mw"])),
-                    "p99_mw": round(float(r["p99_mw"])),
-                    "mean_mw": round(float(r["mean_mw"])),
-                    "half_hours": int(r["half_hours"]),
-                }
-                for y, r in sorted(biomass_envelope_by_year.items())
-            }
-        ),
-        # HOW MUCH OF THE SERIES ACTUALLY GOT THE CORRECTION, because the shape cannot show it.
-        # A half hour served from the flat 5,600 MW block and one served from a MEASURED 5,600 MW
-        # produce an identical number, so without this count the nuclear-and-hydro correction
-        # could quietly stop applying to most of the series and nothing downstream would read
-        # differently (R15 FAIL-SILENT). `negative_half_hours` is the one to watch: it is the
-        # second of the two conditions that let this series cross the wall at half-hourly grain
-        # at all, and the day it stops being zero the crossing has to be re-argued.
-        "zero_carbon_must_run_coverage": (
-            None if zero_carbon_must_run_coverage is None else {
-                "usable_fraction": round(
-                    float(zero_carbon_must_run_coverage["usable_fraction"]), 4),
-                "usable_half_hours": int(zero_carbon_must_run_coverage["usable_half_hours"]),
-                "negative_half_hours": int(
-                    zero_carbon_must_run_coverage["negative_half_hours"]),
-                "min_mw": round(float(zero_carbon_must_run_coverage["min_mw"])),
-                "mean_mw": round(float(zero_carbon_must_run_coverage["mean_mw"])),
-                "max_mw": round(float(zero_carbon_must_run_coverage["max_mw"])),
-                "what_it_means": (
-                    "The share of half hours whose NUCLEAR+NPSHYD outturn Elexon published, so "
-                    "the must-run block is the fleet GB actually ran rather than a flat 5,600 "
-                    "MW. The remainder falls back to that flat block -- the behaviour the whole "
-                    "series had before 2026-08-26 -- and never to zero. The min/mean/max are "
-                    "why this mattered: a block published as constant moves between 544 MW and "
-                    "9,831 MW, and every megawatt of that was made up by the gas stack on a "
-                    "schedule of the model's own invention."
-                ),
-            }
-        ),
+        "source_by_year": dict(sorted(source_by_year.items())),
+        "history": history,
         "records_window_days": window_days,
         "records_cover": {
             "from": min((r["date"] for r in records), default=first_kept),
@@ -781,9 +662,10 @@ def fuel_mix() -> tuple[
     THE ONE PLACE THE NEW INPUTS CANNOT BE FORGOTTEN, and that is its job. `build_shape` takes
     them all as optional keywords whose defaults reproduce the shape exactly as it was before
     coal, cables and the thermal floor were modelled -- a fail-open signature by construction. So
-    the control is here, on the path that actually publishes: an absent or unusable mix RAISES
-    out of `generate()` and the feed does not get written, rather than being rewritten with a
-    series that quietly lost three corrections and says nothing about it.
+    the control is here: an absent or unusable mix RAISES out of `reconstruction_shape()` and the
+    EP13 instruments, rather than returning a series that quietly lost three corrections. SINCE
+    2026-10-05 THIS IS NOT ON THE PUBLISHING PATH: the feed is built from
+    `sim/grid_carbon_history.py`, and this tuple reaches only EP13's reconstruction.
 
     THE FLOOR IS UNPACKED TO `{year: floor_mw}` HERE, so the `p1_mw` published beside it stays a
     diagnostic and has no path into the dispatch. The biomass envelope is unpacked the same way
@@ -881,7 +763,13 @@ def pumped_storage_by_year() -> dict[int, dict[str, float]]:
     return fuel.pumped_storage_by_year(fuel.load_cached_remainder())
 
 
-def generate(out_path: Path | None = None) -> dict:
+def reconstruction_shape() -> dict:
+    """EP13's dispatch reconstruction, wired exactly as this feed published it until 2026-10-05.
+
+    NOT PUBLISHED. The feed's source is `sim/grid_carbon_history.py` since the director's ruling
+    that history is the published series. This is kept so EP13's model can still be built in one
+    call and graded against NESO, and so the wiring of its corrections stays under test.
+    """
     demand = aggregate_demand(json.loads(DEMAND_CACHE.read_text(encoding="utf-8")))
     # WIND IN THE RESIDUAL, SOLAR IN THE DENOMINATOR: INDO is already net of embedded solar,
     # so subtracting it again hid its gas (EP13 frame doc s18-s19). EXPORTS INTO BOTH: INDO
@@ -892,9 +780,9 @@ def generate(out_path: Path | None = None) -> dict:
     # VIKING AND ELECLINK are served but left out of the mix, as NESO's series does (s34).
     agws = json.loads(AGWS_CACHE.read_text(encoding="utf-8"))
     renewables = transmission_wind_by_period(agws)
-    (imports, coal_capacity, coverage, thermal_floors, must_run, must_run_coverage,
+    (imports, coal_capacity, _coverage, thermal_floors, must_run, _must_run_coverage,
      biomass_envelope) = fuel_mix()
-    shape = build_shape(
+    return build_shape(
         demand,
         renewables,
         imports_by_period=imports,
@@ -909,10 +797,30 @@ def generate(out_path: Path | None = None) -> dict:
         pumped_storage_by_year=pumped_storage_by_year(),
         unmixed_imports_by_period=unmixed_imports_by_period(),
     )
-    data = build(shape, demand, extra_dates=dates_with_reads(), import_coverage=coverage,
-                 coal_capacity_by_year=coal_capacity, thermal_floor_by_year=thermal_floors,
-                 zero_carbon_must_run_coverage=must_run_coverage,
-                 biomass_envelope_by_year=biomass_envelope)
+
+
+def history_shape(demand: dict) -> tuple[dict, dict, dict]:
+    """(shape, {key: source tag}, grid_carbon_history's meta) -- what the feed publishes.
+
+    The grams are normalised with NESO's own `published_shape`, which is the normalisation the
+    published side of every comparison here already uses, so the two cannot drift apart. A half
+    hour with no value (`gap`) or no demand weight is absent, never 1.0. An unusable history
+    RAISES out of `generate()`, so the feed is not rewritten from nothing.
+    """
+    from sim import grid_carbon_history as history
+    from sim import neso_carbon_intensity as neso
+
+    series, meta = history.load_series()
+    grams = {key: r.value for key, r in series.items() if r.value is not None}
+    shape = neso.published_shape(grams, demand)
+    return shape, {key: series[key].source for key in shape}, meta
+
+
+def generate(out_path: Path | None = None) -> dict:
+    demand = aggregate_demand(json.loads(DEMAND_CACHE.read_text(encoding="utf-8")))
+    shape, sources, meta = history_shape(demand)
+    data = build(shape, demand, extra_dates=dates_with_reads(), sources=sources,
+                 history=_history_block(meta))
     dest = OUT_PATH if out_path is None else out_path
     dest.parent.mkdir(parents=True, exist_ok=True)
     dest.write_text(json.dumps(data, indent=1) + "\n", encoding="utf-8")
