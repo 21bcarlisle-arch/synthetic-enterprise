@@ -565,7 +565,7 @@
   lane: W2_customer_generator
   value_stream: meter_to_cash
   epoch: 3
-  level_current: 0
+  level_current: 1
   level_target: 3
   loop_stage: build   # 2026-10-05 the director approved home moves into step 2 of the order
   # Change of tenancy is where 20-40% of GB domestic debt starts (Ofgem, 9 Dec 2025) and the unnamed
@@ -576,7 +576,7 @@
   file_scope: [sim/customer_state_layer.py, tests/sim/test_customer_state_layer.py, docs/market_research/home_moves.md]
   depends_on: []
   couples_with: [D48_billing_accuracy_the_company_measures_what_it_billed_against_what_was_used]
-  simplifications_count: 2
+  simplifications_count: 3
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "the churn a real supplier''s book actually experiences: roughly one in ten households moves home each year, each move closing one account into a final bill and opening two deemed-contract accounts at either end -- plus income shocks that show up as arrears months before anyone tells the supplier anything"
   records_rehomed: [evidence]
