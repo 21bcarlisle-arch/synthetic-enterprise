@@ -16,13 +16,20 @@ from pathlib import Path
 import pytest
 
 from company.carbon.half_hourly_footprint import (
+    ACCOUNT_CLOSED,
     BILLED,
+    CLOSURE_CAUSES,
     GAS_CLOSED,
+    GAS_ELSEWHERE_REASON,
     NO_GAS_SUPPLY_REASON,
     NO_SUPPLY,
+    REMOVED,
+    SWITCHED_AWAY,
+    UNKNOWN,
     FootprintUnavailable,
     HouseholdFootprint,
     electricity_leg,
+    gas_closure_cause,
     gas_leg,
     household_change,
 )
@@ -41,11 +48,11 @@ DESNZ_2023_CO2E = 0.18293
 DESNZ_2023_CO2_ONLY = 0.18253
 
 
-def _home(year, elec_kwh, gas_kwh, *, gas_closed_on=None):
+def _home(year, elec_kwh, gas_kwh, *, gas_closed_on=None, cause=UNKNOWN):
     return HouseholdFootprint(
         "H", year,
         electricity_leg(year, elec_kwh, 12),
-        gas_leg(year, gas_kwh, 0 if gas_closed_on else 12, gas_closed_on)
+        gas_leg(year, gas_kwh, 0 if gas_closed_on else 12, gas_closed_on, cause)
         if gas_kwh is not None else gas_leg(year, None, 0),
     )
 
@@ -65,16 +72,19 @@ def test_a_gas_heated_households_total_exceeds_its_electricity_by_its_gas_carbon
         "a gas-heated home's gas is the larger leg on every year of the record")
 
 
-def test_a_closed_gas_account_with_more_electricity_shows_a_net_fall_only_when_the_gas_outweighs_it():
-    """The heat-pump case. Gas closed and electricity up is a FALL exactly when the gas no longer
-    burnt outweighs the extra electricity's carbon -- and a RISE otherwise. Both branches are
-    asserted reachable, so a change that always reports a fall cannot pass."""
+def test_a_removed_gas_meter_claims_the_fall_only_when_the_gas_stopped_and_outweighs_the_electricity():
+    """The heat-pump case, and the ONLY closure that claims a fall. A meter removal this supplier
+    ordered with electricity up is a FALL exactly when the gas no longer burnt outweighs the extra
+    electricity's carbon -- and a RISE otherwise. Both branches are asserted reachable, so a change
+    that always reports a fall cannot pass."""
     # 2023 -> 2024: two WHOLE published grid years (2025's level is a part year, so it has no
     # annual electricity figure and no change can be taken against it).
     before = _home(2023, 2_700, 11_500)
-    after = _home(2024, 2_700 + 3_400, 0.0, gas_closed_on="2023-12-31")
-    assert after.gas.status == GAS_CLOSED and "closed 2023-12-31" in after.gas.reason
+    after = _home(2024, 2_700 + 3_400, 0.0, gas_closed_on="2023-12-31", cause=REMOVED)
+    assert after.gas.status == GAS_CLOSED and "removed 2023-12-31" in after.gas.reason
+    assert after.gas.kwh == 0.0 and after.gas.co2e_kg == 0.0, "a removed meter burns no gas"
     change = household_change(before, after)
+    assert change["gas_closure_cause"] == REMOVED
 
     assert change["gas_closed"] is True
     assert change["electricity_change_kg"] > 0, "the heat pump's electricity must show as a rise"
@@ -85,6 +95,77 @@ def test_a_closed_gas_account_with_more_electricity_shows_a_net_fall_only_when_t
     small_gas = _home(2023, 2_700, 500)
     worse = household_change(small_gas, after)
     assert worse["gas_closed"] is True and worse["net_fall"] is False
+
+    # "The gas truly stopped" is the closure, not the cause's name: a removal recorded for a year
+    # in which gas was still billed is a billed year, and no closure is claimed from it.
+    still_billed = HouseholdFootprint("H", 2024, electricity_leg(2024, 6_100, 12),
+                                      gas_leg(2024, 9_000, 12, "2023-12-31", REMOVED))
+    assert still_billed.gas.status == BILLED
+    assert household_change(before, still_billed)["gas_closed"] is False
+
+
+# The Q5 harness household (docs/market_research/practitioner_questions_as_assumption_toggles.md):
+# 3,000 kWh of electricity and 11,500 kWh of gas, electricity unchanged after the gas leaves us.
+def _moved_gas_elsewhere(cause):
+    before = _home(2023, 3_000, 11_500)
+    after = _home(2024, 3_000, 0.0, gas_closed_on="2023-12-31", cause=cause)
+    return before, after
+
+
+@pytest.mark.parametrize("cause", [SWITCHED_AWAY, ACCOUNT_CLOSED])
+def test_a_household_that_moved_its_gas_elsewhere_is_never_shown_a_carbon_fall_from_it(cause):
+    """THE DEFECT (2026-10-05): a household that only changed gas supplier was shown a 2,173 kg
+    cut, larger than a real heat pump's 1,738 kg. Its gas is still burnt, on another meter, so
+    its gas carbon after the date is NOT KNOWN to us -- never 0 -- and no change is claimed.
+
+    MUTATION (must fire): treat `switched_away` like `removed` -- add SWITCHED_AWAY (or
+    ACCOUNT_CLOSED) to `GAS_STOPPED_CAUSES`.
+    """
+    before, after = _moved_gas_elsewhere(cause)
+    assert after.gas.status == GAS_CLOSED and after.gas.closure_cause == cause
+    assert after.gas.co2e_kg is None, "the gas is burnt elsewhere: its carbon is not a known zero"
+    assert GAS_ELSEWHERE_REASON in after.gas.reason
+    with pytest.raises(FootprintUnavailable):
+        after.total_co2e_kg
+    with pytest.raises(FootprintUnavailable, match=cause):
+        household_change(before, after)
+
+    # CONTROL: the refusal is the cause's, not a refusal of every closure -- the same household
+    # with a removal it ordered (and no new electricity) does show the fall.
+    removed = _home(2024, 3_000, 0.0, gas_closed_on="2023-12-31", cause=REMOVED)
+    assert household_change(before, removed)["net_fall"] is True
+
+
+def test_an_unexplained_gas_closure_claims_nothing():
+    """`unknown` -- the default, and every closure on the published book today -- is neither a
+    zero nor a fall: no gas figure, no total, no change."""
+    before = _home(2023, 3_000, 11_500)
+    after = _home(2024, 3_000 + 3_400, 0.0, gas_closed_on="2023-12-31")
+    assert after.gas.closure_cause == UNKNOWN and after.gas.co2e_kg is None
+    assert "not known" in after.gas.reason
+    with pytest.raises(FootprintUnavailable):
+        after.total_co2e_kg
+    with pytest.raises(FootprintUnavailable, match="unknown"):
+        household_change(before, after)
+    row = after.as_dict()
+    assert row["total_co2e_kg"] is None and row["gas"]["closure_cause"] == UNKNOWN
+
+
+def test_every_closure_cause_is_reachable_from_the_records_and_none_from_the_electricity_bill():
+    """The partition, asserted whole: each of the four causes is reachable, so a classifier that
+    returns one answer for everything cannot pass. And `removed` comes ONLY from a removal this
+    supplier ordered -- no combination of loss records produces it."""
+    seen = {gas_closure_cause(gas_point_lost=g, household_left=h, removal_ordered=r)
+            for g in (False, True) for h in (False, True) for r in (False, True)}
+    assert seen == set(CLOSURE_CAUSES)
+    assert all(gas_closure_cause(gas_point_lost=g, household_left=h) != REMOVED
+               for g in (False, True) for h in (False, True))
+    assert gas_closure_cause(gas_point_lost=True, household_left=False) == SWITCHED_AWAY
+    assert gas_closure_cause(gas_point_lost=True, household_left=True) == ACCOUNT_CLOSED
+    assert gas_closure_cause(gas_point_lost=False, household_left=False) == UNKNOWN
+    # Records that contradict each other are not resolved in the flattering direction.
+    assert gas_closure_cause(gas_point_lost=True, household_left=False,
+                             removal_ordered=True) == UNKNOWN
 
 
 def test_a_household_with_no_gas_account_shows_gas_as_zero_with_its_reason():

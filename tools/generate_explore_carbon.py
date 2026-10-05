@@ -45,10 +45,12 @@ from company.carbon.half_hourly_footprint import (
     PROFILED,
     TOTAL_BASIS,
     UNCOVERED,
+    UNKNOWN,
     BookFootprint,
     FootprintUnavailable,
     HouseholdFootprint,
     electricity_leg,
+    gas_closure_cause,
     gas_leg,
     household_change,
     load_shape,
@@ -446,13 +448,29 @@ def _billed_by_year(detail: dict | None) -> tuple[dict[int, float], dict[int, in
     return kwh, {y: len(m) for y, m in months.items()}, last
 
 
+def _lost_on_or_after(detail: dict | None, closed_on: str) -> bool:
+    """Did this account's own record carry a departure dated on or after `closed_on`?
+
+    The book carries a lost account as a dated `churned` entry on that account's timeline -- what
+    a supplier learns from the registration-loss notice on the point (one notice per supply point
+    of every departing account: tests/simulation/test_registration_loss_feed.py). It says THAT the
+    point was lost and when, never why. A departure dated BEFORE the last bill did not end it.
+    """
+    return any(e.get("type") == "churned" and str(e.get("date") or "") >= closed_on
+               for e in (detail or {}).get("timeline") or [])
+
+
 def household_years(index: dict, detail_dir: Path) -> dict:
     """{household: {years, headline, change}} -- electricity, gas and total for every year billed.
 
     THE HOUSEHOLD IS THE INDEX'S `customer_group` and its legs, exactly as the page groups them,
     so the figure under a household's name is built from the same two accounts the page loads.
     A gas leg whose last bill ended before the electricity leg's is a CLOSED gas account: the
-    supplier still serves the home and has stopped billing it gas.
+    supplier still serves the home and has stopped billing it gas. WHY it closed is read from each
+    account's own departure record (`_lost_on_or_after`) and never from the electricity bill: a
+    rise in electricity beside a closure is what a heat pump AND a switch-away-then-new-kettle
+    look like. No record identifies a meter removal (`REMOVAL_RECORD_GAP`), so `removed` is never
+    produced here.
     """
     out: dict = {}
     for customer in (index or {}).get("customers") or []:
@@ -460,20 +478,28 @@ def household_years(index: dict, detail_dir: Path) -> dict:
         legs = customer.get("legs") or {}
         if not group:
             continue
-        billed = {}
+        billed, details = {}, {}
         for fuel in ("electricity", "gas"):
             cid = (legs.get(fuel) or {}).get("cid")
-            billed[fuel] = _billed_by_year(_load(detail_dir / f"{cid}.json")) if cid else None
+            details[fuel] = _load(detail_dir / f"{cid}.json") if cid else None
+            billed[fuel] = _billed_by_year(details[fuel]) if cid else None
         elec, gas = billed["electricity"], billed["gas"]
-        closed_on = None
+        closed_on, cause = None, None
         if elec and gas and gas[2] and elec[2] and gas[2] < elec[2]:
             closed_on = gas[2]
+            cause = gas_closure_cause(
+                gas_point_lost=_lost_on_or_after(details["gas"], closed_on),
+                household_left=(_lost_on_or_after(details["gas"], closed_on)
+                                and _lost_on_or_after(details["electricity"], closed_on)),
+                removal_ordered=False,  # REMOVAL_RECORD_GAP: no record can say so
+            )
         years = sorted((elec or gas or ({},))[0])
         rows = []
         for year in years:
             e_leg = (electricity_leg(year, elec[0].get(year, 0.0), elec[1].get(year, 0))
                      if elec else electricity_leg(year, None, 0))
-            g_leg = (gas_leg(year, gas[0].get(year, 0.0), gas[1].get(year, 0), closed_on)
+            g_leg = (gas_leg(year, gas[0].get(year, 0.0), gas[1].get(year, 0), closed_on,
+                             cause or UNKNOWN)
                      if gas else gas_leg(year, None, 0))
             rows.append(HouseholdFootprint(group, year, e_leg, g_leg))
         # A WHOLE YEAR WITH BOTH LEGS KNOWN heads the panel; a 2022 gas year (no DESNZ factor

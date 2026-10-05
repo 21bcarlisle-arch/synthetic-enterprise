@@ -53,7 +53,7 @@ def _load(path: Path):
     return json.loads(path.read_text(encoding="utf-8"))
 
 
-def _render(first_group: str) -> dict:
+def _render(first_group: str, carbon: dict | None = None) -> dict:
     """Drive the real door on stage 3, with `first_group` as the selected household.
 
     The account selector is not addressable, so the household under test is put first in the
@@ -73,7 +73,7 @@ def _render(first_group: str) -> dict:
         "../data/customers.json": book,
         "../data/weather.json": _load(WEATHER),
         "../data/explore_hh_days.json": _load(HH_DAYS),
-        "../data/explore_carbon.json": _load(CARBON),
+        "../data/explore_carbon.json": _load(CARBON) if carbon is None else carbon,
     }
     for customer in book["customers"]:
         for leg in (customer.get("legs") or {}).values():
@@ -93,8 +93,8 @@ def _render(first_group: str) -> dict:
     return out
 
 
-def _stage(first_group: str) -> str:
-    html = _render(first_group)["stage"]["innerHTML"]
+def _stage(first_group: str, carbon: dict | None = None) -> str:
+    html = _render(first_group, carbon)["stage"]["innerHTML"]
     assert "Used &mdash; how much energy" in html or "Used — how much energy" in html, (
         "the page did not open on stage 3, so nothing below is testing what it claims to. "
         "`#used` is how a reader links to it and how this test reaches it"
@@ -524,9 +524,10 @@ def test_a_household_with_no_gas_account_is_told_so_in_words():
     assert "<td>Gas</td><td><b>0 kg</b>" in panel and "no gas supply on record" in panel
 
 
-def test_a_closed_gas_account_is_shown_plainly():
-    """A gas leg that stopped while the electricity went on is a CLOSURE, not a low year, and the
-    record cannot say whether it was disconnected or moved elsewhere -- the page says both.
+def test_an_unexplained_gas_closure_is_shown_plainly_and_claims_nothing():
+    """A gas leg that stopped while the electricity went on is a CLOSURE, not a low year. Every
+    closure on the published book is `unknown` -- no removal order, no loss notice -- so the page
+    says the cause is not on file, gives no gas figure, and claims no change from it.
 
     MUTATION (must fire): drop `closure` from `householdCarbon`'s output.
     """
@@ -534,5 +535,33 @@ def test_a_closed_gas_account_is_shown_plainly():
     group = next((g for g, h in sorted((carbon.get("households") or {}).items())
                   if any(y["gas"]["status"] == "closed" for y in h["years"])), None)
     assert group, "no household on this book has a closed gas account, so the branch is unverified"
+    closed = next(y for y in carbon["households"][group]["years"] if y["gas"]["status"] == "closed")
+    assert closed["gas"]["closure_cause"] == "unknown" and closed["gas"]["co2e_kg"] is None
     panel = _household_panel(_stage(group))
-    assert "Gas account closed" in panel and "moved to another supplier" in panel
+    assert "Gas account closed" in panel and "why is not on file" in panel
+    assert "no change is claimed" in panel
+    assert "Gas meter removed" not in panel and "its gas meter was removed" not in panel
+
+
+def test_a_household_that_switched_gas_away_is_never_shown_a_carbon_fall_from_it():
+    """THE DEFECT (2026-10-05): a household that only changed gas supplier was shown a 2,173 kg
+    cut. The book holds no switch-away closure yet, so the generator's own leg for one is put on a
+    real household's panel and the real page renders it.
+
+    MUTATION (must fire): in `householdCarbon`, render `switched_away` with the `removed` branch.
+    """
+    from company.carbon.half_hourly_footprint import SWITCHED_AWAY, gas_leg
+
+    carbon = _load(CARBON)
+    group = "C7"
+    household = carbon["households"][group]
+    leg = gas_leg(2025, 0.0, 0, "2024-12-31", SWITCHED_AWAY)
+    row = {"status": leg.status, "kwh": leg.kwh, "co2e_kg": leg.co2e_kg, "months_billed": 0,
+           "reason": leg.reason, "closed_on": leg.closed_on, "closure_cause": leg.closure_cause}
+    year = dict(household["years"][-1], year=2025, gas=row, total_co2e_kg=None)
+    carbon["households"][group] = dict(household, years=household["years"] + [year], change=None)
+
+    panel = _household_panel(_stage(group, carbon))
+    assert "Gas now supplied elsewhere since" in panel
+    assert "not a saving we can see" in panel
+    assert "Gas meter removed" not in panel and "fell" not in panel

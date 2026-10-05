@@ -1111,7 +1111,11 @@ function beliefVsTruth(row) {
    electricity, which for a gas-heated home is about a sixth of its carbon -- and a heat pump
    (gas off, electricity up) would have read as an increase. Three numbers, never one: each leg
    has a different basis and a different lever, and a total alone hides which moved. A household
-   with no gas account says so in words, and a closed gas account is a status, not a low year. */
+   with no gas account says so in words, and a closed gas account is a status, not a low year.
+   A CLOSURE CARRIES ITS CAUSE from the supplier's own records (2026-10-05): only a meter removal
+   this supplier ordered means the gas stopped. A switch away or a household that left means the
+   gas is burnt on someone else's meter, and an unexplained closure claims nothing -- until then
+   a household that only changed gas supplier read as a bigger cut than a heat pump. */
 function carbonLeg(name, leg) {
   if (!leg) return "";
   var kg = leg.co2e_kg === null || leg.co2e_kg === undefined ? "not known" : num(leg.co2e_kg, 0) + " kg";
@@ -1130,15 +1134,21 @@ function householdCarbon(group) {
   /* A CLOSED GAS ACCOUNT IS SAID WHEREVER IT FALLS, not only when its year heads the panel: the
      year after a closure is usually a part year and so never the headline. */
   var closed = h.years.filter(function (r) { return r.gas && r.gas.status === "closed"; })[0];
-  var closure = closed ? '<p><b>Gas account closed ' + esc(dt(closed.gas.closed_on)) + ".</b> " +
-    esc(closed.gas.reason) + ".</p>" : "";
+  var cause = closed ? closed.gas.closure_cause : null;
+  var closure = !closed ? "" : (cause === "removed"
+    ? '<p><b>Gas meter removed ' + esc(dt(closed.gas.closed_on)) + ".</b> " + esc(closed.gas.reason) + ".</p>"
+    : (cause === "switched_away" || cause === "account_closed")
+    ? '<p><b>Gas now supplied elsewhere since ' + esc(dt(closed.gas.closed_on)) +
+      ".</b> " + esc(closed.gas.reason) + ".</p>"
+    : '<p><b>Gas account closed ' + esc(dt(closed.gas.closed_on)) + "; why is not on file.</b> " +
+      esc(closed.gas.reason) + ".</p>");
   var change = !c ? "" : (c.available === false
     ? "<p>" + esc(c.why) + "</p>"
     : "<p>From " + c.from_year + " to " + c.to_year + " its carbon " +
       (c.net_fall ? "<b>fell " : "<b>rose ") + num(Math.abs(c.total_change_kg), 0) + " kg</b>: " +
       "electricity " + (c.electricity_change_kg >= 0 ? "+" : "&minus;") + num(Math.abs(c.electricity_change_kg), 0) +
       " kg, gas " + (c.gas_change_kg >= 0 ? "+" : "&minus;") + num(Math.abs(c.gas_change_kg), 0) + " kg" +
-      (c.gas_closed ? " &mdash; its gas account closed" : "") + ". " + esc(b.change || "") + "</p>");
+      (c.gas_closed && c.gas_closure_cause === "removed" ? " &mdash; its gas meter was removed" : "") + ". " + esc(b.change || "") + "</p>");
   return panel("customer", "This household&rsquo;s carbon, " + esc(String(y.year)) +
     (y.full_year ? "" : " (part year)"),
     '<div class="table-scroll"><table class="split">' +

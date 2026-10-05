@@ -363,15 +363,46 @@ def profiled_footprint(account_id: str, annual_kwh: float, year: int) -> Footpri
 # the household's own billed kWh: a gas bill is read from its own gas meter, so the gas leg is a
 # fact the supplier holds, not an estimate about an average home.
 #
-# THREE THINGS THIS DOES NOT KNOW, each said on the record rather than assumed:
+# TWO THINGS THIS DOES NOT KNOW, each said on the record rather than assumed:
 #   * a fuel bought from ANOTHER supplier. "No gas supply on record" is this supplier's record.
-#   * WHY a gas account closed. A switch away and a disconnection after a heat pump read the same
-#     on this side; the fall on our meters is real, its cause is not on file.
 #   * DESNZ's 2022 gas factor (`GAS_FACTOR_GAPS`): a 2022 gas leg has kWh and no kg.
+#
+# WHY A GAS ACCOUNT CLOSED is a fact the supplier's own records hold, and a closure is read
+# through it (`gas_closure_cause`). Until 2026-10-05 every closure was a 0 kg gas leg, so a
+# household that only moved its gas to another supplier read as a 2,173 kg cut -- larger than a
+# real heat pump's 1,738 kg (docs/market_research/practitioner_questions_as_assumption_toggles.md
+# Q5). A meter removal is a job the supplier itself orders; a switch away arrives as a loss
+# notice; a household that left arrives as a loss on every point it held. Only the first means the
+# gas stopped. After the other two the gas is burnt on someone else's meter, and after an
+# unexplained one we do not know, so neither is a zero.
 
 BILLED = "billed"
 NO_SUPPLY = "no_supply_on_record"
 GAS_CLOSED = "closed"
+
+#: Why a gas leg closed, from this supplier's own records (`gas_closure_cause`).
+REMOVED = "removed"                # a meter removal or cap this supplier ordered
+SWITCHED_AWAY = "switched_away"    # a loss notice on the gas point; the household's electricity stayed
+ACCOUNT_CLOSED = "account_closed"  # the household left this supplier on every point it held
+UNKNOWN = "unknown"                # no record says which
+CLOSURE_CAUSES = (REMOVED, SWITCHED_AWAY, ACCOUNT_CLOSED, UNKNOWN)
+
+#: THE ONE DIAL: the causes after which the household's gas truly stopped, so its gas carbon is a
+#: known zero and a fall can be claimed. Every other cause leaves the gas carbon NOT KNOWN.
+GAS_STOPPED_CAUSES = frozenset({REMOVED})
+
+#: What the page says for a closure whose gas went on burning elsewhere.
+GAS_ELSEWHERE_REASON = "gas now supplied elsewhere \u2014 not a saving we can see"
+
+#: Why `removal_ordered` is False on every production call today. Said once, here, so a caller
+#: that cannot set it names this rather than inventing a reading.
+REMOVAL_RECORD_GAP = (
+    "no record in this company can identify a gas meter removal: `company/billing/meter_assets.py`"
+    " has a 'removed' status nothing sets, `company/market/mprn_register.py` has no production "
+    "caller and no removal transition, and `company/billing/account_closure.ClosureReason` has no "
+    "meter-removal reason. So `removed` is unreachable on the published book; a closure with no "
+    "loss notice is `unknown`, and a rise in electricity is never read as a removal"
+)
 
 NO_GAS_SUPPLY_REASON = "no gas supply on record"
 NO_ELECTRICITY_SUPPLY_REASON = "no electricity supply on record"
@@ -415,6 +446,7 @@ class Leg:
     basis: str
     reason: str | None = None
     closed_on: str | None = None
+    closure_cause: str | None = None
 
     @property
     def full_year(self) -> bool:
@@ -444,24 +476,64 @@ def electricity_leg(year: int, billed_kwh: float | None, months_billed: int) -> 
                months_billed=int(months_billed), basis=ELECTRICITY_LEG_BASIS)
 
 
+def gas_closure_cause(*, gas_point_lost: bool, household_left: bool,
+                      removal_ordered: bool = False) -> str:
+    """Why a gas leg closed, from what this supplier's own records hold.
+
+    `removal_ordered`: a meter removal or cap this supplier itself ordered (an RGMA removal job,
+    the point Terminated). No record in the company holds that today (`REMOVAL_RECORD_GAP`), so
+    every production caller passes False. `gas_point_lost`: a registration-loss notice on the gas
+    point (`company/crm/cos_process.CoSRegister.losses_notified`). `household_left`: the household
+    was lost on every point it held with us, so it left rather than moved one fuel.
+
+    Records that contradict each other -- a removal we ordered AND a loss to another supplier --
+    are `unknown`, not whichever reads better. Nothing here looks at the electricity bill.
+    """
+    if removal_ordered:
+        return UNKNOWN if (gas_point_lost or household_left) else REMOVED
+    if household_left:
+        return ACCOUNT_CLOSED
+    if gas_point_lost:
+        return SWITCHED_AWAY
+    return UNKNOWN
+
+
+def _closure_reason(closed_on: str, cause: str) -> str:
+    if cause == REMOVED:
+        return (f"gas meter removed {closed_on} on this supplier's own order; the home burns no "
+                "gas on a meter")
+    if cause == SWITCHED_AWAY:
+        return (f"{GAS_ELSEWHERE_REASON}: the gas point was lost to another supplier {closed_on} "
+                "while this supplier kept the electricity")
+    if cause == ACCOUNT_CLOSED:
+        return f"{GAS_ELSEWHERE_REASON}: the household left this supplier {closed_on}"
+    return (f"gas account closed {closed_on}; nothing billed since. This supplier holds no removal "
+            "order and no loss notice for it, so why the gas stopped is not known and no change "
+            "is claimed from it")
+
+
 def gas_leg(year: int, billed_kwh: float | None, months_billed: int,
-            closed_on: str | None = None) -> Leg:
+            closed_on: str | None = None, closure_cause: str = UNKNOWN) -> Leg:
     """The household's gas for `year`, from its own billed gas.
 
     `billed_kwh` None: no gas account on record -> 0 with the reason. `closed_on` before the year
-    began and nothing billed in it: the account closed -> 0, and the closure IS the status, so a
-    fall to zero can never read as an ordinary low year. A billed year whose DESNZ factor is not
-    established keeps its kWh and has no kg -- never a neighbouring year's factor.
+    began and nothing billed in it: the account closed, and the closure IS the status, so a fall to
+    zero can never read as an ordinary low year. Its gas carbon is a known 0 only when the cause
+    is in `GAS_STOPPED_CAUSES`; otherwise it is NOT KNOWN (None), because the gas is still burnt
+    -- on another supplier's meter, or for a reason not on file. A billed year whose DESNZ factor
+    is not established keeps its kWh and has no kg -- never a neighbouring year's factor.
     """
     year = int(year)
     if billed_kwh is None:
         return _no_supply("gas")
     if closed_on is not None and str(closed_on) < f"{year}-01-01" and not months_billed:
-        return Leg(fuel="gas", status=GAS_CLOSED, kwh=0.0, co2e_kg=0.0, months_billed=0,
-                   basis=GAS_LEG_BASIS, closed_on=str(closed_on),
-                   reason=(f"gas account closed {closed_on}; nothing billed since. This record "
-                           "does not say whether the gas was disconnected or moved to another "
-                           "supplier"))
+        if closure_cause not in CLOSURE_CAUSES:
+            raise ValueError(f"gas closure cause {closure_cause!r} is not one of {CLOSURE_CAUSES}")
+        return Leg(fuel="gas", status=GAS_CLOSED, kwh=0.0,
+                   co2e_kg=0.0 if closure_cause in GAS_STOPPED_CAUSES else None,
+                   months_billed=0, basis=GAS_LEG_BASIS, closed_on=str(closed_on),
+                   closure_cause=closure_cause,
+                   reason=_closure_reason(str(closed_on), closure_cause))
     kwh = float(billed_kwh)
     try:
         factor = gas_factor_kg_co2e_per_kwh(year)
@@ -514,6 +586,7 @@ class HouseholdFootprint:
                 row["reason"] = leg.reason
             if leg.closed_on:
                 row["closed_on"] = leg.closed_on
+                row["closure_cause"] = leg.closure_cause
             out[leg.fuel] = row
         return out
 
@@ -524,7 +597,8 @@ def household_change(before: HouseholdFootprint, after: HouseholdFootprint) -> d
     THE HEAT-PUMP CASE IS WHY THIS EXISTS: gas down or closed and electricity up is a net fall
     exactly when the gas no longer burnt outweighs the extra electricity's carbon, and only a
     figure carrying both legs can say so. Refuses a part year on either side rather than compare a
-    winter with a whole year.
+    winter with a whole year, and refuses a closed gas leg whose gas did not stop
+    (`GAS_STOPPED_CAUSES`): a household that moved its gas elsewhere still burns it.
     """
     for fp in (before, after):
         if not fp.full_year:
@@ -532,6 +606,10 @@ def household_change(before: HouseholdFootprint, after: HouseholdFootprint) -> d
                 f"{fp.household_id} {fp.year} is a part year (electricity "
                 f"{fp.electricity.months_billed}, gas {fp.gas.months_billed} month(s) billed), so "
                 "a change against it would be a change of season")
+        if fp.gas.status == GAS_CLOSED and fp.gas.closure_cause not in GAS_STOPPED_CAUSES:
+            raise FootprintUnavailable(
+                f"{fp.household_id} {fp.year}: no change is claimed across this gas closure "
+                f"({fp.gas.closure_cause}) -- {fp.gas.reason}")
     total = round(after.total_co2e_kg - before.total_co2e_kg, 4)
     return {
         "from_year": before.year,
@@ -542,5 +620,6 @@ def household_change(before: HouseholdFootprint, after: HouseholdFootprint) -> d
         "total_change_kg": total,
         "net_fall": total < 0.0,
         "gas_closed": after.gas.status == GAS_CLOSED and before.gas.status == BILLED,
+        "gas_closure_cause": after.gas.closure_cause,
         # basis: CHANGE_BASIS, carried once by the publisher rather than on every change.
     }

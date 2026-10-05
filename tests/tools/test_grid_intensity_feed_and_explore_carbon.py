@@ -2003,3 +2003,53 @@ def test_generate_publishes_the_level_beside_the_shape():
 
     code = searchable(inspect.getsource(gif.generate))
     assert "levels=annual_level(" in code
+
+
+
+# --------------------------------------------------------------------------- #
+# A gas closure's CAUSE comes from the book's own records (2026-10-05)          #
+# --------------------------------------------------------------------------- #
+
+def _closure_book(tmp_path, *, gas_lost=None, elec_lost=None):
+    """One dual-fuel household: gas billed through 2024, electricity on into 2025 -- a closed gas
+    leg -- with the electricity UP after the closure, the heat-pump-shaped bill."""
+    detail = tmp_path / "customers"
+    detail.mkdir()
+
+    def invoices(months, kwh):
+        return [{"period_start": f"{m}-01", "period_end": f"{m}-28", "consumption_kwh": kwh}
+                for m in months]
+
+    months_23_24 = [f"{y}-{mo:02d}" for y in (2023, 2024) for mo in range(1, 13)]
+    elec = {"invoices": invoices(months_23_24, 250.0) + invoices(["2025-01", "2025-02"], 600.0),
+            "timeline": [{"type": "churned", "date": elec_lost}] if elec_lost else []}
+    gas = {"invoices": invoices(months_23_24, 950.0),
+           "timeline": [{"type": "churned", "date": gas_lost}] if gas_lost else []}
+    (detail / "H.json").write_text(json.dumps(elec), encoding="utf-8")
+    (detail / "Hg.json").write_text(json.dumps(gas), encoding="utf-8")
+    index = {"customers": [{"customer_group": "H", "legs": {"electricity": {"cid": "H"},
+                                                            "gas": {"cid": "Hg"}}}]}
+    out = gec.household_years(index, detail)["H"]
+    return next(y["gas"] for y in out["years"] if y["gas"]["status"] == "closed"), out
+
+
+@pytest.mark.parametrize("gas_lost, elec_lost, cause", [
+    (None, None, "unknown"),
+    ("2024-12-29", None, "switched_away"),
+    ("2024-12-29", "2025-02-28", "account_closed"),
+    # a departure dated BEFORE the last gas bill did not end the gas
+    ("2024-06-01", None, "unknown"),
+])
+def test_a_gas_closures_cause_is_read_from_the_books_departure_records(tmp_path, gas_lost,
+                                                                         elec_lost, cause):
+    """The generator gives a closed gas leg its cause from each account's own dated departure
+    record, and NEVER from the electricity bill: every case here has electricity up after the
+    closure, which is what a heat pump looks like, and none of them is `removed` -- no record in
+    the company can identify a meter removal (`REMOVAL_RECORD_GAP`).
+
+    MUTATION (must fire): pass `removal_ordered=True` in `household_years`, or read
+    `gas_point_lost` from the electricity account."""
+    closed, out = _closure_book(tmp_path, gas_lost=gas_lost, elec_lost=elec_lost)
+    assert closed["closure_cause"] == cause
+    assert closed["co2e_kg"] is None, "no published closure today is a known-zero gas leg"
+    assert not (out["change"] or {}).get("gas_closed"), "a fall was claimed across the closure"

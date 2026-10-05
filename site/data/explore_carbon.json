@@ -1,5 +1,5 @@
 {
- "generated": "2026-10-05T10:43:09Z",
+ "generated": "2026-10-05T12:07:01Z",
  "basis": "The day panels are the ELECTRICITY leg only -- for a gas-heated home a minority of its carbon; the household's year below adds its gas. Company estimate: its own published ANNUAL grid intensity (company/regulatory/carbon_emissions.py, the single owner) given half-hourly resolution by the published shape feed -- both NESO's national series, so shape x level is NESO's own half-hourly figure. National, outturn, generation basis (transmission and distribution losses not included), CO2 at the generator. NOT abatement -- there is no counterfactual here and none is implied.",
  "not_included": [
   "gas in the half-hourly day panels -- a gas meter is not read by the half hour; the household's gas is in its yearly figure, from its billed gas",
@@ -2583,7 +2583,8 @@
     {
      "year": 2018,
      "full_year": false,
-     "total_co2e_kg": 106.4389,
+     "total_co2e_kg": null,
+     "total_unavailable": "C1 2018: no total, because the gas leg has no figure (gas account closed 2017-12-31; nothing billed since. This supplier holds no removal order and no loss notice for it, so why the gas stopped is not known and no change is claimed from it)",
      "electricity": {
       "status": "billed",
       "kwh": 474.2,
@@ -2593,10 +2594,11 @@
      "gas": {
       "status": "closed",
       "kwh": 0.0,
-      "co2e_kg": 0.0,
+      "co2e_kg": null,
       "months_billed": 0,
-      "reason": "gas account closed 2017-12-31; nothing billed since. This record does not say whether the gas was disconnected or moved to another supplier",
-      "closed_on": "2017-12-31"
+      "reason": "gas account closed 2017-12-31; nothing billed since. This supplier holds no removal order and no loss notice for it, so why the gas stopped is not known and no change is claimed from it",
+      "closed_on": "2017-12-31",
+      "closure_cause": "unknown"
      }
     }
    ],
@@ -2844,7 +2846,8 @@
     "gas_change_kg": 300.9688,
     "total_change_kg": 255.9653,
     "net_fall": false,
-    "gas_closed": false
+    "gas_closed": false,
+    "gas_closure_cause": null
    }
   },
   "C5": {
@@ -2950,7 +2953,8 @@
     "gas_change_kg": 0.0,
     "total_change_kg": 316.5533,
     "net_fall": false,
-    "gas_closed": false
+    "gas_closed": false,
+    "gas_closure_cause": null
    }
   },
   "C6": {
@@ -3198,7 +3202,8 @@
     "gas_change_kg": 0.0,
     "total_change_kg": -475.3066,
     "net_fall": true,
-    "gas_closed": false
+    "gas_closed": false,
+    "gas_closure_cause": null
    }
   },
   "C9": {
@@ -3304,7 +3309,8 @@
     "gas_change_kg": 0.0,
     "total_change_kg": -474.7467,
     "net_fall": true,
-    "gas_closed": false
+    "gas_closed": false,
+    "gas_closure_cause": null
    }
   },
   "PROS-2016-0003": {
@@ -3517,7 +3523,8 @@
     "gas_change_kg": 128.5085,
     "total_change_kg": 60.5029,
     "net_fall": false,
-    "gas_closed": false
+    "gas_closed": false,
+    "gas_closure_cause": null
    }
   },
   "PROS-2016-0042": {
@@ -3641,7 +3648,8 @@
     "gas_change_kg": 0.0,
     "total_change_kg": -57.1124,
     "net_fall": true,
-    "gas_closed": false
+    "gas_closed": false,
+    "gas_closure_cause": null
    }
   },
   "PROS-2016-0046": {
@@ -3742,7 +3750,8 @@
     "gas_change_kg": -244.4072,
     "total_change_kg": -125.3111,
     "net_fall": true,
-    "gas_closed": false
+    "gas_closed": false,
+    "gas_closure_cause": null
    }
   },
   "PROS-2016-0067": {
@@ -3885,7 +3894,8 @@
     "gas_change_kg": 2328.7407,
     "total_change_kg": 2288.6437,
     "net_fall": false,
-    "gas_closed": false
+    "gas_closed": false,
+    "gas_closure_cause": null
    }
   },
   "PROS-2016-0092": {
@@ -4035,7 +4045,8 @@
     "gas_change_kg": 0.0,
     "total_change_kg": -424.4644,
     "net_fall": true,
-    "gas_closed": false
+    "gas_closed": false,
+    "gas_closure_cause": null
    }
   },
   "PROS-2016-0104": {
@@ -4131,7 +4142,8 @@
     {
      "year": 2021,
      "full_year": false,
-     "total_co2e_kg": 115.8295,
+     "total_co2e_kg": null,
+     "total_unavailable": "PROS-2016-0104 2021: no total, because the gas leg has no figure (gas account closed 2020-12-31; nothing billed since. This supplier holds no removal order and no loss notice for it, so why the gas stopped is not known and no change is claimed from it)",
      "electricity": {
       "status": "billed",
       "kwh": 610.4,
@@ -4141,10 +4153,11 @@
      "gas": {
       "status": "closed",
       "kwh": 0.0,
-      "co2e_kg": 0.0,
+      "co2e_kg": null,
       "months_billed": 0,
-      "reason": "gas account closed 2020-12-31; nothing billed since. This record does not say whether the gas was disconnected or moved to another supplier",
-      "closed_on": "2020-12-31"
+      "reason": "gas account closed 2020-12-31; nothing billed since. This supplier holds no removal order and no loss notice for it, so why the gas stopped is not known and no change is claimed from it",
+      "closed_on": "2020-12-31",
+      "closure_cause": "unknown"
      }
     }
    ],
@@ -4155,7 +4168,8 @@
     "gas_change_kg": -442.2561,
     "total_change_kg": -524.918,
     "net_fall": true,
-    "gas_closed": false
+    "gas_closed": false,
+    "gas_closure_cause": null
    }
   },
   "PROS-2016-0121": {
@@ -4234,7 +4248,8 @@
     {
      "year": 2020,
      "full_year": false,
-     "total_co2e_kg": 100.943,
+     "total_co2e_kg": null,
+     "total_unavailable": "PROS-2016-0121 2020: no total, because the gas leg has no figure (gas account closed 2019-12-31; nothing billed since. This supplier holds no removal order and no loss notice for it, so why the gas stopped is not known and no change is claimed from it)",
      "electricity": {
       "status": "billed",
       "kwh": 575.6,
@@ -4244,10 +4259,11 @@
      "gas": {
       "status": "closed",
       "kwh": 0.0,
-      "co2e_kg": 0.0,
+      "co2e_kg": null,
       "months_billed": 0,
-      "reason": "gas account closed 2019-12-31; nothing billed since. This record does not say whether the gas was disconnected or moved to another supplier",
-      "closed_on": "2019-12-31"
+      "reason": "gas account closed 2019-12-31; nothing billed since. This supplier holds no removal order and no loss notice for it, so why the gas stopped is not known and no change is claimed from it",
+      "closed_on": "2019-12-31",
+      "closure_cause": "unknown"
      }
     }
    ],
@@ -4258,7 +4274,8 @@
     "gas_change_kg": 641.0278,
     "total_change_kg": 588.4705,
     "net_fall": false,
-    "gas_closed": false
+    "gas_closed": false,
+    "gas_closure_cause": null
    }
   },
   "PROS-2016-0129": {
@@ -4448,7 +4465,8 @@
     "gas_change_kg": 267.1874,
     "total_change_kg": 188.9716,
     "net_fall": false,
-    "gas_closed": false
+    "gas_closed": false,
+    "gas_closure_cause": null
    }
   },
   "PROS-2016-0133": {
@@ -4549,7 +4567,8 @@
     "gas_change_kg": 82.7173,
     "total_change_kg": -8.0975,
     "net_fall": true,
-    "gas_closed": false
+    "gas_closed": false,
+    "gas_closure_cause": null
    }
   },
   "PROS-2017-0036": {
@@ -4648,7 +4667,8 @@
     "gas_change_kg": -391.5555,
     "total_change_kg": -487.9517,
     "net_fall": true,
-    "gas_closed": false
+    "gas_closed": false,
+    "gas_closure_cause": null
    }
   },
   "PROS-2017-0049": {
@@ -4876,7 +4896,8 @@
     "gas_change_kg": 227.6487,
     "total_change_kg": 159.4338,
     "net_fall": false,
-    "gas_closed": false
+    "gas_closed": false,
+    "gas_closure_cause": null
    }
   },
   "PROS-2017-0065": {
@@ -4998,7 +5019,8 @@
     "gas_change_kg": 45.6786,
     "total_change_kg": -1.9912,
     "net_fall": true,
-    "gas_closed": false
+    "gas_closed": false,
+    "gas_closure_cause": null
    }
   },
   "PROS-2017-0183": {
@@ -5169,7 +5191,8 @@
     "gas_change_kg": 154.1837,
     "total_change_kg": 243.5698,
     "net_fall": false,
-    "gas_closed": false
+    "gas_closed": false,
+    "gas_closure_cause": null
    }
   },
   "PROS-2018-0002": {
@@ -5365,7 +5388,8 @@
     "gas_change_kg": -1244.0,
     "total_change_kg": -1271.8597,
     "net_fall": true,
-    "gas_closed": false
+    "gas_closed": false,
+    "gas_closure_cause": null
    }
   },
   "PROS-2018-0035": {
@@ -5519,7 +5543,8 @@
     "gas_change_kg": -264.094,
     "total_change_kg": -405.7139,
     "net_fall": true,
-    "gas_closed": false
+    "gas_closed": false,
+    "gas_closure_cause": null
    }
   },
   "PROS-2018-0120": {
@@ -5601,7 +5626,8 @@
     "gas_change_kg": 49.2818,
     "total_change_kg": -2.3687,
     "net_fall": true,
-    "gas_closed": false
+    "gas_closed": false,
+    "gas_closure_cause": null
    }
   },
   "PROS-2018-0123": {
@@ -5755,7 +5781,8 @@
     "gas_change_kg": 74.4981,
     "total_change_kg": 84.7396,
     "net_fall": false,
-    "gas_closed": false
+    "gas_closed": false,
+    "gas_closure_cause": null
    }
   },
   "PROS-2018-0140": {
@@ -5909,7 +5936,8 @@
     "gas_change_kg": -7.4865,
     "total_change_kg": -53.8259,
     "net_fall": true,
-    "gas_closed": false
+    "gas_closed": false,
+    "gas_closure_cause": null
    }
   },
   "PROS-2018-0142": {
@@ -6063,7 +6091,8 @@
     "gas_change_kg": -266.4815,
     "total_change_kg": -349.5846,
     "net_fall": true,
-    "gas_closed": false
+    "gas_closed": false,
+    "gas_closure_cause": null
    }
   },
   "PROS-2018-0188": {
@@ -6106,7 +6135,8 @@
     {
      "year": 2020,
      "full_year": false,
-     "total_co2e_kg": 96.3132,
+     "total_co2e_kg": null,
+     "total_unavailable": "PROS-2018-0188 2020: no total, because the gas leg has no figure (gas account closed 2019-12-31; nothing billed since. This supplier holds no removal order and no loss notice for it, so why the gas stopped is not known and no change is claimed from it)",
      "electricity": {
       "status": "billed",
       "kwh": 549.2,
@@ -6116,10 +6146,11 @@
      "gas": {
       "status": "closed",
       "kwh": 0.0,
-      "co2e_kg": 0.0,
+      "co2e_kg": null,
       "months_billed": 0,
-      "reason": "gas account closed 2019-12-31; nothing billed since. This record does not say whether the gas was disconnected or moved to another supplier",
-      "closed_on": "2019-12-31"
+      "reason": "gas account closed 2019-12-31; nothing billed since. This supplier holds no removal order and no loss notice for it, so why the gas stopped is not known and no change is claimed from it",
+      "closed_on": "2019-12-31",
+      "closure_cause": "unknown"
      }
     }
    ],
@@ -6336,7 +6367,8 @@
     "gas_change_kg": -719.6245,
     "total_change_kg": -808.4283,
     "net_fall": true,
-    "gas_closed": false
+    "gas_closed": false,
+    "gas_closure_cause": null
    }
   },
   "PROS-2019-0023": {
@@ -6473,7 +6505,8 @@
     "gas_change_kg": 379.1347,
     "total_change_kg": 321.885,
     "net_fall": false,
-    "gas_closed": false
+    "gas_closed": false,
+    "gas_closure_cause": null
    }
   },
   "PROS-2019-0024": {
@@ -6610,7 +6643,8 @@
     "gas_change_kg": -1280.3193,
     "total_change_kg": -1374.1313,
     "net_fall": true,
-    "gas_closed": false
+    "gas_closed": false,
+    "gas_closure_cause": null
    }
   },
   "PROS-2019-0136": {
@@ -6747,7 +6781,8 @@
     "gas_change_kg": -5.8249,
     "total_change_kg": -55.1752,
     "net_fall": true,
-    "gas_closed": false
+    "gas_closed": false,
+    "gas_closure_cause": null
    }
   },
   "PROS-2019-0167": {
@@ -7001,7 +7036,8 @@
     "gas_change_kg": -15.6575,
     "total_change_kg": -57.0426,
     "net_fall": true,
-    "gas_closed": false
+    "gas_closed": false,
+    "gas_closure_cause": null
    }
   },
   "PROS-2019-0255": {
@@ -7178,7 +7214,8 @@
     "gas_change_kg": 102.6579,
     "total_change_kg": -182.8126,
     "net_fall": true,
-    "gas_closed": false
+    "gas_closed": false,
+    "gas_closure_cause": null
    }
   },
   "PROS-2019-0308": {
@@ -7315,7 +7352,8 @@
     "gas_change_kg": 1102.6604,
     "total_change_kg": 1029.4149,
     "net_fall": false,
-    "gas_closed": false
+    "gas_closed": false,
+    "gas_closure_cause": null
    }
   },
   "PROS-2019-0309": {
@@ -7577,7 +7615,8 @@
     "gas_change_kg": 0.0,
     "total_change_kg": -44.8525,
     "net_fall": true,
-    "gas_closed": false
+    "gas_closed": false,
+    "gas_closure_cause": null
    }
   },
   "PROS-2020-0009": {
@@ -7644,7 +7683,8 @@
     "gas_change_kg": 137.4056,
     "total_change_kg": 174.717,
     "net_fall": false,
-    "gas_closed": false
+    "gas_closed": false,
+    "gas_closure_cause": null
    }
   },
   "PROS-2020-0012": {
@@ -7764,7 +7804,8 @@
     "gas_change_kg": 965.9097,
     "total_change_kg": 911.4765,
     "net_fall": false,
-    "gas_closed": false
+    "gas_closed": false,
+    "gas_closure_cause": null
    }
   },
   "PROS-2020-0032": {
@@ -7826,7 +7867,8 @@
     {
      "year": 2023,
      "full_year": false,
-     "total_co2e_kg": 25.1403,
+     "total_co2e_kg": null,
+     "total_unavailable": "PROS-2020-0032 2023: no total, because the gas leg has no figure (gas account closed 2022-12-31; nothing billed since. This supplier holds no removal order and no loss notice for it, so why the gas stopped is not known and no change is claimed from it)",
      "electricity": {
       "status": "billed",
       "kwh": 162.3,
@@ -7836,10 +7878,11 @@
      "gas": {
       "status": "closed",
       "kwh": 0.0,
-      "co2e_kg": 0.0,
+      "co2e_kg": null,
       "months_billed": 0,
-      "reason": "gas account closed 2022-12-31; nothing billed since. This record does not say whether the gas was disconnected or moved to another supplier",
-      "closed_on": "2022-12-31"
+      "reason": "gas account closed 2022-12-31; nothing billed since. This supplier holds no removal order and no loss notice for it, so why the gas stopped is not known and no change is claimed from it",
+      "closed_on": "2022-12-31",
+      "closure_cause": "unknown"
      }
     }
    ],
@@ -7850,7 +7893,8 @@
     "gas_change_kg": 316.6869,
     "total_change_kg": 380.4416,
     "net_fall": false,
-    "gas_closed": false
+    "gas_closed": false,
+    "gas_closure_cause": null
    }
   },
   "PROS-2020-0132": {
@@ -7993,7 +8037,8 @@
     "gas_change_kg": 23.8838,
     "total_change_kg": -38.563,
     "net_fall": true,
-    "gas_closed": false
+    "gas_closed": false,
+    "gas_closure_cause": null
    }
   },
   "PROS-2020-0190": {
@@ -8113,7 +8158,8 @@
     "gas_change_kg": -121.4223,
     "total_change_kg": -170.8935,
     "net_fall": true,
-    "gas_closed": false
+    "gas_closed": false,
+    "gas_closure_cause": null
    }
   },
   "PROS-2020-0205": {
@@ -8233,7 +8279,8 @@
     "gas_change_kg": 64.887,
     "total_change_kg": -23.5947,
     "net_fall": true,
-    "gas_closed": false
+    "gas_closed": false,
+    "gas_closure_cause": null
    }
   },
   "PROS-2020-0221": {
@@ -8374,7 +8421,8 @@
     "gas_change_kg": 445.0703,
     "total_change_kg": 777.2043,
     "net_fall": false,
-    "gas_closed": false
+    "gas_closed": false,
+    "gas_closure_cause": null
    }
   },
   "PROS-2021-0044": {
@@ -8477,7 +8525,8 @@
     "gas_change_kg": 0.1503,
     "total_change_kg": -98.8306,
     "net_fall": true,
-    "gas_closed": false
+    "gas_closed": false,
+    "gas_closure_cause": null
    }
   },
   "PROS-2021-0139": {
@@ -8580,7 +8629,8 @@
     "gas_change_kg": 626.9352,
     "total_change_kg": 580.1965,
     "net_fall": false,
-    "gas_closed": false
+    "gas_closed": false,
+    "gas_closure_cause": null
    }
   },
   "PROS-2021-0168": {
@@ -8683,7 +8733,8 @@
     "gas_change_kg": 481.9683,
     "total_change_kg": 463.9851,
     "net_fall": false,
-    "gas_closed": false
+    "gas_closed": false,
+    "gas_closure_cause": null
    }
   },
   "PROS-2021-0201": {
@@ -8786,7 +8837,8 @@
     "gas_change_kg": 1130.203,
     "total_change_kg": 1032.0789,
     "net_fall": false,
-    "gas_closed": false
+    "gas_closed": false,
+    "gas_closure_cause": null
    }
   },
   "PROS-2021-0202": {
@@ -8889,7 +8941,8 @@
     "gas_change_kg": 307.6767,
     "total_change_kg": 249.9796,
     "net_fall": false,
-    "gas_closed": false
+    "gas_closed": false,
+    "gas_closure_cause": null
    }
   },
   "PROS-2021-0210": {
@@ -8992,7 +9045,8 @@
     "gas_change_kg": 17.8628,
     "total_change_kg": -21.2844,
     "net_fall": true,
-    "gas_closed": false
+    "gas_closed": false,
+    "gas_closure_cause": null
    }
   },
   "PROS-2021-0212": {
@@ -9095,7 +9149,8 @@
     "gas_change_kg": -17.4988,
     "total_change_kg": -76.4773,
     "net_fall": true,
-    "gas_closed": false
+    "gas_closed": false,
+    "gas_closure_cause": null
    }
   },
   "PROS-2021-0248": {
@@ -9198,7 +9253,8 @@
     "gas_change_kg": -422.7676,
     "total_change_kg": -409.0744,
     "net_fall": true,
-    "gas_closed": false
+    "gas_closed": false,
+    "gas_closure_cause": null
    }
   },
   "PROS-2021-0279": {
@@ -9301,7 +9357,8 @@
     "gas_change_kg": -242.1031,
     "total_change_kg": -296.172,
     "net_fall": true,
-    "gas_closed": false
+    "gas_closed": false,
+    "gas_closure_cause": null
    }
   },
   "PROS-2021-0315": {
@@ -9404,7 +9461,8 @@
     "gas_change_kg": -42.9812,
     "total_change_kg": -107.2961,
     "net_fall": true,
-    "gas_closed": false
+    "gas_closed": false,
+    "gas_closure_cause": null
    }
   },
   "PROS-2021-0383": {
@@ -9507,7 +9565,8 @@
     "gas_change_kg": -59.0413,
     "total_change_kg": -105.094,
     "net_fall": true,
-    "gas_closed": false
+    "gas_closed": false,
+    "gas_closure_cause": null
    }
   },
   "PROS-2022-0010": {
@@ -9593,7 +9652,8 @@
     "gas_change_kg": 103.9224,
     "total_change_kg": 43.1459,
     "net_fall": false,
-    "gas_closed": false
+    "gas_closed": false,
+    "gas_closure_cause": null
    }
   },
   "PROS-2022-0063": {
@@ -9679,7 +9739,8 @@
     "gas_change_kg": -572.243,
     "total_change_kg": -594.3948,
     "net_fall": true,
-    "gas_closed": false
+    "gas_closed": false,
+    "gas_closure_cause": null
    }
   },
   "PROS-2022-0097": {
@@ -9805,7 +9866,8 @@
     "gas_change_kg": 67.6472,
     "total_change_kg": 18.1675,
     "net_fall": false,
-    "gas_closed": false
+    "gas_closed": false,
+    "gas_closure_cause": null
    }
   },
   "PROS-2023-0096": {
@@ -11090,7 +11152,8 @@
     "gas_change_kg": 0.0,
     "total_change_kg": -46.5805,
     "net_fall": true,
-    "gas_closed": false
+    "gas_closed": false,
+    "gas_closure_cause": null
    }
   },
   "SYN-2016-002": {
@@ -11158,7 +11221,8 @@
     "gas_change_kg": -84.3394,
     "total_change_kg": -84.3394,
     "net_fall": true,
-    "gas_closed": false
+    "gas_closed": false,
+    "gas_closure_cause": null
    }
   },
   "SYN-2016-003": {
@@ -11418,7 +11482,8 @@
     "gas_change_kg": 0.0,
     "total_change_kg": -115.7184,
     "net_fall": true,
-    "gas_closed": false
+    "gas_closed": false,
+    "gas_closure_cause": null
    }
   },
   "SYN-2016-005": {
@@ -11640,7 +11705,8 @@
     "gas_change_kg": 0.0,
     "total_change_kg": -128.5188,
     "net_fall": true,
-    "gas_closed": false
+    "gas_closed": false,
+    "gas_closure_cause": null
    }
   },
   "SYN-2016-007": {
@@ -11988,7 +12054,8 @@
     "gas_change_kg": 0.0,
     "total_change_kg": -79.3924,
     "net_fall": true,
-    "gas_closed": false
+    "gas_closed": false,
+    "gas_closure_cause": null
    }
   },
   "SYN-2016-011": {
@@ -12056,7 +12123,8 @@
     "gas_change_kg": -98.8837,
     "total_change_kg": -98.8837,
     "net_fall": true,
-    "gas_closed": false
+    "gas_closed": false,
+    "gas_closure_cause": null
    }
   },
   "SYN-2016-013": {
@@ -12142,7 +12210,8 @@
     "gas_change_kg": -329.8816,
     "total_change_kg": -329.8816,
     "net_fall": true,
-    "gas_closed": false
+    "gas_closed": false,
+    "gas_closure_cause": null
    }
   },
   "SYN-2016-014": {
@@ -12228,7 +12297,8 @@
     "gas_change_kg": 1708.2939,
     "total_change_kg": 1708.2939,
     "net_fall": false,
-    "gas_closed": false
+    "gas_closed": false,
+    "gas_closure_cause": null
    }
   },
   "SYN-2016-015": {
@@ -12316,7 +12386,8 @@
     "gas_change_kg": 0.0,
     "total_change_kg": -84.0753,
     "net_fall": true,
-    "gas_closed": false
+    "gas_closed": false,
+    "gas_closure_cause": null
    }
   },
   "SYN-2016-016": {
@@ -12512,7 +12583,8 @@
     "gas_change_kg": -134.4446,
     "total_change_kg": -134.4446,
     "net_fall": true,
-    "gas_closed": false
+    "gas_closed": false,
+    "gas_closure_cause": null
    }
   },
   "SYN-2016-017": {
@@ -12710,7 +12782,8 @@
     "gas_change_kg": 0.0,
     "total_change_kg": -71.3091,
     "net_fall": true,
-    "gas_closed": false
+    "gas_closed": false,
+    "gas_closure_cause": null
    }
   },
   "SYN-2016-018": {
@@ -12842,7 +12915,8 @@
     "gas_change_kg": 0.0,
     "total_change_kg": -156.4218,
     "net_fall": true,
-    "gas_closed": false
+    "gas_closed": false,
+    "gas_closure_cause": null
    }
   },
   "SYN-2016-020": {
@@ -12966,7 +13040,8 @@
     "gas_change_kg": 0.0,
     "total_change_kg": -10.6547,
     "net_fall": true,
-    "gas_closed": false
+    "gas_closed": false,
+    "gas_closure_cause": null
    }
   },
   "SYN-2016-021": {
@@ -13162,7 +13237,8 @@
     "gas_change_kg": -991.0152,
     "total_change_kg": -991.0152,
     "net_fall": true,
-    "gas_closed": false
+    "gas_closed": false,
+    "gas_closure_cause": null
    }
   },
   "SYN-2016-022": {
@@ -13490,7 +13566,8 @@
     "gas_change_kg": 0.0,
     "total_change_kg": -129.5075,
     "net_fall": true,
-    "gas_closed": false
+    "gas_closed": false,
+    "gas_closure_cause": null
    }
   },
   "SYN-2016-026": {
@@ -13578,7 +13655,8 @@
     "gas_change_kg": 0.0,
     "total_change_kg": -79.1402,
     "net_fall": true,
-    "gas_closed": false
+    "gas_closed": false,
+    "gas_closure_cause": null
    }
   },
   "SYN-2016-027": {
@@ -13728,7 +13806,8 @@
     "gas_change_kg": 0.0,
     "total_change_kg": -88.4206,
     "net_fall": true,
-    "gas_closed": false
+    "gas_closed": false,
+    "gas_closure_cause": null
    }
   },
   "SYN-2016-029": {
@@ -13798,7 +13877,8 @@
     "gas_change_kg": 0.0,
     "total_change_kg": 427.9952,
     "net_fall": false,
-    "gas_closed": false
+    "gas_closed": false,
+    "gas_closure_cause": null
    }
   },
   "SYN-2016-030": {
@@ -13886,7 +13966,8 @@
     "gas_change_kg": 0.0,
     "total_change_kg": -33.4402,
     "net_fall": true,
-    "gas_closed": false
+    "gas_closed": false,
+    "gas_closure_cause": null
    }
   },
   "SYN-2016-031": {
@@ -13974,7 +14055,8 @@
     "gas_change_kg": 0.0,
     "total_change_kg": -50.7744,
     "net_fall": true,
-    "gas_closed": false
+    "gas_closed": false,
+    "gas_closure_cause": null
    }
   },
   "SYN-2016-032": {
@@ -14080,7 +14162,8 @@
     "gas_change_kg": 0.0,
     "total_change_kg": -45.7899,
     "net_fall": true,
-    "gas_closed": false
+    "gas_closed": false,
+    "gas_closure_cause": null
    }
   },
   "SYN-2016-033": {
@@ -14278,7 +14361,8 @@
     "gas_change_kg": 0.0,
     "total_change_kg": -34.4399,
     "net_fall": true,
-    "gas_closed": false
+    "gas_closed": false,
+    "gas_closure_cause": null
    }
   },
   "SYN-2016-034": {
@@ -14476,7 +14560,8 @@
     "gas_change_kg": 0.0,
     "total_change_kg": -18.6334,
     "net_fall": true,
-    "gas_closed": false
+    "gas_closed": false,
+    "gas_closure_cause": null
    }
   },
   "SYN-2016-035": {
@@ -14562,7 +14647,8 @@
     "gas_change_kg": -133.681,
     "total_change_kg": -133.681,
     "net_fall": true,
-    "gas_closed": false
+    "gas_closed": false,
+    "gas_closure_cause": null
    }
   },
   "SYN-2016-036": {
@@ -14820,7 +14906,8 @@
     "gas_change_kg": 54.3135,
     "total_change_kg": 54.3135,
     "net_fall": false,
-    "gas_closed": false
+    "gas_closed": false,
+    "gas_closure_cause": null
    }
   },
   "SYN-2016-039": {
@@ -14932,7 +15019,8 @@
     "gas_change_kg": -1.5716,
     "total_change_kg": -1.5716,
     "net_fall": true,
-    "gas_closed": false
+    "gas_closed": false,
+    "gas_closure_cause": null
    }
   },
   "SYN-2016-041": {
@@ -15346,7 +15434,8 @@
     "gas_change_kg": 102.1307,
     "total_change_kg": 102.1307,
     "net_fall": false,
-    "gas_closed": false
+    "gas_closed": false,
+    "gas_closure_cause": null
    }
   },
   "SYN-2016-047": {
@@ -15524,7 +15613,8 @@
     "gas_change_kg": 0.0,
     "total_change_kg": -101.1482,
     "net_fall": true,
-    "gas_closed": false
+    "gas_closed": false,
+    "gas_closure_cause": null
    }
   },
   "SYN-2016-048": {
@@ -15702,7 +15792,8 @@
     "gas_change_kg": 0.0,
     "total_change_kg": -86.3048,
     "net_fall": true,
-    "gas_closed": false
+    "gas_closed": false,
+    "gas_closure_cause": null
    }
   },
   "SYN-2016-049": {
@@ -15900,7 +15991,8 @@
     "gas_change_kg": 0.0,
     "total_change_kg": -69.5178,
     "net_fall": true,
-    "gas_closed": false
+    "gas_closed": false,
+    "gas_closure_cause": null
    }
   },
   "SYN-2016-050": {
@@ -16022,7 +16114,8 @@
     "gas_change_kg": -489.822,
     "total_change_kg": -489.822,
     "net_fall": true,
-    "gas_closed": false
+    "gas_closed": false,
+    "gas_closure_cause": null
    }
   },
   "SYN-2016-051": {
@@ -16220,7 +16313,8 @@
     "gas_change_kg": 0.0,
     "total_change_kg": -99.2291,
     "net_fall": true,
-    "gas_closed": false
+    "gas_closed": false,
+    "gas_closure_cause": null
    }
   },
   "SYN-2016-052": {
@@ -16324,7 +16418,8 @@
     "gas_change_kg": 1546.9703,
     "total_change_kg": 1546.9703,
     "net_fall": false,
-    "gas_closed": false
+    "gas_closed": false,
+    "gas_closure_cause": null
    }
   },
   "SYN-2016-053": {
@@ -16628,7 +16723,8 @@
     "gas_change_kg": 0.0,
     "total_change_kg": 142.4441,
     "net_fall": false,
-    "gas_closed": false
+    "gas_closed": false,
+    "gas_closure_cause": null
    }
   },
   "SYN-2016-057": {
@@ -16752,7 +16848,8 @@
     "gas_change_kg": 0.0,
     "total_change_kg": -56.8289,
     "net_fall": true,
-    "gas_closed": false
+    "gas_closed": false,
+    "gas_closure_cause": null
    }
   },
   "SYN-2016-058": {
@@ -17136,7 +17233,8 @@
     "gas_change_kg": 0.0,
     "total_change_kg": -66.7222,
     "net_fall": true,
-    "gas_closed": false
+    "gas_closed": false,
+    "gas_closure_cause": null
    }
   },
   "SYN-2016-062": {
@@ -17334,7 +17432,8 @@
     "gas_change_kg": 0.0,
     "total_change_kg": -125.8026,
     "net_fall": true,
-    "gas_closed": false
+    "gas_closed": false,
+    "gas_closure_cause": null
    }
   },
   "SYN-2016-063": {
@@ -17458,7 +17557,8 @@
     "gas_change_kg": 0.0,
     "total_change_kg": -105.5792,
     "net_fall": true,
-    "gas_closed": false
+    "gas_closed": false,
+    "gas_closure_cause": null
    }
   },
   "SYN-2016-064": {
@@ -17564,7 +17664,8 @@
     "gas_change_kg": 0.0,
     "total_change_kg": -886.9956,
     "net_fall": true,
-    "gas_closed": false
+    "gas_closed": false,
+    "gas_closure_cause": null
    }
   },
   "SYN-2016-065": {
@@ -17676,7 +17777,8 @@
     "gas_change_kg": 0.0,
     "total_change_kg": -136.1903,
     "net_fall": true,
-    "gas_closed": false
+    "gas_closed": false,
+    "gas_closure_cause": null
    }
   }
  }
