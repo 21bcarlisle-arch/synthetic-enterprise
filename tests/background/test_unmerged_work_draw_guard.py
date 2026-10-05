@@ -160,3 +160,32 @@ def test_trunk_is_resolved_not_hardcoded(tmp_path):
     _run(["git", "commit", "-am", "rival work"], root)
     _run(["git", "checkout", "master"], root)
     assert "site/index.html" in supervisor._unmerged_work_paths(root=root)
+
+
+def test_work_already_on_origin_is_not_unmerged_when_local_main_is_behind(repo, tmp_path):
+    """The shared checkout sits behind origin whenever reconcile-watch lags. A branch whose
+    commit is on origin/main but not on local main has nothing unmerged; diffing against the
+    behind local main counted it, and deprioritised PB5 and G14 on every BUILD tick."""
+    origin = tmp_path / "origin.git"
+    _run(["git", "clone", "--bare", str(repo), str(origin)], tmp_path)
+    _run(["git", "remote", "add", "origin", str(origin)], repo)
+    _run(["git", "push", "origin", "worktree-agent-rival:main"], repo)
+    _run(["git", "fetch", "origin"], repo)
+    # control: the rival branch IS ahead of local main, so the old trunk would list it
+    ahead = subprocess.run(["git", "rev-list", "--count", "main..worktree-agent-rival"],
+                           cwd=str(repo), capture_output=True, text=True).stdout.strip()
+    assert ahead == "1"
+    paths = supervisor._unmerged_work_paths(root=repo)
+    assert "site/index.html" not in paths, (
+        f"work already on origin/main is landed, not unmerged; got {sorted(paths)}")
+
+
+def test_branch_work_not_on_origin_is_still_unmerged_with_a_remote(repo, tmp_path):
+    """The rare branch stays reachable: with a remote present, a branch ahead of origin/main
+    is still listed."""
+    origin = tmp_path / "origin.git"
+    _run(["git", "clone", "--bare", str(repo), str(origin)], tmp_path)
+    _run(["git", "remote", "add", "origin", str(origin)], repo)
+    _run(["git", "push", "origin", "main:main"], repo)
+    _run(["git", "fetch", "origin"], repo)
+    assert "site/index.html" in supervisor._unmerged_work_paths(root=repo)

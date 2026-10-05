@@ -1080,8 +1080,13 @@ def _unmerged_work_paths(root: Path | None = None) -> frozenset:
     #     Resolve the trunk rather than hardcoding "main": on a checkout without it, every
     #     `main..branch` would error and the guard would fail-open COMPLETELY and silently
     #     (an unavailable check is a FAILED check -- R15 fail-silent). Fall back to HEAD.
-    default_ref = "main"
-    if not _git(["rev-parse", "--verify", "--quiet", default_ref], base).strip():
+    #     origin/main FIRST: the shared checkout routinely sits behind origin while
+    #     reconcile-watch lags, and diffing against a behind local main counted work already
+    #     landed on origin as unmerged (2026-10-04: two landed research docs deprioritised PB5
+    #     and G14 on every BUILD tick).
+    default_ref = next((ref for ref in ("origin/main", "main")
+                        if _git(["rev-parse", "--verify", "--quiet", ref], base).strip()), "")
+    if not default_ref:
         default_ref = _git(["symbolic-ref", "--short", "HEAD"], base).strip() or "HEAD"
     for line in _git(["for-each-ref", "--format=%(refname:short)", "refs/heads/"], base).splitlines():
         branch = line.strip()

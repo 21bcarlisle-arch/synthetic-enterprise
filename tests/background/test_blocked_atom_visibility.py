@@ -280,7 +280,10 @@ UNPARKED_SUBJECT_COVERAGE: dict[str, list[str]] = {
         # proposal-only), and being asked for the thing directly is exactly what a pull-forward
         # proposal exists to obtain -- so `block_reason` is null, `loop_stage` is `build`, and
         # the field is DELETED-to-null the way `apply_release` does it rather than renamed.
-        "EP13_adapter_carbon_intensity",
+        # 2026-10-05: back to parked BY THE DIRECTOR, not by drift -- "Park EP13 at a clean
+        # point and take G14 instead" (de323eb13). G14 carries grid carbon now but does not
+        # read as this subject, so a park-filtering reader sees no counterparty adapter: a
+        # true `[]`, recorded rather than hidden.
     ],
     "forecast_feed": [],
 }
