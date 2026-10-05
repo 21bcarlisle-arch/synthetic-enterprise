@@ -18,6 +18,78 @@
       "run_commit": "96517e68cc5f9ebd49d6567f7d154f1fd7e2f874",
       "head_blob": "32697245c79636628159061d2e69dc78e0aff23d",
       "why": "The QEP 2.7.1 level-anchor refit, which the 20261004r arms executed uncommitted on top of 96517e68c and which lands in the same commit as those arms. This blob is byte-identical to the file the run imported (git hash-object in /var/tmp/se-qep-arms2), so the run executed this code; it moved only from uncommitted to committed."
+    },
+    {
+      "path": "background/live_ledger_guard.py",
+      "run_commit": "a9e6f2144416264dea90b3fbec74dba086496e9c",
+      "head_blob": "6bbeb7cd9f5027af762702797ac7ba1467543002",
+      "why": "A defensive read only: `_shared_record_dir` now reads `stdout`/`returncode` through getattr so a test that stubs subprocess.run cannot crash it. With a real CompletedProcess the branch taken is identical, and the function only locates the shared record directory; it computes no figure the arms read."
+    },
+    {
+      "path": "company/billing/carbon_footprint.py",
+      "run_commit": "a9e6f2144416264dea90b3fbec74dba086496e9c",
+      "head_blob": "da7f5fb31e4e5e63f435a32eec57972e5b2afa80",
+      "why": "Not in the run's import closure: importing simulation.run_phase2b and tools.run_value_cycle_ab (the probe test_the_arms_substrate_covers_every_module_the_run_imports uses) does not load it, and no module in that closure imports it inside a function either (scanned 2026-10-05; the one deferred import naming a related module, simulation/dd_collection_book.py -> simulation.run_phase4c_on_phase2b, does not load it). The run cannot execute code it never imports."
+    },
+    {
+      "path": "company/carbon/half_hourly_footprint.py",
+      "run_commit": "a9e6f2144416264dea90b3fbec74dba086496e9c",
+      "head_blob": "327c7381b1dfa7a760b11f6e5c161109f98b5c68",
+      "why": "Not in the run's import closure: importing simulation.run_phase2b and tools.run_value_cycle_ab (the probe test_the_arms_substrate_covers_every_module_the_run_imports uses) does not load it, and no module in that closure imports it inside a function either (scanned 2026-10-05; the one deferred import naming a related module, simulation/dd_collection_book.py -> simulation.run_phase4c_on_phase2b, does not load it). The run cannot execute code it never imports."
+    },
+    {
+      "path": "company/regulatory/carbon_emissions.py",
+      "run_commit": "a9e6f2144416264dea90b3fbec74dba086496e9c",
+      "head_blob": "6bef4380cf9ec712612c82f2e7452b0b5d0185c8",
+      "why": "Not in the run's import closure: importing simulation.run_phase2b and tools.run_value_cycle_ab (the probe test_the_arms_substrate_covers_every_module_the_run_imports uses) does not load it, and no module in that closure imports it inside a function either (scanned 2026-10-05; the one deferred import naming a related module, simulation/dd_collection_book.py -> simulation.run_phase4c_on_phase2b, does not load it). The run cannot execute code it never imports."
+    },
+    {
+      "path": "company/sustainability/carbon_intensity_register.py",
+      "run_commit": "a9e6f2144416264dea90b3fbec74dba086496e9c",
+      "head_blob": "e31fffd9c646d4f76631745187558f4acd2ffe05",
+      "why": "Not in the run's import closure: importing simulation.run_phase2b and tools.run_value_cycle_ab (the probe test_the_arms_substrate_covers_every_module_the_run_imports uses) does not load it, and no module in that closure imports it inside a function either (scanned 2026-10-05; the one deferred import naming a related module, simulation/dd_collection_book.py -> simulation.run_phase4c_on_phase2b, does not load it). The run cannot execute code it never imports."
+    },
+    {
+      "path": "saas/reporting/annual_report.py",
+      "run_commit": "a9e6f2144416264dea90b3fbec74dba086496e9c",
+      "head_blob": "1fafa5c6eb6961f308ec0f4a293b0fa4a94b0407",
+      "why": "Not in the run's import closure: importing simulation.run_phase2b and tools.run_value_cycle_ab (the probe test_the_arms_substrate_covers_every_module_the_run_imports uses) does not load it, and no module in that closure imports it inside a function either (scanned 2026-10-05; the one deferred import naming a related module, simulation/dd_collection_book.py -> simulation.run_phase4c_on_phase2b, does not load it). The run cannot execute code it never imports."
+    },
+    {
+      "path": "sim/grid_carbon_future.py",
+      "run_commit": "a9e6f2144416264dea90b3fbec74dba086496e9c",
+      "head_blob": "718df240d99b1a488647c1edc209114bc36934ed",
+      "why": "Not in the run's import closure: importing simulation.run_phase2b and tools.run_value_cycle_ab (the probe test_the_arms_substrate_covers_every_module_the_run_imports uses) does not load it, and no module in that closure imports it inside a function either (scanned 2026-10-05; the one deferred import naming a related module, simulation/dd_collection_book.py -> simulation.run_phase4c_on_phase2b, does not load it). The run cannot execute code it never imports."
+    },
+    {
+      "path": "sim/grid_carbon_history.py",
+      "run_commit": "a9e6f2144416264dea90b3fbec74dba086496e9c",
+      "head_blob": "c27ddb4d24c868d97387cbbaa77bc5b03e3e9c6a",
+      "why": "Not in the run's import closure: importing simulation.run_phase2b and tools.run_value_cycle_ab (the probe test_the_arms_substrate_covers_every_module_the_run_imports uses) does not load it, and no module in that closure imports it inside a function either (scanned 2026-10-05; the one deferred import naming a related module, simulation/dd_collection_book.py -> simulation.run_phase4c_on_phase2b, does not load it). The run cannot execute code it never imports."
+    },
+    {
+      "path": "sim/grid_carbon_intensity.py",
+      "run_commit": "a9e6f2144416264dea90b3fbec74dba086496e9c",
+      "head_blob": "9d3d0feffeba7360f86942233fa514495c43f4c2",
+      "why": "Not in the run's import closure: importing simulation.run_phase2b and tools.run_value_cycle_ab (the probe test_the_arms_substrate_covers_every_module_the_run_imports uses) does not load it, and no module in that closure imports it inside a function either (scanned 2026-10-05; the one deferred import naming a related module, simulation/dd_collection_book.py -> simulation.run_phase4c_on_phase2b, does not load it). The run cannot execute code it never imports."
+    },
+    {
+      "path": "sim/neso_carbon_intensity.py",
+      "run_commit": "a9e6f2144416264dea90b3fbec74dba086496e9c",
+      "head_blob": "6e294470beb85b756aef82d67b38703db2b0c38a",
+      "why": "Not in the run's import closure: importing simulation.run_phase2b and tools.run_value_cycle_ab (the probe test_the_arms_substrate_covers_every_module_the_run_imports uses) does not load it, and no module in that closure imports it inside a function either (scanned 2026-10-05; the one deferred import naming a related module, simulation/dd_collection_book.py -> simulation.run_phase4c_on_phase2b, does not load it). The run cannot execute code it never imports."
+    },
+    {
+      "path": "simulation/unbilled_energy.py",
+      "run_commit": "a9e6f2144416264dea90b3fbec74dba086496e9c",
+      "head_blob": "ecc6853f333b75379de5e72f40fe545c4c44113d",
+      "why": "Not in the run's import closure: importing simulation.run_phase2b and tools.run_value_cycle_ab (the probe test_the_arms_substrate_covers_every_module_the_run_imports uses) does not load it, and no module in that closure imports it inside a function either (scanned 2026-10-05; the one deferred import naming a related module, simulation/dd_collection_book.py -> simulation.run_phase4c_on_phase2b, does not load it). The run cannot execute code it never imports."
+    },
+    {
+      "path": "company/analytics/forward_clv.py",
+      "run_commit": "a9e6f2144416264dea90b3fbec74dba086496e9c",
+      "head_blob": "130fc1422724a36c873dcd3add6015d4f1218081",
+      "why": "New in 9680fbf4b (B11 forward-value backtest) and not in the run's import closure: importing simulation.run_phase2b and tools.run_value_cycle_ab does not load it, and no module outside its own test imports it at all (grep, 2026-10-05). The run cannot execute code it never imports."
     }
   ]
 }

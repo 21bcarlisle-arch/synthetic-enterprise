@@ -69,3 +69,39 @@ Once both artefacts exist:
   pair, and regenerate `site/data/value_arms.json`.
 - Re-key any control that pinned a 20261004h figure.
 - Grade the three predictions above beside this section.
+
+## Graded (2026-10-05 13:45 BST, after both legs ended `DONE`)
+
+The log `/var/tmp/longjob-c29-arms-retake.log` ends `leg2 rc=0 2026-10-05T11:53:58Z` and
+`END both legs DONE`. Both artefacts name `producing_commit` `a9e6f2144` and world digest
+`cdba75ebb9197b33`. The digest is unchanged: it covers the departure level, which C29 does not touch.
+
+| Prediction | 20261004h | 20261005c | Graded |
+|---|---|---|---|
+| 1. Value minus level: DOWN (p≈0.6) | £20,889 | £18,541 | **Held.** Down £2,348. |
+| 2. Floor spread: UP (p≈0.65) | £1,756 | £2,229 | **Held.** Up £473. |
+| 3. Selection leg: no sign predicted | £5,915, resolved (3 of 3) | £3,229, **withheld** (1 of 3 draws clear the bound) | Not graded. The leg went back to unresolved. |
+
+Under the preregistration's own condition, neither hit is credited to C29. Between the two runs,
+32 substrate files moved. Per-seed headline (value minus level): 21,464 / 17,277 / 20,696, against
+26,586 / 24,134 / 27,538 before. Every seed fell, by £6.3k on average (£5.1k–£6.9k). That is more than twice the
+new spread, so the fall is a real change in the arms. It is just not attributable to one cause.
+
+**What moves on the page.** The selection leg's three re-draws are £9,813 / £3,359 / £3,032. All are
+positive, but only one clears the spread. `selection_leg.resolved` goes from `true` back to `null`,
+so the front door's `data-selection-verdict` goes back to `withheld`, with the reason the feed
+gives. The split by seed still has the same shape: churn pricing is positive on every draw (mean
+£13,796, 5.8 sem). Credit is negative on every draw (mean −£8,395), and PROS-2016-0098 alone holds
+110–119% of it. The level share of the advantage rises from 72% to 83%. More of what the book shows
+is price level, which is value moved, not value made.
+
+**Code since the run.** 12 substrate paths moved between `a9e6f2144` and the publishing HEAD
+`9680fbf4b`, and each is exempted in `docs/design/value_arms_substrate_exemptions.json`, keyed to
+its blob:
+- `background/live_ledger_guard.py` is in the run's import closure. Its change is a getattr guard
+  that takes the same branch on a real `CompletedProcess`.
+- The other eleven are not in the closure, deferred imports included. They are the G14 grid-carbon
+  modules under `sim/`, four `company/` carbon modules, `saas/reporting/annual_report.py`, the
+  new `simulation/unbilled_energy.py`, and B11's new `company/analytics/forward_clv.py` (9680fbf4b, which landed while this was gating).
+
+`is_heads_code` reads true. The next commit to any of those files re-withdraws the claim on its own.
