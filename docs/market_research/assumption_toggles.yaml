@@ -1,0 +1,254 @@
+# Assumption toggles: quantities the published record does not establish, each with a range and
+# the basis for each end. An atom that needs one READS it here and never types its own number.
+# Reasoning, derivations and sensitivity results:
+#   docs/market_research/practitioner_questions_as_assumption_toggles.md
+# Sensitivity harness (read-only): tools/assumption_toggle_sensitivity.py
+# Director's ruling, 2026-10-05: "If it doesn't change any decision, the question doesn't matter.
+# If it does, dig harder -- and only bring it to me if it's both decision-changing and unresolvable."
+# Verdict vocabulary: RESOLVED | DOESNT_MATTER | MATTERS_AND_RESOLVABLE | MATTERS_AND_UNRESOLVABLE
+written: 2026-10-05
+toggles:
+  - id: q1_move_out_notice_share
+    question: Q1 home moves
+    meaning: >-
+      Of move-outs at a premises we supply, the share where the departing occupier (or landlord)
+      tells us by move day; the rest are learned later from a bounced final bill, a cancelled DD,
+      returned mail or a new occupier.
+    default: 0.7
+    low: 0.5
+    high: 0.9
+    basis_default: >-
+      Ofgem home-moves CfI summary of responses (OFG1164, Jun 2026) para 2.2: suppliers depend on
+      consumer move-out and move-in notifications, which are often late. No published share; the
+      default is the range midpoint, not a measurement.
+    basis_low: Consumer-body case evidence and the 20-40% CoT share of debt (Ofgem CfI Dec 2025 para 2.5).
+    basis_high: Owner-occupier sales, where conveyancing fixes the date and the read.
+    feeds: [B7_customer_state_layer_moves_and_shocks, W2_38]
+    sensitivity:
+      kind: acceptance_criterion
+      detail: >-
+        B7 prints CoT debt per move (must land GBP 300-650 at 2024-25 prices), CoT share of all
+        debt (must land 10-40%) and every company CoT decision it builds, at low/default/high.
+    verdict: MATTERS_AND_RESOLVABLE
+
+  - id: q1_unnamed_months_per_cot
+    question: Q1 home moves
+    meaning: >-
+      Expected unnamed months per change of tenancy = P(move-in not named by move day) x mean
+      months until named. Only the product is bounded by evidence, so only the product is a toggle.
+    default: 3
+    low: 1
+    high: 6
+    unit: months
+    basis_default: >-
+      Derived: Energy UK CfI response, five largest suppliers accrued GBP 740m CoT debt in a year;
+      / ~78% share [M] = ~GBP 949m; / ~2.0m GB moves (EHS 2024-25 1.8m England scaled by households
+      [M]) = ~GBP 474 per move = 3.3 months of a GBP 1,717/yr typical bill [M].
+    basis_low: A few weeks for most moves (Citizens Advice 48-hour notice guidance mostly followed).
+    basis_high: All GBP 474 unnamed and unrecovered at 70% of typical use = 4.7 months, plus later partial recovery.
+    feeds: [B7_customer_state_layer_moves_and_shocks, W2_38, EP4_collections_journey, B11_forward_clv_backtested_on_held_back_history]
+    sensitivity:
+      kind: acceptance_criterion
+      detail: Same as q1_move_out_notice_share; graded against the GBP 300-650 per move band.
+    verdict: MATTERS_AND_RESOLVABLE
+
+  - id: q1_move_hazard_multiplier
+    question: Q1 home moves
+    meaning: >-
+      Multiplier on the English Housing Survey 2024-25 annual move rate by tenure (owner 3.8%,
+      private rent 17.5%, social 4.6%), applied as a price-insensitive departure hazard.
+    default: 1.0
+    low: 0.5
+    high: 2.0
+    basis_default: EHS 2024-25 Annex Tables 1.1 and 3.7 (simulation/arrival_route.py).
+    basis_low: EHS per-tenure flows carry only 1.62m of the 1.8m headline; Scotland/Wales unmeasured.
+    basis_high: Generous upper bound covering per-person vs per-household confusion (2016 Ofgem 11% per person).
+    feeds: [B7_customer_state_layer_moves_and_shocks, B11_forward_clv_backtested_on_held_back_history]
+    sensitivity:
+      kind: tested
+      tool: tools/assumption_toggle_sensitivity.py
+      detail: >-
+        Renewal pricing (decision probe, 4 paths x 3 tenure seeds): no level or sign moved at 0.5
+        or 1.0; at 2.0 one ex-ante year moved one grid step on one path in 2 of 3 seeds.
+    verdict: DOESNT_MATTER
+
+  - id: q2_persistent_unread_share
+    question: Q2 persistent non-reads
+    meaning: >-
+      Share of read-exposed credit meters (traditional, or smart in traditional mode) in a
+      hard-to-read state with monthly actual-read probability ~0.02; the remainder are read
+      memorylessly at the rate solved to match q2_no_read_12m_share.
+    default: 0.01
+    low: 0.0
+    high: 0.03
+    basis_default: >-
+      Smallest share that makes a 24-month gap ordinary among complaint back-bills (Ofgem 16 Nov
+      2017 para 2.1: median length 24 months, n=203) while keeping Elexon's RF fit.
+    basis_low: Elexon 30/60/80/97% at 2/4/7/14 months fits a memoryless read at p~0.20 with no persistent class.
+    basis_high: Elexon RF leaves 3% unread, so pi x 0.98^14 <= 0.03 gives pi <= 0.04; less a margin because the fit worsens with pi.
+    feeds: [W2_36_unbilled_energy_arises_the_way_it_does_in_reality, D48_billing_accuracy_the_company_measures_what_it_billed_against_what_was_used, W2_37]
+    solver_for_other_class: tools/assumption_toggle_sensitivity.py::solve_easy_rate
+    sensitivity:
+      kind: tested
+      tool: tools/assumption_toggle_sensitivity.py
+      detail: >-
+        Proved and printed: the share of consumption older than 12 months at the catch-up bill
+        equals the 12-month no-read share for any calibrated mixture, so 21BA-barred revenue and
+        renewal pricing are invariant in pi. The shape (count and size of back-bills, complaints,
+        value of targeted read-chasing) is an acceptance criterion of W2_36/D48/W2_37 at pi = 0,
+        0.01, 0.03.
+    verdict: DOESNT_MATTER for aggregates and pricing; MATTERS_AND_RESOLVABLE for the shape
+
+  - id: q2_no_read_12m_share
+    question: Q2 persistent non-reads
+    meaning: Share of domestic credit customers with no bill based on an actual read in the past 12 months.
+    default: 0.07
+    low: 0.054
+    high: 0.07
+    basis_default: Ofgem statutory consultation 16 Nov 2017 para 1.1 (Citizens Advice data, H1 2017) "just over 7%".
+    basis_low: Ofgem decision 5 Mar 2018 p.10, median supplier 94.8% / 94.4% with a read in the year.
+    basis_high: As default.
+    feeds: [W2_36_unbilled_energy_arises_the_way_it_does_in_reality, D48_billing_accuracy_the_company_measures_what_it_billed_against_what_was_used]
+    sensitivity:
+      kind: tested
+      detail: Calibration target; the world's 1/6 monthly read rate gives 11.2% and should be ~0.20-0.22.
+    verdict: RESOLVED
+
+  - id: q2_mean_under_estimate_on_a_catch_up
+    question: Q2 persistent non-reads
+    meaning: Mean positive part of (actual - estimated) / estimated consumption over an unread stretch.
+    default: 0.10
+    low: 0.05
+    high: 0.20
+    basis_default: >-
+      Derived from docs/market_research/how_far_a_settled_eac_sits_from_next_years_use.md: EACs
+      unbiased, median absolute year-on-year move 14%, so the positive part averages ~0.10.
+    basis_low: Half the default; a supplier estimating from recent actuals rather than the EAC.
+    basis_high: One in eight homes moves by more than 50% year on year.
+    feeds: [W2_36_unbilled_energy_arises_the_way_it_does_in_reality, D48_billing_accuracy_the_company_measures_what_it_billed_against_what_was_used, B11_forward_clv_backtested_on_held_back_history]
+    sensitivity:
+      kind: tested
+      tool: tools/assumption_toggle_sensitivity.py
+      detail: >-
+        Barred revenue 0.27% (low) / 0.35% (default) / 1.4% (high): renewal pricing unchanged at
+        low and default; at high one path's levels moved one grid step, no sign changed. That is
+        within the probe's own path-to-path spread (hindsight 45/50/50/55).
+    verdict: DOESNT_MATTER
+
+  - id: q3_plan_take_up_share
+    question: Q3 debt
+    meaning: P(household agrees an arrangement | supplier offers one at the SLC 27 ability-to-pay step).
+    default: 0.32
+    low: 0.20
+    high: 0.42
+    basis_default: Ofgem DRS impact assessment Nov 2025 fn 11, cost-neutral scenario "32% engagement" (E.ON Next Winter Support Scheme).
+    basis_low: Same source, "20% changed payment behaviour".
+    basis_high: Ofgem debt indicators Q2 2026 stock ratio 2.9/(2.9+4.0) = 42% of >91-day debtors on an arrangement (a stock, upper reference).
+    feeds: [EP4_collections_journey, W2_38, B11_forward_clv_backtested_on_held_back_history]
+    sensitivity:
+      kind: acceptance_criterion
+      detail: >-
+        W2_38 grades the world's repaying-to-arrears stock ratio and its 2019-2026 path against
+        Ofgem's quarterly indicators, which jointly pins take-up x keep; EP4 prints its forecast and
+        any company plan or DCA/sale decision at low and high.
+    verdict: MATTERS_AND_RESOLVABLE
+
+  - id: q3_instalment_miss_probability_monthly
+    question: Q3 debt
+    meaning: P(a single monthly instalment on an agreed plan fails, SOR 10-working-day definition).
+    default: 0.03
+    low: 0.02
+    high: 0.045
+    basis_default: >-
+      Derived from Ofgem 2015 social obligations Fig. 13 (23%-41% of large-supplier plans with at
+      least one miss in the year): 1-(1-a)^(1/12) = 2.2%-4.3% if independent; persistence would
+      lower the typical household's rate.
+    basis_low: 23% annual (under GBP 3/wk) -> 2.2% per instalment.
+    basis_high: 41% annual (over GBP 9/wk) -> 4.3% per instalment.
+    feeds: [EP4_collections_journey, W2_38]
+    sensitivity:
+      kind: acceptance_criterion
+      detail: As q3_plan_take_up_share. Not the company's separate "default after 2 misses" rule.
+    verdict: MATTERS_AND_RESOLVABLE
+
+  - id: q3_post_write_off_recovery_share
+    question: Q3 debt
+    meaning: GBP recovered after write-off (DCA net of commission, or sale proceeds) / GBP written off.
+    default: 0.05
+    low: 0.02
+    high: 0.10
+    basis_default: Lowell Group 2013 year-end report, average 5.4p per GBP face value paid 2004-2013 (all sectors); Centrica 2024 GBP 10m / GBP 160m = 6%.
+    basis_low: Centrica ARA 2025 Note 17, GBP 3m recovered / GBP 135m written off = 2%.
+    basis_high: Fresher energy debt placed earlier fetches more than the all-sector average; no energy-specific price is published.
+    feeds: [EP4_collections_journey, W2_38, B11_forward_clv_backtested_on_held_back_history]
+    sensitivity:
+      kind: tested
+      tool: tools/assumption_toggle_sensitivity.py
+      detail: >-
+        Renewal pricing unchanged at r = 0.02, 0.05, 0.255 (the world's DCA constant) and 1.0 on
+        all 4 paths. No company collections decision exists. The world's DEBT_SALE_HAIRCUT_PCT 0.12
+        and DCA_RECOVERY_RATE 0.20-0.30 sit above this range unsourced and should read this toggle.
+    verdict: DOESNT_MATTER
+
+  - id: q4_retention_holdout_share
+    question: Q4 offers
+    meaning: Share of retention-eligible customers randomly held back from an optional retention offer.
+    default: null
+    default_reason: >-
+      A derived design parameter, not a world fact: C34/B8 compute it from the uplift standard
+      error at the run's real decision count and the smallest effect worth detecting.
+    low: 0.05
+    high: 0.50
+    basis_default: tools/assumption_toggle_sensitivity.py::uplift_se.
+    basis_low: Smallest share that still yields a usable control at ~50,000 decisions a year (SE 0.9pp).
+    basis_high: Balanced design, the most precise for a fixed book.
+    feeds: [C34, B8_discovered_price_sensitivity_holdout, W2_39]
+    sensitivity:
+      kind: acceptance_criterion
+      detail: >-
+        At ~80 decisions no holdout share measures uplift (SE >= 10pp against published effects of
+        4-9pp). C34/B8 must log a randomised holdout on whether to offer, size it by power, fail
+        closed ("not measurable at this book size") when SE exceeds the smallest effect that
+        matters, and grade the estimate against tools/decision_probe.py's true counterfactual.
+    verdict: RESOLVED
+
+  - id: q4_pecr_soft_opt_in_scope
+    question: Q4 offers
+    meaning: Which cross-sell products may be emailed or texted to an existing customer without fresh consent.
+    default: own_energy_tariffs_and_energy_services
+    low: own_energy_tariffs_only
+    high: own_energy_and_home_services_same_entity
+    basis_default: >-
+      ICO, How do we comply with the PECR electronic mail marketing rules: "reasonably expect"
+      test; "only covers your own similar products and services". EV, ToU and export tariffs are
+      the supplier's own and sold in the same context.
+    basis_low: Strictest reading of "similar".
+    basis_high: >-
+      Contested; requires the same legal entity. Never third-party insurance or broadband (the
+      ICO supermarket example excludes banking and insurance). Consumption-data marketing needs
+      SLC 47 consent at every setting.
+    feeds: [C34]
+    sensitivity:
+      kind: acceptance_criterion
+      detail: >-
+        C34 holds a per-customer consent state reading this scope and prints its NBA ranking at
+        low and high; a change in any customer's TOP action comes back to this register. Today the
+        scope only changes the reachable population of the last-ranked lever.
+    verdict: DOESNT_MATTER
+
+no_toggle:
+  - question: Q5 carbon
+    verdict: RESOLVED
+    answer: >-
+      A supplier can tell its own meter removal (it orders the job; RGMA ONJOB/ONUPD to Xoserve;
+      SMP status DE/EX; CSS RMP status Terminated; its own CSS deactivation) from a switch away (a
+      CSS loss on an Operational RMP). Capped-in-place isolation (RMP Dormant) stays ambiguous.
+    code_finding: >-
+      company/carbon/half_hourly_footprint.py reads both as gas_closed; the harness shows a
+      switch-away household published with net_fall True and -2,173 kg, larger than a real heat
+      pump's -1,738 kg. gas_leg needs a closure cause (meter_removed / isolated / lost_on_switch)
+      from the company's own registration events, and household_change must refuse net_fall for
+      lost_on_switch and isolated.
+    feeds: [carbon footprint (tools/generate_explore_carbon.py)]
+
+escalate_to_director: []
