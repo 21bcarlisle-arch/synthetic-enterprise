@@ -36,6 +36,7 @@ quiet is a signal rather than a gap in the list.
 - Why each stretch of work went the way it did — the corrections, what was stopped short of, the reasoning behind a call: https://21bcarlisle-arch.github.io/synthetic-enterprise/status/SEAT_STRETCH_LOG.md
 - What the delivery seat is currently steering by, and what it has recorded as wrong: https://21bcarlisle-arch.github.io/synthetic-enterprise/direction/DIRECTION.yaml
 - The append-only record of decisions taken, oldest to newest: https://21bcarlisle-arch.github.io/synthetic-enterprise/direction/decisions.jsonl
+- The director's priority order as the map expresses it, and whether the draw follows it (`tools/draw_follows_the_order.py`): https://21bcarlisle-arch.github.io/synthetic-enterprise/direction/priority_order.yaml
 - Build state — current phase and test count, generated each publish: https://21bcarlisle-arch.github.io/synthetic-enterprise/status/PROJECT_STATE.txt
 - What we know and what we have NOT established, with the gaps named: https://21bcarlisle-arch.github.io/synthetic-enterprise/institutional/knowledge_map.md
 - The monthly maintenance runbook this machine operates under: https://21bcarlisle-arch.github.io/synthetic-enterprise/operations/MAINTENANCE.md

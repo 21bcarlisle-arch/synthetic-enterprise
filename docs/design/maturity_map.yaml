@@ -986,7 +986,7 @@
     'tools/ep13_ccgt_swap_ceiling.py', 'tests/tools/test_ep13_ccgt_swap_ceiling.py',
     'tools/ep13_ccgt_level_ceiling.py', 'tests/tools/test_ep13_ccgt_level_ceiling.py',
     'sim/neso_embedded_generation.py']
-  simplifications_count: 7
+  simplifications_count: 8
 - id: EP14_adapter_published_cost_stack
   title: "The non-commodity stack, parsed from what is actually published"
   notes_rehomed: [gain, name, origin_note]
@@ -1661,9 +1661,9 @@
   # instead, which the stale-id control caught in the same run.
   value_stream: price_to_bill
   epoch: 3
-  level_current: 0
+  level_current: 2   # 2026-10-05: published history on the feed + futures fit graded per year; L3 owes an Expert Hour
   level_target: 3
-  loop_stage: build
+  loop_stage: harden
   dial_inherited: 45    # 2026-10-05 restored: the dial is a draw WEIGHT (higher = more likely), and the earlier 3 lowered it by mistake; in flight, step 5 value-add
   #   use case this feeds is stage 3. Ranked so it is drawable without displacing W2_18/19/21/22.
   provenance: director_ruling
