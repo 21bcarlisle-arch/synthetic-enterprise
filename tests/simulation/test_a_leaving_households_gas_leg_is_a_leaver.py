@@ -38,6 +38,7 @@ def every_read_estimated(monkeypatch):
     import simulation.meter_reads as mr
 
     monkeypatch.setattr(mr, "TRADITIONAL_ACTUAL_READ_PROBABILITY", 0.0)
+    monkeypatch.setattr(mr, "HARD_TO_READ_ACTUAL_READ_PROBABILITY", 0.0)
     monkeypatch.setattr(mr, "SMART_METER_NOT_COMMUNICATING_RATE", 1.0)
 
 

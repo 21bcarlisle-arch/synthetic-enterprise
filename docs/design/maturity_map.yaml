@@ -2187,7 +2187,7 @@
   depends_on: []
   couples_with: [D48_billing_accuracy_the_company_measures_what_it_billed_against_what_was_used]
   file_scope: ['docs/market_research/unbilled_energy_and_revenue_assurance.md',
-    'simulation/unbilled_energy.py', 'tests/simulation/test_unbilled_energy.py']
+    'simulation/meter_reads.py', 'tests/simulation/test_meter_reads.py']
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a supplier that books revenue on estimated reads for a year and learns what it actually sold when the smart meter finally reports."
 - id: D48_billing_accuracy_the_company_measures_what_it_billed_against_what_was_used

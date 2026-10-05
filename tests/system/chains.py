@@ -452,8 +452,7 @@ def run_money_chain(
     )
     estimated = meter_reads.simulate_read(
         customer_id, period_end, "traditional", true_consumption_kwh,
-        list(trailing_actuals_kwh),
-        meter_reads.MAX_CONSECUTIVE_ESTIMATED_PERIODS - 1,
+        list(trailing_actuals_kwh), 11,
     )
 
     def _billed_kwh(event) -> float:

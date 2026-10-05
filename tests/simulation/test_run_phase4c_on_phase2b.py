@@ -53,6 +53,7 @@ def force_actual_reads(monkeypatch):
     import simulation.meter_reads as mr
 
     monkeypatch.setattr(mr, "TRADITIONAL_ACTUAL_READ_PROBABILITY", 1.0)
+    monkeypatch.setattr(mr, "HARD_TO_READ_ACTUAL_READ_PROBABILITY", 1.0)
     monkeypatch.setattr(mr, "SMART_METER_NOT_COMMUNICATING_RATE", 0.0)
     monkeypatch.setattr(mr, "READ_CUTOFF_DAYS_AFTER_PERIOD_END", 10**9)
 
@@ -271,10 +272,10 @@ def test_read_log_cannot_be_re_derived_without_losing_the_final_read_override():
 
     original_actual_prob = mr.TRADITIONAL_ACTUAL_READ_PROBABILITY
     original_not_comm = mr.SMART_METER_NOT_COMMUNICATING_RATE
-    original_max_consecutive = mr.MAX_CONSECUTIVE_ESTIMATED_PERIODS
+    original_hard_prob = mr.HARD_TO_READ_ACTUAL_READ_PROBABILITY
     mr.TRADITIONAL_ACTUAL_READ_PROBABILITY = 0.0
+    mr.HARD_TO_READ_ACTUAL_READ_PROBABILITY = 0.0
     mr.SMART_METER_NOT_COMMUNICATING_RATE = 1.0
-    mr.MAX_CONSECUTIVE_ESTIMATED_PERIODS = 10**9  # no forced catch-up
     try:
         records = consecutive_monthly_records("C1", 2023, [300.0, 320.0, 310.0])
         events: list = []
@@ -294,7 +295,7 @@ def test_read_log_cannot_be_re_derived_without_losing_the_final_read_override():
     finally:
         mr.TRADITIONAL_ACTUAL_READ_PROBABILITY = original_actual_prob
         mr.SMART_METER_NOT_COMMUNICATING_RATE = original_not_comm
-        mr.MAX_CONSECUTIVE_ESTIMATED_PERIODS = original_max_consecutive
+        mr.HARD_TO_READ_ACTUAL_READ_PROBABILITY = original_hard_prob
 
 
 def test_main_produces_contact_centre_log(main_result):
@@ -734,6 +735,7 @@ def force_estimated_reads(monkeypatch):
     import simulation.meter_reads as mr
 
     monkeypatch.setattr(mr, "TRADITIONAL_ACTUAL_READ_PROBABILITY", 0.0)
+    monkeypatch.setattr(mr, "HARD_TO_READ_ACTUAL_READ_PROBABILITY", 0.0)
     monkeypatch.setattr(mr, "SMART_METER_NOT_COMMUNICATING_RATE", 1.0)
 
 
@@ -749,9 +751,8 @@ def _short_run_records(cid="C1", n_months=10, start_year=2022, start_month=1):
 
 
 def test_churned_account_forces_final_read_resolution(force_estimated_reads):
-    """Without churned_ids, a run of estimated bills with no natural
-    forced-catch-up (fewer than MAX_CONSECUTIVE_ESTIMATED_PERIODS months)
-    stays estimated forever -- the true-vs-billed delta is never recovered.
+    """Without churned_ids, a run of estimated bills (no read is ever
+    forced, W2_36) stays estimated forever -- the true-vs-billed delta is never recovered.
     A churning/succeeding account must instead force its own LAST bill to
     resolve on a final read (Ofgem SLC 21B), same real mechanism
     company/billing/account_closure.py's receive_final_read() models."""
@@ -760,7 +761,7 @@ def test_churned_account_forces_final_read_resolution(force_estimated_reads):
     bills_open = build_monthly_bills(records)
     assert len(bills_open) == 10
     assert bills_open[-1]["billing_basis"] == "estimated", (
-        "sanity: 10 months must be too few to trip the natural 12-month forced catch-up"
+        "sanity: with every read pinned estimated, nothing but the final read ends the run"
     )
 
     bills_closed = build_monthly_bills(records, churned_ids={"C1"})
@@ -770,6 +771,41 @@ def test_churned_account_forces_final_read_resolution(force_estimated_reads):
     # the same (still-mid-run) customer are untouched.
     for b in bills_closed[:-1]:
         assert b["billing_basis"] == "estimated"
+
+
+def test_an_estimated_run_past_12_months_is_not_forced_and_its_final_read_meets_the_cap(
+        force_estimated_reads, monkeypatch):
+    """W2_36: the world no longer forces a read at 12 estimated months, so a run can outlast the
+    12-month back-billing limit and the company's SLC 21BA cap is reachable from the run.
+
+    Defect caught: a forced read at 12 (the old MAX_CONSECUTIVE_ESTIMATED_PERIODS), which ended
+    every run before the cap could bind. One actual opening read gives the estimates a history
+    (with none, an estimate bootstraps from the read itself); use then rises, so the closing read
+    is an undercharge."""
+    import simulation.meter_reads as mr
+
+    real_read = mr.simulate_read
+
+    def opening_read_actual(customer_id, period_end, meter_type, kwh, *rest):
+        if period_end == "2022-01-31":
+            return mr.MeterReadEvent(customer_id=customer_id, period_end=period_end,
+                                     meter_type=meter_type, delay_days=0, status="actual",
+                                     true_consumption_kwh=kwh, consecutive_estimated_count=0)
+        return real_read(customer_id, period_end, meter_type, kwh, *rest)
+
+    monkeypatch.setattr(mr, "simulate_read", opening_read_actual)
+    records = []
+    for i in range(16):
+        records.extend(_sc_month_records("C1", 2022 + i // 12, i % 12 + 1, 200.0 + 40.0 * i,
+                                         unit_rate=200.0))
+    open_bills = build_monthly_bills(records)
+    assert [b["billing_basis"] for b in open_bills] == ["actual"] + ["estimated"] * 15
+
+    closing = build_monthly_bills(records, churned_ids={"C1"})[-1]
+    assert closing["billing_basis"] == "actual"
+    assert closing["catchup_direction"] == "undercharge", closing.get("catchup_direction")
+    assert closing["catchup_back_billing_cap_applied"] is True
+    assert closing["catchup_written_off_gbp"] > 0
 
 
 def test_non_churned_customer_unaffected_by_other_customers_churning(force_estimated_reads):

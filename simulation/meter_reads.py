@@ -46,17 +46,37 @@ docs/market_research/meter_read_latency_estimation_2026.md):
   flagged honestly rather than presented as confirmed (Anchored-noise law).
 - Back-billing 12-month rule (Citizens Advice, confirmed): a supplier
   cannot bill for energy used more than 12 months ago unless a timely bill
-  was issued and left unpaid -- encoded below as the forced-catch-up cap.
+  was issued and left unpaid. It is the COMPANY's rule
+  (company/billing/back_billing.py), not physics: the world no longer forces
+  a read after 12 estimated months (W2_36, below).
+
+READ ABSENCE PERSISTS (W2_36, 2026-10-05). A read-exposed household
+(traditional, or smart in traditional mode this month) belongs for life to
+one of two classes, drawn once from its id: a small HARD-TO-READ class read
+about once in four years, and the rest, read memorylessly at the rate that
+reproduces the published 12-month no-read share. Both the class share and the
+target are read from docs/market_research/assumption_toggles.yaml (Q2,
+director's ruling 2026-10-05), never typed here. The previous process -- an
+independent 1/6 a month and a forced read at 12 -- could not leave anyone
+unread past 13 months (Elexon RF leaves 3% of NHH energy unread at 14 months),
+so the 12-month back-billing limit could never bind; and its 12-month no-read
+share (0.048 measured) was an artefact of that cap. The derivations
+(the Elexon curve is near-memoryless, pi <= 0.04, and 21BA-barred revenue is
+invariant in pi) are in practitioner_questions_as_assumption_toggles.md Q2.
 
 Deterministic dispatch: `random.Random(f"meterread_{customer_id}_{period_end}")`,
 matching simulation/feedback_survey.py's convention.
 """
 from __future__ import annotations
 
+import math
 import random
 import statistics
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Optional
+
+import yaml
 
 # --- Anchors (docs/market_research/ASSUMPTIONS.md, 2026-07-08) -------------
 
@@ -69,13 +89,6 @@ SMART_METER_NOT_COMMUNICATING_RATE = 0.10
 # processing), a small number of days at most.
 SMART_METER_DELAY_MEAN_DAYS = 1.5
 
-# Traditional-meter actual-read probability: chance an actual read (self-
-# submitted or a periodic meter-read visit) reaches the supplier for a given
-# billing month. Derived from the ~6-monthly actual-read cadence industry
-# practice confirmed by Citizens Advice (1/6 ≈ this rate per month) --
-# ⚠ precise Ofgem SLC 21A cadence unverified, see module docstring.
-TRADITIONAL_ACTUAL_READ_PROBABILITY = 1.0 / 6.0
-
 # Manual/self-read submissions take materially longer to reach billing than
 # an automatic smart transmission.
 TRADITIONAL_DELAY_MEAN_DAYS = 9.0
@@ -86,11 +99,66 @@ TRADITIONAL_DELAY_MEAN_DAYS = 9.0
 # Phase 3 item 3 adds around issue_date.
 READ_CUTOFF_DAYS_AFTER_PERIOD_END = 5
 
-# Ofgem back-billing rule (confirmed, Citizens Advice): a supplier cannot
-# bill for energy used more than 12 months ago unless a timely bill was
-# issued and left unpaid -- modelled as a forced catch-up read after this
-# many consecutive estimated monthly periods.
-MAX_CONSECUTIVE_ESTIMATED_PERIODS = 12
+ASSUMPTION_TOGGLES_PATH = (
+    Path(__file__).resolve().parent.parent / "docs" / "market_research" / "assumption_toggles.yaml")
+
+
+def assumption_toggle(toggle_id: str, setting: str = "default") -> float:
+    """One setting (`default`, `low` or `high`) of a registered assumption toggle."""
+    rows = yaml.safe_load(ASSUMPTION_TOGGLES_PATH.read_text())["toggles"]
+    for row in rows:
+        if row["id"] == toggle_id:
+            return float(row[setting])
+    raise KeyError(f"{toggle_id} is not in {ASSUMPTION_TOGGLES_PATH.name}")
+
+
+# Share of read-exposed households in the hard-to-read class (register
+# q2_persistent_unread_share; swept 0 / 0.01 / 0.03 by its acceptance criterion).
+PERSISTENT_UNREAD_SHARE = assumption_toggle("q2_persistent_unread_share")
+
+# Share of domestic credit customers with no bill on an actual read in the past
+# 12 months: the moment the read process is calibrated to (register
+# q2_no_read_12m_share; Ofgem statutory consultation 16 Nov 2017 para 1.1).
+NO_READ_12M_SHARE = assumption_toggle("q2_no_read_12m_share")
+
+# Monthly probability a hard-to-read household's bill is on an actual read:
+# "about once in four years", the register's own meaning for the class
+# (q2_persistent_unread_share, practitioner_questions_as_assumption_toggles.md
+# Q2 derivation 2). Not separately published.
+HARD_TO_READ_MONTHLY_READ_RATE = 0.02
+
+
+def on_time_share(mean_delay_days: float = TRADITIONAL_DELAY_MEAN_DAYS) -> float:
+    """P(an arriving read beats the bill cutoff), for the delay draw `_sample_delay_days` makes."""
+    return 1.0 - math.exp(-(READ_CUTOFF_DAYS_AFTER_PERIOD_END + 0.5) / mean_delay_days)
+
+
+def solve_easy_rate(persistent_share: float, no_read_12m_share: float,
+                    hard_rate: float = HARD_TO_READ_MONTHLY_READ_RATE) -> float:
+    """Monthly rate at which the easy class's bills are on an actual read, so that the mixture
+    leaves `no_read_12m_share` of households with no read-based bill in 12 months.
+
+    Refuses, naming why, when the hard class alone already exceeds the target.
+    """
+    easy_part = no_read_12m_share - persistent_share * (1.0 - hard_rate) ** 12
+    if easy_part <= 0.0 or persistent_share >= 1.0:
+        raise ValueError(
+            f"a hard-to-read share of {persistent_share} unread at {hard_rate}/month already leaves "
+            f"more than {no_read_12m_share} of homes unread for a year: no easy-class rate reaches it")
+    return 1.0 - (easy_part / (1.0 - persistent_share)) ** (1.0 / 12.0)
+
+
+# Probability a read ARRIVES in a month, by class. The bill is on an actual
+# read only if it also beats the cutoff, so the calibrated monthly rate is
+# divided by the on-time share. Tests pin these two names to force a path.
+TRADITIONAL_ACTUAL_READ_PROBABILITY = (
+    solve_easy_rate(PERSISTENT_UNREAD_SHARE, NO_READ_12M_SHARE) / on_time_share())
+HARD_TO_READ_ACTUAL_READ_PROBABILITY = HARD_TO_READ_MONTHLY_READ_RATE / on_time_share()
+
+
+def is_hard_to_read(customer_id: str) -> bool:
+    """The household's read class, drawn once from its id so it persists for life."""
+    return random.Random(f"readclass_{customer_id}").random() < PERSISTENT_UNREAD_SHARE
 
 # How many of a customer's own trailing confirmed-actual reads feed a new
 # estimate (a real "average of your last N periods" technique).
@@ -155,21 +223,18 @@ def simulate_read(
     """
     rng = random.Random(f"meterread_{customer_id}_{period_end}")
 
-    forced_catch_up = consecutive_estimated_count >= MAX_CONSECUTIVE_ESTIMATED_PERIODS
-
     communicating = meter_type == "smart" and rng.random() >= SMART_METER_NOT_COMMUNICATING_RATE
 
     if communicating:
         arrived_actual = True
     else:
-        arrived_actual = forced_catch_up or (rng.random() < TRADITIONAL_ACTUAL_READ_PROBABILITY)
+        read_probability = (HARD_TO_READ_ACTUAL_READ_PROBABILITY if is_hard_to_read(customer_id)
+                            else TRADITIONAL_ACTUAL_READ_PROBABILITY)
+        arrived_actual = rng.random() < read_probability
 
     delay_days = _sample_delay_days(rng, meter_type, communicating)
 
-    # A forced catch-up (back-billing cap reached) is the correction
-    # mechanism itself -- it counts as actual regardless of the normal
-    # on-time cutoff, otherwise the cap could never actually reset.
-    if arrived_actual and (forced_catch_up or delay_days <= READ_CUTOFF_DAYS_AFTER_PERIOD_END):
+    if arrived_actual and delay_days <= READ_CUTOFF_DAYS_AFTER_PERIOD_END:
         return MeterReadEvent(
             customer_id=customer_id,
             period_end=period_end,
@@ -178,7 +243,6 @@ def simulate_read(
             status="actual",
             true_consumption_kwh=true_consumption_kwh,
             consecutive_estimated_count=0,
-            forced_catch_up=forced_catch_up,
         )
 
     if trailing_actuals_kwh and trailing_actual_days is not None and period_days is not None:

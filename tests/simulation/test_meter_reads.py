@@ -3,18 +3,22 @@ failure model.
 
 Tests simulation/meter_reads.py: deterministic dispatch, smart-vs-traditional
 delay/estimation behaviour, the estimate never leaking this period's true
-value, and the back-billing forced-catch-up cap.
+value, and (W2_36) a read process whose absence persists and has no forced
+read at 12 months.
 """
 import statistics
 
 import pytest
 
+import simulation.meter_reads as mr
 from simulation.meter_reads import (
-    MAX_CONSECUTIVE_ESTIMATED_PERIODS,
+    NO_READ_12M_SHARE,
     READ_CUTOFF_DAYS_AFTER_PERIOD_END,
     generate_meter_read_log,
+    is_hard_to_read,
     meter_type_for_customer,
     simulate_read,
+    solve_easy_rate,
 )
 
 
@@ -100,13 +104,59 @@ def test_first_ever_read_with_no_history_bootstraps_from_opening_read():
     # cover estimate occurrence.
 
 
-def test_forced_catch_up_after_max_consecutive_estimates():
-    event = simulate_read(
-        "C6", "2020-01-31", "traditional", 300.0, [290.0],
-        consecutive_estimated_count=MAX_CONSECUTIVE_ESTIMATED_PERIODS,
-    )
-    assert event.status == "actual"
-    assert event.forced_catch_up is True
+def test_a_long_estimated_run_does_not_force_a_read():
+    """Defect caught: the world enforcing SLC 21B's read DUTY (an effort) as a guaranteed read at
+    12 months, which made the 12-month back-billing limit unreachable."""
+    for yr in range(16, 26):
+        args = ("C6", f"20{yr}-01-31", "traditional", 300.0, [290.0])
+        assert simulate_read(*args, 0).status == simulate_read(*args, 500).status
+        assert simulate_read(*args, 500).forced_catch_up is False
+
+
+def _traditional_history(cid, months=60):
+    statuses, consecutive = [], 0
+    for m in range(months):
+        event = simulate_read(cid, f"{2016 + m // 12}-{m % 12 + 1:02d}-28", "traditional",
+                              300.0, [300.0] * 3, consecutive)
+        statuses.append(event.status == "actual")
+        consecutive = event.consecutive_estimated_count
+    return statuses
+
+
+def test_the_read_process_reproduces_the_registered_12_month_no_read_share():
+    """Defect caught: a read rate typed in the module rather than solved to the published moment
+    (the old 1/6 a month, forced at 12, left 0.048 unread for a year, an artefact of the cap)."""
+    windows = unread = 0
+    for i in range(1500):
+        history = _traditional_history(f"CAL{i}")
+        for end in range(24, len(history)):
+            windows += 1
+            unread += not any(history[end - 12:end])
+    assert abs(unread / windows - NO_READ_12M_SHARE) < 0.01
+
+
+def test_both_read_classes_are_reached_and_the_hard_class_reads_less():
+    """Partition control: the hard-to-read class must be reachable before its rate means anything,
+    and a spell unread for two years must be possible (Ofgem's complaint median is 24 months)."""
+    cids = [f"P{i}" for i in range(3000)]
+    hard = [c for c in cids if is_hard_to_read(c)]
+    easy = [c for c in cids if not is_hard_to_read(c)]
+    assert hard and easy
+    hard_rate = sum(sum(_traditional_history(c)) for c in hard) / (60 * len(hard))
+    easy_rate = sum(sum(_traditional_history(c)) for c in easy[:300]) / (60 * 300)
+    assert hard_rate < easy_rate / 3
+    assert any(not any(_traditional_history(c)[:24]) for c in hard)
+
+
+def test_the_easy_rate_solver_refuses_a_hard_class_that_alone_exceeds_the_target():
+    with pytest.raises(ValueError, match="no easy-class rate"):
+        solve_easy_rate(0.2, 0.07)
+    assert 0.19 < solve_easy_rate(0.0, 0.07) < 0.21  # 0.8 ** 12 is about 0.07
+
+
+def test_the_read_process_is_read_from_the_assumption_register():
+    assert mr.PERSISTENT_UNREAD_SHARE == mr.assumption_toggle("q2_persistent_unread_share")
+    assert mr.NO_READ_12M_SHARE == mr.assumption_toggle("q2_no_read_12m_share")
 
 
 def test_delay_days_non_negative():
@@ -179,3 +229,34 @@ def test_unpaired_day_counts_are_refused_by_name():
     with pytest.raises(ValueError, match="must pair"):
         for yr in range(16, 60):
             simulate_read("C13", f"20{yr}-06-30", "traditional", 999.0, [300.0, 310.0], 0, [30], 7)
+
+
+def _barred_and_long_share(monkeypatch, persistent_share, households=300, months=600):
+    """Months more than 12 back at their catch-up read (what the 12-month back-billing limit bars),
+    as a share of all months; and the share of those that sit in runs of 24 months or more."""
+    monkeypatch.setattr(mr, "PERSISTENT_UNREAD_SHARE", persistent_share)
+    monkeypatch.setattr(mr, "TRADITIONAL_ACTUAL_READ_PROBABILITY",
+                        solve_easy_rate(persistent_share, NO_READ_12M_SHARE) / mr.on_time_share())
+    barred = long_barred = 0
+    for i in range(households):
+        run = 0
+        for m in range(months):
+            event = simulate_read(f"SW{i}", f"{2016 + m // 12}-{m % 12 + 1:02d}-28", "traditional",
+                                  300.0, [300.0] * 3, run)
+            if event.status == "actual":
+                barred += max(0, run - 12)
+                long_barred += max(0, run - 12) if run >= 24 else 0
+            run = event.consecutive_estimated_count
+    return barred / (households * months), long_barred / barred
+
+
+def test_the_hard_to_read_share_moves_the_shape_of_back_bills_and_not_their_total(monkeypatch):
+    """The register's Q2 verdict (DOESNT_MATTER for aggregates, MATTERS for the shape), measured.
+
+    Defect caught: a hard-to-read share that changes how much energy the back-billing limit bars,
+    which would make it decision-changing for pricing and the accrual. The second leg asserts the
+    toggle moves SOMETHING, so an inert toggle cannot pass the invariance leg."""
+    total_none, long_none = _barred_and_long_share(monkeypatch, 0.0)
+    total_high, long_high = _barred_and_long_share(monkeypatch, 0.03)
+    assert abs(total_high - total_none) < 0.008
+    assert long_high > long_none + 0.1

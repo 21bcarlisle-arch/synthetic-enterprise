@@ -87,7 +87,7 @@ toggles:
     basis_low: Elexon 30/60/80/97% at 2/4/7/14 months fits a memoryless read at p~0.20 with no persistent class.
     basis_high: Elexon RF leaves 3% unread, so pi x 0.98^14 <= 0.03 gives pi <= 0.04; less a margin because the fit worsens with pi.
     feeds: [W2_36_unbilled_energy_arises_the_way_it_does_in_reality, D48_billing_accuracy_the_company_measures_what_it_billed_against_what_was_used, W2_37]
-    solver_for_other_class: tools/assumption_toggle_sensitivity.py::solve_easy_rate
+    solver_for_other_class: simulation/meter_reads.py::solve_easy_rate
     sensitivity:
       kind: tested
       tool: tools/assumption_toggle_sensitivity.py
@@ -111,7 +111,9 @@ toggles:
     feeds: [W2_36_unbilled_energy_arises_the_way_it_does_in_reality, D48_billing_accuracy_the_company_measures_what_it_billed_against_what_was_used]
     sensitivity:
       kind: tested
-      detail: Calibration target; the world's 1/6 monthly read rate gives 11.2% and should be ~0.20-0.22.
+      detail: >-
+        Calibration target. The world's old 1/6 monthly read rate gave 11.2% and should be ~0.20-0.22;
+        since W2_36 slice 2 (2026-10-05) simulation/meter_reads.py solves its rate to this share.
     verdict: RESOLVED
 
   - id: q2_mean_under_estimate_on_a_catch_up
