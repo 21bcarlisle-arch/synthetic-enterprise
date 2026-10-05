@@ -175,6 +175,20 @@ provenance and sha256), `tools/fetch_haduk_grid.py` (the puller)
 
 ---
 
+## Domain: Step 1 of the 2026-10-05 priority order — the six areas, written 2026-10-05
+
+Each page states what is established, with sources, what our code does, and what is not
+established. They are knowledge, not settings: no figure on them is wired into code by being written there.
+
+| Area | Page | Research, with sources and gaps |
+|---|---|---|
+| Unbilled energy and revenue assurance | site/knowledge/unbilled-energy-and-revenue-assurance/ | docs/market_research/unbilled_energy_and_revenue_assurance.md |
+| Debt and collections | site/knowledge/debt-and-collections/ | docs/market_research/debt_and_collections.md |
+| Home moves | site/knowledge/home-moves/ | docs/market_research/home_moves.md |
+| Next best action, upsell and cross-sell | site/knowledge/next-best-action-and-cross-sell/ | docs/market_research/next_best_action_and_cross_sell.md |
+| EV, solar and batteries as products | site/knowledge/ev-solar-and-batteries-as-products/ | docs/market_research/ev_solar_and_batteries_as_products.md |
+| Communications, sentiment and NPS | site/knowledge/communications-sentiment-and-nps/ | docs/market_research/communications_sentiment_and_nps.md |
+
 ## What we don't know (priority gap list)
 
 Ranked by likely simulation impact:

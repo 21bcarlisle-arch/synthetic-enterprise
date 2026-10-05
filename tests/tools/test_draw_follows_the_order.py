@@ -45,3 +45,27 @@ def test_the_weekly_step_carries_the_order_check(monkeypatch):
     monkeypatch.setattr(d, "render", lambda: "ORDER-CHECKED-HERE")
     body = weekly_rhythm._step_body(weekly_rhythm.MONDAY_STEP, date(2026, 10, 12), [])
     assert "## Does the work follow the priority order" in body and "ORDER-CHECKED-HERE" in body
+
+
+def test_the_supervisors_own_log_lines_never_reach_this_tools_output(monkeypatch, capsys):
+    """`--json` is read by machines; one stray gate line ahead of it made the first live run
+    unparseable. MUTATION (must fire): drop the stdout redirect around the supervisor call."""
+    import sys
+    import types
+
+    def _draw(rng=None, exclude_stalled=False):
+        print("- [gate] COUPLED_TRIAD gate: excluding X from BUILD draw")
+        rng.choices([{"id": "a2"}], weights=[1.0], k=1)
+        return []
+
+    import background
+
+    fake = types.SimpleNamespace(_maturity_map_draw_concurrent=_draw)
+    # BOTH HOMES OF THE NAME: `from background import supervisor` reads the package attribute
+    # when an earlier test already imported it, and sys.modules only otherwise. Patching one
+    # made this test order-dependent (green alone, red in the gate's run).
+    monkeypatch.setitem(sys.modules, "background.supervisor", fake)
+    monkeypatch.setattr(background, "supervisor", fake, raising=False)
+    cands, weights = d.live_draw()
+    assert [c["id"] for c in cands] == ["a2"] and weights == [1.0]
+    assert capsys.readouterr().out == ""

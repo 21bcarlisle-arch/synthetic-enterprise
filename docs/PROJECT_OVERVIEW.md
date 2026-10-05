@@ -23,6 +23,7 @@ read by the advisor through the GitHub API; the github.io links are the fallback
 lapses)*
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
 - How the seat operates — what it gets on with, what it escalates to the director with a proposal, what is reserved, and the end-to-end check it owns: `docs/operations/OPERATING_MODEL.md`
+- The director's priority order, expressed as the atoms that carry each step, and graded by `tools/draw_follows_the_order.py`: `docs/direction/priority_order.yaml`
 - The book's own annual report, regenerated each publish: https://21bcarlisle-arch.github.io/synthetic-enterprise/reports/ANNUAL_REPORT.md
 - Every sourced assumption the world is built on, with its anchor and its gaps: https://21bcarlisle-arch.github.io/synthetic-enterprise/market_research/ASSUMPTIONS.md
 - What just happened and what the machine is working on now: https://21bcarlisle-arch.github.io/synthetic-enterprise/status/LATEST.md

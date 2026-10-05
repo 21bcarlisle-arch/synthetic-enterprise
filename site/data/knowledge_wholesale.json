@@ -1286,6 +1286,91 @@
       "atoms": [
         "W2_26_people_phase3_the_residual_and_the_change"
       ]
+    },
+    {
+      "id": "unbilled-energy-and-revenue-assurance",
+      "title": "Energy that was used but never correctly billed",
+      "kind": "page",
+      "blurb": "Every supplier pays for more energy than it bills. Some of the gap is just timing and closes by itself. Some of it is energy nobody will ever pay for. These are different things, and a supplier can only see some of them.",
+      "rate_of_change": "medium",
+      "reviewed": {
+        "last_verified": "2026-10-05",
+        "source": "see the page's own sources"
+      },
+      "atoms": [
+        "W2_36_unbilled_energy_arises_the_way_it_does_in_reality",
+        "D48_billing_accuracy_the_company_measures_what_it_billed_against_what_was_used"
+      ]
+    },
+    {
+      "id": "debt-and-collections",
+      "title": "What a GB household's energy debt is, how big it has become, and how a supplier gets paid back",
+      "kind": "page",
+      "blurb": "Energy debt is not one thing. A missed direct debit, a bill nobody opened, a prepayment meter quietly taking a few pounds a week, and an empty flat on a deemed contract all count as debt. They have different causes, different rules and very different chances of being repaid.",
+      "rate_of_change": "medium",
+      "reviewed": {
+        "last_verified": "2026-10-05",
+        "source": "see the page's own sources"
+      },
+      "atoms": [
+        "EP4_collections_journey"
+      ]
+    },
+    {
+      "id": "home-moves",
+      "title": "What happens to a supplier when a household moves home",
+      "kind": "page",
+      "blurb": "A move is two events at two addresses, often weeks apart, and in Britain the energy keeps flowing to whoever walks in. Between a fifth and two-fifths of all domestic energy debt starts there.",
+      "rate_of_change": "medium",
+      "reviewed": {
+        "last_verified": "2026-10-05",
+        "source": "see the page's own sources"
+      },
+      "atoms": [
+        "B7_customer_state_layer_moves_and_shocks"
+      ]
+    },
+    {
+      "id": "next-best-action-and-cross-sell",
+      "title": "Choosing what to do for each customer, and when doing nothing is the best choice",
+      "kind": "page",
+      "blurb": "Next best action means choosing, for one customer at one moment, the action that changes the outcome most. The question is not who is likely to leave or buy. Contact can make things worse, and the evidence says it often does.",
+      "rate_of_change": "medium",
+      "reviewed": {
+        "last_verified": "2026-10-05",
+        "source": "see the page's own sources"
+      },
+      "atoms": [
+        "C29_decisions_stop_being_lookup_tables",
+        "B8_discovered_price_sensitivity_holdout"
+      ]
+    },
+    {
+      "id": "ev-solar-and-batteries-as-products",
+      "title": "EV, solar and batteries: what a supplier gains, loses and can see",
+      "kind": "page",
+      "blurb": "An electric car adds to what a household buys and solar panels take it away. A battery only moves it in time. They are three different products, and a supplier relates to each in three different ways.",
+      "rate_of_change": "medium",
+      "reviewed": {
+        "last_verified": "2026-10-05",
+        "source": "see the page's own sources"
+      },
+      "atoms": [
+        "C4_adoption_physics",
+        "W1_10_ev_heatpump_geography"
+      ]
+    },
+    {
+      "id": "communications-sentiment-and-nps",
+      "title": "What a GB energy customer's satisfaction, complaints and recommendations are, and what they do",
+      "kind": "page",
+      "blurb": "Satisfaction, NPS, sentiment, complaints, Ombudsman cases and trust are six different things. Complaining is something a household does; being dissatisfied is a state it is in. On the published record they point opposite ways on whether the household leaves.",
+      "rate_of_change": "medium",
+      "reviewed": {
+        "last_verified": "2026-10-05",
+        "source": "see the page's own sources"
+      },
+      "atoms": "none -- step 7 of the director's 2026-10-05 order; no atom builds sentiment yet, and the complaint-to-departure edge this page finds belongs with steps 2-4 when one is minted"
     }
   ],
   "edges": [

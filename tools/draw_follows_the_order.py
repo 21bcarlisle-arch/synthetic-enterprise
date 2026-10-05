@@ -22,6 +22,8 @@ the order, and how much of it there is is the number the director needs to see.
 from __future__ import annotations
 
 import argparse
+import contextlib
+import io
 import json
 import os
 import subprocess
@@ -58,7 +60,10 @@ def live_draw() -> tuple[list[dict], list[float]]:
             captured["c"], captured["w"] = list(cands), list(weights)
             return [cands[0]]
 
-    supervisor._maturity_map_draw_concurrent(rng=_Capture(), exclude_stalled=False)
+    # THE SUPERVISOR LOGS TO STDOUT, so its gate lines would precede this tool's JSON and make
+    # `--json` unparseable; measured on the first live run. Swallowed here, never re-printed.
+    with contextlib.redirect_stdout(io.StringIO()):
+        supervisor._maturity_map_draw_concurrent(rng=_Capture(), exclude_stalled=False)
     return captured.get("c", []), [float(w) for w in captured.get("w", [])]
 
 
