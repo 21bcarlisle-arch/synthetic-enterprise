@@ -53,6 +53,33 @@ def feed() -> dict:
     return json.loads(FEED.read_text(encoding="utf-8"))
 
 
+@pytest.fixture(scope="module")
+def levels_the_feed_read(feed, tmp_path_factory) -> dict:
+    """The record the feed was built from, which is not always the map feed beside it.
+
+    The publisher builds this door in a clean checkout of HEAD (`publish_from_a_clean_tree`), so
+    it reads the COMMITTED `maturity_map.json` while the same cycle regenerates that file in the
+    working tree. The door therefore lags the map by one cycle by design. Compared against the
+    sibling, any level move that changes a capability's stage reds the publish commit, and since
+    only the publisher commits the map feed the red never clears: EP4 0->2 on 2026-10-05 held
+    every publish there. So a feed stamped as built from a commit is checked against that commit.
+    """
+    stamp = feed.get("published_from") or {}
+    commit = stamp.get("commit")
+    if not (commit and stamp.get("inputs_are_the_committed_bytes")):
+        return gen._levels()
+    rel = gen.MAP_FEED.relative_to(PROJECT).as_posix()
+    shown = subprocess.run(["git", "show", f"{commit}:{rel}"], cwd=PROJECT,
+                           capture_output=True, text=True)
+    assert shown.returncode == 0, (
+        f"the feed says it read {rel} at {commit[:9]}, and git cannot show that: "
+        f"{shown.stderr.strip()}"
+    )
+    path = tmp_path_factory.mktemp("stamped") / "maturity_map.json"
+    path.write_text(shown.stdout, encoding="utf-8")
+    return gen._levels(path)
+
+
 # ---------------------------------------------------------------------------
 # §7 #2 — heading structure
 # ---------------------------------------------------------------------------
@@ -192,8 +219,8 @@ def test_every_capability_cites_work_that_exists(feed):
             assert wid in levels, f"{entry['name']!r} cites {wid}, which is not in the record"
 
 
-def test_status_matches_the_record_for_every_entry(feed):
-    levels = gen._levels()
+def test_status_matches_the_record_for_every_entry(feed, levels_the_feed_read):
+    levels = levels_the_feed_read
     for entry in feed["world"]["entries"] + feed["supplier"]["entries"] + feed["go_live"]["seams"]:
         assert entry["status"] == gen._status_for(entry["rests_on"], levels), entry["name"]
 
@@ -462,10 +489,10 @@ def test_every_use_case_is_scored_against_work_that_exists(feed):
             assert wid in levels, f"{row['ref']} cites {wid}, which is not in the record"
 
 
-def test_the_use_case_status_is_recomputed_from_the_record(feed):
+def test_the_use_case_status_is_recomputed_from_the_record(feed, levels_the_feed_read):
     """The published row must equal what the record says today -- a status frozen into the
     feed by a generator run weeks ago would pass every other test here."""
-    levels = gen._levels()
+    levels = levels_the_feed_read
     cases = _cases_by_ref()
     for row in feed["use_cases"]["entries"]:
         fresh = gen.use_case_entry(cases[row["ref"]], levels)
@@ -473,11 +500,11 @@ def test_the_use_case_status_is_recomputed_from_the_record(feed):
         assert row["testable_now"] == fresh["testable_now"], row["ref"]
 
 
-def test_the_waiting_condition_names_only_truths_that_are_actually_missing(feed):
+def test_the_waiting_condition_names_only_truths_that_are_actually_missing(feed, levels_the_feed_read):
     """The condition is assembled, never stored. A truth whose work is finished must not
     appear in the sentence -- that is the precise way a hand-written condition rots, and it
     rots in the flattering direction (the page keeps asking for something it already has)."""
-    levels = gen._levels()
+    levels = levels_the_feed_read
     cases = _cases_by_ref()
     for row in feed["use_cases"]["entries"]:
         finished = {

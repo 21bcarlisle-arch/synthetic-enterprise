@@ -1760,7 +1760,7 @@
   depends_on: [B10_competitor_switching_response, PB4_engagement_separated_from_elasticity, PB5_pounds_or_percent_resolved]
   couples_with: [B8_discovered_price_sensitivity_holdout]
   file_scope: ['company/crm/', 'company/billing/', 'company/pricing/', 'tests/company/test_the_per_account_engagement_estimate_ranks_better_than_the_channel_alone.py',
-    'tools/c29_engagement_ranking.py']
+    'tools/c29_engagement_ranking.py', 'tools/_c29_retention_engagement_arm.py', 'tests/tools/test_c29_retention_engagement_arm.py']
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a supplier whose retention desk prices each save individually against that account's own value and its own probability of leaving, rather than reading three tiers off a segment table -- which is the difference between a book that compounds and one that leaks its best accounts at the same offer as its worst"
 - id: SITE14_the_front_door_schematic_carries_the_corrected_model
