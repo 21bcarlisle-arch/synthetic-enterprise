@@ -28,10 +28,11 @@ answer when the record cannot separate accounts, and it collapses the estimate o
 rather than inventing a spread. No constant here is picked: the only inputs are the book's own
 counts.
 
-NOTHING READS THIS YET. It is graded against the world's trait first
-(`tests/company/test_the_per_account_engagement_estimate_ranks_better_than_the_channel_alone.py`).
-A decision that read it before then would widen the decision surface without shown signal, which
-is the failure the frame's -£175 was about.
+ONE OPT-IN READER. It was graded against the world's trait first
+(`tests/company/test_the_per_account_engagement_estimate_ranks_better_than_the_channel_alone.py`),
+and again on the refitted world of 2026-10-05, where the world arm's lift fell from 0.74 to 0.51
+and stayed above its shuffle null. `engagement_at` is what the retention guard reads, through
+`company/interfaces/growth_desk.py`, when a policy sets `retention_weighs_engagement`; no standing policy does, so no run moves until an arm asks.
 """
 from __future__ import annotations
 
@@ -170,3 +171,53 @@ def estimate_engagement(
             raise ValueError(f"{acc}: estimate {est!r} is not a probability")
         out[acc] = EngagementEstimate(acc, channel_by_account[acc], k, n, r, est, strength)
     return out
+
+
+def engagement_at(
+    account_id: str,
+    as_of: str,
+    *,
+    terms: Iterable[Mapping],
+    departures: Iterable[Mapping],
+    channel_by_account: Mapping[str, str],
+    fuel: str,
+    contract_length_days: int,
+) -> EngagementEstimate | None:
+    """This account's engagement estimate, fitted on the book as it stood the day before `as_of`.
+
+    POINT IN TIME. `terms` are the supplier's own term rows (`customer_id`, `commodity`,
+    `term_start`, `tariff_type`) and `departures` its own renewal departures (`customer_id`,
+    `commodity`, `event_date`, `event_type`, `departure_occasion`). Only rows dated strictly before
+    `as_of` are read, so the anniversary being decided -- whose term row may already be written --
+    never informs its own estimate, and nor does any account's later history.
+
+    The book is the accounts in `channel_by_account`: the ones whose payment method the supplier
+    has been asked for. `None` when this account is not among them, or when no account on the book
+    has yet reached an anniversary, because a channel rate fitted on nothing would be invented.
+    """
+    if account_id not in channel_by_account:
+        return None
+    by_account: dict[str, list[Mapping]] = defaultdict(list)
+    for row in terms:
+        if (row.get("commodity") == fuel and row["customer_id"] in channel_by_account
+                and row["term_start"] < as_of):
+            by_account[row["customer_id"]].append(row)
+    left = {r["customer_id"] for r in departures
+            if r.get("commodity") == fuel and r.get("event_type") == "churned"
+            and r.get("departure_occasion") == "renewal" and r.get("event_date", as_of) < as_of}
+    outcomes = {a: renewal_outcomes_from_terms(by_account.get(a, ()),
+                                               contract_length_days=contract_length_days,
+                                               left_at_renewal=a in left)
+                for a in channel_by_account}
+    try:
+        return estimate_engagement(outcomes, channel_by_account)[account_id]
+    except ValueError:
+        return None
+
+
+def value_protected(expected_margin: float, acq_cost_saved: float,
+                    engagement: float | None) -> float:
+    """What a retention offer protects: the margin and the replacement cost avoided, weighted by
+    the chance this household looks at all. Unweighted when there is no estimate to weigh by."""
+    value = expected_margin + acq_cost_saved
+    return value if engagement is None else value * engagement

@@ -59,6 +59,8 @@ from company.interfaces.growth_desk import (
     growth_mandate_label,
     mandate_permits_replacement,
     replacement_cost_avoided_gbp,
+    retention_engagement,
+    retention_value_protected,
 )
 from company.interfaces.hedge_desk import build_hedge_desk, hedge_mandate
 from company.interfaces.point_in_time_view import PointInTimeView, build_price_bitemporal_log
@@ -2022,6 +2024,9 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
     _bill_shock_dates: dict[str, list] = {}
     committee_wake_ups: list[dict] = []
     customer_events_log: list[dict] = []
+    # C29: each fuel leg's payment method as the supplier last read it at a renewal, which is the
+    # book `engagement_at` fits on. Filled only when the policy weighs engagement.
+    _engagement_channels: dict[str, str] = {}
     # THE RIVAL'S VIEW OF THIS COMPANY (2026-08-28, atom B10, director's C2). Run-scoped and
     # explicit: a module global would leak between runs and make the reference depend on
     # execution order, which is the non-determinism the seeded-run discipline forbids. It is
@@ -2535,6 +2540,17 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             "data_regime": "historical",
         }
         account_state_log.append(_account_state_row)
+        # C29: EVERY domestic leg the supplier bills is on the book `engagement_at` fits, not only
+        # the ones that reached a renewal offer. Enrolled at the offer instead, a household that
+        # rolled to the default was never asked for and the book held only choosers: every
+        # channel rate read 1.0 (2016-2020 smoke run, 2026-10-05).
+        if policy.retention_weighs_engagement:
+            _enrolled = next(
+                (c for c in _ALL_KNOWN_CUSTOMERS if c["customer_id"] == billing_account), None)
+            if (_enrolled or {}).get("segment", "resi") == "resi":
+                from company.interfaces.sim_interface import LiveSimInterface
+                _engagement_channels[cid] = LiveSimInterface().get_payment_method(
+                    billing_account, commodity, as_of=term_start_str)
 
         if term_index >= 1 and commodity == _decision_leg and not _indexed_tariff:
             company_est_pre = None
@@ -2723,7 +2739,17 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                         segment=seg_ret,
                         counted_in_guard=policy.include_acq_cost_saved_in_guard,
                     )
-                    if expected_margin + acq_cost_saved > ret_cost:
+                    # C29: worth protecting only in proportion to the chance this household looks
+                    # at all. Its own term record, as the book stood the day before, through
+                    # the growth desk; `None` (no record yet, or I&C) leaves today's guard.
+                    _engagement = retention_engagement(
+                        cid, term_start_str, terms=account_state_log,
+                        departures=customer_events_log,
+                        channel_by_account=_engagement_channels, fuel=commodity,
+                        contract_length_days=CONTRACT_LENGTH_DAYS,
+                    ) if policy.retention_weighs_engagement else None
+                    if retention_value_protected(
+                            expected_margin, acq_cost_saved, _engagement) > ret_cost:
                         # Nudge Physics Layer 1: framing_type is the company's own
                         # comms-cohort choice (observable by construction); the
                         # multiplier below is SIM ground truth (hidden loss-aversion
@@ -2751,6 +2777,8 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                             "assumed_deferral_months": ASSUMED_DEFERRAL_MONTHS,
                             "framing_type": _framing_type,
                             "outcome": "pending",
+                            **({"engagement_estimate": round(_engagement, 4)}
+                               if _engagement is not None else {}),
                         })
                     else:
                         _no_offer_reason = "uneconomical"

@@ -165,6 +165,13 @@ class DecisionPolicy:
     # priced on `segment_table`; a comparison across the flip has two variables.
     renewal_default_belief: str = DEFAULT_BELIEF_OWN_BOOK
 
+    #: C29 (2026-10-05): the retention guard weighs the value it protects by how likely THIS
+    #: household is to look at all (`company.crm.engagement_estimate.engagement_at`, the
+    #: supplier's own term record, point in time). A discount to an account that will not look
+    #: is a transfer, and the unweighted guard cannot tell. The discount SIZE stays on the P(leave)
+    #: tiers. Off on every standing policy, so no run that does not ask for it moves.
+    retention_weighs_engagement: bool = False
+
     def retention_discount_for_risk(self, company_est: float) -> float:
         """Return the retention discount fraction for a given churn estimate."""
         if self.retention_discount_mode == "flat":
