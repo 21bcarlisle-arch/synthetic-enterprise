@@ -63,3 +63,11 @@ removes them.
 
 At the time of writing, whether the next publisher marker LANDS on origin is unconfirmed. The
 continuation carries that check.
+
+**Settled 2026-10-06 (worker, continuation `confirm-the-publish-lands-after-the-deletion-twin-fix`):**
+it landed, but not by the reconciler alone. The publisher's marker `a88fb2436` (built at
+`git=998814330`, so after the twin fix) reached origin through the hand merge `556b24b4e` from an
+origin worktree. That was needed because a second, independent refusal had appeared: the
+wall-channel census refused the run-output keys the publish refreshed. The census is fixed in
+`eaa94ed5f` and the follow-up is `WORKER_FINDING_THE_PUBLISH_NAMED_THE_MAP_ON_EVERY_CYCLE_AND_WROTE_IT_ON_NONE_2026-10-06.md`.
+The twin fix removed the first blocker, and on its own it was not enough for the publish to land.
