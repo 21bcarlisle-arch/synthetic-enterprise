@@ -239,3 +239,32 @@ def test_only_a_domestic_account_record_moves_home():
         assert all(account_move_out({**c, "segment": segment}, *window) is None for c in movers)
     assert account_move_out(None, *window) is None
     assert account_move_out({"customer_id": movers[0]["customer_id"]}, *window) is not None
+
+
+def _register_row(toggle_id: str) -> dict:
+    import yaml
+
+    from simulation.meter_reads import ASSUMPTION_TOGGLES_PATH
+    rows = yaml.safe_load(ASSUMPTION_TOGGLES_PATH.read_text())["toggles"]
+    return next(r for r in rows if r["id"] == toggle_id)
+
+
+@pytest.mark.parametrize("setting", ["low", "default", "high"])
+def test_the_unnamed_window_is_the_registers_toggle_at_every_setting(setting):
+    """Defect: a CoT duration typed into the layer, or one setting wired to another's value."""
+    row = _register_row("q1_unnamed_months_per_cot")
+    assert csl.unnamed_months_per_move(setting) == float(row[setting])
+    assert csl.unnamed_kwh_after_move(1200.0, setting) == pytest.approx(100.0 * float(row[setting]))
+
+
+def test_the_unnamed_energy_moves_with_the_meter_points_annual_quantity_and_the_setting():
+    """Defect: a flat per-move kWh, or a rate that ignores the toggle's range."""
+    low, mid, high = (csl.unnamed_kwh_after_move(2700.0, s) for s in ("low", "default", "high"))
+    assert 0.0 < low < mid < high
+    assert csl.unnamed_kwh_after_move(5400.0) == pytest.approx(2 * mid)
+
+
+@pytest.mark.parametrize("annual", [None, 0.0, -1.0, float("nan")])
+def test_no_annual_quantity_is_no_answer_not_a_zero_gap(annual):
+    """Defect: a missing rate reported as 0 kWh, which reads as "this move left no gap"."""
+    assert csl.unnamed_kwh_after_move(annual) is None

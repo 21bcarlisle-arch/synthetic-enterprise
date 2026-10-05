@@ -11,6 +11,7 @@ import datetime as dt
 import pytest
 
 import simulation.run_phase2b as run
+from sim.customer_state_layer import unnamed_months_per_move
 
 
 @pytest.fixture(scope="module")
@@ -48,3 +49,14 @@ def test_a_business_account_never_moves_home(moved_run):
     """Defect: the domestic hazard applied to an I&C or SME site."""
     segment = {c["customer_id"]: c.get("segment", "resi") for c in run._ALL_KNOWN_CUSTOMERS}
     assert {segment.get(m["household"], "resi") for m in moved_run["home_move_outs"]} == {"resi"}
+
+
+def test_each_move_out_leaves_its_premise_unnamed_for_the_registers_window(moved_run):
+    """W2_36 slice 3. Defect: the gap not computed in the run, or priced from the other fuel's
+    annual quantity. Both fuels must be present, or the fuel choice is never exercised."""
+    assert {m["commodity"] for m in moved_run["home_move_outs"]} == {"electricity", "gas"}
+    for move in moved_run["home_move_outs"]:
+        leg = run.get_customer(move["customer_id"])
+        annual = leg["aq_kwh"] if move["commodity"] == "gas" else leg["eac_kwh"]
+        assert move["unnamed_kwh_expected"] == pytest.approx(
+            annual / 12.0 * unnamed_months_per_move()), move

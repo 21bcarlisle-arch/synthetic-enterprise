@@ -46,10 +46,11 @@ toggles:
       [M]) = ~GBP 474 per move = 3.3 months of a GBP 1,717/yr typical bill [M].
     basis_low: A few weeks for most moves (Citizens Advice 48-hour notice guidance mostly followed).
     basis_high: All GBP 474 unnamed and unrecovered at 70% of typical use = 4.7 months, plus later partial recovery.
-    feeds: [B7_customer_state_layer_moves_and_shocks, W2_38, EP4_collections_journey, B11_forward_clv_backtested_on_held_back_history]
+    feeds: [B7_customer_state_layer_moves_and_shocks, W2_38, EP4_collections_journey, B11_forward_clv_backtested_on_held_back_history, W2_36_unbilled_energy_arises_the_way_it_does_in_reality]
     sensitivity:
       kind: acceptance_criterion
       detail: Same as q1_move_out_notice_share; graded against the GBP 300-650 per move band.
+    read_by: sim/customer_state_layer.py::unnamed_months_per_move (W2_36 slice 3, the change-of-tenancy gap)
     verdict: MATTERS_AND_RESOLVABLE
 
   - id: q1_move_hazard_multiplier

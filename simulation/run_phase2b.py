@@ -92,7 +92,12 @@ from company.policy.decision_policy import (
     framing_type_for,
 )
 from sim.cache_store import get_cached_prices, log_cache_access
-from sim.customer_state_layer import account_move_out, moves_active, term_window_under_move
+from sim.customer_state_layer import (
+    account_move_out,
+    moves_active,
+    term_window_under_move,
+    unnamed_kwh_after_move,
+)
 from sim.forward_curve import (
     BASE_TERM_PREMIUM,
     DEFAULT_RISK_FACTOR,
@@ -2186,11 +2191,17 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                     _churn_journey_register.register_customer(billing_account)
                 _mover_journey = _churn_journey_register.get_journey(billing_account)
                 _mover_journey.record_home_move(_move_end)
+                # W2_36 slice 3: the change-of-tenancy gap. The vacated meter goes on recording
+                # with nobody named liable; sim/customer_state_layer.py says why the window is an
+                # expectation and why the rate is the meter point's annual quantity.
+                _leg = get_customer(cid)
                 home_move_outs.append({
                     "household": billing_account, "customer_id": cid,
                     "commodity": commodity, "move_date": _move_end.isoformat(),
                     "journey_state": _mover_journey.state.value,
                     "catchable": _mover_journey.is_catchable(),
+                    "unnamed_kwh_expected": unnamed_kwh_after_move(
+                        _leg.get("aq_kwh") if commodity == "gas" else _leg.get("eac_kwh")),
                 })
 
         forward_price = term["forward_price_gbp_per_mwh"]        # sim's sophisticated estimate

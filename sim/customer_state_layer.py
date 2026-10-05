@@ -66,6 +66,29 @@ leg is not yet supplied in the run, so with the layer on the premise simply stop
 `moves_active()` reads a curriculum file that defaults OFF (whether this world has moves is the
 director's), and why it should stay off until the incoming deemed leg exists.
 
+THE CHANGE-OF-TENANCY GAP (W2_36 slice 3)
+-----------------------------------------
+Unbilled-energy kind K4's "unknown occupier" part
+(`docs/market_research/unbilled_energy_and_revenue_assurance.md` §2 K4). From the move date the
+meter goes on recording, and the supplier stays registered and settles what it records, but nobody
+named is liable until the incoming occupier is identified. `unnamed_kwh_after_move` is that energy.
+It is the energy itself. Whether "the occupier" is later billed for it and pays is the debt side's
+question, not this one's.
+
+Two quantities are unpublished, and neither is typed here:
+  - HOW LONG the premise stays unnamed. Only the expected product, P(not named by move day) times
+    mean months to name, is bounded by evidence. It is the register's `q1_unnamed_months_per_cot`
+    (derived from Energy UK's CoT-debt figure), so the window is that EXPECTATION and is not drawn
+    per move. The total is right in expectation, and the per-move spread is not modelled.
+  - WHAT THE PREMISE USES while unnamed. The void-or-occupied split and void consumption are a gap
+    (`home_moves.md` §2.4). The rate is the meter point's own annual quantity (gas AQ, electricity
+    EAC). In the industry those attach to the meter point and survive a change of tenancy, and the
+    toggle was derived as months of an average-year bill. The leaving household's final term is
+    the wrong basis: it reads one season, and at 2016 inputs a January-April gas term put 5,036 kWh
+    on an April-July window.
+In the run, this energy is neither settled to nor billed by the company yet, because the premise
+stops at the move. Supplying the incoming deemed leg is B7 slice 3, and that is where its cost lands.
+
 WALL. Everything here is ground truth. The move date, the occupancy ids and the void are exactly
 what a supplier cannot see; the seam that will let the company see the shadows (a final read, a
 cancelled DD, settled volume at a premise with nobody contracted) is a later slice.
@@ -87,6 +110,7 @@ from simulation.arrival_route import (
 )
 from simulation.final_bill_outcome import FinalBillExposure, open_final_bill_exposure
 from simulation.household_segments import TenureType, tenure_for_customer
+from simulation.meter_reads import assumption_toggle
 
 NAMESPACE = "customer_state"
 
@@ -266,3 +290,25 @@ def account_move_out(customer: Optional[dict], supply_start: dt.date, supply_end
     cid = customer["customer_id"]
     return first_move_out(Occupancy.of_customer(cid, tenure_for_customer(cid)),
                           supply_start, supply_end, base_seed)
+
+
+
+def unnamed_months_per_move(setting: str = "default") -> float:
+    """Expected months a vacated premise is supplied with nobody named liable: the register's
+    `q1_unnamed_months_per_cot`, read at `setting` (`default`, `low` or `high`)."""
+    months = assumption_toggle("q1_unnamed_months_per_cot", setting)
+    if not (math.isfinite(months) and months >= 0.0):
+        raise ValueError(f"q1_unnamed_months_per_cot[{setting}] is not a duration: {months!r}")
+    return months
+
+
+def unnamed_kwh_after_move(annual_kwh: Optional[float],
+                           setting: str = "default") -> Optional[float]:
+    """Expected kWh used at the vacated premise from the move date until someone is named.
+
+    `annual_kwh` is the meter point's annual quantity. With no annual quantity there is no rate,
+    so the answer is None rather than zero: a zero would read as "no gap".
+    """
+    if annual_kwh is None or not math.isfinite(annual_kwh) or annual_kwh <= 0.0:
+        return None
+    return annual_kwh / 12.0 * unnamed_months_per_move(setting)
