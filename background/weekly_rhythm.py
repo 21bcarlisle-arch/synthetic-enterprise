@@ -485,6 +485,7 @@ def _step_body(step: str, due_on: date, overdue: list[dict]) -> str:
         from background.director_concerns import end_to_end_section
         lines += end_to_end_section()
         lines += _merge_pressure_section()
+        lines += _priority_order_section()
         lines += ["## The ranking for this week", "",
                   "_Written by the Monday step. Ordered. Anything above the line outranks new "
                   "feature work; nothing here outranks a live defect._", "",
@@ -500,6 +501,20 @@ def _step_body(step: str, due_on: date, overdue: list[dict]) -> str:
               "— nothing else does — and archives this document to `done/` itself, so the rhythm "
               "disposes of everything it files.", ""]
     return "\n".join(lines)
+
+
+def _priority_order_section() -> list[str]:
+    """DOES THE WORK FOLLOW THE ORDER, OR ONLY THE DIALS (director canon, 2026-10-05: "On 4
+    September a re-ranking changed the weights and the work did not move, because the dials were
+    not what was choosing"). Read every Monday so a drift is caught in a week, not a month."""
+    try:
+        from tools.draw_follows_the_order import render
+        measured = render()
+    except Exception as exc:  # noqa: BLE001 -- a review that cannot measure says so on its face
+        measured = f"NOT MEASURED -- `tools.draw_follows_the_order` raised {type(exc).__name__}: {exc}"
+    return ["## Does the work follow the priority order", "", measured, "",
+            "**A violation is the next item.** If the landed work sits in a later step than the "
+            "draw says it should, the dials are not what is choosing; find what is.", ""]
 
 
 def _merge_pressure_section(days: float = 7.0) -> list[str]:

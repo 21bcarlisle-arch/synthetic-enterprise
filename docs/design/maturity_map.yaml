@@ -1395,7 +1395,7 @@
   level_current: 2
   level_target: 3
   loop_stage: harden
-  dial_inherited: 45    # R1 -- DIRECTOR_CANON_RERANKING_THE_ARC_2026-09-04 §2/§5.
+  dial_inherited: 80    # 2026-10-05 canon step 4 (DIRECTOR_CANON_THE_PRIORITY_ORDER_2026-10-05): C29 waits on this; below steps 2-3, above the levers
   provenance: director_ruling
   depends_on: []
   couples_with: [B10_competitor_switching_response, B8_discovered_price_sensitivity_holdout, PB5_pounds_or_percent_resolved]
@@ -1664,7 +1664,7 @@
   level_current: 0
   level_target: 3
   loop_stage: build
-  dial_inherited: 3     # 2026-10-05 the director took this instead of EP13; was 45, authorised but NOT stage 1: the world and billing come first, and the
+  dial_inherited: 45    # 2026-10-05 restored: the dial is a draw WEIGHT (higher = more likely), and the earlier 3 lowered it by mistake; in flight, step 5 value-add
   #   use case this feeds is stage 3. Ranked so it is drawable without displacing W2_18/19/21/22.
   provenance: director_ruling
   depends_on: []
@@ -1702,7 +1702,7 @@
   level_current: 0
   level_target: 2
   loop_stage: build
-  dial_inherited: 60    # R1 -- DIRECTOR_CANON_RERANKING_THE_ARC_2026-09-04 §2/§5.
+  dial_inherited: 80    # 2026-10-05 canon step 4 (DIRECTOR_CANON_THE_PRIORITY_ORDER_2026-10-05): C29 waits on this; below steps 2-3, above the levers
   provenance: director_ruling
   depends_on: []
   couples_with: [PB4_engagement_separated_from_elasticity, B10_competitor_switching_response]
@@ -1755,7 +1755,8 @@
   blocked_on: null
   depends_on: [B10_competitor_switching_response, PB4_engagement_separated_from_elasticity, PB5_pounds_or_percent_resolved]
   couples_with: [B8_discovered_price_sensitivity_holdout]
-  file_scope: ['company/crm/', 'company/billing/', 'company/pricing/', 'tests/company/test_the_per_account_engagement_estimate_ranks_better_than_the_channel_alone.py']
+  file_scope: ['company/crm/', 'company/billing/', 'company/pricing/', 'tests/company/test_the_per_account_engagement_estimate_ranks_better_than_the_channel_alone.py',
+    'tools/c29_engagement_ranking.py']
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a supplier whose retention desk prices each save individually against that account's own value and its own probability of leaving, rather than reading three tiers off a segment table -- which is the difference between a book that compounds and one that leaks its best accounts at the same offer as its worst"
 - id: SITE14_the_front_door_schematic_carries_the_corrected_model
@@ -2165,3 +2166,60 @@
     - tests/design/test_the_use_case_report_reached_the_director.py
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a board paper that never gets written because the analysis it summarises keeps getting extended."
+- id: W2_36_unbilled_energy_arises_the_way_it_does_in_reality
+  title: "the world generates unbilled energy the way it arises in reality: estimated reads and their true-up, back-billing, meter faults, theft and unregistered consumption, and the change-of-tenancy gap"
+  lane: W2_customer_generator
+  value_stream: meter_to_cash
+  epoch: 4
+  level_current: 0
+  level_target: 3
+  loop_stage: build
+  # MINTED 2026-10-05, DIRECTOR_CANON_THE_PRIORITY_ORDER_2026-10-05 step 2: "The world must
+  # generate unbilled energy the way it arises in reality, and the company must measure it."
+  # Each kind arises and is detected differently, so each is generated and measured apart;
+  # the kinds are established in docs/market_research/unbilled_energy_and_revenue_assurance.md.
+  dial_inherited: 100
+  provenance: director_ruling
+  depends_on: []
+  couples_with: [D48_billing_accuracy_the_company_measures_what_it_billed_against_what_was_used]
+  file_scope: ['docs/market_research/unbilled_energy_and_revenue_assurance.md',
+    'simulation/unbilled_energy.py', 'tests/simulation/test_unbilled_energy.py']
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a supplier that books revenue on estimated reads for a year and learns what it actually sold when the smart meter finally reports."
+- id: D48_billing_accuracy_the_company_measures_what_it_billed_against_what_was_used
+  title: "the company measures what it billed against what was used, by kind, from what a real supplier can see: estimated versus actual reads, true-ups, back-billing limits, and the accrual"
+  lane: D_billing_metering
+  value_stream: meter_to_cash
+  epoch: 4
+  level_current: 0
+  level_target: 3
+  loop_stage: build
+  # MINTED 2026-10-05, canon step 2's company half. "Debt and cashflow work rests on knowing
+  # what was actually billed, which is why this comes before them." Steps 3 and 5 read it.
+  dial_inherited: 100
+  provenance: director_ruling
+  depends_on: []
+  couples_with: [W2_36_unbilled_energy_arises_the_way_it_does_in_reality]
+  file_scope: ['company/billing/billing_accuracy.py',
+    'tests/company/billing/test_billing_accuracy.py']
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a revenue-assurance team reconciling billed kWh against settled kWh and finding the gap lives in a few hundred estimated accounts."
+- id: B11_forward_clv_backtested_on_held_back_history
+  title: "forward CLV: base-case cashflow and churn risk per customer, forecast from earlier years and checked against what later years actually did"
+  lane: B_commercial
+  value_stream: close_to_learn
+  epoch: 4
+  level_current: 0
+  level_target: 3
+  loop_stage: build
+  # MINTED 2026-10-05, canon step 3: "the spine every lever is judged against. Build and test
+  # it on held-back history". Couples to EP1 (three horizons, L2, blocked on a second book):
+  # a held-back-history test needs no second book, which is why this is its own atom.
+  dial_inherited: 90
+  provenance: director_ruling
+  depends_on: []
+  couples_with: [EP1_clv_three_horizon]
+  file_scope: ['company/analytics/forward_clv.py',
+    'tests/company/analytics/test_forward_clv_backtest.py']
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a finance team whose customer-value model is only ever checked against the same years it was fitted on."
