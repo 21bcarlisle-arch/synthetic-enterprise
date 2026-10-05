@@ -1329,6 +1329,28 @@ def atoms_drawn_since(since: datetime) -> list[str]:
                   if isinstance(row, dict) and float(row.get("last_drawn_at") or 0.0) >= cutoff)
 
 
+def atoms_stalled_with_reason(since: datetime) -> list[dict]:
+    """Atoms the draw took in the stretch that are past the anti-livelock streak, each with the
+    `stop_reason` the supervisor wrote beside its counter (`_atom_stop_reason`).
+
+    `atoms_drawn` says only that an atom was drawn. B11 and D48 were each drawn 151 times with
+    nothing beside the count, and the seat re-issued the same steer blind. B11 had landed twice
+    under Lane 0 slugs, and D48's scope file had never existed. A row from a supervisor that has
+    not written a reason yet says so rather than dropping out.
+    """
+    try:
+        from background.supervisor import ATOM_STALL_STATE_FILE
+        state = json.loads(ATOM_STALL_STATE_FILE.read_text(encoding="utf-8"))
+    except Exception:
+        return []
+    cutoff = since.timestamp()
+    return [{"id": aid, "consecutive_unchanged": row.get("consecutive_unchanged"),
+             "stop_reason": row.get("stop_reason") or "no reason recorded by the supervisor yet"}
+            for aid, row in sorted(state.items())
+            if isinstance(row, dict) and row.get("stalled")
+            and float(row.get("last_drawn_at") or 0.0) >= cutoff]
+
+
 def focus_drawn_since(since: datetime) -> list[str]:
     """Everything the draw took in the stretch, ACROSS BOTH KEY SPACES.
 
@@ -1465,6 +1487,9 @@ def build_brief(now: datetime | None = None) -> dict:
         # focus at all, while `previous_focus_drawn` correctly reported all three focus items
         # drawn. Both windows are now stated in the prompt sentences `_prompt` writes for them.
         "lane_0_drawn_never_landed": _drawn_never_landed(now),
+        # AND THE ATOMS THE DRAW KEEPS TAKING WITHOUT MOVING, each with its reason, for the same
+        # truncation reason: a counter alone sent the seat back to the same steer for three stretches.
+        "atoms_stalled_with_reason": atoms_stalled_with_reason(since),
         # AND THE HANDOFF QUEUE, THIRD and for the same truncation reason: read through `live()`,
         # never the raw store -- see `_continuation_queue` for the focus row a raw read cost.
         "continuation_queue": _continuation_queue(now, since),
@@ -1768,6 +1793,15 @@ def _prompt(brief: dict) -> str:
         steered = ("\n\nWHETHER LAST STRETCH'S FOCUS REACHED THE DRAW WAS NOT MEASURED in this "
                    "brief, so the block above is the only drawn-work reading here and it is not "
                    "about the focus.")
+    stalled_rows = brief.get("atoms_stalled_with_reason") or []
+    if stalled_rows:
+        steered += (
+            "\n\nATOMS THE DRAW TOOK THIS STRETCH WITHOUT THEM MOVING, each with the reason the "
+            "supervisor read from git over the atom's own file_scope. Working the atom happens "
+            "through a Lane 0 slice that names it, not through the draw:\n\n"
+            + "\n".join("- {} ({} unchanged draws): {}".format(
+                r.get("id"), r.get("consecutive_unchanged"), r.get("stop_reason"))
+                for r in stalled_rows))
     # THE LANDING DOOR'S VERDICT ON THE ITEMS YOU ARE ABOUT TO CARRY FORWARD, and it is a SENTENCE
     # for the same reason the two blocks above are: a key buried in 60k of JSON is a key that gets
     # read on the quiet stretches and skipped on the busy ones. This is the WRITE-TIME half of

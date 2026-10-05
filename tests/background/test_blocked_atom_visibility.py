@@ -270,6 +270,9 @@ UNPARKED_SUBJECT_COVERAGE: dict[str, list[str]] = {
         # 2026-10-05. Minted unparked (9a2356731) as step 3 of DIRECTOR_CANON_THE_PRIORITY_ORDER:
         # a new atom the director's order asks to be drawable, not one released from a park.
         "B11_forward_clv_backtested_on_held_back_history",
+        # 2026-10-05. Minted unparked (8f5518e88) when the director approved the step-1 proposals:
+        # next best action as one CLV-judged decision. New and drawable, like B11; nothing released.
+        "C34_next_best_action_is_one_decision_across_debt_retention_upsell_and_carbon_judged_by_clv",
     ],
     "counterparty_adapter": [
         # 2026-08-25. Unparked by the door, not around it, and the distinction from EP6 is again

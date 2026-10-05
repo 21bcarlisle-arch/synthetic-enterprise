@@ -1588,7 +1588,8 @@ def _maturity_map_draw_concurrent(rng: Any = None, exclude_stalled: bool = False
         if _same_dial_compounding:
             primary = _same_dial_compounding[0]
     if exclude_stalled:
-        stalled_now, count = _record_atom_draw_and_check_stall(primary["id"], _atom_fingerprint(primary))
+        stalled_now, count = _record_atom_draw_and_check_stall(
+            primary["id"], _atom_fingerprint(primary), atom=primary)
         if count == ATOM_STALL_THRESHOLD:
             log(
                 f"ANTI-LIVELOCK: {primary['id']} deprioritised after {count} "
@@ -2147,7 +2148,8 @@ def _idle_discover_frame_draw_concurrent(
     picker = rng or random
     primary = picker.choices(candidates, weights=weights, k=1)[0]
     if exclude_stalled:
-        stalled_now, count = _record_atom_draw_and_check_stall(primary["id"], _atom_fingerprint(primary))
+        stalled_now, count = _record_atom_draw_and_check_stall(
+            primary["id"], _atom_fingerprint(primary), atom=primary)
         if count == ATOM_STALL_THRESHOLD:
             log(
                 f"ANTI-LIVELOCK: {primary['id']} deprioritised after {count} "
@@ -2274,7 +2276,8 @@ def _site_lane_draw_concurrent(
     picker = rng or random
     primary = picker.choices(candidates, weights=weights, k=1)[0]
     if exclude_stalled:
-        stalled_now, count = _record_atom_draw_and_check_stall(primary["id"], _atom_fingerprint(primary))
+        stalled_now, count = _record_atom_draw_and_check_stall(
+            primary["id"], _atom_fingerprint(primary), atom=primary)
         if count == ATOM_STALL_THRESHOLD:
             log(
                 f"ANTI-LIVELOCK: {primary['id']} deprioritised after {count} "
@@ -6833,7 +6836,47 @@ def _is_atom_stalled(atom_id: str, state: dict | None = None) -> bool:
     return bool(state.get(atom_id, {}).get("stalled"))
 
 
-def _record_atom_draw_and_check_stall(atom_id: str, fingerprint: str) -> tuple[bool, int]:
+STOP_REASON_FALLBACK_SECONDS = 7 * 24 * 3600   # window for a streak older than its start field
+
+
+def _atom_stop_reason(atom: dict, started_at: float | None, now: float) -> str:
+    """Why a stalled atom's draws have not moved it -- the one fact the counter cannot carry.
+
+    2026-10-05: B11 and D48 each sat at 151 unchanged draws and the seat re-issued the same steer
+    blind. They were stalled for opposite reasons: B11 had two slices landed on its own
+    `file_scope` under Lane 0 slugs while its map row never moved, and D48's scope file had never
+    existed. Read from git over the atom's own scope, never from the tracker
+    (SEAT_FINDING_A_STALLED_FOCUS_ATOM_WAS_DRAWN_AS_A_TRAILING_LINE_AND_B11_MOVED_UNDER_OTHER_IDS).
+    NEVER RAISES -- a reason that cannot be read says so instead.
+    """
+    scope = sorted(_atom_file_scope(atom) or ())
+    if not scope:
+        return "no file_scope declared, so whether work landed for it cannot be read"
+    since = started_at or (now - STOP_REASON_FALLBACK_SECONDS)
+    window = "since {}{}".format(
+        datetime.fromtimestamp(since, timezone.utc).strftime("%Y-%m-%d %H:%MZ"),
+        " (when the streak began)" if started_at else " (7 days; the streak's start is unrecorded)")
+    try:
+        out = subprocess.run(
+            ["git", "-C", str(PROJECT_DIR), "log", "--no-merges", f"--since=@{int(since)}",
+             "--format=%h %s", "--", *scope], capture_output=True, text=True, timeout=30)
+    except Exception as exc:  # noqa: BLE001 - the draw must not fail on its own diagnostic
+        return f"git log over its file_scope could not run ({type(exc).__name__}) -- cannot say"
+    if out.returncode != 0:
+        return f"git log over its file_scope refused (rc={out.returncode}) -- cannot say"
+    commits = [c for c in out.stdout.splitlines() if c.strip()]
+    if commits:
+        return (f"{len(commits)} commit(s) landed on its file_scope {window}, latest "
+                f"{commits[0][:100]!r}, but its map row did not move (level "
+                f"{atom.get('level_current')}, {atom.get('loop_stage')}) -- if that is its work, it is "
+                "landing under other ids and the counter waits for a map write")
+    present = sum(1 for p in scope if (PROJECT_DIR / p).exists())
+    return (f"no commit touched its file_scope {window}; {present} of {len(scope)} scope path(s) "
+            "exist on disk -- nothing has worked it")
+
+
+def _record_atom_draw_and_check_stall(atom_id: str, fingerprint: str,
+                                      atom: dict | None = None) -> tuple[bool, int]:
     """Update the per-atom stall tracker with this cycle's draw, returning
     (is_now_stalled, consecutive_unchanged_count). Ratchets a per-atom
     counter: same atom_id drawn again with the SAME fingerprint as last
@@ -6856,19 +6899,25 @@ def _record_atom_draw_and_check_stall(atom_id: str, fingerprint: str) -> tuple[b
     episode_closed = (not lost) and _atom_fingerprint_progressed(
         entry.get("fingerprint"), fingerprint)
     count = 1 if episode_closed else entry.get("consecutive_unchanged", 0) + 1
+    now = time.time()
     proposed = {
         "fingerprint": fingerprint,
         "consecutive_unchanged": count,
-        "last_drawn_at": time.time(),
+        "last_drawn_at": now,
         "prior_unreadable": lost,   # the count below is a FLOOR, not the episode -- see above
+        # None on a streak that predates this field: unknown, not "now" -- see _atom_stop_reason.
+        "episode_started_at": now if episode_closed else entry.get("episode_started_at"),
     }
-    proposed = guard_episode(entry, proposed, streak_fields=ATOM_STALL_STREAK_FIELDS,
+    proposed = guard_episode(entry, proposed, since_fields=("episode_started_at",),
+                             streak_fields=ATOM_STALL_STREAK_FIELDS,
                              episode_closed=episode_closed)
     # `stalled` is DERIVED from the guarded count, never carried through the guard -- a boolean
     # is not an episode and a stale True must not survive an evidenced close.
     count = proposed["consecutive_unchanged"]
     stalled = count >= ATOM_STALL_THRESHOLD
     proposed["stalled"] = stalled
+    if stalled and atom is not None:
+        proposed["stop_reason"] = _atom_stop_reason(atom, proposed.get("episode_started_at"), now)
     state[atom_id] = proposed
     _save_atom_stall_state(state)
     return stalled, count
