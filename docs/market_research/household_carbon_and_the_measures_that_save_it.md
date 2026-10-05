@@ -2,7 +2,7 @@
 
 **Knowledge:** household-carbon-and-the-measures-that-save-it
 
-*2026-10-05. Step 1 of `docs/staging/DIRECTOR_CANON_THE_PRIORITY_ORDER_2026-10-05.md`, answering the
+*2026-10-05. Step 1 of `docs/staging/done/DIRECTOR_CANON_THE_PRIORITY_ORDER_2026-10-05.md`, answering the
 director's investigation of the same day: whether a gas-heated home's heating is about five times the
 carbon of all its electricity, whether our knowledge has the balance right, three claims to test, and
 a map of measures by cash and carbon as the basis for next best action. Every derived figure below was

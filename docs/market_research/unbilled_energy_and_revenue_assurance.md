@@ -2,7 +2,7 @@
 
 **Knowledge:** unbilled-energy-and-revenue-assurance
 
-**Asked by** the director's canon of 2026-10-05 (`docs/staging/DIRECTOR_CANON_THE_PRIORITY_ORDER_2026-10-05.md`),
+**Asked by** the director's canon of 2026-10-05 (`docs/staging/done/DIRECTOR_CANON_THE_PRIORITY_ORDER_2026-10-05.md`),
 step 1 "knowledge, now and wide", to feed step 2 "unbilled energy and billing accuracy". Knowledge
 only: no code changes follow from this document. Researched 2026-10-05.
 

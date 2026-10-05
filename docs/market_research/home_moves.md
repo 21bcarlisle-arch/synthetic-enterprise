@@ -2,7 +2,7 @@
 
 **Knowledge:** home-moves
 
-*Written 2026-10-05 as step-1 knowledge work under `docs/staging/DIRECTOR_CANON_THE_PRIORITY_ORDER_2026-10-05.md`
+*Written 2026-10-05 as step-1 knowledge work under `docs/staging/done/DIRECTOR_CANON_THE_PRIORITY_ORDER_2026-10-05.md`
 (home moves is a step-5 lever). Every figure carries its source. Where the record is silent the figure
 is marked **GAP**; no number on this page was chosen to fill a slot.*
 

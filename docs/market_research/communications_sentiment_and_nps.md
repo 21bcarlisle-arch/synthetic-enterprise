@@ -2,7 +2,7 @@
 
 **Knowledge:** communications-sentiment-and-nps
 
-*Knowledge pass, step 1 of the director's priority order (`docs/staging/DIRECTOR_CANON_THE_PRIORITY_ORDER_2026-10-05.md`),
+*Knowledge pass, step 1 of the director's priority order (`docs/staging/done/DIRECTOR_CANON_THE_PRIORITY_ORDER_2026-10-05.md`),
 for the area that order puts last (step 7). Written 2026-10-05. Every figure is from a published source fetched this
 pass or already held in this repository, and is attributed to its own instrument, wave and sample. Where the record runs
 out, the gap is named. No figure here is simulation output except in "What our code does", where code is described, not

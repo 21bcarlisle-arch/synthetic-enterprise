@@ -3,7 +3,7 @@
 **Knowledge:** ev-solar-and-batteries-as-products
 
 *Written 2026-10-05 for step 1 of the director's priority canon
-(`docs/staging/DIRECTOR_CANON_THE_PRIORITY_ORDER_2026-10-05.md`). That canon places this area in
+(`docs/staging/done/DIRECTOR_CANON_THE_PRIORITY_ORDER_2026-10-05.md`). That canon places this area in
 step 5 and describes it as "converting customers, avoiding losses when they get the kit,
 generating leads for it, and giving them the ROI case". Every figure below is either cited or
 marked **GAP**. The sources were read on 2026-10-05.*

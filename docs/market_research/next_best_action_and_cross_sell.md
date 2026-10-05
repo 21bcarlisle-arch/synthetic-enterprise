@@ -3,7 +3,7 @@
 **Knowledge:** next-best-action-and-cross-sell
 
 **Research completed 2026-10-05, knowledge lane (director canon step 1, "now and wide").** Opened by
-`docs/staging/DIRECTOR_CANON_THE_PRIORITY_ORDER_2026-10-05.md`, which names next best action (NBA)
+`docs/staging/done/DIRECTOR_CANON_THE_PRIORITY_ORDER_2026-10-05.md`, which names next best action (NBA)
 and upsell/cross-sell as step-5 levers and asks the knowledge for them now. Primary sources were
 fetched and read this pass (PDFs extracted with `pdftotext`); where a figure comes only from a
 search summary or a vendor, it says so. Nothing here was produced by this project's simulation.
