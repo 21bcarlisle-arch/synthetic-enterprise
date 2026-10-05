@@ -112,9 +112,13 @@ def _shared_record_dir() -> "Path | None":
                              capture_output=True, text=True, timeout=10)
     except (OSError, subprocess.SubprocessError):
         return _SHARED_RECORD_DIR
-    if out.returncode != 0 or not out.stdout.strip():
+    # getattr, because a test that stubs `subprocess.run` for its OWN subject hands this probe a
+    # result with no `stdout`, and it reaches here first only when nothing earlier in the process
+    # warmed the cache -- red in a fresh checkout, green in the shared tree. Unreadable is None.
+    stdout = getattr(out, "stdout", None)
+    if getattr(out, "returncode", 1) != 0 or not isinstance(stdout, str) or not stdout.strip():
         return _SHARED_RECORD_DIR
-    common = Path(out.stdout.strip())
+    common = Path(stdout.strip())
     if not common.is_absolute():
         common = (PROJECT_DIR / common).resolve()
     shared = common.parent / "docs" / "observability"

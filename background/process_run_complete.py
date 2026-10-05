@@ -8856,6 +8856,45 @@ def _is_episode_start(v):
     return recorded_instant_seconds(v) is not None
 
 
+def _landed_publish_ts():
+    """When figures last reached ORIGIN, asked of git -- or None when git cannot say."""
+    try:
+        from background import publish_freshness
+        return publish_freshness.content_on_origin_ts()
+    except Exception:  # noqa: BLE001 -- unknown is None, never "just now"
+        return None
+
+
+def landed_publish_count(prior, new, *, failure, landed):
+    """`(last_landed_publish, failures_since_landed_publish)` for the record `new` about to replace
+    `prior`.
+
+    KEYED TO THE LANDING, NOT TO THE EPISODE (2026-10-05). `episode_failures` resets whenever an
+    episode closes, and three things close one that are not a publish reaching origin: a green gate
+    over nothing, a cause re-asked and found cleared, and a week-old deferred delivery graded
+    REACHED. The last did it on 2026-10-05 at 04:28Z: `last_clean_publish` was stamped with that
+    instant and the episode restarted, so the state read one failure two hours old while the
+    figures on origin were from 2026-09-28T04:46Z. This count resets ONLY when git's answer for
+    `content_on_origin_ts` moves, so nothing but a landed publish can clear it.
+
+    A record with no anchor yet is seeded from the episode `new` carries, and only when that
+    episode began AFTER the landing -- then every failure in it is one since the landing. Otherwise
+    None: a count over a span nobody recorded is not a count, and it stays None until the next
+    landing gives it a true zero."""
+    prior = prior if isinstance(prior, dict) else {}
+    if landed is None:
+        landed = prior.get("last_landed_publish")
+    if "last_landed_publish" in prior:
+        count = (prior.get("failures_since_landed_publish")
+                 if landed == prior.get("last_landed_publish") else 0)
+        return landed, (count + 1 if failure and count is not None else count)
+    since = recorded_instant_seconds(new.get("wedge_since"))
+    ep = new.get("episode_failures")
+    seeded = (isinstance(ep, int) and not isinstance(ep, bool) and since is not None
+              and landed is not None and since >= landed)
+    return landed, (ep if seeded else None)
+
+
 PUBLISH_GATE_SINCE_FIELDS = ("wedge_since",)
 #: Both are high-water marks scoped to the episode, so both get the PW2 monotonic guard: a
 #: failure write proposes neither and must not be able to forget either. `episode_clean_publishes`
@@ -8864,7 +8903,8 @@ PUBLISH_GATE_SINCE_FIELDS = ("wedge_since",)
 PUBLISH_GATE_STREAK_FIELDS = ("episode_failures", "episode_clean_publishes")
 
 
-def _write_publish_gate_state(state, *, episode_closed=False, liveness_resolved=False):
+def _write_publish_gate_state(state, *, episode_closed=False, liveness_resolved=False,
+                              failure=False):
     """Persist the wedge state, with the PW2 guard on the episode-scoped fields.
 
     `episode_closed` is the CALLER'S EVIDENCED CLAIM that the wedge episode really ended. Every
@@ -8961,6 +9001,8 @@ def _write_publish_gate_state(state, *, episode_closed=False, liveness_resolved=
     if (not episode_closed and out.get("liveness_surface_last_publish") is None
             and isinstance(prior, dict)):
         out["liveness_surface_last_publish"] = prior.get("liveness_surface_last_publish")
+    out["last_landed_publish"], out["failures_since_landed_publish"] = landed_publish_count(
+        prior, out, failure=failure, landed=_landed_publish_ts())
     out = guard_episode(prior,
                         out,
                         since_fields=PUBLISH_GATE_SINCE_FIELDS,
@@ -9896,7 +9938,7 @@ def record_publish_gate_failure(reason, rc=None, git_hash="unknown", *, now=None
                                    "citation_at_head_reason": citation["reason"],
                                    "fork_state": fork["verdict"],
                                    "fork_state_reason": fork["reason"],
-                                   "suspects": suspects})
+                                   "suspects": suspects}, failure=True)
         log("Publish-gate failure #{} ({}, rc={}) -- alert {}".format(
             count, kind, rc, "FIRED" if fired else ("armed/cooldown" if threshold_met else "below threshold")))
         return {"count": count, "kind": kind, "threshold_met": threshold_met, "fired": fired}
