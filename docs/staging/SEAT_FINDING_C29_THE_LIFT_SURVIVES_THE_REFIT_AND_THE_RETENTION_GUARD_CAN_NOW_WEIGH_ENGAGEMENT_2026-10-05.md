@@ -36,6 +36,10 @@ falls by about the same third as the world arm, from 0.545 to about 0.35, and it
 shuffle null's upper bound. If it lands inside the null, the frame's clause applies to the book,
 and the weighting below must not be switched on in any arm.
 
+*Graded 2026-10-05 on `run_output_7a3cdd060_20261005T115844Z`: lift 0.268, null −0.303 … 0.015.
+Above the null held; the size did not (half, not a third). The value-arm pair ran. See
+`SEAT_FINDING_C29_THE_BOOK_ARM_SURVIVES_THE_REFIT_AT_HALF_ITS_LIFT_2026-10-05.md`.*
+
 ## 2. The wiring: in place, off on every standing policy
 
 - `DecisionPolicy.retention_weighs_engagement` defaults to `False`. Every standing policy leaves it
