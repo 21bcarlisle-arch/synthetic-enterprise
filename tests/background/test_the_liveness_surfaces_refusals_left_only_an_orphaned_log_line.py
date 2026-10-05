@@ -132,6 +132,8 @@ def _drive(monkeypatch, tmp_path, *, ahead=0, provenance=True, commit_rc=0, comm
         `_arriving_paths`. Together they decide `_publish_surface_collisions`, and modelling them
         is what turns every `ahead > 0` refusal in this file from "we could not look" into a
         measured collision.
+      * `git diff --name-only --no-renames HEAD` and `git ls-files --others` --
+        `_paths_differing_from_head`, answered "every named path changed", the heartbeat's shape.
       * `git merge --ff-only` -- the advance itself. DEFAULTS TO rc=1, the refusal, because a
         fast-forward that silently succeeded would clear the fork the behind-origin legs exist to
         describe.
@@ -174,6 +176,14 @@ def _drive(monkeypatch, tmp_path, *, ahead=0, provenance=True, commit_rc=0, comm
             # real git -- the fixture-more-permissive-than-its-subject shape, one layer down.
             return types.SimpleNamespace(
                 returncode=0, stdout="".join(p + "\0" for p in arriving), stderr="")
+        if argv[:5] == ["git", "diff", "--name-only", "--no-renames", "HEAD"]:
+            # `_paths_differing_from_head`: every path the publish names was just written by it,
+            # which is the heartbeat's real shape -- so the collision above stays a collision.
+            named = argv[argv.index("--") + 1:]
+            return types.SimpleNamespace(returncode=0, stdout="".join(p + "\n" for p in named),
+                                         stderr="")
+        if argv[:4] == ["git", "ls-files", "--others", "--exclude-standard"]:
+            return types.SimpleNamespace(returncode=0, stdout="", stderr="")
         if argv[:3] == ["git", "rev-list", "--count"]:
             # ONE ANSWER PER RANGE. `origin/main..HEAD` and `HEAD..origin/main` are opposite
             # questions with opposite remedies, and a fake that answered both with one number

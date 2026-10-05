@@ -21,12 +21,17 @@ import background.process_run_complete as prc
 PROJECT = prc.PROJECT_DIR
 
 
+#: `changed` default: every path this commit names differs from HEAD, so legs about the collision
+#: branch stay about it. The legs about "named is not written" pass an explicit set.
+_ALL = object()
+
+
 def _paths(*relative):
     """Absolute publish paths, the shape `_commit_pathspec` hands the refusal."""
     return [str(PROJECT / rel) for rel in relative]
 
 
-def _arrange(monkeypatch, *, ahead, arriving, stranded=0):
+def _arrange(monkeypatch, *, ahead, arriving, stranded=0, changed=_ALL):
     """A tree `ahead` commits behind origin, with `arriving` the paths origin is bringing.
 
     `arriving=None` is git declining to answer, which is a different fact from `arriving=[]`.
@@ -59,6 +64,12 @@ def _arrange(monkeypatch, *, ahead, arriving, stranded=0):
         return stranded
 
     monkeypatch.setattr(prc, "_unabsorbed_publish_commits", _stranded)
+
+    def _changed(ours):
+        assert ours, "the diff against HEAD was asked about no paths at all"
+        return set(ours) if changed is _ALL else changed
+
+    monkeypatch.setattr(prc, "_paths_differing_from_head", _changed)
 
 
 # ── the partition, asserted whole before any leg is asserted alone ──────────────────────────────
@@ -416,3 +427,79 @@ def test_the_refusal_and_the_landing_name_one_pathspec():
         "the extra-paths tuple is written out more than once, which is the drift this constant "
         "exists to prevent"
     )
+
+
+# ── named is not written: the map that refused 2026-10-05 without being changed ────────────────
+
+def test_a_named_path_origin_touched_refuses_only_when_this_commit_changes_it(monkeypatch):
+    """`docs/design/maturity_map.yaml` is in every publish pathspec and is written by almost none.
+
+    Measured 2026-10-05: three refusals (12:48, 14:53, 19:34 UTC) collided on the map, the last on
+    it alone, and the pre-gate fold that is the publisher's only writer of it last ran 2026-07-16.
+    The landing door builds HEAD-plus-these-paths, so an unchanged entry adds nothing to the
+    commit and cannot conflict with origin's change to it.
+
+    Both answers in one control, so a guard that refuses everything or admits everything is red.
+    MUTATION: intersect `arriving` with `ours` rather than with `changed` and the first half fires;
+    return `ours` unfiltered from `_paths_differing_from_head` and it fires too.
+    """
+    named = _paths("docs/design/maturity_map.yaml", "site/data/dashboard.json")
+
+    _arrange(monkeypatch, ahead=1, arriving=["docs/design/maturity_map.yaml"],
+             changed={"site/data/dashboard.json"})
+    unchanged = prc._divergence_refusal(named)
+
+    _arrange(monkeypatch, ahead=1, arriving=["docs/design/maturity_map.yaml"],
+             changed={"docs/design/maturity_map.yaml", "site/data/dashboard.json"})
+    written = prc._divergence_refusal(named)
+
+    assert unchanged is None, (
+        "origin touched a path this commit NAMES but does not change, and the publish was refused "
+        "for it -- the 2026-10-05 map refusals, restored: {!r}".format(unchanged))
+    assert written is not None and "maturity_map.yaml" in written, (
+        "a path this commit DOES change and origin also touched was let through, or the refusal "
+        "did not name it: {!r}".format(written))
+
+
+def test_an_unreadable_diff_against_head_refuses(monkeypatch):
+    """`None` from the diff is "could not look", never "nothing changed".
+
+    MUTATION: drop the `if changed is None: return None` in `_publish_surface_collisions` and the
+    intersection raises or reads empty -- either way this fires.
+    """
+    _arrange(monkeypatch, ahead=1, arriving=["tools/x.py"], changed=None)
+
+    refusal = prc._divergence_refusal(_paths("site/data/dashboard.json"))
+
+    assert refusal is not None and "NOT ESTABLISHED" in refusal, refusal
+
+
+def test_the_diff_against_head_reads_modified_untracked_and_not_clean(tmp_path, monkeypatch):
+    """The real git read, on a real repository: modified and untracked count, a clean path does not.
+
+    MUTATION: drop the `ls-files --others` read and the untracked half fires (an add/add against
+    origin would publish); drop `HEAD` from the diff and a staged change is missed.
+    """
+    import subprocess as sp
+    repo = tmp_path / "repo"
+    (repo / "docs").mkdir(parents=True)
+    for name in ("clean.yaml", "edited.yaml", "staged.yaml"):
+        (repo / "docs" / name).write_text("a\n", encoding="utf-8")
+    sp.run(["git", "init", "-q", "."], cwd=repo, check=True)
+    sp.run(["git", "add", "-A"], cwd=repo, check=True)
+    sp.run(["git", "-c", "user.email=t@t", "-c", "user.name=t", "commit", "-qm", "base"],
+           cwd=repo, check=True)
+    (repo / "docs" / "edited.yaml").write_text("b\n", encoding="utf-8")
+    (repo / "docs" / "staged.yaml").write_text("b\n", encoding="utf-8")
+    sp.run(["git", "add", "docs/staged.yaml"], cwd=repo, check=True)
+    (repo / "docs" / "new.yaml").write_text("b\n", encoding="utf-8")
+    monkeypatch.setattr(prc, "PROJECT_DIR", repo)
+
+    got = prc._paths_differing_from_head(
+        ["docs/clean.yaml", "docs/edited.yaml", "docs/staged.yaml", "docs/new.yaml"])
+
+    assert got == {"docs/edited.yaml", "docs/staged.yaml", "docs/new.yaml"}, got
+
+    monkeypatch.setattr(prc, "PROJECT_DIR", tmp_path / "not-a-repo")
+    (tmp_path / "not-a-repo").mkdir()
+    assert prc._paths_differing_from_head(["docs/clean.yaml"]) is None

@@ -6059,7 +6059,40 @@ def _publish_surface_collisions(publish_paths):
     ours = _our_publish_paths(publish_paths)
     if ours is None:
         return None
-    return sorted(set(arriving).intersection(ours))
+    changed = _paths_differing_from_head(ours)
+    if changed is None:
+        return None
+    return sorted(set(arriving).intersection(changed))
+
+
+def _paths_differing_from_head(ours):
+    """The subset of `ours` whose bytes this commit would actually change, or `None`.
+
+    NAMED IS NOT WRITTEN (measured 2026-10-05). The landing door builds HEAD-plus-these-paths, so a
+    pathspec entry whose working copy equals HEAD contributes nothing to the commit and cannot
+    conflict with anything origin brings. The intersection used to be taken over the whole
+    pathspec, and `PUBLISH_EXTRA_RELATIVE` names the map on every cycle because the pre-gate
+    atom_status fold MAY write it -- a fold that last ran 2026-07-16. Three of that day's refusals
+    (12:48, 14:53, 19:34 UTC) collided on `docs/design/maturity_map.yaml`, the 19:34 one on it
+    alone, and the figures last reached origin 2026-09-28 by this route.
+
+    Untracked paths count as changed: an add/add against origin is a genuine collision. Any git
+    failure returns `None`, which every caller reads as a refusal.
+    """
+    try:
+        diffed = subprocess.run(
+            ["git", "diff", "--name-only", "--no-renames", "HEAD", "--", *ours],
+            cwd=str(PROJECT_DIR), capture_output=True, text=True, timeout=60, check=False)
+        untracked = subprocess.run(
+            ["git", "ls-files", "--others", "--exclude-standard", "--", *ours],
+            cwd=str(PROJECT_DIR), capture_output=True, text=True, timeout=60, check=False)
+    except (OSError, subprocess.SubprocessError) as exc:
+        log("Which publish paths differ from HEAD NOT established ({}: {}).".format(
+            type(exc).__name__, exc))
+        return None
+    if diffed.returncode != 0 or untracked.returncode != 0:
+        return None
+    return {line for line in (diffed.stdout + untracked.stdout).splitlines() if line}
 
 
 def _our_publish_paths(publish_paths):
