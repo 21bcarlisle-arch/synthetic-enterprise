@@ -1,92 +1,92 @@
 {
   "meta": {
-    "generated_at": "2026-09-28T03:49:29Z",
-    "git_commit": "16eeaf2cf",
-    "household_count": 164,
+    "generated_at": "2026-10-05T21:12:16Z",
+    "git_commit": "998814330",
+    "household_count": 127,
     "note": "Auto-curated from real per-household timeline/reaction-chain/churn-accuracy data (WEBSITE_AS_SHOWCASE.md tab 4) -- no household is hand-picked."
   },
   "cases": [
     {
       "category": "Most eventful journey",
-      "headline": "115 timeline + reaction-chain entries on record",
+      "headline": "112 timeline + reaction-chain entries on record",
       "wall_side": "sim",
-      "account_id": "PROS-2018-0035",
-      "base_account_id": "PROS-2018-0035",
+      "account_id": "PROS-2016-0098",
+      "base_account_id": "PROS-2016-0098",
       "segment": "resi",
       "commodity": "electricity",
       "link": {
-        "acc": "PROS-2018-0035",
+        "acc": "PROS-2016-0098",
         "tab": "timeline"
       }
     },
     {
       "category": "Largest company-vs-SIM churn divergence",
-      "headline": "86.7 percentage points apart at the 2023 renewal (sim 13.3% vs company 100.0%)",
+      "headline": "100.0 percentage points apart at the 2024 renewal (sim 0.0% vs company 100.0%)",
       "wall_side": "sim",
-      "account_id": "SYN-2016-055",
-      "base_account_id": "SYN-2016-055",
+      "account_id": "PROS-2016-0092",
+      "base_account_id": "PROS-2016-0092",
       "segment": "resi",
       "commodity": "electricity",
       "link": {
-        "acc": "SYN-2016-055",
+        "acc": "PROS-2016-0092",
         "tab": "timeline",
-        "year": 2023
+        "year": 2024
       }
     },
     {
       "category": "Retention save, then churned anyway",
       "headline": "The company offered retention and won, then lost the account regardless",
       "wall_side": "company",
-      "account_id": "SYN-2016-001",
-      "base_account_id": "SYN-2016-001",
+      "account_id": "SYN-2016-038",
+      "base_account_id": "SYN-2016-038",
+      "segment": "resi",
+      "commodity": "gas",
+      "link": {
+        "acc": "SYN-2016-038",
+        "tab": "timeline",
+        "year": 2025
+      }
+    },
+    {
+      "category": "Heaviest arrears cascade",
+      "headline": "7 debt write-off event(s) in the arrears cascade",
+      "wall_side": "company",
+      "account_id": "SYN-2016-077",
+      "base_account_id": "SYN-2016-077",
       "segment": "resi",
       "commodity": "electricity",
       "link": {
-        "acc": "SYN-2016-001",
+        "acc": "SYN-2016-077",
         "tab": "timeline",
         "year": 2020
       }
     },
     {
-      "category": "Heaviest arrears cascade",
-      "headline": "16 debt write-off event(s) in the arrears cascade",
-      "wall_side": "company",
-      "account_id": "SYN-2016-048",
-      "base_account_id": "SYN-2016-048",
+      "category": "Notable life event",
+      "headline": "Insulation upgraded (2024) -- Usage moved -3% (avg 201 kWh/mo -> 195 kWh/mo)",
+      "wall_side": "sim",
+      "account_id": "PROS-2020-0321",
+      "base_account_id": "PROS-2020-0321",
       "segment": "resi",
       "commodity": "electricity",
       "link": {
-        "acc": "SYN-2016-048",
+        "acc": "PROS-2020-0321",
         "tab": "timeline",
         "year": 2024
       }
     },
     {
-      "category": "Notable life event",
-      "headline": "Job loss (2025) -- Real downstream drift: income stress moderate -> high; late-payment rate 17% -> 67%",
-      "wall_side": "sim",
-      "account_id": "PROS-2021-0212",
-      "base_account_id": "PROS-2021-0212",
-      "segment": "resi",
-      "commodity": "electricity",
-      "link": {
-        "acc": "PROS-2021-0212",
-        "tab": "timeline",
-        "year": 2025
-      }
-    },
-    {
       "category": "Silent-middle churn risk",
-      "headline": "True satisfaction fell 12.0 percentage points (78.5% in 2024 to 66.5% in 2025) but never once answered a survey -- invisible to the company's measurement instrument",
+      "headline": "True satisfaction fell 19.0 percentage points (59.6% in 2018 to 40.6% in 2024) but never once answered a survey -- invisible to the company's measurement instrument",
       "wall_side": "sim",
-      "account_id": "PROS-2021-0168",
-      "base_account_id": "PROS-2021-0168",
+      "account_id": "SYN-2016-066",
+      "base_account_id": "SYN-2016-066",
       "segment": "resi",
       "commodity": "electricity",
       "link": {
-        "acc": "PROS-2021-0168",
+        "acc": "SYN-2016-066",
         "tab": "timeline",
-        "year": 2025
+        "year": 2024
       }
     }
   ]

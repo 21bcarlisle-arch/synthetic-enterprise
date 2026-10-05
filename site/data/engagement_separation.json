@@ -1,14 +1,14 @@
 {
   "available": true,
-  "generated_at": "2026-10-05T04:13:28Z",
+  "generated_at": "2026-10-05T21:12:17Z",
   "published_from": {
-    "commit": "ce096a86e0d71c489e325e912a68a216be0fcfa1",
+    "commit": "998814330c298a6f749b14a311739618ffa7de16",
     "tree_was_clean": false,
-    "inputs_are_the_committed_bytes": false,
+    "inputs_are_the_committed_bytes": true,
     "inputs": [
       {
         "path": "simulation/household_segments.py",
-        "state": "modified"
+        "state": "committed"
       },
       {
         "path": "simulation/population_draw.py",
@@ -20,10 +20,10 @@
       },
       {
         "path": "tools/engagement_separation.py",
-        "state": "modified"
+        "state": "committed"
       }
     ],
-    "reason": "read off the working tree, not out of this commit: simulation/household_segments.py, tools/engagement_separation.py \u2014 standing at this commit will not reproduce this feed"
+    "reason": "every input named here matches this commit, but the tree carried other uncommitted changes, and this generator reads more than the paths it names \u2014 so standing at this commit may still not reproduce this feed"
   },
   "headline": "Of the 25 disengaged households on the book -- the long-default tail, the least likely to choose at a renewal -- 11 are MORE price-sensitive than the book's average household. Whether a household shops and how far price moves it once it does are two different facts in this world: across 125 households their rank correlation is -0.04, inside the -0.18 to +0.16 that shuffling the pairs produces.",
   "definitions": {

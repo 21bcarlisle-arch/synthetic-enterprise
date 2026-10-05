@@ -1,8 +1,8 @@
 {
   "schema": 1,
-  "run_stamp": "16eeaf2cf",
+  "run_stamp": "998814330",
   "degraded": false,
-  "step_count": 11,
+  "step_count": 12,
   "failing_step_count": 0,
   "stale_artefacts": [],
   "steps": [
@@ -14,7 +14,7 @@
       "ok": true,
       "refreshed_this_cycle": true,
       "error": null,
-      "last_ok_run_stamp": "16eeaf2cf"
+      "last_ok_run_stamp": "998814330"
     },
     {
       "name": "Dashboard data generation",
@@ -24,7 +24,7 @@
       "ok": true,
       "refreshed_this_cycle": true,
       "error": null,
-      "last_ok_run_stamp": "16eeaf2cf"
+      "last_ok_run_stamp": "998814330"
     },
     {
       "name": "Customer data generation",
@@ -34,7 +34,7 @@
       "ok": true,
       "refreshed_this_cycle": true,
       "error": null,
-      "last_ok_run_stamp": "16eeaf2cf"
+      "last_ok_run_stamp": "998814330"
     },
     {
       "name": "Billing ledger generation",
@@ -44,7 +44,7 @@
       "ok": true,
       "refreshed_this_cycle": true,
       "error": null,
-      "last_ok_run_stamp": "16eeaf2cf"
+      "last_ok_run_stamp": "998814330"
     },
     {
       "name": "Invoice data generation",
@@ -54,7 +54,7 @@
       "ok": true,
       "refreshed_this_cycle": true,
       "error": null,
-      "last_ok_run_stamp": "16eeaf2cf"
+      "last_ok_run_stamp": "998814330"
     },
     {
       "name": "Payment ledger generation",
@@ -64,7 +64,7 @@
       "ok": true,
       "refreshed_this_cycle": true,
       "error": null,
-      "last_ok_run_stamp": "16eeaf2cf"
+      "last_ok_run_stamp": "998814330"
     },
     {
       "name": "Customer consumption generation",
@@ -74,7 +74,7 @@
       "ok": true,
       "refreshed_this_cycle": true,
       "error": null,
-      "last_ok_run_stamp": "16eeaf2cf"
+      "last_ok_run_stamp": "998814330"
     },
     {
       "name": "Customer reaction-chain generation",
@@ -84,7 +84,7 @@
       "ok": true,
       "refreshed_this_cycle": true,
       "error": null,
-      "last_ok_run_stamp": "16eeaf2cf"
+      "last_ok_run_stamp": "998814330"
     },
     {
       "name": "Portfolio event stream generation",
@@ -94,7 +94,7 @@
       "ok": true,
       "refreshed_this_cycle": true,
       "error": null,
-      "last_ok_run_stamp": "16eeaf2cf"
+      "last_ok_run_stamp": "998814330"
     },
     {
       "name": "Sim data generation",
@@ -104,7 +104,7 @@
       "ok": true,
       "refreshed_this_cycle": true,
       "error": null,
-      "last_ok_run_stamp": "16eeaf2cf"
+      "last_ok_run_stamp": "998814330"
     },
     {
       "name": "Customer sample generation",
@@ -114,7 +114,17 @@
       "ok": true,
       "refreshed_this_cycle": true,
       "error": null,
-      "last_ok_run_stamp": "16eeaf2cf"
+      "last_ok_run_stamp": "998814330"
+    },
+    {
+      "name": "Engagement separation",
+      "artefacts": [
+        "site/data/engagement_separation.json"
+      ],
+      "ok": true,
+      "refreshed_this_cycle": true,
+      "error": null,
+      "last_ok_run_stamp": "998814330"
     }
   ]
 }

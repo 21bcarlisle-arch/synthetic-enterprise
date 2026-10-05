@@ -1,0 +1,313 @@
+{
+  "account_id": "SYN-2025-001",
+  "base_account_id": "SYN-2025-001",
+  "segment": "resi",
+  "commodity": "electricity",
+  "is_dual_fuel": false,
+  "acquisition_date": "2025-04-18",
+  "tariff_name": "Standard Variable (Electricity)",
+  "meter_type": "Smart",
+  "mpan": {
+    "top_line": "0100262",
+    "bottom_line": "16100668106"
+  },
+  "mprn": null,
+  "lifetime_revenue_gbp": 201.41,
+  "lifetime_gross_gbp": 137.62,
+  "lifetime_net_gbp": 41.07,
+  "lifetime_net_after_cts_gbp": 33.38,
+  "cost_to_serve_gbp": 7.68,
+  "pricing_action": {
+    "flag": "OK",
+    "recommended_uplift_pct": null
+  },
+  "avg_hedge_fraction": 0.85,
+  "clv_gbp": null,
+  "churn_probability": null,
+  "expected_lifetime_periods": null,
+  "forecast_annual_profit_gbp": null,
+  "forecast_cashflow": [],
+  "forward_looking_basis": "no_billing_account",
+  "forward_looking_account_id": "SYN-2025-001",
+  "commodity_split": {
+    "electricity": {
+      "net_gbp": 41.07,
+      "revenue_gbp": 201.41
+    },
+    "gas": null
+  },
+  "dual_fuel_combined": null,
+  "annual_pnl": [
+    {
+      "year": 2025,
+      "revenue_gbp": 0,
+      "gross_gbp": 137.62,
+      "net_gbp": 41.07,
+      "tariff_min": 192.73,
+      "tariff_max": 367.95
+    }
+  ],
+  "timeline": [
+    {
+      "date": "2017-05-11",
+      "type": "life_event",
+      "commodity": null,
+      "detail": "Insulation upgraded"
+    }
+  ],
+  "invoices": [
+    {
+      "id": "SYN-2025-001-INV8739",
+      "date": "2025-04-30",
+      "period_start": "2025-04-18",
+      "period_end": "2025-04-30",
+      "commodity": "electricity",
+      "consumption_kwh": 186.6,
+      "unit_rate_p_per_kwh": 28.97,
+      "commodity_amount_gbp": 54.06,
+      "standing_charge_gbp": 6.66,
+      "days_in_period": 13,
+      "standing_charge_gbp_per_day": 0.512,
+      "non_commodity_amount_gbp": 10.26,
+      "vat_gbp": 3.55,
+      "amount_gbp": 74.53,
+      "status": "PAID",
+      "outstanding_gbp": 0.0,
+      "credit_applied_gbp": null,
+      "meter_serial": "M00058001",
+      "mpan": "1000000000686",
+      "mprn": null,
+      "read_type": "A",
+      "opening_read_kwh": 0.0,
+      "closing_read_kwh": 186.6,
+      "registers": [
+        {
+          "register_id": "1",
+          "label": "Anytime",
+          "consumption_kwh": 186.6,
+          "amount_gbp": 54.06,
+          "unit_rate_p_per_kwh": 28.97
+        }
+      ],
+      "catchup_applied": false,
+      "catchup_period_start": null,
+      "catchup_period_end": null,
+      "catchup_periods_covered": null,
+      "catchup_direction": null,
+      "catchup_raw_delta_gbp": null,
+      "catchup_adjustment_gbp": null,
+      "catchup_written_off_gbp": null,
+      "catchup_back_billing_cap_applied": null
+    },
+    {
+      "id": "SYN-2025-001-INV8740",
+      "date": "2025-05-31",
+      "period_start": "2025-05-01",
+      "period_end": "2025-05-31",
+      "commodity": "electricity",
+      "consumption_kwh": 393.5,
+      "unit_rate_p_per_kwh": 25.057,
+      "commodity_amount_gbp": 98.6,
+      "standing_charge_gbp": 15.88,
+      "days_in_period": 31,
+      "standing_charge_gbp_per_day": 0.5123,
+      "non_commodity_amount_gbp": 21.64,
+      "vat_gbp": 6.81,
+      "amount_gbp": 142.93,
+      "status": "PAID",
+      "outstanding_gbp": 0.0,
+      "credit_applied_gbp": null,
+      "meter_serial": "M00058001",
+      "mpan": "1000000000686",
+      "mprn": null,
+      "read_type": "A",
+      "opening_read_kwh": 186.6,
+      "closing_read_kwh": 580.1,
+      "registers": [
+        {
+          "register_id": "1",
+          "label": "Anytime",
+          "consumption_kwh": 393.5,
+          "amount_gbp": 98.6,
+          "unit_rate_p_per_kwh": 25.057
+        }
+      ],
+      "catchup_applied": false,
+      "catchup_period_start": null,
+      "catchup_period_end": null,
+      "catchup_periods_covered": null,
+      "catchup_direction": null,
+      "catchup_raw_delta_gbp": null,
+      "catchup_adjustment_gbp": null,
+      "catchup_written_off_gbp": null,
+      "catchup_back_billing_cap_applied": null
+    },
+    {
+      "id": "SYN-2025-001-INV8741",
+      "date": "2025-06-07",
+      "period_start": "2025-06-01",
+      "period_end": "2025-06-07",
+      "commodity": "electricity",
+      "consumption_kwh": 94.2,
+      "unit_rate_p_per_kwh": 24.0,
+      "commodity_amount_gbp": 22.61,
+      "standing_charge_gbp": 3.59,
+      "days_in_period": 7,
+      "standing_charge_gbp_per_day": 0.513,
+      "non_commodity_amount_gbp": 5.19,
+      "vat_gbp": 1.57,
+      "amount_gbp": 32.96,
+      "status": "UNPAID",
+      "outstanding_gbp": 32.95,
+      "credit_applied_gbp": 0.0,
+      "meter_serial": "M00058001",
+      "mpan": "1000000000686",
+      "mprn": null,
+      "read_type": "A",
+      "opening_read_kwh": 580.1,
+      "closing_read_kwh": 674.3,
+      "registers": [
+        {
+          "register_id": "1",
+          "label": "Anytime",
+          "consumption_kwh": 94.2,
+          "amount_gbp": 22.61,
+          "unit_rate_p_per_kwh": 24.0
+        }
+      ],
+      "catchup_applied": false,
+      "catchup_period_start": null,
+      "catchup_period_end": null,
+      "catchup_periods_covered": null,
+      "catchup_direction": null,
+      "catchup_raw_delta_gbp": null,
+      "catchup_adjustment_gbp": null,
+      "catchup_written_off_gbp": null,
+      "catchup_back_billing_cap_applied": null
+    }
+  ],
+  "ledger": {
+    "as_of_date": "2025-06-21",
+    "entries": [
+      {
+        "date": "2025-05-02",
+        "type": "invoice_raised",
+        "invoice_number": 8739,
+        "amount_gbp": 74.53,
+        "info_amount_gbp": null,
+        "method": null,
+        "description": "Invoice INV8739 raised",
+        "running_balance_gbp": 74.53
+      },
+      {
+        "date": "2025-05-16",
+        "type": "payment_received",
+        "invoice_number": 8739,
+        "amount_gbp": -74.53,
+        "info_amount_gbp": null,
+        "method": "direct_debit",
+        "description": "Payment received",
+        "running_balance_gbp": 0.0
+      },
+      {
+        "date": "2025-06-02",
+        "type": "invoice_raised",
+        "invoice_number": 8740,
+        "amount_gbp": 142.93,
+        "info_amount_gbp": null,
+        "method": null,
+        "description": "Invoice INV8740 raised",
+        "running_balance_gbp": 142.93
+      },
+      {
+        "date": "2025-06-09",
+        "type": "invoice_raised",
+        "invoice_number": 8741,
+        "amount_gbp": 32.96,
+        "info_amount_gbp": null,
+        "method": null,
+        "description": "Invoice INV8741 raised",
+        "running_balance_gbp": 175.89
+      },
+      {
+        "date": "2025-06-16",
+        "type": "payment_received",
+        "invoice_number": 8740,
+        "amount_gbp": -142.93,
+        "info_amount_gbp": null,
+        "method": "direct_debit",
+        "description": "Payment received",
+        "running_balance_gbp": 32.96
+      }
+    ],
+    "current_balance_gbp": 32.96,
+    "total_billed_gbp": 250.42,
+    "total_collected_gbp": 217.46,
+    "total_written_off_gross_gbp": 0,
+    "total_recovered_gbp": 0
+  },
+  "consumption": {
+    "unit": "kWh",
+    "monthly": [
+      {
+        "month": "2025-04",
+        "kwh": 186.6
+      },
+      {
+        "month": "2025-05",
+        "kwh": 393.5
+      },
+      {
+        "month": "2025-06",
+        "kwh": 94.3
+      }
+    ],
+    "has_hh_data": false
+  },
+  "reaction_chain": [
+    {
+      "customer_id": "SYN-2025-001",
+      "date": "2025-06-23",
+      "event_type": "arrears_dd_failed",
+      "description": "Direct debit returned",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 32.95,
+      "outcome": "DD_FAILED",
+      "framing_type": null
+    },
+    {
+      "customer_id": "SYN-2025-001",
+      "date": "2025-06-30",
+      "event_type": "arrears_first_notice",
+      "description": "First overdue notice -- GBP32.95 outstanding",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 32.95,
+      "outcome": "FIRST_NOTICE",
+      "framing_type": null
+    },
+    {
+      "customer_id": "SYN-2025-001",
+      "date": "2025-07-14",
+      "event_type": "arrears_second_notice",
+      "description": "Second notice -- payment plan offered",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 32.95,
+      "outcome": "SECOND_NOTICE",
+      "framing_type": null
+    },
+    {
+      "customer_id": "SYN-2025-001",
+      "date": "2025-07-14",
+      "event_type": "arrears_balance_open",
+      "description": "Balance still open -- GBP32.95 unpaid, with no payment or arrangement against it",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 32.95,
+      "outcome": "BALANCE_OPEN",
+      "framing_type": null
+    }
+  ]
+}

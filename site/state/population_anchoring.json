@@ -8,7 +8,7 @@
     "arrears_ledger_available": true,
     "arrears_ledger_note": "billing ledger loaded",
     "churn_population": {
-      "table": "/home/rich/synthetic-enterprise/docs/reports/run_output_16eeaf2cf_20260928T032442Z.json",
+      "table": "/home/rich/synthetic-enterprise/docs/reports/run_output_998814330_20261005T205247Z.json",
       "svt_source": "run output `svt_decisions`",
       "routes_readable": [
         "renewal",
@@ -16,15 +16,15 @@
       ],
       "covers_svt_route": true,
       "decisions": {
-        "renewal": 110,
-        "svt_segment": 2035
+        "renewal": 155,
+        "svt_segment": 1772
       },
       "departures": {
-        "renewal": 37,
-        "svt_segment": 53
+        "renewal": 25,
+        "svt_segment": 43
       },
-      "total_departures_visible": 90,
-      "share_of_departures_visible": 0.4111111111111111,
+      "total_departures_visible": 68,
+      "share_of_departures_visible": 0.36764705882352944,
       "population": "renewal decisions + SVT segment decisions",
       "causes_observable": [
         "bill_shock",
@@ -39,20 +39,20 @@
   },
   "overall_rag": "RED",
   "long_run_comparison": {
-    "sim_avg_pct": 26.2,
-    "ofgem_avg_pct": 17.1,
-    "ratio": 1.53,
+    "sim_avg_pct": 19.1,
+    "ofgem_avg_pct": 15.0,
+    "ratio": 1.27,
     "years_compared": 9,
-    "total_renewals": 110,
+    "total_renewals": 155,
     "rag": "GREEN",
     "note": "SIM portfolio is predominantly I&C (B2B contract churn) vs Ofgem residential switching. Long-run average comparison is more robust than single-year with N<15 renewals."
   },
   "crisis_churn_direction": {
-    "pre_crisis_avg_pct": 46.4,
-    "crisis_avg_pct": 27.8,
+    "pre_crisis_avg_pct": 16.7,
+    "crisis_avg_pct": 9.4,
     "2022_sim_rate_pct": null,
     "2022_unavailable_reason": "2022 carries no `sim_churn_rate` in this capture. It is 100% crisis-forced-passive (`simulation.renewal_engagement.CRISIS_PASSIVE_YEARS`) and C1b settles every passive roll on the SVT segment route, so the renewal capture has no 2022 decisions to rate. This is an UNAVAILABLE check, not a zero: the crisis year's departures happened on the other route. Read the whole-book figure instead, or re-capture with the SVT sibling.",
-    "2022_ofgem_rate_pct": 3.6,
+    "2022_ofgem_rate_pct": 3.1,
     "2022_ratio_vs_ofgem": null,
     "rolling_divergence_flag": false,
     "absolute_divergence_flag": false,
@@ -63,143 +63,143 @@
   "bad_debt_vs_benchmark": [
     {
       "year": 2016,
-      "bad_debt_gbp": 70.0,
-      "bad_debt_rate": 0.19,
+      "bad_debt_gbp": 72.0,
+      "bad_debt_rate": 0.24,
       "benchmark_low_pct": 0.5,
       "benchmark_high_pct": 2.5,
       "rag": "AMBER"
     },
     {
       "year": 2017,
-      "bad_debt_gbp": 374.0,
-      "bad_debt_rate": 0.7,
+      "bad_debt_gbp": 201.0,
+      "bad_debt_rate": 0.4,
       "benchmark_low_pct": 0.5,
       "benchmark_high_pct": 2.5,
-      "rag": "GREEN"
+      "rag": "AMBER"
     },
     {
       "year": 2018,
-      "bad_debt_gbp": 593.0,
-      "bad_debt_rate": 1.08,
+      "bad_debt_gbp": 418.0,
+      "bad_debt_rate": 0.77,
       "benchmark_low_pct": 0.5,
       "benchmark_high_pct": 2.5,
       "rag": "GREEN"
     },
     {
       "year": 2019,
-      "bad_debt_gbp": 621.0,
-      "bad_debt_rate": 1.06,
+      "bad_debt_gbp": 189.0,
+      "bad_debt_rate": 0.39,
       "benchmark_low_pct": 0.5,
       "benchmark_high_pct": 2.5,
-      "rag": "GREEN"
+      "rag": "AMBER"
     },
     {
       "year": 2020,
-      "bad_debt_gbp": 6605.0,
-      "bad_debt_rate": 12.2,
+      "bad_debt_gbp": 501.0,
+      "bad_debt_rate": 1.26,
       "benchmark_low_pct": 0.5,
       "benchmark_high_pct": 2.5,
-      "rag": "RED"
-    },
-    {
-      "year": 2021,
-      "bad_debt_gbp": 1055.0,
-      "bad_debt_rate": 1.95,
-      "benchmark_low_pct": 0.5,
-      "benchmark_high_pct": 4.0,
       "rag": "GREEN"
     },
     {
+      "year": 2021,
+      "bad_debt_gbp": 6602.0,
+      "bad_debt_rate": 13.97,
+      "benchmark_low_pct": 0.5,
+      "benchmark_high_pct": 4.0,
+      "rag": "RED"
+    },
+    {
       "year": 2022,
-      "bad_debt_gbp": 192.0,
-      "bad_debt_rate": 0.17,
+      "bad_debt_gbp": -0.0,
+      "bad_debt_rate": -0.0,
       "benchmark_low_pct": 0.5,
       "benchmark_high_pct": 4.0,
       "rag": "AMBER"
     },
     {
       "year": 2023,
-      "bad_debt_gbp": 1138.0,
-      "bad_debt_rate": 0.77,
+      "bad_debt_gbp": 189.0,
+      "bad_debt_rate": 0.16,
       "benchmark_low_pct": 0.5,
       "benchmark_high_pct": 4.0,
-      "rag": "GREEN"
+      "rag": "AMBER"
     },
     {
       "year": 2024,
-      "bad_debt_gbp": 1946.0,
-      "bad_debt_rate": 1.92,
+      "bad_debt_gbp": 4262.0,
+      "bad_debt_rate": 5.29,
       "benchmark_low_pct": 0.5,
       "benchmark_high_pct": 2.5,
-      "rag": "GREEN"
+      "rag": "RED"
     },
     {
       "year": 2025,
-      "bad_debt_gbp": 148.0,
-      "bad_debt_rate": 0.27,
+      "bad_debt_gbp": 894.0,
+      "bad_debt_rate": 2.27,
       "benchmark_low_pct": 0.5,
       "benchmark_high_pct": 2.5,
-      "rag": "AMBER"
+      "rag": "GREEN"
     }
   ],
   "multiplier_alignment": [
     {
       "year_transition": "2016->2017",
-      "ofgem_direction": "down",
-      "sim_direction": "up",
-      "ofgem_rate_prev": 0.173,
-      "ofgem_rate_curr": 0.1375,
-      "sim_rate_prev": 0.0,
-      "sim_rate_curr": 0.4286,
-      "rag": "AMBER"
+      "ofgem_direction": "up",
+      "sim_direction": "down",
+      "ofgem_rate_prev": 0.1582,
+      "ofgem_rate_curr": 0.1819,
+      "sim_rate_prev": 0.5,
+      "sim_rate_curr": 0.1786,
+      "rag": "GREEN"
     },
     {
       "year_transition": "2017->2018",
       "ofgem_direction": "up",
       "sim_direction": "down",
-      "ofgem_rate_prev": 0.1375,
-      "ofgem_rate_curr": 0.1975,
-      "sim_rate_prev": 0.4286,
-      "sim_rate_curr": 0.2273,
+      "ofgem_rate_prev": 0.1819,
+      "ofgem_rate_curr": 0.1906,
+      "sim_rate_prev": 0.1786,
+      "sim_rate_curr": 0.129,
       "rag": "GREEN"
     },
     {
       "year_transition": "2018->2019",
       "ofgem_direction": "up",
       "sim_direction": "up",
-      "ofgem_rate_prev": 0.1975,
-      "ofgem_rate_curr": 0.21,
-      "sim_rate_prev": 0.2273,
-      "sim_rate_curr": 0.375,
+      "ofgem_rate_prev": 0.1906,
+      "ofgem_rate_curr": 0.2082,
+      "sim_rate_prev": 0.129,
+      "sim_rate_curr": 0.2222,
       "rag": "GREEN"
     },
     {
       "year_transition": "2019->2020",
-      "ofgem_direction": "up",
-      "sim_direction": "up",
-      "ofgem_rate_prev": 0.21,
-      "ofgem_rate_curr": 0.2275,
-      "sim_rate_prev": 0.375,
-      "sim_rate_curr": 0.4615,
+      "ofgem_direction": "down",
+      "sim_direction": "down",
+      "ofgem_rate_prev": 0.2082,
+      "ofgem_rate_curr": 0.2021,
+      "sim_rate_prev": 0.2222,
+      "sim_rate_curr": 0.0909,
       "rag": "GREEN"
     },
     {
       "year_transition": "2020->2021",
       "ofgem_direction": "down",
       "sim_direction": "up",
-      "ofgem_rate_prev": 0.2275,
-      "ofgem_rate_curr": 0.1815,
-      "sim_rate_prev": 0.4615,
-      "sim_rate_curr": 0.5556,
+      "ofgem_rate_prev": 0.2021,
+      "ofgem_rate_curr": 0.1557,
+      "sim_rate_prev": 0.0909,
+      "sim_rate_curr": 0.1875,
       "rag": "AMBER"
     },
     {
       "year_transition": "2021->2023",
       "ofgem_direction": "down",
       "sim_direction": "down",
-      "ofgem_rate_prev": 0.1815,
-      "ofgem_rate_curr": 0.107,
-      "sim_rate_prev": 0.5556,
+      "ofgem_rate_prev": 0.1557,
+      "ofgem_rate_curr": 0.0633,
+      "sim_rate_prev": 0.1875,
       "sim_rate_curr": 0.0,
       "rag": "GREEN"
     },
@@ -207,209 +207,209 @@
       "year_transition": "2023->2024",
       "ofgem_direction": "up",
       "sim_direction": "up",
-      "ofgem_rate_prev": 0.107,
-      "ofgem_rate_curr": 0.143,
+      "ofgem_rate_prev": 0.0633,
+      "ofgem_rate_curr": 0.0903,
       "sim_rate_prev": 0.0,
-      "sim_rate_curr": 0.1667,
+      "sim_rate_curr": 0.0556,
       "rag": "GREEN"
     },
     {
       "year_transition": "2024->2025",
       "ofgem_direction": "up",
-      "sim_direction": "down",
-      "ofgem_rate_prev": 0.143,
-      "ofgem_rate_curr": 0.161,
-      "sim_rate_prev": 0.1667,
-      "sim_rate_curr": 0.1429,
+      "sim_direction": "up",
+      "ofgem_rate_prev": 0.0903,
+      "ofgem_rate_curr": 0.104,
+      "sim_rate_prev": 0.0556,
+      "sim_rate_curr": 0.3571,
       "rag": "GREEN"
     }
   ],
   "churn_by_year": {
     "2016": {
       "renewals": 1,
+      "churns": 1,
+      "sim_churn_rate": 0.5,
+      "population": "renewal decisions + SVT segment decisions recorded separately",
+      "svt_segment_decisions": 51,
+      "svt_departures": 1,
+      "share_of_departures_in_sim_churn_rate": 0.5,
+      "book_departure_rate": 0.0952,
+      "book_accounts": 21,
+      "book_departures": 2,
+      "book_denominator": "accounts with at least one decision on either route in the year",
+      "book_unavailable_reason": null,
+      "ofgem_benchmark": 0.1582,
+      "ofgem_benchmark_band_pct": [
+        15.813,
+        15.818
+      ],
+      "calibrated_multiplier": 1.75
+    },
+    "2017": {
+      "renewals": 23,
+      "churns": 5,
+      "sim_churn_rate": 0.1786,
+      "population": "renewal decisions + SVT segment decisions recorded separately",
+      "svt_segment_decisions": 168,
+      "svt_departures": 6,
+      "share_of_departures_in_sim_churn_rate": 0.4545,
+      "book_departure_rate": 0.1358,
+      "book_accounts": 81,
+      "book_departures": 11,
+      "book_denominator": "accounts with at least one decision on either route in the year",
+      "book_unavailable_reason": null,
+      "ofgem_benchmark": 0.1819,
+      "ofgem_benchmark_band_pct": [
+        18.192,
+        18.197
+      ],
+      "calibrated_multiplier": 2.02
+    },
+    "2018": {
+      "renewals": 27,
+      "churns": 4,
+      "sim_churn_rate": 0.129,
+      "population": "renewal decisions + SVT segment decisions recorded separately",
+      "svt_segment_decisions": 228,
+      "svt_departures": 9,
+      "share_of_departures_in_sim_churn_rate": 0.3077,
+      "book_departure_rate": 0.1757,
+      "book_accounts": 74,
+      "book_departures": 13,
+      "book_denominator": "accounts with at least one decision on either route in the year",
+      "book_unavailable_reason": null,
+      "ofgem_benchmark": 0.1906,
+      "ofgem_benchmark_band_pct": [
+        19.062,
+        19.066
+      ],
+      "calibrated_multiplier": 2.11
+    },
+    "2019": {
+      "renewals": 14,
+      "churns": 4,
+      "sim_churn_rate": 0.2222,
+      "population": "renewal decisions + SVT segment decisions recorded separately",
+      "svt_segment_decisions": 205,
+      "svt_departures": 8,
+      "share_of_departures_in_sim_churn_rate": 0.3333,
+      "book_departure_rate": 0.1875,
+      "book_accounts": 64,
+      "book_departures": 12,
+      "book_denominator": "accounts with at least one decision on either route in the year",
+      "book_unavailable_reason": null,
+      "ofgem_benchmark": 0.2082,
+      "ofgem_benchmark_band_pct": [
+        20.82,
+        20.824
+      ],
+      "calibrated_multiplier": 2.31
+    },
+    "2020": {
+      "renewals": 20,
+      "churns": 2,
+      "sim_churn_rate": 0.0909,
+      "population": "renewal decisions + SVT segment decisions recorded separately",
+      "svt_segment_decisions": 158,
+      "svt_departures": 8,
+      "share_of_departures_in_sim_churn_rate": 0.2,
+      "book_departure_rate": 0.1754,
+      "book_accounts": 57,
+      "book_departures": 10,
+      "book_denominator": "accounts with at least one decision on either route in the year",
+      "book_unavailable_reason": null,
+      "ofgem_benchmark": 0.2021,
+      "ofgem_benchmark_band_pct": [
+        20.211,
+        20.215
+      ],
+      "calibrated_multiplier": 2.24
+    },
+    "2021": {
+      "renewals": 13,
+      "churns": 3,
+      "sim_churn_rate": 0.1875,
+      "population": "renewal decisions + SVT segment decisions recorded separately",
+      "svt_segment_decisions": 179,
+      "svt_departures": 6,
+      "share_of_departures_in_sim_churn_rate": 0.3333,
+      "book_departure_rate": 0.1667,
+      "book_accounts": 54,
+      "book_departures": 9,
+      "book_denominator": "accounts with at least one decision on either route in the year",
+      "book_unavailable_reason": null,
+      "ofgem_benchmark": 0.1557,
+      "ofgem_benchmark_band_pct": [
+        15.567,
+        15.571
+      ],
+      "calibrated_multiplier": 1.72
+    },
+    "2023": {
+      "renewals": 6,
       "churns": 0,
       "sim_churn_rate": 0.0,
       "population": "renewal decisions + SVT segment decisions recorded separately",
-      "svt_segment_decisions": 61,
+      "svt_segment_decisions": 253,
       "svt_departures": 1,
       "share_of_departures_in_sim_churn_rate": 0.0,
-      "book_departure_rate": 0.0476,
-      "book_accounts": 21,
+      "book_departure_rate": 0.0189,
+      "book_accounts": 53,
       "book_departures": 1,
       "book_denominator": "accounts with at least one decision on either route in the year",
       "book_unavailable_reason": null,
-      "ofgem_benchmark": 0.173,
+      "ofgem_benchmark": 0.0633,
       "ofgem_benchmark_band_pct": [
-        17.0,
-        17.6
+        6.329,
+        6.334
       ],
-      "calibrated_multiplier": 1.21
+      "calibrated_multiplier": 0.7
     },
-    "2017": {
-      "renewals": 16,
-      "churns": 12,
-      "sim_churn_rate": 0.4286,
-      "population": "renewal decisions + SVT segment decisions recorded separately",
-      "svt_segment_decisions": 207,
-      "svt_departures": 7,
-      "share_of_departures_in_sim_churn_rate": 0.6316,
-      "book_departure_rate": 0.2235,
-      "book_accounts": 85,
-      "book_departures": 19,
-      "book_denominator": "accounts with at least one decision on either route in the year",
-      "book_unavailable_reason": null,
-      "ofgem_benchmark": 0.1375,
-      "ofgem_benchmark_band_pct": [
-        13.5,
-        14.0
-      ],
-      "calibrated_multiplier": 0.96
-    },
-    "2018": {
+    "2024": {
       "renewals": 17,
-      "churns": 5,
-      "sim_churn_rate": 0.2273,
+      "churns": 1,
+      "sim_churn_rate": 0.0556,
       "population": "renewal decisions + SVT segment decisions recorded separately",
-      "svt_segment_decisions": 221,
-      "svt_departures": 11,
-      "share_of_departures_in_sim_churn_rate": 0.3125,
-      "book_departure_rate": 0.2254,
-      "book_accounts": 71,
-      "book_departures": 16,
-      "book_denominator": "accounts with at least one decision on either route in the year",
-      "book_unavailable_reason": null,
-      "ofgem_benchmark": 0.1975,
-      "ofgem_benchmark_band_pct": [
-        19.5,
-        20.0
-      ],
-      "calibrated_multiplier": 1.38
-    },
-    "2019": {
-      "renewals": 10,
-      "churns": 6,
-      "sim_churn_rate": 0.375,
-      "population": "renewal decisions + SVT segment decisions recorded separately",
-      "svt_segment_decisions": 211,
-      "svt_departures": 8,
-      "share_of_departures_in_sim_churn_rate": 0.4286,
-      "book_departure_rate": 0.2154,
-      "book_accounts": 65,
-      "book_departures": 14,
-      "book_denominator": "accounts with at least one decision on either route in the year",
-      "book_unavailable_reason": null,
-      "ofgem_benchmark": 0.21,
-      "ofgem_benchmark_band_pct": [
-        20.7,
-        21.3
-      ],
-      "calibrated_multiplier": 1.47
-    },
-    "2020": {
-      "renewals": 7,
-      "churns": 6,
-      "sim_churn_rate": 0.4615,
-      "population": "renewal decisions + SVT segment decisions recorded separately",
-      "svt_segment_decisions": 208,
-      "svt_departures": 8,
-      "share_of_departures_in_sim_churn_rate": 0.4286,
-      "book_departure_rate": 0.2222,
-      "book_accounts": 63,
-      "book_departures": 14,
-      "book_denominator": "accounts with at least one decision on either route in the year",
-      "book_unavailable_reason": null,
-      "ofgem_benchmark": 0.2275,
-      "ofgem_benchmark_band_pct": [
-        22.5,
-        23.0
-      ],
-      "calibrated_multiplier": 1.59
-    },
-    "2021": {
-      "renewals": 4,
-      "churns": 5,
-      "sim_churn_rate": 0.5556,
-      "population": "renewal decisions + SVT segment decisions recorded separately",
-      "svt_segment_decisions": 216,
-      "svt_departures": 9,
-      "share_of_departures_in_sim_churn_rate": 0.3571,
-      "book_departure_rate": 0.2373,
-      "book_accounts": 59,
-      "book_departures": 14,
-      "book_denominator": "accounts with at least one decision on either route in the year",
-      "book_unavailable_reason": null,
-      "ofgem_benchmark": 0.1815,
-      "ofgem_benchmark_band_pct": [
-        17.9,
-        18.4
-      ],
-      "calibrated_multiplier": 1.27
-    },
-    "2023": {
-      "renewals": 2,
-      "churns": 0,
-      "sim_churn_rate": 0.0,
-      "population": "renewal decisions + SVT segment decisions recorded separately",
-      "svt_segment_decisions": 278,
-      "svt_departures": 3,
-      "share_of_departures_in_sim_churn_rate": 0.0,
-      "book_departure_rate": 0.0517,
-      "book_accounts": 58,
+      "svt_segment_decisions": 187,
+      "svt_departures": 2,
+      "share_of_departures_in_sim_churn_rate": 0.3333,
+      "book_departure_rate": 0.0536,
+      "book_accounts": 56,
       "book_departures": 3,
       "book_denominator": "accounts with at least one decision on either route in the year",
       "book_unavailable_reason": null,
-      "ofgem_benchmark": 0.107,
+      "ofgem_benchmark": 0.0903,
       "ofgem_benchmark_band_pct": [
-        8.9,
-        12.5
-      ],
-      "calibrated_multiplier": 0.75
-    },
-    "2024": {
-      "renewals": 10,
-      "churns": 2,
-      "sim_churn_rate": 0.1667,
-      "population": "renewal decisions + SVT segment decisions recorded separately",
-      "svt_segment_decisions": 254,
-      "svt_departures": 4,
-      "share_of_departures_in_sim_churn_rate": 0.3333,
-      "book_departure_rate": 0.0909,
-      "book_accounts": 66,
-      "book_departures": 6,
-      "book_denominator": "accounts with at least one decision on either route in the year",
-      "book_unavailable_reason": null,
-      "ofgem_benchmark": 0.143,
-      "ofgem_benchmark_band_pct": [
-        12.5,
-        16.1
+        9.026,
+        9.031
       ],
       "calibrated_multiplier": 1.0
     },
     "2025": {
-      "renewals": 6,
-      "churns": 1,
-      "sim_churn_rate": 0.1429,
+      "renewals": 9,
+      "churns": 5,
+      "sim_churn_rate": 0.3571,
       "population": "renewal decisions + SVT segment decisions recorded separately",
-      "svt_segment_decisions": 129,
-      "svt_departures": 1,
-      "share_of_departures_in_sim_churn_rate": 0.5,
-      "book_departure_rate": 0.0328,
-      "book_accounts": 61,
-      "book_departures": 2,
+      "svt_segment_decisions": 106,
+      "svt_departures": 2,
+      "share_of_departures_in_sim_churn_rate": 0.7143,
+      "book_departure_rate": 0.1273,
+      "book_accounts": 55,
+      "book_departures": 7,
       "book_denominator": "accounts with at least one decision on either route in the year",
       "book_unavailable_reason": null,
-      "ofgem_benchmark": 0.161,
+      "ofgem_benchmark": 0.104,
       "ofgem_benchmark_band_pct": [
-        14.3,
-        17.9
+        10.398,
+        10.402
       ],
-      "calibrated_multiplier": 1.13
+      "calibrated_multiplier": 1.15
     }
   },
   "complaints_vs_benchmark": [
     {
       "year": 2016,
-      "complaint_rate_pct": 3.83,
+      "complaint_rate_pct": 4.35,
       "benchmark_green_hi": 6.0,
       "benchmark_lo": 1.0,
       "is_crisis_year": false,
@@ -417,7 +417,7 @@
     },
     {
       "year": 2017,
-      "complaint_rate_pct": 3.17,
+      "complaint_rate_pct": 3.97,
       "benchmark_green_hi": 6.0,
       "benchmark_lo": 1.0,
       "is_crisis_year": false,
@@ -425,7 +425,7 @@
     },
     {
       "year": 2018,
-      "complaint_rate_pct": 3.39,
+      "complaint_rate_pct": 3.97,
       "benchmark_green_hi": 6.0,
       "benchmark_lo": 1.0,
       "is_crisis_year": false,
@@ -433,7 +433,7 @@
     },
     {
       "year": 2019,
-      "complaint_rate_pct": 3.28,
+      "complaint_rate_pct": 3.68,
       "benchmark_green_hi": 6.0,
       "benchmark_lo": 1.0,
       "is_crisis_year": false,
@@ -441,7 +441,7 @@
     },
     {
       "year": 2020,
-      "complaint_rate_pct": 3.06,
+      "complaint_rate_pct": 3.76,
       "benchmark_green_hi": 6.0,
       "benchmark_lo": 1.0,
       "is_crisis_year": false,
@@ -449,7 +449,7 @@
     },
     {
       "year": 2021,
-      "complaint_rate_pct": 3.39,
+      "complaint_rate_pct": 4.01,
       "benchmark_green_hi": 8.0,
       "benchmark_lo": 1.0,
       "is_crisis_year": true,
@@ -457,7 +457,7 @@
     },
     {
       "year": 2022,
-      "complaint_rate_pct": 4.11,
+      "complaint_rate_pct": 4.64,
       "benchmark_green_hi": 8.0,
       "benchmark_lo": 1.0,
       "is_crisis_year": true,
@@ -465,7 +465,7 @@
     },
     {
       "year": 2023,
-      "complaint_rate_pct": 3.39,
+      "complaint_rate_pct": 3.85,
       "benchmark_green_hi": 8.0,
       "benchmark_lo": 1.0,
       "is_crisis_year": true,
@@ -473,7 +473,7 @@
     },
     {
       "year": 2024,
-      "complaint_rate_pct": 3.38,
+      "complaint_rate_pct": 3.99,
       "benchmark_green_hi": 6.0,
       "benchmark_lo": 1.0,
       "is_crisis_year": false,
@@ -481,7 +481,7 @@
     },
     {
       "year": 2025,
-      "complaint_rate_pct": 2.9,
+      "complaint_rate_pct": 3.39,
       "benchmark_green_hi": 6.0,
       "benchmark_lo": 1.0,
       "is_crisis_year": false,
@@ -491,15 +491,15 @@
   "arrears_vs_benchmark": [
     {
       "year": 2016,
-      "new_arrears_count": 23,
-      "active_customers": 96,
-      "new_arrears_rate_pct": 24.0,
+      "new_arrears_count": 19,
+      "active_customers": 93,
+      "new_arrears_rate_pct": 20.4,
       "ic_arrears_count": 0,
       "ic_active_customers": 0,
       "ic_arrears_rate_pct": 0.0,
       "ic_aggregate_rate_pct": 0.0,
       "rag_basis_label": "per-year overall rate",
-      "rag_basis_pct": 24.0,
+      "rag_basis_pct": 20.4,
       "benchmark_green_hi": 8.0,
       "is_crisis_year": false,
       "rag": "RED",
@@ -508,15 +508,15 @@
     },
     {
       "year": 2017,
-      "new_arrears_count": 36,
-      "active_customers": 108,
-      "new_arrears_rate_pct": 33.3,
+      "new_arrears_count": 26,
+      "active_customers": 100,
+      "new_arrears_rate_pct": 26.0,
       "ic_arrears_count": 0,
       "ic_active_customers": 0,
       "ic_arrears_rate_pct": 0.0,
       "ic_aggregate_rate_pct": 0.0,
       "rag_basis_label": "per-year overall rate",
-      "rag_basis_pct": 33.3,
+      "rag_basis_pct": 26.0,
       "benchmark_green_hi": 8.0,
       "is_crisis_year": false,
       "rag": "RED",
@@ -525,15 +525,15 @@
     },
     {
       "year": 2018,
-      "new_arrears_count": 43,
-      "active_customers": 104,
-      "new_arrears_rate_pct": 41.3,
+      "new_arrears_count": 32,
+      "active_customers": 90,
+      "new_arrears_rate_pct": 35.6,
       "ic_arrears_count": 0,
       "ic_active_customers": 0,
       "ic_arrears_rate_pct": 0.0,
       "ic_aggregate_rate_pct": 0.0,
       "rag_basis_label": "per-year overall rate",
-      "rag_basis_pct": 41.3,
+      "rag_basis_pct": 35.6,
       "benchmark_green_hi": 8.0,
       "is_crisis_year": false,
       "rag": "RED",
@@ -542,15 +542,15 @@
     },
     {
       "year": 2019,
-      "new_arrears_count": 38,
-      "active_customers": 105,
-      "new_arrears_rate_pct": 36.2,
+      "new_arrears_count": 23,
+      "active_customers": 83,
+      "new_arrears_rate_pct": 27.7,
       "ic_arrears_count": 0,
       "ic_active_customers": 0,
       "ic_arrears_rate_pct": 0.0,
       "ic_aggregate_rate_pct": 0.0,
       "rag_basis_label": "per-year overall rate",
-      "rag_basis_pct": 36.2,
+      "rag_basis_pct": 27.7,
       "benchmark_green_hi": 8.0,
       "is_crisis_year": false,
       "rag": "RED",
@@ -559,15 +559,15 @@
     },
     {
       "year": 2020,
-      "new_arrears_count": 39,
-      "active_customers": 104,
-      "new_arrears_rate_pct": 37.5,
+      "new_arrears_count": 27,
+      "active_customers": 83,
+      "new_arrears_rate_pct": 32.5,
       "ic_arrears_count": 0,
       "ic_active_customers": 0,
       "ic_arrears_rate_pct": 0.0,
       "ic_aggregate_rate_pct": 0.0,
       "rag_basis_label": "per-year overall rate",
-      "rag_basis_pct": 37.5,
+      "rag_basis_pct": 32.5,
       "benchmark_green_hi": 8.0,
       "is_crisis_year": false,
       "rag": "RED",
@@ -576,15 +576,15 @@
     },
     {
       "year": 2021,
-      "new_arrears_count": 34,
-      "active_customers": 109,
-      "new_arrears_rate_pct": 31.2,
+      "new_arrears_count": 24,
+      "active_customers": 82,
+      "new_arrears_rate_pct": 29.3,
       "ic_arrears_count": 0,
       "ic_active_customers": 0,
       "ic_arrears_rate_pct": 0.0,
       "ic_aggregate_rate_pct": 0.0,
       "rag_basis_label": "per-year overall rate",
-      "rag_basis_pct": 31.2,
+      "rag_basis_pct": 29.3,
       "benchmark_green_hi": 12.0,
       "is_crisis_year": true,
       "rag": "RED",
@@ -593,15 +593,15 @@
     },
     {
       "year": 2022,
-      "new_arrears_count": 35,
-      "active_customers": 95,
-      "new_arrears_rate_pct": 36.8,
+      "new_arrears_count": 27,
+      "active_customers": 73,
+      "new_arrears_rate_pct": 37.0,
       "ic_arrears_count": 0,
       "ic_active_customers": 0,
       "ic_arrears_rate_pct": 0.0,
       "ic_aggregate_rate_pct": 0.0,
       "rag_basis_label": "per-year overall rate",
-      "rag_basis_pct": 36.8,
+      "rag_basis_pct": 37.0,
       "benchmark_green_hi": 12.0,
       "is_crisis_year": true,
       "rag": "RED",
@@ -610,15 +610,15 @@
     },
     {
       "year": 2023,
-      "new_arrears_count": 38,
-      "active_customers": 107,
-      "new_arrears_rate_pct": 35.5,
+      "new_arrears_count": 28,
+      "active_customers": 75,
+      "new_arrears_rate_pct": 37.3,
       "ic_arrears_count": 0,
       "ic_active_customers": 0,
       "ic_arrears_rate_pct": 0.0,
       "ic_aggregate_rate_pct": 0.0,
       "rag_basis_label": "per-year overall rate",
-      "rag_basis_pct": 35.5,
+      "rag_basis_pct": 37.3,
       "benchmark_green_hi": 12.0,
       "is_crisis_year": true,
       "rag": "RED",
@@ -627,8 +627,8 @@
     },
     {
       "year": 2024,
-      "new_arrears_count": 46,
-      "active_customers": 131,
+      "new_arrears_count": 34,
+      "active_customers": 97,
       "new_arrears_rate_pct": 35.1,
       "ic_arrears_count": 0,
       "ic_active_customers": 0,
@@ -644,15 +644,15 @@
     },
     {
       "year": 2025,
-      "new_arrears_count": 32,
-      "active_customers": 130,
-      "new_arrears_rate_pct": 24.6,
+      "new_arrears_count": 24,
+      "active_customers": 97,
+      "new_arrears_rate_pct": 24.7,
       "ic_arrears_count": 0,
       "ic_active_customers": 0,
       "ic_arrears_rate_pct": 0.0,
       "ic_aggregate_rate_pct": 0.0,
       "rag_basis_label": "per-year overall rate",
-      "rag_basis_pct": 24.6,
+      "rag_basis_pct": 24.7,
       "benchmark_green_hi": 8.0,
       "is_crisis_year": false,
       "rag": "RED",
@@ -676,9 +676,9 @@
     {
       "segment": "resi",
       "year": 2017,
-      "attempts": 10,
-      "wins": 3,
-      "win_rate_pct": 30.0,
+      "attempts": 3,
+      "wins": 0,
+      "win_rate_pct": 0.0,
       "benchmark_green_range_pct": [
         15.0,
         20.0
@@ -686,32 +686,8 @@
       "rag": "RED"
     },
     {
-      "segment": "resi",
-      "year": 2018,
-      "attempts": 5,
-      "wins": 1,
-      "win_rate_pct": 20.0,
-      "benchmark_green_range_pct": [
-        15.0,
-        20.0
-      ],
-      "rag": "GREEN"
-    },
-    {
-      "segment": "resi",
-      "year": 2019,
-      "attempts": 6,
-      "wins": 1,
-      "win_rate_pct": 16.7,
-      "benchmark_green_range_pct": [
-        15.0,
-        20.0
-      ],
-      "rag": "GREEN"
-    },
-    {
       "segment": "SME",
-      "year": 2020,
+      "year": 2018,
       "attempts": 1,
       "wins": 0,
       "win_rate_pct": 0.0,
@@ -723,8 +699,20 @@
     },
     {
       "segment": "resi",
-      "year": 2020,
-      "attempts": 5,
+      "year": 2018,
+      "attempts": 3,
+      "wins": 1,
+      "win_rate_pct": 33.3,
+      "benchmark_green_range_pct": [
+        15.0,
+        20.0
+      ],
+      "rag": "RED"
+    },
+    {
+      "segment": "resi",
+      "year": 2019,
+      "attempts": 4,
       "wins": 0,
       "win_rate_pct": 0.0,
       "benchmark_green_range_pct": [
@@ -735,19 +723,7 @@
     },
     {
       "segment": "resi",
-      "year": 2021,
-      "attempts": 5,
-      "wins": 1,
-      "win_rate_pct": 20.0,
-      "benchmark_green_range_pct": [
-        15.0,
-        20.0
-      ],
-      "rag": "GREEN"
-    },
-    {
-      "segment": "resi",
-      "year": 2024,
+      "year": 2020,
       "attempts": 2,
       "wins": 0,
       "win_rate_pct": 0.0,
@@ -759,8 +735,20 @@
     },
     {
       "segment": "resi",
+      "year": 2021,
+      "attempts": 3,
+      "wins": 1,
+      "win_rate_pct": 33.3,
+      "benchmark_green_range_pct": [
+        15.0,
+        20.0
+      ],
+      "rag": "RED"
+    },
+    {
+      "segment": "resi",
       "year": 2025,
-      "attempts": 1,
+      "attempts": 2,
       "wins": 0,
       "win_rate_pct": 0.0,
       "benchmark_green_range_pct": [
