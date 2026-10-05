@@ -42,3 +42,15 @@ is R13's lever, so this refit does not take it. My pre-registered ×1.1–1.2 wa
 
 Control: `tests/simulation/test_the_default_tail_chooses_at_ofgems_control_rate.py`. Restoring the
 old triple reds it (0.149, ×2.63), and so does putting DISENGAGED alone back to 0.02 (0.212, ×2.42).
+
+## Disposition on re-draw (2026-10-05, 08:1x)
+
+The claim was drawn again 3.5h after it was handed on. The refit it asks for is `ae552db75`, an
+ancestor of `origin/main`, and `e4acfab81` re-graded the world arm on it. Nothing in the item is left
+to build, so this draw takes the disposition (`--release`), not the work. What remains has two owners:
+
+- The **book-arm re-grade** and the C29 off/on value pair belong to the live continuation
+  `c29-book-arm-regrade-on-the-first-refitted-run`.
+- **Re-taking the published value arms** on the refitted world (the "multi-hour job" above) had no
+  handoff. It is now handed on as `retake-the-value-arms-on-the-c29-refitted-world`, so it can't be
+  dropped in the meantime. Until it lands, the arms page keeps failing closed.
