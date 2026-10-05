@@ -8,10 +8,14 @@ arise from customers burning the gas they supply. For an electricity
 supplier, Scope 2 market-based emissions depend on the fuel mix
 (tracked via FuelMixDisclosureBook, Phase CL).
 
-DEFRA emission factors (kgCO₂e per kWh):
-- Natural gas (domestic/SME consumption): 0.18253 kgCO₂e/kWh (2023)
-- Note: this is lower than combustion-only (0.2037) because it includes
-  GHG intensity adjustments post-2021 under the UK ETS reporting method
+Gas factor: NOT declared here. Until 2026-10-05 this module carried 0.18253 "kgCO₂e/kWh" and
+said it was lower than "combustion-only (0.2037)" because of UK ETS adjustments. Neither was so:
+0.18253 is the CO2-ONLY column of DESNZ's 2023 natural-gas row (CO2e is 0.18293), and 0.2037 is
+the NET-CV figure, a different basis. The factor now comes from its one home,
+`company.regulatory.carbon_emissions` (DESNZ, kgCO2e per kWh gross CV): the year-less published
+figure, as `company/billing/carbon_footprint.py` uses it. NOT per year -- DESNZ's 2022 factor is
+not established, and an SECR register that refused 2022 would be a worse defect than a figure
+within 0.7% of every year's.
 
 For electricity: market-based emissions use REGO-backed fuel mix
 (zero for REGO-matched volume); location-based uses national grid average.
@@ -24,12 +28,15 @@ Epistemic: the company knows what gas/electricity it bills customers
 for. It does NOT see the simulation's actual dispatch or generation data.
 """
 from __future__ import annotations
+
 from dataclasses import dataclass, field
 from enum import Enum
 
+from company.regulatory.carbon_emissions import GAS_EMISSION_FACTOR_G_CO2E_PER_KWH
 
-# DEFRA 2023 emission factors (kgCO₂e/kWh)
-_GAS_EMISSION_FACTOR = 0.18253    # natural gas
+# Natural gas, kgCO2e/kWh gross CV: from the one home, never restated here.
+_GAS_EMISSION_FACTOR = GAS_EMISSION_FACTOR_G_CO2E_PER_KWH / 1000.0
+# DEFRA 2023 electricity factors (kgCO₂e/kWh)
 _GRID_ELECTRICITY_FACTOR = 0.2104  # UK national grid 2023 location-based
 _REGO_ELECTRICITY_FACTOR = 0.0    # REGO-matched = zero market-based emissions
 

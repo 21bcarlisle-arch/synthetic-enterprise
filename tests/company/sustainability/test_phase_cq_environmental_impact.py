@@ -1,10 +1,14 @@
 """Phase CQ: Environmental Impact Register tests (SECR / TCFD)."""
 import pytest
+
+from company.regulatory.carbon_emissions import GAS_EMISSION_FACTOR_G_CO2E_PER_KWH
 from company.sustainability.environmental_impact import (
-    EnvironmentalImpactRegister, EmissionRecord, EmissionScope
+    EmissionRecord,
+    EmissionScope,
+    EnvironmentalImpactRegister,
 )
 
-_GAS_FACTOR = 0.18253
+_GAS_FACTOR = GAS_EMISSION_FACTOR_G_CO2E_PER_KWH / 1000.0  # the one home; was 0.18253, CO2-only
 _GRID_FACTOR = 0.2104
 
 
@@ -12,7 +16,6 @@ _GRID_FACTOR = 0.2104
 def test_gas_scope3_emissions():
     reg = EnvironmentalImpactRegister()
     r = reg.record_gas_scope3(2022, 100_000)
-    # 100,000 kWh × 0.18253 = 18,253 kgCO2e = 18.253 tCO2e
     assert abs(r.emissions_tco2e - 100_000 * _GAS_FACTOR / 1000) < 0.001
 
 
@@ -80,7 +83,6 @@ def test_peak_emission_year():
 def test_emissions_mtco2e():
     reg = EnvironmentalImpactRegister()
     r = reg.record_gas_scope3(2022, 1_000_000_000)  # 1 TWh
-    # 1e9 × 0.18253 / 1e6 = 182.53 MtCO2e
     expected = 1_000_000_000 * _GAS_FACTOR / 1_000_000_000  # in Mt
     assert abs(r.emissions_mtco2e - expected) < 0.001
 

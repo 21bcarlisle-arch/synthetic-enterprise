@@ -952,7 +952,7 @@ function carbonDayPanel(row) {
   var up = row.timing_effect_pct >= 0;
   return panel("customer", esc(dt(row.date)),
     '<p style="font-size:22px;margin:2px 0 6px"><b>' + num(row.co2e_kg_timed, 1) +
-    " kg CO&#8322;e</b></p>" +
+    " kg CO&#8322;e</b> <span style=\"font-size:12px\">from electricity this day</span></p>" +
     "<p>Measured half hour by half hour. The same kWh valued at the year's <b>average</b> " +
     /* "WHEN THIS HOUSEHOLD DREW" WAS AN ATTRIBUTION THE PIPELINE CANNOT SUPPORT (2026-08-25).
        86-94% of the kWh on these winter days is placed by HEATING_PERIOD_WEIGHTS -- ONE
@@ -1084,6 +1084,49 @@ function beliefVsTruth(row) {
     "measurement. " + b.half_hours + " half hours compared.</p>";
 }
 
+/* THE HOUSEHOLD'S CARBON, ELECTRICITY AND GAS (2026-10-05). Until then the only figure here was
+   electricity, which for a gas-heated home is about a sixth of its carbon -- and a heat pump
+   (gas off, electricity up) would have read as an increase. Three numbers, never one: each leg
+   has a different basis and a different lever, and a total alone hides which moved. A household
+   with no gas account says so in words, and a closed gas account is a status, not a low year. */
+function carbonLeg(name, leg) {
+  if (!leg) return "";
+  var kg = leg.co2e_kg === null || leg.co2e_kg === undefined ? "not known" : num(leg.co2e_kg, 0) + " kg";
+  return "<tr><td>" + name + "</td><td><b>" + kg + "</b></td><td>" +
+    (leg.status === "billed" ? num(leg.kwh, 0) + " kWh billed over " + leg.months_billed + " month(s)"
+      : esc(leg.reason || "")) +
+    (leg.status === "billed" && leg.reason ? " &mdash; " + esc(leg.reason) : "") + "</td></tr>";
+}
+
+function householdCarbon(group) {
+  var h = (CARBON.households || {})[group];
+  if (!h || !h.years || !h.years.length) return "";
+  var y = h.years.filter(function (r) { return r.year === h.headline_year; })[0] || h.years[h.years.length - 1];
+  var b = CARBON.household_basis || {};
+  var c = h.change;
+  /* A CLOSED GAS ACCOUNT IS SAID WHEREVER IT FALLS, not only when its year heads the panel: the
+     year after a closure is usually a part year and so never the headline. */
+  var closed = h.years.filter(function (r) { return r.gas && r.gas.status === "closed"; })[0];
+  var closure = closed ? '<p><b>Gas account closed ' + esc(dt(closed.gas.closed_on)) + ".</b> " +
+    esc(closed.gas.reason) + ".</p>" : "";
+  var change = !c ? "" : (c.available === false
+    ? "<p>" + esc(c.why) + "</p>"
+    : "<p>From " + c.from_year + " to " + c.to_year + " its carbon " +
+      (c.net_fall ? "<b>fell " : "<b>rose ") + num(Math.abs(c.total_change_kg), 0) + " kg</b>: " +
+      "electricity " + (c.electricity_change_kg >= 0 ? "+" : "&minus;") + num(Math.abs(c.electricity_change_kg), 0) +
+      " kg, gas " + (c.gas_change_kg >= 0 ? "+" : "&minus;") + num(Math.abs(c.gas_change_kg), 0) + " kg" +
+      (c.gas_closed ? " &mdash; its gas account closed" : "") + ". " + esc(b.change || "") + "</p>");
+  return panel("customer", "This household&rsquo;s carbon, " + esc(String(y.year)) +
+    (y.full_year ? "" : " (part year)"),
+    '<div class="table-scroll"><table class="split">' +
+    carbonLeg("Electricity", y.electricity) + carbonLeg("Gas", y.gas) +
+    "<tr><td>Total</td><td><b>" + (y.total_co2e_kg === null ? "not known" : num(y.total_co2e_kg, 0) + " kg CO&#8322;e") +
+    "</b></td><td>" + esc(y.total_unavailable || "") + "</td></tr></table></div>" + closure + change +
+    '<p style="font-size:12px;color:var(--muted);margin-top:8px"><b>Electricity:</b> ' +
+    esc(b.electricity || "") + " <b>Gas:</b> " + esc(b.gas || "") + " <b>Total:</b> " +
+    esc(b.total || "") + "</p>", "margin-bottom:12px");
+}
+
 function carbonPanels() {
   if (CARBON === null) {
     return panel("customer", "Carbon", '<p>The carbon figures ' +
@@ -1101,9 +1144,10 @@ function carbonPanels() {
     return '<div style="margin-top:16px">' +
       '<h3 style="font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);' +
       'margin-bottom:8px">Carbon &mdash; emissions, not abatement</h3>' +
-      panel("customer", "", '<p>This household’s <b>emissions</b> are known: its consumption ' +
-      "times the published annual grid intensity, the same way every supplier reports a " +
-      "profile-class customer. What is <b>unavailable</b> — not zero — is the " +
+      householdCarbon(group) +
+      panel("customer", "", '<p>This household’s <b>electricity</b> emissions are known: its ' +
+      "consumption times the published annual grid intensity, the same way every supplier " +
+      "reports a profile-class customer. What is <b>unavailable</b> — not zero — is the " +
       "<b>timing effect</b>. Its meter does not record when anything happened, so nothing can " +
       "recover whether it drew at clean hours or dirty ones.</p>" +
       '<p style="font-size:12px;color:var(--muted);margin-top:8px">' + esc(CARBON.coverage_statement || "") +
@@ -1112,6 +1156,7 @@ function carbonPanels() {
   return '<div style="margin-top:16px">' +
     '<h3 style="font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);' +
     'margin-bottom:8px">Carbon &mdash; emissions, not abatement</h3>' +
+    householdCarbon(group) +
     '<div class="cols">' + rows.map(carbonDayPanel).join("") + "</div>" +
     /* THE BOOK-LEVEL READING OF THE SAME GAP, on the section rather than a panel, because it
        is a fact about the instrument and not about this household. Rendered whether or not it
