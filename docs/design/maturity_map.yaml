@@ -943,13 +943,13 @@
   epoch: 3
   level_current: 2
   level_target: 3
-  loop_stage: build
+  loop_stage: idle   # 2026-10-05 parked on block_reason (director), after s43
   # BLOCK DISCHARGED 2026-08-25 by the director's own instruction, quoted: "Wire the carbon
   # ledger to live meter reads and grid intensity, publish it with its provenance, and say
   # plainly what it does and does not yet include." The block was curriculum SEQUENCING -- this
   # atom was parked because the epoch-3 commitment set did not include it and pull-forward was
   # proposal-only. Being asked for it directly is what a pull-forward proposal exists to obtain.
-  block_reason: null
+  block_reason: "PARKED by the director 2026-10-05: history comes from NESO's published half-hourly series and futures from a statistical fit on it (G14); a plant-by-plant rebuild returns only if first-principles carbon is ever needed. Findings, s1-s43: docs/market_research/what_ep13_established_about_gb_grid_carbon.md"
   dial_inherited: 3
   provenance: director_ruling
   depends_on: ['EP6_wall_protocol_typing']
@@ -1664,12 +1664,17 @@
   level_current: 0
   level_target: 3
   loop_stage: build
-  dial_inherited: 45    # authorised but NOT stage 1: the world and billing come first, and the
+  dial_inherited: 3     # 2026-10-05 the director took this instead of EP13; was 45, authorised but NOT stage 1: the world and billing come first, and the
   #   use case this feeds is stage 3. Ranked so it is drawable without displacing W2_18/19/21/22.
   provenance: director_ruling
   depends_on: []
   couples_with: []
-  file_scope: ['docs/market_research/', 'tools/fetch_grid_carbon_intensity.py']
+  # 2026-10-05 the director moved carbon here from EP13: history = NESO's published series aligned
+  # to settlement, gap before 2018-05-11 filled from Elexon's fuel mix at NESO's own factors;
+  # futures = a statistical fit on wind, solar and demand, which the world generates from weather.
+  file_scope: ['docs/market_research/', 'sim/grid_carbon_history.py',
+    'tests/sim/test_grid_carbon_history.py', 'sim/grid_carbon_future.py',
+    'tests/sim/test_grid_carbon_future.py']
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a supplier publishing a customer's carbon footprint from an annual national average, then being asked which hour it was saved in."
 - id: G15_forward_curve_series_to_backtest_hedging_by_physics
@@ -1743,14 +1748,14 @@
   epoch: 4
   level_current: 0
   level_target: 3
-  loop_stage: idle
+  loop_stage: build
   dial_inherited: 45    # R2 -- DIRECTOR_CANON_RERANKING_THE_ARC_2026-09-04 §2/§5.
   provenance: director_ruling
-  block_reason: "Sequencing, not permission. depends_on B10 (a world that can react) and the two household atoms (variation with a channel and a scale). A decision surface widened against a flat world produces a better-instrumented null -- measured, not assumed: the current surface is nine accounts wide and the choosing is worth -£175 against an error bar 25x that. DISCOVER and FRAME on this atom are drawable NOW."
+  block_reason: "Sequencing. PB5 (L0) and PB4 (L2) are outstanding; B10 closed 2026-08-30. FRAME: docs/design/C29_DECISIONS_STOP_BEING_LOOKUP_TABLES_DISCOVER_FRAME.md -- first BUILD is a per-account engagement estimate, graded with planted and null arms, before any decision reads it."
   blocked_on: null
   depends_on: [B10_competitor_switching_response, PB4_engagement_separated_from_elasticity, PB5_pounds_or_percent_resolved]
   couples_with: [B8_discovered_price_sensitivity_holdout]
-  file_scope: ['company/crm/', 'company/billing/', 'company/pricing/', 'tests/company/']
+  file_scope: ['company/crm/', 'company/billing/', 'company/pricing/', 'tests/company/test_the_per_account_engagement_estimate_ranks_better_than_the_channel_alone.py']
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a supplier whose retention desk prices each save individually against that account's own value and its own probability of leaving, rather than reading three tiers off a segment table -- which is the difference between a book that compounds and one that leaks its best accounts at the same offer as its worst"
 - id: SITE14_the_front_door_schematic_carries_the_corrected_model
