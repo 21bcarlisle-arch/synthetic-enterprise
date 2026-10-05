@@ -1,6 +1,6 @@
 {
   "_schema_version": "1",
-  "last_updated": "2026-09-28T04:36:54.451145+00:00",
+  "last_updated": "2026-10-05T21:49:54.441867+00:00",
   "agents": [
     {
       "name": "session-watchdog",
@@ -15,9 +15,9 @@
     {
       "name": "staging-watcher",
       "status": "idle",
-      "last_heartbeat": "2026-09-28T04:36:54.451145+00:00",
+      "last_heartbeat": "2026-10-05T21:49:54.441867+00:00",
       "last_action": "Watcher started",
-      "last_action_ts": "2026-09-25T14:04:19.154872+00:00",
+      "last_action_ts": "2026-10-05T17:59:10.935244+00:00",
       "anomaly": null,
       "role": "Monitors docs/staging/ for new files; sends NTFY to alert CC",
       "produces": "NTFY notifications on new staging files"
@@ -35,9 +35,9 @@
     {
       "name": "sim-runner",
       "status": "idle",
-      "last_heartbeat": "2026-09-28T03:48:47.937423+00:00",
-      "last_action": "Run complete in 1445s \u2014 31193 KB (run_output_16eeaf2cf_20260928T032442Z.json)",
-      "last_action_ts": "2026-09-28T03:48:47.937423+00:00",
+      "last_heartbeat": "2026-10-05T21:11:34.806299+00:00",
+      "last_action": "Run complete in 1128s \u2014 26002 KB (run_output_998814330_20261005T205247Z.json)",
+      "last_action_ts": "2026-10-05T21:11:34.806299+00:00",
       "anomaly": null,
       "role": "Runs full 10-year simulation in a loop; writes run_complete markers",
       "produces": "docs/reports/run_output_*.json, docs/staging/run_complete_*.md"
@@ -75,9 +75,9 @@
     {
       "name": "background-worker",
       "status": "idle",
-      "last_heartbeat": "2026-09-28T04:36:47.435227+00:00",
+      "last_heartbeat": "2026-10-05T21:49:35.319125+00:00",
       "last_action": "Worker started",
-      "last_action_ts": "2026-09-28T04:01:16.141518+00:00",
+      "last_action_ts": "2026-10-05T20:49:09.404473+00:00",
       "anomaly": null,
       "role": "Runs background automation tasks via local Qwen; respects 16-19 UTC peak hours",
       "produces": "docs/observability/background-worker-log.md"
@@ -85,9 +85,9 @@
     {
       "name": "epistemic-verifier",
       "status": "idle",
-      "last_heartbeat": "2026-09-27T19:44:11.442881+00:00",
+      "last_heartbeat": "2026-10-05T16:45:43.381432+00:00",
       "last_action": "Scan complete \u2014 PASS (0 violations)",
-      "last_action_ts": "2026-09-27T19:44:11.442881+00:00",
+      "last_action_ts": "2026-10-05T16:45:43.381432+00:00",
       "anomaly": null,
       "role": "Scans phase-close diffs for SIM/company epistemic barrier violations",
       "produces": "PASS/FAIL report to stdout"
@@ -95,9 +95,9 @@
     {
       "name": "discovery-agent",
       "status": "idle",
-      "last_heartbeat": "2026-09-27T22:32:14.928749+00:00",
-      "last_action": "Verified DD-failure basis (GAP) and live-arrears provision by age x method (PARTIAL, Centrica FY2025 Note 17) in docs/market_research/dd_failure_basis_and_live_arrears_provision_rates.md",
-      "last_action_ts": "2026-09-27T22:32:14.928749+00:00",
+      "last_heartbeat": "2026-10-04T01:29:18.839865+00:00",
+      "last_action": "Verified GB domestic bill-payment-failure and arrears prevalence -- H confidence for Ofgem's point-in-time arrears/debt stock (4.0%/3.9% elec/gas, Q2 2026), GAP confirmed for DD return rate (C1), standard-credit due-date miss rate, and income-stress segmentation",
+      "last_action_ts": "2026-10-04T01:29:18.839865+00:00",
       "anomaly": null,
       "role": "Validates simulation assumptions against real UK market benchmarks",
       "produces": "docs/market_research/*.md, ASSUMPTIONS.md entries"
@@ -105,9 +105,9 @@
     {
       "name": "supervisor",
       "status": "idle",
-      "last_heartbeat": "2026-09-28T04:35:07.400712+00:00",
+      "last_heartbeat": "2026-10-05T21:47:18.513910+00:00",
       "last_action": "Supervisor started",
-      "last_action_ts": "2026-09-27T17:10:18.514603+00:00",
+      "last_action_ts": "2026-10-05T17:59:12.339194+00:00",
       "anomaly": null,
       "role": "Sole authority for turn-granting: polls every 2min, grants one turn via the locked relay when idle+work exists, escalates if grants stop producing progress",
       "produces": "tmux turn-grants + stuck-state NTFY escalation"
@@ -115,9 +115,9 @@
     {
       "name": "sanity-daemon",
       "status": "idle",
-      "last_heartbeat": "2026-09-28T04:10:37.659997+00:00",
+      "last_heartbeat": "2026-10-05T21:29:11.962852+00:00",
       "last_action": "Cycle complete",
-      "last_action_ts": "2026-09-28T04:10:37.659997+00:00",
+      "last_action_ts": "2026-10-05T21:29:11.962852+00:00",
       "anomaly": null,
       "role": "Detective/sampling control: population-level consumption/unit-rate/estimated-read checks against domain_invariants.py every 30min",
       "produces": "sanity-daemon-log.md entries + one NTFY per new/changed finding set"
@@ -143,7 +143,7 @@
       "produces": "write-landed build turns (origin-verified commit SHAs)"
     }
   ],
-  "treasury_gbp": 414175.15,
-  "net_margin_gbp": 164175.151958,
-  "enterprise_value_gbp": 164251.46927089032
+  "treasury_gbp": 354663.24,
+  "net_margin_gbp": 104663.237508,
+  "enterprise_value_gbp": 69434.40475972478
 }

@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-09-28T03:53:57Z",
- "git_commit": "acd8567d85951bf140021101c169c33bafc5d3d1",
+ "generated_at": "2026-10-05T21:16:53Z",
+ "git_commit": "998814330c298a6f749b14a311739618ffa7de16",
  "published_from": {
-  "commit": "acd8567d85951bf140021101c169c33bafc5d3d1",
+  "commit": "998814330c298a6f749b14a311739618ffa7de16",
   "tree_was_clean": true,
   "inputs_are_the_committed_bytes": true,
   "inputs": [
@@ -114,7 +114,7 @@
     ],
     "evidence": null,
     "checks": {
-     "checks": 65,
+     "checks": 66,
      "covered": 4,
      "of": 4,
      "last_run": "2026-07-17T10:04:27.481741+00:00"
@@ -210,7 +210,7 @@
     ],
     "evidence": null,
     "checks": {
-     "checks": 98,
+     "checks": 94,
      "covered": 1,
      "of": 1,
      "last_run": "2026-07-17T10:04:27.481741+00:00"
@@ -1440,7 +1440,7 @@
     "value": 164,
     "basis": "accounts in the live customer feed",
     "source": "site/data/customers.json",
-    "as_of": "2026-09-27T10:47:56Z"
+    "as_of": "2026-09-28T03:54:19Z"
    },
    {
     "value": 242,

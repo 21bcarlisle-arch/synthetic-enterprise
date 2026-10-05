@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-05T13:04:20.565044Z",
+  "generated_at": "2026-10-05T21:17:25.627104Z",
   "what_this_is": "The same book and the same world, run once per pricing arm, scored on what actually happened. No figure here is anything the company believed.",
   "provisional": true,
   "provisional_note": "PROVISIONAL. This is one run of each arm on one world, and the error bar below is wider than the effect it is measuring. It is published because withholding it while publishing the profitable-looking half would be the misleading choice, not because it is settled.",
@@ -1135,7 +1135,7 @@
     "commit": "b329e702b78496afc9ba96bb159322d884064955",
     "short": "b329e702b",
     "resolved_at": "2026-09-18T04:24:06Z",
-    "publishing_tree_commit": "9680fbf4bb206ba5f99ec399aa3e45f6095cdf41",
+    "publishing_tree_commit": "998814330c298a6f749b14a311739618ffa7de16",
     "produced_by_the_tree_it_publishes_from": false,
     "counts_are_labelled_by_the_code_that_made_them": true,
     "objective": {
@@ -1147,7 +1147,7 @@
       "objective_moved_since_the_run": false,
       "clause": "The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
     },
-    "reading": "Produced at b329e702b and published from 9680fbf4b -- the code was replaced between the run and this page, so read every count here as the older tree's. The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
+    "reading": "Produced at b329e702b and published from 998814330 -- the code was replaced between the run and this page, so read every count here as the older tree's. The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
   },
   "world_provenance": {
     "available": true,
@@ -1198,11 +1198,11 @@
     "run_ordering": "later",
     "how_the_two_runs_order": "THIS BLOCK IS THE LATER OF THE TWO RUNS THIS PAGE CARRIES: it was measured at 2026-10-05T08:24:26Z, and the run it is published against states 2026-09-18T05:43:40Z.",
     "superseded_generated_at": "2026-09-18T05:43:40Z",
-    "why_the_headline_omits_it": null,
+    "why_the_headline_omits_it": "this run is not a statement about the world as it is now, because the run executed a9e6f2144 and this page is published from 998814330; 5 path(s) in the code the run imports differ between them and no exemption says why they cannot move the arms: company/analytics/forward_clv.py, company/carbon/half_hourly_footprint.py, sim/customer_state_layer.py, simulation/meter_reads.py, simulation/run_phase2b.py",
     "superseded_floor_ran_in_world": "39a192ce04c1eda8",
     "superseded_value_advantage_gbp": 4579.228659000015,
-    "resolved": true,
-    "verdict_withheld_because": null,
+    "resolved": null,
+    "verdict_withheld_because": "AND THE VERDICT IS WITHDRAWN FOR WHICH CODE DREW THE BOUND: the floor beside these figures is not a measurement of the code that published them, because the run executed a9e6f2144 and this page is published from 998814330; 5 path(s) in the code the run imports differ between them and no exemption says why they cannot move the arms: company/analytics/forward_clv.py, company/carbon/half_hourly_footprint.py, sim/customer_state_layer.py, simulation/meter_reads.py, simulation/run_phase2b.py. Its spread and its seed family stand as measured; a direction decided by a bar from other code may not.",
     "verdict_stability": {
       "checked": true,
       "n": 3,
@@ -1267,7 +1267,7 @@
     "which_sign_question_this_answers": "THE MEAN'S, NOT A SINGLE DRAW'S. `no_sign` and `verdict_stability.sign_determined` above answer whether one draw's sign generalises -- here it does, every re-draw falls on one side of zero, though a family of 3 cannot rule out a draw on the other. `distance_to_a_sign` answers whether the FAMILY'S MEAN is distinguishable from zero, whose denominator is the standard error and DOES fall as 1/sqrt(n). That is the question the thesis asks: is the per-customer arm, on average, worse than its own flat-at-level baseline? The two can disagree without contradiction, and until 2026-09-10 this page answered only the first and read as though the second were unanswerable too.",
     "selection_leg": {
       "resolved": null,
-      "verdict_withheld_because": "THE VERDICT WOULD BE ONE DRAW'S. This leg's own figure is a single realisation and the bound stated with it is how far that same quantity moves across 3 re-draws. 1 of those 3 re-draws clear the bound and the rest do not, so whether this page could state a direction depends on which draw the run happened to make. It states none. The re-draws themselves are set out contrast by contrast in the band table directly below this headline, lowest, mean and highest; the published draw sits BELOW the centre of its own family.",
+      "verdict_withheld_because": "THE VERDICT WOULD BE ONE DRAW'S. This leg's own figure is a single realisation and the bound stated with it is how far that same quantity moves across 3 re-draws. 1 of those 3 re-draws clear the bound and the rest do not, so whether this page could state a direction depends on which draw the run happened to make. It states none. The re-draws themselves are set out contrast by contrast in the band table directly below this headline, lowest, mean and highest; the published draw sits BELOW the centre of its own family. AND THE VERDICT IS WITHDRAWN FOR WHICH CODE DREW THE BOUND: the floor beside these figures is not a measurement of the code that published them, because the run executed a9e6f2144 and this page is published from 998814330; 5 path(s) in the code the run imports differ between them and no exemption says why they cannot move the arms: company/analytics/forward_clv.py, company/carbon/half_hourly_footprint.py, sim/customer_state_layer.py, simulation/meter_reads.py, simulation/run_phase2b.py. Its spread and its seed family stand as measured; a direction decided by a bar from other code may not.",
       "verdict_stability": {
         "checked": true,
         "n": 3,
@@ -1474,11 +1474,12 @@
         "statement": "PROS-2016-0098 holds 109.8% to 119.0% of the credit part on every draw."
       },
       "method": "docs/staging/records/SEAT_RESULT_THE_VALUE_ARMS_RETAKEN_AT_THE_BELIEF_COMMIT_2026-10-02.md",
-      "statement": "Selection is two things, split here per draw. CHURN PRICING is the per-customer arm's margin against the flat level's with no bad debt charged: who it kept and at what price. CREDIT is what the arrears engine then wrote off or recovered. Over 3 draws: churn pricing \u00a313,795.95 (sem \u00a32,388.79; positive, 5.8 standard errors from zero against a bar of 4.30); credit \u2212\u00a38,394.58 (sem \u00a3195.56; negative, 42.9 standard errors from zero against a bar of 4.30). PROS-2016-0098 holds 109.8% to 119.0% of the credit part on every draw. The two parts add up to the published selection figure on every draw. The standard errors measure only the elasticity re-draw, so a tight credit part means that draw does not reach the write-off. Method: docs/staging/records/SEAT_RESULT_THE_VALUE_ARMS_RETAKEN_AT_THE_BELIEF_COMMIT_2026-10-02.md."
+      "statement": "Selection is two things, split here per draw. CHURN PRICING is the per-customer arm's margin against the flat level's with no bad debt charged: who it kept and at what price. CREDIT is what the arrears engine then wrote off or recovered. Over 3 draws: churn pricing \u00a313,795.95 (sem \u00a32,388.79; positive, 5.8 standard errors from zero against a bar of 4.30); credit \u2212\u00a38,394.58 (sem \u00a3195.56; negative, 42.9 standard errors from zero against a bar of 4.30). PROS-2016-0098 holds 109.8% to 119.0% of the credit part on every draw. The two parts add up to the published selection figure on every draw. The standard errors measure only the elasticity re-draw, so a tight credit part means that draw does not reach the write-off. Method: docs/staging/records/SEAT_RESULT_THE_VALUE_ARMS_RETAKEN_AT_THE_BELIEF_COMMIT_2026-10-02.md.",
+      "verdict_withheld_because": "AND THE VERDICT IS WITHDRAWN FOR WHICH CODE DREW THE BOUND: the floor beside these figures is not a measurement of the code that published them, because the run executed a9e6f2144 and this page is published from 998814330; 5 path(s) in the code the run imports differ between them and no exemption says why they cannot move the arms: company/analytics/forward_clv.py, company/carbon/half_hourly_footprint.py, sim/customer_state_layer.py, simulation/meter_reads.py, simulation/run_phase2b.py. Its spread and its seed family stand as measured; a direction decided by a bar from other code may not."
     },
     "level_leg": {
-      "resolved": true,
-      "verdict_withheld_because": null,
+      "resolved": null,
+      "verdict_withheld_because": "AND THE VERDICT IS WITHDRAWN FOR WHICH CODE DREW THE BOUND: the floor beside these figures is not a measurement of the code that published them, because the run executed a9e6f2144 and this page is published from 998814330; 5 path(s) in the code the run imports differ between them and no exemption says why they cannot move the arms: company/analytics/forward_clv.py, company/carbon/half_hourly_footprint.py, sim/customer_state_layer.py, simulation/meter_reads.py, simulation/run_phase2b.py. Its spread and its seed family stand as measured; a direction decided by a bar from other code may not.",
       "verdict_stability": {
         "checked": true,
         "n": 3,
@@ -1734,7 +1735,7 @@
     "how_to_read_this": "The same book, the same three arms and the same code as the figures above, re-run over the departure level this world runs at TODAY. It is published beside the 2026-09-18T05:43:40Z run rather than instead of it, because those figures were honestly measured and their fault is only being read as current. Compare the two as two worlds, not as a revision.",
     "code_since_the_run": {
       "run_commit": "a9e6f2144416264dea90b3fbec74dba086496e9c",
-      "head_commit": "9680fbf4bb206ba5f99ec399aa3e45f6095cdf41",
+      "head_commit": "998814330c298a6f749b14a311739618ffa7de16",
       "paths": [
         "simulation",
         "company",
@@ -1779,11 +1780,13 @@
         "company/regulatory/carbon_emissions.py",
         "company/sustainability/carbon_intensity_register.py",
         "saas/reporting/annual_report.py",
+        "sim/customer_state_layer.py",
         "sim/grid_carbon_future.py",
         "sim/grid_carbon_history.py",
         "sim/grid_carbon_intensity.py",
         "sim/neso_carbon_intensity.py",
-        "simulation/unbilled_energy.py"
+        "simulation/meter_reads.py",
+        "simulation/run_phase2b.py"
       ],
       "exempt": [
         {
@@ -1791,15 +1794,7 @@
           "why": "A defensive read only: `_shared_record_dir` now reads `stdout`/`returncode` through getattr so a test that stubs subprocess.run cannot crash it. With a real CompletedProcess the branch taken is identical, and the function only locates the shared record directory; it computes no figure the arms read."
         },
         {
-          "path": "company/analytics/forward_clv.py",
-          "why": "New in 9680fbf4b (B11 forward-value backtest) and not in the run's import closure: importing simulation.run_phase2b and tools.run_value_cycle_ab does not load it, and no module outside its own test imports it at all (grep, 2026-10-05). The run cannot execute code it never imports."
-        },
-        {
           "path": "company/billing/carbon_footprint.py",
-          "why": "Not in the run's import closure: importing simulation.run_phase2b and tools.run_value_cycle_ab (the probe test_the_arms_substrate_covers_every_module_the_run_imports uses) does not load it, and no module in that closure imports it inside a function either (scanned 2026-10-05; the one deferred import naming a related module, simulation/dd_collection_book.py -> simulation.run_phase4c_on_phase2b, does not load it). The run cannot execute code it never imports."
-        },
-        {
-          "path": "company/carbon/half_hourly_footprint.py",
           "why": "Not in the run's import closure: importing simulation.run_phase2b and tools.run_value_cycle_ab (the probe test_the_arms_substrate_covers_every_module_the_run_imports uses) does not load it, and no module in that closure imports it inside a function either (scanned 2026-10-05; the one deferred import naming a related module, simulation/dd_collection_book.py -> simulation.run_phase4c_on_phase2b, does not load it). The run cannot execute code it never imports."
         },
         {
@@ -1829,25 +1824,28 @@
         {
           "path": "sim/neso_carbon_intensity.py",
           "why": "Not in the run's import closure: importing simulation.run_phase2b and tools.run_value_cycle_ab (the probe test_the_arms_substrate_covers_every_module_the_run_imports uses) does not load it, and no module in that closure imports it inside a function either (scanned 2026-10-05; the one deferred import naming a related module, simulation/dd_collection_book.py -> simulation.run_phase4c_on_phase2b, does not load it). The run cannot execute code it never imports."
-        },
-        {
-          "path": "simulation/unbilled_energy.py",
-          "why": "Not in the run's import closure: importing simulation.run_phase2b and tools.run_value_cycle_ab (the probe test_the_arms_substrate_covers_every_module_the_run_imports uses) does not load it, and no module in that closure imports it inside a function either (scanned 2026-10-05; the one deferred import naming a related module, simulation/dd_collection_book.py -> simulation.run_phase4c_on_phase2b, does not load it). The run cannot execute code it never imports."
         }
       ],
-      "unexempt": [],
-      "refused": false
+      "unexempt": [
+        "company/analytics/forward_clv.py",
+        "company/carbon/half_hourly_footprint.py",
+        "sim/customer_state_layer.py",
+        "simulation/meter_reads.py",
+        "simulation/run_phase2b.py"
+      ],
+      "refused": true,
+      "why": "the run executed a9e6f2144 and this page is published from 998814330; 5 path(s) in the code the run imports differ between them and no exemption says why they cannot move the arms: company/analytics/forward_clv.py, company/carbon/half_hourly_footprint.py, sim/customer_state_layer.py, simulation/meter_reads.py, simulation/run_phase2b.py"
     },
-    "is_heads_code": true,
+    "is_heads_code": false,
     "floor_code_since_its_runs": {
       "floor_commits": [
         "a9e6f2144416264dea90b3fbec74dba086496e9c"
       ],
-      "head_commit": "9680fbf4bb206ba5f99ec399aa3e45f6095cdf41",
+      "head_commit": "998814330c298a6f749b14a311739618ffa7de16",
       "per_commit": [
         {
           "run_commit": "a9e6f2144416264dea90b3fbec74dba086496e9c",
-          "head_commit": "9680fbf4bb206ba5f99ec399aa3e45f6095cdf41",
+          "head_commit": "998814330c298a6f749b14a311739618ffa7de16",
           "paths": [
             "simulation",
             "company",
@@ -1892,11 +1890,13 @@
             "company/regulatory/carbon_emissions.py",
             "company/sustainability/carbon_intensity_register.py",
             "saas/reporting/annual_report.py",
+            "sim/customer_state_layer.py",
             "sim/grid_carbon_future.py",
             "sim/grid_carbon_history.py",
             "sim/grid_carbon_intensity.py",
             "sim/neso_carbon_intensity.py",
-            "simulation/unbilled_energy.py"
+            "simulation/meter_reads.py",
+            "simulation/run_phase2b.py"
           ],
           "exempt": [
             {
@@ -1904,15 +1904,7 @@
               "why": "A defensive read only: `_shared_record_dir` now reads `stdout`/`returncode` through getattr so a test that stubs subprocess.run cannot crash it. With a real CompletedProcess the branch taken is identical, and the function only locates the shared record directory; it computes no figure the arms read."
             },
             {
-              "path": "company/analytics/forward_clv.py",
-              "why": "New in 9680fbf4b (B11 forward-value backtest) and not in the run's import closure: importing simulation.run_phase2b and tools.run_value_cycle_ab does not load it, and no module outside its own test imports it at all (grep, 2026-10-05). The run cannot execute code it never imports."
-            },
-            {
               "path": "company/billing/carbon_footprint.py",
-              "why": "Not in the run's import closure: importing simulation.run_phase2b and tools.run_value_cycle_ab (the probe test_the_arms_substrate_covers_every_module_the_run_imports uses) does not load it, and no module in that closure imports it inside a function either (scanned 2026-10-05; the one deferred import naming a related module, simulation/dd_collection_book.py -> simulation.run_phase4c_on_phase2b, does not load it). The run cannot execute code it never imports."
-            },
-            {
-              "path": "company/carbon/half_hourly_footprint.py",
               "why": "Not in the run's import closure: importing simulation.run_phase2b and tools.run_value_cycle_ab (the probe test_the_arms_substrate_covers_every_module_the_run_imports uses) does not load it, and no module in that closure imports it inside a function either (scanned 2026-10-05; the one deferred import naming a related module, simulation/dd_collection_book.py -> simulation.run_phase4c_on_phase2b, does not load it). The run cannot execute code it never imports."
             },
             {
@@ -1942,21 +1934,30 @@
             {
               "path": "sim/neso_carbon_intensity.py",
               "why": "Not in the run's import closure: importing simulation.run_phase2b and tools.run_value_cycle_ab (the probe test_the_arms_substrate_covers_every_module_the_run_imports uses) does not load it, and no module in that closure imports it inside a function either (scanned 2026-10-05; the one deferred import naming a related module, simulation/dd_collection_book.py -> simulation.run_phase4c_on_phase2b, does not load it). The run cannot execute code it never imports."
-            },
-            {
-              "path": "simulation/unbilled_energy.py",
-              "why": "Not in the run's import closure: importing simulation.run_phase2b and tools.run_value_cycle_ab (the probe test_the_arms_substrate_covers_every_module_the_run_imports uses) does not load it, and no module in that closure imports it inside a function either (scanned 2026-10-05; the one deferred import naming a related module, simulation/dd_collection_book.py -> simulation.run_phase4c_on_phase2b, does not load it). The run cannot execute code it never imports."
             }
           ],
-          "unexempt": [],
-          "refused": false
+          "unexempt": [
+            "company/analytics/forward_clv.py",
+            "company/carbon/half_hourly_footprint.py",
+            "sim/customer_state_layer.py",
+            "simulation/meter_reads.py",
+            "simulation/run_phase2b.py"
+          ],
+          "refused": true,
+          "why": "the run executed a9e6f2144 and this page is published from 998814330; 5 path(s) in the code the run imports differ between them and no exemption says why they cannot move the arms: company/analytics/forward_clv.py, company/carbon/half_hourly_footprint.py, sim/customer_state_layer.py, simulation/meter_reads.py, simulation/run_phase2b.py"
         }
       ],
-      "unexempt": [],
-      "refused": false,
-      "why": null
+      "unexempt": [
+        "company/analytics/forward_clv.py",
+        "company/carbon/half_hourly_footprint.py",
+        "sim/customer_state_layer.py",
+        "simulation/meter_reads.py",
+        "simulation/run_phase2b.py"
+      ],
+      "refused": true,
+      "why": "the run executed a9e6f2144 and this page is published from 998814330; 5 path(s) in the code the run imports differ between them and no exemption says why they cannot move the arms: company/analytics/forward_clv.py, company/carbon/half_hourly_footprint.py, sim/customer_state_layer.py, simulation/meter_reads.py, simulation/run_phase2b.py"
     },
-    "is_the_bound_heads_code": true,
+    "is_the_bound_heads_code": false,
     "changed_since_the_last_reading": "What changed since the previous reading (run at efe1b7dee): the same departure level, on newer code. Households that never chose a tariff now switch at the rates Ofgem measured in the control arm of its switching trials, so they shop about twice as often, and the settling, churn, final-bill and policy-cost code changed alongside it. So many things moved at once that no change in a figure can be put down to any one of them."
   },
   "book": {
@@ -1984,7 +1985,7 @@
       "commit": "b329e702b78496afc9ba96bb159322d884064955",
       "short": "b329e702b",
       "resolved_at": "2026-09-18T04:24:06Z",
-      "publishing_tree_commit": "9680fbf4bb206ba5f99ec399aa3e45f6095cdf41",
+      "publishing_tree_commit": "998814330c298a6f749b14a311739618ffa7de16",
       "produced_by_the_tree_it_publishes_from": false,
       "counts_are_labelled_by_the_code_that_made_them": true,
       "objective": {
@@ -1996,7 +1997,7 @@
         "objective_moved_since_the_run": false,
         "clause": "The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
       },
-      "reading": "Produced at b329e702b and published from 9680fbf4b -- the code was replaced between the run and this page, so read every count here as the older tree's. The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
+      "reading": "Produced at b329e702b and published from 998814330 -- the code was replaced between the run and this page, so read every count here as the older tree's. The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
     }
   },
   "realised": {
@@ -2058,21 +2059,21 @@
     "is_the_published_supplier": {
       "checked": true,
       "same_supplier": false,
-      "dashboard_net_gbp": 174947.71,
+      "dashboard_net_gbp": 104663.24,
       "run_identity": {
-        "dashboard_run_id": "run_output_16eeaf2cf_20260928T032442Z.json",
-        "dashboard_commit": "16eeaf2cf",
+        "dashboard_run_id": "run_output_998814330_20261005T205247Z.json",
+        "dashboard_commit": "998814330",
         "dashboard_commit_source": "run_stamp",
-        "last_verified_run_id": "run_output_16eeaf2cf_20260928T032442Z.json",
-        "last_verified_commit": "16eeaf2cf",
+        "last_verified_run_id": "run_output_d22754a36_20261005T184816Z.json",
+        "last_verified_commit": "d22754a36",
         "not_older_than_verified": true,
         "order_not_asked_because": null,
         "state": "established",
         "why": null
       },
       "resolution_gbp": 0.005,
-      "gap_gbp": 17140.834092005476,
-      "statement": "The published run's net margin (\u00a3174,947.71) is NOT the baseline arm's (\u00a3157,806.88) -- they differ by \u00a317,140.83. The comparison below is between three arms of one A/B run and is no longer a statement about the supplier this site publishes elsewhere."
+      "gap_gbp": -53143.63590799451,
+      "statement": "The published run's net margin (\u00a3104,663.24) is NOT the baseline arm's (\u00a3157,806.88) -- they differ by \u00a353,143.64. The comparison below is between three arms of one A/B run and is no longer a statement about the supplier this site publishes elsewhere."
     }
   },
   "provisioned": {
@@ -5599,11 +5600,11 @@
     ],
     "control_credibility_note": "The control this experiment scores the value arm against is this company's own flat rule. It sits well below what the regulator allows an efficient supplier to earn, so beating it demonstrates the control's weakness at least as much as the arm's strength. Read the delta with this ratio beside it."
   },
-  "headline": "THE FIGURE BELOW AND THE BOUND ON IT WERE MEASURED IN DIFFERENT WORLDS. The runs behind it are dated 2026-09-17 and 2026-09-18. A spread measured where customers leave at one rate is not a confidence interval on a figure measured where they leave at another, so nothing here bounds anything else and no contrast below may have its direction read as resolved. Departure rate is how much book there is to win or lose, so it is the surface this whole comparison sits on. Every leg is kept with its own date rather than deleted; the remedy is to re-run all of them in one world, never to quote whichever leg is current. IN THE WORLD AS IT IS NOW, the same comparison gives \u00a318,541, measured 2026-10-05T08:24:26Z. That figure CLEARS the \u00a32,229 this same contrast moves across 3 seed re-draws in this same world, the first bound this page has held that was measured where the figure was. It is a LARGER advantage than the \u00a34,579 below. WHY it differs is not stated here: more than one thing differs between the two runs, so no single one of them can be credited with the move, and the count is published beside the share below rather than guessed at here.  The re-draws themselves are set out contrast by contrast in the band table directly below this headline, lowest, mean and highest; the published draw sits BELOW the centre of its own family. OF THAT, \u00a33,229 IS THE LEG THAT COULD BE VALUE CREATED RATHER THAN MOVED -- what the per-customer choosing was worth once one flat margin at the same price LEVEL is credited with everything a level alone would have earned; the rest is the level, which is a price charged. THIS PAGE STATES NO VERDICT ON THAT FIGURE. It is a single draw, and the same contrast re-drawn 3 times in this same world moves against a \u00a33,824 spread -- 1 of the 3 re-draws clears that spread and the rest do not, so a direction here would be a property of which draw was made rather than of the company. The re-draws themselves are set out contrast by contrast in the band table directly below this headline, lowest, mean and highest; the published draw sits BELOW the centre of its own family. The figure and its bound are both published; the verdict is withheld until it survives a re-draw. THIS SHARE CANNOT BE READ FROM ONE RUN, AND THAT IS A PROPERTY OF THE STATISTIC RATHER THAN OF THESE TWO RUNS. Re-running this same world 12 times with NOTHING moved but the per-household elasticity draw takes `level_share_of_advantage` from 0.067 to 12.074 -- a span of 12.007, which is 15.6 times the 0.771 between the two draws this page prints. The gap between them is therefore smaller than what the statistic does when nothing is done to it, so no arrangement of confounders explains it and none is needed to: a single draw of this share carries no reading, and that stays true however the confounders are cleaned up. WHAT THIS IS NOT MEASURED ON: the null is drawn on 154 settled accounts and the share's own arms were scored over 127, so the seed sensitivity is established for this statistic on a NEIGHBOURING book and not on its own. It is published with that named because a measured null one book over is evidence and the alternative already on the page is no ruler at all. The run behind this page's headline figure states 5.5% for the same quantity. 4 things differ between the two runs -- the world it ran in, the date it ran on, the commit that produced it and the book it was scored over -- so more than one thing changed, and the difference between them cannot be attributed to any one of them. It may not be read as the company having got better or worse at choosing: what a share of the advantage is mostly reads is how much book there is to win or lose, which is the world's departure level and its price response, not the company's skill. The one-variable version of this comparison has not been run. Running the same book through the per-customer decision engine came out \u00a34,579 from flat rules. Its DIRECTION is not stated here, and the reason is not that no floor has been run: THE ERROR BAR IS OLDER THAN THE FIGURE IT BOUNDS. The seed spread was measured on the run of 2026-09-17T21:39:28Z and the point estimate on the run of 2026-09-18T05:43:40Z. Both runs carry the same world digest 39a192ce04c1eda8, so the departure surface did not move between them. They also did NOT measure the same BOOK, and that is the graver half: billing_accounts_settled_in_window is 164 across the floor's seeds against 154-155 across this run's arms. Re-stamping this floor would not fix it. Read it as the size of this instrument's seed sensitivity; re-running the noise floor on the point estimate's own run is owed work, though the nearest floor on this figure's own book (the 12-seed AUC-carrying floor of 2026-09-17, 12 seeds on the same 154 settled accounts the figure prices) states NEITHER A SIGN NOR A PRICE FOR ONE -- 0.686 of the 2.201 errors from zero, and the seed count that would close that gap divides by an estimate whose own interval contains zero, so it has no upper bound. The owed re-run is still strictly better evidence, because the arms span two books and that floor covers one; but the closest thing to an answer already on disk is that more draws of this instrument do not buy a direction. Once one flat margin at the same price LEVEL is given credit for what a level alone would have earned, \u00a34,327 separates the two on the single run this page publishes. Its DIRECTION is not stated here either, and for the same reason. THE REMEDY'S EVIDENCE IS FROM A DIFFERENT BOOK, so no remedy is stated from it. The floor decomposition was measured where the arm priced 104 of 2,009 renewals; the run this page publishes priced 104 of 2,824. A split of the variance measured on one book is not a price for resolving another, and the priced count is the very quantity the remedy is denominated in -- so quoting it here would state a remedy in units this page no longer has. Re-running it on the current book would NOT clear this: the rest of the book's half carried no variance even on the smaller book above, and a larger priced roster covers MORE of the complement that leg re-draws, not less. What is owed is a floor keyed to something the rest of the book has. What WOULD resolve it has not been established: this spread has not been separated into the priced households' own draw, which a larger settled book shrinks, and the rest of the book's churn cascade, which no book size touches. More seeds do not shrink this SPREAD: re-drawing the dice measures the same width again. What they do buy is how well those draws pin their own MEAN, which is the quantity this page states a side from. How many would be needed is NOT a number this page can give: the count divides by the estimate itself, and it is only ever asked when that estimate's own interval contains zero -- so it has no upper bound. The error bar below publishes that interval and the reason, in place of a count. Read all of it against its size: the per-customer arm priced 104 of the 2,824 renewals the world offered, 3.68% of them, so every figure here is those decisions and what they cascade into.",
+  "headline": "THE FIGURE BELOW AND THE BOUND ON IT WERE MEASURED IN DIFFERENT WORLDS. The runs behind it are dated 2026-09-17 and 2026-09-18. A spread measured where customers leave at one rate is not a confidence interval on a figure measured where they leave at another, so nothing here bounds anything else and no contrast below may have its direction read as resolved. Departure rate is how much book there is to win or lose, so it is the surface this whole comparison sits on. Every leg is kept with its own date rather than deleted; the remedy is to re-run all of them in one world, never to quote whichever leg is current. Running the same book through the per-customer decision engine came out \u00a34,579 from flat rules. Its DIRECTION is not stated here, and the reason is not that no floor has been run: THE ERROR BAR IS OLDER THAN THE FIGURE IT BOUNDS. The seed spread was measured on the run of 2026-09-17T21:39:28Z and the point estimate on the run of 2026-09-18T05:43:40Z. Both runs carry the same world digest 39a192ce04c1eda8, so the departure surface did not move between them. They also did NOT measure the same BOOK, and that is the graver half: billing_accounts_settled_in_window is 164 across the floor's seeds against 154-155 across this run's arms. Re-stamping this floor would not fix it. Read it as the size of this instrument's seed sensitivity; re-running the noise floor on the point estimate's own run is owed work, though the nearest floor on this figure's own book (the 12-seed AUC-carrying floor of 2026-09-17, 12 seeds on the same 154 settled accounts the figure prices) states NEITHER A SIGN NOR A PRICE FOR ONE -- 0.686 of the 2.201 errors from zero, and the seed count that would close that gap divides by an estimate whose own interval contains zero, so it has no upper bound. The owed re-run is still strictly better evidence, because the arms span two books and that floor covers one; but the closest thing to an answer already on disk is that more draws of this instrument do not buy a direction. Once one flat margin at the same price LEVEL is given credit for what a level alone would have earned, \u00a34,327 separates the two on the single run this page publishes. Its DIRECTION is not stated here either, and for the same reason. THE REMEDY'S EVIDENCE IS FROM A DIFFERENT BOOK, so no remedy is stated from it. The floor decomposition was measured where the arm priced 104 of 2,009 renewals; the run this page publishes priced 104 of 2,824. A split of the variance measured on one book is not a price for resolving another, and the priced count is the very quantity the remedy is denominated in -- so quoting it here would state a remedy in units this page no longer has. Re-running it on the current book would NOT clear this: the rest of the book's half carried no variance even on the smaller book above, and a larger priced roster covers MORE of the complement that leg re-draws, not less. What is owed is a floor keyed to something the rest of the book has. What WOULD resolve it has not been established: this spread has not been separated into the priced households' own draw, which a larger settled book shrinks, and the rest of the book's churn cascade, which no book size touches. More seeds do not shrink this SPREAD: re-drawing the dice measures the same width again. What they do buy is how well those draws pin their own MEAN, which is the quantity this page states a side from. How many would be needed is NOT a number this page can give: the count divides by the estimate itself, and it is only ever asked when that estimate's own interval contains zero -- so it has no upper bound. The error bar below publishes that interval and the reason, in place of a count. Read all of it against its size: the per-customer arm priced 104 of the 2,824 renewals the world offered, 3.68% of them, so every figure here is those decisions and what they cascade into.",
   "published_from": {
-    "commit": "9680fbf4bb206ba5f99ec399aa3e45f6095cdf41",
+    "commit": "998814330c298a6f749b14a311739618ffa7de16",
     "tree_was_clean": false,
-    "inputs_are_the_committed_bytes": false,
+    "inputs_are_the_committed_bytes": true,
     "inputs": [
       {
         "path": "docs/observability/value_cycle_ab_s1_three_arm.json",
@@ -5619,11 +5620,11 @@
       },
       {
         "path": "docs/observability/value_cycle_ab_s1_three_arm_20261005c.json",
-        "state": "not_in_the_commit"
+        "state": "committed"
       },
       {
         "path": "docs/observability/value_cycle_ab_s1_noise_floor_20261005c.json",
-        "state": "not_in_the_commit"
+        "state": "committed"
       },
       {
         "path": "docs/observability/value_cycle_ab_s1_three_arm_departure_20260909.json",
@@ -5642,6 +5643,6 @@
         "state": "committed"
       }
     ],
-    "reason": "read off the working tree, not out of this commit: docs/observability/value_cycle_ab_s1_noise_floor_20261005c.json, docs/observability/value_cycle_ab_s1_three_arm_20261005c.json \u2014 standing at this commit will not reproduce this feed"
+    "reason": "every input named here matches this commit, but the tree carried other uncommitted changes, and this generator reads more than the paths it names \u2014 so standing at this commit may still not reproduce this feed"
   }
 }

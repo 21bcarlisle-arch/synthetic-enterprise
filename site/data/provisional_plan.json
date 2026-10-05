@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-28T03:49:29.535479+00:00",
+  "generated_at": "2026-10-05T21:12:17.923986+00:00",
   "law_a": "The plan is a diagnostic and a tie-breaker, NEVER a target. Dates are forecasts; exit tests remain the ONLY gate. No atom may be promoted, and no verification shortened, to hit a forecast. Deviation from the plan is ALLOWED and expected -- re-rank on evidence -- but must be logged with a reason. See CLAUDE.md.",
   "confidence_tiers": {
     "1": "HIGH",
@@ -9,67 +9,67 @@
     "5": "COARSE"
   },
   "empirical_cycle_times": {
-    "transition_count": 337,
-    "median_cycle_days": 0.12,
-    "min_cycle_days": 0.003,
-    "max_cycle_days": 30.091,
+    "transition_count": 356,
+    "median_cycle_days": 0.137,
+    "min_cycle_days": 0.002,
+    "max_cycle_days": 61.174,
     "note": "Sub-1-day median across every observed level transition -- reflects dense agent-turn cadence (many turns/day), NOT literal human-scale build difficulty per level. The slowest transitions (up to ~0.9 days) correspond to atoms needing multiple Expert Hour passes (e.g. W5_1_banking_payment_rails' final L2->L3), which is the real signal in this data -- REVIEW ITERATIONS, not raw elapsed time, drive the slow tail.",
     "slowest_transitions": [
       {
-        "atom_id": "D_opening_dd_seasonal_sizing",
+        "atom_id": "SP2_1_working_day_calculator",
         "lane": "D_billing_metering",
-        "epoch": null,
+        "epoch": 2,
+        "from_level": 1,
+        "to_level": 2,
+        "loop_stage_to": "build",
+        "date": "2026-10-03T15:54:40+01:00",
+        "cycle_days": 61.174
+      },
+      {
+        "atom_id": "SP2_2_rng_substream_primitive",
+        "lane": "G_data_learning",
+        "epoch": 2,
         "from_level": 0,
         "to_level": 1,
         "loop_stage_to": "build",
-        "date": "2026-09-02T22:08:15+01:00",
-        "cycle_days": 30.091
+        "date": "2026-09-28T16:55:25+01:00",
+        "cycle_days": 56.268
       },
       {
-        "atom_id": "SITE4_ia_register_and_nav",
-        "lane": "H_harness",
-        "epoch": 3,
+        "atom_id": "EP4_collections_journey",
+        "lane": "C_customer_ops",
+        "epoch": 2,
         "from_level": 0,
-        "to_level": 2,
+        "to_level": 1,
         "loop_stage_to": "idle",
-        "date": "2026-09-17T03:56:07+01:00",
-        "cycle_days": 29.807
+        "date": "2026-10-04T00:29:15+01:00",
+        "cycle_days": 56.015
       },
       {
-        "atom_id": "H27_payment_belief_gap",
-        "lane": "H_harness",
-        "epoch": 3,
-        "from_level": 0,
-        "to_level": 2,
-        "loop_stage_to": "harden",
-        "date": "2026-08-08T15:50:26+01:00",
-        "cycle_days": 20.958
-      },
-      {
-        "atom_id": "PB4_engagement_separated_from_elasticity",
-        "lane": "W2_customer_generator",
-        "epoch": 3,
-        "from_level": 0,
-        "to_level": 1,
-        "loop_stage_to": "build",
-        "date": "2026-09-15T20:56:21+01:00",
-        "cycle_days": 18.54
-      },
-      {
-        "atom_id": "EP13_adapter_carbon_intensity",
+        "atom_id": "EP12_adapter_css_rec_switching",
         "lane": "W4_the_wall",
         "epoch": 3,
         "from_level": 0,
+        "to_level": 1,
+        "loop_stage_to": "idle",
+        "date": "2026-10-03T20:22:24+01:00",
+        "cycle_days": 55.843
+      },
+      {
+        "atom_id": "H45_the_queue_is_chained_to_the_map",
+        "lane": "H_harness",
+        "epoch": 2,
+        "from_level": 1,
         "to_level": 2,
         "loop_stage_to": "build",
-        "date": "2026-08-25T12:02:34+01:00",
-        "cycle_days": 16.496
+        "date": "2026-10-03T04:58:28+01:00",
+        "cycle_days": 35.875
       }
     ]
   },
   "critical_path_by_epoch": {
     "3": {
-      "open_atoms": 70,
+      "open_atoms": 69,
       "critical_chain": [
         "SITE6_knowledge_in_nav_glossary_dissolved",
         "SITE8_home_reordered_and_link_labels",
@@ -79,7 +79,7 @@
       "critical_chain_length": 4
     },
     "4": {
-      "open_atoms": 11,
+      "open_atoms": 18,
       "critical_chain": [
         "A4_sim_approver",
         "A5_tournament_fitness_mortality",
@@ -96,19 +96,12 @@
       "critical_chain_length": 2
     },
     "2": {
-      "open_atoms": 24,
+      "open_atoms": 22,
       "critical_chain": [
         "W2_payment_channel_dd_consistency_invariant",
         "W2_non_dd_miss_vocabulary"
       ],
       "critical_chain_length": 2
-    },
-    "None": {
-      "open_atoms": 1,
-      "critical_chain": [
-        "D_opening_dd_seasonal_sizing"
-      ],
-      "critical_chain_length": 1
     },
     "1": {
       "open_atoms": 0,
@@ -117,41 +110,37 @@
     }
   },
   "concurrency": {
-    "total_open_atoms": 110,
-    "code_free_discover_frame_atoms": 30,
-    "atoms_with_real_file_scope": 80,
-    "max_concurrent_width_overall": 80,
+    "total_open_atoms": 113,
+    "code_free_discover_frame_atoms": 28,
+    "atoms_with_real_file_scope": 85,
+    "max_concurrent_width_overall": 84,
     "per_epoch": {
       "3": {
-        "open_atoms": 70,
-        "max_concurrent_width": 51
+        "open_atoms": 69,
+        "max_concurrent_width": 49
       },
       "4": {
-        "open_atoms": 11,
-        "max_concurrent_width": 9
+        "open_atoms": 18,
+        "max_concurrent_width": 16
       },
       "5": {
         "open_atoms": 4,
         "max_concurrent_width": 4
       },
       "2": {
-        "open_atoms": 24,
-        "max_concurrent_width": 19
-      },
-      "None": {
-        "open_atoms": 1,
-        "max_concurrent_width": 1
+        "open_atoms": 22,
+        "max_concurrent_width": 18
       }
     },
     "note": "Most open atoms today are DISCOVER/FRAME-stage with empty file_scope (code-free research/design work), which is why the arithmetic max width looks close to the full open-atom count -- this measures 'no file collision', not 'safe to run N engineers building code at once'. Real BUILD-stage file contention only shows up once these atoms declare non-empty file_scope on entering BUILD."
   },
   "director_hours": {
     "window_days": 3.0,
-    "from_rich_touches": 87,
-    "substantive_staged_doc_touches": 1866,
-    "routine_daemon_markers_excluded": 4283,
+    "from_rich_touches": 46,
+    "substantive_staged_doc_touches": 2003,
+    "routine_daemon_markers_excluded": 4245,
     "tier1_gates_closed_all_time": 8,
-    "estimated_director_hours_per_day": 263.03,
+    "estimated_director_hours_per_day": 280.24,
     "methodology": "Counts real artefacts from git history (from_rich_*.md messages + non-routine staged docs closed to docs/staging/done/ in the last 3 days), multiplied by an effort-per-touch ANCHORED to company/governance/decision_rights.py's own registered rate card (analogous tiers, not new invented figures) -- see EFFORT_ANCHOR_MINUTES in this script. This measures artefact COUNT precisely; effort-per-touch is an anchored estimate, not directly observed clock time (R9: label what's measured vs inferred).",
     "caveat": "This window (2026-07-10 to present) is CLAUDE.md's own time-boxed SPIKE_WEEKEND override -- an explicitly unusual high-throughput period, not necessarily the sustained steady-state rate once it reverts at the weekly reset."
   },

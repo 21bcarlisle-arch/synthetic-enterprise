@@ -322,7 +322,7 @@
       "epoch": 2,
       "level_current": 0,
       "level_target": 3,
-      "loop_stage": "build",
+      "loop_stage": "idle",
       "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
       "depends_on": [],
@@ -330,7 +330,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 1332,
+      "stall_consecutive_unchanged": 1748,
       "forward_attachments": []
     },
     {
@@ -342,7 +342,7 @@
       "epoch": 3,
       "level_current": 1,
       "level_target": 3,
-      "loop_stage": "build",
+      "loop_stage": "idle",
       "dial_inherited": 45,
       "expert_hour_status": "not_attempted",
       "depends_on": [],
@@ -350,7 +350,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 1973,
+      "stall_consecutive_unchanged": 13,
       "forward_attachments": []
     },
     {
@@ -362,7 +362,7 @@
       "epoch": 3,
       "level_current": 0,
       "level_target": 2,
-      "loop_stage": "build",
+      "loop_stage": "idle",
       "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
       "depends_on": [
@@ -376,7 +376,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 1884,
+      "stall_consecutive_unchanged": 36,
       "forward_attachments": []
     },
     {
@@ -454,7 +454,7 @@
       "lane": "D_billing_metering",
       "value_stream": "meter_to_cash",
       "value_stream_label": "Meter to Cash",
-      "epoch": null,
+      "epoch": 3,
       "level_current": 1,
       "level_target": 2,
       "loop_stage": "build",
@@ -464,8 +464,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": 1,
+      "stalled": true,
+      "stall_consecutive_unchanged": 13,
       "forward_attachments": []
     },
     {
@@ -487,7 +487,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 2,
+      "stall_consecutive_unchanged": 13,
       "forward_attachments": []
     },
     {
@@ -623,17 +623,19 @@
       "value_stream": "meter_to_cash",
       "value_stream_label": "Meter to Cash",
       "epoch": 3,
-      "level_current": 0,
+      "level_current": 1,
       "level_target": 3,
-      "loop_stage": "idle",
-      "dial_inherited": 3,
+      "loop_stage": "build",
+      "dial_inherited": 100,
       "expert_hour_status": "not_attempted",
       "depends_on": [],
-      "couples_with": [],
+      "couples_with": [
+        "D48_billing_accuracy_the_company_measures_what_it_billed_against_what_was_used"
+      ],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null,
+      "stalled": true,
+      "stall_consecutive_unchanged": 13,
       "forward_attachments": []
     },
     {
@@ -657,35 +659,15 @@
       "forward_attachments": []
     },
     {
-      "id": "SP2_1_working_day_calculator",
-      "name": "Canonical working-day calculator + dated England-&-Wales bank-holiday calendar, all ~17 independent callers migrated, with a guard that reds on a second definition (R10 class fix)",
-      "lane": "D_billing_metering",
-      "value_stream": "meter_to_cash",
-      "value_stream_label": "Meter to Cash",
-      "epoch": 2,
-      "level_current": 1,
-      "level_target": 3,
-      "loop_stage": "build",
-      "dial_inherited": 3,
-      "expert_hour_status": "not_attempted",
-      "depends_on": [],
-      "couples_with": [],
-      "chain": null,
-      "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null,
-      "forward_attachments": []
-    },
-    {
       "id": "SP2_2_rng_substream_primitive",
       "name": "Canonical namespaced RNG substream primitive replacing the 16 independent derivations (5 distinct formulas) so a new draw can never shift another subsystem's outputs (C-S2)",
       "lane": "G_data_learning",
       "value_stream": "close_to_learn",
       "value_stream_label": "Close to Learn",
       "epoch": 2,
-      "level_current": 0,
+      "level_current": 1,
       "level_target": 3,
-      "loop_stage": "build",
+      "loop_stage": "idle",
       "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
       "depends_on": [],
@@ -693,7 +675,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 1333,
+      "stall_consecutive_unchanged": 265,
       "forward_attachments": []
     },
     {
@@ -754,8 +736,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null,
+      "stalled": true,
+      "stall_consecutive_unchanged": 13,
       "forward_attachments": []
     },
     {
@@ -801,26 +783,6 @@
       "forward_attachments": []
     },
     {
-      "id": "D_money_boundary_reconciliation",
-      "name": "Bill boundary-reconciliation fix: make rounded line items sum to the printed total (37.0% of bills currently do not), the [ACT] recommendation returned by the money-representation DISCOVER",
-      "lane": "D_billing_metering",
-      "value_stream": "price_to_bill",
-      "value_stream_label": "Price to Bill",
-      "epoch": 2,
-      "level_current": 2,
-      "level_target": 3,
-      "loop_stage": "harden",
-      "dial_inherited": 3,
-      "expert_hour_status": "not_attempted",
-      "depends_on": [],
-      "couples_with": [],
-      "chain": null,
-      "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null,
-      "forward_attachments": []
-    },
-    {
       "id": "KNIFE3_wall_crossing_paydown",
       "name": "KNIFE pass 3 of 4 (AO5), LAST of the three wall passes. Cut the crossings that survive passes 1 and 2. STALE-DOORBELL NOTICE (REWRITTEN 2026-08-19, step 51). THIS FIELD ASSERTS NO LANDING, AND THAT IS DELIBERATE: every version since step 36 claimed one and fourteen were false, for a structural reason -- it is written by the step about to fail the check it describes, so a landing claim here is unfalsifiable at write time. Steps 36-50 spend it as a mechanism; it survives ONLY as a pointer to the tool. THE FIRST STEP DESCRIBED BELOW IS DONE: build_edges/company_reads_sim/sim_reads_company live in tools/epistemic_wall.py as the one shared definition, enforced by tests/architecture/test_epistemic_wall_single_source.py. That is this pass's ONLY landing claim, and step 52 puts it in the form the next pass can refute without trusting a word of the prose around it -- verified with `git cat-file -p HEAD:tools/epistemic_wall.py` before writing, not asserted from the working tree. LANDED: `build_edges` in `tools/epistemic_wall.py` EVERY OTHER SENTENCE IN THIS FIELD IS A MEASUREMENT OR A DESIGN NOTE, NEVER A LANDING -- step 51's rule, kept. PARTIALLY BUILT: 51 steps. DO NOT REDRAW AS IF FROM ZERO. RUN THE TOOL, DO NOT READ COUNTS HERE -- AND KNOW WHICH INSTRUMENT YOU ARE HOLDING, because step 51 found every previous step misreading one of them. `python3 -m tools.wall_crossing_dispositions` measures the WORKING TREE. `--at-head` is ASYMMETRIC BY DESIGN: it reads the WORKING-TREE REGISTER against HEAD's CODE, because the register is the CLAIM and HEAD is what must honour it -- so the `cut 86, owed 5` in its output IS THE DESK'S CLAIM AND NOT HEAD'S COUNT, so step 45's headline inference (HEAD moved to cut 86, the re-ruling landed, the cut's two halves got separated) IS FALSE. Step 51 read HEAD's row table directly: `git cat-file -p HEAD:<register>` rules that edge `disposition=owed`. NEITHER half landed; there is no separation to explain, there is one commit never made. `--at-tree HEAD` is the SYMMETRIC instrument (both sides from one tree) and no step had used it to state HEAD -- it reports HEAD self-consistent, a live edge ruled `owed`, which is exactly why no in-tree control has ever been red (3aj). RUN --at-head BEFORE PLANNING AND BEFORE CLOSING: it is the only thing that has ever caught this, now 14 for 14. BUILT is not LANDED, and a step whose whole deliverable is a landing has not STARTED until `git cat-file` finds it. BUILD THE COMMIT'S TREE AND TEST IN IT -- a real `git worktree`, NOT a `git archive` extract: an extract has no .git, so the committed-store/discharge controls fail on the technique, not the change (3ao lost 18 tests that way). A DIRTY SHARED TREE IS NOT A CHANGE SET, and a pathspec built from a diff lists what you CHANGED, never what your change NEEDS. THE RUFF RATCHET IS RED AT HEAD AND THIS LANE DOES NOT OWN IT. Step 51 measured a pristine HEAD worktree: F401 276 vs baseline 278 and I001 1369 vs 1373 (both DOWN), but F541 28 vs 27 and E741 110 vs 108 are UP -- so 3ap's claim that every rule moves DOWN is false of two, and this field's own previous census (I001 1365) was wrong too. The KNIFE change set reproduces those four figures BYTE-IDENTICALLY, i.e. it is ratchet-NEUTRAL, so tests/architecture/test_static_quality_ratchet.py and tools/revenue_sanity_check.py are OUT of the pathspec -- they do not fix the redness, the gate selects by filename stem and does not name them, and WORKER_FINDING_THE_RUFF_RATCHET_IS_RED_AT_HEAD_2026-08-14 owns that repair. THE REPLACEMENT CONTROL IS STILL BLOCKED -- DO NOT QUEUE IT A SEVENTH TIME (3ai, 3aj, 3ak already did). It is a supervisor DRAW RUNG comparing the walker at HEAD against the working tree (WORKER_FINDING_A_LANDING_STEP_CAN_ONLY_BE_CAUGHT_BY_A_TREE_IT_DOES_NOT_CONTROL_2026-08-18); background/supervisor.py carries another lane's uncommitted 308-line change AND is live to the tick, so the rung lands only after that lane does. 3aj states why NO in-tree test can ever be that control. LIVE STATE per the register's own owed rows (never by subtraction): 91 ruled, 6 owed -- 3 to B2_company_brain_decides_the_world, 1 to A_composition_lift (run_phase2b -> company.policy.decision_policy), 2 to B14_the_run_does_not_measure_itself, matching knife_hotspot_measure.py's live 6 (4 direct + 2 indirect). THIS FIELD ASSERTED 5/5 WHEN WRITTEN AT STEP 51 AND SAT UNCOMMITTED FOR 161h; step 52 landed it and re-measured FIRST, and all three instruments -- working tree, --at-head, --at-tree HEAD -- report 6 live / 6 owed, as do the register's own owed rows counted directly. The dropped row was A_composition_lift's. Step 51 spent its whole opening paragraph on the rule that broke it: DO NOT READ COUNTS HERE, RUN THE TOOL. B12 is EXECUTED and its design block has MOVED TO 3a -- do not plan against it. A_composition_lift IS NOT: step 51 called it executed, and its `decision_policy` row is still ruled `owed` and still live in HEAD, so the pre-step-51 text was right and this is a REGRESSION being reversed, not news. THREE DESIGNS REMAIN AND NONE IS MECHANICAL. A_composition_lift is ONE row (decision_policy, which 3aa row 2 shows is TWO processes -- a step taking one group and reporting the edge as falling will be wrong). B2 is the coupled-triad build: simulation.customer_events imports the company's churn model, churn-risk model and home-move win rates to decide WHO ACTUALLY CHURNS, so the company's belief cannot be wrong about churn because it IS churn -- its block says in as many words it must NOT be attempted as a mechanical move, and twice now an edge parked here turned out to be B3's cheap constant instead, so CHECK IT ACTUALLY DECIDES WHO CHURNS before treating it as B2. B14's cut is written in 3 with its one measured cost stated up front: scoring outside the run means PERSISTING the hidden payment truth, so a step taking it must say where that artefact lives and why the company cannot read it; its 2 rows are INDIRECT, and an indirect row prints `hops=` (the SHORTEST bridge chain) while `entries` names EVERY first-hop bridge -- QUOTE `entries`, NEVER `hops` (step 32 named a cut off hops alone; step 33 measured it and it cut NOTHING). level_current is DELIBERATELY still 0 at 6/91 remaining -- booking the target at ninety-three-percent-paid is the false-completion class this project names explicitly; do not bump level_target progress until owed=0. Original text preserved below for provenance. || ORIGINAL: FIRST STEP, BEFORE ANY CUT: lift build_edges / company_reads_sim / sim_reads_company out of tests/architecture/test_epistemic_wall_ratchet.py into a shared module so the ratchet, the KNIFE ledger and this pass read ONE definition of 'a crossing'. That extraction is deliberately deferred to here rather than done while planning, because moving the net while planning the cuts is the error the MAP->NET->KNIFE sequence exists to prevent. EXIT: stated when the pass is drawn, against the count that survives passes 1 and 2 -- NOT against today's 107, which will be stale.",
       "lane": "H_harness",
@@ -861,7 +823,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 1973,
+      "stall_consecutive_unchanged": 457,
       "forward_attachments": [
         {
           "source": "docs/staging/done/PLANNER_MINTED_population_and_book_growth_2026-08-11.md",
@@ -910,7 +872,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 2181,
+      "stall_consecutive_unchanged": 12,
       "forward_attachments": []
     },
     {
@@ -920,7 +882,7 @@
       "value_stream": "meter_to_cash",
       "value_stream_label": "Meter to Cash",
       "epoch": 2,
-      "level_current": 0,
+      "level_current": 2,
       "level_target": 3,
       "loop_stage": "idle",
       "dial_inherited": 50,
@@ -959,7 +921,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 2181,
+      "stall_consecutive_unchanged": 2253,
       "forward_attachments": []
     },
     {
@@ -1027,7 +989,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 2181,
+      "stall_consecutive_unchanged": 2310,
       "forward_attachments": []
     },
     {
@@ -1095,7 +1057,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 2181,
+      "stall_consecutive_unchanged": 2326,
       "forward_attachments": []
     },
     {
@@ -1105,7 +1067,7 @@
       "value_stream": "meter_to_cash",
       "value_stream_label": "Meter to Cash",
       "epoch": 3,
-      "level_current": 0,
+      "level_current": 1,
       "level_target": 3,
       "loop_stage": "idle",
       "dial_inherited": 3,
@@ -1129,7 +1091,7 @@
       "epoch": 3,
       "level_current": 2,
       "level_target": 3,
-      "loop_stage": "build",
+      "loop_stage": "idle",
       "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
       "depends_on": [
@@ -1139,7 +1101,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 1884,
+      "stall_consecutive_unchanged": 2477,
       "forward_attachments": []
     },
     {
@@ -1161,7 +1123,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 2181,
+      "stall_consecutive_unchanged": 2321,
       "forward_attachments": []
     },
     {
@@ -1300,7 +1262,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 2182,
+      "stall_consecutive_unchanged": 2261,
       "forward_attachments": []
     },
     {
@@ -1322,27 +1284,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 2181,
-      "forward_attachments": []
-    },
-    {
-      "id": "H41_the_map_ratchet_has_no_ongoing_drain",
-      "name": "MINTED FROM docs/staging/WORKER_FINDING_THE_MAP_RATCHET_REPAIR_DID_NOT_HOLD_2026-08-10.md, which carries the measured field-byte table and must not be re-derived. H32 drained the note class 464,110 -> 393,692; the map regrew to 423,947 in ONE DAY of ordinary minting, and the same red is now a PUBLISH WEDGE rather than the backlog item the first finding called it (the publish gate runs tests/design/; the pre-commit gate does not). THE FINDING: a ratchet with no ongoing drain is a one-time cleanup, not a control. EXIT: (1) a drain that runs at MINT RATE, not another one-off migration -- state which of the three candidates it implements and why; (2) if the expert_hour default is omitted, the Proof door figure expert_hour_not_attempted (tools/generate_proof_data.py:359, Counter over .get(status)) is asserted UNCHANGED against the live rendered surface, because an omitted key currently counts as None and silently moves a published number (R11); (3) the ceiling is re-derived only AFTER a drain lands, from what a 258-atom map costs -- raising it while wedged is the make-the-number-green move R12 forbids; (4) R15: a mutation that satisfies the ceiling by TRIMMING a build note must kill a named test, since paying a size warning with the record is the one closure H32 already ruled out; (5) the record may NOT be shortened to close this -- H32's own atom text binds here. R3 IS ARMED: this control has now been repaired once and recurred; a third occurrence means eliminating the fixed-byte ceiling in favour of a per-atom budget the mint path enforces, not patching it again.",
-      "lane": "H_harness",
-      "value_stream": "close_to_learn",
-      "value_stream_label": "Close to Learn",
-      "epoch": 3,
-      "level_current": 0,
-      "level_target": 2,
-      "loop_stage": "build",
-      "dial_inherited": 2,
-      "expert_hour_status": "not_attempted",
-      "depends_on": [],
-      "couples_with": [],
-      "chain": null,
-      "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 1884,
+      "stall_consecutive_unchanged": 2325,
       "forward_attachments": []
     },
     {
@@ -1362,7 +1304,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 2,
+      "stall_consecutive_unchanged": 13,
       "forward_attachments": []
     },
     {
@@ -1385,8 +1327,8 @@
       ],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null,
+      "stalled": true,
+      "stall_consecutive_unchanged": 13,
       "forward_attachments": []
     },
     {
@@ -1457,7 +1399,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 38836,
+      "stall_consecutive_unchanged": 42131,
       "forward_attachments": []
     },
     {
@@ -1501,7 +1443,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 2181,
+      "stall_consecutive_unchanged": 2325,
       "forward_attachments": []
     },
     {
@@ -1523,7 +1465,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 2181,
+      "stall_consecutive_unchanged": 2251,
       "forward_attachments": []
     },
     {
@@ -1545,7 +1487,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 2181,
+      "stall_consecutive_unchanged": 2252,
       "forward_attachments": []
     },
     {
@@ -1567,7 +1509,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 2181,
+      "stall_consecutive_unchanged": 2325,
       "forward_attachments": []
     },
     {
@@ -1591,7 +1533,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 9,
+      "stall_consecutive_unchanged": 13,
       "forward_attachments": []
     },
     {
@@ -1611,7 +1553,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 2181,
+      "stall_consecutive_unchanged": 2325,
       "forward_attachments": []
     },
     {
@@ -1621,11 +1563,11 @@
       "value_stream": "close_to_learn",
       "value_stream_label": "Close to Learn",
       "epoch": 2,
-      "level_current": 1,
+      "level_current": 2,
       "level_target": 3,
-      "loop_stage": "build",
+      "loop_stage": "idle",
       "dial_inherited": 1,
-      "expert_hour_status": "not_attempted",
+      "expert_hour_status": "attempted_finding_open",
       "depends_on": [],
       "couples_with": [
         "H41_the_map_ratchet_has_no_ongoing_drain",
@@ -1634,7 +1576,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 1884,
+      "stall_consecutive_unchanged": 857,
       "forward_attachments": []
     },
     {
@@ -1666,10 +1608,10 @@
       "value_stream": "meter_to_cash",
       "value_stream_label": "Meter to Cash",
       "epoch": 3,
-      "level_current": 1,
+      "level_current": 2,
       "level_target": 3,
-      "loop_stage": "build",
-      "dial_inherited": 45,
+      "loop_stage": "harden",
+      "dial_inherited": 80,
       "expert_hour_status": "not_attempted",
       "depends_on": [],
       "couples_with": [
@@ -1680,7 +1622,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 1695,
+      "stall_consecutive_unchanged": 2113,
       "forward_attachments": []
     },
     {
@@ -1690,11 +1632,11 @@
       "value_stream": "meter_to_cash",
       "value_stream_label": "Meter to Cash",
       "epoch": 3,
-      "level_current": 1,
+      "level_current": 2,
       "level_target": 3,
-      "loop_stage": "build",
+      "loop_stage": "idle",
       "dial_inherited": 45,
-      "expert_hour_status": "not_attempted",
+      "expert_hour_status": "attempted_finding_open",
       "depends_on": [
         "PB4_engagement_separated_from_elasticity"
       ],
@@ -1704,8 +1646,30 @@
       ],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null,
+      "stalled": true,
+      "stall_consecutive_unchanged": 742,
+      "forward_attachments": []
+    },
+    {
+      "id": "PB8_a_households_payment_channel_changes_over_its_tenure",
+      "name": "",
+      "lane": "W2_customer_generator",
+      "value_stream": "meter_to_cash",
+      "value_stream_label": "Meter to Cash",
+      "epoch": 3,
+      "level_current": 1,
+      "level_target": 2,
+      "loop_stage": "idle",
+      "dial_inherited": 45,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [
+        "PB6_the_engagement_observable_crosses_the_seam"
+      ],
+      "chain": null,
+      "at_target": false,
+      "stalled": true,
+      "stall_consecutive_unchanged": 836,
       "forward_attachments": []
     },
     {
@@ -1717,9 +1681,9 @@
       "epoch": 3,
       "level_current": 2,
       "level_target": 3,
-      "loop_stage": "harden",
+      "loop_stage": "idle",
       "dial_inherited": 45,
-      "expert_hour_status": "not_attempted",
+      "expert_hour_status": "attempted_finding_open",
       "depends_on": [
         "PB6_the_engagement_observable_crosses_the_seam"
       ],
@@ -1729,7 +1693,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 62,
+      "stall_consecutive_unchanged": 742,
       "forward_attachments": []
     },
     {
@@ -1748,28 +1712,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": 1,
-      "forward_attachments": []
-    },
-    {
-      "id": "H47_the_orientation_header_states_a_figure_it_computes",
-      "name": "",
-      "lane": "H_harness",
-      "value_stream": "price_to_bill",
-      "value_stream_label": "Price to Bill",
-      "epoch": 3,
-      "level_current": 2,
-      "level_target": 3,
-      "loop_stage": "harden",
-      "dial_inherited": 12,
-      "expert_hour_status": "attempted_finding_open",
-      "depends_on": [],
-      "couples_with": [],
-      "chain": null,
-      "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 1884,
+      "stall_consecutive_unchanged": 13,
       "forward_attachments": []
     },
     {
@@ -1779,7 +1723,7 @@
       "value_stream": "price_to_bill",
       "value_stream_label": "Price to Bill",
       "epoch": 3,
-      "level_current": 1,
+      "level_current": 2,
       "level_target": 3,
       "loop_stage": "build",
       "dial_inherited": 60,
@@ -1791,7 +1735,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 1885,
+      "stall_consecutive_unchanged": 1944,
       "forward_attachments": []
     },
     {
@@ -1813,7 +1757,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 9,
+      "stall_consecutive_unchanged": 14,
       "forward_attachments": []
     },
     {
@@ -1836,7 +1780,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 9,
+      "stall_consecutive_unchanged": 14,
       "forward_attachments": []
     },
     {
@@ -1923,7 +1867,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 2,
+      "stall_consecutive_unchanged": 13,
       "forward_attachments": []
     },
     {
@@ -1957,17 +1901,17 @@
       "value_stream": "price_to_bill",
       "value_stream_label": "Price to Bill",
       "epoch": 3,
-      "level_current": 0,
+      "level_current": 2,
       "level_target": 3,
-      "loop_stage": "build",
+      "loop_stage": "harden",
       "dial_inherited": 45,
-      "expert_hour_status": "not_attempted",
+      "expert_hour_status": "passed",
       "depends_on": [],
       "couples_with": [],
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 2,
+      "stall_consecutive_unchanged": 13,
       "forward_attachments": []
     },
     {
@@ -1988,8 +1932,8 @@
       ],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": 1,
+      "stalled": true,
+      "stall_consecutive_unchanged": 14,
       "forward_attachments": []
     },
     {
@@ -2002,7 +1946,7 @@
       "level_current": 0,
       "level_target": 2,
       "loop_stage": "build",
-      "dial_inherited": 60,
+      "dial_inherited": 80,
       "expert_hour_status": "not_attempted",
       "depends_on": [],
       "couples_with": [
@@ -2034,7 +1978,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 2,
+      "stall_consecutive_unchanged": 14,
       "forward_attachments": []
     },
     {
@@ -2046,7 +1990,7 @@
       "epoch": 4,
       "level_current": 0,
       "level_target": 3,
-      "loop_stage": "idle",
+      "loop_stage": "build",
       "dial_inherited": 45,
       "expert_hour_status": "not_attempted",
       "depends_on": [
@@ -2061,29 +2005,6 @@
       "at_target": false,
       "stalled": true,
       "stall_consecutive_unchanged": 1686,
-      "forward_attachments": []
-    },
-    {
-      "id": "C33_collections_reads_the_registers_it_already_has",
-      "name": "",
-      "lane": "C_customer_ops",
-      "value_stream": "meter_to_cash",
-      "value_stream_label": "Meter to Cash",
-      "epoch": 3,
-      "level_current": 0,
-      "level_target": 2,
-      "loop_stage": "idle",
-      "dial_inherited": 45,
-      "expert_hour_status": "not_attempted",
-      "depends_on": [],
-      "couples_with": [
-        "C29_decisions_stop_being_lookup_tables",
-        "C32_one_obligation_one_vulnerability_scorer"
-      ],
-      "chain": null,
-      "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 821,
       "forward_attachments": []
     },
     {
@@ -2106,7 +2027,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 8,
+      "stall_consecutive_unchanged": 13,
       "forward_attachments": []
     },
     {
@@ -2131,7 +2052,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 2181,
+      "stall_consecutive_unchanged": 2326,
       "forward_attachments": []
     },
     {
@@ -2156,7 +2077,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 2181,
+      "stall_consecutive_unchanged": 22,
       "forward_attachments": []
     },
     {
@@ -2306,7 +2227,7 @@
       "value_stream": "meter_to_cash",
       "value_stream_label": "Meter to Cash",
       "epoch": 3,
-      "level_current": 1,
+      "level_current": 2,
       "level_target": 3,
       "loop_stage": "build",
       "dial_inherited": 50,
@@ -2318,7 +2239,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 1885,
+      "stall_consecutive_unchanged": 1920,
       "forward_attachments": []
     },
     {
@@ -2352,7 +2273,7 @@
       "value_stream": "price_to_bill",
       "value_stream_label": "Price to Bill",
       "epoch": 3,
-      "level_current": 0,
+      "level_current": 2,
       "level_target": 3,
       "loop_stage": "harden",
       "dial_inherited": 60,
@@ -2365,7 +2286,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 1885,
+      "stall_consecutive_unchanged": 1886,
       "forward_attachments": []
     },
     {
@@ -2398,9 +2319,9 @@
       "value_stream": "price_to_bill",
       "value_stream_label": "Price to Bill",
       "epoch": 3,
-      "level_current": 0,
+      "level_current": 2,
       "level_target": 3,
-      "loop_stage": "build",
+      "loop_stage": "harden",
       "dial_inherited": 50,
       "expert_hour_status": "not_attempted",
       "depends_on": [],
@@ -2410,7 +2331,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 1884,
+      "stall_consecutive_unchanged": 1887,
       "forward_attachments": []
     },
     {
@@ -2473,6 +2394,165 @@
         "G15_forward_curve_series_to_backtest_hedging_by_physics"
       ],
       "couples_with": [],
+      "chain": null,
+      "at_target": false,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
+    },
+    {
+      "id": "W2_36_unbilled_energy_arises_the_way_it_does_in_reality",
+      "name": "",
+      "lane": "W2_customer_generator",
+      "value_stream": "meter_to_cash",
+      "value_stream_label": "Meter to Cash",
+      "epoch": 4,
+      "level_current": 0,
+      "level_target": 3,
+      "loop_stage": "build",
+      "dial_inherited": 100,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [
+        "D48_billing_accuracy_the_company_measures_what_it_billed_against_what_was_used"
+      ],
+      "chain": null,
+      "at_target": false,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
+    },
+    {
+      "id": "D48_billing_accuracy_the_company_measures_what_it_billed_against_what_was_used",
+      "name": "",
+      "lane": "D_billing_metering",
+      "value_stream": "meter_to_cash",
+      "value_stream_label": "Meter to Cash",
+      "epoch": 4,
+      "level_current": 0,
+      "level_target": 3,
+      "loop_stage": "build",
+      "dial_inherited": 100,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [
+        "W2_36_unbilled_energy_arises_the_way_it_does_in_reality"
+      ],
+      "chain": null,
+      "at_target": false,
+      "stalled": true,
+      "stall_consecutive_unchanged": 151,
+      "forward_attachments": []
+    },
+    {
+      "id": "B11_forward_clv_backtested_on_held_back_history",
+      "name": "",
+      "lane": "B_commercial",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 4,
+      "level_current": 0,
+      "level_target": 3,
+      "loop_stage": "build",
+      "dial_inherited": 90,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [
+        "EP1_clv_three_horizon"
+      ],
+      "chain": null,
+      "at_target": false,
+      "stalled": true,
+      "stall_consecutive_unchanged": 151,
+      "forward_attachments": []
+    },
+    {
+      "id": "W2_37_complaints_arise_from_billing_failures_and_the_silent_unhappy_are_modelled",
+      "name": "",
+      "lane": "W2_customer_generator",
+      "value_stream": "meter_to_cash",
+      "value_stream_label": "Meter to Cash",
+      "epoch": 4,
+      "level_current": 0,
+      "level_target": 3,
+      "loop_stage": "build",
+      "dial_inherited": 95,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "W2_36_unbilled_energy_arises_the_way_it_does_in_reality"
+      ],
+      "couples_with": [
+        "C34_next_best_action_is_one_decision_across_debt_retention_upsell_and_carbon_judged_by_clv"
+      ],
+      "chain": null,
+      "at_target": false,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
+    },
+    {
+      "id": "W2_38_the_worlds_debt_is_graded_against_ofgems_quarterly_series",
+      "name": "",
+      "lane": "W2_customer_generator",
+      "value_stream": "meter_to_cash",
+      "value_stream_label": "Meter to Cash",
+      "epoch": 4,
+      "level_current": 0,
+      "level_target": 3,
+      "loop_stage": "build",
+      "dial_inherited": 90,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [
+        "EP4_collections_journey"
+      ],
+      "chain": null,
+      "at_target": false,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
+    },
+    {
+      "id": "W2_39_households_respond_to_contact_including_badly",
+      "name": "",
+      "lane": "W2_customer_generator",
+      "value_stream": "meter_to_cash",
+      "value_stream_label": "Meter to Cash",
+      "epoch": 4,
+      "level_current": 0,
+      "level_target": 3,
+      "loop_stage": "build",
+      "dial_inherited": 85,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [
+        "C34_next_best_action_is_one_decision_across_debt_retention_upsell_and_carbon_judged_by_clv"
+      ],
+      "chain": null,
+      "at_target": false,
+      "stalled": true,
+      "stall_consecutive_unchanged": 131,
+      "forward_attachments": []
+    },
+    {
+      "id": "C34_next_best_action_is_one_decision_across_debt_retention_upsell_and_carbon_judged_by_clv",
+      "name": "",
+      "lane": "C_customer_ops",
+      "value_stream": "meter_to_cash",
+      "value_stream_label": "Meter to Cash",
+      "epoch": 4,
+      "level_current": 0,
+      "level_target": 3,
+      "loop_stage": "build",
+      "dial_inherited": 75,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "B11_forward_clv_backtested_on_held_back_history"
+      ],
+      "couples_with": [
+        "W2_39_households_respond_to_contact_including_badly",
+        "B8_discovered_price_sensitivity_holdout"
+      ],
       "chain": null,
       "at_target": false,
       "stalled": false,
@@ -7875,6 +7955,149 @@
       "stalled": true,
       "stall_consecutive_unchanged": 4,
       "forward_attachments": []
+    },
+    {
+      "id": "EP13_2_split_the_gas_level_remainder",
+      "name": "",
+      "lane": "W4_the_wall",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 3,
+      "level_current": 2,
+      "level_target": 2,
+      "loop_stage": "idle",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [],
+      "chain": null,
+      "at_target": true,
+      "stalled": true,
+      "stall_consecutive_unchanged": 65,
+      "forward_attachments": []
+    },
+    {
+      "id": "H41_the_map_ratchet_has_no_ongoing_drain",
+      "name": "MINTED FROM docs/staging/WORKER_FINDING_THE_MAP_RATCHET_REPAIR_DID_NOT_HOLD_2026-08-10.md, which carries the measured field-byte table and must not be re-derived. H32 drained the note class 464,110 -> 393,692; the map regrew to 423,947 in ONE DAY of ordinary minting, and the same red is now a PUBLISH WEDGE rather than the backlog item the first finding called it (the publish gate runs tests/design/; the pre-commit gate does not). THE FINDING: a ratchet with no ongoing drain is a one-time cleanup, not a control. EXIT: (1) a drain that runs at MINT RATE, not another one-off migration -- state which of the three candidates it implements and why; (2) if the expert_hour default is omitted, the Proof door figure expert_hour_not_attempted (tools/generate_proof_data.py:359, Counter over .get(status)) is asserted UNCHANGED against the live rendered surface, because an omitted key currently counts as None and silently moves a published number (R11); (3) the ceiling is re-derived only AFTER a drain lands, from what a 258-atom map costs -- raising it while wedged is the make-the-number-green move R12 forbids; (4) R15: a mutation that satisfies the ceiling by TRIMMING a build note must kill a named test, since paying a size warning with the record is the one closure H32 already ruled out; (5) the record may NOT be shortened to close this -- H32's own atom text binds here. R3 IS ARMED: this control has now been repaired once and recurred; a third occurrence means eliminating the fixed-byte ceiling in favour of a per-atom budget the mint path enforces, not patching it again.",
+      "lane": "H_harness",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 3,
+      "level_current": 2,
+      "level_target": 2,
+      "loop_stage": "build",
+      "dial_inherited": 2,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [],
+      "chain": null,
+      "at_target": true,
+      "stalled": true,
+      "stall_consecutive_unchanged": 1928,
+      "forward_attachments": []
+    },
+    {
+      "id": "H47_the_orientation_header_states_a_figure_it_computes",
+      "name": "",
+      "lane": "H_harness",
+      "value_stream": "price_to_bill",
+      "value_stream_label": "Price to Bill",
+      "epoch": 3,
+      "level_current": 3,
+      "level_target": 3,
+      "loop_stage": "idle",
+      "dial_inherited": 12,
+      "expert_hour_status": "passed",
+      "depends_on": [],
+      "couples_with": [],
+      "chain": null,
+      "at_target": true,
+      "stalled": true,
+      "stall_consecutive_unchanged": 1942,
+      "forward_attachments": []
+    },
+    {
+      "id": "H49_an_untracked_copy_of_an_earlier_origin_revision_is_cleared_like_a_twin",
+      "name": "",
+      "lane": "H_harness",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 3,
+      "level_current": 2,
+      "level_target": 2,
+      "loop_stage": "build",
+      "dial_inherited": 12,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [],
+      "chain": null,
+      "at_target": true,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
+    },
+    {
+      "id": "C33_collections_reads_the_registers_it_already_has",
+      "name": "",
+      "lane": "C_customer_ops",
+      "value_stream": "meter_to_cash",
+      "value_stream_label": "Meter to Cash",
+      "epoch": 3,
+      "level_current": 2,
+      "level_target": 2,
+      "loop_stage": "idle",
+      "dial_inherited": 45,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [
+        "C29_decisions_stop_being_lookup_tables",
+        "C32_one_obligation_one_vulnerability_scorer"
+      ],
+      "chain": null,
+      "at_target": true,
+      "stalled": true,
+      "stall_consecutive_unchanged": 821,
+      "forward_attachments": []
+    },
+    {
+      "id": "SP2_1_working_day_calculator",
+      "name": "Canonical working-day calculator + dated England-&-Wales bank-holiday calendar, all ~17 independent callers migrated, with a guard that reds on a second definition (R10 class fix)",
+      "lane": "D_billing_metering",
+      "value_stream": "meter_to_cash",
+      "value_stream_label": "Meter to Cash",
+      "epoch": 2,
+      "level_current": 3,
+      "level_target": 3,
+      "loop_stage": "build",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [],
+      "chain": null,
+      "at_target": true,
+      "stalled": true,
+      "stall_consecutive_unchanged": 2,
+      "forward_attachments": []
+    },
+    {
+      "id": "D_money_boundary_reconciliation",
+      "name": "Bill boundary-reconciliation fix: make rounded line items sum to the printed total (37.0% of bills currently do not), the [ACT] recommendation returned by the money-representation DISCOVER",
+      "lane": "D_billing_metering",
+      "value_stream": "price_to_bill",
+      "value_stream_label": "Price to Bill",
+      "epoch": 2,
+      "level_current": 3,
+      "level_target": 3,
+      "loop_stage": "harden",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [],
+      "chain": null,
+      "at_target": true,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     }
   ],
   "lanes": {
@@ -7957,7 +8180,7 @@
       "loop_stage_now": "harden"
     }
   },
-  "total_atoms": 351,
+  "total_atoms": 361,
   "epoch2_movements": [
     {
       "id": "M1",

@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-09-28T03:54:00Z",
-  "git_hash": "acd8567d8",
+  "generated_at": "2026-10-05T21:16:56Z",
+  "git_hash": "998814330",
   "published_from": {
-    "commit": "acd8567d85951bf140021101c169c33bafc5d3d1",
+    "commit": "998814330c298a6f749b14a311739618ffa7de16",
     "tree_was_clean": true,
     "inputs_are_the_committed_bytes": true,
     "inputs": [
@@ -482,11 +482,11 @@
               "resolved_path": "tests/tools/test_claude_md_integrity.py",
               "raw": "tests/tools/test_claude_md_integrity.py",
               "is_test": true,
-              "test_functions": 52
+              "test_functions": 57
             }
           ],
           "test_files": 1,
-          "test_functions": 52,
+          "test_functions": 57,
           "ledger": [],
           "missing": [
             "NO_LEDGER_RECORD"
@@ -2599,7 +2599,7 @@
           "id": "E5_carbon_three_ledger",
           "name": "Carbon three-ledger (the v4 mission's core measurement): customer carbon SAVED / operational carbon SPENT (people, compute, tokens) / NET position, feeding \u00a3 per tonne CO2e = (cost to serve + cost to persuade incl compute) / carbon abated. A DIAGNOSTIC, reported like a P&L, never an optimisation target",
           "lane": "E_finance_treasury",
-          "loop_stage": "build   # 2026-08-19: the 2026-07-20 \"no in-scope BUILD increment\" park reason was STALE and is deleted. It was true of the rungs it considered (SAVED feed, SPENT emitter) but the atom's own 2026-07-29 FRAME had already named a third increment that is factor-agnostic and values-call-free -- the absent-feed fail-open and the R14 labels dropped at aggregation -- and that increment was BUILT this tick without touching a single values-call. REMAINING build IS values-call/trajectory-gated as before: SAVED needs the unbuilt per-household cost-and-carbon trajectory; the SPENT emitter needs the emissions-factor SET, which the DISCOVER doc + CARBON_NOT_A_TARGET reserve as a DIRECTOR VALUES-CALL (carbon is the mission, values-adjacent). Lesson worth keeping: a park reason that names the gated rungs is not the same as proving the atom has no ungated work.",
+          "loop_stage": "idle   # 2026-10-01 parked on block_reason; back to build when a source lands",
           "level_current": 0,
           "level_target": 3,
           "at_target": false,
