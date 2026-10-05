@@ -310,6 +310,12 @@ IDLE_TURN_COUNTER_FILE = PROJECT_DIR / "docs" / "observability" / ".supervisor_i
 BUILD_IN_PROGRESS_FILE = PROJECT_DIR / "docs" / "observability" / ".build_in_progress.json"
 BUILD_IN_PROGRESS_TTL_SECONDS = 3600
 
+# THE DIRECTOR'S PRIORITY ORDER (DIRECTOR_CANON_THE_PRIORITY_ORDER_2026-10-05), as the map expresses
+# it: step number per atom. The BUILD draw takes its primary from the earliest step that has a
+# candidate; dials sequence within that step. See `_follow_the_priority_order` for why a weight
+# could not do this.
+PRIORITY_ORDER_PATH = PROJECT_DIR / "docs" / "direction" / "priority_order.yaml"
+
 # PUBLISH-GATE WEDGE RUNG 1 (director rulings UNWEDGE_PUBLISH_PRIORITY_ZERO 2026-07-23 +
 # WEDGE3_AND_RUNG1_MECHANISE 2026-07-24, SECOND consumed-not-absorbed on the same rule). A publish
 # gate that has been failing for >60 min while alerts fire and the tick idles is PRIORITY-ZERO
@@ -1039,6 +1045,59 @@ def _build_in_progress_ids() -> set:
         return set()
 
 
+def _priority_steps(path: Path | None = None) -> dict:
+    """{atom_id: canon step} from `docs/direction/priority_order.yaml`. FAIL-OPEN to {} -- a
+    missing or malformed order leaves the draw exactly as the dials alone would make it."""
+    try:
+        import yaml
+        data = yaml.safe_load(Path(path or PRIORITY_ORDER_PATH).read_text(encoding="utf-8")) or {}
+        return {aid: int(k) for k, v in (data.get("steps") or {}).items()
+                for aid in ((v or {}).get("atoms") or [])}
+    except Exception:
+        return {}
+
+
+def _in_flight_ids(stall_state: dict, now: float | None = None) -> set:
+    """Atoms the draw handed out within the last BUILD_IN_PROGRESS_TTL_SECONDS and that are still
+    moving (not flagged stalled). The canon: "In-flight work finishes first. The new order applies
+    to what is drawn next, not to work already under way." An atom that stops moving is flagged
+    stalled after ATOM_STALL_THRESHOLD unchanged draws and stops being in flight."""
+    import time as _time
+    now = _time.time() if now is None else now
+    out = set()
+    for aid, row in (stall_state or {}).items():
+        if not isinstance(row, dict) or row.get("stalled"):
+            continue
+        try:
+            if now - float(row.get("last_drawn_at") or 0.0) < BUILD_IN_PROGRESS_TTL_SECONDS:
+                out.add(aid)
+        except (TypeError, ValueError):
+            continue
+    return out
+
+
+def _follow_the_priority_order(candidates: list, steps: dict, in_flight: set) -> list:
+    """The candidates the PRIMARY pick may come from: the earliest canon step present, plus any
+    in-flight atom whatever its step. With no ordered candidate the set is returned unchanged.
+
+    WHY A TIER AND NOT A BIGGER DIAL. On 2026-09-04 a re-ranking moved the dials and the work did
+    not move, and the 7 days to 2026-10-05 measured why: 81% of the atom draws in the supervisor
+    log went to atoms in no step of the order, because a dial is a weight in a proportional draw
+    over every survivor, so raising one atom's dial buys it a share, never a turn. A step is an
+    ORDER, so it is applied as one: within the earliest step the dials still choose (the canon
+    gives within-step sequencing to the seat), and outside it they do not compete for the primary.
+
+    NOT A GATE (Rule 0): it never removes the last candidate -- the earliest present step always
+    has at least one -- and unordered atoms still join as file-disjoint concurrent picks."""
+    if not steps:
+        return candidates
+    ranked = [steps[a.get("id")] for a in candidates if a.get("id") in steps]
+    if not ranked:
+        return candidates
+    first = min(ranked)
+    return [a for a in candidates if steps.get(a.get("id")) == first or a.get("id") in in_flight]
+
+
 def _unmerged_work_paths(root: Path | None = None) -> frozenset:
     """File paths carrying UNMERGED work anywhere in this checkout -- read from GIT REALITY
     (worktrees, unmerged branch tips, uncommitted worktree edits), never from a marker some
@@ -1490,6 +1549,12 @@ def _maturity_map_draw_concurrent(rng: Any = None, exclude_stalled: bool = False
         candidates = _prefer_least_stalled(candidates, _load_atom_stall_state(), lane="BUILD")
     if not candidates:
         return []
+    # THE PRIORITY ORDER picks the primary's pool; the dials pick within it (see the helper).
+    # `survivors` keeps every candidate, because the concurrent picks below come from all of them.
+    _steps = _priority_steps()
+    survivors = candidates
+    candidates = _follow_the_priority_order(
+        survivors, _steps, _in_flight_ids(_load_atom_stall_state()) if _steps else set())
     weights = [max(1, a.get("dial_inherited", 1)) for a in candidates]
     # THE DELIVERY SEAT STEERS HERE, and only here (docs/design/THE_DELIVERY_SEAT.md §5).
     # A WEIGHT, NEVER A GATE: `focus_weights` multiplies these dials and can never return
@@ -1532,13 +1597,15 @@ def _maturity_map_draw_concurrent(rng: Any = None, exclude_stalled: bool = False
             )
 
     selected = [primary]
-    remaining = [c for c in candidates if c is not primary]
+    remaining = [c for c in survivors if c is not primary]
     # Dial dominates (primary key, unchanged); COMPOUNDING is the secondary
     # tie-break among equal-dial additional picks (0 = compounding first, 1 =
     # not), then map order via the stable sort -- so ordering is identical to
     # before whenever no candidate is compounding (all rank 1). ONE_FRAMEWORK
     # §7 sub-step 2 (C1/C7): a tie-break on ORDER only, never a filter.
-    remaining.sort(key=lambda a: (-(a.get("dial_inherited") or 1), 0 if _is_compounding(a) else 1))
+    # The priority order ranks the concurrent picks too, ahead of the dial (no step sorts last).
+    remaining.sort(key=lambda a: (_steps.get(a.get("id"), float("inf")),
+                                  -(a.get("dial_inherited") or 1), 0 if _is_compounding(a) else 1))
     for atom in remaining:
         if all(_atoms_file_disjoint(atom, s) for s in selected):
             selected.append(atom)

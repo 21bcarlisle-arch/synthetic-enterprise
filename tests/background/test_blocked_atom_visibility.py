@@ -267,6 +267,9 @@ UNPARKED_SUBJECT_COVERAGE: dict[str, list[str]] = {
         # `block_reason` was empty, so nothing was crossed. EP6 was epoch 3 behind R13 and
         # WAS reverted. This entry is the ledger line this constant's docstring asks for.
         "EP1_clv_three_horizon",
+        # 2026-10-05. Minted unparked (9a2356731) as step 3 of DIRECTOR_CANON_THE_PRIORITY_ORDER:
+        # a new atom the director's order asks to be drawable, not one released from a park.
+        "B11_forward_clv_backtested_on_held_back_history",
     ],
     "counterparty_adapter": [
         # 2026-08-25. Unparked by the door, not around it, and the distinction from EP6 is again
