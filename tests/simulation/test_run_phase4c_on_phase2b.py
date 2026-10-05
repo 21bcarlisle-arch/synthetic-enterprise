@@ -231,6 +231,20 @@ def test_main_produces_meter_read_log_matching_bills(main_result):
     assert len(basis_by_key) == len(result["bills"]), "bill keys are not unique"
 
 
+def test_main_measures_billing_accuracy_from_its_own_bills(main_result):
+    """D48: the run hands back the company's billed-against-read measure. Defect caught: the key
+    computed from something other than the bills it sits beside, or a window too short to hold
+    one estimate and one true-up, which would make the join below vacuous."""
+    accuracy = main_result["billing_accuracy"]
+    elec = accuracy["by_fuel"]["electricity"]
+    assert elec["estimated_kwh"] > 0 and elec["true_ups"] > 0, elec
+    bills = main_result["bills"]
+    assert sum(f["true_ups"] for f in accuracy["by_fuel"].values()) == sum(
+        1 for b in bills if b.get("read_true_up_kwh") is not None)
+    assert sum(f["estimated_kwh"] for f in accuracy["by_fuel"].values()) == pytest.approx(sum(
+        b["total_consumption_kwh"] for b in bills if b["billing_basis"] == "estimated"))
+
+
 def test_main_window_holds_a_churned_accounts_final_read(main_result):
     # The live counterpart of the forced-estimate proof below: a churned account's last bill
     # resolves on an actual read (SLC 21B). Without a churned account in the window the override
@@ -808,6 +822,49 @@ def test_an_estimated_run_past_12_months_is_not_forced_and_its_final_read_meets_
     assert closing["catchup_written_off_gbp"] > 0
 
 
+def test_billing_accuracy_finds_the_barred_energy_the_read_process_makes_and_none_when_every_read_is_actual(
+        monkeypatch):
+    """D48 against the world's own read process, not a scripted feed: the 16-month run above,
+    measured. Defect caught: a measure that cannot see the estimates the world produces. Both arms
+    in one statement, so a measure that is zero everywhere fails as surely as one that ignores
+    the reads."""
+    import simulation.meter_reads as mr
+    from company.interfaces.bill_assembly import billing_accuracy
+
+    real_read = mr.simulate_read
+
+    def opening_read_actual(customer_id, period_end, meter_type, kwh, *rest):
+        if period_end == "2022-01-31":
+            return mr.MeterReadEvent(customer_id=customer_id, period_end=period_end,
+                                     meter_type=meter_type, delay_days=0, status="actual",
+                                     true_consumption_kwh=kwh, consecutive_estimated_count=0)
+        return real_read(customer_id, period_end, meter_type, kwh, *rest)
+
+    records = []
+    for i in range(16):
+        records.extend(_sc_month_records("C1", 2022 + i // 12, i % 12 + 1, 200.0 + 40.0 * i,
+                                         unit_rate=200.0))
+
+    with monkeypatch.context() as m:
+        # force_estimated_reads' pins, inlined: a fixture cannot be called from a test body.
+        m.setattr(mr, "TRADITIONAL_ACTUAL_READ_PROBABILITY", 0.0)
+        m.setattr(mr, "HARD_TO_READ_ACTUAL_READ_PROBABILITY", 0.0)
+        m.setattr(mr, "SMART_METER_NOT_COMMUNICATING_RATE", 1.0)
+        m.setattr(mr, "simulate_read", opening_read_actual)
+        estimating = billing_accuracy(build_monthly_bills(records, churned_ids={"C1"}))
+    with monkeypatch.context() as m:
+        # force_actual_reads' pins, inlined: a fixture cannot be called from a test body.
+        m.setattr(mr, "TRADITIONAL_ACTUAL_READ_PROBABILITY", 1.0)
+        m.setattr(mr, "HARD_TO_READ_ACTUAL_READ_PROBABILITY", 1.0)
+        m.setattr(mr, "SMART_METER_NOT_COMMUNICATING_RATE", 0.0)
+        m.setattr(mr, "READ_CUTOFF_DAYS_AFTER_PERIOD_END", 10**9)
+        every_read_actual = billing_accuracy(build_monthly_bills(records, churned_ids={"C1"}))
+
+    est, act = estimating["by_fuel"]["electricity"], every_read_actual["by_fuel"]["electricity"]
+    assert (est["barred_kwh"] > 0 and est["undercharge_kwh"] > est["barred_kwh"]
+            and act["estimated_kwh"] == 0 and act["barred_kwh"] == 0), (est, act)
+
+
 def test_non_churned_customer_unaffected_by_other_customers_churning(force_estimated_reads):
     """churned_ids scoping is per-customer -- a customer NOT in the set is
     unaffected even when other real customers in the same run are."""
@@ -867,7 +924,7 @@ class TestSerializeDdCollectionBook:
     that closed this atom's decisive 'zero live pipeline callers' gap."""
 
     def test_serializes_summary_mandates_and_attempts(self):
-        from company.billing.direct_debit import DirectDebitBook, DDPaymentAttempt
+        from company.billing.direct_debit import DDPaymentAttempt, DirectDebitBook
         from simulation.run_phase4c_on_phase2b import _serialize_dd_collection_book
 
         book = DirectDebitBook()
@@ -891,7 +948,8 @@ class TestSerializeDdCollectionBook:
 
     def test_result_is_json_serializable(self):
         import json
-        from company.billing.direct_debit import DirectDebitBook, DDPaymentAttempt
+
+        from company.billing.direct_debit import DDPaymentAttempt, DirectDebitBook
         from simulation.run_phase4c_on_phase2b import _serialize_dd_collection_book
 
         book = DirectDebitBook()

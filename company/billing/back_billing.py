@@ -11,8 +11,7 @@ from __future__ import annotations
 import datetime as dt
 from dataclasses import dataclass
 from enum import Enum
-from typing import Dict, List, Optional
-
+from typing import List
 
 # SLC 21BA: domestic and microbusiness customers cannot be back-billed for energy consumed
 # more than 12 months before the billing date where the supplier failed to bill.
@@ -53,15 +52,22 @@ class BackBillingAssessment:
         return self.consumption_period_start < self._protected_start
 
     @property
+    def barred_fraction(self) -> float:
+        """The share of the consumption period, by days, that the cap bars: 0.0 when it does not
+        apply. Exposed so an energy figure can be barred by the same rule as the money one."""
+        if not self.cap_applies:
+            return 0.0
+        total_days = (self.consumption_period_end - self.consumption_period_start).days
+        if total_days <= 0:
+            return 1.0
+        allowed_days = max(0, (self.consumption_period_end - self._protected_start).days)
+        return 1.0 - min(1.0, allowed_days / total_days)
+
+    @property
     def capped_amount_gbp(self) -> float:
         if not self.cap_applies:
             return self.billed_amount_gbp
-        total_days = (self.consumption_period_end - self.consumption_period_start).days
-        if total_days <= 0:
-            return 0.0
-        allowed_days = max(0, (self.consumption_period_end - self._protected_start).days)
-        fraction = min(1.0, allowed_days / total_days)
-        return round(self.billed_amount_gbp * fraction, 2)
+        return round(self.billed_amount_gbp * (1.0 - self.barred_fraction), 2)
 
     @property
     def written_off_gbp(self) -> float:

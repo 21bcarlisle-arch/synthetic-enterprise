@@ -248,6 +248,30 @@ def _resolve_catchup(
 
     write_off_adjustment: AccountAdjustmentRecord | None = None
 
+    # The same reconciliation in ENERGY, which is what D48 measures. At the actual read the
+    # register advance over the run is known; the run's per-month split is not, which is why
+    # only the run totals are formed, and why the barred share is apportioned by days -- the
+    # rule the money cap below applies (`BackBillingAssessment.barred_fraction`).
+    # A run handed over in money only (a caller that predates the energy keys) gets None, not 0.
+    has_energy = all("billed_kwh" in p and "used_kwh" in p for p in pending_run)
+    run_billed_kwh = sum(p["billed_kwh"] for p in pending_run) if has_energy else None
+    true_up_kwh = (
+        sum(p["used_kwh"] for p in pending_run) - run_billed_kwh if has_energy else None
+    )
+    energy_assessment = BackBillingAssessment(
+        account_id=customer_id,
+        billing_date=billing_date,
+        consumption_period_start=datetime.fromisoformat(period_start).date(),
+        consumption_period_end=datetime.fromisoformat(period_end).date(),
+        billed_amount_gbp=0.0,
+        reason=BackBillingReason.ESTIMATED_READ_CORRECTED,
+        is_domestic=is_domestic,
+    )
+    barred_kwh = (
+        None if true_up_kwh is None
+        else true_up_kwh * energy_assessment.barred_fraction if true_up_kwh > 0 else 0.0
+    )
+
     if raw_delta_gbp > 0:
         assessment = BackBillingAssessment(
             account_id=customer_id,
@@ -307,6 +331,9 @@ def _resolve_catchup(
         "written_off_gbp": round(written_off_gbp, 2) + 0.0,
         "back_billing_cap_applied": cap_applied,
         "is_material": abs(chargeable_gbp) >= CATCHUP_MATERIALITY_THRESHOLD_GBP,
+        "billed_kwh": run_billed_kwh,
+        "true_up_kwh": true_up_kwh,
+        "barred_kwh": barred_kwh,
     }
     if write_off_adjustment is not None:
         result["write_off_adjustment_id"] = write_off_adjustment.record_id
@@ -491,6 +518,13 @@ def build_monthly_bills(
                 # CATCHUP_MATERIALITY_THRESHOLD_GBP -- previously computed and
                 # exposed but never actually consulted, so a genuinely £0.00
                 # correction was still stamped onto the bill as a real event.
+                # The energy true-up is stamped whether or not the money correction is material:
+                # an immaterial correction is not billed, but the register still moved.
+                if catchup is not None:
+                    bill["read_true_up_periods"] = catchup["periods_covered"]
+                    bill["read_true_up_billed_kwh"] = catchup.get("billed_kwh")
+                    bill["read_true_up_kwh"] = catchup.get("true_up_kwh")
+                    bill["read_true_up_barred_kwh"] = catchup.get("barred_kwh")
                 if catchup is not None and catchup["is_material"]:
                     bill["catchup_applied"] = True
                     bill["catchup_period_start"] = catchup["period_start"]
@@ -576,6 +610,8 @@ def build_monthly_bills(
                     "period_end": bill["period_end"],
                     "true_total_amount_gbp": bill["true_total_amount_gbp"],
                     "total_amount_gbp": bill["total_amount_gbp"],
+                    "billed_kwh": bill["total_consumption_kwh"],
+                    "used_kwh": true_kwh,
                 })
             bills.append(bill)
             # One event per bill, in bills order -- appended here, in the same
