@@ -245,6 +245,23 @@ def test_main_measures_billing_accuracy_from_its_own_bills(main_result):
         b["total_consumption_kwh"] for b in bills if b["billing_basis"] == "estimated"))
 
 
+def test_main_grades_the_ledgers_billed_on_estimate_position_it_hands_back(main_result):
+    """D48 slice 2: the K1 grade splits the ledger's billed-on-estimate position over the run's own
+    bills. Defect caught: the split drifting from `saas.ledger.estimated_billing_outstanding`, or
+    a window holding no year end to grade at."""
+    from company.billing.billing_accuracy import estimated_billing_outstanding_grade
+    from saas.ledger import estimated_billing_outstanding
+
+    bills = main_result["bills"]
+    assert main_result["billing_accuracy"]["K1_year_end_grades"]["electricity"], "no year end"
+    grade = estimated_billing_outstanding_grade(bills)
+    ledger = estimated_billing_outstanding(bills)
+    assert grade["outstanding_bills"] == ledger["outstanding_bill_count"]
+    # The ledger rounds each account to the penny before summing.
+    assert grade["outstanding_gbp"] == pytest.approx(
+        ledger["estimated_billing_outstanding_gbp"], abs=0.005 * len(ledger["by_customer"]) + 0.01)
+
+
 def test_main_window_holds_a_churned_accounts_final_read(main_result):
     # The live counterpart of the forced-estimate proof below: a churned account's last bill
     # resolves on an actual read (SLC 21B). Without a churned account in the window the override

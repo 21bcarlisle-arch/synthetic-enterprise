@@ -454,9 +454,12 @@ def test_billed_on_estimate_is_not_reported_as_unbilled_revenue():
 
 
 def test_an_unresolved_estimated_bill_is_carried_as_unbilled_revenue():
-    bills = [bill(billing_basis="estimated", total=500.0),
+    # Until D48 slice 2 (2026-10-05) this pinned an estimate FOLLOWED by an actual read as still
+    # outstanding: the defect itself, as a read with an immaterial correction sets no
+    # `catchup_applied`. An estimate with no later read is the one still outstanding.
+    bills = [bill(billing_basis="actual", total=600.0),
              bill(period_start="2024-02-01", period_end="2024-02-29",
-                  billing_basis="actual", total=600.0)]
+                  billing_basis="estimated", total=500.0)]
     assert estimated_billing_outstanding(bills) == {
         "estimated_billing_outstanding_gbp": 500.0,
         "outstanding_bill_count": 1,

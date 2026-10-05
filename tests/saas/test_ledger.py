@@ -806,6 +806,22 @@ def test_estimated_billing_outstanding_resolved_by_later_catchup_is_not_outstand
     assert result["by_customer"] == {}
 
 
+def test_estimated_billing_outstanding_ended_by_a_read_with_an_immaterial_correction_is_not_outstanding():
+    """A read ends the run whether or not its correction is billed. Defect caught (D48 slice 2):
+    keying only on `catchup_applied`, which only a material correction sets, so the estimate stayed
+    outstanding for ever. The estimate after the read is still outstanding."""
+    from saas.ledger import estimated_billing_outstanding
+    before = _bill_9a(period_start="2016-01-01", period_end="2016-01-31")
+    before["billing_basis"] = "estimated"
+    read = _bill_9a(period_start="2016-02-01", period_end="2016-02-29")
+    read["billing_basis"] = "actual"
+    after = _bill_9a(period_start="2016-03-01", period_end="2016-03-31")
+    after["billing_basis"] = "estimated"
+    result = estimated_billing_outstanding([before, read, after])
+    assert result["outstanding_bill_count"] == 1
+    assert result["estimated_billing_outstanding_gbp"] == pytest.approx(after["total_amount_gbp"])
+
+
 def test_estimated_billing_outstanding_multiple_customers_isolated():
     from saas.ledger import estimated_billing_outstanding
     c1_est = _bill_9a(customer_id="C1", period_start="2016-01-01", period_end="2016-01-31")

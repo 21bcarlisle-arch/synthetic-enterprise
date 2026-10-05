@@ -330,10 +330,15 @@ def estimated_billing_outstanding(bills: list[dict[str, Any]]) -> dict[str, Any]
     An estimated-basis bill's revenue is already recognised in full via its own billing_event
     (Phase 7a); this says how much of that recognised revenue rests on an estimate.
 
-    A bill is OUTSTANDING if it is `billing_basis == "estimated"` and no bill for the same customer
+    A bill is OUTSTANDING if it is `billing_basis == "estimated"`, no bill for the same customer
     has a `catchup_applied` covering its period (`catchup_period_start` <= this bill's `period_end`
-    <= `catchup_period_end`) -- the period range D3's own `_resolve_catchup()` stamps on the
-    resolving bill, reused here rather than re-derived.
+    <= `catchup_period_end`, the range D3's own `_resolve_catchup()` stamps), and no later bill for
+    the customer is on an actual read. The last leg was added 2026-10-05 (D48 slice 2):
+    `catchup_applied` is set only for a MATERIAL correction, so a run an actual read closed with a
+    correction under the threshold stayed "outstanding" for ever. On the decade run that was 83% of
+    the £93,059 the annual report printed. A read ends the run whether or not the correction is
+    billed. `company.billing.billing_accuracy.estimated_billing_outstanding_grade` splits and
+    grades the same position.
 
     Returns a dict: `estimated_billing_outstanding_gbp` (portfolio total), `outstanding_bill_count`,
     `by_customer` (customer_id -> outstanding GBP, only customers with a non-zero balance),
@@ -341,10 +346,13 @@ def estimated_billing_outstanding(bills: list[dict[str, Any]]) -> dict[str, Any]
     """
     by_customer_estimated: dict[str, list[dict[str, Any]]] = {}
     resolved_ranges: dict[str, list[tuple[str, str]]] = {}
+    last_read: dict[str, str] = {}
     for b in bills:
         cid = b["customer_id"]
         if b.get("billing_basis") == "estimated":
             by_customer_estimated.setdefault(cid, []).append(b)
+        elif b.get("billing_basis") == "actual":
+            last_read[cid] = max(last_read.get(cid, ""), b.get("period_end", ""))
         if b.get("catchup_applied"):
             resolved_ranges.setdefault(cid, []).append(
                 (b.get("catchup_period_start", ""), b.get("catchup_period_end", ""))
@@ -358,7 +366,8 @@ def estimated_billing_outstanding(bills: list[dict[str, Any]]) -> dict[str, Any]
         customer_total = 0.0
         for b in est_bills:
             period_end = b.get("period_end", "")
-            resolved = any(start <= period_end <= end for start, end in ranges)
+            resolved = (any(start <= period_end <= end for start, end in ranges)
+                        or period_end < last_read.get(cid, ""))
             if not resolved:
                 customer_total += b.get("total_amount_gbp", 0.0)
                 outstanding_count += 1

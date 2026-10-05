@@ -29,18 +29,29 @@ not the month-by-month truth, and this module is held to the same limit. The con
 An estimated run that has not yet met a read is reported as `open_estimated_kwh`. Its true-up is
 not known, so it is not guessed.
 
-Kinds K1 and K4-K7 are not measured here. K1 (the accrual) is graded against these true-ups in a
-later slice. K4-K7 cannot arise in the run yet (note §5).
+K1 (slice 2) is graded, not measured afresh. What the ledger carries for it is
+`saas.ledger.estimated_billing_outstanding`: the whole value of every estimated bill no read has
+yet ended. `estimated_billing_outstanding_grade` reads that position at a month end and grades
+each open run by what its next actual read showed. Beside it, `closed_immaterial` counts the
+estimates a read closed with a correction too small to bill. Until 2026-10-05 the ledger kept
+those as outstanding, because it keyed only on `catchup_applied`, which only a material
+correction sets: 83% of the decade run's figure.
+True unbilled revenue (used and not yet billed) is still not computed. K4-K7 cannot arise in the
+run yet (note §5).
 """
 
 from __future__ import annotations
 
 from collections.abc import Iterable
 
-__all__ = ["KINDS", "NO_READ_BILL_RUN", "account_billing_accuracy", "billing_accuracy_summary"]
+__all__ = [
+    "KINDS", "NO_READ_BILL_RUN", "account_billing_accuracy", "billing_accuracy_summary",
+    "estimated_billing_outstanding_grade",
+]
 
 #: The kinds this module measures, keyed to the knowledge note's ids.
 KINDS = {
+    "K1": "billed on estimate and not yet trued up at a month end, graded by the later read",
     "K2": "estimated bills and their true-up at the actual read",
     "K3": "energy barred by the 12-month back-billing limit (SLC 21BA)",
 }
@@ -120,6 +131,7 @@ def account_billing_accuracy(bills: Iterable[dict]) -> list[dict]:
 def billing_accuracy_summary(bills: Iterable[dict]) -> dict:
     """The per-account rows plus a total per fuel and kind. A share whose denominator is zero is
     None: no estimates billed or no undercharge to bar says nothing about accuracy."""
+    bills = list(bills)
     rows = account_billing_accuracy(bills)
     # The snapshot is the last billed month. The accounts in it are the ones still on supply at
     # the end; a leaver's last bill is on a forced final read, so including leavers would
@@ -151,4 +163,109 @@ def billing_accuracy_summary(bills: Iterable[dict]) -> dict:
         fuel["K3_barred_share_of_undercharge_kwh"] = (
             fuel["barred_kwh"] / fuel["undercharge_kwh"] if fuel["undercharge_kwh"] else None
         )
-    return {"kinds": dict(KINDS), "snapshot_month": snapshot, "by_fuel": by_fuel, "accounts": rows}
+    return {
+        "kinds": dict(KINDS), "snapshot_month": snapshot, "by_fuel": by_fuel, "accounts": rows,
+        # Per fuel, so a share never adds a kWh of gas to a kWh of electricity.
+        "K1_year_end_grades": {
+            fuel: [estimated_billing_outstanding_grade(fuel_bills, month)
+                   for month in sorted({b["period_end"][:7] for b in fuel_bills
+                                        if b["period_end"][5:7] == "12"})]
+            for fuel, fuel_bills in _bills_by_fuel(bills).items()
+        },
+    }
+
+
+def _bills_by_fuel(bills: list[dict]) -> dict[str, list[dict]]:
+    out: dict[str, list[dict]] = {}
+    for bill in bills:
+        out.setdefault(bill.get("commodity", "electricity"), []).append(bill)
+    return out
+
+
+def _covers(bill: dict, period_end: str) -> bool:
+    return (bill.get("catchup_applied", False)
+            and bill.get("catchup_period_start", "") <= period_end
+            <= bill.get("catchup_period_end", ""))
+
+
+def estimated_billing_outstanding_grade(bills: Iterable[dict], as_of: str | None = None) -> dict:
+    """The ledger's billed-on-estimate position at the end of month `as_of` (YYYY-MM; default the
+    last billed month), split by what had happened to each bill by then, and graded by what the
+    later reads showed.
+
+    The position (`outstanding`, which is `open`) is every estimated bill billed by `as_of` that
+    no actual read billed by `as_of` has ended -- the rule `saas.ledger.estimated_billing_outstanding`
+    applies to a whole bill set. Beside it, not in it:
+
+    - `closed_immaterial`: estimates whose run an actual read billed by `as_of` ended with no
+      material catch-up. The register advance is known and the correction was under the
+      materiality threshold, so nothing rests on the estimate any more.
+
+    An `open` bill has no read yet. Its run is graded by the next actual-read bill after `as_of`, which
+      stamps the run's register true-up (`read_true_up_*`). The run there may include estimates
+      billed after `as_of`, and its split by month is not known, so the grade is per run, not per
+      bill: the run's true-up against the run's billed kWh. A run no read has yet ended is
+      `never_read` and is not guessed.
+
+    Money is the bills' `total_amount_gbp`, as the ledger counts it. Energy is billed kWh.
+    """
+    bills = list(bills)
+    if as_of is None:
+        as_of = max((b["period_end"][:7] for b in bills), default=None)
+    by_account: dict[str, list[dict]] = {}
+    for bill in bills:
+        if bill["period_end"][:7] <= (as_of or ""):
+            by_account.setdefault(bill["customer_id"], []).append(bill)
+    later: dict[str, list[dict]] = {}
+    for bill in bills:
+        if bill["period_end"][:7] > (as_of or ""):
+            later.setdefault(bill["customer_id"], []).append(bill)
+
+    grade = {
+        "as_of": as_of,
+        "outstanding_gbp": 0.0, "outstanding_bills": 0,
+        "closed_immaterial_gbp": 0.0, "closed_immaterial_bills": 0,
+        "open_gbp": 0.0, "open_kwh": 0.0, "open_bills": 0, "open_runs": 0,
+        "never_read_runs": 0, "never_read_kwh": 0.0,
+        "graded_runs": 0, "graded_run_billed_kwh": 0.0,
+        "graded_run_true_up_kwh": 0.0, "graded_run_abs_true_up_kwh": 0.0,
+    }
+    for account_id, account_bills in by_account.items():
+        account_bills.sort(key=lambda b: b["period_end"])
+        materials = [b for b in account_bills if b.get("catchup_applied")]
+        open_run: list[dict] = []
+        for bill in account_bills:
+            if bill["billing_basis"] != "estimated":
+                # A read ends the run. What it left uncovered was an immaterial correction.
+                for est in open_run:
+                    grade["closed_immaterial_gbp"] += est.get("total_amount_gbp", 0.0)
+                    grade["closed_immaterial_bills"] += 1
+                open_run = []
+                continue
+            if not any(_covers(m, bill["period_end"]) for m in materials):
+                open_run.append(bill)
+        if not open_run:
+            continue
+        grade["open_runs"] += 1
+        grade["open_bills"] += len(open_run)
+        grade["open_gbp"] += sum(b.get("total_amount_gbp", 0.0) for b in open_run)
+        open_kwh = sum(b["total_consumption_kwh"] for b in open_run)
+        grade["open_kwh"] += open_kwh
+        closing = next(
+            (b for b in sorted(later.get(account_id, []), key=lambda b: b["period_end"])
+             if b["billing_basis"] != "estimated"), None)
+        if closing is None or closing.get("read_true_up_kwh") is None:
+            grade["never_read_runs"] += 1
+            grade["never_read_kwh"] += open_kwh
+            continue
+        grade["graded_runs"] += 1
+        grade["graded_run_billed_kwh"] += closing["read_true_up_billed_kwh"]
+        grade["graded_run_true_up_kwh"] += closing["read_true_up_kwh"]
+        grade["graded_run_abs_true_up_kwh"] += abs(closing["read_true_up_kwh"])
+    grade["outstanding_gbp"] = grade["open_gbp"]
+    grade["outstanding_bills"] = grade["open_bills"]
+    billed = grade["graded_run_billed_kwh"]
+    grade["graded_net_true_up_share"] = grade["graded_run_true_up_kwh"] / billed if billed else None
+    grade["graded_gross_true_up_share"] = (
+        grade["graded_run_abs_true_up_kwh"] / billed if billed else None)
+    return grade

@@ -17,6 +17,7 @@ import pytest
 from company.billing.billing_accuracy import (
     account_billing_accuracy,
     billing_accuracy_summary,
+    estimated_billing_outstanding_grade,
 )
 from company.billing.monthly_bill_assembly import build_monthly_bills
 
@@ -171,7 +172,7 @@ def test_an_immaterial_true_up_is_still_measured():
 def test_the_summary_totals_by_fuel_and_names_its_shares():
     summary = billing_accuracy_summary(_bills(actual_after_opening=False))
     elec = summary["by_fuel"]["electricity"]
-    assert set(summary["kinds"]) == {"K2", "K3"}
+    assert set(summary["kinds"]) == {"K1", "K2", "K3"}
     assert elec["accounts"] == 1 and elec["snapshot_accounts"] == 1
     assert elec["snapshot_no_read_bill_in_12"] == 0
     assert elec["K2_estimated_share_of_billed_kwh"] == pytest.approx(
@@ -181,3 +182,94 @@ def test_the_summary_totals_by_fuel_and_names_its_shares():
     actual = billing_accuracy_summary(_bills(actual_after_opening=True))["by_fuel"]["electricity"]
     assert actual["K3_barred_share_of_undercharge_kwh"] is None
 
+
+
+# --- K1: the ledger's billed-on-estimate position, graded (slice 2) -----------------------------
+
+#: Per account: its monthly use, and the months (index from Jan 2022) its read is actual.
+#: MATERIAL closes a climbing run in July (a material undercharge); IMMATERIAL closes a run half a
+#: kWh a month out in April (under the threshold); OPEN is unread over the 2022 year end and read
+#: in March 2023; NEVER is never read after January. The ids are the company registry's own.
+MATERIAL, IMMATERIAL, OPEN, NEVER = "C1", "C2", "C3", "C4"
+_K1_ACCOUNTS = {
+    MATERIAL: (_use, {0} | set(range(6, MONTHS))),
+    IMMATERIAL: (lambda i: FLAT_ESTIMATE_KWH + 0.5, {0} | set(range(3, MONTHS))),
+    OPEN: (_use, {0, 14, 15}),
+    NEVER: (_use, {0}),
+}
+
+
+class _PerAccountFeed(_ScriptedFeed):
+    def __init__(self):
+        super().__init__(actual_after_opening=False)
+
+    def read_for(self, customer_id, period_end, meter_type, true_kwh, trailing, consecutive,
+                 trailing_days=None, period_days=None):
+        year, month = int(period_end[:4]), int(period_end[5:7])
+        if (year - 2022) * 12 + month - 1 in _K1_ACCOUNTS[customer_id][1]:
+            return _Read("actual", None, 0)
+        return _Read("estimated", FLAT_ESTIMATE_KWH, consecutive + 1)
+
+
+def _k1_bills():
+    records = []
+    for cid, (use, _) in _K1_ACCOUNTS.items():
+        for i in range(MONTHS):
+            records.extend(_month_records(cid, 2022 + i // 12, i % 12 + 1, use(i)))
+    return build_monthly_bills(records, _PerAccountFeed())
+
+
+def test_the_k1_grade_takes_every_branch_and_each_holds_the_account_it_should():
+    """Defect caught: a grade that puts every uncovered estimate in one bucket. All four branches
+    are asserted reachable in one statement before what each holds."""
+    bills = _k1_bills()
+    grade = estimated_billing_outstanding_grade(bills, "2022-12")
+    assert (grade["closed_immaterial_bills"] and grade["graded_runs"]
+            and grade["never_read_runs"] and grade["open_runs"]), grade
+
+    by = {cid: [b for b in bills if b["customer_id"] == cid and b["period_end"] < "2023-01"]
+          for cid in _K1_ACCOUNTS}
+    est = {cid: [b for b in bs if b["billing_basis"] == "estimated"] for cid, bs in by.items()}
+    assert any(b.get("catchup_applied") for b in by[MATERIAL])
+    assert not any(b.get("catchup_applied") for b in by[IMMATERIAL])
+    assert grade["closed_immaterial_bills"] == len(est[IMMATERIAL]) == 2
+    assert grade["closed_immaterial_gbp"] == pytest.approx(
+        sum(b["total_amount_gbp"] for b in est[IMMATERIAL]))
+    assert (grade["open_runs"], grade["graded_runs"], grade["never_read_runs"]) == (2, 1, 1)
+    assert grade["open_bills"] == len(est[OPEN]) + len(est[NEVER]) == 22
+    assert grade["never_read_kwh"] == pytest.approx(FLAT_ESTIMATE_KWH * 11)
+
+    # OPEN's run is graded by its March 2023 read: the whole run Feb 2022 - Feb 2023, not the
+    # eleven bills billed by the year end.
+    closing = next(b for b in bills if b["customer_id"] == OPEN and "read_true_up_kwh" in b)
+    assert closing["period_end"].startswith("2023-03")
+    assert grade["graded_run_billed_kwh"] == pytest.approx(FLAT_ESTIMATE_KWH * 13)
+    assert grade["graded_run_true_up_kwh"] == pytest.approx(
+        sum(_use(i) for i in range(1, 14)) - FLAT_ESTIMATE_KWH * 13)
+    assert grade["graded_net_true_up_share"] == pytest.approx(
+        grade["graded_run_true_up_kwh"] / grade["graded_run_billed_kwh"])
+
+
+def test_the_k1_grade_partitions_exactly_what_the_ledger_carries():
+    """The grade reads the position `saas.ledger.estimated_billing_outstanding` carries; it does
+    not restate it. Defect caught: the ledger counting an estimate a read has already ended with an
+    immaterial correction (it did until 2026-10-05, 83% of the decade run's figure), or the grade
+    drifting from the ledger's rule. At the last billed month both read the same bills."""
+    from saas.ledger import estimated_billing_outstanding
+
+    bills = _k1_bills()
+    ledger = estimated_billing_outstanding(bills)
+    grade = estimated_billing_outstanding_grade(bills)
+    assert grade["as_of"] == "2023-04"
+    assert grade["outstanding_bills"] == ledger["outstanding_bill_count"]
+    assert grade["outstanding_gbp"] == pytest.approx(ledger["estimated_billing_outstanding_gbp"],
+                                                     abs=0.01)
+    # The book holds an immaterially closed run, so the equality above can tell the two rules apart.
+    assert grade["closed_immaterial_bills"] == 2
+
+
+def test_the_year_end_grades_are_in_the_summary():
+    summary = billing_accuracy_summary(_k1_bills())
+    assert [g["as_of"] for g in summary["K1_year_end_grades"]["electricity"]] == ["2022-12"]
+    assert summary["K1_year_end_grades"]["electricity"][0] == estimated_billing_outstanding_grade(
+        _k1_bills(), "2022-12")
