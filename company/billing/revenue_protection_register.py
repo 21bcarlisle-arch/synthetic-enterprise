@@ -45,7 +45,7 @@ class RPCaseStatus(str, Enum):
     WRITTEN_OFF = "written_off"
 
 
-_MAX_BACKBILL_YEARS = 3  # Theft exception to SLC 31A 12-month cap
+_MAX_BACKBILL_YEARS = 3  # Theft exception to SLC 21BA 12-month cap
 
 
 @dataclass(frozen=True)

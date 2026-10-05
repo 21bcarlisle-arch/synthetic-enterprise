@@ -82,7 +82,7 @@ Scale constraints
   IN TIME, never a same-step resolution. `open_final_bill_exposure()` returns
   an exposure carrying no outcome at all; `resolve_final_bill()` returns
   ``None`` until `as_of` reaches the resolution date (SLC 21B's 42-day final
-  bill deadline plus `cot.py`'s existing 28-day overdue window = 70 days).
+  bill deadline plus a 28-day overdue window, unsourced, = 70 days).
 * **C-S2 (RNG substreams + deterministic replay).** Every draw comes from its
   own NAMED substream (`_FINAL_BILL_SUBSTREAMS`), seeded from a stable sha256
   of the exposure identity — so resolving the same exposure twice, in any
@@ -122,7 +122,9 @@ from simulation.household_segments import (
 
 # --- timing: both windows already exist in the company layer, reused not reinvented
 FINAL_BILL_DEADLINE_DAYS = 42   # Ofgem SLC 21B, six weeks (company/billing/account_closure.py)
-FINAL_BILL_OVERDUE_DAYS = 28    # company/billing/cot.py::_OVERDUE_DAYS
+# UNSOURCED: copied from the retired company/billing/cot.py's invented 28-day "regulatory trigger"
+# (via account_closure._FINAL_BILL_PAYMENT_WINDOW_DAYS). Kept until a published figure exists.
+FINAL_BILL_OVERDUE_DAYS = 28
 RESOLUTION_DAYS = FINAL_BILL_DEADLINE_DAYS + FINAL_BILL_OVERDUE_DAYS
 
 

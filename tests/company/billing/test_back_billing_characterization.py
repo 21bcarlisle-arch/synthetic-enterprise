@@ -1,9 +1,9 @@
 """CHARACTERIZATION: freezes current behaviour, including behaviour that may be
 defective. Characterized, not endorsed.
 
-Target: company/billing/back_billing.py — the Ofgem SLC 31A 12-month back-billing
+Target: company/billing/back_billing.py — the SLC 21BA 12-month back-billing
 cap. Decides how much of a retrospective bill may lawfully be charged to a domestic
-customer and how much must be written off.
+or microbusiness customer and how much must be written off.
 
 All dates are literals; nothing here reads the wall clock.
 """
@@ -50,7 +50,8 @@ def test_cap_does_not_apply_when_the_whole_period_is_inside_the_window():
 
 
 def test_non_domestic_is_never_capped():
-    """B2B customers are outside SLC 31A, so the full amount stands."""
+    """Non-domestic customers that are not microbusinesses are outside SLC 21BA, so the full
+    amount stands."""
     a = assess(is_domestic=False)
     assert a.cap_applies is False
     assert a.capped_amount_gbp == 1200.0
@@ -58,7 +59,7 @@ def test_non_domestic_is_never_capped():
 
 
 def test_cap_does_not_apply_to_bills_issued_before_the_rules_started():
-    """SLC 31A applies from 01 May 2018; the test is on the BILLING date."""
+    """SLC 21BA applies from 01 May 2018; the test is on the BILLING date."""
     assert assess(billing_date=dt.date(2018, 4, 30)).cap_applies is False
     assert assess(billing_date=dt.date(2018, 5, 1),
                   consumption_period_start=dt.date(2015, 1, 1),
@@ -69,7 +70,7 @@ def test_protected_window_is_365_days_so_it_is_a_day_short_across_a_leap_day():
     """SURPRISE (boundary/unit class): the window is a fixed 365 DAYS, not 12
     calendar months. Billing on 2024-06-01 (a window spanning 29 Feb 2024) gives a
     protected start of 2023-06-02, so consumption on 2023-06-01 — exactly twelve
-    calendar months before the bill, and protected by SLC 31A — is treated as
+    calendar months before the bill, and protected by SLC 21BA — is treated as
     outside the window and gets capped. Non-leap windows land exactly on the
     anniversary, so the defect only bites when the window spans a leap day."""
     leap_span = assess(billing_date=dt.date(2024, 6, 1),
@@ -201,3 +202,12 @@ def test_reason_does_not_affect_the_cap_calculation(reason):
     """The cap turns purely on dates and domestic status; WHY the bill was late
     (smart-meter reveal, system error, supplier error) changes nothing."""
     assert assess(reason=reason).capped_amount_gbp == 495.80
+
+
+def test_a_microbusiness_is_capped_because_slc_21ba_covers_it_not_only_domestic():
+    """The defect: the module cited "SLC 31A" and refused the cap to every non-domestic account.
+    SLC 21BA (Ofgem decision, 5 March 2018) protects microbusinesses too."""
+    micro = assess(is_domestic=False, is_microbusiness=True)
+    assert micro.cap_applies is True
+    assert micro.written_off_gbp == assess().written_off_gbp > 0
+    assert assess(is_domestic=False).cap_applies is False

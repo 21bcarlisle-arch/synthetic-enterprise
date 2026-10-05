@@ -537,7 +537,12 @@ def _weather_adjusted_shape_fn(
             dyn = household_register.dynamic_assets(customer_id, date_str)
             if dyn:
                 assets = dict(property_record.get("assets") or {})
-                assets["ev"] = dyn.get("ev", assets.get("ev", False))
+                # The car's charging is added ONCE, below, from `ev_annual_kwh()`, after the EPC
+                # multiplier. Passing the flag through as well made `build_demand_shape` add its own
+                # 8 kWh/night on top (2,143 + 2,922 = 5,065 kWh/yr against Electric Nation's
+                # published 1,800-3,500), and put the car under the insulation multiplier.
+                # docs/market_research/ev_solar_and_batteries_as_products.md §6.
+                assets["ev"] = False
                 assets["solar"] = dyn.get("solar", assets.get("solar", False))
                 eff_property = dict(property_record)
                 eff_property["assets"] = assets

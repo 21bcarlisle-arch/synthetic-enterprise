@@ -9112,32 +9112,37 @@ def _section_net_margin_bridge(data: dict) -> str:
     return "\n".join(lines)
 
 
-def _section_unbilled_revenue_accrual(data: dict) -> str:
-    """E3_accrual_restatement: accrual-accounting view of estimated-basis
-    billing -- how much currently-recognised revenue is still PROVISIONAL
-    (estimated, not yet confirmed against an actual meter read), and how
-    much revenue has been RESTATED this run as D3's catch-up-rebilling
-    mechanism resolved prior estimates against real reads."""
+def _section_estimated_billing_outstanding(data: dict) -> str:
+    """E3_accrual_restatement: how much currently-recognised revenue rests on an ESTIMATED bill not
+    yet trued up, and how much has been RESTATED this run by the D3 catch-up rebilling.
+
+    Renamed 2026-10-05 from `_section_unbilled_revenue_accrual`: the figure was headed "unbilled
+    revenue accrual" and is not one (see `saas.ledger.estimated_billing_outstanding`). The section
+    now says so, and says that true unbilled revenue is not computed."""
     bills = data.get("bills") or []
     if not bills:
         return ""
-    from saas.ledger import unbilled_revenue_accrual
-    accrual = unbilled_revenue_accrual(bills)
+    from saas.ledger import estimated_billing_outstanding
+    accrual = estimated_billing_outstanding(bills)
     total_restated = sum(
         b.get("catchup_raw_delta_gbp", 0.0) for b in bills if b.get("catchup_applied")
     )
     restatement_count = sum(1 for b in bills if b.get("catchup_applied"))
     lines = [
-        "## Unbilled Revenue Accrual (Accrual Accounting View)",
+        "## Billed on Estimate, Not Yet Trued Up (Accrual Accounting View)",
         "",
         "An estimated-basis bill's revenue is recognised in full when issued (Phase 7a) -- that "
         "cash effect is correct and unchanged. This section shows how much of currently-recognised "
-        "revenue is still PROVISIONAL (estimated, awaiting confirmation against a real meter read) "
-        "versus already CONFIRMED, and how much has been RESTATED this run as D3's catch-up-rebilling "
-        "resolved prior estimates.",
+        "revenue rests on an ESTIMATED bill awaiting confirmation against a real meter read, and how "
+        "much has been RESTATED this run as D3's catch-up-rebilling resolved prior estimates.",
         "",
-        f"**Outstanding unbilled revenue accrual: {_fmt_gbp(accrual['unbilled_revenue_gbp'])}** "
-        f"across {accrual['outstanding_bill_count']} bill(s) not yet confirmed by an actual read.",
+        f"**Billed on estimate, not yet trued up: "
+        f"{_fmt_gbp(accrual['estimated_billing_outstanding_gbp'])}** across "
+        f"{accrual['outstanding_bill_count']} bill(s) not yet confirmed by an actual read. "
+        "This is the whole value of those bills, not the error in them.",
+        "",
+        "**Unbilled revenue (energy used but not yet billed): not established** -- "
+        f"{accrual['unbilled_revenue_reason']}.",
         "",
         f"**Revenue restated this run: {_fmt_gbp(total_restated)}** across {restatement_count} "
         "catch-up correction(s) -- see the Net Margin Bridge above for the settlement-clock view "
@@ -9146,7 +9151,7 @@ def _section_unbilled_revenue_accrual(data: dict) -> str:
     ]
     if accrual["by_customer"]:
         lines += [
-            "| Customer | Outstanding Accrual £ |",
+            "| Customer | Billed on Estimate £ |",
             "|----------|------------------------|",
         ]
         for cid, gbp in sorted(accrual["by_customer"].items(), key=lambda kv: -kv[1])[:10]:
@@ -10963,7 +10968,7 @@ def generate_annual_report(data: dict) -> str:
     sections.append(_section_clv_evolution(data))                  # Phase BG
     sections.append(_section_gross_margin_bridge(data))            # Phase BE
     sections.append(_section_net_margin_bridge(data))             # Phase NT
-    sections.append(_section_unbilled_revenue_accrual(data))       # E3_accrual_restatement
+    sections.append(_section_estimated_billing_outstanding(data))  # E3_accrual_restatement
     sections.append(_section_payment_health(data))               # Phase NU
     sections.append(_section_portfolio_composition(data))         # Phase NV
     sections.append(_section_shadow_retention(data))              # Phase NW

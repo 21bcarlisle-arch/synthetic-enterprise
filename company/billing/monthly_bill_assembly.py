@@ -4,7 +4,7 @@ WHY THIS LIVES COMPANY-SIDE (KNIFE pass 3, `A_composition_lift`, step 11,
 2026-08-10). Assembling a customer's monthly bill from that customer's settled
 records is a supplier's own work: it decides the billing period, whether the
 bill goes out on a real read or an ESTIMATE, and — when a real read finally
-arrives — how a run of estimated bills is reconciled under the Ofgem SLC 31A
+arrives — how a run of estimated bills is reconciled under the SLC 21BA
 back-billing cap. None of that is world physics; every line of it is the
 company's own routine, which a real supplier is free to change without telling
 anyone. It sat in `simulation/run_phase4c_on_phase2b.py` for composition
@@ -220,7 +220,7 @@ def _resolve_catchup(
     (VAT/non-commodity/standing charge included) by generate_bill(), so their
     difference is already correctly gross, no re-pricing needed.
 
-    Undercharges (supplier owes itself more) are subject to the Ofgem SLC 31A
+    Undercharges (supplier owes itself more) are subject to the SLC 21BA
     12-month back-billing cap (company/billing/back_billing.py, reason
     ESTIMATED_READ_CORRECTED -- built for exactly this scenario, previously
     unwired). Overcharges (credit owed to the customer) are NEVER capped --
@@ -479,7 +479,7 @@ def build_monthly_bills(
                 bill = _annotate_billing_basis(true_bill, event, true_bill)
                 # D3 step 2: this real read resolves any pending run of
                 # estimated bills since the last one -- fold the reconciled
-                # correction (capped per Ofgem SLC 31A where it's an
+                # correction (capped per SLC 21BA where it's an
                 # undercharge) onto THIS bill, matching how a real catch-up
                 # correction actually appears: as an adjustment on the next
                 # real bill, not a separate artifact.

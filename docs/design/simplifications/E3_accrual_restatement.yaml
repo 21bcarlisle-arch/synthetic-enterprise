@@ -9,6 +9,6 @@ map_records:
   evidence:
   - docs/design/charters/E_finance_treasury.md
   - docs/market_research/unbilled_revenue_accrual_e3.md
-  - saas/ledger.py::unbilled_revenue_accrual/make_revenue_restatement_event
-  - saas/reporting/annual_report.py::_section_unbilled_revenue_accrual
+  - saas/ledger.py::estimated_billing_outstanding/make_revenue_restatement_event
+  - saas/reporting/annual_report.py::_section_estimated_billing_outstanding
   - docs/reports/ANNUAL_REPORT.md (live-regenerated, real figures confirmed rendered)

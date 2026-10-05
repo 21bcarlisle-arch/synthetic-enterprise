@@ -5,7 +5,14 @@ from datetime import date, timedelta
 from enum import Enum
 from typing import List, Optional
 
-OMBUDSMAN_ESCALATION_DAYS = 56  # 8 weeks per Ofgem SLC 2.7
+OMBUDSMAN_ESCALATION_DAYS = 56  # 8 weeks
+#: Not "Ofgem SLC 2.7", which an earlier draft cited: the 8-week point after which a complaint may
+#: go to the Ombudsman comes from the complaints-handling regulations and the Ombudsman's scheme.
+OMBUDSMAN_ESCALATION_SOURCE = (
+    "The Gas and Electricity (Consumer Complaints Handling Standards) Regulations 2008 "
+    "(SI 2008/1898) and the Energy Ombudsman's rules: a complaint may be referred after "
+    "8 weeks or on a deadlock letter, whichever comes first"
+)
 
 
 class ComplaintCategory(str, Enum):

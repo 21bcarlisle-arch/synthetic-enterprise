@@ -141,8 +141,12 @@ def test_satisfaction_multiplier_high_is_below_one():
     assert _HIGH_SATISFACTION_MULTIPLIER < 1.0
 
 
-def test_satisfaction_multiplier_low_is_above_one():
-    assert _LOW_SATISFACTION_MULTIPLIER > 1.0
+def test_dissatisfaction_does_not_raise_departure_because_cim_w6_has_dissatisfied_switching_less():
+    """The defect: 1.30 at low satisfaction. Ofgem CIM wave 6 (n=3,458), Table 56: dissatisfied
+    households switched 3.0% in six months against 5.4% for satisfied. No dose is published, so the
+    low end is neutral -- and no score anywhere may carry a multiplier above 1."""
+    assert _LOW_SATISFACTION_MULTIPLIER == 1.0
+    assert max(satisfaction_churn_multiplier(i / 100) for i in range(101)) == 1.0
 
 
 def test_satisfaction_churn_multiplier_high():

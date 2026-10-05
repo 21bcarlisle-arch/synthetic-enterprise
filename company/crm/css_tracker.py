@@ -1,27 +1,19 @@
-"""Customer Satisfaction Survey (CSS) tracker.
+"""Customer Satisfaction Survey (CSS) tracker -- the COMPANY'S OWN survey of its customers.
 
-Ofgem's annual CSS survey asks domestic customers to rate their energy supplier
-across 6 dimensions. Ofgem publishes league-table results; bottom-quartile
-performance triggers "Enhanced Monitoring" and may lead to enforcement action.
+CORRECTED 2026-10-05. This docstring used to describe "Ofgem's annual CSS survey": six dimensions
+each rated 1-10, a league table, bottom-quartile "Enhanced Monitoring", and an industry average on
+a 0-10 scale from 2016 to 2025 (2022 = 5.2). No such instrument was found. The real survey -- the
+Ofgem / Citizens Advice Energy Consumer Satisfaction Survey, two waves a year since 2018 -- asks
+overall satisfaction on a FIVE-point scale and reports % satisfied / neither / dissatisfied
+(question A5; customer service is a separate question A7). No published 0-10 series or quartile
+trigger matches. docs/market_research/communications_sentiment_and_nps.md §1 and §5.
 
-Survey dimensions (each rated 1-10 by customer):
-1. Overall satisfaction
-2. Billing accuracy (bills match expectations)
-3. Ease of contact (can reach the supplier when needed)
-4. Complaint handling (resolved fairly and promptly)
-5. Value for money (price seems fair vs alternatives)
-6. Meter reading accuracy
-
-Industry benchmarks (Ofgem CSS report, 2016-2024):
-- Typical large supplier overall: 6.5-7.5 / 10
-- Top-quartile threshold: ~7.8 / 10
-- Bottom-quartile threshold: ~6.0 / 10
-- 2022 crisis: overall satisfaction fell to 5.2 / 10 across all suppliers
-  (Ofgem CSS 2022: highest volume of dissatisfied customers on record)
-- Switching intent correlates strongly with value-for-money score
-
-A CSS response is captured per customer per survey wave (annual). The book
-aggregates to supplier-level scores for compliance reporting.
+So what stays is an internal instrument: the 1-10 response record and its averages are the
+company's own design, which a supplier may run on any scale it likes. What went is everything that
+compared it with a regulator: the industry-average series and the quartile thresholds are `None`,
+and `vs_industry_avg` / `performance_band` say "not established" rather than inventing a benchmark.
+Comparing with the real survey would need the company's own question asked on the five-point
+scale and differenced against the published % satisfied; that is not built.
 """
 from __future__ import annotations
 
@@ -30,21 +22,21 @@ from dataclasses import dataclass, field
 from typing import Dict, List, Optional
 
 
-_TOP_QUARTILE_THRESHOLD = 7.8
-_BOTTOM_QUARTILE_THRESHOLD = 6.0
-_CRISIS_YEAR = 2022
-
-# Historical industry average overall scores (for benchmarking)
-_INDUSTRY_AVERAGE_OVERALL: dict[int, float] = {
-    2016: 7.2, 2017: 7.3, 2018: 7.2, 2019: 7.1, 2020: 7.4,
-    2021: 6.8, 2022: 5.2, 2023: 6.1, 2024: 6.9, 2025: 7.0,
-}
+#: Why the regulator-attributed benchmarks are None, said where a reader of a None will look.
+NOT_ESTABLISHED_REASON = (
+    "not established: no published survey reports energy-supplier satisfaction on a 0-10 scale "
+    "or a quartile trigger; the Ofgem/Citizens Advice survey is five-point, reported as % satisfied"
+)
+_TOP_QUARTILE_THRESHOLD: Optional[float] = None
+_BOTTOM_QUARTILE_THRESHOLD: Optional[float] = None
+_INDUSTRY_AVERAGE_OVERALL: Optional[Dict[int, float]] = None
 
 
 class CSSPerformanceBand(str):
     TOP = "top_quartile"
     MID = "mid_field"
     BOTTOM = "bottom_quartile"
+    NOT_ESTABLISHED = "not_established"
 
 
 @dataclass(frozen=True)
@@ -135,6 +127,8 @@ class CSSBook:
         avg = self.avg_score(year)
         if avg is None:
             return "unrated"
+        if _TOP_QUARTILE_THRESHOLD is None or _BOTTOM_QUARTILE_THRESHOLD is None:
+            return CSSPerformanceBand.NOT_ESTABLISHED
         if avg >= _TOP_QUARTILE_THRESHOLD:
             return CSSPerformanceBand.TOP
         if avg >= _BOTTOM_QUARTILE_THRESHOLD:
@@ -143,6 +137,8 @@ class CSSBook:
 
     def vs_industry_avg(self, year: int) -> Optional[float]:
         """Supplier overall avg minus industry average (positive = better than market)."""
+        if _INDUSTRY_AVERAGE_OVERALL is None:
+            return None
         supplier_avg = self.avg_score(year)
         industry_avg = _INDUSTRY_AVERAGE_OVERALL.get(year)
         if supplier_avg is None or industry_avg is None:
@@ -166,5 +162,8 @@ class CSSBook:
             "avg_value": self.avg_score(year, "value_for_money"),
             "performance_band": self.performance_band(year),
             "vs_industry": self.vs_industry_avg(year),
+            "vs_industry_basis": (
+                NOT_ESTABLISHED_REASON if _INDUSTRY_AVERAGE_OVERALL is None else "industry average"
+            ),
             "recommend_rate": self.recommend_rate(year),
         }

@@ -401,10 +401,9 @@ BACK_BILLING_CAP_RESPECTED = StructuralInvariant(
     ),
     # Fresh Expert-Hour finding (2026-07-12): this previously said "domestic/
     # microbusiness", overclaiming coverage the mechanism doesn't enforce --
-    # company/billing/back_billing.py is domestic-only by design ("Non-
-    # domestic customers NOT protected (B2B commercial terms apply)", its own
-    # module docstring), and this check inherits that scope exactly
-    # (is_domestic = segment == "resi"). Real UK back-billing rules DO also
+    # this check passes is_domestic = segment == "resi" and never supplies
+    # `is_microbusiness` (back_billing.py has accepted it since 2026-10-05,
+    # when its "SLC 31A, domestic-only" claim was corrected). Real UK back-billing rules DO also
     # protect microbusinesses -- that is a genuine, registered coverage gap
     # (PRIORITIES.md backlog), not something to paper over by citing a wider
     # source than what's actually enforced.

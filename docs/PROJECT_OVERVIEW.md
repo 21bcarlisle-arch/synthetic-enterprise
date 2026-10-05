@@ -5083,7 +5083,7 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 - `BillingDispute` frozen dataclass: is_open, days_to_resolution, credit_applied_gbp, closed_date.
 - `BillingDisputeBook`: raise_dispute(), update_status(), resolve_with_credit(), resolve_no_change(), open_disputes(), disputes_for_customer(), total_credits_issued_gbp(), annual_summary() with avg_days_to_resolution.
 
-**Fidelity delta:** Billing disputes are distinct from meter disputes (Phase 154). A wrong tariff applied after a switch is a billing error, not a meter read error; an exit fee dispute is contractual. UK suppliers must respond to all billing disputes within 8 weeks (SLC 2.7) or the customer gains automatic Ombudsman eligibility (Phase 155). Average days to resolution is an Ofgem-reported metric.
+**Fidelity delta:** Billing disputes are distinct from meter disputes (Phase 154). A wrong tariff applied after a switch is a billing error, not a meter read error; an exit fee dispute is contractual. UK suppliers must respond to all billing disputes within 8 weeks (Consumer Complaints Handling Standards Regulations 2008; corrected 2026-10-05 from "SLC 2.7") or the customer gains automatic Ombudsman eligibility (Phase 155). Average days to resolution is an Ofgem-reported metric.
 
 **8 new tests (2,677 total).**
 
@@ -5386,7 +5386,7 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 - `Complaint` dataclass: days_open(as_of), is_open, eligible_for_ombudsman (>=56 days open, not yet resolved/escalated).
 - `ComplaintBook`: raise_complaint(), update_status(), resolve() (with optional redress_gbp), escalate_to_ombudsman() (gated: only if eligible), overdue_for_ombudsman(as_of), complaints_for_customer(), annual_summary() with by_category breakdown.
 
-**Fidelity delta:** Ofgem SLC 2.7 requires suppliers to have a formal complaints process; any complaint unresolved after 8 weeks becomes eligible for the Energy Ombudsman. Previously complaints had no formal lifecycle. Phase 155 closes this: complaints are raised, investigated, resolved with redress, or escalated to the Ombudsman when the 56-day window expires.
+**Fidelity delta:** The Gas and Electricity (Consumer Complaints Handling Standards) Regulations 2008 require suppliers to have a formal complaints process (corrected 2026-10-05; this said "Ofgem SLC 2.7"); any complaint unresolved after 8 weeks becomes eligible for the Energy Ombudsman. Previously complaints had no formal lifecycle. Phase 155 closes this: complaints are raised, investigated, resolved with redress, or escalated to the Ombudsman when the 56-day window expires.
 
 **12 new tests (2,458 total).**
 

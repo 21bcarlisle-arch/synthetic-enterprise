@@ -21,10 +21,12 @@ from __future__ import annotations
 import pytest
 
 from saas.ledger import (
+    UNBILLED_REVENUE_NOT_COMPUTED,
     build_ledger,
     build_payment_behaviour_map,
     derive_cash_position,
     derive_pnl,
+    estimated_billing_outstanding,
     ledger_summary,
     make_acquisition_spend_event,
     make_back_billing_write_off_event,
@@ -39,7 +41,6 @@ from saas.ledger import (
     make_revenue_restatement_event,
     make_settlement_event,
     make_vat_remittance_event,
-    unbilled_revenue_accrual,
 )
 
 
@@ -436,18 +437,31 @@ def test_cash_position_of_an_empty_ledger_is_the_opening_balance():
 
 
 # ---------------------------------------------------------------------------
-# unbilled_revenue_accrual
+# estimated_billing_outstanding
 # ---------------------------------------------------------------------------
+
+_NOT_UNBILLED = {"unbilled_revenue_gbp": None, "unbilled_revenue_reason": UNBILLED_REVENUE_NOT_COMPUTED}
+
+
+def test_billed_on_estimate_is_not_reported_as_unbilled_revenue():
+    """The defect: the whole value of every estimated bill not yet trued up was published as
+    `unbilled_revenue_gbp`. Unbilled revenue is energy used and not yet billed; these bills WERE
+    billed. The total now carries its own name and unbilled revenue says it is not computed."""
+    result = estimated_billing_outstanding([bill(billing_basis="estimated", total=500.0)])
+    assert result["estimated_billing_outstanding_gbp"] == 500.0
+    assert result["unbilled_revenue_gbp"] is None
+    assert result["unbilled_revenue_reason"].startswith("not computed")
 
 
 def test_an_unresolved_estimated_bill_is_carried_as_unbilled_revenue():
     bills = [bill(billing_basis="estimated", total=500.0),
              bill(period_start="2024-02-01", period_end="2024-02-29",
                   billing_basis="actual", total=600.0)]
-    assert unbilled_revenue_accrual(bills) == {
-        "unbilled_revenue_gbp": 500.0,
+    assert estimated_billing_outstanding(bills) == {
+        "estimated_billing_outstanding_gbp": 500.0,
         "outstanding_bill_count": 1,
         "by_customer": {"C1": 500.0},
+        **_NOT_UNBILLED,
     }
 
 
@@ -457,7 +471,7 @@ def test_a_later_catchup_covering_the_period_clears_the_accrual():
         bill(period_start="2024-03-01", period_end="2024-03-31", catchup_applied=True,
              catchup_period_start="2024-01-01", catchup_period_end="2024-02-29"),
     ]
-    assert unbilled_revenue_accrual(bills)["unbilled_revenue_gbp"] == 0.0
+    assert estimated_billing_outstanding(bills)["estimated_billing_outstanding_gbp"] == 0.0
 
 
 def test_a_catchup_with_a_missing_start_range_clears_every_earlier_estimate():
@@ -473,8 +487,9 @@ def test_a_catchup_with_a_missing_start_range_clears_every_earlier_estimate():
         bill(period_start="2024-03-01", period_end="2024-03-31", catchup_applied=True,
              catchup_period_end="2024-02-29"),
     ]
-    assert unbilled_revenue_accrual(bills) == {
-        "unbilled_revenue_gbp": 0.0, "outstanding_bill_count": 0, "by_customer": {},
+    assert estimated_billing_outstanding(bills) == {
+        "estimated_billing_outstanding_gbp": 0.0, "outstanding_bill_count": 0, "by_customer": {},
+        **_NOT_UNBILLED,
     }
 
 
@@ -486,7 +501,7 @@ def test_a_catchup_with_a_missing_end_range_clears_nothing():
         bill(period_start="2024-03-01", period_end="2024-03-31", catchup_applied=True,
              catchup_period_start="2024-01-01"),
     ]
-    assert unbilled_revenue_accrual(bills)["unbilled_revenue_gbp"] == 500.0
+    assert estimated_billing_outstanding(bills)["estimated_billing_outstanding_gbp"] == 500.0
 
 
 def test_a_catchup_resolves_estimates_it_precedes_in_time():
@@ -499,7 +514,7 @@ def test_a_catchup_resolves_estimates_it_precedes_in_time():
              catchup_period_start="2020-01-01", catchup_period_end="2030-01-01"),
         bill(billing_basis="estimated", total=500.0),
     ]
-    assert unbilled_revenue_accrual(bills)["unbilled_revenue_gbp"] == 0.0
+    assert estimated_billing_outstanding(bills)["estimated_billing_outstanding_gbp"] == 0.0
 
 
 def test_a_zero_value_estimate_is_counted_but_never_attributed_to_its_customer():
@@ -507,16 +522,17 @@ def test_a_zero_value_estimate_is_counted_but_never_attributed_to_its_customer()
     # `if customer_total:` guard drops any customer whose total is exactly zero.
     # The returned dict is internally inconsistent — one outstanding bill, no
     # customer owning it.
-    result = unbilled_revenue_accrual([bill(billing_basis="estimated", total=0.0)])
+    result = estimated_billing_outstanding([bill(billing_basis="estimated", total=0.0)])
     assert result == {
-        "unbilled_revenue_gbp": 0.0, "outstanding_bill_count": 1, "by_customer": {},
+        "estimated_billing_outstanding_gbp": 0.0, "outstanding_bill_count": 1, "by_customer": {},
+        **_NOT_UNBILLED,
     }
 
 
 def test_offsetting_estimates_cancel_a_customer_out_of_the_breakdown():
     # A +£500 and a -£500 estimate net to zero, so the customer vanishes from
     # by_customer while still contributing 2 to the outstanding count.
-    result = unbilled_revenue_accrual([
+    result = estimated_billing_outstanding([
         bill(billing_basis="estimated", total=500.0),
         bill(period_start="2024-02-01", period_end="2024-02-29",
              billing_basis="estimated", total=-500.0),
@@ -529,14 +545,15 @@ def test_a_bill_with_no_billing_basis_is_treated_as_confirmed():
     # SURPRISE (fail-open): only `billing_basis == "estimated"` counts as
     # provisional. A bill missing the field entirely — or carrying "Estimated" —
     # is silently treated as confirmed against an actual read and never accrued.
-    assert unbilled_revenue_accrual([bill(total=500.0)])["unbilled_revenue_gbp"] == 0.0
-    assert unbilled_revenue_accrual(
-        [bill(total=500.0, billing_basis="Estimated")])["unbilled_revenue_gbp"] == 0.0
+    assert estimated_billing_outstanding([bill(total=500.0)])["estimated_billing_outstanding_gbp"] == 0.0
+    assert estimated_billing_outstanding(
+        [bill(total=500.0, billing_basis="Estimated")])["estimated_billing_outstanding_gbp"] == 0.0
 
 
 def test_an_empty_bill_list_reports_no_unbilled_revenue():
-    assert unbilled_revenue_accrual([]) == {
-        "unbilled_revenue_gbp": 0.0, "outstanding_bill_count": 0, "by_customer": {},
+    assert estimated_billing_outstanding([]) == {
+        "estimated_billing_outstanding_gbp": 0.0, "outstanding_bill_count": 0, "by_customer": {},
+        **_NOT_UNBILLED,
     }
 
 

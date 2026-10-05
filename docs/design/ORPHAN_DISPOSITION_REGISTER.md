@@ -196,10 +196,8 @@ a new orphan still needs a judgement and a ruling whose subject got wired still 
 company.billing.account_closure | unhooked | consumers:company.billing | Account closure process: final bill, deposit, debt referral under Ofgem SLC 21B.; 3 test(s); no importer; arrived 2026-09-08 when a path in a DOCSTRING stopped counting as an edge -- cited in the docstrings of company/billing/monthly_bill_assembly.py and simulation/final_bill_outcome.py as where a status and a calibration note live
 company.billing.annual_statement | unhooked | consumers:company.billing | no docstring; 1 test(s); no importer
 company.billing.billing_dispute | unhooked | consumers:company.billing | Billing Dispute Resolution Book (Phase FC).; 2 test(s); no importer
-company.billing.breathing_space_register | unhooked | consumers:company.billing | Debt Respite (Breathing Space) Register (Phase FY).; 2 test(s); no importer
 company.billing.capacity_to_pay | unhooked | consumers:company.billing | Capacity-to-Pay (CtP) affordability assessment for customers in arrears.; 4 test(s); no importer
 company.billing.contract_manager | unhooked | consumers:company.billing | Supply contract lifecycle management: terms, break clauses, price protection.; 2 test(s); no importer
-company.billing.cot | unhooked | consumers:company.billing | no docstring; 2 test(s); no importer; arrived 2026-09-08 when a path in a comment stopped counting as an edge; its only caller was prose citing it
 company.billing.credit_balance_control | unhooked | consumers:company.billing | Undischarged credit-balance control (SLC 14 / Ofgem DD Market Compliance Review).; 1 test(s); no importer
 company.billing.dd_mandate_register | unhooked | consumers:company.billing | Direct Debit Mandate Register (Phase GD).; 2 test(s); no importer; arrived 2026-09-08 when a path in a DOCSTRING stopped counting as an edge -- cited in simulation/dd_collection_book.py's docstring as a thing NOT fully resolved there
 company.billing.economy7 | unhooked | consumers:company.billing | no docstring; 2 test(s); no importer
@@ -213,7 +211,6 @@ company.billing.moa_charges | unhooked | consumers:company.billing | Meter Opera
 company.billing.payment_behaviour | unhooked | consumers:company.billing | Customer payment behaviour analytics: timing, DD failure rates, lateness scoring.; 2 test(s); no importer
 company.billing.payment_deferral | unhooked | consumers:company.billing | no docstring; 1 test(s); no importer
 company.billing.payment_method_register | unhooked | consumers:company.billing | Payment Method Register — tracks how each account pays.; 1 test(s); no importer
-company.billing.payment_plan | unhooked | consumers:company.billing | no docstring; 1 test(s); no importer
 company.billing.payment_plan_adequacy | unhooked | consumers:company.billing | Payment plan adequacy: Ofgem Ability to Pay (ATP) compliance assessment.; 1 test(s); no importer
 company.billing.ppm_warrant_register | unhooked | consumers:company.billing | PPM Installation Warrant Register (Phase FX).; 1 test(s); no importer
 company.billing.prepayment | unhooked | consumers:company.billing | Prepayment meter (PPM) management.; 1 test(s); no importer
@@ -248,7 +245,6 @@ company.crm.contact_journey | unhooked | consumers:company.crm | Customer contac
 company.crm.contact_log | unhooked | consumers:company.crm | no docstring; 2 test(s); no importer
 company.crm.contract_exposure_register | unhooked | consumers:company.crm | Contract Exposure Register — tracks regulatory supply obligations.; 2 test(s); no importer
 company.crm.conversation_log | unhooked | consumers:company.crm | no docstring; 2 test(s); no importer
-company.crm.cos_process | unhooked | consumers:company.crm | no docstring; 2 test(s); no importer
 company.crm.credit_assessment_register | unhooked | consumers:company.crm | Customer Credit Assessment Register (Phase DU).; 1 test(s); no importer
 company.crm.credit_scoring | unhooked | consumers:company.crm | Customer credit scoring and risk tier classification.; 2 test(s); no importer
 company.crm.css_tracker | unhooked | consumers:company.crm | Customer Satisfaction Survey (CSS) tracker.; 2 test(s); no importer; arrived 2026-09-08 when a path in a DOCSTRING stopped counting as an edge -- cited in simulation/feedback_survey.py's docstring as the scale its score matches
@@ -450,6 +446,23 @@ company.trading.triad_exposure_register | unhooked | consumers:company.trading |
 company.trading.triad_response_book | unhooked | consumers:company.trading | Triad Demand Response Book (Phase FU).; 1 test(s); no importer
 company.trading.wholesale_position_report | unhooked | consumers:company.trading | Wholesale Market Position Monthly Report (Phase DV).; 1 test(s); no importer
 company.trading.wholesale_trading_mandate_register | unhooked | consumers:company.trading | Wholesale Trading Mandate Register.; 1 test(s); no importer
+company.billing.dd_indemnity | unhooked | consumers:company.billing | DD Indemnity Claim Register: BACS Direct Debit Guarantee claim management.; 3 test(s); no importer; ruled 2026-10-05 when the register was found red at HEAD with it unruled
+company.billing.deemed_contract | unhooked | consumers:company.billing | Deemed Contract Register: tracks uncontracted supply; Ofgem notification obligations.; 7 test(s); no importer; ruled 2026-10-05 when the register was found red at HEAD with it unruled
+company.crm.onboarding_journey | unhooked | consumers:company.crm | Customer Onboarding Journey Tracker (Phase FE).; 3 test(s); no importer; ruled 2026-10-05 when the register was found red at HEAD with it unruled
+company.crm.service_ticket | unhooked | consumers:company.crm | Customer Service Ticket Book (Phase EW).; 2 test(s); no importer; ruled 2026-10-05 when the register was found red at HEAD with it unruled
+company.market.bsc_performance_assurance_register | unhooked | consumers:company.market | BSC Performance Assurance Register.; 3 test(s); no importer; ruled 2026-10-05 when the register was found red at HEAD with it unruled
+company.market.bsc_settlement_dispute_register | unhooked | consumers:company.market | BSC Settlement Dispute Register.; 3 test(s); no importer; ruled 2026-10-05 when the register was found red at HEAD with it unruled
+company.market.css_performance_register | unhooked | consumers:company.market | CSS Performance Register (Phase GA).; 2 test(s); no importer; ruled 2026-10-05 when the register was found red at HEAD with it unruled
+company.market.dcc_meter_registration | unhooked | consumers:company.market | DCC Meter Registration Register (Phase GB).; 3 test(s); no importer; ruled 2026-10-05 when the register was found red at HEAD with it unruled
+company.market.erroneous_transfer | unhooked | consumers:company.market | no docstring; 11 test(s); no importer; ruled 2026-10-05 when the register was found red at HEAD with it unruled
+company.market.meter_technical_investigation_register | unhooked | consumers:company.market | Meter Technical Investigation Register — SLC 21A / GS(SS)5 Schedule 3.; 3 test(s); no importer; ruled 2026-10-05 when the register was found red at HEAD with it unruled
+company.market.mop_appointment_register | unhooked | consumers:company.market | Meter Operator (MOP) Appointment Register.; 3 test(s); no importer; ruled 2026-10-05 when the register was found red at HEAD with it unruled
+company.market.mpas_standing_data_correction_register | unhooked | consumers:company.market | MPAS Standing Data Correction Register.; 3 test(s); no importer; ruled 2026-10-05 when the register was found red at HEAD with it unruled
+company.market.transfer_objection_register | unhooked | consumers:company.market | Transfer Objection Register (Phase GO).; 4 test(s); no importer; ruled 2026-10-05 when the register was found red at HEAD with it unruled
+company.regulatory.annual_compliance_attestation_register | unhooked | consumers:company.regulatory | Annual Compliance Attestation Register (Phase GM).; 4 test(s); no importer; ruled 2026-10-05 when the register was found red at HEAD with it unruled
+company.regulatory.gsop_tracker | unhooked | consumers:company.regulatory | no docstring; 3 test(s); no importer; ruled 2026-10-05 when the register was found red at HEAD with it unruled
+company.trading.bsc_credit_register | unhooked | consumers:company.trading | BSC Credit Assurance Register (Phase FI).; 2 test(s); no importer; ruled 2026-10-05 when the register was found red at HEAD with it unruled
+company.trading.emir_reporting_register | unhooked | consumers:company.trading | EMIR Trade Repository Reporting Register.; 3 test(s); no importer; ruled 2026-10-05 when the register was found red at HEAD with it unruled
 ORPHAN-DISPOSITIONS -->
 
 ---

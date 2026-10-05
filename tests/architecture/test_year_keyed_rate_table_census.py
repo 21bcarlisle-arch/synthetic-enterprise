@@ -347,15 +347,11 @@ _NOT_PUBLISHED: dict[str, str] = {
     # weeks of silence while it asserted 31.0% for 2016 against a published 17.0-17.6% and
     # inverted the record's shape across 2016-2021. The table now loads from the commons and is
     # held in `_MUST_NOT_BE_LITERALS_SWITCHING` below.
-    "company/crm/css_tracker.py::_INDUSTRY_AVERAGE_OVERALL":
-        "an internal benchmark score for customer service comparison; no regulator publishes a "
-        "single industry-average CSS score on this scale.",
-    "company/billing/cot.py::_SVT_ELEC_PENCE":
-        "the COMPANY'S OWN standard variable tariff. A supplier sets its own prices; there is "
-        "no publication to be wrong about, and a pin would be a category error.",
-    "company/billing/cot.py::_CAP_ELEC_PENCE":
-        "the company's own capped-tariff price point. Constrained BY the published cap, which "
-        "is separately pinned, but the price itself is the company's commercial decision.",
+    # Three entries left here on 2026-10-05: `company/crm/css_tracker.py::_INDUSTRY_AVERAGE_OVERALL`
+    # (a regulator-attributed 0-10 series matching no publication, now an explicit None) and
+    # `company/billing/cot.py`'s `_SVT_ELEC_PENCE` / `_CAP_ELEC_PENCE` (module retired: no production
+    # importer, an invented SVT+20% deemed rate, and a "cap" tabulated for 2016-2018 when the
+    # default tariff cap began in January 2019).
     "company/billing/economy7.py::_E7_DAY_RATE_PPM":
         "the company's own Economy 7 day rate; a commercial price, not a published figure.",
     "company/billing/economy7.py::_E7_NIGHT_RATE_PPM":

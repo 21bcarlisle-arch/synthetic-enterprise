@@ -767,32 +767,32 @@ def test_revenue_restatement_event_does_not_double_count_cash_position():
     )
 
 
-def test_unbilled_revenue_accrual_empty_bills_returns_zero():
-    from saas.ledger import unbilled_revenue_accrual
-    result = unbilled_revenue_accrual([])
-    assert result["unbilled_revenue_gbp"] == 0.0
+def test_estimated_billing_outstanding_empty_bills_returns_zero():
+    from saas.ledger import estimated_billing_outstanding
+    result = estimated_billing_outstanding([])
+    assert result["estimated_billing_outstanding_gbp"] == 0.0
     assert result["outstanding_bill_count"] == 0
     assert result["by_customer"] == {}
 
 
-def test_unbilled_revenue_accrual_no_estimated_bills_returns_zero():
-    from saas.ledger import unbilled_revenue_accrual
-    result = unbilled_revenue_accrual([_bill_9a()])
-    assert result["unbilled_revenue_gbp"] == 0.0
+def test_estimated_billing_outstanding_no_estimated_bills_returns_zero():
+    from saas.ledger import estimated_billing_outstanding
+    result = estimated_billing_outstanding([_bill_9a()])
+    assert result["estimated_billing_outstanding_gbp"] == 0.0
 
 
-def test_unbilled_revenue_accrual_unresolved_estimated_bill_is_outstanding():
-    from saas.ledger import unbilled_revenue_accrual
+def test_estimated_billing_outstanding_unresolved_estimated_bill_is_outstanding():
+    from saas.ledger import estimated_billing_outstanding
     bill = _bill_9a(period_start="2016-01-01", period_end="2016-01-31")
     bill["billing_basis"] = "estimated"
-    result = unbilled_revenue_accrual([bill])
-    assert result["unbilled_revenue_gbp"] == pytest.approx(bill["total_amount_gbp"])
+    result = estimated_billing_outstanding([bill])
+    assert result["estimated_billing_outstanding_gbp"] == pytest.approx(bill["total_amount_gbp"])
     assert result["outstanding_bill_count"] == 1
     assert result["by_customer"]["C1"] == pytest.approx(bill["total_amount_gbp"])
 
 
-def test_unbilled_revenue_accrual_resolved_by_later_catchup_is_not_outstanding():
-    from saas.ledger import unbilled_revenue_accrual
+def test_estimated_billing_outstanding_resolved_by_later_catchup_is_not_outstanding():
+    from saas.ledger import estimated_billing_outstanding
     estimated = _bill_9a(period_start="2016-01-01", period_end="2016-01-31")
     estimated["billing_basis"] = "estimated"
     resolving = _bill_9a(period_start="2016-02-01", period_end="2016-02-29")
@@ -800,14 +800,14 @@ def test_unbilled_revenue_accrual_resolved_by_later_catchup_is_not_outstanding()
     resolving["catchup_applied"] = True
     resolving["catchup_period_start"] = "2016-01-01"
     resolving["catchup_period_end"] = "2016-01-31"
-    result = unbilled_revenue_accrual([estimated, resolving])
-    assert result["unbilled_revenue_gbp"] == 0.0
+    result = estimated_billing_outstanding([estimated, resolving])
+    assert result["estimated_billing_outstanding_gbp"] == 0.0
     assert result["outstanding_bill_count"] == 0
     assert result["by_customer"] == {}
 
 
-def test_unbilled_revenue_accrual_multiple_customers_isolated():
-    from saas.ledger import unbilled_revenue_accrual
+def test_estimated_billing_outstanding_multiple_customers_isolated():
+    from saas.ledger import estimated_billing_outstanding
     c1_est = _bill_9a(customer_id="C1", period_start="2016-01-01", period_end="2016-01-31")
     c1_est["billing_basis"] = "estimated"
     c2_est = _bill_9a(customer_id="C2", period_start="2016-01-01", period_end="2016-01-31")
@@ -817,8 +817,8 @@ def test_unbilled_revenue_accrual_multiple_customers_isolated():
     c2_resolving["catchup_applied"] = True
     c2_resolving["catchup_period_start"] = "2016-01-01"
     c2_resolving["catchup_period_end"] = "2016-01-31"
-    result = unbilled_revenue_accrual([c1_est, c2_est]  + [c2_resolving])
-    assert result["unbilled_revenue_gbp"] == pytest.approx(c1_est["total_amount_gbp"])
+    result = estimated_billing_outstanding([c1_est, c2_est]  + [c2_resolving])
+    assert result["estimated_billing_outstanding_gbp"] == pytest.approx(c1_est["total_amount_gbp"])
     assert result["outstanding_bill_count"] == 1
     assert "C2" not in result["by_customer"]
     assert list(result["by_customer"].keys()) == ["C1"]

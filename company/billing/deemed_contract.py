@@ -63,7 +63,9 @@ class DeemedContractRegister:
       a deemed supply relationship has begun, explaining rights and deemed rate.
     - After 12 months on deemed: additional obligations apply (proactive outreach,
       enhanced consumer protection, right to switch without exit fee).
-    - Deemed rate: SVT + uplift, subject to Ofgem price cap (see cot.py).
+    - Deemed rate: set by the supplier; domestic deemed rates fall under the default tariff cap
+      from January 2019. (This used to say "SVT + uplift, see cot.py"; that module's SVT+20% was
+      invented and it was retired 2026-10-05.)
     - Failure to notify: Ofgem enforcement -- systemic breaches attract GBP100k+ fines.
     """
 

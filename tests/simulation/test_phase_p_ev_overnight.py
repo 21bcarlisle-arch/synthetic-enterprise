@@ -171,3 +171,26 @@ class TestEVOvernightEdgeCases:
         total_ev = sum(fn_ev("2021-06-01"))
 
         assert total_ev > total_no_ev
+
+
+def test_ev_load_is_counted_once_and_not_scaled_by_the_epc_band():
+    """The defect: on a day WITH weather, `build_demand_shape` added its own 8 kWh/night for the
+    register's EV flag and the Phase P block added `ev_annual_kwh()` on top -- 5,065 kWh/yr at EPC C
+    and 6,672 at EPC E (the EPC multiplier scaled the first block). Every test above passes no
+    weather, which is the one path where the first block never runs."""
+    for epc in ("C", "E"):
+        cust = [{"customer_id": "C1", "segment": "resi", "commodity": "electricity",
+                 "eac_kwh": 3100, "home_type": "suburban_semi", "epc_rating": epc, "bedrooms": 3}]
+        reg = HouseholdDemandRegister(cust, seed=42)
+        reg._events["C1"] = [LifeEvent(customer_id="C1", event_date="2021-01-01",
+                                       event_type="ev_acquired", payload={"ev_charger_kw": 7.0})]
+        prop = {"segment": "resi", "commodity": "electricity", "heating_system": "gas_boiler",
+                "occupancy_pattern": "working_couple",
+                "assets": {"ev": False, "solar": False, "smart_meter": False}, "eac_kwh": 3100}
+        weather = {"2020-06-15": 15.5, "2021-06-15": 15.5}
+        fn = _weather_adjusted_shape_fn(_flat_base, weather, prop, household_register=reg, customer_id="C1")
+        annual = (sum(fn("2021-06-15")) - sum(fn("2020-06-15"))) * 365.25
+        ev_kwh = reg.household_at_date("C1", "2021-06-15").ev_annual_kwh()
+        assert ev_kwh > 0
+        assert annual == pytest.approx(ev_kwh, rel=1e-6)
+    assert reg.epc_multiplier("C1", "2021-06-15") != 1.0  # the E band really does scale the rest

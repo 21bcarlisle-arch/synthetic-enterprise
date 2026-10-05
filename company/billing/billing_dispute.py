@@ -18,7 +18,7 @@ Key obligations:
 - Acknowledge within 3 working days (SLC 18.7)
 - Resolve or provide Final Response within 8 weeks (SLC 18.9)
 - No disconnection while genuine dispute is unresolved
-- Back-billing cap applies to disputed historic charges (SLC 31A)
+- Back-billing cap applies to disputed historic charges (SLC 21BA)
 """
 from __future__ import annotations
 
