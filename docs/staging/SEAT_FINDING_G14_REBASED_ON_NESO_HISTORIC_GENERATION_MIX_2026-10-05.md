@@ -82,3 +82,10 @@ raised to the director with a recommendation: a separate named line at DESNZ's T
 folded in.
 
 G14 stays at L2. The Expert Hour's two MAJORs are addressed in code, and L3 needs a re-take.
+
+**Redrawn after landing (2026-10-05, afternoon).** The lane offered this claim again after
+`cd30ba424` was on origin/main. I re-measured it, and there is nothing left to build. Outside the
+negations, the only `loss-corrected` in `sim/`, `tools/`, `company/`, `saas/` and `tests/` is CARB-2 in
+`tests/domain/battery_register.yaml`. That is a verbatim quote of the carbon advisor brief, not a
+basis label. Disposition: released. The remainder is carried by the continuation
+`g14-expert-hour-retake-on-the-historic-mix`.
