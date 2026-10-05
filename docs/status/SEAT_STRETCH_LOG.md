@@ -8,6 +8,66 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-10-05 — orientation: STEPS 2 AND 3 HAVE ATOMS AND NO CODE
+
+<!-- head: 77bf72babc45 -->
+
+*Written by the orientation seat from its own record (2026-10-05T08:23:14.987842+00:00; 34 commits, 14 substantive, since 2026-10-05T02:22:55.731853+00:00).*
+
+## What the stretch meant
+
+STEPS 2 AND 3 HAVE ATOMS AND NO CODE. THE STEER REACHES THE DRAW AND STOPS THERE. Against the thesis, the stretch's real movement was in the world, not the company. C29 refitted the world's engagement tail to Ofgem's control-arm rate with the 35% mean held (ae552db75). The company's per-account engagement lift survives the refitted world, and the retention guard can now weigh it, off by default (e4acfab81). That is inference graded against a truth the company never touches, and it is the most thesis-relevant result here. It is still not value: no live decision reads it, and the value-arms re-take that would say whether it beats the flat rule is running now (pid 267247, longjob-c29-arms-retake, direction filed first in c36a87d49, landing queued for 13:15). Carbon moved from reconstruction to the published record. The company's annual grid intensity is NESO's level (824fc5efe, 2024 now 133 g/kWh, was 196), the figure a customer is shown counts gas (0074cd746), and the explore page names its units truly (ad00e36e0). Step 1 paid for itself again: eight plain errors in company/ were corrected (65329aa39). Steps 2 and 3 have not moved. W2_36, D48 and B11 have been on origin as loop_stage build since 03:23 (77bf72bab), and simulation/unbilled_energy.py, company/billing/billing_accuracy.py and company/analytics/forward_clv.py exist in no worktree. B11 has been drawn repeatedly (the supervisor log names it 62 times, as the product draw at 08:22) and D48 is in the live worker's prompt, yet nothing lands. W2_36 is in no draw at all. So the three focus items I set at 05:24 reached the draw and produced nothing, and nothing says why. That is the steer drifting, and this record shrinks each item to a first slice that can land in one tick. The flat baseline is no closer to being beaten than last stretch, but the world is closer to being able to press back. CORRECTIONS, beside the claims. (1) My 05:24 record said no figures had published for a week. That was wrong. Four of the five markers were held by the weekly window the director asked for on 2026-09-26. The real fault was about four hours old: Monday's publish was refused behind_origin because the shared tree could not fast-forward (worker finding, 872361644). The count is now keyed to the last landed publish, and the stranded hand edits that held the tree were landed (ab9a8b39f). Monday's figures are still not on origin, and the shared tree is now 25 behind, up from 10. (2) The heartbeat binding was retired as finished by the tick that held it (e392446a0, 07:43), so that wrong row closes. (3) The brief again read the behind checkout's record: its previous_wrong and previous_for_the_director came from the 02:22 record, not origin's 05:24 one. This record carries origin's 26 wrong rows and 6 open concerns by hand, and the row saying so stays open. (4) The draw-follows-the-order change acff52923 is still on no remote ref. Its worktree is locked to pid 1364549, which is no longer running, and the continuation that would land it is queued. The G14 continuation is spent, because G14 reads L2 on origin, and the path check says so. 34 commits, 14 substantive, 9 that changed nothing, all of them base-advance merges.
+
+## What went wrong
+
+- corrected: THE MACHINE'S, NEW. The supervisor's UNMERGED-WORK guard diffs worktree branches against LOCAL main, so while the shared checkout is behind origin it counts already-landed work as unmerged. Live today it holds origin-landed docs and company/pricing files, and it drops PB5 and G14 from every BUILD draw. Focus item four.
+- NOT corrected: THE MACHINE'S, NEW. The merge proposal says the director's heartbeat steer is "in hand", but no claim in .seat_work_in_hand.json holds it, and a heartbeat commit (ef9011143) landed after the steer. A document saying work is in hand is not a claim, and nothing checks the one against the other. Focus item one.
+- NOT corrected: THE MACHINE'S, CARRIED. A commit can name a constraint on a downstream run that nothing enforces. The QEP re-take honoured ba320e2d2 by hand (base 96517e68c), so the instance is met. The class stays in not_now.
+- NOT corrected: THE MACHINE'S, CARRIED. A waiter's deadline is set without pricing the queue ahead of it. wait_for caps at 21600 s, and long chains still loop by hand.
+- NOT corrected: THE MACHINE'S, CARRIED. Nothing checks a long job's worktrees before launch. depth-vs-width died at exit 90 after 10h on a missing worktree.
+- NOT corrected: THE MACHINE'S, CARRIED. A held change's hold condition is not re-asked when its premise moves. The own_book flip landed only because a focus item carried its condition. RECURRED: C29's block_reason has said "sequenced behind B10" for five weeks after B10 reached its target and was refiled (15a9703ae, 2026-08-30), and that stale hold is what kept PB4 off L3.
+- NOT corrected: THE MACHINE'S, CARRIED. Level or park moves stranded in a preserved ref are replayed as written. PB4 build->idle was false by then (a6bd4d77e), and nothing re-asks a stranded move's release condition.
+- NOT corrected: THE MACHINE'S, CARRIED. One item can land twice, on origin through surgical_land and as a local commit on the shared HEAD (75df9efdf after d77ff33d5).
+- NOT corrected: THE MACHINE'S, CARRIED. Nothing checks that a hand-written driver calls an API, or an argument shape, that the tool accepts. hgc-suite-timing's driver called resource_headroom.admitted(). It RECURRED this stretch: the QEP floor handoff passed one seed to a tool that refuses fewer than two.
+- NOT corrected: THE MACHINE'S, CARRIED. A control or door whose shape changes must re-run every fixture that builds a synthetic tree to drive it, and no control requires that. citation_at_head, red_at_head and fork_state still read not_established.
+- NOT corrected: THE MACHINE'S, CARRIED. A refusal naming a commit is not re-asked against the remote ref before a reader sees it. liveness_surface_refusal is still not re-asked.
+- NOT corrected: THE MACHINE'S, CARRIED. The stash-completeness sweep reports a genuinely lost file as safe. It is still not on the map.
+- NOT corrected: THE MACHINE'S, CARRIED. Nothing on the landing path asks whether a same-subject sibling is left behind in the shared tree (the 14-path refusal in 662da7fd3). Separate from H49.
+- NOT corrected: MINE, CLASS. not_now is still prose that nothing reads. A rejected item comes back only if I remember to promote it. This stretch I remembered once (the ex-ante flat comparison, focus item two), which is not a mechanism.
+- NOT corrected: THE MACHINE'S, CARRIED. A bounded executor turn can be reset over finished, unlanded work. Both named instances are gone: the brief reads all 80 worktree HEADs on a remote ref. Nothing prevents the class.
+- NOT corrected: THE MACHINE'S, CARRIED. A pre-registration that dates itself by its first commit can sit untracked after its subject commit lands. The class is still unrefused.
+- NOT corrected: THE MACHINE'S, CARRIED. A launch chain dies silently when its waiter hits DEADLINE. The register showed width as finished, and did not show that P/C, chained behind it, never started.
+- NOT corrected: THE MACHINE'S, CARRIED. The launch register records a deliberate seat stop as DIED. payment-history-pc-legs ended rc=143 beside a STOPPED note that says why.
+- NOT corrected: THE MACHINE'S, CARRIED. The held-work check refuses an item when its prose names a held file, even when the held work is not the item's work. The refusal reaches only the supervisor log, not the seat's brief, so the steer drifts without the seat being told.
+- NOT corrected: THE MACHINE'S, CARRIED. No-work base-advance merges were 11 of 26 and 9 of 24 in earlier stretches. In the last two they were 0 of 9 and 1 of 8, with no mechanism changed, so the cause of the fall is not established, and the Monday census grades it.
+- NOT corrected: THE MACHINE'S, CARRIED. PB4 was drawn and landed nothing, and nothing in the draw ledger or the seat's brief says why. The cause is now known (the coupled-triad gate excludes it from BUILD), but that refusal reaches only the supervisor log, the same blindness as the held-work row.
+- NOT corrected: THE MACHINE'S, NEW. The shared checkout's lag behind origin grew from 23 to 36 commits in three hours, with reconcile-watch running throughout. Daemons running from the checkout execute code the branch has moved past, and every guard that reads local main, the unmerged-work guard first among them, gets worse as the lag grows.
+- corrected: THE MACHINE'S, NEW. A Lane 0 item's real landing sits as landed_unbound until someone runs `--landed`. The heartbeat steer's resolution (3cc1281c4) is named by the ledger and bound to nothing 14h after its draw, so the ledger keeps reporting an item drawn with nothing landed under its own name.
+- corrected: THE MACHINE'S, NEW. No figures have published to origin since 1526f5267 (2026-09-28 05:46), with at least five run_complete markers since then unpublished. The publish state reports "1 consecutive attempt failed over 1.0h", because its failure count resets per episode, so a week-long stall reads as one hour and no orientation flagged it. Focus item one.
+- NOT corrected: THE MACHINE'S, NEW. The seat's brief reads the director's open concerns from the behind shared checkout. It listed four open rows when origin/main carries six (both rows raised in 2b404892e were missing), so a record written from the brief alone would have dropped two open concerns. Carried here from origin by hand.
+- NOT corrected: THE MACHINE'S, NEW. The draw ledger graded the draw-follows-the-order item not_done by asking only its named path (background/supervisor.py) on origin, while the work sits finished as acff52923 in a locked worktree that its live owner is landing. not_done reads the same for work never started and for work mid-landing.
+- corrected: MINE, NEW. My 05:24 record called the publish stall a week long and put it first. Four of the five markers were held by the weekly window the director asked for, and the real fault (behind_origin) was about four hours old. I read the markers without reading what the publisher did with each one.
+- NOT corrected: THE MACHINE'S, NEW. A focus atom can be drawn repeatedly and land nothing, and nothing says why. B11 was drawn throughout this stretch, D48 is in a live worker's prompt, and none of the three step-2/3 subject files exists in any worktree. The draw ledger records the draw and not the stop. Focus items one to three are cut to one-tick slices, and B11's item asks the worker to file what stopped it.
+- NOT corrected: THE MACHINE'S, NEW. A worktree lock outlives its owner. acff52923 (the draw follows the order) is locked to pid 1364549, which is no longer running, and nothing re-asks the owner's liveness before treating the work as in hand. The previous record's not_now leaned on that lock.
+
+## Chosen against
+
+- Re-issue the draw-follows-the-order work (acff52923) as a focus item now that its owner pid 1364549 is gone.
+- Put C29's next build in focus: a live decision that reads the engagement estimate, or turning the retention weighting on.
+- Build the full W2_36, B11 and D48 scopes from last record as single items.
+- Act on the open step-1 order proposal (home moves into step 2, debt graded before the lever, a contact-response world for step 4).
+- Fast-forward the shared checkout by hand, or restart reconcile-watch.
+- Promote G14 towards L3 (it owes an Expert Hour).
+
+## Focus for the next stretch
+
+- `W2_36_unbilled_energy_arises_the_way_it_does_in_reality`
+- `B11_forward_clv_backtested_on_held_back_history`
+- `D48_billing_accuracy_the_company_measures_what_it_billed_against_what_was_used`
+- `this-mondays-publish-reaches-origin`
+
+---
+
 ## 2026-10-05 — orientation: STEP 1 IS DONE, AND IT FOUND THAT THE WORLD CANNOT YET REWARD INFERENCE WHERE STEPS 2 TO 4 WANT IT
 
 <!-- head: 77bf72babc45 -->
