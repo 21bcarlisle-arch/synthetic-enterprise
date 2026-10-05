@@ -102,6 +102,7 @@ from pathlib import Path
 from typing import Iterable, Mapping, Sequence
 
 from sim import neso_carbon_intensity as neso
+from sim.elexon_fuel_outturn import row_settlement_key
 
 PROJECT_DIR = Path(__file__).resolve().parents[1]
 OUT_PATH = PROJECT_DIR / "docs" / "observability" / "ep13_per_fuel_oracle_bound.json"
@@ -171,7 +172,10 @@ def per_fuel_by_period(rows: Iterable[Mapping]) -> dict[tuple[str, int], dict[st
         generation = row.get("generation")
         if generation is None:
             continue
-        key = (row["settlementDate"], row["settlementPeriod"])
+        # Keyed by `startTime`: FUELHH's period-48 label is a day late up to 2022 (2026-10-05).
+        key = row_settlement_key(row)
+        if key is None:
+            continue
         fuel_type = row["fuelType"]
         out[key][fuel_type] = out[key].get(fuel_type, 0.0) + float(generation)
     return dict(out)

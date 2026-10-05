@@ -987,7 +987,18 @@ function carbonDayPanel(row) {
        range ratio cannot be applied to one household's day. The DIRECTION survives (it is
        measured); the MAGNITUDE belongs to the per-household paragraph below, which measures it
        for this home rather than asking the reader to estimate it. */
+    /* SINCE 2026-10-05 THE SHAPE IS NESO'S PUBLISHED SERIES where NESO published, so the
+       comparison is 1.0 by construction (`by_construction`). Printing "1.0x wider" and "this
+       model's clean end is too clean" would describe a model the feed no longer carries. The
+       spread is then the published series' own, and the upper bound is the forecast's. */
     (row.year_stats && row.year_stats.p95_over_p5 && CARBON.versus_published &&
+     CARBON.versus_published.available && CARBON.versus_published.by_construction
+      ? "Across " + esc(String(row.year)) + " as a whole the dirtiest 5% of half hours ran <b>" +
+        row.year_stats.p95_over_p5.toFixed(1) + "&times;</b> the cleanest 5% in NESO&rsquo;s " +
+        "published series, which is what this shape is wherever NESO published. The figure is " +
+        "still an upper bound on what advice could have saved: it is outturn, and a household " +
+        "has to act on a forecast."
+      : row.year_stats && row.year_stats.p95_over_p5 && CARBON.versus_published &&
      CARBON.versus_published.available && CARBON.versus_published.p95_spread_overstated_by
       ? "Across " + esc(String(row.year)) + " as a whole the dirtiest 5% of half hours ran <b>" +
         row.year_stats.p95_over_p5.toFixed(1) + "&times;</b> the cleanest 5% <em>on this " +
@@ -1046,6 +1057,17 @@ function beliefVsTruth(row) {
   if (!b.available) {
     return '<p style="font-size:12px;color:var(--muted);margin-top:8px">' +
       "<b>Not checked against the published grid:</b> " + esc(b.why) + "</p>";
+  }
+  /* SINCE 2026-10-05 the company's shape for these half hours IS NESO's published series, so
+     the two answers are the same numbers. Saying the company's "own grid model overstates" by a
+     gap of zero would describe a model that is no longer there. */
+  if (b.by_construction) {
+    return '<p style="font-size:12px;margin-top:8px;padding-top:8px;border-top:1px solid var(--line)">' +
+      "<b>These are NESO&rsquo;s published figures.</b> For history the company reads NESO's " +
+      "published series itself, so measured against it the timing effect is the same: <b>" +
+      b.truth_pct.toFixed(1) + "%</b> against " + b.belief_pct.toFixed(1) + "% on the " +
+      "company's shape, " + b.half_hours + " half hours compared. There is no separate company " +
+      "model left to check on this day.</p>";
   }
   var wider = Math.abs(b.belief_pct) > Math.abs(b.truth_pct);
   return '<p style="font-size:12px;margin-top:8px;padding-top:8px;border-top:1px solid var(--line)">' +

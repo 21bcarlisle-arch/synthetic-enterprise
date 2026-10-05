@@ -316,6 +316,21 @@ def test_the_SPREAD_is_never_shown_without_its_MEASURED_correction():
         return
 
     assert "the dirtiest 5%" in html, "the spread vanished entirely rather than being corrected"
+    # SINCE 2026-10-05 THE SHAPE IS NESO'S PUBLISHED SERIES, and the comparison is 1.0 BY
+    # CONSTRUCTION. Then the defect to refuse is the opposite one: a "1.0x wider than NESO" and
+    # "this model's clean end is too clean" printed over a series compared with itself.
+    # MUTATION (must fire): drop the `by_construction` branch from `carbonDayPanel`.
+    if versus.get("by_construction"):
+        assert "wider</b> than" not in html and "too clean" not in html, (
+            "the page prints a model correction over a comparison of NESO's series with itself"
+        )
+        assert "published series, which is what this shape is" in html, (
+            "the spread is not said to be NESO's own"
+        )
+        assert "upper bound" in html.lower(), (
+            "the page does not tell the reader which way to read the timing figures"
+        )
+        return
     assert "wider</b> than" in html and "NESO" in html, (
         "the spread is rendered without the measured comparison that bounds it"
     )
@@ -348,12 +363,25 @@ def test_the_HOUSEHOLDS_OWN_belief_is_rendered_against_the_PUBLISHED_grid_not_on
         pytest.skip("C9 has no household-day measurable against the published series")
 
     html = _stage("C9")
+    row = measured[0]["belief_vs_truth"]
+    # SINCE 2026-10-05 the company's shape IS NESO's published series on these half hours, so
+    # the two answers are the same numbers. The panel must say that, and must not print a
+    # "company's own grid model overstates ... by 0.0 percentage points" over an identity.
+    # MUTATION (must fire): drop the `by_construction` branch from `beliefVsTruth`.
+    if row.get("by_construction"):
+        assert "published figures.</b>" in html, (
+            "the panel does not say the figures ARE NESO's published series"
+        )
+        assert "%.1f%%" % row["truth_pct"] in html
+        assert "own grid model" not in html, (
+            "the panel describes a company grid model that is no longer the source"
+        )
+        return
     assert "Measured against NESO&#x27;s published series" in html or \
            "Measured against NESO's published series" in html, (
         "the household's published-series answer is not rendered at all, so the page still "
         "offers only the model's own belief and a ratio the reader cannot apply"
     )
-    row = measured[0]["belief_vs_truth"]
     assert "%.1f%%" % row["truth_pct"] in html, (
         "the panel does not carry the measured truth figure %.1f%%" % row["truth_pct"]
     )

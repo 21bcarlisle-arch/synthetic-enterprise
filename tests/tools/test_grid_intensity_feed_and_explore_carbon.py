@@ -6,6 +6,12 @@ PLUMBING, which is where this class of work actually fails in this repository: a
 no caller, a feed whose window silently excludes the days anyone has meter reads for, a page
 promising a number for a day the data cannot supply, and a coverage sentence typed by hand
 beside a generated one.
+
+SINCE 2026-10-05 THE FEED IS NESO'S PUBLISHED SERIES (`sim/grid_carbon_history.py`), not EP13's
+reconstruction. The controls that graded the reconstruction AS the feed now grade
+`gif.reconstruction_shape()`, which is EP13's model, kept and no longer published. The controls
+that measured the model against NESO through the live feed are replaced by controls that the feed
+IS NESO wherever NESO published, and that the estimate before it is quoted as measured.
 """
 from __future__ import annotations
 
@@ -67,26 +73,53 @@ def test_the_feed_REFUSES_to_publish_without_the_fuel_mix_rather_than_reverting_
     )
 
 
-def test_the_published_import_coverage_is_the_MEASURED_one_and_not_a_sentence():
-    """The feed states what share of GB's imported energy it can price. That number has to come
-    out of the adapter's own count, because a hand-typed "most imports are covered" is exactly
-    the coverage sentence this file's docstring already calls out once.
+def test_the_feed_publishes_NONE_of_the_reconstructions_numbers_or_diagnostics():
+    """THE DIRECTOR'S RULING (2026-10-05): history is the published series. The defect this
+    refuses is the reconstruction quietly staying the source -- or half-staying, through a
+    diagnostic that describes a model the feed no longer carries.
 
-    MUTATION (must fire): hard-code `covered_fraction` in `build()`.
+    MUTATION (must fire): call `reconstruction_shape()` (or `fuel_mix()` / `build_shape`) in
+    `generate()`, or put `import_coverage` back into `build()`.
     """
+    import ast
+    import inspect
+
     shape = {("2025-06-06", p): 1.0 for p in range(1, 49)}
-    demand = {k: 30_000.0 for k in shape}
+    built = gif.build(shape, {k: 30_000.0 for k in shape})
+    for key in ("import_coverage", "coal_demonstrated_max_mw", "thermal_floor_mw",
+                "biomass_envelope_mw", "zero_carbon_must_run_coverage"):
+        assert key not in built, f"the feed still publishes the reconstruction's `{key}`"
 
-    built = gif.build(shape, demand, import_coverage={"covered_fraction": 0.6612},
-                      coal_capacity_by_year={2024: 1873.0, 2025: 110.0})
+    called = {
+        getattr(node.func, "id", None) or getattr(node.func, "attr", None)
+        for node in ast.walk(ast.parse(inspect.getsource(gif.generate)))
+        if isinstance(node, ast.Call)
+    }
+    assert "history_shape" in called, "generate() no longer builds from the published history"
+    assert not called & {"reconstruction_shape", "fuel_mix", "build_shape"}, (
+        f"generate() calls {sorted(called & {'reconstruction_shape', 'fuel_mix', 'build_shape'})}"
+        ": the reconstruction is a source of the published feed again"
+    )
 
-    assert built["import_coverage"]["covered_fraction"] == pytest.approx(0.6612)
-    # North Sea Link is priced from Norway's published mix since s35, so no cable is unpriced.
-    assert built["import_coverage"]["uncovered_cables"] == []
-    assert built["import_coverage"]["outside_neso_mix_cables"] == [
-        "INTELEC (France)", "INTVKL (Denmark)"]
-    # The coal fleet closing has to be legible AS a closure, which needs the zero row present.
-    assert built["coal_demonstrated_max_mw"]["2025"] == 110
+
+def test_the_feed_REFUSES_to_publish_without_the_history(monkeypatch, tmp_path):
+    """An unusable history must not be replaced by anything, and the file must not be rewritten.
+
+    MUTATION (must fire): catch the history's refusal in `generate()` and fall back to
+    `reconstruction_shape()`.
+    """
+    from sim import grid_carbon_history as history
+
+    def _refuse():
+        raise history.efo.FuelOutturnUnavailable("no history cache in this tree")
+
+    monkeypatch.setattr(history, "load_series", _refuse)
+    if not gif.DEMAND_CACHE.is_file():
+        pytest.skip("no demand cache in this tree")
+    out = tmp_path / "feed.json"
+    with pytest.raises(history.efo.FuelOutturnUnavailable):
+        gif.generate(out_path=out)
+    assert not out.exists(), "the feed was written without the series it publishes"
 
 
 # --------------------------------------------------------------------------- #
@@ -338,63 +371,117 @@ def test_a_year_sharing_ONE_half_hour_does_not_count_toward_the_headline():
             )
 
 
-def test_the_headline_says_we_OVERSTATE_and_by_how_much():
-    """VACUITY GUARD ON THE WHOLE COMPARISON. A `versus_published` block that came out at exactly
-    1.0 would mean either perfect agreement or a broken measurement, and the two are
-    indistinguishable from the number alone.
+def test_the_LIVE_feed_IS_the_published_series_wherever_NESO_published():
+    """THE PROPERTY THE RULING ASKS FOR, read off the published file and its own source tags.
 
-    THIS CONTROL ASSERTED THAT THE MODEL STAYS BAD, AND THE MODEL STOPPED BEING THAT BAD
-    (2026-08-25, the thermal floor). It required `spread_overstated_by > 1.5`, and its stated
-    reason was "it dispatches no coal and no interconnector imports" -- a premise that died
-    earlier the same day when both were built. The floor then carried max/min from 2.44x to
-    1.04x and this went red. That is a control encoding a premise the tree has outgrown, and the
-    repair is NOT to lower 1.5 until it passes: a threshold moved to green a red is the
-    goal-seeking R12 exists to stop, and it would be indistinguishable from this one whether the
-    instrument had broken or not.
+    Every record tagged `neso_published` carries NESO's value, so its shape over its published
+    value is ONE constant per year (the two year divisors). Every record tagged otherwise has no
+    published value at all. And the series-level comparison says it agrees by construction.
 
-    SO THE GUARD NOW CHECKS THE THING IT NAMES. A broken comparison is DEGENERATE, and the test
-    above documents exactly what that looks like on this feed: a spread of exactly 1.0 from a
-    value divided by itself, with a correlation of exactly 0.00. Those are checkable directly,
-    and unlike a fidelity threshold they do not expire when the model improves.
-
-    ONE FIDELITY CLAIM SURVIVES, on the statistic the page actually prints. `p95/p5` is the
-    robust spread (max/min rests on two single half hours out of seventeen thousand, which
-    `year_stats` refuses to rest a claim on) and it still runs ~1.36x, so we do still overstate.
-    A drop below 1.0 there would mean this model UNDERSTATES the range, which has never happened
-    and would be worth a human look rather than a silent pass.
-
-    MUTATION (must fire): compare the published series against itself, which is the shape a
-    broken comparison takes -- correlation 1.0, zero error, every spread ratio 1.0.
+    MUTATION (must fire): build the feed's shape from `reconstruction_shape()` again, or tag a
+    fill half hour `neso_published`.
     """
     feed = json.loads(FEED.read_text(encoding="utf-8")) if FEED.is_file() else None
     if not feed or not (feed.get("versus_published") or {}).get("available"):
         pytest.skip("the published-series comparison is not available in this tree")
 
+    ratios: dict[str, list[float]] = {}
+    tagged = 0
+    for r in feed["records"]:
+        if r.get("source") == "neso_published":
+            assert r["published"] is not None, f"{r['date']} p{r['period']} is tagged published"
+            ratios.setdefault(r["date"][:4], []).append(r["shape"] / r["published"])
+            tagged += 1
+        else:
+            assert r["published"] is None, (
+                f"{r['date']} p{r['period']} carries a published value and is tagged "
+                f"{r.get('source')!r}"
+            )
+    assert tagged, "no record is tagged neso_published, so this checked nothing"
+    for year, values in ratios.items():
+        # Five-place rounding on both sides bounds the spread of the ratio well inside 1e-3.
+        assert max(values) - min(values) < 1e-3, (
+            f"{year}: shape/published ranges {min(values):.5f}..{max(values):.5f}, so the feed's "
+            "shape is not the published series up to one divisor"
+        )
     versus = feed["versus_published"]
-    assert len(versus["headline_years"]) >= 3, (
-        "the headline rests on fewer than three years of overlap"
-    )
-
+    assert versus.get("by_construction") is True
     for year in versus["headline_years"]:
-        row = versus["by_year"][str(year)]
-        assert 0.0 < abs(row["correlation"]) < 1.0, (
-            f"{year} correlates {row['correlation']} with the published series. Exactly 0.0 is "
-            "the degenerate single-half-hour row and exactly 1.0 is a series compared against "
-            "itself; either is the instrument failing, not the model succeeding"
-        )
-        assert row["mean_abs_error"] > 0.0, (
-            f"{year} differs from the published series by exactly nothing, which is not a "
-            "reconstruction agreeing -- it is the same numbers on both sides"
-        )
-        assert row["reconstructed_p95_over_p5"] != row["published_p95_over_p5"], (
-            f"{year}'s reconstructed and published spreads are identical to the digit"
-        )
+        row = versus["by_year"][year]
+        assert row["mean_abs_error"] == 0.0 and row["correlation"] == pytest.approx(1.0)
 
-    factor = versus["p95_spread_overstated_by"]
-    assert factor > 1.0, (
-        f"this shape claims to UNDERSTATE the published spread ({factor}x on p95/p5). That has "
-        "never happened and is more likely the comparison breaking than the model being right"
-    )
+
+def test_the_LIVE_feed_tags_every_record_and_all_three_sources_are_reachable():
+    """The partition, on the published file: every source the history can produce reaches the
+    feed somewhere, and no record is untagged.
+
+    MUTATION (must fire): drop `sources=` from the `build()` call in `generate()`.
+    """
+    feed = json.loads(FEED.read_text(encoding="utf-8")) if FEED.is_file() else None
+    if not feed or feed.get("source_by_year") is None:
+        pytest.skip("the feed has not been generated from the history in this tree")
+    seen = {tag for row in feed["source_by_year"].values() for tag in row}
+    assert seen == {"neso_published", "fuelmix_estimate", "fuelmix_fill"}, seen
+    assert {r.get("source") for r in feed["records"]} <= seen, "a record carries no source"
+
+
+def test_every_record_carries_the_source_it_was_handed_and_the_year_counts_add_up():
+    """The same partition one level down, without the live file, so a generator change is
+    caught before anything is regenerated.
+
+    MUTATION (must fire): drop `"source"` from `build()`'s records, or count `source_by_year`
+    over the handed tags rather than over the half hours the shape publishes.
+    """
+    shape = {("2025-06-06", p): 1.0 for p in range(1, 49)}
+    sources = {k: ("fuelmix_fill" if k[1] == 7 else "neso_published") for k in shape}
+    sources[("2025-06-05", 1)] = "fuelmix_estimate"   # tagged, but not in the shape
+    built = gif.build(shape, {k: 30_000.0 for k in shape}, sources=sources)
+    assert {r["source"] for r in built["records"]} == {"neso_published", "fuelmix_fill"}
+    assert built["source_by_year"] == {"2025": {"neso_published": 47, "fuelmix_fill": 1}}
+
+
+def test_by_construction_is_TRUE_only_when_the_shape_IS_the_published_series():
+    """Both branches, reachable before either is trusted. The flag the page branches on must be
+    true for an identity and false for a real model -- a flag stuck at either value would hide
+    a model behind 'agrees by construction', or print a 1.0x correction over an identity.
+
+    MUTATION (must fire): set `by_construction` to a constant.
+    """
+    import sim.neso_carbon_intensity as neso
+
+    days = [f"2024-01-{d:02d}" for d in range(1, 32)] + [f"2024-02-{d:02d}" for d in range(1, 30)]
+    keys = [(d, p) for d in days for p in range(1, 49)]
+    demand = {k: 30_000.0 for k in keys}
+    grams = {k: 150.0 + 60.0 * (k[1] > 32) + days.index(k[0]) for k in keys}
+    published = neso.published_shape(grams, demand)
+
+    identity = gif.versus_published(published, demand, published, "")
+    model = {k: v * (1.3 if k[1] > 32 else 0.9) for k, v in published.items()}
+    other = gif.versus_published(model, demand, published, "")
+    assert identity["available"] and other["available"]
+    assert identity["by_construction"] is True
+    assert other["by_construction"] is False
+
+
+def test_the_household_comparison_is_by_construction_only_on_PUBLISHED_half_hours():
+    """`by_construction` is keyed to the feed's source tags, never to the gap being small: a fill
+    half hour that happens to agree is not the published series.
+
+    MUTATION (must fire): set `by_construction` from `abs(gap) < tolerance`, or to `True`.
+    """
+    reads = [{"date": "2024-01-02", "period": p, "kwh": 1.0} for p in range(1, 49)]
+    shape = {("2024-01-02", p): 1.0 + 0.01 * p for p in range(1, 49)}
+    feed = {"versus_published": {"by_year": {"2024": {
+        "counts_toward_headline": True,
+        "reconstructed_renormalisation_divisor": 1.0,
+        "published_renormalisation_divisor": 1.0}}}}
+    published = dict(shape)
+    tagged = {k: "neso_published" for k in shape}
+    filled = {**tagged, ("2024-01-02", 9): "fuelmix_fill"}
+
+    assert gec.belief_versus_truth(reads, shape, published, feed, "2024", tagged)["by_construction"]
+    row = gec.belief_versus_truth(reads, shape, published, feed, "2024", filled)
+    assert row["gap_pp"] == 0.0 and row["by_construction"] is False
 
 
 def test_an_ABSENT_published_series_is_REPORTED_not_omitted(monkeypatch):
@@ -677,178 +764,74 @@ def test_the_two_percentile_implementations_cannot_drift_apart():
             )
 
 
-def test_the_feed_publishes_the_correction_ON_THE_STATISTIC_THE_PAGE_PRINTS():
-    """THE FINDING: a p95/p5 spread was corrected by a max/min-derived factor.
+def test_an_IDENTITY_comparison_is_published_as_one_and_the_page_has_a_branch_for_it():
+    """THE FINDING THIS REPLACES (2026-08-25) was a p95/p5 spread corrected by a max/min factor.
+    Since 2026-10-05 both factors are 1.0 by construction, and the defect to refuse is the page
+    printing "1.0x wider than NESO" and "this model's clean end is too clean" over a comparison
+    of a series with itself.
 
-    The panel prints "the dirtiest 5% of half hours ran 5.1x the cleanest 5%" and then said that
-    measured `spread_overstated_by` "wider than" NESO's. That factor is the mean of six max/min
-    ratios -- two single half hours out of seventeen thousand on each side, which `year_stats`'
-    own docstring refuses to rest a claim on. Both statistics are now published and the page
-    must be able to reach the one it quotes.
-
-    MUTATION (must fire): delete `p95_spread_overstated_by` from `versus_published`.
+    MUTATION (must fire): drop `by_construction` from `versus_published`, or the page's branch.
     """
     feed = json.loads(FEED.read_text(encoding="utf-8")) if FEED.is_file() else None
     if not feed or not (feed.get("versus_published") or {}).get("available"):
         pytest.skip("the published-series comparison is not available in this tree")
     versus = feed["versus_published"]
-
-    assert versus.get("p95_spread_overstated_by"), (
-        "the feed offers no p95/p5 correction, so any page sentence correcting a p95/p5 spread "
-        "is forced back onto the max/min factor -- the defect itself"
+    assert versus["by_construction"] is True
+    assert versus["p95_spread_overstated_by"] == 1.0 == versus["spread_overstated_by"]
+    page = (REPO / "site" / "explore" / "index.html").read_text(encoding="utf-8")
+    assert "CARBON.versus_published.by_construction" in page, (
+        "the page has no branch for an identity comparison, so it prints a correction of 1.0x"
     )
-    assert versus["p95_spread_overstated_by"] > 1.0, (
-        "the p95/p5 correction came out at or below 1.0, which would mean this shape's robust "
-        "spread is no wider than NESO's -- with no coal and no imports modelled that is the "
-        "instrument failing, not the model being right"
-    )
-    # THE TWO FACTORS ARE DIFFERENT NUMBERS, which is the whole reason the finding mattered. If
-    # they ever coincide this test is no longer evidence of anything and should be re-derived.
-    assert versus["p95_spread_overstated_by"] != versus["spread_overstated_by"], (
-        "the tail and robust corrections are identical, so this control can no longer tell "
-        "whether the page picked the right one"
-    )
-    for year in versus["headline_years"]:
-        row = versus["by_year"][year]
-        for key in ("reconstructed_p95_over_p5", "published_p95_over_p5"):
-            assert row.get(key), f"{year} carries no {key}, so its factor rests on nothing"
 
 
-def test_the_WITHIN_DAY_FIGURES_QUOTED_in_ERROR_DIRECTION_are_the_MEASURED_ones():
-    """A DERIVED-VS-TYPED PAIR, and this file already knows why that class matters.
+def test_the_ESTIMATE_FIGURES_QUOTED_in_ERROR_DIRECTION_are_the_MEASURED_ones():
+    """A DERIVED-VS-TYPED PAIR. ERROR_DIRECTION reaches the page verbatim and quotes the pre-2018
+    estimate's measured error and the window it was measured on. Both must be what the feed's
+    `history` block carries, to the rounding the sentence prints.
 
-    THE FINDING (2026-08-25): the page's "1.36x" correction blends two axes that behave
-    oppositely. Split day by day, this shape's BETWEEN-day swing matches the published series
-    (0.93-1.00x over 2019-2024) and its WITHIN-day swing does not (1.41-1.58x). A household can
-    shift the washing from 6pm to 2am and cannot shift it to a windier Tuesday in March, so the
-    whole exaggeration sits on the only axis a time-shifting claim acts on -- and the annual
-    factor therefore UNDER-corrects the claim it is printed to correct.
-
-    That is worth saying on the page only if the numbers said there stay the measured ones. The
-    sentence is prose typed by a human hand; the feed is computed. This control reads the numbers
-    back OUT of the sentence and holds them against the feed, so the two cannot drift -- the same
-    defect shape as the hardcoded '3.2x' correction deleted from this panel earlier the same day,
-    and as the ERROR_DIRECTION reason found to be a recollection the same morning.
-
-    MUTATION (must fire): move any quoted bound, or let the measurement move past one.
+    MUTATION (must fire): move any quoted figure, or let the measurement move past one.
     """
     import re
 
-    quoted = re.findall(r"\((\d+\.\d+)-(\d+\.\d+)x, mean (\d+\.\d+)\)", gif.ERROR_DIRECTION)
-    assert len(quoted) == 2, (
-        "ERROR_DIRECTION no longer quotes exactly two (low-highx, mean m) ranges, so this "
-        "control cannot tell which claim it is checking and must be re-derived rather than "
-        "left to pass on whatever it finds"
+    found = re.search(
+        r"on (\d{4}-\d{2}-\d{2})\.\.(\d{4}-\d{2}-\d{2}) at correlation (\d\.\d+), mean bias "
+        r"(-?\d+\.\d) gCO2/kWh and RMSE (\d+\.\d) gCO2/kWh", gif.ERROR_DIRECTION)
+    assert found, "ERROR_DIRECTION no longer quotes the estimate's window and error in one place"
+    lo, hi, corr, bias, rmse = found.groups()
+
+    from sim import grid_carbon_history as history
+
+    assert (lo, hi) == history.CALIBRATION_FIT_WINDOW, (
+        f"the sentence quotes {lo}..{hi}; the scale is fitted on {history.CALIBRATION_FIT_WINDOW}"
     )
-    claims = {
-        "between_day_swing_overstated_by": tuple(float(v) for v in quoted[0]),
-        "within_day_swing_overstated_by": tuple(float(v) for v in quoted[1]),
-    }
-
     feed = json.loads(FEED.read_text(encoding="utf-8")) if FEED.is_file() else None
-    if not feed or not (feed.get("versus_published") or {}).get("available"):
-        pytest.skip("the published-series comparison is not available in this tree")
-    versus = feed["versus_published"]
-    years = versus["headline_years"]
-    assert years, "no headline year, so the quoted range rests on nothing"
-
-    for key, (low, high, mean_claimed) in claims.items():
-        measured = [versus["by_year"][y][key] for y in years]
-        assert all(v is not None for v in measured), (
-            f"a headline year carries no {key}: the sentence quotes a range over years the feed "
-            "does not measure"
-        )
-        # THE BOUNDS MUST BE THE MEASURED ONES, NOT MERELY CONTAIN THEM. Written first as
-        # `min(measured) >= low and max(measured) <= high`, this control passed every time the
-        # quoted range was WIDENED -- so "1.41-1.90x" against a measured 1.41-1.58x, which is
-        # simply a false sentence to a reader, was invisible to it. A one-sided containment check
-        # on a published range is fail-open by construction: the loosest possible claim always
-        # survives it. Both ends are pinned to the rounding the sentence itself prints.
-        assert (round(min(measured), 2), round(max(measured), 2)) == pytest.approx((low, high), abs=5e-3), (
-            f"{key} measured {min(measured):.3f}-{max(measured):.3f} over {years}, but "
-            f"ERROR_DIRECTION tells the reader {low}-{high}"
-        )
-        got_mean = sum(measured) / len(measured)
-        assert got_mean == pytest.approx(mean_claimed, abs=5e-3), (
-            f"{key} means {got_mean:.3f} across the headline years; the sentence says "
-            f"{mean_claimed}"
-        )
-
-    # THE DIRECTION OF THE CLAIM, not only its arithmetic. Until s25 the sentence said within-day
-    # was too wide in every year and this asserted `min(within) > max(between)`; pumped storage
-    # made that false, and the control went red as it should. The claim is now per year, read at
-    # the two places the sentence prints: too WIDE, MATCHED, or too NARROW. Embedded wind (s26)
-    # put 2022 at 1.0003, where an unrounded `> 1.0` would have called it too wide. Every headline
-    # year must sit on exactly one side, and a side the sentence omits is a side with no year.
-    within = {y: round(versus["by_year"][y]["within_day_swing_overstated_by"], 2) for y in years}
-    sides = {
-        "too WIDE": {y for y, v in within.items() if v > 1.0},
-        "MATCHED to two places": {y for y, v in within.items() if v == 1.0},
-        "too NARROW": {y for y, v in within.items() if v < 1.0},
-    }
-    for label in ("too WIDE", "MATCHED to two places", "too NARROW"):
-        found = re.search(label + r" in ([^;]*);", gif.ERROR_DIRECTION)
-        named = set(re.findall(r"\d{4}", found.group(1))) if found else set()
-        assert named == sides[label], (
-            f"ERROR_DIRECTION names {sorted(named)} as {label}; the feed measures {within}"
-        )
+    if not feed or not feed.get("history"):
+        pytest.skip("the feed carries no history block in this tree")
+    measured = feed["history"]["estimate_versus_published_fit_window_after_scale"]
+    assert float(corr) == pytest.approx(measured["correlation"], abs=5e-4)
+    assert float(bias) == pytest.approx(measured["mean_bias_g_co2_per_kwh"], abs=0.05)
+    assert float(rmse) == pytest.approx(measured["rmse_g_co2_per_kwh"], abs=0.05)
 
 
 def test_the_stated_ERROR_DIRECTION_does_not_contradict_the_NAMED_GAPS_beside_it():
-    """THE FINDING: the sentence that reaches the page said both largest gaps push the same way.
+    """THE ORIGINAL FINDING: the sentence that reaches the page gave a reason the gap list one
+    field away contradicted. Its subject moved on 2026-10-05: there is no model any more, so the
+    sentence must not describe one, and it and the gaps must name the same estimate window.
 
-    `NAMED_GAPS` says otherwise in the same module -- coal omission is a DIRTY-end error, and
-    omitting interconnector imports makes half hours read DIRTIER, not cleaner. The published
-    conclusion (the clean end is optimistic) is true and measured; the reason given for it was
-    not, and a reason a reader can check against the list one field away is the kind of wrong
-    that costs trust in the number beside it.
-
-    MUTATION (must fire): restore "both make quiet half hours look cleaner".
-
-    ITS SUBJECT MOVED AND THE CONTROL FOLLOWED IT RATHER THAN BEING DELETED (2026-08-25). The
-    gap it used to quote -- "interconnector imports are not modelled" -- stopped being true when
-    they were modelled, and this test went red for the right reason: the string it anchored on
-    was gone. Deleting it would have removed the only check that the published REASON agrees
-    with the published GAPS, at the exact moment the gaps changed, which is when that check is
-    worth most. So the anchor is now the RESIDUE -- the two cables NESO publishes no factor for,
-    which are still dispatched as GB gas and still read dirtier -- and it is asserted on the
-    direction word rather than on a whole sentence, so the next rewording does not fake a pass
-    OR a fail.
+    MUTATION (must fire): restore a sentence about "this model" or "the reconstruction", or
+    let the gap list quote a different fit window.
     """
-    text = gif.ERROR_DIRECTION.lower()
-    gaps = " ".join(gif.NAMED_GAPS).lower()
+    from sim import grid_carbon_history as history
 
-    assert "interconnector" in gaps and "reads dirtier" in gaps, (
-        "the gap list no longer states the interconnector direction, so this control has lost "
-        "the side of the comparison it checks against"
+    text = gif.ERROR_DIRECTION.lower()
+    gaps = " ".join(gif.NAMED_GAPS)
+    assert "this model" not in text and "reconstruct" not in text, (
+        "the error direction still describes a model the feed no longer publishes"
     )
-    assert "thermal" in gaps and "demonstrated annual minimum" in gaps, (
-        "the gap list no longer names the thermal floor, which is what the range claim now rests "
-        "on; without it the error direction rests on nothing"
-    )
-    assert not ("both" in text and "cleaner" in text.split("upper bound")[0]), (
-        "the error-direction sentence again claims both gaps push toward cleaner, which the "
-        "named gaps in this same module contradict on both limbs"
-    )
-    assert "upper bound" in text, "the direction a reader must take away is no longer stated"
-    assert "measured" in text, (
-        "the clean-end claim reads as asserted rather than measured -- the exact sentence that "
-        "was found to be a recollection in the grammar of a measurement"
-    )
-    # THE SUBJECT MOVED A SECOND TIME AND THE CONTROL FOLLOWED IT AGAIN (2026-08-25, the thermal
-    # floor). The old gap -- "the thermal stack reaches exactly zero" -- stopped being true when
-    # the floor was measured, and with it went the claim that the clean end is UNIFORMLY
-    # optimistic: in 2020 and 2021 the model's quietest half hours are now DIRTIER than published.
-    # An error-direction sentence that still said "the clean end is optimistic" full stop would be
-    # asserting a direction the measurement beside it contradicts in two of six years, which is
-    # the exact defect this control was written for, pointed the other way. So the claim the
-    # sentence is now allowed to make is about the RANGE, and it must say the clean end is mixed.
-    assert "range" in text, (
-        "the surviving overstatement is of the RANGE, and the sentence no longer says so"
-    )
-    assert "dirtier than published" in text, (
-        "the error-direction sentence omits that the clean end now overshoots in some years -- "
-        "reporting only the flattering half of a measurement that moved in both directions"
+    assert "upper bound" in text and "measured" in text
+    window = "{}..{}".format(*history.CALIBRATION_FIT_WINDOW)
+    assert window in gif.ERROR_DIRECTION and window in gaps, (
+        f"the sentence and the gap list do not both name the fit window {window}"
     )
 
 
@@ -1003,7 +986,7 @@ def test_the_UNWIRED_flag_is_a_DECISION_and_not_an_INERT_switch():
 
     # AND THE FLAG HAS TO GOVERN THE PUBLISHING CALL, which the two assertions above cannot
     # show: they prove the PARAMETER works, and the first draft of this test stopped there --
-    # the mutation that hard-codes `biomass_envelope_by_year=None` in `generate()`, severing the
+    # the mutation that hard-codes `biomass_envelope_by_year=None` in `reconstruction_shape()`, severing the
     # flag from the only call site that publishes anything, SURVIVED it. Checked on the parsed
     # call rather than on the source text so a mention in a comment cannot satisfy it.
     import ast
@@ -1011,15 +994,15 @@ def test_the_UNWIRED_flag_is_a_DECISION_and_not_an_INERT_switch():
 
     call = next(
         node
-        for node in ast.walk(ast.parse(inspect.getsource(gif.generate)))
+        for node in ast.walk(ast.parse(inspect.getsource(gif.reconstruction_shape)))
         if isinstance(node, ast.Call) and getattr(node.func, "id", None) == "build_shape"
     )
     keyword = next(k for k in call.keywords if k.arg == "biomass_envelope_by_year")
     assert "BIOMASS_DISPATCH_WIRED" in {
         n.id for n in ast.walk(keyword.value) if isinstance(n, ast.Name)
     }, (
-        "`generate()` does not consult the flag, so `BIOMASS_DISPATCH_WIRED` documents a "
-        "decision the publishing path does not actually make"
+        "`reconstruction_shape()` does not consult the flag, so `BIOMASS_DISPATCH_WIRED` "
+        "documents a decision the reconstruction does not actually make"
     )
 
 
@@ -1040,27 +1023,6 @@ def test_the_published_BASIS_says_biomass_is_still_FLAT_while_the_flag_is_off():
         assert "NOT dispatched" in SHAPE_BASIS
     else:
         assert "FLAT block" not in SHAPE_BASIS
-
-
-def test_the_envelope_REACHES_the_published_feed_with_both_ends_and_the_mean():
-    """The measurement has to arrive where a reader is, not only where the tests are.
-
-    MUTATION (must fire): drop `biomass_envelope_by_year` from the `build()` call in
-    `generate()`, or publish only one end of the envelope.
-    """
-    shape = {("2024-03-01", p): 1.0 + 0.01 * p for p in range(1, 20)}
-    built = gif.build(
-        shape, {k: 30_000.0 for k in shape},
-        biomass_envelope_by_year={2024: {"capacity_mw": 3_328.4, "floor_mw": 73.2,
-                                         "p1_mw": 550.0, "p99_mw": 3_219.0,
-                                         "mean_mw": 2_142.6, "half_hours": 17_559.0}},
-    )
-    row = built["biomass_envelope_mw"]["2024"]
-    assert row["floor_mw"] == 73 and row["capacity_mw"] == 3_328
-    assert row["mean_mw"] == 2_143, (
-        "the mean is the flat block's level, and a reader checks it here"
-    )
-    assert gif.build(shape, {k: 30_000.0 for k in shape})["biomass_envelope_mw"] is None
 
 
 # --------------------------------------------------------------------------- #
@@ -1228,12 +1190,13 @@ def _unmixed_imports():
 
 
 def _shape_generate_would_build(mix, demand, agws, **knocked_out):
-    """`generate()`'s own `build_shape` call, with one correction optionally knocked out.
+    """`reconstruction_shape()`'s own `build_shape` call, with one correction optionally knocked
+    out. (It was `generate()`'s until 2026-10-05, when the feed stopped publishing it.)
 
-    A REPLICA OF THE PUBLISHING CALL IS A MIRROR unless something ties it back, so every
-    control below asserts that the un-knocked-out shape is the one the published records
-    actually carry. If `generate()` ever stops passing a correction, the replica and the feed
-    disagree and these go red -- which is the point, and is why the knock-out is a keyword here
+    A REPLICA OF THE CALL IS A MIRROR unless something ties it back, so every control below
+    asserts that the un-knocked-out shape is the one `reconstruction_shape()` actually returns. If
+    it ever stops passing a correction, the replica and the reconstruction disagree and these go
+    red -- which is the point, and is why the knock-out is a keyword here
     rather than a second hand-written call.
     """
     from sim.grid_carbon_intensity import build_shape
@@ -1257,8 +1220,8 @@ def _shape_generate_would_build(mix, demand, agws, **knocked_out):
     return build_shape(demand, renewables, **keywords)
 
 
-def _published_records_carry(feed, shape) -> bool:
-    return all(round(shape[(r["date"], r["period"])], 5) == r["shape"] for r in feed["records"])
+def _reconstruction_is(reconstruction, shape) -> bool:
+    return reconstruction == shape
 
 
 @pytest.fixture(scope="module")
@@ -1302,18 +1265,16 @@ def real_mix():
 
 
 @pytest.fixture(scope="module")
-def real_publish(real_mix, tmp_path_factory):
-    """ONE real publish off the real caches, shared by the three controls that grade the FEED.
+def real_reconstruction(real_mix):
+    """ONE real build of EP13's reconstruction off the real caches, shared by the controls below.
 
-    ~15s: `fuel_mix()` is ~6s over 235 MB of outturn and `generate()` runs it again on the path
-    that publishes. Both are wanted -- the tuple is the subject and the feed is where it has to
-    arrive -- and paying for them once is the difference between a control that costs 15s and
-    three that cost 45s.
+    Until 2026-10-05 this was a real PUBLISH and the controls graded the feed's records. The feed
+    is now NESO's published series, so they grade `reconstruction_shape()`, which is the same
+    wiring the feed used to publish, kept for EP13 and no longer published.
     """
     demand = gif.aggregate_demand(json.loads(gif.DEMAND_CACHE.read_text(encoding="utf-8")))
     agws = json.loads(gif.AGWS_CACHE.read_text(encoding="utf-8"))
-    feed = gif.generate(out_path=tmp_path_factory.mktemp("feed") / "grid_intensity_feed.json")
-    return real_mix, demand, agws, feed
+    return real_mix, demand, agws, gif.reconstruction_shape()
 
 
 def test_the_TUPLES_ORDER_is_the_contract_and_each_member_is_a_DIFFERENT_SHAPE(real_mix):
@@ -1587,8 +1548,8 @@ def test_the_BIOMASS_ROWS_reach_the_YEARLY_ENVELOPE_at_HALF_HOUR_GRAIN(real_mix)
         )
 
 
-def test_the_THERMAL_FLOOR_the_MIX_MEASURES_reaches_the_published_feed_and_MOVES_the_series(
-        real_publish):
+def test_the_THERMAL_FLOOR_the_MIX_MEASURES_reaches_the_reconstruction_and_MOVES_it(
+        real_reconstruction):
     """M5. The floor is the correction that stops the reconstruction dispatching the gas stack
     down to zero on a windy night, and it reaches the feed through one member of one tuple.
 
@@ -1601,16 +1562,17 @@ def test_the_THERMAL_FLOOR_the_MIX_MEASURES_reaches_the_published_feed_and_MOVES
     MUTATION (must fire): `floors = {}` in `fuel_mix()` -- battery row M5, killed by none of the
     eight callers and neither direct suite at `d7eb36a0b901`.
     """
-    mix, demand, agws, feed = real_publish
-    floors = feed["thermal_floor_mw"]
+    mix, demand, agws, reconstruction = real_reconstruction
+    floors = {str(year): row for year, row in mix[3].items()}
+    years = {key[0][:4] for key in reconstruction}
 
-    # EVERY YEAR THE SERIES IS PUBLISHED FOR HAS ITS FLOOR PUBLISHED BESIDE IT. Keyed to the
-    # feed's own year coverage rather than to a list of years, so it stays true when the record
-    # extends and goes red if the floor stops covering what the shape covers.
-    assert set(floors) == set(feed["by_year"]), (
-        "the published thermal floor does not cover the years the series covers, so for "
-        f"{sorted(set(feed['by_year']) - set(floors))} the feed publishes a shape built with a "
-        "floor correction and no way for a reader to see what floor"
+    # EVERY YEAR THE RECONSTRUCTION COVERS HAS A MEASURED FLOOR. Keyed to its own year coverage
+    # rather than to a list of years, so it stays true when the record extends. A SUPERSET, not
+    # equality: since FUELHH is keyed by `startTime` (2026-10-05) the cache's first row is
+    # 2015-12-31 period 48, so the floor has a 2015 row the demand-led reconstruction never uses.
+    assert years <= set(floors), (
+        f"the thermal floor does not cover {sorted(years - set(floors))}, years the "
+        "reconstruction is built for"
     )
     for year, row in floors.items():
         assert row["half_hours"] > 0, f"{year}'s floor rests on no half hours"
@@ -1628,13 +1590,13 @@ def test_the_THERMAL_FLOOR_the_MIX_MEASURES_reaches_the_published_feed_and_MOVES
         "knocking the thermal floor out of the publishing call changes nothing in the series, "
         "so either the floor the mix measured is empty or the dispatch ignores it"
     )
-    assert _published_records_carry(feed, with_floor), (
-        "the published records are not the shape built with the floor the mix measured"
+    assert _reconstruction_is(reconstruction, with_floor), (
+        "the reconstruction is not the shape built with the floor the mix measured"
     )
 
 
-def test_the_ZERO_CARBON_MUST_RUN_BLOCK_the_MIX_MEASURES_is_the_ONE_THE_FEED_PUBLISHES(
-        real_publish):
+def test_the_ZERO_CARBON_MUST_RUN_BLOCK_the_MIX_MEASURES_is_the_one_the_reconstruction_uses(
+        real_reconstruction):
     """M6. The must-run block is the only one of the three corrections that reaches NO published
     field of its own -- `zero_carbon_must_run_coverage` is a different member of the tuple -- so
     the only place its loss can be seen is in the series itself.
@@ -1647,7 +1609,7 @@ def test_the_ZERO_CARBON_MUST_RUN_BLOCK_the_MIX_MEASURES_is_the_ONE_THE_FEED_PUB
     MUTATION (must fire): return `{}` in place of
     `fuel.zero_carbon_must_run_by_period(must_run_rows)` -- battery row M6.
     """
-    mix, demand, agws, feed = real_publish
+    mix, demand, agws, reconstruction = real_reconstruction
     must_run = mix[4]
 
     assert must_run, (
@@ -1657,9 +1619,9 @@ def test_the_ZERO_CARBON_MUST_RUN_BLOCK_the_MIX_MEASURES_is_the_ONE_THE_FEED_PUB
     # THE BLOCK COVERS THE DAYS THE FEED ACTUALLY PRICES, which "non-empty" does not show: a
     # block measured only over years the records window has left behind would satisfy the line
     # above and change nothing a reader can see.
-    assert any((r["date"], r["period"]) in must_run for r in feed["records"]), (
-        "no half hour the feed publishes a record for is covered by the must-run block, so "
-        "every record on the page is the flat fallback"
+    assert any(key in must_run for key in reconstruction), (
+        "no half hour of the reconstruction is covered by the must-run block, so every one of "
+        "them is the flat fallback"
     )
 
     with_block = _shape_generate_would_build(mix, demand, agws)
@@ -1669,17 +1631,17 @@ def test_the_ZERO_CARBON_MUST_RUN_BLOCK_the_MIX_MEASURES_is_the_ONE_THE_FEED_PUB
         "the series is identical with and without the measured must-run block, so the block the "
         "mix returns is not the one being dispatched"
     )
-    assert _published_records_carry(feed, with_block), (
-        "the published records are not the shape built with the measured must-run block"
+    assert _reconstruction_is(reconstruction, with_block), (
+        "the reconstruction is not the shape built with the measured must-run block"
     )
-    assert not _published_records_carry(feed, flat), (
-        "the published records are ALSO what the flat fallback would have published, so this "
-        "control cannot tell the two apart and proves nothing about either"
+    assert not _reconstruction_is(reconstruction, flat), (
+        "the reconstruction is ALSO the flat fallback, so this control cannot tell the two "
+        "apart and proves nothing about either"
     )
 
 
-def test_the_BIOMASS_ENVELOPE_the_MIX_MEASURES_reaches_the_published_feed_TO_THE_LATEST_YEAR(
-        real_publish):
+def test_the_BIOMASS_ENVELOPE_the_MIX_MEASURES_reaches_the_LATEST_YEAR_of_the_reconstruction(
+        real_reconstruction):
     """M8. The envelope is deliberately NOT dispatched -- `BIOMASS_DISPATCH_WIRED` is False --
     which is exactly why its publication is load-bearing: it is the only thing that lets a
     reader size the error in the flat 2,400 MW block the series does use.
@@ -1692,24 +1654,24 @@ def test_the_BIOMASS_ENVELOPE_the_MIX_MEASURES_reaches_the_published_feed_TO_THE
 
     MUTATION (must fire): return `{}` in place of `biomass` from `fuel_mix()`.
     """
-    _mix, _demand, _renewables, feed = real_publish
-    envelope = feed["biomass_envelope_mw"]
+    mix, _demand, _renewables, reconstruction = real_reconstruction
+    envelope = {str(year): row for year, row in mix[6].items()}
+    years = {key[0][:4] for key in reconstruction}
 
     assert envelope, (
-        "the feed publishes no biomass envelope, so the basis line still says the fleet is held "
-        "at a constant 2,400 MW and nothing on the page says how wrong that is"
+        "`fuel_mix()` returns no biomass envelope, so nothing sizes the flat block's error"
     )
     # THE DIAGNOSTIC HAS TO REACH THE LATEST YEAR THE SERIES DOES. An envelope that stops short
     # sizes a gap for years nobody is reading and leaves today's flat block uncheckable. The
     # first year is NOT asserted: the biomass cache starts after the demand record does, and
     # pinning that would key this to today's coverage rather than to the property.
-    assert set(envelope) <= set(feed["by_year"]), (
-        f"the envelope covers {sorted(set(envelope) - set(feed['by_year']))}, years the series "
+    assert set(envelope) <= years, (
+        f"the envelope covers {sorted(set(envelope) - years)}, years the reconstruction "
         "does not -- it is not the same record"
     )
-    assert max(envelope) == max(feed["by_year"]), (
-        f"the envelope stops at {max(envelope)} and the series runs to {max(feed['by_year'])}, "
-        "so the most recent flat-block claim is the one a reader cannot check"
+    assert max(envelope) == max(years), (
+        f"the envelope stops at {max(envelope)} and the reconstruction runs to {max(years)}, "
+        "so the most recent flat-block claim is the one nobody can check"
     )
     for year, row in envelope.items():
         assert row["half_hours"] > 0, f"{year}'s envelope rests on no half hours"
@@ -1723,88 +1685,88 @@ def test_the_BIOMASS_ENVELOPE_the_MIX_MEASURES_reaches_the_published_feed_TO_THE
         )
 
 
-def test_EXPORTS_are_served_and_divided_by_in_the_published_feed(real_publish):
+def test_EXPORTS_are_served_and_divided_by_in_the_reconstruction(real_reconstruction):
     """EP13 frame doc s20. INDO excludes exports; the feed must carry the shape whose stack
     serves them, and dropping them must CHANGE the series (else the correction is inert).
 
-    MUTATION (must fire): in `generate()`, drop `exports_by_period`.
+    MUTATION (must fire): in `reconstruction_shape()`, drop `exports_by_period`.
     """
-    mix, demand, agws, feed = real_publish
+    mix, demand, agws, reconstruction = real_reconstruction
     served = _shape_generate_would_build(mix, demand, agws)
     dropped = _shape_generate_would_build(mix, demand, agws, exports_by_period=None)
-    assert not _published_records_carry(feed, dropped), (
-        "the published records are the shape with exports invisible to the dispatch"
+    assert not _reconstruction_is(reconstruction, dropped), (
+        "the reconstruction is the shape with exports invisible to the dispatch"
     )
-    assert _published_records_carry(feed, served), (
-        "the published records are not the shape that serves exports"
+    assert _reconstruction_is(reconstruction, served), (
+        "the reconstruction is not the shape that serves exports"
     )
 
 
-def test_VIKING_and_ELECLINK_are_served_and_left_out_of_the_mix_in_the_published_feed(real_publish):
+def test_VIKING_and_ELECLINK_are_served_and_left_out_of_the_mix_in_the_reconstruction(real_reconstruction):
     """EP13 frame doc s34. NESO's mix leaves both cables out (s33), so the feed must carry the
     shape whose stack is relieved of their flow, and dropping it must CHANGE the series.
 
-    MUTATION (must fire): in `generate()`, drop `unmixed_imports_by_period`.
+    MUTATION (must fire): in `reconstruction_shape()`, drop `unmixed_imports_by_period`.
     """
-    mix, demand, agws, feed = real_publish
+    mix, demand, agws, reconstruction = real_reconstruction
     served = _shape_generate_would_build(mix, demand, agws)
     dropped = _shape_generate_would_build(mix, demand, agws, unmixed_imports_by_period=None)
-    assert not _published_records_carry(feed, dropped), (
-        "the published records are the shape with Viking and ElecLink served as GB gas"
+    assert not _reconstruction_is(reconstruction, dropped), (
+        "the reconstruction is the shape with Viking and ElecLink served as GB gas"
     )
-    assert _published_records_carry(feed, served), (
-        "the published records are not the shape that serves Viking and ElecLink"
+    assert _reconstruction_is(reconstruction, served), (
+        "the reconstruction is not the shape that serves Viking and ElecLink"
     )
 
 
-def test_PUMPED_STORAGE_is_dispatched_in_the_published_feed(real_publish):
+def test_PUMPED_STORAGE_is_dispatched_in_the_reconstruction(real_reconstruction):
     """EP13 frame doc s25. The feed must carry the shape whose model dispatches pumped storage
     from its annual scalars, and dropping the fleet must CHANGE the series (else it is inert).
 
-    MUTATION (must fire): in `generate()`, drop `pumped_storage_by_year`.
+    MUTATION (must fire): in `reconstruction_shape()`, drop `pumped_storage_by_year`.
     """
-    mix, demand, agws, feed = real_publish
+    mix, demand, agws, reconstruction = real_reconstruction
     dispatched = _shape_generate_would_build(mix, demand, agws)
     dropped = _shape_generate_would_build(mix, demand, agws, pumped_storage_by_year=None)
-    assert not _published_records_carry(feed, dropped), (
-        "the published records are the shape with no pumped storage in the dispatch"
+    assert not _reconstruction_is(reconstruction, dropped), (
+        "the reconstruction is the shape with no pumped storage in the dispatch"
     )
-    assert _published_records_carry(feed, dispatched), (
-        "the published records are not the shape that dispatches pumped storage"
+    assert _reconstruction_is(reconstruction, dispatched), (
+        "the reconstruction is not the shape that dispatches pumped storage"
     )
 
 
-def test_EMBEDDED_WIND_is_divided_by_in_the_published_feed(real_publish):
+def test_EMBEDDED_WIND_is_divided_by_in_the_reconstruction(real_reconstruction):
     """EP13 frame doc s26. INDO is net of embedded wind as it is of embedded solar, so NESO's
     denominator carries both. Dividing by solar alone must CHANGE the series (else it is inert).
 
-    MUTATION (must fire): in `generate()`, hand `build_shape` `aggregate_solar_generation(agws)`.
+    MUTATION (must fire): in `reconstruction_shape()`, hand `build_shape` `aggregate_solar_generation(agws)`.
     """
-    mix, demand, agws, feed = real_publish
+    mix, demand, agws, reconstruction = real_reconstruction
     both = _shape_generate_would_build(mix, demand, agws)
     solar_only = _shape_generate_would_build(
         mix, demand, agws, embedded_generation_by_period=gif.aggregate_solar_generation(agws))
-    assert not _published_records_carry(feed, solar_only), (
-        "the published records are the shape whose denominator carries embedded solar only"
+    assert not _reconstruction_is(reconstruction, solar_only), (
+        "the reconstruction is the shape whose denominator carries embedded solar only"
     )
-    assert _published_records_carry(feed, both), (
-        "the published records are not the shape that divides by embedded wind and solar"
+    assert _reconstruction_is(reconstruction, both), (
+        "the reconstruction is not the shape that divides by embedded wind and solar"
     )
 
 
-def test_the_published_BIOMASS_block_sits_at_the_YEARS_MEAN_not_2400_MW(real_publish):
+def test_the_reconstructions_BIOMASS_block_sits_at_the_YEARS_MEAN_not_2400_MW(real_reconstruction):
     """EP13 frame doc s27. The flat block carries each year's measured biomass energy. Holding it
     at 2,400 MW must CHANGE the series (else the correction is inert).
 
-    MUTATION (must fire): in `generate()`, pass `None` where the flag is False.
+    MUTATION (must fire): in `reconstruction_shape()`, pass `None` where the flag is False.
     """
-    mix, demand, agws, feed = real_publish
-    assert not _published_records_carry(
-        feed, _shape_generate_would_build(mix, demand, agws, biomass_envelope_by_year=None)), (
-        "the published records are the shape with biomass flat at 2,400 MW"
+    mix, demand, agws, reconstruction = real_reconstruction
+    assert not _reconstruction_is(
+        reconstruction, _shape_generate_would_build(mix, demand, agws, biomass_envelope_by_year=None)), (
+        "the reconstruction is the shape with biomass flat at 2,400 MW"
     )
-    assert _published_records_carry(feed, _shape_generate_would_build(mix, demand, agws)), (
-        "the published records are not the shape with biomass flat at the year's mean"
+    assert _reconstruction_is(reconstruction, _shape_generate_would_build(mix, demand, agws)), (
+        "the reconstruction is not the shape with biomass flat at the year's mean"
     )
 
 
@@ -1852,21 +1814,21 @@ def test_EMBEDDED_GENERATION_adds_NESO_wind_to_solar_and_leaves_out_a_half_hour_
     assert got[("2024-06-01", 24)] == 4500.0
 
 
-def test_the_published_feed_subtracts_TRANSMISSION_METERED_wind_not_AGWS(real_publish):
+def test_the_reconstruction_subtracts_TRANSMISSION_METERED_wind_not_AGWS(real_reconstruction):
     """EP13 frame doc s21. INDO is transmission demand, so the residual subtracts FUELHH `WIND`;
     AGWS offshore reads 0.52-0.70 of DESNZ's. Reverting to AGWS must CHANGE the series.
 
-    MUTATION (must fire): in `generate()`, hand `build_shape` `aggregate_wind_generation(agws)`.
+    MUTATION (must fire): in `reconstruction_shape()`, hand `build_shape` `aggregate_wind_generation(agws)`.
     """
-    mix, demand, agws, feed = real_publish
+    mix, demand, agws, reconstruction = real_reconstruction
     metered = _shape_generate_would_build(mix, demand, agws)
     agws_only = _shape_generate_would_build(
         mix, demand, agws, renewables=gif.aggregate_wind_generation(agws))
-    assert not _published_records_carry(feed, agws_only), (
-        "the published records are the shape that subtracts AGWS wind"
+    assert not _reconstruction_is(reconstruction, agws_only), (
+        "the reconstruction is the shape that subtracts AGWS wind"
     )
-    assert _published_records_carry(feed, metered), (
-        "the published records are not the shape that subtracts transmission-metered wind"
+    assert _reconstruction_is(reconstruction, metered), (
+        "the reconstruction is not the shape that subtracts transmission-metered wind"
     )
 
 
@@ -1897,8 +1859,8 @@ def test_TRANSMISSION_WIND_takes_the_metered_reading_and_falls_back_to_AGWS_only
     assert wind[("2024-01-01", 2)] == pytest.approx(4000.0)
 
 
-def test_EMBEDDED_SOLAR_is_out_of_the_residual_and_in_the_denominator_of_the_published_feed(
-        real_publish):
+def test_EMBEDDED_SOLAR_is_out_of_the_residual_and_in_the_denominator_of_the_reconstruction(
+        real_reconstruction):
     """EP13 frame doc s18-s19. INDO is already net of embedded solar, so subtracting AGWS solar
     from it again hid ~1.3 GW of gas a year; the fix moves solar to the consumption denominator.
 
@@ -1906,17 +1868,17 @@ def test_EMBEDDED_SOLAR_is_out_of_the_residual_and_in_the_denominator_of_the_pub
     no embedded term. It must CHANGE the series (else the correction is inert) and the feed must
     carry the corrected one, not the old one.
 
-    MUTATION (must fire): in `generate()`, pass `aggregate_renewable_generation(agws)` as the
+    MUTATION (must fire): in `reconstruction_shape()`, pass `aggregate_renewable_generation(agws)` as the
     renewables, or drop `embedded_generation_by_period`.
     """
-    mix, demand, agws, feed = real_publish
+    mix, demand, agws, reconstruction = real_reconstruction
     corrected = _shape_generate_would_build(mix, demand, agws)
     double_counted = _shape_generate_would_build(
         mix, demand, agws, renewables=gif.aggregate_renewable_generation(agws),
         embedded_generation_by_period=None)
-    assert not _published_records_carry(feed, double_counted), (
-        "the published records are the shape with solar subtracted from INDO a second time"
+    assert not _reconstruction_is(reconstruction, double_counted), (
+        "the reconstruction is the shape with solar subtracted from INDO a second time"
     )
-    assert _published_records_carry(feed, corrected), (
-        "the published records are not the shape with solar in the denominator only"
+    assert _reconstruction_is(reconstruction, corrected), (
+        "the reconstruction is not the shape with solar in the denominator only"
     )

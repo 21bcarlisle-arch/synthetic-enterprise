@@ -58,6 +58,13 @@ this subject -- and `target present exactly once` does not catch it, because the
 target IS present exactly once, on an import line. So the battery is scoped to
 `fuel_mix`, the one name of the converged surface this module defines.
 
+SINCE 2026-10-05 THE SUBJECT NO LONGER REACHES THE PUBLISHED FEED. The feed is built from
+`sim/grid_carbon_history.py` (the director's ruling that history is the published series), and
+`fuel_mix` now feeds only `reconstruction_shape()` and the EP13 instruments. The pinned lines did
+not move, so the rows still apply, but a kill now says a contract of EP13's reconstruction holds,
+not that the company's feed is protected. The paragraph below describes the subject before that
+date.
+
 WHY `fuel_mix` IS WORTH GRADING
 -------------------------------
 It exists to be the one place the three later corrections -- coal capacity,
