@@ -350,11 +350,29 @@ def _retirement_accounts_for(citation: str) -> bool:
     path, _, node = citation.partition("::")
     sha = _retired_at(path)
     if sha is None:
-        return False
+        return _node_retired_from_a_surviving_file(path, node)
     blob = _blob(f"{sha}^:", path)
     if not blob:
         return False
     return node in blob if node else True
+
+
+def _node_retired_from_a_surviving_file(path: str, node: str) -> bool:
+    """Was `node` deleted from a file that is still landed, by a commit git can name?
+
+    The same answer as a retired file, one level down (2026-10-05). G14 (`09e2bf07f`) made
+    the carbon feed NESO's published series, so the reconstruction's overstatement had nothing
+    left to measure. It deleted `test_the_headline_says_we_OVERSTATE_and_by_how_much` from a
+    file that still exists. The record discharged by that node was right when it was written,
+    and every staging commit went red on it. The null control is unchanged: a node no commit
+    ever carried has no commit whose parent holds it, so it is still refused.
+    """
+    if not node:
+        return False
+    sha = _git("log", "-1", "--format=%H", f"-S{node}", "--", path).strip()
+    if not sha:
+        return False
+    return node in _blob(f"{sha}^:", path) and node not in _blob(f"{sha}:", path)
 
 
 def _index_defines(citation: str, have: set[str], specs: tuple[str, ...] = (":", "HEAD:")) -> bool:
@@ -821,6 +839,32 @@ def test_MUTATION_dropping_the_retirement_answer_reads_an_honest_record_as_a_lie
         "the pre-widening mutant was expected to call ALL THREE violations, the honest "
         "retired falsifier included -- if it does not, this control is not distinguishable "
         "from the one that froze H_harness on six honest citations"
+    )
+
+
+def test_MUTATION_a_node_retired_from_a_surviving_file_is_admitted_and_an_invented_one_is_not():
+    """The node-level retirement answer, on real history (`09e2bf07f` cannot change).
+
+    The partition is asserted whole: the retired node is admitted, an invented node in the
+    same surviving file is refused, and the mutant (`allow_retired=False`) refuses both. A
+    branch that admitted everything, or nothing, fails one of the three.
+    """
+    have = _paths_the_repository_has()
+    path = "tests/tools/test_grid_intensity_feed_and_explore_carbon.py"
+    retired = f"{path}::test_the_headline_says_we_OVERSTATE_and_by_how_much"
+    invented = f"{path}::test_a_node_no_commit_ever_carried_ffffff"
+    assert path in have, (
+        f"precondition: {path} must still be landed, or this is the FILE-level case and "
+        "needs a different subject -- do not weaken the assertions below"
+    )
+    cited = {retired: {"record.md"}, invented: {"record.md"}}
+    widened = _violations(cited=cited, have=have)
+    mutant = _violations(cited=cited, have=have, allow_retired=False)
+    assert set(widened) == {invented}, (
+        f"the retired node must be admitted and the invented one refused; got {sorted(widened)}"
+    )
+    assert set(mutant) == set(cited), (
+        f"without the retirement answer both must be violations; got {sorted(mutant)}"
     )
 
 
