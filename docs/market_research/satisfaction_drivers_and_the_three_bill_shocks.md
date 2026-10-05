@@ -160,7 +160,7 @@ monthly payment*, so an under-set DD converts silently into a large increase a y
 | **Magnitude** | **Over 7 million SVT consumers** saw a DD increase between February and April 2022, **average increase 62%**. **8% of SVT customers saw an increase of more than 100%.** |
 | **Regulatory cut** | Suppliers who increased DDs **by more than 100%** were required to re-review them; **over 900,000 direct debits** fell into that exercise. 12 formal compliance engagements; an Enforcement Order against one supplier. |
 | **Ofgem's finding on fault** | *"No evidence was found that any supplier intentionally increased Direct Debit payments above an adequate level. However, weaknesses in some suppliers' processes could result in suppliers setting some direct debits incorrectly."* |
-| **Tolerance** | **SLC 27B** — variance beyond **±5%** triggers a DD adjustment. |
+| **Tolerance** | **SLC 27.15** — a fixed DD must be based on the best and most current information available, so a materially diverged amount must be revisited. **The ±5% trigger is OURS, not the licence's**: no threshold appears in SLC 27 at all, and there is no SLC 27B. Ofgem's only published numeric cut is the **100%** re-review threshold from the 2022 DD Market Compliance Review — an enforcement instrument, not a licence rule. See `docs/market_research/what_a_supplier_holds_to_size_a_direct_debit.md`. |
 | **Responsibility** | The supplier's. Ofgem locates it in *process weakness*, not commercial intent. |
 | **Remedy** | Better DD setting and review. Not a price change. |
 

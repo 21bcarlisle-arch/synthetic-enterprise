@@ -66,6 +66,13 @@ def test_the_supervisors_own_log_lines_never_reach_this_tools_output(monkeypatch
     # made this test order-dependent (green alone, red in the gate's run).
     monkeypatch.setitem(sys.modules, "background.supervisor", fake)
     monkeypatch.setattr(background, "supervisor", fake, raising=False)
-    cands, weights = d.live_draw()
-    assert [c["id"] for c in cands] == ["a2"] and weights == [1.0]
+    cands, pool, weights = d.live_draw()
+    assert [c["id"] for c in cands] == [c["id"] for c in pool] == ["a2"] and weights == [1.0]
     assert capsys.readouterr().out == ""
+
+
+def test_a_whole_tree_in_a_file_scope_cannot_claim_a_commit_for_a_step():
+    """C30 listed `tests` and `simulation`, so every test commit counted as step-5 work.
+    MUTATION (must fire): return True from `names_a_subject`."""
+    assert d.names_a_subject("tools/draw_follows_the_order.py")
+    assert not d.names_a_subject("tests")

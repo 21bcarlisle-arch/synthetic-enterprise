@@ -100,7 +100,7 @@ Sources: Ofgem SLC 22A/22B, SLC 23 (price-rise notice), Ofgem Consumer Standards
 
 **SME digital adoption:** Much lower than residential — 60–70% of micro-business contracts sold via TPI/broker (not digital). Most SME renewals via broker or phone.
 
-**Consumer Standards requirement (Dec 2023):** Multiple contact channels mandatory including webchat; extended call centre hours (evenings and weekends). Average call wait time fell from ~7 min (2022) to ~2 min (mid-2024).
+**Consumer Standards requirement (Dec 2023):** Multiple contact channels mandatory including webchat; extended call centre hours (evenings and weekends). Average call wait time fell from ~7 min (2022) to ~2 min (mid-2024). *(Re-verified 2026-10-04 against the Citizens Advice star-rating call-wait CSV: median of supplier means 388 s ≈ 6.5 min in Q1 2022, 106 s ≈ 1.8 min in Q2 2024. See `docs/design/C31_TIME_AS_A_CURRENCY_DISCOVER_FRAME_2026-10-04.md` §7.1.)*
 
 ## Implications for Simulation
 
