@@ -14,7 +14,7 @@ Data sources (publicly observable):
 - Elexon BSC: supplier licence conditions require FMD
 - Grid average intensity: NOT declared here. Single owner
   `company.regulatory.carbon_emissions.grid_intensity_g_co2e_per_kwh`, NESO's published series
-  (loss-corrected, CO2 at the generator) since 2026-10-05; lifecycle hand table before. This
+  (generation basis, losses not included, CO2 at the generator) since 2026-10-05; lifecycle hand table before. This
   docstring previously cited "DESNZ (formerly BEIS) ~196 gCO2/kWh 2023 (down from 350g 2016)",
   which described the local table deleted 2026-08-14; no external source was ever fetched for it.
 - Renewable Energy Guarantees of Origin (REGO) for green tariff claims
@@ -100,7 +100,7 @@ class FuelMixSnapshot:
         """This supplier mix minus the national grid average, gCO2/kWh. None: no published level.
 
         NOTE the basis mismatch, recorded not hidden: the grid side is NESO's published series
-        (CO2 at the generator, loss-corrected, since 2026-10-05), while this snapshot's own side blends `_CARBON_INTENSITY_G_CO2_PER_KWH`, a second
+        (CO2 at the generator, generation basis, since 2026-10-05), while this snapshot's own side blends `_CARBON_INTENSITY_G_CO2_PER_KWH`, a second
         per-fuel table whose gas figure (394.0) is a direct-combustion number sitting beside
         lifecycle values for nuclear and wind. Reconciling the PER-FUEL tables is a separate,
         larger class than the annual series this discharge closed, and is filed as its own finding.

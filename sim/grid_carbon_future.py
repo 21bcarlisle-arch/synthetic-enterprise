@@ -2,8 +2,8 @@
 
 REUSE: sim/grid_carbon_future.py
 CLASS: CUSTOM
-INDEX: `sim/grid_carbon_history.py` is G14's history half. Its published-NESO series is this fit's
-       TARGET, and its FUELHH loader supplies transmission wind and demand. `sim/neso_embedded_generation.py`
+INDEX: `sim/grid_carbon_history.py` is G14's history half. Its NESO Historic Generation Mix
+       series is this fit's TARGET (since 2026-10-05; the Carbon Intensity API before), and its FUELHH loader supplies transmission wind and demand. `sim/neso_embedded_generation.py`
        supplies embedded wind and solar. `sim/weather_world.py::WeatherWorld.extended_by_analogue_years`
        decides which record year a forward year replays, and it is CALLED here, never re-implemented.
        `sim/renewable_capacity_trend.py` supplies the fleet, held flat past 2025 by that module (R13).
@@ -52,31 +52,37 @@ THE REGIME. Fitted on the two most recent record years. That rule was chosen by 
 by a rolling origin over 2020-2025. A fit across the decade carries coal and is about 25 g too dirty
 on 2025.
 
-VALIDATION (printed by the CLI, 2026-10-05). The 2025 half hours were held out (17,500 rows). Swing
-is each day's p95/p5, averaged over days; the actual is 2.25.
+VALIDATION (printed by the CLI, re-run 2026-10-05 on the historic-mix target). The 2025 half hours
+were held out. Swing is each day's p95/p5, averaged over days; the actual is 2.29.
 
     FORMS, fitted 2023-2024           corr   bias   rmse   swing
-    constant                          --     -9.4   58.4   1.00
-    linear wind, solar, demand       0.922   -4.3   23.6   3.66  (model p5 = 0 on 23 days)
-    share_log            <- shipped  0.930   -6.1   22.2   2.16
-    fossil_fraction_log              0.928   -5.8   22.4   2.13
+    constant                          --     -9.6   59.2   1.00
+    linear wind, solar, demand       0.919   -4.3   24.2   3.49  (model p5 = 0 on 27 days)
+    share_log            <- shipped  0.924   -6.2   23.3   2.18
+    fossil_fraction_log              0.920   -5.9   23.7   2.15
 
     REGIMES, share_log
-    2018-05..2024 (all NESO)         0.931  -26.2   34.9   2.10
-    2018-05..2024 + year term        0.931   +2.4   21.9   1.99
-    2021-2024                        0.929  -19.1   29.3   2.10
-    2023-2024 (two prior years)      0.930   -6.1   22.2   2.16
-    2024 only                        0.927   +5.7   22.4   2.27
-    post-coal 2024-10..12            0.929   -4.8   21.9   2.11
+    2018-05..2024                    0.926  -19.5   29.9   2.10
+    2018-05..2024 + year term        0.926   -6.0   23.0   2.04
+    2021-2024                        0.922  -18.7   30.0   2.12
+    2023-2024 (two prior years)      0.924   -6.2   23.3   2.18
+    2024 only                        0.924   +4.6   22.8   2.27
+    post-coal 2024-10..12            0.923   -4.5   23.0   2.14
 
   Every recent window ties to within 0.5 g of RMSE. The rolling origin decides among the rules. Its
-  mean RMSE over 2020-2025 is: previous year 32.0, two previous 32.3, all previous 34.6. The
+  mean RMSE over 2020-2025 is: previous year 30.8, two previous 30.8, all previous 30.2. On the API
+  target (before 2026-10-05) it was 32.0 / 32.3 / 34.6: the API's 2020-04 basis change had been
+  charging the long window for a level the fleet never had. The three now tie, and the two-year
+  rule is kept for the reason below, not on this score. The
   year term ties on 2025, but a future would have to freeze it, and then it is a recent-window fit
   with extra steps. Two years was kept over one because a single year carries one year's imports
   and outages as its level (2024 sits 25-39 g below every fit not trained on it).
 
 FUTURES AT REAL INPUTS. A whole forward year on each analogue year, at the 2025 fleet and demand:
-annual mean, then the record year's own mean.
+annual mean, then the record year's own mean. MEASURED ON THE API TARGET, before 2026-10-05. The
+historic-mix refit reads 0.7-1.4% lower at the same inputs (2016 0.993, 2020 0.987, 2025 0.986 of
+the old model's mean over each record year's inputs), and the record years' own means are now the
+historic mix's (2016-2019 about 8-14% below these bracketed figures; the feed's `annual_level`).
     2016 152 (298)   2017 130 (262)   2018 129 (248)   2019 125 (213)   2020 117 (180)
     2021 133 (187)   2022 121 (183)   2023 126 (152)   2024 129 (125)   2025 126 (129)
   The within-day swing is 2.11-2.57. Without the demand adjustment, 2016 reads 166 rather than 152.
@@ -179,9 +185,9 @@ class Model:
 #: `test_the_frozen_model_is_what_the_record_refits_to` re-derives it where the caches exist, so a
 #: refit that moves it goes red rather than drifting.
 FROZEN = Model(
-    form="share_log", coefficients=(5.00987, -2.39279, 0.01954), smearing=1.02632,
-    fit_from="2024-01-01", fit_to="2025-12-31", half_hours=35039,
-    share_range=(0.054, 0.795), demand_gw_range=(19.648, 45.211), monthly_level_sd=11.3,
+    form="share_log", coefficients=(4.97756, -2.41636, 0.02033), smearing=1.02659,
+    fit_from="2024-01-01", fit_to="2025-12-31", half_hours=35070,
+    share_range=(0.054, 0.795), demand_gw_range=(19.648, 45.211), monthly_level_sd=11.6,
 )
 
 
@@ -325,10 +331,11 @@ def record_arrays(inputs: Mapping[Key, HalfHour],
 
 @lru_cache(maxsize=1)
 def load_record() -> dict[str, np.ndarray]:
-    """NESO's PUBLISHED intensity (never the fuel-mix estimate) against the record's inputs."""
+    """NESO's Historic Generation Mix intensity (never the fuel-mix fill) against the inputs, so a
+    future is on the same generation basis as the history it continues."""
     series, _ = gch.load_series()
     target = {k: r.value for k, r in series.items()
-              if r.source == gch.NESO_PUBLISHED and r.value is not None}
+              if r.source == gch.NESO_HISTORIC_MIX and r.value is not None}
     return record_arrays(load_inputs()[0], target)
 
 

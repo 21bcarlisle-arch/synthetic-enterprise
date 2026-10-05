@@ -26,7 +26,7 @@ differently, are measured differently, and are visible to a supplier differently
 |---|---|---|---|
 | **Gas burnt at home** | Combustion of natural gas for space heating, hot water and (a small, unmeasured share) cooking | DESNZ *Scope 1* natural-gas factor, per kWh **gross CV**. Almost exactly constant over 2016–2025 (§2) because the chemistry does not change | Yes — its own gas meter |
 | **Upstream of the gas** | Extraction, processing, transport of that gas ("well-to-tank", WTT) | DESNZ *WTT – fuels*, natural gas, 0.03021 kgCO2e/kWh gross CV in the 2023–2025 sets [sourced] | Derivable from the same meter |
-| **Electricity used at home** | Generation emissions of the kWh imported | Either NESO's half-hourly national series (generation only, loss-corrected -- see the correction in §2), or DESNZ *Scope 2* "electricity generated" (+ separate *T&D* and *WTT* factors) | Yes — its own electricity meter, half-hourly if smart and settled half-hourly |
+| **Electricity used at home** | Generation emissions of the kWh imported | Either NESO's half-hourly national series (generation basis, T&D losses NOT included -- see §2), or DESNZ *Scope 2* "electricity generated" (+ separate *T&D* and *WTT* factors) | Yes — its own electricity meter, half-hourly if smart and settled half-hourly |
 | **The car** | Petrol/diesel burnt, or electricity charged | DESNZ *Passenger vehicles* per km | Only the electricity, and only as unlabelled load |
 | **Embodied carbon of kit** | Manufacturing a battery, panels, a heat pump, insulation | Lifecycle studies (ICCT, IPCC AR5, UNECE) | No |
 
@@ -68,38 +68,45 @@ Scope 1, Fuels › Gaseous fuels › Natural gas, kWh (**Gross CV**), kgCO2e]:
 billed in kWh converted at the gross calorific value. WTT (0.03021) is **excluded** from the table below
 so that both fuels are counted at the point of use; adding it raises the gas column by 16.5%.
 
-**Electricity** [measured]: the annual mean of `sim/grid_carbon_history.py` (NESO's published `actual`
-from 2018-05-11, Elexon fuel-mix arithmetic before), **weighted by the Elexon Profile Class 1 domestic
-load shape** (`sim/profile_class_1.py`), because a household does not consume evenly across the day.
-NESO's series is generation intensity and **excludes T&D losses**. The DESNZ column uses that reporting
-year's "electricity generated" + "T&D" factors.
-*Corrected 2026-10-05: NESO's national series does **not** exclude losses. Its methodology divides
-generation-weighted CO2 by national demand and "is then corrected to account for transmission
-losses to give the intensity of consumption", and its scope lists "transmission and distribution
-losses" [sourced: NESO, National Carbon Intensity Forecast Methodology, as supplied with NESO
-FOI/25/152, 24 Nov 2025, which also confirms the correction and says NESO holds no published
-series of the loss multiplier]. So NESO and "DESNZ generated + T&D" are both per kWh consumed; the
-gap between them is DESNZ's two-year lag and factor basis, not losses. The company's annual level
-(`docs/market_data/grid_intensity_feed.json`, `annual_level`) is NESO demand-weighted (Elexon
-INDO), which reads within 2 g of the PC1-weighted figures below in every whole year 2017-2024.*
+**Electricity** [measured]: the annual mean of `sim/grid_carbon_history.py` (NESO's Historic GB
+Generation Mix `CARBON_INTENSITY`, one basis 2016-2025), **weighted by the Elexon Profile Class 1
+domestic load shape** (`sim/profile_class_1.py`), because a household does not consume evenly across
+the day. NESO's series is generation intensity and **excludes T&D losses**. The DESNZ column uses
+that reporting year's "electricity generated" + "T&D" factors.
+*Corrected 2026-10-05, and the earlier same-day correction withdrawn.* The earlier note said NESO's
+national series does NOT exclude losses, on the strength of NESO's methodology text ("corrected to
+account for transmission losses to give the intensity of consumption"; NESO FOI/25/152, 24 Nov
+2025). **The data has not matched that text since 2020-04-27 period 34** [measured, G14]: the
+Carbon Intensity API's `actual` reads about 1.14x NESO's Historic Generation Mix before that half
+hour and about 1.02x after, and its implied fuel factors after it are NESO's table with no loss
+multiplier. So the API carried a loss uplift until 2020-04 and is generation basis since. The
+series used here is now the Historic Generation Mix, which is generation basis throughout. **So
+"DESNZ generated + T&D" is per kWh consumed and NESO is per kWh generated**; part of the gap
+between the columns IS losses (DESNZ's T&D factor, 0.01853 in 2025), the rest is DESNZ's two-year
+lag and factor basis. Whether a household figure adds losses is a definition decision; if it does,
+they are a separate named line, never folded into the NESO value. The company's annual level
+(`docs/market_data/grid_intensity_feed.json`, `annual_level`) is NESO demand-weighted (Elexon INDO),
+which reads within 2.5 g of the PC1-weighted figures below in every whole year 2017-2024. The NESO
+columns below were recomputed on the historic mix the same day; on the API they read 8-14% higher
+for 2016-2019.
 
 | Year | TDCV gas / elec kWh | Gas kgCO2e | Elec kgCO2e (NESO, PC1-weighted) | **Ratio (NESO)** | Elec kgCO2e (DESNZ gen+T&D) | Ratio (DESNZ) |
 |---|---|---|---|---|---|---|
-| 2016 | 12,500 / 3,100 | 2,300 | 967 | **2.4×** | 1,393 | 1.7× |
-| 2017 | 12,500 / 3,100 | 2,302 | 855 | **2.7×** | 1,192 | 1.9× |
-| 2018 | 12,000 / 3,100 | 2,208 | 803 | **2.7×** | 952 | 2.3× |
-| 2019 | 12,000 / 3,100 | 2,206 | 684 | **3.2×** | 860 | 2.6× |
-| 2020 | 12,000 / 2,900 | 2,206 | 539 | **4.1×** | 734 | 3.0× |
-| 2021 | 12,000 / 2,900 | 2,198 | 562 | **3.9×** | 670 | 3.3× |
-| 2022 | 12,000 / 2,900 | 2,195–2,198 (bracket) | 535 | **4.1×** | 612 | 3.6× |
-| 2023 | 12,000 / 2,900 | 2,195 | 452 | **4.9×** | 652 | 3.4× |
-| 2024 | 11,500 / 2,700 | 2,103 | 358 | **5.9×** | 608 | 3.5× |
-| 2025 | 11,500 / 2,700 | 2,104 | 365 | **5.8×** | 528 | 4.0× |
+| 2016 | 12,500 / 3,100 | 2,300 | 886 | **2.6×** | 1,393 | 1.7× |
+| 2017 | 12,500 / 3,100 | 2,302 | 783 | **2.9×** | 1,192 | 1.9× |
+| 2018 | 12,000 / 3,100 | 2,208 | 700 | **3.2×** | 952 | 2.3× |
+| 2019 | 12,000 / 3,100 | 2,206 | 614 | **3.6×** | 860 | 2.6× |
+| 2020 | 12,000 / 2,900 | 2,206 | 506 | **4.4×** | 734 | 3.0× |
+| 2021 | 12,000 / 2,900 | 2,198 | 552 | **4.0×** | 670 | 3.3× |
+| 2022 | 12,000 / 2,900 | 2,195–2,198 (bracket) | 531 | **4.1×** | 612 | 3.6× |
+| 2023 | 12,000 / 2,900 | 2,195 | 445 | **4.9×** | 652 | 3.4× |
+| 2024 | 11,500 / 2,700 | 2,103 | 356 | **5.9×** | 608 | 3.5× |
+| 2025 | 11,500 / 2,700 | 2,104 | 362 | **5.8×** | 528 | 4.0× |
 
-Grid intensity used (g/kWh, PC1-weighted / time-mean) [measured]: 2016 312/298 · 2017 276/262 ·
-2018 259/248 · 2019 221/213 · 2020 186/180 · 2021 194/187 · 2022 185/183 · 2023 156/152 · 2024 133/125 ·
-2025 135/129. 2016–2018-05 is the fuel-mix estimate scaled to NESO (`fuelmix_estimate`), not NESO's own
-publication. DESNZ electricity factors by reporting year (generation / T&D) [sourced, flat files and the
+Grid intensity used (g/kWh, PC1-weighted / time-mean) [measured, historic mix]: 2016 286/274 ·
+2017 252/240 · 2018 226/214 · 2019 198/189 · 2020 175/168 · 2021 190/183 · 2022 183/181 · 2023 153/149 ·
+2024 132/124 · 2025 134/127. Clock-change days are left out of the PC1 weighting (the profile has 48
+periods) and kept in the time mean. DESNZ electricity factors by reporting year (generation / T&D) [sourced, flat files and the
 2025 methodology paper Table 9]: 2016 0.41205/0.03727 · 2017 0.35156/0.03287 · 2018 0.28307/0.02413 ·
 2019 0.25560/0.02170 · 2020 0.23314/0.02005 · 2021 0.21233/0.01879 · 2022 0.19338/0.01769 ·
 2023 0.20707/0.01792 · 2024 0.20705/0.01830 · 2025 0.17700/0.01853.
@@ -109,25 +116,25 @@ grid:
 
 | Year | Gas kg | Elec kg (NESO, PC1) | Ratio |
 |---|---|---|---|
-| 2016 | 2,116 | 842 | 2.5× |
-| 2017 | 2,118 | 745 | 2.8× |
-| 2018 | 2,116 | 699 | 3.0× |
-| 2019 | 2,114 | 596 | 3.6× |
-| 2020 | 2,115 | 502 | 4.2× |
-| 2021 | 2,106 | 523 | 4.0× |
-| 2022 | 2,104–2,106 | 498 | 4.2× |
-| 2023 | 2,104 | 421 | 5.0× |
-| 2024 | 2,103 | 358 | 5.9× |
-| 2025 | 2,104 | 365 | 5.8× |
+| 2016 | 2,116 | 772 | 2.7× |
+| 2017 | 2,118 | 682 | 3.1× |
+| 2018 | 2,116 | 610 | 3.5× |
+| 2019 | 2,114 | 535 | 4.0× |
+| 2020 | 2,115 | 471 | 4.5× |
+| 2021 | 2,106 | 514 | 4.1× |
+| 2022 | 2,104–2,106 | 494 | 4.3× |
+| 2023 | 2,104 | 414 | 5.1× |
+| 2024 | 2,103 | 356 | 5.9× |
+| 2025 | 2,104 | 362 | 5.8× |
 
 **Verdict: "about five times" is right for 2023–2025 and was not right before.** On the grid's own
-annual intensity, the gas of a TDCV-medium home is **5.0× its electricity in 2023 and 5.8–5.9× in
-2024–2025**. In 2016 it was **2.5×** (same household) or **2.4×** (that year's TDCV). The ratio more than
+annual intensity, the gas of a TDCV-medium home is **5.1× its electricity in 2023 and 5.8–5.9× in
+2024–2025**. In 2016 it was **2.7×** (same household) or **2.6×** (that year's TDCV). The ratio more than
 doubled over the decade, and **all of the movement is the grid**: the gas factor moved by 0.6% while
-the household's electricity intensity fell by 57% (312 → 135 g/kWh PC1-weighted). On DESNZ's lagged
+the household's electricity intensity fell by 53% (286 → 134 g/kWh PC1-weighted). On DESNZ's lagged
 factors with T&D the 2025 ratio is **4.0×**, because DESNZ's 2025 factor still carries the 2023 grid.
-At the 2026 TDCV (9,500 / 2,500) and the 2025 grid the ratio is **5.1×** [derived: 9,500 × 0.18296 =
-1,738 kg; 2,500 × 0.1352 = 338 kg].
+At the 2026 TDCV (9,500 / 2,500) and the 2025 grid the ratio is **5.2×** [derived: 9,500 × 0.18296 =
+1,738 kg; 2,500 × 0.134 = 335 kg].
 
 So the director's figure holds **now** and should be quoted with its year: "five to six times, on
 2024–25's grid". It will keep rising while the grid decarbonises and gas does not.

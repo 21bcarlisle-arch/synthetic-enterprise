@@ -72,7 +72,9 @@ then and 0.972 at the end.
   Elexon FUELHH (CCGT+OCGT)/NUCLEAR to the third decimal place in every month of 2022 and 2024.
   (s33) So NESO's "actual" is itself a model built on the metered mix through a factor table. It is
   not independent of FUELHH inputs.
-- **[sourced]** The series is loss-corrected to a consumed basis. It is published half-hourly from
+- **[sourced; corrected 2026-10-05 by measurement]** NESO's methodology says the series is
+  loss-corrected to a consumed basis. Its data matches that only until 2020-04-27 period 34; from
+  then it is generation basis (G14 knowledge page, "The 2020-04-27 step"). It is published half-hourly from
   2018-05-11, with a forecast and an actual on each half hour. The 14 regional series are modelled
   from a reduced network model, not measured. (`sim/neso_carbon_intensity.py` docstring)
 - **[measured]** Feed defects:
@@ -512,7 +514,8 @@ dimensionless shape and never grams.
 
 **[measured, 2026-10-05]** The surviving owner was still the hand fuel-mix table x lifecycle
 factors (196.1 for 2024). It now reads the annual level the grid-intensity feed publishes from
-NESO's series (`annual_level`: demand-weighted, loss-corrected, 133.1 for 2024), and the hand
+NESO's series (`annual_level`: demand-weighted, 133.1 for 2024 on the API; since the same day's
+G14 rebase, the Historic Generation Mix, generation basis, 131.9), and the hand
 table keeps only its `Low Carbon %` role. 2016 and 2025 have no whole-year level because Elexon's
 demand record spans 2016-03-01..2025-06-07.
 

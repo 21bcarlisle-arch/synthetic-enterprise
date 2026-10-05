@@ -322,6 +322,21 @@ def test_the_SPREAD_is_never_shown_without_its_MEASURED_correction():
     # SINCE 2026-10-05 THE SHAPE IS NESO'S PUBLISHED SERIES, and the comparison is 1.0 BY
     # CONSTRUCTION. Then the defect to refuse is the opposite one: a "1.0x wider than NESO" and
     # "this model's clean end is too clean" printed over a series compared with itself.
+    # SINCE LATER THE SAME DAY THE SHAPE IS NESO'S HISTORIC GENERATION MIX and the comparison is
+    # NESO's Carbon Intensity API: two NESO series. The defect is the same one -- a correction
+    # pinned on "this model" when no model of ours is on the page.
+    # MUTATION (must fire): drop the `shape_is_neso` branch from `carbonDayPanel`.
+    if versus.get("shape_is_neso"):
+        assert "too clean" not in html and "model&#x27;s own shape" not in html and \
+            "model's own shape" not in html, (
+            "the page calls NESO's historic mix this model's shape"
+        )
+        assert "Historic Generation Mix, which is what this shape is" in html, (
+            "the spread is not said to be NESO's own"
+        )
+        assert "Carbon Intensity API" in html, "the API comparison is not on the page"
+        assert "upper bound" in html.lower()
+        return
     # MUTATION (must fire): drop the `by_construction` branch from `carbonDayPanel`.
     if versus.get("by_construction"):
         assert "wider</b> than" not in html and "too clean" not in html, (
@@ -370,6 +385,17 @@ def test_the_HOUSEHOLDS_OWN_belief_is_rendered_against_the_PUBLISHED_grid_not_on
     # SINCE 2026-10-05 the company's shape IS NESO's published series on these half hours, so
     # the two answers are the same numbers. The panel must say that, and must not print a
     # "company's own grid model overstates ... by 0.0 percentage points" over an identity.
+    # SINCE LATER THE SAME DAY BELIEF is NESO's historic mix and TRUTH NESO's API: two NESO
+    # series, so "own grid model" would score a model that is not there.
+    # MUTATION (must fire): drop the `shape_is_neso` branch from `beliefVsTruth`.
+    if row.get("shape_is_neso"):
+        assert "published figures.</b>" in html
+        assert "%.1f%%" % row["truth_pct"] in html and "%.1f%%" % row["belief_pct"] in html
+        assert "%.1f percentage points" % abs(row["gap_pp"]) in html
+        assert "own grid model" not in html, (
+            "the panel describes a company grid model that is no longer the source"
+        )
+        return
     # MUTATION (must fire): drop the `by_construction` branch from `beliefVsTruth`.
     if row.get("by_construction"):
         assert "published figures.</b>" in html, (

@@ -497,10 +497,13 @@ def test_an_empty_cache_file_raises(tmp_path, monkeypatch):
 
 def test_the_published_basis_names_what_makes_the_two_series_differ():
     """R14 on a basis. The level difference between the two series is legitimate and explained
-    by exactly these three inclusions; a basis string that dropped them would make the gap look
-    like an error in one of them."""
-    for term in ("loss-corrected", "interconnector", "coal"):
-        assert term in PUBLISHED_BASIS.lower()
+    by these inclusions; a basis string that dropped them would make the gap look like an error
+    in one of them. Since 2026-10-05 that includes the API's own basis change at 2020-04-27 P34:
+    a string that called the whole series loss-corrected (it was, until then) is the defect."""
+    text = PUBLISHED_BASIS.lower()
+    for term in ("loss uplift", "2020-04-27", "generation basis", "interconnector", "coal"):
+        assert term in text, term
+    assert "loss-corrected" not in text
 
 
 def test_actual_by_period_is_a_plain_view():

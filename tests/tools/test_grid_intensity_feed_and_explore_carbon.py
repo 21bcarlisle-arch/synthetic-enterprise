@@ -371,49 +371,49 @@ def test_a_year_sharing_ONE_half_hour_does_not_count_toward_the_headline():
             )
 
 
-def test_the_LIVE_feed_IS_the_published_series_wherever_NESO_published():
+def test_the_LIVE_feed_IS_the_historic_mix_wherever_it_is_tagged_so():
     """THE PROPERTY THE RULING ASKS FOR, read off the published file and its own source tags.
 
-    Every record tagged `neso_published` carries NESO's value, so its shape over its published
-    value is ONE constant per year (the two year divisors). Every record tagged otherwise has no
-    published value at all. And the series-level comparison says it agrees by construction.
+    Since 2026-10-05 the series is NESO's Historic GB Generation Mix. Every record tagged
+    `neso_historic_mix` must give back that series' grams as `shape x annual level`, and the
+    comparison with the API must say it compares two NESO series, never a model with NESO.
 
     MUTATION (must fire): build the feed's shape from `reconstruction_shape()` again, or tag a
-    fill half hour `neso_published`.
+    fill half hour `neso_historic_mix`.
     """
     feed = json.loads(FEED.read_text(encoding="utf-8")) if FEED.is_file() else None
-    if not feed or not (feed.get("versus_published") or {}).get("available"):
-        pytest.skip("the published-series comparison is not available in this tree")
+    if not feed or not feed.get("source_by_year"):
+        pytest.skip("the feed has not been generated from the history in this tree")
+    try:
+        from sim import grid_carbon_history as history
 
-    ratios: dict[str, list[float]] = {}
+        series, _ = history.load_series()
+    except Exception as exc:  # noqa: BLE001 -- any missing cache is a skip, not a pass
+        pytest.skip(f"real caches not available here: {exc}")
+
+    levels = feed["annual_level"]["by_year"]
     tagged = 0
     for r in feed["records"]:
-        if r.get("source") == "neso_published":
-            assert r["published"] is not None, f"{r['date']} p{r['period']} is tagged published"
-            ratios.setdefault(r["date"][:4], []).append(r["shape"] / r["published"])
-            tagged += 1
-        else:
-            assert r["published"] is None, (
-                f"{r['date']} p{r['period']} carries a published value and is tagged "
-                f"{r.get('source')!r}"
-            )
-    assert tagged, "no record is tagged neso_published, so this checked nothing"
-    for year, values in ratios.items():
-        # Five-place rounding on both sides bounds the spread of the ratio well inside 1e-3.
-        assert max(values) - min(values) < 1e-3, (
-            f"{year}: shape/published ranges {min(values):.5f}..{max(values):.5f}, so the feed's "
-            "shape is not the published series up to one divisor"
+        if r.get("source") != "neso_historic_mix":
+            continue
+        reading = series[(r["date"], r["period"])]
+        assert reading.source == "neso_historic_mix", f"{r['date']} p{r['period']}"
+        grams = r["shape"] * levels[r["date"][:4]]["mean_g_co2_per_kwh"]
+        # Five-place shape times a two-place level: well inside 0.1 g.
+        assert grams == pytest.approx(reading.value, abs=0.1), (
+            f"{r['date']} p{r['period']}: shape x level is {grams:.2f} g and the historic mix "
+            f"says {reading.value} g, so the feed is not that series"
         )
+        tagged += 1
+    assert tagged, "no record is tagged neso_historic_mix, so this checked nothing"
     versus = feed["versus_published"]
-    assert versus.get("by_construction") is True
-    for year in versus["headline_years"]:
-        row = versus["by_year"][year]
-        assert row["mean_abs_error"] == 0.0 and row["correlation"] == pytest.approx(1.0)
+    if versus.get("available"):
+        assert versus["shape_is_neso"] is True and versus["by_construction"] is False
 
 
 def test_the_LIVE_feed_tags_every_record_and_all_three_sources_are_reachable():
-    """The partition, on the published file: every source the history can produce reaches the
-    feed somewhere, and no record is untagged.
+    """The partition, on the published file: the history's primary source reaches the feed, no
+    record carries a tag the history cannot produce, and no record is untagged.
 
     MUTATION (must fire): drop `sources=` from the `build()` call in `generate()`.
     """
@@ -421,7 +421,9 @@ def test_the_LIVE_feed_tags_every_record_and_all_three_sources_are_reachable():
     if not feed or feed.get("source_by_year") is None:
         pytest.skip("the feed has not been generated from the history in this tree")
     seen = {tag for row in feed["source_by_year"].values() for tag in row}
-    assert seen == {"neso_published", "fuelmix_estimate", "fuelmix_fill"}, seen
+    # The fill is legitimately empty on today's record, so the history's own partition test is
+    # where its reachability is held; here, the primary source is present and nothing is foreign.
+    assert {"neso_historic_mix"} <= seen <= {"neso_historic_mix", "fuelmix_fill"}, seen
     assert {r.get("source") for r in feed["records"]} <= seen, "a record carries no source"
 
 
@@ -764,62 +766,61 @@ def test_the_two_percentile_implementations_cannot_drift_apart():
             )
 
 
-def test_an_IDENTITY_comparison_is_published_as_one_and_the_page_has_a_branch_for_it():
-    """THE FINDING THIS REPLACES (2026-08-25) was a p95/p5 spread corrected by a max/min factor.
-    Since 2026-10-05 both factors are 1.0 by construction, and the defect to refuse is the page
-    printing "1.0x wider than NESO" and "this model's clean end is too clean" over a comparison
-    of a series with itself.
+def test_a_NESO_AGAINST_NESO_comparison_is_published_as_one_and_the_page_has_a_branch_for_it():
+    """THE FINDING THIS REPLACES (2026-08-25) was a p95/p5 spread corrected by a max/min factor
+    for a model. Since 2026-10-05 the shape is NESO's Historic Generation Mix and the other side
+    NESO's API, so the defect to refuse is the page printing "this model's clean end is too
+    clean" over two NESO series. (Until later the same day the comparison was an identity, held
+    by `by_construction`; that branch stays on the page for a feed built from the API.)
 
-    MUTATION (must fire): drop `by_construction` from `versus_published`, or the page's branch.
+    MUTATION (must fire): drop `shape_is_neso` from `versus_published`, or the page's branch.
     """
     feed = json.loads(FEED.read_text(encoding="utf-8")) if FEED.is_file() else None
     if not feed or not (feed.get("versus_published") or {}).get("available"):
         pytest.skip("the published-series comparison is not available in this tree")
     versus = feed["versus_published"]
-    assert versus["by_construction"] is True
-    assert versus["p95_spread_overstated_by"] == 1.0 == versus["spread_overstated_by"]
+    assert versus["shape_is_neso"] is True and versus["by_construction"] is False
+    assert versus["compared_with"] == "NESO Carbon Intensity API"
     page = (REPO / "site" / "explore" / "index.html").read_text(encoding="utf-8")
-    assert "CARBON.versus_published.by_construction" in page, (
-        "the page has no branch for an identity comparison, so it prints a correction of 1.0x"
+    assert "CARBON.versus_published.shape_is_neso" in page, (
+        "the page has no branch for two NESO series, so it calls the historic mix a model"
     )
 
 
-def test_the_ESTIMATE_FIGURES_QUOTED_in_ERROR_DIRECTION_are_the_MEASURED_ones():
-    """A DERIVED-VS-TYPED PAIR. ERROR_DIRECTION reaches the page verbatim and quotes the pre-2018
-    estimate's measured error and the window it was measured on. Both must be what the feed's
-    `history` block carries, to the rounding the sentence prints.
+def test_the_API_STEP_FIGURES_QUOTED_in_ERROR_DIRECTION_are_the_MEASURED_ones():
+    """A DERIVED-VS-TYPED PAIR. ERROR_DIRECTION reaches the page verbatim and quotes how far the
+    API sits above the historic mix either side of its basis change. Both percentages and the
+    date must be what the history measured, to the rounding the sentence prints.
 
-    MUTATION (must fire): move any quoted figure, or let the measurement move past one.
+    MUTATION (must fire): move either quoted percentage or the date, or let the measurement move
+    past one.
     """
     import re
 
-    found = re.search(
-        r"on (\d{4}-\d{2}-\d{2})\.\.(\d{4}-\d{2}-\d{2}) at correlation (\d\.\d+), mean bias "
-        r"(-?\d+\.\d) gCO2/kWh and RMSE (\d+\.\d) gCO2/kWh", gif.ERROR_DIRECTION)
-    assert found, "ERROR_DIRECTION no longer quotes the estimate's window and error in one place"
-    lo, hi, corr, bias, rmse = found.groups()
+    found = re.search(r"within about (\d+)% after (\d{4}-\d{2}-\d{2}); before that date .*? "
+                      r"about (\d+)% higher", gif.ERROR_DIRECTION)
+    assert found, "ERROR_DIRECTION no longer quotes the API's two levels and the step date"
+    after_pct, step_date, before_pct = found.groups()
 
     from sim import grid_carbon_history as history
 
-    assert (lo, hi) == history.CALIBRATION_FIT_WINDOW, (
-        f"the sentence quotes {lo}..{hi}; the scale is fitted on {history.CALIBRATION_FIT_WINDOW}"
-    )
+    assert step_date == history.API_BASIS_STEP[0]
     feed = json.loads(FEED.read_text(encoding="utf-8")) if FEED.is_file() else None
     if not feed or not feed.get("history"):
         pytest.skip("the feed carries no history block in this tree")
-    measured = feed["history"]["estimate_versus_published_fit_window_after_scale"]
-    assert float(corr) == pytest.approx(measured["correlation"], abs=5e-4)
-    assert float(bias) == pytest.approx(measured["mean_bias_g_co2_per_kwh"], abs=0.05)
-    assert float(rmse) == pytest.approx(measured["rmse_g_co2_per_kwh"], abs=0.05)
+    step = feed["history"]["api_step"]
+    assert int(after_pct) == round((step["ratio_after"] - 1.0) * 100)
+    assert int(before_pct) == round((step["ratio_before"] - 1.0) * 100)
 
 
 def test_the_stated_ERROR_DIRECTION_does_not_contradict_the_NAMED_GAPS_beside_it():
     """THE ORIGINAL FINDING: the sentence that reaches the page gave a reason the gap list one
     field away contradicted. Its subject moved on 2026-10-05: there is no model any more, so the
-    sentence must not describe one, and it and the gaps must name the same estimate window.
+    sentence must not describe one, and it and the gaps must name the same API step date, and
+    neither may call the series loss-corrected.
 
     MUTATION (must fire): restore a sentence about "this model" or "the reconstruction", or
-    let the gap list quote a different fit window.
+    let the gap list quote a different step date.
     """
     from sim import grid_carbon_history as history
 
@@ -828,11 +829,16 @@ def test_the_stated_ERROR_DIRECTION_does_not_contradict_the_NAMED_GAPS_beside_it
     assert "this model" not in text and "reconstruct" not in text, (
         "the error direction still describes a model the feed no longer publishes"
     )
-    assert "upper bound" in text and "measured" in text
-    window = "{}..{}".format(*history.CALIBRATION_FIT_WINDOW)
-    assert window in gif.ERROR_DIRECTION and window in gaps, (
-        f"the sentence and the gap list do not both name the fit window {window}"
+    assert "upper bound" in text
+    step = history.API_BASIS_STEP[0]
+    assert step in gif.ERROR_DIRECTION and step in gaps, (
+        f"the sentence and the gap list do not both name the API's step {step}"
     )
+    import re
+
+    for said in (gaps, gif.HISTORY_BASIS, gif.ANNUAL_LEVEL_BASIS):
+        assert "loss-corrected" not in said.lower()
+        assert re.search(r"losses (are )?not (included|in this series)", said.lower()), said[:80]
 
 
 # --------------------------------------------------------------------------- #

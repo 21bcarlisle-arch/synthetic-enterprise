@@ -117,7 +117,8 @@ and are kept here, rewritten, because what replaced them is a smaller gap and no
     knowable at the time rather than about what the grid did.
   * NO LOSS CORRECTION IS APPLIED, and none must be added downstream either. The denominator is
     Elexon's transmission-boundary demand outturn, so this is per kWh at that boundary; NESO's
-    published series is separately loss-corrected to a consumed basis. Applying a second
+    published API series was loss-uplifted until 2020-04-27 and is generation basis since (G14,
+    `neso_carbon_intensity.PUBLISHED_BASIS`). Applying a second
     correction on top is item 2 of the disqualification battery. Since 2026-09-30 the denominator
     also carries embedded solar, which INDO is net of, so it is transmission demand PLUS the
     embedded supply GB consumed (EP13 frame doc s19), plus the exports INDO excludes, which the

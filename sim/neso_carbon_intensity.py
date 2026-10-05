@@ -37,10 +37,12 @@ WHAT NESO PUBLISHES, AND WHY IT IS NOT THE SAME QUANTITY
 half hour carries a FORECAST and an ACTUAL, in gCO2/kWh. The differences from the reconstruction
 are not noise and must never be averaged away:
 
-  * NESO's series is LOSS-CORRECTED to a consumed basis; the reconstruction is at Elexon's
-    transmission boundary. Applying a second correction on top of either is item 2 of the
-    disqualification battery -- so this module applies NONE, and the basis is carried in
-    `PUBLISHED_BASIS` for anything that publishes from it.
+  * NESO's methodology text says the series is loss-corrected to a consumed basis. ITS DATA SAYS
+    THAT ONLY UNTIL 2020-04-27 PERIOD 34 (measured 2026-10-05, G14): before that half hour the
+    `actual` reads about 1.14x NESO's own Historic GB Generation Mix, after it about 1.02x, and its
+    implied fuel factors are NESO's table with no loss multiplier. So the API CHANGES BASIS there,
+    from loss-uplifted to generation. This module applies NO correction, and the basis is carried
+    in `PUBLISHED_BASIS` for anything that publishes from it.
   * NESO COUNTS INTERCONNECTOR IMPORTS at the exporting country's intensity; the reconstruction
     does not model them at all.
   * NESO COUNTS COAL; the reconstruction dispatches none.
@@ -109,9 +111,11 @@ CACHE_PATH = Path("sim/cache/neso_carbon_intensity_national.json")
 #: comparison that explains why the two series may legitimately differ in LEVEL.
 PUBLISHED_BASIS = (
     "gCO2/kWh, national, half-hourly, NESO/National Grid Carbon Intensity API "
-    "(api.carbonintensity.org.uk, key-free, openly licensed). Consumption basis: "
-    "LOSS-CORRECTED, INCLUDES interconnector imports at the exporting country's intensity, "
-    "INCLUDES coal. Both forecast and actual are published; 'actual' is outturn."
+    "(api.carbonintensity.org.uk, key-free, openly licensed). TWO BASES: up to 2020-04-27 period "
+    "33 the actual carries a loss uplift (about 1.14x NESO's Historic GB Generation Mix); from "
+    "period 34 it is generation basis (about 1.02x), whatever the methodology text says. "
+    "INCLUDES interconnector imports at NESO's fixed import factors, INCLUDES coal. Both "
+    "forecast and actual are published; 'actual' is outturn."
 )
 
 

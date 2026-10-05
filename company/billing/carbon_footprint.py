@@ -54,7 +54,7 @@ def estimate_carbon(
         unit = "gCO2e/kWh (gas, DESNZ)"
     else:
         g_per_kwh = electricity_intensity(year)
-        unit = "gCO2/kWh (grid, NESO published national, loss-corrected)"
+        unit = "gCO2/kWh (grid, NESO published national, generation basis, losses not included)"
         if g_per_kwh is None:
             return {"kg_co2e": None, "tonnes_co2e": None, "intensity": None, "unit": unit,
                     "year": year, "unavailable": grid_intensity_unavailable_reason(year)}

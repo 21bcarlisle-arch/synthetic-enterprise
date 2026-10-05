@@ -991,7 +991,19 @@ function carbonDayPanel(row) {
        comparison is 1.0 by construction (`by_construction`). Printing "1.0x wider" and "this
        model's clean end is too clean" would describe a model the feed no longer carries. The
        spread is then the published series' own, and the upper bound is the forecast's. */
+    /* SINCE LATER ON 2026-10-05 THE SHAPE IS NESO'S HISTORIC GENERATION MIX and the comparison is
+       NESO's Carbon Intensity API (`shape_is_neso`): two NESO series. Neither is "this model". */
     (row.year_stats && row.year_stats.p95_over_p5 && CARBON.versus_published &&
+     CARBON.versus_published.available && CARBON.versus_published.shape_is_neso &&
+     CARBON.versus_published.p95_spread_overstated_by
+      ? "Across " + esc(String(row.year)) + " as a whole the dirtiest 5% of half hours ran <b>" +
+        row.year_stats.p95_over_p5.toFixed(1) + "&times;</b> the cleanest 5% in NESO&rsquo;s " +
+        "Historic Generation Mix, which is what this shape is. NESO&rsquo;s other published " +
+        "series, the Carbon Intensity API, puts the same spread at " +
+        (1 / CARBON.versus_published.p95_spread_overstated_by).toFixed(2) + "&times; this one " +
+        "over the years both cover. The figure is still an upper bound on what advice could " +
+        "have saved: it is outturn, and a household has to act on a forecast."
+      : row.year_stats && row.year_stats.p95_over_p5 && CARBON.versus_published &&
      CARBON.versus_published.available && CARBON.versus_published.by_construction
       ? "Across " + esc(String(row.year)) + " as a whole the dirtiest 5% of half hours ran <b>" +
         row.year_stats.p95_over_p5.toFixed(1) + "&times;</b> the cleanest 5% in NESO&rsquo;s " +
@@ -1061,6 +1073,17 @@ function beliefVsTruth(row) {
   /* SINCE 2026-10-05 the company's shape for these half hours IS NESO's published series, so
      the two answers are the same numbers. Saying the company's "own grid model overstates" by a
      gap of zero would describe a model that is no longer there. */
+  /* SINCE LATER ON 2026-10-05 the company's shape is NESO's Historic Generation Mix and TRUTH is
+     NESO's Carbon Intensity API: two NESO series, so no "company grid model" is being scored. */
+  if (b.shape_is_neso) {
+    return '<p style="font-size:12px;margin-top:8px;padding-top:8px;border-top:1px solid var(--line)">' +
+      "<b>These are NESO&rsquo;s published figures.</b> For history the company reads NESO's " +
+      "Historic Generation Mix. NESO's other published series, the Carbon Intensity API, gives " +
+      "a timing effect of <b>" + b.truth_pct.toFixed(1) + "%</b> against " +
+      b.belief_pct.toFixed(1) + "% for the same " + b.half_hours + " half hours, a difference " +
+      "of " + Math.abs(b.gap_pp).toFixed(1) + " percentage points between two NESO series" +
+      (b.sign_differs ? ", which <b>disagree on the direction</b>" : "") + ".</p>";
+  }
   if (b.by_construction) {
     return '<p style="font-size:12px;margin-top:8px;padding-top:8px;border-top:1px solid var(--line)">' +
       "<b>These are NESO&rsquo;s published figures.</b> For history the company reads NESO's " +

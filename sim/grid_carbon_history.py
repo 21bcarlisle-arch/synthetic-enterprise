@@ -16,56 +16,66 @@ and standard emission factors rather than modelling dispatch. ... a correlated e
 
 One value per settlement period, 2016-01-01 to 2025-12-31, in gCO2/kWh, each with a source:
 
-  neso_published    NESO's published `actual`, from 2018-05-11 (`FIRST_PUBLISHED_DATE`).
-  fuelmix_estimate  before 2018-05-11. Fuel-mix arithmetic times a scale FITTED on the overlap.
-  fuelmix_fill      inside NESO's coverage where NESO has no usable value: no record
-                    (`neso_no_record`), or an outage signature (a null or zero `actual`, which
-                    `neso_carbon_intensity.to_settlement_periods` drops, or a value above the
-                    physical ceiling). The fill is unscaled, as the brief requires.
-  gap               neither source has a value. The value is None and the reason is given.
-                    Nothing is interpolated.
+  neso_historic_mix  NESO's Historic GB Generation Mix `CARBON_INTENSITY` (Open Data Portal,
+                     `df_fuel_ckan.csv`, half-hourly from 2009). One publisher, one basis, the
+                     whole decade.
+  fuelmix_fill       a half hour the historic mix has no usable value for: no row
+                     (`historic_mix_no_record`), or an outage signature (a null, zero or
+                     above-ceiling intensity, or transmission wind and hydro both exactly 0 MW,
+                     `historic_mix_outage_signature`). The fill is unscaled, as the brief requires.
+  gap                neither source has a value. The value is None and the reason is given.
+                     Nothing is interpolated.
 
-THE ARITHMETIC (NESO Carbon Intensity methodology, the way `elexon_fuel_outturn` already uses
+THE BASIS IS GENERATION, NOT CONSUMPTION (measured 2026-10-05). Regressing the historic mix's
+intensity x `GENERATION` on its fuel columns gives gas 391-403, coal 932-997 and biomass 107-133
+in every year tested, on NESO's table of 394 / 937 / 120: no loss multiplier. `GENERATION` is the
+sum of every fuel column, embedded wind (`WIND_EMB`), embedded solar (`SOLAR`) and `IMPORTS`
+included. So a value here is CO2 at the generator per kWh GENERATED. Transmission and distribution
+losses are NOT in it; a consumer that wants them adds them as a separate named line.
+
+WHY NOT THE CARBON INTENSITY API, which was the series until 2026-10-05. The API's published
+`actual` CHANGES BASIS at 2020-04-27 period 34: API / historic mix is 1.13-1.18 a year before it and
+1.01-1.04 after, and our own inputs are smooth across that half hour (G14 knowledge page, "The
+2020-04-27 step"). Before the step the API carried a loss uplift; after it, it does not, whatever
+its methodology text says. A series that splices the two is on no basis. The API is kept as the
+CROSS-CHECK (`meta["api_versus_historic_mix"]`), and that is all it is.
+
+THE CKAN FILE IS A LATER EDITION. It is the file as NESO serves it on the day it was fetched
+(`meta["historic_mix_edition"]` names its last half hour), revised in hindsight. No supplier
+could have read this exact file in 2019. Every consumer of this series reads it as OUTTURN WITH
+HINDSIGHT, which is how the feed already states it.
+
+THE FILL ARITHMETIC (NESO Carbon Intensity methodology, the way `elexon_fuel_outturn` already uses
 it): sum over fuels of MW x NESO's factor, divided by total MW. The total includes imports and
 NESO's embedded wind and solar estimate. The factors are `NESO_PUBLISHED_FACTOR_G_CO2_PER_KWH`
 and `import_factor`, imported here and never restated. Negative readings are clamped to zero:
 pumped storage while pumping and cables while exporting are demand, not generation. ElecLink
-and Viking are left out because NESO's mix leaves them out (`OUTSIDE_NESO_MIX`). We measured the
-EMBEDDED term rather than assuming it. Over 2020-05..2025 the bias is +2.4 g with it and +12.6 g
-without it (the no-embedded variant also has a summer dip, which is solar it cannot see).
+and Viking are left out because NESO's mix leaves them out (`OUTSIDE_NESO_MIX`). It reads a few
+percent ABOVE the historic mix (`meta["arithmetic_versus_historic_mix"]` gives the bias by year).
+Which term carries the difference is not established.
 
 FOUR THINGS THE DATA SHOWED THAT NOTHING HAD WRITTEN DOWN
   1. FUELHH's `settlementDate` for PERIOD 48 IS THE NEXT DAY, on every day up to 2022. The row
-     labelled (D, 48) has `startTime` D-1 23:30Z, and its value continues D-1's period 47. The
-     mean step to it is 1,056 MW, against 2,523 MW to D's own period 47. Rows are therefore keyed
-     by `settlement_key(startTime)`, and that also gets 46 and 50 right on clock-change days. The
-     fix lives in `elexon_fuel_outturn.row_settlement_key`, which every FUELHH reader there uses
-     since 2026-10-05.
-  2. FUELHH has no BIOMASS type before 2017-11-01; biomass sits inside OTHER until then. The
-     monthly mean of OTHER is 932-1,817 MW before the split and 66-135 MW after. So before the
-     first BIOMASS reading, OTHER is priced at NESO's BIOMASS factor (`PRE_SPLIT_OTHER_PRICED_AS`).
-     The CLI prints the bracket with OTHER at its own factor.
-  3. NESO's PUBLISHED LEVEL STEPS DOWN AT 2020-04-27 PERIOD 34. Published over arithmetic is about
-     1.10 to 1.13 from 2018-05 to 2020-04, then about 0.94 to 1.00 from 2020-05. It is a change in
-     the API's own calculation: our inputs are smooth across that half hour, every fuel's implied
-     factor moves together, and NESO's Historic Generation Mix series has no step there (G14
-     knowledge page). Which term NESO changed is not recorded. Pre-2018 values join the series at 2018-05-11, so the scale is fitted on the
-     regime they join (`CALIBRATION_FIT_WINDOW`, exactly two years, seasonally balanced). The
-     whole-overlap fit is printed beside it. Averaging across the step would give a basis NESO
-     never published.
-  4. THE NESO CACHE STARTED IN 2019, not on 2018-05-11. 2018-05-11..2018-12-31 and 2025 were
-     fetched on 2026-10-05 into `NESO_EXTENSION_CACHE_PATH`, as a new file rather than a rewrite
-     of the live cache. If it is missing, those half hours become `fuelmix_fill` and carry the
-     reason `neso_no_record`. The coverage table shows it. Inside the cache there are 179
-     `neso_no_record` half hours, across seven days in 2021-2024. For the three largest
-     (2021-12-26/27, 2023-10-21/22, 2024-06-12) we re-asked the API on 2026-10-05, and NESO
-     publishes nothing for them either.
+     labelled (D, 48) has `startTime` D-1 23:30Z, and its value continues D-1's period 47. Rows
+     are therefore keyed by `settlement_key(startTime)`, which also gets 46 and 50 right on
+     clock-change days. The fix lives in `elexon_fuel_outturn.row_settlement_key`.
+  2. FUELHH has no BIOMASS type before 2017-11-01; biomass sits inside OTHER until then. So before
+     the first BIOMASS reading, OTHER is priced at NESO's BIOMASS factor
+     (`PRE_SPLIT_OTHER_PRICED_AS`). The CLI prints the bracket with OTHER at its own factor.
+  3. THE HISTORIC MIX'S `DATETIME` IS THE UTC START of the half hour: keyed that way, clock-change
+     days carry 46 and 50 periods, and the correlation with the API peaks at lag 0.
+  4. THE HISTORIC MIX HAS ITS OWN PARTIAL OUTAGE: on 20 half hours in 2016-2025 (five on
+     2023-06-07, the day FUELHH reads all zeros) transmission wind and hydro both read exactly
+     0 MW while gas and nuclear carry on, so its intensity is too high. GB wind and hydro are never
+     both exactly zero, and the test is exact, so no threshold is picked.
 
 Run:  python3 -m sim.grid_carbon_history            (statistics and coverage; builds on first run)
-      python3 -m sim.grid_carbon_history --fetch-neso-extension
+      python3 -m sim.grid_carbon_history --fetch-historic-mix
+      python3 -m sim.grid_carbon_history --fetch-neso-extension   (the API cross-check's 2018/2025)
 """
 from __future__ import annotations
 
+import csv
 import json
 import math
 from collections.abc import Callable, Iterable, Mapping
@@ -85,16 +95,31 @@ Key = tuple[str, int]
 SERIES_START = "2016-01-01"
 SERIES_END = "2025-12-31"
 
-NESO_PUBLISHED = "neso_published"
-FUELMIX_ESTIMATE = "fuelmix_estimate"
+NESO_HISTORIC_MIX = "neso_historic_mix"
 FUELMIX_FILL = "fuelmix_fill"
 GAP = "gap"
-#: Every value here is derived from the real record, including the estimates.
+#: Every value here is derived from the real record, including the fills.
 DATA_REGIME = "historical"
-SOURCES = (NESO_PUBLISHED, FUELMIX_ESTIMATE, FUELMIX_FILL, GAP)
+SOURCES = (NESO_HISTORIC_MIX, FUELMIX_FILL, GAP)
 
+#: NESO Open Data Portal, "Historic GB Generation Mix", resource `df_fuel_ckan.csv`. Key-free and
+#: openly licensed; it redirects to a signed download.
+HISTORIC_MIX_URL = (
+    "https://api.neso.energy/dataset/88313ae5-94e4-4ddc-a790-593554d8c6b9/resource/"
+    "f93d1835-75bc-43e5-84ad-12472b180a98/download/df_fuel_ckan.csv"
+)
+HISTORIC_MIX_CACHE_PATH = Path("sim/cache/neso_historic_generation_mix.csv")
+#: The API cross-check's 2018 and 2025 windows, which the live API cache does not hold.
 NESO_EXTENSION_CACHE_PATH = Path("sim/cache/neso_carbon_intensity_national_extension.json")
 BUILT_PATH = Path("sim/cache/grid_carbon_history.json")
+
+#: The API's basis change (G14 knowledge page, "The 2020-04-27 step"): the first half hour on the
+#: later basis. Used only to split the cross-check, never to build a value.
+API_BASIS_STEP = ("2020-04-27", 34)
+
+#: Transmission fuels whose readings all being exactly zero in one half hour is the historic mix's
+#: partial-outage signature (module docstring, finding 4).
+HISTORIC_MIX_OUTAGE_ZERO_COLUMNS = ("WIND", "HYDRO")
 
 FUELHH_CACHE_PATHS = (
     efo.THERMAL_CACHE_PATH,
@@ -120,13 +145,8 @@ REQUIRED_FUELS = (
 #: Which NESO factor OTHER carries before FUELHH splits biomass out of it (finding 2 above).
 PRE_SPLIT_OTHER_PRICED_AS = efo.BIOMASS_FUEL_TYPE
 
-#: The window the pre-2018 scale is fitted on: from NESO's first published day to the day before
-#: the measured level step (finding 3). The window comes from measurement and is not tuned. Daily
-#: published/arithmetic ratios run 1.06-1.18 to 2020-04-27, then 0.99, 0.97, 1.00, 0.96 ...
-CALIBRATION_FIT_WINDOW = (nci.FIRST_PUBLISHED_DATE, "2020-04-27")
-
-#: The whole overlap, for the statistics and for the fit printed beside the shipped one.
-OVERLAP_WINDOW = (nci.FIRST_PUBLISHED_DATE, SERIES_END)
+#: The whole series, for the cross-check statistics.
+OVERLAP_WINDOW = (SERIES_START, SERIES_END)
 
 
 @dataclass(frozen=True)
@@ -208,6 +228,56 @@ def biomass_split(fuel_mix: Mapping[Key, Mapping[str, float]]) -> Key | None:
     2017-11-01 (period 41)."""
     keys = [key for key, fuels in fuel_mix.items() if efo.BIOMASS_FUEL_TYPE in fuels]
     return min(keys) if keys else None
+
+
+def historic_mix_by_period(
+    rows: Iterable[Mapping[str, str]],
+) -> tuple[dict[Key, float], set[Key], str | None]:
+    """CSV rows -> ({key: usable CARBON_INTENSITY}, {keys with an outage signature}, last DATETIME).
+
+    `DATETIME` is the UTC start of the half hour (finding 3). Usable means a number above zero, not
+    above `nci._physical_ceiling_g_co2_per_kwh()`, with `GENERATION` above zero, and not every
+    `HISTORIC_MIX_OUTAGE_ZERO_COLUMNS` reading exactly 0 (finding 4). Anything else that has a row
+    is a signature. A key with no row is in neither set.
+    """
+    ceiling = nci._physical_ceiling_g_co2_per_kwh()
+    usable: dict[Key, float] = {}
+    seen: set[Key] = set()
+    last: str | None = None
+    for row in rows:
+        stamp = row.get("DATETIME")
+        if not stamp:
+            continue
+        try:
+            key = _key_from_start_time(stamp)
+        except ValueError:
+            continue
+        last = stamp if last is None else max(last, stamp)
+        seen.add(key)
+        try:
+            value = float(row["CARBON_INTENSITY"])
+            generation = float(row["GENERATION"])
+            zeros = all(float(row[c] or 0.0) == 0.0 for c in HISTORIC_MIX_OUTAGE_ZERO_COLUMNS)
+        except (KeyError, TypeError, ValueError):
+            continue
+        if math.isfinite(value) and 0.0 < value <= ceiling and generation > 0.0 and not zeros:
+            usable[key] = value
+    return usable, seen - set(usable), last
+
+
+def load_historic_mix(path: Path = HISTORIC_MIX_CACHE_PATH) -> tuple[dict[Key, float], set[Key], str | None]:
+    """As `historic_mix_by_period`, over 2016-2025 plus a day either side (so every UTC row of a
+    local settlement day at each end is read). The third element is the FILE's last `DATETIME`,
+    which names the edition."""
+    if not Path(path).exists():
+        raise FileNotFoundError(f"{path} is not cached; run --fetch-historic-mix")
+    with Path(path).open(newline="") as handle:
+        rows = list(csv.DictReader(handle))
+    edition = max((r.get("DATETIME") or "" for r in rows), default="") or None
+    wanted = [r for r in rows
+              if "2015-12-31" <= (r.get("DATETIME") or "")[:10] <= "2026-01-01"]
+    usable, signatures, _ = historic_mix_by_period(wanted)
+    return usable, signatures, edition
 
 
 def load_neso(
@@ -312,15 +382,6 @@ def fuelmix_intensity(
 # ---------------------------------------------------------------- statistics
 
 
-def fit_scale(pairs: Iterable[tuple[float, float]]) -> float:
-    """Least-squares scale s minimising sum (s*estimate - published)^2."""
-    pairs = list(pairs)
-    sxx = sum(a * a for a, _ in pairs)
-    if not pairs or sxx <= 0.0:
-        raise ValueError("no overlap pairs to fit a scale on")
-    return sum(a * b for a, b in pairs) / sxx
-
-
 def _stats(pairs: list[tuple[float, float]]) -> dict[str, float]:
     n = len(pairs)
     mx = sum(a for a, _ in pairs) / n
@@ -375,38 +436,45 @@ def overlap_statistics(
 def assemble(
     universe: Iterable[Key],
     raw_estimate: Mapping[Key, tuple[float | None, str | None]],
-    published: Mapping[Key, float],
+    historic: Mapping[Key, float],
     signatures: set[Key],
-    scale: float,
-    *,
-    neso_from: str = nci.FIRST_PUBLISHED_DATE,
 ) -> dict[Key, Reading]:
-    """Gives each half hour one source. `scale` is applied to `fuelmix_estimate` and to no other."""
+    """Gives each half hour one source: the historic mix, else the unscaled fill, else a gap."""
     out: dict[Key, Reading] = {}
     for key in universe:
+        if key in historic:
+            out[key] = Reading(historic[key], NESO_HISTORIC_MIX)
+            continue
         value, why = raw_estimate.get(key, (None, "fuelhh_absent"))
-        if key[0] < neso_from:
-            if value is None:
-                out[key] = Reading(None, GAP, f"before NESO coverage and {why}")
-            else:
-                out[key] = Reading(value * scale, FUELMIX_ESTIMATE)
-            continue
-        if key in published:
-            out[key] = Reading(published[key], NESO_PUBLISHED)
-            continue
-        neso_why = "neso_outage_signature" if key in signatures else "neso_no_record"
+        mix_why = "historic_mix_outage_signature" if key in signatures else "historic_mix_no_record"
         if value is None:
-            out[key] = Reading(None, GAP, f"{neso_why} and {why}")
+            out[key] = Reading(None, GAP, f"{mix_why} and {why}")
         else:
-            out[key] = Reading(value, FUELMIX_FILL, neso_why)
+            out[key] = Reading(value, FUELMIX_FILL, mix_why)
     return out
+
+
+def _ratio(pairs: Iterable[tuple[float, float]]) -> float | None:
+    pairs = list(pairs)
+    den = sum(b for _, b in pairs)
+    return sum(a for a, _ in pairs) / den if pairs and den > 0 else None
+
+
+def api_step(published: Mapping[Key, float], historic: Mapping[Key, float]) -> dict:
+    """API / historic mix, summed, either side of `API_BASIS_STEP`, over the whole overlap."""
+    before = [(v, historic[k]) for k, v in published.items() if k in historic and k < API_BASIS_STEP]
+    after = [(v, historic[k]) for k, v in published.items() if k in historic and k >= API_BASIS_STEP]
+    return {"first_half_hour_after": list(API_BASIS_STEP),
+            "before": {"n": len(before), "ratio": _ratio(before)},
+            "after": {"n": len(after), "ratio": _ratio(after)}}
 
 
 def build() -> tuple[dict[Key, Reading], dict]:
     """Builds the series from the cached inputs and returns (series, meta)."""
     fuel_mix = load_fuel_mix()
     embedded = load_embedded()
-    published, signatures = load_neso(load_neso_records())
+    historic, signatures, edition = load_historic_mix()
+    published, _api_signatures = load_neso(load_neso_records())
     split = biomass_split(fuel_mix)
     universe = settlement_universe()
     raw = {
@@ -414,30 +482,23 @@ def build() -> tuple[dict[Key, Reading], dict]:
         for k in universe
     }
     estimate = {k: v for k, (v, _) in raw.items() if v is not None}
-    shipped = overlap_pairs(estimate, published, CALIBRATION_FIT_WINDOW)
-    whole = overlap_pairs(estimate, published, OVERLAP_WINDOW)
-    scale = fit_scale(shipped.values())
-    series = assemble(universe, raw, published, signatures, scale)
+    series = assemble(universe, raw, historic, signatures)
     meta = {
-        "scale_fitted": scale,
-        "scale_fit_window": list(CALIBRATION_FIT_WINDOW),
-        "scale_fit_n": len(shipped),
-        "scale_whole_overlap": fit_scale(whole.values()),
+        "historic_mix_edition": edition,
         "biomass_split": list(split) if split else None,
         "data_regime": DATA_REGIME,
-        "overlap_statistics": overlap_statistics(estimate, published),
-        "overlap_statistics_fit_window": overlap_statistics(estimate, published, CALIBRATION_FIT_WINDOW),
-        # The same window AFTER the scale: the error a `fuelmix_estimate` value carries, as far as
-        # it can be measured. It is in-sample, because the scale was fitted on these half hours.
-        "overlap_statistics_fit_window_scaled": overlap_statistics(
-            {k: v * scale for k, v in estimate.items()}, published, CALIBRATION_FIT_WINDOW),
+        # bias = arithmetic - historic mix: the error a `fuelmix_fill` value carries.
+        "arithmetic_versus_historic_mix": overlap_statistics(estimate, historic),
+        # bias = API - historic mix, either side of the API's own basis change.
+        "api_versus_historic_mix": overlap_statistics(published, historic),
+        "api_step": api_step(published, historic),
         "coverage_by_year": coverage(series),
-        "pre_split_other_bracket": _other_bracket(fuel_mix, embedded, split, universe, scale),
+        "pre_split_other_bracket": _other_bracket(fuel_mix, embedded, split, universe),
     }
     return series, meta
 
 
-def _other_bracket(fuel_mix, embedded, split, universe, scale) -> dict[str, float]:
+def _other_bracket(fuel_mix, embedded, split, universe) -> dict[str, float]:
     """Mean change, by year, in the pre-split estimate if OTHER kept its own factor."""
     acc: dict[str, list[float]] = {}
     for k in universe:
@@ -447,12 +508,13 @@ def _other_bracket(fuel_mix, embedded, split, universe, scale) -> dict[str, floa
         b, _ = fuelmix_intensity(fuel_mix.get(k), k, embedded.get(k), split=split,
                                  other_priced_as="OTHER")
         if a is not None and b is not None:
-            acc.setdefault(k[0][:4], []).append((b - a) * scale)
+            acc.setdefault(k[0][:4], []).append(b - a)
     return {y: sum(v) / len(v) for y, v in sorted(acc.items())}
 
 
 def _input_fingerprint() -> list:
-    paths = [*FUELHH_CACHE_PATHS, nci.CACHE_PATH, NESO_EXTENSION_CACHE_PATH, Path(neg.CACHE_PATH)]
+    paths = [*FUELHH_CACHE_PATHS, HISTORIC_MIX_CACHE_PATH, nci.CACHE_PATH, NESO_EXTENSION_CACHE_PATH,
+             Path(neg.CACHE_PATH)]
     out = []
     for p in paths:
         p = Path(p)
@@ -521,6 +583,19 @@ def coverage(series: Mapping[Key, Reading]) -> dict[str, dict[str, int]]:
 # ---------------------------------------------------------------- CLI
 
 
+def fetch_historic_mix(timeout: float = 300.0) -> int:
+    """Fetches NESO's Historic GB Generation Mix into `HISTORIC_MIX_CACHE_PATH`, as served today."""
+    import urllib.request
+
+    request = urllib.request.Request(HISTORIC_MIX_URL, headers={"User-Agent": "poesys-sim/1.0"})
+    with urllib.request.urlopen(request, timeout=timeout) as response:  # noqa: S310 -- fixed https URL
+        body = response.read()
+    HISTORIC_MIX_CACHE_PATH.parent.mkdir(parents=True, exist_ok=True)
+    HISTORIC_MIX_CACHE_PATH.write_bytes(body)
+    print(f"{len(body):,} bytes -> {HISTORIC_MIX_CACHE_PATH}")
+    return 0
+
+
 def fetch_neso_extension() -> int:
     """Fetches the NESO windows the live cache does not hold into the extension file. Only
     windows the cache does not already hold are requested."""
@@ -542,9 +617,12 @@ def main(argv: list[str] | None = None) -> int:
     import argparse
 
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    parser.add_argument("--fetch-historic-mix", action="store_true")
     parser.add_argument("--fetch-neso-extension", action="store_true")
     parser.add_argument("--rebuild", action="store_true")
     args = parser.parse_args(argv)
+    if args.fetch_historic_mix:
+        return fetch_historic_mix()
     if args.fetch_neso_extension:
         return fetch_neso_extension()
     if args.rebuild:
@@ -553,22 +631,23 @@ def main(argv: list[str] | None = None) -> int:
     else:
         series, meta = load_series()
 
-    def table(title: str, stats: Mapping[str, Mapping[str, float]]) -> None:
+    def table(title: str, stats: Mapping[str, Mapping[str, float]], cols: tuple[str, str]) -> None:
         print(title)
-        print(f"  {'year':<5} {'n':>7} {'corr':>7} {'bias g':>8} {'rmse g':>8} {'est':>7} {'neso':>7}")
+        print(f"  {'year':<5} {'n':>7} {'corr':>7} {'bias g':>8} {'rmse g':>8} {cols[0]:>7} {cols[1]:>7}")
         for year, s in stats.items():
             print(f"  {year:<5} {int(s['n']):>7} {s['correlation']:>7.4f} {s['mean_bias']:>+8.2f} "
                   f"{s['rmse']:>8.2f} {s['mean_estimate']:>7.1f} {s['mean_published']:>7.1f}")
 
-    table("Overlap, raw fuel-mix arithmetic vs NESO published (bias = estimate - published):",
-          meta["overlap_statistics"])
-    table(f"Same, over the fit window {meta['scale_fit_window']}:", meta["overlap_statistics_fit_window"])
-    print(f"Scale fitted on {meta['scale_fit_window']} (n={meta['scale_fit_n']}): "
-          f"{meta['scale_fitted']:.4f}  <- applied to fuelmix_estimate only")
-    print(f"Scale fitted on the whole overlap {list(OVERLAP_WINDOW)}: {meta['scale_whole_overlap']:.4f}  "
-          "(not applied; spans NESO's 2020-04 level step)")
+    print(f"Historic mix edition: last half hour {meta['historic_mix_edition']}")
+    table("Fill arithmetic vs historic mix (bias = arithmetic - historic):",
+          meta["arithmetic_versus_historic_mix"], ("arith", "hist"))
+    table("Carbon Intensity API vs historic mix (bias = API - historic):",
+          meta["api_versus_historic_mix"], ("api", "hist"))
+    step = meta["api_step"]
+    print(f"API / historic mix before {step['first_half_hour_after']}: {step['before']['ratio']:.4f} "
+          f"(n={step['before']['n']}); from it: {step['after']['ratio']:.4f} (n={step['after']['n']})")
     print(f"BIOMASS first published in FUELHH: {meta['biomass_split']}; before it OTHER is "
-          f"priced as {PRE_SPLIT_OTHER_PRICED_AS}. If OTHER kept its own factor instead, mean change, g:")
+          f"priced as {PRE_SPLIT_OTHER_PRICED_AS} in the fill. If OTHER kept its own factor, mean change, g:")
     for year, delta in meta["pre_split_other_bracket"].items():
         print(f"  {year}: {delta:+.2f}")
     print("Coverage by source and year (half hours):")

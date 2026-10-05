@@ -52,8 +52,8 @@ THE THREE RUNGS AND THE NULL, one process, identical caches, all four scored by 
                        the other three falsifiable; see control 3.
 
 WHY THE CEILING IS FITTED IN INTENSITY SPACE, and not in carbon space where it started. NESO's
-series is LOSS-CORRECTED to a consumed basis and the reconstruction sits at Elexon's transmission
-boundary, so `published_intensity * demand` is not GB's burnt carbon and subtracting an import
+series was loss-uplifted until 2020-04-27 (generation basis since, G14) and the reconstruction
+sits at Elexon's transmission boundary, so `published_intensity * demand` is not GB's burnt carbon and subtracting an import
 term from it would mix a basis difference into the target. Fitting the published INTENSITY
 directly against intensive coordinates absorbs any per-year constant of that kind into the fit,
 where it belongs and cannot be mistaken for timing. It also makes the null rung clean: with a

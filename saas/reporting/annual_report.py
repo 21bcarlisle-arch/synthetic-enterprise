@@ -6518,7 +6518,8 @@ def _section_carbon_emissions(data: dict) -> str:
     lines.append("")
     lines.append("Scope 2 emissions from customer electricity consumption (UK grid emission intensity).")
     lines.append("Scope 1 emissions from gas supply (183g CO2/kWh, DESNZ). Grid intensity: NESO's published national "
-                 "series, demand-weighted annual mean, loss-corrected, CO2 at the generator "
+                 "series, demand-weighted annual mean, generation basis (T&D losses not included), "
+                 "CO2 at the generator "
                  "(docs/market_data/grid_intensity_feed.json). Low Carbon %: annual fuel mix table, unsourced vintage.")
     lines.append("")
     lines.append("| Year | Elec MWh | Grid Intensity | Elec CO2 (t) | Gas MWh | Gas CO2 (t) | Total CO2 (t) | Low Carbon % |")

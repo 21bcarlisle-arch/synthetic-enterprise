@@ -7,18 +7,21 @@ year-keyed intensity table appears anywhere under `company/` or `saas/` (R10 -- 
 WHERE THE NUMBER COMES FROM. `grid_intensity_g_co2e_per_kwh(year)` reads the per-year annual
 mean that `tools/generate_grid_intensity_feed.py` publishes in
 `docs/market_data/grid_intensity_feed.json` (`annual_level`). That mean is taken from the same
-half-hourly history as the feed's shape: NESO's published national carbon intensity from
-2018-05-11, its own arithmetic on Elexon's fuel mix before. Reading a published file is the
+half-hourly history as the feed's shape: NESO's Historic GB Generation Mix carbon intensity,
+2016-2025, with NESO's own arithmetic on Elexon's fuel mix only where it has no usable value. Reading a published file is the
 crossing the epistemic wall sanctions; a real GB supplier reads exactly this series.
 
 Basis, stated because every joiner must carry it: gCO2/kWh, national, DEMAND-WEIGHTED annual mean,
-LOSS-CORRECTED to a consumption basis (NESO's methodology), CO2 at the generator only -- not
-lifecycle, and not CO2e despite this function's name, which the guard pins. The feed's
+GENERATION basis -- per kWh generated, transmission and distribution losses NOT included -- CO2 at
+the generator only: not lifecycle, and not CO2e despite this function's name, which the guard pins.
+(It said "loss-corrected, consumption basis" until 2026-10-05. That was NESO's API methodology
+text, which the API's own data has not matched since 2020-04-27; the series is now the historic
+mix, which is generation basis throughout.) The feed's
 `annual_level.basis` and `.weighting` are the full statement.
 
 WHAT IT REPLACED, measured (2026-10-05): `UK_GRID_FUEL_MIX` x lifecycle factors, an undated
-hand table, which read 196.1 for 2024 against NESO's 133.1 and was 5-47% high in every whole
-year 2017-2024. The finding that made this module the owner
+hand table, which read 196.1 for 2024 against NESO's 133.1 (the API; 131.9 on the historic mix)
+and was 5-47% high in every whole year 2017-2024. The finding that made this module the owner
 (`docs/staging/done/WORKER_FINDING_THREE_LIVE_GRID_INTENSITY_SERIES_DISAGREE_BY_HALF_2026-08-14.md`)
 asked for "a single sourced series ... cited to a named publication and vintage"; the 08-14
 repair kept the hand table only because no source had been fetched. One now has.
@@ -184,10 +187,11 @@ GRID_INTENSITY_FEED = (
 GRID_INTENSITY_PROVENANCE = {
     'quantity': 'GB national annual grid electricity carbon intensity',
     'unit': 'gCO2/kWh',
-    'basis': 'demand-weighted annual mean of the half-hourly national series; loss-corrected, '
-             'consumption basis; CO2 at the generator, not lifecycle',
-    'source': 'NESO Carbon Intensity API national actual from 2018-05-11; NESO methodology on '
-              'Elexon FUELHH before, scaled to NESO -- read from '
+    'basis': 'demand-weighted annual mean of the half-hourly national series; generation basis, '
+             'transmission and distribution losses not included; CO2 at the generator, not '
+             'lifecycle',
+    'source': 'NESO Historic GB Generation Mix CARBON_INTENSITY, 2016-2025; NESO methodology on '
+              'Elexon FUELHH where it has no usable value -- read from '
               'docs/market_data/grid_intensity_feed.json',
     'status': 'published series; a part-year level is refused for an annual figure',
 }

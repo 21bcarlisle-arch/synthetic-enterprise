@@ -100,8 +100,8 @@ FOOTPRINT_BASIS = (
     "ANNUAL grid intensity "
     "(company/regulatory/carbon_emissions.py, the single owner) given half-hourly resolution "
     "by the published shape feed -- both NESO's national series, so shape x level is NESO's own "
-    "half-hourly figure. National, outturn, loss-corrected to a consumption basis, CO2 at the "
-    "generator. "
+    "half-hourly figure. National, outturn, generation basis (transmission and distribution "
+    "losses not included), CO2 at the generator. "
     "NOT abatement -- there is no counterfactual here and none is implied."
 )
 
@@ -112,6 +112,9 @@ NOT_INCLUDED = [
     "household's gas is in its yearly figure, from its billed gas",
     "upstream (well-to-tank) emissions of the gas, and the lifecycle and upstream emissions of "
     "the electricity's generation (NESO's factors are CO2 at the generator)",
+    "transmission and distribution losses: the grid figure is per kWh GENERATED, and the "
+    "electricity lost between the power station and the meter is not added. Whether it should "
+    "be is an open definition decision; if it is, it will be its own named line",
     "fuels this supplier does not sell the household: gas or electricity bought elsewhere, oil, "
     "petrol",
     "abatement: what the household would have emitted otherwise. A counterfactual, not measured",
@@ -380,8 +383,9 @@ FULL_YEAR_MONTHS = 12
 ELECTRICITY_LEG_BASIS = (
     "Electricity this supplier billed the household for in the year, times the company's own "
     "published annual grid intensity for that year (company/regulatory/carbon_emissions.py). "
-    "NESO's published national series, demand-weighted over the year, loss-corrected, CO2 at "
-    "the generator. A year the series covers only in part has no figure."
+    "NESO's published national series (Historic GB Generation Mix), demand-weighted over the "
+    "year, generation basis with transmission and distribution losses not included, CO2 at the "
+    "generator. A year the series covers only in part has no figure."
 )
 GAS_LEG_BASIS = (
     "Gas this supplier billed the household for in the year -- kWh read from its own gas meter, "

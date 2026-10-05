@@ -14,8 +14,9 @@ document or service, cited), **[fitted]** (a parameter chosen against data, with
 
 ## What the quantity is
 
-National GB grid carbon intensity, gCO2 per kWh **consumed**, per half hour, keyed by the
-settlement period's start time. Clock-change days carry 46 and 50 periods. It is NESO's
+National GB grid carbon intensity, gCO2 per kWh **generated** (transmission and distribution
+losses NOT included; corrected 2026-10-05 from "consumed", see the step below), per half hour,
+keyed by the settlement period's start time. Clock-change days carry 46 and 50 periods. It is NESO's
 definition: generation-weighted emissions over a denominator that includes NESO's estimate of
 embedded (distribution-connected) wind and solar. It is not regional, and it is the *actual*, not
 NESO's forecast; what a household could have acted on at the time is the forecast, graded in the
@@ -23,26 +24,41 @@ EP13 write-up.
 
 ## History, 2016-2025
 
-- **[sourced] Coverage.** NESO's carbon intensity API (`api.carbonintensity.org.uk`, key-free,
-  openly licensed) holds national half-hourly actuals from **2018-05-11**; a request before that
-  returns an empty set (`sim/neso_carbon_intensity.FIRST_PUBLISHED_DATE`).
-- **Before 2018-05-11** the value is Elexon FUELHH outturn by fuel times NESO's own published
-  generation and import factors (`sim/elexon_fuel_outturn`), with NESO's embedded wind and solar in
-  the denominator. No dispatch model is involved.
-- **[measured]** On the 2018-2025 overlap the fuel-mix estimate tracks NESO at correlation 0.976
-  (0.965-0.996 by year). Adding embedded generation to the denominator took the post-2020 bias from
-  +12.6 g to +2.4 g.
-- **[fitted]** NESO's level sits 10-13% above the fuel-mix arithmetic until a step at 2020-04-27
-  period 34. That step is a change in how the API calculates its figure (below), not a change in the
-  fleet. The pre-2018 estimate is scaled by 1.1287, fitted on 2018-05-11 to 2020-04-27 (the level
-  at the join). That takes the window's bias from -25.3 g to -0.6 g. It puts 2016 to 2020-04 on the
-  API's pre-step basis, about 11% above everything after it.
-- **Inside NESO's coverage** a NESO outage or null is filled from the fuel mix and tagged
-  `fuelmix_fill`. A half hour with neither source is a gap with its reason, never a zero. Every value
-  carries `neso_published`, `fuelmix_estimate` or `fuelmix_fill`.
+**Rebased 2026-10-05 onto NESO's Historic GB Generation Mix** (`df_fuel_ckan.csv`, NESO Open Data
+Portal), after the step below showed the API changes basis. Pre-registration and runs:
+`docs/staging/SEAT_FINDING_G14_REBASED_ON_NESO_HISTORIC_GENERATION_MIX_2026-10-05.md`.
+
+- **[measured] One source, one basis, the whole decade.** Every 2016-2025 half hour is the historic
+  mix's `CARBON_INTENSITY` (`neso_historic_mix`) except 20 gaps where both it and FUELHH carry an
+  outage signature. The fitted 1.1287 scale and the pre-2018 estimate are gone.
+- **[measured] It is generation basis.** Regressing intensity x `GENERATION` on its fuel columns
+  gives gas 391-403, coal 932-997 and biomass 107-133 in every year tested, against NESO's table of
+  394 / 937 / 120: no loss multiplier. `GENERATION` is the sum of every fuel column, embedded wind
+  (`WIND_EMB`), embedded solar (`SOLAR`) and `IMPORTS` included (within 2 MW).
+- **[measured] `DATETIME` is the UTC start of the half hour.** Keyed that way, clock-change days
+  carry 46 and 50 periods, and the correlation with the API peaks at lag 0 (0.9932, against 0.9920
+  at +1).
+- **[measured] Its own partial outage.** On 20 half hours transmission wind and hydro both read
+  exactly 0 MW while gas and nuclear carry on (five on 2023-06-07, the FUELHH all-zero day). They
+  are treated as outage signatures; the test is exact, so no threshold is picked.
+- **[measured] The API is now the cross-check.** API / historic mix is 1.1446 before 2020-04-27
+  P34 (34,043 half hours) and 1.0198 from it (99,150). By year the API's bias is +35 g (2018-05..12),
+  +24 g (2019), +12 g (2020) and +1 to +4 g from 2021.
+- **[sourced] Point in time.** The CKAN file is a later, revised edition (its last half hour names
+  the edition on the feed). No supplier could have read it in 2019; it is outturn with hindsight.
+- **The fill.** Where the historic mix has no usable value, Elexon FUELHH by fuel times NESO's
+  factors, with NESO's embedded wind and solar in the denominator, unscaled (`fuelmix_fill`). It
+  reads +1.7 g against the historic mix over the decade (-9.6 g in 2016, +8.8 g in 2024). No half
+  hour needs it on today's record.
 - **[measured] A publication defect found on the way.** Through 2022 Elexon's FUELHH row labelled
   (D, 48) starts at D-1 23:30Z. All FUELHH readers now key by start time; about 1.3% of half hours
   moved.
+- **[measured] What moved.** The feed's demand-weighted annual level: 2016 273.4, 2017 252.0,
+  2018 224.5, 2019 197.1, 2020 175.4, 2021 189.8, 2022 185.3, 2023 154.9, 2024 131.9 g/kWh.
+  2016-2019 fell 8-14%; 2021 onwards moved 1-2%.
+
+*Superseded the same day:* the API from 2018-05-11, and before it a fuel-mix estimate scaled by
+1.1287 to the API's pre-step level. That put 2016 to 2020-04 about 11% above everything after.
 
 ### The 2020-04-27 step is a change in NESO's calculation, not in the fleet
 
@@ -168,7 +184,8 @@ week beside the record week it replays.
   step is where it stopped. Any label calling the post-step series "per kWh consumed" or
   "loss-corrected" is wrong (Expert Hour MAJOR-1, 2026-10-05). The quantity defined at the top of
   this page is what NESO's methodology describes, not what the series has measured since 2020-04-27.
-- **[open] One basis across the step.** The cause is classified (above), but the shipped series
-  still changes basis at 2020-04-27 P34. NESO's Historic GB Generation Mix publishes one basis from
-  2009. It is the candidate source for the whole history and would replace the fitted 1.1287 scale.
+  **Relabelled 2026-10-05:** every basis string in `sim/`, `tools/`, `company/` and `saas/` now says
+  generation basis, losses not included, and the quantity above says "generated".
+- **One basis across the step: done 2026-10-05** (History, above). The series is the Historic
+  Generation Mix throughout; the API is the cross-check.
   The exact term NESO changed is not recorded anywhere NESO holds (FOI/25/152).

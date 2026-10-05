@@ -143,7 +143,11 @@ def test_nothing_derives_the_national_level_from_the_mix():
 def test_the_provenance_names_the_published_series():
     assert GRID_INTENSITY_PROVENANCE["unit"] == "gCO2/kWh"
     assert "NESO" in GRID_INTENSITY_PROVENANCE["source"]
-    assert "loss-corrected" in GRID_INTENSITY_PROVENANCE["basis"]
+    # Generation basis since 2026-10-05: "loss-corrected" was NESO's API methodology text, which
+    # its data has not matched since 2020-04-27 (G14), and the series is now the historic mix.
+    assert "generation basis" in GRID_INTENSITY_PROVENANCE["basis"]
+    assert "losses not included" in GRID_INTENSITY_PROVENANCE["basis"]
+    assert "loss-corrected" not in GRID_INTENSITY_PROVENANCE["basis"]
 
 
 def test_the_published_gas_factor_is_unchanged():

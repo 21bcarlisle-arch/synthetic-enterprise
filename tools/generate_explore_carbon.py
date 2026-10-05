@@ -65,6 +65,11 @@ OUT_PATH = PROJECT / "site" / "data" / "explore_carbon.json"
 
 PERIODS = 48
 
+#: The feed's source tags that are a NESO series or NESO's own arithmetic, as
+#: `tools/generate_grid_intensity_feed.NESO_SHAPE_SOURCES` publishes them. Restated rather than
+#: imported because this generator reads the feed FILE and nothing on the world side.
+NESO_SHAPE_SOURCES = ("neso_historic_mix", "fuelmix_fill")
+
 
 def _clock(period: int) -> str:
     minutes = (period - 1) * 30
@@ -248,10 +253,10 @@ def belief_versus_truth(
     """THIS household's timing effect computed twice: through the company's shape, and through
     NESO's published series. The coupled-triad rung, at the grain a reader can check.
 
-    SINCE 2026-10-05 THE COMPANY'S SHAPE IS NESO'S PUBLISHED SERIES wherever NESO published, so
-    on those half hours the two answers agree by construction and `by_construction` says so. What
-    follows describes the comparison as it was while the shape was EP13's reconstruction; the
-    arithmetic is unchanged and still catches a feed whose values drift from the published ones.
+    SINCE 2026-10-05 THE COMPANY'S SHAPE IS NESO'S HISTORIC GB GENERATION MIX, and the other side
+    is NESO's Carbon Intensity API, so this is two NESO series side by side (`shape_is_neso`), not
+    a model measured against NESO. What follows describes the comparison as it was while the shape
+    was EP13's reconstruction; the arithmetic is unchanged.
 
     WHY THIS IS NOT THE SPREAD RATIO ALREADY ON THE PAGE. The feed says this model overstates
     the grid's total range by about 3.2x, and until now the page asked the reader to discount
@@ -289,7 +294,7 @@ def belief_versus_truth(
 
     kwh = belief = truth = 0.0
     used = missing = 0
-    from_published = 0
+    from_published = from_neso = 0
     for read in reads:
         key = (str(read.get("date") or ""), int(read.get("period") or 0))
         our_value, their_value = shape.get(key), published.get(key)
@@ -302,6 +307,7 @@ def belief_versus_truth(
         truth += k * (their_value / theirs_divisor)
         used += 1
         from_published += (sources or {}).get(key) == "neso_published"
+        from_neso += (sources or {}).get(key) in NESO_SHAPE_SOURCES
 
     if used == 0 or kwh <= 0.0:
         return {
@@ -328,11 +334,14 @@ def belief_versus_truth(
         # 2026-10-05). Keyed to the feed's own source tags and not to the gap being small, so a
         # real disagreement can never be relabelled as agreement.
         "by_construction": used > 0 and from_published == used,
+        # TRUE when every half hour compared came from a NESO series or NESO's own arithmetic in
+        # the feed (`NESO_SHAPE_SOURCES`), so BELIEF is NESO's historic mix and TRUTH NESO's API.
+        "shape_is_neso": used > 0 and from_neso == used,
         "basis": (
             "Both figures are this household's own metered half hours weighted by a grid shape "
             "and compared with the flat annual method. BELIEF uses the shape the company is "
-            "published (since 2026-10-05, NESO's published series where NESO published); TRUTH "
-            "uses NESO's published half-hourly carbon intensity. Both series re-normalised over "
+            "published (since 2026-10-05, NESO's Historic GB Generation Mix); TRUTH uses NESO's "
+            "Carbon Intensity API half-hourly outturn. Both series re-normalised over "
             "the half hours they share in {}, so the difference is physics and not "
             "coverage.".format(year)
         ),
@@ -365,7 +374,20 @@ def _household_gap_summary(accounts: list) -> dict:
     overstated = sum(1 for g in gaps if g > 0.0)
     flips = sum(1 for row in measured if row["sign_differs"])
     agreed = sum(1 for row in measured if row.get("by_construction"))
-    if agreed == len(measured):
+    neso = sum(1 for row in measured if row.get("shape_is_neso"))
+    if neso == len(measured):
+        # SINCE 2026-10-05 the company's shape is NESO's Historic GB Generation Mix and the other
+        # side is NESO's Carbon Intensity API: two NESO series, so nothing here scores a model.
+        statement = (
+            "On {} of {} household-days this page shows, the company's grid shape is NESO's "
+            "Historic GB Generation Mix and is checked against NESO's other published series, "
+            "the Carbon Intensity API. The two give timing effects within {} percentage points "
+            "of each other at the widest and {} on average. There is no company model to score; "
+            "this is how far two NESO series differ in shape. The other days fall where the API "
+            "published nothing usable (it starts in 2018)."
+        ).format(len(measured), total, round(abs(max(gaps, key=abs)), 1),
+                 round(sum(abs(g) for g in gaps) / len(gaps), 1))
+    elif agreed == len(measured):
         # SINCE 2026-10-05 the company reads NESO's published series for history, so on these
         # days there is no company model left to score. Saying "the gap IS the score" over a
         # gap of zero would publish a perfect score for a comparison of a series with itself.
@@ -399,6 +421,7 @@ def _household_gap_summary(accounts: list) -> dict:
         "belief_overstates_on": overstated,
         "sign_flips": flips,
         "panels_by_construction": agreed,
+        "panels_neso_against_neso": neso,
         "statement": statement,
     }
 
