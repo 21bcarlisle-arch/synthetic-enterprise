@@ -1,5 +1,10 @@
 # [DIRECTOR-CANON] — The priority order from here (2026-10-05)
 
+**Severity:** LATENT · **Lane:** A_strategy_governance · **Epoch:** 3 · **Atom:** unminted
+
+*Header applied AUTOMATICALLY by `background/staging_watcher` on arrival, because an unclassified staging document refuses every lane's commit and an arriving document must never block a landing. Severity LATENT: carried through from the author's own words. Lane A_strategy_governance is the default for an externally-authored instruction and says what KIND of document this is, not what it is about — correct it if it belongs to a lane. Not one word of the author's text is altered.*
+
+
 **Type:** [CANON — the order of work for the next phase. Severity: LATENT. Supersedes the priority order in DIRECTOR_CANON_RERANKING_THE_ARC_2026-09-04 where the two differ. Sequencing within each step, and how the map expresses it, are the delivery seat's.]
 
 **Knowledge:** none — this is a priority order, not domain understanding.
