@@ -73,3 +73,11 @@ The module has no production caller yet. It is frozen into `docs/design/orphan_b
 as deliberately dormant, in the same commit. Publishing the backtest on the site (cut, both
 verdicts, the bound) is the next increment. So is a seed sweep that would let the two books'
 disagreement be attributed.
+
+## Disposition (2026-10-05)
+
+Answered by `docs/staging/SEAT_FINDING_B11_THE_LATE_CUT_LOSS_IS_THE_CRISIS_CARRY_FORWARD_AND_THE_TWO_BOOKS_ARE_A_WALK_NOT_A_FLIP_2026-10-05.md`.
+The hypothesis held: the 2022-cut loss goes when the deviation comes from 2016–20. The two
+books' disagreement is a walk over about 20 commits, not a single flip. Correction: book B is
+not `fe895db3a`'s run. Its stamp says `0247f3061` landed the bytes, and the producer was not
+recorded.

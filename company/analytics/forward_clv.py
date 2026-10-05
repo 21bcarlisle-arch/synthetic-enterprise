@@ -204,6 +204,7 @@ class AccountForecast:
 @dataclass(frozen=True)
 class Backtest:
     cut_year: int
+    margin_deviation_fit_months: tuple[str, str]
     fit_months: tuple[str, str]
     held_back_months: tuple[str, str]
     accounts_graded: int
@@ -313,10 +314,28 @@ def _hazard_at(by_cy: Mapping[int, float], tenure_months: int) -> float:
 
 
 def run_backtest(
-    accounts: Sequence[AccountHistory], book_end: int, cut_year: int = DEFAULT_CUT_YEAR
+    accounts: Sequence[AccountHistory],
+    book_end: int,
+    cut_year: int = DEFAULT_CUT_YEAR,
+    margin_fit_end_year: int | None = None,
 ) -> Backtest:
-    """Fit on months up to December of `cut_year`; forecast and grade every later month."""
+    """Fit on months up to December of `cut_year`; forecast and grade every later month.
+
+    `margin_fit_end_year` (B11 slice 2) takes the per-customer DEVIATION -- own mean minus
+    segment mean, and the shrinkage `k` -- from the months up to that year only, and adds it
+    to the segment level fitted through the cut. The level stays the flat rule's; only which
+    accounts sit above or below their segment comes from the earlier window. At the default
+    (the cut year) it is `w*own + (1-w)*segment`, the rule as first shipped. An account with
+    no month in the earlier window gets its segment's value.
+    """
     fit_end = _month_index(f"{cut_year}-12")
+    dev_end = fit_end if margin_fit_end_year is None else _month_index(
+        f"{margin_fit_end_year}-12")
+    if dev_end > fit_end:
+        raise ValueError(
+            f"margin fit year {margin_fit_end_year} is after the cut {cut_year}: the "
+            "deviation would read held-back months"
+        )
     first = min(a.first_month for a in accounts)
     if fit_end >= book_end:
         raise ValueError(
@@ -324,6 +343,8 @@ def run_backtest(
             f"{_month_label(book_end)}"
         )
     seg_mean, k_by_seg, own = _fit_margins(accounts, fit_end)
+    dev_seg_mean, k_by_seg, dev_own = (
+        (seg_mean, k_by_seg, own) if dev_end == fit_end else _fit_margins(accounts, dev_end))
     by_cy, by_seg_h, seg_ratio = _fit_hazards(accounts, fit_end)
     horizon = book_end - fit_end
     excluded = {"joined after the cut (no fit history)": 0, "left before the cut": 0}
@@ -335,10 +356,14 @@ def run_backtest(
         if a.last_month < fit_end:
             excluded["left before the cut"] += 1
             continue
-        own_mean, n = own[a.account_id]
         k = k_by_seg.get(a.segment)
-        w = n / (n + k) if k is not None else 0.0
-        pc_margin_rate = w * own_mean + (1 - w) * seg_mean[a.segment]
+        if a.account_id in dev_own and k is not None:
+            own_mean, n = dev_own[a.account_id]
+            w = n / (n + k)
+            deviation = own_mean - dev_seg_mean[a.segment]
+        else:
+            w, deviation = 0.0, 0.0
+        pc_margin_rate = seg_mean[a.segment] + w * deviation
         fl_margin_rate = seg_mean[a.segment]
         tenure = fit_end - a.first_month + 1
         s_pc = s_fl = 1.0
@@ -400,6 +425,7 @@ def run_backtest(
     )
     return Backtest(
         cut_year=cut_year,
+        margin_deviation_fit_months=(_month_label(first), _month_label(dev_end)),
         fit_months=(_month_label(first), _month_label(fit_end)),
         held_back_months=(_month_label(fit_end + 1), _month_label(book_end)),
         accounts_graded=len(forecasts),
@@ -421,8 +447,10 @@ def load_book(path: Path | str) -> tuple[list[AccountHistory], int]:
     return book_from_run_output(json.loads(Path(path).read_text()))
 
 
-def backtest_run_output(path: Path | str, cut_year: int = DEFAULT_CUT_YEAR) -> Backtest:
-    return run_backtest(*load_book(path), cut_year)
+def backtest_run_output(
+    path: Path | str, cut_year: int = DEFAULT_CUT_YEAR, margin_fit_end_year: int | None = None
+) -> Backtest:
+    return run_backtest(*load_book(path), cut_year, margin_fit_end_year)
 
 
 if __name__ == "__main__":  # pragma: no cover - a reading aid, not a door
@@ -430,7 +458,8 @@ if __name__ == "__main__":  # pragma: no cover - a reading aid, not a door
 
     target = sys.argv[1] if len(sys.argv) > 1 else "docs/reports/run_output_latest.json"
     cut = int(sys.argv[2]) if len(sys.argv) > 2 else DEFAULT_CUT_YEAR
-    bt = backtest_run_output(target, cut)
+    dev = int(sys.argv[3]) if len(sys.argv) > 3 else None
+    bt = backtest_run_output(target, cut, dev)
     print(f"cut {bt.cut_year}: fit {bt.fit_months}, held back {bt.held_back_months}")
     print(f"graded {bt.accounts_graded}, excluded {dict(bt.accounts_excluded)}")
     print(f"k by segment {bt.shrinkage_k_by_segment}")

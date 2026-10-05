@@ -159,3 +159,58 @@ def test_the_backtest_runs_on_a_real_book_and_carries_its_limitation():
     )
     assert bt.aggregate["realised_margin_gbp"] == pytest.approx(ledger)
     assert backtest_run_output(TRACKED_RUN).accounts_graded == bt.accounts_graded
+
+
+def _reversing_pair():
+    """Two accounts that swap places in 2021-22 and never leave, so every hazard is nil and a
+    forecast is its monthly rate times the horizon."""
+    crisis = (_month_index("2021-01"), _month_index("2022-12"))
+
+    def path(early, during):
+        return lambda m: (during if crisis[0] <= m <= crisis[1] else early) + (m % 2)
+
+    return [
+        _acct("R1", "resi electricity", "2016-01", "2025-06", path(10.0, 100.0)),
+        _acct("R2", "resi electricity", "2016-01", "2025-06", path(30.0, -40.0)),
+    ]
+
+
+def test_the_margin_deviation_is_read_only_from_its_own_window():
+    """The defect: a deviation window that still reads the crisis years tests nothing.
+
+    Fitted through 2022, R1 sits above its segment. With the deviation taken from 2016-2020,
+    R2 does, and the two forecasts still average to the flat rule's level, because only the
+    deviation moved and the level is the one fitted through the cut.
+    """
+    book = _reversing_pair()
+    end = max(a.last_month for a in book)
+    shipped = {f.account_id: f for f in run_backtest(book, end, 2022).forecasts}
+    early = run_backtest(book, end, 2022, margin_fit_end_year=2020)
+    by_id = {f.account_id: f for f in early.forecasts}
+    assert shipped["R1"].per_customer_margin_gbp > shipped["R2"].per_customer_margin_gbp
+    assert by_id["R2"].per_customer_margin_gbp > by_id["R1"].per_customer_margin_gbp
+    assert by_id["R1"].per_customer_margin_gbp + by_id["R2"].per_customer_margin_gbp == (
+        pytest.approx(2 * by_id["R1"].flat_margin_gbp))
+    assert early.margin_deviation_fit_months == ("2016-01", "2020-12")
+
+
+def test_the_deviation_window_at_the_cut_is_the_rule_as_first_shipped():
+    book = _book()
+    end = max(a.last_month for a in book)
+    default, explicit = run_backtest(book, end, 2020), run_backtest(book, end, 2020, 2020)
+    assert default.forecasts == explicit.forecasts
+
+
+def test_a_deviation_window_past_the_cut_is_refused_with_its_reason():
+    book = _book()
+    with pytest.raises(ValueError, match="after the cut"):
+        run_backtest(book, max(a.last_month for a in book), 2020, margin_fit_end_year=2021)
+
+
+def test_an_account_with_no_month_in_the_deviation_window_takes_its_segment():
+    book = _reversing_pair() + [
+        _acct("R3", "resi electricity", "2021-06", "2025-06", lambda m: 70.0 + (m % 2))]
+    end = max(a.last_month for a in book)
+    late = {f.account_id: f for f in run_backtest(book, end, 2022, 2020).forecasts}
+    assert late["R3"].credibility_weight == 0.0
+    assert late["R1"].credibility_weight > 0.0
