@@ -91,3 +91,44 @@ Letter" trials 2017–19) and the CMA EMI panel data, for a repeat-switching rat
 engaged. Until then the world's DISENGAGED 0.02 is contradicted by a factor of about 2. That is a
 fidelity defect, and it is filed for the world lane rather than fixed here, because moving it
 re-levels every run.
+
+## 5. The refit (2026-10-05)
+
+Claim `c29-refit-the-worlds-per-renewal-engagement-to-ofgems-sustained-engagement-control`.
+Pre-registered before the fit in
+`docs/staging/records/SEAT_PREREGISTRATION_C29_REFIT_THE_WORLDS_PER_RENEWAL_ENGAGEMENT_2026-10-05.md`.
+Same instrument as §2, 20,000 ids, archetype × channel. The instrument reproduced §2 first: 0.150,
+×2.64, mean 0.349.
+
+Three moments fix the three numbers. The shares stay 0.45 / 0.35 / 0.20 (R13).
+
+1. **Population mean held at ~0.35**, the sourced "fixed at expiry → active switch ~35%"
+   (`svt_rates_active_passive_2016_2025.md` §4). The refit moves WHO chooses, not how many.
+2. **Cohort 17-month rate ≈ 0.33.**
+3. **The lowest within-cohort persistence the first two allow.**
+
+| Triple (A / P / D) | Mean | Cohort, 17 months | Persistence | P(next \| chose) / P(next \| not) |
+|---|---|---|---|---|
+| 0.65 / 0.15 / 0.02 (old) | 0.349 | 0.150 | ×2.64 | 0.254 / 0.096 |
+| **0.50 / 0.24 / 0.20 (adopted)** | **0.349** | **0.338** | **×1.26** | 0.310 / 0.245 |
+| Ofgem 2020 control arm | — | 0.33 | ×0.94 (≤ ~×1.18 in its interval) | 31% / 33% |
+
+**The residual, and what sets it.** With the mean held and ACTIVE ≥ PASSIVE ≥ DISENGAGED, no triple
+gets persistence below ×1.26. The channel multiplier alone, with all three archetypes flat at 0.349,
+gives ×1.07. The adopted triple without the channel gives ×1.23. So the held mean sets the floor. It
+keeps ACTIVE near 0.50, and ACTIVE is about a fifth of the 3-year cohort. Let the mean go and the
+best fit is flat 0.26 everywhere (×1.05). That deletes the archetypes and lowers the book's choose
+rate from 0.35 to 0.26. That is a level move, R13's lever and not a fidelity refit's, so it is not
+taken. Before the fit this pre-registration did not know which one the sources would disagree with.
+
+**Graded against the pre-registration.** The instrument replicated. PASSIVE and DISENGAGED ended up
+close together, as predicted: 0.24 and 0.20 against "both near 0.20". ACTIVE came in at 0.50, not
+the predicted 0.55. **The persistence prediction was wrong.** I predicted ×1.1–1.2 and the floor is
+×1.26, just outside the source's interval. So the world still has a little more persistence than
+the record allows, and the cause is named: the ~35% aggregate.
+
+**What this moves downstream.** C29's estimate was graded against the old spread (ρ 0.73 vs the
+channel's 0.19), and its +0.545 lift was measured there too. Both have to be re-graded in this
+world. The value arms predate this commit, so the page's code guard (`_code_since_the_run`) refuses
+to call them the world as it is now until they are re-taken. The control is
+`tests/simulation/test_the_default_tail_chooses_at_ofgems_control_rate.py`.

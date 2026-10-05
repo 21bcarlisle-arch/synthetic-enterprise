@@ -1,14 +1,14 @@
 {
   "available": true,
-  "generated_at": "2026-10-02T05:30:57Z",
+  "generated_at": "2026-10-05T04:13:28Z",
   "published_from": {
-    "commit": "513d2a4b6a8ea094d3196b683990d83c9d3c3403",
+    "commit": "ce096a86e0d71c489e325e912a68a216be0fcfa1",
     "tree_was_clean": false,
     "inputs_are_the_committed_bytes": false,
     "inputs": [
       {
         "path": "simulation/household_segments.py",
-        "state": "committed"
+        "state": "modified"
       },
       {
         "path": "simulation/population_draw.py",
@@ -20,12 +20,12 @@
       },
       {
         "path": "tools/engagement_separation.py",
-        "state": "not_in_the_commit"
+        "state": "modified"
       }
     ],
-    "reason": "read off the working tree, not out of this commit: tools/engagement_separation.py \u2014 standing at this commit will not reproduce this feed"
+    "reason": "read off the working tree, not out of this commit: simulation/household_segments.py, tools/engagement_separation.py \u2014 standing at this commit will not reproduce this feed"
   },
-  "headline": "Of the 31 disengaged households on the book -- the ones who almost never shop at a renewal -- 12 are MORE price-sensitive than the book's average household. Whether a household shops and how far price moves it once it does are two different facts in this world: across 123 households their rank correlation is -0.07, inside the -0.18 to +0.18 that shuffling the pairs produces.",
+  "headline": "Of the 25 disengaged households on the book -- the long-default tail, the least likely to choose at a renewal -- 11 are MORE price-sensitive than the book's average household. Whether a household shops and how far price moves it once it does are two different facts in this world: across 125 households their rank correlation is -0.04, inside the -0.18 to +0.16 that shuffling the pairs produces.",
   "definitions": {
     "engagement": "the probability a household enters a choice at a fixed-term renewal: its persistent disposition to shop, times how much more or less its payment method shops (Ofgem Consumer Impacts of Market Conditions survey, wave 6)",
     "elasticity": "how far a price gap moves a household once it is choosing, as a weight whose average over the book is 1.0"
@@ -37,108 +37,108 @@
     "gap": "no published study gives it; the nearest published figures (Ofgem's survey of households in arrears or finding bills hard to pay) describe a household's circumstances rather than its response to an event, and cannot be separated from the payment-method effect the world already applies; and the bill's size is not the trigger -- in 2022 every bill rose and switching collapsed",
     "code_gap": "the amplitude by which a bill-shock event raises engagement is not established in the published record: no source gives it, the closest published magnitudes (Ofgem CIM w6 Table 56, arrears 1.6x / bill difficulty 1.7x) are ratios over a STATE rather than responses to an EVENT and are unseparated from the payment-channel effect this module already applies, and the bill-LEVEL form was refuted on 2026-09-22 (docs/market_research/is_there_a_bill_level_at_which_switching_rises.md \u00a76)"
   },
-  "households": 123,
+  "households": 125,
   "run_base_seed": 20260724,
-  "book_mean_elasticity": 0.9924,
+  "book_mean_elasticity": 0.9687,
   "by_archetype": [
     {
       "archetype": "active",
-      "n": 49,
-      "engagement_mean": 0.6358,
+      "n": 58,
+      "engagement_mean": 0.5001,
       "elasticity": {
-        "mean": 1.03,
+        "mean": 0.9755,
         "ci95": [
-          0.8129,
-          1.2471
+          0.7978,
+          1.1531
         ],
-        "n": 49
+        "n": 58
       },
-      "above_book_mean_elasticity": 19
+      "above_book_mean_elasticity": 23
     },
     {
       "archetype": "passive",
-      "n": 43,
-      "engagement_mean": 0.1518,
+      "n": 42,
+      "engagement_mean": 0.2372,
       "elasticity": {
-        "mean": 0.9967,
+        "mean": 0.9754,
         "ci95": [
-          0.8037,
-          1.1897
+          0.7749,
+          1.1759
         ],
-        "n": 43
+        "n": 42
       },
-      "above_book_mean_elasticity": 19
+      "above_book_mean_elasticity": 17
     },
     {
       "archetype": "disengaged",
-      "n": 31,
-      "engagement_mean": 0.0201,
+      "n": 25,
+      "engagement_mean": 0.2058,
       "elasticity": {
-        "mean": 0.927,
+        "mean": 0.942,
         "ci95": [
-          0.7805,
-          1.0734
+          0.7903,
+          1.0936
         ],
-        "n": 31
+        "n": 25
       },
-      "above_book_mean_elasticity": 12
+      "above_book_mean_elasticity": 11
     }
   ],
   "by_channel": [
     {
       "channel": "direct_debit",
-      "n": 91,
-      "engagement_mean": 0.3335,
+      "n": 90,
+      "engagement_mean": 0.3816,
       "elasticity": {
-        "mean": 0.9523,
+        "mean": 0.9588,
         "ci95": [
-          0.8127,
-          1.0919
+          0.8207,
+          1.097
         ],
-        "n": 91
+        "n": 90
       },
-      "above_book_mean_elasticity": 33
+      "above_book_mean_elasticity": 36
     },
     {
       "channel": "standard_credit",
-      "n": 14,
-      "engagement_mean": 0.2869,
-      "elasticity": {
-        "mean": 0.9258,
-        "ci95": [
-          0.6813,
-          1.1703
-        ],
-        "n": 14
-      },
-      "above_book_mean_elasticity": 6
-    },
-    {
-      "channel": "prepayment",
       "n": 18,
-      "engagement_mean": 0.2185,
+      "engagement_mean": 0.3441,
       "elasticity": {
-        "mean": 1.2468,
+        "mean": 0.9379,
         "ci95": [
-          0.9828,
-          1.5108
+          0.7334,
+          1.1423
         ],
         "n": 18
       },
-      "above_book_mean_elasticity": 11
+      "above_book_mean_elasticity": 8
+    },
+    {
+      "channel": "prepayment",
+      "n": 17,
+      "engagement_mean": 0.2106,
+      "elasticity": {
+        "mean": 1.054,
+        "ci95": [
+          0.7812,
+          1.3268
+        ],
+        "n": 17
+      },
+      "above_book_mean_elasticity": 7
     }
   ],
   "association": {
-    "rho": -0.0701,
-    "n": 123,
-    "null_low": -0.1799,
-    "null_high": 0.1844,
+    "rho": -0.0417,
+    "n": 125,
+    "null_low": -0.1793,
+    "null_high": 0.163,
     "outside_the_null": false,
     "permutations": 2000
   },
   "disengaged_but_price_sensitive": {
-    "disengaged": 31,
-    "above_book_mean_elasticity": 12,
-    "max_elasticity": 1.7751
+    "disengaged": 25,
+    "above_book_mean_elasticity": 11,
+    "max_elasticity": 1.7305
   }
 }

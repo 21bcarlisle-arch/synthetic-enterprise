@@ -28,12 +28,21 @@ board's veteran "disengaged majority" instinct — while hard-DISENGAGED
 stays at the honest 0.20, not a majority (the board's strong form
 overshoots the hard Ofgem number). Neither side adopted blind.
 
-The per-archetype per-renewal ACTIVE probabilities below are UNCHANGED
-(0.65 / 0.15 / 0.02) — a calibration CHOICE, not independently sourced. The
-weighted aggregate is near-neutral vs the prior anchor: 0.45*0.65 +
-0.35*0.15 + 0.20*0.02 ≈ 0.349 (was ~0.352). The re-anchor fixes the
-within-book SHAPE without re-levelling the portfolio's aggregate active-
-renewal rate. Honestly flagged as such per the Anchored-noise law.
+The per-archetype per-renewal ACTIVE probabilities below (0.50 / 0.24 / 0.20)
+were refitted 2026-10-05 from 0.65 / 0.15 / 0.02, which were a calibration
+choice and contradicted by the one longitudinal RCT on file: Ofgem's
+Sustained Engagement follow-up (2020) of the 2018 Collective Switch trial,
+whose no-letter control of 5,000 households on a default for 3+ years chose
+at 33% within 17 months, and in which a past choice did not predict the next
+(31% vs 33%). The old triple gave that cohort 0.149 and a x2.6 persistence.
+Three moments fix the three numbers: the population mean held at the
+sourced ~35% (0.45*0.50 + 0.35*0.24 + 0.20*0.20 = 0.349, unchanged), that
+cohort's 17-month rate (0.338), and the lowest persistence the held mean
+allows (x1.26 -- still above the ~x1.18 the source's interval admits; the
+residual and why it is the held mean that sets it are in
+docs/market_research/does_a_households_renewal_engagement_persist.md §5).
+What is still NOT established: per-renewal rates for the engaged, and
+persistence outside the default tail.
 
 Layer 1 scope: engagement_level only. Layer 2 dimensions 1-4 (payment-
 method mix, fuel poverty, tenure, occupancy -- see PaymentChannel/
@@ -84,14 +93,14 @@ ENGAGEMENT_POPULATION_SHARE: dict[EngagementLevel, float] = {
     EngagementLevel.DISENGAGED: 0.20,
 }
 
-# Per-archetype active-renewal probability -- a calibration choice (NOT
-# independently sourced), tuned so the population-weighted aggregate
-# reproduces company/crm/churn_model.py's existing anchored ~35% aggregate
-# active-renewal rate. See module docstring for the arithmetic.
+# Per-archetype active-renewal probability -- fitted to three moments (module docstring): the
+# ~35% population mean held, and the Ofgem 2020 Sustained Engagement control arm's 3+-year default
+# cohort (33% within 17 months; a past choice predicting the next at about x1). The fit and its
+# residual: docs/market_research/does_a_households_renewal_engagement_persist.md §5.
 _ACTIVE_RENEWAL_PROBABILITY_BY_ENGAGEMENT: dict[EngagementLevel, float] = {
-    EngagementLevel.ACTIVE: 0.65,
-    EngagementLevel.PASSIVE: 0.15,
-    EngagementLevel.DISENGAGED: 0.02,
+    EngagementLevel.ACTIVE: 0.50,
+    EngagementLevel.PASSIVE: 0.24,
+    EngagementLevel.DISENGAGED: 0.20,
 }
 
 assert abs(sum(ENGAGEMENT_POPULATION_SHARE.values()) - 1.0) < 1e-9

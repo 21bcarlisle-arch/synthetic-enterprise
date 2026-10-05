@@ -166,8 +166,8 @@ def _headline(m: dict) -> str:
     d = m["disengaged_but_price_sensitive"]
     a = m["association"]
     return (
-        f"Of the {d['disengaged']} disengaged households on the book -- the ones who almost never "
-        f"shop at a renewal -- {d['above_book_mean_elasticity']} are MORE price-sensitive than the "
+        f"Of the {d['disengaged']} disengaged households on the book -- the long-default tail, "
+        f"the least likely to choose at a renewal -- {d['above_book_mean_elasticity']} are MORE price-sensitive than the "
         f"book's average household. Whether a household shops and how far price moves it once it "
         f"does are two different facts in this world: across {a['n']} households their rank "
         f"correlation is {a['rho']:+.2f}, inside the {a['null_low']:+.2f} to {a['null_high']:+.2f} "
