@@ -36,13 +36,21 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from company.carbon.half_hourly_footprint import (
+    CHANGE_BASIS,
+    ELECTRICITY_LEG_BASIS,
     FOOTPRINT_BASIS,
+    GAS_LEG_BASIS,
     MEASURED,
     NOT_INCLUDED,
     PROFILED,
+    TOTAL_BASIS,
     UNCOVERED,
     BookFootprint,
     FootprintUnavailable,
+    HouseholdFootprint,
+    electricity_leg,
+    gas_leg,
+    household_change,
     load_shape,
     measured_footprint,
 )
@@ -51,6 +59,7 @@ from simulation.demand_model import HEATING_PERIOD_WEIGHTS
 PROJECT = Path(__file__).resolve().parent.parent
 HH_DAYS = PROJECT / "site" / "data" / "explore_hh_days.json"
 CUSTOMER_DETAIL = PROJECT / "site" / "data" / "customers"
+CUSTOMER_INDEX = PROJECT / "site" / "data" / "customers.json"
 INTENSITY_FEED = PROJECT / "docs" / "market_data" / "grid_intensity_feed.json"
 OUT_PATH = PROJECT / "site" / "data" / "explore_carbon.json"
 
@@ -394,7 +403,75 @@ def _household_gap_summary(accounts: list) -> dict:
     }
 
 
-def build(hh_days: dict, shape: dict, feed: dict, meter: dict) -> dict:
+def _billed_by_year(detail: dict | None) -> tuple[dict[int, float], dict[int, int], str | None]:
+    """({year: billed kWh}, {year: months billed}, last billed day) from one leg's own invoices.
+
+    THE COMPANY'S OWN BILLS, not the world's meter: `consumption_kwh` on an invoice is what the
+    supplier read and charged for. A year is the year the billed period STARTS in.
+    """
+    kwh: dict[int, float] = {}
+    months: dict[int, set] = {}
+    last = None
+    for inv in (detail or {}).get("invoices") or []:
+        start, end = str(inv.get("period_start") or ""), str(inv.get("period_end") or "")
+        if len(start) < 7 or inv.get("consumption_kwh") is None:
+            continue
+        year = int(start[:4])
+        kwh[year] = kwh.get(year, 0.0) + float(inv["consumption_kwh"])
+        months.setdefault(year, set()).add(start[:7])
+        last = max(last or end, end)
+    return kwh, {y: len(m) for y, m in months.items()}, last
+
+
+def household_years(index: dict, detail_dir: Path) -> dict:
+    """{household: {years, headline, change}} -- electricity, gas and total for every year billed.
+
+    THE HOUSEHOLD IS THE INDEX'S `customer_group` and its legs, exactly as the page groups them,
+    so the figure under a household's name is built from the same two accounts the page loads.
+    A gas leg whose last bill ended before the electricity leg's is a CLOSED gas account: the
+    supplier still serves the home and has stopped billing it gas.
+    """
+    out: dict = {}
+    for customer in (index or {}).get("customers") or []:
+        group = customer.get("customer_group")
+        legs = customer.get("legs") or {}
+        if not group:
+            continue
+        billed = {}
+        for fuel in ("electricity", "gas"):
+            cid = (legs.get(fuel) or {}).get("cid")
+            billed[fuel] = _billed_by_year(_load(detail_dir / f"{cid}.json")) if cid else None
+        elec, gas = billed["electricity"], billed["gas"]
+        closed_on = None
+        if elec and gas and gas[2] and elec[2] and gas[2] < elec[2]:
+            closed_on = gas[2]
+        years = sorted((elec or gas or ({},))[0])
+        rows = []
+        for year in years:
+            e_leg = (electricity_leg(year, elec[0].get(year, 0.0), elec[1].get(year, 0))
+                     if elec else electricity_leg(year, None, 0))
+            g_leg = (gas_leg(year, gas[0].get(year, 0.0), gas[1].get(year, 0), closed_on)
+                     if gas else gas_leg(year, None, 0))
+            rows.append(HouseholdFootprint(group, year, e_leg, g_leg))
+        # A WHOLE YEAR WITH BOTH LEGS KNOWN heads the panel; a 2022 gas year (no DESNZ factor
+        # established) stays in `years` with its reason and never becomes the headline.
+        whole = [r for r in rows if r.full_year and None not in (r.electricity.co2e_kg, r.gas.co2e_kg)]
+        change = None
+        if len(whole) >= 2:
+            try:
+                change = household_change(whole[-2], whole[-1])
+            except FootprintUnavailable as exc:
+                change = {"available": False, "why": str(exc)}
+        out[group] = {
+            "headline_year": (whole[-1] if whole else rows[-1]).year if rows else None,
+            "years": [r.as_dict() for r in rows],
+            "change": change,
+        }
+    return out
+
+
+def build(hh_days: dict, shape: dict, feed: dict, meter: dict,
+          households: dict | None = None) -> dict:
     accounts = []
     published = published_shape_from_feed(feed)
     sources = sources_from_feed(feed)
@@ -509,13 +586,20 @@ def build(hh_days: dict, shape: dict, feed: dict, meter: dict) -> dict:
             ),
         },
         "accounts": accounts,
+        # THE HOUSEHOLD'S CARBON, as distinct from the electricity day panels above it. Until
+        # 2026-10-05 this feed carried electricity only, which for a gas-heated home is about a
+        # sixth of its carbon and would show a heat pump as an increase.
+        "household_basis": {"electricity": ELECTRICITY_LEG_BASIS, "gas": GAS_LEG_BASIS,
+                            "total": TOTAL_BASIS, "change": CHANGE_BASIS},
+        "households": households or {},
     }
 
 
 def generate(out_path: Path | None = None) -> dict:
     shape, _typical = load_shape(INTENSITY_FEED)
     feed = _load(INTENSITY_FEED) or {}
-    data = build(_load(HH_DAYS) or {}, shape, feed, _meter_counts(CUSTOMER_DETAIL))
+    data = build(_load(HH_DAYS) or {}, shape, feed, _meter_counts(CUSTOMER_DETAIL),
+                 household_years(_load(CUSTOMER_INDEX) or {}, CUSTOMER_DETAIL))
     dest = OUT_PATH if out_path is None else out_path
     dest.parent.mkdir(parents=True, exist_ok=True)
     dest.write_text(json.dumps(data, indent=1) + "\n", encoding="utf-8")

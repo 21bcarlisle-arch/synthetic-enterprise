@@ -1,11 +1,18 @@
 """Phase IC: coverage expansion for supplier_fitness_register, annual_board_pack, environmental_impact."""
 import datetime as dt
+
 import pytest
+
+from company.regulatory.carbon_emissions import GAS_EMISSION_FACTOR_G_CO2E_PER_KWH
 
 # ===== supplier_fitness_register =====
 from company.regulatory.supplier_fitness_register import (
-    SupplierFitnessRegister, FitnessRole, FitnessOutcome, FitnessConcernCategory
+    FitnessConcernCategory,
+    FitnessOutcome,
+    FitnessRole,
+    SupplierFitnessRegister,
 )
+
 
 def _sfr():
     reg = SupplierFitnessRegister()
@@ -69,9 +76,8 @@ class TestSupplierFitnessRegister:
 
 
 # ===== annual_board_pack =====
-from company.risk.annual_board_pack import (
-    AnnualBoardPack, BoardSignalCategory, BoardSignalRAG
-)
+from company.risk.annual_board_pack import AnnualBoardPack, BoardSignalCategory, BoardSignalRAG
+
 
 def _pack():
     pack = AnnualBoardPack(2022)
@@ -133,11 +139,9 @@ class TestAnnualBoardPack:
 
 
 # ===== environmental_impact =====
-from company.sustainability.environmental_impact import (
-    EnvironmentalImpactRegister, EmissionScope
-)
+from company.sustainability.environmental_impact import EmissionScope, EnvironmentalImpactRegister
 
-_GAS_FACTOR = 0.18253
+_GAS_FACTOR = GAS_EMISSION_FACTOR_G_CO2E_PER_KWH / 1000.0  # the one home; was 0.18253, CO2-only
 _GRID_FACTOR = 0.2104
 
 def _eir():

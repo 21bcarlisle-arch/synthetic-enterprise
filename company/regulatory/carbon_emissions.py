@@ -121,9 +121,56 @@ UK_GRID_FUEL_MIX: Dict[int, 'FuelMixRecord'] = {
 GRID_INTENSITY_FIRST_YEAR = min(UK_GRID_FUEL_MIX)
 GRID_INTENSITY_LAST_YEAR = max(UK_GRID_FUEL_MIX)
 
-#: Scope 1 factor for supplied gas, gCO2e/kWh. Also the published value (the annual report's
-#: `Gas CO2 (t)` column), kept identical for the same no-silent-revaluation reason.
-GAS_EMISSION_FACTOR_G_CO2E_PER_KWH = 183.0
+#: THE ONE HOME OF THE GAS FACTOR. DESNZ, *Greenhouse gas reporting: conversion factors*, flat
+#: file for each reporting year, Scope 1 > Fuels > Gaseous fuels > Natural gas, kWh (Gross CV),
+#: kgCO2e -- read for docs/market_research/household_carbon_and_the_measures_that_save_it.md §2.
+#: GROSS CV because GB gas meters are billed in kWh converted at the gross calorific value, so a
+#: billed kWh is already on this basis. CO2e, NOT the CO2-only column beside it in the same file
+#: (0.18253 for 2023, which `company/sustainability/environmental_impact.py` carried as "CO2e"
+#: until 2026-10-05). Combustion at the point of use only: well-to-tank is a separate DESNZ factor
+#: (0.03021 in the 2023-2025 sets) and is excluded, so this UNDERSTATES a household's full gas
+#: chain by about 16.5%.
+#:
+#: 2022 IS ABSENT, NOT INTERPOLATED. The 2022 files could not be parsed; 2021 (0.18316) and 2023
+#: (0.18293) bracket it within 0.13%, but a bracket is not the published number and a value
+#: written here would be read as the published one. `gas_factor_kg_co2e_per_kwh(2022)` refuses.
+DESNZ_NATURAL_GAS_KG_CO2E_PER_KWH_GROSS_CV = {
+    2016: 0.18400, 2017: 0.18416, 2018: 0.18396, 2019: 0.18385, 2020: 0.18387,
+    2021: 0.18316, 2023: 0.18293, 2024: 0.18290, 2025: 0.18296,
+}
+
+#: Why a year inside the record has no factor. Named so a refusal can say it.
+GAS_FACTOR_GAPS = {
+    2022: ("DESNZ's 2022 conversion-factor files could not be parsed when the factors were read "
+           "(2026-10-05); 2021's 0.18316 and 2023's 0.18293 bracket it, and neither is it"),
+}
+
+
+class GasFactorUnavailable(ValueError):
+    """No DESNZ gas factor is established for this year. Never a silent nearest-year."""
+
+
+def gas_factor_kg_co2e_per_kwh(year: int) -> float:
+    """DESNZ natural gas, kgCO2e per kWh gross CV, for that reporting year. Refuses, never clamps.
+
+    A clamp here would be invisible in the answer (every year is within 0.7% of every other), and
+    that is exactly why it must not happen silently: the value would be read as that year's.
+    """
+    year = int(year)
+    if year in DESNZ_NATURAL_GAS_KG_CO2E_PER_KWH_GROSS_CV:
+        return DESNZ_NATURAL_GAS_KG_CO2E_PER_KWH_GROSS_CV[year]
+    raise GasFactorUnavailable(GAS_FACTOR_GAPS.get(
+        year, f"no DESNZ natural-gas factor is held for {year}; the table covers "
+              f"{min(DESNZ_NATURAL_GAS_KG_CO2E_PER_KWH_GROSS_CV)}-"
+              f"{max(DESNZ_NATURAL_GAS_KG_CO2E_PER_KWH_GROSS_CV)}"))
+
+
+#: Scope 1 factor for supplied gas, gCO2e/kWh, for a consumer that has no year to ask about. Also
+#: the published value (the annual report's `Gas CO2 (t)` column). DERIVED from the table above --
+#: the latest DESNZ set to the nearest gram, 183 -- so it is the same figure as before and cannot
+#: drift from the sourced one. Within 0.7% of every year in the table.
+GAS_EMISSION_FACTOR_G_CO2E_PER_KWH = float(round(
+    1000.0 * DESNZ_NATURAL_GAS_KG_CO2E_PER_KWH_GROSS_CV[max(DESNZ_NATURAL_GAS_KG_CO2E_PER_KWH_GROSS_CV)]))
 
 #: Machine-readable provenance for anything that republishes the series. See the module docstring.
 GRID_INTENSITY_PROVENANCE = {

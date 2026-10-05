@@ -77,7 +77,11 @@ from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from company.regulatory.carbon_emissions import grid_intensity_g_co2e_per_kwh
+from company.regulatory.carbon_emissions import (
+    GasFactorUnavailable,
+    gas_factor_kg_co2e_per_kwh,
+    grid_intensity_g_co2e_per_kwh,
+)
 
 PROJECT = Path(__file__).resolve().parent.parent.parent
 INTENSITY_FEED = PROJECT / "docs" / "market_data" / "grid_intensity_feed.json"
@@ -90,7 +94,9 @@ UNCOVERED = "uncovered"
 #: What is in every figure this module returns, carried forward by every consumer (R14 applied
 #: to a carbon basis). The brief's rule: basis, sample size, period, counterfactual.
 FOOTPRINT_BASIS = (
-    "Electricity emissions only. Company estimate: its own published ANNUAL grid intensity "
+    "The day panels are the ELECTRICITY leg only -- for a gas-heated home a minority of its "
+    "carbon; the household's year below adds its gas. Company estimate: its own published "
+    "ANNUAL grid intensity "
     "(company/regulatory/carbon_emissions.py, the single owner) given half-hourly resolution "
     "by the published shape feed. Generation-based, national, outturn, no loss correction. "
     "NOT abatement -- there is no counterfactual here and none is implied."
@@ -99,7 +105,11 @@ FOOTPRINT_BASIS = (
 #: Stated in the same breath as any total, because each is a real hole in the number and a
 #: reader who is not told will assume the number is whole.
 NOT_INCLUDED = [
-    "gas -- a near-constant factor per kWh burned, and the only lever on it is using less",
+    "gas in the half-hourly day panels -- a gas meter is not read by the half hour; the "
+    "household's gas is in its yearly figure, from its billed gas",
+    "upstream (well-to-tank) emissions of the gas, and electricity transmission losses",
+    "fuels this supplier does not sell the household: gas or electricity bought elsewhere, oil, "
+    "petrol",
     "abatement: what the household would have emitted otherwise. A counterfactual, not measured",
     "embodied carbon in any measure or asset fitted",
     "the company's own emissions serving them (that is the carbon ledger's SPENT side)",
@@ -322,3 +332,189 @@ def profiled_footprint(account_id: str, annual_kwh: float, year: int) -> Footpri
         period_from=f"{year}-01-01",
         period_to=f"{year}-12-31",
     )
+
+
+# ---------------------------------------------------------------------------------------------
+# THE HOUSEHOLD: electricity AND gas, from what this supplier billed (2026-10-05)
+# ---------------------------------------------------------------------------------------------
+#
+# Everything above is electricity, and until 2026-10-05 it was the only household carbon figure
+# the company published. For a gas-heated home that is about 15% of its carbon on the 2025 grid
+# (docs/market_research/household_carbon_and_the_measures_that_save_it.md §2-3), and it would
+# have shown a heat pump -- gas off, electricity up -- as a carbon INCREASE. The legs below are
+# the household's own billed kWh: a gas bill is read from its own gas meter, so the gas leg is a
+# fact the supplier holds, not an estimate about an average home.
+#
+# THREE THINGS THIS DOES NOT KNOW, each said on the record rather than assumed:
+#   * a fuel bought from ANOTHER supplier. "No gas supply on record" is this supplier's record.
+#   * WHY a gas account closed. A switch away and a disconnection after a heat pump read the same
+#     on this side; the fall on our meters is real, its cause is not on file.
+#   * DESNZ's 2022 gas factor (`GAS_FACTOR_GAPS`): a 2022 gas leg has kWh and no kg.
+
+BILLED = "billed"
+NO_SUPPLY = "no_supply_on_record"
+GAS_CLOSED = "closed"
+
+NO_GAS_SUPPLY_REASON = "no gas supply on record"
+NO_ELECTRICITY_SUPPLY_REASON = "no electricity supply on record"
+
+#: Months a billed leg must cover for its year to be compared with another. A part year against a
+#: whole one compares seasons, and for gas the winter is most of the year.
+FULL_YEAR_MONTHS = 12
+
+ELECTRICITY_LEG_BASIS = (
+    "Electricity this supplier billed the household for in the year, times the company's own "
+    "published annual grid intensity for that year (company/regulatory/carbon_emissions.py). "
+    "Generation-based, national, annual; no loss correction."
+)
+GAS_LEG_BASIS = (
+    "Gas this supplier billed the household for in the year -- kWh read from its own gas meter, "
+    "converted at gross calorific value -- times DESNZ's natural-gas conversion factor for that "
+    "year (Scope 1, kgCO2e per kWh gross CV). Combustion at the home only; the upstream "
+    "well-to-tank factor is excluded."
+)
+CHANGE_BASIS = (
+    "This supplier's own billed kWh in two whole years. Weather is not removed: a cold year "
+    "raises gas with nothing in the home changed."
+)
+TOTAL_BASIS = (
+    "Electricity plus gas, each on its own basis. Emissions, not abatement: nothing here says "
+    "what the household would have emitted otherwise."
+)
+
+
+@dataclass(frozen=True)
+class Leg:
+    """One fuel's year for one household. `co2e_kg` is None only when the factor is not known."""
+
+    fuel: str
+    status: str
+    kwh: float
+    co2e_kg: float | None
+    months_billed: int
+    basis: str
+    reason: str | None = None
+    closed_on: str | None = None
+
+    @property
+    def full_year(self) -> bool:
+        """Comparable with another year: billed all year, or not supplied by us all year."""
+        return self.status != BILLED or self.months_billed >= FULL_YEAR_MONTHS
+
+
+def _no_supply(fuel: str) -> Leg:
+    return Leg(fuel=fuel, status=NO_SUPPLY, kwh=0.0, co2e_kg=0.0, months_billed=0,
+               basis=ELECTRICITY_LEG_BASIS if fuel == "electricity" else GAS_LEG_BASIS,
+               reason=NO_GAS_SUPPLY_REASON if fuel == "gas" else NO_ELECTRICITY_SUPPLY_REASON)
+
+
+def electricity_leg(year: int, billed_kwh: float | None, months_billed: int) -> Leg:
+    """`billed_kwh` None means the household has no electricity account with this supplier."""
+    if billed_kwh is None:
+        return _no_supply("electricity")
+    kwh = float(billed_kwh)
+    return Leg(fuel="electricity", status=BILLED, kwh=round(kwh, 4),
+               co2e_kg=profiled_footprint("", kwh, int(year)).co2e_kg_flat,
+               months_billed=int(months_billed), basis=ELECTRICITY_LEG_BASIS)
+
+
+def gas_leg(year: int, billed_kwh: float | None, months_billed: int,
+            closed_on: str | None = None) -> Leg:
+    """The household's gas for `year`, from its own billed gas.
+
+    `billed_kwh` None: no gas account on record -> 0 with the reason. `closed_on` before the year
+    began and nothing billed in it: the account closed -> 0, and the closure IS the status, so a
+    fall to zero can never read as an ordinary low year. A billed year whose DESNZ factor is not
+    established keeps its kWh and has no kg -- never a neighbouring year's factor.
+    """
+    year = int(year)
+    if billed_kwh is None:
+        return _no_supply("gas")
+    if closed_on is not None and str(closed_on) < f"{year}-01-01" and not months_billed:
+        return Leg(fuel="gas", status=GAS_CLOSED, kwh=0.0, co2e_kg=0.0, months_billed=0,
+                   basis=GAS_LEG_BASIS, closed_on=str(closed_on),
+                   reason=(f"gas account closed {closed_on}; nothing billed since. This record "
+                           "does not say whether the gas was disconnected or moved to another "
+                           "supplier"))
+    kwh = float(billed_kwh)
+    try:
+        factor = gas_factor_kg_co2e_per_kwh(year)
+    except GasFactorUnavailable as exc:
+        return Leg(fuel="gas", status=BILLED, kwh=round(kwh, 4), co2e_kg=None,
+                   months_billed=int(months_billed), basis=GAS_LEG_BASIS,
+                   reason=f"gas factor not established for {year}: {exc}")
+    return Leg(fuel="gas", status=BILLED, kwh=round(kwh, 4),
+               co2e_kg=round(kwh * factor, 4), months_billed=int(months_billed),
+               basis=GAS_LEG_BASIS)
+
+
+@dataclass(frozen=True)
+class HouseholdFootprint:
+    """A household's year: electricity, gas and total, reported separately, each with its basis."""
+
+    household_id: str
+    year: int
+    electricity: Leg
+    gas: Leg
+
+    @property
+    def total_co2e_kg(self) -> float:
+        missing = [leg for leg in (self.electricity, self.gas) if leg.co2e_kg is None]
+        if missing:
+            raise FootprintUnavailable(
+                f"{self.household_id} {self.year}: no total, because the "
+                + " and ".join(f"{leg.fuel} leg has no figure ({leg.reason})" for leg in missing))
+        return round(float(self.electricity.co2e_kg) + float(self.gas.co2e_kg), 4)
+
+    @property
+    def full_year(self) -> bool:
+        return self.electricity.full_year and self.gas.full_year
+
+    def as_dict(self) -> dict:
+        try:
+            total, why = self.total_co2e_kg, None
+        except FootprintUnavailable as exc:
+            total, why = None, str(exc)
+        # The bases are NOT repeated per row: they are three sentences that do not vary by
+        # household or year, and a publisher carries them once (`ELECTRICITY_LEG_BASIS`,
+        # `GAS_LEG_BASIS`, `TOTAL_BASIS`). Per row they made the feed eighteen times larger.
+        out = {"year": self.year, "full_year": self.full_year, "total_co2e_kg": total}
+        if why:
+            out["total_unavailable"] = why
+        for leg in (self.electricity, self.gas):
+            row = {"status": leg.status, "kwh": leg.kwh, "co2e_kg": leg.co2e_kg,
+                   "months_billed": leg.months_billed}
+            if leg.reason:
+                row["reason"] = leg.reason
+            if leg.closed_on:
+                row["closed_on"] = leg.closed_on
+            out[leg.fuel] = row
+        return out
+
+
+def household_change(before: HouseholdFootprint, after: HouseholdFootprint) -> dict:
+    """What changed between two whole years, leg by leg, on this supplier's own meters.
+
+    THE HEAT-PUMP CASE IS WHY THIS EXISTS: gas down or closed and electricity up is a net fall
+    exactly when the gas no longer burnt outweighs the extra electricity's carbon, and only a
+    figure carrying both legs can say so. Refuses a part year on either side rather than compare a
+    winter with a whole year.
+    """
+    for fp in (before, after):
+        if not fp.full_year:
+            raise FootprintUnavailable(
+                f"{fp.household_id} {fp.year} is a part year (electricity "
+                f"{fp.electricity.months_billed}, gas {fp.gas.months_billed} month(s) billed), so "
+                "a change against it would be a change of season")
+    total = round(after.total_co2e_kg - before.total_co2e_kg, 4)
+    return {
+        "from_year": before.year,
+        "to_year": after.year,
+        "electricity_change_kg": round(float(after.electricity.co2e_kg)
+                                       - float(before.electricity.co2e_kg), 4),
+        "gas_change_kg": round(float(after.gas.co2e_kg) - float(before.gas.co2e_kg), 4),
+        "total_change_kg": total,
+        "net_fall": total < 0.0,
+        "gas_closed": after.gas.status == GAS_CLOSED and before.gas.status == BILLED,
+        # basis: CHANGE_BASIS, carried once by the publisher rather than on every change.
+    }

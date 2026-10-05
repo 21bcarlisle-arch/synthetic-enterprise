@@ -451,3 +451,59 @@ def test_the_reader_is_told_HOW_MUCH_OF_THE_TIMING_EFFECT_IS_A_TEMPLATE():
     assert "no concentration at all would put" in html, (
         "the share is rendered without its null baseline, so a reader cannot tell 86% from 40%"
     )
+
+
+# ---------------------------------------------------------------------------
+# The household's carbon, electricity AND gas (2026-10-05)
+# ---------------------------------------------------------------------------
+
+def _household_panel(html: str) -> str:
+    marker = "This household&rsquo;s carbon"
+    assert marker in html or "This household’s carbon" in html, (
+        "stage 3 renders no household carbon figure at all, so the only carbon a reader meets is "
+        "the electricity day panel -- about a sixth of a gas-heated home's carbon"
+    )
+    return html.split(marker if marker in html else "This household’s carbon", 1)[1]
+
+
+def test_a_gas_heated_household_is_shown_electricity_gas_and_total_separately():
+    """The electricity-only number was the household's carbon on this page. A dual-fuel home's
+    panel must render three figures, and the total must be the two legs' sum.
+
+    MUTATION (must fire): drop the `householdCarbon(group)` call from `carbonPanels`, or render
+    only the electricity leg.
+    """
+    carbon = _load(CARBON)
+    group = next(g for g, h in sorted((carbon.get("households") or {}).items())
+                 if any(y["gas"]["status"] == "billed" and y["gas"]["co2e_kg"]
+                        and y["year"] == h["headline_year"] for y in h["years"]))
+    year = next(y for y in carbon["households"][group]["years"]
+                if y["year"] == carbon["households"][group]["headline_year"])
+    panel = _household_panel(_stage(group))
+
+    for label in ("<td>Electricity</td>", "<td>Gas</td>", "<td>Total</td>"):
+        assert label in panel, f"the household panel does not render its {label} row"
+    kg = [int(x.replace(",", "")) for x in re.findall(r"<td><b>([\d,]+) kg", panel)[:3]]
+    assert len(kg) == 3, f"expected electricity, gas and total in kg, rendered {kg}"
+    assert kg[1] == round(year["gas"]["co2e_kg"]) and kg[1] > 0
+    assert abs(kg[2] - (kg[0] + kg[1])) <= 1, "the rendered total is not electricity plus gas"
+
+
+def test_a_household_with_no_gas_account_is_told_so_in_words():
+    """C7 is electricity only. Its gas is zero for a stated reason, never a silent blank."""
+    panel = _household_panel(_stage("C7"))
+    assert "<td>Gas</td><td><b>0 kg</b>" in panel and "no gas supply on record" in panel
+
+
+def test_a_closed_gas_account_is_shown_plainly():
+    """A gas leg that stopped while the electricity went on is a CLOSURE, not a low year, and the
+    record cannot say whether it was disconnected or moved elsewhere -- the page says both.
+
+    MUTATION (must fire): drop `closure` from `householdCarbon`'s output.
+    """
+    carbon = _load(CARBON)
+    group = next((g for g, h in sorted((carbon.get("households") or {}).items())
+                  if any(y["gas"]["status"] == "closed" for y in h["years"])), None)
+    assert group, "no household on this book has a closed gas account, so the branch is unverified"
+    panel = _household_panel(_stage(group))
+    assert "Gas account closed" in panel and "moved to another supplier" in panel
