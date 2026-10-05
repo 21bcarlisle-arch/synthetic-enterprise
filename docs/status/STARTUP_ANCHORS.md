@@ -17,7 +17,7 @@ not maintained -- so it tells you what the project IS, not what it is currently 
 | `docs/operations/OPERATING_MODEL.md` | How the seat operates — what it gets on with, what it escalates to the director with a proposal, what is reserved, and the end-to-end check it owns | 2026-10-04 | 1 | UNDATED |
 | `docs/direction/priority_order.yaml` | The director's priority order as the map expresses it, and whether the draw follows it (`tools/draw_follows_the_order.py`) | 2026-10-05 | 0 | UNDATED |
 | `docs/reports/ANNUAL_REPORT.md` | The book's own annual report, regenerated each publish | 2026-09-28 | 7 | UNDATED |
-| `docs/market_research/ASSUMPTIONS.md` | Every sourced assumption the world is built on, with its anchor and its gaps | 2026-10-04 | 1 | FRESH |
+| `docs/market_research/ASSUMPTIONS.md` | Every sourced assumption the world is built on, with its anchor and its gaps | 2026-10-05 | 0 | FRESH |
 | `docs/status/LATEST.md` | What just happened and what the machine is working on now | 2026-09-28 | 7 | FRESH |
 | `docs/status/STARTUP_ANCHORS.md` | The computed age of every anchor on this page, and what each is for | 2026-10-05 | 0 | FRESH |
 | `docs/status/SEAT_STRETCH_LOG.md` | Why each stretch of work went the way it did — the corrections, what was stopped short of, the reasoning behind a call | 2026-10-05 | 0 | UNDATED |
@@ -39,9 +39,9 @@ one typed from memory does not.
 
 | Figure | Stated | Its source could have said | Verdict |
 |---|---|---|---|
-| commits | 12,283 | 11,788 – 12,446 (`git rev-list --count`) | AGREES |
-| lines | 1,083,934 | 1,063,684 – 1,092,972 (newlines across every `*.py` in the git index) | AGREES |
-| modules | 3,176 | 3,112 – 3,202 (the count of `*.py` in the git index) | AGREES |
+| commits | 12,283 | 11,788 – 12,480 (`git rev-list --count`) | AGREES |
+| lines | 1,083,934 | 1,063,684 – 1,095,567 (newlines across every `*.py` in the git index) | AGREES |
+| modules | 3,176 | 3,112 – 3,212 (the count of `*.py` in the git index) | AGREES |
 | tests | 38,426 | 38,426 – 39,465 (CLAUDE.md's Build line, floored by the test functions in the git index) | AGREES on the floor only on this run -- too large was ruled out at the commit that wrote this sentence |
 
 `AGREES` inside the band · `OVERSTATES` / `UNDERSTATES` a number its own source never carried in that window · `UNGRADED` the source did not exist that far back, so this figure is unchecked and the reader is told so rather than reassured · `SOURCE_GONE` the source existed and stopped being readable inside this window, which is a refusal rather than an unchecked figure -- nobody chooses for a source not to have existed yet, and somebody chose this · `BELOW_THE_INDEX_FLOOR` the figure is smaller than the number of test functions the repository actually contains, which no collection can be.
