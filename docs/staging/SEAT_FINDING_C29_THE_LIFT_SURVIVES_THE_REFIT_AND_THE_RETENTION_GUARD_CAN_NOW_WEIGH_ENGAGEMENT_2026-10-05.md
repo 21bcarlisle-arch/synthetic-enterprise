@@ -5,7 +5,7 @@
 Claim `c29-regrade-the-engagement-lift-on-the-refitted-world-then-wire-the-retention-guard`. It was
 drawn before its prerequisite had landed. The prerequisite's `surgical_land` was running at draw
 time. It finished as `ae552db75`, gated with a receipt, on the branch `c29-refit-landed`. **At the
-time of writing that commit is NOT on origin/main.** This item's code does not depend on it. Only
+time of writing that commit is NOT on origin/main.** *Corrected the same morning: its seat had exited without promoting it, so this invocation merged origin into it under the gate (`768cf5bf2`) and promoted it. The refit is on origin.* This item's code does not depend on it. Only
 the re-grade below reads the refitted world, and that ran in a worktree at `ae552db75`.
 
 ## 1. The re-grade: the world arm survives, and the book arm is still owed
