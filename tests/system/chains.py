@@ -38,6 +38,7 @@ from __future__ import annotations
 import random
 from datetime import date, timedelta
 
+from company.billing.unread_month_estimate import estimate_unread_kwh
 from company.risk import hedge_policy
 from company.trading import hedge_decision
 from saas import bill_generator
@@ -447,18 +448,25 @@ def run_money_chain(
     # link 1 — the meter read. Both branches of the REAL arrival model, so the
     # chain is exercised on the estimate path the company actually bills from.
     forced_actual = meter_reads.simulate_read(
-        customer_id, period_end, "smart", true_consumption_kwh,
-        list(trailing_actuals_kwh), 0,
+        customer_id, period_end, "smart", true_consumption_kwh, 0,
     )
     estimated = meter_reads.simulate_read(
-        customer_id, period_end, "traditional", true_consumption_kwh,
-        list(trailing_actuals_kwh), 11,
+        customer_id, period_end, "traditional", true_consumption_kwh, 11,
     )
+
+    # The feed reports status only (D48 slice 4); an estimate is the company's own, made from
+    # its trailing actual reads -- one per calendar month before this period.
+    period_end_d = date.fromisoformat(period_end)
+    period_start_d = period_end_d.replace(day=1)
+    window, month_end = [], period_start_d - timedelta(days=1)
+    for kwh in reversed(trailing_actuals_kwh):
+        window.insert(0, (month_end.replace(day=1), month_end, kwh))
+        month_end = month_end.replace(day=1) - timedelta(days=1)
 
     def _billed_kwh(event) -> float:
         if event.status == "actual":
             return event.true_consumption_kwh
-        return event.estimated_consumption_kwh
+        return estimate_unread_kwh("electricity", window, period_start_d, period_end_d)
 
     # link 2 — read → bill. One settlement record per period carrying the READ
     # volume (what the company can see), priced at the contracted rate.

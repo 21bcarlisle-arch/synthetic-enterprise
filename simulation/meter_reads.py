@@ -19,10 +19,9 @@ physical channels feed a supplier's billing engine:
   customer's own trailing consumption history -- a real technique ("based
   on your previous usage"), not a simulation shortcut.
 
-This module produces the read EVENT (delay, actual-vs-estimated status, and
--- when estimated -- the estimate itself, built only from that customer's
-own already-CONFIRMED prior actual reads, never from this period's true
-settlement figure -- the epistemic wall applied to billing). Phase 4
+This module produces the read EVENT: delay, and actual-vs-estimated status.
+It does not make the estimate. Estimating an unread period is the supplier's
+own work (`company/billing/unread_month_estimate.py`, D48 slices 3-4). Phase 4
 (UK-compliant bill artefact) will render the resulting flag on the bill
 document; this module does not alter settlement-based revenue recognition
 (docs/staging/done/Bill_instructions_and_discovery.md already closed that
@@ -71,7 +70,6 @@ from __future__ import annotations
 
 import math
 import random
-import statistics
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
@@ -160,11 +158,6 @@ def is_hard_to_read(customer_id: str) -> bool:
     """The household's read class, drawn once from its id so it persists for life."""
     return random.Random(f"readclass_{customer_id}").random() < PERSISTENT_UNREAD_SHARE
 
-# How many of a customer's own trailing confirmed-actual reads feed a new
-# estimate (a real "average of your last N periods" technique).
-ESTIMATE_TRAILING_WINDOW = 3
-
-
 @dataclass(frozen=True)
 class MeterReadEvent:
     customer_id: str
@@ -205,21 +198,22 @@ def simulate_read(
     period_end: str,
     meter_type: str,
     true_consumption_kwh: float,
-    trailing_actuals_kwh: list[float],
     consecutive_estimated_count: int,
-    trailing_actual_days: Optional[list[int]] = None,
-    period_days: Optional[int] = None,
 ) -> MeterReadEvent:
     """Simulate one customer-period's meter-read arrival.
 
-    `trailing_actuals_kwh` -- that customer's own previously CONFIRMED actual
-    reads, oldest first (company-observable; never this period's true value).
     `consecutive_estimated_count` -- running count of consecutive estimated
     bills immediately prior to this one; caller tracks and threads it through
     across a customer's bill sequence.
-    `trailing_actual_days` / `period_days` -- the day count of each of those
-    actual periods and of THIS one. Given both, the estimate is pro-rata by day;
-    without them every period is taken to be the same length.
+
+    THE FEED SAYS WHETHER A READ ARRIVED, NOT WHAT TO BILL WITHOUT ONE (D48
+    slice 4, 2026-10-06). An estimate is the supplier's own work, made from
+    what it holds: `company/billing/unread_month_estimate.py`. The world used
+    to make one here as well -- a flat trailing mean, and for the opening
+    period, before any read, this period's TRUE consumption, which put the
+    household's real use on the bill under an estimate's name. Two estimators
+    for one decision is the shape the VAT rule took, so this one is gone and
+    an estimated event carries no figure.
     """
     rng = random.Random(f"meterread_{customer_id}_{period_end}")
 
@@ -245,38 +239,12 @@ def simulate_read(
             consecutive_estimated_count=0,
         )
 
-    if trailing_actuals_kwh and trailing_actual_days is not None and period_days is not None:
-        # Pro-rata by day, the way every supplier estimate is (an EAC/AQ is a
-        # daily rate times the days billed): the window's actual kWh over its
-        # actual days, times this period's days. Averaging kWh PER BILL put a
-        # whole month's estimate on a 7-day stub (736 kWh billed, 42 used) and
-        # a 3-day opening stub's kWh on every following month; on the
-        # 2026-09-27 run that held 5 bills at the pre-bill gate, never issued.
-        # Pooling the days, not averaging per-bill rates, keeps one short stub
-        # from setting the rate for months.
-        if len(trailing_actual_days) != len(trailing_actuals_kwh):
-            raise ValueError(
-                f"{customer_id} {period_end}: {len(trailing_actuals_kwh)} trailing actuals "
-                f"but {len(trailing_actual_days)} day counts -- the two lists must pair"
-            )
-        window_kwh = trailing_actuals_kwh[-ESTIMATE_TRAILING_WINDOW:]
-        window_days = trailing_actual_days[-ESTIMATE_TRAILING_WINDOW:]
-        estimate = sum(window_kwh) / sum(window_days) * period_days
-    elif trailing_actuals_kwh:
-        estimate = statistics.mean(trailing_actuals_kwh[-ESTIMATE_TRAILING_WINDOW:])
-    else:
-        # No history yet: the opening read taken at switch/onboarding is a
-        # real physical value a supplier does obtain, not a forecast --
-        # bootstrap the very first period from it.
-        estimate = true_consumption_kwh
-
     return MeterReadEvent(
         customer_id=customer_id,
         period_end=period_end,
         meter_type=meter_type,
         delay_days=delay_days,
         status="estimated",
-        estimated_consumption_kwh=round(estimate, 2),
         true_consumption_kwh=true_consumption_kwh,
         consecutive_estimated_count=consecutive_estimated_count + 1,
         forced_catch_up=False,
@@ -336,30 +304,19 @@ def generate_meter_read_log(
 
     Bills must already be grouped/sorted chronologically per customer, as
     `company.billing.monthly_bill_assembly.build_monthly_bills` produces them.
-    Returns plain JSON-serialisable dicts, in the same order as `bills`.
+    Returns plain JSON-serialisable dicts, in the same order as `bills`. An
+    estimated entry carries no figure: the estimate is the company's, and only
+    the bill run that made it can publish it.
     """
-    trailing_by_customer: dict[str, list[float]] = {}
-    trailing_days_by_customer: dict[str, list[int]] = {}
     consecutive_by_customer: dict[str, int] = {}
     log: list[dict] = []
     for bill in bills:
         cid = bill["customer_id"]
-        meter_type = customer_meter_types.get(cid, "traditional")
-        true_kwh = bill["total_consumption_kwh"]
-        consecutive = consecutive_by_customer.get(cid, 0)
-        days = bill.get("days_in_period")
         event = simulate_read(
-            cid, bill["period_end"], meter_type, true_kwh,
-            trailing_by_customer.get(cid, []), consecutive,
-            trailing_days_by_customer.get(cid, []) if days is not None else None, days,
+            cid, bill["period_end"], customer_meter_types.get(cid, "traditional"),
+            bill["total_consumption_kwh"], consecutive_by_customer.get(cid, 0),
         )
-        if event.status == "actual":
-            trailing_by_customer.setdefault(cid, []).append(true_kwh)
-            if days is not None:
-                trailing_days_by_customer.setdefault(cid, []).append(days)
-            consecutive_by_customer[cid] = 0
-        else:
-            consecutive_by_customer[cid] = event.consecutive_estimated_count
+        consecutive_by_customer[cid] = event.consecutive_estimated_count
         log.append(read_event_to_log_entry(event))
     return log
 
@@ -390,15 +347,11 @@ class SimulatedReadFeed:
         period_end: str,
         meter_type: str,
         true_consumption_kwh: float,
-        trailing_actuals_kwh: list,
         consecutive_estimated_count: int,
-        trailing_actual_days: Optional[list] = None,
-        period_days: Optional[int] = None,
     ) -> MeterReadEvent:
         return simulate_read(
             customer_id, period_end, meter_type, true_consumption_kwh,
-            trailing_actuals_kwh, consecutive_estimated_count,
-            trailing_actual_days, period_days,
+            consecutive_estimated_count,
         )
 
     def final_read_for(

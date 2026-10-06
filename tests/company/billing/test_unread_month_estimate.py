@@ -1,4 +1,5 @@
-"""D48 slice 3: the unread month is estimated from the company's own reads, shaped by the season."""
+"""D48 slices 3-4: the unread month is estimated by the company alone -- from its own reads, shaped by
+the season, or before its first read from the registry EAC/AQ spread by the same shape."""
 
 from __future__ import annotations
 
@@ -58,6 +59,8 @@ def test_with_no_read_or_no_shape_there_is_no_estimate_rather_than_a_guess():
 
 # --- wired into the company's billing run --------------------------------------------------------
 
+# A figure no feed now sends (the world's feed reports status only). Scripted here so that billing
+# it anywhere is visible: the company must never price a bill on a number it did not make.
 FEED_ESTIMATE_KWH = 999.0
 
 
@@ -74,8 +77,7 @@ class _Feed:
     def meter_type_for(self, customer):
         return "traditional"
 
-    def read_for(self, customer_id, period_end, meter_type, true_kwh, trailing, consecutive,
-                 trailing_days=None, period_days=None):
+    def read_for(self, customer_id, period_end, meter_type, true_kwh, consecutive):
         if customer_id == "C1" and period_end < "2023-12":
             return _Read("actual", None, 0)
         return _Read("estimated", FEED_ESTIMATE_KWH, consecutive + 1)
@@ -93,10 +95,12 @@ def _month(cid, year, month, kwh):
             for d in range(1, days + 1)]
 
 
-def test_the_billing_run_bills_its_own_shaped_estimate_and_the_feeds_only_without_a_read():
+def test_the_billing_run_bills_only_its_own_estimate_from_its_reads_and_before_them_from_registry():
     """Defect caught, both ways at once: an estimator built and never reached (December would bill
-    the feed's figure), and one reached where the company has no read to derive from (the opening
-    month would bill something other than the feed's)."""
+    the feed's figure), and an opening month billed on anything but the registration figure -- the
+    feed's number, or the household's true use, which is what the world's feed used to send."""
+    from company.interfaces.supply_book import registered_point
+
     records = (_month("C1", 2023, 9, 230.0) + _month("C1", 2023, 10, 260.0)
                + _month("C1", 2023, 11, 290.0) + _month("C1", 2023, 12, 400.0)
                + _month("C2", 2023, 12, 400.0))
@@ -104,11 +108,38 @@ def test_the_billing_run_bills_its_own_shaped_estimate_and_the_feeds_only_withou
     bills = build_monthly_bills(records, _Feed(), read_events_out=events)
     by = {(b["customer_id"], b["period_end"][:7]): (b, e) for b, e in zip(bills, events)}
     c1_dec, c1_event = by[("C1", "2023-12")]
-    c2_dec, _ = by[("C2", "2023-12")]
-    shaped = U.estimate_unread_kwh("electricity", AUTUMN, D(2023, 12, 1), D(2023, 12, 31))
+    c2_dec, c2_event = by[("C2", "2023-12")]
+    dec = (D(2023, 12, 1), D(2023, 12, 31))
+    shaped = U.estimate_unread_kwh("electricity", AUTUMN, *dec)
+    opening = U.opening_estimate_kwh("electricity", registered_point("C2"), *dec)
 
-    assert (c1_dec["billing_basis"] == "estimated"
+    assert (c1_dec["billing_basis"] == c2_dec["billing_basis"] == "estimated"
             and c1_dec["total_consumption_kwh"] == pytest.approx(shaped, abs=0.01)
-            and c2_dec["total_consumption_kwh"] == pytest.approx(FEED_ESTIMATE_KWH)), (c1_dec, c2_dec)
-    # The published read log carries the estimate the bill was priced on, not the feed's.
-    assert c1_event.estimated_consumption_kwh == c1_dec["estimated_consumption_kwh"] == round(shaped, 2)
+            and c2_dec["total_consumption_kwh"] == pytest.approx(opening, abs=0.01)
+            and opening not in (pytest.approx(400.0, abs=1), FEED_ESTIMATE_KWH)), (c1_dec, c2_dec)
+    # The published read log carries the estimate each bill was priced on, not the feed's.
+    assert c1_event.estimated_consumption_kwh == round(shaped, 2)
+    assert c2_event.estimated_consumption_kwh == round(opening, 2)
+
+
+def test_the_opening_estimate_is_the_registry_figure_spread_by_the_shape_and_tdcv_without_one():
+    """Defect caught: an opening estimate that reads the wrong registry field for the fuel, or that
+    returns a guess (or nothing) where registration carried no figure."""
+    year = (D(2023, 1, 1), D(2023, 12, 31))
+    jan = (D(2023, 1, 1), D(2023, 1, 31))
+    assert U.opening_estimate_kwh("electricity", {"eac_kwh": 2600.0}, *year) == pytest.approx(2600.0)
+    assert U.opening_estimate_kwh("gas", {"eac_kwh": 1.0, "aq_kwh": 11000.0}, *year) == (
+        pytest.approx(11000.0))
+    # Ofgem's TDCV MEDIUM in force on the period start (2,900 kWh from 1 Apr 2020).
+    assert U.opening_estimate_kwh("electricity", {}, *year) == pytest.approx(2900.0)
+    assert U.opening_estimate_kwh("electricity", {"eac_kwh": 2600.0}, *jan) == pytest.approx(
+        2600.0 * U.MONTHLY_SHARE_OF_ANNUAL_USE["electricity"][0])
+    assert U.opening_estimate_kwh("hydrogen", {"eac_kwh": 2600.0}, *year) is None
+
+
+def test_a_seven_day_stub_after_a_month_is_billed_a_week_not_a_month():
+    """Defect caught (carried over from the world's retired estimator, 2026-09-27 run: 736 kWh
+    billed on a 7-day stub that used 42): the estimate is spread by days, not per bill."""
+    window = [(D(2024, 6, 1), D(2024, 6, 30), 300.0)]
+    stub = U.estimate_unread_kwh("electricity", window, D(2024, 7, 1), D(2024, 7, 7))
+    assert 60.0 < stub < 80.0, stub

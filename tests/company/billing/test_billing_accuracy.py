@@ -1,8 +1,8 @@
 """D48 slice 1: billed against what the reads later showed, by kind (K2 true-up, K3 barred).
 
 The bills come from the company's own `build_monthly_bills`, driven by a scripted read feed, so
-these tests import nothing from the world. The feed estimates a flat 200 kWh a month while use
-climbs, so the closing read is an undercharge, and a run of 14 estimates outlasts the 12-month
+these tests import nothing from the world. The estimate is scripted at a flat 200 kWh a month while
+use climbs, so the closing read is an undercharge, and a run of 14 estimates outlasts the 12-month
 limit.
 """
 
@@ -26,12 +26,14 @@ MONTHS = 16
 
 
 @pytest.fixture(autouse=True)
-def _the_feeds_estimate_is_billed(monkeypatch):
-    """These tests grade the MEASURE, so the flat scripted estimate is their instrument. Since
-    slice 3 the company shapes its own estimate from its reads; with no published shape for the
-    fuel it bills the feed's, which is the path withdrawn here. The estimator has its own tests."""
-    monkeypatch.setattr(
-        "company.billing.unread_month_estimate.MONTHLY_SHARE_OF_ANNUAL_USE", {})
+def _a_flat_estimate_is_billed(monkeypatch):
+    """These tests grade the MEASURE, so a flat scripted estimate is their instrument. The company
+    makes its own estimate (slices 3-4; the feed reports status only), so the script replaces the
+    company's estimator here. The estimator has its own tests."""
+    def flat(*_args):
+        return FLAT_ESTIMATE_KWH
+    monkeypatch.setattr("company.billing.monthly_bill_assembly.estimate_unread_kwh", flat)
+    monkeypatch.setattr("company.billing.monthly_bill_assembly.opening_estimate_kwh", flat)
 
 
 def _use(i: int) -> float:
@@ -76,11 +78,10 @@ class _ScriptedFeed:
     def meter_type_for(self, customer):
         return "traditional"
 
-    def read_for(self, customer_id, period_end, meter_type, true_kwh, trailing, consecutive,
-                 trailing_days=None, period_days=None):
+    def read_for(self, customer_id, period_end, meter_type, true_kwh, consecutive):
         if period_end.startswith("2022-01") or self.actual_after_opening:
             return _Read("actual", None, 0)
-        return _Read("estimated", FLAT_ESTIMATE_KWH, consecutive + 1)
+        return _Read("estimated", None, consecutive + 1)
 
     def final_read_for(self, customer_id, period_end, meter_type, true_kwh):
         return _Read("actual", None, 0)
@@ -212,12 +213,11 @@ class _PerAccountFeed(_ScriptedFeed):
     def __init__(self):
         super().__init__(actual_after_opening=False)
 
-    def read_for(self, customer_id, period_end, meter_type, true_kwh, trailing, consecutive,
-                 trailing_days=None, period_days=None):
+    def read_for(self, customer_id, period_end, meter_type, true_kwh, consecutive):
         year, month = int(period_end[:4]), int(period_end[5:7])
         if (year - 2022) * 12 + month - 1 in _K1_ACCOUNTS[customer_id][1]:
             return _Read("actual", None, 0)
-        return _Read("estimated", FLAT_ESTIMATE_KWH, consecutive + 1)
+        return _Read("estimated", None, consecutive + 1)
 
 
 def _k1_bills():

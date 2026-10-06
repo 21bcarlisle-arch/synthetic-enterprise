@@ -2,12 +2,10 @@
 failure model.
 
 Tests simulation/meter_reads.py: deterministic dispatch, smart-vs-traditional
-delay/estimation behaviour, the estimate never leaking this period's true
-value, and (W2_36) a read process whose absence persists and has no forced
+delay/estimation behaviour, a feed that reports status and no figure to bill
+(the estimate is the company's, D48 slice 4), and (W2_36) a read process whose absence persists and has no forced
 read at 12 months.
 """
-import statistics
-
 import pytest
 
 import simulation.meter_reads as mr
@@ -36,14 +34,14 @@ def test_meter_type_traditional_default():
 
 
 def test_simulate_read_is_deterministic():
-    r1 = simulate_read("C1", "2020-01-31", "smart", 300.0, [280.0, 290.0], 0)
-    r2 = simulate_read("C1", "2020-01-31", "smart", 300.0, [280.0, 290.0], 0)
+    r1 = simulate_read("C1", "2020-01-31", "smart", 300.0, 0)
+    r2 = simulate_read("C1", "2020-01-31", "smart", 300.0, 0)
     assert r1 == r2
 
 
 def test_simulate_read_varies_by_period():
     statuses = {
-        simulate_read("C1", f"20{yr}-01-31", "traditional", 300.0, [280.0], 0).status
+        simulate_read("C1", f"20{yr}-01-31", "traditional", 300.0, 0).status
         for yr in range(16, 26)
     }
     # Both outcomes should occur across enough periods -- otherwise the roll
@@ -55,7 +53,7 @@ def test_smart_meters_mostly_actual():
     # Smart, communicating meters should read "actual" the large majority of
     # the time (near-real-time WAN transmission, small delay).
     outcomes = [
-        simulate_read("C1", f"20{yr:02d}-{mo:02d}-28", "smart", 300.0, [290.0] * 3, 0).status
+        simulate_read("C1", f"20{yr:02d}-{mo:02d}-28", "smart", 300.0, 0).status
         for yr in range(16, 26) for mo in range(1, 13)
     ]
     actual_rate = outcomes.count("actual") / len(outcomes)
@@ -64,51 +62,31 @@ def test_smart_meters_mostly_actual():
 
 def test_traditional_meters_estimated_more_often_than_smart():
     smart_actual = sum(
-        simulate_read("C2", f"20{yr:02d}-{mo:02d}-28", "smart", 300.0, [290.0] * 3, 0).status == "actual"
+        simulate_read("C2", f"20{yr:02d}-{mo:02d}-28", "smart", 300.0, 0).status == "actual"
         for yr in range(16, 26) for mo in range(1, 13)
     )
     traditional_actual = sum(
-        simulate_read("C3", f"20{yr:02d}-{mo:02d}-28", "traditional", 300.0, [290.0] * 3, 0).status == "actual"
+        simulate_read("C3", f"20{yr:02d}-{mo:02d}-28", "traditional", 300.0, 0).status == "actual"
         for yr in range(16, 26) for mo in range(1, 13)
     )
     assert traditional_actual < smart_actual
 
 
-def test_estimated_read_never_uses_true_consumption_as_the_estimate():
-    # Force an estimate by starving the roll with a customer/period combo
-    # known to land on "estimated" for a traditional meter, and confirm the
-    # estimate is drawn from trailing history, not this period's true value.
-    trailing = [100.0, 110.0, 120.0]
-    found_estimate = False
-    for yr in range(16, 40):
-        event = simulate_read("C4", f"20{yr}-06-30", "traditional", 999.0, trailing, 0)
-        if event.status == "estimated":
-            found_estimate = True
-            assert event.estimated_consumption_kwh == round(statistics.mean(trailing), 2)
-            assert event.estimated_consumption_kwh != 999.0
-            break
-    assert found_estimate, "expected at least one estimated read across 24 periods"
-
-
-def test_first_ever_read_with_no_history_bootstraps_from_opening_read():
-    # No trailing actuals yet (first bill). If this roll estimates, the
-    # estimate must fall back to the true value (a real opening read taken
-    # at switch), not None/zero.
-    for yr in range(16, 40):
-        event = simulate_read("C5", f"20{yr}-01-31", "traditional", 250.0, [], 0)
-        if event.status == "estimated":
-            assert event.estimated_consumption_kwh == 250.0
-            return
-    # If no estimate ever fired in 24 tries, that's suspicious but not fatal
-    # to this specific assertion -- the deterministic tests above already
-    # cover estimate occurrence.
+def test_the_feed_reports_status_and_never_a_figure_to_bill():
+    """Defect caught (D48 slice 4): the world making the supplier's estimate. It used to send a
+    trailing mean, and for an opening period this period's TRUE use under an estimate's name.
+    Both arms in one statement, so a feed that never estimates cannot pass vacuously."""
+    events = [simulate_read("C4", f"20{yr}-06-30", "traditional", 999.0, 0) for yr in range(16, 60)]
+    estimated = [e for e in events if e.status == "estimated"]
+    assert estimated and len(estimated) < len(events), "both statuses must be reachable"
+    assert all(e.estimated_consumption_kwh is None for e in events), estimated[:3]
 
 
 def test_a_long_estimated_run_does_not_force_a_read():
     """Defect caught: the world enforcing SLC 21B's read DUTY (an effort) as a guaranteed read at
     12 months, which made the 12-month back-billing limit unreachable."""
     for yr in range(16, 26):
-        args = ("C6", f"20{yr}-01-31", "traditional", 300.0, [290.0])
+        args = ("C6", f"20{yr}-01-31", "traditional", 300.0)
         assert simulate_read(*args, 0).status == simulate_read(*args, 500).status
         assert simulate_read(*args, 500).forced_catch_up is False
 
@@ -117,7 +95,7 @@ def _traditional_history(cid, months=60):
     statuses, consecutive = [], 0
     for m in range(months):
         event = simulate_read(cid, f"{2016 + m // 12}-{m % 12 + 1:02d}-28", "traditional",
-                              300.0, [300.0] * 3, consecutive)
+                              300.0, consecutive)
         statuses.append(event.status == "actual")
         consecutive = event.consecutive_estimated_count
     return statuses
@@ -161,7 +139,7 @@ def test_the_read_process_is_read_from_the_assumption_register():
 
 def test_delay_days_non_negative():
     for yr in range(16, 26):
-        event = simulate_read("C7", f"20{yr}-01-31", "traditional", 300.0, [290.0], 0)
+        event = simulate_read("C7", f"20{yr}-01-31", "traditional", 300.0, 0)
         assert event.delay_days >= 0
 
 
@@ -200,37 +178,6 @@ def test_read_cutoff_constant_is_positive():
     assert READ_CUTOFF_DAYS_AFTER_PERIOD_END > 0
 
 
-def _first_estimated_roll(customer_id, trailing, trailing_days, period_days):
-    for yr in range(16, 60):
-        event = simulate_read(
-            customer_id, f"20{yr}-06-30", "traditional", 999.0, trailing, 0,
-            trailing_days, period_days,
-        )
-        if event.status == "estimated":
-            return event
-    raise AssertionError("no estimated roll in 44 periods -- the branch under test is unreachable")
-
-
-def test_an_estimate_is_pro_rata_by_day_so_a_seven_day_stub_is_not_billed_a_month():
-    # 900 kWh over 90 days is 10 kWh/day; a 7-day period estimates 70, not 300.
-    event = _first_estimated_roll("C11", [300.0, 310.0, 290.0], [30, 31, 29], 7)
-    assert event.estimated_consumption_kwh == 70.0
-
-
-def test_a_short_opening_stub_is_pooled_by_its_days_not_averaged_as_a_rate():
-    # A 3-day stub at 20 kWh/day beside two 10 kWh/day months. Pooled: 670 kWh /
-    # 64 days x 30 = 314.06. Averaging the three per-bill rates would give 400 --
-    # one stub setting a third of the rate for months.
-    event = _first_estimated_roll("C12", [60.0, 300.0, 310.0], [3, 30, 31], 30)
-    assert event.estimated_consumption_kwh == round(670.0 / 64 * 30, 2)
-
-
-def test_unpaired_day_counts_are_refused_by_name():
-    with pytest.raises(ValueError, match="must pair"):
-        for yr in range(16, 60):
-            simulate_read("C13", f"20{yr}-06-30", "traditional", 999.0, [300.0, 310.0], 0, [30], 7)
-
-
 def _barred_and_long_share(monkeypatch, persistent_share, households=300, months=600):
     """Months more than 12 back at their catch-up read (what the 12-month back-billing limit bars),
     as a share of all months; and the share of those that sit in runs of 24 months or more."""
@@ -242,7 +189,7 @@ def _barred_and_long_share(monkeypatch, persistent_share, households=300, months
         run = 0
         for m in range(months):
             event = simulate_read(f"SW{i}", f"{2016 + m // 12}-{m % 12 + 1:02d}-28", "traditional",
-                                  300.0, [300.0] * 3, run)
+                                  300.0, run)
             if event.status == "actual":
                 barred += max(0, run - 12)
                 long_barred += max(0, run - 12) if run >= 24 else 0

@@ -154,9 +154,9 @@ def test_money_fires_when_the_estimate_stops_being_an_estimate(monkeypatch):
 
     real_simulate = meter_reads.simulate_read
 
-    def _always_actual(customer_id, period_end, meter_type, true_kwh, trailing, count):
+    def _always_actual(customer_id, period_end, meter_type, true_kwh, count):
         event = real_simulate(
-            customer_id, period_end, "smart", true_kwh, trailing, count
+            customer_id, period_end, "smart", true_kwh, count
         )
         return event
 

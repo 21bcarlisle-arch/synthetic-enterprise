@@ -60,7 +60,7 @@ from company.billing.account_adjustment_register import (
     AdjustmentType,
 )
 from company.billing.back_billing import BackBillingAssessment, BackBillingReason
-from company.billing.unread_month_estimate import estimate_unread_kwh
+from company.billing.unread_month_estimate import estimate_unread_kwh, opening_estimate_kwh
 from company.interfaces.supply_book import registered_point as get_customer
 from saas.bill_generator import (
     BILL_SHOCK_PENALTY_FACTOR,
@@ -110,15 +110,12 @@ class ReadArrivalFeed(Protocol):
         period_end: str,
         meter_type: str,
         true_consumption_kwh: float,
-        trailing_actuals_kwh: list[float],
         consecutive_estimated_count: int,
-        trailing_actual_days: list[int] | None = None,
-        period_days: int | None = None,
     ) -> ReadArrival:
         """Whether a read arrived for this customer-period, and what it said.
 
-        The two day counts let an estimate be pro-rata by day; a feed that
-        ignores them estimates a stub period as if it were a full one."""
+        Status only: an estimated arrival carries no figure the company bills
+        (D48 slice 4). The estimate is `company.billing.unread_month_estimate`'s."""
 
     def final_read_for(
         self,
@@ -476,8 +473,6 @@ def build_monthly_bills(
         # as before this change, so the actual-read path is byte-identical in
         # every run (mixed or not), not just an all-actual one.
         previous_bill_total_gbp = None
-        trailing_actuals_kwh: list[float] = []
-        trailing_actual_days: list[int] = []
         trailing_actual_periods: list[tuple[date, date, float]] = []
         consecutive_estimated = 0
         pending_estimated_run: list[dict] = []
@@ -492,9 +487,7 @@ def build_monthly_bills(
             )
             event = read_feed.read_for(
                 customer_id, true_bill["period_end"], meter_type,
-                true_bill["total_consumption_kwh"],
-                trailing_actuals_kwh, consecutive_estimated,
-                trailing_actual_days, true_bill["days_in_period"],
+                true_bill["total_consumption_kwh"], consecutive_estimated,
             )
             is_final_bill_for_customer = month_idx == len(sorted_months) - 1
             if (
@@ -591,8 +584,6 @@ def build_monthly_bills(
                             MIN_CLARITY_SCORE, min(MAX_CLARITY_SCORE, clarity)
                         )
                 pending_estimated_run = []
-                trailing_actuals_kwh.append(true_bill["total_consumption_kwh"])
-                trailing_actual_days.append(true_bill["days_in_period"])
                 trailing_actual_periods.append((
                     date.fromisoformat(true_bill["period_start"]),
                     date.fromisoformat(true_bill["period_end"]),
@@ -601,18 +592,21 @@ def build_monthly_bills(
                 consecutive_estimated = 0
             else:
                 true_kwh = true_bill["total_consumption_kwh"]
-                # The estimate is the company's to make (D48 slice 3): its own latest actual reads,
-                # shaped by the published seasonal profile. The feed's figure stands only where the
-                # company has no read to derive one from -- the opening period's.
-                shaped = estimate_unread_kwh(
-                    commodity, trailing_actual_periods[-ESTIMATE_WINDOW_READS:],
-                    date.fromisoformat(true_bill["period_start"]),
-                    date.fromisoformat(true_bill["period_end"]),
+                # The estimate is the company's alone (D48 slices 3-4): its own latest actual reads
+                # shaped by the published seasonal profile, or before its first read the registry
+                # EAC/AQ it was handed on registration, spread by the same profile. The feed reports
+                # only that no read arrived.
+                period = (date.fromisoformat(true_bill["period_start"]),
+                          date.fromisoformat(true_bill["period_end"]))
+                shaped = (
+                    estimate_unread_kwh(
+                        commodity, trailing_actual_periods[-ESTIMATE_WINDOW_READS:], *period)
+                    if trailing_actual_periods
+                    else opening_estimate_kwh(commodity, customer_data, *period)
                 )
-                if shaped is not None and dataclasses.is_dataclass(event):
-                    event = dataclasses.replace(event, estimated_consumption_kwh=round(shaped, 2))
-                est_kwh = (round(shaped, 2) if shaped is not None
-                           else event.estimated_consumption_kwh)
+                est_kwh = round(shaped, 2) if shaped is not None else None
+                if dataclasses.is_dataclass(event):
+                    event = dataclasses.replace(event, estimated_consumption_kwh=est_kwh)
                 if true_kwh > 0 and est_kwh is not None:
                     scaled = _estimated_settlement_records(
                         months[month], est_kwh / true_kwh, commodity
@@ -625,7 +619,10 @@ def build_monthly_bills(
                     # Degenerate zero-metered month: no real per-MWh rate to
                     # price an estimate against -- fall back to the true bill
                     # amount (rare); the billing_basis annotation still records
-                    # the estimate.
+                    # the estimate. Also reached when the company could make no
+                    # estimate at all (no published shape for the fuel; no EAC/AQ
+                    # and no TDCV): none of the 2016-2025 book's accounts is in
+                    # that case (D48 slice 4), and it bills what was used.
                     estimated_bill = true_bill
                 bill = _annotate_billing_basis(estimated_bill, event, true_bill)
                 bill["estimated_consumption_kwh"] = est_kwh

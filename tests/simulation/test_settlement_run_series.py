@@ -40,7 +40,7 @@ def _dt(d: dt.date) -> dt.datetime:
 
 def _seasonal_shape(kwh_per_period_by_month: dict[int, float]):
     """A consumption shape that varies (mildly) by calendar month, so the
-    meter-read model's trailing-average estimate genuinely differs from the
+    supplier's trailing-read estimate genuinely differs from the
     true value in later months -- a real, non-degenerate revision gap."""
     def shape_fn(date_str: str) -> list[float]:
         month = int(date_str[5:7])
@@ -91,7 +91,26 @@ def _build_real_book():
     meter_types = {c["customer_id"]: meter_type_for_customer(c) for c in customers}
     bills = bills_from_settled_records(settled)
     meter_log = generate_meter_read_log(bills, meter_types)
-    return settled, meter_log
+    return settled, _with_the_suppliers_estimates(bills, meter_log)
+
+
+def _with_the_suppliers_estimates(bills, meter_log):
+    """The feed reports status only (D48 slice 4). The published log carries the estimate the
+    supplier billed, made from its own trailing actual reads, so the fixture puts it there the
+    same way."""
+    from company.billing.unread_month_estimate import estimate_unread_kwh
+
+    window: dict[str, list] = {}
+    for bill, entry in zip(bills, meter_log):
+        end = dt.date.fromisoformat(bill["period_end"])
+        period = (end.replace(day=1), end)
+        own = window.setdefault(bill["customer_id"], [])
+        if entry["status"] == "actual":
+            own.append((*period, bill["total_consumption_kwh"]))
+        elif own:
+            entry["estimated_consumption_kwh"] = round(
+                estimate_unread_kwh("electricity", own[-3:], *period), 2)
+    return meter_log
 
 
 def _true_value_by_month(settled_records, value_field="revenue_gbp"):

@@ -102,12 +102,17 @@ the data but has not been tested one variable at a time.
 - **Electricity: 1.05% → 1.80%.** Barred kWh **rose**, from 1,230 to 2,078, over 16-17 barred
   true-ups. I cannot yet say why. The count is small enough that one or two long runs could carry
   the whole difference. The test is to list the barred runs under both estimators and diff them.
+  **Answered in slice 4:** about 20 runs differ, in both directions, and every increase is on a
+  household whose own winter/summer ratio is below 1.1. The world's gas-heated fabric homes have no
+  electricity season. See `SEAT_FINDING_D48_SLICE_4_THE_FEED_NO_LONGER_ESTIMATES_…_2026-10-06.md`.
 
 **Electricity gross did not fall, and June got worse.** The likely reason is that household-level
 electricity shapes vary more than one profile class allows: electric heating and Economy 7
 households look different from PC1 averages. The published table blends PC1 and PC2. This is not
 established. The test is to split the June gross by the household's own winter/summer ratio from
-its actual reads.
+its actual reads. **Slice 4:** right in kind, wrong in cause. The flat households are not Economy 7 homes.
+They are the world's gas-heated fabric premises, whose electricity has a ratio of about 1.0
+against the published 1.49.
 
 ## Left in place, and why
 

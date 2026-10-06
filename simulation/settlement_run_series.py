@@ -22,9 +22,10 @@ independent mechanisms:
   * the TRUE final settled figure -- simulation/settlement.py::run_settlement
     (and the hedge-aware generators) settle from the customer's TRUE
     consumption shape; this is the RF / true-final value, UNCHANGED.
-  * the DELIVERY-TIME estimate -- simulation/meter_reads.py emits, per bill
-    period, an `estimated_consumption_kwh` built ONLY from that customer's
-    own prior CONFIRMED actual reads (never this period's true value -- the
+  * the DELIVERY-TIME estimate -- the published read log carries, per bill
+    period, the `estimated_consumption_kwh` the supplier billed, built ONLY
+    from that customer's own prior CONFIRMED actual reads
+    (company/billing/unread_month_estimate.py; the feed reports status only) (never this period's true value -- the
     blindfold applied to billing). When a read arrives late/missing the
     bill is estimated; that estimate is exactly the delivery-time figure the
     initial settlement run would have used.
@@ -268,7 +269,8 @@ def bills_from_settled_records(
     performs -- provided here so a settled book can be turned into a
     meter-read log (and hence a revision log) without reaching into the
     Phase-4 bill machinery. `total_consumption_kwh` is the customer's TRUE
-    monthly consumption; the estimation happens inside meter_reads.py."""
+    monthly consumption. The estimate is the supplier's, not meter_reads.py's
+    (D48 slice 4): the log published from a bill run carries it."""
     by_cust_month: dict[tuple[str, str], dict] = {}
     for rec in settled_records:
         cid = rec["customer_id"]

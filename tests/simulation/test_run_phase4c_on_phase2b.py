@@ -811,7 +811,7 @@ def test_an_estimated_run_past_12_months_is_not_forced_and_its_final_read_meets_
 
     Defect caught: a forced read at 12 (the old MAX_CONSECUTIVE_ESTIMATED_PERIODS), which ended
     every run before the cap could bind. One actual opening read gives the estimates a history
-    (with none, an estimate bootstraps from the read itself); use then rises, so the closing read
+    (with none, the opening estimate is the registry EAC); use then rises, so the closing read
     is an undercharge."""
     import simulation.meter_reads as mr
 

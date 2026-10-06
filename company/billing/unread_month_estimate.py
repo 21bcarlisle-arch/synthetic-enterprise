@@ -28,9 +28,12 @@ from __future__ import annotations
 import calendar
 from datetime import date, timedelta
 
+from company.billing.annual_consumption_estimate import estimate_annual_consumption
+
 __all__ = [
     "MONTHLY_SHARE_OF_ANNUAL_USE",
     "estimate_unread_kwh",
+    "opening_estimate_kwh",
     "profile_weight",
 ]
 
@@ -82,3 +85,30 @@ def estimate_unread_kwh(
     if weight <= 0:  # no read yet
         return None
     return sum(kwh for _, _, kwh in window) / weight * profile_weight(fuel, start, end)
+
+
+def opening_estimate_kwh(
+    fuel: str, registration: dict | None, start: date, end: date
+) -> float | None:
+    """kWh to bill for `start`..`end` before the account's first actual read (D48 slice 4).
+
+    The company holds no read of its own yet, so it bills the annual figure it was handed on
+    registration (EAC for electricity, AQ for gas) spread over the year by the published shape:
+    the same EAC/AQ-against-a-profile step `estimate_unread_kwh` takes from its own reads. Where
+    registration carried no figure, Ofgem's TDCV MEDIUM band in force on `start` stands in, as it
+    does for the opening direct debit (`simulation/run_phase4c_on_phase2b._opening_dd_by_customer`).
+
+    None when the fuel has no published shape or no annual figure is established.
+    """
+    if fuel not in MONTHLY_SHARE_OF_ANNUAL_USE:
+        return None
+    registration = registration or {}
+    registry = registration.get("eac_kwh" if fuel == "electricity" else "aq_kwh")
+    annual = estimate_annual_consumption(
+        as_of=start, commodity=fuel,
+        registry_eac_kwh=float(registry) if registry else None,
+        band=None if registry else "MEDIUM",
+    )
+    if annual.kwh is None:
+        return None
+    return annual.kwh * profile_weight(fuel, start, end)

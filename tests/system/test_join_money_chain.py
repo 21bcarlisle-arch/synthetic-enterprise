@@ -29,22 +29,25 @@ def test_the_money_chain_join_conducts():
 def test_the_estimate_is_a_belief_not_a_read_of_the_truth():
     """The wall, stated dynamically at the seam it matters most.
 
-    An estimated read is built from the customer's own trailing ACTUALS — the
-    company-observable history — never from this period's true consumption. If
-    the estimate tracked the truth, the company would be reading simulation
-    internals through the billing path, and every downstream gap would vanish.
+    An estimate is the company's own, built from the customer's trailing ACTUALS -- the
+    company-observable history -- never from this period's true consumption. If the estimate
+    tracked the truth, the company would be reading simulation internals through the billing
+    path, and every downstream gap would vanish. So: it differs from the truth, and it does not
+    move when the truth does.
     """
     chain = chains.run_money_chain()
-    estimate = chain["estimated_event"].estimated_consumption_kwh
-    truth = chain["true_consumption_kwh"]
-    trailing = (300.0, 320.0, 310.0)
-    assert estimate != truth, (
+    estimate = chain["estimated_billed_kwh"]
+    assert chain["estimated_event"].estimated_consumption_kwh is None, (
+        "the world's feed sent a figure to bill -- the estimate is the company's to make"
+    )
+    assert estimate != chain["true_consumption_kwh"], (
         "the estimated read equals the true consumption — the company is billing from "
         "ground truth it cannot see"
     )
-    assert min(trailing) <= estimate <= max(trailing), (
-        f"the estimate ({estimate}) is not derived from the observable trailing actuals "
-        f"{trailing} — it came from somewhere the company cannot see"
+    doubled = chains.run_money_chain(true_consumption_kwh=2 * chain["true_consumption_kwh"])
+    assert doubled["estimated_billed_kwh"] == estimate, (
+        f"the estimate moved with the true consumption ({estimate} -> "
+        f"{doubled['estimated_billed_kwh']}) — it came from somewhere the company cannot see"
     )
 
 
