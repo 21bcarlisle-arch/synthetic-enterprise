@@ -2197,7 +2197,10 @@
   epoch: 4
   level_current: 1
   level_target: 3
-  loop_stage: build
+  loop_stage: idle
+  # PARKED 2026-10-06, built, not waiting on a build: L2 is the /capabilities/ figures, which reach
+  # the page at the weekly publish opening Mon 2026-10-12 04:00 BST. Then record L2 via the gate and
+  # set loop_stage harden (Expert Hour, revenue-assurance persona). SEAT_FINDING_D48_L2_WAITS_*.
   # MINTED 2026-10-05, canon step 2's company half. "Debt and cashflow work rests on knowing
   # what was actually billed, which is why this comes before them." Steps 3 and 5 read it.
   # Reuses closed D1 (bill content), D3 (catch-up rebill) and E3 (unbilled accrual, saas/ledger);
@@ -2216,12 +2219,14 @@
   lane: B_commercial
   value_stream: close_to_learn
   epoch: 4
-  level_current: 0
+  level_current: 1
   level_target: 3
   loop_stage: build
   # MINTED 2026-10-05, canon step 3: "the spine every lever is judged against. Build and test
   # it on held-back history". Couples to EP1 (three horizons, L2, blocked on a second book):
   # a held-back-history test needs no second book, which is why this is its own atom.
+  # L1 2026-10-06 (9680fbf4b, 4e4637853). NEXT: the deviation window ends before the regime,
+  # with the boundary read from the published record (cap history), not fitted to the result.
   dial_inherited: 90
   provenance: director_ruling
   depends_on: []

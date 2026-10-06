@@ -530,7 +530,7 @@ def test_MEASURED_population_values(population, population_result):
     """
     assert population_result.homes >= fgl.MIN_HOMES_FOR_L1_RATE
     expected = {
-        fgl.TEXTURE_STATISTIC: (fgl.Verdict.PASS, 0.0),
+        fgl.TEXTURE_STATISTIC: (fgl.Verdict.FAIL, 1 / 60),
         "L1.2_day_to_day_shape_correlation": (fgl.Verdict.PASS, 0.0),
         "L1.3_away_days_per_year": (fgl.Verdict.PASS, 0.0),
         "L1.5_max_multiplicity_share": (fgl.Verdict.PASS, 0.0),
@@ -554,10 +554,19 @@ def test_MEASURED_population_values(population, population_result):
     # `affc29e03` (SAP hot water, cooking gas) and `263b57ac0` (the fabric path's
     # composition shares). The property the pin stands for, that the marginal home
     # is a GAS home, held through both and is asserted below on its own.
+    #
+    # RE-OPENED 2026-10-06 AT 1/60, AND RECORDED RED RATHER THAN REPAIRED. The gas
+    # boiler's own pump and fan electricity (`pt.boiler_auxiliary_kwh`, sourced)
+    # put 0.62 kWh/day on P0000's meter and moved it 0.1526 -> 0.1495. The floor is
+    # still 0.15 and the pump is NOT netted out: every real gas-heated meter the
+    # floor reasons from carries one, so by H38's own argument it belongs in the
+    # load set. The diagnosis — P0000's behaviour was already the calmest of the
+    # 60 — is asserted in `test_the_L1_1_BREACH_is_P0000s_CALM_BEHAVIOUR_...`.
     texture = population_result.cell(fgl.TEXTURE_STATISTIC)
     assert texture.homes_judged == 60 and texture.homes_unjudged == 0, texture.note
+    assert texture.homes_violating == 1, texture.note
     assert texture.worst_home == "P0000", texture.note
-    assert texture.worst_value == pytest.approx(0.1526, abs=5e-4), texture.note
+    assert texture.worst_value == pytest.approx(0.1495, abs=5e-4), texture.note
     assert "gas" in population.heating_systems[
         population.homes.index(texture.worst_home)
     ], "the marginal home after the repair must be one the netting did not touch"
@@ -566,8 +575,8 @@ def test_MEASURED_population_values(population, population_result):
     # between netting a component out of a statistic and dropping the homes that
     # breached it.
     #
-    # EVERY L1 CELL IS GREEN AND THE POPULATION IS STILL RED, on the L2 cell that
-    # was anchored on 2026-08-09. Pinned as a value and not merely as a verdict, so
+    # THE POPULATION IS RED on the L2 cell that was anchored on 2026-08-09 (and,
+    # since 2026-10-06, on L1.1 at 1/60 — above). Pinned as a value and not merely as a verdict, so
     # a generator that closes half the gap is visible as progress rather than as a
     # still-red flag: 60 drawn homes span 2.17x between their 10th and 90th
     # percentile against real households' 5.38x (floor 4.88).
@@ -579,14 +588,77 @@ def test_MEASURED_population_values(population, population_result):
     # the regress stays visible: composition made more faithful NARROWED the
     # spread, which says the missing 2.5x is not in who lives there.
     assert {c.statistic for c in population_result.failed} == {
-        "L2.4_scale_spread_p90_p10",
+        fgl.TEXTURE_STATISTIC, "L2.4_scale_spread_p90_p10",
     }, population_result.summary()
     spread = population_result.cell("L2.4_scale_spread_p90_p10")
     assert spread.value == pytest.approx(1.96, abs=0.05), spread.note
     assert not population_result.inconclusive, population_result.summary()
-    assert population_result.cell(
-        "L1.2_day_to_day_shape_correlation"
-    ).worst_value == pytest.approx(0.4386, abs=0.01), "the worst home is a GAS home"
+    # 0.4386 -> 0.4511 on 2026-10-06: the boiler pump repeats with the heating, so
+    # it raises a gas home's day-to-day shape correlation a little. Still a GAS home.
+    shape = population_result.cell("L1.2_day_to_day_shape_correlation")
+    assert shape.worst_value == pytest.approx(0.4511, abs=0.01), shape.note
+    assert "gas" in population.heating_systems[
+        population.homes.index(shape.worst_home)
+    ], "the worst home is a GAS home"
+
+
+def test_the_L1_1_BREACH_is_P0000s_CALM_BEHAVIOUR_tipped_by_a_SOURCED_LOAD(
+    drawn_traces, population_result
+):
+    """L1.1 reads 1/60 since 2026-10-06, and this is the diagnosis (R4), recorded
+    as a red rather than repaired.
+
+    The gas boiler's own electricity (`pt.boiler_auxiliary_kwh`: pump, fan,
+    standby, from HEM-TP-14 and Ecodesign fiches) went onto every gas home's meter.
+    P0000, a 1919-44 detached house with an OLD system boiler and a fixed-speed
+    pump, fell 0.1526 -> 0.1495 against the 0.15 floor. Two readings were refused:
+
+    * NETTING THE PUMP OUT of the judged load set. H38 netted the water heater
+      because the floor's anchor, a gas-heated home's electricity meter, never
+      carried it. That meter DOES carry a boiler pump, so netting it would loosen
+      the cell, not repair the load set.
+    * MOVING THE FLOOR. R12.
+
+    What is left is the home: its behaviour was already the calmest of the 60
+    before the pump arrived, and a flat load raised the denominator. The floor is
+    domain knowledge never read at source, so the open work is a DISCOVER for its
+    distribution or for the calm-behaviour mechanism, not a change here. The net-
+    of-pump reading below is a diagnostic only; the cell never computes it.
+    """
+    assert fgl.BANDS[fgl.TEXTURE_STATISTIC].threshold == 0.15, "R12: the floor did not move"
+    cell = population_result.cell(fgl.TEXTURE_STATISTIC)
+    assert cell.verdict is fgl.Verdict.FAIL and cell.homes_violating == 1, cell.note
+
+    readings = {}
+    for trace in drawn_traces:
+        meter = [list(day) for day in trace.half_hourly("electricity")]
+        on_meter = trace.heating_commodity == "electricity"
+        space = [list(d.heating_fuel_kwh) if on_meter else [0.0] * 48 for d in trace.days]
+        water = [list(d.dhw_fuel_kwh) if on_meter else [0.0] * 48 for d in trace.days]
+        pump = [list(d.boiler_auxiliary_kwh) for d in trace.days]
+        judged = fgl.machine_draw(space, water)
+        readings[trace.premise_id] = (
+            fgl.half_hourly_texture(meter, machines=judged),
+            fgl.half_hourly_texture(meter, machines=fgl.machine_draw(judged, pump)),
+            sum(map(sum, pump)),
+            trace.heating_commodity,
+        )
+
+    live, net_of_pump, pump_kwh, commodity = readings[cell.worst_home]
+    # The cell judges the pump: its worst value IS the with-pump reading.
+    assert cell.worst_value == pytest.approx(live, abs=1e-9)
+    assert commodity == "gas" and pump_kwh > 0.0
+    assert live == pytest.approx(0.1495, abs=5e-4)
+    assert net_of_pump == pytest.approx(0.1526, abs=5e-4)
+    # The breach is the PUMP'S, on a home already at the edge: net of it the home
+    # clears the floor, and it is still the calmest home of the 60.
+    assert fgl.BANDS[fgl.TEXTURE_STATISTIC].judge(net_of_pump) is fgl.Verdict.PASS
+    assert net_of_pump == min(r[1] for r in readings.values()), (
+        "the pump picked a home that was NOT the population's calmest — then the "
+        "breach is about the pump term's size, not about this home's behaviour"
+    )
+    # Every other home clears the floor with the pump on its meter.
+    assert sorted(r[0] for r in readings.values())[1] >= 0.15
 
 
 def test_the_L1_1_BREACH_WAS_the_WATER_HEATER_and_the_LOAD_SET_CLOSED_IT(
@@ -642,10 +714,16 @@ def test_the_L1_1_BREACH_WAS_the_WATER_HEATER_and_the_LOAD_SET_CLOSED_IT(
             "machines — then the water heater was not the whole story"
         )
 
-    # ...and the CELL is the thing that had to move, not just the statistic.
+    # ...and the CELL is the thing that had to move, not just the statistic: no
+    # home this repair is about is in breach of it. Since 2026-10-06 the cell is
+    # red at 1/60 on a GAS home (P0000, the boiler pump; see
+    # `test_the_L1_1_BREACH_is_P0000s_CALM_BEHAVIOUR_...`), which the water-heat
+    # netting is the identity on, so the property is asked of WHO breaches, not of
+    # the verdict.
     cell = population_result.cell(fgl.TEXTURE_STATISTIC)
-    assert cell.verdict is fgl.Verdict.PASS, cell.note
-    assert cell.homes_violating == 0 and cell.homes_unjudged == 0, cell.note
+    assert cell.homes_unjudged == 0, cell.note
+    assert cell.homes_violating <= 1, cell.note
+    assert cell.worst_home not in {t.premise_id for t in heated}, cell.note
 
 
 def test_the_WATER_HEATER_netting_is_a_LOAD_SET_repair_and_not_a_LOOSENING(
@@ -695,7 +773,10 @@ def test_the_WATER_HEATER_netting_is_a_LOAD_SET_repair_and_not_a_LOOSENING(
 
     assert len(electric_after) >= 3 and len(gas_criticals) >= 30
     gas_median = statistics.median(gas_criticals)
-    assert gas_median == pytest.approx(0.3066, abs=0.01)
+    # 0.3066 -> 0.2903 on 2026-10-06: the boiler pump is on every gas home's meter
+    # now, which is load the behaviour has to out-texture. It moves the reference
+    # for both regimes alike, so the parity band below is unchanged in meaning.
+    assert gas_median == pytest.approx(0.2903, abs=0.01)
 
     # BEFORE: an electrically heated home fired at a fraction of the breakage a gas
     # home needed — P0008 at 0.0000 was already under the floor untouched.
@@ -849,12 +930,16 @@ def test_the_REPAIR_ITSELF_fires_its_own_named_defect(population):
     revert must LOWER the cell's reading of the same home. A repair whose removal
     changes nothing there was not doing anything.
     """
-    live_60 = fgl.evaluate_two_level(population).cell(fgl.TEXTURE_STATISTIC)
-    assert live_60.verdict is fgl.Verdict.PASS and live_60.homes_violating == 0, live_60.note
-
     electric = [k for k, system in enumerate(population.heating_systems)
                 if fgl.HEAT_ON_THE_JUDGED_METER.get(system, False)]
     assert len(electric) >= 3, "the leg needs the homes the repair is about"
+
+    # The premise of the subset: the 60's marginal home is one the revert cannot
+    # touch. Asked of the home, not the verdict — since 2026-10-06 that home (P0000,
+    # gas) is in breach at 1/60 on its boiler pump, and the revert still leaves it
+    # bit-identical.
+    live_60 = fgl.evaluate_two_level(population).cell(fgl.TEXTURE_STATISTIC)
+    assert live_60.worst_home not in {population.homes[k] for k in electric}, live_60.note
     gas_by_texture = sorted(
         (k for k in range(len(population.homes)) if k not in electric),
         key=lambda k: -fgl.half_hourly_texture([list(d) for d in population.grids[k]]),
@@ -1706,9 +1791,13 @@ def test_L2_3n_a_TIMING_LESS_population_FAILS_at_EVERY_window(generated):
         f"({long:.0%}). If it is not, this whole repair rests on a stale "
         f"measurement: {measured}"
     )
-    assert short >= 0.5, (
+    # Keyed to this test's own ceiling, not to the 68% first measured (45% since
+    # the boiler pump, 2026-10-06): the superseded floor failed open by the very
+    # standard the ratio meets.
+    assert short > L2_3N_MAX_STRUCTURELESS_PASS_RATE, (
         f"the floor cleared a timing-less population {short:.0%} of the time at 40 "
-        "days when this was measured (68%) — that is what made it fail-open"
+        f"days, within the {L2_3N_MAX_STRUCTURELESS_PASS_RATE:.0%} ceiling alpha "
+        "allows — then it was not fail-open and this repair rests on nothing"
     )
 
 
@@ -3188,8 +3277,11 @@ def test_the_ledger_entry_carries_both_beliefs_and_the_two_level_result(tmp_path
                       "L1.3_away_days_per_year", "L1.5_max_multiplicity_share"):
         cell = two_level["cells"][statistic]
         assert cell["homes_judged"] == fgl.MIN_HOMES_FOR_L1_RATE
-        assert cell["homes_violating"] == 0
+        # The wire carries what the result measured — L1.1 is live-red at 1/60
+        # since 2026-10-06 (the boiler pump), the others at 0/60.
+        assert cell["homes_violating"] == population_result.cell(statistic).homes_violating
         assert cell["worst_home"]
+    assert two_level["cells"][fgl.TEXTURE_STATISTIC]["homes_violating"] == 1
     # L1.1 JOINED THAT LOOP ON 2026-08-10 (H38): its 1-in-60 breach closed when
     # the water heater came out of the denominator, so the live population no
     # longer has a red RATE cell for this to ride on. The direction that matters —
@@ -3996,7 +4088,12 @@ def test_the_goal_seek_warning_needs_a_PREVALENCE_not_a_single_home(population_r
     # being deleted with the breach — if L1.1 goes red again this test must be
     # rewritten and not merely observed to still pass, because a stubbed-PASS arm
     # over a red live cell proves nothing about prevalence.
-    assert population_result.cell(fgl.TEXTURE_STATISTIC).verdict is fgl.Verdict.PASS
+    #
+    # REWRITTEN 2026-10-06: L1.1 is live-red at 1/60 (P0000, the boiler pump). Both
+    # arms below set texture to PASS explicitly, so the warning is exercised on a
+    # synthetic texture arm again, and that is now said rather than assumed: the
+    # live cell is asserted RED so this note cannot outlive the breach unread.
+    assert population_result.cell(fgl.TEXTURE_STATISTIC).verdict is fgl.Verdict.FAIL
 
     def with_structural(value: float, verdict: fgl.Verdict) -> fgl.TwoLevelResult:
         def rewrite(c):

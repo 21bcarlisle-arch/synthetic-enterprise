@@ -16,6 +16,7 @@ from company.analytics.forward_clv import (
     _paired,
     backtest_run_output,
     load_book,
+    regime_boundary_month,
     run_backtest,
 )
 
@@ -214,3 +215,38 @@ def test_an_account_with_no_month_in_the_deviation_window_takes_its_segment():
     late = {f.account_id: f for f in run_backtest(book, end, 2022, 2020).forecasts}
     assert late["R3"].credibility_weight == 0.0
     assert late["R1"].credibility_weight > 0.0
+
+
+def _gas(**at):
+    """A flat wholesale record from 2016 with the named months set: `_gas(y2018_09=25.0)`."""
+    series = {f"{y}-{m:02d}": 10.0 for y in range(2016, 2026) for m in range(1, 13)}
+    series.update({k[1:].replace("_", "-"): v for k, v in at.items()})
+    return series
+
+
+def test_the_regime_boundary_is_the_first_all_time_high_on_or_after_the_anchor():
+    """A high set BEFORE the anchor is the bar, not the boundary; a month that only beats the
+    post-anchor months is not an all-time high; the cut never reads past itself."""
+    gas = _gas(y2018_09=25.0, y2019_01=19.0, y2021_01=19.5, y2021_06=27.5)
+    assert regime_boundary_month(gas, _month_index("2022-12")) == _month_index("2021-06")
+    assert regime_boundary_month(gas, _month_index("2021-05")) is None
+    with pytest.raises(ValueError, match="needs a record before the anchor"):
+        regime_boundary_month({"2019-06": 1.0, "2020-01": 2.0}, _month_index("2022-12"))
+
+
+def test_a_read_window_ends_the_month_before_the_boundary_and_both_branches_are_reachable():
+    """Read at 2021-01 it is exactly the chosen 2016-2020 window; with no high by the cut it is
+    exactly the rule as shipped. The two sources together are refused."""
+    book = _reversing_pair()
+    end = max(a.last_month for a in book)
+    read = run_backtest(book, end, 2022, wholesale_gas_by_month=_gas(y2021_01=99.0))
+    chosen = run_backtest(book, end, 2022, margin_fit_end_year=2020)
+    assert read.forecasts == chosen.forecasts
+    assert read.margin_deviation_fit_months == ("2016-01", "2020-12")
+    assert "2021-01" in read.margin_deviation_window_reason
+    unread = run_backtest(book, end, 2022, wholesale_gas_by_month=_gas(y2023_03=99.0))
+    assert unread.forecasts == run_backtest(book, end, 2022).forecasts
+    assert unread.margin_deviation_fit_months == ("2016-01", "2022-12")
+    assert read.forecasts != unread.forecasts
+    with pytest.raises(ValueError, match="give one"):
+        run_backtest(book, end, 2022, 2020, wholesale_gas_by_month=_gas())
