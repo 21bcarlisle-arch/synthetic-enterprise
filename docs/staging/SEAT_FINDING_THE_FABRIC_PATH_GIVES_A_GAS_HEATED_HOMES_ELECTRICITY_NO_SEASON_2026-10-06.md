@@ -165,3 +165,36 @@ smooth-by-construction question structurally. Then mint the spread defect as its
 then L1.1 stays red at 1/60 exactly as `8fe730297` pinned it, and that red is now known to be a
 floor artefact. SERL could not be read: its half-hourly data is safeguarded (UKDS SN 8666), and
 applying for it is the director's call.
+
+## The remaining terms sized (2026-10-06, worker, draw `a-gas-heated-home-s-electricity-season-discover-the-remaining-terms`)
+
+Read at source in the research doc, section *The remaining terms, read at source*. The sources are
+the HES final report (R66141) seasonality curves and EFUS 2011 and 2017. Every term now has a sourced
+magnitude or a named gap:
+
+- **Cooking:** HES ~1.25 winter/summer, so **+0.43 kWh/day** of gap on the world's own cooking
+  level. Sourced.
+- **Washer and dryer:** HES ~1.48, so **+0.34 kWh/day**. Sourced.
+- **Seasonal occupancy:** HES finds audiovisual use **flat**, so there is no separate term. Its
+  effect arrives through cooking and laundry, so `occupancy_at` stays unseasonal.
+- **Supplementary electric heating:** ~10% of gas-heated homes, **1,505 kWh/yr** each (HES Table 14),
+  almost all of it in Dec–Feb. That is ~0.9 kWh/day of winter uplift in the population MEAN, but
+  little in SERL's MEDIAN. Heater power and duty are not established, so the energy anchors to HES.
+- **Lighting level:** 2016–2025 not established. HES measured 537 kWh/yr in 2010–11 and the world
+  carries ~210. The next read is ECUK.
+
+The sourced terms carry about 60% of SERL's 2.5 kWh/day extreme-month gap. **About 0.5–1 kWh/day
+is not attributed**, and its ranked candidates are in the doc. One of them is the world's high
+flat summer base (8.9 kWh/day against SERL's 6.0), which caps any ratio. So the exit test should
+judge the absolute gap as well as the ratio.
+
+**BUILD (world lane), first increment.** In `simulation/premise_trace.draw_appliance_events`, add a
+week-of-year multiplier on `events_per_day`. Use HES Fig. 413's curve for kettle, toaster,
+microwave, oven and hob, and Fig. 359's for the washing machine and tumble dryer. Each curve is
+normalised to an annual mean of 1, so annual kWh and the TDCV judgement are unchanged by
+construction. Pre-register the Dec–Feb minus Jun–Aug uplift (expected about +0.7 kWh/day on the
+reference premise, ±50%), then run it. Mutations: the multiplier set to 1, the curve applied to
+audiovisual, and the annual mean not preserved. **Second increment:** supplementary electric
+heating, driven by heating demand, with ownership around 10% and energy anchored to HES's
+1,505 kWh/yr, offsetting boiler gas. It is coupled across both meters, so it lands as its own
+draw. This finding stays in the queue until the first increment lands.

@@ -228,3 +228,136 @@ meter carries one, and the floor did not move. The diagnosis is pinned in
 heating pump run only while the room thermostat calls, or whenever the programmer is on? No answer
 had arrived when the term landed. The world follows HEM, which is the first reading. If the answer
 is the second, the 1,049 h above roughly treble towards SAP's 3,667 h.
+
+## The remaining terms, read at source (2026-10-06, worker, draw `a-gas-heated-home-s-electricity-season-discover-the-remaining-terms`)
+
+This pass sizes the seasonal terms still missing after the boiler pump: supplementary electric
+heating, plus seasonal cooking, occupancy and lighting. Decided blind to D48. **Nothing is built.**
+The read-off values below come from published curves read by eye, to about ±0.05 on each factor.
+
+### Sources
+
+- **HES final report.** Intertek R66141, *Household Electricity Survey: A study of domestic
+  electrical product usage*, issue 4, May 2012 (DEFRA/DECC/EST; 251 owner-occupied English homes,
+  2010–11; 26 of them monitored for a full year;
+  <https://assets.publishing.service.gov.uk/media/5a7c2fd940f0b67d0b11f6df/10043_R66141HouseholdElectricitySurveyFinalReportissue4.pdf>).
+  For each appliance group, it publishes a 52-week **seasonality curve**, normalised to an annual
+  mean of 1 and fitted on the 26 year-long homes.
+- **EFUS 2011 Report 5.** *Secondary heating systems*, BRE 286733b for DECC, Dec 2013, n=2,616
+  (<https://assets.publishing.service.gov.uk/media/5a74a0b3e5274a44083b8337/5_Secondary_Heating.pdf>).
+- **EFUS 2017.** *Heating patterns and occupancy*, final report, BEIS 2021, winter interview
+  n=1,340 (<https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/1018727/efus-heating-patterns-occupancy.pdf>).
+- **HES lighting.** CAR for DECC, *Further analysis of the Household Electricity Survey: Lighting*
+  (<https://assets.publishing.service.gov.uk/media/5a7dbc54e5274a5eaea66049/Lighting_Report.pdf>).
+- **HES summary paper.** Dunbabin, Palmer & Terry, ECEEE 2015,
+  *The English Household Electricity Study 2010–11*
+  (<https://proceedings.eceee.org/docs/2015/7-009-15_Dunbabin_pre.pdf>).
+
+### HES seasonality curves against the world's components
+
+The factors are each category's Dec–Feb and Jun–Aug mean, read from the curve.
+
+| Group (HES figure) | Dec–Feb | Jun–Aug | Ratio | HES annual | World today |
+|---|---|---|---|---|---|
+| Cold appliances (Fig. 334) | ~0.83 | ~1.12 | ~0.74 | 162–427 per unit | **0.77, right** |
+| Lighting (Fig. 465) | ~1.55 | ~0.60 | ~2.6 | 537 kWh | **2.54, shape right**; level below |
+| Cooking (Fig. 413): oven, hob, microwave, kettle, toaster | ~1.09 | ~0.87 | **~1.25** | 460 kWh | **flat, missing** |
+| Washing/drying (Fig. 359) | ~1.27 | ~0.86 | **~1.48** | washer 166, dryer 394 | **flat, missing** |
+| Audiovisual (§13.1) | — | — | **1.0** | 553 kWh | flat, **right** |
+| Space heating, additional-electric homes only (Fig. 537) | ~2.3 | ~0 | — | **1,505 kWh** | **absent** |
+
+§13.1 says it verbatim: *"No seasonality effect was observed"* for audiovisual. **That settles the
+occupancy question.** Being at home more in winter would show up first in the screens, and it does
+not. So the world must NOT be given a seasonal `occupancy_at`, which would make electronics seasonal
+against HES. Occupancy's seasonal effect arrives through cooking and laundry, and HES measures those
+directly. Whether Fig. 359 includes dishwashers is not stated. The text says "washing/drying".
+
+### Supplementary electric heating: real, sized, and mostly in the tail
+
+- **Who.** HES (Dunbabin 2015): *"10% of households with gas also use electric heating to top up in
+  cold weather."* EFUS 2011 Table 13: 4,197k of 19,691k central-heated households, **21%**, use one
+  or more electric supplementary heaters. Table 6 adds **9.2%** who heat a room with an electric
+  heater where the main system does not reach. EFUS 2017 reports a decline: supplementary heating
+  of any fuel fell from 48% to **39%** of households. Of living-room users (32% of households), 33%
+  use an electric heater, so about **11%** of all households.
+- **How much.** HES Table 14: space heating of **1,505 kWh/yr** in homes *with additional electric
+  heating*. Their total is 4,878 kWh/yr, against 3,638 kWh/yr for homes without electric heating
+  (Figs. 28–29). HES §15.2: *"mainly in the form of individual or portable heaters that were used
+  occasionally"*. EFUS 2011: a 4.2-month season (mean), median 8 h/week. EFUS 2017: daily users
+  (27% of supplementary users) run it a median of **4 h on a weekday** (IQR 2.5–6) and 5 h at the
+  weekend.
+- **Season.** HES Fig. 537 is about 2.3× the annual mean in Dec–Feb and about zero from June to
+  August.
+- **Size.** In a home that has it: 1,505 kWh/yr is ~4.1 kWh/day on average, so **~9.5 kWh/day
+  Dec–Feb and ~0 in summer**. Across all homes at a 10% share: **~0.9 kWh/day** of winter uplift
+  in the MEAN.
+- **The median barely moves.** SERL's 1.36–1.47 is a MEDIAN across homes. A load carried by about
+  10% of homes moves the median only by re-ranking homes near it, which is a small effect. So
+  supplementary heating explains much of the MEAN's swing (and PC1's), but little of SERL's
+  median's. The size of that re-ranking effect is **not established**: computing it needs the
+  per-home distribution, which SERL does not publish.
+- **Not established:** the heater's power and thermostat duty. 2 kW is a typical nameplate rating,
+  not a measured operating point. The build should anchor energy to HES's 1,505 kWh/yr, not to
+  watts × hours. Also not established: the 2016–2025 trend between HES/EFUS 2011 and EFUS 2017,
+  beyond the 48% → 39% fall in supplementary heating of any fuel.
+
+### Lighting level
+
+HES 2010–11 measured **537 kWh/yr** (Table 25), in a stock of incandescent and CFL bulbs. The HES
+lighting report projects **~290 kWh/yr by 2024** if 80% of lamps are low-energy. The world's
+`_LIGHTING_KW_PER_PERSON = 0.035` gives about 210 kWh/yr, constant across 2016–2025. **The 2016–2025
+level is not established.** No published per-home figure for the LED era was found (the ECUK
+end-use tables were not read). Sensitivity: at HES's shape, every 100 kWh/yr of lighting adds
+**~0.26 kWh/day** to the Dec–Feb minus Jun–Aug gap. A real stock trending down across the decade
+would make the world's constant wrong at both ends.
+
+### The budget: SERL's gap against what is sourced, as arithmetic (not a run)
+
+The world's cooking and laundry levels are read from `APPLIANCE_CATALOGUE` at unit intensity. That
+is power × duration × events: cooking ~1.94 kWh/day (oven 0.83, kettle 0.56, hob 0.44, the rest
+0.12), washer plus dryer ~0.83. Dishwasher excluded.
+
+| Term | Dec–Feb minus Jun–Aug, kWh/day | Status |
+|---|---|---|
+| Lighting (in the world) | +0.50 | built |
+| Cold appliances (in the world) | −0.40 | built, HES-signed |
+| Boiler pump and fan (fixed-speed) | +0.42 | landed 2026-10-06 |
+| Cooking at HES's shape | **+0.43** | sourced, NOT built |
+| Washer and dryer at HES's shape | **+0.34** | sourced, NOT built |
+| Lighting raised to ~290 kWh/yr | +0.2 | level NOT established |
+| Supplementary electric heating | ~+0.9 to the mean; small to the median | sized, NOT built |
+| **Sum for a median home, without supplementary heating** | **~+1.5** | |
+
+SERL 2022's monthly extremes, January 8.5 and August 6.0, differ by 2.5. The seasonal-mean gap is
+smaller, but SERL's monthly table was not re-read here. The sourced terms carry about **60%** of
+it. **What is left, roughly 0.5–1 kWh/day, is NOT ATTRIBUTED.** In rank order, the candidates are:
+
+1. Supplementary heating's re-ranking effect on the median.
+2. The world's high flat base. The world's summer is 8.9 kWh/day against SERL's 6.0, and a large
+   unseasonal level shrinks any RATIO even when the absolute gap is right.
+3. SERL's years being the price-crisis years.
+4. Small seasonal loads not sized here, such as heated towel rails, electric blankets and
+   dehumidifiers.
+
+**Because of (2), the exit test for the build should compare the absolute Dec–Feb minus Jun–Aug
+gap, not only the ratio.**
+
+### Where each term belongs in `simulation/premise_trace`
+
+- **Cooking and laundry go in `draw_appliance_events`**, as a week-of-year multiplier on
+  `events_per_day`: Fig. 413's curve for kettle, toaster, microwave, oven and hob, and Fig. 359's
+  for the washing machine and tumble dryer. Each curve is normalised to an annual mean of 1. That
+  keeps every annual kWh, and so the 2,700 kWh TDCV judgement, unchanged by construction. The curve
+  is a calendar fit. The mechanism behind the laundry curve (rain against line-drying) is not
+  established, so weather coupling stays out until something sources it.
+- **The flat cooking GAS layer (`cooking_daily_kwh`) contradicts this.** It is flat by design and
+  says so. If HES's electric cooking curve also applies to gas hobs and ovens, the summer gas base
+  is overstated, which is a gas-side question. Flagged here, not changed.
+- **Supplementary electric heating is a new per-premise term beside `boiler_auxiliary_kwh`.** It
+  needs an ownership draw at the published ~10% share of gas-heated homes. Its use should be
+  driven by the world's own heating demand, not the calendar, with energy anchored to HES's
+  1,505 kWh/yr. The heat delivered offsets boiler gas, so the term couples both meters. That makes
+  it a bigger build than the calendar multipliers, and it comes second.
+- **`occupancy_at` gets no seasonal term**, because HES measures audiovisual use as flat.
+- **The lighting level stays at `_LIGHTING_KW_PER_PERSON`** until a 2016–2025 level is sourced.
+  The next read is the DESNZ ECUK domestic end-use table.
