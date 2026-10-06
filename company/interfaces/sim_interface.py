@@ -467,6 +467,10 @@ class LiveSimInterface(SimInterface):
         Uses a 120-day rolling mean + risk premium + term-length premium (Phase 48a).
         No SIM forward curve internals accessed.
 
+    monthly_wholesale_prices(fuel)
+        OBSERVABLE. The same published price history `get_forward_price` reads, as one mean
+        per calendar month. Any market participant can download it.
+
     get_settlement_data(mpan, period)
         STUB — returns zeros. In production would be observable (meter reads).
 
@@ -533,6 +537,13 @@ class LiveSimInterface(SimInterface):
             else:
                 raise ValueError(f"Unknown fuel: {fuel}")
         return self._price_cache[fuel]
+
+    def monthly_wholesale_prices(self, fuel: str) -> dict[str, float]:
+        """`{"YYYY-MM": mean price that month}` over the whole published history."""
+        by_month: dict[str, list[float]] = {}
+        for r in self._load_price_records(fuel):
+            by_month.setdefault(r["settlementDate"][:7], []).append(float(r["systemSellPrice"]))
+        return {ym: sum(v) / len(v) for ym, v in sorted(by_month.items())}
 
     def get_forward_price(self, fuel: str, delivery_date: str, term_months: int = 12) -> float:
         records = self._load_price_records(fuel)
