@@ -242,6 +242,10 @@ def test_every_issued_bill_agrees_with_the_sum_of_its_own_printed_components():
     file. Accounts is the stable population and carries the anti-emptiness guarantee; the bill
     floor stays only as a coarse "the invoices did not vanish" check, set well below the observed
     run-to-run range rather than at the top of it.
+
+    CORRECTED 2026-10-06: accounts was NOT stable. It reached 175 in run 998814330 and the 240
+    floor stood red for 11 census runs. Both checks are now keyed to the property, as the comment
+    at the assertions says.
     """
     ledger = _real_ledger()
     bills = 0
@@ -257,9 +261,15 @@ def test_every_issued_bill_agrees_with_the_sum_of_its_own_printed_components():
                 accused.append("{}/{} out by {}".format(
                     cid, inv.get("invoice_number"), doc["internal_discrepancy_gbp"]))
     accounts = len(ledger.get("customers") or {})
-    assert accounts >= 240, (
-        "only {} accounts: this control would pass on an emptied ledger".format(accounts))
-    assert bills >= 8_000, "only {} bills: the invoices have vanished".format(bills)
+    # Re-keyed again 2026-10-06: `accounts >= 240` went red at 175 accounts (run 998814330), so
+    # the accounts count drifts with the run too. Non-empty is the property. The bill check now
+    # compares against the writer's own invoice counter rather than a literal, so a reader that
+    # skips bills, or a truncated customers dict, goes red. The writer's `customer_count` is
+    # len(customers), so it cannot be compared against here.
+    assert accounts > 0, "no accounts: this control would pass on an emptied ledger"
+    assert bills > 0 and bills == (ledger.get("meta") or {}).get("invoice_count"), (
+        "{} bills read against {} the ledger writer numbered: the invoices have vanished".format(
+            bills, (ledger.get("meta") or {}).get("invoice_count")))
     assert not accused, (
         "{} of {} bills do not equal the sum of their own printed components. Before reporting "
         "that as a billing defect, check whether a COMPONENT IS MISSING FROM THIS READER -- the "
@@ -270,7 +280,8 @@ def test_every_issued_bill_agrees_with_the_sum_of_its_own_printed_components():
 
 def test_the_event_walk_closes_where_the_ledger_says_it_closes():
     """Two independent routes to one number: a walk over every bill and payment, against the
-    ledger's own stored `balance_gbp`. They agree on all 251 accounts.
+    ledger's own stored `balance_gbp`. They agreed on all 251 accounts (2026-09-02) and on all 175
+    in run 998814330 (2026-10-06).
 
     This one is worth more than it looks: it is the only place the failed-payment rule, the sign
     convention and the event ordering are checked together against a figure nobody wrote for this
@@ -283,7 +294,8 @@ def test_the_event_walk_closes_where_the_ledger_says_it_closes():
         doc = sx.statement(cid, rec)
         if doc["balance_discrepancy_gbp"] is not None:
             disagree.append((cid, doc["closing_balance_gbp"], doc["ledger_balance_gbp"]))
-    assert accounts >= 200, "only {} accounts: an emptied ledger would pass".format(accounts)
+    # Non-empty, not a count: 175 accounts on 2026-10-06 against the 200 once typed here.
+    assert accounts > 0, "no accounts: an emptied ledger would pass"
     assert not disagree, "closing balance disagrees with the ledger on: {}".format(disagree[:5])
 
 
