@@ -2216,12 +2216,14 @@
   lane: B_commercial
   value_stream: close_to_learn
   epoch: 4
-  level_current: 0
+  level_current: 1
   level_target: 3
   loop_stage: build
   # MINTED 2026-10-05, canon step 3: "the spine every lever is judged against. Build and test
   # it on held-back history". Couples to EP1 (three horizons, L2, blocked on a second book):
   # a held-back-history test needs no second book, which is why this is its own atom.
+  # L1 2026-10-06 (9680fbf4b, 4e4637853). NEXT: the deviation window ends before the regime,
+  # with the boundary read from the published record (cap history), not fitted to the result.
   dial_inherited: 90
   provenance: director_ruling
   depends_on: []
