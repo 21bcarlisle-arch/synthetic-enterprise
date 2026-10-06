@@ -19,6 +19,19 @@ import requests
 BASE_URL = "https://data.elexon.co.uk/bmrs/api/v1"
 SYSTEM_PRICES_ENDPOINT = "/balancing/settlement/system-prices/{settlement_date}"
 
+#: The first whole day the published record holds. Re-probed 2026-10-06: 2015-10-03 (the start of a
+#: 2016-01-01 contract's 90-day lookback), 2015-11-04 and 2015-11-05 return no records, 2015-11-06
+#: one, 2015-11-07 a full 48. So, unlike gas (`sim.gas_prices_history.RECORD_START`), this record
+#: cannot be extended to price a day-one founder off a full lookback, and the short window is
+#: declared rather than filled.
+RECORD_START = "2015-11-07"
+SHORT_RECORD_REASON = (
+    "Elexon's system-price record begins 2015-11-07: BSC Modification P305 replaced dual "
+    "SSP/SBP imbalance pricing with a single price in November 2015, and the published dataset "
+    "holds nothing under the current methodology before it (docs/simulation-period.md). A first "
+    "term starting before 2016-02-05 prices off only the days since then."
+)
+
 _session = requests.Session()
 
 

@@ -105,12 +105,17 @@ from sim.forward_curve import (
     WINTER_MONTHS,
     WINTER_MULTIPLIER,
     generate_forward_price,
+    short_first_term_lookbacks,
 )
+from sim.gas_prices_history import RECORD_START as NBP_RECORD_START
+from sim.gas_prices_history import SHORT_RECORD_REASON as NBP_SHORT_RECORD_REASON
 from sim.gas_prices_history import load_nbp_history
 from sim.profile_class_1 import load_pc1_shape
 from sim.profile_class_3 import load_pc3_shape
 from sim.risk_committee import RiskCommitteeMonitor
 from sim.risk_engine import assess_term_risk, is_administration_triggered
+from sim.system_prices_history import RECORD_START as SSP_RECORD_START
+from sim.system_prices_history import SHORT_RECORD_REASON as SSP_SHORT_RECORD_REASON
 from sim.system_prices_history import get_system_prices_range
 from sim.weather_hdd import REFERENCE_MONTHLY_HDD, get_hdd
 from simulation.acquisition_funnel import run_acquisition_funnel
@@ -396,7 +401,7 @@ def _retention_discount_for_risk(company_est: float) -> float:
             return discount
     return 0.0
 
-EARLIEST_SSP_DATE = "2015-11-07"
+EARLIEST_SSP_DATE = SSP_RECORD_START
 COMMITTEE_COOLDOWN_PERIODS = 1440
 COMMITTEE_COOLDOWN_DAYS = 30  # calendar-day cooldown; replaces record-count approach
 
@@ -1376,6 +1381,15 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
 
     gas_records = load_nbp_history()
     print(f"Gas: {len(gas_records):,} NBP daily records.\n")
+    # A first term whose 90-day lookback starts before its fuel's record is priced off fewer days.
+    # Raises unless the record declares why it cannot reach further back; recorded either way.
+    _short_first_term_lookbacks = (
+        short_first_term_lookbacks(ELEC_CUSTOMERS, SSP_RECORD_START, SSP_SHORT_RECORD_REASON, "electricity")
+        + short_first_term_lookbacks(GAS_CUSTOMERS, NBP_RECORD_START, NBP_SHORT_RECORD_REASON, "gas")
+    )
+    if _short_first_term_lookbacks:
+        print(f"{len(_short_first_term_lookbacks)} first term(s) priced off a short lookback "
+              f"(see short_first_term_lookbacks).")
 
     # M1 depth work (docs/design/M1_PRICE_HISTORY_PIPELINE_FINDING.md): built
     # ONCE per run from the sim's own records, structurally replacing
@@ -4417,6 +4431,9 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         # as a whole -- recorded, not printed only, so a minority failure is a finding a reader can
         # find. Empty is the good answer and still an answer.
         "fabric_untextured_premises": list(_untextured_fabric_premises),
+        # The founders whose first term priced off less than a full lookback, each with the reason
+        # its record cannot reach further back. Empty is the good answer and still an answer.
+        "short_first_term_lookbacks": _short_first_term_lookbacks,
         # The treasury path's turning points for the WHOLE book, folded in accumulation order as
         # the balances were produced, each tagged with the year of its record.
         # `annual_report._drawdown_events_by_year` walks this instead of re-deriving a path from

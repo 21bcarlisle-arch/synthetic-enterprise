@@ -43,10 +43,13 @@ MWH_PER_MMBTU = 0.29307
 #: lookback), and a record starting on the day itself left a day-one gas founder with an empty
 #: window and a ValueError (2026-10-06, the 4,000-founder scale measurement). The same FRED series
 #: publishes those months, so the record reaches back to the first whole month the lookback
-#: touches -- real history, not a fill. Electricity has the same need and its record already
-#: starts at 2015-11-07 (`run_phase2b.EARLIEST_SSP_DATE`).
+#: touches -- real history, not a fill. Electricity has the same need and its record CANNOT meet
+#: it: see `sim.system_prices_history.RECORD_START`.
 RECORD_START = "2015-10-01"
 RECORD_END = "2025-06-07"
+#: None: the record reaches a full lookback before the founders' first day, so nothing is short.
+#: `sim.forward_curve.short_first_term_lookbacks` refuses a short first term on a record with no reason.
+SHORT_RECORD_REASON: str | None = None
 
 
 def fetch_fred_csv() -> str:

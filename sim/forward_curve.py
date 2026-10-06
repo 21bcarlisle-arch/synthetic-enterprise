@@ -207,3 +207,40 @@ def generate_forward_price(
         forward_price *= weather_sensitivity_multiplier(lookback_daily_mean_temps_c)
 
     return forward_price
+
+
+def short_first_term_lookbacks(
+    customers: list[dict], record_start: str, short_record_reason: str | None,
+    fuel: str, lookback_days: int = 90,
+) -> list[dict]:
+    """The customers whose FIRST term starts less than `lookback_days` after the price record does,
+    so `generate_forward_price` prices it off a window the record only partly fills.
+
+    A short window is not an error -- the EWMA reads what is there, strictly before the start --
+    but it must never be SILENT: for gas a record starting on the founders' own day left an empty
+    window, and the fallback that "fixed" it priced the term off the 90 days AFTER its start
+    (removed 2026-10-06, b8808f4ad). So a short window is allowed only on a record that declares
+    why it cannot reach further back; on any other it raises, naming the customer. Each row it
+    returns carries that reason, for the run to publish.
+    """
+    first = date.fromisoformat(record_start)
+    shortfalls = []
+    for customer in customers:
+        start = date.fromisoformat(customer["acquisition_date"])
+        missing = (first - (start - timedelta(days=lookback_days))).days
+        if missing <= 0:
+            continue
+        if not short_record_reason:
+            raise ValueError(
+                f"{customer['customer_id']}'s first {fuel} term starts {customer['acquisition_date']}, "
+                f"{lookback_days - missing} days into a {fuel} record that begins {record_start}: "
+                f"its {lookback_days}-day lookback is {missing} days short and the record declares "
+                f"no reason it cannot reach further back. Extend the record from its source, or "
+                f"declare why it cannot be.")
+        shortfalls.append({
+            "customer_id": customer["customer_id"], "fuel": fuel,
+            "acquisition_date": customer["acquisition_date"],
+            "lookback_days_covered": max(0, lookback_days - missing),
+            "reason": short_record_reason,
+        })
+    return shortfalls
