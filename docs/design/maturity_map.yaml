@@ -2219,12 +2219,14 @@
   lane: W2_customer_generator
   value_stream: meter_to_cash
   epoch: 4
-  level_current: 0
+  level_current: 1
   level_target: 3
   loop_stage: build
   # 2026-10-05 approved as step 4's first item. Today a retention offer is a flat 0.20 cut in hazard,
   # never negative and the same for any discount, so a decision targeted on EFFECT and one targeted
   # on RISK score identically: docs/market_research/next_best_action_and_cross_sell.md.
+  # L1 4ff093bb0: a contact WAKES (EFTC share 0.111); the sign is the household's own. L2 wires it at the
+  # schedule builder's SVT roll -- doc how_households_respond_to_supplier_contact.md §5 names the question first.
   dial_inherited: 85
   provenance: director_ruling
   depends_on: []
