@@ -16918,6 +16918,17 @@ def _blind_envelope(arms_doc: dict | None) -> dict:
         return {"available": False,
                 "why_not": ("the artefact carries {} books that can see a home and this block "
                             "compares exactly one against the blind ones".format(len(chosen)))}
+    # THE ARM FLOOR IS COUNTED AFTER THE EXCLUSION AND NOT BEFORE IT, because an artefact of five
+    # arms two of which cannot be placed here is a three-arm envelope, and counting the filed rows
+    # would publish a span the floor was never applied to.
+    arms, excluded, homes_refusal = _blind_envelope_homes_refusal(arms)
+    if homes_refusal is not None:
+        return homes_refusal
+    # THE WORLD CHECK IS OVER THE ARMS IN THE SPAN, and it ran over every filed arm until
+    # 2026-10-06. Re-running the four placeable arms for their demand stamp also moved their
+    # departure world (39a192ce04c1eda8 -> cdba75ebb9197b33), and C' -- excluded above, never
+    # re-runnable -- kept the old one, so an arm that takes no part in the span would have refused
+    # the block for ever. An arm IN the span that states another world still refuses.
     digests = sorted({a.get("world_digest") for a in arms})
     if len(digests) != 1 or not digests[0]:
         return {"available": False,
@@ -16925,12 +16936,6 @@ def _blind_envelope(arms_doc: dict | None) -> dict:
                             "from one world differenced against a figure from another and no "
                             "position over it can be read".format(
                                 ", ".join(repr(d) for d in digests)))}
-    # THE ARM FLOOR IS COUNTED AFTER THE EXCLUSION AND NOT BEFORE IT, because an artefact of five
-    # arms two of which cannot be placed here is a three-arm envelope, and counting the filed rows
-    # would publish a span the floor was never applied to.
-    arms, excluded, homes_refusal = _blind_envelope_homes_refusal(arms)
-    if homes_refusal is not None:
-        return homes_refusal
     demand_refusal = _blind_envelope_demand_refusal(arms)
     if demand_refusal is not None:
         return demand_refusal

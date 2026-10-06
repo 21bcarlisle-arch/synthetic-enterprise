@@ -9652,6 +9652,32 @@ def test_an_arm_that_cannot_be_placed_in_this_world_is_EXCLUDED_and_carries_its_
         "the block substituted its own reason for the one the arm recorded")
 
 
+def test_the_world_check_reads_the_arms_in_the_span_and_not_the_excluded_one():
+    """THE DEFECT (2026-10-06): C', excluded for having no home stamp, still voted on the world.
+
+    The four placeable arms were re-run and moved departure world; C' cannot be re-run and kept the
+    old one, so a check over every filed arm refused the block for ever on account of an arm that
+    takes no part in it. Both legs, because a check that stops reading world digests altogether
+    passes the first one.
+
+    R15 -- mutations, each run and reverted:
+      * move the world check back above the homes exclusion -> the publish leg reds.
+      * delete the world check -> the refuse leg reds.
+    """
+    live = _live_home_digest()
+    doc = _arms_doc([live, live, live, None, live])
+    doc["arms"][3]["world_digest"] = "0ld0ld0ld0ld0ld0"
+    out = gva._blind_envelope(doc)
+    assert out["available"] is True, out.get("why_not")
+    assert [x["label"] for x in out["excluded_arms"]] == ["ARM D"]
+
+    doc = _arms_doc([live, live, live, live])
+    doc["arms"][1]["world_digest"] = "0ld0ld0ld0ld0ld0"
+    out = gva._blind_envelope(doc)
+    assert out["available"] is False
+    assert "0ld0ld0ld0ld0ld0" in out["why_not"] and "one world" in out["why_not"]
+
+
 def test_an_excluded_arm_with_NO_recorded_reason_still_gets_one_naming_the_live_stock():
     """FAIL CLOSED ON THE SURFACE. An arm dropped with a blank beside it reads as an oversight.
 
