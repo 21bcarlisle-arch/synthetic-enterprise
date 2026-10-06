@@ -100,6 +100,42 @@ Each term added must come from a source; none of them should be fitted to reach 
   monthly median and annual percentiles, not the distribution of each home's own winter/summer
   ratio. The director decided not to pursue SERL microdata (`the_sample_is_8500_households_…md`),
   and this pass does not reopen that decision. The published median is the only anchor.
-- The magnitudes of items 1, 3, 4 and 5 above, and item 2 at source.
+- The magnitudes of items 1, 3, 4 and 5 above. Item 2 is now read at source (section below); the pump-age split of the stock is not.
 - The measurement is one premise on one seed. It matches the finding's 56 households at 0.93–1.09,
   but it is not itself a population.
+
+## Item 2 read at source (2026-10-06, executor seat, same draw)
+
+**Correction to item 2 above:** the "130 kWh/yr" pump figure is not SAP 10.2's. **SAP 10.2
+(17-12-2021), Table 4f, p.168** (BRE, <https://files.bregroup.com/SAP/SAP%2010.2%20-%2017-12-2021.pdf>):
+
+| Equipment | kWh/year |
+|---|---|
+| Circulation pump, 2013 or later | 41 |
+| Circulation pump, 2012 or earlier | 165 |
+| Circulation pump, unknown date | 115 |
+| Gas boiler flue fan (if fan-assisted flue) | 45 |
+
+Pump figures ×1.3 with no room thermostat. Note d) says the boiler figures come from Ecodesign
+(811/2013) power measurements. The 45 kWh/yr flue fan is confirmed. SAP's internal-gains table
+(Table 5a) sets the pump to **zero in summer months**, so SAP itself treats this electricity as
+heating-season load.
+
+**What this is and is not.** It is a rating allowance built from product power ratings. It is not
+an observation of metered homes, so it bounds the term rather than measuring it. The physical term
+is pump and fan power multiplied by the hours the boiler circulates, and the trace already
+computes those hours.
+
+**Size against SERL, arithmetic only:** a pre-2013 pump plus a fan-assisted flue gives 210 kWh/yr.
+Spread over a heating season of about 7 months, that is about 1.0 kWh/day in winter and about zero
+in summer. SERL's 2022 median runs 8.5 → 6.0 kWh/day, a gap of about 2.5. At the 2012-or-earlier
+rating, the auxiliary term carries **about 40%** of the published swing. At the 2013-or-later rating
+(41 + 45 = 86) it carries about 15%. Which of the two applies depends on the pump-age split of the
+stock, which is **not established** here. The rest stays with items 1 and 3, whose magnitudes are
+still unsourced.
+
+**Build implication.** The world-lane BUILD has one sourced term it can write now: boiler-auxiliary
+electricity at rated W during the boiler's own circulation hours. It needs the pump's rated W,
+which the build should take from the per-unit power behind Table 4f (or from Ecodesign
+circulator-pump EEI limits), not back-solve from kWh/yr. It also needs a pump-age assignment
+that carries its gap explicitly.
