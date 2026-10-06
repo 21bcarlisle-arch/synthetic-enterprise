@@ -4687,6 +4687,7 @@ def _one_cross_code_reading(label: str, path: Path) -> dict:
             "why_no_standard_error": shape["why_no_sem"]}),
         "world_digest": (floor.get("world_identity") or {}).get("digest"),
         "home_digest": ((floor.get("world_identity") or {}).get("homes") or {}).get("digest"),
+        "demand_digest": ((floor.get("world_identity") or {}).get("demand") or {}).get("digest"),
     }
 
 
@@ -16820,6 +16821,55 @@ def _blind_envelope_homes_refusal(arms: list) -> tuple[list, list, dict | None]:
     return placeable, excluded, None
 
 
+def _blind_envelope_demand_refusal(arms: list) -> dict | None:
+    """The third world precondition: the placeable arms ran on the DEMAND this tree generates.
+
+    THE DEFECT (2026-10-06). Four changes landed in one day that each moved what a fabric-path home
+    meters -- per-home appliance ownership, the boiler's pump and fan, HES's cooking and laundry
+    season, supplementary electric heating -- and the two checks above passed across all of them,
+    because the departure level and the houses were unchanged. The whole block compares books that
+    can see a home with books that cannot, settled on the homes' metered demand; a span measured on
+    one demand world placed against a book from another is not that comparison.
+
+    UNLIKE THE HOMES, A MISSING STAMP REFUSES. The homes part can set aside an arm that never ran
+    here because the stock it would have run on is the one stamped on the others. Nothing on any arm
+    says which demand it ran on, and the demand provably moved after every arm on disk was measured,
+    so an unstamped arm is not a missing measurement beside good ones -- it is the stale case.
+    """
+    try:
+        from simulation.world_home_identity import home_demand_identity
+
+        live = home_demand_identity()["digest"]
+    except Exception as exc:  # noqa: BLE001 -- "cannot establish" is a refusal, never a pass
+        return {"available": False,
+                "why_not": ("this world's home demand could not be read ({}), so nothing here can "
+                            "say whether these books were settled on the demand this tree's homes "
+                            "generate".format(exc))}
+    homes = sorted({a.get("home_digest") for a in arms if a.get("home_digest")})
+    unstamped = [str(a.get("label") or a.get("key")) for a in arms if not a.get("demand_digest")]
+    if unstamped:
+        return {"available": False, "why_not": (
+            "{} of these books carry no record of which DEMAND their homes generated ({}). They ran "
+            "on this tree's houses ({}), and the houses do not move when what a house does with its "
+            "appliances and heating changes -- which four changes on 2026-10-06 did. The live "
+            "demand is {}. Until they are re-run and stamped with their run's "
+            "`world_identity.demand.digest`, where the chosen book sits against the blind span is "
+            "unstated here".format(len(unstamped), "; ".join(unstamped),
+                                   ", ".join(homes) or "unstamped", live))}
+    stamped = sorted({a["demand_digest"] for a in arms})
+    if len(stamped) != 1:
+        return {"available": False, "why_not": (
+            "these books were not settled on one demand world ({}), so the span between the blind "
+            "ones mixes BOOK SHAPE with what the homes draw".format(
+                ", ".join(repr(d) for d in stamped)))}
+    if stamped[0] != live:
+        return {"available": False, "why_not": (
+            "these books were settled on demand {} and this tree's homes generate {} -- same "
+            "houses ({}), different behaviour. The arms have to be re-run here before a position "
+            "can be published".format(stamped[0], live, ", ".join(homes) or "unstamped"))}
+    return None
+
+
 def _blind_envelope(arms_doc: dict | None) -> dict:
     """Where the chosen book sits against the span of the books that cannot see a home.
 
@@ -16881,6 +16931,9 @@ def _blind_envelope(arms_doc: dict | None) -> dict:
     arms, excluded, homes_refusal = _blind_envelope_homes_refusal(arms)
     if homes_refusal is not None:
         return homes_refusal
+    demand_refusal = _blind_envelope_demand_refusal(arms)
+    if demand_refusal is not None:
+        return demand_refusal
     blind = [a for a in arms if not a.get("sees_fabric")]
     chosen = [a for a in arms if a.get("sees_fabric")]
     if len(blind) < _BLIND_ENVELOPE_MINIMUM_ARMS:
@@ -16941,6 +16994,7 @@ def _blind_envelope(arms_doc: dict | None) -> dict:
         # BOTH PARTS OF THE WORLD, because a block that publishes only the departure digest is the
         # exact surface `_blind_envelope_homes_refusal` exists to stop being read as "same world".
         "home_digest": sorted({a.get("home_digest") for a in arms})[0],
+        "demand_digest": sorted({a.get("demand_digest") for a in arms})[0],
         "comparable_because": arms_doc.get("comparable_because"),
         "pounds_are_not_publishable": arms_doc.get("pounds_are_not_publishable"),
         "one_seed": arms_doc.get("one_seed"),

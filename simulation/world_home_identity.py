@@ -120,16 +120,94 @@ def home_stock_identity(*, from_fitted_joint: bool | None = None) -> dict:
             "two runs sharing this digest still hold different individual houses -- this says they "
             "came out of the same country, not that they are the same. It also covers only the "
             "FABRIC: a change to heating fuel, appliances or occupancy that leaves every thermal "
-            "parameter alone does not move it, and the departure LEVEL is a separate part with its "
-            "own digest."
+            "parameter alone does not move it -- that is the `demand` part beside this one -- and "
+            "the departure LEVEL is a separate part with its own digest."
+        ),
+    }
+
+
+#: THE DEMAND PROBE'S WEEK AND PLACE. The same 96 homes, run for one REAL week of the archive, so a
+#: change to what a home DOES with its fabric moves a digest the way a change to the fabric already
+#: does. January because every one of the 2026-10-06 demand changes fires in the cold: the boiler's
+#: pump and fan, the supplementary heater (5 of the 96 own one), and a HES season factor that is
+#: furthest from 1 in midwinter. The site is the one the supplementary heater's own normal is taken
+#: from. Like the coordinates above, these are fixed and not a tuning surface.
+DEMAND_PROBE_SITE = "C1"
+DEMAND_PROBE_START = (PROBE_YEAR, 1, 13)
+DEMAND_PROBE_DAYS = 7
+
+
+def _demand_vectors() -> list[list[str]]:
+    """Each probe home's half-hourly electricity then gas for the probe week, quantised, in draw
+    order. Measured 2026-10-06: ~0.75s for the stock and ~0.7s for 96 traces (~7ms each), so about
+    1.5s cold for the whole part -- two orders above the stock probe, and still a header cost."""
+    import datetime as dt
+
+    from simulation.fabric_physics import latitude_for_weather_site
+    from simulation.net_new_acquisition import year_premise_stock
+    from simulation.premise_trace import generate_premise_trace, load_trace_weather
+
+    start = dt.date(*DEMAND_PROBE_START)
+    weather = load_trace_weather(
+        DEMAND_PROBE_SITE, start=start, end=start + dt.timedelta(days=DEMAND_PROBE_DAYS - 1))
+    if len(weather) != DEMAND_PROBE_DAYS:
+        raise ValueError(f"the {DEMAND_PROBE_SITE} archive holds {len(weather)} of the "
+                         f"{DEMAND_PROBE_DAYS} probe days from {start}")
+    latitude = latitude_for_weather_site(DEMAND_PROBE_SITE)
+    rows = []
+    for premise in year_premise_stock(PROBE_YEAR, base_seed=PROBE_SEED, n=PROBE_SIZE):
+        trace = generate_premise_trace(
+            premise_id=premise.premise_id, household=premise.household, weather=weather,
+            seed=PROBE_SEED, latitude_deg=latitude)
+        rows.append([f"{v:.{_PLACES}f}" for commodity in ("electricity", "gas")
+                     for day in trace.half_hourly(commodity) for v in day])
+    return rows
+
+
+def home_demand_identity() -> dict:
+    """WHAT THE WORLD'S HOMES DO, as a digest a later artefact can be compared against.
+
+    THE DEFECT THIS EXISTS FOR (2026-10-06). Four changes landed in one day that each moved a
+    fabric-path home's metered demand -- the boiler's pump and fan, HES's cooking and laundry
+    season, supplementary electric heating, and per-home appliance ownership (`owned_stock`) -- and
+    neither the departure digest nor the home-stock digest moved, because the houses were the same
+    houses. A value-arms bound taken that morning and one taken that night carried one world stamp
+    from two demand worlds. This is `home_stock_identity`'s defect one layer down, and it is fixed
+    the same way: run the generator a real run runs on a fixed probe, and digest what comes out.
+    """
+    canonical = json.dumps(_demand_vectors(), separators=(",", ":"))
+    return {
+        "digest": hashlib.sha256(canonical.encode("utf-8")).hexdigest()[:16],
+        "probe_site": DEMAND_PROBE_SITE,
+        "probe_start": "{:04d}-{:02d}-{:02d}".format(*DEMAND_PROBE_START),
+        "probe_days": DEMAND_PROBE_DAYS,
+        "probe_size": PROBE_SIZE,
+        "what_this_identifies": (
+            "the DEMAND the world's homes generate -- the same {} probe homes as the `homes` part, "
+            "each run through `premise_trace.generate_premise_trace` for {} real days of the {} "
+            "archive from {}, digested as half-hourly electricity and gas. Anything that changes "
+            "what a home draws in that week moves it: appliances, their ownership and season, the "
+            "boiler's own electricity, supplementary heat, the thermal solve, the archive itself."
+            .format(PROBE_SIZE, DEMAND_PROBE_DAYS, DEMAND_PROBE_SITE,
+                    "{:04d}-{:02d}-{:02d}".format(*DEMAND_PROBE_START))
+        ),
+        "what_this_does_not_cover": (
+            "what `fabric_demand_path` layers on top of the trace -- the comfort constraint from "
+            "last year's bill, away days, life-event segments -- and anything that only shows "
+            "outside a January week. It identifies, it does not estimate: no figure should be "
+            "read off these homes."
         ),
     }
 
 
 __all__ = [
+    "DEMAND_PROBE_DAYS",
+    "DEMAND_PROBE_SITE",
+    "DEMAND_PROBE_START",
     "FABRIC_IS",
     "PROBE_SEED",
     "PROBE_SIZE",
     "PROBE_YEAR",
+    "home_demand_identity",
     "home_stock_identity",
 ]

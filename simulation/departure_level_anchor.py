@@ -49,7 +49,7 @@ from simulation.market_switching_propensity import (
     MULTIPLIER_REFERENCE_YEAR,
     _published_departure_rates,
 )
-from simulation.world_home_identity import home_stock_identity
+from simulation.world_home_identity import home_demand_identity, home_stock_identity
 
 #: The years the fit is SCOPED TO, and the third of the three sets this file has to keep apart.
 #:
@@ -517,6 +517,7 @@ def world_level_identity() -> dict:
             "`homes` part beside this one, and this part alone is NOT the world."
         ),
         "homes": home_stock_identity(),
+        "demand": home_demand_identity(),
         # Deferred: the payment draw imports the arrears engine, which this module must not load
         # for every reader of a departure rate.
         "payment_methods": _payment_method_identity(),

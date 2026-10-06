@@ -9435,7 +9435,19 @@ def _live_home_digest():
     return home_stock_identity()["digest"]
 
 
-def _arms_doc(home_digests, first_hand=None, why_unavailable=None):
+_LIVE_DEMAND = []
+
+
+def _live_demand_digest():
+    # Held for the module: the probe costs ~0.6s warm and nothing in this file varies the demand.
+    if not _LIVE_DEMAND:
+        from simulation.world_home_identity import home_demand_identity
+
+        _LIVE_DEMAND.append(home_demand_identity()["digest"])
+    return _LIVE_DEMAND[0]
+
+
+def _arms_doc(home_digests, first_hand=None, why_unavailable=None, demand="live"):
     """An arms artefact whose only variable is what each arm says about its houses.
 
     Built rather than loaded because the point is to vary ONE field across otherwise identical
@@ -9445,6 +9457,8 @@ def _arms_doc(home_digests, first_hand=None, why_unavailable=None):
     The LAST entry is the sighted book; everything before it is blind. Pass more than four digests
     to get more blind arms. `first_hand` and `why_unavailable` are per-arm and default to
     "all first-hand" and "no arm states a reason", which is the shape most of these tests want.
+    `demand` stamps every home-stamped arm: "live" for this tree's demand, None for no stamp, or a
+    list for one digest per arm.
     """
     figures = lambda n: {"gross_margin_gbp": n, "net_margin_gbp": n / 2.0}  # noqa: E731
     count = len(home_digests)
@@ -9464,6 +9478,9 @@ def _arms_doc(home_digests, first_hand=None, why_unavailable=None):
         }
         if home is not None:
             arm["home_digest"] = home
+            stamp = demand[index] if isinstance(demand, list) else demand
+            if stamp is not None:
+                arm["demand_digest"] = _live_demand_digest() if stamp == "live" else stamp
         if why_unavailable[index] is not None:
             arm["home_digest_unavailable_because"] = why_unavailable[index]
         arms.append(arm)
@@ -9501,6 +9518,7 @@ def test_arms_stamped_with_THIS_worlds_homes_do_publish():
     assert out["home_digest"] == live, (
         "the block publishes a span without saying which houses it was measured in, which is the "
         "field whose absence is the whole finding")
+    assert out["demand_digest"] == _live_demand_digest()
 
 
 def test_arms_measured_on_a_stock_this_tree_does_not_have_are_refused():
@@ -9557,6 +9575,36 @@ def test_the_real_artefact_on_disk_either_publishes_IN_THIS_WORLD_or_says_why_no
             "the block is withheld with no usable reason, which is the fail-silent this whole feed "
             "was built to avoid")
         assert _live_home_digest() in out["why_not"]
+
+
+# ---------------------------------------------------------------------------------------------
+# THE THIRD WORLD PRECONDITION -- the DEMAND the homes generate (2026-10-06).
+#
+# Four demand changes landed in one day with the departure and home digests unmoved; the arms on
+# disk were measured before all four. R15 -- mutations, each run and reverted:
+#   * make `_blind_envelope_demand_refusal` return None -> the three refusal tests below red.
+#   * make it refuse unconditionally -> `test_arms_stamped_with_THIS_worlds_homes_do_publish` reds.
+# ---------------------------------------------------------------------------------------------
+
+def test_arms_with_no_demand_stamp_are_refused_naming_the_live_demand():
+    live = _live_home_digest()
+    out = gva._blind_envelope(_arms_doc([live] * 4, demand=None))
+    assert out["available"] is False
+    assert _live_demand_digest() in out["why_not"] and "DEMAND" in out["why_not"]
+
+
+def test_arms_settled_on_a_demand_this_tree_does_not_generate_are_refused():
+    live = _live_home_digest()
+    out = gva._blind_envelope(_arms_doc([live] * 4, demand=["feedfacefeedface"] * 4))
+    assert out["available"] is False
+    assert "feedfacefeedface" in out["why_not"] and _live_demand_digest() in out["why_not"]
+
+
+def test_arms_that_disagree_about_the_demand_are_refused():
+    live = _live_home_digest()
+    out = gva._blind_envelope(_arms_doc([live] * 4, demand=["live", "live", "0" * 16, "live"]))
+    assert out["available"] is False
+    assert "0" * 16 in out["why_not"] and "one demand world" in out["why_not"]
 
 
 # ---------------------------------------------------------------------------------------------
