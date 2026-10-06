@@ -176,6 +176,11 @@ lead in `occupancy_consumption_volume_shape_w2_13.md`) are the first places to l
 ownership draw until those rates are read.** The base-load distribution in the table above is
 measured, and it is whole-meter LCL, so it carries the electric-heated "Std" homes in its upper tail.
 
+*Correction, 2026-10-06, later the same day: the ownership rates are now read. EFUS 2011 and 2017 give
+them by household size in `what_appliances_an_english_home_owns_efus_2011_and_2017.md`. A separate
+freezer is in 38% of homes, a dishwasher in 44% and a tumble dryer in 58%, and the world gives all three
+to every home.*
+
 Limits: this is one world draw (seed 17), the 13 partitions described above, the p5 half-hour as the
 base-load estimator (a home with logging gaps that read 0 sits at 0), and a constant-shift estimate,
 not a regenerated trace.
