@@ -389,7 +389,9 @@ def behaviour_profile_for(
             someone_employed = drawn_employed
 
     rise = _substream(base, "rise")
-    # Weekday rise 05:30–08:30, retire 21:30–24:00 (half-hour indices).
+    # Weekday rise 05:30–08:30, retire 21:30–23:30 (half-hour indices). UNSOURCED: no GB bedtime
+    # distribution is in the knowledge layer, and no world home is up after midnight where real
+    # homes' 00:00 runs at 0.6 of their active mean (W1_29 texture doc, "the night above the base").
     wake_period = rise.randint(11, 17)
     sleep_period = rise.randint(43, 47)
     weekend_shift = rise.randint(1, 4)

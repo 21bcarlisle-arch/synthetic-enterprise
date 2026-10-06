@@ -261,3 +261,68 @@ from its flat counterfactual. No real home's L1.1n ratio has been read. Peak-to-
 the L1.1n null rose to +0.457 through a common cause (base share), and it is +0.226 held at the share.
 L1.4's day-type-shuffled null now puts 7 of 240 homes under its floor, where it put none, which is still
 nowhere near firing the cell.
+
+## Where the upper half's calm comes from: the night above the base (2026-10-06, close to midnight)
+
+Worker on the self-refill draw of `W1_29`. The same 313 LCL Std homes and window. The world side is the
+drawn 60 at `origin/main` `ba5728611`, measured in a clean worktree and read net of both heating machines,
+as the cell reads it. **Nothing is built here.** Three new per-home statistics:
+*above-base use* = (mean − p5 half-hour) × 48 kWh/day; *active texture* = median step ÷ (mean − p5),
+which is texture with the constant taken out of the denominator; and the daily profile above the base
+as a share of the active mean.
+
+*Pre-registered before the run:* (P1) the world's above-base use is at least 25% below LCL's at the
+median; (P2) the active-texture median is within ±15% of LCL's; (P3) within matched above-base bands,
+world texture is below LCL's only in the upper bands, so the p75 red is a level defect and not a shape
+defect.
+
+| p10 / p25 / median / p75 / p90 | LCL Std | world |
+|---|---|---|
+| above-base use, kWh/day | 2.7 / 3.8 / 6.6 / 11.3 / 18.7 | 3.1 / 4.9 / 5.7 / 7.3 / 8.8 |
+| active texture | 0.093 / 0.154 / 0.213 / 0.285 / 0.377 | 0.126 / 0.145 / 0.185 / 0.252 / 0.285 |
+| night (periods 2–9) above base ÷ active mean | 0.14 / 0.20 / 0.34 / 0.54 / 0.85 | 0.07 / 0.09 / 0.11 / 0.17 / 0.20 |
+| night step ÷ active mean (LCL 4–15 kWh/day, n 189) | 0.055 / 0.095 / 0.149 / 0.201 / 0.270 | 0.080 / 0.093 / 0.116 / 0.181 / 0.206 |
+| day step ÷ active mean (LCL 4–15 kWh/day) | 0.163 / 0.229 / 0.275 / 0.339 / 0.400 | 0.178 / 0.198 / 0.238 / 0.297 / 0.335 |
+
+Texture at matched above-base use (medians): 5–7 kWh/day, LCL 0.173 (n 58) against world 0.133
+(n 23); 7–10 kWh/day, LCL 0.150 (n 54) against world 0.112 (n 18). Below 5 and from 10 to 15 the two
+agree within about 0.01–0.04, on few world homes.
+
+Median profile above base ÷ active mean, every other half-hour from 00:00 (LCL 4–15 kWh/day, then world):
+
+    LCL    0.62 0.38 0.29 0.25 0.24 0.25 0.34 0.60 0.88 1.05 1.04 0.98 1.01 1.08 1.02 1.02 1.11 1.29 1.57 1.77 1.69 1.60 1.41 1.08
+    world  0.11 0.11 0.11 0.12 0.12 0.14 0.22 0.72 0.92 0.81 0.90 0.83 0.82 0.79 0.79 0.84 1.16 1.91 2.21 2.33 2.47 2.46 1.70 0.93
+
+**P1 was refuted**: the world's above-base median is 15% short, not 25%. What the world lacks is the
+upper tail (p90 8.8 against 18.7), not the middle. **P2 held, narrowly** (−13%). **P3 was refuted**:
+the calm sits in the 5–10 kWh/day bands, where most world homes are, and there a world home is
+25–30% calmer than a real home that uses the same energy above its base. The p75 red is a **shape**
+defect, so adding energy is not the remedy.
+
+**The shape defect is the night.** From midnight to 04:00 a world home runs at about 0.11 of its active
+mean above its base. A real gas-proxy home runs at 0.62 at 00:00, falling to 0.24 by 04:00. The world
+moves that energy into a 17:00–22:00 peak about 40% too tall instead. Night steps are 22% too small
+and day steps 13% too small.
+
+**What the code does, and what is not established.** `generate_premise_trace` draws each home's
+bedtime as `rise.randint(43, 47)`, so the household retires between 21:30 and 23:30. No world home is
+up after midnight, and asleep counts as "present, nothing switched on" (`occupancy_at`, 0.25 with no
+load). That range carries no source. No `docs/market_research/` page or knowledge-map row holds a GB
+bedtime distribution. A quick search this pass found none published as figures: UKTUS 2014–15 is
+microdata (UK Data Service), and Pérez et al. 2019 (*J Sleep Res*, PMC6378586) shows 2015 sleep onset
+only as a figure, with no quantiles in the text. **Build no bedtime draw until a distribution is read.**
+
+The night gap has more than one candidate cause, and this pass cannot yet attribute it:
+(a) bedtimes capped at 23:30;
+(b) nothing above base while asleep, where real homes run dehumidifiers, chargers, timed washing and
+dishwasher runs, and a second fridge;
+(c) electric-heated or Economy 7 homes carrying a "Std" label in LCL, already narrowed by the 4–15
+kWh/day proxy without removing the gap;
+(d) London 2013 being a later-living population than GB 2022.
+
+The one-variable test is to move the bedtime range alone to a sourced distribution and re-read the
+00:00–04:00 profile. Its prediction will be written when the distribution exists. LCL must not be the
+source of the bedtime, because LCL is the comparison.
+
+Limits: one world draw (seed 17, traces seed 7), 13/168 LCL partitions, p5 as the base estimator.
+Scripts: `/tmp/w129b/` (not committed).
