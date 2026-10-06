@@ -627,16 +627,22 @@ def test_MEASURED_population_values(population, population_result):
     # block). Pre-registered: each owner moves under 0.01. P0023 0.1045 -> 0.1056,
     # P0050 0.1166 -> 0.1197, which steps over the 0.117 line by 0.003. Timing does
     # not make them calm: the heater's energy raises the mean and adds few steps.
+    #
+    # [0, 1, 4, 31] -> [0, 0, 3, 31] the same day, a sourced correction and not a
+    # fit. The heater's energy anchor moved from HES Table 14's 1,505 kWh/yr to
+    # CAR's 656 for homes whose main heating is not electric, because 1,505 needed
+    # 5-6 kW from one plug-in heater on a cold day. P0023 0.1056 -> 0.1347
+    # (pre-registered 0.12-0.16, held). It is still the calmest home.
     texture = population_result.cell(fgl.TEXTURE_STATISTIC)
     assert texture.verdict is fgl.Verdict.FAIL, texture.note
     assert texture.homes_judged == 60 and texture.homes_unjudged == 0, texture.note
     legs = {leg.q: leg for leg in texture.quantiles}
-    assert [legs[q].below for q in (0.10, 0.25, 0.50, 0.75)] == [0, 1, 4, 31], texture.note
+    assert [legs[q].below for q in (0.10, 0.25, 0.50, 0.75)] == [0, 0, 3, 31], texture.note
     assert legs[0.50].world == pytest.approx(0.209, abs=0.005), texture.note
     assert all(leg.p * len(legs) < fgl.TEXTURE_DISTRIBUTION_ALPHA for leg in legs.values())
     # The calmest home is a supplementary-heater owner (above), and no longer P0000.
     assert texture.worst_home == "P0023", texture.note
-    assert texture.worst_value == pytest.approx(0.1056, abs=5e-4), texture.note
+    assert texture.worst_value == pytest.approx(0.1347, abs=5e-4), texture.note
     assert "gas" in population.heating_systems[
         population.homes.index(texture.worst_home)
     ], "the calmest home is one the machine netting did not touch"
@@ -660,8 +666,12 @@ def test_MEASURED_population_values(population, population_result):
     assert {c.statistic for c in population_result.failed} == {
         fgl.TEXTURE_STATISTIC, "L2.4_scale_spread_p90_p10",
     }, population_result.summary()
+    #
+    # 1.96 -> 1.93 on 2026-10-06: the heater's anchor 1,505 -> 656 kWh/yr took about
+    # 700 kWh off each owner's year. Pre-registered as under 0.05 from 2.007; it
+    # moved 0.076, so that prediction was refuted.
     spread = population_result.cell("L2.4_scale_spread_p90_p10")
-    assert spread.value == pytest.approx(1.96, abs=0.05), spread.note
+    assert spread.value == pytest.approx(1.93, abs=0.05), spread.note
     assert not population_result.inconclusive, population_result.summary()
     # 0.4386 -> 0.4511 on 2026-10-06: the boiler pump repeats with the heating, so
     # it raises a gas home's day-to-day shape correlation a little. Still a GAS home.
@@ -678,9 +688,14 @@ def test_MEASURED_population_values(population, population_result):
     # time, so its sessions move and it left the top. The worst is now P0023, which
     # EFUS's 28% set-time draw gives one fixed session a day type: it repeats, as a
     # set-time household does. The power within a session is still not sourced.
+    #
+    # 0.5780 -> 0.4417 the same day, and the worst is P0000 again: the heater's
+    # anchor fell 1,505 -> 656 kWh/yr, so P0023's repeating session is a smaller
+    # share of its day. Pre-registered as P0023 at 0.45-0.56; it fell below the
+    # whole cell's 0.4417, so the prediction was refuted on the low side.
     shape = population_result.cell("L1.2_day_to_day_shape_correlation")
-    assert shape.worst_home == "P0023", shape.note
-    assert shape.worst_value == pytest.approx(0.5780, abs=0.01), shape.note
+    assert shape.worst_home == "P0000", shape.note
+    assert shape.worst_value == pytest.approx(0.4417, abs=0.01), shape.note
     assert "gas" in population.heating_systems[
         population.homes.index(shape.worst_home)
     ], "the worst home is a GAS home"
@@ -721,16 +736,18 @@ def test_P0000_the_calmest_home_is_ORDINARY_against_real_homes_and_the_red_is_th
             fgl.half_hourly_texture(meter, machines=fgl.machine_draw(judged, heater)),
         )
 
-    # SINCE 2026-10-06 THE CALMEST HOMES ARE SUPPLEMENTARY-HEATER OWNERS. Called an
-    # artefact of the flat block; once the heater's timing was sourced they barely
-    # moved (pre-registered, held), so the calm is mostly the heater's energy in the
-    # mean, a real load. What stays unsourced is the cycling within a session. The
-    # property kept: every home under the real p25 owns a heater, and net of the
-    # heater none of them is there.
-    under_p25 = {pid for pid, r in readings.items() if r[0] < REAL_P25}
-    assert under_p25 and under_p25 == {pid for pid, r in readings.items() if r[4] > 0.0} & under_p25
-    assert cell.worst_home in under_p25
-    assert all(readings[pid][5] > REAL_P25 for pid in under_p25)
+    # SINCE 2026-10-06 THE CALMEST HOME IS A SUPPLEMENTARY-HEATER OWNER. Called an
+    # artefact of the flat block; once the heater's timing was sourced the owners
+    # barely moved (pre-registered, held), so the calm is the heater's energy in the
+    # mean, a real load. Later the same day the energy anchor fell 1,505 -> 656
+    # kWh/yr (CAR; 1,505 needed 5-6 kW from one plug-in heater), and the owners left
+    # the real p25: no home is under it now. The property kept: the calmest home owns
+    # a heater, and net of the heater no owner is under the real p25.
+    owners = {pid for pid, r in readings.items() if r[4] > 0.0}
+    assert owners, "no heater owner in the draw, so the property below is vacuous"
+    assert cell.worst_home in owners
+    assert not {pid for pid, r in readings.items() if r[0] < REAL_P25}
+    assert all(readings[pid][5] > REAL_P25 for pid in owners)
 
     # P0000, the pump diagnosis, read by identity. 0.1495 -> 0.1466 on 2026-10-06:
     # HES's cooking and laundry season redrew the event stream; it owns no heater.
