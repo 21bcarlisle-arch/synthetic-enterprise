@@ -1,17 +1,20 @@
 """Tests for Phase FX: PPM Installation Warrant Register."""
 import datetime as dt
+
 import pytest
+
 from company.billing.ppm_warrant_register import (
-    WarrantStatus,
-    WarrantRefusalReason,
-    VulnerabilityCheck,
+    _MIN_DEBT_FOR_WARRANT_GBP,
     PPMWarrantRecord,
     PPMWarrantRegister,
-    _PPM_FORCE_FIT_BAN_DATE,
-    _MIN_DEBT_FOR_WARRANT_GBP,
+    VulnerabilityCheck,
+    WarrantRefusalReason,
+    WarrantRegime,
+    WarrantStatus,
 )
 
-BAN_DATE = _PPM_FORCE_FIT_BAN_DATE  # 2023-04-27
+SUSPENDED = dt.date(2023, 2, 6)    # magistrates' listing suspended
+SLC_28B = dt.date(2023, 11, 8)     # SLC 28B in force: involuntary PPM permitted, with conditions
 
 # ── helpers ──────────────────────────────────────────────────────────────────
 
@@ -84,13 +87,12 @@ class TestVulnerabilityCheck:
 
 class TestPPMWarrantRecord:
 
-    def test_is_pre_ban_before_ban_date(self):
-        r = make_record(app_date=dt.date(2023, 1, 10))
-        assert r.is_pre_ban
+    def test_regime_before_the_suspension(self):
+        assert make_record(app_date=SUSPENDED - dt.timedelta(1)).regime is WarrantRegime.PRE_SUSPENSION
 
-    def test_is_post_ban_on_or_after_ban_date(self):
-        r = make_record(app_date=BAN_DATE)
-        assert r.is_post_ban
+    def test_regime_in_the_suspension_window(self):
+        r = make_record(app_date=SUSPENDED)
+        assert r.regime is WarrantRegime.LISTING_SUSPENDED and r.is_in_suspension_window
 
     def test_is_active_when_applied(self):
         r = make_record(status=WarrantStatus.APPLIED)
@@ -120,13 +122,9 @@ class TestPPMWarrantRecord:
         r = make_record()
         assert "WA-00001" in r.warrant_summary()
 
-    def test_warrant_summary_pre_ban_label(self):
-        r = make_record(app_date=dt.date(2022, 6, 1))
-        assert "pre-ban" in r.warrant_summary()
-
-    def test_warrant_summary_post_ban_label(self):
-        r = make_record(app_date=BAN_DATE)
-        assert "POST-BAN" in r.warrant_summary()
+    def test_warrant_summary_names_its_regime(self):
+        assert "[pre_suspension]" in make_record(app_date=dt.date(2022, 6, 1)).warrant_summary()
+        assert "[slc_28b]" in make_record(app_date=SLC_28B).warrant_summary()
 
     def test_frozen(self):
         r = make_record()
@@ -192,12 +190,12 @@ class TestPPMWarrantRegister:
         self.reg.update_status(r.warrant_id, WarrantStatus.EXECUTED, dt.date(2023, 2, 15))
         assert len(self.reg.executed_warrants()) == 1
 
-    def test_post_ban_applications(self):
+    def test_suspension_window_applications(self):
         self.reg.apply_for_warrant("ACC001", dt.date(2022, 12, 1), 500.0, make_check())
-        self.reg.apply_for_warrant("ACC002", BAN_DATE, 500.0, make_check())
-        post_ban = self.reg.post_ban_applications()
-        assert len(post_ban) == 1
-        assert post_ban[0].account_id == "ACC002"
+        self.reg.apply_for_warrant("ACC002", SUSPENDED, 500.0, make_check())
+        self.reg.apply_for_warrant("ACC003", SLC_28B, 500.0, make_check())
+        window = self.reg.suspension_window_applications()
+        assert [r.account_id for r in window] == ["ACC002"]
 
     def test_vulnerability_flagged_warrants(self):
         good_check = make_check(cleared=True)
@@ -217,11 +215,35 @@ class TestPPMWarrantRegister:
 
     def test_warrant_register_summary(self):
         self.reg.apply_for_warrant("ACC001", dt.date(2022, 6, 1), 500.0, make_check())
-        self.reg.apply_for_warrant("ACC002", BAN_DATE, 400.0, make_check())
+        self.reg.apply_for_warrant("ACC002", SLC_28B, 400.0, make_check())
         s = self.reg.warrant_register_summary()
         assert "2 total" in s
-        assert "1 pre-ban" in s
-        assert "1 post-ban" in s
+        assert "1 pre-suspension" in s
+        assert "0 in the listing suspension" in s
+        assert "1 under SLC 28B" in s
 
-    def test_ban_date_constant(self):
-        assert _PPM_FORCE_FIT_BAN_DATE == dt.date(2023, 4, 27)
+
+# ── the April 2023 "ban" that never was (corrected 2026-10-06) ───────────────
+
+def test_there_was_no_april_2023_ban_so_an_slc_28b_application_is_not_flagged():
+    """Listing was suspended 6 Feb 2023 and SLC 28B permitted involuntary PPM from 8 Nov 2023
+    (read_access_and_theft_duties.md §2.5; debt_and_collections.md). The old register flagged
+    every application from 27 Apr 2023 as "post-ban". The partition: all three regimes reachable,
+    and only the suspension window is anomalous."""
+    import company.billing.ppm_warrant_register as m
+    assert not hasattr(m, "_PPM_FORCE_FIT_BAN_DATE")
+    assert not hasattr(WarrantRefusalReason, "POST_BAN")
+    seen = {make_record(app_date=d).regime for d in
+            (dt.date(2022, 6, 1), dt.date(2023, 4, 27), dt.date(2024, 1, 15))}
+    assert seen == set(WarrantRegime)
+    restart = make_record(app_date=dt.date(2024, 1, 15))
+    assert restart.regime is WarrantRegime.SLC_28B and not restart.is_in_suspension_window
+    assert make_record(app_date=dt.date(2023, 11, 7)).is_in_suspension_window
+    assert "ban" not in restart.warrant_summary().lower()
+
+
+def test_the_vulnerability_check_has_no_wall_clock_expiry():
+    """`is_expired` read date.today(); only the as-of form, at the simulated date, remains."""
+    assert not hasattr(VulnerabilityCheck, "is_expired")
+    c = make_check(checked_at=dt.date(2023, 1, 1))
+    assert not c.is_expired_as_of(dt.date(2023, 1, 29)) and c.is_expired_as_of(dt.date(2023, 1, 30))

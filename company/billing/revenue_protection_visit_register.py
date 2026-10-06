@@ -1,4 +1,7 @@
-"""Revenue Protection Visit Register — GS(SS)5 site investigation obligation.
+"""Revenue Protection Visit Register — the SLC 12A.6 duty to investigate a suspected theft.
+
+(Corrected 2026-10-06: this headline cited "GS(SS)5", which no source read contains;
+read_access_and_theft_duties.md §3.1, §5.)
 
 When theft risk scoring flags a site, a Revenue Protection (RP) visit is
 scheduled. The outcome determines whether the case progresses to the

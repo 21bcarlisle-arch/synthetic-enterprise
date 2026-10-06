@@ -2,7 +2,7 @@
 
 Pre-investigation risk scoring for potential energy theft, operating
 upstream of energy_theft_book.py (which handles confirmed-theft cases
-and DNO notification obligations under GS(SS)5).
+and the DCUSA Clause 30.9 DNO notification, whose deadline is a GAP).
 
 UK energy theft context:
   - Estimated £400M+ annual industry loss to electricity theft (UK Energy)
@@ -16,9 +16,11 @@ UK energy theft context:
 Supplier practice:
   - Risk scores are produced by automated models (rule-based or ML)
   - Threshold-based dispatch: e.g. CRITICAL (>=80) → immediate inspection
-  - Regulatory expectation: GS(SS)5 requires notification of suspected theft
-    to the relevant DNO; the risk score is the internal trigger for that
-    process to begin.
+  - Regulatory expectation: SLC 12A.6 requires investigation where there are
+    reasonable grounds to suspect theft; the risk score is the internal trigger
+    for that process, alongside the industry TRAS score (REC Schedule 7).
+    (Corrected 2026-10-06: this cited "GS(SS)5", found in no source read;
+    read_access_and_theft_duties.md §3.1, §5.)
 
 Distinct from energy_theft_book.py which tracks cases once investigation
 has commenced. A scored account becomes a theft_book case when

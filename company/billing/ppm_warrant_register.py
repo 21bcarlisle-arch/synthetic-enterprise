@@ -1,29 +1,23 @@
 """PPM Installation Warrant Register (Phase FX).
 
-Following the February 2023 British Gas scandal where warrant entries
-were used to force-install prepayment meters on vulnerable customers:
+A magistrates' warrant is how a supplier gains entry to install a prepayment meter for debt where
+the customer refuses. 94,201 PPMs were fitted under warrant in 2022, 70% by three suppliers.
 
-- Ofgem launched emergency review Feb 2023
-- Voluntary moratorium on forced PPM installations Feb 2023
-- Ofgem banned force-fitting (warrants for PPM) from April 2023
-- New PPM Code of Practice introduced 2023
-- Suppliers who had force-installed PPMs required to compensate
+The regime, in three eras (read_access_and_theft_duties.md §2.5; debt_and_collections.md, SLC 28B
+row and the `ppm_warrant_register.py` finding):
+- to 5 Feb 2023: warrants listed and heard as before.
+- from 6 Feb 2023: magistrates' listing of PPM warrant applications SUSPENDED; suppliers paused
+  involuntary installs. Ofgem's Code of Practice followed on 18 Apr 2023.
+- from 8 Nov 2023: SLC 28B in the licence. Involuntary PPM is PERMITTED again, subject to its
+  conditions (Debt Trigger: 3 months outstanding and GBP200+ per fuel, not on a plan; 10+ contact
+  attempts; a recorded Site Welfare Visit; bans by household type). Suppliers restarted one by one
+  from Jan 2024, each on Ofgem's say-so -- a date per supplier, not one this module holds.
 
-A court warrant (magistrates court application) is required to gain
-entry to a property to install a PPM where the customer refuses.
-Before applying, suppliers must:
-1. Complete SLC 28 4-stage disconnection warning sequence
-2. Conduct formal vulnerability assessment
-3. Confirm debt exceeds minimum threshold
-4. Confirm no winter moratorium applies
-
-Post-April 2023: warrant applications for PPM installation suspended
-(Ofgem direction; suppliers may only install voluntarily or with
-explicit written customer consent). Emergency metering visits remain
-available for safety purposes but not for PPM installation.
-
-This register tracks the pre-ban history and ongoing monitoring
-to ensure no recurrence.
+Corrected 2026-10-06: this said Ofgem "banned force-fitting (warrants for PPM) from April 2023" and
+that suppliers "may only install voluntarily", and flagged every application from 27 Apr 2023 as
+"post-ban". There was no ban: listing was suspended in February 2023 and installs resumed under
+SLC 28B. An application under SLC 28B is lawful when its conditions are met; only one made in the
+suspension window is anomalous.
 """
 from __future__ import annotations
 
@@ -32,9 +26,15 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import List, Optional
 
-_PPM_FORCE_FIT_BAN_DATE = dt.date(2023, 4, 27)  # Ofgem direction effective date
+#: Magistrates' listing of PPM warrant applications suspended (read_access_and_theft_duties.md
+#: §2.5, citing Ofgem's Market compliance review of PPM installations, 3 June 2026).
+_WARRANT_LISTING_SUSPENDED_FROM = dt.date(2023, 2, 6)
+#: SLC 28B in force (Ofgem PPM licence decision, Sep 2023; debt_and_collections.md SLC 28B row).
+_SLC_28B_IN_FORCE_FROM = dt.date(2023, 11, 8)
 _VULNERABILITY_CHECK_VALID_DAYS = 28   # check expires if 28 days old at installation
-_MIN_DEBT_FOR_WARRANT_GBP = 200.0     # minimum debt before warrant considered
+#: SLC 28B Debt Trigger: GBP200 or more PER FUEL (debt_and_collections.md, SLC 28B row). This
+#: register holds one debt figure per application, so a dual-fuel account is not split here.
+_MIN_DEBT_FOR_WARRANT_GBP = 200.0
 
 
 class WarrantStatus(str, Enum):
@@ -51,7 +51,14 @@ class WarrantRefusalReason(str, Enum):
     INSUFFICIENT_DEBT = "insufficient_debt"
     DISCONNECTION_SEQUENCE_INCOMPLETE = "disconnection_sequence_incomplete"
     WINTER_MORATORIUM = "winter_moratorium"
-    POST_BAN = "post_ban"
+    LISTING_SUSPENDED = "listing_suspended"   # made 6 Feb - 7 Nov 2023
+
+
+class WarrantRegime(str, Enum):
+    """Which rules an application was made under. Not a ban: see the module docstring."""
+    PRE_SUSPENSION = "pre_suspension"         # to 5 Feb 2023
+    LISTING_SUSPENDED = "listing_suspended"   # 6 Feb - 7 Nov 2023
+    SLC_28B = "slc_28b"                       # from 8 Nov 2023: permitted, with conditions
 
 
 @dataclass(frozen=True)
@@ -71,11 +78,6 @@ class VulnerabilityCheck:
             return False
         return True
 
-    @property
-    def is_expired(self) -> bool:
-        today = dt.date.today()
-        return (today - self.checked_at).days > _VULNERABILITY_CHECK_VALID_DAYS
-
     def is_expired_as_of(self, as_of: dt.date) -> bool:
         return (as_of - self.checked_at).days > _VULNERABILITY_CHECK_VALID_DAYS
 
@@ -93,12 +95,16 @@ class PPMWarrantRecord:
     compensation_paid_gbp: float = 0.0
 
     @property
-    def is_pre_ban(self) -> bool:
-        return self.application_date < _PPM_FORCE_FIT_BAN_DATE
+    def regime(self) -> WarrantRegime:
+        if self.application_date < _WARRANT_LISTING_SUSPENDED_FROM:
+            return WarrantRegime.PRE_SUSPENSION
+        if self.application_date < _SLC_28B_IN_FORCE_FROM:
+            return WarrantRegime.LISTING_SUSPENDED
+        return WarrantRegime.SLC_28B
 
     @property
-    def is_post_ban(self) -> bool:
-        return not self.is_pre_ban
+    def is_in_suspension_window(self) -> bool:
+        return self.regime is WarrantRegime.LISTING_SUSPENDED
 
     @property
     def is_active(self) -> bool:
@@ -113,9 +119,8 @@ class PPMWarrantRecord:
         return self.debt_at_application_gbp >= _MIN_DEBT_FOR_WARRANT_GBP
 
     def warrant_summary(self) -> str:
-        era = "pre-ban" if self.is_pre_ban else "POST-BAN"
         return (
-            f"Warrant {self.warrant_id} [{era}] {self.account_id}: "
+            f"Warrant {self.warrant_id} [{self.regime.value}] {self.account_id}: "
             f"debt=£{self.debt_at_application_gbp:.2f} status={self.status.value}"
         )
 
@@ -187,8 +192,14 @@ class PPMWarrantRegister:
     def rejected_warrants(self) -> List[PPMWarrantRecord]:
         return [r for r in self._records if r.status == WarrantStatus.REJECTED]
 
-    def post_ban_applications(self) -> List[PPMWarrantRecord]:
-        return [r for r in self._records if r.is_post_ban]
+    def suspension_window_applications(self) -> List[PPMWarrantRecord]:
+        return [r for r in self._records if r.is_in_suspension_window]
+
+    def applications_by_regime(self) -> dict[str, int]:
+        counts = {g.value: 0 for g in WarrantRegime}
+        for r in self._records:
+            counts[r.regime.value] += 1
+        return counts
 
     def vulnerability_flagged_warrants(self) -> List[PPMWarrantRecord]:
         return [r for r in self._records if not r.vulnerability_check.assessor_cleared]
@@ -198,12 +209,12 @@ class PPMWarrantRegister:
 
     def warrant_register_summary(self) -> str:
         n = len(self._records)
-        n_pre = sum(1 for r in self._records if r.is_pre_ban)
-        n_post = len(self.post_ban_applications())
+        by = self.applications_by_regime()
         n_exec = len(self.executed_warrants())
         n_comp = self.total_compensation_paid_gbp()
         return (
-            f"PPM Warrant Register: {n} total ({n_pre} pre-ban, {n_post} post-ban). "
-            f"{n_exec} executed. Compensation paid: £{n_comp:.2f}. "
-            f"Ban date: {_PPM_FORCE_FIT_BAN_DATE}."
+            f"PPM Warrant Register: {n} total ("
+            f"{by['pre_suspension']} pre-suspension, {by['listing_suspended']} in the "
+            f"listing suspension, {by['slc_28b']} under SLC 28B). "
+            f"{n_exec} executed. Compensation paid: £{n_comp:.2f}."
         )

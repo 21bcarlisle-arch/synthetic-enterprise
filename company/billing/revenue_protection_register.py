@@ -7,15 +7,23 @@ quantifies revenue losses due to:
 3. Meter bypassing: diversion of supply before meter
 4. Estimation fraud: manipulating meter reads
 
-In UK, revenue protection is governed by:
-- Gas Safety (Management) Regulations 1996 (for gas)
-- Electricity Act 1989 Section 10 (for electricity)
-- GS(SS)5 (Gas Safety) and equivalent electricity network codes
+In GB, revenue protection is governed by (read_access_and_theft_duties.md §2.2, §3.1):
+- SLC 12 and 12A, both fuels: detect, investigate and prevent theft; the 12A.11 investigation
+  standards; party to REC Schedule 7 (TRAS, ETTOS, TDIS).
+- Electricity Act 1989 Sch 6 para 7 (powers of entry to read, inspect or remove a meter) and
+  para 10 (obstruction); Gas Act 1986 Sch 2B para 23 and 28. Entry against the occupier's will
+  needs a warrant (Rights of Entry Act 1954 s.1-2).
+Corrected 2026-10-06: this cited "Electricity Act 1989 Section 10"; the Act's entry, theft and
+meter provisions are Schedules 6 and 7, not s.10. It also cited "GS(SS)5", found in no source
+read, and "Gas Safety (Management) Regulations 1996", which no source read ties to revenue
+protection; both are dropped.
 
 When RP identifies a case:
-1. DNO/transporter notified (2 working days - Phase 323)
-2. Estimated bill raised for un-metered period (up to 3 years)
-3. Dispute process available to customer
+1. DNO notified under DCUSA Clause 30.9 (via SLC 12A.3). Deadline: GAP, not read.
+2. Assessed volume entered into settlement and billed. SLC 21BA.2(c) lifts the 12-month
+   back-billing limit for theft; no licence cap replaces it (the "up to 3 years" this said was
+   unsourced). Payment needs evidence of intent or culpable negligence (SLC 12A.11(g)).
+3. Dispute process available to customer (SLC 12A.11(h))
 
 Key metric: Revenue at risk (RAR) = lost revenue from confirmed theft cases.
 
@@ -23,6 +31,7 @@ Epistemic: the company knows about identified RP cases and
 estimated losses. Underlying theft rate is unknown.
 """
 from __future__ import annotations
+
 from dataclasses import dataclass
 from datetime import date
 from enum import Enum
@@ -45,7 +54,9 @@ class RPCaseStatus(str, Enum):
     WRITTEN_OFF = "written_off"
 
 
-_MAX_BACKBILL_YEARS = 3  # Theft exception to SLC 21BA 12-month cap
+#: UNSOURCED, so None. SLC 21BA.2(c) lifts the 12-month cap for theft and sets no other; the
+#: 3 years this held has no source (read_access_and_theft_duties.md §2.4).
+_MAX_BACKBILL_YEARS: int | None = None
 
 
 @dataclass(frozen=True)

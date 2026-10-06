@@ -20,7 +20,6 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import date
 
-
 _CERT_PERIOD_YEARS: dict[str, int] = {
     "TRAD": 10,    # traditional credit meter certification (BS 5685)
     "PPM": 10,
@@ -51,19 +50,16 @@ class MeterAsset:
             cert_date = d.replace(year=d.year + years, month=3, day=1)
         return cert_date.isoformat()
 
-    @property
-    def days_until_cert(self) -> int:
-        due = date.fromisoformat(self.cert_due_date)
-        today = date.today()
-        return (due - today).days
+    # The as-of date is the run's simulated date, passed in -- never the machine's calendar
+    # (this read date.today() until 2026-10-06, so a 2019 run judged certification in 2026).
+    def days_until_cert(self, as_of: date) -> int:
+        return (date.fromisoformat(self.cert_due_date) - as_of).days
 
-    @property
-    def cert_overdue(self) -> bool:
-        return self.days_until_cert < 0
+    def cert_overdue(self, as_of: date) -> bool:
+        return self.days_until_cert(as_of) < 0
 
-    @property
-    def cert_due_soon(self) -> bool:
-        return 0 <= self.days_until_cert <= 365
+    def cert_due_soon(self, as_of: date) -> bool:
+        return 0 <= self.days_until_cert(as_of) <= 365
 
 
 class MeterAssetRegister:
@@ -88,11 +84,11 @@ class MeterAssetRegister:
     def faulty(self) -> list[MeterAsset]:
         return [a for a in self._assets.values() if a.status == "faulty"]
 
-    def cert_overdue(self) -> list[MeterAsset]:
-        return [a for a in self.operational() if a.cert_overdue]
+    def cert_overdue(self, as_of: date) -> list[MeterAsset]:
+        return [a for a in self.operational() if a.cert_overdue(as_of)]
 
-    def cert_due_soon(self) -> list[MeterAsset]:
-        return [a for a in self.operational() if a.cert_due_soon and not a.cert_overdue]
+    def cert_due_soon(self, as_of: date) -> list[MeterAsset]:
+        return [a for a in self.operational() if a.cert_due_soon(as_of)]
 
     def by_type(self) -> dict[str, int]:
         counts: dict[str, int] = {}
@@ -100,14 +96,15 @@ class MeterAssetRegister:
             counts[a.meter_type] = counts.get(a.meter_type, 0) + 1
         return counts
 
-    def summary(self) -> dict:
+    def summary(self, as_of: date) -> dict:
         ops = self.operational()
         return {
+            "as_of": as_of.isoformat(),
             "total": len(self._assets),
             "operational": len(ops),
             "faulty": len(self.faulty()),
-            "cert_overdue": len(self.cert_overdue()),
-            "cert_due_soon": len(self.cert_due_soon()),
+            "cert_overdue": len(self.cert_overdue(as_of)),
+            "cert_due_soon": len(self.cert_due_soon(as_of)),
             "by_type": self.by_type(),
             "smart_pct": round(
                 100 * sum(1 for a in ops if a.meter_type in ("SMETS1", "SMETS2")) / len(ops), 1

@@ -1,8 +1,12 @@
 """Phase CZ: Revenue Protection Register tests."""
-import pytest
 from datetime import date
+
+import pytest
+
 from company.billing.revenue_protection_register import (
-    RevenueProtectionRegister, RPCaseType, RPCaseStatus
+    RevenueProtectionRegister,
+    RPCaseStatus,
+    RPCaseType,
 )
 
 _D = date(2022, 6, 1)
@@ -171,3 +175,10 @@ def test_estimation_fraud_case_type():
     r = RevenueProtectionRegister()
     c = r.open_case("RP001", "C1", T.ESTIMATION_FRAUD, _D, 3000, 500.0)
     assert c.case_type == T.ESTIMATION_FRAUD
+
+
+def test_the_three_year_theft_back_bill_cap_is_none_because_21ba_sets_no_cap():
+    """Corrected 2026-10-06 (read_access_and_theft_duties.md §2.4): SLC 21BA.2(c) lifts the
+    12-month limit for theft and sets no replacement; the 3 years this held had no source."""
+    from company.billing import revenue_protection_register as m
+    assert m._MAX_BACKBILL_YEARS is None

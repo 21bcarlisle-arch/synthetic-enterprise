@@ -256,8 +256,6 @@ WALL_CLOCK_READS_2026_10_03 = {
     "company/billing/contract.py": 2,
     "company/billing/direct_debit.py": 1,
     "company/billing/invoice.py": 1,
-    "company/billing/meter_assets.py": 1,
-    "company/billing/ppm_warrant_register.py": 1,
     "company/billing/switching.py": 1,
     "company/compliance/consumer_duty_board_report.py": 1,
     "company/crm/contract_exposure_register.py": 1,

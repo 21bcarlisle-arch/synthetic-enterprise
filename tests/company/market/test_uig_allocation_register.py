@@ -40,16 +40,16 @@ def test_uig_rate_pct_computed():
     assert abs(r.uig_rate_pct - 1.0) < 0.001
 
 
-def test_is_high_uig_false_below_2pct():
+def test_exceeds_false_below_a_supplied_threshold():
     reg = _reg()
     r = reg.record_allocation(JAN22, 10000.0, 100.0)
-    assert r.is_high_uig is False
+    assert r.exceeds(2.0) is False
 
 
-def test_is_high_uig_true_at_2pct():
+def test_exceeds_true_at_a_supplied_threshold():
     reg = _reg()
     r = reg.record_allocation(JAN22, 1000.0, 20.0)
-    assert r.is_high_uig is True
+    assert r.exceeds(2.0) is True
 
 
 def test_for_month_returns_correct_record():
@@ -64,7 +64,7 @@ def test_high_uig_periods_filters():
     reg = _reg()
     reg.record_allocation(JAN22, 10000.0, 50.0)
     reg.record_allocation(dt.date(2022, 2, 1), 10000.0, 250.0)
-    high = reg.high_uig_periods()
+    high = reg.high_uig_periods(threshold_pct=2.0)
     assert len(high) == 1
     assert high[0].settlement_month.month == 2
 

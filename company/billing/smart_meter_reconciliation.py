@@ -6,7 +6,7 @@ adjustments (credits/debits) and tracks the portfolio exposure.
 
 Real UK context: Suppliers doing 12-monthly bill reconciliation use smart
 meter actuals to settle cumulative drift between estimated bills and real usage.
-SLC 31A back-billing cap: domestic undercharges older than 12 months are
+SLC 21BA back-billing cap (this said "SLC 31A"; corrected 2026-10-06): domestic undercharges older than 12 months are
 capped at zero (supplier cannot recover; customer keeps the credit).
 
 All inputs company-observable (estimated AQ from own billing records,
@@ -18,7 +18,6 @@ import datetime as dt
 from dataclasses import dataclass
 from enum import Enum
 from typing import Optional
-
 
 _BACK_BILLING_CAP_DAYS = 365
 
@@ -59,7 +58,7 @@ class ReconciliationAdjustment:
     def is_back_billing_protected(self) -> bool:
         """True if the under-billed period is older than 12 months as of billing date.
 
-        SLC 31A: domestic supplier cannot recover undercharge for energy consumed
+        SLC 21BA: domestic supplier cannot recover undercharge for energy consumed
         more than 12 months before the billing date.
         """
         if not self.is_domestic:

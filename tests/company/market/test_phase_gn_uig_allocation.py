@@ -1,8 +1,15 @@
 import datetime as dt
+
 import pytest
+
 from company.market.uig_allocation_register import (
-    UIGMonthlyRecord, UIGAllocationRegister, _HIGH_UIG_PCT,
+    _HIGH_UIG_PCT,
+    UIGAllocationRegister,
+    UIGMonthlyRecord,
 )
+
+#: A TEST FIXTURE that exercises the banding; the module's own threshold is unsourced and None.
+T = 2.0
 
 MONTH = dt.date(2024, 1, 1)
 
@@ -20,19 +27,20 @@ class TestUIGMonthlyRecord:
         assert r.uig_rate_pct == 0.0
     def test_is_high_uig_at_threshold(self):
         r = make_record(1000.0, 20.0)  # 2.0% exactly
-        assert r.is_high_uig
+        assert r.exceeds(T)
     def test_is_high_uig_above_threshold(self):
         r = make_record(1000.0, 25.0)  # 2.5%
-        assert r.is_high_uig
+        assert r.exceeds(T)
     def test_is_not_high_uig_below_threshold(self):
         r = make_record(1000.0, 15.0)  # 1.5%
-        assert not r.is_high_uig
+        assert not r.exceeds(T)
     def test_uig_summary_string(self):
         s = make_record().uig_summary()
         assert "UIG-00001" in s and "MWh" in s
-    def test_uig_summary_high_flag(self):
-        r = make_record(1000.0, 25.0)
-        assert "[HIGH]" in r.uig_summary()
+    def test_uig_summary_carries_no_high_flag_without_a_sourced_threshold(self):
+        r = make_record(1000.0, 38.1)  # 3.81%, the top of the published range
+        assert "[HIGH]" not in r.uig_summary()
+        assert r.is_high_uig is None
     def test_frozen(self):
         r = make_record()
         with pytest.raises((AttributeError, TypeError)):
@@ -64,7 +72,7 @@ class TestUIGAllocationRegister:
     def test_high_uig_periods(self):
         self.reg.record_allocation(dt.date(2024, 1, 1), 1000.0, 25.0)  # 2.5% high
         self.reg.record_allocation(dt.date(2024, 2, 1), 1000.0, 15.0)  # 1.5% normal
-        assert len(self.reg.high_uig_periods()) == 1
+        assert len(self.reg.high_uig_periods(threshold_pct=T)) == 1
     def test_total_uig_allocated_mwh(self):
         self.reg.record_allocation(dt.date(2024, 1, 1), 1000.0, 15.0)
         self.reg.record_allocation(dt.date(2024, 2, 1), 1000.0, 10.0)
@@ -102,3 +110,18 @@ class TestUIGAllocationRegister:
     def test_empty_summary(self):
         s = self.reg.uig_register_summary()
         assert "0 months" in s
+
+
+def test_the_unsourced_uig_threshold_is_none_and_high_is_cannot_tell():
+    """Corrected 2026-10-06: the 2.0% "investigation trigger" had no source and sat below every
+    published final UIG (2.19-3.81%, AUG Statement 2024-25 p.27). The partition: with a supplied
+    threshold both sides are reachable; with none, the answer is None, not an empty list."""
+    assert _HIGH_UIG_PCT is None
+    reg = UIGAllocationRegister()
+    reg.record_allocation(dt.date(2021, 10, 1), 1000.0, 25.0)   # 2.50%
+    reg.record_allocation(dt.date(2017, 10, 1), 1000.0, 38.1)   # 3.81%
+    assert reg.high_uig_periods() is None
+    assert "n/a high-UIG periods" in reg.uig_register_summary()
+    split = reg.high_uig_periods(threshold_pct=3.0)
+    assert [r.settlement_month.year for r in split] == [2017]
+

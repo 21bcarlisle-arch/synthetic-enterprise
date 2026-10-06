@@ -47,7 +47,7 @@ def _deemed(start):
 def _theft(start):
     return lambda as_of: TheftCase("T", "A", "MPAN", start, TheftType.BYPASSED_METER, 100.0,
                                    status=TheftCaseStatus.CONFIRMED, confirmed_date=start
-                                   ).is_dno_notification_overdue(as_of)
+                                   ).is_dno_notification_overdue(as_of, 2)
 
 
 # (verdict at a date, start, a date across the holiday that is NOT yet late, a date that IS)
@@ -58,7 +58,8 @@ CASES = [
     ("dd_indemnity", _indemnity, D(2024, 12, 20), D(2025, 1, 7), D(2025, 1, 9)),
     # 5 working days across Easter 2024: Thu 28 Mar -> Fri 5 Apr is 4, not 6.
     ("deemed_contract", _deemed, D(2024, 3, 28), D(2024, 4, 5), D(2024, 4, 9)),
-    # 2 working days across Christmas 2023: Fri 22 Dec -> Wed 27 Dec is 1, not 3.
+    # 2 working days across Christmas 2023: Fri 22 Dec -> Wed 27 Dec is 1, not 3. The 2 is passed
+    # in by `_theft`: the module's own DNO deadline is unsourced and None since 2026-10-06.
     ("energy_theft_book", _theft, D(2023, 12, 22), D(2023, 12, 27), D(2023, 12, 29)),
 ]
 

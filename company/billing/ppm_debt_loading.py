@@ -76,7 +76,9 @@ class PPMDebtLoadingBook:
     - Recovery rate cap: 5% per top-up (prevents emergency credit exhaustion)
     - Smart PPM consent: required since 2019 reform; traditional PPMs do not need consent
     - 2023 British Gas scandal: journalists went undercover; warrants used to
-      forcibly install PPMs on vulnerable customers; Ofgem banned forced-fitting April 2023
+      forcibly install PPMs on vulnerable customers. Not a ban (corrected 2026-10-06): warrant
+      listing was suspended 6 Feb 2023 and involuntary PPM resumed under SLC 28B from 8 Nov 2023,
+      suppliers restarting from Jan 2024 (debt_and_collections.md)
     - PPM in-home poverty trap: customers self-rationing energy to clear debt
     - ~3% of domestic customers have active debt loads at any time
     """

@@ -1,8 +1,19 @@
 import datetime as dt
+
 import pytest
+
 from company.billing.energy_theft_book import (
-    TheftCase, TheftCaseStatus, TheftType, EnergyTheftBook,
+    _BACKBILL_LIMIT_YEARS,
+    _DNO_NOTIFICATION_DEADLINE_WORKING_DAYS,
+    EnergyTheftBook,
+    TheftCase,
+    TheftCaseStatus,
+    TheftType,
 )
+
+#: A TEST FIXTURE for the working-day count. The module's own deadline is unsourced and None
+#: (DCUSA Clause 30.9's deadline was not read), so every overdue verdict here is caller-supplied.
+DEADLINE = 2
 
 
 def make_case(case_id="T1", account_id="A1", sp_id="MPAN1",
@@ -46,12 +57,12 @@ class TestTheftCase:
     def test_dno_overdue_false_within_2_working_days(self):
         c = make_case(status=TheftCaseStatus.CONFIRMED,
                       confirmed=dt.date(2022, 6, 6))
-        assert c.is_dno_notification_overdue(dt.date(2022, 6, 7)) is False
+        assert c.is_dno_notification_overdue(dt.date(2022, 6, 7), DEADLINE) is False
 
     def test_dno_overdue_true_after_2_working_days(self):
         c = make_case(status=TheftCaseStatus.CONFIRMED,
                       confirmed=dt.date(2022, 6, 6))
-        assert c.is_dno_notification_overdue(dt.date(2022, 6, 10)) is True
+        assert c.is_dno_notification_overdue(dt.date(2022, 6, 10), DEADLINE) is True
 
     def test_frozen(self):
         c = make_case()
@@ -122,8 +133,8 @@ class TestEnergyTheftBook:
         book = EnergyTheftBook()
         book.raise_case(make_case(case_id="T1"))
         book.confirm_theft("T1", dt.date(2022, 6, 6))
-        assert len(book.overdue_dno_notifications(dt.date(2022, 6, 10))) == 1
-        assert len(book.overdue_dno_notifications(dt.date(2022, 6, 7))) == 0
+        assert len(book.overdue_dno_notifications(dt.date(2022, 6, 10), DEADLINE)) == 1
+        assert len(book.overdue_dno_notifications(dt.date(2022, 6, 7), DEADLINE)) == 0
 
     def test_total_estimated_loss(self):
         book = EnergyTheftBook()
@@ -143,3 +154,30 @@ class TestEnergyTheftBook:
         for k in ("total_cases", "active", "confirmed",
                   "total_estimated_loss_kwh", "total_estimated_bill_gbp"):
             assert k in s
+
+
+class TestTheUnsourcedTheftPeriodsAreNone:
+    """Corrected 2026-10-06 (read_access_and_theft_duties.md §2.4, §3.1, §5): the 2-working-day
+    "GS(SS)5" DNO notice and the "3-year theft back-bill" have no source."""
+
+    def test_the_gs_ss_5_two_day_dno_deadline_is_none(self):
+        assert _DNO_NOTIFICATION_DEADLINE_WORKING_DAYS is None
+
+    def test_the_three_year_theft_back_bill_is_none(self):
+        assert _BACKBILL_LIMIT_YEARS is None
+
+    def test_an_owed_notice_with_no_deadline_is_cannot_tell_not_a_verdict(self):
+        """The partition over one confirmed, un-notified case: with a supplied deadline both
+        verdicts are reachable; without, the answer is None, and a settled case is still False."""
+        owed = make_case(status=TheftCaseStatus.CONFIRMED, confirmed=dt.date(2022, 6, 6))
+        assert owed.is_dno_notification_overdue(dt.date(2022, 6, 7), DEADLINE) is False
+        assert owed.is_dno_notification_overdue(dt.date(2022, 6, 10), DEADLINE) is True
+        assert owed.is_dno_notification_overdue(dt.date(2022, 6, 10)) is None
+        assert make_case().is_dno_notification_overdue(dt.date(2022, 6, 10)) is False
+
+    def test_the_book_reports_none_not_an_empty_list_when_the_deadline_is_unknown(self):
+        book = EnergyTheftBook()
+        book.raise_case(make_case(case_id="T1"))
+        assert book.overdue_dno_notifications(dt.date(2022, 6, 10)) == []   # nothing owed
+        book.confirm_theft("T1", dt.date(2022, 6, 6))
+        assert book.overdue_dno_notifications(dt.date(2022, 6, 10)) is None

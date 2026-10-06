@@ -1,7 +1,12 @@
 """Phase 128: Meter asset management tests."""
 
+from datetime import date
+
 import pytest
+
 from company.billing.meter_assets import MeterAsset, MeterAssetRegister
+
+AS_OF = date(2024, 6, 30)   # a simulated date inside the 2016-2025 window
 
 
 def _reg():
@@ -41,13 +46,13 @@ def test_cert_overdue_old_trad_meter():
     r = _reg()
     # TRAD installed 2010, cert due 2020 — should be overdue
     asset = r.get("MA003")
-    assert asset.cert_overdue is True
+    assert asset.cert_overdue(AS_OF) is True
 
 
 def test_cert_not_overdue_new_smets2():
     r = _reg()
     asset = r.get("MA001")
-    assert asset.cert_overdue is False
+    assert asset.cert_overdue(AS_OF) is False
 
 
 def test_by_type_counts():
@@ -59,14 +64,14 @@ def test_by_type_counts():
 
 def test_summary_structure():
     r = _reg()
-    s = r.summary()
+    s = r.summary(AS_OF)
     for k in ("total", "operational", "faulty", "cert_overdue", "by_type", "smart_pct"):
         assert k in s
 
 
 def test_smart_pct_includes_smets2():
     r = _reg()
-    s = r.summary()
+    s = r.summary(AS_OF)
     assert s["smart_pct"] > 0
 
 
@@ -83,24 +88,24 @@ def test_cert_due_date_smets2_15yr():
 def test_amr_cert_period_7yr():
     asset = MeterAsset("X003", "C1", "AMR", "2010-03-01")
     assert asset.cert_due_date == "2017-03-01"
-    assert asset.cert_overdue is True
+    assert asset.cert_overdue(AS_OF) is True
 
 
 def test_cert_overdue_old_trad():
     asset = MeterAsset("X004", "C1", "TRAD", "2010-01-01")
-    assert asset.cert_overdue is True
+    assert asset.cert_overdue(AS_OF) is True
 
 
 def test_cert_not_overdue_smets2_installed_2022():
     asset = MeterAsset("X005", "C1", "SMETS2", "2022-01-01")
-    assert asset.cert_overdue is False
+    assert asset.cert_overdue(AS_OF) is False
 
 
 def test_cert_overdue_list_excludes_faulty():
     r = MeterAssetRegister()
     r.register(MeterAsset("FA001", "C1", "TRAD", "2010-01-01", status="faulty"))
     # cert_overdue() only scans operational(); faulty meter must not appear
-    assert len(r.cert_overdue()) == 0
+    assert len(r.cert_overdue(AS_OF)) == 0
 
 
 def test_operational_excludes_replaced():
@@ -115,13 +120,13 @@ def test_smart_pct_smets1_and_smets2_only():
     r = MeterAssetRegister()
     r.register(MeterAsset("S1", "C1", "SMETS1", "2020-01-01"))
     r.register(MeterAsset("S2", "C2", "TRAD", "2018-01-01"))
-    s = r.summary()
+    s = r.summary(AS_OF)
     assert s["smart_pct"] == pytest.approx(50.0)
 
 
 def test_summary_empty_register():
     r = MeterAssetRegister()
-    s = r.summary()
+    s = r.summary(AS_OF)
     assert s["total"] == 0
     assert s["smart_pct"] == 0.0
 
@@ -134,3 +139,27 @@ def test_manufacturer_field_stored():
     retrieved = r.get("M001")
     assert retrieved.manufacturer == "Landis+Gyr"
     assert retrieved.serial_number == "SN12345"
+
+
+
+def test_certification_is_judged_at_the_simulated_date_not_the_machines(monkeypatch):
+    """Defect fixed 2026-10-06: `days_until_cert` read date.today(), so a 2019 run judged
+    certification as of the machine's year. Now the run's as-of date decides -- the same TRAD
+    meter (due 2020-01-01) is due soon in 2019 and overdue in 2024 -- and the module's
+    `date.today` is poisoned so any wall-clock read raises."""
+    import company.billing.meter_assets as m
+
+    class _NoWallClock(date):
+        @classmethod
+        def today(cls):
+            raise AssertionError("meter_assets read the wall clock")
+
+    monkeypatch.setattr(m, "date", _NoWallClock)
+    reg = MeterAssetRegister()
+    reg.register(MeterAsset("T1", "C1", "TRAD", "2010-01-01"))
+    in_2019, in_2024 = date(2019, 6, 1), date(2024, 6, 1)
+    assert reg.get("T1").days_until_cert(in_2019) == 214
+    assert reg.get("T1").cert_due_soon(in_2019) and not reg.get("T1").cert_overdue(in_2019)
+    assert reg.get("T1").cert_overdue(in_2024) and not reg.get("T1").cert_due_soon(in_2024)
+    assert reg.summary(in_2019)["cert_due_soon"] == 1 and reg.summary(in_2019)["cert_overdue"] == 0
+    assert reg.summary(in_2024)["cert_overdue"] == 1 and reg.summary(in_2024)["as_of"] == "2024-06-01"
