@@ -152,3 +152,37 @@ for a household on a competitive own offer, external loss did not move. Today's 
 ever *lowers* the inert household's churn. That makes waking weakly harmful wherever the active
 physics exceeds the cap, unless the offer lowers the active side. Print it at real inputs before
 wiring.
+
+**Correction, 2026-10-06 (printed for C34's next slice).** The paragraph above names the wrong
+inert comparator for resi. Since PB6 every resi decision the departure branch reaches is active,
+so `passive_churn_cap_for` never applies to a resi household at a fixed-term end. The household that
+is not woken rolls onto the SVT in the schedule builder and leaves by `inertia_hazard_for_term`. So
+the question is the woken household's churn at the decision against its first-year SVT departure.
+Printed from `docs/reports/run_output_c6b8217d1_20261006T161729Z.json`: active electricity
+decisions' `realized_churn_probability` against 1 − ∏(1 − segment hazard) over each first-year
+stint in `svt_decisions`.
+
+| year | n active | mean churn, woken | n stints | mean first-year SVT departure, inert | difference | × 0.111 |
+|---|---|---|---|---|---|---|
+| 2017 | 22 | 0.274 | 40 | 0.184 | +0.090 | +0.010 |
+| 2018 | 26 | 0.105 | 15 | 0.194 | −0.089 | −0.010 |
+| 2019 | 17 | 0.153 | 15 | 0.207 | −0.054 | −0.006 |
+| 2020 | 20 | 0.167 | 10 | 0.179 | −0.013 | −0.001 |
+| 2021 | 16 | 0.183 | 22 | 0.094 | +0.089 | +0.010 |
+| 2024 | 16 | 0.074 | — | 0.067 annualised | +0.007 | +0.001 |
+| 2025 | 13 | 0.304 | — | 0.074 annualised | +0.230 | +0.026 |
+
+(2016 has one active decision, 2022 has none because FTCs were withdrawn, and 2023 has one stint. All three are left out. In 2024 and 2025 the end of the report cuts short 17 of 19 first-year stints, so the inert column there is the mean SVT segment hazard annualised over the market year. The first draft of this table used the stints as they were cut and read 0.016 for 2025, which is a truncation and not a hazard.)
+
+What this answers: waking is **not structurally harmful**. In four of seven years it lowers
+departure or leaves it almost unchanged. For a book where every household is contacted, the change
+in departure stays within ±1 pp except in 2025. That is the order of EFTC's unmoved 6% external
+loss. 2025 is the exception, at about +2.5 pp: the active side's churn is 30% against an SVT
+hazard of 7%. Before wiring, it must be established which of these causes it: the market, the
+year's price position, or the active physics.
+
+What it does not answer: **the two columns are different households**. Active rollers are the
+engaged archetype, and inert ones are not. The per-household counterfactual needs each passive
+household's churn had it engaged. The run does not log that. Producing it is the wiring's first
+output, and it comes from `departure_change_from_contact` on the coupled roll. Until it exists, this
+table bounds the sign. It does not size it.
