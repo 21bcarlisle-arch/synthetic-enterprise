@@ -344,7 +344,8 @@ def half_hourly_texture(
     0.2721-0.3892, astride the gas median. The gas column is IDENTICAL in both
     readings and is not a target that was tuned toward: it is the untouched
     anchor population, and it is what makes this a load-set repair rather than a
-    loosening. R12 holds — the floor is still 0.15.
+    loosening. R12 held — the floor stayed 0.15 until real homes refuted it
+    (2026-10-06); the cell is now judged as a distribution (see `BANDS`).
 
     FAIL-CLOSED on absence: `machines=None` judges the whole meter, exactly as
     before. The leniency is bought with a stated fact and the fact is checked.
@@ -1603,12 +1604,43 @@ class Band:
 # machine's own movement stood in for the behaviour that was gone.
 #
 # So the floor stops moving and the LOAD SET moves instead: L1.1 is read net of
-# space heat (`half_hourly_texture(machines=...)`), where the 0.15 denominator
-# argument is the one that was always meant, and every home is judged by it. What
-# the register is still needed for is the ONE case the netting cannot cover — a
-# home whose heat is on this meter and whose generator supplies no split. That
-# home is COUNTED, not guessed at.
-_GAS_TEXTURE_THRESHOLD = 0.15
+# space heat (`half_hourly_texture(machines=...)`), and every home is judged on
+# that one load set. What the register is still needed for is the ONE case the
+# netting cannot cover — a home whose heat is on this meter and whose generator
+# supplies no split. That home is COUNTED, not guessed at.
+#
+# AND THEN THE FLOOR WENT (2026-10-06). The 0.15 per-home floor was domain
+# knowledge, and read at source it is wrong for this statistic: on Low Carbon
+# London, with `half_hourly_texture` itself, 45% of real flat-tariff homes sit
+# under it (`REAL_HOME_TEXTURE_SOURCE`). A per-home floor low enough to pass real
+# homes (p1 ~0.024) discriminates nothing, so the cell is now judged as a
+# DISTRIBUTION — the world's homes against real homes' quantiles. That also makes
+# visible the defect the floor could not see: the world's homes are drawn too
+# alike and too rough, which a floor on the calm end passes by construction.
+
+
+# THE REAL DISTRIBUTION, measured with this module's own `half_hourly_texture`,
+# unchanged, on 313 flat-tariff ("Std") Low Carbon London homes, Jan-Apr 2013
+# (UKPN SmartMeter Energy Consumption Data in London Households, London Datastore,
+# OGL; 13 of 168 partitions spread by meter id). The "LCL, all Std" row of the
+# source table. The whole meter is read, since LCL carries no machine split; London
+# homes are mostly gas-heated, so that is the world's gas-home load set plus a
+# minority of electrically heated homes the doc says read calmer.
+REAL_HOME_TEXTURE_SOURCE = (
+    "docs/market_research/"
+    "the_half_hourly_texture_of_real_homes_electricity_read_from_low_carbon_london.md"
+)
+REAL_HOME_TEXTURE_HOMES = 313
+REAL_HOME_TEXTURE_QUANTILES: tuple[tuple[float, float], ...] = (
+    (0.10, 0.072),
+    (0.25, 0.117),
+    (0.50, 0.158),
+    (0.75, 0.208),
+)
+# The test size, Bonferroni-split across the quantile legs. 5% is the convention
+# this module already judges significance at (`SIGN_SYSTEMATIC_P`), and is not a
+# fidelity number.
+TEXTURE_DISTRIBUTION_ALPHA = 0.05
 
 
 # The bands. Every `observed_on_shipped` value below was MEASURED on the shipped
@@ -1618,28 +1650,30 @@ BANDS: dict[str, Band] = {
         statistic="L1.1_half_hourly_texture",
         level="L1",
         direction="at_least",
-        threshold=_GAS_TEXTURE_THRESHOLD,
-        anchor=AnchorStatus.DOMAIN_KNOWLEDGE,
+        # NO PER-HOME THRESHOLD: the cell is judged as a distribution against
+        # `REAL_HOME_TEXTURE_QUANTILES` (`texture_distribution_legs`). This band is
+        # the ROUTING fact — a home it is returned for by `texture_band_for` is
+        # judged, one routed to L1.1u is counted.
+        threshold=None,
+        anchor=AnchorStatus.PUBLISHED,
         anchor_source=(
-            "domain-knowledge, and it reasons from a GAS-HEATED premise: real "
-            "individual-home half-hourly electricity moves in "
-            "the tens of percent of its own mean between adjacent periods (a kettle is "
-            "2.8 kW for three minutes on a ~0.7 kWh half-hour). The SERL/LCL published "
-            "band is NOT yet in the artefact library, so the threshold is set at 0.15 — "
-            "below the low end of the 20-40% domain expectation, deliberately "
-            "loose so that it can only fire on a generator that is smooth by "
-            "construction rather than on one that is merely at the calm end of real. "
-            "APPLIES TO THE METER NET OF SPACE HEAT, WHICH IS EVERY HOME — the "
-            "kettle-on-a-0.7-kWh-half-hour reasoning is a statement about the "
-            "DENOMINATOR, so it holds for any home once the heating machine is out "
-            "of it. That is where the regime conditioning went (H36): the floor is "
-            "one number for every home size because the load set it is read on is "
-            "the same load set in every regime."
+            "published data, read with this statistic: Low Carbon London (UKPN, "
+            "London Datastore, OGL), 313 flat-tariff homes Jan-Apr 2013, "
+            "half_hourly_texture p10 0.072, p25 0.117, median 0.158, p75 0.208 — "
+            f"{REAL_HOME_TEXTURE_SOURCE}. The world's judged homes are tested "
+            "against those four quantiles: for each, the count of homes under the "
+            "real quantile is exact-binomial against n*q, Bonferroni at 5%. This "
+            "replaced a 0.15 per-home floor (domain knowledge, '20-40% expected') "
+            "that 45% of the real homes fall under. APPLIES TO THE METER NET OF "
+            "SPACE AND WATER HEAT, the load set of a gas-heated home's meter, "
+            "which is what the London panel mostly is."
         ),
         observed_on_shipped=None,
         rationale=(
             "A rescaled national average has the texture of a national average, which "
-            "is the texture of a hundred thousand homes already summed."
+            "is the texture of a hundred thousand homes already summed. And homes "
+            "drawn too alike defeat per-customer inference however rough each one "
+            "is, so the spread is judged, not only the calm end."
         ),
     ),
     "L1.1n_half_hourly_texture_null_ratio": Band(
@@ -2122,9 +2156,6 @@ _IMPOSSIBILITY_BOUND = (
 )
 
 RATE_BANDS: dict[str, RateBand] = {
-    "L1.1_half_hourly_texture": RateBand(
-        "L1.1_half_hourly_texture", 0.0, AnchorStatus.STRUCTURAL, _IMPOSSIBILITY_BOUND
-    ),
     "L1.1n_half_hourly_texture_null_ratio": RateBand(
         "L1.1n_half_hourly_texture_null_ratio", 0.0, AnchorStatus.STRUCTURAL,
         _IMPOSSIBILITY_BOUND + " AND IT IS THE IMPOSSIBILITY BOUND HERE, WHERE "
@@ -2231,6 +2262,9 @@ class CellResult:
     worst_value: float | None = None
     worst_home: str | None = None
     rate_band: "RateBand | None" = None
+    # A DISTRIBUTION cell (L1.1 since 2026-10-06) carries its legs here, and
+    # `value` is then the Bonferroni-adjusted p of the worst leg, not a rate.
+    quantiles: "tuple[QuantileLeg, ...] | None" = None
 
 
 @dataclass(frozen=True)
@@ -2316,6 +2350,20 @@ class TwoLevelResult:
     def summary(self) -> str:
         lines = [f"two-level test — generator={self.generator} homes={self.homes} days={self.days}"]
         for c in self.cells:
+            if c.quantiles is not None:
+                legs = "; ".join(
+                    f"p{leg.q * 100:g} world {leg.world:.3f} vs real {leg.real:.3f} "
+                    f"({leg.below}/{c.homes_judged} under, expected {leg.expected:.1f}, "
+                    f"p={leg.p:.2g})"
+                    for leg in c.quantiles
+                )
+                lines.append(
+                    f"  [{c.verdict.value.upper():>18}] {c.statistic}: adjusted p "
+                    f"{c.value:.3g} over {c.homes_judged} judged homes against "
+                    f"{REAL_HOME_TEXTURE_HOMES} real ({legs})"
+                    + (f"  — {c.note}" if c.note else "")
+                )
+                continue
             if c.homes_judged is not None and c.rate_band is not None:
                 # An L1 rate cell. n and the resolution are printed on the SAME line
                 # as the verdict, because the whole defect this form exists to fix
@@ -2510,6 +2558,156 @@ def _timing_ratio_or_zero(grids: Sequence[Sequence[Sequence[float]]]) -> float:
         return 0.0
 
 
+@dataclass(frozen=True)
+class QuantileLeg:
+    """One real quantile against the world's homes."""
+
+    q: float
+    real: float          # the real homes' q-quantile
+    world: float         # the world's own q-quantile, a diagnostic
+    below: int           # world homes under `real`
+    expected: float      # n * q, what a world drawn from the real distribution gives
+    p: float             # exact two-sided binomial p of `below` under Binomial(n, q)
+
+
+def _log_binomial_pmf(k: int, n: int, q: float) -> float:
+    return (
+        math.lgamma(n + 1) - math.lgamma(k + 1) - math.lgamma(n - k + 1)
+        + k * math.log(q) + (n - k) * math.log1p(-q)
+    )
+
+
+def binomial_two_sided_p(k: int, n: int, q: float) -> float:
+    """Twice the smaller tail of Binomial(n, q) at k, capped at 1."""
+    pmf = [math.exp(_log_binomial_pmf(i, n, q)) for i in range(n + 1)]
+    return min(1.0, 2.0 * min(sum(pmf[: k + 1]), sum(pmf[k:])))
+
+
+def _empirical_quantile(ordered: Sequence[float], q: float) -> float:
+    """Linear interpolation between order statistics (numpy's default)."""
+    pos = q * (len(ordered) - 1)
+    lo = math.floor(pos)
+    hi = min(lo + 1, len(ordered) - 1)
+    return ordered[lo] + (ordered[hi] - ordered[lo]) * (pos - lo)
+
+
+def texture_distribution_legs(
+    values: Sequence[float],
+    reference: Sequence[tuple[float, float]] | None = None,
+) -> tuple[QuantileLeg, ...]:
+    """L1.1 — the world's per-home textures against real homes' quantiles.
+
+    Each leg asks: if the world's homes were drawn from the real distribution,
+    how surprising is the number of them under the real q-quantile? That count is
+    Binomial(n, q) exactly, whatever the distribution's shape, so the test needs
+    no tolerance of its own. A world drawn too ROUGH has too few homes under every
+    quantile; one drawn too ALIKE has too few under the low quantiles and too many
+    under the high ones.
+
+    The real quantiles are treated as exact. They carry their own sampling error
+    (313 homes against the world's 60, so about a fifth of the world's variance
+    again), which makes this a little stricter than a two-sample test — stated so
+    a borderline FAIL is read with that in mind.
+    """
+    # Read at CALL time, so a mutation of the module's reference reaches the cell.
+    reference = REAL_HOME_TEXTURE_QUANTILES if reference is None else reference
+    finite = [v for v in values if math.isfinite(v)]
+    if len(finite) != len(values):
+        raise InsufficientEvidence("a non-finite texture cannot be placed in a distribution")
+    if not finite:
+        raise InsufficientEvidence("no judged homes to place in a distribution")
+    ordered = sorted(finite)
+    n = len(ordered)
+    return tuple(
+        QuantileLeg(
+            q=q, real=real, world=_empirical_quantile(ordered, q),
+            below=sum(1 for v in ordered if v < real), expected=n * q,
+            p=binomial_two_sided_p(sum(1 for v in ordered if v < real), n, q),
+        )
+        for q, real in reference
+    )
+
+
+def texture_distribution_can_fail(
+    n: int,
+    reference: Sequence[tuple[float, float]] | None = None,
+    alpha: float = TEXTURE_DISTRIBUTION_ALPHA,
+) -> bool:
+    """Whether n homes could red EVERY leg in BOTH directions — no home under
+    the real quantile, or every home under it. Below that a clean reading rules
+    nothing out on some leg, and is INSUFFICIENT rather than a pass."""
+    reference = REAL_HOME_TEXTURE_QUANTILES if reference is None else reference
+    per_leg = alpha / len(reference)
+    return all(
+        binomial_two_sided_p(0, n, q) < per_leg and binomial_two_sided_p(n, n, q) < per_leg
+        for q, _ in reference
+    )
+
+
+def _l1_distribution_cell(
+    statistic: str,
+    *,
+    values: Sequence[float],
+    bands: Sequence[Band],
+    homes: Sequence[str],
+    note: str = "",
+) -> CellResult:
+    """Judge the population's DISTRIBUTION of a per-home statistic against a
+    real one, with the same coverage rule as a rate cell: homes the register
+    routes to a band with no anchor are counted, and too many of them make the
+    cell INSUFFICIENT rather than quietly clean.
+
+    FAIL needs no power argument (a rejection is a rejection at any n); PASS
+    needs a population that could have failed every leg both ways."""
+    if len(values) != len(bands) or len(values) != len(homes):
+        raise InsufficientEvidence(f"{statistic}: values, bands and homes must align")
+    if not values:
+        raise InsufficientEvidence(f"{statistic}: no homes to judge")
+    judged = [k for k, b in enumerate(bands) if b.statistic == statistic]
+    unjudged = len(values) - len(judged)
+    # The calmest judged home is a DIAGNOSTIC, as the worst home was under the floor.
+    pool = judged or list(range(len(values)))
+    worst_k = min(pool, key=lambda k: values[k])
+    detail = f"calmest judged home {homes[worst_k]} = {values[worst_k]:.4g}"
+    if note:
+        detail = f"{detail}; {note}"
+    common = dict(
+        homes_judged=len(judged), homes_violating=None, homes_unjudged=unjudged,
+        worst_value=values[worst_k], worst_home=homes[worst_k],
+    )
+    if not judged:
+        return CellResult(
+            statistic, "L1", float("nan"), Verdict.INSUFFICIENT, bands[worst_k],
+            note=detail + "; NO home carried a judgeable band — the register is the hole",
+            **common,
+        )
+    legs = texture_distribution_legs([values[k] for k in judged])
+    adjusted = min(1.0, len(legs) * min(leg.p for leg in legs))
+    out = [
+        f"p{leg.q * 100:g} ({leg.below} under {leg.real:.3f}, expected {leg.expected:.1f})"
+        for leg in legs if leg.p * len(legs) < TEXTURE_DISTRIBUTION_ALPHA
+    ]
+    if out:
+        verdict = Verdict.FAIL
+        detail += "; off the real distribution at " + ", ".join(out)
+    elif unjudged / len(values) > MAX_UNJUDGED_SHARE:
+        verdict = Verdict.INSUFFICIENT
+        detail += (
+            f"; {unjudged / len(values):.1%} of the population had no registered band, "
+            f"above the {MAX_UNJUDGED_SHARE:.0%} coverage floor"
+        )
+    elif not texture_distribution_can_fail(len(judged)):
+        verdict = Verdict.INSUFFICIENT
+        detail += f"; {len(judged)} judged homes cannot red every quantile leg both ways"
+    else:
+        verdict = Verdict.PASS
+    detail += f"; real quantiles from {REAL_HOME_TEXTURE_SOURCE}"
+    return CellResult(
+        statistic, "L1", adjusted, verdict, bands[worst_k], note=detail,
+        quantiles=legs, **common,
+    )
+
+
 def _l1_rate_cell(
     statistic: str,
     *,
@@ -2691,7 +2889,7 @@ def evaluate_two_level(population: PopulationTraces) -> TwoLevelResult:
     unjudged_for_no_split = sum(
         1 for b in texture_bands if b.statistic == NO_BEHAVIOURAL_STREAM_BAND
     )
-    cells.append(_l1_rate_cell(
+    cells.append(_l1_distribution_cell(
         TEXTURE_STATISTIC,
         values=[half_hourly_texture(b) for b in behavioural],
         bands=texture_bands,
@@ -2729,7 +2927,7 @@ def evaluate_two_level(population: PopulationTraces) -> TwoLevelResult:
         bands=(BANDS[TEXTURE_NULL_RATIO_STATISTIC],) * len(grids),
         homes=homes,
         note=(
-            "read on the same load set as the floor above; a home whose flat "
+            "read on the same load set as L1.1 above; a home whose flat "
             "counterfactual has no texture at all is scored 0.0 (a violation), "
             "never skipped"
         ),
@@ -7457,6 +7655,14 @@ def write_fabric_gap_entries(
                         "resolution": c.resolution,
                         "worst_value": c.worst_value,
                         "worst_home": c.worst_home,
+                    }),
+                    **({} if c.quantiles is None else {
+                        "quantiles": [
+                            {"q": leg.q, "real": leg.real, "world": leg.world,
+                             "below": leg.below, "expected": leg.expected, "p": leg.p}
+                            for leg in c.quantiles
+                        ],
+                        "real_source": REAL_HOME_TEXTURE_SOURCE,
                     }),
                 }
                 for c in two_level.cells

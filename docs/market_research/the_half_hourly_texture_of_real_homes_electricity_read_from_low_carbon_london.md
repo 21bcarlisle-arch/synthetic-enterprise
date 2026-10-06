@@ -1,4 +1,4 @@
-**Severity:** RECORDED · **Lane:** W1_market_weather · **Epoch:** 4 · **Atom:** `unminted`
+**Severity:** RECORDED · **Lane:** W1_market_weather · **Epoch:** 4 · **Atom:** `W1_29_the_worlds_homes_are_drawn_too_alike_in_half_hourly_behaviour`
 
 **Knowledge:** none -- this is a SIM fidelity DISCOVER pass, not a knowledge-layer anchor. No knowledge
 page covers how a household's electricity moves half-hour to half-hour; the nearest, metering-and-reads,
@@ -108,3 +108,12 @@ that is smooth by construction", the sourced lower tail (p1 ≈ 0.024, p5 ≈ 0.
 discriminate home by home. The structural L1.1n null-ratio cell already asks that question with no
 external number. The sourced comparison this data supports is distributional: the world's quantiles
 against LCL's. Which shape the cell takes is a build decision, recorded in the finding.
+
+## What was done with it (2026-10-06, later the same day)
+
+The L1.1 cell (`background/fabric_gap_ledger.py`) is now judged against the "LCL, all Std" row
+above: for each of p10, p25, median and p75, the count of world homes under the real quantile is
+tested exact-binomial against n·q, Bonferroni at 5%. The 0.15 per-home floor is gone. On the drawn
+60 the cell is red on all four legs (adjusted p 2.5e-13), so the red is now the spread defect in
+point 3, filed as the atom named above. The real quantiles are treated as exact, so the test is a
+little stricter than a two-sample test would be.

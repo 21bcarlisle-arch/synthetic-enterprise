@@ -49,16 +49,27 @@ def test_build_renewal_schedule_logs_a_pricing_decision_event():
 def test_build_renewal_schedule_logs_one_event_per_fixed_rate_term():
     from company.governance.decision_rights import get_decision_log, reset_decision_log
 
-    reset_decision_log()
+    # Keyed to the property, not to a count: a resi household that does not shop at its first
+    # term end rolls onto SVT (91214c720), so how many fixed terms a resi schedule has is the
+    # world's engagement draw. An SME site has no default tariff to roll onto, so it is the
+    # multi-term case this control needs, and the resi leg checks the same equality on whatever
+    # the draw produced.
     records = _flat_price_records("2015-10-01", "2019-06-30")
-    build_renewal_schedule("C_GOV_TEST2", "2016-01-01", "2018-01-01", records, 2800)
-
-    log = get_decision_log()
-    matches = [
-        r for r in log.all_records()
-        if r.entity_id == "C_GOV_TEST2" and r.fact_type == "decision_event:pricing_move"
-    ]
-    assert len(matches) >= 2, "a multi-term schedule must log one decision-event per fixed-rate term"
+    for segment in ("sme", "resi"):
+        reset_decision_log()
+        schedule = build_renewal_schedule(
+            "C_GOV_TEST2", "2016-01-01", "2018-01-01", records, 2800, segment=segment,
+        )
+        fixed_rates = [t["unit_rate_gbp_per_mwh"] for t in schedule if t.get("tariff_type") == "fixed"]
+        logged_rates = [
+            r.value.decision["unit_rate_gbp_per_mwh"] for r in get_decision_log().all_records()
+            if r.entity_id == "C_GOV_TEST2" and r.fact_type == "decision_event:pricing_move"
+        ]
+        if segment == "sme":
+            assert len(fixed_rates) >= 2, "the multi-term case must be reachable or this proves nothing"
+        assert logged_rates == fixed_rates, (
+            f"{segment}: a schedule must log one decision-event per fixed-rate term"
+        )
     reset_decision_log()
 
 

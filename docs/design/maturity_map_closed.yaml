@@ -4511,3 +4511,67 @@
   blocked_on: null
   simplifications_count: 7
   records_rehomed: [evidence]
+
+- id: W2_31_people_phase1_the_physical_layer_stands_alone
+  title: "people phase 1 re-cut so the physical layer stands alone, with the commercial layer correlated rather than merged"
+  lane: W2_customer_generator
+  value_stream: price_to_bill
+  epoch: 3
+  level_current: 2
+  level_target: 2
+  loop_stage: harden
+  dial_inherited: 50
+  provenance: director_ruling
+  blocked_on: null
+  block_reason: null
+  depends_on: []
+  couples_with: [W2_19_who_lives_where_money_and_composition]
+  file_scope:
+    - simulation/household_physical_layer.py
+    - tests/simulation/test_household_physical_layer.py
+  simplifications_count: 1
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a supplier that cannot tell a household which used less because nobody was home from one that could not afford it -- and those two want opposite things done to their direct debit."
+  # ITEM 5 of DIRECTOR_CANON_THE_DEMAND_VECTOR_2026-09-07. NOT a re-mint of W2_19 and the
+  # distinction is the whole point of the item. W2_19 is "money and who they are" -- the
+  # COMMERCIAL layer (income, fuel poverty, payment method, credit risk, attitude), which drives
+  # payment, arrears, churn and elasticity. This row is the PHYSICAL layer -- occupancy count,
+  # presence pattern, heating schedule and setpoint, appliance and asset ownership -- which
+  # drives kWh and shape. People phase 1 as currently ruled MIXES them, and the canon rules that
+  # the physical layer is what stage 1 needs and the commercial layer follows.
+  #
+  # THE CORRELATIONS ARE MODELLED, THE LAYERS ARE NOT MERGED. Income to house size to occupancy
+  # is real and must be in the draw; what may not happen is one layer standing in for the other.
+  # A build here that samples occupancy FROM income and stops has re-merged them under a new
+  # name.
+  #
+  # THIS IS ALSO WHAT UNBLOCKS THE ELECTRICITY GAP. Appliance and asset ownership is the non-heat
+  # electrical base W2_29's N is floored for want of; the canon names `W2_19` verbatim there,
+  # written before this re-cut existed, and under the re-cut that base sits in THIS layer.
+  #
+  # EXIT: a physical layer the draw carries independently of the commercial one, a control that
+  # fails when a physical quantity is derived solely from a commercial one, and the correlation
+  # structure stated and measured rather than assumed.
+
+- id: W2_34_the_company_has_one_piece_of_advice_that_costs_the_customer_nothing
+  title: "a zero-capital measure in the offer book, refused below a health floor rather than priced against a comfort cost -- so the company's advice leg exists and cannot recommend that the coldest households be colder"
+  notes_rehomed: [map_comment_note]
+  lane: W2_customer_generator
+  value_stream: price_to_bill
+  epoch: 3
+  level_current: 2
+  level_target: 2
+  loop_stage: build
+  dial_inherited: 50
+  provenance: proposal
+  blocked_on: null
+  block_reason: null
+  depends_on: []
+  couples_with: []
+  file_scope:
+    - company/pricing/fabric_intervention.py
+    - tests/company/test_turn_down_respects_the_health_floor.py
+    - tests/company/test_the_epc_band_reaches_the_floor_from_the_register.py
+  simplifications_count: 1
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "the advice a supplier's call handler actually gives for free -- turn the thermostat down a degree, drop the flow temperature -- which is the only thing they can offer a household with no capital, and which a responsible supplier withholds from a home that is already too cold"

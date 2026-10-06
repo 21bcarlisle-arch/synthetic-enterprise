@@ -381,6 +381,26 @@ def test_a_threshold_moved_INTO_its_null_flips_the_verdict(population):
         )
 
 
+
+@pytest.fixture
+def per_home_texture_floor(monkeypatch):
+    """THE SWEEP'S PER-HOME MACHINERY, exercised on a FIXTURE floor.
+
+    L1.1 was this sweep's only band with a subpopulation (homes routed by
+    `texture_band_for`), and since 2026-10-06 it carries no per-home threshold:
+    it is judged as a distribution against real homes
+    (`fgl.REAL_HOME_TEXTURE_SOURCE`), so the live sweep lists it as excluded and
+    L1.1n carries the per-home null question. The subpopulation and UNMEASURABLE
+    paths are still the sweep's own code, so these tests give L1.1 back a per-home
+    floor for their duration. The 0.15 is the refuted floor of the day, kept as a
+    number for the arithmetic, not as a claim about any home."""
+    monkeypatch.setitem(fgl.BANDS, fgl.TEXTURE_STATISTIC, dataclasses.replace(
+        fgl.BANDS[fgl.TEXTURE_STATISTIC], threshold=0.15,
+        anchor=fgl.AnchorStatus.DOMAIN_KNOWLEDGE,
+    ))
+
+
+@pytest.mark.usefixtures("per_home_texture_floor")
 def test_a_band_separated_by_LESS_than_its_nulls_spread_is_a_finding(population):
     """The middle verdict has to be reachable too, or the sweep is a two-state
     control wearing a three-state label."""
@@ -418,6 +438,7 @@ def test_the_null_is_REPRODUCIBLE_at_a_fixed_seed(population):
 # ---------------------------------------------------------------------------
 
 
+@pytest.mark.usefixtures("per_home_texture_floor")
 def test_a_bands_null_is_read_only_on_the_homes_it_JUDGES():
     """RE-AIMED BY H36 (2026-08-10), because the load set it protects moved.
 
@@ -443,6 +464,7 @@ def test_a_bands_null_is_read_only_on_the_homes_it_JUDGES():
     )
 
 
+@pytest.mark.usefixtures("per_home_texture_floor")
 def test_a_band_with_NO_home_to_judge_is_unmeasurable_not_clean():
     """The vacuity guard at the band level (H35), still live after H36 with the
     population that now empties the floor's load set: every home electrically
@@ -460,6 +482,7 @@ def test_a_band_with_NO_home_to_judge_is_unmeasurable_not_clean():
     assert m.is_hit
 
 
+@pytest.mark.usefixtures("per_home_texture_floor")
 def test_the_subpopulation_follows_the_LIVE_router(population):
     """Routed through `texture_band_for`, so a change to
     `HEAT_ON_THE_JUDGED_METER` moves the sweep's load set with it instead of
@@ -607,6 +630,7 @@ def test_to_json_carries_the_window_and_the_exclusions(population):
 # state to fatal.
 
 
+@pytest.mark.usefixtures("per_home_texture_floor")
 def test_a_band_that_judges_NO_HOME_is_FATAL_and_not_merely_reported():
     """THE DEFECT DIRECTION. A population the floor cannot judge must fail the
     run, not report.
@@ -635,6 +659,7 @@ def test_a_band_that_judges_NO_HOME_is_FATAL_and_not_merely_reported():
     )
 
 
+@pytest.mark.usefixtures("per_home_texture_floor")
 def test_the_SAME_band_stops_being_fatal_once_a_home_EXERCISES_it():
     """THE OTHER DIRECTION, and it is the one that matters for whether the guard
     is a control or a wedge. The same band, the same window, the same call — one
@@ -680,6 +705,7 @@ def test_SAME_ORDER_stays_a_FINDING_and_does_not_fail_the_run():
     }
 
 
+@pytest.mark.usefixtures("per_home_texture_floor")
 def test_the_RUNNERS_EXIT_CODE_is_the_one_the_module_declares():
     """R11 no-orphan: the promotion is worthless if the runner keeps its own copy
     of the rule. The runner is imported and its `main` driven against a stub

@@ -386,7 +386,18 @@ def main(report_end: str | None = None, policy=None):
     # financial figure. It emits the held-credit-liability figure DD3 will book
     # into the double-entry chart and DD-H will weigh against believed solvency
     # (both the registered next gated steps, deliberately not wired here).
-    dd_balance_book = build_dd_balance_book(bills, opening_dd)
+    #
+    # SLC 21BA at a direct debit's charge recovery actions (2026-10-06): the final bill of an account
+    # that left asks for its closing balance, so `churned_ids` names those actions. Whether the annual
+    # review also seeks the balance is the director's assumption toggle; the book runs as the review
+    # is (it does not), and the other arm is published beside it so the bar can be read across both.
+    dd_balance_book = build_dd_balance_book(bills, opening_dd, churned_ids)
+    dd_back_billing_if_review_seeks_balance = {
+        k: v for k, v in build_dd_balance_book(
+            bills, opening_dd, churned_ids, seek_balance_at_review=True,
+        ).summary().items()
+        if k.startswith("back_billing_") or k in ("seek_balance_at_review", "n_customers_barred")
+    }
 
     # DD1 (atom DD_seasonal_cashflow_physics): the LEVEL (fixed) DD collection
     # made first-class -- the standing monthly amount actually SIZES a collection
@@ -681,6 +692,7 @@ def main(report_end: str | None = None, policy=None):
             for c in _get_all_customers() if c.get("customer_id")
         },
         "dd_balance_book": dd_balance_book.serialise(),
+        "dd_back_billing_if_review_seeks_balance": dd_back_billing_if_review_seeks_balance,
         "dd_level_collection_book": dd_level_collection_book.serialise(),
         "meter_read_log": meter_read_log,
         # D48: billed against what the reads later showed, by kind -- read off the assembled

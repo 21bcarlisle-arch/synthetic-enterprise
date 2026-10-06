@@ -117,6 +117,14 @@ _AUTHORITATIVE_COUPLING = {
     # not a 0..1 gap, so no ledger row is written for it here: the pair reads
     # unmeasured until someone defines the gap, and PB4 stays held below L3.
     "PB4": "C29",
+    # W2_30 per-household demand shape <-> D48 billing accuracy. No import joins them and
+    # none may: D48 grades the company's AQ/EAC-shaped bill estimates against the settled
+    # actual reads, and those reads carry W2_30's per-household seasonal gas split
+    # (`run_phase2b` -> `seasonal_gas_splits_for_book`) and the fabric path's electricity.
+    # Its slice 4 grade is what surfaced the gas-heated homes' flat electricity season, so
+    # it is already the belief-vs-truth reading of this mechanism. D48 sits at L1, so the
+    # gate still holds W2_30 below L3 -- now for the twin's level, not for a missing twin.
+    "W2_30": "D48",
 }
 
 # TWIN-EXEMPT world atoms (director-authored exemptions from binding rule 1).

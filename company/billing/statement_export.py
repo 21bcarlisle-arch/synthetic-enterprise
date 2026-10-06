@@ -163,7 +163,8 @@ def bill_lines(inv: dict) -> list[dict]:
              "catchup_direction": inv.get("catchup_direction"),
              "catchup_periods_covered": inv.get("catchup_periods_covered"),
              "catchup_raw_delta_gbp": inv.get("catchup_raw_delta_gbp"),
-             # Ofgem SLC 31A caps what a supplier may recover on an undercharge. Money barred from
+             # SLC 21BA (back-billing) caps what a supplier may recover on an undercharge; sourced in
+             # docs/market_research/back_billing_and_liability.md. Money barred from
              # recovery belongs on the customer's statement: it is the difference between what the
              # meter says they used and what they may lawfully be asked for.
              "catchup_written_off_gbp": inv.get("catchup_written_off_gbp")},

@@ -110,6 +110,7 @@ from dataclasses import dataclass, field
 from datetime import date
 from typing import Mapping
 
+from company.interfaces.bill_assembly import barred_at_charge_recovery
 from company.interfaces.dd_review_outcome import reviewed_monthly_amount
 from simulation.arrears_engine import payment_method
 
@@ -140,6 +141,9 @@ class BalancePoint:
     # quarter instead of three monthly ones, and silently flip its own
     # ``all_schedules_level_fixed`` guard.
     n_collections: int = 1
+    #: What the period's energy truly cost: the bill where it was read, the true charge where it
+    #: was estimated, and a catch-up bill less the catch-up it carried for earlier periods.
+    true_charge_gbp: float | None = None
 
 
 @dataclass
@@ -155,6 +159,12 @@ class DDBalanceBook:
     #: carry no trajectory and no held credit: without a standing DD there is no
     #: level payment. A result to be published, not a gap to be filled.
     unestimated_customers: list = field(default_factory=list)
+    #: SLC 21BA at a direct debit's charge recovery actions -- see `build_dd_balance_book`.
+    seek_balance_at_review: bool = False
+    barred_at_reviews_gbp: float = 0.0
+    barred_at_final_bills_gbp: float = 0.0
+    barred_if_sought_at_run_end_gbp: float = 0.0
+    barred_by_customer: dict = field(default_factory=dict)
 
     def _months_sorted(self) -> list:
         return sorted(self.monthly)
@@ -172,6 +182,7 @@ class DDBalanceBook:
                 "mean_held_credit_gbp": 0.0,
                 "portfolio_final_balance_gbp": 0.0,
                 "portfolio_final_held_credit_gbp": 0.0,
+                **self._back_billing_summary(),
             }
         held_series = [(m, self.monthly[m]["held_credit_gbp"]) for m in months]
         peak_month, peak = max(held_series, key=lambda t: t[1])
@@ -192,6 +203,17 @@ class DDBalanceBook:
             "mean_held_credit_gbp": round(mean_held, 2),
             "portfolio_final_balance_gbp": round(last["portfolio_balance_gbp"], 2),
             "portfolio_final_held_credit_gbp": round(last["held_credit_gbp"], 2),
+            **self._back_billing_summary(),
+        }
+
+    def _back_billing_summary(self) -> dict:
+        return {
+            "seek_balance_at_review": self.seek_balance_at_review,
+            "back_billing_barred_at_reviews_gbp": round(self.barred_at_reviews_gbp, 2),
+            "back_billing_barred_at_final_bills_gbp": round(self.barred_at_final_bills_gbp, 2),
+            "back_billing_barred_if_sought_at_run_end_gbp": round(
+                self.barred_if_sought_at_run_end_gbp, 2),
+            "n_customers_barred": sum(1 for v in self.barred_by_customer.values() if v > 0),
         }
 
     def serialise(self) -> dict:
@@ -219,9 +241,27 @@ class DDBalanceBook:
         }
 
 
+def _true_charge(b: dict) -> float:
+    if "true_total_amount_gbp" in b:
+        return float(b["true_total_amount_gbp"])
+    catchup = float(b.get("catchup_adjustment_gbp") or 0.0) if b.get("catchup_applied") else 0.0
+    return float(b["total_amount_gbp"]) - catchup
+
+
+def _settle_oldest_first(periods: list[list], amount: float) -> None:
+    """Mark `amount` of the oldest open shortfall as settled, so a bar taken once is not taken
+    again at the next recovery action."""
+    for p in periods:
+        take = min(max(p[2] - p[3], 0.0), amount)
+        p[3] += take
+        amount -= take
+
+
 def build_dd_balance_book(
     bills: list[dict],
     opening_dd_gbp: Mapping[str, float] | None = None,
+    closed_ids: set[str] | None = None,
+    seek_balance_at_review: bool = False,
 ) -> DDBalanceBook:
     """Carry each direct-debit customer's level-DD credit/debit balance
     tick-by-tick and aggregate the portfolio held-credit liability over time.
@@ -234,6 +274,28 @@ def build_dd_balance_book(
     level payment, and therefore no credit to build or draw down. Inventing one
     from their first bill is the defect this parameter removes.
 
+    SLC 21BA AT EACH CHARGE RECOVERY ACTION. For direct debit the statement is not a demand; the
+    debit is, and so is the final bill that asks for the closing balance. At each such action the
+    part of the balance owed for energy used more than 12 months before it is barred
+    (``bill_assembly.barred_at_charge_recovery``: each period's true charge against what the
+    debit collected, surplus paying the oldest shortfall), never more than the debit balance the
+    action seeks -- the balance is kept on what was BILLED, and a supplier loses only what it asks
+    for. The actions taken here:
+
+    * the FINAL BILL of an account in ``closed_ids`` -> ``barred_at_final_bills_gbp``;
+    * the ANNUAL REVIEW, only when ``seek_balance_at_review`` -- the review then raises the debit
+      by a twelfth of the debit balance it finds, after writing off the barred part
+      -> ``barred_at_reviews_gbp``. Whether a GB supplier's review normally seeks the balance is
+      unpublished; the director ruled it an assumption toggle (2026-10-05). False is the review
+      as it was: it resets the debit to last year's spend and never asks for the balance, so the
+      balance is first sought at the final bill and the trajectories are byte-identical;
+    * an account still open at the run's end has had no action seeking its old balance, so its
+      figure is an exposure, not a loss: ``barred_if_sought_at_run_end_gbp``.
+
+    The true charge of an estimated period is the world's, apportioned per month; a supplier at
+    the read knows the run's total, not its split. That is the approximation this figure carries.
+    None of these figures is booked: the balance book touches no ledger (DD3 is owed).
+
     Pure, deterministic, idempotent (no RNG, no mutation of ``bills`` or any
     ground-truth structure). See the module docstring for the wall-clean basis
     and the exact consistency with ``dd_collection_book`` / ``dd_review_runner``.
@@ -242,6 +304,7 @@ def build_dd_balance_book(
     # the same population gate dd_collection_book applies (a customer with no DD
     # mandate holds no seasonal DD credit).
     by_cust: dict[str, list[tuple[date, float]]] = {}
+    true_by_cust: dict[str, list[tuple[date, date, float]]] = {}
     for b in bills:
         method = payment_method(
             b.get("segment", "resi"),
@@ -254,8 +317,12 @@ def build_dd_balance_book(
         by_cust.setdefault(b["customer_id"], []).append(
             (date.fromisoformat(b["period_end"]), float(b["total_amount_gbp"]))
         )
+        end = date.fromisoformat(b["period_end"])
+        start = (date.fromisoformat(b["period_start"][:10]) if b.get("period_start")
+                 else end.replace(day=1))
+        true_by_cust.setdefault(b["customer_id"], []).append((end, start, _true_charge(b)))
 
-    book = DDBalanceBook()
+    book = DDBalanceBook(seek_balance_at_review=seek_balance_at_review)
     # Per-customer forward-filled balance by month, so the portfolio aggregate
     # at any calendar month sums each customer's most recent known balance while
     # they are active (customers bill in different months / start dates).
@@ -263,6 +330,7 @@ def build_dd_balance_book(
 
     for cid in sorted(by_cust):
         seq = sorted(by_cust[cid], key=lambda t: t[0])
+        truth = sorted(true_by_cust[cid], key=lambda t: t[0])
         anchor = seq[0][0]
 
         # Standing level DD per 12-month window: window 0 is the amount the
@@ -295,6 +363,9 @@ def build_dd_balance_book(
             actual_annual = sum(a for _, a in windows[wi])
             # Reset for NEXT year from this completed year's actual spend.
             standing = reviewed_monthly_amount(actual_annual)
+        # [start, end, true charge, collected] per period, for the recovery actions below.
+        recovery: list[list] = []
+        barred_here = 0.0
 
         # Carry the balance across every billed month. Opening balance is ZERO
         # (a non-zero prior-tenancy opening balance is W2_12's physics -- see the
@@ -303,8 +374,18 @@ def build_dd_balance_book(
         points: list[BalancePoint] = []
         month_balance: dict[str, float] = {}
         prev_d: date | None = None
-        for d, amt in seq:
+        prev_wi = 0
+        for (d, amt), (_, start, true_charge) in zip(seq, truth):
             wi = _months_between(anchor, d) // 12
+            if seek_balance_at_review and wi != prev_wi and balance < 0:
+                barred = min(-balance, barred_at_charge_recovery(
+                    [tuple(p) for p in recovery], start, is_domestic=True))
+                _settle_oldest_first(recovery, barred)
+                balance += barred
+                book.barred_at_reviews_gbp += barred
+                barred_here += barred
+                standing_dd_by_window[wi] += max(0.0, -balance) / 12.0
+            prev_wi = wi
             # A level DD is collected MONTHLY however often the customer is
             # billed (C-S5). Collect one standing DD per month the bill period
             # spans -- 1 under monthly billing (byte-identical to the original),
@@ -314,6 +395,7 @@ def build_dd_balance_book(
             n_collections = 1 if prev_d is None else max(1, _months_between(prev_d, d))
             standing = standing_dd_by_window[wi]
             balance += standing * n_collections - amt
+            recovery.append([start, d, true_charge, standing * n_collections])
             prev_d = d
             month = f"{d.year:04d}-{d.month:02d}"
             points.append(BalancePoint(
@@ -322,10 +404,19 @@ def build_dd_balance_book(
                 consumed_gbp=round(amt, 2),
                 balance_gbp=round(balance, 2),
                 n_collections=n_collections,
+                true_charge_gbp=round(true_charge, 2),
             ))
             # If a customer has >1 bill in a calendar month, the LAST wins (the
             # end-of-month position) -- deterministic under the sorted seq.
             month_balance[month] = balance
+        closing = min(max(0.0, -balance), barred_at_charge_recovery(
+            [tuple(p) for p in recovery], seq[-1][0]))
+        if closed_ids is not None and cid in closed_ids:
+            book.barred_at_final_bills_gbp += closing
+            barred_here += closing
+        else:
+            book.barred_if_sought_at_run_end_gbp += closing
+        book.barred_by_customer[cid] = round(barred_here, 2)
         book.trajectories[cid] = points
         per_cust_month_balance[cid] = month_balance
 

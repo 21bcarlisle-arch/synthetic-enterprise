@@ -2057,74 +2057,13 @@
   blocked_on: null
   block_reason: null
   depends_on: []
-  couples_with: [W1_5_premise_demand_shape, W2_28_a_household_is_a_vector_and_a_claim_declares_what_it_reduces_over]
+  couples_with: [W1_5_premise_demand_shape, W2_28_a_household_is_a_vector_and_a_claim_declares_what_it_reduces_over, D48_billing_accuracy_the_company_measures_what_it_billed_against_what_was_used]
   file_scope:
     - simulation/household_demand_shape.py
     - tests/simulation/test_household_demand_shape.py
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a supplier whose every customer has the same half-hourly shape, so time-of-use, flexibility and hedging by physics are all worth exactly zero in its own model, and it cannot tell that this is a modelling artefact."
 
-- id: W2_31_people_phase1_the_physical_layer_stands_alone
-  title: "people phase 1 re-cut so the physical layer stands alone, with the commercial layer correlated rather than merged"
-  lane: W2_customer_generator
-  value_stream: price_to_bill
-  epoch: 3
-  level_current: 2
-  level_target: 3
-  loop_stage: harden
-  dial_inherited: 50
-  provenance: director_ruling
-  blocked_on: null
-  block_reason: null
-  depends_on: []
-  couples_with: [W2_19_who_lives_where_money_and_composition]
-  file_scope:
-    - simulation/household_physical_layer.py
-    - tests/simulation/test_household_physical_layer.py
-  expert_hour: {status: not_attempted, last: null, findings: []}
-  real_world_twin: "a supplier that cannot tell a household which used less because nobody was home from one that could not afford it -- and those two want opposite things done to their direct debit."
-  # ITEM 5 of DIRECTOR_CANON_THE_DEMAND_VECTOR_2026-09-07. NOT a re-mint of W2_19 and the
-  # distinction is the whole point of the item. W2_19 is "money and who they are" -- the
-  # COMMERCIAL layer (income, fuel poverty, payment method, credit risk, attitude), which drives
-  # payment, arrears, churn and elasticity. This row is the PHYSICAL layer -- occupancy count,
-  # presence pattern, heating schedule and setpoint, appliance and asset ownership -- which
-  # drives kWh and shape. People phase 1 as currently ruled MIXES them, and the canon rules that
-  # the physical layer is what stage 1 needs and the commercial layer follows.
-  #
-  # THE CORRELATIONS ARE MODELLED, THE LAYERS ARE NOT MERGED. Income to house size to occupancy
-  # is real and must be in the draw; what may not happen is one layer standing in for the other.
-  # A build here that samples occupancy FROM income and stops has re-merged them under a new
-  # name.
-  #
-  # THIS IS ALSO WHAT UNBLOCKS THE ELECTRICITY GAP. Appliance and asset ownership is the non-heat
-  # electrical base W2_29's N is floored for want of; the canon names `W2_19` verbatim there,
-  # written before this re-cut existed, and under the re-cut that base sits in THIS layer.
-  #
-  # EXIT: a physical layer the draw carries independently of the commercial one, a control that
-  # fails when a physical quantity is derived solely from a commercial one, and the correlation
-  # structure stated and measured rather than assumed.
-
-- id: W2_34_the_company_has_one_piece_of_advice_that_costs_the_customer_nothing
-  title: "a zero-capital measure in the offer book, refused below a health floor rather than priced against a comfort cost -- so the company's advice leg exists and cannot recommend that the coldest households be colder"
-  notes_rehomed: [map_comment_note]
-  lane: W2_customer_generator
-  value_stream: price_to_bill
-  epoch: 3
-  level_current: 2
-  level_target: 3
-  loop_stage: build
-  dial_inherited: 50
-  provenance: proposal
-  blocked_on: null
-  block_reason: null
-  depends_on: []
-  couples_with: []
-  file_scope:
-    - company/pricing/fabric_intervention.py
-    - tests/company/test_turn_down_respects_the_health_floor.py
-    - tests/company/test_the_epc_band_reaches_the_floor_from_the_register.py
-  expert_hour: {status: not_attempted, last: null, findings: []}
-  real_world_twin: "the advice a supplier's call handler actually gives for free -- turn the thermostat down a degree, drop the flow temperature -- which is the only thing they can offer a household with no capital, and which a responsible supplier withholds from a home that is already too cold"
 - id: A50_the_supplier_use_case_register_is_published_with_a_status_per_item
   title: "the supplier use-case register reaches a reader on Capabilities, each item carrying its SIM-native test and a status derived from the tree"
   notes_rehomed: [gain]
@@ -2208,7 +2147,7 @@
   dial_inherited: 100
   provenance: director_ruling
   depends_on: []
-  couples_with: [W2_36_unbilled_energy_arises_the_way_it_does_in_reality]
+  couples_with: [W2_36_unbilled_energy_arises_the_way_it_does_in_reality, W2_30_per_household_half_hourly_electricity_and_seasonal_gas_shape]
   file_scope: ['company/billing/billing_accuracy.py',
     'tests/company/billing/test_billing_accuracy.py']
   simplifications_count: 1
@@ -2221,12 +2160,14 @@
   epoch: 4
   level_current: 1
   level_target: 3
-  loop_stage: build
+  loop_stage: idle
   # MINTED 2026-10-05, canon step 3: "the spine every lever is judged against. Build and test
   # it on held-back history". Couples to EP1 (three horizons, L2, blocked on a second book):
   # a held-back-history test needs no second book, which is why this is its own atom.
-  # L1 2026-10-06 (9680fbf4b, 4e4637853). NEXT: the deviation window ends before the regime,
-  # with the boundary read from the published record (cap history), not fitted to the result.
+  # L1 2026-10-06. Window (27d0d3065) and switch/move split (3d9c4fb84) landed. PARKED
+  # 2026-10-06: nothing left moves in company code. UN-PARK when B7 slice 3 lands and moves are
+  # switched on (split gets graded), or the director rules EP17 (books to separate the rules).
+  block_reason: "the next gain is in the WORLD (B7 slice 3 + moves switched on) or the director's EP17 row, not company code"
   dial_inherited: 90
   provenance: director_ruling
   depends_on: []
@@ -2313,3 +2254,28 @@
     'docs/market_research/household_carbon_and_the_measures_that_save_it.md']
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a supplier whose debt desk, retention desk and energy-advice team each send the same customer a different letter in the same week."
+
+- id: W1_29_the_worlds_homes_are_drawn_too_alike_in_half_hourly_behaviour
+  title: "the world's homes move half-hour to half-hour like one rough home, where real homes spread from calm to busy"
+  lane: W1_market_weather
+  value_stream: wholesale_to_price
+  epoch: 3
+  level_current: 0
+  level_target: 3
+  loop_stage: build
+  dial_inherited: 3
+  provenance: seat_finding
+  blocked_on: null
+  block_reason: null
+  depends_on: [W1_12_premise_trace_generator]
+  couples_with: [C14_thermal_parameter_inference, H_GAP_fabric_belief_truth_gap]
+  file_scope:
+    - simulation/premise_trace.py
+    - tests/harness/test_premise_two_level.py
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a London street read off its smart meters: nearly half the homes calmer than 0.15 of their own mean between half-hours, a rough tail of small busy flats, and no two alike"
+  # EVIDENCE (2026-10-06): L1.1 is judged against 313 real LCL homes
+  # (docs/market_research/the_half_hourly_texture_of_real_homes_electricity_read_from_low_carbon_london.md).
+  # The drawn 60 has 0 homes under the real p10 and p25, 3 under the median (30 expected) and 29 under
+  # the p75 (45); median 0.209 vs 0.158. Exit: `test_MEASURED_population_values` sees L1.1 PASS, by a
+  # mechanism, never by widening a draw. Per-customer inference only beats flat where homes differ.

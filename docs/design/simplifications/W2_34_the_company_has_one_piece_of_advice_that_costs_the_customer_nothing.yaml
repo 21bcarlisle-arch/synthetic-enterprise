@@ -1,4 +1,6 @@
 atom_id: W2_34_the_company_has_one_piece_of_advice_that_costs_the_customer_nothing
+simplifications:
+- 'TARGET LOWERED 3->2 (2026-10-06, delivery item the-triad-gate-s-three-excluded-atoms-get-their-company-twins). This row is a COMPANY capability (company/pricing/fabric_intervention.py) filed under a W2 id, so the coupled-triad gate reads it as a world mechanism and excluded it from every BUILD draw for want of a company twin. No company capability is tested against it, because it is the capability. Its own belief-vs-truth grade already exists: background/fabric_gap_ledger runs fabric_intervention.decide in both arms against W1_11''s fabric truth (twin C14). C34 (next best action) was the suggested twin and is a name match only: company/crm/next_best_action.py never calls fabric_intervention. Restoring L3 means re-filing this row under a company id, not registering a twin.'
 map_notes:
   map_comment_note: '# MINTED 2026-09-08 from SEAT_FINDING_EVERY_PIECE_OF_ADVICE_THE_COMPANY_CAN_GIVE_COSTS_THE_CUSTOMER_MONEY
 

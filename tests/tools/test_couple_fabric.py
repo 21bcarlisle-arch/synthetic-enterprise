@@ -498,11 +498,16 @@ def test_the_two_level_result_rides_along_with_the_gap(panel, weather):
     every home on the panel clears. Nothing was tuned to get here: see
     `test_the_TEXTURE_CELL_BREACH_CLOSED_when_the_LOAD_SET_WAS_REPAIRED` and the
     fail-open the old reading is measured to have had.
+
+    AND REJOINED ON 2026-10-06, for the spread. L1.1 is judged against real homes'
+    distribution (`fgl.REAL_HOME_TEXTURE_SOURCE`) since then, and fifteen homes are
+    enough to be decisive about it: not one panel home is under the real median.
+    A rejection needs no power argument, so this is FAIL, not INSUFFICIENT.
     """
     result = cf.two_level(panel, weather)
     assert result.generator.startswith("premise_trace")
     assert {c.statistic for c in result.failed} == {
-        "L2.4_scale_spread_p90_p10",
+        fgl.TEXTURE_STATISTIC, "L2.4_scale_spread_p90_p10",
     }, result.summary()
     assert result.inconclusive, (
         "fifteen homes cannot clear a control that claims to see a 5% violation rate"
@@ -518,15 +523,15 @@ def _worst_cell_clears_its_own_floor(texture) -> None:
     closure test depends on, instead of a re-typed copy of it beside the original
     (a re-implementation proves the copy fires, which is not the claim).
 
-    The band is a FLOOR, so "clears" means at or above it, and the direction is
-    asserted rather than assumed — `>=` and `<=` are one character apart and the
-    band is the only thing that says which is right.
+    RE-KEYED 2026-10-06. There is no per-home floor any more; the reference the
+    cell carries is the real distribution, and "clears" now means the calmest
+    judged home is out of the calmest tenth of real homes — read off the cell's
+    OWN p10 leg, so a moved reference reaches this expression.
     """
-    assert texture.band.direction == "at_least", texture.band
-    assert texture.worst_value >= texture.band.threshold, (
-        f"the worst L1.1 cell ({texture.worst_home} at {texture.worst_value:.4f}) fell "
-        f"BELOW the {texture.band.threshold} floor it is judged by — the closure has "
-        f"regressed: {texture.note}"
+    p10 = next(leg for leg in texture.quantiles if leg.q == 0.10)
+    assert texture.worst_value >= p10.real, (
+        f"the calmest L1.1 home ({texture.worst_home} at {texture.worst_value:.4f}) fell "
+        f"BELOW the real p10 {p10.real} — the closure has regressed: {texture.note}"
     )
 
 
@@ -588,18 +593,15 @@ def test_the_TEXTURE_CELL_BREACH_CLOSED_when_the_LOAD_SET_WAS_REPAIRED(panel, we
     result = cf.two_level(panel, weather)
     texture = result.cell(fgl.TEXTURE_STATISTIC)
 
-    # (a) The floor is UNTOUCHED and it is the only judged one.
-    assert fgl.BANDS[fgl.TEXTURE_STATISTIC].threshold == 0.15, (
-        "the closure rests on the floor NOT having moved"
-    )
-    assert texture.band.statistic == fgl.TEXTURE_STATISTIC
-    assert texture.band.threshold == 0.15
+    # (a) Every home lands in the ONE judged band. Since 2026-10-06 that band has
+    #     no per-home floor; the cell is the real distribution.
+    assert texture.band is fgl.BANDS[fgl.TEXTURE_STATISTIC]
+    assert texture.band.threshold is None
 
     # (b) Every home is judged — none excluded to get here — and none is in
     #     breach. Pinned by identity as well as by count: a different worst home
     #     is a different measurement and must be read, not absorbed.
     assert (texture.homes_judged, texture.homes_unjudged) == (15, 0), texture.note
-    assert texture.homes_violating == 0, texture.note
     # H38 (2026-08-10) moved the worst home OFF the electrically heated set: with
     # the water heater out of the denominator too, the panel's marginal home is a
     # GAS home the netting never touched. That is the same tell the drawn 60 gives,
@@ -624,10 +626,12 @@ def test_the_TEXTURE_CELL_BREACH_CLOSED_when_the_LOAD_SET_WAS_REPAIRED(panel, we
         "the netting is the identity on — otherwise this is a rescaling"
     )
 
-    # (c) The verdict is INSUFFICIENT rather than PASS, and that is the honest
-    #     reading: fifteen homes cannot rule out a 5% violation rate. The breach
-    #     is gone; the power was never there.
-    assert texture.verdict is fgl.Verdict.INSUFFICIENT, texture.note
+    # (c) The verdict is FAIL since 2026-10-06, and for the SPREAD, not for any
+    #     home: no panel home is under the real median. The load-set closure
+    #     above is about which home is calmest; the red is about all of them.
+    assert texture.verdict is fgl.Verdict.FAIL, texture.note
+    median = next(leg for leg in texture.quantiles if leg.q == 0.50)
+    assert median.below == 0, texture.note
 
     # (d) THE GAS HOMES ARE UNCHANGED BY THE REPAIR, which is what makes it a
     #     load-set correction rather than a rescaling of everybody. Measured, not
@@ -705,10 +709,11 @@ def test_the_OLD_WHOLE_METER_reading_was_FAIL_OPEN_on_a_BEHAVIOURALLY_FLAT_home(
         ]
         if fgl.half_hourly_texture(mutated) >= old_floors[regime]:
             passed_the_old_floor.append(home)
-        # The reading the cell takes now fails every one of them.
-        assert fgl.BANDS[fgl.TEXTURE_STATISTIC].judge(
-            fgl.half_hourly_texture(mutated, machines=heat)
-        ) is fgl.Verdict.FAIL, home
+        # The reading the cell takes now fails every one of them — per home that
+        # is L1.1n's question since 2026-10-06, when L1.1 became a distribution.
+        assert fgl.BANDS[fgl.TEXTURE_NULL_RATIO_STATISTIC].judge(
+            fgl._texture_ratio_or_zero(fgl.meter_net_of_machines(mutated, heat))
+        ) is not fgl.Verdict.PASS, home
 
     assert heated == 6, "the six homes the H35 widening put on the panel"
     # KEYED TO THE PROPERTY, NOT TO THE MEMBERSHIP (repaired 2026-09-21). This leg used to
@@ -791,19 +796,18 @@ def test_the_CLOSURE_CONTROL_still_fires_when_the_JUDGING_BAND_IS_MOVED(panel, w
     exactly what makes it the test of whether the control is wired to the band at
     all.
     """
-    published_floor = fgl.BANDS[fgl.TEXTURE_STATISTIC].threshold
-    moved = dataclasses.replace(fgl.BANDS[fgl.TEXTURE_STATISTIC], threshold=0.20)
-    monkeypatch.setitem(fgl.BANDS, fgl.TEXTURE_STATISTIC, moved)
+    # Since 2026-10-06 the reference is the real distribution, so that is what is
+    # moved: every quantile raised to 0.20, inside the panel's own range.
+    published = fgl.REAL_HOME_TEXTURE_QUANTILES
+    moved = tuple((q, 0.20 + 0.01 * k) for k, (q, _) in enumerate(published))
+    monkeypatch.setattr(fgl, "REAL_HOME_TEXTURE_QUANTILES", moved)
 
     texture = cf.two_level(panel, weather).cell(fgl.TEXTURE_STATISTIC)
 
     # The mutation reached the real measurement...
-    assert fgl.BANDS[fgl.TEXTURE_STATISTIC].threshold != published_floor
-    assert texture.band.threshold == 0.20
-    # ...and the cell it produces is one the control refuses. Every home on the
-    # panel reads between 0.153 and 0.288, so a 0.20 floor puts real homes in
-    # breach rather than an invented one.
-    assert texture.homes_violating > 0, texture.note
+    assert [leg.real for leg in texture.quantiles] == [real for _, real in moved]
+    # ...and the cell it produces is one the control refuses.
+    assert texture.quantiles[0].below > 0, texture.note
     with pytest.raises(AssertionError, match="fell"):
         _worst_cell_clears_its_own_floor(texture)
 
@@ -831,7 +835,7 @@ def test_the_CLOSURE_CONTROL_accepts_a_clearing_cell_and_REJECTS_a_sub_floor_one
     measured above.
     """
     texture = cf.two_level(panel, weather).cell(fgl.TEXTURE_STATISTIC)
-    floor = texture.band.threshold
+    floor = texture.quantiles[0].real
 
     _worst_cell_clears_its_own_floor(texture)          # the measured cell itself
 

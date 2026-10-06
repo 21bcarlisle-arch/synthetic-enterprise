@@ -66,7 +66,10 @@ def test_live_map_coupling_has_all_seven_pairs():
     assert ct.COUPLING["W2_9_segment_debt_tnc"] == "C11_segment_debt_policy"
     # W2_11<->D5 payment triad added by director console 2026-07-18 (8th pair, D-lane twin)
     assert ct.COUPLING["W2_11_payment_behaviour_source"] == "D5_account_hierarchy_payments"
-    assert len([k for k in ct.COUPLING if k.startswith("W2_")]) == 8
+    # Every W2 row of the table resolves in the live map -- none dropped for a renamed atom.
+    # Keyed to the table, not a count, so registering a twin does not red it.
+    table_w2 = [s for s in ct._AUTHORITATIVE_COUPLING if s.startswith("W2_")]
+    assert len([k for k in ct.COUPLING if k.startswith("W2_")]) == len(table_w2) >= 8
 
 
 # --- Gap ledger contract -----------------------------------------------------
@@ -218,3 +221,20 @@ def test_pb4_resolves_to_its_engagement_twin_so_its_refusal_is_never_a_registrat
     assert ct._twin_id_for(pb4, atoms) == "C29_decisions_stop_being_lookup_tables"
     blocked, reason = ct.world_l3_blocked(pb4, atoms, ct.load_gap_ledger())
     assert "no coupled company twin registered" not in reason
+
+
+def test_the_three_rows_the_gate_refused_for_want_of_a_twin_are_no_longer_registration_defects():
+    # Defect: W2_30, W2_31 and W2_34 sat at L2 aiming at L3 with no twin in the table, so the
+    # supervisor excluded all three from every BUILD draw (the PB4 shape). W2_30 now couples to
+    # D48; the other two had no company capability tested against them and target L2.
+    atoms = ct.map_store.load_atoms(ct.MATURITY_MAP_PATH)
+    by_short = {ct._short_id(a.get("id", "")): a for a in atoms if isinstance(a, dict)}
+    ledger = ct.load_gap_ledger()
+    for short in ("W2_30", "W2_31", "W2_34"):
+        _, reason = ct.world_l3_blocked(by_short[short], atoms, ledger)
+        assert "no coupled company twin registered" not in reason, short
+    w2_30 = by_short["W2_30"]
+    twin = ct._twin_id_for(w2_30, atoms)
+    assert twin == by_short["D48"]["id"]
+    # The pair is declared on both rows, so the map and the gate's table say the same thing.
+    assert twin in w2_30["couples_with"] and w2_30["id"] in by_short["D48"]["couples_with"]
