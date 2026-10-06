@@ -1387,6 +1387,52 @@
         "W2_34_the_company_has_one_piece_of_advice_that_costs_the_customer_nothing",
         "E5_carbon_three_ledger"
       ]
+    },
+    {
+      "id": "back-billing-and-liability",
+      "title": "Back bills: who pays for energy that was never charged for",
+      "kind": "page",
+      "blurb": "Since May 2018 a supplier can only ask a household to pay for energy used in the twelve months before it asks. What counts as asking decides who carries the rest.",
+      "rate_of_change": "medium",
+      "reviewed": {
+        "last_verified": "2026-10-06",
+        "source": "see the page's own sources"
+      },
+      "atoms": [
+        "D48_billing_accuracy_the_company_measures_what_it_billed_against_what_was_used",
+        "W2_36_unbilled_energy_arises_the_way_it_does_in_reality"
+      ]
+    },
+    {
+      "id": "read-access-and-theft-duties",
+      "title": "Getting to the meter, and energy that is stolen",
+      "kind": "page",
+      "blurb": "A supplier must try to read every meter once a year, but it cannot enter a home without consent or a warrant. It must look for theft, but finding theft costs it money. This page explains both duties, who pays when they fail, and what a supplier can see.",
+      "rate_of_change": "medium",
+      "reviewed": {
+        "last_verified": "2026-10-06",
+        "source": "see the page's own sources"
+      },
+      "atoms": [
+        "W2_36_unbilled_energy_arises_the_way_it_does_in_reality",
+        "D48_billing_accuracy_the_company_measures_what_it_billed_against_what_was_used"
+      ]
+    },
+    {
+      "id": "bad-debt-provisioning",
+      "title": "How a GB energy supplier accounts for the bills it will never collect",
+      "kind": "page",
+      "blurb": "A provision is an estimate made today about money owed today. A write-off comes years later. The cost a supplier reports, and the cost the price cap allows, is the first, not the second.",
+      "rate_of_change": "medium",
+      "reviewed": {
+        "last_verified": "2026-10-06",
+        "source": "see the page's own sources"
+      },
+      "atoms": [
+        "W2_38_the_worlds_debt_is_graded_against_ofgems_quarterly_series",
+        "B11_forward_clv_backtested_on_held_back_history",
+        "EP4_collections_journey"
+      ]
     }
   ],
   "edges": [

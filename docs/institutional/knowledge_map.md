@@ -190,6 +190,9 @@ established. They are knowledge, not settings: no figure on them is wired into c
 | EV, solar and batteries as products | site/knowledge/ev-solar-and-batteries-as-products/ | docs/market_research/ev_solar_and_batteries_as_products.md |
 | Communications, sentiment and NPS | site/knowledge/communications-sentiment-and-nps/ | docs/market_research/communications_sentiment_and_nps.md |
 | Household carbon and the measures that save it (the director's carbon investigation) | site/knowledge/household-carbon-and-the-measures-that-save-it/ | docs/market_research/household_carbon_and_the_measures_that_save_it.md |
+| Back bills | site/knowledge/back-billing-and-liability/ | docs/market_research/back_billing_and_liability.md |
+| Getting to the meter, and energy that is stolen | site/knowledge/read-access-and-theft-duties/ | docs/market_research/read_access_and_theft_duties.md |
+| How a GB energy supplier accounts for the bills it will never collect | site/knowledge/bad-debt-provisioning/ | docs/market_research/bad_debt_provisioning.md |
 
 ## What we don't know (priority gap list)
 

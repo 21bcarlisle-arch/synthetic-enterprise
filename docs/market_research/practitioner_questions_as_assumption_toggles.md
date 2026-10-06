@@ -619,7 +619,7 @@ director**, through the acceptance criterion above.
 | `q1_unnamed_months_per_cot` | Q1 | 3 | 1 | 6 | B7, W2_38, EP4, B11 | acceptance criterion (B7 £/move band) | MATTERS AND RESOLVABLE |
 | `q1_move_hazard_multiplier` | Q1 | 1.0 (EHS 2024-25 by tenure) | 0.5 | 2.0 | B7, B11 | tested: renewal pricing unchanged at 0.5 and 1; one step on one path at 2 | DOESN'T MATTER (pricing) |
 | `q2_persistent_unread_share` | Q2 | 0.01 | 0.0 | 0.03 | W2_36, D48, W2_37 | tested: barred £ invariant in π (proved); acceptance criterion for shape | DOESN'T MATTER (aggregate) / MATTERS AND RESOLVABLE (shape) |
-| `q2_no_read_12m_share` | Q2 | 0.07 | 0.054 | 0.07 | W2_36, D48 | calibration target (published) | RESOLVED |
+| `q2_no_read_12m_share` | Q2 | 0.07 | 0.054 | 0.085 | W2_36, D48 | calibration target (published) | RESOLVED |
 | `q2_mean_under_estimate_on_a_catch_up` | Q2 | 0.10 | 0.05 | 0.20 | W2_36, D48, B11 | tested: pricing unchanged at low and default; one step on one path at high | DOESN'T MATTER (pricing) |
 | `q3_plan_take_up_share` | Q3 | 0.32 | 0.20 | 0.42 | EP4, W2_38, B11 | acceptance criterion (W2_38 grading) | MATTERS AND RESOLVABLE |
 | `q3_instalment_miss_probability_monthly` | Q3 | 0.03 | 0.02 | 0.045 | EP4, W2_38 | acceptance criterion (W2_38 grading) | MATTERS AND RESOLVABLE |

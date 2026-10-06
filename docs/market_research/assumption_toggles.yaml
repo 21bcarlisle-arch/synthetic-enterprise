@@ -2,10 +2,13 @@
 # the basis for each end. An atom that needs one READS it here and never types its own number.
 # Reasoning, derivations and sensitivity results:
 #   docs/market_research/practitioner_questions_as_assumption_toggles.md
-# Sensitivity harness (read-only): tools/assumption_toggle_sensitivity.py
+# Sensitivity results: re-scored decision-probe rows (script not in the tree; its inputs are not).
 # Director's ruling, 2026-10-05: "If it doesn't change any decision, the question doesn't matter.
 # If it does, dig harder -- and only bring it to me if it's both decision-changing and unresolvable."
 # Verdict vocabulary: RESOLVED | DOESNT_MATTER | MATTERS_AND_RESOLVABLE | MATTERS_AND_UNRESOLVABLE
+# 2026-10-06: Q3 recovery toggle revised and prov_* provisioning toggles added from
+#   docs/market_research/bad_debt_provisioning.md (sections 3 and 7). The prov_coverage_* verdicts
+#   are MATTERS_AND_RESOLVABLE on mechanism (renewal pricing reads these rows); no sweep has run yet.
 written: 2026-10-05
 toggles:
   - id: q1_move_out_notice_share
@@ -84,9 +87,19 @@ toggles:
     high: 0.03
     basis_default: >-
       Smallest share that makes a 24-month gap ordinary among complaint back-bills (Ofgem 16 Nov
-      2017 para 2.1: median length 24 months, n=203) while keeping Elexon's RF fit.
+      2017 para 2.1: median length 24 months, n=203) while keeping Elexon's RF fit. Weaker than it
+      looks (back_billing_and_liability.md s.1, 2026-10-06): all six published case studies behind
+      that sample are billing failures, ignored reads or unloaded PPM debt, not no-access meters,
+      so the 24-month median evidences supplier billing failure at least as much as persistent
+      non-reading. No-access is evidenced only qualitatively (locked cupboards, landlord keys:
+      Ofgem decision 5 Mar 2018 p.8). Kept, not raised.
     basis_low: Elexon 30/60/80/97% at 2/4/7/14 months fits a memoryless read at p~0.20 with no persistent class.
     basis_high: Elexon RF leaves 3% unread, so pi x 0.98^14 <= 0.03 gives pi <= 0.04; less a margin because the fit worsens with pi.
+    basis_read_access: >-
+      Ofgem 5 Mar 2018 p.8 names locked cupboards and landlord-held keys as causes of non-reading:
+      a persistent class is partly a PREMISES trait, while the code keys it to customer_id. The
+      invariance proof below assumes no 21BA.2(c) obstruction exception; it holds only while
+      q6_obstructive_share_of_long_unread is 0 (read_access_and_theft_duties.md section 2.4).
     feeds: [W2_36_unbilled_energy_arises_the_way_it_does_in_reality, D48_billing_accuracy_the_company_measures_what_it_billed_against_what_was_used, W2_37]
     solver_for_other_class: simulation/meter_reads.py::solve_easy_rate
     sensitivity:
@@ -102,13 +115,22 @@ toggles:
 
   - id: q2_no_read_12m_share
     question: Q2 persistent non-reads
-    meaning: Share of domestic credit customers with no bill based on an actual read in the past 12 months.
+    meaning: >-
+      Share of domestic credit customers with no bill based on an actual read in the past 12 months.
+      DENOMINATOR MISMATCH (read_access_and_theft_duties.md section 7): Ofgem's figure counts all
+      domestic consumers; simulation/meter_reads.py calibrates it among READ-EXPOSED meters only
+      (traditional, or smart not in smart mode). A pre-21BA (H1 2017) figure: no post-2018 series read.
     default: 0.07
     low: 0.054
-    high: 0.07
+    high: 0.085
     basis_default: Ofgem statutory consultation 16 Nov 2017 para 1.1 (Citizens Advice data, H1 2017) "just over 7%".
     basis_low: Ofgem decision 5 Mar 2018 p.10, median supplier 94.8% / 94.4% with a read in the year.
-    basis_high: As default.
+    basis_high: >-
+      Derived: the 7% is over all domestic consumers, while the world applies it to read-exposed
+      meters only, so it re-bases to 0.07 / (1 - smart share). With the H1 2017 smart share at
+      0.10-0.22 by segment (saas/smart_meter_rollout.py) that is 0.078-0.090 (read_access_and_theft_duties.md
+      section 7); back_billing_and_liability.md section 7 reaches the same restatement and bounds it at
+      <= 0.082 for a smart share <= 0.15. 0.085 sits inside both.
     feeds: [W2_36_unbilled_energy_arises_the_way_it_does_in_reality, D48_billing_accuracy_the_company_measures_what_it_billed_against_what_was_used]
     sensitivity:
       kind: tested
@@ -119,7 +141,14 @@ toggles:
 
   - id: q2_mean_under_estimate_on_a_catch_up
     question: Q2 persistent non-reads
-    meaning: Mean positive part of (actual - estimated) / estimated consumption over an unread stretch.
+    meaning: >-
+      Mean positive part of (actual - estimated) / estimated consumption over an unread stretch.
+      Since D48 slices 3-4 the company makes the estimate, so this is a check on the company's
+      estimator, not a world input (no code reads it). It sets 21BA-barred revenue only for
+      customers who pay on receipt: for a direct-debit customer the barred quantity is the
+      collection shortfall older than 12 months at the next charge recovery action, not the
+      estimate error (Energy Ombudsman backbilling stance, Scenarios A and B;
+      back_billing_and_liability.md s.1).
     default: 0.10
     low: 0.05
     high: 0.20
@@ -138,6 +167,62 @@ toggles:
         within the probe's own path-to-path spread (hindsight 45/50/50/55).
     verdict: DOESNT_MATTER
 
+  - id: q2_pre_2018_voluntary_cap_coverage
+    question: Q2 persistent non-reads
+    meaning: >-
+      Share of domestic catch-ups billed before 1 May 2018 (when SLC 21BA took effect) to which a
+      12-month limit applied in practice under Ofgem's 2007 principle and Energy UK's Billing Code
+      (supplier at fault, 12 months back from the corrected bill).
+    default: 0.83
+    low: 0.0
+    high: 1.0
+    basis_default: >-
+      Billing Code signatories (the six largest) held 83% of domestic electricity and 81% of gas
+      customers, Q1 2017 (Ofgem statutory consultation 16 Nov 2017 para 2.43), treating an
+      unread-meter under-estimate as the supplier's fault, since SLC 21B.4 puts the read duty on it.
+    basis_low: >-
+      No limit before 1 May 2018, which is company/billing/back_billing.py's current behaviour;
+      equivalent to reading every estimate under-read as not the supplier's fault.
+    basis_high: >-
+      The Ombudsman applied the voluntary principle to all domestic back-billing cases (Ofgem
+      decision 5 Mar 2018 p.12), and the large majority of non-signatories followed at least 12
+      months (same decision, fn 11).
+    feeds: [D48_billing_accuracy_the_company_measures_what_it_billed_against_what_was_used, W2_36_unbilled_energy_arises_the_way_it_does_in_reality]
+    sensitivity:
+      kind: not_run
+      detail: >-
+        Bounded, not run: it acts on 2016 to April 2018 only, on a barred share whose whole-decade
+        high (q2_mean_under_estimate_on_a_catch_up at 0.20, about 1.4% of revenue) moved renewal
+        pricing one grid step on one path. Expected DOESNT_MATTER for pricing; it moves D48's
+        barred figure for those years. Untested until a reader exists.
+    verdict: DOESNT_MATTER (expected, not run)
+
+  - id: q2_obstruction_exception_share
+    question: Q2 persistent non-reads
+    meaning: >-
+      Share of the persistent-unread class (q2_persistent_unread_share) whose unread gap would
+      qualify under SLC 21BA.2(c), obstructive or manifestly unreasonable behaviour, given that the
+      company has documented repeated access attempts AND warned the customer of the consequence.
+      Zero for any account without that documented record.
+    default: 0.0
+    low: 0.0
+    high: 1.0
+    basis_default: >-
+      Ofgem expects customers avoiding payment by passive non-cooperation "to be an issue in very
+      few cases"; not supplying a reading is not obstruction (decision 5 Mar 2018 p.10). The Energy
+      Ombudsman puts the burden on the supplier and grants the exception only in its worked case
+      with repeated visits, letters, calls and an explicit warning (backbilling stance, Exceptions).
+    basis_low: As default.
+    basis_high: Bound only, with every hard-to-read household a documented refuser. No published count of successful 21BA.2(c) claims exists.
+    feeds: [W2_37, D48_billing_accuracy_the_company_measures_what_it_billed_against_what_was_used]
+    sensitivity:
+      kind: acceptance_criterion
+      detail: >-
+        Conditional on a company action the code does not yet take: logging access attempts and
+        warnings. Its effect is bounded by the persistent class's share of barred energy. W2_37
+        (read-chasing) prints the value of documented access attempts at low and high.
+    verdict: DOESNT_MATTER for pricing (bounded); MATTERS_AND_RESOLVABLE for read-chasing design
+
   - id: q3_plan_take_up_share
     question: Q3 debt
     meaning: P(household agrees an arrangement | supplier offers one at the SLC 27 ability-to-pay step).
@@ -153,7 +238,10 @@ toggles:
       detail: >-
         W2_38 grades the world's repaying-to-arrears stock ratio and its 2019-2026 path against
         Ofgem's quarterly indicators, which jointly pins take-up x keep; EP4 prints its forecast and
-        any company plan or DCA/sale decision at low and high.
+        any company plan or DCA/sale decision at low and high. Re-checked 2026-10-06 against the
+        provisioning record (bad_debt_provisioning.md): no supplier disclosure bears on take-up;
+        Centrica's prepayment-recovery balance falling GBP 203m -> 103m (2022-2025) tracks the
+        paused PPM route, not plan take-up. Unchanged.
     verdict: MATTERS_AND_RESOLVABLE
 
   - id: q3_instalment_miss_probability_monthly
@@ -171,26 +259,43 @@ toggles:
     feeds: [EP4_collections_journey, W2_38]
     sensitivity:
       kind: acceptance_criterion
-      detail: As q3_plan_take_up_share. Not the company's separate "default after 2 misses" rule.
+      detail: >-
+        As q3_plan_take_up_share. Not the company's separate "default after 2 misses" rule.
+        Re-checked 2026-10-06 against the provisioning record (bad_debt_provisioning.md): no
+        supplier disclosure bears on it; unchanged.
     verdict: MATTERS_AND_RESOLVABLE
 
   - id: q3_post_write_off_recovery_share
     question: Q3 debt
-    meaning: GBP recovered after write-off (DCA net of commission, or sale proceeds) / GBP written off.
+    meaning: >-
+      GBP recovered after write-off (DCA net of commission, or sale proceeds) / GBP written off,
+      where the write-off is LATE: taken "only once a period of time has elapsed since the final
+      bill" (Centrica Note 17, 2018-2025), after default at six to twelve months from the final
+      bill. A write-off taken at the final bill's due date (the world's WRITE_OFF_DATE_CONVENTION)
+      is a different event and is compared with 1 - prov_coverage_final_bill_over_90d instead.
     default: 0.05
     low: 0.02
-    high: 0.10
-    basis_default: Lowell Group 2013 year-end report, average 5.4p per GBP face value paid 2004-2013 (all sectors); Centrica 2024 GBP 10m / GBP 160m = 6%.
-    basis_low: Centrica ARA 2025 Note 17, GBP 3m recovered / GBP 135m written off = 2%.
-    basis_high: Fresher energy debt placed earlier fetches more than the all-sector average; no energy-specific price is published.
+    high: 0.086
+    basis_default: >-
+      Centrica ARA 2017-2025 Note 17: recoveries of previously written-off receivables GBP 68m
+      against Group write-offs GBP 1,482m over the nine years = 4.6% pooled (same-year ratios,
+      cohorts differ; derived). Lowell Group 2013 year-end report, 5.4p per GBP face value paid
+      2004-2013 (all sectors), agrees.
+    basis_low: Centrica ARA 2017 (GBP 5m / GBP 235m = 2.1%) and 2025 (GBP 3m / GBP 135m = 2.2%), the two lowest years.
+    basis_high: >-
+      Centrica ARA 2021, GBP 7m / GBP 81m = 8.6%, the highest same-year ratio of nine. (Was 0.10
+      on "fresher debt fetches more", which had no source; lowered 2026-10-06.)
     feeds: [EP4_collections_journey, W2_38, B11_forward_clv_backtested_on_held_back_history]
     sensitivity:
       kind: tested
       tool: tools/assumption_toggle_sensitivity.py
       detail: >-
         Renewal pricing unchanged at r = 0.02, 0.05, 0.255 (the world's DCA constant) and 1.0 on
-        all 4 paths. No company collections decision exists. The world's DEBT_SALE_HAIRCUT_PCT 0.12
-        and DCA_RECOVERY_RATE 0.20-0.30 sit above this range unsourced and should read this toggle.
+        all 4 paths. No company collections decision exists. CORRECTED 2026-10-06
+        (bad_debt_provisioning.md section 7): the world writes off at the final bill's due date, so
+        its DCA_RECOVERY_RATE 0.20-0.30 (0.17-0.26 net of its 0.15 commission) is properly compared
+        with the final-bill >90-day complement 0.10-0.25 (Centrica 2019-2025), which it overlaps.
+        Those constants remain unsourced; they are not shown to be above every published signal.
     verdict: DOESNT_MATTER
 
   - id: q4_retention_holdout_share
@@ -238,6 +343,478 @@ toggles:
         low and high; a change in any customer's TOP action comes back to this register. Today the
         scope only changes the reachable population of the last-ranked lever.
     verdict: DOESNT_MATTER
+
+  # Q6 read access and theft: docs/market_research/read_access_and_theft_duties.md (2026-10-06).
+  # Theft reaches a supplier's PRICES only through the market-share smear (UIG, GSP Group
+  # Correction); its OWN book's theft reaches only the revenue-protection (detection) decision.
+  - id: q6_theft_share_of_electricity_consumption
+    question: Q6 read access and theft
+    meaning: >-
+      Electricity stolen in GB a year / electricity generated (the TEM's own denominator). All
+      sectors, including cannabis farms; the domestic split is not published.
+    default: 0.009
+    low: 0.005
+    high: 0.025
+    basis_default: >-
+      RECCo/Capgemini Theft Estimation Methodology (2023): 1,703-2,837 GWh, "0.5-0.9%" of 2019 UK
+      generation; the upper end is the figure RECCo and Ofgem (R0173, 22 May 2025) publish.
+    basis_low: TEM lower end, 0.5%.
+    basis_high: AUG Statement 2024-25 p.30, studies of electricity theft at "1%-2.5% of throughput across 5 sources".
+    feeds: [W2_36_unbilled_energy_arises_the_way_it_does_in_reality]
+    sensitivity:
+      kind: argued
+      detail: >-
+        Undetected theft is smeared by market share (Ofgem 2014 IA para 2.19), so a supplier's cost
+        is share x market theft whatever its own book holds; pricing sees only the smear. The
+        revenue-protection shape (detections, assessed kWh) is graded against TRAS/TDIS counts when
+        the world generates theft.
+    verdict: DOESNT_MATTER for pricing (argued, not run); MATTERS_AND_RESOLVABLE for revenue-protection shape
+
+  - id: q6_theft_share_of_ldz_gas_throughput
+    question: Q6 read access and theft
+    meaning: Gas stolen in GB a year / LDZ throughput (~500 TWh a year, derived from AUGE GY21/22, 12.5 TWh = 2.50%).
+    default: 0.0021
+    low: 0.0013
+    high: 0.0148
+    basis_default: >-
+      TEM upper end, 1,059 GWh / ~500 TWh. The only estimate built from GB gas theft data (TRAS
+      confirmed cases); the TEM itself says "0.1%" of 859.8 TWh total 2019 demand.
+    basis_low: TEM lower end, 636 GWh / ~500 TWh.
+    basis_high: >-
+      AUG Statement 2024-25 pp.29-30: theft 6,362 GWh, "1.48% of total consumption", an
+      assumption "driven largely by the views of electricity theft" studies, not a measurement.
+    feeds: [W2_36_unbilled_energy_arises_the_way_it_does_in_reality]
+    sensitivity:
+      kind: argued
+      detail: >-
+        As q6_theft_share_of_electricity_consumption. The gas smear is UIG, whose actual level is
+        published (q6_uig_share_of_ldz_throughput) whatever share of it is theft. The 7-11x gap
+        between the ends is the published state of knowledge.
+    verdict: DOESNT_MATTER for pricing (argued, not run); MATTERS_AND_RESOLVABLE for revenue-protection shape
+
+  - id: q6_theft_prevalence_domestic_electricity
+    question: Q6 read access and theft
+    meaning: Share of domestic electricity meter points with a theft in progress at any time.
+    default: 0.01
+    low: 0.0012
+    high: 0.016
+    basis_default: >-
+      Ofgem, Tackling Electricity Theft IA (Mar 2014) Table 4: 275,000 domestic cases at any time,
+      "approximately 1 per cent of domestic MPANs", calibrated to ~GBP 250m a year of electricity theft.
+    basis_low: >-
+      Detected floor (derived): 15,956 domestic detections a year (same IA, 2011 questionnaire) x
+      ~2-year average detected duration (TEM section 3.1) / ~27.5m MPANs (the IA's 1% implies it).
+    basis_high: >-
+      Derived: the default scaled by TEM upper (2,837 GWh) / the IA's implied electricity theft
+      (~GBP 250m at 2013 prices, ~1.8 TWh), assuming the same per-case volume and domestic share.
+    feeds: [W2_36_unbilled_energy_arises_the_way_it_does_in_reality]
+    sensitivity:
+      kind: argued
+      detail: >-
+        Sets the stock a world-side theft draw starts from; reaches only the company's detection
+        decision (no company code yet). Graded against TRAS-era investigation and confirmation counts.
+    verdict: DOESNT_MATTER for pricing (argued, not run); MATTERS_AND_RESOLVABLE for revenue-protection shape
+
+  - id: q6_theft_annual_detection_hazard
+    question: Q6 read access and theft
+    meaning: >-
+      Detections a year / thefts in progress, domestic electricity: a stock-and-flow ratio of
+      modelled figures, not an observed per-case probability.
+    default: 0.058
+    low: 0.035
+    high: 0.10
+    basis_default: Derived, Ofgem 2014 IA Table 4, 15,956 detections a year (2011) / 275,000 cases (2014).
+    basis_low: >-
+      Derived, TEM section 3.1: ~300,000 TRAS investigations 2014-Mar 2021 / ~7 years x 23%
+      confirmed ~ 10,000 a year / 284,500 electricity cases (IA). The numerator includes gas and
+      commercial, so the electricity-domestic TRAS-era hazard is lower still. With Ofgem R0173
+      ("suppliers currently meet 40% of their TDIS targets") it says detection fell after 2014.
+    basis_high: Ofgem 2014 IA design cap of 28,000 domestic detections a year / 275,000.
+    feeds: [W2_36_unbilled_energy_arises_the_way_it_does_in_reality]
+    sensitivity:
+      kind: acceptance_criterion
+      detail: >-
+        Not a world constant once the company investigates: detections must EMERGE from the
+        company's investigation choices x q6_theft_confirmed_per_investigation, and the emerged
+        hazard is graded against this range.
+    verdict: MATTERS_AND_RESOLVABLE
+
+  - id: q6_theft_confirmed_per_investigation
+    question: Q6 read access and theft
+    meaning: P(an opened theft investigation ends confirmed theft), all lead sources pooled.
+    default: 0.23
+    low: 0.15
+    high: 0.42
+    basis_default: >-
+      TEM section 3.1: ~300,000 TRAS investigations 2014-Mar 2021, 23% confirmed, 50% no theft,
+      10% unproven, 16% open. Ofgem R0173: ETTOS leads 22%.
+    basis_low: TEM, proactive investigations 15%.
+    basis_high: TEM, reactive investigations 42%; Ofgem 2014 IA, 2011 domestic electricity 15,956 / 41,670 = 38%.
+    feeds: [W2_36_unbilled_energy_arises_the_way_it_does_in_reality]
+    sensitivity:
+      kind: tested
+      detail: Published at source; the split by lead source is the company's lever, not a world draw.
+    verdict: RESOLVED
+
+  - id: q6_theft_recovery_share
+    question: Q6 read access and theft
+    meaning: GBP recovered from the customer / GBP of assessed theft charges, domestic, after detection.
+    default: 0.25
+    low: 0.20
+    high: 0.30
+    basis_default: Ofgem 2014 IA Table 5, "Average recovery rate for domestic cases", medium 0.25 (a model input from 2011 supplier data).
+    basis_low: Same table, low 0.20.
+    basis_high: Same table, high 0.30.
+    feeds: [W2_36_unbilled_energy_arises_the_way_it_does_in_reality, EP4_collections_journey]
+    sensitivity:
+      kind: acceptance_criterion
+      detail: >-
+        Sets whether detection pays a supplier before TDIS; the company's revenue-protection rule
+        must print its decision at 0.20 and 0.30. No post-2014 published rate was found.
+    verdict: MATTERS_AND_RESOLVABLE
+
+  - id: q6_theft_months_before_detection
+    question: Q6 read access and theft
+    meaning: Mean duration of a domestic or commercial theft before it is detected (detected cases only).
+    default: 24
+    low: 12
+    high: 36
+    unit: months
+    basis_default: TEM section 3.1, detected thefts last "just under 2 years"; Ofgem 2014 IA Table 5 medium 24.
+    basis_low: Ofgem 2014 IA Table 5 low 12.
+    basis_high: Ofgem 2014 IA Table 5 high 36.
+    feeds: [W2_36_unbilled_energy_arises_the_way_it_does_in_reality, D48_billing_accuracy_the_company_measures_what_it_billed_against_what_was_used]
+    sensitivity:
+      kind: tested
+      detail: >-
+        Published at source. It exceeds 12 months, so a theft back-assessment needs the
+        21BA.2(c) exception, which company/billing/back_billing.py does not implement.
+    verdict: RESOLVED
+
+  - id: q6_uig_share_of_ldz_throughput
+    question: Q6 read access and theft
+    meaning: Actual final Unidentified Gas / LDZ throughput, by gas year; allocated to shippers by AUGE weighting factors.
+    default: 0.025
+    low: 0.0219
+    high: 0.0381
+    basis_default: AUG Statement 2024-25 p.27, "final actual UIG has been running at around 2.5% of throughput since Nexus go-live".
+    basis_low: Same, GY18/19 2.19%.
+    basis_high: Same, GY17/18 3.81%. UIG ran negative Mar 2022 to summer 2023 (Xoserve, [M]).
+    feeds: [W2_36_unbilled_energy_arises_the_way_it_does_in_reality, EP5_settlement_true_ups]
+    sensitivity:
+      kind: acceptance_criterion
+      detail: >-
+        The gas half of what theft costs a supplier's prices. Before it is charged, establish
+        whether the price cap allowances already carry it (read_access_and_theft_duties.md gap 6).
+    verdict: RESOLVED
+
+  - id: q6_smart_not_in_smart_mode_share
+    question: Q6 read access and theft
+    meaning: >-
+      Share of installed smart meters not sending reads (traditional mode): a STATE a meter stays
+      in, and partly a supplier trait. simulation/meter_reads.py types its own 0.10 and draws it
+      afresh each month; it should read this row and hold the state.
+    default: 0.10
+    low: 0.02
+    high: 0.149
+    basis_default: DESNZ Smart Meter Statistics Q4 2024, ~10% of installed smart meters not in smart mode (meter_read_latency_estimation_2026.md).
+    basis_low: Ofgem smart meter performance, 31 Dec 2024, E 98.0% in smart mode.
+    basis_high: Same, British Gas 85.1% in smart mode.
+    feeds: [W2_36_unbilled_energy_arises_the_way_it_does_in_reality, D48_billing_accuracy_the_company_measures_what_it_billed_against_what_was_used]
+    sensitivity:
+      kind: acceptance_criterion
+      detail: Level published; the dropout hazard and duration are not (a GAP), so persistence is a code finding.
+    verdict: RESOLVED for the level
+
+  - id: q6_read_visit_access_failure_rate
+    question: Q6 read access and theft
+    meaning: >-
+      P(a read visit to a traditional credit meter yields no read): no-one home, refusal, or an
+      inaccessible meter, which are different events with different remedies.
+    default: null
+    default_reason: >-
+      GAP. Not in Ofgem's 2015 inspection consultation, the 2018 back-billing decision, the 2014
+      theft IA or the BSC material read; the 2015 consultation records only suppliers' statement
+      that they read traditional meters "through a successful site visit every 6 months". A
+      practitioner question: the third side.
+    low: null
+    high: null
+    basis_default: None published.
+    basis_low: None published.
+    basis_high: None published.
+    feeds: [W2_37]
+    sensitivity:
+      kind: acceptance_criterion
+      detail: >-
+        No code decides on it: the world has no read visit and the company no read lever. When
+        W2_37 builds read-chasing, ask the director: of read visits to traditional credit meters,
+        what share fail, and how many are no-one home, refused, or a meter you cannot get to?
+    verdict: DOESNT_MATTER until a read-visit lever exists
+
+  - id: q6_obstructive_share_of_long_unread
+    question: Q6 read access and theft
+    meaning: >-
+      Share of 12-month-plus unread catch-ups where the supplier holds evidence of obstructive or
+      manifestly unreasonable behaviour, so SLC 21BA.2(c) lifts the 12-month limit.
+    default: 0.0
+    low: 0.0
+    high: null
+    basis_default: >-
+      Structural, not evidential: the exception needs the supplier's own documented access requests
+      (Ofgem 5 Mar 2018 pp.9-10), and the world has no access request, so it cannot be earned.
+    basis_low: Ofgem 5 Mar 2018 p.10, not providing a read is never obstruction.
+    basis_high: GAP. No published share.
+    feeds: [W2_36_unbilled_energy_arises_the_way_it_does_in_reality, D48_billing_accuracy_the_company_measures_what_it_billed_against_what_was_used]
+    sensitivity:
+      kind: argued
+      detail: >-
+        While 0, the Q2 invariance (21BA-barred revenue invariant in pi) holds. Any positive value
+        breaks it, so the Q2 verdict must be re-run when a read-access mechanism or theft lands.
+    verdict: DOESNT_MATTER while the world has no access request
+  # --- Provisioning (added 2026-10-06; docs/market_research/bad_debt_provisioning.md sections 3 and 7).
+  # Coverage = provision / gross receivable, a ratio of two STOCKS at a year-end. Not a charge rate,
+  # not a default probability. Source years 2019-2025 read from each Centrica ARA at source.
+  # DD under 30 days is 0.0 in all seven years: RESOLVED, not a toggle.
+  - id: prov_coverage_live_dd_30_90d
+    question: Provisioning
+    meaning: >-
+      Live direct-debit balance 30-90 days beyond invoice date. Coverage at a year-end (Centrica ARA Note 17, UK residential, provision / gross billed receivable at 31 Dec, days beyond invoice date of the oldest unpaid invoice).
+    default: 0.014
+    low: 0.0
+    high: 0.014
+    unit: fraction of gross receivable
+    basis_default: Centrica ARA 2025 Note 17, GBP 1m / GBP 73m. Latest year-end.
+    basis_low: Centrica ARA 2019-2024 Note 17, provision under GBP 0.5m in every year (printed as nil).
+    basis_high: 2025, the only year above nil.
+    feeds: [W2_38, EP4_collections_journey, B11_forward_clv_backtested_on_held_back_history]
+    read_by: company/pricing/value_based_renewal.py (RECEIVABLE_PROVISION_RATE_*, 2025 column) and simulation/arrears_engine.py::LIVE_ARREARS_PROVISION_RATES (same rows) -- neither reads the register yet
+    sensitivity:
+      kind: acceptance_criterion
+      detail: >-
+        Acceptance criterion: the world's own book, provisioned with this row, prints coverage by method and live/final at low, default and high; W2_38 grades the world's bad-debt CHARGE against prov_charge_share_of_revenue_resi. Renewal pricing reads only the 2025 column today; a sweep on tools/assumption_toggle_sensitivity.py is owed. One supplier only.
+    verdict: MATTERS_AND_RESOLVABLE
+
+  - id: prov_coverage_live_dd_over_90d
+    question: Provisioning
+    meaning: >-
+      Live direct-debit balance more than 90 days beyond invoice date. Coverage at a year-end (Centrica ARA Note 17, UK residential, provision / gross billed receivable at 31 Dec, days beyond invoice date of the oldest unpaid invoice).
+    default: 0.074
+    low: 0.026
+    high: 0.348
+    unit: fraction of gross receivable
+    basis_default: Centrica ARA 2025 Note 17, GBP 18m / GBP 243m. Latest year-end.
+    basis_low: Centrica ARA 2019 Note 17, GBP 1m / GBP 38m.
+    basis_high: Centrica ARA 2022 Note 17, GBP 23m / GBP 66m, an outlier in the year GBP 95m of macroeconomic overlay was added; 2019-2025 otherwise 2.6-7.4%.
+    feeds: [W2_38, EP4_collections_journey, B11_forward_clv_backtested_on_held_back_history]
+    read_by: company/pricing/value_based_renewal.py (RECEIVABLE_PROVISION_RATE_*, 2025 column) and simulation/arrears_engine.py::LIVE_ARREARS_PROVISION_RATES (same rows) -- neither reads the register yet
+    sensitivity:
+      kind: acceptance_criterion
+      detail: >-
+        Acceptance criterion: the world's own book, provisioned with this row, prints coverage by method and live/final at low, default and high; W2_38 grades the world's bad-debt CHARGE against prov_charge_share_of_revenue_resi. Renewal pricing reads only the 2025 column today; a sweep on tools/assumption_toggle_sensitivity.py is owed. One supplier only.
+    verdict: MATTERS_AND_RESOLVABLE
+
+  - id: prov_coverage_live_por_under_30d
+    question: Provisioning
+    meaning: >-
+      Live pay-on-receipt (standard credit) balance under 30 days beyond invoice date. Coverage at a year-end (Centrica ARA Note 17, UK residential, provision / gross billed receivable at 31 Dec, days beyond invoice date of the oldest unpaid invoice).
+    default: 0.045
+    low: 0.026
+    high: 0.045
+    unit: fraction of gross receivable
+    basis_default: Centrica ARA 2025 Note 17, GBP 4m / GBP 89m. Latest year-end.
+    basis_low: Centrica ARA 2020 Note 17, GBP 2m / GBP 76m.
+    basis_high: Centrica ARA 2024 and 2025 Note 17, GBP 4m / GBP 89m.
+    feeds: [W2_38, EP4_collections_journey, B11_forward_clv_backtested_on_held_back_history]
+    read_by: company/pricing/value_based_renewal.py (RECEIVABLE_PROVISION_RATE_*, 2025 column) and simulation/arrears_engine.py::LIVE_ARREARS_PROVISION_RATES (same rows) -- neither reads the register yet
+    sensitivity:
+      kind: acceptance_criterion
+      detail: >-
+        Acceptance criterion: the world's own book, provisioned with this row, prints coverage by method and live/final at low, default and high; W2_38 grades the world's bad-debt CHARGE against prov_charge_share_of_revenue_resi. Renewal pricing reads only the 2025 column today; a sweep on tools/assumption_toggle_sensitivity.py is owed. One supplier only.
+    verdict: MATTERS_AND_RESOLVABLE
+
+  - id: prov_coverage_live_por_30_90d
+    question: Provisioning
+    meaning: >-
+      Live pay-on-receipt balance 30-90 days beyond invoice date. Coverage at a year-end (Centrica ARA Note 17, UK residential, provision / gross billed receivable at 31 Dec, days beyond invoice date of the oldest unpaid invoice).
+    default: 0.151
+    low: 0.127
+    high: 0.182
+    unit: fraction of gross receivable
+    basis_default: Centrica ARA 2025 Note 17, GBP 13m / GBP 86m. Latest year-end.
+    basis_low: Centrica ARA 2023 Note 17, GBP 9m / GBP 71m.
+    basis_high: Centrica ARA 2021 Note 17, GBP 4m / GBP 22m.
+    feeds: [W2_38, EP4_collections_journey, B11_forward_clv_backtested_on_held_back_history]
+    read_by: company/pricing/value_based_renewal.py (RECEIVABLE_PROVISION_RATE_*, 2025 column) and simulation/arrears_engine.py::LIVE_ARREARS_PROVISION_RATES (same rows) -- neither reads the register yet
+    sensitivity:
+      kind: acceptance_criterion
+      detail: >-
+        Acceptance criterion: the world's own book, provisioned with this row, prints coverage by method and live/final at low, default and high; W2_38 grades the world's bad-debt CHARGE against prov_charge_share_of_revenue_resi. Renewal pricing reads only the 2025 column today; a sweep on tools/assumption_toggle_sensitivity.py is owed. One supplier only.
+    verdict: MATTERS_AND_RESOLVABLE
+
+  - id: prov_coverage_live_por_over_90d
+    question: Provisioning
+    meaning: >-
+      Live pay-on-receipt balance more than 90 days beyond invoice date. Coverage at a year-end (Centrica ARA Note 17, UK residential, provision / gross billed receivable at 31 Dec, days beyond invoice date of the oldest unpaid invoice).
+    default: 0.503
+    low: 0.38
+    high: 0.634
+    unit: fraction of gross receivable
+    basis_default: Centrica ARA 2025 Note 17, GBP 551m / GBP 1,095m. Latest year-end.
+    basis_low: Centrica ARA 2019 Note 17, GBP 65m / GBP 171m.
+    basis_high: Centrica ARA 2023 Note 17, GBP 412m / GBP 650m.
+    feeds: [W2_38, EP4_collections_journey, B11_forward_clv_backtested_on_held_back_history]
+    read_by: company/pricing/value_based_renewal.py (RECEIVABLE_PROVISION_RATE_*, 2025 column) and simulation/arrears_engine.py::LIVE_ARREARS_PROVISION_RATES (same rows) -- neither reads the register yet
+    sensitivity:
+      kind: acceptance_criterion
+      detail: >-
+        Acceptance criterion: the world's own book, provisioned with this row, prints coverage by method and live/final at low, default and high; W2_38 grades the world's bad-debt CHARGE against prov_charge_share_of_revenue_resi. Renewal pricing reads only the 2025 column today; a sweep on tools/assumption_toggle_sensitivity.py is owed. One supplier only.
+    verdict: MATTERS_AND_RESOLVABLE
+
+  - id: prov_coverage_final_bill_under_30d
+    question: Provisioning
+    meaning: >-
+      Closed (final-bill) balance under 30 days beyond invoice date. Coverage at a year-end (Centrica ARA Note 17, UK residential, provision / gross billed receivable at 31 Dec, days beyond invoice date of the oldest unpaid invoice).
+    default: 0.316
+    low: 0.182
+    high: 0.368
+    unit: fraction of gross receivable
+    basis_default: Centrica ARA 2025 Note 17, GBP 6m / GBP 19m. Latest year-end.
+    basis_low: Centrica ARA 2020 Note 17, GBP 2m / GBP 11m.
+    basis_high: Centrica ARA 2024 Note 17, GBP 7m / GBP 19m.
+    feeds: [W2_38, EP4_collections_journey, B11_forward_clv_backtested_on_held_back_history]
+    read_by: company/pricing/value_based_renewal.py (RECEIVABLE_PROVISION_RATE_*, 2025 column) and simulation/arrears_engine.py::LIVE_ARREARS_PROVISION_RATES (same rows) -- neither reads the register yet
+    sensitivity:
+      kind: acceptance_criterion
+      detail: >-
+        Acceptance criterion: the world's own book, provisioned with this row, prints coverage by method and live/final at low, default and high; W2_38 grades the world's bad-debt CHARGE against prov_charge_share_of_revenue_resi. Renewal pricing reads only the 2025 column today; a sweep on tools/assumption_toggle_sensitivity.py is owed. One supplier only.
+    verdict: MATTERS_AND_RESOLVABLE
+
+  - id: prov_coverage_final_bill_30_90d
+    question: Provisioning
+    meaning: >-
+      Closed (final-bill) balance 30-90 days beyond invoice date. Coverage at a year-end (Centrica ARA Note 17, UK residential, provision / gross billed receivable at 31 Dec, days beyond invoice date of the oldest unpaid invoice).
+    default: 0.576
+    low: 0.444
+    high: 0.636
+    unit: fraction of gross receivable
+    basis_default: Centrica ARA 2025 Note 17, GBP 19m / GBP 33m. Latest year-end.
+    basis_low: Centrica ARA 2023 Note 17, GBP 12m / GBP 27m.
+    basis_high: Centrica ARA 2024 Note 17, GBP 14m / GBP 22m.
+    feeds: [W2_38, EP4_collections_journey, B11_forward_clv_backtested_on_held_back_history]
+    read_by: company/pricing/value_based_renewal.py (RECEIVABLE_PROVISION_RATE_*, 2025 column) and simulation/arrears_engine.py::LIVE_ARREARS_PROVISION_RATES (same rows) -- neither reads the register yet
+    sensitivity:
+      kind: acceptance_criterion
+      detail: >-
+        Acceptance criterion: the world's own book, provisioned with this row, prints coverage by method and live/final at low, default and high; W2_38 grades the world's bad-debt CHARGE against prov_charge_share_of_revenue_resi. Renewal pricing reads only the 2025 column today; a sweep on tools/assumption_toggle_sensitivity.py is owed. One supplier only.
+    verdict: MATTERS_AND_RESOLVABLE
+
+  - id: prov_coverage_final_bill_over_90d
+    question: Provisioning
+    meaning: >-
+      Closed (final-bill) balance more than 90 days beyond invoice date. 1 minus this is the expected recovery on aged closed-account debt. Coverage at a year-end (Centrica ARA Note 17, UK residential, provision / gross billed receivable at 31 Dec, days beyond invoice date of the oldest unpaid invoice).
+    default: 0.878
+    low: 0.755
+    high: 0.896
+    unit: fraction of gross receivable
+    basis_default: Centrica ARA 2025 Note 17, GBP 426m / GBP 485m. Latest year-end.
+    basis_low: Centrica ARA 2019 Note 17, GBP 105m / GBP 139m.
+    basis_high: Centrica ARA 2024 Note 17, GBP 311m / GBP 347m.
+    feeds: [W2_38, EP4_collections_journey, B11_forward_clv_backtested_on_held_back_history]
+    read_by: company/pricing/value_based_renewal.py (RECEIVABLE_PROVISION_RATE_*, 2025 column) and simulation/arrears_engine.py::LIVE_ARREARS_PROVISION_RATES (same rows) -- neither reads the register yet
+    sensitivity:
+      kind: acceptance_criterion
+      detail: >-
+        Acceptance criterion: the world's own book, provisioned with this row, prints coverage by method and live/final at low, default and high; W2_38 grades the world's bad-debt CHARGE against prov_charge_share_of_revenue_resi. Renewal pricing reads only the 2025 column today; a sweep on tools/assumption_toggle_sensitivity.py is owed. One supplier only.
+    verdict: MATTERS_AND_RESOLVABLE
+
+  - id: prov_coverage_prepayment_recovery
+    question: Provisioning
+    meaning: >-
+      Debt being recovered through a prepayment meter: provision / gross balance at a year-end,
+      unaged (Centrica Note 17 footnote (i), excluded from the aged table as "low residual credit
+      risk amounts").
+    default: 0.63
+    low: 0.63
+    high: 0.81
+    unit: fraction of gross receivable
+    basis_default: Centrica ARA 2025 Note 17 (i), GBP 65m / GBP 103m.
+    basis_low: As default; 2025 is the lowest of 2019-2025 (71, 75, 68, 68, 76, 81, 63%).
+    basis_high: Centrica ARA 2024 Note 17 (i), GBP 92m / GBP 114m.
+    feeds: [W2_38, EP4_collections_journey, B11_forward_clv_backtested_on_held_back_history]
+    sensitivity:
+      kind: acceptance_criterion
+      detail: >-
+        Today company/pricing/value_based_renewal.py and default_belief.py read prepayment as "no
+        published live row" and charge nothing. This is a published (unaged) row. Whether to read
+        it is the seat's call once the world carries prepayment debt (it carries none today,
+        debt_and_collections.md section 7).
+    verdict: MATTERS_AND_RESOLVABLE
+
+  - id: prov_forward_looking_overlay_share
+    question: Provisioning
+    meaning: >-
+      The forward-looking "macroeconomic provision" a supplier adds on top of its matrix (IFRS 9
+      5.5.17(c), B5.5.52), as a share of its total credit-loss provision at a year-end.
+    default: 0.006
+    low: 0.0
+    high: 0.134
+    unit: fraction of total provision
+    basis_default: Centrica ARA 2025, overlay GBP 11m / total provision for credit losses GBP 1,818m (derived; the overlay covers billed and unbilled debt).
+    basis_low: No overlay disclosed for 2019; Centrica's 2024 report says the overlay shrinks as "the initial matrix model starting to more accurately reflect" the same challenges.
+    basis_high: Centrica ARA 2023, overlay GBP 175m / GBP 1,309m (derived).
+    feeds: [W2_38, B11_forward_clv_backtested_on_held_back_history]
+    sensitivity:
+      kind: acceptance_criterion
+      detail: >-
+        Nothing in the code models an overlay. A company provision learned only from its own past
+        collections lags a shock by construction; the overlay is how a real supplier closes that lag.
+        Print the company's provision at low and high in 2022-2023 when one exists.
+    verdict: MATTERS_AND_RESOLVABLE
+
+  - id: prov_charge_share_of_revenue_resi
+    question: Provisioning
+    meaning: >-
+      The residential bad-debt CHARGE (change in provision + write-offs - recoveries) over a year,
+      as a share of that year's revenue. A ratio of two flows. A grading target, not an input.
+    default: 0.022
+    low: 0.011
+    high: 0.031
+    unit: fraction of revenue
+    basis_default: >-
+      Centrica UK Downstream energy supply, bad-debt charge / revenue 2019-2025: 1.2, 2.2, 1.1,
+      2.1, 2.9 (2023 as restated), 2.6, 2.6%; median 2.2% (Audit and Risk Committee reports).
+    basis_low: Centrica 2021, 1.1% (UK Downstream).
+    basis_high: Centrica 2023 residential only, 3.1% of customer revenue (2024 Strategic Report).
+    feeds: [W2_38, B11_forward_clv_backtested_on_held_back_history]
+    sensitivity:
+      kind: acceptance_criterion
+      detail: >-
+        W2_38 grades the world's charge, by year, against this band, and against its shape (a
+        2022-23 rise, a 2021 low). The world's write-off-only series (0.0-14% by year on the site)
+        and the ledger's flat 2% haircut are not this quantity. One supplier with a heavy
+        standard-credit book; Ofgem's per-method cap allowance is context, not this ratio.
+    verdict: MATTERS_AND_RESOLVABLE
+
+  - id: prov_final_bill_default_months
+    question: Provisioning
+    meaning: >-
+      Months after a final bill is issued at which an unpaid closed-account balance is treated as
+      in default. Not the write-off date, which is later and unpublished.
+    default: 9
+    low: 6
+    high: 12
+    unit: months
+    basis_default: The midpoint of the published range, not a measurement.
+    basis_low: Centrica ARA Note 17 (2018-2025), "ranging from sixty days past the due date to six to twelve months from the issuance of a final bill".
+    basis_high: As low.
+    feeds: [EP4_collections_journey, W2_38]
+    sensitivity:
+      kind: acceptance_criterion
+      detail: >-
+        EP4 needs a dated write-off exit (collections_journey.UNREACHED_EXITS). The write-off follows
+        "a period of time" after the final bill and that period is a GAP; this toggle bounds only
+        the default point before it.
+    verdict: MATTERS_AND_RESOLVABLE
 
 no_toggle:
   - question: Q5 carbon
