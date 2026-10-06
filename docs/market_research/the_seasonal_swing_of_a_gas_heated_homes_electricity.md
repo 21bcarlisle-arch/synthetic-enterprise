@@ -372,3 +372,21 @@ homes, 1,505 kWh in a normal-HDD year, and it displaces boiler gas through the r
 this world. The residual and a new artefact (the heater drawn as a flat block) are written up in
 `docs/staging/SEAT_FINDING_THE_FABRIC_PATH_GIVES_A_GAS_HEATED_HOMES_ELECTRICITY_NO_SEASON_2026-10-06.md`.
 The heater's operating pattern (power, cycling and timing) is now the named gap.
+
+## The heater's operating pattern, read at source (2026-10-06, draw `supplementary-heater-operating-pattern-discover`)
+
+- **HES R66141 Appendix IX, p.560, "Heater (individual)":** 46 monitored heaters, averaging
+  1,076 kWh/yr (790 on workdays, 286 on holidays). The daily average load curves were read by eye.
+  On workdays about 69% of the energy falls between 18:00 and 23:59, peaking at 21:00, with a small
+  08:00 blip. On holidays there is a morning peak at 09:00–12:00 as well as an evening one. §15.3's
+  Figures 544–545 are all electric heating, storage heaters included, and are not the supplementary
+  heater's curve.
+- **EFUS 2011 Report 5 §3.3.3:** of weekly users, 28% run supplementary heaters at set times, 65% do
+  not, and 7% mix. Of the set-time users, 30% change their times at weekends. Start-time categories
+  for set-time weekday users: wake-up 20%, daytime 14%, home-time (15:00–19:00) 56%, evening/night
+  33%. Respondents could give more than one.
+- **EFUS 2017 §3.6:** daily users run it 4 h on a weekday (IQR 2.5–6) and 5 h at the weekend (IQR 4–8).
+- **Still not established:** on-power and thermostat cycling. No source read gives either.
+
+Built in `premise_trace.supplementary_heating_kwh` / `heater_habit`. The result is in
+`docs/staging/WORKER_FINDING_THE_SUPPLEMENTARY_HEATER_RUNS_WHEN_HES_AND_EFUS_SAY_AND_ITS_POWER_STAYS_UNSOURCED_2026-10-06.md`.

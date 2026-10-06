@@ -957,14 +957,39 @@ def draw_appliance_events(
 #   * WHEN IN THE YEAR: HES Fig. 537, about 2.3x the annual mean in Dec–Feb and about zero in
 #     Jun–Aug. Here the day's energy follows the day's heating degree days, so the season comes
 #     out of the weather. It is not a calendar.
-#   * WHEN IN THE DAY: daily users run it a median 4 h on a weekday and 5 h at the weekend
-#     (EFUS 2017), mostly in the living room, read here as the evening block before bed.
+#   * WHEN IN THE DAY and FOR HOW LONG: see the operating-pattern block below.
 # NOT ESTABLISHED, and so not used: the heater's power and thermostat duty (2 kW is a nameplate,
-# not an operating point). The energy is anchored to HES, and the power follows from it.
+# not an operating point; no source read publishes a measured on-power or cycling). The energy is
+# anchored to HES, and the power follows from it: within a session the day's energy is spread
+# evenly, so a session is a flat block whatever the real cycling is.
 SUPPLEMENTARY_ELECTRIC_HEATING_SHARE = 0.10
 SUPPLEMENTARY_ELECTRIC_HEATING_KWH_PER_YEAR = 1505.0
-_SUPPLEMENTARY_HEATING_HOURS = {False: 4.0, True: 5.0}
-"""Keyed on is_weekend. EFUS 2017 medians for daily users."""
+
+# `domain-knowledge` — THE HEATER'S OPERATING PATTERN. Sources read at source 2026-10-06, all in
+# docs/market_research/the_seasonal_swing_of_a_gas_heated_homes_electricity.md:
+#   * WHEN: HES (Intertek R66141) Appendix IX, "Heater (individual)", 46 monitored heaters, daily
+#     average load curves for workdays and holidays, read by eye to about ±100 on each bar. Only
+#     the SHAPE is used (the axis is not per heater). The 46 are in homes of every main fuel, not
+#     gas homes only.
+#   * HOW LONG: EFUS 2017 (BEIS 2021) §3.6, daily users of a living-room supplementary heater:
+#     median 4 h on a weekday (IQR 2.5–6) and 5 h at the weekend (IQR 4–8). The tails are not
+#     published, so a draw outside the IQR is held at the quartile rather than invented.
+#   * SET TIMES OR NOT: EFUS 2011 Report 5 §3.3.3, of weekly users 28% run supplementary heaters at
+#     set times and 65% do not (7% mix); of the set-time users, 30% change their times at the
+#     weekend. A set-time home keeps one session per day type; the rest draw theirs each day.
+_HES_HEATER_WORKDAY_HOURLY = (
+    550, 450, 250, 150, 200, 150, 300, 300, 1450, 650, 250, 100,
+    100, 800, 550, 450, 600, 850, 2200, 2450, 3350, 4350, 3600, 1800,
+)
+_HES_HEATER_HOLIDAY_HOURLY = (
+    1400, 600, 300, 150, 200, 150, 250, 250, 2700, 4750, 5950, 3250,
+    3650, 2400, 1100, 700, 900, 750, 2900, 3000, 2200, 3050, 5200, 4100,
+)
+_EFUS_HEATER_HOURS_QUARTILES = {False: (2.5, 4.0, 6.0), True: (4.0, 5.0, 8.0)}
+"""Keyed on is_weekend: (lower quartile, median, upper quartile) hours a day."""
+_SET_TIME_SHARE = 0.28
+"""SIMPLIFICATION: EFUS 2011's 7% who mix set and irregular times are drawn as irregular."""
+_SET_TIME_WEEKEND_CHANGE_SHARE = 0.30
 _SUPPLEMENTARY_HEATING_NORMAL_SITE = "C1"
 """SIMPLIFICATION: HES's 1,505 kWh/yr is read as the use in a year of NORMAL heating degree days,
 and the normal is this one archive's mean over its own full years (2016 onward), whatever site the
@@ -992,25 +1017,86 @@ def _normal_annual_heating_degree_days() -> float:
     return sum(full) / len(full)
 
 
+def _heater_session_periods(u: float, *, is_weekend: bool) -> int:
+    """EFUS's session length at quantile `u`: linear between the published quartiles, held at the
+    quartile outside them."""
+    lq, median, uq = _EFUS_HEATER_HOURS_QUARTILES[is_weekend]
+    if u <= 0.25:
+        hours = lq
+    elif u <= 0.5:
+        hours = lq + (median - lq) * (u - 0.25) / 0.25
+    elif u <= 0.75:
+        hours = median + (uq - median) * (u - 0.5) / 0.25
+    else:
+        hours = uq
+    return max(1, int(round(hours / PERIOD_HOURS)))
+
+
+@functools.lru_cache(maxsize=None)
+def _heater_start_weights(is_weekend: bool) -> tuple[float, ...]:
+    """Start-period weights whose sessions, at EFUS's lengths, put the energy where HES's curve
+    does. HES publishes WHEN the energy falls, not when sessions start; a session spreads its
+    energy forward over its length, so the curve is the start weights convolved with that spread.
+    Recovered by Richardson-Lucy deconvolution on the circular day: non-negative, and derived
+    entirely from the two sources, with nothing fitted to a world outcome."""
+    curve = _HES_HEATER_HOLIDAY_HOURLY if is_weekend else _HES_HEATER_WORKDAY_HOURLY
+    target = [curve[p // 2] / (2 * sum(curve)) for p in range(PERIODS_PER_DAY)]
+    grid = [_heater_session_periods((i + 0.5) / 400, is_weekend=is_weekend) for i in range(400)]
+    kernel = [0.0] * PERIODS_PER_DAY  # share of a session's energy d periods after its start
+    for length in grid:
+        for d in range(length):
+            kernel[d] += 1.0 / (length * len(grid))
+    w = list(target)
+    for _ in range(500):
+        blur = [sum(w[(t - d) % PERIODS_PER_DAY] * kernel[d] for d in range(PERIODS_PER_DAY))
+                for t in range(PERIODS_PER_DAY)]
+        ratio = [target[t] / blur[t] for t in range(PERIODS_PER_DAY)]
+        w = [w[s] * sum(kernel[d] * ratio[(s + d) % PERIODS_PER_DAY] for d in range(PERIODS_PER_DAY))
+             for s in range(PERIODS_PER_DAY)]
+    return tuple(w)
+
+
+def _heater_session(rng: random.Random, *, is_weekend: bool) -> tuple[int, int]:
+    """One heater session as (first period, periods): the start from HES's curve deconvolved, the
+    length from EFUS's daily-user distribution for the day type."""
+    start = rng.choices(range(PERIODS_PER_DAY), weights=_heater_start_weights(is_weekend))[0]
+    return start, _heater_session_periods(rng.random(), is_weekend=is_weekend)
+
+
+def heater_habit(base_seed: int) -> dict[bool, tuple[int, int]] | None:
+    """A set-time home's fixed session for each day type (keyed on is_weekend), or None for a home
+    that runs its heater at no set time. Drawn once per premise on its own substream."""
+    rng = _substream(base_seed, "supplementary-heater-habit")
+    if rng.random() >= _SET_TIME_SHARE:
+        return None
+    weekday = _heater_session(rng, is_weekend=False)
+    weekend = _heater_session(rng, is_weekend=True)
+    return {False: weekday, True: weekend if rng.random() < _SET_TIME_WEEKEND_CHANGE_SHARE else weekday}
+
+
 def supplementary_heating_kwh(
-    profile: BehaviourProfile, mean_temp_c: float, *, is_weekend: bool, is_away: bool
+    mean_temp_c: float,
+    *,
+    is_weekend: bool,
+    is_away: bool,
+    rng: random.Random,
+    habit: dict[bool, tuple[int, int]] | None = None,
 ) -> list[float]:
     """One day's supplementary-heater electricity, by period, for a home that owns one.
 
-    Energy: 1,505 kWh/yr x (today's HDD / the normal year's HDD). Placed as one block of EFUS's
-    median hours, ending at the household's own bedtime. An away day, or a day with no heating
-    degree days, carries none."""
+    Energy: 1,505 kWh/yr x (today's HDD / the normal year's HDD), spread evenly over one session:
+    the home's set session if it has one (`heater_habit`), else one drawn today from `rng`. A
+    session that runs past midnight wraps to the small hours of the same day, which keeps the day's
+    energy whole and HES's overnight share in place. An away day, or a day with no heating degree
+    days, carries none."""
     out = [0.0] * PERIODS_PER_DAY
     hdd = heating_degree_days(mean_temp_c)
     if is_away or hdd <= 0.0:
         return out
     kwh = SUPPLEMENTARY_ELECTRIC_HEATING_KWH_PER_YEAR * hdd / _normal_annual_heating_degree_days()
-    shift = profile.weekend_shift_periods if is_weekend else 0
-    end = min(PERIODS_PER_DAY, profile.sleep_period + shift)
-    periods = int(round(_SUPPLEMENTARY_HEATING_HOURS[is_weekend] / PERIOD_HOURS))
-    start = max(0, end - periods)
-    for p in range(start, end):
-        out[p] = kwh / (end - start)
+    start, periods = habit[is_weekend] if habit is not None else _heater_session(rng, is_weekend=is_weekend)
+    for i in range(periods):
+        out[(start + i) % PERIODS_PER_DAY] += kwh / periods
     return out
 
 
@@ -1699,6 +1785,7 @@ def generate_premise_trace(
     # Drawn once, against the window's first day: the boiler's install date does not move with it.
     pump_kw = boiler_pump_kw(household, base_seed, weather[0].date)
     has_heater = has_supplementary_electric_heating(household, base_seed)
+    habit = heater_habit(base_seed) if has_heater else None
     dhw_commodity = heating_commodity if household.heating_system != HeatingSystem.NONE else "electricity"
 
     days: list[PremiseDayTrace] = []
@@ -1783,7 +1870,11 @@ def generate_premise_trace(
         # offsets boiler gas through the physics rather than by a subtraction written here.
         heater_kwh = (
             supplementary_heating_kwh(
-                profile, wx.weather.temperature_mean_c, is_weekend=is_weekend, is_away=is_away
+                wx.weather.temperature_mean_c,
+                is_weekend=is_weekend,
+                is_away=is_away,
+                rng=_substream(base_seed, f"supplementary-heater-day::{day_index}"),
+                habit=habit,
             )
             if has_heater
             else [0.0] * PERIODS_PER_DAY
