@@ -4575,3 +4575,183 @@
   simplifications_count: 1
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "the advice a supplier's call handler actually gives for free -- turn the thermostat down a degree, drop the flow temperature -- which is the only thing they can offer a household with no capital, and which a responsible supplier withholds from a home that is already too cold"
+
+- id: W1_7_renewable_capacity_trends
+  notes_rehomed: [name]
+  lane: W1_market_weather
+  value_stream: wholesale_to_price
+  epoch: 3
+  level_current: 2
+  level_target: 2
+  loop_stage: build
+  blocked_on: null   # 2026-07-29 blocked_on CLEARED (DIRECTOR_RULING_RIP_OUT_PERMISSION_MACHINERY_2026-07-29.md items 1+2): director_build_open/director_level_up are abolished as BLOCK TYPES -- there is no such thing as needing a build opened, and levels are proposed+recorded (ledger-backed, self-certification via background.gate_authorization.record_level_up_self_certified now suffices, R16), never gated. Prior blocked_on/block_reason preserved above/below for the record; this atom re-enters the normal draw for whichever lane/loop_stage it already carries.
+  block_reason: null
+  dial_inherited: 3
+  provenance: proposal
+  records_rehomed: [evidence]
+  file_scope: [docs/design, docs/market_research, sim/renewable_capacity_trend.py, sim/price_engine.py, sim/weather_price_chain.py, tests/sim]
+  simplifications_count: 10
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "GB weather-driven demand and price physics -- coherent national signal, feasible regional deviation, premise-level response, price as the output of the merit order"
+  depends_on: [W1_6_physics_price_signal]
+
+- id: W1_10_ev_heatpump_geography
+  notes_rehomed: [name]
+  lane: W1_market_weather
+  value_stream: wholesale_to_price
+  epoch: 3
+  level_current: 2
+  level_target: 2
+  loop_stage: harden
+  dial_inherited: 3
+  blocked_on: null
+  provenance: proposal
+  records_rehomed: [evidence]
+  file_scope: [docs/design, simulation/adoption_geography.py, tests/simulation/test_adoption_geography.py]
+  simplifications_count: 5
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "GB weather-driven demand and price physics -- coherent national signal, feasible regional deviation, premise-level response, price as the output of the merit order"
+  depends_on: [W1_5_premise_demand_shape]
+
+- id: SPINE_1_scenario_world_state
+  notes_rehomed: [name, level_note]
+  lane: W1_market_weather
+  value_stream: wholesale_to_price
+  epoch: 3
+  level_current: 2
+  level_target: 2
+  loop_stage: build   # 2026-08-28: the second half of that sentence cited BUILD-open and fronts.yaml, both abolished 2026-07-29 and swept 2026-08-03, so this atom was parked on an act that no longer exists. The FIRST half stands and is why this is a BUILD and not a wait: the world-selection MECHANISM is the agent's; only the named worlds + their probabilities are R13 CURRICULUM. DECOMPOSE (CLAUDE.md): build the mechanism, leave the values as a declared director input. Head of the P7 chain -- SPINE_1 -> SPINE_3 -> B6_collateral_cash_death_loop.
+  frame_saturated: true   # 2026-07-23 DISCOVER->FRAME complete in SCENARIO_SPINE_AND_TRADING_FRICTION_FRAME.md (section A: object, internal representation, wall, consumption seam, byte-identical baseline, launch-world proposal, tail-heavy sampling). Spine BUILD deliberately deferred.
+  dial_inherited: 4
+  provenance: proposal
+  file_scope: [sim/scenario, tests/sim/test_scenario_spine.py]
+  depends_on: []
+  blocked_on: null   # 2026-07-29 CLEARED (director from_rich_20260729_173731): blocked_on drops an atom from EVERY lane incl. the idle DISCOVER/FRAME draw, so this read as "no work" -- the exact defect he named. 2026-08-28: the trailing clause named `fronts.yaml stage_advance`, abolished with the rest of the permission machinery; deleted rather than reworded. SPINE_2's named-world VALUES stay R13 director-authored and that is a real, live constraint.
+  simplifications_count: 3   # 2026-08-29: the store file carried a third note ("CONSUMED -- the spine is now READ by a generator on a live run path") and this count was left at 2, so `test_counts_match_file_contents` was red for every lane in the tree. Bumped to match the register rather than the register trimmed to match it: the note is real work another lane landed.
+  simplifications_count: 4
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a risk desk's scenario library: a small set of named, human-curated pathway worlds (the NESO Future Energy Scenarios pattern) sampled tail-heavy against their true probabilities, that the trading book is stress-run through -- the desk knows which world it is stress-testing; the front office does not get to see the future it is being tested against"
+  records_rehomed: [evidence]
+
+- id: W2_payment_channel_dd_consistency_invariant
+  notes_rehomed: [name]
+  lane: W2_customer_generator
+  value_stream: meter_to_cash
+  epoch: 2
+  level_current: 2
+  level_target: 2
+  loop_stage: harden
+  dial_inherited: 3
+  provenance: proposal
+  file_scope: [simulation, company/compliance/domain_invariants.py, tests/simulation, tests/company/compliance, tools/generate_billing_ledger.py, tests/tools/test_generate_billing_ledger.py]
+  depends_on: []
+  blocked_on: null
+  simplifications_count: 8
+  records_rehomed: [evidence]
+
+- id: W2_sme_segment_case_normalisation
+  notes_rehomed: [name]
+  lane: W2_customer_generator
+  value_stream: meter_to_cash
+  epoch: 2
+  level_current: 2
+  level_target: 2
+  loop_stage: harden
+  dial_inherited: 2
+  provenance: proposal
+  file_scope: [simulation/arrears_engine.py, simulation/payment_behaviour_source.py, simulation/segment_vocabulary.py, simulation/sme_payment_behaviour.py, tools/segment_case_guard.py, tools/generate_billing_ledger.py, tools/pre_commit_test_gate.py, tests/simulation/test_segment_case_normalisation.py, tests/tools/test_segment_case_guard.py]
+  depends_on: []
+  blocked_on: null
+  simplifications_count: 3
+  records_rehomed: [evidence]
+
+- id: PB3_book_growth_as_earned_outcome
+  title: "A growth curve that can be lost"
+  notes_rehomed: [discover_note, gain, name, map_comment_note]
+  lane: W2_customer_generator
+  value_stream: meter_to_cash
+  epoch: 2
+  level_current: 2
+  level_target: 2
+  loop_stage: build
+  dial_inherited: 3
+  provenance: director_ruling
+  depends_on: ['PB2_opening_book_won_not_assigned']
+  couples_with: ['W2_3_competitor_field']
+  simplifications_count: 4
+  file_scope: [simulation/net_new_acquisition.py, simulation/run_phase2b.py, tests/simulation/test_net_new_acquisition.py,
+    simulation/market_switching_propensity.py, simulation/acquisition_funnel.py, simulation/live_population.py,
+    tools/couple_pb3_book_growth.py, tests/tools/test_couple_pb3_book_growth.py]
+
+- id: W2_28_a_household_is_a_vector_and_a_claim_declares_what_it_reduces_over
+  title: "the demand vector as the declared subject of every coverage, ceiling and sufficiency claim, and the control that refuses one measured on an undeclared reduction dimension"
+  notes_rehomed: [map_comment_note]
+  lane: W2_customer_generator
+  value_stream: meter_to_cash
+  epoch: 3
+  # LEVEL 2, recorded 2026-09-30: the condition this row set for it -- the one OUTSTANDING debt
+  # (`simulation.weather_cell_siting`) paid -- was met 2026-09-16 when `1bf4821b6` re-cut W1's stale
+  # artefact and the declaration landed; `OUTSTANDING` is `{}`. Measured in a pristine-HEAD extract
+  # 2026-09-30: the control and `tests/simulation/test_weather_cell_siting.py` 30 passed, census
+  # exit 0 with 0 outstanding. The level lagged the fact by two weeks because nothing re-reads a
+  # row's own exit when its blocker's repair lands elsewhere.
+  level_current: 2
+  level_target: 2
+  loop_stage: build
+  dial_inherited: 50
+  provenance: director_ruling
+  blocked_on: null
+  block_reason: null
+  depends_on: []
+  couples_with: [W2_21_the_premise_joint_is_fitted_not_drawn_independently]
+  file_scope:
+    - tools/reduction_dimension.py
+    - tests/architecture/test_a_coverage_claim_declares_what_it_reduces_over.py
+  simplifications_count: 1
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a cold well-insulated house and a mild leaky one with the same annual kWh -- one number, one case, and two customers who want opposite things from a supplier."
+
+- id: W1_28_the_weather_partition_is_joint_over_a_stock_with_varying_fabric
+  title: "the weather partition re-opened as a joint question over a stock whose response to each driver depends on its fabric"
+  lane: W1_market_weather
+  value_stream: price_to_bill
+  epoch: 3
+  level_current: 2
+  level_target: 2
+  loop_stage: harden
+  dial_inherited: 60
+  provenance: director_ruling
+  blocked_on: null
+  block_reason: null
+  depends_on: []
+  couples_with: [W1_14_weather_cells_for_household_heat_load, W2_18_the_housing_joint_the_sample_and_the_ceiling]
+  file_scope:
+    - tools/weather_cell_joint_partition.py
+    - tests/tools/test_weather_cell_joint_partition.py
+  simplifications_count: 1
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a supplier that partitions its weather three ways because it has three drivers, and cannot say why the same cold snap costs one street twice what it costs the next."
+  # ITEM 2 of DIRECTOR_CANON_THE_DEMAND_VECTOR_2026-09-07. The named files do not exist yet and
+  # that is legal at the mint -- naming is the bar, existing is what the build clears.
+  #
+  # THE DEFECT, and it is OUR OWN measurement that refutes us. Three separate grids -- 21
+  # temperature, 21 wind, 5 irradiance -- assume a household's response to weather is SEPARABLE.
+  # `weather_driver_sensitivity` says it is not: solar gain moves fuel -1.2% in a leaky pre-1919
+  # house and -7.9% in a tight post-2000 one; wind moves the heat loss coefficient +18.6%
+  # mid-stock and +2.9% in that same modern house, because Part F's minimum air change rate
+  # clamps the calm end. The response to each driver DEPENDS ON THE FABRIC, so the subject is the
+  # joint weather condition over a varying stock, not each driver in turn.
+  #
+  # W1_21's 987 IS NOT THIS. It was coverage of the three drivers' own variance on one shared
+  # partition -- a partition of weather against itself, which knows nothing about fabric. Right
+  # shape, wrong subject, and that is why this is a new rung rather than a level move on W1_21.
+  #
+  # THE CELL COUNT IS DERIVED, NOT DESIGNED (canon section 5). Once the sample is a set of
+  # (household, cell) cases the number of cells is whatever the drawn sample lands in; wanting it
+  # in advance is a data-pull sizing constraint, not a modelling one. A row here that opens by
+  # choosing a cell count has taken the wrong question.
+  #
+  # EXIT: a partition whose subject is (weather condition x fabric), a control that fails when
+  # the partition is rebuilt separably, and the derived cell count reported as an OUTPUT of the
+  # drawn sample. It declares what it reduces over under `tools.reduction_dimension` or it does
+  # not land.

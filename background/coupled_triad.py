@@ -125,6 +125,12 @@ _AUTHORITATIVE_COUPLING = {
     # it is already the belief-vs-truth reading of this mechanism. D48 sits at L1, so the
     # gate still holds W2_30 below L3 -- now for the twin's level, not for a missing twin.
     "W2_30": "D48",
+    # W1_14 per-cell household weather <-> D48 billing accuracy, on the same standing as W2_30.
+    # Each premise's register advance is settled on its own cell's sky (`run_phase2b` hands the
+    # per-cell store to the fabric, shape and forward legs), while the supplier estimates from a
+    # weather-normal AQ/EAC. The cell's departure from normal is therefore what a true-up
+    # corrects, and D48 is the grade that measures it. Held below L3 for D48's level.
+    "W1_14": "D48",
 }
 
 # TWIN-EXEMPT world atoms (director-authored exemptions from binding rule 1).
