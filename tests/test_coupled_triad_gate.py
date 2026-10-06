@@ -11,7 +11,6 @@ import pytest
 
 from background import coupled_triad as ct
 
-
 # --- Minimal in-memory atom sets (mirror maturity_map.yaml shape) ------------
 
 def _world_atom(atom_id="W2_7_willingness_classification", lc=2, lt=3,
