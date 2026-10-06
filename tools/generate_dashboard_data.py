@@ -2411,6 +2411,8 @@ def generate(run_json_path=None):
     # rewrote the tracked feed in every extract they ran in, which dirtied the head-red
     # bisect's checkout on 2026-10-04.
     _write_dd_opening_arms_feed(OUTPUT_PATH.parent / DD_ARMS_FEED.name)
+    _write_billing_accuracy_feed(OUTPUT_PATH.parent / "billing_accuracy.json", data,
+                                 run_json_path.name)
 
     OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
     with open(OUTPUT_PATH, "w") as f:
@@ -2596,6 +2598,17 @@ def _write_dd_opening_arms_feed(feed):
         except (json.JSONDecodeError, OSError):
             result = None
     block = publish_view(result)
+    feed.parent.mkdir(parents=True, exist_ok=True)
+    feed.write_text(json.dumps(block, indent=2, sort_keys=True) + "\n")
+    print(f"Wrote {feed} (available={block.get('available')})")
+
+
+def _write_billing_accuracy_feed(feed, data, source):
+    """D48's measure for the /capabilities/ door. `published_view` decides what a reader meets,
+    including the named absence when the run output predates the key."""
+    from company.billing.billing_accuracy import published_view
+
+    block = published_view(data.get("billing_accuracy"), source)
     feed.parent.mkdir(parents=True, exist_ok=True)
     feed.write_text(json.dumps(block, indent=2, sort_keys=True) + "\n")
     print(f"Wrote {feed} (available={block.get('available')})")

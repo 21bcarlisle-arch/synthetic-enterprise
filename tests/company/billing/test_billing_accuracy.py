@@ -15,9 +15,11 @@ from dataclasses import dataclass
 import pytest
 
 from company.billing.billing_accuracy import (
+    PUBLISHED_MEDIAN_SUPPLIER_SHARE_NO_READ_BILL_IN_12,
     account_billing_accuracy,
     billing_accuracy_summary,
     estimated_billing_outstanding_grade,
+    published_view,
 )
 from company.billing.monthly_bill_assembly import build_monthly_bills
 
@@ -282,3 +284,59 @@ def test_the_year_end_grades_are_in_the_summary():
     assert [g["as_of"] for g in summary["K1_year_end_grades"]["electricity"]] == ["2022-12"]
     assert summary["K1_year_end_grades"]["electricity"][0] == estimated_billing_outstanding_grade(
         _k1_bills(), "2022-12")
+
+
+def _snapshot_summary(unread: int, accounts: int) -> dict:
+    summary = billing_accuracy_summary(_bills(actual_after_opening=False))
+    fuel = summary["by_fuel"]["electricity"]
+    fuel["snapshot_accounts"], fuel["snapshot_no_read_bill_in_12"] = accounts, unread
+    fuel["K2_snapshot_share_no_read_bill_in_12"] = unread / accounts if accounts else None
+    return summary
+
+
+def test_the_published_snapshot_takes_every_verdict_and_its_interval_holds_the_share():
+    """The partition first: a view that always said "cannot be told apart" would pass every leg
+    below. 0 of 2000 sits under the published band, 400 of 2000 over it, 2 of 48 (the decade
+    capture's electricity) straddles it."""
+    verdicts = {}
+    for unread, accounts in ((0, 2000), (400, 2000), (2, 48), (0, 0)):
+        snap = published_view(_snapshot_summary(unread, accounts))["by_fuel"]["electricity"]["snapshot"]
+        verdicts[(unread, accounts)] = snap["against_published"]
+        if accounts:
+            assert snap["ci95"][0] <= snap["share"] <= snap["ci95"][1]
+        else:
+            assert snap["ci95"] is None and snap["share"] is None
+    assert verdicts == {
+        (0, 2000): "fewer_unread_than_the_median_supplier",
+        (400, 2000): "more_unread_than_the_median_supplier",
+        (2, 48): "cannot_be_told_apart_from_the_median_supplier",
+        (0, 0): "no_accounts",
+    }
+
+
+def test_the_published_comparator_is_the_share_without_a_read_bill():
+    assert [round(x, 4) for x in sorted(PUBLISHED_MEDIAN_SUPPLIER_SHARE_NO_READ_BILL_IN_12)] == [
+        0.052, 0.056]
+
+
+def test_a_missing_measure_is_published_as_an_absence_with_its_reason_and_no_figures():
+    for missing in (None, {}, {"by_fuel": {}}):
+        view = published_view(missing, "run_output_x.json")
+        assert view["available"] is False and view["reason"] and "by_fuel" not in view
+
+
+def test_the_published_example_is_the_account_with_the_most_barred_energy():
+    view = published_view(billing_accuracy_summary(
+        _bills(actual_after_opening=False) + [dict(b, customer_id="C2")
+                                              for b in _bills(actual_after_opening=True)]))
+    assert view["available"] is True
+    assert view["example_account"]["account_id"] == "C1"
+    assert view["example_account"]["barred_kwh"] > 0
+    assert view["by_fuel"]["electricity"]["K1_year_end_grades"] == [
+        {k: g[k] for k in ("as_of", "outstanding_gbp", "outstanding_bills", "graded_runs",
+                           "never_read_runs", "graded_net_true_up_share",
+                           "graded_gross_true_up_share")}
+        for g in billing_accuracy_summary(
+            _bills(actual_after_opening=False) + [dict(b, customer_id="C2") for b in
+                                                  _bills(actual_after_opening=True)]
+        )["K1_year_end_grades"]["electricity"]]

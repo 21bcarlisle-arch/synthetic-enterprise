@@ -54,6 +54,7 @@ def _render(feed: dict) -> dict:
     payload = {
         "../data/engagement_separation.json": feed,
         "../data/dd_opening_arms.json": published_json(DD_ARMS_REL),
+        "../data/billing_accuracy.json": published_json("site/data/billing_accuracy.json"),
         "../data/value_arms.json": published_json(ARMS_REL),
         "../data/book_growth.json": published_json(GROWTH_REL),
         "../data/capabilities_door.json": published_json(CAPS_REL),

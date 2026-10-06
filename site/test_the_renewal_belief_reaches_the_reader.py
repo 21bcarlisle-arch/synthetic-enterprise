@@ -128,6 +128,7 @@ def _render(feed: dict, raw: bool = False) -> str:
         "../data/value_arms.json": feed,
         "../data/dd_opening_arms.json": published_json(DD_ARMS_REL),
         "../data/engagement_separation.json": published_json("site/data/engagement_separation.json"),
+        "../data/billing_accuracy.json": published_json("site/data/billing_accuracy.json"),
         "../data/book_growth.json": published_json(GROWTH_REL),
         "../data/capabilities_door.json": published_json(CAPS_REL),
     }

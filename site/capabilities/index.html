@@ -4641,6 +4641,124 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
     });
 })();
 </script>
+<!-- WHAT THE SUPPLIER BILLED AGAINST WHAT ITS READS LATER SHOWED (D48). Measured from the
+     supplier's own bills only, never the world's use. Every figure is fetched from
+     ../data/billing_accuracy.json, written by company/billing/billing_accuracy.published_view;
+     none is authored here. -->
+<section id="billing-accuracy" style="max-width:760px;margin:0 auto;padding:0 24px 24px;">
+  <h2 class="sec">How much of what this supplier billed was a guess?</h2>
+  <p class="sec-lede">A traditional meter is read only now and then. In the months between,
+  the bill is an estimate, and it is corrected when a real read arrives. A supplier cannot see
+  what a household actually used in a month it did not read. It only sees the size of the
+  correction later. Everything here comes from the supplier's own bills and reads.</p>
+  <div id="billacc-fuels"></div>
+  <p id="billacc-snapshot" style="margin:14px 0 0;"></p>
+  <div id="billacc-yearend"></div>
+  <p id="billacc-example" style="margin:14px 0 0;font-size:13px;"></p>
+  <p id="billacc-note" class="stamp" style="margin-top:12px;"></p>
+</section>
+<script>
+/* On any failure every figure is ABSENT with its reason, never zero. */
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var esc = function (s) {
+    return String(s == null ? "" : s).replace(/[&<>"]/g, function (c) {
+      return ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c];
+    });
+  };
+  var pct = function (v) {
+    return v === null || v === undefined || isNaN(v) ? "&mdash;" : (100 * v).toFixed(1) + "%";
+  };
+  var kwh = function (v) {
+    return v === null || v === undefined || isNaN(v) ? "&mdash;"
+      : Math.round(v).toLocaleString("en-GB") + " kWh";
+  };
+  var gbp = function (v) {
+    return v === null || v === undefined || isNaN(v) ? "&mdash;"
+      : "£" + Math.round(v).toLocaleString("en-GB");
+  };
+  var table = function (caption, head, body) {
+    return '<div class="table-scroll">'
+      + '<table style="width:100%;border-collapse:collapse;margin:16px 0 0;font-size:13px;">'
+      + '<caption style="text-align:left;font-weight:600;padding-bottom:6px;">' + caption
+      + '</caption><tr>' + head.map(function (h) {
+        return '<th style="text-align:right;padding:4px 8px;">' + h + '</th>';
+      }).join("") + '</tr>' + body + '</table></div>';
+  };
+  var tr = function (cells) {
+    return '<tr>' + cells.map(function (c, i) {
+      return '<td style="padding:4px 8px;text-align:' + (i ? "right" : "left") + ';">' + c + '</td>';
+    }).join("") + '</tr>';
+  };
+  var VERDICT = {
+    fewer_unread_than_the_median_supplier: "fewer unread accounts than the median supplier",
+    more_unread_than_the_median_supplier: "more unread accounts than the median supplier",
+    cannot_be_told_apart_from_the_median_supplier:
+      "cannot be told apart from the median supplier at this sample size",
+    no_accounts: "no account on supply had twelve bills, so this cannot be measured"
+  };
+
+  fetch("../data/billing_accuracy.json?t=" + Date.now())
+    .then(function (r) { return r.json(); })
+    .then(function (d) {
+      if (!d.available) {
+        $("billacc-note").textContent = "The billing-accuracy measure is not available, so it is "
+          + "absent rather than empty. " + (d.reason || "");
+        return;
+      }
+      var fuels = Object.keys(d.by_fuel || {}).sort();
+      $("billacc-fuels").innerHTML = table("Billed on estimates, and the corrections",
+        ["", "Accounts", "Billed on estimates", "Undercharged, found at a read",
+         "Overcharged, found at a read", "Barred by the 12-month back-billing limit"],
+        fuels.map(function (f) {
+          var x = d.by_fuel[f];
+          return tr([esc(f), esc(x.accounts),
+            pct(x.K2_estimated_share_of_billed_kwh) + " of " + kwh(x.billed_kwh),
+            kwh(x.undercharge_kwh), kwh(x.overcharge_kwh),
+            kwh(x.barred_kwh) + " (" + pct(x.K3_barred_share_of_undercharge_kwh)
+              + " of undercharge, " + esc(x.barred_true_ups) + " corrections)"]);
+        }).join(""));
+      var band = d.published_median_supplier_share_no_read_bill_in_12 || [];
+      $("billacc-snapshot").innerHTML = "<strong>Accounts with no bill on a read in the last "
+        + "12 months, at " + esc(d.snapshot_month) + ".</strong> "
+        + fuels.map(function (f) {
+          var s = d.by_fuel[f].snapshot;
+          var ci = s.ci95 || [];
+          return esc(f) + ": " + esc(s.no_read_bill_in_12) + " of " + esc(s.accounts) + ", "
+            + pct(s.share) + (ci.length ? " (95% " + pct(ci[0]) + " to " + pct(ci[1]) + ")" : "")
+            + " &mdash; " + esc(VERDICT[s.against_published] || s.against_published);
+        }).join("; ")
+        + ". Published median supplier (Ofgem 2018, citing Citizens Advice, 2017): "
+        + pct(band[0]) + " to " + pct(band[1]) + ". Accounts with fewer than twelve bills are left "
+        + "out, because a twelve-month window cannot be read on them.";
+      $("billacc-yearend").innerHTML = table(
+        "At each year end: what was billed on estimates and still open, and what the next read showed",
+        ["", "Year end", "Open on estimate", "Runs graded", "Runs never read",
+         "Net correction", "Gross correction"],
+        fuels.map(function (f) {
+          return (d.by_fuel[f].K1_year_end_grades || []).map(function (g) {
+            return tr([esc(f), esc(g.as_of), gbp(g.outstanding_gbp), esc(g.graded_runs),
+              esc(g.never_read_runs), pct(g.graded_net_true_up_share),
+              pct(g.graded_gross_true_up_share)]);
+          }).join("");
+        }).join(""));
+      var e = d.example_account;
+      $("billacc-example").innerHTML = e ? "<strong>One account.</strong> " + esc(e.account_id)
+        + " (" + esc(e.fuel) + "): " + esc(e.estimated_bills) + " of " + esc(e.bills)
+        + " bills on estimates, at most " + esc(e.longest_run_without_read_bill)
+        + " in a row; " + esc(e.true_ups) + " corrections at a read, " + kwh(e.undercharge_kwh)
+        + " undercharged and " + kwh(e.overcharge_kwh) + " overcharged, of which "
+        + kwh(e.barred_kwh) + " could not be billed under the 12-month limit." : "";
+      $("billacc-note").textContent = "From " + (d.source || "an unnamed run")
+        + ". A positive net correction is an undercharge. A run no read has yet ended is counted "
+        + "as never read and is not guessed.";
+    })
+    .catch(function (err) {
+      $("billacc-note").textContent = "The billing-accuracy measure could not be loaded ("
+        + err + "). The figures are absent, not zero.";
+    });
+})();
+</script>
 <!-- WHETHER A HOUSEHOLD SHOPS IS NOT HOW FAR PRICE MOVES IT (PB4). Until this section the world
      drew the two apart and nothing showed a reader that it did. Every figure is fetched from
      ../data/engagement_separation.json, written by tools/engagement_separation.py; none is

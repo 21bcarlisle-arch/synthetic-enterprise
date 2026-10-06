@@ -237,6 +237,7 @@ def _render(feed: dict, growth: dict | None = None, raw: bool = False) -> dict:
         # or this control reds on a page that is fine.
         "../data/dd_opening_arms.json": _published_json(DD_ARMS_REL),
         "../data/engagement_separation.json": _published_json("site/data/engagement_separation.json"),
+        "../data/billing_accuracy.json": _published_json("site/data/billing_accuracy.json"),
         "../data/book_growth.json": (
             _published_json(GROWTH_REL) if growth is None else growth),
         "../data/capabilities_door.json": _published_json(CAPS_REL),

@@ -45,8 +45,9 @@ from __future__ import annotations
 from collections.abc import Iterable
 
 __all__ = [
-    "KINDS", "NO_READ_BILL_RUN", "account_billing_accuracy", "billing_accuracy_summary",
-    "estimated_billing_outstanding_grade",
+    "KINDS", "NO_READ_BILL_RUN", "PUBLISHED_MEDIAN_SUPPLIER_SHARE_NO_READ_BILL_IN_12",
+    "account_billing_accuracy", "billing_accuracy_summary", "estimated_billing_outstanding_grade",
+    "published_view",
 ]
 
 #: The kinds this module measures, keyed to the knowledge note's ids.
@@ -60,6 +61,14 @@ KINDS = {
 #: traditional-meter billing-accuracy window (note §2 K2): a bill on a read in the last 12 months.
 #: Monthly billing makes 12 bills the same as 12 months.
 NO_READ_BILL_RUN = 12
+
+#: The published K2 comparator (note §2 K2). Ofgem, *Decision: Protecting consumers from
+#: backbills*, 5 March 2018, p.10, citing Citizens Advice: at the median supplier with over 5,000
+#: accounts, 94.80% (2017 Q1) and 94.40% (Q2) of consumers had a bill reflecting a meter reading in
+#: the past year. Held as the share WITHOUT one, the quantity the snapshot measures.
+PUBLISHED_MEDIAN_SUPPLIER_SHARE_NO_READ_BILL_IN_12 = (1 - 0.9480, 1 - 0.9440)
+
+_Z95 = 1.959964
 
 
 def account_billing_accuracy(bills: Iterable[dict]) -> list[dict]:
@@ -172,6 +181,72 @@ def billing_accuracy_summary(bills: Iterable[dict]) -> dict:
                                         if b["period_end"][5:7] == "12"})]
             for fuel, fuel_bills in _bills_by_fuel(bills).items()
         },
+    }
+
+
+def _wilson(hits: int, n: int) -> list[float] | None:
+    if not n:
+        return None
+    p = hits / n
+    centre = (p + _Z95 ** 2 / (2 * n)) / (1 + _Z95 ** 2 / n)
+    half = _Z95 * (p * (1 - p) / n + _Z95 ** 2 / (4 * n * n)) ** 0.5 / (1 + _Z95 ** 2 / n)
+    # Exact at the edges: in floating point 0 hits gives a lower bound of 1e-19, above the share.
+    return [0.0 if hits == 0 else centre - half, 1.0 if hits == n else centre + half]
+
+
+def _against_published(interval: list[float] | None) -> str:
+    """Where the published median band sits relative to this book's 95% interval."""
+    if interval is None:
+        return "no_accounts"
+    low, high = sorted(PUBLISHED_MEDIAN_SUPPLIER_SHARE_NO_READ_BILL_IN_12)
+    if interval[1] < low:
+        return "fewer_unread_than_the_median_supplier"
+    if interval[0] > high:
+        return "more_unread_than_the_median_supplier"
+    return "cannot_be_told_apart_from_the_median_supplier"
+
+
+def published_view(summary: dict | None, source: str | None = None) -> dict:
+    """What a reader of the site meets: the per-fuel figures with their denominators, the K2
+    snapshot with a 95% interval set beside the published median supplier, the K1 year-end grades,
+    and one named account. A summary that is missing or empty is published as an absence with its
+    reason, never as zeros."""
+    if not summary or not summary.get("by_fuel"):
+        return {"available": False, "source": source, "reason": (
+            "the run output this publish read carries no billing-accuracy measure, so there is "
+            "nothing to show; it was added to the run output on 2026-10-06 and appears at the "
+            "next run")}
+    fuels = {}
+    for fuel, f in sorted(summary["by_fuel"].items()):
+        interval = _wilson(f["snapshot_no_read_bill_in_12"], f["snapshot_accounts"])
+        fuels[fuel] = {
+            "accounts": f["accounts"],
+            "billed_kwh": f["billed_kwh"], "estimated_kwh": f["estimated_kwh"],
+            "K2_estimated_share_of_billed_kwh": f["K2_estimated_share_of_billed_kwh"],
+            "true_ups": f["true_ups"], "undercharge_kwh": f["undercharge_kwh"],
+            "overcharge_kwh": f["overcharge_kwh"], "open_estimated_kwh": f["open_estimated_kwh"],
+            "barred_kwh": f["barred_kwh"], "barred_true_ups": f["barred_true_ups"],
+            "K3_barred_share_of_undercharge_kwh": f["K3_barred_share_of_undercharge_kwh"],
+            "snapshot": {
+                "accounts": f["snapshot_accounts"], "no_read_bill_in_12": f["snapshot_no_read_bill_in_12"],
+                "share": f["K2_snapshot_share_no_read_bill_in_12"], "ci95": interval,
+                "against_published": _against_published(interval),
+            },
+            "K1_year_end_grades": [
+                {k: g[k] for k in ("as_of", "outstanding_gbp", "outstanding_bills", "graded_runs",
+                                   "never_read_runs", "graded_net_true_up_share",
+                                   "graded_gross_true_up_share")}
+                for g in summary.get("K1_year_end_grades", {}).get(fuel, [])
+            ],
+        }
+    rows = summary.get("accounts") or []
+    example = max(rows, key=lambda r: (r["barred_kwh"], abs(r["true_up_kwh"])), default=None)
+    return {
+        "available": True, "source": source, "kinds": summary["kinds"],
+        "snapshot_month": summary["snapshot_month"],
+        "published_median_supplier_share_no_read_bill_in_12":
+            sorted(PUBLISHED_MEDIAN_SUPPLIER_SHARE_NO_READ_BILL_IN_12),
+        "by_fuel": fuels, "example_account": example,
     }
 
 
