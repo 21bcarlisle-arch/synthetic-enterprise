@@ -12,6 +12,8 @@ R15 -- the mutations, each run and reverted:
   * drop the verdict text -> the same test reds.
   * drop the `billacc-yearend` render -> `test_the_year_end_grades_reach_the_reader` reds.
   * drop the `billacc-example` render -> `test_one_named_account_reaches_the_reader` reds.
+  * render the DD money line without its intervals -> `test_the_dd_money_line_reaches_the_reader_with_its_bound` reds.
+  * render the DD barred money in the fuels table -> `test_the_dd_money_line_is_never_a_row_of_the_k3_table` reds.
 The null rung, `test_an_unavailable_feed_renders_an_absence_and_never_a_zero`, stays green
 through all four.
 """
@@ -30,7 +32,7 @@ SITE = Path(__file__).resolve().parent
 HARNESS = SITE / "_live_harness.mjs"
 DOOR_REL = "site/capabilities/index.html"
 FEED_REL = "site/data/billing_accuracy.json"
-PANELS = ("billacc-fuels", "billacc-snapshot", "billacc-yearend", "billacc-example", "billacc-note")
+PANELS = ("billacc-fuels", "billacc-dd", "billacc-snapshot", "billacc-yearend", "billacc-example", "billacc-note")
 
 
 def _text(fragment: str) -> str:
@@ -63,7 +65,15 @@ def _render(feed: dict) -> dict:
             or _text((out.get(p) or {}).get("textContent") or "") for p in PANELS}
 
 
-def _feed() -> dict:
+_DD_LINE = {
+    "available": True, "seek_balance_at_review": False, "dd_accounts": 129,
+    "accounts_met_recovery_action": 45, "accounts_barred": 27, "barred_gbp": 15446.94,
+    "share_barred": 0.6, "share_barred_ci95": [0.4545, 0.7298], "mean_barred_gbp": 343.27,
+    "mean_barred_gbp_ci95": [165.21, 521.32], "open_accounts": 84, "open_exposure_gbp": 27538.58,
+}
+
+
+def _feed(dd_line: dict | None = _DD_LINE) -> dict:
     """An available feed in the shape `published_view` writes: the decade capture's electricity
     snapshot (2 of 48) and one year-end grade."""
     from company.billing.billing_accuracy import published_view
@@ -86,7 +96,8 @@ def _feed() -> dict:
     return published_view({"kinds": {"K2": "k2"}, "snapshot_month": "2025-06",
                            "by_fuel": {"electricity": fuel},
                            "K1_year_end_grades": {"electricity": [grade]},
-                           "accounts": [account]}, "run_output_test.json")
+                           "accounts": [account], "direct_debit_money_line": dd_line},
+                          "run_output_test.json")
 
 
 @pytest.fixture(scope="module")
@@ -121,3 +132,22 @@ def test_an_unavailable_feed_renders_an_absence_and_never_a_zero():
     shown = _render(feed)
     assert "absent rather than empty" in shown["billacc-note"]
     assert not any(shown[p] for p in PANELS if p != "billacc-note")
+
+
+def test_the_dd_money_line_reaches_the_reader_with_its_bound(shown):
+    text = shown["billacc-dd"]
+    assert "27 of 45 direct-debit accounts" in text
+    assert "60.0% (95% 45.5% to 73.0%)" in text
+    assert "£15,447 in all, £343 an account (95% £165 to £521)" in text
+    assert "84 accounts are still open, with £27,539" in text and "exposure, not a loss" in text
+
+
+def test_the_dd_money_line_is_never_a_row_of_the_k3_table(shown):
+    assert "£" not in shown["billacc-fuels"] and "15,447" not in shown["billacc-fuels"]
+    assert "2,180 kWh" in shown["billacc-fuels"]  # K3's own energy is still there
+
+
+def test_a_feed_without_the_dd_line_renders_its_absence_and_never_a_zero():
+    text = _render(_feed(dd_line=None))["billacc-dd"]
+    assert "absent rather than zero" in text and "appear at the next run" in text
+    assert "£" not in text

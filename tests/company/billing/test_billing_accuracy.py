@@ -18,6 +18,7 @@ from company.billing.billing_accuracy import (
     PUBLISHED_MEDIAN_SUPPLIER_SHARE_NO_READ_BILL_IN_12,
     account_billing_accuracy,
     billing_accuracy_summary,
+    direct_debit_money_line,
     estimated_billing_outstanding_grade,
     published_view,
 )
@@ -340,3 +341,50 @@ def test_the_published_example_is_the_account_with_the_most_barred_energy():
             _bills(actual_after_opening=False) + [dict(b, customer_id="C2") for b in
                                                   _bills(actual_after_opening=True)]
         )["K1_year_end_grades"]["electricity"]]
+
+
+# The DD balance book's per-account rows, in the shape `simulation/dd_balance_book` writes: two
+# accounts that left (one barred, one not), one still open with an exposure.
+_DD_ROWS = [
+    {"customer_id": "D1", "closed": True, "met_recovery_action": True, "barred_gbp": 300.0,
+     "exposure_gbp": 0.0},
+    {"customer_id": "D2", "closed": True, "met_recovery_action": True, "barred_gbp": 0.0,
+     "exposure_gbp": 0.0},
+    {"customer_id": "D3", "closed": False, "met_recovery_action": False, "barred_gbp": 0.0,
+     "exposure_gbp": 120.0},
+]
+
+
+def test_the_dd_money_line_is_never_folded_into_k3():
+    """K3 is pay-on-bill energy. The DD bar is money a debit could not ask for. Supplying the line
+    must leave every K-figure, measured and published, exactly as it was."""
+    bills = _bills(actual_after_opening=False)
+    line = direct_debit_money_line(_DD_ROWS)
+    without, with_line = billing_accuracy_summary(bills), billing_accuracy_summary(bills, line)
+    assert with_line["by_fuel"] == without["by_fuel"]
+    assert with_line["by_fuel"]["electricity"]["barred_kwh"] > 0  # K3 itself is non-trivial here
+    assert published_view(with_line)["by_fuel"] == published_view(without)["by_fuel"]
+    assert published_view(with_line)["direct_debit_money_line"]["barred_gbp"] == 300.0
+    assert "DD" not in with_line["kinds"] and not any(
+        "gbp" in k for k in with_line["by_fuel"]["electricity"])
+
+
+def test_the_dd_money_line_is_bounded_over_the_accounts_that_met_a_recovery_action():
+    line = direct_debit_money_line(_DD_ROWS, unmeasured_accounts=2)
+    # Every leg of the partition is taken: barred, met-and-not-barred, open with an exposure.
+    assert (line["accounts_barred"], line["accounts_met_recovery_action"], line["open_accounts"]) \
+        == (1, 2, 1)
+    assert line["barred_gbp"] == 300.0 and line["open_exposure_gbp"] == 120.0
+    assert line["dd_accounts"] == 3 and line["unmeasured_accounts"] == 2
+    low, high = line["share_barred_ci95"]
+    assert low < line["share_barred"] == 0.5 < high
+    low, high = line["mean_barred_gbp_ci95"]
+    assert low <= line["mean_barred_gbp"] == 150.0 < high
+
+
+def test_a_missing_dd_money_line_is_an_absence_with_its_reason_never_a_zero():
+    for summary in (billing_accuracy_summary(_bills(actual_after_opening=False)),
+                    dict(billing_accuracy_summary(_bills(actual_after_opening=False)),
+                         direct_debit_money_line=None)):
+        line = published_view(summary)["direct_debit_money_line"]
+        assert line["available"] is False and line["reason"] and "barred_gbp" not in line

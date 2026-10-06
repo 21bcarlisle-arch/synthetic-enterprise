@@ -138,3 +138,24 @@ def test_each_bar_taken_is_written_off_on_the_ledger_and_an_exposure_is_not():
     assert booked.pnl["back_billing_write_off_gbp"] == bar
     # What was billed is unchanged, so the billed clock still reconciles.
     assert booked.pnl.get("total_billed_gbp") == plain.pnl.get("total_billed_gbp")
+
+
+def test_each_dd_account_carries_its_recovery_outcome_for_the_d48_money_line():
+    closed_never = build_dd_balance_book(SHORT, OPENING, {DD}).back_billing_accounts
+    open_never = build_dd_balance_book(SHORT, OPENING, set()).back_billing_accounts
+    open_seeks = build_dd_balance_book(SHORT, OPENING, set(),
+                                       seek_balance_at_review=True).back_billing_accounts
+    # A final bill is an action; an open account meets one only when the review seeks the balance.
+    assert [r["met_recovery_action"] for r in (*closed_never, *open_never, *open_seeks)] \
+        == [True, False, True]
+    assert closed_never[0]["barred_gbp"] > 0 and closed_never[0]["exposure_gbp"] == 0
+    assert open_never[0]["barred_gbp"] == 0 and open_never[0]["exposure_gbp"] > 0
+    # An open account that met a review keeps whatever is still exposed at the run's end. Use
+    # that steps up twice outruns the reviewed debit, so old debt is left at the end (on SHORT
+    # the reviews leave none, and a row that dropped the exposure would read the same).
+    rising = _bills([100.0] * 12 + [300.0] * 14 + [600.0] * 16)
+    book = build_dd_balance_book(rising, OPENING, set(), seek_balance_at_review=True)
+    row, = book.back_billing_accounts
+    assert row["closed"] is False and row["met_recovery_action"] is True
+    assert row["exposure_gbp"] == round(book.barred_if_sought_at_run_end_gbp, 2) > 0
+    assert row["barred_gbp"] == round(book.barred_at_reviews_gbp, 2) > 0

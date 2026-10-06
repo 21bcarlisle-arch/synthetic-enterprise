@@ -65,7 +65,11 @@ this docstring disagreeing with it is a defect in this docstring.
 import functools
 
 from company.interfaces.accounting_close import close_the_books
-from company.interfaces.bill_assembly import assemble_monthly_bills, billing_accuracy
+from company.interfaces.bill_assembly import (
+    assemble_monthly_bills,
+    billing_accuracy,
+    direct_debit_money_line,
+)
 from company.interfaces.billing_experience import build_billing_experience_view
 from company.interfaces.customer_value import (
     build_customer_value_view,
@@ -700,7 +704,10 @@ def main(report_end: str | None = None, policy=None):
         "meter_read_log": meter_read_log,
         # D48: billed against what the reads later showed, by kind -- read off the assembled
         # bills, the same set the read log above is projected from.
-        "billing_accuracy": billing_accuracy(bills),
+        "billing_accuracy": billing_accuracy(bills, direct_debit_money_line(
+            dd_balance_book.back_billing_accounts,
+            unmeasured_accounts=len(dd_balance_book.unestimated_customers),
+            seek_balance_at_review=dd_balance_book.seek_balance_at_review)),
         "credit_refund_log": credit_refund_log,
         "contact_centre_log": contact_centre_log,
         "payment_behaviour": payment_behaviour,

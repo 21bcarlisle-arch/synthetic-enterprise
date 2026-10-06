@@ -4652,6 +4652,7 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
   what a household actually used in a month it did not read. It only sees the size of the
   correction later. Everything here comes from the supplier's own bills and reads.</p>
   <div id="billacc-fuels"></div>
+  <p id="billacc-dd" style="margin:14px 0 0;"></p>
   <p id="billacc-snapshot" style="margin:14px 0 0;"></p>
   <div id="billacc-yearend"></div>
   <p id="billacc-example" style="margin:14px 0 0;font-size:13px;"></p>
@@ -4718,6 +4719,28 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
             kwh(x.barred_kwh) + " (" + pct(x.K3_barred_share_of_undercharge_kwh)
               + " of undercharge, " + esc(x.barred_true_ups) + " corrections)"]);
         }).join(""));
+      /* Direct debit's bar is money a debit could not ask for, not energy, so it is its own
+         line and never a row of the table above. */
+      var dd = d.direct_debit_money_line || {};
+      var range = function (ci, f) {
+        return ci && ci.length ? " (95% " + f(ci[0]) + " to " + f(ci[1]) + ")" : "";
+      };
+      $("billacc-dd").innerHTML = "<strong>Direct debit: money the 12-month limit barred.</strong> "
+        + (!dd.available ? "Not available, so absent rather than zero. " + esc(dd.reason)
+          : "The table above is energy billed on a bill, which a direct-debit statement is not. "
+          + "For direct debit the limit bars money: the part of the balance an account was asked "
+          + "for that paid for energy used more than 12 months earlier. "
+          + esc(dd.accounts_barred) + " of " + esc(dd.accounts_met_recovery_action)
+          + " direct-debit accounts asked for their balance lost some of it, "
+          + pct(dd.share_barred) + range(dd.share_barred_ci95, pct) + ", "
+          + gbp(dd.barred_gbp) + " in all, " + gbp(dd.mean_barred_gbp) + " an account"
+          + range(dd.mean_barred_gbp_ci95, gbp) + ", a rough normal approximation at this size. "
+          + (dd.seek_balance_at_review ? "The annual review asks for the balance here. "
+            : "The annual review here does not ask for the balance, so it is asked for only at "
+              + "an account's final bill. ")
+          + esc(dd.open_accounts) + " accounts are still open, with " + gbp(dd.open_exposure_gbp)
+          + " that would be barred if the balance were asked for now. That is an exposure, not "
+          + "a loss. Amounts include VAT.");
       var band = d.published_median_supplier_share_no_read_bill_in_12 || [];
       $("billacc-snapshot").innerHTML = "<strong>Accounts with no bill on a read in the last "
         + "12 months, at " + esc(d.snapshot_month) + ".</strong> "

@@ -116,3 +116,36 @@ The headline P&L moves at the next run, by about −£15k of revenue on this boo
 2. **The barred figure is gross of VAT;** VAT bad-debt relief is not modelled.
 3. **DD3 is unchanged.** The held credit is still not a liability on the books.
 4. The toggle's credit side (owed item 3 above) is untouched.
+
+---
+
+**2026-10-06, D48's direct-debit money line sits beside K3 (seat, claim `d48-the-direct-debit-line-beside-k3`). This closes owed item 1 of the entry above, and item 2 of the one before it.**
+
+**What the line is.** For a direct-debit account, a charge recovery action is the final bill of an account that left. The annual review counts as one only under the toggle. The line is the money that action could not ask for because SLC 21BA bars it: the part of the balance it sought that paid for energy used more than 12 months earlier, with the debit's collections paying the oldest charges first. It is in £, gross of VAT. It is money, not energy, so it is never added to K3. An open account's figure is an exposure, not a loss, and it is shown separately.
+
+**What landed:**
+- `simulation/dd_balance_book` lists one row per DD account in `back_billing_accounts`, with these fields: `closed`, `met_recovery_action`, `barred_gbp`, `exposure_gbp`.
+- `company/billing/billing_accuracy.direct_debit_money_line` bounds the bar over the accounts that met an action. The share barred has a Wilson 95% interval. The mean per account has a normal-approximation 95% interval, labelled as rough at this size. When there are no rows the line is published as an absence with its reason, never as zeros.
+- The run passes the line into `billing_accuracy` as the key `direct_debit_money_line`, beside `by_fuel`. `published_view` carries it, and /capabilities/ renders it in its own panel (`billacc-dd`), apart from the K3 table.
+- **Controls:**
+  - `test_the_dd_money_line_is_never_folded_into_k3`: K-figures, measured and published, are identical with and without the line.
+  - Bound and partition: `test_the_dd_money_line_is_bounded_over_the_accounts_that_met_a_recovery_action`.
+  - Absence: `test_a_missing_dd_money_line_is_an_absence_with_its_reason_never_a_zero`.
+  - Book rows: `test_each_dd_account_carries_its_recovery_outcome_for_the_d48_money_line`.
+  - Two door tests in `site/test_the_billing_accuracy_reaches_the_reader.py`.
+- **Mutations.** Eight were run and each reds its named test: line folded into K3's barred kWh; line dropped from the view; mean interval collapsed; population not restricted to accounts that met an action; review flag not set; exposure dropped for a reviewed open account; DD interval dropped from the page; DD money shown in the K3 table.
+  - The exposure mutation was green at first. That was a missing test, not an equivalence: on the `SHORT` fixture the reviews leave no old debt at the run's end, so `0 == 0`. The fixture now has use that steps up twice.
+
+**Measured** on the committed `docs/reports/run_output_latest.json`, review as built. Predictions are in `docs/staging/records/SEAT_PREREG_D48_THE_DD_MONEY_LINE_BESIDE_K3_2026-10-06.md`, and all four held.
+
+| | review never seeks the balance (booked) | review seeks it (toggle) |
+|---|---|---|
+| accounts that met an action | 45 | 116 |
+| of which barred | 27 · 60.0% (95% 45.5–73.0%) | 69 · 59.5% (95% 50.4–68.0%) |
+| barred £ | 15,447 | 16,982 |
+| per account £ | 343 (95% 165–521) | 146 (95% 96–196) |
+| open accounts · exposure £ | 84 · 27,539 | 84 · 0 |
+
+**What a reader can take from it.** Three in five direct-debit accounts that were asked for their balance lost part of it to the limit. Under the as-built review, the exposure still sitting on open accounts (£27.5k) is larger than what has already been lost (£15.4k). The committed feed has no rows yet, so the page shows the line's absence until the next run writes them. The 2026-10-12 publish reads a run made after this lands.
+
+**Not done, and still owed:** VAT bad-debt relief; DD3 (the held credit as a liability); the toggle's credit side.

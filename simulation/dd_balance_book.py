@@ -169,6 +169,10 @@ class DDBalanceBook:
     #: what the supplier's books write off (`company/finance/accounting_close`). An exposure on an
     #: open account is not an action and is not here.
     bar_actions: list = field(default_factory=list)
+    #: One row per DD account with a set debit -- `{customer_id, closed, met_recovery_action,
+    #: barred_gbp, exposure_gbp}` -- so D48 can bound the bar over the accounts that could carry one
+    #: (`company/billing/billing_accuracy.direct_debit_money_line`).
+    back_billing_accounts: list = field(default_factory=list)
 
     def _months_sorted(self) -> list:
         return sorted(self.monthly)
@@ -397,6 +401,7 @@ def build_dd_balance_book(
         # [start, end, true charge, collected] per period, for the recovery actions below.
         recovery: list[list] = []
         barred_here = 0.0
+        sought_at_review = False
 
         # Carry the balance across every billed month. Opening balance is ZERO
         # (a non-zero prior-tenancy opening balance is W2_12's physics -- see the
@@ -411,6 +416,7 @@ def build_dd_balance_book(
             if seek_balance_at_review and wi != prev_wi and balance < 0:
                 barred = min(-balance, barred_at_charge_recovery(
                     [tuple(p) for p in recovery], start, is_domestic=True))
+                sought_at_review = True
                 _settle_oldest_first(recovery, barred)
                 balance += barred
                 book.barred_at_reviews_gbp += barred
@@ -445,7 +451,8 @@ def build_dd_balance_book(
             month_balance[month] = balance
         closing = min(max(0.0, -balance), barred_at_charge_recovery(
             [tuple(p) for p in recovery], seq[-1][0]))
-        if closed_ids is not None and cid in closed_ids:
+        met = closed_ids is not None and cid in closed_ids
+        if met:
             book.barred_at_final_bills_gbp += closing
             barred_here += closing
             if closing > 0:
@@ -454,6 +461,13 @@ def build_dd_balance_book(
         else:
             book.barred_if_sought_at_run_end_gbp += closing
         book.barred_by_customer[cid] = round(barred_here, 2)
+        book.back_billing_accounts.append({
+            "customer_id": cid,
+            "closed": met,
+            "met_recovery_action": met or sought_at_review,
+            "barred_gbp": round(barred_here, 2),
+            "exposure_gbp": 0.0 if met else round(closing, 2),
+        })
         book.trajectories[cid] = points
         per_cust_month_balance[cid] = month_balance
 

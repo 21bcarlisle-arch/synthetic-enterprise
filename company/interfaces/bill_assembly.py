@@ -33,7 +33,7 @@ substance of a pull" both modules refused.
 from __future__ import annotations
 
 from company.billing.back_billing import barred_at_charge_recovery
-from company.billing.billing_accuracy import billing_accuracy_summary
+from company.billing.billing_accuracy import billing_accuracy_summary, direct_debit_money_line
 from company.billing.monthly_bill_assembly import (
     ReadArrival,
     ReadArrivalFeed,
@@ -52,14 +52,15 @@ def issued_bills(bills: list) -> list:
     return validate_bills(bills)[0]
 
 
-def billing_accuracy(bills: list) -> dict:
+def billing_accuracy(bills: list, direct_debit: dict | None = None) -> dict:
     """D48: what the supplier billed against what its reads later showed, by kind, read from the
     bills this door returned and nothing the world holds back (`company/billing/billing_accuracy.py`).
+    `direct_debit` is the DD money line, carried beside K3 and never folded into it.
     """
-    return billing_accuracy_summary(bills)
+    return billing_accuracy_summary(bills, direct_debit)
 
 
 __all__ = [
     "ReadArrival", "ReadArrivalFeed", "assemble_monthly_bills", "barred_at_charge_recovery",
-    "billing_accuracy", "issued_bills",
+    "billing_accuracy", "direct_debit_money_line", "issued_bills",
 ]

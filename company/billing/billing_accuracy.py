@@ -38,6 +38,17 @@ those as outstanding, because it keyed only on `catchup_applied`, which only a m
 correction sets: 83% of the decade run's figure.
 True unbilled revenue (used and not yet billed) is still not computed. K4-K7 cannot arise in the
 run yet (note §5).
+
+THE DIRECT-DEBIT MONEY LINE sits beside K3 and is never added to it. For a direct-debit account the
+statement is not a demand, so no kWh is barred at a catch-up and K3 is pay-on-bill energy only.
+What SLC 21BA bars there is money: at a charge recovery action (the final bill of an account that
+left; the annual review only under the review toggle), the part of the balance it seeks that pays
+for energy used more than 12 months earlier, the debit's collections paying the oldest charges
+first. The figures come from the supplier's own DD balance book
+(`simulation/dd_balance_book.back_billing_accounts`: its bills and the debits it set), are in £ gross
+of VAT, and are bounded over the accounts that met an action. An open account's figure is an
+exposure, not a loss, and is shown apart. The control that it stays apart is
+`test_the_dd_money_line_is_never_folded_into_k3`.
 """
 
 from __future__ import annotations
@@ -46,8 +57,8 @@ from collections.abc import Iterable
 
 __all__ = [
     "KINDS", "NO_READ_BILL_RUN", "PUBLISHED_MEDIAN_SUPPLIER_SHARE_NO_READ_BILL_IN_12",
-    "account_billing_accuracy", "billing_accuracy_summary", "estimated_billing_outstanding_grade",
-    "published_view",
+    "account_billing_accuracy", "billing_accuracy_summary", "direct_debit_money_line",
+    "estimated_billing_outstanding_grade", "published_view",
 ]
 
 #: The kinds this module measures, keyed to the knowledge note's ids.
@@ -137,9 +148,54 @@ def account_billing_accuracy(bills: Iterable[dict]) -> list[dict]:
     return rows
 
 
-def billing_accuracy_summary(bills: Iterable[dict]) -> dict:
+def direct_debit_money_line(accounts: list[dict] | None, *, unmeasured_accounts: int = 0,
+                            seek_balance_at_review: bool = False) -> dict:
+    """The DD back-billing bar over the DD balance book's per-account rows, with its sample bound.
+
+    The population for the share and the mean is the accounts that met a charge recovery action:
+    only those could lose anything. The share barred carries a Wilson 95% interval; the mean bar per
+    such account a normal-approximation 95% interval, which is rough at this size and says so.
+    `accounts` None is an absence (the run output predates the line), never a zero."""
+    if accounts is None:
+        return {"available": False, "reason": (
+            "the run output carries no per-account direct-debit back-billing rows; they were added "
+            "on 2026-10-06 and appear at the next run")}
+    met = [a for a in accounts if a["met_recovery_action"]]
+    barred = [a["barred_gbp"] for a in met]
+    n = len(barred)
+    hits = sum(1 for b in barred if b > 0)
+    mean = sum(barred) / n if n else None
+    mean_ci = None
+    if n > 1:
+        sd = (sum((b - mean) ** 2 for b in barred) / (n - 1)) ** 0.5
+        half = _Z95 * sd / n ** 0.5
+        mean_ci = [max(0.0, mean - half), mean + half]
+    return {
+        "available": True,
+        "unit": "gbp_gross_of_vat",
+        "seek_balance_at_review": seek_balance_at_review,
+        "dd_accounts": len(accounts),
+        "unmeasured_accounts": unmeasured_accounts,
+        "accounts_met_recovery_action": n,
+        "accounts_barred": hits,
+        "barred_gbp": round(sum(barred), 2),
+        "share_barred": hits / n if n else None,
+        "share_barred_ci95": _wilson(hits, n),
+        "mean_barred_gbp": mean,
+        "mean_barred_gbp_ci95": mean_ci,
+        "mean_ci_method": "normal_approximation",
+        "open_accounts": sum(1 for a in accounts if not a["closed"]),
+        "open_exposure_gbp": round(sum(a["exposure_gbp"] for a in accounts
+                                       if not a["closed"]), 2),
+    }
+
+
+def billing_accuracy_summary(bills: Iterable[dict], direct_debit: dict | None = None) -> dict:
     """The per-account rows plus a total per fuel and kind. A share whose denominator is zero is
-    None: no estimates billed or no undercharge to bar says nothing about accuracy."""
+    None: no estimates billed or no undercharge to bar says nothing about accuracy.
+
+    `direct_debit` is `direct_debit_money_line`'s output, carried beside the kinds and never mixed
+    into `by_fuel`. None publishes as its named absence."""
     bills = list(bills)
     rows = account_billing_accuracy(bills)
     # The snapshot is the last billed month. The accounts in it are the ones still on supply at
@@ -174,6 +230,7 @@ def billing_accuracy_summary(bills: Iterable[dict]) -> dict:
         )
     return {
         "kinds": dict(KINDS), "snapshot_month": snapshot, "by_fuel": by_fuel, "accounts": rows,
+        "direct_debit_money_line": direct_debit or direct_debit_money_line(None),
         # Per fuel, so a share never adds a kWh of gas to a kWh of electricity.
         "K1_year_end_grades": {
             fuel: [estimated_billing_outstanding_grade(fuel_bills, month)
@@ -247,6 +304,8 @@ def published_view(summary: dict | None, source: str | None = None) -> dict:
         "published_median_supplier_share_no_read_bill_in_12":
             sorted(PUBLISHED_MEDIAN_SUPPLIER_SHARE_NO_READ_BILL_IN_12),
         "by_fuel": fuels, "example_account": example,
+        "direct_debit_money_line": summary.get("direct_debit_money_line")
+        or direct_debit_money_line(None),
     }
 
 
