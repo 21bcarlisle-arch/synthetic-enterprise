@@ -80,6 +80,7 @@ from saas.customers import (
     ACQUIRED_CUSTOMERS,
     CUSTOMERS,
     DRAWN_CUSTOMERS,
+    INCOMING_OCCUPANT_CUSTOMERS,
     SUCCESSOR_CUSTOMERS,
     _register_drawn_customers,
     customer_to_settlement_input,
@@ -116,6 +117,14 @@ def acquired_supply_points() -> list[SupplyPoint]:
     return ACQUIRED_CUSTOMERS
 
 
+def incoming_occupant_supply_points() -> list[SupplyPoint]:
+    """Accounts a vacated premise is supplied under after a home move (B7 slice 3).
+
+    The meter point never left this supplier, so these are not wins. Live object.
+    """
+    return INCOMING_OCCUPANT_CUSTOMERS
+
+
 def drawn_supply_points() -> list[SupplyPoint]:
     """Points the curriculum's population draw registered over 2021-2025.
 
@@ -147,11 +156,12 @@ def register_drawn_points(points: list[SupplyPoint]) -> list[SupplyPoint]:
 
 
 def registered_point(customer_id: str) -> SupplyPoint | None:
-    """Look a point up by its identifier across all FOUR registration books.
+    """Look a point up by its identifier across all FIVE registration books.
 
-    The fourth is `drawn_supply_points()` (2026-08-13 activation) and it is
-    searched last; it is empty unless the population draw is on, so a flag-off
-    lookup is the same three books in the same order as before.
+    The fourth is `drawn_supply_points()` (2026-08-13 activation); it is empty
+    unless the population draw is on. The fifth, searched last, is
+    `incoming_occupant_supply_points()`, empty unless home moves are on. With
+    both off the lookup is the same three books in the same order as before.
 
     Returns None when nothing on the book matches — the industry answer to
     "is this MPAN ours?" for a point that is not.

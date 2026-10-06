@@ -109,6 +109,7 @@ from simulation.arrival_route import (
     home_move_rate_per_household_year,
 )
 from simulation.final_bill_outcome import FinalBillExposure, open_final_bill_exposure
+from simulation.household import GAS_LEG_ID_SUFFIX
 from simulation.household_segments import TenureType, tenure_for_customer
 from simulation.meter_reads import assumption_toggle
 
@@ -312,3 +313,42 @@ def unnamed_kwh_after_move(annual_kwh: Optional[float],
     if annual_kwh is None or not math.isfinite(annual_kwh) or annual_kwh <= 0.0:
         return None
     return annual_kwh / 12.0 * unnamed_months_per_move(setting)
+
+
+def incoming_leg_id(incoming_occupancy_id: str, vacated_supply_point_id: str) -> str:
+    """The incoming occupant's account id for one fuel leg at the vacated premise. The gas leg
+    keeps the gas suffix, so `household_of` groups the incoming household's two legs as one."""
+    if vacated_supply_point_id.endswith(GAS_LEG_ID_SUFFIX):
+        return incoming_occupancy_id + GAS_LEG_ID_SUFFIX
+    return incoming_occupancy_id
+
+
+def incoming_occupant_record(vacated_leg: dict, move: HomeMove) -> dict:
+    """B7 slice 3: the account the vacated leg is supplied under from the move date.
+
+    The meter point, its annual quantity and the dwelling are the premise's and are copied. The
+    account, the occupancy and the terms are new: a deemed contract on the default tariff.
+
+    SUPPLY starts on the move date, while the OCCUPANCY start stays unknown. The supplier stays
+    registered and the meter keeps recording through any void. In a void the owner is the
+    deemed customer, so there is no day on which the premise is unsupplied. Who is liable, and
+    when they are named, is the change-of-tenancy gap (`unnamed_kwh_after_move`). It is not a
+    gap in supply.
+
+    The record goes on the supplier's book, so it carries only what registration tells a
+    supplier: the meter point, the date and the terms. The mover's identity, the void and the
+    unknown occupancy start are not on it.
+    """
+    record = dict(vacated_leg)
+    record.pop("successor_of", None)
+    record.update(
+        customer_id=incoming_leg_id(move.incoming.occupancy_id, vacated_leg["customer_id"]),
+        occupancy_id=move.incoming.occupancy_id,
+        incoming_occupant_of=vacated_leg["customer_id"],
+        acquisition_date=move.move_date.isoformat(),
+        acquisition_type="change_of_tenancy",
+        terms=move.incoming.terms,
+        tariff_type=move.incoming.tariff_type,
+        data_regime=move.data_regime,
+    )
+    return record

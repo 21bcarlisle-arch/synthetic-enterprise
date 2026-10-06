@@ -60,3 +60,45 @@ def test_each_move_out_leaves_its_premise_unnamed_for_the_registers_window(moved
         annual = leg["aq_kwh"] if move["commodity"] == "gas" else leg["eac_kwh"]
         assert move["unnamed_kwh_expected"] == pytest.approx(
             annual / 12.0 * unnamed_months_per_move()), move
+
+
+def test_a_vacated_premise_is_supplied_the_day_after_the_movers_last_day(moved_run):
+    """B7 slice 3. Defect: the premise stops at the move, so every move reads as a lost premise.
+
+    Every move-out leg has an incoming leg at the same meter point whose supply starts on the move
+    date, which is the day after the mover's last supplied day. A settled term for that leg starts
+    on that day. The first assertion is the partition control: a run whose moves all fall too late
+    to settle would pass the loop vacuously."""
+    rows = moved_run["account_state_log"]
+    incoming = {m["premise"]: m for m in moved_run["home_move_ins"]}
+    assert [m for m in incoming.values() if m["segments"]]
+    for move in moved_run["home_move_outs"]:
+        leg = incoming[move["customer_id"]]
+        assert leg["supply_start"] == move["move_date"], move
+        assert leg["commodity"] == move["commodity"], move
+        assert [r for r in rows if r["customer_id"] == leg["customer_id"]
+                and r["term_start"][:10] == move["move_date"]], move
+
+
+def test_the_incoming_occupant_is_its_own_household_on_the_default_tariff(moved_run):
+    """Defect: the incoming leg billed under the mover's account, so the supplier never sees the
+    account end and B11 has no move to split. Or it is put on a struck fix nobody agreed to."""
+    movers = {m["household"] for m in moved_run["home_move_outs"]}
+    ins = moved_run["home_move_ins"]
+    assert not movers & {m["household"] for m in ins}
+    assert {(m["terms"], m["tariff_type"]) for m in ins} == {("deemed_contract", "svt")}
+    supplied = {m["customer_id"] for m in ins}
+    assert {r["tariff_type"] for r in moved_run["account_state_log"]
+            if r["customer_id"] in supplied} == {"svt"}
+
+
+def test_a_dual_fuel_premise_keeps_both_legs_in_one_incoming_household(moved_run):
+    """Defect: the two fuel legs of one vacated home handed to two different new households."""
+    by_mover: dict[str, set[str]] = {}
+    premise_household = {m["customer_id"]: m["household"] for m in moved_run["home_move_outs"]}
+    for leg in moved_run["home_move_ins"]:
+        by_mover.setdefault(premise_household[leg["premise"]], set()).add(leg["household"])
+    assert [h for h, legs in by_mover.items()
+            if {m["commodity"] for m in moved_run["home_move_outs"] if m["household"] == h}
+            == {"electricity", "gas"}]
+    assert all(len(households) == 1 for households in by_mover.values()), by_mover

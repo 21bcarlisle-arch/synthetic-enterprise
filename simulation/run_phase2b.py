@@ -71,6 +71,7 @@ from company.interfaces.renewal_rate_chain import decide_renewal_rate, portfolio
 from company.interfaces.statutory_obligations import build_statutory_obligations
 from company.interfaces.supply_book import (
     acquired_supply_points,
+    incoming_occupant_supply_points,
     open_change_of_supplier_register,
     successor_supply_points,
 )
@@ -93,6 +94,7 @@ from company.policy.decision_policy import (
 from sim.cache_store import get_cached_prices, log_cache_access
 from sim.customer_state_layer import (
     account_move_out,
+    incoming_occupant_record,
     moves_active,
     term_window_under_move,
     unnamed_kwh_after_move,
@@ -155,6 +157,7 @@ from simulation.fabric_demand_path import (
     FABRIC_PROVIDER,
     LEGACY_PROVIDER,
     METERED_PROVIDER,
+    FabricEligibility,
     WeatherWorldSource,
     build_fabric_series_for_site,
     coverage_refusals,
@@ -2002,7 +2005,64 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
     # B7 slice 2 (`sim/customer_state_layer.py`). Read once per run; with it off nothing below asks.
     _home_moves_on = moves_active()
     _move_out_by_household: dict[str, date | None] = {}
+    _home_move_by_household: dict = {}
     home_move_outs: list[dict] = []
+    # B7 slice 3: who supplies a vacated premise from the move date. The book is live and module
+    # level, so a second run in one process starts it empty.
+    _incoming_occupant_book = incoming_occupant_supply_points()
+    _incoming_occupant_book.clear()
+    home_move_ins: list[dict] = []
+
+    def _known_customers() -> list[dict]:
+        """The run's accounts, the incoming occupants admitted so far included. With moves off it
+        is `_ALL_KNOWN_CUSTOMERS` exactly."""
+        return _ALL_KNOWN_CUSTOMERS + _incoming_occupant_book
+
+    def _admit_incoming_occupant(vacated_leg: dict, commodity: str, move) -> None:
+        """Supply the vacated leg under the incoming occupant's account from the move date, on
+        the default tariff. Everything keyed by meter point (weather, fabric trace, property,
+        annual quantity) is the premise's. The account's own state starts empty."""
+        record = incoming_occupant_record(vacated_leg, move)
+        leg, premise = record["customer_id"], vacated_leg["customer_id"]
+        if get_customer(leg) is not None:
+            return
+        _incoming_occupant_book.append(record)
+        for _by_point in (weather_by_customer, cloud_cover_by_customer, hh_consumption_by_customer,
+                          fabric_series_by_customer, properties):
+            if premise in _by_point:
+                _by_point[leg] = _by_point[premise]
+        if premise in EFFECTIVE_EAC_KWH:
+            EFFECTIVE_EAC_KWH[leg] = EFFECTIVE_EAC_KWH[premise]
+        # Fabric eligibility is a verdict on the premise, so the incoming leg carries its premise's.
+        fabric_eligibility_verdicts.extend(
+            FabricEligibility(leg, _v.is_eligible, _v.reason)
+            for _v in list(fabric_eligibility_verdicts) if _v.customer_id == premise
+        )
+        next_hf[leg] = current_hf[leg] = RESET_HEDGE_FRACTION
+        term_indices[leg] = 0
+        evolution_logs[leg] = []
+        if commodity == "electricity":
+            _accounts_with_an_electricity_leg.add(household_of(leg))
+        try:
+            segments = build_svt_schedule(
+                leg, record["acquisition_date"], effective_end,
+                elec_records if commodity == "electricity" else gas_records,
+                lookback_temps_fn=_lookback_temps_fn(leg), fuel=commodity,
+            )
+        except ValueError:
+            # The price history ends before the window does, as for a declined fix.
+            segments = []
+        for _segment in segments:
+            heapq.heappush(
+                all_terms, (_segment["acquisition_date"], leg, next(_term_seq), commodity, _segment)
+            )
+        home_move_ins.append({
+            "premise": premise, "customer_id": leg, "household": household_of(leg),
+            "commodity": commodity, "supply_start": record["acquisition_date"],
+            "terms": record["terms"], "tariff_type": record["tariff_type"],
+            "segments": len(segments),
+            "occupancy_start_unknown_reason": move.incoming.start_date_unknown_reason,
+        })
     # EP12: HOW THE SUPPLIER HEARS IT LOST A HOUSEHOLD -- a registration-loss notice per supply
     # point, from the registration service, filed in its change-of-supplier register. Called at
     # every site that adds to `churned_billing_accounts` and handed only the household and the
@@ -2128,14 +2188,17 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         # file says on.
         if _home_moves_on:
             if billing_account not in _move_out_by_household:
+                # An incoming occupant moves on the same hazard, so a premise can turn over twice.
                 _mover = next(
-                    (c for c in _ALL_KNOWN_CUSTOMERS if c["customer_id"] == billing_account), None
+                    (c for c in _known_customers()
+                     if c["customer_id"] == billing_account), None
                 )
                 _move = account_move_out(
                     _mover, date.fromisoformat(term_start_str),
                     date.fromisoformat(effective_end) + timedelta(days=1), run_base_seed(),
                 )
                 _move_out_by_household[billing_account] = _move.move_date if _move else None
+                _home_move_by_household[billing_account] = _move
             _move_end, _moved_in_term = term_window_under_move(
                 date.fromisoformat(term_start_str), date.fromisoformat(term_end_str[:10]),
                 _move_out_by_household[billing_account],
@@ -2162,6 +2225,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                     "unnamed_kwh_expected": unnamed_kwh_after_move(
                         _leg.get("aq_kwh") if commodity == "gas" else _leg.get("eac_kwh")),
                 })
+                _admit_incoming_occupant(_leg, commodity, _home_move_by_household[billing_account])
 
         forward_price = term["forward_price_gbp_per_mwh"]        # sim's sophisticated estimate
         company_fwd = term.get("company_forward_price_gbp_per_mwh", forward_price)
@@ -2557,7 +2621,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         # channel rate read 1.0 (2016-2020 smoke run, 2026-10-05).
         if policy.retention_weighs_engagement:
             _enrolled = next(
-                (c for c in _ALL_KNOWN_CUSTOMERS if c["customer_id"] == billing_account), None)
+                (c for c in _known_customers() if c["customer_id"] == billing_account), None)
             if (_enrolled or {}).get("segment", "resi") == "resi":
                 from company.interfaces.sim_interface import LiveSimInterface
                 _engagement_channels[cid] = LiveSimInterface().get_payment_method(
@@ -2584,7 +2648,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             # a lookup over a list and a date subtraction. See the registration guard beside that
             # advance for what it is for.
             acq_date_for_est = next(
-                (c["acquisition_date"] for c in _ALL_KNOWN_CUSTOMERS
+                (c["acquisition_date"] for c in _known_customers()
                  if c["customer_id"] == billing_account),
                 term_start_str,
             )
@@ -2605,7 +2669,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                 _engagement_level_str = _engagement_level.value
                 # Phase 27e: I&C segment uses broker-driven churn model
                 cust_for_churn = next(
-                    (c for c in _ALL_KNOWN_CUSTOMERS if c["customer_id"] == billing_account), None
+                    (c for c in _known_customers() if c["customer_id"] == billing_account), None
                 )
                 segment_for_churn = cust_for_churn.get("segment", "resi") if cust_for_churn else "resi"
                 # THE SCHEDULE ALREADY ASKED THIS, on this seed, for a resi household: it is why
@@ -2953,7 +3017,8 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                 cid, term_start_str, commodity,
                 # This household's records only: the roll reads nothing else, and copying the
                 # whole book into it per renewal was the quadratic term (see the function).
-                households_own_records(billing_account, all_records), _ALL_KNOWN_CUSTOMERS,
+                households_own_records(billing_account, all_records),
+                _known_customers(),
                 old_rate_gbp_per_mwh=old_decision_leg_rate,
                 new_rate_gbp_per_mwh=unit_rate,
                 retention_modifier=retention_modifier_val,
@@ -3323,7 +3388,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         if (term_index >= 1 and commodity == "gas" and commodity != _decision_leg
                 and old_gas_rate is not None):
             gas_customer_data = next(
-                (c for c in _ALL_KNOWN_CUSTOMERS if c["customer_id"] == billing_account),
+                (c for c in _known_customers() if c["customer_id"] == billing_account),
                 None,
             )
             if gas_customer_data is not None:
@@ -4006,7 +4071,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
     # each I&C customer's TNUoS exposure. Uses SSP as a demand proxy.
     ic_customer_ids = [
         c["customer_id"]
-        for c in _ALL_KNOWN_CUSTOMERS
+        for c in _known_customers()
         if c.get("segment") == "I&C"
     ]
     triad_log: list[dict] = []
@@ -4241,7 +4306,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
     # this campaign won carry their own segment here instead of falling through a default.
     _collateral = build_counterparty_collateral(
         hedge_desk.book,
-        commodity_by_customer_id={c["customer_id"]: c["commodity"] for c in _ALL_KNOWN_CUSTOMERS},
+        commodity_by_customer_id={c["customer_id"]: c["commodity"] for c in _known_customers()},
         elec_spot_records=elec_records,
         gas_spot_records=gas_records,
         mark_date=effective_end,
@@ -4471,7 +4536,8 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         # Phase QL Part 2: hidden churn-journey state trajectory (SIM-side shadow
         # tracker -- does not gate the roll_lifecycle_event dice roll itself)
         "churn_journey_log": churn_journey_log,
-        **({"home_move_outs": home_move_outs} if _home_moves_on else {}),
+        **({"home_move_outs": home_move_outs, "home_move_ins": home_move_ins}
+           if _home_moves_on else {}),
         "renewal_decisions_log": renewal_decisions_log,
         # Phase RU: solicited feedback survey engine (FEEDBACK_AND_REPUTATION.md Layer 1)
         "feedback_survey_log": feedback_survey_log,

@@ -268,3 +268,28 @@ def test_the_unnamed_energy_moves_with_the_meter_points_annual_quantity_and_the_
 def test_no_annual_quantity_is_no_answer_not_a_zero_gap(annual):
     """Defect: a missing rate reported as 0 kWh, which reads as "this move left no gap"."""
     assert csl.unnamed_kwh_after_move(annual) is None
+
+
+def test_the_incoming_account_is_the_premises_meter_under_a_new_occupancy():
+    """B7 slice 3. Defect: the incoming record keeps the mover's id or terms, or drops the meter
+    point's annual quantity, or carries the void onto the supplier's book."""
+    from sim.customer_state_layer import incoming_leg_id, incoming_occupant_record
+
+    seed = 7
+    for year in range(2016, 2060):
+        move = draw_home_move(Occupancy.of_customer("C9", TenureType.PRIVATE_RENTER), year, seed)
+        if move is not None:
+            break
+    assert move is not None
+    gas_leg = {"customer_id": "C9g", "commodity": "gas", "aq_kwh": 12000, "successor_of": "C8",
+               "tariff_type": "fixed", "acquisition_date": "2016-01-01"}
+    record = incoming_occupant_record(gas_leg, move)
+    assert record["customer_id"] == incoming_leg_id(move.incoming.occupancy_id, "C9g")
+    assert record["customer_id"] == move.incoming.occupancy_id + "g"
+    assert incoming_leg_id(move.incoming.occupancy_id, "C9") == move.incoming.occupancy_id
+    assert record["aq_kwh"] == 12000 and record["incoming_occupant_of"] == "C9g"
+    assert record["acquisition_date"] == move.move_date.isoformat()
+    assert (record["terms"], record["tariff_type"]) == ("deemed_contract", "svt")
+    assert "successor_of" not in record
+    assert not {"occupancy_start_unknown_reason", "start_date", "move_date"} & set(record)
+    assert gas_leg["customer_id"] == "C9g" and gas_leg["tariff_type"] == "fixed"

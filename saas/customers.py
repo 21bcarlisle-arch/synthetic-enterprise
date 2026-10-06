@@ -435,6 +435,13 @@ def _clear_acquired_customers() -> None:
     ACQUIRED_CUSTOMERS.clear()
 
 
+# B7 slice 3: the accounts a vacated premise is supplied under after a home move. The meter point
+# stays registered to this supplier, so this is not an acquisition and costs no CPA. That is why it
+# is kept apart from ACQUIRED_CUSTOMERS. Filled by run_phase2b.main() at each move-out, and cleared
+# at the start of each run.
+INCOMING_OCCUPANT_CUSTOMERS: list[dict] = []
+
+
 # generator_draw_wiring ACTIVATION (2026-08-13, director console: "activate the
 # population draw and wire the entrypoints"). A FOURTH registration book, kept
 # separate from the three above on purpose.
@@ -546,7 +553,8 @@ def get_customer(customer_id: str) -> dict | None:
     # points (via `live_population()`) and then looks them back up by id -- a
     # book you can iterate but not resolve is what made a home-move win hand
     # `None` to `make_acquired_customer()`.
-    all_customers = CUSTOMERS + SUCCESSOR_CUSTOMERS + ACQUIRED_CUSTOMERS + DRAWN_CUSTOMERS
+    all_customers = (CUSTOMERS + SUCCESSOR_CUSTOMERS + ACQUIRED_CUSTOMERS + DRAWN_CUSTOMERS
+                     + INCOMING_OCCUPANT_CUSTOMERS)
     return next((customer for customer in all_customers if customer["customer_id"] == customer_id), None)
 
 
