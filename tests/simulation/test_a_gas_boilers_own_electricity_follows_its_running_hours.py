@@ -69,7 +69,8 @@ def test_the_meter_carries_the_term_exactly(winter_and_summer):
     for day in trace.days:
         for p in range(pt.PERIODS_PER_DAY):
             assert day.electricity_kwh[p] == pytest.approx(
-                day.behavioural_electricity_kwh[p] + day.ev_kwh[p] + day.boiler_auxiliary_kwh[p],
+                day.behavioural_electricity_kwh[p] + day.ev_kwh[p] + day.boiler_auxiliary_kwh[p]
+                + day.supplementary_heating_kwh[p],
                 abs=1e-12,
             )
 

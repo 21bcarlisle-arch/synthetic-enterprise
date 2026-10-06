@@ -198,3 +198,98 @@ audiovisual, and the annual mean not preserved. **Second increment:** supplement
 heating, driven by heating demand, with ownership around 10% and energy anchored to HES's
 1,505 kWh/yr, offsetting boiler gas. It is coupled across both meters, so it lands as its own
 draw. This finding stays in the queue until the first increment lands.
+
+## Build: pre-registered before any built number was read (2026-10-06, worker, draw `gas-heated-electricity-season-build`)
+
+**Instrument.** `/tmp/gasseason/measure.py`: 200 premises drawn by
+`premise_population.draw_premise_from_joint` (base seed 17, as of 2022-01-01), keeping the
+gas-heated ones without PV (176). Each is traced over the real 2022 weather at one site (C1). The
+output is the median across homes of each month's kWh/day. It is one site and one seed, so the
+weather does not vary between homes.
+
+**Baseline on origin `c7d104866`,** with the boiler pump already in:
+Jan 8.33 · Feb 8.09 · Mar 8.01 · Apr 8.00 · May 7.87 · Jun 8.02 · Jul 8.02 · Aug 8.02 · Sep 7.81 ·
+Oct 8.24 · Nov 8.23 · Dec 8.31. max/min **1.066** (max Jan, min Sep), DJF−JJA **+0.22** kWh/day,
+annual median 3,017 kWh.
+
+**Predictions, written before the build ran:**
+
+1. Cooking (HES Fig. 413) plus washer/dryer (Fig. 359) as a season factor on `events_per_day`
+   raise the median's DJF−JJA by **+0.5 to +0.9** kWh/day. The research doc's arithmetic is +0.77
+   at unit intensity. Max/min rises to **1.12–1.20**, still below SERL's 1.36. The annual median
+   moves by less than ±1.5%, because each curve has an annual mean of 1.
+2. Supplementary electric heating on about 10% of gas homes moves the MEDIAN's DJF−JJA by only
+   **0 to +0.2**. It moves the population MEAN's by about **+0.6 to +1.2**.
+
+### Result: all three terms built, one prediction refuted
+
+| Build | Median by month, kWh/day (Jan … Dec) | max/min | DJF−JJA | Annual median |
+|---|---|---|---|---|
+| Baseline (pump in) | 8.33 8.09 8.01 8.00 7.87 8.02 8.02 8.02 7.81 8.24 8.23 8.31 | 1.066 (Jan/Sep) | +0.22 | 3,017 |
+| + cooking and laundry season | 8.68 8.45 7.96 7.97 7.86 7.48 7.68 7.67 7.82 8.31 8.17 8.69 | 1.162 (Dec/Jun) | +0.99 | 3,009 |
+| + supplementary electric heating | 9.67 9.33 8.77 8.56 8.03 7.49 7.68 7.67 8.01 8.37 8.81 9.46 | **1.292 (Jan/Jun)** | **+1.87** | 3,150 |
+| SERL 2022, gas-heated, no PV | Jan 8.5 … Aug 6.0 | 1.42 (band 1.36–1.47) | ~+2.5 (extremes) | — |
+
+The band is a **diagnostic**. Nothing was fitted to it, and nothing read D48.
+
+- **Prediction 1 held.** Cooking and laundry moved DJF−JJA by **+0.77**, inside the pre-registered
+  +0.5 to +0.9, and exactly the research doc's arithmetic. Max/min reached 1.162, inside
+  1.12–1.20. The annual total moved −0.3%. The month order became the real one, highest in
+  Dec/Jan and lowest in June. Before, the lowest month was September, which is noise.
+- **Prediction 2 is REFUTED.** I predicted supplementary heating would move the MEDIAN by 0 to
+  +0.2. It moved it by **+0.88**. 22 of 176 homes own a heater (12.5%, against a 10% draw). Every
+  non-owner's January is byte-identical between the two builds (checked on 31 homes), so the move
+  is entirely re-ranking. An owner gains 4–7 kWh/day in January, which carries it from below the
+  median to above it. The research doc called this effect "small" and its size "not
+  established". In this world it is about a third of SERL's gap. The population MEAN moved to
+  DJF−JJA +2.30 and max/min 1.338.
+- **The heater's season** follows heating degree days on the C1 normal (1,785 HDD/yr, 2016–24).
+  That gives Dec–Feb at **2.00×** the annual mean and Jun–Aug at 0.05×, against HES Fig. 537's
+  ~2.3× and ~0. This is a check, not a fit. An owner's median is 1,361 kWh in 2022, below the
+  1,505 anchor because of away days and a mild year.
+
+**Residual, term by term.** The median sits at 1.29 against SERL's 1.36–1.47:
+
+1. **The flat summer base.** The world's June–August is ~7.6 kWh/day, against SERL's ~6.0. The
+   absolute extreme-month gap is **2.18** (Jan 9.67 − Jun 7.49), against SERL 2022's 2.5. So most
+   of the RATIO shortfall comes from the summer level, not from a missing season. That level is
+   its own question (the annual median is 3,150 kWh) and is not opened here.
+2. **The lighting level.** Not established for 2016–2025. The world carries ~210 kWh/yr against
+   HES's 537. Every 100 kWh/yr is worth ~0.26 kWh/day of gap. The next read is ECUK.
+3. **SERL's years are the price-crisis years** (2021–23), and this run is 2022 weather at one site
+   with no price response in the electricity behaviour.
+4. **Small seasonal loads not sized**: towel rails, electric blankets, dehumidifiers.
+
+**A NEW ARTEFACT, recorded and not hidden.** The heater's power, duty and timing are not
+established, so it is drawn as ONE FLAT BLOCK of EFUS's median hours, ending at the household's
+bedtime. In the harness's drawn 60 (Jan–Apr 2022), two homes own one, P0023 and P0050. Those two
+are now the two calmest homes on L1.1: 0.1045 and 0.1166, and net of the heater 0.164 and 0.208.
+They are the only two under the real LCL p25, so the cell's apparent move toward the real
+distribution ([0,0,2,30] → [0,2,4,31]) is NOT progress. P0050 is also now the worst on L1.2, at
+0.777 day-to-day shape correlation against the 0.85 near-replay band, because a fixed nightly
+block replays. Both are pinned with this cause, and
+`test_P0000_the_calmest_home_is_ORDINARY_...` asserts that every home under the real p25 owns a
+heater and none is under it net of the heater. **The remedy is to source the heater's operating
+pattern.** A resistive heater runs at its rating under a thermostat, and EFUS 2017 gives hours, not
+cycling. It is not to move a band.
+
+**Re-pinned, cause beside each:** the cooking/laundry season redrew the event stream. That moved
+couple_fabric S9 from 0.1802 to 0.1755, P0000 from 0.1495 to 0.1466 (no heater), the gas
+critical weight from 0.385 to 0.362, and the L1.1n worst from >2.0 to 1.946. That last control
+was keyed to the margin of the day and is now keyed to its property: > 1.5, far from 1.0. Three
+reds in the same files (`test_rng_substream` stale exemption, `test_net_new_acquisition` journal,
+`test_every_settling_domestic_premise…`) fail identically on untouched origin `c7d104866` and are
+not this change.
+
+**Controls:** `tests/simulation/test_cooking_and_laundry_carry_the_hes_season.py` (5 mutations, all
+bite) and `tests/simulation/test_supplementary_electric_heating_tops_up_a_gas_home_in_the_cold.py`
+(7 mutations, all bite). Occupancy has no season (HES §13.1).
+
+**Not built, deliberately:** the gas side of HES's cooking curve (`cooking_daily_kwh` stays flat;
+it is a gas-side question). Weather coupling for laundry has no source.
+
+**Downstream.** This moves every gas-heated home's electricity, and so the company's bills and
+the arms. The value-arms page's code-since-the-run guard (`_code_since_the_run`) will correctly
+withdraw the arms' current-world claim until they are re-taken. No exemption is filed, because
+this change CAN move the arms. D48's grade should be re-read on the next capture, with the
+results in this section decided blind to it.

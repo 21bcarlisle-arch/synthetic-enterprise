@@ -107,6 +107,7 @@ from __future__ import annotations
 
 import csv
 import datetime as dt
+import functools
 import hashlib
 import math
 import random
@@ -114,6 +115,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Iterable, Mapping, Sequence
 
+from simulation.demand_model import heating_degree_days
 from simulation.dwelling_records import children_count_for, composition_cuts_for
 from simulation.fabric_physics import (
     DEFAULT_DEADBAND_C,
@@ -607,6 +609,53 @@ APPLIANCE_CATALOGUE: tuple[ApplianceSpec, ...] = (
     ApplianceSpec("vacuum_iron", 1.2, 0.30, 0.25, (18, 40), heat_fraction=0.9),
 )
 
+# `domain-knowledge` — cooking and laundry have a SEASON; nothing else in the catalogue does.
+# HES final report (Intertek R66141, 2012), 52-week seasonality curves fitted on the 26 year-long
+# homes, each normalised to an annual mean of 1. Read by eye, ±0.05 on each factor, as
+# (Dec–Feb mean, Jun–Aug mean):
+#   Fig. 413, cooking (kettle, toaster, microwave, oven, hob): 1.09, 0.87
+#   Fig. 359, washing/drying (washer, tumble dryer):           1.27, 0.86
+# Source and read-off: docs/market_research/the_seasonal_swing_of_a_gas_heated_homes_electricity.md.
+# The dishwasher and vacuum/iron are not on either curve, and audiovisual has no season (HES §13.1).
+# That is also why `occupancy_at` stays unseasonal: being at home more in winter would show in the
+# screens first, and HES measured them flat.
+#
+# SIMPLIFICATION: only the two seasons' means were read, so the factor is a step by meteorological
+# season. Spring and autumn take the one value that keeps the annual mean at 1 (HES's own
+# normalisation), so annual kWh, and with it the TDCV judgement, is unchanged by construction.
+# The real curve is smooth, so the steps on 1 Mar, 1 Jun, 1 Sep and 1 Dec overstate the month-to-month
+# jump at the boundaries and leave each season's mean right. Doing it properly would mean reading
+# the 52 weekly points off the two figures.
+_HES_SEASON_DJF_JJA: dict[str, tuple[float, float]] = {
+    "cooking": (1.09, 0.87),
+    "laundry": (1.27, 0.86),
+}
+_HES_SEASON_GROUP: dict[str, str] = {
+    "kettle": "cooking",
+    "toaster": "cooking",
+    "microwave": "cooking",
+    "oven": "cooking",
+    "hob": "cooking",
+    "washing_machine": "laundry",
+    "tumble_dryer": "laundry",
+}
+# Days in each meteorological season of a 365-day year: DJF 90, JJA 92, MAM + SON 183.
+_DJF_DAYS, _JJA_DAYS, _SHOULDER_DAYS = 90, 92, 183
+
+
+def appliance_season_factor(name: str, month: int) -> float:
+    """The HES season factor on one appliance's `events_per_day` in `month`; 1.0 for an
+    appliance on no HES curve. A year's day-weighted mean is 1 for every appliance."""
+    group = _HES_SEASON_GROUP.get(name)
+    if group is None:
+        return 1.0
+    winter, summer = _HES_SEASON_DJF_JJA[group]
+    if month in (12, 1, 2):
+        return winter
+    if month in (6, 7, 8):
+        return summer
+    return (365 - _DJF_DAYS * winter - _JJA_DAYS * summer) / _SHOULDER_DAYS
+
 # `domain-knowledge` — the always-on load, and it is NOT a constant.
 #
 # A fridge and a freezer are THERMOSTATIC CYCLING devices: exactly the same class
@@ -848,11 +897,15 @@ def draw_appliance_events(
     day_index: int,
     profile: BehaviourProfile,
     *,
+    month: int,
     is_weekend: bool,
     is_away: bool,
 ) -> list[ApplianceEvent]:
     """Draw one day's appliance events from this module's own substream, salted
     per day so any single day replays without the days before it (C-S2).
+
+    `month` sets the HES season factor on cooking and laundry (`appliance_season_factor`).
+    It is required: a default would let a caller drop the season without anyone noticing.
 
     An away day draws NOTHING — the empty house is the point.
     """
@@ -863,6 +916,7 @@ def draw_appliance_events(
     events: list[ApplianceEvent] = []
     for spec in APPLIANCE_CATALOGUE:
         rate = spec.events_per_day * (profile.appliance_intensity if spec.scales_with_people else 1.0)
+        rate *= appliance_season_factor(spec.name, month)
         if is_weekend:
             rate *= 1.15  # more at home, more cooking and washing
         # Poisson-ish integer count: floor plus a Bernoulli on the remainder.
@@ -888,6 +942,76 @@ def draw_appliance_events(
                 )
             )
     return events
+
+
+# `domain-knowledge` — SUPPLEMENTARY ELECTRIC HEATING in a gas-heated home: the portable or
+# panel heater "used occasionally" to top up in cold weather (HES §15.2). SERL names it first
+# among the causes of a gas-heated home's winter electricity. Sources, all in
+# docs/market_research/the_seasonal_swing_of_a_gas_heated_homes_electricity.md:
+#   * WHO: "10% of households with gas also use electric heating to top up in cold weather"
+#     (HES, Dunbabin, Palmer & Terry, ECEEE 2015). EFUS 2011 (21%, any use) and EFUS 2017
+#     (~11% of households, living room) bracket it. HES is taken because the energy figure
+#     below is HES's own, measured on the same homes.
+#   * HOW MUCH: 1,505 kWh/yr of space heating in HES homes with additional electric heating
+#     (HES Table 14).
+#   * WHEN IN THE YEAR: HES Fig. 537, about 2.3x the annual mean in Dec–Feb and about zero in
+#     Jun–Aug. Here the day's energy follows the day's heating degree days, so the season comes
+#     out of the weather. It is not a calendar.
+#   * WHEN IN THE DAY: daily users run it a median 4 h on a weekday and 5 h at the weekend
+#     (EFUS 2017), mostly in the living room, read here as the evening block before bed.
+# NOT ESTABLISHED, and so not used: the heater's power and thermostat duty (2 kW is a nameplate,
+# not an operating point). The energy is anchored to HES, and the power follows from it.
+SUPPLEMENTARY_ELECTRIC_HEATING_SHARE = 0.10
+SUPPLEMENTARY_ELECTRIC_HEATING_KWH_PER_YEAR = 1505.0
+_SUPPLEMENTARY_HEATING_HOURS = {False: 4.0, True: 5.0}
+"""Keyed on is_weekend. EFUS 2017 medians for daily users."""
+_SUPPLEMENTARY_HEATING_NORMAL_SITE = "C1"
+"""SIMPLIFICATION: HES's 1,505 kWh/yr is read as the use in a year of NORMAL heating degree days,
+and the normal is this one archive's mean over its own full years (2016 onward), whatever site the
+premise is at. A colder site therefore uses more, as it should. The error runs two ways. HES's year
+(2010–11) had a cold December, so 1,505 is probably above a normal year's figure. And one site's
+normal stands in for every site's."""
+
+
+def has_supplementary_electric_heating(household: Household, base_seed: int) -> bool:
+    """Whether this gas-heated home owns a supplementary electric heater. Drawn once per premise,
+    on its own substream, so the draw moves nothing else in the trace."""
+    if not household.is_gas_heated:
+        return False
+    return _substream(base_seed, "supplementary-electric-heater").random() < SUPPLEMENTARY_ELECTRIC_HEATING_SHARE
+
+
+@functools.lru_cache(maxsize=None)
+def _normal_annual_heating_degree_days() -> float:
+    by_year: dict[int, list[float]] = {}
+    for day in load_trace_weather(_SUPPLEMENTARY_HEATING_NORMAL_SITE):
+        by_year.setdefault(day.date.year, []).append(heating_degree_days(day.weather.temperature_mean_c))
+    full = [sum(v) for v in by_year.values() if len(v) >= 365]
+    if not full:
+        raise ValueError(f"no full year in the {_SUPPLEMENTARY_HEATING_NORMAL_SITE} archive to take a normal from")
+    return sum(full) / len(full)
+
+
+def supplementary_heating_kwh(
+    profile: BehaviourProfile, mean_temp_c: float, *, is_weekend: bool, is_away: bool
+) -> list[float]:
+    """One day's supplementary-heater electricity, by period, for a home that owns one.
+
+    Energy: 1,505 kWh/yr x (today's HDD / the normal year's HDD). Placed as one block of EFUS's
+    median hours, ending at the household's own bedtime. An away day, or a day with no heating
+    degree days, carries none."""
+    out = [0.0] * PERIODS_PER_DAY
+    hdd = heating_degree_days(mean_temp_c)
+    if is_away or hdd <= 0.0:
+        return out
+    kwh = SUPPLEMENTARY_ELECTRIC_HEATING_KWH_PER_YEAR * hdd / _normal_annual_heating_degree_days()
+    shift = profile.weekend_shift_periods if is_weekend else 0
+    end = min(PERIODS_PER_DAY, profile.sleep_period + shift)
+    periods = int(round(_SUPPLEMENTARY_HEATING_HOURS[is_weekend] / PERIOD_HOURS))
+    start = max(0, end - periods)
+    for p in range(start, end):
+        out[p] = kwh / (end - start)
+    return out
 
 
 def _spread_event(event: ApplianceEvent, series: list[float], *, scale: float = 1.0) -> None:
@@ -1439,6 +1563,7 @@ class PremiseDayTrace:
     #: the same reason as cooking gas: it is inside `electricity_kwh`, and only an exposed term can
     #: be asserted on exactly. Zero for a premise with no gas boiler.
     boiler_auxiliary_kwh: tuple[float, ...] = ()
+    supplementary_heating_kwh: tuple[float, ...] = ()
 
     @property
     def net_electricity_kwh(self) -> tuple[float, ...]:
@@ -1573,6 +1698,7 @@ def generate_premise_trace(
     heating_commodity = "gas" if household.is_gas_heated else "electricity"
     # Drawn once, against the window's first day: the boiler's install date does not move with it.
     pump_kw = boiler_pump_kw(household, base_seed, weather[0].date)
+    has_heater = has_supplementary_electric_heating(household, base_seed)
     dhw_commodity = heating_commodity if household.heating_system != HeatingSystem.NONE else "electricity"
 
     days: list[PremiseDayTrace] = []
@@ -1582,7 +1708,7 @@ def generate_premise_trace(
 
         # --- Layer 2: events -------------------------------------------------
         events = draw_appliance_events(
-            base_seed, day_index, profile, is_weekend=is_weekend, is_away=is_away
+            base_seed, day_index, profile, month=wx.date.month, is_weekend=is_weekend, is_away=is_away
         )
         appliance_kwh = [0.0] * PERIODS_PER_DAY
         appliance_heat_kwh = [0.0] * PERIODS_PER_DAY
@@ -1652,6 +1778,17 @@ def generate_premise_trace(
             )
             behavioural[period] = kw * PERIOD_HOURS + cold_kwh[period] + appliance_kwh[period]
 
+        # A resistive heater turns all of its electricity into heat in the room. It enters as gain
+        # BEFORE the thermal solve, so the boiler's thermostat delivers that much less: the term
+        # offsets boiler gas through the physics rather than by a subtraction written here.
+        heater_kwh = (
+            supplementary_heating_kwh(
+                profile, wx.weather.temperature_mean_c, is_weekend=is_weekend, is_away=is_away
+            )
+            if has_heater
+            else [0.0] * PERIODS_PER_DAY
+        )
+
         # --- Layer 2 -> Layer 1: the three arguments, and nothing else -------
         gains = internal_gain_profile(
             profile,
@@ -1659,7 +1796,10 @@ def generate_premise_trace(
             # A cold appliance moves heat from its box to the room and its motor
             # dissipates there too, so ALL of its electrical energy lands in the
             # dwelling as gain — the one appliance whose heat fraction is 1.0.
-            [a + d + c for a, d, c in zip(appliance_heat_kwh, dhw_gain_kwh, cold_kwh)],
+            [
+                a + d + c + h
+                for a, d, c, h in zip(appliance_heat_kwh, dhw_gain_kwh, cold_kwh, heater_kwh)
+            ],
             is_weekend=is_weekend,
             is_away=is_away,
         )
@@ -1738,7 +1878,7 @@ def generate_premise_trace(
             else [0.0] * PERIODS_PER_DAY
         )
         for period in range(PERIODS_PER_DAY):
-            electricity[period] += ev_kwh[period] + auxiliary_kwh[period]
+            electricity[period] += ev_kwh[period] + auxiliary_kwh[period] + heater_kwh[period]
             if heating_commodity == "gas":
                 gas[period] += result.fuel_kwh[period]
             else:
@@ -1776,6 +1916,7 @@ def generate_premise_trace(
                 ),
                 ev_kwh=tuple(ev_kwh),
                 boiler_auxiliary_kwh=tuple(auxiliary_kwh),
+                supplementary_heating_kwh=tuple(heater_kwh),
                 pv_generation_kwh=tuple(pv_kwh),
                 electricity_kwh=tuple(electricity),
                 gas_kwh=tuple(gas),

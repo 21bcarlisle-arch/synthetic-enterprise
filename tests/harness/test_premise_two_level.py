@@ -612,16 +612,25 @@ def test_MEASURED_population_values(population, population_result):
     # drawn too ROUGH and too ALIKE: no home under the real p10 or p25, three under
     # the real median where thirty are expected, and too few under the real p75.
     # Pinned as counts so a world that narrows the gap reads as progress.
+    #
+    # [0, 0, 3, 29] -> [0, 2, 4, 31] on 2026-10-06, and the move under p25 is NOT
+    # progress. HES's cooking and laundry season (`pt.appliance_season_factor`)
+    # redrew the day's event stream: [0, 0, 2, 30], with P0000 at 0.1466. Then
+    # supplementary electric heating put its evening block on two gas homes, P0023
+    # and P0050. That block is FLAT because the heater's power and duty are not
+    # established, so it is smooth by construction, and those two are now the two
+    # homes under the real p25. Net of the heater they read 0.164 and 0.208. See
+    # `test_P0000_the_calmest_home_is_ORDINARY_...`, which asserts it.
     texture = population_result.cell(fgl.TEXTURE_STATISTIC)
     assert texture.verdict is fgl.Verdict.FAIL, texture.note
     assert texture.homes_judged == 60 and texture.homes_unjudged == 0, texture.note
     legs = {leg.q: leg for leg in texture.quantiles}
-    assert [legs[q].below for q in (0.10, 0.25, 0.50, 0.75)] == [0, 0, 3, 29], texture.note
+    assert [legs[q].below for q in (0.10, 0.25, 0.50, 0.75)] == [0, 2, 4, 31], texture.note
     assert legs[0.50].world == pytest.approx(0.209, abs=0.005), texture.note
     assert all(leg.p * len(legs) < fgl.TEXTURE_DISTRIBUTION_ALPHA for leg in legs.values())
-    # The calmest home is still P0000, now a diagnostic and an ordinary one.
-    assert texture.worst_home == "P0000", texture.note
-    assert texture.worst_value == pytest.approx(0.1495, abs=5e-4), texture.note
+    # The calmest home is a supplementary-heater owner (above), and no longer P0000.
+    assert texture.worst_home == "P0023", texture.note
+    assert texture.worst_value == pytest.approx(0.1045, abs=5e-4), texture.note
     assert "gas" in population.heating_systems[
         population.homes.index(texture.worst_home)
     ], "the calmest home is one the machine netting did not touch"
@@ -650,8 +659,16 @@ def test_MEASURED_population_values(population, population_result):
     assert not population_result.inconclusive, population_result.summary()
     # 0.4386 -> 0.4511 on 2026-10-06: the boiler pump repeats with the heating, so
     # it raises a gas home's day-to-day shape correlation a little. Still a GAS home.
+    #
+    # 0.4511 -> 0.7773 on 2026-10-06, and it is an ARTEFACT, not behaviour. P0050
+    # owns a supplementary electric heater (`pt.supplementary_heating_kwh`), drawn
+    # as a flat block at the same evening hours on every cold day, because its power,
+    # duty and timing are not established. That replays, and it is the home nearest
+    # the 0.85 near-replay band. The remedy is to source the heater's operating
+    # pattern. Do not move the band.
     shape = population_result.cell("L1.2_day_to_day_shape_correlation")
-    assert shape.worst_value == pytest.approx(0.4511, abs=0.01), shape.note
+    assert shape.worst_home == "P0050", shape.note
+    assert shape.worst_value == pytest.approx(0.7773, abs=0.01), shape.note
     assert "gas" in population.heating_systems[
         population.homes.index(shape.worst_home)
     ], "the worst home is a GAS home"
@@ -681,29 +698,38 @@ def test_P0000_the_calmest_home_is_ORDINARY_against_real_homes_and_the_red_is_th
         space = [list(d.heating_fuel_kwh) if on_meter else [0.0] * 48 for d in trace.days]
         water = [list(d.dhw_fuel_kwh) if on_meter else [0.0] * 48 for d in trace.days]
         pump = [list(d.boiler_auxiliary_kwh) for d in trace.days]
+        heater = [list(d.supplementary_heating_kwh) for d in trace.days]
         judged = fgl.machine_draw(space, water)
         readings[trace.premise_id] = (
             fgl.half_hourly_texture(meter, machines=judged),
             fgl.half_hourly_texture(meter, machines=fgl.machine_draw(judged, pump)),
             sum(map(sum, pump)),
             trace.heating_commodity,
+            sum(map(sum, heater)),
+            fgl.half_hourly_texture(meter, machines=fgl.machine_draw(judged, heater)),
         )
 
-    live, net_of_pump, pump_kwh, commodity = readings[cell.worst_home]
-    # The cell judges the pump: its calmest value IS the with-pump reading.
-    assert cell.worst_value == pytest.approx(live, abs=1e-9)
-    assert commodity == "gas" and pump_kwh > 0.0
-    assert live == pytest.approx(0.1495, abs=5e-4)
-    assert net_of_pump == pytest.approx(0.1526, abs=5e-4)
-    assert net_of_pump == min(r[1] for r in readings.values()), (
-        "the pump picked a home that was NOT the population's calmest"
-    )
+    # SINCE 2026-10-06 THE CALMEST HOMES ARE SUPPLEMENTARY-HEATER OWNERS, and that is
+    # an artefact of a flat block (the heater's power and duty are not established),
+    # not calm behaviour. The property kept: every home under the real p25 owns a
+    # heater, and net of the heater none of them is there.
+    under_p25 = {pid for pid, r in readings.items() if r[0] < REAL_P25}
+    assert under_p25 and under_p25 == {pid for pid, r in readings.items() if r[4] > 0.0} & under_p25
+    assert cell.worst_home in under_p25
+    assert all(readings[pid][5] > REAL_P25 for pid in under_p25)
+
+    # P0000, the pump diagnosis, read by identity. 0.1495 -> 0.1466 on 2026-10-06:
+    # HES's cooking and laundry season redrew the event stream; it owns no heater.
+    live, net_of_pump, pump_kwh, commodity, heater_kwh, _ = readings["P0000"]
+    assert commodity == "gas" and pump_kwh > 0.0 and heater_kwh == 0.0
+    assert live == pytest.approx(0.1466, abs=5e-4)
+    assert net_of_pump > live
     # ORDINARY: inside the real middle half, with or without its pump.
     assert REAL_P25 < live < REAL_MEDIAN
-    # ...and taking P0000 out leaves the cell exactly as red: a population of 59
-    # with no home under the real p25 is the defect, not one home.
-    others = [r[0] for pid, r in readings.items() if pid != cell.worst_home]
-    legs = fgl.texture_distribution_legs(others)
+    # ...and net of the heater artefact, a population with no home under the real
+    # p25 is still the defect, not one home.
+    net = [r[5] for r in readings.values()]
+    legs = fgl.texture_distribution_legs(net)
     assert legs[0].below == 0 and legs[1].below == 0
     assert min(leg.p for leg in legs) * len(legs) < fgl.TEXTURE_DISTRIBUTION_ALPHA
 
@@ -2353,7 +2379,10 @@ def test_L1_1n_CAN_PASS_and_is_not_a_control_that_can_only_fail(population_resul
         "every home must be judged — an unjudged home here would be a quiet "
         "exclusion, and the pass would be over a population nobody named"
     )
-    assert cell.worst_value > 2.0, (
+    # 2.0 was the margin of the day, not the property. It read 1.946 from
+    # 2026-10-06, after HES's cooking and laundry season redrew the event stream.
+    # The property is distance from 1.0.
+    assert cell.worst_value > 1.5, (
         f"the worst real home reads {cell.worst_value:.3f} times its own flat "
         "counterfactual; if that ever approached 1.0 the pass would be a squeak "
         "rather than a verdict"
@@ -3804,7 +3833,9 @@ def test_the_floor_is_NOT_LOOSER_for_an_ELECTRIC_home_against_the_same_defect(
     # pair's household). The HARSHER direction, so the charge this test answers is
     # weaker, not stronger; the gas reference did not move.
     assert hp_critical == pytest.approx(0.235, abs=0.02)
-    assert gas_critical == pytest.approx(0.385, abs=0.02)
+    # 0.385 -> 0.362 on 2026-10-06: HES's cooking and laundry season redrew the gas
+    # home's event stream. The ordering below is the property.
+    assert gas_critical == pytest.approx(0.362, abs=0.02)
     assert hp_critical <= gas_critical, (
         f"the electrically heated home tolerates more damage than the gas home "
         f"before the shared floor fires ({hp_critical:.3f} vs {gas_critical:.3f})"

@@ -615,7 +615,10 @@ def test_the_TEXTURE_CELL_BREACH_CLOSED_when_the_LOAD_SET_WAS_REPAIRED(panel, we
     # electricity is on its meter now (`pt.boiler_auxiliary_kwh`), and it is judged,
     # not netted — a real gas-heated meter carries it.
     assert texture.worst_home == "S9", texture.note
-    assert texture.worst_value == pytest.approx(0.1802, abs=5e-4), texture.note
+    #
+    # S9 0.1802 -> 0.1755 on 2026-10-06: HES's cooking and laundry season
+    # (`pt.appliance_season_factor`) redrew the day's event stream.
+    assert texture.worst_value == pytest.approx(0.1755, abs=5e-4), texture.note
     assert "net of space AND water heat" in texture.note
     electric = {
         home for home, system in zip(population_homes(panel), panel_systems(panel))

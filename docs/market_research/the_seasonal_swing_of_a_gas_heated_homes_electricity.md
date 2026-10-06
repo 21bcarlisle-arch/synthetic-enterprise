@@ -361,3 +361,14 @@ gap, not only the ratio.**
 - **`occupancy_at` gets no seasonal term**, because HES measures audiovisual use as flat.
 - **The lighting level stays at `_LIGHTING_KW_PER_PERSON`** until a 2016–2025 level is sourced.
   The next read is the DESNZ ECUK domestic end-use table.
+
+## Built (2026-10-06, worker, draw `gas-heated-electricity-season-build`)
+
+Cooking and laundry carry the season factors above (`premise_trace.appliance_season_factor`).
+Supplementary electric heating is in (`premise_trace.supplementary_heating_kwh`): 10% of gas
+homes, 1,505 kWh in a normal-HDD year, and it displaces boiler gas through the room's gain. Over
+176 drawn gas-heated, no-PV homes in 2022, the median's max/min is **1.292** against SERL's
+1.36–1.47, and DJF−JJA is +1.87. The re-ranking effect this doc called small is +0.88 kWh/day in
+this world. The residual and a new artefact (the heater drawn as a flat block) are written up in
+`docs/staging/SEAT_FINDING_THE_FABRIC_PATH_GIVES_A_GAS_HEATED_HOMES_ELECTRICITY_NO_SEASON_2026-10-06.md`.
+The heater's operating pattern (power, cycling and timing) is now the named gap.
