@@ -281,7 +281,9 @@ directly. Whether Fig. 359 includes dishwashers is not stated. The text says "wa
   of any fuel fell from 48% to **39%** of households. Of living-room users (32% of households), 33%
   use an electric heater, so about **11%** of all households.
 - **How much.** HES Table 14: space heating of **1,505 kWh/yr** in homes *with additional electric
-  heating*. Their total is 4,878 kWh/yr, against 3,638 kWh/yr for homes without electric heating
+  heating*. *(Corrected later on 2026-10-06, see the last section: the world now takes CAR's
+  656 kWh/yr for homes whose main heating is not electric. Over EFUS's hours, 1,505 needs more
+  than a 13 A plug-in heater can draw.)* Their total is 4,878 kWh/yr, against 3,638 kWh/yr for homes without electric heating
   (Figs. 28–29). HES §15.2: *"mainly in the form of individual or portable heaters that were used
   occasionally"*. EFUS 2011: a 4.2-month season (mean), median 8 h/week. EFUS 2017: daily users
   (27% of supplementary users) run it a median of **4 h on a weekday** (IQR 2.5–6) and 5 h at the
@@ -390,3 +392,137 @@ The heater's operating pattern (power, cycling and timing) is now the named gap.
 
 Built in `premise_trace.supplementary_heating_kwh` / `heater_habit`. The result is in
 `docs/staging/WORKER_FINDING_THE_SUPPLEMENTARY_HEATER_RUNS_WHEN_HES_AND_EFUS_SAY_AND_ITS_POWER_STAYS_UNSOURCED_2026-10-06.md`.
+
+## The heater's power and cycling, and the lighting level (2026-10-06, worker, draw `gas-heated-electricity-season-the-two-unsourced-terms`)
+
+### The heater's power: no source gives an on-power, and the ENERGY anchor is what was wrong
+
+**On-power and thermostat cycling are NOT ESTABLISHED.** HES R66141 Appendix IX (p.560) publishes the
+46 heaters' annual energy (1,076 kWh/yr per heater) and average load curves, not a power when on.
+No other source read here gives a measured operating point. **Cycling is also below the meter's
+resolution:** a plug-in heater's thermostat switches on a scale of minutes, so inside one half
+hour the meter records the session's mean power, which is what an even spread gives. No cycling
+term is built, and none is needed for a half-hourly trace. That would stop holding only if
+measured cycles longer than 30 minutes were found.
+
+**But printing the implied power at real inputs refutes the energy anchor.** The world spreads
+`1,505 × HDD/normal` (C1 normal 1,784.6 HDD) over EFUS's session:
+
+| Anchor kWh/yr | Day at 0 °C, kWh | kW over 2.5 h (EFUS LQ) | kW over 4 h (median) | Day at −3 °C (C1 2022's coldest), kW over 2.5 h |
+|---|---|---|---|---|
+| 1,505 (HES Table 14) | 13.07 | **5.23** | 3.27 | **6.24** |
+| 1,076 (HES App. IX, per heater, all fuels) | 9.35 | 3.74 | 2.34 | 4.46 |
+| **656 (CAR, gas and other non-electric homes)** | 5.70 | **2.28** | 1.42 | **2.72** |
+
+A plug-in heater on a BS 1363 13 A socket cannot draw more than 230 V × 13 A ≈ **3.0 kW**. At 1,505,
+a lower-quartile session needs 5–6 kW on any cold day. That is physically impossible for one heater
+and implausible for the "individual or portable heaters" HES §15.2 describes.
+
+**The source that fits the world's population.** Cambridge Architectural Research for DECC,
+*Further Analysis of the Household Electricity Survey, Report 3: Models, labels and unusual
+appliances*, "Homing in on secondary electric heating", pp.74–80
+(<https://carltd.com/wp-content/uploads/2023/10/Report-3_Models-labels-and-unusual-appliances.pdf>).
+This is the same HES survey, re-analysed for the Departments. It defines homes with secondary heating
+as **"homes with electric space heaters that were monitored and for which the main heating is not
+electric"**: 36 households. It explicitly rejects seasonal factors built from the tiny year-long
+sample. Instead it sums, week by week through October to April, the mean of every secondary-heating
+home monitored that week (6–11 homes a week, about 8 on average). Result: **656 kWh/yr per home
+with secondary heating (5–95%: 610–700)**, and a worst-day 18:00–19:00 load of 0.48 kW. CAR's own
+caveats: 40 more households said they had heaters that were never monitored, so the figure is high
+if those heaters go unused. And it is about 4.6% of those homes' space-heating gas, against 4.1%
+in an Energy Saving Trust field trial (Gastec 2009, 60 homes).
+
+HES Table 14's 1,505 is for the group "with additional electric heating". Its definition was not
+found in the report, so whether that group includes homes where electricity heats part of the
+dwelling as a main system is **not established**. CAR's definition is the world's population
+exactly (`household.is_gas_heated`), its estimator is the more careful of the two, and it is the only
+one of the three that a 3 kW socket can deliver in EFUS's hours. **The world now takes 656.**
+The HDD scaling, the 10% share, the timing and the session lengths are unchanged.
+
+**Pre-registration, written before anything was run on the new anchor.** The baseline is the
+1.292 / +1.87 row above, on origin `b9d1ec2f1`. The heater's timing landed after that row was
+measured, but it moves no monthly total, so the baseline is re-read first.
+
+1. **176-home median (`/tmp/gasseason/measure.py 200`, 2022, C1):** DJF−JJA falls from +1.87 to
+   **+1.45 to +1.85**, and max/min from 1.292 to **1.22–1.29**, moving further from SERL's
+   1.36–1.47. An owner's January uplift falls from 4–7 to about 2–3 kWh/day. That still carries most
+   owners above the median, so the re-ranking effect shrinks by less than the energy does.
+2. **L1.1, P0023 (set-time owner, 0.1056):** rises to **0.12–0.16**, back towards its 0.164 net of
+   the heater. The count under the real p25 falls from 1 to **0**.
+3. **L1.2, P0023 (0.578):** falls to **0.45–0.56**, because its repeating session is a smaller
+   share of its day. The worst home may change.
+4. **L2.4 spread (2.007):** moves by **less than 0.05**.
+
+None of the four is a target. The band is a diagnostic, and the anchor was chosen on population,
+estimator and the socket's limit before any of these was read.
+
+**Result, against the pre-registration above** (filled in after the run; the predictions are not
+edited). The new anchor is held by
+`tests/simulation/test_supplementary_electric_heating_tops_up_a_gas_home_in_the_cold.py::test_one_plug_in_heater_can_deliver_the_anchor_in_efus_s_hours`,
+which reds on all four weather sites when the anchor is put back to 1,505.
+
+| | Before (1,505) | After (656) | Prediction | |
+|---|---|---|---|---|
+| 176-home median, by month Jan…Dec | 9.67 9.33 8.77 8.56 8.03 7.49 7.68 7.67 8.01 8.37 8.81 9.46 | 9.63 9.16 8.60 8.36 7.88 7.48 7.68 7.67 7.89 8.33 8.61 9.34 | | |
+| max/min | 1.292 (Jan/Jun) | **1.288 (Jan/Jun)** | 1.22–1.29 | **held** |
+| DJF−JJA, kWh/day | +1.87 | **+1.77** | +1.45 to +1.85 | **held** |
+| Annual median, kWh | 3,151 | 3,078 | | |
+| L1.1 P0023 | 0.1056 | **0.1347**; under the real p25: 1 → **0** | 0.12–0.16; 0 | **held** |
+| L1.2 worst | P0023 0.578 | **P0000 0.4417**; P0023 is below that | P0023 0.45–0.56 | **refuted, low** |
+| L2.4 spread | 2.007 | **1.931** | moves < 0.05 | **refuted** (0.076) |
+
+Halving the heater's energy moved the median's DJF−JJA by only −0.10. That confirms the
+pre-registered reasoning: the median's heater effect is a re-ranking, and most owners stay above the
+median on 2–3 kWh/day of January uplift. The ratio stays at **1.29 against SERL's 1.36–1.47**, and
+the sourced correction moved it slightly away from the band. That is the right direction for an
+honest anchor, and nothing here was fitted to the band. L1.2 and L2.4 moved more than predicted:
+P0023's set-time session was a bigger share of its day-to-day shape than estimated, and the owners
+sat near the p90 of annual use.
+
+### The lighting level: NOT ESTABLISHED, and the official series has a method break inside 2016–2025
+
+**DESNZ ECUK 2025, End Use Table U3** (domestic consumption by end use and fuel, ktoe; revised
+20 April 2026; <https://assets.publishing.service.gov.uk/media/69e6362644a079b27f997f8d/ECUK_2025_End_Use_tables_200426.xlsx>),
+electricity for lighting. Converted at 11.63 GWh/ktoe, and divided by UK households (ONS *Families
+and households*: 27.0m in 2015, 27.2m in 2017, 28.2m in 2022):
+
+| Year | ktoe | ≈ kWh per household |
+|---|---|---|
+| 2010 | 1,211.5 | — (HES measured 537 in 2010–11) |
+| 2016 | 1,003.3 | ~430 |
+| 2019 | 912.4 | — |
+| 2021 | 739.3 | ~305 |
+| **2022** | **333.3** | **~137** |
+| 2024 | 339.8 | ~140 |
+
+The 55% fall from 2021 to 2022 is a **method break**, not behaviour. The ECUK 2025 Methodology Note
+(p.11) says: *"From ECUK 2025 the electricity – lighting estimates have been updated to more
+accurately capture the reduce in electricity requirement through the introduction of more
+energy-efficient lightbulbs."* The years before 2022 were not re-estimated on the new basis. Both
+regimes are **modelled** (Fuel Poverty / English Housing Survey inputs), not metered, and the same
+note says ECUK's end-use research is in places "over 10 years old".
+
+**What this establishes.** The world's ~210 kWh/yr per home (`_LIGHTING_KW_PER_PERSON = 0.035`,
+constant across the decade) sits **inside** the official bracket: below the old method's
+430 → 305 for 2016–21, and above the new method's ~137 for 2022–24. No published source gives
+a single metered 2016–2025 level, and the official one cannot be read as a trend across 2021/22.
+So **the level stays a named gap, and the constant is not changed.** Changing it to either regime
+would be choosing a number, not reading one.
+
+**The seasonal amplitude** follows from the level, because the shape is sourced: the world's
+Dec–Feb/Jun–Aug lighting ratio is 2.54, against HES Fig. 465's ~2.6. At that shape, each 100 kWh/yr
+of level is about 0.26 kWh/day of DJF−JJA. Across the official bracket (137 to 430 kWh/yr), lighting
+contributes between about **−0.19 and +0.57 kWh/day** to the median's gap, relative to the world's
+210. The 2022 run above is inside the new-method regime, where ECUK's ~137 would make the world's
+lighting swing **smaller** by about 0.19 kWh/day, not larger. **Lighting is therefore not where
+the remaining distance to SERL's 1.36–1.47 comes from** in 2022. The flat summer base (world
+~7.6 kWh/day against SERL's ~6.0) stays first in the ranking of the residual.
+
+### Both terms, closed as the draw asked
+
+- **Supplementary heater:** the power when on is **not established**, and the research doc says so.
+  Thermostat cycling is **below the half-hourly meter's resolution**, so no term is needed. The
+  energy anchor was **corrected** to CAR's 656 kWh/yr, built and controlled.
+- **Lighting level and amplitude:** **not established** for 2016–2025. ECUK brackets the world's
+  constant on both sides of a method break. The shape is sourced, and the amplitude follows the
+  level. Nothing is changed.

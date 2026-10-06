@@ -6,8 +6,12 @@ THE DEFECTS EACH TEST NAMES:
     answer for every home passes every test that asks only what an owner does. Both outcomes are
     asserted reachable FIRST, and a home with no gas boiler never owns one (its electric heating is its
     main system already).
-  * `test_a_normal_year_carries_hes_s_annual_energy` -- the HES anchor not reached: energy not tied to
-    1,505 kWh in a normal year of heating degree days.
+  * `test_a_normal_year_carries_hes_s_annual_energy` -- the anchor not reached: energy not tied to
+    CAR's 656 kWh in a normal year of heating degree days.
+  * `test_one_plug_in_heater_can_deliver_the_anchor_in_efus_s_hours` -- an energy anchor no plug-in
+    heater can deliver: HES Table 14's 1,505 kWh/yr needs 4.3 kW over EFUS's median 4 h on an
+    archive's coldest day, and a 13 A socket gives about 3 kW. That is the defect the world carried
+    until 2026-10-06.
   * `test_the_season_comes_from_the_weather_not_a_calendar` -- a warm day, or an empty house, carrying
     heater energy; a cold day carrying no more than a mild one.
   * `test_sessions_run_when_hes_says_for_as_long_as_efus_says` -- the flat block at fixed hours this
@@ -57,6 +61,27 @@ def test_a_normal_year_carries_hes_s_annual_energy():
     years = len({d.date.year for d in days})
     assert total / years == pytest.approx(pt.SUPPLEMENTARY_ELECTRIC_HEATING_KWH_PER_YEAR, rel=1e-6)
 
+
+
+_SOCKET_LIMIT_KW = 0.230 * 13
+"""BS 1363 plug: a 13 A fuse at the 230 V nominal supply. One plug-in heater cannot draw more."""
+
+
+@pytest.mark.parametrize("site", ["C1", "C2", "C3", "C4"])
+def test_one_plug_in_heater_can_deliver_the_anchor_in_efus_s_hours(site):
+    coldest = min(d.weather.temperature_mean_c for d in pt.load_trace_weather(site))
+    median_hours = pt._EFUS_HEATER_HOURS_QUARTILES[False][1]
+    session = pt._heater_session_periods(0.5, is_weekend=False)
+    habit = {False: (36, session), True: (36, session)}
+    day = sum(_day(coldest, habit=habit))
+    assert day > 0.0, "the coldest day of the archive must carry heater energy, or the bound is vacuous"
+    assert session * pt.PERIOD_HOURS == pytest.approx(median_hours)
+    # NOT asserted for EFUS's lower quartile (2.5 h): on the decade's single coldest day that session
+    # needs 3.0 kW at 656 kWh/yr, at the socket's limit. Recorded in the research doc, not clipped.
+    assert day / median_hours < _SOCKET_LIMIT_KW, (
+        f"{site}: {day:.2f} kWh over {median_hours} h on a {coldest} C day needs "
+        f"{day / median_hours:.2f} kW, more than one 13 A plug-in heater can draw"
+    )
 
 def test_the_season_comes_from_the_weather_not_a_calendar():
     def day(temp: float, *, away: bool = False) -> float:

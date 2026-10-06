@@ -952,18 +952,22 @@ def draw_appliance_events(
 #     (HES, Dunbabin, Palmer & Terry, ECEEE 2015). EFUS 2011 (21%, any use) and EFUS 2017
 #     (~11% of households, living room) bracket it. HES is taken because the energy figure
 #     below is HES's own, measured on the same homes.
-#   * HOW MUCH: 1,505 kWh/yr of space heating in HES homes with additional electric heating
-#     (HES Table 14).
+#   * HOW MUCH: 656 kWh/yr per home (5–95%: 610–700), CAR's re-analysis of HES for DECC (Further
+#     Analysis of HES, Report 3, pp.74–80) over the 36 homes "with electric space heaters that were
+#     monitored and for which the main heating is not electric", summed week by week Oct–Apr.
+#     NOT HES Table 14's 1,505 "with additional electric heating", which the world carried until
+#     2026-10-06: spread over EFUS's hours below, 1,505 needs 5–6 kW from a lower-quartile session on
+#     any cold day, and a plug-in heater on a 13 A socket draws at most ~3 kW. 656 needs 2.3–2.7 kW.
 #   * WHEN IN THE YEAR: HES Fig. 537, about 2.3x the annual mean in Dec–Feb and about zero in
 #     Jun–Aug. Here the day's energy follows the day's heating degree days, so the season comes
 #     out of the weather. It is not a calendar.
 #   * WHEN IN THE DAY and FOR HOW LONG: see the operating-pattern block below.
-# NOT ESTABLISHED, and so not used: the heater's power and thermostat duty (2 kW is a nameplate,
-# not an operating point; no source read publishes a measured on-power or cycling). The energy is
-# anchored to HES, and the power follows from it: within a session the day's energy is spread
-# evenly, so a session is a flat block whatever the real cycling is.
+# NOT ESTABLISHED, and so not used: the heater's power when on (2 kW is a nameplate, not an
+# operating point; no source read publishes a measured on-power). The energy is anchored, and the
+# power follows from it. Thermostat cycling is unsourced too, but it switches within minutes, so a
+# half-hourly meter sees the session's mean power, which is the even spread used here.
 SUPPLEMENTARY_ELECTRIC_HEATING_SHARE = 0.10
-SUPPLEMENTARY_ELECTRIC_HEATING_KWH_PER_YEAR = 1505.0
+SUPPLEMENTARY_ELECTRIC_HEATING_KWH_PER_YEAR = 656.0
 
 # `domain-knowledge` — THE HEATER'S OPERATING PATTERN. Sources read at source 2026-10-06, all in
 # docs/market_research/the_seasonal_swing_of_a_gas_heated_homes_electricity.md:
@@ -991,10 +995,10 @@ _SET_TIME_SHARE = 0.28
 """SIMPLIFICATION: EFUS 2011's 7% who mix set and irregular times are drawn as irregular."""
 _SET_TIME_WEEKEND_CHANGE_SHARE = 0.30
 _SUPPLEMENTARY_HEATING_NORMAL_SITE = "C1"
-"""SIMPLIFICATION: HES's 1,505 kWh/yr is read as the use in a year of NORMAL heating degree days,
+"""SIMPLIFICATION: CAR's 656 kWh/yr is read as the use in a year of NORMAL heating degree days,
 and the normal is this one archive's mean over its own full years (2016 onward), whatever site the
 premise is at. A colder site therefore uses more, as it should. The error runs two ways. HES's year
-(2010–11) had a cold December, so 1,505 is probably above a normal year's figure. And one site's
+(2010–11) had a cold December, so 656 is probably above a normal year's figure. And one site's
 normal stands in for every site's."""
 
 
@@ -1084,7 +1088,7 @@ def supplementary_heating_kwh(
 ) -> list[float]:
     """One day's supplementary-heater electricity, by period, for a home that owns one.
 
-    Energy: 1,505 kWh/yr x (today's HDD / the normal year's HDD), spread evenly over one session:
+    Energy: 656 kWh/yr x (today's HDD / the normal year's HDD), spread evenly over one session:
     the home's set session if it has one (`heater_habit`), else one drawn today from `rng`. A
     session that runs past midnight wraps to the small hours of the same day, which keeps the day's
     energy whole and HES's overnight share in place. An away day, or a day with no heating degree

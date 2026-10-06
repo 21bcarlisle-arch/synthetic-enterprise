@@ -71,3 +71,15 @@ The L1.1 "artefact" label was partly wrong. Sourcing the timing moved the two ow
 a real heater owner's meter would read calmer on this statistic too. Cycling is what is left to
 source. The L1.2 artefact was real, and it is closed for irregular users. A set-time home now
 repeats its session, as EFUS says such a household does.
+
+## Disposition of the unsourced power (2026-10-06, worker, draw `gas-heated-electricity-season-the-two-unsourced-terms`)
+
+The tension this finding recorded (3.3 kW for 4 h at 0 °C, above a nameplate) was the **energy
+anchor**, not a missing power term. CAR's re-analysis of the same HES homes, restricted to homes whose
+main heating is not electric, gives **656 kWh/yr**, not Table 14's 1,505. The world now takes 656,
+and a control asserts that one 13 A plug-in heater can deliver it in EFUS's median hours on each
+archive's coldest day. On-power stays **not established**. Cycling is below the half-hourly meter's
+resolution, so it needs no term. The harness readings moved: L1.1 P0023 0.1056 → 0.1347, L1.2
+worst P0000 0.4417, L2.4 1.931. They are re-pinned with the history. Full record, with the
+pre-registration and the refuted legs:
+`docs/market_research/the_seasonal_swing_of_a_gas_heated_homes_electricity.md`, last section.

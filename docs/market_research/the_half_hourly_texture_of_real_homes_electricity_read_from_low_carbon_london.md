@@ -117,3 +117,65 @@ tested exact-binomial against n·q, Bonferroni at 5%. The 0.15 per-home floor is
 60 the cell is red on all four legs (adjusted p 2.5e-13), so the red is now the spread defect in
 point 3, filed as the atom named above. The real quantiles are treated as exact, so the test is a
 little stricter than a two-sample test would be.
+
+## Why the world's homes are alike: a decomposition, and one hypothesis tested (2026-10-06, evening)
+
+Worker on the self-refill draw of `W1_29`. The same 313 LCL Std homes and the same window, read from
+the same 13 partitions. The world side is the drawn 60 (`base_seed=17`, traces `seed=7`, C1 weather,
+HEAD `a8bf44ef6`), read net of both heating machines exactly as the L1.1 cell reads it
+(`machine_draw` and then `meter_net_of_machines`). **Nothing is built here.** These are per-home
+statistics, shown as p10 / p25 / median / p75 / p90 across homes.
+
+| per-home statistic | LCL Std (313) | World (60) |
+|---|---|---|
+| L1.1 texture | 0.072 / 0.117 / 0.158 / 0.208 / 0.311 | 0.165 / 0.185 / 0.205 / 0.227 / 0.246 |
+| kWh/day | 3.5 / 5.3 / 9.1 / 15.0 / 23.6 | 5.7 / 6.5 / 7.5 / 9.3 / 10.8 |
+| base load, kW (p5 of the home's half-hours × 2) | 0.016 / 0.040 / 0.080 / 0.136 / 0.224 | 0.045 / 0.047 / 0.049 / 0.054 / 0.057 |
+| base load ÷ mean | 0.05 / 0.12 / 0.21 / 0.30 / 0.41 | 0.11 / 0.14 / 0.16 / 0.18 / 0.20 |
+| night level (periods 2–9) ÷ mean | 0.28 / 0.38 / 0.50 / 0.68 / 0.90 | 0.19 / 0.22 / 0.28 / 0.32 / 0.38 |
+| lag-1 autocorrelation | 0.41 / 0.53 / 0.65 / 0.75 / 0.83 | 0.45 / 0.47 / 0.50 / 0.53 / 0.57 |
+| coefficient of variation | 0.65 / 0.76 / 0.97 / 1.22 / 1.46 | 1.27 / 1.32 / 1.40 / 1.49 / 1.55 |
+| texture, night steps only (t < 12) | 0.031 / 0.059 / 0.103 / 0.160 / 0.264 | 0.092 / 0.106 / 0.129 / 0.150 / 0.173 |
+| texture, day steps only | 0.081 / 0.144 / 0.200 / 0.258 / 0.345 | 0.223 / 0.241 / 0.254 / 0.273 / 0.285 |
+
+Correlation of texture with
+kWh/day: world **−0.95**, LCL −0.32.
+
+**What this says.** The world's texture is almost entirely a function of how much a home uses. In real
+homes, size explains about a tenth of the variance in texture. Every world statistic sits in a band a
+quarter to a half as wide as the real one. The world's homes are also too peaky (CV 1.40 against
+0.97), too empty at night (28% of their mean against 50%), and too quick to change (lag-1
+autocorrelation 0.50 against 0.65).
+
+**The cause is in the code, not the parameters.** `generate_premise_trace` gives every home the same
+stock. Each home gets 2.0 lighting units and 2.0 electronics units per person at the same kW, the same
+fridge-freezer **and** the same freezer, the same 25 W standby, and the same nine-appliance catalogue
+with the same nameplates. A home differs only in people count (and through it `appliance_intensity`),
+routine offset, away days and cold-appliance phase. One home's shape, scaled by occupants, is exactly
+what the table shows.
+
+**Hypothesis tested: a per-home always-on load.** *Prediction, written before the computation:* raising
+each world home's base load to a draw from the LCL base-load distribution (a constant added to the
+netted series, so texture × mean ÷ (mean + c)) moves the median towards ~0.17 and widens the spread,
+but does not reach the real p10. *Result, over three draws:* median 0.164 / 0.173 / 0.176; homes
+under the real p10 / p25 / median / p75 = [0, 11, 28, 53], [3, 8, 17, 49] and [1, 5, 16, 43] against
+an expected [6, 15, 30, 45]. **The prediction held.** Base load is part of the mechanism and not
+enough on its own. In LCL it is also a weak predictor of texture: within each consumption band,
+corr(texture, base ÷ mean) is only −0.13 to −0.34, and log kWh plus the base-load ratio explain
+R² = 0.25. The estimate also adds energy the world does not have: +0.8 kWh/day at the median, which
+would fail the TDCV level judgement unless something else gives way.
+
+**What the build needs, and what is not established.** The missing mechanism is per-home **stock**
+heterogeneity: which appliances a home owns (separate freezer, tumble dryer, dishwasher, electric
+oven or hob), how many always-on and long-dwell devices it runs, and the base load those set. That is
+how a home gets calm (a large, persistent share of its use) or rough (a small home where every kettle
+counts) independently of its size. **Ownership rates are not in the knowledge layer.** No
+`docs/market_research/` page carries household appliance ownership. ECUK's domestic end-use
+ownership tables and the EFUS 2017 lighting-and-appliances report (already named as the unfetched
+lead in `occupancy_consumption_volume_shape_w2_13.md`) are the first places to look. **Build no
+ownership draw until those rates are read.** The base-load distribution in the table above is
+measured, and it is whole-meter LCL, so it carries the electric-heated "Std" homes in its upper tail.
+
+Limits: this is one world draw (seed 17), the 13 partitions described above, the p5 half-hour as the
+base-load estimator (a home with logging gaps that read 0 sits at 0), and a constant-shift estimate,
+not a regenerated trace.
