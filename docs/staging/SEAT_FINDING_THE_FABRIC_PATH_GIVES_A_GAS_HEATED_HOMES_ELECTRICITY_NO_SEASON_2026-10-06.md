@@ -138,3 +138,30 @@ number. The floor is still 0.15, and the pump is not netted out:
 half-hourly texture of gas-heated homes), or for the mechanism that makes P0000's behaviour calm.
 The supplementary-heating and seasonal-occupancy DISCOVER is still owed toward SERL's 1.36–1.47.
 
+
+## The L1.1 floor read at source: the floor is wrong and P0000 is ordinary (2026-10-06, worker, draw `the-l1-1-texture-floor-is-read-at-source`)
+
+`docs/market_research/the_half_hourly_texture_of_real_homes_electricity_read_from_low_carbon_london.md`.
+No publication reports this statistic, so it was computed with the cell's own
+`half_hourly_texture`. The data is 313 flat-tariff Low Carbon London homes (UKPN open data,
+Jan–Apr 2013, the same months as the world's window). **Real median 0.158, p25 0.117, p10 0.072.
+45% of real homes sit under 0.15**, and 41% of real homes of P0000's size (8–12 kWh/day) read below
+its 0.1495. The anchor's "20–40%" expectation is refuted.
+
+**Of the two readings this item named, the evidence supports the first: the floor is wrong and the
+world was fine at P0000.** It does not support the second. P0000's calm behaviour is not a world
+defect. The mechanism the anchor missed is that the statistic is a MEDIAN over all 48 steps, and
+half of those steps fall in night and quiet hours, where adjacent half-hours differ by a fridge cycle.
+
+**A different world defect, pointing the other way:** the world's drawn 60 is too ROUGH and too
+NARROW. Its median is 0.209 against a real 0.158. Its middle half is 0.186–0.231, against a real
+0.117–0.208. It has no home in the real bottom 44%. The world's homes behave like one home with mild
+variation, and that bears on every per-customer demand inference. Not built.
+
+**Recommendation for the build (world lane, not taken here):** re-anchor L1.1 to the sourced
+distribution, judging the world's quantiles against LCL's, not one per-home floor. The sourced p1
+(~0.024) is too low to discriminate home by home, and L1.1n already asks the
+smooth-by-construction question structurally. Then mint the spread defect as its own atom. Until
+then L1.1 stays red at 1/60 exactly as `8fe730297` pinned it, and that red is now known to be a
+floor artefact. SERL could not be read: its half-hourly data is safeguarded (UKDS SN 8666), and
+applying for it is the director's call.
