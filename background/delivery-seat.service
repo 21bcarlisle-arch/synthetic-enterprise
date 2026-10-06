@@ -12,4 +12,8 @@ ExecStart=/usr/bin/python3 -m background.delivery_seat
 # The orienting session is bounded in-process (delivery_seat.SESSION_TIMEOUT_SECONDS = 1800). This
 # is the belt to that brace: a hung session becomes a killed cgroup and therefore a SKIPPED
 # orientation, never a wedge that keeps the next one from firing.
-TimeoutStartSec=2400
+# 4500 AND NOT 2400 (2026-10-04): the direction commit now lands on origin from the seat's own
+# worktree, so after the session comes a full gate (15-25 min measured) and up to two gated merges
+# of what origin moved meanwhile (~2.5 min each). 1800 + 1500 + 2x200 is ~3700s, past the old
+# belt, which would have killed the landing it exists to let finish.
+TimeoutStartSec=4500
