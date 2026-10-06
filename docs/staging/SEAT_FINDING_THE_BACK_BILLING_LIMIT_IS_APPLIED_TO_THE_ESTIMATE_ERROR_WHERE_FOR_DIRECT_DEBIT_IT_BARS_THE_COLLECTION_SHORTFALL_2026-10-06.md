@@ -43,3 +43,45 @@ so it must change with the fix.
 3. only then re-read the D48 barred figure.
 
 The DD-review balance treatment is still the assumption toggle. Nothing here decides it. Days apportionment is unchanged.
+
+---
+
+**2026-10-06, the bar reaches the DD balance book (worker, claim `back-billing-dd-comparator-reaches-production`).**
+
+**One correction to the entry above.** Owed item 1 was spent before it was written: `simulation/run_phase4c_on_phase2b.build_monthly_bills` has passed `payment_channel_feed=simulated_payment_channel` since 2026-09-01 (`fc1c9a65c`). So since `e3e0a174e`, every production DD catch-up carries `direct_debit_collections_not_visible_estimate_error_stands_in`, not the pay-on-bill basis.
+
+**What landed:**
+- **The comparator places surplus on the oldest debt.** `barred_unrecovered_gbp` lets each period's collection pay its own charge first, and anything above that pays the oldest open shortfall (the running-account rule). Before, surplus was netted only against the total. A debt that was recovered and then built up again a year later read as old. Scenarios A and B are unchanged.
+- **The door.** `company/interfaces/bill_assembly.barred_at_charge_recovery` (defined in `back_billing`; a seam may not name `gbp`) takes plain tuples and returns only the amount.
+- **The book takes the bar at each charge recovery action.** `simulation/dd_balance_book.build_dd_balance_book(bills, opening, closed_ids, seek_balance_at_review)`:
+  - the final bill of an account that left is a recovery action;
+  - the annual review is one only when the toggle says the review seeks the balance;
+  - an open account's figure is an exposure, not a loss.
+  - Each bar is capped at the billed debit the action seeks.
+  - With the toggle off, the trajectories are byte-identical.
+- **The run.** It passes `churned_ids` and publishes the other arm as `dd_back_billing_if_review_seeks_balance`.
+- **Tests:** `tests/simulation/test_dd_back_billing_at_charge_recovery_actions.py`. Two mutations were run, and each failed its named test: surplus not placed, and the cap removed.
+
+**The D48 re-read.** This was measured over the bills of run `aa38800a1` (`docs/reports/run_output_latest.json`, 129 DD accounts, 87 closed). A fresh run will move it.
+
+| | barred £ |
+|---|---|
+| Estimate comparator, written off on DD catch-ups (what is BOOKED today) | 901 |
+| Review never seeks the balance (as built): at final bills of closed accounts | 17,667 |
+| … plus exposure on open accounts if sought at run end | 23,408 |
+| Review seeks the balance (toggle): at reviews | 13,079 |
+| … at final bills | 183 |
+
+- **The decision does not change across the toggle.** The estimate comparator understates the DD bar by more than an order of magnitude on either arm. Replacing the stand-in is right whichever way the review goes. The toggle moves the amount by about 3×, and it moves who bears it: lost at closure, or lost at the review.
+- **K3 cannot carry it.** K3 is energy, and the DD bar is money not collected. The D48 measure needs a money line for DD beside K3. Until then, K3's DD share is the stand-in.
+- **The cause is under-sized debits, not estimates.**
+  - C9 opened at £27 a month against about £180 of use.
+  - Through 2022 the review lagged prices by a year. Accounts carried four-figure debits that were never sought.
+  - Separately, PROS-2024-0197 was billed about £125 a month on estimates against about £900 of true use. That is the D48 estimate domain, and it is not touched here.
+
+**Not done, and owed (next slice):**
+1. Stop the DD catch-up's stand-in write-off and book the book's bar as the write-off: a `BACK_BILLING_CREDIT` on the ledger, which reads `catchup_written_off_gbp` today. Until then the stand-in and the book's bar overlap, and only the stand-in is booked. The book touches no ledger; DD3 is owed.
+2. Add a D48 money line for DD.
+3. The toggle's credit side. Neither arm returns a held credit at review, so the seek arm ends at a +£44.8k portfolio credit. That is the existing review sizing from a year that included catch-ups. It is a separate assumption, and nothing here decides it.
+
+**For the director (a practitioner question, not blocking):** when a raised direct debit recovers arrears, does a GB supplier apply it to the oldest debt? This change assumes yes. The Ombudsman's scenarios do not say.

@@ -112,23 +112,46 @@ def barred_unrecovered_gbp(
     (Ombudsman Scenario A). The result is capped at the total still unrecovered, so where the
     payments taken covered the use nothing is barred however wrong the bills were (Scenario B):
     the cap is not a refund of payments for energy used.
+
+    A period's collection pays its own charge first; whatever it collected ABOVE that charge pays
+    the OLDEST shortfall still open. That is the running-account rule (payments discharge the
+    earliest debt), and it is what a raised direct debit recovering arrears does. Netting surplus
+    only against the total instead left a debt recovered and then re-accrued a year later reading
+    as old: on the 2026-10-06 run that barred £20.9k at reviews where this rule bars £12.0k.
+    Scenarios A and B are unchanged by it -- neither has a surplus to place.
     """
     start = _rules_start(is_domestic, is_microbusiness)
     if start is None or demand_date < start or not periods:
         return 0.0
     window_start = demand_date - dt.timedelta(days=_BACK_BILLING_LIMIT_DAYS)
-    unrecovered = sum(p.true_charge_gbp - p.recovered_gbp for p in periods)
-    if unrecovered <= 0:
-        return 0.0
+    in_order = sorted(periods, key=lambda p: p.period_start)
+    open_shortfall = [max(p.true_charge_gbp - p.recovered_gbp, 0.0) for p in in_order]
+    surplus = sum(max(p.recovered_gbp - p.true_charge_gbp, 0.0) for p in in_order)
+    for i, shortfall in enumerate(open_shortfall):
+        paid = min(surplus, shortfall)
+        open_shortfall[i] -= paid
+        surplus -= paid
     old_shortfall = 0.0
-    for p in periods:
+    for p, shortfall in zip(in_order, open_shortfall):
         days = (p.period_end - p.period_start).days
         if p.period_end <= window_start or days <= 0:
             old_share = 1.0 if p.period_start < window_start else 0.0
         else:
             old_share = max(0, (window_start - p.period_start).days) / days
-        old_shortfall += (p.true_charge_gbp - p.recovered_gbp) * old_share
-    return round(min(max(old_shortfall, 0.0), unrecovered), 2)
+        old_shortfall += shortfall * old_share
+    return round(old_shortfall, 2)
+
+
+def barred_at_charge_recovery(
+    periods: List[tuple], demand_date: dt.date, is_domestic: bool = True,
+) -> float:
+    """`barred_unrecovered_gbp` over plain `(start, end, charge, collected)` tuples: what the
+    supplier writes off when it seeks a direct-debit balance on `demand_date`. It is the form the
+    billing door publishes (`company/interfaces/bill_assembly.py`), so no company type crosses."""
+    return barred_unrecovered_gbp(
+        [RecoveryPeriod(s, e, charge, collected) for s, e, charge, collected in periods],
+        demand_date, is_domestic=is_domestic,
+    )
 
 
 class BackBillingBook:

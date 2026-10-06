@@ -32,6 +32,7 @@ substance of a pull" both modules refused.
 
 from __future__ import annotations
 
+from company.billing.back_billing import barred_at_charge_recovery
 from company.billing.billing_accuracy import billing_accuracy_summary
 from company.billing.monthly_bill_assembly import (
     ReadArrival,
@@ -59,5 +60,6 @@ def billing_accuracy(bills: list) -> dict:
 
 
 __all__ = [
-    "ReadArrival", "ReadArrivalFeed", "assemble_monthly_bills", "billing_accuracy", "issued_bills",
+    "ReadArrival", "ReadArrivalFeed", "assemble_monthly_bills", "barred_at_charge_recovery",
+    "billing_accuracy", "issued_bills",
 ]
