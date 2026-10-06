@@ -16,6 +16,8 @@ the funnel entirely, which is the whole failure this atom exists to end.
 from __future__ import annotations
 
 import datetime as dt
+import pathlib
+import re
 
 import pytest
 
@@ -945,7 +947,8 @@ def test_b1_the_win_side_reads_the_SAME_elasticity_the_loss_side_does():
     """
     import inspect
 
-    from simulation import acquisition_funnel, market_switching_propensity as msp
+    from simulation import acquisition_funnel
+    from simulation import market_switching_propensity as msp
 
     assert "_savings_to_rate" in inspect.getsource(msp.offer_position_multiplier), (
         "the win side stopped reading the shared elasticity"
@@ -1707,32 +1710,147 @@ def test_the_settlement_ceiling_does_not_outrun_the_measured_memory_curve():
     )
 
 
+_RUN_STARTED = re.compile(r"Starting run — git=(?P<sha>[0-9a-f]{7,40})")
+
+
+def _peaks_by_the_code_they_ran(journal_text, unit):
+    """`(closed, current)` from one journal read: `closed` is `[(peak_mb, shas)]`, one per unit
+    lifetime systemd closed with a `memory peak`, `shas` the runs that lifetime started;
+    `current` is the shas started since the last close, which the live `MemoryPeak` covers.
+
+    A cgroup peak is a property of every run its lifetime held, so a lifetime is attributed to
+    the whole set and never to its last run."""
+    from background.oom_watch import _CONSUMED, parse_memory_size_mb
+
+    closed, shas = [], []
+    for line in (journal_text or "").splitlines():
+        started = _RUN_STARTED.search(line)
+        if started:
+            shas.append(started.group("sha"))
+            continue
+        consumed = _CONSUMED.search(line)
+        if consumed and consumed.group("unit") == unit:
+            peak = parse_memory_size_mb(consumed.group("peak"))
+            if peak is not None:
+                closed.append((peak, tuple(shas)))
+            shas = []
+    return closed, tuple(shas)
+
+
+def _peaks_on_the_curves_code(closed, current, live_mb, carries_the_curve):
+    """The peaks that are evidence about the curve: a lifetime counts only when it ran at least
+    one run and EVERY run it held carried the code the curve was measured on."""
+    def eligible(shas):
+        return bool(shas) and all(carries_the_curve(sha) for sha in shas)
+
+    peaks = [peak for peak, shas in closed if eligible(shas)]
+    if live_mb is not None and eligible(current):
+        peaks.append(live_mb)
+    return peaks
+
+
 def test_the_ceiling_still_fits_the_peak_systemds_own_journal_reports_today():
     """THE DEFECT: the anchor above goes stale and the ceiling it prices is quietly wrong.
 
-    NO TOLERANCE IS INVENTED HERE. Rather than asking "is 5,734.4 still about right", this
-    re-prices the whole ceiling using whatever peak the journal reports now and asks the same
-    inequality. A drifting anchor therefore fails only when it has drifted far enough to matter,
-    which is the property; and the arithmetic is the same line either way.
-    """
-    from background.resource_headroom import weight_drift
+    NO TOLERANCE IS INVENTED HERE. Rather than asking "is the anchor still about right", this
+    re-prices the whole ceiling using the peak production reports and asks the same inequality.
+    A drifting anchor therefore fails only when it has drifted far enough to matter, which is the
+    property; and the arithmetic is the same line either way.
 
-    verdict = weight_drift("sim_run")
-    if verdict["observed_peak_mb"] is None:
+    RE-KEYED 2026-10-06 TO THE CODE EACH PEAK RAN. This read `weight_drift("sim_run")`, the max
+    over every `sim-runner` lifetime in a rolling 24h, and substituted it as the y of the curve's
+    anchor. When the 2026-10-06 curve landed (measured at `06b7c821a`, after `b8808f4ad` made the
+    treasury register 1.5 GB lighter) every peak in that window came from runs on code the curve
+    was not measured on: 8,294.4 MB from a `4e4637853` run, priced against a 4,263.6 MB anchor of
+    the lighter program -- 407 customer-years, red on every lane, and green again by itself when
+    that run aged out of the window. A pre-curve peak is evidence about a different program; a
+    peak from the curve's code or LATER is exactly what this leg exists for, since later code
+    growing heavier is the stale anchor. The weight-drift alarm still reads every peak, for the
+    governor, which is the question the unfiltered max answers.
+    """
+    import subprocess
+
+    from background.oom_watch import read_unit_memory_peak_live_mb
+    from background.resource_headroom import CLASS_DRIFT_WINDOWS, CLASS_UNITS, DRIFT_WINDOW
+    from simulation.premise_population import load_whole_run_rss_curve
+
+    unit = CLASS_UNITS["sim_run"]
+    since = CLASS_DRIFT_WINDOWS.get("sim_run", DRIFT_WINDOW)
+    curve_head = load_whole_run_rss_curve().get("git_head")
+    assert curve_head, (
+        "the landed curve records no git_head, so no production peak can be placed before or "
+        "after the code it measured"
+    )
+    try:
+        journal = subprocess.run(
+            ["journalctl", "--user", "-u", unit, "--since", since, "-o", "short-iso",
+             "--no-pager", "--grep", "memory peak|Starting run — git="],
+            capture_output=True, text=True, errors="replace", timeout=60,
+        )
+        journal_text = journal.stdout if journal.returncode in (0, 1) else None
+    except (OSError, subprocess.SubprocessError):
+        journal_text = None
+    if journal_text is None:
         pytest.skip(
-            "systemd's journal could not answer, so this leg is UNAVAILABLE and not clean: "
-            f"{verdict['detail']}. The ceiling's own control "
+            f"systemd's journal for {unit} could not answer, so this leg is UNAVAILABLE and not "
+            "clean. The ceiling's own control "
             "(test_the_settlement_ceiling_does_not_outrun_the_measured_memory_curve) does not "
             "depend on this leg and has already run."
         )
-    live_ceiling = _memory_ceiling_customer_years(anchor_peak_mb=verdict["observed_peak_mb"])
-    assert nna.SETTLEMENT_CUSTOMER_YEAR_BUDGET <= live_ceiling, (
-        f"re-priced on the {verdict['observed_peak_mb']:,.1f} MB cgroup peak systemd reports for "
-        f"{verdict['unit']} across {verdict['samples']} run(s), the curve supports "
-        f"{live_ceiling:,.1f} customer-years and the constant asks for "
-        f"{nna.SETTLEMENT_CUSTOMER_YEAR_BUDGET:,.1f}. The anchor recorded beside this control has "
-        "gone stale in the direction that matters."
+
+    def carries_the_curve(sha):
+        return subprocess.run(
+            ["git", "merge-base", "--is-ancestor", curve_head, sha],
+            cwd=pathlib.Path(__file__).resolve().parents[2], capture_output=True,
+        ).returncode == 0
+
+    closed, current = _peaks_by_the_code_they_ran(journal_text, unit)
+    peaks = _peaks_on_the_curves_code(
+        closed, current, read_unit_memory_peak_live_mb(unit=unit), carries_the_curve
     )
+    if not peaks:
+        pytest.skip(
+            f"UNAVAILABLE, not clean: none of the {len(closed)} closed {unit} lifetime(s) in "
+            f"{since}, nor the running one (runs {', '.join(current) or 'none yet'}), ran only "
+            f"code carrying {curve_head}, the code the curve was measured on, so no production "
+            "peak yet speaks about this curve. It arms on the first lifetime that does."
+        )
+    observed = max(peaks)
+    live_ceiling = _memory_ceiling_customer_years(anchor_peak_mb=observed)
+    assert nna.SETTLEMENT_CUSTOMER_YEAR_BUDGET <= live_ceiling, (
+        f"re-priced on the {observed:,.1f} MB cgroup peak systemd reports for {unit} across "
+        f"{len(peaks)} lifetime(s) on code carrying {curve_head}, the curve supports "
+        f"{live_ceiling:,.1f} customer-years and the constant asks for "
+        f"{nna.SETTLEMENT_CUSTOMER_YEAR_BUDGET:,.1f}. The anchor has gone stale in the direction "
+        "that matters."
+    )
+
+
+def test_BOTH_branches_of_the_code_keyed_peak_filter_are_reachable():
+    """A filter that excludes everything turns the leg above into a permanent skip, and one that
+    excludes nothing is the defect it was re-keyed for. One control over the partition."""
+    journal = "\n".join([
+        "x python3[1]: - Starting run — git=aaaaaaa, json=a.json",
+        "x systemd[2]: sim-runner.service: Consumed 1min CPU time, 8.1G memory peak.",
+        "x python3[1]: - Starting run — git=bbbbbbb, json=b.json",
+        "x python3[1]: - Starting run — git=ccccccc, json=c.json",
+        "x systemd[2]: sim-runner.service: Consumed 1min CPU time, 4.5G memory peak.",
+        "x python3[1]: - Starting run — git=ccccccc, json=d.json",
+        "x systemd[2]: sim-runner.service: Consumed 1min CPU time, 5G memory peak.",
+        "x systemd[2]: sim-runner.service: Consumed 1s CPU time, 20M memory peak.",
+        "x python3[1]: - Starting run — git=ccccccc, json=e.json",
+    ])
+    closed, current = _peaks_by_the_code_they_ran(journal, "sim-runner.service")
+    assert [shas for _, shas in closed] == [
+        ("aaaaaaa",), ("bbbbbbb", "ccccccc"), ("ccccccc",), ()
+    ] and current == ("ccccccc",)
+    peaks = _peaks_on_the_curves_code(closed, current, 4700.0, lambda sha: sha == "ccccccc")
+    # Kept: the all-new lifetime and the running one. Dropped: the old run, the lifetime that
+    # MIXED old and new (its peak may be the old code's), and the lifetime that ran nothing.
+    assert peaks == [5120.0, 4700.0]
+    assert _peaks_on_the_curves_code(closed, current, 4700.0, lambda sha: True) == [
+        8294.4, 4608.0, 5120.0, 4700.0
+    ]
 
 
 def test_BOTH_verdicts_of_the_memory_ceiling_guard_are_reachable():

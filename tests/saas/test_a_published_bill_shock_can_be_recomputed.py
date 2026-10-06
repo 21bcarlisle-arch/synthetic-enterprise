@@ -130,22 +130,44 @@ def test_the_shock_the_baseline_and_the_final_total_agree():
 
 
 def test_the_baseline_is_present_exactly_when_the_shock_is():
-    """The pair is both-present or both-absent. A ratio with no denominator is the state this
-    repair ended; a denominator with no ratio would be a new one, and a reader would have no way
-    to tell which of the two numbers had gone missing."""
+    """A ratio with no denominator is the state this repair ended; a denominator with no ratio
+    would be a new one, and a reader would have no way to tell which of the two had gone missing.
+
+    RE-KEYED 2026-10-06. This asserted baseline-iff-SHOCK, written before `da0431897` made a shock
+    an increase only. Since then the ratio the baseline belongs to is the SIGNED
+    `bill_movement_pct`, and a bill that FELL publishes baseline + movement with `bill_shock_pct`
+    None by design (`saas.bill_generator.bill_movement`). Measured on the book that redded it:
+    4,015 baseline-without-shock bills, every one with movement < 0. The pairing now names the
+    ratio the baseline actually divides, and a shock-less baseline is legal only on a fall."""
     bills = _bills()
     shock_only = [b for b in bills
                   if b.get("bill_shock_pct") is not None
                   and b.get("bill_shock_baseline_gbp") is None]
-    baseline_only = [b for b in bills
-                     if b.get("bill_shock_pct") is None
-                     and b.get("bill_shock_baseline_gbp") is not None]
+    unpaired = [b for b in bills
+                if (b.get("bill_movement_pct") is None) != (b.get("bill_shock_baseline_gbp") is None)]
+    risen_unshocked = [b for b in bills
+                       if b.get("bill_shock_pct") is None
+                       and b.get("bill_movement_pct") is not None
+                       and b["bill_movement_pct"] >= 0.0]
+    fell = [b for b in bills
+            if b.get("bill_shock_pct") is None and b.get("bill_shock_baseline_gbp") is not None]
+    rose = [b for b in bills
+            if b.get("bill_shock_pct") is not None and b.get("bill_shock_baseline_gbp") is not None]
+    assert rose and fell, (
+        f"{len(rose)} risen and {len(fell)} fallen bills carry a baseline: both branches must be "
+        "reachable, or the legs below are checking one side of the partition"
+    )
     assert not shock_only, (
         f"{len(shock_only)} bill(s) publish a bill_shock_pct with no baseline — the ratio is "
         "unreproducible again for exactly those bills, which is what this repair removed"
     )
-    assert not baseline_only, (
-        f"{len(baseline_only)} bill(s) publish a baseline with no ratio"
+    assert not unpaired, (
+        f"{len(unpaired)} bill(s) publish one of bill_movement_pct / bill_shock_baseline_gbp "
+        "without the other"
+    )
+    assert not risen_unshocked, (
+        f"{len(risen_unshocked)} bill(s) ROSE (movement >= 0) and publish no bill_shock_pct — "
+        "a baseline without a shock is legal only on a bill that fell"
     )
 
 
