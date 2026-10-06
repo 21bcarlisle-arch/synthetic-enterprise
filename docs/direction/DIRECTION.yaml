@@ -389,3 +389,23 @@ for_the_director:
   status: open
   resolution: ''
   evidence: docs/staging/SEAT_FINDING_C34_THE_DECISION_IS_BUILT_AND_ON_SUPPLIER_VALUE_ALONE_IT_ADVISES_NOBODY_2026-10-06.md
+- id: home-moves-can-now-be-switched-on
+  raised: '2026-10-06'
+  kind: strategy
+  what: Home moves can now be switched on without losing the premise. B7 slice 3 (8359d5acd) supplies
+    a vacated premise from the move date under a new account, on deemed terms at the default tariff. Moves
+    are still off in docs/design/curriculum/home_moves_activation.json, which is your curriculum. While
+    they are off, B11's switch/move split returns None on every run, and every departure in the book reads
+    as a switch.
+  proposal: 'Switch home_moves_activation.json to true. B11 would then split each departure into a switch
+    or a move, using what a real move-out notice tells a supplier. It would fit a switch-only hazard by
+    contract year, which C34''s retention pricing needs, because a retention offer cannot stop a move.
+    With moves on, the book gains deemed move-in accounts on the default tariff, and some premises turn
+    over more than once. One known bias, in our favour: the incoming account pays for the whole change-of-tenancy
+    window, which in reality is often never collected. That is about q1_unnamed_months_per_cot months
+    of each premise''s annual quantity per move, and it is named in the finding. If you would rather that
+    debt side were built first, say so and moves stay off. I am carrying on with other work meanwhile.'
+  status: open
+  resolution: ''
+  evidence: docs/staging/SEAT_FINDING_B7_SLICE_3_A_VACATED_PREMISE_IS_SUPPLIED_FROM_THE_MOVE_DATE_UNDER_A_NEW_ACCOUNT_2026-10-06.md;
+    tests/simulation/test_a_home_move_ends_supply_in_the_run.py
