@@ -59,3 +59,57 @@ most of it (0.77). Appliance events and occupancy have no season, and the trace 
 pump or fan electricity and no supplementary electric heating. Next is a BUILD, sourced term by
 term. Boiler auxiliary electricity is the only candidate with a published allowance (SAP Table 4f),
 and it must be read at source first.
+
+## Built, first term, NOT LANDED: it breaches L1.1 on the live panel (2026-10-06, executor seat, draw `fabric-electricity-boiler-auxiliary-build`)
+
+**Disposition of the draw's duplicate-work note:** the live claim it named under this same id was
+this draw's own write; `ps` showed no other seat holding it. Built, not released.
+
+The built code is parked as `docs/design/frame/W1_BOILER_AUXILIARY_ELECTRICITY_BUILT_BLOCKED_ON_L1_1.patch`
+(`git apply` it onto `simulation/premise_trace.py` and a new test). `simulation/premise_trace.boiler_auxiliary_kwh` adds the gas boiler's own electricity to every
+gas-heated premise's meter: pump plus fan/controls over the boiler's own running time, standby
+otherwise (HEM-TP-14 §5). The powers come from three Ecodesign 813/2013 fiches and the Grundfos UPS
+15-50 datasheet. A variable-speed pump's operating point is derived from SAP Table 4f's ratio of its
+two allowances. The pump kind is decided by install date against the 1 August 2015 Ecodesign date.
+Sources and every named gap are in the research doc. Control:
+`tests/simulation/test_a_gas_boilers_own_electricity_follows_its_running_hours.py`. All five
+mutations bite: term not added to the meter, one pump kind only, always running, term on non-gas
+homes, and the band short-circuit removed.
+
+On the reference premise, the winter/summer ratio moves from **1.01 to 1.058** with a fixed-speed
+pump and 1.031 with a variable-speed one. That is inside the pre-registered range. **The annual
+total was refuted** (92 kWh against 100–220): the world's boiler runs 1,049 h a year, against the
+3,667 h SAP's pump allowances imply.
+
+**Still open, and the reason this finding stays in the queue:** SERL's 1.36–1.47 is not reached, and
+was not expected to be. The remaining candidates, supplementary electric heating and seasonal
+cooking/occupancy, have no sourced magnitude yet. The next item is a DISCOVER pass for those, not
+another build. **Practitioner question, asked on NTFY:** does a domestic heating pump run only while
+the room thermostat calls, or whenever the programmer is on? The world follows HEM (the first). If
+it is the second, the term's hours roughly treble.
+
+**Why it did not land.** The term reds 8 harness controls
+(`tests/harness/test_premise_two_level.py` ×7, `tests/tools/test_couple_fabric.py` ×1). Three other
+failures in the same run (`test_every_settling_domestic_premise_reads_a_complete_stored_cell`,
+`test_net_new_acquisition::…journal…`, `test_rng_substream::…stale_exemption`) fail at HEAD too and
+are not this change. The root is one cell. **L1.1 half-hourly texture** on the drawn 60 (seed 17,
+Jan–Apr 2022) goes from 0/60 to **1/60**. P0000, a 1919–44 detached house with an OLD system boiler
+and a fixed-speed pump, measures **0.1495 against the 0.15 floor**. It was already at **0.1526**
+without the term. The term adds 0.62 kWh/day, raising the mean 5.5% and the median step 3%, so the
+breach is in the DENOMINATOR. The other reds follow from it: the gas homes' critical-weight median
+0.3066 → 0.2903, pinned as a literal, and the timing-less null clearing 45% where 50% is asserted.
+
+**Why netting the term out of the judged load set would be a loosening and not a repair.** H38
+netted the water heater because the floor's anchor, a gas-heated home's electricity meter, never
+carried it. That same anchor DOES carry the boiler pump: every real gas-heated meter has one. So by
+H38's own argument the pump belongs in the judged load set, and R12 forbids moving the floor. Read
+that way, the breach is real. It shows a home whose behavioural texture was already at the calm edge,
+and one sourced, physically certain load tipped it.
+
+**The decision this needs, with a recommendation:** land the term and record L1.1 at 1/60, diagnosed
+as P0000's behaviour being too calm for a large home. The floor is domain knowledge and was never read
+at source (its own anchor text says the SERL/LCL band is not in the library). The next item would
+then be that DISCOVER, which either sources the floor or finds the calm-behaviour mechanism. The
+alternative, keeping a sourced load out of the world so that an unsourced floor stays green, is the
+goal-seek R12 exists to prevent. I have not taken either step, because flipping 8 controls'
+expected verdicts is a change to what the harness asserts and needs a second pair of eyes.

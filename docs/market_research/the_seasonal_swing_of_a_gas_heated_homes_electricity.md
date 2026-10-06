@@ -139,3 +139,86 @@ electricity at rated W during the boiler's own circulation hours. It needs the p
 which the build should take from the per-unit power behind Table 4f (or from Ecodesign
 circulator-pump EEI limits), not back-solve from kWh/yr. It also needs a pump-age assignment
 that carries its gap explicitly.
+
+## The build's per-unit powers, read at source (2026-10-06, executor seat, draw `fabric-electricity-boiler-auxiliary-build`)
+
+**Structure: HEM-TP-14 §5** (DESNZ, *Home Energy Model: boiler methodology*, v3.0, Oct 2025;
+<https://assets.publishing.service.gov.uk/media/690236256d9e8bf43eaf70a8/hem-tp-14-boiler-methodology.pdf>),
+the government's successor to SAP, models a boiler's electricity as
+`P_circ × running time + P_SB × standby time + el_flue × running time`, where `el_flue` for a
+modulating boiler is interpolated between the Ecodesign part-load (`elmin`, measured at 30% output) and
+full-load (`elmax`) electrical powers. The pump is a separate term from `elmax`. Reg. 813/2013 does
+not itself say whether `elmax` includes an integrated circulator (read on EUR-Lex). The build follows
+HEM and SAP Table 4f, which both count the pump separately. **If `elmax` does include the pump, the
+build double-counts at most about 14 W of fan while running.**
+
+**Fan and controls: Ecodesign 813/2013 product fiches**, three current UK gas boilers:
+
+| Fiche | elmax W | elmin W | PSB W |
+|---|---|---|---|
+| Worcester-Bosch 24 kW (installer lit. 6720838565) | 29 | 14 | 1 |
+| Worcester-Bosch 31 kW (contracts lit. 6720858191) | 42 | 18 | 4 |
+| Vaillant ecoTEC plus 637 (VU GB 376/5-5 A, 38 kW) | 38 | 13 | 3 |
+
+The build takes the median of each column: **38 / 14 / 3 W**. Three products are not a sample of the
+stock. The spread is carried in the code's comment. These are condensing, fan-assisted boilers. Whether
+the oldest band of the stock had a fan-assisted flue at all is **not established**. The build assumes
+it did, and says so.
+
+**Pump, fixed-speed (pre-Ecodesign): Grundfos UPS 15-50 N 130 datasheet**
+(<https://www.anglianpumping.com/app/uploads/2023/03/97549426_UPS_15-50_N_130.pdf>): **35 W at speed 1,
+45 W at speed 2, 50 W maximum.** The build uses speed 2. Which speed the stock's pumps are set to is
+**not established**.
+
+**Pump, variable-speed (Ecodesign 641/2009 as amended by 622/2012, EEI ≤ 0.23 for circulators
+integrated in products from 1 August 2015):** a variable-speed pump's datasheet gives a range, not an
+operating point. Grundfos UPM3 AUTO 15-70 is reported at P1 5–52 W, EEI 0.20. The operating point
+is **not established** from a datasheet. The build derives it as `45 W × 41/165 = 11.2 W`. That is
+the fixed-speed rating scaled by SAP Table 4f's own ratio of the two pump allowances, on the stated
+assumption that SAP gives both the same running hours. It sits inside the UPM3's published range.
+It is a derivation from two sources, not a measurement.
+
+**Which pump a boiler has** follows from its install date against 1 August 2015. The household's
+`boiler_age` band (NEW 0–5 y, MID 5–12 y, OLD 12+ y) gives the install-year window measured from the
+trace's first day. Where the boiler falls inside its band is **one uniform draw per premise. Uniform
+is an assumption, not a source.** The stock's real install-year distribution is the gap.
+
+**Pre-registration, written before the term was run** (one gas-combi semi,
+`tests/simulation/test_premise_trace.make_household`, seed 42, real 2022 weather, the same premise as
+the component table above; the pump kind is forced each way):
+
+- Fixed-speed pump: the Dec–Feb uplift will be **0.4–0.9 kWh/day** and the Jun–Aug uplift
+  0.05–0.2 (hot-water firing plus standby). The meter's winter/summer ratio will move from 1.01 to
+  **1.04–1.10**. The annual auxiliary total will be **100–220 kWh** (SAP's 165 + 45 = 210 is the
+  rating allowance).
+- Variable-speed pump: the winter uplift will be 0.2–0.5 kWh/day and the ratio **1.02–1.06**.
+- Either way, the term alone does **not** reach SERL's 1.36–1.47. That is the expected outcome, not a
+  defect. The rest of the swing is items 1 and 3, which are unsourced.
+
+**Result, against the pre-registration above** (`/tmp/aux_measure.py`; same premise, seed and weather):
+
+| Pump | Aux Dec–Feb kWh/day | Aux Jun–Aug | Annual aux kWh | Meter winter/summer |
+|---|---|---|---|---|
+| none (before) | 0 | 0 | 0 | 1.01 |
+| fixed-speed 45 W | 0.52 | 0.10 | **92** | **1.058** |
+| variable-speed 11.2 W | 0.28 | 0.09 | 56 | 1.031 |
+
+The winter uplift, summer uplift and both ratios landed inside their predicted ranges. **The annual
+total was refuted:** predicted 100–220 kWh, measured 92. The cause was measured, not argued. The
+world's boiler runs **1,049 h a year** (7.3 h/day Dec–Feb, 0.3 h/day Jun–Aug, the summer hours being
+hot water). SAP's two pump allowances each imply **3,667 h** at their wattage (165 kWh / 45 W =
+41 kWh / 11.2 W). So the wattage is consistent with SAP and the hours are not. Possible causes,
+not yet ranked: in real systems the pump runs whenever the programmer is on, not only while the
+room thermostat calls; SAP's hours are deliberately generous; or the world's heating runs too few
+hours. The third would also understate gas, and the world's gas is graded separately. The term
+follows HEM's own convention (pump × boiler running time), so nothing is changed to close the gap.
+
+The meter's monthly max/min moved from 1.18 to 1.21 with **March still the minimum**: one sourced
+term makes the season visible on Dec–Feb against Jun–Aug, but the month-to-month noise of the
+unseasonal components still dominates the monthly shape. SERL's 1.36–1.47 band is not reached, as
+predicted. The rest is items 1 and 3.
+
+**Not landed.** The term breaches the L1.1 texture floor for one home of the 60-home harness panel
+(0.1495 against 0.15; 0.1526 before the term). It is parked as
+`docs/design/frame/W1_BOILER_AUXILIARY_ELECTRICITY_BUILT_BLOCKED_ON_L1_1.patch`, and the decision it
+needs is in `docs/staging/SEAT_FINDING_THE_FABRIC_PATH_GIVES_A_GAS_HEATED_HOMES_ELECTRICITY_NO_SEASON_2026-10-06.md`.
