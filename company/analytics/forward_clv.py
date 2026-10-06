@@ -40,6 +40,14 @@ years and every held-back month through the book's end. The level of both foreca
 expected to miss through the crisis; what the comparison grades is whether the
 per-customer rule places value between accounts better than the flat rule does.
 
+THE DEVIATION WINDOW (B11 slices 2-3). At a cut inside or just after a regime change, an
+account's place relative to its segment is taken from the months before the regime moved, and
+the level is still fitted through the cut. Where the regime moved is READ, not picked:
+``regime_boundary_month`` finds the first month, on or after the cap began, in which wholesale
+gas set an all-time high over the whole published record. The window ends the month before.
+2021-05 on the record we hold. Slice 2's hand-picked 2020-12 was chosen after its answer was seen.
+With no such month by the cut, the window is the fit window, i.e. the rule as first shipped.
+
 THE BOUND. Every comparison is paired over the same accounts: the mean of
 (per-customer absolute error − flat absolute error) with a normal-approximation 95%
 interval on that mean. An interval that straddles zero is reported as "cannot tell",
@@ -62,6 +70,7 @@ from typing import Mapping, Sequence
 from saas.customer_reaction import _billing_account_id
 
 __all__ = [
+    "CAP_ERA_START",
     "DEFAULT_CUT_YEAR",
     "LIMITATION_DEPARTURE_CAUSE",
     "AccountHistory",
@@ -69,11 +78,17 @@ __all__ = [
     "PairedComparison",
     "book_from_run_output",
     "load_book",
+    "regime_boundary_month",
     "run_backtest",
     "backtest_run_output",
 ]
 
 DEFAULT_CUT_YEAR = 2020
+
+# The default tariff cap's first window (docs/domain_artefact_library/regulatory/
+# ofgem_default_tariff_cap_windows.json). It only skips the all-time highs a young series sets
+# in its first years: every month from 2018-10 to 2021-05 reads the same boundary.
+CAP_ERA_START = "2019-01"
 
 LIMITATION_DEPARTURE_CAUSE = (
     "departures cannot yet be split into switches and moves: the book records only that "
@@ -219,6 +234,31 @@ class Backtest:
     margin_bias: Mapping[str, tuple[float, tuple[float, float] | None]]
     aggregate: Mapping[str, float]
     limitations: tuple[str, ...]
+    margin_deviation_window_reason: str = ""
+
+
+def regime_boundary_month(
+    wholesale_by_month: Mapping[str, float], through: int, anchor: str = CAP_ERA_START
+) -> int | None:
+    """First month in [`anchor`, `through`] whose wholesale price is above every earlier month of
+    the record, or None. Reads nothing after `through`, so a cut never sees its own future."""
+    months = sorted((_month_index(ym), p) for ym, p in wholesale_by_month.items())
+    start = _month_index(anchor)
+    before = [p for m, p in months if m < start]
+    if not before:
+        raise ValueError(
+            f"the wholesale record starts {_month_label(months[0][0]) if months else 'nowhere'}, "
+            f"not before {anchor}: an all-time high needs a record before the anchor"
+        )
+    high = max(before)
+    for m, p in months:
+        if m < start:
+            continue
+        if m > through:
+            return None
+        if p > high:
+            return m
+    return None
 
 
 def _fit_margins(
@@ -318,6 +358,7 @@ def run_backtest(
     book_end: int,
     cut_year: int = DEFAULT_CUT_YEAR,
     margin_fit_end_year: int | None = None,
+    wholesale_gas_by_month: Mapping[str, float] | None = None,
 ) -> Backtest:
     """Fit on months up to December of `cut_year`; forecast and grade every later month.
 
@@ -327,10 +368,29 @@ def run_backtest(
     accounts sit above or below their segment comes from the earlier window. At the default
     (the cut year) it is `w*own + (1-w)*segment`, the rule as first shipped. An account with
     no month in the earlier window gets its segment's value.
+
+    `wholesale_gas_by_month` (slice 3) READS that window's end instead: the month before
+    `regime_boundary_month`. Giving both is refused -- one window, one source.
     """
     fit_end = _month_index(f"{cut_year}-12")
-    dev_end = fit_end if margin_fit_end_year is None else _month_index(
-        f"{margin_fit_end_year}-12")
+    if margin_fit_end_year is not None and wholesale_gas_by_month is not None:
+        raise ValueError(
+            "a deviation window from a chosen year AND from the wholesale record: give one"
+        )
+    if margin_fit_end_year is not None:
+        dev_end = _month_index(f"{margin_fit_end_year}-12")
+        dev_reason = f"chosen: deviation through {margin_fit_end_year}-12"
+    elif wholesale_gas_by_month is not None:
+        boundary = regime_boundary_month(wholesale_gas_by_month, fit_end)
+        dev_end = fit_end if boundary is None else boundary - 1
+        dev_reason = (
+            f"read: no wholesale all-time high from {CAP_ERA_START} to the cut"
+            if boundary is None else
+            f"read: wholesale gas set an all-time high in {_month_label(boundary)}"
+        )
+    else:
+        dev_end = fit_end
+        dev_reason = "the fit window (no deviation window asked for)"
     if dev_end > fit_end:
         raise ValueError(
             f"margin fit year {margin_fit_end_year} is after the cut {cut_year}: the "
@@ -440,6 +500,7 @@ def run_backtest(
         margin_bias=margin_bias,
         aggregate=aggregate,
         limitations=tuple(limitations),
+        margin_deviation_window_reason=dev_reason,
     )
 
 
@@ -448,9 +509,16 @@ def load_book(path: Path | str) -> tuple[list[AccountHistory], int]:
 
 
 def backtest_run_output(
-    path: Path | str, cut_year: int = DEFAULT_CUT_YEAR, margin_fit_end_year: int | None = None
+    path: Path | str,
+    cut_year: int = DEFAULT_CUT_YEAR,
+    margin_fit_end_year: int | None = None,
+    wholesale_gas_by_month: Mapping[str, float] | None = None,
 ) -> Backtest:
-    return run_backtest(*load_book(path), cut_year, margin_fit_end_year)
+    """A run's book. The caller hands in the wholesale series
+    (`SimInterface.monthly_wholesale_prices("gas")`); importing the live interface here would
+    give the company layer a route to a real endpoint, which `tools/company_network_isolation`
+    refuses."""
+    return run_backtest(*load_book(path), cut_year, margin_fit_end_year, wholesale_gas_by_month)
 
 
 if __name__ == "__main__":  # pragma: no cover - a reading aid, not a door
@@ -461,6 +529,8 @@ if __name__ == "__main__":  # pragma: no cover - a reading aid, not a door
     dev = int(sys.argv[3]) if len(sys.argv) > 3 else None
     bt = backtest_run_output(target, cut, dev)
     print(f"cut {bt.cut_year}: fit {bt.fit_months}, held back {bt.held_back_months}")
+    print(f"deviation window {bt.margin_deviation_fit_months}: "
+          f"{bt.margin_deviation_window_reason}")
     print(f"graded {bt.accounts_graded}, excluded {dict(bt.accounts_excluded)}")
     print(f"k by segment {bt.shrinkage_k_by_segment}")
     print(f"hazard by contract year {bt.hazard_by_contract_year}")

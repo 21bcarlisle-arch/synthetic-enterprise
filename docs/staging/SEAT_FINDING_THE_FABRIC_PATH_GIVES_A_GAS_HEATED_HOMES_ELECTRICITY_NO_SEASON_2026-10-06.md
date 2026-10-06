@@ -49,3 +49,13 @@ A world-lane DISCOVER pass: find the published seasonal swing of non-electricall
 domestic electricity (the PC1 coefficients as an average, and any metered-panel distribution,
 for example SERL), then locate the component of the premise trace that should carry it. Decide
 blind to D48.
+
+## Discovered (2026-10-06, worker, draw `fabric-electricity-season-discover`)
+
+`docs/market_research/the_seasonal_swing_of_a_gas_heated_homes_electricity.md`. SERL Stats Report
+Vol 2 puts the gas-heated, no-PV monthly median at max/min **1.36–1.47** (2021–23). The world's only
+seasonal term is lighting (ratio 2.54, about +0.5 kWh/day in winter), and the cold appliances cancel
+most of it (0.77). Appliance events and occupancy have no season, and the trace carries no boiler
+pump or fan electricity and no supplementary electric heating. Next is a BUILD, sourced term by
+term. Boiler auxiliary electricity is the only candidate with a published allowance (SAP Table 4f),
+and it must be read at source first.
