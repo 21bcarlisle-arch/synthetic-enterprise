@@ -405,6 +405,15 @@ def fuel_poverty_for_customer(customer_id: str, payment_channel: PaymentChannel)
 #: `random.Random(f"engagement_{customer_id}")` and nothing else -- the canon's "a hash of the
 #: customer id", literally. A supplier cannot learn a hash, so the company faced a world in which
 #: engagement was real, mattered, and was structurally unlearnable.
+#:
+#: WHAT THE RATIO COUNTS, AND WHERE ALL OF IT IS PUT. C4 counts COMPLETED switches, which are
+#: P(looks) x P(moves | looks). This module attributes the whole channel ratio to the first factor
+#: and none to the second, and elasticity carries no channel part, so nothing is counted twice. But
+#: the split is assumed, not measured: no published source decomposes C4 by channel. If part of
+#: prepayment's low rate is conversion (fewer deals open to a prepayment meter, debt above the DAP
+#: limit), this OVERSTATES how much less a prepayment household looks and understates how hard a
+#: look ends in staying. Direct debit and standard credit sit within 0.1pt, so the assumption bites
+#: on prepayment alone. (Expert Hour 2026-10-06, D6.)
 CIM_SWITCH_RATE_BY_CHANNEL: dict[PaymentChannel, float] = {
     PaymentChannel.DIRECT_DEBIT: 0.056,
     PaymentChannel.STANDARD_CREDIT: 0.057,
