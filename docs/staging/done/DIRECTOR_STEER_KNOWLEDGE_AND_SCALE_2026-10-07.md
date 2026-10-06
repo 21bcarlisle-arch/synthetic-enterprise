@@ -1,3 +1,5 @@
+> **Discharged 2026-10-06 as a duplicate.** The text is the director's 2026-10-06T03:35Z console message, sent again by NTFY at 20:44Z (`FlNOHLX2fXfH`). Both parts had already landed: the knowledge and the toggles in `fbe24afea`, and the 4,000-founder book in `b8808f4ad` (the cost curve was re-measured in `da6d70053`). The one open tail, re-pricing `SETTLEMENT_CUSTOMER_YEAR_BUDGET` (1,050) from the runner's fixed-code peak, is a queued continuation. The director was told by NTFY (`kvQwQkkmf42r`).
+
 # [DIRECTOR-STEER] — Knowledge on three areas, and a book of a few thousand (2026-10-07)
 
 **Type:** [STEER — work direction, not canon. Severity: LATENT. Staged by the advisor because the director's console session is unreachable; the same text arrived by NTFY at 2026-10-06 20:44Z and was queued for a seat that may not exist. If it has already been acted on, discharge this as a duplicate.]
