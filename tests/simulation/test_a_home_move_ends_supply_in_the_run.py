@@ -102,3 +102,24 @@ def test_a_dual_fuel_premise_keeps_both_legs_in_one_incoming_household(moved_run
             if {m["commodity"] for m in moved_run["home_move_outs"] if m["household"] == h}
             == {"electricity", "gas"}]
     assert all(len(households) == 1 for households in by_mover.values()), by_mover
+
+
+def test_the_change_of_tenancy_window_is_occupier_debt_and_the_rest_is_collected_as_usual(
+        moved_run):
+    """B7 slice 4. Defect: the incoming account counted as paying for energy used before anyone
+    was named, or the debt booked past the window, or booked on the mover's or anyone else's
+    rows. The first assertion is the partition control: rows on BOTH sides of a window must
+    exist, or a rule that books everything or nothing would pass the loop."""
+    until = {m["customer_id"]: m["unnamed_until"] for m in moved_run["home_move_ins"]}
+    rows = [r for r in moved_run["all_records"] if r["customer_id"] in until]
+    inside = [r for r in rows if r["settlement_date"][:10] < until[r["customer_id"]]]
+    after = [r for r in rows if r["settlement_date"][:10] >= until[r["customer_id"]]]
+    assert inside and after and [r for r in inside if r.get("revenue_gbp", 0.0) > 0.0]
+    for rec in inside:
+        assert rec["occupier_debt_gbp"] == pytest.approx(rec.get("revenue_gbp", 0.0)), rec
+        assert rec["bad_debt_gbp"] == 0.0, rec
+    assert not [r for r in after if "occupier_debt_gbp" in r]
+    assert not [r for r in moved_run["all_records"]
+                if "occupier_debt_gbp" in r and r["customer_id"] not in until]
+    assert moved_run["total_occupier_debt"] == pytest.approx(
+        sum(r["occupier_debt_gbp"] for r in inside))

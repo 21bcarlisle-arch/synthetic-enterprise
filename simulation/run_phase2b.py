@@ -98,6 +98,7 @@ from sim.customer_state_layer import (
     moves_active,
     term_window_under_move,
     unnamed_kwh_after_move,
+    unnamed_until,
 )
 from sim.forward_curve import (
     SUMMER_MULTIPLIER,
@@ -2012,6 +2013,8 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
     _incoming_occupant_book = incoming_occupant_supply_points()
     _incoming_occupant_book.clear()
     home_move_ins: list[dict] = []
+    # B7 slice 4: per incoming leg, the day its energy stops being the unnamed occupier's.
+    _unnamed_until: dict[str, date] = {}
 
     def _known_customers() -> list[dict]:
         """The run's accounts, the incoming occupants admitted so far included. With moves off it
@@ -2027,6 +2030,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         if get_customer(leg) is not None:
             return
         _incoming_occupant_book.append(record)
+        _unnamed_until[leg] = unnamed_until(move.move_date)
         for _by_point in (weather_by_customer, cloud_cover_by_customer, hh_consumption_by_customer,
                           fabric_series_by_customer, properties):
             if premise in _by_point:
@@ -2061,6 +2065,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             "commodity": commodity, "supply_start": record["acquisition_date"],
             "terms": record["terms"], "tariff_type": record["tariff_type"],
             "segments": len(segments),
+            "unnamed_until": _unnamed_until[leg].isoformat(),
             "occupancy_start_unknown_reason": move.incoming.start_date_unknown_reason,
         })
     # EP12: HOW THE SUPPLIER HEARS IT LOST A HOUSEHOLD -- a registration-loss notice per supply
@@ -3741,6 +3746,14 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             # The stress multiplier beside it was already world-side.
             _bd_rate = world_bad_debt_incidence(int(rec_year), cust_segment) * _stress_bd_mult
             _bad_debt = round(rec.get("revenue_gbp", 0.0) * _bd_rate, 6)
+            # B7 slice 4: energy at a vacated premise before anyone is named is billed to "the
+            # occupier" and goes unpaid (`unnamed_until`). It is its own field, not
+            # `bad_debt_gbp`, because phase 4c releases that placeholder and re-books it from the
+            # arrears engine, which would collect this window as if a named household paid it.
+            if cid in _unnamed_until and rec["settlement_date"][:10] < _unnamed_until[cid].isoformat():
+                rec["occupier_debt_gbp"] = rec.get("revenue_gbp", 0.0)
+                rec["net_margin_gbp"] = round(rec["net_margin_gbp"] - rec["occupier_debt_gbp"], 6)
+                _bad_debt = 0.0
             rec["bad_debt_gbp"] = _bad_debt
             rec["net_margin_gbp"] = round(rec["net_margin_gbp"] - _bad_debt, 6)
             treasury += rec["net_margin_gbp"]
@@ -3994,6 +4007,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
     total_gross = sum(r["margin_gbp"] for r in all_records)
     total_capital = sum(r["capital_cost_gbp"] for r in all_records)
     total_bad_debt = sum(r.get("bad_debt_gbp", 0.0) for r in all_records)
+    total_occupier_debt = sum(r.get("occupier_debt_gbp", 0.0) for r in all_records)
     total_net = sum(r["net_margin_gbp"] for r in all_records)
     final_treasury = all_records[-1]["treasury_cash_balance_gbp"] if all_records else STARTING_TREASURY_GBP
 
@@ -4436,6 +4450,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         "total_gross": total_gross,
         "total_capital": total_capital,
         "total_bad_debt": total_bad_debt,
+        "total_occupier_debt": total_occupier_debt,
         # EP4: each account's collections journey on the COMPANY's own ledger -- dated stages from
         # a missed payment to an exit, or `exit: None` while still open at the run's end.
         "collections_journeys": _payment_triad.collections_journeys(

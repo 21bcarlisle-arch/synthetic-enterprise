@@ -264,6 +264,15 @@ def test_the_unnamed_energy_moves_with_the_meter_points_annual_quantity_and_the_
     assert csl.unnamed_kwh_after_move(5400.0) == pytest.approx(2 * mid)
 
 
+def test_the_unnamed_window_ends_the_registers_months_after_the_move_at_every_setting():
+    """B7 slice 4. Defect: the window typed as a day count, or not moving with the toggle."""
+    moved = dt.date(2016, 4, 21)
+    days = {s: (csl.unnamed_until(moved, s) - moved).days for s in ("low", "default", "high")}
+    for setting, n in days.items():
+        assert n == round(csl.unnamed_months_per_move(setting) * 365.25 / 12.0), setting
+    assert 0 < days["low"] < days["default"] < days["high"]
+
+
 @pytest.mark.parametrize("annual", [None, 0.0, -1.0, float("nan")])
 def test_no_annual_quantity_is_no_answer_not_a_zero_gap(annual):
     """Defect: a missing rate reported as 0 kWh, which reads as "this move left no gap"."""

@@ -86,8 +86,9 @@ Two quantities are unpublished, and neither is typed here:
     toggle was derived as months of an average-year bill. The leaving household's final term is
     the wrong basis: it reads one season, and at 2016 inputs a January-April gas term put 5,036 kWh
     on an April-July window.
-In the run, this energy is neither settled to nor billed by the company yet, because the premise
-stops at the move. Supplying the incoming deemed leg is B7 slice 3, and that is where its cost lands.
+Since B7 slice 3 the incoming deemed leg is supplied from the move date, so this energy is settled
+and billed. Since slice 4 the part of it inside the window (`unnamed_until`) is booked as occupier
+debt on the incoming leg rather than as paid.
 
 WALL. Everything here is ground truth. The move date, the occupancy ids and the void are exactly
 what a supplier cannot see; the seam that will let the company see the shadows (a final read, a
@@ -313,6 +314,18 @@ def unnamed_kwh_after_move(annual_kwh: Optional[float],
     if annual_kwh is None or not math.isfinite(annual_kwh) or annual_kwh <= 0.0:
         return None
     return annual_kwh / 12.0 * unnamed_months_per_move(setting)
+
+
+def unnamed_until(move_date: dt.date, setting: str = "default") -> dt.date:
+    """B7 slice 4: the first day the vacated premise's energy is the named occupant's to pay.
+
+    Energy settled from the move date up to the day before this is billed to "the occupier" and
+    is not collected. The window is the register's expectation, the same one
+    `unnamed_kwh_after_move` prices, and it is not drawn per move. The toggle was derived as CoT
+    debt accrued per move, so it measures energy that went unpaid, not energy that was merely
+    billed late. Any later recovery of that debt is not established, and nothing here books one.
+    """
+    return move_date + dt.timedelta(days=round(unnamed_months_per_move(setting) * 365.25 / 12.0))
 
 
 def incoming_leg_id(incoming_occupancy_id: str, vacated_supply_point_id: str) -> str:
