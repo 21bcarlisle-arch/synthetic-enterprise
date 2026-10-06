@@ -1751,7 +1751,25 @@ def test_the_kernel_applied_both_limits_not_just_this_repo_writing_them_down():
     )
 
 
+
+def _forget_killed_selftest_scopes():
+    """THE SELF-TESTS KILL ON PURPOSE, AND SYSTEMD REMEMBERS EVERY KILL (2026-10-06). Each run of
+    the two bound self-tests below leaves a failed `ops2-*-selftest*` scope behind, and 243 had
+    piled up in `systemctl --user --failed`, where they bury a real failure. Forgetting them after
+    each test is the cleanup; it never fails a test, because it is housekeeping and not a claim.
+    `--collect` on the scope was not used: it would unload a killed scope before the measurement
+    tool could read its final peak, which is the one fact the killed-phase test is about. Called
+    INSIDE each self-test once its scope has died: the isolation guard rightly refuses a real
+    `systemctl` from a fixture's teardown."""
+    try:
+        subprocess.run(["systemctl", "--user", "reset-failed", "ops2-*selftest*"],
+                       capture_output=True, timeout=30)
+    except (OSError, subprocess.SubprocessError):
+        pass
+
+
 @pytest.mark.skipif(_systemd_run_missing(), reason="systemd-run is the mechanism under test")
+@pytest.mark.real_subprocess
 def test_the_bound_actually_kills_an_over_large_child_and_the_unbounded_one_survives():
     """The control's own named defect, run for real: a child that exceeds the ceiling dies.
 
@@ -1766,6 +1784,7 @@ def test_the_bound_actually_kills_an_over_large_child_and_the_unbounded_one_surv
     bounded = subprocess.run(measure._scope_argv("ops2-bound-selftest", memory_max_mb=128)
                              + [sys.executable, "-c", alloc],
                              capture_output=True, text=True, timeout=120)
+    _forget_killed_selftest_scopes()
     unbounded = subprocess.run([sys.executable, "-c", alloc],
                                capture_output=True, text=True, timeout=120)
 
@@ -3112,6 +3131,7 @@ class _ScopePeakSamplerHarness:
 
 
 @pytest.mark.skipif(_systemd_run_missing(), reason="systemd-run is the mechanism under test")
+@pytest.mark.real_subprocess
 def test_a_killed_phases_peak_is_its_ceiling_and_is_labelled_a_lower_bound():
     """The branch that matters to the ratchet, run for real. A phase killed against its bound
     never used more than the bound, so its peak IS the ceiling -- and a reader (or
@@ -3134,6 +3154,7 @@ def test_a_killed_phases_peak_is_its_ceiling_and_is_labelled_a_lower_bound():
                          + [sys.executable, "-c", alloc],
                          capture_output=True, text=True, timeout=180)
     sampler.stop()
+    _forget_killed_selftest_scopes()
 
     assert res.returncode != 0, "the 900MB allocation survived a 512MB ceiling"
     assert sampler.peak_mb is not None and sampler.peak_mb <= 512
