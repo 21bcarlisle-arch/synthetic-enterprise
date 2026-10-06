@@ -621,16 +621,22 @@ def test_MEASURED_population_values(population, population_result):
     # established, so it is smooth by construction, and those two are now the two
     # homes under the real p25. Net of the heater they read 0.164 and 0.208. See
     # `test_P0000_the_calmest_home_is_ORDINARY_...`, which asserts it.
+    #
+    # [0, 2, 4, 31] -> [0, 1, 4, 31] the same day, and it is NOT progress either. The
+    # heater now runs at HES's hours for EFUS's lengths (sessions drawn, not a fixed
+    # block). Pre-registered: each owner moves under 0.01. P0023 0.1045 -> 0.1056,
+    # P0050 0.1166 -> 0.1197, which steps over the 0.117 line by 0.003. Timing does
+    # not make them calm: the heater's energy raises the mean and adds few steps.
     texture = population_result.cell(fgl.TEXTURE_STATISTIC)
     assert texture.verdict is fgl.Verdict.FAIL, texture.note
     assert texture.homes_judged == 60 and texture.homes_unjudged == 0, texture.note
     legs = {leg.q: leg for leg in texture.quantiles}
-    assert [legs[q].below for q in (0.10, 0.25, 0.50, 0.75)] == [0, 2, 4, 31], texture.note
+    assert [legs[q].below for q in (0.10, 0.25, 0.50, 0.75)] == [0, 1, 4, 31], texture.note
     assert legs[0.50].world == pytest.approx(0.209, abs=0.005), texture.note
     assert all(leg.p * len(legs) < fgl.TEXTURE_DISTRIBUTION_ALPHA for leg in legs.values())
     # The calmest home is a supplementary-heater owner (above), and no longer P0000.
     assert texture.worst_home == "P0023", texture.note
-    assert texture.worst_value == pytest.approx(0.1045, abs=5e-4), texture.note
+    assert texture.worst_value == pytest.approx(0.1056, abs=5e-4), texture.note
     assert "gas" in population.heating_systems[
         population.homes.index(texture.worst_home)
     ], "the calmest home is one the machine netting did not touch"
@@ -666,9 +672,15 @@ def test_MEASURED_population_values(population, population_result):
     # duty and timing are not established. That replays, and it is the home nearest
     # the 0.85 near-replay band. The remedy is to source the heater's operating
     # pattern. Do not move the band.
+    #
+    # 0.7773 -> 0.5780 the same day: the timing is sourced (HES's heater curve,
+    # EFUS's session lengths and set-time share). P0050 runs its heater at no set
+    # time, so its sessions move and it left the top. The worst is now P0023, which
+    # EFUS's 28% set-time draw gives one fixed session a day type: it repeats, as a
+    # set-time household does. The power within a session is still not sourced.
     shape = population_result.cell("L1.2_day_to_day_shape_correlation")
-    assert shape.worst_home == "P0050", shape.note
-    assert shape.worst_value == pytest.approx(0.7773, abs=0.01), shape.note
+    assert shape.worst_home == "P0023", shape.note
+    assert shape.worst_value == pytest.approx(0.5780, abs=0.01), shape.note
     assert "gas" in population.heating_systems[
         population.homes.index(shape.worst_home)
     ], "the worst home is a GAS home"
@@ -709,10 +721,12 @@ def test_P0000_the_calmest_home_is_ORDINARY_against_real_homes_and_the_red_is_th
             fgl.half_hourly_texture(meter, machines=fgl.machine_draw(judged, heater)),
         )
 
-    # SINCE 2026-10-06 THE CALMEST HOMES ARE SUPPLEMENTARY-HEATER OWNERS, and that is
-    # an artefact of a flat block (the heater's power and duty are not established),
-    # not calm behaviour. The property kept: every home under the real p25 owns a
-    # heater, and net of the heater none of them is there.
+    # SINCE 2026-10-06 THE CALMEST HOMES ARE SUPPLEMENTARY-HEATER OWNERS. Called an
+    # artefact of the flat block; once the heater's timing was sourced they barely
+    # moved (pre-registered, held), so the calm is mostly the heater's energy in the
+    # mean, a real load. What stays unsourced is the cycling within a session. The
+    # property kept: every home under the real p25 owns a heater, and net of the
+    # heater none of them is there.
     under_p25 = {pid for pid, r in readings.items() if r[0] < REAL_P25}
     assert under_p25 and under_p25 == {pid for pid, r in readings.items() if r[4] > 0.0} & under_p25
     assert cell.worst_home in under_p25

@@ -10,6 +10,11 @@ THE DEFECTS EACH TEST NAMES:
     1,505 kWh in a normal year of heating degree days.
   * `test_the_season_comes_from_the_weather_not_a_calendar` -- a warm day, or an empty house, carrying
     heater energy; a cold day carrying no more than a mild one.
+  * `test_sessions_run_when_hes_says_for_as_long_as_efus_says` -- the flat block at fixed hours this
+    replaced: sessions whose lengths are not EFUS's quartiles, or whose energy across many days does
+    not fall in HES's hours.
+  * `test_set_time_homes_repeat_and_the_rest_do_not` -- a habit draw that returns one answer for every
+    home, or a set-time home whose session moves, or an irregular home whose session never does.
   * `test_the_meter_carries_it_and_the_boiler_burns_less` -- a term computed but never added to the
     meter, or added to the meter but never to the room's gain, so gas is not displaced.
 
@@ -19,6 +24,8 @@ from __future__ import annotations
 
 import dataclasses
 import datetime as dt
+import random
+import statistics
 
 import pytest
 
@@ -28,8 +35,10 @@ from simulation.household import HeatingSystem
 from tests.simulation.test_premise_trace import make_household
 
 
-def _profile():
-    return pt.behaviour_profile_for("P-heater", make_household(), seed=5)
+def _day(temp: float, *, weekend: bool = False, away: bool = False, rng=None, habit=None) -> list[float]:
+    return pt.supplementary_heating_kwh(
+        temp, is_weekend=weekend, is_away=away, rng=rng or random.Random(0), habit=habit
+    )
 
 
 def test_ownership_is_reachable_both_ways_and_only_in_gas_homes():
@@ -43,27 +52,51 @@ def test_ownership_is_reachable_both_ways_and_only_in_gas_homes():
 
 def test_a_normal_year_carries_hes_s_annual_energy():
     days = [d for d in pt.load_trace_weather("C1") if 2016 <= d.date.year <= 2024]
-    profile = _profile()
-    total = sum(
-        sum(pt.supplementary_heating_kwh(profile, d.weather.temperature_mean_c, is_weekend=d.is_weekend, is_away=False))
-        for d in days
-    )
+    rng = random.Random(3)
+    total = sum(sum(_day(d.weather.temperature_mean_c, weekend=d.is_weekend, rng=rng)) for d in days)
     years = len({d.date.year for d in days})
     assert total / years == pytest.approx(pt.SUPPLEMENTARY_ELECTRIC_HEATING_KWH_PER_YEAR, rel=1e-6)
 
 
 def test_the_season_comes_from_the_weather_not_a_calendar():
-    profile = _profile()
-
     def day(temp: float, *, away: bool = False) -> float:
-        return sum(pt.supplementary_heating_kwh(profile, temp, is_weekend=False, is_away=away))
+        return sum(_day(temp, away=away))
 
     assert heating_degree_days(16.0) == 0.0 and day(16.0) == 0.0
     assert day(0.0) > day(8.0) > 0.0
     assert day(0.0, away=True) == 0.0
-    # One evening block of EFUS's median hours, ending at the household's own bedtime.
-    lit = [p for p, k in enumerate(pt.supplementary_heating_kwh(profile, 0.0, is_weekend=False, is_away=False)) if k]
-    assert lit[-1] == profile.sleep_period - 1 and len(lit) == 8
+
+
+@pytest.mark.parametrize("weekend", [False, True])
+def test_sessions_run_when_hes_says_for_as_long_as_efus_says(weekend):
+    rng = random.Random(11)
+    hourly = [0.0] * 24
+    lengths = []
+    for _ in range(6000):
+        day = _day(0.0, weekend=weekend, rng=rng)
+        lit = [p for p, k in enumerate(day) if k]
+        lengths.append(len(lit) * pt.PERIOD_HOURS)
+        assert sum(day) == pytest.approx(sum(_day(0.0, weekend=weekend)))  # the energy is the day's, whole
+        for p, k in enumerate(day):
+            hourly[p // 2] += k
+    assert statistics.quantiles(lengths, n=4) == list(pt._EFUS_HEATER_HOURS_QUARTILES[weekend])
+    curve = pt._HES_HEATER_HOLIDAY_HOURLY if weekend else pt._HES_HEATER_WORKDAY_HOURLY
+    model = [h / sum(hourly) for h in hourly]
+    hes = [c / sum(curve) for c in curve]
+    # Within 5 points an hour: a session of at least 2.5 h cannot reproduce HES's one-hour features.
+    assert max(abs(m - h) for m, h in zip(model, hes)) < 0.05
+    # ...and it is HES's day, not the old fixed evening block: the busiest hour is HES's own.
+    assert model.index(max(model)) in sorted(range(24), key=lambda h: -hes[h])[:3]
+
+
+def test_set_time_homes_repeat_and_the_rest_do_not():
+    habits = [pt.heater_habit(s) for s in range(4000)]
+    assert any(h is None for h in habits) and any(h is not None for h in habits)
+    assert sum(h is not None for h in habits) / len(habits) == pytest.approx(pt._SET_TIME_SHARE, abs=0.02)
+    habit = next(h for h in habits if h is not None)
+    fixed = {tuple(_day(2.0, rng=random.Random(i), habit=habit)) for i in range(20)}
+    drawn = {tuple(_day(2.0, rng=random.Random(i))) for i in range(20)}
+    assert len(fixed) == 1 and len(drawn) > 10
 
 
 def test_the_meter_carries_it_and_the_boiler_burns_less(monkeypatch):

@@ -8,9 +8,9 @@
 
 | Property | Source | Result |
 |---|---|---|
-| Invisible to the BUILD draw | `supervisor._maturity_map_draw_concurrent` (the real draw) | 96/96 parked atoms not offered — 57 proven excluded BY THE PARK (lifting the park alone makes them drawable), 39 excluded for another reason |
-| Visible to the staleness clocks | `tools/map_assertion_provenance.build_rows` (AO11) | 96/96 parked atoms carry a row |
-| Visible to the composition dial | this module, over all 361 atoms | 96 parked (25 with a gate stated in `block_reason`) |
+| Invisible to the BUILD draw | `supervisor._maturity_map_draw_concurrent` (the real draw) | 97/97 parked atoms not offered — 58 proven excluded BY THE PARK (lifting the park alone makes them drawable), 39 excluded for another reason |
+| Visible to the staleness clocks | `tools/map_assertion_provenance.build_rows` (AO11) | 97/97 parked atoms carry a row |
+| Visible to the composition dial | this module, over all 362 atoms | 97 parked (26 with a gate stated in `block_reason`) |
 
 ## The dial
 
@@ -21,18 +21,18 @@ At mint (2026-08-08) the ruling measured **82 harness vs 7 commercial across 206
 | `H_harness` | 124 | 101 | 23 |
 | `W2_customer_generator` | 55 | 49 | 6 |
 | `D_billing_metering` | 48 | 36 | 12 |
-| `W1_market_weather` | 31 | 22 | 9 |
+| `W1_market_weather` | 32 | 23 | 9 |
 | `C_customer_ops` | 23 | 16 | 7 |
 | `A_strategy_governance` | 16 | 9 | 7 |
 | `G_data_learning` | 15 | 9 | 6 |
 | `W4_the_wall` | 15 | 3 | 12 |
-| `B_commercial` | 11 | 6 | 5 |
+| `B_commercial` | 11 | 5 | 6 |
 | `F_risk_compliance` | 11 | 6 | 5 |
 | `E_finance_treasury` | 8 | 5 | 3 |
 | `W3_industry_systems` | 3 | 2 | 1 |
 | `W5_banking_payment_rails` | 1 | 1 | 0 |
 
-Harness share of the whole map: **34.3%** (124 of 361).
+Harness share of the whole map: **34.3%** (124 of 362).
 This is a DIAGNOSTIC (R12). `--check` never fails on it.
 The same lane counts split by `loop_stage` are on the WIP-flow door (`tools/generate_wip_flow_data.py`); what is here and not there is the with/without-parked comparison and the two probes below it.
 
@@ -42,7 +42,7 @@ Matched on the atom id, as the ruling measured it; a floor, not a census.
 
 | Subject | Atoms | Of which survive a park-filtering reader |
 |---|---:|---:|
-| `clv` | 4 | 4 |
+| `clv` | 4 | 3 |
 | `counterparty_adapter` | 8 | 0 |
 | `forecast_feed` | 1 | 0 |
 | `tournament` | 1 | 0 |
