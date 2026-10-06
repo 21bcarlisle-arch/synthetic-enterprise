@@ -48,6 +48,9 @@ def test_only_the_hes_curves_are_seasonal():
         assert {pt.appliance_season_factor(name, m) for m in range(1, 13)} == {1.0}
 
 
+EVERYTHING = frozenset(spec.name for spec in pt.APPLIANCE_CATALOGUE)
+
+
 def test_the_draw_obeys_the_factor():
     profile = pt.behaviour_profile_for("P-season", make_household(), seed=3)
 
@@ -55,7 +58,7 @@ def test_the_draw_obeys_the_factor():
         return sum(
             1
             for day in range(4000)
-            for e in pt.draw_appliance_events(11, day, profile, month=month, is_weekend=False, is_away=False)
+            for e in pt.draw_appliance_events(11, day, profile, month=month, is_weekend=False, is_away=False, owned=EVERYTHING)
             if e.name in names
         )
 

@@ -184,3 +184,37 @@ to every home.*
 Limits: this is one world draw (seed 17), the 13 partitions described above, the p5 half-hour as the
 base-load estimator (a home with logging gaps that read 0 sits at 0), and a constant-shift estimate,
 not a regenerated trace.
+
+## What the stock draw did (2026-10-06, night)
+
+Built on the EFUS read: `pt.owned_stock` draws, once per premise and each from its own substream,
+whether the home owns a dishwasher and a tumble dryer (EFUS 2011 by household size) and a separate
+freezer (EFUS 2017, 38.2%, national). The fridge-freezer and the rest stay in every home. An unowned
+appliance still consumes its random draws, so the appliances a home owns replay exactly as before.
+That keeps it one variable. Measured on the same drawn 60, both arms in one process:
+
+| | full stock (control) | drawn stock |
+|---|---|---|
+| homes under real p10 / p25 / median / p75 (expected 6 / 15 / 30 / 45) | 0 / 0 / 3 / 31 | **0 / 7 / 29 / 46** |
+| world median texture (real 0.158) | 0.205 | **0.161** |
+| world p10 / p25 / p75 | 0.165 / 0.185 / 0.227 | 0.116 / 0.130 / 0.204 |
+| legs red after Bonferroni | all four | **p10 only** |
+| L2.4 scale spread p90/p10 (real 5.38) | 1.93 | 1.99 |
+
+*Pre-registered before the run:* median within 0.015 of 0.209, a wider spread, and at most 2 homes
+under the real p10. **The median prediction was refuted**: it moved 0.044, nearly all the way to the
+real value. The other two held.
+
+**Why it moved so far, and the part that is not yet right.** Every one of the seven homes now under
+the real p25 owns no separate freezer, and five of the seven have 4–5 people. The freezer's 61-minute
+cycle against 30-minute periods was a night-time texture source in every home. Without it a large
+home's night goes quiet. Real calm homes are not mostly large ones, though: in LCL, texture correlates
+only −0.32 with kWh. So the world's calm tail is now the right size but probably made of the wrong
+homes. The p10 leg is the red that is left: no world home is as calm as the calmest real tenth
+(0.072). The next readings are the cold appliances' cycle against measured fridge and freezer traces,
+and the base-load distribution above, which this build did not touch.
+
+The authored test fixtures (the 8-home panel, the matched pair and the five regimes) hold the stock at
+`pt.FULL_STOCK`, because a matched pair that owned different appliances would not be matched. One thing
+was measured on that panel: with the household clocks collapsed, the drawn stock alone held L2.3n open
+(1.85 → 1.11, against 0.87 with both collapsed). Timing diversity now has two sources.

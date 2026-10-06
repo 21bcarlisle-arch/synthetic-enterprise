@@ -700,6 +700,46 @@ COLD_APPLIANCES: tuple[ColdApplianceSpec, ...] = (
     ColdApplianceSpec("freezer", 0.100, 61.0, 0.30, _FROZEN_COMPARTMENT_TARGET_C),
 )
 
+# `domain-knowledge` — WHICH OF THE STOCK A HOME OWNS. Until W1_29 every home owned all of it,
+# so homes differed only in headcount and clock, and the texture of each was one home's shape scaled
+# by occupants (corr(texture, kWh/day) −0.95 against LCL's −0.32). Read at source 2026-10-06 in
+# docs/market_research/what_appliances_an_english_home_owns_efus_2011_and_2017.md:
+#   * dishwasher, tumble dryer (incl. washer-dryer): EFUS 2011 Report 9 Tables 8 and 2, by persons
+#     1, 2, 3, 4, 5+. EFUS 2017 gives the same gradient (one-person 27% / 43%).
+#   * separate freezer: EFUS 2017 Table 4.1, 38.2% of homes. The fridge-freezer is kept in every
+#     home (any freezer 93%, fridge 99%).
+# SIMPLIFICATION: the freezer share is national. EFUS publishes "any freezer" by size, not the
+# separate freezer, so a one-person home is drawn as likely as a five-person one to own one; the
+# real gradient (any freezer 88% → 96–98%) says this overstates the small homes. And the draws are
+# independent, where real ownership is correlated through income and tenure (dishwashers 24% →
+# 74% across income quintiles in 2017). Neither survey publishes the joint, and the world has no
+# income on a premise here. Each appliance's events per owner are unchanged: the catalogue rates
+# were always per-owner, so the population's energy falls by what non-owners never used.
+_OWNERSHIP_BY_PERSONS: dict[str, tuple[float, float, float, float, float]] = {
+    "dishwasher": (0.19, 0.45, 0.47, 0.60, 0.48),
+    "tumble_dryer": (0.49, 0.65, 0.66, 0.70, 0.65),
+}
+_SEPARATE_FREEZER_SHARE = 0.382
+FULL_STOCK: frozenset[str] = frozenset(
+    spec.name for spec in (*APPLIANCE_CATALOGUE, *COLD_APPLIANCES)
+)
+"""Every appliance the module models: what every home owned before W1_29. For a caller that must
+hold stock fixed, e.g. a matched pair that differs only in how it heats."""
+
+
+def owned_stock(base_seed: int, people_count: int) -> frozenset[str]:
+    """The appliances this premise owns, drawn ONCE per premise, each from its own substream so
+    that owning one never shifts the draw for another. Names cover `APPLIANCE_CATALOGUE` and
+    `COLD_APPLIANCES` together; anything without a published ownership rate is owned by all."""
+    size = max(1, min(5, int(people_count))) - 1
+    owned = set(FULL_STOCK)
+    shares = {name: by_size[size] for name, by_size in _OWNERSHIP_BY_PERSONS.items()}
+    shares["freezer"] = _SEPARATE_FREEZER_SHARE
+    for name, share in shares.items():
+        if _substream(base_seed, f"owns::{name}").random() >= share:
+            owned.discard(name)
+    return frozenset(owned)
+
 _LIGHTING_KW_PER_PERSON = 0.035
 _ELECTRONICS_KW_PER_PERSON = 0.055
 
@@ -900,12 +940,15 @@ def draw_appliance_events(
     month: int,
     is_weekend: bool,
     is_away: bool,
+    owned: frozenset[str],
 ) -> list[ApplianceEvent]:
     """Draw one day's appliance events from this module's own substream, salted
     per day so any single day replays without the days before it (C-S2).
 
     `month` sets the HES season factor on cooking and laundry (`appliance_season_factor`).
     It is required: a default would let a caller drop the season without anyone noticing.
+    `owned` (`owned_stock`) is required for the same reason. An appliance the home does not own
+    still consumes its draws, so the appliances it does own replay exactly as if it owned them all.
 
     An away day draws NOTHING — the empty house is the point.
     """
@@ -932,10 +975,13 @@ def draw_appliance_events(
         if hi <= lo:
             continue
         for _ in range(count):
+            start = rng.randint(lo, hi)
+            if spec.name not in owned:
+                continue
             events.append(
                 ApplianceEvent(
                     name=spec.name,
-                    start_period=rng.randint(lo, hi),
+                    start_period=start,
                     power_kw=spec.power_kw,
                     duration_hours=spec.duration_hours,
                     heat_fraction=spec.heat_fraction,
@@ -1732,6 +1778,7 @@ def generate_premise_trace(
     deadband_c: float = DEFAULT_DEADBAND_C,
     initial_state: ThermalState | None = None,
     smart_charging_window: tuple[int, int] | None = None,
+    owned: frozenset[str] | None = None,
 ) -> PremiseTrace:
     """Generate one premise's half-hourly gas and electricity trace.
 
@@ -1741,6 +1788,9 @@ def generate_premise_trace(
 
     Empty weather RAISES rather than returning an empty trace — a statistic over
     a vacuous trace must fail, never pass (R15 fail-open).
+
+    `owned` attaches a stock where a caller holds it fixed, as `behaviour` does; absent, the
+    premise draws its own (`owned_stock`).
     """
     if not weather:
         raise ValueError("generate_premise_trace needs at least one weather day")
@@ -1774,7 +1824,9 @@ def generate_premise_trace(
     # STRUCTURAL, drawn once per premise: two premises hum out of step with each
     # other because their compressors are out of phase, never because noise was
     # added to either output series.
-    cold_phases = cold_appliance_phases(base_seed)
+    owned = owned_stock(base_seed, profile.people_count) if owned is None else owned
+    cold_specs = tuple(spec for spec in COLD_APPLIANCES if spec.name in owned)
+    cold_phases = cold_appliance_phases(base_seed, specs=cold_specs)
     # THE ROOM THE FRIDGE STANDS IN, lagged one day — and the lag is structural,
     # not a shortcut. Today's cold-appliance energy is part of today's internal
     # gain, which is an INPUT to today's thermal solve, so today's indoor
@@ -1799,7 +1851,8 @@ def generate_premise_trace(
 
         # --- Layer 2: events -------------------------------------------------
         events = draw_appliance_events(
-            base_seed, day_index, profile, month=wx.date.month, is_weekend=is_weekend, is_away=is_away
+            base_seed, day_index, profile, month=wx.date.month, is_weekend=is_weekend, is_away=is_away,
+            owned=owned,
         )
         appliance_kwh = [0.0] * PERIODS_PER_DAY
         appliance_heat_kwh = [0.0] * PERIODS_PER_DAY
@@ -1866,6 +1919,7 @@ def generate_premise_trace(
                     else base_schedule.comfort_setpoint_c
                 ),
                 reference_room_c=base_schedule.comfort_setpoint_c,
+                specs=cold_specs,
             )
             behavioural[period] = kw * PERIOD_HOURS + cold_kwh[period] + appliance_kwh[period]
 

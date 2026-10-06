@@ -2104,6 +2104,6 @@
   real_world_twin: "a London street read off its smart meters: nearly half the homes calmer than 0.15 of their own mean between half-hours, a rough tail of small busy flats, and no two alike"
   # EVIDENCE (2026-10-06): L1.1 is judged against 313 real LCL homes
   # (docs/market_research/the_half_hourly_texture_of_real_homes_electricity_read_from_low_carbon_london.md).
-  # The drawn 60 has 0 homes under the real p10 and p25, 3 under the median (30 expected) and 29 under
-  # the p75 (45); median 0.209 vs 0.158. Exit: `test_MEASURED_population_values` sees L1.1 PASS, by a
-  # mechanism, never by widening a draw. Per-customer inference only beats flat where homes differ.
+  # Since the per-home stock draw (`pt.owned_stock`, EFUS) the drawn 60 reads [0, 7, 29, 46] under the
+  # real p10/p25/median/p75 against [6, 15, 30, 45]; only the p10 leg is red. Exit: `test_MEASURED_population_values`
+  # sees L1.1 PASS, by a mechanism, never by widening a draw. Per-customer inference only beats flat where homes differ.

@@ -387,11 +387,18 @@ def test_INFERENCE_CAN_MAKE_THE_POINT_ESTIMATE_WORSE_WHILE_MAKING_THE_DECISION_B
         observations, unit_rate_p_per_kwh=cf.DEFAULT_UNIT_RATE_P_PER_KWH, belief="epc")
     money_inferred = fgl.money_consequence(
         observations, unit_rate_p_per_kwh=cf.DEFAULT_UNIT_RATE_P_PER_KWH, belief="inferred")
-    assert money_inferred.misrank_rate < money_epc.misrank_rate, (
-        "...while the DECISION got better. The disagreement IS the finding."
-    )
+    # RE-DERIVED 2026-10-06 (W1_29), AS THE MESSAGE BELOW ASKED. The per-home appliance
+    # stock draw flipped the misrank COUNT by one premise each way: EPC 2 -> 1, inferred
+    # 1 -> 2, of 14. Measured with the stock held full and drawn, in one process: what the
+    # decisions forgo did not move (EPC ~GBP 33,000, inferred ~GBP 9,600-9,700), nor did
+    # the gaps (0.205 / 0.256-0.257). So the finding stands in money and NOT in the
+    # count. At n=14, a one-premise count was never strong enough to carry it.
+    assert (money_epc.misranked_premises, money_inferred.misranked_premises) == (1, 2)
     assert money_epc.forgone_lifetime_gbp > 0.0
-    assert money_inferred.forgone_lifetime_gbp <= money_epc.forgone_lifetime_gbp
+    assert money_inferred.forgone_lifetime_gbp < 0.5 * money_epc.forgone_lifetime_gbp, (
+        "...while the DECISION got better, in what it forgoes. The disagreement IS the finding."
+    )
+    assert money_inferred.declined_where_value_existed < money_epc.declined_where_value_existed
 
 
 def test_the_money_consequence_is_AFFINE_in_the_unit_rate_for_a_fixed_decision(measured):
@@ -438,7 +445,12 @@ def test_the_money_consequence_is_AFFINE_in_the_unit_rate_for_a_fixed_decision(m
     # between 15.5 and 16 p/kWh. Swept at 0.5p: the vector is constant from 16.0
     # to 18.0 and D7 flips again at 18.5, so 16/17/18 is the first spaced-by-one
     # triple the guard admits.
-    rates = (16.0, 17.0, 18.0)
+    #
+    # 16/17/18 -> 14/15/16 ON 2026-10-06, BY THE SAME GUARD. W1_29's per-home appliance
+    # stock moved the flips: swept at 0.5p, E15 now flips between 16.5 and 17 and D7
+    # between 17.5 and 18, and 14.0-16.0 is the first spaced-by-one triple constant
+    # at every half step.
+    rates = (14.0, 15.0, 16.0)
     vectors = [
         tuple(
             (row.premise_id, row.chosen_measure, row.best_measure)
@@ -506,13 +518,19 @@ def test_the_two_level_result_rides_along_with_the_gap(panel, weather):
     """
     result = cf.two_level(panel, weather)
     assert result.generator.startswith("premise_trace")
-    assert {c.statistic for c in result.failed} == {
-        fgl.TEXTURE_STATISTIC, "L2.4_scale_spread_p90_p10",
-    }, result.summary()
+    #
+    # AND LEFT AGAIN THE SAME NIGHT, to INSUFFICIENT and not to PASS. W1_29's per-home
+    # appliance stock put 4 of 15 under the real median (expected 7.5). At this size no leg
+    # is decisive (adjusted p 0.107). The drawn 60 is where it is judged, and there it is
+    # still red on the p10 leg.
+    assert {c.statistic for c in result.failed} == {"L2.4_scale_spread_p90_p10"}, result.summary()
+    assert fgl.TEXTURE_STATISTIC in {c.statistic for c in result.inconclusive}, result.summary()
     assert result.inconclusive, (
         "fifteen homes cannot clear a control that claims to see a 5% violation rate"
     )
     for cell in result.inconclusive:
+        if cell.statistic == fgl.TEXTURE_STATISTIC:
+            continue  # a distribution leg test, which has no rule-of-three resolution
         assert cell.resolution == pytest.approx(fgl.RULE_OF_THREE / result.homes)
 
 
@@ -618,7 +636,9 @@ def test_the_TEXTURE_CELL_BREACH_CLOSED_when_the_LOAD_SET_WAS_REPAIRED(panel, we
     #
     # S9 0.1802 -> 0.1755 on 2026-10-06: HES's cooking and laundry season
     # (`pt.appliance_season_factor`) redrew the day's event stream.
-    assert texture.worst_value == pytest.approx(0.1755, abs=5e-4), texture.note
+    #
+    # S9 0.1755 -> 0.1200 on 2026-10-06 (W1_29): the per-home appliance stock draw.
+    assert texture.worst_value == pytest.approx(0.1200, abs=5e-4), texture.note
     assert "net of space AND water heat" in texture.note
     electric = {
         home for home, system in zip(population_homes(panel), panel_systems(panel))
@@ -632,9 +652,11 @@ def test_the_TEXTURE_CELL_BREACH_CLOSED_when_the_LOAD_SET_WAS_REPAIRED(panel, we
     # (c) The verdict is FAIL since 2026-10-06, and for the SPREAD, not for any
     #     home: no panel home is under the real median. The load-set closure
     #     above is about which home is calmest; the red is about all of them.
-    assert texture.verdict is fgl.Verdict.FAIL, texture.note
+    #     INSUFFICIENT since W1_29's appliance stock (2026-10-06): 4 of 15 homes are now
+    #     under the real median, and no leg is decisive at fifteen homes.
+    assert texture.verdict is fgl.Verdict.INSUFFICIENT, texture.note
     median = next(leg for leg in texture.quantiles if leg.q == 0.50)
-    assert median.below == 0, texture.note
+    assert median.below == 4, texture.note
 
     # (d) THE GAS HOMES ARE UNCHANGED BY THE REPAIR, which is what makes it a
     #     load-set correction rather than a rescaling of everybody. Measured, not

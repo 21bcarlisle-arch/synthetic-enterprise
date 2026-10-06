@@ -101,3 +101,8 @@ with no dishwasher and the 42% with no tumble dryer carry those large, long-dwel
 distribution (ownership is correlated through income and tenure, and the world has no income on a
 premise at this seam unless it is drawn), per-home standby, and the number of lighting and electronic
 units. Nothing here supports a per-person lighting count either way.
+
+*Built 2026-10-06, the same evening: `simulation/premise_trace.py` `owned_stock` draws the dishwasher and
+tumble dryer from the 2011 by-size rows above and the separate freezer from the 2017 national 38.2%. The
+cooking-fuel split, standby and electronics counts are untouched. What it did to W1_29's texture cell is
+in the texture doc's last section.*
