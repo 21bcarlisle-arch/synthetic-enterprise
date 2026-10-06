@@ -1,4 +1,4 @@
-**Severity:** BLOCKING · **Lane:** H_harness · **Epoch:** unassigned · **Atom:** `unminted` — publish-gate wedge draw
+**Severity:** LATENT · **Lane:** H_harness · **Epoch:** unassigned · **Atom:** `unminted` — publish-gate wedge draw
 
 # A publish that widens the run output is not censused, and the next `.py` commit is refused for it
 
@@ -74,3 +74,36 @@ would refuse. `nested_freeze_note` already records this pin as frozen under prot
    commit that answers for it.
 
 Doing step 2 alone would wedge the publisher on every run.
+
+## Step 1 landed, 2026-10-06 (worker, rung-1c BLOCKING draw)
+
+`_is_id_map` gains a key-side test: a dict whose keys all carry a digit is a map. That covers
+account ids, years and months, and does not depend on any id spelling. Value homogeneity alone
+missed two shapes. One is id→scalar maps (`churn_risk_by_account`, `clv_snapshots/<year>`). The
+other is id→record maps with optional fields (`per_customer_monthly`, gas vs electricity in
+`per_cid_comm_pnl`). It also missed single-entry maps such as a one-month account.
+
+Measured over the last 12 committed artefacts, it hides 388 names, and every one is an id, a year
+or a month. The 2026-10-05 publish's widening falls from 399 key/name pairs to 61: 48 distinct
+names, none numbered, all real fields (`bill_shock_population`, `payment_channel`,
+`world_identity`'s fields). The live surface against the baseline stays green. The 1,573 id names
+the baseline pinned now read as `narrowed` (tolerated), and the baseline is left unedited. Three new
+tests: two null controls go red when the key-side test is reverted, and a widening control goes red
+when a map's values stop being walked.
+
+**Regraded BLOCKING → LATENT, with the reason.** What this finding blocked has cleared: the
+publish is on origin (`a88fb2436` via `556b24b4e`), and origin no longer refuses `.py` commits
+(`eaa94ed5f`). What remains is that a widening publish is caught one commit late and charged to
+the wrong lane. The crossing is still caught, and no published figure or control verdict is
+wrong.
+
+**Step 2 is still owed, and it is a policy call rather than a mechanical one.** With step 1 in
+place, adding `ARTEFACT_REL` to the census trigger would refuse the publisher only on real
+widening. That happened at 5 of the last 11 publishes (2 to 61 key/field pairs each). The publisher cannot
+write a crossing, so each refusal would hold the figures off origin until a seat froze the new
+fields. Two choices:
+
+- refuse the publish (correct attribution, but the figures wait), or
+- let the publish through and file the widening as a finding addressed to the reader's lane.
+
+The second is recommended: the reader, not the publisher, is the one that has to answer.

@@ -3363,6 +3363,46 @@ def test_NULL_CONTROL_population_churn_in_an_id_map_does_NOT_fail():
     assert drift.ok, "population churn was read as a schema change: " + drift.report()
 
 
+def test_NULL_CONTROL_churn_in_an_id_to_SCALAR_map_does_NOT_fail():
+    """`churn_risk_by_account` and `clv_snapshots/<year>` map an account id to a float, which value
+    homogeneity cannot tell from a record of floats. Before the key-side test every new customer
+    in them was a WIDENED name, and the 2026-10-05 publish billed 399 of them to the next commit."""
+    art = _artefact()
+    art["clv_snapshots"] = {"2024": {"C1": 100.0, "C2": 120.0}, "2025": {"C2": 130.0, "C3": 90.0}}
+    frozen = _frozen(art)
+    art["clv_snapshots"]["2025"]["PROS-2025-0156g"] = 75.0
+    drift = wcc.check_nested_schema(wcc.nested_schema(art, _readers()), frozen)
+    assert drift.ok, "an account joining an id->scalar map was read as schema: " + drift.report()
+    assert frozen["clv_snapshots"] == (), frozen["clv_snapshots"]
+
+
+def test_NULL_CONTROL_an_id_map_of_records_with_OPTIONAL_fields_is_still_a_map():
+    """`per_customer_monthly` and `per_cid_comm_pnl`: gas and electricity rows differ in their
+    optional fields, so the values are not one shape. The ids are still data, and a one-month
+    customer (a single-entry map) is still data -- the case the docstring said would red once."""
+    art = _artefact()
+    art["clv_snapshots"] = {
+        "C1": {"2024-01": {"kwh": 1.0}, "2024-02": {"kwh": 2.0}},
+        "C1g": {"2024-01": {"kwh": 3.0, "calorific_value": 39.1}},
+    }
+    frozen = _frozen(art)
+    assert frozen["clv_snapshots"] == ("calorific_value", "kwh"), frozen["clv_snapshots"]
+    art["clv_snapshots"]["SYN-2025-001"] = {"2025-06": {"kwh": 4.0}}
+    drift = wcc.check_nested_schema(wcc.nested_schema(art, _readers()), frozen)
+    assert drift.ok, "a new one-month account was read as schema: " + drift.report()
+
+
+def test_MUTATION_a_new_field_INSIDE_a_numbered_map_still_WIDENS():
+    """The key-side test must hide the ids and nothing beneath them: a ground-truth field on one
+    account's monthly row is exactly what this control exists for."""
+    art = _artefact()
+    art["clv_snapshots"] = {"C1": {"2024-01": {"kwh": 1.0}}, "C2": {"2024-01": {"kwh": 2.0}}}
+    frozen = _frozen(art)
+    art["clv_snapshots"]["C2"]["2024-01"]["true_consumption_kwh"] = 2.1
+    drift = wcc.check_nested_schema(wcc.nested_schema(art, _readers()), frozen)
+    assert drift.widened == {"clv_snapshots": ("true_consumption_kwh",)}, drift.report()
+
+
 def test_a_map_contributes_its_VALUES_schema_and_not_its_own_keys():
     """The discriminator, asserted directly rather than only through the null control."""
     verdict = wcc.nested_schema(_artefact(), _readers())

@@ -45,3 +45,12 @@ A `site/data/dashboard.json` commit by the publisher, dated 2026-10-05 or later,
 That has not happened yet. The publisher's next cycle is at about 18:48Z. Reading for the next
 session: if that cycle is refused again, read `.publish_gate_state.json` `failures[-1].cause`. If
 the cause is `behind_origin`, the reconcile/fast-forward leg is the subject, not the gate.
+
+**Settled 2026-10-06 (worker):** the done-means is met. Publisher commit `a88fb2436`
+(`Auto-process run complete`, 2026-10-05 23:00 +0100) is on origin/main through `556b24b4e`. Two
+further refusals stood between this note and that landing:
+
+- the deletion-twin reconciler defect (`998814330`);
+- the wall-census refusal on the refreshed run-output keys (`eaa94ed5f`).
+
+Both have their own findings. The `keeps_all_of` proposal above is still unbuilt and still stands.

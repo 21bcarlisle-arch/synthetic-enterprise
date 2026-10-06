@@ -3382,7 +3382,23 @@ def _is_id_map(obj: dict) -> bool:
     its field name would stop being pinned. That is the safe direction (it can only pin MORE than
     necessary), and it is the residual noise source this control has: a map that shrinks to one
     customer will red once. Stated because it will be seen.
+
+    A SECOND, KEY-SIDE TEST, and why it is not the denylist refused above: a dict whose keys
+    ALL carry a digit is a map. That asks a CLASS of key, not an id spelling -- field names
+    here are words, data keys are numbered (account ids, years, months), and the next id format
+    is numbered too. Homogeneity alone missed the two shapes that carried most of the noise:
+    id -> scalar maps (`churn_risk_by_account`, `clv_snapshots/<year>`, which a record of floats
+    is indistinguishable from by value) and id -> record maps whose records have OPTIONAL
+    fields (`per_customer_monthly`, electricity vs gas rows in `per_cid_comm_pnl`). Measured over
+    the last 12 committed artefacts: it hides 388 names, every one an account id, year or month,
+    and the widening at the 2026-10-05 publish falls from 399 key/name pairs to 61 (48 distinct
+    names, none numbered). The single-entry case is closed by it as well, because the key, not
+    the value count, decides.
+    The cost, stated: a record whose every field name carries a digit (`p10`/`p50`/`p90`)
+    reads as data and its names stop being pinned; its VALUES' schema still is.
     """
+    if obj and all(any(ch.isdigit() for ch in key) for key in obj):
+        return True
     if len(obj) < 2:
         return False
     if not all(isinstance(v, (dict, list)) for v in obj.values()):
