@@ -113,3 +113,28 @@ then be that DISCOVER, which either sources the floor or finds the calm-behaviou
 alternative, keeping a sourced load out of the world so that an unsourced floor stays green, is the
 goal-seek R12 exists to prevent. I have not taken either step, because flipping 8 controls'
 expected verdicts is a change to what the harness asserts and needs a second pair of eyes.
+
+## Landed, L1.1 recorded at 1/60 (2026-10-06, worker, draw `fabric-electricity-boiler-auxiliary-land`)
+
+The seat's recommendation was taken. No objection to it had come back on NTFY. The patch is applied
+and its parked copy deleted. The term is in `simulation/premise_trace.py`, with its control alongside.
+The 8 controls were re-expressed against the property each one stands for, not against today's
+number. The floor is still 0.15, and the pump is not netted out:
+
+- L1.1 on the drawn 60 is pinned **FAIL at 1/60**, P0000 at 0.1495. A new test,
+  `test_the_L1_1_BREACH_is_P0000s_CALM_BEHAVIOUR_tipped_by_a_SOURCED_LOAD`, carries the diagnosis:
+  the cell's worst value is the reading with the pump in it; net of the pump, as a diagnostic only,
+  P0000 reads 0.1526 and is the calmest home of the 60; every other home clears the floor.
+- The water-heater (H38) controls now ask WHO is in breach: no electrically heated home. They no
+  longer ask for a green verdict.
+- The ledger test cross-checks the wire against the result, and L1.1 is now its live red witness.
+- The goal-seek test asserts the live cell is red, so its synthetic texture arm is said and not assumed.
+- The L2.3n fail-open leg is keyed to the test's own alpha ceiling (25%) instead of the 50% literal.
+  The measured value is 45%, down from 68% when first measured.
+- Re-pinned with a note on each: the gas critical-weight median moved 0.3066 → 0.2903, the L1.2 worst
+  0.4386 → 0.4511 (still a gas home), and couple_fabric's S9 0.1862 → 0.1802.
+
+**Still open, for the next draw:** a DISCOVER for the L1.1 floor's real distribution (SERL/LCL
+half-hourly texture of gas-heated homes), or for the mechanism that makes P0000's behaviour calm.
+The supplementary-heating and seasonal-occupancy DISCOVER is still owed toward SERL's 1.36–1.47.
+

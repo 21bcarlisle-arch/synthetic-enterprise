@@ -218,7 +218,13 @@ term makes the season visible on Dec–Feb against Jun–Aug, but the month-to-m
 unseasonal components still dominates the monthly shape. SERL's 1.36–1.47 band is not reached, as
 predicted. The rest is items 1 and 3.
 
-**Not landed.** The term breaches the L1.1 texture floor for one home of the 60-home harness panel
-(0.1495 against 0.15; 0.1526 before the term). It is parked as
-`docs/design/frame/W1_BOILER_AUXILIARY_ELECTRICITY_BUILT_BLOCKED_ON_L1_1.patch`, and the decision it
-needs is in `docs/staging/SEAT_FINDING_THE_FABRIC_PATH_GIVES_A_GAS_HEATED_HOMES_ELECTRICITY_NO_SEASON_2026-10-06.md`.
+**Landed 2026-10-06, with L1.1 recorded red at 1/60.** The term breaches the L1.1 texture floor for
+one home of the 60-home harness panel: P0000 reads 0.1495 against 0.15, and read 0.1526 before the
+term, already the calmest of the 60. The pump stays in the judged load set because a real gas-heated
+meter carries one, and the floor did not move. The diagnosis is pinned in
+`tests/harness/test_premise_two_level.py::test_the_L1_1_BREACH_is_P0000s_CALM_BEHAVIOUR_tipped_by_a_SOURCED_LOAD`.
+
+**The pump-hours question is still open.** It was asked on NTFY on 2026-10-06: does a domestic
+heating pump run only while the room thermostat calls, or whenever the programmer is on? No answer
+had arrived when the term landed. The world follows HEM, which is the first reading. If the answer
+is the second, the 1,049 h above roughly treble towards SAP's 3,667 h.

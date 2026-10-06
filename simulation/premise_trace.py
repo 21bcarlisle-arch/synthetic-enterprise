@@ -136,6 +136,7 @@ from simulation.fabric_physics import (
     solar_elevation_sin,
 )
 from simulation.household import (
+    BoilerAge,
     HeatingSystem,
     Household,
     IncomeStress,
@@ -1434,6 +1435,10 @@ class PremiseDayTrace:
     #: commodity-split control would have had to difference medians instead of checking an
     #: identity, and a statistical proxy for an exact property is a control that cries wolf.
     cooking_fuel_kwh: tuple[float, ...] = ()
+    #: The gas boiler's own electricity (pump, fan, controls, standby), carried as its own field for
+    #: the same reason as cooking gas: it is inside `electricity_kwh`, and only an exposed term can
+    #: be asserted on exactly. Zero for a premise with no gas boiler.
+    boiler_auxiliary_kwh: tuple[float, ...] = ()
 
     @property
     def net_electricity_kwh(self) -> tuple[float, ...]:
@@ -1566,6 +1571,8 @@ def generate_premise_trace(
     previous_indoor_air_c: tuple[float, ...] | None = None
 
     heating_commodity = "gas" if household.is_gas_heated else "electricity"
+    # Drawn once, against the window's first day: the boiler's install date does not move with it.
+    pump_kw = boiler_pump_kw(household, base_seed, weather[0].date)
     dhw_commodity = heating_commodity if household.heating_system != HeatingSystem.NONE else "electricity"
 
     days: list[PremiseDayTrace] = []
@@ -1719,8 +1726,19 @@ def generate_premise_trace(
         )
         electricity = list(behavioural)
         gas = [0.0] * PERIODS_PER_DAY
+        auxiliary_kwh = (
+            boiler_auxiliary_kwh(
+                pump_kw=pump_kw,
+                rated_output_kw=source.rated_output_kw,
+                space_heat_kwh=result.heat_delivered_kwh,
+                space_duty_fraction=result.duty_cycle_fraction,
+                dhw_heat_kwh=dhw_heat_kwh,
+            )
+            if heating_commodity == "gas"
+            else [0.0] * PERIODS_PER_DAY
+        )
         for period in range(PERIODS_PER_DAY):
-            electricity[period] += ev_kwh[period]
+            electricity[period] += ev_kwh[period] + auxiliary_kwh[period]
             if heating_commodity == "gas":
                 gas[period] += result.fuel_kwh[period]
             else:
@@ -1757,6 +1775,7 @@ def generate_premise_trace(
                     cooking_kwh if dhw_commodity == "gas" else [0.0] * PERIODS_PER_DAY
                 ),
                 ev_kwh=tuple(ev_kwh),
+                boiler_auxiliary_kwh=tuple(auxiliary_kwh),
                 pv_generation_kwh=tuple(pv_kwh),
                 electricity_kwh=tuple(electricity),
                 gas_kwh=tuple(gas),
@@ -1791,6 +1810,132 @@ def _dhw_fuel_kwh(household: Household, heat_kwh: float, ambient_c: float) -> fl
         )
         return heat_kwh / max(1.3, cop * _DHW_HEAT_PUMP_COP_PENALTY)
     return heat_kwh  # immersion / instantaneous electric: resistive, 1:1
+
+
+# ---------------------------------------------------------------------------
+# Boiler auxiliary electricity — the gas boiler's own pump, fan and controls
+# ---------------------------------------------------------------------------
+# A gas boiler draws electricity while it fires. Until 2026-10-06 the trace put a gas-heated home's
+# space heat 100% on gas, so the one heating-season electrical load such a home certainly has was
+# absent. All sources: docs/market_research/the_seasonal_swing_of_a_gas_heated_homes_electricity.md.
+#
+# STRUCTURE, HEM-TP-14 §5 (DESNZ Home Energy Model boiler methodology, v3.0, 2025):
+#     P_circ x running time + P_SB x standby time + el_flue x running time,
+# with el_flue interpolated between the Ecodesign part-load and full-load powers. Running time is the
+# boiler's OWN, read from the thermal solve and the hot-water draw, never from a calendar. So the
+# season is an output of the weather, not an input. SAP 10.2 Table 4f's kWh/yr allowances are a
+# rating convention and are NOT used here; they bound the result.
+#
+# NOT MODELLED, and named: the pump's ~10 W heat gain to the room (SAP Table 5a); the oldest boilers
+# that may have no fan-assisted flue (that share is NOT ESTABLISHED, so every gas boiler here has
+# one); a pump-overrun after the burner stops.
+
+#: Reg. 813/2013 fiches, median of three current UK boilers (Worcester-Bosch 24 kW, 31 kW; Vaillant
+#: ecoTEC plus 637): elmax 29/42/38 W, elmin 14/18/13 W, PSB 1/4/3 W. Three products are not the
+#: stock, and the spread is the honest error bar.
+BOILER_ELECTRICAL_FULL_LOAD_KW = 0.038
+BOILER_ELECTRICAL_PART_LOAD_KW = 0.014
+BOILER_STANDBY_KW = 0.003
+#: The output fraction at which Reg. 813/2013 measures `elmin`: 30% of rated heat output.
+_ELMIN_TEST_LOAD_FRACTION = 0.30
+
+#: Grundfos UPS 15-50 N 130 datasheet: 35 W at speed 1, 45 W at speed 2, 50 W maximum. Speed 2 is
+#: the middle setting; which speed the stock is set to is NOT ESTABLISHED (35-50 W is the range).
+FIXED_SPEED_PUMP_KW = 0.045
+#: SAP 10.2 Table 4f, p.168: circulation pump 41 kWh/yr (2013 or later), 165 (2012 or earlier).
+SAP_TABLE_4F_PUMP_KWH_PER_YEAR = {"2013_or_later": 41.0, "2012_or_earlier": 165.0}
+#: A variable-speed pump's datasheet gives a range (Grundfos UPM3 AUTO 15-70: 5-52 W), not an
+#: operating point. This is the fixed-speed rating scaled by SAP's ratio of its two pump allowances,
+#: assuming SAP gives both the same running hours: 11.2 W, inside the UPM3 range. A DERIVATION from
+#: two sources, not a measurement; the operating point itself is NOT ESTABLISHED.
+VARIABLE_SPEED_PUMP_KW = FIXED_SPEED_PUMP_KW * (
+    SAP_TABLE_4F_PUMP_KWH_PER_YEAR["2013_or_later"] / SAP_TABLE_4F_PUMP_KWH_PER_YEAR["2012_or_earlier"]
+)
+#: Reg. 641/2009 as amended by 622/2012: circulators INTEGRATED in products must meet EEI <= 0.23
+#: from this date, which in practice means a variable-speed pump.
+ECODESIGN_INTEGRATED_CIRCULATOR_FROM = dt.date(2015, 8, 1)
+#: The `BoilerAge` bands as `simulation.household` defines them (NEW 0-5 y, MID 5-12 y, OLD 12+ y).
+#: OLD has no upper bound, so only its newest possible install date is known.
+_BOILER_AGE_BAND_YEARS: dict[BoilerAge, tuple[float, float | None]] = {
+    BoilerAge.NEW: (0.0, 5.0),
+    BoilerAge.MID: (5.0, 12.0),
+    BoilerAge.OLD: (12.0, None),
+}
+
+
+def boiler_pump_kw(household: Household, base_seed: int, as_of: dt.date) -> float:
+    """The rated power of this premise's central-heating pump, 0.0 where there is no gas boiler.
+
+    Which pump a boiler has follows from its install date against the Ecodesign date. The age band
+    bounds that date; WHERE in the band this boiler sits is one uniform draw per premise. UNIFORM IS
+    AN ASSUMPTION, NOT A SOURCE: the stock's install-year distribution is not established, and the
+    band itself is assigned from build era in `simulation.household`, not observed.
+    """
+    if not household.is_gas_heated:
+        return 0.0
+    band = _BOILER_AGE_BAND_YEARS.get(household.boiler_age)
+    if band is None:
+        raise ValueError(
+            f"a gas boiler with boiler_age={household.boiler_age.value!r} has no install window, so "
+            "its pump cannot be told fixed- from variable-speed"
+        )
+    youngest, oldest = band
+    newest_install = as_of - dt.timedelta(days=youngest * 365.25)
+    if newest_install < ECODESIGN_INTEGRATED_CIRCULATOR_FROM:
+        return FIXED_SPEED_PUMP_KW
+    if oldest is None:
+        raise ValueError(
+            f"an OLD boiler ({youngest:.0f}+ years) on {as_of} may postdate "
+            f"{ECODESIGN_INTEGRATED_CIRCULATOR_FROM}, and the band has no upper bound to draw within"
+        )
+    age_years = youngest + (oldest - youngest) * _substream(base_seed, "boiler_install").random()
+    installed = as_of - dt.timedelta(days=age_years * 365.25)
+    return VARIABLE_SPEED_PUMP_KW if installed >= ECODESIGN_INTEGRATED_CIRCULATOR_FROM else FIXED_SPEED_PUMP_KW
+
+
+def boiler_auxiliary_kwh(
+    *,
+    pump_kw: float,
+    rated_output_kw: float,
+    space_heat_kwh: Sequence[float],
+    space_duty_fraction: Sequence[float],
+    dhw_heat_kwh: Sequence[float],
+) -> list[float]:
+    """Half-hourly boiler electricity (pump + fan/controls + standby), per HEM-TP-14 §5.
+
+    Space heating runs for the thermal solve's own duty fraction, at the output that fraction
+    implies; the fan's power is interpolated on that output between `elmin` (30%) and `elmax`
+    (100%). Hot water is fired at full output for as long as its heat takes. Running time is capped
+    at the whole period; outside it the boiler sits on standby.
+    """
+    if rated_output_kw <= 0.0:
+        raise ValueError("a boiler auxiliary term needs a boiler with a rated output")
+    span = 1.0 - _ELMIN_TEST_LOAD_FRACTION
+    period_capacity_kwh = rated_output_kw * PERIOD_HOURS
+    out: list[float] = []
+    for heat, duty, dhw in zip(space_heat_kwh, space_duty_fraction, dhw_heat_kwh, strict=True):
+        space_hours = duty * PERIOD_HOURS
+        if space_hours > 0.0 and heat > 0.0:
+            load = heat / (rated_output_kw * space_hours)
+            weight = min(1.0, max(0.0, (load - _ELMIN_TEST_LOAD_FRACTION) / span))
+            space_fan_kw = BOILER_ELECTRICAL_PART_LOAD_KW + weight * (
+                BOILER_ELECTRICAL_FULL_LOAD_KW - BOILER_ELECTRICAL_PART_LOAD_KW
+            )
+        else:
+            space_hours, space_fan_kw = 0.0, 0.0
+        dhw_hours = max(0.0, dhw) / period_capacity_kwh * PERIOD_HOURS
+        running = min(PERIOD_HOURS, space_hours + dhw_hours)
+        # Where the two would overrun the period, hot water keeps its share (a combi gives it
+        # priority) and space heating takes what is left.
+        dhw_hours = min(dhw_hours, running)
+        space_hours = running - dhw_hours
+        out.append(
+            pump_kw * running
+            + space_fan_kw * space_hours
+            + BOILER_ELECTRICAL_FULL_LOAD_KW * dhw_hours
+            + BOILER_STANDBY_KW * (PERIOD_HOURS - running)
+        )
+    return out
 
 
 # ---------------------------------------------------------------------------

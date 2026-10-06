@@ -608,8 +608,12 @@ def test_the_TEXTURE_CELL_BREACH_CLOSED_when_the_LOAD_SET_WAS_REPAIRED(panel, we
     # D7 at 0.1782 -> S9 at 0.1862 on 2026-10-01: `263b57ac0` redrew the panel's
     # household composition. Both are gas combi homes, which is the property; the
     # identity is pinned so the next move is read rather than absorbed.
+    #
+    # S9 0.1862 -> 0.1802 on 2026-10-06: the gas boiler's own pump and fan
+    # electricity is on its meter now (`pt.boiler_auxiliary_kwh`), and it is judged,
+    # not netted — a real gas-heated meter carries it.
     assert texture.worst_home == "S9", texture.note
-    assert texture.worst_value == pytest.approx(0.1862, abs=5e-4), texture.note
+    assert texture.worst_value == pytest.approx(0.1802, abs=5e-4), texture.note
     assert "net of space AND water heat" in texture.note
     electric = {
         home for home, system in zip(population_homes(panel), panel_systems(panel))
