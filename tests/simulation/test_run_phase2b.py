@@ -469,14 +469,26 @@ def test_the_run_emits_a_treasury_drawdown_register(_phase2b_result_2017):
                 "the daily book finds a {} drawdown the per-period register missed -- the "
                 "register is being fed somewhere other than the single point `all_records` is "
                 "extended, or it is dropping turning points".format(year))
-    assert len(register) > len(book_path), (
-        "the register is no larger than a walk of the daily book, so it is not carrying the "
-        "half-hourly detail it exists to carry")
+    # COUNTED IN DRAWDOWNS, NOT POINTS (2026-10-06). This compared `len(register)` with
+    # `len(book_path)`, which held only while the register appended every running peak; since the
+    # register collapses runs of peaks and lows it holds FEWER points than a raw walk of the book
+    # while losing no event at any threshold. What the half-hourly detail buys is drawdowns the
+    # daily book cannot see, so that is what is counted -- at threshold 0, where every one counts.
+    assert _drawdown_count(register) > _drawdown_count(book_path), (
+        "the register finds no drawdown a walk of the daily book does not, so it is not carrying "
+        "the half-hourly detail it exists to carry")
 
     # The book really is daily now, or the assertions above are comparing a thing to itself.
     assert any(r.get("settlement_periods_folded", 1) > 1 for r in all_records), (
         "no record in the retained book is a fold of several periods -- the fold is not wired, "
         "and this test is no longer testing what it says it is")
+
+
+def _drawdown_count(path) -> int:
+    """Every completed drawdown on `path`, however shallow: the report's own walk at threshold 0."""
+    from saas.reporting.annual_report import _drawdown_events_by_year
+
+    return sum(len(v) for v in _drawdown_events_by_year(path, threshold=0.0).values())
 
 
 def _drawdown_identity(event: dict) -> tuple:
@@ -580,7 +592,7 @@ def test_the_register_sees_a_drawdown_the_daily_book_cannot():
     assert intraday not in [_drawdown_identity(e) for e in book_events["2020"]], (
         "the daily book can see the intraday dip, so this fixture is not testing the gap "
         "between the two and the assertion above proves nothing")
-    assert len(register) > len(book_path)
+    assert _drawdown_count(register) > _drawdown_count(book_path)
 
     # The fold really happened, or the two paths are the same object under two names.
     assert any(r.get("settlement_periods_folded", 1) > 1 for r in all_records)

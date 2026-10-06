@@ -6,13 +6,13 @@ network or file I/O dependencies. fetch_fred_csv and load_nbp_history are omitte
 """
 
 import pytest
+
 from sim.gas_prices_history import (
-    parse_fred_csv,
-    expand_to_daily,
     GBPUSD,
     MWH_PER_MMBTU,
+    expand_to_daily,
+    parse_fred_csv,
 )
-
 
 # ── parse_fred_csv ──────────────────────────────────────────────────────────
 
@@ -104,3 +104,29 @@ def test_gbpusd_reasonable():
 def test_mwh_per_mmbtu_correct():
     # 1 MMBtu = 0.29307 MWh (standard conversion)
     assert abs(MWH_PER_MMBTU - 0.29307) < 0.00001
+
+
+# ── the record reaches back far enough to price the first day (2026-10-06) ─────
+
+def test_a_day_one_gas_contract_prices_off_history_it_could_have_held():
+    """A founder acquired on the simulation's first day prices off the 90 days BEFORE it. The
+    record used to start that same day, so the lookback was empty and `generate_forward_price`
+    raised (and `run_phase2b` fell back to pricing the term off the 90 days AFTER it). Keyed to
+    the founders' own acquisition year, not to a literal, so a world that starts earlier
+    re-asks the question rather than passing on today's answer."""
+    import datetime as dt
+
+    from sim.forward_curve import generate_forward_price
+    from sim.gas_prices_history import RECORD_START, load_nbp_history
+    from simulation.live_population import FOUNDER_ACQUISITION_YEAR
+
+    first_day = dt.date(FOUNDER_ACQUISITION_YEAR, 1, 1)
+    records = load_nbp_history()
+    assert records[0]["settlementDate"] == RECORD_START, (
+        "the committed record and its generator disagree about where history starts")
+    assert dt.date.fromisoformat(RECORD_START) <= first_day - dt.timedelta(days=90)
+
+    price = generate_forward_price(first_day.isoformat(), records, fuel="gas")
+    before_only = [r for r in records if r["settlementDate"] < first_day.isoformat()]
+    assert price == generate_forward_price(first_day.isoformat(), before_only, fuel="gas"), (
+        "the day-one price read a record on or after its own day")

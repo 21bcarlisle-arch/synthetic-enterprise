@@ -234,19 +234,14 @@ def test_chunking_does_not_change_the_subject():
     assert len(whole) == 9 * 48
 
 
-def test_the_generator_saturates_above_745():
-    """PINS THE DEFECT THIS PROBE FOUND, so the workaround has a falsifier.
+def test_the_generator_honours_a_large_lambda():
+    """THE DEFECT THIS PROBE FOUND, NOW REPAIRED -- pinned the other way round.
 
-    `simulation.population_draw._poisson` is Knuth's algorithm; its target is
-    `math.exp(-lam)`, which underflows to exactly 0.0 above lambda ~745. With an unreachable
-    target the loop exits only when the running product of uniforms denormalises to zero,
-    after ~700 multiplications REGARDLESS of lambda — so every request above the saturation
-    point returns roughly the same meaningless count, silently.
-
-    THIS TEST DOES NOT ENDORSE THE BEHAVIOUR. It records it, so that when the owning lane fixes
-    the generator this test fails and `_draw_book`'s batching is revisited rather than left
-    behind as cargo. The finding is filed at
-    docs/staging/WORKER_FINDING_THE_POPULATION_DRAW_SATURATES_ABOVE_LAMBDA_745_2026-08-12.md.
+    This test used to assert that `simulation.population_draw._poisson` SATURATED (lambda=10000
+    returned ~733, because Knuth's `exp(-lam)` target underflows above ~745), and said it should
+    fail when the owning lane fixed the generator. It was fixed 2026-10-06: above lambda 700 the
+    draw is a sum of chunked Knuth draws. `_draw_book` keeps its batches (see its docstring); this
+    asserts the generator no longer needs them.
     """
     import random
 
@@ -254,17 +249,13 @@ def test_the_generator_saturates_above_745():
 
     rng = random.Random(1)
     small = _poisson(rng, 20.0)
-    assert 5 < small < 50, "at a lambda it can honour the draw is a real Poisson draw"
+    assert 5 < small < 50, "at a small lambda the draw is a real Poisson draw"
 
-    huge = _poisson(rng, 10_000.0)
-    assert huge < 2_000, (
-        f"lambda=10000 returned {huge}: if this now returns ~10000 the generator has been "
-        "fixed and tools/scale_probe_10k._draw_book should stop batching around it")
-
-    import math
-    assert math.exp(-probe._POISSON_SATURATION_LAMBDA) > 0
-    assert math.exp(-(probe._POISSON_SATURATION_LAMBDA + 5)) == 0.0, (
-        "the constant must sit at the real underflow boundary, not near it")
+    draws = [_poisson(rng, 10_000.0) for _ in range(20)]
+    mean = sum(draws) / len(draws)
+    # Poisson(10000) has sd 100, so a 20-draw mean has sd ~22; the saturated generator gave ~733.
+    assert abs(mean - 10_000) < 150, (
+        f"lambda=10000 draws average {mean:.0f}: the generator saturates again")
 
 
 def test_the_probe_refuses_a_book_it_did_not_get(monkeypatch):

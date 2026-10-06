@@ -502,7 +502,7 @@ def test_cohort_tenure_reconciliation_holds_for_hand_authored_customers():
 
 
 def test_owner_occupier_splits_into_both_outright_and_mortgage():
-    from simulation.household_segments import tenure_for_customer, TenureType
+    from simulation.household_segments import TenureType, tenure_for_customer
     seen = set()
     for i in range(1000):
         cid = f"OWNER{i}"
@@ -794,3 +794,62 @@ def test_a_household_this_run_registers_mid_run_is_answered_not_refused():
         _clear_acquired_customers()
 
     assert not is_on_the_live_book(newcomer), "teardown must leave the book as it was found"
+
+
+# ---------------------------------------------------------------------------
+# `_poisson` at a large mean (2026-10-06). Knuth's `exp(-lam)` target underflows above ~745, so a
+# request for 2,000 or 4,000 founders silently returned ~769. Above the ceiling the draw is now a
+# sum of chunked Knuth draws; at or below it the stream must be untouched.
+# ---------------------------------------------------------------------------
+
+
+def _knuth_as_it_was(rng: random.Random, lam: float) -> int:
+    """The pre-repair `_poisson`, verbatim -- the reference the small-lambda stream must match."""
+    import math
+
+    if lam <= 0:
+        return 0
+    target = math.exp(-lam)
+    k = 0
+    p = 1.0
+    while True:
+        p *= rng.random()
+        if p <= target:
+            return k
+        k += 1
+
+
+def test_a_large_lambda_draw_averages_lambda_rather_than_saturating():
+    """λ=2000 is a book the measurement asked for and got ~769 of. Mean and variance both pin
+    Poisson(2000): a draw that merely scaled a smaller one would get the mean and miss the
+    variance. Seeded, so the tolerances are against sampling error, not flakiness."""
+    rng = random.Random(20261006)
+    n = 300
+    draws = [pd._poisson(rng, 2000.0) for _ in range(n)]
+    mean = sum(draws) / n
+    var = sum((d - mean) ** 2 for d in draws) / (n - 1)
+    # sd of the mean is sqrt(2000/300) ~ 2.6; of the variance ~ 2000*sqrt(2/299) ~ 164.
+    assert abs(mean - 2000.0) < 4 * (2000.0 / n) ** 0.5, mean
+    assert abs(var - 2000.0) < 4 * 2000.0 * (2.0 / (n - 1)) ** 0.5, var
+    assert min(draws) > 1000, "a saturated draw sits near 769"
+
+
+def test_the_chunked_branch_is_reachable_and_the_knuth_branch_is_not_it():
+    """Both branches must be TAKEN, or the two tests either side of this one prove one branch
+    twice. Above the ceiling the chunked draw consumes the stream differently from Knuth; at the
+    ceiling it consumes it identically."""
+    above = pd._KNUTH_EXACT_LAMBDA_CEILING * 1.5
+    assert pd._poisson(random.Random(3), above) != _knuth_as_it_was(random.Random(3), above)
+    at = pd._KNUTH_EXACT_LAMBDA_CEILING
+    assert pd._poisson(random.Random(3), at) == _knuth_as_it_was(random.Random(3), at)
+
+
+@pytest.mark.parametrize("lam", [0.0, 0.5, 1.0, 20.0, 99.2, 250.0, 699.0, 700.0])
+def test_a_small_lambda_draw_consumes_the_stream_exactly_as_before(lam):
+    """Every existing book is drawn below the ceiling (production's largest is 99.2), so the
+    repair must leave both the draws AND the generator's state after them byte-identical --
+    the state is what every later attribute of the book is drawn from."""
+    new_rng, old_rng = random.Random(11), random.Random(11)
+    assert [pd._poisson(new_rng, lam) for _ in range(50)] == [
+        _knuth_as_it_was(old_rng, lam) for _ in range(50)]
+    assert new_rng.getstate() == old_rng.getstate()

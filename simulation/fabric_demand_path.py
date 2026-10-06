@@ -1006,6 +1006,44 @@ def settled_shape_is_physically_textured(
     return texture_is_not_a_rescaled_shape(days, max_day_multiplicity=max_day_multiplicity)
 
 
+def untextured_premises_within_a_textured_book(
+    verdicts: Sequence[tuple[str, bool]], *, min_share: float = 0.5,
+) -> list[str]:
+    """The premises whose settled shape failed `settled_shape_is_physically_textured`, NAMED, for a
+    book that is textured as a whole -- or an AssertionError if it is not.
+
+    ASKED OF THE BOOK, NOT OF EACH PREMISE, for the reason `the_switch_reaches_the_book` records for
+    the volume control, which this mirrors and shares its floor with. `run_phase2b` raised on the
+    first untextured premise; that was the right shape for a fabric population of four, where one
+    failure meant the switch was largely unthrown. A 4,000-founder book has ~1,200 fabric premises
+    and on 2026-10-06 ONE of them (`SYN-2016-4264`) failed and aborted the run. One premise in
+    1,200 is not an unthrown switch: the defect this control exists for -- a rescaled base shape
+    reaching settlement because the switch is labelled and not thrown -- recurs on every premise by
+    construction, so it fails a majority and still aborts here.
+
+    NOT SILENCE. Every failing premise is returned by name for the run to print and record; a
+    minority failure is a FINDING about that premise, not a pass. Whether a lone failure is a
+    false positive of the 28-day recurrence test or a real degenerate premise is not established
+    by this function and is not assumed.
+
+    Raises ValueError on an empty book: a texture verdict over no premises is undefined, and
+    returning [] would pass exactly the book the switch reached nobody in.
+    """
+    if not verdicts:
+        raise ValueError(
+            "no premise settles on the fabric provider, so whether the book's settled shape is "
+            "physically textured is undefined -- an empty population cannot answer it"
+        )
+    untextured = sorted(cid for cid, textured in verdicts if not textured)
+    if not the_switch_reaches_the_book([textured for _, textured in verdicts], min_share=min_share):
+        raise AssertionError(
+            f"{len(untextured)} of {len(verdicts)} fabric premise(s) settle a shape that is a "
+            "rescaled base shape, not physics: the switch is labelled but not thrown across the "
+            f"book. Untextured: {untextured[:12]}"
+        )
+    return untextured
+
+
 def the_switch_moves_the_settled_volume(
     fabric_shape_fn_: Callable[[str], list[float]],
     legacy_shape_fn: Callable[[str], list[float]],

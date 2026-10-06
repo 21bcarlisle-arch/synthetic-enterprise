@@ -496,3 +496,51 @@ def test_the_lookback_window_is_ALWAYS_about_a_year_and_never_the_zero_a_crash_w
             assert window == dt.date(day.year - 1, 3, 1)
         day += dt.timedelta(days=1)
     assert saw_leap_day, "vacuous: the sweep never crossed a 29 February"
+
+
+# ---- 2026-10-06: a roll reads ONE household's records, not the book's ----
+
+
+def _interleaved_book():
+    """Three households' records interleaved in settlement order, as `all_records` is, with C1 a
+    dual-fuel home whose bills JUMP in its second year so the churn chain has a shock to count."""
+    c1 = _make_customers("C1", segment="resi", epc="C", acquisition_date=ACQ_DATE)[0]
+    customers = [c1, {**c1, "customer_id": "C1g", "commodity": "gas"},
+                 *_make_customers("C2", segment="resi", epc="E", acquisition_date=ACQ_DATE),
+                 *_make_customers("C3", segment="SME", epc="B", acquisition_date=ACQ_DATE)]
+    legs = {}
+    for leg in ("C1", "C1g", "C2", "C3"):
+        legs[leg] = _build_one_year_records(leg, 2016) + _build_one_year_records(leg, 2017)
+    for rec in legs["C1"]:
+        if rec["settlement_date"] >= "2017-03":
+            rec["revenue_gbp"] = 7.5 * 1.6
+    for rec in legs["C2"]:
+        rec["revenue_gbp"] = 3.1 if rec["settlement_date"][5:7] in ("01", "07") else 9.9
+    book = []
+    for group in zip(*legs.values()):
+        book.extend(group)
+    return book, customers
+
+
+def test_a_roll_over_the_whole_book_equals_a_roll_over_its_own_household(monkeypatch):
+    """THE EQUIVALENCE, against the pre-repair read rather than against itself: with the filter
+    replaced by the identity the roll reads the whole interleaved book, as it did before
+    2026-10-06; with it, one household. Every field of the event must agree -- a reader that
+    depended on another household's records would split them here."""
+    import simulation.customer_events as ce
+
+    book, customers = _interleaved_book()
+    renewal = "2017-12-31"  # the second anniversary of a 2016-01-01 acquisition
+    filtered = ce.roll_lifecycle_event("C1", renewal, "electricity", book, customers)
+    assert filtered is not None, "the fixture never reaches a renewal, so nothing is compared"
+    assert filtered["churn_probability"] > ce.roll_lifecycle_event(
+        "C3", renewal, "electricity", book, customers)["churn_probability"], (
+        "C1's bill jump never registered as a shock, so the comparison exercises no history")
+
+    own = ce.households_own_records("C1", book)
+    assert {r["customer_id"] for r in own} == {"C1", "C1g"}, "the gas leg is the same household"
+    assert len(own) < len(book)
+
+    monkeypatch.setattr(ce, "households_own_records", lambda _household, records: records)
+    whole = ce.roll_lifecycle_event("C1", renewal, "electricity", book, customers)
+    assert whole == filtered

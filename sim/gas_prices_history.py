@@ -38,6 +38,16 @@ OUTPUT_PATH = "sim/gas_data/nbp_sap.csv"
 GBPUSD = 1.28
 MWH_PER_MMBTU = 0.29307
 
+#: The first day of the daily record. NOT the simulation's start (2016-01-01): a contract struck on
+#: that day prices off the 90 days BEFORE it (`sim.forward_curve.generate_forward_price`'s default
+#: lookback), and a record starting on the day itself left a day-one gas founder with an empty
+#: window and a ValueError (2026-10-06, the 4,000-founder scale measurement). The same FRED series
+#: publishes those months, so the record reaches back to the first whole month the lookback
+#: touches -- real history, not a fill. Electricity has the same need and its record already
+#: starts at 2015-11-07 (`run_phase2b.EARLIEST_SSP_DATE`).
+RECORD_START = "2015-10-01"
+RECORD_END = "2025-06-07"
+
 
 def fetch_fred_csv() -> str:
     """Download FRED CSV via wget. Returns raw CSV text."""
@@ -119,8 +129,8 @@ if __name__ == "__main__":
     monthly = parse_fred_csv(raw)
     print(f"  {len(monthly)} monthly records parsed")
 
-    print("Expanding to daily (2016-01-01 → 2025-06-07)...")
-    records = expand_to_daily(monthly, "2016-01-01", "2025-06-07")
+    print(f"Expanding to daily ({RECORD_START} → {RECORD_END})...")
+    records = expand_to_daily(monthly, RECORD_START, RECORD_END)
     print(f"  {len(records)} daily records generated")
 
     write_csv(records, OUTPUT_PATH)

@@ -672,6 +672,12 @@ def declined_fix_event(
     }
 
 
+def households_own_records(household: str, records: list[dict]) -> list[dict]:
+    """The settlement records of every supply point in `household` (`simulation.household.
+    household_of`), in their original order. What a renewal roll reads, and all it reads."""
+    return [r for r in records if household_of(r.get("customer_id", "")) == household]
+
+
 def roll_lifecycle_event(
     customer_id: str,
     term_start_str: str,
@@ -741,6 +747,15 @@ def roll_lifecycle_event(
     """
     billing_account = household_of(customer_id)
     term_month = term_start_str[:7]
+    # ONE HOUSEHOLD'S RECORDS, NOT THE BOOK'S (2026-10-06). Every reader below -- the churn risk,
+    # the win rates, the experienced shock, the trailing-year bill -- answers per household and
+    # reads nothing of any other, so this is the same answer from a list ~N times shorter.
+    # `build_churn_risk` over the WHOLE book was ~99% of a roll and made the renewal loop
+    # quadratic in book size. Filtering keeps each household's records in their original order, so
+    # every per-period sum is accumulated in the same order and is bit-identical, not merely close.
+    # Measured on a 300-founder 4-year book: 111 of 111 rolls gave the identical event, in 0.38 s
+    # of roll time against 15.6 s.
+    records_so_far = households_own_records(billing_account, records_so_far)
 
     # ASK ABOUT THE RENEWAL WE ARE ACTUALLY PRICING (2026-08-27). `records_so_far` stops before
     # this term by construction (Point-in-Time), so without `through_period` the churn model's

@@ -261,10 +261,35 @@ def _substream(base_seed: int, salt: str = "") -> random.Random:
     return random.Random(seed_int)
 
 
+#: The largest mean Knuth's product-of-uniforms draw is exact at, IN FLOAT64 -- a property of the
+#: arithmetic, not of the domain. Its stopping target is `exp(-lam)`, which leaves the normal range
+#: just above 708 (`exp(-709)` < 2.2e-308, the smallest normal double), loses precision as a
+#: subnormal through ~745, and is exactly 0.0 beyond, where the loop can only stop when the running
+#: product itself underflows -- after ~700-770 multiplications WHATEVER `lam` was. Measured before
+#: the repair: lambda=2000 and lambda=4000 both returned ~769. 700 keeps the target a normal float
+#: with headroom, and every caller below it takes the original path unchanged.
+_KNUTH_EXACT_LAMBDA_CEILING = 700.0
+
+
 def _poisson(rng: random.Random, lam: float) -> int:
-    """Knuth's algorithm for a Poisson draw from an isolated Random."""
+    """A Poisson(lam) draw from an isolated Random, exact at ANY lam.
+
+    At or below `_KNUTH_EXACT_LAMBDA_CEILING` this is Knuth's algorithm, consuming `rng` exactly as
+    it always has, so every book drawn at such a lambda is byte-identical to its pre-2026-10-06 draw.
+
+    Above it the draw is the SUM of `k` independent Knuth draws of `lam / k`, with `k` the fewest
+    chunks that bring each under the ceiling. That is exact rather than approximate: a sum of
+    independent Poisson variates is Poisson in the sum of their means. Chosen over a transformed-
+    rejection sampler (Hormann's PTRS) on purpose: PTRS is O(1) but is a second algorithm whose
+    acceptance region would need its own proof, while this reuses the one primitive already
+    trusted and costs O(lam) uniforms -- the same as Knuth itself, and trivial at any book size
+    this world draws.
+    """
     if lam <= 0:
         return 0
+    if lam > _KNUTH_EXACT_LAMBDA_CEILING:
+        chunks = math.ceil(lam / _KNUTH_EXACT_LAMBDA_CEILING)
+        return sum(_poisson(rng, lam / chunks) for _ in range(chunks))
     target = math.exp(-lam)
     k = 0
     p = 1.0

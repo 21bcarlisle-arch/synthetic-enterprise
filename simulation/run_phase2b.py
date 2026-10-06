@@ -18,7 +18,6 @@ Delegation note: hand-written (orchestration-adjacent, per protocol).
 import heapq
 import itertools
 import random
-import statistics
 from collections import defaultdict
 from datetime import date, datetime, time, timedelta
 
@@ -99,15 +98,9 @@ from sim.customer_state_layer import (
     unnamed_kwh_after_move,
 )
 from sim.forward_curve import (
-    BASE_TERM_PREMIUM,
-    DEFAULT_RISK_FACTOR,
-    EWMA_HALF_LIFE_DAYS,
-    GAS_BASE_TERM_PREMIUM,
     SUMMER_MULTIPLIER,
     WINTER_MONTHS,
     WINTER_MULTIPLIER,
-    _ewma,
-    _seasonal_shape,
     generate_forward_price,
 )
 from sim.gas_prices_history import load_nbp_history
@@ -117,7 +110,6 @@ from sim.risk_committee import RiskCommitteeMonitor
 from sim.risk_engine import assess_term_risk, is_administration_triggered
 from sim.system_prices_history import get_system_prices_range
 from sim.weather_hdd import REFERENCE_MONTHLY_HDD, get_hdd
-from sim.weather_price_sensitivity import weather_sensitivity_multiplier
 from simulation.acquisition_funnel import run_acquisition_funnel
 from simulation.bad_debt_incidence import world_bad_debt_incidence
 from simulation.bill_shock_tracker import count_rate_shocks as _count_rate_shocks
@@ -132,6 +124,7 @@ from simulation.customer_events import (
     departure_event,
     departure_rolled_at_renewal,
     home_move_disposition,
+    households_own_records,
     position_vs_default,
     renewal_outcome,
     roll_lifecycle_event,
@@ -173,6 +166,7 @@ from simulation.fabric_demand_path import (
     settlement_providers_match_eligibility,
     the_switch_moves_the_settled_volume,
     the_switch_reaches_the_book,
+    untextured_premises_within_a_textured_book,
 )
 from simulation.fabric_physics import DEFAULT_LATITUDE_DEG
 from simulation.feedback_survey import (
@@ -683,50 +677,6 @@ def resolved_tariff_type(record: dict, *, successor: bool = False) -> str | None
     return record.get("tariff_type") or "fixed"
 
 
-def _bootstrap_first_term_forward_price(
-    term_start: str, gas_records: list[dict],
-    contract_length_months: int = 12, lookback_days: int = 90, risk_factor: float = 1.2,
-    lookback_daily_mean_temps_c: list[float] | None = None,
-    fuel: str = "electricity",
-) -> float:
-    """Forward price for a customer's first gas term when NBP history begins
-    on (not before) term_start — the standard 90-day-prior lookback in
-    generate_forward_price() finds nothing and raises ValueError.
-
-    Mirrors generate_forward_price() exactly but draws its window from the
-    first lookback_days of *available* records (forward-looking bootstrap).
-    One-time use for the very first term only.
-    """
-    start_date = date.fromisoformat(term_start)
-    window_end = start_date + timedelta(days=lookback_days - 1)
-
-    filtered_records = [
-        record for record in gas_records
-        if start_date <= date.fromisoformat(record["settlementDate"]) <= window_end
-    ]
-
-    # Use EWMA + term-structure formula (mirrors generate_forward_price reform)
-    daily_buckets: dict[str, list[float]] = {}
-    for r in filtered_records:
-        daily_buckets.setdefault(r["settlementDate"], []).append(r["systemSellPrice"])
-    daily_means = [
-        statistics.mean(prices)
-        for _d, prices in sorted(daily_buckets.items())
-    ]
-    effective_hl = min(EWMA_HALF_LIFE_DAYS, len(daily_means)) if daily_means else 1
-    spot_ewma = _ewma(daily_means, effective_hl) if daily_means else 0.0
-    seasonal = _seasonal_shape(start_date.month, contract_length_months, fuel)
-    tenor_years = contract_length_months / 12.0
-    base_premium = GAS_BASE_TERM_PREMIUM if fuel == "gas" else BASE_TERM_PREMIUM
-    term_premium = base_premium * (tenor_years ** 0.5) * (risk_factor / DEFAULT_RISK_FACTOR)
-    forward_price = spot_ewma * seasonal * (1.0 + term_premium)
-
-    if lookback_daily_mean_temps_c is not None and fuel == "electricity":
-        forward_price *= weather_sensitivity_multiplier(lookback_daily_mean_temps_c)
-
-    return forward_price
-
-
 def _build_gas_renewal_schedule(
     customer: dict, gas_records: list[dict], lookback_temps_fn=None,
     report_end: str = REPORT_END, tariff_type: str = "fixed",
@@ -867,12 +817,16 @@ def _build_gas_renewal_schedule(
         try:
             sim_fwd = generate_forward_price(term_start, gas_records, lookback_daily_mean_temps_c=lookback_temps, fuel="gas")
         except ValueError:
+            # A FIRST TERM WITH NO PRICE HISTORY BEHIND IT IS AN ERROR, NOT A BOOTSTRAP (2026-10-06).
+            # This used to fall back to `_bootstrap_first_term_forward_price`, which priced the term
+            # off the 90 days AFTER its start -- hindsight, and handed on to the company below as its
+            # cold-start fallback. It priced C1g's 2016-01-01 term at 12.41 GBP/MWh off Q1 2016,
+            # where the Oct-Dec 2015 record a supplier actually held gives 16.38. The gas record now
+            # starts 2015-10-01 (`sim.gas_prices_history.RECORD_START`), so no simulated first term
+            # reaches here; one that does has outrun the record and must say so.
             if not schedule:
-                sim_fwd = _bootstrap_first_term_forward_price(
-                    term_start, gas_records, lookback_daily_mean_temps_c=lookback_temps, fuel="gas"
-                )
-            else:
-                break
+                raise
+            break
         # Phase 34a: gas tariffs also priced NOTICE_DAYS before term start.
         gas_notice_date = (date.fromisoformat(term_start) - timedelta(days=NOTICE_DAYS)).isoformat()
         # KNIFE step 24 (§3s): WHICH forward the company prices gas off is its
@@ -1663,23 +1617,23 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
     # inert switch -- the defect the control exists for -- moves none of them and fails on the
     # first count. The floor is 50%, not the 96% measured today, so it is keyed to "the switch
     # reached the book" and not to this book's answer.
+    # THE TEXTURE CONTROL IS ASKED OF THE BOOK TOO (2026-10-06), on the same reasoning and floor:
+    # it raised on the first untextured premise, and a 4,000-founder book aborted on 1 premise in
+    # 1,200. Each failure is NAMED below and in the run output; a majority failing still aborts.
+    # See `untextured_premises_within_a_textured_book`.
     _switch_verdicts: list[tuple[str, bool]] = []
+    _texture_verdicts: list[tuple[str, bool]] = []
     for _fab_cid, _fab_series in sorted(fabric_series_by_customer.items()):
         _sample_dates = sorted(_fab_series.gross_electricity_kwh)
         _sample_dates = _sample_dates[:14] + _sample_dates[-14:]
-        if not settled_shape_is_physically_textured(
+        _texture_verdicts.append((_fab_cid, settled_shape_is_physically_textured(
             fabric_shape_fn(
                 _fab_series,
                 "electricity",
                 battery_dispatch=_fabric_battery_dispatch_for(_fab_cid),
             ),
             _sample_dates,
-        ):
-            raise AssertionError(
-                f"{_fab_cid} settles on the fabric provider but the shape reaching "
-                "settlement is a rescaled base shape, not physics: the switch is "
-                "labelled but not thrown"
-            )
+        )))
         # W1_11 L2->L3: the FOURTH control, and the only one that asks whether the
         # switch is INERT. Its three siblings judge the label, the declaration and
         # the texture -- all three stay green on a book whose fabric premises settle
@@ -1708,6 +1662,11 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             _sample_dates,
         )))
 
+    _untextured_fabric_premises = untextured_premises_within_a_textured_book(_texture_verdicts)
+    for _cid in _untextured_fabric_premises:
+        print(f"  FINDING {_cid}: settles on the fabric provider but its sampled settled shape "
+              f"recurs like a rescaled base shape (settled_shape_is_physically_textured); "
+              f"{len(_untextured_fabric_premises)} of {len(_texture_verdicts)} fabric premises")
     _switch_moved = [cid for cid, moved in _switch_verdicts if moved]
     if not the_switch_reaches_the_book([moved for _, moved in _switch_verdicts]):
         _still = sorted(cid for cid, moved in _switch_verdicts if not moved)
@@ -2991,7 +2950,10 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             # above already carried its exits for every SVT segment (`departure_rolled_at_renewal`).
             _rolled = departure_rolled_at_renewal(_previous_tariff_type)
             event = roll_lifecycle_event(
-                cid, term_start_str, commodity, list(all_records), _ALL_KNOWN_CUSTOMERS,
+                cid, term_start_str, commodity,
+                # This household's records only: the roll reads nothing else, and copying the
+                # whole book into it per renewal was the quadratic term (see the function).
+                households_own_records(billing_account, all_records), _ALL_KNOWN_CUSTOMERS,
                 old_rate_gbp_per_mwh=old_decision_leg_rate,
                 new_rate_gbp_per_mwh=unit_rate,
                 retention_modifier=retention_modifier_val,
@@ -4372,6 +4334,10 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             {"customer_id": v.customer_id, "is_eligible": v.is_eligible, "reason": v.reason}
             for v in fabric_eligibility_verdicts
         ],
+        # The fabric premises whose settled shape failed the texture control in a book that passed it
+        # as a whole -- recorded, not printed only, so a minority failure is a finding a reader can
+        # find. Empty is the good answer and still an answer.
+        "fabric_untextured_premises": list(_untextured_fabric_premises),
         # The treasury path's turning points for the WHOLE book, folded in accumulation order as
         # the balances were produced, each tagged with the year of its record.
         # `annual_report._drawdown_events_by_year` walks this instead of re-deriving a path from

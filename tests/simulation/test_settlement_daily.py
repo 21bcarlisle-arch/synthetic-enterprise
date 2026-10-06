@@ -236,6 +236,68 @@ def test_the_drawdown_register_reproduces_the_reports_own_events(seed):
         "the register kept every point, so it is not saving anything")
 
 
+def _uncollapsed_register(records) -> list[list]:
+    """The register as it was before 2026-10-06, verbatim: every new running peak and every new
+    low beneath the last point, appended. The reference the collapsed one must walk identically to."""
+    points, peak = [], None
+    for rec in records:
+        balance, day = rec.get("treasury_cash_balance_gbp"), rec.get("settlement_date")
+        if balance is None or not day:
+            continue
+        if peak is None or balance > peak:
+            points.append([balance, day[:4]])
+            peak = balance
+        elif balance < points[-1][0]:
+            points.append([balance, day[:4]])
+    return points
+
+
+def _trending_walk(seed: int, n: int = 6000) -> list[dict]:
+    """A treasury that mostly CLIMBS, with dips, across three years -- the shape that made the old
+    register O(periods): long runs of consecutive new peaks, and runs of consecutive new lows."""
+    rng = random.Random(seed)
+    balance, records = 250_000.0, []
+    for i in range(n):
+        balance += rng.uniform(-900, 1000) if i % 400 > 40 else rng.uniform(-600, 200)
+        year = 2019 + i * 3 // n
+        records.append(_period(day="%d-%02d-%02d" % (year, i % 12 + 1, i % 28 + 1),
+                               period=i % 48 + 1, treasury=balance))
+    return records
+
+
+@pytest.mark.parametrize("seed", [1, 2, 3, 4, 5])
+def test_the_collapsed_register_walks_to_the_same_events(seed):
+    """LOSSLESS, asserted against the consumer rather than argued: the report's own by-year walk
+    over the collapsed register and over the uncollapsed one gives identical events -- peaks,
+    troughs, percentages, years and sequence numbers -- at five thresholds, one of which (0.0)
+    makes every dip an event so a lost turning point cannot hide below the threshold."""
+    from saas.reporting.annual_report import _drawdown_events_by_year
+
+    records = _trending_walk(seed)
+    register = TreasuryDrawdown()
+    for start in range(0, len(records), 500):  # fed in terms, as the run feeds it
+        register.add(records[start:start + 500])
+    collapsed, reference = register.points(), _uncollapsed_register(records)
+
+    event_counts = []
+    for threshold in (0.0, 1e-4, 1e-3, 1e-2, 0.05):
+        ours = _drawdown_events_by_year(collapsed, threshold=threshold)
+        theirs = _drawdown_events_by_year(reference, threshold=threshold)
+        assert ours == theirs, f"threshold {threshold}: the collapse changed the events"
+        event_counts.append(sum(len(v) for v in theirs.values()))
+    assert event_counts[0] > 20, "the walk has too few drawdowns for the comparison to bite"
+    assert len(collapsed) < len(reference) / 2, (
+        f"{len(collapsed)} of {len(reference)} points kept: the runs were not collapsed")
+
+
+def test_a_rising_treasury_is_one_point_not_one_per_period():
+    """The defect at its plainest: a balance that only climbs has no drawdown and needs one point.
+    The old register held one per period -- 1,258,193 on the measured book."""
+    register = TreasuryDrawdown()
+    register.add([_period(period=p % 48 + 1, treasury=1000.0 + p) for p in range(500)])
+    assert register.points() == [[1499.0, "2019"]]
+
+
 def test_an_intra_day_trough_survives_the_register_and_not_the_daily_close():
     """The concrete reason the register exists: a dip that opens and closes inside one day."""
     day = _day_of(day="2019-03-04")

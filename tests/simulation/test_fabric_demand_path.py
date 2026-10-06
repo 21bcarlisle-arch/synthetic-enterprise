@@ -809,6 +809,56 @@ def test_the_settled_shape_control_is_NOT_AN_ORPHAN():
 
 
 # ---------------------------------------------------------------------------
+# THE TEXTURE CONTROL ASKED OF THE BOOK -- `untextured_premises_within_a_textured_book`
+#
+# A 4,000-founder run aborted on 1 untextured premise in 1,200 (2026-10-06). The partition: a lone
+# failure passes the BOOK but is named; a majority failing aborts.
+# ---------------------------------------------------------------------------
+
+
+def test_the_book_texture_verdict_takes_every_branch():
+    """Both branches must be reachable, or each test below proves only that one exists: a verdict
+    that always raised passes the abort test, and one that never raised passes the naming test."""
+    named = fdp.untextured_premises_within_a_textured_book([("A", True), ("B", False), ("C", True)])
+    with pytest.raises(AssertionError):
+        fdp.untextured_premises_within_a_textured_book([("A", False), ("B", False), ("C", True)])
+    assert named == ["B"]
+
+
+def test_one_untextured_premise_in_a_large_book_passes_the_book_and_is_NAMED():
+    verdicts = [(f"SYN-2016-{i:04d}", True) for i in range(1200)]
+    verdicts[517] = ("SYN-2016-4264", False)
+    assert fdp.untextured_premises_within_a_textured_book(verdicts) == ["SYN-2016-4264"], (
+        "a minority failure must come back by name, not be absorbed into a pass")
+
+
+def test_a_book_where_most_premises_are_untextured_ABORTS_and_names_them():
+    verdicts = [(f"P{i:03d}", i % 10 == 0) for i in range(100)]  # 10% textured
+    with pytest.raises(AssertionError, match="labelled but not thrown") as raised:
+        fdp.untextured_premises_within_a_textured_book(verdicts)
+    assert "90 of 100" in str(raised.value) and "P001" in str(raised.value)
+
+
+def test_the_book_texture_verdict_REFUSES_an_empty_book():
+    with pytest.raises(ValueError, match="empty population"):
+        fdp.untextured_premises_within_a_textured_book([])
+
+
+def test_the_book_texture_verdict_is_NOT_AN_ORPHAN():
+    """The run must call it AND record what it returns -- a verdict computed and dropped would be
+    the silence the per-premise raise was replaced on condition of not becoming."""
+    import inspect
+
+    from simulation import run_phase2b
+
+    source = inspect.getsource(run_phase2b)
+    assert "untextured_premises_within_a_textured_book(_texture_verdicts)" in source
+    assert '"fabric_untextured_premises": list(_untextured_fabric_premises)' in source
+    assert run_phase2b.untextured_premises_within_a_textured_book is (
+        fdp.untextured_premises_within_a_textured_book)
+
+
+# ---------------------------------------------------------------------------
 # THE INERT-SWITCH CONTROL — `the_switch_moves_the_settled_volume`
 #
 # The hole its three siblings shared: all of them stay green on a book whose

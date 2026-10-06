@@ -471,13 +471,10 @@ class _Checkpointer:
             pass
 
 
-# The largest per-year lambda `simulation.population_draw._poisson` can actually honour. Above
-# roughly this value `math.exp(-lam)` underflows to 0.0, the Knuth loop's target becomes
-# unreachable, and it exits only when the running product of uniforms denormalises to zero —
-# which happens after ~700 iterations REGARDLESS OF LAMBDA. See `_draw_book`.
-_POISSON_SATURATION_LAMBDA = 745.0
-
-# Comfortably below the saturation point, so each batch is a real Poisson draw.
+# The batch size the probe has always drawn at. It was chosen to stay below the generator's old
+# saturation point (~745, where `math.exp(-lam)` underflowed); `_poisson` is exact at any lambda
+# since 2026-10-06, so batching is no longer a workaround -- it is kept so the probe's book, ids and
+# seeds stay the ones its earlier measurements were taken on.
 _DRAW_BATCH_LAMBDA = 250.0
 
 
@@ -492,10 +489,14 @@ def _draw_book(n: int, base_seed: int, year: int) -> list[dict]:
     target the loop runs until the running product of uniform draws denormalises to zero, which
     takes ~700 multiplications no matter what lambda was — so every request above the
     saturation point returns the same meaningless number, with no exception and no warning.
-    Measured: lambda=750 -> 703, lambda=10000 -> 733. Pinned by
-    `tests/tools/test_scale_probe_10k.py::test_the_generator_saturates_above_745`.
+    Measured: lambda=750 -> 703, lambda=10000 -> 733.
 
-    THE PROBE DOES NOT FIX IT. `simulation/population_draw.py` is WORLD code outside this
+    REPAIRED IN THE GENERATOR 2026-10-06: above lambda 700 `_poisson` sums chunked Knuth draws,
+    and below it the stream is unchanged, so no book any run draws moved. The batching below is
+    kept so this probe's book stays the one its earlier measurements were taken on; the repair is
+    pinned by `tests/tools/test_scale_probe_10k.py::test_the_generator_honours_a_large_lambda`.
+
+    THE PROBE DID NOT FIX IT. `simulation/population_draw.py` is WORLD code outside this
     atom's file_scope, and its draw is a director-owned CURRICULUM instrument (R13) — a change
     there alters which world every run faces and is not a measurement tool's call to make. The
     finding is filed for the owning lane; here the generator is simply called repeatedly at a
@@ -591,12 +592,11 @@ def _stage_population_draw(args, cp: _Checkpointer) -> dict:
     wall = time.monotonic() - t0
     if len(book) < args.customers:
         raise RuntimeError(f"drew {len(book)} of {args.customers} requested customers in "
-                           f"{batch} batches — see _draw_book on the generator's saturation")
+                           f"{batch} batches")
     return {"unit": "customer", "units_completed": len(book), "wall_s": wall,
             "baseline_rss_bytes": baseline, "subject_kind": "real",
             "detail": (f"drew {len(book)} customers via simulation.population_draw in {batch} "
-                       f"batches of lambda={_DRAW_BATCH_LAMBDA:g} (the generator saturates "
-                       f"above ~{_POISSON_SATURATION_LAMBDA:g})")}
+                       f"batches of lambda={_DRAW_BATCH_LAMBDA:g}")}
 
 
 def _stage_settlement_build(args, cp: _Checkpointer) -> dict:

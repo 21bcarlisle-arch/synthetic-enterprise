@@ -281,8 +281,19 @@ class TreasuryDrawdown:
     The register is a PATH, not a set of per-year paths — `points()` returns every significant
     point in the order the balance took, each tagged with the year of the record that produced
     it. A significant point is every new running peak and every new low beneath the last
-    recorded point; a balance between the two moves no drawdown and is dropped, which makes the
-    register O(turning points) rather than O(periods) and lossless for a (peak, trough) walk.
+    recorded point; a balance between the two moves no drawdown and is dropped.
+
+    A RUN OF PEAKS, OR A RUN OF LOWS, KEEPS ONLY ITS LAST MEMBER (2026-10-06). The paragraph above
+    claimed O(turning points) while the code appended EVERY new running peak: a treasury that
+    climbs period after period is a run of new peaks. On the production run the register held
+    6,497,202 points where 162,267 carry the same walk: 1,559 MB of a 5,089 MB peak, about 2.2 MB
+    per settled customer-year. Collapsing is lossless for the consumer's walk, not merely close:
+    of consecutive peaks only the last can open a drawdown (the walk closes the earlier ones with
+    trough == peak, which emits nothing), and of consecutive lows only the last is the trough. Every
+    point that survives is one the uncollapsed register also held, at the same position in the
+    sequence of runs, so the walk's state at every run boundary -- and therefore every event, at
+    every threshold -- is unchanged. Pinned by
+    `tests/simulation/test_settlement_daily.py::test_the_collapsed_register_walks_to_the_same_events`.
 
     WHY THE YEAR IS A TAG AND NOT A PARTITION (2026-08-24, the residual of
     `docs/staging/WORKER_FINDING_THE_TREASURY_DRAWDOWN_FIGURE_IS_AN_ARTEFACT_OF_SORTING_A_BALANCE_THAT_WAS_NEVER_A_SERIES_2026-08-24.md`).
@@ -303,6 +314,9 @@ class TreasuryDrawdown:
     def __init__(self) -> None:
         self._points: list[list] = []
         self._peak: float | None = None
+        # Whether the LAST point is a running peak (True) or a low beneath it (False): the run a
+        # new point of the same kind replaces rather than extends.
+        self._last_is_peak = False
 
     def add(self, records) -> None:
         for rec in records:
@@ -314,15 +328,24 @@ class TreasuryDrawdown:
             if self._peak is None:
                 self._points.append([balance, year])
                 self._peak = balance
+                self._last_is_peak = True
                 continue
             if balance > self._peak:
-                self._points.append([balance, year])
                 self._peak = balance
+                if self._last_is_peak:
+                    self._points[-1] = [balance, year]
+                else:
+                    self._points.append([balance, year])
+                    self._last_is_peak = True
             elif balance < self._points[-1][0]:
                 # A new low since the last recorded point: it can only deepen a drawdown, so it
                 # is a turning point. A balance between the last point and the peak changes no
                 # drawdown and is dropped.
-                self._points.append([balance, year])
+                if self._last_is_peak:
+                    self._points.append([balance, year])
+                    self._last_is_peak = False
+                else:
+                    self._points[-1] = [balance, year]
 
     def points(self) -> list[list]:
         """The whole register, for the run to hand to the report. A plain list of `[balance,
