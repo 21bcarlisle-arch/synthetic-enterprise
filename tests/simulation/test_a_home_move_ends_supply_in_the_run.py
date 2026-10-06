@@ -123,3 +123,22 @@ def test_the_change_of_tenancy_window_is_occupier_debt_and_the_rest_is_collected
                 if "occupier_debt_gbp" in r and r["customer_id"] not in until]
     assert moved_run["total_occupier_debt"] == pytest.approx(
         sum(r["occupier_debt_gbp"] for r in inside))
+
+
+def test_a_bill_carries_the_share_of_its_charges_that_is_occupier_debt(moved_run):
+    """B7 slice 5. Defect: the window's bills reach the arrears engine unmarked, so the energy is
+    written off at the ordinary rate on top of its occupier debt. All three kinds of month must
+    exist -- wholly inside, the month the occupant is named, and after -- or a stamp that marked
+    every bill, or none, or only whole months would pass."""
+    from simulation.run_phase4c_on_phase2b import build_monthly_bills
+    until = {m["customer_id"]: m["unnamed_until"] for m in moved_run["home_move_ins"]}
+    bills = [b for b in build_monthly_bills(moved_run["all_records"])
+             if b["customer_id"] in until]
+    whole = [b for b in bills if b["period_end"] < until[b["customer_id"]]]
+    split = [b for b in bills
+             if b["period_start"] < until[b["customer_id"]] <= b["period_end"]]
+    after = [b for b in bills if b["period_start"] >= until[b["customer_id"]]]
+    assert whole and split and after
+    assert all(b["occupier_share"] == 1.0 for b in whole), whole
+    assert all(0.0 < b["occupier_share"] < 1.0 for b in split), split
+    assert not [b for b in after if "occupier_share" in b]

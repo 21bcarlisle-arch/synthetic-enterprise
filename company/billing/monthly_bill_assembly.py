@@ -735,6 +735,16 @@ def build_monthly_bills(
                     "billed_kwh": bill["total_consumption_kwh"],
                     "used_kwh": true_kwh,
                 })
+            # B7 slice 5: energy at a vacated premise before anyone is named is billed to "the
+            # occupier". The world books it as occupier debt on the settled rows, so the bill
+            # carries that share and the arrears engine does not collect or write it off again.
+            # A share, not a flag: the month the occupant is named holds rows on both sides.
+            occupier_gbp = sum(r.get("occupier_debt_gbp", 0.0) for r in months[month])
+            if occupier_gbp:
+                revenue_gbp = sum(r.get("revenue_gbp", 0.0) for r in months[month])
+                bill["occupier_debt_gbp"] = occupier_gbp
+                bill["occupier_share"] = (
+                    min(1.0, occupier_gbp / revenue_gbp) if revenue_gbp > 0 else 1.0)
             bills.append(bill)
             # One event per bill, in bills order -- appended here, in the same
             # step that appends the bill, so the two lists cannot fall out of

@@ -757,7 +757,15 @@ def _resolve_bills(bills: list[dict], behavioral: dict, seed: int) -> list[dict]
     for bill in sorted(bills, key=lambda b: (b["customer_id"], b["period_end"])):
         cid = bill["customer_id"]
         segment = bill.get("segment", "resi")
+        # B7 slice 5: the change-of-tenancy window is already booked as occupier debt in the run
+        # (`occupier_debt_gbp`), so a named payer is asked only for the rest of the bill, and a
+        # bill wholly inside the window is nobody's to collect or write off here.
+        occupier_share = bill.get("occupier_share", 0.0)
+        if occupier_share >= 1.0:
+            continue
         amount = bill["total_amount_gbp"]
+        if occupier_share > 0.0:
+            amount = round(amount * (1.0 - occupier_share), 2)
         period_end = bill["period_end"]
         commodity = bill.get("commodity", "electricity")
         due_date = date.fromisoformat(period_end) + timedelta(days=PAYMENT_TERMS_DAYS)
