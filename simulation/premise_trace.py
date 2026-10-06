@@ -113,6 +113,7 @@ import math
 import random
 from dataclasses import dataclass, field
 from pathlib import Path
+from statistics import NormalDist
 from typing import Iterable, Mapping, Sequence
 
 from simulation.demand_model import heating_degree_days
@@ -666,8 +667,35 @@ def appliance_season_factor(name: str, month: int) -> float:
 # house is not flat, it hums. Modelling this as a flat 0.075 kW would reproduce
 # exactly the artefact this atom exists to remove (a smooth series), and adding
 # noise instead would fail L1.5.
-_STANDBY_KW = 0.025
-"""Router, alarm, standby draws — genuinely constant."""
+UNIFORM_STANDBY_KW = 0.025
+"""Router, alarm, standby draws — genuinely constant. What EVERY home drew before W1_29's
+always-on draw (below); kept for a caller that must hold the always-on load fixed."""
+
+# `domain-knowledge` — A HOME'S ALWAYS-ON LOAD, drawn once per premise. Until W1_29 every home drew
+# the same 25 W, so the world's base load sat in a 31–54 W band where real homes spread from about
+# 16 W to 224 W. That spread is where the calmest real tenth comes from. EFUS 2011 §4.1, 79 monitored
+# homes without electric space or water heating, power exceeded 90% of the time at 10-second
+# resolution: median 90 W, mean 136 W
+# (docs/market_research/what_appliances_an_english_home_owns_efus_2011_and_2017.md).
+# SIMPLIFICATION: the shape is LOGNORMAL, fitted to those two published moments (σ = √(2 ln(mean ÷
+# median)) = 0.909). EFUS publishes no quantiles. The check is out of sample: the drawn 60's base
+# load, read by the p5-half-hour estimator, is [40, 58, 88, 143, 243] W at p10/p25/median/p75/p90,
+# against [16, 40, 80, 136, 224] W in 313 Low Carbon London homes, which played no part in the fit.
+# The ceiling is EFUS's own: no home's base can exceed its mean demand, and the largest mean hourly
+# demand EFUS saw was 2,438 W. The EFUS base includes a gas boiler's ~3 W standby, which the world
+# also draws as `BOILER_STANDBY_KW`, so a gas home carries ≤3 W twice. That is left as it stands.
+_ALWAYS_ON_MEDIAN_KW = 0.090
+_ALWAYS_ON_MEAN_KW = 0.136
+_ALWAYS_ON_CEILING_KW = 2.438
+_ALWAYS_ON_SIGMA = math.sqrt(2.0 * math.log(_ALWAYS_ON_MEAN_KW / _ALWAYS_ON_MEDIAN_KW))
+
+
+def always_on_kw(base_seed: int) -> float:
+    """This premise's constant always-on load in kW: the router, alarm, set-top boxes and
+    everything left on standby. Drawn ONCE per premise from its own substream."""
+    u = _substream(base_seed, "always-on").random()
+    z = NormalDist().inv_cdf(min(max(u, 1e-12), 1.0 - 1e-12))
+    return min(_ALWAYS_ON_CEILING_KW, _ALWAYS_ON_MEDIAN_KW * math.exp(_ALWAYS_ON_SIGMA * z))
 
 _FROZEN_COMPARTMENT_TARGET_C = -18.0
 """EU Reg. 2019/2016 / IEC 62552-2 frozen-compartment target temperature."""
@@ -744,7 +772,7 @@ _LIGHTING_KW_PER_PERSON = 0.035
 _ELECTRONICS_KW_PER_PERSON = 0.055
 
 # `domain-knowledge` — lighting and electronics are SWITCHED devices, and this is
-# the same argument the note on `_STANDBY_KW` already makes for the fridge, just
+# the same argument the note on `UNIFORM_STANDBY_KW` already makes for the fridge, just
 # applied to the loads it was not applied to. A room is lit or it is not; a TV is
 # on or it is not. Multiplying a per-person wattage by an occupancy fraction
 # produces a load that is CONSTANT for the whole of an occupancy block — the
@@ -1779,6 +1807,7 @@ def generate_premise_trace(
     initial_state: ThermalState | None = None,
     smart_charging_window: tuple[int, int] | None = None,
     owned: frozenset[str] | None = None,
+    standby_kw: float | None = None,
 ) -> PremiseTrace:
     """Generate one premise's half-hourly gas and electricity trace.
 
@@ -1790,7 +1819,8 @@ def generate_premise_trace(
     a vacuous trace must fail, never pass (R15 fail-open).
 
     `owned` attaches a stock where a caller holds it fixed, as `behaviour` does; absent, the
-    premise draws its own (`owned_stock`).
+    premise draws its own (`owned_stock`). `standby_kw` does the same for the always-on load
+    (`always_on_kw`).
     """
     if not weather:
         raise ValueError("generate_premise_trace needs at least one weather day")
@@ -1825,6 +1855,7 @@ def generate_premise_trace(
     # other because their compressors are out of phase, never because noise was
     # added to either output series.
     owned = owned_stock(base_seed, profile.people_count) if owned is None else owned
+    standby_kw = always_on_kw(base_seed) if standby_kw is None else standby_kw
     cold_specs = tuple(spec for spec in COLD_APPLIANCES if spec.name in owned)
     cold_phases = cold_appliance_phases(base_seed, specs=cold_specs)
     # THE ROOM THE FRIDGE STANDS IN, lagged one day — and the lag is structural,
@@ -1890,12 +1921,12 @@ def generate_premise_trace(
             occupancy = occupancy_at(profile, period, is_weekend=is_weekend, is_away=is_away)
             awake = occupancy > 0.25
             dark = hour < sunrise + 0.5 or hour > sunset - 0.5
-            # The always-on load is standby (genuinely constant) PLUS the cycling
-            # cold appliances — the deliberate non-constant, per the note on
-            # `_STANDBY_KW`. A flat base load here would re-introduce the smooth
+            # The always-on load is this home's standby (constant within the home,
+            # drawn between homes: `always_on_kw`) PLUS the cycling cold appliances —
+            # the deliberate non-constant, per the note on `UNIFORM_STANDBY_KW`. A flat base load here would re-introduce the smooth
             # series this atom exists to remove, and it runs on an away day too:
             # the fridge does not go on holiday.
-            kw = _STANDBY_KW
+            kw = standby_kw
             live = awake and not is_away
             device_p = occupancy if live else 0.0
             light_p = occupancy if live and dark else 0.0

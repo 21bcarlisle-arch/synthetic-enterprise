@@ -545,11 +545,20 @@ def _worst_cell_clears_its_own_floor(texture) -> None:
     cell carries is the real distribution, and "clears" now means the calmest
     judged home is out of the calmest tenth of real homes — read off the cell's
     OWN p10 leg, so a moved reference reaches this expression.
+
+    RE-KEYED AGAIN THE SAME NIGHT, from one home to the population. A tenth of real
+    homes sit under the real p10, so one panel home there is the world being right:
+    W1_29's always-on draw put S9 at 0.0559. What the closure claims is that the
+    calmest tenth is not OVER-full, the shape a smooth-by-construction home makes.
+    So the relation is the p10 leg, red in the too-calm direction.
     """
     p10 = next(leg for leg in texture.quantiles if leg.q == 0.10)
-    assert texture.worst_value >= p10.real, (
-        f"the calmest L1.1 home ({texture.worst_home} at {texture.worst_value:.4f}) fell "
-        f"BELOW the real p10 {p10.real} — the closure has regressed: {texture.note}"
+    over_full = p10.below > p10.expected and (
+        p10.p * len(texture.quantiles) < fgl.TEXTURE_DISTRIBUTION_ALPHA
+    )
+    assert not over_full, (
+        f"{p10.below} homes fell into the calmest real tenth (under {p10.real}, "
+        f"expected {p10.expected:.1f}) — the closure has regressed: {texture.note}"
     )
 
 
@@ -638,7 +647,10 @@ def test_the_TEXTURE_CELL_BREACH_CLOSED_when_the_LOAD_SET_WAS_REPAIRED(panel, we
     # (`pt.appliance_season_factor`) redrew the day's event stream.
     #
     # S9 0.1755 -> 0.1200 on 2026-10-06 (W1_29): the per-home appliance stock draw.
-    assert texture.worst_value == pytest.approx(0.1200, abs=5e-4), texture.note
+    #
+    # S9 0.1200 -> 0.0559 the same night (W1_29): S9's always-on load is drawn (EFUS) where it
+    # was 25 W, and it is in the calmest real tenth, which a tenth of real homes are.
+    assert texture.worst_value == pytest.approx(0.0559, abs=5e-4), texture.note
     assert "net of space AND water heat" in texture.note
     electric = {
         home for home, system in zip(population_homes(panel), panel_systems(panel))
@@ -656,7 +668,8 @@ def test_the_TEXTURE_CELL_BREACH_CLOSED_when_the_LOAD_SET_WAS_REPAIRED(panel, we
     #     under the real median, and no leg is decisive at fifteen homes.
     assert texture.verdict is fgl.Verdict.INSUFFICIENT, texture.note
     median = next(leg for leg in texture.quantiles if leg.q == 0.50)
-    assert median.below == 4, texture.note
+    # 4 -> 9 (expected 7.5) the same night, when each home drew its always-on load.
+    assert median.below == 9, texture.note
 
     # (d) THE GAS HOMES ARE UNCHANGED BY THE REPAIR, which is what makes it a
     #     load-set correction rather than a rescaling of everybody. Measured, not
@@ -832,7 +845,7 @@ def test_the_CLOSURE_CONTROL_still_fires_when_the_JUDGING_BAND_IS_MOVED(panel, w
     # The mutation reached the real measurement...
     assert [leg.real for leg in texture.quantiles] == [real for _, real in moved]
     # ...and the cell it produces is one the control refuses.
-    assert texture.quantiles[0].below > 0, texture.note
+    assert texture.quantiles[0].below > texture.quantiles[0].expected, texture.note
     with pytest.raises(AssertionError, match="fell"):
         _worst_cell_clears_its_own_floor(texture)
 
@@ -861,13 +874,20 @@ def test_the_CLOSURE_CONTROL_accepts_a_clearing_cell_and_REJECTS_a_sub_floor_one
     """
     texture = cf.two_level(panel, weather).cell(fgl.TEXTURE_STATISTIC)
     floor = texture.quantiles[0].real
+    n = texture.homes_judged
 
     _worst_cell_clears_its_own_floor(texture)          # the measured cell itself
 
-    clearing = dataclasses.replace(texture, worst_value=floor + 0.01)
+    # Since the control reads the p10 LEG, the mutation moves the homes the leg counts and
+    # the leg is recomputed by the cell's own function, not re-typed here.
+    clearing = dataclasses.replace(
+        texture, quantiles=fgl.texture_distribution_legs([floor - 0.01] + [floor + 0.05] * (n - 1))
+    )
     _worst_cell_clears_its_own_floor(clearing)
 
-    regressed = dataclasses.replace(texture, worst_value=floor - 0.01)
+    regressed = dataclasses.replace(
+        texture, quantiles=fgl.texture_distribution_legs([floor - 0.01] * n)
+    )
     with pytest.raises(AssertionError, match="fell"):
         _worst_cell_clears_its_own_floor(regressed)
 

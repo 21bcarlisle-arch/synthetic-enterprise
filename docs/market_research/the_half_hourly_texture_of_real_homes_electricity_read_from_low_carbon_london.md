@@ -218,3 +218,46 @@ The authored test fixtures (the 8-home panel, the matched pair and the five regi
 `pt.FULL_STOCK`, because a matched pair that owned different appliances would not be matched. One thing
 was measured on that panel: with the household clocks collapsed, the drawn stock alone held L2.3n open
 (1.85 → 1.11, against 0.87 with both collapsed). Timing diversity now has two sources.
+
+## What the always-on draw did (2026-10-06, late night)
+
+Built on EFUS 2011 §4.1's base load: `pt.always_on_kw` draws, once per premise, a constant always-on
+load from a lognormal fitted to EFUS's median 90 W and mean 136 W (σ 0.909, ceiling 2,438 W, EFUS's
+largest mean hourly demand). Before this, every home drew 25 W. The lognormal shape is a stated
+simplification, because EFUS publishes no quantiles. Measured on the same drawn 60, both arms in one
+process:
+
+| | uniform 25 W (control) | drawn always-on |
+|---|---|---|
+| base load, kW, p10/p25/median/p75/p90 (LCL: 0.016 / 0.040 / 0.080 / 0.136 / 0.224) | 0.031 / 0.032 / 0.035 / 0.048 / 0.054 | **0.040 / 0.058 / 0.088 / 0.143 / 0.243** |
+| base load ÷ mean (LCL: 0.05 / 0.12 / 0.21 / 0.30 / 0.41) | 0.09 / 0.11 / 0.13 / 0.18 / 0.20 | 0.12 / 0.18 / 0.27 / 0.37 / 0.49 |
+| night level ÷ mean (LCL: 0.28 / 0.38 / 0.50 / 0.68 / 0.90) | 0.15 / 0.19 / 0.23 / 0.32 / 0.36 | 0.19 / 0.25 / 0.36 / 0.45 / 0.58 |
+| homes under real p10 / p25 / median / p75 (expected 6 / 15 / 30 / 45) | 0 / 7 / 29 / 46 | **6 / 22 / 40 / 56** |
+| world median texture (real 0.158) | 0.161 | 0.134 |
+| legs red after Bonferroni | p10 | **p75** |
+| L2.4 scale spread p90/p10 (real 5.38) | 1.99 | 2.44 |
+| gas homes' annual kWh, median / mean | 2,535 / 2,650 | 2,970 / 3,382 |
+
+*Pre-registered before the run:* median 0.12–0.14, 3–10 homes under the real p10, the p25 leg at risk
+of going red the other way, and the spread toward about 2.3. The median and the p10 count held. p25 rose
+to 22 and stayed green. **The p75 red was not predicted**, and the spread moved further than predicted.
+
+**The base is now right and the ratio is not.** The drawn base load matches LCL's at every quantile,
+and LCL played no part in the fit: the draw used EFUS's two moments only. What overshoots is base
+÷ mean, by about 0.06 at the median. That is because the world's homes use less than LCL's whole
+meters (9.1 kWh/day median, 2013, including electric-heated "Std" homes). Night ÷ mean is still below
+LCL's, so the world's night is short of something above its base, not of the base itself. The red has
+moved from "no home as calm as the calmest real tenth" to "the upper half too calm". Within the world,
+texture now correlates −0.58 with log always-on. That may give the base too much of the job, and LCL
+cannot say how much, because it does not separate base from size within a band (−0.13 to −0.34 above).
+
+Gas homes' median use is 2,970 kWh a year, against TDCV medium of 2,900 (2021–24) and 2,500 (2026).
+That is inside the medium band. The EFUS base includes a gas boiler's ~3 W standby, which the world
+also carries, so a gas home counts ≤3 W twice.
+
+**What this did to other controls.** L1.1n's worst home (P0049, 195 W always-on) now reads 1.018 times
+its own flat day, which is a squeak: a home whose behaviour rides on a large constant cannot stand far
+from its flat counterfactual. No real home's L1.1n ratio has been read. Peak-to-mean's correlation with
+the L1.1n null rose to +0.457 through a common cause (base share), and it is +0.226 held at the share.
+L1.4's day-type-shuffled null now puts 7 of 240 homes under its floor, where it put none, which is still
+nowhere near firing the cell.

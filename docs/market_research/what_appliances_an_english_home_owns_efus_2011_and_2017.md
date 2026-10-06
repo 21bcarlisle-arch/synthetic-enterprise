@@ -88,7 +88,7 @@ it: n=79, and the sample excludes electric heating.
 | dishwasher in `APPLIANCE_CATALOGUE` | 44% (19–27% of one-person homes) |
 | tumble dryer in `APPLIANCE_CATALOGUE` | 58% (43–49% of one-person homes) |
 | oven and hob as electric appliances | 73% electric ovens and 37–38% electric hobs nationally |
-| 25 W constant standby (`_STANDBY_KW`) | not established per home here. EFUS gives whole-home base load only |
+| 25 W constant standby (`UNIFORM_STANDBY_KW`) | not established per home here. EFUS gives whole-home base load only. *Since 2026-10-06 drawn per home from that base load (`always_on_kw`, lognormal on median 90 W / mean 136 W)* |
 | `_ELECTRONICS_UNITS_PER_PERSON = 2.0` | TVs alone run 1.6 to 3.3 per home by size, which is not proportional to persons (1 person → 1.6, 4 → 2.8) |
 
 **Every row is a structural sameness the texture red predicts.** The two cold appliances alone set the
