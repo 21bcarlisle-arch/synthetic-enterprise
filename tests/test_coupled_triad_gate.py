@@ -209,3 +209,13 @@ def test_real_ledger_has_no_fabricated_entries():
         assert gap is None or (isinstance(gap, (int, float)) and not isinstance(gap, bool)), world_id
         if gap is not None:
             assert entry.get("run_git_commit"), world_id
+
+
+def test_pb4_resolves_to_its_engagement_twin_so_its_refusal_is_never_a_registration_defect():
+    # Defect: PB4's short id is "PB4", not W2_n, so C29's depends_on never derived the pair and
+    # the gate refused it on every supervisor cycle as "no coupled company twin registered".
+    atoms = ct._load_map_atoms()
+    pb4 = next(a for a in atoms if a.get("id", "").startswith("PB4_"))
+    assert ct._twin_id_for(pb4, atoms) == "C29_decisions_stop_being_lookup_tables"
+    blocked, reason = ct.world_l3_blocked(pb4, atoms, ct.load_gap_ledger())
+    assert "no coupled company twin registered" not in reason

@@ -108,6 +108,15 @@ _AUTHORITATIVE_COUPLING = {
     # C-twin names W1_11 in depends_on, so this pair is non-derivable and the table
     # is its sole source -- the same standing as W2_9->C11 above.
     "W1_11": "C14",
+    # PB4 world engagement trait <-> C29 per-account engagement estimate. PB4 sits in
+    # the W2 lane but its short id is "PB4", so C29's depends_on naming it never
+    # derives the pair and the gate logged "no coupled company twin registered" on
+    # every cycle. C29's `tools/c29_engagement_ranking` grades
+    # `company/crm/engagement_estimate` against the world's own trait -- the
+    # belief-vs-truth comparison this rule asks for. That score is a Spearman lift,
+    # not a 0..1 gap, so no ledger row is written for it here: the pair reads
+    # unmeasured until someone defines the gap, and PB4 stays held below L3.
+    "PB4": "C29",
 }
 
 # TWIN-EXEMPT world atoms (director-authored exemptions from binding rule 1).
