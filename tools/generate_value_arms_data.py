@@ -16901,11 +16901,11 @@ def _blind_envelope(arms_doc: dict | None) -> dict:
 
     WHAT THAT DID TO THE VERDICTS, recorded here because it is the evidence the exclusion was not
     chosen for its answer. Against the 09-11 figures, dropping C' flipped both "inside" verdicts to
-    "below all". Against the re-run figures it does not reproduce: net margin and net after cost to
-    serve now read ABOVE every blind book, where the 09-11 record had net margin below every one of
-    them. The re-run moved the result in the chosen book's favour, which is the direction that
-    deserves the most suspicion, and the reason it is publishable at all is that the arms it is
-    measured against were re-run in the same world by the same launcher.
+    "below all". Against the 09-15 re-run it did not reproduce: both net lines read ABOVE every
+    blind book. CORRECTED 2026-10-06: the 10-06 re-runs (new departure world, the demand changes
+    through fc47cd363's always-on load, a 57-account book) put both net lines BELOW every blind
+    book again, so the 09-15 reading did not survive the next world and is not to be cited. The verdicts are whatever the artefact on
+    disk computes to; read them from the published block, not from this note.
     """
     if not isinstance(arms_doc, dict):
         return {"available": False,
