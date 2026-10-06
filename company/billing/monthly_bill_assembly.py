@@ -59,7 +59,12 @@ from company.billing.account_adjustment_register import (
     AdjustmentStatus,
     AdjustmentType,
 )
-from company.billing.back_billing import BackBillingAssessment, BackBillingReason
+from company.billing.back_billing import (
+    BackBillingAssessment,
+    BackBillingReason,
+    RecoveryPeriod,
+    barred_unrecovered_gbp,
+)
 from company.billing.unread_month_estimate import estimate_unread_kwh, opening_estimate_kwh
 from company.interfaces.supply_book import registered_point as get_customer
 from saas.bill_generator import (
@@ -212,8 +217,23 @@ def _annotate_billing_basis(bill: dict, event, true_bill: dict) -> dict:
 CATCHUP_MATERIALITY_THRESHOLD_GBP = 5.0
 
 
+# What the back-billing limit is measured against, stamped on the catch-up so the pre-bill
+# invariant re-derives it by the same comparator (docs/market_research/back_billing_and_liability.md).
+BASIS_ESTIMATE_ERROR = "pay_on_bill_true_vs_billed"
+BASIS_DD_SHORTFALL = "direct_debit_true_vs_collected"
+# A direct-debit run whose collections were not handed in. The estimate error stands in, and is
+# NOT the quantity 21BA bars for direct debit: it bars too much where the debit covered the use
+# (Scenario B) and nothing where accurate bills sat on a short debit (Scenario A). Nothing in the
+# assembly sees collections yet: `simulation.dd_balance_book` builds them from these bills, after.
+BASIS_DD_STAND_IN = "direct_debit_collections_not_visible_estimate_error_stands_in"
+
+
 def _resolve_catchup(
-    customer_id: str, segment: str, pending_run: list[dict], billing_date_iso: str
+    customer_id: str,
+    segment: str,
+    pending_run: list[dict],
+    billing_date_iso: str,
+    payment_channel: str | None = None,
 ) -> dict | None:
     """D3 step 2: when an actual read arrives, reconcile a just-ended run of
     consecutive ESTIMATED bills against what they should have charged.
@@ -231,6 +251,13 @@ def _resolve_catchup(
     the cap protects consumers from late supplier demands, it does not let a
     supplier withhold a refund (same real-world asymmetry already documented
     in company/billing/smart_meter_reconciliation.py's `recoverable_gbp`).
+
+    THE COMPARATOR FOLLOWS THE PAYMENT METHOD (2026-10-06). For a customer who pays each bill,
+    the bill is the demand, so what is barred is the old part of true use against billed, as
+    above. For direct debit the bill is a statement and the DEBIT is the demand: what is
+    barred is the old part of true charges against what the debit asked or took, each pending
+    period carrying it as `recovered_gbp` (`back_billing.barred_unrecovered_gbp`). That write-off
+    can arise on a catch-up in either direction, because it is about collection, not the estimate.
 
     Returns None if there was no estimated run to resolve (the common case:
     the customer's read arrived on time last period too).
@@ -276,7 +303,41 @@ def _resolve_catchup(
         else true_up_kwh * energy_assessment.barred_fraction if true_up_kwh > 0 else 0.0
     )
 
-    if raw_delta_gbp > 0:
+    is_dd = payment_channel == "direct_debit"
+    has_collections = all("recovered_gbp" in p for p in pending_run)
+    if not is_dd:
+        basis = BASIS_ESTIMATE_ERROR
+    elif has_collections:
+        basis = BASIS_DD_SHORTFALL
+    else:
+        basis = BASIS_DD_STAND_IN
+    recovery_periods: list[dict] | None = None
+
+    if basis == BASIS_DD_SHORTFALL:
+        recovery_periods = [
+            {
+                "period_start": p["period_start"],
+                "period_end": p["period_end"],
+                "true_charge_gbp": p["true_total_amount_gbp"],
+                "recovered_gbp": p["recovered_gbp"],
+            }
+            for p in pending_run
+        ]
+        written_off_gbp = _dd_barred_gbp(recovery_periods, billing_date, is_domestic)
+        chargeable_gbp = raw_delta_gbp - written_off_gbp
+        cap_applied = written_off_gbp > 0
+        direction = "undercharge" if raw_delta_gbp > 0 else "overcharge"
+        # The bar is on money not collected; it is not an energy figure, so the energy measure
+        # carries no barred kWh on this basis rather than the estimate comparator's.
+        barred_kwh = None
+        if written_off_gbp > 0:
+            write_off_adjustment = _back_billing_write_off(
+                customer_id, period_start, period_end, written_off_gbp, billing_date,
+                "direct debit collected less than the true charges for consumption "
+                f"in {period_start} to {period_end} that pre-dates the recoverable "
+                "window -- the old shortfall is written off, not recovered",
+            )
+    elif raw_delta_gbp > 0:
         assessment = BackBillingAssessment(
             account_id=customer_id,
             billing_date=billing_date,
@@ -302,22 +363,11 @@ def _resolve_catchup(
         # write-off a legal requirement, not a discretionary goodwill
         # spend the register's approval tiers were designed to gate.
         if written_off_gbp > 0:
-            write_off_adjustment = AccountAdjustmentRecord(
-                record_id="ADJ-BB-" + customer_id + "-" + period_end,
-                account_id=customer_id,
-                adjustment_type=AdjustmentType.BACK_BILLING_CREDIT,
-                direction=AdjustmentDirection.CREDIT,
-                amount_gbp=round(written_off_gbp, 2),
-                reason=(
-                    "SLC 21BA 12-month back-billing cap: consumption "
-                    f"period {period_start} to {period_end} pre-dates the "
-                    "recoverable window with no recorded customer-fault "
-                    "attribution -- excess written off, not charged"
-                ),
-                raised_date=billing_date,
-                status=AdjustmentStatus.APPLIED,
-                approved_by="system:slc_21ba_cap",
-                applied_date=billing_date,
+            write_off_adjustment = _back_billing_write_off(
+                customer_id, period_start, period_end, written_off_gbp, billing_date,
+                f"consumption period {period_start} to {period_end} pre-dates the "
+                "recoverable window with no recorded customer-fault "
+                "attribution -- excess written off, not charged",
             )
     else:
         chargeable_gbp = raw_delta_gbp
@@ -338,12 +388,49 @@ def _resolve_catchup(
         "billed_kwh": run_billed_kwh,
         "true_up_kwh": true_up_kwh,
         "barred_kwh": barred_kwh,
+        "back_billing_basis": basis,
     }
+    if recovery_periods is not None:
+        result["recovery_periods"] = recovery_periods
     if write_off_adjustment is not None:
         result["write_off_adjustment_id"] = write_off_adjustment.record_id
         result["write_off_adjustment_reason"] = write_off_adjustment.reason
         result["write_off_adjustment_status"] = write_off_adjustment.status.value
     return result
+
+
+def _dd_barred_gbp(recovery_periods: list[dict], demand_date: date, is_domestic: bool) -> float:
+    return barred_unrecovered_gbp(
+        [
+            RecoveryPeriod(
+                period_start=date.fromisoformat(p["period_start"][:10]),
+                period_end=date.fromisoformat(p["period_end"][:10]),
+                true_charge_gbp=p["true_charge_gbp"],
+                recovered_gbp=p["recovered_gbp"],
+            )
+            for p in recovery_periods
+        ],
+        demand_date,
+        is_domestic=is_domestic,
+    )
+
+
+def _back_billing_write_off(
+    customer_id: str, period_start: str, period_end: str, amount_gbp: float,
+    billing_date: date, why: str,
+) -> AccountAdjustmentRecord:
+    return AccountAdjustmentRecord(
+        record_id="ADJ-BB-" + customer_id + "-" + period_end,
+        account_id=customer_id,
+        adjustment_type=AdjustmentType.BACK_BILLING_CREDIT,
+        direction=AdjustmentDirection.CREDIT,
+        amount_gbp=round(amount_gbp, 2),
+        reason="SLC 21BA 12-month back-billing cap: " + why,
+        raised_date=billing_date,
+        status=AdjustmentStatus.APPLIED,
+        approved_by="system:slc_21ba_cap",
+        applied_date=billing_date,
+    )
 
 
 def build_monthly_bills(
@@ -512,7 +599,8 @@ def build_monthly_bills(
                 # correction actually appears: as an adjustment on the next
                 # real bill, not a separate artifact.
                 catchup = _resolve_catchup(
-                    customer_id, segment, pending_estimated_run, bill["period_end"]
+                    customer_id, segment, pending_estimated_run, bill["period_end"],
+                    payment_channel,
                 )
                 # Materiality gate (Expert-Hour finding, 2026-07-12): a real
                 # supplier doesn't bother billing/crediting a correction below
@@ -536,6 +624,9 @@ def build_monthly_bills(
                     bill["catchup_adjustment_gbp"] = catchup["chargeable_gbp"]
                     bill["catchup_written_off_gbp"] = catchup["written_off_gbp"]
                     bill["catchup_back_billing_cap_applied"] = catchup["back_billing_cap_applied"]
+                    bill["catchup_back_billing_basis"] = catchup["back_billing_basis"]
+                    if "recovery_periods" in catchup:
+                        bill["catchup_recovery_periods"] = catchup["recovery_periods"]
                     bill["catchup_is_material"] = catchup["is_material"]
                     if "write_off_adjustment_id" in catchup:
                         bill["catchup_write_off_adjustment_id"] = catchup["write_off_adjustment_id"]

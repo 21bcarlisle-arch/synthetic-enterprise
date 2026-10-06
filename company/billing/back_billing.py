@@ -15,9 +15,20 @@ from typing import List
 
 # SLC 21BA: domestic and microbusiness customers cannot be back-billed for energy consumed
 # more than 12 months before the billing date where the supplier failed to bill.
-# Applies from 01 May 2018.
+# Domestic from 1 May 2018; microbusiness (Part B) from 1 November 2018 -- this module applied the
+# domestic date to both until 2026-10-06 (docs/market_research/back_billing_and_liability.md §7).
 _BACK_BILLING_LIMIT_DAYS = 365
 _BACK_BILLING_RULES_START = dt.date(2018, 5, 1)
+_MICROBUSINESS_RULES_START = dt.date(2018, 11, 1)
+
+
+def _rules_start(is_domestic: bool, is_microbusiness: bool) -> dt.date | None:
+    """When 21BA starts to protect this customer; None when it never does."""
+    if is_domestic:
+        return _BACK_BILLING_RULES_START
+    if is_microbusiness:
+        return _MICROBUSINESS_RULES_START
+    return None
 
 
 class BackBillingReason(str, Enum):
@@ -44,9 +55,8 @@ class BackBillingAssessment:
 
     @property
     def cap_applies(self) -> bool:
-        if not (self.is_domestic or self.is_microbusiness):
-            return False
-        if self.billing_date < _BACK_BILLING_RULES_START:
+        start = _rules_start(self.is_domestic, self.is_microbusiness)
+        if start is None or self.billing_date < start:
             return False
         # Cap applies if any part of the consumption period pre-dates the 12-month window
         return self.consumption_period_start < self._protected_start
@@ -72,6 +82,53 @@ class BackBillingAssessment:
     @property
     def written_off_gbp(self) -> float:
         return round(self.billed_amount_gbp - self.capped_amount_gbp, 2)
+
+
+@dataclass(frozen=True)
+class RecoveryPeriod:
+    """One period of energy used, what it truly cost, and what the supplier recovered for it.
+
+    `recovered_gbp` is the payment method's own recovery: for a customer who pays each bill on
+    receipt it is the amount BILLED; for direct debit it is what the direct debit asked or took --
+    never the bill, because a direct-debit statement is not a demand (Ombudsman's stance)."""
+
+    period_start: dt.date
+    period_end: dt.date
+    true_charge_gbp: float
+    recovered_gbp: float
+
+
+def barred_unrecovered_gbp(
+    periods: List[RecoveryPeriod],
+    demand_date: dt.date,
+    is_domestic: bool = True,
+    is_microbusiness: bool = False,
+) -> float:
+    """What SLC 21BA bars at a charge recovery action on `demand_date`: the unrecovered charge for
+    energy used more than 12 months before it.
+
+    Each period's shortfall (true charge less recovered) is barred in the share of its days that
+    falls before the window, so a shortfall accrued 17 months ago is lost even on accurate bills
+    (Ombudsman Scenario A). The result is capped at the total still unrecovered, so where the
+    payments taken covered the use nothing is barred however wrong the bills were (Scenario B):
+    the cap is not a refund of payments for energy used.
+    """
+    start = _rules_start(is_domestic, is_microbusiness)
+    if start is None or demand_date < start or not periods:
+        return 0.0
+    window_start = demand_date - dt.timedelta(days=_BACK_BILLING_LIMIT_DAYS)
+    unrecovered = sum(p.true_charge_gbp - p.recovered_gbp for p in periods)
+    if unrecovered <= 0:
+        return 0.0
+    old_shortfall = 0.0
+    for p in periods:
+        days = (p.period_end - p.period_start).days
+        if p.period_end <= window_start or days <= 0:
+            old_share = 1.0 if p.period_start < window_start else 0.0
+        else:
+            old_share = max(0, (window_start - p.period_start).days) / days
+        old_shortfall += (p.true_charge_gbp - p.recovered_gbp) * old_share
+    return round(min(max(old_shortfall, 0.0), unrecovered), 2)
 
 
 class BackBillingBook:

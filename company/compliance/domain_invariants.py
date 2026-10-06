@@ -33,7 +33,12 @@ from decimal import ROUND_HALF_UP, Decimal
 from math import isfinite
 from typing import Optional
 
-from company.billing.back_billing import BackBillingAssessment, BackBillingReason
+from company.billing.back_billing import (
+    BackBillingAssessment,
+    BackBillingReason,
+    RecoveryPeriod,
+    barred_unrecovered_gbp,
+)
 from company.billing.dual_fuel_bill import VAT_RATES
 from company.compliance.segment_debt_policy import (
     LPCDCA_EFFECTIVE_FROM,
@@ -1208,6 +1213,12 @@ def check_back_billing_cap_respected(bill: dict) -> bool:
     if not bill.get("catchup_applied"):
         return True
 
+    # The comparator follows the payment method (2026-10-06): a direct-debit catch-up is held to
+    # the old shortfall of collections against true charges, in either direction, re-derived from
+    # the periods it carries by the same rule the assembly applied. Fail closed without them.
+    if bill.get("catchup_back_billing_basis") == "direct_debit_true_vs_collected":
+        return _dd_back_billing_respected(bill)
+
     direction = bill.get("catchup_direction")
     if direction not in ("undercharge", "overcharge"):
         return False  # fail closed: unrecognised/missing direction
@@ -1251,6 +1262,30 @@ def check_back_billing_cap_respected(bill: dict) -> bool:
     expected_written_off = assessment.written_off_gbp
     actual_written_off = bill.get("catchup_written_off_gbp", 0.0)
     return abs(actual_written_off - expected_written_off) <= 0.05
+
+
+def _dd_back_billing_respected(bill: dict) -> bool:
+    periods = bill.get("catchup_recovery_periods")
+    billing_date_raw = bill.get("period_end")
+    if not periods or not billing_date_raw:
+        return False
+    try:
+        expected = barred_unrecovered_gbp(
+            [
+                RecoveryPeriod(
+                    period_start=datetime.fromisoformat(p["period_start"]).date(),
+                    period_end=datetime.fromisoformat(p["period_end"]).date(),
+                    true_charge_gbp=float(p["true_charge_gbp"]),
+                    recovered_gbp=float(p["recovered_gbp"]),
+                )
+                for p in periods
+            ],
+            datetime.fromisoformat(billing_date_raw).date(),
+            is_domestic=bill.get("segment", "resi") == "resi",
+        )
+    except (KeyError, ValueError, TypeError):
+        return False
+    return abs(bill.get("catchup_written_off_gbp", 0.0) - expected) <= 0.05
 
 
 def check_billed_clock_reconciles(total_billed_gbp: float, issued_bills: list) -> bool:
