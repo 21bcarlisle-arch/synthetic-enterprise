@@ -1750,12 +1750,12 @@
   lane: C_customer_ops
   value_stream: meter_to_cash
   epoch: 4
-  level_current: 0
+  level_current: 1
   level_target: 3
   loop_stage: build
   dial_inherited: 45    # R2 -- DIRECTOR_CANON_RERANKING_THE_ARC_2026-09-04 §2/§5.
   provenance: director_ruling
-  block_reason: "Sequencing. PB5 (L0) and PB4 (L2) are outstanding; B10 closed 2026-08-30. FRAME: docs/design/C29_DECISIONS_STOP_BEING_LOOKUP_TABLES_DISCOVER_FRAME.md -- first BUILD is a per-account engagement estimate, graded with planted and null arms, before any decision reads it."
+  block_reason: "HELD ON THE DIRECTOR, 2026-10-06: the next arm (the engagement-weighted retention guard graded on rolled terms only) waits on his open row does-a-retention-discount-offered-to-a in docs/direction/DIRECTION.yaml -- 59% of retention spend goes to SVT-to-fix conversions the world gives no exit. retention_weighs_engagement stays off. Not PB4 (L2; its L3 is its own expert hour) and not PB5 (L0; pounds-or-percent bears on the acquisition and offer-sizing legs, which are unbuilt) -- neither holds the estimate or the guard arm landed so far. Evidence 789885991: book arm lift 0.268 against a shuffle null of -0.303..0.015 on the refitted world."
   blocked_on: null
   depends_on: [B10_competitor_switching_response, PB4_engagement_separated_from_elasticity, PB5_pounds_or_percent_resolved]
   couples_with: [B8_discovered_price_sensitivity_holdout]
