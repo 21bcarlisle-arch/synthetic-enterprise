@@ -3377,6 +3377,15 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                     "company_gas_churn_estimate": gas_company_est,
                 })
 
+        # A DEPARTURE BOOKED ABOVE IS DATED THIS TERM'S START, SO THIS TERM SUPPLIES NOTHING. The
+        # household's other leg, popped after this one, is skipped at the top of the loop; this leg
+        # used to go on and settle its whole term, so a household that left on 1 January was
+        # billed electricity to 31 March (SEAT_FINDING_ELECTRICITY_KEEPS_BILLING_..._2026-10-05).
+        if billing_account in churned_billing_accounts:
+            if not _spliced:
+                term_indices[cid] += 1
+            continue
+
         if cid in pending_committee_overrides:
             hf = pending_committee_overrides.pop(cid)
         else:
