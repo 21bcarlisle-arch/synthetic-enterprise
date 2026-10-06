@@ -223,18 +223,25 @@ def test_pb4_resolves_to_its_engagement_twin_so_its_refusal_is_never_a_registrat
     assert "no coupled company twin registered" not in reason
 
 
-def test_the_three_rows_the_gate_refused_for_want_of_a_twin_are_no_longer_registration_defects():
-    # Defect: W2_30, W2_31 and W2_34 sat at L2 aiming at L3 with no twin in the table, so the
-    # supervisor excluded all three from every BUILD draw (the PB4 shape). W2_30 now couples to
-    # D48; the other two had no company capability tested against them and target L2.
+def test_no_live_world_atom_stepping_to_l3_is_refused_for_want_of_a_twin():
+    # Defect: twelve world rows (W2_30, W2_31, W2_34, then W1_7, W1_10, W1_14, W1_28, SPINE_1,
+    # PB3, W2_28 and two W2 invariants) sat at L2 aiming at L3 with no twin in the table, so the
+    # supervisor excluded each from every BUILD draw (the PB4 shape, 2,275 lost draws). Keyed to
+    # the property over the whole map, so a new row filed the same way reds here.
     atoms = ct.map_store.load_atoms(ct.MATURITY_MAP_PATH)
-    by_short = {ct._short_id(a.get("id", "")): a for a in atoms if isinstance(a, dict)}
     ledger = ct.load_gap_ledger()
-    for short in ("W2_30", "W2_31", "W2_34"):
-        _, reason = ct.world_l3_blocked(by_short[short], atoms, ledger)
-        assert "no coupled company twin registered" not in reason, short
-    w2_30 = by_short["W2_30"]
-    twin = ct._twin_id_for(w2_30, atoms)
-    assert twin == by_short["D48"]["id"]
-    # The pair is declared on both rows, so the map and the gate's table say the same thing.
-    assert twin in w2_30["couples_with"] and w2_30["id"] in by_short["D48"]["couples_with"]
+    world = [a for a in atoms if isinstance(a, dict) and ct.is_world_atom(a)]
+    assert len(world) > 20, "the census found too few world atoms to mean anything"
+    defects = [a["id"] for a in world
+               if "no coupled company twin registered" in ct.world_l3_blocked(a, atoms, ledger)[1]]
+    assert defects == [], defects
+    # The refusal itself can still fire: a twinless world atom stepping to L3 is caught.
+    orphan = {"id": "W2_999_orphan", "lane": "W2_customer_generator", "level_current": 2, "level_target": 3}
+    assert "no coupled company twin registered" in ct.world_l3_blocked(orphan, atoms, ledger)[1]
+    by_short = {ct._short_id(a.get("id", "")): a for a in atoms if isinstance(a, dict)}
+    d48 = by_short["D48"]
+    for short in ("W2_30", "W1_14"):
+        row = by_short[short]
+        assert ct._twin_id_for(row, atoms) == d48["id"], short
+        # The pair is declared on both rows, so the map and the gate's table say the same thing.
+        assert d48["id"] in row["couples_with"] and row["id"] in d48["couples_with"], short
