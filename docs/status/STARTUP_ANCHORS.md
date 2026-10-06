@@ -1,6 +1,6 @@
 # Startup anchors -- computed freshness
 
-Generated: 2026-10-06 by `tools/startup_anchor_freshness.py`.
+Generated: 2026-10-07 by `tools/startup_anchor_freshness.py`.
 
 Every age below is computed from this repository's history at HEAD. **Do not use the HTTP
 `last-modified` header of any of these URLs to judge freshness**: the GitHub Pages mirror
@@ -13,19 +13,19 @@ not maintained -- so it tells you what the project IS, not what it is currently 
 
 | Anchor | What it is for | Last really changed | Age (days) | Verdict |
 |---|---|---|---|---|
-| `docs/PROJECT_OVERVIEW.md` | This document | 2026-10-05 | 1 | FRESH |
-| `docs/operations/OPERATING_MODEL.md` | How the seat operates — what it gets on with, what it escalates to the director with a proposal, what is reserved, and the end-to-end check it owns | 2026-10-04 | 2 | UNDATED |
-| `docs/direction/priority_order.yaml` | The director's priority order as the map expresses it, and whether the draw follows it (`tools/draw_follows_the_order.py`) | 2026-10-05 | 1 | UNDATED |
-| `docs/reports/ANNUAL_REPORT.md` | The book's own annual report, regenerated each publish | 2026-10-05 | 1 | UNDATED |
-| `docs/market_research/ASSUMPTIONS.md` | Every sourced assumption the world is built on, with its anchor and its gaps | 2026-10-05 | 1 | FRESH |
-| `docs/status/LATEST.md` | What just happened and what the machine is working on now | 2026-10-05 | 1 | FRESH |
-| `docs/status/STARTUP_ANCHORS.md` | The computed age of every anchor on this page, and what each is for | 2026-10-06 | 0 | FRESH |
-| `docs/status/SEAT_STRETCH_LOG.md` | Why each stretch of work went the way it did — the corrections, what was stopped short of, the reasoning behind a call | 2026-10-06 | 0 | UNDATED |
-| `docs/direction/DIRECTION.yaml` | What the delivery seat is currently steering by, and what it has recorded as wrong | 2026-10-06 | 0 | UNDATED |
-| `docs/direction/decisions.jsonl` | The append-only record of decisions taken, oldest to newest | 2026-10-06 | 0 | UNDATED |
-| `docs/status/PROJECT_STATE.txt` | Build state — current phase and test count, generated each publish | 2026-10-05 | 1 | FRESH |
-| `docs/institutional/knowledge_map.md` | What we know and what we have NOT established, with the gaps named | 2026-10-06 | 0 | UNDATED |
-| `docs/operations/MAINTENANCE.md` | The monthly maintenance runbook this machine operates under | 2026-07-06 | 92 | UNDATED |
+| `docs/PROJECT_OVERVIEW.md` | This document | 2026-10-05 | 2 | FRESH |
+| `docs/operations/OPERATING_MODEL.md` | How the seat operates — what it gets on with, what it escalates to the director with a proposal, what is reserved, and the end-to-end check it owns | 2026-10-04 | 3 | UNDATED |
+| `docs/direction/priority_order.yaml` | The director's priority order as the map expresses it, and whether the draw follows it (`tools/draw_follows_the_order.py`) | 2026-10-05 | 2 | UNDATED |
+| `docs/reports/ANNUAL_REPORT.md` | The book's own annual report, regenerated each publish | 2026-10-05 | 2 | UNDATED |
+| `docs/market_research/ASSUMPTIONS.md` | Every sourced assumption the world is built on, with its anchor and its gaps | 2026-10-05 | 2 | FRESH |
+| `docs/status/LATEST.md` | What just happened and what the machine is working on now | 2026-10-05 | 2 | FRESH |
+| `docs/status/STARTUP_ANCHORS.md` | The computed age of every anchor on this page, and what each is for | 2026-10-06 | 1 | FRESH |
+| `docs/status/SEAT_STRETCH_LOG.md` | Why each stretch of work went the way it did — the corrections, what was stopped short of, the reasoning behind a call | 2026-10-06 | 1 | UNDATED |
+| `docs/direction/DIRECTION.yaml` | What the delivery seat is currently steering by, and what it has recorded as wrong | 2026-10-06 | 1 | UNDATED |
+| `docs/direction/decisions.jsonl` | The append-only record of decisions taken, oldest to newest | 2026-10-06 | 1 | UNDATED |
+| `docs/status/PROJECT_STATE.txt` | Build state — current phase and test count, generated each publish | 2026-10-05 | 2 | FRESH |
+| `docs/institutional/knowledge_map.md` | What we know and what we have NOT established, with the gaps named | 2026-10-06 | 1 | UNDATED |
+| `docs/operations/MAINTENANCE.md` | The monthly maintenance runbook this machine operates under | 2026-07-06 | 93 | UNDATED |
 
 `FRESH` recent · `OLD` genuinely old and honest about it (not a defect) · `UNDATED` states
 no date of its own, so this table is the only age a reader gets · `LIES` its own date is more than 3 days from its real one · `MISSING` not in HEAD.
@@ -39,9 +39,9 @@ one typed from memory does not.
 
 | Figure | Stated | Its source could have said | Verdict |
 |---|---|---|---|
-| commits | 12,283 | 11,788 – 12,571 (`git rev-list --count`) | AGREES |
-| lines | 1,083,934 | 1,063,684 – 1,102,988 (newlines across every `*.py` in the git index) | AGREES |
-| modules | 3,176 | 3,112 – 3,233 (the count of `*.py` in the git index) | AGREES |
+| commits | 12,283 | 11,788 – 12,579 (`git rev-list --count`) | AGREES |
+| lines | 1,083,934 | 1,063,684 – 1,103,198 (newlines across every `*.py` in the git index) | AGREES |
+| modules | 3,176 | 3,112 – 3,234 (the count of `*.py` in the git index) | AGREES |
 | tests | 38,426 | 38,426 – 39,465 (CLAUDE.md's Build line, floored by the test functions in the git index) | AGREES on the floor only on this run -- too large was ruled out at the commit that wrote this sentence |
 
 `AGREES` inside the band · `OVERSTATES` / `UNDERSTATES` a number its own source never carried in that window · `UNGRADED` the source did not exist that far back, so this figure is unchecked and the reader is told so rather than reassured · `SOURCE_GONE` the source existed and stopped being readable inside this window, which is a refusal rather than an unchecked figure -- nobody chooses for a source not to have existed yet, and somebody chose this · `BELOW_THE_INDEX_FLOOR` the figure is smaller than the number of test functions the repository actually contains, which no collection can be.
