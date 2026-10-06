@@ -2233,7 +2233,7 @@
   couples_with: [EP1_clv_three_horizon]
   file_scope: ['company/analytics/forward_clv.py',
     'tests/company/analytics/test_forward_clv_backtest.py']
-  simplifications_count: 1
+  simplifications_count: 2
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a finance team whose customer-value model is only ever checked against the same years it was fitted on."
 - id: W2_37_complaints_arise_from_billing_failures_and_the_silent_unhappy_are_modelled

@@ -9,9 +9,12 @@ end of the cut year, two things over the held-back months that follow:
     BEFORE cost-to-serve and bad debt; neither is in the monthly record, so neither is in
     the forecast or in what it is graded against.
   * DEPARTURE — the account's last supplied month falls before the book's last month. A
-    departure is any end of supply. ``LIMITATION_DEPARTURE_CAUSE`` is carried on every
-    result: the book cannot yet split departures into switches and home moves, so the
-    hazard here is all-cause and no lever that acts on one cause can be graded against it.
+    departure is any end of supply, and the forecast's survival stays all-cause: margin
+    stops however the account leaves. A lever that acts on one cause (a retention offer acts
+    on switches, not on moves) needs the split, so where the book carries a move-out
+    register the result also counts departures by cause and fits a SWITCH hazard with each
+    move censored at its date (slice 4). Where it carries none, ``LIMITATION_DEPARTURE_CAUSE``
+    is on the result and the split is None, never a zero.
 
 THE FORECAST is ``sum over held-back months of P(still supplied) x monthly margin``.
 Realised is the margin the account actually earned in those months (zero after it left).
@@ -63,6 +66,7 @@ import json
 import math
 from collections import defaultdict
 from dataclasses import dataclass
+from datetime import date, timedelta
 from pathlib import Path
 from statistics import NormalDist
 from typing import Mapping, Sequence
@@ -73,11 +77,13 @@ __all__ = [
     "CAP_ERA_START",
     "DEFAULT_CUT_YEAR",
     "LIMITATION_DEPARTURE_CAUSE",
+    "LIMITATION_NO_MOVE_REGISTER",
     "AccountHistory",
     "Backtest",
     "PairedComparison",
     "book_from_run_output",
     "load_book",
+    "move_outs_from_run_output",
     "regime_boundary_month",
     "run_backtest",
     "backtest_run_output",
@@ -93,6 +99,13 @@ CAP_ERA_START = "2019-01"
 LIMITATION_DEPARTURE_CAUSE = (
     "departures cannot yet be split into switches and moves: the book records only that "
     "supply ended, so the hazard is all-cause"
+)
+# Why the book has no register, so the reader does not go looking for a company-side gap: the
+# world generates home moves only behind docs/design/curriculum/home_moves_activation.json
+# (B7), off until the incoming deemed occupant is supplied.
+LIMITATION_NO_MOVE_REGISTER = (
+    "the run carries no move-out register (home_move_outs): the world's home moves are off, "
+    "so no departure in this book can be told to be a move"
 )
 
 _TWO_SIDED_95 = NormalDist().inv_cdf(0.975)
@@ -154,6 +167,28 @@ def book_from_run_output(run_output: Mapping) -> tuple[list[AccountHistory], int
         )
     book_end = max(a.last_month for a in accounts)
     return sorted(accounts, key=lambda a: a.account_id), book_end
+
+
+def move_outs_from_run_output(run_output: Mapping) -> dict[str, int] | None:
+    """Billing account -> the last month it was supplied before moving out, or None when the
+    run has no move-out register at all (moves not in this world -- not "nobody moved").
+
+    Reads `household` and `move_date` only: what a supplier learns from a move-out notice
+    and its final read. The record's journey state and catchability are the world's and are
+    not read. Supply ends at `move_date` exclusive, so a move on the 1st leaves the month
+    before as the last one supplied.
+    """
+    register = run_output.get("home_move_outs")
+    if register is None:
+        return None
+    out: dict[str, int] = {}
+    for rec in register:
+        last_day = date.fromisoformat(rec["move_date"]) - timedelta(days=1)
+        month = last_day.year * 12 + last_day.month - 1
+        # Fuels of one household carry one move date; keep the earliest if they ever differ.
+        acct = rec["household"]
+        out[acct] = min(month, out.get(acct, month))
+    return out
 
 
 @dataclass(frozen=True)
@@ -235,6 +270,11 @@ class Backtest:
     aggregate: Mapping[str, float]
     limitations: tuple[str, ...]
     margin_deviation_window_reason: str = ""
+    # Slice 4. None when the book has no move-out register; otherwise the fit and held-back
+    # windows' departures as {"switch": n, "move": n}, and the switch hazard by contract year
+    # with each move censored at its date.
+    departures_by_cause: Mapping[str, Mapping[str, int]] | None = None
+    switch_hazard_by_contract_year: Mapping[int, float] | None = None
 
 
 def regime_boundary_month(
@@ -298,7 +338,7 @@ def _fit_margins(
 
 
 def _fit_hazards(
-    accounts: Sequence[AccountHistory], fit_end: int
+    accounts: Sequence[AccountHistory], fit_end: int, censored: frozenset[str] = frozenset()
 ) -> tuple[dict[int, float], dict[str, float], dict[str, float]]:
     """Monthly departure hazard by contract year, by segment, and each segment's ratio to the
     contract-year table — all on fit months only.
@@ -312,6 +352,9 @@ def _fit_hazards(
     The segment ratio is observed over expected exits under the contract-year table
     (indirect standardisation), so the per-customer hazard carries the segment's level AND
     the account's tenure, and holds strictly more than the flat rule does.
+
+    An account in `censored` is at risk to its last month but its end is not an exit: that
+    is how the switch hazard treats a move.
     """
     at_risk_cy: dict[int, int] = defaultdict(int)
     exits_cy: dict[int, int] = defaultdict(int)
@@ -325,7 +368,7 @@ def _fit_hazards(
             cy = (m - a.first_month) // _MONTHS_PER_CONTRACT_YEAR
             at_risk_cy[cy] += 1
             at_risk_seg[a.segment] += 1
-        if a.last_month < fit_end:
+        if a.last_month < fit_end and a.account_id not in censored:
             cy = (a.last_month - a.first_month) // _MONTHS_PER_CONTRACT_YEAR
             exits_cy[cy] += 1
             exits_seg[a.segment] += 1
@@ -359,6 +402,7 @@ def run_backtest(
     cut_year: int = DEFAULT_CUT_YEAR,
     margin_fit_end_year: int | None = None,
     wholesale_gas_by_month: Mapping[str, float] | None = None,
+    move_out_month_by_account: Mapping[str, int] | None = None,
 ) -> Backtest:
     """Fit on months up to December of `cut_year`; forecast and grade every later month.
 
@@ -371,6 +415,11 @@ def run_backtest(
 
     `wholesale_gas_by_month` (slice 3) READS that window's end instead: the month before
     `regime_boundary_month`. Giving both is refused -- one window, one source.
+
+    `move_out_month_by_account` (slice 4, `move_outs_from_run_output`) splits departures. A
+    departure is a move when its last supplied month IS the account's move-out month; an
+    account that switched away before a later move date left by switching. The forecast is
+    unchanged by it.
     """
     fit_end = _month_index(f"{cut_year}-12")
     if margin_fit_end_year is not None and wholesale_gas_by_month is not None:
@@ -472,7 +521,23 @@ def run_backtest(
             sum(f.flat_departure_p * (1 - f.flat_departure_p) for f in forecasts)
         ),
     }
-    limitations = [LIMITATION_DEPARTURE_CAUSE]
+    by_cause: dict[str, dict[str, int]] | None = None
+    switch_by_cy: dict[int, float] | None = None
+    if move_out_month_by_account is None:
+        limitations = [LIMITATION_DEPARTURE_CAUSE, LIMITATION_NO_MOVE_REGISTER]
+    else:
+        limitations = []
+        moved = frozenset(
+            a.account_id for a in accounts
+            if move_out_month_by_account.get(a.account_id) == a.last_month
+        )
+        by_cause = {w: {"switch": 0, "move": 0} for w in ("fit", "held_back")}
+        for a in accounts:
+            if a.last_month >= book_end:
+                continue
+            window = "fit" if a.last_month < fit_end else "held_back"
+            by_cause[window]["move" if a.account_id in moved else "switch"] += 1
+        switch_by_cy = _fit_hazards(accounts, fit_end, moved)[0]
     pooled = sorted(s for s, k in k_by_seg.items() if k is None)
     if pooled:
         limitations.append(
@@ -501,6 +566,8 @@ def run_backtest(
         aggregate=aggregate,
         limitations=tuple(limitations),
         margin_deviation_window_reason=dev_reason,
+        departures_by_cause=by_cause,
+        switch_hazard_by_contract_year=switch_by_cy,
     )
 
 
@@ -514,11 +581,15 @@ def backtest_run_output(
     margin_fit_end_year: int | None = None,
     wholesale_gas_by_month: Mapping[str, float] | None = None,
 ) -> Backtest:
-    """A run's book. The caller hands in the wholesale series
+    """A run's book, split by departure cause where it carries a move-out register. The caller hands in the wholesale series
     (`SimInterface.monthly_wholesale_prices("gas")`); importing the live interface here would
     give the company layer a route to a real endpoint, which `tools/company_network_isolation`
     refuses."""
-    return run_backtest(*load_book(path), cut_year, margin_fit_end_year, wholesale_gas_by_month)
+    run_output = json.loads(Path(path).read_text())
+    return run_backtest(
+        *book_from_run_output(run_output), cut_year, margin_fit_end_year,
+        wholesale_gas_by_month, move_outs_from_run_output(run_output),
+    )
 
 
 if __name__ == "__main__":  # pragma: no cover - a reading aid, not a door

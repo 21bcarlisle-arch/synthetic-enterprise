@@ -10,12 +10,14 @@ import pytest
 from company.analytics.forward_clv import (
     DEFAULT_CUT_YEAR,
     LIMITATION_DEPARTURE_CAUSE,
+    LIMITATION_NO_MOVE_REGISTER,
     AccountHistory,
     _fit_hazards,
     _month_index,
     _paired,
     backtest_run_output,
     load_book,
+    move_outs_from_run_output,
     regime_boundary_month,
     run_backtest,
 )
@@ -250,3 +252,79 @@ def test_a_read_window_ends_the_month_before_the_boundary_and_both_branches_are_
     assert read.forecasts != unread.forecasts
     with pytest.raises(ValueError, match="give one"):
         run_backtest(book, end, 2022, 2020, wholesale_gas_by_month=_gas())
+
+
+def _movers_book():
+    """One stayer; a move and a switch on each side of the cut; a switch before a later move."""
+    return [
+        _acct("S1", "resi electricity", "2016-01", "2025-06", 10.0),
+        _acct("M1", "resi electricity", "2016-01", "2019-03", 12.0),
+        _acct("W1", "resi electricity", "2016-01", "2019-07", 11.0),
+        _acct("W2", "resi electricity", "2016-01", "2018-05", 13.0),
+        _acct("M2", "resi electricity", "2017-01", "2022-04", 14.0),
+        _acct("W3", "resi electricity", "2017-01", "2023-02", 15.0),
+    ]
+
+
+_MOVE_REGISTER = {"home_move_outs": [
+    {"household": "M1", "move_date": "2019-03-17", "journey_state": "content", "catchable": False},
+    {"household": "W2", "move_date": "2020-02-10"},
+    {"household": "M2", "move_date": "2022-05-01"},  # supply ends the day before: April
+]}
+
+
+def test_departures_split_by_cause_and_both_causes_are_reachable_in_both_windows():
+    """The defect: a split that files every departure under one cause. W2 left by switching
+    in 2018 and has a 2020 move date; only the month supply actually ended can make it a move."""
+    book = _movers_book()
+    bt = run_backtest(book, _month_index("2025-06"),
+                      move_out_month_by_account=move_outs_from_run_output(_MOVE_REGISTER))
+    assert bt.departures_by_cause == {
+        "fit": {"switch": 2, "move": 1}, "held_back": {"switch": 1, "move": 1}}
+    assert LIMITATION_DEPARTURE_CAUSE not in bt.limitations
+
+
+def test_the_switch_hazard_censors_a_move_and_the_forecast_does_not_move():
+    """A move is at risk to its date and is not a switch. Survival stays all-cause, because
+    margin stops however the account leaves."""
+    book = _movers_book()
+    end = _month_index("2025-06")
+    plain = run_backtest(book, end)
+    split = run_backtest(book, end, move_out_month_by_account=move_outs_from_run_output(_MOVE_REGISTER))
+    m1_year = (_month_index("2019-03") - _month_index("2016-01")) // 12
+    assert split.switch_hazard_by_contract_year[m1_year] < plain.hazard_by_contract_year[m1_year]
+    assert split.switch_hazard_by_contract_year == _fit_hazards(
+        book, _month_index("2020-12"), frozenset({"M1", "M2"}))[0]
+    assert [f.per_customer_departure_p for f in split.forecasts] == [
+        f.per_customer_departure_p for f in plain.forecasts]
+
+
+def test_no_register_is_none_with_its_reason_and_an_empty_one_is_zero_moves():
+    """The defect: "the world has no moves" read as "nobody moved"."""
+    assert move_outs_from_run_output({}) is None
+    assert move_outs_from_run_output({"home_move_outs": []}) == {}
+    book, end = _movers_book(), _month_index("2025-06")
+    absent = run_backtest(book, end)
+    assert absent.departures_by_cause is None and absent.switch_hazard_by_contract_year is None
+    assert LIMITATION_NO_MOVE_REGISTER in absent.limitations
+    empty = run_backtest(book, end, move_out_month_by_account={})
+    assert empty.departures_by_cause["fit"]["move"] == 0
+    assert empty.switch_hazard_by_contract_year == absent.hazard_by_contract_year
+    assert LIMITATION_NO_MOVE_REGISTER not in empty.limitations
+
+
+def test_the_run_output_door_passes_the_register_through():
+    """The defect: the split built and the path from a run's report never handing it over."""
+    import json
+    import tempfile
+    run = json.loads(TRACKED_RUN.read_text())
+    accounts, _ = load_book(TRACKED_RUN)
+    leaver = next(a for a in accounts if a.last_month < max(x.last_month for x in accounts))
+    ym = leaver.last_month + 1
+    run["home_move_outs"] = [{"household": leaver.account_id,
+                              "move_date": f"{ym // 12:04d}-{ym % 12 + 1:02d}-01"}]
+    with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False) as fh:
+        json.dump(run, fh)
+    bt = backtest_run_output(fh.name)
+    Path(fh.name).unlink()
+    assert sum(w["move"] for w in bt.departures_by_cause.values()) == 1
