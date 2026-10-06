@@ -2296,13 +2296,14 @@
   lane: C_customer_ops
   value_stream: meter_to_cash
   epoch: 4
-  level_current: 0
+  level_current: 1
   level_target: 3
   loop_stage: build
   # 2026-10-05 the director: "treat next best action as the decision that spans debt, retention,
   # upsell and carbon advice, judged by CLV, rather than as a fixed ranking of measures." For a
   # customer in arrears the right action is a decision like a retention offer or an insulation
   # suggestion. Graded on EFFECT against tools/decision_probe.py's true counterfactual.
+  # L1 2026-10-06 (7211bc03a), dormant: no uplift estimate. NEXT: B8 holdout + W2_39 response.
   dial_inherited: 75
   provenance: director_ruling
   depends_on: [B11_forward_clv_backtested_on_held_back_history]
