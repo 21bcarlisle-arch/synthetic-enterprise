@@ -221,11 +221,13 @@ CATCHUP_MATERIALITY_THRESHOLD_GBP = 5.0
 # invariant re-derives it by the same comparator (docs/market_research/back_billing_and_liability.md).
 BASIS_ESTIMATE_ERROR = "pay_on_bill_true_vs_billed"
 BASIS_DD_SHORTFALL = "direct_debit_true_vs_collected"
-# A direct-debit run whose collections were not handed in. The estimate error stands in, and is
-# NOT the quantity 21BA bars for direct debit: it bars too much where the debit covered the use
-# (Scenario B) and nothing where accurate bills sat on a short debit (Scenario A). Nothing in the
-# assembly sees collections yet: `simulation.dd_balance_book` builds them from these bills, after.
-BASIS_DD_STAND_IN = "direct_debit_collections_not_visible_estimate_error_stands_in"
+# A direct-debit run whose collections were not handed in -- every production run, because
+# `simulation.dd_balance_book` builds the collections from these bills, after. The catch-up is on a
+# statement, which is not a charge recovery action, so nothing is written off here: the bar is
+# taken on the balance book at the final bill (or the review, if it seeks the balance) and booked
+# from there. Writing the estimate error off here as well, as this basis once did, barred the wrong
+# quantity (Scenario B) and would now take it twice.
+BASIS_DD_AT_RECOVERY_ACTION = "direct_debit_barred_at_the_charge_recovery_action"
 
 
 def _resolve_catchup(
@@ -310,7 +312,7 @@ def _resolve_catchup(
     elif has_collections:
         basis = BASIS_DD_SHORTFALL
     else:
-        basis = BASIS_DD_STAND_IN
+        basis = BASIS_DD_AT_RECOVERY_ACTION
     recovery_periods: list[dict] | None = None
 
     if basis == BASIS_DD_SHORTFALL:
@@ -337,6 +339,13 @@ def _resolve_catchup(
                 f"in {period_start} to {period_end} that pre-dates the recoverable "
                 "window -- the old shortfall is written off, not recovered",
             )
+    elif basis == BASIS_DD_AT_RECOVERY_ACTION:
+        chargeable_gbp = raw_delta_gbp
+        written_off_gbp = 0.0
+        cap_applied = False
+        direction = "undercharge" if raw_delta_gbp > 0 else "overcharge"
+        # Money, barred later and elsewhere; no energy figure is barred on the statement.
+        barred_kwh = None
     elif raw_delta_gbp > 0:
         assessment = BackBillingAssessment(
             account_id=customer_id,

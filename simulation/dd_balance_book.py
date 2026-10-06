@@ -165,6 +165,10 @@ class DDBalanceBook:
     barred_at_final_bills_gbp: float = 0.0
     barred_if_sought_at_run_end_gbp: float = 0.0
     barred_by_customer: dict = field(default_factory=dict)
+    #: One row per bar actually taken -- `{customer_id, date, amount_gbp, action}` -- which is
+    #: what the supplier's books write off (`company/finance/accounting_close`). An exposure on an
+    #: open account is not an action and is not here.
+    bar_actions: list = field(default_factory=list)
 
     def _months_sorted(self) -> list:
         return sorted(self.monthly)
@@ -241,11 +245,36 @@ class DDBalanceBook:
         }
 
 
-def _true_charge(b: dict) -> float:
-    if "true_total_amount_gbp" in b:
-        return float(b["true_total_amount_gbp"])
-    catchup = float(b.get("catchup_adjustment_gbp") or 0.0) if b.get("catchup_applied") else 0.0
-    return float(b["total_amount_gbp"]) - catchup
+def _true_charges(bills: list[dict]) -> dict[int, float]:
+    """What each period's energy truly cost, as the supplier knows it: `id(bill) -> charge`.
+
+    A read period's bill is its true charge. An estimated period's is its estimate plus a share of
+    the catch-up the next read billed, pro rata to the estimates in that run (the estimates are
+    already shaped by the company's own seasonal profile). A catch-up bill's own period excludes
+    the catch-up it carried for earlier periods. Never the world's `true_total_amount_gbp`: the
+    figure is booked, so it must be one the supplier could have formed. A catch-up below the
+    materiality threshold was never billed, and leaves its run at the estimates.
+    """
+    out = {id(b): float(b["total_amount_gbp"]) for b in bills}
+    by_supply: dict[tuple, list[dict]] = {}
+    for b in bills:
+        by_supply.setdefault((b["customer_id"], b.get("commodity")), []).append(b)
+    for supply in by_supply.values():
+        for c in supply:
+            if not c.get("catchup_applied"):
+                continue
+            out[id(c)] -= float(c.get("catchup_adjustment_gbp") or 0.0)
+            run = [b for b in supply if b is not c
+                   and c["catchup_period_start"][:10] <= b["period_start"][:10]
+                   and b["period_end"][:10] <= c["catchup_period_end"][:10]]
+            if not run:
+                continue
+            delta = float(c.get("catchup_raw_delta_gbp") or 0.0)
+            weight = sum(float(b["total_amount_gbp"]) for b in run)
+            for b in run:
+                share = float(b["total_amount_gbp"]) / weight if weight > 0 else 1.0 / len(run)
+                out[id(b)] += delta * share
+    return out
 
 
 def _settle_oldest_first(periods: list[list], amount: float) -> None:
@@ -292,9 +321,10 @@ def build_dd_balance_book(
     * an account still open at the run's end has had no action seeking its old balance, so its
       figure is an exposure, not a loss: ``barred_if_sought_at_run_end_gbp``.
 
-    The true charge of an estimated period is the world's, apportioned per month; a supplier at
-    the read knows the run's total, not its split. That is the approximation this figure carries.
-    None of these figures is booked: the balance book touches no ledger (DD3 is owed).
+    The true charge of an estimated period is the supplier's own (`_true_charges`): the run's total
+    is known at the read, its split is the company's estimate shape. Each bar taken is listed in
+    ``bar_actions`` and written off on the ledger; the held-credit balance itself is still not
+    booked as a liability (DD3 is owed).
 
     Pure, deterministic, idempotent (no RNG, no mutation of ``bills`` or any
     ground-truth structure). See the module docstring for the wall-clean basis
@@ -305,6 +335,7 @@ def build_dd_balance_book(
     # mandate holds no seasonal DD credit).
     by_cust: dict[str, list[tuple[date, float]]] = {}
     true_by_cust: dict[str, list[tuple[date, date, float]]] = {}
+    true_charge_of = _true_charges(bills)
     for b in bills:
         method = payment_method(
             b.get("segment", "resi"),
@@ -320,7 +351,7 @@ def build_dd_balance_book(
         end = date.fromisoformat(b["period_end"])
         start = (date.fromisoformat(b["period_start"][:10]) if b.get("period_start")
                  else end.replace(day=1))
-        true_by_cust.setdefault(b["customer_id"], []).append((end, start, _true_charge(b)))
+        true_by_cust.setdefault(b["customer_id"], []).append((end, start, true_charge_of[id(b)]))
 
     book = DDBalanceBook(seek_balance_at_review=seek_balance_at_review)
     # Per-customer forward-filled balance by month, so the portfolio aggregate
@@ -383,6 +414,9 @@ def build_dd_balance_book(
                 _settle_oldest_first(recovery, barred)
                 balance += barred
                 book.barred_at_reviews_gbp += barred
+                if barred > 0:
+                    book.bar_actions.append({"customer_id": cid, "date": start.isoformat(),
+                                             "amount_gbp": round(barred, 2), "action": "review"})
                 barred_here += barred
                 standing_dd_by_window[wi] += max(0.0, -balance) / 12.0
             prev_wi = wi
@@ -414,6 +448,9 @@ def build_dd_balance_book(
         if closed_ids is not None and cid in closed_ids:
             book.barred_at_final_bills_gbp += closing
             barred_here += closing
+            if closing > 0:
+                book.bar_actions.append({"customer_id": cid, "date": seq[-1][0].isoformat(),
+                                         "amount_gbp": round(closing, 2), "action": "final_bill"})
         else:
             book.barred_if_sought_at_run_end_gbp += closing
         book.barred_by_customer[cid] = round(barred_here, 2)

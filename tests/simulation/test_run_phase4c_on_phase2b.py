@@ -812,7 +812,12 @@ def test_an_estimated_run_past_12_months_is_not_forced_and_its_final_read_meets_
     Defect caught: a forced read at 12 (the old MAX_CONSECUTIVE_ESTIMATED_PERIODS), which ended
     every run before the cap could bind. One actual opening read gives the estimates a history
     (with none, the opening estimate is the registry EAC); use then rises, so the closing read
-    is an undercharge."""
+    is an undercharge.
+
+    The cap on the estimate is the rule where the bill is the demand, so the account is C4 (a
+    domestic prepayment account; the registry's non-direct-debit homes are prepayment). C1 pays
+    by direct debit, whose catch-up is a statement and writes nothing off: its bar is taken at the
+    final bill on the DD balance book (tests/simulation/test_dd_back_billing_at_charge_recovery_actions.py)."""
     import simulation.meter_reads as mr
 
     real_read = mr.simulate_read
@@ -825,24 +830,32 @@ def test_an_estimated_run_past_12_months_is_not_forced_and_its_final_read_meets_
         return real_read(customer_id, period_end, meter_type, kwh, *rest)
 
     monkeypatch.setattr(mr, "simulate_read", opening_read_actual)
-    records = []
-    for i in range(16):
-        records.extend(_sc_month_records("C1", 2022 + i // 12, i % 12 + 1, 200.0 + 40.0 * i,
-                                         unit_rate=200.0))
-    open_bills = build_monthly_bills(records)
+    def run(cid):
+        records = []
+        for i in range(16):
+            records.extend(_sc_month_records(cid, 2022 + i // 12, i % 12 + 1, 200.0 + 40.0 * i,
+                                             unit_rate=200.0))
+        return records
+
+    open_bills = build_monthly_bills(run("C4"))
     assert [b["billing_basis"] for b in open_bills] == ["actual"] + ["estimated"] * 15
 
-    closing = build_monthly_bills(records, churned_ids={"C1"})[-1]
+    closing = build_monthly_bills(run("C4"), churned_ids={"C4"})[-1]
     assert closing["billing_basis"] == "actual"
     assert closing["catchup_direction"] == "undercharge", closing.get("catchup_direction")
     assert closing["catchup_back_billing_cap_applied"] is True
     assert closing["catchup_written_off_gbp"] > 0
 
+    dd_closing = build_monthly_bills(run("C1"), churned_ids={"C1"})[-1]
+    assert dd_closing["catchup_direction"] == "undercharge"
+    assert dd_closing["catchup_back_billing_basis"] == "direct_debit_barred_at_the_charge_recovery_action"
+    assert dd_closing["catchup_written_off_gbp"] == 0.0
+
 
 def test_billing_accuracy_finds_the_barred_energy_the_read_process_makes_and_none_when_every_read_is_actual(
         monkeypatch):
     """D48 against the world's own read process, not a scripted feed: the 16-month run above,
-    measured. Defect caught: a measure that cannot see the estimates the world produces. Both arms
+    measured, on a prepayment account (a direct-debit statement bars no energy). Defect caught: a measure that cannot see the estimates the world produces. Both arms
     in one statement, so a measure that is zero everywhere fails as surely as one that ignores
     the reads."""
     import simulation.meter_reads as mr
@@ -859,7 +872,7 @@ def test_billing_accuracy_finds_the_barred_energy_the_read_process_makes_and_non
 
     records = []
     for i in range(16):
-        records.extend(_sc_month_records("C1", 2022 + i // 12, i % 12 + 1, 200.0 + 40.0 * i,
+        records.extend(_sc_month_records("C4", 2022 + i // 12, i % 12 + 1, 200.0 + 40.0 * i,
                                          unit_rate=200.0))
 
     with monkeypatch.context() as m:
@@ -868,14 +881,14 @@ def test_billing_accuracy_finds_the_barred_energy_the_read_process_makes_and_non
         m.setattr(mr, "HARD_TO_READ_ACTUAL_READ_PROBABILITY", 0.0)
         m.setattr(mr, "SMART_METER_NOT_COMMUNICATING_RATE", 1.0)
         m.setattr(mr, "simulate_read", opening_read_actual)
-        estimating = billing_accuracy(build_monthly_bills(records, churned_ids={"C1"}))
+        estimating = billing_accuracy(build_monthly_bills(records, churned_ids={"C4"}))
     with monkeypatch.context() as m:
         # force_actual_reads' pins, inlined: a fixture cannot be called from a test body.
         m.setattr(mr, "TRADITIONAL_ACTUAL_READ_PROBABILITY", 1.0)
         m.setattr(mr, "HARD_TO_READ_ACTUAL_READ_PROBABILITY", 1.0)
         m.setattr(mr, "SMART_METER_NOT_COMMUNICATING_RATE", 0.0)
         m.setattr(mr, "READ_CUTOFF_DAYS_AFTER_PERIOD_END", 10**9)
-        every_read_actual = billing_accuracy(build_monthly_bills(records, churned_ids={"C1"}))
+        every_read_actual = billing_accuracy(build_monthly_bills(records, churned_ids={"C4"}))
 
     est, act = estimating["by_fuel"]["electricity"], every_read_actual["by_fuel"]["electricity"]
     assert (est["barred_kwh"] > 0 and est["undercharge_kwh"] > est["barred_kwh"]

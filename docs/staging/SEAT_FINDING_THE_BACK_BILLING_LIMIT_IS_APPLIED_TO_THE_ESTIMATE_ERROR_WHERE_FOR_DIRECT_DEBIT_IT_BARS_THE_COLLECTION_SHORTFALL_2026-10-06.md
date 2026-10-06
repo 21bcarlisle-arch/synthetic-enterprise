@@ -85,3 +85,34 @@ The DD-review balance treatment is still the assumption toggle. Nothing here dec
 3. The toggle's credit side. Neither arm returns a held credit at review, so the seek arm ends at a +£44.8k portfolio credit. That is the existing review sizing from a year that included catch-ups. It is a separate assumption, and nothing here decides it.
 
 **For the director (a practitioner question, not blocking):** when a raised direct debit recovers arrears, does a GB supplier apply it to the oldest debt? This change assumes yes. The Ombudsman's scenarios do not say.
+
+---
+
+**2026-10-06, the bar is booked and the stand-in stops (worker, D48 self-refill). Owed item 1 above.**
+
+**What landed:**
+- **A DD catch-up writes nothing off.** The basis is now `direct_debit_barred_at_the_charge_recovery_action`. The catch-up bills the full delta, because a statement is not a demand. `check_back_billing_cap_respected` refuses any write-off on that basis; it would be the double count.
+- **The book's true charge is the supplier's own.** Before, `dd_balance_book` read the world's `true_total_amount_gbp` for an estimated period. That was harmless while the bar was only a figure, but it is a wall crossing once the bar is booked. Now the true charge is the estimate plus a share of the catch-up the next read billed, pro rata to the run's estimates. Those estimates already have the company's profile shape. This also pays down the "split is by days" note above, in part: the money is split by the company's shape, and each period's share is then aged by days.
+- **Each bar taken is booked.** The book lists `bar_actions` (final bill, or review under the toggle; never an exposure). `close_the_books(back_billing_bars=...)` posts each one as a `dd_back_billing_write_off_event` carrying cash. `derive_pnl` takes it off revenue and cash collected, and adds it to `back_billing_write_off_gbp`. `total_billed_gbp` is unchanged, so the billed clock still reconciles. The run books the review-as-built arm; the other arm stays published, not booked.
+- **Tests:** `tests/simulation/test_dd_back_billing_at_charge_recovery_actions.py` (+2) and `tests/company/billing/test_back_billing_follows_the_payment_method.py` (stand-in test replaced, invariant test added). Six mutations were run and each failed its named test: stand-in restored, world true charge, revenue not reduced, bars not posted, delta not apportioned, invariant passes any write-off.
+
+**Measured** on the 8,632 bills in the committed `docs/reports/run_output_latest.json` (129 DD accounts). The base here is £15,110, not the £17,667 above, because this is a newer run output. Predictions are in `docs/staging/records/SEAT_PREREG_D48_THE_DD_BAR_IS_BOOKED_AND_THE_STAND_IN_STOPS_2026-10-06.md`.
+
+| | final-bill bar £ | review bar £ (toggle) |
+|---|---|---|
+| world true charge (as it was) | 15,110 | 16,037 |
+| supplier's own true charge | 15,447 | 16,852 |
+| … and the £961 DD stand-in added back to the bills | 15,444 | 17,173 |
+
+- **P1 right:** +2.2% from the true-charge source alone.
+- **P2 right on size but not on direction:** adding £961 to the bills moved the final-bill bar by −£3, not up. I cannot yet say why, and it is too small to chase.
+- **P3 right, at the bottom edge:** the booked back-billing write-off goes from £997 to about £15.5k (£36 pay-on-bill + £15,444 DD).
+- **P4 holds by construction:** the pay-on-bill branch is untouched.
+
+The headline P&L moves at the next run, by about −£15k of revenue on this book.
+
+**Not done, and owed:**
+1. **D48's K3 is now pay-on-bill energy only.** DD catch-ups carry `barred_kwh = None`, and `billing_accuracy` reads None as 0. So K3 no longer counts the stand-in's DD energy, which was the wrong quantity anyway. The DD bar is money, and the D48 money line for DD (owed item 2 above) is still owed. Until it lands, the page's barred figure says nothing about DD.
+2. **The barred figure is gross of VAT;** VAT bad-debt relief is not modelled.
+3. **DD3 is unchanged.** The held credit is still not a liability on the books.
+4. The toggle's credit side (owed item 3 above) is untouched.

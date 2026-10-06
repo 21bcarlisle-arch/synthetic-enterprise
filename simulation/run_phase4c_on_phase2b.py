@@ -656,6 +656,9 @@ def main(report_end: str | None = None, policy=None):
         broker_commission_events=broker_commission_schedule(
             settled_records=all_records, customers=all_customers,
         ),
+        # SLC 21BA on direct debit: the bars the balance book took at its recovery actions, with
+        # the review as built. The other arm of the review toggle is published, not booked.
+        back_billing_bars=dd_balance_book.bar_actions,
     )
     ledger_events = books.events
     ledger_pnl = books.pnl

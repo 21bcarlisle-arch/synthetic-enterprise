@@ -10,6 +10,7 @@ from __future__ import annotations
 import datetime as dt
 
 from company.billing.back_billing import RecoveryPeriod, barred_unrecovered_gbp
+from company.interfaces.accounting_close import close_the_books
 from simulation.arrears_engine import payment_method
 from simulation.dd_balance_book import build_dd_balance_book
 
@@ -97,3 +98,43 @@ def test_a_debt_recovered_and_re_accrued_is_not_read_as_old():
     periods += [RecoveryPeriod(*month(2023, m), 80.0, 100.0) for m in range(1, 7)]
     periods += [RecoveryPeriod(*month(2023, m), 120.0, 100.0) for m in range(7, 13)]
     assert barred_unrecovered_gbp(periods, dt.date(2024, 3, 1)) == 0.0
+
+
+def test_the_true_charge_is_the_suppliers_own_and_never_the_worlds():
+    """The defect: an estimated period's true charge was read off the world's
+    `true_total_amount_gbp`, and the bar is now booked. The supplier's own is the estimate plus a
+    share of the catch-up the next read billed, pro rata to the estimates."""
+    est = _bills([50.0] * 14 + [10.0])
+    catchup = est[-1]
+    catchup.update({
+        "catchup_applied": True, "catchup_period_start": est[0]["period_start"],
+        "catchup_period_end": est[-2]["period_end"], "catchup_raw_delta_gbp": 700.0,
+        "catchup_adjustment_gbp": 700.0, "total_amount_gbp": 710.0,
+    })
+    book = build_dd_balance_book(est, {DD: 50.0}, {DD})
+    truths = [p.true_charge_gbp for p in book.trajectories[DD]]
+    assert truths == [100.0] * 14 + [10.0]
+    # A world figure on the bills moves nothing.
+    lied = [{**b, "true_total_amount_gbp": 9999.0} for b in est]
+    assert build_dd_balance_book(lied, {DD: 50.0}, {DD}).summary() == book.summary()
+    # Fourteen months of £50 short, collected at the 15th: the oldest are barred.
+    assert book.barred_at_final_bills_gbp > 0
+
+
+def test_each_bar_taken_is_written_off_on_the_ledger_and_an_exposure_is_not():
+    book = build_dd_balance_book(SHORT, OPENING, {DD})
+    assert [a["action"] for a in book.bar_actions] == ["final_bill"]
+    assert sum(a["amount_gbp"] for a in book.bar_actions) == round(book.barred_at_final_bills_gbp, 2)
+    seeks = build_dd_balance_book(SHORT, OPENING, {DD}, seek_balance_at_review=True)
+    assert {a["action"] for a in seeks.bar_actions} >= {"review"}
+    assert build_dd_balance_book(SHORT, OPENING, closed_ids=set()).bar_actions == []
+
+    records: list[dict] = []
+    bills = [{**b, "total_consumption_kwh": 100.0} for b in SHORT]
+    plain = close_the_books(records, bills)
+    booked = close_the_books(records, bills, back_billing_bars=book.bar_actions)
+    bar = book.bar_actions[0]["amount_gbp"]
+    assert round(plain.pnl["revenue_gbp"] - booked.pnl["revenue_gbp"], 2) == bar
+    assert booked.pnl["back_billing_write_off_gbp"] == bar
+    # What was billed is unchanged, so the billed clock still reconciles.
+    assert booked.pnl.get("total_billed_gbp") == plain.pnl.get("total_billed_gbp")

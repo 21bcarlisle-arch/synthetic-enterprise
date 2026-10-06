@@ -17,8 +17,8 @@ from company.billing.back_billing import (
     barred_unrecovered_gbp,
 )
 from company.billing.monthly_bill_assembly import (
+    BASIS_DD_AT_RECOVERY_ACTION,
     BASIS_DD_SHORTFALL,
-    BASIS_DD_STAND_IN,
     BASIS_ESTIMATE_ERROR,
     _resolve_catchup,
 )
@@ -124,10 +124,22 @@ def test_a_pay_on_bill_catch_up_keeps_true_use_against_billed():
     assert _resolve_catchup("C1", "resi", run, DEMAND)["written_off_gbp"] == expected
 
 
-def test_a_direct_debit_run_without_its_collections_names_that_the_estimate_error_stands_in():
+def test_a_direct_debit_catch_up_without_its_collections_writes_nothing_off_because_a_statement_is_not_a_demand():
+    """The defect: the estimate error was written off on the statement, and the balance book bars
+    the same account's old shortfall at the final bill, so booking both takes it twice."""
     catchup = _resolve_catchup("C1", "resi", _run(50.0, 30.0, None), DEMAND, "direct_debit")
-    assert catchup["back_billing_basis"] == BASIS_DD_STAND_IN
-    assert "not_visible" in BASIS_DD_STAND_IN
+    assert catchup["back_billing_basis"] == BASIS_DD_AT_RECOVERY_ACTION
+    assert catchup["written_off_gbp"] == 0.0
+    assert catchup["chargeable_gbp"] == catchup["raw_delta_gbp"] > 0
+    assert catchup["barred_kwh"] is None
+    # The same run on pay-on-bill is barred, so the zero above is the payment method's doing.
+    assert _resolve_catchup("C1", "resi", _run(50.0, 30.0, None), DEMAND)["written_off_gbp"] > 0
+
+
+def test_the_invariant_refuses_a_write_off_on_a_direct_debit_statement():
+    bill = _bill(_resolve_catchup("C1", "resi", _run(50.0, 30.0, None), DEMAND, "direct_debit"))
+    assert check_back_billing_cap_respected(bill) is True
+    assert check_back_billing_cap_respected({**bill, "catchup_written_off_gbp": 12.0}) is False
 
 
 def test_every_comparator_basis_is_reachable():
@@ -138,7 +150,7 @@ def test_every_comparator_basis_is_reachable():
         for ch in ("direct_debit", "standard_credit", None)
     } | {_resolve_catchup("C1", "resi", _run(50.0, 30.0, None), DEMAND, "direct_debit")[
         "back_billing_basis"]}
-    assert reached == {BASIS_DD_SHORTFALL, BASIS_ESTIMATE_ERROR, BASIS_DD_STAND_IN}
+    assert reached == {BASIS_DD_SHORTFALL, BASIS_ESTIMATE_ERROR, BASIS_DD_AT_RECOVERY_ACTION}
 
 
 def test_the_invariant_holds_a_direct_debit_catch_up_to_the_collection_shortfall():

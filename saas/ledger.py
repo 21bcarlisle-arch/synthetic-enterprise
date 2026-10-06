@@ -277,6 +277,25 @@ def make_back_billing_write_off_event(bill: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def make_dd_back_billing_write_off_event(bar: dict[str, Any]) -> dict[str, Any]:
+    """SLC 21BA's bar on a direct-debit account, written off where the debit asked for the balance.
+
+    Unlike `make_back_billing_write_off_event` this one carries cash: a direct-debit statement is
+    not a demand, so the catch-up bill was billed in full, and the barred part of the balance is
+    revenue the supplier recognised and may not collect. `bar` is one of the DD balance book's
+    `bar_actions` rows. The figure is gross of VAT; VAT relief on it is not modelled.
+    """
+    return {
+        "transaction_id": _tid("dd_back_billing_write_off", bar["customer_id"], bar["date"],
+                               bar["action"]),
+        "event_type": "dd_back_billing_write_off_event",
+        "timestamp": bar["date"],
+        "customer_id": bar["customer_id"],
+        "amount_gbp": -float(bar["amount_gbp"]),
+        "action": bar["action"],
+    }
+
+
 def make_revenue_restatement_event(bill: dict[str, Any]) -> dict[str, Any]:
     """E3_accrual_restatement: a named, visible P&L line for D3's own real
     catch-up-rebilling delta -- accrual accounting requires that estimated-
@@ -524,7 +543,11 @@ def derive_pnl(events: list[dict[str, Any]]) -> dict[str, float]:
     vat_remittance = -sum(e["amount_gbp"] for e in vat_events)       # positive (cash out)
     non_commodity_cost = -sum(e["amount_gbp"] for e in nc_events)     # positive (cash out)
 
-    revenue = total_billed - vat_remittance      # ex-VAT revenue (supplier's reported revenue)
+    # A direct-debit balance the back-billing limit bars was billed and will not be collected.
+    dd_barred = -sum(
+        e["amount_gbp"] for e in events if e["event_type"] == "dd_back_billing_write_off_event"
+    )
+    revenue = total_billed - vat_remittance - dd_barred  # ex-VAT revenue (supplier's reported revenue)
     gross = revenue - wholesale - non_commodity_cost  # margin on commodity + standing
     net = gross - capital
     result: dict[str, float] = {
@@ -544,7 +567,7 @@ def derive_pnl(events: list[dict[str, Any]]) -> dict[str, float]:
 
     payment_events = [e for e in events if e["event_type"] == "payment_received_event"]
     if payment_events:
-        cash_collected = sum(e["amount_gbp"] for e in payment_events)
+        cash_collected = sum(e["amount_gbp"] for e in payment_events) - dd_barred
         bad_debt = -sum(
             e["amount_gbp"] for e in events if e["event_type"] == "bad_debt_event"
         )
@@ -568,10 +591,10 @@ def derive_pnl(events: list[dict[str, Any]]) -> dict[str, float]:
         result["cost_to_serve_gbp"] = cts_cost
 
     write_off_events = [e for e in events if e["event_type"] == "back_billing_write_off_event"]
-    if write_off_events:
+    if write_off_events or dd_barred:
         result["back_billing_write_off_gbp"] = sum(
             e["write_off_amount_gbp"] for e in write_off_events
-        )
+        ) + dd_barred
 
     restatement_events = [e for e in events if e["event_type"] == "revenue_restatement_event"]
     if restatement_events:

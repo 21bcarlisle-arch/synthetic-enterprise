@@ -74,6 +74,7 @@ from saas.ledger import (
     ledger_summary,
     make_broker_commission_event,
     make_cost_to_serve_event,
+    make_dd_back_billing_write_off_event,
 )
 
 __all__ = ["AccountingClose", "close_the_books"]
@@ -108,6 +109,7 @@ def close_the_books(
     cost_to_serve_ledger_events: list[dict[str, Any]] | None = None,
     broker_commission_events: list[dict[str, Any]] | None = None,
     payment_model: Any = None,
+    back_billing_bars: list[dict[str, Any]] | None = None,
 ) -> AccountingClose:
     """Close this run's books over the settled records and assembled bills.
 
@@ -128,6 +130,8 @@ def close_the_books(
         events here, the same account the one-off acquisition spend it replaced booked to.
     `payment_model` — the supplier's credit-risk/bad-debt model; defaults to
         `saas.payment_behaviour`.
+    `back_billing_bars` — each SLC 21BA bar taken on a direct-debit balance where the debit asked
+        for it (the DD balance book's `bar_actions`), written off as revenue not collected.
     """
     model = _default_payment_model if payment_model is None else payment_model
 
@@ -144,6 +148,7 @@ def close_the_books(
             make_broker_commission_event(event["month"], event["amount_gbp"])
             for event in (broker_commission_events or [])
         ]
+        + [make_dd_back_billing_write_off_event(bar) for bar in (back_billing_bars or [])]
     )
 
     events = build_ledger(

@@ -1218,6 +1218,10 @@ def check_back_billing_cap_respected(bill: dict) -> bool:
     # the periods it carries by the same rule the assembly applied. Fail closed without them.
     if bill.get("catchup_back_billing_basis") == "direct_debit_true_vs_collected":
         return _dd_back_billing_respected(bill)
+    # A direct-debit catch-up whose collections the assembly cannot see is a statement: the bar is
+    # taken where the debit asks for the balance, so a write-off here is the double count.
+    if bill.get("catchup_back_billing_basis") == "direct_debit_barred_at_the_charge_recovery_action":
+        return bill.get("catchup_written_off_gbp", 0.0) == 0.0
 
     direction = bill.get("catchup_direction")
     if direction not in ("undercharge", "overcharge"):
