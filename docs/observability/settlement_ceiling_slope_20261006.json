@@ -1,0 +1,175 @@
+{
+  "artefact": "settlement_ceiling_probe",
+  "generated_at_utc": "2026-10-06T14:39:13.493877+00:00",
+  "subject": "simulation/net_new_acquisition.py::SETTLEMENT_CUSTOMER_YEAR_BUDGET, measured on the live path's own compute (tools.run_annual_report._run_and_extract, full window, not --fast) -- the same call background/sim_runner.py makes",
+  "git_head": "06b7c821a",
+  "headroom_before": {
+    "timestamp": "2026-10-06T10:36:35.339256+00:00",
+    "total_mb": 24032.1,
+    "available_mb": 15768.8,
+    "shmem_mb": 2008.1,
+    "swap_free_mb": 1620.3,
+    "psi_some_avg60": 0.0,
+    "oom_kills_total": 272
+  },
+  "headroom_after": {
+    "timestamp": "2026-10-06T14:39:13.492154+00:00",
+    "total_mb": 24032.1,
+    "available_mb": 17765.3,
+    "shmem_mb": 1939.8,
+    "swap_free_mb": 1270.3,
+    "psi_some_avg60": 0.02,
+    "oom_kills_total": 272
+  },
+  "points": [
+    {
+      "budget": 1200.0,
+      "wall_s": 1314.5,
+      "peak_rss_mb": 4036.6,
+      "exit_status": 0,
+      "ok": true,
+      "child_wall_s": 1304.7727427580394,
+      "customer_years_committed": 1199.7,
+      "customer_year_budget_seen": 1200.0,
+      "wins": 85,
+      "funnel_wins": 497,
+      "wins_refused_by_settlement_budget": 412,
+      "accounts_after_final_year": 579,
+      "settlement_bound_years": [],
+      "years_reported": 10,
+      "producer_in_flight_at_start": null,
+      "producer_in_flight_at_end": null,
+      "campaign_record_agrees": true,
+      "campaign_record_on_disk_said": 1199.7,
+      "clean": true,
+      "unclean_reasons": []
+    },
+    {
+      "budget": 2000.0,
+      "wall_s": 2808.7,
+      "peak_rss_mb": 6154.7,
+      "exit_status": 0,
+      "ok": true,
+      "child_wall_s": 2800.7757068511564,
+      "customer_years_committed": 1986.9,
+      "customer_year_budget_seen": 2000.0,
+      "wins": 243,
+      "funnel_wins": 497,
+      "wins_refused_by_settlement_budget": 254,
+      "accounts_after_final_year": 579,
+      "settlement_bound_years": [],
+      "years_reported": 10,
+      "producer_in_flight_at_start": null,
+      "producer_in_flight_at_end": null,
+      "campaign_record_agrees": true,
+      "campaign_record_on_disk_said": 1986.9,
+      "clean": true,
+      "unclean_reasons": []
+    },
+    {
+      "budget": 2800.0,
+      "wall_s": 4876.8,
+      "peak_rss_mb": 8579.6,
+      "exit_status": 0,
+      "ok": true,
+      "child_wall_s": 4865.994651237037,
+      "customer_years_committed": 2794.7,
+      "customer_year_budget_seen": 2800.0,
+      "wins": 420,
+      "funnel_wins": 497,
+      "wins_refused_by_settlement_budget": 77,
+      "accounts_after_final_year": 579,
+      "settlement_bound_years": [],
+      "years_reported": 10,
+      "producer_in_flight_at_start": null,
+      "producer_in_flight_at_end": null,
+      "campaign_record_agrees": true,
+      "campaign_record_on_disk_said": 2794.7,
+      "clean": true,
+      "unclean_reasons": []
+    },
+    {
+      "budget": 3400.0,
+      "wall_s": 5558.0,
+      "peak_rss_mb": 9592.8,
+      "exit_status": 0,
+      "ok": true,
+      "child_wall_s": 5548.444670003839,
+      "customer_years_committed": 3126.1,
+      "customer_year_budget_seen": 3400.0,
+      "wins": 497,
+      "funnel_wins": 497,
+      "wins_refused_by_settlement_budget": 0,
+      "accounts_after_final_year": 579,
+      "settlement_bound_years": [],
+      "years_reported": 10,
+      "producer_in_flight_at_start": null,
+      "producer_in_flight_at_end": null,
+      "campaign_record_agrees": true,
+      "campaign_record_on_disk_said": 3126.1,
+      "clean": true,
+      "unclean_reasons": []
+    }
+  ],
+  "marginal": [
+    {
+      "from_customer_years": 1199.7,
+      "to_customer_years": 1986.9,
+      "delta_customer_years": 787.2,
+      "marginal_s_per_customer_year": 1.8981,
+      "marginal_mb_per_customer_year": 2.6907
+    },
+    {
+      "from_customer_years": 1986.9,
+      "to_customer_years": 2794.7,
+      "delta_customer_years": 807.8,
+      "marginal_s_per_customer_year": 2.5602,
+      "marginal_mb_per_customer_year": 3.0019
+    },
+    {
+      "from_customer_years": 2794.7,
+      "to_customer_years": 3126.1,
+      "delta_customer_years": 331.4,
+      "marginal_s_per_customer_year": 2.0555,
+      "marginal_mb_per_customer_year": 3.0573
+    }
+  ],
+  "publisher": {
+    "available": false,
+    "reason": "publish_gate_duration.jsonl not present"
+  },
+  "recommendation": {
+    "decidable": true,
+    "worst_marginal_s_per_customer_year": 2.5602,
+    "worst_marginal_mb_per_customer_year": 3.0573,
+    "measured_from": {
+      "customer_years": 1199.7,
+      "wall_s": 1314.5,
+      "peak_rss_mb": 4036.6
+    },
+    "bounds": {
+      "time": {
+        "chosen": true,
+        "publish_interval_s": 604800.0,
+        "safety_share_of_the_interval": 0.5,
+        "measured_gate_worst_s": 0.0,
+        "allowed_run_s": 302400.0,
+        "customer_years": 118802.0,
+        "circularity": "NOT a measured constraint unless `chosen` is true. The fallback interval is `suite_duration_watch.PUBLISH_CADENCE_SECONDS`, which is measured FROM run inter-arrival -- so it grows when this ceiling grows. Read an unchosen time bound as a description of today, not as a bound."
+      },
+      "memory": {
+        "guest_total_mb": 24032.1,
+        "guest_available_mb": 15768.8,
+        "share_of_guest_the_run_may_hold": 0.25,
+        "allowed_peak_rss_mb": 6008.0,
+        "customer_years": 1844.5,
+        "note": "share is of TOTAL, not AVAILABLE: the run has to fit beside daemons that come and go, and sizing to a momentary `available_mb` sets a ceiling that was true for one second."
+      }
+    },
+    "supported_customer_years": 1844.5,
+    "binding_bound": "memory",
+    "binding_bound_is_evidence": true,
+    "funnel_supply_customer_years": 3126.1,
+    "note_supply": "at least one measured point refused nothing, so the campaign's own demand is bounded here and a ceiling above it buys no accounts"
+  }
+}
