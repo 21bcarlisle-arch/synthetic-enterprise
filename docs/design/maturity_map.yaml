@@ -2221,12 +2221,14 @@
   epoch: 4
   level_current: 1
   level_target: 3
-  loop_stage: build
+  loop_stage: idle
   # MINTED 2026-10-05, canon step 3: "the spine every lever is judged against. Build and test
   # it on held-back history". Couples to EP1 (three horizons, L2, blocked on a second book):
   # a held-back-history test needs no second book, which is why this is its own atom.
-  # L1 2026-10-06 (9680fbf4b, 4e4637853). NEXT: the deviation window ends before the regime,
-  # with the boundary read from the published record (cap history), not fitted to the result.
+  # L1 2026-10-06. Window (27d0d3065) and switch/move split (3d9c4fb84) landed. PARKED
+  # 2026-10-06: nothing left moves in company code. UN-PARK when B7 slice 3 lands and moves are
+  # switched on (split gets graded), or the director rules EP17 (books to separate the rules).
+  block_reason: "the next gain is in the WORLD (B7 slice 3 + moves switched on) or the director's EP17 row, not company code"
   dial_inherited: 90
   provenance: director_ruling
   depends_on: []
