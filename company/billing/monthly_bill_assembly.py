@@ -48,8 +48,9 @@ IS.
 
 from __future__ import annotations
 
+import dataclasses
 from collections.abc import Callable
-from datetime import datetime
+from datetime import date, datetime
 from typing import Protocol, runtime_checkable
 
 from company.billing.account_adjustment_register import (
@@ -59,6 +60,7 @@ from company.billing.account_adjustment_register import (
     AdjustmentType,
 )
 from company.billing.back_billing import BackBillingAssessment, BackBillingReason
+from company.billing.unread_month_estimate import estimate_unread_kwh
 from company.interfaces.supply_book import registered_point as get_customer
 from saas.bill_generator import (
     BILL_SHOCK_PENALTY_FACTOR,
@@ -178,6 +180,11 @@ def _estimated_settlement_records(
         new_record["revenue_gbp"] = commodity_portion * ratio + sc
         scaled.append(new_record)
     return scaled
+
+
+# How many of the account's latest actual-read periods an estimate is derived from. The same three
+# the feed's flat estimate used, so the seasonal shape is the one thing the estimate changed.
+ESTIMATE_WINDOW_READS = 3
 
 
 def _annotate_billing_basis(bill: dict, event, true_bill: dict) -> dict:
@@ -471,6 +478,7 @@ def build_monthly_bills(
         previous_bill_total_gbp = None
         trailing_actuals_kwh: list[float] = []
         trailing_actual_days: list[int] = []
+        trailing_actual_periods: list[tuple[date, date, float]] = []
         consecutive_estimated = 0
         pending_estimated_run: list[dict] = []
         sorted_months = sorted(months)
@@ -585,10 +593,26 @@ def build_monthly_bills(
                 pending_estimated_run = []
                 trailing_actuals_kwh.append(true_bill["total_consumption_kwh"])
                 trailing_actual_days.append(true_bill["days_in_period"])
+                trailing_actual_periods.append((
+                    date.fromisoformat(true_bill["period_start"]),
+                    date.fromisoformat(true_bill["period_end"]),
+                    true_bill["total_consumption_kwh"],
+                ))
                 consecutive_estimated = 0
             else:
                 true_kwh = true_bill["total_consumption_kwh"]
-                est_kwh = event.estimated_consumption_kwh
+                # The estimate is the company's to make (D48 slice 3): its own latest actual reads,
+                # shaped by the published seasonal profile. The feed's figure stands only where the
+                # company has no read to derive one from -- the opening period's.
+                shaped = estimate_unread_kwh(
+                    commodity, trailing_actual_periods[-ESTIMATE_WINDOW_READS:],
+                    date.fromisoformat(true_bill["period_start"]),
+                    date.fromisoformat(true_bill["period_end"]),
+                )
+                if shaped is not None and dataclasses.is_dataclass(event):
+                    event = dataclasses.replace(event, estimated_consumption_kwh=round(shaped, 2))
+                est_kwh = (round(shaped, 2) if shaped is not None
+                           else event.estimated_consumption_kwh)
                 if true_kwh > 0 and est_kwh is not None:
                     scaled = _estimated_settlement_records(
                         months[month], est_kwh / true_kwh, commodity
@@ -604,6 +628,7 @@ def build_monthly_bills(
                     # the estimate.
                     estimated_bill = true_bill
                 bill = _annotate_billing_basis(estimated_bill, event, true_bill)
+                bill["estimated_consumption_kwh"] = est_kwh
                 consecutive_estimated = event.consecutive_estimated_count
                 pending_estimated_run.append({
                     "period_start": bill["period_start"],

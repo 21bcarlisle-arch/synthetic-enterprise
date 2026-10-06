@@ -25,6 +25,15 @@ FLAT_ESTIMATE_KWH = 200.0
 MONTHS = 16
 
 
+@pytest.fixture(autouse=True)
+def _the_feeds_estimate_is_billed(monkeypatch):
+    """These tests grade the MEASURE, so the flat scripted estimate is their instrument. Since
+    slice 3 the company shapes its own estimate from its reads; with no published shape for the
+    fuel it bills the feed's, which is the path withdrawn here. The estimator has its own tests."""
+    monkeypatch.setattr(
+        "company.billing.unread_month_estimate.MONTHLY_SHARE_OF_ANNUAL_USE", {})
+
+
 def _use(i: int) -> float:
     return 200.0 + 40.0 * i
 
