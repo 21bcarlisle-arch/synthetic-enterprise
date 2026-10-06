@@ -2315,3 +2315,28 @@
     'docs/market_research/household_carbon_and_the_measures_that_save_it.md']
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a supplier whose debt desk, retention desk and energy-advice team each send the same customer a different letter in the same week."
+
+- id: W1_29_the_worlds_homes_are_drawn_too_alike_in_half_hourly_behaviour
+  title: "the world's homes move half-hour to half-hour like one rough home, where real homes spread from calm to busy"
+  lane: W1_market_weather
+  value_stream: wholesale_to_price
+  epoch: 3
+  level_current: 0
+  level_target: 3
+  loop_stage: build
+  dial_inherited: 3
+  provenance: seat_finding
+  blocked_on: null
+  block_reason: null
+  depends_on: [W1_12_premise_trace_generator]
+  couples_with: [C14_thermal_parameter_inference, H_GAP_fabric_belief_truth_gap]
+  file_scope:
+    - simulation/premise_trace.py
+    - tests/harness/test_premise_two_level.py
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a London street read off its smart meters: nearly half the homes calmer than 0.15 of their own mean between half-hours, a rough tail of small busy flats, and no two alike"
+  # EVIDENCE (2026-10-06): L1.1 is judged against 313 real LCL homes
+  # (docs/market_research/the_half_hourly_texture_of_real_homes_electricity_read_from_low_carbon_london.md).
+  # The drawn 60 has 0 homes under the real p10 and p25, 3 under the median (30 expected) and 29 under
+  # the p75 (45); median 0.209 vs 0.158. Exit: `test_MEASURED_population_values` sees L1.1 PASS, by a
+  # mechanism, never by widening a draw. Per-customer inference only beats flat where homes differ.
