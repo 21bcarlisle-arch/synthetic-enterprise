@@ -409,8 +409,8 @@ GAS_ELSEWHERE_REASON = "gas now supplied elsewhere \u2014 not a saving we can se
 #: Why `removal_ordered` is False on every production call today. Said once, here, so a caller
 #: that cannot set it names this rather than inventing a reading.
 REMOVAL_RECORD_GAP = (
-    "no record in this company can identify a gas meter removal: `company/billing/meter_assets.py`"
-    " has a 'removed' status nothing sets, `company/market/mprn_register.py` has no production "
+    "no record in this company can identify a gas meter removal: `company.billing.meter_assets`"
+    " has a 'removed' status nothing sets, `company.market.mprn_register` has no production "
     "caller and no removal transition, and `company/billing/account_closure.ClosureReason` has no "
     "meter-removal reason. So `removed` is unreachable on the published book; a closure with no "
     "loss notice is `unknown`, and a rise in electricity is never read as a removal"
