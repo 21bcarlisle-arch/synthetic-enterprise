@@ -2088,7 +2088,7 @@
   lane: W1_market_weather
   value_stream: wholesale_to_price
   epoch: 3
-  level_current: 0
+  level_current: 1
   level_target: 3
   loop_stage: build
   dial_inherited: 3
@@ -2100,6 +2100,8 @@
   file_scope:
     - simulation/premise_trace.py
     - tests/harness/test_premise_two_level.py
+    - tests/simulation/test_a_home_owns_only_the_appliances_efus_says_a_home_its_size_owns.py
+    - tests/simulation/test_a_homes_always_on_load_is_drawn_from_efus.py
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a London street read off its smart meters: nearly half the homes calmer than 0.15 of their own mean between half-hours, a rough tail of small busy flats, and no two alike"
   # EVIDENCE (2026-10-06): L1.1 is judged against 313 real LCL homes
