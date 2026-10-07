@@ -1,6 +1,7 @@
 import importlib.util as _il
 import os
 import pathlib
+import sys
 
 # background.ntfy_utils raises at import time if SE_NTFY_TOPIC isn't set
 # (2026-07-08 topic rotation, docs/staging/NTFY_CHANNEL_HARDENING.md — no
@@ -307,6 +308,22 @@ def fast_mode():
     os.environ["SIM_FAST_MODE"] = "1"
     yield
     os.environ.pop("SIM_FAST_MODE", None)
+
+
+@pytest.fixture(autouse=True)
+def _phase2b_book_is_put_back():
+    """Every test after an in-process `run_phase2b.main` reads the book import drew (H50 L2).
+
+    `main` rewrites fabric premises' registry EACs in the shared roster dicts and appends its wins
+    to `ACQUIRED_CUSTOMERS`, and leaves both there on purpose: phase 4c sizes DD openings from the
+    rewrite after `main` returns. So the reset is the caller's, and about twenty test files call
+    `main` in-process (grep, 2026-10-07). Doing it here rather than in each covers the next one
+    too. ~10us a call.
+    """
+    yield
+    p2b = sys.modules.get("simulation.run_phase2b")
+    if p2b is not None:
+        p2b.start_from_the_drawn_book()
 
 
 # Cumulative tests EXECUTED metric (2026-07-10, director page comment:
