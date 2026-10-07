@@ -18,6 +18,7 @@ Delegation note: hand-written (orchestration-adjacent, per protocol).
 import heapq
 import itertools
 import random
+import sys
 from collections import defaultdict
 from datetime import date, datetime, time, timedelta
 
@@ -4675,5 +4676,65 @@ def _build_behavioral_trajectories(customers, hdr, cx_desk, bill_shock_dates=Non
     return out
 
 
+
+def budgeted_run_peak_mb() -> tuple[float | None, str]:
+    """`(peak_mb, basis)`: what one run at the shipped settlement budget is measured to hold.
+
+    The measured whole-run curve evaluated AT `SETTLEMENT_CUSTOMER_YEAR_BUDGET` -- the same line
+    `test_the_settlement_ceiling_does_not_outrun_the_measured_memory_curve` prices the budget on,
+    read the other way: the budget fixes the customer-years, the curve gives the cgroup peak. The
+    curve was measured on the production book (~175 founders); a 4,000-founder book is not on it.
+    No curve is a `None` with its reason, never a number picked to fill the slot.
+    """
+    from simulation.net_new_acquisition import SETTLEMENT_CUSTOMER_YEAR_BUDGET
+    from simulation.premise_population import ScaleProbeUnavailable, load_whole_run_rss_curve
+
+    try:
+        curve = load_whole_run_rss_curve()
+    except (ScaleProbeUnavailable, OSError, ValueError) as exc:
+        return None, f"no measured run curve to price the budget on ({exc})"
+    budget = float(SETTLEMENT_CUSTOMER_YEAR_BUDGET)
+    peak = curve["anchor_peak_rss_mb"] + (
+        (budget - curve["anchor_customer_years"]) * curve["mb_per_customer_year"])
+    return peak, (
+        f"{curve['anchor_peak_rss_mb']:,.1f} MB at {curve['anchor_customer_years']:,.1f} "
+        f"customer-years + {curve['mb_per_customer_year']:.3f} MB each up to the "
+        f"{budget:,.0f} customer-year settlement budget, from {curve['path']}")
+
+
+def entry_headroom_refusal(sample_fn=None, peak_fn=None) -> str | None:
+    """Why this box cannot start a run now, or None when MemAvailable covers the budgeted peak.
+
+    Sits in the entry point and not only in `launch_long_job`'s admission door, because the
+    2026-10-07 11:52Z near-miss (1.6 GB of 24 GB free) was runs started with `setsid` around the
+    door. Fails closed: an unreadable /proc or an unpriced run refuses, naming which.
+    """
+    peak, basis = (peak_fn or budgeted_run_peak_mb)()
+    if peak is None:
+        return f"the run's peak cannot be priced -- {basis} -- so it cannot be shown to fit"
+    if sample_fn is None:
+        from background.resource_headroom import sample as sample_fn
+    obs = sample_fn()
+    available = obs.get("available_mb")
+    if available is None:
+        return (f"/proc/meminfo gave no MemAvailable, so this box cannot be shown to hold the "
+                f"run's budgeted {peak:,.0f} MB peak")
+    if available >= peak:
+        return None
+    return (f"{available:,.0f} MB available of {obs.get('total_mb') or 0:,.0f} MB, and the run's "
+            f"budgeted peak is {peak:,.0f} MB ({basis}). A run that dies mid-way lands nothing "
+            "and can take other lanes with it; wait for the box to free up")
+
+
+def cli(main_fn=None, **refusal_kwargs) -> int:
+    """`python3 -m simulation.run_phase2b`: refuse a run the box cannot hold, else run it."""
+    refusal = entry_headroom_refusal(**refusal_kwargs)
+    if refusal:
+        print(f"phase 2b run REFUSED: {refusal}", file=sys.stderr)
+        return 2
+    (main_fn or main)()
+    return 0
+
+
 if __name__ == "__main__":
-    main()
+    sys.exit(cli())

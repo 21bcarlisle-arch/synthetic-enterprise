@@ -8650,7 +8650,7 @@ def main(argv: list[str] | None = None) -> int:
               "only by refusing after a full pass, which cost 39 wasted minutes on 2026-09-10."))
     ap.add_argument(
         "--ignore-headroom", action="store_true",
-        help=("start a floor run even when this machine cannot be shown to hold its measured "
+        help=("start a run even when this machine cannot be shown to hold its measured "
               "peak. The refusal exists because an OOM-killed leg writes no artefact and reads "
               "like one still running; override only when the guest has actually grown."))
     ap.add_argument(
@@ -8908,6 +8908,15 @@ def main(argv: list[str] | None = None) -> int:
         print("  wrote {}".format(out))
         return 0
 
+    # THE ORDINARY A/B WAS THE ONE BRANCH WITH NO REFUSAL, and it is the shape started by hand
+    # with `setsid` around `launch_long_job`'s door (2026-10-07 11:52Z, 1.6 GB of 24 GB free). Its
+    # arms run in this one process, so a single run's settlement-budget peak under-prices it;
+    # `FLOOR_RUN_PEAK_MB` is a completed six-pass `--level-arm` leg, which contains these passes.
+    if not args.ignore_headroom:
+        refusal = floor_run_headroom_refusal(own_peak_mb=FLOOR_RUN_PEAK_MB)
+        if refusal:
+            print("value cycle A/B REFUSED: {}".format(refusal))
+            return 2
     result = run_value_cycle_ab(report_end=report_end, level_arm=args.level_arm)
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(json.dumps(result, indent=2), encoding="utf-8")
