@@ -406,6 +406,9 @@ CENSUSED_WHOLE_DIRECTORY_SUBJECTS = [
     # the honest move is to make THIS TEST cheaper -- it shells out to git per-file -- and never to
     # narrow the census until it stops seeing it.
     "tests/tools/test_the_pages_artifact_is_the_manifest_not_the_docs_tree.py",  # docs,site|8|36.3
+    # 2026-10-07: the chain leg reads `simulation/run_phase2b.py`'s AST for the one guard call, so
+    # a run-loop commit that drops the bad-debt belief selects this file by no stem.
+    "tests/company/test_the_retention_guard_nets_the_companys_own_bad_debt_belief.py",  # simulation|6|0.1
 ]
 
 CONTROL_TESTS += CENSUSED_WHOLE_DIRECTORY_SUBJECTS

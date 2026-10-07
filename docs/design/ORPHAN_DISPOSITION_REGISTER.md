@@ -263,6 +263,7 @@ company.crm.marketing_campaign_register | unhooked | consumers:company.crm | Dir
 company.crm.microbusiness | unhooked | consumers:company.crm | no docstring; 1 test(s); no importer
 company.crm.multisite_account | unhooked | consumers:company.crm | Multisite I&C account management: corporate customer with multiple supply points.; 2 test(s); no importer; arrived 2026-09-08 when a path in a DOCSTRING stopped counting as an edge -- listed in company/crm/account_hierarchy.py's docstring inventory of the account views
 company.crm.neighbourhood_comparison | unhooked | consumers:company.crm | no docstring; 1 test(s); no importer
+company.crm.next_best_action | unhooked | consumers:company.crm | C34 slice 1: one decision per account (debt support, tariff advice, carbon advice or nothing) ranked on uplift against forward value; 9 test(s); no importer, dormant on purpose -- no uplift estimate exists yet (no published supplier-own uplift, no B8 holdout), so every non-debt decision would be 'nothing'; its driver is the contact loop once W2_39 and B8 exist (docs/staging SEAT_FINDING_C34_..._ADVISES_NOBODY_2026-10-06)
 company.crm.notification_prefs | unhooked | consumers:company.crm | Customer notification and communication preferences.; 1 test(s); no importer
 company.crm.occupancy_register | unhooked | consumers:company.crm | no docstring; 1 test(s); no importer
 company.crm.portal_analytics | unhooked | consumers:company.crm | no docstring; 4 test(s); no importer

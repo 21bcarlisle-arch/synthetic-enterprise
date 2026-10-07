@@ -1,0 +1,279 @@
+# The triage of the delivery seat's "what it got wrong" items. One entry per distinct problem.
+# fate: fix | fold | accept. A fold or accept retires the item from the list; a fix stays listed
+# until corrected. Written 2026-10-07 by the console seat's triage pass.
+decided: "2026-10-07"
+items:
+  - id: stash-completeness-sweep-reports-a-lost-file-safe
+    problem: "The sweep that proves a stash was fully restored passes on a file the restore skipped."
+    match: ["stash-completeness sweep", "genuinely lost file"]
+    first_seen: "2026-09-24"
+    times_listed: 90
+    fate: fold
+    owner: "docs/staging/reference/CLASS_CONTROLS_THAT_CANNOT_FAIL_2026-08-12.md"
+    reason: "A check that is quiet for exactly the file it exists to catch is a control blind to its own subject, and it fires only after a never-do (a stash on the shared tree)."
+  - id: a-changed-control-does-not-rerun-its-synthetic-fixtures
+    problem: "When a publish-gate control changes shape, nothing re-runs the tests whose fixtures build a synthetic tree to drive it."
+    match: ["re-run every fixture", "synthetic tree to drive it"]
+    first_seen: "2026-09-25"
+    times_listed: 86
+    fate: fold
+    owner: "docs/staging/reference/CLASS_PUBLISH_GATE_AND_WEDGE_2026-08-12.md"
+    reason: "Every instance is the publish gate or its wedge reader, and the remedy is that register's, not a separate row's."
+  - id: a-refusal-naming-a-commit-is-not-reasked-against-origin
+    problem: "The publish gate's liveness_surface_refusal names a commit as unpushed without asking origin, which already holds it."
+    match: ["not re-asked against the remote ref", "liveness_surface_refusal is still not re-asked"]
+    first_seen: "2026-09-25"
+    times_listed: 84
+    fate: fold
+    owner: "docs/staging/reference/CLASS_PUBLISH_GATE_AND_WEDGE_2026-08-12.md"
+    reason: "It is a field of the publish gate's state and belongs with that gate's other attribution defects; the field currently reads None."
+  - id: not-now-is-prose-that-nothing-reads
+    problem: "A rejected not_now item comes back only if the seat remembers to promote it."
+    match: ["not_now is still prose", "not_now is prose"]
+    first_seen: "2026-09-27"
+    times_listed: 76
+    fate: accept
+    reason: "not_now is the seat's own judgement and is re-read every orientation; the two instances that cost anything were mechanised (b50a03519, 19ca27dbc), and a watcher over the seat's own prose list guards nothing but the seat."
+  - id: a-same-subject-sibling-is-left-behind-in-the-shared-tree
+    problem: "A landing from a worktree can leave an untracked same-subject copy in the shared checkout."
+    match: ["same-subject sibling", "the 14-path refusal in 662da7fd3"]
+    first_seen: "2026-09-28"
+    times_listed: 75
+    fate: fold
+    owner: "docs/staging/reference/CLASS_UNCOMMITTED_AND_ORPHANED_WORK_2026-08-12.md"
+    reason: "Work left outside the tree beside its landed twin is that register's subject."
+  - id: one-item-lands-twice-on-origin-and-the-shared-head
+    problem: "One item reaches origin through surgical_land and is also committed locally on the shared HEAD, so the shared checkout forks."
+    match: ["One item can land twice", "local commit on the shared HEAD"]
+    first_seen: "2026-09-30"
+    times_listed: 55
+    fate: fix
+    owner: "docs/staging/SEAT_FINDING_ONE_ITEM_LANDS_TWICE_AND_THE_SHARED_HEAD_FORKS_FROM_ORIGIN_2026-10-07.md"
+    status: open
+  - id: a-hand-written-driver-is-not-checked-against-the-api
+    problem: "A hand-written /var/tmp driver can call an API or argument shape the tool does not accept."
+    match: ["hand-written driver", "hgc-suite-timing"]
+    first_seen: "2026-09-30"
+    times_listed: 52
+    fate: accept
+    reason: "Such a driver dies at once and loudly, costing minutes of compute, and a checker for ad-hoc scripts would cost more than every instance so far."
+  - id: stranded-map-moves-are-replayed-as-written
+    problem: "Level or park moves stranded in a preserved ref are replayed without re-asking their release condition."
+    match: ["stranded in a preserved ref", "replayed as written"]
+    first_seen: "2026-10-01"
+    times_listed: 46
+    fate: fold
+    owner: "docs/staging/reference/CLASS_UNCOMMITTED_AND_ORPHANED_WORK_2026-08-12.md"
+    reason: "Stranded work coming back stale is the return leg of that register, and there has been one instance (2026-10-01)."
+  - id: the-world-d-arms-on-the-page-came-from-a-stale-pin
+    problem: "The world-D value arms on the page came from 0407ce0e3 plus a patch after the world had moved."
+    match: ["world-D arms on the page", "0407ce0e3 plus a patch"]
+    first_seen: "2026-10-01"
+    times_listed: 4
+    fate: fix
+    owner: "docs/staging/records/SEAT_RESULT_THE_WORLD_D_VALUE_ARMS_AT_F18E8B5DC_HOLD_FOUR_OF_FIVE_AND_THE_LEVEL_LEG_DOUBLED_2026-10-02.md"
+    status: already_fixed
+    fixed_by: "6547ac55e"
+    reason: "6547ac55e moved the world-D arms onto the f18e8b5dc retake on 2026-10-02, and the item was dropped without being marked corrected."
+  - id: a-hold-condition-is-not-reasked-when-its-premise-moves
+    problem: "A held change's stated condition is not re-read when its premise moves, so holds outlive their reason."
+    match: ["hold condition is not re-asked", "premise moves"]
+    first_seen: "2026-10-02"
+    times_listed: 41
+    fate: fix
+    owner: "docs/staging/SEAT_FINDING_A_HOLD_OR_A_TOMBSTONE_STATES_ITS_CONDITION_IN_PROSE_AND_NOTHING_RE_ASKS_IT_2026-10-07.md"
+    status: open
+  - id: a-bounded-executor-turn-resets-over-unlanded-work
+    problem: "An executor turn that hits its limit leaves finished work that the next tick resets over."
+    match: ["bounded executor turn", "finished, unlanded work"]
+    first_seen: "2026-10-02"
+    times_listed: 39
+    fate: fold
+    owner: "docs/staging/reference/CLASS_UNCOMMITTED_AND_ORPHANED_WORK_2026-08-12.md"
+    reason: "Finished work that never became part of the tree is that register's definition, and the brief now sees every worktree HEAD off a remote."
+  - id: a-long-jobs-worktrees-are-not-checked-before-launch
+    problem: "A long job can be launched against a worktree that does not exist and die hours later."
+    match: ["long job's worktrees", "missing worktree"]
+    first_seen: "2026-10-02"
+    times_listed: 37
+    fate: accept
+    reason: "One instance in five days on a hand-built chain, whose cost was compute only."
+  - id: a-waiters-deadline-is-not-priced-against-its-queue
+    problem: "A waiter's deadline is set without pricing the queue ahead of it, so long chains loop wait_for by hand."
+    match: ["waiter's deadline is set without pricing", "wait_for caps at 21600"]
+    first_seen: "2026-10-02"
+    times_listed: 36
+    fate: accept
+    reason: "The 21600 s cap is deliberate (every waiter carries a deadline), launch_long_job --wait-for-pid records a deadline exit on the queued unit, and a rare chain longer than six hours costs one line of shell."
+  - id: a-pre-registration-sits-untracked-after-its-subject-lands
+    problem: "A pre-registration dated by its first commit can stay untracked after its subject lands, so it proves nothing."
+    match: ["pre-registration that dates itself", "untracked after its subject commit lands"]
+    first_seen: "2026-10-03"
+    times_listed: 35
+    fate: fold
+    owner: "docs/staging/reference/CLASS_UNCOMMITTED_AND_ORPHANED_WORK_2026-08-12.md"
+    reason: "An artefact that never became part of the tree is that register's subject."
+  - id: no-work-base-advance-merges
+    problem: "A large share of commits were base-advance merges that carried no work and each cost a gate cycle."
+    match: ["No-work base-advance merges", "Base-advance merges carry no work"]
+    first_seen: "2026-10-03"
+    times_listed: 35
+    fate: accept
+    reason: "The per-merge gate cost was fixed by 3c5702901 and the share has run 0-4 per stretch for three days; it is a rate the Monday census grades, not a defect awaiting a fix."
+  - id: a-launch-chain-dies-silently-at-its-waiters-deadline
+    problem: "A hand-built launch chain whose waiter hits DEADLINE never starts its next job, and the register does not show it."
+    match: ["launch chain dies silently", "chained behind it, never started"]
+    first_seen: "2026-10-03"
+    times_listed: 32
+    fate: accept
+    reason: "A chain launched through launch_long_job --wait-for-pid is its own unit, so a deadline exit is recorded on the queued job; the silent case was one hand-built chain, not recurred since 2026-10-03."
+  - id: the-launch-register-records-a-deliberate-stop-as-died
+    problem: "The launch register records a job the seat stopped on purpose as DIED."
+    match: ["deliberate seat stop as DIED", "STOPPED note"]
+    first_seen: "2026-10-03"
+    times_listed: 30
+    fate: accept
+    reason: "The STOPPED note beside the rc=143 says why, there has been one instance, and a reader resolves it in one look."
+  - id: a-commits-constraint-on-a-downstream-run-is-unenforced
+    problem: "A commit can say a later run must take its base at or after it, and nothing enforces that."
+    match: ["name a constraint on a downstream run", "honoured ba320e2d2 by hand"]
+    first_seen: "2026-10-03"
+    times_listed: 28
+    fate: accept
+    reason: "world_identity now carries code_commit (77a872e01), so a run that broke a stated base is visible when it is graded, and the one instance was honoured by hand."
+  - id: the-held-work-check-refuses-by-prose-and-tells-only-the-log
+    problem: "The held-work check refuses a focus item whose prose names a held file, and only the supervisor log is told."
+    match: ["held-work check refuses", "prose names a held file"]
+    first_seen: "2026-10-04"
+    times_listed: 27
+    fate: fix
+    owner: "docs/staging/SEAT_FINDING_THE_DRAWS_REFUSALS_AND_ITS_DRAWS_OF_PARKED_ATOMS_REACH_ONLY_THE_SUPERVISOR_JOURNAL_2026-10-07.md"
+    status: open
+  - id: a-document-says-in-hand-with-no-claim-behind-it
+    problem: "A merge proposal said the director's heartbeat steer was in hand when no claim held it."
+    match: ["heartbeat steer is \"in hand\"", "no claim in .seat_work_in_hand.json"]
+    first_seen: "2026-10-04"
+    times_listed: 24
+    fate: accept
+    reason: "The claim store is the authority and the draw reads it; a prose 'in hand' misleads only a reader who can check the store, and the one instance was resolved (3cc1281c4)."
+  - id: the-brief-reads-director-concerns-from-the-behind-checkout
+    problem: "The seat's brief reads the director's open concerns from the shared checkout, so a behind checkout drops his newest ones."
+    match: ["director's open concerns from the behind", "Carried from origin by hand"]
+    first_seen: "2026-10-05"
+    times_listed: 18
+    fate: fix
+    owner: "docs/staging/SEAT_FINDING_THE_DIRECTION_RECORDS_WORKING_COPY_IS_READ_CARRIED_AND_RECORDED_AS_IF_IT_WERE_ORIGINS_2026-10-07.md"
+    status: open
+  - id: the-draw-ledger-cannot-tell-mid-landing-from-not-done
+    problem: "The draw ledger, the path check and the queue read work that is mid-landing the same as work never started or already spent."
+    match: ["draw-follows-the-order item not_done", "for work never started and for work mid-landing"]
+    first_seen: "2026-10-05"
+    times_listed: 18
+    fate: fix
+    owner: "docs/staging/SEAT_FINDING_THE_DRAW_LEDGER_GRADES_BY_PATH_SO_MID_LANDING_SPENT_AND_OVERLAPPING_WORK_READ_ALIKE_2026-10-07.md"
+    status: open
+  - id: a-worktree-lock-outlives-its-owner
+    problem: "A worktree stays locked to a dead pid and its work is still treated as in hand."
+    match: ["worktree lock outlives its owner", "locked to the dead pid"]
+    first_seen: "2026-10-05"
+    times_listed: 17
+    fate: fold
+    owner: "docs/staging/reference/CLASS_UNCOMMITTED_AND_ORPHANED_WORK_2026-08-12.md"
+    reason: "An orphaned worktree held by a dead owner is that register's subject, and the one live instance (acff52923) is disposable."
+  - id: a-tombstone-retires-a-row-without-checking-its-done
+    problem: "A focus row can be tombstoned while its own DONE is unmet on origin."
+    match: ["focus-row tombstone", "tombstone still retires a row without asking its DONE"]
+    first_seen: "2026-10-05"
+    times_listed: 16
+    fate: fix
+    owner: "docs/staging/SEAT_FINDING_A_HOLD_OR_A_TOMBSTONE_STATES_ITS_CONDITION_IN_PROSE_AND_NOTHING_RE_ASKS_IT_2026-10-07.md"
+    status: open
+  - id: a-landing-carries-a-stale-direction-record
+    problem: "Another lane's landing can carry docs/direction/DIRECTION.yaml from a working copy older than origin's."
+    match: ["carry docs/direction/DIRECTION.yaml", "older than origin's"]
+    first_seen: "2026-10-05"
+    times_listed: 15
+    fate: fix
+    owner: "docs/staging/SEAT_FINDING_THE_DIRECTION_RECORDS_WORKING_COPY_IS_READ_CARRIED_AND_RECORDED_AS_IF_IT_WERE_ORIGINS_2026-10-07.md"
+    status: open
+  - id: the-brief-reads-the-publishers-empty-cause-field
+    problem: "The brief calls the publisher's cause unattributed from the citation leg while the failures list names it."
+    match: ["publisher's cause is unattributed", "citation leg reads not_established"]
+    first_seen: "2026-10-05"
+    times_listed: 15
+    fate: fold
+    owner: "docs/staging/reference/CLASS_PUBLISH_GATE_AND_WEDGE_2026-08-12.md"
+    reason: "It is the publish gate's attribution read from the wrong field, a sibling of the fixture and refusal rows in that register, and nothing has needed attributing since publishing went weekly."
+  - id: a-receipted-commit-on-no-remote-has-its-work-reissued
+    problem: "A finished, gated commit can sit on no remote while the queue re-issues its work."
+    match: ["finished, gated commit can sit on no remote", "receipt is not a landing"]
+    first_seen: "2026-10-06"
+    times_listed: 11
+    fate: fold
+    owner: "docs/staging/reference/CLASS_UNCOMMITTED_AND_ORPHANED_WORK_2026-08-12.md"
+    reason: "Finished work stranded off every remote is that register's definition."
+  - id: a-parked-atom-is-still-drawn
+    problem: "A parked atom is still drawn, and its unchanged-draw counter climbs by thousands."
+    match: ["parked atom is still counted as drawn", "H45 is PARKED"]
+    first_seen: "2026-10-06"
+    times_listed: 11
+    fate: fix
+    owner: "docs/staging/SEAT_FINDING_THE_DRAWS_REFUSALS_AND_ITS_DRAWS_OF_PARKED_ATOMS_REACH_ONLY_THE_SUPERVISOR_JOURNAL_2026-10-07.md"
+    status: open
+  - id: a-coupled-triad-refusal-reaches-only-the-supervisor-log
+    problem: "The coupled-triad gate excludes an atom from every BUILD draw and says so only in the supervisor journal."
+    match: ["coupled-triad gate now excludes", "supervisor journal"]
+    first_seen: "2026-10-06"
+    times_listed: 10
+    fate: fix
+    owner: "docs/staging/SEAT_FINDING_THE_DRAWS_REFUSALS_AND_ITS_DRAWS_OF_PARKED_ATOMS_REACH_ONLY_THE_SUPERVISOR_JOURNAL_2026-10-07.md"
+    status: open
+  - id: the-brief-does-not-name-daemons-running-replaced-code
+    problem: "The brief reported the checkout's divergence but not which running daemons run code origin has replaced."
+    match: ["which running daemons were started from code", "names no daemon that runs replaced code"]
+    first_seen: "2026-10-06"
+    times_listed: 9
+    fate: fix
+    owner: "background/delivery_seat.py (seat brief)"
+    status: already_fixed
+    fixed_by: "4efd1204b"
+    reason: "4efd1204b makes the brief name each unit running without an origin commit to code it loads, its own module first."
+  - id: a-gas-heated-homes-electricity-has-no-season
+    problem: "A gas-heated fabric home's electricity is too flat across the year against SERL (1.288 against 1.36-1.47)."
+    match: ["gas-heated fabric home's electricity has no season", "SERL"]
+    first_seen: "2026-10-06"
+    times_listed: 8
+    fate: fix
+    owner: "docs/staging/SEAT_FINDING_THE_FABRIC_PATH_GIVES_A_GAS_HEATED_HOMES_ELECTRICITY_NO_SEASON_2026-10-06.md"
+    status: open
+  - id: a-not-mine-red-at-clean-origin-is-filed-by-nobody
+    problem: "A landing can name a red at clean origin as not its own and move on without filing it."
+    match: ["red at clean origin as 'not mine'", "nothing files it"]
+    first_seen: "2026-10-06"
+    times_listed: 7
+    fate: accept
+    reason: "A red at clean origin is already loud, because it reds every lane whose selection reaches it, and each of the two instances was fixed within hours (9b6b752ab, 358d59a42)."
+  - id: a-failed-seat-session-is-recorded-as-oriented
+    problem: "A seat session that exits non-zero and writes nothing is recorded as oriented, and the old record is republished."
+    match: ["seat session failed (rc=1", "recorded as a successful one"]
+    first_seen: "2026-10-06"
+    times_listed: 4
+    fate: fix
+    owner: "docs/staging/SEAT_FINDING_THE_DIRECTION_RECORDS_WORKING_COPY_IS_READ_CARRIED_AND_RECORDED_AS_IF_IT_WERE_ORIGINS_2026-10-07.md"
+    status: open
+  - id: retention-money-goes-to-debtors-priced-as-payers
+    problem: "The retention guard values a debtor whose churn belief the payment score raised as if it pays, so offers go to the worst payers."
+    match: ["payment score lifted a debtor's churn belief", "retention guard"]
+    first_seen: "2026-10-07"
+    times_listed: 2
+    fate: fix
+    owner: "docs/staging/SEAT_FINDING_THE_PAYMENT_SCORE_REACHES_THE_CHURN_BELIEF_AND_THE_RETENTION_GUARD_PRICES_IT_AS_IF_THE_DEBTOR_PAYS_2026-10-07.md"
+    status: open
+  - id: the-draw-ledger-credits-an-item-by-path-overlap
+    problem: "The draw ledger credited an item as landed because another commit shared one of its paths."
+    match: ["retention-guard-nets-the-companys-own-bad-debt-belief as landed_unbound", "path overlap"]
+    first_seen: "2026-10-07"
+    times_listed: 1
+    fate: fix
+    owner: "docs/staging/SEAT_FINDING_THE_DRAW_LEDGER_GRADES_BY_PATH_SO_MID_LANDING_SPENT_AND_OVERLAPPING_WORK_READ_ALIKE_2026-10-07.md"
+    status: open

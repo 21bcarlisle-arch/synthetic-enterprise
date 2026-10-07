@@ -368,38 +368,6 @@
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "how a real GB power price forms on an ordinary day -- a gas CCGT sets the margin at fuel-over-efficiency plus carbon, scarcity rents appearing only when the stack tightens -- versus a reduced-form curve that merely looks right in-sample"
   depends_on: [W1_6_physics_price_signal]
-- id: D_opening_dd_seasonal_sizing
-  notes_rehomed: [name]
-  lane: D_billing_metering
-  value_stream: meter_to_cash
-  epoch: 3    # its parent's: minted in e99debe6d out of DD_seasonal_cashflow_physics (epoch 3)
-  provenance: proposal
-  level_current: 1
-  level_target: 2
-  level_move_recorded: '2026-09-02: 0 -> 1. An estimated annual consumption now exists in the
-    DD path (company/billing/annual_consumption_estimate.py), sourced to SLC 27.15''s precedence
-    with a date-keyed Ofgem TDCV series read from the decision letters, and the opening DD is
-    annual cost / 12. The first-issued-bill artefact is gone from BOTH modules that carried it
-    (dd_review_runner.py:155 and dd_balance_book.py:243) and cannot return: the control is
-    mutation-proven under python3 -B against each. The strict xfail that pinned this exact defect
-    since 2026-08-03 -- test_opening_dd_size_must_not_depend_on_the_join_month, whose reason said
-    "Remove this xfail when that atom lands" -- is discharged unchanged, through the real
-    estimator rather than a literal passed twice. NOT 2, and the reason is measured not modest:
-    115 of 257 customers get NO opening because get_cap_unit_rate_for_date returns None before
-    the price cap began in Jan 2019, so pre-cap acquisitions have no published rate to annualise
-    against. They are refused and counted in unestimated_customers, never opened from a bill.
-    Level 2 wants that hole closed with a company-side dated tariff book, and the two
-    pre-registered predictions (window-0 mean |variance| falls; held-credit liability moves
-    materially) graded against a full run.'
-  loop_stage: build
-  blocked_on: null
-  dial_inherited: 3
-  records_rehomed: [evidence]
-  file_scope: ['simulation/dd_balance_book.py', 'company/billing', 'docs/market_research', 'tests/simulation/test_dd_balance_book.py', 'tests/simulation/test_dd_level_collection_book.py']
-  simplifications_count: 1
-  expert_hour: {status: not_attempted, last: null, findings: []}
-  real_world_twin: a real supplier setting a new customer's first monthly direct debit from the estimated annual consumption it is handed at registration, so that a customer who joins in January and one who joins in July on identical usage are put on the same monthly amount
-  depends_on: []
 - id: DD_seasonal_cashflow_physics
   notes_rehomed: [name]
   lane: D_billing_metering
@@ -1511,22 +1479,6 @@
   file_scope: ['tools/independent_bill_validator.py', 'company/billing/', 'docs/design/WHAT_THE_BILL_VALIDATION_CANNOT_CATCH.md']
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a supplier whose billing engine was proved correct against the customers it already had, meeting its first prepayment change-of-tenancy with an estimated opening read."
-- id: W2_20_mains_gas_is_drawn_not_inferred_from_the_heating_system
-  title: "whether a property has a mains gas connection is a drawn attribute, from the same NEED rows floor area came from"
-  notes_rehomed: [gain]
-  lane: W2_customer_generator
-  value_stream: price_to_bill
-  epoch: 3
-  level_current: 1   # 2026-10-07 built, marginal held vs DESNZ 16%; L2 waits on the register reading it
-  level_target: 3
-  loop_stage: build
-  dial_inherited: 60    # STAGE 1, minted ahead of W2_18 -- MATURITY_MAP.md §8.
-  provenance: director_ruling
-  depends_on: []
-  couples_with: [W2_18_the_housing_joint_the_sample_and_the_ceiling]
-  file_scope: ['simulation/household.py', 'simulation/population_draw.py', 'docs/market_research/']
-  expert_hour: {status: not_attempted, last: null, findings: []}
-  real_world_twin: "a supplier that decides a household is off-grid because its gas meter read nothing this quarter."
 - id: W2_21_the_premise_joint_is_fitted_not_drawn_independently
   title: "the physical quantities are drawn from a fitted joint with their published correlations, not axis by axis"
   notes_rehomed: [gain]
@@ -1957,6 +1909,7 @@
   # 2026-10-06: nothing left moves in company code. UN-PARK when B7 slice 3 lands and moves are
   # switched on (split gets graded), or the director rules EP17 (books to separate the rules).
   block_reason: "the next gain is in the WORLD (B7 slice 3 + moves switched on) or the director's EP17 row, not company code"
+  blocked_on: [B7_customer_state_layer_moves_and_shocks, EP17_varied_population_draw]
   dial_inherited: 90
   provenance: director_ruling
   depends_on: []
