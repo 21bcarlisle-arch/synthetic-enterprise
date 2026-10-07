@@ -57,6 +57,7 @@ READS = (
     "simulation/population_draw.py",
     "simulation/live_population.py",
     "tools/engagement_separation.py",
+    "docs/reports/pb4_departure_factors.json",
 )
 
 #: The fields a published block must carry, in the order a reader meets them. The freshness
@@ -162,6 +163,109 @@ def measure() -> dict:
     }
 
 
+#: One world run, captured by `tools/capture_departure_factors` (the real `roll_lifecycle_event`
+#: and the SVT drift roll, their arguments and their outcomes), reduced to the fields read here.
+#: Committed, because the run takes about twenty minutes and the publish path cannot pay that.
+CAPTURE_PATH = PROJECT / "docs" / "reports" / "pb4_departure_factors.json"
+
+#: Saving bands on `price_differential_vs_market_reference`: how far this supplier's offer sits
+#: above the market reference the household faces, as a fraction. Fixed before the capture was
+#: read (PB4 D4 pre-registration, docs/staging/SEAT_FINDING_PB4_THE_EFTC_ARM_..._2026-10-07.md).
+SAVING_BANDS = ((None, 0.0, "no saving"), (0.0, 0.05, "up to 5%"), (0.05, 0.15, "5% to 15%"),
+                (0.15, None, "over 15%"))
+#: Below this a cell is shown as too few to read rather than as a rate.
+MIN_CELL = 10
+
+#: WHAT THE CAPTURE CAN AND CANNOT SAY, found by reading it (2026-10-07). A household that does
+#: not look at its term end never reaches the renewal roll -- it goes onto the default tariff and
+#: leaves, if at all, by the SVT drift roll, which carries no saving term. So the renewal rows are
+#: almost all households that LOOKED, and a band x archetype table over them measures leaving
+#: given looking, which the world draws independently of the archetype. That table would have
+#: been captioned "who leaves at the end of a deal" and been something else. What is published
+#: instead: per archetype, both routes and departures per household; and, pooled, whether leaving
+#: rises with the saving among those who looked.
+
+
+def _wilson(k: int, n: int) -> list[float]:
+    z = 1.959964
+    centre = (k + z * z / 2) / (n + z * z)
+    half = z * math.sqrt(k * (n - k) / n + z * z / 4) / (n + z * z)
+    return [round(centre - half, 4), round(centre + half, 4)]
+
+
+def _rate(left: int, n: int, probs: list[float]) -> dict:
+    readable = n >= MIN_CELL
+    return {"n": n, "left": left,
+            "world_probability_mean": round(statistics.fmean(probs), 4) if readable else None,
+            "left_ci95": _wilson(left, n) if readable else None}
+
+
+def looked_by_saving(renewals: list[dict]) -> list[dict]:
+    """Among the households that reached the renewal roll: does leaving rise with the saving?"""
+    out = []
+    for lo, hi, label in SAVING_BANDS:
+        g = [r for r in renewals if r.get("price_differential_vs_market_reference") is not None
+             and (lo is None or r["price_differential_vs_market_reference"] > lo)
+             and (hi is None or r["price_differential_vs_market_reference"] <= hi)]
+        out.append({"band": label, **_rate(sum(r["event_type"] == "churned" for r in g), len(g),
+                                           [r["realized_churn_probability"] for r in g])})
+    return out
+
+
+def by_archetype_both_routes(renewals: list[dict], svt: list[dict], archetype: dict) -> list[dict]:
+    """Per archetype: how often its households reached the renewal roll and left there, how fast
+    they left the default tariff, and departures per household over the run. `archetype` maps
+    each resi household on the book to its archetype; anything else is not counted."""
+    from simulation.household import household_of
+
+    out = []
+    for name in ("active", "passive", "disengaged"):
+        households = sum(a == name for a in archetype.values())
+        rr = [r for r in renewals if archetype.get(household_of(r["customer_id"])) == name]
+        ss = [r for r in svt if archetype.get(household_of(r["customer_id"])) == name]
+        svt_years = sum(r["sim_segment_days"] for r in ss) / 365.25
+        svt_left = sum(r["event_type"] != "stayed" for r in ss)
+        roll_left = sum(r["event_type"] == "churned" for r in rr)
+        out.append({
+            "archetype": name, "households": households,
+            "renewal_roll": _rate(roll_left, len(rr), [r["realized_churn_probability"] for r in rr]),
+            "svt_years": round(svt_years, 1), "svt_left": svt_left,
+            "svt_left_per_year": round(svt_left / svt_years, 4) if svt_years else None,
+            "left_per_household": round((roll_left + svt_left) / households, 3) if households else None,
+            # The world's own chance summed over every decision: what the dice average to. One run
+            # of ~120 households cannot tell 0.05 from 0.12 a year by counting departures.
+            "svt_world_probability_mean": round(statistics.fmean(
+                r["realized_churn_probability"] for r in ss), 4) if ss else None,
+            "expected_left_per_household": round(sum(
+                r["realized_churn_probability"] for r in rr + ss) / households, 3) if households else None,
+        })
+    return out
+
+
+def emerged() -> dict:
+    """The capture's tables, or an absence with its reason -- never an empty table."""
+    if not CAPTURE_PATH.is_file():
+        return {"available": False, "reason": f"no world capture at {CAPTURE_PATH.name}"}
+    from simulation import household_segments as hs
+    from simulation.household import household_of
+    from simulation.live_population import live_population
+
+    cap = json.loads(CAPTURE_PATH.read_text(encoding="utf-8"))
+    archetype = {household_of(p["customer_id"]): None for p in live_population()
+                 if p.get("segment", "resi") == "resi"}
+    archetype = {hh: hs.engagement_level_for_customer(hh).value for hh in archetype}
+    renewals = [r for r in cap["renewals"] if household_of(r["customer_id"]) in archetype]
+    return {
+        "available": True,
+        "captured_at_commit": cap["commit"],
+        "renewal_decisions": len(renewals),
+        "svt_decisions": len(cap["svt_segments"]),
+        "by_archetype": by_archetype_both_routes(renewals, cap["svt_segments"], archetype),
+        "looked_by_saving": looked_by_saving(renewals),
+        "source": str(CAPTURE_PATH.relative_to(PROJECT)),
+    }
+
+
 def _headline(m: dict) -> str:
     d = m["disengaged_but_price_sensitive"]
     a = m["association"]
@@ -212,6 +316,7 @@ def build() -> dict:
                 "trigger -- in 2022 every bill rose and switching collapsed"),
             "code_gap": BILL_SHOCK_ENGAGEMENT_GAP if BILL_SHOCK_ENGAGEMENT_MULTIPLIER is None else None,
         },
+        "emerged_by_saving": emerged(),
         **m,
     }
 

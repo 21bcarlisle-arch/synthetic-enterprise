@@ -17,6 +17,7 @@ R15 -- the mutations, each run and reverted:
   * drop the payment-channel table -> `test_both_tables_reach_the_reader_with_every_group`
   * render the bill-shock branch as if established -> `test_the_bill_shock_gap_reaches_the_reader_while_it_is_absent`
   * drop the by-construction sentence -> `test_the_reader_is_told_the_zero_association_is_built_in`
+  * drop the emerged table, or render a thin cell as a rate -> `test_the_emerged_pattern_reaches_the_reader_and_a_thin_cell_is_not_a_rate`
 The null rung is `test_an_unavailable_feed_renders_an_absence_and_never_a_zero`, green through all five.
 """
 from __future__ import annotations
@@ -39,8 +40,8 @@ GROWTH_REL = "site/data/book_growth.json"
 CAPS_REL = "site/data/capabilities_door.json"
 DD_ARMS_REL = "site/data/dd_opening_arms.json"
 
-PANELS = ("engsep-headline", "engsep-archetype", "engsep-channel", "engsep-construction",
-          "engsep-gap", "engsep-note")
+PANELS = ("engsep-headline", "engsep-archetype", "engsep-channel", "engsep-emerged",
+          "engsep-construction", "engsep-gap", "engsep-note")
 
 
 def _text(fragment: str) -> str:
@@ -159,3 +160,25 @@ def test_an_unavailable_feed_renders_an_absence_and_never_a_zero():
     assert "absent rather than empty" in rendered["engsep-note"]
     assert rendered["engsep-headline"] == ""
     assert not re.search(r"\b0\.0%", rendered["engsep-archetype"] + rendered["engsep-channel"])
+
+
+def test_the_emerged_pattern_reaches_the_reader_and_a_thin_cell_is_not_a_rate(feed, live):
+    """PB4 D4. DEFECT: the built-in rho above is not evidence that low-engagement households leave
+    less; what the world's own decisions produce is, and it must reach the reader -- including,
+    while it holds, that the pattern is NOT reproduced. Keyed to the feed: every archetype's
+    expected departures reach the page, every readable cell its interval, every thin cell its n."""
+    em = feed["emerged_by_saving"]
+    assert em["available"], em.get("reason")
+    rendered = live["engsep-emerged"]
+    cells = [g["renewal_roll"] for g in em["by_archetype"]] + em["looked_by_saving"]
+    assert any(c["world_probability_mean"] is not None for c in cells) and any(
+        c["world_probability_mean"] is None for c in cells), (
+        "the partition control: this capture should hold both a readable and a thin cell")
+    for g in em["by_archetype"]:
+        assert "{:.2f}".format(g["expected_left_per_household"]) in rendered
+    for c in cells:
+        if c["world_probability_mean"] is None:
+            assert "n={}, too few".format(c["n"]) in rendered
+        else:
+            assert "{} of {} left".format(c["left"], c["n"]) in rendered
+    assert "not reproduced" in rendered
