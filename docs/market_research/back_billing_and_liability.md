@@ -495,6 +495,29 @@ moved in" [H].
 
 ---
 
+## 10. The four practitioner points against the build
+
+*Added 2026-10-08. One table for the director's item 2 of 2026-10-07: each lever the four points bear
+on, what it is today on origin, and whether the evidence agrees. Point (a) is §9 here; (b) and (c)
+are `read_access_and_theft_duties.md` §8 and §9; (d) is `bad_debt_provisioning.md` §9. Contradictions
+are filed in `docs/staging/SEAT_FINDING_THE_FOUR_PRACTITIONER_POINTS_CONTRADICT_FOUR_LEVERS_2026-10-08.md`.
+Figures under "today" were read from the code, and the recovery figures were printed from it.*
+
+| Point | Lever | Today | Verdict |
+|---|---|---|---|
+| (a) | `docs/design/curriculum/home_moves_activation.json` `activated` (the director's open row `home-moves-can-now-be-switched-on`) | `false` | **Agrees with the proposal to switch on.** Nothing in §9 argues against it. One stale sentence: the row still says "the incoming account pays for the whole change-of-tenancy window". Since B7 slice 4 (`dfa787a37`), that window is booked as occupier debt, so the bias the row names is gone. Switching on also makes the second row for point (c) live. |
+| (a) | B7 slice 4: `simulation/run_phase2b` books `occupier_debt_gbp` on incoming-leg rows before `unnamed_until` (`q1_unnamed_months_per_cot`, default 3), and books no recovery | The window from the move date is the incoming occupier's debt, never collected | **Agrees** on the amount and on recovery. Recovery of CoT debt is a GAP, and (d) puts recovery after write-off near 5p, so zero is close. The world draws no void (`VOID_GAP_UNKNOWN_REASON`, `q1_void_months_per_move_out` null), so it never meets the owner's leg. That is consistent with the GAP, not contradicted by it. |
+| (a) | `company/crm/change_of_tenancy_register.DeemedLeg.VOID_OCCUPIER` | The void leg is labelled as "Ofgem's 'occupier' account" | **Contradicts.** For an unoccupied premises the deemed contract is with the owner (Electricity Act 1989 Sch 6 para 3(1)). That is a different debtor with a different collection route. Today only `deemed_legs()` counts it, and no collection reads it. |
+| (b) | World settlement equals true consumption, with no reconciliation runs and no GSP smear (`unbilled_energy_and_revenue_assurance.md` §5) | — | **Agrees for 2016-2025.** MHHS migration starts Oct 2025 and the 4-month timetable starts 2 Jul 2027, so neither is inside the record. Nothing to change. This becomes a gap only if the world runs past 2025. |
+| (b) | `company/billing/unread_month_estimate.py` (D48) | Estimates the unread month from season | **Agrees.** MHHS does not change estimated billing for a traditional meter (§8.3 of the read-access page). |
+| (c) | `simulation/meter_reads.is_hard_to_read(customer_id)`, `q2_persistent_unread_share` 0.01 | Keyed to the customer, uniform | **Contradicts the key; the share stands.** Every published cause of no-access is a trait of the premises and outlives the tenant (Ofgem 2018 p.8). This does nothing while moves are off, because each premises has one customer for life. Once moves are on, an incoming occupier redraws the class. The premises keying is already W2_36's (read-access §5, §9.3). The relative risk by tenure is a GAP (`q2_persistent_unread_relative_risk_private_rented` null), so uniform is the honest default. |
+| (c) | `simulation/premise_population.smart_read_share(year)`: one national curve, 10.6% (2016) to 68.9% (2024) | Not tilted by tenure | **Contradicts a measured tilt.** EHS 2022-23: 57.0% of private renters have no electricity smart meter, against 43.9% of owner occupiers (ratio 1.30; gas 1.24). This changes who is exposed to manual reads, not the national share. |
+| (d) | `q3_post_write_off_recovery_share` 0.05 (0.02-0.086) | Read by no code | **Agrees with the evidence, but no code reads it.** The world types its own rates (next row). |
+| (d) | `simulation/arrears_engine`: `DCA_RECOVERY_RATE` {OVERWHELMED 0.30, NEUTRAL 0.20} less `DCA_COMMISSION_RATE` 0.15, and `DEBT_SALE_HAIRCUT_PCT` 0.12 for AVOIDANT. Reached in the run through `compute_debt_recovery` (phase 4c). | Net 25.5p, 17.0p and 12.0p per GBP written off at the final bill's due date | **Partly contradicts.** For a write-off that early, the comparable figure is the 10-25p implied by Centrica's final-bill coverage, and 17-25.5p sits at or above its top. The 12p sale is above both published purchase prices (5.4p, 9.3p), on debt only about 120 days past due. All three are marked "illustrative", and none reads the register. |
+| (d) | `company/finance/debt_collection._RECOVERY_PROBABILITY`, docstring "60-75p/GBP" | 0.65 at DCA | **Contradicts** (already in §5.1 of the provisioning page). No source supports 60-75p, and the purchase market pays 5-9p. |
+
+---
+
 ## Sources
 
 - Ofgem, *Open letter – notifying of our intention to launch a project to protect consumers from
