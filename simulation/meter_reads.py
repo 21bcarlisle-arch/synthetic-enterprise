@@ -63,6 +63,12 @@ share (0.048 measured) was an artefact of that cap. The derivations
 (the Elexon curve is near-memoryless, pi <= 0.04, and 21BA-barred revenue is
 invariant in pi) are in practitioner_questions_as_assumption_toggles.md Q2.
 
+SMART MODE IS A STATE (W2_36, 2026-10-07). A smart meter not in smart mode
+stays so for the account's life, at the register's share
+(q6_smart_not_in_smart_mode_share), and its household is read like a
+traditional one -- by the two classes above. Drawn afresh each month, as
+before, a smart home could never go a year unread.
+
 Deterministic dispatch: `random.Random(f"meterread_{customer_id}_{period_end}")`,
 matching simulation/feedback_survey.py's convention.
 """
@@ -76,12 +82,31 @@ from typing import Optional
 
 import yaml
 
+ASSUMPTION_TOGGLES_PATH = (
+    Path(__file__).resolve().parent.parent / "docs" / "market_research" / "assumption_toggles.yaml")
+
+
+def assumption_toggle(toggle_id: str, setting: str = "default") -> float:
+    """One setting (`default`, `low` or `high`) of a registered assumption toggle."""
+    rows = yaml.safe_load(ASSUMPTION_TOGGLES_PATH.read_text())["toggles"]
+    for row in rows:
+        if row["id"] == toggle_id:
+            return float(row[setting])
+    raise KeyError(f"{toggle_id} is not in {ASSUMPTION_TOGGLES_PATH.name}")
+
+
 # --- Anchors (docs/market_research/ASSUMPTIONS.md, 2026-07-08) -------------
 
-# Smart-meter "not communicating" rate this period (WAN/DCC loss-of-signal;
-# DESNZ Q4 2024 Smart Meters Statistics: ~10% of installed smart meters not
-# in smart mode). Blended elec/gas figure -- see module docstring.
-SMART_METER_NOT_COMMUNICATING_RATE = 0.10
+# Share of installed smart meters not in smart mode (register
+# q6_smart_not_in_smart_mode_share; DESNZ Q4 2024 ~10%, Ofgem 2-15% by supplier).
+# Blended elec/gas -- see module docstring. A STATE the meter holds
+# (`is_not_in_smart_mode`), not a fresh draw each month.
+SMART_METER_NOT_COMMUNICATING_RATE = assumption_toggle("q6_smart_not_in_smart_mode_share")
+
+# How fast such a meter returns to smart mode is NOT ESTABLISHED: DESNZ and Ofgem
+# publish the stock, not transitions, and the 90-day repair duty starts in 2026,
+# after the window (read_access_and_theft_duties.md gap 9). So the state is held for
+# the life of the account rather than given an invented exit rate.
 
 # Automatic smart-meter transmission delay: near-real-time (WAN + DCC
 # processing), a small number of days at most.
@@ -96,19 +121,6 @@ TRADITIONAL_DELAY_MEAN_DAYS = 9.0
 # and corrected once the read does arrive. Matches the delivery-lag window
 # Phase 3 item 3 adds around issue_date.
 READ_CUTOFF_DAYS_AFTER_PERIOD_END = 5
-
-ASSUMPTION_TOGGLES_PATH = (
-    Path(__file__).resolve().parent.parent / "docs" / "market_research" / "assumption_toggles.yaml")
-
-
-def assumption_toggle(toggle_id: str, setting: str = "default") -> float:
-    """One setting (`default`, `low` or `high`) of a registered assumption toggle."""
-    rows = yaml.safe_load(ASSUMPTION_TOGGLES_PATH.read_text())["toggles"]
-    for row in rows:
-        if row["id"] == toggle_id:
-            return float(row[setting])
-    raise KeyError(f"{toggle_id} is not in {ASSUMPTION_TOGGLES_PATH.name}")
-
 
 # Share of read-exposed households in the hard-to-read class (register
 # q2_persistent_unread_share; swept 0 / 0.01 / 0.03 by its acceptance criterion).
@@ -157,6 +169,16 @@ HARD_TO_READ_ACTUAL_READ_PROBABILITY = HARD_TO_READ_MONTHLY_READ_RATE / on_time_
 def is_hard_to_read(customer_id: str) -> bool:
     """The household's read class, drawn once from its id so it persists for life."""
     return random.Random(f"readclass_{customer_id}").random() < PERSISTENT_UNREAD_SHARE
+
+
+def is_not_in_smart_mode(customer_id: str) -> bool:
+    """Whether the account's smart meter is in traditional mode, drawn once from its id.
+
+    Drawn afresh each month (before 2026-10-07) a smart home was read-exposed one month in ten
+    and never went a year unread; reality is a meter that stays out of smart mode (lost WAN, not
+    enrolled after a switch), whose household is then read like a traditional one.
+    """
+    return random.Random(f"smartmode_{customer_id}").random() < SMART_METER_NOT_COMMUNICATING_RATE
 
 @dataclass(frozen=True)
 class MeterReadEvent:
@@ -217,7 +239,7 @@ def simulate_read(
     """
     rng = random.Random(f"meterread_{customer_id}_{period_end}")
 
-    communicating = meter_type == "smart" and rng.random() >= SMART_METER_NOT_COMMUNICATING_RATE
+    communicating = meter_type == "smart" and not is_not_in_smart_mode(customer_id)
 
     if communicating:
         arrived_actual = True

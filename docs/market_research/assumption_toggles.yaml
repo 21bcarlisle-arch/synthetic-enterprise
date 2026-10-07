@@ -512,8 +512,8 @@ toggles:
     question: Q6 read access and theft
     meaning: >-
       Share of installed smart meters not sending reads (traditional mode): a STATE a meter stays
-      in, and partly a supplier trait. simulation/meter_reads.py types its own 0.10 and draws it
-      afresh each month; it should read this row and hold the state.
+      in, and partly a supplier trait. simulation/meter_reads.py reads this row and holds the state
+      per account for life (2026-10-07); the exit hazard is not published, so none is invented.
     default: 0.10
     low: 0.02
     high: 0.149

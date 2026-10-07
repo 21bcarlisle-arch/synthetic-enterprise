@@ -505,10 +505,12 @@ def _sc_month_records(cid, year, month, kwh, unit_rate, sc_per_day=0.50):
     return recs
 
 
-def _realistic_36_month_records(cid="C1"):
+def _realistic_36_month_records(cid="C3"):
     """Deterministic 36 consecutive months for a real traditional-meter
     customer: winter-heavy seasonal consumption, rates rising year-on-year.
-    The fixed RNG seed makes the actual/estimated mix reproducible."""
+    The fixed RNG seed makes the actual/estimated mix reproducible. (C1, the
+    old default, is a smart customer whose estimates came only from smart mode
+    redrawn each month; it is in smart mode for life since W2_36 2026-10-07.)"""
     rng = random.Random(42)
     seasonal = [1.4, 1.35, 1.15, 0.95, 0.8, 0.7, 0.68, 0.72, 0.85, 1.05, 1.25, 1.4]
     records = []
@@ -533,7 +535,7 @@ def test_actual_read_bills_are_byte_identical_to_pre_d3(force_actual_reads):
     (generate_bill straight over the true settlement records) on every
     pre-existing field. Only the additive `billing_basis`/yoy annotations may
     differ."""
-    records = _realistic_36_month_records()
+    records = _realistic_36_month_records("C1")
     new_bills = build_monthly_bills(records)
     assert all(b["billing_basis"] == "actual" for b in new_bills), (
         "force_actual_reads must pin every read to actual"

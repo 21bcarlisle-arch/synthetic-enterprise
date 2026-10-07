@@ -14,6 +14,7 @@ from simulation.meter_reads import (
     READ_CUTOFF_DAYS_AFTER_PERIOD_END,
     generate_meter_read_log,
     is_hard_to_read,
+    is_not_in_smart_mode,
     meter_type_for_customer,
     simulate_read,
     solve_easy_rate,
@@ -61,15 +62,13 @@ def test_smart_meters_mostly_actual():
 
 
 def test_traditional_meters_estimated_more_often_than_smart():
-    smart_actual = sum(
-        simulate_read("C2", f"20{yr:02d}-{mo:02d}-28", "smart", 300.0, 0).status == "actual"
-        for yr in range(16, 26) for mo in range(1, 13)
-    )
-    traditional_actual = sum(
-        simulate_read("C3", f"20{yr:02d}-{mo:02d}-28", "traditional", 300.0, 0).status == "actual"
-        for yr in range(16, 26) for mo in range(1, 13)
-    )
-    assert traditional_actual < smart_actual
+    # Over a population: one smart id may hold traditional mode for life and read like one.
+    def actual(meter_type):
+        return sum(
+            simulate_read(f"C{meter_type}{i}", f"20{yr:02d}-{mo:02d}-28", meter_type, 300.0, 0)
+            .status == "actual"
+            for i in range(50) for yr in range(16, 26) for mo in range(1, 13))
+    assert actual("traditional") < actual("smart")
 
 
 def test_the_feed_reports_status_and_never_a_figure_to_bill():
@@ -135,6 +134,27 @@ def test_the_easy_rate_solver_refuses_a_hard_class_that_alone_exceeds_the_target
 def test_the_read_process_is_read_from_the_assumption_register():
     assert mr.PERSISTENT_UNREAD_SHARE == mr.assumption_toggle("q2_persistent_unread_share")
     assert mr.NO_READ_12M_SHARE == mr.assumption_toggle("q2_no_read_12m_share")
+    assert mr.SMART_METER_NOT_COMMUNICATING_RATE == mr.assumption_toggle(
+        "q6_smart_not_in_smart_mode_share")
+
+
+def _year_unread(cid, meter_type):
+    statuses = [simulate_read(cid, f"{2016 + m // 12}-{m % 12 + 1:02d}-28", meter_type, 300.0, 0)
+                .status for m in range(60)]
+    return any(all(s == "estimated" for s in statuses[k - 12:k]) for k in range(12, 60))
+
+
+def test_a_smart_meter_out_of_smart_mode_stays_out_so_its_home_can_go_a_year_unread():
+    """Defect caught: traditional mode drawn afresh each month (the register's Q6 row: it is a
+    STATE). Drawn monthly at 0.10 no smart home ever went a year unread (measured 0.0000 of
+    windows, against 0.0073 held). Partition first: both modes must be reachable."""
+    cids = [f"SM{i}" for i in range(2000)]
+    out = [c for c in cids if is_not_in_smart_mode(c)]
+    in_mode = [c for c in cids if not is_not_in_smart_mode(c)]
+    assert out and in_mode
+    assert abs(len(out) / len(cids) - mr.SMART_METER_NOT_COMMUNICATING_RATE) < 0.02
+    assert any(_year_unread(c, "smart") for c in out)
+    assert not any(_year_unread(c, "smart") for c in in_mode[:300])
 
 
 def test_delay_days_non_negative():
