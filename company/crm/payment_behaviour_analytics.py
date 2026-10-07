@@ -1,6 +1,12 @@
 """Company-side payment behaviour analytics.
 
-Scores customers based on observable payment records (ON_TIME / LATE / DD_FAILED).
+Scores customers based on observable payment records (ON_TIME / LATE / DD_FAILED / MISSED).
+
+DD_FAILED is a returned Direct Debit and exists only for a customer with a mandate. MISSED is a
+bill that went unpaid on any other rail (standard credit, BACS/CHAPS, a disputed corporate
+invoice): the supplier sees no cash, and there is nothing to return. Both are a bill unpaid, so
+`miss_rate` counts both and is what the score and every distress reader use; `dd_fail_rate` is the
+Direct Debit share alone and is zero for a customer who has no mandate.
 Does not read income_stress or any SIM internal -- only observed payment outcomes.
 Consistent with the SIM/company epistemic barrier.
 
@@ -11,6 +17,10 @@ from __future__ import annotations
 
 from enum import Enum
 from typing import Dict, List, Optional, Sequence
+
+DD_FAILED = "DD_FAILED"
+MISSED = "MISSED"
+UNPAID_RESULTS = frozenset({DD_FAILED, MISSED})
 
 
 class BehaviourScore(str, Enum):
@@ -32,17 +42,21 @@ _SCORE_ORDER: dict[str, int] = {
 
 def compute_payment_metrics(records: list[dict]) -> dict:
     if not records:
-        return {"on_time_rate": 0.0, "late_rate": 0.0, "dd_fail_rate": 0.0, "avg_days_late": 0.0}
+        return {"on_time_rate": 0.0, "late_rate": 0.0, "dd_fail_rate": 0.0, "miss_rate": 0.0,
+                "avg_days_late": 0.0}
     n = len(records)
     on_time = sum(1 for r in records if r.get("result") == "ON_TIME")
     late = sum(1 for r in records if r.get("result") == "LATE")
-    dd_fail = sum(1 for r in records if r.get("result") == "DD_FAILED")
-    days_late_vals = [r.get("days_late", 0) or 0 for r in records if r.get("result") in ("LATE", "DD_FAILED")]
+    dd_fail = sum(1 for r in records if r.get("result") == DD_FAILED)
+    missed = sum(1 for r in records if r.get("result") in UNPAID_RESULTS)
+    days_late_vals = [r.get("days_late", 0) or 0 for r in records
+                      if r.get("result") == "LATE" or r.get("result") in UNPAID_RESULTS]
     avg_days_late = sum(days_late_vals) / len(days_late_vals) if days_late_vals else 0.0
     return {
         "on_time_rate": on_time / n,
         "late_rate": late / n,
         "dd_fail_rate": dd_fail / n,
+        "miss_rate": missed / n,
         "avg_days_late": avg_days_late,
     }
 
@@ -52,14 +66,14 @@ def score_payment_history(records: list[dict]) -> BehaviourScore:
         return BehaviourScore.EXCELLENT
     m = compute_payment_metrics(records)
     otr = m["on_time_rate"]
-    ddf = m["dd_fail_rate"]
-    if otr >= 0.95 and ddf == 0.0:
+    miss = m["miss_rate"]
+    if otr >= 0.95 and miss == 0.0:
         return BehaviourScore.EXCELLENT
-    if otr >= 0.80 and ddf < 0.05:
+    if otr >= 0.80 and miss < 0.05:
         return BehaviourScore.GOOD
-    if otr >= 0.60 and ddf < 0.15:
+    if otr >= 0.60 and miss < 0.15:
         return BehaviourScore.FAIR
-    if otr >= 0.40 and ddf < 0.35:
+    if otr >= 0.40 and miss < 0.35:
         return BehaviourScore.POOR
     return BehaviourScore.CRITICAL
 
@@ -108,7 +122,10 @@ class PaymentBehaviourAnalytics:
         return [cid for cid in self._records if self.is_at_risk(cid)]
 
     def get_miss_trajectory(self, customer_id: str) -> List[dict]:
-        """Return [{"year": int, "late": int, "dd_failed": int, "total": int}, ...].
+        """Return [{"year": int, "late": int, "dd_failed": int, "missed": int, "total": int}, ...].
+
+        `missed` is every unpaid bill, the Direct Debit returns among them; `dd_failed` is those
+        returns alone.
 
         Unlike get_score/get_metrics (rolling scalars over all-time history),
         this buckets the already-retained per-event record list (each carries
@@ -122,12 +139,14 @@ class PaymentBehaviourAnalytics:
             if due is None:
                 continue
             year = due.year if hasattr(due, "year") else int(str(due)[:4])
-            bucket = by_year.setdefault(year, {"late": 0, "dd_failed": 0, "total": 0})
+            bucket = by_year.setdefault(year, {"late": 0, "dd_failed": 0, "missed": 0, "total": 0})
             bucket["total"] += 1
             if r.get("result") == "LATE":
                 bucket["late"] += 1
-            elif r.get("result") == "DD_FAILED":
-                bucket["dd_failed"] += 1
+            elif r.get("result") in UNPAID_RESULTS:
+                bucket["missed"] += 1
+                if r.get("result") == DD_FAILED:
+                    bucket["dd_failed"] += 1
         return [{"year": yr, **by_year[yr]} for yr in sorted(by_year)]
 
     def score_trend(self, customer_id: str, window: int = 6) -> str:

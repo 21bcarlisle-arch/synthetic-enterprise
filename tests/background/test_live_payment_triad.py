@@ -219,9 +219,27 @@ def test_single_truth_derivation_maps_all_result_classes():
     r_late = _derive_analytics_record("C1", due, 100.0, late)
     assert r_late["result"] == "LATE"
     assert r_late["days_late"] == 9
-    # dispute (I&C bacs contested collection) maps to DD_FAILED (documented
-    # simplification -- legacy analytics vocabulary has no 'dispute').
-    assert _derive_analytics_record("IC1", due, 9000.0, dispute)["result"] == "DD_FAILED"
+    # A contested corporate invoice is unpaid but nothing was returned.
+    assert _derive_analytics_record("IC1", due, 9000.0, dispute)["result"] == "MISSED"
+
+
+def test_a_non_direct_debit_miss_is_missed_and_never_a_returned_direct_debit():
+    """The defect: a standard-credit or CHAPS customer's unpaid bill was recorded as DD_FAILED,
+    a Direct Debit return they have no mandate to generate. The DD arm is the control that the
+    label still keys on the method, not on the result alone."""
+    due = date(2021, 3, 28)
+
+    def failed_on(method):
+        return PaymentEvent(
+            customer_id="C8", period_index=1, due_date=due.isoformat(), amount_gbp=100.0,
+            payment_method=method, result="failed", days_late=0,
+            payment_date=None, dd_failure_reason="insufficient_funds",
+        )
+
+    labels = {m: _derive_analytics_record("C8", due, 100.0, failed_on(m))["result"]
+              for m in ("direct_debit", "standard_credit", "prepayment", "bacs", "chaps")}
+    assert labels == {"direct_debit": "DD_FAILED", "standard_credit": "MISSED",
+                      "prepayment": "MISSED", "bacs": "MISSED", "chaps": "MISSED"}
 
 
 # ---------------------------------------------------------------------------

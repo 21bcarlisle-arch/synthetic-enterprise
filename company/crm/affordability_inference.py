@@ -109,7 +109,7 @@ class AffordabilityObservation:
     customer_id: str
     segment: str = "resi"
     # Payment records as PaymentBehaviourAnalytics holds them: dicts carrying a
-    # "result" of ON_TIME / LATE / DD_FAILED. `recent` is the window under
+    # "result" of ON_TIME / LATE / DD_FAILED / MISSED. `recent` is the window under
     # assessment (typically the last 12 months).
     recent_payments: Sequence[dict] = field(default_factory=tuple)
     # An arrears case is open, and how far it escalated (None / "first_notice" /
@@ -148,12 +148,12 @@ class AffordabilityAssessment:
 
 
 def _bad_rate(payments: Sequence[dict]) -> Optional[float]:
-    """Fraction of records that are LATE or DD_FAILED, or None if the window is
-    empty (nothing observed -> no opinion, not a zero)."""
+    """Fraction of records that are LATE or unpaid (a returned Direct Debit or a bill missed on
+    any other rail), or None if the window is empty (nothing observed -> no opinion, not a zero)."""
     if not payments:
         return None
     m = compute_payment_metrics(list(payments))
-    return m["late_rate"] + m["dd_fail_rate"]
+    return m["late_rate"] + m["miss_rate"]
 
 
 class AffordabilityInference:

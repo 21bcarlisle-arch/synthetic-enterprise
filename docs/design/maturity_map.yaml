@@ -586,7 +586,7 @@
   file_scope: [background/live_payment_triad.py, company/crm, saas/sme_credit_risk.py, simulation/payment_seam_adapter.py, tests/company/crm, tests/harness, tests/background/test_live_payment_triad.py, tests/saas/test_sme_credit_risk.py, tests/simulation/test_payment_seam_adapter.py]
   depends_on: [W2_payment_channel_dd_consistency_invariant]
   blocked_on: null
-  simplifications_count: 2
+  simplifications_count: 3
   records_rehomed: [evidence]
 - id: C_supply_start_consumer_routing
   notes_rehomed: [name]

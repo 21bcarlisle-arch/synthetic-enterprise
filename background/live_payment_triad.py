@@ -1442,12 +1442,10 @@ def _derive_analytics_record(
     `PaymentEvent` -- so `PaymentBehaviourAnalytics` is fed from the single
     payment truth, never a second independent draw. Result mapping:
 
-      * event.result == "failed"  -> "DD_FAILED" (unpaid, no cash)
-      * event.result == "dispute" -> "DD_FAILED" (NAMED SIMPLIFICATION: the
-        legacy analytics vocabulary has only ON_TIME/LATE/DD_FAILED; an I&C/SME
-        BACS dispute -- a contested, unresolved collection -- is closest to
-        DD_FAILED. Disputes arise only on the bacs/chaps path, i.e. I&C/SME
-        segments; the legacy path never produced them for resi.)
+      * "failed" on a Direct Debit -> "DD_FAILED" (a returned collection, no cash)
+      * "failed" on any other rail, or "dispute" -> "MISSED" (unpaid, no cash, and
+        nothing to return: a customer without a mandate cannot have a Direct Debit
+        returned, and a contested corporate invoice is not a return either)
       * event.result == "success", days_late>0 -> "LATE"
       * event.result == "success", days_late==0 -> "ON_TIME"
 
@@ -1456,10 +1454,11 @@ def _derive_analytics_record(
     gain, unused by the on_time_rate/dd_fail_rate scoring that drives the churn
     signal."""
     if event.result in ("failed", "dispute"):
+        returned = event.result == "failed" and event.payment_method == DIRECT_DEBIT
         return {
             "customer_id": customer_id,
             "due_date": due_date,
-            "result": "DD_FAILED",
+            "result": "DD_FAILED" if returned else "MISSED",
             "payment_date": None,
             "amount_gbp": amount_gbp,
             "amount_paid": 0.0,

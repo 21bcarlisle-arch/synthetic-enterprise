@@ -225,8 +225,8 @@ def test_miss_trajectory_buckets_by_year_from_due_date():
     pba.record_payment("C1", {"result": "DD_FAILED", "due_date": date(2021, 1, 28)})
     traj = pba.get_miss_trajectory("C1")
     assert traj == [
-        {"year": 2020, "late": 1, "dd_failed": 0, "total": 2},
-        {"year": 2021, "late": 0, "dd_failed": 1, "total": 1},
+        {"year": 2020, "late": 1, "dd_failed": 0, "missed": 0, "total": 2},
+        {"year": 2021, "late": 0, "dd_failed": 1, "missed": 1, "total": 1},
     ]
 
 
@@ -243,7 +243,7 @@ def test_miss_trajectory_accepts_string_due_date():
     pba = PaymentBehaviourAnalytics()
     pba.record_payment("C1", {"result": "DD_FAILED", "due_date": "2023-06-28"})
     traj = pba.get_miss_trajectory("C1")
-    assert traj == [{"year": 2023, "late": 0, "dd_failed": 1, "total": 1}]
+    assert traj == [{"year": 2023, "late": 0, "dd_failed": 1, "missed": 1, "total": 1}]
 
 
 def test_miss_trajectory_independent_per_customer():

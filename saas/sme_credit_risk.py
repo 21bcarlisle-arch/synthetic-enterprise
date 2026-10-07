@@ -50,6 +50,8 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import List, Optional, Sequence, Tuple
 
+from company.crm.payment_behaviour_analytics import UNPAID_RESULTS
+
 
 # ---------------------------------------------------------------------------
 # Company-owned label space. These MIRROR the shape of the hidden SIM answer key
@@ -142,7 +144,7 @@ class BusinessObservationWindow:
     segment: str                              # "SME" | "I&C"
     sector: Optional[str] = None              # SIC/sector on file, may be unknown
     tenure_years: Optional[float] = None      # length of the supply relationship
-    # Payment records: dicts with "result" in ON_TIME / LATE / DD_FAILED and an
+    # Payment records: dicts with "result" in ON_TIME / LATE / DD_FAILED / MISSED and an
     # optional "days_late". baseline = the settled prior period; recent = the
     # window under assessment.
     baseline_payments: Sequence[dict] = field(default_factory=tuple)
@@ -184,12 +186,17 @@ class SmeCreditAssessment:
         }
 
 
+def _is_bad(record: dict) -> bool:
+    return record.get("result") == "LATE" or record.get("result") in UNPAID_RESULTS
+
+
 def _bad_rate(payments: Sequence[dict]) -> Optional[float]:
-    """Fraction of records that are LATE or DD_FAILED, or None if the window is
-    empty (nothing observed -> no opinion, not a zero)."""
+    """Fraction of records that are LATE or unpaid, or None if the window is empty (nothing
+    observed -> no opinion, not a zero). A business pays by BACS/CHAPS, so its unpaid bill is
+    MISSED, never a returned Direct Debit."""
     if not payments:
         return None
-    bad = sum(1 for r in payments if r.get("result") in ("LATE", "DD_FAILED"))
+    bad = sum(1 for r in payments if _is_bad(r))
     return bad / len(payments)
 
 
@@ -197,7 +204,7 @@ def _avg_days_late(payments: Sequence[dict]) -> Optional[float]:
     vals = [
         float(r.get("days_late", 0) or 0)
         for r in payments
-        if r.get("result") in ("LATE", "DD_FAILED")
+        if _is_bad(r)
     ]
     return sum(vals) / len(vals) if vals else None
 
