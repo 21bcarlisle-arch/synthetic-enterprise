@@ -4,6 +4,7 @@ from company.billing.winter_moratorium import (
     MoratoriumRecord, MoratoriumType, DisconnectionRisk,
     WinterMoratoriumRegister, is_winter_period,
 )
+from company.regulatory.priority_services_register import HouseholdComposition, PSRCategory
 
 
 def make_record(account_id="A1",
@@ -36,8 +37,13 @@ class TestIsWinterPeriod:
     def test_june_is_not_winter(self):
         assert is_winter_period(dt.date(2024, 6, 15)) is False
 
-    def test_october_is_not_winter(self):
-        assert is_winter_period(dt.date(2023, 10, 31)) is False
+    def test_october_is_winter_because_the_published_winter_starts_there(self):
+        # This leg asserted the opposite until 2026-10-07: a Nov-Mar winter, one month short
+        # of the commons' October-March in the direction that removes protection.
+        assert is_winter_period(dt.date(2023, 10, 1)) is True
+
+    def test_september_is_not_winter(self):
+        assert is_winter_period(dt.date(2023, 9, 30)) is False
 
 
 class TestMoratoriumRecord:
@@ -99,15 +105,33 @@ class TestWinterMoratoriumRegister:
     def test_can_disconnect_false_protected(self):
         reg = WinterMoratoriumRegister()
         reg.register(make_record(account_id="A1"))
-        assert reg.can_disconnect("A1", dt.date(2024, 1, 1)) is False
+        assert reg.can_disconnect("A1", dt.date(2024, 1, 1), categories=()) is False
 
-    def test_can_disconnect_false_winter_period(self):
+    def test_the_licence_rule_is_asked_and_every_answer_is_reachable(self):
+        """One control over the partition: a household with no needs category in winter MAY
+        be disconnected (the blanket winter rule this module used to hold is in no licence
+        condition), a pensionable-age household of unknown composition may NOT, and one
+        living alone may not either. A version that refused everything passes the last two.
+        """
         reg = WinterMoratoriumRegister()
-        assert reg.can_disconnect("B1", dt.date(2024, 1, 1)) is False
+        jan = dt.date(2024, 1, 15)
+        assert reg.can_disconnect("B1", jan, categories=()) is True
+        assert reg.can_disconnect(
+            "B1", jan, categories=(PSRCategory.PENSIONABLE_AGE,)) is False
+        assert reg.can_disconnect(
+            "B1", jan, categories=(PSRCategory.PENSIONABLE_AGE,),
+            household=HouseholdComposition.LIVES_ALONE) is False
 
-    def test_can_disconnect_true_summer(self):
+    def test_october_protects_where_the_old_november_start_did_not(self):
         reg = WinterMoratoriumRegister()
-        assert reg.can_disconnect("B1", dt.date(2024, 7, 1)) is True
+        assert reg.can_disconnect(
+            "B1", dt.date(2023, 10, 15), categories=(PSRCategory.PENSIONABLE_AGE,),
+            household=HouseholdComposition.LIVES_ALONE) is False
+
+    def test_categories_must_be_stated(self):
+        reg = WinterMoratoriumRegister()
+        with pytest.raises(TypeError):
+            reg.can_disconnect("B1", dt.date(2024, 7, 1))
 
     def test_vulnerable_protections(self):
         reg = WinterMoratoriumRegister()

@@ -1470,16 +1470,9 @@
   lane: C_customer_ops
   value_stream: meter_to_cash
   epoch: 3
-  level_current: 2    # STAYS 2, AND THE REASON IS NOT THAT THE BUILD IS UNFINISHED. The
-  #   convergence is complete as of 2026-09-06 (third turn): four vocabularies are two, and two
-  #   is the finished state, not a waypoint -- PSRCategory is the regulator's words and
-  #   VulnerabilityFlag is what our own agents record, related by needs_code_for and by nothing
-  #   else. L3 is "passed the FULL loop incl. HARDEN; Expert Hour: 'this is real'" and
-  #   expert_hour below still reads not_attempted, so recording 3 here would be a level claimed
-  #   on a stage nobody ran. It is one cold-eyes pass away and that is the whole of what is left.
-  #   Evidence, per turn: SEAT_RESULT_THE_OBLIGATION_HAS_FIVE_IMPLEMENTATIONS_...2026-09-05.md,
-  #   SEAT_RESULT_THE_TWO_REGULATORY_OUTCOMES_NOW_HAVE_ONE_DECIDER_...2026-09-06.md, and
-  #   SEAT_RESULT_THE_FOUR_VOCABULARIES_ARE_TWO_...2026-09-06.md.
+  level_current: 2    # HELD AT 2 BY ITS OWN EXPERT HOUR (2026-10-07, FAIL). The vocabulary
+  #   convergence (four to two, 2026-09-06) stands; the pass found the OUTCOME was not converged.
+  #   Detail: SEAT_FINDING_C32_THE_EXPERT_HOUR_FAILS_ON_THE_OUTCOME_NOT_THE_VOCABULARY_2026-10-07.md.
   level_target: 3
   loop_stage: harden
   dial_inherited: 50    # product: it is what a real supplier does, and getting it wrong is a
@@ -1496,8 +1489,8 @@
   #   candidacy reads it) and consumer_vulnerability_register's eight caller-less near-synonyms.
   #   The admin template is in scope because it rendered the off-vocabulary string as an English
   #   label, which is the defect reaching a surface.
-  file_scope: ['company/crm/vulnerability_register.py', 'company/crm/service_log.py', 'company/regulatory/priority_services_register.py', 'company/regulatory/consumer_vulnerability_register.py', 'company/portal/templates/admin_vulnerability.html', 'tests/company/regulatory/test_priority_services_register.py', 'tests/company/regulatory/test_consumer_vulnerability_register.py', 'tests/company/crm/test_one_obligation_one_vulnerability_vocabulary.py', 'tests/company/crm/test_service_log.py', 'docs/domain_artefact_library/']
-  expert_hour: {status: not_attempted, last: null, findings: []}
+  file_scope: ['company/crm/vulnerability_register.py', 'company/crm/service_log.py', 'company/regulatory/priority_services_register.py', 'company/billing/winter_moratorium.py', 'company/billing/ppm_warrant_register.py', 'company/regulatory/consumer_vulnerability_register.py', 'company/portal/templates/admin_vulnerability.html', 'tests/company/regulatory/test_priority_services_register.py', 'tests/company/regulatory/test_consumer_vulnerability_register.py', 'tests/company/crm/test_one_obligation_one_vulnerability_vocabulary.py', 'tests/company/crm/test_service_log.py', 'docs/domain_artefact_library/']
+  expert_hour: {status: attempted_finding_open, last: '2026-10-07 blind pass (PSR/debt-and-disconnection veteran), tools/blind_review.py, 13 questions. FAIL, held at 2: EH-1 an undetermined elderly flag read may-disconnect in January (FIXED this turn); EH-2 involuntary prepayment has its own boolean vulnerability check, outside the decider; EH-3 the industry needs-code list and state pension age are not in the commons.'}
   real_world_twin: "a supplier with a vulnerability team working one list and a collections system scoring another, where the customer on home oxygen is priority on one and ordinary on the other, and nobody finds out until the disconnection."
 - id: D46_the_validator_holds_against_the_varied_population
   title: "the bill validator reconstructed a small homogeneous book to the penny; it must hold against the population the segments produce"

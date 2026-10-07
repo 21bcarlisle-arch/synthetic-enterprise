@@ -1,15 +1,38 @@
-"""Winter Disconnection Moratorium: SLC 27 / Gas SoP Regs prohibition on disconnection."""
+"""Moratorium records: the protections a supplier has itself put on an account.
+
+THIS MODULE DOES NOT DECIDE THE LICENCE RULE. Whether the published record protects a
+household from disconnection is decided once, in
+`company/regulatory/priority_services_register.disconnection_protection`, from its needs
+categories, the date and the household composition (atom C32; commons
+`docs/domain_artefact_library/regulatory/psr_eligibility_and_disconnection_protection.md`).
+`can_disconnect` asks that decider and adds the records held here; it never reaches a
+regulatory answer of its own.
+
+It used to. It held a second winter, November to March, which is one month short of the
+published October to March in the direction that removes protection, and a blanket rule
+that no domestic customer may be disconnected in winter, which no licence condition says
+(SLC 27.10's prohibition is the pensionable-age limb only; the wider all-year pledge is
+Energy UK's voluntary commitment). Its `is_vulnerable` argument was accepted and never
+read. None of it had a production caller, which is why it was still wrong.
+"""
 from __future__ import annotations
 
 import datetime as dt
 from dataclasses import dataclass
 from enum import Enum
-from typing import List, Optional
+from typing import Iterable, List, Optional
+
+from company.regulatory.priority_services_register import (
+    WINTER_MONTHS,
+    HouseholdComposition,
+    PSRCategory,
+    disconnection_protection,
+)
 
 
 class MoratoriumType(str, Enum):
-    WINTER_DOMESTIC = "winter_domestic"    # Nov-Mar domestic prohibition
-    VULNERABLE_YEAR_ROUND = "vulnerable_year_round"  # year-round vulnerable
+    WINTER_DOMESTIC = "winter_domestic"    # a winter hold the supplier chose to place
+    VULNERABLE_YEAR_ROUND = "vulnerable_year_round"  # an all-year hold the supplier chose to place
     DEBT_MORATORIUM = "debt_moratorium"    # discretionary moratorium during hardship
 
 
@@ -19,12 +42,9 @@ class DisconnectionRisk(str, Enum):
     AT_RISK = "at_risk"           # outside moratorium; debt escalating
 
 
-_WINTER_START_MONTH = 11  # November
-_WINTER_END_MONTH = 3    # March (inclusive)
-
-
 def is_winter_period(date: dt.date) -> bool:
-    return date.month >= _WINTER_START_MONTH or date.month <= _WINTER_END_MONTH
+    """The published winter months, read from the one decider rather than restated."""
+    return date.month in WINTER_MONTHS
 
 
 @dataclass(frozen=True)
@@ -49,18 +69,10 @@ class MoratoriumRecord:
 
 
 class WinterMoratoriumRegister:
-    """Tracks disconnection prohibitions across the customer base.
+    """Tracks the protections this supplier has placed on accounts itself.
 
-    Real calibration:
-    - SLC 27 (Electricity) / Gas Suppliers SoP Regs: prohibition on disconnecting
-      domestic customers during winter (1 Oct-31 Mar was historical; now 1 Nov-31 Mar
-      for credit meter customers; vulnerable customers may never be disconnected).
-    - Priority Services Register (PSR) customers: year-round disconnection prohibition.
-    - Ofgem Voluntary agreement: some suppliers extend to 1 Oct-31 Mar.
-    - 2022-23: Ofgem used moratorium powers extensively; thousands of PPM-forced-fitting
-      cases later found to have breached these rules.
-    - Debt moratorium: supplier discretion; often offered during cost-of-living crisis
-      or as hardship support.
+    These are holds of our own choosing -- a hardship pause, a winter hold, an all-year
+    hold -- and they only ever ADD protection to what the licence rule already gives.
     """
 
     def __init__(self) -> None:
@@ -88,13 +100,25 @@ class WinterMoratoriumRegister:
             for r in self._records
         )
 
-    def can_disconnect(self, account_id: str, as_of: dt.date,
-                       is_vulnerable: bool = False) -> bool:
+    def can_disconnect(
+        self,
+        account_id: str,
+        as_of: dt.date,
+        *,
+        categories: Iterable[PSRCategory],
+        household: HouseholdComposition = HouseholdComposition.UNKNOWN,
+    ) -> bool:
+        """False if one of our own holds is active, or the licence rule does not clear it.
+
+        `categories` has no default on purpose: a caller that does not know the household's
+        needs categories must say `()` out loud, rather than inherit an empty set that reads
+        as "nobody here is protected".
+        """
         if self.is_protected(account_id, as_of):
             return False
-        if is_winter_period(as_of):
-            return False
-        return True
+        return disconnection_protection(
+            categories, as_of=as_of, household=household
+        ).may_disconnect
 
     def vulnerable_protections(self, as_of: dt.date) -> List[MoratoriumRecord]:
         return [r for r in self.active_protections(as_of)

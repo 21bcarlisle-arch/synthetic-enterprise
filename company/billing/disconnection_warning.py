@@ -53,9 +53,11 @@ class DisconnectionWarningRegister:
       disconnection of credit-meter customers.
     - Minimum 4 contacts (3 warnings + formal notice); cooling-off periods enforced.
     - Formal disconnection notice: minimum 28 days before action.
-    - Prohibited: disconnecting without completing the full warning sequence;
-      disconnecting vulnerable/PSR customers at any time; disconnecting any domestic
-      customer during winter (Nov-Mar).
+    - Prohibited: disconnecting without completing the full warning sequence.
+    - `can_disconnect` here answers the SEQUENCE only. Whether the household is protected
+      is `priority_services_register.disconnection_protection`'s to decide (atom C32); this
+      docstring used to restate that rule as "PSR at any time, any domestic customer Nov-Mar",
+      which is neither the licence condition nor its published winter (October to March).
     - Key 2023 issue: Ofgem investigated several suppliers for issuing disconnection
       threats without completing the mandatory sequence.
     """
