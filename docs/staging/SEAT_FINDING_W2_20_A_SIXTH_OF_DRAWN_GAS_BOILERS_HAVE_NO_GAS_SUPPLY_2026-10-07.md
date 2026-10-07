@@ -198,3 +198,45 @@ comes from a director ruling.
 The value-arms re-take (step d) is handed on as
 `w2-20-retake-the-value-arms-in-the-world-where-heat-follows-the-gas-meter`, and it is needed
 whichever way the level goes.
+
+## Step (d): the value arms re-taken in the world 81732ffe2 made (worker, 2026-10-07)
+
+**Premise, re-measured at draw (07:40Z).** No `run_value_cycle_ab` is running (`ps`). The published
+current-world pair is `20261005c`, produced at `a9e6f2144`. That commit does not contain
+`81732ffe2`, and `simulation/premise_population.py`, `household.py`, `fabric_physics.py` and
+`premise_trace.py` all moved under it. So the step is not spent. The C29 retention arms that another
+seat has queued are a different runner (`tools/_c29_retention_engagement_arm.py`) on a different
+question, so one re-take cannot cover both.
+
+**The run.** Worktree `/var/tmp/se-w220-arms` at origin `8af70203f`, locked, with its owner written.
+It uses the same producer and the same two legs as `20261005c`:
+
+1. `--level-arm`, writing `value_cycle_ab_s1_three_arm_20261007w.json`;
+2. `--noise-floor-seeds 11111,22222,33333 --redraw-mode all`, writing
+   `value_cycle_ab_s1_noise_floor_20261007w.json`.
+
+**Not one variable.** Between `a9e6f2144` and `8af70203f`, more substrate moved than W2_20. That
+includes `bfe428ef6` (the dual-fuel departure belief) and the PB4 drift gradient. So the moves below
+are graded as written, but no move is credited to W2_20 alone. The landing lists
+`git diff --name-only a9e6f2144 8af70203f` over `ARMS_SUBSTRATE_PATHS`.
+
+**Pre-registered at 07:41Z, before either leg started.** The baseline is `20261005c`: value minus
+level £18,541; floor spread £2,229; selection leg £3,229, withheld; control-arm gross margin
+£342,591; 64 of 127 billing accounts with a gas leg.
+
+| # | quantity | prediction | confidence |
+|---|---|---|---|
+| P1 | billing accounts with a gas leg (control arm) | **down**, from 64 to 52-62. Mechanism: about a tenth of drawn domestic gas boilers lose their register. SME gas is untouched. | ~0.75 |
+| P2 | control-arm gross margin | **down**, by 1-8%. Mechanism: lost gas legs. An oil home's electricity is only its non-heat load. Electric-heat homes gain only about 1 point of the stock. | ~0.6 |
+| P3 | value minus level (headline contrast) | **no sign predicted**. The change stays inside twice the new floor spread. | ~0.6 |
+| P4 | floor spread | inside £1,500-£3,500. Book size barely changes, and the spread tracks departures, not commodity. | ~0.6 |
+| P5 | selection leg | no sign predicted | n/a |
+
+If P1 comes back unchanged at 64, the arms book does not pass through `draw_premise_from_joint`'s
+heating draw. W2_20 would then not reach the arms at all, and the re-take bounds nothing about
+W2_20. The landing says so before it grades anything else.
+
+**Launched** at 07:41:32Z as `longjob-w220-arms-retake`, running `/var/tmp/se-w220-arms-handoff.sh`.
+The log is `/var/tmp/longjob-w220-arms-retake.log`, with a declared peak of 11,200 MB (from the
+`20261005c` run). Expected durations: leg 1 about 70 minutes, leg 2 about 3h20. Grading and
+publishing are handed on as `w2-20-land-the-value-arms-retaken-in-the-heat-follows-meter-world`.
