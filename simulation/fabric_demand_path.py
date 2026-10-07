@@ -70,6 +70,7 @@ from __future__ import annotations
 import contextlib
 import datetime as dt
 import math
+from array import array
 from dataclasses import dataclass, field
 from typing import Callable, Mapping, Sequence
 
@@ -269,9 +270,9 @@ class FabricDemandSeries:
 
     customer_id: str
     heating_commodity: str
-    gross_electricity_kwh: dict[str, list[float]]
-    pv_generation_kwh: dict[str, list[float]]
-    gas_kwh: dict[str, list[float]]
+    gross_electricity_kwh: dict[str, Sequence[float]]
+    pv_generation_kwh: dict[str, Sequence[float]]
+    gas_kwh: dict[str, Sequence[float]]
     segments: tuple[HouseholdSegment, ...]
     annual_electricity_kwh: float
     annual_gas_kwh: float
@@ -362,9 +363,12 @@ def build_fabric_series(
     )
     away = away_day_calendar(customer_id, profile, dates, seed=seed)
 
-    gross: dict[str, list[float]] = {}
-    pv: dict[str, list[float]] = {}
-    gas: dict[str, list[float]] = {}
+    # Each day is an `array('d')`, not a list of float objects: the same 48 doubles in about a
+    # third of the memory. Every trace in the book is held for the whole window at once, so this
+    # is the difference the run's peak is made of. Readers index, sum and zip; none mutates a day.
+    gross: dict[str, array] = {}
+    pv: dict[str, array] = {}
+    gas: dict[str, array] = {}
     gas_space_heating: dict[str, float] = {}
     constraint_by_year: dict[int, ComfortConstraint] = {}
     heating_kwh_by_year: dict[int, float] = {}
@@ -394,9 +398,9 @@ def build_fabric_series(
         heating_commodity = trace.heating_commodity
         for day in trace.days:
             key = day.date.isoformat()
-            gross[key] = list(day.electricity_kwh)
-            pv[key] = list(day.pv_generation_kwh)
-            gas[key] = list(day.gas_kwh)
+            gross[key] = array("d", day.electricity_kwh)
+            pv[key] = array("d", day.pv_generation_kwh)
+            gas[key] = array("d", day.gas_kwh)
             gas_space_heating[key] = (
                 sum(day.heating_fuel_kwh) if heating_commodity == "gas" else 0.0
             )
