@@ -172,6 +172,13 @@ class DecisionPolicy:
     #: tiers. Off on every standing policy, so no run that does not ask for it moves.
     retention_weighs_engagement: bool = False
 
+    #: (2026-10-07) the retention guard nets the bad-debt charge the company itself expects on the
+    #: term it is protecting: its own learned rate by arrears state (`default_belief.py`, the same
+    #: belief the value arm prices on) times the term's energy billing. The payment score raises a
+    #: debtor's churn belief past the offer threshold, and a guard that values the account as if it
+    #: pays then sends the discount to the worst payers. Off on every standing policy.
+    retention_nets_bad_debt: bool = False
+
     def retention_discount_for_risk(self, company_est: float) -> float:
         """Return the retention discount fraction for a given churn estimate."""
         if self.retention_discount_mode == "flat":
