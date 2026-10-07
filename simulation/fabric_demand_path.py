@@ -647,6 +647,14 @@ def build_fabric_series_for_site(
 # set), and it is why the marker exists and why the runner asserts on it separately.
 COVERAGE_REFUSAL = "archive does not cover the settlement window"
 
+# NEITHER STRUCTURAL NOR COVERAGE: the premise joins after the window ends, so it settles nothing
+# in it and no trace is built. Only a run cut short of the book reaches this (a full window holds
+# every win). It was a full-window trace per such premise, read by nothing but a registry EAC for
+# an account that never settles: at 40 founders and an end of 2019-12-31, 461 of them held about
+# 1 GB of the run's peak and 200 s of its wall time for an identical settled book
+# (docs/staging/SEAT_FINDING_THE_TERM_LOOPS_MEMORY_THAT_SCALES_WITH_ACCOUNTS_IN_THE_BOOK_2026-10-07.md).
+JOINS_AFTER_WINDOW_REFUSAL = "joins after the settlement window ends, so no trace is built"
+
 
 def fabric_providers_for_book(
     *,
@@ -702,6 +710,12 @@ def fabric_providers_for_book(
         )
         if not verdict.is_eligible:
             verdicts.append(verdict)
+            continue
+        joins = customer.get("acquisition_date")
+        if joins and str(joins)[:10] > end.isoformat():
+            verdicts.append(FabricEligibility(
+                cid, False, f"{JOINS_AFTER_WINDOW_REFUSAL}: joins {str(joins)[:10]}, the window "
+                f"ends {end.isoformat()}"))
             continue
         series = build_fabric_series_for_site(
             customer_id=cid,

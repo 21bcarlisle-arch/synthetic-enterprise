@@ -542,6 +542,25 @@ def test_a_premise_whose_archive_stops_short_is_refused_UP_FRONT_not_mid_run():
     assert "does not cover" in c1.reason
 
 
+def test_a_premise_joining_after_the_window_gets_no_trace_and_one_joining_on_its_last_day_does():
+    """A run cut short of its book holds wins dated after its end. They settle nothing, and each
+    held a whole-window trace for a registry EAC nobody settles against: about 1 GB of peak at 40
+    founders ending 2019. Both sides of the boundary are asserted, so a filter keyed a day early,
+    or on the window's START, cannot pass by refusing everyone."""
+    households = {"IN": make_household("IN"), "OUT": make_household("OUT")}
+    joins = {"IN": WINDOW_END.isoformat(), "OUT": (WINDOW_END + dt.timedelta(days=1)).isoformat()}
+    series_by_customer, verdicts = fdp.fabric_providers_for_book(**_book(
+        customers=[{"customer_id": cid, "acquisition_date": joins[cid]} for cid in households],
+        household_at_date=lambda cid, _date_str: households[cid],
+    ))
+    assert sorted(series_by_customer) == ["IN"]
+    out = next(v for v in verdicts if v.customer_id == "OUT")
+    assert out.is_eligible is False
+    assert out.reason.startswith(fdp.JOINS_AFTER_WINDOW_REFUSAL)
+    # A late joiner is not the archive stopping short: the emptied-switch alarm must not count it.
+    assert fdp.coverage_refusals(verdicts) == []
+
+
 def test_the_switch_control_passes_on_a_correctly_switched_book():
     _, verdicts = fdp.fabric_providers_for_book(**_book())
     providers = {
