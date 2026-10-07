@@ -58,6 +58,7 @@ from company.interfaces.growth_desk import (
     growth_mandate_label,
     mandate_permits_replacement,
     replacement_cost_avoided_gbp,
+    retention_bad_debt_charge,
     retention_engagement,
     retention_value_protected,
 )
@@ -2855,8 +2856,23 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                         channel_by_account=_engagement_channels, fuel=commodity,
                         contract_length_days=CONTRACT_LENGTH_DAYS,
                     ) if policy.retention_weighs_engagement else None
+                    # THE COMPANY'S OWN BAD-DEBT BELIEF ON THE TERM IT PROTECTS (2026-10-07). The
+                    # payment score lifts a debtor's churn belief over the threshold above; valued
+                    # as if it pays, the discount then goes to the worst payers. The rate is the one
+                    # the renewal chain already read for this leg and date; on a run that priced on
+                    # the segment table, or a spliced term, the guard asks the book itself.
+                    _ret_default_belief = None
+                    if policy.retention_nets_bad_debt and segment_for_churn == "resi":
+                        _ret_default_belief = (
+                            _chain_default_belief if _chain_default_belief is not None
+                            else _payment_triad.default_belief_rate(
+                                date.fromisoformat(term_start_str), _company_arrears_state,
+                                payment_method_of=_book_method_of))
+                    _ret_billed = unit_rate * eac_for_ret / 1000.0
                     if retention_value_protected(
-                            expected_margin, acq_cost_saved, _engagement) > ret_cost:
+                            expected_margin, acq_cost_saved, _engagement,
+                            default_belief_rate=_ret_default_belief,
+                            billed=_ret_billed) > ret_cost:
                         # Nudge Physics Layer 1: framing_type is the company's own
                         # comms-cohort choice (observable by construction); the
                         # multiplier below is SIM ground truth (hidden loss-aversion
@@ -2886,6 +2902,9 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                             "outcome": "pending",
                             **({"engagement_estimate": round(_engagement, 4)}
                                if _engagement is not None else {}),
+                            **({"bad_debt_charge_gbp": round(retention_bad_debt_charge(
+                                _ret_default_belief, _ret_billed), 2)}
+                               if _ret_default_belief is not None else {}),
                         })
                     else:
                         _no_offer_reason = "uneconomical"
