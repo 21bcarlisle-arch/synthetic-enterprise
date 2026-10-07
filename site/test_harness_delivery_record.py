@@ -159,13 +159,15 @@ def test_an_empty_WHAT_IT_GOT_WRONG_says_WHICH_kind_of_empty_it_is(rendered):
     body = _text(rendered["delivery-wrong"]["innerHTML"])
     assert body and body != "None"
 
-    entries = (json.loads((DATA / "delivery.json").read_text(encoding="utf-8"))
-               .get("what_it_got_wrong") or {}).get("entries") or []
+    panel = (json.loads((DATA / "delivery.json").read_text(encoding="utf-8"))
+             .get("what_it_got_wrong") or {})
+    entries = panel.get("entries") or []
     if entries:
         # POPULATED: the panel must actually carry the mistakes, not a summary of them. Read the
-        # first entry's own words back out of the rendering, so a panel that renders the count
-        # and drops the text fails here rather than passing on a plausible-looking number.
-        first = _text(entries[0].get("what", ""))[:60]
+        # first problem's own words back out of the rendering, so a panel that renders the count
+        # and drops the text fails here rather than passing on a plausible-looking number. The
+        # words live on `problems[]` (one home); a feed older than that carries them on the row.
+        first = _text(((panel.get("problems") or entries)[0]).get("what", ""))[:60]
         assert first and first in body, (
             "the panel has {} recorded mistake(s) and does not carry the first one's text -- a "
             "reader is being told the number and not the finding".format(len(entries))
