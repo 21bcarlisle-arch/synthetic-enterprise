@@ -155,6 +155,19 @@ def register_drawn_points(points: list[SupplyPoint]) -> list[SupplyPoint]:
     return _register_drawn_customers(points)
 
 
+def withdraw_drawn_points(customer_ids) -> int:
+    """Take drawn points back off the book: exactly these ids, and nothing else the run drew.
+
+    For a caller that registered points only to ask the world about them and must leave the book
+    as it found it (`simulation.coin_drawn_decision_set`). Returns how many were withdrawn.
+    """
+    ids = set(customer_ids)
+    kept = [p for p in DRAWN_CUSTOMERS if p["customer_id"] not in ids]
+    withdrawn = len(DRAWN_CUSTOMERS) - len(kept)
+    DRAWN_CUSTOMERS[:] = kept
+    return withdrawn
+
+
 def registered_point(customer_id: str) -> SupplyPoint | None:
     """Look a point up by its identifier across all FIVE registration books.
 

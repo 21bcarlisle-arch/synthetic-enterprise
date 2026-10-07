@@ -160,3 +160,77 @@ def learned_correction(payment_method: str | None, fuel: str | None,
     else:
         sums = ledger.closed_slope_sums(str(payment_method), str(fuel), int(renewal_year))
     return slope_reading(sums, str(payment_method), str(fuel)).delta
+
+
+# --- B8: the offer's effect, from the company's own coin-drawn holdout -------------------------
+#
+# The slope above is learned from renewals the company priced by its own rule, which is why it can
+# never identify an OFFER's effect: on the settled book every renewal above the belief threshold is
+# offered, so no comparison holds the belief fixed (`3811342db`). A holdout breaks that by
+# construction. The company flips its own coin at each renewal and compares the arms. It sees only
+# who stayed, so the estimate is a difference of two shares, and its interval is the whole claim.
+
+#: The coverage of the interval the estimate is published with. Not a domain figure: the
+#: convention the census in `3811342db` used, kept so the two read on one scale.
+INTERVAL_COVERAGE = 0.95
+
+
+@dataclass(frozen=True)
+class OfferEffectEstimate:
+    """What a holdout says an offer did to staying: treated stay share minus held-out stay share."""
+
+    treated: int
+    held_out: int
+    stayed_treated: int
+    stayed_held_out: int
+    effect: float | None
+    low: float | None
+    high: float | None
+    verdict: str
+    reason: str
+
+
+def _wilson(stayed: int, n: int, z: float) -> tuple[float, float, float]:
+    p = stayed / n
+    centre = (p + z * z / (2 * n)) / (1 + z * z / n)
+    half = z * math.sqrt(p * (1 - p) / n + z * z / (4 * n * n)) / (1 + z * z / n)
+    return p, centre - half, centre + half
+
+
+def estimate_offer_effect(observations) -> OfferEffectEstimate:
+    """The offer's effect on staying from the company's own holdout rows alone (each row: `arm`
+    "treated" or "holdout", `stayed`). The interval is Newcombe's hybrid score interval for a
+    difference of two proportions, the one the `3811342db` census used.
+
+    THE VERDICT IS THE INTERVAL'S, NEVER THE POINT'S: "raises staying" only when the whole interval
+    is above zero, "lowers staying" only when it is wholly below, and "undecided" otherwise -- an
+    underpowered holdout is a result, not a failure. An arm with no rows is refused by name: a
+    difference against nothing is not an estimate.
+    """
+    from statistics import NormalDist
+
+    counts = {"treated": [0, 0], "holdout": [0, 0]}
+    for row in observations:
+        arm = counts.get(row["arm"])
+        if arm is None:
+            raise ValueError(f"a holdout row names no arm the company ran: {row['arm']!r}")
+        arm[0] += 1
+        arm[1] += bool(row["stayed"])
+    (n1, s1), (n0, s0) = counts["treated"], counts["holdout"]
+    if not n1 or not n0:
+        empty = "treated" if not n1 else "holdout"
+        return OfferEffectEstimate(n1, n0, s1, s0, None, None, None, "refused",
+                                   f"the {empty} arm holds no decision, so nothing is compared")
+    z = NormalDist().inv_cdf(0.5 + INTERVAL_COVERAGE / 2)
+    p1, l1, u1 = _wilson(s1, n1, z)
+    p0, l0, u0 = _wilson(s0, n0, z)
+    d = p1 - p0
+    low = d - math.sqrt((p1 - l1) ** 2 + (u0 - p0) ** 2)
+    high = d + math.sqrt((u1 - p1) ** 2 + (p0 - l0) ** 2)
+    if low > 0:
+        verdict, reason = "raises_staying", "the whole interval is above zero"
+    elif high < 0:
+        verdict, reason = "lowers_staying", "the whole interval is below zero"
+    else:
+        verdict, reason = "undecided", "the interval spans zero at this many decisions"
+    return OfferEffectEstimate(n1, n0, s1, s0, d, low, high, verdict, reason)

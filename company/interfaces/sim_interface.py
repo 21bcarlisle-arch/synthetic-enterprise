@@ -745,3 +745,28 @@ def build_sim_interface(
     return StubSimInterface(
         flex_venue_clock=flex_venue_clock, flex_registrations=flex_registrations
     )
+
+
+#: B8: what the company may read of one coin-drawn renewal decision -- its own account, the date,
+#: which arm its own coin put the household in, the rate it offered, whether the household stayed,
+#: how it pays, and the bills it sent. An ALLOW-list, so a truth field added to the world's row
+#: (`simulation.coin_drawn_decision_set`: the world's P(stay) at either offer, the roll) cannot
+#: cross by default; it has to be named here.
+HOLDOUT_OBSERVABLE_FIELDS = (
+    "account", "decision_date", "arm", "offer_unit_rate", "stayed", "payment_method",
+    "monthly_bills",
+)
+
+
+def holdout_decision_observations(world_rows) -> list[dict]:
+    """The company's view of a coin-drawn decision set: each row projected onto
+    `HOLDOUT_OBSERVABLE_FIELDS`. A row missing one of them is refused by name rather than passed
+    short, because an estimator reading a half-filled row would count it in neither arm."""
+    out = []
+    for row in world_rows:
+        missing = [k for k in HOLDOUT_OBSERVABLE_FIELDS if k not in row]
+        if missing:
+            raise KeyError(f"a holdout decision row lacks the observable(s) {missing}: "
+                           "the company cannot see a decision it was not told about")
+        out.append({k: row[k] for k in HOLDOUT_OBSERVABLE_FIELDS})
+    return out

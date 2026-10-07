@@ -109,3 +109,40 @@ def test_a_renewal_before_the_cap_is_booked_so_learning_can_start_in_2017():
         estimate_renewal_churn(obs)
     sums = ledger.slope_sums.get(("direct_debit", "electricity", 2017))
     assert sums is not None and sums["n"] == 1, "a pre-cap renewal taught the company nothing"
+
+
+# --- the offer's effect from the company's own holdout ----------------------------------------
+
+def _holdout(treated_stayed, treated_n, held_stayed, held_n):
+    return ([{"arm": "treated", "stayed": i < treated_stayed} for i in range(treated_n)]
+            + [{"arm": "holdout", "stayed": i < held_stayed} for i in range(held_n)])
+
+
+def test_the_offer_effect_interval_is_newcombes_published_one():
+    """DEFECT: a home-made interval that reads plausibly and is wrong. Newcombe (1998), method 10,
+    worked example 56/70 against 48/80: difference 0.2000, interval 0.0524 to 0.3339."""
+    est = dps.estimate_offer_effect(_holdout(56, 70, 48, 80))
+    assert round(est.effect, 4) == 0.2000
+    assert (round(est.low, 4), round(est.high, 4)) == (0.0524, 0.3339)
+
+
+def test_every_verdict_is_reachable_and_each_is_the_intervals():
+    """DEFECT: a verdict read off the point estimate, or one branch that can never be taken. All
+    four verdicts must be reachable, and a point above zero with an interval spanning it is
+    undecided."""
+    verdicts = {
+        dps.estimate_offer_effect(_holdout(600, 1000, 500, 1000)).verdict,
+        dps.estimate_offer_effect(_holdout(500, 1000, 600, 1000)).verdict,
+        dps.estimate_offer_effect(_holdout(52, 100, 50, 100)).verdict,
+        dps.estimate_offer_effect(_holdout(5, 10, 0, 0)).verdict,
+    }
+    assert verdicts == {"raises_staying", "lowers_staying", "undecided", "refused"}
+    small = dps.estimate_offer_effect(_holdout(52, 100, 50, 100))
+    assert small.effect > 0 and small.verdict == "undecided"
+
+
+def test_an_empty_arm_is_refused_by_name_never_estimated():
+    """DEFECT (fail-open): a difference against an empty arm returned as an effect."""
+    est = dps.estimate_offer_effect(_holdout(0, 0, 40, 100))
+    assert est.effect is None and est.low is None and est.verdict == "refused"
+    assert "treated" in est.reason
