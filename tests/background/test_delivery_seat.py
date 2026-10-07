@@ -296,6 +296,7 @@ def test_the_write_scope_is_CLOSED_and_holds_no_code_path():
     assert set(d.WRITE_SCOPE) == {
         "docs/direction/DIRECTION.yaml",
         "docs/direction/decisions.jsonl",
+        "docs/direction/wrong_triage.yaml",
         "site/data/delivery.json",
     }
     for path in d.WRITE_SCOPE:

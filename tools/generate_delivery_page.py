@@ -136,6 +136,55 @@ def what_it_decided() -> dict:
     }
 
 
+def _distinct_problems(wrong: list[dict]) -> dict:
+    """The headline: DISTINCT problems, not rows (director, 2026-10-07: *"987 open, 82 corrected
+    ... counts rows, not problems: each orientation copies every unfixed item forward"*).
+
+    Identity is `direction.wrong_problem_key` -- the triage register's `match` phrases, else the
+    first sentence with the provenance prefix stripped -- the SAME rule the write-time refusal
+    uses, so the panel and the refusal cannot disagree about what one problem is. With no
+    register the panel still counts distinct by first sentence and says nothing is triaged.
+
+    `wrong` is newest first (`read_decisions`), so each problem's first row is its latest words.
+    """
+    triage, register_note = direction_mod.read_wrong_triage()
+    by_key: dict[str, dict] = {}
+    for w in wrong:
+        key = direction_mod.wrong_problem_key(w["what"], triage)
+        p = by_key.get(key)
+        if p is None:
+            hit = direction_mod.triage_match(w["what"], triage)
+            p = by_key[key] = {
+                "key": key, "what": w["what"], "last_at": w["at"], "first_at": w["at"],
+                "times_listed": 0, "corrected": w["corrected"],
+                "fate": hit.get("fate") if hit else None,
+                "status": hit.get("status") if hit else None,
+                "retired": bool(hit) and direction_mod.triage_is_retired(hit),
+                "owner": hit.get("owner") if hit else None,
+                "reason": hit.get("reason") if hit else None,
+            }
+        p["times_listed"] += 1
+        p["first_at"] = w["at"]
+    problems = list(by_key.values())
+    by_fate = {f: sum(1 for p in problems if p["fate"] == f) for f in direction_mod.WRONG_FATES}
+    untriaged = sum(1 for p in problems if p["fate"] is None)
+    # An untriaged problem whose LATEST listing says corrected is closed by the seat's own word.
+    untriaged_open = sum(1 for p in problems if p["fate"] is None and p["corrected"] is not True)
+    fix_open = sum(1 for p in problems if p["fate"] == "fix" and p["status"] == "open")
+    return {
+        "problems": problems,
+        "distinct": len(problems),
+        "triaged": len(problems) - untriaged,
+        "triaged_by_fate": by_fate,
+        "untriaged": untriaged,
+        # GENUINELY OPEN = a fix still to make, plus anything untriaged and not marked corrected.
+        # An untriaged problem is counted open because nothing says otherwise, not because it is.
+        "distinct_open": fix_open + untriaged_open,
+        "rows": len(wrong),
+        "triage_register": register_note or "read",
+    }
+
+
 def what_it_got_wrong() -> dict:
     """Errors the seat recorded, and whether they were corrected.
 
@@ -158,6 +207,7 @@ def what_it_got_wrong() -> dict:
                for r in rows if r.get("outcome") == "refused"]
     graded = [w for w in wrong if w["corrected"] is not None]
     return {
+        **_distinct_problems(wrong),
         "entries": wrong,
         "refused_own_records": refused,
         "outstanding": sum(1 for w in graded if not w["corrected"]),

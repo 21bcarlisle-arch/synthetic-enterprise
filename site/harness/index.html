@@ -608,23 +608,51 @@ function renderDeliveryWrong(d) {
      reads as a machine that lists its faults and never repairs them. "not recorded" is kept
      distinct from "not corrected": the rows written before the field survived cannot be graded
      and are not going to be guessed at. */
+  /* DISTINCT PROBLEMS LEAD, ROWS FOLLOW (director, 2026-10-07): "987 open, 82 corrected" counted
+     ROWS, and every orientation copies each unfixed item forward, so one problem listed 39 times
+     read as 39 mistakes. The headline is problems; the row tally is kept, smaller, beneath it.
+     One card per problem, in its latest words, with how often and since when it was listed. */
+  /* A feed written before the generator counted problems has no `problems`: show its rows as
+     before rather than an empty panel, and claim no distinct count it does not carry. */
+  var counted = Array.isArray(w.problems);
+  var problems = counted ? w.problems : items.map(function (x) {
+    return {what: x.what, corrected: x.corrected, last_at: x.at, times_listed: 1};
+  });
+  var fates = w.triaged_by_fate || {};
   var graded = items.filter(function (x) { return x.corrected === true || x.corrected === false; });
-  var tally = graded.length
-    ? '<div class="note"><strong>' + n(w.outstanding || 0) + " still open, " +
-      n(w.corrected || 0) + " corrected</strong>" +
-      ((w.correction_not_recorded || 0)
-        ? ". " + n(w.correction_not_recorded) + " older entries predate the correction state " +
-          "being kept and are shown without one — not recorded, which is not the same as " +
-          "not corrected."
-        : ".") + "</div>"
+  var head = counted && problems.length
+    ? '<div class="note"><strong>' + n(w.distinct || 0) + " distinct problems listed, " +
+      n(w.distinct_open || 0) + " genuinely open</strong>. " +
+      (w.triaged
+        ? n(w.triaged) + " triaged (" + n(fates.fix || 0) + " to fix, " + n(fates.fold || 0) +
+          " folded into a class register, " + n(fates.accept || 0) + " accepted with a reason), " +
+          n(w.untriaged || 0) + " not yet triaged."
+        : "None triaged yet (" + esc(w.triage_register || "no triage register") + ").") +
+      "</div>"
     : "";
-  $("delivery-wrong").innerHTML = items.length
-    ? tally + items.map(function (x) {
+  var rowsNote = graded.length
+    ? '<p class="meta">' + (counted ? "Behind these: " : "") + n(w.rows || items.length) +
+      " rows across the window, " +
+      n(w.outstanding || 0) + " marked still open and " + n(w.corrected || 0) +
+      " corrected — a row is one problem copied into one orientation, not a separate mistake" +
+      ((w.correction_not_recorded || 0)
+        ? ". " + n(w.correction_not_recorded) + " older rows predate the correction state " +
+          "being kept — not recorded, which is not the same as not corrected."
+        : ".") + "</p>"
+    : "";
+  $("delivery-wrong").innerHTML = problems.length
+    ? head + rowsNote + problems.map(function (x) {
         var mark = x.corrected === true ? " &middot; corrected"
           : x.corrected === false ? " &middot; still open"
           : " &middot; correction not recorded";
-        return '<div class="card"><div class="meta">' + dt(x.at) + mark + "</div><p>" +
-          esc(x.what) + "</p></div>";
+        var fate = !counted ? ""
+          : x.fate
+          ? " &middot; triaged: " + esc(x.fate) + (x.status ? " (" + esc(x.status) + ")" : "")
+          : " &middot; not triaged";
+        var span = x.times_listed > 1
+          ? " &middot; listed " + n(x.times_listed) + " times since " + dt(x.first_at) : "";
+        return '<div class="card"><div class="meta">' + dt(x.last_at) + mark + fate + span +
+          "</div><p>" + esc(x.what) + "</p></div>";
       }).join("")
     : '<div class="note">' + esc(w.empty_means || "Nothing recorded.") + "</div>";
   if ((w.refused_own_records || []).length) {
