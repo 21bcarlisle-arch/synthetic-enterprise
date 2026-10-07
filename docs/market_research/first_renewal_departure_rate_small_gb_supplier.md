@@ -64,6 +64,18 @@ households**, not households at a term end, so it has the same identification pr
 (Octopus, Ovo, Bulb) found no per-renewal departure figure. Octopus's FY25 report says churn
 "was reviewed" and gives no rate.
 
+**The arm is a CONDITIONAL split, and that decides what it can be compared with** (added
+2026-10-07, PB4 D1). §3.1 admits only customers who *"had not made the decision to switch a few
+days before the end date"*. §5.3 says *"many of the customers on these same tariffs will have
+already made an active choice to switch to a new tariff before this point"*. So 81% default / 14%
+internal / 6% external is P(outcome | no action by T−2 days). It is not the split over all
+fixed-term ends. The report does not publish the size of the early-acting group. With an
+early-acting share `a`, the unconditional default share is `(1−a)·0.81`. The world's 65/31/4.5
+reproduces the arm at `a ≈ 0.20` if nearly all early actors re-fix with the incumbent. Ofgem's
+2017 consultation on end-of-fixed-term default tariffs (¶2.8) gives an upper bound: after the
+notice, 32% *looked into* a new tariff with their supplier and 25% *looked into* switching
+supplier. The unconditional roll-over share is still unpublished (the 2018 RFI, §3.13).
+
 ## What would close it
 
 A per-renewal external departure rate published for a supplier of the company's kind, from its

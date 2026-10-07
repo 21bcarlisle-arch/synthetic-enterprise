@@ -4794,6 +4794,7 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
   <p id="engsep-headline" style="margin:0 0 10px;font-weight:600;"></p>
   <div id="engsep-archetype"></div>
   <div id="engsep-channel"></div>
+  <div id="engsep-emerged"></div>
   <p id="engsep-construction" style="margin:14px 0 0;font-size:13px;"></p>
   <p id="engsep-gap" style="margin:10px 0 0;font-size:13px;"></p>
   <p id="engsep-note" class="stamp" style="margin-top:12px;"></p>
@@ -4859,6 +4860,62 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
         "By how inclined a household is to shop", "Disposition", d.by_archetype, "archetype");
       $("engsep-channel").innerHTML = table(
         "By how a household pays (the part a supplier can see)", "Pays by", d.by_channel, "channel");
+      /* PB4 D4: the EMERGED pattern -- who actually leaves, from the world's own decisions, by
+         both routes out. A thin cell says so rather than printing a rate. */
+      var em = d.emerged_by_saving || {};
+      var td = function (v, muted) {
+        return '<td style="padding:4px 8px;text-align:right;' + (muted ? 'color:var(--muted)' : '')
+          + '">' + v + '</td>';
+      };
+      var th = function (v) { return '<th style="text-align:right;padding:4px 8px;">' + v + '</th>'; };
+      var rateCell = function (g) {
+        if (g.world_probability_mean == null) return td("n=" + esc(g.n) + ", too few", true);
+        return td(esc(pct(g.world_probability_mean)) + ' <span style="color:var(--muted)">('
+          + esc(g.left) + ' of ' + esc(g.n) + ' left; 95% ' + esc(pct(g.left_ci95[0])) + ' to '
+          + esc(pct(g.left_ci95[1])) + ')</span>');
+      };
+      var wrap = function (caption, head, rows) {
+        return '<div class="table-scroll"><table style="width:100%;border-collapse:collapse;'
+          + 'margin:16px 0 0;font-size:13px;"><caption style="text-align:left;font-weight:600;'
+          + 'padding-bottom:6px;">' + caption + '</caption><tr>' + head + '</tr>' + rows
+          + '</table></div>';
+      };
+      if (!em.available) {
+        $("engsep-emerged").innerHTML = "<p style=\"margin:16px 0 0;font-size:13px;\">Who actually "
+          + "leaves is not shown: " + prose(em.reason || "no world decisions were captured") + ".</p>";
+      } else {
+        var arch = (em.by_archetype || []).map(function (g) {
+          return '<tr><td style="padding:4px 8px 4px 0;">' + esc(labels[g.archetype] || g.archetype)
+            + '</td>' + td(esc(g.households)) + td(esc(g.renewal_roll.n)) + rateCell(g.renewal_roll)
+            + td(esc(pct(g.svt_world_probability_mean))) + td(esc(Number(g.expected_left_per_household).toFixed(2)))
+            + td(esc(g.left_per_household), true) + '</tr>';
+        }).join("");
+        /* The verdict is the feed's, not the page's: disengaged against active expected departures. */
+        var exp = {};
+        (em.by_archetype || []).forEach(function (g) { exp[g.archetype] = g.expected_left_per_household; });
+        var ratio = (exp.active > 0 && exp.disengaged != null) ? exp.disengaged / exp.active : null;
+        var fewer = ratio != null && ratio < 1;
+        var bands = (em.looked_by_saving || []).map(function (b) {
+          return '<tr><td style="padding:4px 8px 4px 0;">' + esc(b.band) + '</td>' + rateCell(b) + '</tr>';
+        }).join("");
+        $("engsep-emerged").innerHTML = wrap("Who actually leaves, in one simulated run",
+            '<th style="text-align:left;padding:4px 8px 4px 0;">Disposition</th>' + th("Households")
+            + th("Looked at a deal's end") + th("Left, having looked") + th("Left the default tariff, per price-cap period")
+            + th("Expected departures per household") + th("Counted"), arch)
+          + wrap("Households that looked: does leaving rise with the saving on offer?",
+            '<th style="text-align:left;padding:4px 8px 4px 0;">Saving on offer elsewhere</th>'
+            + th("Left, having looked"), bands)
+          + '<p style="margin:6px 0 0;font-size:13px;"><strong>The pattern the real market shows is '
+          + (fewer ? 'reproduced here in direction' : 'not reproduced here') + '.</strong> Real households '
+          + 'that rarely shop switch less. In this world they look less often when a deal ends, and once '
+          + 'on the default tariff they drift off it at the rate Ofgem\'s 2017 trial bounds for households '
+          + 'that ignore their supplier\'s letters: no more than about half the rate of those who read them. '
+          + 'Over the run a disengaged household is expected to leave '
+          + esc(ratio == null ? 'an unknown multiple of' : ratio.toFixed(2) + ' times') + ' as often as an '
+          + 'active one. Each rate is the world\'s own chance, '
+          + 'averaged over ' + esc(em.renewal_decisions) + ' deal-end decisions and ' + esc(em.svt_decisions)
+          + ' default-tariff price-cap periods; the counted column is what the dice gave.</p>';
+      }
       $("engsep-construction").innerHTML = "<strong>What this does and does not show.</strong> "
         + prose(d.by_construction) + " Looks when the deal ends: " + prose(d.definitions.engagement)
         + ". Price sensitivity: " + prose(d.definitions.elasticity) + ".";

@@ -69,3 +69,45 @@ def test_the_bill_shock_gap_is_published_while_the_world_carries_none():
     assert block["established"] is (hs.BILL_SHOCK_ENGAGEMENT_MULTIPLIER is not None)
     if not block["established"]:
         assert block["gap"] and block["code_gap"] == hs.BILL_SHOCK_ENGAGEMENT_GAP
+
+
+def _row(cid: str, diff, churned: bool, p: float = 0.1) -> dict:
+    return {"customer_id": cid, "price_differential_vs_market_reference": diff,
+            "event_type": "churned" if churned else "renewed", "realized_churn_probability": p}
+
+
+def test_every_saving_band_can_be_reached_and_a_thin_cell_is_refused_a_rate():
+    """PB4 D4. The partition control first: one decision per band lands in that band and no other,
+    so no band is structurally empty. Then the refusal: below MIN_CELL a cell carries no rate,
+    and at MIN_CELL it does -- a cell that never prints a rate passes every 'too few' check."""
+    bands = es.looked_by_saving([_row("A", d, False) for d in (-0.02, 0.03, 0.10, 0.30)])
+    assert [b["n"] for b in bands] == [1] * 4
+    assert all(b["world_probability_mean"] is None for b in bands)
+
+    cell = es.looked_by_saving([_row("A", 0.10, i < 3, 0.2) for i in range(es.MIN_CELL)])[2]
+    assert cell["world_probability_mean"] == 0.2 and cell["left"] == 3
+    lo, hi = cell["left_ci95"]
+    assert lo < 0.3 < hi
+
+
+def test_both_routes_are_counted_per_archetype_and_only_for_the_book():
+    """DEFECT: the renewal roll alone holds almost only households that LOOKED, so a per-archetype
+    reading over it measures leaving-given-looking. The default-tariff route must be counted too,
+    and a household not on the resi book (an SME, an unknown id) must not be."""
+    renewals = [_row("A", 0.0, True, 0.4), _row("SME1", 0.0, True, 0.9)]
+    svt = [{"customer_id": "D", "event_type": "churned", "realized_churn_probability": 0.03,
+            "sim_segment_days": 365.25},
+           {"customer_id": "D", "event_type": "stayed", "realized_churn_probability": 0.03,
+            "sim_segment_days": 365.25}]
+    rows = {g["archetype"]: g for g in es.by_archetype_both_routes(
+        renewals, svt, {"A": "active", "D": "disengaged"})}
+    assert rows["active"]["renewal_roll"]["n"] == 1 and rows["active"]["svt_left"] == 0
+    assert rows["disengaged"]["svt_left"] == 1 and rows["disengaged"]["svt_years"] == 2.0
+    assert rows["disengaged"]["expected_left_per_household"] == 0.06
+    assert rows["passive"]["households"] == 0
+
+
+def test_a_missing_capture_is_an_absence_with_its_reason(monkeypatch, tmp_path):
+    monkeypatch.setattr(es, "CAPTURE_PATH", tmp_path / "absent.json")
+    block = es.emerged()
+    assert block["available"] is False and "no world capture" in block["reason"]

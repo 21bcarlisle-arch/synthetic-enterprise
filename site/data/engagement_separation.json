@@ -1,10 +1,10 @@
 {
   "available": true,
-  "generated_at": "2026-10-05T21:12:17Z",
+  "generated_at": "2026-10-07T02:00:35Z",
   "published_from": {
-    "commit": "998814330c298a6f749b14a311739618ffa7de16",
+    "commit": "f65cf94228f1278113ff3898e02180b92a17b119",
     "tree_was_clean": false,
-    "inputs_are_the_committed_bytes": true,
+    "inputs_are_the_committed_bytes": false,
     "inputs": [
       {
         "path": "simulation/household_segments.py",
@@ -21,9 +21,13 @@
       {
         "path": "tools/engagement_separation.py",
         "state": "committed"
+      },
+      {
+        "path": "docs/reports/pb4_departure_factors.json",
+        "state": "modified"
       }
     ],
-    "reason": "every input named here matches this commit, but the tree carried other uncommitted changes, and this generator reads more than the paths it names \u2014 so standing at this commit may still not reproduce this feed"
+    "reason": "read off the working tree, not out of this commit: docs/reports/pb4_departure_factors.json \u2014 standing at this commit will not reproduce this feed"
   },
   "headline": "Of the 25 disengaged households on the book -- the long-default tail, the least likely to choose at a renewal -- 11 are MORE price-sensitive than the book's average household. Whether a household shops and how far price moves it once it does are two different facts in this world: across 125 households their rank correlation is -0.04, inside the -0.18 to +0.16 that shuffling the pairs produces.",
   "definitions": {
@@ -36,6 +40,102 @@
     "value": null,
     "gap": "no published study gives it; the nearest published figures (Ofgem's survey of households in arrears or finding bills hard to pay) describe a household's circumstances rather than its response to an event, and cannot be separated from the payment-method effect the world already applies; and the bill's size is not the trigger -- in 2022 every bill rose and switching collapsed",
     "code_gap": "the amplitude by which a bill-shock event raises engagement is not established in the published record: no source gives it, the closest published magnitudes (Ofgem CIM w6 Table 56, arrears 1.6x / bill difficulty 1.7x) are ratios over a STATE rather than responses to an EVENT and are unseparated from the payment-channel effect this module already applies, and the bill-LEVEL form was refuted on 2026-09-22 (docs/market_research/is_there_a_bill_level_at_which_switching_rises.md \u00a76)"
+  },
+  "emerged_by_saving": {
+    "available": true,
+    "captured_at_commit": "beb4f8533",
+    "renewal_decisions": 71,
+    "svt_decisions": 1764,
+    "by_archetype": [
+      {
+        "archetype": "active",
+        "households": 56,
+        "renewal_roll": {
+          "n": 55,
+          "left": 16,
+          "world_probability_mean": 0.3386,
+          "left_ci95": [
+            0.1877,
+            0.4214
+          ]
+        },
+        "svt_years": 124.2,
+        "svt_left": 15,
+        "svt_left_per_year": 0.1207,
+        "left_per_household": 0.554,
+        "svt_world_probability_mean": 0.0288,
+        "expected_left_per_household": 0.654
+      },
+      {
+        "archetype": "passive",
+        "households": 42,
+        "renewal_roll": {
+          "n": 11,
+          "left": 3,
+          "world_probability_mean": 0.4069,
+          "left_ci95": [
+            0.0975,
+            0.5656
+          ]
+        },
+        "svt_years": 113.1,
+        "svt_left": 21,
+        "svt_left_per_year": 0.1857,
+        "left_per_household": 0.571,
+        "svt_world_probability_mean": 0.0309,
+        "expected_left_per_household": 0.522
+      },
+      {
+        "archetype": "disengaged",
+        "households": 25,
+        "renewal_roll": {
+          "n": 5,
+          "left": 3,
+          "world_probability_mean": null,
+          "left_ci95": null
+        },
+        "svt_years": 112.7,
+        "svt_left": 5,
+        "svt_left_per_year": 0.0444,
+        "left_per_household": 0.32,
+        "svt_world_probability_mean": 0.0138,
+        "expected_left_per_household": 0.397
+      }
+    ],
+    "looked_by_saving": [
+      {
+        "band": "no saving",
+        "n": 52,
+        "left": 14,
+        "world_probability_mean": 0.3481,
+        "left_ci95": [
+          0.1677,
+          0.4025
+        ]
+      },
+      {
+        "band": "up to 5%",
+        "n": 7,
+        "left": 4,
+        "world_probability_mean": null,
+        "left_ci95": null
+      },
+      {
+        "band": "5% to 15%",
+        "n": 8,
+        "left": 3,
+        "world_probability_mean": null,
+        "left_ci95": null
+      },
+      {
+        "band": "over 15%",
+        "n": 4,
+        "left": 1,
+        "world_probability_mean": null,
+        "left_ci95": null
+      }
+    ],
+    "source": "docs/reports/pb4_departure_factors.json"
   },
   "households": 125,
   "run_base_seed": 20260724,
