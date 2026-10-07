@@ -749,12 +749,12 @@ def build_sim_interface(
 
 #: B8: what the company may read of one coin-drawn renewal decision -- its own account, the date,
 #: which arm its own coin put the household in, the rate it offered, whether the household stayed,
-#: how it pays, and the bills it sent. An ALLOW-list, so a truth field added to the world's row
+#: how it pays, the bills it sent and the kWh it billed. An ALLOW-list, so a truth field added to the world's row
 #: (`simulation.coin_drawn_decision_set`: the world's P(stay) at either offer, the roll) cannot
 #: cross by default; it has to be named here.
 HOLDOUT_OBSERVABLE_FIELDS = (
     "account", "decision_date", "arm", "offer_unit_rate", "stayed", "payment_method",
-    "monthly_bills",
+    "monthly_bills", "billed_kwh",
 )
 
 

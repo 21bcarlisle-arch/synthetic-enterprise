@@ -178,6 +178,13 @@ def monthly_bills(records: list[dict], through: dt.date) -> list[float]:
     return [round(by_month[m], 2) for m in months]
 
 
+def billed_kwh(records: list[dict], through: dt.date) -> float:
+    """The kWh billed over the trailing year before `through`: what a cut per MWh is charged on."""
+    since = (through - dt.timedelta(days=365)).isoformat()
+    return round(sum(r["consumption_kwh"] for r in records
+                     if since <= r["settlement_date"] < through.isoformat()), 1)
+
+
 def world_renewal(customer, decision_date: dt.date, records: list[dict], old_rate: float,
                   offer: float) -> tuple[float, bool] | None:
     """The world's P(stay) for this household at this renewal at `offer`, and whether it stays,
@@ -247,6 +254,7 @@ def build_decision_set(seed: int, *, cut_gbp_per_mwh: float, planted_effect: flo
                     "offer_unit_rate": round(offer, 4), "stayed": stayed,
                     "payment_method": c.payment_method,
                     "monthly_bills": monthly_bills(records, decision),
+                    "billed_kwh": billed_kwh(records, decision),
                     # WORLD TRUTH below this line: the seam's allow-list never passes it.
                     "p_stay_holdout": p_hold, "p_stay_treated": p_treat, "roll": roll,
                 })
