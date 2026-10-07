@@ -93,3 +93,69 @@ def test_a_non_probability_is_refused_with_its_value():
     with pytest.raises(ValueError, match="1.2"):
         cr.engaged_probability_after_contact(1.2, True)
 
+
+
+# ── Between boundaries, on default-tariff stock (PB4 R6) ─────────────────────────────────────────
+
+
+@pytest.mark.parametrize("instrument,control,contacted", [
+    ("cmol_supplier_letter",
+     cr.CMOL_CONTROL_SWITCHING_SHARE, cr.CMOL_SUPPLIER_LETTER_SWITCHING_SHARE),
+    ("cmoc_letter", cr.CMOC_CONTROL_SWITCHING_SHARE, cr.CMOC_CONTACTED_SWITCHING_SHARE),
+    ("collective_switch",
+     cr.COLLECTIVE_SWITCH_CONTROL_SWITCHING_SHARE, cr.COLLECTIVE_SWITCH_CONTACTED_SWITCHING_SHARE),
+])
+def test_each_svt_stock_woken_share_returns_its_own_trials_contacted_rate(
+    instrument, control, contacted,
+):
+    """DEFECT: a woken share drifts from the published pair it is derived from, or is keyed to the
+    wrong trial.
+
+    A household whose every choice is a switch (`churn_if_choosing=1.0`), drifting at the trial's
+    control rate, must switch at the trial's contacted rate. MUTATION: pointing the CMOC entry at
+    the collective-switch pair reds the CMOC case.
+    """
+    got = cr.svt_departure_after_contact(
+        instrument=instrument, p_drift=control, churn_if_choosing=1.0)
+    assert got == pytest.approx(contacted)
+
+
+def test_a_disengaged_households_elasticity_reaches_its_departure_once_it_is_woken_on_svt():
+    """DEFECT (the R6 disqualifier): on SVT, a household's elasticity reaches no behaviour, so
+    "a disengaged household is not assumed price-insensitive" is true of a weight nothing reads.
+
+    The branch must be TAKEABLE first: at our premium, the more elastic household leaves more; at a
+    discount, it leaves LESS (elasticity is two-sided, not spite); at parity it makes no difference.
+    MUTATION: passing `1.0` instead of `elasticity` to `perceived_price_differential` reds all three
+    inequalities.
+    """
+    def leave(premium, elasticity):
+        c = cr.churn_if_choosing_off_svt(
+            our_premium_pct=premium, elasticity=elasticity, annual_bill_gbp=1100.0,
+            level_anchor=6.2)
+        return cr.svt_departure_after_contact(
+            instrument="collective_switch", p_drift=0.05, churn_if_choosing=c)
+
+    assert leave(0.20, 2.5) > leave(0.20, 1.0) > leave(0.20, 0.3)
+    assert leave(-0.10, 2.5) < leave(-0.10, 0.3)
+    assert leave(0.0, 2.5) == pytest.approx(leave(0.0, 0.3))
+
+
+def test_a_contact_never_lowers_this_segments_departure_and_without_waking_changes_nothing():
+    """DEFECT: the drift is replaced rather than kept (a contact would put a drifter to sleep), or a
+    woken household that re-fixes with us is counted as leaving.
+
+    MUTATION: `return (1 - woken) * p_drift + woken * churn_if_choosing` reds the first assertion
+    (a woken household below the drift would then pull the segment under it).
+    """
+    for instrument in cr.WOKEN_SHARE_OF_SVT_STOCK:
+        assert cr.svt_departure_after_contact(
+            instrument=instrument, p_drift=0.05, churn_if_choosing=0.01) >= 0.05
+        assert cr.svt_departure_after_contact(
+            instrument=instrument, p_drift=0.05, churn_if_choosing=0.0) == 0.05
+
+
+def test_an_unsourced_instrument_is_refused_by_name():
+    with pytest.raises(ValueError, match="text_message"):
+        cr.svt_departure_after_contact(
+            instrument="text_message", p_drift=0.05, churn_if_choosing=0.2)

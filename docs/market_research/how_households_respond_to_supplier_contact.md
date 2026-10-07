@@ -90,6 +90,51 @@ arm against 146 in the control arm over the trial period. With arms of ~9,777 an
 2.04% against 1.49%. The supplier attributed it to *"customers who were surprised they were to be
 defaulted on to a more expensive tariff"*.
 
+**2.7 Default-tariff stock between fixed-term boundaries: the woken share depends on the
+instrument, and the saving gradient is observational only.** *Read 2026-10-07 for PB4 R6 (claim
+`pb4-r6-the-woken-share-for-svt-stock-between-boundaries`), from the CMOL report and technical
+annex (Nov 2017), the CMOC report (Sept 2019) and the Collective Switch final report (Sept 2019),
+each read from the PDF text.* The woken share is computed the same way as in §2.2: (treated −
+control) / (1 − control). Every trial below counts **any** switch, internal or external, so "woken"
+here means "acted", as it does at EFTC.
+
+| trial | population | window | control | treated | woken share | mean saving shown |
+|---|---|---|---|---|---|---|
+| CMOL, Ofgem-branded letter | SVT >1 yr, 2 suppliers, n=137,876 | 30 days | 1.0% | 2.4% | 0.014 | £203-£301 by supplier and tenure (Table 1) |
+| CMOL, supplier-branded letter | same | 30 days | 1.0% | 3.4% | 0.024 | same |
+| CMOC, all arms | default tariff, 5 suppliers, ~600,000 | 30 days | 2.9% | 6.8% | 0.040 | £231 realised among switchers |
+| Collective Switch 1 | SVT 3+ yrs, one large supplier, ~50,000 | three letters over 7 weeks, to tariff close | 2.6% | 22.4% | 0.203 | "over £300" average |
+
+So **the instrument, not the saving, sets the level.** The savings shown are of the same order
+(£200-£300) across all three, and the woken share runs from 0.014 to 0.203, a factor of about 14.
+What separates them is friction: the Collective Switch added a negotiated exclusive tariff, a
+telephone service, a savings letter and a reminder with a deadline. Within CMOC the only design
+change with *"any substantive impact"* was the reminder (+27%).
+
+What the record says about the **saving gradient**, and why none of it is causal:
+
+- **CMOL technical annex, §12 (pooled OLS, all three arms, n=137,876).** The coefficient on the
+  potential saving shown on the letter is **0.0000522 per £** (s.e. 0.0000039), i.e. **+0.52 pp of
+  30-day switching per £100**, with a control mean of 1.0%. Saving enters as a main effect, not
+  interacted with treatment, so it describes switching across the whole sample (contacted and not)
+  and does not identify how the *woken* share varies with saving. The saving is also not
+  randomised: it rises with consumption, which correlates with engagement. CMOL §3.12 attributes the
+  supplier difference (£293 vs £203 mean saving) mainly to the saving, from qualitative interviews.
+- **CMOC §3.42 and fn. 43.** *"For every additional £100 of potential savings, the probability of
+  switching increases by 1.3%"* (1.2% around the mean saving). It is estimated **among contacted
+  customers only** (fn. 41: suppliers *"did not generate potential savings data for customers in
+  the control group"*), so it cannot separate the saving's effect on the woken from its effect on
+  those who would have switched anyway. Ofgem calls the correlation *"relatively modest"*.
+- **Collective Switch §5.8.** *"we saw switching at all levels of potential saving, so it is not
+  the only driver of switching behaviour observed in these trials."* No gradient is published.
+
+**Conclusion: no source pins how the woken share of default-tariff stock scales with the saving.**
+It is carried as a named `None` (`contact_response.WOKEN_SHARE_SAVING_GRADIENT_ON_SVT_STOCK`). The
+two observational gradients, 0.5-1.3 pp per £100 over 30 days, are what the composed world can be
+**graded against**. They are not inputs: under §3 the saving reaches a woken household through
+its own price comparison and its own elasticity. CMOC's prepayment cell (woken 0.004 at £78) shows
+a gradient and a barrier together, and it cannot say which is which (§2.4).
+
 ## 3. What this says the world mechanism should be
 
 The sources agree on one structure, and it needs **no uplift number planted in the world**:
@@ -126,9 +171,11 @@ world's fixed-term decision.
 3. **Persistence of a contact's effect.** Ofgem's 2020 follow-up (`does_a_households_renewal_engagement_persist.md`)
    found no persistence in its control arm (31% against 33%). It attributed the treatment arm's 63%
    to repeated prompting. The first slice gives a contact no memory beyond the decision it lands on.
-4. **The woken share for default-tariff stock between boundaries** (CMOC, collective switch).
-   Their windows (30 days, a negotiated tariff) are not the world's fixed-term decision. The SVT
-   departure route (`inertia_hazard_for_term`) is not touched by this slice.
+4. ~~**The woken share for default-tariff stock between boundaries**~~ **read 2026-10-07, §2.7:**
+   it is established per instrument (0.014-0.024 for a letter, 0.040 for CMOC, 0.203 for the
+   collective switch). Its **saving gradient** is not, and is carried as a named `None`. The world
+   route is `contact_response.svt_departure_after_contact` (§5). It is not wired, because nothing in
+   the world sends a contact yet.
 5. **Complaints as a world outcome.** §2.6 is sourced, but the world has no complaint process for
    it to feed. It is recorded here and not built.
 
@@ -186,3 +233,32 @@ engaged archetype, and inert ones are not. The per-household counterfactual need
 household's churn had it engaged. The run does not log that. Producing it is the wiring's first
 output, and it comes from `departure_change_from_contact` on the coupled roll. Until it exists, this
 table bounds the sign. It does not size it.
+
+**Between boundaries, on default-tariff stock (PB4 R6, 2026-10-07).** The second route is
+`svt_departure_after_contact` + `churn_if_choosing_off_svt`. One contact wakes the instrument's
+share from §2.7 (`WOKEN_SHARE_OF_SVT_STOCK`). A woken household leaves with the churn of an active
+chooser facing our premium over the market's best, felt through its own elasticity and on its own
+bill. If it does not leave, it re-fixes with us. On that segment a contact can only add departures.
+
+Printed at real inputs (2017 level anchor 6.2, bill £1,100), churn of a woken household:
+
+| elasticity | parity | +10% | +20% | +30% |
+|---|---|---|---|---|
+| 0.3 | 0.169 | 0.181 | 0.193 | 0.205 |
+| 1.0 | 0.169 | 0.212 | 0.292 | 0.362 |
+| 2.5 | 0.169 | 0.328 | 0.639 | 0.937 |
+
+So a disengaged household's elasticity now reaches its behaviour through this route, once it is
+woken. Before this, the SVT drift was the only route and it ignored elasticity.
+
+**Graded against §2.7, not fitted to it.** At CMOC's instrument, the 2018 anchor and a saving of
+£131 / £231 / £331, the departure a contact causes rises by **0.09 / 0.19 / 0.63 pp per £100** at
+elasticity 0.5 / 1.0 / 2.0. CMOC observed **1.2-1.3 pp per £100**. The two are not the same
+quantity: CMOC's counts any switch, internal included, among the contacted only, so it includes
+the gradient of those who would have switched anyway. The world's counts external switches caused
+by the contact. Even so, the world's figure is below CMOC's at every elasticity except the
+highest. That is the direction a flat woken share predicts. If a causal saving gradient for the
+woken share is ever published, this gap is what it would close.
+
+**Not wired.** Nothing in the world sends a contact to SVT stock. The sender is the company's
+decision (C34) through the seam, which is level 2 for W2_39 and is not built here.

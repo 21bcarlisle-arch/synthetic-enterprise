@@ -32,9 +32,30 @@ household chose, and what it chose, is observable to a supplier.
 
 NOT WIRED. No run-loop caller passes a contact here yet. Wiring is level 2; the research doc §5
 names the question the wiring has to answer first.
+
+BETWEEN BOUNDARIES, ON DEFAULT-TARIFF STOCK (PB4 R6, 2026-10-07). The SVT drift
+(`departure_risks.svt_inertia_hazard`) has no saving term, so before this a disengaged household's
+elasticity reached behaviour only on the renewal roll, which happened 5 times across 25 such
+households in a run. `svt_departure_after_contact` is the second route. A contact wakes a share of
+the stock, and that share is set by the INSTRUMENT, not the saving: the CMOL, CMOC and Collective
+Switch trials showed savings of the same order and woken shares 14x apart (research doc §2.7). A
+woken household then chooses by price comparison, which `churn_if_choosing_off_svt` gives through
+the world's own loss curve and the household's own elasticity. How the woken share moves with the
+saving is not published causally, and it is carried as `WOKEN_SHARE_SAVING_GRADIENT_ON_SVT_STOCK =
+None`. Nothing in the world sends a contact yet, so this route is not wired either.
 """
 from __future__ import annotations
 
+from simulation.departure_risks import (
+    DECLARED_SENSITIVITY_SCALE,
+    DECLARED_SHOCK_WEIGHT,
+    build_departure_risks,
+    total_departure_probability,
+)
+from simulation.market_switching_propensity import (
+    churn_position_multiplier,
+    perceived_price_differential,
+)
 from simulation.renewal_engagement import rolls_active_renewal
 
 # Ofgem, End of Fixed Term Communications Trial (Sept 2019) §4.1 / Fig. 4.1, n=19,553:
@@ -92,7 +113,98 @@ def departure_change_from_contact(
     return woken * (churn_if_engaged - churn_if_inert)
 
 
+# Ofgem, Cheaper Market Offers Letter trial report and technical annex (Nov 2017): SVT customers
+# of more than a year at two suppliers, n=137,876, any switch within 30 days, supplier-branded arm.
+CMOL_CONTROL_SWITCHING_SHARE = 0.010
+CMOL_SUPPLIER_LETTER_SWITCHING_SHARE = 0.034
+
+# Ofgem, Cheaper Market Offers Communications trials (Sept 2019): default-tariff customers at five
+# suppliers, ~600,000, any switch within 30 days, mean across all treatment arms.
+CMOC_CONTROL_SWITCHING_SHARE = 0.029
+CMOC_CONTACTED_SWITCHING_SHARE = 0.068
+
+# Ofgem, Collective Switch trials final report (Sept 2019), first trial: SVT for 3+ years at one
+# large supplier, ~50,000, three letters over seven weeks with an exclusive tariff and a phone line.
+COLLECTIVE_SWITCH_CONTROL_SWITCHING_SHARE = 0.026
+COLLECTIVE_SWITCH_CONTACTED_SWITCHING_SHARE = 0.224
+
+
+def _woken_share(control: float, contacted: float) -> float:
+    return (contacted - control) / (1.0 - control)
+
+
+#: The share of default-tariff stock that one contact of each kind wakes between fixed-term
+#: boundaries, derived from each trial's two published rates: 0.024 / 0.040 / 0.203. Keyed by the
+#: trial, because what separates these is the instrument (friction removed, a reminder, a
+#: deadline), not the saving it named, which was GBP 200-300 in all three.
+WOKEN_SHARE_OF_SVT_STOCK = {
+    "cmol_supplier_letter": _woken_share(
+        CMOL_CONTROL_SWITCHING_SHARE, CMOL_SUPPLIER_LETTER_SWITCHING_SHARE),
+    "cmoc_letter": _woken_share(CMOC_CONTROL_SWITCHING_SHARE, CMOC_CONTACTED_SWITCHING_SHARE),
+    "collective_switch": _woken_share(
+        COLLECTIVE_SWITCH_CONTROL_SWITCHING_SHARE, COLLECTIVE_SWITCH_CONTACTED_SWITCHING_SHARE),
+}
+
+#: HOW THE WOKEN SHARE OF SVT STOCK MOVES WITH THE SAVING IS NOT ESTABLISHED, so this is None. CMOL's
+#: +0.52 pp per GBP 100 is pooled across arms with saving as a main effect; CMOC's +1.2-1.3 pp per GBP
+#: 100 is among the contacted only; the saving was never randomised in either (research doc §2.7).
+#: Those two figures are what the composed route is GRADED against, not inputs to it. The saving
+#: reaches a woken household through `churn_if_choosing_off_svt`, i.e. through its own elasticity.
+WOKEN_SHARE_SAVING_GRADIENT_ON_SVT_STOCK: float | None = None
+
+
+def churn_if_choosing_off_svt(
+    *, our_premium_pct: float, elasticity: float, annual_bill_gbp: float, level_anchor: float,
+    action_propensity: float = 1.0,
+) -> float:
+    """The probability a woken default-tariff household leaves, rather than re-fixing with us.
+
+    `our_premium_pct` is the best thing we put in front of it (our cheapest fix, or the SVT itself
+    if we offer nothing) against the best the market shows it, as a fraction: +0.2 is 20% dearer.
+    The household feels that through its OWN elasticity, on its OWN bill in pounds, through the
+    loss curve every active renewal uses. Bill shock is zero, since no renewal bill is in front
+    of it, and service is neutral. `level_anchor` is the year's, as at a renewal.
+    """
+    risks = build_departure_risks(
+        bill_shock_base=0.0,
+        price_response=churn_position_multiplier(
+            perceived_price_differential(our_premium_pct, elasticity), annual_bill_gbp),
+        dissatisfaction_response=1.0,
+        action_propensity=action_propensity,
+        sensitivity_scale=DECLARED_SENSITIVITY_SCALE,
+        shock_weight=DECLARED_SHOCK_WEIGHT,
+        level_anchor=level_anchor,
+    )
+    return total_departure_probability(risks)
+
+
+def svt_departure_after_contact(
+    *, instrument: str, p_drift: float, churn_if_choosing: float,
+) -> float:
+    """This SVT segment's departure probability when a contact of `instrument` reaches the household.
+
+    A household that would have drifted still drifts. Of the rest, the instrument's woken share
+    chooses, and a chooser leaves with `churn_if_choosing` and otherwise re-fixes with us. So on
+    THIS segment a contact can only add departures: waking your own default stock costs some of it
+    now, and the households it keeps are on a fix, where the next term end is a choice. That
+    trade is the company's to weigh. The world only has to make it real.
+    """
+    for name, p in (("p_drift", p_drift), ("churn_if_choosing", churn_if_choosing)):
+        if not 0.0 <= p <= 1.0:
+            raise ValueError(f"{name} must be a probability, got {p!r}")
+    if instrument not in WOKEN_SHARE_OF_SVT_STOCK:
+        raise ValueError(
+            f"no woken share for instrument {instrument!r}: the sourced ones are "
+            f"{sorted(WOKEN_SHARE_OF_SVT_STOCK)}, and an unsourced contact cannot be given one")
+    woken = WOKEN_SHARE_OF_SVT_STOCK[instrument]
+    return p_drift + (1.0 - p_drift) * woken * churn_if_choosing
+
+
 __all__ = [
+    "WOKEN_SHARE_OF_SVT_STOCK",
+    "WOKEN_SHARE_SAVING_GRADIENT_ON_SVT_STOCK",
+    "churn_if_choosing_off_svt",
+    "svt_departure_after_contact",
     "EFTC_CONTACTED_SWITCHING_SHARE",
     "EFTC_CONTROL_SWITCHING_SHARE",
     "WOKEN_SHARE_AT_FIXED_TERM_END",
