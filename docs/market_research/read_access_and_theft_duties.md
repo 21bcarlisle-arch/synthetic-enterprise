@@ -509,6 +509,10 @@ cap reads the licence condition correctly for every case that does not involve o
    scores were reached this pass.
 8. The deadline in DCUSA Clause 30.9. The BSC Annex S-1 text (read only through Ofgem).
 9. The hazard of a smart meter leaving smart mode, and how long it stays out.
+10. (2026-10-08) The BSC PAF read target after MHHS cut-over, any MHHS read-frequency rule for
+    traditional meters, and the Load Shaping Service's estimation method (§8.2).
+11. (2026-10-08) The relative risk of persistent no-access by tenure, landlord, building type or
+    vulnerability, and the spread of the 2017 read-billed rate across suppliers (§9).
 
 **Commons gap.** `docs/domain_artefact_library/regulatory/` holds none of the texts read here:
 SLC 12, 12A, 21B or 21BA, the 1954 Act s.1–2, Sch 6 para 7 and 10, Sch 2B para 23 and 28, or REC
@@ -615,6 +619,188 @@ the Q2 verdict must be re-run when either lands.
 
 ---
 
+## 8. What market-wide half-hourly settlement (MHHS) changes about reads and unbilled energy
+
+*Added 2026-10-08 at the director's request ("what MHHS changes about read requirements and
+settlement, and what that does to estimated billing and unbilled energy"). Every document below was
+fetched 2026-10-08 and read as text. The session had no web-search budget left, so programme
+documents not reachable by known URL were not read; each such point is marked GAP.*
+
+### 8.1 What was decided, and when it happens
+
+- **The decision.** Ofgem, *Electricity Retail Market-wide Half-hourly Settlement: Decision and Full
+  Business Case*, 20 April 2021 [H]. All electricity MPANs move to half-hourly settlement. The new
+  timetable:
+  - Initial run (SF) "5-7 working days after the settlement date" (¶3.8);
+  - Final reconciliation run (RF) "**4 months** after the settlement date", replacing 14 months
+    (¶3.9 and the response to Question 4);
+  - post-final dispute run (DF) at **20 months**, replacing 28, with ratcheted materiality (§3, Q5).
+- **The timetable is cut over only after migration.** Ofgem agreed "that the settlement timetable
+  should only be reduced after the migration to MHHS is complete" (¶3.14) [H].
+- **Milestones as they stand** [H unless marked]:
+
+  | Milestone | Date | Source |
+  |---|---|---|
+  | M10 new central systems live | 24 Sep 2025 | Elexon news, 22 Oct 2025 |
+  | M11/M12 first suppliers start migrating MPANs | 22 Oct 2025 | same |
+  | M14 every supplier qualified to migrate | by 28 Oct 2026 | same |
+  | All meters migrated | by 7 May 2027 | same |
+  | Legacy NHH and new HH regimes run side by side | until July 2027 | same |
+  | **M16 settlement timetable transition (14 → 4 months)** | **2 Jul 2027** (planned) | MHHS programme, *Transition to new Settlement Timetable*, DEL1590 v2.3 |
+  | All runs for pre-M16 settlement days complete | 31 Oct 2027 | same; pre-M16 RF runs are pulled forward to replace an R3 or R2 run |
+
+- **Gas is not in MHHS.** The decision is electricity only; gas settlement stays under the UNC,
+  with Nexus-era individual reconciliation (§2.1) [H, by scope of the decision].
+- **For our 2016-2025 window [D]:** every settlement day before about May 2026 reaches its 14-month
+  RF before M16, so the legacy RF of 14 months is correct for every day the simulation settles.
+  MHHS is a post-window change. It matters to the company's forward view, not to fidelity.
+
+### 8.2 Reads under MHHS
+
+- **Traditional meters stay in, and are load-shaped.** A meter that is not read daily remains in
+  the "smart/non-smart segment"; its register reads are turned into half-hourly volumes by the new
+  Load Shaping Service, which "should also improve the quality of estimated data at SF for customers
+  in the smart/non-smart segment where meter data is not available daily" (¶3.7) [H].
+- **Ofgem declined to build the timetable around manual reads.** "Manual reads should be the
+  exception after the cut over to the reduced settlement timetable, and … the Balancing and
+  Settlement Code (BSC) Performance Assurance Framework (PAF) should take the number of manual reads
+  expected into account when setting performance targets" (¶3.9). It expects PAF targets to "strike a
+  balance between incentivising suppliers to take meter readings promptly and recognising that there
+  are a proportion of sites for which data is difficult to access", "taking into account factors such
+  as the number of traditional meters remaining" (¶3.15) [H].
+- **Stakeholders named the cost.** A larger non-communicating population makes it "costlier … for
+  suppliers to more regularly visit non-communicating or traditional meters to manually obtain
+  register reads every 4 months" (¶3.11). Two suppliers proposed that RF should not run unless 97% of
+  energy is on actual or read-based data (¶3.12). Ofgem's view: 4 months "allows for 4 (monthly)
+  attempts" (¶3.15) [H].
+- **Where unread energy goes.** "The proportion of meters that cannot be ready by RF is expected to
+  be small, and any errors would be spread across suppliers via the Grid Supply Point (GSP) Group
+  Correction process" (¶3.15) [H].
+- **The licence read duty is not changed by MHHS.** The decision makes no modification to SLC 21B
+  [H, by absence: "21B" does not occur in the decision text]. The supply-licence duty stays "all
+  reasonable steps" to read **once a year** (§2.1).
+
+**GAP, stated precisely:**
+1. **The PAF performance target for actual reads after M16**, which replaces the 97%-of-NHH-energy
+   at 14 months standard. Ofgem left it to BSC governance; the BSC text was not read.
+2. **Any read-frequency obligation for traditional meters** under the MHHS target operating model
+   (for example, a duty on the data service to obtain a read every N months). None appears in the
+   decision; the programme's design documents for the smart/non-smart segment were not reached.
+3. **How the Load Shaping Service estimates an unread traditional meter**, and whether its estimates
+   are less biased than the EAC profiles they replace. Ofgem "expects" they are more accurate (¶3.15);
+   no measurement was found.
+
+### 8.3 What a 4-month final run does to unbilled energy and estimated billing [D]
+
+Derived from §8.1-8.2 and the 12-month back-billing limit (`back_billing_and_liability.md`). The
+mechanism is stated; no size is given, because none is published.
+
+| Age of an under-estimated, later-read unit | Legacy (RF 14 months) | MHHS (RF 4 months) |
+|---|---|---|
+| 0-4 months | Re-settled at the read; billable | Re-settled at the read; billable |
+| 4-12 months | Re-settled at the read (supplier pays); billable | **Not re-settled**: the supplier paid on the estimate, the difference is smeared by GSP Group Correction; **still billable** |
+| 12-14 months | Re-settled (supplier pays); **not billable** (21BA) | Not re-settled; not billable |
+| over 14 months | Smeared; not billable | Smeared; not billable |
+
+So:
+- **The 12-14-month band, where a supplier pays for energy it may not bill, disappears.**
+- **A new 4-12-month band appears where the supplier may bill energy it was not charged for in
+  settlement.** That energy is paid for by every supplier in the GSP group through correction, by
+  market share. An individual supplier's incentive to read a traditional meter within the year
+  then comes mainly from billing accuracy, 21BA and the PAF charge, not from its own settlement
+  cost.
+- **Unbilled energy as a balance-sheet accrual** (energy delivered and not yet billed) is unchanged
+  in kind: it is a billing quantity, and MHHS changes settlement, not billing. What changes is
+  that the cost side of an old estimate is fixed at 4 months, so the supplier knows its wholesale
+  cost for a period 10 months sooner.
+- **Estimated billing is unchanged by MHHS alone** for a traditional meter. For a smart meter in
+  smart mode, half-hourly data already gives an actual read. Any fall in estimated bills comes from
+  the smart rollout and the 2026 smart-repair rule (§2.3), not from settlement.
+
+---
+
+## 9. Do no-access and unread meters cluster?
+
+*Added 2026-10-08 at the director's request ("whether no-access and unread meters cluster (by
+landlord, property type, prepayment, vulnerability), since that decides whether the world should
+draw them independently"). Sources fetched 2026-10-08 and read as text.*
+
+### 9.1 What the evidence says
+
+1. **Read exposure is tilted by tenure and payment method.** English Housing Survey 2022-23, Energy
+   report, Annex Tables 3.7 and 3.9 (households reporting a smart meter, England, self-reported) [H]:
+
+   | Group | Electricity smart meter | Gas smart meter |
+   |---|---|---|
+   | Owner occupied | 56.1% | 45.5% |
+   | **Private rented** | **43.0%** | **32.2%** |
+   | Local authority | 56.3% | 46.5% |
+   | Housing association | 50.5% | 38.7% |
+   | Direct debit | 54.8% | 49.4% |
+   | **Pay on receipt of bill** | **42.7%** | **38.1%** |
+   | Prepayment token | 54.6% | 51.6% |
+   | All households | 53.1% | 42.4% |
+
+   So the non-smart share, the population exposed to manual reading, is **57.0% among private
+   renters against 43.9% among owner occupiers in electricity (ratio 1.30), and 67.8% against 54.5%
+   in gas (1.24)** [D, 100 minus each row, each a share of households in the same tenure]. These are
+   ratios of **read exposure**, not of no-access or of long non-reading.
+2. **The named causes of persistent no-access are premises and building traits.** Suppliers asked
+   Ofgem about "the meter is behind a locked cupboard and the landlord holds the key", "a genuine
+   error reading the wrong meter in a flat with a number of meters in a central area", and "the
+   supplier bills the building company instead of the property" [H] Ofgem decision, 5 Mar 2018, p.8.
+   Each outlives any one occupant.
+3. **The same building traits block smart meters.** Alt HAN Co: a home-area-network range problem
+   "affects over 700,000 households in Great Britain", and "a lack of space or the configuration of
+   equipment in shared meter rooms may prevent some customers being able to have a smart meter
+   installed" [H] Alt HAN Co home page (undated, read 2026-10-08). So the premises that are hard to
+   read by hand are also the ones most likely to stay off smart. [D] The two effects compound rather
+   than offset.
+4. **Read performance is partly a supplier trait.** Smart bills estimated: 6% across suppliers in
+   Q2 2017, "a range in performance at different suppliers of between 4% and 24%" [H] Ofgem
+   consultation, 16 Nov 2017, ¶2.28. Smart mode by large supplier ran 85.1-98.0% at end-2024 (§2.3).
+   The 2017-18 traditional-meter figure was published only as a median (94.8% / 94.4% read-billed)
+   [H] decision p.10; its spread across suppliers was not found.
+5. **Prepayment is outside the question.** SLC 21B.4 does not apply to prepayment meters (§2.1), and
+   a prepayment customer pays as they use, so a long unread run does not create a back bill there.
+   EHS shows prepayment households no less likely to have a smart meter than direct-debit ones.
+6. **Vulnerability: nothing found.** No source read links no-access, long non-reading or
+   persistent estimation to vulnerability, PSR status, age or disability. **GAP.**
+
+### 9.2 Verdict
+
+**The published evidence does not support drawing no-access independently.** It establishes two
+things: the pool exposed to manual reading is tilted towards private renting and pay-on-receipt
+(1), and every named cause of persistent no-access is a trait of the premises, the building or the
+landlord (2, 3), which persists across occupants. It also shows a supplier component (4).
+
+**It does not establish the size of the cluster or its relative risk by tenure, landlord, property
+type or vulnerability.** No published dataset measures the persistence of no-access at a premises.
+**GAP.** The cluster's overall share stays `q2_persistent_unread_share` (0.01), which is bounded by
+Elexon's RF curve, not by any of the evidence above.
+
+### 9.3 What the simulation should do (RECOMMENDATION, not established)
+
+1. **Draw a persistent hard-to-read subgroup, keyed to the premises, not to `customer_id`.** At a
+   change of tenancy the incoming occupier inherits the premises' state. This is the change §5
+   already named; §9.1 is the evidence for it.
+2. **Tilt read exposure by tenure through the smart rollout, using the EHS shares**, because that
+   tilt is measured. Do not invent a separate tenure multiplier for no-access: its relative risk is
+   the new `null` toggle `q2_persistent_unread_relative_risk_private_rented`. Until it is filled,
+   draw the hard-to-read subgroup uniformly over read-exposed premises.
+3. **Keep the supplier component on the company side.** How hard a supplier tries is its lever
+   (W2_37); the world should not encode one supplier's performance.
+4. **Expect no change to aggregates.** The Q2 invariance (barred revenue does not depend on
+   persistence for any calibrated mixture) still holds. Keying to premises changes the *shape*:
+   which households get long back-bills, and how they meet change of tenancy and the unnamed
+   occupier. That is W2_36's acceptance criterion, not a pricing input.
+
+**Practitioner question for the director:** *"Do your long-unread traditional meters sit in the same
+buildings and with the same landlords year after year? Roughly how much more often in private
+lets or blocks of flats than in owner-occupied houses?"*
+
+---
+
 ## Sources
 
 All read as text this session [H] unless marked.
@@ -656,3 +842,22 @@ All read as text this session [H] unless marked.
 - DESNZ, *Tough new rules force suppliers to fix faulty smart meters*, 10 March 2026.
 - Repo documents relied on: `unbilled_energy_and_revenue_assurance.md`,
   `practitioner_questions_as_assumption_toggles.md` (Q2), `meter_read_latency_estimation_2026.md`.
+
+**Added 2026-10-08 (§8, §9), all fetched that day and read as text [H]:**
+- Ofgem, *Electricity Retail Market-wide Half-hourly Settlement: Decision and Full Business Case*,
+  decision document, 20 April 2021, §3 (¶3.7-3.15):
+  <https://www.ofgem.gov.uk/sites/default/files/docs/2021/04/mhhs_draft_ia_consultation_decision_document_final_version_for_publication_20.04.21.pdf>
+  (landing page:
+  <https://www.ofgem.gov.uk/decision/electricity-retail-market-wide-half-hourly-settlement-decision-and-full-business-case>).
+- Elexon, *Suppliers start moving meters to half-hourly settlement …*, 22 October 2025:
+  <https://www.elexon.co.uk/2025/10/22/suppliers-start-moving-meters-to-half-hourly-settlement-hitting-a-major-milestone-for-clean-power-2030/>
+- MHHS Programme, *Transition to new Settlement Timetable*, MHHS-DEL1590 v2.3 (approved; © Elexon
+  2025):
+  <https://www.mhhsprogramme.co.uk/api/documentlibrary/Design%20Documents/MHHHS-DEL1590_MHHSP_Transition_to_new_Settlement_%20Timetable%20v2.3%20Approved.pdf>
+- DLUHC/MHCLG, *English Housing Survey 2022 to 2023: energy*, 17 July 2024, Chapter 3 Annex Tables
+  3.7 and 3.9:
+  <https://assets.publishing.service.gov.uk/media/66914cf849b9c0597fdafc19/Energy_Chapter_3_Annex_Tables.ods>
+  (landing page: <https://www.gov.uk/government/statistics/english-housing-survey-2022-to-2023-energy>).
+- Alt HAN Co, home page (undated, read 2026-10-08): <https://www.althanco.com/>
+- Ofgem, statutory consultation 16 Nov 2017 (¶2.28) and decision 5 Mar 2018 (pp.8, 10), as listed
+  above, re-read for §9.

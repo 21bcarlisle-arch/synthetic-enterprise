@@ -582,7 +582,7 @@ reads zero (2022, the crisis year). **Neither series is a provision-based charge
 | Bucket coverage beyond 90 days (90-360, 360+) | Centrica publishes only the GBP 812m >360-day line (2025) | Further reads of auditors' reports; practitioner |
 | A second supplier's age x method x live/final table | Octopus FY2023 publishes overdue debt by age only (35% at 0-3 months to 92% past 12 months), aged by payment behaviour; no one else splits method or live/final | ScottishPower and EDF filings are scanned images, not transcribed; SSE publishes only a blended allowance |
 | The split of the GBP 71 cap allowance into bad debt and administration | Ofgem cap model workbook | A further pass on the model file |
-| Debt-sale prices for GB energy | Debt-purchaser disclosures; Centrica 2017 confirms sales happen | A further published-source pass |
+| Debt-sale prices for GB energy | Debt-purchaser disclosures; Centrica 2017 confirms sales happen | **Partly closed 2026-10-08 (section 9):** all-sector purchase prices found (5.4p Lowell 2004-13; 9.3p Arrow 2017); energy-specific price still GAP |
 | Whether the 2022 DD >90 coverage (34.8%) carries the overlay | Centrica 2022 report does not say | Leave as an outlier |
 | NAO material on supplier debt provisioning | Not re-fetched this pass (search budget exhausted); NAO's 25%-on-plans restatement is re-cited in `debt_and_collections.md` | A further pass |
 
@@ -678,6 +678,96 @@ Negotiating tools (plan terms, DCA versus sale) stay after the knowledge exists,
 
 ---
 
+## 9. What GB energy debt sells for, and how that enters provision, CLV and price
+
+*Added 2026-10-08 at the director's request ("what GB domestic energy debt sells for to debt
+purchasers, and how that and near-zero recovery after write-off feed provisioning, CLV and
+pricing"). Sources fetched 2026-10-08 and read as text with `pdftotext`. The session had no
+web-search budget left, so only documents reachable by known URL were read; FCA material,
+Cabot/Encore and Intrum filings were **not reached**.*
+
+### 9.1 What has been published about the price
+
+| Source | What it counts | Price, pence per GBP of face value |
+|---|---|---|
+| Lowell Group, *Year-end report 2013* | All portfolios bought May 2004 - Sep 2013: "an aggregate face value of approximately £11.0 billion, having invested £597 million at an average price paid of 5.4 pence per pound sterling". Unsecured, low-balance consumer debt, all sectors. The same report records first purchases "from both utilities and insurance companies" in 2013 | **5.4p** [H] |
+| Arrow Global Group plc, *Annual Report 2017* | Portfolios bought in 2017 "with a face value of £2.4 billion for a purchase price of £223.9 million"; "40.7% related to secured accounts"; UK and continental Europe. Its business-model page lists utilities among the asset classes, and it bought Parr Credit, a servicer "diversified into small ticket utilities and telecoms" | **9.3p** [D, 223.9 / 2,400], mixed secured and unsecured, so an upper bound for unsecured consumer debt |
+| Centrica, *ARA 2017*, Note 17 | GBP 5m "in respect of the sale of debt that had been written off in prior years" | **Price not given (GAP)**. The face value sold is not disclosed |
+| Ofgem, *DRS policy update working paper*, Aug 2025, ¶5.1, ¶5.18-5.20, Tables 0-2, 0-3 | Not a sale. Ofgem's valuation of crisis-era debt it would have suppliers write off: "the real value of the debt is lower than the face value … as suppliers have recognised through provisioning". A weighted provisioning rate of "approximately 75%" gives a gross value of 25p; net of a 5% customer contribution, reimbursement of **20%**. A hybrid option with a 56.7% provisioning floor caps reimbursement at "~38%" | **20-25p**, regulator's value of debt still held (mostly live, much on plans), not a market price [H] |
+| Ofgem, *DRS Impact Assessment*, 6 Nov 2025, fn 6 and ¶3.16 | "The average cost for collecting debt is 3 pence per £1 of debt and arrears" (2024 debt administration cost). Funding = write-off × (1 - average provisioning rate) + admin + interest | **3p** to collect, per GBP [H] |
+
+**What is established.** Unsecured consumer debt sold to a purchaser fetched about **5p in the
+pound** on average over 2004-2013 across sectors (Lowell), and under **10p** for a 2017 mixed
+book including secured loans (Arrow). Written-off energy debt is sold (Centrica 2017). Ofgem values
+crisis-era energy debt still on suppliers' books at about **a quarter** of face.
+
+**GAP.**
+1. **No published price for GB domestic energy debt sold to a purchaser**, by year, by age, or for
+   live against closed accounts.
+2. Whether energy debt sells above or below the all-sector average. Small balances and no security
+   point below; a known address and a regulated collection history could point above. Neither is
+   evidenced.
+3. What share of written-off energy debt is sold rather than kept with a DCA. Centrica's
+   recoveries (section 3.2) mix the two after 2017.
+
+### 9.2 How a low sale price and near-zero post-write-off recovery enter the three uses [D]
+
+Everything below is derived from section 1's definitions, IFRS 9 5.5.17 and the figures in 9.1 and
+section 3. Each step says what each number counts.
+
+**Provisioning (expected loss).** For a closed account, the lifetime ECL is the face value less the
+present value of what will still be collected: in-house, by a DCA, or by sale. A sale at *s* pence
+is one probability-weighted outcome under 5.5.17(a), and the last one.
+- Centrica's final-bill coverage over 90 days, 75.5-89.6% (2019-2025), implies 10-25p of expected
+  collection on that balance. That is above any sale price in 9.1, which is consistent: most of
+  what is collected comes before the debt is old enough to sell.
+- Recoveries after write-off of **4.6p** pooled (2017-2025) and sale prices of **5-9p** mean the
+  provision must already be about **90-95%** [D, 1 minus 5-9p] when a balance is written off, or
+  the write-off itself costs money in the year. A model that writes off at the final bill's due
+  date (the world's `WRITE_OFF_DATE_CONVENTION`) and then credits 12p of sale proceeds books the
+  loss too early and the recovery too high.
+
+**Forward CLV (expected margin net of loss).** The expected credit loss on a customer's future
+billing is, per account-year: P(a balance is left unpaid at exit) x E(that balance) x (1 - the
+share of it ever collected). The evidence puts the last factor near **0.75-0.90 of an exit balance**
+(the final-bill coverage band), and near **0.95** of anything that reaches write-off. So:
+- a likely leaver's final balance should enter CLV at **10-25p** in the pound, not at face value
+  and not at the 60-75p that `company/finance/debt_collection.py`'s docstring claims (section 5.1);
+- the sale route adds at most about **5-9p** on the written-off part, and only after a long delay,
+  so discounting (IFRS 9 5.5.17(b); Ofgem's 12.2% a year) takes a further share of it;
+- collection costs about **3p per GBP** (Ofgem 2025), so net of cost the post-write-off leg is near
+  zero. That is the "near-zero" in the brief, now with its parts named.
+
+**Pricing (the cap as a ceiling).** Ofgem's debt allowance is built from suppliers' P&L charge,
+which already nets "write-offs and recoveries" (App. 2 decision §3.14, Option A.2; section 2.3).
+So sale proceeds and post-write-off recoveries are **already inside** the allowance; a supplier
+cannot price them a second time. For a capped tariff, the allowance (GBP 71 per dual-fuel customer
+from July 2025, covering bad debt, administration and working capital, section 3.3) is a
+**ceiling** on the bad-debt cost recoverable through price. A supplier whose book loses more (more
+standard credit, more leavers with balances) carries the difference; one that loses less keeps it.
+The cap's true-up corrects the industry average, not one supplier's position (DRS working paper
+¶5.3). A better collection or sale price therefore improves the supplier's margin against the cap;
+it does not lower the cap.
+
+### 9.3 What our code does with it
+
+- `simulation/arrears_engine.py` l.191: `DEBT_SALE_HAIRCUT_PCT = 0.12`, "proceeds as % of face value
+  when sold", commented "illustrative". It is **above both published purchase prices** (5.4p
+  all-sector; 9.3p for a book 41% secured) and is applied to debt the world has written off at the
+  final bill's due date. World code; not changed here. It is now comparable with the new toggle
+  `q3_debt_sale_price_share_of_face` (default `null`, low 0.054, high 0.093).
+- `company/finance/debt_collection.py`'s "60-75p/GBP" remains contradicted (section 5.1); 9.1 adds
+  that even the purchase market pays an order of magnitude less.
+- `company/analytics/forward_clv.py` still omits expected credit loss (section 5.6, B11). Section
+  9.2 gives the parts it needs; all are company observables or published rates.
+
+**Toggles.** `q3_post_write_off_recovery_share` **stands** at 0.05 (0.02-0.086): the sale prices in
+9.1 (5.4p, 9.3p) bracket it and are consistent with Centrica's 4.6p pooled recovery. One new toggle,
+`q3_debt_sale_price_share_of_face`, with `default: null` because no energy-specific price is
+published.
+
+---
+
 ## Sources
 
 All fetched 2026-10-06 and read from the text layer with `pdftotext`, unless stated.
@@ -704,6 +794,16 @@ All fetched 2026-10-06 and read from the text layer with `pdftotext`, unless sta
 - **SSE plc, *Annual Report* 2017, 2019, 2020**, archive copies at
   `https://www.annualreports.com/HostedData/AnnualReportArchive/S/LSE_SSE_<year>.pdf` (2020 file
   name carries a suffix): KPI tables (Retail / SSE Energy Services), Note A6.2.
+- **Added 2026-10-08 (section 9), fetched that day, `pdftotext`:**
+  - Lowell Group, *2013 annual financial results*:
+    <https://www.lowell.com/hubfs/lowell-group-2013-annual-financial-results.pdf>
+  - Arrow Global Group plc, *Annual Report and Accounts 2017* (archive copy):
+    <https://www.annualreports.com/HostedData/AnnualReportArchive/a/LSE_ARW.L_2017.pdf>
+    (the 2018 and 2019 reports were read and give no comparable face-value-to-price line).
+  - Ofgem, *Debt Relief Scheme (DRS): Policy update working paper*, August 2025, section 5:
+    <https://www.ofgem.gov.uk/sites/default/files/2025-08/DRS-working-paper-final.pdf>
+  - Ofgem, *Impact Assessment – Debt Relief Scheme*, 6 November 2025, ¶1.9, ¶3.4, ¶3.16, fn 6:
+    <https://www.ofgem.gov.uk/sites/default/files/2025-11/Debt_Relief_Scheme_Impact_Assessment.pdf>
 - **Re-cited, not re-fetched this pass:** Ofgem App. 2 consultation Dec 2024 (Table 2.1); Ofgem
   decision overview May 2025 (§2.9); Ofgem DRS working paper Aug 2025 (§5.20, the 75% blended
   provisioning rate) and impact assessment Nov 2025 (§3.10); Lowell Group year-end report 2013;
