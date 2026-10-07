@@ -985,7 +985,7 @@
   lane: H_harness
   value_stream: close_to_learn
   epoch: 2
-  level_current: 0
+  level_current: 1
   level_target: 2
   loop_stage: build
   dial_inherited: 3
@@ -996,6 +996,24 @@
   file_scope: ['tools/', 'tests/']
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "an intermittent fault traced to the bench before any board is replaced"
+
+- id: H50_a_run_entry_point_leaves_no_state_behind
+  title: "A run entry point leaves no state behind for the next caller in its process"
+  lane: H_harness
+  value_stream: close_to_learn
+  epoch: 2
+  level_current: 0
+  level_target: 2
+  loop_stage: build
+  dial_inherited: 3
+  provenance: director_ruling
+  depends_on: ['H40_full_suite_pollution_bisect']
+  couples_with: []
+  file_scope: ['simulation/run_phase2b.py', 'tests/simulation/test_a_second_run_in_one_process_starts_from_the_drawn_band.py']
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a bench rig reset to factory state between test runs"
+  notes_rehomed: [origin_note]
+  records_rehomed: [evidence]
 
 - id: OPS6_scoped_publish_path_suite
   title: "Define the publish-path's own suite, and let it alone block publishing"
