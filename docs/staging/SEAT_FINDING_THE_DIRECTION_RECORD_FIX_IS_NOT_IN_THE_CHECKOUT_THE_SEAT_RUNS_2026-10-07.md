@@ -44,3 +44,19 @@ Grade P1 from `journalctl --user -u delivery-seat.service` (the run's start time
 `git -C /home/rich/synthetic-enterprise reflog` (when HEAD advanced). Then grade P2 or P3. If P1
 holds, the check rolls to the first orientation whose checkout contains 0be518a08. The general
 pattern: a landed repair stays inert in a running daemon until the shared checkout advances.
+
+## Graded, 10:30 BST
+
+- **P1 held.** The run started 09:21:58. The shared HEAD was 49f2587f1 (4 ahead, 22 behind) and
+  lacked 0be518a08 until 10:24, when the fork was closed (merge d8c139a1f on origin) and the
+  checkout fast-forwarded to it, with every other lane's working copy kept.
+- **P2 applies.** The run landed 5e193d364 at 10:11 on the old code. That is the old path
+  succeeding, which is no evidence about the fix.
+- The check rolls to the 12:24 run, the first on a checkout that contains 0be518a08. A
+  fast-forward cannot remove an ancestor, so that run executes the fixed code whatever the tree
+  does before then. P3 is graded against it unchanged.
+- The fork had stood since 07:50 because `origin_reconcile` refused add/add conflicts on four
+  W2_20 paths every five minutes. Origin's copy was a superset on each one.
+- The brief now names the units whose running code lacks an origin commit (`branch_divergence` →
+  `units_lacking_origin`). At this morning's state it would have read: "delivery-seat lacks
+  0be518a08 to background/delivery_seat.py itself".
