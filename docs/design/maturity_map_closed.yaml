@@ -4776,3 +4776,27 @@
   file_scope: ['docs/design/', 'tools/']
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a board deciding how many years of trading history a strategy is to be judged over -- a question about what the firm is being asked to prove, not one the analyst running the backtest gets to settle"
+- id: D_opening_dd_seasonal_sizing
+  notes_rehomed: [name]
+  lane: D_billing_metering
+  value_stream: meter_to_cash
+  epoch: 3    # its parent's: minted in e99debe6d out of DD_seasonal_cashflow_physics (epoch 3)
+  provenance: proposal
+  level_current: 2
+  level_target: 2
+  level_move_recorded: '2026-10-07: 1 -> 2. The pre-cap hole is closed (0 accounts lack an
+    opening amount, was 115 of 257) through the rate the supplier sold at, read from the first bill,
+    not a dated tariff book. Graded on origin''s tracked run 998814330 by tools/dd_opening_arms.py
+    (129 DD households matched): year-one |drift| falls GBP 84.46 [-154.30, +0.75], closer to square
+    for 92 of 129; peak held credit +23%. P3 (refusals > 0) refuted by that fix. The cohort split
+    and the published substrate are instrument gaps, filed
+    WORKER_FINDING_THE_DD_OPENING_COHORT_SPLIT_DROPS_SIXTY_ACCOUNTS_AND_ITS_SUBSTRATE_IS_GONE_2026-10-07.md.'
+  loop_stage: build
+  blocked_on: null
+  dial_inherited: 3
+  records_rehomed: [evidence]
+  file_scope: ['simulation/dd_balance_book.py', 'company/billing', 'docs/market_research', 'tests/simulation/test_dd_balance_book.py', 'tests/simulation/test_dd_level_collection_book.py']
+  simplifications_count: 1
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: a real supplier setting a new customer's first monthly direct debit from the estimated annual consumption it is handed at registration, so that a customer who joins in January and one who joins in July on identical usage are put on the same monthly amount
+  depends_on: []
