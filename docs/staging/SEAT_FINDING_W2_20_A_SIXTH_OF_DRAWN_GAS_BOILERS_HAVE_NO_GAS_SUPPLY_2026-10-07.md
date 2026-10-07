@@ -173,3 +173,28 @@ bracket.
   heating bill. An oil home's fuel bill exists and is not modelled.
 - Step (d), re-taking the value arms in the new world, is owed. The `homes` and `demand` digests
   move with this build.
+
+## The level: L2 is earned, and recording it needs a seat decision (worker, 2026-10-07)
+
+By the map's definition, `81732ffe2` earns L2: the drawn supply reaches the bill, and the controls
+can fail. The level move was written and then refused at the gate by
+`tests/test_coupled_triad_gate.py::test_no_live_world_atom_stepping_to_l3_is_refused_for_want_of_a_twin`.
+A world atom at L2 that aims at L3 needs a company twin registered in
+`background/coupled_triad._AUTHORITATIVE_COUPLING`, and W2_20 has none. So the row stays at **L1**.
+
+Two ways out, both the seat's call. I am not taking either from a bounded tick, because W2_20's L3
+comes from a director ruling.
+
+1. **Recommended: retarget to L2**, on the `6314e5bc8` precedent (W1_7, W1_10 and others). A
+   supplier holds the MPRN, so whether a home has a gas supply is something it reads, not
+   something it infers. No company belief about it can be wrong in the way a twin measures.
+   Restore condition: a company grade that reads an off-gas belief. One candidate is C14's
+   `couple_fabric` run on the production draw (`draw_premise_from_joint`); today it draws through
+   `draw_premise_population`, the sibling draw, so its gap does not move with W2_20.
+2. Couple it to C14, the fabric inference. C14 fits a home's fabric from the register its heat
+   is on, and an oil home's heat is now on no register. That pairing is only real once (1)'s
+   restore condition is met.
+
+The value-arms re-take (step d) is handed on as
+`w2-20-retake-the-value-arms-in-the-world-where-heat-follows-the-gas-meter`, and it is needed
+whichever way the level goes.
