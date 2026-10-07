@@ -240,3 +240,30 @@ W2_20. The landing says so before it grades anything else.
 The log is `/var/tmp/longjob-w220-arms-retake.log`, with a declared peak of 11,200 MB (from the
 `20261005c` run). Expected durations: leg 1 about 70 minutes, leg 2 about 3h20. Grading and
 publishing are handed on as `w2-20-land-the-value-arms-retaken-in-the-heat-follows-meter-world`.
+
+## The level is recorded, and leg 2 of the re-take died and is relaunched (worker, 2026-10-07 ~10:40Z)
+
+**Level.** I took the seat's decision in `DIRECTION.yaml` (option 1). W2_20 now stands at **L2 with target L2**,
+filed to the closed half of the map. The self-certified record cites `81732ffe2` and its two controls,
+which were re-run at origin `742685492` (6 passed). The restore condition is on the simplification
+record: a company grade that reads an off-gas belief on `draw_premise_from_joint`, registered in
+`_AUTHORITATIVE_COUPLING`. `file_scope` gains `simulation/premise_population.py`, where `commodity` reads
+the flag.
+
+**Leg 2.** Leg 1 finished cleanly at 09:42Z (`value_cycle_ab_s1_three_arm_20261007w.json`). Leg 2 died at
+09:54Z on `ValueError: No price records found in the lookback window [2020-07-03, 2020-09-30]`. The cause
+is in two parts:
+
+- `/var/tmp/se-w220-arms` has no `sim/cache/elexon_ssp_full.json`, because the cache is gitignored. Every
+  run in it live-fetched SSP from Elexon.
+- `sim/system_prices_history.get_system_prices_range` read a non-200 day as zero records. Leg 1's three
+  fetches each returned **168,026** records. Leg 2's returned **144,361**, a different price world that
+  nobody was told about. It failed only because one redrawn SVT segment then had no lookback.
+
+So **leg 1 is unaffected.** The shared cache yields exactly 168,026 over the same window, the same count
+leg 1 fetched. Leg 2 alone was relaunched at 10:33Z as `longjob-w220-arms-leg2`, on a read-only copy of
+that cache, and its script refuses to start unless the cache yields 168,026. Grading is re-issued as
+`w2-20-grade-the-value-arms-once-leg-two-reruns-on-the-ssp-cache`, which retires the old continuation.
+The fetcher now retries a non-200 and then refuses the range, naming the day. That fix lands in a separate
+commit. An empty day is a 200 with no data (probed: 2015-11-04 returned 200 with 0 records), so it is
+unaffected.

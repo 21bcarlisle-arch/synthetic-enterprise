@@ -12,6 +12,7 @@ reviewed/integrated by the frontier orchestrator — Phase 0b cross-model
 delegation increment.
 """
 
+import time
 from datetime import datetime, timedelta
 
 import requests
@@ -34,15 +35,27 @@ SHORT_RECORD_REASON = (
 
 _session = requests.Session()
 
+#: Retries for a non-200 day before the range is refused. Not a domain constant: it bounds how long
+#: a throttled fetch waits (1+2+4 s), and any value refuses rather than drops a persistent failure.
+FETCH_RETRIES = 3
+
+
+class SystemPricesFetchError(RuntimeError):
+    """A day's system prices could not be fetched, so the range would have a hole in it."""
+
 
 def get_system_prices_range(start_date: str, end_date: str) -> list[dict]:
     """Return raw SSP/SBP settlement-period records for every day in
     [start_date, end_date] inclusive, as a flat list, in chronological order.
 
-    start_date and end_date are 'YYYY-MM-DD' strings. Days that return a
-    non-200 response or no data are treated as zero records, not an error —
-    the per-date endpoint is queried one day at a time and concatenated;
-    record counts per day are passed through unmodified (see module docstring).
+    start_date and end_date are 'YYYY-MM-DD' strings. A day with no data
+    comes back as a 200 with an empty list and contributes zero records (probed
+    2026-10-07: 2015-11-04 is 200/0). A non-200 is a FAILED FETCH, not an empty
+    day: it is retried, and if it persists the range is refused naming the day.
+    It used to be read as zero records, and on 2026-10-07 a throttled fetch
+    returned 144,361 of 168,026 records with Q3 2020 empty -- a different world,
+    silently, which only failed because a forward price had no lookback left.
+    Record counts per day are passed through unmodified (see module docstring).
 
     Requests reuse a module-level Session for connection pooling — without it,
     each call pays a fresh TLS handshake (~12s vs ~0.05s reused).
@@ -56,8 +69,18 @@ def get_system_prices_range(start_date: str, end_date: str) -> list[dict]:
         date_str = current.strftime("%Y-%m-%d")
         url = BASE_URL + SYSTEM_PRICES_ENDPOINT.format(settlement_date=date_str)
         response = _session.get(url)
-        if response.status_code == 200:
-            records.extend(response.json().get("data", []))
+        for attempt in range(FETCH_RETRIES):
+            if response.status_code == 200:
+                break
+            time.sleep(2 ** attempt)
+            response = _session.get(url)
+        if response.status_code != 200:
+            raise SystemPricesFetchError(
+                f"Elexon system prices for {date_str} returned HTTP {response.status_code} after "
+                f"{FETCH_RETRIES} retries; refusing the range [{start_date}, {end_date}] rather than "
+                "returning it with the day missing."
+            )
+        records.extend(response.json().get("data", []))
         current += timedelta(days=1)
 
     return records

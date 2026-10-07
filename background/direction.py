@@ -36,6 +36,7 @@ as it did before this module existed.
 from __future__ import annotations
 
 import json
+import re
 import sys
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
@@ -49,6 +50,10 @@ from tools.here_relative_vocabulary import here_relative_phrases  # noqa: E402
 DIRECTION_DIR = PROJECT_DIR / "docs" / "direction"
 DIRECTION_PATH = DIRECTION_DIR / "DIRECTION.yaml"
 DECISIONS_PATH = DIRECTION_DIR / "decisions.jsonl"
+#: THE TRIAGE REGISTER for the self-audit list (director, 2026-10-07): every carried `wrong` item
+#: gets ONE fate -- fix, fold into a class register, or accept with a reason -- instead of being
+#: copied forward on every orientation. Absent means "not triaged yet" and changes nothing.
+WRONG_TRIAGE_PATH = DIRECTION_DIR / "wrong_triage.yaml"
 DELIVERY_FEED = PROJECT_DIR / "site" / "data" / "delivery.json"
 
 #: THE WRITE SCOPE, and the reason "it never becomes a second writer on the tree" is a mechanism
@@ -57,6 +62,9 @@ DELIVERY_FEED = PROJECT_DIR / "site" / "data" / "delivery.json"
 WRITE_SCOPE = (
     "docs/direction/DIRECTION.yaml",
     "docs/direction/decisions.jsonl",
+    # The seat must be able to obey its own refusal: "carried 7+ days untriaged" names this file
+    # as the remedy, and a remedy outside the pathspec would be dropped from the seat's commit.
+    "docs/direction/wrong_triage.yaml",
     "site/data/delivery.json",
 )
 
@@ -557,3 +565,184 @@ def wrong_rows(row: dict) -> list[dict]:
         elif isinstance(item, str) and item.strip():
             out.append({"what": item.strip(), "corrected": None})
     return out
+
+
+# --------------------------------------------------------------------------- #
+# The self-audit's triage: count PROBLEMS, not rows, and stop copying them      #
+# --------------------------------------------------------------------------- #
+#
+# Director, 2026-10-07: *"The 'what it got wrong' list reads 987 open, 82 corrected, and that
+# number misleads. It counts rows, not problems: each orientation copies every unfixed item
+# forward ... Count distinct items, not rows. ... Triage every carried item once ... Then apply
+# that as a rule: an item carried unchanged across, say, a week of orientations must be triaged
+# rather than copied forward again."*
+
+#: THE CARRY LIMIT, in days -- the director's own figure ("say, a week"), a policy dial and not a
+#: measurement. At the three-hour cadence a week is ~56 orientations: long enough that an item
+#: still listed has outlived every stretch's chance to fix it, short enough that the list cannot
+#: regrow to hundreds of copies before the rule bites. Change it here and nowhere else.
+WRONG_CARRY_TRIAGE_DAYS = 7
+
+WRONG_FATES = ("fix", "fold", "accept")
+
+#: The seat's provenance prefix -- "THE MACHINE'S, CARRIED.", "MINE, NEW.", "THE MACHINE'S.",
+#: "MINE, NEW, now corrected." (all seen in decisions.jsonl) -- flips from NEW to CARRIED while
+#: the problem stays the same, so it is not part of identity. An upper-case lead of two or more
+#: letters, an optional short comma tail, then a full stop.
+_WRONG_PREFIX = re.compile(r"^\s*[A-Z][A-Z'’ ]+(?:,[^.]{0,40})?\.\s+")
+_SENTENCE_END = re.compile(r"(?<=[.!?])\s+")
+_LABEL_SENTENCE = re.compile(r"^(still open|new|corrected|now corrected)\b[^.]{0,30}\.$", re.I)
+
+
+def wrong_first_sentence(what: str) -> str:
+    """The fallback identity of an untriaged item: its first sentence, provenance prefix stripped,
+    case and whitespace folded. A carried item grows a "23:24: unchanged." tail every stretch, so
+    its WHOLE text changes each time while its first sentence -- the problem -- does not."""
+    text = _WRONG_PREFIX.sub("", str(what or "").strip(), count=1)
+    sentences = [s for s in _SENTENCE_END.split(text) if s.strip()] or [""]
+    # Older rows lead with a short label sentence ("Still open.", "New.", "My own instruction."),
+    # or "Still open, fifth stretch.", which as an identity would merge every row carrying it into
+    # one problem. Skip those.
+    while len(sentences) > 1 and (len(sentences[0].split()) < 4
+                                  or _LABEL_SENTENCE.match(sentences[0])):
+        sentences.pop(0)
+    return re.sub(r"\s+", " ", sentences[0]).strip().rstrip(".!?").lower()
+
+
+def read_wrong_triage(path: Path | None = None) -> tuple[list[dict] | None, str]:
+    """`(items, "")` for a readable register, `(None, why)` otherwise.
+
+    ABSENT IS NOT AN ERROR: before the register exists everything behaves as it did, and `why`
+    says so. UNREADABLE is reported because the callers differ: the panel fails open on it, the
+    write-time check refuses on it.
+    """
+    path = WRONG_TRIAGE_PATH if path is None else path
+    if not path.is_file():
+        return None, f"no triage register at {path.name}: nothing is triaged, nothing is retired"
+    try:
+        import yaml
+        doc = yaml.safe_load(path.read_text(encoding="utf-8"))
+    except Exception as exc:  # noqa: BLE001 - every unreadable shape is one answer: unreadable
+        return None, f"{path.name} is unreadable ({type(exc).__name__}: {exc})"
+    items = doc.get("items") if isinstance(doc, dict) else None
+    if not isinstance(items, list):
+        return None, f"{path.name} has no `items:` list"
+    return [i for i in items if isinstance(i, dict)], ""
+
+
+def triage_entry_problems(item: dict) -> list[str]:
+    """Why one register entry cannot be used. A retirement with no reason is one nobody can
+    review, and an entry with no `match` phrase can never claim an item."""
+    tid = item.get("id") or "<no id>"
+    out = []
+    match = item.get("match")
+    if not isinstance(match, list) or not [m for m in match if str(m).strip()]:
+        out.append(f"triage item {tid!r} has no match phrases, so it can claim no wrong entry")
+    fate = item.get("fate")
+    if fate not in WRONG_FATES:
+        out.append(f"triage item {tid!r} has fate {fate!r}, not one of {'/'.join(WRONG_FATES)}")
+    elif fate in ("fold", "accept") and not str(item.get("reason") or "").strip():
+        out.append(f"triage item {tid!r} is {fate} with no reason -- a retirement must say why")
+    elif fate == "fix" and item.get("status") not in ("open", "already_fixed"):
+        out.append(f"triage item {tid!r} is fix with status {item.get('status')!r}, "
+                   "not open|already_fixed")
+    return out
+
+
+def triage_is_retired(item: dict) -> bool:
+    """Retired = never listed again: folded, accepted, or a fix already made."""
+    fate = item.get("fate")
+    return fate in ("fold", "accept") or (fate == "fix" and item.get("status") == "already_fixed")
+
+
+def triage_match(what: str, triage) -> dict | None:
+    """The register entry this item belongs to: the first whose `match` phrase occurs in `what`,
+    case-insensitively. PHRASES, not the whole text, because the text grows a tail every stretch."""
+    low = str(what or "").lower()
+    for item in triage or ():
+        for phrase in item.get("match") or ():
+            phrase = str(phrase).strip().lower()
+            if phrase and phrase in low:
+                return item
+    return None
+
+
+def wrong_problem_key(what: str, triage) -> str:
+    """One problem's identity: `triage:<id>` when the register claims it, else `text:<first
+    sentence>`."""
+    hit = triage_match(what, triage)
+    if hit is not None:
+        return f"triage:{hit.get('id')}"
+    return "text:" + wrong_first_sentence(what)
+
+
+def wrong_first_seen(rows, triage) -> dict[str, datetime]:
+    """Each problem's earliest appearance over recorded orientations, by `wrong_problem_key`."""
+    seen: dict[str, datetime] = {}
+    for row in rows or ():
+        at = _iso(row.get("at"))
+        if at is None:
+            continue
+        for item in wrong_rows(row):
+            key = wrong_problem_key(item["what"], triage)
+            if key not in seen or at < seen[key]:
+                seen[key] = at
+    return seen
+
+
+def wrong_triage_problems(record, *, triage_path: Path | None = None,
+                          decisions_path: Path | None = None,
+                          now: datetime | None = None) -> list[str]:
+    """Every `wrong` entry the triage forbids writing, each as a refusal naming its reason.
+
+    WRITE-TIME ONLY, deliberately not inside `validate`: `read_direction` validates on READ, and a
+    record that was legal when written must not lose its focus to a register edited afterwards.
+
+    Two refusals, both meaning "stop copying this forward":
+      * the entry matches a RETIRED triage item (fold, accept, fix already_fixed);
+      * the entry is still open, matches NO triage item, and its problem first appeared in an
+        orientation `WRONG_CARRY_TRIAGE_DAYS` or more before this one.
+    An entry marked `corrected: true` is exempt from the second -- closing an item is the opposite
+    of carrying it. With NO register file nothing is refused, exactly as before the register.
+    """
+    path = WRONG_TRIAGE_PATH if triage_path is None else triage_path
+    triage, why = read_wrong_triage(path)
+    if triage is None:
+        return [f"wrong cannot be graded against the triage register: {why}"] \
+            if path.is_file() else []
+    problems = [p for item in triage for p in triage_entry_problems(item)]
+    if problems:
+        return problems
+    wrong = record.get("wrong") if isinstance(record, dict) else None
+    if not isinstance(wrong, list) or not wrong:
+        return []
+    now = now or _iso(record.get("oriented_at")) or datetime.now(timezone.utc)
+    first_seen = None
+    for i, entry in enumerate(wrong):
+        if not isinstance(entry, dict):
+            continue
+        what = str(entry.get("what") or "")
+        hit = triage_match(what, triage)
+        if hit is not None:
+            if triage_is_retired(hit):
+                fate = hit.get("fate")
+                if fate == "fix":
+                    fate = f"fix, already_fixed by {hit.get('fixed_by') or 'an unnamed commit'}"
+                problems.append(
+                    f"wrong[{i}] is the retired triage item {hit.get('id')!r} (fate {fate}): "
+                    f"{hit.get('reason') or hit.get('problem') or 'no reason recorded'} -- drop "
+                    "it from wrong; docs/direction/wrong_triage.yaml already holds its fate")
+            continue
+        if entry.get("corrected") is True:
+            continue
+        if first_seen is None:
+            first_seen = wrong_first_seen(read_decisions(limit=10**9, path=decisions_path),
+                                          triage)
+        since = first_seen.get(wrong_problem_key(what, triage))
+        if since is not None and (now - since).total_seconds() >= WRONG_CARRY_TRIAGE_DAYS * 86400:
+            problems.append(
+                f"wrong[{i}] carried {WRONG_CARRY_TRIAGE_DAYS}+ days untriaged (first listed "
+                f"{since.date().isoformat()}: {wrong_first_sentence(what)[:120]!r}): triage it "
+                "into docs/direction/wrong_triage.yaml (fix / fold / accept) rather than copy it "
+                "forward")
+    return problems

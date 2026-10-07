@@ -1352,3 +1352,47 @@ def test_a_concern_for_the_director_reaches_the_reader_with_its_PROPOSAL_and_STA
         ["delivery-decided"]["innerHTML"])
     assert "Nothing on this list is waiting on a human." in empty
     assert "Proposal:" not in empty
+
+
+def test_one_problem_copied_into_39_orientations_RENDERS_as_one_problem_not_39(
+        monkeypatch, tmp_path):
+    """Director, 2026-10-07: *"The 'what it got wrong' list reads 987 open, 82 corrected, and that
+    number misleads. It counts rows, not problems."* The panel must LEAD with distinct problems and
+    keep rows as the smaller figure beneath -- asserted on what the page's own script renders,
+    from a feed the real generator built, with and without a triage register.
+
+    MUTATION (must fire): lead with `w.outstanding` again, or render `items` instead of
+    `w.problems`.
+    """
+    from background import direction as direction_mod
+    from tools import generate_delivery_page as page
+
+    rows = [{"at": f"2026-10-{1 + i // 8:02d}T{i % 8 * 3:02d}:00:00+00:00", "wrong": [
+        {"what": "THE MACHINE'S, CARRIED. The stash sweep reports a lost file as safe. "
+                 f"{i:02d}:00: unchanged.", "corrected": False}]} for i in range(39)]
+    rows[0]["wrong"].append({"what": "MINE, NEW. A different problem entirely.",
+                             "corrected": True})
+    monkeypatch.setattr(page.direction_mod, "read_decisions", lambda limit=50: rows)
+    feed = json.loads((DATA / "delivery.json").read_text(encoding="utf-8"))
+
+    def shown(register):
+        monkeypatch.setattr(direction_mod, "WRONG_TRIAGE_PATH", register)
+        panel = page.what_it_got_wrong()
+        return _text(_render({"../data/delivery.json": dict(feed, what_it_got_wrong=panel)})
+                     ["delivery-wrong"]["innerHTML"])
+
+    absent = shown(tmp_path / "absent.yaml")
+    assert absent.startswith("2 distinct problems listed, 1 genuinely open"), absent[:200]
+    assert "None triaged yet" in absent
+    assert "listed 39 times" in absent
+    assert absent.index("distinct problems") < absent.index("40 rows across the window")
+
+    register = tmp_path / "wrong_triage.yaml"
+    register.write_text(
+        'decided: "2026-10-07"\nitems:\n  - id: stash-sweep\n    problem: p\n'
+        '    match: ["stash sweep reports"]\n    first_seen: "2026-10-01"\n    times_listed: 39\n'
+        "    fate: accept\n    reason: the sweep is being retired\n", encoding="utf-8")
+    triaged = shown(register)
+    assert triaged.startswith("2 distinct problems listed, 0 genuinely open"), triaged[:200]
+    assert "1 triaged (0 to fix, 0 folded into a class register, 1 accepted" in triaged
+    assert "triaged: accept" in triaged
