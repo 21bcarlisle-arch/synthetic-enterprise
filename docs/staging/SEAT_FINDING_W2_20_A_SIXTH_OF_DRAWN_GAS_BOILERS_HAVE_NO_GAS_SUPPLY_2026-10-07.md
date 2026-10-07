@@ -267,3 +267,66 @@ that cache, and its script refuses to start unless the cache yields 168,026. Gra
 The fetcher now retries a non-200 and then refuses the range, naming the day. That fix lands in a separate
 commit. An empty day is a 200 with no data (probed: 2015-11-04 returned 200 with 0 records), so it is
 unaffected.
+
+## Step (d) graded: the `20261007w` pair measured a different book, so it bounds nothing about W2_20 (seat, 2026-10-07 ~16:40Z)
+
+Leg 2 ended `END leg2 DONE` at 16:21Z, rc 0, on the cache that yields 168,026. Both artefacts are now in
+`docs/observability/` (`value_cycle_ab_s1_{three_arm,noise_floor}_20261007w.json`, both producing commit
+`8af70203f`).
+
+**A correction to the pre-registration's baseline label first.** The £18,541 it calls "value minus level" is
+`level_vs_selection.value_advantage_gbp`, which is the value arm minus the **control** arm. Value minus
+level is the selection leg, £3,229. P3 is graded on the quantity the number names: value minus control.
+"Floor spread £2,229" is the stdev of `value_advantage_gbp` across the floor's three seeds, which is what
+the site publishes as `stdev_gbp`.
+
+| # | prediction | `20261005c` | `20261007w` | verdict |
+|---|---|---:|---:|---|
+| P1 | control-arm gas legs down, 64 to 52-62 | 64 of 127 | **183 of 272** | **FAIL** |
+| P2 | control-arm gross margin down 1-8% | £342,591 | **£669,988 (+96%)** | **FAIL** |
+| P3 | value minus control moves less than 2x the new floor spread | £18,541 | **£5,089** (moved £13,452; 2x spread = £2,599) | **FAIL** |
+| P4 | floor spread inside £1,500-£3,500 | £2,229 | **£1,300** | **FAIL, by £200** |
+| P5 | selection leg: no sign predicted | £3,229, not distinguishable | £11,258; floor 6.6 SEMs from zero, **distinguishable** | recorded, not graded |
+
+**Why none of this is W2_20.** The book more than doubled. Billing accounts settled in the window went
+from 127 to 272. All of the growth is acquired prospects: `PROS-*` accounts went from 52 to 197. The 64
+founder accounts (`SYN-*`) and the 11 SME accounts are unchanged. Gas share **rose**, from 50% to 67%, and
+dual fuel went from 38% to 61%. W2_20 can only take a gas register away from a home. It cannot add 145
+acquired accounts or raise the gas share. Some other change between `a9e6f2144` and `8af70203f` (40 commits
+over `ARMS_SUBSTRATE_PATHS`) changed how many prospects convert. **I cannot yet say which.** Candidates,
+ranked by mechanism and not yet measured: the PB4 shopping commits (`f71fcc176` woken default-tariff
+households choosing by their own elasticity, `beb4f8533` drift off the default tariff, `4ff093bb0` a contact
+wakes households). These raise switching in the whole market, so they raise acquisition. Second come B7's
+change-of-tenancy accounts (`8359d5acd`), if a move-in's new account is minted under a `PROS-*` id. I have not checked that. The P1 escape clause ("unchanged at 64 means
+W2_20 does not reach the arms") is not triggered either. The count moved, but not because of W2_20. So
+whether W2_20 reaches the arms is still unmeasured.
+
+**A second oddity, named and not explained.** In `20261005c` the three-arm headline (£18,541) sat inside its
+own floor's three seeds (£17,277-£21,464). In `20261007w` it does not: £5,089 against seeds of
+£9,225-£11,621, 3.9 floor stdevs below their mean of £10,132. The two legs read SSP from different sources.
+Leg 1 live-fetched 168,026 records, and leg 2 read the shared cache, which also yields 168,026. An equal
+count is not equal values. The other explanations the evidence allows: the leg-1 default draw is a genuine
+tail draw, or the redraw scope does not cover what moved. I have not tested any of them.
+
+**Not published.** The `20261007w` pair is not moved onto `CURRENT_WORLD_*` and the site is not
+regenerated. Fifteen substrate paths moved between `8af70203f` and origin `b2ec5147a`: retention-guard
+bad-debt netting, W2_36 smart-mode reads, the C32 moratorium, and the non-DD miss vocabulary among them.
+They are not exemptable without measurement. A prior invocation of this claim therefore relaunched both legs
+at origin `b2ec5147a` at 15:04Z as `longjob-w220-head-arms` (script `/var/tmp/se-w220-head-arms.sh`, log
+`/var/tmp/longjob-w220-head-arms.log`, worktree `/var/tmp/se-w220-head-arms`), writing the `20261007h` pair.
+Both legs read the shared cache, and the script refuses to start unless that cache yields 168,026. That run
+is the one to publish. The `w` pair stays as the evidence for the grading above.
+
+**Pre-registered at ~16:40Z, before `20261007h` leg 1 finished (it started 16:21Z):**
+
+| # | quantity | prediction | confidence |
+|---|---|---|---|
+| H1 | `h` control-arm billing accounts | within 245-300 (272 ±10%). None of the 15 moved paths is acquisition. | ~0.7 |
+| H2 | `h` leg-1 `value_advantage_gbp` | inside its own floor seeds' [min - 1 stdev, max + 1 stdev]. If it is inside, the `w` gap is consistent with the SSP-source split and not proven by it. | ~0.55 |
+
+**Owed, one variable each, after `longjob-w220-head-arms` ends.** This machine has 12.2 GB available, the
+running re-take peaks at 11.2 GB, and 287 OOM kills are on record, so nothing runs beside it.
+(i) W2_20 alone: leg 1 at `b2ec5147a` with `81732ffe2` reverted, against `h` leg 1. That is the only
+reading that says what W2_20 moved.
+(ii) The doubled book: which commit in `a9e6f2144..8af70203f` converts 145 more prospects. A truncated
+`--end-year 2017` control arm is enough, since `PROS-2016` alone went from 10 to 19 and `PROS-2017` from 4 to 18.
