@@ -46,7 +46,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import date
 from enum import Enum
-from typing import Optional
+from typing import Optional, Sequence
 
 from company.crm.complaints import ComplaintBook, ComplaintCategory
 from company.crm.nps_tracker import NPSTracker
@@ -228,6 +228,13 @@ class CustomerExperienceDesk:
 
     def payment_behaviour_score(self, customer_id: str) -> Optional[BehaviourScore]:
         return self._payments.get_score(customer_id)
+
+    def account_payment_behaviour_score(
+        self, supply_point_ids: Sequence[str],
+    ) -> Optional[BehaviourScore]:
+        """The score a decision about the whole account reads: every bill on every one of its
+        supply points (`PaymentBehaviourAnalytics.get_account_score`)."""
+        return self._payments.get_account_score(supply_point_ids)
 
     def nps_annual_summary(self, year: int) -> dict:
         return self._nps.annual_summary(year)

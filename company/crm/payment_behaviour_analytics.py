@@ -10,7 +10,7 @@ informing the company's CRM and retention response without revealing SIM ground 
 from __future__ import annotations
 
 from enum import Enum
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Sequence
 
 
 class BehaviourScore(str, Enum):
@@ -77,6 +77,21 @@ class PaymentBehaviourAnalytics:
         if customer_id not in self._records:
             return None
         return score_payment_history(self._records[customer_id])
+
+    def get_account_score(self, supply_point_ids: Sequence[str]) -> Optional[BehaviourScore]:
+        """The score of an ACCOUNT: every bill on it, whichever supply point it was raised for.
+
+        A dual-fuel household pays two bills a month and leaves once. Its departure is decided on
+        one leg, and reading that leg's score alone made the other leg's record invisible to the
+        decision: on 2026-10-07's chosen book an account whose gas leg was CRITICAL (on-time 32%,
+        DD-failed 17%) was believed FAIR because its electricity leg was. Pooling is the score's
+        own definition applied to the account's history, not a rule for combining two scores, so
+        it carries no new threshold. A single-leg account gets exactly `get_score`.
+        """
+        records = [r for sp in supply_point_ids for r in self._records.get(sp, ())]
+        if not records:
+            return None
+        return score_payment_history(records)
 
     def get_metrics(self, customer_id: str) -> Optional[dict]:
         if customer_id not in self._records:

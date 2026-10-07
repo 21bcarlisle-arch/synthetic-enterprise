@@ -1809,6 +1809,15 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
     _accounts_with_an_electricity_leg = {
         household_of(cid) for cid, schedule in elec_schedules.items() if schedule
     }
+    # EVERY SUPPLY POINT ON EACH ACCOUNT, so a decision about the whole account reads the whole
+    # account's payment record. The departure roll is on one leg; reading only that leg's score
+    # left a dual-fuel account's other leg invisible to the company's belief (2026-10-07: a
+    # CRITICAL gas leg behind a FAIR electricity one). Sorted so the pooled record is
+    # order-independent of dict iteration.
+    _supply_points_of_account: dict[str, tuple[str, ...]] = {}
+    for _sp in sorted(set(elec_schedules) | set(gas_schedules)):
+        _supply_points_of_account[household_of(_sp)] = (
+            *_supply_points_of_account.get(household_of(_sp), ()), _sp)
 
     # ---- Simulation state ----
     treasury = STARTING_TREASURY_GBP
@@ -2485,14 +2494,13 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             # NOT among the `_svt_risks` above: the belief reaches no hazard, which is the only
             # thing that makes it gradable against the outcome (see the estimate below).
             #
-            # KEYED ON `cid`, NOT `billing_account`, AND THE DIFFERENCE IS NOT COSMETIC. The desk
-            # is fed by `observe_payment(customer_id=cid)` below and read the same way by the
-            # renewal belief; `billing_account` is `household_of(cid)` and differs wherever a
-            # household holds more than one meter point. Looking the score up under the household
-            # key would have returned `None` for exactly those accounts and the belief would have
-            # quietly fallen back to its midpoint on them -- a fail-open that reads as "no payment
-            # history" when the history is right there under another key.
-            _svt_behaviour = _cx_desk.payment_behaviour_score(cid)
+            # READ OVER THE ACCOUNT'S SUPPLY POINTS, NEVER UNDER `billing_account` ITSELF. The desk
+            # is fed by `observe_payment(customer_id=cid)` below, so the household key alone
+            # returns `None` wherever a household holds more than one meter point -- a fail-open
+            # that reads as "no payment history". And `cid` alone is the decision leg only, which
+            # hid a dual-fuel account's gas record from this belief until 2026-10-07.
+            _svt_behaviour = _cx_desk.account_payment_behaviour_score(
+                _supply_points_of_account.get(billing_account, (cid,)))
             _svt_roll = random.Random(
                 f"svt_inertia_{billing_account}_{term_start_str}").random()
             # THE DECISION IS RECORDED BEFORE THE BRANCH, so that staying is a row too. Recording
@@ -2771,7 +2779,8 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                 # recall=0%/precision=0% (docs/staging/EVIDENCE_IN_BUSINESS_SURFACES.md).
                 _nd_shock_count = _rate_shock_counts.get(cid, 0)
                 # Phase NH: payment behaviour score from observable payment history
-                _nh_behaviour_score = _cx_desk.payment_behaviour_score(cid)
+                _nh_behaviour_score = _cx_desk.account_payment_behaviour_score(
+                    _supply_points_of_account.get(billing_account, (cid,)))
                 if _churn_journey_register.get_journey(billing_account) is None:
                     _churn_journey_register.register_customer(
                         billing_account, tenure_years=tenure_for_est, churn_threshold=50.0,
