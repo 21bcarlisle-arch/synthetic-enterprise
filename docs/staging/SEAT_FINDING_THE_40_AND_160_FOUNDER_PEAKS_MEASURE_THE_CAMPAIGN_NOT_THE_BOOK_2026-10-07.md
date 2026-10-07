@@ -151,3 +151,88 @@ but that is a no-op when each run is its own process. So the founders-only 40-ag
 on one code version, while "original minus control" crosses two. **Bridge:** the original 40-founder
 configuration (budget 1,750, unpatched script) at `318162387`. **Prediction B1:** its peak is within
 ±150 MB of 3,353 MB. If it is not, the campaign increment below is confounded with W2_36.
+
+## Third pre-registration (2026-10-07 ~19:20Z, before launch): do the post-end wins cost memory?
+
+*Claim `campaign-holds-memory-for-wins-past-the-runs-end`.*
+
+**Where the wins are built (read before measuring).** `live_population()` appends
+`_won_customer_dicts(_campaign(...))` to the book unconditionally. It has no `report_end`. The
+campaign quotes up to `CAMPAIGN_QUOTE_CUTOFF = 2025-06-07`, whatever `--end` is. `run_phase2b`
+binds `ELEC_CUSTOMERS`/`GAS_CUSTOMERS` from that book at import, then builds per-customer state over
+the whole book: `weather_by_customer`, `cloud_cover_by_customer`, the weather refusals, and a renewal
+schedule per account. A won account dated after `--end` produces no settlement records. It is
+still a customer for everything that is keyed on the book.
+
+**Census at 40 founders, seed default, same campaign as `bridge40`** (resolved in 5 s): 602 won supply
+legs (electricity plus gas). **141 are dated on or before 2019-12-31 and 461 after.** That matches the
+settled book: 178 accounts with records, minus founders-only 37, gives 141. Customer-years to 2026
+by leg: 1,111.3 before the end and 1,382.6 after (55%).
+
+**One variable.** This is `bridge40` (budget 1,750, `--end 2019-12-31`, 40 founders, the same code
+and script), with `_won_customer_dicts` wrapped to drop legs whose `acquisition_date > --end`. The
+campaign, its spend and the premise register are untouched. Only book membership changes.
+
+**Predictions, filed before the answer:**
+
+- **Q1 (that it is one variable):** the settled book is identical to `bridge40`: 112,805 records,
+  178 accounts, 308.8 settled customer-years. If not, the filter changed something besides
+  membership, and Q2 cannot be read.
+- **Q2 (the lead):** the peak falls by **at least 500 MB** from `bridge40`'s 3,228 MB. A fall within
+  ±130 MB (the bridge-against-original spread) refutes the lead: the post-end wins cost nothing, and
+  the campaign increment belongs to the 141 settled wins.
+- **Q3 (which unit):** if the cost follows committed-to-2026 years, the fall is about **810 MB**
+  (55% of the 1,464 MB increment), to a peak near 2,420. If it is per account in the book, the fall
+  is about **1,130 MB** (77%), to a peak near 2,100. If neither is within ±150 MB, I cannot yet say
+  which unit it is.
+
+## Result of the third control: yes, the post-end wins are built, and they cost about 1 GB and 200 s
+
+`postend40` (unit `longjob-scale-shape-postend40`, `.scale_shape_postend/` in the executor worktree,
+not committed; the filter reported `dropped 461, kept 141`):
+
+| leg | ru_maxrss | wall | records | accounts | settled cy |
+|---|---|---|---|---|---|
+| `bridge40` (book holds all 602 won legs) | **3,228.4 MB** | 509 s | 112,805 | 178 | 308.8 |
+| `postend40` (post-end legs dropped)      | **2,169.1 MB** | 309 s | 112,805 | 178 | 308.8 |
+| `ctl40` (founders only, for scale)        | 1,764.1 MB    |  96 s |  32,757 |  37 |  89.7 |
+
+- **Q1 holds.** The settled book is identical (records, accounts, settled years and the 36 lifecycle
+  rolls), so book membership is the only thing that moved.
+- **Q2 holds.** The peak falls by **1,059 MB (33%)** and the wall time by **200 s (39%)**. The 461
+  won legs dated after `--end` settle nothing. They cost more memory than the 141 legs that settle
+  everything the campaign contributes (2,169 − 1,764 = 405 MB).
+- **Q3: per account, not per committed year.** The result is 69 MB from the per-account prediction
+  (2,100) and 360 MB from the committed-years one (2,420). **The "1.1 MB per customer-year committed
+  to 2026" in the verdict above is a coincidence of this config, corrected here:** the campaign's
+  post-end legs are both most of its accounts and most of its committed years, so the two units could
+  not be told apart until membership was moved alone.
+
+**The shape, which the two series show and the prediction did not ask.** The extra memory is **not**
+set-up state. Both legs sit at about 1,570 MB a few seconds into phase 2b, so the per-customer weather
+and cloud-cover dicts (`weather_by_customer` etc., bounded by reading them at about 0.5 MB per account)
+are not where it goes. `bridge40` climbs to 3,228 MB through the term loop (`while all_terms`) and
+**drops 956 MB in one 3-second sample (3,218 → 2,262) as the loop ends**. `postend40` climbs only to
+2,162 MB and has no such drop. So something local to the term loop grows with the number of accounts
+in the book, settled or not, and with the length of the loop. It is released when the loop's frame
+goes. **I have not found which structure that is.** The candidates by reading are the per-record sweeps
+over the module book (`active_elec = [c for c in ELEC_CUSTOMERS ...]` per committee check,
+`_known_customers()` building a fresh whole-book list per call). Neither obviously retains anything, so
+neither is established. A tracemalloc probe that snapshots at the peak is written
+(`.scale_shape_postend/tm_probe.py`). Admission refused it at 19:25Z: another lane's 11.2 GB
+`--level-arm` job was resident.
+
+**Why it matters beyond calibration runs.** The full-window run (`--end` = `REPORT_END`) has no
+post-end wins, so this exact cost is zero there. But the mechanism is "a loop-local structure that
+scales with accounts in the book times the loop's length". In a full run that is every account, and it
+is the most likely owner of the 1.35 MB per settled customer-year founders slope. Finding it is the
+lead on whether settlement can carry a larger book. Dropping post-end wins from a short run's book is
+the cheap half. It is not yet done: the book is bound at import (`run_phase2b.py:294`, before
+`report_end` exists) and feeds about 40 sites, including the import-time treasury EAC sums and the
+reporting surfaces, so rebinding it per run is a design change with a blast radius, not a one-line
+filter.
+
+**What does not change:** the settlement-budget accounting. The campaign still charges its budget to
+2026 whatever `--end` is (`horizon = date(2026, 1, 1)`). Making the campaign a function of `--end` would
+make a short run's pre-end book differ from the full run's. That is a calibration-comparability
+question for the world's side, and I have left it.
