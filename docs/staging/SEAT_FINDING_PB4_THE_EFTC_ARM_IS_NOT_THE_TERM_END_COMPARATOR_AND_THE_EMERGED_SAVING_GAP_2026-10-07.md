@@ -120,6 +120,27 @@ same world probability (0.023 to 0.027 per cap period). That route carries most 
 departures (61% at C1b; the docstring says so). So over the run a disengaged household is
 **expected** to leave as often as an active one (0.60 against 0.61).
 
+> **Superseded on the page, 2026-10-07, by the re-capture on `beb4f8533`'s world.** The table and
+> verdict above describe the engagement-blind world at `bebf42253` and are kept as written. Since
+> `beb4f8533` the SVT drift carries the sourced engagement gradient (`SVT_INERTIA_DISENGAGED_RATIO`,
+> 0.54, Ofgem CMOL 2017). The re-capture was taken at `85ddd37d8` plus that change only (graded in
+> `WORKER_FINDING_PB4_THE_SVT_DRIFT_ENGAGEMENT_GRADIENT_IS_WIRED_AND_THE_PREDICTION_HOLDS_2026-10-07.md`).
+> It now sits in `docs/reports/pb4_departure_factors.json`, with 71 resi renewal decisions and
+> 1,764 SVT decisions.
+>
+> | Archetype | SVT drift p / cap period (was) | SVT-years (was) | Expected departures / household (was) | Counted (was) |
+> |---|---|---|---|---|
+> | active | 0.0288 (0.0247) | 124.2 (124.2) | **0.654** (0.61) | 0.55 (0.55) |
+> | passive | 0.0309 (0.0272) | 113.1 (117.1) | **0.522** (0.48) | 0.57 (0.57) |
+> | disengaged | 0.0138 (0.0229) | 112.7 (111.5) | **0.397** (0.60) | 0.32 (0.36) |
+>
+> Disengaged against active expected departures is now **0.607**, against 0.98 before. The pattern
+> is reproduced in direction: a disengaged household is expected to leave about 0.6 times as often as
+> an active one. The renewal-roll leg did not move, so the whole change comes through the drift.
+> The page's verdict sentence is now computed from the feed's ratio instead of being fixed prose.
+> P4's "about 1.0" is therefore superseded on the page. P1 to P3 are unchanged, because they read the
+> renewal roll and the bands, and neither moved.
+
 The counted column (0.36 against 0.55) looks like the published pattern, but it is dice. The SVT
 leg's 6 departures against about 13 expected is the whole gap. A reader of realised counts alone
 would have closed D4 on noise.

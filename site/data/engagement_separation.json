@@ -1,8 +1,8 @@
 {
   "available": true,
-  "generated_at": "2026-10-07T00:19:51Z",
+  "generated_at": "2026-10-07T02:00:35Z",
   "published_from": {
-    "commit": "bebf42253c010f4d5a36bf60c1bf8fa83028837c",
+    "commit": "f65cf94228f1278113ff3898e02180b92a17b119",
     "tree_was_clean": false,
     "inputs_are_the_committed_bytes": false,
     "inputs": [
@@ -20,14 +20,14 @@
       },
       {
         "path": "tools/engagement_separation.py",
-        "state": "modified"
+        "state": "committed"
       },
       {
         "path": "docs/reports/pb4_departure_factors.json",
-        "state": "not_in_the_commit"
+        "state": "modified"
       }
     ],
-    "reason": "read off the working tree, not out of this commit: docs/reports/pb4_departure_factors.json, tools/engagement_separation.py \u2014 standing at this commit will not reproduce this feed"
+    "reason": "read off the working tree, not out of this commit: docs/reports/pb4_departure_factors.json \u2014 standing at this commit will not reproduce this feed"
   },
   "headline": "Of the 25 disengaged households on the book -- the long-default tail, the least likely to choose at a renewal -- 11 are MORE price-sensitive than the book's average household. Whether a household shops and how far price moves it once it does are two different facts in this world: across 125 households their rank correlation is -0.04, inside the -0.18 to +0.16 that shuffling the pairs produces.",
   "definitions": {
@@ -43,9 +43,9 @@
   },
   "emerged_by_saving": {
     "available": true,
-    "captured_at_commit": "bebf42253",
+    "captured_at_commit": "beb4f8533",
     "renewal_decisions": 71,
-    "svt_decisions": 1777,
+    "svt_decisions": 1764,
     "by_archetype": [
       {
         "archetype": "active",
@@ -53,7 +53,7 @@
         "renewal_roll": {
           "n": 55,
           "left": 16,
-          "world_probability_mean": 0.3383,
+          "world_probability_mean": 0.3386,
           "left_ci95": [
             0.1877,
             0.4214
@@ -63,8 +63,8 @@
         "svt_left": 15,
         "svt_left_per_year": 0.1207,
         "left_per_household": 0.554,
-        "svt_world_probability_mean": 0.0247,
-        "expected_left_per_household": 0.608
+        "svt_world_probability_mean": 0.0288,
+        "expected_left_per_household": 0.654
       },
       {
         "archetype": "passive",
@@ -72,18 +72,18 @@
         "renewal_roll": {
           "n": 11,
           "left": 3,
-          "world_probability_mean": 0.4071,
+          "world_probability_mean": 0.4069,
           "left_ci95": [
             0.0975,
             0.5656
           ]
         },
-        "svt_years": 117.1,
+        "svt_years": 113.1,
         "svt_left": 21,
-        "svt_left_per_year": 0.1794,
+        "svt_left_per_year": 0.1857,
         "left_per_household": 0.571,
-        "svt_world_probability_mean": 0.0272,
-        "expected_left_per_household": 0.484
+        "svt_world_probability_mean": 0.0309,
+        "expected_left_per_household": 0.522
       },
       {
         "archetype": "disengaged",
@@ -94,12 +94,12 @@
           "world_probability_mean": null,
           "left_ci95": null
         },
-        "svt_years": 111.5,
-        "svt_left": 6,
-        "svt_left_per_year": 0.0538,
-        "left_per_household": 0.36,
-        "svt_world_probability_mean": 0.0229,
-        "expected_left_per_household": 0.598
+        "svt_years": 112.7,
+        "svt_left": 5,
+        "svt_left_per_year": 0.0444,
+        "left_per_household": 0.32,
+        "svt_world_probability_mean": 0.0138,
+        "expected_left_per_household": 0.397
       }
     ],
     "looked_by_saving": [

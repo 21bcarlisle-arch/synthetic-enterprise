@@ -18,6 +18,7 @@ R15 -- the mutations, each run and reverted:
   * render the bill-shock branch as if established -> `test_the_bill_shock_gap_reaches_the_reader_while_it_is_absent`
   * drop the by-construction sentence -> `test_the_reader_is_told_the_zero_association_is_built_in`
   * drop the emerged table, or render a thin cell as a rate -> `test_the_emerged_pattern_reaches_the_reader_and_a_thin_cell_is_not_a_rate`
+  * render the reproduced verdict as a fixed word, not from the feed's disengaged/active ratio -> the same test
 The null rung is `test_an_unavailable_feed_renders_an_absence_and_never_a_zero`, green through all five.
 """
 from __future__ import annotations
@@ -165,7 +166,7 @@ def test_an_unavailable_feed_renders_an_absence_and_never_a_zero():
 def test_the_emerged_pattern_reaches_the_reader_and_a_thin_cell_is_not_a_rate(feed, live):
     """PB4 D4. DEFECT: the built-in rho above is not evidence that low-engagement households leave
     less; what the world's own decisions produce is, and it must reach the reader -- including,
-    while it holds, that the pattern is NOT reproduced. Keyed to the feed: every archetype's
+    whether the pattern is reproduced, as the feed's disengaged/active ratio says. Keyed to the feed: every archetype's
     expected departures reach the page, every readable cell its interval, every thin cell its n."""
     em = feed["emerged_by_saving"]
     assert em["available"], em.get("reason")
@@ -181,4 +182,7 @@ def test_the_emerged_pattern_reaches_the_reader_and_a_thin_cell_is_not_a_rate(fe
             assert "n={}, too few".format(c["n"]) in rendered
         else:
             assert "{} of {} left".format(c["left"], c["n"]) in rendered
-    assert "not reproduced" in rendered
+    exp = {g["archetype"]: g["expected_left_per_household"] for g in em["by_archetype"]}
+    ratio = exp["disengaged"] / exp["active"]
+    assert "{:.2f} times as often".format(ratio) in rendered
+    assert ("reproduced here in direction" if ratio < 1 else "not reproduced here") in rendered
