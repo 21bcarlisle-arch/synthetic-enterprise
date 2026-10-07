@@ -35,6 +35,8 @@ def record_file(tmp_path, monkeypatch):
         _record(), sort_keys=False), encoding="utf-8")
     monkeypatch.setattr(d, "DIRECTION_PATH", path)
     monkeypatch.setattr(d, "DECISIONS_PATH", tmp_path / "decisions.jsonl")
+    # `orient()` also grades `wrong` against the triage register; keep the real one out.
+    monkeypatch.setattr(d, "WRONG_TRIAGE_PATH", tmp_path / "wrong_triage.yaml")
     return path
 
 

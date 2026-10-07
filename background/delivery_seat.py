@@ -96,7 +96,7 @@ THE THESIS you are judging the stretch against, also his:
   applying flat rules with no per-customer view -- or "it performed well" means nothing.
 
 THIS SESSION WRITES DIRECTION. IT DOES NOT WRITE CODE. Do not edit, create or delete any file
-except `docs/direction/DIRECTION.yaml`. Nothing else you touch will be committed, so a code edit
+except `docs/direction/DIRECTION.yaml` and `docs/direction/wrong_triage.yaml`. Nothing else you touch will be committed, so a code edit
 here is work thrown away and a second writer on a tree that already has three.
 
 HOW YOUR DIRECTION IS WORKED (built 2026-08-25). A focus item that names a
@@ -158,6 +158,11 @@ RULES ON THE CONTENT, and the record is refused if it breaks them:
     with the evidence in `thesis_read`. An uncorrected error that silently stops being listed has
     not been fixed; it has been forgotten, and that is the failure this section exists to catch.
     A row with an empty `what`, or with `corrected` missing or non-boolean, is REFUSED outright.
+    A still-open row whose problem has been listed for 7+ days without an entry in
+    `docs/direction/wrong_triage.yaml` is REFUSED, and so is any row matching an entry there
+    already retired (fold, accept, or fix already_fixed): give each carried problem ONE fate in
+    that file -- fix (with its owner), fold into a class register, or accept with a reason -- and
+    then stop listing every retired one, rather than copying it forward again.
   * `for_the_director` IS THE DIRECTOR'S CONCERNS LIST (2026-10-04): *"Escalate with a proposal,
     and don't wait: concerns about strategy, vision or canon intent. Raise it, propose the change
     or ask me to investigate, then carry on with everything else. An open question to me sits in a
@@ -2503,13 +2508,18 @@ def orient(now: datetime | None = None, dry_run: bool = False) -> dict:
         "the session wrote no direction record"]
     dropped = director_concerns.carry_problems(before_raw, after_raw) if after_raw is not None \
         else []
-    problems = problems + dropped
+    # THE TRIAGE REFUSALS bind the WRITE and never the read (`direction.wrong_triage_problems`):
+    # a retired item listed again, or an untriaged one carried past WRONG_CARRY_TRIAGE_DAYS.
+    untriaged = direction_mod.wrong_triage_problems(after_raw) if after_raw is not None else []
+    problems = problems + dropped + untriaged
 
     if problems:
-        if dropped and before_bytes is not None:
+        if (dropped or untriaged) and before_bytes is not None:
             # RESTORED, because the file IS the list: leave the session's overwrite on disk and
             # the next orientation reads a record with the concern already gone, carries nothing,
-            # and passes. This file is inside the seat's own write scope.
+            # and passes. This file is inside the seat's own write scope. A triage refusal is
+            # restored for the reader's sake: `read_direction` does not run the triage check, so
+            # a refused record left on disk would steer the draw as if it had been accepted.
             direction_mod.DIRECTION_PATH.write_bytes(before_bytes)
             row["restored_previous_record"] = True
         # FAIL-CLOSED ON THE ARTEFACT, and this is the one place the seat does not fail soft: a
