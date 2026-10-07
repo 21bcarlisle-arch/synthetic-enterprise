@@ -2104,15 +2104,19 @@ def _prompt(brief: dict) -> str:
 
 
 def run_session(brief: dict) -> tuple[bool, str]:
-    """Spawn the bounded orienting session. Returns (ran, detail)."""
+    """Spawn the bounded orienting session. Returns (ran, detail).
+
+    THE PROMPT GOES ON STDIN, NEVER IN ARGV (2026-10-07). Linux caps ONE argument at 131072 bytes
+    (MAX_ARG_STRLEN) whatever `ARG_MAX` says; at 11:24Z the brief passed it and the spawn died
+    with OSError(7, 'Argument list too long'). The brief only grows, so argv was a fuse."""
     claude_bin = _resolve_claude()
     if claude_bin is None:
         return False, "claude binary not found"
     env = dict(os.environ, DISABLE_AUTOUPDATER="1", SE_DELIVERY_SEAT="1")
     try:
         proc = subprocess.run(
-            [claude_bin, "-p", "--dangerously-skip-permissions", "--model", MODEL, _prompt(brief)],
-            cwd=str(PROJECT_DIR), capture_output=True, text=True,
+            [claude_bin, "-p", "--dangerously-skip-permissions", "--model", MODEL],
+            input=_prompt(brief), cwd=str(PROJECT_DIR), capture_output=True, text=True,
             timeout=SESSION_TIMEOUT_SECONDS, env=env,
         )
     except subprocess.TimeoutExpired:
@@ -2498,6 +2502,8 @@ def orient(now: datetime | None = None, dry_run: bool = False) -> dict:
     except Exception:  # noqa: BLE001 - a lost stamp only lets the next spawn come sooner
         pass
     ran, detail = run_session(brief)
+    if not ran:
+        return record_session_did_not_run(row, why, detail, before)
     after_raw = None
     try:
         import yaml
@@ -2595,6 +2601,26 @@ def orient(now: datetime | None = None, dry_run: bool = False) -> dict:
             "[{}] {} -- proposal: {}".format(i, by_id[i]["what"], by_id[i]["proposal"])
             for i in fresh[:2]), topic_class="decision_waiting")
     row["concerns_paged"] = fresh
+    return row
+
+
+def record_session_did_not_run(row: dict, why: str, detail: str, before) -> dict:
+    """The session never oriented: record it REFUSED, page, and land NOTHING.
+
+    11:24Z 2026-10-07: the spawn died before the session started, and `orient` carried on as if
+    it had run. The record it then validated was the shared working copy's, untouched, so the row
+    read `oriented` and `commit_direction` landed that stale copy over origin (a42daa6a0),
+    reverting 1cd4bda0e's triage. Whatever is on disk after a failed session is not this stretch's
+    direction, so nothing is committed; the row stays in the working copy's `decisions.jsonl` and
+    lands with the next orientation's record."""
+    reason = f"the orienting session did not run: {detail}"
+    row.update({"outcome": "refused", "why": why, "session": detail, "ran": False,
+                "committed": False, "problems": [reason],
+                "focus": list(before.focus_keys()) if before else []})
+    _log(f"REFUSED: {reason}")
+    _notify("delivery seat: " + reason[:300] + " -- origin's steer is the previous stretch's",
+            topic_class="blocked_work")
+    direction_mod.append_decision(row)
     return row
 
 

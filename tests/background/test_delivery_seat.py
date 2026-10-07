@@ -1092,3 +1092,20 @@ def test_a_RETIRED_continuation_reaches_the_brief_as_finished_and_never_as_queue
     queued_part = said.split("RETIRED THIS STRETCH")[0]
     assert "still-queued" in queued_part and "spent-and-retired" not in queued_part
     assert "spent-and-retired" in said.split("RETIRED THIS STRETCH")[1]
+
+
+def test_a_brief_over_the_kernels_per_argument_limit_still_reaches_the_session(tmp_path,
+                                                                                monkeypatch):
+    """A REAL spawn, so the kernel is the judge: Linux refuses any one argv string over 131072
+    bytes (E2BIG), which killed the 11:24Z 2026-10-07 orientation. The stand-in `claude` writes
+    what it was handed on stdin. MUTATION (must fire): put `_prompt(brief)` back in argv."""
+    out = tmp_path / "got"
+    fake = tmp_path / "session_stand_in"
+    fake.write_text(f"#!/bin/sh\ncat > {out}\n")
+    fake.chmod(0o755)
+    prompt = "x" * 200_000
+    monkeypatch.setattr(seat, "_resolve_claude", lambda: str(fake))
+    monkeypatch.setattr(seat, "_prompt", lambda brief: prompt)
+    ran, detail = seat.run_session({})
+    assert ran, detail
+    assert out.read_text() == prompt

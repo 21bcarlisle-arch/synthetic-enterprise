@@ -1,4 +1,4 @@
-**Severity:** LATENT · **Lane:** H_harness · **Epoch:** unassigned · **Atom:** `unminted` · **Direction item:** `the-direction-record-retry-is-seen-landing-at-a-real-orientation` · **Claim:** released, graded 13:35 BST (P3 held, first branch)
+**Severity:** LATENT · **Lane:** H_harness · **Epoch:** unassigned · **Atom:** `unminted` · **Direction item:** `the-direction-record-retry-is-seen-landing-at-a-real-orientation` · **Claim:** released, graded 13:35 BST (P3 held, first branch) — **CORRECTED 17:10 BST: the graded run never ran a session; see below the 13:35 grade**
 
 # The direction-record fix (0be518a08) is not in the checkout the seat runs, so the next orientation cannot test it
 
@@ -62,6 +62,20 @@ pattern: a landed repair stays inert in a running daemon until the shared checko
   0be518a08 to background/delivery_seat.py itself".
 
 ## Graded, 13:35 BST: P3 held, on the first branch
+
+> **CORRECTION, 17:10 BST: the 13:35 grade was wrong, and so was its premise.** The run it graded
+> never started a session. The 11:24:41Z row in `decisions.jsonl` reads `"ran": false` and
+> `"session": "spawn failed: OSError(7, 'Argument list too long')"`. The brief went to `claude`
+> as one argv string, and that string passed the kernel's per-argument limit (131072 bytes).
+> `orient()` ignored `ran`. It validated the shared working copy's untouched `DIRECTION.yaml`, wrote
+> `oriented`, and `commit_direction` landed that stale copy as a42daa6a0, which undid 1cd4bda0e's
+> triage. "It landed" below is true of the bytes, but nobody oriented them. P3's first branch was
+> satisfied by the defect, not by the fix. The 13:35 grade read `outcome` and `committed` and never
+> read `ran`. Fixed in `background/delivery_seat.py`: the prompt now goes on stdin, and a session
+> that did not run is recorded `refused`, paged `blocked_work`, and commits nothing. Controls:
+> `test_a_brief_over_the_kernels_per_argument_limit_still_reaches_the_session` (a real spawn,
+> 200,000 bytes) and `test_a_session_that_did_not_run_is_REFUSED_PAGED_and_lands_NOTHING`. Both fire
+> under their mutations. The re-base leg is still unseen at a real orientation.
 
 - **The run had the fix.** It started at 12:24:41. The shared HEAD had been d1b8da5fd since 10:36,
   and 0be518a08 is an ancestor of it. No HEAD move between then and the run's end removed it.
