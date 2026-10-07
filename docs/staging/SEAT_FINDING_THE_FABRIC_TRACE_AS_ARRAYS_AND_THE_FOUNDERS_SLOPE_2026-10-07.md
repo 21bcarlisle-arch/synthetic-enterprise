@@ -90,3 +90,9 @@ drops 12%, from 2,388 to 2,100 MB. The 107 module tests and 19 dependent tests p
    given P4's excess.
 2. **Remedy 2** from the predecessor finding (start a won leg's trace a year before it joins) is
    still unmeasured and still needs care with `OWN_READS_FIRST_YEAR`.
+
+**Correction (2026-10-07, after the 160-founder run):** item 1 is answered *no*. At 160 founders
+there are 75 traces and 300 trace-years, against 72 and 288 at 40, while settled customer-years
+rise from 308.8 to 485.9. Converted back to lists, the trace contributes 0.088 MB per settled
+customer-year to the slope, not about 1.2. P3's "right size" at 40 founders was a coincidence of
+one book size. See `SEAT_FINDING_THE_FABRIC_TRACE_AT_160_FOUNDERS_2026-10-07.md`.
