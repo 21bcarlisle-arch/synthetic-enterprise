@@ -9,6 +9,11 @@
 # 2026-10-06: Q3 recovery toggle revised and prov_* provisioning toggles added from
 #   docs/market_research/bad_debt_provisioning.md (sections 3 and 7). The prov_coverage_* verdicts
 #   are MATTERS_AND_RESOLVABLE on mechanism (renewal pricing reads these rows); no sweep has run yet.
+# 2026-10-08: the director's four practitioner points checked against the published record
+#   (back_billing_and_liability.md s.9, read_access_and_theft_duties.md s.8-9,
+#   bad_debt_provisioning.md s.9). No value any code reads was changed. Three null-default rows
+#   added: q1_void_months_per_move_out, q2_persistent_unread_relative_risk_private_rented,
+#   q3_debt_sale_price_share_of_face.
 written: 2026-10-05
 toggles:
   - id: q1_move_out_notice_share
@@ -52,7 +57,11 @@ toggles:
     feeds: [B7_customer_state_layer_moves_and_shocks, W2_38, EP4_collections_journey, B11_forward_clv_backtested_on_held_back_history, W2_36_unbilled_energy_arises_the_way_it_does_in_reality]
     sensitivity:
       kind: acceptance_criterion
-      detail: Same as q1_move_out_notice_share; graded against the GBP 300-650 per move band.
+      detail: >-
+        Same as q1_move_out_notice_share; graded against the GBP 300-650 per move band. Checked
+        2026-10-08 (back_billing_and_liability.md s.9): STANDS. It bounds the incoming occupier's
+        unnamed leg only; the void between occupiers is a different debtor (the owner, Electricity
+        Act 1989 Sch 6 para 3(1)) and is q1_void_months_per_move_out.
     read_by: sim/customer_state_layer.py::unnamed_months_per_move (W2_36 slice 3, the change-of-tenancy gap)
     verdict: MATTERS_AND_RESOLVABLE
 
@@ -75,6 +84,36 @@ toggles:
         Renewal pricing (decision probe, 4 paths x 3 tenure seeds): no level or sign moved at 0.5
         or 1.0; at 2.0 one ex-ante year moved one grid step on one path in 2 of 3 seeds.
     verdict: DOESNT_MATTER
+
+  - id: q1_void_months_per_move_out
+    question: Q1 home moves
+    meaning: >-
+      Expected months a domestic premises stands empty between the outgoing occupier's contract
+      ending (SLC 24.1) and an incoming occupier taking supply. Supply in that void is deemed to
+      the OWNER for electricity ("the occupier (or the owner if the premises are unoccupied)",
+      Electricity Act 1989 Sch 6 para 3(1)); for gas the deemed contract is "with the consumer"
+      (Gas Act 1986 Sch 2B para 8(1)) and whether an empty home's owner is that consumer is a GAP.
+      Not the incoming occupier's unnamed months (q1_unnamed_months_per_cot).
+    default: null
+    default_reason: >-
+      GAP. No published domestic void length or void consumption: not in Ofgem's home-moves call
+      for input (9 Dec 2025) or its summary of responses (June 2026), nor in Citizens Advice's
+      consumer guidance (home_moves.md s.2.4; back_billing_and_liability.md s.9, 2026-10-08).
+      A practitioner question: how long are voids on a domestic let, and are they billed to the
+      landlord in practice or written off?
+    low: null
+    high: null
+    basis_default: None published.
+    basis_low: None published.
+    basis_high: None published.
+    feeds: [B7_customer_state_layer_moves_and_shocks, W2_36_unbilled_energy_arises_the_way_it_does_in_reality]
+    sensitivity:
+      kind: acceptance_criterion
+      detail: >-
+        No code draws a void length (sim/customer_state_layer.py VOID_GAP_UNKNOWN_REASON states
+        why). When B7 bills the void leg to an owner separately from the unnamed occupier, it
+        prints the void's standing charges and use at the practitioner's answer and at zero.
+    verdict: DOESNT_MATTER until a void leg is billed separately; then a practitioner question
 
   - id: q2_persistent_unread_share
     question: Q2 persistent non-reads
@@ -100,6 +139,12 @@ toggles:
       a persistent class is partly a PREMISES trait, while the code keys it to customer_id. The
       invariance proof below assumes no 21BA.2(c) obstruction exception; it holds only while
       q6_obstructive_share_of_long_unread is 0 (read_access_and_theft_duties.md section 2.4).
+      Checked 2026-10-08 (read_access_and_theft_duties.md s.9): value STANDS; independence is not
+      supported. Read exposure is tilted to private renting (EHS 2022-23 AT3.7: 57.0% of private
+      renters vs 43.9% of owner occupiers without an electricity smart meter) and pay-on-receipt,
+      and every named no-access cause is a premises/building trait (Ofgem 5 Mar 2018 p.8; Alt HAN
+      Co: HAN range issues in over 700,000 households). Draw the class keyed to the PREMISES;
+      its tilt by tenure is q2_persistent_unread_relative_risk_private_rented (null).
     feeds: [W2_36_unbilled_energy_arises_the_way_it_does_in_reality, D48_billing_accuracy_the_company_measures_what_it_billed_against_what_was_used, W2_37]
     solver_for_other_class: simulation/meter_reads.py::solve_easy_rate
     sensitivity:
@@ -137,6 +182,9 @@ toggles:
       detail: >-
         Calibration target. The world's old 1/6 monthly read rate gave 11.2% and should be ~0.20-0.22;
         since W2_36 slice 2 (2026-10-05) simulation/meter_reads.py solves its rate to this share.
+        Checked 2026-10-08 against MHHS (read_access_and_theft_duties.md s.8): STANDS. MHHS leaves
+        SLC 21B.4's annual read duty unchanged and cuts RF to 4 months only from M16 (2 Jul 2027),
+        after the window; the 14-month RF and 97% standard apply to every 2016-2025 settlement day.
     verdict: RESOLVED
 
   - id: q2_mean_under_estimate_on_a_catch_up
@@ -223,6 +271,37 @@ toggles:
         (read-chasing) prints the value of documented access attempts at low and high.
     verdict: DOESNT_MATTER for pricing (bounded); MATTERS_AND_RESOLVABLE for read-chasing design
 
+  - id: q2_persistent_unread_relative_risk_private_rented
+    question: Q2 persistent non-reads
+    meaning: >-
+      P(a read-exposed premises is in the persistent hard-to-read class | private rented) /
+      P(same | owner occupied). The class is a PREMISES trait (locked cupboard, landlord-held key,
+      banks of meters in flats: Ofgem 5 Mar 2018 p.8), so it is drawn per premises and inherited at
+      change of tenancy. Not the read-exposure tilt, which the smart rollout carries (EHS 2022-23
+      AT3.7: no electricity smart meter 57.0% private rented vs 43.9% owner occupied, ratio 1.30;
+      gas AT3.9 1.24) and which must not be applied twice.
+    default: null
+    default_reason: >-
+      GAP. No published source measures the persistence or concentration of no-access by tenure,
+      landlord, building type or vulnerability (read_access_and_theft_duties.md s.9, 2026-10-08).
+      The evidence supports clustering in kind, not its size. Until filled, draw the class
+      uniformly over read-exposed premises (relative risk 1 in effect), keyed to the premises.
+    low: null
+    high: null
+    basis_default: None published.
+    basis_low: None published.
+    basis_high: None published.
+    feeds: [W2_36_unbilled_energy_arises_the_way_it_does_in_reality, W2_37]
+    sensitivity:
+      kind: argued
+      detail: >-
+        Shape only. The Q2 invariance (21BA-barred revenue invariant in pi for any calibrated
+        mixture) is unaffected by which premises hold the class; what moves is which households get
+        long back-bills and how they meet change of tenancy. Practitioner question: do long-unread
+        meters sit in the same buildings and with the same landlords year after year, and how much
+        more often in private lets or flats?
+    verdict: DOESNT_MATTER for pricing; MATTERS_AND_RESOLVABLE for the shape (practitioner)
+
   - id: q3_plan_take_up_share
     question: Q3 debt
     meaning: P(household agrees an arrangement | supplier offers one at the SLC 27 ability-to-pay step).
@@ -296,7 +375,43 @@ toggles:
         its DCA_RECOVERY_RATE 0.20-0.30 (0.17-0.26 net of its 0.15 commission) is properly compared
         with the final-bill >90-day complement 0.10-0.25 (Centrica 2019-2025), which it overlaps.
         Those constants remain unsourced; they are not shown to be above every published signal.
+        Checked 2026-10-08 (bad_debt_provisioning.md s.9): STANDS. Published purchase prices
+        bracket it: Lowell 5.4p per GBP face (2004-2013, all sectors) and Arrow Global 9.3p (2017,
+        GBP 223.9m for GBP 2.4bn face, 40.7% secured). Net of Ofgem's 3p-per-GBP collection cost
+        (DRS IA, 6 Nov 2025, fn 6) the post-write-off leg is near zero.
     verdict: DOESNT_MATTER
+
+  - id: q3_debt_sale_price_share_of_face
+    question: Q3 debt
+    meaning: >-
+      Proceeds / face value when written-off GB domestic energy debt is sold to a debt purchaser.
+      A market price for a closed, late-stage book; not the regulator's valuation of debt still
+      held (Ofgem DRS, ~20-25% of face), and not a recovery share (q3_post_write_off_recovery_share
+      mixes DCA collections and sales).
+    default: null
+    default_reason: >-
+      GAP. No energy-specific sale price is published (bad_debt_provisioning.md s.9, 2026-10-08).
+      Centrica ARA 2017 Note 17 confirms sales of written-off energy debt (GBP 5m proceeds) but not
+      the face value sold. The low and high are all-sector purchase prices, not energy ones.
+    low: 0.054
+    high: 0.093
+    basis_default: None published for energy.
+    basis_low: >-
+      Lowell Group 2013 year-end report: face value ~GBP 11.0bn bought for GBP 597m, "an average
+      price paid of 5.4 pence per pound", unsecured consumer debt, all sectors, May 2004-Sep 2013;
+      first purchases from utilities in 2013.
+    basis_high: >-
+      Arrow Global ARA 2017: face value GBP 2.4bn for GBP 223.9m = 9.3p (derived); 40.7% of the
+      price for secured accounts, so an upper bound for unsecured consumer debt.
+    feeds: [EP4_collections_journey, B11_forward_clv_backtested_on_held_back_history]
+    sensitivity:
+      kind: argued
+      detail: >-
+        No company DCA-versus-sale decision exists, and renewal pricing was unchanged across
+        recovery shares 0.02-1.0 (q3_post_write_off_recovery_share). The world's
+        simulation/arrears_engine.py DEBT_SALE_HAIRCUT_PCT = 0.12 ("illustrative") sits above this
+        band's high; not changed here (world code, out of scope).
+    verdict: DOESNT_MATTER until a DCA-versus-sale decision is built
 
   - id: q4_retention_holdout_share
     question: Q4 offers

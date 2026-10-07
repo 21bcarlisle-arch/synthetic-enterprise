@@ -290,8 +290,9 @@ reasonable apportionment, not a day count. The natural one is the supplier's own
 5. How often suppliers successfully invoke 21BA.2(c) (obstruction) in practice. Ofgem says "very
    few"; no count exists.
 6. Crossed meters under 21BA: no published treatment; liability here is inferred.
-7. The final made text of SLC 21BA (only the draft and the decision were read; the decision says only
-   Part B's timing changed).
+7. ~~The final made text of SLC 21BA~~ **Closed 2026-10-08.** The consolidated electricity SLCs
+   (to 1 August 2025, p.169-170) carry 21BA.1-21BA.9 as drafted, with 21BA.9(b) putting Part B in
+   force "on and from 01 November 2018" [H]. The draft used in §1-2 stands.
 8. Share of smart meters in the 2017 base behind the 7% (needed to restate it for traditional meters
    only; §7).
 9. BSC/UNC text on reconciliation cut-offs (RF/DF; the gas line in the sand). Used here as [M].
@@ -366,6 +367,134 @@ reads is done to the published moment. The open error is in **what the company c
 
 ---
 
+## 9. Empty properties: who pays during a void, and how it meets the 12-month limit
+
+*Added 2026-10-08 at the director's request ("who carries the cost when a property is empty
+between tenants (landlord as owner/occupier, void periods), and how that interacts with deemed
+contracts and the 12-month limit"). Texts fetched 2026-10-08 and read as text. The session had no
+web-search budget left, so sources are those reachable by direct URL; case law was **not searched**.*
+
+### 9.1 Three periods, three different customers
+
+A move-out followed later by a move-in splits into three periods. They are different legal
+relationships and must not be merged (the CoT register currently merges the second and third,
+`home_moves.md` G5).
+
+| Period | Who is the customer in law | Source |
+|---|---|---|
+| **(a) Outgoing tenant's tail.** Move-out day until their contract ends | The outgoing tenant. The contract ends on the move-out date if they gave **two working days'** notice; otherwise at the earlier of two working days after they tell the supplier, or the day "any other person begins to own or occupy the premises and takes a supply". They are "liable for the supply … until the date on which that contract ends" | [H] SLC 24.1, 24.2(a), consolidated electricity SLCs to 1 Aug 2025, p.216. A Deemed Contract must carry the same term (SLC 7.5(b)) |
+| **(b) The void.** From that end until someone moves in | **Electricity:** a deemed contract "with the occupier (**or the owner if the premises are unoccupied**)", from the time supply began on that footing. **Gas:** the deemed contract is "with the consumer"; the gas text has no "owner if unoccupied" words, though 8(2) names "the owner or occupier" who "takes a supply" | [H] Electricity Act 1989 Sch 6 para 3(1); Gas Act 1986 Sch 2B para 8(1)-(2), legislation.gov.uk, revised text |
+| **(c) Incoming occupier.** From move-in | The new occupier, on a deemed contract "as from the time … when he began so to supply" them. Nothing before move-in: "You don't have to pay for energy that was used before you moved in" | [H] Sch 6 para 3(1); Citizens Advice, *Check if you're responsible for paying an energy bill* |
+
+Citizens Advice's consumer guidance states the same split from the tenant's side: "You usually need
+to pay for energy until 2 days after you told the supplier you were moving", and "If the other
+person didn't move in straight away, you might still have to pay for some of the energy before they
+moved in" [H].
+
+**What follows [D, from the three rows]:**
+- **A tenant who leaves without telling anyone stays liable through the void** until they do tell
+  the supplier, or someone moves in. The landlord's liability starts only when the tenant's
+  contract ends. So "the landlord pays for voids" is true only for voids the supplier was told about.
+- **Void energy cannot be charged to the incoming tenant.** It belongs to the outgoing tenant (a)
+  or the owner (b). A supplier that bills the whole run from the last read to "The Occupier", and
+  later names the incoming tenant, must split it at the move-in date.
+- **What the void costs is mostly standing charge.** An empty home's use is small (frost
+  protection, a fridge left on), but the standing charge accrues every day. **GAP:** no published
+  source gives domestic void length or void consumption (`home_moves.md` §2.4, re-confirmed: the
+  Ofgem CfI of Dec 2025 and its June 2026 summary of responses give neither).
+
+### 9.2 Does the 12-month limit protect a landlord?
+
+- **The deemed leg is in scope.** "Relevant Contract means any Domestic Supply Contract and Deemed
+  Contract" [H] SLC 21BA.6.
+- **The test is the premises, not the person.** 21BA Part A protects a "Domestic Customer": "a
+  Customer supplied or requiring to be supplied with electricity at Domestic Premises" [H] SLC
+  definitions. SLC 6.1: "a Domestic Premises is a premises at which a supply of electricity is taken
+  wholly or mainly for a domestic purpose except where that premises is a Non-Domestic Premises" [H].
+  An owner deemed to contract for an empty flat is a Customer supplied at those premises. **[D]
+  reading: the owner of an ordinary domestic let is protected as a Domestic Customer for the void.**
+  No Ofgem text read applies 21BA to a landlord or a void in terms. Whether premises with nobody
+  living in them are still supplied "for a domestic purpose" is **not addressed (GAP)**.
+- **Two landlord cases are expressly non-domestic, so Part A does not protect them [H]:**
+  - **Bills-included lets.** SLC 6.2(a): premises are Non-Domestic where the person who contracts
+    with the supplier provides "a residential or any other accommodation service at the premises" on
+    terms that "are commercial in nature and include a charge for the supply of electricity". That
+    covers the typical HMO or all-inclusive let where the landlord holds the account.
+  - **Portfolio contracts.** SLC 6.5-6.6: a Domestic Premises supplied under a Multi-Site Contract
+    with the owner's non-domestic premises "will be treated as a Non-Domestic Premises … until that
+    contract ends".
+- **A landlord in either case** is protected only if it is a Micro Business Consumer, and only from
+  **1 November 2018** (21BA.7, 21BA.9(b)) [H]. A larger letting business has no back-billing limit.
+- **The landlord was named in the 2018 consultation, and Ofgem did not answer.** Suppliers asked
+  whether a customer is at fault when "the consumer has not told the landlord they are moving in or
+  out of the property", when "the meter is behind a locked cupboard and the landlord holds the key",
+  or when "the supplier bills the building company instead of the property". Ofgem's reply was
+  case-by-case assessment [H] decision 5 Mar 2018 p.8, p.10. **A landlord's silence about a void is
+  therefore not established as "manifestly unreasonable" (GAP)**; on the general rule, not
+  telling the supplier is not obstruction (§2).
+
+**So, case by case [D, from §9.1 and 21BA]:**
+
+| Who | Supplier can charge | Limited to 12 months before the demand? |
+|---|---|---|
+| Outgoing tenant, for (a) | The tail, including a void they did not report | Yes. Domestic Supply Contract |
+| Landlord / owner, for (b), electricity | Void use and standing charges, once identified | Yes on the reading above for an ordinary domestic let (Deemed Contract, domestic premises). **No** for a bills-included or multi-site landlord (SLC 6.2(a), 6.6) unless it is a microbusiness, and then only from Nov 2018 |
+| Owner, for (b), gas | As electricity **if** the owner is the gas "consumer" in a void | **GAP**: the statute's words differ; no guidance found |
+| Incoming tenant, for (c) | From move-in only | Yes (Deemed Contract, 21BA.6). The "Occupier"-bill question is gap 3 |
+| Anyone, for the void, when nobody is identified | Nothing | The supplier carries it: it is settled to the supplier and billable to nobody |
+
+### 9.3 Change-of-tenancy practice, as published
+
+- **Suppliers bill "the occupier".** "Under these circumstances energy suppliers create a 'deemed
+  contract' in the name of 'the occupier' for the new occupier (this is why they are often referred
+  to as 'unnamed accounts')". This cohort "may be responsible for between 20% to 40% of the overall
+  debt figure", a share "stable since before the energy crisis" [H] Ofgem, *Tackling Energy Debt in
+  the Supplier Home-Moves Process*, call for input, 9 Dec 2025, ¶2.5 and summary.
+- **GB is unusual in keeping supply on.** "Internationally, the GB energy system is unusual in
+  assuming supply will continue when the occupier changes"; France, Italy, Spain, Portugal, Brazil
+  and the USA disconnect [H] same, ¶1.6 and fn 1.
+- **Ofgem's proposed change is after our window.** Suppliers would be allowed to switch a SMETS2
+  meter to prepayment mode when told of a move-out, with a deemed contract in the name of "the
+  occupier" [H] same, ¶1.7, ¶2.6, ¶3.11. In the June 2026 summary, suppliers asked for "better
+  advance notification from landlords or agents", and "how to engage landlords in the process" was
+  a key concern [H] Ofgem, *Home Moves CfI: Summary of Responses*, June 2026, ¶3.15, ¶4.3.
+- **The Ombudsman's expectation.** "There is a general expectation that a customer will contact
+  their energy supplier to confirm they have moved"; and where "a supplier has failed to process a
+  change of tenancy", it considers whether it is reasonable to charge the deemed rates [H] Energy
+  Ombudsman, *Deemed contracts and rates* (supplier portal), read 2026-10-08.
+- **Landlords and agents as a channel.** Not a licence duty on anyone. A landlord who includes
+  energy in the rent is the customer: "If you pay your landlord for energy … They should send the
+  bill to your landlord instead" [H] Citizens Advice, same page.
+
+### 9.4 Not established
+
+1. Domestic void length and void consumption (GAP, as `home_moves.md` §2.4).
+2. Whether the owner of an empty gas-connected property is the gas "consumer" under Sch 2B
+   para 8(1) (GAP).
+3. Whether 21BA protects a landlord for a void: the reading in §9.2 is derived, not stated by Ofgem
+   (GAP).
+4. Case law on landlord liability for void energy (**not searched** this pass).
+5. How often a supplier learns of a void at all, rather than finding it later from a final read
+   (GAP; the CfI says only that notifications "are often late", toggle `q1_move_out_notice_share`).
+
+### 9.5 What this means for the world and the company
+
+- **The world must hold three legs, not two.** `company/crm/change_of_tenancy_register.py` calls the
+  void leg `VOID_OCCUPIER`, "Ofgem's 'occupier' account". In law (b) belongs to the **owner** and (c)
+  to the **incoming occupier**. They are different debtors, with different collection routes.
+- **The world's void start is honest.** `sim/customer_state_layer.VOID_GAP_UNKNOWN_REASON` does not
+  draw a void length, because none is published. That should stay until the director answers the
+  practitioner question: *"For a domestic let, how long are voids typically, and do you bill the
+  landlord for them in practice, or write the standing charges off?"* New toggle
+  `q1_void_months_per_move_out` holds the answer as `null` until then (added to
+  `assumption_toggles.yaml` 2026-10-08; the §7 table records the 2026-10-06 pass and is unchanged).
+  `q1_unnamed_months_per_cot` stands: it bounds leg (c), not the void.
+- **The company can only bill a landlord it knows.** A landlord record is an observable (a letting
+  agent's notice, `self_rationing_detector.AccountRecordType.VOID_NOTIFICATION`). Without one, the
+  void's cost stays with the supplier, which is the realistic default.
+
+---
+
 ## Sources
 
 - Ofgem, *Open letter – notifying of our intention to launch a project to protect consumers from
@@ -392,6 +521,23 @@ reads is done to the published moment. The open error is in **what the company c
   <https://www.energyombudsman.org/news/energy-ombudsman-annual-data-2025> [H]
 - Ombudsman Services, *Energy Sector Reports* 2017, 2018, 2019; Trust Alliance Group *Annual
   Reports* 2024, 2025, via <https://www.energyombudsman.org/reports-and-data/annual-reports> [H]
+- **Added 2026-10-08 (§9), all fetched that day and read as text [H]:**
+  - Electricity Act 1989 Sch 6 para 3 (deemed contracts):
+    <https://www.legislation.gov.uk/ukpga/1989/29/schedule/6>
+  - Gas Act 1986 Sch 2B para 8 (deemed contracts):
+    <https://www.legislation.gov.uk/ukpga/1986/44/schedule/2B>
+  - Ofgem, *Electricity Supply Standard Licence Conditions*, consolidated to 1 August 2025: SLC 6
+    (classification of premises, p.82), SLC 7 (deemed contracts, pp.85-87), SLC 21BA.6-21BA.9
+    (pp.169-170), SLC 24.1-24.2 (p.216):
+    <https://www.ofgem.gov.uk/sites/default/files/2023-03/Electricity%20Supply%20Standard%20Consolidated%20Licence%20Conditions%20-%20Current.pdf>
+  - Ofgem, *Tackling Energy Debt in the Supplier Home-Moves Process*, call for input, 9 Dec 2025:
+    <https://www.ofgem.gov.uk/sites/default/files/2025-12/Tackling-energy-debt-in-home-moves-process-call-for-input.pdf>
+  - Ofgem, *Tackling energy debt when moving home – Call for Input: Summary of Responses*, June 2026:
+    <https://www.ofgem.gov.uk/sites/default/files/2026-06/Home-Moves-CFI-Summary-of-Responses.pdf>
+  - Energy Ombudsman, *Deemed contracts and rates* (supplier portal, undated):
+    <https://portal.energyombudsman.org/resources/deemed-contracts-and-rates>
+  - Citizens Advice, *Check if you're responsible for paying an energy bill* (undated):
+    <https://www.citizensadvice.org.uk/consumer/energy/energy-supply/problems-with-your-energy-bill/check-if-youre-responsible-for-paying-an-energy-bill/>
 - Citizens Advice press release, 29 Feb 2016 (2.1m households, £206) [M], via
   `practitioner_questions_as_assumption_toggles.md`.
 - Repo documents relied on: `unbilled_energy_and_revenue_assurance.md` (settlement, UIG, Centrica),

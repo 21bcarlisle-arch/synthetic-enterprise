@@ -1,5 +1,15 @@
 > **Discharged 2026-10-06 as a duplicate.** The text is the director's 2026-10-06T03:35Z console message, sent again by NTFY at 20:44Z (`FlNOHLX2fXfH`). Both parts had already landed: the knowledge and the toggles in `fbe24afea`, and the 4,000-founder book in `b8808f4ad` (the cost curve was re-measured in `da6d70053`). The one open tail, re-pricing `SETTLEMENT_CUSTOMER_YEAR_BUDGET` (1,050) from the runner's fixed-code peak, is a queued continuation. The director was told by NTFY (`kvQwQkkmf42r`).
 
+
+> **Correction, 2026-10-07: the scale half was NOT done, and this note overstated it.** `b8808f4ad` made a
+> book of 4,000 founders *runnable*, in a ONE-YEAR run (1,890 customer-years). The live book still
+> launches at the director's 80 founders (`docs/design/FOUNDER_BOOK.yaml`) and settles about 280
+> accounts by 2025, because `PROSPECTS_PER_YEAR` (400) and the settlement budget (now 1,750
+> customer-years, re-priced in `358d59a42`) both bind. The knowledge half stands. The scale half is
+> reopened as work: a holdout able to see a two-point churn move needs about 3,000-6,000 decisions per
+> arm, roughly 10,000 settled customer-years, about 27 GB at today's 2.7 MB each. The store has to get
+> leaner before the dials can move. The director caught this ("I can't see any work on it yet").
+
 # [DIRECTOR-STEER] — Knowledge on three areas, and a book of a few thousand (2026-10-07)
 
 **Type:** [STEER — work direction, not canon. Severity: LATENT. Staged by the advisor because the director's console session is unreachable; the same text arrived by NTFY at 2026-10-06 20:44Z and was queued for a seat that may not exist. If it has already been acted on, discharge this as a duplicate.]
