@@ -394,6 +394,9 @@ def behaviour_profile_for(
     # a third still awake at 23:20 on a working weekday, and a household retires with its last
     # member. No household distribution for 2016–2025 is published, so none replaces it yet:
     # docs/market_research/when_gb_adults_go_to_sleep_read_from_the_uk_time_use_surveys.md.
+    # Replacing this draw alone cannot wake the midnight slot: the awake window ends at 24:00 by
+    # construction (`occupancy_at` clamps to period 47), so a later onset collapses to 47. The
+    # retire arm in that doc showed 00:00-04:00 unmoved; the window must cross midnight first.
     wake_period = rise.randint(11, 17)
     sleep_period = rise.randint(43, 47)
     weekend_shift = rise.randint(1, 4)

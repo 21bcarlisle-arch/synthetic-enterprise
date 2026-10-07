@@ -70,7 +70,7 @@ What this establishes, and what it does not:
 
 The world draws household retire uniformly over 21:30-23:30. Its mean is 22:30, which is 45-80
 minutes before the **per-adult** mean in every 2000-01 group, and a household mean must be later
-still. The world puts nobody awake after 23:30, against about a third of adults on a working weekday
+still. *(Corrected 2026-10-07 by the retire-arm pass below: those are the LAST AWAKE slots. `occupancy_at` sleeps a home only when `period > sleep_period`, so onset is uniform over 22:00-24:00 with a mean of 23:00, 15-20 minutes before the weekday per-adult mean, and nobody is awake after 24:00, not 23:30. The contradiction is the missing tail past midnight, more than the mean.)* The world puts nobody awake after 23:30, against about a third of adults on a working weekday
 and more at weekends. **The drawn range is contradicted by the record.** A correct replacement is
 **not** established: four CDF points and four means from 2000-01 do not make a household
 distribution for 2016-2025. `premise_trace.py`'s comment now says both things.
@@ -96,6 +96,51 @@ traces seed 7).
 "Std" label, or (d) London 2013 against GB. That would make bedtime a remedy for the midnight slot
 only. If 3 or 4 fail, the world's sleeping house is more coupled to the retire time than this
 reading assumes, and that coupling is the next thing to read.
+
+## The retire arm, run and graded (2026-10-07)
+
+Worker on the lane-0 draw `w1-29-the-one-variable-retire-arm`, in a clean `origin/main` worktree at
+`29de32469`. The retire draw alone was replaced, from its own substream, so wake time and weekend shift
+are drawn exactly as before. Onset slots follow the weekday table above, read per household with no
+last-member correction: 22:00 0.06, 22:30 0.15, 23:00 0.45, 23:30 0.12, 00:00 0.09, 00:30 0.06,
+01:00 0.04, 01:30 0.03. That gives a mean of 23:16, with 0.66 asleep by 23:00-23:20. The same 60 homes,
+world seed 17 and traces seed 7, were read net of both heating machines.
+
+**Read from the code before the run, and filed beside the four predictions:** the household's awake
+window is `[wake, sleep]` inside ONE calendar day. `occupancy_at` clamps `sleep` to period 47, and
+every period before `wake`, which includes 00:00-04:00, is asleep. So every onset at or after 24:00
+collapses to "awake until 24:00". The arm moves the mean `sleep_period` from 45.05 to 45.28, about 7
+minutes, and no bedtime draw of any shape can reach the 00:00 slot.
+
+Median profile above base ÷ active mean, every other half-hour from 00:00:
+
+    LCL    0.62 0.38 0.29 0.25 0.24 0.25 0.34 0.60 0.88 1.05 1.04 0.98 1.01 1.08 1.02 1.02 1.11 1.29 1.57 1.77 1.69 1.60 1.41 1.08
+    base   0.11 0.11 0.11 0.12 0.12 0.14 0.22 0.72 0.92 0.81 0.90 0.83 0.82 0.79 0.79 0.84 1.16 1.91 2.21 2.33 2.47 2.46 1.70 0.93
+    arm    0.11 0.11 0.11 0.12 0.12 0.14 0.22 0.72 0.93 0.82 0.88 0.81 0.82 0.81 0.79 0.83 1.20 1.94 2.18 2.29 2.45 2.40 1.90 0.90
+
+The base row reproduces `bebf42253`'s row exactly. Across 22:00/22:30/23:00/23:30 the arm reads 1.90/1.44/0.90/0.65,
+against 1.70/1.35/0.93/0.62 for base. The night-texture median (periods 2-9) is 0.118, against 0.116.
+
+| filed prediction | result | grade |
+|---|---|---|
+| 1. 00:00 rises from 0.11 to 0.25-0.40 | 0.11 → 0.11 | **refuted** |
+| 2. 01:00 rises from 0.11 to 0.13-0.20 | 0.11 → 0.11 | **refuted** |
+| 3. 02:00-04:00 moves by < 0.03 | moves 0.00 | held |
+| 4. night-texture median moves by < 0.02 | +0.002 | held |
+
+Predictions 1 and 2 failed for a reason none of the four branches above names. The world's sleeping
+house is not more coupled to the retire time than assumed. **It is cut off from it at 24:00 by
+construction.** So "move the bedtime" is not a one-variable change in this model. Before any bedtime
+distribution can be tested against the midnight slot, an awake window that crosses midnight is needed:
+the evening's occupancy has to carry into the first periods of the next day. Whether that window
+would close 00:00 and 01:00 stays an open prediction. The table still says 87-90% of adults are asleep
+by 01:00, so 02:00-04:00 belongs to `bebf42253`'s (b) load while asleep, (c) electric homes in "Std",
+or (d) London against GB, whatever the bedtime does. The arm adds no evidence among those three.
+
+Limits: one world draw, 60 homes. The per-adult table is used as a per-household one, which
+understates how late households go to bed. The weekend shift (+30 min to +2 h on top of the weekday
+time) was left alone as the held variable, and the table suggests it is itself too large. No code
+changed. Scripts: `/tmp/w129r/` (not committed).
 
 ## Sources
 
