@@ -341,6 +341,26 @@ EFFECTIVE_EAC_KWH.update({
     for c in SUCCESSOR_ELEC_CUSTOMERS
 })
 
+#: THE REGISTRY AS IMPORT DREW IT, kept so every run starts from it (H50, 2026-10-07). `main()`
+#: rewrites a fabric premise's `eac_kwh` to its own reads IN the shared roster dicts, and admits
+#: incoming-occupant legs into `EFFECTIVE_EAC_KWH`. Phase 4c reads those records AFTER the run,
+#: so the reset is at a run's START, never its end: a second run in one process -- the A/B's
+#: second arm -- must not start on the first run's rewrite.
+_DRAWN_REGISTRY_EAC_KWH: dict[str, float | None] = {
+    c["customer_id"]: c["eac_kwh"] for c in ELEC_CUSTOMERS + SUCCESSOR_ELEC_CUSTOMERS
+}
+_DRAWN_EFFECTIVE_EAC_KWH: dict[str, float] = dict(EFFECTIVE_EAC_KWH)
+
+
+def start_from_the_drawn_book() -> None:
+    """Put back what a previous run in this process wrote into module-level book state: the
+    registry EACs, `EFFECTIVE_EAC_KWH`, and the run's own acquisitions."""
+    for c in ELEC_CUSTOMERS + SUCCESSOR_ELEC_CUSTOMERS:
+        c["eac_kwh"] = _DRAWN_REGISTRY_EAC_KWH[c["customer_id"]]
+    EFFECTIVE_EAC_KWH.clear()
+    EFFECTIVE_EAC_KWH.update(_DRAWN_EFFECTIVE_EAC_KWH)
+    ACQUIRED_CUSTOMERS.clear()
+
 # Treasury sized on original customers only — successors don't exist yet at t=0.
 TOTAL_ELEC_EAC = sum(
     EFFECTIVE_EAC_KWH[c["customer_id"]] for c in ELEC_CUSTOMERS
@@ -1326,6 +1346,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         the guard, which exists because a test's 276-invoice fixture book once overwrote
         the real ledger and republished the public Proof door 2.68x too low.
     """
+    start_from_the_drawn_book()
     effective_end = effective_report_end(report_end)
     refuse_a_window_past_the_record_without_a_world(effective_end)
     policy = policy or CURRENT_POLICY
