@@ -2096,7 +2096,7 @@ def _cut_direction_worktree(root: Path, worktree: Path) -> None:
 def land_direction_on_origin(root: Path, paths: list[str], message: str,
                              content: dict[str, bytes], *, worktree: Path | None = None,
                              lander=None, promoter=None, regenerate=None,
-                             attempts: int = 2) -> str:
+                             deadline_s: float = 0.0, clock=None) -> str:
     """Land `content` onto `origin/main` itself, never onto the shared HEAD, and return the sha.
 
     WHY NOT THE SHARED HEAD (2026-10-04). The shared tree sits behind AND diverged from origin as
@@ -2108,17 +2108,33 @@ def land_direction_on_origin(root: Path, paths: list[str], message: str,
 
     THE LOOP IS ONLY OVER ORIGIN MOVING under the gate. Any other refusal -- a red gate, a dirty
     worktree, a duplicate claim -- is raised on the first attempt; retrying a verdict is how a
-    flaky test becomes a landed regression."""
+    flaky test becomes a landed regression.
+
+    UNTIL `deadline_s`, NOT TWO ATTEMPTS (2026-10-07). A busy origin is the normal case: on 10-07
+    origin moved twice in 50 minutes, the second attempt lost too, and origin's record stood three
+    hours stale. One attempt always runs; another starts only while `deadline_s` has not passed.
+    Each re-base re-cuts at the new origin and writes the same bytes, which is safe only while
+    origin's DIRECTION.yaml is still the copy the first attempt saw -- the seat's own file, which
+    nobody else edits. If it changed, someone did, and that is refused by name, not overwritten."""
     from tools import promote_worktree_landing as promote_mod
     from tools import surgical_land
 
     worktree = worktree or DIRECTION_WORKTREE
     lander = lander or surgical_land.land
     promoter = promoter or promote_mod.promote
-    _refuse_an_append_only_rewrite(root, content)
-    moved = []
-    for _attempt in range(attempts):
+    clock = clock or _monotonic
+    started, base, moved = clock(), None, []
+    while True:
         _git_in(root, "fetch", "--quiet", "origin")
+        record = _origin_bytes(root, DIRECTION_RECORD)
+        if moved and record != base:
+            raise DirectionNotLanded(f"origin/main moved under the gate {len(moved)} time(s) and "
+                                     f"its {DIRECTION_RECORD} is no longer the copy this record "
+                                     f"was written against, so another writer edited it. Not "
+                                     f"re-based over it: " + " | ".join(moved))
+        base = record
+        # ASKED OF EVERY ORIGIN, not only the first: a move can carry an append to these files too.
+        _refuse_an_append_only_rewrite(root, content)
         _cut_direction_worktree(root, worktree)
         # THE WORKTREE'S FILES CARRY THE BYTES TOO. The door commits `content` without touching the
         # working copy, which then still holds origin's old bytes -- and promotion refuses that as
@@ -2150,8 +2166,9 @@ def land_direction_on_origin(root: Path, paths: list[str], message: str,
                 raise DirectionNotLanded(f"landed {sha[:9]} in {worktree} and the push "
                                          f"was refused: {exc}") from exc
             moved.append(str(exc).splitlines()[0][:160])
-    raise DirectionNotLanded(f"origin/main moved under the gate on all {attempts} attempt(s): "
-                             + " | ".join(moved))
+        if clock() - started >= deadline_s:
+            raise DirectionNotLanded(f"origin/main moved under the gate on all {len(moved)} "
+                                     f"attempt(s) inside {deadline_s:.0f}s: " + " | ".join(moved))
 
 
 #: THE PAGE AN ADVISOR ORIENTS FROM, refreshed on every orientation (director, 2026-10-04: "It's only
@@ -2259,10 +2276,37 @@ def write_stretch_entry(row: dict, append_fn=None) -> bool:
     return row["stretch_entry"]
 
 
-#: Gate runs a direction landing may spend after losing the race to another writer -- the publish
-#: landing's argument (`process_run_complete.PUBLISH_LAND_ATTEMPTS`): the second covers the one
-#: commit that arrived during the first, and the next orientation is a cheaper place for a third.
-DIRECTION_LAND_ATTEMPTS = 2
+DIRECTION_RECORD = "docs/direction/DIRECTION.yaml"
+
+#: WHEN A DIRECTION LANDING STOPS STARTING ATTEMPTS, and it is the unit's budget, not a count. Two
+#: attempts (the publish landing's argument) gave up silently on 10-07 when origin moved twice in 50
+#: minutes. The real bound is the cgroup: `delivery-seat.service` kills the whole run at
+#: `TimeoutStartSec`, and a landing killed mid-gate writes no refusal and pages nobody. So a new
+#: attempt starts only while one more full gate still fits: the budget, less what this process has
+#: already spent (the session included), less one gate run -- 15-25 min measured, per the unit's own
+#: comment, so the top of that range.
+DIRECTION_UNIT = Path.home() / ".config/systemd/user/delivery-seat.service"
+DIRECTION_UNIT_FALLBACK_BUDGET_S = 4500   # the unit's TimeoutStartSec on 2026-10-04, if unreadable
+DIRECTION_GATE_RUN_S = 1500
+_PROCESS_STARTED = time.monotonic()
+_monotonic = time.monotonic   # the landing loop's clock, a seam for its control
+
+
+def direction_unit_budget_s(unit: Path | None = None) -> float:
+    """`TimeoutStartSec` as the unit file states it, else the named fallback."""
+    try:
+        lines = (unit or DIRECTION_UNIT).read_text(encoding="utf-8").splitlines()
+    except OSError:
+        lines = []
+    found = [value.strip() for key, _, value in (line.partition("=") for line in lines)
+             if key.strip() == "TimeoutStartSec" and value.strip().isdigit()]
+    return float(found[-1]) if found else float(DIRECTION_UNIT_FALLBACK_BUDGET_S)
+
+
+def direction_land_deadline_s(now: float | None = None) -> float:
+    """Seconds from now within which a direction landing may still START another attempt."""
+    spent = (time.monotonic() if now is None else now) - _PROCESS_STARTED
+    return max(0.0, direction_unit_budget_s() - spent - DIRECTION_GATE_RUN_S)
 
 
 def commit_direction(lander=None) -> tuple[bool, str]:
@@ -2292,7 +2336,7 @@ def commit_direction(lander=None) -> tuple[bool, str]:
     try:
         sha = (lander or land_direction_on_origin)(
             PROJECT_DIR, present, "delivery seat: direction for the next stretch", content,
-            attempts=DIRECTION_LAND_ATTEMPTS)
+            deadline_s=direction_land_deadline_s())
     except Exception as exc:  # noqa: BLE001 -- a refusal is a value; the record is already on disk
         # The refusal's own words are the diagnosis (2026-09-30: a bare rc classified nothing).
         why = " | ".join(str(exc).strip().splitlines()[:3])[:300]
@@ -2438,6 +2482,8 @@ def orient(now: datetime | None = None, dry_run: bool = False) -> dict:
     ok, commit_detail = commit_direction()
     row["committed"] = ok
     _log(f"oriented: focus={row['focus']} ({commit_detail})")
+    if not ok:
+        record_landing_refused(row, commit_detail)
     for concern in row["path_concerns"]:
         # LOGGED ONE PER LINE AND NOT COUNTED. A count tells the next reader a number; the class
         # and the id tell them which item to go and look at, which is the whole point of asking
@@ -2454,6 +2500,22 @@ def orient(now: datetime | None = None, dry_run: bool = False) -> dict:
             for i in fresh[:2]), topic_class="decision_waiting")
     row["concerns_paged"] = fresh
     return row
+
+
+def record_landing_refused(row: dict, detail: str) -> dict:
+    """The record did not reach origin: say so in the record and to the director.
+
+    9 RECURRENCES, AND THE LAST ONE WAS SILENT (2026-10-07). The row was appended as `oriented`
+    before the landing -- it has to be, it is part of what lands -- and a refused landing left it
+    reading `oriented`, so the decisions record and the director's view of origin disagreed for
+    three hours with nothing saying why. APPENDED, NOT REWRITTEN: the file is append-only, so the
+    last word is a second row carrying the same orientation with `outcome: refused`. It keeps the
+    orientation's `at`, so the next stretch is still counted from the orientation."""
+    refused = dict(row, outcome="refused", landing_refused=detail, committed=False)
+    direction_mod.append_decision(refused)
+    _notify("delivery seat: the direction record did NOT reach origin, so origin's steer is the "
+            "previous stretch's -- " + detail[:300], topic_class="blocked_work")
+    return refused
 
 
 def _notify(message: str, *, topic_class: str) -> None:

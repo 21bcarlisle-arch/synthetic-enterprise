@@ -195,6 +195,25 @@ def test_the_seat_REFUSES_and_RESTORES_a_record_that_drops_an_open_concern(monke
     assert row["outcome"] == "oriented" and pages == [], "a carried concern re-paged him"
 
 
+def test_a_record_that_did_not_reach_origin_ends_the_orientation_REFUSED_and_PAGED(
+        monkeypatch, record_file):
+    """Through `orient()`: when `commit_direction` refuses, the last decisions row reads `refused`
+    with the reason and the director is paged; when it lands, neither happens. MUTATION (must
+    fire): drop the `record_landing_refused` call from `orient`."""
+    pages: list = []
+    row = _drive_orient(monkeypatch, record_file, _record(), pages)
+    assert row["committed"] is True and pages == []
+    assert d.read_decisions(limit=1)[0]["outcome"] == "oriented"
+
+    monkeypatch.setattr(seat, "commit_direction",
+                        lambda: (False, "landing refused (DirectionNotLanded): origin moved"))
+    monkeypatch.setattr(seat, "_notify", lambda msg, topic_class: pages.append((msg, topic_class)))
+    seat.orient()
+    last = d.read_decisions(limit=1)[0]
+    assert last["outcome"] == "refused" and "origin moved" in last["landing_refused"]
+    assert [p[1] for p in pages] == ["blocked_work"]
+
+
 def test_the_brief_and_prompt_hand_the_open_concerns_back(record_file):
     """Defect: the carry check refuses a dropped concern the session was never shown. The open
     rows reach the prompt as a sentence ABOVE the truncated JSON, as `previous_wrong` does."""

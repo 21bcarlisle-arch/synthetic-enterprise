@@ -342,8 +342,8 @@ def test_the_direction_LANDS_through_the_landing_door_and_every_outcome_is_REACH
 
     calls = []
 
-    def door(root, paths, message, content, attempts):
-        calls.append({"root": root, "paths": paths, "attempts": attempts, "content": content})
+    def door(root, paths, message, content, deadline_s):
+        calls.append({"root": root, "paths": paths, "deadline_s": deadline_s, "content": content})
         if refuse:
             raise surgical_land.LandingRefused("HEAD moved under the gate on all 2 attempt(s)")
         return "abcdef1234567"
@@ -363,7 +363,7 @@ def test_the_direction_LANDS_through_the_landing_door_and_every_outcome_is_REACH
     assert len(calls) == 2
     assert calls[0]["paths"] == ["docs/direction/DIRECTION.yaml"]
     assert calls[0]["content"] == {"docs/direction/DIRECTION.yaml": b"focus: []\n"}
-    assert calls[0]["attempts"] == seat.DIRECTION_LAND_ATTEMPTS >= 2
+    assert calls[0]["deadline_s"] >= 0
 
 
 def test_out_of_scope_writes_are_REPORTED_and_never_reverted():

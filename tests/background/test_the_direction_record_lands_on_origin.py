@@ -88,6 +88,12 @@ def world(tmp_path, monkeypatch):
         if world_state.get("move_origin_once"):
             world_state["move_origin_once"] = False
             _push_from(origin, tmp_path, "raced.txt", "landed during the gate\n")
+        if world_state.get("move_origin_times"):
+            world_state["move_origin_times"] -= 1
+            _push_from(origin, tmp_path, f"raced-{len(calls)}.txt", "landed during the gate\n")
+        if world_state.get("edit_record_once"):
+            world_state["edit_record_once"] = False
+            _push_from(origin, tmp_path, RECORD, "oriented_at: someone else\n")
         if world_state.get("red"):
             raise surgical_land.LandingRefused("GATE RED: a test failed")
         for rel, data in content.items():
@@ -101,6 +107,9 @@ def world(tmp_path, monkeypatch):
 
     world_state: dict = {}
     monkeypatch.setattr(surgical_land, "land", lander)
+    # The real deadline is what is left of the unit's budget since the PROCESS started, which in a
+    # long pytest run is nothing. Generous here; the deadline leg below drives its own clock.
+    monkeypatch.setattr(seat, "direction_land_deadline_s", lambda now=None: 3600.0)
     shared_head = _git(shared, "rev-parse", "HEAD")
     return {"origin": origin, "shared": shared, "calls": calls, "state": world_state,
             "shared_head": shared_head}
@@ -224,3 +233,74 @@ def test_the_page_is_the_worktrees_own_tool_output_and_only_when_it_changed(tmp_
                     "p.write_text('fresh\\n')\n")
     assert seat.regenerate_startup_anchors(tmp_path) == b"fresh\n"
     assert seat.regenerate_startup_anchors(tmp_path) is None
+
+
+def test_origin_moving_TWICE_under_the_gate_still_lands_and_only_the_deadline_or_another_writer_stops_it(
+        world, monkeypatch):
+    """Defect it names: on 2026-10-07 origin moved twice in 50 minutes, the second attempt lost too,
+    and the seat gave up -- origin's record, the one the director reads, three hours stale.
+
+    THE PARTITION: lands after two moves; refused once the deadline has passed, after exactly one
+    more attempt than none; refused by name when origin's DIRECTION.yaml itself changed, rather than
+    overwritten. MUTATIONS (must fire): restore a two-attempt give-up (the twice leg is refused);
+    drop the deadline check (the deadline leg loops on a moving origin); drop the base check (the
+    other-writer leg overwrites their record)."""
+    state, calls, origin = world["state"], world["calls"], world["origin"]
+
+    state["move_origin_times"] = 2
+    twice = seat.commit_direction()
+    assert twice[0] is True, twice[1]
+    assert len(calls) == 3
+    assert _on_origin(origin, RECORD) == "oriented_at: new"
+    assert _on_origin(origin, "raced-1.txt") == _on_origin(origin, "raced-2.txt")
+
+    (world["shared"] / RECORD).write_text("oriented_at: newer\n")
+    ticks = iter([0.0, 100.0, 200.0, 300.0])
+    monkeypatch.setattr(seat, "direction_land_deadline_s", lambda now=None: 150.0)
+    monkeypatch.setattr(seat, "_monotonic", lambda: next(ticks))
+    state["move_origin_times"] = 99
+    expired = seat.commit_direction()
+    assert expired[0] is False and "inside 150s" in expired[1], expired[1]
+    assert len(calls) == 3 + 2
+    assert _on_origin(origin, RECORD) == "oriented_at: new"
+
+    monkeypatch.setattr(seat, "direction_land_deadline_s", lambda now=None: 3600.0)
+    monkeypatch.setattr(seat, "_monotonic", lambda: 0.0)
+    state["move_origin_times"] = 0
+    state["edit_record_once"] = True
+    other = seat.commit_direction()
+    assert other[0] is False and "another writer edited it" in other[1], other[1]
+    assert _on_origin(origin, RECORD) == "oriented_at: someone else"
+
+
+def test_a_refused_landing_is_RECORDED_as_refused_and_PAGED(tmp_path, monkeypatch):
+    """Defect it names: the orientation row is appended as `oriented` before the landing, and a
+    refused landing left it reading `oriented` with nobody told. MUTATIONS (must fire): skip the
+    appended row (the last row reads `oriented`); skip the page (nothing is sent)."""
+    rows = tmp_path / "decisions.jsonl"
+    monkeypatch.setattr(seat.direction_mod, "DECISIONS_PATH", rows)
+    pages = []
+    monkeypatch.setattr(seat, "_notify", lambda msg, topic_class: pages.append((msg, topic_class)))
+    row = {"at": "2026-10-07T09:20:00+00:00", "outcome": "oriented", "focus": ["x"],
+           "for_the_director": [{"id": "c1"}]}
+    seat.direction_mod.append_decision(row)
+
+    seat.record_landing_refused(row, "landing refused (DirectionNotLanded): origin moved")
+
+    last = seat.direction_mod.read_decisions(limit=1)[0]
+    assert last["outcome"] == "refused" and "origin moved" in last["landing_refused"]
+    assert last["at"] == row["at"] and last["focus"] == ["x"]
+    assert len(pages) == 1 and "did NOT reach origin" in pages[0][0]
+    # The copy carries the oriented row's concerns, so they are not re-paged next stretch.
+    assert seat._previous_concern_ids() == ["c1"]
+
+
+def test_the_deadline_is_the_units_budget_less_one_gate_run(tmp_path, monkeypatch):
+    unit = tmp_path / "delivery-seat.service"
+    unit.write_text("[Service]\nTimeoutStartSec=3000\n")
+    assert seat.direction_unit_budget_s(unit) == 3000.0
+    assert seat.direction_unit_budget_s(tmp_path / "absent") == seat.DIRECTION_UNIT_FALLBACK_BUDGET_S
+    monkeypatch.setattr(seat, "DIRECTION_UNIT", unit)
+    start = seat._PROCESS_STARTED
+    assert seat.direction_land_deadline_s(start + 1000) == 3000 - 1000 - seat.DIRECTION_GATE_RUN_S
+    assert seat.direction_land_deadline_s(start + 2000) == 0.0
