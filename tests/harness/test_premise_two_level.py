@@ -2745,7 +2745,8 @@ def test_the_MINTS_INFERRED_MECHANISM_was_REFUTED_by_measurement(population):
     # lowers a home's peak-to-mean AND its null together (r with min/mean -0.77 and -0.43), so
     # the raw r rose to +0.457 through a common cause. Held at its share the mechanism is still
     # absent (+0.226; +0.17 under the uniform 25 W). The raw r is kept, recorded beside it.
-    assert r == pytest.approx(0.457, abs=0.03)
+    # 2026-10-07, the awake window crossing midnight: raw +0.457 -> +0.392, partialled +0.164.
+    assert r == pytest.approx(0.392, abs=0.03)
     share = [min(min(d) for d in h) / (sum(map(sum, h)) / (48 * len(h))) for h in behavioural]
 
     def _residual(y, x):
@@ -4040,7 +4041,10 @@ def test_the_band_selection_is_FAIL_CLOSED_when_the_register_fact_is_MISSING(mat
     false RED, never a false GREEN — the lenient direction has to be asserted."""
     heat_pump, _ = matched_pair
     grid = tuple(tuple(day) for day in heat_pump.half_hourly("electricity"))
-    homes = tuple(f"HP{i}" for i in range(fgl.MIN_HOMES_FOR_DIVERSITY))
+    # Enough clones that the strict band fires on its median leg (the home ~0.12 against a real
+    # 0.158), not on p25: at 5 clones FAIL hung on 0.1163 < 0.117, and the cross-midnight window
+    # (2026-10-07) moved the home to 0.1185 and the verdict to INSUFFICIENT -- the lenient one.
+    homes = tuple(f"HP{i}" for i in range(fgl.MIN_HOMES_FOR_L1_RATE))
 
     blind = fgl.PopulationTraces(
         generator="test — heating fact withheld",
@@ -4710,11 +4714,13 @@ def test_the_MISSING_register_fact_still_fails_CLOSED_onto_the_gas_band(weather,
     directions are asserted because either one alone would be an argument."""
     heat_pump = matched_regimes[HeatingSystem.HEAT_PUMP_AIR]
     grid = [list(d) for d in heat_pump.half_hourly("electricity")]
-    blind = _clone_population(grid, fgl.MIN_HOMES_FOR_DIVERSITY, weather)
+    # As many clones as the named arm below, so the two arms differ in the register fact alone and
+    # the strict verdict rests on the median leg, not a knife-edge at p25.
+    blind = _clone_population(grid, fgl.MIN_HOMES_FOR_L1_RATE, weather)
     assert blind.heating_systems == ()
     cell = fgl.evaluate_two_level(blind).cell(fgl.TEXTURE_STATISTIC)
     assert cell.band is fgl.BANDS[fgl.TEXTURE_STATISTIC]
-    assert cell.verdict is fgl.Verdict.FAIL
+    assert cell.verdict is fgl.Verdict.FAIL, cell.note
     assert cell.homes_unjudged == 0, "absence is judged strictly, not left unjudged"
 
     # The same trace, with the register fact supplied and still no split: the home

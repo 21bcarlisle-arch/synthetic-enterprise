@@ -142,6 +142,63 @@ understates how late households go to bed. The weekend shift (+30 min to +2 h on
 time) was left alone as the held variable, and the table suggests it is itself too large. No code
 changed. Scripts: `/tmp/w129r/` (not committed).
 
+## The awake window crosses midnight, and the arm re-run on it (2026-10-07)
+
+Worker on the lane-0 draw `w1-29-the-awake-window-crosses-midnight`, in a clean `origin/main` worktree
+at `76f1679e6`. Same draw as above: world seed 17, traces seed 7, 60 homes, net of both machines.
+
+**What changed in `simulation/premise_trace.py`.** `occupancy_at` no longer clamps the last awake
+half-hour to 47. A `sleep_period + weekend shift` of 48 or more wraps onto that day's own small hours.
+EV charging and the heater already use this convention, and it keeps any day replayable alone. It puts
+a late Saturday onto Saturday morning, which is roughly where GB's Friday-night lateness belongs.
+`_spread_event` used to stop at 23:30 and **drop** the rest of an event: a late dishwasher's tail, a
+weekend kettle started after midnight. It now wraps the same way. The DHW morning, evening and scatter
+starts no longer pile onto 23:30. The retire draw itself (43-47) is unchanged.
+
+**One consequence outside the module.** `fabric_gap_ledger.away_signature` divided by the mean over
+00:00-06:00 as "base load". Once a home can be up at 00:30, an occupied Saturday read 0.88, under the
+1.30 away cutoff. The statistic's own definition is "no busier by day than at 3am", so its base window
+is now 02:00-06:00. An empty house's base is its fridge in either window, and real homes are up at
+midnight too (LCL 0.62), so the old window was contaminated on the archive as well.
+
+Pre-registered at 2026-10-07T03:48:07Z, before any run. Median profile above base ÷ active mean, every other
+half-hour from 00:00:
+
+    LCL         0.62 0.38 0.29 0.25 0.24 0.25 0.34 0.60 0.88 1.05 1.04 0.98 1.01 1.08 1.02 1.02 1.11 1.29 1.57 1.77 1.69 1.60 1.41 1.08
+    base        0.11 0.11 0.11 0.12 0.12 0.14 0.22 0.72 0.92 0.81 0.90 0.83 0.82 0.79 0.79 0.84 1.16 1.91 2.21 2.33 2.47 2.46 1.70 0.93
+    spread-only 0.22 0.13 0.11 0.12 0.11 0.14 0.21 0.71 0.92 0.81 0.90 0.83 0.82 0.79 0.79 0.84 1.16 1.91 2.21 2.32 2.45 2.46 1.69 0.93
+    base-x      0.39 0.13 0.11 0.11 0.11 0.14 0.21 0.71 0.92 0.81 0.89 0.83 0.81 0.79 0.78 0.84 1.16 1.90 2.20 2.31 2.44 2.44 1.68 0.93
+    arm-x       0.43 0.14 0.11 0.11 0.11 0.14 0.21 0.70 0.92 0.81 0.88 0.80 0.81 0.80 0.78 0.81 1.20 1.91 2.15 2.26 2.42 2.37 1.87 0.89
+
+`spread-only` is the one-variable control: events wrap and the window is still clamped. `base-x` adds
+the cross-midnight window on the unchanged retire draw. `arm-x` adds the GB 2000-01 weekday onset table
+unclamped (13% of homes have their last awake slot after midnight).
+
+| pre-registered | result | grade |
+|---|---|---|
+| B1 base-x 00:00 rises to 0.13-0.30 | 0.11 → 0.39 | **refuted, high** |
+| B2 base-x 01:00 rises by < 0.06 | 0.11 → 0.13 | held |
+| B3 base-x 02:00-04:00 moves < 0.01 | 0.00 | held |
+| B4 base-x night median moves < 0.01 | 0.116 → 0.119 | held |
+| A1 arm-x 00:00 at 0.20-0.45 | 0.43 | held |
+| A2 arm-x 01:00 at 0.11-0.20 | 0.14 | held |
+| A3 arm-x 02:00-04:00 moves < 0.03 | 0.00 | held |
+| A4 arm-x 23:30 vs base-x moves < 0.15 | 0.61 → 0.64 | held |
+
+B1 was wrong because it priced only the window. The control attributes the 00:00 rise: **+0.11 is
+energy the meter never used to see** (events cut at 23:30), **+0.17 is the window** (weekend nights
+carrying over), and **+0.04 is the GB bedtime draw**. Total 0.11 → 0.43 against LCL's 0.62.
+
+What this settles. The midnight slot was mostly construction: two-thirds of its gap closes without
+any new bedtime evidence. The bedtime draw is worth only +0.04 at 00:00, because the weekday table
+moves the mean last awake slot by about 15 minutes. **01:00-04:00 is not touched by any of it**:
+0.14/0.11/0.11/0.11 against 0.38/0.29/0.25/0.24. That gap belongs to `bebf42253`'s (b) load while
+asleep, (c) electric homes in "Std", or (d) London against GB, and the next arm should be (b).
+
+Limits: one world draw, 60 homes. The bedtime arm is not wired: the shipped retire draw is still the
+unsourced 43-47, because no household distribution for 2016-2025 is published (above). The weekend shift
+is held as before. Scripts: `/tmp/w129r/run2.py`, `run3.py` (not committed).
+
 ## Sources
 
 * Martín-Olalla, J.M. (2019). The long term impact of Daylight Saving Time regulations in daily life

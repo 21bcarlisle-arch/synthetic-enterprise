@@ -553,7 +553,9 @@ class TroughStats:
 
 # 00:00-06:00 — the base-load window, when a home is quiet whether or not anyone
 # is in it. 08:00-22:00 — the active window, when an OCCUPIED home is not.
-BASE_LOAD_PERIODS = range(0, 12)
+# 02:00-06:00, the "own 3am". It was 00:00-06:00 until the household day could cross midnight: a
+# home up until 01:00 on a Saturday then read as busier at night than by day, i.e. away.
+BASE_LOAD_PERIODS = range(4, 12)
 ACTIVE_PERIODS = range(16, 44)
 
 # "No busier by day than at 3am" — a ratio of 1.0 means the active window and the

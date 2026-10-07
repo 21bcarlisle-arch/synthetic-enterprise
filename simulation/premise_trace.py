@@ -317,6 +317,7 @@ class BehaviourProfile:
     wake_period: int
     """Half-hour index at which the household gets up on a weekday."""
     sleep_period: int
+    """Last awake half-hour on a weekday. 48 and above is after midnight (see `occupancy_at`)."""
     weekend_shift_periods: int
     daytime_occupancy: float
     """Fraction of the working day for which somebody is at home."""
@@ -394,9 +395,8 @@ def behaviour_profile_for(
     # a third still awake at 23:20 on a working weekday, and a household retires with its last
     # member. No household distribution for 2016–2025 is published, so none replaces it yet:
     # docs/market_research/when_gb_adults_go_to_sleep_read_from_the_uk_time_use_surveys.md.
-    # Replacing this draw alone cannot wake the midnight slot: the awake window ends at 24:00 by
-    # construction (`occupancy_at` clamps to period 47), so a later onset collapses to 47. The
-    # retire arm in that doc showed 00:00-04:00 unmoved; the window must cross midnight first.
+    # The awake window now crosses midnight (`occupancy_at`), so a sleep_period past 47 is legal and
+    # a replacement draw here would reach the small hours; 76f1679e6's arm could not, being clamped.
     wake_period = rise.randint(11, 17)
     sleep_period = rise.randint(43, 47)
     weekend_shift = rise.randint(1, 4)
@@ -1189,9 +1189,12 @@ def _spread_event(event: ApplianceEvent, series: list[float], *, scale: float = 
     """Lay one event's energy across the half hours it actually spans."""
     remaining_h = event.duration_hours
     period = event.start_period
-    while remaining_h > 1e-9 and period < PERIODS_PER_DAY:
+    # Past 23:30 the event wraps onto this day's own small hours, as EV charging and the heater do.
+    # It used to stop at period 47 and DROP the rest: a late dishwasher's tail, a weekend kettle
+    # after midnight -- energy the home used and the meter never saw.
+    while remaining_h > 1e-9:
         used = min(PERIOD_HOURS, remaining_h)
-        series[period] += event.power_kw * used * scale
+        series[period % PERIODS_PER_DAY] += event.power_kw * used * scale
         remaining_h -= used
         period += 1
 
@@ -1203,8 +1206,13 @@ def occupancy_at(profile: BehaviourProfile, period: int, *, is_weekend: bool, is
         return 0.0
     shift = profile.weekend_shift_periods if is_weekend else 0
     wake = profile.wake_period + shift
-    sleep = min(PERIODS_PER_DAY - 1, profile.sleep_period + shift)
-    if period < wake or period > sleep:
+    # The last awake half-hour may fall after midnight (index >= 48). It used to be clamped to 47,
+    # so no bedtime of any shape could reach 00:00. Past midnight it wraps onto this day's own small
+    # hours -- the convention EV charging and the heater already use, which keeps any day replayable
+    # alone (C-S2). It also puts a late Saturday/Sunday onto Saturday/Sunday morning rather than
+    # Sunday/Monday, which is closer to when GB adults stay up (Friday and Saturday nights).
+    sleep = profile.sleep_period + shift
+    if not (wake <= period <= sleep or period + PERIODS_PER_DAY <= sleep):
         return 0.25  # asleep in the house: present, but nothing switched on
     if is_weekend:
         return 0.9
@@ -1387,20 +1395,18 @@ def draw_dhw_events(
     for _ in range(n_events):
         # Most draws cluster on the morning rise and the evening; the rest scatter.
         roll = rng.random()
+        # Starts past 23:30 wrap onto the small hours (`_spread_event`); they used to pile on 23:30.
         if roll < 0.5:
-            start = min(PERIODS_PER_DAY - 1, profile.wake_period + shift + rng.randint(0, 3))
+            start = profile.wake_period + shift + rng.randint(0, 3)
         elif roll < 0.85:
             # The evening cluster sits on the household's own clock, not on a
             # national 18:00 — the same routine that moves its cooking.
             evening_base = 36 + shift + profile.routine_offset_periods
-            start = min(
-                PERIODS_PER_DAY - 1,
-                max(0, int(math.floor(evening_base)) + rng.randint(0, 6)),
-            )
+            start = max(0, int(math.floor(evening_base)) + rng.randint(0, 6))
         else:
             start = rng.randint(
-                min(profile.wake_period + shift, PERIODS_PER_DAY - 2),
-                min(profile.sleep_period + shift, PERIODS_PER_DAY - 1),
+                profile.wake_period + shift,
+                max(profile.wake_period + shift, profile.sleep_period + shift),
             )
         weight = rng.uniform(0.5, 1.5)
         weights.append(weight)
