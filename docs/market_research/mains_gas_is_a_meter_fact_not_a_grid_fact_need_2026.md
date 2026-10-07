@@ -71,6 +71,8 @@ The arithmetic bound this permits — 18.2% ≤ off-grid ≤ 19.1% — is theref
 grid connection**, only on this dataset's own flag, and it is recorded here so nobody quotes it as
 one. The true off-grid share needs a different source (the published count of properties not
 connected to the gas network) and is a **registered gap**, not a number.
+*Corrected 2026-10-07: the gap is closed by the published comparator below, which turned out
+to be a meter fact as well.*
 
 ## What to draw
 
@@ -86,3 +88,33 @@ Same file as the floor-area anchor, so these two rows share a source. That valid
 against the other, and neither may validate the SIM's consumption — NEED already anchors the
 high-tail gas figure, so a check of SIM gas against NEED after fitting to NEED would be a
 tautology. Validation needs different lineage.
+
+## The published comparator (2026-10-07, W2_20)
+
+DESNZ, *Subnational electricity and gas consumption statistics, Great Britain, 2023*, section 3.4,
+p.25: **"Across Great Britain in 2023, an estimated 16 per cent of domestic properties were not
+connected to the gas grid, a similar proportion to 2015."** Regions run from North East 7% to South
+West 24%. Inner London is 26% and Outer London 14%.
+
+**How DESNZ counts it:** "the difference between the number of properties and the number of
+domestic gas meters in each area". So this figure is **also a meter fact** and the right comparator
+for `has_mains_gas_supply`. Inner London at 26% is the same flats effect NEED shows. DESNZ says
+it is an **underestimate**: meters under 73,200 kWh/yr are counted as domestic, including small
+commercial ones.
+
+That gives a bracket from two sources. DESNZ's 16% is a floor. NEED's raw 19.1% is a ceiling,
+because it also counts low users and meters NEED could not match to an address. **The world's
+drawn share: 17.0% (n=6,000, seed 42) and 16.3% (n=4,000, seed 20261007)**, both inside it. Held by
+`tests/simulation/test_the_mains_gas_marginal_recovers_the_published_off_grid_share.py`. That test
+also refuses the heating-inferred share (8.6%), and both mutations are red: folding supply into
+heating, and negating the flag.
+
+**Lineage, stated:** DESNZ and NEED both come from the gas meter registers. The bracket shows the
+joint has not drifted from the meter data. It is not independent validation.
+
+**What it exposes, and not fixed here:** `heating_system` is still drawn independently of the
+supply flag. As a result, **15.3% of drawn homes have an individual gas boiler and no gas supply**.
+The heating weights also renormalise over the stock left after dropping oil, LPG and district heat,
+so the world draws gas boilers at 90.7%, above the 83% supply share. That means "connection comes
+first, then the heating system" cannot hold while both marginals stay where they are. Filed as
+`docs/staging/SEAT_FINDING_W2_20_A_SIXTH_OF_DRAWN_GAS_BOILERS_HAVE_NO_GAS_SUPPLY_2026-10-07.md`.
