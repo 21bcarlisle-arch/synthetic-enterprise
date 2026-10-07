@@ -8,6 +8,51 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-10-07 — orientation: The baseline question has not moved: per weighted win against the count-matched cull52, the chosen per-customer book is inside the flat-rule blind span on net (d27a2a2
+
+<!-- head: 0a4d5324a26e -->
+
+*Written by the orientation seat from its own record (2026-10-07T14:21:27.941831+00:00; 10 commits, 4 substantive, since 2026-10-07T11:24:41.710264+00:00).*
+
+## What the stretch meant
+
+The baseline question has not moved: per weighted win against the count-matched cull52, the chosen per-customer book is inside the flat-rule blind span on net (d27a2a227). On this book, per-customer neither beats flat nor loses to it, and only the director's EP17 row can separate them. What moved this stretch is what the company can LEARN. The retention netting is on origin (6870d3c8b) and the on-arm read its flag on 73 of 73 passes (49f2587f1). It withdraws no offer, because the guard's value test never binds: the largest netted bad debt is 8.9% of margin. So the transfer my last record called live is closed in code and had little effect on the book. 3811342db is the harder result: the company offers exactly when belief > 0.30, so its own record can never show what an offer does. A decidable bound needs about 392 renewals per side in band, and ten years gave 31. On a book this size, the advantage the thesis asks for cannot come from learning the effect of the company's own actions. It has to come from published trials used as priors (EFTC: 6% switching in both arms) or from more independent books, which is EP17 again. The machine went BACKWARDS on its own steering. The 11:24 orientation never ran: the spawn failed with 'Argument list too long', because the brief is passed as one argv string. Its decision row still reads 'oriented', and its fallback landed the shared working copy's stale 40-row record (a42daa6a0) over 1cd4bda0e's triaged 19-row one. That undid, within 90 minutes, the change the director asked for that morning. A worker then graded the run a success (17f17b338). As a result, the live focus named two finished items (W2_20 at L2 is bbc434fff; the netting is 6870d3c8b) for three hours. This record restores the triage: retired problems are dropped, and the 13 fix-open ones are carried. The brief I received ended in the middle of a row, so I read the remaining rows from origin. The world moved: W2_36 smart meters can now drop out of smart mode and go unread (d149ad168), and G15 registered Ofgem's weekly forwards (101aa4048). W2_18's move to L1 is gated (0a4d5324a), but it is a local commit on the shared HEAD and on no remote, and the checkout is diverged again (1 ahead, 16 behind). C34 was steered three times and landed nothing. It depends on B11, which is parked, and on W2_39's world response, so I steer upstream to W2_39. Of the 4 items in the previous focus, 2 were drawn in this stretch, and 2 had finished before it began. 10 commits, 4 substantive, 4 empty merges. Disposable: acff52923 (/var/tmp/se-draw-order, dead owner pid 1364549; its supervisor.py is on origin as 20c9c52c9).
+
+## What went wrong
+
+- NOT corrected: THE MACHINE'S, CARRIED. One item can land twice, on origin through surgical_land and as a local commit on the shared HEAD. Owner: SEAT_FINDING_ONE_ITEM_LANDS_TWICE_AND_THE_SHARED_HEAD_FORKS_FROM_ORIGIN. RECURRED 14:21: 0a4d5324a (W2_18 at L1, gate rc 0) is a local commit on the shared HEAD and on no remote, and the checkout is diverged again (1 ahead, 16 behind). Focus item three.
+- NOT corrected: THE MACHINE'S, CARRIED. A held change's hold condition is not re-asked when its premise moves. Owner: SEAT_FINDING_A_HOLD_OR_A_TOMBSTONE_STATES_ITS_CONDITION_IN_PROSE_AND_NOTHING_RE_ASKS_IT. 14:21: no new instance.
+- NOT corrected: THE MACHINE'S, CARRIED. The held-work check refuses an item when its prose names a held file, even when the held work is not the item's, and the refusal reaches only the supervisor log. 14:21: no new instance.
+- NOT corrected: THE MACHINE'S, CARRIED. The seat's brief reads the director's open concerns from the behind checkout. 14:21: the brief's eight open rows match origin's eight (checked by hand) with the checkout 16 behind. Carried from origin by hand; the class is unfixed.
+- NOT corrected: THE MACHINE'S, CARRIED. The draw ledger reads the same for work never started and for work mid-landing, because it asks only origin by path. 14:21: no new mid-landing instance; see the path-overlap row for this stretch's sibling.
+- NOT corrected: THE MACHINE'S, CARRIED. A focus-row tombstone still retires a row without asking its DONE. 14:21: no new instance.
+- NOT corrected: THE MACHINE'S, CARRIED. A landing can carry docs/direction/DIRECTION.yaml from the shared working copy when it is older than origin's. RECURRED 11:24, at a cost: a42daa6a0 landed the working copy's 08:21 record (40 rows) over 1cd4bda0e's triaged 19-row record and restored 21 retired rows, about 90 minutes after the director asked for the triage. This record undoes that by hand. Focus item one stops the failed-run path from committing it.
+- NOT corrected: THE MACHINE'S, CARRIED. A parked atom is still counted as drawn. H45 is PARKED and the counter still moves. 14:21: B11 was parked at 10:51Z (cf168906c) and was drawn this stretch at 321 unchanged draws. SITE2 reads 42448 unchanged draws, which no draw rate can explain. The counter is not established as a real tick.
+- NOT corrected: THE MACHINE'S, CARRIED. The coupled-triad gate now excludes twinless L3 targets, and its refusal reaches only the supervisor journal. The W2_20 instance is closed (bbc434fff, L2 with target 2). The class is unchanged.
+- NOT corrected: THE WORLD'S, CARRIED. A gas-heated fabric home's electricity has no season: the median month max/min is 1.288 against SERL's 1.36-1.47. 14:21: unchanged; no published term for the flat summer base (in not_now).
+- NOT corrected: THE MACHINE'S, CARRIED. The 20:21 seat session failed (rc=1 then; ran: false) and was recorded as a successful one. RECURRED 11:24 with a new cause: the spawn failed with OSError(7, 'Argument list too long'), decisions.jsonl reads ran: false, outcome: oriented, and the run still committed a direction record (a42daa6a0). 17f17b338 then graded it 'landed, the silent give-up did not recur', asking only whether a direction commit landed. 0be518a08 covers a refused landing, not a session that never ran. Focus item one.
+- corrected: THE MACHINE'S, CARRIED. The payment score lifted a debtor's churn belief past the 0.30 offer threshold, and the retention guard valued the account as if it pays. CORRECTED in code: 6870d3c8b put the netting on origin with its controls, and 49f2587f1 shows the on-arm read the flag on 73 of 73 passes. It withdraws no offer because the guard's value test never binds (largest netted bad debt 8.9% of margin). The offer's own effect is a declared None (3811342db).
+- NOT corrected: THE MACHINE'S, CARRIED. The draw ledger credits or denies an item by path overlap, not by its work. 14:21: it reads the-retention-netting-reaches-code-and-its-arms-differ as not_done ('CANNOT ANSWER') while that item's work is on origin as 6870d3c8b and 49f2587f1, landed inside its window.
+- corrected: MINE, NEW. My 08:21 record said the on/off arms 'ran with a flag that no committed code reads'. 49f2587f1 shows the on-arm read the flag on all 73 guard passes. The arms were identical because the netted belief is small, and the code sat gated in a worktree (5c0ed0a9d). I read 'on no ref' as 'reaches no code' without asking the run.
+- NOT corrected: THE MACHINE'S, NEW. The seat's brief is passed to the session as one argv string. It grows with every carried row and every daemon line, and at 11:24 it passed the kernel's 131072-byte per-argument limit. This orientation's brief arrived cut off in the middle of a previous_wrong row. Nothing bounds the brief or moves it off argv. Focus item one.
+
+## Chosen against
+
+- Steering C34's SVT-contact sender a fourth time.
+- A holdout (B8) to learn a retention offer's effect from the company's own record.
+- Running EP17's twelve book seeds.
+- The gas-home season term (1.288 against SERL's 1.36-1.47) and W1_29's night gap.
+- Mechanisms for the other fix-open problems (tombstones, held-work refusals, parked atoms counted as drawn, the draw ledger's path grading).
+- Reaping acff52923.
+
+## Focus for the next stretch
+
+- `an-orientation-that-did-not-run-is-not-recorded-or-landed-as-one`
+- `W2_39_households_respond_to_contact_including_badly`
+- `the-w2-18-level-and-the-shared-checkout-reach-origin`
+
+---
+
 ## 2026-10-07 — orientation: The baseline answer is now on origin and still honest: per weighted win against a count-matched cull52, the chosen per-customer book is inside the flat-rule blind span
 
 <!-- head: 1058f5dd299b -->
