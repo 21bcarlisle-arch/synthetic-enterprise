@@ -1,9 +1,21 @@
 {
- "generated_at": "2026-10-07T05:25:47.525100+00:00",
+ "generated_at": "2026-10-07T08:32:01.389413+00:00",
  "seat": "delivery",
  "what_it_did": {
   "available": true,
   "commits": [
+   {
+    "sha": "f07af3845",
+    "at": "2026-10-07T07:17:23+01:00",
+    "subject": "W2_21 at L1: the live stock reproduces NEED's type x floor-area corners, and the same draw fed an independent joint does not",
+    "substantive": true
+   },
+   {
+    "sha": "17f75226a",
+    "at": "2026-10-07T07:03:15+01:00",
+    "subject": "W2_20 at L1: the drawn gas supply recovers DESNZ's published 16% off-grid share, and the gas register still follows the boiler",
+    "substantive": true
+   },
    {
     "sha": "f71fcc176",
     "at": "2026-10-07T03:48:32+01:00",
@@ -231,18 +243,6 @@
     "at": "2026-10-06T14:41:49+01:00",
     "subject": "B7 slice 4: a vacated premise's change-of-tenancy window is booked as occupier debt, not as paid",
     "substantive": true
-   },
-   {
-    "sha": "46458b74f",
-    "at": "2026-10-06T14:25:35+01:00",
-    "subject": "The supplementary heater runs when HES and EFUS say it does, and its power stays unsourced",
-    "substantive": true
-   },
-   {
-    "sha": "53cc04a27",
-    "at": "2026-10-06T13:59:42+01:00",
-    "subject": "A gas-heated home's electricity has a season: HES cooking and laundry, and the supplementary heater a tenth of gas homes run in the cold",
-    "substantive": true
    }
   ],
   "substantive": 24,
@@ -251,58 +251,59 @@
  },
  "what_it_decided": {
   "available": true,
-  "oriented_at": "2026-10-07T05:20:28.775925+00:00",
-  "age_hours": 0.1,
+  "oriented_at": "2026-10-07T08:21:58.450288+00:00",
+  "age_hours": 0.2,
   "expires_after_hours": 12.0,
   "live": true,
-  "thesis_read": "The baseline comparison went from 'below, cause unknown' to 'inside the noise', and that is progress, because it is the honest answer. Re-run per weighted win against a count-matched cull52 on the run's own campaign, the company's per-customer book (B) is inside the flat-rule blind span on revenue, net and net after cost to serve. Against cull52 it is +14.6 per win on net. Its 174-per-win deficit against cull57 was that cull's own sampling error: the two uniform culls differ from each other by 189 per win. Its bad debt is 37.7% below the span (0.8 SE). The gross gap decomposes exactly into tenure, volume and margin rate, and weight-fit error is ruled out. That result is gated but still mid-landing, not on origin. So on this book per-customer is neither beaten by flat nor shown to beat it, and only independent books separate them (the director's EP17 row). The thesis's real question moved somewhere sharper. The company's payment score DOES reach a decision, but the wrong way round. It lifts a debtor's churn belief past the offer threshold, and the retention guard then prices the debtor as if they pay, so retention money flowed to the worst payers. That is inference that transfers value instead of creating it. The netting lands behind a flag, and its on/off arms are running now. The world moved too. W1_29 reached level 1 at last (f3f599ec6). The bedtime is shown to be contradicted by GB diaries, with no replacement published. The awake window now crosses midnight (00:00 from 0.11 to 0.39 of the active mean, against LCL's 0.62), and appliance runs are ruled out as the remaining gap. PB4 R6 gives a woken default-tariff household its own elasticity (f71fcc176), but nothing in the world sends that contact yet, so engagement is separated from elasticity in code and still not in behaviour. Of the previous focus, three of four were drawn and all three did their work. The PB4 reconciliation was not drawn, and the 29%-against-13% disagreement still stands in front of grading R6. My 02:21 record never reached origin: the seat's own landing was refused when origin moved twice under its gate, and nobody was told. 10 commits, 9 substantive, 1 an empty base-advance merge. Disposable: acff52923 (/var/tmp/se-draw-order) and bab878923 (/var/tmp/se-direction-seat), both locked to dead owners, both superseded.",
+  "thesis_read": "The baseline answer is now on origin and still honest: per weighted win against a count-matched cull52, the chosen per-customer book is inside the flat-rule blind span on net (d27a2a227). On this book, per-customer neither loses to flat nor beats it, and only the director's EP17 row can separate them. PB4's 29%-against-13% disagreement is gone: both runs give 18 of 62, and the 13 of 101 counted term boundaries instead of choices (c1f5320c1). The thesis went BACKWARDS in one place, and my last record hid it. The one decision shown this week to move value instead of making it, retention money going to the worst payers because the guard prices a debtor as if they pay, is still live. I wrote that its netting was landing behind a flag. It is on no ref. The on/off arms ran with a flag that no committed code reads, finished identical (bad debt 18,309.6, net 242,278.08, 73 offers each), missed their own pre-registered P0, and sat unread for 2.4h. So inference is still transferring value in the live company, and nothing has yet tested a fix. That is focus item one. The world moved forward: W2_20 and W2_21 reached L1, and a home's heating is now drawn given its gas meter, so oil, LPG and communal heat reach no register (81732ffe2). W2_20 earned L2, and the triad gate refused it for want of a company twin. I take the worker's recommended option and retarget it to L2, because a supplier reads the MPRN and does not infer it. C34 was drawn and built nothing (22 unchanged draws), so engagement is still separated from elasticity in code only, not in behaviour. The seat's own landing fix (0be518a08) is on origin and inert, because the shared checkout is diverged, 2 ahead and 20 behind, and the seat runs from it. Of the previous focus, all three were drawn. Two finished (PB4's reconciliation; the direction-record fix, which is on origin but not live), and C34 landed nothing. 11 commits, 7 substantive, 0 empty merges. Disposable: acff52923 (/var/tmp/se-draw-order, dead owner, its supervisor.py is on origin as 20c9c52c9).",
   "focus": [
    {
-    "id": "pb4-two-runs-disagree-on-the-renewal-roll-leave-share",
-    "lane": "W2_customer_generator",
-    "what": "Reconcile PB4's P(leave | chose at the renewal roll): 29% (18 of 62) in the committed capture against 13% (13 of 101) in the earlier live run (docs/staging/SEAT_FINDING_PB4_EXPERT_HOUR_RETAKE_FAILS_AND_THE_DISENGAGED_ELASTICITY_IS_ALMOST_NEVER_CONSULTED_2026-10-07.md). Re-derive both from their run artefacts with tools/engagement_separation.py, say what each one counts (denominator, world sha, book, which renewal rolls), and name which is right, or name the source of the difference. Write the verdict into that finding. Only after that, and only if it is cheap, publish the per-household-YEAR departure rate beside DESNZ QEP's annual switching series.",
-    "why": "Two of our own runs disagree by more than 2x on the share at the heart of PB4's claim, and R6 (f71fcc176) cannot be graded while they do. It was the one item last stretch not drawn. DONE when the finding names which figure is right and why, with the counting stated for each."
+    "id": "the-retention-netting-reaches-code-and-its-arms-differ",
+    "lane": "C_customer_ops",
+    "what": "The retention guard's bad-debt netting is not built: no commit on any ref contains retention_nets_bad_debt_belief, and the on/off arms in /home/rich/.cache/seat_lane0_20261007_retguard/ (arm_guard.py, arm_off.json, arm_on.json, prediction.txt) are identical. First establish why the on-arm's dataclasses.replace on CURRENT_POLICY ran at all, and where the field came from. Then build the netting on origin's code, behind the policy field and through observables only: subtract the company's learned bad-debt belief (PaymentObservationConsumer.default_belief_rate by arrears state, which run_phase2b already reads as _chain_default_belief) from the forward value the retention guard in company/crm/customer_experience_desk.py prices. Add a control that reds when the flag is on and a POOR/CRITICAL account's offer is unchanged. Re-run both arms, write a fresh P0 for origin's book before the run, grade P1-P4, and land the code with the result. This supersedes the continuation retention-guard-nets-the-companys-own-bad-debt-belief.",
+    "why": "This is the one decision shown this week to transfer value instead of making it, and the live company still does it. The last test of the fix tested nothing. DONE when the netting is on origin, a control proves the flag is read, and the two arms differ in the way P1-P4 predicted, or the finding says why they do not. A pair of identical arms is not a result."
+   },
+   {
+    "id": "W2_20_mains_gas_is_drawn_not_inferred_from_the_heating_system",
+    "what": "Seat decision, taken: retarget W2_20 to L2, on the 6314e5bc8 precedent (option 1 in docs/staging/SEAT_FINDING_W2_20_A_SIXTH_OF_DRAWN_GAS_BOILERS_HAVE_NO_GAS_SUPPLY_2026-10-07.md). Record the restore condition on the row: a company grade that reads an off-gas belief, for example C14's couple_fabric run on draw_premise_from_joint. Then record the 1->2 move through the level gate, citing 81732ffe2 and its two controls. Do not couple it to C14 now.",
+    "why": "L2 is earned and was refused only for registration. A supplier holds the MPRN, so whether a home has gas is read and not inferred, and no twin can measure a wrong belief about it. Leaving it at L1 recreates the twinless-L3 shape that cost PB4 2275 draws. DONE when the map reads W2_20 at L2 with target L2 and the restore condition on the row."
    },
    {
     "id": "C34_next_best_action_is_one_decision_across_debt_retention_upsell_and_carbon_judged_by_clv",
-    "what": "Give C34 a sender that reaches dormant default-tariff stock between fixed-term boundaries: a company decision, using observables only and going through company/interfaces/sim_interface.py, that chooses which SVT accounts to contact. The world answers it with simulation/contact_response.py's svt_departure_after_contact and churn_if_choosing_off_svt (f71fcc176). Rank under the current gate-then-CLV reading, because the director's C34 row is open and that reading stands until he answers. Keep the ranking key a single swappable line. Add planted, null and misled arms. Grade the woken share against Ofgem's CMOL letter (0.024) and CMOC (0.040) figures from docs/market_research/how_households_respond_to_supplier_contact.md as comparisons, never as inputs.",
-    "why": "PB4's re-take failed because a disengaged household's elasticity is almost never consulted. R6 built the response, and nothing sends the contact (C34 at 19 unchanged draws, nothing worked). This is where engagement becomes separate from elasticity in behaviour, and where a per-customer decision can create value a flat rule cannot. DONE when a run sends contacts to SVT stock, the woken share is printed beside CMOL/CMOC with its sample size, and the control arms pass."
+    "what": "Give C34 a sender that reaches dormant default-tariff stock between fixed-term boundaries: a company decision, using observables only and going through company/interfaces/sim_interface.py, that chooses which SVT accounts to contact. The world answers it with simulation/contact_response.py's svt_departure_after_contact and churn_if_choosing_off_svt (f71fcc176). Write it as new code (the path check reads 'nothing to land' because those two files need no change). Rank under the gate-then-CLV reading while the director's C34 row is open, with the ranking key as one swappable line, and add planted, null and misled arms. Grade the woken share against Ofgem's CMOL (0.024) and CMOC (0.040) figures from docs/market_research/how_households_respond_to_supplier_contact.md as comparisons, never as inputs.",
+    "why": "It was drawn last stretch and nothing landed. Until something sends the contact, engagement is separated from elasticity in code only, and the disengaged household's elasticity is still almost never consulted. DONE when a run sends contacts to SVT stock, the woken share is printed beside CMOL/CMOC with its sample size, and the control arms pass."
    },
    {
-    "id": "the-seats-direction-record-reaches-origin-or-says-it-did-not",
+    "id": "the-seat-runs-the-code-origin-carries",
     "lane": "H_harness",
-    "what": "In background/delivery_seat.py land_direction_on_origin: when the refusal is that origin moved under the gate, and origin's docs/direction/DIRECTION.yaml is byte-identical to the copy the record was written against (the seat's own file, which nobody else edits), re-base the one-file change onto the new origin and land it again. Do this until it lands or a bounded deadline passes, not two attempts. If it still fails, write outcome 'refused' (not 'oriented') to decisions.jsonl and page the director on NTFY with the reason. Control: a synthetic origin that moves twice under the gate must still end with the record on origin, and a mutation that restores the two-attempt give-up must red it.",
-    "why": "Nine recurrences of the record not reaching origin. This time origin moved twice in 50 minutes and the seat gave up silently, so the director's view of the live steer (origin) was three hours stale while the draw worked from the working copy. A busy origin is now the normal case, not the exception. DONE when the control passes and the next orientation's record is on origin under its own commit."
+    "what": "The shared checkout /home/rich/synthetic-enterprise has diverged (2 ahead, 20 behind origin/main), so the delivery seat runs without 0be518a08. Check that the content of the two local-only commits, 17f75226a and f07af3845, is on origin (067493aa4 says it carried both). If it is, bring the checkout level with origin through the documented reconcile door, preserving every other lane's working-copy edits. Never reset over them. If it is not, land the difference first. Then make the brief name the daemons whose running code lacks an origin commit that touches their module, starting with delivery_seat.",
+    "why": "The seat's landing fix is inert where it runs, so the next refused landing will again be silent and logged as 'oriented'. DONE when `git merge-base --is-ancestor 0be518a08 HEAD` holds in the shared checkout, the two local commits are on origin or shown to be duplicates, and the grade-the-0921 continuation reads a seat run on the fixed code."
    }
   ],
   "not_now": [
    {
-    "what": "Reading the retention-guard netting's on/off result, or setting the flag in a standing policy.",
-    "why": "Both arms are running now under the continuation retention-guard-nets-the-companys-own-bad-debt-belief, and its holder pre-registered the count. Steering it would add a second writer. The policy flip follows from that result."
+    "what": "retention-guard-weighs-the-offers-learned-incremental-effect (the queued continuation on what the company can learn of an offer's effect).",
+    "why": "Two changes to the same guard at once cannot be attributed. The netting has to exist and be measured first, so that the incremental-effect work starts from a guard whose behaviour is known."
    },
    {
-    "what": "The rate leg of B's gross-margin gap (fixed-charge spread against tariff-year mix), which needs per-account standing revenue.",
-    "why": "B is inside the blind span on net, and the gap is now decomposed, with weight-fit ruled out. The remainder is named, and refining it buys nothing that EP17's independent books would not settle better."
-   },
-   {
-    "what": "W1_29's remaining night gap (00:00 at 0.39 against LCL's 0.62).",
-    "why": "No published household bedtime for the run window exists, and appliance runs are ruled out (b69d00018). The next term is unnamed, so building one now would invent a number. The atom is at L1 and keeps its gap named."
-   },
-   {
-    "what": "Another season term for gas-heated homes (ratio 1.288 against SERL's 1.36-1.47).",
-    "why": "The remaining distance sits in the flat summer base, which no source names as a term. Same reason as the night gap: knowledge first."
+    "what": "Coupling W2_20 to C14 as its twin (option 2).",
+    "why": "C14's couple_fabric runs through draw_premise_population, the sibling draw, so its gap does not move with W2_20. The pairing would be a registration with nothing behind it until that changes."
    },
    {
     "what": "Running EP17's twelve book seeds.",
-    "why": "The director's curriculum, and his row is open. The per-win result makes his row the only route to a verdict on the thesis's baseline question, which the row already says."
+    "why": "It is the director's curriculum, and his row is open. It is still the only route to a verdict on the baseline question."
    },
    {
-    "what": "Mechanisms for the other carried machine classes (a receipt not asked whether it reached origin, a tombstone retiring an unmet DONE, path checks blind to work mid-landing).",
-    "why": "Focus item three takes the one that costs the director a stale steer. The others recurred this stretch without losing work, because the next tick re-carried it."
+    "what": "W1_29's night gap (00:00 at 0.39 against LCL's 0.62) and the gas-home season term (1.288 against SERL's 1.36-1.47).",
+    "why": "Neither has a published term to build from. Building one now would invent a number."
    },
    {
-    "what": "Reaping acff52923 and bab878923.",
-    "why": "Both are disposable and both are locked to dead owners, but this session writes only the direction record. Recorded here for whoever reaps worktrees next."
+    "what": "Mechanisms for the carried machine classes (a receipt not asked whether it reached origin, a tombstone retiring an unmet DONE, a path check blind to work mid-landing, a landed_unbound verdict credited by path overlap).",
+    "why": "Focus item four takes the one that makes the seat's own fix inert. The others cost no work this stretch. The landed_unbound misreading cost a stale steer, and that is answered by focus item one doing the work."
+   },
+   {
+    "what": "Reaping acff52923.",
+    "why": "It is disposable, but this session writes only the direction record. Recorded for whoever reaps worktrees next."
    }
   ],
   "for_the_director": [
@@ -389,6 +390,206 @@
  },
  "what_it_got_wrong": {
   "entries": [
+   {
+    "at": "2026-10-07T08:21:58.450288+00:00",
+    "what": "THE MACHINE'S, NEW. The merge proposal says the director's heartbeat steer is \"in hand\", but no claim in .seat_work_in_hand.json holds it, and a heartbeat commit (ef9011143) landed after the steer. A document saying work is in hand is not a claim, and nothing checks the one against the other. Focus item one. UPDATE 02:21: the steer itself was resolved as a measurement (3cc1281c4, premise_spent). The class, a document asserting in-hand with no claim behind it, is unchecked. 17:22: unchanged. 23:24: unchanged. 02:21: unchanged. 05:20: unchanged. 08:21: unchanged.",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-07T08:21:58.450288+00:00",
+    "what": "THE MACHINE'S, CARRIED. A commit can name a constraint on a downstream run that nothing enforces. The QEP re-take honoured ba320e2d2 by hand (base 96517e68c), so the instance is met. The class stays in not_now. 23:24: unchanged. 02:21: unchanged. 05:20: unchanged. 08:21: unchanged.",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-07T08:21:58.450288+00:00",
+    "what": "THE MACHINE'S, CARRIED. A waiter's deadline is set without pricing the queue ahead of it. wait_for caps at 21600 s, and long chains still loop by hand. 23:24: unchanged. 02:21: unchanged. 05:20: unchanged. 08:21: unchanged.",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-07T08:21:58.450288+00:00",
+    "what": "THE MACHINE'S, CARRIED. Nothing checks a long job's worktrees before launch. depth-vs-width died at exit 90 after 10h on a missing worktree. 23:24: unchanged. 02:21: unchanged. 05:20: unchanged. 08:21: unchanged.",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-07T08:21:58.450288+00:00",
+    "what": "THE MACHINE'S, CARRIED. A held change's hold condition is not re-asked when its premise moves. The own_book flip landed only because a focus item carried its condition. RECURRED: C29's block_reason has said \"sequenced behind B10\" for five weeks after B10 reached its target and was refiled (15a9703ae, 2026-08-30), and that stale hold is what kept PB4 off L3. UPDATE 02:21: the instance is fixed by hand (59c53d8a7, which now names the director's retention-discount row). The class still is not re-asked. 23:24: unchanged. 02:21: unchanged. 05:20: unchanged. 08:21: unchanged.",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-07T08:21:58.450288+00:00",
+    "what": "THE MACHINE'S, CARRIED. Level or park moves stranded in a preserved ref are replayed as written. PB4 build->idle was false by then (a6bd4d77e), and nothing re-asks a stranded move's release condition. 23:24: unchanged. 02:21: unchanged. 05:20: unchanged. 08:21: unchanged.",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-07T08:21:58.450288+00:00",
+    "what": "THE MACHINE'S, CARRIED. One item can land twice, on origin through surgical_land and as a local commit on the shared HEAD (75df9efdf after d77ff33d5). 23:24: unchanged. 02:21: unchanged. 05:20: unchanged. RECURRED 08:21: 17f75226a and f07af3845 (W2_20 and W2_21 at L1) are local commits on the shared HEAD and on no remote, and 067493aa4 says it carried both to origin. The shared checkout has diverged (2 ahead, 20 behind), so it cannot fast-forward. The class is unchanged; focus item four takes the instance.",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-07T08:21:58.450288+00:00",
+    "what": "THE MACHINE'S, CARRIED. Nothing checks that a hand-written driver calls an API, or an argument shape, that the tool accepts. hgc-suite-timing's driver called resource_headroom.admitted(). It RECURRED this stretch: the QEP floor handoff passed one seed to a tool that refuses fewer than two. 23:24: unchanged. 02:21: unchanged. 05:20: unchanged. 08:21: unchanged.",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-07T08:21:58.450288+00:00",
+    "what": "THE MACHINE'S, CARRIED. A control or door whose shape changes must re-run every fixture that builds a synthetic tree to drive it, and no control requires that. citation_at_head, red_at_head and fork_state still read not_established. 23:24: unchanged. 02:21: unchanged. 05:20: unchanged. 08:21: unchanged.",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-07T08:21:58.450288+00:00",
+    "what": "THE MACHINE'S, CARRIED. A refusal naming a commit is not re-asked against the remote ref before a reader sees it. liveness_surface_refusal is still not re-asked. 23:24: unchanged. 02:21: unchanged. 05:20: unchanged. 08:21: unchanged.",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-07T08:21:58.450288+00:00",
+    "what": "THE MACHINE'S, CARRIED. The stash-completeness sweep reports a genuinely lost file as safe. It is still not on the map. 23:24: unchanged. 02:21: unchanged. 05:20: unchanged. 08:21: unchanged.",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-07T08:21:58.450288+00:00",
+    "what": "THE MACHINE'S, CARRIED. Nothing on the landing path asks whether a same-subject sibling is left behind in the shared tree (the 14-path refusal in 662da7fd3). Separate from H49. 23:24: unchanged. 02:21: unchanged. 05:20: unchanged. 08:21: unchanged.",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-07T08:21:58.450288+00:00",
+    "what": "MINE, CLASS. not_now is still prose that nothing reads. A rejected item comes back only if I remember to promote it. This stretch I remembered once (the ex-ante flat comparison, focus item two), which is not a mechanism. 23:24: unchanged. 02:21: unchanged. 05:20: unchanged. This stretch I promote one item from last not_now by hand (the direction record reaching origin, now focus item three), which is still memory, not a mechanism. 08:21: unchanged. No not_now item is promoted this stretch.",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-07T08:21:58.450288+00:00",
+    "what": "THE MACHINE'S, CARRIED. A bounded executor turn can be reset over finished, unlanded work. Both named instances are gone: the brief reads all 80 worktree HEADs on a remote ref. Nothing prevents the class. RECURRED in a sibling shape 02:21: c5770c404 (B11 slice 3) is finished and gated, but on no remote, in an unlocked worktree with no declared owner. See the new row. 23:24: unchanged. 02:21: unchanged. 05:20: unchanged. 08:21: unchanged.",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-07T08:21:58.450288+00:00",
+    "what": "THE MACHINE'S, CARRIED. A pre-registration that dates itself by its first commit can sit untracked after its subject commit lands. The class is still unrefused. 23:24: unchanged. 02:21: unchanged. 05:20: unchanged. 08:21: unchanged.",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-07T08:21:58.450288+00:00",
+    "what": "THE MACHINE'S, CARRIED. A launch chain dies silently when its waiter hits DEADLINE. The register showed width as finished, and did not show that P/C, chained behind it, never started. 23:24: unchanged. 02:21: unchanged. 05:20: unchanged. 08:21: unchanged.",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-07T08:21:58.450288+00:00",
+    "what": "THE MACHINE'S, CARRIED. The launch register records a deliberate seat stop as DIED. payment-history-pc-legs ended rc=143 beside a STOPPED note that says why. 23:24: unchanged. 02:21: unchanged. 05:20: unchanged. 08:21: unchanged.",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-07T08:21:58.450288+00:00",
+    "what": "THE MACHINE'S, CARRIED. The held-work check refuses an item when its prose names a held file, even when the held work is not the item's work. The refusal reaches only the supervisor log, not the seat's brief, so the steer drifts without the seat being told. 23:24: unchanged. 02:21: unchanged. 05:20: unchanged. 08:21: unchanged.",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-07T08:21:58.450288+00:00",
+    "what": "THE MACHINE'S, CARRIED. No-work base-advance merges were 11 of 26 and 9 of 24 in earlier stretches. In the last two they were 0 of 9 and 1 of 8, with no mechanism changed, so the cause of the fall is not established, and the Monday census grades it. 02:21: 1 of 10. 05:21: 4 of 17. 08:23: 0 of 9. 11:21: 1 of 10. 14:23: 1 of 8. 17:22: 2 of 14. 23:24: 1 of 8. 02:21: 0 of 7. 05:20: 1 of 10. 08:21: 0 of 11.",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-07T08:21:58.450288+00:00",
+    "what": "THE MACHINE'S, NEW. The seat's brief reads the director's open concerns from the behind shared checkout. It listed four open rows when origin/main carries six (both rows raised in 2b404892e were missing), so a record written from the brief alone would have dropped two open concerns. Carried here from origin by hand. RECURRED 14:22: the brief listed step-1 and heating as open (origin: answered by the director 11:57, 8f5518e88) and omitted origin's open a-household-s-electricity-carbon-is-shown. Carried from origin by hand again. 17:20: the brief matched origin's six open rows, but only because the checkout is level. The class is unfixed. 02:21: checked against origin by hand again; the six open rows match. 05:21: checked against origin by hand again; the six open rows match. RECURRED 08:23: the brief listed six open rows; origin carries seven. c34-next-best-action-the-customer-s, raised in 7211bc03a, was missing because the shared checkout is 25 commits behind origin. Carried from origin by hand again. 11:21: the brief's seven open rows match origin, but an eighth, home-moves-can-now-be-switched-on, exists only in the executor worktree's copy that the running B7 landing carries. Carried here from that copy by hand. The class is unfixed. 14:23: the brief's eight open rows match origin's eight (checked by hand). The class is unfixed. 17:22: the brief's eight open rows match origin's eight (checked by hand); checkout level with origin. The class is unfixed. 23:24: the brief's eight open rows match origin's eight (checked by hand); checkout level with origin. The class is unfixed. 02:21: the brief's eight open rows match origin's eight (checked by hand); the checkout is 2 behind origin. The class is unfixed. 05:20: the brief's eight open rows match origin's eight (checked by hand); the checkout is 11 behind origin. The class is unfixed. 08:21: the brief's eight open rows match origin's eight (checked by hand); the checkout is 20 behind origin. The class is unfixed.",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-07T08:21:58.450288+00:00",
+    "what": "THE MACHINE'S, NEW. The draw ledger graded the draw-follows-the-order item not_done by asking only its named path (background/supervisor.py) on origin, while the work sits finished as acff52923 in a locked worktree that its live owner is landing. not_done reads the same for work never started and for work mid-landing. RECURRED 08:23 at the landing door: direction_path_check reads b7-slice-3 as 'nothing to land' while that item's own surgical_land (pid 1699597) has been running for 27 minutes. Both instruments ask only origin, so they read work mid-landing the same as work already spent. 11:21: the continuation queue still offers b7-slice-3-the-incoming-occupant-so-moves-can-be-switched-on, though its code (8359d5acd) is on origin and its landing (pid 3841076) is running. The queue cannot tell spent work from work mid-landing either. 23:24: no new instance. The class is unchanged. 02:21: unchanged. 05:20: RECURRED. The brief's path check reads weighted-per-win-envelope as 'nothing to land' while its surgical_land (pid 2895736) is running, and the queue still offers it. The class is unchanged. 08:21: no new instance. The class is unchanged.",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-07T08:21:58.450288+00:00",
+    "what": "THE MACHINE'S, NEW. A worktree lock outlives its owner. acff52923 (the draw follows the order) is locked to pid 1364549, which is no longer running, and nothing re-asks the owner's liveness before treating the work as in hand. The previous record's not_now leaned on that lock. UPDATE 14:22: acff52923's supervisor.py is byte-identical to 20c9c52c9 on origin, so the stranded commit is disposable; the lock (dead owner) still holds it, and nothing said so. 23:23 and 02:21: unchanged. 05:21: unchanged. 08:23: unchanged. acff52923 is still disposable and still locked to the dead pid 1364549. 11:21: unchanged. acff52923 is still disposable and still locked to the dead pid 1364549. 14:23: unchanged. acff52923 is still disposable (its supervisor.py is on origin as 20c9c52c9) and still locked to the dead pid 1364549. This record says it is disposable, as the brief asks. 17:22: unchanged. acff52923 is still disposable (supervisor.py on origin as 20c9c52c9) and still locked to the dead pid 1364549. 23:24: unchanged. acff52923 is still disposable (supervisor.py on origin as 20c9c52c9) and still locked to the dead pid 1364549. 02:21: unchanged. acff52923 is still disposable (supervisor.py on origin as 20c9c52c9) and still locked to the dead pid 1364549. 05:20: unchanged for acff52923 (still disposable, pid 1364549 dead). RECURRED on the seat's own worktree: bab878923 in /var/tmp/se-direction-seat (my 02:21 record) is locked to pid 706647, which is dead. It is DISPOSABLE: this 05:20 record supersedes it. 08:21: unchanged for acff52923 (still disposable, pid 1364549 dead). bab878923 is no longer listed at risk.",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-07T08:21:58.450288+00:00",
+    "what": "THE MACHINE'S, NEW. this-mondays-publish-reaches-origin was retired at 09:31 by a focus-row tombstone, but its own DONE (a publisher-written site/data/dashboard.json on origin dated 2026-10-05 or later) is unmet. The last figures on origin are still 1526f5267 (2026-09-28). The continuation confirm-the-first-publish-after-the-c29-retake carries it, so the work is not lost, but a tombstone retires a row without checking that its DONE has been met. RECURRED 15:35: the-shared-checkout-reaches-origin-so-the-publisher-can-publish was retired by its tick with the same unmet DONE. Origin's last site/data/dashboard.json is still 1526f5267. UPDATE 23:23: the instance's DONE is now met -- a88fb2436, a publisher-written site/data/dashboard.json dated 2026-10-05, is on origin through 556b24b4e. The class is not: a tombstone still retires a row without asking its DONE. RECURRED 02:21: the-publish-collides-only-on-what-it-changed was tombstoned at 23:43, and half of its DONE (the next cycle is not refused on the map) cannot be observed before the 2026-10-12 window. 23:24: no new instance. The class is unchanged. 02:21: unchanged. 05:20: RECURRED. weighted-per-win-envelope-against-a-count-matched-cull is still a live continuation while its landing runs, and three focus rows were tombstoned this stretch (w1-29-level-record-then-the-night, the-payment-score-reaches-a-decision-or-says-why-not, reprice-the-settlement-budget); the first two had their DONE met on origin, so no harm this time. The class is unchanged. 08:21: pb4-two-runs-disagree-on-the-renewal-roll-leave-share was tombstoned with its DONE met on origin (c1f5320c1), so no harm. The class is unchanged.",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-07T08:21:58.450288+00:00",
+    "what": "THE MACHINE'S, NEW. A landing can carry docs/direction/DIRECTION.yaml from the shared tree's working copy when that copy is older than origin's. The C29 surgical_land (pid 1552468) names it, and the copy it read predates the director's 11:57 answers on two concerns. Nothing compares a direction record with origin's before landing it, so his resolutions could be rolled back by a landing that was not about them. RECURRED in the other direction 20:20: my 17:20 record is in the working copy and not on origin, which still carries the 14:22 record (575ede43c), and the brief graded the working copy as the live direction. RECURRED 23:23: origin still carries the 14:22 record (575ede43c); my 20:20 record never reached it, so the brief again graded a working copy as the live direction. RECURRED 02:21: origin still carries 575ede43c, so neither my 20:20 nor my 23:23 record reached it, though the 23:23 one steered the draw from the working copy. RECURRED 05:21: origin still carries 575ede43c, so my 02:21 record also never reached it, although the draw took all four of its focus items from the working copy. 08:23: my 05:21 record DID reach origin, but only as a passenger in the C34 surgical_land (7211bc03a), which is a landing that was not about it. That is the mechanism this row describes, and this time it happened to carry the newer copy. The working copy is now behind origin again (it lacks the C34 concern row). The class is unchanged. RECURRED 11:21: origin still carries my 05:21 record (7211bc03a), so my 08:23 record never reached it, though the draw took all four of its items. The B7 surgical_land now running (pid 3841076, from /var/tmp/se-seat-executor) names DIRECTION.yaml, and its copy holds the 05:21 focus plus one new concern row. If it lands, origin's live focus goes back to three items that are already done. RECURRED 14:23, AS PREDICTED: the B7 slice 4 landing (dfa787a37) carried the executor's copy, so origin's live record is oriented 05:21 again, and its focus is three items that were done hours ago. My 11:21 record steered the draw from the working copy and never reached origin. The class is unchanged. 17:22: my 14:23 record reached origin under its own landing (78b364a31), so origin's live focus matched the draw this stretch. That was a hand repair by the seat, not a mechanism; the class is unchanged. 23:24: origin carries my 17:22 record (fc572771c), landed under its own commit. The 20:21 seat wrote no record at all (see the new row). The class is unchanged. 02:21: origin carries my 23:24 record (ee2bb1d4f), landed under its own commit. The class is unchanged. RECURRED 05:20: my 02:21 record never reached origin. The seat's landing was refused (DirectionNotLanded) because origin moved twice under its gate (fa77d8ce4, then f3f599ec6), and it gave up after two attempts. The refusal went only to the seat log; the director was not paged. Origin still carries my 23:24 record (ee2bb1d4f), while the draw took three of the 02:21 record's four items from the working copy. Now focus item three. 08:21: my 05:20 record reached origin under its own commit (31a8356aa). 0be518a08 put the fix on origin: re-base until the unit's budget runs out, and record and page a refusal. But a5bef9df1 shows the fix is not in the checkout the seat runs (it is not an ancestor of the shared HEAD), so this orientation still runs the two-attempt code. The mechanism exists and is inert. Focus item four.",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-07T08:21:58.450288+00:00",
+    "what": "THE MACHINE'S, NEW. The brief says the publisher's cause is unattributed, because its citation leg reads not_established. The same state file's failures list names the cause, behind_origin, with evidence. So the field a reader believes is the empty one. RECURRED 17:20: the brief says the cited red is DEAD at HEAD so the cause is unattributed. failures[0] names gate_refusal on test_capabilities_door, which 5e766f3c3 fixed, so the cause is attributed and repaired. 02:21: failures is empty and the episode closed (cause_cleared), so there is nothing to misattribute this stretch. The class is unfixed. 23:24: publishing is held by the weekly window and there is no failure to attribute. The class is unfixed. 02:21: unchanged. 05:20: unchanged; publishing is held by the weekly window. 08:21: unchanged; publishing is held by the weekly window.",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-07T08:21:58.450288+00:00",
+    "what": "THE MACHINE'S, NEW. A finished, gated commit can sit on no remote while the queue re-issues its work. c5770c404 (B11 slice 3, surgical_land receipt gate-rc 0) is in the unlocked, ownerless worktree agent-ac24ddfbb7f67a9e9; its message says NEXT: none as if it had landed. 22 minutes later the continuation b11-deviation-window-from-the-published-regime-boundary was filed for the same change, and a live executor now holds it. A receipt is not a landing, and nothing asks whether a receipted commit reached origin. Focus item one. UPDATE 05:21: the instance is met, because 27d0d3065 put B11 slice 3 on origin through the continuation. The class is not: a receipt is still not asked whether it reached origin. 23:24: no new instance. The class is unchanged. RECURRED 02:21: f65cf9422 says it carries 51bbb4d3d, which an earlier turn under the same claim built and gated and which never reached origin; the next turn re-carried it by hand. The class is unchanged. RECURRED 05:20: ab5c181dd (the weighted per-win envelope) was gated at 29de32469 and never promoted; the next tick on the claim is re-landing its bytes now (pid 2895736). The class is unchanged. 08:21: no new instance found. The retention netting (see its row) is on no ref at all, which is a different shape: it was never committed. The class is unchanged.",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-07T08:21:58.450288+00:00",
+    "what": "THE MACHINE'S, NEW. A parked atom is still counted as drawn. H45 is PARKED (2026-10-04, idle, waiting on the director's independence row) and reads 950 unchanged draws, drawn this stretch. Whether that is a real tick or only a counter bump is not established. In not_now. 05:21: 1019 unchanged draws, drawn again this stretch. 08:23: 1095 unchanged draws, drawn again this stretch. 11:21: 1161 unchanged draws, drawn again this stretch. PB4 is at 2417. 14:23: 1235 unchanged draws, drawn again this stretch. PB4 is at 2491. 17:22: 1266 unchanged draws, drawn again this stretch. PB4 is at 2583. 23:24: H45 is not in this brief's stalled list, so its count is not shown. PB4 is at 2738 and was drawn this stretch, although its Expert Hour ran (789083280) and its two open questions are written on the row; the counter moves only on a map write. 02:21: PB4 is at 2759 and was drawn again, while all its work this stretch went through Lane 0 slices (beb4f8533, f65cf9422, d24ba9703); the counter moves only on a map write. 05:20: PB4 is at 2828 and was drawn again; its work this stretch went through Lane 0 (fa77d8ce4, f71fcc176). 08:21: PB4 is at 2837 and was drawn again; its work this stretch went through Lane 0 (c1f5320c1).",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-07T08:21:58.450288+00:00",
+    "what": "THE MACHINE'S, NEW. The coupled-triad gate now excludes W2_34_the_company_has_one_piece_of_advice_that_costs_the_customer_nothing from every BUILD draw for the same registration defect PB4 had (target L3, no company twin). The refusal reaches only the supervisor journal, not the seat's brief or the draw ledger, so a second atom is now in the shape that cost PB4 2275 wasted draws. In not_now. 08:23: it has spread. The supervisor journal at 08:24 UTC excludes three atoms for the same registration defect: W2_30_per_household_half_hourly_electricity_and_seasonal_gas_shape, W2_31_people_phase1_the_physical_layer_stands_alone and W2_34. The brief still does not show it. Now focus item two. UPDATE 11:21: the three named atoms are fixed (873d09651: W2_30 couples to D48; W2_31 and W2_34 target L2). The class is not fixed. The same gate, run over origin's whole map, finds nine more twinless L3 targets, and six of them are in build, so they are excluded from every BUILD draw (SEAT_FINDING_NINE_MORE_WORLD_ATOMS_AIM_AT_L3_WITH_NO_COMPANY_TWIN_REGISTERED). The refusal still does not reach the brief. Focus item two. UPDATE 14:23: the nine are fixed (6314e5bc8: W1_14 couples to D48, and the other eight target L2 with their restore conditions recorded). The class is not fixed: the gate's refusal still reaches only the supervisor journal, so the next twinless L3 target will be invisible to the seat again. 17:22: no new instance; the class is unchanged. 23:24: no new instance; the class is unchanged. 02:21: unchanged. 05:20: unchanged. RECURRED 08:21, and this time it surfaced: W2_20 earned L2 (81732ffe2), and the gate refused the move for want of a twin. The worker wrote the refusal into its finding (8af70203f) and handed the choice to the seat, so the refusal did reach me, through a worker and not through the brief. Focus item two takes the instance. The class is unchanged.",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-07T08:21:58.450288+00:00",
+    "what": "THE MACHINE'S, NEW. The shared checkout is 25 commits behind origin/main, and nothing on the brief says which running daemons were started from code that origin has since replaced. The brief reports the divergence but not its consequence for each daemon. This is the same shape as deploy_restart reading stale 0 while a landed repair is inert. Not chosen this stretch: see not_now. 11:21: it is now 35 behind, and the brief still names no daemon that runs replaced code. 14:23: it is now 43 behind, and the brief still names no daemon that runs replaced code. 17:22: the checkout is level with origin, so no daemon runs replaced code that the brief could name today; the brief still cannot say so when it next falls behind. 23:24: the checkout is level with origin and sim-runner restarted at 22:31Z on current code. The class is unchanged. 02:21: the checkout is 2 behind origin; the brief still names no daemon that runs replaced code. 05:20: the checkout is 11 behind origin; the brief still names no daemon that runs replaced code. RECURRED 08:21 with a named instance: the checkout is 20 behind and diverged, and the delivery seat itself runs code that lacks 0be518a08 (a5bef9df1 named this by hand). The brief still names no daemon that runs replaced code. Focus item four.",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-07T08:21:58.450288+00:00",
+    "what": "THE WORLD'S, NEW. A gas-heated fabric home's electricity has no season: 56 of the 57 households with a winter/summer ratio under 1.15 are gas-heated fabric homes, which read 0.93-1.09 against SERL's median of 1.36-1.47. The boiler pump and fan landed (8fe730297). Cooking, laundry and supplementary electric heating are sourced (be980cbb7) but not built. The flatness reaches D48's grade, the hedge volume shape and the book's winter peak. Focus item one. 14:23: PARTLY FIXED. 53cc04a27 and 46458b74f added HES cooking and laundry seasonality and the supplementary heater. Over 176 gas-heated homes, the median month max/min moved from 1.066 to 1.292, against SERL's 1.36-1.47. The heater's power and cycling are unsourced and drawn as a flat block, which makes its owners wrong on L1.1/L1.2. The lighting level is still a named gap. Focus item two. 17:22: still partly fixed. a8bf44ef6 re-anchors the heater to CAR's 656 kWh/yr; its power and cycling stay unsourced (named in the worker finding). The lighting level is recorded NOT ESTABLISHED, and shown not to be where the gap is. The ratio is 1.288 against SERL's 1.36-1.47; the remaining distance sits in the flat summer base, which is not yet named as a term. 23:24: unchanged; no work this stretch (in not_now). Ratio 1.288 against SERL's 1.36-1.47. 02:21: unchanged; no work this stretch (in not_now). Ratio 1.288 against SERL's 1.36-1.47. 05:20: unchanged; no work this stretch (in not_now). Ratio 1.288 against SERL's 1.36-1.47. 08:21: unchanged; no work this stretch (in not_now). Ratio 1.288 against SERL's 1.36-1.47.",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-07T08:21:58.450288+00:00",
+    "what": "THE MACHINE'S, NEW. A landing can name a red at clean origin as 'not mine' and move on, and nothing files it. c7d104866 (D48) says tests/saas/test_a_published_bill_shock_can_be_recomputed.py::test_the_baseline_is_present_exactly_when_the_shock_is and tests/simulation/test_net_new_acquisition.py::test_the_ceiling_still_fits_the_peak_systemds_own_journal_reports_today are both red on a clean origin/main worktree. No finding or queue item carries either one. A red at HEAD blocks every lane whose selection reaches it. Focus item four. 17:22: CORRECTED for the instance. 9b6b752ab fixed both: the bill-shock pairing follows the sign fix, and the ceiling's journal leg counts only peaks from the curve's own code. The class (a 'not mine' red is not filed by the landing that saw it) is unfixed. 23:24: no new instance; the class is unfixed. RECURRED 02:21: 358d59a42 says test_the_ceiling_carries_no_claim_pinned_to_todays_answer had been red at origin since da6d70053, and nothing had filed it. The instance is fixed by that commit; the class is unfixed. 05:20: no new instance; the class is unfixed. 08:21: no new instance; the class is unfixed.",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-07T08:21:58.450288+00:00",
+    "what": "THE MACHINE'S, NEW. The 20:21 seat session failed (rc=1, ran: false in decisions.jsonl) and wrote no DIRECTION.yaml. Its decision row still says outcome: oriented, and 2e4c3e9d1 published a stretch-log entry stamped 20:21 whose text is my 17:22 record word for word. So the live focus held three finished items for six hours (the digest, 2bc3152c7; PB4's Expert Hour, 789083280; and D48's DD line, 3c24fcf45, all landed before 20:21), and nothing paged the director that the seat had failed. A failed orientation is recorded as a successful one. 02:21: unchanged; nothing yet records a failed orientation as failed. 05:20: unchanged. A sibling shape: my 02:21 orientation is logged 'oriented' although its landing was refused (see the DIRECTION.yaml row). 08:21: 0be518a08 now writes outcome 'refused' and pages when the direction landing fails. It is on origin but not in the checkout the seat runs, so it is inert. Focus item four.",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-07T08:21:58.450288+00:00",
+    "what": "MINE, NEW. Last stretch's W1_29 item asked first for the 0->1 level record and then for the p10 work. Four commits landed on its scope (fc47cd363, bebf42253 and two before), and none recorded the level, so the map still reads L0 at 200 unchanged draws. An item with two asks got the interesting one done. Re-issued with the level record as its own first step. RECURRED 02:21: the item was not drawn this stretch (three of four focus items were), no commit touched W1_29's scope, and the map still reads L0. It is focus item two this time, with the level record as the whole first step. 05:20: CORRECTED. f3f599ec6 recorded W1_29's move to level 1 through the gate, and 29de32469 filed the bedtime as contradicted by GB time-use diaries with no published replacement. Splitting the level record into its own step worked.",
+    "corrected": true
+   },
+   {
+    "at": "2026-10-07T08:21:58.450288+00:00",
+    "what": "THE MACHINE'S, NEW. The blind-envelope artefact said ARM C (cull57) was count-matched to B. The run's own campaign settles 52 in B. arm_rerun.py took 57 from a separate seed-42 cross-check campaign whose winners are different accounts. It is recorded beside the claim (3dedb89e0). cull52 has not been run. 05:20: cull52 has now run on the run's own campaign memo (blind-arm-cull52-own-campaign, success) and B is graded against it per weighted win; the result is mid-landing (pid 2895736), not yet on origin, so this stays open until it lands. 08:21: CORRECTED. d27a2a227 is on origin, and the envelope is published per weighted win against the count-matched cull52.",
+    "corrected": true
+   },
+   {
+    "at": "2026-10-07T08:21:58.450288+00:00",
+    "what": "THE MACHINE'S, NEW. Two PB4 runs disagree by more than 2x on P(leave | chose at the renewal roll): 29% (18 of 62) in the committed capture against 13% (13 of 101) in the earlier live run. The re-take's packet carried the stale figure, and nothing reconciles the two. 05:20: unchanged; the item was not drawn. Re-issued as focus item one with the reconciliation alone. 08:21: CORRECTED. c1f5320c1 shows both runs give 18 of 62. The 13 of 101 used a denominator of term boundaries, not choices at the renewal roll.",
+    "corrected": true
+   },
+   {
+    "at": "2026-10-07T08:21:58.450288+00:00",
+    "what": "MINE, NEW. Last record's thesis_read said B is still 174 per weighted win below C on net 'with no established cause', and focus item one asked for that deficit to be decomposed. The re-run shows it was C57's own sampling error: two uniform culls differ from each other by 189 per win, and against cull52 B is +14.6 per win on net. I read one cull as the baseline without asking for its own noise.",
+    "corrected": true
+   },
+   {
+    "at": "2026-10-07T08:21:58.450288+00:00",
+    "what": "MINE, NEW. The PB4 item (page rate plus reconciling 29% against 13%) carried two asks again, the same shape the W1_29 row describes, and it was the one item of four not drawn. Re-issued with the reconciliation alone as the item. 08:21: CORRECTED. Re-issued as one ask, it was drawn and done within the stretch (c1f5320c1).",
+    "corrected": true
+   },
+   {
+    "at": "2026-10-07T08:21:58.450288+00:00",
+    "what": "THE MACHINE'S, NEW. The payment score lifted a debtor's churn belief past the 0.30 offer threshold, and the retention guard then valued the account as if it pays, so retention money went to the worst payers. That is value moved, not made. bfe428ef6 found it; the netting is landing now behind a flag no standing policy sets (pid 2848942), and the on/off arms on the chosen book are running. Until a policy sets the flag and its result is read, the live company still does it. 08:21: WORSE THAN STATED. Both arms finished at about 05:58 and nobody read them for 2.4h. They are identical: bad debt 18,309.6, net 242,278.08, 73 offers in each arm. The pre-registered P0 (bad debt 14,267.49) failed. No commit on any ref contains retention_nets_bad_debt_belief, so the flag the on-arm set reaches no code. The netting is not built in any form that runs. Focus item one.",
+    "corrected": false
+   },
+   {
+    "at": "2026-10-07T08:21:58.450288+00:00",
+    "what": "MINE, NEW. My 05:20 thesis_read said the netting 'lands behind a flag, and its on/off arms are running now', and my not_now kept off it so as not to add a second writer. The netting was never on any ref. The arms ran with a flag that nothing reads, finished identical, and sat unread for 2.4h while the record told the draw to stay away. I took a holder's word for 'landing' without asking git.",
+    "corrected": true
+   },
+   {
+    "at": "2026-10-07T08:21:58.450288+00:00",
+    "what": "THE MACHINE'S, NEW. The draw ledger graded retention-guard-nets-the-companys-own-bad-debt-belief as landed_unbound and pointed it at 81732ffe2, which is W2_20's heating draw. The two share only a path through the item's long path list. A landed_unbound verdict told the reader the netting work had moved, when no netting code exists. A path overlap is not a landing of the item.",
+    "corrected": false
+   },
    {
     "at": "2026-10-07T05:20:28.775925+00:00",
     "what": "THE MACHINE'S, NEW. The merge proposal says the director's heartbeat steer is \"in hand\", but no claim in .seat_work_in_hand.json holds it, and a heartbeat commit (ef9011143) landed after the steer. A document saying work is in hand is not a claim, and nothing checks the one against the other. Focus item one. UPDATE 02:21: the steer itself was resolved as a measurement (3cc1281c4, premise_spent). The class, a document asserting in-hand with no claim behind it, is unchecked. 17:22: unchanged. 23:24: unchanged. 02:21: unchanged. 05:20: unchanged.",
@@ -5533,91 +5734,6 @@
     "at": "2026-10-02T14:24:29.671380+00:00",
     "what": "THE MACHINE'S. Two life-event rates (new baby, job loss) are per-person statistics applied per household, so the world under-draws income shocks. Filed LATENT by 65f48b276 and not remedied.",
     "corrected": false
-   },
-   {
-    "at": "2026-10-02T08:21:33.921320+00:00",
-    "what": "MINE, NEW. My last direction ordered items one, three and four after the retake's landing, so a three-hour run became a gate on three landings. When 28eb35ec7 made the retake unpublishable at 06:22, nothing re-asked the gate. Two holds were written after the reason was spent (07:08, 07:24). This direction drops the dependency. The correction is only shown when items land.",
-    "corrected": false
-   },
-   {
-    "at": "2026-10-02T08:21:33.921320+00:00",
-    "what": "THE MACHINE'S, NEW. A held change's hold condition is not re-asked when its premise moves. a15532730 and 1ff7b68b3 each held \"until the retake lands\" after 57d15843d had recorded that the retake cannot be admitted at any HEAD carrying 28eb35ec7.",
-    "corrected": false
-   },
-   {
-    "at": "2026-10-02T08:21:33.921320+00:00",
-    "what": "THE MACHINE'S, NEW. The shared checkout is 16 commits behind origin/main, and 11 of 24 commits this stretch were reconciliation merges that authored nothing. Daemons running from the shared tree are executing code origin has moved past.",
-    "corrected": false
-   },
-   {
-    "at": "2026-10-02T08:21:33.921320+00:00",
-    "what": "THE MACHINE'S, NEW. A long job's world stamp is not tied to HEAD. arms-d-head-1002 launched at 0bac2b8be and was overtaken within two hours, and f18e8b5dc's retake was overtaken by 28eb35ec7 within 80 minutes. cbe8d18a4 and f18e8b5dc withdraw stale value-arms readings, but no other long job's output is checked that way. The class stays open.",
-    "corrected": false
-   },
-   {
-    "at": "2026-10-02T08:21:33.921320+00:00",
-    "what": "THE MACHINE'S, NEW. Four level or park moves stranded in a preserved ref were replayed as written. One of them, PB4 build->idle, was false by the time it was replayed (a6bd4d77e). Nothing re-asks a stranded move's release condition before it lands.",
-    "corrected": false
-   },
-   {
-    "at": "2026-10-02T08:21:33.921320+00:00",
-    "what": "THE MACHINE'S, CARRIED. One item can land twice, once on origin through surgical_land and once as a local commit on the shared HEAD (75df9efdf after d77ff33d5). No mechanism prevents the next one.",
-    "corrected": false
-   },
-   {
-    "at": "2026-10-02T08:21:33.921320+00:00",
-    "what": "THE MACHINE'S, CARRIED. The launch register recorded hgc-suite-timing as died while its /var/tmp driver's process was on the box. That driver called resource_headroom.admitted(), which does not exist. Nothing checks that a hand-written /var/tmp driver calls an API that exists.",
-    "corrected": false
-   },
-   {
-    "at": "2026-10-02T08:21:33.921320+00:00",
-    "what": "THE MACHINE'S, CARRIED. A control or door whose shape changes must re-run every fixture that builds a synthetic tree to drive it, and no control requires it. citation_at_head, red_at_head and fork_state in .publish_gate_state.json still read not_established.",
-    "corrected": false
-   },
-   {
-    "at": "2026-10-02T08:21:33.921320+00:00",
-    "what": "THE MACHINE'S, CARRIED. A refusal naming a commit is not re-asked against the remote ref before a reader sees it. liveness_surface_refusal is still not re-asked.",
-    "corrected": false
-   },
-   {
-    "at": "2026-10-02T08:21:33.921320+00:00",
-    "what": "THE MACHINE'S, CARRIED. The stash-completeness sweep reports a genuinely lost file as safe. It is still not on the map.",
-    "corrected": false
-   },
-   {
-    "at": "2026-10-02T08:21:33.921320+00:00",
-    "what": "THE MACHINE'S, CARRIED. Nothing on the landing path asks whether a same-subject sibling is left behind in the shared tree (the 14-path refusal in 662da7fd3). Separate from H49 and still open.",
-    "corrected": false
-   },
-   {
-    "at": "2026-10-02T08:21:33.921320+00:00",
-    "what": "MINE, CARRIED. not_now is prose, and nothing a launch from another lane reads. Two instances are mechanised (b50a03519, 19ca27dbc). The class stays open.",
-    "corrected": false
-   },
-   {
-    "at": "2026-10-02T08:21:33.921320+00:00",
-    "what": "MINE, CARRIED. The world-D arms on the page still come from 0407ce0e3 plus a patch. The f18e8b5dc three-arm half is graded (57d15843d), but its floor is still running and nothing has been copied or published. It will publish as withdrawn against 28eb35ec7. Item four.",
-    "corrected": false
-   },
-   {
-    "at": "2026-10-02T08:21:33.921320+00:00",
-    "what": "THE MACHINE'S, NEW, narrowed. 1cd4b03dc's message said the journey advance was unchanged. Skipping roll_lifecycle_event dropped _journey.record_decision for an SVT conversion, and the journey decision is the only loss. The diff is written (515703fd3) but is still not on origin. Item one.",
-    "corrected": false
-   },
-   {
-    "at": "2026-10-02T08:21:33.921320+00:00",
-    "what": "THE MACHINE'S, NEW, narrowed. The value arm's churn belief prices the move from the household's own last price, and the world prices the gap to the market (r=-0.12; below the world in 17 of 18 rolled renewals). The remedy is built and held (1ff7b68b3), and the belief on origin is unchanged. Item three.",
-    "corrected": false
-   },
-   {
-    "at": "2026-10-02T08:21:33.921320+00:00",
-    "what": "THE MACHINE'S, NEW. The world gives a household converting off the SVT no way to decline an offered fix, and a gas leg rides the electricity decision. 23 of 44 repriced fixed decisions sit where nothing in the world responds to price. Designed and pre-registered (a15532730), but not built. Item two.",
-    "corrected": false
-   },
-   {
-    "at": "2026-10-02T08:21:33.921320+00:00",
-    "what": "THE MACHINE'S, NEW. The journey draw filed a pre-registration at 04:42, then released its claim with no code in any tree and no disposition recorded. This stretch it ended the same way a second time: the ledger reads premise_not_yet_ripe, and no code was landed. A drawn item can end silently after its first artefact.",
-    "corrected": false
    }
   ],
   "refused_own_records": [
@@ -5628,18 +5744,56 @@
     ]
    }
   ],
-  "outstanding": 970,
-  "corrected": 76,
+  "outstanding": 987,
+  "corrected": 82,
   "correction_not_recorded": 0,
   "empty_means": ""
  },
  "what_next": {
   "focus": [
-   "pb4-two-runs-disagree-on-the-renewal-roll-leave-share",
+   "the-retention-netting-reaches-code-and-its-arms-differ",
+   "W2_20_mains_gas_is_drawn_not_inferred_from_the_heating_system",
    "C34_next_best_action_is_one_decision_across_debt_retention_upsell_and_carbon_judged_by_clv",
-   "the-seats-direction-record-reaches-origin-or-says-it-did-not"
+   "the-seat-runs-the-code-origin-carries"
   ],
   "steer_checks": [
+   {
+    "by_class": {
+     "atom": {
+      "drawn": [
+       "C34_next_best_action_is_one_decision_across_debt_retention_upsell_and_carbon_judged_by_clv"
+      ],
+      "focus": [
+       "C34_next_best_action_is_one_decision_across_debt_retention_upsell_and_carbon_judged_by_clv"
+      ],
+      "steered": true
+     },
+     "lane_0": {
+      "drawn": [
+       "pb4-two-runs-disagree-on-the-renewal-roll-leave-share",
+       "the-seats-direction-record-reaches-origin-or-says-it-did-not"
+      ],
+      "focus": [
+       "pb4-two-runs-disagree-on-the-renewal-roll-leave-share",
+       "the-seats-direction-record-reaches-origin-or-says-it-did-not"
+      ],
+      "steered": true
+     }
+    },
+    "drawn": [
+     "pb4-two-runs-disagree-on-the-renewal-roll-leave-share",
+     "C34_next_best_action_is_one_decision_across_debt_retention_upsell_and_carbon_judged_by_clv",
+     "the-seats-direction-record-reaches-origin-or-says-it-did-not"
+    ],
+    "focus": [
+     "pb4-two-runs-disagree-on-the-renewal-roll-leave-share",
+     "C34_next_best_action_is_one_decision_across_debt_retention_upsell_and_carbon_judged_by_clv",
+     "the-seats-direction-record-reaches-origin-or-says-it-did-not"
+    ],
+    "note": "the previous direction named work the draw then took (measured over this stretch only -- the 3.0h since 2026-10-07T05:20:28.775925+00:00; this is the PREVIOUS FOCUS, not every drawn item)",
+    "steered": true,
+    "window": "this stretch only -- the 3.0h since 2026-10-07T05:20:28.775925+00:00"
+   },
    {
     "by_class": {
      "lane_0": {
@@ -5778,47 +5932,6 @@
     "note": "the previous direction named work the draw then took (measured over this stretch only -- the 3.0h since 2026-10-06T17:22:28.447649+00:00; this is the PREVIOUS FOCUS, not every drawn item)",
     "steered": true,
     "window": "this stretch only -- the 3.0h since 2026-10-06T17:22:28.447649+00:00"
-   },
-   {
-    "by_class": {
-     "atom": {
-      "drawn": [
-       "PB4_engagement_separated_from_elasticity",
-       "D48_billing_accuracy_the_company_measures_what_it_billed_against_what_was_used"
-      ],
-      "focus": [
-       "PB4_engagement_separated_from_elasticity",
-       "D48_billing_accuracy_the_company_measures_what_it_billed_against_what_was_used"
-      ],
-      "steered": true
-     },
-     "lane_0": {
-      "drawn": [
-       "gas-heated-electricity-season-the-two-unsourced-terms",
-       "the-two-reds-at-clean-origin"
-      ],
-      "focus": [
-       "gas-heated-electricity-season-the-two-unsourced-terms",
-       "the-two-reds-at-clean-origin"
-      ],
-      "steered": true
-     }
-    },
-    "drawn": [
-     "PB4_engagement_separated_from_elasticity",
-     "gas-heated-electricity-season-the-two-unsourced-terms",
-     "D48_billing_accuracy_the_company_measures_what_it_billed_against_what_was_used",
-     "the-two-reds-at-clean-origin"
-    ],
-    "focus": [
-     "PB4_engagement_separated_from_elasticity",
-     "gas-heated-electricity-season-the-two-unsourced-terms",
-     "D48_billing_accuracy_the_company_measures_what_it_billed_against_what_was_used",
-     "the-two-reds-at-clean-origin"
-    ],
-    "note": "the previous direction named work the draw then took (measured over this stretch only -- the 3.0h since 2026-10-06T14:23:11.348766+00:00; this is the PREVIOUS FOCUS, not every drawn item)",
-    "steered": true,
-    "window": "this stretch only -- the 3.0h since 2026-10-06T14:23:11.348766+00:00"
    }
   ],
   "steered_recently": true,
@@ -5826,13 +5939,13 @@
  },
  "the_queues_link_to_the_map": {
   "available": true,
-  "population": 40,
-  "chained": 40,
-  "minted": 4,
-  "unminted": 34,
+  "population": 42,
+  "chained": 42,
+  "minted": 5,
+  "unminted": 36,
   "unminted_by_kind": {
    "alarm": 21,
-   "finding": 8,
+   "finding": 10,
    "reference": 3,
    "unknown": 2
   },
@@ -5840,16 +5953,12 @@
    {
     "name": "SEAT_FINDING_THE_WEEKLY_MONDAY_RANKING_DID_NOT_FIRE_2026-10-05.md",
     "atom": "none"
-   },
-   {
-    "name": "WEEKLY_RHYTHM_MONDAY_RANKING_2026-10-05.md",
-    "atom": "none"
    }
   ],
   "epoch_contradicted": [],
   "lane_contradicted": [],
   "by_epoch": {
-   "3": 1,
+   "3": 2,
    "4": 3
   },
   "unchained": [],
@@ -5862,6 +5971,7 @@
     "SEAT_FINDING_C34_THE_DECISION_IS_BUILT_AND_ON_SUPPLIER_VALUE_ALONE_IT_ADVISES_NOBODY_2026-10-06.md",
     "SEAT_FINDING_THE_BACK_BILLING_LIMIT_IS_APPLIED_TO_THE_ESTIMATE_ERROR_WHERE_FOR_DIRECT_DEBIT_IT_BARS_THE_COLLECTION_SHORTFALL_2026-10-06.md",
     "SEAT_FINDING_THE_PAYMENT_SCORE_REACHES_THE_CHURN_BELIEF_AND_THE_RETENTION_GUARD_PRICES_IT_AS_IF_THE_DEBTOR_PAYS_2026-10-07.md",
+    "SEAT_FINDING_W2_20_A_SIXTH_OF_DRAWN_GAS_BOILERS_HAVE_NO_GAS_SUPPLY_2026-10-07.md",
     "WORKER_FINDING_L1_1N_HAS_LITTLE_POWER_ON_A_CALM_HOME_AND_NO_REAL_HOMES_RATIO_HAS_BEEN_READ_2026-10-06.md"
    ],
    "questioned": [],
@@ -5937,12 +6047,12 @@
     },
     {
      "date": "2026-10-07",
-     "commit": "f71fcc176",
-     "population": 77,
-     "chained": 77,
-     "minted": 34,
+     "commit": "f07af3845",
+     "population": 78,
+     "chained": 78,
+     "minted": 35,
      "unminted": 43,
-     "unread": 3
+     "unread": 4
     }
    ]
   },
