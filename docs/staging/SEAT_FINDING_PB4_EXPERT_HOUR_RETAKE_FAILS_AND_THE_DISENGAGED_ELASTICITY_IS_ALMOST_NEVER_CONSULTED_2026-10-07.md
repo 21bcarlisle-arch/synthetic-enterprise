@@ -29,7 +29,9 @@ So the premise is live and the work had not been done.
 2017-21. The current capture says otherwise. Of the households that reached the renewal roll in
 2017-21, **18 of 62 left (29%)**. At the ~35% engagement share, that gives about **65% roll, 25%
 re-fix and 10% leave**. The two runs disagree on P(leave | chose) by more than 2x, and nothing has
-reconciled them. The ledger entry keeps the packet as it was shown.
+reconciled them. The ledger entry keeps the packet as it was shown. *(Reconciled below: both runs give
+18/62. 13/101 was a miscount. With the 6 declined fixes counted as staying on the default, the split
+is 68 / 21.5 / 10.2.)*
 
 ## The nine disqualifiers, graded against the tree
 
@@ -102,6 +104,61 @@ not graded in this pass.
 Protocol covers prepayment debt below GBP 500 only. The world treats every prepayment household as
 unblocked. The access/engagement split carries a statement of its direction of bias (D6), not a model.
 
+## The run-to-run disagreement: RECONCILED. 29% is right; the 13% was a miscount, not a second run
+
+*Claim `pb4-two-runs-disagree-on-the-renewal-roll-leave-share`, 2026-10-07.* Both figures were
+re-derived from their artefacts. The two runs do not disagree.
+
+**What 18/62 counts (the capture, `docs/reports/pb4_departure_factors.json`).** It counts every call of
+`roll_lifecycle_event` in 2017-21. That is one row per ROLLED renewal decision, on both legs (57
+electricity, 5 gas), across 39 billing accounts. The rows are the whole book, before
+`tools/engagement_separation`'s resi-on-the-live-roster filter. That filter takes the whole-run count
+to 13/58, and the 2017-21 subset to fewer still. World `cdba75ebb9197b33`, captured at `beb4f8533`,
+default seed. 18 left.
+
+**What 13/101 counted (D1 in `789083280`, "the live run").** No artefact was named beside it. It reproduces
+exactly from any `docs/reports/run_output_*_2026100[67]*.json`, e.g. `c6b8217d1` at 16:17Z on
+2026-10-06, the latest before D1 was written. The filter that gives it: `customer_events`, 2017-21,
+`commodity == "electricity"`, `is_active_renewal` true, **with every `departure_occasion`
+included**. The 101 are:
+
+| occasion | rows | can leave here? |
+|---|---|---|
+| `renewal` (rolled) | 49 (13 left) | yes |
+| `svt_conversion` | 39 | **no**: no roll, `realized_churn_probability` 0.0 by construction (`customer_events.svt_conversion_event`) |
+| `declined_fix` | 13 | rolled on a fixed-to-fixed term only; most here are conversions off the default, with no roll |
+
+So the 101 is the electricity leg's term-boundary rows, not its choosers. Its denominator is about
+half rows that cannot depart. The `svt_conversion_event` docstring already says a reader whose
+denominator is rolled decisions must *"select by occasion (or by `departure_rolled`) and exclude this
+by name"*. D1 then multiplied 13/101 by P(active) 0.351 to get 4.5% leaving. That applies the
+engagement gate a second time, on top of a denominator that was not choosers either.
+
+**The live run, counted the capture's way, is the capture.** Rolled decisions only
+(`departure_occasion == "renewal"` or `departure_rolled`), both legs, 2017-21, in the run at
+`f07af3845`: **18/62**, row-for-row the same (customer, date, outcome) keys as the capture, and the same
+39 accounts. The years match too: 23 / 13 / 8 / 9 / 9 for 2017-21. Every run output on 2026-10-06/07
+gives the same 18/62, which says the renewal roll does not move with the drift gradient.
+
+**Prediction, kept beside the result.** Before re-deriving, I expected a world change between the two
+artefacts to explain at least part of the gap. That was wrong. None of the gap is world: all of it is
+counting.
+
+**The corrected split at a fixed-term end** (2017-21, P(active) 0.351 as D1 used). Of the 62 choosers,
+18 left, 6 declined a fix priced above the default and so stayed onto it, and 38 re-fixed. The world
+therefore sends **about 68% to the default, 21.5% to a re-fix with us and 10.2% out**. That replaces
+both D1's 65/31/4.5 and this finding's own 65/25/10, which counted the 6 declined fixes as re-fixes.
+Against the EFTC control arm (81/14/6, a lower bound on re-fix per D1 `f65cf9422`), the re-fix gap
+narrows from about 2x to about 1.5x, and the external share now sits above the arm's. The figure
+13 of 44 for 2017-19 under R2/R3 is re-derived unchanged at this counting.
+
+**What this does to R6 (`f71fcc176`).** R6 can now be graded against one figure. Nothing in R6 was
+built on 13/101.
+
+**Not done here: the per-household-year rate beside DESNZ QEP (R1).** It was not cheap enough to do
+honestly in this turn. Its denominator, household-years on the book, has to be stated before it is
+divided, and it is a page change with a door test. It stays item 2 below.
+
 ## Next, in order
 
 1. **R6:** the woken share for default-tariff stock between boundaries. This is a world build, sourced
@@ -109,7 +166,8 @@ unblocked. The access/engagement split carries a statement of its direction of b
    a route to behaviour.
 2. **R1 + R5 on the page:** a per-household-year rate beside DESNZ QEP, and the exposure
    decomposition. Both are cheap and use data already in the feed.
-3. **The run-to-run disagreement** in P(leave | chose): 29% in the capture against 13% in the live run.
+3. ~~**The run-to-run disagreement** in P(leave | chose): 29% in the capture against 13% in the live run.~~
+   Reconciled above: 18/62 in both. The 13/101 was a denominator of term-boundary rows, not choosers.
 4. **Knowledge:** the start date of `FTC_WITHDRAWAL_WINDOW` (R7), and a multi-year switching ratio on
    a disposition measure (R4).
 
