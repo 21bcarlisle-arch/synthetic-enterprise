@@ -389,9 +389,11 @@ def behaviour_profile_for(
             someone_employed = drawn_employed
 
     rise = _substream(base, "rise")
-    # Weekday rise 05:30–08:30, retire 21:30–23:30 (half-hour indices). UNSOURCED: no GB bedtime
-    # distribution is in the knowledge layer, and no world home is up after midnight where real
-    # homes' 00:00 runs at 0.6 of their active mean (W1_29 texture doc, "the night above the base").
+    # Weekday rise 05:30–08:30, retire 21:30–23:30 (half-hour indices). The retire range is
+    # UNSOURCED and CONTRADICTED: GB adults' mean sleep onset was 23:13–23:49 in 2000-01 (UKTUS),
+    # a third still awake at 23:20 on a working weekday, and a household retires with its last
+    # member. No household distribution for 2016–2025 is published, so none replaces it yet:
+    # docs/market_research/when_gb_adults_go_to_sleep_read_from_the_uk_time_use_surveys.md.
     wake_period = rise.randint(11, 17)
     sleep_period = rise.randint(43, 47)
     weekend_shift = rise.randint(1, 4)
