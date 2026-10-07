@@ -72,7 +72,7 @@ def world(tmp_path, monkeypatch):
     # The gate and the receipt are the two things a synthetic repo cannot carry. The lander makes an
     # ordinary commit of exactly the bytes it was handed, in the root it was handed.
     monkeypatch.setattr(promote_mod, "_refuse_if_ungated", lambda *a, **k: None)
-    calls = []
+    calls, gates, merges = [], [], []
 
     def duplicated(*_a, **_k):
         if world_state.get("duplicate"):
@@ -81,10 +81,12 @@ def world(tmp_path, monkeypatch):
 
     monkeypatch.setattr(promote_mod, "_refuse_if_duplicated", duplicated)
 
-    def lander(root, paths, message, attempts, content):
-        """Commits `content` by plumbing and leaves the working copy alone, as the real door does."""
+    def lander(root, paths, message, attempts, content=None, merge=None):
+        """Commits `content` by plumbing and leaves the working copy alone, as the real door does.
+        With `merge`, merges that ref into HEAD and refuses on conflict, as the door's `--merge`."""
         root = Path(root)
         calls.append(root)
+        (merges if merge else gates).append(root)
         if world_state.get("move_origin_once"):
             world_state["move_origin_once"] = False
             _push_from(origin, tmp_path, "raced.txt", "landed during the gate\n")
@@ -94,8 +96,16 @@ def world(tmp_path, monkeypatch):
         if world_state.get("edit_record_once"):
             world_state["edit_record_once"] = False
             _push_from(origin, tmp_path, RECORD, "oriented_at: someone else\n")
-        if world_state.get("red"):
+        if world_state.get("red") or (merge and world_state.get("red_merge")):
             raise surgical_land.LandingRefused("GATE RED: a test failed")
+        if merge:
+            done = subprocess.run(["git", "-c", "user.name=t", "-c", "user.email=t@t", "merge",
+                                   "-q", "--no-ff", "-m", message, merge], cwd=str(root),
+                                  capture_output=True, text=True)
+            if done.returncode:
+                subprocess.run(["git", "merge", "--abort"], cwd=str(root), capture_output=True)
+                raise surgical_land.LandingRefused(f"the merge of {merge} conflicts")
+            return _git(root, "rev-parse", "HEAD")
         for rel, data in content.items():
             blob = subprocess.run(["git", "hash-object", "-w", "--stdin"], cwd=str(root),
                                   input=data, capture_output=True, check=True).stdout.decode().strip()
@@ -112,7 +122,7 @@ def world(tmp_path, monkeypatch):
     monkeypatch.setattr(seat, "direction_land_deadline_s", lambda now=None: 3600.0)
     shared_head = _git(shared, "rev-parse", "HEAD")
     return {"origin": origin, "shared": shared, "calls": calls, "state": world_state,
-            "shared_head": shared_head}
+            "shared_head": shared_head, "gates": gates, "merges": merges}
 
 
 def _on_origin(origin: Path, rel: str) -> str:
@@ -271,6 +281,42 @@ def test_origin_moving_TWICE_under_the_gate_still_lands_and_only_the_deadline_or
     other = seat.commit_direction()
     assert other[0] is False and "another writer edited it" in other[1], other[1]
     assert _on_origin(origin, RECORD) == "oriented_at: someone else"
+
+
+def test_origin_moving_under_the_gate_costs_a_MERGE_not_a_second_full_gate_and_a_real_refusal_holds(
+        world):
+    """Defect it names: the 17:22Z record of 2026-10-07 lost all 3 attempts in 2637 s, because a
+    lost race re-cut the landing and re-ran the full ~880 s gate while origin gained 2-4 commits an
+    hour. When origin's new commits do not touch the record's paths, the gated commit stands and
+    origin is merged into it through the door.
+
+    THE PARTITION: a disjoint move lands on one full gate and one merge; another writer's edit to
+    the record under the gate is refused by name with no merge tried; a red merge gate is refused
+    and not retried. MUTATIONS (must fire): `_origin_touched` always names the landing (the
+    disjoint leg spends a second full gate); `_origin_touched` names nothing (the edit leg merges
+    and is refused for a conflict, not by name); retry a refused merge (the red leg merges twice)."""
+    state, gates, merges, origin = world["state"], world["gates"], world["merges"], world["origin"]
+
+    state["move_origin_once"] = True
+    raced = seat.commit_direction()
+    assert raced[0] is True, raced[1]
+    assert (len(gates), len(merges)) == (1, 1)
+    assert _on_origin(origin, RECORD) == "oriented_at: new"
+    assert _on_origin(origin, "raced.txt") == "landed during the gate"
+
+    (world["shared"] / RECORD).write_text("oriented_at: newer\n")
+    state["edit_record_once"] = True
+    other = seat.commit_direction()
+    assert other[0] is False and "another writer edited it" in other[1], other[1]
+    assert (len(gates), len(merges)) == (2, 1)
+    assert _on_origin(origin, RECORD) == "oriented_at: someone else"
+
+    (world["shared"] / ROWS).write_text(_on_origin(origin, ROWS) + '\n{"at": "4"}\n')
+    state["move_origin_times"] = 1
+    state["red_merge"] = True
+    red = seat.commit_direction()
+    assert red[0] is False and "GATE RED" in red[1], red[1]
+    assert (len(gates), len(merges)) == (3, 2)
 
 
 def test_a_refused_landing_is_RECORDED_as_refused_and_PAGED(tmp_path, monkeypatch):

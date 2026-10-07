@@ -2188,6 +2188,39 @@ def _cut_direction_worktree(root: Path, worktree: Path) -> None:
     (worktree / ".se_worktree_owner").write_text(str(os.getpid()))
 
 
+#: The reconciling merge's message. `NEXT:` is the commit-msg gate's own trailer.
+DIRECTION_MERGE_MESSAGE = ("delivery seat: merge origin/main into the direction landing (upstream "
+                           "does not touch its paths)\n\nNEXT: none -- a reconciling merge; the "
+                           "record's own next step is the direction it carries")
+
+
+def _origin_touched(worktree: Path, landing: list[str]) -> list[str]:
+    """The landing's paths that origin changed since this landing's base. A path that cannot be
+    asked counts as touched, so the cheap route is never taken on a question git did not answer."""
+    base = _git_in(worktree, "merge-base", "HEAD", "origin/main")
+    if base.returncode != 0:
+        return list(landing)
+    diff = _git_in(worktree, "diff", "--name-only", base.stdout.decode().strip(), "origin/main",
+                   "--", *landing)
+    if diff.returncode != 0:
+        return list(landing)
+    return diff.stdout.decode().split()
+
+
+def _merge_origin_into(worktree: Path, lander) -> str:
+    """Land origin/main INTO the gated landing through the door's own `--merge`, and return the
+    merge's sha. The door gates it like any landing, selecting tests on the merge's combined diff:
+    when origin's new commits touch none of the landing's paths that diff is empty and no test is
+    selected, so this costs the structural gates, not the ~15 minutes a re-cut spends re-running
+    the 35 tests the record's paths select. A red gate is raised, never retried."""
+    from tools import surgical_land
+    try:
+        return lander(worktree, [], DIRECTION_MERGE_MESSAGE, attempts=1, merge="origin/main")
+    except surgical_land.IndexNotRefreshed as exc:
+        _git_in(worktree, "reset", "--quiet")
+        return exc.sha
+
+
 def land_direction_on_origin(root: Path, paths: list[str], message: str,
                              content: dict[str, bytes], *, worktree: Path | None = None,
                              lander=None, promoter=None, regenerate=None,
@@ -2210,7 +2243,14 @@ def land_direction_on_origin(root: Path, paths: list[str], message: str,
     hours stale. One attempt always runs; another starts only while `deadline_s` has not passed.
     Each re-base re-cuts at the new origin and writes the same bytes, which is safe only while
     origin's DIRECTION.yaml is still the copy the first attempt saw -- the seat's own file, which
-    nobody else edits. If it changed, someone did, and that is refused by name, not overwritten."""
+    nobody else edits. If it changed, someone did, and that is refused by name, not overwritten.
+
+    A LOST RACE IS SETTLED BY A MERGE WHEN ORIGIN DID NOT TOUCH THE RECORD (2026-10-07). The 17:22
+    record lost all 3 attempts in 2637 s: each re-cut re-ran the full gate (~880 s; the record's
+    paths select 35 test files and the site lane), and origin gained 2-4 commits an hour, so a
+    15-minute gate loses about as often as it wins. When none of origin's new commits touch the
+    landing's paths, the gated commit stands and origin is merged into it through the door; only
+    when they do is the landing re-cut, where the base check above refuses another writer's edit."""
     from tools import promote_worktree_landing as promote_mod
     from tools import surgical_land
 
@@ -2252,15 +2292,21 @@ def land_direction_on_origin(root: Path, paths: list[str], message: str,
             # THE COMMIT LANDED; only this worktree's index lags it, and the index is ours alone.
             sha = exc.sha
             _git_in(worktree, "reset", "--quiet")
-        try:
-            promoter(worktree)
-            return sha
-        except promote_mod.PromotionRefused as exc:
-            _git_in(worktree, "fetch", "--quiet", "origin")
-            if _git_in(worktree, "merge-base", "--is-ancestor", "origin/main", sha).returncode == 0:
-                raise DirectionNotLanded(f"landed {sha[:9]} in {worktree} and the push "
-                                         f"was refused: {exc}") from exc
-            moved.append(str(exc).splitlines()[0][:160])
+        tip = sha
+        while True:
+            try:
+                promoter(worktree)
+                return sha
+            except promote_mod.PromotionRefused as exc:
+                _git_in(worktree, "fetch", "--quiet", "origin")
+                if _git_in(worktree, "merge-base", "--is-ancestor", "origin/main",
+                           tip).returncode == 0:
+                    raise DirectionNotLanded(f"landed {tip[:9]} in {worktree} and the push "
+                                             f"was refused: {exc}") from exc
+                moved.append(str(exc).splitlines()[0][:160])
+            if clock() - started >= deadline_s or _origin_touched(worktree, landing):
+                break
+            tip = _merge_origin_into(worktree, lander)
         if clock() - started >= deadline_s:
             raise DirectionNotLanded(f"origin/main moved under the gate on all {len(moved)} "
                                      f"attempt(s) inside {deadline_s:.0f}s: " + " | ".join(moved))
