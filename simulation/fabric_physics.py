@@ -829,6 +829,12 @@ _CONTROL_MODE: dict[HeatingSystem, ControlMode] = {
     HeatingSystem.DISTRICT_HEAT: ControlMode.WEATHER_COMPENSATED,
 }
 
+# INHERITED, NOT SOURCED (W2_20): an oil, LPG or solid-fuel boiler is sized and controlled as the
+# system boiler is, and a communal network as district heat is. Nothing on file says otherwise.
+for _table in (_OVERSIZE_FACTOR, _MODULATION_MIN_FRACTION, _CONTROL_MODE):
+    _table[HeatingSystem.NON_MAINS_FUEL_BOILER] = _table[HeatingSystem.GAS_BOILER_SYSTEM]
+    _table[HeatingSystem.COMMUNAL_HEAT] = _table[HeatingSystem.DISTRICT_HEAT]
+
 # `domain-knowledge` — external design temperature for heat-source sizing (deg C),
 # and the boiler-efficiency / heat-pump-COP anchors.
 DESIGN_EXTERNAL_TEMP_C = -3.0
@@ -1177,6 +1183,12 @@ def _fuel_for(system: HeatingSystem, heat_kwh: float, ambient_c: float, boiler_a
     if system in (HeatingSystem.ELECTRIC_DIRECT, HeatingSystem.ELECTRIC_STORAGE):
         return heat_kwh  # resistive: 1:1
     if system == HeatingSystem.DISTRICT_HEAT:
+        return heat_kwh
+    # The fuel is burned or the heat bought, but on no register a supplier reads: the trace keeps it
+    # off both meters (`premise_trace`'s heating_commodity "none").
+    if system == HeatingSystem.NON_MAINS_FUEL_BOILER:
+        return heat_kwh / _BOILER_EFFICIENCY[boiler_age]
+    if system == HeatingSystem.COMMUNAL_HEAT:
         return heat_kwh
     return 0.0
 

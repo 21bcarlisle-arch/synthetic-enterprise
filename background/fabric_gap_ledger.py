@@ -2072,6 +2072,10 @@ HEAT_ON_THE_JUDGED_METER: dict[str, bool] = {
     "gas_boiler_system": False,
     "district_heat": False,
     "none": False,
+    # W2_20: oil, LPG, solid fuel and communal heat reach no register, so the electricity meter
+    # carries none of it.
+    "non_mains_fuel_boiler": False,
+    "communal_heat": False,
     # The meter carries the heat. WHICH machine no longer matters — a ground-source
     # heat pump needed its own published SPF under the rescaled-floor design and
     # needs nothing at all under this one, because the split takes the machine out

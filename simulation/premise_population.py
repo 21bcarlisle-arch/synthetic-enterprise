@@ -80,7 +80,9 @@ HONEST SIMPLIFICATIONS (R10 — declared here, never discovered later)
   trace generator meters gas or electricity; an oil tank is neither. The
   representable heating systems are renormalised over ~94.8% of the stock and the
   excluded ~5.2% is named. Folding oil into gas would have produced a gas meter
-  read for a home with no gas meter.
+  read for a home with no gas meter. *Since 2026-10-07 this holds for `draw_premise`
+  only. The production draw, `draw_premise_from_joint`, draws oil, LPG, solid fuel and
+  communal heat as systems whose heat reaches no register (W2_20).*
 * **Bedrooms are an UNANCHORED placeholder shape conditioned on property type.**
   Two searches found no published stock-wide bedroom marginal. This matters more
   than it looks: bedrooms drive `fabric_physics.floor_area_m2`, which scales the
@@ -352,6 +354,50 @@ def published_heating_weights() -> dict[HeatingSystem, float]:
 
 
 _GAS_SYSTEMS = (HeatingSystem.GAS_BOILER_COMBI, HeatingSystem.GAS_BOILER_SYSTEM)
+
+
+# ---------------------------------------------------------------------------
+# HEATING GIVEN THE GAS METER (W2_20). EHS 2017-18 Energy Report, Annex Table 3.5: main fuel by
+# presence of a gas meter, England, physical survey, thousands of dwellings. The meter is the same
+# fact as `has_mains_gas_supply`, so the heating draw is conditioned on the supply already drawn,
+# never the other way round. Note 3: gas-fired homes with no meter burn LPG or bottled gas, so they
+# draw a non-mains boiler. A mains-gas boiler with no meter is 0 by measurement.
+# Reasoning, and the stock it implies: docs/market_research/mains_gas_is_a_meter_fact_not_a_grid_fact_need_2026.md
+# ---------------------------------------------------------------------------
+EHS_AT3_5_FUEL_BY_GAS_METER: dict[bool, dict[str, int]] = {
+    True: {"gas": 20315, "electrical": 193, "oil": 32, "communal": 29, "solid": 17},
+    False: {"gas": 147, "electrical": 1795, "oil": 897, "communal": 411, "solid": 113},
+}
+HEATING_GIVEN_SUPPLY_SOURCE = "EHS 2017-18 Energy Report, Annex Table 3.5 (main fuel by gas meter)"
+
+
+def heating_weights_given_supply(has_mains_gas_supply: bool) -> dict[HeatingSystem, float]:
+    """P(heating system | gas meter), from AT3.5's counts.
+
+    Within "gas fired" the combi share and within "electrical" the heat-pump share are this
+    module's existing unanchored splits (`_COMBI_SHARE_OF_GAS`, and `_HEAT_PUMP_SHARE` against
+    `_ELECTRIC_HEAT_SHARE`). EHS pools heat pumps into electrical.
+    """
+    counts = EHS_AT3_5_FUEL_BY_GAS_METER[has_mains_gas_supply]
+    total = float(sum(counts.values()))
+    electrical = counts["electrical"] / total
+    hp_share = _HEAT_PUMP_SHARE / (_HEAT_PUMP_SHARE + _ELECTRIC_HEAT_SHARE)
+    resistive = electrical * (1.0 - hp_share)
+    weights = {
+        HeatingSystem.HEAT_PUMP_AIR: electrical * hp_share,
+        HeatingSystem.ELECTRIC_STORAGE: resistive * _STORAGE_SHARE_OF_ELECTRIC,
+        HeatingSystem.ELECTRIC_DIRECT: resistive * (1.0 - _STORAGE_SHARE_OF_ELECTRIC),
+        HeatingSystem.COMMUNAL_HEAT: counts["communal"] / total,
+    }
+    non_mains = counts["oil"] + counts["solid"]
+    gas_fired = counts["gas"] / total
+    if has_mains_gas_supply:
+        weights[HeatingSystem.GAS_BOILER_COMBI] = gas_fired * _COMBI_SHARE_OF_GAS
+        weights[HeatingSystem.GAS_BOILER_SYSTEM] = gas_fired * (1.0 - _COMBI_SHARE_OF_GAS)
+    else:
+        non_mains += counts["gas"]  # note 3: LPG or bottled gas
+    weights[HeatingSystem.NON_MAINS_FUEL_BOILER] = non_mains / total
+    return weights
 
 
 # ---------------------------------------------------------------------------
@@ -821,7 +867,11 @@ class DrawnPremise:
 
     @property
     def commodity(self) -> str:
-        """The fuel whose register the supplier reads for heat."""
+        """The fuel account this home can hold beyond electricity: "gas" only where a gas burner
+        sits on a mains supply. A drawn supply of False is never gas, whatever burns; a supply of
+        None (the sibling draw and the authored homes carry none) falls back to the burner."""
+        if self.household.has_mains_gas_supply is False:
+            return "electricity"
         return "gas" if self.household.heating_system in _GAS_SYSTEMS else "electricity"
 
 
@@ -961,11 +1011,10 @@ def draw_premise_from_joint(
 
     WHAT IS STILL DRAWN INDEPENDENTLY, named rather than left to be discovered:
 
-      * `heating_system`, from the published EHS weights. NEED's fuel flag is a fact about a METER
-        and this is a fact about a BOILER; the two disagree by about five points on the gas share
-        and reconciling them is a knowledge question, not a mapping. The supply fact is carried
-        beside it as `has_mains_gas_supply` so the disagreement is visible rather than resolved by
-        whichever one the code reached for first.
+      * Nothing about heating, since 2026-10-07. `has_mains_gas_supply` comes from NEED's meter
+        flag, and `heating_system` is drawn GIVEN it from EHS AT3.5 (`heating_weights_given_supply`).
+        Until then heating was drawn independently, and 15.3% of homes had a gas boiler and no gas
+        meter.
       * `meter_cadence_days` and `epc_lodged`, which are OBSERVATION-side and belong to the
         supplier's register, not to the dwelling. NEED's 30.2% unrated rows are a fact about that
         register too, which is why they are dropped from the joint rather than mapped to a band.
@@ -987,8 +1036,10 @@ def draw_premise_from_joint(
         _substream(base_seed, f"{premise_id}:era-in-band"), era_posterior_by_band()[age_band]
     )
     band = _band_from_need_epc(need_epc, _substream(base_seed, f"{premise_id}:epc-in-class"))
+    # SUPPLY FIRST, THEN WHAT BURNS (W2_20): a home with no gas meter has no mains-gas boiler.
+    has_supply = fuel == "1"
     heating = _weighted_choice(
-        _substream(base_seed, f"{premise_id}:heating"), published_heating_weights()
+        _substream(base_seed, f"{premise_id}:heating"), heating_weights_given_supply(has_supply)
     )
     cadence = _draw_meter_cadence(premise_id, base_seed=base_seed, as_of=as_of)
     lodged = _draw_epc_lodgement(premise_id, base_seed=base_seed, as_of=as_of)
@@ -1030,7 +1081,7 @@ def draw_premise_from_joint(
         floor_area_band=area_band,
         has_loft_insulation=has_loft,
         has_cavity_wall_insulation=has_cavity,
-        has_mains_gas_supply=fuel == "1",
+        has_mains_gas_supply=has_supply,
     )
     return DrawnPremise(
         premise_id=premise_id,

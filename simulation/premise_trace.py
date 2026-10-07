@@ -1881,7 +1881,13 @@ def generate_premise_trace(
     # the same referent the duty is expressed against, i.e. no scaling at all.
     previous_indoor_air_c: tuple[float, ...] | None = None
 
-    heating_commodity = "gas" if household.is_gas_heated else "electricity"
+    # THREE answers, not two (W2_20): oil, LPG, solid fuel and communal heat reach no register, and
+    # until 2026-10-07 every one of them would have been billed on electricity at 1:1.
+    heating_commodity = (
+        "gas" if household.is_gas_heated
+        else "none" if household.heat_reaches_no_register
+        else "electricity"
+    )
     # Drawn once, against the window's first day: the boiler's install date does not move with it.
     pump_kw = boiler_pump_kw(household, base_seed, weather[0].date)
     has_heater = has_supplementary_electric_heating(household, base_seed)
@@ -2074,9 +2080,11 @@ def generate_premise_trace(
             electricity[period] += ev_kwh[period] + auxiliary_kwh[period] + heater_kwh[period]
             if heating_commodity == "gas":
                 gas[period] += result.fuel_kwh[period]
-            else:
+            elif heating_commodity == "electricity":
                 electricity[period] += result.fuel_kwh[period]
-            if dhw_commodity == "gas":
+            if dhw_commodity == "none":
+                pass  # hot water from the same unmetered boiler or network
+            elif dhw_commodity == "gas":
                 # COOKING GAS ONLY WHERE THERE IS GAS. The first version of this attached cooking
                 # to whichever commodity carries hot water, which put a "cooking gas" term on an
                 # all-electric premise's ELECTRICITY -- where `draw_appliance_events` already

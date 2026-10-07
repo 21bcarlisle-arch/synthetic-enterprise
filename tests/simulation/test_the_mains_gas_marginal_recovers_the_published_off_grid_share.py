@@ -43,13 +43,16 @@ def _inside_bracket(share: float) -> bool:
 
 
 def test_the_drawn_supply_lands_between_the_published_floor_and_need_s_ceiling():
-    """The drawn share must sit in the bracket. Inferring supply from the heating system (the
-    rule this atom replaces) must fall OUTSIDE it, which shows the bracket can actually refuse."""
+    """The drawn share must sit in the bracket. Inferring supply from the unconditioned heating
+    weights (the rule this atom replaces) must fall OUTSIDE it, which shows the bracket can refuse.
+
+    Since 2026-10-07 the drawn heating is conditioned on the supply, so inferring from the DRAWN
+    heating lands near the supply by construction and can no longer play the refused arm."""
     stock = _stock()
     drawn = sum(p.household.has_mains_gas_supply is False for p in stock) / N
 
     gas = (HeatingSystem.GAS_BOILER_COMBI, HeatingSystem.GAS_BOILER_SYSTEM)
-    inferred = sum(p.household.heating_system not in gas for p in stock) / N
+    inferred = 1.0 - sum(w for s, w in pp.published_heating_weights().items() if s in gas)
 
     assert not _inside_bracket(inferred), (
         f"inferring supply from the heating system gives {inferred:.3f}, inside the bracket -- "

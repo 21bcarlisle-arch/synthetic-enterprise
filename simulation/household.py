@@ -51,6 +51,12 @@ class HeatingSystem(str, Enum):
     ELECTRIC_STORAGE = "electric_storage"
     ELECTRIC_DIRECT = "electric_direct"
     DISTRICT_HEAT = "district_heat"
+    # HEAT THAT REACHES NO REGISTER (W2_20). EHS 2017-18 AT3.5: oil, LPG and solid fuel heat ~5.7%
+    # of homes and communal networks ~2.1%. A supplier holds no meter for either, so the trace keeps
+    # their heat off both registers. `DISTRICT_HEAT` above is the authored warehouse's system and
+    # is still billed on electricity; it is not this.
+    NON_MAINS_FUEL_BOILER = "non_mains_fuel_boiler"
+    COMMUNAL_HEAT = "communal_heat"
     NONE = "none"
 
 
@@ -185,6 +191,13 @@ class Household:
         return self.heating_system in (
             HeatingSystem.GAS_BOILER_COMBI,
             HeatingSystem.GAS_BOILER_SYSTEM,
+        )
+
+    @property
+    def heat_reaches_no_register(self) -> bool:
+        return self.heating_system in (
+            HeatingSystem.NON_MAINS_FUEL_BOILER,
+            HeatingSystem.COMMUNAL_HEAT,
         )
 
     @property

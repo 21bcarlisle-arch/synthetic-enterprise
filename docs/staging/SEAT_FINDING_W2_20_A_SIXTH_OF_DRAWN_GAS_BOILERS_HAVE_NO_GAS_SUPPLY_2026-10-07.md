@@ -100,3 +100,76 @@ reads the supply flag. Then (d) the value arms get re-taken, because the world d
 
 If the gas-register share lands outside 81.5-84.5, the prediction failed and the cause gets
 named before anything is tuned.
+
+## The builder's own arithmetic, filed before the build was measured (worker, 2026-10-07)
+
+The table above was written against DESNZ's 16% off-gas. The world draws 17.0% (`s`), so the
+AT3.5 conditionals predict, before any run:
+
+- gas register: (1 - s) x 0.987 = **81.9%**, inside 81.5-84.5;
+- electric heat: (1 - s) x 0.0094 + s x 0.534 = **9.9%**, inside 8.5-10.5;
+- heat on no register: (1 - s) x 0.0038 + s x 0.467 = **8.2%**, which is **above the 6.0-8.0 band**.
+  At n=6,000 the standard error is about 0.35 points, so I expect that row to fail narrowly. The
+  band was set at s = 0.16 (7.8%) with little margin. If it fails, the cause is the world's 17%
+  against DESNZ's 16%, and nothing gets tuned.
+
+Choices made in the build, stated before the measurement:
+
+- Two new systems, not one: `NON_MAINS_FUEL_BOILER` (oil, LPG, solid fuel; an individual boiler)
+  and `COMMUNAL_HEAT` (a heat network billed by the building). Their fabric tables are
+  **inherited** from the system boiler and from district heat. They are not sourced.
+- `DISTRICT_HEAT` stays as it was. It is the authored warehouse's system, still billed on
+  electricity. Changing it would move commercial bills in the same commit.
+- Electrical splits into heat pump and resistive in the existing ratio (0.008 : 0.08). Gas-fired
+  splits combi to system at 0.70, as before.
+- A gas-metered home heated by oil, communal heat or solid fuel (0.4% of metered homes) has no gas
+  burner. Its `commodity` is electricity, so no gas account goes on a register that burns nothing.
+
+## Measured after (a)-(c) (worker, 2026-10-07)
+
+Production path, n=6,000, seed 42, as_of 2023-06-01, ids `PSTK-W220-00000..05999`.
+
+**A correction to "today" first.** On these ids the unmodified origin code (`067493aa4`) draws
+**16.6%** with no supply and **15.0%** with a gas boiler and no supply. It does not draw 17.0% and
+15.3%. Those figures came from a different id set. The supply marginal is **16.6% before and after**
+the build, as pre-registered: it is drawn from the joint cell, which the build does not touch.
+
+| quantity | pre-registered | builder's arithmetic at s=0.166 | measured | verdict |
+|---|---:|---:|---:|---|
+| gas boiler, no supply | 0.0% exactly | 0.0% | **0.0%** | PASS |
+| on a gas register | 81.5-84.5% | 82.3% | **82.2%** | PASS |
+| electric heat | 8.5-10.5% | 9.6% | **9.7%** | PASS |
+| heat on no register | 6.0-8.0% | 8.1% | **8.07%** | **FAIL, by 0.07 pt** |
+| no supply | unchanged | unchanged | **16.6% both** | PASS |
+
+**The failed row's cause, named before anything was tuned.** The band was set at DESNZ's 16%
+off-gas: 0.84 x 0.0038 + 0.16 x 0.467 = 7.8%, with 0.2 points of headroom. The world draws 16.6%
+off-gas, inside the published bracket of 16% to 19.1%, and that alone gives 8.1%. The measurement
+matches the conditionals the build applies, so it is the band's arithmetic that missed. The
+conditionals are not wrong. Nothing was changed in response.
+
+Drawn mix: gas combi 3,479, gas system 1,454, non-mains boiler 366, storage 301, direct 223,
+communal 118, air-source heat pump 59.
+
+**Controls:** `tests/simulation/test_heat_that_reaches_no_register.py`. The partition is asserted
+first: all three heat routes are drawn. Mutations, each applied and reverted:
+
+- billing unmetered heat on electricity again: 2 of 5 red;
+- drawing heating independently of supply: 2 of 5 red;
+- `commodity` ignoring the supply flag: 1 of 5 red.
+
+`test_the_mains_gas_marginal_recovers_the_published_off_grid_share.py` needed a new refused
+arm. Inferring supply from the drawn heating now lands near the supply by construction, so the
+refused arm is the unconditioned heating weights (9.3% off-gas), and it still falls outside the
+bracket.
+
+**Not built here, and named:**
+
+- An oil or LPG boiler's pump and fan draw electricity. `boiler_pump_kw` gives a pump only to gas
+  boilers, so those homes' electricity is understated by about the same amount it was overstated
+  for gas homes before 2026-10-06.
+- The supplementary electric heater is drawn only for gas-heated homes.
+- `fabric_demand_path`'s comfort-constraint bill reads an unmetered home's electricity as its
+  heating bill. An oil home's fuel bill exists and is not modelled.
+- Step (d), re-taking the value arms in the new world, is owed. The `homes` and `demand` digests
+  move with this build.
