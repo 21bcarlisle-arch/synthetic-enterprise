@@ -322,6 +322,13 @@
       "B_chosen": 1168.3
     },
     "launcher": "`background.launch_long_job` units longjob-blind-arms-demand-b422-lane1 and -lane2",
-    "result_record": "docs/staging/records/WORKER_RESULT_THE_BLIND_ARMS_CARRY_A_DEMAND_STAMP_AND_ON_NET_THE_CHOSEN_BOOK_IS_BELOW_EVERY_BLIND_ARM_AGAIN_2026-10-06.md"
+    "result_record": "docs/staging/records/WORKER_RESULT_THE_BLIND_ARMS_CARRY_A_DEMAND_STAMP_AND_ON_NET_THE_CHOSEN_BOOK_IS_BELOW_EVERY_BLIND_ARM_AGAIN_2026-10-06.md",
+    "verdict_2026-10-07": {
+      "what": "B's net deficit against the blind span, decomposed line by line from the filed b422 run and an instrumented re-run of B and C that reproduced the filed totals exactly. Against A, B's deductions from gross exceed A's by 16,244: bad debt +5,783, electricity network +6,737, electricity policy +4,055, capital -149, gas network -172, gas policy -10; remainder 0. The non-bad-debt part is electricity pass-through on B's higher volume, whose recovery sits inside gross.",
+      "where_the_bad_debt_is": "B - C bad debt +7,280 = B-only accounts 10,313 - C-only 3,037; founders and shared accounts ~0. Two B-only accounts carry 8,654 (119% of it): PROS-2016-0098 (5,337) and PROS-2020-0002 (3,317, mostly its gas leg). B's own sampler weights BOTH at 0.0, and the totals above sum the settled book unweighted.",
+      "verdict": "Neither an inference gap in selection nor an honest loss of per-customer view. The selection is the world-side settlement sampler (simulation/settlement_choice.py), not a company decision. At signup nothing separated the two accounts (both direct debit). The company's own payment score had one at CRITICAL for 30 months before write-off. Weighted by the sampler's own weights, B's bad debt is 47.1 per commercial win against C's 54.7, and B's net deficit (-174.1 per win, -16%) is entirely gross margin per win. That cause is not yet established. Unweighted totals of a sample chosen for difference are not comparable with self-weighting arms.",
+      "correction_beside_harness_unchanged": "ARM C is NOT count-matched to B in the run. The run's own campaign (seed 20260724) settles 52 accounts in B and 57 in C. The 57 read from `_p6_campaign.settled_wins` comes from arm_rerun.py's separate seed-42 cross-check campaign, whose winners are different accounts. The count-matched arm is cull52.",
+      "result_record": "docs/staging/records/SEAT_RESULT_THE_CHOSEN_BOOKS_EXCESS_BAD_DEBT_IS_TWO_ZERO_WEIGHT_ACCOUNTS_AND_WEIGHTED_IT_IS_THE_LOWER_2026-10-07.md"
+    }
   }
 }
