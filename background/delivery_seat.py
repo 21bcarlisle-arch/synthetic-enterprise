@@ -247,6 +247,7 @@ def branch_divergence() -> dict:
                 "says": "HEAD-ONLY READING: the divergence between HEAD and origin/main could not "
                         "be measured, so the stretch below cannot be said to cover the branch."}
     ahead, behind = int(parts[0]), int(parts[1])
+    lacking = units_lacking_origin() if behind else []
     if not ahead and not behind:
         says = "HEAD and origin/main are level, so the stretch below is the whole branch."
     else:
@@ -260,8 +261,93 @@ def branch_divergence() -> dict:
                 "work is committed here and not pushed, so nothing downstream of origin can see "
                 "it")
         )
+        says += _render_lacking(lacking)
     return {"available": True, "ahead": ahead, "behind": behind,
-            "diverged": bool(ahead or behind), "upstream": upstream, "says": says}
+            "diverged": bool(ahead or behind), "upstream": upstream, "says": says,
+            "units_lacking_origin": lacking}
+
+
+#: Where the user units that run from this checkout are declared. `process_manifest.yaml` lists the
+#: long-running daemons only, so the timers -- this seat among them -- are read from here.
+UNIT_DIR = Path.home() / ".config" / "systemd" / "user"
+
+#: This seat's own unit, named first: it is the one reading the brief.
+SEAT_UNIT = "delivery-seat"
+
+
+def _units_running_here(unit_dir: Path | None = None) -> dict[str, str]:
+    """`{unit: entry file}` for every user unit whose WorkingDirectory is this checkout."""
+    from background import code_closure
+    out: dict[str, str] = {}
+    for f in sorted((unit_dir or UNIT_DIR).glob("*.service")):
+        try:
+            text = f.read_text(encoding="utf-8")
+        except OSError:
+            continue
+        wd = re.search(r"^WorkingDirectory=(.+)$", text, re.M)
+        cmd = re.search(r"^ExecStart=(.+)$", text, re.M)
+        if not (wd and cmd) or Path(wd.group(1).strip()).resolve() != PROJECT_DIR.resolve():
+            continue
+        entry = code_closure.entry_path(cmd.group(1), PROJECT_DIR)
+        if entry:
+            out[f.stem] = entry
+    return out
+
+
+def lacking_origin(units: dict[str, str], closure_of, behind_paths: set[str],
+                   commits_touching) -> list[dict]:
+    """Each unit whose import closure holds a path origin/main changed and this checkout lacks,
+    with the origin-only commits that touched it. The seat's own unit sorts first.
+
+    `boot_sha.paths_behind_trunk` + `process_reconciler.loaded_code_behind_trunk` answer this for
+    the manifest's daemons; this seat and the other timers are not in that population, which is
+    how 0be518a08 sat on origin for three hours while the seat ran the code it replaced."""
+    out = []
+    for unit, entry in units.items():
+        hits = sorted(set(closure_of(entry)) & behind_paths)
+        if hits:
+            out.append({"unit": unit, "entry": entry, "paths": hits,
+                        # The entry module's own commits lead: the closure is static and
+                        # over-approximates, so its long tail is weaker evidence than these.
+                        "own_commits": commits_touching([entry]) if entry in hits else [],
+                        "commits": commits_touching(hits)})
+    return sorted(out, key=lambda r: (r["unit"] != SEAT_UNIT, r["unit"]))
+
+
+def units_lacking_origin() -> list[dict]:
+    """Live wrapper over `lacking_origin`. Never raises: a reading that cannot be taken is one
+    row saying so, not an empty list that reads as a clean fleet."""
+    try:
+        from background import code_closure
+        upstream = _upstream() or "origin/main"
+        behind = {p.strip() for p in _git("diff", "--name-only", f"HEAD...{upstream}", "--")
+                  .splitlines() if p.strip()}
+        return lacking_origin(
+            _units_running_here(),
+            lambda entry: code_closure.import_closure(entry, PROJECT_DIR),
+            behind,
+            lambda paths: _git("log", "--format=%h", f"HEAD..{upstream}", "--", *paths).split())
+    except Exception as exc:  # noqa: BLE001 -- the brief must assemble
+        return [{"unit": "?", "unreadable": f"{type(exc).__name__}: {exc}"}]
+
+
+def _render_lacking(rows: list[dict]) -> str:
+    if not rows:
+        return ""
+    if rows[0].get("unreadable"):
+        return (" WHICH UNITS RUN WITHOUT ORIGIN'S CODE could not be read: "
+                + rows[0]["unreadable"] + ".")
+    def one(r: dict) -> str:
+        own = r.get("own_commits") or []
+        rest = [c for c in r["commits"] if c not in own]
+        parts = (["{} to {} itself".format(", ".join(own), r["entry"])] if own else []) + (
+            ["{} commit(s) to code it imports ({})".format(
+                len(rest), ", ".join(r["paths"][:3]) + (" ..." if len(r["paths"]) > 3 else ""))]
+            if rest else [])
+        return "{} lacks {}".format(r["unit"], " and ".join(parts))
+    return (" UNITS RUNNING WITHOUT AN ORIGIN COMMIT TO CODE THEY IMPORT: "
+            + "; ".join(one(r) for r in rows)
+            + ". A restart does not load these; only the checkout advancing does.")
 
 
 # --------------------------------------------------------------------------- #
