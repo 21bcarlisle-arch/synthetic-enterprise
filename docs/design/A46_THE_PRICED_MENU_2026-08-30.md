@@ -74,10 +74,18 @@ it came back, not interpolated.
 
 | ceiling (cy) | run wall clock | peak RSS | accounts booked | sample rate | marginal cost of the next cy | accounts the arm could price |
 |---|---|---|---|---|---|---|
-| **1,200** *(shipped)* | **928.6 s** (M, clean) | **3,952.4 MB** (M, clean) | **90** (M) · 90 (P) | 0.1789 (M) | *one clean point; no slope* | **0** (M) |
+| **1,200** *(shipped)* | **928.6 s** (M, clean) | **3,952.4 MB** (M, clean) | **90** (M) · 90 (P) | 0.1789 (P) | *one clean point; no slope* | **0** (M) |
 | **2,000** | 2,097.6 s (M, **contaminated**) | 6,784.5 MB (M, **contaminated**) | 261 (M, contaminated) · 262 (P) | 0.5181 (P) | *one clean point; no slope* | **0** (M) |
 | **3,136.5** *(full supply)* | — | — | 505 (P) | 1.0 (P) | *one clean point; no slope* | **0** (M) |
 | **above 3,136.5** | — | — | 505 (P) — **buys nothing further** | 1.0 (P) | n/a | **0** (M) |
+
+**Sample rate is P in BOTH rows, and the 1,200 cell said M until 2026-08-30.** It is the §1
+allocation rule evaluated at the *budget* — `(1200 − 778.1) / 2358.4 = 0.1789` — which is the same
+arithmetic the 2,000 row already marked P, so marking one of them measured was a provenance error of
+exactly the kind this table exists to prevent. The measured analogues are close and are not the same
+quantity: `wins / funnel_wins = 90/505 = 0.1782`, and committed-against-demand
+`(1195.4 − 778.1) / 2358.4 = 0.1769`. That the three agree to about a part in two hundred is the
+reconciliation of §1 restated, not a licence to relabel a projection as a reading.
 
 **The 2,000 row is a single contaminated observation and is explicitly barred from the slope.** The
 artefact's own words: `campaign_record_agrees: false` — *"another process wrote
@@ -266,3 +274,49 @@ clocks are upper bounds on a quiet box and should not be quoted as the cost of a
 covered the producer, which is the writer that contaminated the previous attempt — it was never a
 claim that the box was idle, and on the 2,000 point it was not even a claim that the producer was
 the only writer.
+
+## 9. What book depth turned out to buy, measured (2026-10-07)
+
+*Added by the seat to close the loop this menu opened. Nothing above is edited.*
+
+This menu priced the ceiling and the interval. What it could not price was the thing P9 named:
+whether more years on the book make the method's effect measurable. Three measurements since then
+answer it, and the answer moves the decision this atom holds.
+
+**Your 2026-10-03 ruling** asked for depth through SPINE_1 past 2025 (*"say where the curve
+lands"*), width tested properly, and the flow of renewal dates measured.
+
+| what was measured | result | where |
+|---|---|---|
+| book-level depth, six seeds | SNR **0.19** at 4y, **0.33** at 7y, **0.73** at 10y. Selection **compounds with tenure**; it is not a fixed effect per decision (√decisions predicted 0.42 and 0.60) | `docs/staging/records/SEAT_PREREG_DEPTH_OR_WIDTH_WHICH_BUYS_A_MEASURABLE_SELECTION_EFFECT_SOONER_2026-10-02.md` |
+| book-level width ×1.25, six seeds | SNR **0.29**: more accounts, no larger effect; sd falls 17% but the mean moves toward zero | same file |
+| the per-decision probe, one book | value against level **−1,184, SNR 1.25** on the record, at 0.35 CPU-h. It compares rules on the same customers at the same moments, which removes the split-path lottery the book-level A/B was fighting | `docs/staging/records/SEAT_RESULT_DEPTH_PAST_2025_THROUGH_THE_PER_DECISION_PROBE_2026-10-03.md` |
+| depth past the record through SPINE_1 (`neso_central` to 2029) | 21 more decisions; value against level **−1,418, SNR 1.29**. Four more years buy **SNR +0.04** | same file, re-scored with the world's decline-and-stay rule |
+
+**Where the curve lands.** P9 was right that depth bounded the book-level comparison, and the
+premise *"nothing can compound"* is refuted: selection does compound with years. But once the
+instrument changed, depth stopped being the binding lever. On the per-decision probe, four more
+years past the record move SNR from 1.25 to 1.29. The sign and the cause do not change: the value
+rule loses to a level price at its own median, and the reason is the churn belief, not the
+sample.
+
+**The decision this atom holds, read against that.** Book age stays a curriculum question and
+stays yours. The evidence now supports one reading:
+
+- **Keep the company's world at the 2016–2025 record.** A forward world is a measuring
+  instrument, run on request and stamped with its name (18c3ecb8c refuses an unnamed one). It is
+  not the curriculum. Extending the curriculum would buy +0.04 SNR for about 0.7 GB per year of a
+  two-seed leg, and it would put a held cap (frozen at December 2026) under every forward
+  decision.
+- **No row of §2 is worth re-running for depth.** The interval and ceiling still buy precision on
+  existing comparisons and nothing on the one that decides whether the method works. That is now
+  measured as well as argued.
+
+**What would reopen it.** Two things. A churn belief that turns the per-decision sign positive,
+after which more decisions do sharpen a real effect. Or the forward cap being modelled rather than
+held, which would make years past 2025 as informative as recorded years. Neither is in hand.
+Until one is, more depth is the expensive way to make an existing answer slightly more precise.
+
+**Correction beside §2a, also landed today.** The 1,200-row sample rate had read M since
+2026-08-30 and is P. The paragraph under the table explains it. That edit sat unlanded in the
+shared tree from 2026-09-24. It is a provenance correction, and every figure is unchanged.

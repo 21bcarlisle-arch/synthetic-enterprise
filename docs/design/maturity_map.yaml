@@ -1603,36 +1603,6 @@
   file_scope: ['simulation/customer_events.py', 'company/pricing/', 'docs/design/WHAT_A_HOUSEHOLD_DECIDES_ON.md', 'tests/simulation/test_the_decision_scale_is_pounds_on_both_sides.py']
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "every GB price comparison site and the Ofgem cap headline itself, all of which present an annual GBP figure -- a household is told 'save £312 a year', never 'save 11%', so a supplier modelling the decision in percent is modelling a number the customer is never shown"
-- id: A46_book_depth_is_a_curriculum_question
-  title: "P9: only 37 accounts carry five or more renewals, so nothing can compound -- and book age moves the P&L, which makes it the director's"
-  notes_rehomed: [gain]
-  lane: A_strategy_governance
-  value_stream: close_to_learn
-  epoch: 3
-  # L1, NOT L2, and the gap is the point. The priced menu EXISTS and is in front of the director
-  # (docs/design/A46_THE_PRICED_MENU_2026-08-30.md, letter at docs/staging/SEAT_TO_DIRECTOR_A46_*):
-  # what a ceiling buys is measured and reconciled against the campaign record (90 projected == 90
-  # booked at 1,200), the funnel-supply top of range is arithmetic (3,136.5 cy, above which a
-  # bigger budget buys nothing), and the column that decides it -- how many of those accounts the
-  # method could price -- is measured at ZERO for a structural reason no ceiling reaches. That is
-  # BUILT, so it is off L0. It is not L2, because one of the three things this atom's own `gain`
-  # says the seat owes -- what each option costs in wall clock against the publish cadence -- came
-  # back `decidable: false` at all five intervals: the 2,000-cy probe point carries
-  # `campaign_record_agrees: false` and is barred from the slope, so there is ONE clean point and
-  # no cost per customer-year. The menu says so at every row rather than interpolating, which is
-  # honest but is not a happy path. L2 waits on a second clean point.
-  level_current: 1
-  level_target: 2
-  loop_stage: build
-  dial_inherited: 45    # R5 -- DIRECTOR_CANON_RERANKING_THE_ARC_2026-09-04 §2/§5.
-  provenance: director_ruling
-  blocked_on: null
-  block_reason: null   # NOT blocked. The DECISION is R13 curriculum and is the director's; the PRICED MENU he needs to take it is this atom's own deliverable and is drawable now. Parking the atom on his answer would make the thing he is waiting for unbuildable -- which is how a real reserved-class item and a permission ceremony end up looking the same.
-  depends_on: []
-  couples_with: [B10_competitor_switching_response]
-  file_scope: ['docs/design/', 'tools/']
-  expert_hour: {status: not_attempted, last: null, findings: []}
-  real_world_twin: "a board deciding how many years of trading history a strategy is to be judged over -- a question about what the firm is being asked to prove, not one the analyst running the backtest gets to settle"
 - id: C29_decisions_stop_being_lookup_tables
   title: "P6: acquisition budget takes no customer id, dunning keys on segment and days overdue, retention is a fixed offer and fixed tiers"
   notes_rehomed: [gain]
