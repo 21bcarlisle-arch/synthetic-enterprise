@@ -1909,6 +1909,7 @@
   # 2026-10-06: nothing left moves in company code. UN-PARK when B7 slice 3 lands and moves are
   # switched on (split gets graded), or the director rules EP17 (books to separate the rules).
   block_reason: "the next gain is in the WORLD (B7 slice 3 + moves switched on) or the director's EP17 row, not company code"
+  blocked_on: [B7_customer_state_layer_moves_and_shocks, EP17_varied_population_draw]
   dial_inherited: 90
   provenance: director_ruling
   depends_on: []
