@@ -890,7 +890,19 @@ def quote_capacity(affordable_quotes: int, pool_size: int = PROSPECTS_PER_YEAR,
 #: every landing on this module. Floored to 1,050.0 by the same round-down-to-50 rule, which
 #: leaves 195 MB in hand. The curve itself was not re-measured. To reverse it, re-run
 #: `tools/settlement_ceiling_probe.py` and re-derive from the new curve.
-SETTLEMENT_CUSTOMER_YEAR_BUDGET = 1050.0
+#: RE-PRICED 2026-10-07, UPWARD, on the fixed code. The curve WAS re-measured
+#: (`settlement_ceiling_slope_20261006.json`, da6d70053, at 06b7c821a after b8808f4ad made the
+#: treasury register 1.5 GB lighter): anchor 4,263.6 MB at 1,199.7 customer-years, 2.884 MB per
+#: customer-year on average, 3.06 on its steepest leg. The live leg then waited for production:
+#: four `sim-runner.service` lifetimes on code carrying 06b7c821a (fc572771c … 3dedb89e0, the last
+#: ending 2026-10-07T01:01Z) closed at 3.3G, 3.3G, 3.3G and 3.4G -- down from 6,451.2 MB, so the
+#: probe's saving DOES transfer to the whole service. Against 6,008.0 MB the four legs price:
+#: curve anchor 1,804.5; same anchor on the steepest leg 1,769.8; live 3.4G peak 2,075.6. Shipped
+#: at 1,750.0, under the steepest-leg price, 54.5 customer-years (157 MB) inside the curve's own.
+#: That run was the PRODUCTION book (~175 founders; 96 of 499 campaign wins settled), not the
+#: 4,000-founder probe shape: a founder book that size takes 5,363 MB before any campaign
+#: settles, so this ceiling does not carry over to it and must be re-priced if production moves.
+SETTLEMENT_CUSTOMER_YEAR_BUDGET = 1750.0
 
 
 def _customer_years(win_date: dt.date, horizon_end: dt.date) -> float:

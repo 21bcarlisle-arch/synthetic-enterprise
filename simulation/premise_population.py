@@ -1718,7 +1718,7 @@ def settled_book_ceiling_customer_years(
         "what_it_does_not_bound": (
             "wall clock. A book inside this bound can still be one no publish cycle will "
             "ever finish -- the same curve measures {:.3f} seconds per customer-year above "
-            "a {:,.0f}s run at {:,.0f} customer-years, so this ceiling's book costs about "
+            "a {:,.0f}s run at {:,.1f} customer-years, so this ceiling's book costs about "
             "{:,.0f} seconds on the box it was measured on."
         ).format(
             float(curve["seconds_per_customer_year"]),
