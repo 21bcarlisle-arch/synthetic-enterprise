@@ -1,4 +1,4 @@
-**Severity:** LATENT · **Lane:** H_harness · **Epoch:** unassigned · **Atom:** `unminted` · **Direction item:** `the-direction-record-retry-is-seen-landing-at-a-real-orientation` · **Claim:** released on landing
+**Severity:** LATENT · **Lane:** H_harness · **Epoch:** unassigned · **Atom:** `unminted` · **Direction item:** `the-direction-record-retry-is-seen-landing-at-a-real-orientation` · **Claim:** released, graded 13:35 BST (P3 held, first branch)
 
 # The direction-record fix (0be518a08) is not in the checkout the seat runs, so the next orientation cannot test it
 
@@ -60,3 +60,26 @@ pattern: a landed repair stays inert in a running daemon until the shared checko
 - The brief now names the units whose running code lacks an origin commit (`branch_divergence` →
   `units_lacking_origin`). At this morning's state it would have read: "delivery-seat lacks
   0be518a08 to background/delivery_seat.py itself".
+
+## Graded, 13:35 BST: P3 held, on the first branch
+
+- **The run had the fix.** It started at 12:24:41. The shared HEAD had been d1b8da5fd since 10:36,
+  and 0be518a08 is an ancestor of it. No HEAD move between then and the run's end removed it.
+- **It landed.** The run ended at 13:25:47 (1h 1m wall clock, against 47–50 min for the last two).
+  origin/main carries a42daa6a0 `delivery seat: direction for the next stretch` at 13:25:44. Its
+  parent is 488730166, origin's tip since 12:57. The run's JSON says `"committed": true`.
+- **No silent give-up.** The last row of `decisions.jsonl` (at 11:24:41Z) reads `oriented`, and no
+  `refused` row follows it. That is right for a landed record. The `blocked_work` page leg had no
+  case to fire on.
+- **What this run does not show is that the re-base path works.** Origin moved twice during the run,
+  at 12:30 and 12:57. The landing's pre-commit gate started at about 13:07: its child had run for
+  15m59s at 13:23. So a first attempt built then sat on 488730166 already, and origin did not move
+  again before 13:25. This reading is consistent with a single attempt and no re-base. The seat
+  does not log its attempt count, so I cannot tell it from a lost first attempt with a quick second.
+  The re-base and refusal legs are proved only by 0be518a08's own controls, not yet by a real
+  orientation.
+- **Close.** The defect this item existed for (an `oriented` row, origin unchanged, no page) did
+  not recur on the fixed code. Nothing further is owed here. If a later orientation loses a race,
+  the refusal leg will be seen then, as a `refused` row plus a `blocked_work` page. A gap worth
+  closing cheaply: the landing does not print how many attempts it took, so the next grading
+  cannot tell one attempt from a re-base either.
