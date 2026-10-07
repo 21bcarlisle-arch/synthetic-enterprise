@@ -51,10 +51,12 @@ from __future__ import annotations
 
 import json
 import pathlib
+import shutil
 import subprocess
 import tempfile
 
 import pytest
+import yaml
 
 from tools import provenance_stamp, surgical_land
 from tools.published_feed_regeneration_check import (
@@ -68,6 +70,7 @@ from tools.published_feed_regeneration_check import (
     _verdict,
     _why_the_clone_failed,
     check,
+    check_at_its_last_write,
     check_at_its_own_commit,
     covered_generators,
     recorded_publication_commit,
@@ -142,15 +145,20 @@ def covered_rows():
 def test_every_covered_feed_is_what_its_generator_produces(covered_rows):
     """THE DEFECT: the SLC-27B citation, corrected in `simplified.json` and never in the .yaml the
     generator copies. Any hand-edit to a covered feed reds here on the day it is made."""
+    # A feed that diverges at HEAD is re-graded at the commit that last wrote it, because a feed
+    # that is only BEHIND its source diverges at HEAD too. The 2026-09-03 edit still reds there.
+    # Everything except STALE stays red.
     by_feed = {r["feed"]: r for r in covered_rows if r["feed"]}
+    regraded = check_at_its_last_write(
+        [row for feed, row in by_feed.items() if feed in COVERED and row["verdict"] == "DIVERGES"])
     divergent = {
-        feed: row["detail"].get("changed", [])[:3]
-        for feed, row in by_feed.items()
-        if feed in COVERED and row["verdict"] == "DIVERGES"
+        row["feed"]: {"verdict": row["verdict"], "last_write": row.get("last_write"),
+                      "changed": row["detail"].get("changed", [])[:3]}
+        for row in regraded if row["verdict"] != "STALE_SINCE_ITS_LAST_WRITE"
     }
     assert not divergent, (
-        "a published feed is not what its generator produces — the committed bytes were edited "
-        "downstream of the source, and the next regeneration will revert them:\n"
+        "a published feed is not what its generator produced when it was committed — the bytes "
+        "were edited downstream of the source, and the next regeneration will revert them:\n"
         + json.dumps(divergent, indent=1)
     )
 
@@ -729,9 +737,65 @@ def test_an_uncommitted_working_copy_edit_does_not_move_the_verdict(tmp_path):
     published["lanes"][0]["atoms"][0]["atom_name"] = "an uncommitted edit by another lane"
     feed.write_text(json.dumps(published, indent=2))
 
+    # Keyed to the planted edit, not to today's verdict: HEAD's feed may be legitimately STALE, and
+    # then it diverges whatever disk holds. What must never appear is the uncommitted edit.
     rows = check(["generate_simplified_data"], root=clone)
-    verdicts = {r["feed"]: r["verdict"] for r in rows}
-    assert verdicts.get("simplified.json") == "AGREES", (
+    row = next((r for r in rows if r["feed"] == "simplified.json"), None)
+    assert row is not None and row["verdict"] in ("AGREES", "DIVERGES"), rows
+    seen = [c[0] for c in row["detail"].get("changed", [])]
+    assert "/lanes[0]/atoms[0]/atom_name" not in seen, (
         "an UNCOMMITTED working-copy edit moved the verdict, so the baseline is the working copy "
-        f"and not HEAD: {rows}"
+        f"and not HEAD: {row}"
+    )
+
+
+def test_a_stale_feed_and_a_hand_edited_one_are_told_apart_at_their_last_write(tmp_path):
+    """THE DEFECT: `simplified.json` read as hand-edited for 8 census runs. In fact it regenerated
+    byte-identical at its own publishing commits and was only behind the map. Both arms are built
+    here, so the re-grade must be able to return BOTH verdicts. A re-grade that called everything
+    stale would hide the 2026-09-03 edit, and one that called nothing stale is the old red.
+    """
+    clone = tmp_path / "lagging"
+    done = subprocess.run(["git", "clone", "--shared", "--quiet", str(PROJECT), str(clone)],
+                          capture_output=True, text=True, check=False)
+    if done.returncode != 0:
+        pytest.fail(f"could not build the lagging tree: {done.stderr.strip()[-300:]}")
+    env = {"PATH": "/usr/bin:/bin", "HOME": str(tmp_path),
+           "GIT_AUTHOR_NAME": "mutation", "GIT_AUTHOR_EMAIL": "mutation@invalid",
+           "GIT_COMMITTER_NAME": "mutation", "GIT_COMMITTER_EMAIL": "mutation@invalid"}
+
+    def commit(msg):
+        subprocess.run(["git", "-C", str(clone), "commit", "-q", "-am", msg],
+                       check=True, env=env, capture_output=True)
+
+    # Publish: the feed's last write is the generator's own output, by construction.
+    subprocess.run(["python3", "-m", "tools.generate_simplified_data"], cwd=clone, check=True,
+                   capture_output=True, timeout=600)
+    commit("publish")
+    # The source moves after the publish, and nobody republishes.
+    feed = clone / "site" / "data" / "simplified.json"
+    published = json.loads(feed.read_text())
+    atom0 = published["lanes"][0]["atoms"][0]["atom_id"]
+    source = clone / "docs" / "design" / "simplifications" / f"{atom0}.yaml"
+    doc = yaml.safe_load(source.read_text())
+    doc["simplifications"].append("the source moved after the publish")
+    source.write_text(yaml.safe_dump(doc, sort_keys=False, allow_unicode=True))
+    commit("source moves")
+
+    def feed_rows(rows):
+        return [r for r in rows if r["feed"] == "simplified.json"]
+
+    stale = check_at_its_last_write(feed_rows(check(["generate_simplified_data"], root=clone)),
+                                    root=clone)
+
+    published["lanes"][0]["atoms"][0]["atom_name"] = "Ofgem SLC 27B +/-5pct variance"
+    feed.write_text(json.dumps(published, indent=2))
+    commit("hand-edit")
+    edited = check_at_its_last_write(feed_rows(check(["generate_simplified_data"], root=clone)),
+                                     root=clone)
+
+    shutil.rmtree(clone, ignore_errors=True)  # a 400 MB clone on a 12 GB tmpfs shared by every lane
+    got = (stale[0]["verdict"], edited[0]["verdict"])
+    assert got == ("STALE_SINCE_ITS_LAST_WRITE", "DIVERGES_AT_ITS_LAST_WRITE"), (
+        f"the re-grade did not tell a lagging feed from a hand-edited one: {stale} {edited}"
     )

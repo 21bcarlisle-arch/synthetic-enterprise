@@ -84,31 +84,11 @@ not_now:
 - what: Reaping acff52923.
   why: It is disposable, but this session writes only the direction record. Recorded for whoever reaps worktrees next.
 wrong:
-- what: 'THE MACHINE''S, NEW. The merge proposal says the director''s heartbeat steer is "in hand", but no claim in .seat_work_in_hand.json
-    holds it, and a heartbeat commit (ef9011143) landed after the steer. A document saying work is in hand is not a claim,
-    and nothing checks the one against the other. Focus item one. UPDATE 02:21: the steer itself was resolved as a measurement
-    (3cc1281c4, premise_spent). The class, a document asserting in-hand with no claim behind it, is unchecked. 17:22: unchanged.
-    23:24: unchanged. 02:21: unchanged. 05:20: unchanged. 08:21: unchanged.'
-  corrected: false
-- what: 'THE MACHINE''S, CARRIED. A commit can name a constraint on a downstream run that nothing enforces. The QEP re-take
-    honoured ba320e2d2 by hand (base 96517e68c), so the instance is met. The class stays in not_now. 23:24: unchanged. 02:21:
-    unchanged. 05:20: unchanged. 08:21: unchanged.'
-  corrected: false
-- what: 'THE MACHINE''S, CARRIED. A waiter''s deadline is set without pricing the queue ahead of it. wait_for caps at 21600
-    s, and long chains still loop by hand. 23:24: unchanged. 02:21: unchanged. 05:20: unchanged. 08:21: unchanged.'
-  corrected: false
-- what: 'THE MACHINE''S, CARRIED. Nothing checks a long job''s worktrees before launch. depth-vs-width died at exit 90 after
-    10h on a missing worktree. 23:24: unchanged. 02:21: unchanged. 05:20: unchanged. 08:21: unchanged.'
-  corrected: false
 - what: 'THE MACHINE''S, CARRIED. A held change''s hold condition is not re-asked when its premise moves. The own_book flip
     landed only because a focus item carried its condition. RECURRED: C29''s block_reason has said "sequenced behind B10"
     for five weeks after B10 reached its target and was refiled (15a9703ae, 2026-08-30), and that stale hold is what kept
     PB4 off L3. UPDATE 02:21: the instance is fixed by hand (59c53d8a7, which now names the director''s retention-discount
     row). The class still is not re-asked. 23:24: unchanged. 02:21: unchanged. 05:20: unchanged. 08:21: unchanged.'
-  corrected: false
-- what: 'THE MACHINE''S, CARRIED. Level or park moves stranded in a preserved ref are replayed as written. PB4 build->idle
-    was false by then (a6bd4d77e), and nothing re-asks a stranded move''s release condition. 23:24: unchanged. 02:21: unchanged.
-    05:20: unchanged. 08:21: unchanged.'
   corrected: false
 - what: 'THE MACHINE''S, CARRIED. One item can land twice, on origin through surgical_land and as a local commit on the shared
     HEAD (75df9efdf after d77ff33d5). 23:24: unchanged. 02:21: unchanged. 05:20: unchanged. RECURRED 08:21: 17f75226a and
@@ -116,53 +96,9 @@ wrong:
     both to origin. The shared checkout has diverged (2 ahead, 20 behind), so it cannot fast-forward. The class is unchanged;
     focus item four takes the instance.'
   corrected: false
-- what: 'THE MACHINE''S, CARRIED. Nothing checks that a hand-written driver calls an API, or an argument shape, that the tool
-    accepts. hgc-suite-timing''s driver called resource_headroom.admitted(). It RECURRED this stretch: the QEP floor handoff
-    passed one seed to a tool that refuses fewer than two. 23:24: unchanged. 02:21: unchanged. 05:20: unchanged. 08:21: unchanged.'
-  corrected: false
-- what: 'THE MACHINE''S, CARRIED. A control or door whose shape changes must re-run every fixture that builds a synthetic
-    tree to drive it, and no control requires that. citation_at_head, red_at_head and fork_state still read not_established.
-    23:24: unchanged. 02:21: unchanged. 05:20: unchanged. 08:21: unchanged.'
-  corrected: false
-- what: 'THE MACHINE''S, CARRIED. A refusal naming a commit is not re-asked against the remote ref before a reader sees it.
-    liveness_surface_refusal is still not re-asked. 23:24: unchanged. 02:21: unchanged. 05:20: unchanged. 08:21: unchanged.'
-  corrected: false
-- what: 'THE MACHINE''S, CARRIED. The stash-completeness sweep reports a genuinely lost file as safe. It is still not on the
-    map. 23:24: unchanged. 02:21: unchanged. 05:20: unchanged. 08:21: unchanged.'
-  corrected: false
-- what: 'THE MACHINE''S, CARRIED. Nothing on the landing path asks whether a same-subject sibling is left behind in the shared
-    tree (the 14-path refusal in 662da7fd3). Separate from H49. 23:24: unchanged. 02:21: unchanged. 05:20: unchanged. 08:21:
-    unchanged.'
-  corrected: false
-- what: 'MINE, CLASS. not_now is still prose that nothing reads. A rejected item comes back only if I remember to promote
-    it. This stretch I remembered once (the ex-ante flat comparison, focus item two), which is not a mechanism. 23:24: unchanged.
-    02:21: unchanged. 05:20: unchanged. This stretch I promote one item from last not_now by hand (the direction record reaching
-    origin, now focus item three), which is still memory, not a mechanism. 08:21: unchanged. No not_now item is promoted this
-    stretch.'
-  corrected: false
-- what: 'THE MACHINE''S, CARRIED. A bounded executor turn can be reset over finished, unlanded work. Both named instances
-    are gone: the brief reads all 80 worktree HEADs on a remote ref. Nothing prevents the class. RECURRED in a sibling shape
-    02:21: c5770c404 (B11 slice 3) is finished and gated, but on no remote, in an unlocked worktree with no declared owner.
-    See the new row. 23:24: unchanged. 02:21: unchanged. 05:20: unchanged. 08:21: unchanged.'
-  corrected: false
-- what: 'THE MACHINE''S, CARRIED. A pre-registration that dates itself by its first commit can sit untracked after its subject
-    commit lands. The class is still unrefused. 23:24: unchanged. 02:21: unchanged. 05:20: unchanged. 08:21: unchanged.'
-  corrected: false
-- what: 'THE MACHINE''S, CARRIED. A launch chain dies silently when its waiter hits DEADLINE. The register showed width as
-    finished, and did not show that P/C, chained behind it, never started. 23:24: unchanged. 02:21: unchanged. 05:20: unchanged.
-    08:21: unchanged.'
-  corrected: false
-- what: 'THE MACHINE''S, CARRIED. The launch register records a deliberate seat stop as DIED. payment-history-pc-legs ended
-    rc=143 beside a STOPPED note that says why. 23:24: unchanged. 02:21: unchanged. 05:20: unchanged. 08:21: unchanged.'
-  corrected: false
 - what: 'THE MACHINE''S, CARRIED. The held-work check refuses an item when its prose names a held file, even when the held
     work is not the item''s work. The refusal reaches only the supervisor log, not the seat''s brief, so the steer drifts
     without the seat being told. 23:24: unchanged. 02:21: unchanged. 05:20: unchanged. 08:21: unchanged.'
-  corrected: false
-- what: 'THE MACHINE''S, CARRIED. No-work base-advance merges were 11 of 26 and 9 of 24 in earlier stretches. In the last
-    two they were 0 of 9 and 1 of 8, with no mechanism changed, so the cause of the fall is not established, and the Monday
-    census grades it. 02:21: 1 of 10. 05:21: 4 of 17. 08:23: 0 of 9. 11:21: 1 of 10. 14:23: 1 of 8. 17:22: 2 of 14. 23:24:
-    1 of 8. 02:21: 0 of 7. 05:20: 1 of 10. 08:21: 0 of 11.'
   corrected: false
 - what: 'THE MACHINE''S, NEW. The seat''s brief reads the director''s open concerns from the behind shared checkout. It listed
     four open rows when origin/main carries six (both rows raised in 2b404892e were missing), so a record written from the
@@ -192,21 +128,6 @@ wrong:
     either. 23:24: no new instance. The class is unchanged. 02:21: unchanged. 05:20: RECURRED. The brief''s path check reads
     weighted-per-win-envelope as ''nothing to land'' while its surgical_land (pid 2895736) is running, and the queue still
     offers it. The class is unchanged. 08:21: no new instance. The class is unchanged.'
-  corrected: false
-- what: 'THE MACHINE''S, NEW. A worktree lock outlives its owner. acff52923 (the draw follows the order) is locked to pid
-    1364549, which is no longer running, and nothing re-asks the owner''s liveness before treating the work as in hand. The
-    previous record''s not_now leaned on that lock. UPDATE 14:22: acff52923''s supervisor.py is byte-identical to 20c9c52c9
-    on origin, so the stranded commit is disposable; the lock (dead owner) still holds it, and nothing said so. 23:23 and
-    02:21: unchanged. 05:21: unchanged. 08:23: unchanged. acff52923 is still disposable and still locked to the dead pid 1364549.
-    11:21: unchanged. acff52923 is still disposable and still locked to the dead pid 1364549. 14:23: unchanged. acff52923
-    is still disposable (its supervisor.py is on origin as 20c9c52c9) and still locked to the dead pid 1364549. This record
-    says it is disposable, as the brief asks. 17:22: unchanged. acff52923 is still disposable (supervisor.py on origin as
-    20c9c52c9) and still locked to the dead pid 1364549. 23:24: unchanged. acff52923 is still disposable (supervisor.py on
-    origin as 20c9c52c9) and still locked to the dead pid 1364549. 02:21: unchanged. acff52923 is still disposable (supervisor.py
-    on origin as 20c9c52c9) and still locked to the dead pid 1364549. 05:20: unchanged for acff52923 (still disposable, pid
-    1364549 dead). RECURRED on the seat''s own worktree: bab878923 in /var/tmp/se-direction-seat (my 02:21 record) is locked
-    to pid 706647, which is dead. It is DISPOSABLE: this 05:20 record supersedes it. 08:21: unchanged for acff52923 (still
-    disposable, pid 1364549 dead). bab878923 is no longer listed at risk.'
   corrected: false
 - what: 'THE MACHINE''S, NEW. this-mondays-publish-reaches-origin was retired at 09:31 by a focus-row tombstone, but its own
     DONE (a publisher-written site/data/dashboard.json on origin dated 2026-10-05 or later) is unmet. The last figures on
@@ -252,26 +173,6 @@ wrong:
     fix is not in the checkout the seat runs (it is not an ancestor of the shared HEAD), so this orientation still runs the
     two-attempt code. The mechanism exists and is inert. Focus item four.'
   corrected: false
-- what: 'THE MACHINE''S, NEW. The brief says the publisher''s cause is unattributed, because its citation leg reads not_established.
-    The same state file''s failures list names the cause, behind_origin, with evidence. So the field a reader believes is
-    the empty one. RECURRED 17:20: the brief says the cited red is DEAD at HEAD so the cause is unattributed. failures[0]
-    names gate_refusal on test_capabilities_door, which 5e766f3c3 fixed, so the cause is attributed and repaired. 02:21: failures
-    is empty and the episode closed (cause_cleared), so there is nothing to misattribute this stretch. The class is unfixed.
-    23:24: publishing is held by the weekly window and there is no failure to attribute. The class is unfixed. 02:21: unchanged.
-    05:20: unchanged; publishing is held by the weekly window. 08:21: unchanged; publishing is held by the weekly window.'
-  corrected: false
-- what: 'THE MACHINE''S, NEW. A finished, gated commit can sit on no remote while the queue re-issues its work. c5770c404
-    (B11 slice 3, surgical_land receipt gate-rc 0) is in the unlocked, ownerless worktree agent-ac24ddfbb7f67a9e9; its message
-    says NEXT: none as if it had landed. 22 minutes later the continuation b11-deviation-window-from-the-published-regime-boundary
-    was filed for the same change, and a live executor now holds it. A receipt is not a landing, and nothing asks whether
-    a receipted commit reached origin. Focus item one. UPDATE 05:21: the instance is met, because 27d0d3065 put B11 slice
-    3 on origin through the continuation. The class is not: a receipt is still not asked whether it reached origin. 23:24:
-    no new instance. The class is unchanged. RECURRED 02:21: f65cf9422 says it carries 51bbb4d3d, which an earlier turn under
-    the same claim built and gated and which never reached origin; the next turn re-carried it by hand. The class is unchanged.
-    RECURRED 05:20: ab5c181dd (the weighted per-win envelope) was gated at 29de32469 and never promoted; the next tick on
-    the claim is re-landing its bytes now (pid 2895736). The class is unchanged. 08:21: no new instance found. The retention
-    netting (see its row) is on no ref at all, which is a different shape: it was never committed. The class is unchanged.'
-  corrected: false
 - what: 'THE MACHINE''S, NEW. A parked atom is still counted as drawn. H45 is PARKED (2026-10-04, idle, waiting on the director''s
     independence row) and reads 950 unchanged draws, drawn this stretch. Whether that is a real tick or only a counter bump
     is not established. In not_now. 05:21: 1019 unchanged draws, drawn again this stretch. 08:23: 1095 unchanged draws, drawn
@@ -300,18 +201,6 @@ wrong:
     The worker wrote the refusal into its finding (8af70203f) and handed the choice to the seat, so the refusal did reach
     me, through a worker and not through the brief. Focus item two takes the instance. The class is unchanged.'
   corrected: false
-- what: 'THE MACHINE''S, NEW. The shared checkout is 25 commits behind origin/main, and nothing on the brief says which running
-    daemons were started from code that origin has since replaced. The brief reports the divergence but not its consequence
-    for each daemon. This is the same shape as deploy_restart reading stale 0 while a landed repair is inert. Not chosen this
-    stretch: see not_now. 11:21: it is now 35 behind, and the brief still names no daemon that runs replaced code. 14:23:
-    it is now 43 behind, and the brief still names no daemon that runs replaced code. 17:22: the checkout is level with origin,
-    so no daemon runs replaced code that the brief could name today; the brief still cannot say so when it next falls behind.
-    23:24: the checkout is level with origin and sim-runner restarted at 22:31Z on current code. The class is unchanged. 02:21:
-    the checkout is 2 behind origin; the brief still names no daemon that runs replaced code. 05:20: the checkout is 11 behind
-    origin; the brief still names no daemon that runs replaced code. RECURRED 08:21 with a named instance: the checkout is
-    20 behind and diverged, and the delivery seat itself runs code that lacks 0be518a08 (a5bef9df1 named this by hand). The
-    brief still names no daemon that runs replaced code. Focus item four.'
-  corrected: false
 - what: 'THE WORLD''S, NEW. A gas-heated fabric home''s electricity has no season: 56 of the 57 households with a winter/summer
     ratio under 1.15 are gas-heated fabric homes, which read 0.93-1.09 against SERL''s median of 1.36-1.47. The boiler pump
     and fan landed (8fe730297). Cooking, laundry and supplementary electric heating are sourced (be980cbb7) but not built.
@@ -326,17 +215,6 @@ wrong:
     no work this stretch (in not_now). Ratio 1.288 against SERL''s 1.36-1.47. 05:20: unchanged; no work this stretch (in not_now).
     Ratio 1.288 against SERL''s 1.36-1.47. 08:21: unchanged; no work this stretch (in not_now). Ratio 1.288 against SERL''s
     1.36-1.47.'
-  corrected: false
-- what: 'THE MACHINE''S, NEW. A landing can name a red at clean origin as ''not mine'' and move on, and nothing files it.
-    c7d104866 (D48) says tests/saas/test_a_published_bill_shock_can_be_recomputed.py::test_the_baseline_is_present_exactly_when_the_shock_is
-    and tests/simulation/test_net_new_acquisition.py::test_the_ceiling_still_fits_the_peak_systemds_own_journal_reports_today
-    are both red on a clean origin/main worktree. No finding or queue item carries either one. A red at HEAD blocks every
-    lane whose selection reaches it. Focus item four. 17:22: CORRECTED for the instance. 9b6b752ab fixed both: the bill-shock
-    pairing follows the sign fix, and the ceiling''s journal leg counts only peaks from the curve''s own code. The class (a
-    ''not mine'' red is not filed by the landing that saw it) is unfixed. 23:24: no new instance; the class is unfixed. RECURRED
-    02:21: 358d59a42 says test_the_ceiling_carries_no_claim_pinned_to_todays_answer had been red at origin since da6d70053,
-    and nothing had filed it. The instance is fixed by that commit; the class is unfixed. 05:20: no new instance; the class
-    is unfixed. 08:21: no new instance; the class is unfixed.'
   corrected: false
 - what: 'THE MACHINE''S, NEW. The 20:21 seat session failed (rc=1, ran: false in decisions.jsonl) and wrote no DIRECTION.yaml.
     Its decision row still says outcome: oriented, and 2e4c3e9d1 published a stretch-log entry stamped 20:21 whose text is
