@@ -28,6 +28,7 @@ from __future__ import annotations
 
 import collections
 import datetime as dt
+import itertools
 import math
 
 import pytest
@@ -446,3 +447,77 @@ def test_the_old_path_still_exists_and_still_differs(stock_new, stock_old):
     assert len(stock_new) == len(stock_old) == PROSPECTS_PER_YEAR
     assert stock_new != stock_old
     assert all(isinstance(p.household.property_type, PropertyType) for p in stock_new)
+
+
+# ── W2_21: the association the independent draw could not produce, on the LIVE stock ───────────
+
+#: The two corners `docs/market_research/independence_invents_one_house_in_five_that_does_not_exist.md`
+#: names, in this project's four types: small flats are over-represented, large detached houses
+#: (the top consumption band) under-represented by an independent draw.
+_CORNERS = (("FLAT", "1"), ("DETACHED", "5"))
+
+
+def _lifts(cells) -> dict[tuple[str, str], float]:
+    """Lift of each (property type, floor-area band) cell over the product of its own marginals."""
+    cells = list(cells)
+    n = len(cells)
+    types = collections.Counter(t for t, _ in cells)
+    areas = collections.Counter(a for _, a in cells)
+    both = collections.Counter(cells)
+    return {(t, a): both[(t, a)] * n / (types[t] * areas[a])
+            for t in types for a in areas}
+
+
+def test_the_live_stock_reproduces_the_type_by_floor_area_association_an_independent_draw_cannot(
+        stock_new):
+    """W2_21's exit criterion, held on the stock the world actually draws from.
+
+    `test_the_FITTED_JOINT_REPRODUCES_THE_MEASURED_ASSOCIATION` holds it on `raked_joint`, the
+    three-axis path that has not been live since 2026-09-10, and on type x EPC. The strongest
+    association NEED carries is type x floor area (Cramer's V 0.474), and floor area exists only
+    on the live path, so nothing checked it there.
+
+    THE MEASURED LIFT IS READ FROM NEED, not typed: unrated homes are dropped and the joint is
+    raked onto published margins, so the live figure is allowed to move. It has to keep the sign
+    and stay within a factor of two. At the 2026-10-07 reading: flat <=50 m2 4.06 measured, 4.63
+    drawn; detached >200 m2 3.49 measured, 2.96 drawn.
+
+    THE ARM THAT MUST FAIL is the same draw function given the independent product of the fitted
+    joint's own eight marginals. If that arm passes too, the assertion cannot tell a fitted joint
+    from axis-by-axis drawing and the first half proves nothing. MUTATION: make
+    `draw_premise_from_joint`'s cell draw ignore the joint's co-occurrence and the first half reds.
+    """
+    from tools import stock_joint_generator as gen
+
+    measured = _lifts(
+        (t, a) for (t, _, a, *_), count in gen.fit_joint().items() for _ in range(count))
+
+    fitted = pp.fitted_stock_joint()
+    total = sum(fitted.values())
+    margins = [collections.defaultdict(float) for _ in range(8)]
+    for cell, weight in fitted.items():
+        for axis, value in enumerate(cell):
+            margins[axis][value] += weight / total
+    independent = {cell: math.prod(margins[axis][value] for axis, value in enumerate(cell))
+                   for cell in itertools.product(*(sorted(m) for m in margins))}
+    stock_independent = [
+        pp.draw_premise_from_joint(f"PSTK-IND-{i:04d}", base_seed=SEED, as_of=AS_OF,
+                                   fitted=independent)
+        for i in range(PROSPECTS_PER_YEAR)]
+
+    def reproduces(stock) -> list[str]:
+        drawn = _lifts((p.household.property_type.name, p.household.floor_area_band)
+                       for p in stock)
+        return [f"{corner}: drawn {drawn[corner]:.2f}, measured {measured[corner]:.2f}"
+                for corner in _CORNERS
+                if not ((drawn[corner] - 1) * (measured[corner] - 1) > 0
+                        and 0.5 < drawn[corner] / measured[corner] < 2.0)]
+
+    assert all(measured[c] > 2.0 for c in _CORNERS), (
+        f"NEED no longer shows these corners as strongly associated: "
+        f"{ {c: round(measured[c], 2) for c in _CORNERS} } -- re-read the evidence before the test")
+    assert reproduces(stock_independent), (
+        "the independent arm reproduces the association too, so this control cannot tell a fitted "
+        "joint from drawing axis by axis")
+    missed = reproduces(stock_new)
+    assert not missed, f"the live stock does not reproduce NEED's type x floor-area corners: {missed}"

@@ -1524,7 +1524,7 @@
   lane: W2_customer_generator
   value_stream: price_to_bill
   epoch: 3
-  level_current: 0
+  level_current: 1   # 2026-10-07 built, marginal held vs DESNZ 16%; L2 waits on the register reading it
   level_target: 3
   loop_stage: build
   dial_inherited: 60    # STAGE 1, minted ahead of W2_18 -- MATURITY_MAP.md §8.
@@ -1540,7 +1540,7 @@
   lane: W2_customer_generator
   value_stream: price_to_bill
   epoch: 3
-  level_current: 0
+  level_current: 1
   level_target: 3
   loop_stage: build
   dial_inherited: 60    # STAGE 1, minted ahead of W2_18 -- MATURITY_MAP.md §8.
