@@ -1418,7 +1418,8 @@
   lane: W2_customer_generator
   value_stream: price_to_bill
   epoch: 3
-  level_current: 0
+  level_current: 1    # 2026-10-07: the fitted joint IS the production stock (0d86d6dfe). L2 owes the
+  #   PV/battery/EV/behaviour/tariff ceilings, the current-settings draw and the per-asset usage split.
   level_target: 3
   loop_stage: build
   dial_inherited: 60
