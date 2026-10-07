@@ -60,6 +60,11 @@ The account reads POOR, not CRITICAL, because half its bills are paid. **This ma
 bite harder on these accounts**: a dual-fuel debtor is now likelier to cross 0.30 and be offered a
 discount. That is the right belief feeding a wrong valuation, and it is why the guard is the next item.
 
+*Correction, 2026-10-07, measured: the guard never binds on the chosen book. All 73 calls offered;
+value protected is 4.9 to 15.7 times the cost, and netting the learned bad debt (at most 7.9% of
+value) withdrew nothing. The transfer is decided at the 0.30 threshold, not at the guard.
+`records/SEAT_RESULT_THE_RETENTION_GUARD_NETS_BAD_DEBT_AND_ON_THE_CHOSEN_BOOK_IT_WITHDRAWS_NOTHING_2026-10-07.md`.*
+
 Controls: `tests/company/crm/test_a_dual_fuel_accounts_score_reads_both_legs.py`. There are planted,
 null and partition legs, plus a chain control over the run's AST. Mutated: a first-leg-only read reds
 4 of 6, and one run site reverted to the leg read reds the chain control.
@@ -70,3 +75,10 @@ null and partition legs, plus a chain control over the run's AST. Mutated: a fir
 `default_belief_rate` from the value the retention guard protects. Put it behind a `DecisionPolicy`
 flag whose off-arm is bit-identical, with a planted debtor whose offer it withdraws. Pre-register the
 count of retention offers to CRITICAL/POOR accounts on the chosen book before running it.
+
+*Correction, 2026-10-07 afternoon: the netting landed as `5c0ed0a9d` (and its first cut, `4c300feb9`)
+in a worktree and was never promoted. Origin carried this finding and `49f2587f1`'s record of the
+arms, but not the flag, the guard change, the controls, the pre-registration or the result. When the
+item was re-drawn, the landing check graded only this file, which was already on origin, so it read
+"already landed". `5c0ed0a9d` is re-landed onto origin unchanged. None of its paths had moved on
+origin since its base `4088674a4`, and its 24 tests pass on the new base.*

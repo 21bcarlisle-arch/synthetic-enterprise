@@ -1,0 +1,6 @@
+atom_id: H50_a_run_entry_point_leaves_no_state_behind
+map_notes:
+  origin_note: 'The class fix H40 drew rather than folded in. run_phase2b.main writes each fabric premise''s own-read registry EAC into the roster dicts shared with saas.customers.CUSTOMERS (and into EFFECTIVE_EAC_KWH), so any later run or reader in the same process inherits it: the ordered pair in the H40 record reds test_c1_eac_calibrated_to_ofgem_tdcv_medium and test_c4_solar_reduces_multiplier. EXIT: (1) answer the record''s filed prediction FIRST -- run_value_cycle_ab runs both arms in one process, so measure whether arm 2''s settled volumes and margins move against a fresh-process arm 2; (2) the write is per-run (the sign-up quote, roster and EFFECTIVE_EAC_KWH still one object within a run) and a second in-process run starts from the drawn band; (3) a control that runs main twice in one process and asserts the second run''s pre-rewrite roster equals the first''s, mutation-proven by deleting the reset; (4) the census for other module-level writes from run entry points, each named or ruled out.'
+map_records:
+  evidence:
+  - docs/staging/records/WORKER_RESULT_H40_THE_FULL_SUITE_POLLUTER_IS_THE_REGISTRY_EAC_REWRITE_WRITING_INTO_THE_SHARED_ROSTER_2026-10-07.md

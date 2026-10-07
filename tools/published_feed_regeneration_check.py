@@ -1148,6 +1148,72 @@ def check_at_its_own_commit(feeds: dict[str, str], root: Path = PROJECT,
         shutil.rmtree(tmp, ignore_errors=True)
 
 
+
+def last_write_commit(root: Path, rel: str) -> str | None:
+    """The commit HEAD's bytes of `rel` were written in -- OBSERVED from git, never passed in."""
+    sha = _git(root, "log", "-1", "--format=%H", "HEAD", "--", rel).stdout.strip()
+    return sha or None
+
+
+def check_at_its_last_write(rows: list[dict], root: Path = PROJECT,
+                            timeout_s: int = DEFAULT_TIMEOUT_S) -> list[dict]:
+    """Of `check()`'s DIVERGES rows: a hand-edit, or a feed that is only BEHIND its source?
+
+    WHY HEAD ALONE CANNOT SAY. A feed generated from the map is a function of its commit, so it is
+    covered at HEAD. But the map moves many times a day and the feed is republished only when a
+    run completes. Between the two, HEAD diverges for no fault in the published bytes.
+    Measured 2026-10-07: `simplified.json` diverged at HEAD for 8 census runs, and regenerated
+    BYTE-IDENTICAL at both of its last two publishing commits (`a88fb2436`, `1526f5267`). Nobody
+    had edited it. It was stale, and the control called that a hand-edit and stayed red.
+
+    So each DIVERGES row is re-graded at the commit that last wrote the feed's bytes. A hand-edit
+    is made IN some commit, and at that commit the generator still produces the un-edited text, so
+    it reads `DIVERGES_AT_ITS_LAST_WRITE`. A feed whose bytes WERE the generator's output when they
+    were committed reads `STALE_SINCE_ITS_LAST_WRITE`. That verdict is a lag, the publisher's
+    cadence, and it is not a defect in the bytes. Any other outcome, such as a refused standpoint
+    or a generator that wrote nothing, stays as it is. It is never turned into a pass.
+    Rows that are not DIVERGES pass through untouched.
+    """
+    out: list[dict] = []
+    tmp: Path | None = None
+    try:
+        for row in rows:
+            if row.get("verdict") != "DIVERGES" or not row.get("feed"):
+                out.append(row)
+                continue
+            rel = row.get("path") or f"{FEED_DIR}/{row['feed']}"
+            sha = last_write_commit(root, rel)
+            if sha is None:
+                out.append({**row, "verdict": "NO_LAST_WRITE",
+                            "detail": {**row["detail"], "reason": f"git names no commit for {rel}"}})
+                continue
+            if tmp is None:
+                tmp = Path(tempfile.mkdtemp(prefix="feed-last-write-", dir=scratch_root()))
+            try:
+                tree = _Tree(root, tmp, len(out) + 1, at_commit=sha)
+            except RegenerationCheckRefused as exc:
+                out.append({**row, "verdict": "UNREACHABLE_STANDPOINT", "last_write": sha,
+                            "detail": {**row["detail"], "reason": str(exc)[:300]}})
+                continue
+            written, err = tree.run(row["generator"], timeout_s)
+            at_write = subprocess.run(
+                ["git", "-C", str(root), "show", f"{sha}:{rel}"], capture_output=True, check=False,
+                env={k: v for k, v in os.environ.items() if not k.startswith("GIT_")})
+            if row["feed"] not in written or at_write.returncode != 0:
+                out.append({**row, "verdict": "WROTE_NOTHING", "last_write": sha,
+                            "detail": {**row["detail"], "stderr": err}})
+                continue
+            verdict, detail = _verdict(at_write.stdout,
+                                       written[row["feed"]], None)
+            verdict = {"AGREES": "STALE_SINCE_ITS_LAST_WRITE",
+                       "DIVERGES": "DIVERGES_AT_ITS_LAST_WRITE"}.get(verdict, verdict)
+            out.append({**row, "verdict": verdict, "last_write": sha,
+                        "detail": {**detail, "at_head": row["detail"]}})
+        return out
+    finally:
+        if tmp is not None:
+            shutil.rmtree(tmp, ignore_errors=True)
+
 #: Where the second relation kind looks for derived artefacts. Not `FEED_DIR`: the defect this
 #: relation exists for lives in an INTERMEDIATE, one link upstream of anything published.
 DERIVED_DIR = "docs/observability"

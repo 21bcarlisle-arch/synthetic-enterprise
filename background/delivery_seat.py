@@ -96,7 +96,7 @@ THE THESIS you are judging the stretch against, also his:
   applying flat rules with no per-customer view -- or "it performed well" means nothing.
 
 THIS SESSION WRITES DIRECTION. IT DOES NOT WRITE CODE. Do not edit, create or delete any file
-except `docs/direction/DIRECTION.yaml`. Nothing else you touch will be committed, so a code edit
+except `docs/direction/DIRECTION.yaml` and `docs/direction/wrong_triage.yaml`. Nothing else you touch will be committed, so a code edit
 here is work thrown away and a second writer on a tree that already has three.
 
 HOW YOUR DIRECTION IS WORKED (built 2026-08-25). A focus item that names a
@@ -158,6 +158,11 @@ RULES ON THE CONTENT, and the record is refused if it breaks them:
     with the evidence in `thesis_read`. An uncorrected error that silently stops being listed has
     not been fixed; it has been forgotten, and that is the failure this section exists to catch.
     A row with an empty `what`, or with `corrected` missing or non-boolean, is REFUSED outright.
+    A still-open row whose problem has been listed for 7+ days without an entry in
+    `docs/direction/wrong_triage.yaml` is REFUSED, and so is any row matching an entry there
+    already retired (fold, accept, or fix already_fixed): give each carried problem ONE fate in
+    that file -- fix (with its owner), fold into a class register, or accept with a reason -- and
+    then stop listing every retired one, rather than copying it forward again.
   * `for_the_director` IS THE DIRECTOR'S CONCERNS LIST (2026-10-04): *"Escalate with a proposal,
     and don't wait: concerns about strategy, vision or canon intent. Raise it, propose the change
     or ask me to investigate, then carry on with everything else. An open question to me sits in a
@@ -2099,15 +2104,19 @@ def _prompt(brief: dict) -> str:
 
 
 def run_session(brief: dict) -> tuple[bool, str]:
-    """Spawn the bounded orienting session. Returns (ran, detail)."""
+    """Spawn the bounded orienting session. Returns (ran, detail).
+
+    THE PROMPT GOES ON STDIN, NEVER IN ARGV (2026-10-07). Linux caps ONE argument at 131072 bytes
+    (MAX_ARG_STRLEN) whatever `ARG_MAX` says; at 11:24Z the brief passed it and the spawn died
+    with OSError(7, 'Argument list too long'). The brief only grows, so argv was a fuse."""
     claude_bin = _resolve_claude()
     if claude_bin is None:
         return False, "claude binary not found"
     env = dict(os.environ, DISABLE_AUTOUPDATER="1", SE_DELIVERY_SEAT="1")
     try:
         proc = subprocess.run(
-            [claude_bin, "-p", "--dangerously-skip-permissions", "--model", MODEL, _prompt(brief)],
-            cwd=str(PROJECT_DIR), capture_output=True, text=True,
+            [claude_bin, "-p", "--dangerously-skip-permissions", "--model", MODEL],
+            input=_prompt(brief), cwd=str(PROJECT_DIR), capture_output=True, text=True,
             timeout=SESSION_TIMEOUT_SECONDS, env=env,
         )
     except subprocess.TimeoutExpired:
@@ -2493,6 +2502,8 @@ def orient(now: datetime | None = None, dry_run: bool = False) -> dict:
     except Exception:  # noqa: BLE001 - a lost stamp only lets the next spawn come sooner
         pass
     ran, detail = run_session(brief)
+    if not ran:
+        return record_session_did_not_run(row, why, detail, before)
     after_raw = None
     try:
         import yaml
@@ -2503,13 +2514,18 @@ def orient(now: datetime | None = None, dry_run: bool = False) -> dict:
         "the session wrote no direction record"]
     dropped = director_concerns.carry_problems(before_raw, after_raw) if after_raw is not None \
         else []
-    problems = problems + dropped
+    # THE TRIAGE REFUSALS bind the WRITE and never the read (`direction.wrong_triage_problems`):
+    # a retired item listed again, or an untriaged one carried past WRONG_CARRY_TRIAGE_DAYS.
+    untriaged = direction_mod.wrong_triage_problems(after_raw) if after_raw is not None else []
+    problems = problems + dropped + untriaged
 
     if problems:
-        if dropped and before_bytes is not None:
+        if (dropped or untriaged) and before_bytes is not None:
             # RESTORED, because the file IS the list: leave the session's overwrite on disk and
             # the next orientation reads a record with the concern already gone, carries nothing,
-            # and passes. This file is inside the seat's own write scope.
+            # and passes. This file is inside the seat's own write scope. A triage refusal is
+            # restored for the reader's sake: `read_direction` does not run the triage check, so
+            # a refused record left on disk would steer the draw as if it had been accepted.
             direction_mod.DIRECTION_PATH.write_bytes(before_bytes)
             row["restored_previous_record"] = True
         # FAIL-CLOSED ON THE ARTEFACT, and this is the one place the seat does not fail soft: a
@@ -2585,6 +2601,26 @@ def orient(now: datetime | None = None, dry_run: bool = False) -> dict:
             "[{}] {} -- proposal: {}".format(i, by_id[i]["what"], by_id[i]["proposal"])
             for i in fresh[:2]), topic_class="decision_waiting")
     row["concerns_paged"] = fresh
+    return row
+
+
+def record_session_did_not_run(row: dict, why: str, detail: str, before) -> dict:
+    """The session never oriented: record it REFUSED, page, and land NOTHING.
+
+    11:24Z 2026-10-07: the spawn died before the session started, and `orient` carried on as if
+    it had run. The record it then validated was the shared working copy's, untouched, so the row
+    read `oriented` and `commit_direction` landed that stale copy over origin (a42daa6a0),
+    reverting 1cd4bda0e's triage. Whatever is on disk after a failed session is not this stretch's
+    direction, so nothing is committed; the row stays in the working copy's `decisions.jsonl` and
+    lands with the next orientation's record."""
+    reason = f"the orienting session did not run: {detail}"
+    row.update({"outcome": "refused", "why": why, "session": detail, "ran": False,
+                "committed": False, "problems": [reason],
+                "focus": list(before.focus_keys()) if before else []})
+    _log(f"REFUSED: {reason}")
+    _notify("delivery seat: " + reason[:300] + " -- origin's steer is the previous stretch's",
+            topic_class="blocked_work")
+    direction_mod.append_decision(row)
     return row
 
 

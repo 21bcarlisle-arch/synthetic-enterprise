@@ -2,6 +2,8 @@
 
 from unittest.mock import MagicMock, patch
 
+import pytest
+
 import sim.system_prices_history as sph
 
 
@@ -32,15 +34,25 @@ def test_two_days_concatenates_records():
     assert len(result) == 3
 
 
-def test_non_200_skips_that_day():
-    day1_records = [_record("2022-01-01", 1)]
-    responses = iter([_mock_response([], status=404), _mock_response(day1_records)])
+def test_a_persistent_non_200_refuses_the_range_naming_the_day():
+    # A non-200 is a failed fetch. Reading it as an empty day returned 144,361 of 168,026
+    # records on 2026-10-07 and built a world with Q3 2020 missing.
+    with patch.object(sph._session, "get", return_value=_mock_response([], status=429)), \
+            patch.object(sph.time, "sleep"):
+        with pytest.raises(sph.SystemPricesFetchError, match="2022-01-01.*HTTP 429"):
+            sph.get_system_prices_range("2022-01-01", "2022-01-02")
 
-    with patch.object(sph._session, "get", side_effect=lambda url: next(responses)):
-        result = sph.get_system_prices_range("2022-01-01", "2022-01-02")
 
-    # day1 returned 404 → 0 records; day2 returned 1 record
-    assert len(result) == 1
+def test_a_transient_non_200_is_retried_and_the_day_is_kept():
+    # The control over the other branch: a retry that never succeeds would pass the test above.
+    day1_records = [_record("2022-01-01", p) for p in range(1, 3)]
+    responses = iter([_mock_response([], status=503), _mock_response(day1_records)])
+
+    with patch.object(sph._session, "get", side_effect=lambda url: next(responses)), \
+            patch.object(sph.time, "sleep"):
+        result = sph.get_system_prices_range("2022-01-01", "2022-01-01")
+
+    assert len(result) == 2
 
 
 def test_empty_data_field_returns_empty():

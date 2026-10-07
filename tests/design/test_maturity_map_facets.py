@@ -55,6 +55,11 @@ REVIEWED_CLOSE_TO_LEARN = {
     # no customer -- what it changes is whether the machine can find its own work, the same class
     # as its H_harness siblings H30 and H42.
     "H45_the_queue_is_chained_to_the_map",
+    # 2026-10-07 reviewed (autonomous worker, H40's class fix). H50 makes a run entry point leave
+    # no state for the next run in its process. It changes no price or bill in a single run; what
+    # it protects is whether two in-process arms of one A/B differ only by their policy, which is
+    # knowledge about results, the same harness class as H45 above.
+    "H50_a_run_entry_point_leaves_no_state_behind",
     # A45 re-tests what THE MODEL ON A PAGE claims against what the code does. It writes no
     # capability; it measures whether a claim already made is still true, which is exactly the
     # class A9_market_at_the_seams_design_law was reviewed into two weeks earlier.

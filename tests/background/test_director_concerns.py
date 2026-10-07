@@ -35,6 +35,8 @@ def record_file(tmp_path, monkeypatch):
         _record(), sort_keys=False), encoding="utf-8")
     monkeypatch.setattr(d, "DIRECTION_PATH", path)
     monkeypatch.setattr(d, "DECISIONS_PATH", tmp_path / "decisions.jsonl")
+    # `orient()` also grades `wrong` against the triage register; keep the real one out.
+    monkeypatch.setattr(d, "WRONG_TRIAGE_PATH", tmp_path / "wrong_triage.yaml")
     return path
 
 
@@ -224,3 +226,27 @@ def test_the_brief_and_prompt_hand_the_open_concerns_back(record_file):
     assert "CARRY EVERY ONE FORWARD" in text and rows[0]["id"] in text and GOOD_PROPOSAL in text
     assert text.index(rows[0]["id"]) < text.index("THE STRETCH, assembled from git")
     assert "NO OPEN CONCERNS" in seat._prompt({"shape": {}, "running": {}, "ended": {}})
+
+
+def test_a_session_that_did_not_run_is_REFUSED_PAGED_and_lands_NOTHING(monkeypatch, record_file):
+    """11:24Z 2026-10-07: the spawn died, the untouched working copy validated, the row read
+    `oriented` and that stale copy was landed over origin. Both branches through `orient()`: a
+    session that ran is oriented and committed; one that did not is refused, paged, uncommitted.
+    MUTATION (must fire): drop the `if not ran` return from `orient`."""
+    commits: list = []
+    pages: list = []
+    row = _drive_orient(monkeypatch, record_file, _record(), pages)
+    monkeypatch.setattr(seat, "commit_direction", lambda: (commits.append(1), (True, "x"))[1])
+    row = seat.orient()
+    assert row["outcome"] == "oriented" and commits == [1], "the ran branch must stay reachable"
+
+    commits.clear()
+    pages.clear()
+    monkeypatch.setattr(seat, "run_session", lambda b: (
+        False, "spawn failed: OSError(7, 'Argument list too long')"))
+    row = seat.orient()
+    assert commits == [], "a session that never ran had its working copy landed as direction"
+    last = d.read_decisions(limit=1)[0]
+    assert last["outcome"] == "refused" and last["ran"] is False
+    assert "Argument list too long" in last["problems"][0]
+    assert [p[1] for p in pages] == ["blocked_work"]
