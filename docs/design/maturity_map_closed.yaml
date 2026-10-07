@@ -4800,3 +4800,21 @@
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: a real supplier setting a new customer's first monthly direct debit from the estimated annual consumption it is handed at registration, so that a customer who joins in January and one who joins in July on identical usage are put on the same monthly amount
   depends_on: []
+
+- id: W2_20_mains_gas_is_drawn_not_inferred_from_the_heating_system
+  title: "whether a property has a mains gas connection is a drawn attribute, from the same NEED rows floor area came from"
+  notes_rehomed: [gain]
+  lane: W2_customer_generator
+  value_stream: price_to_bill
+  epoch: 3
+  level_current: 2   # 2026-10-07 81732ffe2: heating drawn given the gas meter, and the register reads it
+  level_target: 2   # lowered 3->2 2026-10-07 (seat, 6314e5bc8 precedent); restore condition in the simplification record
+  loop_stage: build
+  dial_inherited: 60    # STAGE 1, minted ahead of W2_18 -- MATURITY_MAP.md §8.
+  provenance: director_ruling
+  depends_on: []
+  couples_with: [W2_18_the_housing_joint_the_sample_and_the_ceiling]
+  file_scope: ['simulation/household.py', 'simulation/population_draw.py', 'simulation/premise_population.py', 'docs/market_research/']
+  simplifications_count: 1
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a supplier that decides a household is off-grid because its gas meter read nothing this quarter."
