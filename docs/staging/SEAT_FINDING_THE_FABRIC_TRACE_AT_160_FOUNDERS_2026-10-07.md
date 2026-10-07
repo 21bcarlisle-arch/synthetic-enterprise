@@ -62,6 +62,10 @@ Output: `/var/tmp/scale-shape-ctl/armB160.json` (wall 399 s), beside `armB40.jso
   to be close to 308.8 customer-years. The predecessor finding's own limit ("one book size cannot
   show a slope") was the right caution. This reading corrects that finding's open item 1, and the
   correction goes beside it.
+  **Correction (2026-10-07, founders-only re-run):** this holds for the *campaign* book, where the
+  trace count barely moves. Founders-only, the trace count grows with founders (21 → 60), and at
+  the old list layout the trace was about 0.61 of the 1.35 founders-only slope, roughly 45%. At
+  arrays it is 0.26 of 1.11. See `SEAT_FINDING_THE_FOUNDERS_ONLY_SLOPE_AT_CURRENT_CODE_2026-10-07.md`.
 - **Q5 holds:** 2,141 MB. At this code the 40→160 peak difference is +41 MB over +177.1
   customer-years, about 0.23 MB each. **I cannot attribute that number.** The campaign settles 138
   wins at 40 founders and 32 at 160, so founder count and campaign share both changed.
