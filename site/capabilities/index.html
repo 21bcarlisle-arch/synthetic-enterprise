@@ -2208,10 +2208,30 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
     /* WHETHER THERE IS A FOURTH COLUMN AT ALL, decided once from the producer's own field rather
        than per row, so the header and every body row can never disagree about the width. */
     var hasRobustness = !be.why_no_robustness_column;
+    /* THE PER-WIN COLUMN, in lower case on purpose: the counting control over the totals column
+       counts its upper-case position words, and this is a second reading of the same lines, not
+       more lines. Its basis sentence is the artefact's and renders under the table. */
+    var PER_WIN_WORDS = { inside: "inside the span", above_all: "above every blind book",
+                          below_all: "below every blind book" };
+    var perWin = function (pw) {
+      if (!pw) return '<span style="color:var(--amber);">not carried on this publish</span>';
+      if (!pw.available) {
+        return '<span style="color:var(--amber);">withheld: ' + prose(pw.why_not || "") + "</span>";
+      }
+      var z = pw.distance_in_standard_errors;
+      return '<span style="color:' + (pw.worse_for_the_chosen_book === true ? "var(--amber)"
+                                       : "var(--muted)") + ';">'
+        + esc(PER_WIN_WORDS[pw.position] || pw.position)
+        + (pw.distance_pct === null || pw.distance_pct === undefined ? ""
+           : ", by " + esc(pct(pw.distance_pct, true)))
+        + (z === null || z === undefined ? "" : " (" + esc(Math.abs(Number(z)).toFixed(1))
+           + " standard errors)")
+        + (pw.worse_for_the_chosen_book === true ? " &mdash; worse" : "") + "</span>";
+    };
     var rows = (be.lines || []).map(function (line) {
       var head = '<tr><td style="padding:4px 10px 4px 0;">' + esc(line.label) + "</td>";
       if (!line.available) {
-        return head + '<td colspan="' + (hasRobustness ? 3 : 2)
+        return head + '<td colspan="' + (hasRobustness ? 4 : 3)
           + '" style="padding:4px 0;color:var(--amber);">'
           + "<strong>WITHHELD.</strong> "
           + prose(line.why_not || "This line is not carried by every arm, so no span over them "
@@ -2229,6 +2249,8 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
         + (line.distance_pct === null || line.distance_pct === undefined ? ""
            : ", by " + esc(pct(line.distance_pct, true)))
         + (worse === true ? " &mdash; WORSE" : "") + "</td>"
+        + '<td style="padding:4px 10px 4px 0;font-size:12px;">' + perWin(line.per_weighted_win)
+        + "</td>"
         + (!hasRobustness ? "" :
            '<td style="padding:4px 0;font-size:11.5px;color:'
            + (survives === false ? "var(--amber)" : "var(--muted)") + ';">'
@@ -2253,7 +2275,7 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
                     + "money it did not make." : "")
       + "</p>"
       /* `table-scroll`, never an inline `overflow-x:auto` -- the mobile control counts the CLASS,
-         so an inline equivalent reads as a missing wrapper. This is a four-column table and the
+         so an inline equivalent reads as a missing wrapper. This is a four- or five-column table and the
          widest cell is a whole sentence, so on a phone it is exactly the table that would scroll
          the body if it were left unwrapped. */
       + '<div class="table-scroll">'
@@ -2262,7 +2284,9 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
       + '<th style="font-weight:600;padding:0 10px 4px 0;">line</th>'
       + '<th style="font-weight:600;text-align:right;padding:0 10px 4px 0;">how far apart the '
       + "blind books sit</th>"
-      + '<th style="font-weight:600;padding:0 10px 4px 0;">where the chosen book sits</th>'
+      + '<th style="font-weight:600;padding:0 10px 4px 0;">where the chosen book sits, on the '
+      + "run's unweighted totals</th>"
+      + '<th style="font-weight:600;padding:0 10px 4px 0;">per settlement-weighted win</th>'
       + (!hasRobustness ? "" :
          '<th style="font-weight:600;padding:0 0 4px;">if the second-hand arm is dropped</th>')
       + "</tr>"
@@ -2286,6 +2310,7 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
              return "<em>" + esc(x.label) + "</em> &mdash; " + prose(x.why || "");
            }).join(" ")
          + "</p>")
+      + caveat("What the two columns count.", be.per_weighted_win_basis)
       + caveat("No robustness column.", be.why_no_robustness_column)
       + caveat("The second-hand arm.", be.second_hand_caveat)
       + caveat("These are orderings, not intervals.", be.one_seed)

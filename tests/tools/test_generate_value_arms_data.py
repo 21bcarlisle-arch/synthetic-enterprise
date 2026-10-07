@@ -9776,6 +9776,60 @@ def test_the_robustness_column_IS_reported_when_a_second_hand_arm_IS_in_the_span
         "a second-hand arm sits in the span and no line says whether the verdict turns on it")
 
 
+def _with_per_win(doc, per_win, se=None):
+    """`doc` with each arm's per-weighted-win gross margin set from `per_win` (None = no block)."""
+    for arm, value in zip(doc["arms"], per_win):
+        if value is not None:
+            arm["per_weighted_win"] = {"figures": {"gross_margin_gbp": value},
+                                       "standard_error": {"gross_margin_gbp": se},
+                                       "kish_effective_n": 28.1}
+    return doc
+
+
+def test_the_per_win_position_is_read_off_the_per_win_figures_and_not_the_totals():
+    """THE DEFECT (2026-10-07): the chosen book's totals were an unweighted sum of a sample drawn for
+    difference, compared with culls whose accounts all stand for the same number of wins. Its two
+    excess write-offs stood for ZERO wins. A per-win column that echoed the totals' position would
+    publish that artefact twice.
+
+    One variable: identical totals (chosen ABOVE every blind arm), per-win figures that put it
+    BELOW. Both readings must be reachable, so the control is over the pair.
+    """
+    live = _live_home_digest()
+    below = gva._blind_envelope(_with_per_win(_arms_doc([live] * 4), [100.0, 110.0, 120.0, 90.0], 5.0))
+    above = gva._blind_envelope(_with_per_win(_arms_doc([live] * 4), [100.0, 110.0, 120.0, 130.0], 5.0))
+    assert below["available"] and above["available"], below.get("why_not")
+    totals = below["lines"][0]["position"]
+    assert totals == above["lines"][0]["position"] == "above_all"
+    assert below["lines"][0]["per_weighted_win"]["position"] == "below_all"
+    assert above["lines"][0]["per_weighted_win"]["position"] == "above_all"
+    assert below["lines"][0]["per_weighted_win"]["worse_for_the_chosen_book"] is True
+    assert above["lines"][0]["per_weighted_win"]["worse_for_the_chosen_book"] is False
+
+
+def test_the_per_win_distance_is_scaled_by_the_error_both_samples_carry():
+    """`distance_in_standard_errors` = (chosen - nearest) / sqrt(se_c^2 + se_n^2): 90 against a
+    nearest 100, both at se 5, is -10 / 7.07. With no error stated it is None, never 0 or infinity."""
+    live = _live_home_digest()
+    line = gva._blind_envelope(_with_per_win(
+        _arms_doc([live] * 4), [100.0, 110.0, 120.0, 90.0], 5.0))["lines"][0]["per_weighted_win"]
+    assert abs(line["distance_in_standard_errors"] - (-10.0 / 50.0 ** 0.5)) < 1e-9
+    bare = gva._blind_envelope(_with_per_win(
+        _arms_doc([live] * 4), [100.0, 110.0, 120.0, 90.0], None))["lines"][0]["per_weighted_win"]
+    assert bare["available"] is True and bare["distance_in_standard_errors"] is None
+
+
+def test_an_arm_with_no_per_win_block_withholds_that_column_by_name_and_leaves_the_totals():
+    """A per-win span over three arms published as one over four is the shape `_blind_line` refuses.
+    The withheld column names the arm; the totals column, which every arm carries, still renders."""
+    live = _live_home_digest()
+    out = gva._blind_envelope(_with_per_win(_arms_doc([live] * 4), [100.0, None, 120.0, 90.0], 5.0))
+    line = out["lines"][0]
+    assert line["available"] is True and line["position"] == "above_all"
+    assert line["per_weighted_win"]["available"] is False
+    assert "ARM B" in line["per_weighted_win"]["why_not"]
+
+
 # ---------------------------------------------------------------------------
 # THE DISCRIMINATION READING BESIDE THE ADVANTAGE (2026-09-17)
 #

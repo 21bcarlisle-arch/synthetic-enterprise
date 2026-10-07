@@ -8097,6 +8097,54 @@ def test_MUTATION_the_number_of_blind_books_in_the_HEADING_follows_the_feed():
         "under it and nothing here would notice")
 
 
+def _per_win_feed(per_win, basis="BASIS-SENTENCE the totals sum each settled book unweighted"):
+    """The live feed with every available line's per-weighted-win reading set to `per_win`."""
+    feed = copy.deepcopy(_live_feed())
+    feed["blind_envelope"]["per_weighted_win_basis"] = basis
+    for line in feed["blind_envelope"]["lines"]:
+        if line.get("available"):
+            line["per_weighted_win"] = copy.deepcopy(per_win)
+    return feed
+
+
+def test_MUTATION_the_per_win_reading_reaches_the_reader_beside_the_totals():
+    """THE DEFECT (2026-10-07): the only comparison against the flat-rule baseline ranked an
+    unweighted total of a sample drawn for DIFFERENCE against culls that weight every account the
+    same. The per-win reading is the like-for-like one; a page that carries it only in the feed
+    publishes the misleading column alone.
+
+    Both branches, one variable: the same per-win block at two positions, and its withheld form.
+    The withheld branch must render the producer's own reason, never a blank cell.
+    """
+    _blind()
+    below = {"available": True, "position": "below_all", "distance_pct": -16.2,
+             "distance_in_standard_errors": -1.07, "worse_for_the_chosen_book": True}
+    above = dict(below, position="above_all", distance_pct=3.0, distance_in_standard_errors=0.4,
+                 worse_for_the_chosen_book=False)
+    lo = _render(_per_win_feed(below))["arms-blind-envelope"]
+    hi = _render(_per_win_feed(above))["arms-blind-envelope"]
+    assert "below every blind book, by -16.20% (1.1 standard errors)" in lo, lo[-1500:]
+    assert "above every blind book, by +3.00% (0.4 standard errors)" in hi
+    assert "per settlement-weighted win" in lo and "BASIS-SENTENCE" in lo, (
+        "the per-win column renders with no header or no statement of what it counts")
+    gone = _render(_per_win_feed({"available": False,
+                                  "why_not": "ARM Q carries no per-weighted-win figures"}))
+    assert "withheld: ARM Q carries no per-weighted-win figures" in gone["arms-blind-envelope"]
+
+
+def test_the_per_win_column_adds_no_UPPER_CASE_position_words_to_the_totals_count():
+    """The totals column is controlled by COUNTING its position words. A per-win column that reused
+    them would double the count and either red that control or, worse, let a wrong totals row hide
+    behind a per-win word. The per-win words are lower case for exactly that reason."""
+    block = _blind()
+    text = _render(_per_win_feed({"available": True, "position": "below_all", "distance_pct": -1.0,
+                                  "distance_in_standard_errors": None}))["arms-blind-envelope"]
+    for state, word in _BLIND_POSITION_WORDS.items():
+        expected = sum(1 for ln in block["lines"]
+                       if ln.get("available") and ln.get("position") == state)
+        assert text.count(word) == expected, (state, text.count(word), expected)
+
+
 def test_MUTATION_a_blind_envelope_the_producer_WITHHELD_renders_its_reason_and_not_a_gap():
     """FAIL CLOSED, ON THE SURFACE. A block that simply vanishes when its artefact goes missing
     reads to a reader as a comparison nobody thought to make, which is exactly the state this page

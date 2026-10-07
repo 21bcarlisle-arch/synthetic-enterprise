@@ -42,7 +42,7 @@
       "sees_fabric": false,
       "first_hand": true,
       "world_digest": "cdba75ebb9197b33",
-      "read_from": "~/.cache/seat_lane0_20261006b/arm_cull.json",
+      "read_from": "~/.cache/seat_lane0_20261007_weighted/arm_cull.json",
       "figures": {
         "gross_margin_gbp": 362429.91018070834,
         "revenue_gbp": 630396.0430242595,
@@ -75,26 +75,48 @@
         "risk_committee": "deterministic mock -- `sim.risk_committee_agent._call_mock`, no LLM call, every wake-up increases every hedge fraction by the minimum +0.10",
         "read_from": "`SIM_FAST_MODE` in the environment of the process that ran the world, at stamping time, via the same predicate `sim.risk_committee_agent.invoke` branched on"
       },
-      "demand_digest": "b422b3dd8de98b8c"
+      "demand_digest": "b422b3dd8de98b8c",
+      "per_weighted_win": {
+        "wins": 495.6128,
+        "settled_accounts": 61,
+        "kish_effective_n": 61.0,
+        "settlement_selection": "uniform_count",
+        "figures": {
+          "gross_margin_gbp": 2601.897316469322,
+          "revenue_gbp": 4854.028692318554,
+          "net_margin_gbp": 879.1518401967213,
+          "net_after_cost_to_serve_gbp": 600.3940832538356,
+          "bad_debt_gbp": 75.66278688524594
+        },
+        "standard_error": {
+          "gross_margin_gbp": 302.0531819615006,
+          "revenue_gbp": 576.980576380066,
+          "net_margin_gbp": 108.41859870706114,
+          "net_after_cost_to_serve_gbp": 87.31553433493441,
+          "bad_debt_gbp": 24.866128708629063
+        },
+        "accounts_with_a_weight_and_no_settled_pnl": [],
+        "read_from": "~/.cache/seat_lane0_20261007_weighted/arm_cull.json (`_p6_campaign.settled` weights, `per_customer_lifetime`, `_per_cid_bad_debt`)"
+      }
     },
     {
       "key": "C_cull_count_matched",
-      "label": "ARM C -- the cull truncated to the chosen book's count (57 accounts)",
+      "label": "ARM C -- the cull truncated to the chosen book's count (52 accounts)",
       "sees_fabric": false,
       "first_hand": true,
       "world_digest": "cdba75ebb9197b33",
-      "read_from": "~/.cache/seat_lane0_20261006b/arm_cull57.json",
+      "read_from": "~/.cache/seat_lane0_20261007_weighted/arm_cull52.json",
       "figures": {
-        "gross_margin_gbp": 362661.57077862776,
-        "revenue_gbp": 634849.7053207216,
-        "bad_debt_gbp": 6987.7,
-        "net_margin_gbp": 123248.884444,
-        "net_after_cost_to_serve_gbp": 81308.01087093951
+        "gross_margin_gbp": 338439.35312126484,
+        "revenue_gbp": 584109.4239774967,
+        "bad_debt_gbp": 10258.92,
+        "net_margin_gbp": 108330.695896,
+        "net_after_cost_to_serve_gbp": 71236.74441198075
       },
       "producing_commit": {
         "commit": "fc47cd363",
         "launch_label": "blind-arms-demand-b422-20261006",
-        "resolved_at": "2026-10-06T22:20:34Z",
+        "resolved_at": "2026-10-07T03:08:29Z",
         "resolved_when": "at process start, before the world ran -- this is the commit whose code drew every figure below",
         "launch_label_is_not_the_commit": "`launch_label` is kept SEPARATE and is NOT a sha. It is the string the 09-11 launcher passed as `code_commit`, which `reconcile_and_stamp` wrote straight into `producing_commit.commit` with no check that it was a sha -- the defect named in SEAT_FINDING_A_LAUNCH_LABEL_PASSES_THE_PRODUCING_COMMIT_GUARD_AND_IS_PUBLISHED_AS_A_SHA. It is retained so that the 09-11 artefacts stay identifiable, and it is in its own field so it can never again be read as a commit."
       },
@@ -117,7 +139,29 @@
         "read_from": "`SIM_FAST_MODE` in the environment of the process that ran the world, at stamping time, via the same predicate `sim.risk_committee_agent.invoke` branched on"
       },
       "demand_digest": "b422b3dd8de98b8c",
-      "count_matched_to_B": "ARM C is defined as the systematic cull forced to ARM B's account count. On 09-11 and 09-15 B settled 83, so the arm ran as `cull83`. On 2026-10-06 B settles 57 and the cull itself only 62, so 83 accounts cost more than the headroom: the truncated chooser returns None and the run falls back to the plain cull. The `cull83` run was made (~/.cache/seat_lane0_20261006/arm_cull83.json) and is identical to ARM A on all five lines. Filing it would count one book twice. So the arm was re-run as `cull57`."
+      "count_matched_to_B": "ARM C is defined as the systematic cull forced to ARM B's account count. On 09-11 and 09-15 B settled 83, so the arm ran as `cull83`. On 2026-10-06 B settles 57 and the cull itself only 62, so 83 accounts cost more than the headroom: the truncated chooser returns None and the run falls back to the plain cull. The `cull83` run was made (~/.cache/seat_lane0_20261006/arm_cull83.json) and is identical to ARM A on all five lines. Filing it would count one book twice. So the arm was re-run as `cull57`. CORRECTED 2026-10-07: 57 was not B's count in the run. arm_rerun.py read it from a SEPARATE seed-42 cross-check campaign; the run's own campaign (seed 20260724) settles 52 in B. arm_rerun.py now reads `_p6_campaign` from the run's own memo, and ARM C is re-run as `cull52`. The cull57 figures are kept under `re_run_2026-10-06.verdict_2026-10-07`.",
+      "per_weighted_win": {
+        "wins": 497.0004,
+        "settled_accounts": 52,
+        "kish_effective_n": 52.0,
+        "settlement_selection": "chosen_weighted",
+        "figures": {
+          "gross_margin_gbp": 2589.705370733717,
+          "revenue_gbp": 4802.328660812574,
+          "net_margin_gbp": 884.59753825,
+          "net_after_cost_to_serve_gbp": 585.6776938962932,
+          "bad_debt_gbp": 122.88134615384621
+        },
+        "standard_error": {
+          "gross_margin_gbp": 267.57047653168047,
+          "revenue_gbp": 542.8422421626939,
+          "net_margin_gbp": 111.11113683911718,
+          "net_after_cost_to_serve_gbp": 90.6034412653231,
+          "bad_debt_gbp": 66.0413976297421
+        },
+        "accounts_with_a_weight_and_no_settled_pnl": [],
+        "read_from": "~/.cache/seat_lane0_20261007_weighted/arm_cull52.json (`_p6_campaign.settled` weights, `per_customer_lifetime`, `_per_cid_bad_debt`)"
+      }
     },
     {
       "key": "D_tenure",
@@ -125,7 +169,7 @@
       "sees_fabric": false,
       "first_hand": true,
       "world_digest": "cdba75ebb9197b33",
-      "read_from": "~/.cache/seat_lane0_20261006b/arm_tenure.json",
+      "read_from": "~/.cache/seat_lane0_20261007_weighted/arm_tenure.json",
       "figures": {
         "gross_margin_gbp": 360731.6127633774,
         "revenue_gbp": 633492.0997163127,
@@ -158,7 +202,31 @@
         "risk_committee": "deterministic mock -- `sim.risk_committee_agent._call_mock`, no LLM call, every wake-up increases every hedge fraction by the minimum +0.10",
         "read_from": "`SIM_FAST_MODE` in the environment of the process that ran the world, at stamping time, via the same predicate `sim.risk_committee_agent.invoke` branched on"
       },
-      "demand_digest": "b422b3dd8de98b8c"
+      "demand_digest": "b422b3dd8de98b8c",
+      "per_weighted_win": {
+        "wins": 496.9999,
+        "settled_accounts": 60,
+        "kish_effective_n": 48.3,
+        "settlement_selection": "chosen_weighted",
+        "figures": {
+          "gross_margin_gbp": 2875.760448290154,
+          "revenue_gbp": 5561.4177906536,
+          "net_margin_gbp": 982.7893597453656,
+          "net_after_cost_to_serve_gbp": 674.501283255867,
+          "bad_debt_gbp": 128.27696815029543
+        },
+        "standard_error": {
+          "gross_margin_gbp": 377.12539459048514,
+          "revenue_gbp": 750.9793125443847,
+          "net_margin_gbp": 136.81826205006374,
+          "net_after_cost_to_serve_gbp": 111.93463333847643,
+          "bad_debt_gbp": 49.48009838813699
+        },
+        "accounts_with_a_weight_and_no_settled_pnl": [
+          "PROS-2016-0118"
+        ],
+        "read_from": "~/.cache/seat_lane0_20261007_weighted/arm_tenure.json (`_p6_campaign.settled` weights, `per_customer_lifetime`, `_per_cid_bad_debt`)"
+      }
     },
     {
       "key": "B_chosen",
@@ -166,7 +234,7 @@
       "sees_fabric": true,
       "first_hand": true,
       "world_digest": "cdba75ebb9197b33",
-      "read_from": "~/.cache/seat_lane0_20261006b/arm_chosen.json",
+      "read_from": "~/.cache/seat_lane0_20261007_weighted/arm_chosen.json",
       "figures": {
         "gross_margin_gbp": 370873.84634844336,
         "revenue_gbp": 642624.6798443797,
@@ -199,7 +267,29 @@
         "risk_committee": "deterministic mock -- `sim.risk_committee_agent._call_mock`, no LLM call, every wake-up increases every hedge fraction by the minimum +0.10",
         "read_from": "`SIM_FAST_MODE` in the environment of the process that ran the world, at stamping time, via the same predicate `sim.risk_committee_agent.invoke` branched on"
       },
-      "demand_digest": "b422b3dd8de98b8c"
+      "demand_digest": "b422b3dd8de98b8c",
+      "per_weighted_win": {
+        "wins": 497.0001,
+        "settled_accounts": 52,
+        "kish_effective_n": 28.1,
+        "settlement_selection": "chosen_weighted",
+        "figures": {
+          "gross_margin_gbp": 2561.9951289475657,
+          "revenue_gbp": 4866.832941980759,
+          "net_margin_gbp": 899.2347713576306,
+          "net_after_cost_to_serve_gbp": 606.7234417749221,
+          "bad_debt_gbp": 47.137201950261215
+        },
+        "standard_error": {
+          "gross_margin_gbp": 331.9138180616175,
+          "revenue_gbp": 698.8128059819073,
+          "net_margin_gbp": 120.64593090146856,
+          "net_after_cost_to_serve_gbp": 88.88727207351162,
+          "bad_debt_gbp": 25.742777119279406
+        },
+        "accounts_with_a_weight_and_no_settled_pnl": [],
+        "read_from": "~/.cache/seat_lane0_20261007_weighted/arm_chosen.json (`_p6_campaign.settled` weights, `per_customer_lifetime`, `_per_cid_bad_debt`)"
+      }
     },
     {
       "key": "Cprime_other_seat",
@@ -328,7 +418,49 @@
       "where_the_bad_debt_is": "B - C bad debt +7,280 = B-only accounts 10,313 - C-only 3,037; founders and shared accounts ~0. Two B-only accounts carry 8,654 (119% of it): PROS-2016-0098 (5,337) and PROS-2020-0002 (3,317, mostly its gas leg). B's own sampler weights BOTH at 0.0, and the totals above sum the settled book unweighted.",
       "verdict": "Neither an inference gap in selection nor an honest loss of per-customer view. The selection is the world-side settlement sampler (simulation/settlement_choice.py), not a company decision. At signup nothing separated the two accounts (both direct debit). The company's own payment score had one at CRITICAL for 30 months before write-off. Weighted by the sampler's own weights, B's bad debt is 47.1 per commercial win against C's 54.7, and B's net deficit (-174.1 per win, -16%) is entirely gross margin per win. That cause is not yet established. Unweighted totals of a sample chosen for difference are not comparable with self-weighting arms.",
       "correction_beside_harness_unchanged": "ARM C is NOT count-matched to B in the run. The run's own campaign (seed 20260724) settles 52 accounts in B and 57 in C. The 57 read from `_p6_campaign.settled_wins` comes from arm_rerun.py's separate seed-42 cross-check campaign, whose winners are different accounts. The count-matched arm is cull52.",
-      "result_record": "docs/staging/records/SEAT_RESULT_THE_CHOSEN_BOOKS_EXCESS_BAD_DEBT_IS_TWO_ZERO_WEIGHT_ACCOUNTS_AND_WEIGHTED_IT_IS_THE_LOWER_2026-10-07.md"
+      "result_record": "docs/staging/records/SEAT_RESULT_THE_CHOSEN_BOOKS_EXCESS_BAD_DEBT_IS_TWO_ZERO_WEIGHT_ACCOUNTS_AND_WEIGHTED_IT_IS_THE_LOWER_2026-10-07.md",
+      "superseded_arm_C_cull57": {
+        "why": "not count-matched to B in the run: its 57 was the seed-42 cross-check campaign's count. Replaced by cull52.",
+        "figures": {
+          "gross_margin_gbp": 362661.57077862776,
+          "revenue_gbp": 634849.7053207216,
+          "bad_debt_gbp": 6987.7,
+          "net_margin_gbp": 123248.884444,
+          "net_after_cost_to_serve_gbp": 81308.01087093951
+        },
+        "read_from": "~/.cache/seat_lane0_20261006b/arm_cull57.json"
+      }
+    },
+    "verdict_2026-10-07_weighted_per_win": {
+      "what": "Every first-hand arm re-run on arm_rerun.py reading `_p6_campaign` from the run's OWN campaign memo (seed 20260724) and writing each settled account's weight and bad debt. A, D and B reproduce their filed totals exactly. ARM C re-run as cull52, count-matched to B's own 52. Each arm now carries a measured `per_weighted_win` block.",
+      "settled_counts_corrected": {
+        "A_cull": 61,
+        "C_cull_count_matched": 52,
+        "D_tenure": 60,
+        "B_chosen": 52,
+        "why": "the `settled_counts` above (62/57/59/57) were the seed-42 cross-check's, not the run's"
+      },
+      "prediction": "~/.cache/seat_lane0_20261007_weighted/prediction.txt, 2026-10-07T02:45:13Z, before cull52 was launched",
+      "verdict": "Per weighted win B is INSIDE the blind span on revenue, net margin and net after cost to serve, below every blind book on gross margin by 1.07% (0.06 standard errors) and on bad debt by 37.7% (0.8 SE, the better side). Against the count-matched cull52 B is +14.6/win on net and -27.7/win on gross. The -174/win net deficit against cull57 was C57's sampling error: cull52 and cull57, two uniform culls of the same 497 wins, differ by 189/win on net. B's Kish effective n is 28.1 of 52, so its error (+-121 net/win) is wider than the whole blind span (879-983). Indistinguishable at one seed.",
+      "gross_margin_deficit_against_C57_decomposed": {
+        "total_gbp_per_win": -230.1,
+        "tenure": -502.5,
+        "volume": 407.8,
+        "margin_rate": -135.4,
+        "remainder": 0.0,
+        "method": "gross/win = settled months per weighted win x kWh per account-month x gross per kWh by fuel, Shapley-averaged over the three factors",
+        "against_cull52": {
+          "total_gbp_per_win": -27.7,
+          "tenure": -126.6,
+          "volume": 236.2,
+          "margin_rate": -137.3
+        },
+        "weight_fit_error": "not the cause: on the axes the weights are fitted on, B's weighted means are the nearest of any arm to all 497 wins (floor area 86.22 vs 86.51, fabric W/K 178.13 vs 177.67). Every leg is in realised outcomes: five accounts carry 28% of B's weight and three of them left early.",
+        "remainder_named": "the margin-rate leg is partly the volume leg seen through fixed charges; splitting it from tariff-year mix needs per-account standing and unit revenue, which the arm output does not carry",
+        "coupling": "accounts settled in both B and C57 differ by -0.09% in gross, B and cull52 by -0.15%: the arms estimate one quantity"
+      },
+      "result_record": "docs/staging/records/SEAT_RESULT_PER_WEIGHTED_WIN_THE_CHOSEN_BOOK_IS_INSIDE_THE_BLIND_SPAN_ON_NET_AND_ITS_DEFICIT_WAS_THE_NOISE_BETWEEN_TWO_CULLS_2026-10-07.md"
     }
-  }
+  },
+  "per_weighted_win_basis": "The totals sum each settled book UNWEIGHTED. The chosen book is a sample drawn for difference whose accounts stand for 0 to about 50 commercial wins each; every cull's accounts stand for the same number. So a total over the chosen book is not an estimate of what the company won, and a total over a cull is. The per-win column is the like-for-like one: each line over the acquired settled accounts, weighted by the run's own settlement weights and divided by the wins they stand for (497 in every arm). Founders stand for themselves and are outside it. The standard error is the sampling error each arm's weights earn. The chosen book's uneven weights give it an effective sample about half its count, so its error is the larger."
 }

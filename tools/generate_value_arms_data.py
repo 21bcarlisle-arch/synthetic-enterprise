@@ -16991,6 +16991,7 @@ def _blind_envelope(arms_doc: dict | None) -> dict:
             # answer is not the same for all five.
             survives_dropping_the_second_hand_arm=(
                 None if narrow is None else narrow["position"] == position),
+            per_weighted_win=_blind_line_per_win(key, blind, chosen, higher_is_better),
         ))
     return {
         "available": True,
@@ -17022,8 +17023,61 @@ def _blind_envelope(arms_doc: dict | None) -> dict:
             "every blind book in this span was read from a run output on this box, so there is no "
             "second-hand arm left to drop and no robustness column to report. The one arm held "
             "second-hand is excluded above, for its houses rather than for its provenance."),
+        # WHAT THE SECOND COLUMN COUNTS, from the artefact and never composed here. The totals
+        # above sum each settled book UNWEIGHTED, and the chosen book is a sample drawn for
+        # DIFFERENCE whose accounts stand for 0 to ~50 commercial wins each, while every cull's
+        # accounts stand for the same number. A total over the first is not an estimate of what
+        # the company won and a total over the second is, so only the per-win column compares
+        # like with like. Both are shown because the totals are what the run booked.
+        "per_weighted_win_basis": arms_doc.get("per_weighted_win_basis"),
         "lines": out_lines,
     }
+
+
+def _blind_line_per_win(key, blind: list, chosen: dict, higher_is_better=None) -> dict:
+    """The same line PER SETTLEMENT-WEIGHTED COMMERCIAL WIN, with the sampling error each arm earns.
+
+    Read from each arm's `per_weighted_win` block, which its run measured over its own campaign's
+    weights (`docs/design/blind_envelope_arms_2026-09-11.json`). Withheld with a reason when any arm
+    in the span lacks it, because a span over three arms published as a span over four is the
+    shape `_blind_line` already refuses.
+
+    `distance_in_standard_errors` is (chosen - nearest blind) / sqrt(se_chosen^2 + se_nearest^2):
+    the same two quantities `distance_pct` divides, scaled by the error both samples carry. The
+    chosen book's accounts are unevenly weighted, so its effective sample is roughly half its
+    count and its error is the larger of the two -- a position outside the span by less than one
+    of these is an ordering a re-drawn sample would reverse about as often as not.
+    """
+    blocks = [a.get("per_weighted_win") for a in blind + [chosen]]
+    if any(not isinstance(b, dict) for b in blocks):
+        missing = [a.get("label") for a, b in zip(blind + [chosen], blocks) if not isinstance(b, dict)]
+        return {"available": False, "why_not": (
+            "{} carr{} no per-weighted-win figures, so this line has no like-for-like reading"
+            .format("; ".join(str(m) for m in missing), "ies" if len(missing) == 1 else "y"))}
+    per = lambda a: {"figures": (a.get("per_weighted_win") or {}).get("figures") or {}}  # noqa: E731
+    line = _blind_line(key, [per(a) for a in blind], per(chosen))
+    if line is None:
+        return {"available": False, "why_not": (
+            "not every arm reports {!r} per weighted win".format(key))}
+    se = lambda a: _f(((a.get("per_weighted_win") or {}).get("standard_error") or {}).get(key))  # noqa: E731
+    mine_se = se(chosen)
+    nearest_se = None
+    if line["nearest_blind_gbp"] is not None:
+        nearest_arm = min(blind, key=lambda a: abs(
+            (_f(per(a)["figures"].get(key)) or 0.0) - line["nearest_blind_gbp"]))
+        nearest_se = se(nearest_arm)
+    both = mine_se is not None and nearest_se is not None and (mine_se or nearest_se)
+    position = line["position"]
+    return dict(line, available=True,
+                worse_for_the_chosen_book=(
+                    None if position == "inside" or not isinstance(higher_is_better, bool)
+                    else (position == "below_all") is bool(higher_is_better)),
+                chosen_standard_error_gbp=mine_se, nearest_blind_standard_error_gbp=nearest_se,
+                chosen_kish_effective_n=(chosen.get("per_weighted_win") or {}).get(
+                    "kish_effective_n"),
+                distance_in_standard_errors=(
+                    (line["chosen_gbp"] - line["nearest_blind_gbp"])
+                    / (mine_se ** 2 + nearest_se ** 2) ** 0.5 if both else None))
 
 
 def _blind_line(key, blind: list, chosen: dict) -> dict | None:
