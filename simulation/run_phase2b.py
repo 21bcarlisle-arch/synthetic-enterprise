@@ -2448,7 +2448,11 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             # call a test can drive, rather than the condition of a 2,000-line loop that needs a
             # decade run to reach. `term` carries its own start and end, so the two are read from
             # the same record the settlement will use.
-            _svt_hazard = inertia_hazard_for_term(term, stint_start=_stint_start)
+            from simulation.household_segments import engagement_level_for_customer
+            _svt_hazard = inertia_hazard_for_term(
+                term, stint_start=_stint_start,
+                engagement_level=engagement_level_for_customer(billing_account).value,
+            )
             # The SAME action-propensity modulator every other risk carries. Income stress and
             # tenure gate whether a household acts at all, and drifting off a default tariff is
             # an action -- `departure_risks` records why a carve-out here was rejected.

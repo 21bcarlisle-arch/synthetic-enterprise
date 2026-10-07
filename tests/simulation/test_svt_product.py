@@ -231,7 +231,8 @@ def test_an_account_on_the_svt_product_can_leave_it():
         "customer_id": "C1", "acquisition_date": "2020-01-01", "term_end": "2020-04-01",
         "tariff_type": SVT_TARIFF_TYPE, "notice_date": "2020-01-01",
     }
-    assert inertia_hazard_for_term(segment, stint_start="2020-01-01") > 0.0, (
+    assert inertia_hazard_for_term(
+        segment, stint_start="2020-01-01", engagement_level="active") > 0.0, (
         "an SVT segment carries no departure hazard, so an account assigned here is immortal: "
         "the renewal decision is the only other place run_phase2b rolls a departure, and this "
         "product correctly has none")

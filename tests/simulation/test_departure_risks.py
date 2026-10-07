@@ -24,6 +24,8 @@ from simulation.departure_risks import (
     SERVICE_IMPORTANCE,
     SVT_INERTIA_ANNUAL_LONG_STAYER,
     SVT_INERTIA_ANNUAL_RECENT,
+    SVT_INERTIA_DISENGAGED_HAZARD_SHARE,
+    SVT_INERTIA_DISENGAGED_RATIO,
     SVT_LONG_STAYER_YEARS,
     build_departure_risks,
     cause_shares,
@@ -31,6 +33,7 @@ from simulation.departure_risks import (
     resolve_departure,
     survival,
     svt_inertia_base_multiplier,
+    svt_inertia_engagement_factor,
     svt_inertia_hazard,
     total_departure_probability,
 )
@@ -40,6 +43,11 @@ from simulation.market_switching_propensity import (
 )
 
 SCALE = 0.05  # a fixed non-zero sensitivity, so these controls do not depend on the P0 fit
+
+# The SVT controls below are about tenure, conversion and the market term, so they run one engaged
+# archetype and scale their published targets by its factor. The gradient has its own controls.
+_ENG = "active"
+_ENG_FACTOR = svt_inertia_engagement_factor(_ENG)
 
 
 def _risks(**over):
@@ -365,11 +373,11 @@ def test_the_annual_anchor_recomposes_from_the_segment_hazard():
     constant-hazard so that four real cap quarters return the annual number.
     """
     year = [90, 91, 92, 92]
-    for annual, years_on in ((SVT_INERTIA_ANNUAL_RECENT, 0.0),
-                             (SVT_INERTIA_ANNUAL_LONG_STAYER, SVT_LONG_STAYER_YEARS)):
+    for annual, years_on in ((SVT_INERTIA_ANNUAL_RECENT * _ENG_FACTOR, 0.0),
+                             (SVT_INERTIA_ANNUAL_LONG_STAYER * _ENG_FACTOR, SVT_LONG_STAYER_YEARS)):
         survival_ = 1.0
         for days in year:
-            survival_ *= 1.0 - svt_inertia_hazard(years_on_svt=years_on, segment_days=days,
+            survival_ *= 1.0 - svt_inertia_hazard(engagement_level=_ENG, years_on_svt=years_on, segment_days=days,
             market_switching_multiplier=svt_inertia_base_multiplier())
         assert abs((1.0 - survival_) - annual) < 5e-4, (
             f"four cap quarters recompose to {1 - survival_:.5f}, not the published {annual}")
@@ -381,9 +389,9 @@ def test_the_annual_anchor_recomposes_from_the_segment_hazard():
 def test_a_partial_opening_segment_is_charged_for_its_own_length():
     """DEFECT: a flat per-quarter rate. A household arriving mid-quarter gets a 47-day segment;
     charging it a full quarter's hazard over-bills the one segment every SVT account has."""
-    short = svt_inertia_hazard(years_on_svt=0.0, segment_days=47,
+    short = svt_inertia_hazard(engagement_level=_ENG, years_on_svt=0.0, segment_days=47,
             market_switching_multiplier=svt_inertia_base_multiplier())
-    full = svt_inertia_hazard(years_on_svt=0.0, segment_days=92,
+    full = svt_inertia_hazard(engagement_level=_ENG, years_on_svt=0.0, segment_days=92,
             market_switching_multiplier=svt_inertia_base_multiplier())
     assert short < full
     assert abs(short / full - 47 / 92) < 0.02, "not proportional to elapsed time at these rates"
@@ -392,12 +400,12 @@ def test_a_partial_opening_segment_is_charged_for_its_own_length():
 def test_a_long_stayer_drifts_less_than_a_recent_arrival():
     """The published split (5-10% at 3+ years, 15-20% under 3) is the one piece of genuine
     per-household structure this anchor carries. Collapsing it to one rate loses it."""
-    recent = svt_inertia_hazard(years_on_svt=1.0, segment_days=91,
+    recent = svt_inertia_hazard(engagement_level=_ENG, years_on_svt=1.0, segment_days=91,
             market_switching_multiplier=svt_inertia_base_multiplier())
-    settled = svt_inertia_hazard(years_on_svt=SVT_LONG_STAYER_YEARS, segment_days=91,
+    settled = svt_inertia_hazard(engagement_level=_ENG, years_on_svt=SVT_LONG_STAYER_YEARS, segment_days=91,
             market_switching_multiplier=svt_inertia_base_multiplier())
     assert settled < recent
-    assert svt_inertia_hazard(years_on_svt=SVT_LONG_STAYER_YEARS - 0.01, segment_days=91,
+    assert svt_inertia_hazard(engagement_level=_ENG, years_on_svt=SVT_LONG_STAYER_YEARS - 0.01, segment_days=91,
             market_switching_multiplier=svt_inertia_base_multiplier()) == recent
 
 
@@ -406,7 +414,7 @@ def test_an_account_not_on_svt_carries_no_inertia_hazard():
     signals that with `segment_days <= 0` and must get exactly zero -- never a small default that
     would put an SVT cause on a household that has never been on SVT."""
     for days in (0, -1, -91):
-        assert svt_inertia_hazard(years_on_svt=0.0, segment_days=days,
+        assert svt_inertia_hazard(engagement_level=_ENG, years_on_svt=0.0, segment_days=days,
             market_switching_multiplier=svt_inertia_base_multiplier()) == 0.0
 
 
@@ -423,9 +431,9 @@ def test_the_market_term_reaches_the_hazard_and_is_not_merely_in_the_signature()
     domestic switching rate is 23.00% in 2020 and 4.30% in 2022, a 5.3x swing; the hazard must
     carry it.
     """
-    peak = svt_inertia_hazard(years_on_svt=0.0, segment_days=91,
+    peak = svt_inertia_hazard(engagement_level=_ENG, years_on_svt=0.0, segment_days=91,
                               market_switching_multiplier=market_switching_multiplier(2020))
-    trough = svt_inertia_hazard(years_on_svt=0.0, segment_days=91,
+    trough = svt_inertia_hazard(engagement_level=_ENG, years_on_svt=0.0, segment_days=91,
                                 market_switching_multiplier=market_switching_multiplier(2022))
     assert trough < peak, "the market term does not reach the hazard at all"
     assert peak / trough > 4.0, (
@@ -450,12 +458,13 @@ def test_the_published_rate_is_unchanged_inside_its_own_inference_window():
     still runs the published number.
     """
     year = (90, 91, 92, 92)
-    for annual, years_on in ((SVT_INERTIA_ANNUAL_RECENT, 0.0),
-                             (SVT_INERTIA_ANNUAL_LONG_STAYER, SVT_LONG_STAYER_YEARS)):
+    for annual, years_on in ((SVT_INERTIA_ANNUAL_RECENT * _ENG_FACTOR, 0.0),
+                             (SVT_INERTIA_ANNUAL_LONG_STAYER * _ENG_FACTOR, SVT_LONG_STAYER_YEARS)):
         for y in (2019, 2020):
             survival_ = 1.0
             for days in year:
                 survival_ *= 1.0 - svt_inertia_hazard(
+                    engagement_level=_ENG,
                     years_on_svt=years_on, segment_days=days,
                     market_switching_multiplier=market_switching_multiplier(y))
             realised = 1.0 - survival_
@@ -491,6 +500,55 @@ def test_the_market_term_is_required_so_a_caller_cannot_quietly_run_market_blind
     assert param.kind is inspect.Parameter.KEYWORD_ONLY
     with pytest.raises(TypeError):
         svt_inertia_hazard(years_on_svt=0.0, segment_days=91)
+
+
+def test_the_least_engaged_drift_off_the_default_at_the_sourced_ratio_of_the_others():
+    """DEFECT: an engagement-blind drift. Ofgem's CMOL 2017 control arm bounds the least engaged at
+    no more than 0.54x the engaged rate at the same SVT tenure; the world ran 1.0, outside the bound.
+
+    Read at the HAZARD, both tenure bands, a real market year: a gradient that reached the factor
+    function but not the hazard would leave this at 1.0.
+    """
+    for years_on in (0.0, SVT_LONG_STAYER_YEARS):
+        rate = {
+            level: svt_inertia_hazard(
+                years_on_svt=years_on, segment_days=365.25,
+                market_switching_multiplier=market_switching_multiplier(2017),
+                engagement_level=level,
+            )
+            for level in ("active", "passive", "disengaged")
+        }
+        assert rate["active"] == rate["passive"], "the source has two groups, not three"
+        # An annual segment converts back to the annual rate exactly, so the ratio is the ratio.
+        assert abs(rate["disengaged"] / rate["active"] - SVT_INERTIA_DISENGAGED_RATIO) < 1e-9, (
+            f"disengaged / engaged drift is {rate['disengaged'] / rate['active']:.3f} at "
+            f"{years_on} years on SVT, against the sourced {SVT_INERTIA_DISENGAGED_RATIO}"
+        )
+
+
+def test_the_gradient_moves_who_drifts_and_not_how_many():
+    """DEFECT: a gradient that also re-levels. The year level anchor was fitted around the SVT
+    route's total, so the change must hold the drift-weighted mean factor at 1.0 -- with the
+    DISENGAGED share of SVT drift as the weight, not its 0.20 population share."""
+    s = SVT_INERTIA_DISENGAGED_HAZARD_SHARE
+    mean = (s * svt_inertia_engagement_factor("disengaged")
+            + (1.0 - s) * svt_inertia_engagement_factor("active"))
+    assert abs(mean - 1.0) < 1e-12, f"the gradient re-levels the SVT route by {mean:.4f}"
+    assert svt_inertia_engagement_factor("active") > 1.0 > svt_inertia_engagement_factor(
+        "disengaged"), "the redistribution runs the wrong way"
+
+
+def test_an_unknown_archetype_is_refused_rather_than_given_the_engaged_rate():
+    """FAIL-CLOSED. A misspelt or enum-repr archetype silently given a factor would undo the
+    gradient on exactly the households it exists for; and the parameter has no default."""
+    import inspect
+
+    for bad in ("Disengaged", "EngagementLevel.DISENGAGED", ""):
+        with pytest.raises(ValueError):
+            svt_inertia_engagement_factor(bad)
+    param = inspect.signature(svt_inertia_hazard).parameters["engagement_level"]
+    assert param.default is inspect.Parameter.empty
+    assert param.kind is inspect.Parameter.KEYWORD_ONLY
 
 
 def test_nothing_is_on_svt_yet_so_the_fourth_cause_moves_no_published_figure():
@@ -587,11 +645,11 @@ def test_the_level_anchor_scales_the_response_risks_and_never_the_svt_route():
     #     same recomposition `test_the_annual_anchor_recomposes_from_the_segment_hazard` pins at
     #     an anchor of 1.0, run at the anchor the world actually uses -- because that test cannot
     #     see `build_departure_risks` and so could not have caught this.
-    for annual, years_on in ((SVT_INERTIA_ANNUAL_RECENT, 0.0),
-                             (SVT_INERTIA_ANNUAL_LONG_STAYER, SVT_LONG_STAYER_YEARS)):
+    for annual, years_on in ((SVT_INERTIA_ANNUAL_RECENT * _ENG_FACTOR, 0.0),
+                             (SVT_INERTIA_ANNUAL_LONG_STAYER * _ENG_FACTOR, SVT_LONG_STAYER_YEARS)):
         survival_ = 1.0
         for days in (90, 91, 92, 92):
-            hazard = svt_inertia_hazard(years_on_svt=years_on, segment_days=days,
+            hazard = svt_inertia_hazard(engagement_level=_ENG, years_on_svt=years_on, segment_days=days,
             market_switching_multiplier=svt_inertia_base_multiplier())
             survival_ *= 1.0 - _risks(
                 level_anchor=hi, svt_inertia=hazard, action_propensity=1.0

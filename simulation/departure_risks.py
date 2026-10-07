@@ -162,6 +162,53 @@ def svt_inertia_base_multiplier() -> float:
         SVT_INERTIA_BASE_WINDOW
     )
 
+
+#: THE DRIFT HAS AN ENGAGEMENT GRADIENT BEYOND TENURE (2026-10-07). Ofgem's CMOL trial (2017), no-
+#: letter control arm: the 36% who submitted no meter reading in the year switched at 0.3% in 30
+#: days, against 0.7% / 1.3% for the two tenure bands. 0.3% lies outside that range, so in at least
+#: one band the non-readers leave at no more than 0.43x the readers -- 0.54x with the bars' rounding
+#: taken at its least favourable ends. `docs/market_research/does_a_disengaged_household_leave_the_
+#: default_tariff_less_at_the_same_tenure.md` §2.
+#:
+#: 0.54 IS THE BOUND'S WEAK END, ON PURPOSE: a stickier disengaged tail flatters retention, so under
+#: the §7 tie-break the world takes the least sticky value the evidence permits. PASSIVE and ACTIVE
+#: are equal because the source has two groups, not three.
+SVT_INERTIA_DISENGAGED_RATIO = 0.54
+
+#: The DISENGAGED share of the summed SVT drift probability, MEASURED in this world rather than
+#: sourced: PB4's capture at `bebf42253` (`docs/reports/pb4_departure_factors.json`, 1,777 SVT
+#: segments) gives active 0.347 / passive 0.364 / disengaged 0.289. It is what makes the gradient
+#: a redistribution and not a new level: the others are scaled up by 1 / (1 - s(1 - ratio)) so the
+#: expected number of drifts in that capture is unchanged, and the year level anchor -- which was
+#: fitted around the SVT route's total -- is not moved by this change.
+#:
+#: SECOND-ORDER AND STATED: slower-drifting disengaged households sit on SVT longer, so their share
+#: of exposure rises after the change and the held mean is held only to first order. The population
+#: share (0.20) is NOT the right weight -- disengaged households are over-represented on the default
+#: tariff, which is the point of having them -- and would under-scale the others by about 5%.
+SVT_INERTIA_DISENGAGED_HAZARD_SHARE = 0.289
+
+
+def svt_inertia_engagement_factor(engagement_level: str) -> float:
+    """The multiplier on the annual SVT drift rate for this engagement archetype.
+
+    Takes the archetype's VALUE (`"active"`, `"passive"`, `"disengaged"`) rather than the enum, so
+    this module does not import the population draw. Anything else is a refusal, not a 1.0: a
+    misspelt archetype silently given the engaged rate would undo the gradient on exactly the
+    households it exists for.
+    """
+    others = 1.0 / (
+        1.0 - SVT_INERTIA_DISENGAGED_HAZARD_SHARE * (1.0 - SVT_INERTIA_DISENGAGED_RATIO)
+    )
+    if engagement_level == "disengaged":
+        return SVT_INERTIA_DISENGAGED_RATIO * others
+    if engagement_level in ("active", "passive"):
+        return others
+    raise ValueError(
+        f"svt_inertia_engagement_factor: {engagement_level!r} is not an engagement archetype "
+        "(active / passive / disengaged), so the SVT drift cannot be given its engagement gradient"
+    )
+
 #: THERE IS NO CALIBRATED DEFAULT, AND THE ABSENCE IS THE POINT (2026-08-30).
 #:
 #: The P0 calibration was run and it does not identify this number. Measured on the real 708-renewal
@@ -217,7 +264,11 @@ def _clip_hazard(h: float) -> float:
 
 
 def svt_inertia_hazard(
-    *, years_on_svt: float, segment_days: float, market_switching_multiplier: float
+    *,
+    years_on_svt: float,
+    segment_days: float,
+    market_switching_multiplier: float,
+    engagement_level: str,
 ) -> float:
     """The drift off a standard variable tariff, over ONE cap period of `segment_days`.
 
@@ -283,6 +334,9 @@ def svt_inertia_hazard(
     annual = (SVT_INERTIA_ANNUAL_LONG_STAYER if years_on_svt >= SVT_LONG_STAYER_YEARS
               else SVT_INERTIA_ANNUAL_RECENT)
     annual *= market_switching_multiplier / svt_inertia_base_multiplier()
+    # REQUIRED, like the market term and for the same reason: a default would keep every caller on
+    # the engagement-blind drift while the signature advertised a gradient.
+    annual *= svt_inertia_engagement_factor(engagement_level)
     # A rate cannot be negative and cannot reach 1.0 without making `-log(1 - h)` infinite. The
     # published multiplier is positive in every year the record covers, so this guards a caller
     # passing a value the record never produced, not the record itself.

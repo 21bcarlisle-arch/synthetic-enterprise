@@ -201,7 +201,9 @@ def _next_cap_period_start(day: date) -> date:
     return date(day.year + 1, CAP_PERIOD_START_MONTHS[0], 1)
 
 
-def inertia_hazard_for_term(term: dict, *, stint_start: str | None) -> float:
+def inertia_hazard_for_term(
+    term: dict, *, stint_start: str | None, engagement_level: str
+) -> float:
     """The inertia hazard this term carries, and **0.0 for anything that is not an SVT segment**.
 
     C1b. THE GUARD IS THE POINT AND IT IS WHY THIS IS A FUNCTION RATHER THAN AN `if` IN THE RUN
@@ -219,6 +221,11 @@ def inertia_hazard_for_term(term: dict, *, stint_start: str | None) -> float:
     `None` means the caller does not know, and that is treated as the stint starting at this
     segment (the RECENT band, 20%/yr), which is the higher hazard of the two: an unknown tenure
     fails toward the account being more likely to leave, never less.
+
+    `engagement_level` is the HOUSEHOLD's archetype value (`household_segments.
+    engagement_level_for_customer(...).value`), the same one its renewal decisions read. Required:
+    the drift has a sourced engagement gradient (`departure_risks.SVT_INERTIA_DISENGAGED_RATIO`), and
+    a caller that does not know the household cannot be handed the engaged rate by default.
     """
     if (term.get("tariff_type") or "") != SVT_TARIFF_TYPE:
         return 0.0
@@ -233,6 +240,7 @@ def inertia_hazard_for_term(term: dict, *, stint_start: str | None) -> float:
         years_on_svt=(segment_start - stint).days / 365.25,
         segment_days=segment_days,
         market_switching_multiplier=market_switching_multiplier(segment_start.year),
+        engagement_level=engagement_level,
     )
 
 

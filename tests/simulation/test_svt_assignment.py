@@ -133,11 +133,11 @@ def test_a_fixed_term_household_is_never_given_the_inertia_hazard(price_records)
     for term in fixed_terms:
         # `stint_start=None` is the WORST case the caller can supply: unknown tenure resolves to
         # the RECENT band, the higher of the two. If the guard leaks at all it leaks here.
-        assert inertia_hazard_for_term(term, stint_start=None) == 0.0, (
+        assert inertia_hazard_for_term(term, stint_start=None, engagement_level="active") == 0.0, (
             f"a {term.get('tariff_type')!r} term starting {term['acquisition_date']} was given "
             f"the SVT inertia hazard; it has no default tariff to drift off")
 
-    assert any(inertia_hazard_for_term(t, stint_start=None) > 0.0 for t in svt_terms), (
+    assert any(inertia_hazard_for_term(t, stint_start=None, engagement_level="active") > 0.0 for t in svt_terms), (
         "no SVT segment carries a hazard either, so the guard above is indistinguishable from a "
         "function that returns 0.0 for everything")
 
@@ -149,8 +149,9 @@ def test_the_long_stayer_band_needs_a_stint_and_not_a_tenure(price_records):
     svt = [t for t in schedule if t.get("tariff_type") == SVT_TARIFF_TYPE]
     assert svt, "no SVT segments; this control has lost its subject"
     term = svt[-1]
-    long_stayer = inertia_hazard_for_term(term, stint_start="2016-01-01")
-    unknown = inertia_hazard_for_term(term, stint_start=None)
+    long_stayer = inertia_hazard_for_term(
+        term, stint_start="2016-01-01", engagement_level="disengaged")
+    unknown = inertia_hazard_for_term(term, stint_start=None, engagement_level="disengaged")
     assert long_stayer < unknown, (
         "an unknown stint must fail toward the account being MORE likely to leave, never less: "
         f"unknown={unknown:.5f} long_stayer={long_stayer:.5f}")

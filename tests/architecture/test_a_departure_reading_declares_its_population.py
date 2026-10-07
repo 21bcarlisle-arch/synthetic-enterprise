@@ -48,6 +48,7 @@ from simulation.departure_risks import (
     ORDERED_CAUSES,
     svt_inertia_hazard,
 )
+from simulation.household_segments import engagement_level_for_customer
 from simulation.market_switching_propensity import market_switching_multiplier
 from tools.departure_population import (
     ROUTE_RENEWAL,
@@ -124,6 +125,7 @@ def _restated_svt_rows() -> tuple[list[dict], list[dict]]:
                     years_on_svt=row["sim_years_on_svt"],
                     segment_days=row["sim_segment_days"],
                     market_switching_multiplier=market_switching_multiplier(row["market_year"]),
+                    engagement_level=engagement_level_for_customer(row["customer_id"]).value,
                 )
                 * row["sim_action_propensity"],
                 6,

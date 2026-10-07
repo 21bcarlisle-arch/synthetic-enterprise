@@ -61,9 +61,11 @@ from simulation.departure_risks import (
     WORLD_MAX_CHURN_PROBABILITY,
     build_departure_risks,
     svt_inertia_base_multiplier,
+    svt_inertia_engagement_factor,
     svt_inertia_hazard,
     total_departure_probability,
 )
+from simulation.household_segments import engagement_level_for_customer
 from simulation.market_switching_propensity import (
     market_departure_rate,
     market_switching_multiplier,
@@ -179,14 +181,20 @@ def svt_composition_refusal(svt_rows: list[dict]) -> str | None:
     particular, and nothing downstream would report it: every row would still be well-formed and
     the fitted table would still print.
     """
-    unanchored = anchored = neither = market_blind = 0
+    unanchored = anchored = neither = market_blind = engagement_blind = 0
     example = None
     for row in svt_rows:
+        engagement = engagement_level_for_customer(row["customer_id"]).value
         raw = svt_inertia_hazard(
             years_on_svt=row["sim_years_on_svt"],
             segment_days=row["sim_segment_days"],
             market_switching_multiplier=market_switching_multiplier(row["market_year"]),
+            engagement_level=engagement,
         )
+        # A capture taken before the drift gained its engagement gradient (2026-10-07) reproduces
+        # with the archetype's factor divided back out. Named for the same reason as the
+        # market-blind leg below: it is "re-run the capture", not a mechanism disagreement.
+        engagement_blind_raw = raw / svt_inertia_engagement_factor(engagement)
         # THE THIRD COMPOSITION, AND IT IS A STALENESS TEST RATHER THAN A DISAGREEMENT. A capture
         # taken before the SVT hazard was given its market term reproduces exactly under a factor
         # of 1.0 -- which is what passing the base-window multiplier back in reconstructs. Without
@@ -198,7 +206,8 @@ def svt_composition_refusal(svt_rows: list[dict]) -> str | None:
             years_on_svt=row["sim_years_on_svt"],
             segment_days=row["sim_segment_days"],
             market_switching_multiplier=svt_inertia_base_multiplier(),
-        )
+            engagement_level=engagement,
+        ) / svt_inertia_engagement_factor(engagement)
         propensity = row["sim_action_propensity"]
         recorded = row["realized_churn_probability"]
         anchor = row.get("sim_level_anchor", 1.0)
@@ -208,6 +217,8 @@ def svt_composition_refusal(svt_rows: list[dict]) -> str | None:
             anchored += 1
         elif abs(market_blind_raw * propensity - recorded) <= _COMPOSITION_TOLERANCE:
             market_blind += 1
+        elif abs(engagement_blind_raw * propensity - recorded) <= _COMPOSITION_TOLERANCE:
+            engagement_blind += 1
         else:
             neither += 1
             example = example or row
@@ -219,6 +230,12 @@ def svt_composition_refusal(svt_rows: list[dict]) -> str | None:
             f"it records are the flat 0.20/0.10 the record contradicts, so fitting against them "
             f"would solve the renewal anchor around a world that no longer exists. Re-run "
             f"`tools/capture_departure_factors.py`; do not fit this table."
+        )
+    if engagement_blind:
+        return (
+            f"{engagement_blind} of {total} SVT rows reproduce under an ENGAGEMENT-BLIND hazard -- "
+            f"this capture predates the drift's engagement gradient (2026-10-07) and is stale. "
+            f"Re-run `tools/capture_departure_factors.py`; do not fit this table."
         )
     if anchored:
         return (

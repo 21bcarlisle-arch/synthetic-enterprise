@@ -48,6 +48,7 @@ import simulation.market_switching_propensity as propensity
 import tools.departure_population as departure_population
 import tools.fit_year_level_anchor as fitter
 import tools.measure_departure_level as instrument
+from simulation.household_segments import engagement_level_for_customer
 
 #: ONE READER OF THE COMMONS, and it is the instrument rather than this file. A test that parses
 #: the artefact itself would be checking a copy of the parse the measurement uses, so a reader that
@@ -854,6 +855,7 @@ def _live_svt_floor_pct() -> dict[int, float]:
             market_switching_multiplier=propensity.market_switching_multiplier(
                 int(row["market_year"])
             ),
+            engagement_level=engagement_level_for_customer(row["customer_id"]).value,
         )
         expected[year] = expected.get(year, 0.0) + hazard * float(row["sim_action_propensity"])
     return {
