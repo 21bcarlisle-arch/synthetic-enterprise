@@ -84,4 +84,70 @@ If P1 fails, the campaign is not what made the 40 run heavier, and hypothesis 3 
 
 ## Result of the control
 
-*(pending: filled when `longjob-scale-shape-ctl-budget0` finishes)*
+Both legs and the bridge are run, with outputs in `/var/tmp/scale-shape-ctl/` (`ctl40.json`,
+`ctl160.json`, `bridge40.json`).
+
+| leg | code | founders | budget | ru_maxrss | accounts | settled cy | committed cy (to 2026) |
+|---|---|---|---|---|---|---|---|
+| ctl40    | 318162387 | 40  | 0     | **1,764.1 MB** | 37  | 89.7  | 377.4 (founders only) |
+| ctl160   | 318162387 | 160 | 0     | **2,214.2 MB** | 157 | 422.5 | 1,518.2 (founders only) |
+| bridge40 | 318162387 | 40  | 1,750 | **3,228.4 MB** | 178 | 308.8 | 1,747.9 |
+| original f40  | 9313d0394 | 40  | 1,750 | 3,353.3 MB | 178 | 308.8 | 1,747.9 |
+| original f160 | 9313d0394 | 160 | 1,750 | 2,464.7 MB | 192 | 485.9 | 1,746.7 |
+
+**Graded against the predictions:**
+
+- **P1 holds.** The founders-only 40 peak is 1,764 MB, under 2,465. **The campaign made the 40 run
+  heavy.** Hypothesis 3 survives.
+- **P2 holds.** 160 minus 40 is +450 MB, inside 300–2,000. Over +332.8 settled customer-years that is
+  **1.35 MB per settled customer-year for founders**, or 0.39 per committed customer-year. It is
+  **below** the 2026-10-06 curve's 2.884, not "of the same order" in any sense I would defend. The
+  base implied at zero settled years is **about 1,640 MB**.
+- **P3 partly holds.** The early step is in both legs (881→1,516 and 855→1,506 MB at t=8–10 s), but it
+  is about 650 MB, not 800. It is part of the fixed base, and its size depends on the run.
+- **P4 fails, narrowly.** ctl160 has one 31 MB drop at t=135 s in 173 phase-2b samples. That is not a
+  sawtooth; the other 172 intervals are flat or rising. bridge40's one drop (3,218→2,262 at t=501 s) is
+  the run ending phase 2b, not a year boundary.
+- **B1 holds.** bridge40 at 3,228 MB is within ±150 of the original 3,353, on a book identical to the
+  record (112,805 records). W2_36 does not confound the comparison, and about 125 MB is the run-to-run
+  noise between code versions.
+
+**The campaign increment, one code version for 40 and across versions for 160:**
+
+| | campaign committed cy | peak minus founders-only | MB per committed campaign cy | MB per settled campaign cy |
+|---|---|---|---|---|
+| 40 (bridge40 − ctl40)            | 1,370.5 | +1,464 MB | **1.07** | 6.7 (over 219.1) |
+| 160 (original − ctl160, ±125 MB) | 228.5   | +251 MB   | **1.10** (0.55–1.65) | 4.0 (over 63.4) |
+
+**The campaign's memory follows the customer-years it COMMITTED to 2026, at about 1.1 MB each, in
+both runs, not the years it settled by 2019.** Per settled customer-year a campaign win costs 3 to 5
+times what a founder does. This is the lead, and it is not yet a mechanism: it fits the campaign
+building state for every win it plans to the 2026 horizon, including wins whose in-market date is after
+the run's `--end`. I have not read where that state lives.
+
+## Corrected verdict (supersedes the one above where they differ)
+
+- **Peaks, attributed:** 40 founders → 3,353 MB; 160 founders → 2,465 MB. The 40 run is heavier
+  because its settlement budget went to campaign wins (sample rate 0.906 against 0.076).
+- **Fixed base:** about 1.6 GB (680 MB of imports, then a run-dependent step of 650–800 MB).
+- **Slopes:** founders 1.35 MB per settled customer-year (two points, 90–420 settled years). Campaign
+  wins about 1.1 MB per customer-year **committed to 2026**.
+- **Not one year held at once.** Every leg rises monotonically, so streaming settlement by year is not
+  shown to be the remedy.
+- **What the two slopes do NOT license:** extrapolating to thousands. The founders slope at 4,000
+  founders × 10 years gives tens of GB, while the note on `SETTLEMENT_CUSTOMER_YEAR_BUDGET` records
+  5,363 MB for that book before any campaign settles. Both cannot be linear. The curve is not linear in
+  that range, or the two measure different windows. **I cannot yet say which.**
+- **Consequence for calibration runs:** a run with `--end` before 2026 is charged settlement budget to
+  2026 (`live_population.py`, `horizon = date(2026, 1, 1)`). It appears to pay in memory for campaign
+  wins it never settles. A short calibration run therefore settles a smaller book than its budget
+  suggests, and is not lighter for being short.
+
+**Second pre-registration (17:56Z, before launch). The bridge leg.** The control ran at `318162387`.
+The original pair ran at `9313d0394` in `/var/tmp/se-scale`, whose working tree has no changes under
+`simulation/`, `sim/`, `company/` or `saas/`. Between the two, `simulation/meter_reads.py` changed: W2_36
+makes not-in-smart-mode a state the meter holds. `run_phase2b.py` also changed (the H50 per-run reset),
+but that is a no-op when each run is its own process. So the founders-only 40-against-160 comparison is
+on one code version, while "original minus control" crosses two. **Bridge:** the original 40-founder
+configuration (budget 1,750, unpatched script) at `318162387`. **Prediction B1:** its peak is within
+±150 MB of 3,353 MB. If it is not, the campaign increment below is confounded with W2_36.
