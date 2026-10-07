@@ -1962,19 +1962,21 @@
   lane: W2_customer_generator
   value_stream: meter_to_cash
   epoch: 4
-  level_current: 1
+  level_current: 2
   level_target: 3
   loop_stage: build
   # 2026-10-05 approved as step 4's first item. Today a retention offer is a flat 0.20 cut in hazard,
   # never negative and the same for any discount, so a decision targeted on EFFECT and one targeted
   # on RISK score identically: docs/market_research/next_best_action_and_cross_sell.md.
-  # L1 4ff093bb0: a contact WAKES (EFTC share 0.111); the sign is the household's own. L2 wires it at the
-  # schedule builder's SVT roll -- doc how_households_respond_to_supplier_contact.md §5 names the question first.
+  # L1 4ff093bb0: a contact WAKES (EFTC share 0.111); the sign is the household's own. L2: the SVT roll reads
+  # what the company sent through SimInterface.send_contact (flat-rule sender on DecisionPolicy). NOT L3: the
+  # fixed-term roll is unwired, and the reference is the default, not the best fix (doc §5).
   dial_inherited: 85
   provenance: director_ruling
   depends_on: []
   couples_with: [C34_next_best_action_is_one_decision_across_debt_retention_upsell_and_carbon_judged_by_clv]
-  file_scope: ['simulation/contact_response.py', 'tests/simulation/test_contact_response.py']
+  file_scope: ['simulation/contact_response.py', 'tests/simulation/test_contact_response.py',
+    'tests/simulation/test_a_run_reaches_the_svt_contact_response.py']
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a retention campaign that raises churn among the customers it reminded they could leave."
 - id: C34_next_best_action_is_one_decision_across_debt_retention_upsell_and_carbon_judged_by_clv

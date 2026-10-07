@@ -30,8 +30,8 @@ outcomes are therefore both defined. That pair is the true counterfactual an upl
 graded against (B8, C34), and it is ground truth -- it never crosses the seam. Only whether the
 household chose, and what it chose, is observable to a supplier.
 
-NOT WIRED. No run-loop caller passes a contact here yet. Wiring is level 2; the research doc §5
-names the question the wiring has to answer first.
+AT A FIXED-TERM END, NOT WIRED. No run-loop caller passes a contact to the fixed-term roll yet;
+the research doc §5 names the question that wiring has to answer first.
 
 BETWEEN BOUNDARIES, ON DEFAULT-TARIFF STOCK (PB4 R6, 2026-10-07). The SVT drift
 (`departure_risks.svt_inertia_hazard`) has no saving term, so before this a disengaged household's
@@ -42,11 +42,20 @@ Switch trials showed savings of the same order and woken shares 14x apart (resea
 woken household then chooses by price comparison, which `churn_if_choosing_off_svt` gives through
 the world's own loss curve and the household's own elasticity. How the woken share moves with the
 saving is not published causally, and it is carried as `WOKEN_SHARE_SAVING_GRADIENT_ON_SVT_STOCK =
-None`. Nothing in the world sends a contact yet, so this route is not wired either.
+None`.
+
+WIRED ON SVT STOCK (W2_39 level 2, 2026-10-07). The company sends a contact through
+`SimInterface.send_contact`; the world keeps what reached it in `ContactsReceived`, and the run
+loop's SVT roll asks that store, never the company's policy. No contact, and the roll is the one it
+always was: same probability, same draw, same cause.
 """
 from __future__ import annotations
 
+from datetime import date
+
 from simulation.departure_risks import (
+    CAUSE_PRICE_POSITION,
+    CAUSE_SVT_INERTIA,
     DECLARED_SENSITIVITY_SCALE,
     DECLARED_SHOCK_WEIGHT,
     build_departure_risks,
@@ -212,3 +221,54 @@ __all__ = [
     "engaged_probability_after_contact",
     "rolls_active_renewal_after_contact",
 ]
+
+
+class ContactsReceived:
+    """The contacts that reached households in one run -- the world's record, written only through
+    the seam (`LiveSimInterface.send_contact`) and read only by the world's own rolls.
+
+    One store per run, constructed by the run, so a second run in the same process starts empty.
+    """
+
+    def __init__(self) -> None:
+        self._by_account: dict[str, list[tuple[date, str]]] = {}
+
+    def receive(self, account_id: str, sent_on: date, instrument: str) -> None:
+        if instrument not in WOKEN_SHARE_OF_SVT_STOCK:
+            raise ValueError(
+                f"no woken share for instrument {instrument!r}: the sourced ones are "
+                f"{sorted(WOKEN_SHARE_OF_SVT_STOCK)}, and an unsourced contact cannot be sent")
+        self._by_account.setdefault(account_id, []).append((sent_on, instrument))
+
+    def instrument_reaching(self, account_id: str, start: date, end: date) -> str | None:
+        """The first contact that reached this household in ``[start, end)``, or None.
+
+        The first, not every one: each sourced woken share is one instrument's whole effect (the
+        Collective Switch's is three letters over seven weeks), so a second send inside the same
+        segment is not a second wake. Nothing published says what one would add.
+        """
+        sent = [i for on, i in self._by_account.get(account_id, ()) if start <= on < end]
+        return sent[0] if sent else None
+
+    def __len__(self) -> int:
+        return sum(len(v) for v in self._by_account.values())
+
+
+def svt_cause_on_the_coupled_roll(
+    roll: float, *, p_uncontacted: float, p_contacted: float,
+) -> str | None:
+    """Which risk a SVT segment's one uniform draw fired, given both probabilities.
+
+    Below the uncontacted probability it is the drift, exactly as with no contact. Between the two
+    it is a household the contact woke and that left on price, so `price_position`. Above both it
+    stayed. One draw for both outcomes is what makes the uncontacted outcome of every contacted
+    household defined, and it never crosses the seam.
+    """
+    if p_contacted < p_uncontacted:
+        raise ValueError(
+            f"a contact on SVT stock can only add departures: {p_contacted} < {p_uncontacted}")
+    if roll < p_uncontacted:
+        return CAUSE_SVT_INERTIA
+    if roll < p_contacted:
+        return CAUSE_PRICE_POSITION
+    return None

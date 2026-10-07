@@ -5,8 +5,11 @@ before landing are recorded in the docstrings.
 """
 from __future__ import annotations
 
+from datetime import date
+
 import pytest
 
+from company.interfaces.sim_interface import LiveSimInterface, StubSimInterface
 from simulation import contact_response as cr
 from simulation.renewal_engagement import FTC_WITHDRAWAL_WINDOW, rolls_active_renewal
 
@@ -159,3 +162,60 @@ def test_an_unsourced_instrument_is_refused_by_name():
     with pytest.raises(ValueError, match="text_message"):
         cr.svt_departure_after_contact(
             instrument="text_message", p_drift=0.05, churn_if_choosing=0.2)
+
+
+# ── W2_39 level 2: the seam, the store, and the coupled SVT roll ──────────────────────────────────
+
+
+def test_a_contact_reaches_the_world_only_through_the_seam_and_only_inside_its_segment():
+    """DEFECT: the world reads a contact that never went through the seam, or reads one sent
+    outside the segment it is rolling.
+
+    MUTATION: `start <= on < end` -> `on < end` reds the before-segment leg; dropping the `receive`
+    call in `LiveSimInterface.send_contact` reds the first assertion.
+    """
+    world = cr.ContactsReceived()
+    seam = LiveSimInterface(contacts_received=world)
+    assert seam.send_contact("A1", date(2017, 3, 1), "cmoc_letter") == {"sent": True, "reason": "sent"}
+    assert world.instrument_reaching("A1", date(2017, 3, 1), date(2017, 6, 1)) == "cmoc_letter"
+    assert world.instrument_reaching("A1", date(2017, 6, 1), date(2017, 9, 1)) is None
+    assert world.instrument_reaching("A1", date(2016, 12, 1), date(2017, 3, 1)) is None
+    assert world.instrument_reaching("B2", date(2017, 3, 1), date(2017, 6, 1)) is None
+    # A seam with no world behind it says so; it never claims to have sent.
+    assert LiveSimInterface().send_contact("A1", date(2017, 3, 1), "cmoc_letter")["sent"] is False
+    assert StubSimInterface().send_contact("A1", date(2017, 3, 1), "cmoc_letter")["sent"] is False
+
+
+def test_an_unsourced_instrument_cannot_be_sent():
+    """DEFECT: a contact with no published woken share is accepted and later read as some default."""
+    with pytest.raises(ValueError, match="'sms_nudge'"):
+        cr.ContactsReceived().receive("A1", date(2017, 3, 1), "sms_nudge")
+
+
+def test_the_coupled_roll_keeps_the_uncontacted_outcome_and_adds_only_woken_leavers():
+    """DEFECT: a contacted segment's draw is not the uncontacted one, so the pair is no
+    counterfactual, or a woken leaver is filed under the drift.
+
+    Partition first: drift, woken leaver and stayer must each be reachable. MUTATION: returning
+    `CAUSE_SVT_INERTIA` for the middle band empties `woken`; comparing `roll <= p_uncontacted`
+    leaves this green (equivalence on a continuous draw, recorded).
+    """
+    import random
+    seen = {}
+    for i in range(2000):
+        roll = random.Random(f"r{i}").random()
+        cause = cr.svt_cause_on_the_coupled_roll(roll, p_uncontacted=0.15, p_contacted=0.20)
+        uncontacted = cr.svt_cause_on_the_coupled_roll(roll, p_uncontacted=0.15, p_contacted=0.15)
+        seen.setdefault(cause, 0)
+        seen[cause] += 1
+        if uncontacted is not None:
+            assert cause == uncontacted == "svt_inertia"
+    assert seen["svt_inertia"] and seen["price_position"] and seen[None]
+    assert 0.03 < seen["price_position"] / 2000 < 0.07
+
+
+def test_a_contact_that_lowers_svt_departure_is_refused():
+    """DEFECT: a caller hands the roll a contacted probability below the uncontacted one, which on
+    this segment the physics cannot produce."""
+    with pytest.raises(ValueError, match="only add departures"):
+        cr.svt_cause_on_the_coupled_roll(0.5, p_uncontacted=0.2, p_contacted=0.1)

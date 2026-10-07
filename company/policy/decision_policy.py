@@ -179,6 +179,12 @@ class DecisionPolicy:
     #: pays then sends the discount to the worst payers. Off on every standing policy.
     retention_nets_bad_debt: bool = False
 
+    #: W2_39 (2026-10-07): write to every account on our default tariff once, at the start of each
+    #: default-tariff segment, with this kind of contact (a key of the world's sourced instruments,
+    #: e.g. `"cmoc_letter"`). It is the flat rule a per-account contact decision (C34) is graded
+    #: against: everybody, the same letter. `None` sends nothing, so no standing policy moves.
+    svt_contact_instrument: str | None = None
+
     def retention_discount_for_risk(self, company_est: float) -> float:
         """Return the retention discount fraction for a given churn estimate."""
         if self.retention_discount_mode == "flat":

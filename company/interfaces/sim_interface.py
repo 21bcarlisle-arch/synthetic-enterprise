@@ -318,6 +318,16 @@ class SimInterface:
         Nothing after `through` crosses."""
         raise NotImplementedError
 
+    def send_contact(self, account_id: str, sent_on, instrument: str) -> dict:
+        """The supplier writes to a household (COMPANY -> WORLD, atom W2_39).
+
+        `instrument` is the kind of contact the supplier chose to send. What comes back is only
+        what a sender knows: whether it went. ``{"sent": bool, "reason": str}``. Whether it woke
+        anybody is never answered here; the supplier learns that the way a real one does, from
+        who later chose and what they chose.
+        """
+        raise NotImplementedError
+
 
 class StubSimInterface(SimInterface):
     """Stub implementation for testing and development.
@@ -414,6 +424,9 @@ class StubSimInterface(SimInterface):
     def get_plan_instalments(self, account_id, agreed_on, through) -> list[dict]:
         return []
 
+    def send_contact(self, account_id, sent_on, instrument) -> dict:
+        return {"sent": False, "reason": "stub seam: no household behind it to receive"}
+
     def get_flex_settlement_lines(self, unit_id: str) -> list:
         # Stub: no live settlement feed (mirrors get_settlement_data zeros).
         # The real settlement lines are produced SIM-side by
@@ -507,8 +520,12 @@ class LiveSimInterface(SimInterface):
         infrastructure convenience, not for SIM internals.
     """
 
-    def __init__(self, *, flex_venue_clock=None, flex_registrations=None, household_plans=None):
+    def __init__(self, *, flex_venue_clock=None, flex_registrations=None, household_plans=None,
+                 contacts_received=None):
         from company.crm.event_log import CompanyEventLog
+        # The world's record of what reached each household
+        # (`simulation.contact_response.ContactsReceived`). Written here, never read company-side.
+        self._contacts_received = contacts_received
         # The world's book of agreed plans (`simulation.plan_offer_response.HouseholdPlanBook`):
         # a yes answered here is recorded there, so the world's other repayment route knows the
         # arrears are being repaid through the plan. Never read company-side.
@@ -663,6 +680,12 @@ class LiveSimInterface(SimInterface):
     def get_plan_instalments(self, account_id, agreed_on, through) -> list[dict]:
         from simulation.plan_offer_response import plan_instalments
         return plan_instalments(account_id, agreed_on, through)
+
+    def send_contact(self, account_id, sent_on, instrument) -> dict:
+        if self._contacts_received is None:
+            return {"sent": False, "reason": "no world behind this seam to receive a contact"}
+        self._contacts_received.receive(account_id, sent_on, instrument)
+        return {"sent": True, "reason": "sent"}
 
     def enrol_flex(self, enrolment, *, as_of) -> Any:
         """The SAME exchange the stub runs, deliberately -- one desk, one codec

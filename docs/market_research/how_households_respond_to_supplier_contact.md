@@ -260,5 +260,38 @@ by the contact. Even so, the world's figure is below CMOC's at every elasticity 
 highest. That is the direction a flat woken share predicts. If a causal saving gradient for the
 woken share is ever published, this gap is what it would close.
 
-**Not wired.** Nothing in the world sends a contact to SVT stock. The sender is the company's
-decision (C34) through the seam, which is level 2 for W2_39 and is not built here.
+**Wired on SVT stock (level 2, 2026-10-07).** The company sends through
+`SimInterface.send_contact`. The world records what reached each household in
+`contact_response.ContactsReceived`, and the run loop's SVT roll reads that record, never the
+company's policy. The one sender today is the flat rule: `DecisionPolicy.svt_contact_instrument`
+writes to every default-tariff account at the start of each SVT segment. It is the baseline a
+per-account decision (C34) is graded against. With it `None` (every standing policy), nothing is
+sent and every roll is unchanged. Control: `tests/simulation/test_a_run_reaches_the_svt_contact_response.py`.
+
+The §5 question, answered for this route before any constant: the woken household's choice is
+**the default it is on against the one market reference every renewal is measured against**
+(`customer_events._price_differential_vs_market`). That reference is the published default, or a
+rival chasing it. It is never the cheapest fix on the market. So where fixes sat far below the
+default (2016-2019), a woken household's premium is understated and so is its loss. This errs in
+the company's favour, and it is named rather than patched with a second "market".
+No constant was added. The woken shares are §2.7's, and the churn is the world's own loss curve.
+
+Printed at real inputs (pre-registered first: about +3 pp per contacted segment for
+`collective_switch`, about +0.7 pp for `cmoc_letter`). Same book, 2016-01 to 2017-12, one arm per row:
+
+| arm | SVT segments rolled | drift departures | woken leavers | mean churn of a woken chooser | departure added per contacted segment |
+|---|---|---|---|---|---|
+| no contact | 274 | 14 | 0 | — | 0 |
+| `collective_switch` (woken share 0.203) | 245 | 14 | 7 | 0.233 | +4.6 pp |
+| `cmoc_letter` (woken share 0.040) | 271 | 14 | 1 | 0.237 | +0.9 pp |
+
+The pre-registration under-called both arms (3 and 0.7 pp predicted, 4.6 and 0.9 observed) because the
+woken chooser's churn averaged 0.233, not the 0.17-0.20 I assumed from the parity column above.
+Every paired segment kept its uncontacted roll and probability exactly. A segment is a cap
+period, so this flat rule writes about four times a year. The trials each measured one campaign.
+
+Comparisons, never inputs: EFTC's woken share at a fixed-term end is 0.111, and its woken
+households re-fixed internally with external loss unmoved. CMOL (0.024) and CMOC (0.040) are
+the letter instruments on default stock. In the world, about 23% of the woken leave and about 77%
+re-fix with us. Not yet compared: the external share of each trial's switchers. CMOC's 6.8% counts
+internal switches too, and no source here splits it.

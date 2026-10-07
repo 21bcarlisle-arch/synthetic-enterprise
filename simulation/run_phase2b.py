@@ -149,7 +149,6 @@ from simulation.demand_model import (
 from simulation.demand_response import compute_shift_fraction, make_shifted_shape_fn
 from simulation.departure_level_anchor import year_level_anchor
 from simulation.departure_risks import (
-    CAUSE_SVT_INERTIA,
     DECLARED_SENSITIVITY_SCALE,
     build_departure_risks,
     total_departure_probability,
@@ -2048,6 +2047,14 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
     # fed from the term loop AFTER each offer is struck and read a quarter later, so the world's
     # opponent moves on its own cycle rather than inside the term the company is pricing.
     _competitor_position_ledger = CompanyPositionLedger()
+    # W2_39: what reached each household from the company, written only through the seam below and
+    # read only by the SVT roll. Run-scoped for the same reason as the ledger above.
+    from simulation.contact_response import ContactsReceived
+    _contacts_received = ContactsReceived()
+    _svt_contact_instrument = policy.svt_contact_instrument
+    if _svt_contact_instrument is not None:
+        from company.interfaces.sim_interface import LiveSimInterface
+        _contact_seam = LiveSimInterface(contacts_received=_contacts_received)
     churned_billing_accounts: set[str] = set()
     # B7 slice 2 (`sim/customer_state_layer.py`). Read once per run; with it off nothing below asks.
     _home_moves_on = moves_active()
@@ -2512,6 +2519,62 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                 svt_inertia=_svt_hazard,
             )
             _svt_p_depart = total_departure_probability(_svt_risks)
+            # W2_39: A CONTACT WAKES A SHARE OF THIS STOCK, AND A WOKEN HOUSEHOLD CHOOSES ON PRICE.
+            # The company's side is only the send, at the segment's start, through the seam. The
+            # world then asks its own record of what arrived, so a contact that did not go through
+            # the seam cannot reach this roll. With nothing received, `_svt_p_depart` is untouched
+            # and the draw below is the one it always was.
+            _svt_p_uncontacted = _svt_p_depart
+            if _svt_contact_instrument is not None:
+                _contact_seam.send_contact(
+                    billing_account, date.fromisoformat(term_start_str), _svt_contact_instrument)
+            _svt_contact = _contacts_received.instrument_reaching(
+                billing_account, date.fromisoformat(term_start_str),
+                date.fromisoformat(term_end_str))
+            _svt_churn_if_choosing = None
+            _svt_contact_unanswered = None
+            if _svt_contact is not None:
+                from simulation.contact_response import (
+                    churn_if_choosing_off_svt,
+                    svt_departure_after_contact,
+                )
+                from simulation.customer_events import (
+                    _annual_bill_gbp,
+                    _bill_scale_for,
+                    _price_differential_vs_market,
+                )
+                from simulation.population_draw import price_elasticity_for_customer
+                # The best thing in front of a woken household is the default it is on, against
+                # the one market reference every renewal is measured against. That reference is
+                # the published default or a rival chasing it, never the cheapest fix on offer, so
+                # where fixes sat far below the default (2016-2019) the premium is understated and
+                # so is the loss: it errs in the company's favour.
+                _svt_premium = _price_differential_vs_market(
+                    unit_rate, term_start_str, commodity=commodity,
+                    position_ledger=_competitor_position_ledger,
+                    wholesale_gbp_per_mwh=forward_price,
+                )
+                if _svt_premium is None:
+                    # Parity is a claim; an unknown position is not it. The contact went and the
+                    # world cannot say what it did, so the row says so and the roll is unchanged.
+                    _svt_contact_unanswered = "no market reference for this fuel and date"
+                else:
+                    _svt_segment = next(
+                        (c.get("segment") for c in _known_customers()
+                         if c.get("customer_id") == billing_account), None)
+                    _svt_churn_if_choosing = churn_if_choosing_off_svt(
+                        our_premium_pct=_svt_premium,
+                        elasticity=price_elasticity_for_customer(billing_account, run_base_seed()),
+                        annual_bill_gbp=_bill_scale_for(_svt_segment, _annual_bill_gbp(
+                            billing_account, households_own_records(billing_account, all_records),
+                            term_start_str)),
+                        level_anchor=year_level_anchor(int(term_start_str[:4])),
+                        action_propensity=_svt_propensity,
+                    )
+                    _svt_p_depart = svt_departure_after_contact(
+                        instrument=_svt_contact, p_drift=_svt_p_uncontacted,
+                        churn_if_choosing=_svt_churn_if_choosing,
+                    )
             # READ BEFORE THE ROLL AND USED ONLY AFTER IT. This is the company's side of the
             # decision -- its own collections record on this account -- and it is deliberately
             # NOT among the `_svt_risks` above: the belief reaches no hazard, which is the only
@@ -2526,6 +2589,9 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                 _supply_points_of_account.get(billing_account, (cid,)))
             _svt_roll = random.Random(
                 f"svt_inertia_{billing_account}_{term_start_str}").random()
+            from simulation.contact_response import svt_cause_on_the_coupled_roll
+            _svt_cause = svt_cause_on_the_coupled_roll(
+                _svt_roll, p_uncontacted=_svt_p_uncontacted, p_contacted=_svt_p_depart)
             # THE DECISION IS RECORDED BEFORE THE BRANCH, so that staying is a row too. Recording
             # inside the `if` below would log only departures and every rate computed from the file
             # would have a numerator and no denominator.
@@ -2535,8 +2601,18 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                 "event_date": term_start_str,
                 "market_year": int(term_start_str[:4]),
                 "event_type": "churned" if _svt_roll < _svt_p_depart else "stayed",
-                "departure_cause": CAUSE_SVT_INERTIA if _svt_roll < _svt_p_depart else None,
+                "departure_cause": _svt_cause,
                 "realized_churn_probability": round(_svt_p_depart, 6),
+                # W2_39. `contact_instrument` is the company's own send and it knows it.
+                # `sim_p_depart_uncontacted` is the same household's probability had nothing
+                # arrived: the true counterfactual an uplift estimate is graded against, ground
+                # truth, and never read by company code.
+                "contact_instrument": _svt_contact,
+                "sim_p_depart_uncontacted": round(_svt_p_uncontacted, 6),
+                "sim_churn_if_choosing": (
+                    round(_svt_churn_if_choosing, 6)
+                    if _svt_churn_if_choosing is not None else None),
+                "sim_contact_unanswered": _svt_contact_unanswered,
                 "random_roll": round(_svt_roll, 6),
                 "sim_svt_inertia": round(_svt_hazard, 6),
                 "sim_action_propensity": round(_svt_propensity, 6),
@@ -2586,7 +2662,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                     event_date=term_start_str,
                     commodity=commodity,
                     occasion=DEPARTURE_OCCASION_SVT_SEGMENT,
-                    cause=CAUSE_SVT_INERTIA,
+                    cause=_svt_cause,
                     realized_churn_probability=round(_svt_p_depart, 4),
                     random_roll=round(_svt_roll, 4),
                     unit_rate_gbp_per_mwh=unit_rate,
