@@ -326,3 +326,64 @@ source of the bedtime, because LCL is the comparison.
 
 Limits: one world draw (seed 17, traces seed 7), 13/168 LCL partitions, p5 as the base estimator.
 Scripts: `/tmp/w129b/` (not committed).
+
+## Load while asleep, candidate (b): timed appliance runs are not the night gap (2026-10-07)
+
+After `387ffe6ab` the midnight slot reads 0.43, but 01:00-04:00 is still at 0.14/0.11/0.11/0.11 against
+LCL's 0.38/0.29/0.25/0.24. This pass first asked what KIND of load fills a real home's night, then ran
+the one arm the world can test for (b). Same draw as before: world seed 17, traces seed 7, 60 homes, C1
+2022-01..04, net of both machines, on origin/main at `387ffe6ab`. LCL Std is 4-15 kWh/day, n 189,
+Jan-Apr 2013.
+
+**The decomposition.** For each home, over periods 2-9 (01:00-04:30), divided by the active mean
+(mean − p5): N is the night mean above p5. F is that night's own minimum above p5, averaged over days:
+a floor that moves from day to day. E = N − F is variation within the night. BIG is the part of E from
+half-hours more than 0.25 kWh over the night's minimum, which is an appliance run of 500 W or more.
+SMALL = E − BIG. Medians, LCL against world:
+
+| | N | F | E | SMALL | BIG |
+|---|---|---|---|---|---|
+| LCL | 0.309 | 0.044 | 0.221 | 0.199 | 0.007 (p75 0.045) |
+| world | 0.119 | −0.012 | 0.128 | 0.126 | 0.000 |
+
+The world's within-night variation is the fridge cycle and nothing else: 0.128 × 239 W ≈ 31 W, which
+is a 90 W fridge-freezer at 0.32 duty. **A real home's night is not appliance runs.** Runs of 500 W or
+more are 0.007 of the active mean at the median. The gap is small sustained load, about 0.07 (roughly
+18 W), plus a floor that sits higher on some nights than others, about 0.06 (roughly 13 W).
+
+**The arm.** A share s of washing-machine and dishwasher starts was re-drawn into periods 2-7. These
+are the catalogue's two delay-start appliances. s is an envelope, not a sourced share, and nothing
+ships. Pre-registered at 2026-10-07T04:19:55Z, before any run (`/tmp/w129s/PREDICTION.md`). s = 0
+reproduced the baseline to the third decimal, which is the placebo.
+
+| s | N | F | SMALL | BIG | profile 01:00 / 02:00 / 03:00 / 04:00 |
+|---|---|---|---|---|---|
+| 0 | 0.119 | −0.012 | 0.126 | 0.000 | 0.14 / 0.11 / 0.11 / 0.11 |
+| 0.025 | 0.140 | −0.011 | 0.124 | 0.018 | |
+| 0.10 | 0.195 | −0.011 | 0.119 | 0.075 | 0.17 / 0.22 / 0.22 / 0.18 |
+
+| pre-registered | result | grade |
+|---|---|---|
+| P1 s=0.10, N rises 0.06-0.12 | +0.076 | held |
+| P2 s=0.10, BIG ≥ 0.035 (5× LCL median) | 0.075 | held |
+| P3 s=0.10, F moves < 0.01 | +0.001 | held |
+| P4 s=0.10, SMALL moves < 0.02 | −0.007 | held |
+| P5 s=0.025, N ≤ +0.04 and BIG ≤ 0.02 | +0.021, 0.018 | held |
+| P6 s=0.10, 3 of 4 slots stay under LCL | 4 of 4 | held |
+
+**What this settles.** Timed runs while asleep can raise the night. But a share big enough to matter puts
+10× LCL's own large-excursion texture into the world (BIG 0.075 against 0.007), and it never touches the
+two terms that make up the gap. Kept inside LCL's BIG band (s ≈ 0.01), the arm is worth about +0.01 of
+the 0.19. **So (b) as delay-start appliances is refuted as the cause.** Do not wire a night-start share.
+
+What (b) still means is **small, sustained load while asleep, plus a floor that moves between nights**.
+The world has neither: `always_on_kw` is one constant per home, and the fridge is its only night cycle.
+Candidates for the SMALL term: a second cold appliance's power, chargers, a dehumidifier, an aquarium,
+someone up in the night. Candidates for F: a home that leaves a light, a TV or a computer on some nights.
+Nothing in the knowledge layer sources either one. The next one-variable arm is the moving floor,
+because F is a single term the world sets to zero by construction. It needs a published day-to-day
+spread of household baseload first, and LCL cannot be that source because LCL is the comparison. (c)
+and (d) stay open.
+
+Limits: one world draw, 60 homes; the 0.25 kWh/hh cut for BIG is a choice (a dishwasher half-hour is
+0.35). Scripts: `/tmp/w129s/` (not committed).
