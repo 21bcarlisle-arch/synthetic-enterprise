@@ -30,8 +30,11 @@ decision earns from it are inflated by the world and were not earned by the meth
   the supplier group, 25,000 to the Ofgem group and **5,000 to a control group that received no
   letters**. The control group switched at 2.6% during the trial window. **Over the following 17
   months the control group's subsequent switching rate was 33%** (p.16). "Switching" there includes
-  internal tariff switches. 51% of switches were internal, which matches C29's definition: choosing
-  a new fixed term with us counts as CHOSE.
+  internal tariff switches, which matches C29's definition: choosing a new fixed term with us
+  counts as CHOSE. **49%** of subsequent switches were internal and 51% external (Annex B, p.22).
+  That split is pooled over every group, and the report gives none for the control arm alone.
+  *Corrected 2026-10-07. This line read "51% of switches were internal", which reversed the
+  split and implied it was the control arm's.*
 - **In the control arm, a prior switch did not predict the next one.** Control-group customers who
   switched during the trial window switched again at **31%**, and those who did not switched at **33%**
   (p.16). Only intervention-arm switchers sustained a higher rate (63%), and Ofgem attributes that
