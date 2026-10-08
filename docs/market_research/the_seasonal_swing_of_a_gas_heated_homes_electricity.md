@@ -556,3 +556,29 @@ What this does not say: SERL's figure is a median of means, so it does not split
 real evening peak is low because fewer homes cook electrically, or because each home uses less per
 meal, cannot be read from it. The world-side split is in
 `docs/staging/SEAT_FINDING_THE_FABRIC_PATH_GIVES_A_GAS_HEATED_HOMES_ELECTRICITY_NO_SEASON_2026-10-06.md`, 2026-10-08 (worker).
+
+### Per-use annual levels: electronics on-mode and cold appliances (read 2026-10-08)
+
+**HES (Intertek R66141, 2010–11), electronics split by state.** These are site averages, for the
+audiovisual site and the computer site.
+
+| Site | ON-mode | Standby | Annual (table) |
+|---|---|---|---|
+| Audiovisual (Fig 501, Table 26) | 123.8 W × 3,118 h ≈ **386 kWh** | 17.8 W × 4,213 h ≈ 75 kWh | 553 all households (441–630 by type) |
+| Computer (Fig 535, Table 29) | 88 W × 1,945 h ≈ **171 kWh** | 9.3 W × 5,046 h ≈ 47 kWh | 240 all households (137–267) |
+
+ON-mode together is ≈ **557 kWh/yr**. Standby belongs with the always-on draw (EFUS 2011's base),
+which already carries it. The 2010–11 stock was CRT/plasma televisions and desktops, so this is an
+UPPER bound for 2016–2025. Standby is minimal 19:00–22:00, when the sites are most used.
+
+**DECC/BRE cold appliances field trial (report HPR187-1003, Jan 2017; 766 households, monitored
+Mar–Nov 2015)**
+(<https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/585520/Cold_appliances_field_trial_report_FINAL_230117__2_.pdf>):
+mean **354 ± 16 kWh/yr per appliance** (fridge-freezer 390, upright freezer 342, fridge with ice-box
+274, larder fridge 201). Per household, adjusted to 1.47 appliances: **533 ± 32 kWh/yr** (473 with no
+over-consuming appliance, 1,111 with one). England 2014: 10.5 TWh, 15.6% of domestic appliance
+electricity, scaled from ECUK Table 3.10.
+
+**Not established:** a 2020s per-use figure for either. ECUK 2025's U3 no longer splits appliances.
+**What the world does with them:** see the 2026-10-08 level section of
+`docs/staging/SEAT_FINDING_THE_FABRIC_PATH_GIVES_A_GAS_HEATED_HOMES_ELECTRICITY_NO_SEASON_2026-10-06.md`.

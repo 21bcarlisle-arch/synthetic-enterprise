@@ -86,3 +86,45 @@ def test_the_sender_is_the_registration_service_of_that_regime_and_fuel():
     assert loss_notice_sender(pre, "gas") == seam.PRE_CSS_GAS_SENDER
     assert loss_notice_sender(css, "electricity") == seam.CSS_SENDER
     assert loss_notice_sender(css, "gas") == seam.CSS_SENDER
+
+
+def _every_day(first: dt.date, last: dt.date):
+    day = first
+    while day <= last:
+        yield day
+        day += dt.timedelta(days=1)
+
+
+def test_a_pending_notice_arrives_at_or_before_secured_inactive_and_never_after_the_switch():
+    """Defect guarded: an Invitation to Intervene dated after the Secured Inactive notice it
+    precedes (a loser told a switch is cancellable once it is not), or after the switch itself.
+    Over every effective date from go-live to the end of the record, so a weekday the rule
+    mishandles cannot hide. The partition is asserted first: both a CSS date that is sent a
+    Pending notice and a go-live-edge date that is not."""
+    days = list(_every_day(CSS_GO_LIVE, dt.date(2025, 12, 31)))
+    sent = [d for d in days if seam.emits_pending_notice(d)]
+    assert sent and len(sent) < len(days)
+    for day in sent:
+        observed = seam.pending_notice_observed_at(day)
+        assert observed <= seam.secured_active_at(day), day
+        assert observed < dt.datetime.combine(day, dt.time(0)), day
+        assert seam.latest_submission_date(day) >= CSS_GO_LIVE
+
+
+def test_the_submission_date_is_the_latest_the_one_working_day_rule_allows():
+    """Defect guarded: a submission date with less than one complete Working Day before the
+    effective date (para 2.5: unlawful, so a warning no real loser could get), or one earlier
+    than the rule requires (a warning longer than the ASAP floor, which flatters a save)."""
+    def complete_working_days_between(submitted: dt.date, effective: dt.date) -> int:
+        return sum(
+            1 for d in _every_day(submitted + dt.timedelta(days=1), effective - dt.timedelta(days=1))
+            if d.weekday() < 5
+        )
+
+    for day in _every_day(dt.date(2023, 3, 1), dt.date(2023, 3, 31)):
+        submitted = seam.latest_submission_date(day)
+        assert complete_working_days_between(submitted, day) >= 1, day
+        assert complete_working_days_between(submitted + dt.timedelta(days=1), day) == 0, day
+    # A Wednesday switch: submitted Monday, told at the start of Tuesday, 17 hours before
+    # Secured Inactive at 17:00 Tuesday.
+    assert seam.pending_notice_observed_at(dt.date(2023, 3, 1)) == dt.datetime(2023, 2, 28, 0, 0)

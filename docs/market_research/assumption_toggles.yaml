@@ -20,6 +20,8 @@
 # 2026-10-08 (later): q4_save_rate_on_loss_notice set, and q4_winback_rate_after_loss added, as
 #   ESTIMATES from published switching-outcome data (director: "set the save and win-back toggles
 #   with a range, labelled as estimates"); a_save_offer_against_the_switching_rules_and_the_seam.md s.5.
+# 2026-10-08 (pending notice): q4_css_switch_route_share_asap added as null (GAP), read by
+#   simulation/registration_loss_feed.py; the cost-per-save row now cites the open director row.
 written: 2026-10-05
 toggles:
   - id: q1_move_out_notice_share
@@ -585,11 +587,39 @@ toggles:
       assessments, ElectraLink and the Energy Switch Guarantee count outcomes, never the price of
       a save. The only price evidence is anecdotal (a GBP 200 forum claim, 2012; London Electricity
       GBP 75 vouchers, 2003; save-offer note s.2a), and it cannot bound a share of the bill. Not
-      invented.
+      invented. Asked of the director in DIRECTION.yaml row
+      the-save-offer-needs-two-practitioner-figures (open).
     low: null
     high: null
     basis_default: Director's practitioner experience, to be recorded verbatim when given.
     feeds: [B8_discovered_price_sensitivity_holdout, C34]
+    verdict: GAP
+
+  - id: q4_css_switch_route_share_asap
+    question: Q4 offers
+    meaning: >-
+      Of domestic switches away from us under CSS (from 18 July 2022), the share the household
+      asked to happen ASAP, against after its cooling-off period or on a chosen date up to four
+      weeks out. It sets how far ahead the losing supplier's Invitation to Intervene arrives: on
+      ASAP, one complete working day to five working days before the switch; on the other routes,
+      up to 28 days.
+    default: null
+    default_reason: >-
+      NOT ESTABLISHED, and unknown. Re-searched 2026-10-08: no Ofgem, DCC, RECCo, ElectraLink or
+      Energy UK publication gives switches by timing route or submission-to-effective-date
+      timings (save-offer note s.1b). Asked of the director as a practitioner figure in
+      DIRECTION.yaml row the-save-offer-needs-two-practitioner-figures (open). Until it is given,
+      the world sends every CSS switch on the ASAP floor, the least warning a real loser gets, so
+      no save is flattered. Setting this row is refused by its reader until the other two routes
+      have a submission date.
+    low: null
+    high: null
+    basis_default: >-
+      Director's practitioner figure, to be recorded verbatim when given. One gainer's stated
+      default is ASAP, "Domestic customers in 2 working days" (Octopus, 4 Aug 2022); that is one
+      supplier's policy, not a share.
+    feeds: [B8_discovered_price_sensitivity_holdout, C34]
+    read_by: simulation/registration_loss_feed.py::asap_route_share
     verdict: GAP
 
   - id: q4_winback_rate_after_loss

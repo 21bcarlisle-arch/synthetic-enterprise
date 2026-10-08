@@ -2180,9 +2180,10 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
     _change_of_supplier_register = open_change_of_supplier_register()
 
     def _notify_registration_loss(household: str, effective_from: str) -> None:
-        for _wire in _registration_loss_feed.wire_notices_for_departure(
-            supply_points_on_supply(household, effective_from, elec_schedules, gas_schedules),
-            effective_from,
+        _points = supply_points_on_supply(household, effective_from, elec_schedules, gas_schedules)
+        for _wire in (
+            _registration_loss_feed.wire_pending_notices_for_departure(_points, effective_from)
+            + _registration_loss_feed.wire_notices_for_departure(_points, effective_from)
         ):
             _change_of_supplier_register.receive_loss_wire(_wire)
 

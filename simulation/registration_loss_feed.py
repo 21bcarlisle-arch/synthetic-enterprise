@@ -8,6 +8,12 @@ ADDACS advices are (`simulation/payment_seam_adapter.py`). This module is the
 producer of that stream and nothing more: it does not decide WHETHER or WHEN a
 household leaves (that is the departure roll in `simulation/customer_events.py`).
 
+Before the loss notice, a CSS switch sends the loser an Invitation to Intervene
+when the request goes Pending (`wire_pending_notices_for_departure`). The world
+draws no submission date, so it is dated at the latest submission the rules allow
+-- the ASAP route's floor -- and only while the toggle that would split switches
+by route is unset (`asap_route_share`).
+
 The caller hands this module a household's supply points and a date, never the
 departure event, so no field of the event is reachable from here; the belt below
 refuses one anyway, because a payload field added tomorrow would not be.
@@ -24,6 +30,7 @@ from typing import Mapping, Sequence
 
 from interface.contracts.registration_loss_seam import (
     CSS_SENDER,
+    CSS_SWITCH_PENDING_NOTIFICATION_TYPE,
     ELECTRICITY,
     FORBIDDEN_TRUTH_FIELDS,
     GAS,
@@ -31,10 +38,13 @@ from interface.contracts.registration_loss_seam import (
     PRE_CSS_GAS_SENDER,
     SCHEMA_VERSION,
     RegistrationLossNotice,
+    emits_pending_notice,
     loss_notice_observed_at,
     loss_notice_sender,
     loss_notice_type,
+    pending_notice_observed_at,
 )
+from simulation.arrears_engine import _toggle_row
 from simulation.household import household_of
 
 # Stand-in participants' synthetic credentials: world state, not configuration, with no
@@ -48,6 +58,27 @@ PARTICIPANT_CREDENTIALS: Mapping[str, str] = {
     PRE_CSS_ELECTRICITY_SENDER: MPAS_CREDENTIAL,
     PRE_CSS_GAS_SENDER: UK_LINK_CREDENTIAL,
 }
+
+
+#: The register row that would split CSS switches by the household's timing choice.
+SWITCH_ROUTE_TOGGLE = "q4_css_switch_route_share_asap"
+
+
+def asap_route_share() -> float:
+    """The share of CSS switches the world sends on the ASAP route, read from the register.
+
+    UNSET means the share is not established, and the world then sends every switch on the
+    ASAP floor: the least warning a real loser gets, so it cannot flatter a save. A SET value
+    is refused, because only the ASAP route has a submission date here; the other two routes
+    need their own before a share can be applied."""
+    row = _toggle_row(SWITCH_ROUTE_TOGGLE)
+    if row["default"] is None:
+        return 1.0
+    raise ValueError(
+        f"{SWITCH_ROUTE_TOGGLE} is set to {row['default']!r}, but the world dates only the ASAP "
+        "route (interface/contracts/registration_loss_seam.py::latest_submission_date); give the "
+        "after-cooling-off and dated routes a submission date before applying a share"
+    )
 
 
 def supply_points_on_supply(
@@ -86,13 +117,31 @@ class RegistrationLossFeed:
 
     def __init__(self) -> None:
         self._next_sequence: dict[str, int] = {}
+        asap_route_share()  # refuses a set share: only the ASAP route is dated
+
+    def wire_pending_notices_for_departure(
+        self, supply_points: Sequence[tuple[str, str]], supply_effective_from: str,
+    ) -> list[dict]:
+        """The Invitation to Intervene for each point, or nothing for a pre-CSS switch."""
+        sefd = dt.date.fromisoformat(supply_effective_from)
+        if not emits_pending_notice(sefd):
+            return []
+        return self._wire(
+            supply_points, sefd, pending_notice_observed_at(sefd),
+            CSS_SWITCH_PENDING_NOTIFICATION_TYPE,
+        )
 
     def wire_notices_for_departure(
         self, supply_points: Sequence[tuple[str, str]], supply_effective_from: str,
     ) -> list[dict]:
         """One framed wire message per (supply point, fuel), handed over when observed."""
         sefd = dt.date.fromisoformat(supply_effective_from)
-        observed_at = loss_notice_observed_at(sefd)
+        return self._wire(supply_points, sefd, loss_notice_observed_at(sefd), loss_notice_type(sefd))
+
+    def _wire(
+        self, supply_points: Sequence[tuple[str, str]], sefd: dt.date,
+        observed_at: dt.datetime, notification_type: str,
+    ) -> list[dict]:
         out = []
         for point, fuel in supply_points:
             sender = loss_notice_sender(sefd, fuel)
@@ -105,7 +154,7 @@ class RegistrationLossFeed:
             )
             envelope = {
                 "notification_id": f"{sender}-{sequence}",
-                "notification_type": loss_notice_type(sefd),
+                "notification_type": notification_type,
                 "schema_version": SCHEMA_VERSION,
                 "sender": sender,
                 "sequence": sequence,

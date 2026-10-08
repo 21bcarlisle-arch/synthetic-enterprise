@@ -156,7 +156,8 @@ _BOOK = frozenset({"C1"})
 
 
 def _loss_wire(point="C1", sefd="2023-03-01", seq=0, sender="CSS-PROVIDER-01",
-               credential=_CSS_CREDENTIAL, **extra_payload):
+               credential=_CSS_CREDENTIAL, notification_type="css_registration_secured_inactive",
+               **extra_payload):
     """A framed notice exactly as a registration service hands it over."""
     payload = {"registration_ref": f"{point}@{sefd}", "supply_point_id": point,
                "supply_effective_from_date": sefd, **extra_payload}
@@ -165,7 +166,7 @@ def _loss_wire(point="C1", sefd="2023-03-01", seq=0, sender="CSS-PROVIDER-01",
         "sender": sender, "credential": credential, "handed_over_at": observed,
         "envelope": {
             "notification_id": f"{sender}-{seq}",
-            "notification_type": "css_registration_secured_inactive",
+            "notification_type": notification_type,
             "schema_version": 2, "sender": sender, "sequence": seq,
             "observed_at": observed, "valid_time": sefd, "payload": payload,
         },
@@ -186,6 +187,21 @@ def test_a_loss_notice_opens_a_losing_side_process_once():
     (proc,) = reg.active_for_account("C1")
     assert proc.gaining_supplier is None
 
+
+
+def test_a_pending_notice_is_filed_as_pending_and_never_as_a_loss():
+    """Defect guarded: an Invitation to Intervene filed as a lost registration (the switch can
+    still be cancelled), or a notice of a type the contract does not declare filed as either.
+    Both kinds are filed from one register, so the branch that tells them apart is taken."""
+    reg = CoSRegister(holds=_BOOK.__contains__)
+    pending = _loss_wire(seq=0, notification_type="css_switch_pending_invitation_to_intervene")
+    assert reg.receive_loss_wire(pending) is True
+    assert reg.losses_notified() == [] and reg.active_for_account("C1") == []
+    assert reg.receive_loss_wire(_loss_wire(seq=1)) is True
+    assert [p["supply_point_id"] for p in reg.pending_switches_notified()] == ["C1"]
+    assert [r["supply_point_id"] for r in reg.losses_notified()] == ["C1"]
+    with pytest.raises(ValueError, match="neither a loss"):
+        reg.receive_loss_wire(_loss_wire(seq=2, notification_type="css_something_else"))
 
 def test_the_company_refuses_a_notice_carrying_world_truth_by_name():
     """Defect guarded: the company-side belt -- a departure field riding on the

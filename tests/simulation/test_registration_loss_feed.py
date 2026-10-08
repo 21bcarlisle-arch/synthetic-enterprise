@@ -14,6 +14,8 @@ import pytest
 
 from interface.contracts.registration_loss_seam import (
     CSS_SENDER,
+    CSS_SWITCH_PENDING_NOTIFICATION_TYPE,
+    OBSERVABLE_PAYLOAD_FIELDS,
     PRE_CSS_ELECTRICITY_SENDER,
     PRE_CSS_GAS_SENDER,
     UNSOLICITED_PAYLOAD_TYPES,
@@ -48,6 +50,40 @@ def test_each_sender_stream_is_gap_free_and_regime_and_fuel_pick_the_sender():
         (CSS_SENDER, 0), (CSS_SENDER, 1), (PRE_CSS_ELECTRICITY_SENDER, 1)]
     assert wires[2]["envelope"]["observed_at"] == "2023-02-28T17:00:00"
 
+
+
+def test_a_css_switch_is_sent_a_pending_notice_before_its_loss_notice_and_a_pre_css_one_is_not():
+    """Defect guarded: the Invitation to Intervene missing for a CSS switch, sent for a pre-CSS
+    one (no such message existed), carrying more than the loss notice's three fields, or
+    sequenced after the Secured Inactive notice on the CSS stream."""
+    feed = RegistrationLossFeed()
+    points = [("C1", "electricity"), ("C1g", "gas")]
+    assert feed.wire_pending_notices_for_departure(points, "2017-02-21") == []
+    pending = feed.wire_pending_notices_for_departure(points, "2023-03-01")
+    loss = feed.wire_notices_for_departure(points, "2023-03-01")
+    assert [w["envelope"]["notification_type"] for w in pending] == [
+        CSS_SWITCH_PENDING_NOTIFICATION_TYPE] * 2
+    assert [w["envelope"]["sequence"] for w in pending + loss] == [0, 1, 2, 3]
+    assert pending[0]["envelope"]["observed_at"] == "2023-02-28T00:00:00"
+    for wire in pending:
+        assert set(wire["envelope"]["payload"]) == set(
+            OBSERVABLE_PAYLOAD_FIELDS["RegistrationLossNotice"])
+
+
+def test_the_route_share_is_read_from_the_register_and_a_set_share_is_refused(monkeypatch):
+    """Defect guarded: the route share typed in code instead of read from
+    assumption_toggles.yaml, or a share someone sets in the register silently ignored while
+    every switch is still sent on the ASAP floor. Both arms are taken: the register's own
+    null row builds a feed, and the same row set to a number refuses by name."""
+    from simulation import registration_loss_feed as feed_mod
+
+    assert feed_mod._toggle_row(feed_mod.SWITCH_ROUTE_TOGGLE)["default"] is None
+    assert feed_mod.asap_route_share() == 1.0
+    RegistrationLossFeed()
+    monkeypatch.setattr(
+        feed_mod, "_toggle_row", lambda toggle_id: {"id": toggle_id, "default": 0.6})
+    with pytest.raises(ValueError, match="q4_css_switch_route_share_asap is set to 0.6"):
+        RegistrationLossFeed()
 
 def test_the_world_refuses_to_send_a_notice_carrying_world_truth(monkeypatch):
     """Defect guarded: the world-side belt. A payload field named like a
