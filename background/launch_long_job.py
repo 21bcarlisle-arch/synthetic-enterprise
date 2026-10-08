@@ -178,6 +178,38 @@ def _as_cgroup_leaf(unit: str) -> str:
     return unit if unit.endswith(".service") else f"{unit}.service"
 
 
+#: A RUN OVER AN HOUR STATES ITS CASE BEFORE IT STARTS (director, 2026-10-08): *"Every run should
+#: answer a stated question with the smallest run that can answer it ... Any run over an hour
+#: records its question before launch, and says why the minutes tier can't answer it and what
+#: result would change what we do."* The census that prompted it: 27 runs over an hour in the week
+#: to 2026-10-08, 86.5 box-hours, 21 of them decision-rule comparisons the decision probe answers
+#: in minutes, and not one that would have passed. The hour is the director's line, not a fit.
+RUN_CASE_ABOVE_MINUTES = 60
+RUN_CASE_FIELDS = ("question", "why_not_minutes", "would_change")
+
+
+def run_case_refusal(expect_minutes, run_case) -> str | None:
+    """Why a launch may not start for want of a stated case, or None when it may."""
+    if expect_minutes is None:
+        return ("undeclared duration: the job did not say how long it will run (--expect-minutes). "
+                "A run over an hour must state its question first, and a launch that cannot say "
+                "its length cannot be checked against that rule. Take it from the job's own last "
+                "run, as the peak is")
+    if float(expect_minutes) <= RUN_CASE_ABOVE_MINUTES:
+        return None
+    missing = [f for f in RUN_CASE_FIELDS
+               if not isinstance((run_case or {}).get(f), str) or not run_case[f].strip()]
+    if missing:
+        return ("a run expected to take {:.0f} min is over the {}-minute line, so it must state "
+                "its case before it starts, and {} is missing: --question (what this run "
+                "answers), --why-not-minutes (why the probe, the decision set or a few hundred "
+                "homes over a year or two cannot answer it), --would-change (what result would "
+                "change what we do). A full book is for rare events that need many "
+                "customer-years, book-level money, or the periodic end-to-end check".format(
+                    float(expect_minutes), RUN_CASE_ABOVE_MINUTES, ", ".join(missing)))
+    return None
+
+
 def co_residence(peak_mb, residents: list, total_mb, *, declared: dict | None = None,
                  wait_for_pid: int | None = None) -> dict:
     """May a job declaring `peak_mb` start beside `residents` on a guest of `total_mb`?
@@ -409,7 +441,7 @@ def launch(job: str, command: list, *, artefact: str, workdir: str | None = None
            records_path: Path | None = None, runner=subprocess.run,
            launched_at: str | None = None, out=None, peak_mb=None,
            wait_for_pid: int | None = None, residents=resident_census,
-           guest_total_mb=None) -> dict:
+           guest_total_mb=None, expect_minutes=None, run_case: dict | None = None) -> dict:
     """Start `command` in a transient user unit AND write its liveness record. One call, both.
 
     THE ORDER IS THE ARGUMENT, and it is the opposite of the obvious one. The record is written
@@ -466,6 +498,9 @@ def launch(job: str, command: list, *, artefact: str, workdir: str | None = None
             "second copy is how one measurement became six on 2026-08-10. Ask it: "
             f"`systemctl --user show {unit} -p ActiveState`, or "
             "`python3 -m background.launch_liveness --check`.")
+    case_refusal = run_case_refusal(expect_minutes, run_case)
+    if case_refusal:
+        raise LaunchRefused(case_refusal)
     if guest_total_mb is None:
         from background.resource_headroom import sample
         guest_total_mb = sample()["total_mb"]
@@ -525,7 +560,8 @@ def launch(job: str, command: list, *, artefact: str, workdir: str | None = None
     try:
         entry = launch_liveness.record(
             job, unit, artefact, log=log, asserted_live_by=list(asserted_live_by),
-            launched_at=launched_at, path=records_path, peak_mb=peak_mb, workdir=workdir)
+            launched_at=launched_at, path=records_path, peak_mb=peak_mb, workdir=workdir,
+            expect_minutes=expect_minutes, run_case=run_case)
     except Exception as exc:  # noqa: BLE001 -- see the docstring: unrecorded must not stay running
         stop(unit, runner=runner)
         raise LaunchRefused(
@@ -565,6 +601,15 @@ def main(argv: list | None = None) -> int:
     parser.add_argument("--peak-mb", type=float, required=True,
                         help="the most memory the job will hold, from its own last run. The "
                              "launch refuses when this plus everything resident exceeds the guest")
+    parser.add_argument("--expect-minutes", type=float,
+                        help="how long the job will run, from its own last run. Over {} min it "
+                             "must also state --question, --why-not-minutes and "
+                             "--would-change".format(RUN_CASE_ABOVE_MINUTES))
+    parser.add_argument("--question", help="what this run answers")
+    parser.add_argument("--why-not-minutes",
+                        help="why the minutes tier (the probe, the decision set, a few hundred "
+                             "homes over a year or two) cannot answer it")
+    parser.add_argument("--would-change", help="what result would change what we do")
     parser.add_argument("--wait-for-pid", type=int,
                         help="instead of refusing over this resident, start the job when it exits")
     parser.add_argument("--dry-run", action="store_true",
@@ -579,7 +624,12 @@ def main(argv: list | None = None) -> int:
         return 2
     env = dict(kv.split("=", 1) for kv in args.setenv if "=" in kv)
 
+    run_case = {"question": args.question, "why_not_minutes": args.why_not_minutes,
+                "would_change": args.would_change}
     if args.dry_run:
+        refusal = run_case_refusal(args.expect_minutes, run_case)
+        if refusal:
+            print(f"WOULD REFUSE: {refusal}")
         unit = unit_name(args.job)
         print(" ".join(systemd_run_argv(
             unit, command, workdir=args.workdir or str(_REPO),
@@ -596,7 +646,8 @@ def main(argv: list | None = None) -> int:
     try:
         launch(args.job, command, artefact=args.artefact, workdir=args.workdir, log=args.log,
                description=args.description, asserted_live_by=args.asserted_live_by, env=env,
-               peak_mb=args.peak_mb, wait_for_pid=args.wait_for_pid)
+               peak_mb=args.peak_mb, wait_for_pid=args.wait_for_pid,
+               expect_minutes=args.expect_minutes, run_case=run_case)
     except LaunchRefused as exc:
         print(f"REFUSED: {exc}")
         return 1

@@ -234,7 +234,9 @@ def _launch_under_systemd(out: str, log) -> int:
             description="OPS2 publish-gate subject-cost measurement (one-shot, ~50 min)",
             out=narration,
             # Its peak is the one `resource_headroom` measured at its OOM kill, not a new number.
-            peak_mb=resource_headroom.CLASS_WEIGHTS_MB["subject_cost"])
+            peak_mb=resource_headroom.CLASS_WEIGHTS_MB["subject_cost"],
+            # Its own description says ~50 min, under the hour that requires a stated case.
+            expect_minutes=50)
     except launch_long_job.LaunchRefused as exc:
         log("! REFUSED: {}".format(exc))
         return 1

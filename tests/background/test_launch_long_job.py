@@ -86,7 +86,8 @@ def _launch(tmp_path, runner, **over):
     kwargs = dict(
         artefact=str(tmp_path / "out.json"), workdir=str(tmp_path),
         log=str(tmp_path / "job.log"), records_path=tmp_path / "records.json",
-        runner=runner, peak_mb=1000, residents=lambda: [], guest_total_mb=24000)
+        runner=runner, peak_mb=1000, residents=lambda: [], guest_total_mb=24000,
+        expect_minutes=30)
     kwargs.update(over)
     return llj.launch("a-long-run", ["python3", "-m", "tools.nothing"], **kwargs)
 
@@ -413,7 +414,7 @@ def test_a_real_launch_detaches_and_logs_both_streams(tmp_path):
             job, ["/bin/bash", "-c",
                   f"echo to-stdout; echo to-stderr >&2; echo '{{}}' > {artefact}; sleep 4"],
             artefact=str(artefact), workdir=str(tmp_path), log=str(log),
-            records_path=tmp_path / "records.json", peak_mb=1)
+            records_path=tmp_path / "records.json", peak_mb=1, expect_minutes=1)
         assert entry["detached"] is True, entry["detach_why"]
         # A bounded wait on the artefact this launch names -- ten seconds, then we read whatever
         # is there and let the assertion say what was missing.
@@ -428,3 +429,24 @@ def test_a_real_launch_detaches_and_logs_both_streams(tmp_path):
         subprocess.run(["systemctl", "--user", "stop", unit], capture_output=True, timeout=60)
         subprocess.run(["systemctl", "--user", "reset-failed", unit],
                        capture_output=True, timeout=60)
+
+
+def test_a_run_over_an_hour_must_state_its_case_and_one_that_does_or_is_shorter_starts(tmp_path):
+    """Defect: a multi-hour run starts with no stated question. In the week to 2026-10-08, 27 runs
+    over an hour used 86.5 box-hours and 21 were rule comparisons the decision probe answers in
+    minutes; nothing asked any of them what they were for before they took the box.
+
+    THE WHOLE PARTITION IN ONE TEST, so a rule that refused everything cannot pass: undeclared is
+    refused, over the line without a case is refused naming what is missing, and both a stated
+    case and a short run start -- with the case written into the record before the run begins.
+    """
+    with pytest.raises(llj.LaunchRefused, match="undeclared duration"):
+        _launch(tmp_path, _Runner(), expect_minutes=None)
+    with pytest.raises(llj.LaunchRefused, match="why_not_minutes, would_change"):
+        _launch(tmp_path, _Runner(), expect_minutes=180, run_case={"question": "q"})
+    case = {"question": "how often does a debtor move home",
+            "why_not_minutes": "a move by a debtor needs ~2,000 customer-years to appear 10 times",
+            "would_change": "fewer than 5 sets the move-out debt toggle to GAP"}
+    entry = _launch(tmp_path, _Runner(), expect_minutes=180, run_case=case)
+    assert entry["run_case"] == case and entry["expect_minutes"] == 180
+    assert _launch(tmp_path, _Runner(), expect_minutes=45, records_path=tmp_path / "r2.json")
