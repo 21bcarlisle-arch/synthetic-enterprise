@@ -450,7 +450,11 @@ def test_the_money_consequence_is_AFFINE_in_the_unit_rate_for_a_fixed_decision(m
     # stock moved the flips: swept at 0.5p, E15 now flips between 16.5 and 17 and D7
     # between 17.5 and 18, and 14.0-16.0 is the first spaced-by-one triple constant
     # at every half step.
-    rates = (14.0, 15.0, 16.0)
+    #
+    # 14/15/16 -> 16/17/18 ON 2026-10-08, BY THE SAME GUARD. The cooking-fuel draw
+    # (`pt.gas_cooked`) moved D7's chosen measure insulate -> heat_pump between 15.0 and
+    # 15.5; swept at 0.5p, the vector is constant from 15.5 to 20.0.
+    rates = (16.0, 17.0, 18.0)
     vectors = [
         tuple(
             (row.premise_id, row.chosen_measure, row.best_measure)
@@ -650,7 +654,9 @@ def test_the_TEXTURE_CELL_BREACH_CLOSED_when_the_LOAD_SET_WAS_REPAIRED(panel, we
     #
     # S9 0.1200 -> 0.0559 the same night (W1_29): S9's always-on load is drawn (EFUS) where it
     # was 25 W, and it is in the calmest real tenth, which a tenth of real homes are.
-    assert texture.worst_value == pytest.approx(0.0559, abs=5e-4), texture.note
+    #
+    # S9 0.0559 -> 0.0567 on 2026-10-08: the cooking-fuel draw (`pt.gas_cooked`).
+    assert texture.worst_value == pytest.approx(0.0567, abs=5e-4), texture.note
     assert "net of space AND water heat" in texture.note
     electric = {
         home for home, system in zip(population_homes(panel), panel_systems(panel))
@@ -669,7 +675,8 @@ def test_the_TEXTURE_CELL_BREACH_CLOSED_when_the_LOAD_SET_WAS_REPAIRED(panel, we
     assert texture.verdict is fgl.Verdict.INSUFFICIENT, texture.note
     median = next(leg for leg in texture.quantiles if leg.q == 0.50)
     # 4 -> 9 (expected 7.5) the same night, when each home drew its always-on load.
-    assert median.below == 9, texture.note
+    # 9 -> 8 on 2026-10-08, the cooking-fuel draw (`pt.gas_cooked`).
+    assert median.below == 8, texture.note
 
     # (d) THE GAS HOMES ARE UNCHANGED BY THE REPAIR, which is what makes it a
     #     load-set correction rather than a rescaling of everybody. Measured, not
