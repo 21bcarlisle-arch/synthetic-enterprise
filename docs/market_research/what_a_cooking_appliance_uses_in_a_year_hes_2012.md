@@ -119,3 +119,9 @@ all cooking at 17:00–19:00. The world's cooking windows start at half-hours 32
 by each home's routine. Its peak is at 20:00, against SERL's 18:30. A peak that is too late and too
 tall is what a too-narrow, too-late start window produces: every home's evening meal lands in the
 same few half-hours. That is a hypothesis, and nothing here measures it.
+
+**Measured, 2026-10-08 (later).** Measured over the drawn population, the kettle was 223 kWh/yr per
+owner, not the 204 at unit intensity given above. The boil is now 0.105 kWh
+(`_KETTLE_KWH_PER_BOIL`), which reads back at 167. The timing lead was tested and refuted. Moving the
+oven and hob 90 minutes earlier takes 0.018 kWh/h off the peak. With no cooking at all the peak is at
+20:30. See the seasonal-swing finding in `docs/staging/`.
