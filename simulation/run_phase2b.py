@@ -1316,9 +1316,17 @@ def main(report_end: str | None = None, policy: DecisionPolicy | None = None,
     is the difference between the arms that is not a leak, it is a fabricated result. Opening it
     at the single entry point every run passes through means no caller can forget.
     """
+    import time as _time
+
+    from simulation import run_cost
+
+    started = _time.monotonic()
     with pressure_ledger_scope():
-        return _main(report_end=report_end, policy=policy,
-                     gap_ledger_path=gap_ledger_path)
+        result = _main(report_end=report_end, policy=policy,
+                       gap_ledger_path=gap_ledger_path)
+    # One line per run: its cost against the book it settled (simulation/run_cost.py).
+    run_cost.record(result, wall_s=_time.monotonic() - started, report_end=report_end)
+    return result
 
 
 def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,

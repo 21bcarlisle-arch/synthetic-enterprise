@@ -35,6 +35,7 @@ compared with the lifetime basis on the same rows:
   lifetime share is about 0.5.
 - **T2.** capped - flat-55 on the term basis is at least -300 on every path. On the lifetime
   basis it was -165 to -1,098. I.e. at parity once the unforeseeable debt is not charged.
+  *(Correction 2026-10-08: the -165 is 61003 on a throttled, short price set; on the full set it is -1,080, so the old basis ran -1,080 to -1,098. See the correction in SEAT_PREREG_THE_CHOICE_IS_HELD_DOWN_..._2026-10-03.md.)*
 - **T3.** capped - flat-55 on the term basis is POSITIVE on at least 2 of 4 paths. This is the
   first time a per-customer rule would beat the best flat price in hindsight. I hold it at 50/50
   and say so.

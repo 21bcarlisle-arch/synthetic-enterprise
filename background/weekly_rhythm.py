@@ -485,6 +485,7 @@ def _step_body(step: str, due_on: date, overdue: list[dict]) -> str:
         from background.director_concerns import end_to_end_section
         lines += end_to_end_section()
         lines += _merge_pressure_section()
+        lines += _run_cost_section()
         lines += _priority_order_section()
         lines += ["## The ranking for this week", "",
                   "_Written by the Monday step. Ordered. Anything above the line outranks new "
@@ -530,6 +531,22 @@ def _merge_pressure_section(days: float = 7.0) -> list[str]:
     return ["## Merge pressure, this week", "", measured, "",
             "**Ask why it recurs, not how to clear it.** If one kind or one path dominates, that is "
             "the next item; if the wait has not fallen since the last change aimed at it, say so.",
+            ""]
+
+
+def _run_cost_section(days: float = 7.0) -> list[str]:
+    """WHAT EACH RUN COST AGAINST THE BOOK IT SETTLED (director, 2026-10-08: "what would make this
+    kind of gap surface on its own"). Nobody had profiled a run, and a run that got heavier per
+    customer looked like a run that got bigger. `simulation.run_cost` writes one line per run."""
+    try:
+        from simulation.run_cost import render
+        measured = render(days)
+    except Exception as exc:  # noqa: BLE001 -- a review that cannot measure says so on its face
+        measured = f"NOT MEASURED -- `simulation.run_cost` raised {type(exc).__name__}: {exc}"
+    return ["## Run cost per settled leg-year, this week", "", measured, "",
+            "**A move is a question, not a number.** If seconds or megabytes per leg-year moved, "
+            "profile one small run (cProfile, not tracemalloc, on this box) and name the hotspot "
+            "before the next long run starts.",
             ""]
 
 
