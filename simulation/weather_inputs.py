@@ -45,6 +45,7 @@ This module is pure I/O plus small pure helpers: no settlement logic.
 
 import csv
 import os
+import weakref
 from dataclasses import dataclass
 from datetime import date, timedelta
 
@@ -261,6 +262,25 @@ def _is_a_number(value) -> bool:
     return isinstance(value, (int, float)) and value == value
 
 
+#: ONE SERIES PER CELL AND FIELD, NOT ONE PER CUSTOMER. Every premise in a cell reads the identical
+#: sky, and the run used to build each premise its own {date: value} dict from the cell's rows:
+#: about 85 MB of duplicate weather at 192 accounts, growing with accounts rather than cells
+#: (docs/staging/SEAT_FINDING_THE_TERM_LOOPS_MEMORY_THAT_SCALES_WITH_ACCOUNTS_IN_THE_BOOK_2026-10-07.md).
+#: Keyed WEAKLY on the store, so a test that builds its own world neither leaks it nor collides with
+#: another world's cells. Nothing in the run mutates a customer's series (checked 2026-10-08), and
+#: a book settled with the memo gives the same digest as one settled without it.
+_SERIES_BY_STORE: "weakref.WeakKeyDictionary" = weakref.WeakKeyDictionary()
+
+
+def _cell_series(store, cell, weather_field: str, rows) -> dict:
+    by_cell = _SERIES_BY_STORE.setdefault(store, {})
+    key = (cell, weather_field)
+    if key not in by_cell:
+        by_cell[key] = {row["date"]: row[weather_field]
+                        for row in rows if _is_a_number(row.get(weather_field))}
+    return by_cell[key]
+
+
 def cell_weather_for_customer(
     customer: dict, weather_field: str = TEMPERATURE_FIELD, world: WeatherWorld | None = None
 ) -> CellWeather:
@@ -296,8 +316,7 @@ def cell_weather_for_customer(
     except WeatherWorldRefusal as exc:
         # The store's own reason, verbatim: it already names the nearest cell and the distance.
         return CellWeather(cid, None, {}, f"{exc}")
-    series = {row["date"]: row[weather_field]
-              for row in rows if _is_a_number(row.get(weather_field))}
+    series = _cell_series(store, cell, weather_field, rows)
     if not series:
         return CellWeather(cid, cell, {}, f"cell {cell} holds no {weather_field} on any of its "
                                           f"{len(rows)} days -- {ADD_THE_CELL_REMEDY}")
