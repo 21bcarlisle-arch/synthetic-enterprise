@@ -539,3 +539,87 @@ the property: the floor alone licenses the pass, and at a zero floor the cell mu
 is red at clean origin. `sim/customer_state_layer.py` (B7 slices 3–4, 2026-10-06) carries a private
 `_substream`, and no row of `HEAD_RED_REGISTER.md` names it. Migrating it re-draws the home-moves
 world, so it is not folded into this commit, where it would be a second variable.
+
+## Pre-registration: the level, one end use at a time, after the cooking fuel (2026-10-08, executor seat, draw `a-gas-heated-homes-electricity-level-is-read-for-2022`)
+
+**Premise re-measured at draw.** `fc47cd363` and the cooking-fuel build `92d39bf60` are both on
+origin. The median is now 3,141, not 3,418, so the draw's "~2 kWh/day" is about **1.5 kWh/day**
+against SERL's ~2,600. The ask, "which end use", is answered for cooking only. It is still owed for
+everything else, so the premise is not spent.
+
+**Filed before the run.** Instrument `/tmp/gslevel/measure.py`, which regenerates from this text.
+Over the gas-heated, no-PV homes among the first 200 drawn premises, seed 17, C1 2022, current
+origin: each end use's annual kWh per home is the full trace minus the trace with that one use
+removed. Cold, boiler auxiliary and supplementary heating are read from the trace fields directly.
+
+| End use | Predicted median kWh/yr | Basis |
+|---|---|---|
+| Meter | 3,100–3,180 | the cooking result, 3,141, on a near-identical population |
+| Always-on | 760–820 | 90 W × 8,760 h = 788 |
+| Cooking (electric, after the fuel draw) | 450–600 | 800 before the build, minus ~280 |
+| Laundry and dishwasher | 350–430 | 392 in the earlier one-variable arm |
+| Lighting | 180–240 | the doc's ~210 |
+| Electronics | 350–650 | 0.055 kW/person × occupancy; never measured |
+| Cold | 250–450 | not read before |
+
+**What would locate the excess.** A component whose world figure sits clearly above a published
+2020s per-home figure for the same use. **What would not:** every component sitting inside its
+published bracket. Then the excess is the SUM of plausible terms, and so the homes' activity
+(occupancy, and how often each event fires), not any one constant.
+
+### Result: no single end use carries the excess, and the per-use sources are 2010–2015 measurements
+
+Both the ledger and the meter are read from the same run. The decomposition closes: the residual is
+1 kWh. 163 homes. Meter: p25 2,602, median **3,141** ✓, p75 3,919, mean 3,395.
+
+| End use | Predicted median | **World median** | **World mean** | Published per-home figure (mean) | World − published |
+|---|---|---|---|---|---|
+| Always-on | 760–820 ✗ | **632** | 954 | EFUS 2011 mean 136 W = 1,191 | below (sample draw) |
+| Electronics (on-mode) | 350–650 ✓ | **628** | **673** | HES 2010–11 **on-mode** ≈ **557** (AV 123.8 W × 3,118 h = 386, computer 88 W × 1,945 h = 171; R66141 Figs 501, 535) | **+116**, and HES is a CRT/plasma/desktop stock |
+| Cooking (electric, after the fuel draw) | 450–600 ✗ (610) | **610** | 577 | HES R66141 Table 23 per owning home × the world's own fuel shares ≈ **514** (oven 290 × 0.737, hob 226 × 0.303, kettle 167, microwave 56, toaster 22) | **+63** |
+| Cold | 250–450 ✓ | **289** | 391 | DECC/BRE cold-appliance field trial, 2015, 416 homes: **533 ± 32** per home | **−142** |
+| Laundry and dishwasher | 350–430 ✓ | **357** | 388 | HES Table 22 per owning appliance: washer 166, dryer 394, dishwasher 294 | not above |
+| Lighting | 180–240 ✓ | **190** | 206 | ECUK bracket 137 (2022 method) to 430 (2016, old method) | inside |
+| Boiler auxiliary | — | 101 | 100 | earlier sections | — |
+| Supplementary heating | — | 0 | 69 | earlier sections | — |
+
+**Prediction kept as filed.** Two misses. Always-on came in under its band: the drawn 163 sit below
+EFUS's median, so 788 was the population figure, not this sample's. Cooking came in 10 above its
+band.
+
+**What it shows: none of the hypotheses' clean outcome.** No end use sits ~500 kWh above its
+published figure. Electronics is the largest positive deviation (+116 on the mean) and has no source
+of its own. Cooking is +63 against HES at the world's own fuel shares. Cold sits 142 BELOW its field
+trial. Summed against these per-use sources, the world is roughly where 2010–2015 measurements put a
+home. **The excess is the vintage of the sources, not one constant.**
+
+**The two years the world does not represent.** These are hypotheses ranked by evidence, not measured
+causes:
+1. **The decade's efficiency drift.** Every per-use source here dates from 2010–2015: HES, EFUS 2011,
+   the cold trial. 2022's stock has LED televisions, laptops and newer cold appliances. Every
+   constant is constant across 2016–2025. HES's own ON-mode television power (123.8 W) is the
+   clearest dated figure.
+2. **The 2022 crisis response.** SERL Vol 2 Table 2, all homes: median import **3,030 (2021) →
+   2,660 (2022)**, −12%. Table 6, gas CH no PV: peak 0.54 → 0.48, trough 0.14 → 0.13. The world's
+   2022 has no price response in appliance use, so it is being compared with a year in which real
+   homes cut back. Against SERL 2021's peak of 0.54, the world's evening (0.67 at 19:30–21:00) is
+   still high, so (2) does not explain all of the peak.
+
+**Where it sits in the day.** The world's median profile is flat at 0.33 from 09:00 to 15:00 and
+peaks at **0.67, 19:30–21:00**. SERL's is a lunchtime bump and a peak at 18:30. Evening electronics
+on-mode (occupancy-driven) and evening cooking are the two terms in that window. Electronics is the
+one without a source.
+
+**Next, in order.**
+1. BUILD: anchor `_ELECTRONICS_KW_PER_PERSON` to HES's on-mode energy, named as a 2010–11 UPPER
+   bound: 0.055 × 557/673 ≈ 0.0455. **Prediction:** mean −116 ± 15, median −95 to −125, 19:30
+   −0.02 to −0.04 kWh/h, trough unmoved. This is a refit of a world anchor, so budget the value-arms
+   re-take.
+2. READ: a 2020s per-use trend. Candidates: the EST/DESNZ follow-ups to HES; ECUK editions before
+   2025, which split appliances (cold, wet, consumer electronics, computing) by year. That decides
+   whether (1) under hypothesis 1 is a per-use time trend or a single level.
+3. DIRECTION, not this lane's to decide: whether the 2022 world should carry a price response in
+   appliance use (SERL −12%). Until it does, **SERL 2022 is the wrong year to grade the level
+   against**. SERL 2021 is the comparison the world can be held to. Its 3,030 is ALL homes,
+   including electric heating and EVs, so the gas no-PV figure is lower. That subgroup's 2021
+   annual median was not read. Read it before calling the level high or right.
