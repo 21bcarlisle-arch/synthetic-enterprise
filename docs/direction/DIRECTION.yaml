@@ -1,174 +1,168 @@
 version: 1
-oriented_at: "2026-10-08T14:22:01.561501+00:00"
+oriented_at: "2026-10-08T20:20:22.602711+00:00"
 thesis_read: >-
-  A short stretch, and the main thing it did was test the world underneath the per-customer win
-  rather than add to it. The save offer that beats never offering (0f1fb3f6a) is still a grading
-  tool's answer. Its settled-run wiring, with the director's two fairness checks, was claimed at
-  14:19 and is in hand now; nothing from it is on origin yet. Last stretch's record did not weigh
-  the finding filed beside that result: on the decision set the world loses 40% of households at
-  each anniversary at the default price, against about 6% external switching at fixed-term end in
-  Ofgem's trial. Every save rate and every stayer cost divides by that share. Until the three
-  explanations it ranks have been tested (the default price is the dear one, the set is thinner
-  than the settled world, the hazard is too high), the save result's levels cannot be trusted
-  even if its ranking holds. So it comes second in focus, ahead of new levers. The gas home's
-  evening excess moved in the right way: dating the per-use sources to 2022 explains about 410
-  kWh of the meter's excess (a107b7032), and a refit that would have anchored electronics to a
-  per-site arithmetic artefact was withdrawn before it landed (0a075f658). That is
-  knowledge-first working as intended. The 400-founder end-to-end check died at extraction on an
-  incoming occupant (KeyError OCC-*). That exposed a defect every production run since moves went
-  on would have hit, and 3d5b490c8 fixed it. The run itself has not been relaunched, so the
-  founder count, budget and memory share are still unset. Three of last stretch's five focus
-  items saw nothing land: the voids split, the mover observable (its discovery 9b0e3594c predates
-  the record) and acquisition's P1-P4 on fresh seeds. Only the save item was drawn, and it was
-  drawn three hours in. The steer is slow rather than ignored, but the voids atom is still not
-  minted. The machine went further backwards. HEAD is now 30 behind origin, from 23, and seven
-  daemons run without 10 commits to code they import. The draw ledger still reads
-  reprice-the-settlement-budget as not_done, although 803f8666b is on origin, wrote the very path
-  it asks about at 10:59Z inside its window, and is that item's work.
+  The stretch did what the last record asked first, and the base under the retention result is
+  now one thing rather than two. 7981270d0 put both departure findings on one definition (per
+  fixed-term ender, left the supplier within 42 days or 12 months) and corrected both beside their
+  claims. The 7.8% was a prorated expectation; realised, it is 14.2% at 2017-2021 (29/204) on a
+  full run, above EFTC's 6%, which turns out to be a floor because its control arm excludes
+  households who had already acted. At 2017-2021 the world sits inside the published switching
+  total, and the gap is withdrawn there. At 2024-2025 it is reopened: 30.4% within 42 days on 46
+  enders (CI 19-45%) would take 2025's term-enders to about 9.5% of accounts against a 10.4%
+  total. One seed and 46 households cannot say whether that is a defect, so the multi-seed count
+  now leads, because the director's hold on the 400 founders waits on it. The gas home's evening
+  peak moved for the right reason: electronics came to its dated 2022 level (6987325ae, the meter
+  fell 294 kWh as pre-registered), and the SERL control the record asked for is on origin
+  (3ff16bada). It is honestly red: the peak is 0.626 against 0.445-0.485 and the season 1.291
+  against 1.36-1.47, with the trough passing. What is left is a level term, not a shape term. The
+  value arms republished at 45122d156 (cb54420a0), with R5 holding and the page's verdicts still
+  withheld, because 22 imported paths have moved since. Against the thesis the position is
+  unchanged. The one place inference beats a flat rule is the reactive save, and its settled-run
+  wiring with the director's fairness checks is in surgical_land right now, after claims at 14:19
+  and 17:21. Its three arms are running on the box. Nothing from it is on origin, so the thesis
+  has not yet advanced past the grading tool. Of the previous focus, the reconciliation is done,
+  the gas home moved to its control, the save offer is landing, and the voids split is being
+  offered from 21:04Z, which is the first time in three stretches; whether the held-work check
+  explains the earlier misses is still not shown. The machine went backwards again. HEAD is 50
+  behind origin, from 41. The last orientation's record (17:21) never reached origin, whose
+  DIRECTION.yaml is still the 14:22 one (3e8c847a4). Two long jobs were OOM-killed this stretch,
+  with the director's memory budget on origin but not in the checkout sim-runner runs.
 stretch_reviewed:
-  since: "2026-10-08T11:20:43.321945+00:00"
-  commits: 7
-  substantive: 4
+  since: "2026-10-08T17:21:17.621217+00:00"
+  commits: 9
+  substantive: 5
 focus:
   - id: a-save-offer-is-not-paid-for-by-the-stayers
     lane: B_commercial
     what: >-
-      Claimed at 14:19 and in hand; finish it, do not restart it. Wire the reactive save on the
-      loss notice (0f1fb3f6a) into the settled run behind a curriculum switch that is off by
-      default and byte-identical when off, reading the Invitation to Intervene (4805420bd) and
-      the save and win-back toggle ranges (f418eff9e). Then run the director's two fairness
-      checks in the minutes tier at both ends of the save-rate range, each pre-registered before
-      its run. First, the stayers' prices with and without saves, account by account. Second, a
-      vulnerable customer's offer against a non-vulnerable customer's in the same position. Add a
-      control for each that reds if a stayer's price moves with saves on, and if a vulnerable
-      customer gets less. Report the settled run's own anniversary departure share beside the
-      result, because the decision set's 40% is under question.
+      In hand and landing now: surgical_land pid 1458995 is gating "A save on the CSS Invitation
+      to Intervene is wired into the settled run behind a curriculum switch that is off", and the
+      on, placebo and off k1 arms (tools.save_on_loss_notice_arms, 2024-12-31, cut-share 0.04) are
+      running. Do not restart either. When the landing confirms, bind it with delivery_lane
+      --landed. When the arms finish, grade the director's two fairness checks at both ends of the
+      save-rate range: the stayers' prices with and without saves, account by account, and a
+      vulnerable customer's offer against a non-vulnerable one's in the same position. Add a
+      control for each. Report the settled departure share per fixed-term ender, the definition
+      7981270d0 fixed. If off-k1 dies again (it was OOM-killed at 19:52), relaunch it alone, not
+      beside the other two.
     why: >-
-      This is the thesis's first inference-beats-flat-rule result, and the director made it
-      conditional on stayers not paying for it. DONE when the switch, both checks and their
-      controls are on origin, and the finding states, at both ends of the save-rate range,
-      whether the reactive save still beats never offering in the settled run, with the settled
+      This is the only result where per-customer inference beats a flat rule, and the director made
+      it conditional on stayers not paying for it. DONE when the switch, both checks and their
+      controls are on origin, and the finding states at both ends of the save-rate range whether
+      the reactive save still beats never offering in the settled run, with the per-ender
       departure share printed beside it.
-  - id: the-worlds-anniversary-departure-is-checked-against-the-published-six
+  - id: w2-term-end-departures-2024-2025-multi-seed-per-ender-count
     lane: W2_customer_generator
     what: >-
-      Work the NEXT in
-      docs/staging/SEAT_FINDING_THE_WORLD_LOSES_FORTY_PERCENT_AT_EACH_ANNIVERSARY_AGAINST_A_PUBLISHED_SIX_2026-10-08.md,
-      minutes tier, writing each prediction first. Test 1: re-ask the world's P(stay) on the
-      coin-drawn decision set (seeds 42, 101, 202) with a market fix offered in place of the
-      capped default. Test 2: compute the settled run's departure share at the same
-      anniversaries and compare it with the decision set's 0.40. If both leave the gap, rank
-      explanation 3 (the hazard is too high) against the published fixed-term-end and annual
-      switching figures, and file it as a fidelity defect to be fixed blind to company results.
-      Do not touch the churn draw in this item. File the verdict in the finding.
+      Work the queued continuation of this id. Write the prediction first in the worker finding
+      (WORKER_FINDING_THE_RENEWAL_ROUTE_CARRIES_THE_WHOLE_BOOK_RESIDUAL_AND_DEPARTS_ABOVE_THE_PUBLISHED_TERM_END_BOUND_2026-10-08.md).
+      Then, on three or more settled seeds at origin, count the share of ALL resi fixed-term
+      enders who leave the supplier within 42 days and within 12 months, for term ends in 2024 and
+      2025 separately. Recompute the corrected bound (per-ender 12-month rate times Ofgem's
+      fixed-term share) against the published switching total for each year. Launch through
+      launch_long_job one seed at a time, not beside the save arms. Do not touch the churn draw or
+      tools/fit_year_level_anchor.py in this item.
     why: >-
-      Fidelity is the precondition. Every retention figure, the save offer's included, divides
-      by the share that leaves, and at 17% instead of 40% the same cut implies a save rate above
-      the published range. DONE when tests 1 and 2 are graded in the finding on origin and it
-      names which explanation the evidence supports. If that is 3, DONE also needs the defect
-      filed on the W2 lane.
+      The director's hold puts fidelity first, then re-grading, then the 400 founders, and the one
+      fidelity question left open on the departure base rests on 46 households from one seed. DONE
+      when the worker finding on origin states, per year with its interval, whether 2024-2025
+      departures exceed the published bound. If a gap survives, it stays filed on W2 with the
+      bound as its control, fixed blind to company results. If not, it is withdrawn beside its
+      claim.
   - id: the-voids-effect-is-split-and-the-atom-carries-its-gaps
     lane: W2_customer_generator
     what: >-
-      Carried unchanged, not drawn last stretch. Split 5531ef8a6's GBP 910 net-margin fall on the
-      80-founder book to 2019 into its four changes, one variable at a time at the same seed:
-      void energy removed, the unnamed window starting later, the occupant's move hazard starting
-      later, and payment amounts. Write each prediction before its run. Then settle whether the
-      payment triad's monthly amount still feeds the change-of-tenancy window's occupier-debt
-      revenue into the named household's payments, against B7 slice 5's exclusion. Fix it if it
-      does. Mint the voids atom on docs/design/maturity_map.yaml, asking the map's headroom
-      first, and name the owner-void and void-use GAPs on the row.
+      Offered from 21:04Z; whoever holds it, finish it rather than restart. Split 5531ef8a6's GBP
+      910 net-margin fall on the 80-founder book to 2019 into its four changes, one variable at a
+      time at the same seed, each prediction written first: void energy removed, the unnamed window
+      starting later, the occupant's move hazard starting later, and payment amounts. Settle whether
+      the payment triad's monthly amount still feeds change-of-tenancy occupier-debt revenue into the
+      named household's payments, against B7 slice 5's exclusion, and fix it if it does. Then mint
+      the voids atom on docs/design/maturity_map.yaml (ask python3 -m tools.maturity_map_store for
+      headroom first) with the owner-void and void-use GAPs on the row.
     why: >-
-      Voids now move money, but a GBP 910 figure that four changes made together is not the
-      void's effect, and every debt figure downstream of moves carries that unattributed term.
-      DONE when the split and the triad check are in the void finding on origin and the atom row
-      exists at L1 with its GAPs.
-  - id: acquisition-selection-is-graded-on-fresh-seeds
-    lane: B_commercial
-    what: >-
-      Carried unchanged, not drawn last stretch. Grade the pre-registered P1-P4 in
-      docs/staging/records/SEAT_PREREG_ACQUISITION_SELECTS_ON_EACH_PROSPECTS_OWN_RESPONSIVENESS_2026-10-08.md
-      on seeds the pre-registration did not see, in the minutes tier, with option 2 run both ways
-      (independent and linked to engagement). Report the two arms side by side in that record
-      and say, for each P, whether it passed. First read why 2338f13ff's 1.1-1.4x fails at the
-      market price: the cause may be the world or the prediction.
-    why: >-
-      The director's approval was conditional on this test, and the switched-in book is the
-      baseline opponent per-customer pricing must beat, so it has to behave as published evidence
-      says. DONE when all four Ps are graded on fresh seeds in the record on origin.
-  - id: a-gas-heated-homes-evening-peak-comes-down-to-serls
+      The director's re-grade of debt results cannot attribute anything while an unattributed GBP
+      910 from four simultaneous changes sits on the debt line. DONE when the split and the triad
+      check are in the void finding on origin and the atom row exists at L1 with its GAPs.
+  - id: a-gas-homes-2021-serl-median-says-whether-the-remainder-is-the-crisis
     lane: W2_customer_generator
     what: >-
-      Work the two queued continuations in order: the electronics arm at its 2022 level first
-      (a-gas-homes-electronics-comes-down-to-its-2022-level, now sourced by a107b7032's ECUK
-      dating), then cooking timing and kettle energy
-      (a-gas-homes-evening-cooking-at-hes-hours-and-kettle-energy). Write each prediction for the
-      peak, the annual median and the month max/min before its run, over the same 163 homes at
-      seed 17. Move only constants a dated published source sets, leave unanchored end uses as
-      explicit GAPs, and never fit a scalar to SERL.
+      Work the queued continuation of this id. Read SERL's 2021 gas-heated no-PV annual median, and
+      Table 3's ten unread months, from the SERL statistical reports (Vol 1/2). State whether the
+      remaining world-vs-SERL-2022 level excess (median 2,760 after electronics, summer about +0.9
+      kWh/day, cooking about +115 above trend) is the 2022 crisis demand cut the world does not
+      carry, or a level defect by end use. Then arm the matching cell in
+      background/fabric_gap_ledger.py. Move only constants a dated published source sets, leave
+      unanchored end uses as named GAPs, and never fit a scalar to SERL.
     why: >-
-      This is the oldest world defect on the list (peak 0.69 against SERL's 0.48), and it
-      inflates every winter direct-debit and arrears comparison. a107b7032 says dated sources
-      explain about 410 kWh of the excess, so it is now a sourced change rather than a hunt. DONE
-      when on origin the peak, median and month max/min each sit within SERL's published figures
-      under a control that reds if they leave, and the triage row
-      a-gas-heated-homes-electricity-has-no-season is marked fixed. If the published sources
-      cannot close it, DONE is the finding saying so.
+      The control 3ff16bada landed is red on peak and season, and every winter direct-debit and
+      arrears comparison in the director's re-grade inherits that excess. DONE when the finding on
+      origin names which explanation the 2021 reading supports, and either the peak and season cells
+      pass under the ledger, or the remaining excess is named by end use with its source gap, and
+      the triage row a-gas-heated-homes-electricity-has-no-season says which.
 not_now:
-  - what: "Home-mover retention, the move-out notice observable at the seam (last stretch's third item)."
+  - what: Raising the settlement budget to 3,100 and the 400-founder run, whose continuation unembargoes at 23:30 tonight.
     why: >-
-      Its discovery is on origin and the continuation is queued, so it stays reachable. But a
-      new retention lever built on a world whose anniversary departure may be six times too high
-      would be graded on the same suspect base. The departure check is minutes tier and comes
-      first.
-  - what: Relaunching the 400-founder end-to-end run now that 3d5b490c8 fixed its extraction, or raising the settlement budget to 3,100.
+      The director's 15:22 hold stands. Its condition is that both fidelity findings are corrected
+      and the dependent results re-graded. The 2024-2025 departure gap is reopened (focus two) and
+      the arrears gap is about 2x once matched (32acb3ea1), so neither condition is met. Whoever
+      draws raise-the-settlement-budget-to-3100-after-w220-b at 23:30 must release it with that
+      reason and not raise the constant. The continuation does not carry the hold itself, which is
+      the open wrong row on hold conditions.
+  - what: Grading acquisition's pre-registered P1-P4 on fresh seeds.
     why: >-
-      The director ruled that the run sets founder count, budget and memory share together. The
-      interactive lane holds it, and the 3,100 continuation is embargoed to 16:45. A 5.6 GB value
-      cycle (pid 720479) is resident for three hours already, so a second heavy run now would
-      contend for the guest. The lane holding it decides when.
-  - what: Vulnerability as a hidden household state (rare event 2), now that a7a08985d has its knowledge.
+      Its departure base is now settled for 2017-2021, so the previous reason has gone. What holds
+      it now is the box: three save arms at about 2.7 GB each and a 1.9 GB gate are running, and two
+      long jobs were OOM-killed this stretch. A fresh-seed acquisition run would be a fourth heavy
+      job, against focus one's arms. It is the first item for the next orientation once the save
+      arms are graded. The pre-registration (9a6363e43) and its continuation are on origin.
+  - what: The arrears like-for-like correction and the prepayment correction, as focus items.
     why: >-
-      The two-state knowledge is landed and is what the save offer's vulnerable-customer check
-      reads. Building the state comes after the void split, because both act on the debt line
-      and that line still carries an unattributed GBP 910.
-  - what: A mechanism to keep the shared checkout level with origin, now 30 behind.
+      The interactive lane holds them (32acb3ea1 landed the knowledge, and the prepayment landing
+      waits on save-arms pid 1234533 via wait_for). A Lane 0 copy would be a second writer on the
+      same paths. They are not rejected, only not duplicated.
+  - what: Home-mover retention as a new lever.
     why: >-
-      It is worse than last stretch, and seven daemons run without 10 commits. But nothing in
-      this focus depends on daemon code, and the reconcile-watch class is already filed with an
-      owner. I keep it listed as wrong and do not take product lanes off it.
-  - what: Landing or reaping the three worktrees holding commits on no remote ref.
+      It would be a new retention lever graded on a base whose 2024-2025 half is still open, and the
+      director's order puts fidelity and re-grading before new levers. Its draw-ledger row reads
+      landed_unbound against 6987325ae, which is electronics work and not this item's (see wrong).
+  - what: Landing e3e5970e1 or advancing the shared checkout, now 50 behind.
     why: >-
-      Two are fork_salvage preserves from the long-lived worker session, and one is the locked
-      2026-10-05 draw-order landing. None is a focus subject, and reaping is the irreversible
-      direction, so they are left in place.
+      Both are machine defects listed under wrong with owners. The parse fix loses nothing while it
+      waits. It is recorded here again so the stranded commit is not reaped as disposable: it is not.
 wrong:
-- what: 'THE MACHINE''S, CARRIED. One item can land twice, on origin through surgical_land and as a local commit on the shared HEAD. Owner: SEAT_FINDING_ONE_ITEM_LANDS_TWICE_AND_THE_SHARED_HEAD_FORKS_FROM_ORIGIN. 14:22: no new instance. HEAD holds nothing origin lacks (0 ahead).'
+- what: 'THE MACHINE''S, CARRIED. One item can land twice, on origin through surgical_land and as a local commit on the shared HEAD. Owner: SEAT_FINDING_ONE_ITEM_LANDS_TWICE_AND_THE_SHARED_HEAD_FORKS_FROM_ORIGIN. 20:20: unchanged. e3e5970e1 (the map parse fix, gated) is still on the shared HEAD and on no remote ref; HEAD is 1 ahead and 50 behind.'
   corrected: false
-- what: 'THE MACHINE''S, CARRIED. A held change''s hold condition is not re-asked when its premise moves. Owner: SEAT_FINDING_A_HOLD_OR_A_TOMBSTONE_STATES_ITS_CONDITION_IN_PROSE_AND_NOTHING_RE_ASKS_IT. 14:22: no new instance.'
+- what: 'THE MACHINE''S, CARRIED. A held change''s hold condition is not re-asked when its premise moves. Owner: SEAT_FINDING_A_HOLD_OR_A_TOMBSTONE_STATES_ITS_CONDITION_IN_PROSE_AND_NOTHING_RE_ASKS_IT. 20:20: due tonight. raise-the-settlement-budget-to-3100-after-w220-b unembargoes at 23:30 and still does not carry the director''s 15:22 hold; not_now carries it in prose for whoever draws it.'
   corrected: false
-- what: 'THE MACHINE''S, CARRIED. The held-work check refuses an item when its prose names a held file, even when the held work is not the item''s, and the refusal reaches only the supervisor log. 14:22: no new instance.'
+- what: 'THE MACHINE''S, CARRIED. The held-work check refuses an item when its prose names a held file, even when the held work is not the item''s, and the refusal reaches only the supervisor log. 20:20: the voids item is offered from 21:04Z after three stretches; no refusal naming it was found in the journals, so this cause is still neither shown nor ruled out.'
   corrected: false
-- what: 'THE MACHINE''S, CARRIED. The seat''s brief reads the director''s open concerns from the behind checkout. 14:22: HEAD is now 30 behind, and still no rows were dropped. The brief''s seven open rows match origin''s record.'
+- what: 'THE MACHINE''S, CARRIED. The seat''s brief reads the director''s open concerns from the behind checkout. 20:20: HEAD is 50 behind and no rows were dropped; the seven open rows match the record.'
   corrected: false
-- what: 'THE MACHINE''S, CARRIED. The draw ledger reads the same for work never started and for work mid-landing, because it asks only origin by path. 14:22: SECOND READING of the same instance. reprice-the-settlement-budget-on-the-full-current-curve still reads not_done, yet 803f8666b is an ancestor of origin/main and touched settlement_ceiling_slope_20261008.json at 10:59Z, inside the window. So the ledger is not asking origin, or not asking it correctly; HEAD''s lag (now 30) is the leading cause.'
+- what: 'THE MACHINE''S, CARRIED. The draw ledger reads the same for work never started and for work mid-landing, because it asks only origin by path. 20:20: w2-20-grade-r5-and-publish-the-20261008r-pair-after-leg-two reads not_done, and cb54420a0 published that pair under a sibling id at 19:58.'
   corrected: false
-- what: 'THE MACHINE''S, CARRIED. A focus-row tombstone still retires a row without asking its DONE. 14:22: no tombstone this stretch, and both retirements were continuations finished by their own tick.'
+- what: 'THE MACHINE''S, CARRIED. A focus-row tombstone still retires a row without asking its DONE. 20:20: no new instance. The reconciliation row was retired at 19:42 by its holder with its DONE met on origin (7981270d0).'
   corrected: false
-- what: 'THE MACHINE''S, CARRIED. A landing can carry docs/direction/DIRECTION.yaml from the shared working copy when it is older than origin''s. 14:22: not re-read. No instance seen.'
+- what: 'THE MACHINE''S, CARRIED. A landing can carry docs/direction/DIRECTION.yaml from the shared working copy when it is older than origin''s. 20:20: no instance seen; the opposite gap is new below.'
   corrected: false
-- what: 'THE MACHINE''S, CARRIED. A parked atom is still counted as drawn. H45 is PARKED and the counter still moves. 14:22: SITE2 moved from 42956 to 42967.'
+- what: 'THE MACHINE''S, CARRIED. A parked atom is still counted as drawn. H45 is PARKED and the counter still moves. 20:20: SITE2 moved from 43062 to 43193.'
   corrected: false
-- what: 'THE MACHINE''S, CARRIED. The coupled-triad gate now excludes twinless L3 targets, and its refusal reaches only the supervisor journal. 14:22: D48 is still at L1 (823 unchanged draws).'
+- what: 'THE MACHINE''S, CARRIED. The coupled-triad gate now excludes twinless L3 targets, and its refusal reaches only the supervisor journal. 20:20: D48 is still at L1, and its unchanged draws rose from 920 to 1051.'
   corrected: false
-- what: 'THE WORLD''S, CARRIED. A gas-heated fabric home''s electricity has no season: the median month max/min is 1.288 against SERL''s 1.36-1.47. 14:22: CAUSE NARROWED, world unchanged. 0a075f658 withdrew an unsourced electronics refit, and a107b7032 finds that dated 2022 sources explain about 410 kWh of the excess. The electronics arm is queued. Focus five.'
+- what: 'THE WORLD''S, CARRIED. A gas-heated fabric home''s electricity has no season against SERL. 20:20: electronics came to its 2022 level (6987325ae) and the SERL control is on origin (3ff16bada): trough passes, peak 0.626 against 0.445-0.485 and season 1.291 against 1.36-1.47 are red. Focus four.'
   corrected: false
-- what: 'THE MACHINE''S, CARRIED. The draw ledger credits or denies an item by path overlap, not by its work. 14:22: still standing. retake-the-settlement-ceiling-curve-at-current-code and the b8 curve row still read not_done against a44c436c6 and 4320ae6a5.'
+- what: 'THE MACHINE''S, CARRIED. The draw ledger credits or denies an item by path overlap, not by its work. 20:20: NEW INSTANCE. a-home-mover-is-a-retention-moment-the-company-sees reads landed_unbound against 6987325ae, which is the electronics change and shares only simulation/premise_trace.py with it.'
   corrected: false
-- what: 'THE MACHINE''S, CARRIED. The shared checkout lags origin. 11:20 it was 23 behind, with 8 commits missing from code seven units import. 14:22: WORSE. It is 30 behind, and the same seven units (delivery-seat, background-worker, daily-self-note, deadmans-switch, head-green-census, naive-organ, sim-runner) run without 10 commits, among them 3d5b490c8''s extraction fix, which sim-runner needs the next time it runs a production year with moves on.'
+- what: 'THE MACHINE''S, CARRIED. The shared checkout lags origin. 20:20: WORSE. It is 50 behind, from 41. Every one of 19 units runs without at least 3 origin commits to code it imports, and sim-runner and supervisor still lack 17c19a253 and 490ef53b1 to their own modules.'
   corrected: false
-- what: 'MINE, NEW. Last stretch''s record put the save-offer result first, but did not weigh the finding filed beside it that the world loses 40% at each anniversary against a published ~6%. Every save rate in that result divides by the departure share. 14:22: CORRECTED here. The check is focus two, and focus one now has to print the settled run''s departure share beside its result.'
+- what: 'THE MACHINE''S, NEW AT 17:21. Two contradictory verdicts on the world''s anniversary departure landed 27 minutes apart (60026603b and d29dcddc3), and neither named the other or said what its figure counts. Corrected by 7981270d0: both now carry one per-ender definition, withdrawn at 2017-2021 and reopened for 2024-2025 only.'
   corrected: true
+- what: 'THE MACHINE''S, NEW AT 17:21. Two focus items (the voids split and acquisition P1-P4) went undrawn for two consecutive stretches while the fifth item was drawn, and no refusal naming either is on record. 20:20: the voids item is offered from 21:04Z, and acquisition was moved to not_now. I still cannot say why they were missed.'
+  corrected: false
+- what: 'THE MACHINE''S, NEW. The 17:21 direction record never reached origin. It was accepted (its decisions line is in the working copy), and the draw read it, but origin''s record is still the 14:22 one (3e8c847a4), so what the director reviews on origin is a stretch behind what the machine steered by.'
+  corrected: false
+- what: 'THE MACHINE''S, NEW. Two long jobs were OOM-killed this stretch (save-fairness-world at 17:58, save-arms-off-k1 at 19:52), with the director''s box memory budget (17c19a253) on origin but not in the shared checkout. Three save arms at about 2.7 GB each run together now. I cannot yet say whether the budget was consulted for these launches.'
+  corrected: false
 for_the_director:
 - id: the-end-to-end-review-of-claude
   raised: '2026-10-04'
@@ -272,46 +266,3 @@ for_the_director:
   status: open
   resolution: ''
   evidence: docs/staging/SEAT_FINDING_C34_THE_DECISION_IS_BUILT_AND_ON_SUPPLIER_VALUE_ALONE_IT_ADVISES_NOBODY_2026-10-06.md
-- id: the-save-offer-needs-two-practitioner-figures
-  raised: '2026-10-08'
-  kind: strategy
-  what: 'Your ruling makes the save-offer decision set the frame for B8, and it needs two figures no published
-    source gives. (1) How far ahead the losing supplier hears of a switch: CSS gives the Invitation to
-    Intervene 1 working day to 28 days before the effective date, and a household chooses ASAP (the gainer
-    completes within 5 working days), after cooling-off, or a date up to four weeks out, but no one publishes
-    the share of each route (re-searched 2026-10-08: Ofgem, DCC, Energy UK, RECCo, ElectraLink). (2) Save
-    rates and costs: your ruling left ''My experience of save rates and costs: ___'' blank.'
-  proposal: Give me, from practice, the rough share of domestic gains that are ASAP, after cooling-off
-    and dated later, and a save rate and cost per save; I record each as a practitioner toggle with your
-    words as its basis. Until then I build the Pending notice with every switch on the ASAP route, which
-    gives the company the least warning a real supplier gets, so no save it wins is flattered, and the
-    save rate stays an explicit unknown that the decision set learns rather than assumes. I am carrying
-    on meanwhile.
-  status: answered
-  resolution: 'Director, 2026-10-08T08:52Z: "Save and win-back rates: I''m not giving figures. Your research
-    missed the obvious source: the switching process''s own data." He asked for the switching outcome
-    family to be researched from published industry data, the save and win-back toggles set as a ranged
-    estimate, and the three shapes to be tested. Done in f418eff9e and 0f1fb3f6a. The route share stays
-    unknown on the toggle, and the ASAP floor is built (4805420bd).'
-  evidence: docs/market_research/a_save_offer_against_the_switching_rules_and_the_seam.md
-- id: acquisition-selects-on-each-prospects-own-responsiveness
-  raised: '2026-10-08'
-  kind: strategy
-  what: 'You asked whether the world hides real correlations between price responsiveness and what a supplier
-    can observe. The evidence says the large correlates are of SHOPPING, and the world already carries
-    them on its engagement axis; price weight on its own is near-homogeneous (Ofgem 2024: 1.26x spread),
-    as your 27 Aug ruling has it, and past switching does not carry over (31% vs 33%, Ofgem''s 2018 trial).
-    What the world gets wrong is acquisition: every prospect is priced off one population response, so
-    a book won by switching in is an average draw, when in reality switching in selects the shoppers.'
-  proposal: Let the acquisition funnel's price stage read each prospect's own sensitivity, as renewals
-    already do, with prospects entering the market weighted by their own chance of shopping. No new number
-    is introduced and the latent value never crosses the seam. Optionally also run the sensitivity level
-    drawn by rank on engagement, reporting fully independent and fully linked arms side by side. No past-switching
-    carry-over term. Nothing changes in the world until you rule.
-  status: answered
-  resolution: 'Director, 2026-10-08T08:52Z: "Acquisition selects on each prospect''s own responsiveness:
-    approved, as your option 1, with option 2 run both ways and reported, using the pre-registered test
-    you set out. No past-switching carry-over term." Built in 2338f13ff. P1-P4 grading on fresh seeds
-    is focus four.'
-  evidence: docs/staging/SEAT_PROPOSAL_ACQUISITION_SELECTS_ON_EACH_PROSPECTS_OWN_RESPONSIVENESS_2026-10-08.md;
-    docs/market_research/observable_correlates_of_price_responsiveness.md

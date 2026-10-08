@@ -1,9 +1,15 @@
 {
- "generated_at": "2026-10-08T14:26:56.235436+00:00",
+ "generated_at": "2026-10-08T20:26:14.022145+00:00",
  "seat": "delivery",
  "what_it_did": {
   "available": true,
   "commits": [
+   {
+    "sha": "e3e5970e1",
+    "at": "2026-10-08T16:03:30+01:00",
+    "subject": "The maturity map is parsed once per text, not six times per supervisor cycle -- the operational-layer suite had stopped finishing inside its budget",
+    "substantive": true
+   },
    {
     "sha": "a8946181e",
     "at": "2026-10-08T10:04:39+01:00",
@@ -237,12 +243,6 @@
     "at": "2026-10-08T02:00:41+01:00",
     "subject": "Fabric traces are built in forked workers: the same seed settles the identical book, 15-40% faster on a small run",
     "substantive": true
-   },
-   {
-    "sha": "4320ae6a5",
-    "at": "2026-10-08T01:52:38+01:00",
-    "subject": "B8 L2 over a curve of cut sizes: no renewal cut from 2.5 to 30 GBP/MWh pays in this world",
-    "substantive": true
    }
   ],
   "substantive": 16,
@@ -251,63 +251,57 @@
  },
  "what_it_decided": {
   "available": true,
-  "oriented_at": "2026-10-08T14:22:01.561501+00:00",
+  "oriented_at": "2026-10-08T20:20:22.602711+00:00",
   "age_hours": 0.1,
   "expires_after_hours": 12.0,
   "live": true,
-  "thesis_read": "A short stretch, and the main thing it did was test the world underneath the per-customer win rather than add to it. The save offer that beats never offering (0f1fb3f6a) is still a grading tool's answer. Its settled-run wiring, with the director's two fairness checks, was claimed at 14:19 and is in hand now; nothing from it is on origin yet. Last stretch's record did not weigh the finding filed beside that result: on the decision set the world loses 40% of households at each anniversary at the default price, against about 6% external switching at fixed-term end in Ofgem's trial. Every save rate and every stayer cost divides by that share. Until the three explanations it ranks have been tested (the default price is the dear one, the set is thinner than the settled world, the hazard is too high), the save result's levels cannot be trusted even if its ranking holds. So it comes second in focus, ahead of new levers. The gas home's evening excess moved in the right way: dating the per-use sources to 2022 explains about 410 kWh of the meter's excess (a107b7032), and a refit that would have anchored electronics to a per-site arithmetic artefact was withdrawn before it landed (0a075f658). That is knowledge-first working as intended. The 400-founder end-to-end check died at extraction on an incoming occupant (KeyError OCC-*). That exposed a defect every production run since moves went on would have hit, and 3d5b490c8 fixed it. The run itself has not been relaunched, so the founder count, budget and memory share are still unset. Three of last stretch's five focus items saw nothing land: the voids split, the mover observable (its discovery 9b0e3594c predates the record) and acquisition's P1-P4 on fresh seeds. Only the save item was drawn, and it was drawn three hours in. The steer is slow rather than ignored, but the voids atom is still not minted. The machine went further backwards. HEAD is now 30 behind origin, from 23, and seven daemons run without 10 commits to code they import. The draw ledger still reads reprice-the-settlement-budget as not_done, although 803f8666b is on origin, wrote the very path it asks about at 10:59Z inside its window, and is that item's work.",
+  "thesis_read": "The stretch did what the last record asked first, and the base under the retention result is now one thing rather than two. 7981270d0 put both departure findings on one definition (per fixed-term ender, left the supplier within 42 days or 12 months) and corrected both beside their claims. The 7.8% was a prorated expectation; realised, it is 14.2% at 2017-2021 (29/204) on a full run, above EFTC's 6%, which turns out to be a floor because its control arm excludes households who had already acted. At 2017-2021 the world sits inside the published switching total, and the gap is withdrawn there. At 2024-2025 it is reopened: 30.4% within 42 days on 46 enders (CI 19-45%) would take 2025's term-enders to about 9.5% of accounts against a 10.4% total. One seed and 46 households cannot say whether that is a defect, so the multi-seed count now leads, because the director's hold on the 400 founders waits on it. The gas home's evening peak moved for the right reason: electronics came to its dated 2022 level (6987325ae, the meter fell 294 kWh as pre-registered), and the SERL control the record asked for is on origin (3ff16bada). It is honestly red: the peak is 0.626 against 0.445-0.485 and the season 1.291 against 1.36-1.47, with the trough passing. What is left is a level term, not a shape term. The value arms republished at 45122d156 (cb54420a0), with R5 holding and the page's verdicts still withheld, because 22 imported paths have moved since. Against the thesis the position is unchanged. The one place inference beats a flat rule is the reactive save, and its settled-run wiring with the director's fairness checks is in surgical_land right now, after claims at 14:19 and 17:21. Its three arms are running on the box. Nothing from it is on origin, so the thesis has not yet advanced past the grading tool. Of the previous focus, the reconciliation is done, the gas home moved to its control, the save offer is landing, and the voids split is being offered from 21:04Z, which is the first time in three stretches; whether the held-work check explains the earlier misses is still not shown. The machine went backwards again. HEAD is 50 behind origin, from 41. The last orientation's record (17:21) never reached origin, whose DIRECTION.yaml is still the 14:22 one (3e8c847a4). Two long jobs were OOM-killed this stretch, with the director's memory budget on origin but not in the checkout sim-runner runs.",
   "focus": [
    {
     "id": "a-save-offer-is-not-paid-for-by-the-stayers",
     "lane": "B_commercial",
-    "what": "Claimed at 14:19 and in hand; finish it, do not restart it. Wire the reactive save on the loss notice (0f1fb3f6a) into the settled run behind a curriculum switch that is off by default and byte-identical when off, reading the Invitation to Intervene (4805420bd) and the save and win-back toggle ranges (f418eff9e). Then run the director's two fairness checks in the minutes tier at both ends of the save-rate range, each pre-registered before its run. First, the stayers' prices with and without saves, account by account. Second, a vulnerable customer's offer against a non-vulnerable customer's in the same position. Add a control for each that reds if a stayer's price moves with saves on, and if a vulnerable customer gets less. Report the settled run's own anniversary departure share beside the result, because the decision set's 40% is under question.",
-    "why": "This is the thesis's first inference-beats-flat-rule result, and the director made it conditional on stayers not paying for it. DONE when the switch, both checks and their controls are on origin, and the finding states, at both ends of the save-rate range, whether the reactive save still beats never offering in the settled run, with the settled departure share printed beside it."
+    "what": "In hand and landing now: surgical_land pid 1458995 is gating \"A save on the CSS Invitation to Intervene is wired into the settled run behind a curriculum switch that is off\", and the on, placebo and off k1 arms (tools.save_on_loss_notice_arms, 2024-12-31, cut-share 0.04) are running. Do not restart either. When the landing confirms, bind it with delivery_lane --landed. When the arms finish, grade the director's two fairness checks at both ends of the save-rate range: the stayers' prices with and without saves, account by account, and a vulnerable customer's offer against a non-vulnerable one's in the same position. Add a control for each. Report the settled departure share per fixed-term ender, the definition 7981270d0 fixed. If off-k1 dies again (it was OOM-killed at 19:52), relaunch it alone, not beside the other two.",
+    "why": "This is the only result where per-customer inference beats a flat rule, and the director made it conditional on stayers not paying for it. DONE when the switch, both checks and their controls are on origin, and the finding states at both ends of the save-rate range whether the reactive save still beats never offering in the settled run, with the per-ender departure share printed beside it."
    },
    {
-    "id": "the-worlds-anniversary-departure-is-checked-against-the-published-six",
+    "id": "w2-term-end-departures-2024-2025-multi-seed-per-ender-count",
     "lane": "W2_customer_generator",
-    "what": "Work the NEXT in docs/staging/SEAT_FINDING_THE_WORLD_LOSES_FORTY_PERCENT_AT_EACH_ANNIVERSARY_AGAINST_A_PUBLISHED_SIX_2026-10-08.md, minutes tier, writing each prediction first. Test 1: re-ask the world's P(stay) on the coin-drawn decision set (seeds 42, 101, 202) with a market fix offered in place of the capped default. Test 2: compute the settled run's departure share at the same anniversaries and compare it with the decision set's 0.40. If both leave the gap, rank explanation 3 (the hazard is too high) against the published fixed-term-end and annual switching figures, and file it as a fidelity defect to be fixed blind to company results. Do not touch the churn draw in this item. File the verdict in the finding.",
-    "why": "Fidelity is the precondition. Every retention figure, the save offer's included, divides by the share that leaves, and at 17% instead of 40% the same cut implies a save rate above the published range. DONE when tests 1 and 2 are graded in the finding on origin and it names which explanation the evidence supports. If that is 3, DONE also needs the defect filed on the W2 lane."
+    "what": "Work the queued continuation of this id. Write the prediction first in the worker finding (WORKER_FINDING_THE_RENEWAL_ROUTE_CARRIES_THE_WHOLE_BOOK_RESIDUAL_AND_DEPARTS_ABOVE_THE_PUBLISHED_TERM_END_BOUND_2026-10-08.md). Then, on three or more settled seeds at origin, count the share of ALL resi fixed-term enders who leave the supplier within 42 days and within 12 months, for term ends in 2024 and 2025 separately. Recompute the corrected bound (per-ender 12-month rate times Ofgem's fixed-term share) against the published switching total for each year. Launch through launch_long_job one seed at a time, not beside the save arms. Do not touch the churn draw or tools/fit_year_level_anchor.py in this item.",
+    "why": "The director's hold puts fidelity first, then re-grading, then the 400 founders, and the one fidelity question left open on the departure base rests on 46 households from one seed. DONE when the worker finding on origin states, per year with its interval, whether 2024-2025 departures exceed the published bound. If a gap survives, it stays filed on W2 with the bound as its control, fixed blind to company results. If not, it is withdrawn beside its claim."
    },
    {
     "id": "the-voids-effect-is-split-and-the-atom-carries-its-gaps",
     "lane": "W2_customer_generator",
-    "what": "Carried unchanged, not drawn last stretch. Split 5531ef8a6's GBP 910 net-margin fall on the 80-founder book to 2019 into its four changes, one variable at a time at the same seed: void energy removed, the unnamed window starting later, the occupant's move hazard starting later, and payment amounts. Write each prediction before its run. Then settle whether the payment triad's monthly amount still feeds the change-of-tenancy window's occupier-debt revenue into the named household's payments, against B7 slice 5's exclusion. Fix it if it does. Mint the voids atom on docs/design/maturity_map.yaml, asking the map's headroom first, and name the owner-void and void-use GAPs on the row.",
-    "why": "Voids now move money, but a GBP 910 figure that four changes made together is not the void's effect, and every debt figure downstream of moves carries that unattributed term. DONE when the split and the triad check are in the void finding on origin and the atom row exists at L1 with its GAPs."
+    "what": "Offered from 21:04Z; whoever holds it, finish it rather than restart. Split 5531ef8a6's GBP 910 net-margin fall on the 80-founder book to 2019 into its four changes, one variable at a time at the same seed, each prediction written first: void energy removed, the unnamed window starting later, the occupant's move hazard starting later, and payment amounts. Settle whether the payment triad's monthly amount still feeds change-of-tenancy occupier-debt revenue into the named household's payments, against B7 slice 5's exclusion, and fix it if it does. Then mint the voids atom on docs/design/maturity_map.yaml (ask python3 -m tools.maturity_map_store for headroom first) with the owner-void and void-use GAPs on the row.",
+    "why": "The director's re-grade of debt results cannot attribute anything while an unattributed GBP 910 from four simultaneous changes sits on the debt line. DONE when the split and the triad check are in the void finding on origin and the atom row exists at L1 with its GAPs."
    },
    {
-    "id": "acquisition-selection-is-graded-on-fresh-seeds",
-    "lane": "B_commercial",
-    "what": "Carried unchanged, not drawn last stretch. Grade the pre-registered P1-P4 in docs/staging/records/SEAT_PREREG_ACQUISITION_SELECTS_ON_EACH_PROSPECTS_OWN_RESPONSIVENESS_2026-10-08.md on seeds the pre-registration did not see, in the minutes tier, with option 2 run both ways (independent and linked to engagement). Report the two arms side by side in that record and say, for each P, whether it passed. First read why 2338f13ff's 1.1-1.4x fails at the market price: the cause may be the world or the prediction.",
-    "why": "The director's approval was conditional on this test, and the switched-in book is the baseline opponent per-customer pricing must beat, so it has to behave as published evidence says. DONE when all four Ps are graded on fresh seeds in the record on origin."
-   },
-   {
-    "id": "a-gas-heated-homes-evening-peak-comes-down-to-serls",
+    "id": "a-gas-homes-2021-serl-median-says-whether-the-remainder-is-the-crisis",
     "lane": "W2_customer_generator",
-    "what": "Work the two queued continuations in order: the electronics arm at its 2022 level first (a-gas-homes-electronics-comes-down-to-its-2022-level, now sourced by a107b7032's ECUK dating), then cooking timing and kettle energy (a-gas-homes-evening-cooking-at-hes-hours-and-kettle-energy). Write each prediction for the peak, the annual median and the month max/min before its run, over the same 163 homes at seed 17. Move only constants a dated published source sets, leave unanchored end uses as explicit GAPs, and never fit a scalar to SERL.",
-    "why": "This is the oldest world defect on the list (peak 0.69 against SERL's 0.48), and it inflates every winter direct-debit and arrears comparison. a107b7032 says dated sources explain about 410 kWh of the excess, so it is now a sourced change rather than a hunt. DONE when on origin the peak, median and month max/min each sit within SERL's published figures under a control that reds if they leave, and the triage row a-gas-heated-homes-electricity-has-no-season is marked fixed. If the published sources cannot close it, DONE is the finding saying so."
+    "what": "Work the queued continuation of this id. Read SERL's 2021 gas-heated no-PV annual median, and Table 3's ten unread months, from the SERL statistical reports (Vol 1/2). State whether the remaining world-vs-SERL-2022 level excess (median 2,760 after electronics, summer about +0.9 kWh/day, cooking about +115 above trend) is the 2022 crisis demand cut the world does not carry, or a level defect by end use. Then arm the matching cell in background/fabric_gap_ledger.py. Move only constants a dated published source sets, leave unanchored end uses as named GAPs, and never fit a scalar to SERL.",
+    "why": "The control 3ff16bada landed is red on peak and season, and every winter direct-debit and arrears comparison in the director's re-grade inherits that excess. DONE when the finding on origin names which explanation the 2021 reading supports, and either the peak and season cells pass under the ledger, or the remaining excess is named by end use with its source gap, and the triage row a-gas-heated-homes-electricity-has-no-season says which."
    }
   ],
   "not_now": [
    {
-    "what": "Home-mover retention, the move-out notice observable at the seam (last stretch's third item).",
-    "why": "Its discovery is on origin and the continuation is queued, so it stays reachable. But a new retention lever built on a world whose anniversary departure may be six times too high would be graded on the same suspect base. The departure check is minutes tier and comes first."
+    "what": "Raising the settlement budget to 3,100 and the 400-founder run, whose continuation unembargoes at 23:30 tonight.",
+    "why": "The director's 15:22 hold stands. Its condition is that both fidelity findings are corrected and the dependent results re-graded. The 2024-2025 departure gap is reopened (focus two) and the arrears gap is about 2x once matched (32acb3ea1), so neither condition is met. Whoever draws raise-the-settlement-budget-to-3100-after-w220-b at 23:30 must release it with that reason and not raise the constant. The continuation does not carry the hold itself, which is the open wrong row on hold conditions."
    },
    {
-    "what": "Relaunching the 400-founder end-to-end run now that 3d5b490c8 fixed its extraction, or raising the settlement budget to 3,100.",
-    "why": "The director ruled that the run sets founder count, budget and memory share together. The interactive lane holds it, and the 3,100 continuation is embargoed to 16:45. A 5.6 GB value cycle (pid 720479) is resident for three hours already, so a second heavy run now would contend for the guest. The lane holding it decides when."
+    "what": "Grading acquisition's pre-registered P1-P4 on fresh seeds.",
+    "why": "Its departure base is now settled for 2017-2021, so the previous reason has gone. What holds it now is the box: three save arms at about 2.7 GB each and a 1.9 GB gate are running, and two long jobs were OOM-killed this stretch. A fresh-seed acquisition run would be a fourth heavy job, against focus one's arms. It is the first item for the next orientation once the save arms are graded. The pre-registration (9a6363e43) and its continuation are on origin."
    },
    {
-    "what": "Vulnerability as a hidden household state (rare event 2), now that a7a08985d has its knowledge.",
-    "why": "The two-state knowledge is landed and is what the save offer's vulnerable-customer check reads. Building the state comes after the void split, because both act on the debt line and that line still carries an unattributed GBP 910."
+    "what": "The arrears like-for-like correction and the prepayment correction, as focus items.",
+    "why": "The interactive lane holds them (32acb3ea1 landed the knowledge, and the prepayment landing waits on save-arms pid 1234533 via wait_for). A Lane 0 copy would be a second writer on the same paths. They are not rejected, only not duplicated."
    },
    {
-    "what": "A mechanism to keep the shared checkout level with origin, now 30 behind.",
-    "why": "It is worse than last stretch, and seven daemons run without 10 commits. But nothing in this focus depends on daemon code, and the reconcile-watch class is already filed with an owner. I keep it listed as wrong and do not take product lanes off it."
+    "what": "Home-mover retention as a new lever.",
+    "why": "It would be a new retention lever graded on a base whose 2024-2025 half is still open, and the director's order puts fidelity and re-grading before new levers. Its draw-ledger row reads landed_unbound against 6987325ae, which is electronics work and not this item's (see wrong)."
    },
    {
-    "what": "Landing or reaping the three worktrees holding commits on no remote ref.",
-    "why": "Two are fork_salvage preserves from the long-lived worker session, and one is the locked 2026-10-05 draw-order landing. None is a focus subject, and reaping is the irreversible direction, so they are left in place."
+    "what": "Landing e3e5970e1 or advancing the shared checkout, now 50 behind.",
+    "why": "Both are machine defects listed under wrong with owners. The parse fix loses nothing while it waits. It is recorded here again so the stranded commit is not reaped as disposable: it is not."
    }
   ],
   "for_the_director": [
@@ -376,26 +370,6 @@
     "status": "open",
     "resolution": "",
     "evidence": "docs/staging/SEAT_FINDING_C34_THE_DECISION_IS_BUILT_AND_ON_SUPPLIER_VALUE_ALONE_IT_ADVISES_NOBODY_2026-10-06.md"
-   },
-   {
-    "id": "the-save-offer-needs-two-practitioner-figures",
-    "raised": "2026-10-08",
-    "kind": "strategy",
-    "what": "Your ruling makes the save-offer decision set the frame for B8, and it needs two figures no published source gives. (1) How far ahead the losing supplier hears of a switch: CSS gives the Invitation to Intervene 1 working day to 28 days before the effective date, and a household chooses ASAP (the gainer completes within 5 working days), after cooling-off, or a date up to four weeks out, but no one publishes the share of each route (re-searched 2026-10-08: Ofgem, DCC, Energy UK, RECCo, ElectraLink). (2) Save rates and costs: your ruling left 'My experience of save rates and costs: ___' blank.",
-    "proposal": "Give me, from practice, the rough share of domestic gains that are ASAP, after cooling-off and dated later, and a save rate and cost per save; I record each as a practitioner toggle with your words as its basis. Until then I build the Pending notice with every switch on the ASAP route, which gives the company the least warning a real supplier gets, so no save it wins is flattered, and the save rate stays an explicit unknown that the decision set learns rather than assumes. I am carrying on meanwhile.",
-    "status": "answered",
-    "resolution": "Director, 2026-10-08T08:52Z: \"Save and win-back rates: I'm not giving figures. Your research missed the obvious source: the switching process's own data.\" He asked for the switching outcome family to be researched from published industry data, the save and win-back toggles set as a ranged estimate, and the three shapes to be tested. Done in f418eff9e and 0f1fb3f6a. The route share stays unknown on the toggle, and the ASAP floor is built (4805420bd).",
-    "evidence": "docs/market_research/a_save_offer_against_the_switching_rules_and_the_seam.md"
-   },
-   {
-    "id": "acquisition-selects-on-each-prospects-own-responsiveness",
-    "raised": "2026-10-08",
-    "kind": "strategy",
-    "what": "You asked whether the world hides real correlations between price responsiveness and what a supplier can observe. The evidence says the large correlates are of SHOPPING, and the world already carries them on its engagement axis; price weight on its own is near-homogeneous (Ofgem 2024: 1.26x spread), as your 27 Aug ruling has it, and past switching does not carry over (31% vs 33%, Ofgem's 2018 trial). What the world gets wrong is acquisition: every prospect is priced off one population response, so a book won by switching in is an average draw, when in reality switching in selects the shoppers.",
-    "proposal": "Let the acquisition funnel's price stage read each prospect's own sensitivity, as renewals already do, with prospects entering the market weighted by their own chance of shopping. No new number is introduced and the latent value never crosses the seam. Optionally also run the sensitivity level drawn by rank on engagement, reporting fully independent and fully linked arms side by side. No past-switching carry-over term. Nothing changes in the world until you rule.",
-    "status": "answered",
-    "resolution": "Director, 2026-10-08T08:52Z: \"Acquisition selects on each prospect's own responsiveness: approved, as your option 1, with option 2 run both ways and reported, using the pre-registered test you set out. No past-switching carry-over term.\" Built in 2338f13ff. P1-P4 grading on fresh seeds is focus four.",
-    "evidence": "docs/staging/SEAT_PROPOSAL_ACQUISITION_SELECTS_ON_EACH_PROSPECTS_OWN_RESPONSIVENESS_2026-10-08.md; docs/market_research/observable_correlates_of_price_responsiveness.md"
    }
   ],
   "orientations_recorded": 17,
@@ -406,9 +380,9 @@
   "problems": [
    {
     "key": "triage:one-item-lands-twice-on-origin-and-the-shared-head",
-    "what": "THE MACHINE'S, CARRIED. One item can land twice, on origin through surgical_land and as a local commit on the shared HEAD. Owner: SEAT_FINDING_ONE_ITEM_LANDS_TWICE_AND_THE_SHARED_HEAD_FORKS_FROM_ORIGIN. 14:22: no new instance. HEAD holds nothing origin lacks (0 ahead).",
-    "last_at": "2026-10-08T14:22:01.561501+00:00",
-    "first_at": "2026-10-04T05:20:36.119227+00:00",
+    "what": "THE MACHINE'S, CARRIED. One item can land twice, on origin through surgical_land and as a local commit on the shared HEAD. Owner: SEAT_FINDING_ONE_ITEM_LANDS_TWICE_AND_THE_SHARED_HEAD_FORKS_FROM_ORIGIN. 20:20: unchanged. e3e5970e1 (the map parse fix, gated) is still on the shared HEAD and on no remote ref; HEAD is 1 ahead and 50 behind.",
+    "last_at": "2026-10-08T20:20:22.602711+00:00",
+    "first_at": "2026-10-04T11:23:31.380827+00:00",
     "times_listed": 40,
     "corrected": false,
     "fate": "fix",
@@ -419,9 +393,9 @@
    },
    {
     "key": "triage:a-hold-condition-is-not-reasked-when-its-premise-moves",
-    "what": "THE MACHINE'S, CARRIED. A held change's hold condition is not re-asked when its premise moves. Owner: SEAT_FINDING_A_HOLD_OR_A_TOMBSTONE_STATES_ITS_CONDITION_IN_PROSE_AND_NOTHING_RE_ASKS_IT. 14:22: no new instance.",
-    "last_at": "2026-10-08T14:22:01.561501+00:00",
-    "first_at": "2026-10-04T05:20:36.119227+00:00",
+    "what": "THE MACHINE'S, CARRIED. A held change's hold condition is not re-asked when its premise moves. Owner: SEAT_FINDING_A_HOLD_OR_A_TOMBSTONE_STATES_ITS_CONDITION_IN_PROSE_AND_NOTHING_RE_ASKS_IT. 20:20: due tonight. raise-the-settlement-budget-to-3100-after-w220-b unembargoes at 23:30 and still does not carry the director's 15:22 hold; not_now carries it in prose for whoever draws it.",
+    "last_at": "2026-10-08T20:20:22.602711+00:00",
+    "first_at": "2026-10-04T11:23:31.380827+00:00",
     "times_listed": 40,
     "corrected": false,
     "fate": "fix",
@@ -432,9 +406,9 @@
    },
    {
     "key": "triage:the-held-work-check-refuses-by-prose-and-tells-only-the-log",
-    "what": "THE MACHINE'S, CARRIED. The held-work check refuses an item when its prose names a held file, even when the held work is not the item's, and the refusal reaches only the supervisor log. 14:22: no new instance.",
-    "last_at": "2026-10-08T14:22:01.561501+00:00",
-    "first_at": "2026-10-04T05:20:36.119227+00:00",
+    "what": "THE MACHINE'S, CARRIED. The held-work check refuses an item when its prose names a held file, even when the held work is not the item's, and the refusal reaches only the supervisor log. 20:20: the voids item is offered from 21:04Z after three stretches; no refusal naming it was found in the journals, so this cause is still neither shown nor ruled out.",
+    "last_at": "2026-10-08T20:20:22.602711+00:00",
+    "first_at": "2026-10-04T11:23:31.380827+00:00",
     "times_listed": 40,
     "corrected": false,
     "fate": "fix",
@@ -445,10 +419,10 @@
    },
    {
     "key": "triage:the-brief-reads-director-concerns-from-the-behind-checkout",
-    "what": "THE MACHINE'S, CARRIED. The seat's brief reads the director's open concerns from the behind checkout. 14:22: HEAD is now 30 behind, and still no rows were dropped. The brief's seven open rows match origin's record.",
-    "last_at": "2026-10-08T14:22:01.561501+00:00",
+    "what": "THE MACHINE'S, CARRIED. The seat's brief reads the director's open concerns from the behind checkout. 20:20: HEAD is 50 behind and no rows were dropped; the seven open rows match the record.",
+    "last_at": "2026-10-08T20:20:22.602711+00:00",
     "first_at": "2026-10-05T05:24:52.527698+00:00",
-    "times_listed": 32,
+    "times_listed": 34,
     "corrected": false,
     "fate": "fix",
     "status": "open",
@@ -458,10 +432,10 @@
    },
    {
     "key": "triage:the-draw-ledger-cannot-tell-mid-landing-from-not-done",
-    "what": "THE MACHINE'S, CARRIED. The draw ledger reads the same for work never started and for work mid-landing, because it asks only origin by path. 14:22: SECOND READING of the same instance. reprice-the-settlement-budget-on-the-full-current-curve still reads not_done, yet 803f8666b is an ancestor of origin/main and touched settlement_ceiling_slope_20261008.json at 10:59Z, inside the window. So the ledger is not asking origin, or not asking it correctly; HEAD's lag (now 30) is the leading cause.",
-    "last_at": "2026-10-08T14:22:01.561501+00:00",
+    "what": "THE MACHINE'S, CARRIED. The draw ledger reads the same for work never started and for work mid-landing, because it asks only origin by path. 20:20: w2-20-grade-r5-and-publish-the-20261008r-pair-after-leg-two reads not_done, and cb54420a0 published that pair under a sibling id at 19:58.",
+    "last_at": "2026-10-08T20:20:22.602711+00:00",
     "first_at": "2026-10-05T05:24:52.527698+00:00",
-    "times_listed": 32,
+    "times_listed": 34,
     "corrected": false,
     "fate": "fix",
     "status": "open",
@@ -471,10 +445,10 @@
    },
    {
     "key": "triage:a-tombstone-retires-a-row-without-checking-its-done",
-    "what": "THE MACHINE'S, CARRIED. A focus-row tombstone still retires a row without asking its DONE. 14:22: no tombstone this stretch, and both retirements were continuations finished by their own tick.",
-    "last_at": "2026-10-08T14:22:01.561501+00:00",
+    "what": "THE MACHINE'S, CARRIED. A focus-row tombstone still retires a row without asking its DONE. 20:20: no new instance. The reconciliation row was retired at 19:42 by its holder with its DONE met on origin (7981270d0).",
+    "last_at": "2026-10-08T20:20:22.602711+00:00",
     "first_at": "2026-10-05T11:21:05.015797+00:00",
-    "times_listed": 30,
+    "times_listed": 32,
     "corrected": false,
     "fate": "fix",
     "status": "open",
@@ -484,10 +458,10 @@
    },
    {
     "key": "triage:a-landing-carries-a-stale-direction-record",
-    "what": "THE MACHINE'S, CARRIED. A landing can carry docs/direction/DIRECTION.yaml from the shared working copy when it is older than origin's. 14:22: not re-read. No instance seen.",
-    "last_at": "2026-10-08T14:22:01.561501+00:00",
+    "what": "THE MACHINE'S, CARRIED. A landing can carry docs/direction/DIRECTION.yaml from the shared working copy when it is older than origin's. 20:20: no instance seen; the opposite gap is new below.",
+    "last_at": "2026-10-08T20:20:22.602711+00:00",
     "first_at": "2026-10-05T14:22:40.501747+00:00",
-    "times_listed": 29,
+    "times_listed": 31,
     "corrected": false,
     "fate": "fix",
     "status": "open",
@@ -497,10 +471,10 @@
    },
    {
     "key": "triage:a-parked-atom-is-still-drawn",
-    "what": "THE MACHINE'S, CARRIED. A parked atom is still counted as drawn. H45 is PARKED and the counter still moves. 14:22: SITE2 moved from 42956 to 42967.",
-    "last_at": "2026-10-08T14:22:01.561501+00:00",
+    "what": "THE MACHINE'S, CARRIED. A parked atom is still counted as drawn. H45 is PARKED and the counter still moves. 20:20: SITE2 moved from 43062 to 43193.",
+    "last_at": "2026-10-08T20:20:22.602711+00:00",
     "first_at": "2026-10-06T02:21:10.353202+00:00",
-    "times_listed": 25,
+    "times_listed": 27,
     "corrected": false,
     "fate": "fix",
     "status": "open",
@@ -510,10 +484,10 @@
    },
    {
     "key": "triage:a-coupled-triad-refusal-reaches-only-the-supervisor-log",
-    "what": "THE MACHINE'S, CARRIED. The coupled-triad gate now excludes twinless L3 targets, and its refusal reaches only the supervisor journal. 14:22: D48 is still at L1 (823 unchanged draws).",
-    "last_at": "2026-10-08T14:22:01.561501+00:00",
+    "what": "THE MACHINE'S, CARRIED. The coupled-triad gate now excludes twinless L3 targets, and its refusal reaches only the supervisor journal. 20:20: D48 is still at L1, and its unchanged draws rose from 920 to 1051.",
+    "last_at": "2026-10-08T20:20:22.602711+00:00",
     "first_at": "2026-10-06T05:21:32.108298+00:00",
-    "times_listed": 24,
+    "times_listed": 26,
     "corrected": false,
     "fate": "fix",
     "status": "open",
@@ -523,10 +497,10 @@
    },
    {
     "key": "triage:a-gas-heated-homes-electricity-has-no-season",
-    "what": "THE WORLD'S, CARRIED. A gas-heated fabric home's electricity has no season: the median month max/min is 1.288 against SERL's 1.36-1.47. 14:22: CAUSE NARROWED, world unchanged. 0a075f658 withdrew an unsourced electronics refit, and a107b7032 finds that dated 2022 sources explain about 410 kWh of the excess. The electronics arm is queued. Focus five.",
-    "last_at": "2026-10-08T14:22:01.561501+00:00",
+    "what": "THE WORLD'S, CARRIED. A gas-heated fabric home's electricity has no season against SERL. 20:20: electronics came to its 2022 level (6987325ae) and the SERL control is on origin (3ff16bada): trough passes, peak 0.626 against 0.445-0.485 and season 1.291 against 1.36-1.47 are red. Focus four.",
+    "last_at": "2026-10-08T20:20:22.602711+00:00",
     "first_at": "2026-10-06T11:21:23.841017+00:00",
-    "times_listed": 22,
+    "times_listed": 24,
     "corrected": false,
     "fate": "fix",
     "status": "open",
@@ -536,10 +510,10 @@
    },
    {
     "key": "triage:the-draw-ledger-credits-an-item-by-path-overlap",
-    "what": "THE MACHINE'S, CARRIED. The draw ledger credits or denies an item by path overlap, not by its work. 14:22: still standing. retake-the-settlement-ceiling-curve-at-current-code and the b8 curve row still read not_done against a44c436c6 and 4320ae6a5.",
-    "last_at": "2026-10-08T14:22:01.561501+00:00",
+    "what": "THE MACHINE'S, CARRIED. The draw ledger credits or denies an item by path overlap, not by its work. 20:20: NEW INSTANCE. a-home-mover-is-a-retention-moment-the-company-sees reads landed_unbound against 6987325ae, which is the electronics change and shares only simulation/premise_trace.py with it.",
+    "last_at": "2026-10-08T20:20:22.602711+00:00",
     "first_at": "2026-10-07T08:21:58.450288+00:00",
-    "times_listed": 15,
+    "times_listed": 17,
     "corrected": false,
     "fate": "fix",
     "status": "open",
@@ -549,9 +523,74 @@
    },
    {
     "key": "text:the shared checkout lags origin",
-    "what": "THE MACHINE'S, CARRIED. The shared checkout lags origin. 11:20 it was 23 behind, with 8 commits missing from code seven units import. 14:22: WORSE. It is 30 behind, and the same seven units (delivery-seat, background-worker, daily-self-note, deadmans-switch, head-green-census, naive-organ, sim-runner) run without 10 commits, among them 3d5b490c8's extraction fix, which sim-runner needs the next time it runs a production year with moves on.",
-    "last_at": "2026-10-08T14:22:01.561501+00:00",
+    "what": "THE MACHINE'S, CARRIED. The shared checkout lags origin. 20:20: WORSE. It is 50 behind, from 41. Every one of 19 units runs without at least 3 origin commits to code it imports, and sim-runner and supervisor still lack 17c19a253 and 490ef53b1 to their own modules.",
+    "last_at": "2026-10-08T20:20:22.602711+00:00",
     "first_at": "2026-10-08T14:22:01.561501+00:00",
+    "times_listed": 3,
+    "corrected": false,
+    "fate": null,
+    "status": null,
+    "retired": false,
+    "owner": null,
+    "reason": null
+   },
+   {
+    "key": "text:two contradictory verdicts on the world's anniversary departure landed 27 minutes apart (60026603b and d29dcddc3), and neither named the other or said what its figure counts",
+    "what": "THE MACHINE'S, NEW AT 17:21. Two contradictory verdicts on the world's anniversary departure landed 27 minutes apart (60026603b and d29dcddc3), and neither named the other or said what its figure counts. Corrected by 7981270d0: both now carry one per-ender definition, withdrawn at 2017-2021 and reopened for 2024-2025 only.",
+    "last_at": "2026-10-08T20:20:22.602711+00:00",
+    "first_at": "2026-10-08T20:20:22.602711+00:00",
+    "times_listed": 1,
+    "corrected": true,
+    "fate": null,
+    "status": null,
+    "retired": false,
+    "owner": null,
+    "reason": null
+   },
+   {
+    "key": "text:two focus items (the voids split and acquisition p1-p4) went undrawn for two consecutive stretches while the fifth item was drawn, and no refusal naming either is on record",
+    "what": "THE MACHINE'S, NEW AT 17:21. Two focus items (the voids split and acquisition P1-P4) went undrawn for two consecutive stretches while the fifth item was drawn, and no refusal naming either is on record. 20:20: the voids item is offered from 21:04Z, and acquisition was moved to not_now. I still cannot say why they were missed.",
+    "last_at": "2026-10-08T20:20:22.602711+00:00",
+    "first_at": "2026-10-08T17:21:17.621217+00:00",
+    "times_listed": 2,
+    "corrected": false,
+    "fate": null,
+    "status": null,
+    "retired": false,
+    "owner": null,
+    "reason": null
+   },
+   {
+    "key": "text:the 17:21 direction record never reached origin",
+    "what": "THE MACHINE'S, NEW. The 17:21 direction record never reached origin. It was accepted (its decisions line is in the working copy), and the draw read it, but origin's record is still the 14:22 one (3e8c847a4), so what the director reviews on origin is a stretch behind what the machine steered by.",
+    "last_at": "2026-10-08T20:20:22.602711+00:00",
+    "first_at": "2026-10-08T20:20:22.602711+00:00",
+    "times_listed": 1,
+    "corrected": false,
+    "fate": null,
+    "status": null,
+    "retired": false,
+    "owner": null,
+    "reason": null
+   },
+   {
+    "key": "text:two long jobs were oom-killed this stretch (save-fairness-world at 17:58, save-arms-off-k1 at 19:52), with the director's box memory budget (17c19a253) on origin but not in the shared checkout",
+    "what": "THE MACHINE'S, NEW. Two long jobs were OOM-killed this stretch (save-fairness-world at 17:58, save-arms-off-k1 at 19:52), with the director's box memory budget (17c19a253) on origin but not in the shared checkout. Three save arms at about 2.7 GB each run together now. I cannot yet say whether the budget was consulted for these launches.",
+    "last_at": "2026-10-08T20:20:22.602711+00:00",
+    "first_at": "2026-10-08T20:20:22.602711+00:00",
+    "times_listed": 1,
+    "corrected": false,
+    "fate": null,
+    "status": null,
+    "retired": false,
+    "owner": null,
+    "reason": null
+   },
+   {
+    "key": "text:two contradictory verdicts on the world's anniversary departure landed 27 minutes apart (60026603b: a defect beyond the published bound; d29dcddc3: no real gap, 7.8% against 6%), and neither names the other or says what its figure counts",
+    "what": "THE MACHINE'S, NEW. Two contradictory verdicts on the world's anniversary departure landed 27 minutes apart (60026603b: a defect beyond the published bound; d29dcddc3: no real gap, 7.8% against 6%), and neither names the other or says what its figure counts. Focus one.",
+    "last_at": "2026-10-08T17:21:17.621217+00:00",
+    "first_at": "2026-10-08T17:21:17.621217+00:00",
     "times_listed": 1,
     "corrected": false,
     "fate": null,
@@ -850,8 +889,8 @@
     "key": "triage:a-commits-constraint-on-a-downstream-run-is-unenforced",
     "what": "THE MACHINE'S, CARRIED. A commit can name a constraint on a downstream run that nothing enforces. The QEP re-take honoured ba320e2d2 by hand (base 96517e68c), so the instance is met. The class stays in not_now. 23:24: unchanged. 02:21: unchanged. 05:20: unchanged. 08:21: unchanged.",
     "last_at": "2026-10-07T11:24:41.710264+00:00",
-    "first_at": "2026-10-04T05:20:36.119227+00:00",
-    "times_listed": 27,
+    "first_at": "2026-10-04T11:23:31.380827+00:00",
+    "times_listed": 25,
     "corrected": false,
     "fate": "accept",
     "status": null,
@@ -863,8 +902,8 @@
     "key": "triage:a-waiters-deadline-is-not-priced-against-its-queue",
     "what": "THE MACHINE'S, CARRIED. A waiter's deadline is set without pricing the queue ahead of it. wait_for caps at 21600 s, and long chains still loop by hand. 23:24: unchanged. 02:21: unchanged. 05:20: unchanged. 08:21: unchanged.",
     "last_at": "2026-10-07T11:24:41.710264+00:00",
-    "first_at": "2026-10-04T05:20:36.119227+00:00",
-    "times_listed": 27,
+    "first_at": "2026-10-04T11:23:31.380827+00:00",
+    "times_listed": 25,
     "corrected": false,
     "fate": "accept",
     "status": null,
@@ -876,8 +915,8 @@
     "key": "triage:a-long-jobs-worktrees-are-not-checked-before-launch",
     "what": "THE MACHINE'S, CARRIED. Nothing checks a long job's worktrees before launch. depth-vs-width died at exit 90 after 10h on a missing worktree. 23:24: unchanged. 02:21: unchanged. 05:20: unchanged. 08:21: unchanged.",
     "last_at": "2026-10-07T11:24:41.710264+00:00",
-    "first_at": "2026-10-04T05:20:36.119227+00:00",
-    "times_listed": 27,
+    "first_at": "2026-10-04T11:23:31.380827+00:00",
+    "times_listed": 25,
     "corrected": false,
     "fate": "accept",
     "status": null,
@@ -889,8 +928,8 @@
     "key": "triage:stranded-map-moves-are-replayed-as-written",
     "what": "THE MACHINE'S, CARRIED. Level or park moves stranded in a preserved ref are replayed as written. PB4 build->idle was false by then (a6bd4d77e), and nothing re-asks a stranded move's release condition. 23:24: unchanged. 02:21: unchanged. 05:20: unchanged. 08:21: unchanged.",
     "last_at": "2026-10-07T11:24:41.710264+00:00",
-    "first_at": "2026-10-04T05:20:36.119227+00:00",
-    "times_listed": 27,
+    "first_at": "2026-10-04T11:23:31.380827+00:00",
+    "times_listed": 25,
     "corrected": false,
     "fate": "fold",
     "status": null,
@@ -902,8 +941,8 @@
     "key": "triage:a-hand-written-driver-is-not-checked-against-the-api",
     "what": "THE MACHINE'S, CARRIED. Nothing checks that a hand-written driver calls an API, or an argument shape, that the tool accepts. hgc-suite-timing's driver called resource_headroom.admitted(). It RECURRED this stretch: the QEP floor handoff passed one seed to a tool that refuses fewer than two. 23:24: unchanged. 02:21: unchanged. 05:20: unchanged. 08:21: unchanged.",
     "last_at": "2026-10-07T11:24:41.710264+00:00",
-    "first_at": "2026-10-04T05:20:36.119227+00:00",
-    "times_listed": 27,
+    "first_at": "2026-10-04T11:23:31.380827+00:00",
+    "times_listed": 25,
     "corrected": false,
     "fate": "accept",
     "status": null,
@@ -915,8 +954,8 @@
     "key": "triage:a-changed-control-does-not-rerun-its-synthetic-fixtures",
     "what": "THE MACHINE'S, CARRIED. A control or door whose shape changes must re-run every fixture that builds a synthetic tree to drive it, and no control requires that. citation_at_head, red_at_head and fork_state still read not_established. 23:24: unchanged. 02:21: unchanged. 05:20: unchanged. 08:21: unchanged.",
     "last_at": "2026-10-07T11:24:41.710264+00:00",
-    "first_at": "2026-10-04T05:20:36.119227+00:00",
-    "times_listed": 27,
+    "first_at": "2026-10-04T11:23:31.380827+00:00",
+    "times_listed": 25,
     "corrected": false,
     "fate": "fold",
     "status": null,
@@ -928,8 +967,8 @@
     "key": "triage:a-refusal-naming-a-commit-is-not-reasked-against-origin",
     "what": "THE MACHINE'S, CARRIED. A refusal naming a commit is not re-asked against the remote ref before a reader sees it. liveness_surface_refusal is still not re-asked. 23:24: unchanged. 02:21: unchanged. 05:20: unchanged. 08:21: unchanged.",
     "last_at": "2026-10-07T11:24:41.710264+00:00",
-    "first_at": "2026-10-04T05:20:36.119227+00:00",
-    "times_listed": 27,
+    "first_at": "2026-10-04T11:23:31.380827+00:00",
+    "times_listed": 25,
     "corrected": false,
     "fate": "fold",
     "status": null,
@@ -941,8 +980,8 @@
     "key": "triage:stash-completeness-sweep-reports-a-lost-file-safe",
     "what": "THE MACHINE'S, CARRIED. The stash-completeness sweep reports a genuinely lost file as safe. It is still not on the map. 23:24: unchanged. 02:21: unchanged. 05:20: unchanged. 08:21: unchanged.",
     "last_at": "2026-10-07T11:24:41.710264+00:00",
-    "first_at": "2026-10-04T05:20:36.119227+00:00",
-    "times_listed": 27,
+    "first_at": "2026-10-04T11:23:31.380827+00:00",
+    "times_listed": 25,
     "corrected": false,
     "fate": "fold",
     "status": null,
@@ -954,8 +993,8 @@
     "key": "triage:a-same-subject-sibling-is-left-behind-in-the-shared-tree",
     "what": "THE MACHINE'S, CARRIED. Nothing on the landing path asks whether a same-subject sibling is left behind in the shared tree (the 14-path refusal in 662da7fd3). Separate from H49. 23:24: unchanged. 02:21: unchanged. 05:20: unchanged. 08:21: unchanged.",
     "last_at": "2026-10-07T11:24:41.710264+00:00",
-    "first_at": "2026-10-04T05:20:36.119227+00:00",
-    "times_listed": 27,
+    "first_at": "2026-10-04T11:23:31.380827+00:00",
+    "times_listed": 25,
     "corrected": false,
     "fate": "fold",
     "status": null,
@@ -967,8 +1006,8 @@
     "key": "triage:not-now-is-prose-that-nothing-reads",
     "what": "MINE, CLASS. not_now is still prose that nothing reads. A rejected item comes back only if I remember to promote it. This stretch I remembered once (the ex-ante flat comparison, focus item two), which is not a mechanism. 23:24: unchanged. 02:21: unchanged. 05:20: unchanged. This stretch I promote one item from last not_now by hand (the direction record reaching origin, now focus item three), which is still memory, not a mechanism. 08:21: unchanged. No not_now item is promoted this stretch.",
     "last_at": "2026-10-07T11:24:41.710264+00:00",
-    "first_at": "2026-10-04T05:20:36.119227+00:00",
-    "times_listed": 27,
+    "first_at": "2026-10-04T11:23:31.380827+00:00",
+    "times_listed": 25,
     "corrected": false,
     "fate": "accept",
     "status": null,
@@ -980,8 +1019,8 @@
     "key": "triage:a-bounded-executor-turn-resets-over-unlanded-work",
     "what": "THE MACHINE'S, CARRIED. A bounded executor turn can be reset over finished, unlanded work. Both named instances are gone: the brief reads all 80 worktree HEADs on a remote ref. Nothing prevents the class. RECURRED in a sibling shape 02:21: c5770c404 (B11 slice 3) is finished and gated, but on no remote, in an unlocked worktree with no declared owner. See the new row. 23:24: unchanged. 02:21: unchanged. 05:20: unchanged. 08:21: unchanged.",
     "last_at": "2026-10-07T11:24:41.710264+00:00",
-    "first_at": "2026-10-04T05:20:36.119227+00:00",
-    "times_listed": 27,
+    "first_at": "2026-10-04T11:23:31.380827+00:00",
+    "times_listed": 25,
     "corrected": false,
     "fate": "fold",
     "status": null,
@@ -993,8 +1032,8 @@
     "key": "triage:a-pre-registration-sits-untracked-after-its-subject-lands",
     "what": "THE MACHINE'S, CARRIED. A pre-registration that dates itself by its first commit can sit untracked after its subject commit lands. The class is still unrefused. 23:24: unchanged. 02:21: unchanged. 05:20: unchanged. 08:21: unchanged.",
     "last_at": "2026-10-07T11:24:41.710264+00:00",
-    "first_at": "2026-10-04T05:20:36.119227+00:00",
-    "times_listed": 27,
+    "first_at": "2026-10-04T11:23:31.380827+00:00",
+    "times_listed": 25,
     "corrected": false,
     "fate": "fold",
     "status": null,
@@ -1006,8 +1045,8 @@
     "key": "triage:a-launch-chain-dies-silently-at-its-waiters-deadline",
     "what": "THE MACHINE'S, CARRIED. A launch chain dies silently when its waiter hits DEADLINE. The register showed width as finished, and did not show that P/C, chained behind it, never started. 23:24: unchanged. 02:21: unchanged. 05:20: unchanged. 08:21: unchanged.",
     "last_at": "2026-10-07T11:24:41.710264+00:00",
-    "first_at": "2026-10-04T05:20:36.119227+00:00",
-    "times_listed": 27,
+    "first_at": "2026-10-04T11:23:31.380827+00:00",
+    "times_listed": 25,
     "corrected": false,
     "fate": "accept",
     "status": null,
@@ -1019,8 +1058,8 @@
     "key": "triage:the-launch-register-records-a-deliberate-stop-as-died",
     "what": "THE MACHINE'S, CARRIED. The launch register records a deliberate seat stop as DIED. payment-history-pc-legs ended rc=143 beside a STOPPED note that says why. 23:24: unchanged. 02:21: unchanged. 05:20: unchanged. 08:21: unchanged.",
     "last_at": "2026-10-07T11:24:41.710264+00:00",
-    "first_at": "2026-10-04T05:20:36.119227+00:00",
-    "times_listed": 27,
+    "first_at": "2026-10-04T11:23:31.380827+00:00",
+    "times_listed": 25,
     "corrected": false,
     "fate": "accept",
     "status": null,
@@ -1032,8 +1071,8 @@
     "key": "triage:no-work-base-advance-merges",
     "what": "THE MACHINE'S, CARRIED. No-work base-advance merges were 11 of 26 and 9 of 24 in earlier stretches. In the last two they were 0 of 9 and 1 of 8, with no mechanism changed, so the cause of the fall is not established, and the Monday census grades it. 02:21: 1 of 10. 05:21: 4 of 17. 08:23: 0 of 9. 11:21: 1 of 10. 14:23: 1 of 8. 17:22: 2 of 14. 23:24: 1 of 8. 02:21: 0 of 7. 05:20: 1 of 10. 08:21: 0 of 11.",
     "last_at": "2026-10-07T11:24:41.710264+00:00",
-    "first_at": "2026-10-04T05:20:36.119227+00:00",
-    "times_listed": 27,
+    "first_at": "2026-10-04T11:23:31.380827+00:00",
+    "times_listed": 25,
     "corrected": false,
     "fate": "accept",
     "status": null,
@@ -1578,8 +1617,8 @@
     "key": "text:the world digest does not identify behaviour switches",
     "what": "THE MACHINE'S, CARRIED. The world digest does not identify behaviour switches. 1002b and 1002c shared digest cf823b185f8ca51c and were not the same world. CORRECTED by 77a872e01: the stamp now carries every SE_ switch in the run's import closure, and a one-switch difference refuses the pair (mutations seen red).",
     "last_at": "2026-10-04T20:23:06.729790+00:00",
-    "first_at": "2026-10-04T05:20:36.119227+00:00",
-    "times_listed": 6,
+    "first_at": "2026-10-04T11:23:31.380827+00:00",
+    "times_listed": 4,
     "corrected": true,
     "fate": null,
     "status": null,
@@ -1591,8 +1630,8 @@
     "key": "text:a long job's world stamp is not tied to head",
     "what": "THE MACHINE'S, CARRIED. A long job's world stamp is not tied to HEAD. CORRECTED by 77a872e01: world_identity() now carries code_commit, the sha the run imported from.",
     "last_at": "2026-10-04T20:23:06.729790+00:00",
-    "first_at": "2026-10-04T05:20:36.119227+00:00",
-    "times_listed": 6,
+    "first_at": "2026-10-04T11:23:31.380827+00:00",
+    "times_listed": 4,
     "corrected": true,
     "fate": null,
     "status": null,
@@ -1630,8 +1669,8 @@
     "key": "text:a control in a clean origin extract rewrites a tracked file (site/data/dd_opening_arms.json), which dirtied the checkout and killed the head-red bisect at its first checkout",
     "what": "THE MACHINE'S, NEW. A control in a clean origin extract rewrites a tracked file (site/data/dd_opening_arms.json), which dirtied the checkout and killed the head-red bisect at its first checkout. A control that writes a tracked artefact makes every extract-based census fragile.",
     "last_at": "2026-10-04T17:20:08.240984+00:00",
-    "first_at": "2026-10-04T05:20:36.119227+00:00",
-    "times_listed": 5,
+    "first_at": "2026-10-04T11:23:31.380827+00:00",
+    "times_listed": 3,
     "corrected": true,
     "fate": null,
     "status": null,
@@ -1643,8 +1682,8 @@
     "key": "text:one lane 0 change can be drawn twice",
     "what": "THE MACHINE'S, CARRIED. One Lane 0 change can be drawn twice. The F5 shape (drawn, noted as a non-act, redrawn) has no fix. The two landed_unbound instances are now dispositioned premise_spent (d06af26a5), and bind-the-two-landed-unbound-lane-0-rows was itself drawn twice (244c04249). The class is open. It recurred this stretch: the QEP item was redrawn 16 minutes after its own delivery.",
     "last_at": "2026-10-04T17:20:08.240984+00:00",
-    "first_at": "2026-10-04T05:20:36.119227+00:00",
-    "times_listed": 5,
+    "first_at": "2026-10-04T11:23:31.380827+00:00",
+    "times_listed": 3,
     "corrected": false,
     "fate": null,
     "status": null,
@@ -1708,8 +1747,8 @@
     "key": "text:a commons artefact refuted by its own publisher (switching rate, 2026-09-07) is still load-bearing",
     "what": "THE MACHINE'S, CARRIED. A commons artefact refuted by its own publisher (switching rate, 2026-09-07) is still load-bearing. The three-arm leg is done and the one-process floor is running (launched 05:31:54Z). It is retired only when the refit lands.",
     "last_at": "2026-10-04T14:23:11.367253+00:00",
-    "first_at": "2026-10-04T05:20:36.119227+00:00",
-    "times_listed": 4,
+    "first_at": "2026-10-04T11:23:31.380827+00:00",
+    "times_listed": 2,
     "corrected": true,
     "fate": null,
     "status": null,
@@ -1747,8 +1786,8 @@
     "key": "text:the pre-commit gate selects controls by module stem, and origin goes red by a route it does not select",
     "what": "THE MACHINE'S, CARRIED. The pre-commit gate selects controls by module stem, and origin goes red by a route it does not select. The prepayment ruling's control was one such red (92b55f41a). The census has now measured it (53f4ac24b: 7 of 17 turning commits, four still red at origin), and focus item two is the fix.",
     "last_at": "2026-10-04T11:23:31.380827+00:00",
-    "first_at": "2026-10-04T05:20:36.119227+00:00",
-    "times_listed": 3,
+    "first_at": "2026-10-04T11:23:31.380827+00:00",
+    "times_listed": 1,
     "corrected": true,
     "fate": null,
     "status": null,
@@ -1760,59 +1799,7 @@
     "key": "text:the qep landing continuation is embargoed to 10:15",
     "what": "THE MACHINE'S, NEW. The QEP landing continuation is embargoed to 10:15. The floor it waits on was launched at 05:31:54Z and takes about 8h, so it cannot exit before about 13:30Z. A continuation embargoed by guess rather than by its subject's expected exit will be drawn onto nothing and noted as a non-act. That is the F5 drawn-twice shape, made by the machine's own scheduling.",
     "last_at": "2026-10-04T11:23:31.380827+00:00",
-    "first_at": "2026-10-04T08:20:05.126768+00:00",
-    "times_listed": 2,
-    "corrected": true,
-    "fate": null,
-    "status": null,
-    "retired": false,
-    "owner": null,
-    "reason": null
-   },
-   {
-    "key": "text:my focus item said to run the three qep floor seeds one at a time",
-    "what": "MINE, NEW. My focus item said to run the three QEP floor seeds one at a time. The tool refuses a floor of fewer than two seeds by construction, so the worker's faithful execution died in 8 seconds, and about 2h40m of planned run was never possible. I wrote an invocation shape without reading the tool's own argument checks. Focus item one replaces it with a single three-seed run.",
-    "last_at": "2026-10-04T08:20:05.126768+00:00",
-    "first_at": "2026-10-04T05:20:36.119227+00:00",
-    "times_listed": 2,
-    "corrected": true,
-    "fate": null,
-    "status": null,
-    "retired": false,
-    "owner": null,
-    "reason": null
-   },
-   {
-    "key": "text:the shared checkout's divergence from origin grew to 161 behind, from 134, while a base-advance merge ran on it for 55 minutes",
-    "what": "THE MACHINE'S, NEW. The shared checkout's divergence from origin grew to 161 behind, from 134, while a base-advance merge ran on it for 55 minutes. Daemons run from it are executing code the branch has moved past.",
-    "last_at": "2026-10-04T08:20:05.126768+00:00",
-    "first_at": "2026-10-04T05:20:36.119227+00:00",
-    "times_listed": 2,
-    "corrected": true,
-    "fate": null,
-    "status": null,
-    "retired": false,
-    "owner": null,
-    "reason": null
-   },
-   {
-    "key": "text:a floor handoff read an admission refusal inside the job as an exit, and moved on",
-    "what": "THE MACHINE'S, CARRIED. A floor handoff read an admission refusal inside the job as an exit, and moved on. Corrected for the QEP chain: /var/tmp/se-qep-arms2-handoff.sh deletes and retries a floor_run_refused artefact, and stopped correctly on a missing artefact (log, 04:30:46Z). That is a script, not a mechanism, and the class shares the launch-chain row.",
-    "last_at": "2026-10-04T05:20:36.119227+00:00",
-    "first_at": "2026-10-04T05:20:36.119227+00:00",
-    "times_listed": 1,
-    "corrected": true,
-    "fate": null,
-    "status": null,
-    "retired": false,
-    "owner": null,
-    "reason": null
-   },
-   {
-    "key": "text:the three-arm --level-arm leg was oom-killed while the probes held memory",
-    "what": "THE MACHINE'S, CARRIED. The three-arm --level-arm leg was OOM-killed while the probes held memory. Corrected: re-launched with an 11,200 MB declared peak, queued behind the 4.6 GB channel_blind run, and it finished (value_cycle_ab_s1_three_arm_20261004r.json, 04:30Z).",
-    "last_at": "2026-10-04T05:20:36.119227+00:00",
-    "first_at": "2026-10-04T05:20:36.119227+00:00",
+    "first_at": "2026-10-04T11:23:31.380827+00:00",
     "times_listed": 1,
     "corrected": true,
     "fate": null,
@@ -1822,18 +1809,168 @@
     "reason": null
    }
   ],
-  "distinct": 109,
+  "distinct": 110,
   "triaged": 34,
   "triaged_by_fate": {
    "fix": 14,
    "fold": 10,
    "accept": 10
   },
-  "untriaged": 75,
-  "distinct_open": 20,
-  "rows": 1021,
+  "untriaged": 76,
+  "distinct_open": 24,
+  "rows": 996,
   "triage_register": "read",
   "entries": [
+   {
+    "at": "2026-10-08T20:20:22.602711+00:00",
+    "corrected": false,
+    "problem": "triage:one-item-lands-twice-on-origin-and-the-shared-head"
+   },
+   {
+    "at": "2026-10-08T20:20:22.602711+00:00",
+    "corrected": false,
+    "problem": "triage:a-hold-condition-is-not-reasked-when-its-premise-moves"
+   },
+   {
+    "at": "2026-10-08T20:20:22.602711+00:00",
+    "corrected": false,
+    "problem": "triage:the-held-work-check-refuses-by-prose-and-tells-only-the-log"
+   },
+   {
+    "at": "2026-10-08T20:20:22.602711+00:00",
+    "corrected": false,
+    "problem": "triage:the-brief-reads-director-concerns-from-the-behind-checkout"
+   },
+   {
+    "at": "2026-10-08T20:20:22.602711+00:00",
+    "corrected": false,
+    "problem": "triage:the-draw-ledger-cannot-tell-mid-landing-from-not-done"
+   },
+   {
+    "at": "2026-10-08T20:20:22.602711+00:00",
+    "corrected": false,
+    "problem": "triage:a-tombstone-retires-a-row-without-checking-its-done"
+   },
+   {
+    "at": "2026-10-08T20:20:22.602711+00:00",
+    "corrected": false,
+    "problem": "triage:a-landing-carries-a-stale-direction-record"
+   },
+   {
+    "at": "2026-10-08T20:20:22.602711+00:00",
+    "corrected": false,
+    "problem": "triage:a-parked-atom-is-still-drawn"
+   },
+   {
+    "at": "2026-10-08T20:20:22.602711+00:00",
+    "corrected": false,
+    "problem": "triage:a-coupled-triad-refusal-reaches-only-the-supervisor-log"
+   },
+   {
+    "at": "2026-10-08T20:20:22.602711+00:00",
+    "corrected": false,
+    "problem": "triage:a-gas-heated-homes-electricity-has-no-season"
+   },
+   {
+    "at": "2026-10-08T20:20:22.602711+00:00",
+    "corrected": false,
+    "problem": "triage:the-draw-ledger-credits-an-item-by-path-overlap"
+   },
+   {
+    "at": "2026-10-08T20:20:22.602711+00:00",
+    "corrected": false,
+    "problem": "text:the shared checkout lags origin"
+   },
+   {
+    "at": "2026-10-08T20:20:22.602711+00:00",
+    "corrected": true,
+    "problem": "text:two contradictory verdicts on the world's anniversary departure landed 27 minutes apart (60026603b and d29dcddc3), and neither named the other or said what its figure counts"
+   },
+   {
+    "at": "2026-10-08T20:20:22.602711+00:00",
+    "corrected": false,
+    "problem": "text:two focus items (the voids split and acquisition p1-p4) went undrawn for two consecutive stretches while the fifth item was drawn, and no refusal naming either is on record"
+   },
+   {
+    "at": "2026-10-08T20:20:22.602711+00:00",
+    "corrected": false,
+    "problem": "text:the 17:21 direction record never reached origin"
+   },
+   {
+    "at": "2026-10-08T20:20:22.602711+00:00",
+    "corrected": false,
+    "problem": "text:two long jobs were oom-killed this stretch (save-fairness-world at 17:58, save-arms-off-k1 at 19:52), with the director's box memory budget (17c19a253) on origin but not in the shared checkout"
+   },
+   {
+    "at": "2026-10-08T17:21:17.621217+00:00",
+    "corrected": false,
+    "problem": "triage:one-item-lands-twice-on-origin-and-the-shared-head"
+   },
+   {
+    "at": "2026-10-08T17:21:17.621217+00:00",
+    "corrected": false,
+    "problem": "triage:a-hold-condition-is-not-reasked-when-its-premise-moves"
+   },
+   {
+    "at": "2026-10-08T17:21:17.621217+00:00",
+    "corrected": false,
+    "problem": "triage:the-held-work-check-refuses-by-prose-and-tells-only-the-log"
+   },
+   {
+    "at": "2026-10-08T17:21:17.621217+00:00",
+    "corrected": false,
+    "problem": "triage:the-brief-reads-director-concerns-from-the-behind-checkout"
+   },
+   {
+    "at": "2026-10-08T17:21:17.621217+00:00",
+    "corrected": false,
+    "problem": "triage:the-draw-ledger-cannot-tell-mid-landing-from-not-done"
+   },
+   {
+    "at": "2026-10-08T17:21:17.621217+00:00",
+    "corrected": false,
+    "problem": "triage:a-tombstone-retires-a-row-without-checking-its-done"
+   },
+   {
+    "at": "2026-10-08T17:21:17.621217+00:00",
+    "corrected": false,
+    "problem": "triage:a-landing-carries-a-stale-direction-record"
+   },
+   {
+    "at": "2026-10-08T17:21:17.621217+00:00",
+    "corrected": false,
+    "problem": "triage:a-parked-atom-is-still-drawn"
+   },
+   {
+    "at": "2026-10-08T17:21:17.621217+00:00",
+    "corrected": false,
+    "problem": "triage:a-coupled-triad-refusal-reaches-only-the-supervisor-log"
+   },
+   {
+    "at": "2026-10-08T17:21:17.621217+00:00",
+    "corrected": false,
+    "problem": "triage:a-gas-heated-homes-electricity-has-no-season"
+   },
+   {
+    "at": "2026-10-08T17:21:17.621217+00:00",
+    "corrected": false,
+    "problem": "triage:the-draw-ledger-credits-an-item-by-path-overlap"
+   },
+   {
+    "at": "2026-10-08T17:21:17.621217+00:00",
+    "corrected": false,
+    "problem": "text:the shared checkout lags origin"
+   },
+   {
+    "at": "2026-10-08T17:21:17.621217+00:00",
+    "corrected": false,
+    "problem": "text:two contradictory verdicts on the world's anniversary departure landed 27 minutes apart (60026603b: a defect beyond the published bound; d29dcddc3: no real gap, 7.8% against 6%), and neither names the other or says what its figure counts"
+   },
+   {
+    "at": "2026-10-08T17:21:17.621217+00:00",
+    "corrected": false,
+    "problem": "text:two focus items (the voids split and acquisition p1-p4) went undrawn for two consecutive stretches while the fifth item was drawn, and no refusal naming either is on record"
+   },
    {
     "at": "2026-10-08T14:22:01.561501+00:00",
     "corrected": false,
@@ -6663,281 +6800,6 @@
     "at": "2026-10-04T11:23:31.380827+00:00",
     "corrected": true,
     "problem": "text:the qep landing continuation is embargoed to 10:15"
-   },
-   {
-    "at": "2026-10-04T08:20:05.126768+00:00",
-    "corrected": true,
-    "problem": "text:my focus item said to run the three qep floor seeds one at a time"
-   },
-   {
-    "at": "2026-10-04T08:20:05.126768+00:00",
-    "corrected": false,
-    "problem": "text:a control in a clean origin extract rewrites a tracked file (site/data/dd_opening_arms.json), which dirtied the checkout and killed the head-red bisect at its first checkout"
-   },
-   {
-    "at": "2026-10-04T08:20:05.126768+00:00",
-    "corrected": true,
-    "problem": "text:the shared checkout's divergence from origin grew to 161 behind, from 134, while a base-advance merge ran on it for 55 minutes"
-   },
-   {
-    "at": "2026-10-04T08:20:05.126768+00:00",
-    "corrected": false,
-    "problem": "triage:a-commits-constraint-on-a-downstream-run-is-unenforced"
-   },
-   {
-    "at": "2026-10-04T08:20:05.126768+00:00",
-    "corrected": false,
-    "problem": "triage:a-waiters-deadline-is-not-priced-against-its-queue"
-   },
-   {
-    "at": "2026-10-04T08:20:05.126768+00:00",
-    "corrected": false,
-    "problem": "text:the world digest does not identify behaviour switches"
-   },
-   {
-    "at": "2026-10-04T08:20:05.126768+00:00",
-    "corrected": false,
-    "problem": "triage:a-long-jobs-worktrees-are-not-checked-before-launch"
-   },
-   {
-    "at": "2026-10-04T08:20:05.126768+00:00",
-    "corrected": false,
-    "problem": "triage:a-hold-condition-is-not-reasked-when-its-premise-moves"
-   },
-   {
-    "at": "2026-10-04T08:20:05.126768+00:00",
-    "corrected": false,
-    "problem": "text:a long job's world stamp is not tied to head"
-   },
-   {
-    "at": "2026-10-04T08:20:05.126768+00:00",
-    "corrected": false,
-    "problem": "triage:stranded-map-moves-are-replayed-as-written"
-   },
-   {
-    "at": "2026-10-04T08:20:05.126768+00:00",
-    "corrected": false,
-    "problem": "triage:one-item-lands-twice-on-origin-and-the-shared-head"
-   },
-   {
-    "at": "2026-10-04T08:20:05.126768+00:00",
-    "corrected": false,
-    "problem": "triage:a-hand-written-driver-is-not-checked-against-the-api"
-   },
-   {
-    "at": "2026-10-04T08:20:05.126768+00:00",
-    "corrected": false,
-    "problem": "triage:a-changed-control-does-not-rerun-its-synthetic-fixtures"
-   },
-   {
-    "at": "2026-10-04T08:20:05.126768+00:00",
-    "corrected": false,
-    "problem": "triage:a-refusal-naming-a-commit-is-not-reasked-against-origin"
-   },
-   {
-    "at": "2026-10-04T08:20:05.126768+00:00",
-    "corrected": false,
-    "problem": "triage:stash-completeness-sweep-reports-a-lost-file-safe"
-   },
-   {
-    "at": "2026-10-04T08:20:05.126768+00:00",
-    "corrected": false,
-    "problem": "triage:a-same-subject-sibling-is-left-behind-in-the-shared-tree"
-   },
-   {
-    "at": "2026-10-04T08:20:05.126768+00:00",
-    "corrected": false,
-    "problem": "triage:not-now-is-prose-that-nothing-reads"
-   },
-   {
-    "at": "2026-10-04T08:20:05.126768+00:00",
-    "corrected": false,
-    "problem": "triage:a-bounded-executor-turn-resets-over-unlanded-work"
-   },
-   {
-    "at": "2026-10-04T08:20:05.126768+00:00",
-    "corrected": false,
-    "problem": "text:one lane 0 change can be drawn twice"
-   },
-   {
-    "at": "2026-10-04T08:20:05.126768+00:00",
-    "corrected": false,
-    "problem": "triage:a-pre-registration-sits-untracked-after-its-subject-lands"
-   },
-   {
-    "at": "2026-10-04T08:20:05.126768+00:00",
-    "corrected": false,
-    "problem": "triage:a-launch-chain-dies-silently-at-its-waiters-deadline"
-   },
-   {
-    "at": "2026-10-04T08:20:05.126768+00:00",
-    "corrected": false,
-    "problem": "text:the pre-commit gate selects controls by module stem, and origin goes red by a route it does not select"
-   },
-   {
-    "at": "2026-10-04T08:20:05.126768+00:00",
-    "corrected": false,
-    "problem": "triage:the-launch-register-records-a-deliberate-stop-as-died"
-   },
-   {
-    "at": "2026-10-04T08:20:05.126768+00:00",
-    "corrected": false,
-    "problem": "text:a commons artefact refuted by its own publisher (switching rate, 2026-09-07) is still load-bearing"
-   },
-   {
-    "at": "2026-10-04T08:20:05.126768+00:00",
-    "corrected": false,
-    "problem": "triage:the-held-work-check-refuses-by-prose-and-tells-only-the-log"
-   },
-   {
-    "at": "2026-10-04T08:20:05.126768+00:00",
-    "corrected": false,
-    "problem": "triage:no-work-base-advance-merges"
-   },
-   {
-    "at": "2026-10-04T08:20:05.126768+00:00",
-    "corrected": false,
-    "problem": "text:the qep landing continuation is embargoed to 10:15"
-   },
-   {
-    "at": "2026-10-04T05:20:36.119227+00:00",
-    "corrected": false,
-    "problem": "text:my focus item said to run the three qep floor seeds one at a time"
-   },
-   {
-    "at": "2026-10-04T05:20:36.119227+00:00",
-    "corrected": false,
-    "problem": "text:a control in a clean origin extract rewrites a tracked file (site/data/dd_opening_arms.json), which dirtied the checkout and killed the head-red bisect at its first checkout"
-   },
-   {
-    "at": "2026-10-04T05:20:36.119227+00:00",
-    "corrected": false,
-    "problem": "text:the shared checkout's divergence from origin grew to 161 behind, from 134, while a base-advance merge ran on it for 55 minutes"
-   },
-   {
-    "at": "2026-10-04T05:20:36.119227+00:00",
-    "corrected": false,
-    "problem": "triage:a-commits-constraint-on-a-downstream-run-is-unenforced"
-   },
-   {
-    "at": "2026-10-04T05:20:36.119227+00:00",
-    "corrected": false,
-    "problem": "triage:a-waiters-deadline-is-not-priced-against-its-queue"
-   },
-   {
-    "at": "2026-10-04T05:20:36.119227+00:00",
-    "corrected": false,
-    "problem": "text:the world digest does not identify behaviour switches"
-   },
-   {
-    "at": "2026-10-04T05:20:36.119227+00:00",
-    "corrected": false,
-    "problem": "triage:a-long-jobs-worktrees-are-not-checked-before-launch"
-   },
-   {
-    "at": "2026-10-04T05:20:36.119227+00:00",
-    "corrected": false,
-    "problem": "triage:a-hold-condition-is-not-reasked-when-its-premise-moves"
-   },
-   {
-    "at": "2026-10-04T05:20:36.119227+00:00",
-    "corrected": false,
-    "problem": "text:a long job's world stamp is not tied to head"
-   },
-   {
-    "at": "2026-10-04T05:20:36.119227+00:00",
-    "corrected": false,
-    "problem": "triage:stranded-map-moves-are-replayed-as-written"
-   },
-   {
-    "at": "2026-10-04T05:20:36.119227+00:00",
-    "corrected": false,
-    "problem": "triage:one-item-lands-twice-on-origin-and-the-shared-head"
-   },
-   {
-    "at": "2026-10-04T05:20:36.119227+00:00",
-    "corrected": false,
-    "problem": "triage:a-hand-written-driver-is-not-checked-against-the-api"
-   },
-   {
-    "at": "2026-10-04T05:20:36.119227+00:00",
-    "corrected": false,
-    "problem": "triage:a-changed-control-does-not-rerun-its-synthetic-fixtures"
-   },
-   {
-    "at": "2026-10-04T05:20:36.119227+00:00",
-    "corrected": false,
-    "problem": "triage:a-refusal-naming-a-commit-is-not-reasked-against-origin"
-   },
-   {
-    "at": "2026-10-04T05:20:36.119227+00:00",
-    "corrected": false,
-    "problem": "triage:stash-completeness-sweep-reports-a-lost-file-safe"
-   },
-   {
-    "at": "2026-10-04T05:20:36.119227+00:00",
-    "corrected": false,
-    "problem": "triage:a-same-subject-sibling-is-left-behind-in-the-shared-tree"
-   },
-   {
-    "at": "2026-10-04T05:20:36.119227+00:00",
-    "corrected": false,
-    "problem": "triage:not-now-is-prose-that-nothing-reads"
-   },
-   {
-    "at": "2026-10-04T05:20:36.119227+00:00",
-    "corrected": false,
-    "problem": "triage:a-bounded-executor-turn-resets-over-unlanded-work"
-   },
-   {
-    "at": "2026-10-04T05:20:36.119227+00:00",
-    "corrected": false,
-    "problem": "text:one lane 0 change can be drawn twice"
-   },
-   {
-    "at": "2026-10-04T05:20:36.119227+00:00",
-    "corrected": false,
-    "problem": "triage:a-pre-registration-sits-untracked-after-its-subject-lands"
-   },
-   {
-    "at": "2026-10-04T05:20:36.119227+00:00",
-    "corrected": false,
-    "problem": "triage:a-launch-chain-dies-silently-at-its-waiters-deadline"
-   },
-   {
-    "at": "2026-10-04T05:20:36.119227+00:00",
-    "corrected": false,
-    "problem": "text:the pre-commit gate selects controls by module stem, and origin goes red by a route it does not select"
-   },
-   {
-    "at": "2026-10-04T05:20:36.119227+00:00",
-    "corrected": false,
-    "problem": "triage:the-launch-register-records-a-deliberate-stop-as-died"
-   },
-   {
-    "at": "2026-10-04T05:20:36.119227+00:00",
-    "corrected": false,
-    "problem": "text:a commons artefact refuted by its own publisher (switching rate, 2026-09-07) is still load-bearing"
-   },
-   {
-    "at": "2026-10-04T05:20:36.119227+00:00",
-    "corrected": true,
-    "problem": "text:a floor handoff read an admission refusal inside the job as an exit, and moved on"
-   },
-   {
-    "at": "2026-10-04T05:20:36.119227+00:00",
-    "corrected": true,
-    "problem": "text:the three-arm --level-arm leg was oom-killed while the probes held memory"
-   },
-   {
-    "at": "2026-10-04T05:20:36.119227+00:00",
-    "corrected": false,
-    "problem": "triage:the-held-work-check-refuses-by-prose-and-tells-only-the-log"
-   },
-   {
-    "at": "2026-10-04T05:20:36.119227+00:00",
-    "corrected": false,
-    "problem": "triage:no-work-base-advance-merges"
    }
   ],
   "refused_own_records": [
@@ -6954,20 +6816,83 @@
     "problems": []
    }
   ],
-  "outstanding": 935,
-  "corrected": 86,
+  "outstanding": 913,
+  "corrected": 83,
   "correction_not_recorded": 0,
   "empty_means": ""
  },
  "what_next": {
   "focus": [
    "a-save-offer-is-not-paid-for-by-the-stayers",
-   "the-worlds-anniversary-departure-is-checked-against-the-published-six",
+   "w2-term-end-departures-2024-2025-multi-seed-per-ender-count",
    "the-voids-effect-is-split-and-the-atom-carries-its-gaps",
-   "acquisition-selection-is-graded-on-fresh-seeds",
-   "a-gas-heated-homes-evening-peak-comes-down-to-serls"
+   "a-gas-homes-2021-serl-median-says-whether-the-remainder-is-the-crisis"
   ],
   "steer_checks": [
+   {
+    "by_class": {
+     "lane_0": {
+      "drawn": [
+       "the-two-departure-verdicts-are-reconciled-on-one-definition",
+       "a-save-offer-is-not-paid-for-by-the-stayers",
+       "a-gas-heated-homes-evening-peak-comes-down-to-serls"
+      ],
+      "focus": [
+       "the-two-departure-verdicts-are-reconciled-on-one-definition",
+       "a-save-offer-is-not-paid-for-by-the-stayers",
+       "a-gas-heated-homes-evening-peak-comes-down-to-serls",
+       "the-voids-effect-is-split-and-the-atom-carries-its-gaps"
+      ],
+      "steered": true
+     }
+    },
+    "drawn": [
+     "the-two-departure-verdicts-are-reconciled-on-one-definition",
+     "a-save-offer-is-not-paid-for-by-the-stayers",
+     "a-gas-heated-homes-evening-peak-comes-down-to-serls"
+    ],
+    "focus": [
+     "the-two-departure-verdicts-are-reconciled-on-one-definition",
+     "a-save-offer-is-not-paid-for-by-the-stayers",
+     "a-gas-heated-homes-evening-peak-comes-down-to-serls",
+     "the-voids-effect-is-split-and-the-atom-carries-its-gaps"
+    ],
+    "note": "the previous direction named work the draw then took (measured over this stretch only -- the 3.0h since 2026-10-08T17:21:17.621217+00:00; this is the PREVIOUS FOCUS, not every drawn item)",
+    "steered": true,
+    "window": "this stretch only -- the 3.0h since 2026-10-08T17:21:17.621217+00:00"
+   },
+   {
+    "by_class": {
+     "lane_0": {
+      "drawn": [
+       "a-save-offer-is-not-paid-for-by-the-stayers",
+       "the-worlds-anniversary-departure-is-checked-against-the-published-six"
+      ],
+      "focus": [
+       "a-save-offer-is-not-paid-for-by-the-stayers",
+       "the-worlds-anniversary-departure-is-checked-against-the-published-six",
+       "the-voids-effect-is-split-and-the-atom-carries-its-gaps",
+       "acquisition-selection-is-graded-on-fresh-seeds",
+       "a-gas-heated-homes-evening-peak-comes-down-to-serls"
+      ],
+      "steered": true
+     }
+    },
+    "drawn": [
+     "a-save-offer-is-not-paid-for-by-the-stayers",
+     "the-worlds-anniversary-departure-is-checked-against-the-published-six"
+    ],
+    "focus": [
+     "a-save-offer-is-not-paid-for-by-the-stayers",
+     "the-worlds-anniversary-departure-is-checked-against-the-published-six",
+     "the-voids-effect-is-split-and-the-atom-carries-its-gaps",
+     "acquisition-selection-is-graded-on-fresh-seeds",
+     "a-gas-heated-homes-evening-peak-comes-down-to-serls"
+    ],
+    "note": "the previous direction named work the draw then took (measured over this stretch only -- the 3.0h since 2026-10-08T14:22:01.561501+00:00; this is the PREVIOUS FOCUS, not every drawn item)",
+    "steered": true,
+    "window": "this stretch only -- the 3.0h since 2026-10-08T14:22:01.561501+00:00"
+   },
    {
     "by_class": {
      "lane_0": {
@@ -7055,64 +6980,6 @@
     "note": "the previous direction named work the draw then took (measured over this stretch only -- the 3.0h since 2026-10-08T05:24:19.070128+00:00; this is the PREVIOUS FOCUS, not every drawn item)",
     "steered": true,
     "window": "this stretch only -- the 3.0h since 2026-10-08T05:24:19.070128+00:00"
-   },
-   {
-    "by_class": {
-     "lane_0": {
-      "drawn": [
-       "the-settled-book-finding-lands-and-the-founder-proposal-agrees-with-it",
-       "b8-a-save-offer-is-sourced-against-the-switching-rules-and-the-seam"
-      ],
-      "focus": [
-       "the-settled-book-finding-lands-and-the-founder-proposal-agrees-with-it",
-       "b8-a-save-offer-is-sourced-against-the-switching-rules-and-the-seam",
-       "a-gas-heated-homes-electricity-gets-its-season"
-      ],
-      "steered": true
-     }
-    },
-    "drawn": [
-     "the-settled-book-finding-lands-and-the-founder-proposal-agrees-with-it",
-     "b8-a-save-offer-is-sourced-against-the-switching-rules-and-the-seam"
-    ],
-    "focus": [
-     "the-settled-book-finding-lands-and-the-founder-proposal-agrees-with-it",
-     "b8-a-save-offer-is-sourced-against-the-switching-rules-and-the-seam",
-     "a-gas-heated-homes-electricity-gets-its-season"
-    ],
-    "note": "the previous direction named work the draw then took (measured over this stretch only -- the 3.0h since 2026-10-08T02:23:45.604384+00:00; this is the PREVIOUS FOCUS, not every drawn item)",
-    "steered": true,
-    "window": "this stretch only -- the 3.0h since 2026-10-08T02:23:45.604384+00:00"
-   },
-   {
-    "by_class": {
-     "lane_0": {
-      "drawn": [
-       "what-stops-the-everyday-settled-book-reaching-thousands",
-       "b8-the-learned-decision-is-graded-over-a-curve-of-cut-sizes",
-       "the-worlds-post-write-off-recovery-reads-the-register"
-      ],
-      "focus": [
-       "what-stops-the-everyday-settled-book-reaching-thousands",
-       "b8-the-learned-decision-is-graded-over-a-curve-of-cut-sizes",
-       "the-worlds-post-write-off-recovery-reads-the-register"
-      ],
-      "steered": true
-     }
-    },
-    "drawn": [
-     "what-stops-the-everyday-settled-book-reaching-thousands",
-     "b8-the-learned-decision-is-graded-over-a-curve-of-cut-sizes",
-     "the-worlds-post-write-off-recovery-reads-the-register"
-    ],
-    "focus": [
-     "what-stops-the-everyday-settled-book-reaching-thousands",
-     "b8-the-learned-decision-is-graded-over-a-curve-of-cut-sizes",
-     "the-worlds-post-write-off-recovery-reads-the-register"
-    ],
-    "note": "the previous direction named work the draw then took (measured over this stretch only -- the 2.4h since 2026-10-07T23:58:40.792896+00:00; this is the PREVIOUS FOCUS, not every drawn item)",
-    "steered": true,
-    "window": "this stretch only -- the 2.4h since 2026-10-07T23:58:40.792896+00:00"
    }
   ],
   "steered_recently": true,
@@ -7122,11 +6989,11 @@
   "available": true,
   "population": 49,
   "chained": 49,
-  "minted": 10,
-  "unminted": 39,
+  "minted": 7,
+  "unminted": 42,
   "unminted_by_kind": {
-   "alarm": 21,
-   "finding": 11,
+   "alarm": 23,
+   "finding": 12,
    "reference": 4,
    "unknown": 3
   },
@@ -7135,8 +7002,8 @@
   "lane_contradicted": [],
   "by_epoch": {
    "2": 1,
-   "3": 5,
-   "4": 4
+   "3": 4,
+   "4": 2
   },
   "unchained": [],
   "unreadable": 0,
@@ -7146,12 +7013,9 @@
    "read": 0,
    "not_yet_read": [
     "SEAT_FINDING_C32_THE_EXPERT_HOUR_FAILS_ON_THE_OUTCOME_NOT_THE_VOCABULARY_2026-10-07.md",
-    "SEAT_FINDING_C34_THE_DECISION_IS_BUILT_AND_ON_SUPPLIER_VALUE_ALONE_IT_ADVISES_NOBODY_2026-10-06.md",
-    "SEAT_FINDING_THE_BACK_BILLING_LIMIT_IS_APPLIED_TO_THE_ESTIMATE_ERROR_WHERE_FOR_DIRECT_DEBIT_IT_BARS_THE_COLLECTION_SHORTFALL_2026-10-06.md",
     "SEAT_FINDING_THE_FOUR_PRACTITIONER_POINTS_CONTRADICT_FOUR_LEVERS_2026-10-08.md",
     "SEAT_FINDING_THE_PAYMENT_SCORE_REACHES_THE_CHURN_BELIEF_AND_THE_RETENTION_GUARD_PRICES_IT_AS_IF_THE_DEBTOR_PAYS_2026-10-07.md",
     "SEAT_FINDING_W2_20_A_SIXTH_OF_DRAWN_GAS_BOILERS_HAVE_NO_GAS_SUPPLY_2026-10-07.md",
-    "WORKER_FINDING_L1_1N_HAS_LITTLE_POWER_ON_A_CALM_HOME_AND_NO_REAL_HOMES_RATIO_HAS_BEEN_READ_2026-10-06.md",
     "WORKER_FINDING_THE_DD_OPENING_COHORT_SPLIT_DROPS_SIXTY_ACCOUNTS_AND_ITS_SUBSTRATE_IS_GONE_2026-10-07.md",
     "WORKER_FINDING_THE_HEAD_RED_CENSUS_KEEPS_NO_CRASH_LINE_SO_A_POLLUTION_BISECT_STARTS_BLIND_2026-10-07.md",
     "WORKER_FINDING_THE_RETENTION_NETTING_ARMS_WERE_IDENTICAL_BECAUSE_THE_BELIEF_IS_SMALL_NOT_BECAUSE_THE_FLAG_WAS_UNREAD_2026-10-07.md"
@@ -7229,7 +7093,7 @@
     },
     {
      "date": "2026-10-08",
-     "commit": "a8946181e",
+     "commit": "e3e5970e1",
      "population": 95,
      "chained": 95,
      "minted": 41,
