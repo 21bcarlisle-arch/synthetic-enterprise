@@ -289,8 +289,19 @@ CURRENT_WORLD_CHANGED_SINCE_THE_LAST_READING = (
     "newer code. A home's heating is now drawn given whether it has a gas meter, so a home with "
     "no gas supply no longer gets a gas bill. In the same stretch the company's book more than "
     "doubled, and every one of the extra accounts is a newly won customer. "
-    "That growth is not the heating change, and which change caused it has not been found yet, "
-    "so no move in a figure can be put down to any one change.")
+    "That growth is not the heating change. It is the run's own memory budget for settling "
+    "accounts, raised from 1,050 to 1,750 customer-years in 358d59a42, which settles more of the "
+    "customers the campaign wins. The heating change's own effect is measured separately, below.")
+#: THE SAME CODE AS THE CURRENT-WORLD RUN WITH W2_20 (`81732ffe2`) REVERTED, control arm only, full
+#: window: what the control book would have been without heating drawn given the gas meter. Run in
+#: the locked worktree `/var/tmp/se-w220-full-R` at `b2ec5147a` with `81732ffe2`'s five code paths
+#: reversed by `git apply -R`; graded in section "(i) over the full window: graded" of
+#: `SEAT_FINDING_W2_20_A_SIXTH_OF_DRAWN_GAS_BOILERS_HAVE_NO_GAS_SUPPLY_2026-10-07.md`. Its
+#: `producing_commit` reads `b2ec5147a` and cannot record the revert, so the revert is stated here
+#: and nowhere in the artefact. `_w2_20_own_effect` pairs it to the current-world run by commit and
+#: world, and withdraws the size the day the published pair moves off that commit.
+W2_20_REVERTED_CONTROL_PATH = (
+    PROJECT / "docs" / "observability" / "value_cycle_ab_s1_control_w220_reverted_20261008.json")
 #: The spread `error_bar` is built from -- the block that owns the page's SELECTION VERDICT, the
 #: one sentence the mission turns on. NOT the same constant as `CURRENT_WORLD_NOISE_FLOOR_PATH`
 #: below, and the difference cost a turn: the 2026-09-17 write-up named THAT constant as the thing
@@ -17414,13 +17425,81 @@ def _size_term_paired_floor(path: Path | None = None) -> dict:
     }
 
 
+def _w2_20_own_effect(published: dict | None, reverted: dict | None) -> dict:
+    """W2_20's own effect on the published control arm: the published run minus the same code with
+    `81732ffe2` reverted. Every figure is differenced here from the two artefacts, none is typed.
+
+    PAIRED BY PROPERTY, NOT BY TODAY'S IDS. The size describes the published figure only while the
+    two runs share a producing commit and a world digest, and they are two runs, not one read
+    twice. Any of those failing withdraws the size with the reason, because a size carried onto a
+    reading it was not measured against reads as that reading's size. One seed: the reverted run
+    is a single draw, so the size is not bounded and says so.
+    """
+    def why_not(reason):
+        return {"available": False, "why_not": reason}
+    if not isinstance(reverted, dict):
+        return why_not("The heating change's own effect is not sized: the run with it reverted "
+                       "is missing or unreadable.")
+    if not isinstance(published, dict):
+        return why_not("The heating change's own effect is not sized: there is no published run "
+                       "to size it against.")
+    def commit(run):
+        return (run.get("producing_commit") or {}).get("commit") or None
+
+    def world(run):
+        return (run.get("world_identity") or {}).get("digest") or None
+    if commit(published) is None or commit(published) != commit(reverted):
+        return why_not("The heating change's own effect was measured against the run at {r}, and "
+                       "the published run is at {u}, so that size does not describe these figures."
+                       .format(r=(commit(reverted) or "an unrecorded commit")[:9],
+                               u=(commit(published) or "an unrecorded commit")[:9]))
+    if world(published) is None or world(published) != world(reverted):
+        return why_not("The heating change's own effect was measured in a different world from "
+                       "the published run, so that size does not describe these figures.")
+    if published.get("generated_at") == reverted.get("generated_at"):
+        return why_not("The run with the heating change reverted is the published run itself, so "
+                       "a difference between them measures nothing.")
+    try:
+        u_book = published["book_identity"]["control_arm"]
+        r_book = reverted["book_identity"]["control_arm"]
+        u_arm, r_arm = published["control_arm"], reverted["control_arm"]
+        gas = u_book["with_a_gas_leg"] - r_book["with_a_gas_leg"]
+        u_gm, r_gm = _f(u_arm["total_gross_margin_gbp"]), _f(r_arm["total_gross_margin_gbp"])
+        u_net, r_net = _f(u_arm["total_net_gbp"]), _f(r_arm["total_net_gbp"])
+    except (KeyError, TypeError):
+        return why_not("The heating change's own effect is not sized: one of the two runs does "
+                       "not carry the control arm's book and margins.")
+    if None in (u_gm, r_gm, u_net, r_net) or not r_gm or not u_net:
+        return why_not("The heating change's own effect is not sized: a margin in one of the two "
+                       "runs is missing or zero.")
+    gm_pct = (u_gm - r_gm) / r_gm * 100.0
+    net_pct = (u_net - r_net) / u_net * 100.0
+    return {
+        "available": True,
+        "gas_legs": gas,
+        "gross_margin_gbp": round(u_gm - r_gm, 2),
+        "gross_margin_pct_of_reverted": round(gm_pct, 1),
+        "net_gbp": round(u_net - r_net, 2),
+        "net_pct_of_published": round(net_pct, 1),
+        "seeds": 1,
+        "sentence": (
+            "On its own, the heating change {verb} {g} accounts with a gas supply {prep} the "
+            "control book, and moves its gross margin by {gm:+.1f}% (£{gmg:,.0f}) and its net by "
+            "{n:+.1f}% (£{ng:,.0f}), against the same code with the change reverted. One draw, so "
+            "this size carries no error bar.").format(
+                verb="takes" if gas <= 0 else "adds", prep="off" if gas <= 0 else "to",
+                g=abs(gas), gm=gm_pct, gmg=abs(u_gm - r_gm), n=net_pct, ng=abs(u_net - r_net)),
+    }
+
+
 def build(three_arm: dict | None, floor: dict | None,
           decomposition: dict | None = None,
           current_three_arm: dict | None = None, current_floor: dict | None = None,
           departure_rerun: dict | None = None,
           departure_baseline: dict | None = None,
           blind_envelope_arms: dict | None = None,
-          auc_family: dict | None = None, *,
+          auc_family: dict | None = None,
+          w2_20_reverted: dict | None = None, *,
           publishing_head: str | None = None) -> dict:
     now = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
     # ONE CALL, TWO PANELS. The renewal block's joining sentence names this
@@ -17607,7 +17686,8 @@ def build(three_arm: dict | None, floor: dict | None,
         current_world, _floor_code_since_its_runs(current_floor, head=publishing_head))
     if current_world.get("available"):
         current_world = dict(current_world, changed_since_the_last_reading=(
-            CURRENT_WORLD_CHANGED_SINCE_THE_LAST_READING))
+            CURRENT_WORLD_CHANGED_SINCE_THE_LAST_READING),
+            w2_20_own_effect=_w2_20_own_effect(current_three_arm, w2_20_reverted))
     return dict(
         base,
         available=True,
@@ -18288,7 +18368,7 @@ def generate(out_path: Path | None = None, three_arm_path: Path | None = None,
              departure_baseline_path: Path | None = None,
              blind_envelope_arms_path: Path | None = None,
              auc_family_path: Path | None = None) -> dict:
-    # THE NINE SOURCES ARE RESOLVED ONCE, then read AND stamped from the same list. Resolving them
+    # THE TEN SOURCES ARE RESOLVED ONCE, then read AND stamped from the same list. Resolving them
     # twice -- once for `build` and once for the provenance block -- is the defect this stamp
     # exists to end, one level up: a stamp describing the module globals while a caller had
     # redirected a source would name files this run never opened.
@@ -18312,6 +18392,7 @@ def generate(out_path: Path | None = None, three_arm_path: Path | None = None,
         # compute the null perfectly and the page still says only "0 of 18 draws carry a
         # figure" if the artefact never reaches it. That was the state on 2026-09-17.
         AUC_FAMILY_FLOOR_PATH if auc_family_path is None else auc_family_path,
+        W2_20_REVERTED_CONTROL_PATH,
     ]
     data = build(*[_read(p) for p in sources])
     # THE ONE RESERVED KEY THIS FEED HAS NEVER HAD. Measured 2026-09-19: `value_arms.json` records

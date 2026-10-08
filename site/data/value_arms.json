@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-08T03:16:02.474528Z",
+  "generated_at": "2026-10-08T08:58:37.478667Z",
   "what_this_is": "The same book and the same world, run once per pricing arm, scored on what actually happened. No figure here is anything the company believed.",
   "provisional": true,
   "provisional_note": "PROVISIONAL. This is one run of each arm on one world, and the error bar below is wider than the effect it is measuring. It is published because withholding it while publishing the profitable-looking half would be the misleading choice, not because it is settled.",
@@ -1031,7 +1031,7 @@
     "commit": "b329e702b78496afc9ba96bb159322d884064955",
     "short": "b329e702b",
     "resolved_at": "2026-09-18T04:24:06Z",
-    "publishing_tree_commit": "1de452b17495fa251e584c828dd11a0e1ff54280",
+    "publishing_tree_commit": "75bbed5bdeac6e9b9e89a615b74b299dec7d97a4",
     "produced_by_the_tree_it_publishes_from": false,
     "counts_are_labelled_by_the_code_that_made_them": true,
     "objective": {
@@ -1043,7 +1043,7 @@
       "objective_moved_since_the_run": false,
       "clause": "The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
     },
-    "reading": "Produced at b329e702b and published from 1de452b17 -- the code was replaced between the run and this page, so read every count here as the older tree's. The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
+    "reading": "Produced at b329e702b and published from 75bbed5bd -- the code was replaced between the run and this page, so read every count here as the older tree's. The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
   },
   "world_provenance": {
     "available": true,
@@ -1094,11 +1094,11 @@
     "run_ordering": "later",
     "how_the_two_runs_order": "THIS BLOCK IS THE LATER OF THE TWO RUNS THIS PAGE CARRIES: it was measured at 2026-10-07T18:20:40Z, and the run it is published against states 2026-09-18T05:43:40Z.",
     "superseded_generated_at": "2026-09-18T05:43:40Z",
-    "why_the_headline_omits_it": "this run is not a statement about the world as it is now, because the run executed b2ec5147a and this page is published from 1de452b17; 16 path(s) in the code the run imports differ between them and no exemption says why they cannot move the arms: background/coupled_triad.py, company/interfaces/sim_interface.py, company/interfaces/supply_book.py, company/policy/decision_policy.py, company/pricing/discovered_price_sensitivity.py, sim/cache_store.py, simulation/arrears_engine.py, simulation/coin_drawn_decision_set.py, simulation/contact_response.py, simulation/fabric_demand_path.py, simulation/final_bill_outcome.py, simulation/fork_map.py, simulation/household_demand_shape.py, simulation/run_cost.py, simulation/run_phase2b.py, simulation/weather_inputs.py",
+    "why_the_headline_omits_it": "this run is not a statement about the world as it is now, because the run executed b2ec5147a and this page is published from 75bbed5bd; 18 path(s) in the code the run imports differ between them and no exemption says why they cannot move the arms: background/coupled_triad.py, company/interfaces/sim_interface.py, company/interfaces/supply_book.py, company/policy/decision_policy.py, company/pricing/discovered_price_sensitivity.py, sim/cache_store.py, simulation/arrears_engine.py, simulation/coin_drawn_decision_set.py, simulation/contact_response.py, simulation/fabric_demand_path.py, simulation/final_bill_outcome.py, simulation/fork_map.py, simulation/household_demand_shape.py, simulation/net_new_acquisition.py, simulation/run_cost.py, simulation/run_phase2b.py, simulation/run_phase4c_on_phase2b.py, simulation/weather_inputs.py",
     "superseded_floor_ran_in_world": "39a192ce04c1eda8",
     "superseded_value_advantage_gbp": 4579.228659000015,
     "resolved": null,
-    "verdict_withheld_because": "AND THE VERDICT IS WITHDRAWN FOR WHICH CODE DREW THE BOUND: the floor beside these figures is not a measurement of the code that published them, because the run executed b2ec5147a and this page is published from 1de452b17; 16 path(s) in the code the run imports differ between them and no exemption says why they cannot move the arms: background/coupled_triad.py, company/interfaces/sim_interface.py, company/interfaces/supply_book.py, company/policy/decision_policy.py, company/pricing/discovered_price_sensitivity.py, sim/cache_store.py, simulation/arrears_engine.py, simulation/coin_drawn_decision_set.py, simulation/contact_response.py, simulation/fabric_demand_path.py, simulation/final_bill_outcome.py, simulation/fork_map.py, simulation/household_demand_shape.py, simulation/run_cost.py, simulation/run_phase2b.py, simulation/weather_inputs.py. Its spread and its seed family stand as measured; a direction decided by a bar from other code may not.",
+    "verdict_withheld_because": "AND THE VERDICT IS WITHDRAWN FOR WHICH CODE DREW THE BOUND: the floor beside these figures is not a measurement of the code that published them, because the run executed b2ec5147a and this page is published from 75bbed5bd; 18 path(s) in the code the run imports differ between them and no exemption says why they cannot move the arms: background/coupled_triad.py, company/interfaces/sim_interface.py, company/interfaces/supply_book.py, company/policy/decision_policy.py, company/pricing/discovered_price_sensitivity.py, sim/cache_store.py, simulation/arrears_engine.py, simulation/coin_drawn_decision_set.py, simulation/contact_response.py, simulation/fabric_demand_path.py, simulation/final_bill_outcome.py, simulation/fork_map.py, simulation/household_demand_shape.py, simulation/net_new_acquisition.py, simulation/run_cost.py, simulation/run_phase2b.py, simulation/run_phase4c_on_phase2b.py, simulation/weather_inputs.py. Its spread and its seed family stand as measured; a direction decided by a bar from other code may not.",
     "verdict_stability": {
       "checked": true,
       "n": 3,
@@ -1163,7 +1163,7 @@
     "which_sign_question_this_answers": "THE MEAN'S, NOT A SINGLE DRAW'S. `no_sign` and `verdict_stability.sign_determined` above answer whether one draw's sign generalises -- here it does, every re-draw falls on one side of zero, though a family of 3 cannot rule out a draw on the other. `distance_to_a_sign` answers whether the FAMILY'S MEAN is distinguishable from zero, whose denominator is the standard error and DOES fall as 1/sqrt(n). That is the question the thesis asks: is the per-customer arm, on average, worse than its own flat-at-level baseline? The two can disagree without contradiction, and until 2026-09-10 this page answered only the first and read as though the second were unanswerable too.",
     "selection_leg": {
       "resolved": null,
-      "verdict_withheld_because": "AND THE VERDICT IS WITHDRAWN FOR WHICH CODE DREW THE BOUND: the floor beside these figures is not a measurement of the code that published them, because the run executed b2ec5147a and this page is published from 1de452b17; 16 path(s) in the code the run imports differ between them and no exemption says why they cannot move the arms: background/coupled_triad.py, company/interfaces/sim_interface.py, company/interfaces/supply_book.py, company/policy/decision_policy.py, company/pricing/discovered_price_sensitivity.py, sim/cache_store.py, simulation/arrears_engine.py, simulation/coin_drawn_decision_set.py, simulation/contact_response.py, simulation/fabric_demand_path.py, simulation/final_bill_outcome.py, simulation/fork_map.py, simulation/household_demand_shape.py, simulation/run_cost.py, simulation/run_phase2b.py, simulation/weather_inputs.py. Its spread and its seed family stand as measured; a direction decided by a bar from other code may not.",
+      "verdict_withheld_because": "AND THE VERDICT IS WITHDRAWN FOR WHICH CODE DREW THE BOUND: the floor beside these figures is not a measurement of the code that published them, because the run executed b2ec5147a and this page is published from 75bbed5bd; 18 path(s) in the code the run imports differ between them and no exemption says why they cannot move the arms: background/coupled_triad.py, company/interfaces/sim_interface.py, company/interfaces/supply_book.py, company/policy/decision_policy.py, company/pricing/discovered_price_sensitivity.py, sim/cache_store.py, simulation/arrears_engine.py, simulation/coin_drawn_decision_set.py, simulation/contact_response.py, simulation/fabric_demand_path.py, simulation/final_bill_outcome.py, simulation/fork_map.py, simulation/household_demand_shape.py, simulation/net_new_acquisition.py, simulation/run_cost.py, simulation/run_phase2b.py, simulation/run_phase4c_on_phase2b.py, simulation/weather_inputs.py. Its spread and its seed family stand as measured; a direction decided by a bar from other code may not.",
       "verdict_stability": {
         "checked": true,
         "n": 3,
@@ -1369,11 +1369,11 @@
       },
       "method": "docs/staging/records/SEAT_RESULT_THE_VALUE_ARMS_RETAKEN_AT_THE_BELIEF_COMMIT_2026-10-02.md",
       "statement": "Selection is two things, split here per draw. CHURN PRICING is the per-customer arm's margin against the flat level's with no bad debt charged: who it kept and at what price. CREDIT is what the arrears engine then wrote off or recovered. Over 3 draws: churn pricing \u00a35,356.24 (sem \u00a3902.85; positive, 5.9 standard errors from zero against a bar of 4.30); credit \u00a31,333.19 (sem \u00a3288.55; positive, 4.6 standard errors from zero against a bar of 4.30). No one account holds the most credit on every draw: PROS-2022-0092 on seed 11111, PROS-2019-0310 on seed 22222, PROS-2022-0092 on seed 33333. The two parts add up to the published selection figure on every draw. The standard errors measure only the elasticity re-draw, so a tight credit part means that draw does not reach the write-off. Method: docs/staging/records/SEAT_RESULT_THE_VALUE_ARMS_RETAKEN_AT_THE_BELIEF_COMMIT_2026-10-02.md.",
-      "verdict_withheld_because": "AND THE VERDICT IS WITHDRAWN FOR WHICH CODE DREW THE BOUND: the floor beside these figures is not a measurement of the code that published them, because the run executed b2ec5147a and this page is published from 1de452b17; 16 path(s) in the code the run imports differ between them and no exemption says why they cannot move the arms: background/coupled_triad.py, company/interfaces/sim_interface.py, company/interfaces/supply_book.py, company/policy/decision_policy.py, company/pricing/discovered_price_sensitivity.py, sim/cache_store.py, simulation/arrears_engine.py, simulation/coin_drawn_decision_set.py, simulation/contact_response.py, simulation/fabric_demand_path.py, simulation/final_bill_outcome.py, simulation/fork_map.py, simulation/household_demand_shape.py, simulation/run_cost.py, simulation/run_phase2b.py, simulation/weather_inputs.py. Its spread and its seed family stand as measured; a direction decided by a bar from other code may not."
+      "verdict_withheld_because": "AND THE VERDICT IS WITHDRAWN FOR WHICH CODE DREW THE BOUND: the floor beside these figures is not a measurement of the code that published them, because the run executed b2ec5147a and this page is published from 75bbed5bd; 18 path(s) in the code the run imports differ between them and no exemption says why they cannot move the arms: background/coupled_triad.py, company/interfaces/sim_interface.py, company/interfaces/supply_book.py, company/policy/decision_policy.py, company/pricing/discovered_price_sensitivity.py, sim/cache_store.py, simulation/arrears_engine.py, simulation/coin_drawn_decision_set.py, simulation/contact_response.py, simulation/fabric_demand_path.py, simulation/final_bill_outcome.py, simulation/fork_map.py, simulation/household_demand_shape.py, simulation/net_new_acquisition.py, simulation/run_cost.py, simulation/run_phase2b.py, simulation/run_phase4c_on_phase2b.py, simulation/weather_inputs.py. Its spread and its seed family stand as measured; a direction decided by a bar from other code may not."
     },
     "level_leg": {
       "resolved": null,
-      "verdict_withheld_because": "THE VERDICT WOULD BE ONE DRAW'S. This leg's own figure is a single realisation and the bound stated with it is how far that same quantity moves across 3 re-draws. 2 of those 3 re-draws clear the bound and the rest do not, so whether this page could state a direction depends on which draw the run happened to make. It states none. The re-draws themselves are set out contrast by contrast in the band table directly below this headline, lowest, mean and highest; the published draw sits BELOW the centre of its own family. AND THE VERDICT IS WITHDRAWN FOR WHICH CODE DREW THE BOUND: the floor beside these figures is not a measurement of the code that published them, because the run executed b2ec5147a and this page is published from 1de452b17; 16 path(s) in the code the run imports differ between them and no exemption says why they cannot move the arms: background/coupled_triad.py, company/interfaces/sim_interface.py, company/interfaces/supply_book.py, company/policy/decision_policy.py, company/pricing/discovered_price_sensitivity.py, sim/cache_store.py, simulation/arrears_engine.py, simulation/coin_drawn_decision_set.py, simulation/contact_response.py, simulation/fabric_demand_path.py, simulation/final_bill_outcome.py, simulation/fork_map.py, simulation/household_demand_shape.py, simulation/run_cost.py, simulation/run_phase2b.py, simulation/weather_inputs.py. Its spread and its seed family stand as measured; a direction decided by a bar from other code may not.",
+      "verdict_withheld_because": "THE VERDICT WOULD BE ONE DRAW'S. This leg's own figure is a single realisation and the bound stated with it is how far that same quantity moves across 3 re-draws. 2 of those 3 re-draws clear the bound and the rest do not, so whether this page could state a direction depends on which draw the run happened to make. It states none. The re-draws themselves are set out contrast by contrast in the band table directly below this headline, lowest, mean and highest; the published draw sits BELOW the centre of its own family. AND THE VERDICT IS WITHDRAWN FOR WHICH CODE DREW THE BOUND: the floor beside these figures is not a measurement of the code that published them, because the run executed b2ec5147a and this page is published from 75bbed5bd; 18 path(s) in the code the run imports differ between them and no exemption says why they cannot move the arms: background/coupled_triad.py, company/interfaces/sim_interface.py, company/interfaces/supply_book.py, company/policy/decision_policy.py, company/pricing/discovered_price_sensitivity.py, sim/cache_store.py, simulation/arrears_engine.py, simulation/coin_drawn_decision_set.py, simulation/contact_response.py, simulation/fabric_demand_path.py, simulation/final_bill_outcome.py, simulation/fork_map.py, simulation/household_demand_shape.py, simulation/net_new_acquisition.py, simulation/run_cost.py, simulation/run_phase2b.py, simulation/run_phase4c_on_phase2b.py, simulation/weather_inputs.py. Its spread and its seed family stand as measured; a direction decided by a bar from other code may not.",
       "verdict_stability": {
         "checked": true,
         "n": 3,
@@ -1698,7 +1698,7 @@
     "how_to_read_this": "The same book, the same three arms and the same code as the figures above, re-run over the departure level this world runs at TODAY. It is published beside the 2026-09-18T05:43:40Z run rather than instead of it, because those figures were honestly measured and their fault is only being read as current. Compare the two as two worlds, not as a revision.",
     "code_since_the_run": {
       "run_commit": "b2ec5147a86503aacec159739cf60ec636f3502b",
-      "head_commit": "1de452b17495fa251e584c828dd11a0e1ff54280",
+      "head_commit": "75bbed5bdeac6e9b9e89a615b74b299dec7d97a4",
       "paths": [
         "simulation",
         "company",
@@ -1749,8 +1749,10 @@
         "simulation/final_bill_outcome.py",
         "simulation/fork_map.py",
         "simulation/household_demand_shape.py",
+        "simulation/net_new_acquisition.py",
         "simulation/run_cost.py",
         "simulation/run_phase2b.py",
+        "simulation/run_phase4c_on_phase2b.py",
         "simulation/weather_inputs.py"
       ],
       "exempt": [],
@@ -1768,23 +1770,25 @@
         "simulation/final_bill_outcome.py",
         "simulation/fork_map.py",
         "simulation/household_demand_shape.py",
+        "simulation/net_new_acquisition.py",
         "simulation/run_cost.py",
         "simulation/run_phase2b.py",
+        "simulation/run_phase4c_on_phase2b.py",
         "simulation/weather_inputs.py"
       ],
       "refused": true,
-      "why": "the run executed b2ec5147a and this page is published from 1de452b17; 16 path(s) in the code the run imports differ between them and no exemption says why they cannot move the arms: background/coupled_triad.py, company/interfaces/sim_interface.py, company/interfaces/supply_book.py, company/policy/decision_policy.py, company/pricing/discovered_price_sensitivity.py, sim/cache_store.py, simulation/arrears_engine.py, simulation/coin_drawn_decision_set.py, simulation/contact_response.py, simulation/fabric_demand_path.py, simulation/final_bill_outcome.py, simulation/fork_map.py, simulation/household_demand_shape.py, simulation/run_cost.py, simulation/run_phase2b.py, simulation/weather_inputs.py"
+      "why": "the run executed b2ec5147a and this page is published from 75bbed5bd; 18 path(s) in the code the run imports differ between them and no exemption says why they cannot move the arms: background/coupled_triad.py, company/interfaces/sim_interface.py, company/interfaces/supply_book.py, company/policy/decision_policy.py, company/pricing/discovered_price_sensitivity.py, sim/cache_store.py, simulation/arrears_engine.py, simulation/coin_drawn_decision_set.py, simulation/contact_response.py, simulation/fabric_demand_path.py, simulation/final_bill_outcome.py, simulation/fork_map.py, simulation/household_demand_shape.py, simulation/net_new_acquisition.py, simulation/run_cost.py, simulation/run_phase2b.py, simulation/run_phase4c_on_phase2b.py, simulation/weather_inputs.py"
     },
     "is_heads_code": false,
     "floor_code_since_its_runs": {
       "floor_commits": [
         "b2ec5147a86503aacec159739cf60ec636f3502b"
       ],
-      "head_commit": "1de452b17495fa251e584c828dd11a0e1ff54280",
+      "head_commit": "75bbed5bdeac6e9b9e89a615b74b299dec7d97a4",
       "per_commit": [
         {
           "run_commit": "b2ec5147a86503aacec159739cf60ec636f3502b",
-          "head_commit": "1de452b17495fa251e584c828dd11a0e1ff54280",
+          "head_commit": "75bbed5bdeac6e9b9e89a615b74b299dec7d97a4",
           "paths": [
             "simulation",
             "company",
@@ -1835,8 +1839,10 @@
             "simulation/final_bill_outcome.py",
             "simulation/fork_map.py",
             "simulation/household_demand_shape.py",
+            "simulation/net_new_acquisition.py",
             "simulation/run_cost.py",
             "simulation/run_phase2b.py",
+            "simulation/run_phase4c_on_phase2b.py",
             "simulation/weather_inputs.py"
           ],
           "exempt": [],
@@ -1854,12 +1860,14 @@
             "simulation/final_bill_outcome.py",
             "simulation/fork_map.py",
             "simulation/household_demand_shape.py",
+            "simulation/net_new_acquisition.py",
             "simulation/run_cost.py",
             "simulation/run_phase2b.py",
+            "simulation/run_phase4c_on_phase2b.py",
             "simulation/weather_inputs.py"
           ],
           "refused": true,
-          "why": "the run executed b2ec5147a and this page is published from 1de452b17; 16 path(s) in the code the run imports differ between them and no exemption says why they cannot move the arms: background/coupled_triad.py, company/interfaces/sim_interface.py, company/interfaces/supply_book.py, company/policy/decision_policy.py, company/pricing/discovered_price_sensitivity.py, sim/cache_store.py, simulation/arrears_engine.py, simulation/coin_drawn_decision_set.py, simulation/contact_response.py, simulation/fabric_demand_path.py, simulation/final_bill_outcome.py, simulation/fork_map.py, simulation/household_demand_shape.py, simulation/run_cost.py, simulation/run_phase2b.py, simulation/weather_inputs.py"
+          "why": "the run executed b2ec5147a and this page is published from 75bbed5bd; 18 path(s) in the code the run imports differ between them and no exemption says why they cannot move the arms: background/coupled_triad.py, company/interfaces/sim_interface.py, company/interfaces/supply_book.py, company/policy/decision_policy.py, company/pricing/discovered_price_sensitivity.py, sim/cache_store.py, simulation/arrears_engine.py, simulation/coin_drawn_decision_set.py, simulation/contact_response.py, simulation/fabric_demand_path.py, simulation/final_bill_outcome.py, simulation/fork_map.py, simulation/household_demand_shape.py, simulation/net_new_acquisition.py, simulation/run_cost.py, simulation/run_phase2b.py, simulation/run_phase4c_on_phase2b.py, simulation/weather_inputs.py"
         }
       ],
       "unexempt": [
@@ -1876,15 +1884,27 @@
         "simulation/final_bill_outcome.py",
         "simulation/fork_map.py",
         "simulation/household_demand_shape.py",
+        "simulation/net_new_acquisition.py",
         "simulation/run_cost.py",
         "simulation/run_phase2b.py",
+        "simulation/run_phase4c_on_phase2b.py",
         "simulation/weather_inputs.py"
       ],
       "refused": true,
-      "why": "the run executed b2ec5147a and this page is published from 1de452b17; 16 path(s) in the code the run imports differ between them and no exemption says why they cannot move the arms: background/coupled_triad.py, company/interfaces/sim_interface.py, company/interfaces/supply_book.py, company/policy/decision_policy.py, company/pricing/discovered_price_sensitivity.py, sim/cache_store.py, simulation/arrears_engine.py, simulation/coin_drawn_decision_set.py, simulation/contact_response.py, simulation/fabric_demand_path.py, simulation/final_bill_outcome.py, simulation/fork_map.py, simulation/household_demand_shape.py, simulation/run_cost.py, simulation/run_phase2b.py, simulation/weather_inputs.py"
+      "why": "the run executed b2ec5147a and this page is published from 75bbed5bd; 18 path(s) in the code the run imports differ between them and no exemption says why they cannot move the arms: background/coupled_triad.py, company/interfaces/sim_interface.py, company/interfaces/supply_book.py, company/policy/decision_policy.py, company/pricing/discovered_price_sensitivity.py, sim/cache_store.py, simulation/arrears_engine.py, simulation/coin_drawn_decision_set.py, simulation/contact_response.py, simulation/fabric_demand_path.py, simulation/final_bill_outcome.py, simulation/fork_map.py, simulation/household_demand_shape.py, simulation/net_new_acquisition.py, simulation/run_cost.py, simulation/run_phase2b.py, simulation/run_phase4c_on_phase2b.py, simulation/weather_inputs.py"
     },
     "is_the_bound_heads_code": false,
-    "changed_since_the_last_reading": "What changed since the previous reading (run at a9e6f2144): the same departure level, on newer code. A home's heating is now drawn given whether it has a gas meter, so a home with no gas supply no longer gets a gas bill. In the same stretch the company's book more than doubled, and every one of the extra accounts is a newly won customer. That growth is not the heating change, and which change caused it has not been found yet, so no move in a figure can be put down to any one change."
+    "changed_since_the_last_reading": "What changed since the previous reading (run at a9e6f2144): the same departure level, on newer code. A home's heating is now drawn given whether it has a gas meter, so a home with no gas supply no longer gets a gas bill. In the same stretch the company's book more than doubled, and every one of the extra accounts is a newly won customer. That growth is not the heating change. It is the run's own memory budget for settling accounts, raised from 1,050 to 1,750 customer-years in 358d59a42, which settles more of the customers the campaign wins. The heating change's own effect is measured separately, below.",
+    "w2_20_own_effect": {
+      "available": true,
+      "gas_legs": -12,
+      "gross_margin_gbp": -55519.68,
+      "gross_margin_pct_of_reverted": -7.7,
+      "net_gbp": -6085.87,
+      "net_pct_of_published": -2.6,
+      "seeds": 1,
+      "sentence": "On its own, the heating change takes 12 accounts with a gas supply off the control book, and moves its gross margin by -7.7% (\u00a355,520) and its net by -2.6% (\u00a36,086), against the same code with the change reverted. One draw, so this size carries no error bar."
+    }
   },
   "book": {
     "served_segments": [
@@ -1911,7 +1931,7 @@
       "commit": "b329e702b78496afc9ba96bb159322d884064955",
       "short": "b329e702b",
       "resolved_at": "2026-09-18T04:24:06Z",
-      "publishing_tree_commit": "1de452b17495fa251e584c828dd11a0e1ff54280",
+      "publishing_tree_commit": "75bbed5bdeac6e9b9e89a615b74b299dec7d97a4",
       "produced_by_the_tree_it_publishes_from": false,
       "counts_are_labelled_by_the_code_that_made_them": true,
       "objective": {
@@ -1923,7 +1943,7 @@
         "objective_moved_since_the_run": false,
         "clause": "The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
       },
-      "reading": "Produced at b329e702b and published from 1de452b17 -- the code was replaced between the run and this page, so read every count here as the older tree's. The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
+      "reading": "Produced at b329e702b and published from 75bbed5bd -- the code was replaced between the run and this page, so read every count here as the older tree's. The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
     }
   },
   "realised": {
@@ -5528,7 +5548,7 @@
   },
   "headline": "THE FIGURE BELOW AND THE BOUND ON IT WERE MEASURED IN DIFFERENT WORLDS. The runs behind it are dated 2026-09-17 and 2026-09-18. A spread measured where customers leave at one rate is not a confidence interval on a figure measured where they leave at another, so nothing here bounds anything else and no contrast below may have its direction read as resolved. Departure rate is how much book there is to win or lose, so it is the surface this whole comparison sits on. Every leg is kept with its own date rather than deleted; the remedy is to re-run all of them in one world, never to quote whichever leg is current. Running the same book through the per-customer decision engine came out \u00a34,579 from flat rules. Its DIRECTION is not stated here, and the reason is not that no floor has been run: THE ERROR BAR IS OLDER THAN THE FIGURE IT BOUNDS. The seed spread was measured on the run of 2026-09-17T21:39:28Z and the point estimate on the run of 2026-09-18T05:43:40Z. Both runs carry the same world digest 39a192ce04c1eda8, so the departure surface did not move between them. They also did NOT measure the same BOOK, and that is the graver half: billing_accounts_settled_in_window is 164 across the floor's seeds against 154-155 across this run's arms. Re-stamping this floor would not fix it. Read it as the size of this instrument's seed sensitivity; re-running the noise floor on the point estimate's own run is owed work, though the nearest floor on this figure's own book (the 12-seed AUC-carrying floor of 2026-09-17, 12 seeds on the same 154 settled accounts the figure prices) states NEITHER A SIGN NOR A PRICE FOR ONE -- 0.686 of the 2.201 errors from zero, and the seed count that would close that gap divides by an estimate whose own interval contains zero, so it has no upper bound. The owed re-run is still strictly better evidence, because the arms span two books and that floor covers one; but the closest thing to an answer already on disk is that more draws of this instrument do not buy a direction. Once one flat margin at the same price LEVEL is given credit for what a level alone would have earned, \u00a34,327 separates the two on the single run this page publishes. Its DIRECTION is not stated here either, and for the same reason. THE REMEDY'S EVIDENCE IS FROM A DIFFERENT BOOK, so no remedy is stated from it. The floor decomposition was measured where the arm priced 104 of 2,009 renewals; the run this page publishes priced 104 of 2,824. A split of the variance measured on one book is not a price for resolving another, and the priced count is the very quantity the remedy is denominated in -- so quoting it here would state a remedy in units this page no longer has. Re-running it on the current book would NOT clear this: the rest of the book's half carried no variance even on the smaller book above, and a larger priced roster covers MORE of the complement that leg re-draws, not less. What is owed is a floor keyed to something the rest of the book has. What WOULD resolve it has not been established: this spread has not been separated into the priced households' own draw, which a larger settled book shrinks, and the rest of the book's churn cascade, which no book size touches. More seeds do not shrink this SPREAD: re-drawing the dice measures the same width again. What they do buy is how well those draws pin their own MEAN, which is the quantity this page states a side from. How many would be needed is NOT a number this page can give: the count divides by the estimate itself, and it is only ever asked when that estimate's own interval contains zero -- so it has no upper bound. The error bar below publishes that interval and the reason, in place of a count. Read all of it against its size: the per-customer arm priced 104 of the 2,824 renewals the world offered, 3.68% of them, so every figure here is those decisions and what they cascade into.",
   "published_from": {
-    "commit": "1de452b17495fa251e584c828dd11a0e1ff54280",
+    "commit": "75bbed5bdeac6e9b9e89a615b74b299dec7d97a4",
     "tree_was_clean": false,
     "inputs_are_the_committed_bytes": false,
     "inputs": [
@@ -5546,11 +5566,11 @@
       },
       {
         "path": "docs/observability/value_cycle_ab_s1_three_arm_20261007h.json",
-        "state": "not_in_the_commit"
+        "state": "committed"
       },
       {
         "path": "docs/observability/value_cycle_ab_s1_noise_floor_20261007h.json",
-        "state": "not_in_the_commit"
+        "state": "committed"
       },
       {
         "path": "docs/observability/value_cycle_ab_s1_three_arm_departure_20260909.json",
@@ -5567,8 +5587,12 @@
       {
         "path": "docs/observability/value_cycle_ab_s1_noise_floor_next12_20260917.json",
         "state": "committed"
+      },
+      {
+        "path": "docs/observability/value_cycle_ab_s1_control_w220_reverted_20261008.json",
+        "state": "not_in_the_commit"
       }
     ],
-    "reason": "read off the working tree, not out of this commit: docs/observability/value_cycle_ab_s1_noise_floor_20261007h.json, docs/observability/value_cycle_ab_s1_three_arm_20261007h.json \u2014 standing at this commit will not reproduce this feed"
+    "reason": "read off the working tree, not out of this commit: docs/observability/value_cycle_ab_s1_control_w220_reverted_20261008.json \u2014 standing at this commit will not reproduce this feed"
   }
 }

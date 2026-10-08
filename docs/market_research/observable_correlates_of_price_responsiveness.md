@@ -274,7 +274,7 @@ would need about **3.7Ã—** the world's response; at 1.9% it would need about 25Ã
   - (d) with change 1 switched off, the same pipeline returns to 0% offers.
 - If (d) fails, the lift came from E correlates that already exist. Change 1 did not earn it.
 - **Director's ruling needed on one adjacent point.** The ruling of 2026-09-23, as recorded in
-  `enriched_churn_estimate.channel_blind`, says *"a price keyed to the meter may not"* vary. Does the
+  `enriched_churn_estimate.channel_blind`, was paraphrased there as *"a price keyed to the meter may not"* vary. **Corrected 2026-10-08:** his words were that turning customers down on payment behaviour, credit or arrears is ordinary practice, but shifting cost onto prepayment customers isn't; the principle is that cost is not loaded onto a group because it is less able or less likely to push back. Does the
   same bar apply to a retention offer keyed to acquisition route or tenure on default? FCA banned
   tenure pricing in insurance in 2022. Whether a GB energy retention discount by tenure is acceptable
   is a practitioner and regulatory question this note cannot settle.

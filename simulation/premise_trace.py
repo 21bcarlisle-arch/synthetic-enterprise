@@ -775,6 +775,43 @@ def owned_stock(base_seed: int, people_count: int) -> frozenset[str]:
             owned.discard(name)
     return frozenset(owned)
 
+# `domain-knowledge` — WHICH COOKING A GAS HOME DOES ON GAS. Until 2026-10-08 no cooking fuel was
+# drawn, so every gas-DHW home ran the catalogue's electric oven and hob AND burned the full cooking
+# gas: both fuels, every evening. Against SERL 2022 that was most of a 0.32 kWh/h evening excess.
+# EFUS 2017 Fig 4.5, England: electric oven and hob 37%, electric oven and gas hob 33%, gas oven and
+# hob 20%, another combination 9%. EFUS does not publish the split for homes with gas. EHS 2017 AT3.5
+# puts 14.0% of homes without a gas meter. The INFERENCE, marked: every off-gas home cooks
+# all-electric, so all of that 14.0% comes out of the 37%. SIMPLIFICATION: the unnamed 9% is
+# renormalised away. Sources: docs/market_research/what_appliances_an_english_home_owns_efus_2011_and_2017.md,
+# docs/market_research/mains_gas_is_a_meter_fact_not_a_grid_fact_need_2026.md.
+_EFUS_2017_COOKING_FUEL: dict[frozenset[str], float] = {
+    frozenset(): 0.37,                   # electric oven and hob
+    frozenset({"hob"}): 0.33,            # electric oven, gas hob
+    frozenset({"oven", "hob"}): 0.20,    # gas oven and hob
+}
+_EHS_2017_OFF_GAS_SHARE = 0.140
+_ON_GAS = {
+    fuel: share - (_EHS_2017_OFF_GAS_SHARE if not fuel else 0.0)
+    for fuel, share in _EFUS_2017_COOKING_FUEL.items()
+}
+_GAS_HOME_COOKING_FUEL: dict[frozenset[str], float] = {
+    fuel: share / sum(_ON_GAS.values()) for fuel, share in _ON_GAS.items()
+}
+"""Among homes with a gas supply: all-electric 30.3%, gas hob only 43.4%, all-gas 26.3%."""
+_ANY_GAS_COOKING_SHARE = sum(v for k, v in _GAS_HOME_COOKING_FUEL.items() if k)
+
+
+def gas_cooked(base_seed: int) -> frozenset[str]:
+    """Which of `oven` and `hob` this premise cooks on gas, IF it has a gas supply. Drawn once per
+    premise on its own substream, so the rest of the stock is unshifted. A caller with no gas
+    supply must not ask: an off-gas home cooks electrically."""
+    u = _substream(base_seed, "cooking-fuel").random()
+    for combination, share in _GAS_HOME_COOKING_FUEL.items():
+        if u < share:
+            return combination
+        u -= share
+    return combination
+
 _LIGHTING_KW_PER_PERSON = 0.035
 _ELECTRONICS_KW_PER_PERSON = 0.055
 
@@ -1346,6 +1383,16 @@ def cooking_daily_kwh(
     return fixed + per_person * people_count
 
 
+def gas_cooking_daily_kwh(people_count: float, cooked_on_gas: frozenset[str]) -> float:
+    """This home's cooking gas: none for an all-electric cook. DESNZ's share is a mean over ALL gas
+    homes, the all-electric cooks included, so a home cooking on any gas burns that mean divided by
+    the share of gas homes that do. The population's cooking gas is conserved.
+    SIMPLIFICATION: a gas hob alone burns what a gas oven and hob burn. No source splits them."""
+    if not cooked_on_gas:
+        return 0.0
+    return cooking_daily_kwh(people_count) / _ANY_GAS_COOKING_SHARE
+
+
 #: How the day's cooking splits between the two meals that use gas. Breakfast is short and the
 #: evening meal is the long one; the household's OWN clock places them, not a national 18:00,
 #: which is the same treatment `draw_dhw_events` gives its evening cluster.
@@ -1821,6 +1868,7 @@ def generate_premise_trace(
     smart_charging_window: tuple[int, int] | None = None,
     owned: frozenset[str] | None = None,
     standby_kw: float | None = None,
+    cooked_on_gas: frozenset[str] | None = None,
 ) -> PremiseTrace:
     """Generate one premise's half-hourly gas and electricity trace.
 
@@ -1833,7 +1881,8 @@ def generate_premise_trace(
 
     `owned` attaches a stock where a caller holds it fixed, as `behaviour` does; absent, the
     premise draws its own (`owned_stock`). `standby_kw` does the same for the always-on load
-    (`always_on_kw`).
+    (`always_on_kw`), and `cooked_on_gas` for the cooking fuel (`gas_cooked`); it is read only where
+    hot water is on gas, because an off-gas home cooks electrically.
     """
     if not weather:
         raise ValueError("generate_premise_trace needs at least one weather day")
@@ -1893,6 +1942,12 @@ def generate_premise_trace(
     has_heater = has_supplementary_electric_heating(household, base_seed)
     habit = heater_habit(base_seed) if has_heater else None
     dhw_commodity = heating_commodity if household.heating_system != HeatingSystem.NONE else "electricity"
+    if dhw_commodity != "gas":
+        cooked_on_gas = frozenset()
+    elif cooked_on_gas is None:
+        cooked_on_gas = gas_cooked(base_seed)
+    electric_stock = owned - cooked_on_gas
+    daily_cooking_gas_kwh = gas_cooking_daily_kwh(profile.people_count, cooked_on_gas)
 
     days: list[PremiseDayTrace] = []
     for day_index, wx in enumerate(weather):
@@ -1902,7 +1957,7 @@ def generate_premise_trace(
         # --- Layer 2: events -------------------------------------------------
         events = draw_appliance_events(
             base_seed, day_index, profile, month=wx.date.month, is_weekend=is_weekend, is_away=is_away,
-            owned=owned,
+            owned=electric_stock,
         )
         appliance_kwh = [0.0] * PERIODS_PER_DAY
         appliance_heat_kwh = [0.0] * PERIODS_PER_DAY
@@ -2056,13 +2111,10 @@ def generate_premise_trace(
             _dhw_fuel_kwh(household, heat_kwh, ambient.temperatures_c[p])
             for p, heat_kwh in enumerate(dhw_heat_kwh)
         ]
-        # COOKING, which this model asserted was zero for every household until 2026-09-08.
-        # Attached to the same commodity as hot water: both are "the gas base", and the split of
-        # an electric hob in a gas-heated home is recorded in ASSUMPTIONS.md as NOT FOUND, so it
-        # is named as unmodelled rather than guessed at.
-        cooking_kwh = cooking_period_kwh(
-            profile, cooking_daily_kwh(profile.people_count), is_away=is_away
-        )
+        # COOKING GAS, on the same commodity as hot water: both are "the gas base". Zero for a home
+        # that cooks all-electric (`gas_cooked`); until 2026-10-08 every gas home burned it AND ran
+        # an electric oven and hob.
+        cooking_kwh = cooking_period_kwh(profile, daily_cooking_gas_kwh, is_away=is_away)
         electricity = list(behavioural)
         gas = [0.0] * PERIODS_PER_DAY
         auxiliary_kwh = (
@@ -2091,9 +2143,6 @@ def generate_premise_trace(
                 # carries cooking as an appliance. It double-counted, and it showed up as the
                 # company's thermal inference refusing to fit a heat-pump premise at all.
                 #
-                # A gas-heated home with an electric hob is therefore overstated here. That split
-                # is recorded in ASSUMPTIONS.md as NOT FOUND, so it stays named rather than
-                # guessed at.
                 gas[period] += dhw_fuel[period] + cooking_kwh[period]
             else:
                 electricity[period] += dhw_fuel[period]

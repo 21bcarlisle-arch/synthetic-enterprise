@@ -631,3 +631,16 @@ does not say W2_20 halves the value advantage.
 is now sized. Over the full window, h's control arm has 12 fewer gas legs, £55.5k less gross margin and
 £6.1k less net than the same code without the supply-conditioned heating draw. The headline should carry
 it as "-2.6% control net, -7.7% gross margin from W2_20 alone, one seed", not unsized.
+
+## The size is on the `h` headline (seat, 2026-10-08)
+
+`R.json` is committed as `docs/observability/value_cycle_ab_s1_control_w220_reverted_20261008.json`.
+`tools/generate_value_arms_data._w2_20_own_effect` differences it against `CURRENT_WORLD_THREE_ARM_PATH`
+and publishes `current_world.w2_20_own_effect`, which `/capabilities/` renders under the "what changed"
+sentence: 12 gas accounts, -7.7% gross margin (£55,520), -2.6% net (£6,086), one draw. No figure is typed.
+The size pairs by producing commit and world digest, so it is withdrawn, with its reason in amber, the day
+the published pair moves off `b2ec5147a`. The "what changed" sentence also stopped saying the doubled book is
+unattributed: (ii) found the cause (the 1,750 settlement budget, `358d59a42`). Controls:
+`tests/tools/test_the_heating_changes_own_size_is_differenced_not_typed.py` and
+`site/test_the_heating_changes_own_size_reaches_the_reader.py`. Both were mutated, by disabling the pairing
+guard and the render, and both went red.

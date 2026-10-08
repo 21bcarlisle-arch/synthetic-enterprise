@@ -52,7 +52,7 @@ ever-actively-renewed. Change 1 matters if:
 
 ## The one question that is yours alone
 
-Your 2026-09-23 ruling ("a price keyed to the meter may not") bars price variation keyed to the
+**Ruled 2026-10-08** (a save offer on a loss notice may vary by acquisition route or time on the default tariff; renewal prices may not; a save must never be paid for by stayers). *Correction beside the claim: the line below misquoted the 2026-09-23 ruling, which was that turning customers down on payment behaviour, credit or arrears is ordinary practice, but shifting cost onto prepayment customers isn't.* Your 2026-09-23 ruling ("a price keyed to the meter may not") bars price variation keyed to the
 meter. **Does the same bar apply to a retention or save offer keyed to acquisition route or time on
 the default tariff?** The FCA banned tenure pricing in insurance in 2022. Whether that is acceptable
 in GB energy is a practitioner and regulatory judgement this note cannot settle. My recommendation
