@@ -199,27 +199,67 @@ def run_point(budget: float, out_path: Path) -> int:
 
 # ── The parent ───────────────────────────────────────────────────────────────────────────────
 
+#: How often the parent reads the child's /proc status for the RssAnon peak. A poll interval,
+#: not a domain quantity: half a second is ~2,600 reads over a 22-minute point.
+RSS_SAMPLE_INTERVAL_S = 0.5
+
+
+def _proc_rss_kb(pid: int) -> dict:
+    """RssAnon/RssFile/RssShmem of `pid` in kB, or {} once it has exited."""
+    try:
+        text = Path(f"/proc/{pid}/status").read_text(encoding="utf-8")
+    except OSError:
+        return {}
+    out = {}
+    for line in text.splitlines():
+        key, _, rest = line.partition(":")
+        if key in ("RssAnon", "RssFile", "RssShmem"):
+            out[key] = int(rest.split()[0])
+    return out
+
+
+def _wait_keeping_rss_peaks(pid: int) -> tuple[int, object, dict]:
+    """Reap `pid` like `os.wait4`, polling its RssAnon/RssFile/RssShmem peaks (kB) meanwhile."""
+    peaks = {"RssAnon": 0, "RssFile": 0, "RssShmem": 0}
+    while True:
+        done, status, usage = os.wait4(pid, os.WNOHANG)
+        if done:
+            return status, usage, peaks
+        for key, kb in _proc_rss_kb(pid).items():
+            peaks[key] = max(peaks[key], kb)
+        time.sleep(RSS_SAMPLE_INTERVAL_S)
+
+
 def measure(budget: float, scratch: Path) -> dict:
     """Run one point in a child and return wall clock, peak RSS and what it committed."""
     out = scratch / f"point_{int(budget)}.json"
     argv = [sys.executable, "-m", "tools.settlement_ceiling_probe",
             "--run-point", str(budget), "--out", str(out)]
+    err_path = scratch / f"point_{int(budget)}.stderr"
     t0 = time.monotonic()
-    proc = subprocess.Popen(argv, cwd=str(PROJECT),
-                            stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, text=True)
-    # `os.wait4` is the only way to get the child's peak RSS after it has gone, and it survives
-    # a kill -- which matters because the failure mode this probe is looking for at the top of
-    # the range is an OOM, and an OOMed point that reports how much it was holding when it died
-    # is a measurement, not a lost run.
-    _, status, usage = os.wait4(proc.pid, 0)
+    with err_path.open("w", encoding="utf-8") as err:
+        proc = subprocess.Popen(argv, cwd=str(PROJECT), stdout=subprocess.DEVNULL, stderr=err)
+        # `os.wait4` is the only way to get the child's peak RSS after it has gone, and it
+        # survives a kill -- which matters because the failure mode this probe is looking for at
+        # the top of the range is an OOM, and an OOMed point that reports how much it was
+        # holding when it died is a measurement, not a lost run.
+        #
+        # `ru_maxrss` is anon + file + shmem pages, and file pages are the kernel's to drop: a
+        # slope on it charges the page cache to the book. So the parent also polls the child's
+        # RssAnon/RssFile while it runs and keeps their peaks -- sampled, so a spike shorter
+        # than the interval is missed and the anon peak is a FLOOR on the true one.
+        status, usage, peaks = _wait_keeping_rss_peaks(proc.pid)
     elapsed = time.monotonic() - t0
-    stderr = proc.stderr.read() if proc.stderr else ""
-    proc.stderr and proc.stderr.close()
+    stderr = err_path.read_text(encoding="utf-8", errors="replace")
 
     row: dict = {
         "budget": float(budget),
         "wall_s": round(elapsed, 1),
         "peak_rss_mb": round(usage.ru_maxrss / 1024.0, 1),
+        "peak_rss_anon_mb": round(peaks["RssAnon"] / 1024.0, 1) if peaks["RssAnon"] else None,
+        "peak_rss_file_mb": round(peaks["RssFile"] / 1024.0, 1) if peaks["RssFile"] else None,
+        "peak_rss_shmem_mb": round(peaks["RssShmem"] / 1024.0, 1),
+        "rss_sample_interval_s": RSS_SAMPLE_INTERVAL_S,
         "exit_status": status,
         "ok": status == 0 and out.exists(),
     }
@@ -290,6 +330,12 @@ def marginal_costs(rows: list[dict]) -> list[dict]:
             row["marginal_s_per_customer_year"] = round((hi["wall_s"] - lo["wall_s"]) / d_cy, 4)
             row["marginal_mb_per_customer_year"] = round(
                 (hi["peak_rss_mb"] - lo["peak_rss_mb"]) / d_cy, 4)
+            # Absent on points measured before the anon leg existed -- None, never zero.
+            if lo.get("peak_rss_anon_mb") and hi.get("peak_rss_anon_mb"):
+                row["marginal_anon_mb_per_customer_year"] = round(
+                    (hi["peak_rss_anon_mb"] - lo["peak_rss_anon_mb"]) / d_cy, 4)
+            else:
+                row["marginal_anon_mb_per_customer_year"] = None
         out.append(row)
     return out
 

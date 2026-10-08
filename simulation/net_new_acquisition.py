@@ -902,6 +902,10 @@ def quote_capacity(affordable_quotes: int, pool_size: int = PROSPECTS_PER_YEAR,
 #: That run was the PRODUCTION book (~175 founders; 96 of 499 campaign wins settled), not the
 #: 4,000-founder probe shape: a founder book that size takes 5,363 MB before any campaign
 #: settles, so this ceiling does not carry over to it and must be re-priced if production moves.
+#: CURVE RE-TAKEN 2026-10-08, VALUE NOT YET MOVED. At bab18f073 (after the trace became arrays)
+#: `settlement_ceiling_slope_20261008.json` measures 2,694.5 MB at 1,194.7 committed cy and 1.397
+#: MB per cy (RssAnon 1.399; file pages flat at 139 MB), which prices ~3,404 against 6,008 MB.
+#: That is one leg; the old curve was convex, so the raise waits on the 2,800/3,400 points.
 SETTLEMENT_CUSTOMER_YEAR_BUDGET = 1750.0
 
 
