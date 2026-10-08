@@ -14,6 +14,9 @@
 #   bad_debt_provisioning.md s.9). No value any code reads was changed. Three null-default rows
 #   added: q1_void_months_per_move_out, q2_persistent_unread_relative_risk_private_rented,
 #   q3_debt_sale_price_share_of_face.
+# 2026-10-08 (later): q4_save_rate_on_loss_notice set, and q4_winback_rate_after_loss added, as
+#   ESTIMATES from published switching-outcome data (director: "set the save and win-back toggles
+#   with a range, labelled as estimates"); a_save_offer_against_the_switching_rules_and_the_seam.md s.5.
 written: 2026-10-05
 toggles:
   - id: q1_move_out_notice_share
@@ -438,22 +441,43 @@ toggles:
   - id: q4_save_rate_on_loss_notice
     question: Q4 offers
     meaning: >-
-      Share of domestic customers who, having triggered a change of supplier (the loss notice),
-      are kept by a save offer made in the objection window. GB retention is mainly this, plus
+      Share of domestic switches away from us that the household stops after the loss notice and
+      stays, because of a save made by the losing supplier. GB retention is mainly this, plus
       win-back and keeping home movers; blanket renewal discounts are not the lever (director,
-      2026-10-08, answering b8-no-uniform-renewal-cut-from-2).
-    default: null
-    default_reason: >-
-      PRACTITIONER FIGURE PENDING. The director's ruling of 2026-10-08 reads "My experience of
-      save rates and costs: ___ ; record it as a practitioner toggle with its basis" and the
-      figure was left blank. Not filled from memory or from a non-energy market: a save rate
-      invented here would be read as his. The decision set that grades the learned save decision
-      runs with this as a swept range until he gives it.
-    low: null
-    high: null
-    basis_default: Director's practitioner experience, to be recorded verbatim when given.
+      2026-10-08, answering b8-no-uniform-renewal-cut-from-2). ESTIMATE from published
+      switching-outcome data, pre-CSS (2016), per domestic meter-point switch; not a measured
+      save rate. The director's practitioner figure replaces it when he gives one.
+    default: 0.013
+    low: 0.0
+    high: 0.041
+    unit: share of domestic switches away
+    basis_default: >-
+      ESTIMATE from published switching-outcome data. Ofgem IA assumptions log (Sept 2017, row 115,
+      January 2017 RFI): "a market average of 1.28% of switches away from supplier A are stopped as
+      Customer Requested Objections". It is the only published stop the household makes through the
+      losing supplier after its Sorry-To-See-You-Go contact (Ofgem BPD i03 paper, Sept 2017, paras
+      8, 23). It is read as the save rate on the assumption that every such stop is a save. Ofgem's
+      BPD i03 para 7 counts the same RFI as ~100,000 CROs plus co-operative objections, two thirds
+      non-domestic, which would make it ~0.4%. That disagreement is unresolved.
+      docs/market_research/a_save_offer_against_the_switching_rules_and_the_seam.md s.5c.
+    basis_low: >-
+      Ofgem counts every CRO as a prevented erroneous transfer (IA log row 115), and the licence
+      ground is "no contract with the gainer" (SLC 14.4(c)). If every CRO is a genuine no-contract
+      case, the save rate through the loser is ~0.
+    basis_high: >-
+      Every customer-initiated stop on either route is a save: 1.28% CROs plus 3.2% registration
+      withdrawals (IA log rows 113-115) less the ~13% of withdrawals that prevent ETs = ~2.8%
+      cooling-off withdrawals; total ~4.1%. A consumer survey put all part-way cancellations at ~7%
+      (Consumer Futures 2013, as cited in Ofgem's Nov 2017 IA para 1.24), so 4.1% is not an extreme.
+      CSS-era (post 18 July 2022) rates: GAP; the one-working-day objection window was expected to
+      shrink the loser route (BPD i03 para 9).
     feeds: [B8_discovered_price_sensitivity_holdout, C34]
-    verdict: GAP
+    sensitivity:
+      kind: not_run
+      detail: >-
+        No company save decision exists and the world has no in-flight switch for one to act on
+        (save-offer note s.3). Untested until a reader exists.
+    verdict: MATTERS_AND_RESOLVABLE (estimate; save share within CROs and post-CSS rates are GAPs)
 
   - id: q4_save_offer_cost_share_of_annual_bill
     question: Q4 offers
@@ -462,13 +486,50 @@ toggles:
       (the discount or credit given on the loss notice, before any acquisition cost avoided).
     default: null
     default_reason: >-
-      PRACTITIONER FIGURE PENDING, the same blank as q4_save_rate_on_loss_notice (director,
-      2026-10-08). Not invented.
+      PRACTITIONER FIGURE PENDING (director, 2026-10-08). GAP, re-checked 2026-10-08 against the
+      switching-outcome family (save-offer note s.5): Ofgem's switching RFIs and impact
+      assessments, ElectraLink and the Energy Switch Guarantee count outcomes, never the price of
+      a save. The only price evidence is anecdotal (a GBP 200 forum claim, 2012; London Electricity
+      GBP 75 vouchers, 2003; save-offer note s.2a), and it cannot bound a share of the bill. Not
+      invented.
     low: null
     high: null
     basis_default: Director's practitioner experience, to be recorded verbatim when given.
     feeds: [B8_discovered_price_sensitivity_holdout, C34]
     verdict: GAP
+
+  - id: q4_winback_rate_after_loss
+    question: Q4 offers
+    meaning: >-
+      Share of domestic households lost to another supplier that switch back to us within 12 months
+      of the loss. ESTIMATE from published switching-outcome data. No GB source found publishes the
+      switch-back itself, so the default is a point inside a published ceiling, not a measurement.
+    default: 0.03
+    low: 0.01
+    high: 0.10
+    unit: share of lost households, 12 months
+    basis_default: >-
+      ESTIMATE from published switching-outcome data: a point well inside the ceiling (basis_high),
+      because the ceiling also holds moves on to a third supplier, ET reversals and SoLR/trade-sale
+      movement. The split of repeat switches by destination is a GAP. The default is a judgement
+      inside a published range and must not be read as measured.
+      docs/market_research/a_save_offer_against_the_switching_rules_and_the_seam.md s.5d.
+    basis_low: >-
+      Erroneous transfers are ~0.96% of domestic switches (Ofgem Outline Business Case Feb 2018
+      para 2.12), and each is returned to the original supplier, so about 1% of losses come back
+      without any win-back effort. A genuine win-back rate below this would be lost in that noise.
+    basis_high: >-
+      ElectraLink electricity data: "just shy of 600,000 MPANs switched twice or more" in 2020
+      against ~6.2m switches (~10%); in 2023 "94 percent did so only once", "consistent ... with
+      figures from previous years" (~6%). A switch-back within the calendar year is a subset of
+      switching twice. Calendar year is not quite 12 months from the loss, and in 2022 it was <1%
+      (fewer than 50,000 of 5.62m MPANs).
+    feeds: [B8_discovered_price_sensitivity_holdout, C34]
+    sensitivity:
+      kind: not_run
+      detail: >-
+        No company win-back decision exists. Untested until a reader exists.
+    verdict: MATTERS_AND_RESOLVABLE (estimate; destination of repeat switches is a GAP)
 
   - id: q4_pecr_soft_opt_in_scope
     question: Q4 offers

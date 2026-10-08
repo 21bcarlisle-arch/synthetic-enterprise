@@ -31,7 +31,9 @@ and does it see the leaving signal (a switch notification) in time to make one?"
    for existing customers whose fixed terms are ending are, in Ofgem's own 2025 words, the instrument the
    derogation exists for. **In the published record the regulated main channel is targeted
    retention at the end of the term, not a reactive save.** No source gives the share of leavers who get
-   a save, or how many accept one.
+   a save, or how many accept one. *(Corrected 2026-10-08: the switching process's own 2016 data bound
+   it, pre-CSS, at about 0–4% of domestic switches, with 0.4–1.3% stopped through the losing supplier
+   (§5).)*
 5. **The seam.** The company is told of a loss only at **17:00 the day before the switch takes
    effect**, once the switch can no longer be cancelled. No decision reads that notice. The world has
    no submission date, no cancellable in-flight switch and no household answer to a save. **So
@@ -207,6 +209,10 @@ this pass**. What a save could carry in 2016–2017 is NOT ESTABLISHED here. Whe
   whatever the supplier chooses. 22B constrains *who may be offered a price* by new versus existing
   status only. Our B8 decision prices a uniform cut for every renewal. Real practice, as far as the
   record goes, sits **between** a blanket cut and a reactive save.
+- *Corrected 2026-10-08 (§5): this pass missed the switching process's own data. Ofgem's 2016 RFI
+  bounds customer-initiated stops at 0.4–1.3% of domestic switches through the losing supplier and
+  ≈2.8% through the gainer (§5c), and repeat switching bounds win-back (§5d). What follows is still
+  true of the save share within those bounds.*
 - **NOT ESTABLISHED, and no source found:** the share of leavers who get a save or win-back contact;
   the acceptance rate; how deep offers are; whether GB domestic retention desks today act on the CSS
   Invitation to Intervene at all. The knowledge map already lists "how deep real retention offers are"
@@ -281,3 +287,179 @@ rows (`HOLDOUT_OBSERVABLE_FIELDS`) give the company `stayed` as an outcome, afte
   regulated 2022–2025 instrument, if "blanket" is read as *offered at renewal* and the offer is allowed
   to be *targeted by who is renewing*. The slope he is already sourcing
   (`retention_slope_per_pound_of_renewal_cut.md`) is needed under either reading.
+
+---
+
+## 5. The switching-outcomes family: how often a started switch does not end as a plain switch
+
+**Read 2026-10-08** on the director's instruction of the same day: *"Your research missed the obvious
+source: the switching process's own data. A save is a switch cancelled during or after cooling-off, a
+win-back is a switch-back soon after a loss, and both sit alongside cancellations, rejections,
+objections, withdrawals, annulments, erroneous transfers and disputes."* He is right. The Switching
+Programme's own impact assessments carry a 2016 measurement of most of this family, from a January 2017
+Request for Information to suppliers. §2b said no source gives the share of leavers who are saved. That
+was too strong: a ceiling and the nearest proxy are published (§5c). The share itself is still not.
+
+### 5a. Sources read this pass (fetched and extracted 2026-10-08, not recalled)
+
+| # | source | what it gives |
+|---|---|---|
+| S1 | Ofgem, *Moving to reliable next-day switching*, consultation appendices, June 2014 (ofgem.gov.uk/sites/default/files/docs/2014/06/fast_and_reliable_switching_con_doc_-_appendicies40_0.pdf) | App. 1 paras 1.25–1.29, 1.42–1.44, fn 10–11: objection grounds and rates; causes of ETs; change-of-tenancy flag |
+| S2 | Ofgem, *Delivering faster and more reliable switching: impact assessment*, Nov 2017 (…/docs/2017/11/delivering_faster_and_more_reliable_switching_impact_assessment.pdf) | paras 1.13–1.24, 4.4–4.11 and the table at 4.8: 2016 volumes of ETs, abandoned, rejected and delayed switches |
+| S3 | Ofgem, *Impact assessment assumptions log*, Sept 2017 (…/docs/2017/09/impact_assessment_assumptions_log.xlsx), rows 111–146 | the rates behind S2: CRO rate, registration-withdrawal rate, abandonment, rejections |
+| S4 | Ofgem Switching Programme, *Policy issue update papers: Objections* and *Customer Requested Objections* (BPD i03), 19 and 6 Sept 2017 (…/docs/2017/09/policy_update_objections.pdf) | paras 7–12 and 22–24: how CROs, withdrawals and annulments work; the RFI count of CROs |
+| S5 | Ofgem, *Switching Programme: Outline Business Case*, Feb 2018 (…/docs/2018/02/switching_programme_outline_business_case_and_blueprint_phase_decision.pdf) | para 2.12: ET rate, domestic and non-domestic, 2016 |
+| S6 | Ofgem, *Supplier Guaranteed Standards of Performance: approach to impact assessment*, June 2018 (…/docs/2018/06/supplier_guaranteed_standards_of_performance_approach_to_impact_assessment_on_introducing_switching_compensation_for_publn.pdf), and its IA of Nov 2018 (…/docs/2018/11/impact_assessment.pdf), Table 1 | paras 1.5, 1.8: 9% of switches delayed in 2017; ETs "steady at approximately 0.96% … since 2016" |
+| S7 | Ofgem Switching Programme, *Erroneous transfers policy issues paper* (DA i13), 12 Aug 2016 (…/docs/2016/08/erroneous_transfers-policy_issue_paper.pdf) | paras 20–21: ETs ~0.5% at the six large suppliers; some recorded ETs are customers who changed their mind |
+| S8 | Ofgem, *Decision on review of domestic objections* and its IA, July 2016 | read in full in `domestic_debt_objection_rates_gb.md`; the objection rows below come from there |
+| S9 | ElectraLink Energy Market Insights at electralink.co.uk: *6.2 million switches in 2020* (Jan 2021); *Switching requests plummet* (Nov 2021); *91k switches in May, all-time low* (June 2022); *Switching nosedives in 2022* (Feb 2023); *Switching increases 78% in 2023* (Jan 2024) | electricity changes of supplier "started" and "completed"; MPANs switching more than once |
+| S10 | Ofgem, *Results of research on unreliable switching* (qualitative, 2017) (…/docs/2017/09/consumer_research_unreliable_switching.pdf) | retention attempts during delayed switches; ET households' experience |
+| S11 | Energy UK, *Energy Switch Guarantee* page (energy-uk.org.uk/our-work/energy-switch-guarantee/), read 2026-10-08 | CSS-era signatory switch-speed results only |
+| S12 | Ofgem, *Centralised Registration Service decision*, Nov 2024 (…/2024-11/Centralised Registration Service Decision.pdf); DCC news, *Ofgem confirms successful switching service to stay with DCC* (smartdcc.co.uk) | CSS era: 27.5m successful switches since go-live, para 1.51 "missing registrations … erroneous, delayed, or failed switches"; no outcome rates |
+
+**Search limits this pass.** The session's web-search budget ran out at the first query. The work was
+done by fetching named documents directly and through a rate-limited search engine. Three places that
+should hold CSS-era rates could not be read: the REC Portal's switching performance reports (login
+only); the DCC's CSS operational reporting to REC parties (not on the public site, whose dashboard
+carries smart-meter series only); and the Ofgem Retail Market Indicators page (JavaScript-rendered, as
+`domestic_debt_objection_rates_gb.md` already records). Energy UK publishes only speed, final-bill and
+refund percentages for the Switch Guarantee, with no outcome counts. **Where a cell below is blank, it
+means "not found in what could be read", not "not published".**
+
+### 5b. The family, one row per outcome
+
+Unit: a domestic **meter-point switch** (a dual-fuel move counts twice), unless the row says otherwise.
+The 2016 base is Ofgem's own figure of **7.76m domestic switches** (S3 row 111; S2 uses 7.7m). "Post"
+means after CSS go-live on 18 July 2022.
+
+| outcome | what it is | pre-CSS rate (year) | post-CSS rate | denominator | source |
+|---|---|---|---|---|---|
+| **Objection** (all grounds) | losing supplier blocks the registration in the objection window | **6% elec, 5% gas** of domestic transfers (Mar 2016); 6–7% over 2013–15. In 2014, "around 7% of domestic and 25% of non-domestic gas transfers and 14% of electricity transfers" were blocked | **GAP** | attempted transfers | S8; S1 App. 1 para 1.29 |
+| ↳ debt objection | over 90% of domestic objections; blocks ~28% of indebted switchers | ~170,000 customers a year blocked (2013–15) | **GAP** | indebted domestic switch attempts | S8; `domestic_debt_objection_rates_gb.md` row 9 |
+| **Customer Requested Objection (CRO)** | household tells the losing supplier it has no contract with the gainer, and the loser blocks the switch (SLC 14.4(c)) | **1.28%** of domestic switches away from a supplier, ~98,560 (2016). See the consistency flag in §5c: possibly ~0.4% | **GAP**. The one-working-day CSS window was expected to leave little time for one (S4 para 9) | domestic switches | S3 row 115; S4 para 7 |
+| **Registration withdrawal** | gaining supplier withdraws its own request, both for its own errors and for **customers cooling off** | **3.2%** of domestic switches (2016). About 13% of these (range 9–15%, three suppliers sampled) stopped an ET | **GAP** | domestic switches | S3 rows 113–115 |
+| **Cooling-off cancellation** | household cancels with the gainer within 14 days | not separated. Bounded above by withdrawals net of ET-prevention: **≈2.8%** of domestic switches (2016). A consumer survey found **~7% of consumers** cancelled part-way (Consumer Futures, *Switched on*, Jan 2013, as cited at S2 para 1.24; not read directly) | **GAP** | domestic switches / surveyed switchers | S3 row 115 (derived: 3.2% × 0.87); S2 para 1.24 |
+| **Abandoned switch** | given up by the household or the gainer before the switch takes effect, mostly over address or meter-point mismatch | ~140,000 domestic (≈1.8%); "1.8% of gas switches and 1.9% of electricity switches" from data quality (2016). Non-domestic 7,000 | **GAP** | domestic switches | S2 paras 1.16, 4.8; S3 row 129 |
+| **Rejection** | central system (MPAS or UK Link) refuses the registration | **gas 385,000** (≈5.0% of all domestic switches) and **elec 57,750** (≈0.7%) (2016). Non-domestic rejection rate 8.9% gas, 2.4% elec. "The majority are known to be down to an invalid transfer date"; 90% are re-submitted successfully (central case) | **GAP** | count over all 7.76m domestic switches (the per-fuel denominator is not given) | S2 para 4.8; S3 rows 130, 133–135, 144–145 |
+| **Annulment** | losing supplier cancels a pending switch at the household's request | did not exist. It is a CSS feature, designed in 2017 as an "emergency brake" against ETs (S4 paras 22–24, option 2) | **GAP** | — | S4 |
+| **Erroneous transfer (ET)** | wrong meter point switched, or a cancelled contract's switch goes ahead | **0.96%** of domestic switches, ~74,000 (2016), "steady … since 2016" (~89,000 on 2017 volumes). Non-domestic **1.5%** (5,800). The 2016 paper gave ~0.5% at the six large suppliers. ~85% are the wrong MPxN; **13% are "contract withdrawals not actioned"** | **GAP**. Ofgem forecast 25,200 fewer domestic ETs a year from CSS; that is a forecast, not a measurement | domestic switches | S5 para 2.12; S6 para 1.8; S7 para 20; S3 rows 111, 121, 122; S2 p.60 |
+| ↳ ET prevented in the window | stopped by a CRO or a withdrawal before it takes effect | ~130,000 (≈1.7%) (2016) | **GAP** | domestic switches | S3 row 115 |
+| **Delayed switch** | not completed within 21 days without a valid reason | ~105,000 (≈1.4%, 2016); **9%** of switches in 2017 on Ofgem's monitoring definition | Energy UK signatories completed **99.32–99.71%** of valid switches within 5 working days, Apr 2025–Mar 2026 | switches | S2 para 1.15; S6 para 1.5; S11 |
+| **Started but not completed** (everything above, electricity) | a valid change of supplier raised that never completes | **≈18%**: 7.55m raised, 6.2m completed (2020); **≈16%** in 2019, derived from the same release's year-on-year percentages. ElectraLink's May 2022 forecast: 120,000 started → ~93,000 completed (≈22%) | **GAP**: "Due to the introduction of the Central Switching Service in July 2022, ElectraLink is no longer able to provide data on CoS started" | electricity MPAN changes of supplier, domestic and non-domestic, voluntary only | S9 |
+| **Dispute** | a contested ET, or a complaint about the switch | **GAP**. The 2017 qualitative research found ET households "made far more calls to each of the suppliers, than the suppliers made themselves" | **GAP** | — | S10 |
+| **Win-back / switch-back** | the lost household switches back to its old supplier | **GAP** for the switch-back itself. Upper bound: MPANs switching twice or more in the year, "just shy of 600,000" in 2020 against ~6.2m switches (≈10%) | 2022: "fewer than 50,000" MPANs switched more than once, of 5.62m unique MPANs. 2023: "94 percent did so only once", "consistent … with figures from previous years" (≈6% switched twice or more) | electricity MPANs that switched in the calendar year | S9 |
+
+**Two things the table does not say.** (1) The rows overlap and do not add up. A rejected switch is
+usually re-submitted and so counted again as a start. An objected switch can be retried. ElectraLink's
+"started" counts every attempt. So "18% not completed" means 18% of *raised registrations*, not 18% of
+*households who tried*. (2) The 2016 figures are supplier RFI returns used in an impact assessment, and
+Ofgem labels several of them as its own analysis, not audited statistics.
+
+**A correction to the director's quote of 2014, made beside the claim.** The 2014 appendix reads
+"around 7% of domestic and 25% of non-domestic gas transfers and 14% of electricity transfers are
+blocked". The **14% covers all electricity transfers**, domestic and non-domestic together. It is not a
+domestic electricity rate. In 2016 Ofgem gave domestic electricity alone as 6%.
+
+### 5c. Saves: the customer-initiated share after contact from the losing supplier
+
+**What is published.** The 2016 RFI measured both routes by which a household stops a switch it
+started (S3 row 115):
+
+- **Through the losing supplier: CROs, 1.28% of domestic switches.** The 2017 objections paper describes
+  how a CRO happens. On notification the loser sends a "Sorry To See You Go" letter or email, and the
+  household responds by asking the loser to block the switch (S4 paras 8, 23). **This is the closest
+  published measure of "customer-initiated cancellation after losing-supplier contact".** It is not a
+  save rate. The licence ground is that the household *has no contract with the gainer*, and Ofgem
+  counts every CRO as a *prevented erroneous transfer*. Against that, the 2014 appendix says the
+  "prevent an unintended switch" ground covers a consumer who "has changed their mind" (S1 para 1.25),
+  and the 2016 ET paper says some recorded ETs are customers who "switched but want to return to
+  their original supplier, and both suppliers agree" (S7 para 21). How much of the 1.28% was a household
+  persuaded to stay is not published.
+- **Through the gaining supplier: cooling-off withdrawals, ≈2.8% of domestic switches.** This is the 3.2%
+  withdrawal rate less the ~13% that prevent ETs. The cancellation goes to the gainer, so the data
+  cannot show whether the losing supplier played any part.
+
+**A consistency flag.** S4 para 7 says CROs and co-operative objections together came to "approximately
+100,000 … during 2016, of which around two thirds related to non-domestic sites". S3 row 115 applies
+1.28% to the *domestic* 7.7m alone and gets 98,560 domestic CROs. Both figures come from the same
+January 2017 RFI, and both cannot be right. If S4 is right, domestic CROs were ~33,000, about 0.4%. **So
+the CRO rate lies between 0.4% and 1.28% of domestic switches.** This pass cannot settle which.
+
+**What the published record says about the save rate on a loss notice, pre-CSS:**
+
+| bound | rate | what it assumes |
+|---|---|---|
+| floor | ~0 | every CRO is a genuine no-contract case, as Ofgem's ET accounting treats them |
+| proxy | 0.4%–1.3% | every customer-initiated stop through the loser is a save |
+| ceiling | ≈4.1% (≈1.3% + ≈2.8%); a survey puts all part-way cancellations at ~7% | every customer-initiated stop on either route is a save |
+
+**Post-CSS: GAP, though the direction of pressure is known.** Under CSS the loser still hears at Pending
+(§1b). But the objection window is one working day and the switch can take effect 1–5 working days
+later, so the 2017 design work expected little time for a block started by the household (S4 paras 9,
+15). The annulment was built for this case: the loser can cancel at the household's request up to gate
+closure (S4 para 16). The cooling-off route through the gainer is unchanged: the household has 14 days,
+and the gainer must try to stop the transfer (SLC 14A.13). No CSS-era rate for CROs, annulments or
+withdrawals was found.
+
+### 5d. Win-back: what bounds it
+
+No GB source found publishes the share of lost households who switch back to the supplier they left.
+ElectraLink counts repeat switching but not where the second switch goes. That makes repeat switching an
+upper bound, with three other things inside it: a move on to a third supplier; an ET reversal (≈1%, which
+is itself a switch back); and some SoLR and trade-sale movement. The bound was ≈10% of switching MPANs in
+2020, and ≈6% in 2023, a level ElectraLink calls "consistent" with earlier years. It was <1% in 2022,
+when there was nothing to switch for. The documented win-back practice is in §2a (a British Gas winback
+desk in 2012; London Electricity vouchers in 2003), and neither source gives a rate.
+
+### 5e. What this sets, and what stays a gap
+
+- `assumption_toggles.yaml::q4_save_rate_on_loss_notice` is set from §5c as an **ESTIMATE from
+  published switching-outcome data**: default 0.013, low 0.0, high 0.041. It is pre-CSS and domestic. The
+  director's practitioner figure overrides it when he gives one.
+- `q4_winback_rate_after_loss` is added from §5d the same way: default 0.03, low 0.01, high 0.10. The
+  default is **not** a measurement. It is a point inside a published ceiling whose internal split is not
+  known, and the row says so.
+- `q4_save_offer_cost_share_of_annual_bill` stays null, because nothing in this family prices a save.
+- **GAPS that a world build would need closed before a save could be graded here** (§3): every CSS-era
+  rate in §5b; the save share within CROs and within cooling-off withdrawals; where second switches go;
+  and the lead time from Pending to the effective date.
+
+## 6. The rules a save or retention offer must meet today (read 2026-10-08)
+
+The director asked (2026-10-08) whether SLC 22B and its retention carve-out are still in force,
+and whether any other current GB rule constrains save or retention offers. Read from primary
+documents on 2026-10-08:
+
+- **SLC 22B, the ban on acquisition-only tariffs, is in force to 31 March 2027.** Ofgem, *Decision:
+  Renewing the Ban on Acquisition-only Tariffs (BAT) after March 2026*, 13 November 2025
+  (ofgem.gov.uk/sites/default/files/2025-11/Final_BAT_Renewal_Decision_Document,_November_2025.pdf).
+  Every domestic tariff must be open to new and existing customers alike (SLC 22B.1).
+- **The retention carve-out is in force with it, its text unchanged.** The Market-wide Derogation
+  (Directions in force since 14 April 2022) permits **Fixed Retention Tariffs**: domestic,
+  fixed-term, open only to existing customers, "with the aim of retaining the loyalty of those
+  customers". The supplier must notify Ofgem it relies on it. **So a save offer must take the form
+  of a fixed retention tariff, not an ad hoc discount on a variable tariff.** Ofgem's stated
+  reason runs against cross-subsidy: without the derogation "acquisition costs [would be] spread
+  across all tariffs", and it expects "cheaper deals for vulnerable or indebted customers".
+- **A permanent ban is a separate workstream.** Its statutory consultation was unpublished at the
+  November 2025 decision. **GAP:** whether it has landed since.
+- **The Market Stabilisation Charge** (April 2022) was removed in April 2024.
+- **SLC 14/14A objections** limit a losing supplier's grounds (debt, Customer Requested Objection,
+  related meters). A save is not a ground to object (§1 above).
+- **SLC 0, the Standards of Conduct,** require fair treatment and particular care for vulnerable
+  customers.
+- **SLC 27** requires payment-method cost-reflectivity.
+- **SLC 28AD** (the price cap) reaches default and deemed contracts only, not a chosen fixed
+  retention tariff.
+- **The DMCC Act 2024,** in force 6 April 2025 with direct CMA enforcement, reaches the offer's
+  script and price presentation: Schedule 20 para 7 bans false urgency or limited-time claims, and
+  s.230 bans drip pricing.
+- **No rule forbids paying for saves out of stayers' prices.** The director's own condition
+  (2026-10-08) is stricter: a save offer must never be paid for by raising the price of customers
+  who stay. **GAP:** the Energy Switch Guarantee's text on post-loss-notice contact (both candidate
+  URLs returned 404).
+
+**Bottom line.** A save offer on a loss notice is lawful as a Fixed Retention Tariff notified under
+the derogation, without false urgency. The director has ruled that it may vary by acquisition
+route or time on the default tariff, that renewal prices may not, and that stayers must not pay
+for it. A retention fix offered near term end is the derogation's own named case.
