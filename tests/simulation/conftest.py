@@ -21,8 +21,43 @@ from __future__ import annotations
 
 import importlib
 import os
+import sys
 
 import pytest
+
+
+def reload_with_binders(module) -> list:
+    """Reload `module`, then every loaded module still holding a container the reload replaced.
+
+    `run_phase4c_on_phase2b` binds `CUSTOMERS = _PHASE2B_CUSTOMERS` at import, so reloading
+    `run_phase2b` alone leaves it reading the old book while `run_phase2b` serves a new one. Every
+    serial session that ran `test_phase24a_ic_customer.py` before
+    `test_the_registry_eac_rewrite_reaches_the_dd_opening.py` therefore failed the latter on
+    identity: it was the head-red census's longest-standing red (2026-10-02 to 2026-10-08), green
+    in isolation. The scan asks identity, not names, so a new binder needs no entry here.
+
+    Only containers the reload REPLACED count: an object `module` imported from elsewhere survives
+    the reload, and every module that imports it too would otherwise be dragged in (dunders are
+    skipped for the same reason: `__builtins__` is one dict shared by every module).
+    """
+    before = {k: v for k, v in vars(module).items()
+              if not k.startswith("__") and isinstance(v, (list, dict, set))}
+    importlib.reload(module)
+    after = vars(module)
+    replaced = [v for k, v in before.items() if after.get(k) is not v]
+    replaced_ids = {id(v) for v in replaced}  # `replaced` stays alive, so no id is reused
+    reloaded = []
+    for name, other in list(sys.modules.items()):
+        if other is None or other is module or name == __name__:
+            continue
+        try:
+            values = [v for k, v in vars(other).items() if not k.startswith("__")]
+        except TypeError:
+            continue
+        if any(id(v) in replaced_ids for v in values):
+            importlib.reload(other)
+            reloaded.append(name)
+    return reloaded
 
 
 @pytest.fixture(scope="module")
@@ -49,7 +84,7 @@ def serves_industrial_accounts():
     prior = os.environ.get("SE_SERVED_SEGMENTS")
     os.environ["SE_SERVED_SEGMENTS"] = "resi,SME,I&C"
     module = importlib.import_module("simulation.run_phase2b")
-    importlib.reload(module)
+    reload_with_binders(module)
     try:
         yield module
     finally:
@@ -57,4 +92,4 @@ def serves_industrial_accounts():
             os.environ.pop("SE_SERVED_SEGMENTS", None)
         else:
             os.environ["SE_SERVED_SEGMENTS"] = prior
-        importlib.reload(module)
+        reload_with_binders(module)
