@@ -745,3 +745,53 @@ origin with the kettle change, so the "before" arm must reproduce 3,090 / 0.679 
 
 The −116 arm (0.055 → 0.0455) was linear in the constant, so −290 is that arm × 24/9.5. If the arm
 lands, it refits a world anchor and owes a value-arms re-take, which is budgeted, not run, here.
+
+### Result (same day; pre-registration landed first as `c0fe2330b`; instrument `/tmp/elec2022/measure.py`, both arms in ONE process)
+
+The "before" arm reproduces origin exactly (3,090 / 0.679 @20:00 / 0.127 / 1.273), so this is the
+same instrument as the section above.
+
+| 163 homes, seed 17, C1 2022 | 0.055 | **0.031** | Predicted | SERL 2022 |
+|---|---|---|---|---|
+| Mean annual meter | 3,338 | **3,044** (−293.8) | −290 ± 40 ✓ | |
+| 19:30 median profile | 0.661 | **0.601** (−0.060) | −0.06 to −0.10, "about −0.08" — ✓ at the edge | |
+| 04:30 trough | 0.127 | **0.127** | unmoved ✓ | 0.13 |
+| Annual median | 3,090 | **2,760** (−330) | reading only | ~2,600 |
+| Peak | 0.679 @20:00 | **0.627 @20:00** | reading only | 0.48 @18:30 |
+| 18:30 | 0.628 | **0.572** | reading only | 0.48 |
+| Monthly-median max/min | 1.273 | **1.301** | not predicted | 1.42 (band 1.36–1.47) |
+
+**Prediction kept as filed.** The mean hit the centre. The 19:30 profile fell less than "about
+−0.08": the profile is a median of half-hour means, and the electronics chain spreads its on-time over
+the whole occupied evening, so the median at one half-hour takes less of the fall than the annual
+mean does. The median fell more than the mean (−330 against −294); that was not predicted and is a
+reading only.
+
+**What it moved that it was not aimed at.** The season moved TOWARDS SERL for the first time in this
+finding, 1.273 → 1.301: an all-year evening load came out, so the winter heating terms are a larger
+share. Still short of SERL's 1.42. The peak stays at 20:00, an hour and a half late.
+
+**Landed.** `_ELECTRONICS_KW_PER_PERSON` = 0.031, with the dated derivation inline. Control:
+`tests/simulation/test_a_homes_electronics_sits_at_its_2022_level.py` recomputes HES's on-mode
+carried by ECUK's ratios and checks the constant through the measured slope (673 kWh at 0.055).
+Putting 0.055 back reds it.
+
+**The texture harness, re-pinned beside each claim** (`tests/harness/test_premise_two_level.py`,
+`tests/tools/test_couple_fabric.py`; none was predicted):
+- Drawn 60: L1.1 still PASSES. Legs [5, 19, 38, 51] → [3, 16, 32, 48] against [6, 15, 30, 45]
+  expected, so p25–p75 moved towards real and p10 moved away. World median 0.142 → 0.153 (real 0.158).
+- L2.4 spread 2.73 → **2.91**, towards real (floor 4.88). Still red.
+- The 8 authored panel homes now FAIL L1.1: 0/8 are under the real median. The panel is the
+  fixture the suite calls insufficient, and the drawn 60 is the verdict. It is recorded, not explained.
+- P0000 0.1429 → 0.1589, just above the real median. The "ordinary" control was keyed to the
+  median as the upper edge of the "middle half", and it is now keyed to the real p75, which is what
+  the comment says.
+- L1.2 worst (P0023) 0.4915 → 0.4572. The comment's own share mechanism predicts a rise, so this fall is unexplained.
+- Water heater's share of P0033's behaviour 40.1% against a 0.40 ceiling. The behaviour denominator
+  shrank, so the ceiling is 0.45.
+
+**Owed.** This moves every premise's electricity, so the value arms describe the previous world. The
+two earlier landings today (`92d39bf60`, `a41cf3fc0`) moved `simulation/premise_trace.py` too and owe
+the same re-take. It is one re-take for all three, not three. Next on the level: cooking is ~+115
+above its trended source, and SERL's 2021 gas no-PV median is still unread, so whether the remaining
+~160 kWh median gap is the 2022 price response cannot yet be said.

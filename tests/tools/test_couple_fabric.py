@@ -656,7 +656,8 @@ def test_the_TEXTURE_CELL_BREACH_CLOSED_when_the_LOAD_SET_WAS_REPAIRED(panel, we
     # was 25 W, and it is in the calmest real tenth, which a tenth of real homes are.
     #
     # S9 0.0559 -> 0.0567 on 2026-10-08: the cooking-fuel draw (`pt.gas_cooked`).
-    assert texture.worst_value == pytest.approx(0.0567, abs=5e-4), texture.note
+    # S9 0.0567 -> 0.0596 the same day: electronics at its 2022 level.
+    assert texture.worst_value == pytest.approx(0.0596, abs=5e-4), texture.note
     assert "net of space AND water heat" in texture.note
     electric = {
         home for home, system in zip(population_homes(panel), panel_systems(panel))
@@ -676,7 +677,8 @@ def test_the_TEXTURE_CELL_BREACH_CLOSED_when_the_LOAD_SET_WAS_REPAIRED(panel, we
     median = next(leg for leg in texture.quantiles if leg.q == 0.50)
     # 4 -> 9 (expected 7.5) the same night, when each home drew its always-on load.
     # 9 -> 8 on 2026-10-08, the cooking-fuel draw (`pt.gas_cooked`).
-    assert median.below == 8, texture.note
+    # 8 -> 7 the same day, electronics at its 2022 level (expected 7.5).
+    assert median.below == 7, texture.note
 
     # (d) THE GAS HOMES ARE UNCHANGED BY THE REPAIR, which is what makes it a
     #     load-set correction rather than a rescaling of everybody. Measured, not

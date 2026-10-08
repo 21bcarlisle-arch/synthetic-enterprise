@@ -662,6 +662,9 @@ year at constant stock.
    should show a mean meter fall of about −290 ± 40 and a 19:30 profile fall of about −0.08 kWh/h,
    with the trough unmoved. **That is a prediction to file and test, not a value to land.** It
    refits a world anchor, so it must budget the value-arms re-take.
+   *Tested and landed 2026-10-08: 0.031. Mean meter −294, 19:30 profile −0.060, trough unmoved,
+   annual median 3,090 → 2,760, season 1.273 → 1.301. The result is in the fabric-path staging
+   finding.*
 2. **Cooking is ~+115 above the trended source**, of which only ~54 is the dated oven/hob ratio and
    the rest is the earlier +63. It is the second term, and smaller.
 3. **Cold should not come down.** The world's mean already sits where BRE 2015 lands in 2022 on

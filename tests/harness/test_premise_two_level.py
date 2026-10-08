@@ -464,15 +464,19 @@ def test_the_EIGHT_HOME_PANEL_is_INSUFFICIENT_and_never_was_evidence(generated_r
     below rather than collapsed into "the panel is red".
     """
     assert generated_result.homes < fgl.MIN_HOMES_FOR_L1_RATE
+    # L1.1 joined L2.4 on 2026-10-08, when electronics came down to its 2022 level
+    # (`pt._ELECTRONICS_KW_PER_PERSON` 0.055 -> 0.031): all 8 authored homes now sit above the
+    # real median texture (0/8 under 0.158). The drawn 60 still passes L1.1 and moved TOWARDS
+    # real at p25-p75, so this is eight authored homes, not the population. Not predicted.
     assert {c.statistic for c in generated_result.failed} == {
-        "L2.4_scale_spread_p90_p10"
+        "L1.1_half_hourly_texture", "L2.4_scale_spread_p90_p10"
     }, (
         "the panel breaches only the anchored spread band — every L1 cell's "
         "problem here is power, not fidelity: " + generated_result.summary()
     )
     inconclusive = {c.statistic for c in generated_result.inconclusive}
     assert inconclusive == {
-        "L1.1_half_hourly_texture",
+        # L1.1 left this set for `failed` on 2026-10-08 (electronics at its 2022 level, above).
         # L1.1n joined on 2026-08-10 (H39) and lands here for the ordinary
         # reason: 0 of 8 panel homes are under their own null (worst 2.391), and
         # 8 homes cannot rule out the 5% rate this suite claims to see.
@@ -672,14 +676,21 @@ def test_MEASURED_population_values(population, population_result):
     #
     # 52 -> 51 under p75 the same day: the kettle's boil cut to HES's 167 kWh/yr per owner
     # (`pt._KETTLE_KWH_PER_BOIL`). Not predicted; the p75 leg moved one home toward real.
-    assert [legs[q].below for q in (0.10, 0.25, 0.50, 0.75)] == [5, 19, 38, 51], texture.note
-    assert legs[0.50].world == pytest.approx(0.142, abs=0.005), texture.note
+    #
+    # [5, 19, 38, 51] -> [3, 16, 32, 48] on 2026-10-08: electronics came down to HES carried to
+    # 2022 (`pt._ELECTRONICS_KW_PER_PERSON` 0.055 -> 0.031). Less always-occupied evening load
+    # under the events, so the homes read less calm. p25-p75 moved TOWARDS expected; p10 moved
+    # away (3 against 6). Not predicted.
+    assert [legs[q].below for q in (0.10, 0.25, 0.50, 0.75)] == [3, 16, 32, 48], texture.note
+    # 0.142 -> 0.153 with electronics at its 2022 level (real 0.158).
+    assert legs[0.50].world == pytest.approx(0.153, abs=0.005), texture.note
     red = [q for q, leg in legs.items() if leg.p * len(legs) < fgl.TEXTURE_DISTRIBUTION_ALPHA]
     assert red == [], texture.note
     # The calmest home is a gas home with a 364 W always-on load and no heater, no longer the
     # heater owner P0023.
     assert texture.worst_home == "P0018", texture.note
-    assert texture.worst_value == pytest.approx(0.0611, abs=5e-4), texture.note
+    # 0.0611 -> 0.0621 with electronics at its 2022 level (2026-10-08); still P0018.
+    assert texture.worst_value == pytest.approx(0.0621, abs=5e-4), texture.note
     assert "gas" in population.heating_systems[
         population.homes.index(texture.worst_home)
     ], "the calmest home is one the machine netting did not touch"
@@ -718,8 +729,12 @@ def test_MEASURED_population_values(population, population_result):
     #
     # 2.44 -> 2.73 on 2026-10-08: about 30% of gas homes now cook all-electric and the rest shed
     # their oven or hob, a 0-500 kWh cut that varies home to home. Not predicted. Still red.
+    #
+    # 2.73 -> 2.91 the same day: electronics at its 2022 level. It scales with people, so it
+    # took more off the large homes' years in kWh and less off the small ones' in share, and the
+    # constant always-on draw is a larger share of a smaller year. Not predicted. Still red.
     spread = population_result.cell("L2.4_scale_spread_p90_p10")
-    assert spread.value == pytest.approx(2.73, abs=0.05), spread.note
+    assert spread.value == pytest.approx(2.91, abs=0.05), spread.note
     assert not population_result.inconclusive, population_result.summary()
     # 0.4386 -> 0.4511 on 2026-10-06: the boiler pump repeats with the heating, so
     # it raises a gas home's day-to-day shape correlation a little. Still a GAS home.
@@ -744,9 +759,13 @@ def test_MEASURED_population_values(population, population_result):
     #
     # P0000 0.4417 -> P0023 0.4915 on 2026-10-08: with less evening cooking, P0023's fixed
     # set-time heater session is a larger share of its day. Still a gas home, still under 0.85.
+    #
+    # 0.4915 -> 0.4572 the same day, still P0023: electronics at its 2022 level. The share
+    # argument above predicts a RISE, so the fall is not that mechanism; the electronics chain
+    # follows occupancy, which repeats day to day, so it carried shape. Not predicted; unread.
     shape = population_result.cell("L1.2_day_to_day_shape_correlation")
     assert shape.worst_home == "P0023", shape.note
-    assert shape.worst_value == pytest.approx(0.4915, abs=0.01), shape.note
+    assert shape.worst_value == pytest.approx(0.4572, abs=0.01), shape.note
     assert "gas" in population.heating_systems[
         population.homes.index(shape.worst_home)
     ], "the worst home is a GAS home"
@@ -827,8 +846,9 @@ def test_P0000_the_calmest_home_is_ORDINARY_against_real_homes_and_the_red_is_th
     # freezer now, and each of those three runs an always-on load above EFUS's median home's.
     # So the calm quarter has two sources, no freezer or a large base, and nothing else.
     # 22 -> 19 on 2026-10-08 (the cooking-fuel draw); the two-source property still holds.
+    # 19 -> 16 the same day (electronics at its 2022 level); the property still holds.
     calm = {pid for pid, r in readings.items() if r[0] < REAL_P25}
-    assert len(calm) == 19, sorted(calm)
+    assert len(calm) == 16, sorted(calm)
     with_freezer = {pid for pid in calm if "freezer" in stock[pid]}
     assert with_freezer, "no calm home owns a freezer, so the property below is vacuous"
     assert all(pt.always_on_kw(seeds[pid]) > pt._ALWAYS_ON_MEDIAN_KW for pid in with_freezer)
@@ -840,10 +860,13 @@ def test_P0000_the_calmest_home_is_ORDINARY_against_real_homes_and_the_red_is_th
     # 0.1466 -> 0.1380 (W1_29, its always-on drawn at 57 W where it was 25 W).
     # 0.1380 -> 0.1422 (2026-10-08, the cooking-fuel draw).
     # 0.1422 -> 0.1429 (2026-10-08, the kettle's boil cut to HES's energy).
-    assert live == pytest.approx(0.1429, abs=5e-4)
+    # 0.1429 -> 0.1589 (2026-10-08, electronics at its 2022 level); real median 0.158.
+    assert live == pytest.approx(0.1589, abs=5e-4)
     assert net_of_pump > live
-    # ORDINARY: inside the real middle half, with or without its pump.
-    assert REAL_P25 < live < REAL_MEDIAN
+    # ORDINARY: inside the real middle half, with or without its pump. Keyed to REAL_MEDIAN as
+    # the upper edge until 2026-10-08, when electronics at its 2022 level took P0000 to 0.1589,
+    # just above the real median 0.158; the middle half's upper edge is the real p75.
+    assert REAL_P25 < live < REAL_TEXTURE[0.75]
     # ...and net of the heater the red is the population's shape, not one home. Since the
     # always-on draw (W1_29) the calmest tenth is filled (5 homes under the real p10 net of the
     # heater) and the red leg is p75: the world is too calm through its upper half.
@@ -897,7 +920,10 @@ def test_the_L1_1_BREACH_WAS_the_WATER_HEATER_and_the_LOAD_SET_CLOSED_IT(
         )
         # 36-40% when H38 was diagnosed; 28.7-30.5% since `affc29e03` put hot water
         # on SAP's 36+25N L/day. Same stream, smaller, in the expected direction.
-        assert 0.25 <= water_share <= 0.40, (
+        # P0033 40.1% on 2026-10-08: electronics came down to its 2022 level, so the behaviour
+        # in the denominator shrank and the same water stream is a larger share of it. The
+        # ceiling moves with the denominator, not with the stream: 0.40 -> 0.45.
+        assert 0.25 <= water_share <= 0.45, (
             f"{trace.premise_id}: the water heater is {water_share:.1%} of what "
             "L1.1 called behaviour before this repair — if this has moved, the "
             "diagnosis below is about a different stream"
@@ -993,7 +1019,9 @@ def test_the_WATER_HEATER_netting_is_a_LOAD_SET_repair_and_not_a_LOOSENING(
     #
     # 0.491 -> 0.518 on 2026-10-08: the gas cooks lost their electric oven or hob, so there is
     # less evening behaviour to lose. Same direction for every gas home; the band means the same.
-    assert gas_median == pytest.approx(0.518, abs=0.02)
+    #
+    # 0.518 -> 0.563 the same day: electronics at its 2022 level, the same mechanism again.
+    assert gas_median == pytest.approx(0.563, abs=0.02)
 
     # BEFORE: an electrically heated home fired at a fraction of the breakage a gas
     # home needed — P0008 at 0.0000 was already under the floor untouched.
@@ -1274,7 +1302,8 @@ def test_the_premise_trace_generator_is_MEASURABLY_better(shipped_result, genera
         "premise_trace's failures must be a strict subset of the shipped path's — "
         f"shipped {sorted(shipped_fails)}, generated {sorted(generated_fails)}"
     )
-    assert generated_fails == {"L2.4_scale_spread_p90_p10"}
+    # L1.1 joined on 2026-10-08 (electronics at its 2022 level); the shipped path fails it too.
+    assert generated_fails == {"L1.1_half_hourly_texture", "L2.4_scale_spread_p90_p10"}
     assert shipped_result.is_red, (
         "the shipped demand path is still RED — wiring premise_trace in is the "
         "open work this measurement exists to size, and it is NOT done"
@@ -2579,7 +2608,8 @@ def test_L1_1n_CAN_PASS_and_is_not_a_control_that_can_only_fail(population_resul
     # electricity where it cooks on gas (`pt.gas_cooked`). Not predicted; the squeak is gone.
     # 1.294 -> 1.391 the same day, still P0059: the kettle's boil cut to HES's energy. A smaller
     # boil sits further above the home's base, so texture against the flat day grew.
-    assert cell.worst_value == pytest.approx(1.391, abs=0.005), cell.note
+    # 1.391 -> 1.450 the same day, P0059: electronics at its 2022 level, the same mechanism.
+    assert cell.worst_value == pytest.approx(1.450, abs=0.005), cell.note
     assert cell.worst_value > 1.0, (
         f"the worst real home reads {cell.worst_value:.3f} times its own flat "
         "counterfactual; if that ever approached 1.0 the pass would be a squeak "
@@ -4048,10 +4078,14 @@ def test_the_floor_is_NOT_LOOSER_for_an_ELECTRIC_home_against_the_same_defect(
     # 0.292 -> 0.235 on 2026-10-01, `263b57ac0` (the composition shares redrew the
     # pair's household). The HARSHER direction, so the charge this test answers is
     # weaker, not stronger; the gas reference did not move.
-    assert hp_critical == pytest.approx(0.235, abs=0.02)
+    # 0.235 -> 0.326 on 2026-10-08: electronics at its 2022 level leaves less behaviour above
+    # the base, so more of it must be lost before the floor fires. The ordering below holds it.
+    assert hp_critical == pytest.approx(0.326, abs=0.02)
     # 0.385 -> 0.362 on 2026-10-06: HES's cooking and laundry season redrew the gas
     # home's event stream. The ordering below is the property.
-    assert gas_critical == pytest.approx(0.362, abs=0.02)
+    # 0.362 -> 0.401 on 2026-10-08, electronics at its 2022 level, the same direction as the
+    # heat-pump home's (0.235 -> 0.326 above); the ordering below still holds.
+    assert gas_critical == pytest.approx(0.401, abs=0.02)
     assert hp_critical <= gas_critical, (
         f"the electrically heated home tolerates more damage than the gas home "
         f"before the shared floor fires ({hp_critical:.3f} vs {gas_critical:.3f})"
