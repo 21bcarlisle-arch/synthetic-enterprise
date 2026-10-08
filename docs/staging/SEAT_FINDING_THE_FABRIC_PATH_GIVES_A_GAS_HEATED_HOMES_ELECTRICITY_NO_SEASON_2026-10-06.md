@@ -371,3 +371,86 @@ the level.
 land would be the goal-seek this finding has refused at every step. The control the item asked
 for, a ratio inside the band, would be red today, and its subject is now the level. That is the
 next item's exit, not a pin of today's 1.301.
+
+## The level's end use is read: the base is right, and the excess is evening cooking that a gas home does on both fuels (2026-10-08, worker, draw `a-gas-heated-homes-electricity-level-is-read-for-2022`)
+
+**Premise check.** `fc47cd363` is on origin, as the draw said. The work it asked for, "which end
+use", was not done anywhere, so the premise was not spent. **Instrument note:** the shared tree's
+`simulation/premise_population.py` is a stale copy that reverts W2_20 step 2 (`81732ffe2`). Run
+there, it gives 176 homes. Every number below is from a clean `origin/main` worktree at
+`faa956270`: 163 homes, the same population as the previous section. Instruments:
+`/tmp/gsbase/profile.py` and `/tmp/gsbase/groups2.py`. Both regenerate from this text: the median
+across homes of each home's 2022 mean kWh/h per half hour, with one appliance group removed from
+`owned_stock` per arm.
+
+**A 2022 statistic that splits base from above-base.** SERL Vol 2, Table 6, gas central heating and
+no PV, 2022: the median-of-means profile has its trough at **0.13 kWh/h at 04:30** and its peak at
+**0.48 at 18:30**. This is read into
+`docs/market_research/the_seasonal_swing_of_a_gas_heated_homes_electricity.md`.
+
+| Arm (one variable, same 163 homes) | Annual median | Δ | Peak | 18:30 | 16–22h mean | 04:30 |
+|---|---|---|---|---|---|---|
+| Origin as built | 3,421 | — | 0.803 @19:30 | 0.763 | 0.704 | **0.128** |
+| Always-on put back to the flat 25 W | 2,842 † | −576 † | 0.727 @19:30 | 0.684 | — | 0.071 |
+| No electric hob in any home | 3,214 | −207 | 0.717 | 0.674 | 0.635 | 0.128 |
+| No electric oven in any home | 3,095 | −326 | 0.653 | 0.618 | 0.573 | 0.127 |
+| Oven and hob at EFUS 2017's NATIONAL shares (e-oven 70%, e-hob 37%) | 3,177 | **−244** | 0.711 | 0.679 | 0.625 | 0.127 |
+| No oven and no hob | 2,916 | −505 | 0.567 @20:00 | 0.523 | 0.498 | 0.127 |
+| No kettle | 3,170 | −251 | 0.761 | 0.724 | 0.665 | 0.127 |
+| No cooking at all (kettle, toaster, microwave, oven, hob) | **2,621** | −800 | **0.516** @20:00 | **0.472** | 0.449 | 0.127 |
+| No washer, dryer or dishwasher | 3,029 | −392 | 0.713 | 0.676 | 0.629 | 0.128 |
+| No vacuum or iron | 3,377 | −44 | 0.797 | 0.757 | 0.699 | 0.128 |
+
+† The previous section's figure, same seed. This run's flat-25 arm gave the profile only.
+
+**What this refutes.** The previous section ranked the always-on draw first. **It is not the
+defect.** With it, the world's trough is 0.128 against SERL's 0.13. Without it (flat 25 W), the
+trough is 0.07, half the real figure. EFUS 2011's base load survives a 2022 check. The +576 kWh it
+added was the base load becoming right. The level was already high above the base, and that high
+part was hidden behind a base that was too low. Electronics (0.14 at 18:30) is not shown to be the
+defect either: nothing reads it against 2022.
+
+**What it shows.** The trough is right, the peak is 0.32 kWh/h too high, and the peak sits an hour
+late. Removing cooking alone puts the 18:30 point at 0.47 against SERL's 0.48, and the annual median
+at 2,621 against SERL's ~2,600 and TDCV's 2,700. That match is **not** a build target. Removing all
+cooking is not what real homes do. It locates the excess. It does not size the remedy.
+
+**The mechanism inside cooking, and it is a double count.** `owned_stock` draws no cooking fuel. So
+every gas-DHW home runs an electric oven and an electric hob every evening **and** burns
+`cooking_daily_kwh` of cooking gas. EFUS 2017 Fig 4.5 (already in the knowledge layer): 37% of
+homes have an electric oven and an electric hob, 33% an electric oven and a gas hob, 20% gas for
+both, and 9% another combination. The appliances doc claimed the opposite, that all cooking is on
+gas. That was a factual error and is corrected beside the claim. Giving gas homes the NATIONAL shares
+removes 244 kWh. That is a lower bound on the removal, because the national electric share includes
+the off-gas homes, which almost all cook electrically.
+
+**What it does NOT cover: about 480 kWh and about 0.20 kWh/h of evening.** Even at the national
+shares, the median is 3,177. The rest of the excess sits in what each use costs: a 2.0 kW oven for
+45 minutes at 0.55 a day, scaled by intensity (−326 kWh for an owner at the median), and a 2.8 kW
+kettle 4 times a day (−251). All of these are `domain-knowledge` nameplates and frequencies with no
+cited per-appliance annual energy. ECUK U3 2022 puts domestic electric COOKING at 487.9 ktoe, about
+**200 kWh per household**, a national mean across gas and electric cooks. The world's oven and hob
+alone come to 505 at the gas-heated median. Which ECUK category the kettle falls in was not read.
+
+**Prediction, filed before any build.** (a) A cooking-fuel draw per premise (oven fuel and hob fuel,
+from EFUS 2017 Fig 4.5), with the gas side made consistent so that a home cooking all-electric burns
+no cooking gas, puts the 163-home annual median at **3,100–3,200** and the 18:30 point at
+**0.66–0.70**. Max/min rises by less than a flat cut would give, because cooking carries HES's
+season (1.09/0.87). That is the previous section's "seasonal events" branch: **1.32–1.36**. (b)
+Only per-use cooking energy read from a measured source (HES per-appliance annual kWh for ovens,
+hobs and kettles in owning homes) can close the rest. If (a) lands and the median is still above
+3,000, that is the reading, not a reason to fit.
+
+**The next two items, in order.**
+1. BUILD (a). The gas-conditional split is not published. Two choices: draw from the national
+   shares with that named as an upper bound on electric cooking, or derive the conditional from
+   EHS's mains-gas share, with the inference that off-gas homes cook electrically marked. The gas
+   side must move in the same commit.
+2. READ: HES (Intertek R66141, 2012), the cooking chapter: annual kWh per owning home for oven, hob
+   and kettle, against the catalogue's implied 301 / 161 / 204 kWh per unit intensity.
+
+**Level control: not written this turn.** The statistic is the median-of-means profile at 04:30 and
+18:30 against SERL Table 6. Its trough leg would be green today and its peak leg red. It needs a
+year's trace for each of about 160 homes (~1 minute on 6 cores), which is too slow for the commit
+gate. Proposed home: `background/fabric_gap_ledger.py`, as a cell beside L1.1, so it is graded on
+the ledger's own cadence rather than on every commit.
