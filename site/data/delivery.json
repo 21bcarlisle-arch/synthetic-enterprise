@@ -1,9 +1,15 @@
 {
- "generated_at": "2026-10-08T00:03:11.539409+00:00",
+ "generated_at": "2026-10-08T02:29:57.667472+00:00",
  "seat": "delivery",
  "what_it_did": {
   "available": true,
   "commits": [
+   {
+    "sha": "187b6c43c",
+    "at": "2026-10-08T02:50:56+01:00",
+    "subject": "The real retention slope per pound of renewal cut is sourced: the world's 0.0006 per GBP/yr sits inside the published range, and nothing published reaches break-even for a uniform cut",
+    "substantive": true
+   },
    {
     "sha": "161240bf2",
     "at": "2026-10-08T00:58:25+01:00",
@@ -237,12 +243,6 @@
     "at": "2026-10-07T12:57:36+01:00",
     "subject": "merge origin/main: automatic reconciliation in an isolated worktree",
     "substantive": false
-   },
-   {
-    "sha": "101aa4048",
-    "at": "2026-10-07T12:54:30+01:00",
-    "subject": "G15: register Ofgem's weekly forward prices as a data asset; the series has an as-of axis and no delivery axis",
-    "substantive": true
    }
   ],
   "substantive": 17,
@@ -251,59 +251,59 @@
  },
  "what_it_decided": {
   "available": true,
-  "oriented_at": "2026-10-07T23:58:40.792896+00:00",
+  "oriented_at": "2026-10-08T02:23:45.604384+00:00",
   "age_hours": 0.1,
   "expires_after_hours": 12.0,
   "live": true,
-  "thesis_read": "B8 reached L2 at 23:59:57Z (58993b3b5), a minute after this brief was cut. That is the first time the thesis's own comparison has been run: a company decision reads the effect it learned and is graded against the two flat rules a supplier could have set in advance. The answer is honest and limited. At the real GBP 7.5/MWh cut the learned effect (+0.0114 of staying) is far below what the cut needs to pay (+0.048), so the learned rule chooses cut-for-none. It beats cut-for-all by GBP 9.00-11.49 a decision at both published margin ends, and the planted arm cuts where it should. So inference beat the flat rule a careless supplier would use, and it matched the right flat rule. It did not beat the best one, because no per-customer heterogeneity was used: neither channel reached the 27,701 decisions per arm needed to read it alone. Whether learning beats the BEST flat rule is still unanswered, and that is the thesis question. The next bounded step (a curve of cut sizes) was promised as a continuation, but none is live, so focus two re-issues it. The director's knowledge item is done: fe150ffd1 wrote the four practitioner points into three pages, and 6f057d77b mapped them to levers and filed four contradictions. The largest one is in the world. arrears_engine recovers 12-25.5p per GBP written off, above the published 5.4-9.3p purchase prices, and the register's 0.05 is read by no code. So the world understates bad debt, and the world must press back on the debt side before a debt-aware decision can be trusted. That is focus three. The same finding notes that the open home-moves row's bias sentence is stale: B7 slice 4 (dfa787a37) already books the change-of-tenancy window as occupier debt. The row is carried verbatim as the rules require. That correction is recorded here, and it strengthens the row's proposal. The scale question (focus three last time) was drawn and landed nothing. Its float32 input is in (f12ba4b90: settlement holds to 0.0001 kWh, and the 160-founder peak falls 50 MB), so it leads now. The direction channel is still broken on origin: 687578352 fixed the 20:44 red, but origin reads 14:21 and the 23:21 record is committed: false. The checkout is 7 behind and 0 ahead, and seven units run code that lacks f12ba4b90. 7 commits, 4 substantive. acff52923 in /var/tmp/se-draw-order is still disposable, as recorded at 14:21.",
+  "thesis_read": "The thesis's comparison has now been run across the whole range of uniform cuts, and in this world the honest answer is a tie. 4320ae6a5 graded the learned retention decision over cuts of GBP 2.5-30/MWh at both margin ends. No cut pays. The learned rule cuts for nobody and matches cut-for-none, the best flat rule, to the penny. 187b6c43c then sourced the real slope: the world's 0.0006 of staying per GBP/yr is inside the published range, and nothing published reaches break-even for a uniform cut. So the world is not too stingy. A uniform renewal cut is simply a transfer to people who would have stayed anyway. Inference finds the best flat rule, and there is no room for it to beat that rule within this frame. Any room is in targeting, a save offer made to a household seen leaving. That is the director's open b8 row. Its factual half (does a GB supplier see the leaving signal in time, and may it act on it) is knowledge we can source without him, so it is focus two. The world pressed back twice, and both corrections were honest. 212c6396a reads post-write-off recovery from the register (12.2p per GBP). Net bad debt rose 5.7%, as pre-registered. The price-cache audit (78fdb9538, 81fb2975f) found two origin results settled on a short Elexon price set. The 61003 debt-objection prediction that had held was an artefact of the missing prices, and it is refuted on correct prices, with the correction beside the claim. The director's run review was done in his order. 27 runs over an hour last week, and none would have passed. That rule is now enforced at launch. Fabric traces are forked (15-40% faster on a small run), weather is shared per cell, and every run logs its cost per leg-year. The 3,400-line run function is named as structural debt. Two things went backwards or stalled. First, the settled-book finding from last stretch's focus one was written at 01:04 and never landed. Its claim was swept. It says the book tops out at about 280 accounts because the funnel runs dry, not because of compute, and that the live path costs 2.7-3.1 MB per customer-year. But the founder-ceiling proposal that reached origin at 01:54 sizes memory on the founders-only 1.11 MB per customer-year. Two documents disagree about a number the director is being asked to act on, so that is focus one. Second, W2_20's value-arms pair failed its own coherence test (H2). The leg-1 value advantage of GBP 5,134 sits outside its own floor band of 7,970-12,965. The placebo meant to diagnose that died in five minutes on its own design: it asked for a noise floor from one seed, which noise_floor refuses. So the baseline the thesis needs is not yet a number to publish. Its continuations are queued and a worker is on the value-arms tests now. Machine: last record's 23:58 direction reached origin (1caaec35a), which corrects the carried 17:22 row. The brief again read the director's concerns from a checkout 15 behind, and it omitted b8-no-uniform-renewal-cut-from-2, which origin holds. It is carried here. The b8 curve focus row was tombstoned at 00:20, 32 minutes before its work landed. The checkout is 0 ahead and 15 behind, and nineteen units run code lacking 78fdb9538. acff52923 in /var/tmp/se-draw-order is still disposable, as recorded. 16 commits, 8 substantive.",
   "focus": [
    {
-    "id": "what-stops-the-everyday-settled-book-reaching-thousands",
+    "id": "the-settled-book-finding-lands-and-the-founder-proposal-agrees-with-it",
     "lane": "H_harness",
-    "what": "Director's item 3. Write ONE finding that answers what stops the everyday settled book (about 175 founders) reaching a few thousand customers, and what each fix costs. Do not start with new runs. Read SEAT_FINDING_THE_FOUNDERS_ONLY_SLOPE_AT_CURRENT_CODE_2026-10-07.md, SEAT_FINDING_THE_FOUNDERS_SLOPE_UNRETURNED_015_BY_TYPE_2026-10-07.md, SEAT_FINDING_THE_FABRIC_TRACE_ALIVE_AT_THE_FOUNDERS_PEAK_2026-10-07.md, SEAT_FINDING_THE_40_AND_160_FOUNDER_PEAKS_MEASURE_THE_CAMPAIGN_NOT_THE_BOOK_2026-10-07.md and SEAT_FINDING_FLOAT32_TRACE_DAYS_HOLD_SETTLEMENT_AND_LOWER_THE_FOUNDERS_PEAK_50_MB_2026-10-08.md (all in docs/staging/). For each blocker, give MB per settled customer-year and wall time, the fix (float32 already landed in f12ba4b90, then streamed or chunked settlement and whatever the slope names), the fix's cost, and the book size each one allows against background.resource_headroom.sample() read live. If a number is missing, make one run at a time, only after checking free memory and that pid 4036375 has ended, and never use tracemalloc.",
-    "why": "The director asked for this by name. It was drawn last stretch and landed nothing, and its last input (float32) is now on origin, so nothing blocks it. DONE when that one finding is on origin with the per-blocker table and the projected book size per fix."
+    "what": "Land docs/staging/SEAT_FINDING_WHAT_STOPS_THE_SETTLED_BOOK_REACHING_THOUSANDS_2026-10-08.md. It is finished and untracked in the shared tree, written 01:04; land it by --content, never redo it. Then reconcile it with docs/staging/SEAT_PROPOSAL_THE_FOUNDER_CEILING_AND_PROSPECT_CAP_SIZED_BY_RARE_EVENTS_2026-10-08.md. The proposal's memory and wall columns use the founders-only 1.11 MB/cy plus a 1.7 GB base. The finding measures the live path at 2.69-3.06 MB/cy, and production's cgroup peaked at 3.3-3.4 GB at budget 1,750, below that curve. Decide which slope a 400- or 1,000-founder book follows, given its campaign share. Correct the proposal's table beside the claim and keep the old figures visible. Then take the finding's step #4 (name the unattributed ~1.8 MB/cy) on SMALL runs only, as the director ordered: live path against founders-only at the same small budget, same seed, with a type census and never tracemalloc. Check background.resource_headroom.sample() first.",
+    "why": "The director is being asked to set the founder ceiling on a memory figure that a second document on the same subject contradicts by about 2.6x. A wrong number in his decision is worse than a slow one. DONE when the finding is on origin, the proposal's table states which slope it uses and why, and the 1.8 MB/cy has a named owner or an explicit 'cannot yet say' with the small-run result beside it."
    },
    {
-    "id": "b8-the-learned-decision-is-graded-over-a-curve-of-cut-sizes",
+    "id": "b8-a-save-offer-is-sourced-against-the-switching-rules-and-the-seam",
     "lane": "B_commercial",
-    "what": "Atom B8_discovered_price_sensitivity_holdout, the step 58993b3b5 promised and never queued. Grade retention_cut_decision over a curve of cut sizes (the published range of retention discounts a GB supplier offers, sourced first, not picked), on fresh seeds from simulation/coin_drawn_decision_set.py, against the BEST flat rule chosen in hindsight at each cut and against cut-for-all and cut-for-none, at both margin ends (0.019, 0.14). Keep supplier value and household saving as separate columns, beside null and planted arms. Also report where, if anywhere, a per-channel or per-segment read reaches the decisions per arm it needs within the lean set's cost, and price that size in minutes. Pre-register before running, and print the table before writing the test. The result goes in a finding on origin; record a level move only if the evidence earns one.",
-    "why": "At L2 the learned rule matched the right flat rule and did not beat the best one. The thesis needs to know if any cut size or any heterogeneity lets inference beat the best flat rule a supplier could set in advance. Also release the spent b8-the-learned-offer-effect-drives-a-decision-and-meets-the-flat-baseline continuation and claim. DONE when the curve table is on origin and says plainly where learning beats the best flat rule, or that it does nowhere at this book's heterogeneity."
+    "what": "Answer the factual half of the director's open row b8-no-uniform-renewal-cut-from-2 from the published record and the code. Do not build the save-offer decision set. (1) From the regulation commons (docs/domain_artefact_library/regulatory) and Ofgem's published switching rules (CSS / Retail Energy Code switching schedule, the SLCs on switching and objections): when a GB losing supplier learns of a switch, how many days before the switch takes effect, and whether it may make a save offer on that notice. (2) From practitioner-published sources: whether GB retention desks make save offers or blanket renewal discounts, and to whom. (3) Read company/interfaces/sim_interface.py and say whether the company sees any leaving signal before the loss, and what a real supplier would see. Write it as docs/market_research/<topic>.md with a **Knowledge:** line, and add a dated pointer under the B8 curve finding.",
+    "why": "In this world no uniform cut pays and learning ties the best flat rule, so the thesis's only remaining room on retention is targeting. Whether targeting is lawful and observable is knowledge, not his decision. DONE when the doc is on origin and answers (1)-(3), each sourced or explicitly not established, so his row can be answered on evidence."
    },
    {
-    "id": "the-worlds-post-write-off-recovery-reads-the-register",
+    "id": "a-gas-heated-homes-electricity-gets-its-season",
     "lane": "W2_customer_generator",
-    "what": "Contradiction 1 of docs/staging/SEAT_FINDING_THE_FOUR_PRACTITIONER_POINTS_CONTRADICT_FOUR_LEVERS_2026-10-08.md. Make simulation/arrears_engine.py (dca_recovered_amount, debt_sale_proceeds, reached via compute_debt_recovery) read q3_post_write_off_recovery_share, and q3_debt_sale_price_share_of_face where it has a value, from docs/market_research/assumption_toggles.yaml in place of the typed 25.5p/17.0p/12.0p. Where the register has no value, carry None with its reason, never a number. Pre-register the predicted change in a founders run's bad-debt and write-off totals before running. Then run it once, and file the result beside the prediction. This is world code: sim-engineer.",
-    "why": "The world is recovering more after write-off than any published buyer pays, so it understates bad debt, and a debt-aware company decision is graded against a world that is too kind. The register already holds the sourced figure, and no code reads it. DONE when arrears_engine reads the register, a control reds if the typed rates return, and the before/after bad-debt totals are on origin beside the pre-registration."
+    "what": "Fix the world defect owned by docs/staging/SEAT_FINDING_THE_FABRIC_PATH_GIVES_A_GAS_HEATED_HOMES_ELECTRICITY_NO_SEASON_2026-10-06.md. On the fabric path, a gas-heated home's electricity has a median month max/min of 1.288 against SERL's 1.36-1.47. Find which component lacks seasonality (lighting, appliances, circulation pump), from the finding and simulation/household_demand_shape.py / simulation/fabric_demand_path.py. Source its seasonal shape from SERL or another published source, never pick one. Pre-register the predicted max/min, measure it in the seconds or minutes tier over a few hundred homes, and add a control that reds if the ratio falls back outside the published band. This is world code: sim-engineer.",
+    "why": "It has been carried as fix-open for two days. A flat winter understates the electricity a direct-debit opening has to cover, so every seasonal DD and arrears comparison is graded against a world that is too even. DONE when the ratio sits inside SERL's band on origin with its control, and the triage row is marked fixed."
    }
   ],
   "not_now": [
    {
-    "what": "Keying W2_36's hard-to-read class to the premises (contradiction 2) as focus now.",
-    "why": "It changes nothing while home moves are off, and switching them on is the director's open row. It must land before or with that switch. The finding records that, so it waits on his ruling and does not displace live defects."
+    "what": "A focus row for W2_20 (the failed H2, the dead placebo, the doubled-book bisection, the re-take on register recovery).",
+    "why": "Five continuations are queued and a worker is running the value-arms tests now (pytest pid 2421097). A focus row would add a second writer. The placebo needs a two-seed redesign, which its drawer owns. Every re-take over an hour now has to state its case at launch, which is the right brake."
    },
    {
-    "what": "Tilting smart_read_share by tenure from the EHS table (contradiction 3).",
-    "why": "It moves who is read by hand, not how many, and the book's tenure mix is not yet the thing any decision is graded on. The recovery-rate defect changes a money total the company is judged against, so it goes first."
+    "what": "Building the save-offer decision set.",
+    "why": "Whether save offers are the industry's frame is the director's open row. Focus two sources the facts that row needs, and building before his answer could cost a build in the wrong frame."
    },
    {
-    "what": "Renaming the void deemed leg to the owner (contradiction 4).",
-    "why": "No collection route reads it yet. The finding's own proposal is to record it now and change it when the first landlord-collection code reads it. I agree."
+    "what": "Folding or slotting the settled records (#5 of the scale finding) as the next engineering change.",
+    "why": "The finding itself says not to build #5 until the 1.8 MB/cy live-path gap is named, because the records may not be the largest owner on the live path. Focus one measures that first."
    },
    {
-    "what": "A focus row to make the direction record reach origin.",
-    "why": "687578352 fixed the diagnosed red. This record reaching origin with committed: true is the test, and a Lane 0 row would add a second writer to the seat's own landing path. The wrong row stays open until it does."
+    "what": "Refactoring the 3,400-line run function for checkpoints and parallel settlement.",
+    "why": "The director said record it as debt and raise it again when it next costs real work. It has not yet cost any since 78fdb9538 named it."
    },
    {
-    "what": "A focus row for W2_20's doubled book.",
-    "why": "Leg two seed three is still running (pid 4036375). The continuation is embargoed to 01:45 and will be drawn on its own, so a focus row would only draw a writer onto a running job."
+    "what": "Raising founders or the prospect cap.",
+    "why": "Both numbers are the director's. The proposal is raised to him as a row, and focus one checks its numbers before he acts on them."
    },
    {
-    "what": "Using the lean set's fresh seeds as a stand-in for the director's EP17 independent-books question.",
-    "why": "Varying the company's book seed is his curriculum. Focus two's curve is evidence for his row, not a ruling on it."
+    "what": "Contradictions 2-4 of the practitioner finding (W2_36 hard-to-read keyed to premises, tenure-tilted smart reads, the void deemed leg).",
+    "why": "Unchanged since last stretch: each waits on home moves, on a decision graded by tenure, or on a collection route reading it. Focus three is a live fidelity defect in a quantity that is already graded."
    },
    {
-    "what": "Mechanism fixes for the fix-open machine rows (tombstones, held-work, parked-atom counting, ledger grading by path).",
-    "why": "Each has an owner in wrong_triage.yaml, and none blocked steering this stretch. The director ordered product, knowledge and scale ahead of them."
+    "what": "Mechanism fixes for the fix-open machine rows (tombstones, held-work, parked-atom counting, ledger grading by path, the brief reading behind).",
+    "why": "Each has an owner in wrong_triage.yaml. The one that bit this stretch (the brief dropped an open director row) was caught by reading origin, and the director ordered product, knowledge and scale first."
    }
   ],
   "for_the_director": [
@@ -382,6 +382,26 @@
     "status": "open",
     "resolution": "",
     "evidence": "docs/staging/SEAT_FINDING_B7_SLICE_3_A_VACATED_PREMISE_IS_SUPPLIED_FROM_THE_MOVE_DATE_UNDER_A_NEW_ACCOUNT_2026-10-06.md; tests/simulation/test_a_home_move_ends_supply_in_the_run.py"
+   },
+   {
+    "id": "b8-no-uniform-renewal-cut-from-2",
+    "raised": "2026-10-08",
+    "kind": "strategy",
+    "what": "B8: no uniform renewal cut from 2.5 to 30 GBP/MWh pays in this world, at either margin end, because the cut is paid to every stayer and most would have stayed anyway. Real retention offers are, as far as I know, SAVE offers made to a customer who has started to leave, not blanket renewal discounts. Is that how a GB supplier actually does it, and does it see the leaving signal (a switch notification) in time to make one?",
+    "proposal": "If yes: grade the same learned decision on a save-offer decision set, offered only where the company observes the household leaving, where p0 is low and the inframarginal cost is small. If blanket renewal offers are real practice, keep the current frame and source the real slope of P(stay) per GBP/MWh instead (ours is about 0.0015; offers start to pay at about 0.006). I will start on sourcing the slope meanwhile, as it is needed either way.",
+    "status": "open",
+    "resolution": "",
+    "evidence": "docs/staging/records/SEAT_FINDING_B8_NO_CUT_SIZE_PAYS_IN_THIS_WORLD_BECAUSE_THE_STAY_BOUGHT_PER_POUND_FALLS_AS_THE_CUT_GROWS_2026-10-08.md"
+   },
+   {
+    "id": "the-founder-ceiling-and-prospect-cap-sized-by-rare-events",
+    "raised": "2026-10-08",
+    "kind": "strategy",
+    "what": "You asked for the founder ceiling and the prospect cap as one proposal, sized by rare events and book-level money. Of the five rare events you named, three have no generator at any book size (theft, voids, a vulnerable customer in winter), and home moves (so debtor moves) are off in your curriculum. So a bigger book today buys only the arrears stock. Both numbers are yours: founder_accounts 80 with ceiling 120 in FOUNDER_BOOK.yaml, and PROSPECTS_PER_YEAR 400.",
+    "proposal": "Keep 80 founders until home moves are switched on. When they are, raise to 400 founders (ceiling 120 to 500) for the periodic end-to-end run and book-level provisioning, and have that run state its case under the over-an-hour rule. Leave the prospect cap at 400. Do not size for theft, voids or vulnerability until each has a generator, then size from its own rate. The memory and wall figures in the proposal are being re-checked against the live-path cost before you act on them. I am carrying on meanwhile.",
+    "status": "open",
+    "resolution": "",
+    "evidence": "docs/staging/SEAT_PROPOSAL_THE_FOUNDER_CEILING_AND_PROSPECT_CAP_SIZED_BY_RARE_EVENTS_2026-10-08.md"
    }
   ],
   "orientations_recorded": 17,
@@ -392,9 +412,9 @@
   "problems": [
    {
     "key": "triage:one-item-lands-twice-on-origin-and-the-shared-head",
-    "what": "THE MACHINE'S, CARRIED. One item can land twice, on origin through surgical_land and as a local commit on the shared HEAD. Owner: SEAT_FINDING_ONE_ITEM_LANDS_TWICE_AND_THE_SHARED_HEAD_FORKS_FROM_ORIGIN. 00:00: no new instance. The checkout is 7 behind origin again, 0 ahead, so this is not forking now, and nothing stops the next one.",
-    "last_at": "2026-10-07T23:58:40.792896+00:00",
-    "first_at": "2026-10-03T14:21:21.041545+00:00",
+    "what": "THE MACHINE'S, CARRIED. One item can land twice, on origin through surgical_land and as a local commit on the shared HEAD. Owner: SEAT_FINDING_ONE_ITEM_LANDS_TWICE_AND_THE_SHARED_HEAD_FORKS_FROM_ORIGIN. 02:24: no new instance. The checkout is 0 ahead and 15 behind, so it is not forking now, and nothing stops the next one.",
+    "last_at": "2026-10-08T02:23:45.604384+00:00",
+    "first_at": "2026-10-03T17:24:46.921462+00:00",
     "times_listed": 40,
     "corrected": false,
     "fate": "fix",
@@ -405,9 +425,9 @@
    },
    {
     "key": "triage:a-hold-condition-is-not-reasked-when-its-premise-moves",
-    "what": "THE MACHINE'S, CARRIED. A held change's hold condition is not re-asked when its premise moves. Owner: SEAT_FINDING_A_HOLD_OR_A_TOMBSTONE_STATES_ITS_CONDITION_IN_PROSE_AND_NOTHING_RE_ASKS_IT. 00:00: no new instance.",
-    "last_at": "2026-10-07T23:58:40.792896+00:00",
-    "first_at": "2026-10-03T14:21:21.041545+00:00",
+    "what": "THE MACHINE'S, CARRIED. A held change's hold condition is not re-asked when its premise moves. Owner: SEAT_FINDING_A_HOLD_OR_A_TOMBSTONE_STATES_ITS_CONDITION_IN_PROSE_AND_NOTHING_RE_ASKS_IT. 02:24: no new instance.",
+    "last_at": "2026-10-08T02:23:45.604384+00:00",
+    "first_at": "2026-10-03T17:24:46.921462+00:00",
     "times_listed": 40,
     "corrected": false,
     "fate": "fix",
@@ -418,10 +438,10 @@
    },
    {
     "key": "triage:the-held-work-check-refuses-by-prose-and-tells-only-the-log",
-    "what": "THE MACHINE'S, CARRIED. The held-work check refuses an item when its prose names a held file, even when the held work is not the item's, and the refusal reaches only the supervisor log. 00:00: no new instance.",
-    "last_at": "2026-10-07T23:58:40.792896+00:00",
+    "what": "THE MACHINE'S, CARRIED. The held-work check refuses an item when its prose names a held file, even when the held work is not the item's, and the refusal reaches only the supervisor log. 02:24: no new instance.",
+    "last_at": "2026-10-08T02:23:45.604384+00:00",
     "first_at": "2026-10-04T02:22:43.671126+00:00",
-    "times_listed": 36,
+    "times_listed": 37,
     "corrected": false,
     "fate": "fix",
     "status": "open",
@@ -431,10 +451,10 @@
    },
    {
     "key": "triage:the-brief-reads-director-concerns-from-the-behind-checkout",
-    "what": "THE MACHINE'S, CARRIED. The seat's brief reads the director's open concerns from the behind checkout. 00:00: the checkout is 7 behind again, and none of the 7 touched DIRECTION.yaml, so the eight rows still match by circumstance. The class is unfixed.",
-    "last_at": "2026-10-07T23:58:40.792896+00:00",
+    "what": "THE MACHINE'S, CARRIED. The seat's brief reads the director's open concerns from the behind checkout. 02:24: NEW INSTANCE. The checkout is 15 behind, and the brief's previous_for_the_director omitted b8-no-uniform-renewal-cut-from-2, which 4320ae6a5 put on origin at 00:52. This record carries it from origin.",
+    "last_at": "2026-10-08T02:23:45.604384+00:00",
     "first_at": "2026-10-05T05:24:52.527698+00:00",
-    "times_listed": 27,
+    "times_listed": 28,
     "corrected": false,
     "fate": "fix",
     "status": "open",
@@ -444,10 +464,10 @@
    },
    {
     "key": "triage:the-draw-ledger-cannot-tell-mid-landing-from-not-done",
-    "what": "THE MACHINE'S, CARRIED. The draw ledger reads the same for work never started and for work mid-landing, because it asks only origin by path. 00:00: no mid-landing case in this stretch. B8 L2 was mid-landing at brief time (surgical_land pid 560554) and landed at 23:59:57Z as 58993b3b5, so the next brief is the test.",
-    "last_at": "2026-10-07T23:58:40.792896+00:00",
+    "what": "THE MACHINE'S, CARRIED. The draw ledger reads the same for work never started and for work mid-landing, because it asks only origin by path. 02:24: B8 L2 is no longer listed, so the earlier case cleared, but nothing mid-landing was tested this stretch.",
+    "last_at": "2026-10-08T02:23:45.604384+00:00",
     "first_at": "2026-10-05T05:24:52.527698+00:00",
-    "times_listed": 27,
+    "times_listed": 28,
     "corrected": false,
     "fate": "fix",
     "status": "open",
@@ -457,10 +477,10 @@
    },
    {
     "key": "triage:a-tombstone-retires-a-row-without-checking-its-done",
-    "what": "THE MACHINE'S, CARRIED. A focus-row tombstone still retires a row without asking its DONE. 00:00: the-four-practitioner-points-reach-the-knowledge-pages was retired by a focus-row tombstone at 23:55. This time its DONE was met (fe150ffd1 pages, 6f057d77b table and finding), but the tombstone did not ask.",
-    "last_at": "2026-10-07T23:58:40.792896+00:00",
+    "what": "THE MACHINE'S, CARRIED. A focus-row tombstone still retires a row without asking its DONE. 02:24: NEW INSTANCE. b8-the-learned-decision-is-graded-over-a-curve-of-cut-sizes was tombstoned at 00:20:51, and its work (4320ae6a5) landed at 00:52. It retired 32 minutes before its DONE was met.",
+    "last_at": "2026-10-08T02:23:45.604384+00:00",
     "first_at": "2026-10-05T11:21:05.015797+00:00",
-    "times_listed": 25,
+    "times_listed": 26,
     "corrected": false,
     "fate": "fix",
     "status": "open",
@@ -470,10 +490,10 @@
    },
    {
     "key": "triage:a-landing-carries-a-stale-direction-record",
-    "what": "THE MACHINE'S, CARRIED. A landing can carry docs/direction/DIRECTION.yaml from the shared working copy when it is older than origin's. 00:00: the working copy (23:21) is still newer than origin (14:21), and no landing swept it this stretch.",
-    "last_at": "2026-10-07T23:58:40.792896+00:00",
+    "what": "THE MACHINE'S, CARRIED. A landing can carry docs/direction/DIRECTION.yaml from the shared working copy when it is older than origin's. 02:24: 4320ae6a5 landed DIRECTION.yaml, but it differs from 1caaec35a only by the added b8 row, so nothing stale was carried. No new instance.",
+    "last_at": "2026-10-08T02:23:45.604384+00:00",
     "first_at": "2026-10-05T14:22:40.501747+00:00",
-    "times_listed": 24,
+    "times_listed": 25,
     "corrected": false,
     "fate": "fix",
     "status": "open",
@@ -483,10 +503,10 @@
    },
    {
     "key": "triage:a-parked-atom-is-still-drawn",
-    "what": "THE MACHINE'S, CARRIED. A parked atom is still counted as drawn. H45 is PARKED and the counter still moves. 00:00: SITE2 rose by 15 in 37 minutes, to 42695.",
-    "last_at": "2026-10-07T23:58:40.792896+00:00",
+    "what": "THE MACHINE'S, CARRIED. A parked atom is still counted as drawn. H45 is PARKED and the counter still moves. 02:24: SITE2 went from 42695 to 42753.",
+    "last_at": "2026-10-08T02:23:45.604384+00:00",
     "first_at": "2026-10-06T02:21:10.353202+00:00",
-    "times_listed": 20,
+    "times_listed": 21,
     "corrected": false,
     "fate": "fix",
     "status": "open",
@@ -496,10 +516,10 @@
    },
    {
     "key": "triage:a-coupled-triad-refusal-reaches-only-the-supervisor-log",
-    "what": "THE MACHINE'S, CARRIED. The coupled-triad gate now excludes twinless L3 targets, and its refusal reaches only the supervisor journal. 00:00: no new instance.",
-    "last_at": "2026-10-07T23:58:40.792896+00:00",
+    "what": "THE MACHINE'S, CARRIED. The coupled-triad gate now excludes twinless L3 targets, and its refusal reaches only the supervisor journal. 02:24: no new instance.",
+    "last_at": "2026-10-08T02:23:45.604384+00:00",
     "first_at": "2026-10-06T05:21:32.108298+00:00",
-    "times_listed": 19,
+    "times_listed": 20,
     "corrected": false,
     "fate": "fix",
     "status": "open",
@@ -509,10 +529,10 @@
    },
    {
     "key": "triage:a-gas-heated-homes-electricity-has-no-season",
-    "what": "THE WORLD'S, CARRIED. A gas-heated fabric home's electricity has no season: the median month max/min is 1.288 against SERL's 1.36-1.47. 00:00: unchanged.",
-    "last_at": "2026-10-07T23:58:40.792896+00:00",
+    "what": "THE WORLD'S, CARRIED. A gas-heated fabric home's electricity has no season: the median month max/min is 1.288 against SERL's 1.36-1.47. 02:24: unchanged, and it is focus three.",
+    "last_at": "2026-10-08T02:23:45.604384+00:00",
     "first_at": "2026-10-06T11:21:23.841017+00:00",
-    "times_listed": 17,
+    "times_listed": 18,
     "corrected": false,
     "fate": "fix",
     "status": "open",
@@ -522,10 +542,10 @@
    },
    {
     "key": "triage:the-draw-ledger-credits-an-item-by-path-overlap",
-    "what": "THE MACHINE'S, CARRIED. The draw ledger credits or denies an item by path overlap, not by its work. 00:00: both rows still read landed_unbound to the wrong commits, though d06af26a5 dispositioned them as not their work. The ledger does not read that disposition back.",
-    "last_at": "2026-10-07T23:58:40.792896+00:00",
+    "what": "THE MACHINE'S, CARRIED. The draw ledger credits or denies an item by path overlap, not by its work. 02:24: NEW INSTANCE. b8-the-learned-decision-is-graded-over-a-curve-of-cut-sizes reads not_done 'CANNOT ANSWER', though 4320ae6a5 is its work. The two older rows still read landed_unbound to the wrong commits.",
+    "last_at": "2026-10-08T02:23:45.604384+00:00",
     "first_at": "2026-10-07T08:21:58.450288+00:00",
-    "times_listed": 10,
+    "times_listed": 11,
     "corrected": false,
     "fate": "fix",
     "status": "open",
@@ -535,10 +555,10 @@
    },
    {
     "key": "text:between w2_20's value-arms takes, the book more than doubled: control-arm gas legs went from 64 of 127 to 183 of 272 (b870dd6c5)",
-    "what": "THE WORLD'S, CARRIED. Between W2_20's value-arms takes, the book more than doubled: control-arm gas legs went from 64 of 127 to 183 of 272 (b870dd6c5). No commit pre-registered or claims that move. 00:00: leg two's seed three is still running (pid 4036375, 5h35m, 7.7 GB). The continuation stays embargoed to 01:45.",
-    "last_at": "2026-10-07T23:58:40.792896+00:00",
+    "what": "THE WORLD'S, CARRIED. Between W2_20's value-arms takes, the book more than doubled: control-arm gas legs went from 64 of 127 to 183 of 272 (b870dd6c5). No commit pre-registered or claims that move. 02:24: the head arms finished at 00:19. Their H2 failed (leg-1 value advantage GBP 5,134 outside its own floor band of 7,970-12,965). The bisection continuation is queued, and nothing has attributed the move yet.",
+    "last_at": "2026-10-08T02:23:45.604384+00:00",
     "first_at": "2026-10-07T17:22:40.053561+00:00",
-    "times_listed": 7,
+    "times_listed": 8,
     "corrected": false,
     "fate": null,
     "status": null,
@@ -548,10 +568,49 @@
    },
    {
     "key": "text:the 17:22 direction record never reached origin",
-    "what": "THE MACHINE'S, CARRIED. The 17:22 direction record never reached origin. 00:00: the 20:44 red is diagnosed and fixed on origin (687578352: one wrong-row sentence had two homes on the delivery feed). Origin still reads 14:21 and the 23:21 record is committed: false too. Uncorrected until this record reaches origin with committed: true.",
-    "last_at": "2026-10-07T23:58:40.792896+00:00",
+    "what": "THE MACHINE'S, CARRIED. The 17:22 direction record never reached origin. 02:24: CORRECTED. The 23:58 record reached origin as 1caaec35a at 00:23, after 687578352's fix, and 4320ae6a5 then added a row to it cleanly.",
+    "last_at": "2026-10-08T02:23:45.604384+00:00",
     "first_at": "2026-10-07T20:20:59.824849+00:00",
-    "times_listed": 5,
+    "times_listed": 6,
+    "corrected": true,
+    "fate": null,
+    "status": null,
+    "retired": false,
+    "owner": null,
+    "reason": null
+   },
+   {
+    "key": "text:b8 l2's commit (58993b3b5) says the next step, grading the decision over a curve of cut sizes, is handed on as a seat continuation, and none was live",
+    "what": "THE MACHINE'S, CARRIED. B8 L2's commit (58993b3b5) says the next step, grading the decision over a curve of cut sizes, is handed on as a seat continuation, and none was live. 02:24: CORRECTED. The step landed as 4320ae6a5 under the re-issued focus row, and the spent continuation retired at 00:02.",
+    "last_at": "2026-10-08T02:23:45.604384+00:00",
+    "first_at": "2026-10-08T02:23:45.604384+00:00",
+    "times_listed": 1,
+    "corrected": true,
+    "fate": null,
+    "status": null,
+    "retired": false,
+    "owner": null,
+    "reason": null
+   },
+   {
+    "key": "text:the w2-20-placebo-a-floor-seed-equal-to-the-base-seed continuation specified a noise floor from one seed",
+    "what": "THE MACHINE'S, NEW. The w2-20-placebo-a-floor-seed-equal-to-the-base-seed continuation specified a noise floor from one seed. noise_floor refuses that by construction, so the launched job (w220-placebo) died at 02:02:56 with exit status 5 after arm A, and leg B produced no artefact. The continuation is still offered unchanged.",
+    "last_at": "2026-10-08T02:23:45.604384+00:00",
+    "first_at": "2026-10-08T02:23:45.604384+00:00",
+    "times_listed": 1,
+    "corrected": false,
+    "fate": null,
+    "status": null,
+    "retired": false,
+    "owner": null,
+    "reason": null
+   },
+   {
+    "key": "text:last stretch's focus one wrote its finding (seat_finding_what_stops_the_settled_book_reaching_thousands) at 01:04 and never landed it, and the claim was swept",
+    "what": "MINE, NEW. Last stretch's focus one wrote its finding (SEAT_FINDING_WHAT_STOPS_THE_SETTLED_BOOK_REACHING_THOUSANDS) at 01:04 and never landed it, and the claim was swept. At 01:54, a founder-ceiling proposal sized on the founders-only slope reached origin, and the unlanded finding says that slope understates the live path about 2.6x. My record did not tell the run-review work to read the scale finding. Focus one fixes both.",
+    "last_at": "2026-10-08T02:23:45.604384+00:00",
+    "first_at": "2026-10-08T02:23:45.604384+00:00",
+    "times_listed": 1,
     "corrected": false,
     "fate": null,
     "status": null,
@@ -732,8 +791,8 @@
     "key": "triage:a-waiters-deadline-is-not-priced-against-its-queue",
     "what": "THE MACHINE'S, CARRIED. A waiter's deadline is set without pricing the queue ahead of it. wait_for caps at 21600 s, and long chains still loop by hand. 23:24: unchanged. 02:21: unchanged. 05:20: unchanged. 08:21: unchanged.",
     "last_at": "2026-10-07T11:24:41.710264+00:00",
-    "first_at": "2026-10-03T14:21:21.041545+00:00",
-    "times_listed": 32,
+    "first_at": "2026-10-03T17:24:46.921462+00:00",
+    "times_listed": 31,
     "corrected": false,
     "fate": "accept",
     "status": null,
@@ -745,8 +804,8 @@
     "key": "triage:a-long-jobs-worktrees-are-not-checked-before-launch",
     "what": "THE MACHINE'S, CARRIED. Nothing checks a long job's worktrees before launch. depth-vs-width died at exit 90 after 10h on a missing worktree. 23:24: unchanged. 02:21: unchanged. 05:20: unchanged. 08:21: unchanged.",
     "last_at": "2026-10-07T11:24:41.710264+00:00",
-    "first_at": "2026-10-03T14:21:21.041545+00:00",
-    "times_listed": 32,
+    "first_at": "2026-10-03T17:24:46.921462+00:00",
+    "times_listed": 31,
     "corrected": false,
     "fate": "accept",
     "status": null,
@@ -758,8 +817,8 @@
     "key": "triage:stranded-map-moves-are-replayed-as-written",
     "what": "THE MACHINE'S, CARRIED. Level or park moves stranded in a preserved ref are replayed as written. PB4 build->idle was false by then (a6bd4d77e), and nothing re-asks a stranded move's release condition. 23:24: unchanged. 02:21: unchanged. 05:20: unchanged. 08:21: unchanged.",
     "last_at": "2026-10-07T11:24:41.710264+00:00",
-    "first_at": "2026-10-03T14:21:21.041545+00:00",
-    "times_listed": 32,
+    "first_at": "2026-10-03T17:24:46.921462+00:00",
+    "times_listed": 31,
     "corrected": false,
     "fate": "fold",
     "status": null,
@@ -771,8 +830,8 @@
     "key": "triage:a-hand-written-driver-is-not-checked-against-the-api",
     "what": "THE MACHINE'S, CARRIED. Nothing checks that a hand-written driver calls an API, or an argument shape, that the tool accepts. hgc-suite-timing's driver called resource_headroom.admitted(). It RECURRED this stretch: the QEP floor handoff passed one seed to a tool that refuses fewer than two. 23:24: unchanged. 02:21: unchanged. 05:20: unchanged. 08:21: unchanged.",
     "last_at": "2026-10-07T11:24:41.710264+00:00",
-    "first_at": "2026-10-03T14:21:21.041545+00:00",
-    "times_listed": 32,
+    "first_at": "2026-10-03T17:24:46.921462+00:00",
+    "times_listed": 31,
     "corrected": false,
     "fate": "accept",
     "status": null,
@@ -784,8 +843,8 @@
     "key": "triage:a-changed-control-does-not-rerun-its-synthetic-fixtures",
     "what": "THE MACHINE'S, CARRIED. A control or door whose shape changes must re-run every fixture that builds a synthetic tree to drive it, and no control requires that. citation_at_head, red_at_head and fork_state still read not_established. 23:24: unchanged. 02:21: unchanged. 05:20: unchanged. 08:21: unchanged.",
     "last_at": "2026-10-07T11:24:41.710264+00:00",
-    "first_at": "2026-10-03T14:21:21.041545+00:00",
-    "times_listed": 32,
+    "first_at": "2026-10-03T17:24:46.921462+00:00",
+    "times_listed": 31,
     "corrected": false,
     "fate": "fold",
     "status": null,
@@ -797,8 +856,8 @@
     "key": "triage:a-refusal-naming-a-commit-is-not-reasked-against-origin",
     "what": "THE MACHINE'S, CARRIED. A refusal naming a commit is not re-asked against the remote ref before a reader sees it. liveness_surface_refusal is still not re-asked. 23:24: unchanged. 02:21: unchanged. 05:20: unchanged. 08:21: unchanged.",
     "last_at": "2026-10-07T11:24:41.710264+00:00",
-    "first_at": "2026-10-03T14:21:21.041545+00:00",
-    "times_listed": 32,
+    "first_at": "2026-10-03T17:24:46.921462+00:00",
+    "times_listed": 31,
     "corrected": false,
     "fate": "fold",
     "status": null,
@@ -810,8 +869,8 @@
     "key": "triage:stash-completeness-sweep-reports-a-lost-file-safe",
     "what": "THE MACHINE'S, CARRIED. The stash-completeness sweep reports a genuinely lost file as safe. It is still not on the map. 23:24: unchanged. 02:21: unchanged. 05:20: unchanged. 08:21: unchanged.",
     "last_at": "2026-10-07T11:24:41.710264+00:00",
-    "first_at": "2026-10-03T14:21:21.041545+00:00",
-    "times_listed": 32,
+    "first_at": "2026-10-03T17:24:46.921462+00:00",
+    "times_listed": 31,
     "corrected": false,
     "fate": "fold",
     "status": null,
@@ -823,8 +882,8 @@
     "key": "triage:a-same-subject-sibling-is-left-behind-in-the-shared-tree",
     "what": "THE MACHINE'S, CARRIED. Nothing on the landing path asks whether a same-subject sibling is left behind in the shared tree (the 14-path refusal in 662da7fd3). Separate from H49. 23:24: unchanged. 02:21: unchanged. 05:20: unchanged. 08:21: unchanged.",
     "last_at": "2026-10-07T11:24:41.710264+00:00",
-    "first_at": "2026-10-03T14:21:21.041545+00:00",
-    "times_listed": 32,
+    "first_at": "2026-10-03T17:24:46.921462+00:00",
+    "times_listed": 31,
     "corrected": false,
     "fate": "fold",
     "status": null,
@@ -836,8 +895,8 @@
     "key": "triage:not-now-is-prose-that-nothing-reads",
     "what": "MINE, CLASS. not_now is still prose that nothing reads. A rejected item comes back only if I remember to promote it. This stretch I remembered once (the ex-ante flat comparison, focus item two), which is not a mechanism. 23:24: unchanged. 02:21: unchanged. 05:20: unchanged. This stretch I promote one item from last not_now by hand (the direction record reaching origin, now focus item three), which is still memory, not a mechanism. 08:21: unchanged. No not_now item is promoted this stretch.",
     "last_at": "2026-10-07T11:24:41.710264+00:00",
-    "first_at": "2026-10-03T14:21:21.041545+00:00",
-    "times_listed": 32,
+    "first_at": "2026-10-03T17:24:46.921462+00:00",
+    "times_listed": 31,
     "corrected": false,
     "fate": "accept",
     "status": null,
@@ -849,8 +908,8 @@
     "key": "triage:a-bounded-executor-turn-resets-over-unlanded-work",
     "what": "THE MACHINE'S, CARRIED. A bounded executor turn can be reset over finished, unlanded work. Both named instances are gone: the brief reads all 80 worktree HEADs on a remote ref. Nothing prevents the class. RECURRED in a sibling shape 02:21: c5770c404 (B11 slice 3) is finished and gated, but on no remote, in an unlocked worktree with no declared owner. See the new row. 23:24: unchanged. 02:21: unchanged. 05:20: unchanged. 08:21: unchanged.",
     "last_at": "2026-10-07T11:24:41.710264+00:00",
-    "first_at": "2026-10-03T14:21:21.041545+00:00",
-    "times_listed": 32,
+    "first_at": "2026-10-03T17:24:46.921462+00:00",
+    "times_listed": 31,
     "corrected": false,
     "fate": "fold",
     "status": null,
@@ -862,8 +921,8 @@
     "key": "triage:a-pre-registration-sits-untracked-after-its-subject-lands",
     "what": "THE MACHINE'S, CARRIED. A pre-registration that dates itself by its first commit can sit untracked after its subject commit lands. The class is still unrefused. 23:24: unchanged. 02:21: unchanged. 05:20: unchanged. 08:21: unchanged.",
     "last_at": "2026-10-07T11:24:41.710264+00:00",
-    "first_at": "2026-10-03T14:21:21.041545+00:00",
-    "times_listed": 32,
+    "first_at": "2026-10-03T17:24:46.921462+00:00",
+    "times_listed": 31,
     "corrected": false,
     "fate": "fold",
     "status": null,
@@ -875,8 +934,8 @@
     "key": "triage:a-launch-chain-dies-silently-at-its-waiters-deadline",
     "what": "THE MACHINE'S, CARRIED. A launch chain dies silently when its waiter hits DEADLINE. The register showed width as finished, and did not show that P/C, chained behind it, never started. 23:24: unchanged. 02:21: unchanged. 05:20: unchanged. 08:21: unchanged.",
     "last_at": "2026-10-07T11:24:41.710264+00:00",
-    "first_at": "2026-10-03T14:21:21.041545+00:00",
-    "times_listed": 32,
+    "first_at": "2026-10-03T17:24:46.921462+00:00",
+    "times_listed": 31,
     "corrected": false,
     "fate": "accept",
     "status": null,
@@ -901,8 +960,8 @@
     "key": "triage:no-work-base-advance-merges",
     "what": "THE MACHINE'S, CARRIED. No-work base-advance merges were 11 of 26 and 9 of 24 in earlier stretches. In the last two they were 0 of 9 and 1 of 8, with no mechanism changed, so the cause of the fall is not established, and the Monday census grades it. 02:21: 1 of 10. 05:21: 4 of 17. 08:23: 0 of 9. 11:21: 1 of 10. 14:23: 1 of 8. 17:22: 2 of 14. 23:24: 1 of 8. 02:21: 0 of 7. 05:20: 1 of 10. 08:21: 0 of 11.",
     "last_at": "2026-10-07T11:24:41.710264+00:00",
-    "first_at": "2026-10-03T14:21:21.041545+00:00",
-    "times_listed": 32,
+    "first_at": "2026-10-03T17:24:46.921462+00:00",
+    "times_listed": 31,
     "corrected": false,
     "fate": "accept",
     "status": null,
@@ -1460,8 +1519,8 @@
     "key": "text:a long job's world stamp is not tied to head",
     "what": "THE MACHINE'S, CARRIED. A long job's world stamp is not tied to HEAD. CORRECTED by 77a872e01: world_identity() now carries code_commit, the sha the run imported from.",
     "last_at": "2026-10-04T20:23:06.729790+00:00",
-    "first_at": "2026-10-03T14:21:21.041545+00:00",
-    "times_listed": 11,
+    "first_at": "2026-10-03T17:24:46.921462+00:00",
+    "times_listed": 10,
     "corrected": true,
     "fate": null,
     "status": null,
@@ -1759,8 +1818,8 @@
     "key": "text:the world digest does not identify behaviour switches, so 1002b and 1002c share digest cf823b185f8ca51c and are not the same world",
     "what": "THE MACHINE'S, CARRIED. The world digest does not identify behaviour switches, so 1002b and 1002c share digest cf823b185f8ca51c and are not the same world. Only the pin separates them. The class is unchanged, and SE_DEBT_OBJECTION (bf0d37c2f) is one more switch the digest may not be told about.",
     "last_at": "2026-10-03T23:21:30.419131+00:00",
-    "first_at": "2026-10-03T14:21:21.041545+00:00",
-    "times_listed": 4,
+    "first_at": "2026-10-03T17:24:46.921462+00:00",
+    "times_listed": 3,
     "corrected": false,
     "fate": null,
     "status": null,
@@ -1772,8 +1831,8 @@
     "key": "text:one lane 0 change is drawn twice",
     "what": "THE MACHINE'S, CARRIED. One Lane 0 change is drawn twice. 1cdf561e4 skips an id held in the other claim store, which closes that shape. The F5 shape (drawn, noted as a non-act, redrawn) has no fix. Three landed_unbound rows are redrawable now; focus item four binds them.",
     "last_at": "2026-10-03T23:21:30.419131+00:00",
-    "first_at": "2026-10-03T14:21:21.041545+00:00",
-    "times_listed": 4,
+    "first_at": "2026-10-03T17:24:46.921462+00:00",
+    "times_listed": 3,
     "corrected": false,
     "fate": null,
     "status": null,
@@ -1889,8 +1948,8 @@
     "key": "text:w2_payment_channel_dd_consistency_invariant sits at l2 while the world holds two independent method draws that agree on 51% of households",
     "what": "THE MACHINE'S, CARRIED. W2_payment_channel_dd_consistency_invariant sits at L2 while the world holds two independent method draws that agree on 51% of households. The fix is landing (pid 121436) but the level is not yet re-graded. The self-contradicting-levels census still cannot see a level whose control tests the wrong population.",
     "last_at": "2026-10-03T17:24:46.921462+00:00",
-    "first_at": "2026-10-03T14:21:21.041545+00:00",
-    "times_listed": 2,
+    "first_at": "2026-10-03T17:24:46.921462+00:00",
+    "times_listed": 1,
     "corrected": false,
     "fate": null,
     "status": null,
@@ -1910,45 +1969,6 @@
     "retired": false,
     "owner": null,
     "reason": null
-   },
-   {
-    "key": "text:i named spine_1 and pb8 by atom id and expected their build, but an atom id biases the draw toward the atom's current loop stage",
-    "what": "MINE. I named SPINE_1 and PB8 by atom id and expected their BUILD, but an atom id biases the draw toward the atom's current loop stage. Corrected: re-routed as the Lane 0 key build-the-supplier-dd-stopping-rule, PB8 was drawn and built this stretch (its L0->L1 edit is in the tree). The landing failure is a different error, carried in the executor-reset row.",
-    "last_at": "2026-10-03T14:21:21.041545+00:00",
-    "first_at": "2026-10-03T14:21:21.041545+00:00",
-    "times_listed": 1,
-    "corrected": true,
-    "fate": null,
-    "status": null,
-    "retired": false,
-    "owner": null,
-    "reason": null
-   },
-   {
-    "key": "text:last stretch i put credit-side inference first and called the default belief \"the binding question\"",
-    "what": "MINE, NEW. Last stretch I put credit-side inference first and called the default belief \"the binding question\". The oracles in 585ea9746 put payment knowledge at +191 to +393 and churn knowledge at +2,175 to +2,620. The credit work found real defects, but I misjudged where the loss is. Churn belief is now the console seat's B8, and this record serves it with the second focus item rather than competing with it.",
-    "last_at": "2026-10-03T14:21:21.041545+00:00",
-    "first_at": "2026-10-03T14:21:21.041545+00:00",
-    "times_listed": 1,
-    "corrected": true,
-    "fate": null,
-    "status": null,
-    "retired": false,
-    "owner": null,
-    "reason": null
-   },
-   {
-    "key": "text:the pre-commit gate selects controls by module stem, so e0370bf94 landed with the control guarding a director ruling (test_the_price_rests_only_on_observables_a_supplier_may_use) red, and it stayed red at head unlisted on head_red_register.md",
-    "what": "THE MACHINE'S, NEW. The pre-commit gate selects controls by module stem, so e0370bf94 landed with the control guarding a director ruling (test_the_price_rests_only_on_observables_a_supplier_may_use) red, and it stayed red at HEAD unlisted on HEAD_RED_REGISTER.md. The fourth focus item fixes the instance. The class, a control whose file name lacks its subject's stem, is unrefused.",
-    "last_at": "2026-10-03T14:21:21.041545+00:00",
-    "first_at": "2026-10-03T14:21:21.041545+00:00",
-    "times_listed": 1,
-    "corrected": false,
-    "fate": null,
-    "status": null,
-    "retired": false,
-    "owner": null,
-    "reason": null
    }
   ],
   "distinct": 120,
@@ -1960,9 +1980,89 @@
   },
   "untriaged": 86,
   "distinct_open": 33,
-  "rows": 1072,
+  "rows": 1066,
   "triage_register": "read",
   "entries": [
+   {
+    "at": "2026-10-08T02:23:45.604384+00:00",
+    "corrected": false,
+    "problem": "triage:one-item-lands-twice-on-origin-and-the-shared-head"
+   },
+   {
+    "at": "2026-10-08T02:23:45.604384+00:00",
+    "corrected": false,
+    "problem": "triage:a-hold-condition-is-not-reasked-when-its-premise-moves"
+   },
+   {
+    "at": "2026-10-08T02:23:45.604384+00:00",
+    "corrected": false,
+    "problem": "triage:the-held-work-check-refuses-by-prose-and-tells-only-the-log"
+   },
+   {
+    "at": "2026-10-08T02:23:45.604384+00:00",
+    "corrected": false,
+    "problem": "triage:the-brief-reads-director-concerns-from-the-behind-checkout"
+   },
+   {
+    "at": "2026-10-08T02:23:45.604384+00:00",
+    "corrected": false,
+    "problem": "triage:the-draw-ledger-cannot-tell-mid-landing-from-not-done"
+   },
+   {
+    "at": "2026-10-08T02:23:45.604384+00:00",
+    "corrected": false,
+    "problem": "triage:a-tombstone-retires-a-row-without-checking-its-done"
+   },
+   {
+    "at": "2026-10-08T02:23:45.604384+00:00",
+    "corrected": false,
+    "problem": "triage:a-landing-carries-a-stale-direction-record"
+   },
+   {
+    "at": "2026-10-08T02:23:45.604384+00:00",
+    "corrected": false,
+    "problem": "triage:a-parked-atom-is-still-drawn"
+   },
+   {
+    "at": "2026-10-08T02:23:45.604384+00:00",
+    "corrected": false,
+    "problem": "triage:a-coupled-triad-refusal-reaches-only-the-supervisor-log"
+   },
+   {
+    "at": "2026-10-08T02:23:45.604384+00:00",
+    "corrected": false,
+    "problem": "triage:a-gas-heated-homes-electricity-has-no-season"
+   },
+   {
+    "at": "2026-10-08T02:23:45.604384+00:00",
+    "corrected": false,
+    "problem": "triage:the-draw-ledger-credits-an-item-by-path-overlap"
+   },
+   {
+    "at": "2026-10-08T02:23:45.604384+00:00",
+    "corrected": false,
+    "problem": "text:between w2_20's value-arms takes, the book more than doubled: control-arm gas legs went from 64 of 127 to 183 of 272 (b870dd6c5)"
+   },
+   {
+    "at": "2026-10-08T02:23:45.604384+00:00",
+    "corrected": true,
+    "problem": "text:the 17:22 direction record never reached origin"
+   },
+   {
+    "at": "2026-10-08T02:23:45.604384+00:00",
+    "corrected": true,
+    "problem": "text:b8 l2's commit (58993b3b5) says the next step, grading the decision over a curve of cut sizes, is handed on as a seat continuation, and none was live"
+   },
+   {
+    "at": "2026-10-08T02:23:45.604384+00:00",
+    "corrected": false,
+    "problem": "text:the w2-20-placebo-a-floor-seed-equal-to-the-base-seed continuation specified a noise floor from one seed"
+   },
+   {
+    "at": "2026-10-08T02:23:45.604384+00:00",
+    "corrected": false,
+    "problem": "text:last stretch's focus one wrote its finding (seat_finding_what_stops_the_settled_book_reaching_thousands) at 01:04 and never landed it, and the claim was swept"
+   },
    {
     "at": "2026-10-07T23:58:40.792896+00:00",
     "corrected": false,
@@ -7212,116 +7312,6 @@
     "at": "2026-10-03T17:24:46.921462+00:00",
     "corrected": false,
     "problem": "text:a commons artefact refuted by its own publisher (switching rate, 2026-09-07, 8 of 10 years) has stayed load-bearing for 26 days, because correcting it needs a coupled re-capture nobody scheduled"
-   },
-   {
-    "at": "2026-10-03T14:21:21.041545+00:00",
-    "corrected": false,
-    "problem": "triage:a-waiters-deadline-is-not-priced-against-its-queue"
-   },
-   {
-    "at": "2026-10-03T14:21:21.041545+00:00",
-    "corrected": false,
-    "problem": "text:the world digest does not identify behaviour switches, so 1002b and 1002c share digest cf823b185f8ca51c and are not the same world"
-   },
-   {
-    "at": "2026-10-03T14:21:21.041545+00:00",
-    "corrected": false,
-    "problem": "triage:a-long-jobs-worktrees-are-not-checked-before-launch"
-   },
-   {
-    "at": "2026-10-03T14:21:21.041545+00:00",
-    "corrected": false,
-    "problem": "triage:a-hold-condition-is-not-reasked-when-its-premise-moves"
-   },
-   {
-    "at": "2026-10-03T14:21:21.041545+00:00",
-    "corrected": false,
-    "problem": "text:a long job's world stamp is not tied to head"
-   },
-   {
-    "at": "2026-10-03T14:21:21.041545+00:00",
-    "corrected": false,
-    "problem": "triage:stranded-map-moves-are-replayed-as-written"
-   },
-   {
-    "at": "2026-10-03T14:21:21.041545+00:00",
-    "corrected": false,
-    "problem": "triage:one-item-lands-twice-on-origin-and-the-shared-head"
-   },
-   {
-    "at": "2026-10-03T14:21:21.041545+00:00",
-    "corrected": false,
-    "problem": "triage:a-hand-written-driver-is-not-checked-against-the-api"
-   },
-   {
-    "at": "2026-10-03T14:21:21.041545+00:00",
-    "corrected": false,
-    "problem": "triage:a-changed-control-does-not-rerun-its-synthetic-fixtures"
-   },
-   {
-    "at": "2026-10-03T14:21:21.041545+00:00",
-    "corrected": false,
-    "problem": "triage:a-refusal-naming-a-commit-is-not-reasked-against-origin"
-   },
-   {
-    "at": "2026-10-03T14:21:21.041545+00:00",
-    "corrected": false,
-    "problem": "triage:stash-completeness-sweep-reports-a-lost-file-safe"
-   },
-   {
-    "at": "2026-10-03T14:21:21.041545+00:00",
-    "corrected": false,
-    "problem": "triage:a-same-subject-sibling-is-left-behind-in-the-shared-tree"
-   },
-   {
-    "at": "2026-10-03T14:21:21.041545+00:00",
-    "corrected": false,
-    "problem": "triage:not-now-is-prose-that-nothing-reads"
-   },
-   {
-    "at": "2026-10-03T14:21:21.041545+00:00",
-    "corrected": false,
-    "problem": "triage:a-bounded-executor-turn-resets-over-unlanded-work"
-   },
-   {
-    "at": "2026-10-03T14:21:21.041545+00:00",
-    "corrected": false,
-    "problem": "text:one lane 0 change is drawn twice"
-   },
-   {
-    "at": "2026-10-03T14:21:21.041545+00:00",
-    "corrected": false,
-    "problem": "triage:a-pre-registration-sits-untracked-after-its-subject-lands"
-   },
-   {
-    "at": "2026-10-03T14:21:21.041545+00:00",
-    "corrected": false,
-    "problem": "triage:no-work-base-advance-merges"
-   },
-   {
-    "at": "2026-10-03T14:21:21.041545+00:00",
-    "corrected": true,
-    "problem": "text:i named spine_1 and pb8 by atom id and expected their build, but an atom id biases the draw toward the atom's current loop stage"
-   },
-   {
-    "at": "2026-10-03T14:21:21.041545+00:00",
-    "corrected": false,
-    "problem": "triage:a-launch-chain-dies-silently-at-its-waiters-deadline"
-   },
-   {
-    "at": "2026-10-03T14:21:21.041545+00:00",
-    "corrected": true,
-    "problem": "text:last stretch i put credit-side inference first and called the default belief \"the binding question\""
-   },
-   {
-    "at": "2026-10-03T14:21:21.041545+00:00",
-    "corrected": false,
-    "problem": "text:the pre-commit gate selects controls by module stem, so e0370bf94 landed with the control guarding a director ruling (test_the_price_rests_only_on_observables_a_supplier_may_use) red, and it stayed red at head unlisted on head_red_register.md"
-   },
-   {
-    "at": "2026-10-03T14:21:21.041545+00:00",
-    "corrected": false,
-    "problem": "text:w2_payment_channel_dd_consistency_invariant sits at l2 while the world holds two independent method draws that agree on 51% of households"
    }
   ],
   "refused_own_records": [
@@ -7338,18 +7328,48 @@
     "problems": []
    }
   ],
-  "outstanding": 987,
+  "outstanding": 981,
   "corrected": 85,
   "correction_not_recorded": 0,
   "empty_means": ""
  },
  "what_next": {
   "focus": [
-   "what-stops-the-everyday-settled-book-reaching-thousands",
-   "b8-the-learned-decision-is-graded-over-a-curve-of-cut-sizes",
-   "the-worlds-post-write-off-recovery-reads-the-register"
+   "the-settled-book-finding-lands-and-the-founder-proposal-agrees-with-it",
+   "b8-a-save-offer-is-sourced-against-the-switching-rules-and-the-seam",
+   "a-gas-heated-homes-electricity-gets-its-season"
   ],
   "steer_checks": [
+   {
+    "by_class": {
+     "lane_0": {
+      "drawn": [
+       "what-stops-the-everyday-settled-book-reaching-thousands",
+       "b8-the-learned-decision-is-graded-over-a-curve-of-cut-sizes",
+       "the-worlds-post-write-off-recovery-reads-the-register"
+      ],
+      "focus": [
+       "what-stops-the-everyday-settled-book-reaching-thousands",
+       "b8-the-learned-decision-is-graded-over-a-curve-of-cut-sizes",
+       "the-worlds-post-write-off-recovery-reads-the-register"
+      ],
+      "steered": true
+     }
+    },
+    "drawn": [
+     "what-stops-the-everyday-settled-book-reaching-thousands",
+     "b8-the-learned-decision-is-graded-over-a-curve-of-cut-sizes",
+     "the-worlds-post-write-off-recovery-reads-the-register"
+    ],
+    "focus": [
+     "what-stops-the-everyday-settled-book-reaching-thousands",
+     "b8-the-learned-decision-is-graded-over-a-curve-of-cut-sizes",
+     "the-worlds-post-write-off-recovery-reads-the-register"
+    ],
+    "note": "the previous direction named work the draw then took (measured over this stretch only -- the 2.4h since 2026-10-07T23:58:40.792896+00:00; this is the PREVIOUS FOCUS, not every drawn item)",
+    "steered": true,
+    "window": "this stretch only -- the 2.4h since 2026-10-07T23:58:40.792896+00:00"
+   },
    {
     "by_class": {
      "lane_0": {
@@ -7469,44 +7489,6 @@
     "note": "the previous direction named work the draw then took (measured over this stretch only -- the 3.0h since 2026-10-07T17:22:40.053561+00:00; this is the PREVIOUS FOCUS, not every drawn item)",
     "steered": true,
     "window": "this stretch only -- the 3.0h since 2026-10-07T17:22:40.053561+00:00"
-   },
-   {
-    "by_class": {
-     "atom": {
-      "drawn": [],
-      "focus": [
-       "B8_discovered_price_sensitivity_holdout"
-      ],
-      "steered": false
-     },
-     "lane_0": {
-      "drawn": [
-       "the-40-and-160-founder-peaks-are-read-and-reported",
-       "a-run-entry-point-refuses-when-the-box-has-no-room",
-       "w2-39-the-svt-roll-reaches-the-contact-response"
-      ],
-      "focus": [
-       "the-40-and-160-founder-peaks-are-read-and-reported",
-       "a-run-entry-point-refuses-when-the-box-has-no-room",
-       "w2-39-the-svt-roll-reaches-the-contact-response"
-      ],
-      "steered": true
-     }
-    },
-    "drawn": [
-     "the-40-and-160-founder-peaks-are-read-and-reported",
-     "a-run-entry-point-refuses-when-the-box-has-no-room",
-     "w2-39-the-svt-roll-reaches-the-contact-response"
-    ],
-    "focus": [
-     "the-40-and-160-founder-peaks-are-read-and-reported",
-     "B8_discovered_price_sensitivity_holdout",
-     "a-run-entry-point-refuses-when-the-box-has-no-room",
-     "w2-39-the-svt-roll-reaches-the-contact-response"
-    ],
-    "note": "the previous direction named work the draw then took (measured over this stretch only -- the 3.0h since 2026-10-07T17:22:40.053561+00:00; this is the PREVIOUS FOCUS, not every drawn item)",
-    "steered": true,
-    "window": "this stretch only -- the 3.0h since 2026-10-07T17:22:40.053561+00:00"
    }
   ],
   "steered_recently": true,
@@ -7520,8 +7502,9 @@
   "unminted": 35,
   "unminted_by_kind": {
    "alarm": 20,
-   "finding": 11,
-   "reference": 4
+   "finding": 10,
+   "reference": 4,
+   "unknown": 1
   },
   "unresolved": [
    {
@@ -7627,7 +7610,7 @@
     },
     {
      "date": "2026-10-08",
-     "commit": "161240bf2",
+     "commit": "187b6c43c",
      "population": 91,
      "chained": 91,
      "minted": 41,

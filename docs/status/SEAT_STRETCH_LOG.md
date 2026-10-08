@@ -8,6 +8,53 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-10-08 — orientation: The thesis's comparison has now been run across the whole range of uniform cuts, and in this world the honest answer is a tie
+
+<!-- head: 187b6c43c6b4 -->
+
+*Written by the orientation seat from its own record (2026-10-08T02:23:45.604384+00:00; 16 commits, 8 substantive, since 2026-10-07T23:58:40.792896+00:00).*
+
+## What the stretch meant
+
+The thesis's comparison has now been run across the whole range of uniform cuts, and in this world the honest answer is a tie. 4320ae6a5 graded the learned retention decision over cuts of GBP 2.5-30/MWh at both margin ends. No cut pays. The learned rule cuts for nobody and matches cut-for-none, the best flat rule, to the penny. 187b6c43c then sourced the real slope: the world's 0.0006 of staying per GBP/yr is inside the published range, and nothing published reaches break-even for a uniform cut. So the world is not too stingy. A uniform renewal cut is simply a transfer to people who would have stayed anyway. Inference finds the best flat rule, and there is no room for it to beat that rule within this frame. Any room is in targeting, a save offer made to a household seen leaving. That is the director's open b8 row. Its factual half (does a GB supplier see the leaving signal in time, and may it act on it) is knowledge we can source without him, so it is focus two. The world pressed back twice, and both corrections were honest. 212c6396a reads post-write-off recovery from the register (12.2p per GBP). Net bad debt rose 5.7%, as pre-registered. The price-cache audit (78fdb9538, 81fb2975f) found two origin results settled on a short Elexon price set. The 61003 debt-objection prediction that had held was an artefact of the missing prices, and it is refuted on correct prices, with the correction beside the claim. The director's run review was done in his order. 27 runs over an hour last week, and none would have passed. That rule is now enforced at launch. Fabric traces are forked (15-40% faster on a small run), weather is shared per cell, and every run logs its cost per leg-year. The 3,400-line run function is named as structural debt. Two things went backwards or stalled. First, the settled-book finding from last stretch's focus one was written at 01:04 and never landed. Its claim was swept. It says the book tops out at about 280 accounts because the funnel runs dry, not because of compute, and that the live path costs 2.7-3.1 MB per customer-year. But the founder-ceiling proposal that reached origin at 01:54 sizes memory on the founders-only 1.11 MB per customer-year. Two documents disagree about a number the director is being asked to act on, so that is focus one. Second, W2_20's value-arms pair failed its own coherence test (H2). The leg-1 value advantage of GBP 5,134 sits outside its own floor band of 7,970-12,965. The placebo meant to diagnose that died in five minutes on its own design: it asked for a noise floor from one seed, which noise_floor refuses. So the baseline the thesis needs is not yet a number to publish. Its continuations are queued and a worker is on the value-arms tests now. Machine: last record's 23:58 direction reached origin (1caaec35a), which corrects the carried 17:22 row. The brief again read the director's concerns from a checkout 15 behind, and it omitted b8-no-uniform-renewal-cut-from-2, which origin holds. It is carried here. The b8 curve focus row was tombstoned at 00:20, 32 minutes before its work landed. The checkout is 0 ahead and 15 behind, and nineteen units run code lacking 78fdb9538. acff52923 in /var/tmp/se-draw-order is still disposable, as recorded. 16 commits, 8 substantive.
+
+## What went wrong
+
+- NOT corrected: THE MACHINE'S, CARRIED. One item can land twice, on origin through surgical_land and as a local commit on the shared HEAD. Owner: SEAT_FINDING_ONE_ITEM_LANDS_TWICE_AND_THE_SHARED_HEAD_FORKS_FROM_ORIGIN. 02:24: no new instance. The checkout is 0 ahead and 15 behind, so it is not forking now, and nothing stops the next one.
+- NOT corrected: THE MACHINE'S, CARRIED. A held change's hold condition is not re-asked when its premise moves. Owner: SEAT_FINDING_A_HOLD_OR_A_TOMBSTONE_STATES_ITS_CONDITION_IN_PROSE_AND_NOTHING_RE_ASKS_IT. 02:24: no new instance.
+- NOT corrected: THE MACHINE'S, CARRIED. The held-work check refuses an item when its prose names a held file, even when the held work is not the item's, and the refusal reaches only the supervisor log. 02:24: no new instance.
+- NOT corrected: THE MACHINE'S, CARRIED. The seat's brief reads the director's open concerns from the behind checkout. 02:24: NEW INSTANCE. The checkout is 15 behind, and the brief's previous_for_the_director omitted b8-no-uniform-renewal-cut-from-2, which 4320ae6a5 put on origin at 00:52. This record carries it from origin.
+- NOT corrected: THE MACHINE'S, CARRIED. The draw ledger reads the same for work never started and for work mid-landing, because it asks only origin by path. 02:24: B8 L2 is no longer listed, so the earlier case cleared, but nothing mid-landing was tested this stretch.
+- NOT corrected: THE MACHINE'S, CARRIED. A focus-row tombstone still retires a row without asking its DONE. 02:24: NEW INSTANCE. b8-the-learned-decision-is-graded-over-a-curve-of-cut-sizes was tombstoned at 00:20:51, and its work (4320ae6a5) landed at 00:52. It retired 32 minutes before its DONE was met.
+- NOT corrected: THE MACHINE'S, CARRIED. A landing can carry docs/direction/DIRECTION.yaml from the shared working copy when it is older than origin's. 02:24: 4320ae6a5 landed DIRECTION.yaml, but it differs from 1caaec35a only by the added b8 row, so nothing stale was carried. No new instance.
+- NOT corrected: THE MACHINE'S, CARRIED. A parked atom is still counted as drawn. H45 is PARKED and the counter still moves. 02:24: SITE2 went from 42695 to 42753.
+- NOT corrected: THE MACHINE'S, CARRIED. The coupled-triad gate now excludes twinless L3 targets, and its refusal reaches only the supervisor journal. 02:24: no new instance.
+- NOT corrected: THE WORLD'S, CARRIED. A gas-heated fabric home's electricity has no season: the median month max/min is 1.288 against SERL's 1.36-1.47. 02:24: unchanged, and it is focus three.
+- NOT corrected: THE MACHINE'S, CARRIED. The draw ledger credits or denies an item by path overlap, not by its work. 02:24: NEW INSTANCE. b8-the-learned-decision-is-graded-over-a-curve-of-cut-sizes reads not_done 'CANNOT ANSWER', though 4320ae6a5 is its work. The two older rows still read landed_unbound to the wrong commits.
+- NOT corrected: THE WORLD'S, CARRIED. Between W2_20's value-arms takes, the book more than doubled: control-arm gas legs went from 64 of 127 to 183 of 272 (b870dd6c5). No commit pre-registered or claims that move. 02:24: the head arms finished at 00:19. Their H2 failed (leg-1 value advantage GBP 5,134 outside its own floor band of 7,970-12,965). The bisection continuation is queued, and nothing has attributed the move yet.
+- corrected: THE MACHINE'S, CARRIED. The 17:22 direction record never reached origin. 02:24: CORRECTED. The 23:58 record reached origin as 1caaec35a at 00:23, after 687578352's fix, and 4320ae6a5 then added a row to it cleanly.
+- corrected: THE MACHINE'S, CARRIED. B8 L2's commit (58993b3b5) says the next step, grading the decision over a curve of cut sizes, is handed on as a seat continuation, and none was live. 02:24: CORRECTED. The step landed as 4320ae6a5 under the re-issued focus row, and the spent continuation retired at 00:02.
+- NOT corrected: THE MACHINE'S, NEW. The w2-20-placebo-a-floor-seed-equal-to-the-base-seed continuation specified a noise floor from one seed. noise_floor refuses that by construction, so the launched job (w220-placebo) died at 02:02:56 with exit status 5 after arm A, and leg B produced no artefact. The continuation is still offered unchanged.
+- NOT corrected: MINE, NEW. Last stretch's focus one wrote its finding (SEAT_FINDING_WHAT_STOPS_THE_SETTLED_BOOK_REACHING_THOUSANDS) at 01:04 and never landed it, and the claim was swept. At 01:54, a founder-ceiling proposal sized on the founders-only slope reached origin, and the unlanded finding says that slope understates the live path about 2.6x. My record did not tell the run-review work to read the scale finding. Focus one fixes both.
+
+## Chosen against
+
+- A focus row for W2_20 (the failed H2, the dead placebo, the doubled-book bisection, the re-take on register recovery).
+- Building the save-offer decision set.
+- Folding or slotting the settled records (#5 of the scale finding) as the next engineering change.
+- Refactoring the 3,400-line run function for checkpoints and parallel settlement.
+- Raising founders or the prospect cap.
+- Contradictions 2-4 of the practitioner finding (W2_36 hard-to-read keyed to premises, tenure-tilted smart reads, the void deemed leg).
+- Mechanism fixes for the fix-open machine rows (tombstones, held-work, parked-atom counting, ledger grading by path, the brief reading behind).
+
+## Focus for the next stretch
+
+- `the-settled-book-finding-lands-and-the-founder-proposal-agrees-with-it`
+- `b8-a-save-offer-is-sourced-against-the-switching-rules-and-the-seam`
+- `a-gas-heated-homes-electricity-gets-its-season`
+
+---
+
 ## 2026-10-08 — orientation: B8 reached L2 at 23:59:57Z (58993b3b5), a minute after this brief was cut
 
 <!-- head: 161240bf2b04 -->
