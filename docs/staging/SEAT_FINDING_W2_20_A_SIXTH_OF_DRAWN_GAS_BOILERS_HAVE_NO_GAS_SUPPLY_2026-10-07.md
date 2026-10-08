@@ -452,3 +452,74 @@ branches. A mutation that reads the module constant instead of the campaign's fi
 Verified on a real run: `origin/main` `20719d272` with this diff, `--end-year 2017`
 (`/var/tmp/se-w220-bisect-out/head_with_budget.json`). Both arms read `settlement_customer_year_budget`
 1750.0 and `settlement_sample_rate` 0.4188, so even this truncated book settles 42% of its own campaign wins.
+
+## (i) W2_20 alone, `81732ffe2` reverted at a 2017-truncated control arm: pre-registration (seat, 2026-10-08, written before either probe started)
+
+**Instrument.** `book_identity.control_arm` of `tools.run_value_cycle_ab --end-year 2017` (default draw,
+control plus value). It reports `with_a_gas_leg`, `dual_fuel`, `dual_fuel_share_of_accounts` and
+`billing_accounts_settled_in_window`, plus `control_arm.total_net_gbp`. Two probes, serial, each in its
+own worktree with `sim/cache/*` symlinked to the shared cache. A probe that live-fetches is void.
+- U: origin `ad43a298a` as it is.
+- R: the same commit with `81732ffe2`'s code paths reverted (`simulation/premise_population.py`,
+  `household.py`, `fabric_physics.py`, `premise_trace.py`, `background/fabric_gap_ledger.py`). The revert
+  applies cleanly to code. Only this staging file conflicts, and it is not substrate. One variable.
+
+Both share the 1,750 budget, so the bisect's dial is held. The last unreverted 2017 reading
+(`20719d272`, `head_with_budget.json`) was 110 accounts, 49 gas legs, 33 dual fuel, share 0.30.
+
+| # | quantity (R against U) | prediction | confidence |
+|---|---|---|---|
+| Q0 | billing accounts settled | within ±3 | ~0.6 |
+| Q1 | accounts with a gas leg | **up** in R, by 3-9. Mechanism: with the revert, gas-boiler homes with no gas meter hold a gas account again. That is about 9 points of the drawn stock on a gas register (82.2% to 91.1%). | ~0.55 |
+| Q2 | dual-fuel share | up, by 0.02-0.08 | ~0.5 |
+| Q3 | control `total_net_gbp` | moves by less than 5% of U's net, in either direction | ~0.6 |
+
+**Escape clause (the finding's P1).** If Q1 comes back with identical gas-leg counts, the arms book does
+not pass through the drawn supply flag, and W2_20 does not reach the arms book. Then Q2 and Q3 are
+read only for drift through the chooser.
+
+## (i) graded: on its own, W2_20 takes 3 of 52 gas legs and £4,044 of gross margin off the 2017 control arm. It reaches the arms book through the prospects alone (seat, 2026-10-08 ~04:55Z)
+
+Unit `longjob-w220-own-effect` ran R from 04:36Z and U from 04:40Z. Both exited rc 0. Their logs hold no
+data live-fetch: the "live" lines are the retired committee's refusal and the coupled-triad diagnostics,
+and they appear in both logs alike. Both read world `cdba75ebb9197b33` and budget 1,750. Artefacts:
+`/var/tmp/se-w220-own-out/{R,U}.json`. They are not committed. **R's `producing_commit` reads
+`ad43a298a` and has no field for an uncommitted revert,** so the file cannot say it is not HEAD's code.
+This note is its only label.
+
+| control arm, `--end-year 2017` | R: `81732ffe2` reverted | U: origin `ad43a298a` | U - R | prediction | verdict |
+|---|---:|---:|---:|---|---|
+| Q0 billing accounts settled | 109 | 110 | +1 | within ±3 | **PASS** |
+| Q1 with a gas leg | 52 | 49 | **-3** | R up by 3-9 | **PASS** (at the bottom edge) |
+| Q2 dual-fuel (count / share) | 36 / 0.330 | 33 / 0.300 | -3 / **-0.030** | R up by 0.02-0.08 | **PASS** |
+| Q3 control `total_net_gbp` | £19,680.06 | £19,304.97 | **-£375.09 (-1.9%)** | under 5% | **PASS** |
+| control gross margin | £69,953.49 | £65,909.04 | -£4,044.45 (-5.8%) | (not registered) | |
+| `PROS-*` accounts | 36 | 37 | +1 | | |
+| electricity legs | 93 | 94 | +1 | | |
+
+U equals the earlier unreverted 2017 readings to the penny: net £19,304.97 and gross margin £65,909.04 at
+`20719d272` (`head_with_budget.json`), and net £19,304.97 in placebo A at `27af1a461`, seven commits before
+`ad43a298a`. None of those seven commits moves the 2017 control arm.
+
+**The escape clause does not fire.** The gas legs move, so W2_20 reaches the arms book. Q1 landed at the
+bottom of its band. Q1 assumed every drawn household passes the drawn supply flag. In fact only
+prospects do (`simulation/live_population.py:1346` reads `prospect.premise.commodity`). Every one of the
+34 accounts whose net moved is a `PROS-*` id. No founder or SME account moved. **The founder book does not
+pass through W2_20 at all.** That half of P1's mechanism was wrong, and the move is smaller for it.
+
+**Where the £375 comes from.** One account settles only in U (`PROS-2016-0112`, £344.08). 34 common prospects
+move by a net +£719.18 in R. The largest moves are `PROS-2016-0075` +£234, `-0098` +£211, `-0092` +£191,
+`-0090` +£172 and `-0042` -£139. Gross margin falls ten times as far as net (-£4,044 against -£375).
+So most of the lost gas margin was offset in R by costs that also go with a gas leg. I have not split
+which costs. Read the bridge (`gross_to_net_bridge`) in R and U before reasoning about it.
+
+**Not a reading of the arms' contrast.** `value_advantage_gbp` is £502.43 in R and £361.62 in U. Both sit
+inside the 2017 elasticity floor ([£133, £636], placebo note). So this does not show that W2_20 moves the
+value-vs-control contrast. It shows that W2_20 moves the book that contrast is taken on.
+
+**What this establishes for the W2_20 L2 record.** It cited a bill-side effect that no arms reading had
+isolated. At 2017 it is now isolated. With one variable changed, 3 of 52 control-arm gas legs disappear
+(6%), dual-fuel share falls 3 points, and control gross margin falls 5.8%. Over the full window the size
+is not measured. That is the `b2ec5147a`-reverted leg 1 against `h` leg 1 (about 2 h). It is handed on and
+not run here, because it would size an effect whose sign and route are now known. It would not decide
+whether one exists.
