@@ -4670,10 +4670,13 @@ def _retired_ids() -> set[str]:
     work it did not do is the failure this whole route exists to stop.
     """
     try:
+        # Read once: it re-reads and validates the direction record, and inside the comprehension
+        # it ran once per retired entry (847 on 2026-10-08 -- 431s for one draw).
+        orientation = current_orientation()
         finished = {
             str(i.get("id")) for i in seat_continuation.retired()
             if i.get("id") and i.get("retired_at_orientation")
-            and str(i["retired_at_orientation"]) == current_orientation()
+            and str(i["retired_at_orientation"]) == orientation
         }
         return finished | {
             str(i.get("id")) for i in seat_continuation.superseded() if i.get("id")

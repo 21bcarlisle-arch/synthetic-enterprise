@@ -371,3 +371,19 @@ def test_an_open_concern_never_licenses_an_EMPTY_focus():
     `focus is empty` clause, asserted here for the concerns case so removing it reds."""
     problems = d.validate(_record(focus=[], for_the_director=[dict(_CONCERN)]))
     assert any("focus is empty" in p for p in problems)
+
+
+def test_validation_reads_the_maps_lanes_once_per_record(monkeypatch):
+    """`delivery_lane._retired_ids` validated this record once per retired continuation, and per-item
+    map reads made that 4,210 parses and 431s for one draw (2026-10-08). Five lane-bearing items, one
+    read -- and the unknown lane is still refused, so the shared read still checks every item. The
+    monkeypatch COUNTS the read; it isolates nothing."""
+    from background import seat_continuation
+    reads = []
+    monkeypatch.setattr(seat_continuation, "_map_lanes", lambda: reads.append(1) or {"A_lane"})
+    focus = [{"id": f"f{n}", "why": "w", "lane": "A_lane"} for n in range(4)]
+    focus.append({"id": "f4", "why": "w", "lane": "Z_not_a_lane"})
+    problems = d.validate(_record(focus=focus))
+    assert len(reads) == 1
+    assert [p for p in problems if "lane" in p] == [
+        "focus[4].lane 'Z_not_a_lane' is not a lane on the maturity map (A_lane)"]

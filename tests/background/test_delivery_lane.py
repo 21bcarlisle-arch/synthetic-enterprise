@@ -1151,3 +1151,17 @@ def test_a_running_jobs_worktree_diff_is_its_subject(tmp_path, monkeypatch):
     assert "_bill_shock_base" in holders[0]["identifiers"]
     assert "unrelated_context_name" not in holders[0]["identifiers"]
     assert "events.py" in holders[0]["paths"]
+
+
+def test_retirement_reads_the_orientation_once_however_many_continuations_retired(monkeypatch):
+    """`current_orientation()` re-reads and validates the direction record. Called per retired entry
+    it made one draw 431s on 2026-10-08 (847 entries, 4,210 map parses). The entries do match, so the
+    rare branch is reachable: all fifty retire under the one orientation read."""
+    calls = []
+    monkeypatch.setattr(dl, "current_orientation", lambda: calls.append(1) or "O1")
+    monkeypatch.setattr(sc, "retired", lambda: [
+        {"id": f"w{n}", "retired_at_orientation": "O1"} for n in range(50)])
+    monkeypatch.setattr(sc, "superseded", lambda: [])
+    assert dl._retired_ids() == {f"w{n}" for n in range(50)}
+    assert len(calls) == 1
+
