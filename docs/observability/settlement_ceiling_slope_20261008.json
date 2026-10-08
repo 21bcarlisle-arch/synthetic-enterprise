@@ -73,6 +73,58 @@
       "campaign_record_on_disk_said": 1999.3,
       "clean": true,
       "unclean_reasons": []
+    },
+    {
+      "budget": 2800.0,
+      "wall_s": 4215.6,
+      "peak_rss_mb": 4908.1,
+      "peak_rss_anon_mb": 4893.2,
+      "peak_rss_file_mb": 137.1,
+      "peak_rss_shmem_mb": 0.0,
+      "rss_sample_interval_s": 0.5,
+      "exit_status": 0,
+      "ok": true,
+      "child_wall_s": 4205.725999363,
+      "customer_years_committed": 2796.7,
+      "customer_year_budget_seen": 2800.0,
+      "wins": 421,
+      "funnel_wins": 497,
+      "wins_refused_by_settlement_budget": 76,
+      "accounts_after_final_year": 579,
+      "settlement_bound_years": [],
+      "years_reported": 10,
+      "producer_in_flight_at_start": null,
+      "producer_in_flight_at_end": null,
+      "campaign_record_agrees": true,
+      "campaign_record_on_disk_said": 2796.7,
+      "clean": true,
+      "unclean_reasons": []
+    },
+    {
+      "budget": 3400.0,
+      "wall_s": 5037.1,
+      "peak_rss_mb": 5479.0,
+      "peak_rss_anon_mb": 5390.2,
+      "peak_rss_file_mb": 133.9,
+      "peak_rss_shmem_mb": 0.0,
+      "rss_sample_interval_s": 0.5,
+      "exit_status": 0,
+      "ok": true,
+      "child_wall_s": 5027.912749761017,
+      "customer_years_committed": 3126.1,
+      "customer_year_budget_seen": 3400.0,
+      "wins": 497,
+      "funnel_wins": 497,
+      "wins_refused_by_settlement_budget": 0,
+      "accounts_after_final_year": 579,
+      "settlement_bound_years": [],
+      "years_reported": 10,
+      "producer_in_flight_at_start": null,
+      "producer_in_flight_at_end": null,
+      "campaign_record_agrees": true,
+      "campaign_record_on_disk_said": 3126.1,
+      "clean": true,
+      "unclean_reasons": []
     }
   ],
   "marginal": [
@@ -83,6 +135,22 @@
       "marginal_s_per_customer_year": 1.528,
       "marginal_mb_per_customer_year": 1.3972,
       "marginal_anon_mb_per_customer_year": 1.3991
+    },
+    {
+      "from_customer_years": 1999.3,
+      "to_customer_years": 2796.7,
+      "delta_customer_years": 797.4,
+      "marginal_s_per_customer_year": 2.3826,
+      "marginal_mb_per_customer_year": 1.3662,
+      "marginal_anon_mb_per_customer_year": 1.5105
+    },
+    {
+      "from_customer_years": 2796.7,
+      "to_customer_years": 3126.1,
+      "delta_customer_years": 329.4,
+      "marginal_s_per_customer_year": 2.4939,
+      "marginal_mb_per_customer_year": 1.7332,
+      "marginal_anon_mb_per_customer_year": 1.5088
     }
   ],
   "publisher": {
@@ -91,8 +159,8 @@
   },
   "recommendation": {
     "decidable": true,
-    "worst_marginal_s_per_customer_year": 1.528,
-    "worst_marginal_mb_per_customer_year": 1.3972,
+    "worst_marginal_s_per_customer_year": 2.4939,
+    "worst_marginal_mb_per_customer_year": 1.7332,
     "measured_from": {
       "customer_years": 1194.7,
       "wall_s": 1086.3,
@@ -108,12 +176,37 @@
         "guest_available_mb": 15420.3,
         "share_of_guest_the_run_may_hold": 0.25,
         "allowed_peak_rss_mb": 6008.0,
-        "customer_years": 3566.2,
+        "customer_years": 3106.5,
         "note": "share is of TOTAL, not AVAILABLE: the run has to fit beside daemons that come and go, and sizing to a momentary `available_mb` sets a ceiling that was true for one second."
       }
     },
-    "supported_customer_years": 3566.2,
+    "supported_customer_years": 3106.5,
     "binding_bound": "memory",
-    "binding_bound_is_evidence": true
-  }
+    "binding_bound_is_evidence": true,
+    "funnel_supply_customer_years": 3126.1,
+    "note_supply": "at least one measured point refused nothing, so the campaign's own demand is bounded here and a ceiling above it buys no accounts"
+  },
+  "upper_points_from": {
+    "git_head": "a44c436c6",
+    "generated_at_utc": "2026-10-08T09:29:50.568562+00:00",
+    "headroom_before": {
+      "timestamp": "2026-10-08T06:55:37.845236+00:00",
+      "total_mb": 24032.1,
+      "available_mb": 11213.8,
+      "shmem_mb": 1201.1,
+      "swap_free_mb": 492.9,
+      "psi_some_avg60": 0.0,
+      "oom_kills_total": 303
+    },
+    "headroom_after": {
+      "timestamp": "2026-10-08T09:29:50.566629+00:00",
+      "total_mb": 24032.1,
+      "available_mb": 14632.5,
+      "shmem_mb": 658.6,
+      "swap_free_mb": 336.0,
+      "psi_some_avg60": 0.0,
+      "oom_kills_total": 303
+    }
+  },
+  "reanalysed_at_utc": "2026-10-08T10:56:26.528835+00:00"
 }

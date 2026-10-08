@@ -57,3 +57,49 @@ to 50, as the 2026-10-07 re-price was.
 **The ~460 MB at the 1,200 point is still unattributed.** RssAnon here is 2,563.0 MB, which
 matches `ad43a298a`'s 2,563.9. File pages are 139 MB, which is what that finding subtracted. So
 this instrument confirms the residual and does not name it. Naming it needs a pair on the old code.
+
+## Upper points (2,800 / 3,400), merged and graded
+
+`longjob-settlement-ceiling-retake-hi` ran both at `a44c436c6` in `/home/rich/wt-ceiling-retake`.
+Both points were clean, with no producer in flight. Their rows are merged into
+`docs/observability/settlement_ceiling_slope_20261008.json` (their own headroom samples are kept
+under `upper_points_from`) and re-analysed with `tools.settlement_ceiling_probe --reanalyse`.
+
+| budget | committed cy | wall s | `ru_maxrss` MB | RssAnon MB | wins | refused |
+|---|---|---|---|---|---|---|
+| 2,800 | 2,796.7 | 4,215.6 | 4,908.1 | 4,893.2 | 421 | 76 |
+| 3,400 | 3,126.1 | 5,037.1 | 5,479.0 | 5,390.2 | 497 | **0** |
+
+| leg | MB/cy (`ru_maxrss`) | MB/cy (RssAnon) | s/cy |
+|---|---|---|---|
+| 1,194.7 → 1,999.3 | 1.397 | 1.399 | 1.53 |
+| 1,999.3 → 2,796.7 | 1.366 | 1.511 | 2.38 |
+| 2,796.7 → 3,126.1 | **1.733** | 1.509 | 2.49 |
+
+- **P2 holds.** The worst leg is 1.733 MB/cy, under 2.0. It is the shortest leg (329 cy). Its
+  RssAnon slope (1.509) matches the leg below it, so the 0.22 jump in `ru_maxrss` is
+  probably sampling noise in the peak, not convexity. I cannot tell that from two points, so I
+  price on 1.733 anyway, because that is the conservative direction.
+- **P3 weakens but holds within its band.** On the upper two legs the anon slope and the total
+  slope differ by 0.145 and 0.224 MB/cy. That is at the edge of the 0.2 band on the last leg.
+  File pages stay flat (137, 134).
+- **P4: it splits by instrument, and I say which reading is which.** *Measured:* supply binds
+  first. 3,400 refused no wins, and the funnel exhausts at **3,126.1 cy / 497 wins**, the same
+  3,126 the 2026-10-06 curve found. The run that reached it peaked at 5,479 MB, under the
+  6,008 MB that 25% of the guest allows. *Priced:* the probe extrapolates the steepest leg from
+  the 1,200 point: 2,694.5 + (cy − 1,194.7) × 1.7332 ≤ 6,008. That supports **3,106.5 cy**, so
+  on the conservative price memory binds about 20 cy (0.6%) before supply. That price is what
+  `binding_bound: memory` reports. On the number the constant is priced from, P4 fails narrowly.
+  On the measured point it holds.
+- **Time is convex where memory is not.** s/cy goes 1.53 → 2.38 → 2.49, and a full-window run at
+  supply takes 84 min. The time bound stays undecidable (`publish_gate_duration.jsonl` is
+  absent). The memory price does not cover it.
+
+**The raise, priced and not yet landed.** Pricing the steepest clean leg against 25% of the
+guest and flooring to 50 gives **SETTLEMENT_CUSTOMER_YEAR_BUDGET = 3,100** (from 1,750). Its
+`budgeted_run_peak_mb` on the same line is 2,694.5 + 1,905.3 × 1.7332 = 5,997 MB. In practice
+3,100 removes the ceiling: it refuses about 26 cy of a 3,126 cy supply. So the book a run
+settles becomes the funnel's book, not the box's. The raise is NOT in this commit, because
+`longjob-w220-nine-seed-handoff` and `longjob-w220-recov-leg2-handoff` were active at
+11:58. Raising the budget changes the book every value-arms run measures, so it would split that
+series across two worlds. The raise is handed off with an embargo set to the end of that series.
