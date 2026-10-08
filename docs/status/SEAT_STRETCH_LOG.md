@@ -8,6 +8,49 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-10-08 — orientation: The director ruled at 06:46, and his rulings change the frame more than anything built this stretch
+
+<!-- head: 75bbed5bdeac -->
+
+*Written by the orientation seat from its own record (2026-10-08T08:22:08.553576+00:00; 10 commits, 4 substantive, since 2026-10-08T05:24:19.070128+00:00).*
+
+## What the stretch meant
+
+The director ruled at 06:46, and his rulings change the frame more than anything built this stretch. Retention in GB is saves on the loss notice and keeping home movers, not blanket renewal cuts. That retires B8's uniform-cut frame, which had found no cut size that pays, and points the thesis's retention test at targeting a leaver, the place where inference could beat a flat rule. That test needs the Pending notice, and last stretch's focus two established honestly that its lead time is not published (re-searched Ofgem, DCC, Energy UK, RECCo, ElectraLink), and stopped as told. So the frame is right and its first observable waits on a practitioner figure. It is raised with a conservative default, and the default lets the build proceed. Home moves are on (ada37371c), with the change-of-tenancy debt still the occupier's at 28 moves in a small run. The founder raise to 400 is approved and waits only on pricing a ~5,000 customer-year budget (the ceiling probe at 2,800 and 3,400 is running). The baseline got clearer. The flat control arm takes the elasticity draw for every renewing account, as the value arm does (6a857a21d), so the comparison is fair by design, and the floor needs nine seeds. W2_20 on its own takes 12 gas legs and 7.7% of gross margin off h's control arm over the decade (75bbed5bd), and that size is queued onto the headline. The world moved forward in one place and is still short in another. The gas-heated home now has SERL's season (839806aff), but its evening peak is 0.32 kWh/h too high, so the published ratio is still out of band. That reading sits uncommitted in the shared tree, with the lead-time section beside it. Landing both comes before new work. The 48ce3a9 salvage in /tmp/wt-gaslevel holds only an owner file and is disposable. Nothing went backwards. Both previous focus items were drawn. One was finished to its honest stop and is unlanded. The other was half done and is still first. The brief counts 10 commits and 4 substantive. Two were empty base-advance merges. The draw ledger miscredited the ceiling retake by path once more.
+
+## What went wrong
+
+- NOT corrected: THE MACHINE'S, CARRIED. One item can land twice, on origin through surgical_land and as a local commit on the shared HEAD. Owner: SEAT_FINDING_ONE_ITEM_LANDS_TWICE_AND_THE_SHARED_HEAD_FORKS_FROM_ORIGIN. 08:22: no new instance. HEAD and origin are level.
+- NOT corrected: THE MACHINE'S, CARRIED. A held change's hold condition is not re-asked when its premise moves. Owner: SEAT_FINDING_A_HOLD_OR_A_TOMBSTONE_STATES_ITS_CONDITION_IN_PROSE_AND_NOTHING_RE_ASKS_IT. 08:22: no new instance.
+- NOT corrected: THE MACHINE'S, CARRIED. The held-work check refuses an item when its prose names a held file, even when the held work is not the item's, and the refusal reaches only the supervisor log. 08:22: no new instance.
+- NOT corrected: THE MACHINE'S, CARRIED. The seat's brief reads the director's open concerns from the behind checkout. 08:22: no new instance. HEAD and origin were level, and the brief carried all nine open rows.
+- NOT corrected: THE MACHINE'S, CARRIED. The draw ledger reads the same for work never started and for work mid-landing, because it asks only origin by path. 08:22: the W2_20 own-effect landing (surgical_land pid 2608956) was mid-gate when the brief was cut and reached origin as 75bbed5bd. The brief listed no item for it, so this stretch neither shows nor clears the defect.
+- NOT corrected: THE MACHINE'S, CARRIED. A focus-row tombstone still retires a row without asking its DONE. 08:22: no new instance.
+- NOT corrected: THE MACHINE'S, CARRIED. A landing can carry docs/direction/DIRECTION.yaml from the shared working copy when it is older than origin's. 08:22: no new instance.
+- NOT corrected: THE MACHINE'S, CARRIED. A parked atom is still counted as drawn. H45 is PARKED and the counter still moves. 08:22: SITE2 went from 42821 to 42903.
+- NOT corrected: THE MACHINE'S, CARRIED. The coupled-triad gate now excludes twinless L3 targets, and its refusal reaches only the supervisor journal. 08:22: not re-read this stretch. D48 is still at L1, so nothing that would lift the exclusion has changed.
+- NOT corrected: THE WORLD'S, CARRIED. A gas-heated fabric home's electricity has no season: the median month max/min is 1.288 against SERL's 1.36-1.47. 08:22: PARTLY MOVED. 839806aff gives it SERL's season in absolute terms, and the 2022 day-shape reading (uncommitted, in the seasonal-swing knowledge page) finds the trough right at 0.128 against 0.13 kWh/h, with the evening peak 0.32 kWh/h too high. That excess level is what holds the ratio short. Focus one.
+- NOT corrected: THE MACHINE'S, CARRIED. The draw ledger credits or denies an item by path overlap, not by its work. 08:22: NEW INSTANCE. retake-the-settlement-ceiling-curve-at-current-code reads not_done, though a44c436c6 is its work: the ledger asked for the 20261006 slope file, and the work wrote 20261008's. The b8 curve row still reads not_done against 4320ae6a5.
+- corrected: MINE, NEW. The director's 06:46 rulings answered three open concerns: home moves, the founder ceiling and B8. eb9f8d026 at 08:09 marked only home moves answered, so for about an hour and a half the record showed him two questions as still waiting on him after he had ruled. 08:22: CORRECTED here. Both rows carry his words, and the blank he left for save rates is its own row.
+
+## Chosen against
+
+- A focus row for the 400-founder raise, the ~5,000 customer-year budget and the end-to-end run.
+- Building the save-offer decision set itself, or grading B8 on it now.
+- Changing acquisition so that it selects on each prospect's own responsiveness.
+- Vulnerability as a hidden state and the theft study (items 2 and 3 of the rare-events order).
+- More W2_20 focus (the nine-seed floor, the 20261008r arms pair, the headline carry).
+- Mechanism fixes for the open machine rows (draw ledger by path, parked-atom counting, held-work, tombstones).
+
+## Focus for the next stretch
+
+- `a-gas-heated-homes-evening-peak-comes-down-to-serls`
+- `the-pending-notice-reaches-the-company-at-the-asap-floor`
+- `a-home-mover-is-a-retention-moment-the-company-sees`
+- `a-void-follows-a-move-out`
+
+---
+
 ## 2026-10-08 — orientation: Both questions last record asked were answered on evidence, and the answer to one of them tells us something about the frame
 
 <!-- head: bab18f0737ea -->
