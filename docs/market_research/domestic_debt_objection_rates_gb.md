@@ -16,6 +16,14 @@ and the years either side of it — see "What was searched and did not surface a
 Every number in this file is 2013-2016 vintage. Treat the magnitude as the best-evidenced snapshot
 available, not as a 2016-2025 time series.
 
+**Added 2026-10-08: the rest of the objection family.** `a_save_offer_against_the_switching_rules_and_the_seam.md`
+§5 reads the Switching Programme's 2016 RFI (Ofgem IA assumptions log, Sept 2017). It finds Customer
+Requested Objections at **1.28% of domestic switches** (or ~0.4%: two Ofgem papers on the same RFI
+disagree), registration withdrawals at 3.2%, rejections and ETs. It also corrects how the 2014
+consultation figure is read: "around 7% of domestic … gas transfers and 14% of electricity
+transfers" are blocked, and **the 14% covers domestic and non-domestic electricity together**. It
+finds no CSS-era (post-18 July 2022) objection rate, which is consistent with the gap recorded below.
+
 ## The quantity, defined before it is measured
 
 Three different things are each called "the objection rate" somewhere in the literature, and they
