@@ -526,3 +526,33 @@ the remaining distance to SERL's 1.36–1.47 comes from** in 2022. The flat summ
 - **Lighting level and amplitude:** **not established** for 2016–2025. ECUK brackets the world's
   constant on both sides of a method break. The shape is sourced, and the amplitude follows the
   level. Nothing is changed.
+
+## The day's shape in 2022: the trough is right and the evening peak is 0.32 kWh/h too high (2026-10-08)
+
+**Source, read at source 2026-10-08:** SERL Statistical Report Vol 2 (the same document as above),
+§3.4, Figure 7 and **Table 6**: "the median of the mean electricity use in each half hour per
+participant", for homes with gas central heating and no PV. For 2022 the minimum is **0.13 kWh/h at
+04:30** and the maximum **0.48 kWh/h at 18:30**. 2023 gives 0.13 at 04:30 and 0.45 at 18:30. The table
+publishes only the two extremes. The rest of the curve is in the figure and was not read off.
+
+The same report's Table 3 (2022 monthly medians, January 8.5 and August 6.0 kWh/day) is the season
+already cited above.
+
+**The world, the same statistic.** Each home's mean kWh/h in each half hour across 2022 (C1 weather),
+then the median across homes. 163 drawn gas-heated no-PV premises, base seed 17, origin `faa956270`:
+
+| | Trough | Peak | Annual median |
+|---|---|---|---|
+| SERL 2022 | 0.13 at 04:30 | 0.48 at 18:30 | ~2,600 (monthly medians summed) |
+| World | **0.128** at 03:30–04:30 | **0.803** at 19:30 (0.763 at 18:30) | 3,421 |
+
+**What this says.** A real base load in 2022 is what the world draws. The trough is the always-on
+load, the cold appliances and the boiler's standby, and it lands on SERL's 0.13. The world's whole
+excess is **above** the base, and it peaks in the evening. A uniform 25 W always-on load would put
+the trough at 0.07, half the real figure. So EFUS 2011's base-load anchor survives a 2022 check, even
+though it predates LED lighting and the standby regulations.
+
+What this does not say: SERL's figure is a median of means, so it does not split homes. Whether the
+real evening peak is low because fewer homes cook electrically, or because each home uses less per
+meal, cannot be read from it. The world-side split is in
+`docs/staging/SEAT_FINDING_THE_FABRIC_PATH_GIVES_A_GAS_HEATED_HOMES_ELECTRICITY_NO_SEASON_2026-10-06.md`, 2026-10-08 (worker).
