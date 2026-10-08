@@ -293,3 +293,81 @@ the arms. The value-arms page's code-since-the-run guard (`_code_since_the_run`)
 withdraw the arms' current-world claim until they are re-taken. No exemption is filed, because
 this change CAN move the arms. D48's grade should be re-read on the next capture, with the
 results in this section decided blind to it.
+
+## The season is now right in absolute terms; what is left is the LEVEL, and the always-on draw moved it (2026-10-08, executor seat, draw `a-gas-heated-homes-electricity-gets-its-season`)
+
+**Disposition of the draw's duplicate-work note:** the live claim it named under this same id was
+this draw's own write. `ps` showed no other seat on it.
+
+**Re-measured on origin `6a857a21d`** with the same instrument (`/tmp/gasseason/measure.py 200`,
+2022 C1 weather, base seed 17). The population is now **163** gas-heated, no-PV homes, not 176,
+because W2_20 step 2 (`81732ffe2`) draws heating given the gas meter.
+
+| Build | Median by month, kWh/day (Jan … Dec) | max/min | DJF−JJA | Extreme-month gap | Annual median |
+|---|---|---|---|---|---|
+| Origin `6a857a21d` | 10.50 10.29 9.55 9.34 8.82 8.23 8.49 8.43 8.83 9.15 9.49 10.70 | **1.301** (Dec/Jun) | +2.12 | **2.47** | **3,418** |
+| Same, always-on load put back to the flat 25 W (one variable) | 9.02 8.55 7.80 7.67 7.29 6.75 6.83 6.75 7.40 7.66 7.86 8.54 | 1.338 (Jan/Jun) | +1.93 | 2.27 | 2,842 |
+| SERL 2022, gas-heated, no PV | Jan 8.5 … Aug 6.0 | 1.42 (band 1.36–1.47) | — | **2.5** | — |
+
+**What this says.** The world's absolute season, an extreme-month gap of 2.47 kWh/day, now matches
+SERL 2022's 2.5. Nothing is missing from the SEASON any more. The ratio sits below the band because
+**every month is about 2 kWh/day too high**. A flat excess divides the ratio down without
+touching the gap. The item's premise, that some component "lacks seasonality", is spent. What is
+left is a level defect, and that is a different question.
+
+**The level, against three sources that agree:**
+
+- Ofgem TDCV medium electricity, 2,700 kWh (`simulation.population_draw.TDCV_BANDS_KWH`, the
+  MEDIUM band's top). The world's gas-heated no-PV median is **3,418, 27% over**.
+- SERL 2022's monthly medians run 8.5 → 6.0 kWh/day. Their annual sum is about 2,600.
+- DESNZ ECUK 2025, Table U3, 2022 domestic electricity for appliances, cooking and lighting:
+  5,876.0 + 487.9 + 333.3 ktoe × 11.63 GWh/ktoe ÷ 28.2m households = **~2,760 kWh per household**.
+  That is a national MEAN and includes the electrically heated homes' appliances, so it sits above
+  a gas-heated median. The world's behavioural stream alone (no pump, no heater) has a median of
+  **3,257**.
+
+**Where the excess sits.** Each component is an exact difference on the same seed, over the 163 homes:
+
+| Component | Median kWh/day, year | DJF | JJA | ≈ kWh/yr |
+|---|---|---|---|---|
+| Always-on (`always_on_kw`, EFUS 2011 lognormal, median 90 W, mean 136 W) | 1.73 (mean 2.61) | 1.73 | 1.73 | 632 |
+| Electronics (`_ELECTRONICS_KW_PER_PERSON`) | 1.72 | 1.72 | 1.74 | 628 |
+| Appliance events (HES-era catalogue, with the season) | 3.28 | 3.64 | 2.88 | 1,199 |
+| Cold appliances | 0.79 | 0.67 | 0.98 | 289 |
+| Lighting | 0.52 | 0.71 | 0.32 | 190 |
+| Boiler pump and fan | 0.27 | 0.52 | 0.09 | 100 |
+
+**Attribution, one variable at a time.** Since the 2026-10-06 measurement (3,078), the level rose 340
+kWh. Two things changed: the population (W2_20 step 2) and the always-on draw (`fc47cd363`, W1_29,
+landed for the half-hourly TEXTURE). The one-variable run above holds the population and moves only
+the always-on load. It is worth **+576 kWh/yr at the median, and −0.037 on max/min**. The drawn
+load's mean is 136 W against the 25 W it replaced, which is about +970 kWh/yr per home on average.
+Both control sets on that landing are texture and base-load-quantile controls. **None of them judged
+the annual level, and nothing in the tree judges the gas-heated population's level against TDCV.**
+This is the interconnection defect: a sourced texture fix moved a level that nothing watched.
+
+**What is not established, and is the next read.** Which end use is too large for 2022 is NOT
+established. ECUK U3 aggregates appliances into one column. The three largest world terms all
+rest on 2010–11 instruments:
+
+- EFUS 2011 base load, which predates LED lighting and the standby regulations;
+- HES 2010–11 nameplates and frequencies for the events;
+- a per-person electronics wattage of unrecorded origin.
+
+Moving any of them to bring the total to 2,700 would be fitting a level, not reading one. Ranked
+by evidence: (1) the always-on draw. It is the one term with a measured +576 kWh effect, and its
+source is a decade before the run. A 2020s whole-home base load (SERL publishes baseload
+statistics; LCL 2013 is the nearer published check at median 80 W) would settle it. (2)
+Electronics, which has no source. (3) The event catalogue.
+
+**Prediction, filed before any level build.** If the level is corrected by a FLAT term (for example,
+the always-on draw re-anchored to a 2020s source) that brings the 163-home annual median to
+2,700 ± 150 kWh, then max/min lands at **1.37–1.43**, inside SERL's band. The arithmetic is
+(10.70 − x)/(8.23 − x) with x = 1.6–2.4 kWh/day. If the correction falls instead on the seasonal
+events (cooking and laundry), max/min rises by less, **1.32–1.36**, because the gap shrinks with
+the level.
+
+**What did not land, and why.** No world code changed. A constant moved to make the ratio
+land would be the goal-seek this finding has refused at every step. The control the item asked
+for, a ratio inside the band, would be red today, and its subject is now the level. That is the
+next item's exit, not a pin of today's 1.301.
