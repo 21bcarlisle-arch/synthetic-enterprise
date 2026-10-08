@@ -1,5 +1,15 @@
 **Severity:** LATENT · **Lane:** W2_customer_generator · **Epoch:** unassigned · **Atom:** `unminted`
 
+> **Reconciled 2026-10-08 (seat), one definition for both findings: per fixed-term ENDER, left the
+> supplier within 42 days / 12 months of the term end.** Settled run to 2025-06-07 at `8c1e077c3`,
+> resi electricity. **2017-2021: 14.2% within 42 days (29/204, CI 10-20%), 21.6% within 12 months
+> (44/204, CI 17-28%). WITHDRAWN for 2017-2021:** bound 1 and bound 2 below multiplied or compared a
+> per-ACTIVE-decision rate (41.9%) with per-ender and per-account figures; on the per-ender rate the
+> world sits inside both. **REOPENED for 2024-2025 only:** 30.4% within 42 days (14/46, CI 19-45%);
+> at 2025 that alone takes term-enders to ~9.5% of accounts against a published 10.4% total, and the
+> 12-month rate is unobservable before the window ends. Verdict and corrected bound: the last
+> section. The seat finding carries the same definition and verdict.
+
 # The renewal route carries the whole book's residual, and departs above what the published record allows at a term end
 
 *Filed 2026-10-08 as the fidelity defect named by
@@ -33,6 +43,10 @@ Two bounds, neither an invented number:
    total before a single SVT household has switched. The ceiling the record allows on P(leave | term
    end) is 0.104 / 0.333 = **0.31 at 2025** and 0.09 / 0.167 = **0.54 at 2024**, even if every
    switch came from a term-ender.
+
+   *[Seat, 2026-10-08: the arithmetic multiplies P(leave | ACTIVE decision) by the share of ALL
+   accounts on a fix. About 63% of term-enders roll passively and are in the share but not the rate.
+   Recomputed on the per-ender rate below: inside at 2017-2021 and 2024, near-binding at 2025.]*
 2. **Composition from the trials (2017-2021).** EFTC (Ofgem 2019, n = 19,553): 6% external
    switching in the **six weeks** around term end, in both arms. A household that does not leave then
    rolls to the default, and default-tariff households leave at about 1% a month (CMOL control, 1.0%
@@ -40,6 +54,12 @@ Two bounds, neither an invented number:
    The world's 43-45% at 2019-2021 is above the top of that. This is a rough composition of two
    published figures with different populations, NOT an established term-end rate: the record
    publishes no annual departure share for a term-ender, and that gap is the knowledge item.
+
+   *[Seat, 2026-10-08: the 43-45% compared here is per active decision; the composed range is per
+   term-ender. The world's per-ender 12-month rate at 2017-2021 is 21.6%, inside 17-39%. The EFTC 6%
+   is not the 42-day comparator either: it is the control arm after a letter sent a few days before
+   term end, so it excludes households that had already acted on the statutory notice. It is a
+   floor, as this bound says.]*
 
 2017-2018 (35.0, 28.6) sit inside the composed range and are not shown wrong.
 
@@ -69,3 +89,106 @@ The shape RANKING there is likely to survive (reactive save first); the LEVELS a
 
 NEXT for W2: add the term-end bound to `tools/fit_year_level_anchor.py` as a refusal before any
 re-fit, then re-capture and re-fit; this finding's bound 1 is the control.
+*[Superseded 2026-10-08 by the NEXT at the end: bound 1 as written is withdrawn, so it cannot be
+the control. "Who reads the wrong number" above also narrows: the save-offer set's levels are
+per active decision, which is that set's own population, not a world defect.]*
+
+## Reconciliation with the seat finding: what each figure counts (seat, 2026-10-08, written before measuring)
+
+This finding and the corrected head of
+`SEAT_FINDING_THE_WORLD_LOSES_FORTY_PERCENT_AT_EACH_ANNIVERSARY_AGAINST_A_PUBLISHED_SIX_2026-10-08.md`
+give opposite verdicts on the same base. They count different things:
+
+| figure | numerator | denominator | where |
+|---|---|---|---|
+| 41.9% (this finding) | expected departures on the renewal route | **active renewal decisions**: the ~35% of fixed-term enders whose anniversary draws `rolls_active_renewal` true | `tools.measure_departure_level` |
+| 0.40 (decision set) | departures at the default | the same active decisions, asked of every household | `coin_drawn_decision_set` |
+| 7.8% (seat head) | left the supplier within 42 days of term end | **all fixed-term enders**, 80 founders to 2019 (9/116) | scratch probe, not landed |
+| 6% (EFTC control) | external switches within 6 weeks | all customers ending a 1-year fix at one supplier | Ofgem 2019, §4.1 |
+| 10.4% / 9.0% (bound 1) | all domestic changes of supplier in the year | **all accounts** | Ofgem / DESNZ |
+
+The world splits a fixed-term end in two (`simulation/run_phase2b.py`, `renewals.build_renewal_schedule`):
+an active decision, which leaves at the boundary with the renewal route's hazard; or a passive roll
+onto the default for a year, which leaves on the SVT route's segment hazard. So **41.9% is
+P(leave | active)**, not P(leave | term end). Bound 1 as written multiplies a per-active-decision
+rate by a per-account fixed-term share, which is not a quantity: the ~65% passive rollers are in
+the fixed-term share's population but not in the rate's. That is the error to test.
+
+The comparable quantity is the share of **all** fixed-term enders who leave the supplier within 42
+days (EFTC's window) and within 12 months (bound 1's window: with one-year fixes, every fixed
+account ends one term a year, so fixed share x P(leave within 12 months | term end) is the share of
+all accounts leaving from a term end in that year).
+
+### Predictions (seat, 2026-10-08, before the run)
+
+From one settled run to the window end at origin `8c1e077c3`, resi electricity, fixed-term ends:
+
+- **Q1, 42 days, 2017-2021:** roughly 0.35 active x 0.39 renewal-route hazard + a small passive
+  SVT share = **10-16%** (central 13%). Above EFTC's 6% by about 2x, so a gap survives at the
+  boundary; the seat head's 7.8% sat at the low end on a 116-ender sample.
+- **Q2, 12 months, 2017-2021:** Q1 plus the passive rollers' year on the default = **18-28%**.
+- **Q3, 42 days, 2024-2025:** 0.35 x 0.57-0.68 = **20-26%**. 12 months (2024 only; the window
+  ends 2025-06-07): **28-38%**.
+- **Q4, bound 1 recomputed:** fixed share x the 12-month per-ender rate stays UNDER the published
+  total at both 2024 (1/6 x ~0.33 = 5.5% < 9.0%) and 2025 (1/3 x ~0.25 at 42 days = 8% < 10.4%).
+  So bound 1, on the right denominator, is predicted NOT to show a defect.
+- **Q5, verdict:** neither finding is right as written. Bound 1 is withdrawn; a smaller gap
+  survives against EFTC at the boundary (world ~2x the published 6% within six weeks), filed on W2
+  with the per-ender rate as its control.
+
+### Result (seat, 2026-10-08, after the run): Q1 Q2 Q4 held, Q3 refuted high, Q5 half right
+
+Run: `simulation.run_phase2b.main()` to 2025-06-07 at `8c1e077c3` (31 min, 458 customers), resi
+electricity, fixed-term ends inside the window, home moves counted separately and NOT as departures.
+Probe: `/var/tmp/se-dep-recon/an.py` (not landed). The same probe on the seat head's own 2019 run
+(`fid.pkl`, `fae73df3a`) gives 14/119 = **11.8%** at 42 days, not 7.8%: the head's figure prorated
+an expected value and excluded ends after 2019-11-19; this is the realised count.
+
+| term ends | n | left within 42 days | left within 12 months | route at the end (left at boundary / re-fixed / rolled passive) |
+|---|---|---|---|---|
+| 2017-2021 | 204 | **14.2%** (CI 10.1-19.7) | **21.6%** (CI 16.5-27.7) | 27 / 48 / 119 (+10 none after) |
+| 2024 | 32 | 31.2% (CI 18-49) | 2/7 observable | 10 / 3 / 16 |
+| 2025 | 14 observable | 28.6% (CI 12-55) | unobservable | 4 / 2 / 12 |
+| 2024-2025 | 46 | **30.4%** (CI 19-45) | unobservable | 14 / 5 / 28 |
+
+- **Q1 held** (14.2% in 10-16%). **Q2 held** (21.6% in 18-28%). **Q3 refuted high:** 30.4% against
+  20-26%, because the active leavers' share at 2024 is 10 of 13 (77%), above the 57% the capture
+  gave. On 46 ends this cannot be separated from noise.
+- **Q4, bound 1 recomputed on the per-ender rate** (fixed share x per-ender rate against the published
+  total; 2017-2021 fixed share ~0.35-0.45, the inverse of Ofgem RMI's 55-65% default share):
+
+  | year | fixed share | per-ender rate | share of accounts leaving at a term end | published total | verdict |
+  |---|---|---|---|---|---|
+  | 2017-2021 | 0.35-0.45 | 0.216 (12 months) | 7.6-9.7% | 15.6-20.8% | inside |
+  | 2024 | 1/6 | 0.312 (42 days, a floor on 12 months) | >= 5.2% | 9.0% | inside unless the 12-month rate exceeds 0.54 |
+  | 2025 | 1/3 | 0.286 (42 days) | >= 9.5% | 10.4% | near-binding: leaves <= 0.9 pp for every default-tariff account |
+
+  The 2025 row is upper-biased: accounts ending a fix in 2025 are those who fixed in 2024, when the
+  share was rising from 1/6. At 1/4 it reads 7.2%. Q4 held for 2017-2021 and 2024; 2025 cannot be
+  told on 14 observable ends.
+- **Q5, half right.** Bound 1 is withdrawn as written. The predicted surviving gap "~2x EFTC's 6% at
+  the boundary" is **not** a defect: EFTC's 6% excludes households who acted before the trial letter,
+  so it is a floor, and 14.2% sits above it. What survives is 2024-2025 only.
+
+### Verdict (seat, 2026-10-08)
+
+**2017-2021: withdrawn.** On the per-ender definition the world is inside every published bound:
+above the EFTC floor at 42 days, inside the composed 17-39% at 12 months, and term-end departures are
+under half the published total. The 41.9% is a correct P(leave | active decision); it was never a
+per-ender rate. It still bears on the save-offer decision set, whose leaving base is the active
+population (the seat finding's head already says so).
+
+**2024-2025: reopened, not shown.** The per-ender 42-day rate (30.4%) at a 1/3 fixed share uses
+almost all of 2025's published switching before any default-tariff household moves. That is a
+candidate W2 defect, held open on 46 ends with a CI of 19-45%.
+
+**The corrected control for W2, replacing bound 1:** for each year, fixed-term share x P(leave within
+12 months | fixed-term END, all enders) <= the published total, with the 42-day per-ender rate >=
+EFTC's 6% as the floor. Never the renewal route's per-decision E[depart]. Settle 2025 on more than one
+seed before any re-fit; the 12-month rate at 2024-2025 is not observable inside a window ending
+2025-06-07, so the 42-day rate is the only measurable leg there and is a lower bound.
+
+NEXT for W2 (supersedes the line above): a multi-seed per-ender count at 2024-2025 against the
+corrected control, before any change to the level anchor or the churn draw. If 2025 then exceeds it,
+add the corrected control to `tools/fit_year_level_anchor.py` as a refusal and re-fit blind to company
+results.

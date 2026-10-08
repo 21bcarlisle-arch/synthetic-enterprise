@@ -1,6 +1,19 @@
 **Severity:** LATENT · **Lane:** W2_customer_generator · **Epoch:** unassigned · **Atom:** `unminted`
 
 > **Corrected 2026-10-08, like-for-like check: NO REAL EXTERNAL-DEPARTURE GAP. The 40% was compared with the wrong thing.** It is P(leave | the household makes an ACTIVE decision and is offered the SVT price): the decision set asks every household at every anniversary and skips the ~65% who roll passively to the SVT. On the trial's own definition (left the supplier within 42 days of term end, all term-enders) one settled run (80 founders to 2019, origin fae73df3a) gives **7.8%** (9/116, 95% CI ~4-14%), against the EFTC control arm's 6% (which is conditional on no early action). Annual external switching over the book is 15.6% / 22.7% / 20.9% (2017-2019) against published 18.2% / 19.1% / 20.8%, but that match is circular because the level anchor is fitted to the series. Two real, smaller points remain: passive rollers never re-fix internally (the trial's 14%), a named gap that moves margin, not exits; and the save-offer decision set's leaving base is the ACTIVE population, so the blanket cut's cost there is understated (it is paid on all term-enders in reality), which makes shape A worse, not better. The shape ranking stands. The severity is now LATENT and the finding is spent.
+>
+> **Reconciled 2026-10-08 (seat), on one definition with the worker finding: per fixed-term ENDER,
+> left the supplier within 42 days / 12 months.** Two corrections beside the claim above. (1) **7.8%
+> is wrong as a realised count**: it prorated an expected SVT share and dropped ends after
+> 2019-11-19. Realised on the same `fid.pkl`, 14/119 = **11.8%**; on a full run to 2025-06-07 at
+> `8c1e077c3`, **14.2% at 2017-2021** (29/204, CI 10-20%), 21.6% within 12 months. (2) **The 6% is a
+> floor, not the comparator**: EFTC's control arm excludes households who had acted before the
+> trial letter. So the verdict "no real gap" **stands for 2017-2021, on a different argument**: 14.2%
+> is above the floor, and the per-ender 12-month rate times the fixed share (7.6-9.7% of accounts)
+> is under the published total (15.6-20.8%). **"Spent" is withdrawn for 2024-2025 only:** 30.4%
+> within 42 days (14/46, CI 19-45%) takes 2025's term-enders to ~9.5% of accounts against a 10.4%
+> total. That stays open on the worker finding with the corrected bound as its control:
+> `WORKER_FINDING_THE_RENEWAL_ROUTE_CARRIES_THE_WHOLE_BOOK_RESIDUAL_AND_DEPARTS_ABOVE_THE_PUBLISHED_TERM_END_BOUND_2026-10-08.md`.
 
 # The world loses 40% of households at each anniversary at the default price, against a published ~6% external switch at fixed-term end
 
