@@ -32,6 +32,7 @@ from company.policy.decision_policy import CURRENT_POLICY, policy_scope
 from simulation.coin_drawn_decision_set import saved_on_loss_notice
 from simulation.save_on_loss_notice import household_takes_save
 from tools.save_on_loss_notice_arms import (
+    compare,
     stayer_price_moves,
     vulnerable_leavers_not_offered,
     vulnerable_twin_shortfalls,
@@ -142,3 +143,30 @@ def test_the_vulnerability_check_sees_a_shortfall_and_an_unoffered_leaver():
     snubbed = row(True, None)
     assert vulnerable_leavers_not_offered([row(False, 170.0), snubbed]) == [snubbed]
     assert vulnerable_leavers_not_offered([row(False, None), snubbed]) == []
+
+
+def test_the_save_rate_denominator_is_the_on_arms_own_switches_and_never_undercounts_them():
+    """The published save rate is saves over every domestic switch STARTED. A save changes who
+    leaves later (on 2026-10-08 a saved household sent a second loss notice a year on), so the
+    `off` arm's departures can be fewer than the switches `on` started -- 11 against 12 -- and a
+    denominator borrowed from `off` overstated the rate. Both legs reachable: recorded departures
+    (plus the saves, which started a switch too) and the unrecorded fallback to held notices."""
+    def notice(cid, saved):
+        return {"billing_account": cid, "invitation_held": True, "saved": saved,
+                "save_unit_rate_gbp_per_mwh": 190.0, "p_stay_at_offer": 0.5,
+                "p_stay_at_save": 0.6, "known_vulnerable": False,
+                "renewal_unit_rate_gbp_per_mwh": 200.0}
+    log = [notice(f"L{i}", False) for i in range(9)] + [notice("S", True), notice("T", True),
+                                                        notice("S", True)]
+    def arm(departures, log):
+        return {"save_on_loss_notice_log": log, "account_state": [], "cut_share": 0.04,
+                "world_save_response_scale": 1.0, "renewal_departures": 0, "total_net": 0.0,
+                "total_gross": 0.0, "domestic_departures_from_css": departures}
+    off = arm(11, [])
+    for on in (arm(9, log), arm(None, log)):
+        res = compare(off, on)
+        assert res["domestic_switches_started_from_css"] == 12, res["switches_started_counted_as"]
+        assert res["implied_saves_per_domestic_switch_away_from_css"] == pytest.approx(1.2 / 12)
+    assert compare(off, arm(None, log))["switches_started_counted_as"].startswith("at least")
+    nobody = {**arm(9, log), "world_save_response_scale": 0.0}
+    assert compare(off, nobody)["implied_saves_per_domestic_switch_away_from_css"] == 0.0

@@ -151,10 +151,34 @@ def implied_save_rate(save_log: list[dict]) -> float | None:
     return gain / leave if leave else None
 
 
+def switch_attempts_from_css(arm: dict) -> tuple[int, str]:
+    """Every domestic switch away the arm's own world STARTED from CSS go-live: the published save
+    rate's denominator (q4_save_rate_on_loss_notice, the share of switches the loser stopped).
+
+    It is the arm's departures PLUS its saves, because a saved household started a switch too, and
+    it is never borrowed from another arm. A save changes who leaves later: on 2026-10-08 the k = 1
+    arm saved PROS-2022-0400 on 2023-12-21 and it sent a second loss notice on 2024-12-20, so that
+    arm started 12 switches where `off` started 11. An arm run before its departures were recorded
+    falls back to its own Invitation-held notices, which every saved household and every post-CSS
+    fixed-term leaver holds: a lower bound, and labelled so."""
+    log = arm.get("save_on_loss_notice_log", [])
+    held = sum(1 for r in log if r.get("invitation_held"))
+    departures = arm.get("domestic_departures_from_css")
+    if departures is None:
+        return held, "at least: the arm's own Invitation-held loss notices (departures unrecorded)"
+    return departures + sum(1 for r in log if r.get("saved")), "the arm's own departures plus saves"
+
+
+def expected_saves(save_log: list[dict], scale: float | None) -> float:
+    """Expected saves at the response `scale`, on the same curve `household_takes_save` uses."""
+    k = 1.0 if scale is None else scale
+    return sum(min(1.0, r["p_stay_at_offer"] + k * (r["p_stay_at_save"] - r["p_stay_at_offer"]))
+               - r["p_stay_at_offer"] for r in save_log if r.get("p_stay_at_save") is not None)
+
+
 def compare(off: dict, on: dict) -> dict:
     log = on["save_on_loss_notice_log"]
-    # An arm run before the denominator existed borrows it from the other arm, and says so.
-    departures = on.get("domestic_departures_from_css") or off.get("domestic_departures_from_css")
+    departures, departures_basis = switch_attempts_from_css(on)
     saved = {r["billing_account"] for r in log if r["saved"]}
     moves = stayer_price_moves(off["account_state"], on["account_state"], saved)
     common = len({_key(r) for r in off["account_state"]} & {_key(r) for r in on["account_state"]})
@@ -167,12 +191,13 @@ def compare(off: dict, on: dict) -> dict:
         "saved": len(saved),
         "realised_save_rate": (len(saved) / len(log)) if log else None,
         "implied_save_rate_world_curve": implied_save_rate(log),
-        # Expected saves at the world's own P(stay), over every domestic switch away from CSS on.
+        # Expected saves at the ARM'S OWN response (the scaled curve `household_takes_save` decides
+        # on), over every domestic switch the on arm started from CSS on. At k = 0 it is 0.
         "implied_saves_per_domestic_switch_away_from_css": (
-            sum(r["p_stay_at_save"] - r["p_stay_at_offer"] for r in log
-                if r.get("p_stay_at_save") is not None) / departures if departures else None),
-        "domestic_departures_from_css": departures,
-        "departures_counted_on": "on" if on.get("domestic_departures_from_css") else "off",
+            expected_saves(log, on["world_save_response_scale"]) / departures
+            if departures else None),
+        "domestic_switches_started_from_css": departures,
+        "switches_started_counted_as": departures_basis,
         "renewal_departures": {"off": off["renewal_departures"], "on": on["renewal_departures"]},
         "total_net_gbp": {"off": off["total_net"], "on": on["total_net"],
                           "on_minus_off": (on["total_net"] - off["total_net"])

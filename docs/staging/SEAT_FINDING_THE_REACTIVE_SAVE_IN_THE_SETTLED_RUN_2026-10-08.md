@@ -94,6 +94,35 @@ to `off` at GBP 198,348. Implied per-offer save rate was 0.076. At k = 20 it sav
 GBP +3,043. So I expect `on` at k = 1 to save 0 or 1 of about 14, and **any net difference to be within
 one household's margin**: the book cannot tell the save's value at either end of the range.
 
+## Amendment, 23:00 BST, written before the top-end arm reported (successor, `the-reactive-saves-zero-end-and-its-departure-denominator`)
+
+**The departure count was not short, and the denominator was mixed across arms.** `off` started 11
+domestic switches from CSS go-live, and all 11 were Invitation-held fixed-term leavers. In the `on` k = 1 arm,
+PROS-2022-0400 was saved on 2023-12-21 and sent a **second** loss notice on 2024-12-20, so that arm
+started 12. "11 < 12" compared two worlds. The defect was in `compare`. It borrowed `off`'s
+departures as the denominator for `on`'s saves, and its departures left out the saved households,
+which started a switch too. The fix is `switch_attempts_from_css`: the arm's own departures plus its
+saves, never another arm's. An arm without recorded departures falls back to its own
+Invitation-held notices, labelled "at least". The control is
+`test_the_save_rate_denominator_is_the_on_arms_own_switches_and_never_undercounts_them`. It reads
+9 against 12 on the old code (run 2026-10-08). The implied per-switch rate now also uses the arm's own
+response scale. Before this it read the k = 1 curve in every arm, so the k = 0 arm reported 0.024
+having saved nobody. That leg is mutation-proven too (0.1 against 0).
+
+**The k = 1 rate, exactly:** expected saves 0.5328 over **12** switches started = **0.0444** per
+domestic switch away, from CSS go-live to 2024-12-31. This is just above the published ceiling of 0.041. So
+the 0.041 end is **k = 0.041 / 0.0444 = 0.9234**, and `on` at that k was launched at the unit start time below
+(`longjob-save-arms-on-k0923`, artefact `/var/tmp/save_arms/on-k0923.json`) from the landed code
+(`14c5deea3` = `bfcae065d`'s tree on these paths).
+
+**Placebo at the top end, replaced by a stronger test.** If `on` against `off` moves 0 stayer
+account-terms, then the stayers pay neither for the save's price nor for its composition, and that is
+P2 and more. A `placebo` arm is run only if `on` against `off` moves a stayer.
+
+**Predictions for the top end:** the same roll at a smaller scale saves a subset of k = 1's saves,
+so **1 or 2 accounts saved**; **0 stayer price moves** against `off`; `on` minus `off` **positive and at most
++GBP 1,749**. The subset can drop a loss-making save, so a figure above 1,749 would refute the last one.
+
 ## Result
 
 *(Filled after the runs, below this line. Nothing above is edited after it.)*
@@ -118,7 +147,7 @@ and the `cmp_*` files beside them.
 `on` against `placebo` (the save's price alone): 4,900 stayer account-terms compared, **0 moved**.
 The save's own cost is the gap, GBP 309, and the saved households carry it.
 
-**P1 (byte-identity): NOT YET GRADED.** No arm of the parent ran to 2024-12-31. The one difference with the
+**P1 (byte-identity): HALF HOLDS, HALF STILL UNGRADED (successor, 2026-10-08 23:00).** `on` at k = 0 equals `off`. The account_state lists are identical across 4,898 account-terms, total net is GBP 178,413.248132 in both, 0 saved, and 11 offers were answered and declined. `off` on the parent was never run to 2024-12-31, so that half is still ungraded. The original text follows. ~~NOT YET GRADED.~~ No arm of the parent ran to 2024-12-31. The one difference with the
 switch off is the roll's records argument, which moved from positional to keyword under the same names
 (`roll_lifecycle_event(customer_id, term_start_str, commodity, records_so_far, customers, ...)`).
 `on` at k = 0 was launched at 21:43 (artefact `/var/tmp/save_arms/on-k0.json`) and is graded by the successor.
@@ -137,16 +166,34 @@ denominator, per domestic switch away, it is **at most 0.044**: expected saves 0
 12 departures (the 12 leavers who held an Invitation). So the world's own response sits at about the
 **top of the published range** (0 to 0.041) and possibly inside it. The tool's own departure count
 read 11 in `off`, fewer than the 12 leavers `on` offered, which cannot be right. **That count is
-unresolved and not used.** It is the successor's first job.
+unresolved and not used.** It is the successor's first job. *(Resolved, successor 23:00: the count was right, and the tool compared two arms' worlds. Exactly 0.0444 over 12 switches started. See the 23:00 amendment.)*
 
 ### Does the reactive save still beat never offering in the settled run?
 
-- **At the top of the range** (k = 1, the world's own response, at most 0.044 saves per switch away):
-  **yes, by GBP 1,749 of total net (about 1.0%), and no stayer pays.** It comes from **2 households**,
-  so this is a direction, not a size. One household's margin either way moves it by the same order.
-  No bound from sample size is available from one seed.
-- **At the bottom of the range** (0 saves): **nothing is saved, so the save cannot beat never offering;
-  it ties it.** Graded exactly when `on` at k = 0 reports.
+*Rewritten 2026-10-08 23:15 BST by the successor, with both ends of the published range (0 to 0.041
+per domestic switch away) graded exactly. The earlier text said "at most 0.044" at k = 1 and left the
+0.0 end ungraded.*
+
+| | `on` at k = 0 (bottom end) | `on` at k = 0.9234 (**top end**) | `on` at k = 1 (world's own) |
+|---|---|---|---|
+| expected saves per domestic switch started from CSS | **0.000** | **0.0414** | 0.0444 |
+| switches started from CSS (own arm, departures + saves) | 11 | 12 | 12 (at least; departures unrecorded) |
+| accounts saved / terms saved | 0 / 0 | 1 / 2 | 2 / 3 |
+| `on` minus `off`, total net, GBP | **0.00** | **+1,679** | +1,749 |
+| stayer account-terms moved against `off` (of 4,898) | 0 | **0** | 0 |
+| known-vulnerable offered / twin shortfalls / left unoffered | 2 / 0 / 0 | 2 / 0 / 0 | 2 / 0 / 0 |
+
+- **At the bottom of the range: it TIES never offering, exactly.** Total net and every account-term's
+  price are identical to `off`.
+- **At the top of the range: it BEATS never offering by GBP 1,679 (about 0.9% of total net), and no
+  stayer's price moves at all.** The 0.041 end saves **one household**, PROS-2022-0400, at
+  two consecutive renewals. That is a direction from a single customer, not a size. One household's
+  margin either way moves it by the same order, and one seed gives no sampling bound.
+- **Top-end predictions: all three held.** 1 account saved (I predicted 1 or 2), 0 stayer moves,
+  and +1,679, which is positive and at most 1,749. The k = 1 save of PROS-2023-0230 is the one the
+  smaller response drops, and it was worth about GBP 70.
+- **P2 at the top end is held by the stronger test, so no `placebo` was run.** `on` against `off`
+  moves no stayer, so the stayers pay neither for the save's price nor for its composition.
 
 ### The departure share, labelled
 
