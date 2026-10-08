@@ -725,3 +725,23 @@ back to 0.14 reds both legs.
 the evening, non-cooking term this result points to as well. The successor
 `a-gas-homes-electronics-comes-down-to-its-2022-level` carries it. The season (1.27 against 1.42) is
 untouched by everything in this section.
+
+## Pre-registration: electronics at its 2022 level, one variable (2026-10-08, worker, draw `a-gas-homes-electronics-comes-down-to-its-2022-level`)
+
+**Filed and landed before any run of the arm.** The arm is `_ELECTRONICS_KW_PER_PERSON` 0.055 →
+**0.031** in `simulation/premise_trace.py`, nothing else. 0.031 is 0.055 × 379/673: the HES on-mode
+carried to 2022 by ECUK 2023's ratios (≈370–382, the dated read above) over the world's mean of 673.
+Instrument: `/tmp/cooktime/measure2.py`'s statistics, arms patching the module constant, both arms in
+ONE process per home. Same 163 homes (gas-heated, no PV, seed 17, C1 2022, SYN-S0000..0199), on
+origin with the kettle change, so the "before" arm must reproduce 3,090 / 0.679 @20:00 / 1.273.
+
+| Leg | Before (must reproduce) | Predicted change |
+|---|---|---|
+| Mean annual meter | — | **−290 ± 40** kWh |
+| 19:30 median profile | — | **about −0.08** kWh/h (−0.06 to −0.10) |
+| 04:30 trough | 0.127 | **unmoved** (±0.002) |
+| Annual median | 3,090 | not banded; reading only |
+| Monthly-median max/min | 1.273 | not predicted; reading only |
+
+The −116 arm (0.055 → 0.0455) was linear in the constant, so −290 is that arm × 24/9.5. If the arm
+lands, it refits a world anchor and owes a value-arms re-take, which is budgeted, not run, here.
