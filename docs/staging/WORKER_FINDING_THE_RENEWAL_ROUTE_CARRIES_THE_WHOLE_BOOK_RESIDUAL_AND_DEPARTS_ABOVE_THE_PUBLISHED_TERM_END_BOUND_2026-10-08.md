@@ -192,3 +192,34 @@ NEXT for W2 (supersedes the line above): a multi-seed per-ender count at 2024-20
 corrected control, before any change to the level anchor or the churn draw. If 2025 then exceeds it,
 add the corrected control to `tools/fit_year_level_anchor.py` as a refusal and re-fit blind to company
 results.
+
+## Multi-seed per-ender count, 2024 and 2025 (worker, 2026-10-08)
+
+### Design and predictions (written before the runs)
+
+**What varies.** Four settled runs to 2025-06-07 at origin `3ff16bada`: the base run and the renewal
+dice re-rolled at floor seeds 11111, 22222, 33333 through `run_value_cycle_ab._churn_roll_redraw_patch`
+(the existing floor leg, no code change, every account re-rolled, the patch asserted to fire). The
+BOOK is held: a different book seed is `EP17_varied_population_draw`, the director's, and no record
+authorises one. So the four runs are four draws of the same 458 households' term-end dice, not four
+populations. The interval below is the pooled Wilson interval over enders; it understates the
+book-to-book spread, and says so.
+
+**What is counted.** Per resi electricity fixed-term ENDER (the reconciled definition above): left the
+supplier within 42 days, and within 12 months, of the term end. Home moves are not departures. Inside
+a window ending 2025-06-07 the 12-month leg is observable only for 2024 ends up to 2024-06-07, and
+not at all for 2025; the 42-day leg for 2025 ends up to 2025-04-26.
+
+**The bound, per year.** Fixed-term share x per-ender rate <= published switching total. The
+per-ender ceiling is total / share: **2024: 0.090 / (1/6) = 0.54. 2025: 0.104 / (1/3) = 0.31**, or
+0.42 at a 1/4 share (2025's enders fixed during 2024, when the share was rising from 1/6).
+
+**Predictions:**
+
+- **P1, 2024, 42 days:** pooled 22-34% (base seed alone was 10/32). Inside 0.54.
+- **P2, 2024, 12 months, ends to 2024-06-07:** 30-42%. Inside 0.54 at the top of its interval.
+- **P3, 2025, 42 days:** 20-34%, point under 0.31, interval upper end above it. Not distinguishable
+  from the 1/3-share ceiling; inside the 1/4-share ceiling.
+- **P4, verdict:** no year shown to exceed the bound. The 2024-2025 gap is withdrawn beside its claim;
+  the corrected bound stays the W2 control. If P3's point estimate lands above 0.31, the 2025 gap
+  survives and stays filed on W2.
