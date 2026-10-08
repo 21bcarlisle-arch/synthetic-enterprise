@@ -210,8 +210,8 @@ for_the_director:
     gains deemed move-in accounts on the default tariff, and some premises turn over more than once. One known bias, in our favour: the incoming account pays for
     the whole change-of-tenancy window, which in reality is often never collected. That is about q1_unnamed_months_per_cot months of each premise''s annual quantity
     per move, and it is named in the finding. If you would rather that debt side were built first, say so and moves stay off. I am carrying on with other work meanwhile.'
-  status: open
-  resolution: ''
+  status: answered
+  resolution: "Director, 2026-10-08: 'Home moves: approved.' Done in ada37371c. Checked with moves on (160 founders to 2019): 28 moves, 28 occupier-debt accounts, GBP 5,276.58 booked as occupier debt, and B7 slice 5's arrears engine never collects the window, so the bias dfa787a37 closed stays closed. Two lookups that had never seen an incoming occupant were fixed."
   evidence: docs/staging/SEAT_FINDING_B7_SLICE_3_A_VACATED_PREMISE_IS_SUPPLIED_FROM_THE_MOVE_DATE_UNDER_A_NEW_ACCOUNT_2026-10-06.md; tests/simulation/test_a_home_move_ends_supply_in_the_run.py
 - id: b8-no-uniform-renewal-cut-from-2
   raised: '2026-10-08'
