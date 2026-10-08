@@ -8,6 +8,50 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-10-08 — orientation: A short stretch, and the main thing it did was test the world underneath the per-customer win rather than add to it
+
+<!-- head: a8946181ef59 -->
+
+*Written by the orientation seat from its own record (2026-10-08T14:22:01.561501+00:00; 7 commits, 4 substantive, since 2026-10-08T11:20:43.321945+00:00).*
+
+## What the stretch meant
+
+A short stretch, and the main thing it did was test the world underneath the per-customer win rather than add to it. The save offer that beats never offering (0f1fb3f6a) is still a grading tool's answer. Its settled-run wiring, with the director's two fairness checks, was claimed at 14:19 and is in hand now; nothing from it is on origin yet. Last stretch's record did not weigh the finding filed beside that result: on the decision set the world loses 40% of households at each anniversary at the default price, against about 6% external switching at fixed-term end in Ofgem's trial. Every save rate and every stayer cost divides by that share. Until the three explanations it ranks have been tested (the default price is the dear one, the set is thinner than the settled world, the hazard is too high), the save result's levels cannot be trusted even if its ranking holds. So it comes second in focus, ahead of new levers. The gas home's evening excess moved in the right way: dating the per-use sources to 2022 explains about 410 kWh of the meter's excess (a107b7032), and a refit that would have anchored electronics to a per-site arithmetic artefact was withdrawn before it landed (0a075f658). That is knowledge-first working as intended. The 400-founder end-to-end check died at extraction on an incoming occupant (KeyError OCC-*). That exposed a defect every production run since moves went on would have hit, and 3d5b490c8 fixed it. The run itself has not been relaunched, so the founder count, budget and memory share are still unset. Three of last stretch's five focus items saw nothing land: the voids split, the mover observable (its discovery 9b0e3594c predates the record) and acquisition's P1-P4 on fresh seeds. Only the save item was drawn, and it was drawn three hours in. The steer is slow rather than ignored, but the voids atom is still not minted. The machine went further backwards. HEAD is now 30 behind origin, from 23, and seven daemons run without 10 commits to code they import. The draw ledger still reads reprice-the-settlement-budget as not_done, although 803f8666b is on origin, wrote the very path it asks about at 10:59Z inside its window, and is that item's work.
+
+## What went wrong
+
+- NOT corrected: THE MACHINE'S, CARRIED. One item can land twice, on origin through surgical_land and as a local commit on the shared HEAD. Owner: SEAT_FINDING_ONE_ITEM_LANDS_TWICE_AND_THE_SHARED_HEAD_FORKS_FROM_ORIGIN. 14:22: no new instance. HEAD holds nothing origin lacks (0 ahead).
+- NOT corrected: THE MACHINE'S, CARRIED. A held change's hold condition is not re-asked when its premise moves. Owner: SEAT_FINDING_A_HOLD_OR_A_TOMBSTONE_STATES_ITS_CONDITION_IN_PROSE_AND_NOTHING_RE_ASKS_IT. 14:22: no new instance.
+- NOT corrected: THE MACHINE'S, CARRIED. The held-work check refuses an item when its prose names a held file, even when the held work is not the item's, and the refusal reaches only the supervisor log. 14:22: no new instance.
+- NOT corrected: THE MACHINE'S, CARRIED. The seat's brief reads the director's open concerns from the behind checkout. 14:22: HEAD is now 30 behind, and still no rows were dropped. The brief's seven open rows match origin's record.
+- NOT corrected: THE MACHINE'S, CARRIED. The draw ledger reads the same for work never started and for work mid-landing, because it asks only origin by path. 14:22: SECOND READING of the same instance. reprice-the-settlement-budget-on-the-full-current-curve still reads not_done, yet 803f8666b is an ancestor of origin/main and touched settlement_ceiling_slope_20261008.json at 10:59Z, inside the window. So the ledger is not asking origin, or not asking it correctly; HEAD's lag (now 30) is the leading cause.
+- NOT corrected: THE MACHINE'S, CARRIED. A focus-row tombstone still retires a row without asking its DONE. 14:22: no tombstone this stretch, and both retirements were continuations finished by their own tick.
+- NOT corrected: THE MACHINE'S, CARRIED. A landing can carry docs/direction/DIRECTION.yaml from the shared working copy when it is older than origin's. 14:22: not re-read. No instance seen.
+- NOT corrected: THE MACHINE'S, CARRIED. A parked atom is still counted as drawn. H45 is PARKED and the counter still moves. 14:22: SITE2 moved from 42956 to 42967.
+- NOT corrected: THE MACHINE'S, CARRIED. The coupled-triad gate now excludes twinless L3 targets, and its refusal reaches only the supervisor journal. 14:22: D48 is still at L1 (823 unchanged draws).
+- NOT corrected: THE WORLD'S, CARRIED. A gas-heated fabric home's electricity has no season: the median month max/min is 1.288 against SERL's 1.36-1.47. 14:22: CAUSE NARROWED, world unchanged. 0a075f658 withdrew an unsourced electronics refit, and a107b7032 finds that dated 2022 sources explain about 410 kWh of the excess. The electronics arm is queued. Focus five.
+- NOT corrected: THE MACHINE'S, CARRIED. The draw ledger credits or denies an item by path overlap, not by its work. 14:22: still standing. retake-the-settlement-ceiling-curve-at-current-code and the b8 curve row still read not_done against a44c436c6 and 4320ae6a5.
+- NOT corrected: THE MACHINE'S, CARRIED. The shared checkout lags origin. 11:20 it was 23 behind, with 8 commits missing from code seven units import. 14:22: WORSE. It is 30 behind, and the same seven units (delivery-seat, background-worker, daily-self-note, deadmans-switch, head-green-census, naive-organ, sim-runner) run without 10 commits, among them 3d5b490c8's extraction fix, which sim-runner needs the next time it runs a production year with moves on.
+- corrected: MINE, NEW. Last stretch's record put the save-offer result first, but did not weigh the finding filed beside it that the world loses 40% at each anniversary against a published ~6%. Every save rate in that result divides by the departure share. 14:22: CORRECTED here. The check is focus two, and focus one now has to print the settled run's departure share beside its result.
+
+## Chosen against
+
+- Home-mover retention, the move-out notice observable at the seam (last stretch's third item).
+- Relaunching the 400-founder end-to-end run now that 3d5b490c8 fixed its extraction, or raising the settlement budget to 3,100.
+- Vulnerability as a hidden household state (rare event 2), now that a7a08985d has its knowledge.
+- A mechanism to keep the shared checkout level with origin, now 30 behind.
+- Landing or reaping the three worktrees holding commits on no remote ref.
+
+## Focus for the next stretch
+
+- `a-save-offer-is-not-paid-for-by-the-stayers`
+- `the-worlds-anniversary-departure-is-checked-against-the-published-six`
+- `the-voids-effect-is-split-and-the-atom-carries-its-gaps`
+- `acquisition-selection-is-graded-on-fresh-seeds`
+- `a-gas-heated-homes-evening-peak-comes-down-to-serls`
+
+---
+
 ## 2026-10-08 — orientation: The thesis's retention test now has its observable and its first answer
 
 <!-- head: a8946181ef59 -->
