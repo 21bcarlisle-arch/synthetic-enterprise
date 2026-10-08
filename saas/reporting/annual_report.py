@@ -48,7 +48,13 @@ from saas.clv_model import build_clv
 from saas.cost_to_serve import build_cost_to_serve
 from saas.customer_reaction import _billing_account_id
 from saas.enterprise_value import ceased_billing_accounts
-from saas.customers import ACQUIRED_CUSTOMERS, CUSTOMERS, DRAWN_CUSTOMERS, SUCCESSOR_CUSTOMERS
+from saas.customers import (
+    ACQUIRED_CUSTOMERS,
+    CUSTOMERS,
+    DRAWN_CUSTOMERS,
+    INCOMING_OCCUPANT_CUSTOMERS,
+    SUCCESSOR_CUSTOMERS,
+)
 from company.market.tou_periods import is_peak_period
 from company.regulatory.fuel_mix_reconciliation import (
     DISCLOSURE_SECTION as _RECON_DISCLOSURE,
@@ -183,8 +189,11 @@ def _build_clv_snapshots(
         # byte-identical then. Stays inside `saas.customers` rather than reaching for
         # `live_population()`: KNIFE pass 1 took `simulation` off this module's import
         # graph on purpose and this must not put it back.
+        # With home moves on (2026-10-08) the book includes the incoming occupants a move
+        # supplies; the 400-founder end-to-end run raised KeyError on OCC-* here without them.
         cts_to_year = build_cost_to_serve(
-            records_to_year, CUSTOMERS + SUCCESSOR_CUSTOMERS + DRAWN_CUSTOMERS
+            records_to_year,
+            CUSTOMERS + SUCCESSOR_CUSTOMERS + DRAWN_CUSTOMERS + INCOMING_OCCUPANT_CUSTOMERS,
         )
         # OBSERVATION EDGE, not the calendar year end (2026-08-17,
         # `WORKER_FINDING_THE_FINAL_YEAR_CLV_SNAPSHOT_IS_EMPTY_AND_THE_REPORT_PUBLISHES_IT_AS_A_THREE_MILLION_FALL`).
@@ -389,7 +398,8 @@ def extract_report_data(run_output: dict) -> dict:
     won_successor_activations: dict[str, str] = run_output.get("won_successor_activations", {})
     segment_by_customer = {
         c["customer_id"]: c["segment"]
-        for c in CUSTOMERS + SUCCESSOR_CUSTOMERS + ACQUIRED_CUSTOMERS + DRAWN_CUSTOMERS
+        for c in (CUSTOMERS + SUCCESSOR_CUSTOMERS + ACQUIRED_CUSTOMERS + DRAWN_CUSTOMERS
+                  + INCOMING_OCCUPANT_CUSTOMERS)
     }
 
     # Phase 8a: growth mandate data
@@ -700,7 +710,7 @@ def extract_report_data(run_output: dict) -> dict:
         }
 
     per_customer_lifetime = {}
-    for c in CUSTOMERS + SUCCESSOR_CUSTOMERS + DRAWN_CUSTOMERS:
+    for c in CUSTOMERS + SUCCESSOR_CUSTOMERS + DRAWN_CUSTOMERS + INCOMING_OCCUPANT_CUSTOMERS:
         cid = c["customer_id"]
         recs = [r for r in all_records if r["customer_id"] == cid]
         if not recs:
