@@ -121,96 +121,138 @@ for_the_director:
 - id: the-end-to-end-review-of-claude
   raised: '2026-10-04'
   kind: canon_intent
-  what: The end-to-end review of CLAUDE.md found it contradicting the code on the reserved action walls, pointing every session at a staging procedure that still
-    described the July rules, using one name for several seats, and claiming enforcement for two rows that only report; three of its findings touch canon or wall
-    wording that is yours (the curriculum wall reads stricter than your 2026-09-04 canon; DIRECTOR_CANON.md lists seven one-way doors and the twin as standing approver;
-    DIRECTOR_AXES.md cites a pricing law that no longer exists).
-  proposal: 'Approve the cleanup as proposed in docs/staging/SEAT_PROPOSAL_CLAUDE_MD_CLEANUP_FROM_THE_END_TO_END_REVIEW_2026-10-04.md, item by item, or strike the
-    items you disagree with; on the three canon items, rule on the wording and I will carry it into the canon documents. Already done without asking: the plain factual
-    corrections it marks, the reserved-actions list restated from the code, and the two withdrawn rules in the staging procedure.'
+  what: The end-to-end review of CLAUDE.md found it contradicting the code on the reserved action walls,
+    pointing every session at a staging procedure that still described the July rules, using one name
+    for several seats, and claiming enforcement for two rows that only report; three of its findings touch
+    canon or wall wording that is yours (the curriculum wall reads stricter than your 2026-09-04 canon;
+    DIRECTOR_CANON.md lists seven one-way doors and the twin as standing approver; DIRECTOR_AXES.md cites
+    a pricing law that no longer exists).
+  proposal: 'Approve the cleanup as proposed in docs/staging/SEAT_PROPOSAL_CLAUDE_MD_CLEANUP_FROM_THE_END_TO_END_REVIEW_2026-10-04.md,
+    item by item, or strike the items you disagree with; on the three canon items, rule on the wording
+    and I will carry it into the canon documents. Already done without asking: the plain factual corrections
+    it marks, the reserved-actions list restated from the code, and the two withdrawn rules in the staging
+    procedure.'
   status: open
   resolution: ''
 - id: time-is-scored-in-minutes-not-converted-to-money
   raised: '2026-10-04'
   kind: vision
-  what: The mission names three currencies, and time does not exist in the model. The C31 frame (70ea47ac5, docs/design/C31_TIME_AS_A_CURRENCY_DISCOVER_FRAME_2026-10-04.md,
-    Q1) has to decide whether household time is scored in its own unit or converted to money at a value of time. Converting it would fold one of your three currencies
-    into money. The only regulator pricing found (GSOP, GBP 30 or 15) prices failure events, not hours, and it is a transfer.
-  proposal: 'Score time in its own unit: household minutes, per class (shopping, servicing, recovery, routine admin), never summed across classes and never converted
-    to GBP. A GSOP payment stays a money transfer and is not a measure of time. This does not block L1, which counts events in minutes either way, so work carries
-    on unless you rule otherwise.'
+  what: The mission names three currencies, and time does not exist in the model. The C31 frame (70ea47ac5,
+    docs/design/C31_TIME_AS_A_CURRENCY_DISCOVER_FRAME_2026-10-04.md, Q1) has to decide whether household
+    time is scored in its own unit or converted to money at a value of time. Converting it would fold
+    one of your three currencies into money. The only regulator pricing found (GSOP, GBP 30 or 15) prices
+    failure events, not hours, and it is a transfer.
+  proposal: 'Score time in its own unit: household minutes, per class (shopping, servicing, recovery,
+    routine admin), never summed across classes and never converted to GBP. A GSOP payment stays a money
+    transfer and is not a measure of time. This does not block L1, which counts events in minutes either
+    way, so work carries on unless you rule otherwise.'
   status: open
   resolution: ''
 - id: whether-per-customer-pricing-beats-a-flat
   raised: '2026-10-04'
   kind: strategy
-  what: 'Whether per-customer pricing beats a flat price a supplier could have set in advance cannot be answered on one book: the four probe paths share their households,
-    and their SNR ceiling is about 0.95 however often they are re-run. Only independent books separate it. Varying the book seed is EP17_varied_population_draw, which
-    is your curriculum.'
-  proposal: 'Authorise book seeds 61101-61112 for EP17 by recording docs/design/curriculum/varied_population_draw_activation.json in the shape of population_draw_activation.json.
-    I would run 12 books at about 36 min and 5.1 GB each, 7.2 box-hours serial, after the QEP refit lands, and only after a 2.4 h re-take on the default book. Projected
-    SNR is 1.8-2.4. If you decline, the result stands as: not separable on this book.'
+  what: 'Whether per-customer pricing beats a flat price a supplier could have set in advance cannot be
+    answered on one book: the four probe paths share their households, and their SNR ceiling is about
+    0.95 however often they are re-run. Only independent books separate it. Varying the book seed is EP17_varied_population_draw,
+    which is your curriculum.'
+  proposal: 'Authorise book seeds 61101-61112 for EP17 by recording docs/design/curriculum/varied_population_draw_activation.json
+    in the shape of population_draw_activation.json. I would run 12 books at about 36 min and 5.1 GB each,
+    7.2 box-hours serial, after the QEP refit lands, and only after a 2.4 h re-take on the default book.
+    Projected SNR is 1.8-2.4. If you decline, the result stands as: not separable on this book.'
   status: open
   resolution: ''
 - id: no-atom-can-reach-l3-while-an
   raised: '2026-10-04'
   kind: canon_intent
-  what: 'No atom can reach L3 while an Expert Hour counts reviewer independence as a finding against it: the blind-review tool records independence false on every
-    pass by construction, and reserves external review for the few verdicts you choose. H45 (the queue chained to the map) has closed every other question its two
-    blind passes raised -- edit back door, re-link, doubt route, trend -- and is held at L2 on that one alone. Its specific form: whether a queue item serves its
-    atom is read by a tick of the same machine that files it, and nothing outside audits that read.'
-  proposal: Rule that an Expert Hour whose only open disqualifying question is reviewer independence passes for L3, with the limit carried in the atom's simplification
-    record, and that external review stays at your choosing for the highest-stakes verdicts. On that ruling I would record H45's move to L3 through the level gate.
-    If you want H45 audited from outside instead, the read record (serves_by_hand on the harness page) is what you or a relayed model would sample. Meanwhile H45
-    parks so it stops being drawn for a question no build can answer.
+  what: 'No atom can reach L3 while an Expert Hour counts reviewer independence as a finding against it:
+    the blind-review tool records independence false on every pass by construction, and reserves external
+    review for the few verdicts you choose. H45 (the queue chained to the map) has closed every other
+    question its two blind passes raised -- edit back door, re-link, doubt route, trend -- and is held
+    at L2 on that one alone. Its specific form: whether a queue item serves its atom is read by a tick
+    of the same machine that files it, and nothing outside audits that read.'
+  proposal: Rule that an Expert Hour whose only open disqualifying question is reviewer independence passes
+    for L3, with the limit carried in the atom's simplification record, and that external review stays
+    at your choosing for the highest-stakes verdicts. On that ruling I would record H45's move to L3 through
+    the level gate. If you want H45 audited from outside instead, the read record (serves_by_hand on the
+    harness page) is what you or a relayed model would sample. Meanwhile H45 parks so it stops being drawn
+    for a question no build can answer.
   status: open
   resolution: ''
 - id: does-a-retention-discount-offered-to-a
   raised: '2026-10-05'
   kind: strategy
-  what: 'Does a retention discount offered to a household fixing off our SVT buy anything? Our world says no: at that term it gives the household no exit (svt_conversion_event,
-    P(depart)=0), yet 32 of 60 retention offers (59% of retention spend, GBP 1,765) go there.'
-  proposal: I recommend we treat the world as right and stop offering a retention discount at an SVT-to-fix conversion; it is a fact the supplier holds, so it needs
-    no estimate. Then the C29 engagement weighting gets graded on rolled terms only. If the industry instead sees the offer as what wins the conversion, tell me and
-    I will file it as a world-fidelity defect instead. I will carry on with everything else meanwhile.
+  what: 'Does a retention discount offered to a household fixing off our SVT buy anything? Our world says
+    no: at that term it gives the household no exit (svt_conversion_event, P(depart)=0), yet 32 of 60
+    retention offers (59% of retention spend, GBP 1,765) go there.'
+  proposal: I recommend we treat the world as right and stop offering a retention discount at an SVT-to-fix
+    conversion; it is a fact the supplier holds, so it needs no estimate. Then the C29 engagement weighting
+    gets graded on rolled terms only. If the industry instead sees the offer as what wins the conversion,
+    tell me and I will file it as a world-fidelity defect instead. I will carry on with everything else
+    meanwhile.
   status: open
   resolution: ''
   evidence: docs/staging/SEAT_FINDING_C29_THE_BOOK_ARM_SURVIVES_THE_REFIT_AT_HALF_ITS_LIFT_2026-10-05.md
 - id: a-household-s-electricity-carbon-is-shown
   raised: '2026-10-05'
   kind: strategy
-  what: 'A household''s electricity carbon is shown per kWh GENERATED: NESO''s series has carried no transmission and distribution loss uplift since 2020-04-27, so
-    a kWh used at home reads several percent low against the electricity that had to be generated for it. Whether the household figure adds losses is a definition
+  what: 'A household''s electricity carbon is shown per kWh GENERATED: NESO''s series has carried no transmission
+    and distribution loss uplift since 2020-04-27, so a kWh used at home reads several percent low against
+    the electricity that had to be generated for it. Whether the household figure adds losses is a definition
     you own; it was described as raised on 2026-10-05 but never reached this list.'
-  proposal: Add losses as its own named line beside the electricity figure, at DESNZ's published T&D factor (0.01853 kgCO2e/kWh, 2025 set, already sourced in the
-    household-carbon knowledge page), never folded into the grid series, so the published NESO number stays NESO's and the household sees both. Until you rule, the
-    page states that losses are not included, which it now does.
+  proposal: Add losses as its own named line beside the electricity figure, at DESNZ's published T&D factor
+    (0.01853 kgCO2e/kWh, 2025 set, already sourced in the household-carbon knowledge page), never folded
+    into the grid series, so the published NESO number stays NESO's and the household sees both. Until
+    you rule, the page states that losses are not included, which it now does.
   status: open
   resolution: ''
   evidence: docs/staging/SEAT_FINDING_G14_EXPERT_HOUR_RETAKE_ON_THE_HISTORIC_MIX_2026-10-05.md
 - id: c34-next-best-action-the-customer-s
   raised: '2026-10-06'
   kind: canon_intent
-  what: 'C34 next best action: the customer''s benefit first, then ours, is read in slice 1 as a gate (never an action the customer loses by) followed by supplier
-    forward value as the objective. At realistic margins and hazards, every advice action that saves the customer money then LOSES supplier forward value, so the
-    rule advises almost nobody: do no harm, take what pays us.'
-  proposal: Keep the gate-then-CLV reading until you answer. If you agree with the mission's created-then-shared reading, C34 ranks on joint value (customer benefit
-    plus supplier forward-value change) with a no-loss floor on both sides. That is a one-line change to the decision's ranking key; the planted, null and misled
-    control arms carry over.
+  what: 'C34 next best action: the customer''s benefit first, then ours, is read in slice 1 as a gate
+    (never an action the customer loses by) followed by supplier forward value as the objective. At realistic
+    margins and hazards, every advice action that saves the customer money then LOSES supplier forward
+    value, so the rule advises almost nobody: do no harm, take what pays us.'
+  proposal: Keep the gate-then-CLV reading until you answer. If you agree with the mission's created-then-shared
+    reading, C34 ranks on joint value (customer benefit plus supplier forward-value change) with a no-loss
+    floor on both sides. That is a one-line change to the decision's ranking key; the planted, null and
+    misled control arms carry over.
   status: open
   resolution: ''
   evidence: docs/staging/SEAT_FINDING_C34_THE_DECISION_IS_BUILT_AND_ON_SUPPLIER_VALUE_ALONE_IT_ADVISES_NOBODY_2026-10-06.md
 - id: home-moves-can-now-be-switched-on
   raised: '2026-10-06'
   kind: strategy
-  what: Home moves can now be switched on without losing the premise. B7 slice 3 (8359d5acd) supplies a vacated premise from the move date under a new account, on
-    deemed terms at the default tariff. Moves are still off in docs/design/curriculum/home_moves_activation.json, which is your curriculum. While they are off, B11's
-    switch/move split returns None on every run, and every departure in the book reads as a switch.
-  proposal: 'Switch home_moves_activation.json to true. B11 would then split each departure into a switch or a move, using what a real move-out notice tells a supplier.
-    It would fit a switch-only hazard by contract year, which C34''s retention pricing needs, because a retention offer cannot stop a move. With moves on, the book
-    gains deemed move-in accounts on the default tariff, and some premises turn over more than once. One known bias, in our favour: the incoming account pays for
-    the whole change-of-tenancy window, which in reality is often never collected. That is about q1_unnamed_months_per_cot months of each premise''s annual quantity
-    per move, and it is named in the finding. If you would rather that debt side were built first, say so and moves stay off. I am carrying on with other work meanwhile.'
+  what: Home moves can now be switched on without losing the premise. B7 slice 3 (8359d5acd) supplies
+    a vacated premise from the move date under a new account, on deemed terms at the default tariff. Moves
+    are still off in docs/design/curriculum/home_moves_activation.json, which is your curriculum. While
+    they are off, B11's switch/move split returns None on every run, and every departure in the book reads
+    as a switch.
+  proposal: 'Switch home_moves_activation.json to true. B11 would then split each departure into a switch
+    or a move, using what a real move-out notice tells a supplier. It would fit a switch-only hazard by
+    contract year, which C34''s retention pricing needs, because a retention offer cannot stop a move.
+    With moves on, the book gains deemed move-in accounts on the default tariff, and some premises turn
+    over more than once. One known bias, in our favour: the incoming account pays for the whole change-of-tenancy
+    window, which in reality is often never collected. That is about q1_unnamed_months_per_cot months
+    of each premise''s annual quantity per move, and it is named in the finding. If you would rather that
+    debt side were built first, say so and moves stay off. I am carrying on with other work meanwhile.'
   status: open
   resolution: ''
-  evidence: docs/staging/SEAT_FINDING_B7_SLICE_3_A_VACATED_PREMISE_IS_SUPPLIED_FROM_THE_MOVE_DATE_UNDER_A_NEW_ACCOUNT_2026-10-06.md; tests/simulation/test_a_home_move_ends_supply_in_the_run.py
+  evidence: docs/staging/SEAT_FINDING_B7_SLICE_3_A_VACATED_PREMISE_IS_SUPPLIED_FROM_THE_MOVE_DATE_UNDER_A_NEW_ACCOUNT_2026-10-06.md;
+    tests/simulation/test_a_home_move_ends_supply_in_the_run.py
+- id: b8-no-uniform-renewal-cut-from-2
+  raised: '2026-10-08'
+  kind: strategy
+  what: 'B8: no uniform renewal cut from 2.5 to 30 GBP/MWh pays in this world, at either margin end, because
+    the cut is paid to every stayer and most would have stayed anyway. Real retention offers are, as far
+    as I know, SAVE offers made to a customer who has started to leave, not blanket renewal discounts.
+    Is that how a GB supplier actually does it, and does it see the leaving signal (a switch notification)
+    in time to make one?'
+  proposal: 'If yes: grade the same learned decision on a save-offer decision set, offered only where
+    the company observes the household leaving, where p0 is low and the inframarginal cost is small. If
+    blanket renewal offers are real practice, keep the current frame and source the real slope of P(stay)
+    per GBP/MWh instead (ours is about 0.0015; offers start to pay at about 0.006). I will start on sourcing
+    the slope meanwhile, as it is needed either way.'
+  status: open
+  resolution: ''
+  evidence: docs/staging/records/SEAT_FINDING_B8_NO_CUT_SIZE_PAYS_IN_THIS_WORLD_BECAUSE_THE_STAY_BOUGHT_PER_POUND_FALLS_AS_THE_CUT_GROWS_2026-10-08.md
