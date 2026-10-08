@@ -100,3 +100,7 @@ seeds are identical in every figure), so 78 draws in two years have few distinct
    sits behind `if differential:` in `roll_lifecycle_event`, so a flat offer still differs from the
    incumbent rate. Is that intended? Read the control arm's draw count in a `--partition-probe`
    before reasoning about it.
+
+*Owed item 2 answered 2026-10-08:* yes, by design. In 2017 every arm takes the draw for all 26
+renewing accounts. The floor needs nine seeds. See
+`SEAT_FINDING_W2_20_THE_CONTROL_ARM_TAKES_THE_ELASTICITY_DRAW_BY_DESIGN_2026-10-08.md`.

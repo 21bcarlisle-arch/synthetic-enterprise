@@ -2178,6 +2178,33 @@ def test_the_probe_answers_for_BOTH_keys_in_one_pass_and_re_draws_nothing():
         "an unpatched run has")
 
 
+def test_the_probe_splits_each_draw_by_the_arm_that_took_it():
+    """The W2_20 placebo said the flat CONTROL arm reads the elasticity draw. The pooled tally
+    cannot say that: it counts the three arms together. This control has the control arm draw for
+    one account and the value arm for two others, and checks the split. It also checks that a
+    control-arm draw is countable at all, so a split that sent every draw to one arm goes red."""
+    from dataclasses import replace
+
+    from company.policy.decision_policy import CURRENT_POLICY, VALUE_ARM_POLICY, policy_scope
+    from tools.run_value_cycle_ab import partition_probe
+
+    def runner():
+        from simulation.population_draw import price_elasticity_for_customer
+        with policy_scope(CURRENT_POLICY):
+            price_elasticity_for_customer(_PRICED[0], _RUN_SEED)
+        with policy_scope(VALUE_ARM_POLICY):
+            for a in _PRICED[1:3]:
+                price_elasticity_for_customer(a, _RUN_SEED)
+        with policy_scope(replace(CURRENT_POLICY, name="level_arm")):
+            return _two_key_runner()
+
+    split = partition_probe(_PRICED, runner=runner)["keys"]["elasticity"]["by_arm"]
+    assert split[CURRENT_POLICY.name]["accounts"] == [_PRICED[0]]
+    assert split[VALUE_ARM_POLICY.name]["calls"] == 2
+    assert split[VALUE_ARM_POLICY.name]["accounts"] == sorted(_PRICED[1:3])
+    assert split["level_arm"]["calls"] == len(_PRICED)
+
+
 def test_the_probe_refuses_rather_than_silently_skipping_a_key_it_cannot_find():
     """A probe that skipped a missing symbol would report an empty complement for it -- which is
     the exact reading it exists to distinguish from a real one, and it would be published as a

@@ -105,6 +105,7 @@ from company.crm.customer_profitability import (
 from company.policy.decision_policy import (
     CURRENT_POLICY,
     VALUE_ARM_POLICY,
+    active_policy,
     policy_scope,
 )
 from company.pricing.value_based_renewal import (
@@ -6031,15 +6032,24 @@ def partition_probe(roster: list[str], report_end: str | None = None, runner=Non
                 "missing" if real_roll is None else "present"))
 
     tally = {"elasticity": {"calls": 0, "ids": set()}, "churn_roll": {"calls": 0, "ids": set()}}
+    # BY ARM, because "the flat control arm reads the elasticity draw" (the W2_20 placebo,
+    # 2026-10-08) is a claim about ONE arm and the pooled tally cannot answer it. The arms run
+    # serially in this process, each inside `policy_scope`, so the active policy's name is the arm.
+    by_arm: dict = {"elasticity": {}, "churn_roll": {}}
+
+    def _count(key, account):
+        tally[key]["calls"] += 1
+        tally[key]["ids"].add(account)
+        arm = by_arm[key].setdefault(active_policy().name, {"calls": 0, "ids": set()})
+        arm["calls"] += 1
+        arm["ids"].add(account)
 
     def elasticity_recorder(customer_id, base_seed, curriculum=None):
-        tally["elasticity"]["calls"] += 1
-        tally["elasticity"]["ids"].add(customer_id)
+        _count("elasticity", customer_id)
         return real_elasticity(customer_id, base_seed, curriculum)
 
     def roll_recorder(billing_account, term_start_str):
-        tally["churn_roll"]["calls"] += 1
-        tally["churn_roll"]["ids"].add(billing_account)
+        _count("churn_roll", billing_account)
         return real_roll(billing_account, term_start_str)
 
     setattr(draw_module, elasticity_name, elasticity_recorder)
@@ -6070,6 +6080,11 @@ def partition_probe(roster: list[str], report_end: str | None = None, runner=Non
             #: `only` refuses when no roster account drew; `except` when no outside account did.
             "only_leg_would_refuse": not (ids & scope),
             "except_leg_would_refuse": not outside,
+            "by_arm": {
+                arm: {"calls": c["calls"], "accounts_that_drew": len(c["ids"]),
+                      "roster_accounts_that_drew": len(c["ids"] & scope),
+                      "accounts": sorted(c["ids"])[:200]}
+                for arm, c in sorted(by_arm[key].items())},
         }
     lvs = (result.get("level_vs_selection") or {})
     return {
