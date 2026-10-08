@@ -95,12 +95,15 @@ from company.policy.decision_policy import (
 )
 from sim.cache_store import get_cached_prices, log_cache_access
 from sim.customer_state_layer import (
+    VOID_CONSUMPTION_GAP_REASON,
     account_move_out,
+    as_void_row,
     incoming_occupant_record,
     moves_active,
     term_window_under_move,
     unnamed_kwh_after_move,
     unnamed_until,
+    void_end,
 )
 from sim.forward_curve import (
     SUMMER_MULTIPLIER,
@@ -196,6 +199,7 @@ from simulation.household import household_of
 from simulation.household_demand import HouseholdDemandRegister
 from simulation.household_demand_shape import seasonal_gas_splits_for_book
 from simulation.household_segments import active_renewal_probability_for_customer
+from simulation.household_segments import tenure_for_customer as _tenure_of_household
 from simulation.live_population import (
     campaign_quotes_paid_for,
     founding_capital_gbp,
@@ -2090,6 +2094,12 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
     home_move_ins: list[dict] = []
     # B7 slice 4: per incoming leg, the day its energy stops being the unnamed occupier's.
     _unnamed_until: dict[str, date] = {}
+    # B7 slice 6 (voids, director 2026-10-08): per incoming leg, the first day that is not the
+    # owner's void; per incoming household, the day its own occupancy (and move hazard) starts;
+    # per incoming leg, its `home_move_ins` entry, so the void's charge is totalled on it.
+    _void_until: dict[str, date] = {}
+    _occupant_from: dict[str, date] = {}
+    _move_in_entry: dict[str, dict] = {}
 
     def _known_customers() -> list[dict]:
         """The run's accounts, the incoming occupants admitted so far included. With moves off it
@@ -2105,7 +2115,17 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         if get_customer(leg) is not None:
             return
         _incoming_occupant_book.append(record)
-        _unnamed_until[leg] = unnamed_until(move.move_date)
+        # B7 slice 6: the vacated home stands empty for its tenure's void, read from the
+        # register for the MOVER's tenure (the home vacated is theirs). The meter point's account
+        # still opens on the move date, because the supplier stays registered and settles the
+        # void; those rows are the owner's (`as_void_row`). The occupant's own supply, and so the
+        # unnamed window, start when the void ends.
+        _vacated_tenure = _tenure_of_household(household_of(premise))
+        _occupant_start, _void_reason = void_end(move.move_date, _vacated_tenure)
+        if _occupant_start > move.move_date:
+            _void_until[leg] = _occupant_start
+        _occupant_from[household_of(leg)] = _occupant_start
+        _unnamed_until[leg] = unnamed_until(_occupant_start)
         for _by_point in (weather_by_customer, cloud_cover_by_customer, hh_consumption_by_customer,
                           fabric_series_by_customer, properties):
             if premise in _by_point:
@@ -2135,14 +2155,22 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             heapq.heappush(
                 all_terms, (_segment["acquisition_date"], leg, next(_term_seq), commodity, _segment)
             )
-        home_move_ins.append({
+        _move_in_entry[leg] = {
             "premise": premise, "customer_id": leg, "household": household_of(leg),
-            "commodity": commodity, "supply_start": record["acquisition_date"],
+            "commodity": commodity, "supply_start": _occupant_start.isoformat(),
+            "account_opened": record["acquisition_date"],
             "terms": record["terms"], "tariff_type": record["tariff_type"],
             "segments": len(segments),
             "unnamed_until": _unnamed_until[leg].isoformat(),
             "occupancy_start_unknown_reason": move.incoming.start_date_unknown_reason,
-        })
+            "vacated_tenure": _vacated_tenure.value,
+            "void_days": (_occupant_start - move.move_date).days,
+            "void_reason": _void_reason,
+            "void_consumption_unknown_reason": (
+                VOID_CONSUMPTION_GAP_REASON if leg in _void_until else None),
+            "void_owner_charge_gbp": 0.0,
+        }
+        home_move_ins.append(_move_in_entry[leg])
     # EP12: HOW THE SUPPLIER HEARS IT LOST A HOUSEHOLD -- a registration-loss notice per supply
     # point, from the registration service, filed in its change-of-supplier register. Called at
     # every site that adds to `churned_billing_accounts` and handed only the household and the
@@ -2273,10 +2301,14 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                     (c for c in _known_customers()
                      if c["customer_id"] == billing_account), None
                 )
-                _move = account_move_out(
-                    _mover, date.fromisoformat(term_start_str),
-                    date.fromisoformat(effective_end) + timedelta(days=1), run_base_seed(),
-                )
+                # An incoming household lives there only from the end of the void.
+                _hazard_from = max(date.fromisoformat(term_start_str),
+                                   _occupant_from.get(billing_account, date.min))
+                _hazard_to = date.fromisoformat(effective_end) + timedelta(days=1)
+                # A void that ends at or after the window's end leaves this household no time in
+                # the window to move: no move, not an empty window (which first_move_out refuses).
+                _move = (account_move_out(_mover, _hazard_from, _hazard_to, run_base_seed())
+                         if _hazard_from < _hazard_to else None)
                 _move_out_by_household[billing_account] = _move.move_date if _move else None
                 _home_move_by_household[billing_account] = _move
             _move_end, _moved_in_term = term_window_under_move(
@@ -3853,6 +3885,15 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             for rec in term_records:
                 rec["data_regime"] = "historical"
 
+        # B7 slice 6: a vacated premise's rows before the incoming occupier arrives are the
+        # owner's void: standing charge, no energy (`sim/customer_state_layer.as_void_row`).
+        if cid in _void_until:
+            _void_end_iso = _void_until[cid].isoformat()
+            _void_segment = (get_customer(cid) or {}).get("segment", "resi")
+            for rec in term_records:
+                if rec["settlement_date"][:10] < _void_end_iso:
+                    as_void_row(rec, commodity, _void_segment)
+
         # Phase MW: income stress bad-debt uplift (residential only).
         _income_stress = (
             household_demand_register.income_stress_at_date(cid, term_end_str)
@@ -3897,7 +3938,9 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                     "income_stress_value": (
                         _income_stress.value if _income_stress is not None else None),
                     "segment": cust_segment, "fuel": commodity}
-            _held["amount_gbp"] += float(rec.get('revenue_gbp', 0.0) or 0.0)
+            # The owner's void charge is not this household's to pay (B7 slice 6).
+            _held["amount_gbp"] += float(rec.get('revenue_gbp', 0.0) or 0.0) - rec.get(
+                "void_owner_charge_gbp", 0.0)
             # Real-time placeholder only -- simulation.run_phase4c_on_phase2b.main()
             # overwrites this with real, emergent bad debt from the payment/
             # arrears model (simulation.arrears_engine) once bills exist (Phase QD).
@@ -3916,7 +3959,19 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             # occupier" and goes unpaid (`unnamed_until`). It is its own field, not
             # `bad_debt_gbp`, because phase 4c releases that placeholder and re-books it from the
             # arrears engine, which would collect this window as if a named household paid it.
-            if cid in _unnamed_until and rec["settlement_date"][:10] < _unnamed_until[cid].isoformat():
+            #
+            # B7 slice 6: a void row is the OWNER's deemed charge. It is its own receivable
+            # (`void_owner_charge_gbp`), not occupier debt and not `bad_debt_gbp`, and no cash
+            # arrives for it: the company has no landlord record to bill (back_billing_and_
+            # liability.md s.9.5, "the void's cost stays with the supplier"). Whether owners pay
+            # in practice is the register's open practitioner question; no recovery is booked.
+            if "void_owner_charge_gbp" in rec:
+                rec["net_margin_gbp"] = round(
+                    rec["net_margin_gbp"] - rec["void_owner_charge_gbp"], 6)
+                _move_in_entry[cid]["void_owner_charge_gbp"] += rec["void_owner_charge_gbp"]
+                _bad_debt = 0.0
+            elif (cid in _unnamed_until
+                  and rec["settlement_date"][:10] < _unnamed_until[cid].isoformat()):
                 rec["occupier_debt_gbp"] = rec.get("revenue_gbp", 0.0)
                 rec["net_margin_gbp"] = round(rec["net_margin_gbp"] - rec["occupier_debt_gbp"], 6)
                 _bad_debt = 0.0
@@ -4174,6 +4229,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
     total_capital = sum(r["capital_cost_gbp"] for r in all_records)
     total_bad_debt = sum(r.get("bad_debt_gbp", 0.0) for r in all_records)
     total_occupier_debt = sum(r.get("occupier_debt_gbp", 0.0) for r in all_records)
+    total_void_owner_charge = sum(r.get("void_owner_charge_gbp", 0.0) for r in all_records)
     total_net = sum(r["net_margin_gbp"] for r in all_records)
     final_treasury = all_records[-1]["treasury_cash_balance_gbp"] if all_records else STARTING_TREASURY_GBP
 
@@ -4620,6 +4676,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         "total_capital": total_capital,
         "total_bad_debt": total_bad_debt,
         "total_occupier_debt": total_occupier_debt,
+        **({"total_void_owner_charge": total_void_owner_charge} if _home_moves_on else {}),
         # EP4: each account's collections journey on the COMPANY's own ledger -- dated stages from
         # a missed payment to an exit, or `exit: None` while still open at the run's end.
         "collections_journeys": _payment_triad.collections_journeys(

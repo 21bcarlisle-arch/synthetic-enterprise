@@ -801,8 +801,10 @@ def _resolve_bills(bills: list[dict], behavioral: dict, seed: int) -> list[dict]
         # B7 slice 5: the change-of-tenancy window is already booked as occupier debt in the run
         # (`occupier_debt_gbp`), so a named payer is asked only for the rest of the bill, and a
         # bill wholly inside the window is nobody's to collect or write off here.
-        occupier_share = bill.get("occupier_share", 0.0)
-        if occupier_share >= 1.0:
+        # B7 slice 6: the owner's void charge is not a named payer's either. Two shares of one
+        # revenue can sum to a hair under 1.0, which would leave a penny-dust bill to collect.
+        occupier_share = bill.get("occupier_share", 0.0) + bill.get("void_owner_share", 0.0)
+        if occupier_share >= 1.0 - 1e-9:
             continue
         amount = bill["total_amount_gbp"]
         if occupier_share > 0.0:

@@ -38,9 +38,12 @@ the 0.18m of the 1.8m headline that EHS does not break out by tenure).
 
 GAPS CARRIED, NOT FILLED (each would be a number picked because a number was needed)
 -------------------------------------------------------------------------------------
-  - VOID LENGTH. No published domestic void-period length (`home_moves.md` §2.4). The incoming
-    occupancy's `start_date` is therefore `None`, bounded below by the move-out date, with the
-    reason on the object. Downstream may not bill it from a guessed date.
+  - VOID LENGTH. `draw_home_move` still leaves the incoming occupancy's `start_date` `None`, with
+    the reason on the object. Since B7 slice 6 the RUN applies a void per tenure (`void_end`),
+    read from the register (`q1_void_months_social`, `q1_void_months_private_rent`; social from
+    MHCLG CORE re-let times, private from Goodlord re-lets, back_billing_and_liability.md s.11).
+    The owner-occupied row is a GAP, so an owner-occupier's home has no void and the move record
+    says why. The void is the register's central value, fixed per tenure, not a drawn spread.
   - SEASONALITY. No official monthly series of moves (§2.2). The move date is drawn uniformly over
     the year — the no-information case, named as a simplification, not a finding.
   - ENDED AND NEW HOUSEHOLDS. 17% of EHS moves are new households (no vacated dwelling behind
@@ -90,6 +93,19 @@ Since B7 slice 3 the incoming deemed leg is supplied from the move date, so this
 and billed. Since slice 4 the part of it inside the window (`unnamed_until`) is booked as occupier
 debt on the incoming leg rather than as paid.
 
+THE VOID (B7 slice 6, director 2026-10-08: "Rare-event order: approved. Voids first")
+-----------------------------------------------------------------------------------
+Between the outgoing tenant's contract ending and the incoming occupier arriving, an electricity
+supply is deemed to the OWNER ("the occupier (or the owner if the premises are unoccupied)",
+Electricity Act 1989 Sch 6 para 3(1)); SLC 21BA covers deemed contracts. For gas, whether the owner
+is "the consumer" (Gas Act 1986 Sch 2B para 8(1)) is a GAP, and gas voids are treated as
+electricity's: a named simplification. The meter point's account opens on the move date, as the
+supplier stays registered. Its rows before `void_end` are the owner's (`as_void_row`): standing
+charge, 0 kWh, booked as `void_owner_charge_gbp`. The incoming occupier's supply, and its unnamed
+window, start at `void_end`. The void starts on the move date, so the SLC 24.1 tail of a tenant who
+gave no notice is not modelled. No cash arrives for the void charge: the supplier has no landlord
+record to bill (back_billing_and_liability.md s.9.5). It is not collected as a named payer's bill.
+
 WALL. Everything here is ground truth. The move date, the occupancy ids and the void are exactly
 what a supplier cannot see; the seam that will let the company see the shadows (a final read, a
 cancelled DD, settled volume at a premise with nobody contracted) is a later slice.
@@ -105,6 +121,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
 
+from sim.risk_engine import compute_net_margin
 from simulation.arrival_route import (
     ARRIVAL_DEFAULT_TARIFF_TYPE,
     home_move_rate_per_household_year,
@@ -112,7 +129,11 @@ from simulation.arrival_route import (
 from simulation.final_bill_outcome import FinalBillExposure, open_final_bill_exposure
 from simulation.household import GAS_LEG_ID_SUFFIX
 from simulation.household_segments import TenureType, tenure_for_customer
-from simulation.meter_reads import assumption_toggle
+from simulation.meter_reads import assumption_toggle, assumption_toggle_or_gap
+from simulation.policy_costs import (
+    get_electricity_standing_charge_per_day,
+    get_gas_standing_charge_per_day,
+)
 
 NAMESPACE = "customer_state"
 
@@ -326,6 +347,85 @@ def unnamed_until(move_date: dt.date, setting: str = "default") -> dt.date:
     billed late. Any later recovery of that debt is not established, and nothing here books one.
     """
     return move_date + dt.timedelta(days=round(unnamed_months_per_move(setting) * 365.25 / 12.0))
+
+
+#: The register row holding the void length for a home of each tenure (director, 2026-10-08:
+#: "Rare-event order: approved. Voids first"). Read through the register, never typed here.
+VOID_TOGGLE_BY_TENURE: dict[TenureType, str] = {
+    TenureType.SOCIAL_RENTER: "q1_void_months_social",
+    TenureType.PRIVATE_RENTER: "q1_void_months_private_rent",
+    TenureType.OWNER_OCCUPIER: "q1_void_months_owner",
+}
+
+#: Why a void row carries no energy. The owner's deemed customer is billed standing charges only.
+VOID_CONSUMPTION_GAP_REASON = (
+    "energy used in an empty home is not published (back_billing_and_liability.md s.9.1, s.11); "
+    "the void is billed at 0 kWh, so the owner's charge is standing charges only and is a floor"
+)
+
+
+def void_months(tenure: TenureType,
+                setting: str = "default") -> tuple[Optional[float], Optional[str]]:
+    """(months the vacated home stands empty, None), or (None, the GAP reason).
+
+    NAMED SIMPLIFICATION: every void in a tenure is that tenure's register value. It is a fixed
+    length, not a draw: the register gives a central value and a range, not a distribution, and a
+    spread typed here would be a shape nothing establishes.
+    """
+    if not isinstance(tenure, TenureType):
+        raise TypeError(f"tenure must be a TenureType, got {tenure!r}")
+    months, gap = assumption_toggle_or_gap(VOID_TOGGLE_BY_TENURE[tenure], setting)
+    if months is not None and not (math.isfinite(months) and months >= 0.0):
+        raise ValueError(f"{VOID_TOGGLE_BY_TENURE[tenure]}[{setting}] is not a duration: {months!r}")
+    return months, gap
+
+
+def void_end(move_date: dt.date, tenure: TenureType,
+             setting: str = "default") -> tuple[dt.date, Optional[str]]:
+    """(the day the incoming occupier takes supply, the GAP reason if no void could be applied).
+
+    The void runs from the move date: the outgoing tenant is taken to have given notice, so their
+    SLC 24.1 tail is empty. With the tenure's void a GAP, the incoming occupier starts on the move
+    date as before slice 6, and the reason says why that is not a finding that voids are zero.
+    """
+    months, gap = void_months(tenure, setting)
+    if months is None:
+        return move_date, gap
+    return move_date + dt.timedelta(days=round(months * 365.25 / 12.0)), None
+
+
+#: Every field of a settled row (either fuel) that scales with energy. A void row zeroes them.
+_VOLUME_FIELDS = (
+    "consumption_kwh", "daily_kwh", "hedged_volume_kwh", "unhedged_volume_kwh", "hedged_mwh",
+    "unhedged_mwh", "wholesale_cost_gbp", "ro_levy_gbp", "cfd_levy_gbp", "ccl_gbp", "cm_levy_gbp",
+    "fit_levy_gbp", "mutualization_levy_gbp", "policy_cost_gbp", "network_cost_gbp",
+    "gas_ccl_gbp", "ggl_gbp", "gas_policy_cost_gbp", "gas_network_cost_gbp",
+)
+
+
+def as_void_row(rec: dict, commodity: str, segment: str = "resi") -> None:
+    """Turn one settled row at a vacated meter point into the owner's void row, in place.
+
+    The meter stays registered to this supplier through the void (GB keeps supply on), so the
+    period is settled. Its energy is 0 kWh (`VOID_CONSUMPTION_GAP_REASON`); what is left is the
+    standing charge, which is the owner's (Electricity Act 1989 Sch 6 para 3(1)). The row keeps
+    its capital cost, which is the term's and not the energy's.
+    """
+    for field in _VOLUME_FIELDS:
+        if field in rec:
+            rec[field] = 0.0
+    day = rec["settlement_date"][:10]
+    if commodity == "gas":
+        charge = get_gas_standing_charge_per_day(day, segment)
+        rec["gas_standing_charge_gbp"] = round(charge, 8)
+    else:
+        # One half-hour's share, as `hedged_settlement.run_hedged_term` prorates it.
+        charge = get_electricity_standing_charge_per_day(day, segment) / 48.0
+        rec["standing_charge_gbp"] = charge
+    rec["revenue_gbp"] = charge
+    rec["margin_gbp"] = charge
+    rec["net_margin_gbp"] = compute_net_margin(charge, rec.get("capital_cost_gbp", 0.0))
+    rec["void_owner_charge_gbp"] = charge
 
 
 def incoming_leg_id(incoming_occupancy_id: str, vacated_supply_point_id: str) -> str:

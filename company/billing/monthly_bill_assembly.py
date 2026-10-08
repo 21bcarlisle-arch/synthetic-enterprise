@@ -745,6 +745,15 @@ def build_monthly_bills(
                 bill["occupier_debt_gbp"] = occupier_gbp
                 bill["occupier_share"] = (
                     min(1.0, occupier_gbp / revenue_gbp) if revenue_gbp > 0 else 1.0)
+            # B7 slice 6: a void month's standing charges are the OWNER's deemed charge, booked by
+            # the world as `void_owner_charge_gbp`. Its own share, so the arrears engine asks no
+            # named payer for it and no reader confuses the owner with "the occupier".
+            void_gbp = sum(r.get("void_owner_charge_gbp", 0.0) for r in months[month])
+            if void_gbp:
+                revenue_gbp = sum(r.get("revenue_gbp", 0.0) for r in months[month])
+                bill["void_owner_charge_gbp"] = void_gbp
+                bill["void_owner_share"] = (
+                    min(1.0, void_gbp / revenue_gbp) if revenue_gbp > 0 else 1.0)
             bills.append(bill)
             # One event per bill, in bills order -- appended here, in the same
             # step that appends the bill, so the two lists cannot fall out of

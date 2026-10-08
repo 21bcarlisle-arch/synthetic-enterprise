@@ -82,7 +82,11 @@ def test_a_vacated_premise_is_supplied_the_day_after_the_movers_last_day(moved_r
     assert [m for m in incoming.values() if m["segments"]]
     for move in moved_run["home_move_outs"]:
         leg = incoming[move["customer_id"]]
-        assert leg["supply_start"] == move["move_date"], move
+        # The meter point's account opens on the move date; the occupier's own supply starts
+        # after the owner's void (B7 slice 6), which is zero days for an owner-occupied home.
+        assert leg["account_opened"] == move["move_date"], move
+        assert leg["supply_start"] == (dt.date.fromisoformat(move["move_date"]) + dt.timedelta(
+            days=leg["void_days"])).isoformat(), move
         assert leg["commodity"] == move["commodity"], move
         assert [r for r in rows if r["customer_id"] == leg["customer_id"]
                 and r["term_start"][:10] == move["move_date"]], move
@@ -119,7 +123,10 @@ def test_the_change_of_tenancy_window_is_occupier_debt_and_the_rest_is_collected
     rows. The first assertion is the partition control: rows on BOTH sides of a window must
     exist, or a rule that books everything or nothing would pass the loop."""
     until = {m["customer_id"]: m["unnamed_until"] for m in moved_run["home_move_ins"]}
-    rows = [r for r in moved_run["all_records"] if r["customer_id"] in until]
+    # Rows before the occupier's supply starts are the owner's void (B7 slice 6), not its debt.
+    start = {m["customer_id"]: m["supply_start"] for m in moved_run["home_move_ins"]}
+    rows = [r for r in moved_run["all_records"] if r["customer_id"] in until
+            and r["settlement_date"][:10] >= start[r["customer_id"]]]
     inside = [r for r in rows if r["settlement_date"][:10] < until[r["customer_id"]]]
     after = [r for r in rows if r["settlement_date"][:10] >= until[r["customer_id"]]]
     assert inside and after and [r for r in inside if r.get("revenue_gbp", 0.0) > 0.0]
@@ -140,8 +147,10 @@ def test_a_bill_carries_the_share_of_its_charges_that_is_occupier_debt(moved_run
     every bill, or none, or only whole months would pass."""
     from simulation.run_phase4c_on_phase2b import build_monthly_bills
     until = {m["customer_id"]: m["unnamed_until"] for m in moved_run["home_move_ins"]}
+    # A month holding any of the owner's void (B7 slice 6) is that test's subject, not this one's.
+    start = {m["customer_id"]: m["supply_start"] for m in moved_run["home_move_ins"]}
     bills = [b for b in build_monthly_bills(moved_run["all_records"])
-             if b["customer_id"] in until]
+             if b["customer_id"] in until and b["period_start"] >= start[b["customer_id"]]]
     whole = [b for b in bills if b["period_end"] < until[b["customer_id"]]]
     split = [b for b in bills
              if b["period_start"] < until[b["customer_id"]] <= b["period_end"]]

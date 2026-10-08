@@ -95,6 +95,19 @@ def assumption_toggle(toggle_id: str, setting: str = "default") -> float:
     raise KeyError(f"{toggle_id} is not in {ASSUMPTION_TOGGLES_PATH.name}")
 
 
+def assumption_toggle_or_gap(
+        toggle_id: str, setting: str = "default") -> tuple[Optional[float], Optional[str]]:
+    """(value, None), or (None, the row's `default_reason`) when the register holds a GAP there.
+    `assumption_toggle` raises on a null, which is right for a row nobody expects to be empty."""
+    rows = yaml.safe_load(ASSUMPTION_TOGGLES_PATH.read_text())["toggles"]
+    for row in rows:
+        if row["id"] == toggle_id:
+            if row[setting] is None:
+                return None, " ".join(str(row.get("default_reason") or "GAP").split())
+            return float(row[setting]), None
+    raise KeyError(f"{toggle_id} is not in {ASSUMPTION_TOGGLES_PATH.name}")
+
+
 # --- Anchors (docs/market_research/ASSUMPTIONS.md, 2026-07-08) -------------
 
 # Share of installed smart meters not in smart mode (register
