@@ -575,7 +575,7 @@ Both the ledger and the meter are read from the same run. The decomposition clos
 | End use | Predicted median | **World median** | **World mean** | Published per-home figure (mean) | World − published |
 |---|---|---|---|---|---|
 | Always-on | 760–820 ✗ | **632** | 954 | EFUS 2011 mean 136 W = 1,191 | below (sample draw) |
-| Electronics (on-mode) | 350–650 ✓ | **628** | **673** | HES 2010–11 **on-mode** ≈ **557** (AV 123.8 W × 3,118 h = 386, computer 88 W × 1,945 h = 171; R66141 Figs 501, 535) | **+116**, and HES is a CRT/plasma/desktop stock |
+| Electronics (on-mode) | 350–650 ✓ | **628** | **673** | HES 2010–11 **on-mode** ≈ **557** (AV 123.8 W × 3,118 h = 386, computer 88 W × 1,945 h = 171; R66141 Figs 501, 535) | ~~**+116**~~ **≈ +2 to +22**: 557 was per-site, see the correction below; HES is a CRT/plasma/desktop stock |
 | Cooking (electric, after the fuel draw) | 450–600 ✗ (610) | **610** | 577 | HES R66141 Table 23 per owning home × the world's own fuel shares ≈ **514** (oven 290 × 0.737, hob 226 × 0.303, kettle 167, microwave 56, toaster 22) | **+63** |
 | Cold | 250–450 ✓ | **289** | 391 | DECC/BRE cold-appliance field trial, 2015, 416 homes: **533 ± 32** per home | **−142** |
 | Laundry and dishwasher | 350–430 ✓ | **357** | 388 | HES Table 22 per owning appliance: washer 166, dryer 394, dishwasher 294 | not above |
@@ -623,3 +623,36 @@ one without a source.
    against**. SERL 2021 is the comparison the world can be held to. Its 3,030 is ALL homes,
    including electric heating and EVs, so the gas no-PV figure is lower. That subgroup's 2021
    annual median was not read. Read it before calling the level high or right.
+
+## Electronics anchor: the prediction hit and the premise was wrong, so nothing is refitted (2026-10-08, executor seat, claim `a-gas-homes-electronics-load-is-anchored-to-hes-on-mode`)
+
+**The filed prediction, graded before the source was re-read.** Instrument `/tmp/gslevel_elec/ab.py`.
+Both arms ran in one process over the same 163 homes (seed 17, C1 2022): 0.055 against 0.0455.
+
+| Leg | Filed | Observed |
+|---|---|---|
+| Mean meter change | −116 ± 15 | **−116.3** ✓ |
+| Median change | −95 to −125 | **−108.4** ✓ |
+| 19:30 median profile | −0.02 to −0.04 kWh/h | **−0.035** (0.674 → 0.639) ✓ |
+| Trough | unmoved | **0.127 → 0.127** ✓ |
+
+So the mechanism is understood: the electronics term scales linearly and sits in the evening.
+
+**Why it is not landed.** The 557 it would anchor to is mis-derived. HES Figs 501 and 535 give per-SITE
+average ON power × average ON hours. Tables 26 and 29 give per-HOUSEHOLD annual consumption: AV 553,
+computer 240. The product of means does not reconcile with either (461 against 553, 218 against 240).
+On-mode per household, read from the annuals less standby, is **≈ 651–671 kWh/yr**. The world's mean is
+**673**. Electronics is therefore not +116 above HES. It is within ~0–20 of it, and it is still an
+UPPER bound for 2016–2025, because the 2010–11 stock was CRT/plasma and desktops. Refitting to 0.0455
+would have anchored a world constant to an arithmetic artefact and spent a value-arms re-take on it.
+
+**What landed instead.** The constant keeps 0.055. It now carries its HES derivation inline
+(`simulation/premise_trace.py`), and the market-research doc is corrected beside its claim. No world
+output moves, so no value-arms re-take is owed.
+
+**What this changes in the section above.** With electronics at about +0 and cooking at +63 above
+HES, and cold at −142 below, the per-use sum is still roughly a 2010–15 home. The "vintage" hypothesis
+(1) is unchanged. It now has no single in-world constant above its own source to point at. So the
+next item is the READ (step 2): a 2020s per-use trend that says how far each 2010–15 figure should
+have fallen by 2022. A refit should follow that, not a 2010–11 figure.
+

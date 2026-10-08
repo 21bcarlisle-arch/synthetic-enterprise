@@ -813,6 +813,13 @@ def gas_cooked(base_seed: int) -> frozenset[str]:
     return combination
 
 _LIGHTING_KW_PER_PERSON = 0.035
+# `domain-knowledge`, checked 2026-10-08 against HES (Intertek R66141, 2010-11). On-mode electronics
+# per HOUSEHOLD is the annual (Table 26 AV 553, Table 29 computer 240 kWh) less the standby
+# (Figs 501, 535): about 651-671 kWh/yr. Over gas-heated no-PV homes, seed 17, C1 2022, this
+# constant gives a mean of 673. Do not refit it to 557: that is per-SITE power times hours, a
+# product of means that reconciles with neither annual. HES's stock is CRT/plasma and desktops, so
+# for 2016-2025 this is an UPPER bound; a 2020s per-use figure is not established. Source:
+# docs/market_research/the_seasonal_swing_of_a_gas_heated_homes_electricity.md.
 _ELECTRONICS_KW_PER_PERSON = 0.055
 
 # `domain-knowledge` — lighting and electronics are SWITCHED devices, and this is

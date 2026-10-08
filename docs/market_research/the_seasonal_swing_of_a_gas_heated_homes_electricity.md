@@ -567,8 +567,13 @@ audiovisual site and the computer site.
 | Audiovisual (Fig 501, Table 26) | 123.8 W × 3,118 h ≈ **386 kWh** | 17.8 W × 4,213 h ≈ 75 kWh | 553 all households (441–630 by type) |
 | Computer (Fig 535, Table 29) | 88 W × 1,945 h ≈ **171 kWh** | 9.3 W × 5,046 h ≈ 47 kWh | 240 all households (137–267) |
 
-ON-mode together is ≈ **557 kWh/yr**. Standby belongs with the always-on draw (EFUS 2011's base),
-which already carries it. The 2010–11 stock was CRT/plasma televisions and desktops, so this is an
+~~ON-mode together is ≈ **557 kWh/yr**.~~ **Corrected 2026-10-08 (executor seat):** 557 is per-SITE
+average power × average hours, a product of means. It does not reconcile with HES's own annual
+figures, which are per HOUSEHOLD: AV 386 + 75 = 461 against Table 26's 553, and computer 171 + 47 =
+218 against Table 29's 240. On-mode per household from those annuals is (553 − 75) + (240 − 47) ≈
+**671 kWh/yr**, or ≈ **651** if the on/standby split is applied in proportion. The world's mean, 673
+over 163 gas no-PV homes, sits inside that, so the world's electronics is **not** above HES. Standby
+belongs with the always-on draw (EFUS 2011's base), which already carries it. The 2010–11 stock was CRT/plasma televisions and desktops, so this is an
 UPPER bound for 2016–2025. Standby is minimal 19:00–22:00, when the sites are most used.
 
 **DECC/BRE cold appliances field trial (report HPR187-1003, Jan 2017; 766 households, monitored
