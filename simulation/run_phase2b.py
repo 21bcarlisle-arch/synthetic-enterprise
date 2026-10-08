@@ -1288,6 +1288,20 @@ def _record_renewal_decision(journey, log: list, *, customer_id: str, event_date
                 "commodity": commodity, "rolled": rolled, "switched": switched})
 
 
+def _box_admission():
+    """`resource_headroom.queued` for one run, declared at the shipped budget's measured peak
+    (`budgeted_run_peak_mb`; the `sim_run` class weight when no curve prices it). Over-declares for
+    a small run, which is the safe side: it may wait, it never crowds the box."""
+    import contextlib
+
+    from background.live_ledger_guard import in_test_process
+    if in_test_process():
+        return contextlib.nullcontext()
+    from background import resource_headroom
+    peak, _basis = budgeted_run_peak_mb()
+    return resource_headroom.queued("sim_run", weight_mb=peak, log=print)
+
+
 def main(report_end: str | None = None, policy: DecisionPolicy | None = None,
          gap_ledger_path=None):
     """Run one simulation under its own fresh competitive-pressure ledger.
@@ -1325,7 +1339,11 @@ def main(report_end: str | None = None, policy: DecisionPolicy | None = None,
     from simulation import run_cost
 
     started = _time.monotonic()
-    with pressure_ledger_scope():
+    # THE BOX'S ONE BUDGET (director, 2026-10-08). A run started directly -- a lane's script, a tool
+    # calling this in-process -- queues for room like a gate or a long job, instead of co-running.
+    # Already-admitted work (sim-runner's cycle, a launched long job, an admitted gate) passes
+    # straight through, and a test process never queues.
+    with _box_admission(), pressure_ledger_scope():
         result = _main(report_end=report_end, policy=policy,
                        gap_ledger_path=gap_ledger_path)
     # One line per run: its cost against the book it settled (simulation/run_cost.py).

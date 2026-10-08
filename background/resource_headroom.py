@@ -101,7 +101,17 @@ from pathlib import Path
 PROJECT_DIR = Path(__file__).resolve().parent.parent
 OBS_DIR = PROJECT_DIR / "docs" / "observability"
 EPISODE_PATH = OBS_DIR / ".resource_headroom_episode.json"
-RESERVATIONS_PATH = OBS_DIR / ".heavy_job_reservations.json"
+#: ONE LEDGER FOR THE WHOLE BOX (director, 2026-10-08: "Make one memory budget for the whole box that
+#: everything goes through: runs from every lane, test gates and landings. Anything that doesn't fit
+#: queues instead of co-running."). It was `OBS_DIR / ...`, i.e. inside whichever tree imported this
+#: module, so a landing's gate in a clean extract and a run in a linked worktree each read a ledger
+#: of their own and the box had no single budget. Machine-wide now; `SE_BOX_LEDGER_DIR` is the seam
+#: for tests.
+BOX_LEDGER_DIR = Path(os.environ.get("SE_BOX_LEDGER_DIR") or "/var/tmp/synthetic-enterprise-box")
+RESERVATIONS_PATH = BOX_LEDGER_DIR / "heavy_job_reservations.json"
+#: Set in the environment of whatever holds a reservation, so the same work asked again lower down
+#: (a run inside an admitted gate, a run inside a launched long job) is not counted twice.
+ADMITTED_ENV = "SE_BOX_ADMITTED"
 DEFERRAL_LOG_PATH = OBS_DIR / "heavy_job_deferrals.jsonl"
 
 MEMINFO = Path("/proc/meminfo")
@@ -153,6 +163,13 @@ CLASS_WEIGHTS_MB = {
     # largest COMPLETE run, 10.9G (11,162 MB). A cgroup peak, so it counts page cache as
     # sim_run's does.
     "head_green_census": 11162,
+    # tools/pre_commit_test_gate.py's pytest, whole process tree (forked trace workers included),
+    # by PSS. ORIGIN: measured 2026-10-08 on a run-heavy selection -- the run-phase2b event-log,
+    # run-phase2b, home-move, void, fabric-demand and wall-census files, 414 tests, 11 min -- at
+    # 2,190 MB. The peak is one module-scoped run at a time, so a wider selection pays it serially
+    # rather than adding to it. Not a unit, so no journal re-derives it: re-measure when the
+    # simulation's per-run peak moves.
+    "commit_gate": 2190,
 }
 
 # Which systemd unit's record re-derives which class weight. Only classes that RUN AS A UNIT
@@ -793,6 +810,80 @@ def admitted(job_class: str, log=None, reservations_path: Path | None = None,
 
 
 @contextlib.contextmanager
+def _ledger_lock(reservations_path: Path | None = None):
+    """Exclusive lock on the box ledger, so ASKING and RESERVING are one step: two queued jobs
+    must not both be admitted between one's `admit` and its write."""
+    import fcntl
+    path = (reservations_path or RESERVATIONS_PATH).with_suffix(".lock")
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with open(path, "a+") as fh:
+        fcntl.flock(fh, fcntl.LOCK_EX)
+        try:
+            yield
+        finally:
+            fcntl.flock(fh, fcntl.LOCK_UN)
+
+
+class QueueTimeout(RuntimeError):
+    """The box never had room for the job inside its deadline. Carries the last refusal."""
+
+
+#: How often a queued job asks again. Not a domain constant: it bounds how stale a queue is.
+QUEUE_POLL_SECONDS = 30
+
+
+@contextlib.contextmanager
+def queued(job_class: str, weight_mb=None, log=None, deadline_seconds: float = 4 * 3600,
+           poll_seconds: float = QUEUE_POLL_SECONDS, sleep=None, reservations_path: Path | None = None,
+           deferral_log_path: Path | None = None, **admit_kwargs):
+    """Wait until the box has room for this job, then hold its reservation until it ends.
+
+    THE ONE DOOR EVERY HEAVY THING GOES THROUGH: commit gates, direct runs and the sim-runner ask
+    this; long jobs ask `launch_long_job.co_residence`, which counts the same ledger. A refusal
+    QUEUES (asks again every `poll_seconds`) instead of co-running, which is what killed the
+    2026-10-08 vulnerability landing beside three lanes' 10-11 GB of runs.
+
+    Already inside an admitted holder (`ADMITTED_ENV` set), it neither waits nor reserves: the
+    holder's reservation already counts this work. Past the deadline it raises `QueueTimeout`
+    with the last refusal's reason, so a job that never fits says why rather than waiting forever.
+    """
+    if os.environ.get(ADMITTED_ENV):
+        yield {"admitted": True, "reason": f"inside {os.environ[ADMITTED_ENV]}, already counted"}
+        return
+    import time as _time
+    sleep = sleep or _time.sleep
+    start = _time.monotonic()
+    first = True
+    while True:
+        with _ledger_lock(reservations_path):
+            decision = admit(job_class, weight_mb=weight_mb, reservations_path=reservations_path,
+                             **admit_kwargs)
+            if decision["admitted"]:
+                holder = _reserve(job_class, weight_mb, reservations_path)
+                break
+        if first:
+            if log is not None:
+                log(f"QUEUED {job_class} -- {decision['reason']}")
+            record_deferral({**decision, "queued": True}, deferral_log_path)
+            first = False
+        if _time.monotonic() - start >= deadline_seconds:
+            raise QueueTimeout(f"{job_class} waited {deadline_seconds:.0f}s for room and never "
+                               f"fitted: {decision['reason']}")
+        sleep(poll_seconds)
+    previous = os.environ.get(ADMITTED_ENV)
+    os.environ[ADMITTED_ENV] = job_class
+    try:
+        yield decision
+    finally:
+        with _ledger_lock(reservations_path):
+            _release(holder, reservations_path)
+        if previous is None:
+            os.environ.pop(ADMITTED_ENV, None)
+        else:
+            os.environ[ADMITTED_ENV] = previous
+
+
+@contextlib.contextmanager
 def reservation(job_class: str, weight_mb=None, reservations_path: Path | None = None,
                 proc_root: Path | None = None):
     """Hold a declared claim for the duration of a heavy job.
@@ -801,6 +892,17 @@ def reservation(job_class: str, weight_mb=None, reservations_path: Path | None =
     is what actually guarantees release, because a hard kill (the exact case this exists for)
     never runs a finally block. The context manager is the tidy path, not the safety net.
     """
+    with _ledger_lock(reservations_path):
+        holder = _reserve(job_class, weight_mb, reservations_path, proc_root)
+    try:
+        yield holder
+    finally:
+        with _ledger_lock(reservations_path):
+            _release(holder, reservations_path, proc_root)
+
+
+def _reserve(job_class: str, weight_mb=None, reservations_path: Path | None = None,
+             proc_root: Path | None = None) -> dict:
     path = reservations_path or RESERVATIONS_PATH
     pid = os.getpid()
     holder = {
@@ -814,14 +916,16 @@ def reservation(job_class: str, weight_mb=None, reservations_path: Path | None =
     rows = [r for r in rows if _is_live(r, proc_root)]
     rows.append(holder)
     _write_json(path, rows)
-    try:
-        yield holder
-    finally:
-        rows = [r for r in (_read_json(path, []) or []) if isinstance(r, dict)]
-        rows = [r for r in rows
-                if _is_live(r, proc_root) and not (r.get("pid") == pid
-                                                   and r.get("since") == holder["since"])]
-        _write_json(path, rows)
+    return holder
+
+
+def _release(holder: dict, reservations_path: Path | None = None, proc_root: Path | None = None):
+    path = reservations_path or RESERVATIONS_PATH
+    rows = [r for r in (_read_json(path, []) or []) if isinstance(r, dict)]
+    rows = [r for r in rows
+            if _is_live(r, proc_root) and not (r.get("pid") == holder["pid"]
+                                               and r.get("since") == holder["since"])]
+    _write_json(path, rows)
 
 
 # --------------------------------------------------------------------------------------

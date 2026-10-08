@@ -148,6 +148,19 @@ def resident_census(proc_root: Path | None = None) -> list[dict]:
                        if line.startswith("VmRSS:")), 0)  # kernel threads have no VmRSS
         if not rss_kb:
             continue
+        # PSS, NOT RSS, WHEN THE KERNEL OFFERS IT (2026-10-08). Forked trace workers
+        # (simulation/fork_map.py, 9288dea24) share most of their pages with their parent, and RSS
+        # counts a shared page once per process: on 2026-10-08 the census summed 75,648 MB on a
+        # 24,032 MB guest and the door refused everything. Proportional set size splits each
+        # shared page across its sharers, so the sum is what the box actually holds.
+        try:
+            rollup = (entry / "smaps_rollup").read_text(encoding="utf-8", errors="replace")
+            pss_kb = next((int(line.split()[1]) for line in rollup.splitlines()
+                           if line.startswith("Pss:")), None)
+            if pss_kb is not None:
+                rss_kb = pss_kb
+        except OSError:
+            pass  # not ours to read: RSS, the over-count, is the fail-closed side
         leaf = cgroup.strip().splitlines()[-1].rsplit("/", 1)[-1] if cgroup.strip() else ""
         rows.append({"pid": int(entry.name), "rss_mb": round(rss_kb / 1024, 1), "unit": leaf,
                      "command": argv.replace(b"\0", b" ").decode(errors="replace").strip()[:100]})
@@ -211,7 +224,7 @@ def run_case_refusal(expect_minutes, run_case) -> str | None:
 
 
 def co_residence(peak_mb, residents: list, total_mb, *, declared: dict | None = None,
-                 wait_for_pid: int | None = None) -> dict:
+                 wait_for_pid: int | None = None, reserved: dict | None = None) -> dict:
     """May a job declaring `peak_mb` start beside `residents` on a guest of `total_mb`?
 
     The sum is resident MB plus the declared peak, against the guest's total less
@@ -248,6 +261,15 @@ def co_residence(peak_mb, residents: list, total_mb, *, declared: dict | None = 
             biggest = max(members, key=lambda r: r["counted_mb"])
             biggest["counted_mb"] += uplift
             biggest["declared_peak_mb"] = peak
+    # THE BOX'S ONE LEDGER (director, 2026-10-08): a commit gate, a direct run or a sim-runner cycle
+    # holding a `resource_headroom` reservation counts at the larger of its RSS and its reserved
+    # weight, as a long job counts at its declared peak -- so a long job queues behind a gate that
+    # has not yet grown, and the gate behind the job (it asks `resource_headroom.queued`).
+    for r in counted:
+        weight = (reserved or {}).get(r["pid"])
+        if weight and weight > r["counted_mb"]:
+            r["counted_mb"] = float(weight)
+            r["reserved_mb"] = float(weight)
     waited = [r for r in counted if wait_for_pid is not None and r["pid"] == wait_for_pid]
     counted = sorted((r for r in counted if r not in waited),
                      key=lambda r: r["counted_mb"], reverse=True)
@@ -435,6 +457,16 @@ def stop(unit: str, *, runner=subprocess.run) -> None:
         pass
 
 
+def _live_reserved_by_pid() -> dict:
+    """`{pid: reserved MB}` for every live holder in the box's one ledger. Unreadable is empty:
+    the residents' measured RSS still counts, so this can only make the door stricter."""
+    try:
+        from background.resource_headroom import live_reservations
+        return {r["pid"]: float(r.get("weight_mb") or 0) for r in live_reservations()}
+    except Exception:  # noqa: BLE001
+        return {}
+
+
 def launch(job: str, command: list, *, artefact: str, workdir: str | None = None,
            log: str | None = None, description: str | None = None,
            asserted_live_by=(), env: dict | None = None,
@@ -507,7 +539,8 @@ def launch(job: str, command: list, *, artefact: str, workdir: str | None = None
     me = os.getpid()
     verdict = co_residence(
         peak_mb, [r for r in residents() if r["pid"] != me], guest_total_mb,
-        declared=declared_peaks(records_path), wait_for_pid=wait_for_pid)
+        declared=declared_peaks(records_path), wait_for_pid=wait_for_pid,
+        reserved=_live_reserved_by_pid())
     if not verdict["admitted"]:
         raise LaunchRefused(verdict["reason"])
     say(f"  . {verdict['reason']}")
@@ -538,6 +571,10 @@ def launch(job: str, command: list, *, artefact: str, workdir: str | None = None
         say(f"  . cleared the corpse of a previous `{unit}` -- it was not active, so its name was "
             "blocking every future launch of this job rather than protecting a live one")
 
+    # Work inside the unit is already counted at the unit's declared peak, so a run it starts does
+    # not queue against itself in `resource_headroom.queued`.
+    from background.resource_headroom import ADMITTED_ENV
+    env = {**(env or {}), ADMITTED_ENV: f"longjob:{unit}"}
     argv = systemd_run_argv(
         unit, command, workdir=workdir, log=log,
         description=description or f"long job {job} (launched by background.launch_long_job)",

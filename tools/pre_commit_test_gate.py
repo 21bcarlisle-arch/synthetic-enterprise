@@ -2370,11 +2370,19 @@ def main() -> int:
     # The merge token is this process's, not the suite's: inherited, it would narrow selection
     # inside every test that calls `main()` while a merge is being gated, and nowhere else.
     gitless_env.pop(MERGE_PARENT_ENV, None)
-    r = subprocess.run(
-        [sys.executable, "-m", "pytest", *targets, "-q", "--no-header", "-p", "no:cacheprovider"],
-        cwd=str(ROOT),
-        env=gitless_env,
-    )
+    # THE BOX'S ONE BUDGET (director, 2026-10-08): the gate's pytest queues for room through
+    # `resource_headroom.queued` like every other heavy thing, instead of co-running. The
+    # 2026-10-08 vulnerability landing was killed beside three lanes' 10-11 GB of runs.
+    from background import resource_headroom
+    with resource_headroom.queued("commit_gate", log=lambda m: print(f"[test-gate] {m}", flush=True)):
+        gitless_env[resource_headroom.ADMITTED_ENV] = "commit_gate"
+        r = subprocess.run(
+            [sys.executable, "-m", "pytest", *targets, "-q", "--no-header", "-p", "no:cacheprovider"],
+            cwd=str(ROOT),
+            env=gitless_env,
+        )
+        if r.returncode == 0:
+            extras_green = _run_extras_admitted(selected, targets, gitless_env)
     if r.returncode != 0:
         sys.stderr.write(
             "\n[test-gate] ❌ TESTS FAILED -- COMMIT REFUSED.\n"
@@ -2382,10 +2390,15 @@ def main() -> int:
             "Fix the tests, then commit.\n"
         )
         return 1
+    return 0 if extras_green else 1
+
+
+def _run_extras_admitted(selected, targets, gitless_env) -> bool:
+    """The import-derived half, run inside the gate's one admission so the box counts it once."""
     print("[test-gate] ✓ all targeted tests green")
     extras = import_derived_extras(selected, targets)
     if not extras:
-        return 0
+        return True
     print(f"[test-gate] {len(extras)} more test file(s) IMPORT a changed module "
           f"(each capped at {IMPORT_DERIVED_FILE_CAP_S}s, {IMPORT_DERIVED_BUDGET_S}s in all)",
           flush=True)
@@ -2393,12 +2406,12 @@ def main() -> int:
     if not green:
         sys.stderr.write(
             "\n[test-gate] ❌ TESTS FAILED -- COMMIT REFUSED (import-derived selection).\n")
-        return 1
+        return False
     for label, rows in (("over the per-file cap", over_cap), ("past the budget", unreached)):
         if rows:
             print(f"[test-gate] NOT GRADED, {label}: {', '.join(rows)}")
     print("[test-gate] ✓ every graded importer green")
-    return 0
+    return True
 
 
 # BELOW `main()` ON PURPOSE: `commit_refusal_attribution.gate_ranks` ranks RED TEST by the first

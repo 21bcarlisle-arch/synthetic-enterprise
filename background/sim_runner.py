@@ -14,6 +14,7 @@ Phase 9a reconciliation).
 Runs continuously 24/7 — token budget takes priority over electricity cost.
 """
 
+import os
 import subprocess
 import sys
 import time
@@ -778,7 +779,14 @@ def main() -> None:
             time.sleep(DEFERRAL_RETRY_SECONDS)
             continue
         try:
-            success = run_simulation()
+            # Held for the whole cycle, so the box's one ledger counts it (director, 2026-10-08);
+            # the child run sees ADMITTED_ENV and does not queue against its own reservation.
+            with resource_headroom.reservation("sim_run"):
+                os.environ[resource_headroom.ADMITTED_ENV] = "sim_run"
+                try:
+                    success = run_simulation()
+                finally:
+                    os.environ.pop(resource_headroom.ADMITTED_ENV, None)
         except Exception as exc:
             log(f"Unexpected error in run_simulation: {type(exc).__name__}: {exc}")
             notify(f"[SIM] Unexpected crash: {type(exc).__name__}: {exc}", kind="real_alarm")
