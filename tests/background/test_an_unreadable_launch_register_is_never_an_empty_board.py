@@ -298,7 +298,8 @@ def test_the_launcher_STILL_LAUNCHES_over_an_unreadable_register(tmp_path, monke
     with open("/dev/null", "w") as devnull:  # noqa: SIM115 -- context-managed, unlike the neighbour
         llj.launch("longjob-B", ["/bin/true"], artefact=str(tmp_path / "b.json"),
                    records_path=register, runner=runner, out=devnull,
-                   peak_mb=1000, residents=lambda: [], guest_total_mb=24000)
+                   peak_mb=1000, residents=lambda: [], guest_total_mb=24000,
+                   expect_minutes=30)
 
     assert any(a and a[0] == "systemd-run" for a in calls), "the job was never started"
     assert [r["job"] for r in json.loads(register.read_text())] == ["longjob-B"]

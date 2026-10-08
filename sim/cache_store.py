@@ -11,7 +11,36 @@ Cache entries are plain JSON files — no binary format dependencies.
 import json
 from pathlib import Path
 
-CACHE_DIR = Path("sim/cache")
+
+def shared_cache_dir(module_file: str | Path = __file__) -> Path:
+    """`sim/cache` of the MAIN checkout, whichever worktree or working folder the run starts in.
+
+    IT WAS `Path("sim/cache")`, RELATIVE TO THE PROCESS'S WORKING FOLDER, and the cache is untracked,
+    so a run started in a linked worktree found no cache and re-downloaded every Elexon system price
+    mid-run (30 s of a 331 s 40-founder run, profiled 2026-10-08). Before `SystemPricesFetchError`
+    existed (2026-10-07), a throttled download returned fewer records silently: seven runs logged
+    143,881-167,978 records against the 168,026 the cache holds for 2015-11-07..2025-06-07, so they
+    ran on a different world. One shared copy means every run reads the same frozen prices.
+
+    A linked worktree's `.git` is a FILE naming `<main>/.git/worktrees/<name>`; the main checkout is
+    three levels above that. Read as text, no subprocess. Anything else (the main checkout itself,
+    or a layout git did not write) resolves to this module's own repository, never the working
+    folder.
+    """
+    root = Path(module_file).resolve().parent.parent
+    marker = root / ".git"
+    if marker.is_file():
+        line = marker.read_text(encoding="utf-8").strip()
+        if line.startswith("gitdir:"):
+            gitdir = Path(line.split(":", 1)[1].strip())
+            if not gitdir.is_absolute():
+                gitdir = (root / gitdir).resolve()
+            if gitdir.parent.name == "worktrees" and gitdir.parent.parent.name == ".git":
+                return gitdir.parent.parent.parent / "sim" / "cache"
+    return root / "sim" / "cache"
+
+
+CACHE_DIR = shared_cache_dir()
 
 
 def get_cached_prices(start_date: str, end_date: str) -> list[dict] | None:

@@ -131,3 +131,25 @@ def test_write_then_read_returns_matching_prices(tmp_path):
     assert result is not None
     prices = [r["systemSellPrice"] for r in result]
     assert prices == [100.0, 90.0, 80.0]
+
+
+def test_a_linked_worktree_reads_the_MAIN_checkouts_cache_and_the_main_checkout_reads_its_own(tmp_path):
+    """Defect: `CACHE_DIR` was `Path("sim/cache")`, relative to the working folder. The cache is
+    untracked, so every run started in a linked worktree missed it and re-downloaded Elexon prices
+    mid-run; before 2026-10-07 a throttled download silently returned fewer records (seven runs
+    logged 143,881-167,978 against 168,026) and those runs settled a different world.
+
+    BOTH ARMS. A resolver that always returned the main checkout's path would pass the first leg;
+    the second (the main checkout resolving to itself) is what makes the first one mean anything.
+    """
+    from sim.cache_store import shared_cache_dir
+
+    main = tmp_path / "main"
+    (main / ".git" / "worktrees" / "wt1").mkdir(parents=True)
+    (main / "sim").mkdir()
+    linked = tmp_path / "elsewhere" / "wt1"
+    (linked / "sim").mkdir(parents=True)
+    (linked / ".git").write_text(f"gitdir: {main / '.git' / 'worktrees' / 'wt1'}\n")
+
+    assert shared_cache_dir(linked / "sim" / "cache_store.py") == main / "sim" / "cache"
+    assert shared_cache_dir(main / "sim" / "cache_store.py") == main / "sim" / "cache"

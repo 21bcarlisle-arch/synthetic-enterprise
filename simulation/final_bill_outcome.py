@@ -102,15 +102,11 @@ from enum import Enum
 from typing import Optional
 
 from simulation.arrears_engine import (
-    DCA_COMMISSION_RATE,
-    DCA_RECOVERY_RATE,
-    DEBT_SALE_HAIRCUT_PCT,
     FUEL_POVERTY_DD_FAIL_MULTIPLIER,
     debt_archetype,
-    dca_recovered_amount,
-    debt_sale_proceeds,
     late_days_band,
     on_time_probability,
+    post_write_off_recovery_gbp,
 )
 from simulation.household_segments import (
     PaymentChannel,
@@ -492,25 +488,18 @@ def resolve_final_bill(
 def exit_debt_recovery_gbp(resolution: FinalBillResolution) -> float:
     """Eventual DCA / debt-sale proceeds on an unrecovered exit balance.
 
-    FOLDS `arrears_engine`'s existing post-write-off cascade rather than
-    duplicating it: the same archetype-conditioned DCA recovery rate,
-    commission and debt-sale haircut that the mid-tenure book already uses
-    (AVOIDANT debt gets sold at `DEBT_SALE_HAIRCUT_PCT`; everything else is
-    worked by a DCA at `DCA_RECOVERY_RATE` net of `DCA_COMMISSION_RATE`).
+    FOLDS `arrears_engine`'s post-write-off cascade rather than duplicating it:
+    the same register-read recovery share and sale price the mid-tenure book
+    uses (`arrears_engine.post_write_off_recovery_gbp`).
     Returns 0.0 when there is no shortfall or no archetype was supplied.
     """
     shortfall = resolution.shortfall_gbp
     if shortfall <= 0 or resolution.debt_archetype is None:
         return 0.0
-    if resolution.debt_archetype == "AVOIDANT":
-        return debt_sale_proceeds(shortfall)
-    return dca_recovered_amount(shortfall, resolution.debt_archetype)
+    return post_write_off_recovery_gbp(shortfall, resolution.debt_archetype)
 
 
 __all__ = [
-    "DCA_COMMISSION_RATE",
-    "DCA_RECOVERY_RATE",
-    "DEBT_SALE_HAIRCUT_PCT",
     "FINAL_BILL_DEADLINE_DAYS",
     "FINAL_BILL_OVERDUE_DAYS",
     "RESOLUTION_DAYS",

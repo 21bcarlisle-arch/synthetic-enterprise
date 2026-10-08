@@ -234,3 +234,97 @@ def estimate_offer_effect(observations) -> OfferEffectEstimate:
     else:
         verdict, reason = "undecided", "the interval spans zero at this many decisions"
     return OfferEffectEstimate(n1, n0, s1, s0, d, low, high, verdict, reason)
+
+
+# --- B8 L2: the company USES the estimate. A retention cut is offered where it pays ----------------
+#
+# Two forward values, both the supplier's: without the cut the household stays with the held-out
+# share and earns its margin; with it, it stays with that share plus the learned effect and earns its
+# margin less the cut on every kWh it is billed. The household's side (the saving) is reported beside
+# this by the grader and never enters it.
+
+#: The power the per-channel read asks for before it trusts a channel's own estimate. Not a domain
+#: figure: the convention `tools/grade_coin_drawn_holdout._power_n` sized the set with.
+CHANNEL_READ_POWER = 0.80
+
+
+def estimate_offer_effect_by_channel(observations) -> dict[str, OfferEffectEstimate]:
+    """`estimate_offer_effect` per payment method, on the same rows."""
+    by: dict[str, list] = {}
+    for row in observations:
+        by.setdefault(str(row["payment_method"]), []).append(row)
+    return {m: estimate_offer_effect(rows) for m, rows in sorted(by.items())}
+
+
+def decisions_needed_per_arm(estimate: OfferEffectEstimate) -> int | None:
+    """Decisions per arm for a two-sided test at `INTERVAL_COVERAGE` to find `estimate`'s own effect
+    with `CHANNEL_READ_POWER`, at its held-out stay share. None where there is no effect to find."""
+    from statistics import NormalDist
+
+    if not estimate.effect or not estimate.held_out:
+        return None
+    nd = NormalDist()
+    z = nd.inv_cdf(0.5 + INTERVAL_COVERAGE / 2) + nd.inv_cdf(CHANNEL_READ_POWER)
+    p = estimate.stayed_held_out / estimate.held_out
+    return math.ceil(2 * z * z * p * (1 - p) / estimate.effect ** 2)
+
+
+def effect_for_channel(payment_method: str, by_channel: dict[str, OfferEffectEstimate],
+                       pooled: OfferEffectEstimate) -> tuple[OfferEffectEstimate, str]:
+    """The channel's own estimate where its smaller arm reaches the decisions the POOLED effect needs;
+    otherwise the pooled one, and the reason says which and why."""
+    need = decisions_needed_per_arm(pooled)
+    own = by_channel.get(payment_method)
+    if own is None or own.verdict == "refused":
+        return pooled, f"pooled: no {payment_method} decision in the holdout"
+    have = min(own.treated, own.held_out)
+    if need is not None and have >= need:
+        return own, f"{payment_method}: {have:,} per arm reaches the {need:,} the pooled effect needs"
+    if need is None:
+        return pooled, f"pooled: {payment_method} has {have:,} per arm and the pooled effect is nil"
+    return pooled, f"pooled: {payment_method} has {have:,} per arm, short of the {need:,} needed"
+
+
+@dataclass(frozen=True)
+class CutDecision:
+    """One renewal's retention decision, both forward values, and why."""
+
+    offer_cut: bool
+    value_with_cut: float | None
+    value_without_cut: float | None
+    read: str
+    reason: str
+
+
+def retention_cut_decision(observation: dict, *, cut_gbp_per_mwh: float, margin_share: float,
+                           by_channel: dict[str, OfferEffectEstimate],
+                           pooled: OfferEffectEstimate) -> CutDecision:
+    """Offer `cut_gbp_per_mwh` at this renewal only where the learned effect pays for it at
+    `margin_share` of the household's own last year's bills, and only where the holdout says the
+    offer raises staying at all.
+
+    `margin_share` has no default on purpose: what share of a retained household's bill a supplier
+    keeps is not established as one figure -- it lies between the cap's EBIT allowance and the
+    sector's gross margin, and the caller names which it means.
+
+    The years after this one are valued at the held-out stay share `s` the company observed, as
+    `s / (1 - s)` further years: the same horizon for either option, so it scales the margin a stay
+    is worth and never favours one side by construction.
+    """
+    est, read = effect_for_channel(str(observation["payment_method"]), by_channel, pooled)
+    if est.verdict != "raises_staying":
+        return CutDecision(False, None, None, read,
+                           f"no cut: the holdout says {est.verdict.replace('_', ' ')} ({est.reason})")
+    p0 = est.stayed_held_out / est.held_out
+    if not 0.0 < p0 < 1.0:
+        return CutDecision(False, None, None, read, f"no cut: a held-out stay share of {p0} values no future")
+    margin = margin_share * sum(observation["monthly_bills"])
+    lifetime = margin * (1.0 + p0 / (1.0 - p0))
+    cut_cost = cut_gbp_per_mwh * float(observation["billed_kwh"]) / 1000.0
+    without = p0 * lifetime
+    with_cut = min(1.0, p0 + est.effect) * (lifetime - cut_cost)
+    if with_cut > without:
+        return CutDecision(True, with_cut, without, read,
+                           f"cut: +{est.effect:.4f} of staying is worth {with_cut - without:.2f} more than it costs")
+    return CutDecision(False, with_cut, without, read,
+                       f"no cut: +{est.effect:.4f} of staying is worth {without - with_cut:.2f} less than the cut")
