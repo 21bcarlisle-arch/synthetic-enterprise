@@ -402,8 +402,9 @@ numbers are at the worktree HEAD of that date.
 6. The share of a supplier's losses that are moves. Ofgem 2024 bundles moving with supplier failure
    (4%).
 7. Scotland and Wales tenure mobility, and the 2016–2025 EHS mover time series.
-8. The statutory or licence locus of the two-day liability rule, the 6-week final bill and the
-   10-working-day refund.
+8. ~~The statutory or licence locus of the two-day liability rule, the 6-week final bill and the
+   10-working-day refund.~~ **Two of three closed 2026-10-08 (§8):** the two-day rule is SLC 24.1, and
+   the six-week final bill is SLC 27.17. The 10-working-day credit refund is still unlocated.
 9. The domestic D-flow and gas-flow mechanics of a CoT read after CSS go-live (Jul 2022), beyond the
    CSS CoO indicator.
 
@@ -421,7 +422,8 @@ generate.
 - G4. The company-side CoT coupler, final-bill outcome and deemed legs are built but unfed. `cot.py`
   is dead and carries invented constants, including a cap before 2019.
 - G5. The CoT register conflates the void (D) with the unnamed occupier (B).
-- G6. There is no move observable at the seam, and no mover retention proposition.
+- G6. There is no move observable at the seam, and no mover retention proposition. (§8 states what that
+  observable carries.)
 
 ---
 
@@ -464,7 +466,139 @@ debt prevention) is a step-5 lever. The proposal, with its reasons:
 
 ---
 
+## 8. The move-out notice: what the supplier is told, and what a move-with-us offer is
+
+*Added 2026-10-08 for the director's ruling 3 (home-mover retention as a lever, now that moves are on
+in the world, `ada37371c`). The question is narrow. When **our** customer moves out (case A, and case
+C if they take us with them), what does the supplier receive, and what may it offer? Primary text:
+Ofgem, *Electricity Supply Standard Licence Conditions*, consolidated to 1 August 2025 (the edition
+`back_billing_and_liability.md` cites), and Ofgem, *Tackling energy debt when moving home – Call for
+Input: Summary of Responses*, June 2026 (OFG1164).*
+
+### 8.1 What a move-out notice is
+
+**Definition.** A move-out notice is **the departing customer telling the supplier that they stop
+owning or occupying the premises on a date.** The licence makes that notification the event that
+ends the contract. It is the only industry-recognised trigger the departing customer controls. No
+registration flow carries it. The supplier stays registered at the meter point, so the Central
+Switching Service tells it nothing (§3).
+
+**The licence sets its clock, and not by a lead time picked from guidance.** SLC 24.1 requires every
+domestic contract to end:
+- (a) "if the Domestic Customer has notified the licensee at least two Working Days before the date
+  on which he stops owning or occupying the premises, that date"; or
+- (b) without that notice, at "the first to happen of": (i) "the end of the second Working Day after
+  the customer has notified the licensee that he has stopped owning or occupying the premises", or
+  (ii) "the date on which any other person begins to own or occupy the premises and takes a supply".
+
+SLC 24.2(a): "the Domestic Customer is liable for the supply … until the date on which that contract
+ends". (This closes the "two days" locus that §1 and gap 8 left open: it is SLC 24.1, mirrored in the
+gas SLCs. Citizens Advice's "at least 48 hours" is the same rule restated in consumer language.)
+
+**What that means for the world we run.** `run_phase2b` ends the mover's liability **on the move
+date** (`term_window_under_move`). Under SLC 24.1 that is exactly case (a): the customer gave at
+least two Working Days' notice. So the world has *already* decided that every mover notified in time.
+The latest notice consistent with that decision is **two Working Days before the move date**. That
+date is the notice's clock, and it is set by the licence rule, not by a number we picked. It is the
+least warning a supplier gets from a customer who gives notice in time. So it cannot flatter a
+retention offer, in the same way that `registration_loss_seam.py` dates every CSS switch on the ASAP
+floor.
+
+**Who does not notify, and how often: GAP.** Ofgem's June 2026 summary says accounts "often remain
+unnamed for extended periods due to delays in receiving move out and move in notifications from
+consumers" (¶2.2), and that "customers often expect the process to be automatic and do not seem to
+understand the need to contact their supplier proactively" (¶2.8). Neither paragraph gives a share,
+and the consumer bodies had no quantitative data (¶2.4). The late-notice and no-notice paths (24.1(b))
+are therefore real and unsized. The world does not draw them, and the notice carries no field for
+them. When they are sourced, a late notice changes the liability end (24.1(b)(i)), not only the
+notice date, and the world must change both together.
+
+### 8.2 What the notice carries
+
+| Item | Does the supplier learn it? | Source / status |
+|---|---|---|
+| The account and the meter points | Yes: the customer is identified on contact | The contract is per premises (SLC 24.1 "in relation to the Domestic Premises to which it applies") |
+| The date they stop occupying | Yes: it is the content of the notice | SLC 24.1(a) |
+| When the notice was given | Yes: the supplier's own contact record | SLC 24.1(a)/(b) turn on it |
+| A final meter reading | **Sometimes.** The customer may give one. A smart meter in smart mode can be read remotely on the day; otherwise the read is estimated | §3; Citizens Advice moving-home page. Which reads are actual is a property of the meter, not of the notice, and is not carried on it |
+| A forwarding address (for the final bill) | **Only if the customer gives one.** No licence condition obliges the customer to give one, or the supplier to obtain one. SLC 27.17 obliges only "all reasonable steps to send a final Bill … within 6 weeks" | SLC 27.17 (closes §4's 6-week locus). Share of movers who give one: **GAP** |
+| **The destination premise** (the meter point they move to) | **Only if the household tells it.** No industry flow links the two premises. A forwarding address is a postal address for a bill and does not identify a meter point the supplier could supply | §3 "whether a new customer at one address is the same household that left another unless the customer says so". Share who tell: **GAP** |
+| Why they are moving, tenure, who moves in next, whether the home will be empty | **No** | §3 |
+
+So the minimal honest observable has three fields: the account's meter point, the move-out date, and
+the date the notice was received. A destination field may exist only as **absent unless the
+household told it**. The world has no sourced rate at which households tell, so it is always absent
+for now, with that reason stated.
+
+### 8.3 What a move-with-us offer is under the SLCs
+
+**Definition.** A move-with-us (home-mover retention) offer is the supplier offering to supply the
+departing customer **at their new premises**. It is usually done by carrying the current tariff
+across and waiving the termination fee that closing the old contract would otherwise trigger.
+
+**What the licence says.**
+- **A mover has no licence exemption from a termination fee.** SLC 24.3 lists every exemption: the
+  contract is indefinite (a), it is in its indefinite period (b), the supplier has notified a price
+  rise or disadvantageous variation (c), or it is a Relevant Fixed Term Default Tariff (d). Moving home
+  is not on the list. The 49-day Switching Window protection (24.8(b), 24.17) covers **switching
+  supplier**, not ending a contract by moving out. A fee that is charged must be "proportionate" and
+  no more than "the direct economic loss to the licensee" (24.3A).
+- **So the fee waiver is the supplier's own lever, not a regulatory entitlement.** Consumer guidance
+  agrees: Citizens Advice tells movers on a fixed deal to "check whether an exit fee applies" and to
+  ask whether the supplier will "transfer your current tariff to your new home" (§4). Supplier
+  practice, as reported by comparison sites (Selectra on E.ON and OVO moving pages, accessed
+  2026-10-08): most suppliers waive the exit fee if the tariff moves with the customer, and some
+  charge it per fuel on closure. These are commercial summaries, not sources for any number.
+- **At the destination the incumbent is someone else.** The mover arrives at a premises with its own
+  registered supplier and is on that supplier's deemed contract (§1, case B). Taking the old supplier
+  with them is therefore a **switch at the new premises**, gained by the old supplier. It runs through
+  the ordinary registration route, with the Change of Occupier indicator set (§3, case B''), so the
+  destination's incumbent cannot object on debt grounds. Whether a fixed tariff can carry over also
+  depends on the new premises' meter and region: a tariff's rates are regional. **GAP:** the licence
+  text read here says nothing specific about carrying a tariff to another premises. Whether that is a
+  new contract (with fresh SLC 23/25 obligations) or a variation of the old one was not established.
+- **Under the 2016–2025 record no regulation prices this offer.** No take-up rate is published (gap 3
+  in §6, re-confirmed: the June 2026 summary has none). That is why this section builds no retention
+  decision and no take-up rate. It builds only the notice a decision would need to see.
+
+### 8.4 What a real supplier sees, in order
+
+1. **Two Working Days before the move (at latest):** the customer's notice, with the account, the
+   move date and possibly a forwarding address. This is **the one moment a retention offer can be
+   made before the household is gone**. It is the only observable in this list that arrives before
+   the move.
+2. **On the move date:** a final read (actual if smart or customer-read, otherwise estimated). The
+   contract ends.
+3. **Within 6 weeks:** the final bill (SLC 27.17). Then the final-bill outcome (paid, late, partial,
+   unpaid or gone away), which the world already resolves behind the wall
+   (`simulation/final_bill_outcome.py`).
+4. **From the move date, at the vacated premises:** the incoming occupier's deemed supply. It is
+   unnamed until someone makes contact (§3, `sim/customer_state_layer.unnamed_until`).
+
+### 8.5 Gaps this section adds or confirms
+
+- G8.1 The share of movers who notify in time, notify late or never notify, and the lead-time
+  distribution of those who notify. Not published (OFG1164 ¶2.2, ¶2.4, ¶2.8).
+- G8.2 The share of movers who give a forwarding address, and the share who name their destination.
+- G8.3 Whether carrying a tariff to a new premises is a new contract or a variation, and how a
+  regional tariff is re-rated.
+- G8.4 The take-up of a move-with-us offer, and its value (= §6 gap 3).
+- G8.5 The 10-working-day credit refund's locus (the remainder of §6 gap 8).
+
+---
+
 ## Sources
+
+- Ofgem, *Electricity Supply Standard Licence Conditions*, consolidated to 1 August 2025, SLC 24.1-24.3A,
+  24.8, 24.17 (pp.216-220) and SLC 27.17 (p.246),
+  https://www.ofgem.gov.uk/sites/default/files/2023-03/Electricity%20Supply%20Standard%20Consolidated%20Licence%20Conditions%20-%20Current.pdf
+  (fetched 2026-10-08; consolidated text, "not formal Public Register documents").
+- Ofgem, *Tackling energy debt when moving home – Call for Input: Summary of Responses*, June 2026,
+  ¶2.1-2.8, 3.15, https://www.ofgem.gov.uk/sites/default/files/2026-06/Home-Moves-CFI-Summary-of-Responses.pdf
+  (fetched 2026-10-08).
+- Selectra, *E.ON moving home* and *OVO moving home* pages (https://selectra.co.uk/energy/providers/eon/moving,
+  https://selectra.co.uk/energy/providers/ovo-energy/moving; accessed 2026-10-08): commercial summaries
+  of supplier practice, cited for practice only and never for a number.
 
 - Ofgem, *Call for input: Tackling Energy Debt in the Supplier Home-Moves Process*, 9 Dec 2025,
   https://www.ofgem.gov.uk/sites/default/files/2025-12/Tackling-energy-debt-in-home-moves-process-call-for-input.pdf (exec. summary; ¶1.6, 1.13–1.14, 2.1–2.6, 3.5–3.17; Q1–Q2; Information Box 1).
