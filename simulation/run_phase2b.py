@@ -75,6 +75,7 @@ from company.interfaces.supply_book import (
     acquired_supply_points,
     incoming_occupant_supply_points,
     open_change_of_supplier_register,
+    open_priority_services_register,
     successor_supply_points,
 )
 from company.interfaces.supply_book import (
@@ -220,6 +221,7 @@ from simulation.renewal_engagement import passive_churn_cap_for, rolls_active_re
 from simulation.renewals import NOTICE_DAYS, build_renewal_schedule
 from simulation.reputation_index import ReputationEventType
 from simulation.resentment_ledger import FrictionEventType
+from simulation.segment_vocabulary import is_business
 from simulation.settlement import CONTRACT_LENGTH_DAYS
 from simulation.settlement_daily import PeriodRegisters, TreasuryDrawdown, fold_to_days
 from simulation.settlement_fold import SettlementFold
@@ -238,6 +240,11 @@ from simulation.triad import (
     make_triad_aware_shape_fn,
 )
 from simulation.volume_tolerance import compute_term_volume_tolerance
+from simulation.vulnerability_state import (
+    hidden_state_active,
+    registration_notices,
+    wire_registrations,
+)
 from simulation.weather_inputs import (
     adopt_book,
     adopt_shared_world,
@@ -1351,6 +1358,33 @@ def main(report_end: str | None = None, policy: DecisionPolicy | None = None,
     return result
 
 
+def _deliver_psr_registrations(all_records: list[dict], base_seed: int) -> list[dict]:
+    """The company's Priority Services Register, built ONLY from disclosures that crossed the seam.
+
+    The world names each domestic supply point's first supplied day; a household whose latent
+    PSR-type state discloses sends one notice per point, framed on the wire
+    (`interface/contracts/psr_registration_seam.py`), and the company's register decodes it.
+    Delivered after the loop because nothing inside it reads the register yet: each notice still
+    carries its own date, and when a collections step reads protections it must move in-loop.
+    """
+    first_day: dict[str, str] = {}
+    for rec in all_records:
+        cid = rec["customer_id"]
+        if is_business(_SEGMENT_OF.get(cid)):
+            continue
+        day = str(rec["settlement_date"])[:10]
+        if cid not in first_day or day < first_day[cid]:
+            first_day[cid] = day
+    disclosures = registration_notices(
+        ((sp, date.fromisoformat(d)) for sp, d in first_day.items()), base_seed)
+    register = open_priority_services_register()
+    for wire in wire_registrations(disclosures):
+        register.receive_registration_wire(wire)
+    return [{"account_id": r.account_id, "registration_date": r.registration_date.isoformat(),
+             "categories": [c.value for c in r.categories]}
+            for r in register.active_records]
+
+
 def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
           gap_ledger_path=None):
     """Run the full Phase 2b + 4c settlement simulation.
@@ -2102,6 +2136,9 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
     churned_billing_accounts: set[str] = set()
     # B7 slice 2 (`sim/customer_state_layer.py`). Read once per run; with it off nothing below asks.
     _home_moves_on = moves_active()
+    # Vulnerability as a hidden household state (`simulation/vulnerability_state.py`). Read once
+    # per run; with it off nothing below asks and the result carries no `psr_registrations`.
+    _vulnerability_hidden_state_on = hidden_state_active()
     _move_out_by_household: dict[str, date | None] = {}
     _home_move_by_household: dict = {}
     home_move_outs: list[dict] = []
@@ -4612,7 +4649,11 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         )
 
     install_stop_notice_board(None)
+    _psr_registrations = (
+        {"psr_registrations": _deliver_psr_registrations(all_records, run_base_seed())}
+        if _vulnerability_hidden_state_on else {})
     return {
+        **_psr_registrations,
         "all_records": all_records,
         "administration_event": administration_event,
         # THE WORLD PAST THE RECORD, as the run actually lived it, or None for a run inside it.

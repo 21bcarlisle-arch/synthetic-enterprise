@@ -31,9 +31,19 @@ why the delegation exists at all (commons §2, §3):
 """
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass
 from datetime import date
 from enum import Enum
+from typing import Any, Callable
+
+from company.interfaces.wall_protocol import decode_framed_notification
+from interface.contracts.psr_registration_seam import (
+    FORBIDDEN_TRUTH_FIELDS,
+    OBSERVABLE_PAYLOAD_FIELDS,
+    REGISTRATION_SENDER,
+    PriorityServicesRegistrationNotice,
+)
 
 
 class PSRCategory(str, Enum):
@@ -276,6 +286,45 @@ class PSRRecord:
         return self.has_at_least_one_service
 
 
+def decode_registration_payload(raw: Any) -> PriorityServicesRegistrationNotice:
+    """A registration notice off the wire, or a refusal that says why. THE COMPANY'S BELT: a
+    latent-state field is refused as a leak BEFORE the closed-set check."""
+    if not isinstance(raw, Mapping):
+        raise ValueError(f"registration payload must be a mapping, got {type(raw).__name__}")
+    leaking = sorted(set(raw) & set(FORBIDDEN_TRUTH_FIELDS))
+    if leaking:
+        raise ValueError(f"registration notice carries world truth: {leaking}")
+    expected = set(OBSERVABLE_PAYLOAD_FIELDS["PriorityServicesRegistrationNotice"])
+    if set(raw) != expected:
+        raise ValueError(f"registration payload fields {sorted(raw)} are not the contract's "
+                         f"{sorted(expected)}")
+    codes = raw["needs_codes"]
+    if not isinstance(codes, list) or not all(isinstance(c, int) for c in codes):
+        raise ValueError("registration payload needs_codes must be a list of ints")
+    return PriorityServicesRegistrationNotice(
+        supply_point_id=str(raw["supply_point_id"]),
+        registered_on=date.fromisoformat(raw["registered_on"]),
+        needs_codes=tuple(codes),
+    )
+
+
+def read_registration_wire(wire: Any):
+    """TRANSPORT ONLY: a framed disclosure, authenticated, version-checked and decoded, from the
+    household disclosure channel only. It holds no book, so it cannot ask whether this supplier
+    holds the point named -- `PriorityServicesRegister.receive_registration_wire` is the reader
+    that can (`tools/wall_channel_census.py::ANCHORED_FEEDS`)."""
+    sender, notification = decode_framed_notification(
+        wire, decode_payload=decode_registration_payload)
+    if sender != REGISTRATION_SENDER:
+        raise ValueError(f"{sender!r} is not the household disclosure channel, so it cannot "
+                         "register a household on the Priority Services Register")
+    return notification
+
+
+#: Why a disclosure was held as an exception rather than registered.
+NOT_ON_THIS_BOOK = "no registration on this supplier's book"
+
+
 class PriorityServicesRegister:
     """Tracks PSR records and monitors SLC 26B compliance."""
 
@@ -291,12 +340,75 @@ class PriorityServicesRegister:
     UK_PSR_REGISTERED_PCT_2016 = 13.0
     UK_PSR_REGISTERED_PCT_AS_OF = date(2016, 10, 25)
 
-    def __init__(self) -> None:
+    def __init__(self, holds: Callable[[str], bool] | None = None) -> None:
+        """`holds(supply_point_id)` answers "is this point registered to us?" from the supplier's
+        own book, asked when a disclosure arrives. A register opened without it can register
+        directly but refuses every disclosure (`_admit`)."""
         self._records: dict[str, PSRRecord] = {}
+        self._holds = holds
+        self._registration_exceptions: list[dict] = []
 
     def register(self, record: PSRRecord) -> PSRRecord:
         self._records[record.account_id] = record
         return record
+
+    def receive_registration_wire(self, wire: Any) -> PSRRecord | None:
+        """A framed disclosure as the household's channel hands it over: read by
+        `read_registration_wire`, then admitted against this supplier's own book."""
+        notification = read_registration_wire(wire)
+        if not self._admit(notification):
+            return None
+        return self.receive_registration(notification)
+
+    def _admit(self, notification) -> bool:
+        """THE BOOK'S QUESTION: is the point this disclosure names one we supply? A disclosure
+        for a point not on the book registers nothing; it is kept in `registration_exceptions()`
+        with its reason, to be investigated."""
+        if self._holds is None:
+            raise ValueError(
+                "PriorityServicesRegister: opened without the supply book, so it cannot tell "
+                "whether this supplier holds the point a disclosure names -- open it with "
+                "`holds=` (`company.interfaces.supply_book.open_priority_services_register`)")
+        point = notification.payload.supply_point_id
+        if not self._holds(point):
+            self._registration_exceptions.append({
+                "supply_point_id": point,
+                "registered_on": notification.payload.registered_on.isoformat(),
+                "reason": NOT_ON_THIS_BOOK,
+            })
+            return False
+        return True
+
+    def registration_exceptions(self) -> list[dict]:
+        """Disclosures received for points this supplier does not hold."""
+        return list(self._registration_exceptions)
+
+    def receive_registration(self, notification) -> PSRRecord:
+        """Register an account from a household's disclosure, as it crossed the seam
+        (`interface.contracts.psr_registration_seam`). This is the register's ONLY knowledge
+        source: the company knows a household is on the PSR because it said so, never because a
+        rule over world state decided it. Protections are unchanged -- they are decided from the
+        record's categories by `disconnection_protection`, as for any registered customer.
+
+        `review_due_date` is the registration date: no published review interval is in the
+        commons, so a review is owed from the first day rather than a picked interval reading
+        as the rule. `services_enrolled` is empty: offering a service is the company's next act,
+        and the record reads non-compliant until it does.
+        """
+        notice = notification.payload
+        if notice.needs_codes:
+            raise ValueError(
+                f"registration for {notice.supply_point_id} names needs codes {notice.needs_codes}, "
+                "and no needs-code -> PSRCategory mapping has been written: the world draws no "
+                "code while the code mix is a GAP. Write the mapping from the commons s.1a list "
+                "before the world draws codes.")
+        return self.register(PSRRecord(
+            account_id=notice.supply_point_id,
+            categories=(),
+            services_enrolled=(),
+            registration_date=notice.registered_on,
+            review_due_date=notice.registered_on,
+        ))
 
     def get_record(self, account_id: str) -> PSRRecord | None:
         return self._records.get(account_id)

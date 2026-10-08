@@ -442,6 +442,11 @@ CSS_PROVIDER_SENDER = "CSS-PROVIDER-01"
 MPAS_SENDER = "MPAS-01"
 UK_LINK_SENDER = "UK-LINK-01"
 
+#: The company's counterparty on the PRIORITY-SERVICES REGISTRATION seam -- the channel a
+#: household's own disclosure arrives on. A supplier learns of a needs-code circumstance
+#: "almost exclusively" by customer disclosure (debt_and_collections.md s.10.5).
+PSR_DISCLOSURE_SENDER = "HOUSEHOLD-DISCLOSURE-01"
+
 #: Every counterparty this build will accept a message from. A sender absent
 #: from this mapping is REFUSED -- there is deliberately no default record and
 #: no wildcard, because a registry with a fallback is a registry that cannot
@@ -510,6 +515,15 @@ COUNTERPARTY_REGISTRY: Mapping[str, CounterpartyRecord] = MappingProxyType(
         UK_LINK_SENDER: CounterpartyRecord(
             credential_sha256=(
                 "073dce12675eee68de0a20bf71cca55d00063a6a416d8f4ff748850a81aee09b"
+            ),
+            speaks_schema_versions=frozenset({2}),
+            nature=CounterpartyNature.STAND_IN,
+        ),
+        # `simulation/vulnerability_state.py::DISCLOSURE_CREDENTIAL`. First
+        # release v2: dialect 1 has no notification.
+        PSR_DISCLOSURE_SENDER: CounterpartyRecord(
+            credential_sha256=(
+                "560398c8e0ea9fdedfec0002a29a491adf6d87f701849c6db7356c7b451382a7"
             ),
             speaks_schema_versions=frozenset({2}),
             nature=CounterpartyNature.STAND_IN,

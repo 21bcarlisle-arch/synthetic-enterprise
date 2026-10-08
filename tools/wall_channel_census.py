@@ -2115,6 +2115,11 @@ SURFACE_PINS: dict[str, tuple[int, str]] = {
     # fields are what REC Schedule 23 establishes about the registration a Secured Inactive
     # notice concerns; the judgement is at the dataclass in the seam.
     "interface.contracts.registration_loss_seam": (2, "a0bfe68a49ca5cb1"),
+    # v2, 2026-10-08: the seam's FIRST release, numbered 2 because dialect 1 has no notification.
+    # Pinned with its producer (`simulation/vulnerability_state.py`) and its consumer
+    # (`company/regulatory/priority_services_register.py`). Its three fields are what a
+    # household's disclosure tells its supplier; the judgement is at the dataclass in the seam.
+    "interface.contracts.psr_registration_seam": (2, "b6bcb120ecdf174b"),
 }
 
 
@@ -2675,6 +2680,8 @@ def second_belt_conformance_at(
 ANCHORED_FEEDS: dict[str, tuple[str, str]] = {
     "company/crm/cos_process.py": ("CoSRegister", "_admit_loss"),
     "company/market/flex_participation.py": ("FlexEnrolmentBook", "_admit"),
+    # 2026-10-08: a household's disclosure registers only a point the supply book holds.
+    "company/regulatory/priority_services_register.py": ("PriorityServicesRegister", "_admit"),
 }
 
 
