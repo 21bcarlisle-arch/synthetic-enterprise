@@ -14,6 +14,11 @@
 > within 42 days (14/46, CI 19-45%) takes 2025's term-enders to ~9.5% of accounts against a 10.4%
 > total. That stays open on the worker finding with the corrected bound as its control:
 > `WORKER_FINDING_THE_RENEWAL_ROUTE_CARRIES_THE_WHOLE_BOOK_RESIDUAL_AND_DEPARTS_ABOVE_THE_PUBLISHED_TERM_END_BOUND_2026-10-08.md`.
+>
+> **Four draws (worker, 2026-10-08):** the 30.4% was the high draw of four. Pooled per-ender 42-day
+> rates: 2024 **20.0%** (27/135, CI 14-28%), inside its 0.54 ceiling, withdrawn; 2025 **29.3%**
+> (17/58, CI 19-42%), under the 1/3-share ceiling of 0.31 on the point, interval straddling it, and
+> its 12-month leg lies past the record. Not shown; no re-fit. Detail at the worker finding's foot.
 
 # The world loses 40% of households at each anniversary at the default price, against a published ~6% external switch at fixed-term end
 
