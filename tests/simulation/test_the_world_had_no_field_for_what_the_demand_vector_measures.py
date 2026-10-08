@@ -321,10 +321,15 @@ def test_the_meter_fact_is_not_folded_into_the_heating_system(stock_new):
     cross = collections.Counter(
         (p.household.has_mains_gas_supply, p.household.heating_system in gas_systems)
         for p in stock_new)
-    assert cross[(False, True)] > 0, (
-        "no dwelling has a gas boiler without a matched gas meter — the supply flag has been "
+    # The disagreement runs ONE way. This leg used to demand a gas boiler with no gas meter too,
+    # but EHS 2017-18 Annex Table 3.5 (note 3) puts that at 0 -- a gas-fired home without a
+    # meter burns LPG or bottled gas -- and W2_20 step 2 (81732ffe2) built it so. A gas supply
+    # heating something else is what keeps the two facts two.
+    assert cross[(False, True)] == 0, (
+        "a mains-gas boiler with no gas meter: EHS 2017-18 Annex Table 3.5 measures this at 0")
+    assert cross[(True, False)] > 0, (
+        "no dwelling has a gas supply and a non-gas heating system — the supply flag has been "
         "folded into the heating system, and the disagreement the two facts exist to show is gone")
-    assert cross[(True, False)] > 0, "no dwelling has a gas supply and a non-gas heating system"
 
 
 def test_bedrooms_are_derived_from_floor_area_not_drawn_beside_it(stock_new):
