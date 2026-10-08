@@ -332,11 +332,16 @@ def seasonal_gas_splits_for_book(
     """
     splits: dict[str, SeasonalGasSplit] = {}
     refusals: list[SeasonalGasRefusal] = []
+    customers = list(customers)
     for customer in customers:
-        cid = str(customer.get("customer_id", ""))
-        if not cid:
+        if not str(customer.get("customer_id", "")):
             raise ValueError("a customer record without a customer_id cannot be classified")
-        series = daily_gas_series_for(customer)
+    # Each household's trace is built in a forked worker (seeded per premise, so the same trace in
+    # any process); the split itself stays here, in customer order. See `simulation.fork_map`.
+    from simulation.fork_map import fork_map
+
+    for customer, series in zip(customers, fork_map(daily_gas_series_for, customers)):
+        cid = str(customer.get("customer_id", ""))
         if series is None:
             refusals.append(
                 SeasonalGasRefusal(cid, "no fabric trace: keeping the population constant")
