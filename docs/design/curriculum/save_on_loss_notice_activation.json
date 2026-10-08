@@ -1,0 +1,19 @@
+{
+  "_meta": {
+    "artefact": "save_on_loss_notice_activation",
+    "version": 1,
+    "status": "OFF -- 2026-10-08, built on the director's direction, not yet switched on",
+    "r13_discipline": "Whether households in this world answer a save offer made on the CSS Invitation to Intervene is a CURRICULUM question, the director's. With it off the run is byte-identical to the run before the save existed: the save path is never entered. The SIZE of a save offer is the company's (company.policy.decision_policy.DecisionPolicy.save_offer_cut_gbp_per_mwh) and is not set here; no published or practitioner figure establishes it (toggle q4_save_offer_cost_share_of_annual_bill, GAP).",
+    "consumed_by": "simulation.save_on_loss_notice.save_offers_active() and .world_save_response_scale(), read once per run by simulation.run_phase2b._main"
+  },
+  "activated": {
+    "value": false,
+    "basis": "Off until the director reads the fairness checks (docs/staging/SEAT_FINDING_THE_REACTIVE_SAVE_IN_THE_SETTLED_RUN_2026-10-08.md). He made the save conditional, 2026-10-08: it must never be paid for by raising the price of customers who stay.",
+    "effect": "When true, a household the world rolls to LEAVE at a renewal point, on a switch that sends the losing supplier a CSS Invitation to Intervene (requests submitted from 18 July 2022), is offered a Fixed Retention Tariff by the company if its policy names a save size. The world re-asks the SAME renewal roll at the offered price; if the household would stay at that price it is saved: no loss notice, the term is supplied at the save price. REVERT is this one field."
+  },
+  "world_save_response_scale": {
+    "value": 1.0,
+    "basis": "1.0 is the world's own price response, unscaled. Any other value is a SENSITIVITY on the world, labelled as one and never a calibration: the cut's effect P(stay | save price) - P(stay | renewal offer) is multiplied by it, so a save is decided on the same roll by a world that responds to price this many times as much. Used to grade the save at the ends of the published save-rate range (q4_save_rate_on_loss_notice, 0 to 0.041, ESTIMATE), as tools/grade_save_offer_shapes.py does on the decision set.",
+    "effect": "Read only when activated is true."
+  }
+}
