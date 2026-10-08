@@ -22,6 +22,10 @@
 #   with a range, labelled as estimates"); a_save_offer_against_the_switching_rules_and_the_seam.md s.5.
 # 2026-10-08 (pending notice): q4_css_switch_route_share_asap added as null (GAP), read by
 #   simulation/registration_loss_feed.py; the cost-per-save row now cites the open director row.
+# 2026-10-08 (vulnerability): nine vuln_* rows added for vulnerability as a hidden household
+#   state, from Ofgem CIM Wave 5, Ofgem PSR reporting and FCA Financial Lives 2024
+#   (debt_and_collections.md s.10). Eight are ESTIMATES with ranges; vuln_annual_recovery_rate
+#   is null (GAP). No value any code reads was changed.
 written: 2026-10-05
 toggles:
   - id: q1_move_out_notice_share
@@ -1150,6 +1154,230 @@ toggles:
         "a period of time" after the final bill and that period is a GAP; this toggle bounds only
         the default point before it.
     verdict: MATTERS_AND_RESOLVABLE
+
+  - id: vuln_prevalence_any
+    question: Vulnerability as a hidden state
+    meaning: >-
+      Share of domestic households with at least one PSR needs-code circumstance (V1: pensionable
+      age, disability, chronic illness, medical equipment, a child aged 5 or under, communication
+      needs, or a temporary need), registered or not. Not financial vulnerability, which is
+      vuln_financial_prevalence. ESTIMATE.
+    default: 0.55
+    low: 0.49
+    high: 0.57
+    unit: share of domestic households
+    basis_default: >-
+      Ofgem Consumer Impacts of Market Conditions survey Wave 5 (Jan-Feb 2024, n=3,439), p. 31:
+      16% on the PSR plus 39% "likely to be eligible" and not on it, "consistent with December 2022
+      and July 2023". Self-assessed eligibility, so it is an estimate, not a register count.
+      debt_and_collections.md s.10.2.
+    basis_low: >-
+      FCA Financial Lives 2024: 49% of UK adults had at least one characteristic of vulnerability
+      (person-level, cross-sector). A household holds one or more adults, so the household share on
+      that construct is at least this.
+    basis_high: The CIM W5 maximum sampling interval (+/-1.67pp at 95%, report p. 8) on the default.
+    feeds: [C32_one_obligation_one_vulnerability_scorer]
+    sensitivity:
+      kind: not_run
+      detail: >-
+        No world draw of latent vulnerability exists yet (SEAT_PROPOSAL_THE_ORDER_FOR_VOIDS_VULNERABILITY_AND_THEFT_2026-10-08.md
+        item 2). Untested until a reader exists.
+    verdict: MATTERS_AND_RESOLVABLE (estimate)
+
+  - id: vuln_financial_prevalence
+    question: Vulnerability as a hidden state
+    meaning: >-
+      Share of domestic households that are financially vulnerable (V2: cannot save or cannot
+      absorb an unexpected expense). The state that drives arrears, recorded on no register.
+      ESTIMATE.
+    default: 0.30
+    low: 0.26
+    high: 0.32
+    unit: share of domestic households
+    basis_default: >-
+      CIM W5 (Jan-Feb 2024) p. 11: "One in three (30%) consumers are financially vulnerable or
+      highly vulnerable" on Ofgem's own segmentation. It is the same instrument as
+      vuln_financial_arrears_relative_risk.
+    basis_low: FCA Financial Lives 2024 key findings p. 10, low financial resilience 26% of adults (27% in 2022).
+    basis_high: The CIM W5 sampling interval on the default.
+    feeds: [C32_one_obligation_one_vulnerability_scorer]
+    sensitivity:
+      kind: not_run
+      detail: No world draw of financial vulnerability exists yet. Untested until a reader exists.
+    verdict: MATTERS_AND_RESOLVABLE (estimate)
+
+  - id: vuln_psr_registered_share
+    question: Vulnerability as a hidden state
+    meaning: >-
+      Share of domestic supply accounts on the supplier's Priority Services Register. A share of
+      accounts, not of vulnerable households; vuln_known_to_supplier_share is the ratio. ESTIMATE.
+    default: 0.24
+    low: 0.13
+    high: 0.28
+    unit: share of domestic accounts
+    basis_default: >-
+      Ofgem, Vulnerable consumers in the energy market 2019, p. 16: 6,703,753 electricity (24%) and
+      5,646,740 gas (24%) consumers on a PSR at end-2018. That is the latest admin count found. The
+      register was still growing ("the highest since we started recording"). Post-2018 counts are a GAP.
+    basis_low: >-
+      Ofgem press release 25 Oct 2016: 13% of customers for both fuels, before the January 2017
+      widening of eligibility. Use it for 2016 world-years only. CIM W5 self-report is 16% in 2024,
+      a household recall measure, not a register count.
+    basis_high: The same 2019 report, Wales 28% gas / 26% electricity, the highest nation in 2018.
+    feeds: [C32_one_obligation_one_vulnerability_scorer]
+    sensitivity:
+      kind: not_run
+      detail: >-
+        company/regulatory/priority_services_register.py assigns PSR by rule today. The share is
+        an acceptance check on the drawn disclosure process, not an input to it.
+    verdict: MATTERS_AND_RESOLVABLE (estimate; post-2018 count is a GAP)
+
+  - id: vuln_known_to_supplier_share
+    question: Vulnerability as a hidden state
+    meaning: >-
+      Of households with a PSR needs-code circumstance (vuln_prevalence_any), the share the supplier
+      knows about through registration, by disclosure or data-sharing. The rest are hidden from it.
+      ESTIMATE.
+    default: 0.29
+    low: 0.29
+    high: 0.44
+    unit: share of V1-vulnerable households
+    basis_default: >-
+      Derived on one instrument, CIM W5 p. 31: 16% on the PSR / (16% + 39% likely eligible) = 0.29.
+      62% of the eligible-aware who are not registered think they are ineligible (p. 32). Ofgem:
+      "energy companies rely almost exclusively on customer disclosure" (CVS refresh consultation
+      Sep 2024, p. 38).
+    basis_low: As default. No published figure lower than the same-instrument ratio was found.
+    basis_high: >-
+      Mixed instruments: the 2018 admin register share (24%) over the CIM eligible share (55%)
+      gives 0.44. Admin counts accounts, and survey respondents may not know they are registered.
+    feeds: [C32_one_obligation_one_vulnerability_scorer]
+    sensitivity:
+      kind: not_run
+      detail: >-
+        It decides how often a protection the company owes is invisible to it. Untested until a
+        world draw of disclosure exists.
+    verdict: MATTERS_AND_RESOLVABLE (estimate)
+
+  - id: vuln_financial_known_to_supplier_share
+    question: Vulnerability as a hidden state
+    meaning: >-
+      Of households with an energy affordability issue, the share whose supplier knows about it.
+      The household believes this, so it is not a supplier record. ESTIMATE.
+    default: 0.41
+    low: 0.29
+    high: 0.61
+    unit: share of households with an affordability issue in the last 3 months
+    basis_default: >-
+      CIM W5 data tables, table 150 (E26): 41% "yes" (17.6% told the supplier, 11.7% the supplier
+      contacted them, 11.7% think it is aware without contact); 51% no.
+    basis_low: >-
+      The same table, counting only an actual contact in either direction: 17.6% + 11.7% = 29%.
+    basis_high: CIM W5 table 151, those with repeat and recent affordability issues, 61% "yes".
+    feeds: [C32_one_obligation_one_vulnerability_scorer]
+    sensitivity:
+      kind: not_run
+      detail: No world draw of disclosure of financial difficulty exists yet.
+    verdict: MATTERS_AND_RESOLVABLE (estimate)
+
+  - id: vuln_annual_onset_rate
+    question: Vulnerability as a hidden state
+    meaning: >-
+      Annual probability that a household with no vulnerability enters temporary, event-driven
+      vulnerability (job loss, illness, bereavement, separation, becoming a carer). It excludes
+      the deterministic onsets, reaching pensionable age and a birth, which the world draws from
+      age and household composition. ESTIMATE, person-level evidence.
+    default: 0.15
+    low: 0.10
+    high: 0.20
+    unit: per household-year
+    basis_default: The midpoint of the range, not a measurement.
+    basis_low: >-
+      FCA Financial Lives 2024 vulnerability report p. 24: 10.1% of UK adults are vulnerable ONLY
+      through a negative life event in the last 12 months. A 12-month window, so the stock
+      approximates an annual inflow among adults with no other driver.
+    basis_high: >-
+      Same report p. 36: 20% of adults had at least one negative life event in the last 12 months
+      (18-21% on the original algorithm, 2017-2024). That includes people already vulnerable on
+      another driver.
+    feeds: [C32_one_obligation_one_vulnerability_scorer]
+    sensitivity:
+      kind: not_run
+      detail: >-
+        Person-level, not household. A two-adult household's rate is higher. Untested until a
+        world draw exists.
+    verdict: MATTERS_AND_RESOLVABLE (estimate)
+
+  - id: vuln_annual_recovery_rate
+    question: Vulnerability as a hidden state
+    meaning: >-
+      Annual probability that a household in temporary, event-driven vulnerability leaves it.
+    default: null
+    default_reason: >-
+      GAP. No published GB source found gives how long a vulnerability lasts or a PSR exit rate.
+      Ofgem only expects PSR numbers to "fluctuate ... [because] vulnerability is complex and can be
+      transient" (Vulnerable consumers 2019, p. 17). FLS's 12-month look-back is a property of the
+      instrument, not a measured duration. A 1/12-month figure would be a number picked to fill a
+      slot. Practitioner question: how often are temporary needs codes (32-34) removed, and after
+      how long?
+    low: null
+    high: null
+    basis_default: None published.
+    basis_low: None published.
+    basis_high: None published.
+    feeds: [C32_one_obligation_one_vulnerability_scorer]
+    sensitivity:
+      kind: not_run
+      detail: No reader exists.
+    verdict: MATTERS_AND_RESOLVABLE (GAP; resolvable only by a practitioner answer)
+
+  - id: vuln_arrears_relative_risk
+    question: Vulnerability as a hidden state
+    meaning: >-
+      Relative risk of being behind on energy bills for a household on the PSR (V1) versus one not
+      on it. A WEAK predictor; contrast vuln_financial_arrears_relative_risk. ESTIMATE.
+    default: 1.45
+    low: 1.09
+    high: 1.94
+    unit: ratio
+    basis_default: >-
+      Derived from CIM W5 data tables, table 159 (F5A), weighted counts: 10.3% of PSR respondents
+      are behind on energy bills, against 7.1% of the rest. Self-reported "behind", Jan-Feb 2024,
+      not the Ofgem 91-day arrears indicator. debt_and_collections.md s.10.4.
+    basis_low: >-
+      Log-RR 95% interval from the table's effective sample sizes. PSR-eligible households
+      (registered or not) against not eligible give only 1.16.
+    basis_high: As low.
+    feeds: [C32_one_obligation_one_vulnerability_scorer]
+    sensitivity:
+      kind: not_run
+      detail: >-
+        Energy UK (Feb 2026, pp. 10-11): about 70% of arrears GBP comes from customers with no clear
+        circumstance indicator. That is consistent with a weak V1 effect.
+    verdict: MATTERS_AND_RESOLVABLE (estimate)
+
+  - id: vuln_financial_arrears_relative_risk
+    question: Vulnerability as a hidden state
+    meaning: >-
+      Relative risk of being behind on energy bills for a financially vulnerable household (V2:
+      Ofgem's "vulnerable" or "highly vulnerable" segments) versus all others. ESTIMATE.
+    default: 3.6
+    low: 2.8
+    high: 4.6
+    unit: ratio
+    basis_default: >-
+      Derived from CIM W5 data tables, table 159: 15.2% of the vulnerable or highly vulnerable are
+      behind on energy bills, against 4.2% of everyone else (about 950 unsegmented respondents
+      sit in "else").
+    basis_low: Log-RR 95% interval from effective sample sizes.
+    basis_high: >-
+      The interval's upper end. The "highly vulnerable" segment alone gives 4.6 (21.9% vs 4.8%,
+      interval about 3.6-5.8).
+    feeds: [C32_one_obligation_one_vulnerability_scorer]
+    sensitivity:
+      kind: not_run
+      detail: No world draw exists. It is the term that should carry arrears risk, not the PSR flag.
+    verdict: MATTERS_AND_RESOLVABLE (estimate)
 
 no_toggle:
   - question: Q5 carbon
