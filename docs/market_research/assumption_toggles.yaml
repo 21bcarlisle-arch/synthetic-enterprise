@@ -14,6 +14,9 @@
 #   bad_debt_provisioning.md s.9). No value any code reads was changed. Three null-default rows
 #   added: q1_void_months_per_move_out, q2_persistent_unread_relative_risk_private_rented,
 #   q3_debt_sale_price_share_of_face.
+# 2026-10-08 (voids): q1_void_months_social and q1_void_months_private_rent set from published
+#   re-let data, and q1_void_months_owner added as null (GAP). q1_void_months_per_move_out stays
+#   null on purpose; back_billing_and_liability.md s.11 says why.
 # 2026-10-08 (later): q4_save_rate_on_loss_notice set, and q4_winback_rate_after_loss added, as
 #   ESTIMATES from published switching-outcome data (director: "set the save and win-back toggles
 #   with a range, labelled as estimates"); a_save_offer_against_the_switching_rules_and_the_seam.md s.5.
@@ -99,14 +102,17 @@ toggles:
       Not the incoming occupier's unnamed months (q1_unnamed_months_per_cot).
     default: null
     default_reason: >-
-      GAP. No published domestic void length or void consumption: not in Ofgem's home-moves call
-      for input (9 Dec 2025) or its summary of responses (June 2026), nor in Citizens Advice's
-      consumer guidance (home_moves.md s.2.4; back_billing_and_liability.md s.9, 2026-10-08).
-      A practitioner question: how long are voids on a domestic let, and are they billed to the
-      landlord in practice or written off?
+      Kept null on purpose: the void now has published lengths for two of the three tenures, in
+      q1_void_months_social and q1_void_months_private_rent (back_billing_and_liability.md s.11,
+      2026-10-08). A single all-tenure figure would need the owner-occupier void, and that is a
+      GAP (q1_void_months_owner). It would also need move-outs weighted by the tenure of the home
+      VACATED, which is not the EHS move-in split the world draws. The world should read the
+      tenure rows, not a blend. Void consumption is a GAP too: no published kWh/day for an empty
+      home. Practitioner question still open: are voids billed to the landlord in practice, or
+      written off?
     low: null
     high: null
-    basis_default: None published.
+    basis_default: None. Superseded by the tenure rows; the owner leg is a GAP.
     basis_low: None published.
     basis_high: None published.
     feeds: [B7_customer_state_layer_moves_and_shocks, W2_36_unbilled_energy_arises_the_way_it_does_in_reality]
@@ -116,6 +122,94 @@ toggles:
         No code draws a void length (sim/customer_state_layer.py VOID_GAP_UNKNOWN_REASON states
         why). When B7 bills the void leg to an owner separately from the unnamed occupier, it
         prints the void's standing charges and use at the practitioner's answer and at zero.
+    verdict: DOESNT_MATTER until a void leg is billed separately; then a practitioner question
+
+  - id: q1_void_months_social
+    question: Q1 home moves
+    meaning: >-
+      Expected months a social-rented home stands empty between one tenancy ending and the next
+      starting. In that time the landlord is the owner and the deemed electricity customer
+      (Electricity Act 1989 Sch 6 para 3(1)). The figure is per re-let, keyed to the tenure of
+      the home VACATED.
+    default: 1.15
+    low: 0.7
+    high: 2.0
+    unit: months
+    basis_default: >-
+      35 days (/30.44), England general-needs median vacant days before re-let, 2024/25 (34 in
+      2023/24). MHCLG, Social housing lettings in England, tenancies, April 2024 to March 2025,
+      s.4 (CORE), published 13 Nov 2025, read 2026-10-08. It is a MEDIAN, and the expected value
+      wanted here is a mean, which is higher on a right-skewed duration. England does not publish
+      the mean (GAP).
+    basis_low: >-
+      21 days, the England all-social median "consistent ... from 2015/16 to 2019/20" (same
+      release). This is the pre-Covid half of our window. All-social medians since: 28 (Covid), 30
+      (2022/23), 29 (2023/24), 30 (2024/25).
+    basis_high: >-
+      61 days, the Scottish all-social MEAN, 2024/25 (local authorities 78, housing associations
+      40; 32 days in 2019/20). Scottish Housing Regulator, National Report on the Scottish Social
+      Housing Charter 2024-2025, read 2026-10-08. Local-authority stock alone reaches 2.6 months.
+    feeds: [B7_customer_state_layer_moves_and_shocks, W2_36_unbilled_energy_arises_the_way_it_does_in_reality]
+    sensitivity:
+      kind: acceptance_criterion
+      detail: >-
+        No code draws a void yet. When the world draws one, it prints the owner-leg standing
+        charges per social re-let at low, default and high.
+    verdict: MATTERS_AND_RESOLVABLE
+
+  - id: q1_void_months_private_rent
+    question: Q1 home moves
+    meaning: >-
+      Expected months a privately rented home stands empty between tenancies, when it is re-let.
+      The landlord is the owner and the deemed electricity customer for that time. Homes the
+      landlord sells or withdraws instead are outside this figure; EPLS 2024 says 19% of landlords
+      would not re-let next time.
+    default: 0.7
+    low: 0.3
+    high: 0.8
+    unit: months
+    basis_default: >-
+      21 days (/30.44), the Goodlord Rental Index England average void, steady through Mar-May 2025
+      and Nov-Dec 2024; 20 days in Dec 2022, Dec 2023 and Sep 2026 (blog.goodlord.co, read
+      2026-10-08). Industry index, not official: agent-let homes on Goodlord's platform, and the
+      method is not published. No official source publishes a private-rented void length: EPLS
+      2018, 2021 and 2024 were read and give none (GAP).
+    basis_low: 9 days, Goodlord's record-low England monthly average, July 2023.
+    basis_high: >-
+      24 days, Goodlord's highest monthly averages found: January 2021 (lockdown) and January 2025
+      ("longest since April 2021"). Before 2020 only Feb 2020 was found (19 days). 2016-2019 is a
+      GAP.
+    feeds: [B7_customer_state_layer_moves_and_shocks, W2_36_unbilled_energy_arises_the_way_it_does_in_reality]
+    sensitivity:
+      kind: acceptance_criterion
+      detail: >-
+        Same as q1_void_months_social. Voids are seasonal (longest in January), and the toggle is
+        an annual figure.
+    verdict: MATTERS_AND_RESOLVABLE
+
+  - id: q1_void_months_owner
+    question: Q1 home moves
+    meaning: >-
+      Expected months an owner-occupied home stands empty between the seller (or a deceased
+      owner's household) leaving and the next occupier taking supply.
+    default: null
+    default_reason: >-
+      GAP. No published source gives the time between a seller vacating and a buyer occupying, or
+      the share of sales with nobody living there at the time of sale. Not in the EHS, the Council
+      Taxbase or HM Land Registry releases read (back_billing_and_liability.md s.11, 2026-10-08).
+      Practitioner reading, NOT a source: in a chain sale the seller leaves and the buyer takes
+      ownership on completion day, so the void is near zero. Probate and empty-at-sale homes can
+      stand empty for months, and their share is unpublished.
+    low: null
+    high: null
+    basis_default: None published.
+    basis_low: None published.
+    basis_high: None published.
+    feeds: [B7_customer_state_layer_moves_and_shocks, W2_36_unbilled_energy_arises_the_way_it_does_in_reality]
+    sensitivity:
+      kind: acceptance_criterion
+      detail: >-
+        Same as q1_void_months_social, printed at zero and at the practitioner's answer.
     verdict: DOESNT_MATTER until a void leg is billed separately; then a practitioner question
 
   - id: q2_persistent_unread_share
