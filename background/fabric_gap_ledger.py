@@ -107,6 +107,7 @@ passed IN by the caller. Any sampling draws from this module's OWN named substre
 
 from __future__ import annotations
 
+import datetime as dt
 import hashlib
 import math
 import random
@@ -3077,6 +3078,156 @@ def evaluate_two_level(population: PopulationTraces) -> TwoLevelResult:
         homes=len(grids),
         days=population.days,
     )
+
+
+# ===========================================================================
+# LEVEL AND SEASON — a gas-heated home's electricity against SERL's 2022 figures
+# ===========================================================================
+#
+# Everything above judges TEXTURE: ratios to a home's own mean, which a world 30%
+# too high passes untouched. These cells judge the LEVEL and the SEASON, and they
+# are the control the fabric finding queued
+# (`docs/staging/SEAT_FINDING_THE_FABRIC_PATH_GIVES_A_GAS_HEATED_HOMES_ELECTRICITY_NO_SEASON_2026-10-06.md`).
+#
+# Source, read at source 2026-10-06 and 2026-10-08: SERL Statistical Report Vol 2
+# (UCL, rev. 2025), homes with gas central heating and NO PV — the population is
+# the band's, so a caller must hand in only such homes. Table 3: the median across
+# homes of daily imports per month. Table 6: "the median of the mean electricity
+# use in each half hour per participant", of which only the minimum and maximum are
+# published. Every edge below is a published figure at its published precision
+# (2 dp), across the years read, so no edge is chosen here.
+#
+# They live in their own registry, not `BANDS`: `band_null_sweep` asks whether a
+# re-deal of the population's own days can pass a band, and a re-deal leaves every
+# level and every monthly total exactly where it was, so there is nothing for it
+# to sweep.
+#
+# ~1 minute for 160 homes over a year on 6 cores, so these are graded on the
+# ledger's cadence (`tools/couple_fabric.py --serl`), not on every commit.
+
+SERL_SOURCE = (
+    "SERL Statistical Report Vol 2 (Smart Energy Research Lab, UCL, rev. 2025), "
+    "https://discovery.ucl.ac.uk/id/eprint/10189780/7/SERL_Stats_Report_Vol_2_rev.pdf, "
+    "gas central heating, no PV"
+)
+#: Table 6's trough period: 04:30 in 2022 and 2023.
+SERL_TROUGH_PERIOD = 9
+#: Table 6's maximum period: 18:30 in 2022 and 2023. Reported beside the peak,
+#: not judged: the half-hour is not a level.
+SERL_PEAK_PERIOD = 37
+
+
+@dataclass(frozen=True)
+class RangeBand:
+    """A published range: PASS inside [low, high], FAIL outside, UNVALIDATED if
+    there is no range on file. Fail-closed on a non-finite value."""
+
+    statistic: str
+    low: float | None
+    high: float | None
+    anchor: AnchorStatus
+    anchor_source: str
+
+    def judge(self, value: float) -> Verdict:
+        if not math.isfinite(value):
+            return Verdict.FAIL
+        if self.anchor is AnchorStatus.NEED or self.low is None or self.high is None:
+            return Verdict.UNVALIDATED
+        return Verdict.PASS if self.low <= value <= self.high else Verdict.FAIL
+
+
+SERL_BANDS: dict[str, RangeBand] = {
+    "S1_trough_kwh_per_h": RangeBand(
+        statistic="S1_trough_kwh_per_h",
+        low=0.125, high=0.135,
+        anchor=AnchorStatus.PUBLISHED,
+        anchor_source=f"{SERL_SOURCE}, Table 6 minimum: 0.13 kWh/h at 04:30 in 2022 and in 2023.",
+    ),
+    "S2_peak_kwh_per_h": RangeBand(
+        statistic="S2_peak_kwh_per_h",
+        low=0.445, high=0.485,
+        anchor=AnchorStatus.PUBLISHED,
+        anchor_source=f"{SERL_SOURCE}, Table 6 maximum: 0.48 kWh/h (2022) and 0.45 (2023), both at 18:30.",
+    ),
+    "S3_month_max_over_min": RangeBand(
+        statistic="S3_month_max_over_min",
+        low=1.36, high=1.47,
+        anchor=AnchorStatus.PUBLISHED,
+        anchor_source=(f"{SERL_SOURCE}, Table 3 monthly medians: 9.7/6.6 = 1.47 (2021), "
+                       "8.5/6.0 = 1.42 (2022), 7.9/5.8 = 1.36 (2023)."),
+    ),
+    "S4_annual_kwh_sum_of_monthly_medians": RangeBand(
+        statistic="S4_annual_kwh_sum_of_monthly_medians",
+        low=None, high=None,
+        anchor=AnchorStatus.NEED,
+        anchor_source=(
+            f"NEED — {SERL_SOURCE}, Table 3's 2022 monthly medians sum to about 2,600 kWh, "
+            "but only the two extremes are on file to their published precision, so no edge "
+            "can be read off. Reported on the same basis (the world's monthly medians, summed "
+            "over the days in each month) so it is like for like when the other ten are read."
+        ),
+    ),
+}
+
+
+def level_and_season_vs_serl(
+    homes: Sequence[Sequence[tuple[dt.date, Sequence[float]]]],
+) -> tuple[CellResult, ...]:
+    """Grade a population of gas-heated, no-PV homes' electricity against SERL.
+
+    `homes` is home -> day -> (date, 48 half-hourly kWh). Each home must cover all
+    twelve months: a part-year home has no season to read, and a missing winter
+    would flatter both the level and the swing.
+    """
+    _require_homes(homes, minimum=1, name="level_and_season_vs_serl")
+    profiles: list[list[float]] = []
+    monthly: list[dict[int, float]] = []
+    for home in homes:
+        acc = [0.0] * PERIODS_PER_DAY
+        by_month: dict[int, list[float]] = {}
+        for date, day in home:
+            values = _finite_series(day, name="level_and_season_vs_serl")
+            if len(values) != PERIODS_PER_DAY:
+                raise InsufficientEvidence(f"a day must carry {PERIODS_PER_DAY} periods")
+            for i, v in enumerate(values):
+                acc[i] += v
+            by_month.setdefault(date.month, []).append(sum(values))
+        if len(by_month) != 12:
+            raise InsufficientEvidence(
+                f"a home covers {len(by_month)} months; SERL's season needs all twelve"
+            )
+        profiles.append([2.0 * a / len(home) for a in acc])   # kWh per half-hour -> kWh/h
+        monthly.append({m: sum(v) / len(v) for m, v in by_month.items()})
+
+    profile = [statistics.median(p[i] for p in profiles) for i in range(PERIODS_PER_DAY)]
+    peak_period = max(range(PERIODS_PER_DAY), key=lambda i: profile[i])
+    month_median = {m: statistics.median(h[m] for h in monthly) for m in range(1, 13)}
+    days_in: dict[int, int] = {}
+    for date, _ in homes[0]:
+        days_in[date.month] = days_in.get(date.month, 0) + 1
+    n = len(homes)
+    clock = lambda i: f"{i // 2:02d}:{'30' if i % 2 else '00'}"  # noqa: E731
+    readings = {
+        "S1_trough_kwh_per_h": (profile[SERL_TROUGH_PERIOD], f"at 04:30, {n} homes"),
+        "S2_peak_kwh_per_h": (
+            profile[peak_period],
+            f"at {clock(peak_period)} (SERL 18:30); 18:30 reads {profile[SERL_PEAK_PERIOD]:.3f}, {n} homes",
+        ),
+        "S3_month_max_over_min": (
+            max(month_median.values()) / min(month_median.values()),
+            f"high month {max(month_median, key=month_median.get)}, "
+            f"low month {min(month_median, key=month_median.get)}, {n} homes",
+        ),
+        "S4_annual_kwh_sum_of_monthly_medians": (
+            sum(month_median[m] * days_in[m] for m in month_median),
+            f"measured, not judged; {n} homes",
+        ),
+    }
+    cells = []
+    for name, (value, note) in readings.items():
+        band = SERL_BANDS[name]
+        cells.append(CellResult(name, "S", value, band.judge(value), band, note=note))
+    return tuple(cells)
 
 
 # ===========================================================================

@@ -795,3 +795,64 @@ two earlier landings today (`92d39bf60`, `a41cf3fc0`) moved `simulation/premise_
 the same re-take. It is one re-take for all three, not three. Next on the level: cooking is ~+115
 above its trended source, and SERL's 2021 gas no-PV median is still unread, so whether the remaining
 ~160 kWh median gap is the 2022 price response cannot yet be said.
+
+## The level-and-season control is built, and it is red on the peak and the season (2026-10-08, worker, claim `a-gas-heated-homes-evening-peak-comes-down-to-serls`)
+
+**Premise re-measured first.** The electronics arm this claim asked for had already landed
+(`6987325ae`) and its predictions are graded in the section above. It was not run again. What was still
+owed was the control queued under "Level control: not written this turn".
+
+**Built.** `background/fabric_gap_ledger.py`: `level_and_season_vs_serl` and `SERL_BANDS`. Every
+edge is a SERL Vol 2 figure at its published precision, taken across the years read, so no edge is
+chosen:
+
+| Cell | Band | Source |
+|---|---|---|
+| S1 trough, kWh/h at 04:30 | 0.125–0.135 | Table 6, 0.13 (2022 and 2023) |
+| S2 peak, max of the median-of-means profile | 0.445–0.485 | Table 6, 0.48 (2022), 0.45 (2023) |
+| S3 monthly-median max/min | 1.36–1.47 | Table 3, 2021–2023 |
+| S4 annual, monthly medians summed | **NEED**, measured only | Only Table 3's two extremes are on file. The other ten months must be read before ~2,600 can be an edge. |
+
+The caller is `python3 tools/couple_fabric.py --serl 200`. It exits 1 on any FAIL and takes about 15 s,
+not the minute this finding feared. The ledger's bands carry a re-deal null, but this registry does not:
+a re-deal leaves levels and monthly totals where they were. Tests:
+`tests/harness/test_serl_level_and_season.py`. Every judged cell is shown to pass on a SERL-shaped
+year and to fail on a world-shaped one. Widening S2, widening S3, or dropping the kWh/h conversion
+each reds it.
+
+**The reading on origin `676415030`, 163 gas-heated no-PV homes, seed 17, C1 2022:**
+
+| Cell | World | SERL | Verdict |
+|---|---|---|---|
+| S1 trough | 0.127 | 0.13 | PASS |
+| S2 peak | **0.626 @20:00** (18:30 reads 0.573) | 0.48 @18:30 | **FAIL** |
+| S3 max/min | **1.291** (high Dec, low Jul) | 1.42 | **FAIL** |
+| S4 annual | 2,787 | ~2,600 | unjudged |
+
+**Correction beside the electronics arm's readings above.** That instrument passed
+`pt.DEFAULT_LATITUDE_DEG` (53.0°). The production fabric path passes each customer's own latitude, and
+C1 is London at 51.5°. Lighting is daylight-gated, so latitude moves the season. At C1's own latitude
+the same homes read peak 0.626 (not 0.627), max/min **1.291 (not 1.301)** and annual median about the
+same. The instrument was re-run at origin and reproduces its own 0.627 / 1.301, so this is the input,
+not a moved world. The season's first move towards SERL is still a move: it is 1.273 → 1.291 here.
+
+**What remains, by end use: the stopping point this claim's direction names, because the published
+sources read so far cannot close it.**
+- **Peak +0.15 kWh/h, and 1.5 h late.** Electronics is now at its dated 2022 level, cold appliances
+  sit about 0 above source, and lighting has no 2016–2025 level (ECUK's method break, above). The named
+  remainder is **cooking, ~+115 kWh/yr above its trended source**. That is the only end use with a
+  dated excess on file, and it is evening load. Whether it carries the whole 0.15 cannot be said
+  without the per-use evening profile at the peak half-hour, which has not been measured.
+- **Season 1.291 against 1.36–1.47, read in absolute terms, as the research doc asks.** The world's
+  monthly medians (kWh/day, same 163 homes): Jan 8.78, Feb 8.67, Mar 7.88, Apr 7.60, May 7.04, Jun 6.88,
+  Jul 6.86, Aug 6.88, Sep 7.15, Oct 7.35, Nov 7.75, Dec 8.85. SERL 2022: January 8.5, August 6.0. **The winter
+  is about right (+0.3). The summer is 0.9 kWh/day too high, ~320 kWh/yr of flat excess.** The swing,
+  ~1.9 against 2.5, is also about 0.5 kWh/day short. Every season term the research doc sourced is now in
+  the trace: lighting; cold appliances; the boiler's pump and fan; supplementary heating at CAR's
+  656 kWh/yr; and cooking and laundry at HES's season (`appliance_season_factor`). So the ratio's
+  shortfall is mostly the level: the summer excess shrinks the ratio. What is left of the swing is
+  the research doc's unattributed residue: supplementary heating's re-ranking of the median, the price
+  crisis years, and small unsized seasonal loads. No scalar is fitted to SERL. The summer excess is
+  a LEVEL question: cooking's ~+115 and the unread ten months of Table 3 come first.
+- **Triage row `a-gas-heated-homes-electricity-has-no-season`: NOT marked fixed.** The control is red
+  and stays red until those terms land. That is what the control is for.

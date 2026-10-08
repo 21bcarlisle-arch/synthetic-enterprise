@@ -441,6 +441,32 @@ def build_drawn_population(weather, *, n: int, seed: int = 17, population_seed: 
     return out
 
 
+# SERL's figures are for a calendar year of gas-heated, no-PV homes, so this arm
+# reads the whole of 2022 rather than the coupling window above, and draws as the
+# 2026-10-08 electronics arm did, so its readings can be compared directly with that arm's.
+SERL_YEAR = (dt.date(2022, 1, 1), dt.date(2022, 12, 31))
+
+
+def _serl_home(args):
+    i, seed = args
+    pid = f"SYN-S{i:04d}"
+    household = ppop.draw_premise_from_joint(pid, base_seed=seed, as_of=SERL_YEAR[0]).household
+    if not household.is_gas_heated or household.has_solar or not household.is_residential:
+        return None
+    weather = pt.load_trace_weather(SITE, start=SERL_YEAR[0], end=SERL_YEAR[1])
+    trace = _trace_for(pid, household, weather, seed=seed)
+    return [(d.date, tuple(d.electricity_kwh)) for d in trace.days]
+
+
+def serl_level_and_season(n: int, *, seed: int = 17, workers: int = 6):
+    """Draw `n` premises and grade the gas-heated, no-PV ones against SERL."""
+    from concurrent.futures import ProcessPoolExecutor
+
+    with ProcessPoolExecutor(workers) as ex:
+        homes = [h for h in ex.map(_serl_home, [(i, seed) for i in range(n)]) if h]
+    return fgl.level_and_season_vs_serl(homes)
+
+
 def observe(panel, weather, *, unit_rate_p_per_kwh=DEFAULT_UNIT_RATE_P_PER_KWH):
     """Hold the two sides together — the ONE place permitted to do so.
 
@@ -648,7 +674,16 @@ def main() -> None:
     ap.add_argument("--audit-wall", action="store_true",
                     help="print exactly what crossed to the company side")
     ap.add_argument("--json", action="store_true", help="emit machine-readable output")
+    ap.add_argument("--serl", type=int, default=None, metavar="N",
+                    help="draw N premises and grade the gas-heated, no-PV ones' "
+                         "electricity level and season against SERL 2022, then exit")
     args = ap.parse_args()
+
+    if args.serl:
+        cells = serl_level_and_season(args.serl, seed=args.seed)
+        for c in cells:
+            print(f"{c.statistic:40} {c.value:9.3f}  {c.verdict.value:12} {c.note}")
+        sys.exit(1 if any(c.verdict is fgl.Verdict.FAIL for c in cells) else 0)
 
     weather = load_weather()
     if args.population:
