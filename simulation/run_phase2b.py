@@ -1978,7 +1978,9 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             return None
         if (cid, on) not in _book_methods:
             from company.interfaces.sim_interface import LiveSimInterface
-            fuel = next((c["commodity"] for c in _ALL_KNOWN_CUSTOMERS + ACQUIRED_CUSTOMERS
+            # The incoming occupants a home move supplies (B7 slice 3) are on the book too: with
+            # moves on, the 2026-10-08 first run refused here on ACC-OCC-* before this line read them.
+            fuel = next((c["commodity"] for c in _known_customers() + ACQUIRED_CUSTOMERS
                          if c["customer_id"] == cid), None)
             if fuel is None:
                 raise ValueError(

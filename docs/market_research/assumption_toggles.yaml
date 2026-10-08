@@ -435,6 +435,41 @@ toggles:
         matters, and grade the estimate against tools/decision_probe.py's true counterfactual.
     verdict: RESOLVED
 
+  - id: q4_save_rate_on_loss_notice
+    question: Q4 offers
+    meaning: >-
+      Share of domestic customers who, having triggered a change of supplier (the loss notice),
+      are kept by a save offer made in the objection window. GB retention is mainly this, plus
+      win-back and keeping home movers; blanket renewal discounts are not the lever (director,
+      2026-10-08, answering b8-no-uniform-renewal-cut-from-2).
+    default: null
+    default_reason: >-
+      PRACTITIONER FIGURE PENDING. The director's ruling of 2026-10-08 reads "My experience of
+      save rates and costs: ___ ; record it as a practitioner toggle with its basis" and the
+      figure was left blank. Not filled from memory or from a non-energy market: a save rate
+      invented here would be read as his. The decision set that grades the learned save decision
+      runs with this as a swept range until he gives it.
+    low: null
+    high: null
+    basis_default: Director's practitioner experience, to be recorded verbatim when given.
+    feeds: [B8_discovered_price_sensitivity_holdout, C34]
+    verdict: GAP
+
+  - id: q4_save_offer_cost_share_of_annual_bill
+    question: Q4 offers
+    meaning: >-
+      What a successful save costs the supplier, as a share of the saved customer's annual bill
+      (the discount or credit given on the loss notice, before any acquisition cost avoided).
+    default: null
+    default_reason: >-
+      PRACTITIONER FIGURE PENDING, the same blank as q4_save_rate_on_loss_notice (director,
+      2026-10-08). Not invented.
+    low: null
+    high: null
+    basis_default: Director's practitioner experience, to be recorded verbatim when given.
+    feeds: [B8_discovered_price_sensitivity_holdout, C34]
+    verdict: GAP
+
   - id: q4_pecr_soft_opt_in_scope
     question: Q4 offers
     meaning: Which cross-sell products may be emailed or texted to an existing customer without fresh consent.

@@ -208,7 +208,11 @@ def _get_all_customers() -> list[dict]:
     Must be a function (not a module-level constant) because ACQUIRED_CUSTOMERS
     is populated by run_phase2b.main() after import time.
     """
-    return CUSTOMERS + SUCCESSOR_CUSTOMERS + ACQUIRED_CUSTOMERS
+    # Plus the incoming occupants a home move supplies (B7 slice 3), filled by the same run. With
+    # moves on, the 2026-10-08 first full run raised KeyError on OCC-* in cost_to_serve without them.
+    from company.interfaces.supply_book import incoming_occupant_supply_points
+    return (CUSTOMERS + SUCCESSOR_CUSTOMERS + ACQUIRED_CUSTOMERS
+            + list(incoming_occupant_supply_points()))
 
 # `RUN_OUTPUT_LATEST_PATH` / `RUN_OUTPUT_VERSIONED_DIR` moved to
 # `tools/run_annual_report.py` with `save_run_output_json()` — where a run's

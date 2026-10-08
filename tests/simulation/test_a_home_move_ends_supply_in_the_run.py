@@ -19,7 +19,16 @@ def moved_run():
     patch = pytest.MonkeyPatch()
     patch.setattr(run, "moves_active", lambda: True)
     try:
-        yield run.main(report_end="2016-12-31")
+        result = run.main(report_end="2016-12-31")
+        # THE RUN'S OWN ANNUAL QUANTITIES, taken before any test tears down. tests/conftest.py's
+        # autouse `_phase2b_book_is_put_back` (5941e47a9) resets the module's book to the drawn
+        # state after EVERY test, so a later test reading `run.get_customer(...)` live saw the
+        # drawn EAC, not the one this run settled on, and failed only when it did not run first.
+        result["_annual_kwh_by_leg"] = {
+            m["customer_id"]: run.get_customer(m["customer_id"]).get(
+                "aq_kwh" if m["commodity"] == "gas" else "eac_kwh")
+            for m in result.get("home_move_outs") or []}
+        yield result
     finally:
         patch.undo()
 
@@ -56,8 +65,7 @@ def test_each_move_out_leaves_its_premise_unnamed_for_the_registers_window(moved
     annual quantity. Both fuels must be present, or the fuel choice is never exercised."""
     assert {m["commodity"] for m in moved_run["home_move_outs"]} == {"electricity", "gas"}
     for move in moved_run["home_move_outs"]:
-        leg = run.get_customer(move["customer_id"])
-        annual = leg["aq_kwh"] if move["commodity"] == "gas" else leg["eac_kwh"]
+        annual = moved_run["_annual_kwh_by_leg"][move["customer_id"]]
         assert move["unnamed_kwh_expected"] == pytest.approx(
             annual / 12.0 * unnamed_months_per_move()), move
 
