@@ -588,3 +588,46 @@ the bill-side effect lives. If F5 fails, something couples the founders to the p
 longer window (shared hedging, treasury, capital), and that coupling is a finding of its own.
 `value_advantage_gbp` is reported, not graded. A single draw against a three-seed floor cannot bound it
 (the placebo note).
+
+## (i) over the full window: graded (seat, 2026-10-08, after `longjob-w220-full-own-effect` exited at 07:40Z)
+
+R is `/var/tmp/se-w220-full-out/R.json`: producing commit `b2ec5147a` with the revert, world
+`cdba75ebb9197b33`, the same as U. The grader is `/var/tmp/se-w220-full-out/grade.py`, written before
+the result.
+
+| quantity, U - R | R | U | U - R | prediction | graded |
+|---|---:|---:|---:|---|---|
+| F0 billing accounts | 272 | 272 | 0 | within ±14 | **pass** |
+| F1 accounts with a gas leg | 195 | 183 | **-12** | -25 to -8 | **pass** |
+| F2 dual-fuel share | 0.658 | 0.614 | **-0.044** | -0.09 to -0.02 | **pass** |
+| F3 control gross margin | £725,508 | £669,988 | **-£55,520 (-7.7%)** | down 3-12% | **pass** |
+| F4 control net | £242,356 | £236,270 | **-£6,086 (-2.6% of U)** | under 5%, negative | **pass** |
+| F5 only `PROS-*` move by more than 1p | | | 56 non-`PROS` move | none | **fail**, see below |
+
+**Size over 2016-2025.** On its own, W2_20 takes 12 gas legs off the control book. That is 6.2% of R's 195,
+against 3 of 52 (5.8%) at 2017. It also takes 5.8 points off the dual-fuel share, 7.7% off control gross
+margin and 2.6% off control net. The scaling guess of ~16 lost legs was high. Net moves much less than gross
+because most of what leaves is pass-through. Of the £55.5k of gross margin, network (-£25.8k), policy and
+levies (-£16.1k), bad debt (-£6.3k) and capital (-£1.2k) leave with it, and £6.1k reaches net. Revenue falls
+£102.9k and volume falls 0.74 GWh (-7.3%). Swaps in the settled set: three `PROS-*` accounts are only in U and
+three only in R. The `PROS-*` accounts carry -£5,997 of the -£6,086.
+
+**F5 failed. The coupling is the company's own learning, not a leak.** 56 of 75 non-`PROS` accounts move,
+by between 1p and £17 each, -£89 in total (1.5% of the net move). No founder or SME account changes a
+renewal outcome, a departure date or a bill count. What moves is `p_retain`, in the fourth decimal
+(SYN-2016-045 0.7616 → 0.7613), and `pre_4c_net`, by pennies. The route is `decide_renewal_rate`'s portfolio
+learning premium (`company/pricing/renewal_rate_chain.py` writer 1). A renewing account's rate reads the
+supplier's own realised margin rate across its book, and the book lost twelve gas legs. A real supplier
+can see that, so it does not cross the epistemic wall. My F5 prediction missed it because the 2017
+window ended before the premium had a lookback that differed between R and U. The prediction was wrong
+about the mechanism, not about where the money is. **Correction to the 2017 reading's phrasing:** "through
+`PROS-*` only" is true of the drawn legs. It is not true of pricing, which shares a premium across the book.
+
+`value_advantage_gbp`, reported and not graded: value minus control is £12,217 in R and £5,134 in U. A
+single draw against a three-seed floor cannot bound that difference (the placebo note), so this reading
+does not say W2_20 halves the value advantage.
+
+**What this settles for the published `h` headline.** The bill-side effect that the W2_20 L2 record cites
+is now sized. Over the full window, h's control arm has 12 fewer gas legs, £55.5k less gross margin and
+£6.1k less net than the same code without the supply-conditioned heating draw. The headline should carry
+it as "-2.6% control net, -7.7% gross margin from W2_20 alone, one seed", not unsized.
