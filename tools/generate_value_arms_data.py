@@ -275,8 +275,12 @@ THREE_ARM_PATH = PROJECT / "docs" / "observability" / "value_cycle_ab_s1_three_a
 #: 272 billing accounts, all of it acquired `PROS-*` accounts, which W2_20 cannot cause; the
 #: commit that did it is unattributed (graded in
 #: `SEAT_FINDING_W2_20_A_SIXTH_OF_DRAWN_GAS_BOILERS_HAVE_NO_GAS_SUPPLY_2026-10-07.md`).
+#:
+#: MOVED 2026-10-08 TOGETHER WITH `CURRENT_WORLD_NOISE_FLOOR_PATH`, same world digest: the
+#: `20261008r` pair re-took both at committed origin `45122d156`, after the register recovery
+#: (`212c6396a`). Every settled move from `h` is realised bad debt; R1-R5 graded in the W2_20 finding.
 CURRENT_WORLD_THREE_ARM_PATH = (
-    PROJECT / "docs" / "observability" / "value_cycle_ab_s1_three_arm_20261007h.json")
+    PROJECT / "docs" / "observability" / "value_cycle_ab_s1_three_arm_20261008r.json")
 #: WHAT MOVED BETWEEN THE LAST PUBLISHED PAIR AND THIS ONE, IN WORDS A READER CAN CHECK. The world
 #: digest is the same across them, so nothing generated says the worlds differ -- the digest
 #: identifies the departure level and the homes and is blind to a behaviour switch (graded Q0 of
@@ -285,13 +289,12 @@ CURRENT_WORLD_THREE_ARM_PATH = (
 #: Rewrite it whenever the pair moves; it names the commit it is relative to so a stale copy reads
 #: as stale.
 CURRENT_WORLD_CHANGED_SINCE_THE_LAST_READING = (
-    "What changed since the previous reading (run at a9e6f2144): the same departure level, on "
-    "newer code. A home's heating is now drawn given whether it has a gas meter, so a home with "
-    "no gas supply no longer gets a gas bill. In the same stretch the company's book more than "
-    "doubled, and every one of the extra accounts is a newly won customer. "
-    "That growth is not the heating change. It is the run's own memory budget for settling "
-    "accounts, raised from 1,050 to 1,750 customer-years in 358d59a42, which settles more of the "
-    "customers the campaign wins. The heating change's own effect is measured separately, below.")
+    "What changed since the previous reading (run at b2ec5147a): the same departure level, on "
+    "newer code. When a written-off debt is later recovered, the world now recovers less of it, "
+    "so each arm keeps a little more bad debt and its settled net falls by about GBP 570 to 680. "
+    "Nothing else in the settled figures moved, and the book is the same size. The value arm's "
+    "advantage over control moved by GBP 110, a twelfth of one noise-floor spread, which says "
+    "nothing either way about selection.")
 #: THE SAME CODE AS THE CURRENT-WORLD RUN WITH W2_20 (`81732ffe2`) REVERTED, control arm only, full
 #: window: what the control book would have been without heating drawn given the gas meter. Run in
 #: the locked worktree `/var/tmp/se-w220-full-R` at `b2ec5147a` with `81732ffe2`'s five code paths
@@ -604,8 +607,9 @@ AUC_FAMILY_SOURCE = "the 12-seed AUC-carrying floor of 2026-09-17"
 #: MOVED 2026-10-04 with `CURRENT_WORLD_THREE_ARM_PATH`, to the same seeds re-drawn at `efe1b7dee`.
 #: MOVED 2026-10-05 with `CURRENT_WORLD_THREE_ARM_PATH`, to the same seeds re-drawn at `a9e6f2144`.
 #: MOVED 2026-10-08 with `CURRENT_WORLD_THREE_ARM_PATH`, to the same seeds re-drawn at `b2ec5147a`.
+#: MOVED 2026-10-08 with `CURRENT_WORLD_THREE_ARM_PATH`, to the same seeds re-drawn at `45122d156`.
 CURRENT_WORLD_NOISE_FLOOR_PATH = (
-    PROJECT / "docs" / "observability" / "value_cycle_ab_s1_noise_floor_20261007h.json")
+    PROJECT / "docs" / "observability" / "value_cycle_ab_s1_noise_floor_20261008r.json")
 #: The ONE redraw mode whose seed spread bounds the published contrast, in the undecomposed
 #: artefact's own words (`redraw_scope.means`): "every household re-drawn -- the undecomposed
 #: floor, and the only mode whose spread bounds the published figure directly".

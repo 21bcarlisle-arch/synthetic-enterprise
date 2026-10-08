@@ -14,12 +14,19 @@ import pytest
 
 from tools import generate_value_arms_data as g
 
+#: The run the reverted control was measured against, NOT whatever the page publishes today: the
+#: published pair moves on (to `20261008r` on 2026-10-08), and a fixture reading it would red the
+#: sized legs the day the page correctly withdraws the size.
+PAIRED_RUN_PATH = g.PROJECT / "docs" / "observability" / "value_cycle_ab_s1_three_arm_20261007h.json"
+
+
+def _load(path):
+    return json.loads(path.read_text(encoding="utf-8"))
+
 
 @pytest.fixture(scope="module")
 def pair():
-    published = json.loads(g.CURRENT_WORLD_THREE_ARM_PATH.read_text(encoding="utf-8"))
-    reverted = json.loads(g.W2_20_REVERTED_CONTROL_PATH.read_text(encoding="utf-8"))
-    return published, reverted
+    return _load(PAIRED_RUN_PATH), _load(g.W2_20_REVERTED_CONTROL_PATH)
 
 
 def test_the_size_is_the_difference_of_the_two_artefacts(pair):
@@ -37,7 +44,11 @@ def test_the_size_is_the_difference_of_the_two_artefacts(pair):
 
 def test_the_generator_reads_the_committed_reverted_run_as_a_stamped_source(tmp_path):
     data = g.generate(out_path=tmp_path / "value_arms.json")
-    assert data["current_world"]["w2_20_own_effect"]["available"]
+    published = _load(g.CURRENT_WORLD_THREE_ARM_PATH)
+    reverted = _load(g.W2_20_REVERTED_CONTROL_PATH)
+    paired = (published["producing_commit"]["commit"] == reverted["producing_commit"]["commit"]
+              and published["world_identity"]["digest"] == reverted["world_identity"]["digest"])
+    assert data["current_world"]["w2_20_own_effect"]["available"] is paired
     rel = g.W2_20_REVERTED_CONTROL_PATH.relative_to(g.PROJECT).as_posix()
     assert rel in json.dumps(data[g.provenance_stamp.STAMP_KEY])
 
