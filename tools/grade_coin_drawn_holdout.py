@@ -79,6 +79,17 @@ def grade_arm(seed: int, *, cut: float, planted: float | None, per_year: float) 
 MARGIN_SHARE_ENDS = (0.019, 0.14)
 
 
+def lifetime_value(obs: dict, *, stay_share: float, margin_share: float) -> float:
+    """What keeping one household is worth to the supplier: a margin share of its own trailing
+    year's bills over 1 + s/(1-s) years of tenure at the observed stay share s, undiscounted."""
+    return margin_share * sum(obs["monthly_bills"]) * (1.0 + stay_share / (1.0 - stay_share))
+
+
+def cut_cost_gbp(obs: dict, cut: float) -> float:
+    """One year of a per-MWh cut on the household's billed kWh."""
+    return cut * obs["billed_kwh"] / 1000.0
+
+
 def _rule_value(row: dict, cut: bool, *, cut_cost: float, lifetime: float) -> float:
     """The supplier's forward value of one decision under the world's own P(stay)."""
     p = row["p_stay_treated"] if cut else row["p_stay_holdout"]
@@ -107,8 +118,8 @@ def grade_decision(train, fresh, *, cut: float, margin_share: float) -> dict:
         d = retention_cut_decision(obs, cut_gbp_per_mwh=cut, margin_share=margin_share,
                                    by_channel=by_channel, pooled=pooled)
         reads[d.read.split(":")[0]] = reads.get(d.read.split(":")[0], 0) + 1
-        lifetime = margin_share * sum(obs["monthly_bills"]) * (1.0 + s / (1.0 - s))
-        cut_cost = cut * obs["billed_kwh"] / 1000.0
+        lifetime = lifetime_value(obs, stay_share=s, margin_share=margin_share)
+        cut_cost = cut_cost_gbp(obs, cut)
         for rule, takes in (("learned", d.offer_cut), ("all", True), ("none", False)):
             t = totals[rule]
             t["cut"] += takes

@@ -454,3 +454,88 @@ hobs and kettles in owning homes) can close the rest. If (a) lands and the media
 year's trace for each of about 160 homes (~1 minute on 6 cores), which is too slow for the commit
 gate. Proposed home: `background/fabric_gap_ledger.py`, as a cell beside L1.1, so it is graded on
 the ledger's own cadence rather than on every commit.
+
+## Pre-registration: a cooking-fuel draw per gas premise (2026-10-08, seat, claim `a-gas-heated-homes-evening-peak-comes-down-to-serls`)
+
+**Filed before the build and before any run of it.** The build is item 1 above, (a).
+
+**The draw.** A premise with a gas supply draws one cooking-fuel combination: electric oven and hob,
+electric oven and gas hob, or gas oven and hob. The shares are EFUS 2017 Fig 4.5 (37 / 33 / 20, with 9
+"another combination") made conditional on a gas meter. That uses EHS 2017 AT3.5's 14.0% off-gas
+share, and it rests on one **marked inference**: every off-gas home cooks all-electric. So the
+all-electric share among gas homes is (37 − 14.0) / 86.0. The 9% "other" is not named by the source.
+It is renormalised away, and that is the SIMPLIFICATION. Result among gas homes: all-electric 30.3%,
+electric oven with gas hob 43.4%, all-gas 26.3%. A gas-cooked appliance leaves the home's electric
+stock. The gas side moves in the same change: an all-electric cook burns no cooking gas. A home cooking
+on any gas burns the DESNZ share divided by the share of gas homes cooking on any gas, so the
+population's mean cooking gas, which is what the 5–10% is a share of, is conserved. A gas hob alone
+and a gas oven and hob burn the same gas. That is not sourced either, and it is the second SIMPLIFICATION.
+
+**Predictions, over the same 163 homes, seed 17, C1 2022, at this change alone:**
+
+| | Origin now | Predicted | SERL 2022 |
+|---|---|---|---|
+| Annual median kWh | 3,421 | **3,150–3,230** | ~2,600 |
+| 18:30 kWh/h | 0.763 | **0.65–0.69** | 0.48 |
+| Peak kWh/h | 0.803 @19:30 | **0.69–0.74** | 0.48 @18:30 |
+| 04:30 trough | 0.128 | **0.126–0.129** (unmoved) | 0.13 |
+
+Reasoning, from the one-variable arms above: the hob leaves 70% of homes (×207 kWh) and the oven
+leaves 26% (×326 kWh), so about −230 kWh. Per-use energy is untouched. **This change cannot bring the
+peak to SERL by itself.** The remaining ~0.2 kWh/h is item 2 (HES per-appliance energy), and it is
+predicted to stay open after this lands. The monthly-median max/min is not predicted to a band: the
+previous section's 1.32–1.36 was for a different arm, and I have not re-derived it. I record the
+figure as a reading only.
+
+### Result (same day, after the build; instrument `/tmp/evpeak/measure.py`, both arms in ONE process)
+
+The "before" arm (`cooked_on_gas=frozenset()`) reproduces origin exactly: 3,421 / 0.803 / 0.763 /
+1.301. So the instrument is the previous section's instrument.
+
+| 163 homes, seed 17, C1 2022 | Before | **After** | Predicted | SERL 2022 |
+|---|---|---|---|---|
+| Annual median kWh | 3,421 | **3,141** | 3,150–3,230 ✗ (9 below) | ~2,600 |
+| 18:30 kWh/h | 0.763 | **0.638** | 0.65–0.69 ✗ (low) | 0.48 |
+| Peak kWh/h | 0.803 @19:30 | **0.688 @20:00** | 0.69–0.74 ✗ (just low) | 0.48 @18:30 |
+| 04:30 trough | 0.128 | **0.127** | 0.126–0.129 ✓ | 0.13 |
+| Monthly-median max/min | 1.301 | **1.272** (Jan 9.92, Aug 7.82) | not predicted | 1.42 (8.5 / 6.0), band 1.36–1.47 |
+
+**Prediction kept as filed.** Every level figure fell slightly MORE than predicted. The arithmetic
+summed two one-variable arms measured on the full stock. Each arm is a median, and medians do not add,
+so the miss is small and in the expected direction. The trough did not move, as predicted.
+
+**The season moved the wrong way: 1.301 to 1.272.** The cooking removed carried HES's winter-heavy
+season. But January fell LESS than August (−0.58 against −0.61 kWh/day). The likely route, not yet
+isolated: less electric cooking means less internal gain, so more space heating, and so more boiler
+pump electricity in winter. That partly refills January. **So the triage row
+`a-gas-heated-homes-electricity-has-no-season` is NOT fixed, and this change does not claim it.** The
+season deficit is the previous section's open question, and it is now slightly larger. The level
+excess was not hiding it.
+
+**What remains for DONE.** The peak is still 0.21 kWh/h above SERL, and the median is 540 above it. Per
+item 2, that is per-use cooking energy (HES per-appliance kWh), with the season as a separate defect.
+The control for this step is
+`tests/simulation/test_a_gas_home_cooks_each_appliance_on_one_fuel.py`: the source shares are
+recomputed from the published figures, every combination is reachable, an electric cook burns no gas
+and a gas-cooked appliance leaves the electricity, the population's cooking gas is conserved, and an
+off-gas home ignores a gas-cooking hand-off. Five mutations, each red.
+
+### What else it moved: L1.1 texture passes over the drawn 60 for the first time (not predicted)
+
+`tests/harness/test_premise_two_level.py`, drawn 60, seed 7: the L1.1 legs went from [6, 22, 40, 56] to
+**[5, 19, 38, 52]** under the real p10/p25/p50/p75, against [6, 15, 30, 45] expected. The world median
+is 0.142 against real 0.158. The p75 leg is the closest to red (p 0.042, which clears the four-leg
+correction), so **the pass is on the margin and is not a fit**. Nothing was tuned to it. L2.4 spread
+went from 2.44 to 2.73 (still red against 4.88). L1.1n's worst home went from 1.018 to 1.294, so its
+squeak is gone. The authored fixtures (the panel, matched pairs, regimes) now hold the cooking fuel
+all-electric alongside the full stock, so they stay matched.
+
+**A control that held only because its cell was red.** `test_HALF_a_split_is_NOT_a_split...` asserted
+that a texture cell missing a machine split is never PASS. With L1.1 green, 57 judged homes pass
+under the coverage floor (`MAX_UNJUDGED_SHARE` 0.10, and 3/60 are unjudged), as designed. Re-keyed to
+the property: the floor alone licenses the pass, and at a zero floor the cell must not pass.
+
+**Seen in passing, not this lane's:** `tests/simulation/test_rng_substream.py::test_no_new_private_seed_derivation_and_no_stale_exemption`
+is red at clean origin. `sim/customer_state_layer.py` (B7 slices 3–4, 2026-10-06) carries a private
+`_substream`, and no row of `HEAD_RED_REGISTER.md` names it. Migrating it re-draws the home-moves
+world, so it is not folded into this commit, where it would be a second variable.

@@ -43,6 +43,14 @@ household -- consumption, unit rate, revenue -- over the trailing `HISTORY_DAYS`
 year-on-year comparison and nothing more. Cost per decision is measured by `build_decision_set`
 and returned with the set, never assumed.
 
+THE SAVE ON A LOSS NOTICE (director, 2026-10-08) is asked of the same roll, so it adds no number.
+A household leaves at the default iff its roll U > P(stay | default). If the company answers its
+loss notice with a Fixed Retention Tariff `c` below the default, the household is saved iff
+U <= P(stay | default - c): the same U, the world's own curve, nothing new. So the conditional
+save rate is (P(stay|default-c) - P(stay|default)) / (1 - P(stay|default)) -- the world's OUTPUT,
+which is what lets a published save rate check the world rather than drive it. `probe_cuts` asks
+the world P(stay) at each of several cuts on every decision, so one build serves a whole curve.
+
 NAMED SIMPLIFICATIONS, each a place this world is thinner than the settled one:
   * A day's electricity is the EAC / 365, flat through the year. The world has a day form for gas
     (`gas_settlement.resi_daily_gas_kwh`) and none for electricity outside the half-hourly shape
@@ -107,6 +115,20 @@ class DecisionSet:
 def coin_is_treated(seed: int, account: str, decision_date: str, treat_share: float = 0.5) -> bool:
     """The company's coin for one renewal decision: True = offered the cut, False = held out."""
     return random.Random(f"{HOLDOUT_SUBSTREAM}:{seed}:{account}:{decision_date}").random() < treat_share
+
+
+def saved_on_loss_notice(roll: float, p_stay_default: float, p_stay_at_cut: float) -> bool:
+    """Whether a save at a cut keeps this household, asked of the WORLD'S roll and curve: it was
+    leaving at the default (roll above P(stay | default)) and would have stayed at the cut's price
+    (roll at or below P(stay | default - cut)). A stayer is never 'saved': it was never leaving."""
+    return p_stay_default < roll <= p_stay_at_cut
+
+
+def implied_save_rate(p_stay_default: float, p_stay_at_cut: float) -> float:
+    """The world's conditional chance that a leaver at the default is kept by the cut: the share of
+    the departure tail the cut moves below the roll line. Zero where the household cannot leave."""
+    leave = 1.0 - p_stay_default
+    return 0.0 if leave <= 0.0 else max(0.0, p_stay_at_cut - p_stay_default) / leave
 
 
 def default_offer_ex_vat(day: dt.date) -> float:
@@ -204,13 +226,19 @@ def world_renewal(customer, decision_date: dt.date, records: list[dict], old_rat
 
 def build_decision_set(seed: int, *, cut_gbp_per_mwh: float, planted_effect: float | None = None,
                        treat_share: float = 0.5, start_year: int = 2016, end_year: int = 2024,
-                       acquisitions_per_year: float = 100.0) -> DecisionSet:
+                       acquisitions_per_year: float = 100.0,
+                       probe_cuts: tuple[float, ...] = ()) -> DecisionSet:
     """Draw households and walk each through its renewals, one coin per decision.
 
     `cut_gbp_per_mwh` 0 is the NULL arm (the treated offer is the holdout offer, so the true effect
     is exactly zero). `planted_effect` is the PLANTED arm: the treated household stays with the
     world's holdout probability plus this, at the holdout's rate, so the truth is known by
     construction and the world's curve is not involved.
+
+    `probe_cuts` re-asks the world on every decision at the default minus each cut, with only the
+    rate changed, and keeps P(stay) and the world's own stay/leave per cut on the row (`p_stay_at_cut`,
+    `stays_at_cut`, world truth). It does not
+    change the path: the household still lives at the offer its coin drew.
     """
     from simulation.customer_events import churn_roll_for_renewal
 
@@ -245,6 +273,10 @@ def build_decision_set(seed: int, *, cut_gbp_per_mwh: float, planted_effect: flo
                     p_treat, stays_treated = p_hold, stays_held_out
                 else:
                     p_treat, stays_treated = world_renewal(c, decision, records, rate, treated_offer)
+                at_cut, stays_at_cut = {}, {}
+                for pc in probe_cuts:
+                    asked = world_renewal(c, decision, records, rate, holdout_offer - pc)
+                    at_cut[pc], stays_at_cut[pc] = asked if asked is not None else (None, None)
                 treated = coin_is_treated(seed, c.customer_id, iso, treat_share)
                 stayed = stays_treated if treated else stays_held_out
                 offer = treated_offer if treated else holdout_offer
@@ -253,10 +285,14 @@ def build_decision_set(seed: int, *, cut_gbp_per_mwh: float, planted_effect: flo
                     "arm": "treated" if treated else "holdout",
                     "offer_unit_rate": round(offer, 4), "stayed": stayed,
                     "payment_method": c.payment_method,
+                    # The product the account OPENED on: "svt" for a deemed-contract move-in, None
+                    # where the draw cannot establish it (not "fixed": see `_draw_tariff_type`).
+                    "opened_on": c.tariff_type,
                     "monthly_bills": monthly_bills(records, decision),
                     "billed_kwh": billed_kwh(records, decision),
                     # WORLD TRUTH below this line: the seam's allow-list never passes it.
                     "p_stay_holdout": p_hold, "p_stay_treated": p_treat, "roll": roll,
+                    "p_stay_at_cut": at_cut, "stays_at_cut": stays_at_cut,
                 })
                 if not stayed:
                     break

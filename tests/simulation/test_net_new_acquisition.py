@@ -1320,8 +1320,13 @@ def test_b2_the_two_flags_are_INDEPENDENT_and_the_default_path_is_untouched(monk
 # RE-MEASURED 2026-10-03, a world change: the commons moved onto DESNZ QEP 2.7.1 and the multiplier
 # the in-play pool is clipped by moved with it (2017 0.870 -> 2.015, 2022 0.267 -> 0.339, 2023
 # 0.776 -> 0.701). 2709 -> 2707 quotes, at the same £20.63.
-CAMPAIGN_QUOTES_AT_SHIPPED_CONFIG = 2707
-CAMPAIGN_SPEND_AT_SHIPPED_CONFIG = 60170.37
+# RE-MEASURED 2026-10-08, a curriculum change (director: acquisition selects on each prospect's own
+# responsiveness, `docs/design/curriculum/acquisition_selects_on_own_responsiveness.json`). The
+# quotes go to the engagement-weighted first prospects, so different homes win, the company's own
+# realised win rate differs and with it the quote budget from 2017: 2707 -> 2694 quotes,
+# £60,170.37 -> £59,859.52. With that file's `activated` false it is 2707 / £60,170.37 exactly.
+CAMPAIGN_QUOTES_AT_SHIPPED_CONFIG = 2694
+CAMPAIGN_SPEND_AT_SHIPPED_CONFIG = 59859.52
 
 #: The subset the ACCOUNTS can carry: quotes dated inside [REPORT_START, REPORT_END].
 #:
@@ -1333,8 +1338,8 @@ CAMPAIGN_SPEND_AT_SHIPPED_CONFIG = 60170.37
 #:
 #: The filter is still real and still tested: `test_c_MUTATION_the_window_filter_can_actually_
 #: EXCLUDE` hands it a mid-decade `report_end` and requires it to drop the rest.
-CAMPAIGN_QUOTES_INSIDE_WINDOW = 2707
-CAMPAIGN_SPEND_INSIDE_WINDOW = 60170.37
+CAMPAIGN_QUOTES_INSIDE_WINDOW = 2694
+CAMPAIGN_SPEND_INSIDE_WINDOW = 59859.52
 
 
 def test_c_every_quote_the_campaign_paid_for_is_BOOKED_as_acquisition_spend():

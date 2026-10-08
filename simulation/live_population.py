@@ -743,7 +743,15 @@ def _campaign(book: List[dict], seed: int) -> dict:
 def _campaign_key(seed: int) -> tuple:
     """Everything the resolved campaign depends on that a caller does not pass: the seed, and
     the three settings `_pre_growth_book` reads at call time."""
-    return (seed, tuple(sorted(served_segments())), draw_population_enabled(), founder_accounts())
+    from simulation.population_draw import (
+        acquisition_selects_on_own_responsiveness,
+        sensitivity_level_draw,
+    )
+
+    # The two responsiveness switches (director, 2026-10-08) change WHICH prospects win, so a
+    # campaign resolved under one arm must not be handed back under another in the same process.
+    return (seed, tuple(sorted(served_segments())), draw_population_enabled(), founder_accounts(),
+            acquisition_selects_on_own_responsiveness(), sensitivity_level_draw())
 
 
 #: The founder-book curriculum file. R13: the number lives in a director-authored artefact, not
@@ -994,6 +1002,7 @@ def _resolve_campaign(book: List[dict], seed: int) -> dict:
     from simulation.acquisition_funnel import run_acquisition_funnel
     from simulation.customer_events import PRICE_DIFFERENTIAL_PCT
     from simulation.net_new_acquisition import plan_growth_campaign
+    from simulation.population_draw import acquisition_selects_on_own_responsiveness
     from tools.credit_adapters import get_credit_bureau_adapter
 
     horizon = _dt.date(2026, 1, 1)
@@ -1052,6 +1061,10 @@ def _resolve_campaign(book: List[dict], seed: int) -> dict:
             )
         ),
         customer_years_already_committed=existing_cy,
+        # Director, 2026-10-08: the campaign selects on each prospect's own engagement and
+        # elasticity. Curriculum (`acquisition_selects_on_own_responsiveness.json`); false is the
+        # pre-ruling campaign byte for byte.
+        select_on_own_responsiveness=acquisition_selects_on_own_responsiveness(),
     )
     LAST_CAMPAIGN.clear()
     LAST_CAMPAIGN.update({k: v for k, v in outcome.items() if k != "winners"})

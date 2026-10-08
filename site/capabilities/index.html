@@ -2481,6 +2481,14 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
           ? '<p class="cw-changed" style="margin:6px 0 0;font-size:11.5px;color:var(--muted);">'
             + prose(cw.changed_since_the_last_reading) + "</p>"
           : "")
+      /* THE HEATING CHANGE'S OWN SIZE, beside the sentence that names it, because a change named
+         with no size beside it is read as zero. A withdrawn size renders its reason in amber. */
+      + (cw.w2_20_own_effect
+          ? '<p class="cw-w220" style="margin:6px 0 0;font-size:11.5px;color:'
+            + (cw.w2_20_own_effect.available ? "var(--muted)" : "var(--amber)") + ';">'
+            + prose(cw.w2_20_own_effect.available ? cw.w2_20_own_effect.sentence
+                    : cw.w2_20_own_effect.why_not) + "</p>"
+          : "")
       + selectionSplit(cw.selection_split);
   }
 

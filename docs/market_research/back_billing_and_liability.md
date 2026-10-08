@@ -400,7 +400,8 @@ moved in" [H].
   later names the incoming tenant, must split it at the move-in date.
 - **What the void costs is mostly standing charge.** An empty home's use is small (frost
   protection, a fridge left on), but the standing charge accrues every day. **GAP:** no published
-  source gives domestic void length or void consumption (`home_moves.md` §2.4, re-confirmed: the
+  source gives ~~domestic void length or~~ void consumption *(corrected 2026-10-08: void
+  length is published for social and private re-lets, §11)* (`home_moves.md` §2.4, re-confirmed: the
   Ofgem CfI of Dec 2025 and its June 2026 summary of responses give neither).
 
 ### 9.2 Does the 12-month limit protect a landlord?
@@ -468,7 +469,9 @@ moved in" [H].
 
 ### 9.4 Not established
 
-1. Domestic void length and void consumption (GAP, as `home_moves.md` §2.4).
+1. Domestic void length and void consumption (GAP, as `home_moves.md` §2.4). **Partly closed
+   2026-10-08:** void length is now published for social and private re-lets. The owner-occupier
+   void and void consumption are still GAPs (§11).
 2. Whether the owner of an empty gas-connected property is the gas "consumer" under Sch 2B
    para 8(1) (GAP).
 3. Whether 21BA protects a landlord for a void: the reading in §9.2 is derived, not stated by Ofgem
@@ -515,6 +518,85 @@ Figures under "today" were read from the code, and the recovery figures were pri
 | (d) | `q3_post_write_off_recovery_share` 0.05 (0.02-0.086) | Read by no code | **Agrees with the evidence, but no code reads it.** The world types its own rates (next row). |
 | (d) | `simulation/arrears_engine`: `DCA_RECOVERY_RATE` {OVERWHELMED 0.30, NEUTRAL 0.20} less `DCA_COMMISSION_RATE` 0.15, and `DEBT_SALE_HAIRCUT_PCT` 0.12 for AVOIDANT. Reached in the run through `compute_debt_recovery` (phase 4c). | Net 25.5p, 17.0p and 12.0p per GBP written off at the final bill's due date | **Partly contradicts.** For a write-off that early, the comparable figure is the 10-25p implied by Centrica's final-bill coverage, and 17-25.5p sits at or above its top. The 12p sale is above both published purchase prices (5.4p, 9.3p), on debt only about 120 days past due. All three are marked "illustrative", and none reads the register. |
 | (d) | `company/finance/debt_collection._RECOVERY_PROBABILITY`, docstring "60-75p/GBP" | 0.65 at DCA | **Contradicts** (already in §5.1 of the provisioning page). No source supports 60-75p, and the purchase market pays 5-9p. |
+
+---
+
+## 11. How long a void lasts, by tenure, and what an empty home uses
+
+*Added 2026-10-08 for the director's order "Voids first". The world will draw a void after each
+move-out, and its move hazard is by tenure (`simulation/arrival_route.home_move_rate_per_household_year`:
+owner, private rent, social rent). So the void is established here by tenure. Pages were read in
+full on 2026-10-08. The web-search budget was spent, so sources are those reachable by direct URL
+and the GOV.UK search API.*
+
+**What is being measured.** It is the time from the outgoing occupier's tenancy ending to the next
+occupier's tenancy starting, for the home that was **vacated**. That is period (b) in §9.1, the
+owner's leg, plus any of period (a) the supplier was not told about. It is not the incoming
+occupier's unnamed months (`q1_unnamed_months_per_cot`). The tenure that matters is the vacated
+home's. The EHS split the world draws is by tenure **moved into**. A renter who buys leaves a
+private-rented void behind, so the two splits differ.
+
+| Tenure (home vacated) | Void length | Statistic | Source | Date |
+|---|---|---|---|---|
+| Social, England, general needs | **35 days** (34 in 2023/24) | median, per re-let | [H] MHCLG, *Social housing lettings in England, tenancies, April 2024 to March 2025*, §4.2 (CORE) | 2024/25 |
+| Social, England, all (general needs + supported) | **30 days**: 21 a year 2015/16–2019/20, 28 in Covid, then 30 / 29 / 30 for 2022/23–2024/25 | median, per re-let | [H] same; and the April 2023 to March 2024 edition | 2015/16–2024/25 |
+| Social, England, general needs by region | 23 (South West) to **50 (London)**; London was 56 in 2023/24 | median | [H] same, Table 5 | 2024/25 |
+| Social, Scotland, all | **61 days** (LAs 78, RSLs 40); 57 in 2023/24, 56 in 2022/23, **32 in 2019/20** | mean ("average days to re-let") | [H] Scottish Housing Regulator, *National Report on the Scottish Social Housing Charter* 2024-25 and 2023-24 headline findings | 2019/20–2024/25 |
+| Private rent, England, agent re-lets | **20–21 days** typical; monthly range **9** (Jul 2023, record low) to **24** (Jan 2021, Jan 2025); 19 in Feb 2020 | monthly average "between tenancies" | [M] Goodlord Rental Index, blog.goodlord.co (Feb 2020, Jan 2021, Jan 2024, Dec 2024, Jan 2025, Feb 2025, Jun 2025 and Sep 2026 editions) | 2020–2026 |
+| Private rent, official | **GAP** | — | EPLS 2018, 2021 and 2024 were read, and none measures void length. In 2024, 39% of landlords who cut rent did it "to avoid a lengthy void period" | — |
+| Owner-occupied | **GAP** | — | Nothing found that gives the time from seller out to buyer in, or the share of homes vacant at sale | — |
+
+**Notes on the evidence.**
+- **The social figures are official and cover our window.** The England figure is a **median**.
+  The toggle wants an expected value, and the mean of a right-skewed duration is higher. England
+  does not publish the mean (GAP). Scotland's figure is a mean, and it is about double England's
+  median in the same year. Some of that gap is Scotland itself: Scottish RSLs (40) sit near
+  England's general-needs median. Some is median against mean. **I cannot yet say how much is
+  which.**
+- **Social voids grew across the window.** They roughly doubled in Scotland (32 to 61 days) and
+  rose by about half in England (21 to 30 days). One constant for 2016–2025 is a simplification. If
+  the toggle ever matters, the world could key the void to the year.
+- **The private figure is an industry index, not an official statistic.** It covers re-lets
+  managed by agents on one platform, and Goodlord does not publish its method. It leaves out homes
+  that were sold or withdrawn instead of re-let: 19% of landlords said they would not re-let next
+  time (EPLS 2024, Annex Table 6.1). Before 2020, only February 2020 was found. Goodlord itself
+  sells "utility switching and void management" to letting agents. That suggests agents handle
+  void utilities in practice, but it does not measure how often.
+- **The owner-occupier void.** This is a practitioner reading, not a source. In a chain sale the
+  buyer takes the keys and the ownership on completion day, so the void is about zero. Probate sales
+  and homes empty at sale can stand empty for months, and nobody publishes their share. **This is
+  the question for the director.**
+- **Context only, not a bound.** On 10 Sep 2025, the Council Taxbase recorded **542,000** English
+  dwellings as empty and not exempt, up 8.0% on a year. Of these, 153,000 paid the Empty Homes
+  Premium (empty for more than a year, from April 2024). Another **212,000** were exempt and
+  unoccupied [H] MHCLG, *Council Taxbase 2025 in England*. Dividing that stock by the flow of moves
+  would give a mean void. But the stock includes homes that are empty for reasons other than a move
+  (demolition, repairs, long-term empty), and the flow would have to count deaths. So the ratio
+  measures nothing, and it is not used.
+
+**Energy used in a void: GAP.** No published kWh/day for an empty home was found. None of the
+sources in §9 quantifies it (the Ofgem CfI and its summary, Citizens Advice, the Energy
+Ombudsman), and none of the housing statistics above touches energy. What an empty home draws
+depends on what is left on: a fridge, heating set to frost protection, standby loads. It also
+depends on **void works**, meaning contractors' power and drying, which social voids especially
+carry. None of these is published as a void figure. So a void costs its debtor **standing charges
+plus an unknown small use**. The world should carry that use as a named gap, not a typed number.
+
+**Who takes supply in practice: not published.** Nobody publishes whether landlords put voids on
+their own contract or leave the meter on a deemed contract to "the occupier". In Ofgem's June 2026
+summary, suppliers ask for "better advance notification from landlords or agents" (§9.3). That
+suggests the deemed contract is common, but it does not count it. This is a practitioner question.
+
+**Toggles set** (`assumption_toggles.yaml`, 2026-10-08):
+
+| Toggle | Default | Low | High | Basis |
+|---|---|---|---|---|
+| **new** `q1_void_months_social` | **1.15** months (35 d) | 0.7 (21 d) | 2.0 (61 d) | Default: England GN median 2024/25. Low: England pre-Covid median. High: Scotland mean 2024/25 |
+| **new** `q1_void_months_private_rent` | **0.7** (21 d) | 0.3 (9 d) | 0.8 (24 d) | Default: Goodlord typical. Low: record low, Jul 2023. High: the highest months, Jan 2021 and Jan 2025 |
+| **new** `q1_void_months_owner` | null | null | null | **GAP** (above) |
+| `q1_void_months_per_move_out` | null, kept | — | — | The tenure rows supersede it. A blend would need the owner figure, which is a GAP, and a split by vacated tenure, so it is not computed |
+
+Months are days / 30.44. No code reads these toggles yet (`sim/customer_state_layer.VOID_GAP_UNKNOWN_REASON`).
 
 ---
 
@@ -566,3 +648,25 @@ Figures under "today" were read from the code, and the recovery figures were pri
 - Repo documents relied on: `unbilled_energy_and_revenue_assurance.md` (settlement, UIG, Centrica),
   `practitioner_questions_as_assumption_toggles.md` (Q2 derivations), `debt_and_collections.md`,
   `elexon_settlement_run_timetable_verified.md`.
+
+**§11 (voids by tenure), read 2026-10-08:**
+- MHCLG, *Social housing lettings in England, tenancies: April 2024 to March 2025*, published 13
+  Nov 2025, §4.2–4.4 and Table 5:
+  <https://www.gov.uk/government/statistics/social-housing-lettings-in-england-april-2024-to-march-2025/social-housing-lettings-in-england-tenancies-april-2024-to-march-2025> [H]
+- MHCLG, *Social housing lettings in England, tenancies: April 2023 to March 2024*:
+  <https://www.gov.uk/government/statistics/social-housing-lettings-in-england-april-2023-to-march-2024/social-housing-lettings-in-england-tenancies-april-2023-to-march-2024> [H]
+- Scottish Housing Regulator, *National Report on the Scottish Social Housing Charter 2024-2025*:
+  <https://www.housingregulator.gov.scot/landlord-performance/national-reports/national-reports-on-the-scottish-social-housing-charter/national-report-on-the-scottish-social-housing-charter-2024-2025/> [H]
+- Scottish Housing Regulator, *National Report on the Scottish Social Housing Charter: headline
+  findings 2023-2024*:
+  <https://www.housingregulator.gov.scot/landlord-performance/national-reports/national-reports-on-the-scottish-social-housing-charter/national-report-on-the-scottish-social-housing-charter-headline-findings-2023-2024/> [H]
+- Goodlord Rental Index, monthly editions: <https://blog.goodlord.co/rental-index-september-2026>,
+  and the `rental-index-june-2025`, `-february-2025`, `-january-2025`, `-december-2024`,
+  `-january-2024` and `-december-2023` pages at the same host;
+  <https://blog.goodlord.co/void-periods-inch-downwards-but-rents-reflect-season> (Feb 2020);
+  <https://blog.goodlord.co/voids-up-but-rents-hold-steady-during-january-goodlord-rental-index> (Jan 2021) [M]
+- MHCLG, *English Private Landlord Survey 2024: main report*. The 2021 and 2018 reports were also
+  read. None measures void length:
+  <https://www.gov.uk/government/statistics/english-private-landlord-survey-2024-main-report> [H]
+- MHCLG, *Council Taxbase 2025 in England*:
+  <https://www.gov.uk/government/statistics/council-taxbase-2025-in-england/local-authority-council-taxbase-in-england-2025> [H]
