@@ -8,6 +8,50 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-10-08 — orientation: Both questions last record asked were answered on evidence, and the answer to one of them tells us something about the frame
+
+<!-- head: bab18f0737ea -->
+
+*Written by the orientation seat from its own record (2026-10-08T05:24:19.070128+00:00; 10 commits, 3 substantive, since 2026-10-08T02:23:45.604384+00:00).*
+
+## What the stretch meant
+
+Both questions last record asked were answered on evidence, and the answer to one of them tells us something about the frame. The save-offer question is sourced (45122d156, from SLC 14, 14A and 22B, the REC switching schedule and Ofgem's derogation letters). A GB losing supplier gets an Invitation to Intervene when a switch goes Pending, 1 working day to 28 days before it takes effect. It may make a fixed retention offer but may not object on that ground. This world tells the company of a loss only at 17:00 the day before, once the switch can no longer be cancelled. So within the frame where inference could still beat the best flat rule on retention, a targeted save, this company knows LESS than a real supplier. That is a fidelity gap at the seam, not a strategy choice. It holds whatever the director answers on b8, so the observable is focus two. The decision set built on it stays his. The baseline the thesis needs is clearer but not yet a number to publish. The value-arms book doubling was the settlement budget, an engineering dial (9bff74814), not the world. The H2 failure is the flat control arm's tail draw, not the level leg (90cd946ed, 20719d272). The placebo reproduces the default draw to the penny. W2_20 alone moves the 2017 control book by 3 of 52 gas legs, through prospects only (0bddb50ed). The published current-world advantage fell from GBP 18,541 to 5,134 and its verdict is withheld, because the pair predates the register recovery. A re-take with five predictions filed first runs until about 11:00. A landing now in its gate says the control arm takes the elasticity draw for every renewing account, as the value arm does, and that the floor needs nine seeds. That is the right next question about whether the baseline is fair. Scale was reconciled. The 1.8 MB/cy gap was the old code's list trace, and a campaign customer-year now costs 1.22 MB against a founder's ~1.02. The proposal's table is corrected beside the claim, and the 80-founder row matches production (ad43a298a). A ceiling re-take at current code is running (pid 412506). Nothing went backwards. One thing stalled: focus three, the flat electricity season of a gas-heated home, was never reached because the first two items took the stretch. It is a two-day-old world defect and it is first now. Machine: no new instance of the brief reading behind (HEAD and origin are level) or of an early tombstone. The draw ledger miscredited two more items by path. SITE2's counter climbs. acff52923 in /var/tmp/se-draw-order is still disposable, as recorded. 10 commits, 3 substantive by the brief's count. The two finding landings (ad43a298a, 45122d156) carried the stretch's main results.
+
+## What went wrong
+
+- NOT corrected: THE MACHINE'S, CARRIED. One item can land twice, on origin through surgical_land and as a local commit on the shared HEAD. Owner: SEAT_FINDING_ONE_ITEM_LANDS_TWICE_AND_THE_SHARED_HEAD_FORKS_FROM_ORIGIN. 05:24: no new instance. HEAD and origin are level.
+- NOT corrected: THE MACHINE'S, CARRIED. A held change's hold condition is not re-asked when its premise moves. Owner: SEAT_FINDING_A_HOLD_OR_A_TOMBSTONE_STATES_ITS_CONDITION_IN_PROSE_AND_NOTHING_RE_ASKS_IT. 05:24: no new instance.
+- NOT corrected: THE MACHINE'S, CARRIED. The held-work check refuses an item when its prose names a held file, even when the held work is not the item's, and the refusal reaches only the supervisor log. 05:24: no new instance.
+- NOT corrected: THE MACHINE'S, CARRIED. The seat's brief reads the director's open concerns from the behind checkout. 05:24: no new instance. HEAD and origin were level, and the brief's previous_for_the_director held all ten open rows, b8 and the founder ceiling among them. Nothing stops the next behind checkout.
+- NOT corrected: THE MACHINE'S, CARRIED. The draw ledger reads the same for work never started and for work mid-landing, because it asks only origin by path. 05:24: nothing mid-landing was tested. A surgical_land of the control-arm reading (pid 403633) is mid-gate as this is written.
+- NOT corrected: THE MACHINE'S, CARRIED. A focus-row tombstone still retires a row without asking its DONE. 05:24: no new instance. b8-a-save-offer-is-sourced-against-the-switching-rules-and-the-seam was tombstoned at 04:53, after its work (45122d156) landed at 04:49, so its DONE was met first.
+- NOT corrected: THE MACHINE'S, CARRIED. A landing can carry docs/direction/DIRECTION.yaml from the shared working copy when it is older than origin's. 05:24: no new instance.
+- NOT corrected: THE MACHINE'S, CARRIED. A parked atom is still counted as drawn. H45 is PARKED and the counter still moves. 05:24: SITE2 went from 42753 to 42821.
+- NOT corrected: THE MACHINE'S, CARRIED. The coupled-triad gate now excludes twinless L3 targets, and its refusal reaches only the supervisor journal. 05:24: the journal still excludes W2_30 from BUILD at 05:21, because D48 is at L1. Lane 0 is not affected.
+- NOT corrected: THE WORLD'S, CARRIED. A gas-heated fabric home's electricity has no season: the median month max/min is 1.288 against SERL's 1.36-1.47. 05:24: unchanged. It was focus three and was not reached, because the first two items took the stretch. It is focus one now.
+- NOT corrected: THE MACHINE'S, CARRIED. The draw ledger credits or denies an item by path overlap, not by its work. 05:24: NEW INSTANCES. what-stops-the-everyday-settled-book-reaching-thousands reads not_done, though ad43a298a is its work under the focus row's id. w2-20-publish-the-head-arms-and-attribute-the-doubled-book reads not_done, though 20719d272 and 9bff74814 did both halves after its grace. The b8 curve row still reads not_done against 4320ae6a5.
+- corrected: THE WORLD'S, CARRIED. Between W2_20's value-arms takes, the book more than doubled: control-arm gas legs went from 64 of 127 to 183 of 272 (b870dd6c5). No commit pre-registered or claims that move. 05:24: CORRECTED. 9bff74814 bisected it to 358d59a42. The settlement budget went from 1,050 to 1,750 customer-years, and a one-variable revert of that constant alone gives 15 of the 23 added accounts. The book was sized by an engineering dial, and the artefact now names its budget. 0bddb50ed sized W2_20's own effect on the 2017 control arm at 3 of 52 gas legs and 5.8% of gross margin, through prospects only.
+- corrected: THE MACHINE'S, NEW. The w2-20-placebo-a-floor-seed-equal-to-the-base-seed continuation specified a noise floor from one seed. noise_floor refuses that by construction, so the launched job (w220-placebo) died at 02:02:56 with exit status 5 after arm A, and leg B produced no artefact. The continuation is still offered unchanged. 05:24: CORRECTED. The redesigned placebo ran on four seeds (90cd946ed). The base-seed row equals the default draw to the penny, and the continuation retired at 02:37.
+- corrected: MINE, NEW. Last stretch's focus one wrote its finding (SEAT_FINDING_WHAT_STOPS_THE_SETTLED_BOOK_REACHING_THOUSANDS) at 01:04 and never landed it, and the claim was swept. At 01:54, a founder-ceiling proposal sized on the founders-only slope reached origin, and the unlanded finding says that slope understates the live path about 2.6x. My record did not tell the run-review work to read the scale finding. Focus one fixes both. 05:24: CORRECTED. ad43a298a landed the finding and corrected the proposal's memory table beside the claim, with the old figures kept: 3.3, 5.1-5.5 and 7.2-8.1 GB at 80, 400 and 1,000 founders. The 80-founder row matches production's measured 3.3-4.0 GB.
+- corrected: MINE, NEW. Last record called the value-arms book doubling a world defect. 9bff74814 shows a machine budget sized the book, not the world, so the row was misfiled. The comparison the thesis rests on had been run on books whose size was set by a compute dial, and nothing in the artefact said so until 9bff74814. The book size is now named, and it is held at 1,750 across the pairs being compared.
+
+## Chosen against
+
+- Building the save-offer decision set on the new observable.
+- A focus row for W2_20 (the control arm's elasticity draw, the nine-seed floor, the full-window size, publishing the 20261008r pair).
+- Raising the settlement budget or the founders so the arms book is no longer sized by a compute dial.
+- Refactoring the 3,400-line run function, or folding the settled records.
+- Mechanism fixes for the open machine rows (draw ledger by path, parked-atom counting, held-work, tombstones).
+- Contradictions 2-4 of the practitioner finding (W2_36 hard-to-read keyed to premises, tenure-tilted smart reads, the void deemed leg).
+
+## Focus for the next stretch
+
+- `a-gas-heated-homes-electricity-gets-its-season`
+- `a-pending-switch-reaches-the-company-at-its-real-lead-time`
+
+---
+
 ## 2026-10-08 — orientation: The thesis's comparison has now been run across the whole range of uniform cuts, and in this world the honest answer is a tie
 
 <!-- head: 187b6c43c6b4 -->

@@ -24,7 +24,7 @@ not maintained -- so it tells you what the project IS, not what it is currently 
 | `docs/direction/DIRECTION.yaml` | What the delivery seat is currently steering by, and what it has recorded as wrong | 2026-10-08 | 0 | UNDATED |
 | `docs/direction/decisions.jsonl` | The append-only record of decisions taken, oldest to newest | 2026-10-08 | 0 | UNDATED |
 | `docs/status/PROJECT_STATE.txt` | Build state — current phase and test count, generated each publish | 2026-10-05 | 3 | FRESH |
-| `docs/institutional/knowledge_map.md` | What we know and what we have NOT established, with the gaps named | 2026-10-07 | 1 | UNDATED |
+| `docs/institutional/knowledge_map.md` | What we know and what we have NOT established, with the gaps named | 2026-10-08 | 0 | UNDATED |
 | `docs/operations/MAINTENANCE.md` | The monthly maintenance runbook this machine operates under | 2026-07-06 | 94 | UNDATED |
 
 `FRESH` recent · `OLD` genuinely old and honest about it (not a defect) · `UNDATED` states
