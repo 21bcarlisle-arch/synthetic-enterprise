@@ -1,0 +1,22 @@
+{
+  "_meta": {
+    "artefact": "acquisition_selects_on_own_responsiveness",
+    "version": 1,
+    "status": "ON -- 2026-10-08, director ruling; sensitivity_level_draw run both ways",
+    "r13_discipline": "Which world the company lives through is the director's. This file is two switches and carries no number: option 1 reads draws the world already has (each prospect's own price elasticity and its own active-renewal probability), and option 2 only re-orders WHICH households get which already-drawn level, so the 0.30/0.45/0.25 marginals, PRICE_ELASTICITY_SEGMENT_R2 = 0.02 and the 1.26x high:low spread are unchanged in both arms.",
+    "research": "docs/market_research/observable_correlates_of_price_responsiveness.md section C",
+    "prereg": "docs/staging/records/SEAT_PREREG_ACQUISITION_SELECTS_ON_EACH_PROSPECTS_OWN_RESPONSIVENESS_2026-10-08.md",
+    "consumed_by": "simulation.population_draw.acquisition_selects_on_own_responsiveness() and simulation.population_draw.sensitivity_level_draw(); read by simulation.live_population._resolve_campaign (option 1) and simulation.population_draw._draw_curriculum_axis (option 2)"
+  },
+  "activated": {
+    "value": true,
+    "basis": "Director, 2026-10-08: option 1 on; option 2 run both ways; no past-switching carry-over. OPTION 1: the acquisition funnel's price stage reads each prospect's OWN latent price sensitivity (as the renewal roll already does), instead of one population price response; and prospects enter the market weighted by their own chance of shopping (their engagement). No new number may be introduced. The latent value must never cross into company/ or saas/. OPTION 2, two arms selectable by a curriculum switch: arm independent (the high/medium/low sensitivity level drawn independently of engagement) and arm linked (the level drawn by rank on engagement), both keeping PRICE_ELASTICITY_SEGMENT_R2 = 0.02 and the 1.26x spread. NO past-switching carry-over term.",
+    "effect": "When true, the growth campaign (a) quotes each year's prospects in an order drawn without replacement with weight equal to each prospect's own active-renewal probability (household_segments.active_renewal_probability_for_customer), so a company that cannot quote the whole pool reaches the households that shop, and (b) passes each prospect's own latent price elasticity to the funnel's quote-to-application stage, which feels the price differential through market_switching_propensity.perceived_price_differential exactly as the renewal roll does. At a price differential of 0.0 part (b) changes nothing, because the differential it scales is zero. The founders, the drawn trickle and the replacement path are not contests and are untouched. REVERT: set this value to false; the run is then byte-identical to the pre-ruling world."
+  },
+  "sensitivity_level_draw": {
+    "value": "independent",
+    "allowed": ["independent", "linked"],
+    "basis": "Director, 2026-10-08: option 2 run both ways. The coupling strength between engagement and price sensitivity is a GAP in the published record (research note section B, item 2); its direction is evidenced (CMA Appendix 9.1: price cited by 81% of all against 93% of recent shoppers), its size is not, so the two ends are run and neither is a middle.",
+    "effect": "independent: the high/medium/low level is drawn on its own substream, crossed with engagement (the world before this ruling). linked: the level is the household's engagement propensity percentile (household_segments.engagement_propensity_for_customer, uniform on [0,1) by construction) cut at the same curriculum marginals, most engaged = high, so the marginals are exact and the within-segment lognormal is untouched. Applies to EVERY household's level, founders included, because a level is a household trait and not an acquisition one. REVERT: set to independent."
+  }
+}

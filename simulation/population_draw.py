@@ -1181,9 +1181,88 @@ _CURRICULUM_KEY_BY_AXIS: Dict[str, str] = {
 
 
 def _draw_curriculum_axis(customer_id: str, base_seed: int, axis: str, curriculum: dict) -> str:
-    rng = _cohort_substream(customer_id, base_seed, axis)
     marginals = curriculum[_CURRICULUM_KEY_BY_AXIS[axis]]["value"]
+    if axis == "price_sensitivity" and sensitivity_level_draw() == "linked":
+        return _level_by_engagement_rank(customer_id, marginals)
+    rng = _cohort_substream(customer_id, base_seed, axis)
     return _weighted_choice(rng, marginals)
+
+
+# ---------------------------------------------------------------------------
+# Director, 2026-10-08: acquisition selects on each prospect's own responsiveness (option 1), and
+# the sensitivity level is drawn either independently of engagement or by rank on it (option 2).
+# Both switches live in one curriculum file and neither carries a number.
+# ---------------------------------------------------------------------------
+ACQUISITION_RESPONSIVENESS_PATH = (
+    Path(__file__).resolve().parents[1]
+    / "docs" / "design" / "curriculum" / "acquisition_selects_on_own_responsiveness.json"
+)
+
+SENSITIVITY_LEVEL_DRAWS: Tuple[str, ...] = ("independent", "linked")
+
+
+@functools.lru_cache(maxsize=4)
+def _acquisition_responsiveness(path: str) -> Tuple[bool, str]:
+    """The two switches, read once per path per process. Cached because `_draw_curriculum_axis`
+    is on the renewal hot path; the file is director-edited between runs, never mid-run.
+
+    A missing file or an unreadable value RAISES: whether the world selects on responsiveness is
+    the director's, and neither answer may be inferred from a file that does not say."""
+    loaded = json.loads(Path(path).read_text(encoding="utf-8"))
+    on = loaded["activated"]["value"]
+    arm = loaded["sensitivity_level_draw"]["value"]
+    if not isinstance(on, bool):
+        raise ValueError(f"{path}: activated.value must be true or false, got {on!r}")
+    if arm not in SENSITIVITY_LEVEL_DRAWS:
+        raise ValueError(
+            f"{path}: sensitivity_level_draw.value must be one of {SENSITIVITY_LEVEL_DRAWS}, "
+            f"got {arm!r}")
+    return on, arm
+
+
+def acquisition_selects_on_own_responsiveness(path: Optional[Path] = None) -> bool:
+    """Option 1: does the growth campaign select on each prospect's own engagement and elasticity?"""
+    return _acquisition_responsiveness(str(path or ACQUISITION_RESPONSIVENESS_PATH))[0]
+
+
+def sensitivity_level_draw(path: Optional[Path] = None) -> str:
+    """Option 2: `independent` (the level crossed with engagement) or `linked` (by its rank)."""
+    return _acquisition_responsiveness(str(path or ACQUISITION_RESPONSIVENESS_PATH))[1]
+
+
+def _level_by_engagement_rank(customer_id: str, marginals: Mapping[str, float]) -> str:
+    """Arm `linked`: the household's sensitivity LEVEL is its engagement percentile, cut at the
+    curriculum's own marginals, most engaged = most price-sensitive.
+
+    COMONOTONE, AND THE MARGINALS ARE EXACT BY CONSTRUCTION. `engagement_propensity_for_customer`
+    is uniform on [0, 1) across the population (household_segments' own W2_14 note), so cutting it
+    at the cumulative shares reproduces 0.30/0.45/0.25 exactly. `_within_segment_sigma` is a
+    function of the shares and the weights only, so PRICE_ELASTICITY_SEGMENT_R2 and the 1.26x
+    spread are unchanged: this re-orders WHICH households hold a level, never how many or how far.
+
+    THE PROPENSITY, NOT THE PRODUCT WITH THE PAYMENT CHANNEL. The research note's wording is "by
+    rank on the engagement propensity", and that is the named latent. Ranking the
+    archetype x channel product instead would also hand the level a supplier-observable correlate
+    (the payment method), which is a second decision the ruling did not make.
+
+    ORDER DERIVED FROM THE WEIGHTS, never written down: the levels are walked in descending
+    `PRICE_SENSITIVITY_WEIGHT`, so the coupling's direction is the evidenced one (CMA Appendix 9.1:
+    price cited by 81% of all, 93% of recent shoppers) without a second copy of the level names.
+    """
+    from simulation.household import household_of
+    from simulation.household_segments import engagement_propensity_for_customer
+    from simulation.market_switching_propensity import PRICE_SENSITIVITY_WEIGHT
+
+    # 0 = the most engaged household in the population, 1 = the least.
+    rank = 1.0 - engagement_propensity_for_customer(household_of(customer_id))
+    ordered = sorted(marginals, key=lambda level: -PRICE_SENSITIVITY_WEIGHT[level])
+    total = sum(marginals[level] for level in ordered)
+    cumulative = 0.0
+    for level in ordered:
+        cumulative += marginals[level] / total
+        if rank <= cumulative:
+            return level
+    return ordered[-1]
 
 
 def region_weights_from_curriculum(curriculum: Optional[dict] = None) -> Dict[str, float]:
@@ -1377,6 +1456,20 @@ def price_elasticity_for_customer(
             "simulation.live_population.live_population() first -- the id may be real and simply "
             "not drawn yet.")
 
+    return _latent_price_elasticity(customer_id, base_seed, curriculum)
+
+
+def _latent_price_elasticity(
+    customer_id: str, base_seed: int, curriculum: Optional[dict] = None
+) -> float:
+    """The draw behind `price_elasticity_for_customer`, WITHOUT its two id guards.
+
+    Private because it answers for any string. Its one production caller besides the guarded
+    accessor is `net_new_acquisition.price_elasticity_for_prospect`, which brings its own guard: a
+    prospect is a household the world drew into its market but has not registered, so the roster
+    guard would refuse it, and the funnel must feel the price with the SAME weight that household
+    carries once it is won and renews (one draw, two readers).
+    """
     c = curriculum if curriculum is not None else _load_cohort_curriculum()
     from simulation.market_switching_propensity import PRICE_SENSITIVITY_WEIGHT
 
