@@ -178,7 +178,8 @@ def _real_inputs() -> list:
     paths = (gva.THREE_ARM_PATH, gva.NOISE_FLOOR_PATH, gva.DECOMPOSITION_PATH,
              gva.CURRENT_WORLD_THREE_ARM_PATH, gva.CURRENT_WORLD_NOISE_FLOOR_PATH,
              gva.DEPARTURE_TERM_RERUN_PATH, gva.DEPARTURE_TERM_BASELINE_PATH,
-             gva.BLIND_ENVELOPE_ARMS_PATH, gva.AUC_FAMILY_FLOOR_PATH)
+             gva.BLIND_ENVELOPE_ARMS_PATH, gva.AUC_FAMILY_FLOOR_PATH,
+             gva.W2_20_REVERTED_CONTROL_PATH)
     wanted = gva.build.__code__.co_argcount
     assert len(paths) == wanted, (
         "`build` reads {} artefacts and this fixture supplies {}, so every recipe below would be "
