@@ -220,8 +220,11 @@ def enriched_churn_estimate(
         company's own leavers by channel are the likelihood. None, an unrecognised method, or
         no run scope all give exactly the published factor.
 
-    channel_blind: the belief a PRICE may rest on (director, 2026-09-23: the estimate of who shops
-        may vary by channel; a price keyed to the meter may not). The channel is ignored: the
+    channel_blind: the belief a PRICE may rest on. Director, 2026-09-23: turning customers down on
+        payment behaviour, credit or arrears is ordinary practice, but shifting cost onto prepayment
+        customers isn't; the principle (restated 2026-10-08) is that cost is not loaded onto a group
+        because it is less able or less likely to push back. (Corrected 2026-10-08: this line had
+        paraphrased the ruling as "a price keyed to the meter may not".) The channel is ignored: the
         engagement factor is the book's own 1.0, and the learned price response is the one pooled
         over every channel rather than this channel's. The churn desk's belief keeps the channel.
     """

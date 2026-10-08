@@ -262,7 +262,8 @@ def test_the_belief_still_hears_payment_method_and_that_is_a_different_thing():
 
     A supplier's ESTIMATE of who shops may legitimately vary by channel -- Ofgem's CIM banner puts
     standard credit at 1.08x and traditional prepayment at 0.32x, and that is a published reading
-    about engagement. What must not happen is that estimate becoming a PRICE keyed to the meter.
+    about engagement. What must not happen is that estimate becoming a PRICE that shifts cost onto
+    prepayment customers (director, 2026-09-23; corrected 2026-10-08 from "keyed to the meter").
     """
     from company.crm.enriched_churn_estimate import derived_payment_method_engagement_factor
 
