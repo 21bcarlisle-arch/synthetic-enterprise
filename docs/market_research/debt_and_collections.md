@@ -26,6 +26,10 @@ five notes already on disk and fills their gaps. It does not repeat their workin
 7. Energy UK's payment-method split of the debt stock.
 8. A survey of what the code does today (§7).
 
+**2026-10-08 pass:** §10 adds vulnerability as a hidden household state. It covers PSR and
+financial-vulnerability prevalence, onset, the arrears overlap measured on one Ofgem instrument,
+and how much a supplier knows. It sets the `vuln_*` assumption toggles.
+
 Every figure carries its source. Where nothing establishes a quantity, it is marked **GAP**.
 Nothing here is estimated to fill a slot. Anything this file derives is labelled as derived.
 
@@ -661,9 +665,227 @@ The highest-value single piece of knowledge still missing across all of them is 
 
 ---
 
+## 10. Vulnerability as a hidden household state (2026-10-08 pass)
+
+**Why this section exists.** The director's order of 2026-10-08 says the world should draw
+vulnerability as a hidden household state, not assign it by rule. Today
+`company/regulatory/priority_services_register.py` assigns PSR status by rule, so the company knows
+exactly who is vulnerable. The company must infer it instead, from payments, contact, declared
+needs and PSR registration. It must also treat a vulnerable customer at least as well as anyone in
+the same position (fairness ruling, 2026-10-08). The regulatory text (needs codes, SLC 26/27) is in
+the commons: `docs/domain_artefact_library/regulatory/psr_eligibility_and_disconnection_protection.md`.
+This section holds the quantities. The toggles are in `assumption_toggles.yaml` under the question
+"Vulnerability as a hidden state".
+
+All sources were fetched 2026-10-08 unless stated. The web-search budget was exhausted for this
+pass, so every source here was reached by fetching a known publication URL and following its links.
+Nothing was recalled. Page numbers are PDF page numbers.
+
+### 10.1 Say what it is first: there are at least two vulnerabilities, not one
+
+The published record measures two different things under the one word:
+
+- **(V1) Needs-code vulnerability.** This is what the PSR registers: age, disability, illness,
+  medical equipment, young children, communication needs, or a temporary need. It decides
+  **services and protections**: the winter ban, the involuntary-PPM bans, and priority
+  reconnection.
+- **(V2) Financial vulnerability.** This means low resilience, no savings buffer, or a recent
+  income shock. It drives **arrears**.
+
+The two overlap, but in Ofgem's own survey they predict arrears very differently (§10.4).
+Ofgem says plainly that the PSR captures V1 only: *"with limited/specific needs codes, relevant to
+safety and off supply situations, many circumstances or characteristics are not captured by the
+PSR"* (CVS 2025, p. 47). A single latent "vulnerable" flag would rebuild the bill-shock failure,
+where one percentage was measured across two populations with different triggers. **The world
+should draw V1 and V2 as separate states, correlated, not as one.**
+
+### 10.2 Prevalence
+
+| Measure | Value | Year | Source |
+|---|---|---|---|
+| Customers on a supplier PSR | 3.6m electricity, 3.0m gas (**13%** of customers, both fuels) | 2016 | Ofgem press release, 25 Oct 2016 |
+| Customers on a supplier PSR | 6,703,753 electricity (**24%**), 5,646,740 gas (**24%**); +12% elec, +19% gas on 2017 | 2018 | Ofgem, *Vulnerable consumers in the energy market: 2019*, p. 16 |
+| PSR by nation, 2018 | England 24% / 24%; Wales 26% elec, 28% gas; Scotland 21% elec, 22% gas | 2018 | same |
+| PSR from supplier returns (GB) | 6,650,733 electricity, 5,598,632 gas | 2018 | Ofgem, *Monitoring social obligations: 2018 annual data report*, p. 28 |
+| PSR 2017 (**derived**) | about 5.99m electricity, about 4.75m gas (2018 count ÷ 1.12 / 1.19) | 2017 | derived from the 2019 report |
+| Respondents who say they or their household are on the PSR | **16%** | Jan–Feb 2024 | Ofgem, *Consumer Impacts of Market Conditions survey*, Wave 5 (CIM W5), p. 31; n = 3,439 |
+| Likely eligible but not on the PSR | **39%**, of whom 28% are not aware of the PSR at all | Jan–Feb 2024 | CIM W5, p. 31. *"consistent with December 2022 and July 2023"* |
+| Likely PSR-eligible, registered or not (**derived**) | **55%** (16% + 39%) | 2024 | CIM W5 data tables, table 159 bases |
+| On the PSR, by group | aged 65+: 29%; disability in household: 36%; expecting or child under 5: 17% | 2024 | CIM W5, p. 31 |
+| UK adults with ≥1 FCA characteristic of vulnerability | **52%** (27.3m) in 2022; **49%** (26.4m) in 2024 | May 2022, May 2024 | FCA *Financial Lives 2024*, key findings p. 10 |
+| …by driver, 2022 → 2024 | poor health 9% → 9%; negative life event 22% → 20%; low resilience 27% → 26%; low capability 22% → 17% | 2022, 2024 | FCA FLS 2024 key findings p. 10 |
+| Adults with drivers in 2 or more of the 4 categories | 37% of the vulnerable (9.8m) | 2024 | FCA FLS 2024 *Vulnerability & financial resilience*, p. 24 |
+| Financially vulnerable or highly vulnerable (Ofgem segmentation) | **30%** of consumers. "Highly vulnerable" means not able to save and cannot afford unexpected expenses | 2024 | CIM W5, p. 11 |
+| UK adults behind on at least one household bill | about 7m; about 1.4m behind on energy, council tax **and** water | Mar 2025 | Ofgem CVS 2025, p. 40 (citing others) |
+| Fuel poverty (LILEE), England | **13.0%** (3.17m) in 2023; 13.1% in 2022 | 2023 | DESNZ annual fuel poverty statistics, as cited in Ofgem CVS refresh consultation, Sep 2024, p. 30 |
+| Fuel poverty, England (older definition) | 11.1% | 2016 | Ofgem CVS 2025 (2019), §4.7 |
+
+Notes on the table:
+
+- **The 2016 → 2018 jump** from 13% to 24% coincides with the January 2017 widening of eligibility
+  to "any energy customers in vulnerable situations ... including those whose situation is
+  temporary" (2016 press release), and with needs-code alignment (electricity Jun 2017, gas
+  Jan 2018). Part of the rise is definitional. How much is a **GAP**.
+- **The admin figure is 24% (2018); the survey figure is 16% (2024).** These are two instruments,
+  not a fall. Admin counts accounts on a register. The survey asks the respondent whether anyone
+  in the household is registered, and a household can be registered without knowing it.
+- **The 2016 13% still appears in the staging proposal for this work** (`SEAT_PROPOSAL_THE_ORDER_FOR_VOIDS_VULNERABILITY_AND_THEFT_2026-10-08.md`).
+  It is nine years stale for the sim's later years.
+- **FLS is person-level, cross-sector and UK.** It is not a household energy measure. The FLS
+  original-algorithm series (2017/2020) did not extract unambiguously from the chart text, so only
+  the 2022/2024 updated-algorithm headline is quoted.
+- **GAP: the PSR count for any year after 2018.** Ofgem's annual *Vulnerable consumers* report and
+  social-obligations data reports were not found after the 2019 edition (2018 data). The
+  `/publications/vulnerable-consumers-energy-market-2020` URL returns 404.
+- **GAP: the needs-code mix** (share of registrations by code). The code list is published
+  (commons §1a) but no distribution by code was found.
+
+### 10.3 Dynamics: onset, recovery, season
+
+| Quantity | What is published | Source |
+|---|---|---|
+| Adults with a negative life event in the last 12 months (job loss, unwanted cut in hours, bankruptcy, separation, serious illness of self or close family, bereavement, becoming main carer) | **20%** in 2024 (10.9m); 22% in 2022. Original algorithm: 19% 2017, 21% 2020, 20% 2022, 18% 2024 | FCA FLS 2024 vulnerability report, p. 36 |
+| Adults whose ONLY driver is a recent life event | **10.1%** of all UK adults | same, p. 24 |
+| Types of event | Each type is individually small. The chart's labels run from 0.1% to 5.2% of adults a year per event type across 2017–2024 (job loss, cut hours, bankruptcy, separation, divorce, serious illness of self or family, deaths, becoming a carer). The per-type mapping did not extract reliably from the chart text, so no per-type figure is quoted | same, p. 38 |
+| Temporary PSR need codes | 32 *Temporary – Life changes*, 33 *Temporary – Post hospital recovery*, 34 *Temporary – Young adult householder (<18)* | Ofgem CVS 2025, Appendix 6 |
+| The regulator expects the register to move | *"we expect to see the number of customers on each supplier's PSR fluctuate in recognition of the fact that consumer vulnerability is complex and can be transient"* | Ofgem *Vulnerable consumers 2019*, p. 17 |
+| Winter months | October–March | commons artefact §2 |
+| Debt stock seasonality | see the quarterly Ofgem series in §2.1 | §2.1 |
+
+**What this does and does not establish.**
+
+- The life-event rate is a **12-month incidence among adults**. The 10.1% "life event only" stock
+  is the nearest thing to an annual inflow into vulnerability for people who had no other driver.
+  Each person can only be counted inside its 12-month window, so the stock approximates the annual
+  flow.
+- That is the basis for `vuln_annual_onset_rate`. It is an ESTIMATE for **temporary, event-driven
+  V2/V1 onset only**. It does not cover the deterministic onsets: reaching pensionable age, which
+  the world already knows from age, and a child being born.
+- **GAP: recovery/exit rates.** No published GB source found gives how long a vulnerability lasts,
+  or the annual share leaving the PSR for a reason other than death or a move. FLS's 12-month
+  window is a property of the **instrument**, not a measured duration, so `vuln_annual_recovery_rate`
+  is null.
+- **GAP: seasonality of vulnerability onset.** Nothing found shows that onset concentrates in
+  winter. What concentrates in winter is the **protection** (SLC 27 winter months) and the
+  consumption, and so the bill.
+
+### 10.4 Vulnerability and arrears: the overlap, measured on one instrument
+
+The Ofgem CIM Wave 5 data tables (Jan–Feb 2024, n = 3,439, table 159, question F5A) cross the
+answer *"falling behind with some energy bills"* or *"have fallen behind with energy bills"* by
+PSR status and by Ofgem's financial-vulnerability segment. The outcome is **self-reported behind
+on energy bills at the time of the survey**, which is not the Ofgem 91-day arrears indicator.
+
+| Group (share of respondents) | Behind on energy bills | Relative risk vs the rest (**derived**) |
+|---|---|---|
+| All respondents | 7.6% | — |
+| On PSR (16%) | 10.3% | **1.45** vs not on PSR (7.1%); 95% CI about 1.1–1.9 |
+| Likely eligible, registered or not (56%) | 8.1% | 1.16 vs not eligible (7.0%) |
+| Likely eligible and NOT registered (39%) | 7.2% | — |
+| Financially "highly vulnerable" (16%) | 21.9% | **4.6** vs everyone else (4.8%); CI about 3.6–5.8 |
+| Financially "vulnerable" or "highly vulnerable" (30%) | 15.2% | **3.6** vs everyone else (4.2%); CI about 2.8–4.6 |
+| Financially "doing well" (29%) | 0.9% | — |
+
+- The CIs are derived from the tables' effective sample sizes with a log-RR normal approximation.
+- About 950 respondents carry no financial segment. They sit in "everyone else".
+
+**Read together, this is the most decision-relevant finding of the pass.** Needs-code
+vulnerability (V1, what the PSR knows) is a **weak** predictor of energy arrears, at RR about 1.2–1.5.
+Financial vulnerability (V2, which no register records) is a **strong** one, at RR about 3.6–4.6.
+This agrees with Energy UK's supplier data (§2.3): about 70% of arrears £ comes from customers with
+**no** clear circumstance indicator. A world that drives arrears off the PSR flag would put the
+risk in the wrong households.
+
+### 10.5 What a supplier observes: how much is known to it
+
+| Measure | Value | Source |
+|---|---|---|
+| Registered share of likely-PSR-eligible households (**derived**, same instrument) | **29%** (16 ÷ 55) | CIM W5 |
+| …the same with the 2018 admin numerator (**derived**, mixed instruments) | about 44% (24 ÷ 55) | 2019 report and CIM W5 |
+| Why the eligible-aware are not registered | 62% think they are ineligible; 13% see no benefit; 9% need more information; 9% have not got round to it; 8% do not know how | CIM W5, p. 32 |
+| Of those with an energy affordability issue in the last 3 months: does the supplier know? | **41%** yes in total: 17.6% told the supplier, 11.7% the supplier contacted them, 11.7% "aware but no contact". 51% no; 8% don't know | CIM W5 data tables, table 150 (E26) |
+| …among those with *repeat or recent* affordability issues | **61%** yes (29.0% told, 18.5% supplier contacted, 13.7% aware but no contact) | CIM W5 data tables, table 151 |
+| How suppliers learn of circumstances | *"energy companies rely almost exclusively on customer disclosure"* | Ofgem CVS refresh consultation, Sep 2024, p. 38 |
+| Data sharing | PSR shared supplier ↔ DNO (needs codes aligned 2017/18). All DNOs had water data-sharing agreements by 2023; *"fully functional ... during 2025"* expected | *Vulnerable consumers 2019* p. 12; CVS refresh consultation p. 24 |
+| Self-disconnecting PPM households who tell their supplier | 9% (22% told anyone in authority) | Citizens Advice 2018, as cited in Ofgem CVS 2025 (2019), p. 36, fn 81 |
+
+**The epistemic wall, restated for this state.** The world draws V1 and V2. The company sees:
+
+- a PSR registration, only when the household discloses it or data-sharing brings it;
+- declared needs, through contact;
+- affordability, only through its consequences: missed and returned payments, plan breaks, PPM
+  self-disconnection events (smart), and contact.
+
+Registration is itself a **world draw**: the household chooses to disclose. It is not a company
+decision. Once a household has disclosed, the company may hold the needs code. It may not hold the
+latent state.
+
+### 10.6 Protections that change outcomes (pointers, not restated)
+
+| Protection | Effect | Where |
+|---|---|---|
+| Winter disconnection ban (SLC 27, Oct–Mar) | No disconnection of a pensionable-age household living alone or only with other pensioners or under-18s. "All reasonable steps" for disabled or chronically sick. In practice zero debt disconnections since Q1 2023 | commons §2; §3 above |
+| Energy UK Vulnerability Commitment ("Safety Net") | Voluntary, all year: never knowingly disconnect a customer who cannot safeguard their welfare. **13 suppliers, about 90% of UK households** | commons §2; CVS refresh consultation p. 24 |
+| Involuntary PPM (SLC 28B, Code of Practice 2023) | Banned for 75+ with no support in the house, and for children under 2. Site Welfare Visit and 10 contact attempts | §3 above |
+| Ability to pay (SLC 27.8) | Arrangements must take account of ability to pay | §3 above |
+
+**Every one of these protections keys on V1 (age, health, children). None keys on V2.** That
+matters for the fairness ruling. A household that is financially vulnerable but not V1 has no
+categorical protection, only SLC 27's ability-to-pay duty. To treat it "at least as well as anyone
+in the same position", the company must infer V2 from behaviour, and the evidence above says that
+is where the arrears are.
+
+### 10.7 GAPs opened or confirmed by this pass
+
+- PSR registered count after 2018 (§10.2).
+- The needs-code mix (§10.2).
+- How much of the 2016 → 2018 rise is definitional (§10.2).
+- How long a vulnerability lasts, and the PSR exit rate (§10.3).
+- Seasonal onset (§10.3).
+- The correlation between V1 and V2 at household level. CIM gives the marginal overlap only
+  through the arrears crosstab. The joint distribution needs the microdata, which was not fetched.
+- The share of PSR registrations that come by data-sharing rather than customer disclosure.
+- **Practitioner question (the third side):** how often does a supplier's vulnerability team
+  learn of a circumstance at the first missed payment, at collections contact, or never?
+
+---
+
 ## Sources
 
 All fetched 2026-10-05 unless stated otherwise.
+
+**§10 sources, fetched 2026-10-08 (PDF page numbers):**
+
+- **Ofgem press release, 25 Oct 2016**, *More customers in vulnerable situations to receive help
+  under the Priority Services Register*.
+  <https://www.ofgem.gov.uk/press-release/more-customers-vulnerable-situations-receive-help-under-priority-services-register>
+- **Ofgem, *Vulnerable consumers in the energy market: 2019*** (2018 data).
+  <https://www.ofgem.gov.uk/sites/default/files/docs/2019/09/vulnerable_consumers_in_the_energy_market_2019_final.pdf>
+  - pp. 8, 12, 16–17.
+- **Ofgem, *Monitoring social obligations: 2018 annual data report*.**
+  <https://www.ofgem.gov.uk/sites/default/files/docs/2019/09/monitoring_social_obligations_-_2018_annual_data_report.pdf>
+  - p. 28.
+- **Ofgem, *Consumer Vulnerability Strategy 2025*** (published 2019).
+  <https://www.ofgem.gov.uk/sites/default/files/docs/2020/01/consumer_vulnerability_strategy_2025.pdf>
+  - §4.7, §5.6, §5.16, fn 81.
+- **Ofgem, *Consumer Vulnerability Strategy: Refresh* consultation, Sep 2024.**
+  <https://www.ofgem.gov.uk/sites/default/files/2024-09/Consumer_Vulnerability_Strategy_Refresh_Consultation_paper_September_2024.pdf>
+  - pp. 24, 30, 38.
+- **Ofgem, *Consumer Vulnerability Strategy* (refreshed), Apr 2025.** Linked from
+  <https://www.ofgem.gov.uk/policy/consumer-vulnerability-strategy>.
+  <https://www.ofgem.gov.uk/sites/default/files/2025-04/Final%20CVS%2015042025-20250414111309.pdf>
+  - pp. 40, 47; Appendix 6 (PSR needs codes).
+- **Ofgem, *Consumer Impacts of Market Conditions survey*, Wave 5 (Jan–Feb 2024): final report and
+  data tables.**
+  <https://www.ofgem.gov.uk/sites/default/files/2024-09/CIM_Wave_5_Final_Report.pdf>
+  <https://www.ofgem.gov.uk/sites/default/files/2024-09/CIM_Wave_5_Data_Tables.xlsx>
+  - Report pp. 11, 30–32.
+  - Data tables 150, 151, 159. The relative risks in §10.4 are computed from the weighted counts.
+- **FCA, *Financial Lives 2024*: key findings, and *Vulnerability & financial resilience*.**
+  <https://www.fca.org.uk/publication/financial-lives/financial-lives-survey-2024-key-findings.pdf>
+  <https://www.fca.org.uk/publication/financial-lives/fls-2024-vulnerability-financial-resilience.pdf>
+  - Key findings p. 10.
+  - Vulnerability report pp. 21, 24, 36, 38.
 
 - **Ofgem, *Debt and arrears indicators*.** <https://www.ofgem.gov.uk/data/debt-and-arrears-indicators>
   - The page text gives the definitions and methodology.

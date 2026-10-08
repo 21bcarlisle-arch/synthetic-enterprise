@@ -47,6 +47,37 @@ read from S2/S3:
 | unable to top up a prepayment meter due to injury | |
 | temporary need arising from extenuating circumstances | the "vulnerable situation" limb of SLC 26.1(a) — explicitly **non-permanent** |
 
+### 1a. The industry needs-code list (added 2026-10-08)
+
+**Source S7:** Ofgem, *Consumer Vulnerability Strategy*, Apr 2025, Appendix 6, PDF pp. 61–62
+(ofgem.gov.uk/sites/default/files/2025-04/Final%20CVS%2015042025-20250414111309.pdf). Fetched
+2026-10-08. This answers C32 Expert Hour finding EH-3, which said the needs-code list was not in the
+commons. Codes 5–7, 11, 13, 16 and 21 are absent from the published list.
+
+| code | need | code | need |
+|---|---|---|---|
+| 1 | Nebuliser and apnoea monitor | 22 | Chronic/serious illness |
+| 2 | Heart, lung & ventilator | 23 | Medically dependent showering/bathing |
+| 3 | Dialysis, feeding pump and automated medication | 24 | Careline/telecare system |
+| 4 | Oxygen concentrator | 25 | Medicine refrigeration |
+| 8 | Blind | 26 | Oxygen use |
+| 9 | Partially sighted | 27 | Poor sense of smell/taste |
+| 10 | Do Not Use | 28 | Restricted hand movement |
+| 12 | Stair lift, hoist, electric bed | 29 | Families with young children 5 or under |
+| 14 | Pensionable age | 30 | Mental health |
+| 15 | Physical impairment | 31 | Additional presence preferred |
+| 17 | Unable to communicate in English | 32 | Temporary – Life changes |
+| 18 | Developmental condition | 33 | Temporary – Post hospital recovery |
+| 19 | Unable to answer door | 34 | Temporary – Young adult householder (<18) |
+| 20 | Dementia(s)/Cognitive impairment | 35 | Hearing impairment (inc. Deaf) |
+| | | 36 | Speech impairment |
+| | | 37 | Water dependent |
+
+The same document says the PSR's codes are *"limited/specific ... relevant to safety and off supply
+situations, many circumstances or characteristics are not captured by the PSR"*. Financial
+vulnerability has no code. Prevalence, registration and the arrears overlap are in
+`docs/market_research/debt_and_collections.md` §10.
+
 Core services conferred by registration (S3): alternative billing formats (large print, Braille,
 audio); advance notice of supply interruption; priority reconnection after an interruption;
 quarterly meter readings; free annual gas safety check; password scheme; nominee arrangements.
@@ -97,9 +128,10 @@ Three consequences, each of which decides a live question in the code:
   sources (S2, S4). The consolidated PDF is 600+ pages and defeated automated extraction; reading
   it is real work and is not done. **Nothing should quote a clause number from this file as if it
   had been read in the instrument.**
-- `UNSOURCED`: whether the child needs code is "under 5" or "under 6" — S3 says five, S2 records
-  the ENA agreeing on under-six. The sources genuinely disagree and the disagreement is not
-  resolved here.
+- ~~`UNSOURCED`: whether the child needs code is "under 5" or "under 6"~~ — **CLOSED 2026-10-08.**
+  The current published list (S7, code 29) reads *"Families with young children 5 or under"*.
+  That includes a five-year-old, so it means under six, which matches S2's ENA agreement. S3's
+  "under five" is the consumer guide's loose wording. A child qualifies up to and including age 5.
 - `UNSOURCED`: **Warm Home Discount eligibility is a separate obligation and was not researched.**
   `warm_home_discount.whd_eligible_customers` currently treats *any* active vulnerability flag of
   *any* type as WHD-eligible. WHD Core and Broader Group eligibility are defined by benefit receipt
@@ -114,6 +146,10 @@ Three consequences, each of which decides a live question in the code:
   whose subject was never stated. Replaced by `UK_PSR_REGISTERED_PCT_2016` carrying
   `UK_PSR_REGISTERED_PCT_AS_OF`, and reached by `penetration_against_published`, which returns the
   date and a staleness flag beside the figure so the nine-year gap cannot be dropped in transit.
+- **Partly closed 2026-10-08:** the latest admin count found is end-2018, 6,703,753 electricity
+  (24%) and 5,646,740 gas (24%) (Ofgem, *Vulnerable consumers in the energy market: 2019*, p. 16).
+  Ofgem's 2024 survey has 16% self-reporting registration. Post-2018 admin counts are still a GAP;
+  see `debt_and_collections.md` §10.2.
 - `UNSOURCED`, opened here: **the current registered rate.** The register has grown since 2016 and
   Ofgem broadened eligibility again from January; the 2025 strategy PDF would answer it and did not
   extract. Nothing in `company/` may quote a present-day PSR rate until it does.
