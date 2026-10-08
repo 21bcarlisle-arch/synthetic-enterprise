@@ -4551,7 +4551,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         settled_records=all_records,
         segment_by_customer_id={
             c["customer_id"]: c.get("segment", "resi")
-            for c in CUSTOMERS + SUCCESSOR_CUSTOMERS + ACQUIRED_CUSTOMERS
+            for c in _known_customers() + ACQUIRED_CUSTOMERS
         },
     )
     _wholesale_credit_summary = _collateral.credit_summary
