@@ -76,6 +76,7 @@ from __future__ import annotations
 from typing import Any
 
 from company.crm.cos_process import CoSRegister
+from company.regulatory.priority_services_register import PriorityServicesRegister
 from saas.customers import (
     ACQUIRED_CUSTOMERS,
     CUSTOMERS,
@@ -216,3 +217,12 @@ def open_change_of_supplier_register() -> CoSRegister:
     The register asks this book whether it holds a point WHEN THE NOTICE ARRIVES -- points
     are acquired mid-run, so a snapshot taken here would be stale by the first win."""
     return CoSRegister(holds=lambda sp: registered_point(sp) is not None)
+
+
+def open_priority_services_register() -> PriorityServicesRegister:
+    """The supplier's Priority Services Register for one run. The world hands it a household's
+    disclosure (`interface/contracts/psr_registration_seam.py`) through
+    `PriorityServicesRegister.receive_registration_wire` and nothing else: the company knows a
+    household is on the register because the household said so. Like the change-of-supplier
+    register, it asks this book whether it holds the point a disclosure names WHEN IT ARRIVES."""
+    return PriorityServicesRegister(holds=lambda sp: registered_point(sp) is not None)

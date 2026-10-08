@@ -1,5 +1,7 @@
 **Severity:** LATENT · **Lane:** W2_customer_generator · **Epoch:** unassigned · **Atom:** `unminted`
 
+> **Corrected 2026-10-08, like-for-like check: NO REAL EXTERNAL-DEPARTURE GAP. The 40% was compared with the wrong thing.** It is P(leave | the household makes an ACTIVE decision and is offered the SVT price): the decision set asks every household at every anniversary and skips the ~65% who roll passively to the SVT. On the trial's own definition (left the supplier within 42 days of term end, all term-enders) one settled run (80 founders to 2019, origin fae73df3a) gives **7.8%** (9/116, 95% CI ~4-14%), against the EFTC control arm's 6% (which is conditional on no early action). Annual external switching over the book is 15.6% / 22.7% / 20.9% (2017-2019) against published 18.2% / 19.1% / 20.8%, but that match is circular because the level anchor is fitted to the series. Two real, smaller points remain: passive rollers never re-fix internally (the trial's 14%), a named gap that moves margin, not exits; and the save-offer decision set's leaving base is the ACTIVE population, so the blanket cut's cost there is understated (it is paid on all term-enders in reality), which makes shape A worse, not better. The shape ranking stands. The severity is now LATENT and the finding is spent.
+
 # The world loses 40% of households at each anniversary at the default price, against a published ~6% external switch at fixed-term end
 
 *Found 2026-10-08 by the save-offer decision set (tools/grade_save_offer_shapes.py), built for the

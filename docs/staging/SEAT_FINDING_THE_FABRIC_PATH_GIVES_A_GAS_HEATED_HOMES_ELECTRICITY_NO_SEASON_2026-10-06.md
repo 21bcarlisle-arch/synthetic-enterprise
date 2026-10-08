@@ -676,3 +676,72 @@ per-year trend**.
    re-take before landing.
 2. Read SERL's 2021 gas no-PV annual median. Only then can the remainder be called the crisis or
    not.
+
+## Cooking at HES's hours does not move the peak; the kettle boils at HES's energy (2026-10-08, executor seat, draw `a-gas-homes-evening-cooking-at-hes-hours-and-kettle-energy`)
+
+**About the record.** An earlier invocation under this id (12:08–12:28) built and measured this work.
+It never landed: no commit, ref or worktree carries it. Its instruments and draft message survived in
+`/tmp/cooktime/`. Its pre-registration was never committed, so **nothing below counts as
+pre-registered.** Every figure is a reading, re-run this turn on origin `fae73df3a` with the kettle
+change applied. It reproduces the earlier run to the third decimal.
+
+Instrument: `/tmp/cooktime/measure2.py`. It patches `APPLIANCE_CATALOGUE` per arm, and all arms run in
+ONE process per home. Same 163 homes (gas-heated, no PV, seed 17, C1 2022, SYN-S0000..0199).
+
+| Arm (after the kettle change) | Annual median | Peak | 17:30 | 18:30 | 20:00 | 04:30 | Max/min |
+|---|---|---|---|---|---|---|---|
+| **As landed** | **3,090** | **0.679 @20:00** | 0.568 | 0.628 | 0.679 | 0.127 | 1.273 |
+| Oven and hob windows 3 half-hours earlier | 3,090 | 0.661 @19:30 | 0.572 | 0.618 | 0.650 | 0.127 | 1.273 |
+| No cooking at all | 2,612 | 0.524 **@20:30** | 0.421 | 0.479 | 0.520 | 0.127 | 1.289 |
+| SERL 2022, gas CH, no PV | ~2,600 | 0.48 @18:30 | | 0.48 | | 0.13 | 1.42 |
+
+Before the kettle change (origin): 3,141 / 0.688 @20:00 / 0.638 / 0.127 / 1.272.
+
+**The timing hypothesis is refuted as the cause of the late peak.** Moving the oven and hob 90
+minutes earlier, towards HES's "mainly 17:00–18:00", takes 0.018 off the peak and moves it only to
+19:30. With every cooking appliance removed, the peak sits at **20:30**. So the hour belongs to the
+non-cooking evening stack (electronics on-mode, lighting, dishwasher), not to the meal. No timing build
+follows. The HES windows are still qualitative ("mainly"), so a window change would be a picked
+number that does not close the gap.
+
+**The kettle is built.** Over the first 200 drawn residential premises the world gave **223 kWh/yr**
+per kettle owner, against HES Table 14's 167 (n=243). HES Fig 450 says which term ran high: 65% of
+boils use under 0.1 kWh, so it is the boil (0.14 kWh) and not the four a day. `_KETTLE_KWH_PER_BOIL`
+is 0.14 × 167/223 = **0.105**, at nameplate power, so the boil is shorter. Read back: 171 per gas home
+by removal, 166 median. Effect: median 3,141 → **3,090**, peak 0.688 → 0.679, trough unmoved, season
+1.272 → 1.273. Control: `tests/simulation/test_a_kettle_boils_at_hes_energy.py`. Putting the boil
+back to 0.14 reds both legs.
+
+**Re-pinned beside each claim** in `tests/harness/test_premise_two_level.py`:
+- L1.1 legs [5, 19, 38, 52] → [5, 19, 38, 51].
+- P0000 0.1422 → 0.1429.
+- L1.1n worst 1.294 → 1.391.
+- L2.3n's "repair no worse than the floor" was compared per window, so it was keyed to the sample. At
+  120 days, the floor clears ~0 of 20 deals and the ratio clears about 1 in 20 by its own alpha. It
+  now compares the mean across the windows, and the per-window ceiling is kept.
+
+**Where this leaves the excess.** Median 3,090 against SERL 2022's ~2,600, and peak 0.68 against
+0.48. The dated read above puts electronics about +300 above its source carried to 2022, and that is
+the evening, non-cooking term this result points to as well. The successor
+`a-gas-homes-electronics-comes-down-to-its-2022-level` carries it. The season (1.27 against 1.42) is
+untouched by everything in this section.
+
+## Pre-registration: electronics at its 2022 level, one variable (2026-10-08, worker, draw `a-gas-homes-electronics-comes-down-to-its-2022-level`)
+
+**Filed and landed before any run of the arm.** The arm is `_ELECTRONICS_KW_PER_PERSON` 0.055 →
+**0.031** in `simulation/premise_trace.py`, nothing else. 0.031 is 0.055 × 379/673: the HES on-mode
+carried to 2022 by ECUK 2023's ratios (≈370–382, the dated read above) over the world's mean of 673.
+Instrument: `/tmp/cooktime/measure2.py`'s statistics, arms patching the module constant, both arms in
+ONE process per home. Same 163 homes (gas-heated, no PV, seed 17, C1 2022, SYN-S0000..0199), on
+origin with the kettle change, so the "before" arm must reproduce 3,090 / 0.679 @20:00 / 1.273.
+
+| Leg | Before (must reproduce) | Predicted change |
+|---|---|---|
+| Mean annual meter | — | **−290 ± 40** kWh |
+| 19:30 median profile | — | **about −0.08** kWh/h (−0.06 to −0.10) |
+| 04:30 trough | 0.127 | **unmoved** (±0.002) |
+| Annual median | 3,090 | not banded; reading only |
+| Monthly-median max/min | 1.273 | not predicted; reading only |
+
+The −116 arm (0.055 → 0.0455) was linear in the constant, so −290 is that arm × 24/9.5. If the arm
+lands, it refits a world anchor and owes a value-arms re-take, which is budgeted, not run, here.

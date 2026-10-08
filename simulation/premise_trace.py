@@ -603,10 +603,20 @@ class ApplianceSpec:
     scales_with_people: bool = True
 
 
+# `domain-knowledge` — HES (Intertek R66141, 2012) Table 14: an electric kettle uses 167 kWh/yr per
+# owning household (n=243). At 0.14 kWh a boil (2.8 kW for three minutes) the world gave 223 over
+# the first 200 drawn premises (seed 17). HES Fig 450 says which term ran high: 65% of boils use
+# under 0.1 kWh and 98% under 0.2, so it is the boil, not the four a day. 0.14 x 167/223 = 0.105.
+# The power stays at nameplate, so the boil is shorter: a part-filled kettle.
+_KETTLE_KWH_PER_BOIL = 0.105
+_KETTLE_KW = 2.8
+
 # `domain-knowledge` — nameplate ratings and usage frequencies. Judged (never
 # parameterised) against Ofgem TDCV medium non-heating electricity, 2,700 kWh/yr.
 APPLIANCE_CATALOGUE: tuple[ApplianceSpec, ...] = (
-    ApplianceSpec("kettle", 2.8, 0.05, 4.0, (12, 45), heat_fraction=0.95),
+    ApplianceSpec(
+        "kettle", _KETTLE_KW, _KETTLE_KWH_PER_BOIL / _KETTLE_KW, 4.0, (12, 45), heat_fraction=0.95
+    ),
     ApplianceSpec("toaster", 1.1, 0.05, 0.8, (12, 20), heat_fraction=0.95),
     ApplianceSpec("microwave", 0.9, 0.10, 0.8, (20, 43), heat_fraction=0.8),
     ApplianceSpec("oven", 2.0, 0.75, 0.55, (32, 42), heat_fraction=0.6),

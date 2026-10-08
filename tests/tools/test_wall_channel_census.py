@@ -2558,7 +2558,7 @@ def test_the_REAL_seams_are_pinned_and_still_mean_what_their_versions_say():
     verdict = wcc.surface_pin_conformance(str(wcc.PROJECT_DIR))
 
     assert verdict.ok, verdict.report()
-    assert len(verdict.pinned) == 4, verdict.report()
+    assert len(verdict.pinned) == 5, verdict.report()  # +psr_registration_seam, 2026-10-08
     assert not verdict.unpinned, (
         "a channel C seam has landed with no pin, so its observable surface can widen "
         "silently: " + verdict.report()
@@ -2931,7 +2931,7 @@ def test_the_REAL_seams_all_carry_a_belt_BOTH_LEGS_refuse_on():
     verdict = wcc.second_belt_conformance(str(wcc.PROJECT_DIR))
 
     assert verdict.ok, verdict.report()
-    assert len(verdict.belted) == 4, verdict.report()
+    assert len(verdict.belted) == 5, verdict.report()  # +psr_registration_seam, 2026-10-08
     assert not verdict.unbelted, (
         "a channel C seam has landed with no truth-field denylist, so its closed set is its "
         "only belt: " + verdict.report()
@@ -2946,6 +2946,10 @@ def test_the_REAL_seams_all_carry_a_belt_BOTH_LEGS_refuse_on():
     assert sides["interface.contracts.conversation_seam"] == (
         ("company/comms/susceptibility_estimator.py",),
         ("simulation/conversation_response.py",),
+    ), verdict.report()
+    assert sides["interface.contracts.psr_registration_seam"] == (
+        ("company/regulatory/priority_services_register.py",),
+        ("simulation/vulnerability_state.py",),
     ), verdict.report()
     assert sides["interface.contracts.registration_loss_seam"] == (
         ("company/crm/cos_process.py",),
@@ -3875,7 +3879,10 @@ def test_THE_LIVE_WALL_IS_UNSOLICITED_ON_EXACTLY_THE_TWO_SEAMS_THE_WALK_NAMED():
     )
     # EP12: the first seam that declares no exchange at all -- registration services TELL a
     # losing supplier; nobody asks them. Notified, and named so a second one is a decision.
-    assert set(verdict.notified) == {"interface.contracts.registration_loss_seam"}, (
+    # The second (2026-10-08, director's vulnerability ruling): a household TELLS its supplier it
+    # has a needs-code circumstance; the supplier does not ask each household and get an answer.
+    assert set(verdict.notified) == {"interface.contracts.registration_loss_seam",
+                                     "interface.contracts.psr_registration_seam"}, (
         verdict.report()
     )
 
@@ -4368,6 +4375,29 @@ _COS_MODULE = """
             return True
 """
 
+PSR_REL = "company/regulatory/priority_services_register.py"
+
+#: The third ANCHORED_FEEDS row in miniature (2026-10-08), same shape as the second.
+_PSR_MODULE = """
+    from company.interfaces.wall_protocol import decode_framed_notification
+
+
+    def read_registration_wire(wire):
+        sender, notification = decode_framed_notification(wire, decode_payload=_payload)
+        return notification
+
+
+    class PriorityServicesRegister:
+        def _admit(self, notification):
+            return self._holds(notification.payload.supply_point_id)
+
+        def receive_registration_wire(self, wire):
+            notification = read_registration_wire(wire)
+            if not self._admit(notification):
+                return None
+            return notification
+"""
+
 _FLEX_MODULE = """
     from company.interfaces.wall_protocol import decode_framed_response
 
@@ -4411,6 +4441,7 @@ def flex_tree(tmp_path: Path) -> Path:
     root = tmp_path / "repo"
     _write(root, FLEX_REL, _FLEX_MODULE)
     _write(root, COS_REL, _COS_MODULE)
+    _write(root, PSR_REL, _PSR_MODULE)
     _write(root, "company/interfaces/wall_protocol.py", """
         def decode_framed_response(wire, *, decode_payload):
             return "sender", wire
@@ -4656,11 +4687,16 @@ def test_THE_LIVE_TREE_reads_both_flex_feeds_through_the_BOOK():
     """
     v = wcc.anchored_read_conformance(str(Path(wcc.__file__).parent.parent))
     assert v.ok, v.report()
-    assert v.readers == ("observe_response_wire", "observe_settlement_wire", "read_loss_wire")
-    assert len(v.anchored) == 3 and not v.unanchored, v.report()
+    assert v.readers == ("observe_response_wire", "observe_settlement_wire", "read_loss_wire",
+                         "read_registration_wire")
+    assert len(v.anchored) == 4 and not v.unanchored, v.report()
     assert sum(FLEX_REL in a for a in v.anchored) == 2, v.anchored
     assert [a for a in v.anchored if COS_REL in a] == [
         a for a in v.anchored if "CoSRegister.receive_loss_wire -> read_loss_wire" in a
+    ] != [], v.anchored
+    assert [a for a in v.anchored if PSR_REL in a] == [
+        a for a in v.anchored
+        if "PriorityServicesRegister.receive_registration_wire -> read_registration_wire" in a
     ] != [], v.anchored
 
 
@@ -5022,12 +5058,13 @@ def test_THE_LIVE_TREE_authenticates_every_business_side_decode():
     v = wcc.authenticated_decode_conformance(str(Path(wcc.__file__).parent.parent))
     assert v.ok, v.report()
     assert not v.unauthenticated, v.unauthenticated
-    assert len(v.authenticated) == 8, v.authenticated
+    assert len(v.authenticated) == 9, v.authenticated
     assert {e.split(":")[0] for e in v.authenticated} == {
         "company/billing/payment_observation_consumer.py",
         "company/comms/susceptibility_estimator.py",
         "company/crm/cos_process.py",
         "company/market/flex_participation.py",
+        "company/regulatory/priority_services_register.py",
     }, v.authenticated
 
 
