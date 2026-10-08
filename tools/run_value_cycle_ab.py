@@ -78,6 +78,7 @@ import statistics
 import subprocess
 import sys
 import time
+from collections.abc import Mapping
 from dataclasses import replace
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
@@ -117,6 +118,7 @@ from company.pricing.value_based_renewal import (
 from saas.customer_reaction import _billing_account_id
 from saas.tariff_pricing import TARGET_MARGIN_GBP_PER_MWH
 from simulation.arrears_engine import ARREARS_LINE_KEYS
+from simulation.record_table import RecordTable
 from simulation.run_phase4c_on_phase2b import main as run_phase4c
 from tools import book_seed_authorisation as _book_auth
 
@@ -434,7 +436,7 @@ def _net_by_billing_account(records: list) -> dict[str, float]:
     """
     folded: dict[str, float] = collections.defaultdict(float)
     for index, record in enumerate(records):
-        customer_id = record.get("customer_id") if isinstance(record, dict) else None
+        customer_id = record.get("customer_id") if isinstance(record, Mapping) else None
         if not isinstance(customer_id, str) or not customer_id:
             raise ValueError(
                 "settled record {} carries no readable `customer_id` ({!r}), so its net margin "
@@ -706,7 +708,7 @@ def realised_metrics(result: dict) -> dict:
     # the realised clock, and a zero-filled block would be indistinguishable from an arm whose
     # world happened to settle to nothing. `_bridge_one_arm` refuses on identical grounds.
     records = phase2b.get("all_records")
-    if not isinstance(records, list) or not records:
+    if not isinstance(records, (list, RecordTable)) or not records:
         raise ValueError(
             "this arm's run carries no `phase2b.all_records`, so its realised net margin "
             "cannot be summed and only the superseded provisioned scalars would remain. "
@@ -819,7 +821,7 @@ def _bridge_one_arm(result: dict) -> dict:
     where a missing key at the LEDGER level becomes visible.
     """
     records = (result.get("phase2b") or {}).get("all_records")
-    if not isinstance(records, list) or not records:
+    if not isinstance(records, (list, RecordTable)) or not records:
         raise ValueError(
             "this arm's run carries no `phase2b.all_records`, so the gross-to-net bridge "
             "cannot be walked. A zero-filled bridge would be indistinguishable from a run "
@@ -828,7 +830,7 @@ def _bridge_one_arm(result: dict) -> dict:
     lines = {name: 0.0 for name, _fields, _why in GROSS_TO_NET_LINES}
     gross = net = revenue = wholesale = volume_kwh = 0.0
     for record in records:
-        if not isinstance(record, dict):
+        if not isinstance(record, Mapping):
             continue
         gross += float(record.get("margin_gbp", 0.0) or 0.0)
         net += float(record.get("net_margin_gbp", 0.0) or 0.0)
@@ -954,7 +956,7 @@ def churn_volume_attribution(control: dict, value: dict) -> dict:
         buckets = {"differentially_churned": {"gross_gbp": 0.0, "volume_kwh": 0.0},
                    "everyone_else": {"gross_gbp": 0.0, "volume_kwh": 0.0}}
         for record in records:
-            if not isinstance(record, dict):
+            if not isinstance(record, Mapping):
                 continue
             customer_id = record.get("customer_id")
             if not isinstance(customer_id, str):
@@ -1160,7 +1162,7 @@ def book_identity(result: dict, at_run: dict | None = None) -> dict:
     records = (result.get("phase2b") or {}).get("all_records") or []
     accounts: dict[str, set] = collections.defaultdict(set)
     for record in records:
-        customer_id = record.get("customer_id") if isinstance(record, dict) else None
+        customer_id = record.get("customer_id") if isinstance(record, Mapping) else None
         if not isinstance(customer_id, str):
             continue
         commodity = record.get("commodity") or "electricity"
@@ -1415,10 +1417,10 @@ def _lifetime_by_billing_account(result: dict) -> tuple[dict, str]:
         return merged, REPORTED_BASIS
 
     records = (result.get("phase2b") or {}).get("all_records")
-    if not isinstance(records, list):
+    if not isinstance(records, (list, RecordTable)):
         return {}, SETTLED_BASIS
     for record in records:
-        if not isinstance(record, dict):
+        if not isinstance(record, Mapping):
             continue
         customer_id = record.get("customer_id")
         if not isinstance(customer_id, str):
@@ -2530,7 +2532,7 @@ def _observation_end(records: list) -> str | None:
     A horizon reaching past this day is not a poor outcome; it is a day we have not seen yet.
     """
     days = [record["settlement_date"] for record in records
-            if isinstance(record, dict) and isinstance(record.get("settlement_date"), str)]
+            if isinstance(record, Mapping) and isinstance(record.get("settlement_date"), str)]
     return max(days) if days else None
 
 
@@ -3568,7 +3570,7 @@ def method_skill(value: dict) -> dict:
     records = phase2b.get("all_records")
     if not isinstance(log, list) or not log:
         return {"available": False, "reason": "the value arm priced nothing in this run"}
-    if not isinstance(records, list) or not records:
+    if not isinstance(records, (list, RecordTable)) or not records:
         return {"available": False,
                 "reason": "the run carried no settlement records, so no outcome exists"}
 
@@ -3615,7 +3617,7 @@ def method_skill(value: dict) -> dict:
     # every single-term account in the book would then be miscounted as a defect of ours.
     accounts_in_the_settled_book = {
         _billing_account_id(record["customer_id"]) for record in records
-        if isinstance(record, dict) and isinstance(record.get("customer_id"), str)}
+        if isinstance(record, Mapping) and isinstance(record.get("customer_id"), str)}
 
     points, scored_rows = [], []
     dropped: dict[str, int] = collections.Counter()

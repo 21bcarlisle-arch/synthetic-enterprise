@@ -18,6 +18,7 @@ Or from the command line:
 
 from __future__ import annotations
 
+import functools
 import json
 from contextlib import contextmanager
 from datetime import date
@@ -27,6 +28,7 @@ from sim.scenario.bimodal_generator import SCENARIOS as ELEC_SCENARIOS, generate
 from sim.scenario.gas_scenario_generator import GAS_SCENARIOS, generate_gas_scenario_prices
 from sim.scenario.spine import HISTORY_REPLAY, load_world
 from sim.scenario.intraday_shape import shape_day
+from simulation.record_table import json_default
 
 # Real 2016-2025 daily-mean SSP reference, extracted once from the 128MB half-hourly cache
 # (sim/cache/elexon_ssp_full.json) into a compact committed fixture -- see reconcile_baseline_fidelity.
@@ -406,7 +408,7 @@ if __name__ == "__main__":
         seed=args.seed,
     )
 
-    out_json = json.dumps(result, indent=2, default=str)
+    out_json = json.dumps(result, indent=2, default=functools.partial(json_default, fallback=str))
     if args.output:
         Path(args.output).write_text(out_json)
         print(f"Written to {args.output}", file=sys.stderr)
