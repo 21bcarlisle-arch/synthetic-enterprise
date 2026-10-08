@@ -681,7 +681,11 @@ def test_MEASURED_population_values(population, population_result):
     # 2022 (`pt._ELECTRONICS_KW_PER_PERSON` 0.055 -> 0.031). Less always-occupied evening load
     # under the events, so the homes read less calm. p25-p75 moved TOWARDS expected; p10 moved
     # away (3 against 6). Not predicted.
-    assert [legs[q].below for q in (0.10, 0.25, 0.50, 0.75)] == [3, 16, 32, 48], texture.note
+    #
+    # [3, 16, 32, 48] -> [3, 15, 31, 47] on 2026-10-08: oven x0.80 and hob x0.84 (ECUK carried to
+    # 2022). A shorter evening cook leaves the homes a little less calm; p25-p75 moved one home
+    # each TOWARDS expected. Not predicted.
+    assert [legs[q].below for q in (0.10, 0.25, 0.50, 0.75)] == [3, 15, 31, 47], texture.note
     # 0.142 -> 0.153 with electronics at its 2022 level (real 0.158).
     assert legs[0.50].world == pytest.approx(0.153, abs=0.005), texture.note
     red = [q for q, leg in legs.items() if leg.p * len(legs) < fgl.TEXTURE_DISTRIBUTION_ALPHA]
@@ -690,7 +694,8 @@ def test_MEASURED_population_values(population, population_result):
     # heater owner P0023.
     assert texture.worst_home == "P0018", texture.note
     # 0.0611 -> 0.0621 with electronics at its 2022 level (2026-10-08); still P0018.
-    assert texture.worst_value == pytest.approx(0.0621, abs=5e-4), texture.note
+    # 0.0621 -> 0.0633 with oven and hob at their 2022 energy (2026-10-08); still P0018.
+    assert texture.worst_value == pytest.approx(0.0633, abs=5e-4), texture.note
     assert "gas" in population.heating_systems[
         population.homes.index(texture.worst_home)
     ], "the calmest home is one the machine netting did not touch"
@@ -847,8 +852,9 @@ def test_P0000_the_calmest_home_is_ORDINARY_against_real_homes_and_the_red_is_th
     # So the calm quarter has two sources, no freezer or a large base, and nothing else.
     # 22 -> 19 on 2026-10-08 (the cooking-fuel draw); the two-source property still holds.
     # 19 -> 16 the same day (electronics at its 2022 level); the property still holds.
+    # 16 -> 15 the same day (oven and hob at their 2022 energy); the property still holds.
     calm = {pid for pid, r in readings.items() if r[0] < REAL_P25}
-    assert len(calm) == 16, sorted(calm)
+    assert len(calm) == 15, sorted(calm)
     with_freezer = {pid for pid in calm if "freezer" in stock[pid]}
     assert with_freezer, "no calm home owns a freezer, so the property below is vacuous"
     assert all(pt.always_on_kw(seeds[pid]) > pt._ALWAYS_ON_MEDIAN_KW for pid in with_freezer)
@@ -861,7 +867,8 @@ def test_P0000_the_calmest_home_is_ORDINARY_against_real_homes_and_the_red_is_th
     # 0.1380 -> 0.1422 (2026-10-08, the cooking-fuel draw).
     # 0.1422 -> 0.1429 (2026-10-08, the kettle's boil cut to HES's energy).
     # 0.1429 -> 0.1589 (2026-10-08, electronics at its 2022 level); real median 0.158.
-    assert live == pytest.approx(0.1589, abs=5e-4)
+    # 0.1589 -> 0.1633 (2026-10-08, oven and hob at their 2022 energy).
+    assert live == pytest.approx(0.1633, abs=5e-4)
     assert net_of_pump > live
     # ORDINARY: inside the real middle half, with or without its pump. Keyed to REAL_MEDIAN as
     # the upper edge until 2026-10-08, when electronics at its 2022 level took P0000 to 0.1589,
@@ -2609,7 +2616,9 @@ def test_L1_1n_CAN_PASS_and_is_not_a_control_that_can_only_fail(population_resul
     # 1.294 -> 1.391 the same day, still P0059: the kettle's boil cut to HES's energy. A smaller
     # boil sits further above the home's base, so texture against the flat day grew.
     # 1.391 -> 1.450 the same day, P0059: electronics at its 2022 level, the same mechanism.
-    assert cell.worst_value == pytest.approx(1.450, abs=0.005), cell.note
+    # 1.450 -> 1.408 the same day, P0059: oven and hob at their 2022 energy. A shorter cook is a
+    # smaller excursion above the flat day, the reverse of the kettle's mechanism. Not predicted.
+    assert cell.worst_value == pytest.approx(1.408, abs=0.005), cell.note
     assert cell.worst_value > 1.0, (
         f"the worst real home reads {cell.worst_value:.3f} times its own flat "
         "counterfactual; if that ever approached 1.0 the pass would be a squeak "
@@ -2828,7 +2837,9 @@ def test_the_MINTS_INFERRED_MECHANISM_was_REFUTED_by_measurement(population):
     # 2026-10-08, the cooking-fuel draw: raw +0.392 -> +0.520. A gas cook's evening peak lost its
     # oven or hob, which raises its base share and lowers its peakiness together: the same common
     # cause. The partialled r is asserted under 0.4 below and still holds.
-    assert r == pytest.approx(0.520, abs=0.03)
+    # +0.520 -> +0.569 the same day: oven and hob at their 2022 energy, the same common cause
+    # (a smaller evening cook raises base share and lowers peakiness together).
+    assert r == pytest.approx(0.569, abs=0.03)
     share = [min(min(d) for d in h) / (sum(map(sum, h)) / (48 * len(h))) for h in behavioural]
 
     def _residual(y, x):
@@ -4080,7 +4091,8 @@ def test_the_floor_is_NOT_LOOSER_for_an_ELECTRIC_home_against_the_same_defect(
     # weaker, not stronger; the gas reference did not move.
     # 0.235 -> 0.326 on 2026-10-08: electronics at its 2022 level leaves less behaviour above
     # the base, so more of it must be lost before the floor fires. The ordering below holds it.
-    assert hp_critical == pytest.approx(0.326, abs=0.02)
+    # 0.326 -> 0.349 the same day: oven and hob at their 2022 energy, the same mechanism.
+    assert hp_critical == pytest.approx(0.349, abs=0.02)
     # 0.385 -> 0.362 on 2026-10-06: HES's cooking and laundry season redrew the gas
     # home's event stream. The ordering below is the property.
     # 0.362 -> 0.401 on 2026-10-08, electronics at its 2022 level, the same direction as the

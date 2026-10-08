@@ -611,6 +611,17 @@ class ApplianceSpec:
 _KETTLE_KWH_PER_BOIL = 0.105
 _KETTLE_KW = 2.8
 
+# `domain-knowledge`, dated to 2022 on 2026-10-08. An electric oven's and hob's energy per use is
+# HES's 2010-11 use carried to 2022 by DESNZ ECUK 2023 Electrical Products tables (A1/A2, per
+# appliance, refreshed 2017): oven 120 -> 96 kWh/yr (x0.80), hob 232 -> 194 (x0.84). Only the ratio
+# is carried; ECUK's levels are not HES's. The power stays at nameplate, so the use is shorter.
+# Paired over 2,921 gas no-PV homes (seeds 17/29/41, C1 2022) the annual median fell 61 kWh, as
+# pre-registered. Source: docs/market_research/the_seasonal_swing_of_a_gas_heated_homes_electricity.md.
+_ECUK_OVEN_RATIO_TO_2022 = 0.80
+_ECUK_HOB_RATIO_TO_2022 = 0.84
+_HES_OVEN_HOURS_PER_USE = 0.75
+_HES_HOB_HOURS_PER_USE = 0.35
+
 # `domain-knowledge` — nameplate ratings and usage frequencies. Judged (never
 # parameterised) against Ofgem TDCV medium non-heating electricity, 2,700 kWh/yr.
 APPLIANCE_CATALOGUE: tuple[ApplianceSpec, ...] = (
@@ -619,8 +630,14 @@ APPLIANCE_CATALOGUE: tuple[ApplianceSpec, ...] = (
     ),
     ApplianceSpec("toaster", 1.1, 0.05, 0.8, (12, 20), heat_fraction=0.95),
     ApplianceSpec("microwave", 0.9, 0.10, 0.8, (20, 43), heat_fraction=0.8),
-    ApplianceSpec("oven", 2.0, 0.75, 0.55, (32, 42), heat_fraction=0.6),
-    ApplianceSpec("hob", 1.8, 0.35, 0.70, (33, 43), heat_fraction=0.6),
+    ApplianceSpec(
+        "oven", 2.0, _HES_OVEN_HOURS_PER_USE * _ECUK_OVEN_RATIO_TO_2022, 0.55, (32, 42),
+        heat_fraction=0.6,
+    ),
+    ApplianceSpec(
+        "hob", 1.8, _HES_HOB_HOURS_PER_USE * _ECUK_HOB_RATIO_TO_2022, 0.70, (33, 43),
+        heat_fraction=0.6,
+    ),
     ApplianceSpec("washing_machine", 0.55, 1.5, 0.60, (14, 40), heat_fraction=0.5),
     ApplianceSpec("dishwasher", 0.70, 1.5, 0.50, (36, 46), heat_fraction=0.5),
     ApplianceSpec("tumble_dryer", 2.2, 0.70, 0.22, (16, 42), heat_fraction=0.3),
