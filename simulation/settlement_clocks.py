@@ -48,6 +48,8 @@ from __future__ import annotations
 
 from typing import Any, Callable, Iterable, Mapping, MutableMapping
 
+from simulation.record_table import RecordTable
+
 #: The two clocks, and NO OTHERS. Published verbatim into artefacts so the definition travels
 #: with the number to the reader, rather than living in a module the reader of the JSON never
 #: opens.
@@ -198,7 +200,7 @@ def scalar_row_disagreements(
     """
     failures: list[str] = []
     rows = phase2b.get("all_records")
-    if not isinstance(rows, list) or not rows:
+    if not isinstance(rows, (list, RecordTable)) or not rows:
         return [
             "no `all_records` on this run dict, so no frozen scalar can be reconciled against "
             "the book it summarises — an unavailable check is a FAILED check (R15)"

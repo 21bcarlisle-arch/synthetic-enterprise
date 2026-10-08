@@ -39,6 +39,7 @@ import argparse
 import datetime as dt
 import json
 import statistics
+from collections.abc import Mapping
 from pathlib import Path
 
 RULES = ("flat", "value", "value_blind", "value_learned", "value_capped", "value_capped_learned")
@@ -60,7 +61,7 @@ LAST_REFERENCE_EVENTS: list = []
 def _annual_mwh(records, customer_id: str, commodity: str, term_start: str) -> float | None:
     start = (dt.date.fromisoformat(term_start[:10]) - dt.timedelta(days=365)).isoformat()
     kwh = [r.get("consumption_kwh") for r in records
-           if isinstance(r, dict) and r.get("customer_id") == customer_id
+           if isinstance(r, Mapping) and r.get("customer_id") == customer_id
            and r.get("commodity", commodity) == commodity
            and start <= str(r.get("settlement_date", ""))[:10] < term_start[:10]
            and isinstance(r.get("consumption_kwh"), (int, float))]
@@ -245,7 +246,7 @@ def probe(report_end: str | None = None, roll_seed: int | None = None) -> list[d
     # never sees; the harness may.
     revenue: dict[str, float] = {}
     for rec in phase2b.get("all_records") or []:
-        if isinstance(rec, dict) and rec.get("customer_id"):
+        if isinstance(rec, Mapping) and rec.get("customer_id"):
             revenue[rec["customer_id"]] = revenue.get(rec["customer_id"], 0.0) + float(
                 rec.get("revenue_gbp") or 0.0)
     billed: dict[str, tuple[float, float]] = {}
@@ -263,7 +264,7 @@ def probe(report_end: str | None = None, roll_seed: int | None = None) -> list[d
     bills = out.get("bills") or []
     churned = supply_points_that_left(
         phase2b.get("churned_billing_accounts", []),
-        {r["customer_id"] for r in phase2b.get("all_records") or [] if isinstance(r, dict)})
+        {r["customer_id"] for r in phase2b.get("all_records") or [] if isinstance(r, Mapping)})
     term_bad_debt_shares(rows, bills, balance_write_offs(
         bills, phase2b.get("per_customer_behavioral", {}), churned))
     later: dict[tuple, int] = {}

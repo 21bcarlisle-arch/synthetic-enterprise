@@ -6,6 +6,8 @@ reads from its own receivable (the renewal price's stock term on money owed) was
 """
 from __future__ import annotations
 
+from collections.abc import Mapping
+
 import pytest
 
 import background.live_payment_triad as triad_module
@@ -37,16 +39,22 @@ def _billed():
 def test_the_ledger_is_billed_the_runs_own_revenue_to_the_pound(_billed):
     result, posted = _billed
     revenue = sum(float(r.get("revenue_gbp") or 0.0) for r in result["all_records"]
-                  if isinstance(r, dict))
+                  if isinstance(r, Mapping))
+    # A VOID IS THE OWNER'S, NOT A NAMED HOUSEHOLD'S (B7 slice 6, 5531ef8a6). Its standing charge is
+    # settled revenue that no named payer is billed for, so the triad -- which posts what a named
+    # household owes -- carries revenue less the void owner's charge. Counted, not dropped: a void
+    # charge leaking into a named household's bill breaks this equality as surely as a lost month.
+    void_owner = sum(float(r.get("void_owner_charge_gbp") or 0.0) for r in result["all_records"]
+                     if isinstance(r, Mapping))
     assert posted and revenue > 100.0, "the window billed nothing, so this control proves nothing"
-    assert sum(a for _, _, a in posted) == pytest.approx(revenue, abs=1.0)
+    assert sum(a for _, _, a in posted) + void_owner == pytest.approx(revenue, abs=1.0)
 
 
 def test_a_customer_is_billed_once_a_month_even_when_a_renewal_splits_it(_billed):
     result, posted = _billed
     terms: dict[tuple, set] = {}
     for r in result["all_records"]:
-        if isinstance(r, dict):
+        if isinstance(r, Mapping):
             terms.setdefault((r["customer_id"], r["settlement_date"][:7]), set()).add(
                 r.get("term_start"))
     assert any(len(t) > 1 for t in terms.values()), "no month in the window is split by a renewal"

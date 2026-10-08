@@ -215,6 +215,7 @@ from simulation.policy_costs import (
     get_gas_network_cost_per_mwh,
     get_ggl_per_mwh,
 )
+from simulation.record_table import RecordTable
 from simulation.registration_loss_feed import RegistrationLossFeed, supply_points_on_supply
 from simulation.renewal_engagement import passive_churn_cap_for, rolls_active_renewal
 from simulation.renewals import NOTICE_DAYS, build_renewal_schedule
@@ -2044,7 +2045,10 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
     # `tools/r1_inference_ceiling.py` states that per field so the reader sees the gap named.
     account_state_log: list[dict] = []
 
-    all_records: list[dict] = []
+    # THE SETTLED BOOK IS COLUMNAR (`simulation/record_table.py`): a term builds plain dicts, and
+    # they become typed columns at the one `extend` below. Its rows are Mappings, not dicts -- a
+    # reader gating on `isinstance(r, dict)` would skip every one, so such gates read Mapping.
+    all_records: RecordTable = RecordTable()
     # PB8 L2: WHETHER THE SUPPLIER HAD STOPPED A HOUSEHOLD'S DD BY A DATE, for the payment-method seam
     # the renewal price and the engagement antecedent read. Fed beside `all_records`, so it bills
     # only what the run has settled. Stress is the household's drawn trajectory, the same one
@@ -4101,8 +4105,11 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         # periods and prices each on its own rate (director ruling, GATE 13).
         period_registers.add(settled_this_term, segment_of=_SEGMENT_OF)
         treasury_drawdown.add(settled_this_term)
-        _folded_this_term = fold_to_days(settled_this_term)
-        all_records.extend(_folded_this_term)
+        _committed_from = len(all_records)
+        all_records.extend(fold_to_days(settled_this_term))
+        # The board keeps what it observes for the rest of the run, so it is handed the committed
+        # ROWS, not the term's dicts -- handed the dicts it would hold the whole book twice over.
+        _folded_this_term = all_records[_committed_from:]
         _dd_stop_board.observe(_folded_this_term)
         for _closed_cid, _closed in _months_closed_this_term:
             _post_month_bill(_closed_cid, _closed)
