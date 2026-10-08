@@ -46,7 +46,7 @@ _ACCOUNTS = [f"ACC-{i:04d}" for i in range(40)]
 _RUN_SEED = 4242
 
 
-@pytest.fixture(autouse=True, scope="module")
+@pytest.fixture(autouse=True)
 def _accounts_are_on_the_book():
     """REGISTER the stand-in accounts, because from 2026-09-06 the draw refuses an id on no book.
 
@@ -62,6 +62,11 @@ def _accounts_are_on_the_book():
     of `(id, seed)` and these ids are unchanged, so every spread and floor below is the same number
     it was. What would NOT be acceptable is passing the draw a flag to skip its own roster check:
     that reopens the fail-open for every caller in order to keep one suite green.
+
+    PER TEST, NOT PER MODULE. `tests/conftest.py::_phase2b_book_is_put_back` (H50, `5941e47a9`) puts
+    the drawn book back after EVERY test once `simulation.run_phase2b` is imported, which empties
+    `ACQUIRED_CUSTOMERS`. A module-scoped registration survived only the first test, so 35 of this
+    file's tests were refused `ACC-0000` from the second test on and passed when run alone.
     """
     from company.interfaces.supply_book import acquired_supply_points
     from saas.customers import (

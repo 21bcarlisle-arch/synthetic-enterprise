@@ -330,3 +330,49 @@ running re-take peaks at 11.2 GB, and 287 OOM kills are on record, so nothing ru
 reading that says what W2_20 moved.
 (ii) The doubled book: which commit in `a9e6f2144..8af70203f` converts 145 more prospects. A truncated
 `--end-year 2017` control arm is enough, since `PROS-2016` alone went from 10 to 19 and `PROS-2017` from 4 to 18.
+
+## H1 and H2 graded: the `20261007h` pair is published, and the leg-1 gap is not the SSP source (seat, 2026-10-08 ~02:45Z)
+
+`longjob-w220-head-arms` ended `END both legs DONE` (leg 1 rc 0 at 18:22Z on 10-07, leg 2 rc 0 at 00:19Z
+on 10-08). Both artefacts name producing commit `b2ec5147a` and world `cdba75ebb9197b33`. The log shows leg 1
+read the shared cache too (`Cache hit: 168,026 SSP records`). So in `h` both legs read **one** SSP source.
+
+| # | prediction | `20261007w` | `20261007h` | verdict |
+|---|---|---:|---:|---|
+| H1 | control-arm billing accounts within 245-300 | 272 | **272** (gas 183, dual fuel 167, `PROS-*` unchanged) | **PASS** |
+| H2 | leg-1 `value_advantage_gbp` inside floor [min - 1 sd, max + 1 sd] | £5,089 vs £7,925-£12,921 | **£5,134 vs £7,970-£12,965** (seeds £11,666 / £9,596 / £9,269, sd £1,300) | **FAIL** |
+
+**What H2 failing rules out.** The `w` gap was put down, tentatively, to the two legs reading SSP from
+different places. In `h` both legs read the same cache, and the gap is the same size: £5,134 against a floor
+mean of £10,177, 3.9 floor sds below it. **The SSP-source explanation is refuted.** By arm, leg 1's
+value-arm net (£241,404) sits inside the floor seeds, and its control-arm net (£236,270) is above every
+seed (£230,194-£231,716). The level leg shows the gap only because the control arm is subtracted from it
+too. The worker's base-seed placebo (`90cd946ed`, `WORKER_FINDING_W2_20_THE_BASE_SEED_PLACEBO_2026-10-08.md`) reads it the same way: the seeded floor
+is the default draw's own family, and the gap is the control arm's draw.
+
+**The 15 paths between `8af70203f` and `b2ec5147a` are nearly inert on the arms.** `h` minus `w`: control
+net +£58, value arm +£103, level arm +£125, `value_advantage_gbp` +£44. Each floor seed moved by the same
++£44 to +£67. This is a reading of the arms only. It does not exempt those paths for any other quantity.
+
+**Published.** `CURRENT_WORLD_THREE_ARM_PATH`, `CURRENT_WORLD_NOISE_FLOOR_PATH` and
+`CURRENT_WORLD_CHANGED_SINCE_THE_LAST_READING` in `tools/generate_value_arms_data.py` now point at the `h`
+pair, and `site/data/value_arms.json` is regenerated. The current-world block reads £5,134, down from
+£18,541. **It is still not HEAD's code.** Sixteen substrate paths moved between `b2ec5147a` and the
+publishing HEAD, `simulation/arrears_engine.py`'s register recovery (`212c6396a`) among them, and none is
+exempted. Exempting them would be a claim made without a measurement, so the generator withdraws the
+currency claim and the `resolved` verdicts and keeps the measured figures. `value_arms_substrate_exemptions.json`
+is left untouched on purpose. The register-recovery re-take is carried by
+`w2-20-retake-the-arms-on-the-register-recovery`.
+
+**Owed (i) and (ii) are not launched here.** Each is already a live continuation:
+`w2-20-own-effect-with-81732ffe2-reverted` and `w2-20-attribute-the-doubled-book-by-truncated-bisection`.
+Launching either from this claim would put a second copy over the same seeds, with too little memory for
+two. They stand, in that order, one at a time.
+
+**A red that was not this work, fixed in the same landing.** `tests/tools/test_value_cycle_ab_noise_floor.py`
+was red on origin, with 35 of 96 failing, and every one passed when run alone. The cause is H50's autouse
+teardown (`5941e47a9`). It empties `ACQUIRED_CUSTOMERS` after each test, and that wiped the file's
+module-scoped registration of its stand-in accounts. The registration is now made per test, and all 96
+pass. Seen, not mine: `tests/simulation/test_net_new_acquisition.py::test_the_ceiling_still_fits_the_peak_systemds_own_journal_reports_today`
+is red because the journal's sim-runner peak (5,324.8 MB) now supports 1,437 customer-years, against the
+constant's 1,750.
