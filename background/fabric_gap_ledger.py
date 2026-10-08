@@ -3161,10 +3161,12 @@ SERL_BANDS: dict[str, RangeBand] = {
         low=None, high=None,
         anchor=AnchorStatus.NEED,
         anchor_source=(
-            f"NEED — {SERL_SOURCE}, Table 3's 2022 monthly medians sum to about 2,600 kWh, "
-            "but only the two extremes are on file to their published precision, so no edge "
-            "can be read off. Reported on the same basis (the world's monthly medians, summed "
-            "over the days in each month) so it is like for like when the other ten are read."
+            f"NEED — {SERL_SOURCE}: Table 3 prints only the extremes, and the aggregated "
+            "tables' Figure_4 sheet gives all twelve, which sum to 2,535 (2022), 2,851 (2021) "
+            "and 2,452 (2023). The world draws electricity with no price response, so its "
+            "like-for-like figure is 2022 without the crisis response, about 2,674-2,717. That "
+            "is a derived figure, not a published one, so no edge is set. See "
+            "SEAT_FINDING_A_GAS_HOMES_ELECTRICITY_LEVEL_SPLIT_INTO_THE_CRISIS_AND_A_LEVEL_EXCESS."
         ),
     ),
 }

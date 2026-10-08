@@ -673,6 +673,13 @@ year at constant stock.
    SERL 2022's ~2,600. That is most of the gap, before any 2022 price response. SERL's 2021 gas
    no-PV annual median is still unread, so **whether the remainder is the crisis cannot yet be
    said**.
+   *Read 2026-10-08 (delivery seat): SERL's aggregated tables (figshare 25472560, sheet
+   `Figure_4`) give all twelve monthly medians. Summed: **2,851 (2021), 2,535 (2022, not ~2,600),
+   2,452 (2023)**. The published counterfactuals (−7.1% to −9.1%, winter 2022/23) put a 2022
+   without the crisis at 2,674–2,717. Over about 2,900 homes the world reads 2,985, so the crisis
+   explains ~150 of the gap and **a level excess of ~+270 remains**. Cooking at its dated source is
+   −61 of it. The 163-home reading was a low draw. The split and both pre-registrations are in
+   `docs/staging/SEAT_FINDING_A_GAS_HOMES_ELECTRICITY_LEVEL_SPLIT_INTO_THE_CRISIS_AND_A_LEVEL_EXCESS_2026-10-08.md`.*
 
 ### Not established
 
