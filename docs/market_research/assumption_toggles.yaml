@@ -408,9 +408,9 @@ toggles:
       kind: argued
       detail: >-
         No company DCA-versus-sale decision exists, and renewal pricing was unchanged across
-        recovery shares 0.02-1.0 (q3_post_write_off_recovery_share). The world's
-        simulation/arrears_engine.py DEBT_SALE_HAIRCUT_PCT = 0.12 ("illustrative") sits above this
-        band's high; not changed here (world code, out of scope).
+        recovery shares 0.02-1.0 (q3_post_write_off_recovery_share). The world's typed 0.12 sale
+        price is gone (2026-10-08): simulation/arrears_engine.py::debt_sale_price_share reads this
+        row, and while it is null no debt is sold.
     verdict: DOESNT_MATTER until a DCA-versus-sale decision is built
 
   - id: q4_retention_holdout_share
@@ -835,7 +835,7 @@ toggles:
     basis_low: Centrica ARA 2019 Note 17, GBP 105m / GBP 139m.
     basis_high: Centrica ARA 2024 Note 17, GBP 311m / GBP 347m.
     feeds: [W2_38, EP4_collections_journey, B11_forward_clv_backtested_on_held_back_history]
-    read_by: company/pricing/value_based_renewal.py (RECEIVABLE_PROVISION_RATE_*, 2025 column) and simulation/arrears_engine.py::LIVE_ARREARS_PROVISION_RATES (same rows) -- neither reads the register yet
+    read_by: company/pricing/value_based_renewal.py (RECEIVABLE_PROVISION_RATE_*, 2025 column) and simulation/arrears_engine.py::LIVE_ARREARS_PROVISION_RATES (same rows) type it; simulation/arrears_engine.py::post_write_off_recovery_share READS this row (1 - default) as the world's recovery on a write-off at the final bill's due date (2026-10-08)
     sensitivity:
       kind: acceptance_criterion
       detail: >-

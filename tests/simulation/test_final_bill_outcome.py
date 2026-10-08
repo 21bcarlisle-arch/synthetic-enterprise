@@ -14,11 +14,7 @@ import statistics
 
 import pytest
 
-from simulation.arrears_engine import (
-    DCA_COMMISSION_RATE,
-    DCA_RECOVERY_RATE,
-    DEBT_SALE_HAIRCUT_PCT,
-)
+from simulation.arrears_engine import post_write_off_recovery_gbp
 from simulation.final_bill_outcome import (
     GONE_AWAY_BASE_BETA,
     GONE_AWAY_MAX,
@@ -216,37 +212,21 @@ def test_paid_late_is_paid_in_full_but_late():
 # ---------------------------------------------------------------------------
 
 def test_exit_debt_recovery_reuses_the_existing_dca_cascade():
-    """Expected values computed here from arrears_engine's own published
-    constants, so a divergent second copy of the cascade would fail."""
-    trajectory = [{"year": 2023, "stress": "LOW"}, {"year": 2024, "stress": "HIGH"}]
-    exposure = _exposure(21, balance=500.0)
-    resolution = resolve_final_bill(exposure, LATER, stress="HIGH",
-                                    income_stress_trajectory=trajectory)
-    assert resolution.debt_archetype == "OVERWHELMED"
-    if resolution.shortfall_gbp > 0:
-        expected = round(
-            resolution.shortfall_gbp
-            * DCA_RECOVERY_RATE["OVERWHELMED"]
-            * (1 - DCA_COMMISSION_RATE),
-            2,
-        )
-        assert exit_debt_recovery_gbp(resolution) == expected
-
-
-def test_avoidant_exit_debt_is_sold_at_the_existing_haircut():
-    trajectory = [{"year": y, "stress": "HIGH"} for y in (2022, 2023, 2024)]
-    for i in range(200):
-        resolution = resolve_final_bill(
-            _exposure(i, balance=500.0), LATER, stress="HIGH",
-            income_stress_trajectory=trajectory,
-        )
-        if resolution.shortfall_gbp > 0:
-            assert resolution.debt_archetype == "AVOIDANT"
-            assert exit_debt_recovery_gbp(resolution) == round(
-                resolution.shortfall_gbp * DEBT_SALE_HAIRCUT_PCT, 2
-            )
-            return
-    pytest.fail("no shortfall produced in 200 HIGH-stress exits — physics not firing")
+    """The exit's recovery is the mid-tenure book's own function, so a divergent second copy of
+    the cascade would fail -- for every archetype, including the one that would be sold."""
+    for trajectory, archetype in (
+            ([{"year": 2023, "stress": "LOW"}, {"year": 2024, "stress": "HIGH"}], "OVERWHELMED"),
+            ([{"year": y, "stress": "HIGH"} for y in (2022, 2023, 2024)], "AVOIDANT")):
+        for i in range(200):
+            resolution = resolve_final_bill(_exposure(i, balance=500.0), LATER, stress="HIGH",
+                                            income_stress_trajectory=trajectory)
+            if resolution.shortfall_gbp > 0:
+                break
+        else:
+            pytest.fail("no shortfall produced in 200 HIGH-stress exits — physics not firing")
+        assert resolution.debt_archetype == archetype
+        assert 0 < exit_debt_recovery_gbp(resolution) == post_write_off_recovery_gbp(
+            resolution.shortfall_gbp, archetype) < resolution.shortfall_gbp
 
 
 def test_no_recovery_claimed_without_a_shortfall_or_an_archetype():

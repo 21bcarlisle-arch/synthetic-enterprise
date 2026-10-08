@@ -73,20 +73,24 @@ process past write-off. Every WRITTEN_OFF case is further classified by a
 hidden (SIM-side only) behavioural archetype derived from the customer's
 income_stress_trajectory shape, then followed through a DCA placement /
 recovery-or-sale terminal stage:
-  WRITTEN_OFF -> PLACED_WITH_DCA(+30d) -> RECOVERED(+180d) [OVERWHELMED/NEUTRAL]
-                                        -> SOLD(+90d)       [AVOIDANT]
+  WRITTEN_OFF -> PLACED_WITH_DCA(+30d) -> RECOVERED(+180d)
+                                        -> SOLD(+90d)  [AVOIDANT, only once a sale price exists]
 `debt_archetype()` is never exposed to company/ code -- only its exhaust (the
 stage notes' GBP figures) is company-observable, same epistemic split as the
-rest of this engine. See docs/market_research/ASSUMPTIONS.md "Customer &
-Portfolio" section for the recovery-rate/commission/haircut sourcing and
-caveats (all flagged unverified/illustrative -- genuine research gaps, not
-load-bearing precision).
+rest of this engine. The recovery share and the sale price are READ from
+docs/market_research/assumption_toggles.yaml (`post_write_off_recovery_share`,
+`debt_sale_price_share`). Until 2026-10-08 they were typed here as 25.5p / 17.0p / 12.0p
+per GBP, above every published signal for the sale and at the top of it for the DCA
+(docs/staging/SEAT_FINDING_THE_FOUR_PRACTITIONER_POINTS_CONTRADICT_FOUR_LEVERS_2026-10-08.md).
 """
 from __future__ import annotations
 
 import os
 import random
 from datetime import date, timedelta
+from pathlib import Path
+
+import yaml
 
 from simulation.rng_substream import substream
 from simulation.segment_vocabulary import (
@@ -180,15 +184,50 @@ _CORPORATE_METHODS = ("bacs", "chaps")
 #: fails the commit if a raw segment literal is reintroduced anywhere in
 #: `simulation/`, which is what closes the CLASS rather than this instance.
 
-# Phase [debt-branch] -- post-write-off DCA placement / recovery / sale.
-# Figures sourced/caveated in docs/market_research/ASSUMPTIONS.md "Customer &
-# Portfolio" (2026-07-05 rows); all illustrative/unbenchmarked unless noted.
+# Phase [debt-branch] -- post-write-off DCA placement / recovery / sale. The stage gaps are
+# illustrative and unbenchmarked (docs/market_research/ASSUMPTIONS.md "Customer & Portfolio").
 DCA_PLACEMENT_DAYS = 30          # WRITTEN_OFF -> PLACED_WITH_DCA (illustrative, unbenchmarked -- see ASSUMPTIONS.md)
 DCA_OUTCOME_DAYS = 180           # PLACED_WITH_DCA -> RECOVERED (illustrative)
 DEBT_SALE_DAYS = 90              # PLACED_WITH_DCA -> SOLD (illustrative)
-DCA_RECOVERY_RATE = {"OVERWHELMED": 0.30, "NEUTRAL": 0.20, "AVOIDANT": 0.20}  # AVOIDANT never reaches RECOVERED so its rate is unused, kept for completeness
-DCA_COMMISSION_RATE = 0.15       # contingency fee deducted from recovered amount
-DEBT_SALE_HAIRCUT_PCT = 0.12     # proceeds as % of face value when sold
+
+ASSUMPTION_TOGGLES_PATH = (
+    Path(__file__).resolve().parent.parent / "docs" / "market_research" / "assumption_toggles.yaml")
+
+
+def _toggle_row(toggle_id: str) -> dict:
+    for row in yaml.safe_load(ASSUMPTION_TOGGLES_PATH.read_text())["toggles"]:
+        if row["id"] == toggle_id:
+            return row
+    raise KeyError(f"{toggle_id} is not in {ASSUMPTION_TOGGLES_PATH.name}")
+
+
+def post_write_off_recovery_share(convention: str | None = None) -> tuple[float, str]:
+    """GBP recovered per GBP written off, read from the register for WHEN the world writes off.
+
+    The share depends on the write-off date. A late write-off (six to twelve months after the final
+    bill) has already had its collection, and q3_post_write_off_recovery_share (~5p) is what is left
+    after it. The world writes off at the final bill's due date, before any collection has run.
+    The register's comparator for that event is the complement of the final-bill >90-day coverage.
+    That figure is "expected recovery", so no commission is deducted from it. The world has no
+    late convention yet, so that row is not wired: when one is added it goes here, not as a
+    second number in a stage.
+    """
+    convention = convention or WRITE_OFF_DATE_CONVENTION
+    if convention == "final_bill_due_date":
+        row = _toggle_row("prov_coverage_final_bill_over_90d")
+        return (round(1.0 - float(row["default"]), 6),
+                "1 - prov_coverage_final_bill_over_90d: " + row["basis_default"])
+    raise ValueError(
+        f"no register row for a write-off taken at {convention!r}: a late write-off reads "
+        "q3_post_write_off_recovery_share, which is wired to no convention yet")
+
+
+def debt_sale_price_share() -> tuple[float | None, str]:
+    """Sale proceeds per GBP of face value, or None with the register's reason when it has none."""
+    row = _toggle_row("q3_debt_sale_price_share_of_face")
+    if row["default"] is None:
+        return None, row["default_reason"].strip()
+    return float(row["default"]), row["basis_default"]
 
 
 def stress_for_year(behavioral: dict, year: int) -> str:
@@ -243,29 +282,30 @@ def debt_archetype(trajectory: list[dict], year: int) -> str:
     return "NEUTRAL"
 
 
-def _dca_recovered_amount(arrears_gbp: float, archetype: str) -> float:
-    rate = DCA_RECOVERY_RATE.get(archetype, DCA_RECOVERY_RATE["NEUTRAL"])
-    return round(arrears_gbp * rate * (1 - DCA_COMMISSION_RATE), 2)
-
-
-def _debt_sale_proceeds(arrears_gbp: float) -> float:
-    return round(arrears_gbp * DEBT_SALE_HAIRCUT_PCT, 2)
-
-
-# --- public surface for other SIM debt mechanisms to FOLD rather than duplicate
-# (W2_12 change-of-tenancy exit debt, simulation/final_bill_outcome.py). These
-# are thin, deliberately behaviour-free aliases: a second debt mechanism that
-# needs the same DCA/debt-sale cascade or the same stress ladder must reach for
-# these, never re-choose its own coefficients, so the two cannot drift apart.
-
 def dca_recovered_amount(arrears_gbp: float, archetype: str) -> float:
-    """DCA proceeds on `arrears_gbp` for `archetype`, net of commission."""
-    return _dca_recovered_amount(arrears_gbp, archetype)
+    """What the world recovers on `arrears_gbp` after its write-off.
+
+    `archetype` is accepted and not read: nothing published separates recovery by how the debtor
+    responds, so every archetype recovers the register's one share.
+    """
+    return round(arrears_gbp * post_write_off_recovery_share()[0], 2)
 
 
-def debt_sale_proceeds(arrears_gbp: float) -> float:
-    """Proceeds from selling `arrears_gbp` of debt at the standing haircut."""
-    return _debt_sale_proceeds(arrears_gbp)
+def debt_sale_proceeds(arrears_gbp: float) -> float | None:
+    """Proceeds from selling `arrears_gbp` of debt, or None while the register has no sale price."""
+    price, _reason = debt_sale_price_share()
+    return None if price is None else round(arrears_gbp * price, 2)
+
+
+def post_write_off_recovery_gbp(arrears_gbp: float, archetype: str) -> float:
+    """The terminal stage's proceeds. AVOIDANT debt is sold only when a sale price exists. Until then
+    it is worked like any other debt. Other SIM debt mechanisms (W2_12 change-of-tenancy exit debt,
+    `simulation/final_bill_outcome.py`) fold this rather than choosing their own rates."""
+    if archetype == "AVOIDANT":
+        proceeds = debt_sale_proceeds(arrears_gbp)
+        if proceeds is not None:
+            return proceeds
+    return dca_recovered_amount(arrears_gbp, archetype)
 
 
 def on_time_probability(stress: str) -> float:
@@ -289,22 +329,23 @@ def _post_writeoff_stages(arrears_gbp: float, write_off_date: date, archetype: s
     dca_date = write_off_date + timedelta(days=DCA_PLACEMENT_DAYS)
     stages = [{"stage": "PLACED_WITH_DCA", "date": dca_date.isoformat(),
                "note": "Debt placed with third-party debt collection agency"}]
-    if archetype == "AVOIDANT":
+    price, _reason = debt_sale_price_share()
+    if archetype == "AVOIDANT" and price is not None:
         sold_date = dca_date + timedelta(days=DEBT_SALE_DAYS)
-        proceeds = _debt_sale_proceeds(arrears_gbp)
+        proceeds = post_write_off_recovery_gbp(arrears_gbp, archetype)
         stages.append({
             "stage": "SOLD", "date": sold_date.isoformat(), "amount_gbp": proceeds,
-            "note": "Debt sold to purchaser -- GBP%.2f proceeds at %d%% of face value"
-                    % (proceeds, int(round(DEBT_SALE_HAIRCUT_PCT * 100))),
+            "note": "Debt sold to purchaser -- GBP%.2f proceeds at %.1f%% of face value"
+                    % (proceeds, price * 100),
         })
     else:
         recovered_date = dca_date + timedelta(days=DCA_OUTCOME_DAYS)
-        rate = DCA_RECOVERY_RATE.get(archetype, DCA_RECOVERY_RATE["NEUTRAL"])
-        net = _dca_recovered_amount(arrears_gbp, archetype)
+        share, _basis = post_write_off_recovery_share()
+        net = post_write_off_recovery_gbp(arrears_gbp, archetype)
         stages.append({
             "stage": "RECOVERED", "date": recovered_date.isoformat(), "amount_gbp": net,
-            "note": "DCA recovered GBP%.2f net of commission (%d%% recovery rate, %d%% commission)"
-                    % (net, int(round(rate * 100)), int(round(DCA_COMMISSION_RATE * 100))),
+            "note": "DCA recovered GBP%.2f (%.1f%% of the balance written off)"
+                    % (net, share * 100),
         })
     return stages
 

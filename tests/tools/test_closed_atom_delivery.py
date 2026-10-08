@@ -85,7 +85,8 @@ def test_the_prior_art_query_answers_the_question_that_cost_us_W2_12(rows):
 
     The atom-level verdict is NOT enough and this asserts why: W2_12 and W2_13 are BOTH `FRAMED`,
     and the difference a reader needs is per-module -- W2_13's modules are imported by the live run
-    loop, three of W2_12's five are reached by nothing at all.
+    loop, and of W2_12's five some are reached by nothing at all. Two of three were unreached
+    until B7 slice 4 (`dfa787a37`) imported `final_bill_outcome` from `sim/customer_state_layer.py`.
     """
     hits = cad.prior_art("change_of_tenancy", rows)
 
@@ -93,7 +94,7 @@ def test_the_prior_art_query_answers_the_question_that_cost_us_W2_12(rows):
     reach = hits[0]["reach"]
     assert reach["company/crm/change_of_tenancy_register.py"] is None
     assert reach["company/billing/account_closure.py"] is None
-    assert reach["simulation/final_bill_outcome.py"] is None
+    assert reach["simulation/final_bill_outcome.py"] == "imported"
     assert reach["simulation/arrears_engine.py"] == "imported"
 
 
