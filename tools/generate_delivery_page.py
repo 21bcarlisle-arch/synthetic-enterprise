@@ -165,6 +165,7 @@ def _distinct_problems(wrong: list[dict]) -> dict:
             }
         p["times_listed"] += 1
         p["first_at"] = w["at"]
+        w["problem"] = key
     problems = list(by_key.values())
     by_fate = {f: sum(1 for p in problems if p["fate"] == f) for f in direction_mod.WRONG_FATES}
     untriaged = sum(1 for p in problems if p["fate"] is None)
@@ -206,9 +207,16 @@ def what_it_got_wrong() -> dict:
     refused = [{"at": r.get("at"), "problems": r.get("problems") or []}
                for r in rows if r.get("outcome") == "refused"]
     graded = [w for w in wrong if w["corrected"] is not None]
+    distinct = _distinct_problems(wrong)
+    # ONE HOME FOR THE WORDS. A row's `what` is published once, on its problem; the row carries the
+    # problem's `key`. Copying the text into both lists (1cd4bda0e) gave every sentence two homes,
+    # so a seat's "see the new row below" became false from one of them and the site lane refused
+    # the 2026-10-07 20:44Z direction landing. Rows already on origin cannot be reworded, so the fix
+    # is the duplicate, not the prose.
+    entries = [{k: v for k, v in w.items() if k != "what"} for w in wrong]
     return {
-        **_distinct_problems(wrong),
-        "entries": wrong,
+        **distinct,
+        "entries": entries,
         "refused_own_records": refused,
         "outstanding": sum(1 for w in graded if not w["corrected"]),
         "corrected": sum(1 for w in graded if w["corrected"]),
