@@ -46,6 +46,7 @@ USAGE:
 """
 from __future__ import annotations
 
+import copy
 import os
 from pathlib import Path
 
@@ -301,7 +302,19 @@ def size_warning(text: str | None = None, live_path: Path | str = LIVE_PATH) -> 
     )
 
 
+# Keyed on the TEXT, so an edit to either half is a miss by construction -- no mtime to go
+# stale. Why it exists: one supervisor cycle parses the map ~6 times (~0.36s each), and the
+# stuck-escalation tests run ~30 cycles apiece, which is what pushed the operational-layer
+# suite past its 1800s budget on 2026-10-08. Callers get a deep copy because several mutate
+# the rows they are handed.
+_PARSE_CACHE: dict[str, list] = {}
+_PARSE_CACHE_MAX = 4
+
+
 def _as_atom_list(text: str, where: str) -> list:
+    cached = _PARSE_CACHE.get(text)
+    if cached is not None:
+        return copy.deepcopy(cached)
     try:
         loaded = yaml.safe_load(text)
     except yaml.YAMLError as exc:
@@ -312,6 +325,9 @@ def _as_atom_list(text: str, where: str) -> list:
         raise MapStoreError(
             f"{where} must be a top-level list of atom records, got {type(loaded).__name__}."
         )
+    if len(_PARSE_CACHE) >= _PARSE_CACHE_MAX:
+        _PARSE_CACHE.pop(next(iter(_PARSE_CACHE)))
+    _PARSE_CACHE[text] = copy.deepcopy(loaded)
     return loaded
 
 

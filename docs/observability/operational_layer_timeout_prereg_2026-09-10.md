@@ -79,3 +79,21 @@ cycles, the exact test the 2026-09-10 20:02 timeout named.
 Whether the expensive step is *cacheable within a process*. A parse that legitimately re-reads
 because the tree can change between real 2-minute polls is not a defect in the producer, and the
 repair would then belong in the test, not in `supervisor.py`.
+
+## 2026-10-08 — the same shape, the leaf this predicted
+
+Six hourly checks timed out from 09:08 UTC after 54 consecutive greens. **Slow, not blocking**:
+the six runs stopped at six *different* nodeids, all inside the stuck-escalation block of
+`tests/background/test_supervisor.py` (one at `test_tree_lock.py`, further on), and run alone the
+nine tests in that block all PASS — 29–58s each, 344s together, ~1s per `run_cycle()`.
+
+Profile of `test_stuck_escalation_survives_daemon_restart` (95.6s): 71.4s was
+`maturity_map_store._as_atom_list` — **189 YAML parses of the map in 31 cycles** (~6 per cycle,
+via `_self_refill_draw_ladder`, `_product_priority_ids`, `delivery_lane._atom_ids`,
+`_drop_lane_blocked`). Prediction 5 above, one month late. The `code_text` cache already
+absorbs the 2026-09-10 leaf (`searchable` 12.9s here is hit-path hashing of 17 MB of source).
+
+**Repair:** `_as_atom_list` caches by the TEXT — the same no-invalidation shape as `code_text` —
+and hands out deep copies. Same test, back to back: **95.6s → 30.0s**; the nine-test block
+344s → 162s. Not a budget raise. Why it crossed today rather than earlier I cannot yet say: the
+map grows and the box load moves (load average 12.9 at measurement), and both changed.
