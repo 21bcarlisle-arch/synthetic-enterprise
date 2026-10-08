@@ -26,6 +26,10 @@
 #   state, from Ofgem CIM Wave 5, Ofgem PSR reporting and FCA Financial Lives 2024
 #   (debt_and_collections.md s.10). Eight are ESTIMATES with ranges; vuln_annual_recovery_rate
 #   is null (GAP). No value any code reads was changed.
+# 2026-10-08 (arrears 4x): dd_return_rate_first_presentation, dd_representation_success_share and
+#   q3_debt_repaid_after_22_months_share added as ESTIMATES (vendor case studies, Energy UK, Ofgem
+#   2018 social obligations); gb_domestic_bill_payment_failure_and_arrears_prevalence.md s.(e).
+#   No value any code reads was changed.
 written: 2026-10-05
 toggles:
   - id: q1_move_out_notice_share
@@ -423,8 +427,96 @@ toggles:
         any company plan or DCA/sale decision at low and high. Re-checked 2026-10-06 against the
         provisioning record (bad_debt_provisioning.md): no supplier disclosure bears on take-up;
         Centrica's prepayment-recovery balance falling GBP 203m -> 103m (2022-2025) tracks the
-        paused PPM route, not plan take-up. Unchanged.
+        paused PPM route, not plan take-up. Unchanged. Re-checked 2026-10-08: Ofgem social
+        obligations 2018 gives a FLOW (658,363 elec / 540,246 gas entries to arrangements in 2018,
+        about equal to the year-end stock), not offered-vs-accepted; still unchanged. Take-up moves
+        accounts between Ofgem's arrears and debt buckets and does not shrink their sum.
     verdict: MATTERS_AND_RESOLVABLE
+
+  - id: dd_return_rate_first_presentation
+    question: Q3 debt
+    meaning: >-
+      P(a domestic Direct Debit collection is returned unpaid on its FIRST presentation), before
+      any re-presentation. ESTIMATE, by VALUE, one supplier. Tied to
+      dd_representation_success_share: Octopus pins their product near 0.40% of value, so a bracket
+      run moves both together (low here with high there).
+    default: 0.0087
+    low: 0.0057
+    high: 0.018
+    unit: probability_per_presentation
+    basis_default: >-
+      Derived. GoCardless Octopus Energy case study (retrieved 2026-10-08, about 2024-25): "GBP 48M
+      in failed payments recaptured across 12 months" against "GBP 12 billion of annual payments"
+      = 0.40% recaptured. Failed = 0.40% / recovery share; at the recovery default 0.46 that is
+      0.87%. gb_domestic_bill_payment_failure_and_arrears_prevalence.md s.(e).
+    basis_low: 0.40% / 0.70 (GoCardless "up to 70%" recovery) = 0.57%.
+    basis_high: 0.40% / 0.22 (Jellyfish Energy, 22% recovered) = 1.8%.
+    feeds: [W2_38]
+    sensitivity:
+      kind: argued
+      detail: >-
+        Against simulation/arrears_engine._DD_FAILURE_PROB (LOW 3%, MODERATE 12%, HIGH 35%, no
+        source): even the LOW tier is 1.7-5x the bracket. The world's never-repaid stock scales
+        roughly with f x (1 - r). Value, not count; crisis-era; one supplier; a pre-2020 rate would
+        plausibly be lower. No published source gives it by count or by tier (C1).
+    verdict: MATTERS_AND_RESOLVABLE (estimate; count basis is practitioner knowledge)
+
+  - id: dd_representation_success_share
+    question: Q3 debt
+    meaning: >-
+      P(a DD returned on first presentation is collected on re-presentation). ESTIMATE from vendor
+      figures. Read by nothing yet: simulation/payment_behaviour_source.REPRESENTATION_SUCCESS_SHARE
+      is None.
+    default: 0.46
+    low: 0.22
+    high: 0.70
+    unit: probability
+    basis_default: Midpoint of the range, not a measurement.
+    basis_low: >-
+      GoCardless Jellyfish Energy case study (SME energy supplier, retrieved 2026-10-08): "22% of
+      failed payments recovered with Success+".
+    basis_high: >-
+      GoCardless Success+ page (all sectors, retrieved 2026-10-08): "recovers up to 70% of failed
+      payments" (a ceiling, machine-timed retry).
+    feeds: [W2_38]
+    sensitivity:
+      kind: argued
+      detail: >-
+        Must move with dd_return_rate_first_presentation (product pinned near 0.40% of value). No
+        domestic figure for a plain Bacs re-presentation was found; a charity merchant reports
+        timed retry adds only 7% over plain retry.
+    verdict: MATTERS_AND_RESOLVABLE (estimate; plain re-presentation share is practitioner knowledge)
+
+  - id: q3_debt_repaid_after_22_months_share
+    question: Q3 debt
+    meaning: >-
+      Share PER YEAR of a stayer's domestic debt still unpaid 22 months after it became
+      objectionable that is repaid in each further year. Replaces the world's "the half not repaid
+      by the report is never repaid" (payment_behaviour_source named gap 2), which reads as 0.
+      ESTIMATE; the source's own ratio is undefined.
+    default: 0.15
+    low: 0.09
+    high: 0.31
+    unit: share_per_year
+    basis_default: >-
+      Energy UK, Energy debt: Everyone pays (Feb 2026) Fig. 5, "recovery rate" of debt more than 12
+      months old, 2023-24. The construction is undisclosed (fn 13 "Energy UK's analysis"); read as a
+      share per year. dd_failure_basis_and_live_arrears_provision_rates.md C6(1).
+    basis_low: Same figure, 2024-25 (9%).
+    basis_high: >-
+      Same figure, 2022-23 (31%). Consistent in kind with Centrica ARA 2025 Note 17: provision on
+      live arrears older than 90 days of 7.4% (DD) and 50% (pay-on-receipt), so expected loss on old
+      live debt is well under the 100% "never" implies.
+    feeds: [W2_38, EP4_collections_journey]
+    sensitivity:
+      kind: argued
+      detail: >-
+        Small over a 2016-2019 window: by Q4 2019, debt from 2016 is at most about 2 years past the
+        22-month mark. Larger over a full 2016-2025 run, where never-repaid bills accumulate.
+        Ofgem social obligations 2018: entry-weighted mean weeks to recover on a non-PPM
+        arrangement, six largest suppliers = 95 weeks (derived), agreeing with the DRS "more than
+        22 months".
+    verdict: MATTERS_AND_RESOLVABLE (estimate)
 
   - id: q3_instalment_miss_probability_monthly
     question: Q3 debt

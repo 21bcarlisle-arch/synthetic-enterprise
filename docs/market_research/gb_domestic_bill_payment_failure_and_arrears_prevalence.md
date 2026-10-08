@@ -311,7 +311,197 @@ written down anywhere" and a case for asking directly rather than further publis
 
 ---
 
+## (e) 2026-10-08: the four inputs behind the world's arrears being about four times the published level
+
+**The need.** The world ledger shows about 10% of domestic electricity accounts more than 91 days in
+arrears with no arrangement at Q4 2019. Ofgem's figure for that quarter is 694,191 accounts, about
+**2.45%**, with a further 739,947 (about **2.6%**) repaying on an arrangement (§2.1 of
+`debt_and_collections.md`). Four inputs are named GAPs in the code:
+- `simulation/arrears_engine._DD_FAILURE_PROB` (C1, 3%/12%/35% by tier);
+- `simulation/payment_behaviour_source.REPRESENTATION_SUCCESS_SHARE` (None);
+- the rule in the same module that the half not repaid by 22 months is never repaid (its named
+  gap 2);
+- plan take-up (the world has no arrangements: its named gap 5).
+
+Toggles: `dd_return_rate_first_presentation`, `dd_representation_success_share`,
+`q3_debt_repaid_after_22_months_share`, and the existing `q3_plan_take_up_share`, in
+`assumption_toggles.yaml`.
+
+Method: no web search was available this pass. Pages were fetched directly. The Pay.UK "Unpaid
+debits" line is **not** used, for the reason given in §(a).
+
+### First, the comparator: the world's "no arrangement" is not Ofgem's
+
+Ofgem's "in arrears" excludes accounts on an arrangement. The world has no arrangements, so every
+world debtor is in the no-arrangement bucket. The fair comparator for a world without arrangements
+is **arrears plus debt**: 2.45% + 2.6% = **about 5.1%** of electricity accounts at Q4 2019
+(derived). Against that, the world is about **2x** high, not 4x. Plan take-up cannot close the
+rest. It moves accounts between the two buckets; it does not shrink their sum, except by making
+repayment faster.
+
+### 1. DD return rate per collection attempt (first presentation): PARTIAL, by value, one supplier
+
+- **No published rate by count.** No supplier report, Ofgem publication, Pay.UK page or survey read
+  in this or earlier passes gives returns ÷ presentations for energy.
+- **A derived bracket by value, from one supplier.** GoCardless's Octopus Energy case study
+  (<https://gocardless.com/stories/octopus-energy>, retrieved 2026-10-08) is undated. It describes
+  Octopus after the Bulb migration, so about 2024-25. It says:
+  - *"£1 billion payments processed every month in the UK alone"*;
+  - *"5.5 million customer accounts and £12 billion of annual payments"*;
+  - *"£48M in failed payments recaptured across 12 months"* by Success+ retries.
+
+  What follows from those figures (derived):
+  - Recaptured is at most failed, so first-presentation failure by value is **at least £48m ÷
+    £12bn = 0.40%**.
+  - Failed value = recaptured ÷ the retry recovery share. With that share between 22% and 70% (item
+    2), failed value is £69m-£218m. That is **0.57%-1.8% of collections by value**.
+- **Caveats.**
+  - The figures are by value, not by count. A household in difficulty can owe more than the
+    average bill, or less.
+  - This is one supplier.
+  - The period is crisis-era, so 2016-2019 would plausibly be lower.
+  - "Failed" may include cancelled mandates as well as unpaid returns.
+  - The vendor is reporting its own product's results.
+- **A survey bound, all payment methods.** Source: FCA *Financial Lives*.
+  - Base: all UK adults.
+  - Question K33: "Which ... domestic bills have you missed, or fallen behind on, in the last 6
+    months".
+  - Chart: "Types of payments fallen behind on, or missed, in the last 6 months (2020/2022/2024)", p.
+    59 of
+    <https://www.fca.org.uk/publication/financial-lives/fls-2024-vulnerability-financial-resilience.pdf>,
+    retrieved 2026-10-08.
+  - The bars were read from the PDF's text positions, in the order 2020, 2022, 2024.
+
+  | Survey wave (fieldwork to) | Electricity | Gas | Any bill or credit commitment |
+  |---|---|---|---|
+  | 2020 (Feb 2020) | **2.2%** | 1.9% | 10% |
+  | 2022 (May 2022) | 3.0% | 2.6% | 10% |
+  | 2024 (May 2024) | 3.4% | 2.8% | 10% |
+
+  These are adults, not accounts. A household has about two adults, so the share of households in
+  2019-20 is between 2.2% and about 4% (derived). Where it falls depends on whether both adults
+  report. The survey counts anyone who fell behind **at all** in six months, a much lower bar than
+  Ofgem's 91 days. The world's 10% at 91 days is above even this.
+- **Ofgem CIM Wave 5** (Jan-Feb 2024; §10.4 of `debt_and_collections.md`). 7.6% self-report being
+  behind on energy bills. Ofgem's arrears plus debt at Q4 2023 was about 6.3%.
+
+**Against the world.** The world's lowest tier fails 3% of DD presentations. The published bracket
+is 0.57%-1.8% by value. Only the LOW tier is comparable, and it is already 1.7-5x too high.
+
+### 2. Re-presentation success share: ESTIMATE, vendor figures only
+
+| Figure | Population | Source (retrieved 2026-10-08) |
+|---|---|---|
+| "Success+ recovers **up to 70%** of failed payments" | All GoCardless merchants, all sectors; machine-timed retry; a ceiling ("up to") | <https://gocardless.com/solutions/recover-failed-payments> |
+| "**22%** of failed payments recovered with Success+" | Jellyfish Energy, an SME (business) energy supplier | <https://gocardless.com/stories/jellyfish-energy> |
+| "a **7% increase** in recapturing failed payments compared to just retrying" | A charity merchant | same page as the 70% |
+
+- **No domestic-energy figure for a plain Bacs re-presentation was found.** The 7% line suggests a
+  timed retry adds little over a plain retry. If so, a plain re-presentation recovers not much less
+  than a timed one.
+- **The two inputs are tied.** Octopus pins failure × recovery at about 0.40% of value, so a bracket
+  run that moves one must move the other. 22% recovery goes with 1.8% failure; 70% goes with 0.57%.
+
+### 3. What happens to unrepaid debt after about 22 months: PARTIAL; the world's "never" is not supported
+
+- **No cohort repayment curve was found beyond Ofgem's 2013-15 objection cohort.**
+  - The DRS impact assessment (Nov 2025, §3.10) gives only an average: *"more than 22 months"*.
+  - The DRS working paper (Aug 2025) gives no age profile. Its §4.5 says 175,000 of about 195,000
+    phase-1 customers are *"already engaged"* (paying something towards their ongoing usage). Its
+    own counts do not add up: 175,000 + 50,000 ≠ 195,000.
+- **Ofgem social obligations, 2018.** Source: "Debt Repayment 2018", pp. 2-3 of
+  <https://www.ofgem.gov.uk/sites/default/files/docs/2019/09/monitoring_social_obligations_-_2018_annual_data_report.pdf>,
+  retrieved 2026-10-08. Average weeks to recover a non-PPM debt on an arrangement:
+
+  | Supplier | Weeks |
+  |---|---|
+  | British Gas | 53 |
+  | E.ON | 122 |
+  | EDF | 76 |
+  | npower | 88 |
+  | SSE | 185 |
+  | ScottishPower | 54 |
+
+  **Weighted by entries, that is 95 weeks, about 22 months** (derived). It agrees with the DRS
+  figure of 22 months.
+- **Older debt keeps being repaid.**
+  - Energy UK Fig. 5 gives "recovery rates" for debt more than 12 months old: 31% (2022-23), 15%
+    (2023-24) and 9% (2024-25). The definition is undisclosed. Read here as a share per year (§C6(1)
+    of `dd_failure_basis_and_live_arrears_provision_rates.md`).
+  - Centrica provides **7.4%** against live DD balances more than 90 days old, and **50%** against
+    pay-on-receipt balances of that age (2025, Note 17).
+  - So the expected loss on old **live** arrears is 7%-50%. "Never repaid" implies 100%.
+- **The world's rule, against this.** Half of unpaid bills are never repaid, even by a household
+  that stays for ten years. The evidence supports continued repayment of roughly 9%-31% a year of
+  what is still owed.
+
+### 4. Repayment-plan take-up: no new denominator; one new flow
+
+- **Still not published.** No source gives the number offered against the number accepted.
+  `q3_plan_take_up_share` (0.32; 0.20-0.42) stands.
+- **New flow, from the same Ofgem 2018 report.**
+  - In 2018, **658,363** electricity and **540,246** gas customers entered a debt repayment
+    arrangement. Two small suppliers' returns are missing.
+  - The Q4 2018 stock on arrangements was 661,339 electricity and 543,540 gas.
+  - By Little's law, entries equal to the stock mean an average stay of about **one year**
+    (derived).
+  - The planned recovery time is about 95 weeks. The gap suggests many arrangements end early,
+    either broken or cleared. But the entries include arrangements shorter than 91 days, which the
+    stock does not count.
+  - **This is not a take-up rate.**
+
+### What closes the gap (derived arithmetic, labelled as such)
+
+Assume the stock is small and bills are drawn independently. Then the world's stock of never-repaid
+arrears grows roughly in proportion to **f × (1 − r) × (1 − s)**:
+- f is the DD failure rate;
+- r is the re-presentation recovery;
+- s is the share eventually repaid.
+
+| Lever | World today | Published bracket | Factor on the stock (derived) |
+|---|---|---|---|
+| Comparator: arrears + debt rather than arrears alone | 2.45% | 5.1% | **about 2x** (the gap is about 2x, not 4x) |
+| f, DD failure, LOW tier | 3% | 0.57%-1.8% (by value) | 1.7x-5.3x lower |
+| (1 − r), re-presentation | 1 (r = None) | 0.30-0.78 | 1.3x-3.3x lower |
+| f × (1 − r), joint (Octopus-tied) | 3% | 0.17% (r 70%, f 0.57%) to 1.40% (r 22%, f 1.8%) | **2.1x-17x lower** |
+| s, after 22 months, over a 2016-19 window | 0 | 9%-31% a year | small: by Q4 2019 the debt is at most about 2 years past the 22-month mark |
+| Plan take-up | none | 0.20-0.42 | **none on arrears + debt**; it only moves accounts between the two buckets |
+
+Two ways close the remaining 2x:
+- the comparator correction plus the low end of the joint DD lever; or
+- the joint DD lever alone, at its central values.
+
+**I cannot yet attribute the gap between the tiers.** That needs the world's tier mix, and MODERATE
+(12%) and HIGH (35%) have no published counterpart at all.
+
+**Prediction, filed before any run.** Scale every tier's net DD failure by 0.47 ÷ 3. That is the
+central Octopus-tied f × (1 − r), 0.87% × 0.54, over the LOW tier's 3%, with the tiers' ratios
+kept. The world's Q4 2019 arrears stock then falls by more than half.
+
+### GAPs that are practitioner knowledge
+
+- **DD returns by count, and first versus second presentation, for a domestic book.** Every
+  supplier's collections team tracks this monthly; it is not published anywhere found.
+- **The success share of a plain Bacs re-presentation**, as against a vendor's machine-timed retry.
+- **What a supplier does with a stayer's debt that is two or more years old and has no plan.**
+  Whether it keeps chasing, sells or writes off, and how much of it is paid.
+- **Offered against accepted on arrangements.** The SOR template collects it; Ofgem publishes only
+  stocks.
+
+---
+
 ## Sources
+
+- Added 2026-10-08 for §(e), all retrieved 2026-10-08:
+  - GoCardless, Octopus Energy case study: <https://gocardless.com/stories/octopus-energy>
+  - GoCardless, Jellyfish Energy case study: <https://gocardless.com/stories/jellyfish-energy>
+  - GoCardless, Success+: <https://gocardless.com/solutions/recover-failed-payments>
+  - FCA, *Financial Lives 2024: vulnerability and financial resilience*, p. 59:
+    <https://www.fca.org.uk/publication/financial-lives/fls-2024-vulnerability-financial-resilience.pdf>
+  - Ofgem, *Monitoring social obligations: 2018 annual data report*, pp. 2-3:
+    <https://www.ofgem.gov.uk/sites/default/files/docs/2019/09/monitoring_social_obligations_-_2018_annual_data_report.pdf>
+  - Ofgem, *DRS policy update working paper*, Aug 2025, §4.5:
+    <https://www.ofgem.gov.uk/sites/default/files/2025-08/DRS-working-paper-final.pdf>
 
 - Pay.UK (wearepay.uk), *Bacs Processing Statistics* 2023, 2024, 2025 — fetched via Wayback Machine
   2026-10-04 (live domain 403s a scripted fetch):
