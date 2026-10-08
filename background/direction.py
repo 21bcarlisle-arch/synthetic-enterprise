@@ -282,11 +282,17 @@ def validate(record) -> list[str]:
     if not isinstance(focus, list) or not focus:
         problems.append("focus is empty -- a direction record that names no work is not direction")
     else:
+        # The map's lanes are read ONCE per record, not once per item: `_retired_ids` reads this
+        # record once per retired continuation, and per-item reads made one draw 4,210 parses.
+        known = None
         for i, item in enumerate(focus):
             if not isinstance(item, dict) or not item.get("id") or not item.get("why"):
                 problems.append(f"focus[{i}] needs an id and a why")
             elif item.get("lane") is not None:
-                problems.extend(_lane_problems(i, item["lane"]))
+                if known is None:
+                    from background import seat_continuation
+                    known = seat_continuation._map_lanes()
+                problems.extend(_lane_problems(i, item["lane"], known))
     not_now = record.get("not_now")
     if not isinstance(not_now, list) or not not_now:
         # THE REJECTIONS ARE THE POINT, and this is the director's own instruction made

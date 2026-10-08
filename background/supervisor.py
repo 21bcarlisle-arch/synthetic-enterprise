@@ -6071,7 +6071,7 @@ def _product_priority_ids() -> frozenset[str]:
     try:
         from tools import maturity_map_store
         return frozenset(
-            a["id"] for a in maturity_map_store.load_live_atoms()
+            a["id"] for a in maturity_map_store.load_live_atoms(MATURITY_MAP_PATH)
             if a.get("id") and int(a.get("dial_inherited") or 0) >= PRODUCT_PRIORITY_DIAL_FLOOR
         )
     except Exception as exc:  # noqa: BLE001 -- an unreadable map must not take the selector down

@@ -149,6 +149,20 @@ def _isolate(tmp_path, monkeypatch):
     # fixture. The lane itself is proven both ways in test_delivery_lane.py.
     monkeypatch.setattr(direction_module, "DIRECTION_PATH", tmp_path / "DIRECTION.yaml")
     monkeypatch.setattr(delivery_lane_module, "CLAIMS_FILE", tmp_path / "delivery_claims.json")
+    # The lane's focus walk parses the map for atom ids even when focus is empty. Unisolated, that
+    # was the REAL map, parsed every cycle -- the stuck-escalation tests run 40 cycles and spent
+    # most of their ~40s (minutes under load) in YAML, enough to time out the operational layer.
+    monkeypatch.setattr(delivery_lane_module, "MATURITY_MAP", tmp_path / "maturity_map.yaml")
+    # RC3's origin-staging sync ran a REAL `git fetch origin` (45s timeout) every cycle, and with
+    # STAGING_DIR isolated it saw every origin doc as missing and `git show`-wrote them into the real
+    # docs/staging/. A refusing runner makes it the fail-safe no-op; its own tests inject `_runner`.
+    def _no_git(*args):
+        raise RuntimeError("supervisor tests may not run git against the real repo")
+    monkeypatch.setattr(supervisor, "_default_git_runner", _no_git)
+    # The unmerged-work guard runs `git status` in EVERY linked worktree of the real repo (126 on
+    # 2026-10-08, 7s a call, 20s timeout each) on any draw with candidates. This world has no
+    # unmerged work; the guard itself is proven against a built repo in test_unmerged_work_draw_guard.
+    monkeypatch.setattr(supervisor, "_unmerged_work_paths", lambda root=None: frozenset())
     # LANE 0's SECOND SOURCE -- THE INTERACTIVE SEAT'S CONTINUATION (2026-08-31, 87709c617).
     # `delivery_lane.next_item` now offers a live `seat_continuation` handoff AHEAD of `focus`,
     # and reads it from the module's own STORE, not from either path isolated above. So the two

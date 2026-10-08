@@ -267,9 +267,11 @@ UNPARKED_SUBJECT_COVERAGE: dict[str, list[str]] = {
         # `block_reason` was empty, so nothing was crossed. EP6 was epoch 3 behind R13 and
         # WAS reverted. This entry is the ledger line this constant's docstring asks for.
         "EP1_clv_three_horizon",
-        # 2026-10-05. Minted unparked (9a2356731) as step 3 of DIRECTOR_CANON_THE_PRIORITY_ORDER:
-        # a new atom the director's order asks to be drawable, not one released from a park.
-        "B11_forward_clv_backtested_on_held_back_history",
+        # B11_forward_clv_backtested_on_held_back_history: minted unparked 2026-10-05 (9a2356731);
+        # back to parked 2026-10-06 BY A STATED DECISION, not by drift (7bca8e7a1): its window and
+        # switch/move split are built, and the next gain needs B7 slice 3 with moves on, or the
+        # director's EP17 row. Its `block_reason` names both; removed here, not hidden. That commit
+        # left this control red on origin until 2026-10-08.
         # 2026-10-05. Minted unparked (8f5518e88) when the director approved the step-1 proposals:
         # next best action as one CLV-judged decision. New and drawable, like B11; nothing released.
         "C34_next_best_action_is_one_decision_across_debt_retention_upsell_and_carbon_judged_by_clv",

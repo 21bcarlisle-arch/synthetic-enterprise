@@ -79,3 +79,62 @@ cycles, the exact test the 2026-09-10 20:02 timeout named.
 Whether the expensive step is *cacheable within a process*. A parse that legitimately re-reads
 because the tree can change between real 2-minute polls is not a defect in the producer, and the
 repair would then belong in the test, not in `supervisor.py`.
+
+---
+
+# Round 3 — 2026-10-08: three test leaks, two of them git subprocesses, and a production quadratic
+
+Four consecutive `red_timeout`s (budget 1800s), the last naming
+`test_stuck_escalation_does_not_fire_when_grants_fail`. Measured, not predicted: in isolation the
+test PASSES in 38s (40 cycles, ~0.95s each) — so it is not hung. cProfile in an `origin/main`
+worktree, then sampling the full-file run, attributed the time to five costs, the first three reads the `_isolate` fixture does not cover:
+
+1. **The real maturity map, parsed ~6x per cycle.** `_product_priority_ids` called
+   `maturity_map_store.load_live_atoms()` with the store's default path, not the supervisor's own
+   `MATURITY_MAP_PATH` the fixture redirects; and `delivery_lane._atom_ids` reads
+   `delivery_lane.MATURITY_MAP`, which the fixture never touched. ~80% of profiled time was YAML.
+2. **A real `git fetch origin main` every cycle** (`_sync_origin_staging`, 45s timeout per call):
+   120 git calls per test, 0.4–0.7s each when origin answers promptly. With `STAGING_DIR` isolated
+   it also saw every origin staging doc as missing and `git show`-WROTE one into the checkout's real
+   `docs/staging/`. This is the leg that can wait rather than compute — a contended fetch lock or a
+   slow remote costs up to 45s x 40 cycles — which is the only reading here consistent with
+   timeouts interleaved with green runs. Rounds 1–2 measured `State: R`; a run caught inside this
+   leg would read `S`.
+3. **`_unmerged_work_paths` runs `git status` in EVERY linked worktree of the real repo** on any
+   draw with candidates — 126 worktrees on 2026-10-08, 7.0s a call when quiet, a 20s timeout per
+   worktree when not. Found by sampling the full-file run's children (a steady ~2/s stream of
+   `git status --porcelain`) while the process sat in `do_sys_poll` at flat CPU. Its cost scales
+   with how many worktrees lanes have open, which rises and falls through the day: **this is the
+   leg that best explains timeouts interleaved with greens.** It also runs in PRODUCTION on every
+   BUILD/SITE draw (~7s against a ~2-minute poll); that is recorded here, not changed.
+4. **A PRODUCTION quadratic in the delivery-lane draw, found while pre-running the landing.**
+   `delivery_lane._retired_ids` called `current_orientation()` inside a comprehension over every
+   retired continuation (847 on 2026-10-08); each call re-reads and validates `DIRECTION.yaml`, and
+   `direction.validate` parsed the live map once per focus item carrying a lane. One `_retired_ids()`
+   on live state: **431s, 4,210 map parses.** After hoisting both reads: 0.12s, 1 parse, the same 39
+   ids as the base. It sits on every delivery-lane draw (the supervisor's 2-minute poll, the pull
+   hook), and it reached tests that do not isolate `seat_continuation.STORE` —
+   `test_forward_discovery_draw.py::test_propose_half_forbids_rest_the_overnight_breach` ran >180s on
+   pristine origin/main, stack in `_retired_ids`. The store only grows, so this cost rose week by week:
+   the likeliest MAIN driver of the suite-wide timeout, with legs 1–3 adding to it.
+5. `gap_ledger_reconciler.discover_writers` and `gap_register_scan` scanning the real tree: CPU,
+   ~0.3s/cycle, bounded. Left in place (see below).
+
+**Verdict: slow, with a lock/network-dependent component — not a cadence question.** The repair
+narrows what the test touches; the 1800s budget is unchanged. (1) `_product_priority_ids` reads
+`MATURITY_MAP_PATH` (the same file in production); (2) the fixture redirects
+`delivery_lane.MATURITY_MAP`; (3) the fixture replaces `_default_git_runner` with one that raises,
+so the sync takes its existing fail-safe no-op; its own tests inject `_runner`; (4) the fixture
+stubs `_unmerged_work_paths` to the empty set (its own module builds a repo to test it). (5) `_retired_ids` reads the orientation once, and `validate` reads the map's lanes once per record —
+production code, behaviour-preserving. Named test: 38s ->
+13.6s, zero git calls. Whole module after: 201 passed in 224s, no git children sampled (no clean
+"before" for the module was taken — the pre-repair run was killed once leg 3 was found). `pytestmark = operational` covers the whole module, so every `run_cycle`
+test there gains the same.
+
+**The class, not the instance.** Each new draw rung that reads the tree is a new leak into a fixture
+that enumerates paths by hand; rounds 1–3 each found one. Leg 5 is the next one. The structural
+remedy — a fixture that refuses any real-tree read rather than listing redirects — is not built here.
+
+**Prediction, filed before the next signal run:** the next operational-layer run either goes green
+inside 1800s or, if it times out, names a test outside `tests/background/test_supervisor.py`.
+A timeout naming a test in that module again refutes this round's attribution.
