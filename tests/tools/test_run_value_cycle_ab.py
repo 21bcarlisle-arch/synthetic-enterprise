@@ -1832,6 +1832,27 @@ def test_the_arm_reports_the_book_IT_ran_on_and_not_the_one_live_at_assembly(mon
     assert identity["served_segments_unavailable_because"] is None
 
 
+def test_the_book_names_the_settlement_budget_its_campaign_used_or_says_it_cannot(monkeypatch):
+    """The value-arms book went from 127 to 272 accounts when the settlement budget moved from
+    1,050 to 1,750 customer-years (358d59a42), and the artefact could not say so. Both branches
+    in one control: a campaign's own budget surfaces, and none resolved is a named None. The
+    campaign's figure is deliberately not the module constant, so a read of the constant fails."""
+    from simulation import live_population, net_new_acquisition
+
+    used = net_new_acquisition.SETTLEMENT_CUSTOMER_YEAR_BUDGET + 123.5
+    monkeypatch.setattr(live_population, "LAST_CAMPAIGN",
+                        {"customer_year_budget": used, "settlement_sample_rate": 0.31})
+    seen = book_identity(_ledger([_elec("C1", gross=1.0)]), book_at_run())
+    monkeypatch.setattr(live_population, "LAST_CAMPAIGN", {})
+    unseen = book_identity(_ledger([_elec("C1", gross=1.0)]), book_at_run())
+
+    assert seen["settlement_customer_year_budget"] == used
+    assert seen["settlement_sample_rate"] == 0.31
+    assert seen["settlement_budget_unavailable_because"] is None
+    assert unseen["settlement_customer_year_budget"] is None
+    assert "no growth campaign" in unseen["settlement_budget_unavailable_because"]
+
+
 # ---------------------------------------------------------------------------
 # same_book_across_arms — the population axis of `arm_identity`
 # ---------------------------------------------------------------------------

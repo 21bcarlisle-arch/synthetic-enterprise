@@ -330,3 +330,125 @@ running re-take peaks at 11.2 GB, and 287 OOM kills are on record, so nothing ru
 reading that says what W2_20 moved.
 (ii) The doubled book: which commit in `a9e6f2144..8af70203f` converts 145 more prospects. A truncated
 `--end-year 2017` control arm is enough, since `PROS-2016` alone went from 10 to 19 and `PROS-2017` from 4 to 18.
+
+## H1 and H2 graded: the `20261007h` pair is published, and the leg-1 gap is not the SSP source (seat, 2026-10-08 ~02:45Z)
+
+`longjob-w220-head-arms` ended `END both legs DONE` (leg 1 rc 0 at 18:22Z on 10-07, leg 2 rc 0 at 00:19Z
+on 10-08). Both artefacts name producing commit `b2ec5147a` and world `cdba75ebb9197b33`. The log shows leg 1
+read the shared cache too (`Cache hit: 168,026 SSP records`). So in `h` both legs read **one** SSP source.
+
+| # | prediction | `20261007w` | `20261007h` | verdict |
+|---|---|---:|---:|---|
+| H1 | control-arm billing accounts within 245-300 | 272 | **272** (gas 183, dual fuel 167, `PROS-*` unchanged) | **PASS** |
+| H2 | leg-1 `value_advantage_gbp` inside floor [min - 1 sd, max + 1 sd] | £5,089 vs £7,925-£12,921 | **£5,134 vs £7,970-£12,965** (seeds £11,666 / £9,596 / £9,269, sd £1,300) | **FAIL** |
+
+**What H2 failing rules out.** The `w` gap was put down, tentatively, to the two legs reading SSP from
+different places. In `h` both legs read the same cache, and the gap is the same size: £5,134 against a floor
+mean of £10,177, 3.9 floor sds below it. **The SSP-source explanation is refuted.** By arm, leg 1's
+value-arm net (£241,404) sits inside the floor seeds, and its control-arm net (£236,270) is above every
+seed (£230,194-£231,716). The level leg shows the gap only because the control arm is subtracted from it
+too. The worker's base-seed placebo (`90cd946ed`, `WORKER_FINDING_W2_20_THE_BASE_SEED_PLACEBO_2026-10-08.md`) reads it the same way: the seeded floor
+is the default draw's own family, and the gap is the control arm's draw.
+
+**The 15 paths between `8af70203f` and `b2ec5147a` are nearly inert on the arms.** `h` minus `w`: control
+net +£58, value arm +£103, level arm +£125, `value_advantage_gbp` +£44. Each floor seed moved by the same
++£44 to +£67. This is a reading of the arms only. It does not exempt those paths for any other quantity.
+
+**Published.** `CURRENT_WORLD_THREE_ARM_PATH`, `CURRENT_WORLD_NOISE_FLOOR_PATH` and
+`CURRENT_WORLD_CHANGED_SINCE_THE_LAST_READING` in `tools/generate_value_arms_data.py` now point at the `h`
+pair, and `site/data/value_arms.json` is regenerated. The current-world block reads £5,134, down from
+£18,541. **It is still not HEAD's code.** Sixteen substrate paths moved between `b2ec5147a` and the
+publishing HEAD, `simulation/arrears_engine.py`'s register recovery (`212c6396a`) among them, and none is
+exempted. Exempting them would be a claim made without a measurement, so the generator withdraws the
+currency claim and the `resolved` verdicts and keeps the measured figures. `value_arms_substrate_exemptions.json`
+is left untouched on purpose. The register-recovery re-take is carried by
+`w2-20-retake-the-arms-on-the-register-recovery`.
+
+**Owed (i) and (ii) are not launched here.** Each is already a live continuation:
+`w2-20-own-effect-with-81732ffe2-reverted` and `w2-20-attribute-the-doubled-book-by-truncated-bisection`.
+Launching either from this claim would put a second copy over the same seeds, with too little memory for
+two. They stand, in that order, one at a time.
+
+**A red that was not this work, fixed in the same landing.** `tests/tools/test_value_cycle_ab_noise_floor.py`
+was red on origin, with 35 of 96 failing, and every one passed when run alone. The cause is H50's autouse
+teardown (`5941e47a9`). It empties `ACQUIRED_CUSTOMERS` after each test, and that wiped the file's
+module-scoped registration of its stand-in accounts. The registration is now made per test, and all 96
+pass. Seen, not mine: `tests/simulation/test_net_new_acquisition.py::test_the_ceiling_still_fits_the_peak_systemds_own_journal_reports_today`
+is red because the journal's sim-runner peak (5,324.8 MB) now supports 1,437 customer-years, against the
+constant's 1,750.
+
+## (ii) The doubled book, bisected on a 2017-truncated run: pre-registration (worker, 2026-10-08 02:45Z)
+
+**Instrument.** The count is the `PROS-*` keys of `control_arm.net_by_billing_account_gbp`. Re-read on the
+two published artefacts, it gives 127/52 (`20261005c`) and 272/197 (`20261007w`), so it is the counter the
+grading above used. At origin `27af1a461`, the `--end-year 2017` default draw (`/var/tmp/se-w220-placebo-out/A_default.json`)
+gives PROS-2016 19 and PROS-2017 18. Those are the `w` figures, so truncation keeps the signal at the HEAD end.
+Each probe is the default (control plus value) `tools.run_value_cycle_ab --end-year 2017` in a worktree whose
+`sim/cache/*` is symlinked to the shared cache. A probe that live-fetches is void. `git bisect` runs over
+`a9e6f2144..8af70203f`, limited to `ARMS_SUBSTRATE_PATHS` as of `8af70203f`.
+
+**Predictions, written before the first probe:**
+
+| # | prediction | confidence |
+|---|---|---|
+| B0 | endpoints at 2017: `a9e6f2144` gives 14 PROS (10+4), and `8af70203f` gives 37 (19+18) | ~0.75 |
+| B1 | the first commit that moves the count is one of the PB4 trio (`f71fcc176`, `beb4f8533`, `4ff093bb0`) | ~0.40 |
+| B2 | ...or one of the B7 move slices (`d22754a36`, `93e79c6e5`, `8359d5acd`) | ~0.35 |
+| B3 | one commit carries at least 80% of the 23-account gap, so the move is a step and not a drift | ~0.50 |
+
+If B0 fails at the `a9e6f2144` end, truncation does not preserve the old book. The bisect then runs on
+whatever endpoint gap is measured, and says so. If any probe falls outside [endpoint low, endpoint high],
+the count is not monotone, and the bisect's answer stands only as "a commit that crosses the midpoint".
+
+## (ii) graded: the book doubled because the settlement budget went from 1,050 to 1,750 customer-years (`358d59a42`), not because of the world or the company (worker, 2026-10-08 ~04:00Z)
+
+**Probes** (`--end-year 2017`, default draw, shared cache symlinked in, 0 live-fetch lines in every log;
+artefacts are in `/var/tmp/se-w220-bisect-out/`):
+
+| commit | PROS-* | of which 2016 / 2017 | billing accounts | control gross margin |
+|---|---:|---|---:|---:|
+| `a9e6f2144` (good end) | 14 | 10 / 4 | 87 | £52,917 |
+| `33a051c9b` | 14 | 10 / 4 | 87 | |
+| `b2a3845b6` | 14 | 10 / 4 | 87 | |
+| `beb4f8533` (PB4 drift) | 14 | 10 / 4 | 87 | |
+| **`358d59a42`** (first bad) | **36** | 18 / 18 | 109 | £69,818 |
+| `29de32469` | 36 | 18 / 18 | 109 | |
+| `8af70203f` (bad end) | 37 | 19 / 18 | 110 | £65,909 |
+| **`8af70203f` with only `SETTLEMENT_CUSTOMER_YEAR_BUDGET = 1050.0`** | **15** | 11 / 4 | 88 | £52,536 |
+
+`git bisect run` over `ARMS_SUBSTRATE_PATHS` named `358d59a42` ("The settlement budget is re-priced on
+the fixed code's live peak: 1,050 to 1,750 customer-years"). The one-variable revert at the bad end then
+takes the count from 37 back to 15. So the budget alone carries 22 of the 23-account gap. The remaining one
+account, and a three-id difference in which prospects settle (`PROS-2016-0042`, `-0090`, `-0112`), come from
+the rest of the range. The settlement chooser picks for spread over the demand axes, so changes to world
+demand can change which prospects it picks. That residual is not attributed further.
+
+**Why +67% budget gave +279% prospects.** `settle_within_budget` charges the founders' customer-years first
+and gives the campaign only `budget - committed`. With roughly 75 founder and SME accounts over a nine-year
+window committed first, the campaign's headroom roughly triples when the budget rises by 700. That is
+consistent with 52 to 197, but it is not measured here: neither artefact records `customer_years_committed`.
+
+**Grades.** B0 PASS (14 and 37). B1 FAIL and B2 FAIL: neither the PB4 trio nor B7 moves the count, and
+`beb4f8533` is measured clean. B3 PASS: one commit carries 22 of 23 (96%). The candidate list in the grading
+above ranked world mechanisms and missed an engineering dial. The dial's own commit message said what it
+did: "A run's wall time rises by about 2.2 s per added customer-year". It did not say the published book
+would move.
+
+**What this means for the readings.**
+- `20261005c` against `20261007w` (and `h`) is a comparison of two books sized by two machine budgets.
+  Every P1-P5 move in the step (d) table carries the budget, so none of them bounds W2_20. That was already
+  the conclusion. It now has a cause.
+- `h` and `w` share the 1,750 budget, so the owed W2_20-alone reading (i), `b2ec5147a` with `81732ffe2`
+  reverted against `h` leg 1, compares like with like on this axis.
+- The value-arms book's acquired half is a sample sized by our memory budget. A figure published from it
+  should name that budget. Until this landing the artefact could not.
+
+**Landed with this:** `tools/run_value_cycle_ab.book_at_run` now snapshots the budget and sample rate the
+campaign actually used (from `live_population.LAST_CAMPAIGN`), and `book_identity` publishes them per arm:
+`settlement_customer_year_budget`, `settlement_sample_rate`, and a named `None` when no campaign was
+resolved. They are kept out of `BOOK_DECLARED_FIELDS`, so artefacts written before this still pair. The
+control is `test_the_book_names_the_settlement_budget_its_campaign_used_or_says_it_cannot`, over both
+branches. A mutation that reads the module constant instead of the campaign's figure turns it red.
+Verified on a real run: `origin/main` `20719d272` with this diff, `--end-year 2017`
+(`/var/tmp/se-w220-bisect-out/head_with_budget.json`). Both arms read `settlement_customer_year_budget`
+1750.0 and `settlement_sample_rate` 0.4188, so even this truncated book settles 42% of its own campaign wins.

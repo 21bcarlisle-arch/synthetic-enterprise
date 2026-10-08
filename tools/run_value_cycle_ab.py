@@ -1053,7 +1053,30 @@ def book_at_run(weather_before: str | None = None) -> dict:
         # it read, and `same_book_across_arms` refuses either way. See `weather_store_digest`.
         "weather_store_before_arm": weather_before,
         "weather_store_after_arm": weather_store_digest(),
+        # THE BUDGET THAT SIZED THE ACQUIRED HALF OF THE BOOK, as the campaign that built it
+        # used it. Raising `SETTLEMENT_CUSTOMER_YEAR_BUDGET` from 1,050 to 1,750 (358d59a42) took
+        # the window's PROS-* accounts from 52 to 197 and nothing in the artefact said so. It
+        # took a bisect to find (SEAT_FINDING_W2_20_..._2026-10-07, section (ii)).
+        **_campaign_budget_at_run(),
     }
+
+
+def _campaign_budget_at_run() -> dict:
+    """The settlement budget and sample rate of the campaign resolved in THIS process, or a
+    named `None`. Read from `LAST_CAMPAIGN` (what the campaign used), never from the module
+    constant: a caller can pass its own budget, and the constant would then name a book nobody
+    built. A memo hit in `live_population._campaign` does not refresh `LAST_CAMPAIGN`, so this is
+    the LAST campaign resolved in the process. In an arms run that is the arms' own campaign."""
+    from simulation.live_population import LAST_CAMPAIGN
+
+    if "customer_year_budget" not in LAST_CAMPAIGN:
+        return {"settlement_customer_year_budget": None, "settlement_sample_rate": None,
+                "settlement_budget_unavailable_because": (
+                    "no growth campaign was resolved in this process before the arm ended, "
+                    "so which budget sized the acquired accounts is not known")}
+    return {"settlement_customer_year_budget": LAST_CAMPAIGN["customer_year_budget"],
+            "settlement_sample_rate": LAST_CAMPAIGN.get("settlement_sample_rate"),
+            "settlement_budget_unavailable_because": None}
 
 
 def same_book_across_arms(books: dict) -> dict:
@@ -1164,6 +1187,14 @@ def book_identity(result: dict, at_run: dict | None = None) -> dict:
         # Which weather world this arm ran in, bracketed -- see `weather_store_digest`.
         "weather_store_before_arm": snapshot.get("weather_store_before_arm"),
         "weather_store_after_arm": snapshot.get("weather_store_after_arm"),
+        # The budget that set how many acquired accounts settle -- see `book_at_run`. An input
+        # to the book, but kept out of BOOK_DECLARED_FIELDS so artefacts written before it
+        # existed still pair.
+        "settlement_customer_year_budget": snapshot.get("settlement_customer_year_budget"),
+        "settlement_sample_rate": snapshot.get("settlement_sample_rate"),
+        "settlement_budget_unavailable_because": (
+            snapshot.get("settlement_budget_unavailable_because") if snapshot else
+            "the caller recorded no book at this arm's run"),
         "served_segments_unavailable_because": (
             None if snapshot else
             "the caller recorded no book at this arm's run, so which segments it served is "
