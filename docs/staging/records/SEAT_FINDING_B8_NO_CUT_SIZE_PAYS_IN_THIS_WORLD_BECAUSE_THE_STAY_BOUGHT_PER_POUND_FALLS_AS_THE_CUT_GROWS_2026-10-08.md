@@ -97,6 +97,14 @@ estimate is read, not the decision.
   If the real slope were about four times steeper, small cuts would start to pay at the top of the
   margin bracket. That is the number most worth sourcing for B8.
 
+**2026-10-08, the save-offer question sourced:** `docs/market_research/a_save_offer_against_the_switching_rules_and_the_seam.md`.
+A GB losing supplier hears of a switch 1 working day to 28 days ahead under CSS. It may make an offer,
+but may not block the switch with one (SLC 14.4), and from April 2022 the offer can only be a fixed
+retention tariff (SLC 22B derogation). The regulator describes 2022-2025 practice as retention tariffs
+*targeted at term end*, not reactive saves, and how common reactive saves are is not published. In
+this world the company is told of a loss only once the switch can no longer be cancelled, and nothing
+can answer a save, so a save-offer decision set would need world build first.
+
 ## Reproducing it
 
 ```
