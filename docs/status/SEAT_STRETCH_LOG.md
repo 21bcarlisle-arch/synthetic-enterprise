@@ -8,6 +8,188 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-10-08 — orientation: B8 reached L2 at 23:59:57Z (58993b3b5), a minute after this brief was cut
+
+<!-- head: 161240bf2b04 -->
+
+*Written by the orientation seat from its own record (2026-10-07T23:58:40.792896+00:00; 7 commits, 4 substantive, since 2026-10-07T23:21:00.557469+00:00).*
+
+## What the stretch meant
+
+B8 reached L2 at 23:59:57Z (58993b3b5), a minute after this brief was cut. That is the first time the thesis's own comparison has been run: a company decision reads the effect it learned and is graded against the two flat rules a supplier could have set in advance. The answer is honest and limited. At the real GBP 7.5/MWh cut the learned effect (+0.0114 of staying) is far below what the cut needs to pay (+0.048), so the learned rule chooses cut-for-none. It beats cut-for-all by GBP 9.00-11.49 a decision at both published margin ends, and the planted arm cuts where it should. So inference beat the flat rule a careless supplier would use, and it matched the right flat rule. It did not beat the best one, because no per-customer heterogeneity was used: neither channel reached the 27,701 decisions per arm needed to read it alone. Whether learning beats the BEST flat rule is still unanswered, and that is the thesis question. The next bounded step (a curve of cut sizes) was promised as a continuation, but none is live, so focus two re-issues it. The director's knowledge item is done: fe150ffd1 wrote the four practitioner points into three pages, and 6f057d77b mapped them to levers and filed four contradictions. The largest one is in the world. arrears_engine recovers 12-25.5p per GBP written off, above the published 5.4-9.3p purchase prices, and the register's 0.05 is read by no code. So the world understates bad debt, and the world must press back on the debt side before a debt-aware decision can be trusted. That is focus three. The same finding notes that the open home-moves row's bias sentence is stale: B7 slice 4 (dfa787a37) already books the change-of-tenancy window as occupier debt. The row is carried verbatim as the rules require. That correction is recorded here, and it strengthens the row's proposal. The scale question (focus three last time) was drawn and landed nothing. Its float32 input is in (f12ba4b90: settlement holds to 0.0001 kWh, and the 160-founder peak falls 50 MB), so it leads now. The direction channel is still broken on origin: 687578352 fixed the 20:44 red, but origin reads 14:21 and the 23:21 record is committed: false. The checkout is 7 behind and 0 ahead, and seven units run code that lacks f12ba4b90. 7 commits, 4 substantive. acff52923 in /var/tmp/se-draw-order is still disposable, as recorded at 14:21.
+
+## What went wrong
+
+- NOT corrected: THE MACHINE'S, CARRIED. One item can land twice, on origin through surgical_land and as a local commit on the shared HEAD. Owner: SEAT_FINDING_ONE_ITEM_LANDS_TWICE_AND_THE_SHARED_HEAD_FORKS_FROM_ORIGIN. 00:00: no new instance. The checkout is 7 behind origin again, 0 ahead, so this is not forking now, and nothing stops the next one.
+- NOT corrected: THE MACHINE'S, CARRIED. A held change's hold condition is not re-asked when its premise moves. Owner: SEAT_FINDING_A_HOLD_OR_A_TOMBSTONE_STATES_ITS_CONDITION_IN_PROSE_AND_NOTHING_RE_ASKS_IT. 00:00: no new instance.
+- NOT corrected: THE MACHINE'S, CARRIED. The held-work check refuses an item when its prose names a held file, even when the held work is not the item's, and the refusal reaches only the supervisor log. 00:00: no new instance.
+- NOT corrected: THE MACHINE'S, CARRIED. The seat's brief reads the director's open concerns from the behind checkout. 00:00: the checkout is 7 behind again, and none of the 7 touched DIRECTION.yaml, so the eight rows still match by circumstance. The class is unfixed.
+- NOT corrected: THE MACHINE'S, CARRIED. The draw ledger reads the same for work never started and for work mid-landing, because it asks only origin by path. 00:00: no mid-landing case in this stretch. B8 L2 was mid-landing at brief time (surgical_land pid 560554) and landed at 23:59:57Z as 58993b3b5, so the next brief is the test.
+- NOT corrected: THE MACHINE'S, CARRIED. A focus-row tombstone still retires a row without asking its DONE. 00:00: the-four-practitioner-points-reach-the-knowledge-pages was retired by a focus-row tombstone at 23:55. This time its DONE was met (fe150ffd1 pages, 6f057d77b table and finding), but the tombstone did not ask.
+- NOT corrected: THE MACHINE'S, CARRIED. A landing can carry docs/direction/DIRECTION.yaml from the shared working copy when it is older than origin's. 00:00: the working copy (23:21) is still newer than origin (14:21), and no landing swept it this stretch.
+- NOT corrected: THE MACHINE'S, CARRIED. A parked atom is still counted as drawn. H45 is PARKED and the counter still moves. 00:00: SITE2 rose by 15 in 37 minutes, to 42695.
+- NOT corrected: THE MACHINE'S, CARRIED. The coupled-triad gate now excludes twinless L3 targets, and its refusal reaches only the supervisor journal. 00:00: no new instance.
+- NOT corrected: THE WORLD'S, CARRIED. A gas-heated fabric home's electricity has no season: the median month max/min is 1.288 against SERL's 1.36-1.47. 00:00: unchanged.
+- NOT corrected: THE MACHINE'S, CARRIED. The draw ledger credits or denies an item by path overlap, not by its work. 00:00: both rows still read landed_unbound to the wrong commits, though d06af26a5 dispositioned them as not their work. The ledger does not read that disposition back.
+- NOT corrected: THE WORLD'S, CARRIED. Between W2_20's value-arms takes, the book more than doubled: control-arm gas legs went from 64 of 127 to 183 of 272 (b870dd6c5). No commit pre-registered or claims that move. 00:00: leg two's seed three is still running (pid 4036375, 5h35m, 7.7 GB). The continuation stays embargoed to 01:45.
+- NOT corrected: THE MACHINE'S, CARRIED. The 17:22 direction record never reached origin. 00:00: the 20:44 red is diagnosed and fixed on origin (687578352: one wrong-row sentence had two homes on the delivery feed). Origin still reads 14:21 and the 23:21 record is committed: false too. Uncorrected until this record reaches origin with committed: true.
+- NOT corrected: THE MACHINE'S, NEW. B8 L2's commit (58993b3b5) says the next step, grading the decision over a curve of cut sizes, is handed on as a seat continuation. At 00:00 no such continuation is live. The live queue still offers b8-the-learned-offer-effect-drives-a-decision-and-meets-the-flat-baseline, which that commit spent, and its claim is still held in .seat_work_in_hand.json. Focus two re-issues the step under a new id so that it is not lost.
+- corrected: MINE, NEW. My 23:21 record put what-stops-the-everyday-settled-book-reaching-thousands third. It was drawn, holds no claim now, and nothing landed under it. The float32 result it was told to wait for landed at 23:40 (f12ba4b90), so nothing now stands in its way. CORRECTED in ordering: it is focus one in this record.
+
+## Chosen against
+
+- Keying W2_36's hard-to-read class to the premises (contradiction 2) as focus now.
+- Tilting smart_read_share by tenure from the EHS table (contradiction 3).
+- Renaming the void deemed leg to the owner (contradiction 4).
+- A focus row to make the direction record reach origin.
+- A focus row for W2_20's doubled book.
+- Using the lean set's fresh seeds as a stand-in for the director's EP17 independent-books question.
+- Mechanism fixes for the fix-open machine rows (tombstones, held-work, parked-atom counting, ledger grading by path).
+
+## Focus for the next stretch
+
+- `what-stops-the-everyday-settled-book-reaching-thousands`
+- `b8-the-learned-decision-is-graded-over-a-curve-of-cut-sizes`
+- `the-worlds-post-write-off-recovery-reads-the-register`
+
+---
+
+## 2026-10-08 — orientation: For the first time in a week the inference half of the thesis moved
+
+<!-- head: 6f279a749859 -->
+
+*Written by the orientation seat from its own record (2026-10-07T23:21:00.557469+00:00; 11 commits, 3 substantive, since 2026-10-07T20:20:59.824849+00:00).*
+
+## What the stretch meant
+
+For the first time in a week the inference half of the thesis moved. B8 reached L1 (0ede45daf): the company learns what its own retention offer does from a seeded coin, reading only what a supplier sees through the seam, and the 95% interval covered the world's true effect on 13 of 13 arms, with the null arm never claiming an effect and the planted arm found on every seed. That refutes my 14:21 not_now, which said a holdout could not make an offer's effect learnable. It was true of the settled book (31 renewals in band in ten years) and false of the lean decision set the director chose at 14:50. This record reads from that. It also corrected the seat's own size: at a stay share near 0.60 and +0.0115 per GBP 7.5/MWh cut, 80% power needs about 28,500 decisions per arm, not 3,000-6,000, and that costs minutes (69,000 decisions in 9 minutes, 139 MB), roughly 1,000 times cheaper per decision than settlement. What it does NOT yet show is the thesis itself. No company decision reads the estimate, so nothing has been compared against the flat-rule baseline. The world's curve is still our own, and the history is electricity-only and flat. That comparison is focus one. W2_39 reached L2 (6ef269632): an SVT household the company writes to is woken, and some of the woken leave, so the world can now press back on a contact. The other half of the stretch went to the founders memory slope (785752c0f, b9dde81d0, 26b1122eb, a0205bfbb): 1.11 MB per settled customer-year at current code, mostly allocator overhead rather than a second copy, and the fabric trace is alive at the peak, so only a smaller trace moves it. That is the evidence the director's third question needs (what stops the everyday book reaching a few thousand), but no finding answers that question yet, so it is focus three. The direction channel is still broken on origin. Origin's DIRECTION.yaml reads 14:21, and both the 17:22 and 20:20 records are committed: false. e98f99792 landed the merge-instead-of-re-gate fix at 22:46, after the 20:44 refusal, and that refusal was a red gate, not origin moving. The director has asked the interactive seat to find that red, and its gate re-run is in flight (wait_for se-red2044). So the fix is untested, and its DONE (a record reaching origin with committed: true) is unmet. The checkout is now level with origin (0 ahead, 0 behind), and W2_18's 0a4d5324a is on origin. Both previous focus items were drawn. B8 landed, and the direction landing landed its mechanism but not its outcome. 11 commits, 3 substantive and 3 empty merges. acff52923 in /var/tmp/se-draw-order is still disposable, as recorded at 14:21.
+
+## What went wrong
+
+- NOT corrected: THE MACHINE'S, CARRIED. One item can land twice, on origin through surgical_land and as a local commit on the shared HEAD. Owner: SEAT_FINDING_ONE_ITEM_LANDS_TWICE_AND_THE_SHARED_HEAD_FORKS_FROM_ORIGIN. 23:21: no new instance. The checkout is now level (0 ahead, 0 behind), and nothing stops the next one.
+- NOT corrected: THE MACHINE'S, CARRIED. A held change's hold condition is not re-asked when its premise moves. Owner: SEAT_FINDING_A_HOLD_OR_A_TOMBSTONE_STATES_ITS_CONDITION_IN_PROSE_AND_NOTHING_RE_ASKS_IT. 23:21: no new instance.
+- NOT corrected: THE MACHINE'S, CARRIED. The held-work check refuses an item when its prose names a held file, even when the held work is not the item's, and the refusal reaches only the supervisor log. 23:21: no new instance.
+- NOT corrected: THE MACHINE'S, CARRIED. The seat's brief reads the director's open concerns from the behind checkout. 23:21: the checkout is level now, so the eight rows match, but by circumstance. The class is unfixed.
+- NOT corrected: THE MACHINE'S, CARRIED. The draw ledger reads the same for work never started and for work mid-landing, because it asks only origin by path. 23:21: W2_39 landed (6ef269632) and does not appear as not_done, but this stretch held no mid-landing case to test it.
+- NOT corrected: THE MACHINE'S, CARRIED. A focus-row tombstone still retires a row without asking its DONE. 23:21: no new instance.
+- NOT corrected: THE MACHINE'S, CARRIED. A landing can carry docs/direction/DIRECTION.yaml from the shared working copy when it is older than origin's. 23:21: the working copy (20:20) is still newer than origin (14:21), and no landing swept it this stretch.
+- NOT corrected: THE MACHINE'S, CARRIED. A parked atom is still counted as drawn. H45 is PARKED and the counter still moves. 23:21: SITE2 rose by 84 in three hours, to 42680.
+- NOT corrected: THE MACHINE'S, CARRIED. The coupled-triad gate now excludes twinless L3 targets, and its refusal reaches only the supervisor journal. 23:21: no new instance.
+- NOT corrected: THE WORLD'S, CARRIED. A gas-heated fabric home's electricity has no season: the median month max/min is 1.288 against SERL's 1.36-1.47. 23:21: unchanged.
+- NOT corrected: THE MACHINE'S, CARRIED. The draw ledger credits or denies an item by path overlap, not by its work. 23:21: a new instance. It reads a-run-entry-point-refuses-when-the-box-has-no-room as landed_unbound to 6ef269632, W2_39's L2 commit, because both touched simulation/run_phase2b.py. Its work is a21890675. the-retention-netting-reaches-code-and-its-arms-differ still reads 7001e679a, a merge; the work is 6870d3c8b and 49f2587f1.
+- NOT corrected: THE WORLD'S, CARRIED. Between W2_20's value-arms takes, the book more than doubled: control-arm gas legs went from 64 of 127 to 183 of 272 (b870dd6c5). No commit pre-registered or claims that move. 23:21: the attributing continuation was retired at 22:25 and re-issued, embargoed to 2026-10-08T01:45 while leg two's seed three runs (pid 4036375).
+- corrected: MINE, CARRIED. My 17:22 record steered B8 as an atom (level 0, idle), and it was not drawn. CORRECTED: the 20:20 Lane 0 slice b8-the-coin-drawn-decision-set-is-built-and-graded was drawn, and B8 reached L1 on origin (0ede45daf).
+- NOT corrected: THE MACHINE'S, CARRIED. The 17:22 direction record never reached origin. 23:21: neither did the 20:20 record. decisions.jsonl reads committed: false for both, and origin still reads 14:21. e98f99792 (22:46) landed the fix for origin moving under the gate, but the 20:44 refusal was a red gate, which the interactive seat is now diagnosing. Uncorrected until a record reaches origin with committed: true.
+- corrected: MINE, NEW. My 14:21 not_now said a holdout could not make a retention offer's effect learnable. That held for the settled book, and I let it stand as a statement about the method. B8 (0ede45daf) shows the lean coin-drawn set learns it on 13 of 13 arms. CORRECTED: this record reads from B8.
+- corrected: MINE, NEW. The 3,000-6,000 decisions per arm the seat promised the director at 14:54 assumed a stay share near 0.15. The world's is about 0.60, and 80% power needs about 28,500 per arm. CORRECTED in B8's own result, and focus one is sized from it.
+
+## Chosen against
+
+- Making the direction record reach origin (the director's item 1) a focus row.
+- A focus row for W2_20's doubled book.
+- Extending B8's lean set with a gas leg, the competitor ledger and satisfaction before L2.
+- Using B8's fresh coin-drawn seeds to settle the director's open EP17 question (independent books).
+- Working W2_21 (the premise joint is fitted, not drawn independently), stalled at 39 draws.
+- Mechanism fixes for the fix-open machine rows (tombstones, held-work refusals, parked atoms counted as drawn, ledger grading by path).
+
+## Focus for the next stretch
+
+- `b8-the-learned-offer-effect-drives-a-decision-and-meets-the-flat-baseline`
+- `the-four-practitioner-points-reach-the-knowledge-pages`
+- `what-stops-the-everyday-settled-book-reaching-thousands`
+
+---
+
+## 2026-10-07 — orientation: The baseline question has not moved: on this book, per-customer pricing is inside the flat-rule blind span, and only independent books (the director's open EP17 row) c
+
+<!-- head: b870dd6c5101 -->
+
+*Written by the orientation seat from its own record (2026-10-07T20:20:59.824849+00:00; 8 commits, 4 substantive, since 2026-10-07T17:22:40.053561+00:00).*
+
+## What the stretch meant
+
+The baseline question has not moved: on this book, per-customer pricing is inside the flat-rule blind span, and only independent books (the director's open EP17 row) can separate them. The route the director chose at 14:50 to get past that, the lean coin-drawn decision set (B8), was not drawn at all. B8 was steered as an atom, and the anti-livelock draw does not take a stalled atom, which is the same error I made with W2_39 at 14:21. This record re-issues it as a Lane 0 slice. The stretch went instead to memory: the box can now refuse a run it has no room for (a21890675), a run cut short no longer builds traces for wins it never settles (3e752c8f8), and the trace is stored as arrays (046c6a9b1, 40-founder peak 2,388 -> 2,100 MB). 9bbc0e751 then refuted the stretch's own working theory: the fabric trace is not the founders slope (0.088 MB per settled customer-year against 1.35). Whether a founders slope still exists at current code is queued (founders-only-slope-at-current-code), and at 2,141 MB for 160 founders, calibration runs fit the box. That is good housekeeping for full settlement, which the director has kept for calibration only, so it does not move the thesis. W2_39, the world answering a contact, was drawn as a slice this stretch, and its L2 landing is in flight now (pid 807976, surgical_land 'W2_39 reaches L2'). That corrects my 14:21 steering error, but W2_39 does not count as done until it is on origin. The machine went BACKWARDS on steering in a new way. The 17:22 direction record never reached origin: origin moved under its gate on all 3 attempts in 2637 s, decisions.jsonl reads committed: false, and origin's DIRECTION.yaml still reads 14:21. The draw steered from the shared working copy anyway, so the work followed a record the director cannot see on origin. 87906777c in /var/tmp/se-direction-seat is that record and is disposable, because this record supersedes it. acff52923 (/var/tmp/se-draw-order) is still disposable, as recorded at 14:21. The W2_20 doubled book is still unattributed: longjob-w220-head-arms is running and its continuation is embargoed to 23:15Z. Of the 4 items in the previous focus, 3 were drawn: the founders peaks were read and reported (b19bfd6b9, cc5c25106, 72c7cb15d), the run refusal landed (a21890675), and W2_39 is landing. The fourth, B8, was not drawn. 8 commits, 4 substantive, none empty. The checkout is 0 ahead and 9 behind, and seven units lack the four memory commits.
+
+## What went wrong
+
+- NOT corrected: THE MACHINE'S, CARRIED. One item can land twice, on origin through surgical_land and as a local commit on the shared HEAD. Owner: SEAT_FINDING_ONE_ITEM_LANDS_TWICE_AND_THE_SHARED_HEAD_FORKS_FROM_ORIGIN. 20:20: no new instance. The checkout is 0 ahead and 9 behind. Nothing stops the next one, so the class is open.
+- NOT corrected: THE MACHINE'S, CARRIED. A held change's hold condition is not re-asked when its premise moves. Owner: SEAT_FINDING_A_HOLD_OR_A_TOMBSTONE_STATES_ITS_CONDITION_IN_PROSE_AND_NOTHING_RE_ASKS_IT. 20:20: no new instance.
+- NOT corrected: THE MACHINE'S, CARRIED. The held-work check refuses an item when its prose names a held file, even when the held work is not the item's, and the refusal reaches only the supervisor log. 20:20: no new instance.
+- NOT corrected: THE MACHINE'S, CARRIED. The seat's brief reads the director's open concerns from the behind checkout. 20:20: the checkout is 9 behind, and the eight rows match the current record. Carried from the record by hand; the class is unfixed.
+- NOT corrected: THE MACHINE'S, CARRIED. The draw ledger reads the same for work never started and for work mid-landing, because it asks only origin by path. 20:20: W2_39's slice is mid-landing now (pid 807976), so the next brief is the test.
+- NOT corrected: THE MACHINE'S, CARRIED. A focus-row tombstone still retires a row without asking its DONE. 20:20: a-run-entry-point-refuses-when-the-box-has-no-room was tombstoned at 19:18Z. a21890675 is on origin with its test, so its DONE plausibly holds, but nothing asked whether the controls fire under mutation.
+- NOT corrected: THE MACHINE'S, CARRIED. A landing can carry docs/direction/DIRECTION.yaml from the shared working copy when it is older than origin's. 20:20: the working copy is now NEWER than origin (17:22 against 14:21), because the 17:22 landing was refused. Another lane's landing that sweeps it would land an unreviewed record. See the new row below.
+- NOT corrected: THE MACHINE'S, CARRIED. A parked atom is still counted as drawn. H45 is PARKED and the counter still moves. 20:20: neither B11 nor H45 was drawn this stretch. SITE2 rose by 67 in three hours, to 42596.
+- NOT corrected: THE MACHINE'S, CARRIED. The coupled-triad gate now excludes twinless L3 targets, and its refusal reaches only the supervisor journal. 20:20: no new instance.
+- NOT corrected: THE WORLD'S, CARRIED. A gas-heated fabric home's electricity has no season: the median month max/min is 1.288 against SERL's 1.36-1.47. 20:20: unchanged, and there is still no published term for the flat summer base.
+- NOT corrected: THE MACHINE'S, CARRIED. The draw ledger credits or denies an item by path overlap, not by its work. 20:20: unchanged. It still reads the-retention-netting-reaches-code-and-its-arms-differ as landed_unbound to 7001e679a, a base-advance merge. The work is 6870d3c8b and 49f2587f1.
+- corrected: MINE, CARRIED. My 14:21 record steered W2_39 as an atom while the draw had stopped taking it, and it was not drawn. CORRECTED: the 17:22 Lane 0 slice w2-39-the-svt-roll-reaches-the-contact-response was drawn this stretch, and its L2 landing is in flight. The same error recurred at 17:22 with B8; see the new row.
+- NOT corrected: THE WORLD'S, CARRIED. Between W2_20's value-arms takes, the book more than doubled: control-arm gas legs went from 64 of 127 to 183 of 272 (b870dd6c5). No commit pre-registered or claims that move, and a candidate in a9e6f2144..8af70203f is unchecked. Owner: the queued w2-20-publish-the-head-arms-and-attribute-the-doubled-book. 20:20: longjob-w220-head-arms is running; embargoed to 23:15Z.
+- NOT corrected: MINE, NEW. My 17:22 record steered B8 as an atom (level 0, idle), the same mistake I had just corrected for W2_39, and it was not drawn. This record re-issues it as a Lane 0 slice. It stays uncorrected until that slice is drawn.
+- NOT corrected: THE MACHINE'S, NEW. The 17:22 direction record never reached origin. Origin moved under its gate on all 3 attempts in 2637 s, and decisions.jsonl reads committed: false. The draw steered from the shared working copy anyway, so a stretch's work followed a record that is on no remote (87906777c, /var/tmp/se-direction-seat). This is focus item two.
+
+## Chosen against
+
+- Steering W2_39 (the SVT roll reaching the contact response) again.
+- Attributing W2_20's doubled book (b870dd6c5) as a focus item.
+- Chasing the founders slope further (term-loop locals, treasury register) as a focus item.
+- W2_21 (the premise joint is fitted, not drawn independently), stalled at 34 draws with nothing working it.
+- Running EP17's twelve book seeds.
+- Mechanisms for the remaining fix-open machine problems: tombstones, held-work refusals, parked atoms counted as drawn, and the draw ledger's path grading.
+
+## Focus for the next stretch
+
+- `b8-the-coin-drawn-decision-set-is-built-and-graded`
+- `a-direction-record-lands-when-origin-moves-under-its-gate`
+
+---
+
+## 2026-10-07 — orientation: The baseline question has not moved: on this book, per-customer pricing is inside the flat-rule blind span, and only independent books (the director's open EP17 row) c
+
+<!-- head: b870dd6c5101 -->
+
+*Written by the orientation seat from its own record (2026-10-07T17:22:40.053561+00:00; 6 commits, 3 substantive, since 2026-10-07T14:21:27.941831+00:00).*
+
+## What the stretch meant
+
+The baseline question has not moved: on this book, per-customer pricing is inside the flat-rule blind span, and only independent books (the director's open EP17 row) can separate them. What changed is the route to scale. At 14:50 the director ruled that experiments run on the lean per-decision method and full settlement stays for calibration. The 14:54 reply agreed and split the question in two. Judging a policy needs only the per-decision score (6.8 against 0.73 for the book-level measure, about 6-15 decisions at 80% power), but that precision measures a churn curve we wrote. The company LEARNING an offer's effect from its own holdout needs coin-drawn decisions, about 3,000-6,000 per arm, and 3811342db shows today's record gives 31 in ten years. That second part is the thesis's 'inference, never access' in its sharpest form. It is now buildable without settlement, and it is this record's first build. The reply made three promises: the 40-vs-160 comparison, an entry-point memory refusal, and the coin-drawn set. None is on origin yet. The comparison finished at 16:43Z (two runs: 2,465 MB and 3,353 MB peak). Nobody has read it or reported it, so it is focus item one. The director's 'knowledge half not started' was a factual error: fbe24afea landed all three pages on 2026-10-06 and the reply said so. The world moved twice. First, W2_20's step 2 put the supply flag on the bill: a mains-gas boiler with no supply is 0% (EHS AT3.5), and the gas-register share is 82.2%, inside its pre-registered band. Second, its value-arms re-take failed P1-P4 because the book more than doubled for a reason no commit claims (b870dd6c5). An unattributed doubling of the book is a world defect until named. Its attribution is already queued (w2-20-publish-the-head-arms-..., embargoed to 23:15Z), so it is not re-steered here. The machine went FORWARD on its own steering. e549d787c moves the brief to stdin, records a session that did not run as refused, and lands no direction for it, with both controls firing under mutation. This brief arrived whole, which is the first live evidence. 6957959a8 closed the shared HEAD's fork: W2_18's L1 (0a4d5324a) is on origin, 1cd4bda0e is an ancestor of HEAD, and the checkout is 0 ahead, 1 behind. H40 reached L1 by naming the full-suite polluter, and H50 reached L1 by making a second run start from the drawn book. Of the previous focus, 2 of 3 were drawn and both landed. The third, W2_39, was not drawn at all: it sits at 131 unchanged draws, and the anti-livelock draw has stopped taking it. Steering it again as an atom would repeat a steer that has drifted, so it returns below as a Lane 0 slice. 6 commits, 3 substantive. Disposable, unchanged: acff52923 in /var/tmp/se-draw-order. /var/tmp/se-scale is owned by live pid 2197437. It holds the scale artefacts and an uncommitted correction to the closed knowledge-and-scale steer. It is not disposable.
+
+## What went wrong
+
+- NOT corrected: THE MACHINE'S, CARRIED. One item can land twice, on origin through surgical_land and as a local commit on the shared HEAD. Owner: SEAT_FINDING_ONE_ITEM_LANDS_TWICE_AND_THE_SHARED_HEAD_FORKS_FROM_ORIGIN. 17:22: the W2_18 instance is closed. 6957959a8 merged 0a4d5324a onto origin, and the checkout is 0 ahead, 1 behind. Nothing stops the next one, so the class is open.
+- NOT corrected: THE MACHINE'S, CARRIED. A held change's hold condition is not re-asked when its premise moves. Owner: SEAT_FINDING_A_HOLD_OR_A_TOMBSTONE_STATES_ITS_CONDITION_IN_PROSE_AND_NOTHING_RE_ASKS_IT. 17:22: no new instance.
+- NOT corrected: THE MACHINE'S, CARRIED. The held-work check refuses an item when its prose names a held file, even when the held work is not the item's, and the refusal reaches only the supervisor log. 17:22: no new instance.
+- NOT corrected: THE MACHINE'S, CARRIED. The seat's brief reads the director's open concerns from the behind checkout. 17:22: the checkout is 1 behind and the eight rows match the current record. Carried from origin by hand; the class is unfixed.
+- NOT corrected: THE MACHINE'S, CARRIED. The draw ledger reads the same for work never started and for work mid-landing, because it asks only origin by path. 17:22: no new mid-landing instance.
+- NOT corrected: THE MACHINE'S, CARRIED. A focus-row tombstone still retires a row without asking its DONE. 17:22: the-w2-18-level-and-the-shared-checkout-reach-origin was tombstoned at 16:19Z, and its DONE does hold (W2_18 at L1 on origin, 1cd4bda0e an ancestor of HEAD). It was right by luck, not by check.
+- NOT corrected: THE MACHINE'S, CARRIED. A landing can carry docs/direction/DIRECTION.yaml from the shared working copy when it is older than origin's. 17:22: e549d787c closes the failed-session path that did it at 11:24. Another lane's landing can still carry it, and the working copy matches origin right now.
+- NOT corrected: THE MACHINE'S, CARRIED. A parked atom is still counted as drawn. H45 is PARKED and the counter still moves. 17:22: B11 is parked and was drawn again this stretch (346 unchanged draws). SITE2 rose by 81 in three hours, to 42529.
+- NOT corrected: THE MACHINE'S, CARRIED. The coupled-triad gate now excludes twinless L3 targets, and its refusal reaches only the supervisor journal. 17:22: no new instance.
+- NOT corrected: THE WORLD'S, CARRIED. A gas-heated fabric home's electricity has no season: the median month max/min is 1.288 against SERL's 1.36-1.47. 17:22: unchanged, and there is still no published term for the flat summer base.
+- corrected: THE MACHINE'S, CARRIED. The 20:21 seat session failed (rc=1 then; ran: false) and was recorded as a successful one. CORRECTED by e549d787c: a session that did not run is appended as refused, paged as blocked_work, and commits no direction. The control forcing a failed spawn fires under its mutation.
+- NOT corrected: THE MACHINE'S, CARRIED. The draw ledger credits or denies an item by path overlap, not by its work. RECURRED 17:22: it now reads the-retention-netting-reaches-code-and-its-arms-differ as landed_unbound to 7001e679a, a base-advance merge. The work is 6870d3c8b and 49f2587f1.
+- corrected: THE MACHINE'S, CARRIED. The seat's brief is passed to the session as one argv string. CORRECTED by e549d787c: the prompt goes on stdin, and a 200,000-byte spawn control fires when argv is restored. This orientation's brief arrived whole.
+- NOT corrected: MINE, NEW. My 14:21 record steered W2_39 as an atom while the draw had stopped taking it, and it was not drawn. The brief says a stalled atom is reached only through a Lane 0 slice. This record re-issues it as one, so it stays uncorrected until the slice is drawn.
+- NOT corrected: THE WORLD'S, NEW. Between W2_20's value-arms takes, the book more than doubled: control-arm gas legs went from 64 of 127 to 183 of 272 (b870dd6c5). No commit pre-registered or claims that move, and a candidate in a9e6f2144..8af70203f is unchecked. Owner: the queued w2-20-publish-the-head-arms-and-attribute-the-doubled-book.
+
+## Chosen against
+
+- Attributing the doubled book behind W2_20's failed value-arms re-take (b870dd6c5) as a focus item.
+- Re-running tracemalloc to find which code holds the settlement peak.
+- Raising the founder count or the prospect cap so the full-settlement book reaches thousands.
+- Running EP17's twelve book seeds.
+- Steering C34 or B11 directly.
+- Mechanisms for the remaining fix-open machine problems: tombstones, held-work refusals, parked atoms counted as drawn, and the draw ledger's path grading.
+
+## Focus for the next stretch
+
+- `the-40-and-160-founder-peaks-are-read-and-reported`
+- `B8_discovered_price_sensitivity_holdout`
+- `a-run-entry-point-refuses-when-the-box-has-no-room`
+- `w2-39-the-svt-roll-reaches-the-contact-response`
+
+---
+
 ## 2026-10-07 — orientation: The baseline question has not moved: per weighted win against the count-matched cull52, the chosen per-customer book is inside the flat-rule blind span on net (d27a2a2
 
 <!-- head: 0a4d5324a26e -->
