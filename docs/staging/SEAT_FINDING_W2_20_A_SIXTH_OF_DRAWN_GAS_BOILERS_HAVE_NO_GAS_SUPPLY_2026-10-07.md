@@ -550,3 +550,41 @@ recovery alone. It is a reading at heads code, not a reading of `212c6396a`.
 | R3 | sign of R2's move | negative. The value arm prices part of the book above control, so it carries slightly more realised bad debt. | ~0.55 |
 | R4 | control-arm billing accounts (h: 272) | unchanged within ±5%. Recovery is post-write-off and does not touch acquisition. | ~0.7 |
 | R5 | H2's shape | persists: leg 1 `value_advantage_gbp` is below its own floor's [min - 1 sd]. | ~0.6 |
+
+## (i) over the full window: W2_20 alone, `b2ec5147a` with `81732ffe2` reverted, against `h` leg 1: pre-registration (seat, 2026-10-08 06:19Z, before launch)
+
+**Premise re-measured.** The two cited commits are on origin. That is why the reading is owed, not why it is
+spent: no artefact anywhere is `b2ec5147a` with `81732ffe2` reverted over 2016-2025. The draw's "held
+under this very id" note was this draw's own claim, and no other process runs this reading.
+
+**Instrument.** `book_identity.control_arm` and `control_arm` of `tools.run_value_cycle_ab` (default draw,
+control plus value, no `--level-arm`), full window. R is the locked worktree `/var/tmp/se-w220-full-R` at
+`b2ec5147a`, with `81732ffe2`'s five code paths reverted (`simulation/premise_population.py`, `household.py`,
+`fabric_physics.py`, `premise_trace.py`, `background/fabric_gap_ledger.py`; `git apply -R` is clean). Its
+SSP cache is `h`'s own file (168,026 records). U is `h` leg 1 as published
+(`value_cycle_ab_s1_three_arm_20261007h.json`, `b2ec5147a`, world `cdba75ebb9197b33`, budget 1,750). Running
+U with `--level-arm` and R without it is not a second variable for the control arm. At 2017, `ad43a298a`
+without the level arm and placebo A with it gave the same control net to the penny (£19,304.97).
+
+U, control arm: 272 billing accounts (197 `PROS-*`), 183 gas legs, 167 dual fuel (share 0.614), net
+£236,270.14, gross margin £669,987.94.
+
+**Scaling from 2017.** At 2017, 3 gas legs were lost among 37 prospects (8%), and the founders did not move.
+`h` has 197 prospects, so about 16 gas legs.
+
+| # | quantity, U - R | prediction | confidence |
+|---|---|---|---|
+| F0 | billing accounts settled | within ±14 (5%) | ~0.6 |
+| F1 | accounts with a gas leg | between -25 and -8 | ~0.5 |
+| F2 | dual-fuel share | between -0.09 and -0.02 | ~0.5 |
+| F3 | control gross margin | down, by 3-12% of R's | ~0.5 |
+| F4 | control `total_net_gbp` | moves by under 5% of U's net (£11.8k); sign negative | ~0.6 / ~0.55 |
+| F5 | accounts whose net moves by more than 1p | all `PROS-*`, no founder or SME | ~0.6 |
+
+**Launched 06:19Z** as `longjob-w220-full-own-effect`, writing `/var/tmp/se-w220-full-out/R.json`. It runs beside `longjob-w220-recov-arms`, not alone as the item asked. The launcher admitted it: 13.4 GB resident plus a 6.5 GB declared peak, against 23.0 GB. Sharing the machine moves memory, not figures: the 2017 placebo's P1 showed the run is deterministic across processes. Waiting for the recovery re-take's 6 h leg 2 would cost a day to protect nothing.
+
+**How to read it.** If F1 is near 0, the 2017 route does not scale, and the full-window book is not where
+the bill-side effect lives. If F5 fails, something couples the founders to the prospects' draw over a
+longer window (shared hedging, treasury, capital), and that coupling is a finding of its own.
+`value_advantage_gbp` is reported, not graded. A single draw against a three-seed floor cannot bound it
+(the placebo note).
