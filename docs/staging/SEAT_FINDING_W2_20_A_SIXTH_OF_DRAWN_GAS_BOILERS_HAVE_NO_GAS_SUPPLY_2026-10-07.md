@@ -644,3 +644,38 @@ unattributed: (ii) found the cause (the 1,750 settlement budget, `358d59a42`). C
 `tests/tools/test_the_heating_changes_own_size_is_differenced_not_typed.py` and
 `site/test_the_heating_changes_own_size_reaches_the_reader.py`. Both were mutated, by disabling the pairing
 guard and the render, and both went red.
+
+## R1-R4 graded on `r` leg 1; leg 2 has not run (seat, 2026-10-08 ~10:20Z)
+
+Leg 1 (`value_cycle_ab_s1_three_arm_20261008r.json`, still in the locked worktree `/var/tmp/se-w220-recov-arms`)
+ran 05:24Z-06:55Z. Its producing commit is `45122d156` and its world is `cdba75ebb9197b33`, the same as `h`.
+Leg 2 was refused at 06:55Z for memory: it needed 11,200 MB and 10,704 MB was free. It has not run. A lane
+queued `longjob-w220-recov-leg2-handoff` at 07:59 BST to relaunch it. That job is waiting on
+`longjob-e2e-400-founders` (14 GB declared). This seat had queued a second relaunch under the same job name.
+It stopped that duplicate within a minute, before it started. If both had stayed, they would have deadlocked
+the `w220-nine-seed` chain or run the leg twice.
+
+| # | `h` | `r` | `r - h` | prediction | graded |
+|---|---:|---:|---:|---|---|
+| R1 control net | £236,270.14 | £235,588.43 | -£681.71 | falls | **pass** |
+| R1 value net | £241,403.98 | £240,832.43 | -£571.55 | falls | **pass** |
+| R1 level net | £230,168.26 | £229,487.67 | -£680.59 | falls | **pass** |
+| R2 `value_advantage_gbp` | £5,133.84 | £5,244.00 | +£110.16 | under 1 floor sd (£1,300) | **pass** |
+| R3 sign of R2's move | | | **positive** | negative | **fail** |
+| R4 control billing accounts | 272 | 272 | 0 | within ±5% | **pass** |
+
+**The whole move is realised bad debt.** In every arm, gross margin, capital cost and the provisioned
+clock agree with `h` to within 1e-4 GBP. Each arm's net falls by exactly its rise in realised bad debt.
+Control bad debt rises £11,971 → £12,653 (+5.7%), close to the recovery commit's ~6% estimate. So the
+pre-registration's warning that "16 substrate paths moved, so a move cannot be pinned on the recovery"
+turns out to be moot for leg 1: no other path moved any settled figure.
+
+**R3 failed because the mechanism ran the other way.** The value arm's realised bad debt rises *less*
+(+£572) than control's (+£682). The value arm's book therefore holds less written-off debt for the lower
+recovery to bite on. I had argued that pricing above control would leave more debt to write off. That
+argument was wrong on this book. The size, £110, is a twelfth of one floor sd, so the sign carries no
+weight as evidence about selection.
+
+R5 waits for leg 2. Publication follows R5. The `h` headline's `w2_20_own_effect` pairs to `b2ec5147a`, so
+it will be withdrawn, with its reason, when the published pair moves to `r`. That withdrawal is expected,
+not a regression.

@@ -376,6 +376,62 @@ def iter_prospects(
         )
 
 
+def price_elasticity_for_prospect(prospect_id: str, base_seed: int) -> float:
+    """A prospect's own latent price elasticity -- the weight it will carry if it is won.
+
+    WORLD TRUTH, and it must never cross `company/interfaces/sim_interface.py`: the company sees
+    its own quote, the price it won at and the channel, never this.
+
+    ONE DRAW, TWO READERS. This is `population_draw._latent_price_elasticity`, the same draw
+    `price_elasticity_for_customer` returns once the prospect is won and registered, so the funnel
+    and every later renewal feel the price with the same weight. It cannot go through that accessor
+    because a prospect is not yet on the live book and its roster guard (correctly) refuses it, so
+    it brings its own guard instead: only an id in the prospect namespace is answered, and a supply
+    point leg is refused for the same reason the household accessor refuses one.
+    """
+    from simulation.household import household_of
+    from simulation.population_draw import _latent_price_elasticity
+
+    if not prospect_id.startswith(f"{PROSPECT_ID_PREFIX}-") or household_of(prospect_id) != prospect_id:
+        raise ValueError(
+            f"price_elasticity_for_prospect refuses {prospect_id!r}: only a {PROSPECT_ID_PREFIX}-* "
+            "household the campaign drew into the market is answered here. A registered "
+            "household is asked through population_draw.price_elasticity_for_customer, which "
+            "checks the live book; a hash of any other string would be a fabricated trait.")
+    return _latent_price_elasticity(prospect_id, base_seed)
+
+
+#: Named substream for the order in which a year's prospects reach the company's quotes when
+#: the campaign selects on responsiveness. Its own name (C-S2) so it perturbs no other draw.
+ENTRY_STREAM_NAME = "acquisition_entry_by_engagement"
+
+
+def engagement_weighted_entry_order(prospect_ids: Sequence[str], base_seed: int) -> list[int]:
+    """Positions of `prospect_ids` in the order they reach a quote, drawn WITHOUT REPLACEMENT with
+    weight equal to each household's own active-renewal probability (director, 2026-10-08:
+    "prospects enter the market weighted by their own chance of shopping").
+
+    THE WEIGHT IS A DRAW THE WORLD ALREADY HAS, not a new number:
+    `household_segments.active_renewal_probability_for_customer` -- archetype x payment channel,
+    the same probability the renewal roll uses to decide whether a household looks. The first k of
+    this order is a weighted sample of size k (Efraimidis-Spirakis keys, u ** (1 / w)), so a
+    company that can afford k quotes reaches the k households most likely to have been shopping,
+    up to chance, and a company that can quote the whole pool reaches all of it unchanged.
+
+    Each key is keyed on the prospect's own id, so a prospect's place does not depend on who else
+    is in the pool or on how many quotes the company could afford.
+    """
+    from simulation.household_segments import active_renewal_probability_for_customer
+    from simulation.rng_substream import substream
+
+    keys = []
+    for position, pid in enumerate(prospect_ids):
+        weight = active_renewal_probability_for_customer(pid)
+        u = substream(ENTRY_STREAM_NAME, pid, base_seed).random()
+        keys.append((u ** (1.0 / weight) if weight > 0 else 0.0, position))
+    return [position for _key, position in sorted(keys, key=lambda kp: (-kp[0], kp[1]))]
+
+
 def homes_in_market(year: int, prospects_per_year: int = PROSPECTS_PER_YEAR,
                     multiplier: float | None = None) -> tuple[int, float]:
     """How many homes are actually in play in `year`, and the multiplier that set it.
@@ -1095,6 +1151,7 @@ def plan_growth_campaign(
     premise_stock_fn=None,
     quote_cutoff: str | None = None,
     first_term_offer_fn=None,
+    select_on_own_responsiveness: bool = False,
 ) -> dict:
     """Resolve a multi-year acquisition campaign into won accounts and booked spend.
 
@@ -1154,6 +1211,14 @@ def plan_growth_campaign(
     this is its commercial record arriving back at its own planner, not the world disclosing an
     outcome. Year one sees an empty book and plans on its founding belief; every year after it
     plans on what its books have since said.
+
+    `select_on_own_responsiveness` (default False, which is byte-identical to the campaign before
+    the director's 2026-10-08 ruling; the live value is the curriculum file
+    `acquisition_selects_on_own_responsiveness.json`). True does two things and adds no number:
+    the year's quotes go to the prospects first in `engagement_weighted_entry_order` instead of the
+    first in position, and the funnel's quote-to-application stage is handed each prospect's own
+    `price_elasticity_for_prospect`, through the `price_sensitivity` argument of
+    `run_acquisition_funnel`. Quoted prospects are still resolved in date order.
 
     Returns a dict with `winners` (SyntheticCustomer, win_date) pairs, `spend` (one row per
     quote, won or lost), `by_year` rows carrying the binding reason, and `notes` -- any year
@@ -1307,8 +1372,20 @@ def plan_growth_campaign(
                     premise_stock_fn(year) if premise_stock_fn is not None else None
                 ),
             )
+            # SELECTION ON RESPONSIVENESS (director, 2026-10-08). Off, the quotes go to the first
+            # `quotes` prospects by position, exactly as before. On, they go to the first `quotes`
+            # in the engagement-weighted entry order, which needs the whole pool materialised:
+            # the cost is the remaining prospects of the year, paid only when the switch is on.
+            reached = None
+            if select_on_own_responsiveness:
+                pool = list(pool)
+                reached = set(engagement_weighted_entry_order(
+                    [p.customer_id for p in pool], base_seed)[:quotes])
             for i, prospect in enumerate(pool):
-                if i >= quotes:
+                if reached is not None:
+                    if i not in reached:
+                        continue
+                elif i >= quotes:
                     break
                 # THE COMPANY CANNOT QUOTE INTO A WEEK THE REPORTED WORLD HAS NOT REACHED
                 # (2026-08-28). `horizon_end` is the settlement horizon (2026-01-01) and is
@@ -1356,6 +1433,11 @@ def plan_growth_campaign(
                     # new parameter.
                     **({} if offer is None
                        else {"price_differential_pct": offer["price_differential_pct"]}),
+                    # The prospect's OWN elasticity, passed only when the switch is on so an
+                    # injected test funnel and the switch-off run see the old call exactly.
+                    **({"price_sensitivity": price_elasticity_for_prospect(
+                        prospect.customer_id, base_seed)}
+                       if select_on_own_responsiveness else {}),
                 )
                 spent_this_year += result.total_cost_gbp
                 spend.append({

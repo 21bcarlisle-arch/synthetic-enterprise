@@ -94,3 +94,16 @@ bound that misses about 1 time in 4.
 
 **Owed, handed on:** the full-window by-arm probe (one ~53 min pass, after the recovery arms run),
 and the six extra floor seeds folded with `--fold`.
+
+**Disposition, 2026-10-08 11:30 BST (draw of `w2-20-floor-to-nine-seeds-and-full-window-by-arm-probe`):**
+the owed work is IN FLIGHT, so nothing was launched. `longjob-w220-nine-seed-handoff`
+(`/var/tmp/se-w220-nine-seed-handoff.sh`, since 08:13) chains the by-arm probe, the six seeds
+44444-99999 in three two-seed legs at 45122d156, and the `--fold` into
+`value_cycle_ab_s1_noise_floor_20261008r_nine.json` in `/var/tmp/se-w220-recov-arms`. It waits on
+`longjob-w220-recov-leg2-handoff`, and launch_long_job has refused that one for memory every 5 min
+since 10:00Z. The cause is `longjob-e2e-400-founders` (pid 3457758, declared peak 14,000 MB, deadline
+5 h from 10:30). Starting a second copy would double-run the same seeds or starve the queue, so the
+claim is released. The result needs reading when the fold prints `fold rc=0 ... END` in
+`/var/tmp/se-w220-nine-seed-handoff.log`: that is ~5 h + ~6 h + ~2 h + ~12 h from now, too far
+out for a continuation embargo, which expires after 6 h. If the log shows `STOP`, the chain has
+broken, and the stated cause is the next item.

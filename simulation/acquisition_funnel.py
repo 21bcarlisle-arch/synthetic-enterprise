@@ -140,7 +140,8 @@ class AcquisitionFunnelResult:
     credit_bureau_true_creditworthy: bool | None = None
 
 
-def _quote_to_application_rate(segment: str, price_differential_pct: float = 0.0) -> float:
+def _quote_to_application_rate(segment: str, price_differential_pct: float = 0.0,
+                               price_sensitivity: float | None = None) -> float:
     """Quote -> application, and the ONE stage our own price position reaches.
 
     Atom `PB3_book_growth_as_earned_outcome`, exit criterion (b1), 2026-08-25. Until now
@@ -169,11 +170,23 @@ def _quote_to_application_rate(segment: str, price_differential_pct: float = 0.0
     priced ~28% below the market average, which is far outside anything the company's
     capital lets it sustain. If a run ever reaches it, the model has stopped distinguishing
     between very cheap offers, and that is a fidelity limit worth knowing about.
+
+    `price_sensitivity` (director, 2026-10-08) is THIS prospect's own latent elasticity weight.
+    Given, the differential is felt through `perceived_price_differential`, the same call the
+    renewal roll makes in `customer_events.roll_lifecycle_event`, so a household feels our price
+    with one weight whether it is being won or kept. None is the one population response, exactly
+    as before. At parity it changes nothing either way: it scales the differential, and the
+    differential is zero.
     """
-    from simulation.market_switching_propensity import offer_position_multiplier
+    from simulation.market_switching_propensity import (
+        offer_position_multiplier,
+        perceived_price_differential,
+    )
 
     base = QUOTE_TO_APPLICATION.get(segment, QUOTE_TO_APPLICATION["resi"])
-    return min(1.0, base * offer_position_multiplier(price_differential_pct))
+    felt = (price_differential_pct if price_sensitivity is None
+            else perceived_price_differential(price_differential_pct, price_sensitivity))
+    return min(1.0, base * offer_position_multiplier(felt))
 
 
 def _credit_check_to_onboarding_rate(segment: str) -> float:
@@ -208,7 +221,8 @@ def _stage_day_offset(seed: str, stage: str) -> int:
 
 
 def run_acquisition_funnel(segment, seed, term_start, credit_bureau, total_amount_gbp,
-                           price_differential_pct: float = 0.0):
+                           price_differential_pct: float = 0.0,
+                           price_sensitivity: float | None = None):
     """Run quote -> application -> credit_check -> onboarding -> cooling_off.
 
     credit_bureau must expose .check_credit(applicant_id, segment, seed) -> result
@@ -230,6 +244,9 @@ def run_acquisition_funnel(segment, seed, term_start, credit_bureau, total_amoun
     who would have applied at parity still applies at a cheaper price, and the prospects a
     price change wins or loses are the marginal ones. That is what makes a book difference
     between two price positions attributable to the price rather than to a reshuffled draw.
+
+    price_sensitivity is the prospect's own latent elasticity, or None for the one population
+    response -- see `_quote_to_application_rate`. Sim-internal; nothing here returns it.
 
     THE WALL (KNIFE pass 3, design B6_cpa_is_company_accounting)
     ------------------------------------------------------------
@@ -275,7 +292,11 @@ def run_acquisition_funnel(segment, seed, term_start, credit_bureau, total_amoun
     _record("quote", True)
 
     passed = _bernoulli(
-        seed, "application", _quote_to_application_rate(segment, price_differential_pct)
+        seed, "application",
+        # The two-argument call when no weight is given, so the switch-off run makes exactly the
+        # call it made before the 2026-10-08 ruling.
+        _quote_to_application_rate(segment, price_differential_pct) if price_sensitivity is None
+        else _quote_to_application_rate(segment, price_differential_pct, price_sensitivity),
     )
     _record("application", passed)
     if not passed:

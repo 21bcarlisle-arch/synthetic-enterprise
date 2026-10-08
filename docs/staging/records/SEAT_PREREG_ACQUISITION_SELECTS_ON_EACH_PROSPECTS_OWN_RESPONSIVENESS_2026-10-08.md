@@ -40,3 +40,31 @@ Option 1 "matters" only if ALL hold, on both seeds:
 - **P4 holds in both arms.**
 
 A refutation of any of these is recorded beside this file; nothing here is revised after the runs.
+
+## Result of the build check, 2026-10-08 (40 founders to 2017, seed 20260724). Recorded beside the predictions, which are not revised.
+
+| arm | wins (funnel / booked) | winners / market latent sensitivity | settled-records digest |
+|---|---|---|---|
+| switch off | 370 / 333 | 1.035 | `47178e778e111ee4`, identical to the unchanged code |
+| on, independent | 376 / 341 | 0.987 | `37332345efeda1ac` |
+| on, linked | 376 / 341 | 1.004 | `37332345efeda1ac` |
+
+- **Prediction 1 is REFUTED at the shipped price.** Winners' sensitivity is ~1.00x the market in both
+  arms, not 1.1-1.4x, and the standard error is ~0.03. The price half of option 1 multiplies the
+  company's price DIFFERENCE from the market, which is zero at the shipped market-average price, so
+  it selects nothing. At 5% and 10% cheaper the same code gives 1.14x and 1.20x, inside the
+  predicted band. So the prediction holds only when the company quotes away from the market, which
+  the live campaign does not yet do.
+- **The engagement half acts only in years the company cannot quote the whole pool.** In 2024-2025
+  it quotes all 400 prospects, so entry order selects nothing.
+- **Arms L and I settle the identical book to 2017.** Founders' renewals read the changed
+  sensitivities (16 reads), but no churn decision flipped by 2017. Telling the arms apart needs
+  the longer window.
+- **"Linked" couples the LEVEL to engagement at rank 0.93**, but the full per-household sensitivity
+  only at 0.14, because the level explains 2% of it, as the director's 27 Aug ruling requires.
+- **Decision recorded by the seat:** "linked" ranks on the household's LATENT engagement only, not
+  engagement times payment method. Folding payment method in would tie price sensitivity to an
+  observable the director ruled renewal prices may not lean on. Reversible in one line.
+
+P1-P4 are graded on fresh seeds 101 and 202 in the B8 decision set once the run sizing allows; not
+yet run.
