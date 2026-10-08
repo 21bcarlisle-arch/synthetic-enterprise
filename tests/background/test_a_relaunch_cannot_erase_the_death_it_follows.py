@@ -107,7 +107,7 @@ def _launch(records, runner, *, job="a-long-run", **over):
     """
     kw = dict(artefact="/var/tmp/artefact.json", records_path=records, runner=runner,
               out=open("/dev/null", "w"),  # noqa: SIM115 -- closed by the interpreter; not a leak
-              peak_mb=1000, residents=lambda: [], guest_total_mb=24000)
+              peak_mb=1000, residents=lambda: [], guest_total_mb=24000, expect_minutes=30)
     kw.update(over)
     return llj.launch(job, ["/bin/true"], **kw)
 

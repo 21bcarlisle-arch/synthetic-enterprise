@@ -1316,14 +1316,34 @@ def main(report_end: str | None = None, policy: DecisionPolicy | None = None,
     is the difference between the arms that is not a leak, it is a fabricated result. Opening it
     at the single entry point every run passes through means no caller can forget.
     """
+    import time as _time
+
+    from simulation import run_cost
+
+    started = _time.monotonic()
     with pressure_ledger_scope():
-        return _main(report_end=report_end, policy=policy,
-                     gap_ledger_path=gap_ledger_path)
+        result = _main(report_end=report_end, policy=policy,
+                       gap_ledger_path=gap_ledger_path)
+    # One line per run: its cost against the book it settled (simulation/run_cost.py).
+    run_cost.record(result, wall_s=_time.monotonic() - started, report_end=report_end)
+    return result
 
 
 def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
           gap_ledger_path=None):
     """Run the full Phase 2b + 4c settlement simulation.
+
+    NAMED STRUCTURAL DEBT: THIS FUNCTION (director, 2026-10-08). About 3,400 lines and roughly a
+    hundred local variables, grown one phase at a time; every term of every customer passes
+    through one date-ordered heap that carries the treasury, the pricing beliefs and the churn
+    rolls. What it blocks:
+      * CHECKPOINT AND RESUME. The run's state is these locals, so there is nothing to save.
+      * PARALLEL SETTLEMENT. Customers cannot be settled apart; only per-premise inputs
+        (fabric traces) can be built in parallel ahead of the loop.
+      * SAFE CHANGE. A change here is tested end to end or not at all.
+    Not refactored on purpose: the run tiers (seconds / minutes / hours, director 2026-10-08) make
+    long runs rare. RAISE IT WITH THE DIRECTOR WHEN IT NEXT COSTS REAL WORK: a change that needs a
+    checkpoint, needs customers settled in parallel, or cannot be made safely here.
 
     report_end: ISO date string (e.g. "2022-12-31") to truncate the
         simulation window for faster iteration. Defaults to REPORT_END

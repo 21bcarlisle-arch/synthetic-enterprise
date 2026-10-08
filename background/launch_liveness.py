@@ -361,7 +361,8 @@ def save(records: list, path: Path | None = None) -> None:
 def record(job: str, unit: str, artefact: str, *, log: str | None = None,
            rc_path: str | None = None, asserted_live_by: list | None = None,
            launched_at: str | None = None, path: Path | None = None,
-           peak_mb=None, workdir: str | None = None) -> dict:
+           peak_mb=None, workdir: str | None = None, expect_minutes=None,
+           run_case: dict | None = None) -> dict:
     """Write the launch record for `job`. Always writes the claim `live`.
 
     `peak_mb` is the job's declared size, kept so the NEXT launch counts this one at its peak
@@ -426,6 +427,11 @@ def record(job: str, unit: str, artefact: str, *, log: str | None = None,
     if workdir:
         # What a relative `artefact` is relative to -- see `artefact_path()`.
         entry["workdir"] = str(workdir)
+    if expect_minutes is not None:
+        entry["expect_minutes"] = float(expect_minutes)
+    if run_case:
+        # The question this run answers, recorded BEFORE it starts (director, 2026-10-08).
+        entry["run_case"] = dict(run_case)
     records, verdict = load_register(path)
     if prior_unreadable(verdict):
         # BEFORE `save` below, which is the only ordering that keeps anything: `save` writes the

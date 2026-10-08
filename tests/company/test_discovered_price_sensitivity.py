@@ -146,3 +146,46 @@ def test_an_empty_arm_is_refused_by_name_never_estimated():
     est = dps.estimate_offer_effect(_holdout(0, 0, 40, 100))
     assert est.effect is None and est.low is None and est.verdict == "refused"
     assert "treated" in est.reason
+
+
+# --- B8 L2: the company USES the estimate --------------------------------------------------------
+
+def _household(method="direct_debit"):
+    return {"payment_method": method, "monthly_bills": [80.0] * 12, "billed_kwh": 3000.0}
+
+
+def _decide(pooled, *, margin_share, by_channel=None, method="direct_debit"):
+    return dps.retention_cut_decision(_household(method), cut_gbp_per_mwh=7.5,
+                                      margin_share=margin_share, by_channel=by_channel or {},
+                                      pooled=pooled)
+
+
+def test_the_decision_takes_every_branch_and_the_margin_is_what_flips_it():
+    """DEFECT: a decision that refuses everything (or offers everything) passes every test of one
+    branch. On one household and one +0.10 effect: the cut pays at the gross-margin end and not at
+    the EBIT end, and an undecided holdout never cuts even where its point estimate would pay."""
+    strong = dps.estimate_offer_effect(_holdout(700, 1000, 600, 1000))
+    thin = dps.estimate_offer_effect(_holdout(7, 10, 5, 10))
+    rich, lean, unsure = (_decide(strong, margin_share=0.14), _decide(strong, margin_share=0.019),
+                          _decide(thin, margin_share=0.14))
+    assert rich.offer_cut and not lean.offer_cut and not unsure.offer_cut
+    assert rich.value_with_cut > rich.value_without_cut
+    assert lean.value_with_cut < lean.value_without_cut
+    assert unsure.value_with_cut is None and "undecided" in unsure.reason
+    assert thin.effect >= strong.effect  # the undecided point is larger: only its interval refuses
+
+
+def test_a_channel_is_read_on_its_own_only_when_it_holds_the_decisions_the_effect_needs():
+    """DEFECT: a channel read off a handful of decisions, or never read at all. A channel with
+    enough decisions per arm decides on its own estimate; a short one falls back to the pooled one,
+    and the read says which."""
+    pooled = dps.estimate_offer_effect(_holdout(700, 1000, 600, 1000))
+    need = dps.decisions_needed_per_arm(pooled)
+    big = dps.estimate_offer_effect(_holdout(300, 500, 300, 500))
+    small = dps.estimate_offer_effect(_holdout(45, 50, 30, 50))
+    assert min(big.treated, big.held_out) >= need > min(small.treated, small.held_out)
+    by = {"direct_debit": big, "other": small}
+    own = _decide(pooled, margin_share=0.14, by_channel=by, method="direct_debit")
+    short = _decide(pooled, margin_share=0.14, by_channel=by, method="other")
+    assert own.read.startswith("direct_debit") and not own.offer_cut  # its own nil effect decides
+    assert short.read.startswith("pooled") and short.offer_cut       # the pooled effect decides

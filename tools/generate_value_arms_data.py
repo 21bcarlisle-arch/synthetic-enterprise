@@ -268,8 +268,15 @@ THREE_ARM_PATH = PROJECT / "docs" / "observability" / "value_cycle_ab_s1_three_a
 #: `20261005c` pair re-took both at committed origin `a9e6f2144`, because the C29 switching refit
 #: (`ae552db75`, `simulation/household_segments.py`) and 31 other substrate files had moved under
 #: `20261004h`. Not one variable, so no move here is credited to C29.
+#:
+#: MOVED 2026-10-08 TOGETHER WITH `CURRENT_WORLD_NOISE_FLOOR_PATH`, same world digest: the
+#: `20261007h` pair re-took both at committed origin `b2ec5147a`, after W2_20 (`81732ffe2`, heating
+#: drawn given the gas meter) and ~40 other substrate commits. The control book went from 127 to
+#: 272 billing accounts, all of it acquired `PROS-*` accounts, which W2_20 cannot cause; the
+#: commit that did it is unattributed (graded in
+#: `SEAT_FINDING_W2_20_A_SIXTH_OF_DRAWN_GAS_BOILERS_HAVE_NO_GAS_SUPPLY_2026-10-07.md`).
 CURRENT_WORLD_THREE_ARM_PATH = (
-    PROJECT / "docs" / "observability" / "value_cycle_ab_s1_three_arm_20261005c.json")
+    PROJECT / "docs" / "observability" / "value_cycle_ab_s1_three_arm_20261007h.json")
 #: WHAT MOVED BETWEEN THE LAST PUBLISHED PAIR AND THIS ONE, IN WORDS A READER CAN CHECK. The world
 #: digest is the same across them, so nothing generated says the worlds differ -- the digest
 #: identifies the departure level and the homes and is blind to a behaviour switch (graded Q0 of
@@ -278,11 +285,12 @@ CURRENT_WORLD_THREE_ARM_PATH = (
 #: Rewrite it whenever the pair moves; it names the commit it is relative to so a stale copy reads
 #: as stale.
 CURRENT_WORLD_CHANGED_SINCE_THE_LAST_READING = (
-    "What changed since the previous reading (run at efe1b7dee): the same departure level, on "
-    "newer code. Households that never chose a tariff now switch at the rates Ofgem measured in "
-    "the control arm of its switching trials, so they shop about twice as often, and the settling, "
-    "churn, final-bill and policy-cost code changed alongside it. So many things moved at once "
-    "that no change in a figure can be put down to any one of them.")
+    "What changed since the previous reading (run at a9e6f2144): the same departure level, on "
+    "newer code. A home's heating is now drawn given whether it has a gas meter, so a home with "
+    "no gas supply no longer gets a gas bill. In the same stretch the company's book more than "
+    "doubled, and every one of the extra accounts is a newly won customer. "
+    "That growth is not the heating change, and which change caused it has not been found yet, "
+    "so no move in a figure can be put down to any one change.")
 #: The spread `error_bar` is built from -- the block that owns the page's SELECTION VERDICT, the
 #: one sentence the mission turns on. NOT the same constant as `CURRENT_WORLD_NOISE_FLOOR_PATH`
 #: below, and the difference cost a turn: the 2026-09-17 write-up named THAT constant as the thing
@@ -584,8 +592,9 @@ AUC_FAMILY_SOURCE = "the 12-seed AUC-carrying floor of 2026-09-17"
 #: `cdba75ebb9197b33`, drawn in one process by the tree that ran the arms.
 #: MOVED 2026-10-04 with `CURRENT_WORLD_THREE_ARM_PATH`, to the same seeds re-drawn at `efe1b7dee`.
 #: MOVED 2026-10-05 with `CURRENT_WORLD_THREE_ARM_PATH`, to the same seeds re-drawn at `a9e6f2144`.
+#: MOVED 2026-10-08 with `CURRENT_WORLD_THREE_ARM_PATH`, to the same seeds re-drawn at `b2ec5147a`.
 CURRENT_WORLD_NOISE_FLOOR_PATH = (
-    PROJECT / "docs" / "observability" / "value_cycle_ab_s1_noise_floor_20261005c.json")
+    PROJECT / "docs" / "observability" / "value_cycle_ab_s1_noise_floor_20261007h.json")
 #: The ONE redraw mode whose seed spread bounds the published contrast, in the undecomposed
 #: artefact's own words (`redraw_scope.means`): "every household re-drawn -- the undecomposed
 #: floor, and the only mode whose spread bounds the published figure directly".

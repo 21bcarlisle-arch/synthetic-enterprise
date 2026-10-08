@@ -498,14 +498,14 @@
   lane: B_commercial
   value_stream: price_to_bill
   epoch: 3
-  level_current: 1
+  level_current: 2
   level_target: 3
   loop_stage: build
   dial_inherited: 3
   provenance: proposal
   file_scope: [company/pricing/discovered_price_sensitivity.py, tests/company/test_discovered_price_sensitivity.py, simulation/coin_drawn_decision_set.py, tests/simulation/test_coin_drawn_decision_set.py]
   depends_on: []
-  simplifications_count: 3
+  simplifications_count: 5
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a retail energy CRM that has no idea who is price-sensitive: it learns only from who opened the email, who took the fixed-price offer, who churned after a price rise -- and the honest ones run a holdout so they can tell whether the retention campaign did anything at all, because the treated group would partly have stayed anyway"
   records_rehomed: [evidence]

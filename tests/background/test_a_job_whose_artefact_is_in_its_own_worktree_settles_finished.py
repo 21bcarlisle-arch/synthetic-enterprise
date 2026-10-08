@@ -70,7 +70,8 @@ def test_a_launch_in_a_worktree_settles_finished_from_another_cwd(tmp_path, monk
     reg = tmp_path / "records.json"
     llj.launch("floor", ["python3", "-m", "tools.nothing"], artefact=ARTEFACT,
                workdir=str(worktree), log=str(tmp_path / "job.log"), records_path=reg,
-               runner=_Runner(), peak_mb=1000, residents=lambda: [], guest_total_mb=24000)
+               runner=_Runner(), peak_mb=1000, residents=lambda: [], guest_total_mb=24000,
+               expect_minutes=30)
     assert not (asker / ARTEFACT).parent.exists(), "the launcher made the artefact dir in the asker"
     (worktree / ARTEFACT).write_text("{}", encoding="utf-8")
 

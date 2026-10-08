@@ -149,6 +149,24 @@ decisions are "eligible". A cure is being built.
 
 **REFUTED on 3 of 4; held on 61003.**
 
+> **Correction, 2026-10-08: REFUTED on 4 of 4. The 61003 "held" was an artefact of missing prices.**
+> The "on" runs for 61002 and 61003 started in a worktree without the price cache and downloaded
+> Elexon prices mid-run. Throttled, the download silently returned 153,626 and 152,616 records
+> against the 168,026 the record holds. Re-run 2026-10-08 at bf0d37c2f on the full cached set
+> (`/var/tmp/se-regrade-obj/out/`), and scored with this file's own measure
+> (`decision_probe.with_level(rows, 55)`, `value_capped` against `level`). The old files reproduce
+> the old figures exactly, so the method is the same:
+>
+> | path | capped - flat-55, on (short prices -> full) | without PROS-2016-0098 | PROS 2017-03-31 P(stay) at flat-55 |
+> |---|---|---|---|
+> | 61002 | -1,089 -> **-1,085** | +7 -> +11 | 0.10 -> 0.10 |
+> | 61003 | -165 -> **-1,080** | +82 -> **-118** | 0.41 -> **0.10** |
+>
+> With the full prices, 61003 has 82 decisions, not 78. The older unpaid bill that put
+> PROS-2016-0098 in front of the block existed only in the short-price world. The objection does
+> not reach the decisive decision on any path, and the paragraph below about 61003 describes that
+> artefact. Cause and fix: `78fdb9538` (every run now reads the one shared price cache).
+
 The objection does not reach the decisive decision on three paths. At 2017-03-31 PROS-2016-0098
 has no bill more than 28 days unpaid in the world's own records, so it is not an eligible debtor.
 On 61003, the re-drawn renewal dice put an older unpaid bill in front of the date, the block

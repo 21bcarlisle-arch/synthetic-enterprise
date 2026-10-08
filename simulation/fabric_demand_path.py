@@ -702,8 +702,12 @@ def fabric_providers_for_book(
         raise ValueError(f"an empty settlement window ({start}..{end}) has no providers")
     window = [start + dt.timedelta(days=i) for i in range((end - start).days + 1)]
 
-    series_by_customer: dict[str, FabricDemandSeries] = {}
-    verdicts: list[FabricEligibility] = []
+    # TWO PASSES, SO THE TRACES CAN BE BUILT IN PARALLEL. The first decides eligibility (cheap, in
+    # order); the second builds every eligible trace in forked workers (`fork_map`), and the third
+    # assembles in the original order. Same verdicts, same order, same traces: each trace is seeded
+    # per premise. `SE_FORK_WORKERS=1` is the serial path, kept for the control that compares them.
+    planned: list[tuple] = []
+    verdicts: list = []
     for customer in customers:
         cid = str(customer.get("customer_id", ""))
         site = weather_site_for(customer)
@@ -723,7 +727,12 @@ def fabric_providers_for_book(
                 cid, False, f"{JOINS_AFTER_WINDOW_REFUSAL}: joins {str(joins)[:10]}, the window "
                 f"ends {end.isoformat()}"))
             continue
-        series = build_fabric_series_for_site(
+        planned.append((cid, site, customer, verdict, len(verdicts)))
+        verdicts.append(None)  # this slot is filled below, so the verdicts keep customer order
+
+    def _build(plan: tuple) -> FabricDemandSeries:
+        cid, site, customer, _, _ = plan
+        return build_fabric_series_for_site(
             customer_id=cid,
             household_at_date=lambda d, _cid=cid: household_at_date(_cid, d),
             weather_site=site,
@@ -733,18 +742,22 @@ def fabric_providers_for_book(
             seed=seed,
             weather_days_for=weather_days_for,
         )
+
+    from simulation.fork_map import fork_map
+
+    built = fork_map(_build, planned)
+    series_by_customer: dict[str, FabricDemandSeries] = {}
+    for (cid, site, customer, verdict, slot), series in zip(planned, built):
         if not series_covers_window(series, window):
-            verdicts.append(
-                FabricEligibility(
-                    cid,
-                    False,
-                    f"{COVERAGE_REFUSAL}: weather archive {site!r} does not cover the "
-                    f"whole settlement window {start.isoformat()}..{end.isoformat()}",
-                )
+            verdicts[slot] = FabricEligibility(
+                cid,
+                False,
+                f"{COVERAGE_REFUSAL}: weather archive {site!r} does not cover the "
+                f"whole settlement window {start.isoformat()}..{end.isoformat()}",
             )
             continue
         series_by_customer[cid] = series
-        verdicts.append(verdict)
+        verdicts[slot] = verdict
     return series_by_customer, verdicts
 
 

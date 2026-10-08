@@ -71,6 +71,93 @@ def grade_arm(seed: int, *, cut: float, planted: float | None, per_year: float) 
     }
 
 
+#: The two published ends of the share of a retained household's bill a supplier keeps. The floor
+#: is the cap's EBIT allowance (1.9%, `docs/market_research/ASSUMPTIONS.md` row 49; 2.5-2.6% by
+#: Jul-Sep 2026, row 300): every opex pound leaves with the customer. The ceiling is the sector's
+#: gross margin before opex (8-14%, `docs/market_research/supplier_financial_reporting.md`): no
+#: opex pound does. Where between them one customer sits is not established; both are graded.
+MARGIN_SHARE_ENDS = (0.019, 0.14)
+
+
+def _rule_value(row: dict, cut: bool, *, cut_cost: float, lifetime: float) -> float:
+    """The supplier's forward value of one decision under the world's own P(stay)."""
+    p = row["p_stay_treated"] if cut else row["p_stay_holdout"]
+    return p * (lifetime - (cut_cost if cut else 0.0))
+
+
+def grade_decision(train, fresh, *, cut: float, margin_share: float) -> dict:
+    """The company learns on `train` and decides on `fresh`; each rule is graded on `fresh` with
+    the world's own P(stay) at each offer. Supplier value and household saving are kept apart."""
+    from company.interfaces.sim_interface import holdout_decision_observations
+    from company.pricing.discovered_price_sensitivity import (
+        decisions_needed_per_arm,
+        estimate_offer_effect,
+        estimate_offer_effect_by_channel,
+        retention_cut_decision,
+    )
+
+    seen_train = holdout_decision_observations(train.rows)
+    pooled = estimate_offer_effect(seen_train)
+    by_channel = estimate_offer_effect_by_channel(seen_train)
+    s = pooled.stayed_held_out / pooled.held_out
+    totals = {k: {"cut": 0, "supplier": 0.0, "household": 0.0} for k in ("learned", "all", "none")}
+    reads: dict[str, int] = {}
+    seen_fresh = holdout_decision_observations(fresh.rows)
+    for row, obs in zip(fresh.rows, seen_fresh):
+        d = retention_cut_decision(obs, cut_gbp_per_mwh=cut, margin_share=margin_share,
+                                   by_channel=by_channel, pooled=pooled)
+        reads[d.read.split(":")[0]] = reads.get(d.read.split(":")[0], 0) + 1
+        lifetime = margin_share * sum(obs["monthly_bills"]) * (1.0 + s / (1.0 - s))
+        cut_cost = cut * obs["billed_kwh"] / 1000.0
+        for rule, takes in (("learned", d.offer_cut), ("all", True), ("none", False)):
+            t = totals[rule]
+            t["cut"] += takes
+            t["supplier"] += _rule_value(row, takes, cut_cost=cut_cost, lifetime=lifetime)
+            t["household"] += row["p_stay_treated"] * cut_cost if takes else 0.0
+    n = len(fresh.rows)
+    return {
+        "margin_share": margin_share, "fresh_seed": fresh.seed, "fresh_decisions": n,
+        "train_seed": train.seed, "train_per_arm": {"treated": pooled.treated, "holdout": pooled.held_out},
+        "learned_pooled": {"effect": pooled.effect, "low": pooled.low, "high": pooled.high,
+                           "verdict": pooled.verdict, "needed_per_arm": decisions_needed_per_arm(pooled)},
+        "by_channel": {m: {"treated": e.treated, "held_out": e.held_out, "effect": e.effect,
+                           "low": e.low, "high": e.high, "verdict": e.verdict}
+                       for m, e in by_channel.items()},
+        "reads": reads, "fresh_true_effect": fresh.true_effect,
+        "rules": {k: {"cut_share": round(v["cut"] / n, 4),
+                      "supplier_per_decision": round(v["supplier"] / n, 3),
+                      "household_saving_per_decision": round(v["household"] / n, 3)}
+                  for k, v in totals.items()},
+    }
+
+
+def decide(argv=None) -> int:
+    ap = argparse.ArgumentParser(description="grade the learned retention decision against both flat rules")
+    ap.add_argument("--arm", choices=("real", "null", "planted"), required=True)
+    ap.add_argument("--train-seed", type=int, default=42)
+    ap.add_argument("--fresh-seeds", type=int, nargs="+", default=[101])
+    ap.add_argument("--cut", type=float, default=7.5)
+    ap.add_argument("--planted", type=float, default=0.10)
+    ap.add_argument("--train-per-year", type=float, default=4700.0)
+    ap.add_argument("--fresh-per-year", type=float, default=850.0)
+    ap.add_argument("--out", type=Path, required=True)
+    args = ap.parse_args(argv)
+    from simulation.coin_drawn_decision_set import build_decision_set
+
+    kw = {"real": dict(cut_gbp_per_mwh=args.cut), "null": dict(cut_gbp_per_mwh=0.0),
+          "planted": dict(cut_gbp_per_mwh=0.0, planted_effect=args.planted)}[args.arm]
+    train = build_decision_set(args.train_seed, acquisitions_per_year=args.train_per_year, **kw)
+    out = []
+    for seed in args.fresh_seeds:
+        fresh = build_decision_set(seed, acquisitions_per_year=args.fresh_per_year, **kw)
+        for g in MARGIN_SHARE_ENDS:
+            row = {"arm": args.arm, **grade_decision(train, fresh, cut=args.cut, margin_share=g)}
+            print(json.dumps(row), flush=True)
+            out.append(row)
+    args.out.write_text(json.dumps(out, indent=1), encoding="utf-8")
+    return 0
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--seeds", type=int, nargs="+", default=[42])
@@ -92,4 +179,7 @@ def main(argv=None) -> int:
 
 
 if __name__ == "__main__":
+    import sys
+    if sys.argv[1:2] == ["decide"]:
+        raise SystemExit(decide(sys.argv[2:]))
     raise SystemExit(main())
