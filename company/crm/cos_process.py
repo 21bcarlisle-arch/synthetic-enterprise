@@ -9,7 +9,9 @@ from company.interfaces.wall_protocol import decode_framed_notification
 from interface.contracts.registration_loss_seam import (
     FORBIDDEN_TRUTH_FIELDS,
     LOSS_NOTICE_SENDERS,
+    LOSS_NOTIFICATION_TYPES,
     OBSERVABLE_PAYLOAD_FIELDS,
+    PENDING_NOTIFICATION_TYPES,
     RegistrationLossNotice,
 )
 from interface.contracts.registration_loss_seam import (
@@ -178,6 +180,7 @@ class CoSRegister:
         self._loss_notice_ids: set[tuple[str, str]] = set()
         self._holds = holds
         self._loss_exceptions: list[dict] = []
+        self._pending_notices: list[dict] = []
 
     def receive_loss_wire(self, wire: Any) -> bool:
         """A framed registration-loss message as a registration service hands it over:
@@ -185,7 +188,7 @@ class CoSRegister:
         notification = read_loss_wire(wire)
         if not self._admit_loss(notification):
             return False
-        self._file_loss(notification)
+        self._file(notification)
         return True
 
     def receive_loss_notice(self, notification: WallNotification) -> bool:
@@ -202,10 +205,14 @@ class CoSRegister:
         window. The gaining supplier is None because the notice does not name it.
         The switch stays in progress until a final read arrives, which no seam
         delivers yet.
+
+        A PENDING notice (the Invitation to Intervene) is not a loss: the switch can
+        still be cancelled. It is filed in `pending_switches_notified()` and opens no
+        process. No decision reads it yet.
         """
         if not self._admit_loss(notification):
             return False
-        self._file_loss(notification)
+        self._file(notification)
         return True
 
     def _admit_loss(self, notification: WallNotification) -> bool:
@@ -228,6 +235,13 @@ class CoSRegister:
                 f"CoSRegister: {type(payload).__name__!r} is not a registration-loss "
                 "notice -- see registration_loss_seam.UNSOLICITED_PAYLOAD_TYPES"
             )
+        known = LOSS_NOTIFICATION_TYPES + PENDING_NOTIFICATION_TYPES
+        if notification.notification_type not in known:
+            raise ValueError(
+                f"CoSRegister: notification_type {notification.notification_type!r} is neither "
+                f"a loss {LOSS_NOTIFICATION_TYPES} nor a pending switch "
+                f"{PENDING_NOTIFICATION_TYPES}, so it cannot be filed as either"
+            )
         key = (notification.sender, notification.notification_id)
         if key in self._loss_notice_ids:
             return False
@@ -242,6 +256,12 @@ class CoSRegister:
             return False
         return True
 
+    def _file(self, notification: WallNotification) -> None:
+        if notification.notification_type in PENDING_NOTIFICATION_TYPES:
+            self._file_pending(notification)
+        else:
+            self._file_loss(notification)
+
     def _file_loss(self, notification: WallNotification) -> None:
         payload = notification.payload
         proc = CoSProcess(
@@ -252,6 +272,19 @@ class CoSRegister:
             registration_ref=payload.registration_ref,
         )
         self._processes.setdefault(payload.supply_point_id, []).append(proc)
+
+    def _file_pending(self, notification: WallNotification) -> None:
+        payload = notification.payload
+        self._pending_notices.append({
+            "supply_point_id": payload.supply_point_id,
+            "registration_ref": payload.registration_ref,
+            "supply_effective_from": payload.supply_effective_from_date.isoformat(),
+            "notified_at": notification.observed_at.isoformat(),
+        })
+
+    def pending_switches_notified(self) -> list[dict]:
+        """Every Invitation to Intervene this company has been sent, as it holds them."""
+        return list(self._pending_notices)
 
     def loss_exceptions(self) -> list[dict]:
         """Loss notices this supplier was sent for points it does not hold."""

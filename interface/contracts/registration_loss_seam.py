@@ -33,14 +33,22 @@ reports a registration's status, and nothing else. `FORBIDDEN_TRUTH_FIELDS`
 holds the world's own spellings of those, measured from the departure events
 the producer is called beside.
 
-THE SEAM DOES NOT YET MODEL A PROCESS, and that is the next step, named rather
-than implied. A CSS switch reaches the loser twice before this notice -- the
-'Invitation to Intervene' when the request is Pending (para 7.1.9), which
-opens an Objection Window that for a domestic premises ends "at 17.00 hours on
-the 1st Working Day after the day on which the Gaining Supplier submitted the
-Switch Request" (para 6.2(a)) -- and can end Cancelled, Withdrawn or Annulled
-instead (paras 6.7, 9, 10). The world has no submission date and no failed
-switch, so none of that can be emitted without inventing it. `GAPS` names each.
+THE PENDING NOTICE, AT THE ASAP FLOOR (2026-10-08). A CSS switch reaches the
+loser earlier than Secured Inactive: the 'Invitation to Intervene' is issued
+when the request goes Pending (para 7.1.9). Its date is the request's
+submission date, which the world does not draw. What the rules DO fix is the
+latest it can be: the effective date must be "at least one complete Working Day
+(starting at midnight) after the day on which the Switch Request is submitted"
+(Schedule 23 para 2.5; 2.6 in the 2021 draft). `latest_submission_date` is that floor, and the
+Invitation is observed at the end of that day. A household that asks to switch
+ASAP is the least warning a real loser gets (the gainer must complete within
+five working days, SLC 14A.1, GSoP 6ZA); the share of switches on the other
+routes (after cooling-off, or a dated switch) is not published, so every CSS
+switch is sent on this floor and no save is flattered by warning a real loser
+would not have had. The notice carries the same three fields as Secured
+Inactive and nothing about the household. A switch can still end Cancelled,
+Withdrawn or Annulled (paras 6.7, 9, 10); the world has no failed switch on
+this seam, so those are not emitted. `GAPS` names each.
 
 NO SIM/GENERATOR/COMPANY SYMBOL: pure contract, checked by
 `tests/interface/test_registration_loss_seam.py`.
@@ -99,6 +107,13 @@ RegistrationLossWallNotification = WallNotification[RegistrationLossNotice]
 #: for the producer/consumer drift reason `payment_observable_seam` gives.
 CSS_SECURED_INACTIVE_NOTIFICATION_TYPE = "css_registration_secured_inactive"
 PRE_CSS_LOSS_NOTIFICATION_TYPE = "pre_css_registration_loss"
+#: The Invitation to Intervene, sent when a Switch Request is Pending (para 7.1.9).
+CSS_SWITCH_PENDING_NOTIFICATION_TYPE = "css_switch_pending_invitation_to_intervene"
+#: The types that say a registration HAS ended, and the type that says one may.
+LOSS_NOTIFICATION_TYPES: tuple[str, ...] = (
+    CSS_SECURED_INACTIVE_NOTIFICATION_TYPE, PRE_CSS_LOSS_NOTIFICATION_TYPE,
+)
+PENDING_NOTIFICATION_TYPES: tuple[str, ...] = (CSS_SWITCH_PENDING_NOTIFICATION_TYPE,)
 
 #: The counterparty each notice comes from. `WallNotification.sequence` is a
 #: position in ONE sender's stream, so each is its own stream. CSS serves both
@@ -154,12 +169,21 @@ FORBIDDEN_TRUTH_FIELDS: tuple[str, ...] = (
 #: What a real loser is told that this seam does not carry, and what it does
 #: not yet know how to time. Each is a gap, not a decision.
 GAPS: dict[str, str] = {
-    "invitation_to_intervene": (
-        "Schedule 23 para 7.1.9 sends the loser an 'Invitation to Intervene' when a Switch "
-        "Request is Pending, opening the Objection Window (para 6.2(a): domestic, ends 17:00 on "
-        "the 1st Working Day after submission). Its date is the request's submission date, which "
-        "para 2.5 bounds (the effective date is at least one complete Working Day and at most 28 "
-        "days after it) but does not fix, and the world draws no submission date. Not emitted."
+    "submission_date_by_route": (
+        "The Invitation to Intervene is emitted at the latest submission the rules allow "
+        "(`latest_submission_date`), the ASAP floor. A household that switches after cooling-off "
+        "or on a dated switch gives the loser up to 28 days' warning, and the share of each route "
+        "is not published (save-offer note s.1b; toggle q4_css_switch_route_share_asap). The "
+        "world sends every CSS switch on the floor until that share is sourced."
+    ),
+    "pending_notice_time_of_day": (
+        "The Invitation is issued 'at the same time as' the Pending notification (para 7.1.9); "
+        "the hour is not printed. It is observed at the end of the submission day, the latest "
+        "hour consistent with that rule."
+    ),
+    "bank_holidays": (
+        "Working Days here are Monday to Friday. A bank holiday counted as a Working Day puts "
+        "the floor later than a real gainer could submit, so it can only shorten the warning."
     ),
     "failed_switch_outcomes": (
         "Cancelled (objection, para 6.7), Withdrawn (para 9) and Annulled (para 10) "
@@ -231,3 +255,32 @@ def loss_notice_type(supply_effective_from_date: dt.date) -> str:
     if is_css(supply_effective_from_date):
         return CSS_SECURED_INACTIVE_NOTIFICATION_TYPE
     return PRE_CSS_LOSS_NOTIFICATION_TYPE
+
+
+def _is_working_day(day: dt.date) -> bool:
+    """Monday to Friday (`GAPS["bank_holidays"]`)."""
+    return day.weekday() < 5
+
+
+def latest_submission_date(supply_effective_from_date: dt.date) -> dt.date:
+    """The last day a Switch Request for this effective date may be submitted (para 2.5).
+
+    One complete Working Day, starting at midnight, must lie between the submission day and
+    the effective date. So find the last Working Day before the effective date; the request
+    was submitted no later than the calendar day before it."""
+    last_complete = supply_effective_from_date - dt.timedelta(days=1)
+    while not _is_working_day(last_complete):
+        last_complete -= dt.timedelta(days=1)
+    return last_complete - dt.timedelta(days=1)
+
+
+def emits_pending_notice(supply_effective_from_date: dt.date) -> bool:
+    """Whether the loser is sent an Invitation to Intervene: only a request submitted on or
+    after CSS go-live went Pending in CSS (`GAPS["go_live_transition"]`)."""
+    return latest_submission_date(supply_effective_from_date) >= CSS_GO_LIVE
+
+
+def pending_notice_observed_at(supply_effective_from_date: dt.date) -> dt.datetime:
+    """The end of the latest submission day (`GAPS["pending_notice_time_of_day"]`)."""
+    day_after = latest_submission_date(supply_effective_from_date) + dt.timedelta(days=1)
+    return dt.datetime.combine(day_after, dt.time(0))

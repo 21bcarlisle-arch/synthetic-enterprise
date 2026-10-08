@@ -38,6 +38,9 @@ and does it see the leaving signal (a switch notification) in time to make one?"
    effect**, once the switch can no longer be cancelled. No decision reads that notice. The world has
    no submission date, no cancellable in-flight switch and no household answer to a save. **So
    the company sees no leaving signal before the loss, and a save could not change the outcome here.**
+   *(Corrected 2026-10-08: the CSS Invitation to Intervene now crosses at the ASAP floor, one
+   working day or so before Secured Inactive (§1b). It is filed, nothing reads it, and the world still
+   has no household answer to a save.)*
 
 ---
 
@@ -54,6 +57,8 @@ and does it see the leaving signal (a switch notification) in time to make one?"
 | R5 | Ofgem, letter of July 2007 *Modifying the arrangements for the use of objections in the non-domestic market* (ofgem.gov.uk/sites/default/files/docs/2007/07/non-domestic-objections.pdf) | the proposal and its reasoning |
 | R6 | Ofgem, *Market-wide derogation from SLC 22B for Fixed Retention Tariffs*, decision and Directions, 3 February 2023 (ofgem.gov.uk/sites/default/files/2023-02/Market-wide derogation (ELEC AND GAS).pdf) | the Direction text, paras 3, 6, 7 |
 | R7 | Ofgem, *Decision Renewing the Ban on Acquisition-only Tariffs (BAT) after March 2026*, November 2025 (ofgem.gov.uk/sites/default/files/2025-11/Final_BAT_Renewal_Decision_Document,_November_2025.pdf) | §3 |
+| R8 | Ofgem, *Supplier Guaranteed Standards of Performance for Switching: GS 6ZA amendment*, decision letter, Feb 2024 (ofgem.gov.uk/sites/default/files/2024-02/Switching GSoP 6ZA amendment - decision letter.pdf); DCC, *Price Control 2023: CRS performance report*, 31 Jul 2023 (smartdcc.co.uk/media/qmmf3u4t/central-registration-service.pdf); Energy UK, *Switching report November 2025* | read in full for submission-to-effective-date timings; none found (§1b) |
+| R9 | MoneySavingExpert help, *How long does it take to switch energy suppliers?*, 17 Sep 2025; Octopus Energy, *Switching energy suppliers just got faster and easier*, 4 Aug 2022, and *How switching works*, 11 Dec 2019 | the timing choices and one gainer's stated default (§1b) |
 
 R1 carries Ofgem's own caveat: *"Consolidated conditions are not formal Public Register documents
 and should not be relied on."* R2 is a 2021 consultation draft. On every paragraph this note quotes,
@@ -90,6 +95,42 @@ the window the gainer submits. Whether a typical domestic loser hears inside the
 period (so the household can still cancel for free) or after it is not published. The one practitioner
 account (§2a) says that before CSS, British Gas was "notified of the switch after the cool off period
 has passed".
+
+**Re-searched 2026-10-08 for the distribution itself, and it is still not established.** Read for it:
+Ofgem's GSoP 6ZA amendment decision letter (Feb 2024: the guaranteed standard cut from 15 to 5
+working days, no timing data); DCC's *CRS performance report* (July 2023: delivery milestones and
+margin, no switch timings); the Energy UK monthly switching report (Nov 2025: counts only); Ofgem's
+*Average switching time for domestic customers* chart (now 404; its series is recorded as ending
+September 2022, and it measures sign-up to switch, not submission to effective date, so it would not
+answer this even if read). No RECCo or ElectraLink publication of submission-to-effective-date timings
+was found. What the record does give is the **shape of the choice**, not its weights:
+
+- **The household chooses among three timings** (MoneySavingExpert, 17 Sep 2025): *"ASAP"*, which the
+  gainer must complete within five working days; *after the cooling-off period*; or *"a chosen date up
+  to four weeks later. Not all providers offer this."*
+- **One large gainer's stated default is ASAP.** Octopus, 4 Aug 2022: *"Domestic customers in 2 working
+  days"* … *"You still have a 14 day cooling off period, regardless of your start date"*. Its pre-CSS
+  page (11 Dec 2019) said *"usually 17 days after you sign up"*. That is one supplier's policy, not a
+  market share.
+
+**What that bounds, and what it does not.** If ASAP is the common route, the gainer submits at or
+near sign-up and the loser's Pending notice arrives about **1 to 4 working days** before the effective
+date, that is, only days before the Secured Inactive notice this world already sends. If after-cooling-
+off is common, it arrives up to about 14 days earlier than that. The share of each route is not
+published, so the distribution is **not established**
+(`assumption_toggles.yaml::q4_css_switch_route_share_asap`, null). The question that would settle it
+is a practitioner one: *of a supplier's domestic gains under CSS, what share are ASAP, after cooling
+off, and dated later?* It is asked in the director's row `the-save-offer-needs-two-practitioner-figures`.
+
+**What is built meanwhile: the ASAP floor (director's direction, 2026-10-08).** The world now sends
+the Invitation to Intervene for every CSS switch, dated at the latest submission the rules allow:
+the day before the last working day before the effective date, so one complete working day lies
+between (`registration_loss_seam.latest_submission_date`). It is observed at the end of that day. For
+a Wednesday switch that is the start of Tuesday, 17 hours before Secured Inactive; for a Monday
+switch, the start of Friday. That is the least warning any route gives, so no save the company later wins is
+flattered by warning a real loser would not have had. Bank holidays are counted as working days,
+which can only shorten the warning. The toggle's reader refuses a set share until the other two
+routes have a submission date.
 
 **Before CSS (the 2016 – 17 July 2022 part of our window)**, electricity losses were notified by MPAS
 under the MRA (the D0058 flow), with an objection window of *"five working days"*. Gas losses came
@@ -253,6 +294,8 @@ rows (`HOLDOUT_OBSERVABLE_FIELDS`) give the company `stayed` as an outcome, afte
    (`docs/design/EP12_CSS_REC_SWITCHING_DISCOVER_FRAME.md` §2: *"The exit is instantaneous and
    irreversible. It has no in-flight period, no gaining counterparty, no objection window, no
    reversal"*).
+   *(Corrected 2026-10-08: a submission date is now set at the ASAP floor and the Invitation to
+   Intervene crosses for every CSS switch (§1b). A failed switch is still not emitted.)*
 3. **There is no household answer to a save.** Even with an earlier notice, nothing in the world lets a
    household that has signed with a gainer cancel in cooling-off because its old supplier made an
    offer. The only stay-or-go answer the world gives is the renewal-time roll.
@@ -261,7 +304,7 @@ rows (`HOLDOUT_OBSERVABLE_FIELDS`) give the company `stayed` as an outcome, afte
 
 | signal | when | in this world |
 |---|---|---|
-| CSS Invitation to Intervene (switch Pending) | 1 working day to 28 days before the effective date (from Jul 2022) | **absent**: no submission date (`GAPS`) |
+| CSS Invitation to Intervene (switch Pending) | 1 working day to 28 days before the effective date (from Jul 2022) | **present at the ASAP floor** (2026-10-08): dated at the latest submission the rules allow, filed in `pending_switches_notified()`; nothing reads it. The route share is not published (§1b) |
 | Pre-CSS loss notice (D0058 / UK Link) | before the effective date, with a 5 working day (elec) or 7 business day (gas) objection window, per 2007 sources | **absent**: pre-CSS timing is a named gap; the notice is stamped at midnight on the effective date |
 | Secured Inactive (cannot be cancelled now) | 17:00 the day before the effective date | **present**, and filed; nothing reads it |
 | The household calls to leave or asks for an exit quote | any time | **absent**: the world has no such contact |
