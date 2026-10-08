@@ -523,3 +523,30 @@ isolated. At 2017 it is now isolated. With one variable changed, 3 of 52 control
 is not measured. That is the `b2ec5147a`-reverted leg 1 against `h` leg 1 (about 2 h). It is handed on and
 not run here, because it would size an effect whose sign and route are now known. It would not decide
 whether one exists.
+
+## The register-recovery re-take: pre-registration (worker, 2026-10-08 ~05:00Z, before launch)
+
+**Premise re-measured.** Both cited commits are on origin, which is why this re-take is owed and not spent:
+the published `h` pair ran at `b2ec5147a`, before `212c6396a`. `site/data/value_arms.json` at origin still
+reads `is_heads_code: false`, with 16 unexempted substrate paths. Prerequisite (ii) is met: `9bff74814` names
+the budget dial (`358d59a42`). That dial is an engineering choice and not a defect, and it is unchanged at
+1,750 between `b2ec5147a` and origin. So there is no fix to fold in, and `h` against this re-take holds the
+book's budget fixed.
+
+**Launch.** `longjob-w220-recov-arms` runs both legs (`--level-arm`, then `--noise-floor-seeds
+11111,22222,33333 --redraw-mode all`) at origin `45122d156` in the locked worktree `/var/tmp/se-w220-recov-arms`
+(script `/var/tmp/se-w220-recov-arms.sh`). It writes the `20261008r` pair. The SSP cache is byte-identical to
+`h`'s, so the SSP source is held fixed. It waits behind the head-green census, because 11.2 GB will not fit
+beside it. Expect roughly 2 h for leg 1 and 6 h for leg 2.
+
+**More than one thing changed.** 16 substrate paths moved between `b2ec5147a` and `45122d156`, and the
+register recovery is only one of them. A move from `h` to `r` therefore cannot be attributed to the
+recovery alone. It is a reading at heads code, not a reading of `212c6396a`.
+
+| # | quantity, `r` against `h` | prediction | confidence |
+|---|---|---|---|
+| R1 | control, value and level arm settled nets | each falls. Lower recovery raises realised net bad debt in every arm (by about 6% on the recovery commit's own estimate). | ~0.75 |
+| R2 | `value_advantage_gbp` (h: £5,134) | moves by less than one `h` floor sd (£1,300). The recovery change hits both arms' bad debt alike. | ~0.65 |
+| R3 | sign of R2's move | negative. The value arm prices part of the book above control, so it carries slightly more realised bad debt. | ~0.55 |
+| R4 | control-arm billing accounts (h: 272) | unchanged within ±5%. Recovery is post-write-off and does not touch acquisition. | ~0.7 |
+| R5 | H2's shape | persists: leg 1 `value_advantage_gbp` is below its own floor's [min - 1 sd]. | ~0.6 |
