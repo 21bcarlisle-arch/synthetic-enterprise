@@ -656,3 +656,23 @@ HES, and cold at −142 below, the per-use sum is still roughly a 2010–15 home
 next item is the READ (step 2): a 2020s per-use trend that says how far each 2010–15 figure should
 have fallen by 2022. A refit should follow that, not a 2010–11 figure.
 
+
+## The dated read: electronics is ~+300 above its source carried to 2022, cooking ~+115, cold ~0 (2026-10-08, executor seat, claim `a-gas-homes-per-use-electricity-has-a-2020s-trend`)
+
+The duplicate-work note at draw named this same id. The only holder was this invocation, so the
+note was the draw's own write. There was no second piece of work and no disposition to take.
+
+Step 2 above is done. It is in `docs/market_research/the_seasonal_swing_of_a_gas_heated_homes_electricity.md`,
+in the section "A 2020s per-use trend". The ECUK 2023 Electrical Products tables (modelled, to 2022)
+carry each source to 2022: HES electronics on-mode 651–671 → **≈370–382**, HES cooking at the world's
+shares 514 → **≈460**, BRE cold 533 → **≈393**. Against the world's means (673, 577, 391), electronics
+is **≈ +300**, cooking **≈ +115** and cold **≈ 0**. Together that is about +410 of the meter's excess.
+The electronics fall is almost all before 2016, so the fix is **one level for the decade, not a
+per-year trend**.
+
+**Next, in order.**
+1. One-variable arm, prediction filed first: `_ELECTRONICS_KW_PER_PERSON` 0.055 → ≈0.031. Mean
+   meter −290 ± 40, 19:30 median profile about −0.08 kWh/h, trough unmoved. Budget the value-arms
+   re-take before landing.
+2. Read SERL's 2021 gas no-PV annual median. Only then can the remainder be called the crisis or
+   not.

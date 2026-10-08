@@ -587,3 +587,99 @@ electricity, scaled from ECUK Table 3.10.
 **Not established:** a 2020s per-use figure for either. ECUK 2025's U3 no longer splits appliances.
 **What the world does with them:** see the 2026-10-08 level section of
 `docs/staging/SEAT_FINDING_THE_FABRIC_PATH_GIVES_A_GAS_HEATED_HOMES_ELECTRICITY_NO_SEASON_2026-10-06.md`.
+
+## A 2020s per-use trend: how far each 2010–15 figure should have fallen by 2022 (2026-10-08, executor seat, claim `a-gas-homes-per-use-electricity-has-a-2020s-trend`)
+
+**Priors, filed before any 2020s source was opened.** These come from general knowledge of the
+appliance-standards decade and are not sourced. They exist only so the read can refute them.
+
+| Per-use figure the world rests on | Prior fall to 2022 |
+|---|---|
+| Electronics on-mode (HES 2010–11, ~651–671/household) | −25% to −45% (CRT/plasma to LED, desktops to laptops) |
+| Cooking (HES Table 23, 2010–11) | −0% to −15% (stock change is slow; induction is marginal) |
+| Cold (DECC/BRE 2015, 533/household) | −10% to −25% (A+ minimum from 2014, replacement over about 15 years) |
+
+### Source: ECUK's electrical-product tables, the per-use series ECUK 2025 dropped
+
+**DESNZ, ECUK 2023 Electrical Products tables** (published 28 Sep 2023, corrected 15 Dec 2023, data
+1970–2022; <https://assets.publishing.service.gov.uk/media/657c2396254aaa000d050e1e/ECUK_2023_Electrical_Products_tables.xlsx>).
+Table A1 gives UK GWh by appliance and Table A2 gives stock, so A1/A2 is kWh per appliance. The
+same series in ECUK 2020 (to 2019) agrees on the categories used here. Divided by UK households
+(ONS *Families and households*: 27.0m 2015, 27.8m 2019, 28.2m 2022, and **≈26.4m for 2011, which
+is interpolated** from the bulletin's "+6.1% since 2012").
+
+**Read this caveat before any number.** The tables say they are *"independently modelled and not
+compatible with DUKES"*. A "Last updated" row dates each column's inputs. **Refreshed series:**
+TVs (2020), cold (2018), monitors and power supplies (2018), ovens and hobs (2017), desktops and
+laptops (2013). **Projections frozen at 2010 inputs:** set-top boxes, DVD, games consoles,
+printers, microwaves, kettles, tumble and washer-dryers. A frozen column's trend is a 2010
+forecast, not an observation. Consumer electronics (set-top, DVD, games, PSU) is published only to
+2019. For 2020–22 it is `U` (unavailable).
+
+### Per household (or per appliance), and the ratio to each source's own year
+
+| Series | Source year → 2019 | → 2022 | Grade |
+|---|---|---|---|
+| TVs, kWh/household | 140 (2011) → 57 | → **52** (×0.37) | refreshed 2020 |
+| Other consumer electronics, kWh/household | 312 (2011) → 181 (×0.58) | **not published** | mostly 2010 projections |
+| Computing, kWh/household | 166 (2011) → 104 | → **116** (×0.70; rises after 2019) | 2013/2018 |
+| Cold, kWh/household | 471 (2015) → 387 | → **347** (×0.74) | refreshed 2018 |
+| Cold, kWh/appliance | 328 (2015) → 286 | → **259** (×0.79) | refreshed 2018 |
+| Electric oven, kWh/appliance | 120 (2011) | → **96** (×0.80) | refreshed 2017 |
+| Electric hob, kWh/appliance | 232 (2011) | → **194** (×0.84) | refreshed 2017 |
+| Microwave / kettle, kWh/appliance | 108 / 169 (2011) | → 98 / 169 | 2010 projections; no evidence |
+
+ECUK's levels are not HES's or BRE's. ECUK cold in 2015 is 471/household, against BRE's measured
+533. An ECUK oven is 120 kWh/yr, against HES's 290 per owning home. **Only the ratios are carried
+across.** Each one is applied to the measured figure from that measurement's own year.
+
+### What each 2010–15 figure the world rests on should have become by 2022
+
+| Per-use figure | Source level | Ratio to 2022 | **≈ 2022** | World (163 gas no-PV, seed 17, C1 2022) | World − trended |
+|---|---|---|---|---|---|
+| Electronics on-mode (HES 2010–11) | 651–671 (AV 478 + computing 193) | AV ×0.52 (TV to 2022, other CE held at 2019), computing ×0.70 | **≈ 370–382** | mean **673**, median 628 | **≈ +290 to +300** |
+| Cooking (HES Table 23 at the world's fuel shares) | 514 | oven ×0.80, hob ×0.84; kettle, microwave and toaster held (no evidence) | **≈ 460** | mean 577, median 610 | **≈ +115** |
+| Cold (DECC/BRE 2015) | 533 ± 32 | ×0.74 per household (×0.79 per appliance) | **≈ 393** (420 per appliance) | mean **391**, median 289 | **≈ 0** |
+
+**Priors graded.** Electronics −25 to −45%: observed **−43%** (with other CE held at 2019) ✓, at
+the edge. Cooking 0 to −15%: **−10%** ✓. Cold −10 to −25%: **−26%** per household ✗, just
+outside, and −21% per appliance ✓.
+
+**A level, not a trend inside the window.** The electronics ratio to 2010–11 is 0.61 (2016), 0.59
+(2017), 0.57 (2018), 0.56 (2019), 0.56 (2020), 0.57 (2021), 0.57 (2022). The fall is almost
+entirely before 2016. **Within the world's 2016–2025, electronics moves about 7%.** That answers the
+question the 2026-10-08 finding left open: the vintage correction is mainly **one level for the
+decade**. It is not a steep per-year trend. Cold keeps falling inside the window, by about 4% a
+year at constant stock.
+
+### What this changes
+
+1. **Electronics is the constant above its source, once the source is dated.** The 2026-10-08
+   per-use read found no in-world constant above its own source. That holds against the 2010–11
+   source. Against the same source carried to 2022, electronics is ~+300 kWh/yr on the mean. That
+   is roughly the size of the 0.055 → 0.0455 arm already run (−116), times 2.5. The constant is
+   0.055 kW/person, so the trended level is about **0.055 × 376/673 ≈ 0.031**. A one-variable arm
+   should show a mean meter fall of about −290 ± 40 and a 19:30 profile fall of about −0.08 kWh/h,
+   with the trough unmoved. **That is a prediction to file and test, not a value to land.** It
+   refits a world anchor, so it must budget the value-arms re-take.
+2. **Cooking is ~+115 above the trended source**, of which only ~54 is the dated oven/hob ratio and
+   the rest is the earlier +63. It is the second term, and smaller.
+3. **Cold should not come down.** The world's mean already sits where BRE 2015 lands in 2022 on
+   ECUK's trend.
+4. **Sum.** About +410 kWh/yr on the mean, against a meter mean of 3,395 and median of 3,141, and
+   SERL 2022's ~2,600. That is most of the gap, before any 2022 price response. SERL's 2021 gas
+   no-PV annual median is still unread, so **whether the remainder is the crisis cannot yet be
+   said**.
+
+### Not established
+
+- **Other consumer electronics after 2019.** ECUK stops publishing it, and its pre-2019 values are
+  2010 projections. The 2022 electronics figure holds it at 2019 per household. If it kept falling
+  as TVs did, the trended on-mode is lower (~330).
+- **Any measured 2020s per-use figure.** No EST/DESNZ follow-up to HES R66141 at appliance level
+  was found. ECUK's series are modelled. SERL publishes the meter, not the uses. The ratios above
+  are the best published trend, and they are model outputs.
+- **2023–2025.** ECUK 2024 and 2025 publish no per-appliance table. The world's 2023–25 has no
+  per-use evidence beyond 2022's.
+- **Kettle, microwave, toaster.** Their per-unit figures are 2010 projections, so no fall is
+  applied.
