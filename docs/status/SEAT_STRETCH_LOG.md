@@ -8,6 +8,50 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-10-08 — orientation: The thesis's retention test now has its observable and its first answer
+
+<!-- head: a8946181ef59 -->
+
+*Written by the orientation seat from its own record (2026-10-08T11:20:43.321945+00:00; 30 commits, 12 substantive, since 2026-10-08T08:22:08.553576+00:00).*
+
+## What the stretch meant
+
+The thesis's retention test now has its observable and its first answer. The losing supplier is sent the CSS Invitation to Intervene at the ASAP floor (4805420bd), the switching process's own outcomes are knowledge and set the save and win-back toggles as ranged estimates (f418eff9e), and the director's three shapes are graded: a reactive save on the loss notice is the only shape that beats never offering, at every save rate in the published range, and the world's price response decides who is saved (0f1fb3f6a). That is the first place in this project where targeting a leaver beats a flat rule. But it is a grading tool's answer and not yet a settled-run answer, and the director's condition is unmet. Nobody has yet shown that a save is not paid for by the customers who stay, or that a vulnerable customer is treated at least as well, so the win cannot be published. The baseline moved toward fairness too. Acquisition now selects on each prospect's own responsiveness (2338f13ff, approved 08:52), and the pre-registered 1.1-1.4x fails at the market price. That makes the switched-in book a less flattering opponent, which is honest, and its P1-P4 grading on fresh seeds is still owed. The world gained voids (5531ef8a6), and net margin fell GBP 910 on the 80-founder book. Four things changed at once, so the void's effect cannot yet be attributed, and the voids atom was never minted on the map, so last stretch's fourth item is half done. Its steer was not drawn: the interactive lane built it directly. The gas home's evening peak came from 0.80 to 0.69 kWh/h against SERL's 0.48 (92d39bf60), and no single end use carries the rest (528b7ab1c). Two continuations hold the next steps. W2_20's register-recovery re-take moved the value advantage +GBP 110, opposite to the predicted sign, and its leg 2 was superseded, so R5 has nothing to grade until the leg is relaunched. The 400-founder end-to-end run failed before report extraction (longjob-e2e-400-founders failed), so the founder count, budget and memory share stay unset, as the director asked. One thing went backwards in the machine. HEAD is 23 behind origin, and seven daemons, the seat among them, run without 8 commits to code they import. Of 30 commits, 11 carried nothing: base-advance merges, one per landing. I am answering two of the director's open rows here that he ruled on at 08:52, two and a half hours ago. That is the same lag I corrected last stretch, recurring.
+
+## What went wrong
+
+- NOT corrected: THE MACHINE'S, CARRIED. One item can land twice, on origin through surgical_land and as a local commit on the shared HEAD. Owner: SEAT_FINDING_ONE_ITEM_LANDS_TWICE_AND_THE_SHARED_HEAD_FORKS_FROM_ORIGIN. 11:20: no new instance. HEAD holds nothing origin lacks (0 ahead).
+- NOT corrected: THE MACHINE'S, CARRIED. A held change's hold condition is not re-asked when its premise moves. Owner: SEAT_FINDING_A_HOLD_OR_A_TOMBSTONE_STATES_ITS_CONDITION_IN_PROSE_AND_NOTHING_RE_ASKS_IT. 11:20: no new instance.
+- NOT corrected: THE MACHINE'S, CARRIED. The held-work check refuses an item when its prose names a held file, even when the held work is not the item's, and the refusal reaches only the supervisor log. 11:20: no new instance.
+- NOT corrected: THE MACHINE'S, CARRIED. The seat's brief reads the director's open concerns from the behind checkout. 11:20: HEAD is now 23 behind origin, but no rows were dropped. The brief carried all nine open rows, matching origin's record.
+- NOT corrected: THE MACHINE'S, CARRIED. The draw ledger reads the same for work never started and for work mid-landing, because it asks only origin by path. 11:20: NEW INSTANCE, cause not established. reprice-the-settlement-budget-on-the-full-current-curve reads not_done, though 803f8666b wrote the very path the ledger asked about (settlement_ceiling_slope_20261008.json) at 10:59Z, inside the item's window. The checkout's 23-commit lag may be the cause.
+- NOT corrected: THE MACHINE'S, CARRIED. A focus-row tombstone still retires a row without asking its DONE. 11:20: the one tombstone this stretch (the-pending-notice-reaches-the-company-at-the-asap-floor, 10:47) was right, because 4805420bd met its DONE three minutes earlier. Right by luck: nothing asked the DONE.
+- NOT corrected: THE MACHINE'S, CARRIED. A landing can carry docs/direction/DIRECTION.yaml from the shared working copy when it is older than origin's. 11:20: not re-read. No instance seen.
+- NOT corrected: THE MACHINE'S, CARRIED. A parked atom is still counted as drawn. H45 is PARKED and the counter still moves. 11:20: SITE2 moved from 42903 to 42956.
+- NOT corrected: THE MACHINE'S, CARRIED. The coupled-triad gate now excludes twinless L3 targets, and its refusal reaches only the supervisor journal. 11:20: D48 is still at L1, so nothing that would lift the exclusion has changed.
+- NOT corrected: THE WORLD'S, CARRIED. A gas-heated fabric home's electricity has no season: the median month max/min is 1.288 against SERL's 1.36-1.47. 11:20: MOVED FURTHER. 92d39bf60 cooks each appliance on one fuel, and the peak falls from 0.80 to 0.69 kWh/h against SERL's 0.48. 528b7ab1c finds no single end use carries the rest. Cooking timing and the electronics anchor are queued. Focus five.
+- NOT corrected: THE MACHINE'S, CARRIED. The draw ledger credits or denies an item by path overlap, not by its work. 11:20: still standing. retake-the-settlement-ceiling-curve-at-current-code and the b8 curve row still read not_done against a44c436c6 and 4320ae6a5.
+- corrected: MINE, NEW, the same shape as last stretch's corrected row. At 08:52 the director answered two open concerns: the save-offer figures ("I'm not giving figures", research the switching data) and acquisition selection (approved). The record still showed both as waiting on him until this orientation, about two and a half hours later, while the work he approved landed (f418eff9e, 2338f13ff). 11:20: CORRECTED here. Both rows carry his words. Twice in two stretches is a class: the lane acting on a console ruling does not mark the concern answered when it acts.
+- NOT corrected: THE MACHINE'S, NEW. The shared checkout is 23 commits behind origin, so seven units (delivery-seat, background-worker, daily-self-note, deadmans-switch, head-green-census, naive-organ, sim-runner) run without 8 commits to code they import, including the void, the Invitation to Intervene and acquisition selection. Last stretch HEAD and origin were level.
+
+## Chosen against
+
+- Setting the founder count, the settlement budget and the memory share, or relaunching the 400-founder end-to-end run from this record.
+- Vulnerability as a hidden household state (rare event 2).
+- A relaunch of W2_20's register-recovery leg 2, or a new W2_20 hypothesis for the +GBP 110 wrong-sign move.
+- A mechanism to stop the shared checkout falling behind origin, or to fold base-advance merges out of the commit stream.
+- The theft study (rare event 3).
+
+## Focus for the next stretch
+
+- `a-save-offer-is-not-paid-for-by-the-stayers`
+- `the-voids-effect-is-split-and-the-atom-carries-its-gaps`
+- `a-home-mover-is-a-retention-moment-the-company-sees`
+- `acquisition-selection-is-graded-on-fresh-seeds`
+- `a-gas-heated-homes-evening-peak-comes-down-to-serls`
+
+---
+
 ## 2026-10-08 — orientation: The director ruled at 06:46, and his rulings change the frame more than anything built this stretch
 
 <!-- head: 75bbed5bdeac -->

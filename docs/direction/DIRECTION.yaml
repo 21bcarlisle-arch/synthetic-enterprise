@@ -1,273 +1,347 @@
 version: 1
-oriented_at: '2026-10-08T08:22:08.553576+00:00'
-thesis_read: The director ruled at 06:46, and his rulings change the frame more than anything built this stretch. Retention in GB is saves on the loss notice and
-  keeping home movers, not blanket renewal cuts. That retires B8's uniform-cut frame, which had found no cut size that pays, and points the thesis's retention test
-  at targeting a leaver, the place where inference could beat a flat rule. That test needs the Pending notice, and last stretch's focus two established honestly that
-  its lead time is not published (re-searched Ofgem, DCC, Energy UK, RECCo, ElectraLink), and stopped as told. So the frame is right and its first observable waits
-  on a practitioner figure. It is raised with a conservative default, and the default lets the build proceed. Home moves are on (ada37371c), with the change-of-tenancy
-  debt still the occupier's at 28 moves in a small run. The founder raise to 400 is approved and waits only on pricing a ~5,000 customer-year budget (the ceiling
-  probe at 2,800 and 3,400 is running). The baseline got clearer. The flat control arm takes the elasticity draw for every renewing account, as the value arm does
-  (6a857a21d), so the comparison is fair by design, and the floor needs nine seeds. W2_20 on its own takes 12 gas legs and 7.7% of gross margin off h's control arm
-  over the decade (75bbed5bd), and that size is queued onto the headline. The world moved forward in one place and is still short in another. The gas-heated home
-  now has SERL's season (839806aff), but its evening peak is 0.32 kWh/h too high, so the published ratio is still out of band. That reading sits uncommitted in the
-  shared tree, with the lead-time section beside it. Landing both comes before new work. The 48ce3a9 salvage in /tmp/wt-gaslevel holds only an owner file and is disposable.
-  Nothing went backwards. Both previous focus items were drawn. One was finished to its honest stop and is unlanded. The other was half done and is still first. The
-  brief counts 10 commits and 4 substantive. Two were empty base-advance merges. The draw ledger miscredited the ceiling retake by path once more.
+oriented_at: "2026-10-08T11:20:43.321945+00:00"
+thesis_read: >-
+  The thesis's retention test now has its observable and its first answer. The losing supplier
+  is sent the CSS Invitation to Intervene at the ASAP floor (4805420bd), the switching process's
+  own outcomes are knowledge and set the save and win-back toggles as ranged estimates
+  (f418eff9e), and the director's three shapes are graded: a reactive save on the loss notice is
+  the only shape that beats never offering, at every save rate in the published range, and the
+  world's price response decides who is saved (0f1fb3f6a). That is the first place in this
+  project where targeting a leaver beats a flat rule. But it is a grading tool's answer and not
+  yet a settled-run answer, and the director's condition is unmet. Nobody has yet shown that a
+  save is not paid for by the customers who stay, or that a vulnerable customer is treated at
+  least as well, so the win cannot be published. The baseline moved toward fairness too.
+  Acquisition now selects on each prospect's own responsiveness (2338f13ff, approved 08:52), and
+  the pre-registered 1.1-1.4x fails at the market price. That makes the switched-in book a less
+  flattering opponent, which is honest, and its P1-P4 grading on fresh seeds is still owed. The
+  world gained voids (5531ef8a6), and net margin fell GBP 910 on the 80-founder book. Four things
+  changed at once, so the void's effect cannot yet be attributed, and the voids atom was never
+  minted on the map, so last stretch's fourth item is half done. Its steer was not drawn: the
+  interactive lane built it directly. The gas home's evening peak came from 0.80 to 0.69 kWh/h
+  against SERL's 0.48 (92d39bf60), and no single end use carries the rest (528b7ab1c). Two
+  continuations hold the next steps. W2_20's register-recovery re-take moved the value advantage
+  +GBP 110, opposite to the predicted sign, and its leg 2 was superseded, so R5 has nothing to
+  grade until the leg is relaunched. The 400-founder end-to-end run failed before report
+  extraction (longjob-e2e-400-founders failed), so the founder count, budget and memory share
+  stay unset, as the director asked. One thing went backwards in the machine. HEAD is 23 behind
+  origin, and seven daemons, the seat among them, run without 8 commits to code they import. Of
+  30 commits, 11 carried nothing: base-advance merges, one per landing. I am answering two of
+  the director's open rows here that he ruled on at 08:52, two and a half hours ago. That is the
+  same lag I corrected last stretch, recurring.
 stretch_reviewed:
-  since: '2026-10-08T05:24:19.070128+00:00'
-  commits: 10
-  substantive: 4
+  since: "2026-10-08T08:22:08.553576+00:00"
+  commits: 30
+  substantive: 12
 focus:
-- id: a-gas-heated-homes-evening-peak-comes-down-to-serls
-  lane: W2_customer_generator
-  what: 'First land what is already written: the uncommitted 2022 day-shape section in docs/market_research/the_seasonal_swing_of_a_gas_heated_homes_electricity.md
-    and any matching update to docs/staging/SEAT_FINDING_THE_FABRIC_PATH_GIVES_A_GAS_HEATED_HOMES_ELECTRICITY_NO_SEASON_2026-10-06.md. Use tools/isolate_hunks.py
-    if another lane holds the file. 48ce3a9 in /tmp/wt-gaslevel holds only .se_worktree_owner and is disposable. Then, with the sim-engineer, find which end use puts
-    the world''s evening peak at 0.80 kWh/h against SERL 2022''s 0.48 at 18:30 (cooking, lighting or the appliance draw in simulation/household_demand_shape.py or
-    simulation/fabric_demand_path.py). Correct it from a published per-end-use source (EFUS, ECUK end-use tables, the Household Electricity Survey), never a fitted
-    scalar, and pre-register the predicted peak, annual median and month max/min first. Measure them over the same 163 homes at seed 17, and extend the season control
-    to the level. Name any value-arms substrate path the change moves in the commit message.'
-  why: This is the one world defect still on the list, and its cause is now located. The excess winter-evening electricity inflates every direct-debit opening and
-    arrears comparison. DONE when on origin the peak, the annual median and the month max/min each sit within SERL's published figures under a control that reds if
-    they leave, and the triage row a-gas-heated-homes-electricity-has-no-season is marked fixed.
-- id: the-pending-notice-reaches-the-company-at-the-asap-floor
-  lane: W3_industry_systems
-  what: 'Land the uncommitted ''not established'' section (§1b, R8-R9) of docs/market_research/a_save_offer_against_the_switching_rules_and_the_seam.md and its knowledge-map
-    line. Then add two practitioner toggles to docs/market_research/assumption_toggles.yaml, switch-route shares and save rate/cost per save, both explicitly unset
-    with a named reason that cites the director''s open row the-save-offer-needs-two-practitioner-figures. Then in simulation/ give each switch a submission date
-    on the ASAP route only: the gainer completes within 5 working days, per the GSoP 6ZA letter already cited. With the interface-steward, carry a Pending notice
-    through company/interfaces/sim_interface.py that holds the effective date and nothing about the household. No decision reads it yet. Add a control that a notice
-    arrives at or before Secured Inactive and never after the effective date, and that the route share reads the toggle.'
-  why: The director made the save-offer decision set B8's frame, and every part of it waits on the company hearing of a loss when a real loser does. The ASAP route
-    is the least warning a real supplier gets, so building on it cannot flatter a save. DONE when the observable and its control are on origin, and the toggles say
-    plainly that the route share is unknown.
-- id: a-home-mover-is-a-retention-moment-the-company-sees
-  lane: C_customer_ops
-  what: 'Director''s ruling 3: add home-mover retention as a lever now that moves are on. DISCOVER first, into docs/market_research/. Find what a GB supplier observes
-    when a customer moves out: the customer''s own notice, the final read, a forwarding address, whether it learns the destination premise, and what a move-with-us
-    offer is under the SLCs. Record what is published and what is a gap. Then build only the observable: a move-out notice the company receives, carrying what the
-    record says it would carry, through the seam with the interface-steward, with a control that the destination is absent unless the household told it. No retention
-    decision and no take-up rate.'
-  why: Movers are now a real loss channel in the world (28 in the small run), and the director named them alongside saves as where GB retention happens. Without the
-    observable, the decision has nothing to see. DONE when the discovery doc is on origin with its gaps named, and the observable crosses with its control or the
-    doc says why it cannot.
-- id: a-void-follows-a-move-out
-  lane: W2_customer_generator
-  what: 'Act on docs/staging/SEAT_PROPOSAL_THE_ORDER_FOR_VOIDS_VULNERABILITY_AND_THEFT_2026-10-08.md item 1. The director asked for voids first if they matter most
-    for billing and debt, and the proposal says they do. Mint the voids atom on the map, then build slice 1 in simulation/: after each move-out, the premise has a
-    void before the next occupant. Its length is a swept range that carries the q1_void_months_per_move_out GAP, never a picked value. The void''s energy is billed
-    to the owner under a deemed contract (Electricity Act Sch 6 para 3(1)), and B7''s occupier-debt line reads it. Measure in the minutes tier, a few hundred homes
-    over two years, at both ends of the sweep.'
-  why: Moves are on, so every move-out now opens a window this world bills as if it were occupied. That is the largest billing-accuracy and debt gap left, and the
-    director approved the order by asking for it. DONE when slice 1 and its control are on origin, and the atom row names the GAP.
+  - id: a-save-offer-is-not-paid-for-by-the-stayers
+    lane: B_commercial
+    what: >-
+      Wire the reactive save on the loss notice (the shape 0f1fb3f6a graded as the only one that
+      beats never offering) into the settled run, behind a curriculum switch that is off by
+      default and byte-identical when off. It reads the Invitation to Intervene from 4805420bd
+      and the save and win-back toggle ranges from f418eff9e. Then run the director's two
+      fairness checks in the minutes tier at both ends of the save-rate range. First, the
+      stayers' prices with and without save offers, account by account. Second, a vulnerable
+      customer's offer against a non-vulnerable customer's in the same position. Pre-register
+      both before the run. A save offer may vary by acquisition route or time on the default
+      tariff, and a renewal price may not. Add a control for each rule that reds if a stayer's
+      price moves with saves on, and if a vulnerable customer gets less. Record the SLC 22B
+      reading from f418eff9e beside the result.
+    why: >-
+      This is the thesis's first inference-beats-flat-rule result, and the director made it
+      conditional: a save must never be paid for by raising the price of customers who stay.
+      Until that is shown in the settled run, the 0f1fb3f6a answer cannot be published. DONE
+      when the switch, both checks and their controls are on origin, and the finding states,
+      at both ends of the save-rate range, whether the reactive save still beats never offering
+      in the settled run. If the answer turns on a number, the finding says which.
+  - id: the-voids-effect-is-split-and-the-atom-carries-its-gaps
+    lane: W2_customer_generator
+    what: >-
+      Split 5531ef8a6's GBP 910 net-margin fall on the 80-founder book to 2019 into its four
+      changes, one variable at a time at the same seed: void energy removed, the unnamed window
+      starting later, the occupant's move hazard starting later, and payment amounts. Write
+      each prediction before its run. Then settle the open check its commit names: whether the
+      payment triad's monthly amount still feeds the change-of-tenancy window's occupier-debt
+      revenue into the named household's payments, against B7 slice 5's exclusion. Fix it if
+      it does. Mint the voids atom on docs/design/maturity_map.yaml, ask the map's headroom
+      first, and name the owner-void and void-use GAPs on the row.
+    why: >-
+      Voids are the director's first rare event and they now move money, but a GBP 910 figure
+      that four changes produced together cannot be read as the void's effect. Until it is
+      split, every debt and billing figure downstream of moves has an unattributed term in it.
+      DONE when the four-way split and the triad check are in the void finding on origin and
+      the atom row exists at L1 with its GAPs.
+  - id: a-home-mover-is-a-retention-moment-the-company-sees
+    lane: C_customer_ops
+    what: >-
+      The discovery is on origin (9b0e3594c, docs/market_research/home_moves.md: the notice is
+      the customer's, and SLC 24.1 dates it two Working Days before the move). Now build only
+      the observable. A move-out notice the company receives, dated as that page says and
+      carrying only what it says a supplier is told, crosses company/interfaces/sim_interface.py
+      with the interface-steward. Add a control that the destination premise is absent unless
+      the household told it, and one that the notice never arrives after the move date. No
+      retention decision and no take-up rate.
+    why: >-
+      Movers are the director's second GB retention lever, and the decision set has nothing to
+      see until the notice crosses the seam. DONE when the observable and both controls are on
+      origin.
+  - id: acquisition-selection-is-graded-on-fresh-seeds
+    lane: B_commercial
+    what: >-
+      Grade the pre-registered P1-P4 in
+      docs/staging/records/SEAT_PREREG_ACQUISITION_SELECTS_ON_EACH_PROSPECTS_OWN_RESPONSIVENESS_2026-10-08.md
+      on seeds the pre-registration did not see, in the minutes tier, with option 2 run both
+      ways (independent and linked to engagement), as the director's 08:52 approval asks. Report
+      the two arms side by side in that record and say, for each P, whether it passed. 2338f13ff
+      already records that the 1.1-1.4x prediction fails at the market price. Read why before
+      re-running: it may be the world or the prediction.
+    why: >-
+      The approval was conditional on the pre-registered test, and only one leg of it has been
+      read. The baseline's switched-in book is what per-customer pricing must beat, so whether
+      acquisition selection behaves as published evidence says decides whether that opponent
+      is fair. DONE when all four Ps are graded on fresh seeds in the record on origin.
+  - id: a-gas-heated-homes-evening-peak-comes-down-to-serls
+    lane: W2_customer_generator
+    what: >-
+      Work the two queued continuations in order, cooking timing first
+      (a-gas-homes-evening-cooking-at-hes-hours-and-kettle-energy), then the electronics anchor
+      (a-gas-homes-electronics-load-is-anchored-to-hes-on-mode). Write each prediction for the
+      peak, the annual median and the month max/min before its run, measured over the same 163
+      homes at seed 17. Where no published source anchors an end use, leave it an explicit GAP
+      in the code. Never fit a scalar to SERL.
+    why: >-
+      This is the one world defect on the list. The peak is still 0.69 against SERL's 0.48, and
+      the excess inflates every winter direct-debit and arrears comparison. DONE when on origin
+      the peak, median and month max/min each sit within SERL's published figures under a
+      control that reds if they leave, and the triage row a-gas-heated-homes-electricity-has-no-season
+      is marked fixed. If the published per-use sources cannot close it, DONE is the finding
+      saying so.
 not_now:
-- what: A focus row for the 400-founder raise, the ~5,000 customer-year budget and the end-to-end run.
-  why: The director approved it. The ceiling probe at 2,800 and 3,400 is running (pid 1689528), and reprice-the-settlement-budget-from-the-upper-points is queued
-    for 10:20. A focus row would be a second writer on work that is sequenced, and launching beside the probe would spoil its memory reading.
-- what: Building the save-offer decision set itself, or grading B8 on it now.
-  why: It needs the Pending notice (focus two) first, and the save rate is the director's blank. Building the decision before its observable repeats the uniform-cut
-    mistake the director has just corrected.
-- what: Changing acquisition so that it selects on each prospect's own responsiveness.
-  why: The director said to bring a proposal and not change the world yet. It is raised with the proposal, and the world waits for his ruling.
-- what: Vulnerability as a hidden state and the theft study (items 2 and 3 of the rare-events order).
-  why: Voids come first for billing and debt, and are buildable now that moves exist. Vulnerability touches company/regulatory/priority_services_register.py and the
-    seam, a larger build better started once voids feed the debt line it acts on.
-- what: More W2_20 focus (the nine-seed floor, the 20261008r arms pair, the headline carry).
-  why: Three continuations hold it with their order and embargoes set, and 75bbed5bd just landed its decade size. Adding direction would only add a writer.
-- what: Mechanism fixes for the open machine rows (draw ledger by path, parked-atom counting, held-work, tombstones).
-  why: Each has an owner in wrong_triage.yaml. This stretch's miscredit cost nothing, because the seat read the commit. The director's rulings put product and world
-    first.
+  - what: Setting the founder count, the settlement budget and the memory share, or relaunching the 400-founder end-to-end run from this record.
+    why: >-
+      The director ruled at 08:52 that the run sets all three together. The interactive lane
+      holds it, and at 11:21 it found the budget control prices from the 80-founder curve when
+      the shipped shape is founder-heavy. A second writer would collide. The 3,100 raise
+      continuation is embargoed to 16:45 and may be superseded by that finding. The lane
+      holding it decides, not the draw.
+  - what: Vulnerability as a hidden household state (rare event 2).
+    why: >-
+      Its research started at 11:15 in the interactive lane. The void split comes first,
+      because vulnerability acts on the debt line voids now feed, and that line has an
+      unattributed GBP 910 in it.
+  - what: A relaunch of W2_20's register-recovery leg 2, or a new W2_20 hypothesis for the +GBP 110 wrong-sign move.
+    why: >-
+      The continuation for 16:40 owns it, and it must first find that leg 2 was superseded
+      rather than finished. W2_20 is a substrate defect on one arm's 12 gas accounts. The save
+      result is the first per-customer win and outranks it.
+  - what: A mechanism to stop the shared checkout falling behind origin, or to fold base-advance merges out of the commit stream.
+    why: >-
+      Both are real. Seven daemons run without 8 commits, and 11 of 30 commits are empty. But
+      a landed daemon fix would itself be inert in a stale checkout, and the reconcile-watch
+      class is already filed. Product work outranks it while nothing in focus depends on the
+      daemons' new code.
+  - what: The theft study (rare event 3).
+    why: Third in the director's approved order. Voids are not yet attributed.
 wrong:
-- what: 'THE MACHINE''S, CARRIED. One item can land twice, on origin through surgical_land and as a local commit on the shared HEAD. Owner: SEAT_FINDING_ONE_ITEM_LANDS_TWICE_AND_THE_SHARED_HEAD_FORKS_FROM_ORIGIN.
-    08:22: no new instance. HEAD and origin are level.'
+- what: 'THE MACHINE''S, CARRIED. One item can land twice, on origin through surgical_land and as a local
+    commit on the shared HEAD. Owner: SEAT_FINDING_ONE_ITEM_LANDS_TWICE_AND_THE_SHARED_HEAD_FORKS_FROM_ORIGIN.
+    11:20: no new instance. HEAD holds nothing origin lacks (0 ahead).'
   corrected: false
-- what: 'THE MACHINE''S, CARRIED. A held change''s hold condition is not re-asked when its premise moves. Owner: SEAT_FINDING_A_HOLD_OR_A_TOMBSTONE_STATES_ITS_CONDITION_IN_PROSE_AND_NOTHING_RE_ASKS_IT.
-    08:22: no new instance.'
+- what: 'THE MACHINE''S, CARRIED. A held change''s hold condition is not re-asked when its premise moves.
+    Owner: SEAT_FINDING_A_HOLD_OR_A_TOMBSTONE_STATES_ITS_CONDITION_IN_PROSE_AND_NOTHING_RE_ASKS_IT. 11:20:
+    no new instance.'
   corrected: false
-- what: 'THE MACHINE''S, CARRIED. The held-work check refuses an item when its prose names a held file, even when the held work is not the item''s, and the refusal
-    reaches only the supervisor log. 08:22: no new instance.'
+- what: 'THE MACHINE''S, CARRIED. The held-work check refuses an item when its prose names a held file,
+    even when the held work is not the item''s, and the refusal reaches only the supervisor log. 11:20:
+    no new instance.'
   corrected: false
-- what: 'THE MACHINE''S, CARRIED. The seat''s brief reads the director''s open concerns from the behind checkout. 08:22: no new instance. HEAD and origin were level,
-    and the brief carried all nine open rows.'
+- what: 'THE MACHINE''S, CARRIED. The seat''s brief reads the director''s open concerns from the behind
+    checkout. 11:20: HEAD is now 23 behind origin, but no rows were dropped. The brief carried all nine
+    open rows, matching origin''s record.'
   corrected: false
-- what: 'THE MACHINE''S, CARRIED. The draw ledger reads the same for work never started and for work mid-landing, because it asks only origin by path. 08:22: the
-    W2_20 own-effect landing (surgical_land pid 2608956) was mid-gate when the brief was cut and reached origin as 75bbed5bd. The brief listed no item for it, so
-    this stretch neither shows nor clears the defect.'
+- what: 'THE MACHINE''S, CARRIED. The draw ledger reads the same for work never started and for work mid-landing,
+    because it asks only origin by path. 11:20: NEW INSTANCE, cause not established. reprice-the-settlement-budget-on-the-full-current-curve
+    reads not_done, though 803f8666b wrote the very path the ledger asked about (settlement_ceiling_slope_20261008.json)
+    at 10:59Z, inside the item''s window. The checkout''s 23-commit lag may be the cause.'
   corrected: false
-- what: 'THE MACHINE''S, CARRIED. A focus-row tombstone still retires a row without asking its DONE. 08:22: no new instance.'
+- what: 'THE MACHINE''S, CARRIED. A focus-row tombstone still retires a row without asking its DONE. 11:20:
+    the one tombstone this stretch (the-pending-notice-reaches-the-company-at-the-asap-floor, 10:47) was
+    right, because 4805420bd met its DONE three minutes earlier. Right by luck: nothing asked the DONE.'
   corrected: false
-- what: 'THE MACHINE''S, CARRIED. A landing can carry docs/direction/DIRECTION.yaml from the shared working copy when it is older than origin''s. 08:22: no new instance.'
+- what: 'THE MACHINE''S, CARRIED. A landing can carry docs/direction/DIRECTION.yaml from the shared working
+    copy when it is older than origin''s. 11:20: not re-read. No instance seen.'
   corrected: false
-- what: 'THE MACHINE''S, CARRIED. A parked atom is still counted as drawn. H45 is PARKED and the counter still moves. 08:22: SITE2 went from 42821 to 42903.'
+- what: 'THE MACHINE''S, CARRIED. A parked atom is still counted as drawn. H45 is PARKED and the counter
+    still moves. 11:20: SITE2 moved from 42903 to 42956.'
   corrected: false
-- what: 'THE MACHINE''S, CARRIED. The coupled-triad gate now excludes twinless L3 targets, and its refusal reaches only the supervisor journal. 08:22: not re-read
-    this stretch. D48 is still at L1, so nothing that would lift the exclusion has changed.'
+- what: 'THE MACHINE''S, CARRIED. The coupled-triad gate now excludes twinless L3 targets, and its refusal
+    reaches only the supervisor journal. 11:20: D48 is still at L1, so nothing that would lift the exclusion
+    has changed.'
   corrected: false
-- what: 'THE WORLD''S, CARRIED. A gas-heated fabric home''s electricity has no season: the median month max/min is 1.288 against SERL''s 1.36-1.47. 08:22: PARTLY
-    MOVED. 839806aff gives it SERL''s season in absolute terms, and the 2022 day-shape reading (uncommitted, in the seasonal-swing knowledge page) finds the trough
-    right at 0.128 against 0.13 kWh/h, with the evening peak 0.32 kWh/h too high. That excess level is what holds the ratio short. Focus one.'
+- what: 'THE WORLD''S, CARRIED. A gas-heated fabric home''s electricity has no season: the median month
+    max/min is 1.288 against SERL''s 1.36-1.47. 11:20: MOVED FURTHER. 92d39bf60 cooks each appliance on
+    one fuel, and the peak falls from 0.80 to 0.69 kWh/h against SERL''s 0.48. 528b7ab1c finds no single
+    end use carries the rest. Cooking timing and the electronics anchor are queued. Focus five.'
   corrected: false
-- what: 'THE MACHINE''S, CARRIED. The draw ledger credits or denies an item by path overlap, not by its work. 08:22: NEW INSTANCE. retake-the-settlement-ceiling-curve-at-current-code
-    reads not_done, though a44c436c6 is its work: the ledger asked for the 20261006 slope file, and the work wrote 20261008''s. The b8 curve row still reads not_done
-    against 4320ae6a5.'
+- what: 'THE MACHINE''S, CARRIED. The draw ledger credits or denies an item by path overlap, not by its
+    work. 11:20: still standing. retake-the-settlement-ceiling-curve-at-current-code and the b8 curve
+    row still read not_done against a44c436c6 and 4320ae6a5.'
   corrected: false
-- what: 'MINE, NEW. The director''s 06:46 rulings answered three open concerns: home moves, the founder ceiling and B8. eb9f8d026 at 08:09 marked only home moves
-    answered, so for about an hour and a half the record showed him two questions as still waiting on him after he had ruled. 08:22: CORRECTED here. Both rows carry
-    his words, and the blank he left for save rates is its own row.'
+- what: 'MINE, NEW, the same shape as last stretch''s corrected row. At 08:52 the director answered two
+    open concerns: the save-offer figures ("I''m not giving figures", research the switching data) and
+    acquisition selection (approved). The record still showed both as waiting on him until this orientation,
+    about two and a half hours later, while the work he approved landed (f418eff9e, 2338f13ff). 11:20:
+    CORRECTED here. Both rows carry his words. Twice in two stretches is a class: the lane acting on a
+    console ruling does not mark the concern answered when it acts.'
   corrected: true
+- what: THE MACHINE'S, NEW. The shared checkout is 23 commits behind origin, so seven units (delivery-seat,
+    background-worker, daily-self-note, deadmans-switch, head-green-census, naive-organ, sim-runner) run
+    without 8 commits to code they import, including the void, the Invitation to Intervene and acquisition
+    selection. Last stretch HEAD and origin were level.
+  corrected: false
 for_the_director:
 - id: the-end-to-end-review-of-claude
   raised: '2026-10-04'
   kind: canon_intent
-  what: The end-to-end review of CLAUDE.md found it contradicting the code on the reserved action walls, pointing every session at a staging procedure that still
-    described the July rules, using one name for several seats, and claiming enforcement for two rows that only report; three of its findings touch canon or wall
-    wording that is yours (the curriculum wall reads stricter than your 2026-09-04 canon; DIRECTOR_CANON.md lists seven one-way doors and the twin as standing approver;
-    DIRECTOR_AXES.md cites a pricing law that no longer exists).
-  proposal: 'Approve the cleanup as proposed in docs/staging/SEAT_PROPOSAL_CLAUDE_MD_CLEANUP_FROM_THE_END_TO_END_REVIEW_2026-10-04.md, item by item, or strike the
-    items you disagree with; on the three canon items, rule on the wording and I will carry it into the canon documents. Already done without asking: the plain factual
-    corrections it marks, the reserved-actions list restated from the code, and the two withdrawn rules in the staging procedure.'
+  what: The end-to-end review of CLAUDE.md found it contradicting the code on the reserved action walls,
+    pointing every session at a staging procedure that still described the July rules, using one name
+    for several seats, and claiming enforcement for two rows that only report; three of its findings touch
+    canon or wall wording that is yours (the curriculum wall reads stricter than your 2026-09-04 canon;
+    DIRECTOR_CANON.md lists seven one-way doors and the twin as standing approver; DIRECTOR_AXES.md cites
+    a pricing law that no longer exists).
+  proposal: 'Approve the cleanup as proposed in docs/staging/SEAT_PROPOSAL_CLAUDE_MD_CLEANUP_FROM_THE_END_TO_END_REVIEW_2026-10-04.md,
+    item by item, or strike the items you disagree with; on the three canon items, rule on the wording
+    and I will carry it into the canon documents. Already done without asking: the plain factual corrections
+    it marks, the reserved-actions list restated from the code, and the two withdrawn rules in the staging
+    procedure.'
   status: open
   resolution: ''
 - id: time-is-scored-in-minutes-not-converted-to-money
   raised: '2026-10-04'
   kind: vision
-  what: The mission names three currencies, and time does not exist in the model. The C31 frame (70ea47ac5, docs/design/C31_TIME_AS_A_CURRENCY_DISCOVER_FRAME_2026-10-04.md,
-    Q1) has to decide whether household time is scored in its own unit or converted to money at a value of time. Converting it would fold one of your three currencies
-    into money. The only regulator pricing found (GSOP, GBP 30 or 15) prices failure events, not hours, and it is a transfer.
-  proposal: 'Score time in its own unit: household minutes, per class (shopping, servicing, recovery, routine admin), never summed across classes and never converted
-    to GBP. A GSOP payment stays a money transfer and is not a measure of time. This does not block L1, which counts events in minutes either way, so work carries
-    on unless you rule otherwise.'
+  what: The mission names three currencies, and time does not exist in the model. The C31 frame (70ea47ac5,
+    docs/design/C31_TIME_AS_A_CURRENCY_DISCOVER_FRAME_2026-10-04.md, Q1) has to decide whether household
+    time is scored in its own unit or converted to money at a value of time. Converting it would fold
+    one of your three currencies into money. The only regulator pricing found (GSOP, GBP 30 or 15) prices
+    failure events, not hours, and it is a transfer.
+  proposal: 'Score time in its own unit: household minutes, per class (shopping, servicing, recovery,
+    routine admin), never summed across classes and never converted to GBP. A GSOP payment stays a money
+    transfer and is not a measure of time. This does not block L1, which counts events in minutes either
+    way, so work carries on unless you rule otherwise.'
   status: open
   resolution: ''
 - id: whether-per-customer-pricing-beats-a-flat
   raised: '2026-10-04'
   kind: strategy
-  what: 'Whether per-customer pricing beats a flat price a supplier could have set in advance cannot be answered on one book: the four probe paths share their households,
-    and their SNR ceiling is about 0.95 however often they are re-run. Only independent books separate it. Varying the book seed is EP17_varied_population_draw, which
-    is your curriculum.'
-  proposal: 'Authorise book seeds 61101-61112 for EP17 by recording docs/design/curriculum/varied_population_draw_activation.json in the shape of population_draw_activation.json.
-    I would run 12 books at about 36 min and 5.1 GB each, 7.2 box-hours serial, after the QEP refit lands, and only after a 2.4 h re-take on the default book. Projected
-    SNR is 1.8-2.4. If you decline, the result stands as: not separable on this book.'
+  what: 'Whether per-customer pricing beats a flat price a supplier could have set in advance cannot be
+    answered on one book: the four probe paths share their households, and their SNR ceiling is about
+    0.95 however often they are re-run. Only independent books separate it. Varying the book seed is EP17_varied_population_draw,
+    which is your curriculum.'
+  proposal: 'Authorise book seeds 61101-61112 for EP17 by recording docs/design/curriculum/varied_population_draw_activation.json
+    in the shape of population_draw_activation.json. I would run 12 books at about 36 min and 5.1 GB each,
+    7.2 box-hours serial, after the QEP refit lands, and only after a 2.4 h re-take on the default book.
+    Projected SNR is 1.8-2.4. If you decline, the result stands as: not separable on this book.'
   status: open
   resolution: ''
 - id: no-atom-can-reach-l3-while-an
   raised: '2026-10-04'
   kind: canon_intent
-  what: 'No atom can reach L3 while an Expert Hour counts reviewer independence as a finding against it: the blind-review tool records independence false on every
-    pass by construction, and reserves external review for the few verdicts you choose. H45 (the queue chained to the map) has closed every other question its two
-    blind passes raised -- edit back door, re-link, doubt route, trend -- and is held at L2 on that one alone. Its specific form: whether a queue item serves its
-    atom is read by a tick of the same machine that files it, and nothing outside audits that read.'
-  proposal: Rule that an Expert Hour whose only open disqualifying question is reviewer independence passes for L3, with the limit carried in the atom's simplification
-    record, and that external review stays at your choosing for the highest-stakes verdicts. On that ruling I would record H45's move to L3 through the level gate.
-    If you want H45 audited from outside instead, the read record (serves_by_hand on the harness page) is what you or a relayed model would sample. Meanwhile H45
-    parks so it stops being drawn for a question no build can answer.
+  what: 'No atom can reach L3 while an Expert Hour counts reviewer independence as a finding against it:
+    the blind-review tool records independence false on every pass by construction, and reserves external
+    review for the few verdicts you choose. H45 (the queue chained to the map) has closed every other
+    question its two blind passes raised -- edit back door, re-link, doubt route, trend -- and is held
+    at L2 on that one alone. Its specific form: whether a queue item serves its atom is read by a tick
+    of the same machine that files it, and nothing outside audits that read.'
+  proposal: Rule that an Expert Hour whose only open disqualifying question is reviewer independence passes
+    for L3, with the limit carried in the atom's simplification record, and that external review stays
+    at your choosing for the highest-stakes verdicts. On that ruling I would record H45's move to L3 through
+    the level gate. If you want H45 audited from outside instead, the read record (serves_by_hand on the
+    harness page) is what you or a relayed model would sample. Meanwhile H45 parks so it stops being drawn
+    for a question no build can answer.
   status: open
   resolution: ''
 - id: does-a-retention-discount-offered-to-a
   raised: '2026-10-05'
   kind: strategy
-  what: 'Does a retention discount offered to a household fixing off our SVT buy anything? Our world says no: at that term it gives the household no exit (svt_conversion_event,
-    P(depart)=0), yet 32 of 60 retention offers (59% of retention spend, GBP 1,765) go there.'
-  proposal: I recommend we treat the world as right and stop offering a retention discount at an SVT-to-fix conversion; it is a fact the supplier holds, so it needs
-    no estimate. Then the C29 engagement weighting gets graded on rolled terms only. If the industry instead sees the offer as what wins the conversion, tell me and
-    I will file it as a world-fidelity defect instead. I will carry on with everything else meanwhile.
+  what: 'Does a retention discount offered to a household fixing off our SVT buy anything? Our world says
+    no: at that term it gives the household no exit (svt_conversion_event, P(depart)=0), yet 32 of 60
+    retention offers (59% of retention spend, GBP 1,765) go there.'
+  proposal: I recommend we treat the world as right and stop offering a retention discount at an SVT-to-fix
+    conversion; it is a fact the supplier holds, so it needs no estimate. Then the C29 engagement weighting
+    gets graded on rolled terms only. If the industry instead sees the offer as what wins the conversion,
+    tell me and I will file it as a world-fidelity defect instead. I will carry on with everything else
+    meanwhile.
   status: open
   resolution: ''
   evidence: docs/staging/SEAT_FINDING_C29_THE_BOOK_ARM_SURVIVES_THE_REFIT_AT_HALF_ITS_LIFT_2026-10-05.md
 - id: a-household-s-electricity-carbon-is-shown
   raised: '2026-10-05'
   kind: strategy
-  what: 'A household''s electricity carbon is shown per kWh GENERATED: NESO''s series has carried no transmission and distribution loss uplift since 2020-04-27, so
-    a kWh used at home reads several percent low against the electricity that had to be generated for it. Whether the household figure adds losses is a definition
+  what: 'A household''s electricity carbon is shown per kWh GENERATED: NESO''s series has carried no transmission
+    and distribution loss uplift since 2020-04-27, so a kWh used at home reads several percent low against
+    the electricity that had to be generated for it. Whether the household figure adds losses is a definition
     you own; it was described as raised on 2026-10-05 but never reached this list.'
-  proposal: Add losses as its own named line beside the electricity figure, at DESNZ's published T&D factor (0.01853 kgCO2e/kWh, 2025 set, already sourced in the
-    household-carbon knowledge page), never folded into the grid series, so the published NESO number stays NESO's and the household sees both. Until you rule, the
-    page states that losses are not included, which it now does.
+  proposal: Add losses as its own named line beside the electricity figure, at DESNZ's published T&D factor
+    (0.01853 kgCO2e/kWh, 2025 set, already sourced in the household-carbon knowledge page), never folded
+    into the grid series, so the published NESO number stays NESO's and the household sees both. Until
+    you rule, the page states that losses are not included, which it now does.
   status: open
   resolution: ''
   evidence: docs/staging/SEAT_FINDING_G14_EXPERT_HOUR_RETAKE_ON_THE_HISTORIC_MIX_2026-10-05.md
 - id: c34-next-best-action-the-customer-s
   raised: '2026-10-06'
   kind: canon_intent
-  what: 'C34 next best action: the customer''s benefit first, then ours, is read in slice 1 as a gate (never an action the customer loses by) followed by supplier
-    forward value as the objective. At realistic margins and hazards, every advice action that saves the customer money then LOSES supplier forward value, so the
-    rule advises almost nobody: do no harm, take what pays us.'
-  proposal: Keep the gate-then-CLV reading until you answer. If you agree with the mission's created-then-shared reading, C34 ranks on joint value (customer benefit
-    plus supplier forward-value change) with a no-loss floor on both sides. That is a one-line change to the decision's ranking key; the planted, null and misled
-    control arms carry over.
+  what: 'C34 next best action: the customer''s benefit first, then ours, is read in slice 1 as a gate
+    (never an action the customer loses by) followed by supplier forward value as the objective. At realistic
+    margins and hazards, every advice action that saves the customer money then LOSES supplier forward
+    value, so the rule advises almost nobody: do no harm, take what pays us.'
+  proposal: Keep the gate-then-CLV reading until you answer. If you agree with the mission's created-then-shared
+    reading, C34 ranks on joint value (customer benefit plus supplier forward-value change) with a no-loss
+    floor on both sides. That is a one-line change to the decision's ranking key; the planted, null and
+    misled control arms carry over.
   status: open
   resolution: ''
   evidence: docs/staging/SEAT_FINDING_C34_THE_DECISION_IS_BUILT_AND_ON_SUPPLIER_VALUE_ALONE_IT_ADVISES_NOBODY_2026-10-06.md
-- id: home-moves-can-now-be-switched-on
-  raised: '2026-10-06'
-  kind: strategy
-  what: Home moves can now be switched on without losing the premise. B7 slice 3 (8359d5acd) supplies a vacated premise from the move date under a new account, on
-    deemed terms at the default tariff. Moves are still off in docs/design/curriculum/home_moves_activation.json, which is your curriculum. While they are off, B11's
-    switch/move split returns None on every run, and every departure in the book reads as a switch.
-  proposal: 'Switch home_moves_activation.json to true. B11 would then split each departure into a switch or a move, using what a real move-out notice tells a supplier.
-    It would fit a switch-only hazard by contract year, which C34''s retention pricing needs, because a retention offer cannot stop a move. With moves on, the book
-    gains deemed move-in accounts on the default tariff, and some premises turn over more than once. One known bias, in our favour: the incoming account pays for
-    the whole change-of-tenancy window, which in reality is often never collected. That is about q1_unnamed_months_per_cot months of each premise''s annual quantity
-    per move, and it is named in the finding. If you would rather that debt side were built first, say so and moves stay off. I am carrying on with other work meanwhile.'
-  status: answered
-  resolution: 'Director, 2026-10-08: ''Home moves: approved.'' Done in ada37371c. Checked with moves on (160 founders to 2019): 28 moves, 28 occupier-debt accounts,
-    GBP 5,276.58 booked as occupier debt, and B7 slice 5''s arrears engine never collects the window, so the bias dfa787a37 closed stays closed. Two lookups that
-    had never seen an incoming occupant were fixed.'
-  evidence: docs/staging/SEAT_FINDING_B7_SLICE_3_A_VACATED_PREMISE_IS_SUPPLIED_FROM_THE_MOVE_DATE_UNDER_A_NEW_ACCOUNT_2026-10-06.md; tests/simulation/test_a_home_move_ends_supply_in_the_run.py
-- id: b8-no-uniform-renewal-cut-from-2
-  raised: '2026-10-08'
-  kind: strategy
-  what: 'B8: no uniform renewal cut from 2.5 to 30 GBP/MWh pays in this world, at either margin end, because the cut is paid to every stayer and most would have stayed
-    anyway. Real retention offers are, as far as I know, SAVE offers made to a customer who has started to leave, not blanket renewal discounts. Is that how a GB
-    supplier actually does it, and does it see the leaving signal (a switch notification) in time to make one?'
-  proposal: 'If yes: grade the same learned decision on a save-offer decision set, offered only where the company observes the household leaving, where p0 is low
-    and the inframarginal cost is small. If blanket renewal offers are real practice, keep the current frame and source the real slope of P(stay) per GBP/MWh instead
-    (ours is about 0.0015; offers start to pay at about 0.006). I will start on sourcing the slope meanwhile, as it is needed either way.'
-  status: answered
-  resolution: 'Director, 2026-10-08 06:46: ''GB retention is mainly save and win-back activity on the loss notice, plus retention of home movers. Blanket renewal
-    discounts are not the lever. ... Grade the learned decision on a save-offer decision set once the pending switch reaches the company at its real lead time. Add
-    home-mover retention as a lever once moves are on.'' His save rates and costs were left blank in the ruling; that blank is carried as its own row, the-save-offer-needs-two-practitioner-figures.'
-  evidence: docs/staging/records/SEAT_FINDING_B8_NO_CUT_SIZE_PAYS_IN_THIS_WORLD_BECAUSE_THE_STAY_BOUGHT_PER_POUND_FALLS_AS_THE_CUT_GROWS_2026-10-08.md; docs/market_research/a_save_offer_against_the_switching_rules_and_the_seam.md
-- id: the-founder-ceiling-and-prospect-cap-sized-by-rare-events
-  raised: '2026-10-08'
-  kind: strategy
-  what: 'You asked for the founder ceiling and the prospect cap as one proposal, sized by rare events and book-level money. Of the five rare events you named, three
-    have no generator at any book size (theft, voids, a vulnerable customer in winter), and home moves (so debtor moves) are off in your curriculum. So a bigger book
-    today buys only the arrears stock. Both numbers are yours: founder_accounts 80 with ceiling 120 in FOUNDER_BOOK.yaml, and PROSPECTS_PER_YEAR 400.'
-  proposal: Keep 80 founders until home moves are switched on. When they are, raise to 400 founders (ceiling 120 to 500) for the periodic end-to-end run and book-level
-    provisioning, and have that run state its case under the over-an-hour rule. Leave the prospect cap at 400. Do not size for theft, voids or vulnerability until
-    each has a generator, then size from its own rate. The memory and wall figures in the proposal are being re-checked against the live-path cost before you act
-    on them. I am carrying on meanwhile.
-  status: answered
-  resolution: 'Director, 2026-10-08 06:46: ''Founders: approved as you proposed. Once moves are on and a small run confirms they behave, raise founders to 400 (ceiling
-    500) and the settlement budget to about 5,000 customer-years together, so the campaign still admits wins. Prospect cap stays at 400. The 400-founder full run
-    is the periodic end-to-end check and states its case under the over-an-hour rule.'' Moves are on (ada37371c) and the small run behaved (eb9f8d026). The raise
-    waits on the settlement-ceiling probe at 2,800 and 3,400 customer-years (pid 1689528), which prices the budget''s memory before 5,000 is set.'
-  evidence: docs/staging/SEAT_PROPOSAL_THE_FOUNDER_CEILING_AND_PROSPECT_CAP_SIZED_BY_RARE_EVENTS_2026-10-08.md
 - id: the-save-offer-needs-two-practitioner-figures
   raised: '2026-10-08'
   kind: strategy
-  what: 'Your ruling makes the save-offer decision set the frame for B8, and it needs two figures no published source gives. (1) How far ahead the losing supplier
-    hears of a switch: CSS gives the Invitation to Intervene 1 working day to 28 days before the effective date, and a household chooses ASAP (the gainer completes
-    within 5 working days), after cooling-off, or a date up to four weeks out, but no one publishes the share of each route (re-searched 2026-10-08: Ofgem, DCC, Energy
-    UK, RECCo, ElectraLink). (2) Save rates and costs: your ruling left ''My experience of save rates and costs: ___'' blank.'
-  proposal: Give me, from practice, the rough share of domestic gains that are ASAP, after cooling-off and dated later, and a save rate and cost per save; I record
-    each as a practitioner toggle with your words as its basis. Until then I build the Pending notice with every switch on the ASAP route, which gives the company
-    the least warning a real supplier gets, so no save it wins is flattered, and the save rate stays an explicit unknown that the decision set learns rather than
-    assumes. I am carrying on meanwhile.
-  status: open
-  resolution: ''
+  what: 'Your ruling makes the save-offer decision set the frame for B8, and it needs two figures no published
+    source gives. (1) How far ahead the losing supplier hears of a switch: CSS gives the Invitation to
+    Intervene 1 working day to 28 days before the effective date, and a household chooses ASAP (the gainer
+    completes within 5 working days), after cooling-off, or a date up to four weeks out, but no one publishes
+    the share of each route (re-searched 2026-10-08: Ofgem, DCC, Energy UK, RECCo, ElectraLink). (2) Save
+    rates and costs: your ruling left ''My experience of save rates and costs: ___'' blank.'
+  proposal: Give me, from practice, the rough share of domestic gains that are ASAP, after cooling-off
+    and dated later, and a save rate and cost per save; I record each as a practitioner toggle with your
+    words as its basis. Until then I build the Pending notice with every switch on the ASAP route, which
+    gives the company the least warning a real supplier gets, so no save it wins is flattered, and the
+    save rate stays an explicit unknown that the decision set learns rather than assumes. I am carrying
+    on meanwhile.
+  status: answered
+  resolution: 'Director, 2026-10-08T08:52Z: "Save and win-back rates: I''m not giving figures. Your research
+    missed the obvious source: the switching process''s own data." He asked for the switching outcome
+    family to be researched from published industry data, the save and win-back toggles set as a ranged
+    estimate, and the three shapes to be tested. Done in f418eff9e and 0f1fb3f6a. The route share stays
+    unknown on the toggle, and the ASAP floor is built (4805420bd).'
   evidence: docs/market_research/a_save_offer_against_the_switching_rules_and_the_seam.md
 - id: acquisition-selects-on-each-prospects-own-responsiveness
   raised: '2026-10-08'
   kind: strategy
-  what: 'You asked whether the world hides real correlations between price responsiveness and what a supplier can observe. The evidence says the large correlates
-    are of SHOPPING, and the world already carries them on its engagement axis; price weight on its own is near-homogeneous (Ofgem 2024: 1.26x spread), as your 27
-    Aug ruling has it, and past switching does not carry over (31% vs 33%, Ofgem''s 2018 trial). What the world gets wrong is acquisition: every prospect is priced
-    off one population response, so a book won by switching in is an average draw, when in reality switching in selects the shoppers.'
-  proposal: Let the acquisition funnel's price stage read each prospect's own sensitivity, as renewals already do, with prospects entering the market weighted by
-    their own chance of shopping. No new number is introduced and the latent value never crosses the seam. Optionally also run the sensitivity level drawn by rank
-    on engagement, reporting fully independent and fully linked arms side by side. No past-switching carry-over term. Nothing changes in the world until you rule.
-  status: open
-  resolution: ''
-  evidence: docs/staging/SEAT_PROPOSAL_ACQUISITION_SELECTS_ON_EACH_PROSPECTS_OWN_RESPONSIVENESS_2026-10-08.md; docs/market_research/observable_correlates_of_price_responsiveness.md
+  what: 'You asked whether the world hides real correlations between price responsiveness and what a supplier
+    can observe. The evidence says the large correlates are of SHOPPING, and the world already carries
+    them on its engagement axis; price weight on its own is near-homogeneous (Ofgem 2024: 1.26x spread),
+    as your 27 Aug ruling has it, and past switching does not carry over (31% vs 33%, Ofgem''s 2018 trial).
+    What the world gets wrong is acquisition: every prospect is priced off one population response, so
+    a book won by switching in is an average draw, when in reality switching in selects the shoppers.'
+  proposal: Let the acquisition funnel's price stage read each prospect's own sensitivity, as renewals
+    already do, with prospects entering the market weighted by their own chance of shopping. No new number
+    is introduced and the latent value never crosses the seam. Optionally also run the sensitivity level
+    drawn by rank on engagement, reporting fully independent and fully linked arms side by side. No past-switching
+    carry-over term. Nothing changes in the world until you rule.
+  status: answered
+  resolution: 'Director, 2026-10-08T08:52Z: "Acquisition selects on each prospect''s own responsiveness:
+    approved, as your option 1, with option 2 run both ways and reported, using the pre-registered test
+    you set out. No past-switching carry-over term." Built in 2338f13ff. P1-P4 grading on fresh seeds
+    is focus four.'
+  evidence: docs/staging/SEAT_PROPOSAL_ACQUISITION_SELECTS_ON_EACH_PROSPECTS_OWN_RESPONSIVENESS_2026-10-08.md;
+    docs/market_research/observable_correlates_of_price_responsiveness.md
