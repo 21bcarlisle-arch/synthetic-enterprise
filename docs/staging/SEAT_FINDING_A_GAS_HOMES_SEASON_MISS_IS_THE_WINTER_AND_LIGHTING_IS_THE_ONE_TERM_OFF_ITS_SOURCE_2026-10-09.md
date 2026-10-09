@@ -24,7 +24,8 @@ the annual sum, but not month by month. Here they are for 2022, gas-heated, no P
 S2 0.484 pass, **S3 1.269 fail** (Dec/Aug), S4 2,532 against SERL's 2,535).
 
 **The summer is right: +0.10 to +0.20 kWh/day on the median, −0.01 to −0.26 on the mean. The
-miss is the winter: January −0.64 on the median, −1.92 on the mean.** The annual level matches,
+miss is the winter: January −0.64 on the median, −1.92 on the mean.** *(Wrong at scale, corrected
+below: 163 homes is a low draw. Over 2,412 the summer is +0.56 to +0.84 and January −0.35.)* The annual level matches,
 so the season is now a pure SHAPE miss. Median swing (Jan − Aug) is 1.66 against SERL's 2.50.
 
 ## Attribution by end use (world, same 163 homes, mean kWh/day)
@@ -82,6 +83,74 @@ If Arm A lands inside its band, lighting's season is worth about +0.04 on S3. Th
 mostly not a missing season in any one end use. It is a named gap: the lighting level, and the
 sourced heater tail that the median barely sees.
 
-## Result
+## Result (same evening, both arms in ONE process, `/var/tmp/summer/arms.py`)
 
-*(to be filled beside each prediction)*
+| 163 homes, seed 17, C1 2022 | S3 | S4 | Lighting kWh/yr | Lighting DJ ÷ JJA | Predicted |
+|---|---|---|---|---|---|
+| Origin | 1.269 (Dec/Aug) | 2,532 | 154 | 1.59 | — |
+| A: daylight share 0 | **1.277** (Jan/Jun) | 2,534 | 154 | **2.00** | S3 1.29–1.33 ✗, DJ÷JJA 2.3–2.7 ✗, level ±5% ✓, S4 ±40 ✓ |
+| B: lighting at 430 | **1.305** (Dec/Jun) | **2,799** | 422 | 1.59 | S3 1.28–1.31 ✓, S4 2,750–2,850 ✓ |
+
+- **Arm A is refuted on both its season legs.** Without daylight lighting, the world's dark-hours
+  mechanism gives DJ ÷ JJA of 2.00, not CAR's 2.51. The "2.54" quoted above came from the
+  2026-10-06 one-premise reading, at an older occupancy and headcount, and was not re-read before
+  I predicted from it. So daylight lighting flattened the season, but did not flatten it from
+  CAR's level. Lighting's season is worth **+0.008** on S3 from the share, and about +0.02 at most
+  if the whole season reached CAR. **It is not the lever, and nothing is moved on it.**
+- **Arm B holds, and is refused by S4, as predicted.** The lighting level cannot close S3 without
+  putting the annual sum ~265 over SERL.
+
+## Correction to the premise section above: at scale, the summer IS high (re-read 2026-10-09)
+
+"The summer is right … the miss is the winter" was read from **163 homes, which is a low draw**.
+The 2026-10-08 finding had already said so ("The 163-home reading was a low draw"), and I did not
+heed it. The triage row's 1.220 came from 2,431 homes. Re-read at origin `a2a93c183`
+(`python3 tools/couple_fabric.py --serl 3000`):
+
+| 2,412 homes | Jan | Feb | Mar | Apr | May | Jun | Jul | Aug | Sep | Oct | Nov | Dec |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| World median | 8.17 | 7.97 | 7.47 | 7.29 | 7.01 | 6.70 | 6.78 | 6.73 | 7.03 | 7.19 | 7.49 | 8.16 |
+| − SERL 2022 | −0.35 | −0.03 | +0.11 | +0.50 | +0.63 | +0.56 | +0.60 | +0.71 | +0.84 | +0.58 | +0.27 | +0.18 |
+| − SERL **2021** | −1.52 | −1.35 | −1.18 | −0.61 | −0.51 | **+0.06** | **+0.08** | **+0.08** | **+0.26** | −0.21 | −0.48 | −0.45 |
+
+S1 **0.137 fail** (band 0.125–0.135), S2 0.495 fail, **S3 1.220 fail** (Jan/Jun), S4 2,676 against
+2,535. The end-use breakdown re-run over 1,213 homes gives the same season for every end use as
+the table above. The one term that differs is the always-on draw: **3.23 kWh/day (135 W mean)**
+against 2.61 in the 163.
+
+## The summer level is a named gap: it is the 2022 price response, measured by SERL itself
+
+**SERL's own months split it.** From 2021 to 2022, SERL's gas no-PV summer median fell **8–9%**
+(June −0.51, July −0.52, August −0.62, September −0.58 kWh/day). Jan–May 2021 was lockdown, so
+those months fell more (−12% to −15%) and are not a clean comparison. The world's 2022 summer sits
+**+0.06 to +0.26 above SERL's 2021 summer**, and +0.56 to +0.84 above its 2022 summer. Two
+independent figures give the same size: SERL's own 2021→2022 summer fall, and the published
+crisis counterfactuals already in the research doc (−7.1% to −9.1%). **The world's summer excess
+is the price response from April 2022, which the world's electricity behaviour does not model.
+It is not an end use.** Every end use with a dated 2022 source sits at or below that source:
+electronics 288 against ~376, cooking ~425 against ~460, and cold ~390 against ~393.
+
+So S3 against SERL 2022 compares a world without a price response to a year with one, and the
+ratio's shortfall is mostly that difference. **This is why the summer is a named gap and not a
+build:** fitting any end use down to SERL 2022's summer would put the crisis into a constant, and
+it would then sit in 2016–2021 and 2024–25 too.
+
+**What is left after the crisis, ranked:**
+1. **The winter is short, by about 0.35 kWh/day in January.** January 2022 predates the April cap
+   rise. A world with no price response should sit at or above SERL here, not below. The ranked
+   candidates: lighting's season (CAR, +~0.09 in January at most, from Arm A); the lighting level
+   (not established, 137–430); and the heater tail (sourced, mostly in the mean).
+2. **The trough is +0.007 kWh/h at scale** (0.137 against 0.13). That is about +0.17 kWh/day flat,
+   and the 2026-10-08 finding that "the EFUS base survives a 2022 check" rested on the same
+   low 163-home draw. EFUS 2011's always-on (median 90 W, mean 136 W) is a 2010–11 figure, and no
+   2020s whole-home always-on source has been read. SERL Table 6's trough is a 2022 crisis-year
+   statistic, so fitting the base to it would also be the crisis.
+3. **The band.** SERL's three S3 years each have a special winter or summer: the 2021 lockdown
+   January, and the 2022 and 2023 crisis summers. Corrected by its own 8–9% summer fall, 2022's
+   ratio is about 8.52 ÷ 6.54 ≈ **1.30**. That is below the band's lower edge of 1.36. Whether the
+   band itself carries the crisis is a question for the cell's owner, raised here and not acted on.
+
+**Triage row `a-gas-heated-homes-electricity-has-no-season`:** restated with the 2,412-home reading
+and this split. It is still `fix` and open. The winter shortfall and the trough are real and
+unsourced. The summer is the price response, and that belongs to whoever models a 2022
+electricity price response in household behaviour. Nothing in the world was moved.

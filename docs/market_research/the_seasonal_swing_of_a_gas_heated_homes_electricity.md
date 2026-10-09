@@ -744,3 +744,29 @@ The dating is the same as above: a 2010–11 hour, used as the decade's.
 
 **What the world does with it:**
 `docs/staging/SEAT_FINDING_THE_EVENING_COOKING_HOUR_AGAINST_HES_2026-10-09.md`.
+
+## SERL's twelve months, 2021–2023, and lighting's day-length slope (2026-10-09, claim `a-gas-homes-summer-electricity-level-against-serl-table-3`)
+
+**SERL Statistical Dataset Vol 2** (figshare 25472560, sheet `Figure_4`, CC-BY): median electricity
+import per day in each month, kWh/day, gas-heated homes without PV (n ≈ 7,200–8,960 a month):
+
+| | Jan | Feb | Mar | Apr | May | Jun | Jul | Aug | Sep | Oct | Nov | Dec |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 2021 | 9.69 | 9.32 | 8.65 | 7.90 | 7.52 | 6.65 | 6.70 | 6.65 | 6.77 | 7.40 | 7.97 | 8.61 |
+| 2022 | 8.52 | 8.00 | 7.36 | 6.80 | 6.38 | 6.14 | 6.18 | 6.02 | 6.19 | 6.61 | 7.22 | 7.98 |
+| 2023 | 7.75 | 7.31 | 7.14 | 6.59 | 6.04 | 5.82 | 5.94 | 5.87 | 6.11 | 6.76 | 7.43 | 7.90 |
+
+The same sheet gives means (2022: Jan 10.28 … Aug 6.99). **2021 → 2022, summer to summer, is
+−8% to −9%** (June to September). Jan–May 2021 was lockdown, so those months fall 12–15% and are
+not a clean comparison. The summer fall matches the published crisis counterfactuals above
+(−7.1% to −9.1%). Each S3 year has a special season: the 2021 lockdown winter, and the 2022 and
+2023 crisis summers. 2022 corrected by its own summer fall is about 8.52 ÷ 6.54 ≈ 1.30. That is an
+inference, not a published figure.
+
+**CAR, *Further analysis of HES: Lighting*, p.6.** Each of the 25 year-monitored homes' daily
+lighting was regressed on day length. Slope: **median −11.4%, mean −11.5% of the normalised daily
+use per hour of day length** (SD 7.2%, range −32% to +6%), with R² 0.03–0.65 (mean 0.34). At
+51.5° N that is DJ 1.48 and JJA 0.59 of the annual mean, a ratio of ~2.5, matching HES Fig 465's ~2.6.
+
+**What the world does with them:**
+`docs/staging/SEAT_FINDING_A_GAS_HOMES_SEASON_MISS_IS_THE_WINTER_AND_LIGHTING_IS_THE_ONE_TERM_OFF_ITS_SOURCE_2026-10-09.md`.
