@@ -624,6 +624,16 @@ _ECUK_HOB_RATIO_TO_2022 = 0.84
 _HES_OVEN_HOURS_PER_USE = 0.75
 _HES_HOB_HOURS_PER_USE = 0.35
 
+# `domain-knowledge` — HES (Intertek R66141, 2012) §11.8 and Table 14: a microwave uses 56 kWh/yr per
+# owning household (n=219), "throughout the day", mostly reheating. At 0.9 kW that is ~62 h of use a
+# year; the world's 0.8 uses x 6 minutes gave 29 h and 26.3 kWh (3,000 homes, seeds 17/29/41). DOE's
+# microwave TSD (ch.7, US, survey-scaled) puts use at 71 h/yr, so the gap is time in use, not power.
+# No source splits time in use into uses x minutes: the use count carries it, because a six-minute
+# use is already long for a reheat. 0.8 x 56/26.3 = 1.70. ECUK's microwave series is a 2010
+# projection, so no dating ratio is applied.
+# docs/staging/SEAT_FINDING_THE_MICROWAVE_LEVEL_IS_TIME_IN_USE_AGAINST_HES_56_2026-10-09.md.
+_MICROWAVE_USES_PER_DAY = 1.70
+
 # `domain-knowledge` — nameplate ratings and usage frequencies. Judged (never
 # parameterised) against Ofgem TDCV medium non-heating electricity, 2,700 kWh/yr.
 # No cooking appliance scales with headcount: HES Table 23 shows none (oven 267/375/211/183/396 by
@@ -638,7 +648,7 @@ APPLIANCE_CATALOGUE: tuple[ApplianceSpec, ...] = (
         "toaster", 1.1, 0.05, 0.8, (12, 20), heat_fraction=0.95, scales_with_people=False,
     ),
     ApplianceSpec(
-        "microwave", 0.9, 0.10, 0.8, (20, 43), heat_fraction=0.8, scales_with_people=False,
+        "microwave", 0.9, 0.10, _MICROWAVE_USES_PER_DAY, (20, 43), heat_fraction=0.8, scales_with_people=False,
     ),
     ApplianceSpec(
         "oven", 2.0, _HES_OVEN_HOURS_PER_USE * _ECUK_OVEN_RATIO_TO_2022, 0.55, (32, 42),
