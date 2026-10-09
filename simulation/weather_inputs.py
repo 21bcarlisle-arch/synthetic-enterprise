@@ -70,8 +70,9 @@ WEATHER_DATA_DIR = "sim/weather_data"
 TEMPERATURE_FIELD = "temperature_mean_c"
 CLOUD_COVER_FIELD = "cloud_cover_pct"
 
-#: The world, loaded at most ONCE per process. `WeatherWorld.load()` reads an 8 MB gzip into
-#: ~807,000 rows; a load per premise -- or a second load because a second leg asked -- is the
+#: The world, loaded at most ONCE per process. `WeatherWorld.load()` reads an 18 MB gzip of
+#: 1,245,673 rows (341 regimes x 3,653 days, counted 2026-10-09; "8 MB / ~807,000" was the
+#: smaller store's figure) into ~60 MB of columns; a load per premise -- or a second load because a second leg asked -- is the
 #: per-property architecture wearing a different coat. `run_phase2b` loads one for the fabric leg
 #: and passes it in, so the runner reads the store exactly once for all three legs.
 _WORLD: WeatherWorld | None = None
@@ -102,8 +103,8 @@ def adopt_shared_world(world: WeatherWorld) -> None:
 
     `sim.weather_hdd` resolves a premise's sky from a bare `customer_id` five call frames below
     `run_gas_term`, with nowhere in the signature to carry a world. Without this the runner would
-    hold one store for the fabric/shape/price legs and the HDD leg would load a SECOND -- 8 MB of
-    gzip and ~450 MB of resident rows, twice, and two copies that can drift, which is the exact
+    hold one store for the fabric/shape/price legs and the HDD leg would load a SECOND -- 18 MB of
+    gzip and ~60 MB of columns (~674 MB as row dicts before 2026-10-09), twice, and two copies that can drift, which is the exact
     thing the per-cell architecture exists to make impossible.
 
     Idempotent and last-writer-wins: a runner calls it once, immediately after `load()`.
@@ -272,13 +273,21 @@ def _is_a_number(value) -> bool:
 _SERIES_BY_STORE: "weakref.WeakKeyDictionary" = weakref.WeakKeyDictionary()
 
 
-def _cell_series(store, cell, weather_field: str, rows) -> dict:
+def _cell_series(store, cell, weather_field: str) -> tuple[dict, list | None]:
+    """(the cell's memoised series, the rows it was built from -- or None on a memo hit).
+
+    THE ROWS ARE READ ONLY ON A MISS. `for_cell` builds every day of the cell as a row dict, and
+    calling it per premise before asking the memo rebuilt 3,653 rows for every account in a cell
+    whose series already existed -- the memo saved the series and paid for its inputs every time.
+    """
     by_cell = _SERIES_BY_STORE.setdefault(store, {})
     key = (cell, weather_field)
-    if key not in by_cell:
-        by_cell[key] = {row["date"]: row[weather_field]
-                        for row in rows if _is_a_number(row.get(weather_field))}
-    return by_cell[key]
+    if key in by_cell:
+        return by_cell[key], None
+    rows = store.for_cell(cell)
+    by_cell[key] = {row["date"]: row[weather_field]
+                    for row in rows if _is_a_number(row.get(weather_field))}
+    return by_cell[key], rows
 
 
 def cell_weather_for_customer(
@@ -312,12 +321,13 @@ def cell_weather_for_customer(
     try:
         store = shared_world(world)
         cell = store.cell_id_for(float(lat), float(lon))
-        rows = store.for_cell(cell)
+        series, rows = _cell_series(store, cell, weather_field)
     except WeatherWorldRefusal as exc:
         # The store's own reason, verbatim: it already names the nearest cell and the distance.
         return CellWeather(cid, None, {}, f"{exc}")
-    series = _cell_series(store, cell, weather_field, rows)
     if not series:
+        if rows is None:
+            rows = store.for_cell(cell)
         return CellWeather(cid, cell, {}, f"cell {cell} holds no {weather_field} on any of its "
                                           f"{len(rows)} days -- {ADD_THE_CELL_REMEDY}")
     return CellWeather(cid, cell, series, None)

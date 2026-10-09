@@ -77,6 +77,9 @@ import gzip
 import hashlib
 import json
 import math
+from array import array
+from bisect import bisect_left, bisect_right
+from collections.abc import Mapping
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -179,6 +182,10 @@ def load_daily(path: Path = SERIES_PATH) -> dict[str, dict[str, dict[str, float]
 
     Read ONCE by a caller and shared, which is the point: the alternative -- a read per premise --
     is the per-property architecture wearing a different coat.
+
+    `WeatherWorld.load` no longer calls this (it reads `load_columns`, ~11x smaller resident).
+    It stays as the row-shaped reader and as the ORACLE the columnar one is held to, value by
+    value, in `tests/sim/test_the_weather_world_is_columnar_and_reads_the_same_values.py`.
     """
     if not path.is_file():
         raise WeatherWorldRefusal(
@@ -197,6 +204,139 @@ def load_daily(path: Path = SERIES_PATH) -> dict[str, dict[str, dict[str, float]
     return out
 
 
+class DailyColumns(Mapping):
+    """One regime's days held COLUMNAR: a date index shared by every regime, one `array('d')` per
+    field. Reads as `{date: {field: value}}`, which is what `load_daily` returns and every caller
+    was written against.
+
+    WHY (director, 2026-10-09: "the weather world is now the biggest memory holder"). As a dict of
+    row dicts the store was 1,245,673 rows x (a 272-byte dict + six 24-byte float objects + a slot
+    in the per-regime dict), ~540 bytes a row and ~674 MB resident for values that are 7.5 million
+    float64s -- 60 MB of numbers. Here a value is its 8 bytes, and the 3,653 date strings exist
+    once for the whole world rather than once per regime.
+
+    NO VALUE CHANGES. `array('d')` stores an IEEE double and returns the same double, so a row read
+    through this view equals the row `load_daily` builds, NaN included. Iteration is ASCENDING by
+    date (the committed store's file order too); `for_cell` sorts either way.
+    """
+
+    __slots__ = ("dates", "index", "fields", "cols")
+
+    def __init__(self, dates: tuple[str, ...], index: dict[str, int], fields: tuple[str, ...],
+                 cols: dict[str, array]):
+        self.dates, self.index, self.fields, self.cols = dates, index, fields, cols
+
+    def __getitem__(self, date: str) -> dict[str, float]:
+        i = self.index[date]
+        return {f: self.cols[f][i] for f in self.fields}
+
+    def __contains__(self, date) -> bool:
+        return date in self.index
+
+    def __iter__(self):
+        return iter(self.dates)
+
+    def __len__(self) -> int:
+        return len(self.dates)
+
+
+class _SharedIndex:
+    """Interns date indices, so regimes on the same days share ONE tuple and ONE position dict."""
+
+    def __init__(self):
+        self._seen: dict[tuple[str, ...], tuple[tuple[str, ...], dict[str, int]]] = {}
+
+    def __call__(self, dates: tuple[str, ...]) -> tuple[tuple[str, ...], dict[str, int]]:
+        hit = self._seen.get(dates)
+        if hit is None:
+            hit = self._seen[dates] = (dates, {d: i for i, d in enumerate(dates)})
+        return hit
+
+
+def _as_columns(series, shared: _SharedIndex):
+    """`series` as `DailyColumns` when that is EXACTLY representable, else `series` untouched.
+
+    Exactly representable means every row carries the same fields in the same order and every
+    value is a Python float. A hand-built fixture with an int, a missing field or a row of its own
+    shape stays the dict it was handed, so no value is ever coerced and no key is ever invented.
+    """
+    if isinstance(series, DailyColumns) or not isinstance(series, dict) or not series:
+        return series
+    dates = tuple(sorted(series))
+    fields = tuple(series[dates[0]]) if isinstance(series[dates[0]], dict) else None
+    if fields is None:
+        return series
+    cols = {f: array("d") for f in fields}
+    for d in dates:
+        row = series[d]
+        if not isinstance(row, dict) or tuple(row) != fields:
+            return series
+        for f in fields:
+            value = row[f]
+            if type(value) is not float:
+                return series
+            cols[f].append(value)
+    dates, index = shared(dates)
+    return DailyColumns(dates, index, fields, cols)
+
+
+def load_columns(path: Path = SERIES_PATH) -> dict[str, DailyColumns]:
+    """`load_daily`, columnar: the same values, never materialised as row dicts.
+
+    Parsed straight into the arrays, so the load itself never holds the dict-of-rows form either.
+    The file's rules are `load_daily`'s exactly: an empty or absent column is NaN, and a (cell,
+    date) that appears twice keeps its LAST row, as `setdefault(...)[date] = values` did.
+    """
+    if not path.is_file():
+        raise WeatherWorldRefusal(
+            f"{path} is absent: the world has no weather. Build it with "
+            "`python3 -m tools.build_weather_world --build`.")
+    nan = float("nan")
+    # ONE string per date for the whole store. A fresh string per row would be 1.2 million objects
+    # freed after the load, scattered between the survivors -- measured as ~160 MB of RSS the
+    # allocator kept after a load whose live data is ~60 MB.
+    canon: dict[str, str] = {}
+    raw: dict[str, tuple[list[str], dict[str, array]]] = {}
+    in_order: set[str] = set()
+    with gzip.open(path, "rt", newline="", encoding="utf-8") as handle:
+        reader = csv.reader(handle)
+        header = next(reader, None) or []
+        at = {name: i for i, name in enumerate(header)}
+        cell_at, date_at = at["cell_id"], at["date"]
+        field_at = [(f, at.get(f)) for f in FIELDS]
+        width = len(header)
+        for line in reader:
+            if len(line) < width:
+                # DictReader fills a short row with None, which load_daily reads as NaN.
+                line = line + [""] * (width - len(line))
+            cell = line[cell_at]
+            entry = raw.get(cell)
+            if entry is None:
+                entry = raw[cell] = ([], {f: array("d") for f in FIELDS})
+                in_order.add(cell)
+            dates, cols = entry
+            date = canon.setdefault(line[date_at], line[date_at])
+            if dates and date <= dates[-1]:
+                in_order.discard(cell)       # out of order or repeated: settled below
+            dates.append(date)
+            for f, i in field_at:
+                cols[f].append(float(line[i]) if i is not None and line[i] != "" else nan)
+    if not raw:
+        raise WeatherWorldRefusal(f"{path} holds no rows")
+    shared = _SharedIndex()
+    out: dict[str, DailyColumns] = {}
+    for cell, (dates, cols) in raw.items():
+        if cell not in in_order:
+            # load_daily's dict semantics: sorted on read, and the LAST row for a date wins.
+            last = {d: i for i, d in enumerate(dates)}
+            order = [last[d] for d in sorted(last)]
+            dates = [dates[i] for i in order]
+            cols = {f: array("d", (col[i] for i in order)) for f, col in cols.items()}
+        ordered, index = shared(tuple(dates))
+        out[cell] = DailyColumns(ordered, index, FIELDS, cols)
+    return out
+
+
 def load_regimes(path: Path = REGIMES_PATH) -> dict[str, str]:
     """{cell_id: regime_id}. Absent means the identity map -- every cell is its own regime, which
     is what REPLAYED weather is."""
@@ -208,13 +348,16 @@ def load_regimes(path: Path = REGIMES_PATH) -> dict[str, str]:
 class WeatherWorld:
     """The store, loaded once. `for_cell` is a dictionary lookup, never a fetch."""
 
-    def __init__(self, cells: dict[str, Cell], daily: dict[str, dict[str, dict[str, float]]],
+    def __init__(self, cells: dict[str, Cell], daily: dict[str, Mapping[str, dict[str, float]]],
                  regime_of_cell: dict[str, str] | None = None):
         self.cells = cells
         # KEYED BY REGIME, NOT BY CELL. Under replay there is one regime per cell and the map is
         # the identity, so this is invisible; under generation there are tens of regimes and
         # hundreds of thousands of cells, and only this line makes that expressible.
-        self.daily = daily
+        # Held COLUMNAR wherever that is exact (`DailyColumns`); a series of any other shape is
+        # kept as handed. Either reads as `{date: {field: value}}`.
+        shared = _SharedIndex()
+        self.daily = {regime: _as_columns(series, shared) for regime, series in daily.items()}
         self.regime_of_cell = regime_of_cell or {}
         # Snapping needs the cell centres as flat arrays; built once here rather than per lookup.
         self._ids = list(cells)
@@ -223,7 +366,7 @@ class WeatherWorld:
 
     @classmethod
     def load(cls) -> "WeatherWorld":
-        return cls(load_cells(), load_daily(), load_regimes())
+        return cls(load_cells(), load_columns(), load_regimes())
 
     def regime_for(self, cell: str) -> str:
         """The regime a cell reads. Identity under replay; many-to-one under generation."""
@@ -257,16 +400,18 @@ class WeatherWorld:
         if series is None:
             raise WeatherWorldRefusal(
                 f"the store holds no weather for cell {cell!r} (regime {regime!r})")
-        dates = sorted(series)
-        if start:
-            dates = [d for d in dates if d >= start]
-        if end:
-            dates = [d for d in dates if d <= end]
         # THE LEVEL IS ADDED BACK HERE. The stored series is the regime's daily ANOMALY, shared by
         # every cell that reads it; the cell's own climatology is what makes two cells in one
         # regime different. Returning the stored value raw would hand every caller a temperature
         # centred on zero -- correct-looking, and about eleven degrees wrong.
         offset = self.cells[cell].level_c if cell in self.cells else 0.0
+        if isinstance(series, DailyColumns):
+            return _rows_from_columns(series, start, end, offset)
+        dates = sorted(series)
+        if start:
+            dates = [d for d in dates if d >= start]
+        if end:
+            dates = [d for d in dates if d <= end]
         out = []
         for d in dates:
             row = dict(series[d])
@@ -309,27 +454,72 @@ class WeatherWorld:
                                                         for d in series if d.endswith("-01-01")})
         if not complete:
             raise WeatherWorldRefusal("the store holds no complete year to draw an analogue from")
-        daily = {regime: dict(series) for regime, series in self.daily.items()}
         # A SEEDED PERMUTATION of the complete years, taken in turn, so no record year repeats until
         # every one has been used -- drawing each forward year independently repeated 2021 and 2016
         # inside four years on the first seed tried.
         order = sorted(complete, key=lambda y: hashlib.sha256(f"{seed}:{y}".encode()).hexdigest())
         day = end + dt.timedelta(days=1)
         analogue_of: dict[int, int] = {}
+        forward_days: list[tuple[str, str]] = []
         while day <= stop:
             year = analogue_of.setdefault(day.year, order[len(analogue_of) % len(order)])
             try:
                 source = day.replace(year=year)
             except ValueError:
                 source = dt.date(year, 2, 28)
-            key, src = day.isoformat(), source.isoformat()
-            for regime, series in daily.items():
-                row = self.daily[regime].get(src)
-                if row is not None:
-                    series[key] = dict(row)
+            forward_days.append((day.isoformat(), source.isoformat()))
             day += dt.timedelta(days=1)
+        held = list(self.daily.values())
+        if all(isinstance(s, DailyColumns) and s.dates is held[0].dates for s in held):
+            # COLUMNAR, every regime on ONE index: a forward day exists in all of them or in none,
+            # so the extended index is shared too and each column is the record plus a gather.
+            kept = [(key, held[0].index[src]) for key, src in forward_days
+                    if src in held[0].index]
+            dates = held[0].dates + tuple(key for key, _ in kept)
+            index = {d: i for i, d in enumerate(dates)}
+            daily = {}
+            for regime, series in self.daily.items():
+                cols = {}
+                for f, col in series.cols.items():
+                    grown = array("d", col)
+                    grown.extend(col[i] for _, i in kept)
+                    cols[f] = grown
+                daily[regime] = DailyColumns(dates, index, series.fields, cols)
+        else:
+            daily = {regime: dict(series) for regime, series in self.daily.items()}
+            for key, src in forward_days:
+                for regime, series in daily.items():
+                    row = self.daily[regime].get(src)
+                    if row is not None:
+                        series[key] = dict(row)
         forward = WeatherWorld(self.cells, daily, self.regime_of_cell)
         forward.analogue_years = dict(sorted(analogue_of.items()))
         return forward
 
 
+
+
+_TEMPERATURE_FIELDS = ("temperature_min_c", "temperature_mean_c", "temperature_max_c")
+
+
+def _rows_from_columns(series: DailyColumns, start: str | None, end: str | None,
+                       offset: float) -> list[dict]:
+    """`for_cell`'s rows from a columnar series: the same dicts, keys and values, in date order.
+
+    `bisect` over the sorted index selects exactly the dates `d >= start` and `d <= end` keep, and
+    the level is added back by the same expression on the same doubles.
+    """
+    dates = series.dates
+    lo = bisect_left(dates, start) if start else 0
+    hi = bisect_right(dates, end) if end else len(dates)
+    cols = [(f, series.cols[f], f in _TEMPERATURE_FIELDS) for f in series.fields]
+    out = []
+    for i in range(lo, hi):
+        row = {"date": dates[i]}
+        for f, col, is_temperature in cols:
+            value = col[i]
+            if is_temperature and value == value:      # not NaN
+                value = round(value + offset, 3)
+            row[f] = value
+        out.append(row)
+    return out

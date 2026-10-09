@@ -462,7 +462,7 @@ class WeatherWorldSource:
     So `site_for` returns a CELL, and every premise that snaps to one gets the identical list of
     days. `weather_days_for_two_premises_in_one_cell_is_the_same_sky` is the failable control.
 
-    THE STORE IS READ ONCE. `WeatherWorld.load()` reads an 8 MB gzip; doing that per premise is
+    THE STORE IS READ ONCE. `WeatherWorld.load()` reads an 18 MB gzip; doing that per premise is
     the per-property design wearing a different coat, and it is why this is an object holding a
     loaded world rather than three module-level functions.
     """

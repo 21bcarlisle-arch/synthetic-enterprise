@@ -1554,7 +1554,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
     # W1_14 step 3, 2026-09-21: the GAS/HDD leg reads the store too, and it is the one leg that
     # cannot be handed the world -- `get_hdd(date_str, customer_id)` sits five frames under
     # `run_gas_term` with no world in any signature on the way down. Adopting the store the line
-    # above just loaded is what stops it loading a second copy (8 MB gzip, ~450 MB resident) that
+    # above just loaded is what stops it loading a second copy (18 MB gzip, ~60 MB columnar) that
     # could then drift from this one.
     adopt_shared_world(_weather_world)
     # ...and the RECORDS, because that id carries no coordinate: without this every drawn SYN-*

@@ -33,3 +33,28 @@ def test_premises_in_one_cell_share_ONE_series_and_another_cell_or_world_does_no
     assert a1 is a2, "two premises in one cell built two series"
     assert a1 == {"2020-01-01": 3.0} and b == {"2020-01-01": 1.0}
     assert wi.weather_means_for_customer(_premise("P4", 51.5), other_world) is not a1
+
+
+class _CountingWorld(_World):
+    def __init__(self):
+        self.reads: list[str] = []
+
+    def for_cell(self, cell):
+        self.reads.append(cell)
+        return super().for_cell(cell) if cell != "B" else [{"date": "2020-01-01"}]
+
+
+def test_a_cells_rows_are_read_once_per_field_not_once_per_premise():
+    """Defect: the memo saves the series but `for_cell` -- 3,653 row dicts -- is still built for
+    every premise before the memo is asked, so the run pays per account for weather it already
+    holds. BOTH SIDES: a second FIELD of the same cell is a real miss and must read again, and an
+    empty series must still name its day count (which needs the rows)."""
+    world = _CountingWorld()
+    for i, lat in enumerate((51.0, 51.5, 52.0, 53.0)):
+        wi.weather_means_for_customer(_premise(f"P{i}", lat), world)
+    assert world.reads == ["A"]
+    wi.cloud_cover_for_customer(_premise("P9", 51.0), world)
+    assert world.reads == ["A", "A"]
+    first = wi.cell_weather_for_customer(_premise("Q1", 57.0), world=world)
+    again = wi.cell_weather_for_customer(_premise("Q2", 57.0), world=world)
+    assert first.refusal == again.refusal and "on any of its 1 days" in again.refusal
