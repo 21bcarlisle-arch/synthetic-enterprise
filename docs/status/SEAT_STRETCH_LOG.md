@@ -8,6 +8,146 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-10-09 — orientation: The thesis moved a little on the world's side this stretch, not on the company's
+
+<!-- head: e3e5970e1cf6 -->
+
+*Written by the orientation seat from its own record (2026-10-09T06:59:57.900256+00:00; 11 commits, 5 substantive, since 2026-10-09T05:22:51.855555+00:00).*
+
+## What the stretch meant
+
+The thesis moved a little on the world's side this stretch, not on the company's. All three 05:22 focus items were drawn. Two finished, and the third found the cause. The voids fall is graded on its own base (c9fd63f82). The triad no longer asks the named household for occupier debt, and the voids atom carries its GAPs, so the director's debt re-grade now has an attributed debt line to read, to 2019. After 2019 it is still unmeasured, and a continuation is queued for that. The headcount is now drawn given VOA bedrooms (d00cf9dc2), and six-plus-bed homes fall from 25% to 0.8%. The re-read says plainly that headcount moves neither SERL's peak (0.562 at 20:00) nor its season (1.239). What holds them is the evening non-cooking stack and the summer level, and the per-occupant slope is filed as a named gap, not fitted. Direct Debit failure now reads the published rate, and a returned DD is re-presented (54dbd5650). The arrears stock falls from about 10% to about 1%. That falls on exactly the half of the director's hold that was still open, because the 2x like-for-like gap (32acb3ea1) was measured before it, so that half has to be read again. On the company side, nothing new lands. The rate-honest retention offer (bf52e72e6) is still on no remote ref, and its worktree's owner is dead. Its own reading carries the most useful company fact of the day: 44 of 72 retention offers fall on renewals the world never rolls, so they are cost with no household asked. The reactive save's one household on one seed is still the only per-customer win. The machine went backwards again: 93 behind, from 82. The cause is now measured, not guessed. With origin's code, the reconciler (4d1aa34ab) finds the advance held only by live work. Three of the five live copies are this seat's own direction files, rewritten every stretch and never landed, because the 02:43 and 05:43 records were both refused by one red site test. 9268de5ba reproduced that test and fixed it, by bringing proof.json's W2_11 caveat level with the register. So the seat itself has been holding the fleet 93 commits stale. The annual report running now is computed from e3e5970e1 again.
+
+## What went wrong
+
+- NOT corrected: THE MACHINE'S, CARRIED. One item can land twice, on origin through surgical_land and as a local commit on the shared HEAD. Owner: SEAT_FINDING_ONE_ITEM_LANDS_TWICE_AND_THE_SHARED_HEAD_FORKS_FROM_ORIGIN. 07:00: no new instance; HEAD is 0 ahead. The refusal mechanism is still not built.
+- NOT corrected: THE MACHINE'S, CARRIED. A held change's hold condition is not re-asked when its premise moves. Owner: SEAT_FINDING_A_HOLD_OR_A_TOMBSTONE_STATES_ITS_CONDITION_IN_PROSE_AND_NOTHING_RE_ASKS_IT. 07:00: a live instance. 54dbd5650 moved the premise of the hold's arrears half (DD failure from 3% to 0.87%), and nothing re-asked it. Focus three re-asks it by hand.
+- NOT corrected: THE MACHINE'S, CARRIED. The held-work check refuses an item when its prose names a held file, even when the held work is not the item's, and the refusal reaches only the supervisor log. 07:00: no refusal seen. The cause of the earlier misses is still neither shown nor ruled out.
+- NOT corrected: THE MACHINE'S, CARRIED. The seat's brief reads the director's open concerns from the behind checkout. 07:00: HEAD is 93 behind. The seven open rows were carried from origin's record (the 23:24 one), not the working copy.
+- NOT corrected: THE MACHINE'S, CARRIED. The draw ledger reads the same for work never started and for work mid-landing, because it asks only origin by path. 07:00: unchanged. w2-20-grade-r5-and-publish-the-20261008r-pair-after-leg-two still reads not_done, and headcount-given-dwelling-size-then-the-per-occupant-slope reads CANNOT ANSWER although d00cf9dc2 landed it under that claim.
+- NOT corrected: THE MACHINE'S, CARRIED. A focus-row tombstone still retires a row without asking its DONE. 07:00: no new instance. The headcount row's 06:12 tombstone was sound, because d00cf9dc2 met its DONE at 06:09. The mechanism still does not ask.
+- NOT corrected: THE MACHINE'S, CARRIED. A landing can carry docs/direction/DIRECTION.yaml from the shared working copy when it is older than origin's. 07:00: no instance. The working copy is NEWER than origin's, and that is the new seat row's subject.
+- NOT corrected: THE MACHINE'S, CARRIED. A parked atom is still counted as drawn. H45 is PARKED and the counter still moves. 07:00: SITE2 moved from 43631 to 43708.
+- NOT corrected: THE MACHINE'S, CARRIED. The coupled-triad gate now excludes twinless L3 targets, and its refusal reaches only the supervisor journal. 07:00: D48 is still at L1, and its unchanged draws rose from 1378 to 1416.
+- NOT corrected: THE WORLD'S, CARRIED. A gas-heated fabric home's electricity has no season against SERL. 07:00: the headcount-given-bedrooms draw (d00cf9dc2) moves neither the peak (0.562 at 20:00) nor the season (1.239). The per-occupant slope is filed as a named gap, and the microwave now follows EFUS ownership (1852c7211). What holds the peak is the evening non-cooking stack, and what holds the season is the summer level. Focus four.
+- NOT corrected: THE MACHINE'S, CARRIED. The draw ledger credits or denies an item by path overlap, not by its work. 07:00: unchanged. a-home-mover-is-a-retention-moment-the-company-sees still reads landed_unbound against 6987325ae, and a-pending-switch-reaches-the-company-at-its-real-lead-time reads landed_unbound against f418eff9e.
+- NOT corrected: THE MACHINE'S, CARRIED. The shared checkout lags origin. 07:00: WORSE again, 93 behind from 82. The cause is now measured. Origin's reconciler (4d1aa34ab) finds that live work is the only class holding the advance, and three of its five paths are the seat's direction files. 4d1aa34ab's own bootstrap loads only after one advance. Focus one.
+- NOT corrected: THE MACHINE'S, CARRIED. Two long jobs were OOM-killed (save-fairness-world at 17:58, save-arms-off-k1 at 19:52), with the director's box memory budget (17c19a253) on origin but not in the shared checkout. 07:00: no recurrence; one long job finished, status 0. sim-runner still lacks 17c19a253 and 168b9fe5e until the advance.
+- NOT corrected: THE MACHINE'S, CARRIED. The voids item was dispatched twice (22:57Z and 01:31Z) and landed nothing, because Lane 0 does not ask how much window a tick has left before it hands out a multi-run item. 07:00: the voids work itself is done and graded (c9fd63f82). Lane 0's window check is still not built.
+- NOT corrected: THE RUN'S, CARRIED. The settled run hands the world a flat 0.20 retention effect whatever the discount (RETENTION_EFFECTIVENESS, unsourced). Tiered offers were costed by size but retained identically (9470735ca). 07:00: the fix (bf52e72e6) is still on no remote ref, and its owner pid is dead. Focus two.
+- corrected: THE SEAT'S, CARRIED. My 02:20 direction record never reached origin, and the gate that refused it was unknown. 07:00: Corrected as a cause. 9268de5ba reproduced the refusal by running the real gate over the seat's record files. One site test was red on origin, because proof.json's W2_11 caveat was stale after 23fca0567. The 05:22 record was refused the same way. 9268de5ba fixes it. If this record is refused too, that is a new row.
+- NOT corrected: THE SEAT'S, NEW. The seat's own direction files in the shared tree hold the checkout's advance. Each refused landing left DIRECTION.yaml, decisions.jsonl and SEAT_STRETCH_LOG.md diverged from origin, and I re-wrote them in place every stretch. That kept them live and under 48h, so the reconciler could never release them, and every daemon fell further behind. This record is written the same way. Owner: the continuation the-shared-trees-direction-files-hold-every-advance (focus one).
+
+## Chosen against
+
+- Retaking the value arms on the moved world (d00cf9dc2, 54dbd5650, 1852c7211).
+- Raising the settlement budget to 3,100 and running the 400 founders.
+- Building lane 0's window check, so a multi-run item is not handed to a tick near its end.
+- Stopping retention offers at SVT-to-fix conversions now.
+- Reaping or landing the five worktrees whose SALVAGE commits sit on no remote ref.
+- Binding the draw ledger's stale rows by hand (w2-20 under cb54420a0, the two landed_unbound rows, headcount under d00cf9dc2).
+
+## Focus for the next stretch
+
+- `the-shared-trees-direction-files-hold-every-advance`
+- `land-the-rate-honest-retention-offer-and-count-the-unrolled-offers`
+- `re-read-the-arrears-like-for-like-after-the-dd-failure-correction`
+- `the-evening-non-cooking-stack-against-hes-time-of-use`
+
+---
+
+## 2026-10-09 — orientation: The thesis did not move this stretch
+
+<!-- head: e3e5970e1cf6 -->
+
+*Written by the orientation seat from its own record (2026-10-09T05:22:51.855555+00:00; 13 commits, 7 substantive, since 2026-10-09T02:20:33.302287+00:00).*
+
+## What the stretch meant
+
+The thesis did not move this stretch. The work that landed was world fidelity, and it was good: the cooking class and the microwave now follow HES rather than headcount (ecd94c38c, fbf3e3ba2), a prepayment bill no longer fails like a direct debit (23fca0567), and the weather world is columnar, about halving peak memory (4dcbf6f81). On the company side, the one change that matters is the fix that makes a retention offer reach the world at its discounted rate. It is committed in /var/tmp/se-retrate (bf52e72e6) but not on origin. Its own first reading refuted its predictions: even when the world can see the discount size, the 3%, 5% and 8% arms give byte-equal outcomes (72 offers, 67 retained). So no settled-run result yet shows the company's tiering beating a flat offer. Acquisition was an honest no last stretch, and the reactive save's one household on one seed is still the only per-customer win. On voids, my DONE was not met, and the reason is new. The one-variable runs DID finish this time, through a detached chain, and they sit ungraded in /tmp/voids_split*. Read raw, they already refute two predictions. Void energy LOWERS the margin by about GBP 380, where I predicted a rise. The window costs about GBP 400, against a predicted 800-2,000. The triad fix is byte-identical to origin. /tmp does not survive a reboot, so grading those runs comes first. The headcount-given-bedrooms draw is landing now through the interactive lane (VOA stock; six-plus-bed homes fall from 25% to 0.8%), and its rebased reads finished at 05:22. The machine went backwards again. The checkout is 82 behind, up from 69, with 26 paths blocking and 10 of them byte-identical to origin. My 02:20 record never reached origin: its landing was refused by a red gate whose name the refusal cut off (c5d8e1311 now keeps it). Its four files are four of the blockers. The append-log rule for test_execution_log (91a798172) is on origin, but reconcile-watch runs from the shared checkout and does not have that commit. So the fix that should release the advance cannot load until the advance happens. The clear-the-eighteen-paths item was retired as premise-spent while its DONE (HEAD 0 behind) was unmet. The annual report running now is again computed from the stale e3e5970e1 world. No real OOM this stretch: the 04:13 kills were deliberate memcg self-test scopes. All three 02:20 focus items were drawn.
+
+## What went wrong
+
+- NOT corrected: THE MACHINE'S, CARRIED. One item can land twice, on origin through surgical_land and as a local commit on the shared HEAD. Owner: SEAT_FINDING_ONE_ITEM_LANDS_TWICE_AND_THE_SHARED_HEAD_FORKS_FROM_ORIGIN. 05:22: no new instance; HEAD is 0 ahead. The refusal mechanism is still not built.
+- NOT corrected: THE MACHINE'S, CARRIED. A held change's hold condition is not re-asked when its premise moves. Owner: SEAT_FINDING_A_HOLD_OR_A_TOMBSTONE_STATES_ITS_CONDITION_IN_PROSE_AND_NOTHING_RE_ASKS_IT. 05:22: unchanged. raise-the-settlement-budget-to-3100-after-w220 still reads not_done, and the hold lives only in this record's prose.
+- NOT corrected: THE MACHINE'S, CARRIED. The held-work check refuses an item when its prose names a held file, even when the held work is not the item's, and the refusal reaches only the supervisor log. 05:22: no refusal seen. The cause of the earlier misses is still neither shown nor ruled out.
+- NOT corrected: THE MACHINE'S, CARRIED. The seat's brief reads the director's open concerns from the behind checkout. 05:22: HEAD is 82 behind. The seven open rows were carried from origin's record, not the working copy.
+- NOT corrected: THE MACHINE'S, CARRIED. The draw ledger reads the same for work never started and for work mid-landing, because it asks only origin by path. 05:22: unchanged. w2-20-grade-r5-and-publish-the-20261008r-pair-after-leg-two still reads not_done, though cb54420a0 published that pair under a sibling id.
+- NOT corrected: THE MACHINE'S, CARRIED. A focus-row tombstone still retires a row without asking its DONE. 05:22: a NEW INSTANCE. clear-the-eighteen-paths-holding-the-shared-checkouts-fast-forward was retired at 03:02 as premise-spent (the twin rule already existed), while its DONE, HEAD 0 behind at a reconcile-watch cycle, was unmet. HEAD is now 82 behind. Focus two re-issues it under a new id.
+- NOT corrected: THE MACHINE'S, CARRIED. A landing can carry docs/direction/DIRECTION.yaml from the shared working copy when it is older than origin's. 05:22: no instance. The working copy now holds the refused 02:20 record, which is newer than origin's, not older.
+- NOT corrected: THE MACHINE'S, CARRIED. A parked atom is still counted as drawn. H45 is PARKED and the counter still moves. 05:22: SITE2 moved from 43492 to 43631.
+- NOT corrected: THE MACHINE'S, CARRIED. The coupled-triad gate now excludes twinless L3 targets, and its refusal reaches only the supervisor journal. 05:22: D48 is still at L1, and its unchanged draws rose from 1308 to 1378.
+- NOT corrected: THE WORLD'S, CARRIED. A gas-heated fabric home's electricity has no season against SERL. 05:22: the cooking class (ecd94c38c) and the microwave (fbf3e3ba2) now follow HES, not headcount. The headcount-given-bedrooms draw is landing now. Peak and season have not been re-read on it. Focus three.
+- NOT corrected: THE MACHINE'S, CARRIED. The draw ledger credits or denies an item by path overlap, not by its work. 05:22: unchanged. a-home-mover-is-a-retention-moment-the-company-sees still reads landed_unbound against 6987325ae, and a-pending-switch-reaches-the-company-at-its-real-lead-time against f418eff9e.
+- NOT corrected: THE MACHINE'S, CARRIED. The shared checkout lags origin. 05:22: WORSE again, 82 behind from 69, with 26 blocking paths, 10 of them byte-identical to origin. The append-log rule (91a798172) is on origin but not in the code reconcile-watch loads, so it cannot release the advance it was written for. Focus two.
+- NOT corrected: THE MACHINE'S, CARRIED. Two long jobs were OOM-killed (save-fairness-world at 17:58, save-arms-off-k1 at 19:52), with the director's box memory budget (17c19a253) on origin but not in the shared checkout. 05:22: no real recurrence. The 04:13 kernel kills were deliberate memcg self-test scopes (ops2-*-selftest). The weather world halved peak memory (4dcbf6f81) and landings now come first (168b9fe5e), but sim-runner loads neither until the checkout advances.
+- NOT corrected: THE MACHINE'S, CARRIED. The voids item was dispatched twice (22:57Z and 01:31Z) and landed nothing. The 22:57 invocation was spawned about 90 minutes into a tick with TimeoutStartSec=7200, and it died with that tick at 23:29. Lane 0 does not ask how much window a tick has left before it hands out a multi-run item. 05:22: the runs did finish later, through a detached chain (voids-triad-fix-price, status 0). But nothing graded or filed them, and no continuation was left to do it. Lane 0's window check is still not built.
+- NOT corrected: THE RUN'S, CARRIED. The settled run hands the world a flat 0.20 retention effect whatever the discount (RETENTION_EFFECTIVENESS, unsourced). Tiered offers were costed by size but retained identically (9470735ca). 05:22: the fix is committed (bf52e72e6, /var/tmp/se-retrate, on no remote ref) and is being measured; it is not on origin.
+- NOT corrected: THE SEAT'S, NEW. My 02:20 direction record never reached origin. Its landing was refused by a red gate, and the refusal was cut off mid-word, so which gate refused it is unknown. For three hours the draw steered by a record the director cannot see on origin. c5d8e1311 now keeps the refusing step, so a recurrence will name its gate.
+
+## Chosen against
+
+- Landing or re-measuring the rate-honest retention offer (bf52e72e6) as a focus item.
+- Retaking the value arms.
+- Raising the settlement budget to 3,100 and the 400-founder run.
+- Re-firing the 02:20 direction record, or diagnosing its refusal from the old log.
+- Binding the draw ledger's stale rows (w2-20 under cb54420a0, the two landed_unbound rows).
+
+## Focus for the next stretch
+
+- `the-voids-effect-is-split-and-the-atom-carries-its-gaps`
+- `the-reconcilers-own-fix-cannot-load-until-the-advance-it-releases`
+- `headcount-given-dwelling-size-then-the-per-occupant-slope`
+
+---
+
+## 2026-10-09 — orientation: The company's side went backwards in meaning this stretch, and it is better for knowing it
+
+<!-- head: e3e5970e1cf6 -->
+
+*Written by the orientation seat from its own record (2026-10-09T02:20:33.302287+00:00; 11 commits, 3 substantive, since 2026-10-08T23:24:47.880217+00:00).*
+
+## What the stretch meant
+
+The company's side went backwards in meaning this stretch, and it is better for knowing it. Acquisition selection was graded on an instrument that can see it (e0c906355). 122 seeds per arm and about 64,000 training decisions: P1-P3 fail in both arms and P4 holds, so the learned decision offers no cut anywhere. A 7.5/MWh cut moves staying by +0.013 to +0.017 in every save position, against a break-even near +0.15. A planted +0.30 effect turns P1-P3 true, so the null is the world's answer and not the guard's. That is an honest no: at acquisition there is nothing per-customer for inference to exploit in this world, and the world has one acquisition channel (over 99% campaign_win). Then 9470735ca found that the settled run never passes a retention discount's size to the world. A 3%, 5% or 8% offer retains through one flat 0.20 on one hazard. Against the world's own price response, that over-credits the commonest tier (3%) by about half. So no settled-run retention result to date shows the company's tiering beating a flat offer, because the world could not tell the tiers apart. The one per-customer win still standing is the reactive save's single household on one seed. On the world side, my 23:24 claim that every bill carries a 3.02-person headcount was wrong. The 3.02 was the instruments' own bedroom fallback, not the settled book's (20c67bb66). On the book's Census headcount the gas-home level is 2,613, below the band and not above it. The instruments now draw the book's headcount (b9808cf60), and the kettle no longer scales with headcount, per HES Table 23 (302477495). All four 20:20 focus items were drawn, and three finished. The voids split did not: it was dispatched at 22:57 and again at 01:31 and landed nothing. The first invocation was killed with its tick at 23:29, after 32 minutes, because it was spawned late in a two-hour tick window for work that needs several runs. On the machine, the stranded commit is now on origin (effd32f63), so HEAD is 0 ahead and the fork is closed. But the checkout is 69 behind, up from 58, because 18 working-copy paths refuse the fast-forward. Eight of those are byte-identical to origin, and four of the eight are this seat's own direction landing. The OOM killer hit the worker-tick unit at 00:13.
+
+## What went wrong
+
+- NOT corrected: THE MACHINE'S, CARRIED. One item can land twice, on origin through surgical_land and as a local commit on the shared HEAD. Owner: SEAT_FINDING_ONE_ITEM_LANDS_TWICE_AND_THE_SHARED_HEAD_FORKS_FROM_ORIGIN. 02:20: this instance is closed. e3e5970e1 is an ancestor of origin (effd32f63) and HEAD is 0 ahead. The mechanism that would refuse a local commit on the shared HEAD is still not built.
+- NOT corrected: THE MACHINE'S, CARRIED. A held change's hold condition is not re-asked when its premise moves. Owner: SEAT_FINDING_A_HOLD_OR_A_TOMBSTONE_STATES_ITS_CONDITION_IN_PROSE_AND_NOTHING_RE_ASKS_IT. 02:20: unchanged. raise-the-settlement-budget-to-3100-after-w220 still reads not_done in the ledger, and the hold lives only in this record's prose.
+- NOT corrected: THE MACHINE'S, CARRIED. The held-work check refuses an item when its prose names a held file, even when the held work is not the item's, and the refusal reaches only the supervisor log. 02:20: no refusal this stretch, because the voids item was dispatched twice. The cause of the earlier misses is still neither shown nor ruled out.
+- NOT corrected: THE MACHINE'S, CARRIED. The seat's brief reads the director's open concerns from the behind checkout. 02:20: HEAD is 69 behind, and the seven open rows still match origin's record.
+- NOT corrected: THE MACHINE'S, CARRIED. The draw ledger reads the same for work never started and for work mid-landing, because it asks only origin by path. 02:20: unchanged. w2-20-grade-r5-and-publish-the-20261008r-pair-after-leg-two still reads not_done, though cb54420a0 published that pair under a sibling id.
+- NOT corrected: THE MACHINE'S, CARRIED. A focus-row tombstone still retires a row without asking its DONE. 02:20: a NEW INSTANCE. grade-acquisition-p1-p4-on-fresh-seeds-101-and-202 was tombstoned at 23:51 when c568a5944 recorded P1-P4 UNGRADED, which does not meet its DONE (whether P1-P3 hold, per arm). A successor item met it (e0c906355), but that was luck, not the mechanism.
+- NOT corrected: THE MACHINE'S, CARRIED. A landing can carry docs/direction/DIRECTION.yaml from the shared working copy when it is older than origin's. 02:20: no instance. The working copy is byte-identical to origin's and is one of the fast-forward's twin blockers.
+- NOT corrected: THE MACHINE'S, CARRIED. A parked atom is still counted as drawn. H45 is PARKED and the counter still moves. 02:20: SITE2 moved from 43343 to 43492.
+- NOT corrected: THE MACHINE'S, CARRIED. The coupled-triad gate now excludes twinless L3 targets, and its refusal reaches only the supervisor journal. 02:20: D48 is still at L1, and its unchanged draws rose from 1201 to 1308.
+- NOT corrected: THE WORLD'S, CARRIED. A gas-heated fabric home's electricity has no season against SERL. 02:20: the level reading was overturned. On the book's own Census headcount the gas-home level is 2,613, below the band (20c67bb66). The instruments now draw that headcount (b9808cf60), and the kettle is flat across household type (302477495). Peak and season have not been re-read on the new headcount. Focus three.
+- NOT corrected: THE MACHINE'S, CARRIED. The draw ledger credits or denies an item by path overlap, not by its work. 02:20: unchanged. a-home-mover-is-a-retention-moment-the-company-sees still reads landed_unbound against 6987325ae, and a-pending-switch-reaches-the-company-at-its-real-lead-time against f418eff9e.
+- NOT corrected: THE MACHINE'S, CARRIED. The shared checkout lags origin. 02:20: WORSE again, 69 behind from 58, even though the fork closed. 18 working-copy paths refuse the fast-forward, and 8 of them are byte-identical to origin. Focus two.
+- NOT corrected: THE MACHINE'S, CARRIED. Two long jobs were OOM-killed (save-fairness-world at 17:58, save-arms-off-k1 at 19:52), with the director's box memory budget (17c19a253) on origin but not in the shared checkout. 02:20: it RECURRED. The kernel OOM killer killed processes in the worker-tick unit at 00:13. Forty retention-arm processes now share about 5 GB available. sim-runner still lacks 17c19a253, and whether the budget was consulted is not shown.
+- corrected: THE SEAT'S, NEW. My 23:24 record said the world puts 3.02 occupants in a gas home and that every bill carries it. The 3.02 was the instruments' bedroom fallback, not the settled book's. The book already drew a Census headcount, and on it the level is below the band.
+- NOT corrected: THE MACHINE'S, NEW. The voids item was dispatched twice (22:57Z and 01:31Z) and landed nothing. The 22:57 invocation was spawned about 90 minutes into a tick with TimeoutStartSec=7200, and it died with that tick at 23:29, after 32 minutes, on work that needs four runs. Neither invocation has an exit line in worker-tick-log. Lane 0 does not ask how much window a tick has left before it hands out a multi-run item.
+- NOT corrected: THE RUN'S, NEW. The settled run hands the world a flat 0.20 retention effect whatever the discount (RETENTION_EFFECTIVENESS, unsourced). Tiered offers were costed by size but retained identically, so every retention result to date measured the tiers against a response that cannot tell them apart (9470735ca).
+
+## Chosen against
+
+- Making the run offer a retention discount to the world as the discounted rate (9470735ca's recommendation), as a focus item.
+- Retaking the value arms.
+- More work on acquisition selection (new channels, more seeds, a different cut size).
+- Raising the settlement budget to 3,100 and the 400-founder run.
+- The arrears like-for-like measure and the prepayment correction, as focus items.
+- The electric-homes-on-the-calm-side xfail, and P0008 running direct-electric heat on 28 of 120 winter days.
+- Fixing the draw counters (SITE2, D48, H45) and the triad refusal surfacing.
+
+## Focus for the next stretch
+
+- `the-voids-effect-is-split-and-the-atom-carries-its-gaps`
+- `clear-the-eighteen-paths-holding-the-shared-checkouts-fast-forward`
+- `headcount-given-dwelling-size-then-the-per-occupant-slope`
+
+---
+
 ## 2026-10-09 — orientation: The thesis moved this stretch, but only by a little, and the world had a bigger finding than the company did
 
 <!-- head: e3e5970e1cf6 -->
