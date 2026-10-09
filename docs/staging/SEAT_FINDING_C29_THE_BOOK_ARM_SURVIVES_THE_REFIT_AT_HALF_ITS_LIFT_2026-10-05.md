@@ -95,3 +95,63 @@ from a fact the company does not need the estimate for.
 Next, in order: (1) the director's read on the SVT-conversion frame; (2) re-run this pair with
 the guard restricted to rolled terms, which isolates the weighting's own value; (3) the small-book
 zero-estimate remedy, from a sourced reason.
+
+## Addendum, 2026-10-09: the premise re-read on landed code (`the-retention-discount-concerns-evidence-is-re-read-after-aac535f08`)
+
+The director's open row `does-a-retention-discount-offered-to-a` quotes §2 above: 32 of 60 offers,
+59% of spend, GBP 1,765, at a term that gives no exit. Two things have landed since then.
+`b922911b7` lets the world answer an offer at its discounted rate. `aac535f08` records that the
+discount now enters the decline-or-convert rule.
+
+**Instrument.** I re-joined the newest daemon run on disk, not a fresh one:
+`docs/reports/run_output_224e4af02_20261009T171631Z.json`. Its `producing_commit` is `224e4af02`,
+which has both `b922911b7` and `aac535f08` as ancestors. Its renewals run from 2016-12-31 to
+2025-05-31. Each `retention_log` row joins to exactly one decision-leg event on (customer, date);
+208 of 208 joined. For an offer at an SVT conversion, I recomputed the full rate as
+offered / (1 − discount) and asked `position_vs_default` whether that rate would have been declined.
+Since then only four commits have touched `simulation/` or `company/`, and all of them are
+arrears and ledger work. Those can move a few offers through the guard's bad-debt belief, but they
+do not change what kind of term an offer lands on. Script: `/var/tmp/retdisc_post.py` (scratch).
+
+**Does `svt_conversion_event` still give P(depart) = 0? Yes.** Its `realized_churn_probability` is
+0.0 on every one of the 94 offered conversions. The same holds for every unrolled `declined_fix`.
+`departure_rolled_at_renewal` still takes the exit off any term whose previous segment was the SVT.
+
+| kind of term the offer fell on | rolled? | offers | spend | share of spend | what the offer can buy |
+|---|---|---|---|---|---|
+| fixed-term renewal (`renewal`) | yes | 77 | GBP 2,101 | 31% | a stay: 47 stayed, 30 left despite it |
+| fixed-term renewal, declined the fix even at the discount | yes | 26 | GBP 1,121 | 16% | a stay (all 26 stayed, on the SVT) |
+| SVT-to-fix conversion | no | 94 | GBP 3,015 | 44% | **a conversion, in 10 of them** |
+| SVT anniversary, fix declined even at the discount | no | 11 | GBP 591 | 9% | nothing |
+| **all** | | **208** | **GBP 6,828** | | |
+
+- **Offers at a term with no exit: 105 of 208 (50%), GBP 3,607 (53% of spend).** That compares
+  with 32 of 60 (53%) and 59% of spend in §2. So the money share is a little lower, but the
+  amount is about twice as large, because the book and the run are larger.
+- **10 of those 105 now buy something.** At the full rate, those households were above their
+  default by between +0.8% and +4.5% and would have declined. The discount (3%, 5% or 8%) puts them
+  at or below the default, so they convert. All 10 are domestic credit accounts, and each is billed
+  at the offered rate (the logged `unit_rate` equals the offer). They cost GBP 355 together. 7 of
+  the 10 fall in 2018, and 3 fall in 2025 H1.
+- **95 offers (GBP 3,252, 48% of spend) still buy nothing.** 84 are conversions that would have
+  happened at the full rate. 11 are declines that the discount did not reach.
+
+**Does the premise hold?** It holds in part, and the row's wording no longer matches the code.
+- *"The world gives the household no exit there" still holds.* No offer at an SVT anniversary can
+  prevent a departure.
+- *"So the offer cannot buy anything" no longer holds.* On landed code it can buy a conversion
+  from the SVT onto a fix, which is the alternative the row itself names. Here it did so in 10 of
+  105 cases, about 1 in 10.
+- So the director's choice is no longer "offer or don't" over a set where offering is always
+  wasted. A blanket stop at SVT anniversaries would give up those 10 conversions to save GBP 3,252.
+  A narrower rule would offer at an SVT anniversary only where the full-rate fix sits within the
+  discount of the default, and would have kept all 10 for GBP 355. The supplier holds all of the
+  facts this rule needs: its own tariff, its own fix and the published default. Whether winning
+  the conversion is worth GBP 35 an account is a separate question, not answered here. A household
+  on our SVT and the same household on our fix are both still ours, and this world does not yet
+  weigh the two terms against each other.
+- The figures in the row (32 of 60, 59%, GBP 1,765) are out of date. The current figures are 105 of
+  208, 53%, GBP 3,607, of which GBP 355 buys a conversion.
+
+Nothing here edits the direction record. The seat carries this pointer at its next orientation and
+decides whether the row is re-worded or withdrawn.
