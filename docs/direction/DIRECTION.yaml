@@ -346,5 +346,6 @@ for_the_director:
     numbers.'
   status: open
   resolution: ''
-  evidence: docs/staging/SEAT_FINDING_THE_DD_FAILURE_CORRECTION_MOVED_MEASURED_FACTS_2026-10-09.md (result
-    2026-10-09T16:05Z); simulation/payment_behaviour_source.py gap 8
+  evidence: 'docs/staging/SEAT_FINDING_THE_DD_FAILURE_CORRECTION_MOVED_MEASURED_FACTS_2026-10-09.md (result
+    2026-10-09T16:05Z, and 18:01Z: the proposal ENACTED, never-repaid share by payment method, MET at 0.85x,
+    50/1153 = 4.3% (3.3-5.7%) against 5.1%, one seed); simulation/payment_behaviour_source.py NEVER_REPAID_SHARE_BY_METHOD'

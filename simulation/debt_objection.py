@@ -29,11 +29,12 @@ NAMED GAPS, each moving the effect in a stated direction:
    industry-average objection practice until the company decides it itself through the CSS
    objection window (EP12, `interface/contracts/registration_loss_seam.py`).
 3. THE WORLD'S DEBTOR POPULATION. Since 2026-10-04 a failed domestic bill can be paid off later
-   (`payment_behaviour_source.later_settlement_date`, Ofgem IA §1.39: about half repaid, 70% of
-   those within three months), and the book honours that date. Its named gaps -- re-presentation
-   unmodelled, each repayment dated at the end of its window, drawn per bill rather than per
-   household -- all lean toward holding a household in debt longer, so eligibility is still
-   more likely over- than under-stated. A business dispute is never cured.
+   (`payment_behaviour_source.later_settlement_date`: a returned DD is re-presented, and the
+   never-repaid share is by payment method from Centrica's provision on balances over 90 days
+   old, 70% of repayments within three months per Ofgem IA §1.39), and the book honours that
+   date. Its named gaps -- each repayment dated at the end of its window, drawn per bill rather
+   than per household, a stock provision read as a flow share -- all lean toward holding a
+   household in debt longer, so eligibility is still more likely over- than under-stated. A business dispute is never cured.
 4. A BLOCK IS FINAL FOR THIS DECISION. A blocked household stays this renewal and is asked again
    at the next one; no repay-and-leave-later route between renewals is modelled.
 5. ONE DECISION PER HOUSEHOLD. Objections are per fuel; a debt on any credit-meter leg makes the

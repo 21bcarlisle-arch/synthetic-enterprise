@@ -1731,7 +1731,11 @@ def test_q3_EVERY_PUBLISHED_FIGURE_IS_UNCHANGED_BY_THE_NEW_LEGS():
     RE-PINNED 2026-10-09 FOR A FOURTH WORLD CHANGE: the DD failure level reads the register
     (first presentation 0.87% LOW, tiers scaled) and a returned DD is re-presented at the register's
     share. Restoring the old 3/12/35% tiers with no re-presentation reproduces the 2026-10-08 values
-    exactly; the old-world blocks below hold that."""
+    exactly; the old-world blocks below hold that.
+
+    RE-PINNED 2026-10-09 FOR A FIFTH WORLD CHANGE: the never-repaid share is by payment method
+    (Centrica's provision on live balances past 90 days: DD 7.4%), not the debt-blocked cohort's 0.5.
+    Only ageing moves (0.3857259762 -> 0.351584462); a flat 0.5 reproduces it exactly."""
     triad = _build_triad()
     result = triad.measure()
     assert result is not None
@@ -1739,7 +1743,13 @@ def test_q3_EVERY_PUBLISHED_FIGURE_IS_UNCHANGED_BY_THE_NEW_LEGS():
     assert round(result["detection_latency"].gap, 6) == 1.717391  # was 1.549839: same cause
     assert round(result["belief"].gap, 10) == 0.0615384615  # was 0.0666666667: same cause
     assert round(result["belief_population_mix"].gap, 10) == 0.0533333333  # was 0.1066666667: same cause
-    assert round(result["ageing"].gap, 10) == 0.3857259762  # was 0.1629183071: level + re-presentation
+    assert round(result["ageing"].gap, 10) == 0.351584462  # was 0.3857259762: share by method
+
+    from simulation import payment_behaviour_source as pbs
+    with pytest.MonkeyPatch.context() as mp:
+        mp.setattr(pbs, "never_repaid_share", lambda method: 0.5)
+        flat_share = _build_triad().measure()
+    assert round(flat_share["ageing"].gap, 10) == 0.3857259762
 
     with pytest.MonkeyPatch.context() as mp:
         mp.setattr(lpt, "later_settlement_date", lambda *a, **k: None)
@@ -1747,11 +1757,11 @@ def test_q3_EVERY_PUBLISHED_FIGURE_IS_UNCHANGED_BY_THE_NEW_LEGS():
     assert round(before["ageing"].gap, 10) == 0.1168776875  # was 0.0720759646: DD failure level sourced
 
     from simulation import arrears_engine as ae
-    from simulation import payment_behaviour_source as pbs
     old_tiers = {"LOW": 0.03, "MODERATE": 0.12, "HIGH": 0.35}
     with pytest.MonkeyPatch.context() as mp:
         mp.setattr(ae, "_DD_FAILURE_PROB", old_tiers)
         mp.setattr(pbs, "REPRESENTATION_SUCCESS_SHARE", 0.0)
+        mp.setattr(pbs, "never_repaid_share", lambda method: 0.5)
         pre_dd = _build_triad().measure()
         mp.setattr(lpt, "later_settlement_date", lambda *a, **k: None)
         pre_dd_before = _build_triad().measure()
@@ -1765,6 +1775,7 @@ def test_q3_EVERY_PUBLISHED_FIGURE_IS_UNCHANGED_BY_THE_NEW_LEGS():
     with pytest.MonkeyPatch.context() as mp:
         mp.setattr(ae, "_DD_FAILURE_PROB", old_tiers)
         mp.setattr(pbs, "REPRESENTATION_SUCCESS_SHARE", 0.0)
+        mp.setattr(pbs, "never_repaid_share", lambda method: 0.5)
         mp.setattr(pbs, "PREPAYMENT_METHOD", "direct_debit")
         old_world = _build_triad().measure()
     assert round(old_world["detection"].gap, 10) == 0.0909090909

@@ -16,25 +16,31 @@ from background.live_payment_triad import LivePaymentTriad
 from simulation.debt_objection import DEBT_OBJECTION_MIN_DAYS_OUTSTANDING
 from simulation.meter_reads import assumption_toggle
 from simulation.payment_behaviour_source import (
+    CARD,
     DIRECT_DEBIT,
     LATER_SETTLEMENT_FIRST_WINDOW_MONTHS,
     LATER_SETTLEMENT_REPAID_SHARE,
     LATER_SETTLEMENT_REPORTING_WINDOW_MONTHS,
     LATER_SETTLEMENT_WITHIN_FIRST_WINDOW_SHARE,
+    NEVER_REPAID_SHARE_BY_METHOD,
+    PAY_ON_RECEIPT_METHOD,
+    PREPAYMENT,
     REPRESENTATION_DAYS_AFTER_DUE,
     REPRESENTATION_SUCCESS_SHARE,
+    STANDING_ORDER,
     _add_months,
     generate_payment_event,
     later_settlement_date,
+    never_repaid_share,
 )
 
 _DUE = date(2019, 1, 31)
 
 
-def _failed_events(n: int, segment: str = "resi"):
+def _failed_events(n: int, segment: str = "resi", method: str = DIRECT_DEBIT):
     out = []
     for i in range(n):
-        ev = generate_payment_event(f"LS-{i}", i, _DUE, 60.0, "high", DIRECT_DEBIT,
+        ev = generate_payment_event(f"LS-{i}", i, _DUE, 60.0, "high", method,
                                     segment=segment)
         if ev.result == "failed":
             out.append(ev)
@@ -66,12 +72,38 @@ def test_every_branch_is_taken_at_the_published_shares_and_dated_at_its_window_e
     shares = {k: sum(1 for d in dates if d == k) / n for k in (re_presented, early, late, None)}
     assert sum(shares.values()) == pytest.approx(1.0)  # no other date is ever drawn
     s = REPRESENTATION_SUCCESS_SHARE
-    p_early = LATER_SETTLEMENT_REPAID_SHARE * LATER_SETTLEMENT_WITHIN_FIRST_WINDOW_SHARE
+    repaid = 1 - never_repaid_share(DIRECT_DEBIT)
+    p_early = repaid * LATER_SETTLEMENT_WITHIN_FIRST_WINDOW_SHARE
     assert shares[re_presented] == pytest.approx(s, abs=0.035)
     assert shares[early] == pytest.approx((1 - s) * p_early, abs=0.035)
-    assert shares[late] == pytest.approx((1 - s) * (LATER_SETTLEMENT_REPAID_SHARE - p_early),
-                                         abs=0.035)
-    assert shares[None] == pytest.approx((1 - s) * (1 - LATER_SETTLEMENT_REPAID_SHARE), abs=0.035)
+    assert shares[late] == pytest.approx((1 - s) * (repaid - p_early), abs=0.035)
+    assert shares[None] == pytest.approx((1 - s) * (1 - repaid), abs=0.035)
+    assert shares[None] > 0  # the rare branch can still be taken
+
+
+def test_the_never_repaid_share_is_one_suppliers_aged_balance_provision_by_method():
+    """Defect it names: the debt-blocked cohort's 0.5 was the never-repaid share of EVERY failed
+    bill, so a DD household lost half its failed bills for ever where Centrica provisions 7.4% of
+    its live DD balances past 90 days (ARA 2025 Note 17). The share is now by payment method, and
+    a method Centrica does not report (prepayment) keeps the cohort's 0.5."""
+    assert NEVER_REPAID_SHARE_BY_METHOD[DIRECT_DEBIT] == pytest.approx(0.074, abs=0.001)
+    for m in (STANDING_ORDER, CARD, PAY_ON_RECEIPT_METHOD):
+        assert NEVER_REPAID_SHARE_BY_METHOD[m] == pytest.approx(0.503, abs=0.001)
+    assert never_repaid_share(PREPAYMENT) == 1 - LATER_SETTLEMENT_REPAID_SHARE
+    # Read through the draw itself: a card bill (never re-presented) is never repaid at its share.
+    events = _failed_events(24000, method=CARD)
+    assert len(events) > 1500
+    never = sum(1 for e in events if later_settlement_date(e) is None) / len(events)
+    assert never == pytest.approx(never_repaid_share(CARD), abs=0.035)
+
+
+def test_the_share_is_taken_only_after_the_bill_has_passed_ninety_days_unpaid():
+    """Centrica's figure is a provision on balances older than 90 days, so it may only decide a
+    bill the world has left unpaid that long. Every settlement after the re-presentation lands
+    past day 90; if a window ever ended before day 90 the share would be charged too early."""
+    start = _DUE + timedelta(days=DEBT_OBJECTION_MIN_DAYS_OUTSTANDING)
+    earliest = _add_months(start, LATER_SETTLEMENT_FIRST_WINDOW_MONTHS)
+    assert (earliest - _DUE).days > 90
 
 
 def test_only_a_domestic_failed_bill_is_ever_settled_later():
