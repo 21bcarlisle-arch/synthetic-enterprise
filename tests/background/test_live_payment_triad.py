@@ -1726,23 +1726,45 @@ def test_q3_EVERY_PUBLISHED_FIGURE_IS_UNCHANGED_BY_THE_NEW_LEGS():
     RE-PINNED 2026-10-08 FOR A THIRD WORLD CHANGE: a prepayment period no longer fails or lates
     (the meter is paid before use), so this book's 36 failed prepayment periods are gone -- every
     figure moves. Routing prepayment back to the direct-debit tier reproduces the 2026-10-04 values
-    exactly; the third assertion block holds that."""
+    exactly; the third assertion block holds that.
+
+    RE-PINNED 2026-10-09 FOR A FOURTH WORLD CHANGE: the DD failure level reads the register
+    (first presentation 0.87% LOW, tiers scaled) and a returned DD is re-presented at the register's
+    share. Restoring the old 3/12/35% tiers with no re-presentation reproduces the 2026-10-08 values
+    exactly; the old-world blocks below hold that."""
     triad = _build_triad()
     result = triad.measure()
     assert result is not None
-    assert round(result["detection"].gap, 10) == 0.009375  # was 0.0909090909: prepayment no longer fails
-    assert round(result["detection_latency"].gap, 6) == 1.549839  # was 1.907781: prepayment no longer fails
-    assert round(result["belief"].gap, 10) == 0.0666666667  # was 0.1176470588: prepayment no longer fails
-    assert round(result["belief_population_mix"].gap, 10) == 0.1066666667  # was 0.2133333333: same cause
-    assert round(result["ageing"].gap, 10) == 0.1629183071  # was 0.2954225352: prepayment no longer fails
+    assert round(result["detection"].gap, 10) == 0.0192307692  # was 0.009375: DD failure level sourced
+    assert round(result["detection_latency"].gap, 6) == 1.717391  # was 1.549839: same cause
+    assert round(result["belief"].gap, 10) == 0.0615384615  # was 0.0666666667: same cause
+    assert round(result["belief_population_mix"].gap, 10) == 0.0533333333  # was 0.1066666667: same cause
+    assert round(result["ageing"].gap, 10) == 0.3857259762  # was 0.1629183071: level + re-presentation
 
     with pytest.MonkeyPatch.context() as mp:
         mp.setattr(lpt, "later_settlement_date", lambda *a, **k: None)
         before = _build_triad().measure()
-    assert round(before["ageing"].gap, 10) == 0.0720759646  # was 0.221037464: prepayment no longer fails
+    assert round(before["ageing"].gap, 10) == 0.1168776875  # was 0.0720759646: DD failure level sourced
 
+    from simulation import arrears_engine as ae
     from simulation import payment_behaviour_source as pbs
+    old_tiers = {"LOW": 0.03, "MODERATE": 0.12, "HIGH": 0.35}
     with pytest.MonkeyPatch.context() as mp:
+        mp.setattr(ae, "_DD_FAILURE_PROB", old_tiers)
+        mp.setattr(pbs, "REPRESENTATION_SUCCESS_SHARE", 0.0)
+        pre_dd = _build_triad().measure()
+        mp.setattr(lpt, "later_settlement_date", lambda *a, **k: None)
+        pre_dd_before = _build_triad().measure()
+    assert round(pre_dd["detection"].gap, 10) == 0.009375
+    assert round(pre_dd["detection_latency"].gap, 6) == 1.549839
+    assert round(pre_dd["belief"].gap, 10) == 0.0666666667
+    assert round(pre_dd["belief_population_mix"].gap, 10) == 0.1066666667
+    assert round(pre_dd["ageing"].gap, 10) == 0.1629183071
+    assert round(pre_dd_before["ageing"].gap, 10) == 0.0720759646
+
+    with pytest.MonkeyPatch.context() as mp:
+        mp.setattr(ae, "_DD_FAILURE_PROB", old_tiers)
+        mp.setattr(pbs, "REPRESENTATION_SUCCESS_SHARE", 0.0)
         mp.setattr(pbs, "PREPAYMENT_METHOD", "direct_debit")
         old_world = _build_triad().measure()
     assert round(old_world["detection"].gap, 10) == 0.0909090909

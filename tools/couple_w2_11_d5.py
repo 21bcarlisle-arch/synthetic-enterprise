@@ -456,6 +456,15 @@ def _billing_cycle_offset(customer_id: str, spread_days: int) -> int:
 # DD-failed / non-DD-failed cases across the population.
 _STRESS_MIX = (("low", 0.55), ("moderate", 0.30), ("high", 0.15))
 
+#: The book's DD failure tiers: the world's pre-2026-10-09 3%/12%/35%, NOT its sourced level
+#: (`arrears_engine._DD_FAILURE_PROB`, about 3.4x lower). Scaffolding with the same status as
+#: `_STRESS_MIX`: this harness measures the company's detection instrument and needs failures to
+#: measure. At the world's level its 300-400-account books held too few and 52 of its tests'
+#: populations thinned or vanished (`docs/staging/SEAT_FINDING_THE_DD_FAILURE_CORRECTION_MOVED_
+#: MEASURED_FACTS_2026-10-09.md`). Its figures are about the instrument on a failure-dense book,
+#: never about how often the world's households fail.
+HARNESS_BOOK_DD_FAILURE_PROB = {"LOW": 0.03, "MODERATE": 0.12, "HIGH": 0.35}
+
 _SEVERITY_ORDER = ("normal", "watch", "elevated", "high")
 
 
@@ -701,7 +710,7 @@ def build_scenario(
 
             event = generate_payment_event(
                 cid, p, due, BILL_AMOUNT_GBP, stress, method,
-                segment="resi",
+                segment="resi", dd_failure_prob=HARNESS_BOOK_DD_FAILURE_PROB,
             )
 
             ledger_book.post(LedgerEvent(
@@ -8137,6 +8146,18 @@ SCENARIO_CONSTANT_CENSUS: Dict[str, Dict[str, object]] = {
             "A money scale on a book whose every invoice carries it, so it "
             "cancels out of every ratio these dimensions publish and reaches "
             "no date at all."
+        ),
+    },
+    "HARNESS_BOOK_DD_FAILURE_PROB": {
+        "bounds_resolution": False,
+        "sets_edges": (),
+        "owning_atom": None,
+        "why": (
+            "Sets WHICH invoices fail, never a date: the age band comes from "
+            "the calendar constants. Its one route to an edge is DENSITY -- a "
+            "sparse book can leave an age unpopulated -- which is why it is "
+            "held at the failure-dense pre-2026-10-09 tiers rather than the "
+            "world's level (see the constant)."
         ),
     },
 }

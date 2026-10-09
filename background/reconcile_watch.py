@@ -25,6 +25,7 @@ WIRING
 from __future__ import annotations
 
 import json
+import os
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -229,7 +230,8 @@ _FORK_SETTLED = ("LEVEL", "RECONCILED", "PUSHED", "FAST_FORWARDED")
 FORK_DETAIL_CHARS = 2400
 
 
-def _reconcile_the_fork(state_fn=None, reconcile_fn=None, subject_fn=None) -> str | None:
+def _reconcile_the_fork(state_fn=None, reconcile_fn=None, subject_fn=None,
+                        origins_fn=None) -> str | None:
     """Close the fork with origin when one is open. Returns a log line, or None when level.
 
     WHY THIS RIDES *THIS* TIMER AND WHY IT IS NOT A NEW CONCESSION (2026-09-24).
@@ -269,10 +271,11 @@ def _reconcile_the_fork(state_fn=None, reconcile_fn=None, subject_fn=None) -> st
     diverged (isolated merge), and re-deciding that here would be a second copy of a partition
     this repo has already paid to get right once.
     """
+    in_process = reconcile_fn
     if reconcile_fn is None or state_fn is None or subject_fn is None:
         from background import origin_reconcile as _orc
         state_fn = state_fn or _orc.fork_state
-        reconcile_fn = reconcile_fn or _orc.reconcile
+        in_process = reconcile_fn or _orc.reconcile
         subject_fn = subject_fn or _orc.shared_tree
 
     # THE SUBJECT IS THE SHARED TREE, NOT `PROJECT_DIR`, AND THAT IS NOT A TIDY-UP.
@@ -300,7 +303,17 @@ def _reconcile_the_fork(state_fn=None, reconcile_fn=None, subject_fn=None) -> st
     if not behind and not ahead:
         return None                       # level: the common case, and it says nothing
 
-    result = reconcile_fn(subject) or {}
+    # A BEHIND TREE RUNS ORIGIN'S RECONCILER, NOT THE ONE THIS PROCESS IMPORTED (2026-10-09). The
+    # unit imports `origin_reconcile` from the shared checkout, which is exactly the copy that is
+    # stale whenever this leg has work: a fix to the advance could load only after the advance it
+    # releases. Measured: 91a798172's append-log class sat on origin for a day while this tree,
+    # 85 behind, kept refusing on `test_execution_log.jsonl` with the copy that predated it.
+    # Ahead-only needs no bootstrap -- HEAD then contains origin, so the local copy is not older.
+    # An injected `reconcile_fn` is a test's whole reconciler and is taken as given.
+    if behind and reconcile_fn is None:
+        result = (origins_fn or _reconcile_with_origins_code)(subject) or {}
+    else:
+        result = in_process(subject) or {}
     status = str(result.get("status", "UNREPORTED"))
     # THE STATUS IS THE RC. `origin_reconcile.main` turns exactly this set into exit 0 and
     # everything else into exit 1, so recording the status records the rc without shelling out to
@@ -312,6 +325,76 @@ def _reconcile_the_fork(state_fn=None, reconcile_fn=None, subject_fn=None) -> st
     return "fork with origin ({} behind, {} ahead) -> {} [{}]: {}".format(
         behind, ahead, status, "settled" if settled else "STILL OPEN",
         " ".join(str(result.get("detail", "")).split())[:FORK_DETAIL_CHARS])
+
+
+#: The bootstrap's own detached checkout of `origin/main`. Fixed and reused, so a tick pays an
+#: incremental checkout rather than a whole tree; owner-marked while the reconciler runs in it.
+BOOTSTRAP_WORKTREE = Path(os.environ.get("SE_RECONCILER_BOOTSTRAP",
+                                         "/var/tmp/se-reconciler-bootstrap"))
+
+
+def _bootstrap_refusal(behind_of: Path, why: str) -> dict:
+    return {"status": "ERROR",
+            "detail": ("origin's reconciler could not be run ({}), and the copy this process "
+                       "imported from {} is older than origin's, so NOTHING WAS RECONCILED -- "
+                       "refused rather than advancing with a stale reconciler".format(why, behind_of))}
+
+
+def _reconcile_with_origins_code(subject: Path, *, worktree: Path | None = None, git=None,
+                                 run=None) -> dict:
+    """Run `origin/main`'s `origin_reconcile` against `subject`, from a checkout of origin itself.
+
+    The module's own CLI is the interface: it resolves the shared tree as its subject wherever it
+    is invoked from, and `--json` prints the same dict `reconcile` returns. Its exit code is not
+    read -- non-zero is every unsettled status, which is this leg's ordinary business.
+    """
+    import subprocess
+
+    worktree = worktree or BOOTSTRAP_WORKTREE
+    git = git or (lambda cwd, *a: subprocess.run(["git", "-C", str(cwd), *a], capture_output=True,
+                                                 text=True, timeout=300))
+    run = run or (lambda argv, cwd, timeout: subprocess.run(
+        argv, cwd=str(cwd), capture_output=True, text=True, timeout=timeout,
+        env=dict(os.environ, PYTHONPATH=str(cwd))))
+    from background import origin_reconcile as _orc
+    from background.seat_executor import OWNER_MARKER, worktree_is_live
+
+    if worktree.exists() and worktree_is_live(worktree):
+        return _bootstrap_refusal(subject, "{} is held by another live writer".format(worktree))
+    target = git(subject, "rev-parse", "--verify", "-q", "{}/{}^{{commit}}".format(
+        _orc.REMOTE, _orc.BRANCH))
+    if target.returncode != 0 or not target.stdout.strip():
+        return _bootstrap_refusal(subject, "origin/main did not resolve")
+    sha = target.stdout.strip()
+    if (worktree / ".git").exists():
+        moved = git(worktree, "checkout", "--detach", "--force", "-q", sha)
+    else:
+        git(subject, "worktree", "prune")
+        moved = git(subject, "worktree", "add", "--detach", "-q", str(worktree), sha)
+    if moved.returncode != 0:
+        return _bootstrap_refusal(subject, "checkout of {} failed: {}".format(
+            sha[:9], (moved.stderr or moved.stdout).strip()[:200]))
+    at = git(worktree, "rev-parse", "HEAD")
+    if at.stdout.strip() != sha:
+        return _bootstrap_refusal(subject, "{} reads {} after checking out {}".format(
+            worktree, at.stdout.strip()[:9] or "nothing", sha[:9]))
+    marker = worktree / OWNER_MARKER
+    try:
+        marker.write_text(str(os.getpid()) + "\n")
+        done = run([sys.executable, "-m", "background.origin_reconcile", "--json"], worktree,
+                   2 * _orc.MERGE_TIMEOUT_SECONDS)
+    except (OSError, subprocess.SubprocessError) as exc:
+        return _bootstrap_refusal(subject, "{}: {}".format(type(exc).__name__, exc))
+    finally:
+        marker.unlink(missing_ok=True)
+    out = done.stdout or ""
+    try:
+        result = json.loads(out[out.index("{"):])
+    except ValueError:
+        return _bootstrap_refusal(subject, "it printed no result (rc={}): {}".format(
+            done.returncode, " ".join((done.stderr or out).split())[-300:]))
+    result["detail"] = "[origin's reconciler @{}] {}".format(sha[:9], result.get("detail", ""))
+    return result
 
 
 def run(proc_results: list[dict] | None = None,

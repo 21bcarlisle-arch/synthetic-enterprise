@@ -14,12 +14,14 @@ import pytest
 
 from background.live_payment_triad import LivePaymentTriad
 from simulation.debt_objection import DEBT_OBJECTION_MIN_DAYS_OUTSTANDING
+from simulation.meter_reads import assumption_toggle
 from simulation.payment_behaviour_source import (
     DIRECT_DEBIT,
     LATER_SETTLEMENT_FIRST_WINDOW_MONTHS,
     LATER_SETTLEMENT_REPAID_SHARE,
     LATER_SETTLEMENT_REPORTING_WINDOW_MONTHS,
     LATER_SETTLEMENT_WITHIN_FIRST_WINDOW_SHARE,
+    REPRESENTATION_DAYS_AFTER_DUE,
     REPRESENTATION_SUCCESS_SHARE,
     _add_months,
     generate_payment_event,
@@ -44,25 +46,32 @@ def test_the_cited_rates_and_windows_are_ofgems():
     assert LATER_SETTLEMENT_WITHIN_FIRST_WINDOW_SHARE == 0.7
     assert LATER_SETTLEMENT_FIRST_WINDOW_MONTHS == 3
     assert LATER_SETTLEMENT_REPORTING_WINDOW_MONTHS == 22  # Nov 2013 -> Sep 2015
-    assert REPRESENTATION_SUCCESS_SHARE is None  # a named gap, not a number
+    # Was `is None` (named gap 1) until 2026-10-09; now the register's estimate.
+    assert REPRESENTATION_SUCCESS_SHARE == assumption_toggle("dd_representation_success_share")
 
 
 def test_every_branch_is_taken_at_the_published_shares_and_dated_at_its_window_end():
-    """The partition: settled in the first window, settled by the report, never settled. Each is
-    taken, at its share, and each settlement falls on its window's end."""
-    events = _failed_events(6000)
+    """The partition: collected on re-presentation, settled in the first window, settled by the
+    report, never settled. Each is taken, at its share, and each settlement falls on its date.
+    (Sample 6000 -> 24000 on 2026-10-09: the HIGH tier now fails 10.15% on first presentation, not
+    35%, so the old sample held ~600 failures, under this test's own floor.)"""
+    events = _failed_events(24000)
     assert len(events) > 1500
     start = _DUE + timedelta(days=DEBT_OBJECTION_MIN_DAYS_OUTSTANDING)
+    re_presented = _DUE + timedelta(days=REPRESENTATION_DAYS_AFTER_DUE)
     early, late = (_add_months(start, LATER_SETTLEMENT_FIRST_WINDOW_MONTHS),
                    _add_months(start, LATER_SETTLEMENT_REPORTING_WINDOW_MONTHS))
     dates = [later_settlement_date(e) for e in events]
     n = len(dates)
-    shares = {k: sum(1 for d in dates if d == k) / n for k in (early, late, None)}
+    shares = {k: sum(1 for d in dates if d == k) / n for k in (re_presented, early, late, None)}
     assert sum(shares.values()) == pytest.approx(1.0)  # no other date is ever drawn
+    s = REPRESENTATION_SUCCESS_SHARE
     p_early = LATER_SETTLEMENT_REPAID_SHARE * LATER_SETTLEMENT_WITHIN_FIRST_WINDOW_SHARE
-    assert shares[early] == pytest.approx(p_early, abs=0.035)
-    assert shares[late] == pytest.approx(LATER_SETTLEMENT_REPAID_SHARE - p_early, abs=0.035)
-    assert shares[None] == pytest.approx(1 - LATER_SETTLEMENT_REPAID_SHARE, abs=0.035)
+    assert shares[re_presented] == pytest.approx(s, abs=0.035)
+    assert shares[early] == pytest.approx((1 - s) * p_early, abs=0.035)
+    assert shares[late] == pytest.approx((1 - s) * (LATER_SETTLEMENT_REPAID_SHARE - p_early),
+                                         abs=0.035)
+    assert shares[None] == pytest.approx((1 - s) * (1 - LATER_SETTLEMENT_REPAID_SHARE), abs=0.035)
 
 
 def test_only_a_domestic_failed_bill_is_ever_settled_later():

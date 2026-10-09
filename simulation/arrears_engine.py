@@ -92,6 +92,7 @@ from pathlib import Path
 
 import yaml
 
+from simulation.meter_reads import assumption_toggle
 from simulation.rng_substream import substream
 from simulation.segment_vocabulary import (
     INDUSTRIAL_AND_COMMERCIAL,
@@ -157,7 +158,22 @@ def bill_substream(base_seed: int, customer_id: str, period_end: str,
     )
 
 
-_DD_FAILURE_PROB = {"LOW": 0.03, "MODERATE": 0.12, "HIGH": 0.35}
+#: P(a domestic credit-meter payment fails on its FIRST presentation), per bill, by income-stress
+#: tier. The LOW tier's LEVEL is sourced: register `dd_return_rate_first_presentation` (Octopus
+#: Energy via GoCardless, by value, an ESTIMATE; gb_domestic_bill_payment_failure_and_arrears_
+#: prevalence.md s.(e) item 1). It was 3%, unsourced, 1.7-5x above that bracket. It is GROSS of
+#: re-presentation: the cure inside the 28 days is drawn on its own substream in
+#: `payment_behaviour_source.later_settlement_date`.
+#: NAMED SIMPLIFICATION, the RELATIVITIES: MODERATE = 4x LOW and HIGH = 11.7x LOW are the old
+#: 12%/3% and 35%/3% ratios, kept because nothing published segments a return rate by income
+#: (s.(b)); only the level moved. To do properly: a supplier's returns by arrears or vulnerability
+#: flag (practitioner knowledge). Direction of error unknown.
+#: Unchanged simplification: every domestic credit method (DD, standing order, card, standard
+#: credit) fails at this one DD-derived tier, and only a DD is re-presented.
+_DD_TIER_RATIO_TO_LOW = {"LOW": 1.0, "MODERATE": 0.12 / 0.03, "HIGH": 0.35 / 0.03}
+DD_RETURN_RATE_FIRST_PRESENTATION = assumption_toggle("dd_return_rate_first_presentation")
+_DD_FAILURE_PROB = {tier: DD_RETURN_RATE_FIRST_PRESENTATION * ratio
+                    for tier, ratio in _DD_TIER_RATIO_TO_LOW.items()}
 _ON_TIME_PROB = {"LOW": 0.92, "MODERATE": 0.50, "HIGH": 0.10}
 _LATE_DAYS = {"LOW": (3, 14), "MODERATE": (14, 45), "HIGH": (30, 90)}
 
@@ -452,8 +468,13 @@ FUEL_POVERTY_ON_TIME_MULTIPLIER = 0.9
 
 def payment_outcome(method: str, stress: str, rng: random.Random, segment: str = "resi",
                      fuel_poor: bool = False, tone: str | None = None,
-                     customer_id: str | None = None):
+                     customer_id: str | None = None, *,
+                     dd_failure_prob: dict[str, float] | None = None):
     """Returns (outcome, days_late). outcome is one of success/failed/dispute.
+
+    `dd_failure_prob` replaces the world's tier table for ONE caller that declares its own
+    population (the W2_11 harness's failure-dense calibration book). None -- every world path --
+    reads `_DD_FAILURE_PROB`.
 
     `fuel_poor` is optional -- default False preserves the exact original
     behaviour. When True (2026-07-09, Layer 2 dimension 2 -- fuel poverty
@@ -505,7 +526,8 @@ def payment_outcome(method: str, stress: str, rng: random.Random, segment: str =
         # unrepaid emergency credit, credit-account debt recovered through the meter -- is not
         # modelled (see `PREPAYMENT_METHOD`). Until it is, this world writes off nothing on a meter.
         return ("success", 0)
-    dd_fail_prob = _DD_FAILURE_PROB.get(stress, 0.03)
+    table = _DD_FAILURE_PROB if dd_failure_prob is None else dd_failure_prob
+    dd_fail_prob = table.get(stress, table["LOW"])
     on_time_prob = _ON_TIME_PROB.get(stress, 0.92)
     if fuel_poor:
         dd_fail_prob = min(1.0, dd_fail_prob * FUEL_POVERTY_DD_FAIL_MULTIPLIER)

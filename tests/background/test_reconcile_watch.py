@@ -681,3 +681,62 @@ def test_a_failing_streak_check_does_not_stop_the_watcher(_wired):
     assert W.run(proc, sched, notify=lambda *a, **k: _wired.append(1), gap_results=[],
                  reconcile_fork=lambda: None, fork_streak=boom) is False
     assert "fork-streak check failed" in W.LOG_FILE.read_text()
+
+
+# --- the reconciler's bootstrap, 2026-10-09 ----------------------------------------------------
+# The unit imports `origin_reconcile` from the shared checkout, which is stale exactly when the
+# fork leg has work, so a fix to the advance could load only after the advance it releases.
+
+@pytest.mark.parametrize("behind,ahead,origins", [(85, 0, True), (38, 4, True), (0, 4, False)])
+def test_a_behind_tree_is_reconciled_by_ORIGINS_copy_and_never_by_the_imported_one(
+        monkeypatch, behind, ahead, origins):
+    """Reds on the arrangement before this: the imported `reconcile` ran whatever the tree's age.
+    The whole partition is asked, so a version that ALWAYS shelled out fails the ahead-only row
+    and one that never did fails both behind rows."""
+    from background import origin_reconcile as orc
+    imported, theirs = _reconciler(), _reconciler()
+    monkeypatch.setattr(orc, "reconcile", imported)
+    W._reconcile_the_fork(state_fn=_fork(behind, ahead), subject_fn=_subject(), origins_fn=theirs)
+    assert (theirs.calls, imported.calls) == (([_SUBJECT], []) if origins else ([], [_SUBJECT]))
+
+
+def _git_ok(sha="a" * 40, head=None):
+    from subprocess import CompletedProcess
+    calls = []
+
+    def git(cwd, *args):
+        calls.append(args)
+        if args[:2] == ("worktree", "add"):
+            Path(args[4]).mkdir(parents=True)
+        out = ""
+        if args[:2] == ("rev-parse", "--verify"):
+            out = sha + "\n"
+        elif args[0] == "rev-parse":
+            out = (head if head is not None else sha) + "\n"
+        return CompletedProcess(args, 0, out, "")
+    git.calls = calls
+    return git
+
+
+def test_the_bootstrap_runs_origins_module_from_origins_checkout_and_returns_its_verdict(tmp_path):
+    from subprocess import CompletedProcess
+    ran = []
+
+    def run(argv, cwd, timeout):
+        ran.append((argv[1:], cwd, (cwd / ".se_worktree_owner").exists()))
+        return CompletedProcess(argv, 1, '{"status": "NOT_ADVANCED", "detail": "held"}', "")
+    r = W._reconcile_with_origins_code(_SUBJECT, worktree=tmp_path / "boot", git=_git_ok(), run=run)
+    assert ran == [(["-m", "background.origin_reconcile", "--json"], tmp_path / "boot", True)]
+    assert r["status"] == "NOT_ADVANCED" and r["detail"].startswith("[origin's reconciler @aaaaaaaaa]")
+    assert not (tmp_path / "boot" / ".se_worktree_owner").exists(), "the marker outlived the run"
+
+
+@pytest.mark.parametrize("head", ["b" * 40, ""])
+def test_a_bootstrap_that_cannot_stand_on_origin_FAILS_CLOSED_and_runs_nothing(tmp_path, head):
+    """A checkout that does not read origin's sha afterwards must not run: whatever ran there would
+    be the same unknown-age reconciler this exists to replace."""
+    ran = []
+    r = W._reconcile_with_origins_code(_SUBJECT, worktree=tmp_path / "boot", git=_git_ok(head=head),
+                                       run=lambda *a: ran.append(a))
+    assert ran == [] and r["status"] == "ERROR"
+    assert "NOTHING WAS RECONCILED" in r["detail"] and "stale reconciler" in r["detail"]
