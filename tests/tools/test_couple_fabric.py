@@ -657,7 +657,10 @@ def test_the_TEXTURE_CELL_BREACH_CLOSED_when_the_LOAD_SET_WAS_REPAIRED(panel, we
     #
     # S9 0.0559 -> 0.0567 on 2026-10-08: the cooking-fuel draw (`pt.gas_cooked`).
     # S9 0.0567 -> 0.0596 the same day: electronics at its 2022 level.
-    assert texture.worst_value == pytest.approx(0.0596, abs=5e-4), texture.note
+    # S9 0.0596 -> 0.0604 the same day: oven and hob at their 2022 energy.
+    # S9 0.0604 -> 0.0621 on 2026-10-09: the panel's profile-less homes draw the book's census
+    # headcount, not the deleted bedrooms fallback. The world did not change; the instrument did.
+    assert texture.worst_value == pytest.approx(0.0621, abs=5e-4), texture.note
     assert "net of space AND water heat" in texture.note
     electric = {
         home for home, system in zip(population_homes(panel), panel_systems(panel))

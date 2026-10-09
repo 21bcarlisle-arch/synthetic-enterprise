@@ -7,7 +7,9 @@
 > per-ACTIVE-decision rate (41.9%) with per-ender and per-account figures; on the per-ender rate the
 > world sits inside both. **REOPENED for 2024-2025 only:** 30.4% within 42 days (14/46, CI 19-45%);
 > at 2025 that alone takes term-enders to ~9.5% of accounts against a published 10.4% total, and the
-> 12-month rate is unobservable before the window ends. Verdict and corrected bound: the last
+> 12-month rate is unobservable before the window ends. **Four draws (worker, 2026-10-08): 2024
+> 20.0% (27/135) WITHDRAWN; 2025 29.3% (17/58, CI 19-42%) not shown to exceed, not settleable
+> before the window ends -- result at the foot.** Verdict and corrected bound: the last
 > section. The seat finding carries the same definition and verdict.
 
 # The renewal route carries the whole book's residual, and departs above what the published record allows at a term end
@@ -192,3 +194,81 @@ NEXT for W2 (supersedes the line above): a multi-seed per-ender count at 2024-20
 corrected control, before any change to the level anchor or the churn draw. If 2025 then exceeds it,
 add the corrected control to `tools/fit_year_level_anchor.py` as a refusal and re-fit blind to company
 results.
+
+## Multi-seed per-ender count, 2024 and 2025 (worker, 2026-10-08)
+
+### Design and predictions (written before the runs)
+
+**What varies.** Four settled runs to 2025-06-07 at origin `3ff16bada`: the base run and the renewal
+dice re-rolled at floor seeds 11111, 22222, 33333 through `run_value_cycle_ab._churn_roll_redraw_patch`
+(the existing floor leg, no code change, every account re-rolled, the patch asserted to fire). The
+BOOK is held: a different book seed is `EP17_varied_population_draw`, the director's, and no record
+authorises one. So the four runs are four draws of the same 458 households' term-end dice, not four
+populations. The interval below is the pooled Wilson interval over enders; it understates the
+book-to-book spread, and says so.
+
+**What is counted.** Per resi electricity fixed-term ENDER (the reconciled definition above): left the
+supplier within 42 days, and within 12 months, of the term end. Home moves are not departures. Inside
+a window ending 2025-06-07 the 12-month leg is observable only for 2024 ends up to 2024-06-07, and
+not at all for 2025; the 42-day leg for 2025 ends up to 2025-04-26.
+
+**The bound, per year.** Fixed-term share x per-ender rate <= published switching total. The
+per-ender ceiling is total / share: **2024: 0.090 / (1/6) = 0.54. 2025: 0.104 / (1/3) = 0.31**, or
+0.42 at a 1/4 share (2025's enders fixed during 2024, when the share was rising from 1/6).
+
+**Predictions:**
+
+- **P1, 2024, 42 days:** pooled 22-34% (base seed alone was 10/32). Inside 0.54.
+- **P2, 2024, 12 months, ends to 2024-06-07:** 30-42%. Inside 0.54 at the top of its interval.
+- **P3, 2025, 42 days:** 20-34%, point under 0.31, interval upper end above it. Not distinguishable
+  from the 1/3-share ceiling; inside the 1/4-share ceiling.
+- **P4, verdict:** no year shown to exceed the bound. The 2024-2025 gap is withdrawn beside its claim;
+  the corrected bound stays the W2 control. If P3's point estimate lands above 0.31, the 2025 gap
+  survives and stays filed on W2.
+
+### Result (worker, 2026-10-08, after the four runs): P3 and P4 held, P1 and P2 refuted low
+
+Four runs at `1925b7365` (= `3ff16bada` + this doc), resi electricity, window end 2025-06-07. The
+floor patch fired on every seeded run (119, 112, 117 renewal rolls redrawn; base untouched).
+Probe: `/var/tmp/se-w2te/pool.py` over `/var/tmp/se-w2te/s*.pkl`.
+
+| Term ends | Leg | base | 11111 | 22222 | 33333 | Pooled | CI95 | Per-ender ceiling |
+|---|---|---|---|---|---|---|---|---|
+| 2017-2021 | 42 d | 29/204 | 28/210 | 32/202 | 35/200 | **15.2%** | 13-18 | — (EFTC floor 6%) |
+| 2017-2021 | 12 m | 44/204 | 43/210 | 45/202 | 47/200 | **21.9%** | 19-25 | composed 17-39% |
+| 2024 | 42 d | 10/32 | 6/33 | 7/34 | 4/36 | **20.0%** | 14-28 | 0.54 (share 1/6) |
+| 2024, ends to 06-07 | 12 m | 2/7 | 1/7 | 2/7 | 0/7 | **17.9%** | 8-36 | 0.54 |
+| 2025, ends to 04-26 | 42 d | 4/14 | 4/16 | 6/13 | 3/15 | **29.3%** | 19-42 | 0.31 (1/3) · 0.42 (1/4) |
+| 2024-2025 | 42 d | 14/46 | 10/49 | 13/47 | 7/51 | **22.8%** | 17-29 | — |
+
+- **P1 refuted low:** 20.0% against a predicted 22-34%. The base seed's 10/32 was the high draw of
+  four; the 30.4% that reopened 2024-2025 was one draw's luck, not the world's rate.
+- **P2 refuted low:** 17.9% against 30-42%. It is BELOW the 2024 42-day rate only because the two legs
+  count different enders (the 12-month leg sees only the 28 ends before 2024-06-07); it is not a
+  12-month rate below a 42-day one.
+- **P3 held:** 29.3%, point under 0.31, interval 19-42% straddling it. Inside the 1/4-share ceiling.
+- **P4 held:** no year is shown to exceed the bound. The 2017-2021 withdrawal also survives four
+  draws (15.2% / 21.9%).
+
+### Verdict (worker, 2026-10-08)
+
+**2024: withdrawn.** 20% per ender at a 1/6 share is 3.3% of accounts against a 9.0% total; the
+interval sits wholly inside the ceiling.
+
+**2025: not shown, and not settleable inside this window.** Which share applies: a 2025 term end is
+the end of a fix taken in 2024 (most are 12-month), so the share is 2024's rising one, between 1/6
+and 1/3, not 2025's 1/3. At 1/4 the 42-day point puts term-enders at 7.3% of accounts against 10.4%;
+at 1/3 it is 9.8%, 94% of the total before any default-tariff switch or any departure later than 42
+days. The control's leg is the 12-month rate, which the window cannot observe for a single 2025 end,
+and the 42-day rate is only its floor. So the gap is withdrawn as a DEFECT CLAIM (nothing measured
+exceeds the bound) and is NOT cleared. No refusal goes into `tools/fit_year_level_anchor.py` and
+there is no re-fit: the NEXT above made both conditional on 2025 exceeding, and it does not.
+The churn draw and the level anchor are untouched.
+
+**What this cannot say.** The book is held, so the four runs are four rolls of the same households'
+dice; the interval understates book-to-book spread. A varied book is `EP17_varied_population_draw`
+and is the director's.
+
+**NEXT for W2:** none on this count. A 12-month leg for any 2025 end needs settled data into 2026,
+past the 2016-2025 record, so it cannot be measured here at all. The corrected control stays as
+written and 2025 is held at "inside on the point, open on the interval".

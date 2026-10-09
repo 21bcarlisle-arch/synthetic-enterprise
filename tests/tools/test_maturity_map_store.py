@@ -445,3 +445,49 @@ def test_the_split_predicate_agrees_with_where_every_atom_actually_SITS():
         f"below target but filed as finished: {misfiled_closed} -- move them back to "
         f"{map_store.MAP_REL} in the same commit that raised the target"
     )
+
+
+# ── the parse cache (2026-10-08: the map parse ~6x per supervisor cycle timed out the
+#    operational-layer suite) ──
+
+def _counting_safe_load(monkeypatch) -> list:
+    calls: list = []
+    real = yaml.safe_load
+    monkeypatch.setattr(map_store, "_PARSE_CACHE", {})
+    monkeypatch.setattr(map_store.yaml, "safe_load", lambda t: calls.append(t) or real(t))
+    return calls
+
+
+def test_a_repeated_read_of_unchanged_text_does_not_reparse(tmp_path: Path, monkeypatch):
+    # Defect caught: a cache that never hits -- every cycle pays the full parse again.
+    live = tmp_path / "maturity_map.yaml"
+    live.write_text("- id: A1\n  level: 1\n", encoding="utf-8")
+    calls = _counting_safe_load(monkeypatch)
+    map_store.load_live_atoms(live)
+    map_store.load_live_atoms(live)
+    assert len(calls) == 1
+
+
+def test_an_edited_map_is_reparsed_and_the_edit_is_seen(tmp_path: Path, monkeypatch):
+    # Defect caught: a cache keyed on anything but the text serves a stale map after an edit.
+    live = tmp_path / "maturity_map.yaml"
+    live.write_text("- id: A1\n  level: 1\n", encoding="utf-8")
+    calls = _counting_safe_load(monkeypatch)
+    assert map_store.load_live_atoms(live)[0]["level"] == 1
+    live.write_text("- id: A1\n  level: 2\n", encoding="utf-8")
+    assert map_store.load_live_atoms(live)[0]["level"] == 2
+    assert len(calls) == 2
+
+
+def test_a_caller_mutating_its_rows_cannot_reach_the_next_caller(tmp_path: Path, monkeypatch):
+    # Defect caught: handing out the cached object itself, so one reader's edit is every reader's.
+    live = tmp_path / "maturity_map.yaml"
+    live.write_text("- id: A1\n  level: 1\n", encoding="utf-8")
+    _counting_safe_load(monkeypatch)
+    # Both reads mutate: the first is the MISS (its own object), the second the HIT -- a cache
+    # that returned its stored object would pass a test that only mutated the miss.
+    for _ in range(2):
+        rows = map_store.load_live_atoms(live)
+        rows[0]["level"] = 99
+        rows.append({"id": "INTRUDER"})
+    assert map_store.load_live_atoms(live) == [{"id": "A1", "level": 1}]

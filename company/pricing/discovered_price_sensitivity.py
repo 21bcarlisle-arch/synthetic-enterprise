@@ -256,6 +256,30 @@ def estimate_offer_effect_by_channel(observations) -> dict[str, OfferEffectEstim
     return {m: estimate_offer_effect(rows) for m, rows in sorted(by.items())}
 
 
+#: The positions a save offer may vary by (director, 2026-10-08), as the company's holdout rows
+#: carry them. `company.crm.save_offer.SAVE_MAY_VARY_BY` names the two a save prices on; the third,
+#: whether the account has ever renewed actively, is the company's own renewal record.
+SAVE_POSITION_OBSERVABLES = ("acquisition_route", "days_on_default", "ever_actively_renewed")
+
+
+def position_group(observation: dict, observable: str) -> str:
+    """The group one decision falls in on `observable`. Days on the default are read in whole years
+    (0, 1, 2+), the unit the renewal walk moves in; every other observable is its own value."""
+    value = observation[observable]
+    if observable == "days_on_default" and value is not None:
+        years = int(value) // 365
+        return f"{years}y" if years < 2 else "2y+"
+    return str(value)
+
+
+def estimate_offer_effect_by_position(observations, observable: str) -> dict[str, OfferEffectEstimate]:
+    """`estimate_offer_effect` per group of `observable` (`position_group`), on the same rows."""
+    by: dict[str, list] = {}
+    for row in observations:
+        by.setdefault(position_group(row, observable), []).append(row)
+    return {g: estimate_offer_effect(rows) for g, rows in sorted(by.items())}
+
+
 def decisions_needed_per_arm(estimate: OfferEffectEstimate) -> int | None:
     """Decisions per arm for a two-sided test at `INTERVAL_COVERAGE` to find `estimate`'s own effect
     with `CHANNEL_READ_POWER`, at its held-out stay share. None where there is no effect to find."""
@@ -298,7 +322,8 @@ class CutDecision:
 
 def retention_cut_decision(observation: dict, *, cut_gbp_per_mwh: float, margin_share: float,
                            by_channel: dict[str, OfferEffectEstimate],
-                           pooled: OfferEffectEstimate) -> CutDecision:
+                           pooled: OfferEffectEstimate,
+                           observable: str = "payment_method") -> CutDecision:
     """Offer `cut_gbp_per_mwh` at this renewal only where the learned effect pays for it at
     `margin_share` of the household's own last year's bills, and only where the holdout says the
     offer raises staying at all.
@@ -307,11 +332,14 @@ def retention_cut_decision(observation: dict, *, cut_gbp_per_mwh: float, margin_
     keeps is not established as one figure -- it lies between the cap's EBIT allowance and the
     sector's gross margin, and the caller names which it means.
 
+    `observable` names what `by_channel` is grouped by: the payment method by default, or one of
+    `SAVE_POSITION_OBSERVABLES` read through `estimate_offer_effect_by_position`.
+
     The years after this one are valued at the held-out stay share `s` the company observed, as
     `s / (1 - s)` further years: the same horizon for either option, so it scales the margin a stay
     is worth and never favours one side by construction.
     """
-    est, read = effect_for_channel(str(observation["payment_method"]), by_channel, pooled)
+    est, read = effect_for_channel(position_group(observation, observable), by_channel, pooled)
     if est.verdict != "raises_staying":
         return CutDecision(False, None, None, read,
                            f"no cut: the holdout says {est.verdict.replace('_', ' ')} ({est.reason})")

@@ -986,8 +986,15 @@ def _pre_growth_book(seed: int) -> List[dict]:
 CAMPAIGN_QUOTE_CUTOFF = "2025-06-07"
 
 
-def _resolve_campaign(book: List[dict], seed: int) -> dict:
-    """Run the campaign. Callers want `_campaign`; this is the uncached body."""
+def _resolve_campaign(book: List[dict], seed: int, *, persist: bool = True,
+                      customer_year_budget: Optional[float] = None) -> dict:
+    """Run the campaign. Callers want `_campaign`; this is the uncached body.
+
+    `persist=False` skips writing the campaign of record: a caller resolving a campaign at another
+    seed to measure it (the B8 decision set) is not the run, and its wins must not be published as
+    the run's. `customer_year_budget` replaces this machine's settlement ceiling for such a caller;
+    None is the run's own. The ceiling only chooses which wins are settled, after the company has
+    decided everything, so no quote or win moves with it."""
     import datetime as _dt
 
     # THROUGH THE SEAM, never straight at `saas.growth_mandate`. The first draft imported
@@ -1065,6 +1072,7 @@ def _resolve_campaign(book: List[dict], seed: int) -> dict:
         # elasticity. Curriculum (`acquisition_selects_on_own_responsiveness.json`); false is the
         # pre-ruling campaign byte for byte.
         select_on_own_responsiveness=acquisition_selects_on_own_responsiveness(),
+        customer_year_budget=customer_year_budget,
     )
     LAST_CAMPAIGN.clear()
     LAST_CAMPAIGN.update({k: v for k, v in outcome.items() if k != "winners"})
@@ -1119,7 +1127,7 @@ def _resolve_campaign(book: List[dict], seed: int) -> dict:
         # have to grow a fixture to satisfy a refusal it does not care about.
         from background.live_ledger_guard import in_test_process, is_live_record_path
 
-        if not (in_test_process() and is_live_record_path(_CAMPAIGN_RECORD)):
+        if persist and not (in_test_process() and is_live_record_path(_CAMPAIGN_RECORD)):
             _CAMPAIGN_RECORD.parent.mkdir(parents=True, exist_ok=True)
             _CAMPAIGN_RECORD.write_text(json.dumps(record, indent=2) + "\n", encoding="utf-8")
     except OSError:

@@ -70,6 +70,7 @@ from company.interfaces.renewal_offer import (
     request_fixed_unit_rate,
 )
 from company.interfaces.renewal_rate_chain import decide_renewal_rate, portfolio_position
+from company.interfaces.save_offer import request_save_offer
 from company.interfaces.statutory_obligations import build_statutory_obligations
 from company.interfaces.supply_book import (
     acquired_supply_points,
@@ -133,6 +134,7 @@ from simulation.customer_events import (
     DEPARTURE_OCCASION_SVT_SEGMENT,
     HOME_MOVE_ACTIVATE_SUCCESSOR,
     RENEWAL_DECLINED_FIX,
+    churn_roll_for_renewal,
     declined_fix_event,
     departure_decision_leg,
     departure_event,
@@ -222,6 +224,12 @@ from simulation.renewal_engagement import passive_churn_cap_for, rolls_active_re
 from simulation.renewals import NOTICE_DAYS, build_renewal_schedule
 from simulation.reputation_index import ReputationEventType
 from simulation.resentment_ledger import FrictionEventType
+from simulation.save_on_loss_notice import (
+    billed_rate_when_saved,
+    household_takes_save,
+    save_offers_active,
+    world_save_response_scale,
+)
 from simulation.segment_vocabulary import is_business
 from simulation.settlement import CONTRACT_LENGTH_DAYS
 from simulation.settlement_daily import PeriodRegisters, TreasuryDrawdown, fold_to_days
@@ -2143,6 +2151,11 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
     # Vulnerability as a hidden household state (`simulation/vulnerability_state.py`). Read once
     # per run; with it off nothing below asks and the result carries no `psr_registrations`.
     _vulnerability_hidden_state_on = hidden_state_active()
+    # The save on the Invitation to Intervene (`simulation/save_on_loss_notice.py`). Read once per
+    # run; with it off the save branch below is never entered and nothing reads the scale.
+    _save_offers_on = save_offers_active()
+    _save_scale = world_save_response_scale() if _save_offers_on else 1.0
+    save_on_loss_notice_log: list[dict] = []
     _move_out_by_household: dict[str, date | None] = {}
     _home_move_by_household: dict = {}
     home_move_outs: list[dict] = []
@@ -2238,11 +2251,13 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
     _registration_loss_feed = RegistrationLossFeed()
     _change_of_supplier_register = open_change_of_supplier_register()
 
-    def _notify_registration_loss(household: str, effective_from: str) -> None:
+    def _notify_registration_loss(household: str, effective_from: str,
+                                  pending_already_sent: bool = False) -> None:
         _points = supply_points_on_supply(household, effective_from, elec_schedules, gas_schedules)
+        _pending = [] if pending_already_sent else (
+            _registration_loss_feed.wire_pending_notices_for_departure(_points, effective_from))
         for _wire in (
-            _registration_loss_feed.wire_pending_notices_for_departure(_points, effective_from)
-            + _registration_loss_feed.wire_notices_for_departure(_points, effective_from)
+            _pending + _registration_loss_feed.wire_notices_for_departure(_points, effective_from)
         ):
             _change_of_supplier_register.receive_loss_wire(_wire)
 
@@ -2503,6 +2518,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             else None
         )
         _renewal_outcome = None
+        _held_on_a_save = False
 
         # Phase 11a: record basis risk (company estimate vs sim ground truth)
         basis_risk_terms.append({
@@ -3276,12 +3292,14 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             # A household converting OFF the SVT has no renewal-point exit: C1b's inertia hazard
             # above already carried its exits for every SVT segment (`departure_rolled_at_renewal`).
             _rolled = departure_rolled_at_renewal(_previous_tariff_type)
-            event = roll_lifecycle_event(
-                cid, term_start_str, commodity,
+            # THE ROLL'S ARGUMENTS ARE KEPT so a save offer can re-ask the same household on the
+            # same roll at one other price (`simulation/save_on_loss_notice.py`). Built only when
+            # it rolls, exactly as the call alone was.
+            _roll_kwargs = dict(
                 # This household's records only: the roll reads nothing else, and copying the
                 # whole book into it per renewal was the quadratic term (see the function).
-                households_own_records(billing_account, all_records),
-                _known_customers(),
+                records_so_far=households_own_records(billing_account, all_records),
+                customers=_known_customers(),
                 old_rate_gbp_per_mwh=old_decision_leg_rate,
                 new_rate_gbp_per_mwh=unit_rate,
                 retention_modifier=retention_modifier_val,
@@ -3303,6 +3321,80 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                     and _world_debt_book.owes_objectionable_debt(
                         billing_account, date.fromisoformat(term_start_str))),
             ) if _rolled else None
+            event = (roll_lifecycle_event(cid, term_start_str, commodity, **_roll_kwargs)
+                     if _rolled else None)
+            _pending_notice_sent = False
+            # A domestic household leaving a FIXED term: a Fixed Retention Tariff is a domestic
+            # tariff, and one offered to a household leaving the default tariff is not established
+            # as inside the SLC 22B derogation (`simulation/save_on_loss_notice.py`). Measured
+            # 2026-10-08: repricing a default-tariff segment moved every gas default price after it.
+            if (_save_offers_on and event is not None and event["event_type"] == "churned"
+                    and segment_for_churn == "resi" and term_tariff_type == "fixed"):
+                # THE SAVE ON THE INVITATION TO INTERVENE (director, 2026-10-08). The world sends
+                # the loser its CSS Invitation; the company answers it from what it holds; the
+                # household answers the offer on its own roll. Off unless the curriculum says on.
+                _points = supply_points_on_supply(
+                    billing_account, term_start_str, elec_schedules, gas_schedules)
+                for _wire in _registration_loss_feed.wire_pending_notices_for_departure(
+                        _points, term_start_str):
+                    _change_of_supplier_register.receive_loss_wire(_wire)
+                    _pending_notice_sent = True
+                # WHAT THE COMPANY KNOWS OF THIS HOUSEHOLD'S VULNERABILITY is what it disclosed:
+                # a PSR-type household that discloses does so on its point's first supplied day
+                # (`simulation/vulnerability_state.py`), framed through the seam into the
+                # company's own register. Never the latent state.
+                _psr_register = None
+                if _vulnerability_hidden_state_on:
+                    _psr_register = open_priority_services_register()
+                    _first_day = min((str(r["settlement_date"])[:10]
+                                      for r in _roll_kwargs["records_so_far"]
+                                      if r["customer_id"] == cid), default=term_start_str)
+                    for _wire in wire_registrations(registration_notices(
+                            [(cid, date.fromisoformat(_first_day))], run_base_seed())):
+                        _psr_register.receive_registration_wire(_wire)
+                _save_rate, _known_vulnerable = request_save_offer(
+                    _change_of_supplier_register, cid, term_start_str, unit_rate,
+                    policy.save_offer_cut_share, psr_register=_psr_register)
+                _asked = roll_lifecycle_event(
+                    cid, term_start_str, commodity,
+                    **{**_roll_kwargs, "new_rate_gbp_per_mwh": _save_rate},
+                ) if _save_rate is not None else None
+                # At the world's own response the answer IS the re-asked roll; a scaled response
+                # (a sensitivity) is decided on the same exact roll by the scaled curve.
+                _saved = _asked is not None and (
+                    _asked["event_type"] == "renewed" if _save_scale == 1.0
+                    else household_takes_save(
+                        churn_roll_for_renewal(billing_account, term_start_str),
+                        event["effective_retention_probability"],
+                        _asked["effective_retention_probability"], _save_scale))
+                save_on_loss_notice_log.append({
+                    "customer_id": cid, "billing_account": billing_account,
+                    "commodity": commodity, "term_start": term_start_str,
+                    "invitation_held": _pending_notice_sent,
+                    "renewal_unit_rate_gbp_per_mwh": unit_rate,
+                    "save_unit_rate_gbp_per_mwh": _save_rate,
+                    "p_stay_at_offer": event["effective_retention_probability"],
+                    "p_stay_at_save": (
+                        _asked["effective_retention_probability"] if _asked is not None else None),
+                    "saved": _saved,
+                    "known_vulnerable": _known_vulnerable,
+                    "eac_kwh": company_eac,
+                })
+                if _saved:
+                    unit_rate = billed_rate_when_saved(unit_rate, _save_rate)
+                    _held_on_a_save = True
+                    event = {**_asked, "event_type": "renewed", "departure_cause": None,
+                             "home_move_won": False, "saved_on_loss_notice": True}
+                    if not _indexed_tariff:
+                        _prior_rates[cid] = unit_rate
+                    _account_state_row["unit_rate_gbp_per_mwh"] = unit_rate
+                    _account_state_row["rate_vs_svt_pct"] = (
+                        round((unit_rate - _state_svt_rate) / _state_svt_rate * 100.0, 2)
+                        if _state_svt_rate else None)
+                    # It ANSWERED an offer, so it chose the Fixed Retention Tariff: the decline-and-
+                    # stay rule is for a renewal offer the household never answered, and reading it
+                    # here would splice a saved household onto the default tariff.
+                    _offer_vs_default = None
             # STAY, LEAVE, OR STAY AND REFUSE. Leaving is the roll's and stands; the rule only
             # reprices a household that stayed.
             _renewal_outcome = renewal_outcome(
@@ -3392,7 +3484,8 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                             "would_be_discount_pct": _would_be_discount_pct,
                         })
                     churned_billing_accounts.add(billing_account)
-                    _notify_registration_loss(billing_account, term_start_str)
+                    _notify_registration_loss(billing_account, term_start_str,
+                                              pending_already_sent=_pending_notice_sent)
                     # THE COMPANY'S COMPETITIVE OBSERVABLE, BOOKED WHERE EVERY DEPARTURE PASSES
                     # -- unconditionally. A `notify_churn` call sat eight lines below behind
                     # `if sim_interface is not None`, and that guard is why the first live
@@ -4188,7 +4281,11 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         # even when rates improve, so churn stays elevated for 2 renewal periods.
         if commodity == "electricity" and term_revenue > 0 and actual_net / term_revenue < -CRISIS_HANGOVER_LOSS_THRESHOLD:
             hangover_remaining[cid] = crisis_hangover_periods()
-        if term_revenue > 0:
+        # A TERM HELD ON A SAVE DOES NOT TEACH THE BOOK'S PREMIUM (director, 2026-10-08: a save must
+        # never be paid for by raising the price of customers who stay). Its margin is thinner by
+        # the save's cut, and this feed sets every later renewal's portfolio premium, so admitting
+        # it recovered the save from the stayers -- measured, 2026-10-08, before this line existed.
+        if term_revenue > 0 and not _held_on_a_save:
             _portfolio_margins.settled(
                 max(r["settlement_date"] for r in settled_this_term), commodity, actual_net / term_revenue,
             )
@@ -4860,7 +4957,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             }
             for yr in range(2016, 2026)
         ],
-    }
+    } | ({"save_on_loss_notice_log": save_on_loss_notice_log} if _save_offers_on else {})
 
 
 

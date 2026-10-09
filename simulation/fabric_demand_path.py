@@ -343,8 +343,9 @@ def build_fabric_series(
     segments = household_segments(household_at_date, dates)
 
     # THE CENSUS-ANCHORED HEADCOUNT, and it reaches the settled book here for the first time
-    # (2026-09-16). `behaviour_profile_for` has always ACCEPTED `people_count` and falls back to
-    # `_PEOPLE_BY_BEDROOMS` when a caller omits it. The 2026-09-08 finding anchored the draw on ONS
+    # (2026-09-16). `behaviour_profile_for` has always ACCEPTED `people_count` and fell back to
+    # an unsourced bedrooms table when a caller omitted it (deleted 2026-10-09; the fallback is
+    # the census draw now, so this argument is belt and braces). The 2026-09-08 finding anchored the draw on ONS
     # TS017 and wired it into `household_physical_layer._profile_for` -- but not here, and THIS is
     # the path `run_phase2b` settles real money on. Measured over 2,000 residential premises off
     # the live draw, this one call was the whole gap:

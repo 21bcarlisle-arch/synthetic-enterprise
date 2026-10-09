@@ -1,6 +1,6 @@
 # Startup anchors -- computed freshness
 
-Generated: 2026-10-08 by `tools/startup_anchor_freshness.py`.
+Generated: 2026-10-09 by `tools/startup_anchor_freshness.py`.
 
 Every age below is computed from this repository's history at HEAD. **Do not use the HTTP
 `last-modified` header of any of these URLs to judge freshness**: the GitHub Pages mirror
@@ -13,19 +13,19 @@ not maintained -- so it tells you what the project IS, not what it is currently 
 
 | Anchor | What it is for | Last really changed | Age (days) | Verdict |
 |---|---|---|---|---|
-| `docs/PROJECT_OVERVIEW.md` | This document | 2026-10-05 | 3 | FRESH |
-| `docs/operations/OPERATING_MODEL.md` | How the seat operates — what it gets on with, what it escalates to the director with a proposal, what is reserved, and the end-to-end check it owns | 2026-10-04 | 4 | UNDATED |
-| `docs/direction/priority_order.yaml` | The director's priority order as the map expresses it, and whether the draw follows it (`tools/draw_follows_the_order.py`) | 2026-10-05 | 3 | UNDATED |
-| `docs/reports/ANNUAL_REPORT.md` | The book's own annual report, regenerated each publish | 2026-10-05 | 3 | UNDATED |
-| `docs/market_research/ASSUMPTIONS.md` | Every sourced assumption the world is built on, with its anchor and its gaps | 2026-10-05 | 3 | FRESH |
-| `docs/status/LATEST.md` | What just happened and what the machine is working on now | 2026-10-05 | 3 | FRESH |
-| `docs/status/STARTUP_ANCHORS.md` | The computed age of every anchor on this page, and what each is for | 2026-10-08 | 0 | FRESH |
-| `docs/status/SEAT_STRETCH_LOG.md` | Why each stretch of work went the way it did — the corrections, what was stopped short of, the reasoning behind a call | 2026-10-08 | 0 | UNDATED |
-| `docs/direction/DIRECTION.yaml` | What the delivery seat is currently steering by, and what it has recorded as wrong | 2026-10-08 | 0 | UNDATED |
-| `docs/direction/decisions.jsonl` | The append-only record of decisions taken, oldest to newest | 2026-10-08 | 0 | UNDATED |
-| `docs/status/PROJECT_STATE.txt` | Build state — current phase and test count, generated each publish | 2026-10-05 | 3 | FRESH |
-| `docs/institutional/knowledge_map.md` | What we know and what we have NOT established, with the gaps named | 2026-10-08 | 0 | UNDATED |
-| `docs/operations/MAINTENANCE.md` | The monthly maintenance runbook this machine operates under | 2026-07-06 | 94 | UNDATED |
+| `docs/PROJECT_OVERVIEW.md` | This document | 2026-10-05 | 4 | FRESH |
+| `docs/operations/OPERATING_MODEL.md` | How the seat operates — what it gets on with, what it escalates to the director with a proposal, what is reserved, and the end-to-end check it owns | 2026-10-04 | 5 | UNDATED |
+| `docs/direction/priority_order.yaml` | The director's priority order as the map expresses it, and whether the draw follows it (`tools/draw_follows_the_order.py`) | 2026-10-05 | 4 | UNDATED |
+| `docs/reports/ANNUAL_REPORT.md` | The book's own annual report, regenerated each publish | 2026-10-05 | 4 | UNDATED |
+| `docs/market_research/ASSUMPTIONS.md` | Every sourced assumption the world is built on, with its anchor and its gaps | 2026-10-05 | 4 | FRESH |
+| `docs/status/LATEST.md` | What just happened and what the machine is working on now | 2026-10-05 | 4 | FRESH |
+| `docs/status/STARTUP_ANCHORS.md` | The computed age of every anchor on this page, and what each is for | 2026-10-08 | 1 | FRESH |
+| `docs/status/SEAT_STRETCH_LOG.md` | Why each stretch of work went the way it did — the corrections, what was stopped short of, the reasoning behind a call | 2026-10-08 | 1 | UNDATED |
+| `docs/direction/DIRECTION.yaml` | What the delivery seat is currently steering by, and what it has recorded as wrong | 2026-10-08 | 1 | UNDATED |
+| `docs/direction/decisions.jsonl` | The append-only record of decisions taken, oldest to newest | 2026-10-08 | 1 | UNDATED |
+| `docs/status/PROJECT_STATE.txt` | Build state — current phase and test count, generated each publish | 2026-10-05 | 4 | FRESH |
+| `docs/institutional/knowledge_map.md` | What we know and what we have NOT established, with the gaps named | 2026-10-08 | 1 | UNDATED |
+| `docs/operations/MAINTENANCE.md` | The monthly maintenance runbook this machine operates under | 2026-07-06 | 95 | UNDATED |
 
 `FRESH` recent · `OLD` genuinely old and honest about it (not a defect) · `UNDATED` states
 no date of its own, so this table is the only age a reader gets · `LIES` its own date is more than 3 days from its real one · `MISSING` not in HEAD.

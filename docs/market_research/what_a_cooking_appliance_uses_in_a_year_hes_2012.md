@@ -125,3 +125,11 @@ owner, not the 204 at unit intensity given above. The boil is now 0.105 kWh
 (`_KETTLE_KWH_PER_BOIL`), which reads back at 167. The timing lead was tested and refuted. Moving the
 oven and hob 90 minutes earlier takes 0.018 kWh/h off the peak. With no cooking at all the peak is at
 20:30. See the seasonal-swing finding in `docs/staging/`.
+
+**By household type, 2026-10-09.** Table 23 shows no headcount gradient in cooking. The kettle reads
+141–185 by type, and a multiple-pensioner home boils more than one with children. The oven reads
+183 in a home with children and 375 for a single non-pensioner. The world scaled every appliance by
+(n/2.4)^0.6, so it gave a one-person home a 91 kWh kettle and a home with children 200. The kettle
+no longer scales, and its boil is refitted to 0.114 kWh. The oven, hob, toaster and microwave still
+scale, and the microwave's level (25 vs 56) is unsourced. See
+`docs/staging/SEAT_FINDING_THE_KETTLE_DOES_NOT_SCALE_WITH_HEADCOUNT_IN_HES_2026-10-09.md`.

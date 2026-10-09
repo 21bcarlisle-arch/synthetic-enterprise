@@ -679,3 +679,35 @@ weight as evidence about selection.
 R5 waits for leg 2. Publication follows R5. The `h` headline's `w2_20_own_effect` pairs to `b2ec5147a`, so
 it will be withdrawn, with its reason, when the published pair moves to `r`. That withdrawal is expected,
 not a regression.
+
+## R5 graded, and the `r` pair is published (worker, 2026-10-08 ~18:50Z)
+
+Leg 2 (`value_cycle_ab_s1_noise_floor_20261008r.json`) finished at 16:48Z, producing commit `45122d156`, world
+`cdba75ebb9197b33`, the same as leg 1.
+
+| seed | `h` `value_advantage_gbp` | `r` | `r - h` |
+|---|---:|---:|---:|
+| 11111 | £11,665.57 | £11,766.20 | +£100.63 |
+| 22222 | £9,596.04 | £9,696.67 | +£100.63 |
+| 33333 | £9,269.11 | £9,375.00 | +£105.89 |
+| floor mean / sd | £10,176.91 / £1,299.54 | £10,279.29 / £1,297.71 | |
+| band [min - 1 sd, max + 1 sd] | £7,969.57 - £12,965.11 | **£8,077.30 - £13,063.90** | |
+| leg 1 | £5,133.84 | **£5,244.00** | +£110.16 |
+
+**R5: pass.** Leg 1 sits £2,833 below the `r` band's floor and 3.88 floor sds below its mean. That is the same
+distance as `h`, to two decimal places. The register recovery moved every seed and leg 1 by +£101 to +£110, so it
+shifted the whole family and left H2's gap where it was. The gap is still the control arm's draw, and this run does
+not explain it.
+
+**Published.** `CURRENT_WORLD_THREE_ARM_PATH`, `CURRENT_WORLD_NOISE_FLOOR_PATH` and
+`CURRENT_WORLD_CHANGED_SINCE_THE_LAST_READING` now point at `r`, and `site/data/value_arms.json` is regenerated
+from origin `6987325ae`. Front door: `value_advantage_gbp` £5,244. `is_heads_code: false`. Every verdict is
+withheld for "which code drew the bound": 22 imported paths moved between `45122d156` and `6987325ae`. Those
+commits include home moves (`ada37371c`), voids (`5531ef8a6`), gas cooking (`92d39bf60`, `a41cf3fc0`), electronics
+(`6987325ae`), vulnerability (`d29dcddc3`) and acquisition selection (`2338f13ff`, switch off). No arms
+measurement covers any of them, and most are built to move the book. **So `value_arms_substrate_exemptions.json`
+is left untouched.** Exempting them would be a claim with no measurement behind it. `current_world.w2_20_own_effect`
+withdrew as predicted ("measured against the run at b2ec5147a, and the published run is at 45122d156").
+
+**What is owed for a verdict on the page:** an arms re-take at a HEAD that includes the world changes above. It
+should come once the home-move and cooking/electronics lanes settle, so it is not stale on arrival.

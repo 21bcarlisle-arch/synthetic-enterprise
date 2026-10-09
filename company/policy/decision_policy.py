@@ -185,6 +185,15 @@ class DecisionPolicy:
     #: against: everybody, the same letter. `None` sends nothing, so no standing policy moves.
     svt_contact_instrument: str | None = None
 
+    #: (2026-10-08) the cut, as a share of the renewal unit rate, of the Fixed Retention Tariff
+    #: offered on a CSS Invitation to Intervene (`company.crm.save_offer`). A share and not GBP/MWh
+    #: because one cut must mean the same thing on both fuels, and it is the form of the toggle that
+    #: would set it (q4_save_offer_cost_share_of_annual_bill, GAP: no figure establishes a save's
+    #: size). Read only when the curriculum lets households answer a save
+    #: (`docs/design/curriculum/save_on_loss_notice_activation.json`). `None` offers nothing and no
+    #: standing policy sets it; an experiment names its share.
+    save_offer_cut_share: float | None = None
+
     def retention_discount_for_risk(self, company_est: float) -> float:
         """Return the retention discount fraction for a given churn estimate."""
         if self.retention_discount_mode == "flat":

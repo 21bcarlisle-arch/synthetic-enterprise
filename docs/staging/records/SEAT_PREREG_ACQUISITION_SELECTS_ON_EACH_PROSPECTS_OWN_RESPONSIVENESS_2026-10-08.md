@@ -68,3 +68,24 @@ A refutation of any of these is recorded beside this file; nothing here is revis
 
 P1-P4 are graded on fresh seeds 101 and 202 in the B8 decision set once the run sizing allows; not
 yet run.
+
+## Grading attempt, 2026-10-09. Recorded beside the predictions, which are not revised.
+
+**Not graded: B8's coin-drawn decision set cannot see option 1.** It draws households directly from
+`draw_population`, so they never pass through the funnel. With the switch off and with it on in arm
+I, the decision set is byte-identical on seeds 101 and 202. Its rows also carry no acquisition route,
+time on default or active-renewal flag. P1-P4 are still open. The measurement and the recommended
+instrument are in `docs/staging/SEAT_FINDING_B8S_DECISION_SET_CANNOT_SEE_ACQUISITION_SELECTION_SO_P1_P4_ARE_UNGRADED_2026-10-09.md`.
+
+## Graded, 2026-10-09, on the funnel-sourced decision set. Recorded beside the predictions, which are not revised.
+
+**P1-P3 fail in both arms on both seeds, and P4 holds.** The instrument and its read-off were
+pre-registered first, in `SEAT_PREREG_ACQUISITION_P1_P4_ON_THE_FUNNEL_SOURCED_DECISION_SET_2026-10-09.md`,
+which carries the tables. Against the predictions above:
+
+- *"P1-P3 hold in arm L on at least one seed, and fail in arm I on both."* **REFUTED for arm L, held
+  for arm I.** No group of route, time on the default or ever-actively-renewed is offered a cut, in
+  either arm. The world's true effect of a £7.5 cut is +0.013 to +0.017 in every group, and the cut
+  pays only near +0.15.
+- *"P4 holds in both arms."* **HOLDS.** The off world offers nothing too, so there was no lift for
+  P4 to attribute.

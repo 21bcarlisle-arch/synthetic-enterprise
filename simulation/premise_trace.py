@@ -256,17 +256,6 @@ def load_trace_weather(
 # Layer 2 — the behaviour profile (STRUCTURAL: drawn once per premise)
 # ---------------------------------------------------------------------------
 
-# `domain-knowledge` — occupancy priors. `Household` carries no headcount, so it
-# is drawn from bedrooms unless a caller supplies the existing segmentation
-# fields (`people_count` etc.), which attach here UNCHANGED, per the FRAME.
-_PEOPLE_BY_BEDROOMS: dict[int, tuple[float, ...]] = {
-    1: (1.0, 1.0, 2.0),
-    2: (1.0, 2.0, 2.0, 3.0),
-    3: (2.0, 2.0, 3.0, 3.0, 4.0),
-    4: (2.0, 3.0, 4.0, 4.0, 5.0),
-    5: (3.0, 4.0, 5.0, 6.0),
-}
-
 # `domain-knowledge` — ONS/BEIS holiday-taking: most UK households take two to
 # three trips a year. A CANDIDATE TO VERIFY against a published source, not a
 # settled constant; it is the parameter L1.3 (an empty house must be
@@ -354,14 +343,21 @@ def behaviour_profile_for(
 
     The existing segmentation fields (`people_count`, `children_count`,
     `pensioner_present`, `someone_employed`) attach UNCHANGED where a caller has
-    them — the fabric layer must not fork the segmentation programme. Where they
-    are absent they are drawn from bedrooms.
+    them — the fabric layer must not fork the segmentation programme. Where the
+    headcount is absent it is the book's own: `people_count_for_area`, the Census
+    TS017 draw the settled run passes in (see the note at the branch below).
     """
     base = _base_seed_for(premise_id, seed)
-    bedrooms = 2 if household.bedrooms is None else max(1, min(5, household.bedrooms))
 
     if people_count is None:
-        people_count = int(_substream(base, "people").choice(_PEOPLE_BY_BEDROOMS[bedrooms]))
+        # THE BOOK'S HEADCOUNT, not a second one (2026-10-09). This branch drew from an unsourced
+        # bedrooms table (mean 3.02 on gas homes, 18.5% at 5+) while the settled run drew TS017
+        # (2.29, 5.8%), so every instrument that built a profile-less trace measured a population
+        # the book never settles -- the "+200 kWh gas level excess" was that population. One home,
+        # one headcount, whichever door asks.
+        from simulation.dwelling_records import people_count_for_area
+
+        people_count = people_count_for_area(premise_id, household.output_area)
     people_count = max(1, int(people_count))
     if children_count is None:
         children_count = children_count_for(premise_id, people_count)
@@ -608,19 +604,43 @@ class ApplianceSpec:
 # the first 200 drawn premises (seed 17). HES Fig 450 says which term ran high: 65% of boils use
 # under 0.1 kWh and 98% under 0.2, so it is the boil, not the four a day. 0.14 x 167/223 = 0.105.
 # The power stays at nameplate, so the boil is shorter: a part-filled kettle.
-_KETTLE_KWH_PER_BOIL = 0.105
+# Refitted 2026-10-09: 0.105 was fitted on the deleted bedrooms headcount (mean 3.02). HES Table 23
+# gives the kettle year by household type as 141 / 153 / 185 / 167 / 178 (single pensioner, single
+# non-pensioner, multiple pensioner, with children, multiple no-dependent): it does not grow with
+# headcount, so the kettle no longer scales with people. Flat on the book's census headcount the year
+# was 153.7 (3,000 homes, seeds 17/29/41), so 0.105 x 167/153.7 = 0.114, still inside Fig 450.
+# docs/staging/SEAT_FINDING_THE_KETTLE_DOES_NOT_SCALE_WITH_HEADCOUNT_IN_HES_2026-10-09.md.
+_KETTLE_KWH_PER_BOIL = 0.114
 _KETTLE_KW = 2.8
+
+# `domain-knowledge`, dated to 2022 on 2026-10-08. An electric oven's and hob's energy per use is
+# HES's 2010-11 use carried to 2022 by DESNZ ECUK 2023 Electrical Products tables (A1/A2, per
+# appliance, refreshed 2017): oven 120 -> 96 kWh/yr (x0.80), hob 232 -> 194 (x0.84). Only the ratio
+# is carried; ECUK's levels are not HES's. The power stays at nameplate, so the use is shorter.
+# Paired over 2,921 gas no-PV homes (seeds 17/29/41, C1 2022) the annual median fell 61 kWh, as
+# pre-registered. Source: docs/market_research/the_seasonal_swing_of_a_gas_heated_homes_electricity.md.
+_ECUK_OVEN_RATIO_TO_2022 = 0.80
+_ECUK_HOB_RATIO_TO_2022 = 0.84
+_HES_OVEN_HOURS_PER_USE = 0.75
+_HES_HOB_HOURS_PER_USE = 0.35
 
 # `domain-knowledge` — nameplate ratings and usage frequencies. Judged (never
 # parameterised) against Ofgem TDCV medium non-heating electricity, 2,700 kWh/yr.
 APPLIANCE_CATALOGUE: tuple[ApplianceSpec, ...] = (
     ApplianceSpec(
-        "kettle", _KETTLE_KW, _KETTLE_KWH_PER_BOIL / _KETTLE_KW, 4.0, (12, 45), heat_fraction=0.95
+        "kettle", _KETTLE_KW, _KETTLE_KWH_PER_BOIL / _KETTLE_KW, 4.0, (12, 45), heat_fraction=0.95,
+        scales_with_people=False,
     ),
     ApplianceSpec("toaster", 1.1, 0.05, 0.8, (12, 20), heat_fraction=0.95),
     ApplianceSpec("microwave", 0.9, 0.10, 0.8, (20, 43), heat_fraction=0.8),
-    ApplianceSpec("oven", 2.0, 0.75, 0.55, (32, 42), heat_fraction=0.6),
-    ApplianceSpec("hob", 1.8, 0.35, 0.70, (33, 43), heat_fraction=0.6),
+    ApplianceSpec(
+        "oven", 2.0, _HES_OVEN_HOURS_PER_USE * _ECUK_OVEN_RATIO_TO_2022, 0.55, (32, 42),
+        heat_fraction=0.6,
+    ),
+    ApplianceSpec(
+        "hob", 1.8, _HES_HOB_HOURS_PER_USE * _ECUK_HOB_RATIO_TO_2022, 0.70, (33, 43),
+        heat_fraction=0.6,
+    ),
     ApplianceSpec("washing_machine", 0.55, 1.5, 0.60, (14, 40), heat_fraction=0.5),
     ApplianceSpec("dishwasher", 0.70, 1.5, 0.50, (36, 46), heat_fraction=0.5),
     ApplianceSpec("tumble_dryer", 2.2, 0.70, 0.22, (16, 42), heat_fraction=0.3),
