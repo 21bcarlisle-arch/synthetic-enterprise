@@ -1325,8 +1325,11 @@ def test_b2_the_two_flags_are_INDEPENDENT_and_the_default_path_is_untouched(monk
 # quotes go to the engagement-weighted first prospects, so different homes win, the company's own
 # realised win rate differs and with it the quote budget from 2017: 2707 -> 2694 quotes,
 # £60,170.37 -> £59,859.52. With that file's `activated` false it is 2707 / £60,170.37 exactly.
-CAMPAIGN_QUOTES_AT_SHIPPED_CONFIG = 2694
-CAMPAIGN_SPEND_AT_SHIPPED_CONFIG = 59859.52
+# RE-MEASURED 2026-10-09 at the 400-founder book (director's founder ruling, 2026-10-08): the
+# quote budget is sized off the book the campaign plans against, so a five-times-larger opening
+# book quotes more -- 2694 -> 3345 quotes, £59,859.52 -> £74,356.09, all still inside the window.
+CAMPAIGN_QUOTES_AT_SHIPPED_CONFIG = 3345
+CAMPAIGN_SPEND_AT_SHIPPED_CONFIG = 74356.09
 
 #: The subset the ACCOUNTS can carry: quotes dated inside [REPORT_START, REPORT_END].
 #:
@@ -1338,8 +1341,8 @@ CAMPAIGN_SPEND_AT_SHIPPED_CONFIG = 59859.52
 #:
 #: The filter is still real and still tested: `test_c_MUTATION_the_window_filter_can_actually_
 #: EXCLUDE` hands it a mid-decade `report_end` and requires it to drop the rest.
-CAMPAIGN_QUOTES_INSIDE_WINDOW = 2694
-CAMPAIGN_SPEND_INSIDE_WINDOW = 59859.52
+CAMPAIGN_QUOTES_INSIDE_WINDOW = 3345
+CAMPAIGN_SPEND_INSIDE_WINDOW = 74356.09
 
 
 def test_c_every_quote_the_campaign_paid_for_is_BOOKED_as_acquisition_spend():
@@ -1607,10 +1610,12 @@ def test_c_the_booked_spend_REACHES_THE_RUN_and_therefore_the_P_AND_L(
     assert spent > 0
 
     statement = company_income_statement(campaign_rows)
-    assert statement["acquisition_spend_gbp"] == spent, (
+    # TO THE PENNY, not exact: the statement sums unrounded floats, and at the 400-founder book the
+    # summation order gave 4500.2699999999995 against 4500.27 (2026-10-09).
+    assert round(statement["acquisition_spend_gbp"], 2) == spent, (
         "the campaign's spend events reached the run and not the income statement"
     )
-    assert statement["total_operating_costs_gbp"] >= spent
+    assert round(statement["total_operating_costs_gbp"], 2) >= spent
 
 
 def test_MUTATION_c_the_PRE_BUILD_run_books_none_of_it(shipped_supply_book, shared_fabric_traces):

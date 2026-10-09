@@ -63,17 +63,26 @@
 # A malformed or out-of-range value is IGNORED with the fallback kept, never read as zero: a
 # YAML typo must not silently empty the opening book.
 
-version: 1
-decided_on: "2026-08-28"
+# THE SECOND DECISION (2026-10-08, enacted 2026-10-09). Director, on
+# docs/staging/SEAT_PROPOSAL_THE_FOUNDER_CEILING_AND_PROSPECT_CAP_SIZED_BY_RARE_EVENTS_2026-10-08.md:
+# "Founders: approved as you proposed", then "agreed, wait for the 400-founder run". The proposal:
+# with home moves on (ada37371c), 400 founders and a ceiling of 500, the settlement budget raised
+# alongside to ~5,000 because the founders' own committed years count against it. Enacted only
+# after that run measured the shape: settlement_ceiling_slope_20261009.json (da944e500) -- 5,000
+# budget, 4,994.1 committed customer-years, 3,895.8 MB peak child RSS, 5,480.7 s, inside 0.25 of
+# the guest (supports 6,857). Rare events (debtor moves, arrears stock) are what 400 buys; the
+# prospect cap stays 400. Reverting: 80 / 120 and the budget back to 1,750 together.
+version: 2
+decided_on: "2026-10-08"
 decided_by: director
 
 #: Accounts the supplier holds on day one of the window. The hand-authored roster (13, serving)
 #: is INCLUDED in this count, not added to it, so the number here is the whole opening book and
 #: a reader does not have to know the roster's size to know what was chosen.
-founder_accounts: 80
+founder_accounts: 400
 
 #: Bounds. Below the roster's own size the number cannot be honoured (the roster cannot be
 #: shrunk by this file); above the customer-year budget it would leave no growth at all, which
 #: is Option 4 of the priced menu and was not chosen.
 min_founder_accounts: 13
-max_founder_accounts: 120
+max_founder_accounts: 500

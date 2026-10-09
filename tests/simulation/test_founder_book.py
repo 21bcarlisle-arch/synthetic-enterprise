@@ -31,7 +31,7 @@ def test_the_directors_number_is_read_from_the_curriculum_file():
     Fires on: hard-coding the count, which would make a curriculum act a code change.
     """
     assert lp.FOUNDER_BOOK_PATH.is_file(), lp.FOUNDER_BOOK_PATH
-    assert lp.founder_accounts() == 80
+    assert lp.founder_accounts() == 400
 
 
 def test_an_unreadable_file_falls_back_to_the_ROSTER_and_never_to_zero(monkeypatch, tmp_path):
@@ -76,7 +76,7 @@ def test_the_file_cannot_SHRINK_the_hand_authored_roster(monkeypatch, tmp_path):
 
 def test_the_opening_book_is_the_number_the_director_set():
     book = lp.founder_book(SEED)
-    assert len(book) == lp.founder_accounts() == 80
+    assert len(book) == lp.founder_accounts() == 400
 
 
 def test_every_founder_is_dated_at_the_windows_START():
@@ -182,7 +182,7 @@ def test_the_exclusion_reports_the_whole_founder_book_not_just_the_roster():
     Fires on: reverting `n_founders` to the roster's size.
     """
     verdict = lp.book_subset_verdict(SEED)
-    assert verdict["n_founders"] == 80
+    assert verdict["n_founders"] == 400
     assert verdict["n_founders_hand_authored"] == 13
     assert verdict["n_founders"] > verdict["n_founders_hand_authored"], (
         "the two counts are equal, so this test cannot tell whether the whole book is reported")
@@ -276,5 +276,5 @@ def test_the_curriculum_file_records_who_decided_and_when():
 
     loaded = yaml.safe_load(pathlib.Path(lp.FOUNDER_BOOK_PATH).read_text(encoding="utf-8"))
     assert loaded["decided_by"] == "director"
-    assert loaded["decided_on"] == "2026-08-28"
+    assert loaded["decided_on"] == "2026-10-08"
     assert isinstance(loaded["version"], int)

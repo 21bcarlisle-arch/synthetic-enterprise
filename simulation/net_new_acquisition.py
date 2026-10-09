@@ -962,7 +962,18 @@ def quote_capacity(affordable_quotes: int, pool_size: int = PROSPECTS_PER_YEAR,
 #: `settlement_ceiling_slope_20261008.json` measures 2,694.5 MB at 1,194.7 committed cy and 1.397
 #: MB per cy (RssAnon 1.399; file pages flat at 139 MB), which prices ~3,404 against 6,008 MB.
 #: That is one leg; the old curve was convex, so the raise waits on the 2,800/3,400 points.
-SETTLEMENT_CUSTOMER_YEAR_BUDGET = 1750.0
+#: RAISED 2026-10-09 TO 5,000 WITH THE FOUNDER BOOK (400 founders, ceiling 500; director's ruling
+#: on the 2026-10-08 founder-ceiling proposal, which set the two together). At 400 founders the
+#: founders alone commit ~3,790 customer-years, so 1,750 would admit no win at all. The curve is
+#: RE-MEASURED AT THAT SHAPE, not carried from the 80-founder one, because a founder-heavy book is
+#: cheaper per COMMITTED year (founders churn and settle about half what they commit): the
+#: 80-founder line priced 5,000 at ~7.9 GB, and the run measured 3.9 GB.
+#: `settlement_ceiling_slope_20261009.json` (da944e500): 4,399.1 cy -> 3,221.2 MB, 4,117.9 s;
+#: 4,994.1 cy -> 3,895.8 MB, 5,480.7 s; 1.134 MB and 2.29 s per cy between them; against
+#: 0.25 x 24,032 MB it supports 6,857 (6,657 with the 227 MB production parent on the anchor).
+#: 221 of 613 funnel wins settle at this budget; the rest are carried by the weighted sample.
+#: The time bound is undecided (the probe's worktree had no publish-gate duration log).
+SETTLEMENT_CUSTOMER_YEAR_BUDGET = 5000.0
 
 
 def _customer_years(win_date: dt.date, horizon_end: dt.date) -> float:
