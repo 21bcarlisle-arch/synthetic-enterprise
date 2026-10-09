@@ -2768,7 +2768,9 @@ def test_L1_1n_CAN_PASS_and_is_not_a_control_that_can_only_fail(population_resul
     # Still above 1.0, and 0 of 60 violate.
     # 1.025 -> 0.9955 the same day, still P0040: the microwave's use count 0.8 -> 1.70 a day (HES's 56 kWh). One of 60 now
     # reads below its own flat day, against 7.0% of real LCL homes; the rate leg below judges it.
-    assert cell.worst_value == pytest.approx(0.9955, abs=0.005), cell.note
+    # 0.9955 -> 1.039 the same day, still P0040: a microwave at EFUS 2017's 89.7%, and P0040 is one
+    # of the four panel homes (P0034/P0040/P0047/P0059) that draw none. 0 of 60 below 1.0 again.
+    assert cell.worst_value == pytest.approx(1.039, abs=0.005), cell.note
     assert cell.homes_violating / cell.homes_judged <= fgl.RATE_BANDS[
         fgl.TEXTURE_NULL_RATIO_STATISTIC].threshold, cell.note
 
