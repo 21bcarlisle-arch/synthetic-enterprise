@@ -49,3 +49,18 @@ def test_a_worker_failure_reaches_the_caller(monkeypatch):
 
     with pytest.raises(ValueError, match="premise 2 has no weather"):
         fm.fork_map(boom, range(6))
+
+
+def test_workers_are_sized_by_free_memory_and_never_take_a_landings_room(monkeypatch):
+    """Director, 2026-10-09: "Size forked trace workers by free memory, not a fixed count, so a
+    speed-up can't crowd out a landing." Both sides: plenty of memory gives the CPU-bound count;
+    memory at the floor gives the serial path. A fixed count passes the first and fails this."""
+    monkeypatch.delenv("SE_FORK_WORKERS", raising=False)
+    floor = fm._memory_floor_mb()
+    plenty = fm.workers_for(100, available_mb=floor + 10_000)
+    assert plenty == max(1, (os.cpu_count() or 1) - fm.RESERVED_CPUS)
+    assert fm.workers_for(100, available_mb=floor + 2 * fm.WORKER_PSS_MB) == 2
+    assert fm.workers_for(100, available_mb=floor - 1) == 1
+    import background.resource_headroom as rh
+    monkeypatch.setattr(rh, "sample", lambda: {"available_mb": None})
+    assert fm.workers_for(100) == 1, "unreadable memory must be the serial path"

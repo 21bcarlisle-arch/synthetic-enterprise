@@ -753,6 +753,10 @@ def cycle_admission(**admit_kwargs) -> dict:
             f"({decision['committed_mb']:.0f}+{decision['weight_mb']:.0f} <= "
             f"{decision['budget_mb']:.0f} MB) but cannot see undeclared residents, and a cycle "
             f"is the cheaper thing to defer")}
+    if decision["admitted"]:
+        hold = resource_headroom.landing_hold_reason()
+        if hold:
+            decision = {**decision, "admitted": False, "reason": hold}
     if not decision["admitted"]:
         log(f"DEFERRED this cycle -- {decision['reason']}")
         resource_headroom.record_deferral(decision)

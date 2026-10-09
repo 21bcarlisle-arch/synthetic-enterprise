@@ -457,6 +457,35 @@ def stop(unit: str, *, runner=subprocess.run) -> None:
         pass
 
 
+#: How long a new long job waits for a pending landing before it gives up with the reason. Not a
+#: domain constant: a landing's gate takes 10-30 minutes, so this covers two back to back.
+LANDING_HOLD_SECONDS = 90 * 60
+
+
+def _wait_for_pending_landings(say, deadline_seconds: float | None = None, sleep=None,
+                               reason_fn=None) -> str | None:
+    """Landings come before experiments (director, 2026-10-09): a new launch waits while any landing
+    is pending, then proceeds; past the deadline it returns the reason to refuse with."""
+    import time as _time
+
+    from background.resource_headroom import landing_hold_reason
+    reason_fn = reason_fn or landing_hold_reason
+    sleep = sleep or _time.sleep
+    deadline = LANDING_HOLD_SECONDS if deadline_seconds is None else deadline_seconds
+    start = _time.monotonic()
+    told = False
+    while True:
+        reason = reason_fn()
+        if reason is None:
+            return None
+        if not told:
+            say(f"  . HELD: {reason}")
+            told = True
+        if _time.monotonic() - start >= deadline:
+            return f"held for {deadline:.0f}s and the landing has not finished: {reason}"
+        sleep(30)
+
+
 def _live_reserved_by_pid() -> dict:
     """`{pid: reserved MB}` for every live holder in the box's one ledger. Unreadable is empty:
     the residents' measured RSS still counts, so this can only make the door stricter."""
@@ -533,6 +562,9 @@ def launch(job: str, command: list, *, artefact: str, workdir: str | None = None
     case_refusal = run_case_refusal(expect_minutes, run_case)
     if case_refusal:
         raise LaunchRefused(case_refusal)
+    landing_wait = _wait_for_pending_landings(say)
+    if landing_wait:
+        raise LaunchRefused(landing_wait)
     if guest_total_mb is None:
         from background.resource_headroom import sample
         guest_total_mb = sample()["total_mb"]

@@ -824,6 +824,71 @@ def _ledger_lock(reservations_path: Path | None = None):
             fcntl.flock(fh, fcntl.LOCK_UN)
 
 
+#: LANDINGS COME BEFORE EXPERIMENTS (director, 2026-10-09: "When a landing is ready, the box budget
+#: reserves its test-gate memory and holds any new long-job launch, from any lane, until it lands").
+#: A landing registers here BEFORE its gate queues; while any live landing is pending, new long jobs
+#: (launch_long_job), sim-runner cycles and direct runs wait. The landing's own gate does not.
+PENDING_LANDINGS_PATH = BOX_LEDGER_DIR / "pending_landings.json"
+#: Set on a landing's gate so its own queue skips the landings-first hold (it IS the landing).
+LANDING_ENV = "SE_BOX_LANDING"
+
+
+def pending_landings(path: Path | None = None, proc_root: Path | None = None) -> list[dict]:
+    """Live pending landings. A dead claimant is dropped, never honoured, so a killed landing
+    cannot hold the box forever."""
+    rows = _read_json(path or PENDING_LANDINGS_PATH, []) or []
+    if not isinstance(rows, list):
+        return []
+    return [r for r in rows if isinstance(r, dict) and _is_live(r, proc_root)]
+
+
+@contextlib.contextmanager
+def landing_pending(label: str, path: Path | None = None, proc_root: Path | None = None):
+    """Hold the box for one landing: register it, set LANDING_ENV for its gate, release on exit
+    (a hard kill is reaped by the liveness check instead)."""
+    target = path or PENDING_LANDINGS_PATH
+    pid = os.getpid()
+    claim = {"pid": pid, "starttime": _proc_starttime(pid, proc_root), "label": label,
+             "since": _now_iso()}
+    with _ledger_lock():
+        rows = [r for r in (_read_json(target, []) or []) if isinstance(r, dict)
+                and _is_live(r, proc_root)]
+        rows.append(claim)
+        _write_json(target, rows)
+    previous = os.environ.get(LANDING_ENV)
+    os.environ[LANDING_ENV] = label
+    try:
+        yield claim
+    finally:
+        with _ledger_lock():
+            rows = [r for r in (_read_json(target, []) or []) if isinstance(r, dict)
+                    and _is_live(r, proc_root)
+                    and not (r.get("pid") == pid and r.get("since") == claim["since"])]
+            _write_json(target, rows)
+        if previous is None:
+            os.environ.pop(LANDING_ENV, None)
+        else:
+            os.environ[LANDING_ENV] = previous
+
+
+def landing_hold_reason(path: Path | None = None) -> str | None:
+    """Why a non-landing job must wait now, or None. Never holds a landing's own work."""
+    if os.environ.get(LANDING_ENV):
+        return None
+    if path is None:
+        # A TEST NEVER READS THE REAL REGISTER (found 2026-10-09: the first landing of this rule
+        # timed out at 3,600 s because its own gate's tests called launch() in-process and sat in
+        # the hold behind the real pending landing). Tests inject a path to exercise the hold.
+        from background.live_ledger_guard import in_test_process
+        if in_test_process():
+            return None
+    live = pending_landings(path)
+    if not live:
+        return None
+    return ("landings come before experiments: {} pending ({})".format(
+        len(live), "; ".join(f"{r.get('label')} pid {r.get('pid')}" for r in live)))
+
+
 class QueueTimeout(RuntimeError):
     """The box never had room for the job inside its deadline. Carries the last refusal."""
 
@@ -835,7 +900,8 @@ QUEUE_POLL_SECONDS = 30
 @contextlib.contextmanager
 def queued(job_class: str, weight_mb=None, log=None, deadline_seconds: float = 4 * 3600,
            poll_seconds: float = QUEUE_POLL_SECONDS, sleep=None, reservations_path: Path | None = None,
-           deferral_log_path: Path | None = None, **admit_kwargs):
+           deferral_log_path: Path | None = None, landings_path: Path | None = None,
+           **admit_kwargs):
     """Wait until the box has room for this job, then hold its reservation until it ends.
 
     THE ONE DOOR EVERY HEAVY THING GOES THROUGH: commit gates, direct runs and the sim-runner ask
@@ -858,6 +924,9 @@ def queued(job_class: str, weight_mb=None, log=None, deadline_seconds: float = 4
         with _ledger_lock(reservations_path):
             decision = admit(job_class, weight_mb=weight_mb, reservations_path=reservations_path,
                              **admit_kwargs)
+            hold = landing_hold_reason(landings_path)
+            if hold:
+                decision = {**decision, "admitted": False, "reason": hold}
             if decision["admitted"]:
                 holder = _reserve(job_class, weight_mb, reservations_path)
                 break
