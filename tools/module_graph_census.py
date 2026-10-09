@@ -58,10 +58,10 @@ OUTPUT = ROOT / "site" / "data" / "module_graph.json"
 LAYERS = tuple(r for r in graph.ANALYSED_ROOTS if r != graph.TEST_ROOT)
 
 LIMITS = (
-    "Static imports only: an `import` or `from` statement the parser can read.",
+    "Static imports only: an import statement the parser can read.",
     "Dynamic imports, subprocess calls and shared data files couple modules invisibly here.",
-    "A module with no import edges is not thereby dead -- it may be run as a script, "
-    "loaded by name, or read by a timer.",
+    "A module with no import edges is not thereby dead: it may be run as a script, "
+    "loaded by name, or started by a timer.",
     "Test modules are excluded; the site's own scripts are outside the layers counted.",
 )
 

@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Poesys &mdash; How the code is wired</title>
+<link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<link rel="stylesheet" href="../../brand/brand.css">
+<script src="../../assets/freshness-banner.js" data-figures="none" defer></script>
+<style>
+/* Brand palette consumed from ../../brand/brand.css (BRAG tokens, no raw hex). Colour on this
+   page is kept for the boundary: blue a crossing through the seam, red one that goes round it.
+   Layers are told apart by place and by shade of grey, never by hue. */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: var(--font-house); font-size: 15px; line-height: 1.6; }
+.page { max-width: 1060px; margin: 0 auto; padding: 36px 20px 60px; }
+h1 { font-size: 27px; font-weight: 700; letter-spacing: -0.4px; margin-bottom: 8px; }
+.lead { color: var(--muted); max-width: 760px; margin-bottom: 18px; }
+.term { background: var(--black); color: var(--white); padding: 14px 16px; font-size: 14px; margin-bottom: 6px; overflow-wrap: anywhere; }
+.term .ok { color: var(--white); }
+.term .bad { color: var(--white); font-weight: 700; }
+.clock { color: var(--muted); font-size: 12px; margin-bottom: 16px; }
+.figure { border: 1px solid var(--border); background: var(--surface); position: relative; }
+canvas { display: block; width: 100%; touch-action: manipulation; cursor: crosshair; }
+.controls { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; font-size: 13px; margin: 10px 0 4px; }
+.key { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); }
+.swatch { display: inline-block; width: 18px; height: 3px; }
+.sw-seam { background: var(--blue); }
+.sw-bypass { background: var(--red); }
+.sw-internal { background: var(--border); }
+.picked { min-height: 3.2em; font-size: 14px; border-left: 3px solid var(--text); padding: 6px 12px; margin: 10px 0 24px; }
+h2 { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.09em; color: var(--muted); margin: 30px 0 10px; }
+.table-scroll { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--border); }
+td.n, th.n { text-align: right; font-variant-numeric: tabular-nums; }
+ul.limits { padding-left: 20px; }
+ul.limits li { margin-bottom: 6px; }
+.muted { color: var(--muted); font-size: 13px; }
+@media (max-width: 640px) {
+  .page { padding-left: 14px; padding-right: 14px; }
+  h1 { font-size: 24px; }
+  .term { font-size: 13px; }
+}
+</style>
+</head>
+<body>
+<nav class="site-nav">
+  <a href="../../" class="nav-logo wordmark">poesys.</a>
+  <!-- IA-NAV:START (rendered from site/ia_register.py -- do not hand-edit) -->
+  <span class="doors">
+  <a href="../../" class="nav-link">Home</a>
+  <a href="../../knowledge/" class="nav-link">Knowledge</a>
+  <a href="../../capabilities/" class="nav-link">Capabilities</a>
+  <a href="../../explore/" class="nav-link">Explore</a>
+  <a href="../" class="nav-link active">Harness</a>
+  </span>
+  <!-- IA-NAV:END -->
+</nav>
+<main class="page">
+  <h1>How the code is wired</h1>
+  <p class="lead">Every module of the codebase is a dot, and every import between two of them is a
+  line. The world the company lives in is on the left of the black bar, the company on the
+  right, and the machinery that builds and runs both along the foot. The bar is the wall: the
+  company may only learn about the world through one sanctioned seam. This picture exists to
+  show what crosses it.</p>
+
+  <div id="mg-stats" class="term">Loading the census&hellip;</div>
+  <p id="mg-clock" class="clock"></p>
+
+  <div class="figure"><canvas id="mg-canvas" aria-label="The module graph: one dot per module, grouped by layer, with the wall between the world and the company"></canvas></div>
+  <div class="controls">
+    <span class="key"><span class="swatch sw-seam"></span>through the seam</span>
+    <span class="key"><span class="swatch sw-bypass"></span>round the seam</span>
+    <span class="key"><span class="swatch sw-internal"></span>inside one side</span>
+    <label><input type="checkbox" id="mg-unwired"> show modules with no import edges</label>
+  </div>
+  <p id="mg-picked" class="picked">Tap a dot to see its module, size and edge count.</p>
+
+  <h2>Crossings that go round the seam</h2>
+  <div id="mg-bypass"></div>
+
+  <h2>The layers</h2>
+  <div class="table-scroll"><table id="mg-layers"><thead><tr><th>Layer</th><th class="n">Modules</th><th class="n">Lines</th></tr></thead><tbody id="mg-layers-body"></tbody></table></div>
+
+  <h2>The widest funnels</h2>
+  <p class="muted">The largest modules by lines. Most work lands through them, so a defect in one
+  has the widest reach.</p>
+  <div class="table-scroll"><table id="mg-big"><thead><tr><th>Module</th><th class="n">Lines</th><th class="n">Import edges</th></tr></thead><tbody id="mg-big-body"></tbody></table></div>
+
+  <h2>What this picture cannot see</h2>
+  <ul id="mg-limits" class="limits"></ul>
+  <p class="muted">A diagnostic, regenerated weekly from the committed code. Nothing is decided on
+  these numbers and nothing is tuned to move them.</p>
+</main>
+<script>
+"use strict";
+function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return {"&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;"}[c]; }); }
+function fmt(n) { return (n === null || n === undefined) ? "unknown" : Number(n).toLocaleString("en-GB"); }
+function set(id, html) { var el = document.getElementById(id); if (el) el.innerHTML = html; }
+
+// Where each layer sits, in a 1000 x 800 drawing. Place carries the meaning that colour would
+// otherwise have to: world left of the wall, company right of it, machinery along the foot.
+var WALL_X = 470;
+var WELLS = {
+  "sim": [170, 200], "simulation": [230, 430], "interface": [WALL_X, 90],
+  "seam": [565, 330], "company": [790, 300], "saas": [880, 560],
+  "background": [230, 690], "tools": [700, 690]
+};
+var SIDE = { "sim": "world", "simulation": "world", "company": "company", "saas": "company", "seam": "company" };
+var SEAM = "company.interfaces";
+
+function wellOf(node) {
+  if (node.module === SEAM || node.module.indexOf(SEAM + ".") === 0) return "seam";
+  return node.layer;
+}
+
+function radius(loc) { return 1.4 + Math.sqrt(loc || 0) / 9; }
+
+function layout(nodes) {
+  var groups = {};
+  nodes.forEach(function (n, i) { var w = wellOf(n); (groups[w] = groups[w] || []).push(i); });
+  var golden = Math.PI * (3 - Math.sqrt(5));
+  Object.keys(groups).forEach(function (w) {
+    var c = WELLS[w] || [500, 400];
+    var ids = groups[w].sort(function (a, b) { return (nodes[b].loc || 0) - (nodes[a].loc || 0); });
+    ids.forEach(function (id, k) {
+      var r = 5.2 * Math.sqrt(k + (k ? 2 : 0));
+      nodes[id].x = c[0] + r * Math.cos(k * golden);
+      nodes[id].y = c[1] + r * Math.sin(k * golden);
+    });
+  });
+}
+
+function draw(state) {
+  var cv = state.canvas, ctx = cv.getContext("2d"), css = getComputedStyle(document.body);
+  var col = function (v) { return css.getPropertyValue(v).trim(); };
+  var w = cv.clientWidth, h = Math.round(w * 0.8), dpr = window.devicePixelRatio || 1;
+  cv.width = w * dpr; cv.height = h * dpr; cv.style.height = h + "px";
+  var s = w / 1000; state.scale = s;
+  ctx.setTransform(dpr * s, 0, 0, dpr * s, 0, 0);
+  ctx.clearRect(0, 0, 1000, 800);
+  var d = state.data, nodes = d.nodes, picked = state.picked;
+  var visible = function (i) { return state.showUnwired || nodes[i].edges > 0; };
+
+  // Labels hold their on-screen size whatever the width, so a phone can still read them.
+  ctx.font = Math.max(13, 11 / s).toFixed(0) + "px " + col("--font-house");
+  ctx.fillStyle = col("--muted"); ctx.textAlign = "center";
+  Object.keys(WELLS).forEach(function (k) {
+    var c = WELLS[k], label = k === "seam" ? "the seam" : k;
+    ctx.fillText(label, c[0], c[1] - (k === "company" ? 150 : k === "tools" || k === "background" ? 100 : 75));
+  });
+
+  var kinds = d.edge_kinds;
+  var stroke = function (kind, colour, width, alpha, only) {
+    ctx.strokeStyle = colour; ctx.lineWidth = width; ctx.globalAlpha = alpha; ctx.beginPath();
+    d.edge_list.forEach(function (e) {
+      if (kinds[e[2]] !== kind || !visible(e[0]) || !visible(e[1])) return;
+      if (only !== undefined && e[0] !== only && e[1] !== only) return;
+      ctx.moveTo(nodes[e[0]].x, nodes[e[0]].y); ctx.lineTo(nodes[e[1]].x, nodes[e[1]].y);
+    });
+    ctx.stroke(); ctx.globalAlpha = 1;
+  };
+  // Internal edges under the wall, crossings over it: the wall is what the crossings cross.
+  stroke("internal", col("--border"), 0.6, picked === null ? 0.45 : 0.15);
+  ctx.fillStyle = col("--black"); ctx.fillRect(WALL_X - 3, 130, 6, 470);
+  stroke("seam", col("--blue"), 1.4, 1);
+  stroke("bypass", col("--red"), 2.4, 1);
+  if (picked !== null) stroke("internal", col("--text"), 1, 0.8, picked);
+
+  nodes.forEach(function (n, i) {
+    if (!visible(i)) return;
+    var side = SIDE[wellOf(n)];
+    ctx.fillStyle = side === "company" ? col("--black") : side === "world" ? col("--grey-40") : col("--grey-15");
+    if (i === picked) ctx.fillStyle = col("--text");
+    ctx.beginPath(); ctx.arc(n.x, n.y, radius(n.loc), 0, 2 * Math.PI); ctx.fill();
+    if (i === picked) { ctx.strokeStyle = col("--text"); ctx.lineWidth = 2; ctx.stroke(); }
+  });
+}
+
+function pick(state, ev) {
+  var rect = state.canvas.getBoundingClientRect();
+  var x = (ev.clientX - rect.left) / state.scale, y = (ev.clientY - rect.top) / state.scale;
+  var best = null, bestD = Infinity, nodes = state.data.nodes;
+  nodes.forEach(function (n, i) {
+    if (!state.showUnwired && n.edges === 0) return;
+    var dd = Math.hypot(n.x - x, n.y - y) - radius(n.loc);
+    if (dd < bestD) { bestD = dd; best = i; }
+  });
+  state.picked = bestD < 10 ? best : null;
+  if (state.picked === null) { set("mg-picked", "Tap a dot to see its module, size and edge count."); }
+  else {
+    var n = nodes[state.picked];
+    set("mg-picked", "<b>" + esc(n.module) + "</b><br>" + esc(wellOf(n) === "seam" ? "the seam" : n.layer)
+      + " // " + fmt(n.loc) + " lines // " + fmt(n.edges) + " import edge" + (n.edges === 1 ? "" : "s"));
+  }
+  draw(state);
+}
+
+function render(d) {
+  var c = d.crossings;
+  set("mg-stats",
+    "modules " + fmt(d.modules) + " | edges " + fmt(d.edges)
+    + " | through the seam " + fmt(c.seam) + " ."
+    + " | company reads world round the seam " + fmt(c.bypass_company_reads_world)
+    + (c.bypass_company_reads_world ? " <span class=\"bad\">!</span>" : " .")
+    + " | world reads company round the seam " + fmt(c.bypass_world_reads_company)
+    + (c.bypass_world_reads_company ? " <span class=\"bad\">!</span>" : " ."));
+  var wk = d.week_on_week, clock = "// static imports at commit " + esc(String(d.commit).slice(0, 9))
+    + ", generated " + esc(d.generated_at);
+  if (wk) {
+    var sg = function (v) { return (v > 0 ? "+" : "") + fmt(v); };
+    clock += " // since " + esc(String(wk.since || "").slice(0, 10)) + ": modules " + sg(wk.modules)
+      + ", edges " + sg(wk.edges) + ", lines " + sg(wk.loc) + ", round the seam " + sg(wk.bypass);
+  }
+  set("mg-clock", clock);
+
+  set("mg-bypass", d.bypass_edges.length
+    ? '<div class="table-scroll"><table><thead><tr><th>From</th><th>To</th></tr></thead><tbody>' + d.bypass_edges.map(function (b) {
+        return "<tr><td>" + esc(b.from) + "</td><td>" + esc(b.to) + "</td></tr>"; }).join("") + "</tbody></table></div>"
+      + "<p class=\"muted\">Each is a world module importing a company module directly. The wall's own ratchet holds them "
+      + "on a dated list that may only shrink.</p>"
+    : "<p>None. Every crossing of the wall goes through the seam.</p>");
+
+  document.getElementById("mg-layers-body").innerHTML = Object.keys(d.layers).map(function (k) {
+    return "<tr><td>" + esc(k) + "</td><td class=\"n\">" + fmt(d.layers[k].modules) + "</td><td class=\"n\">" + fmt(d.layers[k].loc) + "</td></tr>";
+  }).join("") + "<tr><td><b>all</b></td><td class=\"n\"><b>" + fmt(d.modules) + "</b></td><td class=\"n\"><b>" + fmt(d.loc) + "</b></td></tr>";
+
+  document.getElementById("mg-big-body").innerHTML = d.nodes.slice().sort(function (a, b) { return (b.loc || 0) - (a.loc || 0); })
+    .slice(0, 6).map(function (n) {
+      return "<tr><td>" + esc(n.module) + "</td><td class=\"n\">" + fmt(n.loc) + "</td><td class=\"n\">" + fmt(n.edges) + "</td></tr>";
+    }).join("");
+
+  set("mg-limits", d.limits.map(function (l) { return "<li>" + esc(l) + "</li>"; }).join("")
+    + "<li>" + fmt(d.unwired_modules) + " modules have no import edge to another module here and are hidden until you ask for them.</li>");
+
+  layout(d.nodes);
+  var state = { data: d, canvas: document.getElementById("mg-canvas"), picked: null, showUnwired: false, scale: 1 };
+  draw(state);
+  state.canvas.addEventListener("click", function (ev) { pick(state, ev); });
+  document.getElementById("mg-unwired").addEventListener("change", function (ev) { state.showUnwired = ev.target.checked; draw(state); });
+  window.addEventListener("resize", function () { draw(state); });
+}
+
+if (typeof window !== "undefined" && window.document && document.getElementById("mg-stats")) {
+  fetch("../../data/module_graph.json?t=" + Date.now())
+    .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
+    .then(render)
+    .catch(function (e) {
+      // FAIL CLOSED: a missing census renders its absence, never an empty picture that reads as a clean wall.
+      set("mg-stats", "The census could not be loaded (" + esc(e) + "), so nothing is shown.");
+    });
+}
+</script>
+</body>
+</html>
