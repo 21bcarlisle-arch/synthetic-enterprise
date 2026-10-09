@@ -604,7 +604,13 @@ class ApplianceSpec:
 # the first 200 drawn premises (seed 17). HES Fig 450 says which term ran high: 65% of boils use
 # under 0.1 kWh and 98% under 0.2, so it is the boil, not the four a day. 0.14 x 167/223 = 0.105.
 # The power stays at nameplate, so the boil is shorter: a part-filled kettle.
-_KETTLE_KWH_PER_BOIL = 0.105
+# Refitted 2026-10-09: 0.105 was fitted on the deleted bedrooms headcount (mean 3.02). HES Table 23
+# gives the kettle year by household type as 141 / 153 / 185 / 167 / 178 (single pensioner, single
+# non-pensioner, multiple pensioner, with children, multiple no-dependent): it does not grow with
+# headcount, so the kettle no longer scales with people. Flat on the book's census headcount the year
+# was 153.7 (3,000 homes, seeds 17/29/41), so 0.105 x 167/153.7 = 0.114, still inside Fig 450.
+# docs/staging/SEAT_FINDING_THE_KETTLE_DOES_NOT_SCALE_WITH_HEADCOUNT_IN_HES_2026-10-09.md.
+_KETTLE_KWH_PER_BOIL = 0.114
 _KETTLE_KW = 2.8
 
 # `domain-knowledge`, dated to 2022 on 2026-10-08. An electric oven's and hob's energy per use is
@@ -622,7 +628,8 @@ _HES_HOB_HOURS_PER_USE = 0.35
 # parameterised) against Ofgem TDCV medium non-heating electricity, 2,700 kWh/yr.
 APPLIANCE_CATALOGUE: tuple[ApplianceSpec, ...] = (
     ApplianceSpec(
-        "kettle", _KETTLE_KW, _KETTLE_KWH_PER_BOIL / _KETTLE_KW, 4.0, (12, 45), heat_fraction=0.95
+        "kettle", _KETTLE_KW, _KETTLE_KWH_PER_BOIL / _KETTLE_KW, 4.0, (12, 45), heat_fraction=0.95,
+        scales_with_people=False,
     ),
     ApplianceSpec("toaster", 1.1, 0.05, 0.8, (12, 20), heat_fraction=0.95),
     ApplianceSpec("microwave", 0.9, 0.10, 0.8, (20, 43), heat_fraction=0.8),
