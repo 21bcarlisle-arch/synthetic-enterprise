@@ -2378,12 +2378,16 @@ _AT_ISSUE_FLOOR_WITNESS = {
 # register-derived grid could not reach, and a declared collapse the sweep
 # reads apart is a debt entry outliving its debt. The first run is the tail the
 # two declared pairs sampled; the rest were invisible to this register.
+# PREPAYMENT CORRECTION 2026-10-08: 16 runs -> 21, upper tail (82..88) -> (80..88). Re-measured because a
+# prepayment period no longer fails or lates, so the book's non-DD population the
+# set reading counts is the standing-order/card accounts only.
 _RECON_SET_COLLAPSED_RUNS = (
     (-30, -20, -19, -18, -17, -16, -15, -14, -13, -12, -11, -10, -9, -8, -7, -6),
-    (-4, -3), (0, 1), (6, 7), (9, 10), (11, 12, 13),
-    (17, 18, 19, 20, 21, 22, 23, 24), (28, 29), (44, 45), (61, 62),
-    (65, 66, 67), (68, 69), (72, 73, 74), (76, 77, 78), (80, 81),
-    (82, 83, 84, 85, 86, 87, 88),
+    (-4, -3), (0, 1), (2, 3), (4, 5), (6, 7), (8, 9, 10, 11, 12, 13),
+    (17, 18, 19, 20, 21, 22, 23, 24, 25), (28, 29, 30, 31), (33, 34),
+    (40, 41), (42, 43), (44, 45, 46), (48, 49, 50, 51, 52, 53), (54, 55),
+    (57, 58, 59), (60, 61, 62), (63, 64), (65, 66, 67, 68, 69, 70, 71, 72, 73, 74),
+    (76, 77, 78, 79), (80, 81, 82, 83, 84, 85, 86, 87, 88),
 )
 
 
@@ -2481,7 +2485,10 @@ ORGAN_QUERY_GRID: Dict[str, Dict[str, object]] = {
         # D29's rule, one register over, unenforced because this register never
         # routed through the shared saturation check. Replaced by +8, which the
         # sweep reads APART from both its neighbours.
-        "visible_drifts": (-1, 8),
+        # PREPAYMENT CORRECTION 2026-10-08: (-1, 8) -> (-1, 14). +8 now sits inside the run (8..13); by
+        # the same rule the smallest positive drift read apart from both
+        # neighbours is +14. Follows the prepayment correction.
+        "visible_drifts": (-1, 14),
         # TWO collapses of two different kinds, which is what makes this entry
         # worth keeping: one where the READING saturates and the sibling can
         # still tell the companies apart, one where the COMPANY goes blind and
@@ -2489,6 +2496,8 @@ ORGAN_QUERY_GRID: Dict[str, Dict[str, object]] = {
         "collapsed_pairs": ((-15, -20), (-20, -30)),
         "distinct_pairs": ((-5, -20),),
         "reported_days_for_a_one_day_drift": None,   # not a reading in days
+        # PROSE BELOW PREDATES THE PREPAYMENT CORRECTION (2026-10-08): it is
+        # now 21 groups and the upper edge is +80; the fields are current.
         # SIXTEEN GROUPS OF COMPANIES PUBLISHING ONE FIGURE (atom D31), of
         # which the two declared pairs above were a 2-point sample of the first.
         # BELOW -6 every company has flagged every invoice and the gap is the
@@ -2512,14 +2521,17 @@ ORGAN_QUERY_GRID: Dict[str, Dict[str, object]] = {
             "seeds": (7, 11, 23),
             "stress_mix": "build_scenario's own `_STRESS_MIX`",
             "window": (-10, 40),
-            "declared_in_window": 7,
+            # PREPAYMENT CORRECTION 2026-10-08: 7 -> 9 declared runs in the
+            # window, and 6 -> 5 read apart on `moderate`, which is still the
+            # worst tier; both follow the re-derived `_RECON_SET_COLLAPSED_RUNS`.
+            "declared_in_window": 9,
             # The worst tier on the axis and what it does to the declaration --
             # RE-DERIVED by the control, never read back from here (a count
             # nobody re-measures is the D22/D25 decay this register keeps
             # catching). `moderate` reads 6 of the 7 declared runs APART and
             # leaves the baseline company in no run at all.
             "worst_tier": "moderate",
-            "read_apart_on_worst_tier": 6,
+            "read_apart_on_worst_tier": 5,
         },
         # THE AXIS THE DECLARATION IS FALSE ALONG, declared so the control has
         # something to fail against. `force_income_stress` builds each book;
@@ -2550,7 +2562,8 @@ ORGAN_QUERY_GRID: Dict[str, Dict[str, object]] = {
                                                        "high"),
         },
         "saturates_below": -6,
-        "saturates_above": 82,
+        # PREPAYMENT CORRECTION 2026-10-08: 82 -> 80, follows the prepayment correction.
+        "saturates_above": 80,
         "saturation_atom": "BOUND:the flag-everything set",
         "saturation_atom_below": "BOUND:the flag-everything set",
         "saturation_atom_above": (
@@ -2622,7 +2635,9 @@ ORGAN_QUERY_GRID: Dict[str, Dict[str, object]] = {
             # n = 51 and 55 is seed 7's; both sit on books the null control
             # passes, and both were excluded by the shipped floor. Nothing was
             # tuned -- this is the measurement the old floor was hiding.
-            "upper_edge_range": (49, 88),
+            # PREPAYMENT CORRECTION 2026-10-08: (49, 88) -> (48, 88), follows the prepayment
+            # correction; the floor (51) and the null controls did not move.
+            "upper_edge_range": (48, 88),
             "lower_edge_invariant": -6,
             # THE LAW-SIDE NULL CONTROL, declared under the SAME key the belief
             # axis uses so the derived population can floor both without knowing
@@ -4919,13 +4934,15 @@ def check_published_figure_caveat_coverage(
 # undeclared collapse is a blindness and a declared one the sweep reads apart
 # is a debt entry outliving its debt. The first and last runs are the two
 # saturated tails; the fourteen between them are the quantisation.
+# PREPAYMENT CORRECTION 2026-10-08: 16 runs -> 21, upper tail (82..88) -> (80..88); follows the
+# prepayment correction (the same re-measurement as `_RECON_SET_COLLAPSED_RUNS`).
 _DETECTION_COLLAPSED_RUNS = (
     (-20, -19, -18, -17, -16, -15, -14, -13, -12, -11, -10, -9, -8, -7, -6),
-    (-4, -3), (0, 1), (6, 7), (9, 10), (11, 12, 13),
-    (17, 18, 19, 20, 21, 22, 23, 24),
-    (28, 29), (44, 45), (61, 62), (65, 66, 67), (68, 69),
-    (72, 73, 74), (76, 77, 78), (80, 81),
-    (82, 83, 84, 85, 86, 87, 88),
+    (-4, -3), (0, 1), (2, 3), (4, 5), (6, 7), (8, 9, 10, 11, 12, 13),
+    (17, 18, 19, 20, 21, 22, 23, 24, 25), (28, 29, 30, 31), (33, 34),
+    (40, 41), (42, 43), (44, 45, 46), (48, 49, 50, 51, 52, 53), (54, 55),
+    (57, 58, 59), (60, 61, 62), (63, 64), (65, 66, 67, 68, 69, 70, 71, 72, 73, 74),
+    (76, 77, 78, 79), (80, 81, 82, 83, 84, 85, 86, 87, 88),
 )
 
 DIMENSION_DRIFT_RESOLUTION: Dict[str, Dict[str, object]] = {
@@ -4958,7 +4975,11 @@ DIMENSION_DRIFT_RESOLUTION: Dict[str, Dict[str, object]] = {
         # `_check_register_is_differential` now asks for, is the stronger
         # property: this dimension tells EVERY pair of adjacent companies apart
         # across its whole defined interior, from -20 up to the tail.
+        # PREPAYMENT CORRECTION 2026-10-08: one run -> two; (38, 39) is new and INTERIOR. Follows the
+        # prepayment correction. The differential witness of interior
+        # resolution is now `detection_latency` alone.
         "collapsed_runs": (
+            (38, 39),
             (63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78,
              79, 80, 81, 82, 83, 84, 85, 86, 87, 88),
         ),
@@ -5055,7 +5076,8 @@ DIMENSION_DRIFT_RESOLUTION: Dict[str, Dict[str, object]] = {
         },
         "reshape_atom": "D26_detection_grace_line_has_no_book_beside_it",
         "saturates_below": -6,
-        "saturates_above": 82,
+        # PREPAYMENT CORRECTION 2026-10-08: 82 -> 80, follows the prepayment correction.
+        "saturates_above": 80,
         "saturation_atom": "D28_the_detection_gap_is_quantised_by_this_books_placement",
         # AN OWNER PER EDGE (atom D29), and the two edges are two KINDS of
         # object -- the repair its sibling `recon_lag_days` got on 2026-08-18
@@ -5098,12 +5120,22 @@ DIMENSION_DRIFT_RESOLUTION: Dict[str, Dict[str, object]] = {
         # seeds 7/11/23 and re-derived every run by
         # `check_detection_interior_change_points` -- an asserted cause is
         # exactly what decayed into a false sentence the first time.
-        "interior_pairs": 86,
-        "interior_counted_change_points": (32, 38),
-        "interior_excluded_change_points": (61, 63),
-        "interior_silent_set_moves": (34, 40),
+        # PREPAYMENT CORRECTION 2026-10-08: 86 -> 84 (the upper edge moved
+        # 82 -> 80, so the readable interior is two pairs shorter).
+        "interior_pairs": 84,
+        # PREPAYMENT CORRECTION 2026-10-08: counted (32, 38) -> (14, 23), excluded (61, 63) -> (58, 60),
+        # silent set moves (34, 40) -> (42, 50); follows the prepayment
+        # correction (fewer non-DD failures in `S`, so fewer counted steps).
+        "interior_counted_change_points": (14, 23),
+        "interior_excluded_change_points": (58, 60),
+        "interior_silent_set_moves": (42, 50),
         "interior_quantisation_atom": (
             "D28_the_detection_gap_is_quantised_by_this_books_placement"),
+        # THE FIGURES IN THIS PROSE (+82, fourteen interior collapses, 61-63 /
+        # 32-38 / 34-40, 331 -> 327, 4/3/3) were measured before the prepayment
+        # correction of 2026-10-08. The machine-read fields above are current,
+        # and they -- not this prose -- are what the published caveat
+        # interpolates. Kept as the dated record rather than retyped unmeasured.
         "why": (
             "SET membership by `as_of`, and it is now the register's ONLY "
             "on-path blindness -- D25 spread the book across the billing "
@@ -5345,14 +5377,18 @@ DIMENSION_DRIFT_RESOLUTION: Dict[str, Dict[str, object]] = {
         # dropping the oldest events moves an account's tier without always
         # moving the population MIX. That is this dimension's own bluntness
         # (atom D19), and it is why the bands are per-entry.
-        "own_invisible_drifts": (-1,),
+        # PREPAYMENT CORRECTION 2026-10-08: own_invisible_drifts (-1,) -> (); own_collapsed_runs lose
+        # (-1, 0) and (1, 2, 3) becomes (2, 3); own_saturates_above 1 -> 2. A
+        # one-day shortening now moves the mix on every seed. Follows the
+        # prepayment correction (the failure-event population changed).
+        "own_invisible_drifts": (),
         "own_visible_drifts": (-60, -45, -30, -4),
         "own_debt_atom": "D27_belief_window_saturates_on_this_book",
         "own_collapsed_runs": (
-            (-90, -61), (-23, -22), (-1, 0), (1, 2, 3),
+            (-90, -61), (-23, -22), (2, 3),
         ),
         "own_saturates_below": -61,
-        "own_saturates_above": 1,
+        "own_saturates_above": 2,
         # SCOPED PER ENTRY because the edge is this dimension's own on the
         # n=300 book; the AXIS is shared, because both read the same
         # observed-failure span (atom D30).
@@ -8033,6 +8069,8 @@ SCENARIO_CONSTANT_CENSUS: Dict[str, Dict[str, object]] = {
             "divergence_days": 0,
             # 1 = the scored company is ONE day short of never forgetting on
             # seed 7 (oldest failure 91d); 0 was the old 400, already past it.
+            # PREPAYMENT CORRECTION 2026-10-08: UNCHANGED on its subject (seed
+            # 7, n=300, oldest failure still 91d).
             "never_forgets_drift_days": 1,
             "scored_saturated": False,
             # WHAT THE OLD 400 COST, kept as the dated measurement that
