@@ -66,6 +66,7 @@ NAMED SIMPLIFICATIONS, each a place this world is thinner than the settled one:
 from __future__ import annotations
 
 import datetime as dt
+import math
 import random
 import time
 from contextlib import contextmanager
@@ -208,7 +209,7 @@ def billed_kwh(records: list[dict], through: dt.date) -> float:
 
 
 def world_renewal(customer, decision_date: dt.date, records: list[dict], old_rate: float,
-                  offer: float) -> tuple[float, bool] | None:
+                  offer: float, passive_churn_cap: float | None = None) -> tuple[float, bool] | None:
     """The world's P(stay) for this household at this renewal at `offer`, and whether it stays,
     asked as the probe asks it: `roll_lifecycle_event` with only the rate varying, so the roll is
     the same at either offer. None where the world has no answer."""
@@ -218,7 +219,8 @@ def world_renewal(customer, decision_date: dt.date, records: list[dict], old_rat
     event = roll_lifecycle_event(
         customer.customer_id, decision_date.isoformat(), FUEL, records,
         [customer.to_customer_dict()], old_rate_gbp_per_mwh=old_rate,
-        new_rate_gbp_per_mwh=offer, market_year=decision_date.year, income_stress=stress)
+        new_rate_gbp_per_mwh=offer, market_year=decision_date.year, income_stress=stress,
+        passive_churn_cap=passive_churn_cap)
     if event is None:
         return None
     return float(event["effective_retention_probability"]), event["event_type"] == "renewed"
@@ -288,6 +290,10 @@ def build_decision_set(seed: int, *, cut_gbp_per_mwh: float, planted_effect: flo
                     # The product the account OPENED on: "svt" for a deemed-contract move-in, None
                     # where the draw cannot establish it (not "fixed": see `_draw_tariff_type`).
                     "opened_on": c.tariff_type,
+                    # This set never walks the default tariff or an active renewal, so the two
+                    # positions are unknown here, not zero: `build_funnel_decision_set` walks both.
+                    "acquisition_route": ROUTE_MOVE_IN if c.tariff_type == "svt" else None,
+                    "days_on_default": None, "ever_actively_renewed": None,
                     "monthly_bills": monthly_bills(records, decision),
                     "billed_kwh": billed_kwh(records, decision),
                     # WORLD TRUTH below this line: the seam's allow-list never passes it.
@@ -305,3 +311,205 @@ def build_decision_set(seed: int, *, cut_gbp_per_mwh: float, planted_effect: flo
     return DecisionSet(seed=seed, cut_gbp_per_mwh=cut_gbp_per_mwh, planted_effect=planted_effect,
                        rows=rows, households=len(households), day_records_built=built,
                        seconds=time.perf_counter() - t0)
+
+
+# --- The funnel-sourced set (director ruling 2, 2026-10-08) -------------------------------------
+#
+# WHY A SECOND SOURCE. `build_decision_set` draws from `draw_population`, which never passes through
+# the growth campaign, so option 1 on and off built byte-identical sets on seeds 101 and 202
+# (`docs/staging/SEAT_FINDING_B8S_DECISION_SET_CANNOT_SEE_ACQUISITION_SELECTION_SO_P1_P4_ARE_UNGRADED
+# _2026-10-09.md`). This one takes the households the campaign's funnel WON, at the date it won them,
+# beside the drawn trickle it competes with for the same stock, and walks each one's renewals the way
+# the run's renewal builder does, so a household can roll off a fix onto the default and back.
+#
+# THE IDS ARE KEPT, NOT RE-PREFIXED. Option 1 selects on each prospect's own latent elasticity and
+# engagement, both keyed on its id; a winner re-id'd here would carry a fresh draw of both and the
+# selection would be erased on the way in. The set is built in its own process, which holds no live
+# book whose ids could collide.
+#
+# THE WALK, step for step against `run_phase2b`'s renewal builders:
+#   * A campaign win opens on a fix (it chose a deal). A trickle move-in opens on the default
+#     (`opened_on == "svt"`); the rest of the trickle open on a fix, as the run's builder treats them.
+#   * At each anniversary the world rolls `rolls_active_renewal` with the household's own
+#     `active_renewal_probability_for_customer`. Off a FIX that anniversary is a rolled renewal
+#     point, and it is the company's decision: one coin, the cut or the default, and the world's
+#     `roll_lifecycle_event` with the passive cap `passive_churn_cap_for(active)`. A stayer that was
+#     active takes the offered fix; a passive one rolls onto the default at the default's rate.
+#   * Off the DEFAULT the anniversary carries no departure roll (`departure_rolled_at_renewal`): an
+#     active household converts onto a fix at the default's price and a passive one stays.
+#   * A year on the default carries the C1b inertia hazard, asked of the run's own terms
+#     (`inertia_hazard_for_term`, `build_departure_risks` with no price or shock term, the run's
+#     `svt_inertia_{account}_{date}` roll). No coin: it is not a renewal point.
+#
+# NAMED SIMPLIFICATIONS beyond the module's own:
+#   * The active-renewal seed is the household's anniversary count, where the run uses
+#     `len(schedule)`, which an SVT stint advances by its cap segments. Same probability, different
+#     draw: this is the run's rule, not the run's sequence.
+#   * A year on the default is ONE hazard segment, where the run splits it at cap periods.
+#   * No contact reaches a household on the default, so the C1b contact response is not asked.
+#   * Founders are not in the set: they joined before any route the company acts on.
+
+#: The route a household joined by, as the company recorded it. A campaign win came through the
+#: company's own funnel; a move-in arrived on a deemed contract. The rest of the trickle carry None:
+#: the draw cannot establish their route (`population_draw._draw_tariff_type`), and None is not a
+#: route.
+ROUTE_CAMPAIGN_WIN = "campaign_win"
+ROUTE_MOVE_IN = "move_in"
+
+
+def campaign_households(seed: int) -> list[tuple]:
+    """(household, acquisition route) for every domestic electricity household the growth campaign's
+    funnel won at `seed`, dated the day it was won, then the drawn trickle beside it."""
+    from simulation.live_population import _drawn_trickle, _pre_growth_book, _resolve_campaign
+
+    # No settlement ceiling: it samples the wins for a half-hourly run this set does not make.
+    outcome = _resolve_campaign(_pre_growth_book(seed), seed, persist=False,
+                                customer_year_budget=math.inf)
+    if len(outcome["winners"]) != outcome["funnel_wins"]:
+        raise ValueError(f"the campaign settled {len(outcome['winners'])} of its "
+                         f"{outcome['funnel_wins']} funnel wins with no ceiling: the set would be a sample")
+    won = [(replace(p, acquisition_date=on.isoformat()), ROUTE_CAMPAIGN_WIN)
+           for p, on in outcome["winners"]]
+    trickle = [(c, ROUTE_MOVE_IN if c.tariff_type == "svt" else None) for c in _drawn_trickle(seed)]
+    return [(c, route) for c, route in won + trickle
+            if c.segment == "resi" and c.commodity == FUEL]
+
+
+@contextmanager
+def world_seed(seed: int):
+    """Make `seed` this process's run seed while the set is built, so the per-household traits the
+    renewal roll reads are the ones the campaign selected on at the same seed."""
+    import simulation.live_population as lp
+
+    before = lp._RUN_BASE_SEED
+    lp._RUN_BASE_SEED = seed
+    try:
+        yield
+    finally:
+        lp._RUN_BASE_SEED = before
+
+
+def default_year_departs(customer, start: dt.date, stint_start: dt.date) -> tuple[float, bool]:
+    """The world's chance this household leaves during the year on the default from `start`, and
+    whether it does: the C1b inertia hazard as the run asks it, with no contact."""
+    from simulation.departure_level_anchor import year_level_anchor
+    from simulation.departure_risks import (
+        DECLARED_SENSITIVITY_SCALE,
+        build_departure_risks,
+        total_departure_probability,
+    )
+    from simulation.household_segments import engagement_level_for_customer, tenure_for_customer
+    from simulation.svt_product import SVT_TARIFF_TYPE, inertia_hazard_for_term
+    from simulation.switching_propensity import (
+        stress_switching_multiplier,
+        tenure_switching_multiplier,
+    )
+
+    account = customer.customer_id
+    hazard = inertia_hazard_for_term(
+        {"tariff_type": SVT_TARIFF_TYPE, "acquisition_date": start.isoformat(),
+         "term_end": (start + dt.timedelta(days=365)).isoformat()},
+        stint_start=stint_start.isoformat(),
+        engagement_level=engagement_level_for_customer(account).value)
+    stress = getattr(getattr(customer.premise, "household", None), "income_stress", None)
+    propensity = (stress_switching_multiplier(stress)
+                  * tenure_switching_multiplier(tenure_for_customer(account).value)
+                  if stress is not None else 1.0)
+    p = total_departure_probability(build_departure_risks(
+        bill_shock_base=0.0, price_response=0.0, dissatisfaction_response=0.0,
+        action_propensity=propensity, sensitivity_scale=DECLARED_SENSITIVITY_SCALE,
+        level_anchor=year_level_anchor(start.year), svt_inertia=hazard))
+    return p, random.Random(f"svt_inertia_{account}_{start.isoformat()}").random() < p
+
+
+def build_funnel_decision_set(seed: int, *, cut_gbp_per_mwh: float, treat_share: float = 0.5,
+                              households: list[tuple] | None = None) -> DecisionSet:
+    """The campaign's won households and the trickle, walked through fixes and the default, one coin
+    per renewal point. Rows carry `acquisition_route`, `days_on_default` (days on the default tariff
+    before this decision, over the account's life) and `ever_actively_renewed` (an active renewal or
+    a conversion off the default before this decision) beside the module's own observables."""
+    from simulation.household_segments import active_renewal_probability_for_customer
+    from simulation.renewal_engagement import passive_churn_cap_for, rolls_active_renewal
+
+    t0 = time.perf_counter()
+    with world_seed(seed):
+        pairs = households if households is not None else campaign_households(seed)
+        rows: list[dict] = []
+        built = 0
+        with registered([c for c, _ in pairs]):
+            for c, route in pairs:
+                account = c.customer_id
+                joined = dt.date.fromisoformat(c.acquisition_date)
+                on_default = c.tariff_type == "svt" and route == ROUTE_MOVE_IN
+                rate = default_offer_ex_vat(joined)
+                records: list[dict] = []
+                days_on_default, ever_active, stint_start = 0, False, joined
+                start, term = joined, 0
+                while True:
+                    year = lean_day_records(account, c.eac_kwh, start,
+                                            start + dt.timedelta(days=365), rate)
+                    built += len(year)
+                    records = (records + year)[-HISTORY_DAYS:]
+                    if on_default:
+                        _p, departs = default_year_departs(c, start, stint_start)
+                        if departs:
+                            break
+                        days_on_default += 365
+                    decision = start + dt.timedelta(days=365)
+                    if decision > LAST_DECISION:
+                        break
+                    iso = decision.isoformat()
+                    term += 1
+                    active = rolls_active_renewal(iso, f"{account}_{term}",
+                                                  active_renewal_probability_for_customer(account))
+                    holdout_offer = default_offer_ex_vat(decision)
+                    if on_default:
+                        if active:
+                            on_default, ever_active, rate = False, True, holdout_offer
+                        else:
+                            rate = holdout_offer
+                        start = decision
+                        continue
+                    cap = passive_churn_cap_for(active)
+                    treated_offer = holdout_offer - cut_gbp_per_mwh
+                    hold = world_renewal(c, decision, records, rate, holdout_offer, cap)
+                    if hold is None:
+                        break
+                    p_hold, stays_held_out = hold
+                    if cut_gbp_per_mwh == 0:
+                        p_treat, stays_treated = p_hold, stays_held_out
+                    else:
+                        p_treat, stays_treated = world_renewal(c, decision, records, rate,
+                                                               treated_offer, cap)
+                    treated = coin_is_treated(seed, account, iso, treat_share)
+                    stayed = stays_treated if treated else stays_held_out
+                    offer = treated_offer if treated else holdout_offer
+                    rows.append({
+                        "account": account, "decision_date": iso,
+                        "arm": "treated" if treated else "holdout",
+                        "offer_unit_rate": round(offer, 4), "stayed": stayed,
+                        "payment_method": c.payment_method, "opened_on": c.tariff_type,
+                        "acquisition_route": route, "days_on_default": days_on_default,
+                        "ever_actively_renewed": ever_active,
+                        "monthly_bills": monthly_bills(records, decision),
+                        "billed_kwh": billed_kwh(records, decision),
+                        # WORLD TRUTH below this line: the seam's allow-list never passes it.
+                        "p_stay_holdout": p_hold, "p_stay_treated": p_treat,
+                        "roll": churn_roll_for_renewal_of(account, iso), "active_renewal": active,
+                    })
+                    if not stayed:
+                        break
+                    if active:
+                        ever_active, rate = True, offer
+                    else:
+                        on_default, stint_start, rate = True, decision, holdout_offer
+                    start = decision
+    return DecisionSet(seed=seed, cut_gbp_per_mwh=cut_gbp_per_mwh, planted_effect=None,
+                       rows=rows, households=len(pairs), day_records_built=built,
+                       seconds=time.perf_counter() - t0)
+
+
+def churn_roll_for_renewal_of(account: str, iso: str) -> float:
+    from simulation.customer_events import churn_roll_for_renewal
+
+    return churn_roll_for_renewal(account, iso)

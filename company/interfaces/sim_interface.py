@@ -752,9 +752,14 @@ def build_sim_interface(
 #: how it pays, the bills it sent and the kWh it billed. An ALLOW-list, so a truth field added to the world's row
 #: (`simulation.coin_drawn_decision_set`: the world's P(stay) at either offer, the roll) cannot
 #: cross by default; it has to be named here.
+#: The last three are the positions a save offer may vary by (director, 2026-10-08): the route the
+#: account joined by, its days on the default tariff before this decision, and whether it has ever
+#: renewed actively. All three are the company's own records of its own account. None where the
+#: set cannot say.
 HOLDOUT_OBSERVABLE_FIELDS = (
     "account", "decision_date", "arm", "offer_unit_rate", "stayed", "payment_method",
     "monthly_bills", "billed_kwh",
+    "acquisition_route", "days_on_default", "ever_actively_renewed",
 )
 
 

@@ -73,3 +73,11 @@ director named on 2026-10-08:
 (a) is reversible and adds no number, so it is the next piece of work and does not need a decision
 first. The director should know the ruling-2 test was set on an instrument that could not see the
 change, and that it has not yet been graded.
+
+## Actioned, 2026-10-09
+
+Recommendation (a) is built: `simulation.coin_drawn_decision_set.build_funnel_decision_set`. With the
+switch off and on it builds different sets (controlled in
+`tests/simulation/test_the_funnel_sourced_decision_set_sees_acquisition_selection.py`). P1-P4 are
+graded on it: P1-P3 fail in both arms and P4 holds, as the prediction above said. The record is
+`docs/staging/records/SEAT_PREREG_ACQUISITION_P1_P4_ON_THE_FUNNEL_SOURCED_DECISION_SET_2026-10-09.md`.

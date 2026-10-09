@@ -26,6 +26,7 @@ def _row(p0: float, pc: float, roll: float, opened_on=None) -> dict:
     return {"account": "HLD-t", "decision_date": "2020-01-01", "arm": "holdout",
             "offer_unit_rate": 200.0, "stayed": roll <= p0, "payment_method": "direct_debit",
             "monthly_bills": [50.0] * 12, "billed_kwh": 3000.0, "opened_on": opened_on,
+            "acquisition_route": None, "days_on_default": None, "ever_actively_renewed": None,
             "p_stay_holdout": p0, "p_stay_at_cut": {CUT: pc}, "roll": roll}
 
 
