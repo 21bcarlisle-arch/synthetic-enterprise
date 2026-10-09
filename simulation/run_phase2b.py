@@ -4081,19 +4081,6 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             # ALSO crosses the W4_4 seam into the D5 consumer belief LIVE. The
             # analytics dict fed here is DERIVED from that single event -- one
             # coherent reality per customer/period, no second independent draw.
-            _held = _payment_month_open.get(cid)
-            if _held is not None and _held["month"] != rec_month:
-                _months_closed_this_term.append((cid, _payment_month_open.pop(cid)))
-                _held = None
-            if _held is None:
-                _held = _payment_month_open[cid] = {
-                    "month": rec_month, "amount_gbp": 0.0,
-                    "income_stress_value": (
-                        _income_stress.value if _income_stress is not None else None),
-                    "segment": cust_segment, "fuel": commodity}
-            # The owner's void charge is not this household's to pay (B7 slice 6).
-            _held["amount_gbp"] += float(rec.get('revenue_gbp', 0.0) or 0.0) - rec.get(
-                "void_owner_charge_gbp", 0.0)
             # Real-time placeholder only -- simulation.run_phase4c_on_phase2b.main()
             # overwrites this with real, emergent bad debt from the payment/
             # arrears model (simulation.arrears_engine) once bills exist (Phase QD).
@@ -4129,6 +4116,22 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                 rec["net_margin_gbp"] = round(rec["net_margin_gbp"] - rec["occupier_debt_gbp"], 6)
                 _bad_debt = 0.0
             rec["bad_debt_gbp"] = _bad_debt
+            # Accumulated AFTER the two branches above, because they decide whose a row is: the
+            # owner's void charge (slice 6) and the unnamed occupier's debt (slice 4) are not this
+            # household's to pay, as the arrears engine already holds (`occupier_share`).
+            _held = _payment_month_open.get(cid)
+            if _held is not None and _held["month"] != rec_month:
+                _months_closed_this_term.append((cid, _payment_month_open.pop(cid)))
+                _held = None
+            if _held is None:
+                _held = _payment_month_open[cid] = {
+                    "month": rec_month, "amount_gbp": 0.0,
+                    "income_stress_value": (
+                        _income_stress.value if _income_stress is not None else None),
+                    "segment": cust_segment, "fuel": commodity}
+            _held["amount_gbp"] += (float(rec.get('revenue_gbp', 0.0) or 0.0)
+                                    - rec.get("void_owner_charge_gbp", 0.0)
+                                    - rec.get("occupier_debt_gbp", 0.0))
             rec["net_margin_gbp"] = round(rec["net_margin_gbp"] - _bad_debt, 6)
             treasury += rec["net_margin_gbp"]
             rec["treasury_cash_balance_gbp"] = treasury

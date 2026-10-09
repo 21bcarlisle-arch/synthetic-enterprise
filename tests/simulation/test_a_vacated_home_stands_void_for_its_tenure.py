@@ -11,6 +11,7 @@ import datetime as dt
 
 import pytest
 
+import background.live_payment_triad as lpt
 import simulation.arrears_engine as ae
 import simulation.run_phase2b as run
 from sim.customer_state_layer import (
@@ -32,8 +33,18 @@ from tests.tools.test_generate_billing_ledger_pw import _resi_bill
 def void_run():
     patch = pytest.MonkeyPatch()
     patch.setattr(run, "moves_active", lambda: True)
+    posted = {}
+    record_period = lpt.LivePaymentTriad.record_period
+
+    def _logged(self, **kw):
+        posted[(kw["customer_id"], kw["due_date"].isoformat()[:7])] = kw["amount_gbp"]
+        return record_period(self, **kw)
+
+    patch.setattr(lpt.LivePaymentTriad, "record_period", _logged)
     try:
-        yield run.main(report_end="2016-12-31")
+        result = run.main(report_end="2016-12-31")
+        result["_triad_posted"] = posted
+        yield result
     finally:
         patch.undo()
 
@@ -138,6 +149,25 @@ def test_a_wholly_void_bill_is_stamped_as_the_owners(void_run):
     assert whole and after
     assert all(b["void_owner_share"] == 1.0 for b in whole), whole
     assert not [b for b in after if "void_owner_share" in b]
+
+
+def test_the_payment_triad_asks_the_named_household_only_for_its_own_months_share(void_run):
+    """Defect: the triad's monthly amount still carries the change-of-tenancy window's occupier
+    debt (or the owner's void charge), so the named household's payment events, and the company's
+    belief fed from them, include energy used before anyone was named. The first assertion is the
+    partition control: with no posted month holding occupier debt, the loop passes vacuously."""
+    posted = void_run["_triad_posted"]
+    legs = {m["customer_id"] for m in void_run["home_move_ins"]}
+    month = {}
+    for r in void_run["all_records"]:
+        if r["customer_id"] in legs:
+            acc = month.setdefault((r["customer_id"], r["settlement_date"][:7]), [0.0, 0.0, 0.0])
+            acc[0] += r.get("revenue_gbp", 0.0) or 0.0
+            acc[1] += r.get("occupier_debt_gbp", 0.0)
+            acc[2] += r.get("void_owner_charge_gbp", 0.0)
+    assert [k for k, (_rev, occ, _void) in month.items() if occ > 1.0 and k in posted]
+    for key, (rev, occ, void) in month.items():
+        assert posted[key] == pytest.approx(rev - occ - void, abs=1e-6), (key, rev, occ, void)
 
 
 def _book():
