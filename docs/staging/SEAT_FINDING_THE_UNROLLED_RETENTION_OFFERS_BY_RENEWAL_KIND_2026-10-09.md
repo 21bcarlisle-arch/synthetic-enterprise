@@ -80,7 +80,15 @@ decision-leg event.
   needs no estimate. It is simply not passed through the renewal door today (`RenewalObservation`
   has no tariff field).
 - **Conversion versus declined fix: no.** That is the household's answer to the fix, given after
-  the offer. But it does not matter here, because neither kind can be saved.
+  the offer. Neither kind can be saved from *leaving*.
+  - *Correction, 09:05, same day: "it does not matter here" was too strong on the landed code.*
+    Since `b922911b7`, `_offer_vs_default` is recomputed at the discounted rate *before*
+    `renewal_outcome` applies the dominance rule (decline iff the fix is above the default). So in
+    today's world a discount can turn a decline into a conversion: any decline within 3-8% of
+    parity converts. **On landed code, the offer at an SVT anniversary can win a conversion.** It
+    still cannot prevent a departure. That is the very alternative the director's row names ("the
+    offer is what wins the conversion"). Which of the 21 declines it flips is not counted here,
+    because this run predates `b922911b7`.
 
 That is the evidence for the director's open retention-at-conversion row in
 `docs/direction/DIRECTION.yaml`. His proposal there cites an older count, 32 of 60 offers and 59% of
@@ -93,9 +101,10 @@ his call, and nothing here acts on it.
   alone but bills a kept customer at the offered rate. That changes the next term's old rate, and so
   the company's next estimate, so later offers in the landed world may differ by a few. The split
   should be re-read on the landed code before anyone quotes it to the pound.
-- Not checked: whether `b922911b7` now bills the offered discount on a `declined_fix` renewal, where
-  the household refused the fix it was attached to. If it does, that is revenue given away on a
-  tariff the household never took.
+- *Checked 09:05:* `b922911b7` does **not** bill the discount on a `declined_fix` renewal. The declined
+  term's account-state row is withdrawn and the window is spliced back to the SVT
+  (`run_phase2b.py`, "THE DECLINED TERM IS REPLACED BY THE DEFAULT TARIFF"). The offer's booked cost
+  stays in `retention_log`, which does not reach the P&L.
 - `bf52e72e6`'s run-level control (`test_a_retention_offer_is_answered_at_its_discounted_rate`) was
   not carried over. It reads `nudge_physics_log` fields the landed implementation does not write.
   The landed commit's controls are unit-level, plus a census of readers.
