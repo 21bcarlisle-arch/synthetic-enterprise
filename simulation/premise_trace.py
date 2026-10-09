@@ -626,20 +626,27 @@ _HES_HOB_HOURS_PER_USE = 0.35
 
 # `domain-knowledge` — nameplate ratings and usage frequencies. Judged (never
 # parameterised) against Ofgem TDCV medium non-heating electricity, 2,700 kWh/yr.
+# No cooking appliance scales with headcount: HES Table 23 shows none (oven 267/375/211/183/396 by
+# household type, cooking total 422-505), and the oven's per-use level was fitted at unit intensity.
+# docs/staging/SEAT_FINDING_THE_COOKING_CLASS_DOES_NOT_SCALE_WITH_HEADCOUNT_IN_HES_2026-10-09.md.
 APPLIANCE_CATALOGUE: tuple[ApplianceSpec, ...] = (
     ApplianceSpec(
         "kettle", _KETTLE_KW, _KETTLE_KWH_PER_BOIL / _KETTLE_KW, 4.0, (12, 45), heat_fraction=0.95,
         scales_with_people=False,
     ),
-    ApplianceSpec("toaster", 1.1, 0.05, 0.8, (12, 20), heat_fraction=0.95),
-    ApplianceSpec("microwave", 0.9, 0.10, 0.8, (20, 43), heat_fraction=0.8),
+    ApplianceSpec(
+        "toaster", 1.1, 0.05, 0.8, (12, 20), heat_fraction=0.95, scales_with_people=False,
+    ),
+    ApplianceSpec(
+        "microwave", 0.9, 0.10, 0.8, (20, 43), heat_fraction=0.8, scales_with_people=False,
+    ),
     ApplianceSpec(
         "oven", 2.0, _HES_OVEN_HOURS_PER_USE * _ECUK_OVEN_RATIO_TO_2022, 0.55, (32, 42),
-        heat_fraction=0.6,
+        heat_fraction=0.6, scales_with_people=False,
     ),
     ApplianceSpec(
         "hob", 1.8, _HES_HOB_HOURS_PER_USE * _ECUK_HOB_RATIO_TO_2022, 0.70, (33, 43),
-        heat_fraction=0.6,
+        heat_fraction=0.6, scales_with_people=False,
     ),
     ApplianceSpec("washing_machine", 0.55, 1.5, 0.60, (14, 40), heat_fraction=0.5),
     ApplianceSpec("dishwasher", 0.70, 1.5, 0.50, (36, 46), heat_fraction=0.5),

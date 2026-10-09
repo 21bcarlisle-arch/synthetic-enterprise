@@ -130,6 +130,9 @@ oven and hob 90 minutes earlier takes 0.018 kWh/h off the peak. With no cooking 
 141–185 by type, and a multiple-pensioner home boils more than one with children. The oven reads
 183 in a home with children and 375 for a single non-pensioner. The world scaled every appliance by
 (n/2.4)^0.6, so it gave a one-person home a 91 kWh kettle and a home with children 200. The kettle
-no longer scales, and its boil is refitted to 0.114 kWh. The oven, hob, toaster and microwave still
-scale, and the microwave's level (25 vs 56) is unsourced. See
-`docs/staging/SEAT_FINDING_THE_KETTLE_DOES_NOT_SCALE_WITH_HEADCOUNT_IN_HES_2026-10-09.md`.
+no longer scales, and its boil is refitted to 0.114 kWh. See
+`docs/staging/SEAT_FINDING_THE_KETTLE_DOES_NOT_SCALE_WITH_HEADCOUNT_IN_HES_2026-10-09.md`. Later the
+same day the oven, hob, toaster and microwave stopped scaling too, with no per-use energy refitted.
+Flat, the oven reads 242 against HES's 290 x 0.80 = 232. The microwave's level (26 vs 56) is
+unsourced and still open. See
+`docs/staging/SEAT_FINDING_THE_COOKING_CLASS_DOES_NOT_SCALE_WITH_HEADCOUNT_IN_HES_2026-10-09.md`.

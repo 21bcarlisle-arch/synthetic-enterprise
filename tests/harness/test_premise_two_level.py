@@ -699,7 +699,9 @@ def test_MEASURED_population_values(population, population_result):
     # [3, 15, 31, 47] -> [3, 15, 27, 44] on 2026-10-09, the drawn 60 on the book's census headcount instead of the deleted bedrooms fallback
     # (mean 3.02 -> TS017). More one-person homes, which read less calm; p50 and p75 moved PAST
     # expected (30, 45) by three and one. The instrument changed, not the world.
-    assert [legs[q].below for q in (0.10, 0.25, 0.50, 0.75)] == [3, 15, 27, 44], texture.note
+    # [3, 15, 27, 44] -> [3, 15, 27, 45] the same day: oven, hob, toaster and microwave off headcount
+    # (HES Table 23). One more home under the real p75; p75 now sits exactly on expected (45).
+    assert [legs[q].below for q in (0.10, 0.25, 0.50, 0.75)] == [3, 15, 27, 45], texture.note
     # 0.142 -> 0.153 with electronics at its 2022 level (real 0.158).
     # 0.153 -> 0.168 on 2026-10-09, the census headcount (above).
     assert legs[0.50].world == pytest.approx(0.168, abs=0.005), texture.note
@@ -713,8 +715,10 @@ def test_MEASURED_population_values(population, population_result):
     # P0033 (electric storage, five people) lost about 30% of its kettle. P0018 reads 0.0635.
     # "The calmest home is one the machine netting did not touch" moved to the strict xfail
     # `test_net_of_both_machines_no_electric_home_is_calmer_than_every_gas_home`.
-    assert texture.worst_home == "P0033", texture.note
-    assert texture.worst_value == pytest.approx(0.0634, abs=5e-4), texture.note
+    # P0033 0.0634 -> P0018 0.0633 the same day: the rest of the cooking class off headcount. P0033
+    # reads 0.06329 against P0018's 0.06327, so the calmest home is a gas home again by 0.03%.
+    assert texture.worst_home == "P0018", texture.note
+    assert texture.worst_value == pytest.approx(0.0633, abs=5e-4), texture.note
     # NOBODY WAS EXCLUDED TO GET HERE. All 60 homes are judged on every anchored
     # cell — the electrically heated ones included — which is the difference
     # between netting a component out of a statistic and dropping the homes that
@@ -760,7 +764,8 @@ def test_MEASURED_population_values(population, population_result):
     # world. Still red against 4.88.
     # 3.07 -> 2.99 the same day: the kettle off headcount (HES Table 23) moves kettle energy from
     # the large homes to the small, so the spread narrows. Further from 4.88.
-    assert spread.value == pytest.approx(2.99, abs=0.05), spread.note
+    # 2.99 -> 2.82 the same day: oven, hob, toaster and microwave off headcount, the same direction.
+    assert spread.value == pytest.approx(2.82, abs=0.05), spread.note
     assert not population_result.inconclusive, population_result.summary()
     # 0.4386 -> 0.4511 on 2026-10-06: the boiler pump repeats with the heating, so
     # it raises a gas home's day-to-day shape correlation a little. Still a GAS home.
@@ -953,7 +958,9 @@ def test_the_L1_1_BREACH_WAS_the_WATER_HEATER_and_the_LOAD_SET_CLOSED_IT(
         # P0033 40.1% on 2026-10-08: electronics came down to its 2022 level, so the behaviour
         # in the denominator shrank and the same water stream is a larger share of it. The
         # ceiling moves with the denominator, not with the stream: 0.40 -> 0.45.
-        assert 0.25 <= water_share <= 0.45, (
+        # P0033 45.2% on 2026-10-09, the same mechanism: oven, hob, toaster and microwave off
+        # headcount take about a third of the cooking out of its five-person behaviour. 0.45 -> 0.50.
+        assert 0.25 <= water_share <= 0.50, (
             f"{trace.premise_id}: the water heater is {water_share:.1%} of what "
             "L1.1 called behaviour before this repair — if this has moved, the "
             "diagnosis below is about a different stream"
@@ -1096,25 +1103,19 @@ def test_the_WATER_HEATER_netting_is_a_LOAD_SET_repair_and_not_a_LOOSENING(
         )
 
 
-@pytest.mark.xfail(
-    strict=True,
-    reason=(
-        "OPEN, measured 2026-10-09 when the kettle stopped scaling with headcount (HES Table 23). "
-        "Net of both machines, P0033 (storage, 5 people) reads 0.06338 against the calmest gas "
-        "home P0018's 0.06350, and is the 60's calmest judged home. P0020 (direct, 4 people) fires "
-        "at 0.3565 against 0.6 x the gas median, 0.3569. At base the margins were +1.5% and +1.6%. "
-        "The three electric homes hold 4, 4 and 5 people against the 60's mean 2.35, so a flat "
-        "kettle takes about 30% of the kettle out of exactly these homes. That is why they moved, "
-        "not why they sat on the calm side: net of both they were 2nd, 5th and 11th calmest of 60 "
-        "at base, and a big gas home (P0049, 5 people) reads 0.075. Whether the water heater is "
-        "the whole story is open again. Strict: this reds when the electric homes clear both legs"
-    ),
-)
 def test_net_of_both_machines_no_electric_home_is_calmer_than_every_gas_home(
     drawn_traces, population_result, water_heat_parity
 ):
     # Defect it catches: an electric home still calmer than the gas population once both machines
     # are netted, so something other than the water heater makes it calm (H38).
+    #
+    # A strict xfail from the kettle landing (302477495) until the rest of the cooking class came off
+    # headcount the same day, when it passed. It passes on a KNIFE-EDGE, not on a resolution: P0033
+    # (storage, 5 people) reads 0.06329 net of both against the calmest gas home P0018's 0.06327,
+    # and P0020 fires at 0.3702 against 0.6 x the gas median, 0.3583 (+3.3%). The three electric
+    # homes still sit among the calmest of the 60. Whether that is this draw's 4-5 person homes or a
+    # stream other than the water heater is open: read it across more than one draw before acting.
+    # docs/staging/SEAT_FINDING_THE_COOKING_CLASS_DOES_NOT_SCALE_WITH_HEADCOUNT_IN_HES_2026-10-09.md.
     heated = [t for t in drawn_traces if t.heating_commodity == "electricity"]
     calmest_gas = min(
         fgl.half_hourly_texture([list(day) for day in t.half_hourly("electricity")])
@@ -2326,7 +2327,9 @@ def test_the_L2_4_BAND_CAN_PASS_and_is_not_a_control_that_can_only_fail(generate
     # 3.0 -> 3.5 on 2026-10-09: with the kettle off headcount the panel's one-to-five-person homes
     # sit closer together, and the cube stretched them to 4.32 against 4.88. The exponent is the
     # arithmetic of the demonstration, not a claim about homes; the band was not touched.
-    stretched = [median * (a / median) ** 3.5 for a in annuals]
+    # 3.5 -> 4.5 the same day: the rest of the cooking class off headcount narrows them again, and
+    # 3.5 reached 3.83. Same arithmetic, same untouched band.
+    stretched = [median * (a / median) ** 4.5 for a in annuals]
     spread = fgl.scale_spread(stretched).p90_over_p10
     assert band.judge(spread) is fgl.Verdict.PASS, (
         f"the anchored spread band must be reachable; stretched population reads "
@@ -2743,7 +2746,9 @@ def test_L1_1n_CAN_PASS_and_is_not_a_control_that_can_only_fail(population_resul
     # ordinary calm home, and the leg that forbade it is gone with the premise it stood on.
     # 0.984 -> 1.210 on 2026-10-09, worst now P0055: the kettle stopped scaling with headcount
     # (HES Table 23). P0049's five people lost about 30% of their kettle, and it left the tail.
-    assert cell.worst_value == pytest.approx(1.210, abs=0.005), cell.note
+    # 1.210 -> 1.025 the same day, worst now P0040: oven, hob, toaster and microwave off headcount.
+    # Still above 1.0, and 0 of 60 violate.
+    assert cell.worst_value == pytest.approx(1.025, abs=0.005), cell.note
     assert cell.homes_violating / cell.homes_judged <= fgl.RATE_BANDS[
         fgl.TEXTURE_NULL_RATIO_STATISTIC].threshold, cell.note
 
@@ -2966,7 +2971,9 @@ def test_the_MINTS_INFERRED_MECHANISM_was_REFUTED_by_measurement(population):
     # (a smaller evening cook raises base share and lowers peakiness together).
     # +0.569 -> +0.493 on 2026-10-09, the drawn 60 on the book's census headcount instead of the deleted bedrooms fallback.
     # +0.493 -> +0.540 the same day, the kettle off headcount (HES Table 23).
-    assert r == pytest.approx(0.540, abs=0.03)
+    # +0.540 -> +0.619 the same day, the rest of the cooking class off headcount: the same common
+    # cause as the cooking-fuel draw (less evening cook, higher base share, lower peakiness).
+    assert r == pytest.approx(0.619, abs=0.03)
     share = [min(min(d) for d in h) / (sum(map(sum, h)) / (48 * len(h))) for h in behavioural]
 
     def _residual(y, x):

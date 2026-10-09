@@ -660,7 +660,8 @@ def test_the_TEXTURE_CELL_BREACH_CLOSED_when_the_LOAD_SET_WAS_REPAIRED(panel, we
     # S9 0.0596 -> 0.0604 the same day: oven and hob at their 2022 energy.
     # S9 0.0604 -> 0.0621 on 2026-10-09: the panel's profile-less homes draw the book's census
     # headcount, not the deleted bedrooms fallback. The world did not change; the instrument did.
-    assert texture.worst_value == pytest.approx(0.0621, abs=5e-4), texture.note
+    # S9 0.0621 -> 0.0629 the same day: oven, hob, toaster and microwave off headcount (HES Table 23).
+    assert texture.worst_value == pytest.approx(0.0629, abs=5e-4), texture.note
     assert "net of space AND water heat" in texture.note
     electric = {
         home for home, system in zip(population_homes(panel), panel_systems(panel))
@@ -681,7 +682,8 @@ def test_the_TEXTURE_CELL_BREACH_CLOSED_when_the_LOAD_SET_WAS_REPAIRED(panel, we
     # 4 -> 9 (expected 7.5) the same night, when each home drew its always-on load.
     # 9 -> 8 on 2026-10-08, the cooking-fuel draw (`pt.gas_cooked`).
     # 8 -> 7 the same day, electronics at its 2022 level (expected 7.5).
-    assert median.below == 7, texture.note
+    # 7 -> 8 on 2026-10-09, oven, hob, toaster and microwave off headcount (expected 7.5).
+    assert median.below == 8, texture.note
 
     # (d) THE GAS HOMES ARE UNCHANGED BY THE REPAIR, which is what makes it a
     #     load-set correction rather than a rescaling of everybody. Measured, not
