@@ -226,6 +226,25 @@ def test_failed_payment_carries_a_reason_success_does_not():
             assert ev.dd_failure_reason is None
 
 
+def test_a_prepayment_event_cannot_fail_or_be_late_because_the_meter_is_paid_before_use():
+    """DEFECT: `generate_payment_event` mapped every non-business method, prepayment included, to the
+    direct-debit outcome tier, so the live triad drew failed PPM bills (28 of 228 failures on an
+    80-founder run to 2019) that `arrears_engine.payment_outcome` says cannot exist.
+
+    Control arm first: on the SAME customers, periods and HIGH stress, direct debit and card must
+    fail and be late, so a guard that zeroed every domestic failure reds this test. Then the other
+    methods must draw exactly what direct debit draws -- only prepayment is rerouted."""
+    args = [(f"PPM{i}", i % 24, date(2018, (i % 12) + 1, 15), 100.0, "HIGH") for i in range(600)]
+    dd = [pbs.generate_payment_event(*a, pbs.DIRECT_DEBIT, seed=i) for i, a in enumerate(args)]
+    card = [pbs.generate_payment_event(*a, pbs.CARD, seed=i) for i, a in enumerate(args)]
+    ppm = [pbs.generate_payment_event(*a, pbs.PREPAYMENT, seed=i) for i, a in enumerate(args)]
+    assert any(e.result == "failed" for e in dd) and any(e.is_late for e in dd)
+    assert [(e.result, e.days_late) for e in card] == [(e.result, e.days_late) for e in dd]
+    assert all(e.result == "success" and e.days_late == 0 for e in ppm)
+    assert all(e.payment_date == e.due_date and e.dd_failure_reason is None for e in ppm)
+    assert all(pbs.later_settlement_date(e) is None for e in ppm)
+
+
 def test_dd_failure_reason_split_direction_insufficient_funds_dominant():
     """Direction anchored to bacs_rails.py's ARUDD-dominant-code citation
     (Refer to Payer / insufficient funds is the real-world dominant DD-failure
