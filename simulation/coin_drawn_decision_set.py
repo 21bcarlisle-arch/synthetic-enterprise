@@ -24,9 +24,9 @@ its offer, and flip a seeded coin per renewal decision.
 
 WHAT "THE OFFER" IS. A cut in the unit rate at renewal, read through the world's own price-response
 curve -- the curve the four probe outputs used. Both arms are offered the world's published default
-for the fuel, ex VAT; the treated arm is offered `cut_gbp_per_mwh` below it. The run loop's other
-retention route, `RETENTION_EFFECTIVENESS = 0.20` scaling departure risk, is NOT used: it is
-unsourced, and `3811342db` declined to adopt it. So the world's true effect here is
+for the fuel, ex VAT; the treated arm is offered `cut_gbp_per_mwh` below it. The run loop asks the
+world the same way since 2026-10-09 (`simulation/retention_offer.py`); its old route, a flat
+unsourced 0.20 scaling departure risk whatever the discount, is retired. So the world's true effect here is
 P(stay | default - cut) - P(stay | default), per decision, and the company never reads it.
 
 THE COIN is the company's own randomiser, drawn from the named substream `HOLDOUT_SUBSTREAM` keyed

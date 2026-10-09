@@ -411,7 +411,9 @@ they can tell whether the retention campaign did anything at all"*.
 inferior to targeting on lift.
 
 **Three uncited effectiveness constants, one of them on both sides of the wall:**
-- world, `simulation/run_phase2b.py:369`: `RETENTION_EFFECTIVENESS = 0.20`;
+- world, `simulation/run_phase2b.py:369`: `RETENTION_EFFECTIVENESS = 0.20`; *(corrected 2026-10-09:
+  retired. The world now answers an offer at the offered rate on the household's own roll,
+  `simulation/retention_offer.py`; the two company constants below stand.)*
 - company, `company/analytics/counterfactual_retention.py:51`: `_RETENTION_EFFECTIVENESS = 0.20`
   (marked UNSOURCED in its own comment);
 - company, `ASSUMED_EFFECTIVENESS_PER_DISCOUNT_POINT = 0.04`.
