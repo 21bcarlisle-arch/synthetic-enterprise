@@ -60,6 +60,11 @@ EXPECTED_CLAIM_IDS = frozenset({
     # surfaces. The old ids named today's verdict ("still says"); these name the property.
     "SITE_the_schematic_says_only_one_trait_expresses",
     "SITE_the_schematic_says_survival_is_not_yet_at_risk",
+    "SITE_the_company_card_says_survival_is_not_yet_at_risk",
+    # 2026-10-09: TIMEFRAME 1 read line by line; two corrections and the ledger half they split off.
+    "CARBON_the_three_ledger_is_called_by_nothing",
+    "CARBON_a_households_emissions_are_measured_and_published",
+    "PRICING_the_forward_belief_window_adapts",
     # 2026-08-28, the director's mission rewrite. The mission names three channels through which
     # value reaches a household -- modelling, tariffs, advice -- and THE MODEL ON A PAGE now states
     # that advice has modules on disk and no recipient. That is a CHANNEL claim of C1's exact shape

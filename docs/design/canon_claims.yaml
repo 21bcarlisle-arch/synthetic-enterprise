@@ -166,6 +166,20 @@ claims:
       day `B6_collateral_cash_death_loop` lands and the world can issue a call, this claim goes
       UNDER_CLAIM and the front door is told to stop saying survival is safe.
 
+  - id: SITE_the_company_card_says_survival_is_not_yet_at_risk
+    page: site/index.html
+    anchor: "nothing in the world can yet push it under"
+    claim: "the front door's company card tells the reader nothing yet puts the company's survival at risk"
+    expects: absent
+    probe:
+      kind: token_live
+      token: collateral_call
+      roots: [simulation]
+    note: >-
+      The third rendered copy of C3. The SVG and its alt-text were repaired 2026-08-29; the
+      company card below them still said "it can die" until 2026-10-07 because no claim was
+      anchored to it. Same probe as the schematic claim, for the same reason.
+
   # ---------------------------------------------------------------- the MISSION's three channels
   # Registered 2026-08-28 with the director's mission rewrite (THE MODEL ON A PAGE §The mission).
   # The page now says advice is "built everywhere except at the point where it would matter". That
@@ -266,6 +280,54 @@ claims:
       sentence above and every published A/B coverage figure have to be restated. RE-POINTED
       2026-10-04: the constant widened in 3088f8c71 and this row reported OVER_CLAIM; the page now
       carries a dated correction and the claim is that the electricity-only constant is ABSENT.
+
+  # ---------------------------------------------------------------- TIMEFRAME 1's unregistered lines
+  # Registered 2026-10-09 by reading TIMEFRAME 1 line by line for anything a probe can hold. Two of
+  # the three were stale when read, both in the direction the page UNDER-claims, and both had been
+  # stale for weeks with this check green -- because a sentence nobody registered is a sentence
+  # nothing asks. The pairs below are a correction and the claim that binds it.
+  - id: CARBON_the_three_ledger_is_called_by_nothing
+    page: docs/design/THE_MODEL_ON_A_PAGE.md
+    anchor: "designed ledger (SAVED/SPENT/NET), honestly *not yet instrumented*"
+    claim: "no production module imports the SAVED/SPENT/NET carbon ledger"
+    expects: absent
+    probe:
+      kind: import_edge
+      target: company.carbon.carbon_ledger
+      roots: [company, saas, simulation, sim, tools, background]
+      exclude: [company/carbon/carbon_ledger.py]
+    note: >-
+      An import edge, not a token: `half_hourly_footprint.py` names the ledger in its docstring
+      ("is untouched"), and a token probe would call that a caller.
+
+  - id: CARBON_a_households_emissions_are_measured_and_published
+    page: docs/design/THE_MODEL_ON_A_PAGE.md
+    anchor: "multiplies NESO's half-hourly intensity by the half-hourly reads of the accounts that have them and profiles the rest, and Explore publishes it"
+    claim: "the household footprint module is reached by the generator that publishes it"
+    expects: present
+    probe:
+      kind: import_edge
+      target: company.carbon.half_hourly_footprint
+      roots: [tools]
+      exclude: [tools/r3_carbon_score_ceiling.py]   # an analysis; the claim is that Explore publishes it
+    note: >-
+      The page said carbon was "not yet instrumented" while `tools/generate_explore_carbon.py`
+      published measured emissions on Explore. The ledger half of that sentence was still true,
+      which is why the two halves are two claims.
+
+  - id: PRICING_the_forward_belief_window_adapts
+    page: docs/design/THE_MODEL_ON_A_PAGE.md
+    anchor: "which adapts between 30 and 180 days with recent volatility"
+    claim: "the company's forward belief window is adaptive, not a fixed 120-day trail"
+    expects: present
+    probe:
+      kind: literal_assign
+      file: company/pricing/tariff_engine.py
+      name: ADAPTIVE_LOOKBACK_ENABLED
+      value: true
+    note: >-
+      The page said "120-day trailing"; `get_forward_price` defaults to an adaptive window and an
+      EWMA mean. Reports OVER_CLAIM the day the adaptation is switched off.
 
 _retired:
   MISSION_the_pricing_arm_is_electricity_only: >-
