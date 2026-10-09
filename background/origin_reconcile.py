@@ -1499,13 +1499,137 @@ def file_abandoned_copies(project: Path | None = None, entries: list[dict] | Non
     return ""
 
 
+def _module_names(source: bytes) -> set[str] | None:
+    """The names a module binds at top level, or `None` if it does not parse."""
+    import ast
+    try:
+        tree = ast.parse(source)
+    except (SyntaxError, ValueError):
+        return None
+    names: set[str] = set()
+    for node in tree.body:
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+            names.add(node.name)
+        elif isinstance(node, (ast.Import, ast.ImportFrom)):
+            names.update((a.asname or a.name).split(".")[0] for a in node.names)
+        else:
+            for sub in ast.walk(node):
+                if isinstance(sub, ast.Name) and isinstance(sub.ctx, ast.Store):
+                    names.add(sub.id)
+    return names
+
+
+def _references_into(source: bytes, module: str) -> set[str] | None:
+    """Every `module.<name>` (or `from module import name`) the source reaches, or `None` if it
+    does not parse. Follows the three binding shapes: `from pkg import mod [as m]`,
+    `import pkg.mod [as m]`, and `from pkg.mod import name`."""
+    import ast
+    try:
+        tree = ast.parse(source)
+    except (SyntaxError, ValueError):
+        return None
+    package, _, leaf = module.rpartition(".")
+    aliases: set[str] = set()
+    found: set[str] = set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.ImportFrom) and node.level == 0:
+            if node.module == module:
+                found.update(a.name for a in node.names)
+            elif node.module == package:
+                aliases.update(a.asname or a.name for a in node.names if a.name == leaf)
+        elif isinstance(node, ast.Import):
+            aliases.update(a.asname for a in node.names if a.name == module and a.asname)
+    dotted = {module} if any(isinstance(n, ast.Import) and any(
+        a.name == module and not a.asname for a in n.names) for n in ast.walk(tree)) else set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Attribute) and isinstance(node.value, ast.Name) \
+                and node.value.id in aliases:
+            found.add(node.attr)
+        elif dotted and isinstance(node, ast.Attribute) and ast.unparse(node.value) == module:
+            found.add(node.attr)
+    return found
+
+
+def stranded_caller_verdicts(project: Path | None = None,
+                             cleared: list[str] | None = None) -> dict[str, str] | None:
+    """For each `.py` about to be cleared, the reason it must NOT be, if another dirty copy calls a
+    name only this copy defines. `{}` when nothing would be stranded; `None` if unaskable.
+
+    WHY THIS EXISTS (2026-10-09). One uncommitted edit from 10-01 spanned three files: it defined
+    `delivery_lane.held_at_dispatch` and made `worker_tick.py` and `seat_executor.py` call it. At
+    09:18 origin's advance touched `delivery_lane.py`, so that path was a blocker; it had sat 48h,
+    so the abandoned class preserved and cleared it. The two callers were NEVER ASKED ABOUT -- every
+    class judges the paths origin writes, one file at a time, and origin wrote neither caller. So
+    they stayed, live, calling a name the advance had just removed, and every worker-tick and
+    seat-executor run died with `AttributeError` at dispatch for over five hours.
+
+    So the question is asked across files: a name the cleared copy binds at top level and origin's
+    copy does not, referenced as `<module>.<name>` by any dirty `.py` that is staying. Any hit holds
+    the cleared path, and under the all-or-nothing rule the whole advance -- clearing both is the
+    better act, but the callers are not blockers and no class has a proof for them; refusing by
+    name is what is safe today. A file that does not parse cannot be imported, so neither a cleared
+    copy nor a caller in that state can strand or be stranded.
+
+    Under pytest on this module's own repository it answers `{}`, for the reason and with the
+    scoping `abandoned_copy_verdicts` gives: tests that inject fake blockers leave `project`
+    defaulted, and the real tree's dirty copies would answer for them.
+    """
+    project = project or PROJECT_DIR
+    if not cleared:
+        return {}
+    try:
+        on_this_repo = project.resolve() == PROJECT_DIR.resolve()
+    except OSError:
+        on_this_repo = True
+    if os.environ.get("PYTEST_CURRENT_TEST") is not None and on_this_repo:
+        return {}
+    candidates = sorted(p for p in set(cleared) if p.endswith(".py"))
+    if not candidates:
+        return {}
+    try:
+        listed = _git(project, "ls-files", "-m", "-o", "--exclude-standard", "--", "*.py")
+    except (OSError, subprocess.SubprocessError):
+        return None
+    if listed.returncode != 0:
+        return None
+    staying = sorted(set(listed.stdout.split()) - set(cleared))
+    verdicts: dict[str, str] = {}
+    for path in candidates:
+        try:
+            local = (project / path).read_bytes()
+        except OSError:
+            continue
+        mine = _module_names(local)
+        if not mine:
+            continue
+        # Origin lacking the path, or not answering, keeps nothing: every name counts as lost.
+        theirs = _origin_text(project, path)
+        lost = mine - ((_module_names(theirs) or set()) if theirs is not None else set())
+        if not lost:
+            continue
+        module = path[:-3].replace("/", ".")
+        hits = []
+        for caller in staying:
+            try:
+                refs = _references_into((project / caller).read_bytes(), module)
+            except OSError:
+                continue
+            for name in sorted((refs or set()) & lost):
+                hits.append("{} calls {}.{}".format(caller, module, name))
+        if hits:
+            verdicts[path] = ("clearing it would STRAND live callers -- {} -- because only this "
+                              "copy defines what they call; land or clear the whole edit "
+                              "together".format("; ".join(hits[:4])))
+    return verdicts
+
+
 def advance_shared_tree(project: Path | None = None, *, blockers_fn=None, twins_fn=None,
                         tracked_twins_fn=None, ff_fn=None, remover=None, restorer=None,
                         locker=None, ahead_fn=None, stale_fn=None, refresher=None,
                         orphans_fn=None, preserver=None, generated_fn=None,
                         earlier_fn=None, earlier_preserver=None, abandoned_fn=None,
                         abandoned_preserver=None, filer=None, now=None, append_fn=None,
-                        append_preserver=None) -> dict:
+                        append_preserver=None, stranded_fn=None) -> dict:
     """Fast-forward the shared tree onto `origin/main`, clearing every blocker it can prove lossless.
 
     Returns `{"advanced": bool, "cleared": list[str], "reason": str}`. `advanced` is claimed only
@@ -1739,6 +1863,17 @@ def advance_shared_tree(project: Path | None = None, *, blockers_fn=None, twins_
             abandoned = aged_out
             resolvable = sorted(set(resolvable) | set(abandoned))
             held = []
+    # ASKED LAST, OF EVERYTHING ABOUT TO BE CLEARED: every class above judges one file at a time,
+    # and an edit that spans files is cleared half by half -- see `stranded_caller_verdicts`.
+    stranded = (stranded_fn or stranded_caller_verdicts)(project, resolvable)
+    if stranded is None:
+        return {"advanced": False, "cleared": [],
+                "reason": "whether clearing would strand a live caller of a cleared copy could not "
+                          "be established (git would not list the dirty copies), so nothing was "
+                          "touched"}
+    if stranded:
+        resolvable = sorted(set(resolvable) - set(stranded))
+        held = sorted(set(held) | set(stranded))
     if held:
         # KEYED TO THE PROPERTY AND NOT TO TODAY'S PATHS: what reaches this list is a blocker NO
         # available proof could show costs its holding lane nothing -- neither hash equality with
@@ -1747,9 +1882,10 @@ def advance_shared_tree(project: Path | None = None, *, blockers_fn=None, twins_
         # nobody may touch and of a file this tree has no reader for, and those want opposite acts.
         named = []
         for path in held[:12]:
-            why = (verdicts.get(path) or gen_verdicts.get(path) or append_verdicts.get(path)
-                   or orphan_verdicts.get(path)
-                   or (False, "not byte-identical to what origin brings"))[1]
+            why = stranded.get(path) or (
+                verdicts.get(path) or gen_verdicts.get(path) or append_verdicts.get(path)
+                or orphan_verdicts.get(path)
+                or (False, "not byte-identical to what origin brings"))[1]
             age = abandoned_verdicts.get(path)
             named.append("{} -- {}{}".format(
                 path, " ".join(str(why).split())[:220],
