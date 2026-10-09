@@ -1,364 +1,300 @@
 version: 1
-oriented_at: '2026-10-09T14:20:11.268410+00:00'
-thesis_read: >-
-  The project held its ground this stretch, and the machine went backwards again. The executors crashed on every turn
-  until 13:53Z: 116 held_at_dispatch tracebacks since 11:30Z, the last at 13:47Z. They came back only because the
-  director stopped the interactive lane at 13:52Z and told it to apply the fix its own NTFY had named at 11:26Z.
-  worker_tick.py now matches HEAD and holds no held_at_dispatch reference. seat-executor finished cleanly at 13:55Z.
-  worker-tick has been running a Lane 0 worker since 13:54Z. So the outage is corrected, but that is the finding:
-  a crash the machine had diagnosed, with a written fix, ran for four and a half hours, until the one scarce
-  resource here intervened. No refs/preserved ref was written for worker_tick.py's working copy when it was
-  restored, so whether that half of the edit survives is not established. On the world, nothing moved. The cooking
-  pre-registration landed (611cae007) before any world-side read, which is correct order, and the SERL cells all
-  stay red (peak 0.528 at 20:00). On the book, ad0afe7b3 enacted the director's founder ruling: 400 founders,
-  ceiling 500, settlement budget 5,000, on a curve re-measured at that shape (4,994 cy, 3.9 GB, 91 min). Its message
-  quotes the ruling as conditioned only on the 400-founder run. My previous record held it also on the arrears
-  reading. That reading was never taken: the world still holds 2.2x the matched comparator's arrears (11.1% against
-  5.1%). Either I over-stated the hold or the landing skipped half of it. Both are the open hold-condition row, and
-  neither is reversed here, because the ruling is his and the change is reversible. Against the thesis: the book
-  is now big enough for the baseline comparison to start meaning something. But every debt, retention and CLV
-  reading on it still inherits a world that over-holds debt 2x, and the director's scale review, which decides how
-  a significant comparison is reached, is still in the interactive lane. The previous focus reached the draw for
-  2 of 5 items, the executor fix and cooking. The other three were never drawn, because the hands were off.
+oriented_at: '2026-10-09T20:22:03.231808+00:00'
+thesis_read: 'The world moved the right way this stretch, and the machine''s steering channel quietly broke. On the world: the arrears error that
+  has sat under every debt, retention and CLV reading for three days is corrected on one seed. 95c1193cb set the never-repaid share by payment
+  method at the aged balance, and the 400-founder book now reads 4.3% (3.3-5.7%) against Ofgem''s 5.1%, down from 1.67x. The director declined
+  to give a figure and asked for a range; 30d6d3390 built it as a toggle (0.30-0.88) and showed the verdict does turn on it, though under the
+  per-method split it now governs prepayment only. The summer half of the gas-home season miss is explained, not fitted: it is the 2022 price
+  response, a named gap (e11dc1a01). So for the first time the world under the book is not known to over-hold debt, and the baseline comparison
+  the thesis needs can start to mean something. But that MET is one seed, and the instrument behind it, which has decided a director hold three
+  times today, lives untracked in /var/tmp. W2_38, the atom that owns it, is at L0. That is the first thing to fix, and it is a level move. On
+  scale: the director approved steps 1 and 2 at 17:30Z. Step 1 (index once, 42423e618, identical book, 440s to 397s) and the streamed accounting
+  (ebc3229a8, the run''s 3.75 GB peak removed) landed. Step 2, carrying ledger, arrears and payment-matching state forward, is running in the
+  interactive lane now (cl-base40p and cl-cand40p). On the machine: the lane-crash class is closed (17b474e2b detect and repair, bcb725078 wake),
+  which corrects the 10-09 outage row. But the seat''s own 17:23 record never reached origin (167d583a4 is on no remote). For three hours the
+  draw steered on the working copy, while origin, which the director reads, showed the 14:20 focus with two concern rows grafted in by other landings.
+  This brief, read from the 6-behind checkout, omitted one of his open rows (a-held-lane-crash-can-now-wake), which is carried here from origin
+  by hand. The steer bit anyway (4 of 4 drawn, all spent), but only because the draw reads the same stale copy. No level moved. B8''s L3 step
+  is landing as I write.'
 stretch_reviewed:
-  since: '2026-10-09T11:22:16.145712+00:00'
-  commits: 4
-  substantive: 1
+  since: '2026-10-09T17:22:59.006149+00:00'
+  commits: 14
+  substantive: 10
 focus:
-- id: the-executors-crash-on-a-half-cleared-edit
-  lane: H_harness
-  what: >-
-    The executors run again (worker_tick.py restored to HEAD at 13:53Z; no held_at_dispatch reference remains).
-    Do the remaining three parts. (1) Establish whether the 2026-10-01 in-place working copy of background/worker_tick.py
-    survives anywhere: a ref, a worktree, a salvage commit, or the interactive session's transcript. If it does,
-    put it on refs/preserved. If not, say in the finding that it is lost and what it held. (2) Decide delivery_lane.held_at_dispatch
-    from 07941f1b4: land both halves together through surgical_land if it is sound and has a control. Otherwise
-    file it as a named gap. (3) In background/origin_reconcile.py, add a control that reds when clearing a working
-    copy would leave another live copy calling a name that only the cleared copy defined, and refuse that clear.
-  why: >-
-    The reconciler split one edit across two files and cut off every autonomous turn for 4.5 hours. Restoring the
-    file fixed the instance, not the class. DONE when the preservation question has a written answer, held_at_dispatch
-    is landed or filed, and the reconciler control is on origin and reds under the mutation that disables the refusal.
-- id: the-worlds-failed-bill-repayment-share-is-sourced-for-an-ordinary-household
+- id: W2_38_the_worlds_debt_is_graded_against_ofgems_quarterly_series
   lane: W2_customer_generator
-  what: >-
-    Unchanged since 08:22. Never drawn: the executors were down. Knowledge first, before any run. Find a published
-    repayment or cure curve for an ordinary failed domestic bill: Ofgem's Social Obligations Reporting, its debt and
-    arrears RFIs, Citizens Advice, StepChange and DESNZ. Also find Ofgem's definition of "in arrears" in the quarterly
-    series. Write both into docs/market_research/ with the Knowledge topic declared. If a source establishes the
-    curve, replace LATER_SETTLEMENT_REPAID_SHARE in simulation/payment_behaviour_source.py. Write the prediction
-    into docs/staging/SEAT_FINDING_THE_DD_FAILURE_CORRECTION_MOVED_MEASURED_FACTS_2026-10-09.md first. Then re-run
-    /var/tmp/arrears_like_for_like.py through launch_long_job, at the 400-founder book that ad0afe7b3 now ships
-    and on the same seed and instrument. If nothing establishes the curve, carry it as a named None gap. This serves
-    W2_38_the_worlds_debt_is_graded_against_ofgems_quarterly_series.
-  why: >-
-    The world's arrears read 2.2x the comparator. The book now runs at 400 founders, so every debt, retention and
-    CLV reading on it inherits that error. DONE when the finding names a sourced curve and a definition (or a named
-    gap for each), and gives the re-measured like-for-like at the shipped book, with met or not met. If the definition
-    is unsettled in print, raise it through director_concerns with a proposal; the item is still done.
-- id: the-evening-cooking-hour-against-hes-fig-245
-  lane: W2_customer_generator
-  what: >-
-    The pre-registration is on origin (611cae007, docs/staging/records/SEAT_PREREG_THE_EVENING_COOKING_HOUR_AGAINST_HES_2026-10-09.md).
-    Run its world-side read now. Apply its decision rule to the oven and hob start windows, which the world currently
-    draws uniformly from 16:00/16:30 to 21:00/21:30. Move only what HES dates, and never fit a scalar to SERL. Re-read
-    the cells with tools/couple_fabric.py --serl. Grade each prediction beside itself in the pre-registration. Write
-    the result into the triage row a-gas-heated-homes-electricity-has-no-season in docs/direction/wrong_triage.yaml.
-  why: >-
-    The pre-registration is filed and its prediction is still un-tested. Cooking is the named remainder of the evening
-    excess (peak 0.528 against 0.445-0.485), and every bill and direct debit inherits the premise shape. DONE when
-    the predictions are graded against the run, cooking has been moved on HES or filed as a named gap, and the triage
-    row says which SERL cell stays red and why.
-- id: a-strictly-superseded-live-copy-is-cleared-by-the-reconciler
+  what: 'Make the arrears like-for-like a tracked instrument and grade it on more than one seed. (1) Move /var/tmp/arrears_like_for_like.py into
+    tools/grade_world_debt_against_ofgem.py (the atom''s own file_scope), unchanged in what it counts: 2019 electricity accounts with a bill unpaid
+    over 91 days against Ofgem''s matched 5.1%, Wilson interval. Its control is tests/tools/test_grade_world_debt_against_ofgem.py, and it reds
+    when the count leaks a bill paid inside 91 days or drops the matched denominator. (2) Write the prediction into docs/staging/SEAT_FINDING_THE_DD_FAILURE_CORRECTION_MOVED_MEASURED_FACTS_2026-10-09.md,
+    then run it at 400 founders on two seeds besides the default, serially through launch_long_job. The interactive lane''s carry-forward jobs
+    share the box. Report the pooled ratio, and the share of the accounts behind that are prepayment, since that is the part the 0.30-0.88 toggle
+    still moves. (3) Grade every other year of Ofgem''s series that the world covers, or name the years it cannot, in docs/market_research/debt_and_collections.md.
+    Record the level through the level gate.'
+  why: The arrears half of a director hold was decided three times today by an untracked script on one seed, and every debt, retention and CLV
+    reading on the book rests on it. DONE when the tool and its control are on origin, the multi-seed reading is graded met or not beside its
+    prediction, and W2_38's level is recorded.
+- id: the-seats-direction-record-reaches-origin
   lane: H_harness
-  what: >-
-    Unchanged since 08:22, never drawn. In background/origin_reconcile.py, add the class that 0c7389aa9 cleared by
-    hand: a working copy under 48h with zero lines that origin lacks, for any text file. Preserve its bytes on a
-    refs/preserved ref, then restore it to HEAD. Do only the zero-novel-lines leg. One control with both arms, and
-    assert first that the clear branch can be taken. Fixtures: canon_claims.yaml and test_canon_drift_check.py from
-    docs/staging/done/SEAT_FINDING_THE_RECONCILER_NOW_RUNS_ORIGINS_COPY_AND_THE_ADVANCE_IS_HELD_BY_LIVE_WORK_2026-10-09.md.
-    Take it in the same session as focus one if one worker holds both. It is the same file, and the same question
-    from the other side: what the reconciler may clear on its own, and what it must never split.
-  why: >-
-    This class held the fleet 93 commits stale for most of a day. Focus one is the opposite failure in the same code.
-    DONE when the control lands on origin and reds under the mutation that disables the new class.
-- id: the-module-graph-door-regenerated-weekly
-  lane: W4_the_wall
-  what: >-
-    Unchanged since 08:22, never drawn. Build the door that docs/staging/DIRECTOR_INSTRUCTION_MODULE_GRAPH_DOOR_WEEKLY_2026-10-09.md
-    decides. Start with the census generator shared with docs/staging/ADVISOR_FINDINGS_IMPORT_GRAPH_CENSUS_2026-10-09.md,
-    and its control: the bypass count reds when a fixture adds a direct company-to-simulation import. The page states
-    its limits. It is a diagnostic only: no gate, reward or draw reads it.
-  why: >-
-    It is a decided director instruction, still unclaimed, and its two staging files are the only unclassified findings.
-    It sits last because it moves no world level. DONE when the census and its control are on origin and the next
-    weekly publish (2026-10-12 04:00 BST) renders the door.
+  what: 'The delivery seat''s 17:23 record was committed as 167d583a4 in /var/tmp/se-direction-seat at 17:44Z and is on no remote. Origin''s docs/direction/DIRECTION.yaml
+    is still the 14:20 record, with rows grafted in by 95c1193cb and b6860aaf1. (1) From the delivery-seat journal (2026-10-09 17:23-17:46Z) and
+    the landing path in background/delivery_seat.py, establish why it never promoted, and write that in the open finding behind wrong_triage row
+    a-failed-seat-session-is-recorded-as-oriented. Do not reap that worktree. (2) Make a seat run whose record is not an ancestor of origin/main
+    when it exits say so: in the next brief, and on NTFY once. (3) Make the brief''s previous_for_the_director read origin''s open rows unioned
+    with the working copy''s, so a row landed by another lane, such as a-held-lane-crash-can-now-wake, is never omitted.'
+  why: The director reads origin, and for three hours origin showed a stale focus while the draw steered on a working copy. This brief also dropped
+    one of his open rows, which a verbatim carry-forward would then have deleted from origin. DONE when the cause is written, both legs are on
+    origin, and each control reds under the mutation that disables it, with the first asserting that the not-landed branch can be taken.
+- id: the-retention-discount-concerns-evidence-is-re-read-after-aac535f08
+  lane: C_customer_ops
+  what: 'The open concern does-a-retention-discount-offered-to-a says the world gives a household fixing off our SVT no exit, so 32 of 60 retention
+    offers are spent where they cannot buy anything. aac535f08 later let a retention offer at an SVT anniversary win a conversion. Re-read the
+    concern''s evidence (docs/staging/SEAT_FINDING_C29_THE_BOOK_ARM_SURVIVES_THE_REFIT_AT_HALF_ITS_LIFT_2026-10-05.md) against current code. Does
+    svt_conversion_event still give P(depart)=0? How many offers and how much spend go there now? Write the answer as a dated addendum in that
+    finding. Do not edit DIRECTION.yaml: the seat carries the evidence pointer at its next orientation, and withdraws the row if its premise is
+    gone.'
+  why: He may answer a strategy question whose premise has since moved, and his answer would then bind the company to the wrong rule. DONE when
+    the addendum states whether the premise still holds, with the current offer count and spend.
 not_now:
-- what: >-
-    Building a mechanism that pages, auto-reverts or hands to the interactive lane a timer unit that crashes on
-    every turn. That would answer the director's 13:52Z question, "why did a crash you diagnosed run four hours".
-  why: >-
-    He asked the interactive lane for that answer first, and asked for it before building. A Lane 0 build would
-    pre-empt the answer he is waiting for. Focus one fixes the cause in the reconciler. The detector follows his
-    reading of the answer.
-- what: >-
-    Reverting ad0afe7b3 (the 400-founder book) because the arrears reading my previous record attached to the hold
-    was not taken.
-  why: >-
-    The ruling is the director's. The landing quotes it as conditioned on the 400-founder run alone, and that run
-    happened. Reverting would put my reading of his hold over his own words. The change is reversible, and focus
-    two now measures arrears at the shipped book, which is the reading that matters anyway.
-- what: >-
-    Putting the director's 10:43Z scale questions (significance, time and memory, flat-memory options, seeds side
-    by side) into Lane 0.
-  why: >-
-    He gave them to the interactive lane to report on before anything is built, and that lane is back on them after
-    the outage. A Lane 0 worker would duplicate the report or build ahead of it.
-- what: >-
-    The retention re-take (~12.5h) and the value-arms retake on the new 400-founder book.
-  why: >-
-    The world's arrears (focus two) and evening shape (focus three) are still moving under it, and the scale review
-    may change how a run reaches size. Retake once, after all three.
-- what: >-
-    Landing the ~108 stranded staging dispositions, and reaping /var/tmp/se-retrate, /var/tmp/se-draw-order and
-    the two agent SALVAGE worktrees.
-  why: >-
-    Both are tidying, and neither moves a level. Reaping is irreversible, and the locked worktrees lose nothing by
-    waiting. The disposition landing overstates sediment only.
+- what: Step 2 of the scale recommendation (carry ledger, arrears and payment-matching state forward), and the numbers the director asked for
+    on retiring the weighted sample.
+  why: The interactive lane holds both under his 17:30Z instruction, and its cl-* jobs are running now. A Lane 0 copy would duplicate the work
+    or land ahead of the identical-book check he asked for.
+- what: The retention re-take and the value-arms re-take against the flat baseline on the corrected-arrears world.
+  why: This is the reading the thesis most needs, but run cost is about to fall again under step 2, and the arrears MET is one seed until focus
+    one. Retake once, on a multi-seed world and the cheaper run.
+- what: Putting the gas-home January shortfall and the 7 W trough into focus.
+  why: They are already queued as a continuation that the draw will offer on its own, both are unsourced, and they are smaller than the arrears
+    error that focus one closes.
+- what: Working the stalled atoms D48 (1797 unchanged draws), SITE2, H45 and SITE15.
+  why: None moves a world error under the book. D48 sits behind the coupled-triad row, H45 is parked on a director question, and SITE15 was only
+    minted this stretch.
+- what: Building the SessionStart hook that re-arms the lane-crash waiter.
+  why: It acts on the director's console, and it is raised to him as a-held-lane-crash-can-now-wake. Detection, repair and paging already work
+    without it.
+- what: Reaping /var/tmp/se-retrate, /var/tmp/se-draw-order and the agent SALVAGE worktree.
+  why: Reaping is irreversible and moves no level. /var/tmp/se-direction-seat must not be reaped at all until focus two has read it.
 wrong:
-- what: >-
-    THE MACHINE'S, NEW. Both autonomous executors have been down since 09:25 BST. worker-tick and seat-executor
-    crash on every turn (32 tracebacks to 11:37Z) with AttributeError: background.delivery_lane has no attribute
-    held_at_dispatch. At 09:18 BST origin-reconcile cleared the abandoned working copy of background/delivery_lane.py,
-    which defines it (preserved in 07941f1b4, refs/preserved/origin-reconcile-abandoned). It left the other half
-    of the same edit, the in-place change to background/worker_tick.py (mtime 2026-10-01), which calls it. Every
-    Lane 0 dispatch since then died after the draw, so four of the five focus items never ran. Nothing alarmed:
-    the brief counts the ten long-running daemons, and these are timer units. NTFY sent at 11:26Z (id ajUfga0BMUDt).
-    Focus one. 14:20: CORRECTED at 13:53Z. worker_tick.py was restored to HEAD; seat-executor exited 0 at 13:55Z;
-    worker-tick has run a worker since 13:54Z. Evidence is in thesis_read. The class (the reconciler splitting one
-    edit) stays focus one.
+- what: 'THE MACHINE''S, NEW. A crash the machine had diagnosed, with the fix written in its own NTFY at 11:26Z, kept running until 13:53Z: 116
+    tracebacks. It ended only because the director stopped the interactive lane at 13:52Z and told it to apply that fix. Neither Lane 0 (the crash
+    was in Lane 0 itself) nor the interactive lane (busy on the scale review) picked it up. The 11:22 direction said the interactive lane "should
+    take it" in prose, and nothing acted on that. Also, the restore wrote no refs/preserved ref for worker_tick.py''s working copy, so whether
+    it survives is unknown (focus one, part 1). 17:23: the preservation half is answered: both halves were copied to /var/tmp and git''s object
+    store, and held_at_dispatch landed whole (f951bbfe4). Prevention landed (470f2a746). Nothing yet detects a timer unit crashing or repairs
+    one. Focus two. 20:22: CORRECTED. 17b474e2b detects a lane unit whose last two runs crashed, names it in the brief, pages once, and repairs
+    the 10-09 shape (same ImportError/AttributeError, frame in a shared-tree copy that differs from HEAD) within two timer cycles; nine mutations
+    red. bcb725078 lets a held crash wake the interactive session through a waiter it arms. The re-arm gap is the director''s row a-held-lane-crash-can-now-wake.'
   corrected: true
-- what: >-
-    THE MACHINE'S, NEW. A crash the machine had diagnosed, with the fix written in its own NTFY at 11:26Z, kept
-    running until 13:53Z: 116 tracebacks. It ended only because the director stopped the interactive lane at 13:52Z
-    and told it to apply that fix. Neither Lane 0 (the crash was in Lane 0 itself) nor the interactive lane (busy
-    on the scale review) picked it up. The 11:22 direction said the interactive lane "should take it" in prose,
-    and nothing acted on that. Also, the restore wrote no refs/preserved ref for worker_tick.py's working copy, so
-    whether it survives is unknown (focus one, part 1).
+- what: 'THE MACHINE''S, CARRIED. One item can land twice, on origin through surgical_land and as a local commit on the shared HEAD. Owner: SEAT_FINDING_ONE_ITEM_LANDS_TWICE_AND_THE_SHARED_HEAD_FORKS_FROM_ORIGIN.
+    08:22: no new instance. 0c7389aa9 was briefly 1 ahead, then promoted, so HEAD is 0/0. The refusal mechanism is still not built. 11:22: no
+    new instance. 14:20: no new instance; HEAD 0/0. 17:23: no new instance; HEAD 0/0. 20:22: no new instance; HEAD is 0 ahead, 6 behind.'
   corrected: false
-- what: >-
-    THE MACHINE'S, CARRIED. One item can land twice, on origin through surgical_land and as a local commit on the
-    shared HEAD. Owner: SEAT_FINDING_ONE_ITEM_LANDS_TWICE_AND_THE_SHARED_HEAD_FORKS_FROM_ORIGIN. 08:22: no new instance.
-    0c7389aa9 was briefly 1 ahead, then promoted, so HEAD is 0/0. The refusal mechanism is still not built. 11:22:
-    no new instance. 14:20: no new instance; HEAD 0/0.
+- what: 'THE MACHINE''S, CARRIED. A held change''s hold condition is not re-asked when its premise moves. Owner: SEAT_FINDING_A_HOLD_OR_A_TOMBSTONE_STATES_ITS_CONDITION_IN_PROSE_AND_NOTHING_RE_ASKS_IT.
+    08:22: the arrears half was re-asked by hand (70a662dc1, NOT MET), not by the mechanism. The e2e400 run started with that half unmet, and
+    nothing asked. 11:22: the 400-founder ceiling probe (4400/5000) is running with the arrears half still NOT MET, and nothing asked. 14:20:
+    ad0afe7b3 enacted the 400-founder book quoting the ruling as conditioned only on the run. The arrears half my record stated was never re-asked
+    by anything. Either the hold was over-stated in prose or the landing skipped it, and no mechanism could tell which. 17:23: re-asked by hand
+    again (6856fb0a1, 1.67x, NOT MET), by a focus item, not by the mechanism. 20:22: the arrears half now reads MET (95c1193cb, 0.85x, one seed),
+    again by a focus item and by a script in /var/tmp, not by the mechanism. Focus one makes the reading a tracked tool.'
   corrected: false
-- what: >-
-    THE MACHINE'S, CARRIED. A held change's hold condition is not re-asked when its premise moves. Owner: SEAT_FINDING_A_HOLD_OR_A_TOMBSTONE_STATES_ITS_CONDITION_IN_PROSE_AND_NOTHING_RE_ASKS_IT.
-    08:22: the arrears half was re-asked by hand (70a662dc1, NOT MET), not by the mechanism. The e2e400 run started
-    with that half unmet, and nothing asked. 11:22: the 400-founder ceiling probe (4400/5000) is running with the
-    arrears half still NOT MET, and nothing asked. 14:20: ad0afe7b3 enacted the 400-founder book quoting the ruling
-    as conditioned only on the run. The arrears half my record stated was never re-asked by anything. Either the
-    hold was over-stated in prose or the landing skipped it, and no mechanism could tell which.
+- what: 'THE MACHINE''S, CARRIED. The held-work check refuses an item when its prose names a held file, even when the held work is not the item''s,
+    and the refusal reaches only the supervisor log. 08:22: no refusal seen. The cause is still neither shown nor ruled out. 11:22: masked this
+    stretch, because no dispatch got far enough to be refused. 14:20: still masked; dispatch resumed only at 13:54Z. 17:23: no refusal surfaced
+    this stretch, and the brief cannot show one that only reached the log. 20:22: no refusal surfaced; still unshown either way.'
   corrected: false
-- what: >-
-    THE MACHINE'S, CARRIED. The held-work check refuses an item when its prose names a held file, even when the
-    held work is not the item's, and the refusal reaches only the supervisor log. 08:22: no refusal seen. The cause
-    is still neither shown nor ruled out. 11:22: masked this stretch, because no dispatch got far enough to be
-    refused. 14:20: still masked; dispatch resumed only at 13:54Z.
+- what: 'THE MACHINE''S, CARRIED. The seat''s brief reads the director''s open concerns from the behind checkout. 08:22: the checkout is 0 behind,
+    so there is no live instance. The mechanism still reads the working copy. 11:22: 0 behind, no live instance. 14:20: 0 behind, no live instance.
+    17:23: 0 behind, no live instance. 20:22: LIVE INSTANCE. The checkout is 6 behind, and this brief''s previous_for_the_director omitted a-held-lane-crash-can-now-wake,
+    which is open on origin (b6860aaf1). It was carried here by hand from origin. Focus two.'
   corrected: false
-- what: >-
-    THE MACHINE'S, CARRIED. The seat's brief reads the director's open concerns from the behind checkout. 08:22:
-    the checkout is 0 behind, so there is no live instance. The mechanism still reads the working copy. 11:22: 0
-    behind, no live instance. 14:20: 0 behind, no live instance.
+- what: 'THE MACHINE''S, CARRIED. The draw ledger reads the same for work never started and for work mid-landing, because it asks only origin
+    by path. 08:22: unchanged. w2-20-grade-r5-and-publish-the-20261008r-pair-after-leg-two still reads not_done, and headcount-given-dwelling-size-then-the-per-occupant-slope
+    still reads CANNOT ANSWER. 11:22: unchanged, and it cannot tell a crash at dispatch from work not done either. 14:20: unchanged. raise-the-settlement-budget-to-3100-after-w220
+    reads not_done, though ad0afe7b3 has since set the budget to 5,000 under another name. 17:23: unchanged; headcount-given-dwelling-size still
+    reads CANNOT ANSWER at 13.1h. 20:22: unchanged; headcount-given-dwelling-size still reads CANNOT ANSWER at 16.1h.'
   corrected: false
-- what: >-
-    THE MACHINE'S, CARRIED. The draw ledger reads the same for work never started and for work mid-landing, because
-    it asks only origin by path. 08:22: unchanged. w2-20-grade-r5-and-publish-the-20261008r-pair-after-leg-two still
-    reads not_done, and headcount-given-dwelling-size-then-the-per-occupant-slope still reads CANNOT ANSWER. 11:22:
-    unchanged, and it cannot tell a crash at dispatch from work not done either. 14:20: unchanged. raise-the-settlement-budget-to-3100-after-w220
-    reads not_done, though ad0afe7b3 has since set the budget to 5,000 under another name.
+- what: 'THE MACHINE''S, CARRIED. A focus-row tombstone still retires a row without asking its DONE. 08:22: re-read-the-arrears-like-for-like-after-the-dd-failure-correction
+    was tombstoned at 08:04, and that was sound: its DONE (a ratio and met or not met) is on origin in 70a662dc1. The mechanism still does not
+    ask. 11:22: no tombstone this stretch. 14:20: no tombstone this stretch. 17:23: two tombstones. the-worlds-failed-bill-repayment-share was
+    sound (ad2776cfd and 6856fb0a1 carry its DONE). the-module-graph-door-regenerated-weekly was retired at 17:16 with half its DONE (the 2026-10-12
+    publish rendering the door) still in the future. That is a live instance. 20:22: three tombstones, all sound: each DONE is on origin (95c1193cb,
+    42423e618 with bbdb6c1a7, e11dc1a01). The module-graph instance stays live until the 2026-10-12 publish.'
   corrected: false
-- what: >-
-    THE MACHINE'S, CARRIED. A focus-row tombstone still retires a row without asking its DONE. 08:22: re-read-the-arrears-like-for-like-after-the-dd-failure-correction
-    was tombstoned at 08:04, and that was sound: its DONE (a ratio and met or not met) is on origin in 70a662dc1.
-    The mechanism still does not ask. 11:22: no tombstone this stretch. 14:20: no tombstone this stretch.
+- what: 'THE MACHINE''S, CARRIED. A landing can carry docs/direction/DIRECTION.yaml from the shared working copy when it is older than origin''s.
+    08:22: no instance. The copy matched origin at 09:05. 11:22: no instance. 14:20: no instance. 17:23: no instance. 20:22: the inverse shape
+    is live. The 17:23 record never reached origin at all (167d583a4 sits on no remote), so origin carries the 14:20 record with two concern rows
+    grafted in by 95c1193cb and b6860aaf1, while the draw and this brief read the working copy. Focus two.'
   corrected: false
-- what: >-
-    THE MACHINE'S, CARRIED. A landing can carry docs/direction/DIRECTION.yaml from the shared working copy when it
-    is older than origin's. 08:22: no instance. The copy matched origin at 09:05. 11:22: no instance. 14:20: no
-    instance.
+- what: 'THE MACHINE''S, CARRIED. A parked atom is still counted as drawn. H45 is PARKED and the counter still moves. 08:22: SITE2 moved from
+    43708 to 43775, and H45 to 1449. 11:22: SITE2 43974, H45 1550. 14:20: SITE2 44155, H45 1641. 17:23: SITE2 44317, H45 1722. 20:22: SITE2 44466,
+    H45 1796.'
   corrected: false
-- what: >-
-    THE MACHINE'S, CARRIED. A parked atom is still counted as drawn. H45 is PARKED and the counter still moves.
-    08:22: SITE2 moved from 43708 to 43775, and H45 to 1449. 11:22: SITE2 43974, H45 1550. 14:20: SITE2 44155,
-    H45 1641.
+- what: 'THE MACHINE''S, CARRIED. The coupled-triad gate now excludes twinless L3 targets, and its refusal reaches only the supervisor journal.
+    08:22: D48 is still at L1, and its unchanged draws rose from 1416 to 1450. 11:22: D48 still L1, unchanged draws 1551. 14:20: D48 still L1,
+    1641. It still excludes W1_14 and W2_30 behind it in every tick''s journal. 17:23: D48 still L1, 1722. 20:22: D48 still L1, 1797.'
   corrected: false
-- what: >-
-    THE MACHINE'S, CARRIED. The coupled-triad gate now excludes twinless L3 targets, and its refusal reaches only
-    the supervisor journal. 08:22: D48 is still at L1, and its unchanged draws rose from 1416 to 1450. 11:22: D48
-    still L1, unchanged draws 1551. 14:20: D48 still L1, 1641. It still excludes W1_14 and W2_30 behind it in
-    every tick's journal.
+- what: 'THE WORLD''S, CARRIED. A gas-heated fabric home''s electricity has no season against SERL. 08:22: unchanged (peak 0.562 at 20:00, season
+    1.239). The evening-stack pre-registration landed (a208dd212) and the measurement has not run. Focus two. 11:22: MOVED, NOT CORRECTED. da944e500
+    put the dishwasher and lighting on HES time of use, and the peak cell fell 0.561 -> 0.528 at 20:00, with no fitted scalar. S1, S2 and S3 all
+    stay red. The remaining evening excess is cooking timing and level (queued: the-evening-cooking-hour-against-hes-fig-245), and S3 is the summer
+    level. 14:20: the cooking pre-registration landed (611cae007). The world-side read has not run, and the cells are unchanged. Focus three.
+    17:23: MOVED, NOT CORRECTED. 15570b42d put the oven and hob on HES''s hours: S2 0.528 -> 0.495 at 19:00 (top 0.485), and S3 is flat at 1.227
+    against 1.36-1.47. Focus four. 20:22: MOVED, NOT CORRECTED. e11dc1a01 attributes the summer excess to the 2022 price response the world does
+    not model (the world''s summer sits on SERL''s own 2021, and SERL fell 8-9% into 2022), so the summer is a named gap and nothing is fitted.
+    What is left is January 0.35 kWh/day short and the trough 7 W high, both unsourced; queued as a-gas-homes-january-electricity-short-and-the-s3-band-years.'
   corrected: false
-- what: >-
-    THE WORLD'S, CARRIED. A gas-heated fabric home's electricity has no season against SERL. 08:22: unchanged (peak
-    0.562 at 20:00, season 1.239). The evening-stack pre-registration landed (a208dd212) and the measurement has
-    not run. Focus two. 11:22: MOVED, NOT CORRECTED. da944e500 put the dishwasher and lighting on HES time of use,
-    and the peak cell fell 0.561 -> 0.528 at 20:00, with no fitted scalar. S1, S2 and S3 all stay red. The remaining
-    evening excess is cooking timing and level (queued: the-evening-cooking-hour-against-hes-fig-245), and S3 is
-    the summer level. 14:20: the cooking pre-registration landed (611cae007). The world-side read has not run, and
-    the cells are unchanged. Focus three.
+- what: 'THE MACHINE''S, CARRIED. The draw ledger credits or denies an item by path overlap, not by its work. 08:22: unchanged. a-home-mover-is-a-retention-moment-the-company-sees
+    still reads landed_unbound against 6987325ae, a commit about electronics. 11:22: unchanged. 14:20: unchanged. 17:23: unchanged. 20:22: unchanged.'
   corrected: false
-- what: >-
-    THE MACHINE'S, CARRIED. The draw ledger credits or denies an item by path overlap, not by its work. 08:22: unchanged.
-    a-home-mover-is-a-retention-moment-the-company-sees still reads landed_unbound against 6987325ae, a commit about
-    electronics. 11:22: unchanged. 14:20: unchanged.
+- what: 'THE MACHINE''S, CARRIED. The voids item was dispatched twice (22:57Z and 01:31Z) and landed nothing, because Lane 0 does not ask how
+    much window a tick has left before it hands out a multi-run item. 08:22: no new instance. The window check is still not built. 11:22: no new
+    instance, because nothing was dispatched at all. 14:20: no new instance; dispatch resumed at 13:54Z. 17:23: no new instance; the window check
+    is still not built. 20:22: no new instance; the window check is still not built.'
   corrected: false
-- what: >-
-    THE MACHINE'S, CARRIED. The voids item was dispatched twice (22:57Z and 01:31Z) and landed nothing, because
-    Lane 0 does not ask how much window a tick has left before it hands out a multi-run item. 08:22: no new instance.
-    The window check is still not built. 11:22: no new instance, because nothing was dispatched at all. 14:20: no
-    new instance; dispatch resumed at 13:54Z.
+- what: 'THE WORLD''S, CARRIED. 54dbd5650''s commit message says the arrears stock "falls from about 10% to about 1%". On the triad''s truth it
+    fell from 38% to 11%, which is 2.2x the matched comparator. The 10% and 1% came from an instrument nobody can reproduce. The correction is
+    in the finding beside the claim (70a662dc1). The world''s level itself is still wrong. Focus one. 11:22: unchanged. The e2e400 run ended at
+    09:49Z with no arrears reading in its summary, so the at-scale reading focus one asked for was not taken. 14:20: unchanged, and the 400-founder
+    book now ships (ad0afe7b3) on that world. Focus two measures it at the shipped book. 17:23: measured at the shipped book, 1.67x (8.5% against
+    5.1%, 6856fb0a1), NOT MET. Its leading cause is named (ad2776cfd). Focus one. 20:22: CORRECTED on one seed. 95c1193cb set the never-repaid
+    share by payment method from Centrica''s aged-balance provisions (DD 7.4%, pay-on-receipt 50.3%), applied only past day 90, and the like-for-like
+    on the same book reads 50/1153 = 4.3% (3.3-5.7%) against 5.1%, 0.85x, MET, inside its pre-registered band''s direction. One seed, and the
+    instrument lives in /var/tmp: focus one makes it tracked and multi-seed.'
+  corrected: true
+- what: THE MACHINE'S, NEW. The delivery seat's 17:23 direction record was committed (167d583a4, 17:44Z, in /var/tmp/se-direction-seat) and never
+    reached origin. The seat unit finished at 17:46Z with nothing saying so. For three hours the draw steered on the working copy while origin,
+    which the director reads, showed the 14:20 focus. The cause is not established. Focus two.
   corrected: false
-- what: >-
-    THE WORLD'S, CARRIED. 54dbd5650's commit message says the arrears stock "falls from about 10% to about 1%". On
-    the triad's truth it fell from 38% to 11%, which is 2.2x the matched comparator. The 10% and 1% came from an
-    instrument nobody can reproduce. The correction is in the finding beside the claim (70a662dc1). The world's
-    level itself is still wrong. Focus one. 11:22: unchanged. The e2e400 run ended at 09:49Z with no arrears reading
-    in its summary, so the at-scale reading focus one asked for was not taken. 14:20: unchanged, and the 400-founder
-    book now ships (ad0afe7b3) on that world. Focus two measures it at the shipped book.
+- what: THE MACHINE'S, NEW. The arrears like-for-like that decided the arrears half of a director hold, three times today (70a662dc1, 6856fb0a1,
+    95c1193cb), is an untracked script at /var/tmp/arrears_like_for_like.py. W2_38, the atom that owns grading the world's debt against Ofgem,
+    is at L0 with its tool and control unwritten. Focus one.
   corrected: false
 for_the_director:
 - id: the-end-to-end-review-of-claude
   raised: '2026-10-04'
   kind: canon_intent
-  what: The end-to-end review of CLAUDE.md found it contradicting the code on the reserved action walls,
-    pointing every session at a staging procedure that still described the July rules, using one name
-    for several seats, and claiming enforcement for two rows that only report; three of its findings touch
-    canon or wall wording that is yours (the curriculum wall reads stricter than your 2026-09-04 canon;
-    DIRECTOR_CANON.md lists seven one-way doors and the twin as standing approver; DIRECTOR_AXES.md cites
-    a pricing law that no longer exists).
-  proposal: 'Approve the cleanup as proposed in docs/staging/SEAT_PROPOSAL_CLAUDE_MD_CLEANUP_FROM_THE_END_TO_END_REVIEW_2026-10-04.md,
-    item by item, or strike the items you disagree with; on the three canon items, rule on the wording
-    and I will carry it into the canon documents. Already done without asking: the plain factual corrections
-    it marks, the reserved-actions list restated from the code, and the two withdrawn rules in the staging
-    procedure.'
+  what: The end-to-end review of CLAUDE.md found it contradicting the code on the reserved action walls, pointing every session at a staging procedure
+    that still described the July rules, using one name for several seats, and claiming enforcement for two rows that only report; three of its
+    findings touch canon or wall wording that is yours (the curriculum wall reads stricter than your 2026-09-04 canon; DIRECTOR_CANON.md lists
+    seven one-way doors and the twin as standing approver; DIRECTOR_AXES.md cites a pricing law that no longer exists).
+  proposal: 'Approve the cleanup as proposed in docs/staging/SEAT_PROPOSAL_CLAUDE_MD_CLEANUP_FROM_THE_END_TO_END_REVIEW_2026-10-04.md, item by
+    item, or strike the items you disagree with; on the three canon items, rule on the wording and I will carry it into the canon documents. Already
+    done without asking: the plain factual corrections it marks, the reserved-actions list restated from the code, and the two withdrawn rules
+    in the staging procedure.'
   status: open
   resolution: ''
 - id: time-is-scored-in-minutes-not-converted-to-money
   raised: '2026-10-04'
   kind: vision
-  what: The mission names three currencies, and time does not exist in the model. The C31 frame (70ea47ac5,
-    docs/design/C31_TIME_AS_A_CURRENCY_DISCOVER_FRAME_2026-10-04.md, Q1) has to decide whether household
-    time is scored in its own unit or converted to money at a value of time. Converting it would fold
-    one of your three currencies into money. The only regulator pricing found (GSOP, GBP 30 or 15) prices
-    failure events, not hours, and it is a transfer.
-  proposal: 'Score time in its own unit: household minutes, per class (shopping, servicing, recovery,
-    routine admin), never summed across classes and never converted to GBP. A GSOP payment stays a money
-    transfer and is not a measure of time. This does not block L1, which counts events in minutes either
-    way, so work carries on unless you rule otherwise.'
+  what: The mission names three currencies, and time does not exist in the model. The C31 frame (70ea47ac5, docs/design/C31_TIME_AS_A_CURRENCY_DISCOVER_FRAME_2026-10-04.md,
+    Q1) has to decide whether household time is scored in its own unit or converted to money at a value of time. Converting it would fold one
+    of your three currencies into money. The only regulator pricing found (GSOP, GBP 30 or 15) prices failure events, not hours, and it is a transfer.
+  proposal: 'Score time in its own unit: household minutes, per class (shopping, servicing, recovery, routine admin), never summed across classes
+    and never converted to GBP. A GSOP payment stays a money transfer and is not a measure of time. This does not block L1, which counts events
+    in minutes either way, so work carries on unless you rule otherwise.'
   status: open
   resolution: ''
 - id: whether-per-customer-pricing-beats-a-flat
   raised: '2026-10-04'
   kind: strategy
-  what: 'Whether per-customer pricing beats a flat price a supplier could have set in advance cannot be
-    answered on one book: the four probe paths share their households, and their SNR ceiling is about
-    0.95 however often they are re-run. Only independent books separate it. Varying the book seed is EP17_varied_population_draw,
-    which is your curriculum.'
-  proposal: 'Authorise book seeds 61101-61112 for EP17 by recording docs/design/curriculum/varied_population_draw_activation.json
-    in the shape of population_draw_activation.json. I would run 12 books at about 36 min and 5.1 GB each,
-    7.2 box-hours serial, after the QEP refit lands, and only after a 2.4 h re-take on the default book.
-    Projected SNR is 1.8-2.4. If you decline, the result stands as: not separable on this book.'
+  what: 'Whether per-customer pricing beats a flat price a supplier could have set in advance cannot be answered on one book: the four probe paths
+    share their households, and their SNR ceiling is about 0.95 however often they are re-run. Only independent books separate it. Varying the
+    book seed is EP17_varied_population_draw, which is your curriculum.'
+  proposal: 'Authorise book seeds 61101-61112 for EP17 by recording docs/design/curriculum/varied_population_draw_activation.json in the shape
+    of population_draw_activation.json. I would run 12 books at about 36 min and 5.1 GB each, 7.2 box-hours serial, after the QEP refit lands,
+    and only after a 2.4 h re-take on the default book. Projected SNR is 1.8-2.4. If you decline, the result stands as: not separable on this
+    book.'
   status: open
   resolution: ''
 - id: no-atom-can-reach-l3-while-an
   raised: '2026-10-04'
   kind: canon_intent
-  what: 'No atom can reach L3 while an Expert Hour counts reviewer independence as a finding against it:
-    the blind-review tool records independence false on every pass by construction, and reserves external
-    review for the few verdicts you choose. H45 (the queue chained to the map) has closed every other
-    question its two blind passes raised -- edit back door, re-link, doubt route, trend -- and is held
-    at L2 on that one alone. Its specific form: whether a queue item serves its atom is read by a tick
-    of the same machine that files it, and nothing outside audits that read.'
-  proposal: Rule that an Expert Hour whose only open disqualifying question is reviewer independence passes
-    for L3, with the limit carried in the atom's simplification record, and that external review stays
-    at your choosing for the highest-stakes verdicts. On that ruling I would record H45's move to L3 through
-    the level gate. If you want H45 audited from outside instead, the read record (serves_by_hand on the
-    harness page) is what you or a relayed model would sample. Meanwhile H45 parks so it stops being drawn
-    for a question no build can answer.
+  what: 'No atom can reach L3 while an Expert Hour counts reviewer independence as a finding against it: the blind-review tool records independence
+    false on every pass by construction, and reserves external review for the few verdicts you choose. H45 (the queue chained to the map) has
+    closed every other question its two blind passes raised -- edit back door, re-link, doubt route, trend -- and is held at L2 on that one alone.
+    Its specific form: whether a queue item serves its atom is read by a tick of the same machine that files it, and nothing outside audits that
+    read.'
+  proposal: Rule that an Expert Hour whose only open disqualifying question is reviewer independence passes for L3, with the limit carried in
+    the atom's simplification record, and that external review stays at your choosing for the highest-stakes verdicts. On that ruling I would
+    record H45's move to L3 through the level gate. If you want H45 audited from outside instead, the read record (serves_by_hand on the harness
+    page) is what you or a relayed model would sample. Meanwhile H45 parks so it stops being drawn for a question no build can answer.
   status: open
   resolution: ''
 - id: does-a-retention-discount-offered-to-a
   raised: '2026-10-05'
   kind: strategy
-  what: 'Does a retention discount offered to a household fixing off our SVT buy anything? Our world says
-    no: at that term it gives the household no exit (svt_conversion_event, P(depart)=0), yet 32 of 60
-    retention offers (59% of retention spend, GBP 1,765) go there.'
-  proposal: I recommend we treat the world as right and stop offering a retention discount at an SVT-to-fix
-    conversion; it is a fact the supplier holds, so it needs no estimate. Then the C29 engagement weighting
-    gets graded on rolled terms only. If the industry instead sees the offer as what wins the conversion,
-    tell me and I will file it as a world-fidelity defect instead. I will carry on with everything else
-    meanwhile.
+  what: 'Does a retention discount offered to a household fixing off our SVT buy anything? Our world says no: at that term it gives the household
+    no exit (svt_conversion_event, P(depart)=0), yet 32 of 60 retention offers (59% of retention spend, GBP 1,765) go there.'
+  proposal: I recommend we treat the world as right and stop offering a retention discount at an SVT-to-fix conversion; it is a fact the supplier
+    holds, so it needs no estimate. Then the C29 engagement weighting gets graded on rolled terms only. If the industry instead sees the offer
+    as what wins the conversion, tell me and I will file it as a world-fidelity defect instead. I will carry on with everything else meanwhile.
   status: open
   resolution: ''
   evidence: docs/staging/SEAT_FINDING_C29_THE_BOOK_ARM_SURVIVES_THE_REFIT_AT_HALF_ITS_LIFT_2026-10-05.md
 - id: a-household-s-electricity-carbon-is-shown
   raised: '2026-10-05'
   kind: strategy
-  what: 'A household''s electricity carbon is shown per kWh GENERATED: NESO''s series has carried no transmission
-    and distribution loss uplift since 2020-04-27, so a kWh used at home reads several percent low against
-    the electricity that had to be generated for it. Whether the household figure adds losses is a definition
-    you own; it was described as raised on 2026-10-05 but never reached this list.'
-  proposal: Add losses as its own named line beside the electricity figure, at DESNZ's published T&D factor
-    (0.01853 kgCO2e/kWh, 2025 set, already sourced in the household-carbon knowledge page), never folded
-    into the grid series, so the published NESO number stays NESO's and the household sees both. Until
-    you rule, the page states that losses are not included, which it now does.
+  what: 'A household''s electricity carbon is shown per kWh GENERATED: NESO''s series has carried no transmission and distribution loss uplift
+    since 2020-04-27, so a kWh used at home reads several percent low against the electricity that had to be generated for it. Whether the household
+    figure adds losses is a definition you own; it was described as raised on 2026-10-05 but never reached this list.'
+  proposal: Add losses as its own named line beside the electricity figure, at DESNZ's published T&D factor (0.01853 kgCO2e/kWh, 2025 set, already
+    sourced in the household-carbon knowledge page), never folded into the grid series, so the published NESO number stays NESO's and the household
+    sees both. Until you rule, the page states that losses are not included, which it now does.
   status: open
   resolution: ''
   evidence: docs/staging/SEAT_FINDING_G14_EXPERT_HOUR_RETAKE_ON_THE_HISTORIC_MIX_2026-10-05.md
 - id: c34-next-best-action-the-customer-s
   raised: '2026-10-06'
   kind: canon_intent
-  what: 'C34 next best action: the customer''s benefit first, then ours, is read in slice 1 as a gate
-    (never an action the customer loses by) followed by supplier forward value as the objective. At realistic
-    margins and hazards, every advice action that saves the customer money then LOSES supplier forward
-    value, so the rule advises almost nobody: do no harm, take what pays us.'
-  proposal: Keep the gate-then-CLV reading until you answer. If you agree with the mission's created-then-shared
-    reading, C34 ranks on joint value (customer benefit plus supplier forward-value change) with a no-loss
-    floor on both sides. That is a one-line change to the decision's ranking key; the planted, null and
-    misled control arms carry over.
+  what: 'C34 next best action: the customer''s benefit first, then ours, is read in slice 1 as a gate (never an action the customer loses by)
+    followed by supplier forward value as the objective. At realistic margins and hazards, every advice action that saves the customer money then
+    LOSES supplier forward value, so the rule advises almost nobody: do no harm, take what pays us.'
+  proposal: Keep the gate-then-CLV reading until you answer. If you agree with the mission's created-then-shared reading, C34 ranks on joint value
+    (customer benefit plus supplier forward-value change) with a no-loss floor on both sides. That is a one-line change to the decision's ranking
+    key; the planted, null and misled control arms carry over.
   status: open
   resolution: ''
   evidence: docs/staging/SEAT_FINDING_C34_THE_DECISION_IS_BUILT_AND_ON_SUPPLIER_VALUE_ALONE_IT_ADVISES_NOBODY_2026-10-06.md
 - id: the-world-s-arrears-read-1-67x
   raised: '2026-10-09'
   kind: canon_intent
-  what: 'The world''s arrears read 1.67x Ofgem''s at the 400-founder book (8.5% against 5.1%, 2019 electricity,
-    interval 7.0-10.3%), so the arrears half of your hold on the 3,100 settlement raise is still not met.
-    The leading cause is that half of every failed bill is never repaid. That 0.5 is the share for debt-blocked
-    switchers, applied to every household. No published source gives the share for an ordinary failed
-    bill. As a practitioner: of ordinary failed domestic bills, what share does a supplier eventually
-    collect while the customer stays on supply, for Direct Debit and for pay-on-receipt?'
-  proposal: 'Unless you know better, I will set the never-repaid share by payment method from the one
-    published bound, Centrica ARA 2025 Note 17: about 7% for DD and about 50% for pay-on-receipt (the
-    provision on live balances over 90 days old). I will mark it as one supplier''s expected-loss rate,
-    then re-run the like-for-like at 400 founders against 5.1%. A one-line answer from you replaces both
-    numbers.'
+  what: 'The world''s arrears read 1.67x Ofgem''s at the 400-founder book (8.5% against 5.1%, 2019 electricity, interval 7.0-10.3%), so the arrears
+    half of your hold on the 3,100 settlement raise is still not met. The leading cause is that half of every failed bill is never repaid. That
+    0.5 is the share for debt-blocked switchers, applied to every household. No published source gives the share for an ordinary failed bill.
+    As a practitioner: of ordinary failed domestic bills, what share does a supplier eventually collect while the customer stays on supply, for
+    Direct Debit and for pay-on-receipt?'
+  proposal: 'Unless you know better, I will set the never-repaid share by payment method from the one published bound, Centrica ARA 2025 Note
+    17: about 7% for DD and about 50% for pay-on-receipt (the provision on live balances over 90 days old). I will mark it as one supplier''s
+    expected-loss rate, then re-run the like-for-like at 400 founders against 5.1%. A one-line answer from you replaces both numbers.'
+  status: answered
+  resolution: 'Director, 2026-10-09T17:30Z: "Repaid share of an ordinary failed bill: I won''t give a figure. Estimate a range from Ofgem''s published
+    debt and arrears data (how arrears flow in compared with the stock that remains), record it as a toggle with that basis, and show whether
+    the arrears result changes across the range. Tell me if it does." Done in 30d6d3390: toggle q3_ordinary_failed_bill_repaid_share, range 0.30-0.88;
+    it does change (1.84x at 0.30, 1.02x at 0.88). Under the per-method split already enacted (95c1193cb) the toggle now sets prepayment only,
+    and the book reads 4.3% against 5.1% (MET, one seed).'
+  evidence: 'docs/staging/SEAT_FINDING_THE_DD_FAILURE_CORRECTION_MOVED_MEASURED_FACTS_2026-10-09.md (result 2026-10-09T16:05Z, and 18:01Z: the
+    proposal ENACTED, never-repaid share by payment method, MET at 0.85x, 50/1153 = 4.3% (3.3-5.7%) against 5.1%, one seed); simulation/payment_behaviour_source.py
+    NEVER_REPAID_SHARE_BY_METHOD'
+- id: the-run-s-company-cannot-learn-whether
+  raised: '2026-10-09'
+  kind: strategy
+  what: The run's company cannot learn whether its own retention offers work. Its own holdout sees about 30 offer decisions a year, and the real
+    effect needs about 19,600 per arm to tell from nothing. Meanwhile its standing guard treats every offered household as saved, which B8 measured
+    as a loss at every cut size.
+  proposal: I am keeping the holdout off on every standing policy and recording 'an offer a small book cannot evaluate' as the named limit of
+    a 400-household company. Unless you object, I will not let the company price offers on evidence from outside its own book, because that changes
+    what a supplier this size is allowed to know. If you would rather it use published retention trials, say so and I will build that next.
   status: open
   resolution: ''
-  evidence: 'docs/staging/SEAT_FINDING_THE_DD_FAILURE_CORRECTION_MOVED_MEASURED_FACTS_2026-10-09.md (result
-    2026-10-09T16:05Z, and 18:01Z: the proposal ENACTED, never-repaid share by payment method, MET at
-    0.85x, 50/1153 = 4.3% (3.3-5.7%) against 5.1%, one seed); simulation/payment_behaviour_source.py NEVER_REPAID_SHARE_BY_METHOD'
+  evidence: docs/staging/SEAT_FINDING_B8_L3_THE_RUNS_OWN_HOLDOUT_CANNOT_DECIDE_AT_THE_FOUNDERS_SCALE_2026-10-09.md
 - id: a-held-lane-crash-can-now-wake
   raised: '2026-10-09'
   kind: reserved
-  what: A held lane crash can now wake the interactive session, but only while that session has armed
-    the waiter. Nothing re-arms it after a restart or after it fires, so the 10-09 gap is closed only
-    as far as the session remembers.
-  proposal: Add a SessionStart hook on the console that tells the session to arm 'python3 -m background.lane_unit_crash
-    --wait-held --deadline 21600' in the background. The hook only emits context and never types into
-    the pane. It acts on your console, so I have not built it; say yes and I will.
+  what: A held lane crash can now wake the interactive session, but only while that session has armed the waiter. Nothing re-arms it after a restart
+    or after it fires, so the 10-09 gap is closed only as far as the session remembers.
+  proposal: Add a SessionStart hook on the console that tells the session to arm 'python3 -m background.lane_unit_crash --wait-held --deadline
+    21600' in the background. The hook only emits context and never types into the pane. It acts on your console, so I have not built it; say
+    yes and I will.
   status: open
   resolution: ''
-  evidence: docs/staging/SEAT_FINDING_A_HELD_LANE_CRASH_WAKES_THE_INTERACTIVE_SESSION_2026-10-09.md; landed
-    bcb725078
+  evidence: docs/staging/SEAT_FINDING_A_HELD_LANE_CRASH_WAKES_THE_INTERACTIVE_SESSION_2026-10-09.md; landed bcb725078
