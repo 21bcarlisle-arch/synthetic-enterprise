@@ -1007,6 +1007,72 @@ def generated_output_verdicts(project: Path | None = None,
     return verdicts
 
 
+#: THE EIGHTH CLASS: tracked logs that every run in the shared tree APPENDS to. Declared by name,
+#: not inferred, because the generated-path oracles deliberately exclude appends (an append is a
+#: record no run can reproduce, so restoring it to HEAD would lose it). Measured 2026-10-09: the
+#: shared copy of the test log held 2,727 lines against HEAD's 266, and origin had added one line
+#: of its own (d29dcddc3, 10-08). Every pytest session re-dirties it, so it is never a twin, never
+#: 48 h old, and under the all-or-nothing rule it held the whole advance with no way to age out.
+#: Its readers (`tools/generate_evidence_data.suite_snapshot` takes the max, `tools/
+#: test_execution_metric` sums) do not depend on line order, which is what makes a union safe.
+APPEND_LOGS = frozenset({
+    "docs/observability/test_execution_log.jsonl",
+})
+
+#: Where an append log's local bytes go before the fast-forward writes origin's over them. Its
+#: lines come back into the file straight after the advance, so this ref is the fallback, not the
+#: route: it matters only if the process dies between the restore and the write-back.
+APPEND_PRESERVED_PREFIX = "refs/preserved/origin-reconcile-append-log/"
+
+
+def merge_append_log(base: str, *tails: str) -> str:
+    """`base`'s lines, then every line of each tail that `base` (and earlier tails) lack.
+
+    Counted as a multiset, not a set: two runs can write identical lines, and a set would fold
+    them into one and shrink the sum `test_execution_metric` reads.
+    """
+    from collections import Counter
+    seen = Counter(line for line in base.splitlines() if line)
+    out = [line for line in base.splitlines() if line]
+    for tail in tails:
+        mine = Counter(line for line in tail.splitlines() if line)
+        for line in tail.splitlines():
+            if not line:
+                continue
+            if seen[line] >= mine[line]:
+                continue
+            seen[line] += 1
+            out.append(line)
+    return "".join(line + "\n" for line in out)
+
+
+def append_log_verdicts(project: Path | None = None,
+                        paths: list[str] | None = None) -> dict[str, tuple[bool, str]]:
+    """For each tracked blocker, `(is_declared_append_log, why)`. Asks git nothing for other paths."""
+    project = project or PROJECT_DIR
+    verdicts: dict[str, tuple[bool, str]] = {}
+    for path in paths or []:
+        if path not in APPEND_LOGS:
+            verdicts[path] = (False, "not a declared append log")
+            continue
+        if _blob_in_head(project, path) is None or _origin_text(project, path) is None:
+            verdicts[path] = (False, "a declared append log, but HEAD or origin holds no blob at "
+                                     "this path, so there is nothing to restore it to or merge it "
+                                     "onto")
+            continue
+        try:
+            (project / path).read_bytes().decode("utf-8")
+            _origin_text(project, path).decode("utf-8")
+        except (OSError, UnicodeDecodeError) as exc:
+            verdicts[path] = (False, "a declared append log that could not be read as text "
+                                     "({}), so its lines cannot be merged".format(exc))
+            continue
+        verdicts[path] = (True, (
+            "a declared APPEND LOG -- restored to HEAD for the fast-forward, then rewritten as "
+            "origin's lines plus every local line origin lacks, so no line is lost"))
+    return verdicts
+
+
 def untracked_orphan_verdicts(project: Path | None = None,
                               paths: list[str] | None = None) -> dict[str, tuple[bool, str]] | None:
     """For each UNTRACKED blocker, `(is_preservable, why)`. `None` if git would not answer.
@@ -1438,7 +1504,8 @@ def advance_shared_tree(project: Path | None = None, *, blockers_fn=None, twins_
                         locker=None, ahead_fn=None, stale_fn=None, refresher=None,
                         orphans_fn=None, preserver=None, generated_fn=None,
                         earlier_fn=None, earlier_preserver=None, abandoned_fn=None,
-                        abandoned_preserver=None, filer=None, now=None) -> dict:
+                        abandoned_preserver=None, filer=None, now=None, append_fn=None,
+                        append_preserver=None) -> dict:
     """Fast-forward the shared tree onto `origin/main`, clearing every blocker it can prove lossless.
 
     Returns `{"advanced": bool, "cleared": list[str], "reason": str}`. `advanced` is claimed only
@@ -1638,6 +1705,11 @@ def advance_shared_tree(project: Path | None = None, *, blockers_fn=None, twins_
                           "nothing was touched -- a file is never written over on an unread "
                           "classification"}
     generated = sorted(p for p, (ok, _) in gen_verdicts.items() if ok)
+    # THE EIGHTH CLASS, asked of the tracked blockers neither the stale nor the generated class
+    # took. An append log's lines are put back after the advance, so it is not a loss either.
+    append_verdicts = (append_fn or append_log_verdicts)(
+        project, sorted(p for p in candidates if p not in set(stale) | set(generated)))
+    appended = sorted(p for p, (ok, _) in append_verdicts.items() if ok)
     # THE FOURTH CLASS, ASKED ONLY OF WHAT THE OTHER THREE LEFT. An untracked path origin ADDS has
     # no HEAD blob, so neither hash proof nor `refresh_to_head`'s judgement can reach it, and until
     # 2026-09-17 it was subtracted out of the candidate set and held the tree indefinitely. Its
@@ -1651,7 +1723,8 @@ def advance_shared_tree(project: Path | None = None, *, blockers_fn=None, twins_
                           "established, so nothing was touched -- a file is never removed on an "
                           "unread comparison"}
     orphans = sorted(p for p, (ok, _) in orphan_verdicts.items() if ok)
-    resolvable = sorted(set(resolvable) | set(stale) | set(generated) | set(orphans))
+    resolvable = sorted(set(resolvable) | set(stale) | set(generated) | set(appended)
+                        | set(orphans))
     held = sorted(blocked_paths - set(resolvable))
     # THE SEVENTH CLASS, ASKED ONLY OF WHAT ALL SIX LEFT, and it moves `held` only if it takes ALL
     # of it: one live copy keeps the whole advance refused and nothing aged out is touched either.
@@ -1674,7 +1747,8 @@ def advance_shared_tree(project: Path | None = None, *, blockers_fn=None, twins_
         # nobody may touch and of a file this tree has no reader for, and those want opposite acts.
         named = []
         for path in held[:12]:
-            why = (verdicts.get(path) or gen_verdicts.get(path) or orphan_verdicts.get(path)
+            why = (verdicts.get(path) or gen_verdicts.get(path) or append_verdicts.get(path)
+                   or orphan_verdicts.get(path)
                    or (False, "not byte-identical to what origin brings"))[1]
             age = abandoned_verdicts.get(path)
             named.append("{} -- {}{}".format(
@@ -1718,8 +1792,17 @@ def advance_shared_tree(project: Path | None = None, *, blockers_fn=None, twins_
     # fast-forward to overwrite, one proven lossless by hashing against origin and the other by
     # being nobody's work. Folding it into `tracked_set` here, rather than giving it a fourth
     # branch in the loop below, keeps the acts at three and the grounds at five.
+    # An append log is restored by the same act too; what differs is the write-back after the
+    # advance, below.
     tracked_set, stale_set, orphan_set = (
-        set(tracked) | set(generated), set(stale), set(orphans))
+        set(tracked) | set(generated) | set(appended), set(stale), set(orphans))
+    append_set = set(appended)
+    _preserve_append = append_preserver or (lambda p: _commit_disk_bytes_to_ref(
+        project, p, APPEND_PRESERVED_PREFIX + slug,
+        "preserved append log(s) before origin-reconcile restored them for the fast-forward: "
+        "{}".format(", ".join(p))))
+    append_snapshots: dict[str, bytes] = {}
+    append_commit = append_failure = ""
     abandoned_set = set(abandoned)
     # READ BEFORE THE CLEARING, which rewrites every mtime it touches: the staging item reports
     # how long each copy had sat, and after the restore that answer is gone.
@@ -1727,6 +1810,24 @@ def advance_shared_tree(project: Path | None = None, *, blockers_fn=None, twins_
                           "kind": "tracked edit" if p in modified_paths else "untracked file"}
                          for p in sorted(abandoned_set)]
     orphan_commit = earlier_commit = abandoned_commit = ""
+    def _write_back(advanced: bool) -> str:
+        """Put every append log's lines back. Runs whatever the advance did, and reads the current
+        disk first, so a line a test run appended after the restore is kept as well."""
+        failures = ""
+        for path, local in append_snapshots.items():
+            try:
+                if advanced:
+                    current = (project / path).read_bytes().decode("utf-8")
+                    merged = merge_append_log(current, local.decode("utf-8")).encode("utf-8")
+                else:
+                    merged = local
+                (project / path).write_bytes(merged)
+            except (OSError, UnicodeDecodeError) as exc:
+                failures += " {} was NOT written back ({}); its local bytes are at {}{} " \
+                            "({}).".format(path, exc, APPEND_PRESERVED_PREFIX, slug,
+                                           (append_commit or "-")[:9])
+        return failures
+
     try:
         with _lock():
             # BEFORE ANYTHING IS CLEARED, and with the origin proof re-asked against the disk as it
@@ -1763,6 +1864,21 @@ def advance_shared_tree(project: Path | None = None, *, blockers_fn=None, twins_
                             "reason": "the {} abandoned working cop(y/ies) could not be PRESERVED, "
                                       "so nothing was removed and the advance was not attempted: "
                                       "{}".format(len(abandoned_set), failure)}
+            # THE APPEND LOGS ARE READ AND PUT ON A REF before they are restored. The bytes held
+            # in memory are what is written back; the ref is for a process that dies in between.
+            if append_set:
+                try:
+                    append_snapshots = {p: (project / p).read_bytes() for p in sorted(append_set)}
+                except OSError as exc:
+                    return {"advanced": False, "cleared": [],
+                            "reason": "an append log could not be read ({}), so nothing was "
+                                      "touched".format(exc)}
+                append_commit, failure = _preserve_append(sorted(append_set))
+                if failure:
+                    return {"advanced": False, "cleared": [],
+                            "reason": "the {} append log(s) could not be preserved, so nothing "
+                                      "was touched and the advance was not attempted: {}".format(
+                                          len(append_set), failure)}
             # THE REFRESH GOES NEXT AND IT IS ALL-OR-NOTHING WITH ITSELF. `refresh_to_head`
             # writes nothing unless every path it is handed is refreshable, so a failure here has
             # touched no byte and the twins beside it are still on disk untouched.
@@ -1796,10 +1912,12 @@ def advance_shared_tree(project: Path | None = None, *, blockers_fn=None, twins_
                     return {"advanced": False, "cleared": cleared,
                             "reason": "clearing the byte-identical twin {} failed ({}), so the "
                                       "advance was not attempted; {} earlier twin(s) were already "
-                                      "cleared and origin holds every one of them".format(
-                                          path, failure, len(cleared))}
+                                      "cleared and origin holds every one of them{}".format(
+                                          path, failure, len(cleared),
+                                          _write_back(False))}
                 cleared.append(path)
             second = _ff()
+            append_failure = _write_back(second.returncode == 0)
     except TreeLockTimeout as exc:
         return {"advanced": False, "cleared": [],
                 "reason": "another writer held the tree lock ({}), so nothing was removed and "
@@ -1833,7 +1951,10 @@ def advance_shared_tree(project: Path | None = None, *, blockers_fn=None, twins_
                               len(stale_set), REFRESH_PRESERVED_PREFIX, slug,
                               len(orphan_set), ORPHAN_PRESERVED_PREFIX, slug,
                               (orphan_commit or "-")[:9],
-                              "; ".join(cleared[:12])) + abandoned_clause}
+                              "; ".join(cleared[:12])) + abandoned_clause
+                          + (". {} append log(s) ({}) were rewritten as origin's lines plus the "
+                             "local tail".format(len(append_set), "; ".join(sorted(append_set)))
+                             if append_set else "") + append_failure}
     # THE TWINS ARE NOT RESTORED HERE, AND THAT IS DELIBERATE. Their content is on origin by the
     # hash equality that selected them, so `git checkout origin/main -- <path>` returns any of them
     # exactly; re-writing them from a second guess at what they held would be this module inventing
@@ -1865,7 +1986,8 @@ def advance_shared_tree(project: Path | None = None, *, blockers_fn=None, twins_
                                len(orphan_set), "; ".join(sorted(orphan_set)[:12]),
                                ORPHAN_PRESERVED_PREFIX, slug,
                                (orphan_commit or "-")[:9])) if orphan_set else "",
-                          (second.stderr or second.stdout or "").strip()[:200]) + abandoned_clause}
+                          (second.stderr or second.stdout or "").strip()[:200]) + abandoned_clause
+            + append_failure}
 
 
 def commits_ahead(project: Path | None = None) -> int | None:
