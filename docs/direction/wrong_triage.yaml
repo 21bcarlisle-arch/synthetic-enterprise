@@ -277,3 +277,10 @@ items:
     fate: fix
     owner: "docs/staging/SEAT_FINDING_THE_DRAW_LEDGER_GRADES_BY_PATH_SO_MID_LANDING_SPENT_AND_OVERLAPPING_WORK_READ_ALIKE_2026-10-07.md"
     status: open
+  - id: lane-0-hands-a-multi-run-item-to-a-tick-without-asking-its-window
+    problem: "Lane 0 handed the voids item to two ticks (22:57Z, 01:31Z) without asking whether a tick's window could hold a multi-run item, and both landed nothing."
+    match: ["voids item was dispatched twice", "how much window a tick has left"]
+    first_seen: "2026-10-07"
+    times_listed: 14
+    fate: accept
+    reason: "No recurrence in seven orientations. The remedy the seat owns is cheaper than a window check: it splits a multi-run ask into a landable tool and a launch_long_job reading as separate items, which the 2026-10-10 record does for the arrears instrument. A second instance reopens it as fix."
