@@ -59,3 +59,36 @@ because HEAD then contains origin.
 **The bootstrap is itself in `reconcile_watch.py`, which the shared tree loads only after ONE
 advance.** It therefore protects every later reconciler fix, but not this one. That is the honest
 limit; today it costs nothing, because origin's reconciler refuses for the same live-work reason.
+
+## Actioned, 2026-10-09 (worker tick, ~09:18 BST)
+
+**The DONE is met: the shared tree advanced and reads 0 behind, 0 ahead.** The finding's named cause had
+gone stale by the time I drew it, and the actual holders were a different class.
+
+- **The direction files no longer held anything.** By 09:05 `DIRECTION.yaml`, `decisions.jsonl` and
+  `SEAT_STRETCH_LOG.md` matched origin byte for byte. Origin's `earlier_revision_twins` puts them
+  in a lossless class, so whatever writes them had landed them. The "writer never lands" cause is
+  not what held the advance this morning. The 2026-10-07 direction-record finding stays the
+  subject for the *pattern*, but it was not binding here.
+- **What did hold it: six live (<48h) copies that origin supersedes, plus a staging archive that
+  origin reversed.** Each copy was an earlier draft of a later origin revision. Checked by diff
+  against origin's history, not assumed:
+  `canon_claims.yaml` and `test_canon_drift_check.py` had zero lines that origin lacks;
+  `site/index.html` was identical to origin; `maturity_map.yaml` lines were older levels and
+  counts; `knowledge_map.md` rows were older wordings; and the save-offer doc said "no Pending
+  notice is built", which origin `4805420bd` reversed by building the CSS ITI. The debtor-switch
+  note had been moved to `done/` locally, but origin edited its root copy again at 09:09.
+  No reconciler class covers "under 48h but strictly superseded", so all of them held the advance
+  under the all-or-nothing rule.
+- **The remedy:** preserve the bytes, read them back, and restore HEAD under `tree_lock`. All seven
+  are on `refs/preserved/superseded-live/20261009T091805` (`b84ae812e`), recoverable with
+  `git show <ref>:<path>`. Then origin's `advance_shared_tree` ran and cleared the other 33
+  (twins, earlier revisions, append log, generated output, 4 abandoned copies, each on its own
+  preserved ref) and fast-forwarded.
+- **The class left open:** a copy under 48h that origin strictly supersedes, where every local
+  line is either in origin or an earlier wording of origin's line. The reconciler cannot clear
+  it today, and it holds the whole fleet until a human or a tick does it by hand.
+  `refresh_to_head`'s superset judgement reads Python only, so these doc/YAML copies fell through.
+  Not built here: whether "an earlier wording" is mechanically decidable outside the
+  zero-novel-lines case is an open question, and the zero-novel-lines case (two of the six) is
+  the safe first leg.
