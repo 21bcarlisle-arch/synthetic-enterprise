@@ -5121,10 +5121,24 @@ def next_item(now: float | None = None, path: Path | None = None, *,
             return None
         return None
 
+    # AN EMBARGO IS ON THE WORK, NOT ON ONE STORE'S COPY OF IT (2026-10-02). A focus row and a
+    # continuation can carry the same id; when only the continuation states the embargo, the focus
+    # row drew straight past it -- `restore-the-journey-decision-for-an-svt-conversion` was handed
+    # to a tick at 07:27 while its own continuation said not before 11:30, a retake was on the box,
+    # and only the item's prose stopped a second long run being launched beside it.
+    def _continuation_embargoes() -> set:
+        try:
+            return {c["id"] for c in seat_continuation.live(now=now)
+                    if c.get("id") and _embargoed(c, now)}
+        except Exception:
+            return set()
+
     def _focus():
+        held_ids = _continuation_embargoes()
         for item in direction_mod.unreachable_focus(_atom_ids()):
             if (item.get("id") and item["id"] not in taken
                     and item["id"] not in retired and not _embargoed(item, now)
+                    and item["id"] not in held_ids
                     and (admit is None or admit(item)) and not _result_landed(item)
                     and not _finished(item)
                     and not _held(item)):

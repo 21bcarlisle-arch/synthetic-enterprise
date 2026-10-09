@@ -251,3 +251,32 @@ def test_the_stamps_date_is_read_and_not_only_its_clock_time(now):
     assert delivery_lane._embargoed({"what": _stamp(tomorrow)}, now) is True, (
         "the date was dropped, so a stamp for tomorrow stopped holding once today's clock passed it"
     )
+
+
+def test_a_focus_row_honours_its_continuation_twins_embargo(monkeypatch, tmp_path, now):
+    """THE TWO STORES CARRY ONE PIECE OF WORK. Measured 2026-10-02: a focus row and a continuation
+    shared an id, only the continuation stated the embargo, and the continuation loop skipped it
+    while the focus loop handed the same id out at once. Both halves of the partition are asserted:
+    held inside the window (the sibling is drawn instead) and released after it.
+
+    MUTATION (must fire): drop `item["id"] not in held_ids` from `_focus`.
+    """
+    monkeypatch.setattr(delivery_lane, "CLAIMS_FILE", tmp_path / "claims.json")
+    monkeypatch.setattr(seat_continuation, "STORE", tmp_path / "continuations.json")
+    seat_continuation.hand_off(
+        "restore-the-journey-decision",
+        what="Re-read the retake. " + _stamp(now + 3600) + ": the retake is still running.",
+        why="the decision needs the retake's artefact",
+        done_means="the decision is read from the retake.",
+        now=now,
+    )
+    monkeypatch.setattr(delivery_lane.direction_mod, "unreachable_focus", lambda _atoms: [
+        {"id": "restore-the-journey-decision", "what": "Restore the decision.", "why": "w"},
+        {"id": "decompose-the-negative-selection-leg", "what": "Decompose.", "why": "w"},
+    ])
+
+    held = delivery_lane.next_item(now=now, path=tmp_path / "claims.json")
+    assert held is not None and held["id"] == "decompose-the-negative-selection-leg", held
+
+    released = delivery_lane.next_item(now=now + 7200, path=tmp_path / "claims.json")
+    assert released is not None and released["id"] == "restore-the-journey-decision", released
