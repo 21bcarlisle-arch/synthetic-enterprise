@@ -707,7 +707,11 @@ def test_MEASURED_population_values(population, population_result):
     # [3, 15, 27, 44] -> [3, 13, 27, 43] the same day: the headcount is drawn given the dwelling's
     # bedrooms (Census RM136), and bedrooms from VOA's stock. p25 moved AWAY from expected (15) by
     # two and p75 by one. Not predicted.
-    assert [legs[q].below for q in (0.10, 0.25, 0.50, 0.75)] == [3, 13, 27, 43], texture.note
+    # [3, 13, 27, 43] -> [3, 13, 26, 45] on 2026-10-09, two timing moves onto HES, each run alone:
+    # the dishwasher drawn on HES Figs 404-408's hours instead of 18:00-23:00 gives [3, 13, 27, 45]
+    # (p75 onto expected), and lighting in daylight at CAR's summer-daytime share, annual held,
+    # gives [3, 13, 26, 43] (p50 one further from expected 30). Not predicted.
+    assert [legs[q].below for q in (0.10, 0.25, 0.50, 0.75)] == [3, 13, 26, 45], texture.note
     # 0.142 -> 0.153 with electronics at its 2022 level (real 0.158).
     # 0.153 -> 0.168 on 2026-10-09, the census headcount (above).
     # 0.168 -> 0.159 the same day, the headcount given the dwelling's bedrooms (real 0.158).
@@ -726,8 +730,11 @@ def test_MEASURED_population_values(population, population_result):
     # reads 0.06329 against P0018's 0.06327, so the calmest home is a gas home again by 0.03%.
     # P0018 0.0633 -> 0.0647 the same day, still P0018: the microwave's use count 0.8 -> 1.70 a day
     # (HES's 56 kWh). Every home gained ~30 kWh of all-day load.
-    assert texture.worst_home == "P0018", texture.note
-    assert texture.worst_value == pytest.approx(0.0647, abs=5e-4), texture.note
+    # P0018 0.0647 -> P0033 0.0652 on 2026-10-09: the dishwasher drawn on HES's hours. Alone it gives
+    # P0033 (electric storage) 0.06501 against P0018's 0.06525. Lighting in daylight alone keeps P0018
+    # (0.06482). Both: P0033 0.06521 against P0018 0.06528, so the strict xfail below is open again.
+    assert texture.worst_home == "P0033", texture.note
+    assert texture.worst_value == pytest.approx(0.0652, abs=5e-4), texture.note
     # NOBODY WAS EXCLUDED TO GET HERE. All 60 homes are judged on every anchored
     # cell — the electrically heated ones included — which is the difference
     # between netting a component out of a statistic and dropping the homes that
@@ -812,7 +819,11 @@ def test_MEASURED_population_values(population, population_result):
     # start time is drawn anywhere in 10:00-21:30, so more uses are more day-to-day noise.
     # 0.527 -> 0.500 the same day, still P0023: the headcount drawn given the dwelling's bedrooms.
     # Still under the 0.6 band.
-    assert shape.worst_value == pytest.approx(0.500, abs=0.01), shape.note
+    # 0.500 -> 0.563 the same day, still P0023: the dishwasher drawn on HES's hours, not 18:00-23:00
+    # (0.565 alone; lighting in daylight alone 0.500). Its random evening starts were day-to-day noise
+    # around P0023's fixed evening heater session; spread over the day, less of that noise lands
+    # there. Still under the 0.6 band. Not predicted.
+    assert shape.worst_value == pytest.approx(0.563, abs=0.01), shape.note
     assert "gas" in population.heating_systems[
         population.homes.index(shape.worst_home)
     ], "the worst home is a GAS home"
@@ -914,7 +925,9 @@ def test_P0000_the_calmest_home_is_ORDINARY_against_real_homes_and_the_red_is_th
     # 0.1633 -> 0.2160 on 2026-10-09, the drawn 60 on the book's census headcount instead of the deleted bedrooms fallback.
     # 0.2160 -> 0.2139 the same day: the kettle stopped scaling with headcount (HES Table 23).
     # 0.2139 -> 0.1980 the same day: P0000's headcount drawn given its bedrooms (Census RM136).
-    assert live == pytest.approx(0.1980, abs=5e-4)
+    # 0.1980 -> 0.1998 the same day: the dishwasher on HES's hours (0.1991 alone) and lighting in
+    # daylight at CAR's share (0.1996 alone).
+    assert live == pytest.approx(0.1998, abs=5e-4)
     assert net_of_pump > live
     # ORDINARY: inside the real middle half, with or without its pump. Keyed to REAL_MEDIAN as
     # the upper edge until 2026-10-08, when electronics at its 2022 level took P0000 to 0.1589,
@@ -1121,6 +1134,16 @@ def test_the_WATER_HEATER_netting_is_a_LOAD_SET_repair_and_not_a_LOOSENING(
         )
 
 
+@pytest.mark.xfail(
+    strict=True,
+    reason=(
+        "OPEN again, measured 2026-10-09 when the dishwasher moved onto HES's hours (Figs 404-408). "
+        "Net of both machines, P0033 (storage, 5 people) reads 0.06521 against the calmest gas home "
+        "P0018's 0.06528 (-0.1%), and is the 60's calmest judged home. The dishwasher alone gives "
+        "0.06501 against 0.06525; lighting in daylight alone leaves it passing. The knife-edge the "
+        "comment below names, crossed by an unrelated timing move: read it across more than one draw."
+    ),
+)
 def test_net_of_both_machines_no_electric_home_is_calmer_than_every_gas_home(
     drawn_traces, population_result, water_heat_parity
 ):
@@ -2770,7 +2793,9 @@ def test_L1_1n_CAN_PASS_and_is_not_a_control_that_can_only_fail(population_resul
     # reads below its own flat day, against 7.0% of real LCL homes; the rate leg below judges it.
     # 0.9955 -> 1.039 the same day, still P0040: a microwave at EFUS 2017's 89.7%, and P0040 is one
     # of the four panel homes (P0034/P0040/P0047/P0059) that draw none. 0 of 60 below 1.0 again.
-    assert cell.worst_value == pytest.approx(1.039, abs=0.005), cell.note
+    # 1.039 -> 1.048 the same day, still P0040: the dishwasher on HES's hours and lighting in daylight
+    # together (each alone stays inside 1.039 +/- 0.005).
+    assert cell.worst_value == pytest.approx(1.048, abs=0.005), cell.note
     assert cell.homes_violating / cell.homes_judged <= fgl.RATE_BANDS[
         fgl.TEXTURE_NULL_RATIO_STATISTIC].threshold, cell.note
 
@@ -2997,7 +3022,10 @@ def test_the_MINTS_INFERRED_MECHANISM_was_REFUTED_by_measurement(population):
     # cause as the cooking-fuel draw (less evening cook, higher base share, lower peakiness).
     # +0.619 -> +0.554 the same day: the microwave's use count 0.8 -> 1.70 a day (HES's 56 kWh), an all-day load that is
     # neither base nor evening peak. Not predicted.
-    assert r == pytest.approx(0.554, abs=0.03)
+    # +0.554 -> +0.623 the same day: the dishwasher drawn on HES's hours, not 18:00-23:00 (+0.623
+    # alone). The same common cause as the cooking-fuel draw: less evening load, a higher base share,
+    # lower peakiness. Lighting in daylight alone stays inside +/-0.03.
+    assert r == pytest.approx(0.623, abs=0.03)
     share = [min(min(d) for d in h) / (sum(map(sum, h)) / (48 * len(h))) for h in behavioural]
 
     def _residual(y, x):

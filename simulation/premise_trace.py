@@ -598,6 +598,9 @@ class ApplianceSpec:
     """Share of the electricity that ends up as useful internal gain. Cooking
     extract and a vented dryer put much of it outside."""
     scales_with_people: bool = True
+    load_by_hour: tuple[float, ...] | None = None
+    """A measured 24-hour load curve. When set, the start is drawn across the window in
+    proportion to it (`start_weights`), not uniformly."""
 
 
 # `domain-knowledge` — HES (Intertek R66141, 2012) Table 14: an electric kettle uses 167 kWh/yr per
@@ -635,6 +638,38 @@ _HES_HOB_HOURS_PER_USE = 0.35
 # docs/staging/SEAT_FINDING_THE_MICROWAVE_LEVEL_IS_TIME_IN_USE_AGAINST_HES_56_2026-10-09.md.
 _MICROWAVE_USES_PER_DAY = 1.70
 
+# `domain-knowledge` — HES (Intertek R66141, 2012) Figs 404-408: the dishwasher's daily average load
+# curve, W in each hour from 00:00, for each household type, read by eye to about +/-3 W. This is
+# their unweighted mean, because HES publishes no weights for the types. It is spread over the day:
+# 0.40 of the energy falls in 18:00-24:00, the peak is 19:00, and the mornings from 08:00 carry
+# almost as much. The world used to start every cycle in 18:00-23:00, which put 0.92 of the
+# dishwasher's energy there. HES dates the hour and ECUK has no time-of-use series, so this
+# 2010-11 shape is the decade's.
+# docs/staging/SEAT_FINDING_THE_EVENING_NON_COOKING_STACK_AGAINST_HES_TIME_OF_USE_2026-10-09.md.
+_HES_DISHWASHER_W_BY_HOUR: tuple[float, ...] = (
+    26.6, 11.6, 12.2, 14.6, 10.4, 6.6, 6.0, 20.4, 31.8, 41.8, 43.8, 37.6,
+    32.6, 37.0, 41.2, 32.4, 24.6, 25.8, 42.2, 68.4, 57.6, 49.8, 41.0, 41.6,
+)
+
+
+def start_weights(spec: ApplianceSpec, lo: int, hi: int, offset: float) -> list[float]:
+    """Weights over start periods `lo..hi` from `spec.load_by_hour`, on a clock moved by `offset`
+    periods (the weekend shift plus the routine, as the window is moved).
+
+    A load curve is where the ENERGY falls, and a cycle's energy is centred half its duration after
+    it starts. So a start in period p is weighted by the curve at p + duration/2.
+    SIMPLIFICATION: a shift, not a deconvolution. It moves the curve's centre to the right place and
+    smooths it by one cycle length. HES's 00:00-06:00 delay-timer starts (about 0.10 of the energy)
+    cannot happen, because a start is clamped to waking hours, so their weight goes to the rest.
+    """
+    assert spec.load_by_hour is not None and len(spec.load_by_hour) == 24
+    lag = spec.duration_hours / 2 / PERIOD_HOURS
+    return [
+        spec.load_by_hour[int(math.floor((p + lag - offset) * PERIOD_HOURS)) % 24]
+        for p in range(lo, hi + 1)
+    ]
+
+
 # `domain-knowledge` — nameplate ratings and usage frequencies. Judged (never
 # parameterised) against Ofgem TDCV medium non-heating electricity, 2,700 kWh/yr.
 # No cooking appliance scales with headcount: HES Table 23 shows none (oven 267/375/211/183/396 by
@@ -660,7 +695,7 @@ APPLIANCE_CATALOGUE: tuple[ApplianceSpec, ...] = (
         heat_fraction=0.6, scales_with_people=False,
     ),
     ApplianceSpec("washing_machine", 0.55, 1.5, 0.60, (14, 40), heat_fraction=0.5),
-    ApplianceSpec("dishwasher", 0.70, 1.5, 0.50, (36, 46), heat_fraction=0.5),
+    ApplianceSpec("dishwasher", 0.70, 1.5, 0.50, (0, 47), heat_fraction=0.5, load_by_hour=_HES_DISHWASHER_W_BY_HOUR),
     ApplianceSpec("tumble_dryer", 2.2, 0.70, 0.22, (16, 42), heat_fraction=0.3),
     ApplianceSpec("vacuum_iron", 1.2, 0.30, 0.25, (18, 40), heat_fraction=0.9),
 )
@@ -866,7 +901,20 @@ def gas_cooked(base_seed: int) -> frozenset[str]:
         u -= share
     return combination
 
-_LIGHTING_KW_PER_PERSON = 0.035
+# `domain-knowledge`, the hour dated 2026-10-09. A light can be on in daylight. CAR's re-analysis of
+# HES (*Further analysis of the Household Electricity Survey: Lighting*, p.25) puts mean lighting at
+# 24 W from April to September, 09:00-18:00 BST, against an annual mean of 59-63 W (518-550 kWh/yr).
+# So summer-daytime lighting is 0.38-0.41 of the year's mean. The world lit nothing in daylight (0.02),
+# which put 0.79 of lighting in 18:00-24:00 against HES Fig 245's 0.54. Awake and home in daylight, a
+# light now switches with probability occupancy x this share. Both readings are linear in it: over 731
+# gas no-PV homes (seeds 17/29/41, C1 2022), the summer-daytime mean was 0.4 + 40.0 x share W and the
+# annual mean 17.2 + 17.8 x share W, so a ratio of 0.39 needs 0.19.
+_DAYLIGHT_LIGHTING_SHARE = 0.19
+# The annual level stays where 0.035 kW/person put it: daylight use is taken out of the dark hours, so
+# this moves when light is used and not how much. The 2016-2025 level is not established (ECUK brackets
+# 137-430 kWh/yr; docs/market_research/the_seasonal_swing_of_a_gas_heated_homes_electricity.md).
+# docs/staging/SEAT_FINDING_THE_EVENING_NON_COOKING_STACK_AGAINST_HES_TIME_OF_USE_2026-10-09.md.
+_LIGHTING_KW_PER_PERSON = 0.035 * 17.2 / (17.2 + 17.8 * _DAYLIGHT_LIGHTING_SHARE)
 # `domain-knowledge`, dated to 2022 on 2026-10-08. HES (Intertek R66141, 2010-11) on-mode
 # electronics per HOUSEHOLD is the annual (Table 26 AV 553, Table 29 computer 240 kWh) less the
 # standby (Figs 501, 535): about 651-671 kWh/yr. Not 557: that is per-SITE power times hours. HES's
@@ -1066,6 +1114,16 @@ class ApplianceEvent:
         return self.power_kw * self.duration_hours
 
 
+def _weighted_index(rng: random.Random, weights: Sequence[float]) -> int:
+    """One draw from `weights` on a single uniform, so the substream's use stays one draw per event."""
+    u = rng.random() * sum(weights)
+    for i, w in enumerate(weights):
+        if u < w:
+            return i
+        u -= w
+    return len(weights) - 1
+
+
 def draw_appliance_events(
     base_seed: int,
     day_index: int,
@@ -1108,8 +1166,14 @@ def draw_appliance_events(
         hi = min(profile.sleep_period + shift, int(math.ceil(hi + shift + routine)))
         if hi <= lo:
             continue
+        weights = (
+            start_weights(spec, lo, hi, shift + routine) if spec.load_by_hour is not None else None
+        )
         for _ in range(count):
-            start = rng.randint(lo, hi)
+            if weights is None:
+                start = rng.randint(lo, hi)
+            else:
+                start = lo + _weighted_index(rng, weights)
             if spec.name not in owned:
                 continue
             events.append(
@@ -2065,7 +2129,7 @@ def generate_premise_trace(
             kw = standby_kw
             live = awake and not is_away
             device_p = occupancy if live else 0.0
-            light_p = occupancy if live and dark else 0.0
+            light_p = (occupancy if dark else occupancy * _DAYLIGHT_LIGHTING_SHARE) if live else 0.0
             devices_on = switched_units_on(
                 switch_rng, device_units, device_p, devices_on,
                 previous_occupancy=prev_device_p,

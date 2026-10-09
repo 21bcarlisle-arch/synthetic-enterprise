@@ -693,3 +693,31 @@ year at constant stock.
   per-use evidence beyond 2022's.
 - **Kettle, microwave, toaster.** Their per-unit figures are 2010 projections, so no fall is
   applied.
+
+## The hour of the evening stack: HES time of use by end use (2026-10-09, executor seat, claim `the-evening-non-cooking-stack-against-hes-time-of-use`)
+
+**Intertek R66141 Fig 245** (p.193): *Structure of the average hourly load curve, all days, all
+households, without electric heating*. This is the mean of the household curves in W, by end use.
+It was read by pixel colour at 250 dpi, with the axis calibrated on the chart's own gridlines.
+Summed over the day, the reading gives lighting 510 kWh/yr (Table 25: 537) and AV+ICT 742 (Tables
+26 + 29: 793), so it holds to 5–7% in level. Shares of each end use's day:
+
+| End use | Peak hour | 17:00–24:00 | 18:00–24:00 | 00:00–06:00 | h18 ÷ h12 | h21 ÷ h18 |
+|---|---|---|---|---|---|---|
+| Lighting | 21:00 (161 W) | 0.591 | 0.536 | 0.115 | 3.54 | 1.63 |
+| AV + ICT | 20:00–21:00 (148 W) | 0.451 | 0.389 | 0.118 | 1.60 | 1.09 |
+| Dishwasher (Figs 404–408, mean of five household types, by eye ±3 W) | 19:00 (68 W) | 0.431 | 0.397 | 0.107 | 1.29 | 1.18 |
+| Cooking (Fig 245) | 17:00 (150 W) | — | — | — | — | — |
+
+The whole home is flat at about 585–600 W from 17:00 to 20:00. **CAR, *Further analysis of HES:
+Lighting*** (p.24–25): an always-on lighting base of 8.2 W (95% CI 5.9–10.5, 72 kWh/yr); daytime
+lighting, April–September 09:00–18:00 BST, of 24 W (workdays 23.6, holidays 25.6), against an
+annual 518–550 kWh (59–63 W). Morning switch-off is 1.1 h after sunrise for low users and 2.4 h for
+high users (holidays).
+
+**Dating.** These are 2010–11 hours. The decade moved the level (LEDs, flat screens), and that is
+dated separately above. No source read says it moved the hour, and none publishes a 2020s time of
+use per end use. Used here as the decade's hour, which is an assumption.
+
+**What the world does with it:**
+`docs/staging/SEAT_FINDING_THE_EVENING_NON_COOKING_STACK_AGAINST_HES_TIME_OF_USE_2026-10-09.md`.
