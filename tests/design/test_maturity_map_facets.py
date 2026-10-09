@@ -119,6 +119,10 @@ REVIEWED_CLOSE_TO_LEARN = {
     # no figure, sells nothing and earns nothing -- it makes an existing published claim true,
     # which is the identical class as SITE13 four entries above and as A45 that produced it.
     "SITE14_the_front_door_schematic_carries_the_corrected_model",
+    # SITE15, 2026-10-09, minted from the director's front-door ruling: L2 sheets that explain a
+    # band of the model to a lay reader. No figure, no price, no bill; it is publication of the
+    # model itself, the same class as SITE14 above.
+    "SITE15_each_front_door_band_opens_into_one_l2_sheet",
     # 2026-09-05 reviewed (delivery seat, minting the four director rulings staged that day).
     # H33 disposes 121 parked documents into DONE / SUPERSEDED / UNBLOCKED / STILL PARKED /
     # DIRECTOR. It sells nothing, prices nothing and touches no bill; what it changes is whether

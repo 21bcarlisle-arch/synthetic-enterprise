@@ -1,3 +1,15 @@
+<!-- MINTED 2026-10-09 (autonomous worker, the §4 mint-source mechanism). This ruling arrived
+WITHOUT a WORK THIS CREATES block, which DIRECTOR_RULING_WORK_DEFINITION_AND_COHERENCE §4 names a
+defect in the ruling: advisor bridge, please carry the block on the next ruling you stage. The work
+was minted from the body instead. MINT COVERAGE MAP:
+  [1] No statistic joins the door -- HELD by site/test_the_front_door_diagram_carries_no_statistics.py.
+      The SVG already carried four before the ruling (168k periods, ~200 homes, ~12 segments,
+      9-year record); the ruling forbids additions and does not order them out, so they are listed
+      in that control and may only shrink. Whether to remove them is his call, not taken here.
+  [2]+[3] One L2 sheet per band, picture first, no stats, every state mark derived from the map --
+      MINTED: SITE15_each_front_door_band_opens_into_one_l2_sheet (wall first, world band after
+      the stage-1 rebuild settles).
+Every deliverable is now held or a drawable atom, so the ruling leaves the staging root. -->
 # [DIRECTOR-RULING → site] — THE FRONT DOOR STAYS SIMPLE; EXPLORATION GOES DEEPER, NOT DENSER (2026-10-09)
 
 **Type:** Director ruling via advisor bridge, from the director's words this morning (2026-10-09,

@@ -2044,3 +2044,21 @@
   # Since the per-home stock draw (`pt.owned_stock`, EFUS) the drawn 60 reads [0, 7, 29, 46] under the
   # real p10/p25/median/p75 against [6, 15, 30, 45]; only the p10 leg is red. Exit: `test_MEASURED_population_values`
   # sees L1.1 PASS, by a mechanism, never by widening a draw. Per-customer inference only beats flat where homes differ.
+- id: SITE15_each_front_door_band_opens_into_one_l2_sheet
+  title: "Each band of the front-door picture opens into one closer picture of that band, in the door's own visual grammar, carrying no statistics and no hand-typed state"
+  notes_rehomed: [gain]
+  lane: H_harness
+  value_stream: close_to_learn
+  epoch: 3
+  level_current: 0
+  level_target: 2
+  loop_stage: build
+  dial_inherited: 1
+  provenance: director_ruling
+  blocked_on: null
+  block_reason: null
+  depends_on: []
+  couples_with: [SITE14_the_front_door_schematic_carries_the_corrected_model]
+  file_scope: ['site/index.html', 'site/moap_stage.py', 'site/moap_render.py', 'site/test_the_front_door_diagram_carries_no_statistics.py']
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a museum's floor plan at the entrance -- a few rooms and their names -- where each room has its own wall panel inside showing how its exhibits connect, and neither the plan nor the panel carries the visitor numbers"
