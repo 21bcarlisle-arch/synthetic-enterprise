@@ -1,7 +1,9 @@
 """W1_29: every world home owned the whole stock, so homes differed only in headcount and clock.
 
 The defect this names: a dishwasher, tumble dryer and separate freezer in every home, where EFUS
-puts them in 44%, 58% and 38% of homes, and far fewer of the one-person ones.
+puts them in 44%, 58% and 38% of homes, and far fewer of the one-person ones. And a microwave in
+every home, where EFUS 2017 puts one in 89.7% at every size, so the world's mean ran HES's
+per-owner 56 kWh over the homes that own none.
 """
 from __future__ import annotations
 
@@ -25,13 +27,14 @@ def test_ownership_follows_efus_by_household_size(people, dishwasher, tumble_dry
     assert _share("dishwasher", people) == pytest.approx(dishwasher, abs=0.025)
     assert _share("tumble_dryer", people) == pytest.approx(tumble_dryer, abs=0.025)
     assert _share("freezer", people) == pytest.approx(0.382, abs=0.025)
+    assert _share("microwave", people) == pytest.approx(0.897, abs=0.025)
 
 
 def test_both_sides_of_every_draw_are_reachable_and_nothing_else_is_drawn():
     stocks = [pt.owned_stock(seed, 2) for seed in range(400)]
-    for name in ("dishwasher", "tumble_dryer", "freezer"):
+    drawn = {"dishwasher", "tumble_dryer", "freezer", "microwave"}
+    for name in drawn:
         assert any(name in s for s in stocks) and any(name not in s for s in stocks), name
-    drawn = {"dishwasher", "tumble_dryer", "freezer"}
     assert all(s >= pt.FULL_STOCK - drawn for s in stocks)
 
 

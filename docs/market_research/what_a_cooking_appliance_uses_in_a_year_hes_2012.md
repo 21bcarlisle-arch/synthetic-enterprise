@@ -145,3 +145,9 @@ TSD (ch.7, survey-scaled, not metered) gives 71. So the gap is time in use, not 
 established:** how time in use splits into uses a day and minutes a use. The world also gives every
 home a microwave, where EFUS 2017 has 89.7%. See
 `docs/staging/SEAT_FINDING_THE_MICROWAVE_LEVEL_IS_TIME_IN_USE_AGAINST_HES_56_2026-10-09.md`.
+
+**Microwave ownership, 2026-10-09 (later still).** `owned_stock` now draws the microwave at EFUS
+2017's 89.7%, flat by size. EFUS 2017 says microwave ownership "did not vary by household
+characteristics". The 2011 Table 14 row by persons (80-87%) is inside its own sampling error, so it
+is not used. The world's mean falls from 56 to 50.5 kWh/yr, and an owner's year stays at 56. See
+`docs/staging/SEAT_FINDING_A_HOME_OWNS_A_MICROWAVE_AT_EFUS_2017_NOT_ALWAYS_2026-10-09.md`.

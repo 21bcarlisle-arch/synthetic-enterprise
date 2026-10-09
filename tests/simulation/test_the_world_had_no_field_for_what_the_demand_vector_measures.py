@@ -332,25 +332,41 @@ def test_the_meter_fact_is_not_folded_into_the_heating_system(stock_new):
         "folded into the heating system, and the disagreement the two facts exist to show is gone")
 
 
-def test_bedrooms_are_derived_from_floor_area_not_drawn_beside_it(stock_new):
+def test_bedrooms_are_drawn_given_floor_area_and_the_heat_loss_reads_the_area(stock_new):
     """Area is the physical quantity the heat loss is computed from; bedrooms is what an estate
-    agent counts. Deriving the second from the first is the right direction, and drawing both
-    independently would let a one-bedroom home have 230 m2."""
+    agent counts. Drawing both independently would let a one-bedroom home have 230 m2.
+
+    RE-KEYED 2026-10-09. This control pinned `round(2 + (area - base) / 14)`, an unsourced
+    inversion that made 24% of homes six-plus-bed against VOA's 0.9%. Bedrooms are now drawn from
+    VOA's P(bedrooms | type, band) given NEED's floor area (`tools.dwelling_size_joint`). The
+    property it guarded is kept: every home's bedrooms are possible for its floor area, bigger
+    bands carry more bedrooms, and the fabric reads the area, never the bedrooms draw.
+    """
     from simulation import fabric_physics as fp
     from tools import demand_case_coverage as dcc
+    from tools.dwelling_size_joint import bedrooms_given_dwelling
 
-    by_band: dict[str, set[int]] = collections.defaultdict(set)
+    joint = bedrooms_given_dwelling()
+    by_cell: dict[tuple[str, str], list[int]] = collections.defaultdict(list)
     for premise in stock_new:
-        by_band[premise.household.floor_area_band].add(premise.household.bedrooms)
-        area = dcc.AREA_MIDPOINT[premise.household.floor_area_band]
-        base = fp._FLOOR_AREA_BASE_M2[premise.household.property_type]
-        expected = int(max(1, min(6, round(2 + (area - base) / fp._FLOOR_AREA_PER_BEDROOM_M2))))
-        assert premise.household.bedrooms == expected
+        hh = premise.household
+        by_cell[(hh.property_type.name, hh.floor_area_band)].append(hh.bedrooms)
+        assert joint[(hh.property_type.name, hh.floor_area_band)].get(hh.bedrooms, 0.0) > 0.0
+        area = dcc.AREA_MIDPOINT[hh.floor_area_band]
+        base = fp._FLOOR_AREA_BASE_M2[hh.property_type]
+        recovered = int(max(1, min(6, round(2 + (area - base) / fp._FLOOR_AREA_PER_BEDROOM_M2))))
+        assert fp.floor_area_m2(hh) == base + fp._FLOOR_AREA_PER_BEDROOM_M2 * (recovered - 2)
 
-    biggest = max(by_band)
-    smallest = min(by_band)
-    assert min(by_band[biggest]) > min(by_band[smallest]), (
-        "the largest floor-area band does not carry more bedrooms than the smallest")
+    # WITHIN a type: across types the mix alone (flats small, detached large) makes the gap, so a
+    # draw that ignored area passed the first version of this leg. Detached is the type whose
+    # bedrooms move most with area in VOA's stock (2.46 expected at 51-100 m2, 3.43 at 101-150).
+    small, large = by_cell[("DETACHED", "2")], by_cell[("DETACHED", "3")]
+    assert len(small) >= 15 and len(large) >= 15, "too few detached homes in bands 2 and 3"
+    gap = sum(large) / len(large) - sum(small) / len(small)
+    assert gap > 0.5, f"detached homes gain {gap:.2f} bedrooms from 51-100 m2 to 101-150 m2"
+    for ptype in ("DETACHED", "SEMI_DETACHED", "TERRACED", "FLAT"):
+        expected = [sum(b * p for b, p in joint[(ptype, band)].items()) for band in "12345"]
+        assert expected == sorted(expected), (ptype, expected)
 
 
 def test_a_premise_is_identical_whatever_else_is_in_the_population():

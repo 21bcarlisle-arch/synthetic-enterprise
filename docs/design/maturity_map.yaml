@@ -493,6 +493,22 @@
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "the churn a real supplier''s book actually experiences: roughly one in ten households moves home each year, each move closing one account into a final bill and opening two deemed-contract accounts at either end -- plus income shocks that show up as arrears months before anyone tells the supplier anything"
   records_rehomed: [evidence]
+- id: W2_40_voids_tied_to_move_outs
+  lane: W2_customer_generator
+  value_stream: meter_to_cash
+  epoch: 3
+  level_current: 1   # 5531ef8a6: void by vacated tenure, owner carries standing charge
+  level_target: 3
+  loop_stage: build   # director ruling 4, 2026-10-08: "Voids first"
+  dial_inherited: 100
+  provenance: director_ruling
+  file_scope: [sim/customer_state_layer.py, simulation/run_phase2b.py, tests/simulation/test_a_vacated_home_stands_void_for_its_tenure.py]
+  depends_on: [B7_customer_state_layer_moves_and_shocks]
+  # GAP owner void: q1_void_months_owner is null -- no published owner-occupier void length, so an
+  # owner's vacated home has none and the move record carries the reason.
+  # GAP void use: a void's own kWh is unpublished, so void days carry 0 kWh and the owner's
+  # standing charge is a floor. Gas owner-as-consumer is a third gap; gas voids follow electricity.
+  real_world_twin: "the empty weeks between tenancies, when the supplier's deemed customer is the owner, nobody is reading the meter, and the incoming tenant's account opens at an unknown date"
 - id: B8_discovered_price_sensitivity_holdout
   notes_rehomed: [name]
   lane: B_commercial

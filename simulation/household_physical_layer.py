@@ -257,7 +257,8 @@ _WITHIN_BAND_SHARES: dict[OccupancyBand, tuple[tuple[int, float], ...]] = {
 }
 
 
-def people_count_for(customer_id: str, output_area: str | None = None) -> int:
+def people_count_for(customer_id: str, output_area: str | None = None, *,
+                     bedrooms: int | None) -> int:
     """The household's headcount. ONE draw for this home, wherever in the world it is asked.
 
     THE DEFECT THIS CLOSES (measured 2026-09-17). This function drew its own headcount from the
@@ -284,7 +285,7 @@ def people_count_for(customer_id: str, output_area: str | None = None) -> int:
     """
     from simulation.dwelling_records import people_count_for_area
 
-    return people_count_for_area(customer_id, output_area)
+    return people_count_for_area(customer_id, output_area, bedrooms=bedrooms)
 
 
 def _national_headcount_draw(customer_id: str) -> int:
@@ -306,10 +307,11 @@ def _national_headcount_draw(customer_id: str) -> int:
     return _headcount_within(OccupancyBand.FIVE_PLUS_PERSON, customer_id)
 
 
-def occupancy_band_for(customer_id: str, output_area: str | None = None) -> OccupancyBand:
+def occupancy_band_for(customer_id: str, output_area: str | None = None, *,
+                       bedrooms: int | None) -> OccupancyBand:
     """The band the headcount above falls in. Derived from the count, never drawn
     beside it -- two draws of one quantity is the defect this module just fixed."""
-    count = people_count_for(customer_id, output_area)
+    count = people_count_for(customer_id, output_area, bedrooms=bedrooms)
     if count == 1:
         return OccupancyBand.ONE_PERSON
     if count == 2:
@@ -386,7 +388,8 @@ def physical_layer_for(
     }
     return PhysicalLayer(
         customer_id=customer_id,
-        occupancy_band=occupancy_band_for(customer_id, household.output_area),
+        occupancy_band=occupancy_band_for(customer_id, household.output_area,
+                                          bedrooms=household.bedrooms),
         people_count=profile.people_count,
         children_count=profile.children_count,
         pensioner_present=profile.pensioner_present,
@@ -421,7 +424,8 @@ def _profile_for(
         customer_id,
         household,
         seed=seed,
-        people_count=people_count_for(customer_id, household.output_area),
+        people_count=people_count_for(customer_id, household.output_area,
+                                      bedrooms=household.bedrooms),
     )
 
 
@@ -633,7 +637,7 @@ def measure_layer_associations(
     commercial_values: dict[str, list[str]] = {}
     for customer_id, drawn, at_date in homes:
         physical_values["occupancy"].append(
-            occupancy_band_for(customer_id, drawn.output_area).value
+            occupancy_band_for(customer_id, drawn.output_area, bedrooms=drawn.bedrooms).value
         )
         for name, layer in LAYER_OF.items():
             value = getattr(at_date, name)

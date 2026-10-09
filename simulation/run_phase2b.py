@@ -224,6 +224,7 @@ from simulation.renewal_engagement import passive_churn_cap_for, rolls_active_re
 from simulation.renewals import NOTICE_DAYS, build_renewal_schedule
 from simulation.reputation_index import ReputationEventType
 from simulation.resentment_ledger import FrictionEventType
+from simulation.retention_offer import ask_world_at_offer, offered_rate
 from simulation.save_on_loss_notice import (
     billed_rate_when_saved,
     household_takes_save,
@@ -418,7 +419,6 @@ STARTING_TREASURY_GBP = founding_capital_gbp(
 RESET_HEDGE_FRACTION = hedge_mandate().opening_hedge_fraction
 
 RETENTION_THRESHOLD = 0.30
-RETENTION_EFFECTIVENESS = 0.20
 
 # Phase QM (QL_WIRE_AND_DEFERRAL.md): expected_term_margin_gbp below already prices ONE
 # renewal term, not lifetime CLV -- this constant makes that implicit assumption an explicit,
@@ -2889,7 +2889,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
 
         if term_index >= 1 and commodity == _decision_leg and not _indexed_tariff:
             company_est_pre = None
-            retention_modifier_val = None
+            _retention_offer = None
             _no_offer_reason = "below_threshold"
             _would_be_discount_pct = None
             _bill_shock_this_term = False
@@ -3101,14 +3101,15 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                             expected_margin, acq_cost_saved, _engagement,
                             default_belief_rate=_ret_default_belief,
                             billed=_ret_billed) > ret_cost:
-                        # Nudge Physics Layer 1: framing_type is the company's own
-                        # comms-cohort choice (observable by construction); the
-                        # multiplier below is SIM ground truth (hidden loss-aversion
-                        # susceptibility) applied to the actual offer effectiveness --
-                        # the company never sees this multiplier, only the outcome.
+                        # THE OFFER REACHES THE WORLD AS ITS RATE (director, 2026-10-09), answered
+                        # at the roll below by `simulation.retention_offer`. It reached it as a flat,
+                        # unsourced 0.20 cut to one hazard whatever the discount, so a 3% and an 8%
+                        # offer retained alike. Nudge Physics Layer 1: framing_type is the company's
+                        # own comms-cohort choice; the multiplier is SIM ground truth (the sourced
+                        # relative uplift on a matched framing) scaling the offered rate's effect.
                         _framing_type = framing_type_for(policy, billing_account, term_start_str)
                         _framing_multiplier = framing_effectiveness_multiplier(billing_account, _framing_type)
-                        retention_modifier_val = min(0.95, RETENTION_EFFECTIVENESS * _framing_multiplier)
+                        _retention_offer = (discount_pct, _framing_multiplier)
                         retention_cost_events.append(
                             book_retention_cost(
                                 billing_account=billing_account,
@@ -3122,6 +3123,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                             "event_date": term_start_str,
                             "company_churn_estimate": company_est_pre,
                             "discount_pct": discount_pct,
+                            "offered_unit_rate_gbp_per_mwh": offered_rate(unit_rate, discount_pct),
                             "retention_cost_gbp": ret_cost,
                             "expected_term_margin_gbp": expected_margin,
                             "acq_cost_saved_gbp": round(acq_cost_saved, 2),
@@ -3302,7 +3304,6 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                 customers=_known_customers(),
                 old_rate_gbp_per_mwh=old_decision_leg_rate,
                 new_rate_gbp_per_mwh=unit_rate,
-                retention_modifier=retention_modifier_val,
                 precomputed_company_estimate=company_est_pre,
                 passive_churn_cap=passive_cap,
                 income_stress=_churn_income_stress,
@@ -3323,6 +3324,29 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             ) if _rolled else None
             event = (roll_lifecycle_event(cid, term_start_str, commodity, **_roll_kwargs)
                      if _rolled else None)
+            # A RETENTION OFFER IS A PRICE, so the world answers it at that price on the same roll
+            # (`simulation/retention_offer.py`), and the household that stays is SUPPLIED at it: the
+            # discount is the company's cost through the term's revenue. Until 2026-10-09 the kept
+            # term was billed at the full rate, and `retention_cost_events` never reaches the P&L
+            # (`test_retention_cost_events_are_minted_but_never_reach_the_pnl`), so the run's book
+            # was never charged a penny for an offer. The decision leg only, as the save's cut.
+            if _retention_offer is not None:
+                event = ask_world_at_offer(
+                    roll_lifecycle_event, cid, term_start_str, commodity, _roll_kwargs or {},
+                    event, discount_pct=_retention_offer[0],
+                    framing_multiplier=_retention_offer[1])
+                unit_rate = offered_rate(unit_rate, _retention_offer[0])
+                _prior_rates[cid] = unit_rate
+                _account_state_row["unit_rate_gbp_per_mwh"] = unit_rate
+                _account_state_row["rate_vs_svt_pct"] = (
+                    round((unit_rate - _state_svt_rate) / _state_svt_rate * 100.0, 2)
+                    if _state_svt_rate else None)
+                if _offer_vs_default is not None:
+                    _offer_vs_default = position_vs_default(
+                        unit_rate, term_start_str, commodity=commodity)
+                # Its thinner margin does not teach the book's premium, for the reason a save's
+                # does not (director, 2026-10-08): stayers must not pay for the discount.
+                _held_on_a_save = event is None or event["event_type"] == "renewed"
             _pending_notice_sent = False
             # A domestic household leaving a FIXED term: a Fixed Retention Tariff is a domestic
             # tariff, and one offered to a household leaving the default tariff is not established
@@ -3419,7 +3443,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                     declined_unit_rate_gbp_per_mwh=unit_rate,
                     position_vs_default=_offer_vs_default,
                     company_churn_estimate=company_est_pre,
-                    retention_offered=retention_modifier_val is not None,
+                    retention_offered=_retention_offer is not None,
                     is_active_renewal=active_renewal,
                     engagement_level=_engagement_level_str,
                 ))
@@ -3427,7 +3451,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                 customer_events_log.append(svt_conversion_event(
                     customer_id=billing_account, event_date=term_start_str, commodity=commodity,
                     company_churn_estimate=company_est_pre,
-                    retention_offered=retention_modifier_val is not None,
+                    retention_offered=_retention_offer is not None,
                     is_active_renewal=active_renewal,
                     engagement_level=_engagement_level_str,
                     unit_rate_gbp_per_mwh=unit_rate,
@@ -3452,7 +3476,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                         position_vs_default=_offer_vs_default, rolled_event=event,
                     )
                 customer_events_log.append(event)
-                if retention_modifier_val is not None and retention_log:
+                if _retention_offer is not None and retention_log:
                     outcome_str = "churned_despite_offer" if event["event_type"] == "churned" else "retained"
                     retention_log[-1]["outcome"] = outcome_str
                     nudge_physics_log.append({
@@ -3460,13 +3484,11 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                         "event_date": term_start_str,
                         "framing_type": retention_log[-1].get("framing_type"),
                         "susceptibility": susceptibility_for(billing_account).value,
-                        "effectiveness_multiplier": round(
-                            retention_modifier_val / RETENTION_EFFECTIVENESS, 4
-                        ) if RETENTION_EFFECTIVENESS else None,
+                        "effectiveness_multiplier": round(_retention_offer[1], 4),
                         "outcome": outcome_str,
                     })
                 if event["event_type"] == "churned":
-                    if retention_modifier_val is None:
+                    if _retention_offer is None:
                         # No offer was made — record as missed retention opportunity
                         eac_missed = company_eac  # Phase 23a: use company estimate
                         no_offer_churn_log.append({
@@ -3651,7 +3673,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                                 f"(£{acq_cost:.0f}, {segment})"
                             )
                     continue
-            elif retention_modifier_val is not None and retention_log:
+            elif _retention_offer is not None and retention_log:
                 # No lifecycle event — offer made, customer just renewed normally
                 retention_log[-1]["outcome"] = "retained"
                 nudge_physics_log.append({
@@ -3659,9 +3681,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                     "event_date": term_start_str,
                     "framing_type": retention_log[-1].get("framing_type"),
                     "susceptibility": susceptibility_for(billing_account).value,
-                    "effectiveness_multiplier": round(
-                        retention_modifier_val / RETENTION_EFFECTIVENESS, 4
-                    ) if RETENTION_EFFECTIVENESS else None,
+                    "effectiveness_multiplier": round(_retention_offer[1], 4),
                     "outcome": "retained",
                 })
 
@@ -4081,19 +4101,6 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             # ALSO crosses the W4_4 seam into the D5 consumer belief LIVE. The
             # analytics dict fed here is DERIVED from that single event -- one
             # coherent reality per customer/period, no second independent draw.
-            _held = _payment_month_open.get(cid)
-            if _held is not None and _held["month"] != rec_month:
-                _months_closed_this_term.append((cid, _payment_month_open.pop(cid)))
-                _held = None
-            if _held is None:
-                _held = _payment_month_open[cid] = {
-                    "month": rec_month, "amount_gbp": 0.0,
-                    "income_stress_value": (
-                        _income_stress.value if _income_stress is not None else None),
-                    "segment": cust_segment, "fuel": commodity}
-            # The owner's void charge is not this household's to pay (B7 slice 6).
-            _held["amount_gbp"] += float(rec.get('revenue_gbp', 0.0) or 0.0) - rec.get(
-                "void_owner_charge_gbp", 0.0)
             # Real-time placeholder only -- simulation.run_phase4c_on_phase2b.main()
             # overwrites this with real, emergent bad debt from the payment/
             # arrears model (simulation.arrears_engine) once bills exist (Phase QD).
@@ -4129,6 +4136,22 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                 rec["net_margin_gbp"] = round(rec["net_margin_gbp"] - rec["occupier_debt_gbp"], 6)
                 _bad_debt = 0.0
             rec["bad_debt_gbp"] = _bad_debt
+            # Accumulated AFTER the two branches above, because they decide whose a row is: the
+            # owner's void charge (slice 6) and the unnamed occupier's debt (slice 4) are not this
+            # household's to pay, as the arrears engine already holds (`occupier_share`).
+            _held = _payment_month_open.get(cid)
+            if _held is not None and _held["month"] != rec_month:
+                _months_closed_this_term.append((cid, _payment_month_open.pop(cid)))
+                _held = None
+            if _held is None:
+                _held = _payment_month_open[cid] = {
+                    "month": rec_month, "amount_gbp": 0.0,
+                    "income_stress_value": (
+                        _income_stress.value if _income_stress is not None else None),
+                    "segment": cust_segment, "fuel": commodity}
+            _held["amount_gbp"] += (float(rec.get('revenue_gbp', 0.0) or 0.0)
+                                    - rec.get("void_owner_charge_gbp", 0.0)
+                                    - rec.get("occupier_debt_gbp", 0.0))
             rec["net_margin_gbp"] = round(rec["net_margin_gbp"] - _bad_debt, 6)
             treasury += rec["net_margin_gbp"]
             rec["treasury_cash_balance_gbp"] = treasury

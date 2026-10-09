@@ -212,7 +212,8 @@ def _household_persons(household: Household) -> tuple[int, int]:
     """
     from simulation.dwelling_records import composition_cuts_for, people_count_for_area
 
-    people = people_count_for_area(household.customer_id, household.output_area)
+    people = people_count_for_area(household.customer_id, household.output_area,
+                                   bedrooms=household.bedrooms)
     _pensioner, someone_employed = composition_cuts_for(household.customer_id)
     return people, (1 if someone_employed else 0)
 

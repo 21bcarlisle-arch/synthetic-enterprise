@@ -71,7 +71,7 @@ def test_the_composition_is_the_worlds_own_record():
     for cid in ids:
         hh = _resi_hh(cid)
         people, employed = _household_persons(hh)
-        assert people == people_count_for_area(cid, hh.output_area)
+        assert people == people_count_for_area(cid, hh.output_area, bedrooms=hh.bedrooms)
         assert employed == (1 if composition_cuts_for(cid)[1] else 0)
         seen_people.add(people)
         seen_employed.add(employed)
