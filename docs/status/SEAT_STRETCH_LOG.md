@@ -8,6 +8,57 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-10-09 — orientation: The machine came back level this stretch, and the world's debt got worse news, not better
+
+<!-- head: 0c7389aa9556 -->
+
+*Written by the orientation seat from its own record (2026-10-09T08:22:34.633761+00:00; 14 commits, 2 substantive, since 2026-10-09T06:59:57.900256+00:00).*
+
+## What the stretch meant
+
+The machine came back level this stretch, and the world's debt got worse news, not better. The shared tree is on origin again: 0 behind and 0 ahead after 0c7389aa9, and sim-runner was restarted at 09:24 BST onto code that carries the director's box memory budget. My 07:00 diagnosis of what held the advance was wrong. By 09:05 the direction files matched origin byte for byte, and 3191ba2ae landed this seat's record. What held it was six live copies under 48h, each an earlier draft of a later origin revision. The reconciler has no class for those, and that gap is still open. On the company side, the flat 0.20 retention effect is retired: a retention offer now reaches the world as its discounted rate, and a kept customer is billed what they were offered (b922911b7). That supersedes bf52e72e6, which is disposable. The kind count is in. 57 of 81 retention offers, carrying 84% of retention cost, fall on renewals the world never rolls (36 SVT-to-fix conversions and 21 declined fixes), and 0 fall on rolled terms. The company holds the kind before it offers, because it billed the previous tariff. On landed code a discount can also flip a near-parity decline into a conversion. That is the alternative the director's open retention row names, and it is not yet counted. On the world side, the arrears half of the director's hold is NOT MET, HIGH. On the triad's truth, 11.1% of electricity accounts are more than 91 days behind in 2019 (8.3-14.7%), against a matched 5.1%. The old "about 2x" and the new 2.2x sit on different instruments: the correction moved this instrument from 38% to 11%. 54dbd5650's "10% to about 1%" was read on an instrument nobody can now reproduce. 10 of the 11 accounts behind hold a bill the world never settles, and the likeliest cause is LATER_SETTLEMENT_REPAID_SHARE = 0.5. That figure is the repayment share of debt-blocked switchers, a selected population, applied here to every failed domestic bill. The debt results are re-graded on that world (b109f7af9): the objection's reach halves, and the chosen book's "excess bad debt" story no longer holds. The 400-founder end-to-end run is running now in the interactive lane (pid 1367745). I treat it as a measurement of arrears at scale, not as a licence to raise the book. So against the thesis, the baseline comparison is no closer. The world that would grade inference against flat rules still over-holds debt 2x, and every per-customer debt or retention reading inherits that. The previous focus was steered, three of four drawn. The fourth, the direction-files item, was spent by its premise and is dropped here.
+
+## What went wrong
+
+- NOT corrected: THE MACHINE'S, CARRIED. One item can land twice, on origin through surgical_land and as a local commit on the shared HEAD. Owner: SEAT_FINDING_ONE_ITEM_LANDS_TWICE_AND_THE_SHARED_HEAD_FORKS_FROM_ORIGIN. 08:22: no new instance. 0c7389aa9 was briefly 1 ahead, then promoted, so HEAD is 0/0. The refusal mechanism is still not built.
+- NOT corrected: THE MACHINE'S, CARRIED. A held change's hold condition is not re-asked when its premise moves. Owner: SEAT_FINDING_A_HOLD_OR_A_TOMBSTONE_STATES_ITS_CONDITION_IN_PROSE_AND_NOTHING_RE_ASKS_IT. 08:22: the arrears half was re-asked by hand (70a662dc1, NOT MET), not by the mechanism. The e2e400 run started with that half unmet, and nothing asked.
+- NOT corrected: THE MACHINE'S, CARRIED. The held-work check refuses an item when its prose names a held file, even when the held work is not the item's, and the refusal reaches only the supervisor log. 08:22: no refusal seen. The cause is still neither shown nor ruled out.
+- NOT corrected: THE MACHINE'S, CARRIED. The seat's brief reads the director's open concerns from the behind checkout. 08:22: the checkout is 0 behind, so there is no live instance. The mechanism still reads the working copy.
+- NOT corrected: THE MACHINE'S, CARRIED. The draw ledger reads the same for work never started and for work mid-landing, because it asks only origin by path. 08:22: unchanged. w2-20-grade-r5-and-publish-the-20261008r-pair-after-leg-two still reads not_done, and headcount-given-dwelling-size-then-the-per-occupant-slope still reads CANNOT ANSWER.
+- NOT corrected: THE MACHINE'S, CARRIED. A focus-row tombstone still retires a row without asking its DONE. 08:22: re-read-the-arrears-like-for-like-after-the-dd-failure-correction was tombstoned at 08:04, and that was sound: its DONE (a ratio and met or not met) is on origin in 70a662dc1. The mechanism still does not ask.
+- NOT corrected: THE MACHINE'S, CARRIED. A landing can carry docs/direction/DIRECTION.yaml from the shared working copy when it is older than origin's. 08:22: no instance. The copy matched origin at 09:05.
+- NOT corrected: THE MACHINE'S, CARRIED. A parked atom is still counted as drawn. H45 is PARKED and the counter still moves. 08:22: SITE2 moved from 43708 to 43775, and H45 to 1449.
+- NOT corrected: THE MACHINE'S, CARRIED. The coupled-triad gate now excludes twinless L3 targets, and its refusal reaches only the supervisor journal. 08:22: D48 is still at L1, and its unchanged draws rose from 1416 to 1450.
+- NOT corrected: THE WORLD'S, CARRIED. A gas-heated fabric home's electricity has no season against SERL. 08:22: unchanged (peak 0.562 at 20:00, season 1.239). The evening-stack pre-registration landed (a208dd212) and the measurement has not run. Focus two.
+- NOT corrected: THE MACHINE'S, CARRIED. The draw ledger credits or denies an item by path overlap, not by its work. 08:22: unchanged. a-home-mover-is-a-retention-moment-the-company-sees still reads landed_unbound against 6987325ae, a commit about electronics.
+- corrected: THE MACHINE'S, CARRIED. The shared checkout lags origin. 08:22: CORRECTED. 0c7389aa9 advanced the shared tree and promoted it: HEAD..origin/main reads 0 and origin/main..HEAD reads 0. The class that held it is still open, and focus three builds it.
+- corrected: THE MACHINE'S, CARRIED. Two long jobs were OOM-killed (save-fairness-world at 17:58, save-arms-off-k1 at 19:52), with the director's box memory budget (17c19a253) on origin but not in the shared checkout. 08:22: CORRECTED. 17c19a253 is an ancestor of the shared HEAD, sim-runner restarted at 09:24 BST after the 09:21 advance, and there has been no recurrence.
+- NOT corrected: THE MACHINE'S, CARRIED. The voids item was dispatched twice (22:57Z and 01:31Z) and landed nothing, because Lane 0 does not ask how much window a tick has left before it hands out a multi-run item. 08:22: no new instance. The window check is still not built.
+- corrected: THE RUN'S, CARRIED. The settled run hands the world a flat 0.20 retention effect whatever the discount (RETENTION_EFFECTIVENESS, unsourced). 08:22: CORRECTED by b922911b7 on origin. The offer reaches the world as its discounted rate, the constant is retired, and a kept customer is billed the offered rate. bf52e72e6 is superseded.
+- corrected: THE SEAT'S, CARRIED. The seat's own direction files in the shared tree were said to hold the checkout's advance. 08:22: CORRECTED, and the diagnosis was wrong. The files matched origin by 09:05, and 3191ba2ae landed the record. The advance was held by six superseded live copies (0c7389aa9).
+- corrected: THE SEAT'S, NEW. My 07:00 record named a cause for the stale fleet (the direction files) from a reading already overtaken when the item was drawn, and made it focus one. The item's premise was spent before any work. I asked whether the files diverged, not whether they were the only class holding the advance. The reconciler's own refusal list named the six superseded copies, and I did not read it.
+- NOT corrected: THE WORLD'S, NEW. 54dbd5650's commit message says the arrears stock "falls from about 10% to about 1%". On the triad's truth it fell from 38% to 11%, which is 2.2x the matched comparator. The 10% and 1% came from an instrument nobody can reproduce. The correction is in the finding beside the claim (70a662dc1). The world's level itself is still wrong. Focus one.
+
+## Chosen against
+
+- Setting founders 400, the budget at about 5,000 and the ceiling at 500 from the running e2e400 job.
+- Retaking the value arms or the 12.5h retention re-take now.
+- Wiring the unwired q3_debt_repaid_after_22_months_share as the arrears fix.
+- Passing tariff_type through RenewalObservation so the company can stop offering at SVT conversions.
+- The front-door L2 sheets (DIRECTOR_RULING_FRONT_DOOR_STAYS_SIMPLE_AND_EXPLORATION_GOES_DEEPER_2026-10-09.md).
+- Building lane 0's window check, or the draw-ledger and parked-atom fixes.
+- Reaping /var/tmp/se-retrate (bf52e72e6) and /var/tmp/se-draw-order (acff52923).
+
+## Focus for the next stretch
+
+- `the-worlds-failed-bill-repayment-share-is-sourced-for-an-ordinary-household`
+- `the-evening-non-cooking-stack-against-hes-time-of-use`
+- `a-strictly-superseded-live-copy-is-cleared-by-the-reconciler`
+- `count-the-conversions-a-retention-offer-wins-on-landed-code`
+- `the-module-graph-door-regenerated-weekly`
+
+---
+
 ## 2026-10-09 — orientation: The thesis moved a little on the world's side this stretch, not on the company's
 
 <!-- head: e3e5970e1cf6 -->
