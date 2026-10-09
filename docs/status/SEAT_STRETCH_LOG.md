@@ -8,6 +8,52 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-10-09 — orientation: The project went backwards this stretch, and the cause is mechanical, not a judgement
+
+<!-- head: da944e500b9c -->
+
+*Written by the orientation seat from its own record (2026-10-09T11:22:16.145712+00:00; 2 commits, 1 substantive, since 2026-10-09T08:22:34.633761+00:00).*
+
+## What the stretch meant
+
+The project went backwards this stretch, and the cause is mechanical, not a judgement. At 09:18 BST origin-reconcile cleared half of an abandoned two-file edit. It restored background/delivery_lane.py and left background/worker_tick.py calling a function that no longer exists. From 09:25 BST every worker-tick and seat-executor turn crashed at dispatch, 32 times so far. That is why the stretch holds one substantive commit, and why four of the five focus items were never drawn. The steer did not drift; the hands were cut off. Nothing in the brief saw it, because the brief counts long-running daemons and these are timers. The one landing that did happen moved the world toward the record. da944e500 put the dishwasher and lighting on HES's hours, and SERL's peak cell fell 0.561 -> 0.528 at 20:00 without a fitted scalar, but all three SERL cells stay red. The rest is cooking, and it is queued. The world's arrears are unchanged at 2.2x the matched comparator (11.1% against 5.1%), and that is still the defect every debt, retention and baseline reading inherits. The 400-founder run finished on the corrected world (4,994 customer-years, 1h45m, 3.9 GB peak, settling 36% of wins), but it carried no arrears reading. The interactive lane is now probing the budget ceiling at 4,400 and 5,000 toward setting founders at 400. That is a measurement, and the settings change still waits on the arrears half of the director's hold. At 10:43Z the director asked the interactive lane for a scale report (what significance needs, where time and memory go, flat-memory options) before anything is built. That report is the route to the baseline comparison at a size that can separate inference from flat rules, and it is his and the lane's, not Lane 0's. Against the thesis, nothing moved closer: no per-customer reading can be trusted against a baseline while the world over-holds debt 2x, and for three hours nothing could work on that.
+
+## What went wrong
+
+- NOT corrected: THE MACHINE'S, NEW. Both autonomous executors have been down since 09:25 BST. worker-tick and seat-executor crash on every turn (32 tracebacks to 11:37Z) with AttributeError: background.delivery_lane has no attribute held_at_dispatch. At 09:18 BST origin-reconcile cleared the abandoned working copy of background/delivery_lane.py, which defines it (preserved in 07941f1b4, refs/preserved/origin-reconcile-abandoned). It left the other half of the same edit, the in-place change to background/worker_tick.py (mtime 2026-10-01), which calls it. Every Lane 0 dispatch since then died after the draw, so four of the five focus items never ran. Nothing alarmed: the brief counts the ten long-running daemons, and these are timer units. NTFY sent at 11:26Z (id ajUfga0BMUDt). Focus one.
+- NOT corrected: THE MACHINE'S, CARRIED. One item can land twice, on origin through surgical_land and as a local commit on the shared HEAD. Owner: SEAT_FINDING_ONE_ITEM_LANDS_TWICE_AND_THE_SHARED_HEAD_FORKS_FROM_ORIGIN. 08:22: no new instance. 0c7389aa9 was briefly 1 ahead, then promoted, so HEAD is 0/0. The refusal mechanism is still not built. 11:22: no new instance.
+- NOT corrected: THE MACHINE'S, CARRIED. A held change's hold condition is not re-asked when its premise moves. Owner: SEAT_FINDING_A_HOLD_OR_A_TOMBSTONE_STATES_ITS_CONDITION_IN_PROSE_AND_NOTHING_RE_ASKS_IT. 08:22: the arrears half was re-asked by hand (70a662dc1, NOT MET), not by the mechanism. The e2e400 run started with that half unmet, and nothing asked. 11:22: the 400-founder ceiling probe (4400/5000) is running with the arrears half still NOT MET, and nothing asked.
+- NOT corrected: THE MACHINE'S, CARRIED. The held-work check refuses an item when its prose names a held file, even when the held work is not the item's, and the refusal reaches only the supervisor log. 08:22: no refusal seen. The cause is still neither shown nor ruled out. 11:22: masked this stretch, because no dispatch got far enough to be refused.
+- NOT corrected: THE MACHINE'S, CARRIED. The seat's brief reads the director's open concerns from the behind checkout. 08:22: the checkout is 0 behind, so there is no live instance. The mechanism still reads the working copy. 11:22: 0 behind, no live instance.
+- NOT corrected: THE MACHINE'S, CARRIED. The draw ledger reads the same for work never started and for work mid-landing, because it asks only origin by path. 08:22: unchanged. w2-20-grade-r5-and-publish-the-20261008r-pair-after-leg-two still reads not_done, and headcount-given-dwelling-size-then-the-per-occupant-slope still reads CANNOT ANSWER. 11:22: unchanged, and it cannot tell a crash at dispatch from work not done either.
+- NOT corrected: THE MACHINE'S, CARRIED. A focus-row tombstone still retires a row without asking its DONE. 08:22: re-read-the-arrears-like-for-like-after-the-dd-failure-correction was tombstoned at 08:04, and that was sound: its DONE (a ratio and met or not met) is on origin in 70a662dc1. The mechanism still does not ask. 11:22: no tombstone this stretch.
+- NOT corrected: THE MACHINE'S, CARRIED. A landing can carry docs/direction/DIRECTION.yaml from the shared working copy when it is older than origin's. 08:22: no instance. The copy matched origin at 09:05. 11:22: no instance.
+- NOT corrected: THE MACHINE'S, CARRIED. A parked atom is still counted as drawn. H45 is PARKED and the counter still moves. 08:22: SITE2 moved from 43708 to 43775, and H45 to 1449. 11:22: SITE2 43974, H45 1550.
+- NOT corrected: THE MACHINE'S, CARRIED. The coupled-triad gate now excludes twinless L3 targets, and its refusal reaches only the supervisor journal. 08:22: D48 is still at L1, and its unchanged draws rose from 1416 to 1450. 11:22: D48 still L1, unchanged draws 1551.
+- NOT corrected: THE WORLD'S, CARRIED. A gas-heated fabric home's electricity has no season against SERL. 08:22: unchanged (peak 0.562 at 20:00, season 1.239). The evening-stack pre-registration landed (a208dd212) and the measurement has not run. Focus two. 11:22: MOVED, NOT CORRECTED. da944e500 put the dishwasher and lighting on HES time of use, and the peak cell fell 0.561 -> 0.528 at 20:00, with no fitted scalar. S1, S2 and S3 all stay red. The remaining evening excess is cooking timing and level (queued: the-evening-cooking-hour-against-hes-fig-245), and S3 is the summer level.
+- NOT corrected: THE MACHINE'S, CARRIED. The draw ledger credits or denies an item by path overlap, not by its work. 08:22: unchanged. a-home-mover-is-a-retention-moment-the-company-sees still reads landed_unbound against 6987325ae, a commit about electronics. 11:22: unchanged.
+- NOT corrected: THE MACHINE'S, CARRIED. The voids item was dispatched twice (22:57Z and 01:31Z) and landed nothing, because Lane 0 does not ask how much window a tick has left before it hands out a multi-run item. 08:22: no new instance. The window check is still not built. 11:22: no new instance, because nothing was dispatched at all.
+- NOT corrected: THE WORLD'S, CARRIED. 54dbd5650's commit message says the arrears stock "falls from about 10% to about 1%". On the triad's truth it fell from 38% to 11%, which is 2.2x the matched comparator. The 10% and 1% came from an instrument nobody can reproduce. The correction is in the finding beside the claim (70a662dc1). The world's level itself is still wrong. Focus one. 11:22: unchanged. The e2e400 run ended at 09:49Z with no arrears reading in its summary, so the at-scale reading focus one asked for was not taken.
+
+## Chosen against
+
+- Putting the director's 10:43Z scale questions (significance by question, where time and memory go, flat-memory options, side-by-side seeds) into Lane 0.
+- Setting founders 400, the budget at about 5,000 and the ceiling at 500 from the e2e400 run and the running ceiling probe.
+- Counting the conversions a retention offer wins (count-the-conversions-a-retention-offer-wins-on-landed-code) as a focus item.
+- Landing the ~107 stranded staging dispositions, the AD entries in the shared index.
+- Retaking the value arms or the 12.5h retention re-take.
+- Reaping /var/tmp/se-retrate (bf52e72e6), /var/tmp/se-draw-order (acff52923) and the two agent SALVAGE worktrees.
+
+## Focus for the next stretch
+
+- `the-executors-crash-on-a-half-cleared-edit`
+- `the-worlds-failed-bill-repayment-share-is-sourced-for-an-ordinary-household`
+- `a-strictly-superseded-live-copy-is-cleared-by-the-reconciler`
+- `the-evening-cooking-hour-against-hes-fig-245`
+- `the-module-graph-door-regenerated-weekly`
+
+---
+
 ## 2026-10-09 — orientation: The machine came back level this stretch, and the world's debt got worse news, not better
 
 <!-- head: 0c7389aa9556 -->
