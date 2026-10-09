@@ -154,3 +154,68 @@ it would then sit in 2016–2021 and 2024–25 too.
 and this split. It is still `fix` and open. The winter shortfall and the trough are real and
 unsourced. The summer is the price response, and that belongs to whoever models a 2022
 electricity price response in household behaviour. Nothing in the world was moved.
+
+## The always-on level and the band's years, read at source (2026-10-09, claim `a-gas-homes-january-electricity-short-and-the-s3-band-years`)
+
+**No 2020s whole-home always-on figure was found.** Searched: SERL Vol 1 and Vol 2 and their
+aggregated tables, Nesta's 2023–24 SERL clustering (no baseload figure), and *Tracking energy
+signatures of British homes 2020–2025* (Buildings & Cities, 2025). The last one publishes a
+baseload of gas plus electricity only (median 485 W total against 219 W gas, 2023–24). That is
+a non-heating mean, not a minimum draw. So EFUS 2011's 90 W / 136 W stays the world's only
+always-on source, and it is undated.
+
+**The nearest 2020s observable is published, and at 3 dp, for all three years.** SERL Vol 2's
+aggregated tables (figshare 25472560, sheet `Figure_7`) give the median-of-means profile for gas,
+no-PV homes, 48 periods, 2021–2023. The report's Table 6 printed only 2022 and 2023, at 2 dp:
+
+| Gas, no PV, median of means | 2021 | 2022 | 2023 | World (2,412 homes, `a2a93c183`) |
+|---|---|---|---|---|
+| 04:30 trough, kWh/h | **0.136** | 0.128 | 0.126 | **0.137** |
+| 18:30 peak, kWh/h | **0.544** | 0.475 | 0.450 | 0.495 (peak at 19:30) |
+| Month max ÷ min (`Figure_4`) | 9.692/6.645 = **1.459** | 8.519/6.023 = 1.414 | 7.897/5.816 = **1.358** | 1.220 |
+| Homes (`n_rounded`) | 8,040 | 6,570 | 6,780 | |
+
+- **The world's trough sits on 2021, the one pre-crisis year: 0.137 against 0.136.** From 2021 to
+  2022 the trough fell 6%. That is the same size as the summer's 8–9% fall, so the "+0.007 trough
+  excess" has the same shape as the summer excess: a world with no price response, compared with
+  crisis years. One caveat cannot be removed: the panel shrank from 8,040 to 6,570 homes, so some
+  of the fall may be a change in who is in it. **What it does establish:** EFUS 2011's base gives
+  a 2021 whole-home trough within 0.001 kWh/h. That is the nearest thing to a 2020s check on
+  the base that the published record holds.
+- **The S3 band, read at its published 3 dp, does not contain its own 2023.** 1.358 is below
+  the cell's 1.36 edge. The 2 dp edges in the PDF also stretched 2021's 1.459 up to 1.47. That is
+  a plain factual correction.
+- **S1 and S2 were graded against crisis years only.** Only the 2022 and 2023 columns were read,
+  because they were the only ones in the PDF table. S3 already spanned 2021–2023. So the item's
+  question, "does the band hold crisis years?", applied most strongly to S1 and S2, whose bands
+  were made only of crisis years.
+
+**Decision (the seat, reversible).** Every judged SERL cell now spans all three published years
+at 3 dp. This is one rule, applied the same way to every cell, and no edge is chosen. The
+alternative was to lower S3 to the derived crisis-corrected ~1.30. That was refused for the
+reason S4 is NEED: it is an inference, not a publication. It also moves no verdict, because the
+world's 1.220 fails both. Each year in the span has its own special season: the 2021 lockdown,
+and the 2022 and 2023 crisis. So the span is the range of real but unusual years around a world
+that has neither. It is not a claim that any one of those years is the world's twin.
+
+**Prediction (written before re-grading the 2,412-home reading against the new edges):** S1
+0.137 against 0.126–0.136 **still FAIL** by 0.001. S2 0.495 against 0.450–0.544 **FAIL → PASS**.
+S3 1.220 against 1.358–1.459 **still FAIL**. S4 is unchanged (NEED). If S2 passes, it passes
+because the 2021 evening is in the span, and 2021's evening carries both lockdown and pre-crisis.
+That pass is weak evidence for the world's peak, and it should be read as weak.
+
+**Result (same turn, re-graded in one process from the 2,412-home `--serl 3000` reading):**
+S1 0.137 **FAIL**, S2 0.495 **PASS**, S3 1.220 **FAIL**. All three as predicted. The 0.137 was
+logged at 3 dp, so the true value is at least 0.1365, which is above the 0.136 edge. That fail is
+real, but it is only 0.001. Precision control: moving S3's high edge to 1.460 reds
+`test_every_edge_is_a_published_figure_at_its_published_precision`, which now allows half a
+unit in the third decimal.
+
+**What is left on the triage row `a-gas-heated-homes-electricity-has-no-season`:** the winter only.
+January 2022 predates the April cap rise, and the world is 0.35 kWh/day below SERL's 8.519 there.
+The trough and the summer are both the missing price response, and neither is an end use. S3's
+verdict is unchanged by the band read: 1.220 fails every year's figure and also the derived ~1.30.
+
+*Re-checked 22:25 by the invocation that landed this section, which had not written it: every
+3 dp figure above was re-read from a fresh download of `SERL_Stats_Report_Aggregated_Tables_Vol_2.xlsx`
+(`Figure_4`, `Figure_7`) and matches. The ratios are 1.4585, 1.4144 and 1.3578 before rounding.*

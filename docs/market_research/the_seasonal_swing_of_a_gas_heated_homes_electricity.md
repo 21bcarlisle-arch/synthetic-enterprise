@@ -770,3 +770,33 @@ use per hour of day length** (SD 7.2%, range −32% to +6%), with R² 0.03–0.6
 
 **What the world does with them:**
 `docs/staging/SEAT_FINDING_A_GAS_HOMES_SEASON_MISS_IS_THE_WINTER_AND_LIGHTING_IS_THE_ONE_TERM_OFF_ITS_SOURCE_2026-10-09.md`.
+
+## SERL's day profile at 3 dp, 2021–2023, and the always-on level in the 2020s (2026-10-09, claim `a-gas-homes-january-electricity-short-and-the-s3-band-years`)
+
+**SERL Statistical Dataset Vol 2, sheet `Figure_7`** (figshare 25472560, CC-BY). This is the
+median across gas-heated, no-PV homes of each home's mean import in each half hour. It is the
+statistic in the report's Table 6, which printed only 2022–23, and only at 2 dp.
+
+| kWh/h | 2021 (8,040 homes) | 2022 (6,570) | 2023 (6,780) |
+|---|---|---|---|
+| Trough (04:00–04:30) | 0.136 | 0.128 | 0.126 |
+| 18:30 peak | 0.544 | 0.475 | 0.450 |
+| Mean at 04:30 | 0.192 | 0.187 | 0.188 |
+
+From `Figure_4` at 3 dp, month max ÷ min is 1.459 (2021, Jan/Jun), 1.414 (2022, Jan/Aug), and
+1.358 (2023, Dec/Jun). From 2021 to 2022 the trough fell 6%, against the summer's 8–9%. The panel
+also shrank, so composition cannot be separated from response.
+
+**SERL Vol 1** (figshare 20039816) covers 2020–21, but every table in it is all heating types and
+net of PV. Its 2021 04:30 median over all homes is 0.145. **Not comparable** with the gas no-PV
+figures above, and not used.
+
+**Not established: a 2020s whole-home always-on (minimum-draw) level.** None was found in SERL,
+in Nesta's 2023–24 SERL clustering, or in *Tracking energy signatures of British homes from
+2020 to 2025* (Buildings & Cities, 2025). The last gives only a gas-plus-electricity baseload,
+485 W against 219 W gas, which is a non-heating mean and not a minimum. EFUS 2011's 90 W median
+and 136 W mean remain the only always-on source. The 04:30 trough above is the nearest 2020s
+observable, and the world's trough reads 0.137 against 2021's 0.136.
+
+**What the world does with them:** the last section of
+`docs/staging/SEAT_FINDING_A_GAS_HOMES_SEASON_MISS_IS_THE_WINTER_AND_LIGHTING_IS_THE_ONE_TERM_OFF_ITS_SOURCE_2026-10-09.md`.
