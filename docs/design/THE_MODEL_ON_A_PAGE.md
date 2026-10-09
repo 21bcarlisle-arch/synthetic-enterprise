@@ -175,7 +175,7 @@ stated where the capability is:** every measurement of the company's pricing dec
 2026-08-28 was taken against an opponent that could not move, so "beats the flat baseline" compares two
 internal policies, not two suppliers, and stays that way until it is re-measured against the defending
 rival. Atoms `B10_competitor_switching_response` (defence leg landed), the contested ceiling
-next.) · naive forward belief (120-day trailing) it must outgrow · UK-compliant billing, three clocks
+next.) · naive forward belief (120-day trailing) it must outgrow *(corrected 2026-10-09, factual: 120 days is the default window, which adapts between 30 and 180 days with recent volatility, and the mean is EWMA-weighted — still a statistic of past spot prices, not a forward curve)* · UK-compliant billing, three clocks
 · collections · Tier-1 bill-accuracy compliance · conversations v1 (the F1 triad: company writes,
 customers respond, harness scores the gap).
 
@@ -194,7 +194,11 @@ reason had stopped being true. The 2.07% above is the 2026-08-28 measurement, no
 **Discovery loop:** company clusters its book from observables only, scored on worst-cell
 belief-vs-truth; first refuted assumption already recoupled (renters/heat-pumps).
 **Carbon:** designed ledger (SAVED/SPENT/NET), honestly *not yet instrumented* — the site says so
-plainly.
+plainly. *(Corrected 2026-10-09, a factual correction found by `tools/canon_drift_check.py`: a
+household's emissions are now measured. `company/carbon/half_hourly_footprint.py` multiplies NESO's
+half-hourly intensity by the half-hourly reads of the accounts that have them and profiles the rest,
+and Explore publishes it. The ledger is still called by nothing, and abatement is still unmeasured,
+because nothing supplies the counterfactual it needs.)*
 **Method:** the harness itself — gates, R1–R17, daily self-note — the third product. *(Corrected
 2026-10-04: "twin approvals" removed; the twin last acted on 2026-07-16.)*
 
