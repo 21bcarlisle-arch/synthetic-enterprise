@@ -402,7 +402,8 @@ def run(proc_results: list[dict] | None = None,
         notify=None,
         gap_results: list[dict] | None = None,
         reconcile_fork=None,
-        fork_streak=None) -> bool:
+        fork_streak=None,
+        lane_crash=None) -> bool:
     """Run one reconcile, log it, and NTFY only on a drift-set TRANSITION. Returns True if it
     paged. `notify` and results are injectable for tests; production reads live + uses send_ntfy."""
     if proc_results is None:
@@ -469,6 +470,17 @@ def run(proc_results: list[dict] | None = None,
     except Exception as exc:                                   # noqa: BLE001
         _log(f"boot-sha drift check failed (reconcile continues): {exc!r}")
 
+    # A LANE UNIT THAT CRASHES TWICE RUNNING (2026-10-09). worker-tick and seat-executor are timer
+    # oneshots, so nothing above counts them, and on 10-09 both died on every run for 5.5 hours.
+    # Pages once per streak; repairs the one shape where HEAD's copy is evidence of a fix and holds
+    # every other. It rides here because a repair inside the unit it repairs dies with it. BEFORE
+    # the fork leg, which can run 25 minutes: two lane cycles is the repair's budget.
+    try:
+        for line in (lane_crash or _lane_crash_check)():
+            _log("lane unit crash: " + line.replace("\n", " -- "))
+    except Exception as exc:                                   # noqa: BLE001
+        _log(f"lane-unit crash check failed (reconcile continues): {exc!r}")
+
     sig, summary = build_report(proc_results, sched_results, gap_results)
     last = _load_last()
     # UNREADABLE IS NOT `[]`. See `_load_last` for the direction and why it is this one: a lost
@@ -532,6 +544,11 @@ def run(proc_results: list[dict] | None = None,
     except Exception as exc:                                   # noqa: BLE001
         _log(f"fork-streak check failed (reconcile continues): {exc!r}")
     return changed
+
+
+def _lane_crash_check():
+    from background import lane_unit_crash
+    return lane_unit_crash.check()
 
 
 def _fork_streak_page():

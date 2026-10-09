@@ -20,6 +20,9 @@ def _isolate_the_gap_ledger_source(monkeypatch):
     class the F-lane draw rung hit. Default it to clean here; the tests that exercise it inject
     their own rows in the body, which runs after this fixture and therefore wins."""
     monkeypatch.setattr(W._gap, "reconcile", lambda *a, **k: [])
+    # The lane-unit crash rider reads the live journal and can WRITE HEAD over a shared-tree file;
+    # no test in this file may reach it by falling through. Its own controls inject `lane_crash`.
+    monkeypatch.setattr(W, "_lane_crash_check", lambda: [])
 
 
 def _clean():
