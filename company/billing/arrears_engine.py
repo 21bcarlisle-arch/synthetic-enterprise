@@ -185,16 +185,12 @@ def fifo_unpaid_bills(
     month's bill in the 90+ band beside the one that is really that old, and a provision rate
     keyed to age then charges the recent money at the old money's rate.
     """
-    bills = sorted(
-        (e for e in ledger.events()
-         if e.event_type == LedgerEventType.BILL_DEBIT and e.valid_time <= as_of),
-        key=lambda e: (e.valid_time, e.event_id),
-    )
+    # The ledger's replay order is (valid_time, event_id), so its prefix to `as_of` is already
+    # the bills in FIFO order and the credits in the order the sum below has always taken them.
+    events = ledger.events_through(as_of)
+    bills = [e for e in events if e.event_type == LedgerEventType.BILL_DEBIT]
     # Total credit magnitude available to appropriate against bills, oldest-first.
-    credit = round(sum(
-        e.amount_gbp for e in ledger.events()
-        if not e.event_type.is_debit and e.valid_time <= as_of
-    ), 2)
+    credit = round(sum(e.amount_gbp for e in events if not e.event_type.is_debit), 2)
     unpaid: List[tuple] = []
     for b in bills:
         if credit >= round(b.amount_gbp, 2) - 0.005:

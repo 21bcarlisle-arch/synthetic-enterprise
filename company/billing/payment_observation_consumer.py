@@ -544,8 +544,8 @@ def _billed_by_invoice(ledger: AccountLedger, as_of: dt.date) -> Dict[str, float
     `as_of` -- read from the company's OWN ledger events, for the
     ExpectedCollectionMiss `billed_gbp` context field only. Pure, no beliefs."""
     out: Dict[str, float] = {}
-    for e in ledger.events():
-        if e.valid_time > as_of or not e.invoice_ref:
+    for e in ledger.events_through(as_of):
+        if not e.invoice_ref:
             continue
         if e.event_type in (LedgerEventType.BILL_DEBIT, LedgerEventType.ADJUSTMENT_DEBIT):
             out[e.invoice_ref] = round(out.get(e.invoice_ref, 0.0) + e.amount_gbp, 2)

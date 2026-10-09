@@ -51,6 +51,7 @@ seam-crossing atom, never papered over):
 """
 from __future__ import annotations
 
+import bisect
 import datetime as dt
 import math
 from dataclasses import dataclass, field
@@ -205,6 +206,15 @@ def _sort_key(e: LedgerEvent) -> Tuple[dt.date, str]:
     return (e.valid_time, e.event_id)
 
 
+def _valid_time(e: LedgerEvent) -> dt.date:
+    return e.valid_time
+
+
+# Distinct (events admitted, disputed set) reads held between two posts. A scorer walking dates
+# forward reuses the newest entry; the bound only stops a pathological caller growing it.
+_ALLOC_MEMO_SIZE = 16
+
+
 # ---------------------------------------------------------------------------
 # R15 CONTROLS — invariant checks that MUST be able to FAIL on their own defect.
 #
@@ -261,6 +271,17 @@ class AccountLedger:
     def __init__(self, account_id: str) -> None:
         self.account_id = account_id
         self._events: Dict[str, LedgerEvent] = {}   # event_id -> event (dedup store)
+        # CARRIED STATE (director, 2026-10-09: carry it forward, do not replay it). Every read
+        # below was a replay of the whole event set, so a run paid for each account's history
+        # again on every read and the cost grew with tenure. What is carried is a pure function of
+        # the event set, so it is dropped or extended only in `post()`, the one mutating door:
+        #   * `_sorted`: the events in replay order. A post that sorts after the last one is
+        #     appended; a late or backdated one drops the list and the next read re-sorts.
+        #   * `_alloc_memo`: the allocation per (events admitted, disputed set) over the events
+        #     held now. One read asks for the same allocation several times (a belief snapshot
+        #     asked three times; the triad scorer asks at every day); any post clears it.
+        self._sorted: Optional[List[LedgerEvent]] = []
+        self._alloc_memo: Dict[tuple, "AllocationResult"] = {}
 
     # --- ingest (idempotent, order-independent) ---
     def post(self, event: LedgerEvent) -> bool:
@@ -274,10 +295,31 @@ class AccountLedger:
         if event.event_id in self._events:
             return False
         self._events[event.event_id] = event
+        srt = self._sorted
+        if srt is not None:
+            if not srt or _sort_key(srt[-1]) <= _sort_key(event):
+                srt.append(event)
+            else:
+                self._sorted = None   # out of order: rebuild in full on the next read
+        if self._alloc_memo:
+            self._alloc_memo.clear()
         return True
 
+    def _replay_order(self) -> List[LedgerEvent]:
+        """The carried replay-ordered list itself -- callers inside this class only, never
+        mutated. `events()` hands out a copy."""
+        if self._sorted is None:
+            self._sorted = sorted(self._events.values(), key=_sort_key)
+        return self._sorted
+
     def events(self) -> List[LedgerEvent]:
-        return sorted(self._events.values(), key=_sort_key)
+        return list(self._replay_order())
+
+    def events_through(self, as_of: dt.date) -> List[LedgerEvent]:
+        """`[e for e in self.events() if e.valid_time <= as_of]`, without walking the rest:
+        replay order is valid_time first, so the answer is a prefix."""
+        ordered = self._replay_order()
+        return ordered[:bisect.bisect_right(ordered, as_of, key=_valid_time)]
 
     # --- balance-based view ---
     def balance(self, as_of: Optional[dt.date] = None) -> float:
@@ -514,8 +556,34 @@ class AccountLedger:
         excluded from undisputed-outstanding — matching the rule that a disputed
         invoice is held out of ageing/dunning while the dispute is open.
         """
-        disputed = set(disputed_refs)
-        events = [e for e in self.events() if as_of is None or e.valid_time <= as_of]
+        disputed = frozenset(disputed_refs)
+        ordered = self._replay_order()
+        # The allocation reads `as_of` only through WHICH events it admits, and those are a prefix
+        # of the replay order. So the memo is keyed on the prefix's length, not the date: a scorer
+        # asking at every day of a month between two events gets one replay, not thirty.
+        through = len(ordered) if as_of is None else bisect.bisect_right(
+            ordered, as_of, key=_valid_time)
+        key = (through, disputed)
+        result = self._alloc_memo.get(key)
+        if result is None:
+            if len(self._alloc_memo) >= _ALLOC_MEMO_SIZE:
+                self._alloc_memo.clear()
+            result = self._alloc_memo[key] = self._replay_allocation(disputed, ordered[:through])
+        # A copy: the open items are mutable and a caller holding one must not reach the memo.
+        return AllocationResult(
+            open_items=[
+                InvoiceOpenItem(oi.invoice_ref, oi.issued_gbp, oi.issue_date,
+                                oi.allocated_gbp, oi.disputed)
+                for oi in result.open_items
+            ],
+            unallocated_credit_gbp=result.unallocated_credit_gbp,
+            allocations=list(result.allocations),
+        )
+
+    @staticmethod
+    def _replay_allocation(
+        disputed: frozenset, events: Sequence[LedgerEvent],
+    ) -> AllocationResult:
 
         # 1. Build open items from bill debits (+ debit adjustments carrying an invoice_ref).
         items: Dict[str, InvoiceOpenItem] = {}
@@ -544,12 +612,13 @@ class AccountLedger:
         allocations: List[Tuple[str, str, float]] = []
         unallocated_credit = 0.0
 
-        def _open_oldest_first(exclude_disputed: bool) -> List[InvoiceOpenItem]:
-            pool = [
-                oi for oi in sorted(items.values(), key=lambda o: (o.issue_date, o.invoice_ref))
-                if not oi.is_settled and (not exclude_disputed or not oi.disputed)
-            ]
-            return pool
+        # Oldest-first order is fixed once the items are built (nothing below adds one), so it is
+        # sorted ONCE, not once per payment. Within this replay an item never becomes eligible
+        # again once it is settled or disputed (allocated only grows, issued and disputed do not
+        # move), so the walk starts past that leading run: `head`. Each payment still visits the
+        # remaining items in the same order and skips the same ones the per-payment pool did.
+        oldest_first = sorted(items.values(), key=lambda o: (o.issue_date, o.invoice_ref))
+        head = 0
 
         # 2. Apply payment credits (and refund debits reduce available credit).
         for e in events:
@@ -568,9 +637,14 @@ class AccountLedger:
                     remaining = round(remaining - apply, 2)
                 # 2b. oldest-first over non-disputed open items
                 if remaining > 0.005:
-                    for oi in _open_oldest_first(exclude_disputed=True):
+                    while head < len(oldest_first) and (
+                            oldest_first[head].disputed or oldest_first[head].is_settled):
+                        head += 1
+                    for oi in oldest_first[head:]:
                         if remaining <= 0.005:
                             break
+                        if oi.disputed or oi.is_settled:
+                            continue
                         apply = min(remaining, oi.outstanding_gbp)
                         if apply <= 0:
                             continue
