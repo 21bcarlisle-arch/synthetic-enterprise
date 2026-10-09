@@ -5,6 +5,8 @@
 understand what we are doing, and explore. I like the L2 idea."* Routine site-direction, not a
 reserved action. **Severity:** RECORDED · **Lane:** A_strategy_governance
 
+
+**Knowledge:** none -- a director ruling on the site's front door and exploration, not domain research
 ---
 
 ## What is decided (transmit as decisions)
