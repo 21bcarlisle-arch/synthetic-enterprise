@@ -80,6 +80,7 @@ import re
 import subprocess
 import sys
 import tempfile
+from collections import Counter
 from datetime import datetime
 from pathlib import Path
 
@@ -176,6 +177,11 @@ EARLIER_PRESERVED_PREFIX = "refs/preserved/origin-reconcile-earlier-revision/"
 #: for different reasons: an orphan was a draft of something origin has since landed, while a copy
 #: under this prefix is work NOBODY landed, and the ref is the only place it now exists.
 ABANDONED_PRESERVED_PREFIX = "refs/preserved/origin-reconcile-abandoned/"
+
+#: Where a LIVE copy origin strictly supersedes goes before it is restored (`superseded_live_
+#: verdicts`). Every line of it is already on origin, so this ref is a second home, kept apart from
+#: the abandoned prefix because a reader recovering from there is recovering work nobody landed.
+SUPERSEDED_PRESERVED_PREFIX = "refs/preserved/origin-reconcile-superseded-live/"
 
 #: How long a blocking working copy must sit untouched before it is presumed ABANDONED and aged
 #: out. A POLICY, NOT A MEASUREMENT, and the measurement it is set against is this: over the ten
@@ -1410,17 +1416,134 @@ def preserve_abandoned_copies(project: Path | None = None, paths: list[str] | No
         "cleared them for the fast-forward: {}".format(ABANDONED_AFTER_HOURS, ", ".join(paths)))
     if failure:
         return None, failure
+    failure = _read_back(project, ref, paths)
+    return (None, failure) if failure else (commit, "")
+
+
+def _read_back(project: Path, ref: str, paths: list[str]) -> str:
+    """`""` if `git show <ref>:<path>` returns the disk's bytes for every path, else why not."""
     for path in paths:
         try:
             local = (project / path).read_bytes()
             shown = subprocess.run(["git", "show", "{}:{}".format(ref, path)], cwd=str(project),
                                    capture_output=True, check=False, timeout=60)
         except (OSError, subprocess.SubprocessError) as exc:
-            return None, "{} could not be read back ({}), so nothing was removed".format(path, exc)
+            return "{} could not be read back ({}), so nothing was removed".format(path, exc)
         if shown.returncode != 0 or shown.stdout != local:
-            return None, "`git show {}:{}` did not return the bytes on disk, so nothing was " \
-                         "removed".format(ref, path)
-    return commit, ""
+            return "`git show {}:{}` did not return the bytes on disk, so nothing was " \
+                   "removed".format(ref, path)
+    return ""
+
+
+def _index_holds_a_third_version(project: Path, path: str) -> bool | None:
+    """Whether the index holds a version equal to neither HEAD nor the disk. `None` if unreadable.
+
+    Clearing such a path writes HEAD over the disk, and the staged version would be lost with it.
+    """
+    try:
+        staged = _git(project, "rev-parse", "-q", "--verify", ":{}".format(path))
+    except (OSError, subprocess.SubprocessError):
+        return None
+    if staged.returncode != 0:
+        return False
+    return (staged.stdout or "").strip() not in (_blob_in_head(project, path),
+                                                 _blob_here(project, path))
+
+
+def _text_lines(data: bytes | None) -> Counter | None:
+    """Each line's count, endings kept, or `None` for bytes that are absent or not UTF-8 text."""
+    if data is None:
+        return None
+    try:
+        return Counter(data.decode("utf-8").splitlines(keepends=True))
+    except UnicodeDecodeError:
+        return None
+
+
+def superseded_live_verdicts(project: Path | None = None,
+                             paths: list[str] | None = None) -> dict[str, tuple[bool, str]] | None:
+    """For each tracked edit still held, `(origin_supersedes_it, why)`. `None` if `paths` is None.
+
+    THE NINTH CLASS, AND IT IS KEYED TO CONTENT, NOT AGE. A lane drafts in the shared tree, lands
+    a later revision from a worktree, and the draft stays behind: every line of it is on origin,
+    but it equals no origin revision, so no hash proof takes it, `refresh_to_head` reads only
+    Python, and it is too young for the abandoned class. On 2026-10-09 six such copies held the
+    fleet 93 commits stale until a tick cleared them by hand (0c7389aa9).
+
+    TAKEN ONLY ON THE ZERO-NOVEL-LINES PROOF, counted as a multiset with line endings kept, so a
+    repeated line is not folded and a changed ending is novel: the copy holds no line more times
+    than origin does, AND every line it removed from HEAD origin removed too. The second leg
+    matters: a lane's deletion origin has not made is work with no line to show for it. A copy
+    that differs by an earlier WORDING of origin's line has a novel line and stays held; deciding
+    that is not this class. The bytes still go to a ref first. Under pytest, this module's own
+    repository is never touched, as for the abandoned class.
+    """
+    project = project or PROJECT_DIR
+    if paths is None:
+        return None
+    if not paths:
+        return {}
+    try:
+        on_this_repo = project.resolve() == PROJECT_DIR.resolve()
+    except OSError:
+        on_this_repo = True
+    if os.environ.get("PYTEST_CURRENT_TEST") is not None and on_this_repo:
+        return {p: (False, "under pytest the module's own repository is never cleared")
+                for p in paths}
+    return {path: _superseded_verdict(project, path) for path in sorted(set(paths))}
+
+
+def _superseded_verdict(project: Path, path: str) -> tuple[bool, str]:
+    """One path's `superseded_live_verdicts` answer. A function of its own so the loop above
+    never binds a line count to the path's name."""
+    try:
+        local_bytes = (project / path).read_bytes()
+        head_res = subprocess.run(["git", "show", "HEAD:{}".format(path)], cwd=str(project),
+                                  capture_output=True, check=False, timeout=60)
+    except (OSError, subprocess.SubprocessError):
+        return False, "the disk or HEAD could not be read at this path, so nothing is cleared"
+    local, theirs = _text_lines(local_bytes), _text_lines(_origin_text(project, path))
+    head = _text_lines(head_res.stdout) if head_res.returncode == 0 else None
+    if local is None or theirs is None or head is None:
+        return False, "HEAD, origin and the disk must each hold UTF-8 text at this path to count " \
+                      "its lines, and one does not"
+    novel = sum(n - theirs[line] for line, n in local.items() if n > theirs[line])
+    if novel:
+        return False, "{} line(s) here are not on origin, so it is live work and holds the " \
+                      "advance".format(novel)
+    kept = sum(1 for line, n in head.items() if n > local[line] and theirs[line] > local[line])
+    if kept:
+        return False, "no line here is new, but {} line(s) it deleted are still on origin, so " \
+                      "the deletion is live work".format(kept)
+    if _index_holds_a_third_version(project, path) is not False:
+        return False, "origin holds every line, but the index holds a THIRD version (or could " \
+                      "not be read), and restoring HEAD would lose it"
+    return True, "every line is on origin and every line it deleted origin deleted too, so " \
+                 "origin SUPERSEDES it: preserved on a ref, then restored"
+
+
+def preserve_superseded_live_copies(project: Path | None = None, paths: list[str] | None = None,
+                                    slug: str | None = None) -> tuple[str | None, str]:
+    """Re-prove the supersession inside the lock, commit the bytes to a ref, read them back."""
+    project = project or PROJECT_DIR
+    if not paths:
+        return None, "nothing to preserve"
+    paths = sorted(paths)
+    again = superseded_live_verdicts(project, paths) or {}
+    revived = [p for p in paths if not again.get(p, (False, ""))[0]]
+    if revived:
+        return None, "{} -- no longer superseded when re-asked inside the lock ({})".format(
+            "; ".join(revived[:6]), " ".join(str(again.get(revived[0], (False, "unread"))[1])
+                                             .split()))
+    ref = SUPERSEDED_PRESERVED_PREFIX + (slug or refresh_slug(project))
+    commit, failure = _commit_disk_bytes_to_ref(
+        project, paths, ref,
+        "preserved LIVE shared-tree copies origin supersedes line for line before origin-reconcile "
+        "restored them for the fast-forward: {}".format(", ".join(paths)))
+    if failure:
+        return None, failure
+    failure = _read_back(project, ref, paths)
+    return (None, failure) if failure else (commit, "")
 
 
 #: The family key the abandoned-copy staging item is filed under. `alarm_repetition` keys one
@@ -1629,7 +1752,8 @@ def advance_shared_tree(project: Path | None = None, *, blockers_fn=None, twins_
                         orphans_fn=None, preserver=None, generated_fn=None,
                         earlier_fn=None, earlier_preserver=None, abandoned_fn=None,
                         abandoned_preserver=None, filer=None, now=None, append_fn=None,
-                        append_preserver=None, stranded_fn=None) -> dict:
+                        append_preserver=None, stranded_fn=None, superseded_fn=None,
+                        superseded_preserver=None) -> dict:
     """Fast-forward the shared tree onto `origin/main`, clearing every blocker it can prove lossless.
 
     Returns `{"advanced": bool, "cleared": list[str], "reason": str}`. `advanced` is claimed only
@@ -1657,6 +1781,10 @@ def advance_shared_tree(project: Path | None = None, *, blockers_fn=None, twins_
     in one staging item -- see `abandoned_copy_verdicts`. It is asked only when EVERY path still
     held is that old: one live copy anywhere keeps the refusal all-or-nothing exactly as before,
     and touches nothing, abandoned copies included.
+
+    THE NINTH, added 2026-10-09, is asked BEFORE the seventh and is not keyed to age: a tracked
+    edit with no line origin lacks, whose every deletion origin also made, is an earlier draft of
+    origin's own revision -- see `superseded_live_verdicts`. Preserved on a ref, then restored.
 
     THE THREE THAT PROVE AND THE ONE THAT MANUFACTURES. Classes one to three each rest on an
     argument that the bytes are already safe somewhere. The fourth cannot: untracked means on no
@@ -1850,6 +1978,14 @@ def advance_shared_tree(project: Path | None = None, *, blockers_fn=None, twins_
     resolvable = sorted(set(resolvable) | set(stale) | set(generated) | set(appended)
                         | set(orphans))
     held = sorted(blocked_paths - set(resolvable))
+    # THE NINTH CLASS, ASKED OF WHAT THE SIX LEFT AND BEFORE THE SEVENTH, and only of tracked edits:
+    # it proves its copies lossless rather than presuming them abandoned, so it needs no age.
+    superseded_verdicts = (superseded_fn or superseded_live_verdicts)(
+        project, sorted(p for p in held if p in {
+            b["path"] for b in blocking if b.get("kind") == FF_MODIFIED})) or {}
+    superseded = sorted(p for p, (ok, _) in superseded_verdicts.items() if ok)
+    resolvable = sorted(set(resolvable) | set(superseded))
+    held = sorted(set(held) - set(superseded))
     # THE SEVENTH CLASS, ASKED ONLY OF WHAT ALL SIX LEFT, and it moves `held` only if it takes ALL
     # of it: one live copy keeps the whole advance refused and nothing aged out is touched either.
     abandoned_verdicts: dict[str, tuple[bool, str]] = {}
@@ -1887,9 +2023,11 @@ def advance_shared_tree(project: Path | None = None, *, blockers_fn=None, twins_
                 or orphan_verdicts.get(path)
                 or (False, "not byte-identical to what origin brings"))[1]
             age = abandoned_verdicts.get(path)
-            named.append("{} -- {}{}".format(
+            lines = superseded_verdicts.get(path)
+            named.append("{} -- {}{}{}".format(
                 path, " ".join(str(why).split())[:220],
-                " [age: {}]".format(" ".join(str(age[1]).split())[:140]) if age else ""))
+                " [age: {}]".format(" ".join(str(age[1]).split())[:140]) if age else "",
+                " [lines: {}]".format(" ".join(str(lines[1]).split())[:140]) if lines else ""))
         return {"advanced": False, "cleared": [],
                 "reason": "{} of {} blocking path(s) could NOT be proven lossless, so clearing the "
                           "{} that could would touch files and still not advance. Nothing was "
@@ -1919,6 +2057,10 @@ def advance_shared_tree(project: Path | None = None, *, blockers_fn=None, twins_
     _file = filer or (lambda entries, ref, commit: file_abandoned_copies(
         project, entries, ref, commit, now=now))
     abandoned_ref = ABANDONED_PRESERVED_PREFIX + slug
+    superseded_set = set(superseded)
+    _preserve_superseded = superseded_preserver or (
+        lambda p: preserve_superseded_live_copies(project, p, slug))
+    superseded_commit = ""
     # An earlier-revision copy is cleared by the twin act for its kind: restored if git tracks the
     # path (an index entry an `unlink` would strand), removed if it does not.
     modified_paths = {b["path"] for b in blocking if b.get("kind") == FF_MODIFIED}
@@ -2000,6 +2142,13 @@ def advance_shared_tree(project: Path | None = None, *, blockers_fn=None, twins_
                             "reason": "the {} abandoned working cop(y/ies) could not be PRESERVED, "
                                       "so nothing was removed and the advance was not attempted: "
                                       "{}".format(len(abandoned_set), failure)}
+            if superseded_set:
+                superseded_commit, failure = _preserve_superseded(sorted(superseded_set))
+                if failure:
+                    return {"advanced": False, "cleared": [],
+                            "reason": "the {} live cop(y/ies) origin supersedes could not be "
+                                      "PRESERVED, so nothing was removed and the advance was not "
+                                      "attempted: {}".format(len(superseded_set), failure)}
             # THE APPEND LOGS ARE READ AND PUT ON A REF before they are restored. The bytes held
             # in memory are what is written back; the ref is for a process that dies in between.
             if append_set:
@@ -2036,8 +2185,8 @@ def advance_shared_tree(project: Path | None = None, *, blockers_fn=None, twins_
                 # `unlink` on a path with an index entry leaves that entry behind, and the
                 # fast-forward stays refused on a file that is no longer even on disk.
                 try:
-                    if path in tracked_set or (path in earlier_set | abandoned_set
-                                               and path in modified_paths):
+                    if path in tracked_set | superseded_set or (
+                            path in earlier_set | abandoned_set and path in modified_paths):
                         failure = _restore(path)
                     else:
                         _remove(path)
@@ -2061,10 +2210,14 @@ def advance_shared_tree(project: Path | None = None, *, blockers_fn=None, twins_
 
     # NAMED ONCE, OUTSIDE THE LOCK, whatever the fast-forward did: the copies are on the ref and
     # off the disk either way, and a filing failure is reported, never allowed to undo the advance.
-    abandoned_clause = ""
+    abandoned_clause = (". {} LIVE cop(y/ies) origin supersedes line for line ({}) are at {}{} "
+                        "({})".format(len(superseded_set), "; ".join(sorted(superseded_set)[:12]),
+                                      SUPERSEDED_PRESERVED_PREFIX, slug,
+                                      (superseded_commit or "-")[:9])
+                        if superseded_set else "")
     if abandoned_set:
         filing = _file(abandoned_entries, abandoned_ref, abandoned_commit)
-        abandoned_clause = (". {} ABANDONED cop(y/ies) untouched {}h+ ({}) are on NO branch and "
+        abandoned_clause += (". {} ABANDONED cop(y/ies) untouched {}h+ ({}) are on NO branch and "
                             "come back only from {} ({}): `git show {}:<path>`. {}".format(
                                 len(abandoned_set), ABANDONED_AFTER_HOURS,
                                 "; ".join(sorted(abandoned_set)[:12]), abandoned_ref,
@@ -2081,7 +2234,7 @@ def advance_shared_tree(project: Path | None = None, *, blockers_fn=None, twins_
                           "one is on disk, tracked, holding origin's bytes: {}".format(
                               len(cleared), len(tracked_set),
                               len(cleared) - len(tracked_set) - len(earlier_set) - len(stale_set)
-                              - len(orphan_set) - len(abandoned_set),
+                              - len(orphan_set) - len(abandoned_set) - len(superseded_set),
                               len(earlier_set), EARLIER_PRESERVED_PREFIX, slug,
                               (earlier_commit or "-")[:9],
                               len(stale_set), REFRESH_PRESERVED_PREFIX, slug,
@@ -2106,7 +2259,7 @@ def advance_shared_tree(project: Path | None = None, *, blockers_fn=None, twins_
                       "`git checkout {}/{} -- <path>`: {}.{}{}{} git: {}".format(
                           len(cleared), REMOTE, BRANCH, "; ".join(sorted(
                               set(cleared) - stale_set - orphan_set - earlier_set
-                              - abandoned_set)[:12]),
+                              - abandoned_set - superseded_set)[:12]),
                           (" The {} earlier-revision cop(y/ies) ({}) come back from the origin "
                            "commit each was matched to, or from {}{} ({}).".format(
                                len(earlier_set), "; ".join(

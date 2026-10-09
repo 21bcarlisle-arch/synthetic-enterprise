@@ -71,6 +71,10 @@ class _Advance:
             earlier_fn=lambda _project, _blocking: {},
             twins_fn=lambda _project, _blocking: self.twins,
             tracked_twins_fn=lambda _project, _blocking: list(self.tracked),
+            # Hermetic for the same reason: the real stale judgement asks the live repository, and
+            # once origin moves `process_run_complete.py` past HEAD it takes the "modified" path
+            # below as a superseded copy and the advance is granted (seen 2026-10-09).
+            stale_fn=lambda _project, paths: {p: (False, "fixture") for p in paths},
             ff_fn=self._ff,
             remover=self.removed.append,
             restorer=lambda path: None,

@@ -92,3 +92,31 @@ gone stale by the time I drew it, and the actual holders were a different class.
   Not built here: whether "an earlier wording" is mechanically decidable outside the
   zero-novel-lines case is an open question, and the zero-novel-lines case (two of the six) is
   the safe first leg.
+
+## Actioned, 2026-10-09 (delivery seat, ~17:10 BST): the zero-novel-lines leg is built
+
+**The class above is no longer left open for its safe leg.** `background/origin_reconcile.py`
+gains a ninth class, `superseded_live_verdicts`. It takes a tracked edit that holds no line more
+times than origin does (counted as a multiset, so a repeated line is not folded) and whose every
+deletion from HEAD origin also made. The bytes go to `refs/preserved/origin-reconcile-superseded-live/<slug>`
+and are read back, then the copy is restored to HEAD. The class is not keyed to age, and
+`advance_shared_tree` asks it before the 48 h abandoned class.
+
+- **Definition, measured on the real bytes before shipping.** Local copies come from `b84ae812e`, HEAD
+  from `e3e5970e1` and origin from `cd6693283` (origin's tip at 09:18). The rule takes
+  `canon_claims.yaml` and `test_canon_drift_check.py` (0 novel, 0 deletions origin keeps) and
+  `site/index.html` (already a twin). It refuses `maturity_map.yaml` (5 novel, 4 deletions origin
+  keeps), `knowledge_map.md` (2 novel) and the save-offer doc (6 novel). That matches the hand
+  verdicts above, where these copies held "older wordings", which this class does not decide.
+- **Why the deletion leg exists.** A lane's deletion that origin has not made is work with no line
+  to show for it. Novel lines alone would clear it as "superseded".
+- **Control:** `tests/background/test_a_live_copy_origin_supersedes_line_for_line_is_cleared.py`.
+  The partition asserts `taken and refused` before naming which. The fixtures are the two copies'
+  shapes, plus an advance end to end on real git and a refusal arm with one live edit beside them.
+  Four mutations each red it: the class skipped in the advance, the verdict never taking, the
+  deletion leg off, and the novel-line leg off.
+- **Still open:** "an earlier wording of origin's line" (the other four copies). Deciding it
+  mechanically is not established.
+- **Duplicate-claim note at draw:** the "already held" claim on
+  `a-strictly-superseded-live-copy-is-cleared-by-the-reconciler` was this draw's own write; no
+  rival process held it.
