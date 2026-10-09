@@ -349,7 +349,7 @@ def _release_lock(*owned_pids: int) -> None:
 class TickDecision:
     """Pure decision (unit-testable, no side effects): whether to spawn, and why not / with what."""
     spawn: bool
-    outcome: str          # SPAWNED | REST_NO_WORK | DISABLED | NOT_SCHEDULED | LOCK_HELD | DRAW_ERROR | MODE_HELD
+    outcome: str          # SPAWNED | REST_NO_WORK | DISABLED | NOT_SCHEDULED | LOCK_HELD | DRAW_ERROR | MODE_HELD | HELD_AT_DISPATCH
     reason: str = ""      # the drawn doorbell (only when spawn=True)
     detail: str = ""
 
@@ -441,6 +441,15 @@ def choose_model(reason: str) -> "tuple[str, object | None]":
     except Exception as e:  # pragma: no cover - defensive
         _log(f"model_tier unavailable, falling back to {MODEL}: {e!r}")
         return MODEL, None
+
+
+def _held_at_dispatch(reason: str) -> "str | None":
+    """`delivery_lane.held_at_dispatch`, lazily imported and never raising, like the claim below."""
+    try:
+        from background import delivery_lane
+    except Exception:  # noqa: BLE001 - see `_claim_dispatched`
+        return None
+    return delivery_lane.held_at_dispatch(reason)
 
 
 def _claim_dispatched(reason: str) -> "str | None":
@@ -566,6 +575,15 @@ def run_tick() -> TickDecision:
             # watchdog's read -- and this is the first point in the chain that is dispatch and only
             # dispatch. Returns None for a doorbell naming no Lane 0 id (the ordinary map draw), and
             # never raises: see `claim_dispatched`.
+            holder = _held_at_dispatch(d.reason)
+            if holder is not None:
+                # Somebody claimed this Lane 0 item between compose and now (see
+                # `delivery_lane.held_at_dispatch`). The next tick recomposes without it.
+                _log(f"HELD AT DISPATCH: not spawning -- {holder} is already claimed by another "
+                     "writer; the next tick's draw walks past it")
+                held = TickDecision(False, "HELD_AT_DISPATCH", detail=holder)
+                _write_health(held.outcome, held.detail)
+                return held
             _claim_dispatched(d.reason)
             proc = spawn_invocation(d.reason)
             if proc is not None:

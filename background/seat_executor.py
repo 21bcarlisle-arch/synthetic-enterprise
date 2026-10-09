@@ -945,6 +945,14 @@ def run_once(*, dry_run: bool = False, now: float | None = None) -> tuple[bool, 
         #
         # `claimed_at` is captured because `_hand_back` matches on it: this releases the claim it
         # took, never whatever happens to be there when the turn ends.
+        #
+        # RE-ASKED HERE, not trusted from `next_item`: the item was picked before
+        # `ensure_worktree`, which salvages and resets and has taken minutes, and the worker tick
+        # can dispatch the same id inside that gap (see `delivery_lane.held_at_dispatch`).
+        rival = delivery_lane.held_at_dispatch(f"--landed {work_id}")
+        if rival is not None:
+            raise StoodDown(f"{rival} was claimed by another writer while this turn built its "
+                            "worktree")
         claimed_at = time.time()
         for store in _claim_stores():
             delivery_lane.claims_mod.claim(

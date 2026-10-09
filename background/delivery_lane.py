@@ -4523,6 +4523,44 @@ def claim_dispatched(reason: str, *, now: float | None = None,
         return None
 
 
+def held_at_dispatch(reason: str, *, now: float | None = None,
+                     stores: list[tuple[Path, float]] | None = None) -> str | None:
+    """The live claim already holding the Lane 0 id this doorbell names, as `"<id> in <store>"`,
+    or None. Asked by `worker_tick` BEFORE `claim_dispatched`; a hit means do not spawn.
+
+    WHY A HELD ID AT DISPATCH IS ALWAYS SOMEBODY ELSE'S. The compose (`draw(claim=False)`) walks
+    past every id in this lane's store, so an id held here at dispatch was claimed in the gap
+    between compose and spawn -- and nothing in the tick claims in that gap. `claim_dispatched`
+    reads the same row as "a re-dispatch of a live claim" and returns it as taken, which is right
+    for its deadline and wrong for the spawn. Measured 2026-10-01: `seat_executor` picked
+    `retake-the-renewal-feedback-attribution-without-the-look-ahead` at 19:12 UTC, claimed it at
+    19:14:49 after building its worktree, and the worker tick dispatched the same id at 19:15:34
+    and logged "claim taken" over the executor's row. Two Opus turns on one measurement.
+
+    BOTH STORES, stale rows excluded: the executor and the interactive seat claim in
+    `seat_work_in_hand`'s store too, and a swept-in-waiting row must not hold an item forever.
+    NEVER RAISES; an unreadable store answers None, which dispatches as before.
+    """
+    try:
+        match = _DISPATCHED_ID.search(reason or "")
+        if not match:
+            return None
+        paired = stores if stores is not None else claim_stores()
+        for store, deadline in paired:
+            try:
+                rows = claims_mod._load(store)
+                stale = {w for w, _rec, _idle in
+                         claims_mod.stale_claims(path=store, now=now, stale_after=deadline)}
+            except Exception:  # noqa: BLE001 - one unreadable store must not blind the other
+                continue
+            focus_id = resolve_claim_id(match.group(1), path=store) or match.group(1)
+            if isinstance(rows, dict) and focus_id in rows and focus_id not in stale:
+                return f"{focus_id} in {store.name}"
+        return None
+    except Exception:
+        return None
+
+
 #: A draw-time embargo, as the seat actually writes it. Both verbs are live: the SAME item has
 #: been written `DO NOT START BEFORE 12:45 on 2026-09-18` and `DO NOT DRAW BEFORE 10:45 on
 #: 2026-09-18` across successive re-drawings, so anchoring on one spelling would have honoured the
