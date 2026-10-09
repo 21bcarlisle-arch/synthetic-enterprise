@@ -53,3 +53,22 @@ def test_a_list_with_a_date_that_is_not_plain_iso_takes_the_scan():
     got = records_in_window(records, first, last)
     assert got == _scan(records, first, last)
     assert any(r["settlementDate"] == "20170102" for r in got)
+
+
+def test_neither_caller_sees_a_price_dated_on_or_after_its_own_date():
+    """Fires on: the index returning a record dated on or after the run's own date to either
+    caller -- a look-ahead the scan never made. Seeds a wild price on each of the reference date
+    and the day after and asserts neither answer moves. (sigma_recent's documented bootstrap
+    window, taken only when NO prior record exists, is not exercised: history is present here.)"""
+    from sim.forward_curve import generate_forward_price
+    from sim.risk_engine import calculate_sigma_recent
+
+    records = _records(3000, 5)
+    as_of = date(2017, 9, 1)
+    assert records_in_window(records, as_of - timedelta(days=90), as_of - timedelta(days=1))
+    sigma, forward = calculate_sigma_recent(as_of.isoformat(), records), \
+        generate_forward_price(as_of.isoformat(), records)
+    for d in (as_of, as_of + timedelta(days=1)):
+        records.append({"settlementDate": d.isoformat(), "systemSellPrice": 1e6})
+    assert calculate_sigma_recent(as_of.isoformat(), records) == sigma
+    assert generate_forward_price(as_of.isoformat(), records) == forward
