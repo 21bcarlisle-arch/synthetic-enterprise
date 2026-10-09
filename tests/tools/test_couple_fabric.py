@@ -454,7 +454,10 @@ def test_the_money_consequence_is_AFFINE_in_the_unit_rate_for_a_fixed_decision(m
     # 14/15/16 -> 16/17/18 ON 2026-10-08, BY THE SAME GUARD. The cooking-fuel draw
     # (`pt.gas_cooked`) moved D7's chosen measure insulate -> heat_pump between 15.0 and
     # 15.5; swept at 0.5p, the vector is constant from 15.5 to 20.0.
-    rates = (16.0, 17.0, 18.0)
+    # 16/17/18 -> 17/18/19 ON 2026-10-09, BY THE SAME GUARD. The microwave's use count (0.8 -> 1.70
+    # a day) moved D7's chosen measure insulate -> heat_pump to between 16.0 and 16.5, and its best
+    # measure to heat_pump at 22.0. Swept at 0.5p, the vector is constant from 16.5 to 21.5.
+    rates = (17.0, 18.0, 19.0)
     vectors = [
         tuple(
             (row.premise_id, row.chosen_measure, row.best_measure)
@@ -661,7 +664,8 @@ def test_the_TEXTURE_CELL_BREACH_CLOSED_when_the_LOAD_SET_WAS_REPAIRED(panel, we
     # S9 0.0604 -> 0.0621 on 2026-10-09: the panel's profile-less homes draw the book's census
     # headcount, not the deleted bedrooms fallback. The world did not change; the instrument did.
     # S9 0.0621 -> 0.0629 the same day: oven, hob, toaster and microwave off headcount (HES Table 23).
-    assert texture.worst_value == pytest.approx(0.0629, abs=5e-4), texture.note
+    # S9 0.0629 -> 0.0634 the same day: the microwave's use count 0.8 -> 1.70 a day (HES's 56 kWh).
+    assert texture.worst_value == pytest.approx(0.0634, abs=5e-4), texture.note
     assert "net of space AND water heat" in texture.note
     electric = {
         home for home, system in zip(population_homes(panel), panel_systems(panel))
@@ -683,7 +687,8 @@ def test_the_TEXTURE_CELL_BREACH_CLOSED_when_the_LOAD_SET_WAS_REPAIRED(panel, we
     # 9 -> 8 on 2026-10-08, the cooking-fuel draw (`pt.gas_cooked`).
     # 8 -> 7 the same day, electronics at its 2022 level (expected 7.5).
     # 7 -> 8 on 2026-10-09, oven, hob, toaster and microwave off headcount (expected 7.5).
-    assert median.below == 8, texture.note
+    # 8 -> 6 the same day: the microwave's use count 0.8 -> 1.70 a day (HES's 56 kWh) (expected 7.5).
+    assert median.below == 6, texture.note
 
     # (d) THE GAS HOMES ARE UNCHANGED BY THE REPAIR, which is what makes it a
     #     load-set correction rather than a rescaling of everybody. Measured, not

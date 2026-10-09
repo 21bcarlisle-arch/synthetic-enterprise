@@ -136,3 +136,12 @@ same day the oven, hob, toaster and microwave stopped scaling too, with no per-u
 Flat, the oven reads 242 against HES's 290 x 0.80 = 232. The microwave's level (26 vs 56) is
 unsourced and still open. See
 `docs/staging/SEAT_FINDING_THE_COOKING_CLASS_DOES_NOT_SCALE_WITH_HEADCOUNT_IN_HES_2026-10-09.md`.
+
+**The microwave level, 2026-10-09 (later).** HES gives the microwave only as a level: 56 kWh/yr
+per owner, §11.8. It is not in Appendix VI, and HES publishes no uses a day and no energy per use.
+At the world's 0.9 kW, 56 kWh is about 62 h of use a year. The world gave 29. DOE's US microwave
+TSD (ch.7, survey-scaled, not metered) gives 71. So the gap is time in use, not power.
+`_MICROWAVE_USES_PER_DAY` takes it (0.8 -> 1.70), and the six-minute use is held. **Not
+established:** how time in use splits into uses a day and minutes a use. The world also gives every
+home a microwave, where EFUS 2017 has 89.7%. See
+`docs/staging/SEAT_FINDING_THE_MICROWAVE_LEVEL_IS_TIME_IN_USE_AGAINST_HES_56_2026-10-09.md`.

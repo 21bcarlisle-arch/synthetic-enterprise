@@ -701,7 +701,10 @@ def test_MEASURED_population_values(population, population_result):
     # expected (30, 45) by three and one. The instrument changed, not the world.
     # [3, 15, 27, 44] -> [3, 15, 27, 45] the same day: oven, hob, toaster and microwave off headcount
     # (HES Table 23). One more home under the real p75; p75 now sits exactly on expected (45).
-    assert [legs[q].below for q in (0.10, 0.25, 0.50, 0.75)] == [3, 15, 27, 45], texture.note
+    # [3, 15, 27, 45] -> [3, 15, 27, 44] the same day: the microwave's use count 0.8 -> 1.70 a day (HES's 56 kWh). Its extra draws
+    # re-shuffle every later appliance's start times in the day's substream, so this is energy and
+    # RNG together, not attributable to either.
+    assert [legs[q].below for q in (0.10, 0.25, 0.50, 0.75)] == [3, 15, 27, 44], texture.note
     # 0.142 -> 0.153 with electronics at its 2022 level (real 0.158).
     # 0.153 -> 0.168 on 2026-10-09, the census headcount (above).
     assert legs[0.50].world == pytest.approx(0.168, abs=0.005), texture.note
@@ -717,8 +720,10 @@ def test_MEASURED_population_values(population, population_result):
     # `test_net_of_both_machines_no_electric_home_is_calmer_than_every_gas_home`.
     # P0033 0.0634 -> P0018 0.0633 the same day: the rest of the cooking class off headcount. P0033
     # reads 0.06329 against P0018's 0.06327, so the calmest home is a gas home again by 0.03%.
+    # P0018 0.0633 -> 0.0647 the same day, still P0018: the microwave's use count 0.8 -> 1.70 a day
+    # (HES's 56 kWh). Every home gained ~30 kWh of all-day load.
     assert texture.worst_home == "P0018", texture.note
-    assert texture.worst_value == pytest.approx(0.0633, abs=5e-4), texture.note
+    assert texture.worst_value == pytest.approx(0.0647, abs=5e-4), texture.note
     # NOBODY WAS EXCLUDED TO GET HERE. All 60 homes are judged on every anchored
     # cell — the electrically heated ones included — which is the difference
     # between netting a component out of a statistic and dropping the homes that
@@ -798,7 +803,9 @@ def test_MEASURED_population_values(population, population_result):
     assert shape.worst_home == "P0023", shape.note
     # 0.4572 -> 0.555 on 2026-10-09, still P0023 (band 0.6): the drawn 60 on the book's census
     # headcount. More repeatable day to day, which fewer occupants predicts. Not pre-registered.
-    assert shape.worst_value == pytest.approx(0.555, abs=0.01), shape.note
+    # 0.555 -> 0.527 the same day, still P0023: the microwave's use count 0.8 -> 1.70 a day. Its
+    # start time is drawn anywhere in 10:00-21:30, so more uses are more day-to-day noise.
+    assert shape.worst_value == pytest.approx(0.527, abs=0.01), shape.note
     assert "gas" in population.heating_systems[
         population.homes.index(shape.worst_home)
     ], "the worst home is a GAS home"
@@ -2748,7 +2755,9 @@ def test_L1_1n_CAN_PASS_and_is_not_a_control_that_can_only_fail(population_resul
     # (HES Table 23). P0049's five people lost about 30% of their kettle, and it left the tail.
     # 1.210 -> 1.025 the same day, worst now P0040: oven, hob, toaster and microwave off headcount.
     # Still above 1.0, and 0 of 60 violate.
-    assert cell.worst_value == pytest.approx(1.025, abs=0.005), cell.note
+    # 1.025 -> 0.9955 the same day, still P0040: the microwave's use count 0.8 -> 1.70 a day (HES's 56 kWh). One of 60 now
+    # reads below its own flat day, against 7.0% of real LCL homes; the rate leg below judges it.
+    assert cell.worst_value == pytest.approx(0.9955, abs=0.005), cell.note
     assert cell.homes_violating / cell.homes_judged <= fgl.RATE_BANDS[
         fgl.TEXTURE_NULL_RATIO_STATISTIC].threshold, cell.note
 
@@ -2973,7 +2982,9 @@ def test_the_MINTS_INFERRED_MECHANISM_was_REFUTED_by_measurement(population):
     # +0.493 -> +0.540 the same day, the kettle off headcount (HES Table 23).
     # +0.540 -> +0.619 the same day, the rest of the cooking class off headcount: the same common
     # cause as the cooking-fuel draw (less evening cook, higher base share, lower peakiness).
-    assert r == pytest.approx(0.619, abs=0.03)
+    # +0.619 -> +0.554 the same day: the microwave's use count 0.8 -> 1.70 a day (HES's 56 kWh), an all-day load that is
+    # neither base nor evening peak. Not predicted.
+    assert r == pytest.approx(0.554, abs=0.03)
     share = [min(min(d) for d in h) / (sum(map(sum, h)) / (48 * len(h))) for h in behavioural]
 
     def _residual(y, x):
@@ -3092,7 +3103,9 @@ def test_L1_1_FIRES_when_the_SWITCHED_LOADS_are_made_CONTINUOUS_again(
         for p in drawn
     ], weather)).cell(fgl.TEXTURE_STATISTIC)
     live = fgl.evaluate_two_level(population).cell(fgl.TEXTURE_STATISTIC)
-    assert mutated.worst_home == live.worst_home, mutated.note
+    # A "same calmest home" leg stood here until 2026-10-09. It keyed the control to today's answer.
+    # P0018 and P0033 sit 0.03% apart, so the microwave refit swapped which one is calmest under the
+    # mutation. If every home's reading falls, the minimum falls, and a no-op mutation leaves it equal.
     assert mutated.worst_value < live.worst_value, (
         "making the switched banks continuous MUST lower L1.1's reading of the "
         f"marginal home — {live.worst_value:.4f} -> {mutated.worst_value:.4f}"
