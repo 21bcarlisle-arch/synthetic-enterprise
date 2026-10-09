@@ -109,3 +109,67 @@ overstates independence, so the interval is too narrow, and Q4 2019 alone is rep
 It is **NOT MET, HIGH** if the interval lies wholly above 5.1%, and **NOT MET, LOW** if it lies
 wholly below. A world far below the comparator is as much a like-for-like gap as one 2x above it,
 only in the other direction.
+
+### Result (2026-10-09T08:05Z): NOT MET, HIGH, about 2.2x. Both predictions were refuted
+
+Electricity accounts with a bill unpaid more than 91 days at the quarter end. Same instrument, same
+default seed, 80 founders, `report_end` 2019-12-31. Origin is 8f6237b6f and the control is
+54dbd5650^ (7d5259c7b).
+
+| quarter end | before the correction (54dbd5650^) | origin |
+|---|---|---|
+| 2019-03-31 | 33/90 = 36.7% | 9/89 = 10.1% |
+| 2019-06-30 | 35/94 = 37.2% | 10/93 = 10.8% |
+| 2019-09-30 | 36/94 = 38.3% | 11/93 = 11.8% |
+| 2019-12-31 | 39/96 = 40.6% (31-51%) | 11/95 = 11.6% (6.6-19.6%) |
+| **2019 pooled** | **143/374 = 38.2% (33-43%)** | **41/370 = 11.1% (8.3-14.7%)** |
+
+Brackets are Wilson 95% intervals. The pooled n counts an account once per quarter end, so its
+interval is too narrow.
+
+- **Against 5.1%:** the pooled interval on origin lies wholly above the comparator. By the
+  criterion filed above, the arrears half of the hold is **NOT MET, HIGH**. The ratio is **2.2x**
+  pooled and 2.3x at Q4 2019. The earlier gap was "about 2x" (32acb3ea1).
+- **P1 refuted: the instrument is not the one 54dbd5650 used.** Before the correction this
+  instrument reads 37-41%, not the commit's 8.7 / 9.6 / 11.6 / 10.2%. So the "~10%" in 32acb3ea1,
+  and 54dbd5650's "10% -> about 1%", were read on a different "ledger" instrument, and I could not
+  find or reproduce it. On the triad's truth the correction moved the stock 38% -> 11%. That is a
+  factor of 3.5, in line with the factor of about 3.4 by which it cut failures. On this instrument
+  the pre-correction gap was 7.5x, not 2x. **The two "about 2x" figures are on different
+  instruments and must not be read as "unchanged".**
+- **P2 refuted:** I predicted at most 3% at every quarter end and at most 2% pooled. The reading is
+  10-12%.
+- **The stock grows with the book's age.** Origin reads 2.3% (Q1 2017), then 3.3% (Q1 2018), then
+  10.1% (Q1 2019), so a 2025 reading would be higher again. Gas pooled 2019 is 7/165 = 4.2%
+  (2.1-8.5%).
+
+**What holds the stock up (origin, Q4 2019, the 11 accounts):**
+- 10 of the 11 hold a bill the world **never** settles (`later_settlement_date` returns None),
+  while the account stays on supply and is billed.
+- Only 3 of the 11 are behind because of a bill older than 22 months. Wiring the unwired
+  `q3_debt_repaid_after_22_months_share` (0.15 a year; no `.py` reads it) could at most remove
+  those 3, which leaves 8/95 = 8.4%. **It does not close the gap.**
+- The other 8 owe a bill between 91 days and 22 months old. That is the body of
+  `LATER_SETTLEMENT_REPAID_SHARE = 0.5` (only half of failed bills are ever repaid, 70% of those
+  within 3 months). It is read at its floor from Ofgem IA July 2016 §1.39. That cohort is
+  **customers blocked from switching by debt**, a selected population, and here it is applied to
+  every failed domestic bill.
+
+**Explanations, ranked by the evidence:**
+1. **Selection in the repayment share.** The 50% is the debt-blocked switchers' share, applied to
+   every first failure. Evidence: 8 of 11 are inside its window, and the stock tracks failures by
+   the factor the tiers moved. This is the next place to look, knowledge first. It needs a
+   published repayment curve for an ordinary failed domestic bill, or a practitioner's answer.
+2. **Gaps 4 and 7 of the same module** (each bill is drawn alone, and leavers repay at the
+   stayer's rate). They push in opposite directions; their size is not measured.
+3. **The definition.** Is a debt the supplier never collects, from a customer still on supply,
+   in Ofgem's count until it is written off? The triad says yes, matching Ofgem's own words. The
+   unknown instrument behind 54dbd5650 evidently says no. **This is a practitioner question**, and
+   it decides which instrument the hold is graded on.
+4. **Sample size.** Small, but the pooled interval excludes 5.1%, and Q4 2019 alone sits at 2.3x.
+
+**Consequence.** The 3,100 settlement raise stays held. It is not filed as a continuation, because
+only the departure half is met. 54dbd5650's commit message ("falls from about 10% to about 1%")
+reads as the world's arrears level. On the triad's truth it is 38% -> 11%, and that correction
+belongs beside the claim. Scripts: `/var/tmp/arrears_like_for_like.py`,
+`/var/tmp/arrears_slice.py`. Outputs: `/var/tmp/arrears_lfl_{now,pre}.json`.
