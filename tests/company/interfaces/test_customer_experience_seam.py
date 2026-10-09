@@ -330,6 +330,7 @@ def test_the_door_reproduces_the_pre_cut_payment_reads():
         "on_time_rate": metrics["on_time_rate"],
         "late_rate": metrics["late_rate"],
         "dd_fail_rate": metrics["dd_fail_rate"],
+        "miss_rate": metrics["miss_rate"],
     }
     assert record["payment_miss_trajectory"] == payments.get_miss_trajectory(CID)
 

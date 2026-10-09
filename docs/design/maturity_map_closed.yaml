@@ -4835,3 +4835,19 @@
   real_world_twin: "a bench rig reset to factory state between test runs"
   notes_rehomed: [origin_note]
   records_rehomed: [evidence]
+
+- id: W2_non_dd_miss_vocabulary
+  notes_rehomed: [name]
+  lane: W2_customer_generator
+  value_stream: meter_to_cash
+  epoch: 2
+  level_current: 2
+  level_target: 2
+  loop_stage: build
+  dial_inherited: 3
+  provenance: proposal
+  file_scope: [background/live_payment_triad.py, company/crm, saas/sme_credit_risk.py, simulation/payment_seam_adapter.py, tests/company/crm, tests/harness, tests/background/test_live_payment_triad.py, tests/saas/test_sme_credit_risk.py, tests/simulation/test_payment_seam_adapter.py]
+  depends_on: [W2_payment_channel_dd_consistency_invariant]
+  blocked_on: null
+  simplifications_count: 4
+  records_rehomed: [evidence]

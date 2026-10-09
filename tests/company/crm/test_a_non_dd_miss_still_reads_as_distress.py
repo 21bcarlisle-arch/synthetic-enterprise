@@ -11,6 +11,7 @@ from datetime import date
 
 from company.compliance.domain_invariants import record_asserts_dd_failure
 from company.crm import affordability_inference, life_event_detector
+from company.crm.customer_experience_desk import CustomerExperienceDesk, PaymentOutcome
 from company.crm.payment_behaviour_analytics import (
     PaymentBehaviourAnalytics,
     compute_payment_metrics,
@@ -57,3 +58,15 @@ def test_a_non_dd_customers_behavioural_record_carries_no_direct_debit_artefact(
     pba.record_payment("C8", {"result": "DD_FAILED", "due_date": date(2020, 6, 28)})
     record["payment_miss_trajectory"] = pba.get_miss_trajectory("C8")
     assert record_asserts_dd_failure(record)
+
+
+def test_the_published_payment_rates_account_for_every_bill_a_non_dd_customer_missed():
+    """The desk's record is what the customer sample publishes. Without `miss_rate` a standard-credit
+    customer's MISSED share is in none of on-time, late or DD-fail, and the rates sum to under one."""
+    desk = CustomerExperienceDesk()
+    for month, result in enumerate(["ON_TIME"] * 6 + ["MISSED"] * 4, start=1):
+        desk.observe_payment(PaymentOutcome("C8", date(2020, month, 28), result, 0, 80.0))
+    rates = desk.behavioural_record("C8")["payment_behaviour_metrics"]
+    assert rates["dd_fail_rate"] == 0.0
+    assert rates["miss_rate"] == 0.4
+    assert rates["on_time_rate"] + rates["late_rate"] + rates["miss_rate"] == 1.0

@@ -126,8 +126,8 @@ class CustomerContact:
 
 @dataclass(frozen=True)
 class PaymentOutcome:
-    """What happened to one bill: ON_TIME, LATE or DD_FAILED, off the company's
-    own cash and direct-debit returns."""
+    """What happened to one bill: ON_TIME, LATE, DD_FAILED (a returned Direct Debit) or MISSED
+    (unpaid on any other rail), off the company's own cash and direct-debit returns."""
 
     customer_id: str
     due_date: date
@@ -258,6 +258,9 @@ class CustomerExperienceDesk:
                 "on_time_rate": metrics["on_time_rate"],
                 "late_rate": metrics["late_rate"],
                 "dd_fail_rate": metrics["dd_fail_rate"],
+                # Every unpaid bill, DD or not: without it a non-DD customer's MISSED share is in
+                # none of the three above and the published rates stop summing to one.
+                "miss_rate": metrics["miss_rate"],
             } if metrics else None,
             "company_satisfaction_score": (
                 round(satisfaction, _SATISFACTION_DP) if satisfaction else None

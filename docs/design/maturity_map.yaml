@@ -557,21 +557,6 @@
   blocked_on: null
   simplifications_count: 8
   records_rehomed: [evidence]
-- id: W2_non_dd_miss_vocabulary
-  notes_rehomed: [name]
-  lane: W2_customer_generator
-  value_stream: meter_to_cash
-  epoch: 2
-  level_current: 0
-  level_target: 3
-  loop_stage: build
-  dial_inherited: 3
-  provenance: proposal
-  file_scope: [background/live_payment_triad.py, company/crm, saas/sme_credit_risk.py, simulation/payment_seam_adapter.py, tests/company/crm, tests/harness, tests/background/test_live_payment_triad.py, tests/saas/test_sme_credit_risk.py, tests/simulation/test_payment_seam_adapter.py]
-  depends_on: [W2_payment_channel_dd_consistency_invariant]
-  blocked_on: null
-  simplifications_count: 3
-  records_rehomed: [evidence]
 - id: C_supply_start_consumer_routing
   notes_rehomed: [name]
   lane: C_customer_ops
