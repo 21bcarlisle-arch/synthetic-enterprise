@@ -347,5 +347,18 @@ for_the_director:
   status: open
   resolution: ''
   evidence: 'docs/staging/SEAT_FINDING_THE_DD_FAILURE_CORRECTION_MOVED_MEASURED_FACTS_2026-10-09.md (result
-    2026-10-09T16:05Z, and 18:01Z: the proposal ENACTED, never-repaid share by payment method, MET at 0.85x,
-    50/1153 = 4.3% (3.3-5.7%) against 5.1%, one seed); simulation/payment_behaviour_source.py NEVER_REPAID_SHARE_BY_METHOD'
+    2026-10-09T16:05Z, and 18:01Z: the proposal ENACTED, never-repaid share by payment method, MET at
+    0.85x, 50/1153 = 4.3% (3.3-5.7%) against 5.1%, one seed); simulation/payment_behaviour_source.py NEVER_REPAID_SHARE_BY_METHOD'
+- id: a-held-lane-crash-can-now-wake
+  raised: '2026-10-09'
+  kind: reserved
+  what: A held lane crash can now wake the interactive session, but only while that session has armed
+    the waiter. Nothing re-arms it after a restart or after it fires, so the 10-09 gap is closed only
+    as far as the session remembers.
+  proposal: Add a SessionStart hook on the console that tells the session to arm 'python3 -m background.lane_unit_crash
+    --wait-held --deadline 21600' in the background. The hook only emits context and never types into
+    the pane. It acts on your console, so I have not built it; say yes and I will.
+  status: open
+  resolution: ''
+  evidence: docs/staging/SEAT_FINDING_A_HELD_LANE_CRASH_WAKES_THE_INTERACTIVE_SESSION_2026-10-09.md; landed
+    bcb725078
