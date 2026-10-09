@@ -249,6 +249,15 @@ def _sme_vat_rate(daily_kwh: float, fuel: str) -> float:
     return VAT_RATE_BY_MARKET["I&C"] if daily_kwh > limit else VAT_RATE_BY_MARKET["resi"]
 
 
+def vat_rate_for_supply(market_type: str, fuel: str, kwh: float, days: float) -> float:
+    """The VAT rate one period's supply attracts: the segment default, except that an SME leg with
+    a known period length is tested against its fuel's de minimis on the period's average daily
+    volume. Every biller of a period goes through this, so the de minimis has one reading."""
+    if market_type == "SME" and days > 0:
+        return _sme_vat_rate(kwh / days, fuel)
+    return VAT_RATE_BY_MARKET.get(market_type, VAT_RATE_BY_MARKET["resi"])
+
+
 def _invoice_to_section(inv: dict, fuel: str, market_type: str) -> FuelBillSection:
     start = inv.get("billing_period_start", "")
     end = inv.get("billing_period_end", "")
@@ -271,10 +280,7 @@ def _invoice_to_section(inv: dict, fuel: str, market_type: str) -> FuelBillSecti
         vat = stored_vat
         vat_rate = round(vat / subtotal, 4) if subtotal > 0 else 0.05
     else:
-        if market_type == "SME" and days > 0:
-            vat_rate = _sme_vat_rate(kwh / days, fuel)
-        else:
-            vat_rate = VAT_RATE_BY_MARKET.get(market_type, 0.05)
+        vat_rate = vat_rate_for_supply(market_type, fuel, kwh, days)
         vat = round(subtotal * vat_rate, 2)
 
     total = float(inv.get("total_gbp", round(subtotal + vat, 2)))

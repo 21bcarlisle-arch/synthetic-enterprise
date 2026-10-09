@@ -130,6 +130,32 @@ def test_generate_bill_sme_uses_higher_vat():
     )
 
 
+def test_an_sme_period_at_or_below_its_fuels_de_minimis_is_reduced_rated_and_passes_validation():
+    """The defect: SME VAT came from the label alone, so a 30 kWh/day electricity month was charged
+    20% where VAT Notice 701/19 gives 5% (7 bills of the 2026-10-05 ledger). Both rates must be
+    reachable for SME, each on its own fuel's limit, and pre-bill validation must agree with the
+    biller in both directions."""
+    from company.billing.pre_bill_validation import validate_bill
+
+    def bill(daily, commodity):
+        days = {f"2023-06-{d:02d}": daily for d in range(1, 31)}
+        return generate_bill("C1", make_records(days), "fixed_1yr", segment="SME", commodity=commodity)
+
+    def rate(b):
+        return b["vat_gbp"] / (b["commodity_amount_gbp"] + b["non_commodity_amount_gbp"]
+                               + b["standing_charge_gbp"])
+
+    below, above = bill(30.0, "electricity"), bill(40.0, "electricity")
+    gas_between = bill(100.0, "gas")  # above electricity's 33, below gas's 145
+    assert rate(below) == pytest.approx(0.05) and rate(above) == pytest.approx(0.20)
+    assert rate(gas_between) == pytest.approx(0.05)
+    for b in (below, above, gas_between):
+        held = [r for r in validate_bill({**b, "segment": "SME"}).reasons if r.startswith("vat_by_segment")]
+        assert not held, held
+    overcharged = {**below, "segment": "SME", "vat_gbp": below["vat_gbp"] * 4}
+    assert any(r.startswith("vat_by_segment") for r in validate_bill(overcharged).reasons)
+
+
 def test_generate_bill_gas_uses_gas_nc_rate():
     """Gas bills use the gas non-commodity rate (£10/MWh resi), not electricity."""
     records = make_records({"2023-01-01": 100.0})

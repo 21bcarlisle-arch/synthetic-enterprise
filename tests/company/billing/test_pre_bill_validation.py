@@ -1,10 +1,10 @@
 """Tests for company/billing/pre_bill_validation.py -- DOMAIN_SENSE_AND_COMPLIANCE.md Phase 3."""
 from company.billing.pre_bill_validation import (
-    validate_bill,
-    validate_bills,
-    exception_queue_as_dicts,
     ValidationOutcome,
     check_reads_reconcile,
+    exception_queue_as_dicts,
+    validate_bill,
+    validate_bills,
     validate_rendered_bill_reads,
 )
 
@@ -42,15 +42,18 @@ def test_wrong_vat_rate_is_held():
     assert any("vat_by_segment" in r for r in result.reasons)
 
 
+# Corrected 2026-10-10: these two used 300 kWh/month (~10 kWh/day), which is BELOW electricity's
+# 33 kWh/day de minimis, where VAT Notice 701/19 gives the reduced rate. 1,500 kWh/month (~48/day)
+# is above it, which is the case they meant.
 def test_sme_billed_at_5_percent_vat_is_held():
-    bill = _good_resi_bill(segment="SME", vat_gbp=3.53)  # 5% instead of 20%
+    bill = _good_resi_bill(segment="SME", total_consumption_kwh=1500.0, vat_gbp=3.53)
     result = validate_bill(bill)
     assert result.held is True
     assert any("vat_by_segment" in r for r in result.reasons)
 
 
 def test_sme_correct_vat_passes():
-    bill = _good_resi_bill(segment="SME", vat_gbp=14.10)  # 20% of 70.50
+    bill = _good_resi_bill(segment="SME", total_consumption_kwh=1500.0, vat_gbp=14.10)
     result = validate_bill(bill)
     assert result.outcome == ValidationOutcome.PASS
 
@@ -99,8 +102,8 @@ def test_arithmetic_vat_control_alone_is_a_tautology_on_a_mislabel():
     # so VAT is computed at the domestic 5% to match the WRONG label) sails
     # through the arithmetic label-vs-rate control -- proving it is inert
     # against the exact C6 SME-as-Household class it is named for.
-    from company.compliance.domain_invariants import check_vat
     from company.billing.pre_bill_validation import _actual_vat_rate
+    from company.compliance.domain_invariants import check_vat
 
     # A resi-labelled bill whose 5% VAT is internally consistent with that label
     # but whose metered load (C6's real 2,346.8 kWh/mo) is I&C-scale.
@@ -166,13 +169,16 @@ def test_correct_ic_scale_sme_bill_not_flagged_by_vat_crosscheck():
 
 def test_legit_small_business_on_domestic_consumption_not_flagged():
     # The honest weak direction: a genuine small business (microbusiness /
-    # corner shop) consumes domestic-scale volumes and correctly pays 20%. The
-    # cross-check must NEVER flag this -- low consumption cannot refute a
-    # business label. This is a legit bill and must PASS.
-    bill = _good_resi_bill(segment="SME", total_consumption_kwh=300.0, vat_gbp=14.10)
+    # corner shop) consumes domestic-scale volumes. The mislabel cross-check
+    # must NEVER flag this -- low consumption cannot refute a business label.
+    # Corrected 2026-10-10: at domestic volume a business is below the de
+    # minimis and correctly pays the REDUCED rate (VAT Notice 701/19), not 20%;
+    # 20% there is an overcharge and is held.
+    bill = _good_resi_bill(segment="SME", total_consumption_kwh=300.0, vat_gbp=3.53)
     result = validate_bill(bill)
     assert result.outcome == ValidationOutcome.PASS
     assert not any("SME-as-Household mislabel" in r for r in result.reasons)
+    assert validate_bill({**bill, "vat_gbp": 14.10}).held is True
 
 
 def test_electric_heated_resi_max_not_flagged_by_vat_crosscheck():
@@ -294,7 +300,9 @@ def test_synthetic_violating_bill_reaches_the_exception_queue():
     # HELD result serialisable onto the exception queue (the R10 class gate),
     # not silently render.
     import json
-    from company.billing.pre_bill_validation import BillValidationResult, ValidationOutcome as VO
+
+    from company.billing.pre_bill_validation import BillValidationResult
+    from company.billing.pre_bill_validation import ValidationOutcome as VO
     bad = {"opening_read_kwh": 5000.0, "closing_read_kwh": 5500.0, "consumption_kwh": 480.0}
     reasons = validate_rendered_bill_reads(bad)
     assert reasons, "a mismatched bill must be flagged"
@@ -338,8 +346,9 @@ def test_breach_silently_charged_in_full_is_held():
 
 
 def test_breach_genuinely_written_off_passes():
-    from company.billing.back_billing import BackBillingAssessment, BackBillingReason
     import datetime as _dt
+
+    from company.billing.back_billing import BackBillingAssessment, BackBillingReason
     assessment = BackBillingAssessment(
         account_id="C1", billing_date=_dt.date(2024, 1, 31),
         consumption_period_start=_dt.date(2022, 6, 1),

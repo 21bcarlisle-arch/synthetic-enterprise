@@ -42,7 +42,8 @@ This module is pure: plain dicts/lists in, plain dict out. No imports from
 import datetime
 import statistics
 
-from saas.non_commodity import non_commodity_rate, standing_charge_rate, vat_rate
+from company.billing.dual_fuel_bill import vat_rate_for_supply
+from saas.non_commodity import non_commodity_rate, standing_charge_rate
 
 BASE_CLARITY_BY_CONTRACT_TYPE = {
     "fixed_1yr": 1.0,
@@ -261,9 +262,10 @@ def generate_bill(
     billing_year = int(dates[0][:4])
     non_commodity_amount_gbp = total_consumption_kwh / 1000 * non_commodity_rate(commodity, segment, year=billing_year)
 
-    # VAT on full pre-tax bill (5% domestic, 20% business)
+    # VAT on the full pre-tax bill. An SME period at or below its fuel's de minimis is reduced-rated
+    # (VAT Notice 701/19); the segment label alone charged those periods the standard rate.
     subtotal_gbp = commodity_amount_gbp + non_commodity_amount_gbp + standing_charge_gbp
-    vat_gbp = subtotal_gbp * vat_rate(segment)
+    vat_gbp = subtotal_gbp * vat_rate_for_supply(segment, commodity, total_consumption_kwh, days_in_period)
     total_amount_gbp = subtotal_gbp + vat_gbp
 
     average_unit_rate_gbp_per_mwh = (

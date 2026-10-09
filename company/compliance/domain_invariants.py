@@ -167,7 +167,7 @@ VAT_RESIDENTIAL = RateInvariant(
 )
 VAT_SME = RateInvariant(
     id="vat_sme", description="VAT rate for SME/non-domestic energy supply",
-    source="HMRC (standard rate; de minimis <33kWh/day not modelled); gov.uk/vat-rates via the commons",
+    source="HMRC (standard rate; the de minimis is applied by check_vat when the volume is given); gov.uk/vat-rates via the commons",
     value=VAT_RATES["standard"],
 )
 STANDING_CHARGE_ELEC_RESI = RangeInvariant(
@@ -1063,8 +1063,23 @@ def vat_rate_for_segment(segment: str) -> Optional[float]:
     return VAT_RESIDENTIAL.value if segment == "resi" else VAT_SME.value
 
 
-def check_vat(segment: str, actual_rate: float) -> bool:
+def check_vat(
+    segment: str,
+    actual_rate: float,
+    *,
+    commodity: Optional[str] = None,
+    kwh: Optional[float] = None,
+    days: Optional[float] = None,
+) -> bool:
+    """Given the period's fuel and volume, an SME bill is checked against the de minimis reading
+    the biller applies (`dual_fuel_bill.vat_rate_for_supply`); without them, against the segment
+    default. Checking an SME period below de minimis against the standard rate HOLDS a correct
+    bill."""
     expected = vat_rate_for_segment(segment)
+    if segment == "SME" and commodity is not None and kwh is not None and days:
+        from company.billing.dual_fuel_bill import vat_rate_for_supply
+        expected = vat_rate_for_supply(segment, commodity, kwh, days)
+        return abs(actual_rate - expected) <= VAT_SME.tolerance
     invariant = VAT_RESIDENTIAL if segment == "resi" else VAT_SME
     return invariant.check(actual_rate) and abs(actual_rate - expected) <= invariant.tolerance
 
@@ -1087,7 +1102,8 @@ def consumption_implied_vat_rate(
       - VAT_RESIDENTIAL.value (0.05) when consumption sits within the domestic
         envelope. NOTE this does NOT prove the customer is domestic: a genuine
         small business (corner shop / microbusiness) legitimately consumes
-        domestic volumes and correctly pays 20%. This branch is therefore only
+        domestic volumes, and below the VAT de minimis pays the reduced rate
+        too (VAT Notice 701/19; `check_vat` applies it). This branch is only
         ever used by the cross-check below to REFRAIN from flagging, never to
         force a 5% rate onto a business.
       - None when there is no usable signal (a non-elec/gas commodity, or a

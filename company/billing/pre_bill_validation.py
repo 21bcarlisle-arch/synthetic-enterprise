@@ -27,17 +27,17 @@ from dataclasses import dataclass, field
 from enum import Enum
 
 from company.compliance.domain_invariants import (
+    _FOOTING_COMPONENT_KEYS,
+    check_back_billing_cap_respected,
+    check_bill_foots,
+    check_bill_line_items_non_negative,
+    check_bill_period_sane,
+    check_printed_bill_foots_exactly,
+    check_resi_bill_consumption_plausible,
     check_vat,
     check_vat_consistent_with_consumption,
     consumption_implied_vat_rate,
-    check_resi_bill_consumption_plausible,
-    check_back_billing_cap_respected,
-    check_bill_foots,
-    check_printed_bill_foots_exactly,
-    check_bill_line_items_non_negative,
-    check_bill_period_sane,
     is_credit_bill,
-    _FOOTING_COMPONENT_KEYS,
 )
 
 
@@ -85,6 +85,11 @@ def _actual_vat_rate(bill: dict) -> float | None:
     if subtotal <= 0:
         return None
     return bill.get("vat_gbp", 0.0) / subtotal
+
+
+def _vat_volume(bill: dict, commodity: str) -> dict:
+    return {"commodity": commodity, "kwh": bill.get("total_consumption_kwh", 0.0),
+            "days": _days_in_period(bill)}
 
 
 def validate_bill(bill: dict) -> BillValidationResult:
@@ -159,7 +164,7 @@ def validate_bill(bill: dict) -> BillValidationResult:
         )
     elif subtotal < 0 and is_credit:
         credit_rate = vat_gbp / subtotal  # both negative -> positive effective VAT rate
-        if not check_vat(segment, credit_rate):
+        if not check_vat(segment, credit_rate, **_vat_volume(bill, commodity)):
             reasons.append(
                 f"vat_by_segment: credit bill effective VAT rate {credit_rate:.4f} is "
                 f"inconsistent with segment={segment!r} -- HELD"
@@ -171,7 +176,7 @@ def validate_bill(bill: dict) -> BillValidationResult:
         )
 
     actual_vat = _actual_vat_rate(bill)
-    if actual_vat is not None and not check_vat(segment, actual_vat):
+    if actual_vat is not None and not check_vat(segment, actual_vat, **_vat_volume(bill, commodity)):
         reasons.append(
             f"vat_by_segment: segment={segment!r} implies a different VAT rate than "
             f"the {actual_vat:.4f} applied on this bill"
