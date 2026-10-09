@@ -449,9 +449,18 @@ def generate_payment_event(
 #   7. LEAVERS. A bill is drawn at its due date, so a household that later leaves repays at the
 #      same rate as one that stays. Final-account debt recovers far worse (Centrica ARA 2025 Note
 #      17: 84-88% provisioned), so this overstates what leavers repay.
+#   8. SELECTION. The 0.5 is the share for customers BLOCKED FROM SWITCHING by debt. It is applied
+#      here to every failed bill, because no published source gives the ordinary failed bill's
+#      share or curve (searched 2026-10-09: Ofgem indicators, SOR, debt-costs papers, Energy UK,
+#      StepChange, Citizens Advice; see SEAT_FINDING_THE_DD_FAILURE_CORRECTION_MOVED_MEASURED_FACTS).
+#      Centrica provisions only 7.4% of its live DD balances that are over 90 days old, against
+#      50.3% for pay-on-receipt (ARA 2025 Note 17). So for a DD household, never repaying half of
+#      failed bills overstates the loss. This is the leading suspect for the world's >91-day stock
+#      reading about 2x Ofgem's.
 
 #: "just over half" of debt-blocked domestic customers had repaid by the time of reporting -- read
-#: at its floor. Ofgem IA July 2016 §1.39; domestic_debt_objection_rates_gb.md row 22.
+#: at its floor. Ofgem IA July 2016 §1.39; domestic_debt_objection_rates_gb.md row 22. That is a
+#: selected cohort, standing in for the ordinary failed bill's share, which is unpublished (gap 8).
 LATER_SETTLEMENT_REPAID_SHARE = 0.5
 
 #: "Around 70% of those that had paid off their debt ... did so within three months." Same source.

@@ -15693,7 +15693,8 @@ ARMS_SUBSTRATE_PATHS = (
     "tools/contact_centre_port.py", "tools/couple_w2_11_d5.py", "tools/credit_adapters",
     "tools/credit_bureau_port.py", "tools/decisions_by_account_class.py",
     "tools/decisions_that_existed.py", "tools/demand_case_coverage.py",
-    "tools/demand_vector_coverage.py", "tools/market_data_port.py", "tools/maturity_map_store.py",
+    "tools/demand_vector_coverage.py", "tools/dwelling_size_joint.py", "tools/market_data_port.py",
+    "tools/maturity_map_store.py",
     "tools/meter_read_port.py", "tools/need_stock_joint.py", "tools/product_gate_refusal.py",
     "tools/reduction_dimension.py", "tools/run_price_ladder.py", "tools/stock_joint_generator.py",
 )

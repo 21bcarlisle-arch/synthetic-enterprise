@@ -173,3 +173,56 @@ only the departure half is met. 54dbd5650's commit message ("falls from about 10
 reads as the world's arrears level. On the triad's truth it is 38% -> 11%, and that correction
 belongs beside the claim. Scripts: `/var/tmp/arrears_like_for_like.py`,
 `/var/tmp/arrears_slice.py`. Outputs: `/var/tmp/arrears_lfl_{now,pre}.json`.
+
+## The repayment share, knowledge first, and the like-for-like at the shipped 400-founder book
+
+### What the published record holds (searched 2026-10-09)
+
+- **Definition: ESTABLISHED, and already in the knowledge layer.** Ofgem's "in arrears" is quoted in
+  `docs/market_research/gb_domestic_bill_payment_failure_and_arrears_prevalence.md` §(d): "not paid
+  a bill for longer than 91 days (13 weeks), and there is no formal arrangement to repay the debt.
+  It excludes any charges for subsequent consumption." It names no write-off exclusion, so a debt
+  the supplier never collects, from a customer still on supply, stays in the count. The triad
+  instrument follows that wording. **Explanation 3 above is answered in print, and no director
+  concern is needed for it.** Whether suppliers *report* a written-off stayer's balance is still a
+  practitioner question, and it is filed below as a named gap.
+- **Curve for an ordinary failed bill: NOT ESTABLISHED. This is a named gap.** The following were
+  read and none gives a cure curve, or even a single repaid share, for an ordinary failed domestic
+  bill:
+  - Ofgem's debt and arrears indicators (stocks only).
+  - The Social Obligations Reporting template. It collects arrangement entries and breaks (Q3.1 to
+    Q3.27), but no cure flow is published
+    (`domestic_repayment_plan_take_up_and_keep_rates.md`).
+  - Ofgem, *Consumers' experiences of debt and affordability support* (Sep 2024). It is
+    qualitative case studies; read in full with `pdftotext`.
+  - The 2023 and 2024 debt-related-costs papers, Appendix 2.
+  - Energy UK, *Energy debt: Everyone pays* (Feb 2026). It gives recovery rates of 60/56/38% for
+    debt under 12 months, but the construction is undisclosed.
+  - StepChange (2019 and 2023 responses) and Citizens Advice press material. These cover advice
+    clients, a selected population.
+  - No DESNZ series was found.
+
+  The one disaggregated real figure is Centrica ARA 2025 Note 17
+  (`dd_failure_basis_and_live_arrears_provision_rates.md` C6). It gives the provision on live UK
+  residential balances over 90 days old: **DD 7.4%, pay-on-receipt 50.3%**. That is an
+  expected-LOSS rate on a balance, one supplier, and it is not a cure curve, so it does not
+  replace the constant. It does bound the constant's direction. The world never collects 50% of a
+  failed DD bill, while Centrica expects to lose about 7% of its DD balances that are already
+  past 90 days. **`LATER_SETTLEMENT_REPAID_SHARE` stays 0.5, and is now marked in code as the
+  debt-blocked cohort's share, applied to every failed bill for want of the ordinary one (gap 8).**
+
+### Pre-registration (2026-10-09T15:24Z, written before the run was launched)
+
+**Run.** The same script `/var/tmp/arrears_like_for_like.py`, the same default seed, and the same
+2019 quarter-end instrument as the 80-founder reading above. It runs at origin d72c196b3, which
+carries `FOUNDER_BOOK.yaml` `founder_accounts: 400` (ad0afe7b3). Worktree:
+`/var/tmp/wt_arrears400`. Output: `/var/tmp/arrears_lfl_400.json`.
+
+**Prediction P3.** Founders draw their failures and cures from the same per-account mechanics, so
+the per-account stock does not depend on the book's size. It does depend on its age, and 400
+founders makes the 2019 book older on average than the 80-founder book. Pooled 2019 electricity
+reads **between 9% and 15%**. Its Wilson interval lies wholly above 5.1%, so the verdict is
+**NOT MET, HIGH**, at a ratio between 1.8x and 2.9x. The interval is about half as wide as at 80
+founders.
+
+**Criterion.** Unchanged from above: met if 5.1% lies inside the pooled Wilson 95% interval.
