@@ -226,3 +226,50 @@ reads **between 9% and 15%**. Its Wilson interval lies wholly above 5.1%, so the
 founders.
 
 **Criterion.** Unchanged from above: met if 5.1% lies inside the pooled Wilson 95% interval.
+
+### Result (2026-10-09T16:05Z): NOT MET, HIGH, 1.67x. P3 refuted on the low side
+
+The run is `longjob-arrears-lfl-400`, at origin d72c196b3 with 400 founders, the default seed and a
+`report_end` of 2019-12-31. It took 1,215 s. Output: `/var/tmp/arrears_lfl_400.json`.
+
+**The instrument, corrected first.** The script's own `fuel_of` matches no account id in either
+run (ids end in `g`, e.g. `ACC-C1g`), so its `fuel: electricity` rows hold every account and its
+gas rows are empty. The figures filed above came from splitting on the `g` suffix (the
+`arrears_slice.py` rule). Re-split from each run's `raw` by that rule, the 80-founder output
+reproduces the filed figures exactly: 41/370 electricity and 7/165 gas. So the table below is on
+the same instrument as the 80-founder table.
+
+| quarter end | 80 founders (filed above) | 400 founders, shipped |
+|---|---|---|
+| 2019-03-31 | 9/89 = 10.1% | 23/303 = 7.6% |
+| 2019-06-30 | 10/93 = 10.8% | 23/295 = 7.8% |
+| 2019-09-30 | 11/93 = 11.8% | 24/283 = 8.5% |
+| 2019-12-31 | 11/95 = 11.6% | 28/272 = 10.3% (7.2-14.5%) |
+| **2019 pooled, electricity** | **41/370 = 11.1% (8.3-14.7%)** | **98/1153 = 8.5% (7.0-10.3%)** |
+| 2019 pooled, gas | 7/165 = 4.2% | 16/202 = 7.9% (4.9-12.5%) |
+
+- **Against 5.1%:** the pooled interval lies wholly above it, so the verdict is **NOT MET, HIGH**,
+  at **1.67x** pooled and 2.0x at Q4 2019. The arrears half of the hold on the 3,100 settlement
+  raise is still not met.
+- **P3 refuted.** I predicted 9-15% and 1.8-2.9x. The reading is 8.5% and 1.67x, below both lower
+  bounds. The interval-width half held: 3.3 points against 6.4.
+- **I cannot yet say why 400 founders reads lower than 80.** Two things differ: the book's
+  composition and the sample. The pooled intervals overlap (7.0-10.3 against 8.3-14.7), so this
+  may be noise. The book-age argument I filed predicted the opposite direction. The stock still
+  grows with the book's age inside the run: 3.3% at Q1 2017, 5.5% at Q1 2018, 7.7% at Q1 2019 and
+  9.9% at Q4 2019, all accounts.
+- **Gas** now reads 1.55x, against 0.83x at 80 founders, on 202 account-quarters. That is too
+  small to read as a change.
+
+**Where this leaves W2_38.** Both of the item's asks have an answer.
+
+- **The definition** is settled in print (Ofgem, quoted above). The triad instrument follows it.
+  No director concern was raised.
+- **The curve** is a named gap: gap 8, SELECTION, now in the module. The 2.2x gap is now 1.67x
+  at the shipped book. The leading suspect is still the never-repaid half, which is
+  the debt-blocked cohort's share applied to every failed bill. The only published bound, Centrica's
+  7.4% provision on live DD balances over 90 days old, says that share overstates a DD
+  household's loss. The next step needs either Ofgem's unpublished SOR flows or a practitioner's
+  answer to one question: *of ordinary failed domestic bills, by payment method, what share is
+  eventually collected while the customer stays on supply?* That question is now in
+  `for_the_director` with a recommendation.
