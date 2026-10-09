@@ -357,7 +357,8 @@ def behaviour_profile_for(
         # one headcount, whichever door asks.
         from simulation.dwelling_records import people_count_for_area
 
-        people_count = people_count_for_area(premise_id, household.output_area)
+        people_count = people_count_for_area(premise_id, household.output_area,
+                                            bedrooms=household.bedrooms)
     people_count = max(1, int(people_count))
     if children_count is None:
         children_count = children_count_for(premise_id, people_count)
@@ -790,6 +791,10 @@ COLD_APPLIANCES: tuple[ColdApplianceSpec, ...] = (
 #     1, 2, 3, 4, 5+. EFUS 2017 gives the same gradient (one-person 27% / 43%).
 #   * separate freezer: EFUS 2017 Table 4.1, 38.2% of homes. The fridge-freezer is kept in every
 #     home (any freezer 93%, fridge 99%).
+#   * microwave: EFUS 2017 Table 4.1, 89.7%; "did not vary by household characteristics". EFUS 2011
+#     Table 14 gives 80-87% by persons, every CI overlapping, at a 2011 level seven points lower, so
+#     its row is not used. HES's 56 kWh (`_MICROWAVE_USES_PER_DAY`) is per OWNING home.
+#     SIMPLIFICATION: held at 2017 across the run, where it rose ten points 2011 -> 2017.
 # SIMPLIFICATION: the freezer share is national. EFUS publishes "any freezer" by size, not the
 # separate freezer, so a one-person home is drawn as likely as a five-person one to own one; the
 # real gradient (any freezer 88% → 96–98%) says this overstates the small homes. And the draws are
@@ -802,6 +807,7 @@ _OWNERSHIP_BY_PERSONS: dict[str, tuple[float, float, float, float, float]] = {
     "tumble_dryer": (0.49, 0.65, 0.66, 0.70, 0.65),
 }
 _SEPARATE_FREEZER_SHARE = 0.382
+_MICROWAVE_SHARE = 0.897
 FULL_STOCK: frozenset[str] = frozenset(
     spec.name for spec in (*APPLIANCE_CATALOGUE, *COLD_APPLIANCES)
 )
@@ -817,6 +823,7 @@ def owned_stock(base_seed: int, people_count: int) -> frozenset[str]:
     owned = set(FULL_STOCK)
     shares = {name: by_size[size] for name, by_size in _OWNERSHIP_BY_PERSONS.items()}
     shares["freezer"] = _SEPARATE_FREEZER_SHARE
+    shares["microwave"] = _MICROWAVE_SHARE
     for name, share in shares.items():
         if _substream(base_seed, f"owns::{name}").random() >= share:
             owned.discard(name)

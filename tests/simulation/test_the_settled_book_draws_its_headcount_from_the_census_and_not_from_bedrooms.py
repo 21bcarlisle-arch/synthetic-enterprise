@@ -84,7 +84,7 @@ def test_the_settled_path_asks_for_the_census_headcount(weather, monkeypatch):
         "build_fabric_series did not supply a headcount, so behaviour_profile_for fell back to "
         "_PEOPLE_BY_BEDROOMS -- the defect of 2026-09-08, still live on the path that settles"
     )
-    assert seen[0]["people_count"] == people_count_for("C1"), (
+    assert seen[0]["people_count"] == people_count_for("C1", bedrooms=household.bedrooms), (
         "the settled path supplied a headcount that is not the census-anchored one"
     )
 
@@ -104,7 +104,8 @@ def test_the_census_source_reproduces_the_published_marginal_and_bedrooms_does_n
     ids = [getattr(d, "premise_id", None) or getattr(d, "customer_id", "") for d in drawn]
     assert all(ids), "population floor: a drawn premise carried no id to key the headcount on"
 
-    census = Counter(min(5, people_count_for(i)) for i in ids)
+    census = Counter(min(5, people_count_for(i, bedrooms=d.household.bedrooms))
+                     for i, d in zip(ids, drawn))
 
     census_one = census[1] / n
     census_mean = sum(k * v for k, v in census.items()) / n
@@ -133,7 +134,7 @@ def test_a_profile_with_no_headcount_supplied_gets_the_books_own():
     disagree = []
     for d in drawn:
         pid = getattr(d, "premise_id", None) or getattr(d, "customer_id", "")
-        book = people_count_for(pid, d.household.output_area)
+        book = people_count_for(pid, d.household.output_area, bedrooms=d.household.bedrooms)
         instrument = pt.behaviour_profile_for(pid, d.household).people_count
         if instrument != book:
             disagree.append((pid, book, instrument))

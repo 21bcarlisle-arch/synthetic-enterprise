@@ -74,7 +74,8 @@ def explain(premise_id: str = "C1", year: int = 2022, seed: int = 42) -> dict:
     # gains and the hot water it is explaining.
     profile = pt.behaviour_profile_for(
         premise_id, household, seed=seed,
-        people_count=people_count_for(premise_id, household.output_area))
+        people_count=people_count_for(premise_id, household.output_area,
+                                      bedrooms=household.bedrooms))
     trace = pt.generate_premise_trace(
         premise_id=premise_id, household=household, weather=weather, seed=seed,
         behaviour=profile, latitude_deg=pt.DEFAULT_LATITUDE_DEG)

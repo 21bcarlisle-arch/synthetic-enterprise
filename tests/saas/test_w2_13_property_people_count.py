@@ -47,7 +47,7 @@ def test_authored_headcounts_are_coherent_with_the_authored_category():
 def test_derived_headcounts_reproduce_the_ons_distribution():
     """Expected values are the published ONS TS017 shares and the published
     mean household size (2.37 persons), not anything derived from the draw."""
-    counts = [_derive_people_count(f"ACQ{i}") for i in range(4000)]
+    counts = [_derive_people_count(f"ACQ{i}", bedrooms=None) for i in range(4000)]
     n = len(counts)
     for size, share in HOUSEHOLD_SIZE_SHARE_ONS_TS017:
         assert counts.count(size) / n == pytest.approx(share, abs=0.02)
@@ -57,8 +57,8 @@ def test_derived_headcounts_reproduce_the_ons_distribution():
 
 
 def test_derivation_is_deterministic_per_customer():
-    assert _derive_people_count("ACQ1") == _derive_people_count("ACQ1")
-    assert len({_derive_people_count(f"ACQ{i}") for i in range(50)}) > 1
+    assert _derive_people_count("ACQ1", bedrooms=None) == _derive_people_count("ACQ1", bedrooms=None)
+    assert len({_derive_people_count(f"ACQ{i}", bedrooms=None) for i in range(50)}) > 1
 
 
 def test_the_generated_population_does_not_shift_aggregate_demand():
@@ -66,7 +66,7 @@ def test_the_generated_population_does_not_shift_aggregate_demand():
     actually generates: the occupancy volume factor averages 1.0 over them, so
     switching W2_13 on redistributes demand between households rather than
     re-levelling the book."""
-    counts = [_derive_people_count(f"ACQ{i}") for i in range(4000)]
+    counts = [_derive_people_count(f"ACQ{i}", bedrooms=None) for i in range(4000)]
     weights = [1.0] * len(counts)
     for commodity in ("electricity", "gas"):
         mean = population_mean_volume_factor(counts, weights, commodity)

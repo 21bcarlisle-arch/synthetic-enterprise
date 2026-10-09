@@ -192,9 +192,10 @@ def test_the_headcount_reproduces_the_census_marginal_and_the_bedrooms_draw_does
     )
     total = sum(counts.values())
     bands = Counter(
-        occupancy_band_for(pid) for pid, _ in drawn_households
+        occupancy_band_for(pid, bedrooms=hh.bedrooms) for pid, hh in drawn_households
     )
-    assert people_count_for(drawn_households[0][0]) == physical_layer_for(
+    assert people_count_for(drawn_households[0][0], drawn_households[0][1].output_area,
+                            bedrooms=drawn_households[0][1].bedrooms) == physical_layer_for(
         *drawn_households[0]
     ).people_count, "the assembled layer's headcount is not the census-anchored one"
 

@@ -68,9 +68,9 @@ def test_one_home_has_one_headcount_whoever_asks():
     draw reappears anywhere.
     """
     disagreements = [
-        (cid, dr.people_count_for_area(cid, None), hpl.people_count_for(cid))
+        (cid, dr.people_count_for_area(cid, None, bedrooms=None), hpl.people_count_for(cid, bedrooms=None))
         for cid in IDS
-        if dr.people_count_for_area(cid, None) != hpl.people_count_for(cid)
+        if dr.people_count_for_area(cid, None, bedrooms=None) != hpl.people_count_for(cid, bedrooms=None)
     ]
     assert not disagreements, (
         f"{len(disagreements)} of {len(IDS)} homes have two headcounts: {disagreements[:5]}. "
@@ -107,7 +107,8 @@ def test_the_book_itself_agrees_and_this_is_not_a_synthetic_id_artefact():
             continue
         checked += 1
         household = households.get(cid)
-        traced = hpl.people_count_for(cid, household.output_area if household else None)
+        traced = hpl.people_count_for(cid, household.output_area if household else None,
+                                      bedrooms=household.bedrooms if household else None)
         if int(record["people_count"]) != int(traced):
             disagreements.append((cid, record["people_count"], traced))
     assert checked > 50, f"population floor: only {checked} property records carried a headcount"
@@ -127,12 +128,12 @@ def test_an_authored_headcount_outranks_every_draw_for_every_reader():
     """
     assert dr.PEOPLE_COUNT_BY_CUSTOMER, "population floor: the authored roster is empty"
     for cid, authored in dr.PEOPLE_COUNT_BY_CUSTOMER.items():
-        assert dr.people_count_for_area(cid, None) == authored, (
-            f"{cid}: the area function drew {dr.people_count_for_area(cid, None)} over an "
+        assert dr.people_count_for_area(cid, None, bedrooms=None) == authored, (
+            f"{cid}: the area function drew {dr.people_count_for_area(cid, None, bedrooms=None)} over an "
             f"authored {authored}"
         )
-        assert hpl.people_count_for(cid) == authored, (
-            f"{cid}: the physical layer drew {hpl.people_count_for(cid)} over an authored "
+        assert hpl.people_count_for(cid, bedrooms=None) == authored, (
+            f"{cid}: the physical layer drew {hpl.people_count_for(cid, bedrooms=None)} over an authored "
             f"{authored} -- this is the fabric path tracing a house the roster describes"
         )
 
@@ -144,7 +145,7 @@ def test_an_authored_headcount_outranks_an_output_area_too():
     entered and must still yield to the authored value.
     """
     cid, authored = next(iter(dr.PEOPLE_COUNT_BY_CUSTOMER.items()))
-    assert dr.people_count_for_area(cid, "E00NOTREAL") == authored
+    assert dr.people_count_for_area(cid, "E00NOTREAL", bedrooms=None) == authored
 
 
 def test_the_draw_is_still_deterministic_and_stable_for_a_tenure():
@@ -154,7 +155,7 @@ def test_the_draw_is_still_deterministic_and_stable_for_a_tenure():
     disagree: nothing downstream could even name the inconsistency.
     """
     for cid in IDS[:20]:
-        assert len({hpl.people_count_for(cid) for _ in range(5)}) == 1
+        assert len({hpl.people_count_for(cid, bedrooms=None) for _ in range(5)}) == 1
 
 
 def test_the_within_band_table_is_still_reachable_and_still_published():
@@ -203,9 +204,9 @@ def test_a_customer_with_no_authored_entry_still_gets_a_headcount():
     starts swallowing the un-authored case, and every home in the book is un-authored but seven.
     """
     for cid in ("NOT-IN-ANY-ROSTER-0001", "NOT-IN-ANY-ROSTER-0002"):
-        value = dr.people_count_for_area(cid, None)
+        value = dr.people_count_for_area(cid, None, bedrooms=None)
         assert isinstance(value, int) and value >= 1
-        assert value == dr.people_count_for_area(cid, None), "the fallback re-rolls per call"
+        assert value == dr.people_count_for_area(cid, None, bedrooms=None), "the fallback re-rolls per call"
         assert cid not in dr.PEOPLE_COUNT_BY_CUSTOMER
 
 

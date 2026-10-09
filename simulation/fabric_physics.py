@@ -157,10 +157,10 @@ from __future__ import annotations
 
 import hashlib
 import math
-from functools import lru_cache
 import random
 from dataclasses import dataclass, replace
 from enum import Enum
+from functools import lru_cache
 
 from simulation.household import (
     BoilerAge,
@@ -704,7 +704,19 @@ def floor_area_m2(household: Household) -> float:
         raise ValueError(
             f"fabric physics is a DOMESTIC model; {household.property_type} is not residential"
         )
-    bedrooms = 2 if household.bedrooms is None else household.bedrooms
+    if household.floor_area_band is not None:
+        # A home drawn from the NEED joint carries its area band, and since 2026-10-09 its
+        # `bedrooms` is drawn from VOA rather than inverted from that band. This keeps the area
+        # the old round trip gave, so the heat loss is unchanged by the bedrooms correction.
+        # The round trip loses information: the 1..6 clamp heats a band-5 (>200 m2) detached
+        # home as 144 m2. That is a separate defect, recorded in
+        # SEAT_FINDING_HEADCOUNT_GIVEN_DWELLING_SIZE_2026-10-09 and not moved here.
+        from tools.demand_case_coverage import AREA_MIDPOINT
+
+        area = AREA_MIDPOINT[household.floor_area_band]
+        bedrooms = int(max(1, min(6, round(2 + (area - base) / _FLOOR_AREA_PER_BEDROOM_M2))))
+    else:
+        bedrooms = 2 if household.bedrooms is None else household.bedrooms
     return base + _FLOOR_AREA_PER_BEDROOM_M2 * (bedrooms - 2)
 
 
