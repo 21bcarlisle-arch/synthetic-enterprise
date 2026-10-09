@@ -269,7 +269,7 @@ detectable in a way real meter data is not."""
 
 # `domain-knowledge` — households keep HABITS, and the habit is the household's,
 # not the nation's. Some homes sit down to eat at 17:30, some at 20:30, and each
-# does so on MOST days. An appliance window like the oven's (32, 42) is the
+# does so on MOST days. An appliance window like the washer's (14, 40) is the
 # population ENVELOPE; it is not any single household's clock.
 #
 # Drawing each day's start uniformly from that envelope gives every home a
@@ -652,6 +652,24 @@ _HES_DISHWASHER_W_BY_HOUR: tuple[float, ...] = (
 )
 
 
+# `domain-knowledge` — HES (Intertek R66141, 2012) Figs 432-433 (oven) and 440-441 (electric hob):
+# each appliance's daily average load curve over its owning households, W in each hour from 00:00,
+# read by pixel colour on the charts' own gridlines and weighted (5 workdays + 2 holidays) / 7. The
+# oven peaks at 17:00 with 0.358 of its day in 18:00-24:00 and 0.378 before 16:00; the hob peaks at
+# 18:00 with 0.410 (n=11 homes, so its shape is the thinner). Against HES's annual table the reading
+# gives oven 272 kWh (290) and hob 275 (226): only the shape is used. The world used to start both
+# uniformly from 16:00/16:30 to 21:00/21:30, which put none of either before 16:00.
+# docs/staging/SEAT_FINDING_THE_EVENING_COOKING_HOUR_AGAINST_HES_2026-10-09.md.
+_HES_OVEN_W_BY_HOUR: tuple[float, ...] = (
+    3.7, 3.4, 4.1, 4.8, 3.5, 4.1, 9.6, 22.8, 27.9, 15.5, 19.1, 26.8,
+    43.9, 33.3, 23.7, 34.6, 76.4, 120.1, 115.9, 67.1, 43.9, 20.5, 13.3, 6.0,
+)
+_HES_HOB_W_BY_HOUR: tuple[float, ...] = (
+    1.2, 1.3, 3.5, 2.2, 1.6, 4.7, 7.4, 19.3, 35.5, 23.6, 23.2, 29.4,
+    41.3, 48.5, 30.4, 19.1, 42.0, 109.9, 132.0, 79.0, 69.5, 21.4, 4.5, 2.3,
+)
+
+
 def start_weights(spec: ApplianceSpec, lo: int, hi: int, offset: float) -> list[float]:
     """Weights over start periods `lo..hi` from `spec.load_by_hour`, on a clock moved by `offset`
     periods (the weekend shift plus the routine, as the window is moved).
@@ -687,12 +705,12 @@ APPLIANCE_CATALOGUE: tuple[ApplianceSpec, ...] = (
         "microwave", 0.9, 0.10, _MICROWAVE_USES_PER_DAY, (20, 43), heat_fraction=0.8, scales_with_people=False,
     ),
     ApplianceSpec(
-        "oven", 2.0, _HES_OVEN_HOURS_PER_USE * _ECUK_OVEN_RATIO_TO_2022, 0.55, (32, 42),
-        heat_fraction=0.6, scales_with_people=False,
+        "oven", 2.0, _HES_OVEN_HOURS_PER_USE * _ECUK_OVEN_RATIO_TO_2022, 0.55, (0, 47),
+        heat_fraction=0.6, scales_with_people=False, load_by_hour=_HES_OVEN_W_BY_HOUR,
     ),
     ApplianceSpec(
-        "hob", 1.8, _HES_HOB_HOURS_PER_USE * _ECUK_HOB_RATIO_TO_2022, 0.70, (33, 43),
-        heat_fraction=0.6, scales_with_people=False,
+        "hob", 1.8, _HES_HOB_HOURS_PER_USE * _ECUK_HOB_RATIO_TO_2022, 0.70, (0, 47),
+        heat_fraction=0.6, scales_with_people=False, load_by_hour=_HES_HOB_W_BY_HOUR,
     ),
     ApplianceSpec("washing_machine", 0.55, 1.5, 0.60, (14, 40), heat_fraction=0.5),
     ApplianceSpec("dishwasher", 0.70, 1.5, 0.50, (0, 47), heat_fraction=0.5, load_by_hour=_HES_DISHWASHER_W_BY_HOUR),

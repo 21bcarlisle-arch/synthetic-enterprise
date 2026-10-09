@@ -239,7 +239,7 @@ items:
     fixed_by: "4efd1204b"
     reason: "4efd1204b makes the brief name each unit running without an origin commit to code it loads, its own module first."
   - id: a-gas-heated-homes-electricity-has-no-season
-    problem: "A gas-heated fabric home's electricity misses SERL 2022 on three cells (2,431 homes, 2026-10-09): season S3 1.220 against 1.36-1.47, peak S2 0.528 against 0.445-0.485 at 18:30, trough S1 0.139 against 0.125-0.135. The non-cooking evening stack is on HES's hours; cooking timing and the summer level remain."
+    problem: "A gas-heated fabric home's electricity misses SERL 2022 on three cells (2,431 homes, 2026-10-09): season S3 1.227 against 1.36-1.47, peak S2 0.495 at 19:00 against 0.445-0.485 at 18:30, trough S1 0.139 against 0.125-0.135. The evening stack and the oven and hob are on HES's hours; the evening level, the kettle's morning and the summer level remain."
     match: ["gas-heated fabric home's electricity has no season", "SERL"]
     first_seen: "2026-10-06"
     times_listed: 8

@@ -721,3 +721,26 @@ use per end use. Used here as the decade's hour, which is an assumption.
 
 **What the world does with it:**
 `docs/staging/SEAT_FINDING_THE_EVENING_NON_COOKING_STACK_AGAINST_HES_TIME_OF_USE_2026-10-09.md`.
+
+## The cooking hour: HES's per-appliance load curves (2026-10-09, claim `the-evening-cooking-hour-against-hes-fig-245`)
+
+**Intertek R66141 Figs 432–433 (oven), 440–441 (electric hob), 444–445 (microwave), 448–449
+(kettle)**, pp.311–323: each appliance's daily average load curve over its owning households, for
+holidays and workdays. Read by pixel colour at 250 dpi on each chart's own gridline spacing, and
+weighted (5 workdays + 2 holidays) / 7. Against HES's annual table: microwave 57 kWh (56), kettle
+174 (167), oven 272 (290), hob 275 (226, n = 11 homes). Only the shape is used.
+
+| Appliance | Peak hour | Share 18:00–24:00 | Share before 16:00 |
+|---|---|---|---|
+| Oven | 17:00 (120 W) | 0.358 | 0.378 |
+| Electric hob | 18:00 (132 W) | 0.410 | 0.388 |
+| Microwave | 17:00 (16 W) | 0.328 | — |
+| Kettle | 07:00 (42 W) | 0.229 | — |
+
+HES's text says both oven and hob are "mainly used in the evening between 17:00 and 18:00". Fig
+245's all-household cooking bar (17:00 ≈ 150 W) is these curves weighted by ownership. The hourly
+values are in `docs/staging/records/SEAT_PREREG_THE_EVENING_COOKING_HOUR_AGAINST_HES_2026-10-09.md`.
+The dating is the same as above: a 2010–11 hour, used as the decade's.
+
+**What the world does with it:**
+`docs/staging/SEAT_FINDING_THE_EVENING_COOKING_HOUR_AGAINST_HES_2026-10-09.md`.
