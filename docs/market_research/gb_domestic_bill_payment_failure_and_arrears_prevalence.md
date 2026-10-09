@@ -490,6 +490,134 @@ kept. The world's Q4 2019 arrears stock then falls by more than half.
 
 ---
 
+## (f) 2026-10-09: the repaid share of an ordinary failed bill, estimated from Ofgem's stock against its flow
+
+**The need.** `simulation/payment_behaviour_source.LATER_SETTLEMENT_REPAID_SHARE` = 0.5 is the
+share of debt-BLOCKED customers who had repaid (Ofgem IA July 2016 §1.39), applied to every failed
+domestic bill (its named gap 8, SELECTION). The director (2026-10-09): *"I won't give a figure.
+Estimate a range from Ofgem's published debt and arrears data (how arrears flow in compared with the
+stock that remains), record it as a toggle with that basis, and show whether the arrears result
+changes across the range."* Toggle: `q3_ordinary_failed_bill_repaid_share`.
+
+**What is being estimated.** s = the share of failed domestic bills not collected on
+re-presentation that the household eventually pays while still on supply. The world dates a repaid
+bill at day 28 + 3 months (70% of them) or day 28 + 22 months (30%); the rest are never repaid and
+stay outstanding until the account leaves. So a repaid bill spends on average **d_r = 0.55 years**
+past day 91 (26 days or 605 days; computed from the module's own dating), and a never-repaid one
+spends **T**, the time until its household leaves supply.
+
+**The Ofgem stock and flow (electricity, 2018, the one year with both published).**
+
+| Quantity | Value | Source |
+|---|---|---|
+| Stock past 91 days, no arrangement, Q4 2018 | 648,429 | Ofgem, *Debt and arrears indicators*, `debt_and_collections.md` §2.1 |
+| Stock on an arrangement, Q4 2018 | 661,339 | same |
+| **Pool S, Q4 2018** | **1,309,768** | sum |
+| Customers entering a debt repayment arrangement, 2018 (two small suppliers missing) | **658,363** | Ofgem, *Monitoring social obligations: 2018 annual data report*, "Debt Repayment 2018", electricity total; already in §(e) item 4 |
+| Pool, Q4 2016 / Q4 2019 | 1,189,544 / 1,434,138 | §2.1 table |
+
+- **Time in the pool.** Little's law, taking entries to arrangements as the inflow: S / I =
+  1,309,768 / 658,363 = **1.99 years** (derived). The pool grew 4% in 2018, so near-steady. It
+  agrees with the DRS impact assessment's "more than 22 months" to recover (Nov 2025, §3.10) and
+  the entry-weighted 95 weeks of §(e).
+- **The stock that remains.** The pool grew by a mean of **81,531 accounts a year**, Q4 2016 to Q4
+  2019, against 658,363 entries: at least **12.4%** of a year's inflow is still there a year on, if
+  inflow was flat. So **s ≤ 0.876** even if a non-payer never left (derived).
+- **The share.** With a fraction s staying d_r and 1 − s staying T:
+  1.99 = s × 0.55 + (1 − s) × T, so **s = (T − 1.99) / (T − 0.55)**.
+
+**T is the stay of a household that never repays, and Ofgem does not publish it.** It is bounded by
+how often a debtor household leaves supply (T = 1/h):
+
+| Exit hazard h | Basis | T (years) | s |
+|---|---|---|---|
+| 0.046 | social-rent move rate only (EHS 2023-24, `home_moves.md`), no switching | 21.7 | 0.93 → capped at **0.88** by stock growth |
+| 0.073 | all-tenure move rate (EHS 2023-24, 1.8m of 24.7m), no switching | 13.7 | 0.89 |
+| 0.175 | private-rent move rate (EHS 2023-24) | 5.7 | 0.72 |
+| **0.273** | **all-tenure move 0.073 + switching away with debt 0.20** | **3.7** | **0.54** |
+| 0.375 | private-rent move 0.175 + switching away with debt 0.20 | 2.7 | **0.32** |
+
+Switching away with debt: Ofgem objections IA (2016) §1.35, "typically 430,000 a year" allowed to
+switch with a debt, over the Q4 2016 stock of 2.16m electricity and gas accounts in arrears or debt
+= **0.20 a year** (derived; 2013-15 figure, a comparable-data subset of suppliers, and a >28-day
+debt population larger than the >91-day stock, so it is order-of-magnitude only).
+
+**Range recorded: low 0.30, central 0.54, high 0.88.** The default stays the shipped **0.5**, which
+lies inside it, as the director's instruction asks. Each end has a single basis: the low end is the
+most mobile debtor household, the high end is the stock-growth bound.
+
+**What the range does not cover, named.**
+- **The 1.99 years is the weakest link.** Entries to arrangements include re-plans after a break,
+  which overstates distinct inflow and understates the stay; they miss debtors never put on a plan
+  (Ofgem 2015: about 40% of large-supplier debtors had no plan), which does the opposite. At T =
+  3.7, a stay of 1.5 years gives s = 0.70 and 2.5 years gives 0.37. Widest defensible, if the stay
+  is allowed 1.5-2.5 years as well: **about 0.1 to 0.88**.
+- **Whether a written-off stayer leaves Ofgem's count** (a practitioner gap, filed 2026-10-09). If
+  it does, T is shorter and s lower.
+- The flow is electricity, 2018; the stock series is accounts per fuel, not households.
+- The switching hazard is 2013-15. Domestic switching fell to near zero in 2022-23.
+
+**Pre-registration (2026-10-09T17:40Z, written before any of the four runs finished).** Same
+instrument as `SEAT_FINDING_THE_DD_FAILURE_CORRECTION_MOVED_MEASURED_FACTS_2026-10-09.md`: 2019
+quarter-end electricity accounts with a bill unpaid more than 91 days, 400 founders, default seed,
+`report_end` 2019-12-31, fuel split on the account id's `g` suffix, against Ofgem's matched **5.1%**;
+MET if 5.1% lies inside the pooled Wilson 95% interval. Predictions: the never-repaid stock scales
+with 1 − s. At 0.50 the reading reproduces 8.5% within a point. At 0.30 it is 10-13%, NOT MET,
+HIGH. At 0.54 it is 7-9%, NOT MET, HIGH. At 0.88 it is 2.5-5%, and the verdict moves to MET or
+NOT MET, LOW. **So the result changes across the range.**
+
+### Result (2026-10-09T19:50Z): it changes. The high end of the range meets the comparator
+
+Same instrument, origin 63f429536 plus this toggle, 400 founders, default seed. The share is set on
+the module before the run (`/var/tmp/se-repaid-share-runs/run_at_share.py`, which runs the finding's
+`arrears_like_for_like.py`; split by `arrears_slice.py`). Outputs:
+`/var/tmp/se-repaid-share-runs/lfl_<share>.json`.
+
+| s | 2019 pooled electricity, >91 days | Wilson 95% | Ratio to 5.1% | Q4 2019 alone | Verdict |
+|---|---|---|---|---|---|
+| 0.30 (low) | 108/1153 = **9.4%** | 7.8-11.2% | **1.84x** | 29/272 = 10.7% | NOT MET, HIGH |
+| 0.50 (shipped) | 98/1153 = **8.5%** | 7.0-10.3% | **1.67x** | 28/272 = 10.3% | NOT MET, HIGH |
+| 0.54 (central) | 98/1153 = **8.5%** | 7.0-10.3% | **1.67x** | 28/272 = 10.3% | NOT MET, HIGH |
+| 0.88 (high) | 60/1153 = **5.2%** | 4.1-6.6% | **1.02x** | 17/272 = 6.3% | **MET** |
+
+- **0.50 reproduces the finding exactly** (98/1153, 1.67x), so this tree measures on its
+  instrument.
+- **The verdict flips inside the range.** Between 0.50 and 0.88 the reading falls about 8.7 points
+  per unit of s, so the pooled interval first reaches 5.1% near **s = 0.75** (linear
+  interpolation, not measured).
+- **Predictions.** 0.30 was predicted at 10-13% and read 9.4%: refuted on the low side. 0.88 was
+  predicted at 2.5-5% and MET or LOW, and read 5.2%, MET: the reading is just above the predicted
+  band, the verdict is as predicted. The response is weaker than 1 − s because the stock is
+  counted per account and a chronic failer holds several bills, each drawn on its own (named gap
+  4).
+- **What holds the stock at each end** (2019 account-quarters behind): at 0.30, 100 of 108 hold a
+  never-settled bill; at 0.50, 82 of 98; at 0.88, only 17 of 60. **At the high end 43 of the 60 are
+  bills the world WILL repay, dated at the end of Ofgem's 22-month window** (named gap 2). So at
+  the top of the range the result rests on the dating of the late repayers, not on the share.
+- **0.54 reads the same electricity count as 0.50.** Each bill draws one uniform, so moving the
+  threshold from 0.50 to 0.54 re-dates only bills drawn in that 4-point band, and none of them
+  changed a 2019 electricity quarter-end count. The predicted 7-9% held.
+- Gas, pooled 2019: 16/202 = 7.9% at 0.30 and 0.50, 12/202 = 5.9% at 0.54, 8/202 = 4.0%
+  (2.0-7.6%) at 0.88.
+
+---
+
+### Scope, corrected the same day (2026-10-09, delivery seat)
+
+The table above was measured on the world as it stood at 63f429536, where ONE share applied to
+every failed bill. Before this section landed, 95c1193cb split the never-repaid share by payment
+method from Centrica's provisions on live UK residential balances over 90 days old (ARA 2025
+Note 17): Direct Debit 7.4% never repaid (92.6% repaid), standard credit 50.3% (49.7% repaid);
+prepayment, which Centrica does not report, keeps this toggle. On that world it measured 4.3%
+(Wilson 3.3-5.7%, 0.85x Ofgem's, MET) with the same instrument and book.
+
+The two readings agree rather than compete. This range is for the WHOLE book; Centrica's split
+is by method, and a mostly-DD book weighted by its split lands in the high part of the range,
+which is where the measurements above put the flip to MET (about 0.75). Centrica's own note says
+which way its figure errs: a provision is a stock rate by value, so it overstates never-repaid
+per bill, which would push the book's repaid share higher still. What this toggle governs from
+here is the methods the split has no row for; the range still bounds what the split adds up to.
+
 ## Sources
 
 - Added 2026-10-08 for §(e), all retrieved 2026-10-08:

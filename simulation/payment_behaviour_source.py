@@ -457,10 +457,15 @@ def generate_payment_event(
 #      live balances over 90 days old, by payment method. A method it does not report (prepayment)
 #      keeps the cohort's 0.5. What that substitution carries is stated beside the table.
 
-#: "just over half" of debt-blocked domestic customers had repaid by the time of reporting -- read
-#: at its floor. Ofgem IA July 2016 §1.39; domestic_debt_objection_rates_gb.md row 22. That is a
-#: selected cohort, standing in for the ordinary failed bill's share, which is unpublished (gap 8).
-LATER_SETTLEMENT_REPAID_SHARE = 0.5
+#: Register `q3_ordinary_failed_bill_repaid_share` (default 0.5, range 0.30-0.88). The default is
+#: "just over half" of debt-blocked domestic customers repaid by the time of reporting, read at its
+#: floor (Ofgem IA July 2016 §1.39; domestic_debt_objection_rates_gb.md row 22) -- a selected
+#: cohort standing in for the ordinary failed bill's share, which is unpublished (gap 8). The range
+#: is an ESTIMATE from Ofgem's arrears stock against its flow of new arrangements, and 0.5 lies
+#: inside it (gb_domestic_bill_payment_failure_and_arrears_prevalence.md s.(f)). Since 95c1193cb it
+#: sets only the methods `NEVER_REPAID_SHARE_BY_METHOD` has no row for (prepayment); the range is
+#: for the whole book, so it also bounds what that table's methods add up to.
+LATER_SETTLEMENT_REPAID_SHARE: float = assumption_toggle("q3_ordinary_failed_bill_repaid_share")
 
 #: P(a failed domestic bill not cured on re-presentation is never repaid), by payment method.
 #: CITED, ONE SUPPLIER: Centrica plc ARA 2025 Note 17 p.175, UK residential, live accounts,
