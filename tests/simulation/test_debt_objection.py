@@ -18,7 +18,12 @@ from simulation.debt_objection import (
     WorldDebtBook,
     unblocked_tail_roll,
 )
-from simulation.payment_behaviour_source import CARD, DIRECT_DEBIT, PREPAYMENT
+from simulation.payment_behaviour_source import (
+    CARD,
+    DIRECT_DEBIT,
+    PREPAYMENT,
+    REPRESENTATION_DAYS_AFTER_DUE,
+)
 from simulation.segment_vocabulary import is_business
 from simulation.settlement import CONTRACT_LENGTH_DAYS
 
@@ -193,11 +198,18 @@ def test_a_live_run_holds_an_indebted_credit_household_at_a_renewal(_live_run):
 
 def test_a_live_run_cures_some_unpaid_bills_and_leaves_others_unpaid(_live_run):
     """The rare branches are takeable in the real world: on the run's own records at least one
-    failed bill is paid off later and at least one never is."""
+    failed bill is collected on re-presentation, at least one is paid off later, and at least one
+    never is. (Re-keyed 2026-10-09: a returned DD is now re-presented 14 days after its due date, so
+    "every cure is past day 28" became "every cure is the re-presentation or past day 28".)"""
     segments = _live_run["_triad_segments"]
     failed = [r for r in _live_run["_triad_records"] if r.result == "failed"
               and not is_business(segments[(r.customer_id, r.due_date)])]
     cured = [r for r in failed if r.settled_on is not None]
     never = [r for r in failed if r.settled_on is None]
     assert cured and never, (len(cured), len(never))
-    assert all(r.settled_on > r.due_date + timedelta(days=28) for r in cured)
+    re_presented = [r for r in cured
+                    if r.settled_on == r.due_date + timedelta(days=REPRESENTATION_DAYS_AFTER_DUE)]
+    later = [r for r in cured if r not in re_presented]
+    assert re_presented and later, (len(re_presented), len(later))
+    assert all(r.payment_method == DIRECT_DEBIT for r in re_presented)
+    assert all(r.settled_on > r.due_date + timedelta(days=28) for r in later)

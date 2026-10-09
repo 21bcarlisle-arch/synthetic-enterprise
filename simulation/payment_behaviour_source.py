@@ -142,6 +142,7 @@ from simulation.arrears_engine import PAY_ON_RECEIPT_METHOD, PREPAYMENT_METHOD
 from simulation.arrears_engine import payment_outcome as _core_payment_outcome
 from simulation.household import household_of
 from simulation.household_segments import PaymentChannel, payment_channel_for_customer
+from simulation.meter_reads import assumption_toggle
 from simulation.rng_substream import substream
 from simulation.segment_vocabulary import is_business
 
@@ -323,8 +324,12 @@ def generate_payment_event(
     payment_method: str,
     segment: str = "resi",
     seed: Optional[int] = None,
+    dd_failure_prob: Optional[dict] = None,
 ) -> PaymentEvent:
     """Generate one period's payment truth.
+
+    `dd_failure_prob` is passed to the core model unchanged: None (every world path) is the
+    world's tier table; a harness that declares its own population passes its own.
 
     Draws from this module's OWN period-isolated substream
     (`_period_substream(base_seed, "payment_event", period_index)`), then
@@ -371,7 +376,8 @@ def generate_payment_event(
     # (coincidentally identical-looking) default low-stress probability.
     core_stress = (stress or "LOW").upper()
 
-    result, days_late = _core_payment_outcome(core_method, core_stress, rng, segment=segment)
+    result, days_late = _core_payment_outcome(core_method, core_stress, rng, segment=segment,
+                                              dd_failure_prob=dd_failure_prob)
 
     dd_failure_reason = None
     payment_date: Optional[str] = None
@@ -418,12 +424,13 @@ def generate_payment_event(
 # its due date plus SLC 14's 28 days.
 #
 # NAMED GAPS, each with the direction it moves eligibility for the debt objection:
-#   1. RE-PRESENTATION. A returned DD is re-presented (British Gas: 14 days later), but no success
-#      rate is published (`dd_failure_basis_and_live_arrears_provision_rates.md` C1), and the
-#      world's DD failure rate has no stated basis either -- if it is already net of
-#      re-presentation, adding a cure here would count it twice. `REPRESENTATION_SUCCESS_SHARE` is
-#      None, and nothing is cured inside the 28 days. Overstates debtors if the failure rate is
-#      first-presentation.
+#   1. RE-PRESENTATION (closed 2026-10-09 as an ESTIMATE). A returned DD is re-presented (British
+#      Gas: retry after 14 days, debt_and_collections.md row P1) and collected with probability
+#      `REPRESENTATION_SUCCESS_SHARE` (register `dd_representation_success_share`, vendor figures).
+#      The world's failure rate is now first-presentation by construction
+#      (`arrears_engine.DD_RETURN_RATE_FIRST_PRESENTATION`), so this cure is not counted twice. The
+#      cure is dated 14 days after the DUE date; the return itself lands a few working days after
+#      it, so the cure is dated up to that much early. Only a Direct Debit is re-presented.
 #   2. DATING, AND THE OTHER HALF. Ofgem gives two windows, not a curve. Each settlement is dated
 #      at the END of its window (3 months, or the longer cohort's 22 months), the latest date the
 #      source allows. The half not repaid by the report is never repaid here, though Ofgem saw no
@@ -457,11 +464,19 @@ LATER_SETTLEMENT_FIRST_WINDOW_MONTHS = 3
 #: 2015. Computed from those months, never typed. Same source, §1.38-1.39.
 LATER_SETTLEMENT_REPORTING_WINDOW_MONTHS = (2015 * 12 + 9) - (2013 * 12 + 11)
 
-#: P(a returned DD is collected on re-presentation): NOT ESTABLISHED (named gap 1 above). None, so
-#: nothing settles inside the 28 days.
-REPRESENTATION_SUCCESS_SHARE: Optional[float] = None
+#: P(a returned DD is collected on re-presentation): register `dd_representation_success_share`,
+#: an ESTIMATE (GoCardless 22%-70%; gb_domestic_bill_payment_failure_and_arrears_prevalence.md
+#: s.(e) item 2). Tied to the first-presentation rate: a bracket run moves both together.
+REPRESENTATION_SUCCESS_SHARE: float = assumption_toggle("dd_representation_success_share")
+
+#: British Gas re-presents a returned DD after 14 days, then cancels it
+#: (`docs/market_research/debt_and_collections.md` row P1). Inside SLC 14's 28 days.
+REPRESENTATION_DAYS_AFTER_DUE = 14
 
 _LATER_SETTLEMENT_SUBSTREAM_BASE = "later_settlement"  # + "::<period_index>"
+#: Its own substream, so a bill that is NOT cured on re-presentation draws exactly the later
+#: settlement it drew before re-presentation existed.
+_REPRESENTATION_SUBSTREAM_BASE = "dd_representation"  # + "::<period_index>"
 
 
 def _add_months(d: date, months: int) -> date:
@@ -483,14 +498,24 @@ def later_settlement_date(event: PaymentEvent, segment: str = "resi",
     payment date, and a business failure or dispute has no sourced cure. Drawn from its own
     period-isolated substream, so it never moves `generate_payment_event`'s draws or any other
     period's. See the block above for the source and the seven named gaps.
+
+    A returned Direct Debit is first re-presented: collected `REPRESENTATION_DAYS_AFTER_DUE` after
+    its due date with probability `REPRESENTATION_SUCCESS_SHARE`, from its own substream. The
+    bill's record stays `failed` (the return happened and the supplier saw it); only its
+    settlement date changes. One not cured then takes the Ofgem later-settlement draw unchanged.
     """
     if event.result != "failed" or is_business(segment):
         return None
+    base_seed = _base_seed_for(event.customer_id, seed)
+    if event.payment_method == DIRECT_DEBIT:
+        r = _period_substream(base_seed, _REPRESENTATION_SUBSTREAM_BASE,
+                              event.period_index).random()
+        if r < REPRESENTATION_SUCCESS_SHARE:
+            return date.fromisoformat(event.due_date) + timedelta(days=REPRESENTATION_DAYS_AFTER_DUE)
     from simulation.debt_objection import DEBT_OBJECTION_MIN_DAYS_OUTSTANDING
     objectionable_from = (date.fromisoformat(event.due_date)
                           + timedelta(days=DEBT_OBJECTION_MIN_DAYS_OUTSTANDING))
-    u = _period_substream(_base_seed_for(event.customer_id, seed),
-                          _LATER_SETTLEMENT_SUBSTREAM_BASE, event.period_index).random()
+    u = _period_substream(base_seed, _LATER_SETTLEMENT_SUBSTREAM_BASE, event.period_index).random()
     if u < LATER_SETTLEMENT_REPAID_SHARE * LATER_SETTLEMENT_WITHIN_FIRST_WINDOW_SHARE:
         return _add_months(objectionable_from, LATER_SETTLEMENT_FIRST_WINDOW_MONTHS)
     if u < LATER_SETTLEMENT_REPAID_SHARE:

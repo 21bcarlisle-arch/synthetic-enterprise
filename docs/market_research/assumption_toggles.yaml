@@ -455,8 +455,9 @@ toggles:
     sensitivity:
       kind: argued
       detail: >-
-        Against simulation/arrears_engine._DD_FAILURE_PROB (LOW 3%, MODERATE 12%, HIGH 35%, no
-        source): even the LOW tier is 1.7-5x the bracket. The world's never-repaid stock scales
+        Read (2026-10-09) as the LOW tier of simulation/arrears_engine._DD_FAILURE_PROB, which was
+        LOW 3%, MODERATE 12%, HIGH 35%, no source: even the LOW tier was 1.7-5x the bracket. The
+        tier ratios (4x, 11.7x) are kept and remain unsourced. The world's never-repaid stock scales
         roughly with f x (1 - r). Value, not count; crisis-era; one supplier; a pre-2020 rate would
         plausibly be lower. No published source gives it by count or by tier (C1).
     verdict: MATTERS_AND_RESOLVABLE (estimate; count basis is practitioner knowledge)
@@ -465,8 +466,8 @@ toggles:
     question: Q3 debt
     meaning: >-
       P(a DD returned on first presentation is collected on re-presentation). ESTIMATE from vendor
-      figures. Read by nothing yet: simulation/payment_behaviour_source.REPRESENTATION_SUCCESS_SHARE
-      is None.
+      figures. Read (2026-10-09) by simulation/payment_behaviour_source.REPRESENTATION_SUCCESS_SHARE
+      (was None).
     default: 0.46
     low: 0.22
     high: 0.70
