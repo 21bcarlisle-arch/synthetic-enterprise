@@ -200,4 +200,7 @@ There are 32 NOT_ADVANCED episodes, each a run of consecutive refused cycles. **
   no refusals.
 
 **The evidence will come from the `[lines: N …]` bracket**, which every held tracked edit now carries.
-The next NOT_ADVANCED episode with one is the first real observation. Handed on as a continuation.
+The next NOT_ADVANCED episode with one is the first real observation. **Not handed on as a
+continuation**: a held streak already files itself (`background/fork_open_streak.py` → a
+`REPEATING_ALARM_FORK_OPEN_STREAK` finding) carrying the bracket, and a continuation drawn before
+then would spend a turn finding nothing. The tick that works that alarm counts the brackets here.
