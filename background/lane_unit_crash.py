@@ -30,6 +30,12 @@ committed code, and writing HEAD over it fixes nothing.
 
 It rides `reconcile_watch` (every five minutes) rather than either lane, because a repair that ran
 inside the unit it repairs would die with it.
+
+A HOLD WAKES THE INTERACTIVE SESSION, BY A WAITER IT ARMED ITSELF. A held crash is one only a
+person can fix, and the person who can is the interactive session -- which on 10-09 nothing reached.
+Nothing may type into its pane (`tmux_relay`, banned 2026-07-15), so the delivery is a pull: the
+session runs `--wait-held` as a background command, and when a held streak appears the command
+exits and Claude Code re-invokes the session with its output. Each streak wakes it once.
 """
 
 from __future__ import annotations
@@ -55,6 +61,9 @@ REPAIRABLE = ("ImportError", "ModuleNotFoundError", "AttributeError")
 JOURNAL_LINES = 3000
 
 STATE_FILE = PROJECT_DIR / "docs" / "observability" / ".lane_unit_crash.json"
+
+#: The held streaks the interactive session has already been woken for, as `unit:streak_from`.
+WOKEN_FILE = PROJECT_DIR / "docs" / "observability" / ".lane_unit_crash_woken.json"
 
 _FRAME = re.compile(r'^\s+File "([^"]+)", line \d+, in ')
 
@@ -303,7 +312,73 @@ def brief_sentence(readings: list[dict] | None = None, state: dict | None = None
     return out
 
 
-def main() -> int:
+def unanswered_holds(state: dict, woken: list[str]) -> list[str]:
+    """`unit:streak_from` of every held streak no session has yet been woken for."""
+    return ["{}:{}".format(unit, row.get("streak_from")) for unit, row in sorted(state.items())
+            if str(row.get("outcome", "")).startswith("HELD")
+            and "{}:{}".format(unit, row.get("streak_from")) not in woken]
+
+
+def _read_json(path: Path, empty):
+    """Missing is the ordinary no-crash-yet state; a file that cannot be parsed is NOT quiet."""
+    from tools.wait_for import ProbeUnreadable
+    try:
+        return json.loads(path.read_text())
+    except FileNotFoundError:
+        return empty
+    except (OSError, ValueError) as err:
+        raise ProbeUnreadable("{} could not be read ({})".format(path.name, err)) from err
+
+
+def wait_held(deadline_s: float, state_path: Path | None = None, woken_path: Path | None = None,
+              emit=print, **wait_kw) -> int:
+    """Block until a held lane crash this session has not been woken for exists, then say it and
+    exit 0. A hold already present when armed is delivered at once. 1 = deadline, re-arm;
+    3 = the record could not be read, which is said rather than read as quiet."""
+    from tools.wait_for import DEADLINE, wait
+    state_path = STATE_FILE if state_path is None else state_path
+    woken_path = WOKEN_FILE if woken_path is None else woken_path
+    found: list[str] = []
+
+    def probe() -> tuple[bool, str]:
+        # `present` is the QUIET, so its ending is wait()'s FINISHED and a hold at arm time is
+        # its NEVER_STARTED; both are the delivery.
+        found[:] = unanswered_holds(_read_json(state_path, {}), _read_json(woken_path, []))
+        return not found, "held: " + ", ".join(found) if found else "no lane crash is held"
+
+    out = wait("a lane unit crash held for a person", deadline_s, probe, emit=emit, **wait_kw)
+    if out["verdict"] == DEADLINE:
+        return 1
+    if not found:
+        emit("LANE CRASH RECORD UNREADABLE -- cannot tell whether a lane is held: " + out["detail"])
+        return 3
+    state = _read_json(state_path, {})
+    for key in found:
+        unit = key.split(":", 1)[0]
+        emit("\nLANE UNIT CRASH HELD FOR A PERSON -- {}: {}\n  {}".format(
+            unit, state[unit].get("exception", ""), state[unit].get("outcome", "")))
+    emit("\nThese are the lanes that carry out focus items, so a fix filed as one will not run. "
+         "Read `journalctl --user -u <unit>.service`, fix it, and re-arm this waiter.")
+    woken = _read_json(woken_path, []) + found
+    woken_path.parent.mkdir(parents=True, exist_ok=True)
+    from background.live_ledger_guard import guard_live_ledger_write
+    guard_live_ledger_write(woken_path, writer="lane_unit_crash.wait_held").write_text(
+        json.dumps(woken, indent=1))
+    return 0
+
+
+def main(argv: list[str] | None = None) -> int:
+    import argparse
+    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    parser.add_argument("--wait-held", action="store_true",
+                        help="block until a crash is held for a person; run it in the background")
+    parser.add_argument("--deadline", type=float, default=None,
+                        help="seconds; required with --wait-held (tools/wait_for's ceiling)")
+    args = parser.parse_args(argv)
+    if args.wait_held:
+        if args.deadline is None:
+            parser.error("--wait-held needs --deadline: a waiter names its subject and its end")
+        return wait_held(args.deadline)
     for unit in LANE_UNITS:
         print(json.dumps(reading(unit), indent=1))
     print(brief_sentence() or "no lane unit crashed on both of its last two runs")

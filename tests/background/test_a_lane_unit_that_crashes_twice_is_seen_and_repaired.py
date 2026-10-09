@@ -149,3 +149,60 @@ def test_a_held_cause_writes_nothing_and_says_why(tmp_path):
             notify=lambda t, **k: pages.append(t), state={})
     assert (root / "background" / "worker_tick.py").read_bytes() == STALE_COPY
     assert len(pages) == 1 and "HELD for a person" in pages[0] and "KeyError" in pages[0]
+
+
+# --- WAKE THE INTERACTIVE SESSION ----------------------------------------------------------------
+
+def _held_state(tmp_path, exc="KeyError: 'occ'", dirty=True):
+    root = _repo(tmp_path / "repo", dirty=dirty)
+    state = {}
+    L.check(root=root, journal=_journals(_journal(root, exc=exc)), notify=lambda *a, **k: None,
+            state=state)
+    path = tmp_path / "state.json"
+    path.write_text(json.dumps(state))
+    return path
+
+
+def _wait(state_path, woken_path, **kw):
+    said = []
+    code = L.wait_held(60, state_path=state_path, woken_path=woken_path, emit=said.append,
+                       sleep=lambda s: None, **kw)
+    return code, "\n".join(said)
+
+
+def test_the_waiter_wakes_once_per_held_streak_and_never_for_a_repair(tmp_path):
+    """CONTROL OVER THE PARTITION: a waiter that always fires, or never does, fails here. MUTATION:
+    drop the `HELD` filter in `unanswered_holds` and the repair wakes it; drop the woken write and
+    the second arm wakes again."""
+    held = _held_state(tmp_path / "held")
+    repaired = _held_state(tmp_path / "repaired", exc=None)
+    clock = iter(range(0, 10000, 30)).__next__
+    first, said = _wait(held, tmp_path / "woken.json", clock=clock)
+    again, _ = _wait(held, tmp_path / "woken.json", clock=clock)
+    quiet, _ = _wait(repaired, tmp_path / "woken2.json", clock=clock)
+    assert (first, again, quiet) == (0, 1, 1)
+    assert "worker-tick" in said and "KeyError" in said and "HELD for a person" in said
+
+
+def test_a_waiter_armed_before_the_crash_wakes_when_the_hold_is_written(tmp_path):
+    """The case that matters: armed while the lanes are healthy. MUTATION: map FINISHED to the
+    deadline exit and this reds."""
+    held = _held_state(tmp_path / "held")
+    body = held.read_text()
+    path = tmp_path / "live.json"
+    path.write_text("{}")
+
+    def sleep(_):
+        path.write_text(body)  # reconcile_watch writes the hold between two polls
+
+    said = []
+    code = L.wait_held(60, state_path=path, woken_path=tmp_path / "woken.json", emit=said.append,
+                       sleep=sleep, clock=iter(range(0, 10000, 5)).__next__)
+    assert code == 0 and "FINISHED" in "\n".join(said) and "KeyError" in "\n".join(said)
+
+
+def test_an_unreadable_crash_record_wakes_the_session_rather_than_reading_quiet(tmp_path):
+    path = tmp_path / "state.json"
+    path.write_text("{not json")
+    code, said = _wait(path, tmp_path / "woken.json", clock=iter(range(0, 10000, 30)).__next__)
+    assert code == 3 and "UNREADABLE" in said
