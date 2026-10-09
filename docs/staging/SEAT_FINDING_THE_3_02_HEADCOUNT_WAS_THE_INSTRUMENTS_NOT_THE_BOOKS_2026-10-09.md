@@ -149,3 +149,42 @@ column. `_household` accepts it and drops it, because `Household` has no headcou
 homes got the bedroom fallback before this change and get the census draw after it. They never got
 their composed value. Threading it through `behaviour_profile_for(people_count=...)` would move every
 panel figure. That is its own change.
+
+## The switch, landed, and its controls re-taken (delivery seat, 2026-10-09, later)
+
+Drawn as `make-the-instruments-draw-the-books-headcount-and-retake-the-15-controls-fitted-to-the-bedroom-population`.
+**Duplicate-work note:** the draw reported the id already held in `.seat_work_in_hand.json`. That claim
+was stamped about 95 seconds before this invocation checked, with no rival seat or `surgical_land`
+running, so it was the draw's own write. The dirty copy of
+`tests/simulation/test_the_settled_book_draws_its_headcount_from_the_census_and_not_from_bedrooms.py`
+on the shared tree is an older explainer leg dated 2026-09-18, not this switch. It was neither used nor
+touched.
+
+**The switch.** In `behaviour_profile_for`, the no-headcount branch now returns
+`dwelling_records.people_count_for_area(premise_id, household.output_area)`, and `_PEOPLE_BY_BEDROOMS`
+is deleted. The third leg of the settled-book test checks that every one of 2,000 drawn homes gets
+`people_count_for` when no headcount is supplied. A constant fallback of 3 reds 1,687 of 2,000,
+reproduced. The second leg's arm requiring the census and bedroom draws to disagree went with the
+bedroom source, because there is no second source left.
+
+**What it redded: 16, not 15.** The 17th failure in the run, `test_rng_substream`, is red at base too
+(`sim/customer_state_layer.py` `_substream`) and is not this change. Each red is diagnosed below; no
+band was loosened to meet a world value.
+
+| Control | Diagnosis | Disposition |
+|---|---|---|
+| kettle 167 | **verdict, the world's.** On the book's headcount, a kettle owner's year is 147. By household type the world gives a single-person home 91 and a home with children 199. HES Table 23 gives 141 / 153 / 185 / 167 / 178. HES's kettle year barely moves with household type, but the world scales the kettle (n/2.4)^0.6. The 0.105 boil fit absorbed the bedroom population's size. | Strict xfail with the diagnosis, which reds when the kettle is fixed. Handed on: it changes the settled world. |
+| L2.4 CAN_PASS | **fixture, not world.** The authored 10-home panel's composed `people` column ("one to five occupants") was dropped, so the panel drew the bedroom fallback, then the census draw. It never got its own headcounts. | The headcounts are threaded through `traces` and `_regenerated_result`, and reachability is restored. |
+| SMOOTH mutation, heat-pump/gas critical | **fixture.** The "matched" pair (documented as three people) drew per premise id: 3 and 2 under the fallback, 1 and 8 under the census. | Both the pair and `matched_regimes` are held at three. HP1 is back at its base pins; G1's gas_critical goes 0.401 → 0.358. |
+| L1.1n CAN_PASS, TOLERANCE | **the band's premise, refuted on real homes.** P0049 drew five people and reads 0.984. Its ratio across one to six people is 1.59, 1.33, 1.67, 1.38, 0.98, 1.92: raw texture falls smoothly, while its own flat day's median step jumps. The rate band tolerated 0 on the premise that no real household reads below 1.0. **Measured on 313 LCL homes: 22 (7.0%) do, with p05 0.894** (pre-registration wrong on all three points, recorded in the LCL texture doc). | The rate band moves 0.0 → 0.26 by L1.4n's own midpoint rule: real 0.070 and world 0.017 against structureless 1.0. CAN_PASS asserts the PASS. TOLERANCE asserts distance from 1.0 in both directions. |
+| REPAIR_ITSELF | **a ledger defect the mutation reached.** Under the space-only reading, an electric home's heat stream had 25 usable day pairs. L1.2h is measured and never judged, but its raise aborted every judged cell. | L1.2h now names such homes on its note. New control, mutation-proven: the old ledger raises. |
+| netting CHANGES_NOTHING | **the median's property.** P0020's heat is netted on 38 of 120 days, but L1.2's median pair is a heat-free one, so the statistic is bit-identical. | The leg asks that the netted *load set* moves for every heat home, and that the statistic moves for at least one. |
+| P0000 ordinary, rescaled-day ordinary | P0000 drew two people (three before) and reads 0.216, just over the real p75 0.208. The faked homes read 0.194–0.217. | "Ordinary" is the real p10..p90. `REAL_P90 = 0.311` is named once; it was already inline in `_real_shaped`. |
+| pins | texture legs [3,15,31,47] → [3,15,27,44]; p50 world 0.153 → 0.168; P0000 0.1633 → 0.2160; water-heater 0.563 → 0.602; MINTS r 0.569 → 0.493; L2.4 2.91 → 3.07; L1.2 worst 0.4572 → 0.555; L1.1n worst 1.408 → 0.984; couple_fabric S9 0.0604 → 0.0621 | Re-pinned beside their history. |
+| household_physical_layer poison | The poison was the deleted table. | Kept as the test's own fixture on a per-premise stream. The mean leg is now an se bound, like the census leg above it. |
+| test_premise_trace P-base | The census draw makes it one person, with a gas ratio of 10.1. | The fixture states three people. The band is untouched. |
+
+**Not established, and noted rather than acted on.** P0008, an electric_direct home in the drawn 60,
+runs space heat on only 28 of 120 January–April days (42 at base). Four occupants' internal gains cut
+it further. That is implausibly few for a direct-electric home in a GB winter. It is a world question
+for the fabric lane, not this one.

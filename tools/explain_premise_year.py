@@ -64,10 +64,10 @@ def explain(premise_id: str = "C1", year: int = 2022, seed: int = 42) -> dict:
         raise SystemExit(f"no weather for {premise_id} in {year}")
 
     # THE HOUSEHOLD EXPLAINED HERE IS THE ONE THE BOOK SETTLED, and the argument below is the
-    # whole of what makes that true. `behaviour_profile_for` falls back to `_PEOPLE_BY_BEDROOMS`
-    # when a caller omits `people_count`, and that fallback is legitimate for a caller with no
-    # census draw -- so an explanation built on it is green, plausible, and about a different
-    # home. It was: C1 was three people here and one in the book.
+    # whole of what makes that true. `behaviour_profile_for` fell back to an unsourced bedrooms
+    # table when a caller omitted `people_count` (deleted 2026-10-09; it is the census draw now),
+    # so an explanation built on it was green, plausible, and about a different home. It was:
+    # C1 was three people here and one in the book.
     # (SEAT_RESULT_THE_CENSUS_HEADCOUNT_REACHED_EVERY_CALLER_EXCEPT_THE_ONE_THE_BOOK_IS_SETTLED_ON.)
     # Drawn ONCE and handed to the generator, not drawn again beside it: the PEOPLE section below
     # reports this same object, so the count in the explanation is the count that produced the

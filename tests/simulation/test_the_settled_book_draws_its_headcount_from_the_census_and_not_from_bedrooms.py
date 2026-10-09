@@ -20,6 +20,15 @@ headcount at all — and it is behavioural rather than textual: it observes the 
 watches the SOURCES, so that "fix" the wiring by flattening the census anchor into the bedroom
 distribution reds instead of passing. A wiring check alone would go green on a census marginal
 quietly re-pointed at the wrong distribution, which is the shape this project keeps finding.
+
+THE THIRD LEG (2026-10-09) closes the door the first two left open. `behaviour_profile_for`'s own
+no-headcount fallback still drew from `_PEOPLE_BY_BEDROOMS` (mean 3.02 on gas homes, 18.5% at 5+),
+and every instrument that builds a profile-less trace -- the S4 level, the home-demand digest,
+book_shape_spread -- measured THAT population. The "+200 kWh gas-home level excess" was read off it;
+on the book's own headcount the level is 2,613, below the crisis-free SERL band
+(`SEAT_FINDING_THE_3_02_HEADCOUNT_WAS_THE_INSTRUMENTS_NOT_THE_BOOKS_2026-10-09.md`). The bedrooms
+table is deleted; the fallback IS the book's draw. The second leg's old "the two sources must still
+disagree" arm went with it: there is no second source left to disagree.
 """
 from __future__ import annotations
 
@@ -96,10 +105,6 @@ def test_the_census_source_reproduces_the_published_marginal_and_bedrooms_does_n
     assert all(ids), "population floor: a drawn premise carried no id to key the headcount on"
 
     census = Counter(min(5, people_count_for(i)) for i in ids)
-    bedrooms = Counter(
-        min(5, pt.behaviour_profile_for(i, d.household).people_count)
-        for i, d in zip(ids, drawn)
-    )
 
     census_one = census[1] / n
     census_mean = sum(k * v for k, v in census.items()) / n
@@ -110,13 +115,31 @@ def test_the_census_source_reproduces_the_published_marginal_and_bedrooms_does_n
         f"the census-anchored mean headcount is {census_mean:.2f} against ONS {ONS_MEAN_HEADCOUNT}"
     )
 
-    # AND THE TWO SOURCES MUST STILL DISAGREE. If this leg ever passes because the bedroom draw
-    # now matches the census too, that is a real change worth reading -- but it also means this
-    # file's first leg has stopped being able to catch anything, and a control that cannot fail
-    # must not be left standing green.
-    bedrooms_one = bedrooms[1] / n
-    assert bedrooms_one < census_one - 0.10, (
-        f"the bedroom draw now yields {bedrooms_one:.1%} one-person households against the "
-        f"census's {census_one:.1%} -- the two sources no longer differ enough for the wiring "
-        "leg above to prove anything; re-read that leg before deleting this one"
+
+def test_a_profile_with_no_headcount_supplied_gets_the_books_own():
+    """Every drawn home, asked with no headcount, gets exactly `people_count_for` -- the book's.
+
+    Keyed to the property (identity with the settled draw), not to a distribution, so a re-seed
+    cannot red it and a second draw of any shape cannot pass it. Mutation that must red it: a
+    constant fallback of 3 (measured 2026-10-09: reds 1,687 of 2,000), or restoring any
+    bedrooms-conditioned table.
+    """
+    from simulation.premise_population import draw_premise_population
+
+    n = 2000
+    drawn = draw_premise_population(n, base_seed=20261009, as_of=dt.date(2024, 4, 1))
+    assert len(drawn) == n, "population floor: the draw did not return the premises asked for"
+
+    disagree = []
+    for d in drawn:
+        pid = getattr(d, "premise_id", None) or getattr(d, "customer_id", "")
+        book = people_count_for(pid, d.household.output_area)
+        instrument = pt.behaviour_profile_for(pid, d.household).people_count
+        if instrument != book:
+            disagree.append((pid, book, instrument))
+
+    assert not disagree, (
+        f"{len(disagree)} of {n} homes get a different headcount from a profile-less instrument "
+        f"than the book settles them on, e.g. {disagree[:3]} (premise, book, instrument): an "
+        "instrument measuring a population the book never settles"
     )

@@ -2164,18 +2164,25 @@ _IMPOSSIBILITY_BOUND = (
 
 RATE_BANDS: dict[str, RateBand] = {
     "L1.1n_half_hourly_texture_null_ratio": RateBand(
-        "L1.1n_half_hourly_texture_null_ratio", 0.0, AnchorStatus.STRUCTURAL,
-        _IMPOSSIBILITY_BOUND + " AND IT IS THE IMPOSSIBILITY BOUND HERE, WHERE "
-        "L1.4n's sibling rate is NOT — the difference is the null. L1.4n's is 99 "
-        "random relabellings, so its 1.0 is a 95th percentile and a correct "
-        "generator still puts weak-but-real homes under it 1 time in 20; its "
-        "tolerance had to be 0.50 for that reason. L1.1n's flat counterfactual is "
-        "DETERMINISTIC and idempotent, so a structureless home reads exactly 1.0 "
-        "and there is no sampling under which a home with any behaviour at all "
-        "falls below it. A home that does is a home whose meter is no rougher "
-        "than its own mean profile, which no real household is — so the tolerated "
-        "rate is zero and a breach is a mechanism to diagnose (R4), never a "
-        "tolerance to raise (R12).",
+        "L1.1n_half_hourly_texture_null_ratio", 0.26, AnchorStatus.PUBLISHED,
+        "MEASURED ON REAL HOMES, 2026-10-09, and it refuted the impossibility bound this rate "
+        "carried until then. That bound's premise was that a home with any behaviour cannot read "
+        "below its own flat counterfactual -- 'a home whose meter is no rougher than its own mean "
+        "profile, which no real household is'. Read with this cell's own function "
+        "(`half_hourly_texture_vs_own_null`) on 313 Low Carbon London homes (UKPN dataset "
+        "`vqm0d`, OGL; Jan-Apr 2013, >=100 full days, the same panel as "
+        "`REAL_HOME_TEXTURE_QUANTILES`), 22 (7.0%) read below 1.0; p05 0.894, p10 1.358, median "
+        "2.425. THE MECHANISM, diagnosed (R4) before any number moved: the statistic is a MEDIAN "
+        "step, and a calm home's days each step little while its mean profile, averaging events "
+        "that land at different times, steps moderately in every half-hour. Caveat: LCL carries "
+        "no machine split, so it is the whole meter, against the world's netted one. THE RULE IS "
+        "L1.4n's, fixed before the number: the tolerance sits in the gap between a population "
+        "that HAS behaviour (real 0.070 at n=313, the drawn world 0.017 at n=60) and one that "
+        "has none (every rescaled-day and flattened population, 1.0), at its geometric midpoint "
+        "sqrt(0.070 x 1.0) = 0.26; every threshold in [0.070, 1.0) gives the same verdict on "
+        "every population measured. WHAT IT GIVES UP: a generator whose structureless homes are "
+        "under a quarter of the population passes THIS cell; L1.2 and L1.5 still see a rescaled "
+        "base shape.",
     ),
     "L1.2_day_to_day_shape_correlation": RateBand(
         "L1.2_day_to_day_shape_correlation", 0.0, AnchorStatus.STRUCTURAL,
@@ -2960,11 +2967,19 @@ def evaluate_two_level(population: PopulationTraces) -> TwoLevelResult:
     # heat is actually on the judged meter, never judged, so the exclusion above
     # cannot be a quiet one. A cell nobody can see is how an exclusion becomes a
     # fail-open.
-    heat_measured = [
-        (homes[k], day_to_day_shape_correlation(h))
-        for k, h in enumerate(heat_streams)
-        if h is not None and any(any(day) for day in h)
-    ]
+    # A home that heated on too few days has no repeatability to read. That is NAMED on this
+    # cell, never raised through it: this cell is measured and never judged, and raising here
+    # aborted every JUDGED cell of the population for want of a diagnostic (2026-10-09, an
+    # electric home heating 28 of 120 days once it drew the census headcount).
+    heat_measured: list[tuple[str, float]] = []
+    heat_too_few_days: list[str] = []
+    for k, h in enumerate(heat_streams):
+        if h is None or not any(any(day) for day in h):
+            continue
+        try:
+            heat_measured.append((homes[k], day_to_day_shape_correlation(h)))
+        except InsufficientEvidence:
+            heat_too_few_days.append(homes[k])
     heat_band = BANDS["L1.2h_heating_shape_repeatability"]
     worst_heat = max(heat_measured, key=lambda hv: hv[1], default=None)
     cells.append(CellResult(
@@ -2977,6 +2992,10 @@ def evaluate_two_level(population: PopulationTraces) -> TwoLevelResult:
             "— measured, not judged"
             if heat_measured
             else "no home in this population carries space heat on the judged meter"
+        ) + (
+            f"; {len(heat_too_few_days)} heated on too few days to read a shape "
+            f"({', '.join(heat_too_few_days)})"
+            if heat_too_few_days else ""
         ),
         homes_judged=0, homes_violating=0, homes_unjudged=len(heat_measured),
         resolution=None,

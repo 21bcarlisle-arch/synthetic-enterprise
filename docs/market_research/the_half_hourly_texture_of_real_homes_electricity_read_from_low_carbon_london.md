@@ -387,3 +387,41 @@ and (d) stay open.
 
 Limits: one world draw, 60 homes; the 0.25 kWh/hh cut for BIG is a choice (a dishwasher half-hour is
 0.35). Scripts: `/tmp/w129s/` (not committed).
+
+## L1.1n on real homes: a calm home can read below its own flat day (2026-10-09)
+
+**Asked because** the drawn 60 put one home, P0049, at L1.1n 0.984 once it drew the book's census
+headcount. L1.1n is `half_hourly_texture` over the same statistic on the home's own flat day (its mean
+profile scaled to each day's total). Its rate band said this was impossible for a real household. It
+tolerated no home under 1.0, on the premise that "a home whose meter is no rougher than its own mean
+profile ... no real household is". Nobody had read the ratio on a real home.
+
+**Pre-registered before the run:** (P1) 0–3% of real homes under 1.0; (P2) real p05 1.1–1.5, median
+1.5–2.5; (P3) the world's 0.984 sits under the real p05.
+
+**Result.** The same 313 homes and window as above, read with `half_hourly_texture_vs_own_null` on the
+whole meter:
+
+| Homes | Under 1.0 | Under 0.984 | p01 | p05 | p10 | p25 | p50 |
+|---|---|---|---|---|---|---|---|
+| 313 | 22 (7.0%) | 19 | 0.354 | 0.894 | 1.358 | 1.862 | 2.425 |
+
+Two homes read 0.0 (a degenerate flat day, scored as a violation by the cell's own rule). Without them
+it is 20 of 311 (6.4%).
+
+**Graded.** P1 **wrong**: 7.0%, not 0–3%. P2 **wrong at the bottom**: p05 is 0.894, and the median
+2.425 held. P3 **wrong**: 0.984 is above the real p05, so P0049 is an ordinary calm home.
+
+**Mechanism.** The statistic is a median of half-hour steps. A calm home's days each step very little,
+while its mean profile averages events that land at different times on different days, so it steps
+moderately in every half-hour. Its median step can therefore exceed the real days' median step.
+
+**Acted on.** The L1.1n rate band (`background/fabric_gap_ledger.py`, `RATE_BANDS`) moved from 0.0 to
+0.26. That uses L1.4n's existing rule: the geometric midpoint of the gap between the populations that
+have behaviour (real 0.070, drawn world 0.017) and the ones that have none (rescaled-day and flattened,
+1.0).
+
+**Limit.** LCL has no machine split, so this is the whole meter, compared against the world's netted
+meter. The panel is London only and 2013.
+
+Script: `/tmp/l11n/` (not committed).

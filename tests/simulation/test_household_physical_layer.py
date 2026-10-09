@@ -216,9 +216,19 @@ def test_the_headcount_reproduces_the_census_marginal_and_the_bedrooms_draw_does
         "like this."
     )
 
-    # The poison: the draw this replaced, run over the same premises.
+    # The poison: the draw this replaced, run over the same premises. `premise_trace` deleted it
+    # on 2026-10-09 (its profile-less fallback is the census draw now), so it is kept HERE, as the
+    # defect's own fixture, and drawn on a per-premise stream: the bedrooms table that was live.
+    import random
+
+    bedrooms_poison = {
+        1: (1, 1, 2), 2: (1, 2, 2, 3), 3: (2, 2, 3, 3, 4), 4: (2, 3, 4, 4, 5), 5: (3, 4, 5, 6),
+    }
     legacy = Counter(
-        behaviour_profile_for(pid, hh).people_count for pid, hh in drawn_households
+        random.Random(f"{pid}:bedrooms-poison").choice(
+            bedrooms_poison[2 if hh.bedrooms is None else max(1, min(5, hh.bedrooms))]
+        )
+        for pid, hh in drawn_households
     )
     legacy_total = sum(legacy.values())
     legacy_one_person = legacy[1] / legacy_total
@@ -227,9 +237,10 @@ def test_the_headcount_reproduces_the_census_marginal_and_the_bedrooms_draw_does
         "the bedrooms-derived draw now matches the census one-person share, so this "
         "control no longer discriminates -- re-derive the poison or delete the leg"
     )
-    assert abs(legacy_mean - _CENSUS_MEAN_PEOPLE) > 0.06, (
-        "the bedrooms-derived mean now matches the census, so the tolerance above "
-        "cannot reject the draw this atom replaced"
+    legacy_z = abs(legacy_mean - _CENSUS_MEAN_PEOPLE) / standard_error
+    assert legacy_z >= 3.0, (
+        f"the bedrooms-derived mean {legacy_mean:.4f} is only {legacy_z:.2f} se from the census, "
+        "so the tolerance above cannot reject the draw this atom replaced"
     )
 
 

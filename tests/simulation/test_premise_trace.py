@@ -82,8 +82,18 @@ def weather() -> list[pt.TraceWeatherDay]:
 
 @pytest.fixture(scope="module")
 def trace(weather) -> pt.PremiseTrace:
+    # THREE PEOPLE, STATED (2026-10-09). This 3-bed semi was three people under the deleted
+    # bedrooms fallback and is ONE under the census draw that replaced it; a one-person home's
+    # winter/summer gas ratio reads 10.1, outside G.2's 2.5-9.0 band, which is anchored on the
+    # population's ~4.6x. The fixture is a composed home, so its household is composed too; the
+    # band was not touched. Whether a per-home band should hold for a one-person home is open
+    # (SEAT_FINDING_THE_3_02_HEADCOUNT_WAS_THE_INSTRUMENTS_NOT_THE_BOOKS_2026-10-09.md).
+    household = make_household()
     return pt.generate_premise_trace(
-        premise_id="P-base", household=make_household(), weather=weather, seed=42, latitude_deg=pt.DEFAULT_LATITUDE_DEG)
+        premise_id="P-base", household=household, weather=weather, seed=42,
+        latitude_deg=pt.DEFAULT_LATITUDE_DEG,
+        behaviour=pt.behaviour_profile_for("P-base", household, seed=42, people_count=3),
+    )
 
 
 # ---------------------------------------------------------------------------

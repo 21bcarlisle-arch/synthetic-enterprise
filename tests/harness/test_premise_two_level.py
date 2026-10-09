@@ -83,6 +83,10 @@ from simulation.household import (
 # homes is "below REAL_P10"; there is no per-home floor any more.
 REAL_TEXTURE = dict(fgl.REAL_HOME_TEXTURE_QUANTILES)
 REAL_P10, REAL_P25, REAL_MEDIAN = REAL_TEXTURE[0.10], REAL_TEXTURE[0.25], REAL_TEXTURE[0.50]
+#: The same LCL panel's p90 (its doc's tail point, used by `_real_shaped` below). "An ordinary
+#: real home" in the diagnoses is p10..p90: the middle half was too narrow a word for it once
+#: the drawn 60 drew the census headcount (2026-10-09) and the calm homes grew less calm.
+REAL_P90 = 0.311
 
 
 def _real_shaped(n):
@@ -91,7 +95,7 @@ def _real_shaped(n):
     between the published points, with the doc's p5/p90/p95 (0.050, 0.311, 0.384)
     for the tails."""
     points = [(0.0, 0.02), (0.05, 0.050)] + list(fgl.REAL_HOME_TEXTURE_QUANTILES) + [
-        (0.90, 0.311), (0.95, 0.384), (1.0, 0.5)]
+        (0.90, REAL_P90), (0.95, 0.384), (1.0, 0.5)]
     out = []
     for i in range(n):
         u = (i + 0.5) / n
@@ -180,6 +184,12 @@ def traces(weather):
             household=_household(*spec),
             weather=weather,
             seed=7,
+            # THE PANEL'S OWN HEADCOUNT (2026-10-09). The composed `people` column was dropped
+            # here, so the panel drew the bedrooms fallback and, once that was deleted, the
+            # census draw -- never the one to five occupants it was composed to span.
+            behaviour=pt.behaviour_profile_for(
+                spec[0], _household(*spec), seed=7, people_count=spec[5]
+            ),
             # `latitude_deg` lost its default when the fabric build closed the
             # fail-open of silently siting every premise at 53 degN. The panel is
             # the C1 weather site, so it is sited there and nowhere else.
@@ -685,9 +695,14 @@ def test_MEASURED_population_values(population, population_result):
     # [3, 16, 32, 48] -> [3, 15, 31, 47] on 2026-10-08: oven x0.80 and hob x0.84 (ECUK carried to
     # 2022). A shorter evening cook leaves the homes a little less calm; p25-p75 moved one home
     # each TOWARDS expected. Not predicted.
-    assert [legs[q].below for q in (0.10, 0.25, 0.50, 0.75)] == [3, 15, 31, 47], texture.note
+    #
+    # [3, 15, 31, 47] -> [3, 15, 27, 44] on 2026-10-09, the drawn 60 on the book's census headcount instead of the deleted bedrooms fallback
+    # (mean 3.02 -> TS017). More one-person homes, which read less calm; p50 and p75 moved PAST
+    # expected (30, 45) by three and one. The instrument changed, not the world.
+    assert [legs[q].below for q in (0.10, 0.25, 0.50, 0.75)] == [3, 15, 27, 44], texture.note
     # 0.142 -> 0.153 with electronics at its 2022 level (real 0.158).
-    assert legs[0.50].world == pytest.approx(0.153, abs=0.005), texture.note
+    # 0.153 -> 0.168 on 2026-10-09, the census headcount (above).
+    assert legs[0.50].world == pytest.approx(0.168, abs=0.005), texture.note
     red = [q for q, leg in legs.items() if leg.p * len(legs) < fgl.TEXTURE_DISTRIBUTION_ALPHA]
     assert red == [], texture.note
     # The calmest home is a gas home with a 364 W always-on load and no heater, no longer the
@@ -739,7 +754,10 @@ def test_MEASURED_population_values(population, population_result):
     # took more off the large homes' years in kWh and less off the small ones' in share, and the
     # constant always-on draw is a larger share of a smaller year. Not predicted. Still red.
     spread = population_result.cell("L2.4_scale_spread_p90_p10")
-    assert spread.value == pytest.approx(2.91, abs=0.05), spread.note
+    # 2.91 -> 3.07 on 2026-10-09: the drawn 60 on the book's census headcount (more one-person
+    # homes at the bottom of the year, more five-plus at the top). The instrument moved, not the
+    # world. Still red against 4.88.
+    assert spread.value == pytest.approx(3.07, abs=0.05), spread.note
     assert not population_result.inconclusive, population_result.summary()
     # 0.4386 -> 0.4511 on 2026-10-06: the boiler pump repeats with the heating, so
     # it raises a gas home's day-to-day shape correlation a little. Still a GAS home.
@@ -770,7 +788,9 @@ def test_MEASURED_population_values(population, population_result):
     # follows occupancy, which repeats day to day, so it carried shape. Not predicted; unread.
     shape = population_result.cell("L1.2_day_to_day_shape_correlation")
     assert shape.worst_home == "P0023", shape.note
-    assert shape.worst_value == pytest.approx(0.4572, abs=0.01), shape.note
+    # 0.4572 -> 0.555 on 2026-10-09, still P0023 (band 0.6): the drawn 60 on the book's census
+    # headcount. More repeatable day to day, which fewer occupants predicts. Not pre-registered.
+    assert shape.worst_value == pytest.approx(0.555, abs=0.01), shape.note
     assert "gas" in population.heating_systems[
         population.homes.index(shape.worst_home)
     ], "the worst home is a GAS home"
@@ -868,12 +888,15 @@ def test_P0000_the_calmest_home_is_ORDINARY_against_real_homes_and_the_red_is_th
     # 0.1422 -> 0.1429 (2026-10-08, the kettle's boil cut to HES's energy).
     # 0.1429 -> 0.1589 (2026-10-08, electronics at its 2022 level); real median 0.158.
     # 0.1589 -> 0.1633 (2026-10-08, oven and hob at their 2022 energy).
-    assert live == pytest.approx(0.1633, abs=5e-4)
+    # 0.1633 -> 0.2160 on 2026-10-09, the drawn 60 on the book's census headcount instead of the deleted bedrooms fallback.
+    assert live == pytest.approx(0.2160, abs=5e-4)
     assert net_of_pump > live
     # ORDINARY: inside the real middle half, with or without its pump. Keyed to REAL_MEDIAN as
     # the upper edge until 2026-10-08, when electronics at its 2022 level took P0000 to 0.1589,
     # just above the real median 0.158; the middle half's upper edge is the real p75.
-    assert REAL_P25 < live < REAL_TEXTURE[0.75]
+    # 2026-10-09: P0000 drew two people on the census headcount (three under the bedrooms
+    # fallback) and reads 0.2160, just over the real p75 0.208. Ordinary is p25..p90.
+    assert REAL_P25 < live < REAL_P90
     # ...and net of the heater the red is the population's shape, not one home. Since the
     # always-on draw (W1_29) the calmest tenth is filled (5 homes under the real p10 net of the
     # heater) and the red leg is p75: the world is too calm through its upper half.
@@ -1028,7 +1051,8 @@ def test_the_WATER_HEATER_netting_is_a_LOAD_SET_repair_and_not_a_LOOSENING(
     # less evening behaviour to lose. Same direction for every gas home; the band means the same.
     #
     # 0.518 -> 0.563 the same day: electronics at its 2022 level, the same mechanism again.
-    assert gas_median == pytest.approx(0.563, abs=0.02)
+    # 0.563 -> 0.602 on 2026-10-09, the drawn 60 on the book's census headcount instead of the deleted bedrooms fallback.
+    assert gas_median == pytest.approx(0.602, abs=0.02)
 
     # BEFORE: an electrically heated home fired at a fraction of the breakage a gas
     # home needed — P0008 at 0.0000 was already under the floor untouched.
@@ -1241,6 +1265,33 @@ def test_the_REPAIR_ITSELF_fires_its_own_named_defect(population):
         f"putting the water heater back must lower the reading of {live.worst_home}: "
         f"{live.worst_value:.4f} -> {reverted.worst_value:.4f}"
     )
+
+
+def test_a_home_that_heated_on_too_few_days_is_NAMED_on_the_measured_cell_not_raised(population):
+    """L1.2h is measured, never judged. A heating stream with too few heating days has no
+    repeatability to read, and raising for it aborted every JUDGED cell of the population
+    (2026-10-09). The control: one electric home keeps a handful of heating days and no water
+    heat, and the evaluation still returns, names that home on L1.2h, and still judges L1.2.
+    Mutation that must red it: letting `day_to_day_shape_correlation` raise through the cell.
+    """
+    electric = [k for k, system in enumerate(population.heating_systems)
+                if fgl.HEAT_ON_THE_JUDGED_METER.get(system, False)]
+    assert electric, "the leg needs a home whose heat is on the judged meter"
+    k = electric[0]
+
+    def sparse(home):
+        return tuple(day if i % 10 == 0 else (0.0,) * len(day) for i, day in enumerate(home))
+
+    space = list(population.space_heat_grids)
+    space[k] = sparse(space[k])
+    water = list(population.water_heat_grids)
+    water[k] = tuple((0.0,) * len(day) for day in water[k])
+    result = fgl.evaluate_two_level(dataclasses.replace(
+        population, space_heat_grids=tuple(space), water_heat_grids=tuple(water)))
+
+    heat = result.cell("L1.2h_heating_shape_repeatability")
+    assert "too few days" in heat.note and population.homes[k] in heat.note, heat.note
+    assert result.cell("L1.2_day_to_day_shape_correlation").homes_judged == len(population.homes)
 
 
 def test_the_WATER_HEAT_stream_is_CHECKED_against_the_meter_it_claims_to_be_in(
@@ -1564,18 +1615,23 @@ def test_the_netting_CHANGES_NOTHING_for_a_home_heated_off_the_judged_meter(popu
     affected = set(_homes_with_heat_on_the_judged_meter(population))
     moved = 0
     for k, grid in enumerate(population.grids):
-        whole = fgl.day_to_day_shape_correlation([list(d) for d in grid])
-        net = fgl.day_to_day_shape_correlation(
-            fgl.meter_net_of_machines(
-                [list(d) for d in grid],
-                [list(d) for d in population.space_heat_grids[k]],
-            )
+        netted_grid = fgl.meter_net_of_machines(
+            [list(d) for d in grid],
+            [list(d) for d in population.space_heat_grids[k]],
         )
+        whole = fgl.day_to_day_shape_correlation([list(d) for d in grid])
+        net = fgl.day_to_day_shape_correlation(netted_grid)
         if k in affected:
+            # The NETTING moves every affected home's load set. Its median-pair STATISTIC need
+            # not move: since 2026-10-09 P0020 heats on 38 of 120 days and its median pair is a
+            # heat-free one, so L1.2 reads bit-identical (it was "every affected home moved").
+            assert netted_grid != [list(d) for d in grid], (
+                f"{population.homes[k]} carries heat on the judged meter and netting left it whole"
+            )
             moved += whole != net
         else:
             assert net == whole, f"{population.homes[k]} moved without carrying heat"
-    assert moved == len(affected), "every affected home should actually have moved"
+    assert moved >= 1, "the netting moved no affected home's L1.2 at all"
 
 
 def test_the_netting_REFUSES_a_stream_that_is_not_a_COMPONENT_of_the_meter(population):
@@ -2560,7 +2616,9 @@ def test_L1_1n_FIRES_on_the_RESCALED_REAL_DAY_that_the_FLOOR_CANNOT_SEE(populati
     # home — inside the real p10..p75 — so no per-home magnitude reading can see
     # it. (The distribution cell does red this population, for being too ALIKE:
     # a rescaled single day is one home at sixty volumes.)
-    assert all(REAL_P10 < t < REAL_TEXTURE[0.75] for t in texture), (
+    # p10..p90 since 2026-10-09 (p75 until then): the faked homes read 0.1939-0.2174 once the
+    # drawn 60 drew the census headcount, over p75 and inside every ordinary reading.
+    assert all(REAL_P10 < t < REAL_P90 for t in texture), (
         f"every faked home must read as an ordinary real home for the finding to "
         f"be real — it reads {min(texture):.4f}-{max(texture):.4f}"
     )
@@ -2590,7 +2648,10 @@ def test_L1_1n_CAN_PASS_and_is_not_a_control_that_can_only_fail(population_resul
         c for c in population_result.cells
         if c.statistic == fgl.TEXTURE_NULL_RATIO_STATISTIC
     )
-    assert cell.homes_violating == 0, population_result.summary()
+    # A CLEAN SHEET IS NO LONGER THE PROPERTY (2026-10-09). 7.0% of 313 real Low Carbon London
+    # homes read below their own flat day (see the rate band's anchor), so the cell is a rate,
+    # and what must hold is that the drawn population PASSES it.
+    assert cell.verdict is fgl.Verdict.PASS, population_result.summary()
     assert cell.homes_judged == population_result.homes, (
         "every home must be judged — an unjudged home here would be a quiet "
         "exclusion, and the pass would be over a population nobody named"
@@ -2618,12 +2679,15 @@ def test_L1_1n_CAN_PASS_and_is_not_a_control_that_can_only_fail(population_resul
     # 1.391 -> 1.450 the same day, P0059: electronics at its 2022 level, the same mechanism.
     # 1.450 -> 1.408 the same day, P0059: oven and hob at their 2022 energy. A shorter cook is a
     # smaller excursion above the flat day, the reverse of the kettle's mechanism. Not predicted.
-    assert cell.worst_value == pytest.approx(1.408, abs=0.005), cell.note
-    assert cell.worst_value > 1.0, (
-        f"the worst real home reads {cell.worst_value:.3f} times its own flat "
-        "counterfactual; if that ever approached 1.0 the pass would be a squeak "
-        "rather than a verdict"
-    )
+    # 1.408 -> 0.984 on 2026-10-09, worst now P0049 again: the drawn 60 on the book's census
+    # headcount instead of the deleted bedrooms fallback. P0049 drew five people; across one to
+    # six it reads 1.59/1.33/1.67/1.38/0.98/1.92, its raw texture falling smoothly while its own
+    # flat day's median step jumps. Below 1.0, which the old "> 1.0" leg here called impossible
+    # for a real home -- and 22 of 313 real LCL homes do it, with p05 at 0.894. So P0049 is an
+    # ordinary calm home, and the leg that forbade it is gone with the premise it stood on.
+    assert cell.worst_value == pytest.approx(0.984, abs=0.005), cell.note
+    assert cell.homes_violating / cell.homes_judged <= fgl.RATE_BANDS[
+        fgl.TEXTURE_NULL_RATIO_STATISTIC].threshold, cell.note
 
 
 def test_the_NULL_is_ONE_NUMBER_for_every_home_where_the_FLOORs_is_NOT(population):
@@ -2682,11 +2746,14 @@ def test_the_TOLERANCE_is_LOAD_BEARING_and_at_least_1_0_would_be_FAIL_OPEN(popul
     assert all(band.judge(r) is not fgl.Verdict.PASS for r in ratios), (
         "with the tolerance in place NO structureless home may pass"
     )
-    # And the tolerance is nowhere near a real home: nine orders below the
-    # smallest real margin, so it can never be doing threshold work.
+    # And the tolerance is nowhere near a real home: six orders below the smallest real
+    # DISTANCE from 1.0, so it can never be doing threshold work. A distance, not a margin above
+    # (2026-10-09): a home with behaviour can sit below its own flat day (P0049 at 0.984; 7% of
+    # real LCL homes), and the tolerance must be as far from those as from the ones above.
     real = [fgl._texture_ratio_or_zero(h) for h in behavioural]
-    assert min(real) - 1.0 > 1e6 * fgl.TEXTURE_NULL_RATIO_TOLERANCE, (
-        f"the smallest real margin is {min(real) - 1.0:.4f}; a tolerance that "
+    nearest = min(abs(r - 1.0) for r in real)
+    assert nearest > 1e6 * fgl.TEXTURE_NULL_RATIO_TOLERANCE, (
+        f"the nearest real home is {nearest:.4f} from 1.0; a tolerance that "
         "approached it would have become a threshold"
     )
 
@@ -2839,7 +2906,8 @@ def test_the_MINTS_INFERRED_MECHANISM_was_REFUTED_by_measurement(population):
     # cause. The partialled r is asserted under 0.4 below and still holds.
     # +0.520 -> +0.569 the same day: oven and hob at their 2022 energy, the same common cause
     # (a smaller evening cook raises base share and lowers peakiness together).
-    assert r == pytest.approx(0.569, abs=0.03)
+    # +0.569 -> +0.493 on 2026-10-09, the drawn 60 on the book's census headcount instead of the deleted bedrooms fallback.
+    assert r == pytest.approx(0.493, abs=0.03)
     share = [min(min(d) for d in h) / (sum(map(sum, h)) / (48 * len(h))) for h in behavioural]
 
     def _residual(y, x):
@@ -2897,6 +2965,9 @@ def _regenerated_result(monkeypatch, weather, **patches):
             household=_household(*spec),
             weather=weather,
             seed=7,
+            behaviour=pt.behaviour_profile_for(  # the panel's own headcount, as `traces`
+                spec[0], _household(*spec), seed=7, people_count=spec[5]
+            ),
             latitude_deg=fp.latitude_for_weather_site("C1"),
             owned=pt.FULL_STOCK, standby_kw=pt.UNIFORM_STANDBY_KW, cooked_on_gas=frozenset(),
         )
@@ -3871,6 +3942,12 @@ def matched_pair(weather):
             household=_matched_household(premise_id, heating),
             weather=weather,
             seed=7,
+            # THREE PEOPLE, as the pair is documented (2026-10-09). The headcount was drawn per
+            # premise id, so the "matched" pair was 3 and 2 under the bedrooms fallback and 1 and
+            # 8 under the census draw: never matched.
+            behaviour=pt.behaviour_profile_for(
+                premise_id, _matched_household(premise_id, heating), seed=7, people_count=3
+            ),
             latitude_deg=fp.latitude_for_weather_site("C1"),
             owned=pt.FULL_STOCK, standby_kw=pt.UNIFORM_STANDBY_KW, cooked_on_gas=frozenset(),
         )
@@ -4097,7 +4174,9 @@ def test_the_floor_is_NOT_LOOSER_for_an_ELECTRIC_home_against_the_same_defect(
     # home's event stream. The ordering below is the property.
     # 0.362 -> 0.401 on 2026-10-08, electronics at its 2022 level, the same direction as the
     # heat-pump home's (0.235 -> 0.326 above); the ordering below still holds.
-    assert gas_critical == pytest.approx(0.401, abs=0.02)
+    # 0.401 -> 0.358 on 2026-10-09: the pair is held at its documented three people. G1 had
+    # drawn two under the deleted bedrooms fallback (and eight under the census draw).
+    assert gas_critical == pytest.approx(0.358, abs=0.02)
     assert hp_critical <= gas_critical, (
         f"the electrically heated home tolerates more damage than the gas home "
         f"before the shared floor fires ({hp_critical:.3f} vs {gas_critical:.3f})"
@@ -4625,6 +4704,9 @@ def matched_regimes(weather):
             household=_matched_household(premise_id, heating),
             weather=weather,
             seed=7,
+            behaviour=pt.behaviour_profile_for(  # three people, as `matched_pair`
+                premise_id, _matched_household(premise_id, heating), seed=7, people_count=3
+            ),
             latitude_deg=fp.latitude_for_weather_site("C1"),
             owned=pt.FULL_STOCK, standby_kw=pt.UNIFORM_STANDBY_KW, cooked_on_gas=frozenset(),
         )

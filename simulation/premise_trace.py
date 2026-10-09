@@ -256,17 +256,6 @@ def load_trace_weather(
 # Layer 2 — the behaviour profile (STRUCTURAL: drawn once per premise)
 # ---------------------------------------------------------------------------
 
-# `domain-knowledge` — occupancy priors. `Household` carries no headcount, so it
-# is drawn from bedrooms unless a caller supplies the existing segmentation
-# fields (`people_count` etc.), which attach here UNCHANGED, per the FRAME.
-_PEOPLE_BY_BEDROOMS: dict[int, tuple[float, ...]] = {
-    1: (1.0, 1.0, 2.0),
-    2: (1.0, 2.0, 2.0, 3.0),
-    3: (2.0, 2.0, 3.0, 3.0, 4.0),
-    4: (2.0, 3.0, 4.0, 4.0, 5.0),
-    5: (3.0, 4.0, 5.0, 6.0),
-}
-
 # `domain-knowledge` — ONS/BEIS holiday-taking: most UK households take two to
 # three trips a year. A CANDIDATE TO VERIFY against a published source, not a
 # settled constant; it is the parameter L1.3 (an empty house must be
@@ -354,14 +343,21 @@ def behaviour_profile_for(
 
     The existing segmentation fields (`people_count`, `children_count`,
     `pensioner_present`, `someone_employed`) attach UNCHANGED where a caller has
-    them — the fabric layer must not fork the segmentation programme. Where they
-    are absent they are drawn from bedrooms.
+    them — the fabric layer must not fork the segmentation programme. Where the
+    headcount is absent it is the book's own: `people_count_for_area`, the Census
+    TS017 draw the settled run passes in (see the note at the branch below).
     """
     base = _base_seed_for(premise_id, seed)
-    bedrooms = 2 if household.bedrooms is None else max(1, min(5, household.bedrooms))
 
     if people_count is None:
-        people_count = int(_substream(base, "people").choice(_PEOPLE_BY_BEDROOMS[bedrooms]))
+        # THE BOOK'S HEADCOUNT, not a second one (2026-10-09). This branch drew from an unsourced
+        # bedrooms table (mean 3.02 on gas homes, 18.5% at 5+) while the settled run drew TS017
+        # (2.29, 5.8%), so every instrument that built a profile-less trace measured a population
+        # the book never settles -- the "+200 kWh gas level excess" was that population. One home,
+        # one headcount, whichever door asks.
+        from simulation.dwelling_records import people_count_for_area
+
+        people_count = people_count_for_area(premise_id, household.output_area)
     people_count = max(1, int(people_count))
     if children_count is None:
         children_count = children_count_for(premise_id, people_count)
