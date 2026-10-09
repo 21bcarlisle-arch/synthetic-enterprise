@@ -30,6 +30,9 @@
 #   q3_debt_repaid_after_22_months_share added as ESTIMATES (vendor case studies, Energy UK, Ofgem
 #   2018 social obligations); gb_domestic_bill_payment_failure_and_arrears_prevalence.md s.(e).
 #   No value any code reads was changed.
+# 2026-10-09 (repaid share): q3_ordinary_failed_bill_repaid_share added, an ESTIMATE from Ofgem's
+#   stock and flow (gb_domestic_bill_payment_failure_and_arrears_prevalence.md s.(f)). Read by
+#   payment_behaviour_source.LATER_SETTLEMENT_REPAID_SHARE; its default stays the shipped 0.5.
 written: 2026-10-05
 toggles:
   - id: q1_move_out_notice_share
@@ -518,6 +521,53 @@ toggles:
         arrangement, six largest suppliers = 95 weeks (derived), agreeing with the DRS "more than
         22 months".
     verdict: MATTERS_AND_RESOLVABLE (estimate)
+
+  - id: q3_ordinary_failed_bill_repaid_share
+    question: Q3 debt
+    meaning: >-
+      Share of an ordinary failed domestic bill (not collected on re-presentation) that the
+      household eventually repays while on supply. Read by
+      simulation/payment_behaviour_source.LATER_SETTLEMENT_REPAID_SHARE (named gap 8, SELECTION).
+      ESTIMATE from Ofgem's stock and flow; no source publishes it directly.
+    default: 0.5
+    low: 0.30
+    high: 0.88
+    unit: probability
+    basis_default: >-
+      The shipped value, kept: Ofgem IA July 2016 s.1.39, "just over half" of DEBT-BLOCKED
+      customers repaid (a selected cohort). It lies inside the Ofgem stock-flow range below, whose
+      own central reading is 0.54 (exit hazard 0.27/yr). Derivation:
+      gb_domestic_bill_payment_failure_and_arrears_prevalence.md s.(f).
+    basis_low: >-
+      0.32, rounded down. Little's law on Ofgem's electricity pool, 2018: stock in arrears plus on
+      an arrangement 1,309,768 (Q4 2018, debt and arrears indicators) over 658,363 entries to
+      arrangements (Ofgem SOR 2018 annual data report, Debt Repayment) = 1.99 years in the pool.
+      s = (T - 1.99)/(T - 0.55), with 0.55 years the world's own time past day 91 for a repaid
+      bill, and T = 1/h the stay of a debtor who never repays. Low end: h = 0.375/yr, private-rent
+      move rate 0.175 (EHS 2023-24) plus switching away with debt 0.20 (Ofgem objections IA 2016
+      s.1.35, 430,000 a year over the 2016 indebted stock of 2.16m accounts, derived).
+    basis_high: >-
+      Stock growth bounds it: the same pool grew a mean 81,531 accounts a year, Q4 2016 to Q4 2019,
+      against 658,363 entries, so at least 12.4% of inflow stays (s <= 0.876, if inflow was flat
+      and non-payers never leave). The exit-hazard leg alone at h = 0.073 (EHS all-tenure move
+      rate, no switching) gives 0.89, and 0.93 at the social-rent rate 0.046.
+    feeds: [W2_38]
+    sensitivity:
+      kind: tested
+      detail: >-
+        2026-10-09, the world's 2019 electricity accounts more than 91 days behind (400 founders,
+        default seed) against Ofgem's matched 5.1%: 9.4% (1.84x, NOT MET) at 0.30; 8.5% (1.67x, NOT
+        MET) at 0.50 and at 0.54; 5.2% (4.1-6.6%, 1.02x, MET) at 0.88. The verdict flips near 0.75
+        (interpolated). At 0.88, 43 of 60 account-quarters behind are bills the world repays at the
+        end of the 22-month window, so the high end rests on that dating too. Run scripts are
+        outside the tree; knowledge doc s.(f). The 1.99-year stay is the weakest link: entries
+        include re-plans after a break and miss debtors never put on a plan. Whether a written-off
+        stayer leaves Ofgem's count is a practitioner gap.
+        SCOPE (same day): that table is the world at 63f429536, one share for every bill. Since
+        95c1193cb this toggle sets only prepayment; DD and standard credit take Centrica's
+        provisions by method (92.6% / 49.7% repaid), and that world measured 4.3% (0.85x, MET).
+        The range bounds the whole book, so it also bounds what the split adds up to.
+    verdict: MATTERS_AND_RESOLVABLE (estimate; the ordinary failed bill's cure share is practitioner knowledge)
 
   - id: q3_instalment_miss_probability_monthly
     question: Q3 debt

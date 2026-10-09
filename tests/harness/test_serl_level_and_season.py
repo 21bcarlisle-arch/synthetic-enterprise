@@ -71,7 +71,7 @@ def test_a_non_finite_reading_fails_closed():
 
 
 def test_every_edge_is_a_published_figure_at_its_published_precision():
-    """Each band's edges sit within half a unit in the second decimal of a figure
+    """Each band's edges sit within half a unit in the third decimal of a figure
     its source text names, so an edge cannot be moved without moving the citation."""
     for band in fgl.SERL_BANDS.values():
         if band.anchor is fgl.AnchorStatus.NEED:
@@ -79,4 +79,4 @@ def test_every_edge_is_a_published_figure_at_its_published_precision():
         for edge in (band.low, band.high):
             named = [float(t.rstrip(".,)")) for t in band.anchor_source.replace("/", " ").split()
                      if t.rstrip(".,)").replace(".", "", 1).isdigit() and "." in t]
-            assert any(abs(edge - v) <= 0.005 + 1e-9 for v in named), (band.statistic, edge, named)
+            assert any(abs(edge - v) <= 0.0005 + 1e-9 for v in named), (band.statistic, edge, named)

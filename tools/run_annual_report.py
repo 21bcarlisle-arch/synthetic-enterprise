@@ -100,6 +100,28 @@ def _send_run_complete_ntfy(data: dict, report_path: Path) -> None:
     pass
 
 
+def write_json_list_indented(path: Path, items: list) -> None:
+    """Write `json.dumps(items, indent=2)` to `path` without ever holding that whole string.
+
+    WHY (2026-10-09). The ledger dump below was the PEAK of a production run: sampled every 15 s
+    over a 400-founder `sim-runner` run, the process sat on a ~3.3 GB plateau through the
+    simulation and spiked to 3,751 MB for one sample at this write -- the indent=2 text of every
+    ledger event, built in memory before a byte reached disk. Element by element, each through the
+    C encoder, the file is BYTE-IDENTICAL: a JSON string cannot hold a raw newline, so shifting
+    each element's own indent=2 lines right by two spaces is exactly the nesting `dumps` writes.
+    """
+    with open(path, "w", encoding="utf-8") as handle:
+        if not items:
+            handle.write("[]")
+            return
+        handle.write("[\n")
+        for index, item in enumerate(items):
+            if index:
+                handle.write(",\n")
+            handle.write("\n".join("  " + line for line in json.dumps(item, indent=2).split("\n")))
+        handle.write("\n]")
+
+
 def _run_and_extract(report_end: str | None = None) -> dict:
     run_output = run_phase4c_on_phase2b(report_end=report_end)
     return extract_report_data(run_output)
@@ -550,7 +572,7 @@ def main() -> None:
         ledger_events = raw_output.get("ledger_events", [])
         if ledger_events:
             LEDGER_LATEST_PATH.parent.mkdir(parents=True, exist_ok=True)
-            LEDGER_LATEST_PATH.write_text(json.dumps(ledger_events, indent=2))
+            write_json_list_indented(LEDGER_LATEST_PATH, ledger_events)
             print(f"Wrote {LEDGER_LATEST_PATH} ({len(ledger_events):,} events)")
         _send_run_complete_ntfy(data, args.output)
 

@@ -38,12 +38,51 @@ PHASE 42 ADDITION: fuel-specific seasonal multipliers.
 Phase 4c-3 weather sensitivity multiplier is preserved unchanged.
 """
 
+import bisect
 import json
 import statistics
-from pathlib import Path
 from datetime import date, timedelta
+from pathlib import Path
 
 from sim.weather_price_sensitivity import weather_sensitivity_multiplier
+
+#: Date indexes over price-record lists, keyed by the list's id. Each entry holds the list itself
+#: (so an id cannot be reused while its entry lives), the length it was built at, the ISO dates in
+#: sorted order and the record positions in that order. Bounded: a run holds two lists (SSP, NBP).
+_WINDOW_INDEX: dict[int, tuple] = {}
+_WINDOW_INDEX_MAX = 8
+
+
+def records_in_window(records: list[dict], first: date, last: date) -> list[dict]:
+    """The records whose `settlementDate` falls in [first, last], in the list's own order.
+
+    WHY AN INDEX (2026-10-09, the director's "index once"). `generate_forward_price` and
+    `risk_engine.calculate_sigma_recent` each parsed every date in ten years of half-hourly prices
+    on every call -- per account, per term -- to keep a 90- or 365-day window: ~16% of a run's wall,
+    measured on a 40-founder run (258 s -> 218 s with this index, the extracted book identical).
+    The answer is unchanged by construction: the same records, in the same order, are returned.
+
+    The index is rebuilt whenever the list's length changes, and it is not used at all for a list
+    whose dates are not all plain `YYYY-MM-DD` -- string order equals date order only for that
+    form, so any other form takes the original parse-every-date scan.
+    """
+    entry = _WINDOW_INDEX.get(id(records))
+    if entry is None or entry[0] is not records or entry[1] != len(records):
+        dates = [r["settlementDate"] for r in records]
+        if all(isinstance(d, str) and len(d) == 10 and d[4] == "-" and d[7] == "-" for d in dates):
+            order = sorted(range(len(records)), key=dates.__getitem__)
+            entry = (records, len(records), [dates[i] for i in order], order)
+        else:
+            entry = (records, len(records), None, None)
+        if len(_WINDOW_INDEX) >= _WINDOW_INDEX_MAX:
+            _WINDOW_INDEX.pop(next(iter(_WINDOW_INDEX)))
+        _WINDOW_INDEX[id(records)] = entry
+    _, _, sorted_dates, order = entry
+    if sorted_dates is None:
+        return [r for r in records if first <= date.fromisoformat(r["settlementDate"]) <= last]
+    lo = bisect.bisect_left(sorted_dates, first.isoformat())
+    hi = bisect.bisect_right(sorted_dates, last.isoformat())
+    return [records[i] for i in sorted(order[lo:hi])]
 
 _CALIBRATION_PATH = Path(__file__).parent / 'data' / 'seasonal_calibration.json'
 
@@ -166,10 +205,7 @@ def generate_forward_price(
     end_lookback = start_date - timedelta(days=1)
     start_lookback = start_date - timedelta(days=lookback_days)
 
-    filtered = [
-        r for r in system_price_records
-        if start_lookback <= date.fromisoformat(r["settlementDate"]) <= end_lookback
-    ]
+    filtered = records_in_window(system_price_records, start_lookback, end_lookback)
 
     if not filtered:
         raise ValueError(

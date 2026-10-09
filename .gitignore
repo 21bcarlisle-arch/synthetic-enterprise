@@ -123,3 +123,5 @@ docs/observability/projections.sqlite.rebuilding
 # ABORT -- not delete. Every lane's fast-forward would have wedged. Dot-prefixed to match the
 # convention every other machine-state file in this directory already follows.
 docs/observability/.head_red_observed.json
+docs/observability/.lane_unit_crash.json
+docs/observability/.lane_unit_crash_woken.json

@@ -42,6 +42,8 @@ increment.
 import statistics
 from datetime import date, timedelta
 
+from sim.forward_curve import records_in_window
+
 Z_SCORE_90_CONFIDENCE = 1.645      # one-tailed 90% confidence z-score for VaR
 SIGMA_RECENT_LOOKBACK_DAYS = 365   # trailing window for the "current conditions" volatility view
 SIGMA_STRESSED_PRE_REFORM = 0.50   # regulatory floor before Ofgem's post-crisis reform (lax, historically accurate)
@@ -85,17 +87,11 @@ def calculate_sigma_recent(reference_date: str, system_price_records: list[dict]
     start_date = ref_date - timedelta(days=lookback_days)
     end_date = ref_date - timedelta(days=1)
 
-    filtered_records = [
-        record for record in system_price_records
-        if start_date <= date.fromisoformat(record['settlementDate']) <= end_date
-    ]
+    filtered_records = records_in_window(system_price_records, start_date, end_date)
 
     if not filtered_records:
         bootstrap_end = ref_date + timedelta(days=lookback_days - 1)
-        filtered_records = [
-            record for record in system_price_records
-            if ref_date <= date.fromisoformat(record['settlementDate']) <= bootstrap_end
-        ]
+        filtered_records = records_in_window(system_price_records, ref_date, bootstrap_end)
 
     if not filtered_records:
         raise ValueError(

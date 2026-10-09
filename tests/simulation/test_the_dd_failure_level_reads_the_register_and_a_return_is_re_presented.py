@@ -24,7 +24,6 @@ from simulation import payment_behaviour_source as pbs
 from simulation.meter_reads import ASSUMPTION_TOGGLES_PATH
 from simulation.payment_behaviour_source import (
     DIRECT_DEBIT,
-    LATER_SETTLEMENT_REPAID_SHARE,
     LATER_SETTLEMENT_WITHIN_FIRST_WINDOW_SHARE,
     REPRESENTATION_DAYS_AFTER_DUE,
     REPRESENTATION_SUCCESS_SHARE,
@@ -114,7 +113,7 @@ def test_the_cure_is_its_own_draw_and_leaves_every_uncured_bill_as_it_was(monkey
     assert uncured and all(a == b for a, b in uncured)
     cured_was = [b for a, b in zip(with_cure, without) if a == cured_on]
     early = min(d for d in without if d is not None)
-    p_early = LATER_SETTLEMENT_REPAID_SHARE * LATER_SETTLEMENT_WITHIN_FIRST_WINDOW_SHARE
+    p_early = (1 - pbs.never_repaid_share(DIRECT_DEBIT)) * LATER_SETTLEMENT_WITHIN_FIRST_WINDOW_SHARE
     for population in (uncured, cured_was):
         dates = [x[1] if isinstance(x, tuple) else x for x in population]
         share_early = sum(1 for d in dates if d == early) / len(dates)

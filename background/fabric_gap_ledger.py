@@ -3112,9 +3112,13 @@ def evaluate_two_level(population: PopulationTraces) -> TwoLevelResult:
 # (UCL, rev. 2025), homes with gas central heating and NO PV — the population is
 # the band's, so a caller must hand in only such homes. Table 3: the median across
 # homes of daily imports per month. Table 6: "the median of the mean electricity
-# use in each half hour per participant", of which only the minimum and maximum are
-# published. Every edge below is a published figure at its published precision
-# (2 dp), across the years read, so no edge is chosen here.
+# use in each half hour per participant". The PDF prints these at 2 dp and Table 6
+# only for 2022-23; the aggregated tables (figshare 25472560, sheets `Figure_4` and
+# `Figure_7`) give all three years, 2021-2023, at 3 dp. Every edge below is the
+# lowest and highest of those three years at that precision, so no edge is chosen
+# here. Each year is unusual (2021 lockdown, 2022-23 crisis) and the world has
+# neither, so a band of crisis years alone would hold a no-response world red
+# whatever is right (`docs/staging/SEAT_FINDING_A_GAS_HOMES_SEASON_MISS_IS_THE_WINTER_AND_LIGHTING_IS_THE_ONE_TERM_OFF_ITS_SOURCE_2026-10-09.md`).
 #
 # They live in their own registry, not `BANDS`: `band_null_sweep` asks whether a
 # re-deal of the population's own days can pass a band, and a re-deal leaves every
@@ -3158,22 +3162,25 @@ class RangeBand:
 SERL_BANDS: dict[str, RangeBand] = {
     "S1_trough_kwh_per_h": RangeBand(
         statistic="S1_trough_kwh_per_h",
-        low=0.125, high=0.135,
+        low=0.126, high=0.136,
         anchor=AnchorStatus.PUBLISHED,
-        anchor_source=f"{SERL_SOURCE}, Table 6 minimum: 0.13 kWh/h at 04:30 in 2022 and in 2023.",
+        anchor_source=(f"{SERL_SOURCE}, aggregated tables Figure_7, 04:30 median: "
+                       "0.136 (2021), 0.128 (2022), 0.126 (2023) kWh/h."),
     ),
     "S2_peak_kwh_per_h": RangeBand(
         statistic="S2_peak_kwh_per_h",
-        low=0.445, high=0.485,
+        low=0.450, high=0.544,
         anchor=AnchorStatus.PUBLISHED,
-        anchor_source=f"{SERL_SOURCE}, Table 6 maximum: 0.48 kWh/h (2022) and 0.45 (2023), both at 18:30.",
+        anchor_source=(f"{SERL_SOURCE}, aggregated tables Figure_7, 18:30 median: "
+                       "0.544 (2021), 0.475 (2022), 0.450 (2023) kWh/h."),
     ),
     "S3_month_max_over_min": RangeBand(
         statistic="S3_month_max_over_min",
-        low=1.36, high=1.47,
+        low=1.358, high=1.459,
         anchor=AnchorStatus.PUBLISHED,
-        anchor_source=(f"{SERL_SOURCE}, Table 3 monthly medians: 9.7/6.6 = 1.47 (2021), "
-                       "8.5/6.0 = 1.42 (2022), 7.9/5.8 = 1.36 (2023)."),
+        anchor_source=(f"{SERL_SOURCE}, aggregated tables Figure_4 monthly medians: "
+                       "9.692/6.645 = 1.459 (2021), 8.519/6.023 = 1.414 (2022), "
+                       "7.897/5.816 = 1.358 (2023)."),
     ),
     "S4_annual_kwh_sum_of_monthly_medians": RangeBand(
         statistic="S4_annual_kwh_sum_of_monthly_medians",

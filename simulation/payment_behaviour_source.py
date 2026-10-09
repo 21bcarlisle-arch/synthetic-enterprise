@@ -433,7 +433,7 @@ def generate_payment_event(
 #      it, so the cure is dated up to that much early. Only a Direct Debit is re-presented.
 #   2. DATING, AND THE OTHER HALF. Ofgem gives two windows, not a curve. Each settlement is dated
 #      at the END of its window (3 months, or the longer cohort's 22 months), the latest date the
-#      source allows. The half not repaid by the report is never repaid here, though Ofgem saw no
+#      source allows. The share not repaid by the report is never repaid here, though Ofgem saw no
 #      further than 22 months. Both overstate time in debt; on a full run the second dominates
 #      (one never-repaid bill holds a household eligible at every later renewal).
 #   3. THE CLOCK START. Ofgem's clock starts at the block, which may be later than day 28.
@@ -449,19 +449,49 @@ def generate_payment_event(
 #   7. LEAVERS. A bill is drawn at its due date, so a household that later leaves repays at the
 #      same rate as one that stays. Final-account debt recovers far worse (Centrica ARA 2025 Note
 #      17: 84-88% provisioned), so this overstates what leavers repay.
-#   8. SELECTION. The 0.5 is the share for customers BLOCKED FROM SWITCHING by debt. It is applied
-#      here to every failed bill, because no published source gives the ordinary failed bill's
-#      share or curve (searched 2026-10-09: Ofgem indicators, SOR, debt-costs papers, Energy UK,
-#      StepChange, Citizens Advice; see SEAT_FINDING_THE_DD_FAILURE_CORRECTION_MOVED_MEASURED_FACTS).
-#      Centrica provisions only 7.4% of its live DD balances that are over 90 days old, against
-#      50.3% for pay-on-receipt (ARA 2025 Note 17). So for a DD household, never repaying half of
-#      failed bills overstates the loss. This is the leading suspect for the world's >91-day stock
-#      reading about 2x Ofgem's.
+#   8. SELECTION (narrowed 2026-10-09). The 0.5 is the share for customers BLOCKED FROM SWITCHING
+#      by debt, and no published source gives the ordinary failed bill's share or curve (searched
+#      2026-10-09: Ofgem indicators, SOR, debt-costs papers, Energy UK, StepChange, Citizens Advice;
+#      see SEAT_FINDING_THE_DD_FAILURE_CORRECTION_MOVED_MEASURED_FACTS). The never-repaid share is
+#      now `NEVER_REPAID_SHARE_BY_METHOD`: one supplier's (Centrica's) expected-loss provision on
+#      live balances over 90 days old, by payment method. A method it does not report (prepayment)
+#      keeps the cohort's 0.5. What that substitution carries is stated beside the table.
 
-#: "just over half" of debt-blocked domestic customers had repaid by the time of reporting -- read
-#: at its floor. Ofgem IA July 2016 §1.39; domestic_debt_objection_rates_gb.md row 22. That is a
-#: selected cohort, standing in for the ordinary failed bill's share, which is unpublished (gap 8).
-LATER_SETTLEMENT_REPAID_SHARE = 0.5
+#: Register `q3_ordinary_failed_bill_repaid_share` (default 0.5, range 0.30-0.88). The default is
+#: "just over half" of debt-blocked domestic customers repaid by the time of reporting, read at its
+#: floor (Ofgem IA July 2016 §1.39; domestic_debt_objection_rates_gb.md row 22) -- a selected
+#: cohort standing in for the ordinary failed bill's share, which is unpublished (gap 8). The range
+#: is an ESTIMATE from Ofgem's arrears stock against its flow of new arrangements, and 0.5 lies
+#: inside it (gb_domestic_bill_payment_failure_and_arrears_prevalence.md s.(f)). Since 95c1193cb it
+#: sets only the methods `NEVER_REPAID_SHARE_BY_METHOD` has no row for (prepayment); the range is
+#: for the whole book, so it also bounds what that table's methods add up to.
+LATER_SETTLEMENT_REPAID_SHARE: float = assumption_toggle("q3_ordinary_failed_bill_repaid_share")
+
+#: P(a failed domestic bill not cured on re-presentation is never repaid), by payment method.
+#: CITED, ONE SUPPLIER: Centrica plc ARA 2025 Note 17 p.175, UK residential, live accounts,
+#: provision / gross on balances >90 days past invoice: Direct Debit 18/243 = 7.4%, payment on
+#: receipt of bill 551/1,095 = 50.3% (`docs/market_research/
+#: dd_failure_basis_and_live_arrears_provision_rates.md` C6). The world's standing order and card
+#: are standard credit (`SEAM_CHANNEL_FOR_METHOD`), which is Centrica's pay-on-receipt row.
+#:   WHAT IT COUNTS. An expected loss on a balance already past 90 days, so it applies here only
+#:   to a bill that reaches 90 days unpaid. Every bill that takes this draw does: a re-presented
+#:   DD is cured at day 14, and the earliest later settlement is due + 28 days + 3 months (about
+#:   day 119). Nothing is charged the share at the moment it fails.
+#:   WHICH WAY IT ERRS. (a) A provision is a STOCK rate by VALUE; old unpaid balances pile up in a
+#:   stock, so the per-bill FLOW share is likely lower -- this overstates never-repaid. (b) One
+#:   supplier, one year (2024 read 4.4% for DD). (c) A provision is a belief, not an outcome.
+#: Prepayment has no Centrica row and keeps the debt-blocked cohort's share.
+NEVER_REPAID_SHARE_BY_METHOD = {
+    DIRECT_DEBIT: 18 / 243,
+    STANDING_ORDER: 551 / 1095,
+    CARD: 551 / 1095,
+    PAY_ON_RECEIPT_METHOD: 551 / 1095,
+}
+
+
+def never_repaid_share(payment_method: str) -> float:
+    """The never-repaid share for a failed bill on `payment_method` (see the table above)."""
+    return NEVER_REPAID_SHARE_BY_METHOD.get(payment_method, 1 - LATER_SETTLEMENT_REPAID_SHARE)
 
 #: "Around 70% of those that had paid off their debt ... did so within three months." Same source.
 LATER_SETTLEMENT_WITHIN_FIRST_WINDOW_SHARE = 0.7
@@ -506,12 +536,13 @@ def later_settlement_date(event: PaymentEvent, segment: str = "resi",
     Only a domestic `failed` bill is ever settled here: a paid or late bill already carries its
     payment date, and a business failure or dispute has no sourced cure. Drawn from its own
     period-isolated substream, so it never moves `generate_payment_event`'s draws or any other
-    period's. See the block above for the source and the seven named gaps.
+    period's. See the block above for the sources and the eight named gaps.
 
     A returned Direct Debit is first re-presented: collected `REPRESENTATION_DAYS_AFTER_DUE` after
     its due date with probability `REPRESENTATION_SUCCESS_SHARE`, from its own substream. The
     bill's record stays `failed` (the return happened and the supplier saw it); only its
-    settlement date changes. One not cured then takes the Ofgem later-settlement draw unchanged.
+    settlement date changes. One not cured has passed 90 days unpaid by its earliest settlement,
+    and is never repaid with its method's `never_repaid_share`.
     """
     if event.result != "failed" or is_business(segment):
         return None
@@ -525,9 +556,10 @@ def later_settlement_date(event: PaymentEvent, segment: str = "resi",
     objectionable_from = (date.fromisoformat(event.due_date)
                           + timedelta(days=DEBT_OBJECTION_MIN_DAYS_OUTSTANDING))
     u = _period_substream(base_seed, _LATER_SETTLEMENT_SUBSTREAM_BASE, event.period_index).random()
-    if u < LATER_SETTLEMENT_REPAID_SHARE * LATER_SETTLEMENT_WITHIN_FIRST_WINDOW_SHARE:
+    repaid = 1 - never_repaid_share(event.payment_method)
+    if u < repaid * LATER_SETTLEMENT_WITHIN_FIRST_WINDOW_SHARE:
         return _add_months(objectionable_from, LATER_SETTLEMENT_FIRST_WINDOW_MONTHS)
-    if u < LATER_SETTLEMENT_REPAID_SHARE:
+    if u < repaid:
         return _add_months(objectionable_from, LATER_SETTLEMENT_REPORTING_WINDOW_MONTHS)
     return None
 

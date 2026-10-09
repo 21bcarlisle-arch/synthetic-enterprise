@@ -47,6 +47,11 @@ NOT_YET_MIGRATED = {
     ("simulation/population_draw.py", "_substream"),
     ("simulation/premise_population.py", "_substream"),
     ("simulation/sme_payment_behaviour.py", "_tier_substream"),
+    # Added by d22754a36 (2026-10-05, home moves) and red on origin since. NOT the canonical
+    # formula: it joins with single colons and appends per-account keys, so moving it onto
+    # `substream` would re-draw every move, void and incoming occupant -- a world change, not
+    # a refactor. Listed here (2026-10-09) until a migration is taken as one.
+    ("sim/customer_state_layer.py", "_substream"),
 }
 
 
