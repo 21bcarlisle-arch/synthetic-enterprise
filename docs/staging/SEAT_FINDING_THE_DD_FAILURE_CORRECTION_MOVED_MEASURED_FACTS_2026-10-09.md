@@ -273,3 +273,75 @@ the same instrument as the 80-founder table.
   answer to one question: *of ordinary failed domestic bills, by payment method, what share is
   eventually collected while the customer stays on supply?* That question is now in
   `for_the_director` with a recommendation.
+
+## The never-repaid share by payment method, at the aged balance (enacting the-world-s-arrears-read-1-67x)
+
+### Pre-registration (2026-10-09, written before any code changed)
+
+**Change.** `later_settlement_date` stops reading the debt-blocked cohort's 0.5 for every failed
+bill. The never-repaid share becomes a share by payment method, from Centrica ARA 2025 Note 17's
+provision on live UK residential balances over 90 days old: **Direct Debit 7.4%**, and
+**pay-on-receipt 50.3%**, which covers standard credit, standing order and card. The world classes
+standing order and card as standard credit, and so does Centrica's pay-on-receipt row. Prepayment
+has no Centrica row and keeps the Ofgem cohort's 0.5. The repaid remainder keeps Ofgem's 70/30
+split between the 3-month and 22-month windows. The draw `u` is unchanged, so for DD the mapping is
+deterministic. Of the old never-repaid bills, 29.6% become 3-month, 55.6% become 22-month and 14.8%
+stay never. Every old 22-month bill becomes a 3-month bill.
+
+**Where it applies.** Centrica's figure counts a provision on balances already more than 90 days
+past invoice. Every failed bill in the world that is not cured on re-presentation (day 14) settles
+no earlier than its due date plus 28 days plus 3 months, about day 119. **So every bill that takes
+the share has already reached 90 days unpaid**, and applying the share at that draw is the same
+as applying it at the 90-day point. No bill is charged the share at the moment it fails.
+
+**Prediction P4.** I re-mapped each bill in `/var/tmp/arrears_lfl_400.json` (the 400-founder run,
+d72c196b3) through the rule above, as an expected value per account (`/tmp/predict_nr.py`). The
+expected pooled 2019 electricity reading falls from 98/1153 = 8.5% to **66.9/1153 = 5.8%**, a
+ratio of **1.14x**. The direction is **down**. Of the 79 DD accounts in the stock, about 48
+remain. The pay-on-receipt accounts (19) are unchanged. Debt status feeds renewal and objection
+decisions, so the re-run's book will not be the same accounts. I therefore pre-register a band:
+pooled **5.0-6.8%**, ratio **1.0-1.33x**. Most likely verdict: **MET** (5.1% inside the pooled
+Wilson interval). It is NOT MET, HIGH if the reading is about 6.6% or more.
+
+**Run.** Same script, default seed, `report_end` 2019-12-31, 400 founders (`FOUNDER_BOOK.yaml`), and
+the same 'g'-suffix fuel split. It runs at origin with this change, through `launch_long_job`.
+
+### Result (2026-10-09T18:01Z): MET, 0.85x. P4 refuted on the low side
+
+The run is `longjob-arrears-lfl-400-never-repaid-by-method`, at origin 63f429536 plus this change,
+with 400 founders, the default seed, a `report_end` of 2019-12-31 and the 'g'-suffix split. Output:
+`/var/tmp/arrears_lfl_400_nr.json`. The denominators match the 1.67x run exactly, so this is the
+same book.
+
+| quarter end | 400 founders, flat 0.5 (1.67x run) | 400 founders, share by method |
+|---|---|---|
+| 2019-03-31 | 23/303 = 7.6% | 12/303 = 4.0% |
+| 2019-06-30 | 23/295 = 7.8% | 10/295 = 3.4% |
+| 2019-09-30 | 24/283 = 8.5% | 12/283 = 4.2% |
+| 2019-12-31 | 28/272 = 10.3% | 16/272 = 5.9% (3.7-9.3%) |
+| **2019 pooled, electricity** | **98/1153 = 8.5% (7.0-10.3%)** | **50/1153 = 4.3% (3.3-5.7%)** |
+| 2019 pooled, gas | 16/202 = 7.9% | 8/202 = 4.0% (2.0-7.6%) |
+
+- **Against 5.1%:** 5.1% lies inside the pooled Wilson interval, so the verdict is **MET**, at
+  **0.85x** pooled. Q4 2019 alone reads 1.16x and its interval also contains 5.1%. **The arrears
+  half of the director's hold on the 3,100 settlement raise is met on this instrument.** The
+  departure half was already met (c38c97622).
+- **P4 refuted, low.** I predicted 5.0-6.8% (point 5.8%, 1.14x). The reading is 4.3%. The
+  direction held. The never-repaid DD bills fell from 37 to 3, against 5.5 expected. The DD stock
+  fell from 79 to 35 account-quarters, against about 48 expected. The 4 `standard_credit`
+  account-quarters left the stock. The pay-on-receipt stock (standing order and card, 15) did not
+  move, as predicted. The shortfall against the expected value sits in where this book's fixed
+  draws fell. It is one seed, so whether the world lands below or at 5.1% on average is **not
+  established**. A second seed would settle it.
+- **What still leans high, unchanged:** the provision is a stock rate read as a flow share (it
+  overstates never-repaid), and gaps 2, 4 and 7. **What now leans low:** nothing new. A reading
+  below 5.1% on more seeds would point at those gaps being smaller than the provision's slack, or
+  at the 22-month dating.
+- **Controls:** `test_the_never_repaid_share_is_one_suppliers_aged_balance_provision_by_method`
+  and the re-keyed partition test. Each reds under the matching mutation: a flat 0.5 reds the DD
+  partition, and the DD share for every method reds the card leg. A flat 0.5 is equivalent on the
+  card leg (0.503). `test_q3` re-pinned: only ageing moves (0.3857 -> 0.3516), and a flat 0.5
+  reproduces it exactly. The `W2_11` harness (623 tests) does not move.
+- The three reds in `test_a_vacated_home_stands_void_for_its_tenure.py` and
+  `test_the_company_ledger_bills_the_months_revenue.py` are red at origin 63f429536 without this
+  change too (run in a clean worktree). They are not this change.

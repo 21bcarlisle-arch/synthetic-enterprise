@@ -871,6 +871,15 @@ def _mute_sentence(declared_rows: list) -> str:
     return out
 
 
+def _lane_crash_sentence(running: dict) -> str:
+    """The lane units whose last two runs both crashed. Unread (`ps` never ran) says nothing here;
+    the unreadable-box sentence carries that case."""
+    if not running.get("available", False):
+        return ""
+    from background.lane_unit_crash import brief_sentence
+    return brief_sentence(running.get("lane_units") or [])
+
+
 def _unlanded_worktree_commits() -> dict:
     """`tools.unlanded_worktree_commits.census`, fail-closed: a census that raised is
     `available: False`, never an empty list."""
@@ -980,6 +989,13 @@ def running_now(floor_seconds: int = ELAPSED_FLOOR_SECONDS) -> dict:
         declared_rows, declared_why = [], repr(exc)
     else:
         declared_why = ""
+    # THE LANE UNITS, which the declared-daemon reading cannot see: they are timer oneshots, so a
+    # lane that dies every run is neither absent nor quiet. See `background/lane_unit_crash.py`.
+    try:
+        from background.lane_unit_crash import LANE_UNITS, reading
+        lane_units = [reading(unit) for unit in LANE_UNITS]
+    except Exception as exc:  # noqa: BLE001
+        lane_units = [{"unit": "worker-tick/seat-executor", "available": False, "why": repr(exc)}]
     return {
         "available": True,
         "floor_seconds": floor_seconds,
@@ -991,6 +1007,7 @@ def running_now(floor_seconds: int = ELAPSED_FLOOR_SECONDS) -> dict:
         "declared": declared_rows,
         "declared_absent": [r for r in declared_rows if not r["on_box"]],
         "declared_unreadable": declared_why,
+        "lane_units": lane_units,
     }
 
 
@@ -2086,6 +2103,7 @@ def _prompt(brief: dict) -> str:
           "whatever else this brief says is due.\n\n"
         + rendered
         + absence_sentence
+        + _lane_crash_sentence(running)
         + running_sentence
         + ended_sentence
         + "\n\n" + _render_unlanded(brief.get("unlanded_worktree_commits"))

@@ -856,3 +856,12 @@ sources read so far cannot close it.**
   a LEVEL question: cooking's ~+115 and the unread ten months of Table 3 come first.
 - **Triage row `a-gas-heated-homes-electricity-has-no-season`: NOT marked fixed.** The control is red
   and stays red until those terms land. That is what the control is for.
+
+## Re-read at scale: the summer is the 2022 price response (2026-10-09, worker, claim `a-gas-homes-summer-electricity-level-against-serl-table-3`)
+
+Over 2,412 homes, the world's 2022 summer sits within +0.06 to +0.26 kWh/day of SERL's **2021**
+summer. SERL's own summer fell 8–9% from 2021 to 2022. So the summer excess is a price response
+the world does not model, not an end use. The base-load conclusion above ("EFUS's base survives a
+2022 check") rested on the 163-home low draw. At scale the trough is 0.137, which fails.
+Attribution, two refuted lighting predictions, and the triage row now owned there:
+`docs/staging/SEAT_FINDING_A_GAS_HOMES_SEASON_MISS_IS_THE_WINTER_AND_LIGHTING_IS_THE_ONE_TERM_OFF_ITS_SOURCE_2026-10-09.md`.
