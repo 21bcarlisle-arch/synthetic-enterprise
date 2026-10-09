@@ -5048,6 +5048,14 @@ def _generate_dashboard_json(json_path, git_hash="unknown"):
         from tools.engagement_separation import write as gen_engagement
         gen_engagement()
         log("Generated site/data/engagement_separation.json")
+    # The module-graph door (director, 2026-10-09: "regenerated from HEAD on a weekly cadence").
+    # This path runs once a week, inside the publish window, so riding it IS the weekly cadence.
+    # A diagnostic: nothing reads the feed but the page.
+    with _ledger.step("Module graph census", ["site/data/module_graph.json"]):
+        from tools.module_graph_census import write as gen_module_graph
+        _mg = gen_module_graph()
+        log("Generated site/data/module_graph.json ({} modules, {} edges, {} bypassing the seam)"
+            .format(_mg["modules"], _mg["edges"], _mg["crossings"]["bypass"]))
     # R11 no-orphan-transition fix (2026-07-14, surfaced by SITE1 Director-door
     # cold-eyes): these two generators were NOT wired into the pipeline, so
     # site/data/director_twin.json + provisional_plan.json froze/drifted after
