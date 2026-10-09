@@ -67,7 +67,8 @@ _SEED = 101
 # is a DRAW (a failure has to land on the extreme invoice), so it is per-seed
 # and one day short of the band top on seed 7.
 _INVOICE_BAND_TOP_DAYS = 92
-_OLDEST_OBSERVED_FAILURE_AGE_DAYS = {7: 91, 11: 92, 23: 92}
+# 11: 92 -> 91 (prepayment correction 2026-10-08: seed 11's oldest observed failure was a prepayment period).
+_OLDEST_OBSERVED_FAILURE_AGE_DAYS = {7: 91, 11: 91, 23: 92}
 # `_ABOVE_EDGE_BOOK_RANGE` -- the draw-size axis's above-edge range plus the
 # window: (-333, -308) at 400 and (-23, 2) at 90 are the same (67, 92). Its top
 # is the invoice band top. D30's shipped band, in the same coordinates, was
@@ -281,16 +282,23 @@ def test_detection_latency_is_the_real_thing_and_not_an_as_of_artefact():
     grid it read exactly {30, 51, 72} days, a pure artefact carrying no
     information about WHEN the company first knew. Mutate `as_of` and assert
     the two behave oppositely: the retired quantity marches with the clock, the
-    latency dimension does not move at all."""
+    latency dimension does not move at all.
+
+    RE-KEYED 2026-10-08 (`docs/staging/SEAT_FINDING_THE_PREPAYMENT_CORRECTION_MOVED_SIX_MEASURED_FACTS_OF_THE_W2_11_HARNESS_2026-10-08.md`): the retired median moved 30 days for a
+    30-day shift on the old world and moves 33 (51 -> 84) now that prepayment
+    periods no longer fail -- the median case changes as the clock moves. It
+    still marches with the clock, which is the property; it is no longer
+    one-for-one."""
     import datetime as _dt
 
     records, consumer, _ledger, as_of = pair.build_scenario(400, seed=_SEED)
     early = pair.score_triad(records, consumer, as_of)
     later = pair.score_triad(records, consumer, as_of + _dt.timedelta(days=30))
 
-    # The retired quantity IS the artefact -- it moves one-for-one with as_of.
+    # The retired quantity IS the artefact -- it marches with as_of: 33 days
+    # for a 30-day shift on this book (30 before the prepayment correction).
     assert (later["stats"]["reconciliation_days_overdue_at_as_of"]["median_days"]
-            - early["stats"]["reconciliation_days_overdue_at_as_of"]["median_days"]) == 30
+            - early["stats"]["reconciliation_days_overdue_at_as_of"]["median_days"]) == 33
 
     # The real latency is a property of the OBSERVATION, not of the question's
     # timing, so it does not move.
@@ -1690,10 +1698,17 @@ def _rendered_dimension_text(result) -> dict:
     return rendered
 
 
-@pytest.mark.parametrize("seed,grace", [(7, None), (11, None), (23, 12)])
+@pytest.mark.parametrize("seed,grace", [(13, None), (11, None), (23, 12)])
 def test_shared_quantity_declarations_are_measured_not_asserted(seed, grace):
     """Each registered quantity's declared population relationship is checked
     against what the two SCORERS actually returned.
+
+    SEED 7 -> 13 (prepayment correction 2026-10-08). On seed 7 the company now overstates no invoice's
+    age, so the ageing numerator is EMPTY and the strict-subset half holds
+    vacuously (the vacuity guard below fires, by design). Seed 13's numerators
+    are 5 (ageing) inside 9 (detection), so the same relationship is asked of a
+    population that can break it: adding one ageing-only case to the measured
+    numerator reds the subset assertion.
 
     Independence (R15 tautology): the two sides come from
     `gap_metric.ageing_gap` and `gap_metric.detection_measures`, two separate
@@ -4072,7 +4087,8 @@ def test_the_detection_gap_saturates_in_both_tails(drift_resolution):
     MOVED, i.e. as evidence of resolution -- sits inside the saturated tail,
     publishing the same figure as -20d."""
     row = drift_resolution["detection"]
-    assert row["saturates_below"] == -6 and row["saturates_above"] == 82
+    # 82 -> 80 (prepayment correction 2026-10-08).
+    assert row["saturates_below"] == -6 and row["saturates_above"] == 80
     tail = next(r for r in row["collapsed_runs"] if row["drifts"][0] in r)
     assert tail == tuple(range(-20, -5)) and len(tail) == 15
     assert -8 in tail and -8 in row["moved"], (
@@ -4080,7 +4096,7 @@ def test_the_detection_gap_saturates_in_both_tails(drift_resolution):
     for seed in row["seeds"]:
         by = row["by_seed"][seed]["by_drift"]
         assert len({by[k] for k in tail}) == 1
-    assert len(row["collapsed_runs"]) == 16
+    assert len(row["collapsed_runs"]) == 21  # 16 -> 21 (prepayment correction 2026-10-08)
 
 
 def test_the_upper_edge_was_the_grids_own_end_and_the_caveat_shipped_it():
@@ -4096,26 +4112,34 @@ def test_the_upper_edge_was_the_grids_own_end_and_the_caveat_shipped_it():
     therefore worse than none.
 
     Scored HERE rather than asserted from the register, so this test fails if
-    the reading ever stops moving in that region for some other reason."""
-    recs, cons, _ledger, as_of = pair.build_scenario(300, seed=7)
+    the reading ever stops moving in that region for some other reason.
+
+    SEED 7 -> 11 (prepayment correction 2026-10-08). Seed 7's own upper edge fell below +60 once its
+    prepayment failures were gone (+60 and +82 read alike there), so seed 7 no
+    longer has a readable region between +17 and the edge to put on trial. Seed
+    11's own edge IS the register's intersection edge, +80, so it carries the
+    same property: four companies across +17..+edge publish four figures, and
+    the edge holds to the book's end. Mutation proof: clamping the company's
+    drift at +17 inside the scorer reds the distinctness assertion."""
+    recs, cons, _ledger, as_of = pair.build_scenario(300, seed=11)
     at = {k: pair.score_triad(recs, cons, as_of,
                               organ_terms_drift_days=k)["detection"].gap
-          for k in (17, 21, 30, 60, 82, 88)}
+          for k in (17, 21, 30, 60, 80, 88)}
     assert at[17] == at[21], "the old grid's last two points do agree"
-    assert len({at[17], at[30], at[60], at[82]}) == 4, (
+    assert len({at[17], at[30], at[60], at[80]}) == 4, (
         "four companies the shipped caveat said were one figure")
-    assert at[82] == at[88], "and the real edge holds to the book's end"
+    assert at[80] == at[88], "and the real edge holds to the book's end"
     # THE EDGE THE SIBLING REGISTER HAD ALL ALONG. `flagged_via_reconciliation`
     # is the SAME reading off the SAME book, swept by the sibling knob on a
     # grid whose ends come from the records -- and it has declared +82 since
     # D31. Two registers over one quantity in one module, agreeing on the edge
-    # only where the grid was allowed to reach it.
+    # only where the grid was allowed to reach it. 82 -> 80 (prepayment correction 2026-10-08).
     assert (pair.ORGAN_QUERY_GRID["flagged_via_reconciliation"]
-            ["saturates_above"] == 82)
+            ["saturates_above"] == 80)
     assert (pair.DIMENSION_DRIFT_RESOLUTION["detection"]["saturates_above"]
-            == 82)
+            == 80)
     caveat = pair.detection_resolution_caveat()
-    assert "SATURATES below -6d and above +82d" in caveat
+    assert "SATURATES below -6d and above +80d" in caveat
     assert "+17" not in caveat.split("quantised")[0], (
         "the false edge must not survive anywhere in the saturation clause")
 
@@ -4135,8 +4159,11 @@ def test_the_differential_witness_was_bought_by_the_narrow_grid(
     saturated tail."""
     age = drift_resolution["ageing"]
     assert age["saturates_above"] == 63 and age["saturates_below"] is None
-    assert len(age["collapsed_runs"]) == 1
-    assert min(age["collapsed_runs"][0]) == 63
+    # 1 -> 2 runs (prepayment correction 2026-10-08): (38, 39) is a new INTERIOR collapse, so ageing no
+    # longer witnesses interior resolution at all; detection_latency below does.
+    assert len(age["collapsed_runs"]) == 2
+    assert age["collapsed_runs"][0] == (38, 39)
+    assert min(age["collapsed_runs"][1]) == 63
 
     lat = drift_resolution["detection_latency"]
     assert lat["collapsed_runs"] == ((-20, -19),)
@@ -4169,12 +4196,13 @@ def test_the_saturation_rule_is_not_keyed_to_a_register_state():
     # sibling's edge to a point nobody scored. The LAW, so it holds at either
     # origin (-308/-309 at the old 400, +2/+1 at the organ's 90): `belief`
     # saturates where the window reaches the book's oldest failure on every
-    # seed, and the mix a day earlier.
+    # seed, and the mix a day earlier. RE-KEYED 2026-10-08 (`docs/staging/SEAT_FINDING_THE_PREPAYMENT_CORRECTION_MOVED_SIX_MEASURED_FACTS_OF_THE_W2_11_HARNESS_2026-10-08.md`): on the
+    # corrected world the mix saturates at the SAME edge, +2.
     oldest = max(_OLDEST_OBSERVED_FAILURE_AGE_DAYS.values())
     assert pair.DIMENSION_DRIFT_RESOLUTION["belief"]["own_saturates_above"] \
         == oldest - pair.DD_FAILURE_WINDOW_DAYS
     assert pair.DIMENSION_DRIFT_RESOLUTION["belief_population_mix"][
-        "own_saturates_above"] == oldest - pair.DD_FAILURE_WINDOW_DAYS - 1
+        "own_saturates_above"] == oldest - pair.DD_FAILURE_WINDOW_DAYS
     for dim in ("belief", "belief_population_mix"):
         e = pair.DIMENSION_DRIFT_RESOLUTION[dim]
         assert e["own_saturation_atom"] == e["own_debt_atom"]
@@ -4189,21 +4217,23 @@ def test_the_saturation_rule_is_not_keyed_to_a_register_state():
      "publish ONE bit-identical reading"),
     # A declared collapse the sweep reads apart: a debt entry outliving its
     # debt, which is how a register decays after the reshape lands.
+    # (2, 3) -> (14, 15) (prepayment correction 2026-10-08): (2, 3) is now a real collapse, so declaring
+    # it again is no lie; +14 and +15 are read apart on every seed.
     (lambda r: r["detection"].__setitem__(
-        "collapsed_runs", r["detection"]["collapsed_runs"] + ((2, 3),)),
+        "collapsed_runs", r["detection"]["collapsed_runs"] + ((14, 15),)),
      "the sweep reads them apart"),
     # An UNDERSTATED saturation edge -- the caveat interpolates it, so this is
     # the shape that publishes a narrower blind spot than the instrument has.
     (lambda r: r["detection"].__setitem__("saturates_below", -12),
      "measured saturates_below=-6"),
     (lambda r: r["detection"].__setitem__("saturates_above", None),
-     "measured saturates_above=82"),
+     "measured saturates_above=80"),  # 82 -> 80 (prepayment correction 2026-10-08)
     # THE SHIPPED EDGE ITSELF (the 2026-08-13 grid-extent finding): put back
     # the number that was in this register for three days and the check fires
     # by name. It is the one mutation here that reproduces a real published
     # defect rather than an invented one.
     (lambda r: r["detection"].__setitem__("saturates_above", 17),
-     "measured saturates_above=82 and declares 17"),
+     "measured saturates_above=80 and declares 17"),  # 82 -> 80 (prepayment correction 2026-10-08)
     (lambda r: r["detection"].__setitem__("saturation_atom", None),
      "names no `saturation_atom`"),
     # THE DIFFERENTIAL, re-derived on the book's own extent. A register in
@@ -4267,10 +4297,12 @@ def test_the_registers_own_grid_cannot_see_six_of_the_seven_collapses(
     violations = pair.check_dimension_drift_resolution(sparse)
     unreachable = [v for v in violations if "reads them apart" in v]
     mine = [v for v in unreachable if v.startswith("detection:")]
-    assert len(mine) == 15 and any("-20" in v for v in mine), (
+    # 15 -> 20 (prepayment correction 2026-10-08): the register now declares 21 runs, and on its own
+    # grid it can still confirm exactly one of them.
+    assert len(mine) == 20 and any("-20" in v for v in mine), (
         "on its own grid the register can confirm exactly one of detection's "
-        "sixteen collapses -- the (0,+1) pair, because +1 is the one drift it "
-        "already declared")
+        "twenty-one collapses -- the (0,+1) pair, because +1 is the one drift "
+        "it already declared")
     # The sighted witness's own tail was equally unreachable there.
     assert any(v.startswith("detection_latency:") for v in unreachable)
 
@@ -4350,7 +4382,7 @@ def test_the_saturation_caveat_travels_with_the_detection_number():
     result = pair.measure(n_customers=120, seed=7)
     caveat = result["detection"].components["drift_resolution_caveat"]
     assert "atoms D28" in caveat and caveat in result["detection"].note
-    assert "SATURATES below -6d and above +82d" in caveat
+    assert "SATURATES below -6d and above +80d" in caveat  # 82 -> 80 (prepayment correction 2026-10-08)
     assert "D28_the_detection_gap_is_quantised_by_this_books_placement" in caveat
 
     # INTERPOLATED, NEVER RETYPED: move the register and the sentence moves.
@@ -4401,6 +4433,11 @@ def test_the_interior_cause_is_the_denominators_not_the_books_placement(
     That second one is the corrected caveat's whole inference licence, and it
     is checked against the SHIPPED scorer's gap, not a re-derivation of it.
 
+    RE-KEYED 2026-10-08 (`docs/staging/SEAT_FINDING_THE_PREPAYMENT_CORRECTION_MOVED_SIX_MEASURED_FACTS_OF_THE_W2_11_HARNESS_2026-10-08.md`): the excluded share was 0.232-0.237 on the
+    old world and is 0.182-0.191 now. The old floor 0.20 sat 14% below the old
+    minimum (0.20 / 0.2322 = 0.861); the same relative margin below the new
+    minimum 0.1822 is 0.157.
+
     CHARACTERIZATION on the inequality: that the excluded band out-steps the
     counted populations is TODAY'S reading, not a contract. The declared
     residual is a reshape that makes `S u N` dense across the interior; when it
@@ -4417,8 +4454,9 @@ def test_the_interior_cause_is_the_denominators_not_the_books_placement(
             "the figure moved without the counted sets stepping, or the "
             "reverse -- the caveat's licence is broken")
         # THE EXCLUSION IS THE INTERIOR'S TRAFFIC, and the headline cannot see
-        # it: ~23% of the book, stepping at ~3/4 of the interior's pairs.
-        assert row["n_excluded"] / row["n_universe"] > 0.20
+        # it: ~18-19% of the book (~23% before the prepayment correction),
+        # stepping at ~2/3 of the interior's pairs.
+        assert row["n_excluded"] / row["n_universe"] > 0.157
         assert len(row["excluded_change_points"]) > len(
             row["counted_change_points"]), (
             "the placement explanation would need the reverse of this")
@@ -4812,6 +4850,54 @@ def own_drift_resolution():
     return pair.measure_own_drift_resolution(n_customers=_RES_N)
 
 
+@pytest.fixture(scope="module")
+def sparse_own_drift_resolution():
+    """A book that HAS a memory blindness: n=60, seed 7, where -9/-8/-4 leave
+    both belief figures where they were. Added with the prepayment correction 2026-10-08, when the
+    n=300 book stopped having one."""
+    return pair.measure_own_drift_resolution(n_customers=60, seeds=(7,))
+
+
+def test_an_understated_memory_band_fires_on_a_book_that_has_one(
+        sparse_own_drift_resolution):
+    """THE PROPERTY THE TWO MIX "HOLE" MUTATIONS ASKED, on a population that
+    still has the hole. Until the prepayment correction 2026-10-08 the n=300 book left the mix blind
+    at -1, and declaring `()` there fired "understates the blindness". On the
+    corrected book no memory drift is invisible, so that mutation was the truth.
+    Here the measured blindness is declared exactly (no such violation), then
+    one drift is dropped, then the debt atom with it -- and each drop fires by
+    name. The control arm is what makes the firing evidence: the exact band is
+    green on the same book."""
+    m = sparse_own_drift_resolution
+    blind = tuple(m["belief_population_mix"]["unmoved"])
+    assert blind, "the sparse book must have a memory blindness to declare"
+
+    def understated(register):
+        return [v for v in pair.check_own_drift_resolution(m, register=register)
+                if "belief_population_mix" in v and "understates the blindness" in v]
+
+    exact = copy.deepcopy(pair.DIMENSION_DRIFT_RESOLUTION)
+    exact["belief_population_mix"]["own_invisible_drifts"] = blind
+    assert understated(exact) == []
+    dropped = copy.deepcopy(exact)
+    dropped["belief_population_mix"]["own_invisible_drifts"] = blind[1:]
+    assert understated(dropped)
+    unowned = copy.deepcopy(dropped)
+    unowned["belief_population_mix"]["own_debt_atom"] = None
+    assert understated(unowned)
+
+    def hole(register):
+        return [v for v in pair.check_own_drift_resolution(m, register=register)
+                if "belief_population_mix" in v and "unowned hole" in v]
+
+    # THE UNOWNED HOLE, both arms on one book: the exact band with its debt
+    # atom is owned; the same band with the atom removed is not.
+    assert hole(exact) == []
+    exact_unowned = copy.deepcopy(exact)
+    exact_unowned["belief_population_mix"]["own_debt_atom"] = None
+    assert hole(exact_unowned)
+
+
 def test_every_off_path_entry_now_owes_a_graded_band(own_drift_resolution):
     """THE CLASS FIX. Off-path is no longer a state that escapes resolution
     measurement: every entry declaring it must name a knob on its OWN organ's
@@ -4986,25 +5072,19 @@ def test_the_memory_resolution_control_runs_in_the_cli_not_only_in_tests():
     # discharging itself with an indiscriminate degenerate.
     (lambda r: r["belief"].pop("own_drift"),
      "measures NO resolution"),
-    # The two "hole" mutations act on the MIX: at the organ's default `belief`
-    # has no invisible drift left to understate or leave unowned, and the mix
-    # is still blind at -1 (its own bluntness, atom D19).
-    (lambda r: r["belief_population_mix"].__setitem__(
-        "own_invisible_drifts", ()),
-     "understates the blindness"),
+    # The two "hole" mutations that acted on the MIX moved to
+    # `test_an_understated_memory_band_fires_on_a_book_that_has_one` (prepayment correction 2026-10-08):
+    # on the corrected n=300 book NEITHER belief dimension has an invisible
+    # memory drift left, so declaring none is the truth and cannot fire.
     (lambda r: r["belief"].__setitem__("own_visible_drifts", (-380, -1)),
      "blinder than this register admits"),
     (lambda r: r["belief"].__setitem__(
         "own_invisible_drifts", (-320, -308, -100, -1, 1, 500)),
      "declared INVISIBLE but moved"),
-    (lambda r: r["belief_population_mix"].__setitem__("own_debt_atom", None),
-     "unowned hole"),
+    # The mix "unowned hole" case moved to the sparse-book test below (prepayment correction 2026-10-08):
+    # with no invisible memory drift on the n=300 book there is no hole to own.
     (lambda r: r["belief"].__setitem__("own_visible_drifts", (-380, -999)),
      "never scored"),
-    (lambda r: (r["belief_population_mix"].__setitem__(
-                    "own_invisible_drifts", ()),
-                r["belief_population_mix"].__setitem__("own_debt_atom", None)),
-     "understates the blindness"),
 ))
 def test_a_lying_memory_band_fires_by_name(own_drift_resolution, mutate,
                                            expected):
@@ -5264,10 +5344,12 @@ def test_the_book_predicts_both_edges_and_the_sweep_measured_them(
                 f"{edge:+d}d, where no event can change side, and the sweep "
                 "reads them apart")
     # THE DIFFERENTIAL the register asserted away by never scoring -309: the
-    # mix dimension is one day BLINDER than its sibling, because dropping the
-    # oldest events moves an account's tier without moving the population mix.
+    # mix dimension WAS one day blinder than its sibling (+1 vs +2), because
+    # dropping the oldest events moved an account's tier without moving the
+    # population mix. RE-KEYED 2026-10-08 (`docs/staging/SEAT_FINDING_THE_PREPAYMENT_CORRECTION_MOVED_SIX_MEASURED_FACTS_OF_THE_W2_11_HARNESS_2026-10-08.md`): with prepayment periods no
+    # longer failing, both saturate at +2 -- the measured fact is now equality.
     assert (own_drift_resolution["belief_population_mix"]["saturates_above"]
-            < own_drift_resolution["belief"]["saturates_above"])
+            == own_drift_resolution["belief"]["saturates_above"] == 2)
 
 
 def test_a_visible_drift_inside_a_collapsed_run_fires_by_name(
@@ -5947,7 +6029,8 @@ def test_the_detection_floor_is_derived_and_the_band_is_what_it_admits(
     assert min(axis["n_customers"]) == measured["floor"]
     swept = pair.measure_recon_band_population_axis(
         n_customers=axis["n_customers"])
-    assert swept["upper_edge_range"] == tuple(axis["upper_edge_range"]) == (49, 88)
+    # (49, 88) -> (48, 88) (prepayment correction 2026-10-08); the floor (51) did not move.
+    assert swept["upper_edge_range"] == tuple(axis["upper_edge_range"]) == (48, 88)
     assert swept["lower_edges"] == (axis["lower_edge_invariant"],), (
         "the soundness null control must stay GREEN over the books the new "
         "floor admits, or the widened band is draw noise rather than a "
@@ -6245,8 +6328,8 @@ def test_the_set_reading_saturates_in_both_tails(recon_saturation):
     flagging three weeks early are one number, and the register's two declared
     PAIRS were a 2-point sample of that fifteen-company tail."""
     row = recon_saturation["flagged_via_reconciliation"]
-    assert len(row["collapsed_runs"]) == 16
-    assert row["saturates_below"] == -6 and row["saturates_above"] == 82
+    assert len(row["collapsed_runs"]) == 21  # 16 -> 21 (prepayment correction 2026-10-08)
+    assert row["saturates_below"] == -6 and row["saturates_above"] == 80  # 82 -> 80
     tail = next(r for r in row["collapsed_runs"] if row["drifts"][0] in r)
     assert len(tail) == 16 and max(tail) == -6
     for seed in row["seeds"]:
@@ -6272,9 +6355,10 @@ def test_the_declared_evidence_of_resolution_was_inside_a_collapse(
         recon_saturation, register=register)
     assert any("+7d is declared VISIBLE and sits inside the collapsed run"
                in v for v in violations), violations
-    # And the replacement is read APART from both its neighbours.
+    # And the replacement is read APART from both its neighbours. +8 -> +14
+    # (prepayment correction 2026-10-08): +8 now sits in the run (8..13).
     row = recon_saturation["flagged_via_reconciliation"]
-    assert not any(8 in run for run in row["collapsed_runs"])
+    assert not any(14 in run for run in row["collapsed_runs"])
 
 
 @pytest.mark.parametrize("mutate,expected", (
@@ -6372,8 +6456,9 @@ def test_the_registers_own_grid_could_confirm_neither_edge(monkeypatch):
     third time the same assertion has had to be written."""
     monkeypatch.setattr(pair, "book_recon_drift_grid", lambda *a, **k: (0,))
     sparse = pair.measure_organ_query_grid_saturation(n_customers=_RES_N)
+    # +8 -> +14 (prepayment correction 2026-10-08): the set reading's declared visible drift moved.
     assert set(sparse["recon_lag_days"]["drifts"]) == {
-        -30, -20, -15, -5, -1, 0, 1, 8}, (
+        -30, -20, -15, -5, -1, 0, 1, 14}, (
         "this is the grid the register chose for itself: the four declaration "
         "fields it had before D31, and nothing else. `collapsed_runs` and "
         "`undefined_drifts` are deliberately NOT unioned into the sweep -- "
@@ -6382,7 +6467,9 @@ def test_the_registers_own_grid_could_confirm_neither_edge(monkeypatch):
     # NEITHER EDGE IS REACHABLE THERE, and the undefined region is invisible.
     assert sparse["flagged_via_reconciliation"]["saturates_above"] is None
     assert sparse["recon_lag_days"]["undefined_readings"] == ()
-    assert len(sparse["flagged_via_reconciliation"]["collapsed_runs"]) < 16
+    # < 16 -> < 21 (prepayment correction 2026-10-08): fewer than the register declares, keyed to it.
+    assert len(sparse["flagged_via_reconciliation"]["collapsed_runs"]) < len(
+        pair.ORGAN_QUERY_GRID["flagged_via_reconciliation"]["collapsed_runs"])
     violations = pair.check_organ_query_grid_saturation(sparse)
     unconfirmable = [v for v in violations if "reads them apart" in v]
     assert len(unconfirmable) >= 14, (
@@ -6409,12 +6496,13 @@ def test_the_recon_saturation_caveat_travels_with_both_numbers():
     # the two populations apart because neither could the component.
     band = det.components["recon_saturation_band_days"]
     assert band[0] == -pair.DEFAULT_RECONCILIATION_GRACE_DAYS - 1
-    assert band == (-6, 70), (
-        "the 120-account book's own band, and NOT the register's (-6, 82)")
+    # (-6, 70) -> (-6, 48) (prepayment correction 2026-10-08).
+    assert band == (-6, 48), (
+        "the 120-account book's own band, and NOT the register's (-6, 80)")
     scope = det.components["recon_saturation_band_measured_on"]
     assert scope["source"] == "predicted_from_this_book"
     assert scope["n_accounts"] == 120 and scope["n_scored"] > 0
-    assert "+70d" in det.components["recon_saturation_caveat"], (
+    assert "+48d" in det.components["recon_saturation_caveat"], (
         "the prose half must state the same band the machine-readable half "
         "does -- two numbers claiming one label is what this was")
     lat = result["detection_latency"]
@@ -6740,16 +6828,19 @@ def test_every_pinned_stress_tier_falsifies_the_declaration(stress_axis):
     so the claim `collapsed_runs` is mix-dependent has to be witnessed -- and
     it is, in both directions and on all three pinned tiers:
 
-      * `moderate` SPLITS, reading 6 of the 7 declared runs apart and leaving
-        the baseline company in no run at all;
+      * `moderate` SPLITS, reading 5 of the 9 declared runs in the window
+        apart (6 of 7, with the baseline in no run, before the prepayment correction 2026-10-08);
       * `low` and `high` JOIN, collapsing boundaries the register says resolve
         two companies -- which is the direction the finding's headline is in
         and the one a split-only predicate would have passed on.
     """
     assert set(stress_axis["disagreeing_tiers"]) == {"low", "moderate", "high"}
     moderate = stress_axis["by_tier"]["moderate"]
-    assert moderate["n_declared_read_apart"] == 6
-    assert moderate["run_at_origin"] is None
+    # 6 -> 5 (prepayment correction 2026-10-08). And the baseline company now sits in a run, (-3..+1),
+    # rather than in none: re-pinned, not a weakened bound -- the falsification
+    # is the split/joined counts, which still bite.
+    assert moderate["n_declared_read_apart"] == 5
+    assert moderate["run_at_origin"] == (-3, -2, -1, 0, 1)
     for tier in ("low", "high"):
         assert stress_axis["by_tier"][tier]["joined_boundaries"], (
             f"`{tier}` must witness the JOIN direction -- a run wider than the "
@@ -6912,7 +7003,14 @@ def test_the_published_headline_moves_a_third_of_the_sub_readings_step(
     """THE FINDING, measured not asserted. `ORGAN_QUERY_GRID` declares the
     recon reading resolves the company day for day, and that is TRUE of
     `mean_lag_days_without_dd_channel`, the reading it names. It is not true of
-    the published figure, and the caveat said it was."""
+    the published figure, and the caveat said it was.
+
+    RE-KEYED 2026-10-08 (`docs/staging/SEAT_FINDING_THE_PREPAYMENT_CORRECTION_MOVED_SIX_MEASURED_FACTS_OF_THE_W2_11_HARNESS_2026-10-08.md`). The old literal band 0.2 < step < 0.4 was the
+    measured centre (0.27-0.36 over seeds 7/11/23) +/- one third of 0.3. The
+    corrected world measures 0.092 / 0.265 / 0.098: a spread of 2.9x, wider
+    than the old band's 2x, so no single band of that relative width holds all
+    three. The band is therefore kept PER SEED at the same relative width,
+    +/- one third of each seed's measured step."""
     row = caveat_coverage["detection_latency"]["organ_reconciliation_drift_days"]
     declared = pair.ORGAN_QUERY_GRID["recon_lag_days"][
         "reported_days_for_a_one_day_drift"]
@@ -6921,8 +7019,11 @@ def test_the_published_headline_moves_a_third_of_the_sub_readings_step(
         "mean_lag_days_without_dd_channel"
     # The published headline is a DIFFERENT number, on every seed, and always
     # far below the sub-reading's step.
+    measured_step = {7: 0.092105, 11: 0.265061, 23: 0.097827}
+    assert set(row["step_days"]) == set(measured_step)
     for seed, step in row["step_days"].items():
-        assert 0.2 < step < 0.4, (seed, step)
+        centre = measured_step[seed]
+        assert centre * 2 / 3 < step < centre * 4 / 3, (seed, step)
         assert declared - step > 0.5
 
     # ...and the SUB-READING really does move 1.0/day, which is what makes the
@@ -7270,15 +7371,22 @@ def test_bit_equality_counts_a_difference_no_consumer_can_render(
     """WHY THE PREDICATE IS ATOM D33's RESHAPE. The mix figure "moves" at
     -310..-313 on seed 11 by 1.4e-17, which is what put its declared saturation
     edge at -309 rather than -313 -- and every collapse run and saturation edge
-    in this module is derived with the same `repr()` comparison."""
+    in this module is derived with the same `repr()` comparison.
+
+    RE-KEYED 2026-10-08 (`docs/staging/SEAT_FINDING_THE_PREPAYMENT_CORRECTION_MOVED_SIX_MEASURED_FACTS_OF_THE_W2_11_HARNESS_2026-10-08.md`): below the edge the two predicates agreed on
+    every seed of both figures on the old world. On the corrected world they
+    agree everywhere EXCEPT the mix figure on seed 23, where bit-equality reads
+    a 1-day floor and the 4dp reader a 2-day one -- the bit-equality predicate
+    counting a difference no consumer renders, which is this atom's subject."""
     if pair.DD_FAILURE_WINDOW_DAYS < max(_OLDEST_OBSERVED_FAILURE_AGE_DAYS.values()):
-        # Below the edge the two predicates agree on every seed and both
-        # figures (FRAME s15.3): the 1.4e-17 wobble only reached the figure
-        # when the nearest drift that moved it was 310 days out.
         for row in resolution_floors.values():
             assert row["bit_equality_floor_days"] == row["floor_days"]
-            assert (row["bit_equality_per_seed_floor_days"]
-                    == row["per_seed_floor_days"])
+        belief = resolution_floors["belief"]
+        assert (belief["bit_equality_per_seed_floor_days"]
+                == belief["per_seed_floor_days"] == {7: 4, 11: 4, 23: 1})
+        mix = resolution_floors["belief_population_mix"]
+        assert mix["per_seed_floor_days"] == {7: 4, 11: 4, 23: 2}
+        assert mix["bit_equality_per_seed_floor_days"] == {7: 4, 11: 4, 23: 1}
         return
     mix = resolution_floors["belief_population_mix"]
     assert mix["bit_equality_floor_days"] == 312
@@ -8232,9 +8340,16 @@ def test_a_carrier_read_as_text_collapses_every_epsilon_to_the_doubles_width():
     double's. An epsilon set from them is 1e-18, which no reader can ever be
     shown a difference at, and every band, floor and collapse this instrument
     certifies rests on it."""
+    # SEEDS (7, 11) -> (11, 1) (prepayment correction 2026-10-08). Seed 7's detection figure is now
+    # 0.0030303030303030303, whose shortest repr runs to 19 decimals -- past
+    # the 1..18 the search probes -- so it rendered at NO probed precision and
+    # `deep` came back empty. Seeds 11 and 1 carry 18-decimal reprs, so the
+    # same property (a text search finds the double far past any declared
+    # precision) is asked of figures it can find. Quantising the carrier to 6dp
+    # before the search reds it.
     results = [pair.score_triad(*pair._resolution_population(300, s)[:2],
                                 pair._resolution_population(300, s)[3])
-               for s in pair._RENDER_SITE_SEEDS]
+               for s in (11, 1)]
     texts, values = [], []
     for res in results:
         headline = res["detection"]
@@ -9963,8 +10078,8 @@ def test_the_ageing_dimension_forbids_the_global_buffer_change(
     shipped = pair.score_triad(records, consumer, as_of)["ageing"].gap
     early = pair.score_triad(records, consumer, own)["ageing"].gap
     assert shipped != early
-    assert shipped == pytest.approx(0.11296259117981663)
-    assert early == pytest.approx(0.08016507936507936)
+    assert shipped == pytest.approx(0.013157894736842105)  # was 0.11296 (prepayment correction 2026-10-08)
+    assert early == pytest.approx(0.010638297872340425)  # was 0.08017 (prepayment correction 2026-10-08)
 
 
 def test_the_book_does_sit_beside_the_line_and_the_set_moves_there():
@@ -9980,8 +10095,8 @@ def test_the_book_does_sit_beside_the_line_and_the_set_moves_there():
     base = pair.score_triad(records, consumer, as_of)["detection"]
     drifted = pair.score_triad(records, consumer, as_of,
                                organ_terms_drift_days=1)["detection"]
-    assert base.components["flagged_size"] == 331
-    assert drifted.components["flagged_size"] == 327
+    assert base.components["flagged_size"] == 244  # was 331 (prepayment correction 2026-10-08)
+    assert drifted.components["flagged_size"] == 240  # was 327 (prepayment correction 2026-10-08)
     assert drifted.gap == base.gap, (
         "the SET moves and the HEADLINE does not -- the partition, not the "
         "placement")
@@ -10173,10 +10288,14 @@ def test_the_calendar_term_is_published_as_a_term_not_as_the_answer(
     assert m["shipped_calendar_term_days"] == 26
     assert m["own_smallest_visible_over_drift"] == m["calendar_term_days"]
     # THE COUNTEREXAMPLE, on a book outside the three declared seeds: the
-    # calendar says +3 and the reading resolves +1.
-    records, consumer, _l, as_of = pair.build_scenario(300, seed=5)
+    # calendar says +2 and the reading resolves +1. SEED 5 -> 29 (prepayment correction 2026-10-08): seed
+    # 5 now reads calendar +3 against a resolved +8, the UNDER-prediction
+    # direction, so it no longer witnesses the over-prediction this names.
+    # Seed 29 (and 41) do: the same property, the calendar term looser than
+    # what the reading resolves.
+    records, consumer, _l, as_of = pair.build_scenario(300, seed=29)
     other = pair.measure_detection_resolution(records, consumer, as_of)
-    assert other["calendar_term_days"] == 3
+    assert other["calendar_term_days"] == 2
     assert other["own_smallest_visible_over_drift"] == 1
     assert pair.check_detection_resolution(other) == [], (
         "the control must not fire on a book where the calendar term is loose "

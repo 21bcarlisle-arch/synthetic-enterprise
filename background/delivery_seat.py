@@ -45,8 +45,8 @@ import time
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
+from background import child_diagnostics, direction_path_check, director_concerns
 from background import direction as direction_mod
-from background import direction_path_check, director_concerns
 from tools import maturity_map_store as map_store
 from tools import stretch_log as stretch_log_mod
 
@@ -2480,9 +2480,29 @@ def commit_direction(lander=None) -> tuple[bool, str]:
             deadline_s=direction_land_deadline_s())
     except Exception as exc:  # noqa: BLE001 -- a refusal is a value; the record is already on disk
         # The refusal's own words are the diagnosis (2026-09-30: a bare rc classified nothing).
-        why = " | ".join(str(exc).strip().splitlines()[:3])[:300]
+        why = refusal_verdict(str(exc))
         return False, f"landing refused ({type(exc).__name__}): {why or 'no message'}"
     return True, f"commit rc=0; landed {sha[:9]} on origin/main"
+
+
+def refusal_verdict(text: str, limit: int = 600) -> str:
+    """The refusal's head line and the lines that name what went red, joined on one line.
+
+    THE FIRST THREE LINES WERE THE BOILERPLATE (2026-10-09 02:43). A red gate's refusal from
+    `surgical_land` opens with its own header, then `[live-hook]` and the `✓` lines of every check
+    that PASSED, and only then the refusing step's `❌` banner. Cut at three lines and 300
+    characters, the 02:43 record ended mid-word inside `[live-hook]`: the direction record stayed
+    off origin, its four files held the shared tree's fast-forward, and nothing said which gate.
+    `origin_reconcile` lost its refusal to the same cut and fixed it the same way (eaa94ed5f)."""
+    lines = [line.strip() for line in text.strip().splitlines() if line.strip()]
+    if not lines:
+        return ""
+    if "❌" in text:
+        said = [line.strip() for line in text[text.index("❌"):].splitlines() if line.strip()]
+    else:
+        said = [line for line in lines[1:]
+                if child_diagnostics.is_verdict_line(line) and "✓" not in line] or lines[1:3]
+    return " | ".join([lines[0], *said])[:limit]
 
 
 def out_of_scope_writes() -> list[str]:

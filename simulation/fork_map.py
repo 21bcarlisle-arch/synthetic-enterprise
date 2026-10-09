@@ -34,11 +34,37 @@ def _call(i: int):
     return _FN(_ITEMS[i])
 
 
-def workers_for(n_items: int) -> int:
+#: What one forked trace worker adds to the box, by PSS. ORIGIN: measured 2026-10-08 on a 40-founder
+#: run to 2017: the whole tree peaked at 1,880 MB PSS against the parent's 1,691 MB, with 12 workers,
+#: so ~16 MB each (copy-on-write keeps the parent's pages shared). Re-measure if traces grow.
+WORKER_PSS_MB = 16
+
+#: Free memory a speed-up must never take: the box's undeclared reserve plus room for a commit
+#: gate, so forked workers cannot crowd out a landing (director, 2026-10-09). The gate's weight is
+#: the box budget's measured class weight, read, not copied.
+def _memory_floor_mb() -> float:
+    from background.resource_headroom import CLASS_WEIGHTS_MB, RESERVE_FOR_UNDECLARED_MB
+    return RESERVE_FOR_UNDECLARED_MB + CLASS_WEIGHTS_MB["commit_gate"]
+
+
+def workers_for(n_items: int, available_mb: float | None = None) -> int:
+    """Worker count: the fewest of the items, the spare cores, and what FREE MEMORY allows above
+    the floor (director, 2026-10-09: "Size forked trace workers by free memory, not a fixed count,
+    so a speed-up can't crowd out a landing"). Unreadable memory is the serial path."""
     env = os.environ.get("SE_FORK_WORKERS", "").strip()
     if env:
         return max(1, min(int(env), n_items))
-    return max(1, min((os.cpu_count() or 1) - RESERVED_CPUS, n_items))
+    by_cpu = (os.cpu_count() or 1) - RESERVED_CPUS
+    if available_mb is None:
+        try:
+            from background.resource_headroom import sample
+            available_mb = sample().get("available_mb")
+        except Exception:  # noqa: BLE001 -- no reading is the cautious answer: serial
+            available_mb = None
+    if available_mb is None:
+        return 1
+    by_memory = int((available_mb - _memory_floor_mb()) // WORKER_PSS_MB)
+    return max(1, min(by_cpu, by_memory, n_items))
 
 
 def fork_map(fn: Callable, items: Sequence) -> list:

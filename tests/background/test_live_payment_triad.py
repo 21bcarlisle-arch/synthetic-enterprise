@@ -159,11 +159,21 @@ def test_R15_mutation_leaking_the_wall_collapses_the_live_gap(monkeypatch):
     # The dimension the DD-observation channel really feeds is BELIEF: the
     # company's arrears severity is counted from rail-observed failures, so
     # leaking every failure onto that channel must collapse the belief gap.
-    assert neutered["belief"].gap < baseline["belief"].gap, (
-        "leaking the wall left the BELIEF gap where it was -- that dimension is "
-        "built on the DD-observed failure count, so this mutation must move it"
+    #
+    # KEYED TO THE UNDERCALL DIRECTION, NOT THE HEADLINE (2026-10-08). The wall's blindness is
+    # one-directional: a non-DD failure the company cannot see can only make it UNDER-call a
+    # household's severity. The headline is the mean of under- and over-call, and the leak also
+    # creates over-calls, so the headline was the wrong reader: before prepayment stopped failing it
+    # passed by 0.003 (0.1176 -> 0.1146) while undercall went 0.235 -> 0; after, it read 0.0667 ->
+    # 0.0776 and went red while undercall still went 0.133 -> 0. The leak's own defect is the
+    # undercall, so that is what must collapse.
+    base_under = baseline["belief"].components["n_undercalled"]
+    leak_under = neutered["belief"].components["n_undercalled"]
+    assert base_under > 0, "vacuous: the honest company under-called nobody, so the wall hid nothing"
+    assert leak_under < base_under, (
+        "leaking the wall left the BELIEF under-call where it was -- that direction is built on "
+        "the DD-observed failure count, so this mutation must move it"
     )
-    assert baseline["belief"].gap > 0.0, "vacuous: the belief gap was already 0"
 
     assert neutered["detection"].gap == baseline["detection"].gap, (
         "the detection headline moved under a pure DD-channel mutation -- either "
@@ -1711,20 +1721,35 @@ def test_q3_EVERY_PUBLISHED_FIGURE_IS_UNCHANGED_BY_THE_NEW_LEGS():
     RE-PINNED 2026-10-04 FOR A SECOND WORLD CHANGE: a failed bill can now be paid off later, and the
     cash crosses unreferenced and is allocated oldest-first, which moves ONLY the ageing gap
     (0.221037464 -> 0.2954225352). With later settlement switched off this test reproduces the
-    2026-10-03 values exactly -- the second assertion block below holds that."""
+    2026-10-03 values exactly -- the second assertion block below holds that.
+
+    RE-PINNED 2026-10-08 FOR A THIRD WORLD CHANGE: a prepayment period no longer fails or lates
+    (the meter is paid before use), so this book's 36 failed prepayment periods are gone -- every
+    figure moves. Routing prepayment back to the direct-debit tier reproduces the 2026-10-04 values
+    exactly; the third assertion block holds that."""
     triad = _build_triad()
     result = triad.measure()
     assert result is not None
-    assert round(result["detection"].gap, 10) == 0.0909090909
-    assert round(result["detection_latency"].gap, 6) == 1.907781
-    assert round(result["belief"].gap, 10) == 0.1176470588
-    assert round(result["belief_population_mix"].gap, 10) == 0.2133333333
-    assert round(result["ageing"].gap, 10) == 0.2954225352
+    assert round(result["detection"].gap, 10) == 0.009375  # was 0.0909090909: prepayment no longer fails
+    assert round(result["detection_latency"].gap, 6) == 1.549839  # was 1.907781: prepayment no longer fails
+    assert round(result["belief"].gap, 10) == 0.0666666667  # was 0.1176470588: prepayment no longer fails
+    assert round(result["belief_population_mix"].gap, 10) == 0.1066666667  # was 0.2133333333: same cause
+    assert round(result["ageing"].gap, 10) == 0.1629183071  # was 0.2954225352: prepayment no longer fails
 
     with pytest.MonkeyPatch.context() as mp:
         mp.setattr(lpt, "later_settlement_date", lambda *a, **k: None)
         before = _build_triad().measure()
-    assert round(before["ageing"].gap, 10) == 0.221037464
+    assert round(before["ageing"].gap, 10) == 0.0720759646  # was 0.221037464: prepayment no longer fails
+
+    from simulation import payment_behaviour_source as pbs
+    with pytest.MonkeyPatch.context() as mp:
+        mp.setattr(pbs, "PREPAYMENT_METHOD", "direct_debit")
+        old_world = _build_triad().measure()
+    assert round(old_world["detection"].gap, 10) == 0.0909090909
+    assert round(old_world["detection_latency"].gap, 6) == 1.907781
+    assert round(old_world["belief"].gap, 10) == 0.1176470588
+    assert round(old_world["belief_population_mix"].gap, 10) == 0.2133333333
+    assert round(old_world["ageing"].gap, 10) == 0.2954225352
 
 
 def test_q3_A_COLLECTION_THE_WORLD_NEVER_ANSWERS_IS_NOW_VISIBLE_AS_AN_OPEN_EXCHANGE(

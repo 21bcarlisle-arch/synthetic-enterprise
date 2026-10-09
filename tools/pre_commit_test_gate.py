@@ -2374,7 +2374,8 @@ def main() -> int:
     # `resource_headroom.queued` like every other heavy thing, instead of co-running. The
     # 2026-10-08 vulnerability landing was killed beside three lanes' 10-11 GB of runs.
     from background import resource_headroom
-    with resource_headroom.queued("commit_gate", log=lambda m: print(f"[test-gate] {m}", flush=True)):
+    with resource_headroom.landing_pending(f"commit gate in {ROOT}"), \
+            resource_headroom.queued("commit_gate", log=lambda m: print(f"[test-gate] {m}", flush=True)):
         gitless_env[resource_headroom.ADMITTED_ENV] = "commit_gate"
         r = subprocess.run(
             [sys.executable, "-m", "pytest", *targets, "-q", "--no-header", "-p", "no:cacheprovider"],

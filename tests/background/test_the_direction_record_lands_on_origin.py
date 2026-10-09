@@ -97,7 +97,7 @@ def world(tmp_path, monkeypatch):
             world_state["edit_record_once"] = False
             _push_from(origin, tmp_path, RECORD, "oriented_at: someone else\n")
         if world_state.get("red") or (merge and world_state.get("red_merge")):
-            raise surgical_land.LandingRefused("GATE RED: a test failed")
+            raise surgical_land.LandingRefused(world_state.get("red_text", "GATE RED: a test failed"))
         if merge:
             done = subprocess.run(["git", "-c", "user.name=t", "-c", "user.email=t@t", "merge",
                                    "-q", "--no-ff", "-m", message, merge], cwd=str(root),
@@ -317,6 +317,33 @@ def test_origin_moving_under_the_gate_costs_a_MERGE_not_a_second_full_gate_and_a
     red = seat.commit_direction()
     assert red[0] is False and "GATE RED" in red[1], red[1]
     assert (len(gates), len(merges)) == (3, 2)
+
+
+def test_a_red_gates_refusal_names_the_refusing_step_and_not_the_boilerplate_above_it(world):
+    """Defect it names: 02:43 2026-10-09, the direction record was refused on a red gate and the
+    record kept the first three lines, which ended mid-word in `[live-hook]` -- every `✓` check
+    and the `❌` step that refused sat below the cut, so nobody could say which gate held the
+    record off origin while its four files held the shared tree's fast-forward.
+
+    MUTATION (must fire): restore `" | ".join(text.splitlines()[:3])[:300]` -- the refusing step
+    is lost and the passing ticks are what the record quotes. The no-banner leg pins the
+    fallback: a pytest refusal with no `❌` still names its FAILED node, not a `✓`."""
+    gate_out = ("[live-hook] core.hooksPath is NOT set here, so the live hook check is skipped "
+                "in this checkout\n"
+                + "".join(f"[test-gate] ✓ check {i} holds\n" for i in range(8))
+                + "[test-gate] ❌ A DOCUMENT CLAIMS A PATH LANDED THAT THIS COMMIT'S TREE DOES "
+                "NOT HOLD -- COMMIT REFUSED.\n  docs/status/SEAT_STRETCH_LOG.md names x.py")
+    pytest_out = "[test-gate] ✓ selection holds\nFAILED tests/x.py::test_y - assert 1 == 2\n"
+    for out, named in ((gate_out, "names x.py"), (pytest_out, "FAILED tests/x.py::test_y")):
+        world["state"]["red"] = True
+        world["state"]["red_text"] = (
+            "GATE RED on the resulting tree (rc=1). This is the tree the commit WOULD create.\n"
+            + surgical_land._verdict_excerpt(out, ""))
+        ok, detail = seat.commit_direction()
+        assert ok is False
+        assert detail.startswith("landing refused (LandingRefused): GATE RED")
+        assert named in detail, detail
+        assert "✓" not in detail, detail
 
 
 def test_a_refused_landing_is_RECORDED_as_refused_and_PAGED(tmp_path, monkeypatch):

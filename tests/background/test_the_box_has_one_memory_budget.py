@@ -90,3 +90,45 @@ def test_the_ledger_is_one_file_for_the_box_not_one_per_tree():
     and a run in a worktree each kept their own. It must sit outside every tree."""
     from background.resource_headroom import PROJECT_DIR, RESERVATIONS_PATH
     assert PROJECT_DIR not in RESERVATIONS_PATH.parents
+
+
+def test_landings_come_before_experiments_and_a_landing_is_never_held_by_itself(tmp_path, monkeypatch):
+    """Director, 2026-10-09: "When a landing is ready, the box budget reserves its test-gate memory
+    and holds any new long-job launch, from any lane, until it lands." THE WHOLE PARTITION: with a
+    landing pending, other work is held; the landing's own gate is not; with none pending, nothing
+    is held; a dead claimant holds nothing. A hold that held everything would pass the first leg."""
+    monkeypatch.delenv(rh.LANDING_ENV, raising=False)
+    landings = tmp_path / "landings.json"
+    assert rh.landing_hold_reason(landings) is None
+    with rh.landing_pending("test landing", path=landings):
+        assert rh.landing_hold_reason(landings) is None, "a landing was held by its own claim"
+        monkeypatch.delenv(rh.LANDING_ENV)
+        assert "landings come before experiments" in (rh.landing_hold_reason(landings) or "")
+        monkeypatch.setenv(rh.LANDING_ENV, "test landing")
+    monkeypatch.delenv(rh.LANDING_ENV, raising=False)
+    assert rh.landing_hold_reason(landings) is None, "the claim outlived the landing"
+    landings.write_text('[{"pid": 999999999, "starttime": "1", "label": "dead", "since": "x"}]')
+    assert rh.landing_hold_reason(landings) is None, "a dead landing holds the box"
+
+
+def test_a_new_long_job_waits_for_a_pending_landing_then_starts(monkeypatch):
+    """The launch door holds, not refuses outright: it waits while a landing is pending and goes
+    ahead once it clears; past its deadline it names the landing."""
+    reasons = iter(["landings come before experiments: 1 pending", None])
+    said, slept = [], []
+    assert llj._wait_for_pending_landings(said.append, deadline_seconds=3600, sleep=slept.append,
+                                          reason_fn=lambda: next(reasons)) is None
+    assert slept and any("HELD" in s for s in said)
+    stuck = llj._wait_for_pending_landings(lambda s: None, deadline_seconds=0, sleep=lambda s: None,
+                                           reason_fn=lambda: "landings come before experiments")
+    assert stuck and "landing" in stuck
+
+
+def test_a_test_process_never_waits_on_the_real_pending_landings(monkeypatch):
+    """Defect (2026-10-09): the gate's own tests called launch() in-process and sat in the 90-minute
+    hold behind the real pending landing until the gate's 3,600 s limit fired. Inside a test process
+    the real register is never read; an injected one still is (the partition test above)."""
+    monkeypatch.delenv(rh.LANDING_ENV, raising=False)
+    monkeypatch.setattr(rh, "pending_landings",
+                        lambda path=None, proc_root=None: [{"pid": 1, "label": "real"}])
+    assert rh.landing_hold_reason() is None

@@ -138,7 +138,7 @@ from dataclasses import dataclass
 from datetime import date, timedelta
 from typing import Optional, Sequence
 
-from simulation.arrears_engine import PAY_ON_RECEIPT_METHOD
+from simulation.arrears_engine import PAY_ON_RECEIPT_METHOD, PREPAYMENT_METHOD
 from simulation.arrears_engine import payment_outcome as _core_payment_outcome
 from simulation.household import household_of
 from simulation.household_segments import PaymentChannel, payment_channel_for_customer
@@ -341,7 +341,8 @@ def generate_payment_event(
     specifically, and inventing one would be exactly the un-anchored
     duplication R13 warns against (see module docstring). So every
     non-corporate method maps to the same core "direct_debit"-style outcome
-    tier; only the METHOD LABEL varies.
+    tier; only the METHOD LABEL varies. Prepayment is the exception: a meter is paid before use,
+    so it takes the core model's own prepayment branch, which never fails or lates a period.
     """
     base_seed = _base_seed_for(customer_id, seed)
     rng = _period_substream(base_seed, _PERIOD_SUBSTREAM_BASE, period_index)
@@ -351,7 +352,18 @@ def generate_payment_event(
     # `("ic", "I&C", "sme")` -- was case-sensitive, so the canonical "SME" and
     # "I&C" spellings `saas/customers.py` actually stores matched only by
     # accident (W2_sme_segment_case_normalisation).
-    core_method = "bacs" if is_business(segment) else "direct_debit"
+    #
+    # A prepayment meter is paid before use, so its period cannot fail or be late the way a credit
+    # bill can: `payment_outcome` has its own `PREPAYMENT_METHOD` branch for exactly that, and this
+    # call used to by-pass it by sending every domestic method as "direct_debit" (27 of 227 failed
+    # bills on an 80-founder run were on a meter). The PPM household's real debt routes are a named
+    # gap on `arrears_engine.PREPAYMENT_METHOD`, not a credit-bill failure.
+    if is_business(segment):
+        core_method = "bacs"
+    elif payment_method == PREPAYMENT:
+        core_method = PREPAYMENT_METHOD
+    else:
+        core_method = "direct_debit"
     # arrears_engine's stress-keyed dicts are upper-cased ("LOW"/"MODERATE"/
     # "HIGH"); household_demand.income_stress_trajectory() emits lower-case
     # IncomeStress.value strings ("low"/"moderate"/"high") -- normalise here
