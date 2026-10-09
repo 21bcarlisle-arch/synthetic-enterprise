@@ -1024,8 +1024,7 @@ def draw_premise_from_joint(
     That is the right direction of derivation: area is the physical quantity the heat loss is
     computed from, and bedrooms is the thing an estate agent counts.
     """
-    from simulation import fabric_physics as fp
-    from tools import demand_case_coverage as dcc
+    from tools.dwelling_size_joint import bedrooms_given_dwelling
 
     fitted = fitted_stock_joint() if fitted is None else fitted
     cell = _weighted_choice(_substream(base_seed, f"{premise_id}:joint-cell"), fitted)
@@ -1054,9 +1053,15 @@ def draw_premise_from_joint(
                   else InsulationLevel.PARTIAL if installed == 1
                   else InsulationLevel.POOR)
 
-    area_m2 = dcc.AREA_MIDPOINT[area_band]
-    base_m2 = fp._FLOOR_AREA_BASE_M2[ptype]
-    bedrooms = int(max(1, min(6, round(2 + (area_m2 - base_m2) / fp._FLOOR_AREA_PER_BEDROOM_M2))))
+    # BEDROOMS ARE DRAWN GIVEN THE DWELLING, from VOA's stock (2026-10-09). They were
+    # `round(2 + (area - base) / 14)`, an unsourced inversion that made 24% of homes six-plus-bed
+    # against VOA's 0.9%, and that fed the headcount. `tools.dwelling_size_joint` holds the
+    # sources. The fabric does NOT read this draw: `fabric_physics.floor_area_m2` takes a joint
+    # home's area from its band, so the heat loss is unchanged.
+    bedrooms = _weighted_choice(
+        _substream(base_seed, f"{premise_id}:bedrooms-given-dwelling"),
+        bedrooms_given_dwelling()[(ptype_name, area_band)],
+    )
 
     household = Household(
         customer_id=premise_id,

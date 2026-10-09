@@ -213,14 +213,14 @@ def test_the_headcount_for_an_area_never_reads_the_cache_so_one_seed_is_one_book
     from tools import people_physical_layer as ppl
 
     area = _an_england_area()
-    before = [dr.people_count_for_area(f"H{n}", area) for n in range(60)]
+    before = [dr.people_count_for_area(f"H{n}", area, bedrooms=None) for n in range(60)]
 
     def no_cache(*_a, **_k):
         raise AssertionError("the world read the ~/.cache pull")
 
     monkeypatch.setattr(ppl, "size_distribution_by_area", no_cache)
     monkeypatch.setattr(ppl, "TS017_CSV", ppl.CACHE / "absent.csv")
-    assert [dr.people_count_for_area(f"H{n}", area) for n in range(60)] == before
+    assert [dr.people_count_for_area(f"H{n}", area, bedrooms=None) for n in range(60)] == before
     assert dr.people_count_source(area) == "output_area"
     assert len(set(before)) > 1, "a constant headcount would pass the equality above vacuously"
 
@@ -236,7 +236,7 @@ def test_an_absent_committed_prior_refuses_rather_than_drawing_every_home_nation
     monkeypatch.setattr(ppl, "COMMITTED_TS017", tmp_path / "absent.csv.gz")
     monkeypatch.setattr(ppl, "_committed_cache", None)
     with pytest.raises(FileNotFoundError, match="commit-prior"):
-        dr.people_count_for_area("H1", area)
+        dr.people_count_for_area("H1", area, bedrooms=None)
     with pytest.raises(FileNotFoundError):
         dr.people_count_source(area)
 
@@ -247,4 +247,5 @@ def test_a_scottish_area_is_national_by_construction_and_says_so():
     from simulation import dwelling_records as dr
 
     assert dr.people_count_source("S00089012") == "national"
-    assert dr.people_count_for_area("H1", "S00089012") == dr.people_count_for_area("H1", None)
+    assert dr.people_count_for_area("H1", "S00089012", bedrooms=None) == dr.people_count_for_area(
+        "H1", None, bedrooms=None)

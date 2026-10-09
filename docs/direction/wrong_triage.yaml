@@ -239,7 +239,7 @@ items:
     fixed_by: "4efd1204b"
     reason: "4efd1204b makes the brief name each unit running without an origin commit to code it loads, its own module first."
   - id: a-gas-heated-homes-electricity-has-no-season
-    problem: "A gas-heated fabric home's electricity is too flat across the year against SERL (1.288 against 1.36-1.47)."
+    problem: "A gas-heated fabric home's electricity is too flat across the year and peaks too high and too late against SERL. Re-read 2026-10-09 on 2,431 homes, with the cooking class off headcount and the headcount drawn given bedrooms: season 1.239 against 1.36-1.47, peak 0.562 at 20:00 against 0.445-0.485 at 18:30, trough 0.139 against 0.125-0.135. The headcount moves none of them; the peak is the non-cooking evening stack and the season is the summer level."
     match: ["gas-heated fabric home's electricity has no season", "SERL"]
     first_seen: "2026-10-06"
     times_listed: 8

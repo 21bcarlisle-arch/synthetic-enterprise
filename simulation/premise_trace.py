@@ -357,7 +357,8 @@ def behaviour_profile_for(
         # one headcount, whichever door asks.
         from simulation.dwelling_records import people_count_for_area
 
-        people_count = people_count_for_area(premise_id, household.output_area)
+        people_count = people_count_for_area(premise_id, household.output_area,
+                                            bedrooms=household.bedrooms)
     people_count = max(1, int(people_count))
     if children_count is None:
         children_count = children_count_for(premise_id, people_count)

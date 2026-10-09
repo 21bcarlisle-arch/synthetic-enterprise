@@ -55,7 +55,7 @@ def run_arm(frame_dir: Path) -> dict:
             "lon": location.get("lon"),
             "output_area": area,
             "store_cell": weather.site_for(customer),
-            "headcount": people_count_for(cid, area),
+            "headcount": people_count_for(cid, area, bedrooms=households[cid].bedrooms),
         })
     book = measure()
     return {

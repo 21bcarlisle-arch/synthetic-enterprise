@@ -148,7 +148,7 @@ def test_THE_WORLD_CAN_CONDITION_OCCUPANCY_ON_AN_ADDRESS_and_says_when_it_did_no
         "an area the census does not carry must report the national fallback, not claim to be "
         "conditioned")
     for area in (None, "E99999999"):
-        assert 1 <= people_count_for_area("C1", area) <= 8
+        assert 1 <= people_count_for_area("C1", area, bedrooms=None) <= 8
 
     if people_count_source("E00060274") == "output_area":
-        assert 1 <= people_count_for_area("C1", "E00060274") <= 8
+        assert 1 <= people_count_for_area("C1", "E00060274", bedrooms=None) <= 8

@@ -67,7 +67,7 @@ def totals(drawn, weather, *, census: bool) -> dict:
         e = series.annual_electricity_kwh
         gas += sum(g.values()) if hasattr(g, "values") else float(g)
         elec += sum(e.values()) if hasattr(e, "values") else float(e)
-        people += (people_count_for(pid, hh.output_area) if census
+        people += (people_count_for(pid, hh.output_area, bedrooms=hh.bedrooms) if census
                    else REAL_PROFILE(pid, hh).people_count)
         n += 1
     return {"premises": n, "gas_kwh": gas, "elec_kwh": elec, "total_kwh": gas + elec,

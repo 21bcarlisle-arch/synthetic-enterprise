@@ -704,10 +704,14 @@ def test_MEASURED_population_values(population, population_result):
     # [3, 15, 27, 45] -> [3, 15, 27, 44] the same day: the microwave's use count 0.8 -> 1.70 a day (HES's 56 kWh). Its extra draws
     # re-shuffle every later appliance's start times in the day's substream, so this is energy and
     # RNG together, not attributable to either.
-    assert [legs[q].below for q in (0.10, 0.25, 0.50, 0.75)] == [3, 15, 27, 44], texture.note
+    # [3, 15, 27, 44] -> [3, 13, 27, 43] the same day: the headcount is drawn given the dwelling's
+    # bedrooms (Census RM136), and bedrooms from VOA's stock. p25 moved AWAY from expected (15) by
+    # two and p75 by one. Not predicted.
+    assert [legs[q].below for q in (0.10, 0.25, 0.50, 0.75)] == [3, 13, 27, 43], texture.note
     # 0.142 -> 0.153 with electronics at its 2022 level (real 0.158).
     # 0.153 -> 0.168 on 2026-10-09, the census headcount (above).
-    assert legs[0.50].world == pytest.approx(0.168, abs=0.005), texture.note
+    # 0.168 -> 0.159 the same day, the headcount given the dwelling's bedrooms (real 0.158).
+    assert legs[0.50].world == pytest.approx(0.159, abs=0.005), texture.note
     red = [q for q, leg in legs.items() if leg.p * len(legs) < fgl.TEXTURE_DISTRIBUTION_ALPHA]
     assert red == [], texture.note
     # The calmest home was a gas home with a 364 W always-on load and no heater, no longer the
@@ -770,7 +774,8 @@ def test_MEASURED_population_values(population, population_result):
     # 3.07 -> 2.99 the same day: the kettle off headcount (HES Table 23) moves kettle energy from
     # the large homes to the small, so the spread narrows. Further from 4.88.
     # 2.99 -> 2.82 the same day: oven, hob, toaster and microwave off headcount, the same direction.
-    assert spread.value == pytest.approx(2.82, abs=0.05), spread.note
+    # 2.82 -> 2.88 the same day: the headcount drawn given the dwelling's bedrooms (Census RM136).
+    assert spread.value == pytest.approx(2.88, abs=0.05), spread.note
     assert not population_result.inconclusive, population_result.summary()
     # 0.4386 -> 0.4511 on 2026-10-06: the boiler pump repeats with the heating, so
     # it raises a gas home's day-to-day shape correlation a little. Still a GAS home.
@@ -805,7 +810,9 @@ def test_MEASURED_population_values(population, population_result):
     # headcount. More repeatable day to day, which fewer occupants predicts. Not pre-registered.
     # 0.555 -> 0.527 the same day, still P0023: the microwave's use count 0.8 -> 1.70 a day. Its
     # start time is drawn anywhere in 10:00-21:30, so more uses are more day-to-day noise.
-    assert shape.worst_value == pytest.approx(0.527, abs=0.01), shape.note
+    # 0.527 -> 0.500 the same day, still P0023: the headcount drawn given the dwelling's bedrooms.
+    # Still under the 0.6 band.
+    assert shape.worst_value == pytest.approx(0.500, abs=0.01), shape.note
     assert "gas" in population.heating_systems[
         population.homes.index(shape.worst_home)
     ], "the worst home is a GAS home"
@@ -888,8 +895,9 @@ def test_P0000_the_calmest_home_is_ORDINARY_against_real_homes_and_the_red_is_th
     # 22 -> 19 on 2026-10-08 (the cooking-fuel draw); the two-source property still holds.
     # 19 -> 16 the same day (electronics at its 2022 level); the property still holds.
     # 16 -> 15 the same day (oven and hob at their 2022 energy); the property still holds.
+    # 15 -> 13 on 2026-10-09 (headcount given the dwelling's bedrooms); the property still holds.
     calm = {pid for pid, r in readings.items() if r[0] < REAL_P25}
-    assert len(calm) == 15, sorted(calm)
+    assert len(calm) == 13, sorted(calm)
     with_freezer = {pid for pid in calm if "freezer" in stock[pid]}
     assert with_freezer, "no calm home owns a freezer, so the property below is vacuous"
     assert all(pt.always_on_kw(seeds[pid]) > pt._ALWAYS_ON_MEDIAN_KW for pid in with_freezer)
@@ -905,7 +913,8 @@ def test_P0000_the_calmest_home_is_ORDINARY_against_real_homes_and_the_red_is_th
     # 0.1589 -> 0.1633 (2026-10-08, oven and hob at their 2022 energy).
     # 0.1633 -> 0.2160 on 2026-10-09, the drawn 60 on the book's census headcount instead of the deleted bedrooms fallback.
     # 0.2160 -> 0.2139 the same day: the kettle stopped scaling with headcount (HES Table 23).
-    assert live == pytest.approx(0.2139, abs=5e-4)
+    # 0.2139 -> 0.1980 the same day: P0000's headcount drawn given its bedrooms (Census RM136).
+    assert live == pytest.approx(0.1980, abs=5e-4)
     assert net_of_pump > live
     # ORDINARY: inside the real middle half, with or without its pump. Keyed to REAL_MEDIAN as
     # the upper edge until 2026-10-08, when electronics at its 2022 level took P0000 to 0.1589,
@@ -1069,7 +1078,9 @@ def test_the_WATER_HEATER_netting_is_a_LOAD_SET_repair_and_not_a_LOOSENING(
     #
     # 0.518 -> 0.563 the same day: electronics at its 2022 level, the same mechanism again.
     # 0.563 -> 0.602 on 2026-10-09, the drawn 60 on the book's census headcount instead of the deleted bedrooms fallback.
-    assert gas_median == pytest.approx(0.602, abs=0.02)
+    # 0.602 -> 0.575 the same day: the headcount drawn given the dwelling's bedrooms. Same
+    # direction for every gas home; the band means the same.
+    assert gas_median == pytest.approx(0.575, abs=0.02)
 
     # BEFORE: an electrically heated home fired at a fraction of the breakage a gas
     # home needed — P0008 at 0.0000 was already under the floor untouched.

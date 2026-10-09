@@ -688,6 +688,7 @@ def test_the_TEXTURE_CELL_BREACH_CLOSED_when_the_LOAD_SET_WAS_REPAIRED(panel, we
     # 8 -> 7 the same day, electronics at its 2022 level (expected 7.5).
     # 7 -> 8 on 2026-10-09, oven, hob, toaster and microwave off headcount (expected 7.5).
     # 8 -> 6 the same day: the microwave's use count 0.8 -> 1.70 a day (HES's 56 kWh) (expected 7.5).
+    # 6 holds the same day with the headcount drawn given the dwelling's bedrooms (expected 7.5).
     assert median.below == 6, texture.note
 
     # (d) THE GAS HOMES ARE UNCHANGED BY THE REPAIR, which is what makes it a

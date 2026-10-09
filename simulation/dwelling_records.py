@@ -170,7 +170,7 @@ assert abs(sum(share for _, share in HOUSEHOLD_SIZE_SHARE_ONS_TS017) - 1.0) < 1e
 DEFAULT_CHILDREN_COUNT = 0
 
 
-def people_count_for_area(customer_id: str, output_area: str | None) -> int:
+def people_count_for_area(customer_id: str, output_area: str | None, *, bedrooms: int | None) -> int:
     """Household size drawn from THIS ADDRESS's own published distribution where one exists.
 
     `W2_19`'s physical layer, and the people ruling's frame: *"layer one is the household you would
@@ -189,6 +189,15 @@ def people_count_for_area(customer_id: str, output_area: str | None) -> int:
     the census, and the fallback is VISIBLE to the caller through `people_count_source` rather than
     silent, because a national draw wearing a local draw's name is exactly the independent-draw
     defect this replaces.
+
+    GIVEN THE DWELLING TOO, since 2026-10-09. `bedrooms` is REQUIRED, and keyword-only, so a caller
+    cannot leave the home's size out by accident. A forgotten argument is a second headcount for
+    one home, and that is the defect this function exists to close. The area's TS017 distribution
+    is the prior; Census 2021 RM136's P(bedrooms | household size) moves it
+    (`tools.dwelling_size_joint.condition_sizes_on_bedrooms`). Before this a six-bed home was
+    single as often as a one-bed, where RM136 gives 11% against 74%. `None` is an honest "the
+    caller has no dwelling", and it draws exactly the unconditioned distribution it drew before.
+    That makes it the control arm, not a fallback that looks like an answer.
     """
     # AN AUTHORED HEADCOUNT OUTRANKS EVERY DRAW, and it is checked HERE rather than at the one
     # call site that used to know about it (2026-09-17). `build_properties` read
@@ -200,10 +209,15 @@ def people_count_for_area(customer_id: str, output_area: str | None) -> int:
     if authored:
         return int(authored)
     if people_count_source(output_area) == "national":
-        return _derive_people_count(customer_id)
+        return _derive_people_count(customer_id, bedrooms=bedrooms)
     from tools.people_physical_layer import committed_size_distribution_by_area, draw_size
-    return draw_size(output_area, _random.Random(f"people_count_{customer_id}"),
-                     committed_size_distribution_by_area())
+    rng = _random.Random(f"people_count_{customer_id}")
+    if bedrooms is None:
+        return draw_size(output_area, rng, committed_size_distribution_by_area())
+    from tools.dwelling_size_joint import condition_sizes_on_bedrooms
+    counts = committed_size_distribution_by_area()[output_area]
+    return draw_size(output_area, rng,
+                     {output_area: condition_sizes_on_bedrooms(counts, bedrooms)})
 
 
 def composition_cuts_for(customer_id: str) -> tuple[bool, bool]:
@@ -342,7 +356,7 @@ def people_count_source(output_area: str | None) -> str:
     return "output_area" if output_area in committed_size_distribution_by_area() else "national"
 
 
-def _derive_people_count(customer_id: str) -> int:
+def _derive_people_count(customer_id: str, *, bedrooms: int | None) -> int:
     """Deterministic per-customer household size for a customer with no
     authored headcount, drawn from the ONS TS017 distribution above.
 
@@ -350,9 +364,15 @@ def _derive_people_count(customer_id: str) -> int:
     `simulation.household_segments`' archetype draws, under its OWN named key
     (`people_count_<id>`) so it cannot shift any other draw's sequence (C-S2).
     """
-    roll = _random.Random(f"people_count_{customer_id}").random()
+    shares = dict(HOUSEHOLD_SIZE_SHARE_ONS_TS017)
+    if bedrooms is not None:
+        from tools.dwelling_size_joint import condition_sizes_on_bedrooms
+        shares = condition_sizes_on_bedrooms(shares, bedrooms)
+    # Unconditioned, the roll is NOT rescaled, so `bedrooms=None` is the pre-2026-10-09 draw bit for bit.
+    total = 1.0 if bedrooms is None else sum(shares.values())
+    roll = _random.Random(f"people_count_{customer_id}").random() * total
     cumulative = 0.0
-    for size, share in HOUSEHOLD_SIZE_SHARE_ONS_TS017:
+    for size, share in shares.items():
         cumulative += share
         if roll < cumulative:
             return size
@@ -477,7 +497,8 @@ def build_properties(customers: list[dict], dwellings: dict | None = None) -> di
         # Bound ONCE and read twice below: the children draw is conditional on the headcount, so
         # a second call here would be a second chance for the two fields to describe different
         # households if `people_count_for_area` ever stopped being deterministic.
-        people_count = people_count_for_area(cid, phys.get("output_area"))
+        people_count = people_count_for_area(cid, phys.get("output_area"),
+                                             bedrooms=phys.get("bedrooms"))
         properties[cid] = {
             "customer_id": cid,
             "property_type": phys["property_type"],
