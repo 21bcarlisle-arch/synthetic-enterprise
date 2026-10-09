@@ -72,3 +72,40 @@ figure should carry the harness's own failure density as its basis.
   collection.
 - `simulation/payment_timing.py` keeps its own copy of 3/12/35% (`_DD_FAILURE_PROBABILITY`). This
   is a second implementation, not migrated here.
+
+## Re-reading the arrears like-for-like on origin (pre-registered 2026-10-09T07:30Z, before any run)
+
+The director's hold on the 3,100 settlement raise and the 400-founder run has two halves. The
+departure half is met (c38c97622). The arrears half was "about 2x once matched" (32acb3ea1), but it
+was read on a world whose lowest DD tier failed 3% a month. This re-reads it on origin after
+54dbd5650 (this correction), c9fd63f82 (voids) and d00cf9dc2 (headcount given dwelling size).
+
+**What is measured.** At each 2019 quarter end: the share of domestic electricity accounts billed
+in that month that hold a bill unpaid for more than 91 days. That covers a failed bill not yet
+settled, and a bill paid more than 91 days late but not yet paid. It is read from the payment
+triad's truth records, by the same rule as `debt_objection.WorldDebtBook` but at 91 days. The
+denominator includes prepayment accounts, because Ofgem's does.
+
+**Comparator, unchanged.** Ofgem Q4 2019: arrears 2.45% plus debt on an arrangement 2.6%, giving
+**5.1%** for electricity. The world's arrangements do not shrink the sum, so the sum is the
+like-for-like figure.
+
+**Run.** Default seed, 80 founders, `run_phase2b(report_end="2019-12-31")`. Script:
+`/var/tmp/arrears_like_for_like.py`.
+
+**Predictions.**
+- P1, the instrument. At 54dbd5650^ (before the correction) this script reads the 2019 electricity
+  quarter ends within 2 points of 54dbd5650's own 8.7 / 9.6 / 11.6 / 10.2%. If it does not, my
+  matching is not the commit's, and both readings are reported on this instrument.
+- P2, the world. On origin, every 2019 electricity quarter end reads at most 3%. Pooled over the
+  four quarter ends it reads at most 2%, a ratio to 5.1% of 0.4 or less. Two things lower it from
+  54dbd5650's 0.0 / 1.2 / 0.0 / 1.1%: the triad no longer bills the named household for occupier
+  debt (c9fd63f82), and a smaller household pays a smaller bill (d00cf9dc2). The second does not
+  move a count of unpaid bills, so I expect little movement overall.
+
+**Criterion, fixed now.** The arrears half is **MET** if 5.1% lies inside the Wilson 95% interval
+of the pooled 2019 electricity reading. That pooled n counts each account once per quarter end. It
+overstates independence, so the interval is too narrow, and Q4 2019 alone is reported beside it.
+It is **NOT MET, HIGH** if the interval lies wholly above 5.1%, and **NOT MET, LOW** if it lies
+wholly below. A world far below the comparator is as much a like-for-like gap as one 2x above it,
+only in the other direction.
