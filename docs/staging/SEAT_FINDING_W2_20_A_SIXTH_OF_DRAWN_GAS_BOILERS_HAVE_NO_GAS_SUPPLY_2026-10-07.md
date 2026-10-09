@@ -664,6 +664,8 @@ the `w220-nine-seed` chain or run the leg twice.
 | R3 sign of R2's move | | | **positive** | negative | **fail** |
 | R4 control billing accounts | 272 | 272 | 0 | within ±5% | **pass** |
 
+> **Rests on the pre-correction world (arrears ~10x too high); re-graded by the 400-founder end-to-end run on the corrected world.** *(Marked 2026-10-09; corrections 23fca0567, 54dbd5650.)*
+
 **The whole move is realised bad debt.** In every arm, gross margin, capital cost and the provisioned
 clock agree with `h` to within 1e-4 GBP. Each arm's net falls by exactly its rise in realised bad debt.
 Control bad debt rises £11,971 → £12,653 (+5.7%), close to the recovery commit's ~6% estimate. So the
@@ -693,6 +695,8 @@ Leg 2 (`value_cycle_ab_s1_noise_floor_20261008r.json`) finished at 16:48Z, produ
 | floor mean / sd | £10,176.91 / £1,299.54 | £10,279.29 / £1,297.71 | |
 | band [min - 1 sd, max + 1 sd] | £7,969.57 - £12,965.11 | **£8,077.30 - £13,063.90** | |
 | leg 1 | £5,133.84 | **£5,244.00** | +£110.16 |
+
+> **Rests on the pre-correction world (arrears ~10x too high); re-graded by the 400-founder end-to-end run on the corrected world.** *(Marked 2026-10-09; corrections 23fca0567, 54dbd5650.)*
 
 **R5: pass.** Leg 1 sits £2,833 below the `r` band's floor and 3.88 floor sds below its mean. That is the same
 distance as `h`, to two decimal places. The register recovery moved every seed and leg 1 by +£101 to +£110, so it

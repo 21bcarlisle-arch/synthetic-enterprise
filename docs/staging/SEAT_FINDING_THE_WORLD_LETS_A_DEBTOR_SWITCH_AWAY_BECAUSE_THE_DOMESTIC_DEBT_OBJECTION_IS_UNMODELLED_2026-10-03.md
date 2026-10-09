@@ -92,6 +92,8 @@ each:**
 | churned billing accounts | 74 | 71 |
 | total bad debt (GBP) | 23,154 | 23,769 |
 
+> **Re-graded 2026-10-09 on the corrected world (23fca0567, 54dbd5650):** the ON leg only, at origin `46951a0ee`, same default seed, `PYTHONPATH=<tree> python3 -c 'from simulation.run_phase2b import main; r = main()'` counting `customer_events` with `debt_objection_eligible` (52 min wall on a contended box, queued behind landings; not the minutes tier). **Decisions with an eligible debtor 47 of 84 (56%) -> 27 of 110 (25%); departures blocked 6 -> 1.** Churned billing accounts 71 -> 116, SVT-route departures 48 -> 74, and `total_bad_debt` GBP 23,769 -> 58,007 are NOT comparable: the book is a different size (110 rolled decisions, not 84; the settlement budget and other world changes landed since `bf0d37c2f`), so the arrears correction is one of several variables and I cannot attribute those moves to it. The short window the control uses (`run_phase2b(report_end="2017-06-30")`, 88 s): eligible 8 of 15 (2026-10-03) -> 6 of 15 (2026-10-04, cure) -> **2 of 16, 0 blocked**. The 28.3% blocked share is Ofgem's ratio and does not move; what moved is its reach. 25% is still above the rough 10-15% reading of Ofgem's counts, so the reach stays an upper bound, but it is now within about 2x rather than 4-5x.
+
 **The eligible share is not credible. Read it before using any of these numbers.** In this world,
 56% of renewal decisions carry an objectionable debt. Ofgem's counts give about 600k indebted
 switch attempts a year. Electricity switches were about 4.8m in 2016. That rough comparison

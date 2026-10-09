@@ -183,6 +183,8 @@ per domestic switch away) graded exactly. The earlier text said "at most 0.044" 
 | stayer account-terms moved against `off` (of 4,898) | 0 | **0** | 0 |
 | known-vulnerable offered / twin shortfalls / left unoffered | 2 / 0 / 0 | 2 / 0 / 0 | 2 / 0 / 0 |
 
+> **Rests on the pre-correction world (arrears ~10x too high); re-graded by the 400-founder end-to-end run on the corrected world.** *(Marked 2026-10-09; corrections 23fca0567, 54dbd5650.)*
+
 - **At the bottom of the range: it TIES never offering, exactly.** Total net and every account-term's
   price are identical to `off`.
 - **At the top of the range: it BEATS never offering by GBP 1,679 (about 0.9% of total net), and no

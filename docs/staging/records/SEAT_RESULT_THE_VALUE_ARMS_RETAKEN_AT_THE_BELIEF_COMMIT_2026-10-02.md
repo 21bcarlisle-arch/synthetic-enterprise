@@ -161,6 +161,8 @@ as in the arms run.
 | 33333 | £19,728 → **£15,322** | −£7,542 → **−£5,551** | +£4,342 | −£9,892 |
 | mean | £15,578 → £14,873 | −£3,087 → **−£4,076** (SEM £892, 4.57 SEMs from zero against a 4.30 bar) | **+£5,754** | −£9,830 |
 
+> **Rests on the pre-correction world (arrears ~10x too high); re-graded by the 400-founder end-to-end run on the corrected world.** *(Marked 2026-10-09; corrections 23fca0567, 54dbd5650.)*
+
 The split method is 792fcf31d's: each arm's arrears lines reconcile to its net on all 124
 accounts. Re-run over the 1002b floor, the script reproduces that record's +7,446 / +6,352 / −1,
 so the instrument is the same one.

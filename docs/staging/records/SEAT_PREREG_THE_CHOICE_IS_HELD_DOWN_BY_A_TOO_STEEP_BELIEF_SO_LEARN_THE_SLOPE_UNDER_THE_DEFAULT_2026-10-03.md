@@ -167,6 +167,8 @@ decisions are "eligible". A cure is being built.
 > not reach the decisive decision on any path, and the paragraph below about 61003 describes that
 > artefact. Cause and fix: `78fdb9538` (every run now reads the one shared price cache).
 
+> **Not re-graded 2026-10-09 on the corrected world (23fca0567, 54dbd5650):** the "on" probe (`tools/decision_probe.py`, seeds 61002/61003) is ~31 min a seed, over the minutes tier, so it was not re-run. **Rests on the pre-correction world (arrears ~10x too high); re-graded by the 400-founder end-to-end run on the corrected world.**
+
 The objection does not reach the decisive decision on three paths. At 2017-03-31 PROS-2016-0098
 has no bill more than 28 days unpaid in the world's own records, so it is not an eligible debtor.
 On 61003, the re-drawn renewal dice put an older unpaid bill in front of the date, the block

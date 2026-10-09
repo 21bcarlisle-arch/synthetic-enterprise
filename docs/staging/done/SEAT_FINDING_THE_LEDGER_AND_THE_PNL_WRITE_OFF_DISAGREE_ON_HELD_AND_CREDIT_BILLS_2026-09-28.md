@@ -8,6 +8,8 @@
 cases**. `tools.generate_billing_ledger.generate` over the same file: **£17,359.26**. Six accounts
 disagree (C8, PROS-2016-0098, PROS-2018-0002, SYN-2016-005, -013, -052).
 
+> **Rests on the pre-correction world (arrears ~10x too high); re-graded by the 400-founder end-to-end run on the corrected world.** *(Marked 2026-10-09; corrections 23fca0567, 54dbd5650.)*
+
 Two causes, both on the engine side:
 
 1. **203 bills the pre-bill validation gate HOLDS** (195 `slc_6_7_billing_accuracy`, 8
@@ -54,6 +56,8 @@ runs), and a credit bill resolves to `credit` — no collection, no failure, no 
   old stages as CASH COLLECTED (`arrears_resolved`, `method: payment_plan`), so every such account's
   running balance read zero. It now carries the open balance. Restoring `RESOLVED` reds
   `test_no_open_balance_renders_as_resolved` on the real book (525 open cases).
+
+> **Rests on the pre-correction world (arrears ~10x too high); re-graded by the 400-founder end-to-end run on the corrected world.** *(Marked 2026-10-09; corrections 23fca0567, 54dbd5650.)*
 
 ## Open, filed not fixed
 

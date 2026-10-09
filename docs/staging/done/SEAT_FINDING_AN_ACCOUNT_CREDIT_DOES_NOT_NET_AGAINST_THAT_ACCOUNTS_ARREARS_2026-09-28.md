@@ -43,6 +43,8 @@ A credit that finds no arrears waits on the account and nets against arrears tha
 | 2026-09-28T00:18Z (shared tree) | £17,408.05 | **£15,201.69** | 187 → 160 | 101 of 155 | £12,811.32 | 27 / 10 |
 | 2026-09-09 (committed, what the gate reads) | £13,535.68 | **£11,070.30** | 160 → 148 | 121 of 170 | £11,600.79 | 12 / 12 |
 
+> **Rests on the pre-correction world (arrears ~10x too high); re-graded by the 400-founder end-to-end run on the corrected world.** *(Marked 2026-10-09; corrections 23fca0567, 54dbd5650.)*
+
 The ledger and `compute_emergent_bad_debt` agree to the penny on both runs, at £15,201.69 and
 £11,070.30.
 
