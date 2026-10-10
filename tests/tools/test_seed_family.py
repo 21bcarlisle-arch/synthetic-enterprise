@@ -241,3 +241,17 @@ def test_a_reference_books_mix_scales_its_sampled_wins_back_to_every_win():
                                "change_of_tenancy": round(1 / 3, 4)}
     scaled = sf.mix_of_report(report, {"C1"}, wins_scale=2.0)
     assert scaled["shares"]["campaign_win"] == 0.5
+
+
+def test_the_launch_command_follows_every_member_to_its_end(monkeypatch, tmp_path):
+    """DEFECT (director's condition 3, 2026-10-10: "Every job you queue must wake you when it
+    finishes"): a launch that returns when the units are scheduled, so nothing ends with them."""
+    import background.launch_long_job as llj
+    followed = []
+    monkeypatch.setattr(sf, "launch", lambda *a, **k: [{"unit": "u1", "artefact": "a1"},
+                                                       {"unit": "u2", "artefact": "a2"}])
+    monkeypatch.setattr(llj, "follow_unit", lambda unit, art, **k: followed.append(unit) or 0)
+    argv = ["launch", "--seeds", "1,2", "--tag", "t", "--out", str(tmp_path)]
+    assert sf.main(argv) == 0 and followed == ["u1", "u2"]
+    followed.clear()
+    assert sf.main(argv + ["--detach"]) == 0 and followed == []
