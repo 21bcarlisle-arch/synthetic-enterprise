@@ -78,6 +78,7 @@ from company.interfaces.supply_book import (
     acquired_supply_points,
     incoming_occupant_supply_points,
     open_change_of_supplier_register,
+    open_move_out_register,
     open_priority_services_register,
     successor_supply_points,
 )
@@ -211,6 +212,7 @@ from simulation.live_population import (
     live_population,
     run_base_seed,
 )
+from simulation.move_out_notice_feed import MoveOutNoticeFeed
 from simulation.nudge_physics import framing_effectiveness_multiplier, susceptibility_for
 from simulation.payment_timing import generate_payment_record, stress_bad_debt_multiplier
 from simulation.policy_costs import (
@@ -2138,6 +2140,11 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
     _save_scale = world_save_response_scale() if _save_offers_on else 1.0
     save_on_loss_notice_log: list[dict] = []
     _move_out_by_household: dict[str, date | None] = {}
+    # THE MOVE-OUT NOTICE (`interface/contracts/move_out_notice_seam.py`): our household tells us,
+    # two Working Days before its move, and the company files it in its own register. Only a
+    # household still ours at the notice sends one; with moves off nothing is sent.
+    _move_out_feed = MoveOutNoticeFeed()
+    _move_out_register = open_move_out_register()
     _home_move_by_household: dict = {}
     home_move_outs: list[dict] = []
     # B7 slice 3: who supplies a vacated premise from the move date. The book is live and module
@@ -2349,6 +2356,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         # the household's first term (the heap is chronological), over its own supply window, so
         # a household won in 2020 cannot lose a term to a move drawn in 2018. Off unless the curriculum
         # file says on.
+        _moved_in_term = False
         if _home_moves_on:
             if billing_account not in _move_out_by_household:
                 # An incoming occupant moves on the same hazard, so a premise can turn over twice.
@@ -3796,6 +3804,13 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                 term_indices[cid] += 1
             continue
 
+        # THE MOVE-OUT NOTICE, from a household still ours at this term's start whose move falls in
+        # it: one notice for this leg's point, dated two Working Days before the move. Handed only
+        # the point and the date, so nothing else of the move can ride on it.
+        if _moved_in_term:
+            for _wire in _move_out_feed.wire_notices_for_move([cid], _move_end):
+                _move_out_register.receive_move_out_wire(_wire)
+
         if cid in pending_committee_overrides:
             hf = pending_committee_overrides.pop(cid)
         else:
@@ -4970,6 +4985,9 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         # Phase QL Part 2: hidden churn-journey state trajectory (SIM-side shadow
         # tracker -- does not gate the roll_lifecycle_event dice roll itself)
         "churn_journey_log": churn_journey_log,
+        **({"move_out_notices_filed": _move_out_register.notices(),
+            "move_out_notice_exceptions": _move_out_register.exceptions()}
+           if _home_moves_on else {}),
         **({"home_move_outs": home_move_outs, "home_move_ins": home_move_ins}
            if _home_moves_on else {}),
         "renewal_decisions_log": renewal_decisions_log,
