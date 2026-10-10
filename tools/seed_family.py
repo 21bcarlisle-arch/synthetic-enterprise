@@ -499,7 +499,7 @@ def tables_identical(a: list[dict], b: list[dict]) -> list[str]:
     for h in sorted(set(ka) & set(kb)):
         for c in columns:
             if ka[h].get(c) != kb[h].get(c):
-                diffs.append(f"{h}.{c}: {ka[h][c]} != {kb[h][c]}")
+                diffs.append(f"{h}.{c}: {ka[h].get(c)} != {kb[h].get(c)}")
     return diffs
 
 
