@@ -356,3 +356,65 @@ def retention_cut_decision(observation: dict, *, cut_gbp_per_mwh: float, margin_
                            f"cut: +{est.effect:.4f} of staying is worth {with_cut - without:.2f} more than it costs")
     return CutDecision(False, with_cut, without, read,
                        f"no cut: +{est.effect:.4f} of staying is worth {without - with_cut:.2f} less than the cut")
+
+
+# --- B8 L3: the run's own retention holdout --------------------------------------------------------
+#
+# L2 decided on an estimate learned off a coin-drawn decision set the size of a national book. The
+# run's company has only its own renewals, so it runs the holdout itself: at every renewal its guard
+# would consider, it flips its own coin. The held-out half gets no offer. The other half gets the
+# offer the standing guard makes while the company's own interval is undecided -- that is the
+# experiment running -- and `retention_cut_decision` decides it once the interval says anything.
+# A row is written only where the arm's treatment was actually given: a treated renewal the decision
+# declined is not a treated row, or the estimate would count an offer nobody received.
+
+#: Not a domain figure: the split that gives a difference of two shares its narrowest interval for a
+#: given number of decisions, the one `simulation/coin_drawn_decision_set.py` flips.
+HOLDOUT_SHARE = 0.5
+
+
+def holdout_arm(account_id: str, event_date: str) -> str:
+    """The company's own coin for this renewal: `"holdout"` or `"treated"`. Seeded on the account and
+    the day, so a re-run flips the same coin, and on nothing the world drew."""
+    import hashlib
+
+    digest = hashlib.sha256(f"B8_run_holdout::{account_id}::{event_date}".encode()).digest()
+    return "holdout" if int.from_bytes(digest[:8], "big") / 2 ** 64 < HOLDOUT_SHARE else "treated"
+
+
+class RetentionHoldout:
+    """The run's holdout rows, and the decision they support at a given day."""
+
+    def __init__(self) -> None:
+        self.rows: list[dict] = []
+
+    def record(self, *, account_id: str, event_date: str, arm: str, stayed: bool,
+               payment_method: str | None) -> None:
+        self.rows.append({"account_id": account_id, "event_date": event_date, "arm": arm,
+                          "stayed": bool(stayed), "payment_method": str(payment_method)})
+
+    def closed_before(self, event_date: str) -> list[dict]:
+        """Rows whose outcome the company knew before `event_date`: a renewal's stay or leave is
+        settled on its own day, so a row dated that day is not yet in the book."""
+        return [r for r in self.rows if r["event_date"] < event_date]
+
+    def decide(self, *, account_id: str, event_date: str, payment_method: str | None,
+               term_margin_gbp: float, term_billed_gbp: float, billed_kwh: float,
+               cut_gbp_per_mwh: float) -> tuple[str, CutDecision | None]:
+        """`(arm, decision)` for one renewal. `decision` is None on the held-out arm, and on the
+        treated arm while the company's own interval is undecided or refused: the caller then makes
+        the standing guard's offer. Otherwise it is `retention_cut_decision` on the rows closed
+        before today, valued at this term's own margin as a share of its own billing."""
+        arm = holdout_arm(account_id, event_date)
+        if arm == "holdout":
+            return arm, None
+        rows = self.closed_before(event_date)
+        pooled = estimate_offer_effect(rows)
+        if pooled.verdict in ("undecided", "refused") or term_billed_gbp <= 0:
+            return arm, None
+        observation = {"payment_method": str(payment_method), "monthly_bills": [term_billed_gbp],
+                       "billed_kwh": billed_kwh}
+        return arm, retention_cut_decision(
+            observation, cut_gbp_per_mwh=cut_gbp_per_mwh,
+            margin_share=term_margin_gbp / term_billed_gbp,
+            by_channel=estimate_offer_effect_by_channel(rows), pooled=pooled)

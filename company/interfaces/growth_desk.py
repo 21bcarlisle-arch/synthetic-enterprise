@@ -58,6 +58,7 @@ __all__ = [
     "decide_acquisition",
     "growth_mandate_label",
     "mandate_permits_replacement",
+    "new_retention_holdout",
     "replacement_cost_avoided_gbp",
     "retention_engagement",
     "retention_offer_can_buy_anything",
@@ -424,3 +425,14 @@ def retention_offer_can_buy_anything(*, previous_term_on_our_default: bool,
     if full_position_vs_default is None or offered_position_vs_default is None:
         return False
     return full_position_vs_default > 0 and offered_position_vs_default <= 0
+
+
+def new_retention_holdout():
+    """The company's own retention holdout for one run (B8 L3,
+    `company.pricing.discovered_price_sensitivity.RetentionHoldout`). The world holds the object
+    only to hand each considered renewal and its outcome back to it; the coin, the rows and the
+    decision are the supplier's. Imported here, not at module scope, so the class is not reachable
+    through this door's namespace."""
+    from company.pricing.discovered_price_sensitivity import RetentionHoldout
+
+    return RetentionHoldout()

@@ -58,6 +58,7 @@ from company.interfaces.growth_desk import (
     decide_acquisition,
     growth_mandate_label,
     mandate_permits_replacement,
+    new_retention_holdout,
     replacement_cost_avoided_gbp,
     retention_bad_debt_charge,
     retention_engagement,
@@ -2319,6 +2320,9 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
     # Phase 12b: retention cost events and log
     retention_cost_events: list[dict] = []
     retention_log: list[dict] = []
+    # B8 L3: the company's own retention holdout, on a policy that runs one.
+    _retention_holdout = new_retention_holdout() if policy.retention_runs_holdout else None
+    retention_holdout_log: list[dict] = []
     # Phase 12c: churns where no offer was made (missed opportunities)
     no_offer_churn_log: list[dict] = []
     # Phase 14b: gas renewal rate pressure log for dual-fuel monitoring
@@ -2891,6 +2895,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         if term_index >= 1 and commodity == _decision_leg and not _indexed_tariff:
             company_est_pre = None
             _retention_offer = None
+            _holdout_arm = None
             _no_offer_reason = "below_threshold"
             _would_be_discount_pct = None
             _bill_shock_this_term = False
@@ -3112,12 +3117,33 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                                 position_vs_default(offered_rate(unit_rate, discount_pct),
                                                     term_start_str, commodity=commodity)
                                 if _offer_vs_default is not None else None)))
+                    # B8 L3: on a policy that runs the holdout, the company's own coin holds half
+                    # the renewals an offer could buy anything at out, and its own interval, once
+                    # decided, replaces the guard below on the rest. `_cut_decision` None on the
+                    # treated arm = still learning.
+                    _cut_decision = None
+                    if _offer_can_buy and _retention_holdout is not None:
+                        _holdout_arm, _cut_decision = _retention_holdout.decide(
+                            account_id=billing_account, event_date=term_start_str,
+                            payment_method=_company_payment_method,
+                            term_margin_gbp=expected_margin, term_billed_gbp=_ret_billed,
+                            billed_kwh=eac_for_ret, cut_gbp_per_mwh=unit_rate * discount_pct)
+                        retention_holdout_log.append({
+                            "customer_id": billing_account, "event_date": term_start_str,
+                            "arm": _holdout_arm, "payment_method": _company_payment_method,
+                            "discount_pct": discount_pct,
+                            "decided": _cut_decision is not None,
+                            "offer_cut": None if _cut_decision is None else _cut_decision.offer_cut,
+                            "reason": None if _cut_decision is None else _cut_decision.reason,
+                        })
                     if not _offer_can_buy:
                         _no_offer_reason = "the_discount_cannot_win_the_fix"
-                    elif retention_value_protected(
+                    elif _holdout_arm != "holdout" and (
+                          _cut_decision.offer_cut if _cut_decision is not None
+                          else retention_value_protected(
                             expected_margin, acq_cost_saved, _engagement,
                             default_belief_rate=_ret_default_belief,
-                            billed=_ret_billed) > ret_cost:
+                            billed=_ret_billed) > ret_cost):
                         # THE OFFER REACHES THE WORLD AS ITS RATE (director, 2026-10-09), answered
                         # at the roll below by `simulation.retention_offer`. It reached it as a flat,
                         # unsourced 0.20 cut to one hazard whatever the discount, so a 3% and an 8%
@@ -3154,7 +3180,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                                if _ret_default_belief is not None else {}),
                         })
                     else:
-                        _no_offer_reason = "uneconomical"
+                        _no_offer_reason = "held_out" if _holdout_arm == "holdout" else "uneconomical"
             # Phase NQ: industry base rate floor when no prior rate exists
             if company_est_pre is None:
                 company_est_pre = estimate_churn_without_rate_history()
@@ -3481,6 +3507,13 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                 _journey, renewal_decisions_log, customer_id=billing_account,
                 event_date=term_start_str, commodity=commodity, rolled=_rolled, event=event,
             )
+            # B8 L3: a row only where the arm's treatment was given -- held out, or offered.
+            if _holdout_arm == "holdout" or (_holdout_arm == "treated" and _retention_offer is not None):
+                _retention_holdout.record(
+                    account_id=billing_account, event_date=term_start_str, arm=_holdout_arm,
+                    stayed=not (event is not None and event["event_type"] == "churned"),
+                    payment_method=_company_payment_method)
+                retention_holdout_log[-1]["stayed"] = _retention_holdout.rows[-1]["stayed"]
             if event is not None:
                 event["is_active_renewal"] = active_renewal
                 # Phase 2 Layer 1: SIM-internal ground truth, retained here for
@@ -4912,6 +4945,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             customer_events_log, won_successor_activations, fresh_acquisitions, SUCCESSOR_MAP
         ),
         "retention_log": retention_log,
+        **({"retention_holdout_log": retention_holdout_log} if policy.retention_runs_holdout else {}),
         "nudge_physics_log": nudge_physics_log,
         "retention_cost_events": retention_cost_events,
         "no_offer_churn_log": no_offer_churn_log,

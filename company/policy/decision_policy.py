@@ -204,6 +204,12 @@ class DecisionPolicy:
     #: off in `naive`, which predates the rule.
     retention_offers_at_default_anniversary_only_where_the_discount_wins: bool = True
 
+    #: B8 L3 (2026-10-09): the retention guard runs the company's own holdout
+    #: (`discovered_price_sensitivity.RetentionHoldout`). Half the renewals it would consider get no
+    #: offer; the other half get the standing guard's offer until the company's own interval decides,
+    #: and `retention_cut_decision` after. Off on every standing policy, so no run moves.
+    retention_runs_holdout: bool = False
+
     def retention_discount_for_risk(self, company_est: float) -> float:
         """Return the retention discount fraction for a given churn estimate."""
         if self.retention_discount_mode == "flat":

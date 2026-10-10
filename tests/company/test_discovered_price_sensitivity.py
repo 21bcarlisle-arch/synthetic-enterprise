@@ -189,3 +189,68 @@ def test_a_channel_is_read_on_its_own_only_when_it_holds_the_decisions_the_effec
     short = _decide(pooled, margin_share=0.14, by_channel=by, method="other")
     assert own.read.startswith("direct_debit") and not own.offer_cut  # its own nil effect decides
     assert short.read.startswith("pooled") and short.offer_cut       # the pooled effect decides
+
+
+# --- B8 L3: the run's own holdout ------------------------------------------------------------------
+
+def _account_on(arm: str, day: str) -> str:
+    return next(f"R{i}" for i in range(1000) if dps.holdout_arm(f"R{i}", day) == arm)
+
+
+def _planted(holdout: "dps.RetentionHoldout", day: str, n: int = 400) -> None:
+    """A holdout whose own interval says the offer raises staying: 0.95 treated against 0.75."""
+    for i in range(n):
+        holdout.record(account_id=f"T{i}", event_date=day, arm="treated", stayed=i < 0.95 * n,
+                       payment_method="direct_debit")
+        holdout.record(account_id=f"H{i}", event_date=day, arm="holdout", stayed=i < 0.75 * n,
+                       payment_method="direct_debit")
+
+
+def _run_decide(holdout, account, day, margin):
+    return holdout.decide(account_id=account, event_date=day, payment_method="direct_debit",
+                          term_margin_gbp=margin, term_billed_gbp=1000.0, billed_kwh=3000.0,
+                          cut_gbp_per_mwh=7.5)
+
+
+def test_the_runs_holdout_takes_every_branch_and_reads_only_rows_closed_before_today():
+    """One partition: held out; treated while the company's own interval is undecided (the standing
+    guard decides); treated and decided, cut; treated and decided, no cut. And a row dated today is
+    not yet in the book -- the same planted rows on the decision's own day leave it undecided."""
+    day = "2019-06-01"
+    treated, held = _account_on("treated", day), _account_on("holdout", day)
+    empty, learned, same_day = dps.RetentionHoldout(), dps.RetentionHoldout(), dps.RetentionHoldout()
+    thin = dps.RetentionHoldout()
+    _planted(learned, "2018-06-01")
+    _planted(thin, "2018-06-01", n=10)  # the founders' book: an arm of ten is undecided, not refused
+    _planted(same_day, day)
+
+    outcomes = {
+        "held_out": _run_decide(learned, held, day, 100.0),
+        "learning": _run_decide(empty, treated, day, 100.0),
+        "undecided": _run_decide(thin, treated, day, 100.0),
+        "same_day": _run_decide(same_day, treated, day, 100.0),
+        "cut": _run_decide(learned, treated, day, 100.0),
+        "no_cut": _run_decide(learned, treated, day, 10.0),
+    }
+    assert outcomes["held_out"] == ("holdout", None)
+    assert outcomes["learning"] == ("treated", None)
+    assert dps.estimate_offer_effect(thin.rows).verdict == "undecided"
+    assert outcomes["undecided"] == ("treated", None)
+    assert outcomes["same_day"] == ("treated", None)
+    assert outcomes["cut"][1].offer_cut and not outcomes["no_cut"][1].offer_cut, outcomes
+
+
+def test_the_companys_coin_holds_about_half_out_and_flips_the_same_way_on_a_rerun():
+    arms = [dps.holdout_arm(f"A{i}", "2019-06-01") for i in range(4000)]
+    assert 0.47 < arms.count("holdout") / len(arms) < 0.53
+    assert arms == [dps.holdout_arm(f"A{i}", "2019-06-01") for i in range(4000)]
+    assert dps.holdout_arm("A1", "2019-06-01") != dps.holdout_arm("A1", "2019-06-02") or any(
+        dps.holdout_arm(f"A{i}", "2019-06-01") != dps.holdout_arm(f"A{i}", "2019-06-02")
+        for i in range(50))
+
+
+def test_no_standing_policy_runs_the_holdout():
+    from company.policy import decision_policy as dp
+
+    standing = [v for v in vars(dp).values() if isinstance(v, dp.DecisionPolicy)]
+    assert standing and not any(p.retention_runs_holdout for p in standing)
