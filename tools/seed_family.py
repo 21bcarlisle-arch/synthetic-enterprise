@@ -22,6 +22,7 @@ premise and its own row. Per home, what each column counts:
   route               founder (in this seed's founder book), home_move_successor (`_N` suffix),
                       change_of_tenancy (`OCC-`), campaign_win (a `PROS-` prospect or a won funnel
                       entry), else arrival (the drawn trickle).
+  acquired            the earliest acquisition date on the home's supply points.
   first_settled / tenure_days  the home's first settled day; days from it to its last billed
                       period end.
   still_supplied      not in the run's churned billing accounts.
@@ -81,7 +82,8 @@ ANALYSIS_BUDGET_CUSTOMER_YEARS = 1e9
 MEMBER_PEAK_MB = 3500
 MEMBER_EXPECT_MINUTES = 40
 
-COLUMNS = ("home_id", "seed", "segment", "route", "first_settled", "tenure_days", "still_supplied",
+COLUMNS = ("home_id", "seed", "segment", "route", "acquired", "first_settled", "tenure_days",
+           "still_supplied",
            "net_value_gbp", "bad_debt_gbp", "provisioned_bad_debt_gbp", "max_days_behind",
            "behind_91")
 
@@ -200,25 +202,37 @@ def _fold_debt(row, arrears_lines: dict, payments: list) -> None:
             days = p.days_late or 0
         else:
             continue
-        r = row(p.account_id)
+        # `customer_id` is the leg; the triad's `account_id` is `ACC-<leg>`, which folds to no home.
+        r = row(p.customer_id)
         r["max_days_behind"] = max(r["max_days_behind"], days)
 
 
-def home_rows(seed: int, run: dict, payments: list, founders: set[str]) -> tuple[list[dict], dict]:
+def home_rows(seed: int, run: dict, payments: list, founders: set[str], customers=()
+              ) -> tuple[list[dict], dict]:
     """One row per home, and the run-level figures its columns must reconcile to. `run` is the
-    run's own output (`run_phase4c_on_phase2b.main`), never the rendered report. Pure."""
+    run's own output (`run_phase4c_on_phase2b.main`), never the rendered report; `customers` is
+    the run's supply points (segment, acquisition date). Pure."""
     from saas.customer_reaction import _billing_account_id as home_of
     from tools.grade_world_debt_against_ofgem import BEHIND_DAYS
     phase2b = run["phase2b"]
+    phase2b_ids = {rec["customer_id"] for rec in phase2b["all_records"]}
     homes: dict[str, dict] = {}
 
     def row(cid: str) -> dict:
         h = home_of(cid)
         return homes.setdefault(h, {"home_id": h, "seed": seed, "segment": None,
-                                    "first_settled": None, "last_billed": None,
+                                    "acquired": None, "first_settled": None, "last_billed": None,
                                     "net_value_gbp": 0.0, "bad_debt_gbp": 0.0,
                                     "provisioned_bad_debt_gbp": 0.0, "max_days_behind": 0})
 
+    for c in customers:
+        if c.get("customer_id") not in phase2b_ids:
+            continue
+        r = row(c["customer_id"])
+        r["segment"] = r["segment"] or c.get("segment")
+        acq = str(c.get("acquisition_date") or "")[:10] or None
+        if acq and (r["acquired"] is None or acq < r["acquired"]):
+            r["acquired"] = acq
     totals = _fold_records(row, phase2b["all_records"],
                            (run.get("cost_to_serve") or {}).get("by_customer") or {})
     for b in run.get("bills") or []:
@@ -253,6 +267,23 @@ def write_table(rows: list[dict], path: Path) -> None:
 def read_table(path: Path) -> list[dict]:
     with open(path, encoding="utf-8") as fh:
         return list(csv.DictReader(fh))
+
+
+def _supply_points() -> list[dict]:
+    """Every supply point the run held: its drawn book plus the runtime lists (successors,
+    occupants, drawn arrivals, acquisitions), first copy of each id kept."""
+    import saas.customers as sc
+    import simulation.run_phase2b as runner
+    seen, out = set(), []
+    for c in (list(runner.CUSTOMERS) + list(runner.SUCCESSOR_CUSTOMERS) + sc.SUCCESSOR_CUSTOMERS
+              + sc.DRAWN_CUSTOMERS + sc.INCOMING_OCCUPANT_CUSTOMERS + sc.ACQUIRED_CUSTOMERS):
+        cid = c.get("customer_id") if isinstance(c, dict) else getattr(c, "customer_id", None)
+        if cid and cid not in seen:
+            seen.add(cid)
+            out.append(c if isinstance(c, dict) else {
+                "customer_id": cid, "segment": getattr(c, "segment", None),
+                "acquisition_date": getattr(c, "acquisition_date", None)})
+    return out
 
 
 def member(seed: int, founders: int, out: Path) -> int:
@@ -303,7 +334,7 @@ def member(seed: int, founders: int, out: Path) -> int:
 
     payments = list(triads[-1].records) if triads else []
     try:
-        rows, totals = home_rows(seed, run_output, payments, founder_ids)
+        rows, totals = home_rows(seed, run_output, payments, founder_ids, _supply_points())
     except Exception:
         # Thirty-five minutes of book is not lost to a shape error in the table: keep its inputs.
         import pickle
@@ -464,9 +495,10 @@ def tables_identical(a: list[dict], b: list[dict]) -> list[str]:
     """Where two per-home tables differ, as readable lines; empty when identical."""
     ka, kb = {r["home_id"]: r for r in a}, {r["home_id"]: r for r in b}
     diffs = [f"{h}: only in {'A' if h in ka else 'B'}" for h in sorted(set(ka) ^ set(kb))]
+    columns = sorted({c for r in (*a[:1], *b[:1]) for c in r} - {"seed"})
     for h in sorted(set(ka) & set(kb)):
-        for c in COLUMNS:
-            if c != "seed" and ka[h][c] != kb[h][c]:
+        for c in columns:
+            if ka[h].get(c) != kb[h].get(c):
                 diffs.append(f"{h}.{c}: {ka[h][c]} != {kb[h][c]}")
     return diffs
 
