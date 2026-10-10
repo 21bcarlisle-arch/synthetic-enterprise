@@ -87,7 +87,7 @@ chokepoint.
 """
 from __future__ import annotations
 
-__all__ = ["opening_monthly_amount", "reviewed_monthly_amount"]
+__all__ = ["opening_monthly_amount", "reviewed_monthly_amount", "reviewed_monthly_amount_at_rates"]
 
 
 def reviewed_monthly_amount(actual_annual_spend_gbp: float) -> float:
@@ -108,6 +108,37 @@ def reviewed_monthly_amount(actual_annual_spend_gbp: float) -> float:
     from company.billing.dd_review import _recommended_monthly
 
     return _recommended_monthly(actual_annual_spend_gbp)
+
+
+def reviewed_monthly_amount_at_rates(
+    *,
+    annual_kwh: float,
+    days: int,
+    unit_rate_per_mwh_ex_vat: float,
+    standing_charge_per_day_ex_vat: float,
+    billed_adjustments: float = 0.0,
+) -> float:
+    """The standing monthly Direct Debit after a review that prices the completed year's
+    CONSUMPTION at the rates in force from the review date.
+
+    `reviewed_monthly_amount` resets the debit to what the year cost at the prices it was
+    billed at. When prices have risen across the year that sets next year's debit at last
+    year's prices, and the shortfall is kept for ever, because the review does not seek the
+    balance. On the single-levy run that is about -£11k of the DD book's -£17.8k review lag at
+    2018-06 (`SEAT_FINDING_EVERY_SETTLED_BILL_CHARGED_THE_LEVIES_TWICE_2026-10-10.md`). SLC 27.15
+    asks for "the best and most current information available", and at the review the
+    supplier knows the tariff it is about to charge.
+
+    In: what is on the customer's own bills. That is the year's billed kWh and its days, the
+    unit rate (all-in, ex-VAT, per MWh) and the standing charge (per day, ex-VAT) in force from
+    the review date, and any catch-up correction billed in the year, which is kept as billed
+    (it settles earlier energy at the earlier price). Out: the amount on the letter, rounded as
+    the other review rounds it. So under flat rates the two reviews set the same debit.
+    """
+    from company.compliance.domain_invariants import vat_rate_for_segment
+
+    ex_vat = annual_kwh / 1000.0 * unit_rate_per_mwh_ex_vat + days * standing_charge_per_day_ex_vat
+    return reviewed_monthly_amount(ex_vat * (1.0 + vat_rate_for_segment("resi")) + billed_adjustments)
 
 
 def opening_monthly_amount(

@@ -111,13 +111,57 @@ from datetime import date
 from typing import Mapping
 
 from company.interfaces.bill_assembly import barred_at_charge_recovery
-from company.interfaces.dd_review_outcome import reviewed_monthly_amount
+from company.interfaces.dd_review_outcome import (
+    reviewed_monthly_amount,
+    reviewed_monthly_amount_at_rates,
+)
 from simulation.arrears_engine import payment_method
 
 # How many per-customer trajectories to carry on the serialised surface so a
 # business page can render a REAL customer's seasonal saw-tooth (not a synthetic
 # illustration). Deterministic pick: the first N direct-debit customers by id.
 _SAMPLE_TRAJECTORY_CUSTOMERS = 6
+
+#: How the annual review sizes next year's debit. `last_year_spend` resets it to what the completed
+#: year cost at the prices it was billed at. `consumption_at_rates_in_force` prices that year's
+#: billed kWh and days at the rates on the first bill of the year being set (SLC 27.15, "most
+#: current information"). The two agree when prices are flat.
+REVIEW_RULES = ("last_year_spend", "consumption_at_rates_in_force")
+DEFAULT_REVIEW_RULE = "last_year_spend"
+
+
+def _bill_days(b: Mapping) -> int:
+    if b.get("days_in_period"):
+        return int(b["days_in_period"])
+    end = date.fromisoformat(b["period_end"][:10])
+    start = date.fromisoformat(b["period_start"][:10]) if b.get("period_start") else end.replace(day=1)
+    return (end - start).days + 1
+
+
+def reviewed_standing(rule: str, completed: list[Mapping], first_of_new: Mapping | None) -> float:
+    """The standing monthly debit the review after `completed` (one window's bills) sets.
+
+    Where the rates in force cannot be read off the window's first bill (no such bill, or a bill
+    without the rate fields), the review falls back to last year's spend: there is nothing more
+    current to price at.
+    """
+    if rule not in REVIEW_RULES:
+        raise ValueError(f"unknown DD review rule {rule!r}; expected one of {REVIEW_RULES}")
+    spend = sum(float(b["total_amount_gbp"]) for b in completed)
+    if rule == "last_year_spend" or first_of_new is None:
+        return reviewed_monthly_amount(spend)
+    unit = first_of_new.get("average_unit_rate_gbp_per_mwh")
+    sc = first_of_new.get("standing_charge_gbp_per_day")
+    if not unit or sc is None or any(b.get("total_consumption_kwh") is None for b in completed):
+        return reviewed_monthly_amount(spend)
+    return reviewed_monthly_amount_at_rates(
+        annual_kwh=sum(float(b["total_consumption_kwh"]) for b in completed),
+        days=sum(_bill_days(b) for b in completed),
+        unit_rate_per_mwh_ex_vat=float(unit),
+        standing_charge_per_day_ex_vat=float(sc),
+        billed_adjustments=sum(float(b.get("catchup_adjustment_gbp") or 0.0)
+                                   for b in completed if b.get("catchup_applied")),
+    )
 
 
 def _months_between(anchor: date, d: date) -> int:
@@ -295,6 +339,7 @@ def build_dd_balance_book(
     opening_dd_gbp: Mapping[str, float] | None = None,
     closed_ids: set[str] | None = None,
     seek_balance_at_review: bool = False,
+    review_rule: str = DEFAULT_REVIEW_RULE,
 ) -> DDBalanceBook:
     """Carry each direct-debit customer's level-DD credit/debit balance
     tick-by-tick and aggregate the portfolio held-credit liability over time.
@@ -331,7 +376,8 @@ def build_dd_balance_book(
     booked as a liability (DD3 is owed).
 
     Pure, deterministic, idempotent (no RNG, no mutation of ``bills`` or any
-    ground-truth structure). See the module docstring for the wall-clean basis
+    ground-truth structure). ``review_rule`` is one of ``REVIEW_RULES`` (see
+    ``reviewed_standing``). See the module docstring for the wall-clean basis
     and the exact consistency with ``dd_collection_book`` / ``dd_review_runner``.
     """
     # Group the company's OWN issued bills by customer, direct-debit only --
@@ -339,6 +385,7 @@ def build_dd_balance_book(
     # mandate holds no seasonal DD credit).
     by_cust: dict[str, list[tuple[date, float]]] = {}
     true_by_cust: dict[str, list[tuple[date, date, float]]] = {}
+    bills_by_cust: dict[str, list[Mapping]] = {}
     true_charge_of = _true_charges(bills)
     for b in bills:
         method = payment_method(
@@ -356,6 +403,7 @@ def build_dd_balance_book(
         start = (date.fromisoformat(b["period_start"][:10]) if b.get("period_start")
                  else end.replace(day=1))
         true_by_cust.setdefault(b["customer_id"], []).append((end, start, true_charge_of[id(b)]))
+        bills_by_cust.setdefault(b["customer_id"], []).append(b)
 
     book = DDBalanceBook(seek_balance_at_review=seek_balance_at_review)
     # Per-customer forward-filled balance by month, so the portfolio aggregate
@@ -388,16 +436,16 @@ def build_dd_balance_book(
         if opening is None or opening <= 0.0:
             book.unestimated_customers.append(cid)
             continue
-        windows: dict[int, list[tuple[date, float]]] = {}
-        for d, amt in seq:
-            windows.setdefault(_months_between(anchor, d) // 12, []).append((d, amt))
+        windows: dict[int, list[Mapping]] = {}
+        for b in sorted(bills_by_cust[cid], key=lambda b: date.fromisoformat(b["period_end"])):
+            windows.setdefault(_months_between(anchor, date.fromisoformat(b["period_end"])) // 12,
+                               []).append(b)
         standing_dd_by_window: dict[int, float] = {}
-        standing = float(opening)
-        for wi in sorted(windows):
-            standing_dd_by_window[wi] = standing
-            actual_annual = sum(a for _, a in windows[wi])
-            # Reset for NEXT year from this completed year's actual spend.
-            standing = reviewed_monthly_amount(actual_annual)
+        order = sorted(windows)
+        standing_dd_by_window[order[0]] = float(opening)
+        for prev_wi, wi in zip(order, order[1:]):
+            # Reset for each later year from the year before it, by the review rule.
+            standing_dd_by_window[wi] = reviewed_standing(review_rule, windows[prev_wi], windows[wi][0])
         # [start, end, true charge, collected] per period, for the recovery actions below.
         recovery: list[list] = []
         barred_here = 0.0

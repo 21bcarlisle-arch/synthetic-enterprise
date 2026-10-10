@@ -296,3 +296,86 @@ whether a review uses current rates or recovers the balance. No target is set fo
 
 Prediction 2's residual is now **explained, not met**: -£20.6k = -£17.8k review lag - £5.1k
 opening shortfall + £1.5k rounding - £1.3k phase + £2.1k estimates.
+
+## The review sized from consumption at the rates in force: predictions (written 2026-10-10, before any run)
+
+*Direction item `the-dd-review-sizes-from-consumption-at-the-rates-in-force`, on the same
+single-levy run and the same 2018-06 cut.*
+
+**The rule.** At each annual review the supplier takes the completed window's billed consumption
+(kWh) and its days, prices them at the unit rate and standing charge **in force from the review
+date**, adds VAT, keeps any catch-up correction billed in the window as it was billed, and sets a
+twelfth of that, rounded up to the pound as before. "In force from the review date" means the
+rates on the first bill of the window being set. Those are the supplier's own tariff for that date,
+and a fixed term that renews at the anniversary is already struck by then. The last bill of the
+completed window would still carry the old fix. Under flat rates the rule equals last year's spend
+to the penny. Balance recovery stays the director's toggle and is off, as before.
+
+**The leg it moves.** With `X` the annual figure the review priced, the review-lag leg is
+re-defined as `(T_prev + X - A_prev)/12 - L_w`: last year's true charge, repriced by the rule,
+against this year's level. Under the old rule `X = A_prev`, so the leg and every 2018-06 figure
+above are unchanged. The legs still sum exactly.
+
+| quantity | old rule (measured above) | prediction under the new rule |
+|---|---:|---|
+| review lag, all | -£17,840 | **-£4k to -£10k** (centre -£7k): the ~-£11k price part goes, and the ~-£6.5k electricity volume part stays |
+| review lag, gas | -£908 | **within ±£300**: gas price rose 18%, volume was flat |
+| 2018-06 book balance | -£20,614 | **-£7k to -£14k** (centre -£10k) |
+| opening sizing, seasonal phase, estimate v actual | -£5,057 / -£1,320 / +£2,100 | each unchanged within ±£500, since the rule does not touch them |
+| variant: rates on the last bill of the completed window | -- | moves the lag by **less** than the main rule, because a fix that renews at the anniversary keeps its old rate until the new window |
+
+If the lag does not move toward zero by at least £4k, the new rule does not become the run's
+default.
+
+## The review at the rates in force, graded offline (2026-10-10)
+
+`python3 -m tools.dd_book_legs /var/tmp/single_levy/run_output_abb925ec7.json --month 2018-06
+--rule consumption_at_rates_in_force` (and `--rule last_year_spend`, which reproduces the table
+above to the penny). Same bills, same consumption, same 288 accounts. The book is rebuilt under
+each rule, and the legs are refused unless they sum to it.
+
+| quantity | old rule | new rule | prediction | grade |
+|---|---:|---:|---|---|
+| review lag, all | -£17,840 | **-£14,434** (+£3,406) | -£4k to -£10k | **NOT MET**: right direction, about a third of the predicted move |
+| review lag, gas | -£908 | **-£827** | within ±£300 | **NOT MET** |
+| 2018-06 book balance | -£20,614 | **-£17,429** | -£7k to -£14k | **NOT MET** |
+| opening sizing / phase / estimate v actual | -£5,057 / -£1,320 / +£2,100 | identical | unchanged within ±£500 | **MET** (identical by construction) |
+| rounding | +£1,503 | +£1,282 | -- | -- |
+| held credit | £3,125 | £3,332 | -- | -- |
+
+**Why the prediction missed: the ~-£11k "price part" was mostly price the review could not
+see.** I wrote that estimate as the change in average price between the two years, and the
+review only knows the price on its own date. Median all-in unit rate (ex-VAT) on the 242
+accounts past review:
+
+| fuel | previous year's average | last bill of that year | **first bill of the new year (the review)** | new year to 2018-06 | whole new year |
+|---|---:|---:|---:|---:|---:|
+| electricity (223) | 119.1 | 119.2 | **125.6** (+5.5%) | 130.1 | 131.7 (+10.6%) |
+| gas (19) | 30.1 | 33.3 | **33.1** (+10%) | 34.9 | 34.4 (+14%) |
+
+About half the electricity rise arrives **after** the review: a median of 4 distinct unit rates
+inside one account's year. A rule based on the rate in force at the review cannot price those
+rises, and no review rule could without forecasting. So the measured £3.4k is about the knowable
+half of the price leg. The remaining lag (-£14.4k) is price rises that come after the review,
+plus the electricity volume rise already flagged above. **Four rate changes a year on a resi
+account is itself an odd reading:** a real SVT moved once or twice a year in 2016-2018. This is
+recorded as a question, and nothing here is built on it.
+
+**Variant (rates on the completed year's last bill):** not run. The table shows electricity at
+119.2 on the last bill against 125.6 on the first bill of the new year, so the variant would move
+the electricity lag less, as predicted. Gas is level (33.3 / 33.1).
+
+**The default is NOT switched.** The pre-registered bar was a lag move of at least £4k, and it
+moved £3.4k. `DEFAULT_REVIEW_RULE = "last_year_spend"` in `simulation/dd_balance_book.py` stays,
+so the run and every published figure are unchanged by this landing. **How to reverse:** set
+that constant to `"consumption_at_rates_in_force"`. Before doing that, note that the review chain
+has two other implementations which would then disagree with the book:
+`simulation/experienced_bill_shock.py` (220, 228: the DD letter a household meets at renewal,
+which reaches churn) and `company/billing/dd_review_runner.py`. A switch should move all three in
+one commit.
+
+**Still open, and not blocking.** The rule is arguably what SLC 27.15 asks for, whatever it does to
+the 2018 lag. It moves about £3k and does not settle the book's residual. The bigger leg is price
+movement within the year, which neither rule can see. That makes the practitioner question
+sharper: does a supplier's review lift the debit by its own planned price changes, or re-review
+when the price moves? That question goes to the director.

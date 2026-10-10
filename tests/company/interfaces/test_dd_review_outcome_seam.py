@@ -159,9 +159,10 @@ def _dd_customer_bills():
 #: each annual review), neither of them the routine that chose it. Kept a CLOSED
 #: list so an accidental widening still trips; `opening_monthly_amount` joined it
 #: on 2026-09-02 with atom `D_opening_dd_seasonal_sizing`, which gave the opening
-#: DD an estimate to be set from. The load-bearing leg of this control is the
+#: DD an estimate to be set from, and `reviewed_monthly_amount_at_rates` on 2026-10-10 (the
+#: review priced at the rates in force). The load-bearing leg of this control is the
 #: FORBIDDEN_AT_THE_DOOR reachability check below, not this list.
-SANCTIONED_DOORS = ["opening_monthly_amount", "reviewed_monthly_amount"]
+SANCTIONED_DOORS = ["opening_monthly_amount", "reviewed_monthly_amount", "reviewed_monthly_amount_at_rates"]
 
 
 def test_the_door_exposes_only_the_reviewed_amount():
@@ -180,13 +181,13 @@ def test_the_door_exposes_only_the_reviewed_amount():
     # written with a module-level import, which put the private routine in the seam's
     # own namespace. This mutation restores that exact mistake.
     (
-        '__all__ = ["opening_monthly_amount", "reviewed_monthly_amount"]',
-        'from company.billing.dd_review import _recommended_monthly\n\n__all__ = ["opening_monthly_amount", "reviewed_monthly_amount"]',
+        '__all__ = ["opening_monthly_amount", "reviewed_monthly_amount", "reviewed_monthly_amount_at_rates"]',
+        'from company.billing.dd_review import _recommended_monthly\n\n__all__ = ["opening_monthly_amount", "reviewed_monthly_amount", "reviewed_monthly_amount_at_rates"]',
         "_recommended_monthly",
     ),
     # (b) The convenience widening: hand back the whole review API.
     (
-        '__all__ = ["opening_monthly_amount", "reviewed_monthly_amount"]',
+        '__all__ = ["opening_monthly_amount", "reviewed_monthly_amount", "reviewed_monthly_amount_at_rates"]',
         'from company.billing.dd_review import review\n\n__all__ = ["reviewed_monthly_amount", "review"]',
         "review",
     ),
