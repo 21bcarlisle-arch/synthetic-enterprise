@@ -345,3 +345,46 @@ same book.
 - The three reds in `test_a_vacated_home_stands_void_for_its_tenure.py` and
   `test_the_company_ledger_bills_the_months_revenue.py` are red at origin 63f429536 without this
   change too (run in a clean worktree). They are not this change.
+
+### Addendum (2026-10-10, worker): the two-seed re-take, written before it runs
+
+**The grader is tracked.** `tools/grade_world_debt_against_ofgem.py` is the `/var/tmp` capture
+script plus `arrears_slice.py`, and it counts the same things. It reproduces both readings above
+exactly from their captures: 98/1153 = 8.5%, NOT MET, HIGH; and 50/1153 = 4.3% (3.3-5.7%), MET.
+Its control is `tests/tools/test_grade_world_debt_against_ofgem.py`. Three mutations each red it:
+admitting a bill paid inside 91 days, dropping the matched denominator, and a grader that never
+says MET. The tool's own focus item, `the-arrears-like-for-like-is-a-tracked-tool`, was refused
+at draw time by a FALSE hold. The holder is worktree `.claude/worktrees/agent-a5cc99fa24f34feed`,
+owned by pid 2197437: a worker seat started 14 days ago that idles at bring-up. Its HEAD is
+a52651e29 (2026-10-05). Its only work is an untracked copy of `debt_and_collections.md` from
+2026-10-05 03:39, written before the 10-09 result existed. It is not the tool. This lane built the
+tool, because this item cannot move without it.
+
+**A new reading, from the same two captures.** No prepayment account is behind in either stock:
+0 of 98 and 0 of 50, against 87 prepayment accounts among the run's 667. So the 0.30-0.88 toggle
+moves only credit accounts on this book. That fits PPM debt (P4 in `debt_and_collections.md` §7)
+being absent from the world.
+
+**"Two seeds besides the default" has two meanings, and one is not ours to run.**
+- **A book seed** draws a different cast of households. That is `EP17_varied_population_draw`,
+  which is curriculum and the director's alone. `tools/book_seed_authorisation.py` refuses it
+  until `docs/design/curriculum/varied_population_draw_activation.json` exists, and it does not.
+- **A payment-dice seed** keeps the cast, weather and prices, and re-draws only each bill's
+  outcome. That is the stream `simulation/arrears_engine.bill_substream(base_seed, customer_id,
+  period_end, ...)`, rebound the way `run_value_cycle_ab.noise_floor` rebinds the elasticity and
+  churn-roll draws. The default run does not move. **Recommended, and it needs no ruling:** it
+  answers "is 4.3% this book's dice or this book?", and that is the question that decides whether
+  the MET can carry the re-takes. A book-seed spread would also need the director's EP17 record.
+- The `capture` path has no seed argument yet. Adding the dice rebind is the next increment. The
+  launch also waits for `/var/tmp/m_scale.py` to leave the box. It was still there at 2026-10-10,
+  with no process running it.
+
+**Prediction P5, filed before any second seed is run (payment-dice seeds, same 400-founder book,
+`report_end` 2019-12-31):**
+- Each new seed reads **3.0-7.0%**, 2019 pooled electricity. The default's 4.3% sits low among
+  them, because P4 expected 5.8% from this book's own bills and the dice fell short of it.
+- Pooled over the three seeds (n about 3,459): **4.2-5.8%**, point **4.9%**, ratio **0.82-1.14x**.
+  Verdict **MET** (about 60%). Otherwise **NOT MET, LOW** (about 35%). NOT MET, HIGH is unlikely.
+- **Prepayment share of the accounts behind: 0** on every seed. One prepayment account behind on
+  any seed refutes this. It would mean the world can put a PPM account behind 91 days, and the
+  reading above would then be a property of this seed's dice.
