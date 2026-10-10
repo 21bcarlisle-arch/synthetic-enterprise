@@ -239,3 +239,49 @@ in 2019–2020, and that is a property of the book and the price path, not of th
 0.129. In three of the four years the estimate reads low by about a factor of 1.5 among households
 it does not consider. Whether that is miscalibration is `churn_model_performance`'s question, and
 four years of one run do not settle it.
+
+## The default route's no-offer step, split by reason: prediction, 2026-10-10, before the split
+
+The premise behind the ungradable clause in prediction 1 does not hold in full. The published run
+DOES carry a reason for a considered household that stayed and was not rolled: `svt_conversion_event`
+and `declined_fix_event` write `retention_withheld_because` at the same site the reason is decided
+(`simulation/run_phase2b.py`), and on the default route every stayer is unrolled
+(`departure_rolled_at_renewal` is False after an SVT term). So the split needs no run-loop change and
+no re-run: `tools/renewal_population_by_step.py` reads the reason from the event, or from
+`no_offer_churn_log` for a leaver, and counts what neither carries as `unrecorded`.
+
+What I had seen before writing this: the whole-run 2018 tally of `retention_withheld_because` on
+`renewed` events, both routes together: 30 `the_discount_cannot_win_the_fix`, 30 `below_threshold`,
+6 with no reason (offered). Not split by route or by threshold.
+
+**Prediction.** Of the 30 default-route households considered and not offered in 2018, at least 27
+are refused by the 10-10 gate (`the_discount_cannot_win_the_fix`), at most 3 by the value test
+(`uneconomical`), and 0 are `unrecorded`. If this holds, the default route's last step is the gate
+working as designed. The value test is not the refusal.
+
+**The split** (same run, 7379375f6; `not_offered` in the tool's output):
+
+| year | default route: considered, not offered | 10-10 gate | value test | unrecorded |
+|---|---|---|---|---|
+| 2018 | 30 | 30 | 0 | 0 |
+| 2019 | 9 | 9 | 0 | 0 |
+| 2020 | 1 | 1 | 0 | 0 |
+| 2021 | 8 | 8 | 0 | 0 |
+| 2023 | 13 | 13 | 0 | 0 |
+| 2024 | 30 | 30 | 0 | 0 |
+| 2025 | 3 | 3 | 0 | 0 |
+
+The fixed route has no considered household without an offer in any year.
+
+**Graded: HELD.** All 30 refusals in 2018 are the 10-10 gate, none is the value test, and none is
+unrecorded. This also holds in every year of the run: 94 of 94 default-route refusals are the gate.
+The value test refuses no considered household anywhere in this run. So the default route's last
+step is the gate doing what it was built for. It refuses an offer whose discount, by the
+company's own reading (`retention_offer_can_buy_anything`), cannot change the household's fix decision.
+
+**What this cannot say.** The tool reports whether the gate fires. It does not say whether the gate is
+right. Whether any of the 94 would have taken an offered fix is a counterfactual this run does not
+hold. Also, a value test that never refuses on this run is consistent with two readings: either
+every gated household would also have passed it, or the gate always pre-empts it. The code orders
+the gate first (`elif` after `if not _offer_can_buy`), so this run cannot tell those two apart. I
+cannot yet say which it is.

@@ -12,6 +12,11 @@ THE DEFECTS THIS NAMES. Two came up while the tool was being built against the s
   no boundary. `test_a_declined_fix_on_the_default_is_the_default_route` fails if the route is
   read from the label.
 
+- A considered household that got no offer must be split by the run's own reason, read from its
+  event (a stayer) or `no_offer_churn_log` (a leaver), never inferred.
+  `test_a_considered_household_with_no_offer_is_split_by_the_runs_own_reason` fails if either
+  source is dropped, or if a missing reason is filled in rather than counted ``unrecorded``.
+
 THE PARTITION IS ASSERTED REACHABLE before anything asserts what it holds. A counter that sends
 everything to one route passes every per-route test.
 """
@@ -153,3 +158,24 @@ def test_a_declined_fix_at_a_fixed_end_is_a_decision_not_a_passive_roll():
     row = population_by_step({"account_state_log": states, "customer_events": events})["years"]["2017"]
     assert row["fixed_term"]["term_ended"] == 2 and row["fixed_term"]["reached_decision"] == 1
     assert row["fixed_to_default_with_no_decision"] == 1
+
+
+def test_a_considered_household_with_no_offer_is_split_by_the_runs_own_reason():
+    run = _book()
+    # The book's conversions are considered (0.4) and never offered: give each year's a reason,
+    # one from a stayer's event, one from a leaver's log row, one from neither.
+    for e in run["customer_events"]:
+        if e["customer_id"] == "S2017":
+            e["retention_withheld_because"] = "the_discount_cannot_win_the_fix"
+        if e["customer_id"] == "S2018":
+            e["event_type"] = "churned"
+    run["no_offer_churn_log"].append({"customer_id": "S2018", "event_date": "2018-08-01",
+                                      "no_offer_reason": "uneconomical"})
+    # An offered household carrying a stale reason is not a refusal.
+    run["customer_events"][0]["retention_withheld_because"] = "uneconomical"
+    years = population_by_step(run)["years"]
+    split = {y: years[str(y)]["not_offered"]["default_anniversary"] for y in (2017, 2018, 2019)}
+    assert all(split.values())
+    assert split == {2017: {"the_discount_cannot_win_the_fix": 1}, 2018: {"uneconomical": 1},
+                     2019: {"unrecorded": 1}}
+    assert years["2017"]["not_offered"]["fixed_term"] == {}

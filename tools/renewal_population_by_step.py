@@ -23,8 +23,15 @@ non-zero there means the logs disagree about the population, and that is a findi
 Context rows that bear on the reasons the population falls: ``live_accounts`` (decision-leg
 accounts holding a term that starts in the year), ``rolled_to_default`` (fixed terms whose next
 row is indexed), and ``no_offer_reasons`` (why a considered leaver got no offer, from
-`no_offer_churn_log`). The published run carries no reason for a considered household that stayed
-without an offer, so the 10-10 gate's refusals are visible among leavers only.
+`no_offer_churn_log`).
+
+``not_offered`` splits each route's considered-but-not-offered households by the run's own reason:
+the 10-10 gate (``the_discount_cannot_win_the_fix``), the value test (``uneconomical``) or the
+holdout (``held_out``). A household that stayed carries it on its event as
+``retention_withheld_because``, written only when the world did not roll it (`svt_conversion_event`,
+`declined_fix_event`); a leaver carries it in `no_offer_churn_log`. On the default route every
+stayer is unrolled, so every row has a reason. A rolled stayer on the fixed route has none, and it is
+counted as ``unrecorded`` rather than guessed.
 
 This reads world-side fields only to find the population (dates, tariff types, which events
 exist), plus the company's own estimate. It reads no ground-truth probability.
@@ -116,16 +123,31 @@ def population_by_step(run: dict) -> dict:
         if key not in decided and next_tariff in INDEXED_TARIFFS:
             context["fixed_to_default_with_no_decision"][key[1][:4]].add(key[0])
 
+    offered: set[tuple[str, str]] = set()
     for offer in run.get("retention_log") or []:
         key = (account_of.get(offer["customer_id"], offer["customer_id"]), offer["event_date"])
+        offered.add(key)
         if key not in considered:
             unmatched["offer_at_no_considered_decision"] += 1
             continue
         (default if decided[key] == "default" else fixed)["offered"][key[1][:4]].add(key[0])
 
     reasons: dict[str, dict[str, int]] = defaultdict(lambda: defaultdict(int))
+    withheld: dict[tuple[str, str], str] = {}
     for row in run.get("no_offer_churn_log") or []:
         reasons[row["event_date"][:4]][row.get("no_offer_reason") or "none"] += 1
+        if row.get("no_offer_reason"):
+            key = (account_of.get(row["customer_id"], row["customer_id"]), row["event_date"])
+            withheld[key] = row["no_offer_reason"]
+    for event in run.get("customer_events") or []:
+        if event.get("retention_withheld_because"):
+            key = (account_of.get(event["customer_id"], event["customer_id"]), event["event_date"])
+            withheld[key] = event["retention_withheld_because"]
+
+    not_offered = {r: defaultdict(lambda: defaultdict(set)) for r in ("fixed", "default")}
+    for key in considered:
+        if key not in offered:
+            not_offered[decided[key]][key[1][:4]][withheld.get(key, "unrecorded")].add(key[0])
 
     years = sorted({y for group in (fixed, default, context) for c in group.values() for y in c})
     return {
@@ -137,6 +159,9 @@ def population_by_step(run: dict) -> dict:
                 "default_anniversary": {s: len(default[s].get(y, ())) for s in STEPS[1:]},
                 **{k: len(context[k].get(y, ())) for k in context},
                 "no_offer_leavers": dict(reasons.get(y, {})),
+                "not_offered": {
+                    route: {why: len(a) for why, a in sorted(not_offered[r].get(y, {}).items())}
+                    for route, r in (("fixed_term", "fixed"), ("default_anniversary", "default"))},
             }
             for y in years
         },
@@ -156,6 +181,11 @@ def render(result: dict) -> str:
             f"{' > '.join(f'{d[s]:>3}' for s in STEPS[1:]):<52}"
             f"{row['fixed_to_default_with_no_decision']:>34}   {row['live_accounts']:>13}   "
             f"{row['no_offer_leavers']}")
+    lines.append("considered but not offered, by the run's own reason:")
+    for y, row in result["years"].items():
+        if any(row["not_offered"].values()):
+            lines.append(f"{y}  " + "   ".join(f"{route}: {why}"
+                                              for route, why in row["not_offered"].items()))
     lines.append(f"unmatched: {result['unmatched']}")
     return "\n".join(lines)
 
