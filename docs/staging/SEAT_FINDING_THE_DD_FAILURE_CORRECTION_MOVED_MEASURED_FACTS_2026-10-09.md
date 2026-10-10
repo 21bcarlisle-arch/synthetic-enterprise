@@ -406,3 +406,62 @@ reading goes here, under P5, unchanged.
 **Re-drawn 2026-10-10 05:37, premise spent, nothing launched.** The unit is alive and still
 waiting on the census pid (2h06 in). A second launch would run the same seeds twice. Writing the
 grade here is handed on as `the-arrears-pooled-grade-under-p5`, not to be drawn before 10:30.
+
+### Result (2026-10-10T09:45Z, seat): 6.1%, 1.19x, NOT MET, HIGH on the grader. P5 refuted, high
+
+The unit `longjob-arrears-dice-seeds-1-2` ended cleanly at 07:28 (3h50m wall, 4.6 GB peak). Its
+worktree `/var/tmp/wt_dice_seeds` is at 820a2f31b, which contains 95c1193cb (the share by method).
+So seed 1's 99/1153 sits beside the old flat-0.5 98/1153 by chance, not because the code was stale.
+Each capture below was graded alone with `grade_world_debt_against_ofgem grade <one capture>`, and
+the pooled line is `/var/tmp/arrears_dice_pooled.txt` unchanged.
+
+| 2019, electricity | Q1 | Q2 | Q3 | Q4 | year | Wilson | verdict |
+|---|---|---|---|---|---|---|---|
+| default dice | 12/303 | 10/295 | 12/283 | 16/272 | 50/1153 = 4.3% | 3.3-5.7% | MET, 0.85x |
+| dice seed 1 | 25/303 | 26/295 | 25/283 | 23/272 | 99/1153 = 8.6% | 7.1-10.3% | NOT MET, HIGH, 1.68x |
+| dice seed 2 | 19/305 | 15/297 | 16/284 | 12/273 | 62/1159 = 5.3% | 4.2-6.8% | MET, 1.05x |
+| **pooled** | | | | | **211/3465 = 6.1%** | **5.3-6.9%** | **NOT MET, HIGH, 1.19x** |
+
+Gas, pooled: 40/610 = 6.6% (4.9-8.8%), 1.29x, MET (per seed: 4.0%, 6.9%, 8.7%). P5 set no gas band.
+**Prepayment share of the accounts behind: 0 on every seed.** That is 0 of 50, 0 of 99 and 0 of 62,
+against 134 prepayment account-quarters billed per seed. The dice move the book slightly: seed 2
+bills 341 accounts against 339. Debt feeds renewal, as noted under P4.
+
+**P5, band by band:**
+- Each new seed 3.0-7.0%: seed 1, 8.6%, **miss** (high). Seed 2, 5.3%, **hit**.
+- The default's 4.3% sits low among them: **hit**. It is the lowest of the three.
+- Pooled n about 3,459: 3,465, **hit**.
+- Pooled 4.2-5.8%, point 4.9%: 6.1%, **miss** (high).
+- Ratio 0.82-1.14x: 1.19x, **miss** (high).
+- Verdict MET (about 60%): the grader says NOT MET, HIGH. P5 called that outcome unlikely.
+  **Miss.**
+- Prepayment 0 on every seed: **hit**. No seed puts a PPM account behind 91 days. So "PPM debt is
+  absent from the world" is a property of the world, not of one seed's dice.
+
+**The grader's interval is too narrow, so the verdict above overstates what is known.** The Wilson
+interval treats each account-quarter as independent. But an account that is behind stays behind:
+the 50, 99 and 62 account-quarters are 22, 35 and 29 distinct accounts, about 2.3 quarters each.
+- **Resampling accounts instead** (cluster bootstrap within each seed, 4,000 draws, pooled):
+  **4.7-7.5%**. That interval contains 5.1%, so on it the verdict is MET.
+- **Treating each seed as one observation:** the mean is 6.1%, the sd is 2.2pp, and the t(2) 95%
+  interval is 0.6-11.6%.
+- **The seeds also spread more than resampling accounts predicts.** The between-seed sd is 2.2pp,
+  against a within-seed cluster sd of 1.1-1.5pp. Three seeds cannot establish that excess.
+- **The 10-09 MET's 3.3-5.7% was too narrow the same way.**
+
+**What this means downstream.**
+- **The 10-09 MET at 0.85x was the low draw of three. It does not stand as a MET.**
+- **The three-seed point leans high: 1.19x.** On the honest interval, whether the world over-holds
+  debt is **not established**. It is not shown to be low, and it is not shown to be high.
+- **The baseline, retention and value-arms re-takes assumed "the world does not over-hold debt".**
+  That is now "about 1.2x, and we cannot tell", not "met". They can go ahead, but they should carry
+  this as an open fidelity caveat.
+- **What still leans high is unchanged:** the provision is a stock rate read as a flow share, and
+  gaps 2, 4 and 7.
+- **Seed 1's excess is almost all direct debit:** 70 DD account-quarters behind, against 35 on the
+  default dice and 50 on seed 2. Card and standing order sit at 9 and 16.
+- **Do not vary the book seed (EP17).** It was not varied here.
+
+**Owed, and handed on:** the grader should publish and grade on an account-clustered interval, not
+account-quarter Wilson. Then a verdict cannot read MET or NOT MET on a bound its sample has not
+earned. Handed on as `the-arrears-grader-grades-on-an-account-clustered-interval`.

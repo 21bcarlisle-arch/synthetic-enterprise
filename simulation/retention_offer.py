@@ -84,8 +84,7 @@ def answer_retention_offer(full_event: dict, offered_event: dict, *,
         event = dict(offered_event)
     elif stays:
         # Held by the framing uplift alone: the unscaled world at the offered rate would have let it go.
-        event = {**offered_event, "event_type": "renewed", "departure_cause": None,
-                 "home_move_won": False}
+        event = {**offered_event, "event_type": "renewed", "departure_cause": None}
     elif offered_event["event_type"] == "churned":
         event = dict(offered_event)
     else:

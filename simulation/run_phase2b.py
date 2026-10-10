@@ -134,14 +134,12 @@ from simulation.churn_journey import ChurnJourneyRegister
 from simulation.competitor_reference import CompanyPositionLedger
 from simulation.customer_events import (
     DEPARTURE_OCCASION_SVT_SEGMENT,
-    HOME_MOVE_ACTIVATE_SUCCESSOR,
     RENEWAL_DECLINED_FIX,
     churn_roll_for_renewal,
     declined_fix_event,
     departure_decision_leg,
     departure_event,
     departure_rolled_at_renewal,
-    home_move_disposition,
     households_own_records,
     position_vs_default,
     renewal_outcome,
@@ -336,12 +334,12 @@ _DECLINED_FIX_SPLICE = "declined_fix_splice"
 _RESI_CUSTOMER_IDS: frozenset[str] = frozenset(
     c["customer_id"] for c in CUSTOMERS if c.get("segment") == "resi"
 )
-# Phase 7e: successor electricity customers (activated on home-move win).
-# Separate from ELEC_CUSTOMERS so they don't inflate the starting treasury.
+# Phase 7e: successor electricity customers. NEVER SUPPLIED SINCE 2026-10-10: they were activated
+# by a "home-move win" rolled on every renewal churner, and a household that switches at renewal
+# vacates nothing (`simulation/customer_events.py`). A real move's incoming occupant is B7's
+# (`_admit_incoming_occupant`). The roster entries stay only because their weather and fabric
+# draws sit in shared streams; retiring them from the roster is its own measured change.
 SUCCESSOR_ELEC_CUSTOMERS = [c for c in SUCCESSOR_CUSTOMERS if c["commodity"] == "electricity"]
-SUCCESSOR_MAP: dict[str, str] = {
-    c["successor_of"]: c["customer_id"] for c in SUCCESSOR_ELEC_CUSTOMERS
-}
 _SUCCESSOR_ELEC_IDS: frozenset[str] = frozenset(c["customer_id"] for c in SUCCESSOR_ELEC_CUSTOMERS)
 _ALL_KNOWN_CUSTOMERS = CUSTOMERS + SUCCESSOR_CUSTOMERS
 #: cid -> segment, for the Triad carve-out in `settlement_daily.PeriodRegisters`. Triad
@@ -970,17 +968,12 @@ def _build_churn_basis_risk(customer_events_log: list) -> list[dict]:
     return records
 
 
-def _build_company_event_log(
-    customer_events_log: list,
-    won_successor_activations: dict,
-    fresh_acquisitions: list,
-    successor_map: dict,
-) -> list:
+def _build_company_event_log(customer_events_log: list, fresh_acquisitions: list) -> list:
     """Build the company CRM event log from simulation outputs — Phase 12a.
 
     Returns a list of dicts (one per event) that the company CRM knows about.
-    Churn events come from customer_events_log; acquisition events come from
-    won_successor_activations (home-move wins) and fresh_acquisitions (market wins).
+    Churn events come from customer_events_log; acquisition events from fresh_acquisitions
+    (market wins). Phase 7e's "home-move-win" acquisitions are retired (2026-10-10).
     """
     result = []
     for evt in customer_events_log:
@@ -993,17 +986,6 @@ def _build_company_event_log(
                 "sim_churn_probability": evt.get("realized_churn_probability", evt.get("churn_probability")),
                 "company_churn_estimate": evt.get("company_churn_estimate"),
             })
-    for successor_id, activation_date in won_successor_activations.items():
-        predecessor = next(
-            (p for p, s in successor_map.items() if s == successor_id), None
-        )
-        result.append({
-            "event_type": "acquisition",
-            "customer_id": successor_id,
-            "event_date": activation_date,
-            "channel": "home-move-win",
-            "predecessor_id": predecessor,
-        })
     for acq in fresh_acquisitions:
         result.append({
             "event_type": "acquisition",
@@ -1937,9 +1919,6 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         + [c["customer_id"] for c in GAS_CUSTOMERS]
         + [c["customer_id"] for c in SUCCESSOR_ELEC_CUSTOMERS]
     )
-    # Phase 7e: successor_id → activation_date (set when home-move is won).
-    # Gate: successor terms are skipped until their activation date.
-    won_successor_activations: dict[str, str] = {}
     next_hf = {cid: RESET_HEDGE_FRACTION for cid in all_customers_ids}
     pending_committee_overrides: dict[str, float] = {}
     current_risk: dict[str, dict] = {}
@@ -2360,13 +2339,9 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                 term_indices[cid] += 1
             continue
 
-        # Phase 7e: gate successor terms until activated by a home-move win.
-        # Do NOT increment term_indices here — we want term_index=0 on first real term
-        # so the churn roll doesn't fire prematurely.
+        # Phase 7e's successor points are never supplied (see `SUCCESSOR_ELEC_CUSTOMERS`).
         if cid in _SUCCESSOR_ELEC_IDS:
-            activation_date = won_successor_activations.get(cid)
-            if not activation_date or term_start_str < activation_date:
-                continue
+            continue
 
         term_end_str = term.get("term_end") or _clamp_term_end(term_start_str, end_date=effective_end)
 
@@ -3451,7 +3426,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                     unit_rate = billed_rate_when_saved(unit_rate, _save_rate)
                     _held_on_a_save = True
                     event = {**_asked, "event_type": "renewed", "departure_cause": None,
-                             "home_move_won": False, "saved_on_loss_notice": True}
+                             "saved_on_loss_notice": True}
                     if not _indexed_tariff:
                         _prior_rates[cid] = unit_rate
                     _account_state_row["unit_rate_gbp_per_mwh"] = unit_rate
@@ -3593,31 +3568,9 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                         f"p_retain={event['effective_retention_probability']:.4f}  "
                         f"roll={event['random_roll']:.4f}"
                     )
-                    # The win roll and the DELIVERY of that win are two facts. Ask
-                    # the disposition helper, never `if won: ... elif replace:` —
-                    # that chain swallowed an undeliverable win and suppressed the
-                    # market replacement with it (2026-08-14 BLOCKING finding).
-                    successor_id = (
-                        SUCCESSOR_MAP.get(billing_account)
-                        if event.get("home_move_won") else None
-                    )
-                    _home_move = home_move_disposition(
-                        bool(event.get("home_move_won")), successor_id
-                    )
-                    # Stamp the undeliverable win on the event so the realised win
-                    # rate's shortfall against its parameter is visible in the
-                    # event log rather than silent. Stamped BEFORE the branch: a
-                    # wind-down mandate blocks the replacement, not the record.
-                    if event.get("home_move_won") and successor_id is None:
-                        event["home_move_win_undelivered"] = True
-                        print(
-                            f"  [WIN-UNDELIVERED] {billing_account} won its home-mover but has "
-                            f"no successor supply point — going to market instead"
-                        )
-                    if _home_move == HOME_MOVE_ACTIVATE_SUCCESSOR:
-                        won_successor_activations[successor_id] = term_start_str
-                        print(f"  [WIN] Home-mover won: {successor_id} activates at {term_start_str}")
-                    elif mandate_permits_replacement():
+                    # A leaver at renewal is a switcher: it vacates nothing, so there is no
+                    # property to win (Phase 7e's roll, retired 2026-10-10). Every one goes to market.
+                    if mandate_permits_replacement():
                         customer_data = get_customer(billing_account)
                         segment = customer_data["segment"] if customer_data else "resi"
                         acq_seed = f"acquire_{billing_account}_{term_start_str}"
@@ -4911,7 +4864,6 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         # What the SUPPLIER holds about those departures, read from its own register.
         "registration_losses_notified": _change_of_supplier_register.losses_notified(),
         "registration_loss_exceptions": _change_of_supplier_register.loss_exceptions(),
-        "won_successor_activations": won_successor_activations,
         "hedge_evolution": evolution_logs,
         "total_gross": total_gross,
         "total_capital": total_capital,
@@ -4942,8 +4894,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         "churn_basis_risk": _build_churn_basis_risk(customer_events_log),
         # Phase 12a: company CRM event log — dated artefacts of churn and acquisition
         "company_event_log": _build_company_event_log(
-            customer_events_log, won_successor_activations, fresh_acquisitions, SUCCESSOR_MAP
-        ),
+            customer_events_log, fresh_acquisitions),
         "retention_log": retention_log,
         **({"retention_holdout_log": retention_holdout_log} if policy.retention_runs_holdout else {}),
         "nudge_physics_log": nudge_physics_log,

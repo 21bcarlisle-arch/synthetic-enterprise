@@ -11,10 +11,11 @@ Two identical runs always produce the same event sequence. Tests can force
 specific outcomes by patching `_RANDOM_CLASS` or seeding via a known
 `customer_id` + `term_start_str` combination.
 
-Phase 7e adds a second deterministic roll when an account churns: did we win
-the home-mover's business? Seed: `f"win_{billing_account}_{term_start_str}"`.
-`home_move_won` appears on every event dict (False for renewals; True/False for
-churns). When True, `run_phase2b.main()` activates the successor customer.
+Phase 7e's second roll (did we win the home-mover's property when an account churned at
+renewal) is RETIRED, 2026-10-10. A household that switches supplier at renewal does not vacate its
+home, so no new occupant arrives and there is no property to win. Home moves are B7's
+(`sim/customer_state_layer.py`; `run_phase2b` admits the incoming occupant of a premises a mover
+really vacated). Events no longer carry `home_move_won`.
 
 Architecture note: this module sits at the interface between the sim (raw
 settlement records) and the SaaS layer (churn/win-rate models). It imports
@@ -416,40 +417,6 @@ def _annual_bill_gbp(
     return total if seen and total > 0 else None
 
 
-# Disposition of a churned account's home-move outcome. Three-valued because the
-# WIN roll and the DELIVERY of that win are two different facts.
-HOME_MOVE_ACTIVATE_SUCCESSOR = "activate_successor"
-HOME_MOVE_GO_TO_MARKET = "go_to_market"
-
-
-def home_move_disposition(home_move_won: bool, successor_id: str | None) -> str:
-    """What actually happens to a churned billing account, given the win roll and
-    whether the property HAS a successor supply point on the book.
-
-    A win is only real once there is a supply point to activate. The roster
-    carries successors for 6 of 13 billing accounts (and none at all for the
-    curriculum's drawn SYN-* points), so `home_move_won=True` with
-    `successor_id=None` is a live, common state, not an edge case.
-
-    The rule this function exists to hold: **an undeliverable win is a plain
-    loss.** It disposes to `GO_TO_MARKET`, exactly as a lost home-mover does.
-    Written as an `if won: ... elif replace: ...` chain instead, the outer branch
-    swallows the undeliverable win and the account is lost with no successor AND
-    no market replacement — making a won roll strictly worse for the company than
-    a lost one (WORKER_FINDING_A_WON_HOME_MOVER_WITH_NO_SUCCESSOR_SUPPLY_POINT_
-    SUPPRESSES_THE_REPLACEMENT_TOO_2026-08-14.md, BLOCKING).
-
-    This deliberately does NOT touch `win_probability`: the missing successor is a
-    ROSTER limitation, not a world fact about that property, so zeroing the
-    probability would encode a book artefact as a belief about the world. The
-    consequence — the realised win rate runs below its parameter for accounts with
-    no successor point — is recorded, not tuned away.
-    """
-    if home_move_won and successor_id:
-        return HOME_MOVE_ACTIVATE_SUCCESSOR
-    return HOME_MOVE_GO_TO_MARKET
-
-
 def churn_roll_for_renewal(billing_account: str, term_start_str: str) -> float:
     """The renewal-point dice for ONE billing account — the churn cascade's own draw.
 
@@ -585,7 +552,6 @@ def svt_conversion_event(
         "effective_retention_probability": None,
         "realized_churn_probability": 0.0,
         "random_roll": None,
-        "home_move_won": False,
         "company_churn_estimate": company_churn_estimate,
         "churn_estimate_error_pct": None,
         **extra,
@@ -652,7 +618,6 @@ def declined_fix_event(
         "effective_retention_probability": None,
         "realized_churn_probability": 0.0,
         "random_roll": None,
-        "home_move_won": False,
         "company_churn_estimate": None,
         "churn_estimate_error_pct": None,
     }
@@ -802,6 +767,12 @@ def roll_lifecycle_event(
     # registration is unpublished (gap 4 of
     # docs/market_research/what_a_supplier_holds_to_size_a_direct_debit.md). Any year-one level or
     # tenure gradient read from this base inherits that assumption.
+    # `(1 - win_probability)` IS NOT A PROPERTY WIN ANY MORE (2026-10-10). It began as Phase 7e's
+    # "churn net of winning the new occupant", which assumed every renewal leaver vacates its home;
+    # that roll is retired above. The factor stays because `year_level_anchor` was fitted against
+    # the published departure band THROUGH it (0.45 resi, 0.65 SME at the shipped price position),
+    # so removing it is a refit of the world's departure level, decided blind to company results,
+    # not part of retiring a mis-modelled event. Read it as a segment scale on the shock base.
     _p_churn_shock = churn_probability(1 if _experienced_shock["shocked"] else 0) * (
         1.0 - renewal_data["win_probability"])
     if passive_churn_cap is not None:
@@ -1034,13 +1005,6 @@ def roll_lifecycle_event(
         departed, departure_cause = False, None
     retained = not departed
 
-    # Phase 7e: when an account churns, roll whether we win the home-mover's
-    # business. Separate seed so it never interferes with the churn roll.
-    home_move_won = False
-    if not retained:
-        win_roll = _random.Random(f"win_{billing_account}_{term_start_str}").random()
-        home_move_won = win_roll <= renewal_data["win_probability"]
-
     # Phase 11b: company's observable-data churn estimate
     company_churn_estimate: float | None = precomputed_company_estimate
     churn_estimate_error_pct: float | None = None
@@ -1095,7 +1059,6 @@ def roll_lifecycle_event(
         # and whether the objection turned its departure into a stay.
         "debt_objection_eligible": _objection_applies,
         "departure_blocked_by_debt_objection": blocked_by_debt_objection,
-        "home_move_won": home_move_won,
         "company_churn_estimate": company_churn_estimate,
         "churn_estimate_error_pct": churn_estimate_error_pct,
         "retention_offered": retention_modifier is not None,
