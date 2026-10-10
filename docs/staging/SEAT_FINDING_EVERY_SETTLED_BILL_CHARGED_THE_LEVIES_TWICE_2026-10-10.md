@@ -1,5 +1,14 @@
 **Severity:** BLOCKING · **Lane:** D_billing_metering · **Epoch:** 3 · **Atom:** `DD_seasonal_cashflow_physics`
 
+**Discharged:** `tests/saas/test_a_settled_bill_charges_the_levies_once.py::test_a_settled_bill_is_the_booked_revenue_plus_vat`,
+`tests/saas/test_a_settled_bill_charges_the_levies_once.py::test_both_branches_of_the_carve_out_are_reachable` --
+the defect (levies billed on top of revenue that already held them) is fixed at 1d3c28930 and was graded on the
+single-levy re-run below: bills fell ~20% (elec, per MWh) and ~17% (gas, same kWh) while settlement revenue held, and
+ledger billed ex-VAT now sits within 0.23% of settlement revenue. *Worker tick, 2026-10-10.* What stays open is not
+this defect: the DD book's residual and the review rule belong to `DD_seasonal_cashflow_physics` L3, and the
+single-levy figures reach the published pages at the next weekly window only if the shared checkout has advanced
+past 1d3c28930 by then (see "Not on origin yet" below).
+
 # Every settled bill charged the non-commodity levies twice
 
 *Worker tick, 2026-10-10, drawn on `DD_seasonal_cashflow_physics` (L2 -> 3). Found by printing the
