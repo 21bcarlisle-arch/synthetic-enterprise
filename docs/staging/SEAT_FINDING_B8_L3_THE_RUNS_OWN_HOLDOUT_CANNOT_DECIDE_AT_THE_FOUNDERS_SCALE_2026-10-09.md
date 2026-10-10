@@ -106,3 +106,42 @@ them to the holdout's own rule:
   2017-12-31: 54 holdout rows, 27 treated (20 stayed) and 27 held out (18 stayed), 0 decided; the 9
   held-out leavers are tagged `held_out` in `no_offer_churn_log`. Both arms are reachable through the
   new gate.
+
+## Re-read on single-levy bills, 2026-10-10
+
+The stretch record listed this reading among those taken on double-levied bills (1d3c28930). It
+was re-run at origin `7252e8d72` with the same harness: `CURRENT_POLICY`, flag off against on, 400
+founders, to 2019-12-31. The predictions were filed first in
+`records/SEAT_PREREG_B8_L3_RE_READ_ON_SINGLE_LEVY_BILLS_2026-10-10.md`: written 14:58 and on origin
+at 15:10 (`436dcaa38`). Both arms finished at 15:17. *Correction to that record: the arms started
+at 14:58, not the "15:06" it says.* Each arm took 18m47s at about 2.0 GB RSS.
+
+This is not a one-variable comparison with the 10-09 table. The levy fix, the 10-10 conversion
+gate and about 80 other commits lie between them.
+
+| | flag off | flag on |
+|---|---|---|
+| holdout rows (treated / held out) | — | 82 (41 / 41) |
+| rows with the interval decided | — | **0 of 82** |
+| offers 3% / 5% / 8% | 48 / 23 / 10 (81) | 26 / 12 / 3 (41) |
+| kept by an offer | 60 | 31 |
+| retention cost logged, GBP | 1,987.40 (24.54 an offer) | 932.06 |
+| leavers with no offer | 40 | 53 (12 of them held out) |
+| headline total net, GBP | 133,501.74 | **133,817.48 (+315.74)** |
+
+Own interval (`estimate_offer_effect`): treated 31/41 stayed, held out 29/41, effect **+0.049
+(-0.141, +0.234), undecided**.
+
+Graded: (1) none decided, **HELD**. (2) 82 rows against 60-140, **HELD**. (3) on/off offers 51%
+against 40-65%, **HELD**. (4) |+316| is below 1,987, **HELD**. (5) cost per offer is +6% against
+the 10-09 figure, inside ±15%, **HELD**. Taking the levy out of the bill does not change what this
+finding says, or the `for_the_director` row that cites it.
+
+**New, not explained.** Considered renewals fall sharply by year: 1 in 2016, 53 in 2017, 25 in
+2018, 3 in 2019. The off arm's offers follow the same pattern (53 / 25 / 2), so the holdout did
+not cause it. In 2019 there were 17 below-threshold leavers in each arm against 2 offers. So
+"about 30 a year" overstates how much the book can teach after year one, and the power argument
+above gets worse, not better. I cannot yet say whether the 10-10 conversion gate, the founders'
+term structure or the churn estimate's threshold produces the fall.
+
+Harness: `/var/tmp/b8relevy/arm.py`; the per-arm logs are `/var/tmp/b8relevy/{off,on}.json` (not kept).

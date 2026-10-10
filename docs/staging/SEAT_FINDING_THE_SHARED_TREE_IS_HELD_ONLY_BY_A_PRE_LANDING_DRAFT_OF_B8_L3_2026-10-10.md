@@ -25,3 +25,10 @@ No claim and no running `surgical_land` holds B8.
 `python3 tools/isolate_hunks.py --survey simulation/run_phase2b.py`, then put the file back to HEAD.
 The next reconcile pass then advances the tree. Otherwise it ages out by itself at the 48h line
 (about 2026-10-11 20:30), preserved on a ref. The reconciler never decides a conflict.
+
+**Disposition (B8 worker tick, 2026-10-10 ~15:20).** The draft is superseded. `isolate_hunks
+--survey` found 6 hunks. Every added line missing from origin's copy is origin's own logic in other
+words: the `RetentionHoldout()` import became the seam's `new_retention_holdout()`, the
+`"held_out"` tag is at origin line 3180, and the treated-row rule is at 3509. The bytes are kept on
+`refs/preserved/b8-l3-pre-landing-draft-run_phase2b-2026-10-09` (local ref, commit `0bb27db3c`).
+The shared copy of `simulation/run_phase2b.py` is back to HEAD's.
