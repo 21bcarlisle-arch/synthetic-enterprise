@@ -172,3 +172,70 @@ the 10-10 gate. The tool separates the threshold step from the gate.
    renewal, and the large 2017 rises do not recur. **This is the step.**
 4. **Book attrition.** Prediction: live accounts fall by at most 35% between 2017 and 2019. That
    accounts for at most a factor of about 1.5 in a fall of about 17x. **Not the step.**
+
+## The counts, beside the predictions (landed after them, `1153f3f8c`)
+
+`python3 -m tools.renewal_population_by_step <run>` on the single-levy run (`producing_commit`
+7379375f6, the flag-off standing policy, 2016–2025). These are distinct decision-leg accounts per
+year. Both joins between the logs matched every row: 0 events at no boundary, 0 offers at no
+considered decision.
+
+There are two routes to a renewal decision, and the 53 / 25 / 3 mixes them. The **fixed-term
+route**: a fix ends, and either the household does nothing and rolls onto the default with no
+decision (the world's passive roll, `simulation/renewals.py` C1b), or the company estimates churn
+and the world rolls. The **default-anniversary route**: a household already on the default is
+asked at its anniversary whether it will fix (`svt_conversion`, or `declined_fix` with the default
+on both sides). The 10-10 gate acts only on that route.
+
+| year | fixed: ended | rolled to default, no decision | decided | considered | offered | default: decided | considered | offered | **offers** | live accounts |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 2017 | 281 | 182 | 99 | 53 | 53 | 35 | 0 | 0 | **53** | 444 |
+| 2018 | 102 | 60 | 42 | 19 | 19 | 66 | 36 | 6 | **25** | 408 |
+| 2019 | 99 | 61 | 38 | 1 | 1 | 56 | 10 | 1 | **2** | 366 |
+| 2020 | 84 | 47 | 37 | 1 | 1 | 36 | 1 | 0 | 1 | 309 |
+| 2021 | 75 | 42 | 33 | 21 | 21 | 39 | 8 | 0 | 21 | 284 |
+
+The offers, 53 / 25 / 2, are the flag-off arm's offers exactly. All 75 no-offer leavers in the run
+were below the threshold.
+
+**Graded**
+
+1. **The 10-10 gate: FAILED.** I said it was not the step. Total considered goes 53 / 55 / 11
+   while offers go 53 / 25 / 2. So in 2018 nothing falls at the threshold. The fall is at the last
+   step of the default route, where 6 of 36 considered households were offered. The second clause
+   cannot be graded: no considered household left without an offer, so 0 rows are weighed. The
+   published run cannot split the gate (`the_discount_cannot_win_the_fix`) from the value test
+   (`uneconomical`) for a household that stayed. It carries no reason for those households, and
+   `renewal_decisions_log` is not in the published payload.
+2. **The term structure: FAILED.** I said within ±40% of 2017. Fixed-term endings go 281 → 102 →
+   99, down 64%. The 400 founders' first fixes all end in 2017. 65% of them (182 of 281) roll
+   passively onto the default and leave the fixed-term route. After that they come back only
+   through the default anniversary, where the gate applies.
+3. **The threshold: the step for 2019. HELD in direction, narrowly FAILED on both stated bounds.**
+   Decisions are 94 against 11 considered in 2019, so 8.5x against the "at least 3x" I said (HELD).
+   The share above 0.30 is 39.6% in 2017 (I said at least 40%) and 11.7% in 2019 (I said at most
+   10%). On the fixed route alone it is 54% to 2.6%. The estimate follows the renewal price: the
+   median fixed renewal rate change is +6.9% (2017), +12.1% (2018), −4.6% (2019), and the median
+   estimate is 0.309 / 0.275 / 0.098.
+4. **Book attrition: HELD.** Live accounts fall 444 → 366 (−17.6%), a factor of 1.2.
+
+**The step, named.** The fall from 53 to 25 has two causes. One is the founders' term structure:
+one cohort's fixes end together, and two thirds roll passively onto the default. The other is the
+default route's last step, which offers to 6 of 36 considered households. The fall from 25 to 2 is
+the offer threshold: fixed renewals in 2019 were cheaper than the term before, so the estimate
+fell below 0.30. All three are how a real supplier's book behaves. A cohort acquired in one year
+renews together. Most households do nothing at a term end, and they do not leave at that point. The world's
+anchored active share is 35%, and in Ofgem's 2019 End of Fixed Term trial the 81% who did nothing
+left at 0%, as cited in C1b. An offer to a household whose price fell
+is rarely needed. **None of them is filed as a defect.**
+
+**What it does to the B8 conclusion.** It makes it stronger. After 2018 the guard considers 11 renewals in 2019 and 2 in
+2020, then 29 in the 2021 price rise. Over 2019–2025 it considers 97, about 14 a year, and offers
+33, about 5 a year. The holdout's "about 30 decisions a year" was set by 2017–2018. The per-customer-versus-flat comparison has almost nothing to compare
+in 2019–2020, and that is a property of the book and the price path, not of the code.
+
+**One observation, not graded and not filed.** Below the threshold, the realised leave rate is
+0.198 / 0.094 / 0.205 / 0.211 (2017–2020) against a mean estimate of 0.148 / 0.166 / 0.124 /
+0.129. In three of the four years the estimate reads low by about a factor of 1.5 among households
+it does not consider. Whether that is miscalibration is `churn_model_performance`'s question, and
+four years of one run do not settle it.
