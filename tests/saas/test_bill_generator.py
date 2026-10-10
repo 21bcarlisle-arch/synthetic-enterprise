@@ -312,8 +312,8 @@ def test_generate_bill_does_not_double_count_standing_charge_real_settlement():
     # commodity_amount_gbp is pure commodity: it excludes the SC that revenue_gbp
     # carried, and commodity + SC reconstructs the raw settlement revenue exactly
     # (no third copy, no missing copy).
-    assert bill["commodity_amount_gbp"] == pytest.approx(raw_revenue - settlement_sc)
-    assert bill["commodity_amount_gbp"] + bill["standing_charge_gbp"] == pytest.approx(raw_revenue)
+    assert bill["commodity_amount_gbp"] + bill["non_commodity_amount_gbp"] == pytest.approx(raw_revenue - settlement_sc)
+    assert bill["commodity_amount_gbp"] + bill["non_commodity_amount_gbp"] + bill["standing_charge_gbp"] == pytest.approx(raw_revenue)
 
     # Per-day breakdown stays internally consistent.
     assert bill["days_in_period"] * bill["standing_charge_gbp_per_day"] == pytest.approx(
@@ -349,8 +349,8 @@ def test_generate_bill_does_not_double_count_standing_charge_real_gas():
     expected_daily_sc = get_gas_standing_charge_per_day("2023-01-15", "resi")
     assert settlement_sc == pytest.approx(_JAN_2023_DAYS * expected_daily_sc)
     assert bill["standing_charge_gbp"] == pytest.approx(settlement_sc)
-    assert bill["commodity_amount_gbp"] == pytest.approx(raw_revenue - settlement_sc)
-    assert bill["commodity_amount_gbp"] + bill["standing_charge_gbp"] == pytest.approx(raw_revenue)
+    assert bill["commodity_amount_gbp"] + bill["non_commodity_amount_gbp"] == pytest.approx(raw_revenue - settlement_sc)
+    assert bill["commodity_amount_gbp"] + bill["non_commodity_amount_gbp"] + bill["standing_charge_gbp"] == pytest.approx(raw_revenue)
 
 
 def test_generate_bill_ic_charges_zero_standing_charge_real_settlement():
@@ -378,7 +378,7 @@ def test_generate_bill_ic_charges_zero_standing_charge_real_settlement():
     assert bill["standing_charge_gbp"] == pytest.approx(0.0)
     assert bill["standing_charge_gbp_per_day"] == pytest.approx(0.0)
     # No SC to subtract -- commodity is the full (SC-free) settlement revenue.
-    assert bill["commodity_amount_gbp"] == pytest.approx(raw_revenue)
+    assert bill["commodity_amount_gbp"] + bill["non_commodity_amount_gbp"] == pytest.approx(raw_revenue)
 
 
 def test_generate_bill_subtracts_sc_from_commodity_when_field_present():
@@ -401,5 +401,5 @@ def test_generate_bill_subtracts_sc_from_commodity_when_field_present():
     ]
     bill = generate_bill("C1", records, "fixed_1yr", segment="resi", commodity="electricity")
     assert bill["standing_charge_gbp"] == pytest.approx(0.53)
-    assert bill["commodity_amount_gbp"] == pytest.approx(20.0)  # SC subtracted back out
-    assert bill["average_unit_rate_gbp_per_mwh"] == pytest.approx(200.0)  # pure commodity rate
+    assert bill["commodity_amount_gbp"] + bill["non_commodity_amount_gbp"] == pytest.approx(20.0)  # SC subtracted back out; levies carved out of the rest
+    assert bill["average_unit_rate_gbp_per_mwh"] == pytest.approx(200.0)  # the all-in rate sold

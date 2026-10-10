@@ -586,8 +586,8 @@ def test_estimated_settlement_records_preserve_rate_and_standing_charge():
     assert est_bill["average_unit_rate_gbp_per_mwh"] == pytest.approx(
         true_bill["average_unit_rate_gbp_per_mwh"]
     )
-    # commodity == estimate(MWh) x real rate
-    assert est_bill["commodity_amount_gbp"] == pytest.approx(
+    # the unit charge (commodity + the levy line carved out of it) == estimate(MWh) x real rate
+    assert est_bill["commodity_amount_gbp"] + est_bill["non_commodity_amount_gbp"] == pytest.approx(
         (0.6 * 500.0 / 1000) * true_bill["average_unit_rate_gbp_per_mwh"]
     )
     # standing charge is a fixed daily charge -- unchanged by the estimate
@@ -610,7 +610,8 @@ def test_estimated_bills_priced_at_real_rate_with_quantity_divergence():
         assert b["total_consumption_kwh"] == pytest.approx(b["estimated_consumption_kwh"])
         # billed at the REAL unit rate (from the true settlement records)
         true_rate = b["true_commodity_amount_gbp"] / (b["true_consumption_kwh"] / 1000)
-        assert b["average_unit_rate_gbp_per_mwh"] == pytest.approx(true_rate)
+        # Like for like: the commodity line per MWh, the levy line carved out of both alike.
+        assert b["commodity_amount_gbp"] / (b["total_consumption_kwh"] / 1000) == pytest.approx(true_rate)
         # true-vs-billed provenance present for step-2 reconciliation
         assert "true_consumption_kwh" in b and "true_total_amount_gbp" in b
         if abs(b["estimated_consumption_kwh"] - b["true_consumption_kwh"]) > 1.0:

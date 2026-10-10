@@ -86,6 +86,12 @@ class LaunchRefused(RuntimeError):
     """
 
 
+class NoRoom(LaunchRefused):
+    """A refusal that waiting can cure: the box has no room yet, or a landing holds it. The command
+    line QUEUES on this one (retrying until the job fits) unless told not to, so a job asked for is
+    a job that eventually runs and is followed -- never one that someone must remember to relaunch."""
+
+
 def unit_name(job: str) -> str:
     """The FIXED unit name for `job`. Fixed is load-bearing, not cosmetic.
 
@@ -564,7 +570,7 @@ def launch(job: str, command: list, *, artefact: str, workdir: str | None = None
         raise LaunchRefused(case_refusal)
     landing_wait = _wait_for_pending_landings(say)
     if landing_wait:
-        raise LaunchRefused(landing_wait)
+        raise NoRoom(landing_wait)
     if guest_total_mb is None:
         from background.resource_headroom import sample
         guest_total_mb = sample()["total_mb"]
@@ -574,7 +580,7 @@ def launch(job: str, command: list, *, artefact: str, workdir: str | None = None
         declared=declared_peaks(records_path), wait_for_pid=wait_for_pid,
         reserved=_live_reserved_by_pid())
     if not verdict["admitted"]:
-        raise LaunchRefused(verdict["reason"])
+        raise NoRoom(verdict["reason"])
     say(f"  . {verdict['reason']}")
     if wait_for_pid is not None:
         command = wait_then(command, wait_for_pid)
@@ -650,7 +656,64 @@ def launch(job: str, command: list, *, artefact: str, workdir: str | None = None
     return entry
 
 
+#: How often a queued launch re-asks the box for room.
+QUEUE_RETRY_SECONDS = 60
+
+#: How long `follow_unit` waits by default before it gives up and says so: a day. A long job that
+#: outlives it is reported as still running, never as finished.
+FOLLOW_DEADLINE_SECONDS = 24 * 3600
+
+
+def follow_unit(unit: str, artefact: str | None, *, deadline_seconds: float = FOLLOW_DEADLINE_SECONDS,
+                poll_seconds: float = 15.0, heartbeat_seconds: float = 1800.0,
+                held=name_is_held, show=_show, sleep=None, clock=None, say=print) -> int:
+    """Block until `unit` ends -- through any queue, landing hold and the run itself -- then say how.
+
+    WHY (director, 2026-10-10): *"Every job you queue must wake you when it finishes. Last night a
+    finished measurement sat unread for about five hours. Fix that pattern, not just this
+    instance."* The launcher returned the moment the unit was SCHEDULED; queued behind
+    `--wait-for-pid` the unit is a wrapper that waits and then runs, and the session that launched
+    it had nothing that would end when the JOB did. Run this command in the background and its
+    end IS the job's end, so the session is woken exactly then.
+
+    Returns 0 when the unit ended with `Result=success` and the artefact exists; 1 for any other
+    ending (a failure, a missing artefact); 2 when the deadline passed with the unit still held --
+    which is reported as still running, never as finished.
+    """
+    import time as _time
+
+    sleep = sleep or _time.sleep
+    clock = clock or _time.monotonic
+    start = clock()
+    last_beat = start
+    while held(unit):
+        now = clock()
+        if now - start >= deadline_seconds:
+            say(f"FOLLOW DEADLINE: {unit} is still held after {int(now - start)}s -- not finished; "
+                f"re-follow with `python3 -m background.launch_long_job --follow-only {unit}`")
+            return 2
+        if now - last_beat >= heartbeat_seconds:
+            say(f"following {unit}: still held after {int(now - start)}s")
+            last_beat = now
+        sleep(poll_seconds)
+    fields = show(unit, "Result", "ExecMainStatus") or {}
+    result = fields.get("Result") or "unknown (the unit was collected)"
+    exists = bool(artefact) and Path(artefact).exists()
+    say(f"FINISHED {unit} after {int(clock() - start)}s: Result={result} "
+        f"ExecMainStatus={fields.get('ExecMainStatus', '?')}; artefact "
+        f"{artefact} {'EXISTS' if exists else 'MISSING'}")
+    return 0 if exists and fields.get("Result") in ("success", None, "") else 1
+
+
 def main(argv: list | None = None) -> int:
+    if argv is None:
+        argv = sys.argv[1:]
+    if argv[:1] == ["--follow-only"]:
+        # RE-ATTACH to a unit launched earlier (or detached): the same wait, nothing launched.
+        if len(argv) < 2:
+            print("usage: --follow-only <unit> [<artefact>]")
+            return 2
+        return follow_unit(argv[1], argv[2] if len(argv) > 2 else None)
     parser = argparse.ArgumentParser(
         description="Launch a long job into a transient user unit and record its liveness.",
         epilog="Everything after `--` is the command to run.")
@@ -681,6 +744,14 @@ def main(argv: list | None = None) -> int:
     parser.add_argument("--would-change", help="what result would change what we do")
     parser.add_argument("--wait-for-pid", type=int,
                         help="instead of refusing over this resident, start the job when it exits")
+    parser.add_argument("--detach", action="store_true",
+                        help="return as soon as the unit is scheduled. The DEFAULT is to follow it "
+                             "to its end (`follow_unit`), so a session that runs this in the "
+                             "background is woken when the JOB finishes, not when it was queued")
+    parser.add_argument("--follow-deadline-hours", type=float, default=FOLLOW_DEADLINE_SECONDS / 3600)
+    parser.add_argument("--no-queue", action="store_true",
+                        help="refuse at once when the box has no room. The DEFAULT is to queue: "
+                             "retry until the job fits, then launch and follow it")
     parser.add_argument("--dry-run", action="store_true",
                         help="print the launch argv and exit, launching and recording nothing")
     parser.add_argument("command", nargs=argparse.REMAINDER)
@@ -712,15 +783,40 @@ def main(argv: list | None = None) -> int:
         print(verdict["reason"] if verdict["admitted"] else f"WOULD REFUSE: {verdict['reason']}")
         return 0
 
-    try:
-        launch(args.job, command, artefact=args.artefact, workdir=args.workdir, log=args.log,
-               description=args.description, asserted_live_by=args.asserted_live_by, env=env,
-               peak_mb=args.peak_mb, wait_for_pid=args.wait_for_pid,
-               expect_minutes=args.expect_minutes, run_case=run_case)
-    except LaunchRefused as exc:
-        print(f"REFUSED: {exc}")
-        return 1
-    return 0
+    import time as _time
+
+    queued_since = None
+    while True:
+        try:
+            launch(args.job, command, artefact=args.artefact, workdir=args.workdir, log=args.log,
+                   description=args.description, asserted_live_by=args.asserted_live_by, env=env,
+                   peak_mb=args.peak_mb, wait_for_pid=args.wait_for_pid,
+                   expect_minutes=args.expect_minutes, run_case=run_case)
+            break
+        except NoRoom as exc:
+            if args.no_queue:
+                print(f"REFUSED: {exc}")
+                return 1
+            now = _time.monotonic()
+            if queued_since is None:
+                queued_since = now
+                print(f"QUEUED (no room yet; retrying every {QUEUE_RETRY_SECONDS}s): {exc}",
+                      flush=True)
+            elif now - queued_since >= args.follow_deadline_hours * 3600:
+                print(f"QUEUE DEADLINE: still no room after {int(now - queued_since)}s -- NOT "
+                      f"launched: {exc}")
+                return 2
+            _time.sleep(QUEUE_RETRY_SECONDS)
+        except LaunchRefused as exc:
+            print(f"REFUSED: {exc}")
+            return 1
+    if args.detach:
+        print(f"DETACHED: nothing here will end when {unit_name(args.job)} does -- follow it with "
+              f"`python3 -m background.launch_long_job --follow-only {unit_name(args.job)}`")
+        return 0
+    print(f"FOLLOWING {unit_name(args.job)} to its end (pass --detach not to)", flush=True)
+    return follow_unit(unit_name(args.job), args.artefact,
+                       deadline_seconds=args.follow_deadline_hours * 3600)
 
 
 if __name__ == "__main__":

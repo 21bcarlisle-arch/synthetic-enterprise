@@ -322,7 +322,11 @@ def _phase2b_book_is_put_back():
     """
     yield
     p2b = sys.modules.get("simulation.run_phase2b")
-    if p2b is not None:
+    # A test that stubbed the module (the book-seed refusal tests stand an `object()` in for an
+    # already-imported run) drew no book, so there is none to put back; and this teardown can run
+    # before that test's monkeypatch is undone. Red on origin from 5941e47a9 (2026-10-07) whenever
+    # the gate selected the seed tests.
+    if p2b is not None and hasattr(p2b, "start_from_the_drawn_book"):
         p2b.start_from_the_drawn_book()
 
 

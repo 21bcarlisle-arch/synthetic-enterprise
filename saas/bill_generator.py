@@ -258,9 +258,22 @@ def generate_bill(
         standing_charge_gbp / days_in_period if days_in_period > 0 else 0.0
     )
 
-    # Non-commodity pass-through: network charges + environmental levies
+    # Non-commodity pass-through: network charges + environmental levies.
+    #
+    # THE SAME DOUBLE COUNT AS THE STANDING CHARGE, ONE LINE DOWN (2026-10-10). Every settlement
+    # writer already has these costs inside `revenue_gbp`: a pass-through or flex tariff adds the
+    # actual policy and network cost to it explicitly, and a fixed or default tariff's unit rate is
+    # all-in -- the published cap it is held under is all-in, and every writer's `net_margin_gbp`
+    # deducts policy and network from that same revenue. Adding the line on top billed every
+    # household the levies twice: 52-80 GBP/MWh on electricity, ~25% over the cap on a capped
+    # account, money the supplier collected and never booked. On settlement records the line is now
+    # carved OUT of revenue, so the total is revenue plus VAT. The blended rate only splits the
+    # line; it cannot move the total. Legacy fixtures without the standing-charge field still add
+    # it, as the standing-charge fallback above does.
     billing_year = int(dates[0][:4])
     non_commodity_amount_gbp = total_consumption_kwh / 1000 * non_commodity_rate(commodity, segment, year=billing_year)
+    if records_carry_sc:
+        commodity_amount_gbp -= non_commodity_amount_gbp
 
     # VAT on the full pre-tax bill. An SME period at or below its fuel's de minimis is reduced-rated
     # (VAT Notice 701/19); the segment label alone charged those periods the standard rate.
@@ -268,8 +281,11 @@ def generate_bill(
     vat_gbp = subtotal_gbp * vat_rate_for_supply(segment, commodity, total_consumption_kwh, days_in_period)
     total_amount_gbp = subtotal_gbp + vat_gbp
 
+    # The unit rate the household is charged, which on a settled bill is the all-in rate it was
+    # sold at -- unchanged by the carve-out above.
+    unit_charge_gbp = commodity_amount_gbp + (non_commodity_amount_gbp if records_carry_sc else 0.0)
     average_unit_rate_gbp_per_mwh = (
-        commodity_amount_gbp / (total_consumption_kwh / 1000) if total_consumption_kwh > 0 else 0.0
+        unit_charge_gbp / (total_consumption_kwh / 1000) if total_consumption_kwh > 0 else 0.0
     )
 
     clarity_score = BASE_CLARITY_BY_CONTRACT_TYPE.get(contract_type, DEFAULT_BASE_CLARITY)

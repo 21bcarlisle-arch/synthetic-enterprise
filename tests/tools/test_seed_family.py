@@ -167,7 +167,8 @@ def test_two_tables_compare_identical_and_a_one_field_change_is_seen():
 
 
 def _rows(n, behind_every, debt_every=10):
-    return [{"seed": "1", "home_id": f"H{i}", "net_value_gbp": str((i % 50) * 40 - 500),
+    return [{"seed": "1", "home_id": f"H{i}", "route": "campaign_win",
+             "net_value_gbp": str((i % 50) * 40 - 500),
              "bad_debt_gbp": str(float(i % 7) if i % debt_every == 0 else 0.0),
              "behind_91": str(i % behind_every == 0)} for i in range(n)]
 
@@ -189,3 +190,68 @@ def test_the_power_formulae_print_the_textbook_values():
     assert sf.n_per_arm_mean(1.0, 1.0) == 16
     # 10% -> 12.5% (Fleiss, no continuity correction): 2,507 per arm, worked by hand.
     assert sf.n_per_arm_share(0.10, 0.25) == 2507
+
+
+def _origin_rows(founder_value, win_value, n=400):
+    rows = []
+    for i in range(n):
+        route = "founder" if i % 4 == 0 else "campaign_win"
+        rows.append({"seed": "1", "home_id": f"H{i}", "route": route,
+                     "net_value_gbp": str((founder_value if route == "founder" else win_value)
+                                          + (i % 10)),
+                     "bad_debt_gbp": "0.0", "behind_91": str(i % 5 == 0)})
+    return rows + [{"seed": "1", "home_id": "S0", "route": "home_move_successor",
+                    "net_value_gbp": "5.0", "bad_debt_gbp": "0.0", "behind_91": "False"}]
+
+
+def test_every_origin_is_read_alone_and_a_lone_home_says_cannot_yet_tell():
+    """DEFECT (director's condition 1): a pooled answer that hides a founder/win split, or a
+    one-home group published with an interval it cannot have."""
+    out = sf.readout(_origin_rows(100.0, 300.0))
+    assert set(out["by_origin"]) == set(sf.ORIGINS)
+    assert out["by_origin"]["founder"]["homes"] == 100
+    assert out["by_origin"]["campaign_win"]["homes"] == 300
+    assert out["by_origin"]["founder"]["questions"]
+    assert out["by_origin"]["home_move_successor"]["verdict"].startswith("cannot yet tell")
+    assert out["by_origin"]["arrival"]["homes"] == 0
+
+
+def test_the_mix_check_can_say_changes_and_can_say_it_does_not():
+    """DEFECT: a mix check that reads every re-weighting as harmless (or as fatal). Founders
+    worth 100 and wins 300 move a quarter-founder pool when the mix is half founders; equal
+    values do not move at all."""
+    half = {"source": "test", "shares": {"founder": 0.5, "campaign_win": 0.5}}
+    split = sf.readout(_origin_rows(100.0, 300.0), [half])["mix_checks"][0]["quantities"][0]
+    assert split["verdict"].startswith("CHANGES")
+    same = sf.readout(_origin_rows(200.0, 200.0), [half])["mix_checks"][0]["quantities"][0]
+    assert same["verdict"] == "does not change it"
+    absent = {"source": "test", "shares": {"founder": 0.5, "change_of_tenancy": 0.5}}
+    told = sf.readout(_origin_rows(100.0, 300.0), [absent])["mix_checks"][0]["quantities"][0]
+    assert told["verdict"].startswith("cannot yet tell") and "change_of_tenancy" in told["verdict"]
+
+
+def test_a_reference_books_mix_scales_its_sampled_wins_back_to_every_win():
+    """DEFECT: the 400-founder book's mix read off its SETTLED homes alone, which under-counts
+    the wins a weighted-sample book made by its sample rate."""
+    report = {"per_customer_lifetime": {"C1": {}, "C1g": {}, "PROS-2017-0001": {},
+                                        "OCC-1": {}},
+              "acquisition_funnel_log": []}
+    plain = sf.mix_of_report(report, {"C1"})
+    assert plain["shares"] == {"founder": round(1 / 3, 4), "campaign_win": round(1 / 3, 4),
+                               "change_of_tenancy": round(1 / 3, 4)}
+    scaled = sf.mix_of_report(report, {"C1"}, wins_scale=2.0)
+    assert scaled["shares"]["campaign_win"] == 0.5
+
+
+def test_the_launch_command_follows_every_member_to_its_end(monkeypatch, tmp_path):
+    """DEFECT (director's condition 3, 2026-10-10: "Every job you queue must wake you when it
+    finishes"): a launch that returns when the units are scheduled, so nothing ends with them."""
+    import background.launch_long_job as llj
+    followed = []
+    monkeypatch.setattr(sf, "launch", lambda *a, **k: [{"unit": "u1", "artefact": "a1"},
+                                                       {"unit": "u2", "artefact": "a2"}])
+    monkeypatch.setattr(llj, "follow_unit", lambda unit, art, **k: followed.append(unit) or 0)
+    argv = ["launch", "--seeds", "1,2", "--tag", "t", "--out", str(tmp_path)]
+    assert sf.main(argv) == 0 and followed == ["u1", "u2"]
+    followed.clear()
+    assert sf.main(argv + ["--detach"]) == 0 and followed == []
