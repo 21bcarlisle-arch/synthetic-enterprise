@@ -145,3 +145,30 @@ above gets worse, not better. I cannot yet say whether the 10-10 conversion gate
 term structure or the churn estimate's threshold produces the fall.
 
 Harness: `/var/tmp/b8relevy/arm.py`; the per-arm logs are `/var/tmp/b8relevy/{off,on}.json` (not kept).
+
+## Why the considered renewals fall: predictions, 2026-10-10, written before any per-year count
+
+What I had read when I wrote these: the run loop's renewal gate (`simulation/run_phase2b.py`
+around the `term_index >= 1 and commodity == _decision_leg` branch), the top-level keys of the
+single-levy run (`producing_commit` 7379375f6), and its whole-run totals (600 rolled renewal
+events, 112 offers, 75 no-offer leavers). No count by year.
+
+The steps, as the code takes them: a term ends and the next one starts (`account_state_log` row,
+`term_index >= 1`); the next term is on the decision leg and not indexed, with a prior rate, so
+the company's estimate is computed (the renewal decision); the estimate is above
+`RETENTION_THRESHOLD` (0.30), so the guard considers it; the 10-10 gate and the value test pass,
+so an offer is made (`retention_log`). The 53 / 25 / 3 above are holdout rows, which come *after*
+the 10-10 gate. The tool separates the threshold step from the gate.
+
+1. **The 10-10 conversion gate.** It comes after the threshold, so it cannot move the considered
+   count. Prediction: considered (estimate above 0.30) falls by year in the same shape as the
+   offers. Among no-offer leavers whose estimate was above 0.30, the gate's own reason
+   (`the_discount_cannot_win_the_fix`) is at most a third in each year. **Not the step.**
+2. **The founders' term structure.** Prediction: the count of terms that ended on the decision leg
+   stays within ±40% of its 2017 value through 2019. **Not the step.**
+3. **The churn estimate's offer threshold.** Prediction: renewal decisions reached stay at least 3x
+   the considered count in 2019. The share of decisions with an estimate above 0.30 falls from at
+   least 40% in 2017 to at most 10% in 2019. The estimate is driven by the rate change at
+   renewal, and the large 2017 rises do not recur. **This is the step.**
+4. **Book attrition.** Prediction: live accounts fall by at most 35% between 2017 and 2019. That
+   accounts for at most a factor of about 1.5 in a fall of about 17x. **Not the step.**
