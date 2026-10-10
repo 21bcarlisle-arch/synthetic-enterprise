@@ -504,7 +504,8 @@ def home_move_successor_of() -> dict[str, str]:
     """Successor billing account -> the predecessor billing account whose churn activated it.
 
     Read off the REGISTERED home-move successors (`supply_book.successor_supply_points`), which
-    are what `run_phase2b.SUCCESSOR_MAP` activates when a churn's `home_move_won` fires. A
+    a churn's `home_move_won` activated until 2026-10-10. That roll is retired (a switcher vacates
+    no property), so no run since activates a successor; this reads captures made before it. A
     successor tenure carries a new billing key, so an account-keyed partition files it apart from
     the decision that caused it: on seed 44444 the value arm's price churned C5 and C5_2 existed
     in that arm only, splitting one decision into C5 in D and C5_2 in roster-only

@@ -591,6 +591,9 @@ def main(argv: list[str] | None = None) -> int:
     la.add_argument("--question")
     la.add_argument("--why-not-minutes")
     la.add_argument("--would-change")
+    la.add_argument("--detach", action="store_true",
+                    help="return once the units are scheduled. The default follows every member "
+                         "to its end, so whoever ran this is woken when the FAMILY finishes")
     la.add_argument("--wait-for-pid", type=int,
                     help="start when this resident exits, if admission names it (the launcher's)")
     r = sub.add_parser("readout")
@@ -614,16 +617,20 @@ def main(argv: list[str] | None = None) -> int:
         return member(args.seed, args.founders, args.out)
     if args.cmd == "launch":
         seeds = [int(x) for x in args.seeds.split(",") if x.strip()]
-        from background.launch_long_job import LaunchRefused
+        from background.launch_long_job import LaunchRefused, follow_unit
         try:
-            launch(seeds, args.founders, args.out, args.tag, args.parallel,
+            entries = launch(seeds, args.founders, args.out, args.tag, args.parallel,
                    {"question": args.question, "why_not_minutes": args.why_not_minutes,
                     "would_change": args.would_change, "expect_minutes": args.expect_minutes},
                    wait_for_pid=args.wait_for_pid)
         except LaunchRefused as exc:
             print("REFUSED:", exc)
             return 2
-        return 0
+        if args.detach:
+            return 0
+        # Director, 2026-10-10: "Every job you queue must wake you when it finishes."
+        rcs = [follow_unit(e["unit"], e.get("artefact")) for e in entries]
+        return max(rcs, default=0)
     if args.cmd == "mix":
         import simulation.live_population as lp
         founders = {r["customer_id"] for r in lp.founder_book(lp._DEFAULT_BASE_SEED)}

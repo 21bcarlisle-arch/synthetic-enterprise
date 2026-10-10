@@ -15,13 +15,12 @@ from tools.run_value_cycle_ab import (
 )
 
 
-def test_the_lineage_is_the_one_the_world_activates_successors_from():
-    """Keyed to the map the churn branch reads, not to a list typed here: a successor the world
-    can activate and this reader cannot name would be filed as roster-only in silence."""
-    from simulation.run_phase2b import SUCCESSOR_MAP
-
+def test_the_lineage_reads_the_registered_successors():
+    """The lineage the fold reads is the registered successor roster. Until 2026-10-10 this was keyed
+    to `run_phase2b.SUCCESSOR_MAP`, the map the renewal-churn "home-move win" activated; that roll
+    is retired (a switcher vacates no property) and the map with it, so the fold now only reads
+    captures made before then, and the roster is its one source."""
     lineage = home_move_successor_of()
-    assert {s: p for p, s in SUCCESSOR_MAP.items()}.items() <= lineage.items()
     assert lineage["C5_2"] == "C5"
 
 
