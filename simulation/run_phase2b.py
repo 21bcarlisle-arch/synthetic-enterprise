@@ -2321,6 +2321,10 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
     # B8 L3: the company's own retention holdout, on a policy that runs one.
     _retention_holdout = new_retention_holdout() if policy.retention_runs_holdout else None
     retention_holdout_log: list[dict] = []
+    # What the value test would have said where the 10-10 gate refused first. Read by nothing in
+    # the loop, so it changes no outcome; it says whether the gate binds or the guard would have
+    # refused the same households anyway.
+    retention_gate_value_test_log: list[dict] = []
     # Phase 12c: churns where no offer was made (missed opportunities)
     no_offer_churn_log: list[dict] = []
     # Phase 14b: gas renewal rate pressure log for dual-fuel monitoring
@@ -3133,14 +3137,24 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                             "offer_cut": None if _cut_decision is None else _cut_decision.offer_cut,
                             "reason": None if _cut_decision is None else _cut_decision.reason,
                         })
+                    # One reading of the guard, so the gate's record below is the guard's own verdict.
+                    _value_protected = retention_value_protected(
+                        expected_margin, acq_cost_saved, _engagement,
+                        default_belief_rate=_ret_default_belief, billed=_ret_billed)
                     if not _offer_can_buy:
                         _no_offer_reason = "the_discount_cannot_win_the_fix"
+                        retention_gate_value_test_log.append({
+                            "customer_id": billing_account, "event_date": term_start_str,
+                            "value_protected_gbp": round(_value_protected, 2),
+                            "offer_cost_gbp": round(ret_cost, 2),
+                            "value_test_would_offer": _value_protected > ret_cost,
+                            # On a holdout policy the coin, not this test, would have decided
+                            # half of them first; the verdict here is the guard's alone.
+                            "holdout_would_have_drawn": _retention_holdout is not None,
+                        })
                     elif _holdout_arm != "holdout" and (
                           _cut_decision.offer_cut if _cut_decision is not None
-                          else retention_value_protected(
-                            expected_margin, acq_cost_saved, _engagement,
-                            default_belief_rate=_ret_default_belief,
-                            billed=_ret_billed) > ret_cost):
+                          else _value_protected > ret_cost):
                         # THE OFFER REACHES THE WORLD AS ITS RATE (director, 2026-10-09), answered
                         # at the roll below by `simulation.retention_offer`. It reached it as a flat,
                         # unsourced 0.20 cut to one hazard whatever the discount, so a 3% and an 8%
@@ -4978,6 +4992,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         "nudge_physics_log": nudge_physics_log,
         "retention_cost_events": retention_cost_events,
         "no_offer_churn_log": no_offer_churn_log,
+        "retention_gate_value_test_log": retention_gate_value_test_log,
         "company_gas_churn_log": company_gas_churn_log,
         "volume_tolerance_log": volume_tolerance_log,
         "triad_log": triad_log,

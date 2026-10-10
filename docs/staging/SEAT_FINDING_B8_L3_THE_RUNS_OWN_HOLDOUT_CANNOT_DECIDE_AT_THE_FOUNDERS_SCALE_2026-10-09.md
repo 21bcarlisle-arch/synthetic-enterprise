@@ -285,3 +285,20 @@ hold. Also, a value test that never refuses on this run is consistent with two r
 every gated household would also have passed it, or the gate always pre-empts it. The code orders
 the gate first (`elif` after `if not _offer_can_buy`), so this run cannot tell those two apart. I
 cannot yet say which it is.
+
+## Would the value test have refused the gated households? Prediction, 2026-10-10, before the run
+
+The run loop now records, at each 10-10 gate refusal, what the value test would have said had the
+gate not come first (`retention_gate_value_test_log`, read by nothing in the loop, so no outcome
+moves). `tools/renewal_population_by_step` splits the gate's refusals into `would_offer` (the gate
+binds) and `would_refuse` (the guard would have refused anyway). What I had read when I wrote this:
+the guard's inputs on the standing policy (engagement weighting off, bad-debt netting off, so the
+test is term margin plus replacement cost saved against the discount's cost), and the fact above
+that the value test refused none of the 112 offers' considered households on either route. I had no
+per-household value or cost for any gated household.
+
+**Prediction.** On a full 2016–2025 run of the standing policy, the gate refuses about 94 again
+(within ±10, since the code moved since 7379375f6). At least 90% are `would_offer`. In no year with
+8 or more refusals are more than 2 `would_refuse`. If so, the gate binds: it is the only thing
+refusing those offers, and the value test is not a backstop for it. If more than a third are
+`would_refuse`, the gate is mostly redundant with the guard on this book.

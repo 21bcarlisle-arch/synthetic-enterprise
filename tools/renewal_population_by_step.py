@@ -33,6 +33,11 @@ holdout (``held_out``). A household that stayed carries it on its event as
 stayer is unrolled, so every row has a reason. A rolled stayer on the fixed route has none, and it is
 counted as ``unrecorded`` rather than guessed.
 
+``gated_value_test`` splits the 10-10 gate's refusals by what the value test would have said had
+the gate not been checked first (`retention_gate_value_test_log`): ``would_offer`` means the gate
+binds there, ``would_refuse`` means the guard would have refused the household anyway. A run that
+predates the log reports ``None``, never zero.
+
 This reads world-side fields only to find the population (dates, tariff types, which events
 exist), plus the company's own estimate. It reads no ground-truth probability.
 """
@@ -149,6 +154,13 @@ def population_by_step(run: dict) -> dict:
         if key not in offered:
             not_offered[decided[key]][key[1][:4]][withheld.get(key, "unrecorded")].add(key[0])
 
+    gate_log = run.get("retention_gate_value_test_log")
+    gated: dict[str, dict[str, set]] = defaultdict(lambda: defaultdict(set))
+    for row in gate_log or []:
+        verdict = "would_offer" if row["value_test_would_offer"] else "would_refuse"
+        acct = account_of.get(row["customer_id"], row["customer_id"])
+        gated[row["event_date"][:4]][verdict].add(acct)
+
     years = sorted({y for group in (fixed, default, context) for c in group.values() for y in c})
     return {
         "producing_commit": (run.get("producing_commit") or {}).get("commit"),
@@ -162,6 +174,8 @@ def population_by_step(run: dict) -> dict:
                 "not_offered": {
                     route: {why: len(a) for why, a in sorted(not_offered[r].get(y, {}).items())}
                     for route, r in (("fixed_term", "fixed"), ("default_anniversary", "default"))},
+                "gated_value_test": None if gate_log is None else {
+                    v: len(gated.get(y, {}).get(v, ())) for v in ("would_offer", "would_refuse")},
             }
             for y in years
         },
@@ -186,6 +200,12 @@ def render(result: dict) -> str:
         if any(row["not_offered"].values()):
             lines.append(f"{y}  " + "   ".join(f"{route}: {why}"
                                               for route, why in row["not_offered"].items()))
+    lines.append("10-10 gate refusals, by what the value test would have said:")
+    if any(row["gated_value_test"] is None for row in result["years"].values()):
+        lines.append("  not recorded: the run predates the log")
+    for y, row in result["years"].items():
+        if row["gated_value_test"] and any(row["gated_value_test"].values()):
+            lines.append(f"{y}  {row['gated_value_test']}")
     lines.append(f"unmatched: {result['unmatched']}")
     return "\n".join(lines)
 

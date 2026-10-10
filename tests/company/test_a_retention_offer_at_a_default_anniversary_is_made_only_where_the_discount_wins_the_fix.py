@@ -79,7 +79,15 @@ def test_the_run_gates_the_offer_on_the_rule_from_its_own_book():
              and ast.unparse(n.test) == "not _offer_can_buy"]
     assert len(gates) == 1
     branch = gates[0].orelse[0]
-    assert isinstance(branch, ast.If) and "retention_value_protected" in ast.unparse(branch.test), (
+    # The guard's value may be read once into a name, so the gate can record the same verdict.
+    guard_names = {t.id for n in ast.walk(tree) if isinstance(n, ast.Assign)
+                   and isinstance(n.value, ast.Call)
+                   and getattr(n.value.func, "id", None) == "retention_value_protected"
+                   for t in n.targets if isinstance(t, ast.Name)}
+    reads = {n.id for n in ast.walk(branch.test) if isinstance(n, ast.Name)} if isinstance(
+        branch, ast.If) else set()
+    assert isinstance(branch, ast.If) and (
+        "retention_value_protected" in ast.unparse(branch.test) or reads & guard_names), (
         "the economic guard is not the else-branch of the rule: an offer can be made around it")
     assert any(isinstance(n, ast.Attribute) and n.attr == FLAG for n in ast.walk(tree)), (
         "the runner never reads the policy field, so no arm can switch the rule off")

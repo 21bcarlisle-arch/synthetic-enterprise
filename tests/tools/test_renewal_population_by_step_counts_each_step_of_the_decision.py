@@ -17,6 +17,10 @@ THE DEFECTS THIS NAMES. Two came up while the tool was being built against the s
   `test_a_considered_household_with_no_offer_is_split_by_the_runs_own_reason` fails if either
   source is dropped, or if a missing reason is filled in rather than counted ``unrecorded``.
 
+- The 10-10 gate is checked before the value test, so a gated household's value-test verdict is
+  read from `retention_gate_value_test_log`. `test_a_gated_refusal_is_split_by_the_value_tests_verdict`
+  fails if the two verdicts collapse into one, or if a run without the log reads as zero.
+
 THE PARTITION IS ASSERTED REACHABLE before anything asserts what it holds. A counter that sends
 everything to one route passes every per-route test.
 """
@@ -179,3 +183,20 @@ def test_a_considered_household_with_no_offer_is_split_by_the_runs_own_reason():
     assert split == {2017: {"the_discount_cannot_win_the_fix": 1}, 2018: {"uneconomical": 1},
                      2019: {"unrecorded": 1}}
     assert years["2017"]["not_offered"]["fixed_term"] == {}
+
+
+def test_a_gated_refusal_is_split_by_the_value_tests_verdict():
+    run = _book()
+    run["retention_gate_value_test_log"] = [
+        {"customer_id": "S2017", "event_date": "2017-08-01", "value_test_would_offer": True},
+        {"customer_id": "S2018", "event_date": "2018-08-01", "value_test_would_offer": False},
+        {"customer_id": "S2019", "event_date": "2019-08-01", "value_test_would_offer": False}]
+    years = population_by_step(run)["years"]
+    split = {y: years[str(y)]["gated_value_test"] for y in (2017, 2018, 2019, 2020)}
+    assert split[2017]["would_offer"] and split[2018]["would_refuse"]
+    assert split == {2017: {"would_offer": 1, "would_refuse": 0},
+                     2018: {"would_offer": 0, "would_refuse": 1},
+                     2019: {"would_offer": 0, "would_refuse": 1},
+                     2020: {"would_offer": 0, "would_refuse": 0}}
+    # A run that predates the log cannot say, and says so.
+    assert population_by_step(_book())["years"]["2017"]["gated_value_test"] is None
