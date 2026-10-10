@@ -205,8 +205,14 @@ def test_segment_stored_in_ledger(tmp_path):
     assert result["customers"]["C1"]["segment"] == "resi"
 
 
-def test_resi_dd_path_unchanged(tmp_path):
-    """Regression: residential DD path still uses income_stress model."""
+def test_resi_dd_path_unchanged(tmp_path, monkeypatch):
+    """Regression: residential DD path still uses income_stress model.
+
+    The HIGH tier is set to certainty: at the sourced 10.15% the twelve seeded draws all succeed,
+    and the subject here is the path a failure takes, not how often one happens.
+    """
+    from simulation import arrears_engine
+    monkeypatch.setitem(arrears_engine._DD_FAILURE_PROB, "HIGH", 1.0)
     beh = {"C7": {"income_stress_trajectory": [{"year": 2022, "stress": "high"}]}}
     bills = [_resi_bill("C7", "2022-%02d-28" % m, 200.0) for m in range(1, 13)]
     rj = tmp_path / "run.json"

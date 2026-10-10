@@ -166,3 +166,30 @@ as blocking the shared tree's `--ff-only` the moment 8f02e2f39 reached origin. T
 to its pre-landing bytes so the shared tree can advance; until that lane lands or drops its edit,
 the file's run-reading legs skip in gz-only checkouts. The conversion is the same two lines as
 the others.
+
+## Follow-through, 2026-10-10 19:10 BST (delivery seat, `the-first-gz-publish-retired-the-plain-run`)
+
+- **The fast-forward.** origin/main is 34aa44858. The shared tree fast-forwarded to 126cac71e at
+  18:53, and at draw time nothing blocked the next step: `paths_blocking_fast_forward()` returned
+  `[]`. The shared copy of `test_a_published_rate_says_which_rate_it_is.py` now equals 126cac71e's
+  converted bytes. The 2026-09-24 in-place edit that the withdrawal was protecting is no longer on
+  disk, so 34aa44858 now reverts a conversion that nothing contests. Re-landing it is refused by
+  `surgical_land`'s stale-copy gate as `predates_landing`, because it puts back names 34aa44858
+  removed. That refusal is right by its own rule. The re-landing needs a fresh edit
+  (`resolve_run_output` / `load_run_output`) rather than 126cac71e's bytes. Not done here.
+- **The first gz publish has NOT happened yet.** The weekly window opens Mon 2026-10-12 04:00 BST.
+  The retirement path in `_land_publish_commit` (content None + drops) is still unrun on the real
+  publish. **Check on Monday:** HEAD should carry `docs/reports/run_output_latest.json.gz` and no
+  plain `run_output_latest.json`, and the plain file should still be on disk in the shared tree.
+- **`tools/generate_billing_ledger` converted**, now that its HEAD red is cleared. The red was not
+  about the ledger. The three tests (`test_dd_high_some_failures`, `test_churned_arrears_written_off`,
+  `test_resi_dd_path_unchanged`) pinned the old unsourced 35% HIGH DD tier, which
+  `SEAT_FINDING_THE_DD_FAILURE_CORRECTION_MOVED_MEASURED_FACTS_2026-10-09.md` replaced with
+  10.15%. They are re-keyed to the property. The rate leg now asserts that the HIGH tier is
+  whatever `_DD_FAILURE_PROB["HIGH"]` says, within 4 sd over 4,000 draws; a HIGH->LOW collapse
+  mutant reads 34 against an expected 406 and goes red. The two cascade fixtures set HIGH to
+  certainty, because their subject is the path a failure takes, not how often one happens. A new
+  gz-only leg reds when the reader is reverted to a plain `json.loads`.
+- **Still deferred: the crisis validator and the churned-account file.** Both are still red at HEAD
+  (crisis XPASS(strict); `test_every_year_the_published_run_reports_appears_in_its_lifecycle_record`),
+  for the hollow-2022 reason. The conversion waits for the 2022 fix, as already written above.

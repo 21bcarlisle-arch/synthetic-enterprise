@@ -6,6 +6,7 @@ from pathlib import Path
 
 import pytest
 
+from simulation import arrears_engine
 from tools.generate_billing_ledger import (
     generate, _stress_for_year, _payment_method, _payment_outcome, _arrears_stages,
     _bill_generation_delay_days,
@@ -82,9 +83,18 @@ def test_dd_low_mostly_success():
 
 
 def test_dd_high_some_failures():
+    """HIGH stress fails at the world's HIGH tier, whatever that tier is today.
+
+    Was `> 20 of 100`, pinned to the old unsourced 35%; the tier is now derived from the
+    register's first-presentation return rate (10.15%), and the pin went red on a correct world.
+    """
+    from simulation.arrears_engine import _DD_FAILURE_PROB
+    n, p = 4000, _DD_FAILURE_PROB["HIGH"]
     rng = random.Random(42)
-    results = [_payment_outcome("direct_debit", "HIGH", rng)[0] for _ in range(100)]
-    assert results.count("failed") > 20
+    failed = [_payment_outcome("direct_debit", "HIGH", rng)[0] for _ in range(n)].count("failed")
+    sd = (n * p * (1 - p)) ** 0.5
+    assert failed > 0 and abs(failed - n * p) < 4 * sd, (failed, n * p)
+    assert _DD_FAILURE_PROB["HIGH"] > _DD_FAILURE_PROB["LOW"]
 
 
 def test_an_unwritten_off_case_ends_open_not_resolved():
@@ -111,6 +121,23 @@ def test_empty_bills(tmp_path):
     rj.write_text(json.dumps(_run([])))
     result = generate(rj, tmp_path / "l.json")
     assert result["meta"]["invoice_count"] == 0
+
+
+def test_the_ledger_reads_a_run_committed_only_as_its_gz(tmp_path):
+    """Every checkout but the shared tree carries only `run_output_latest.json.gz` once the publish
+    retires the plain copy; a plain-path reader would see no run at all there."""
+    import gzip
+    bills = [_bill("C1", "2022-03-31", 1000.0)]
+    plain = tmp_path / "plain" / "run.json"
+    plain.parent.mkdir()
+    plain.write_text(json.dumps(_run(bills)))
+    gz_only = tmp_path / "gz" / "run.json"
+    gz_only.parent.mkdir()
+    (gz_only.parent / "run.json.gz").write_bytes(gzip.compress(plain.read_bytes()))
+    a = generate(plain, tmp_path / "a.json")
+    b = generate(gz_only, tmp_path / "b.json")
+    assert a["meta"]["invoice_count"] == b["meta"]["invoice_count"] == 1
+    assert a["customers"] == b["customers"]
 
 
 def test_ic_bacs_success(tmp_path):
@@ -389,7 +416,7 @@ def test_ic_balance_zero(tmp_path):
     assert cust["balance_gbp"] == 0.0
 
 
-def test_churned_arrears_written_off(tmp_path):
+def test_churned_arrears_written_off(tmp_path, monkeypatch):
     """A churned customer's arrears case must reach WRITTEN_OFF.
 
     Rewritten 2026-08-08 (W2_16). Two independent fail-open defects, both
@@ -406,6 +433,10 @@ def test_churned_arrears_written_off(tmp_path):
        SOLD). What this test actually means to pin is that the case REACHES
        write-off, so it looks for the stage rather than for the terminal slot.
     """
+    # 3. The fixture opened a case only by luck of the draw: at the sourced HIGH tier (10.15%) the
+    #    twelve bills' seeded draws now all succeed. The subject is the cascade, not the rate, so
+    #    the tier is set to certainty here rather than bills added until a seed happens to fail.
+    monkeypatch.setitem(arrears_engine._DD_FAILURE_PROB, "HIGH", 1.0)
     bills = [_bill("C7", f"2022-{month:02d}-28", 250.0, "resi") for month in range(1, 13)]
     beh = {"C7": {"income_stress_trajectory": [{"year": 2022, "stress": "high"}]}}
     rj = tmp_path / "run.json"

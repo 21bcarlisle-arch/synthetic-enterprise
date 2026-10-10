@@ -59,6 +59,7 @@ from saas.money import (
     display_rate_p_per_kwh,
     foot_components_to_total,
 )
+from tools.run_output_store import load_run_output
 
 PROJECT = Path(__file__).parent.parent
 RUN_JSON = PROJECT / "docs" / "reports" / "run_output_latest.json"
@@ -146,7 +147,7 @@ def generate(run_json_path=None, out_path=None):
         run_json_path = RUN_JSON
     if out_path is None:
         out_path = OUT_PATH
-    data = json.loads(Path(run_json_path).read_text())
+    data = load_run_output(run_json_path)
 
     bills = data.get("bills", [])
     behavioral = data.get("per_customer_behavioral", {})
