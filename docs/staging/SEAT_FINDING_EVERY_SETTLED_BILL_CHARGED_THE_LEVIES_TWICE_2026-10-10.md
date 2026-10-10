@@ -58,3 +58,26 @@ still carries the double count.
 ## The drawn atom's state, held here until the map can take it
 
 `DD_seasonal_cashflow_physics` stays at L2. Two of its three residuals were already built: DD4b (a material DD rise at review reaching the world's churn) under PB4 (`simulation/experienced_bill_shock.py`, population A, since 2026-10-01), and opening-DD sizing from an estimate (`D_opening_dd_seasonal_sizing`, 2026-09-02). Its `depends_on: [W2_12_change_of_tenancy_debt_physics]` names a pruned row. What blocks L3 is this finding: re-read the DD book after the published run regenerates, then the expert hour. The note was kept out of the map store in this commit because staging the map selects `test_a_promoted_feed_still_reproduces_at_the_commit_it_records`, which is red at origin itself (`capabilities_door.json` records cf8706023 with the map read off a working tree).
+
+## The re-run (in flight, 2026-10-10)
+
+**sim-runner cannot produce this run.** It runs in the shared tree, whose HEAD (6171b788e) is 71
+commits behind origin and whose `saas/bill_generator.py` is the pre-fix copy. Its next cycle would
+bill the levies twice again and stamp a commit without the fix -- on top of deferring every cycle
+since 11:07 for resident long jobs. So the run is queued from an origin worktree at abb925ec7
+(descends from 1d3c28930) through `background.launch_long_job` as unit
+`longjob-published-run-single-levy`, writing `/var/tmp/single_levy/run_output_abb925ec7.json`; it
+waits for room behind the save suite and the fam1 members.
+
+The grader is `/var/tmp/single_levy/grade.py`. Run over the published cf8706023 run it reproduces
+this finding's own figures, so the before and after readings come from one instrument:
+
+| prediction | cf8706023 (levies twice) |
+|---|---|
+| 1. first-review DD variance, 2017-2021 pooled | median **+32.8%**, share > 15% **90%** (n=621) |
+| 2. portfolio DD balance / peak held credit | **-£81,185** / **£9,987** (2024-11) |
+| 3. resi bill totals, electricity / gas | **£2,073,168** / **£811,185**; settlement revenue £2,211,737 |
+| 4. bad debt (written off / provisioned / ledger) | £8,285 / £94,084 / £58,344; receivables peak £73,931 (2022) |
+
+Debt-to-income is not in `run_output_latest.json`; that leg of prediction 4 will read "cannot yet
+tell" from this artefact unless the arrears harness is re-run against it.
