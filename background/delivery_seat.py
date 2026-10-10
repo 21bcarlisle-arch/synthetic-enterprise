@@ -130,6 +130,8 @@ WHAT TO PRODUCE: overwrite `docs/direction/DIRECTION.yaml` with exactly this sha
         what: <one line: the work>
         why: <one line: why THIS, now, against the thesis or against what is drifting>
         lane: <OPTIONAL: the maturity-map lane this work belongs to, e.g. W2_customer_generator>
+        side: <supplier | world | other>
+        unblocks: <REQUIRED when side is world: the supplier result this world work is blocking>
     not_now:          # REQUIRED and non-empty. What you considered and did NOT choose.
       - what: <the thing you rejected>
         why: <why it loses to what you chose -- the trade-off you actually made>
@@ -179,6 +181,13 @@ RULES ON THE CONTENT, and the record is refused if it breaks them:
     everything else, and never put "waiting on the director" in focus. Raising a new one outside
     an orientation: `python3 -m background.director_concerns --raise --kind <k> --what ...
     --proposal ...`. He is paged once, for a row whose id is new.
+  * SUPPLIER FIRST (director, 2026-10-10): *"My priority order is mostly supplier work."* The
+    world was getting 15-17 commits a day and the supplier 1-3. Every focus carries AT LEAST TWO
+    `side: supplier` items from the priority order: billing accuracy (unbilled, back-billing, home
+    moves), forward customer value tested on held-back history, per-customer decisions, levers in
+    merit order. World fidelity work continues ONLY where it blocks a supplier result, and a
+    `side: world` item names that result in `unblocks`. The brief's `commit_split` shows the
+    stretch's balance; read it in `thesis_read`.
   * GIVE EVERY FOCUS ITEM A `lane` unless its `id` is already an atom. Under a product-only tick
     mode the executor admits only items that can show they are product work, and an item whose
     prose names no atom, lane or path cannot -- on 2026-09-27 that was one of the director's own
@@ -375,6 +384,31 @@ def stretch_since(now: datetime | None = None) -> datetime:
     return stamp
 
 
+#: What the commit split counts (director, 2026-10-10: "Report the world/supplier/other split of
+#: commits in each stretch log, so we can both see the balance"). PRODUCT CODE only, by path: the
+#: supplier is `company/` and `saas/`, the world is `sim/` and `simulation/`. A commit touching
+#: both is `both`, not counted twice; anything else -- tests, docs, background machinery, tools,
+#: and merges, whose content is already counted in the commits they bring in -- is `other`.
+SUPPLIER_CODE = ("company/", "saas/")
+WORLD_CODE = ("sim/", "simulation/")
+COMMIT_SIDES = ("supplier", "world", "both", "other")
+
+
+def commit_side(files) -> str:
+    """Which side of the wall one commit's paths changed (see `SUPPLIER_CODE`)."""
+    supplier = any(f.startswith(SUPPLIER_CODE) for f in files)
+    world = any(f.startswith(WORLD_CODE) for f in files)
+    return "both" if supplier and world else "supplier" if supplier else "world" if world else "other"
+
+
+def commit_split(commits) -> dict[str, int]:
+    """The stretch's commits counted by `commit_side`, every side present even at zero."""
+    split = dict.fromkeys(COMMIT_SIDES, 0)
+    for c in commits:
+        split[c.get("side") or "other"] += 1
+    return split
+
+
 def commits_since(since: datetime) -> list[dict]:
     """Commits in the stretch, split substantive vs mechanical by REUSING the daily self-note's
     own classifier. A second classifier here would be a parallel measurement layer, and the two
@@ -408,6 +442,8 @@ def commits_since(since: datetime) -> list[dict]:
         commits.append(current)
     for c in commits:
         c["substantive"] = any(_is_substantive_file(f) for f in c["files"])
+        # Before the truncation below: a commit's side is a fact about ALL its paths.
+        c["side"] = commit_side(c["files"])
         c["files"] = c["files"][:12]
     return commits
 
@@ -1642,6 +1678,7 @@ def build_brief(now: datetime | None = None) -> dict:
         "commits": commits,
         "commit_count": len(commits),
         "substantive_count": sum(1 for c in commits if c["substantive"]),
+        "commit_split": commit_split(commits),
         "shape": commit_shape(since, now),
         # WHAT IS ON THE BOX, and AHEAD of the tree readings below for the same truncation reason
         # `divergence` is first. Every other key here describes the TREE; a job that is still
@@ -2441,6 +2478,33 @@ def regenerate_startup_anchors(worktree: Path) -> bytes | None:
 SEAT_WRITTEN = ("docs/status/SEAT_STRETCH_LOG.md",)
 
 
+def _split_line(row: dict) -> str:
+    """The stretch's commit balance as one line, or why it is absent (a row from before 2026-10-10)."""
+    split = row.get("commit_split")
+    if not isinstance(split, dict):
+        return "Commit split: not recorded for this stretch."
+    return ("Commit split (product code by path): "
+            + ", ".join(f"{split.get(k, 0)} {k}" for k in COMMIT_SIDES) + ".")
+
+
+def write_time_problems(before_raw, after_raw) -> list[str]:
+    """Every reason the record the session just wrote is refused, in the order the page prints them.
+
+    ONE FUNCTION so the write's refusals can be driven by a test: inline in `orient` they could only
+    be checked by grepping its source, which a comment naming the check satisfies. The read
+    (`direction.read_direction`) applies `validate` alone; everything after it binds the write only.
+    """
+    if after_raw is None:
+        return ["the session wrote no direction record"]
+    return (direction_mod.validate(after_raw)
+            + director_concerns.carry_problems(before_raw, after_raw)
+            # THE TRIAGE REFUSALS (`direction.wrong_triage_problems`): a retired item listed again,
+            # or an untriaged one carried past WRONG_CARRY_TRIAGE_DAYS.
+            + direction_mod.wrong_triage_problems(after_raw)
+            # The supplier-first balance (director, 2026-10-10).
+            + direction_mod.focus_balance_problems(after_raw))
+
+
 def stretch_entry_from_row(row: dict) -> tuple[str, str]:
     """The stretch-log entry for one orientation, rendered from the decision row it already recorded.
 
@@ -2460,7 +2524,8 @@ def stretch_entry_from_row(row: dict) -> tuple[str, str]:
     wrong = row.get("wrong") or []
     lines = [f"*Written by the orientation seat from its own record ({row.get('at', '?')}; "
              f"{row.get('commits', '?')} commits, {row.get('substantive', '?')} substantive, since "
-             f"{row.get('since', '?')}).*", "", "## What the stretch meant", "", thesis or "(no reading)", ""]
+             f"{row.get('since', '?')}).*", "", _split_line(row), "", "## What the stretch meant", "",
+             thesis or "(no reading)", ""]
     lines += ["## What went wrong", ""]
     lines += [f"- {'corrected' if w.get('corrected') else 'NOT corrected'}: {w.get('what')}" for w in wrong] \
         or ["- nothing recorded"]
@@ -2485,7 +2550,7 @@ def skipped_entry_from_row(row: dict) -> tuple[str, str]:
         subject = "orientation skipped: the stretch was judged not material, reason below"
     body = (f"*Written by the orientation seat from its own record ({row.get('at', '?')}; "
             f"{row.get('commits', '?')} commits, {row.get('substantive', '?')} substantive, since "
-            f"{row.get('since', '?')}).*\n\nThe seat did not orient, so there is no reading of "
+            f"{row.get('since', '?')}).*\n\n{_split_line(row)}\n\nThe seat did not orient, so there is no reading of "
             f"this stretch against the thesis. Its recorded reason: {why}")
     return subject, body
 
@@ -2639,6 +2704,7 @@ def orient(now: datetime | None = None, dry_run: bool = False) -> dict:
         "since": brief["since"],
         "commits": brief["commit_count"],
         "substantive": brief["substantive_count"],
+        "commit_split": brief.get("commit_split"),
         "previous_focus_drawn": brief["previous_focus_drawn"],
         "map_levels": map_levels(),
     }
@@ -2688,21 +2754,17 @@ def orient(now: datetime | None = None, dry_run: bool = False) -> dict:
         after_raw = yaml.safe_load(direction_mod.DIRECTION_PATH.read_text(encoding="utf-8"))
     except Exception:
         after_raw = None
-    problems = direction_mod.validate(after_raw) if after_raw is not None else [
-        "the session wrote no direction record"]
-    dropped = director_concerns.carry_problems(before_raw, after_raw) if after_raw is not None \
-        else []
-    # THE TRIAGE REFUSALS bind the WRITE and never the read (`direction.wrong_triage_problems`):
-    # a retired item listed again, or an untriaged one carried past WRONG_CARRY_TRIAGE_DAYS.
-    untriaged = direction_mod.wrong_triage_problems(after_raw) if after_raw is not None else []
-    problems = problems + dropped + untriaged
+    problems = write_time_problems(before_raw, after_raw)
 
     if problems:
-        if (dropped or untriaged) and before_bytes is not None:
+        # REFUSED FOR SOMETHING THE READER CANNOT SEE: a dropped concern, a triage refusal or an
+        # unbalanced focus -- everything `write_time_problems` adds beyond `validate`.
+        write_only = after_raw is not None and set(problems) - set(direction_mod.validate(after_raw))
+        if write_only and before_bytes is not None:
             # RESTORED, because the file IS the list: leave the session's overwrite on disk and
             # the next orientation reads a record with the concern already gone, carries nothing,
-            # and passes. This file is inside the seat's own write scope. A triage refusal is
-            # restored for the reader's sake: `read_direction` does not run the triage check, so
+            # and passes. This file is inside the seat's own write scope. A triage or balance
+            # refusal is restored for the reader's sake: `read_direction` runs neither check, so
             # a refused record left on disk would steer the draw as if it had been accepted.
             direction_mod.DIRECTION_PATH.write_bytes(before_bytes)
             row["restored_previous_record"] = True

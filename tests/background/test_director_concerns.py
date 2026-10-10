@@ -22,7 +22,8 @@ GOOD_PROPOSAL = "investigate: whether the canon meant a fixed split"
 
 def _record(**over) -> dict:
     base = {"version": 1, "oriented_at": datetime.now(timezone.utc).isoformat(),
-            "thesis_read": "reading", "focus": [{"id": "atom-a", "why": "because"}],
+            "thesis_read": "reading", "focus": [{"id": "atom-a", "why": "because", "side": "supplier"},
+                      {"id": "atom-b", "why": "because", "side": "supplier"}],
             "not_now": [{"what": "x", "why": "y"}], "wrong": [], "for_the_director": []}
     base.update(over)
     return base

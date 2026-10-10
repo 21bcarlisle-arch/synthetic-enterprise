@@ -209,7 +209,8 @@ def test_A_RECORD_DROPPING_ORIGINS_ROW_IS_REFUSED_through_orient(repos, monkeypa
     monkeypatch.setattr(seat, "_notify", lambda msg, **k: None)
 
     base = {"version": 1, "oriented_at": datetime.now(timezone.utc).isoformat(),
-            "thesis_read": "reading", "focus": [{"id": "atom-a", "why": "because"}],
+            "thesis_read": "reading", "focus": [{"id": "atom-a", "why": "because", "side": "supplier"},
+                      {"id": "atom-b", "why": "because", "side": "supplier"}],
             "not_now": [{"what": "x", "why": "y"}], "wrong": []}
     written.update(base, for_the_director=[])
     row = seat.orient()

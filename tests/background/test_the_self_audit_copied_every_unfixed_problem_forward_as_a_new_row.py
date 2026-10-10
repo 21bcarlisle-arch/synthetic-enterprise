@@ -212,5 +212,7 @@ def test_the_seat_RUNS_the_triage_check_at_write_time_and_not_at_read_time():
     import inspect
 
     from background import delivery_seat as seat
-    assert "wrong_triage_problems" in inspect.getsource(seat.orient)
+    # The write's refusals live in `write_time_problems` since 2026-10-10, and `orient` calling it
+    # is held by an AST check in test_the_focus_carries_two_supplier_items_and_..._commit_split.py.
+    assert "wrong_triage_problems" in inspect.getsource(seat.write_time_problems)
     assert "wrong_triage_problems" not in inspect.getsource(d.validate)

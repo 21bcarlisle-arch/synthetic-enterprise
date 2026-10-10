@@ -402,3 +402,7 @@ run serially, at origin 820a2f31b, in one unit, `longjob-arrears-dice-seeds-1-2`
 (11.2 GB, about 2h45m), so it waits on that pid. It then grades the default capture
 (`arrears_lfl_400_nr.json`) pooled with both seeds into `/var/tmp/arrears_dice_pooled.txt`. The
 reading goes here, under P5, unchanged.
+
+**Re-drawn 2026-10-10 05:37, premise spent, nothing launched.** The unit is alive and still
+waiting on the census pid (2h06 in). A second launch would run the same seeds twice. Writing the
+grade here is handed on as `the-arrears-pooled-grade-under-p5`, not to be drawn before 10:30.
