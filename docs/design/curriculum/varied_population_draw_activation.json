@@ -1,0 +1,33 @@
+{
+  "_meta": {
+    "artefact": "varied_population_draw_activation",
+    "version": 1,
+    "status": "ON -- 2026-10-10, director's ruling",
+    "authority": "Director, 2026-10-10, verbatim: \"Yes to the seed-family runner: 40-founder books settling every win, four side by side on distinct seeds under the box budget, with debt read as the share of homes behind (or a trimmed mean) and customer value at home level. The 400-founder book stays the production shape and the periodic end-to-end check. ... This also answers my open request on independent books (EP17, seeds 61101-61112): authorised under this runner. Close that concern with this ruling.\"",
+    "r13_discipline": "A non-default book seed draws a different cast of households: EP17_varied_population_draw, R13 curriculum, the director's alone. This record lists exactly the seeds he authorised; a seed not listed is still refused by tools/book_seed_authorisation.py. The production book stays the default seed (simulation.live_population._DEFAULT_BASE_SEED).",
+    "conditions": "Every result is reported for founders and campaign wins separately, or shown not to depend on the founder/win mix: a 40-founder book is mostly selected new shoppers, not a mature back book (director, 2026-10-10, condition 1).",
+    "consumed_by": "tools/book_seed_authorisation.book_seed_authorisation_refusal, asked by tools/seed_family.py and tools/run_value_cycle_ab.py before any non-default seed runs"
+  },
+  "activated": {
+    "value": true,
+    "basis": "The director's 2026-10-10 ruling above.",
+    "effect": "Seeds listed in base_seeds may run as independent books under tools/seed_family.py. REVERT: set false or delete this file, and every run is the default book again."
+  },
+  "base_seeds": {
+    "value": [
+      61101,
+      61102,
+      61103,
+      61104,
+      61105,
+      61106,
+      61107,
+      61108,
+      61109,
+      61110,
+      61111,
+      61112
+    ],
+    "basis": "The twelve seeds of the open request whether-per-customer-pricing-beats-a-flat (raised 2026-10-04), authorised under the seed-family runner."
+  }
+}
