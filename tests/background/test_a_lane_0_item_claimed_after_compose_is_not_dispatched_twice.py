@@ -164,3 +164,24 @@ def test_the_executor_stands_down_when_its_item_is_claimed_while_it_builds(turn,
     assert "claimed by another writer" in detail
     row = json.loads(lane.read_text())[ITEM]
     assert row["note"] == "another writer", "the executor overwrote the holder's row"
+
+
+def test_the_brief_does_not_report_the_turns_own_claim_as_another_writers(turn, stores):
+    """2026-10-10: `run_once` claimed into both stores and THEN composed the brief, so
+    `rival_claims` read its own row in `seat_work_in_hand`'s store as "ALREADY HELD ... another
+    writer has it in hand" on every turn. The same row put there by a genuine other writer is
+    still reported, which is the arm that shows the note can fire at all.
+
+    MUTATION (must fire): compose `build_prompt(item)` after the claim loop again.
+    """
+    _during_build, sessions = turn
+    lane, hand = stores
+
+    seat_executor.run_once()
+    assert sessions, "the turn must reach the session"
+    assert "ALREADY HELD" not in sessions[-1][-1]
+
+    _rival(hand)
+    item = {"id": ITEM, "what": "w", "why": "y"}
+    assert "ALREADY HELD" in delivery_lane.rival_note(item), (
+        "a row under this id in the other store must still read as a holder")
