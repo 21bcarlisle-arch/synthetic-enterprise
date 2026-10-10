@@ -137,6 +137,15 @@ These are gaps, stated rather than filled. Each is a place where the code must c
    by-meter-type split is still a gap, and the practitioner question is put there.
 5. **No published fixed-versus-variable direct-debit split** (carried forward from
    `what_bill_shock_is.md`, still the load-bearing gap there).
+6. **No published per-account credit balance before 2022, by fuel or payment method.** The only
+   published figure found is Ofgem's all-household average (£244 falling to £200, year to June
+   2025). It is a 2025 dual-fuel figure. It gives the order of magnitude, but a single-fuel
+   2016-2018 level-DD book cannot be graded against it. (Found 2026-10-10 while splitting the
+   single-levy run's DD book, `tools/dd_book_legs.py`.)
+7. **No published rule on what an annual review sizes from.** Nothing found says whether a GB
+   supplier's review resets to last year's spend, to last year's consumption at current rates, or
+   adds recovery of the balance. SLC 27.15's "best and most current information" points to current
+   rates; the practice is unpublished. Practitioner question for the director.
 
 ---
 

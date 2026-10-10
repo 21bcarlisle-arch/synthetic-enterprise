@@ -361,3 +361,20 @@ for_the_director:
   status: open
   resolution: ''
   evidence: docs/staging/SEAT_FINDING_C34_DEBT_ARMS_ARE_TIED_BY_CONSTRUCTION_BECAUSE_NO_DEBT_ACTION_REACHES_A_WORLD_THAT_ANSWERS_2026-10-10.md
+- id: practitioner-question-at-an-annual-direct-debit
+  raised: '2026-10-10'
+  kind: strategy
+  what: 'Practitioner question: at an annual direct-debit review, does a GB supplier set the new amount
+    from last year''s spend, from last year''s consumption at the rates in force now, and does it add
+    recovery of the balance? Nothing published says. On the single-levy run, the company''s review resets
+    to last year''s spend at last year''s prices and never recovers the balance. That review lag is -£17.8k
+    of the DD book''s -£20.6k net debit at 2018-06, and it is why the book never shows the summer credit
+    a real one holds.'
+  proposal: I recommend sizing the review from last year's consumption at the rates in force (SLC 27.15's
+    'most current information'). That is about -£11k of the debit. I will build it under DD_seasonal_cashflow_physics
+    L3 unless you say real suppliers do not. Balance recovery stays your existing toggle until you say
+    what the practice is.
+  status: open
+  resolution: ''
+  evidence: tools/dd_book_legs.py; docs/staging/SEAT_FINDING_EVERY_SETTLED_BILL_CHARGED_THE_LEVIES_TWICE_2026-10-10.md
+    (Prediction 2's residual, split and graded)
