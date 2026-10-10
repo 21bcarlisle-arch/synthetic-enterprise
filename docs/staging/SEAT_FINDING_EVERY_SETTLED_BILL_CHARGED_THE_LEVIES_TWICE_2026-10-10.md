@@ -178,3 +178,121 @@ The run is graded, not published. Two things hold it back.
 
 On Monday, sim-runner will publish its own run. That run carries the fix only if the shared
 checkout has advanced past 1d3c28930 by then (at 14:30 it was 87 commits behind origin).
+
+## Prediction 2's residual: what is measured, and what each cause predicts (written 2026-10-10, before measuring)
+
+*Direction item `the-dd-books-pre-crisis-net-debit-is-traced-on-single-levy-bills`, on the
+single-levy run `/var/tmp/single_levy/run_output_abb925ec7.json` (stamp 7379375f6).*
+
+**The quantity.** "The DD book" here is `dd_balance_book`: for each level-direct-debit supply
+(electricity and gas are separate accounts, `C1` and `C1g`), the running balance of standing DD
+collected minus the amount billed, from a zero opening, read at the account's last bill on or
+before the month. A positive balance is credit the supplier holds. The portfolio figure for a month
+is the sum of those balances over accounts whose first bill is on or before that month and whose
+last bill is on or after it. At **2018-06** that sum is **-£20.6k** (held credit, the positive
+part only, is £2-6k). **This is not cash collected.** The book assumes every collection succeeds
+and never reads `dd_collection_book`, whose mandates are the variable-DD book sized from each bill.
+
+**Knowledge check.** `what_a_supplier_holds_to_size_a_direct_debit.md` establishes the source of
+the opening amount (SLC 27.15: metered history, registry EAC/AQ, declaration, TDCV) and that /12
+is the director's practitioner statement, not a published rule. It also records as gaps the absence
+of any published buffer or seasonal weighting, and of any published rule on whether a review
+recovers the balance (the review-seeks-balance toggle, director 2026-10-05). `what_bill_shock_is.md`
+gives the published average credit balance: **£200 per household** (Ofgem, year to June 2025,
+down from £244) and £178 at end-June 2025. **There is no published per-account summer credit for
+2016-2018, and none split by fuel or by payment method.** The £200 is a 2025, all-household,
+dual-fuel figure. It shows the order of magnitude and is not a target for a 2018 single-fuel
+account. Filed as a gap below, and no number is picked for it.
+
+**The identity.** For each account, with the 12-month windows `w` counted from its first bill,
+standing amounts `S_w`, collections `N_w`, billed spend `A_w` and true charge `T_w` (the
+supplier's own `_true_charges`), the balance at 2018-06 splits exactly into:
+
+| leg | definition | prediction (portfolio, 2018-06) |
+|---|---|---|
+| **a. opening sizing** | window 0: `S_0 * N_0 - T_0` over the months in window 0 (the full window's level, `S_0 - T_0^full/12` per month, where window 0 is still open at 2018-06) | small, because first reviews land at -1.8% median: **within ±£5k**, credit-signed if anything |
+| **b. review lag** | windows `w >= 1`: `(T_{w-1}/12) * N_w - T_w`, i.e. setting this year's debit from last year's spend | **the largest debit leg, -£8k to -£15k.** Unit prices rose through 2016-2018 and the cap did not arrive until 2019, so a debit reset to last year's spend falls behind every year. The book never recovers a balance at review (the toggle is off), so each year's shortfall stays |
+| **c. rounding** | `(S_w - A_{w-1}/12) * N_w` for `w >= 1` (the review rounds up to the pound) | **credit, £1k to £3k** |
+| **d. seasonal phase** | the open window at 2018-06: `(T_w^full/M) * N_k - T_k`, i.e. where the account sits in its own seasonal year, at the level that year actually averages | **credit, +£3k to +£15k.** This is where the summer credit should be. It is pure timing |
+| **e. estimate versus actual** | `sum(T - bill)` over periods up to 2018-06, plus the part of each review that read billed and not true spend | **within ±£2k** |
+| **f. collection failures** | failed collections in the balance book | **exactly £0, by construction.** The book collects the standing amount every month whatever `dd_collection_book` says |
+
+Legs a+b+c+d+e+f sum to the published -£20.6k to the penny, or the instrument is wrong.
+
+**Winter starters** is a cut through the legs, not a leg of its own. An account whose year opened in
+October-March has, by June, paid level instalments through a winter it consumed in full. Its leg d
+should be negative and its leg a, where window 0 is still open, too. **Prediction: accounts whose
+current window opened October-March carry a negative leg d. Those opening April-September carry a
+positive one. The book's net leg d sign follows the start-month mix.**
+
+**Which leg would be a company defect.** A wrong leg a would be the opening estimate. A large leg b
+with no recovery would be the review policy: a review that never seeks the balance and resets to
+last year's spend. Leg d is the physics. Legs e and f are instruments.
+
+## Prediction 2's residual, split and graded (2026-10-10)
+
+`python3 -m tools.dd_book_legs /var/tmp/single_levy/run_output_abb925ec7.json --month 2018-06`
+(control: `tests/tools/test_dd_book_legs.py`). The tool rebuilds the book with
+`build_dd_balance_book` and refuses to print if any account's legs miss its own balance. It
+reproduces the published 2018-06 figure to the penny: **-£20,613.59**.
+
+**Correction to the premise.** The book at 2018-06 holds **288** accounts, not ~600: 253
+electricity and 35 gas, all resi. The 691 is the run's total. Per account that is **-£72**, with
+held credit of £3,125, about **£11 each**.
+
+| leg | prediction | measured | grade |
+|---|---|---:|---|
+| a. opening sizing | within ±£5k, credit-signed | **-£5,057** (window-0 accounts -£576; **-£4,480 is year-0 shortfall carried by accounts already past their first review**) | **NOT MET**: debit-signed, just outside the band |
+| b. review lag | largest debit leg, -£8k to -£15k | **-£17,840** (electricity -£16,932, gas -£908) | rank and sign **MET**, size **NOT MET** (larger) |
+| c. rounding | credit, £1k to £3k | **+£1,503** | **MET** |
+| d. seasonal phase | credit, +£3k to +£15k | **-£1,320** | **NOT MET** |
+| e. estimate versus actual | within ±£2k | **+£2,100** | **NOT MET**, by £100 |
+| f. collection failure | exactly £0 | **£0** | **MET**, structurally |
+| winter-start cut | Oct-Mar openings carry a negative d, Apr-Sep a positive one | Oct-Mar (168 accounts) **-£1,890**; Apr-Sep (120) **+£570** | **MET** |
+
+**What the review lag is.** For the 242 accounts past their first review, average monthly true
+spend from the previous window to the current one:
+
+| fuel | £/month | unit price (all-in) | kWh/month |
+|---|---|---|---|
+| electricity (223) | £40.22 to £46.12, **+14.7%** | 8.90p to 9.69p, **+8.8%** | 452 to 476, **+5.3%** |
+| gas (19) | £30.70 to £36.30, **+18.2%** | 3.70p to 4.38p, **+18.3%** | 830 to 829, **0.0%** |
+
+The low all-in electricity price comes from standing-charge dilution on heavy users. The book's
+median 2016-2018 resi bill is 14.7-17.8p/kWh. On a log split about 61% of the electricity lag is
+price and 39% is volume. That puts roughly **-£11k of the -£17.8k on price** and **-£6.5k on
+electricity volume**.
+
+**Why there is no summer credit.** Leg d is where a level DD's summer credit lives. At 2018-06
+the book has 35 gas accounts, and their leg d is +£212. Weakly seasonal electricity accounts are
+88% of the book. A level electricity DD carries almost no seasonal credit, so the phase is small
+whatever the policy. It is not missing because something is broken. Two debit legs bury it: the
+review lag (-£17.8k) and the opening shortfall carried past review (-£4.5k). Both are kept for
+ever, because the review never recovers a balance.
+
+**The company defect, named for `DD_seasonal_cashflow_physics` L3.** It is the **review rule**:
+`reviewed_monthly_amount(last year's billed spend)`, a reset to what the account cost **at last
+year's prices**, with no balance recovery. Two parts:
+
+1. **Price at review: a company defect.** At its review the supplier knows the unit rate it is
+   charging now. Resetting to last year's spend ignores that, and SLC 27.15 asks for "the best
+   and most current information available". This is about -£11k of the 2018-06 debit. **Proposed
+   for L3:** size the review from last year's consumption at the rates in force, with the price
+   leg re-measured by this tool before and after. Not built here, because it moves every DD
+   figure and gets its own prediction.
+2. **No balance recovery: a policy whose published practice is unknown.** The opening shortfall
+   (-£4.5k carried past review) and every year's lag stay on the book. Whether a GB review seeks
+   the balance is the director's toggle (2026-10-05), and its other arm is already published
+   (`dd_back_billing_if_review_seeks_balance`). It is not a defect until the practice is known.
+
+**Odd reading, flagged and not built on.** Electricity volume on the same accounts rises **+5.3%**
+year on year from 2016-17 to 2017-18, while GB domestic electricity use was falling. The early-2018
+cold spell could account for part of it. Whether the world's electricity demand drifts up is a
+question for the world lane. Here it is only recorded as about -£6.5k of leg b.
+
+**Gap filed** (in `what_a_supplier_holds_to_size_a_direct_debit.md` §4): there is no published
+per-account credit balance for 2016-2018 by fuel or payment method, and no published rule on
+whether a review uses current rates or recovers the balance. No target is set for leg d.
+
+Prediction 2's residual is now **explained, not met**: -£20.6k = -£17.8k review lag - £5.1k
+opening shortfall + £1.5k rounding - £1.3k phase + £2.1k estimates.
