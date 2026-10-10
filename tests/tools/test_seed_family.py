@@ -118,8 +118,10 @@ def _run(lines=None):
     }
 
 
-def _pay(account, due, result, days_late=None, settled_on=None):
-    return SimpleNamespace(account_id=account, due_date=date.fromisoformat(due), result=result,
+def _pay(leg, due, result, days_late=None, settled_on=None):
+    # The triad's own shape: `customer_id` is the leg, `account_id` is `ACC-<leg>`.
+    return SimpleNamespace(customer_id=leg, account_id=f"ACC-{leg}",
+                           due_date=date.fromisoformat(due), result=result,
                            days_late=days_late, settled_on=settled_on)
 
 
@@ -132,12 +134,18 @@ def test_a_home_folds_its_legs_and_ages_an_unpaid_bill_to_91_days():
         [_pay("C1g", "2019-01-14", "success", days_late=30),
          _pay("PROS-2017-0001", "2017-04-14", "failed"),
          _pay("C1", "2019-12-31", "success", days_late=0)],
-        founders={"C1"})
+        founders={"C1"},
+        customers=[{"customer_id": "C1", "segment": "resi", "acquisition_date": "2016-01-01"},
+                   {"customer_id": "C1g", "segment": "resi", "acquisition_date": "2015-12-01"},
+                   {"customer_id": "NEVER-SETTLED", "segment": "resi"}])
     by = {r["home_id"]: r for r in rows}
+    # One row per home: the legs fold, a payment keyed by the triad's account folds onto its
+    # home, and a supply point that never settled is not a home.
     assert set(by) == {"C1", "PROS-2017-0001"}
     c1, pros = by["C1"], by["PROS-2017-0001"]
     assert c1["net_value_gbp"] == 15.0 and c1["route"] == "founder" and c1["still_supplied"]
     assert c1["first_settled"] == "2016-01-01" and c1["tenure_days"] == 1460
+    assert c1["segment"] == "resi" and c1["acquired"] == "2015-12-01"
     assert c1["max_days_behind"] == 30 and not c1["behind_91"]
     assert c1["provisioned_bad_debt_gbp"] == 3.0 and c1["bad_debt_gbp"] == 0.0
     assert pros["route"] == "campaign_win" and not pros["still_supplied"]

@@ -183,6 +183,11 @@ ABANDONED_PRESERVED_PREFIX = "refs/preserved/origin-reconcile-abandoned/"
 #: the abandoned prefix because a reader recovering from there is recovering work nobody landed.
 SUPERSEDED_PRESERVED_PREFIX = "refs/preserved/origin-reconcile-superseded-live/"
 
+#: Where a CARRIED live edit's own bytes go before HEAD's are written over it for the fast-forward
+#: (`carried_live_verdicts`). The edit comes back onto origin's copy straight after; this ref is
+#: for a process that dies in between, and for a reader who doubts the merge.
+CARRIED_PRESERVED_PREFIX = "refs/preserved/origin-reconcile-carried-live/"
+
 #: How long a blocking working copy must sit untouched before it is presumed ABANDONED and aged
 #: out. A POLICY, NOT A MEASUREMENT, and the measurement it is set against is this: over the ten
 #: days to 2026-10-04 the shared tree was out of step with origin for 157 of 231 hours, and 50.5
@@ -592,6 +597,13 @@ def identical_tracked_twins(project: Path | None = None,
                 return None
             if absent:
                 twins.append(path)
+            continue
+        if here is None and theirs is not None and not (
+                (project / path).exists() or (project / path).is_symlink()):
+            # A LANE'S DELETION of a path origin keeps: answered, and not a twin. Read as "git
+            # would not answer", it voided the whole comparison on 2026-10-10 -- two unlanded
+            # archive moves held ten byte-identical twins and two superseded copies behind a
+            # refusal that named none of them, and no later class was ever asked.
             continue
         if here is None or theirs is None:
             return None
@@ -1460,6 +1472,144 @@ def _text_lines(data: bytes | None) -> Counter | None:
         return None
 
 
+def _merge_onto_origin(project: Path, path: str) -> tuple[int, bytes] | None:
+    """`(conflicts, bytes)`: this copy's change from HEAD, three-way merged onto origin's copy.
+
+    `git merge-file`, so "conflict" means exactly what git means by it. `None` when a side is
+    absent or unreadable, or git refused (binary content, an error exit)."""
+    try:
+        local = (project / path).read_bytes()
+        base = subprocess.run(["git", "show", "HEAD:{}".format(path)], cwd=str(project),
+                              capture_output=True, check=False, timeout=60)
+    except (OSError, subprocess.SubprocessError):
+        return None
+    theirs = _origin_text(project, path)
+    if base.returncode != 0 or theirs is None:
+        return None
+    try:
+        with tempfile.TemporaryDirectory() as tmp:
+            sides = [Path(tmp) / name for name in ("ours", "base", "theirs")]
+            for side, data in zip(sides, (local, base.stdout, theirs)):
+                side.write_bytes(data)
+            res = subprocess.run(["git", "merge-file", "-p", *map(str, sides)],
+                                 capture_output=True, check=False, timeout=60)
+    except (OSError, subprocess.SubprocessError):
+        return None
+    if res.returncode < 0 or res.returncode > 127:
+        return None
+    return res.returncode, res.stdout
+
+
+def _carry_plan(project: Path, path: str) -> tuple[dict | None, str]:
+    """How a held tracked edit crosses the fast-forward, or `(None, why it cannot)`.
+
+    A plan is `{"deleted", "staged", "local", "merged"}`. A deletion is carried as a deletion; an
+    edit as origin's copy with the lane's HEAD->disk change merged in. A conflict is never carried:
+    git cannot say what the lane meant there, and neither can this."""
+    in_head, on_origin = _blob_in_head(project, path), _blob_on_origin(project, path)
+    if in_head is None or on_origin is None:
+        return None, "HEAD and origin must both hold the path for its edit to be carried across"
+    try:
+        staged_res = _git(project, "rev-parse", "-q", "--verify", ":{}".format(path))
+    except (OSError, subprocess.SubprocessError):
+        return None, "the index could not be read at this path"
+    staged = (staged_res.stdout or "").strip() if staged_res.returncode == 0 else None
+    full = project / path
+    if not (full.exists() or full.is_symlink()):
+        if staged not in (None, in_head):
+            return None, "deleted here, but the index holds a third version"
+        return ({"deleted": True, "staged": staged is None, "local": None, "merged": None},
+                "deleted here and kept by origin: the deletion is carried across the advance")
+    here = _blob_here(project, path)
+    if here is None or staged not in (in_head, here):
+        return None, "the index holds a third version (or the disk could not be hashed)"
+    merged = _merge_onto_origin(project, path)
+    if merged is None:
+        return None, "this copy could not be three-way merged onto origin's (binary, or unread)"
+    if merged[0]:
+        return None, "{} conflict(s) merging this copy's change onto origin's, so it is live work " \
+                     "and holds the advance untouched".format(merged[0])
+    return ({"deleted": False, "staged": staged == here != in_head,
+             "local": full.read_bytes(), "merged": merged[1]},
+            "its change from HEAD merges cleanly onto origin's copy and is carried across")
+
+
+def carried_live_verdicts(project: Path | None = None,
+                          paths: list[str] | None = None) -> dict[str, tuple[bool, str]] | None:
+    """For each tracked edit still held, `(it_can_be_carried, why)`. `None` if `paths` is None.
+
+    THE CLASS THAT LETS A LIVE EDIT AND AN ADVANCE COEXIST (2026-10-10). Every class before this
+    one ends in the copy leaving the disk, so a lane's genuine edit could only ever HOLD -- and under
+    the all-or-nothing rule one held edit kept every landed twin beside it behind origin too. A
+    carried edit is preserved on a ref, put back to HEAD, fast-forwarded, and written back as
+    origin's copy plus the lane's own change: the lane loses nothing, and nothing the lane did not
+    write reaches its file. Conflicts still hold. Under pytest this module's own repository is
+    never touched, as for the superseded class."""
+    project = project or PROJECT_DIR
+    if paths is None:
+        return None
+    try:
+        on_this_repo = project.resolve() == PROJECT_DIR.resolve()
+    except OSError:
+        on_this_repo = True
+    if os.environ.get("PYTEST_CURRENT_TEST") is not None and on_this_repo:
+        return {p: (False, "under pytest the module's own repository is never carried")
+                for p in paths}
+    out = {}
+    for path in sorted(set(paths)):
+        plan, why = _carry_plan(project, path)
+        out[path] = (plan is not None, why)
+    return out
+
+
+def preserve_carried_live_copies(project: Path, paths: list[str],
+                                 slug: str) -> tuple[dict, str | None, str]:
+    """Re-plan inside the lock, put the edited bytes on a ref, read them back.
+
+    `(plans, commit, "")` or `({}, None, why not)`. The plans are re-derived from the disk as it is
+    now, so they ARE the snapshot the write-back restores."""
+    plans = {}
+    for path in sorted(paths):
+        plan, why = _carry_plan(project, path)
+        if plan is None:
+            return {}, None, "{} -- no longer carriable when re-asked inside the lock ({})".format(
+                path, why)
+        plans[path] = plan
+    edited = sorted(p for p, plan in plans.items() if not plan["deleted"])
+    if not edited:
+        return plans, None, ""
+    ref = CARRIED_PRESERVED_PREFIX + slug
+    commit, failure = _commit_disk_bytes_to_ref(
+        project, edited, ref,
+        "preserved LIVE shared-tree edits before origin-reconcile carried them across the "
+        "fast-forward: {}".format(", ".join(edited)))
+    if failure:
+        return {}, None, failure
+    failure = _read_back(project, ref, edited)
+    return ({}, None, failure) if failure else (plans, commit, "")
+
+
+def _apply_carry(project: Path, path: str, plan: dict, content: bytes | None) -> str:
+    """Put a carried path into its lane's state over whatever HEAD now holds. `""` or why not."""
+    full = project / path
+    try:
+        if plan["deleted"]:
+            full.unlink(missing_ok=True)
+            if plan["staged"]:
+                res = _git(project, "rm", "--cached", "-q", "--ignore-unmatch", "--", path)
+                if res.returncode != 0:
+                    return "{}: the staged deletion was not re-staged".format(path)
+            return ""
+        full.write_bytes(content)
+        if plan["staged"]:
+            res = _git(project, "add", "--", path)
+            if res.returncode != 0:
+                return "{}: written but not re-staged".format(path)
+    except (OSError, subprocess.SubprocessError) as exc:
+        return "{}: {}".format(path, exc)
+    return ""
+
+
 def superseded_live_verdicts(project: Path | None = None,
                              paths: list[str] | None = None) -> dict[str, tuple[bool, str]] | None:
     """For each tracked edit still held, `(origin_supersedes_it, why)`. `None` if `paths` is None.
@@ -1502,11 +1652,21 @@ def _superseded_verdict(project: Path, path: str) -> tuple[bool, str]:
                                   capture_output=True, check=False, timeout=60)
     except (OSError, subprocess.SubprocessError):
         return False, "the disk or HEAD could not be read at this path, so nothing is cleared"
-    local, theirs = _text_lines(local_bytes), _text_lines(_origin_text(project, path))
+    origin_bytes = _origin_text(project, path)
+    local, theirs = _text_lines(local_bytes), _text_lines(origin_bytes)
     head = _text_lines(head_res.stdout) if head_res.returncode == 0 else None
     if local is None or theirs is None or head is None:
         return False, "HEAD, origin and the disk must each hold UTF-8 text at this path to count " \
                       "its lines, and one does not"
+    # THE THREE-WAY LEG, asked first. The line count below reads a HEAD line origin rewrote as
+    # this copy's "novel" line though the lane never touched it: on 2026-10-10 the delivery seat's
+    # own module was held as "19 lines not on origin" while its HEAD->disk delta, applied to
+    # origin's copy, changed not one byte. That is the question supersession asks.
+    merged = _merge_onto_origin(project, path)
+    if merged is not None and merged[0] == 0 and merged[1] == origin_bytes \
+            and _index_holds_a_third_version(project, path) is False:
+        return True, "this copy's change from HEAD, applied to origin's copy, changes nothing, " \
+                     "so origin SUPERSEDES it: preserved on a ref, then restored"
     novel = sum(n - theirs[line] for line, n in local.items() if n > theirs[line])
     if novel:
         return False, "{} line(s) here are not on origin, so it is live work and holds the " \
@@ -1753,7 +1913,8 @@ def advance_shared_tree(project: Path | None = None, *, blockers_fn=None, twins_
                         earlier_fn=None, earlier_preserver=None, abandoned_fn=None,
                         abandoned_preserver=None, filer=None, now=None, append_fn=None,
                         append_preserver=None, stranded_fn=None, superseded_fn=None,
-                        superseded_preserver=None) -> dict:
+                        superseded_preserver=None, carried_fn=None,
+                        carried_preserver=None) -> dict:
     """Fast-forward the shared tree onto `origin/main`, clearing every blocker it can prove lossless.
 
     Returns `{"advanced": bool, "cleared": list[str], "reason": str}`. `advanced` is claimed only
@@ -1785,6 +1946,12 @@ def advance_shared_tree(project: Path | None = None, *, blockers_fn=None, twins_
     THE NINTH, added 2026-10-09, is asked BEFORE the seventh and is not keyed to age: a tracked
     edit with no line origin lacks, whose every deletion origin also made, is an earlier draft of
     origin's own revision -- see `superseded_live_verdicts`. Preserved on a ref, then restored.
+
+    THE TENTH, added 2026-10-10, is asked after the ninth and is the only class that keeps the
+    copy: a tracked edit (or deletion) whose change from HEAD merges onto origin's copy without a
+    conflict is CARRIED -- preserved, restored, fast-forwarded, written back as origin's copy plus
+    the lane's change. So a live edit no longer holds the twins beside it behind origin; only a
+    CONFLICTING one does, and it is left untouched. See `carried_live_verdicts`.
 
     THE THREE THAT PROVE AND THE ONE THAT MANUFACTURES. Classes one to three each rest on an
     argument that the bytes are already safe somewhere. The fourth cannot: untracked means on no
@@ -1986,6 +2153,11 @@ def advance_shared_tree(project: Path | None = None, *, blockers_fn=None, twins_
     superseded = sorted(p for p, (ok, _) in superseded_verdicts.items() if ok)
     resolvable = sorted(set(resolvable) | set(superseded))
     held = sorted(set(held) - set(superseded))
+    carried_verdicts = (carried_fn or carried_live_verdicts)(
+        project, sorted(p for p in held if p in {
+            b["path"] for b in blocking if b.get("kind") == FF_MODIFIED})) or {}
+    carried_set = {p for p, (ok, _) in carried_verdicts.items() if ok}
+    held = sorted(set(held) - carried_set)
     # THE SEVENTH CLASS, ASKED ONLY OF WHAT ALL SIX LEFT, and it moves `held` only if it takes ALL
     # of it: one live copy keeps the whole advance refused and nothing aged out is touched either.
     abandoned_verdicts: dict[str, tuple[bool, str]] = {}
@@ -2019,8 +2191,8 @@ def advance_shared_tree(project: Path | None = None, *, blockers_fn=None, twins_
         named = []
         for path in held[:12]:
             why = stranded.get(path) or (
-                verdicts.get(path) or gen_verdicts.get(path) or append_verdicts.get(path)
-                or orphan_verdicts.get(path)
+                carried_verdicts.get(path) or verdicts.get(path) or gen_verdicts.get(path)
+                or append_verdicts.get(path) or orphan_verdicts.get(path)
                 or (False, "not byte-identical to what origin brings"))[1]
             age = abandoned_verdicts.get(path)
             lines = superseded_verdicts.get(path)
@@ -2029,10 +2201,11 @@ def advance_shared_tree(project: Path | None = None, *, blockers_fn=None, twins_
                 " [age: {}]".format(" ".join(str(age[1]).split())[:140]) if age else "",
                 " [lines: {}]".format(" ".join(str(lines[1]).split())[:140]) if lines else ""))
         return {"advanced": False, "cleared": [],
-                "reason": "{} of {} blocking path(s) could NOT be proven lossless, so clearing the "
-                          "{} that could would touch files and still not advance. Nothing was "
-                          "written. Held by: {}".format(
-                              len(held), len(blocked_paths), len(resolvable), "; ".join(named))}
+                "reason": "{} of {} blocking path(s) could NOT be proven lossless or carried, so "
+                          "clearing the {} that could would touch files and still not advance. "
+                          "Nothing was written. Held by: {}".format(
+                              len(held), len(blocked_paths), len(resolvable) + len(carried_set),
+                              "; ".join(named))}
 
     try:
         from background.tree_lock import TreeLockTimeout, tree_lock
@@ -2061,6 +2234,10 @@ def advance_shared_tree(project: Path | None = None, *, blockers_fn=None, twins_
     _preserve_superseded = superseded_preserver or (
         lambda p: preserve_superseded_live_copies(project, p, slug))
     superseded_commit = ""
+    _preserve_carried = carried_preserver or (
+        lambda p: preserve_carried_live_copies(project, p, slug))
+    carry_plans: dict = {}
+    carried_commit = carry_clause = ""
     # An earlier-revision copy is cleared by the twin act for its kind: restored if git tracks the
     # path (an index entry an `unlink` would strand), removed if it does not.
     modified_paths = {b["path"] for b in blocking if b.get("kind") == FF_MODIFIED}
@@ -2149,6 +2326,15 @@ def advance_shared_tree(project: Path | None = None, *, blockers_fn=None, twins_
                             "reason": "the {} live cop(y/ies) origin supersedes could not be "
                                       "PRESERVED, so nothing was removed and the advance was not "
                                       "attempted: {}".format(len(superseded_set), failure)}
+            # THE CARRIED EDITS ARE RE-PLANNED FROM THE DISK AS IT IS NOW and put on a ref; the
+            # plans are the snapshot every write-back below restores from.
+            if carried_set:
+                carry_plans, carried_commit, failure = _preserve_carried(sorted(carried_set))
+                if failure:
+                    return {"advanced": False, "cleared": [],
+                            "reason": "the {} live edit(s) to carry across could not be "
+                                      "PRESERVED, so nothing was touched and the advance was not "
+                                      "attempted: {}".format(len(carried_set), failure)}
             # THE APPEND LOGS ARE READ AND PUT ON A REF before they are restored. The bytes held
             # in memory are what is written back; the ref is for a process that dies in between.
             if append_set:
@@ -2201,8 +2387,43 @@ def advance_shared_tree(project: Path | None = None, *, blockers_fn=None, twins_
                                           path, failure, len(cleared),
                                           _write_back(False))}
                 cleared.append(path)
+            restored = []
+            for path in sorted(carry_plans):
+                failure = _restore(path)
+                if failure:
+                    undone = " ".join(f for f in (
+                        _apply_carry(project, p, carry_plans[p], carry_plans[p]["local"])
+                        for p in restored) if f)
+                    return {"advanced": False, "cleared": cleared,
+                            "reason": "restoring the carried edit {} to HEAD failed ({}), so the "
+                                      "advance was not attempted; the {} carried before it were "
+                                      "put back{}{}".format(
+                                          path, failure, len(restored),
+                                          " EXCEPT: " + undone if undone else "",
+                                          _write_back(False))}
+                restored.append(path)
             second = _ff()
             append_failure = _write_back(second.returncode == 0)
+            carry_failures = []
+            for path, plan in sorted(carry_plans.items()):
+                if second.returncode == 0 and not plan["deleted"] \
+                        and _blob_here(project, path) != _blob_on_origin(project, path):
+                    # Someone wrote the file between the restore and now: their bytes win, and
+                    # the lane's are on the ref.
+                    carry_failures.append("{}: changed during the advance, left as found".format(
+                        path))
+                    continue
+                failure = _apply_carry(project, path, plan, plan["merged"]
+                                       if second.returncode == 0 else plan["local"])
+                if failure:
+                    carry_failures.append(failure)
+            if carry_plans:
+                carry_clause = ". {} LIVE edit(s) {} ({}); their own bytes are at {}{} ({}){}".format(
+                    len(carry_plans),
+                    "carried across onto origin's copy" if second.returncode == 0
+                    else "put back as they were", "; ".join(sorted(carry_plans)[:12]),
+                    CARRIED_PRESERVED_PREFIX, slug, (carried_commit or "-")[:9],
+                    ". NOT WRITTEN BACK: " + "; ".join(carry_failures) if carry_failures else "")
     except TreeLockTimeout as exc:
         return {"advanced": False, "cleared": [],
                 "reason": "another writer held the tree lock ({}), so nothing was removed and "
@@ -2243,7 +2464,7 @@ def advance_shared_tree(project: Path | None = None, *, blockers_fn=None, twins_
                               "; ".join(cleared[:12])) + abandoned_clause
                           + (". {} append log(s) ({}) were rewritten as origin's lines plus the "
                              "local tail".format(len(append_set), "; ".join(sorted(append_set)))
-                             if append_set else "") + append_failure}
+                             if append_set else "") + append_failure + carry_clause}
     # THE TWINS ARE NOT RESTORED HERE, AND THAT IS DELIBERATE. Their content is on origin by the
     # hash equality that selected them, so `git checkout origin/main -- <path>` returns any of them
     # exactly; re-writing them from a second guess at what they held would be this module inventing
@@ -2276,7 +2497,7 @@ def advance_shared_tree(project: Path | None = None, *, blockers_fn=None, twins_
                                ORPHAN_PRESERVED_PREFIX, slug,
                                (orphan_commit or "-")[:9])) if orphan_set else "",
                           (second.stderr or second.stdout or "").strip()[:200]) + abandoned_clause
-            + append_failure}
+            + append_failure + carry_clause}
 
 
 def commits_ahead(project: Path | None = None) -> int | None:
