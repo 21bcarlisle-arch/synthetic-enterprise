@@ -10,9 +10,11 @@ from types import SimpleNamespace
 
 from tools.grade_world_debt_against_ofgem import (
     OFGEM_ARREARS_PLUS_DEBT_2019,
+    account_clustered,
     grade,
     quarter_reading,
     spells_from_records,
+    wilson,
 )
 
 Q4 = date(2019, 12, 31)
@@ -81,6 +83,41 @@ def test_met_high_and_low_are_each_reachable_and_seeds_pool():
     assert (pooled["behind"], pooled["accounts"]) == (808, 8000)
     assert pooled["verdict"] == "NOT MET, HIGH"
     assert grade([_book(1000, 51)])["wilson"][0] <= OFGEM_ARREARS_PLUS_DEBT_2019
+
+
+def test_the_verdict_reads_the_account_clustered_interval_not_wilson_on_account_quarters():
+    """60 of 1000 accounts behind in all four quarters: Wilson on 240/4000 excludes 5.1%, but only
+    1000 accounts were drawn. Reds if the verdict reads Wilson, or if the bootstrap resamples
+    account-quarters (its interval then matches Wilson's width and excludes 5.1% too)."""
+    g = grade([_book(1000, 60)])
+    assert g["wilson_verdict"] == "NOT MET, HIGH"
+    assert g["verdict"] == "MET"
+    (lo, hi), (wlo, whi) = g["clustered"], g["wilson"]
+    assert lo <= OFGEM_ARREARS_PLUS_DEBT_2019 < wlo
+    assert (hi - lo) > 1.6 * (whi - wlo)
+    assert (g["distinct_accounts"], g["distinct_behind"]) == (1000, 60)
+
+
+def test_a_household_in_several_dice_captures_is_one_cluster_not_several():
+    """Dice seeds share a cast. Two identical captures add no households, so the pooled interval is
+    no narrower than one capture's. Reds if each capture is resampled on its own (about 1/sqrt(2)
+    the width, and 6.4% then reads NOT MET, HIGH)."""
+    one = grade([_book(1000, 64)])
+    two = grade([_book(1000, 64), _book(1000, 64)])
+    w1 = one["clustered"][1] - one["clustered"][0]
+    w2 = two["clustered"][1] - two["clustered"][0]
+    assert w2 > 0.9 * w1
+    assert two["verdict"] == "MET"
+
+
+def test_a_spread_across_accounts_is_what_the_clustered_interval_measures():
+    """When every account is behind in exactly one quarter, account and account-quarter carry the
+    same information, and the two intervals agree to within the bootstrap's own noise. Reds if the
+    clustered interval is Wilson widened by a fixed factor rather than measured from the accounts."""
+    per_account = {f"A{i}": (1 if i < 240 else 0, 4) for i in range(1000)}
+    lo, hi = account_clustered(per_account)
+    wlo, whi = wilson(240, 4000)
+    assert abs((hi - lo) - (whi - wlo)) < 0.5 * (whi - wlo)
 
 
 def test_the_prepayment_share_of_the_accounts_behind_is_reported():

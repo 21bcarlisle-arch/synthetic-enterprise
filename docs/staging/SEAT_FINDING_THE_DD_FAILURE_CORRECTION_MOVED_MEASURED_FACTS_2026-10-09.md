@@ -465,3 +465,53 @@ the 50, 99 and 62 account-quarters are 22, 35 and 29 distinct accounts, about 2.
 **Owed, and handed on:** the grader should publish and grade on an account-clustered interval, not
 account-quarter Wilson. Then a verdict cannot read MET or NOT MET on a bound its sample has not
 earned. Handed on as `the-arrears-grader-grades-on-an-account-clustered-interval`.
+
+### The grader now grades on an account-clustered interval (2026-10-10, seat)
+
+`tools/grade_world_debt_against_ofgem.py` now gives its verdict on an account-clustered 95%
+interval. It prints Wilson on account-quarters beside it, with the assumption Wilson makes. The
+bootstrap resamples account ids with 4,000 draws and a fixed RNG seed, so a capture always grades
+the same way. **Each drawn account carries its quarters from every pooled capture with it.**
+
+**One deviation from the item as written, with the reason.** The item asked for "resample accounts
+within each capture, pooled". The three captures share one cast: 339 account ids appear in all
+three. So one household seen under three dice seeds is one draw from the population, not three.
+Resampling within each capture treats it as three draws, which makes the interval narrower than
+the sample supports. For the three-seed pool that version gives **4.7-7.5%**, and the joint
+version gives **4.6-7.8%**. For a single capture the two versions are the same thing. The verdict
+is MET on either version.
+
+The verdicts below come from `grade <capture...>`. The numerator and denominator are unchanged.
+
+| 2019, electricity | account-quarters | accounts ever behind | clustered | Wilson | verdict (clustered) | Wilson's verdict |
+|---|---|---|---|---|---|---|
+| default dice | 50/1153 = 4.3% | 22 of 339 | 2.4-6.7% | 3.3-5.7% | MET, 0.85x | MET |
+| dice seed 1 | 99/1153 = 8.6% | 35 of 339 | 5.9-11.6% | 7.1-10.3% | NOT MET, HIGH, 1.68x | NOT MET, HIGH |
+| dice seed 2 | 62/1159 = 5.3% | 29 of 341 | 3.3-7.6% | 4.2-6.8% | MET, 1.05x | MET |
+| **pooled** | **211/3465 = 6.1%** | **68 of 341** | **4.6-7.8%** | 5.3-6.9% | **MET, 1.19x** | NOT MET, HIGH |
+
+Gas, pooled: 40/610 = 6.6%, clustered 2.4-12.0%, MET. Twelve accounts ever behind is too few for
+a percentile bootstrap to be more than indicative. Seed 2's gas flips from NOT MET, HIGH on Wilson
+(5.6-13.4%) to MET (2.3-16.6%). Gas is not the graded fuel.
+
+**What MET means here: the interval does not exclude Ofgem's 5.1%, and nothing more.** The pooled
+interval runs from 0.9x to 1.5x Ofgem. The reading is the one already stated above: about 1.2x,
+and whether the world holds too much debt is **not established either way**. The 10-09 one-seed
+MET still reads MET, but on 2.4-6.7%, which is also 0.5x to 1.3x. Neither verdict can carry a hold
+condition stated as "the world does not over-hold debt". It can carry "the world is not shown to
+over-hold debt".
+
+**68 of 341 accounts are behind on at least one seed, but 22, 35 and 29 on any single seed.** So
+the dice choose *which* households fall behind, and not only how long they stay behind. A fourth
+seed would add households, not only quarters. That is why the pooled interval is narrower than any
+single seed's, even though the cast is fixed.
+
+**Controls**, in `tests/tools/test_grade_world_debt_against_ofgem.py`, each mutation-run:
+- A verdict that reads Wilson: 2 red.
+- A bootstrap over account-quarters: 2 red.
+- Clusters keyed per capture, the item's literal version: 1 red,
+  `test_a_household_in_several_dice_captures_is_one_cluster_not_several`.
+- A "clustered" interval that is Wilson widened by a fixed factor: 1 red.
+
+**Not done here.** The DIRECTION record's `wrong` row quotes 0.85x MET and the later NOT MET in
+prose. That is the seat's own record, and the next orientation re-reads it from this section.
