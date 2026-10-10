@@ -54,7 +54,8 @@ on (id, date) alone and a shared founder id would otherwise roll the same dice i
 Usage:
   python3 -m tools.seed_family launch --seeds 20260724 --tag a --out /var/tmp/sf [--parallel 4]
   python3 -m tools.seed_family member --seed S --founders 40 --out DIR      (what a unit runs)
-  python3 -m tools.seed_family readout DIR [DIR ...] [--where route=campaign_win]
+  python3 -m tools.seed_family readout DIR [DIR ...] [--where route=campaign_win] [--mix M.json]
+  python3 -m tools.seed_family mix REPORT.json --source "..." --out M.json [--wins-scale 2.75]
   python3 -m tools.seed_family same A.csv B.csv
 """
 from __future__ import annotations
@@ -442,31 +443,29 @@ def _question(name: str, n: int, needed: int | None, estimate: str) -> dict:
             "verdict": verdict}
 
 
-def readout(rows: list[dict]) -> dict:
-    """Pool homes across seeds. Every home is weighted once; homes in one book are not fully
-    independent (they share a world), so the per-seed means are printed for the between-book
-    check, and a single book says so."""
+#: Every home's origin, in the order the read-out prints them (`_route`).
+ORIGINS = ("founder", "campaign_win", "change_of_tenancy", "home_move_successor", "arrival")
+
+
+def _behind(r: dict) -> bool:
+    return str(r["behind_91"]) in ("True", "true", "1")
+
+
+def _estimate(rows: list[dict]) -> dict:
+    """The three quantities on one population, each with its interval and the homes per arm a
+    question about it needs. Under two homes, nothing is estimated and the bound is said."""
     from tools.grade_world_debt_against_ofgem import wilson
     n = len(rows)
-    seeds = sorted({int(r["seed"]) for r in rows})
     if n < 2:
-        return {"homes": n, "seeds": seeds, "verdict": "cannot yet tell: fewer than two homes"}
+        return {"homes": n, "verdict": f"cannot yet tell: {n} home(s), no interval exists"}
     value = [float(r["net_value_gbp"]) for r in rows]
     debt = [float(r["bad_debt_gbp"]) for r in rows]
-    behind = sum(1 for r in rows if str(r["behind_91"]) in ("True", "true", "1"))
+    behind = sum(1 for r in rows if _behind(r))
     share = behind / n
     lo, hi = wilson(behind, n)
     v_mean, v_sd = statistics.fmean(value), statistics.stdev(value)
     d_trim, d_se = _trimmed(debt)
     d_wins_sd = d_se * (1 - 2 * TRIM) * math.sqrt(n) if d_se is not None else None
-    per_seed = {}
-    for s in seeds:
-        sub = [r for r in rows if int(r["seed"]) == s]
-        per_seed[s] = {"homes": len(sub),
-                       "net_value_mean_gbp": round(statistics.fmean(
-                           float(r["net_value_gbp"]) for r in sub), 2),
-                       "behind_91_share": round(sum(1 for r in sub if str(r["behind_91"])
-                                                    in ("True", "true", "1")) / len(sub), 4)}
     questions = [
         _question("net value per home, 10% effect", n,
                   n_per_arm_mean(v_sd, CLV_EFFECT * abs(v_mean)),
@@ -479,16 +478,88 @@ def readout(rows: list[dict]) -> dict:
                   f"raw mean {statistics.fmean(debt):.2f}"
                   + ("; the trim removed every non-zero home" if d_trim == 0 and any(debt) else "")),
     ]
-    return {"homes": n, "seeds": seeds,
-            "one_book": len(seeds) == 1,
+    return {"homes": n,
             "net_value_mean_gbp": round(v_mean, 2),
             "net_value_se_gbp": round(v_sd / math.sqrt(n), 2),
             "behind_91": {"homes": behind, "share": round(share, 4),
-                          "wilson_95": [round(lo, 4), round(hi, 4)]},
+                          "wilson_95": [round(lo, 4), round(hi, 4)],
+                          "se": round(math.sqrt(share * (1 - share) / n), 4)},
             "bad_debt_trimmed_mean_gbp": round(d_trim, 2),
             "bad_debt_trimmed_se_gbp": None if d_se is None else round(d_se, 2),
             "bad_debt_raw_mean_gbp": round(statistics.fmean(debt), 2),
-            "per_seed": per_seed, "questions": questions}
+            "questions": questions}
+
+
+_MIXED = (("net value per home", "net_value_mean_gbp", "net_value_se_gbp"),
+          ("share ever >91 days behind", ("behind_91", "share"), ("behind_91", "se")),
+          ("trimmed-mean bad debt per home", "bad_debt_trimmed_mean_gbp",
+           "bad_debt_trimmed_se_gbp"))
+
+
+def _get(d: dict, key):
+    return d[key[0]][key[1]] if isinstance(key, tuple) else d.get(key)
+
+
+def mix_check(pooled: dict, by_origin: dict, mix: dict) -> dict:
+    """Would the pooled answer change if the book's origins were in `mix`'s shares? Each group's
+    estimate is re-weighted to the mix. It CHANGES when the re-weighted figure falls outside the
+    pooled 95% interval; it cannot be told when a group the mix weights has no estimate here."""
+    shares = {g: float(s) for g, s in mix["shares"].items() if float(s) > 0}
+    missing = sorted(g for g in shares if "questions" not in by_origin.get(g, {}))
+    out = {"mix_source": mix.get("source"), "shares": shares, "quantities": []}
+    for name, key, se_key in _MIXED:
+        if missing:
+            out["quantities"].append({"quantity": name, "verdict": (
+                "cannot yet tell: the mix weights group(s) {} this family cannot estimate"
+                .format(missing))})
+            continue
+        total = sum(shares.values())
+        est = sum(s * _get(by_origin[g], key) for g, s in shares.items()) / total
+        se = math.sqrt(sum((s / total * (_get(by_origin[g], se_key) or 0.0)) ** 2
+                           for g, s in shares.items()))
+        p, p_se = _get(pooled, key), _get(pooled, se_key) or 0.0
+        lo, hi = p - 1.96 * p_se, p + 1.96 * p_se
+        out["quantities"].append({
+            "quantity": name, "pooled": p, "pooled_95": [round(lo, 4), round(hi, 4)],
+            "at_mix": round(est, 4), "at_mix_se": round(se, 4),
+            "verdict": ("CHANGES: the mix moves it outside the pooled interval"
+                        if not lo <= est <= hi else "does not change it")})
+    return out
+
+
+def mix_of_report(report: dict, founders: set[str], wins_scale: float = 1.0) -> dict:
+    """The origin shares of a run's SETTLED homes (`per_customer_lifetime`). `wins_scale` is
+    1/sample rate when that book settled a weighted sample of its wins: it turns the settled
+    wins back into the wins the company made."""
+    from saas.customer_reaction import _billing_account_id as home_of
+    won = {e.get("billing_account") for e in report.get("acquisition_funnel_log") or []
+           if e.get("won")}
+    homes = {home_of(c) for c in report.get("per_customer_lifetime") or {}}
+    founder_homes = {home_of(c) for c in founders}
+    counts: dict[str, float] = {}
+    for h in homes:
+        g = _route(h, founder_homes, won)
+        counts[g] = counts.get(g, 0.0) + (wins_scale if g == "campaign_win" else 1.0)
+    total = sum(counts.values())
+    return {"shares": {g: round(c / total, 4) for g, c in counts.items()},
+            "homes": len(homes), "wins_scale": wins_scale}
+
+
+def readout(rows: list[dict], mixes: list[dict] | None = None) -> dict:
+    """Pool homes across seeds, then the same read-out per origin (director's condition 1, 2026-10-10:
+    a 40-founder book is mostly selected new shoppers, not a mature back book), and whether each
+    pooled answer survives re-weighting to another book's origin mix. Homes in one book share a
+    world, so the per-seed figures are printed for the between-book check."""
+    seeds = sorted({int(r["seed"]) for r in rows})
+    pooled = _estimate(rows)
+    by_origin = {g: _estimate([r for r in rows if r["route"] == g]) for g in ORIGINS}
+    per_seed = {s: {k: v for k, v in _estimate([r for r in rows if int(r["seed"]) == s]).items()
+                    if k in ("homes", "net_value_mean_gbp", "behind_91")} for s in seeds}
+    out = {"seeds": seeds, "one_book": len(seeds) == 1, **pooled,
+           "by_origin": by_origin, "per_seed": per_seed}
+    if "questions" in pooled:
+        out["mix_checks"] = [mix_check(pooled, by_origin, m) for m in mixes or []]
+    return out
 
 
 def tables_identical(a: list[dict], b: list[dict]) -> list[str]:
@@ -525,6 +596,15 @@ def main(argv: list[str] | None = None) -> int:
     r = sub.add_parser("readout")
     r.add_argument("dirs", nargs="+", type=Path)
     r.add_argument("--where", action="append", default=[], metavar="COLUMN=VALUE")
+    r.add_argument("--mix", action="append", default=[], type=Path,
+                   help="an origin mix written by `mix`; the pooled answer is re-weighted to it")
+    mx = sub.add_parser("mix", help="the origin mix of a run's settled homes, at the default "
+                                    "book seed and the production founder count")
+    mx.add_argument("report", type=Path)
+    mx.add_argument("--wins-scale", type=float, default=1.0,
+                    help="1/sample rate, to count the wins a weighted-sample book made")
+    mx.add_argument("--source", required=True)
+    mx.add_argument("--out", type=Path, required=True)
     s = sub.add_parser("same")
     s.add_argument("a", type=Path)
     s.add_argument("b", type=Path)
@@ -543,6 +623,15 @@ def main(argv: list[str] | None = None) -> int:
         except LaunchRefused as exc:
             print("REFUSED:", exc)
             return 2
+        return 0
+    if args.cmd == "mix":
+        import simulation.live_population as lp
+        founders = {r["customer_id"] for r in lp.founder_book(lp._DEFAULT_BASE_SEED)}
+        mix = mix_of_report(json.loads(args.report.read_text(encoding="utf-8")), founders,
+                            args.wins_scale)
+        mix.update(source=args.source, founder_accounts=lp.founder_accounts())
+        args.out.write_text(json.dumps(mix, indent=1), encoding="utf-8")
+        print(json.dumps(mix))
         return 0
     if args.cmd == "same":
         diffs = tables_identical(read_table(args.a), read_table(args.b))
@@ -564,7 +653,8 @@ def main(argv: list[str] | None = None) -> int:
     for cond in args.where:
         col, _, val = cond.partition("=")
         rows = [r for r in rows if r.get(col) == val]
-    print(json.dumps({"refused_members": refused, **readout(rows)}, indent=1))
+    mixes = [json.loads(m.read_text(encoding="utf-8")) for m in args.mix]
+    print(json.dumps({"refused_members": refused, **readout(rows, mixes)}, indent=1))
     return 0
 
 

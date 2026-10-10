@@ -1,5 +1,7 @@
 # [ADVISOR] The knowledge layer has no "published when" clock, and no link to the constants that use it
 
+**Severity:** LATENT · **Lane:** G_data_learning · **Epoch:** unassigned · **Atom:** `unminted` — header added by the scale lane: the file landed without one and the severity gate refused every lane's merge of origin
+
 Date: 2026-10-10. Staged at the director's request, after reading an external open-source
 project with him (see "Where this came from"). These are two problems with evidence, offered for the
 seat to weigh, scope and sequence. The build, and whether there is one, is the seat's call. Nothing
