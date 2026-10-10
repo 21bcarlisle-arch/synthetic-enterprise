@@ -27,6 +27,7 @@ from saas.reporting.arrears_ledger import from_payload as arrears_ledger_from_pa
 from saas.reporting.arrears_ledger import load as load_arrears_ledger
 from tools.departure_population import account_denominator_refusal, declare_rows, union_by_year
 from tools.measure_departure_level import published_bands
+from tools.run_output_store import load_run_output
 
 # The rag a year carries when the arrears numerator's source never loaded. NOT
 # "GREEN": an unavailable check is a failed check (R15), and this gate spent its
@@ -617,7 +618,7 @@ def generate(run_json_path=None, out_path=None, billing_ledger_path=None):
         run_json_path = RUN_JSON
     if out_path is None:
         out_path = OUT_PATH
-    data = json.loads(Path(run_json_path).read_text())
+    data = load_run_output(run_json_path)
 
     events = data.get("customer_events", [])
     years_data = data.get("years", {})

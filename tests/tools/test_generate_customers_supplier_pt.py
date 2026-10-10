@@ -5,6 +5,8 @@ import tempfile
 
 import pytest
 
+from tools.run_output_store import resolve_run_output
+
 PROJECT = pathlib.Path(__file__).resolve().parent.parent.parent
 
 
@@ -291,7 +293,7 @@ def test_supplier_json_has_generated_timestamp(tmp_path):
 def test_customers_json_live_run_loads(tmp_path):
     from tools.generate_customers_json import generate
     live_run = PROJECT / "docs" / "reports" / "run_output_latest.json"
-    if not live_run.exists():
+    if resolve_run_output(live_run) is None:
         pytest.skip("no live run")
     out = tmp_path / "customers.json"
     result = generate(live_run, out)
@@ -301,7 +303,7 @@ def test_customers_json_live_run_loads(tmp_path):
 def test_supplier_json_live_run_loads(tmp_path):
     from tools.generate_supplier_json import generate
     live_run = PROJECT / "docs" / "reports" / "run_output_latest.json"
-    if not live_run.exists():
+    if resolve_run_output(live_run) is None:
         pytest.skip("no live run")
     out = tmp_path / "supplier.json"
     result = generate(live_run, out)

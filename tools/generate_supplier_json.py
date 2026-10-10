@@ -1,6 +1,8 @@
+import datetime
 import json
 import pathlib
-import datetime
+
+from tools.run_output_store import load_run_output
 
 PROJECT = pathlib.Path(__file__).resolve().parent.parent
 
@@ -11,7 +13,7 @@ def generate(run_json_path=None, out_path=None):
     if out_path is None:
         out_path = PROJECT / "site" / "data" / "supplier.json"
 
-    data = json.loads(pathlib.Path(run_json_path).read_text())
+    data = load_run_output(run_json_path)
     years_data = data.get("years", {})
 
     years_summary = []

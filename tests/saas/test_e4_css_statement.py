@@ -17,15 +17,16 @@ from saas.reporting.css_statement import (
     render_css,
     render_board_kpis,
 )
+from tools.run_output_store import load_run_output, resolve_run_output
 
 _RUN_OUTPUT = Path("docs/reports/run_output_latest.json")
 
 
 @pytest.fixture(scope="module")
 def data() -> dict:
-    if not _RUN_OUTPUT.exists():
+    if resolve_run_output(_RUN_OUTPUT) is None:
         pytest.skip("run_output_latest.json not present")
-    return json.loads(_RUN_OUTPUT.read_text())
+    return load_run_output(_RUN_OUTPUT)
 
 
 @pytest.fixture(scope="module")

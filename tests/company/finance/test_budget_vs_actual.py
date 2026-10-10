@@ -104,10 +104,10 @@ def test_2022_crisis_year_shows_red_net():
     import json
     from pathlib import Path
     p = Path("docs/reports/run_output_latest.json")
-    if not p.exists():
+    from tools.run_output_store import load_run_output, resolve_run_output
+    if resolve_run_output(p) is None:
         pytest.skip("run_output_latest.json not present")
-    with open(p) as f:
-        data = json.load(f)
+    data = load_run_output(p)
     pack = data.get("management_accounts")
     if not pack:
         pytest.skip("No management_accounts in run_output_latest.json")

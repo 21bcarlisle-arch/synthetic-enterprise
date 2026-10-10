@@ -162,12 +162,17 @@ def test_the_publish_commit_carries_the_run_output_the_customer_book_is_made_fro
         monkeypatch.setattr(prc, "_provenance_is_publishable", _refuse)
         monkeypatch.setattr(prc, "PUBLISH_CAUSE_FILE", tmp_path / "cause.json")
         prc.git_commit_push("abc1234", 0.0)
-        return seen["files"], str(run_output)
+        # COMMITTED GZIPPED since 2026-10-10 (`tools.run_output_store`): the plain run passed
+        # GitHub's 100 MiB limit, so what travels is its `.gz` twin, never the plain file.
+        return seen["files"], str(run_output) + ".gz", str(run_output)
 
-    files, run_output = _captured(input_exists=False)
+    files, run_output, plain = _captured(input_exists=False)
     assert str(tmp_path / "without" / "site" / "data" / "customers.json") in files
     assert run_output not in files
-    files, run_output = _captured(input_exists=True)
+    files, run_output, plain = _captured(input_exists=True)
     assert run_output in files, (
         "git_commit_push names site/data/customers.json but not the run output it is generated "
         "from, so the published book is again underivable from the commit that publishes it.")
+    assert plain not in files, (
+        "the publish names the PLAIN run output again; it is over GitHub's 100 MiB limit and is "
+        "refused at push. Only its gz twin may travel.")

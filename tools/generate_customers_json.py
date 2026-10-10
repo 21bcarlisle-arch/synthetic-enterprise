@@ -2,6 +2,8 @@ import datetime
 import json
 import pathlib
 
+from tools.run_output_store import load_run_output
+
 PROJECT = pathlib.Path(__file__).resolve().parent.parent
 #: The input, named at module level because the publisher must commit it beside the output:
 #: `process_run_complete.git_commit_push` reads this constant rather than repeating the path.
@@ -20,7 +22,7 @@ def generate(run_json_path=None, out_path=None):
     if out_path is None:
         out_path = PROJECT / "site" / "data" / "customers.json"
 
-    data = json.loads(pathlib.Path(run_json_path).read_text())
+    data = load_run_output(run_json_path)
     pcl = data.get("per_customer_lifetime", {})
     bills = data.get("bills", [])
 

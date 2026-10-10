@@ -92,3 +92,56 @@ census of `json.load` readers of this path. The alternative -- a reduced publish
 only what the site generators read -- is smaller still, but it makes a second schema that drifts
 from the run and needs its own reproducibility argument; take it only if the gzip proves too
 large. Either way the size refusal above stays.
+
+## The durable choice, taken (delivery seat, 2026-10-10, `the-published-run-is-gzipped-with-one-reader-helper`)
+
+**Premise re-measured at draw:** the shared tree's checkout carries f235d64c8, but its
+`run_output_latest.json` is still the 123,654,505-byte indent=2 file written at 03:46 by the old
+code. With no run since, Monday's publish would be refused by name, as predicted above.
+
+**Design.** `tools/run_output_store.py`: the publish commits `run_output_latest.json.gz`
+(deterministic, mtime 0; 10,720,259 bytes on the 123.6 MB run, 10.2% of the limit; 4.5 s to write,
+0.8 s to read back). `load_run_output(path)` prefers the plain file and falls back to `<path>.gz`.
+The plain file is retired from HEAD **by the shared tree's own publish** (`surgical_land` content
+None + `drops`; the file stays on disk and is then ignored by `run_output_*.json`), never by a
+deletion landed from a worktree: that would reach the shared tree through `merge --ff-only`, which
+refuses to delete the dirty copy that sits there between every run and its publish.
+
+**Pre-registration (before the gz-only arm is run).** Arm A: the 45 test files that name the file,
+with the plain copy present. Arm B: the same tree with only the `.gz` present (what every worktree
+and gate extract sees after the first gz publish). Prediction: 8-20 tests change outcome A->B,
+most of them pass->skip (readers guarded by `exists()`), a few pass->fail; production readers in
+`company/` and `saas/` are not reached from any test with the real file and stay plain-path readers
+(they run in the shared tree, where the plain file stays).
+
+**Result: the prediction was wrong, low by about 4x.** Before any reader was converted, arm B
+moved 54 tests pass->skip and 32 pass->fail, plus 4 errors (A: 1,327 passed / 5 skipped; B: 1,238
+passed / 59 skipped / 36 failed / 4 errors). The skip-guarded readers were the bulk, as predicted;
+the failures were unguarded `open(...)` readers (`test_phase_cn_*`, `test_phase_cp_*`), the
+pricing tool's own tracked-run tier, and the ledger/P&L fixture. After converting them, both arms
+read **3 failed / 1,333 passed / 5 skipped**, identical, and all 3 are red at clean HEAD for
+reasons unrelated to this change (two are the hollow-2022 rows in
+`WORKER_FINDING_2022_IS_A_HOLLOW_YEAR_..._2026-10-10.md`, the third is
+`test_a_log_the_run_makes_..._survives_the_reduction`).
+
+**Readers converted** (through `load_run_output` / `resolve_run_output`, or `as_plain_file` where the
+consumer is in `company/` and may not import `tools/`): the generators `generate_customers_json`,
+`generate_supplier_json`, `generate_billing_ledger`, `population_anchor`, `generate_dashboard_data`,
+`couple_value_based_pricing` (its tracked tier accepts the gz twin), and 15 test files. The
+reproducibility control reads `HEAD:run_output_latest.json.gz` when the tree carries it, the plain
+file before the first gz publish.
+
+**Not converted, deliberately, and what that costs:**
+
+- `company/` and `saas/` production readers (`company/portal/app.py`, `saas/reporting/annual_report`
+  CLI default, `background/sanity_daemon`, `dd_h_solvency_gap`, `run_live_decisions` and the other
+  shared-tree tools). They run in the shared tree, where the plain file stays on disk. In any other
+  checkout they see no run, as they would have for any untracked run before.
+- `tests/company/compliance/test_crisis_bad_debt_validator.py` and
+  `tests/saas/reporting/test_a_churned_account_has_a_departure_record.py`. Both carry a row that
+  is red at HEAD now (hollow 2022), and the commit gate refuses any landing that selects a red
+  file, so editing them here would block this landing. **After the first gz publish**, in any
+  checkout but the shared tree: the crisis file's run-reading tests SKIP, which hides its XPASS red
+  without fixing it, and the churned-account file gains a second red, "is missing". Whoever lands
+  the 2022 fix has to touch that file anyway; the conversion is two lines (`resolve_run_output(RUN_OUTPUT_PATH)
+  is not None` for the existence assert, `load_run_output(RUN_OUTPUT_PATH)` for the read).

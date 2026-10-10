@@ -107,6 +107,7 @@ from simulation.market_switching_propensity import (
 )
 from tools import maturity_map_store as map_store
 from tools.inference_claim import inference_claim
+from tools.run_output_store import gz_twin, load_run_output
 
 PROJECT = Path(__file__).resolve().parent.parent
 BOOK_PATH = PROJECT / "site" / "data" / "customers.json"
@@ -670,6 +671,10 @@ def resolve_run_output(explicit: str | Path | None = None, *, prefer_newest: boo
             "'2026' -- NOT a content check, and the candidate set differs between checkouts of "
             "one commit because these files are untracked. Opted into with --adopt-latest, so "
             "this reading is NOT reproducible from the commit alone.")
+    # The plain file where a run has been written here, else the gz the publish commits in its
+    # place (`tools.run_output_store`) -- the only form a checkout other than the shared tree has.
+    if not tracked.is_file() and gz_twin(tracked).is_file():
+        tracked = gz_twin(tracked)
     if tracked.is_file():
         shown = (tracked.relative_to(PROJECT) if tracked.is_relative_to(PROJECT) else tracked)
         return tracked, _how(
@@ -786,7 +791,8 @@ def book_at_read(run_path: Path, book_path: Path, run: dict, book: dict,
             #: tier resolves and never by name alone: a `run_output_latest.json` sitting in some
             #: other directory is a different file that a checkout cannot resolve, and calling it
             #: tracked would be the flattering answer.
-            "tracked_in_git": run_path.resolve() == TRACKED_RUN_OUTPUT.resolve(),
+            "tracked_in_git": run_path.resolve() in {TRACKED_RUN_OUTPUT.resolve(),
+                                                     gz_twin(TRACKED_RUN_OUTPUT).resolve()},
             #: HOW IT WAS CHOSEN, TAKEN FROM THE CALLER'S OWN RESOLUTION and never re-derived
             #: here. Re-deriving would describe the selection this snapshot WOULD make now, which
             #: is a different measurement from the one that produced these figures -- the same
@@ -1650,7 +1656,7 @@ def generate(out_path: Path | None = None, run_path: Path | str | None = None, *
     # same reason the snapshot travels with the read: re-deriving the selection at assembly would
     # answer a question about the tree as it is now, not about the files these figures came from.
     run_path, how = resolve_run_output(run_path, prefer_newest=prefer_newest)
-    run = json.loads(run_path.read_text(encoding="utf-8"))
+    run = load_run_output(run_path)
     book = json.loads(BOOK_PATH.read_text(encoding="utf-8"))
     # SNAPSHOTTED HERE, BESIDE THE READ, and passed down -- never re-resolved at assembly. That
     # difference is the whole control rather than a style point: see `book_at_read`.

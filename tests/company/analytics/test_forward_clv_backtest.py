@@ -21,6 +21,7 @@ from company.analytics.forward_clv import (
     regime_boundary_month,
     run_backtest,
 )
+from tools.run_output_store import as_plain_file, resolve_run_output
 
 REPO = Path(__file__).resolve().parents[3]
 TRACKED_RUN = REPO / "docs" / "reports" / "run_output_latest.json"
@@ -142,11 +143,19 @@ def test_a_cut_with_no_held_back_months_is_refused_with_its_reason():
         run_backtest(_book(), _month_index("2025-06"), cut_year=2025)
 
 
-@pytest.mark.skipif(not TRACKED_RUN.exists(), reason="no run output in this checkout")
-def test_the_backtest_runs_on_a_real_book_and_carries_its_limitation():
+@pytest.fixture(scope="module")
+def tracked_run(tmp_path_factory) -> Path:
+    """The tracked run as a plain file; the committed form is gzipped (`tools.run_output_store`)
+    and `company/` reads paths, so a gz-only checkout is decompressed to scratch here."""
+    return as_plain_file(TRACKED_RUN, tmp_path_factory.mktemp("run"))
+
+
+@pytest.mark.skipif(resolve_run_output(TRACKED_RUN) is None,
+                    reason="no run output in this checkout")
+def test_the_backtest_runs_on_a_real_book_and_carries_its_limitation(tracked_run):
     """Keyed to properties, not to today's verdict: the verdict is the finding, and it moves
     with the run."""
-    accounts, book_end = load_book(TRACKED_RUN)
+    accounts, book_end = load_book(tracked_run)
     bt = run_backtest(accounts, book_end)
     assert bt.cut_year == DEFAULT_CUT_YEAR
     assert bt.accounts_graded > 0
@@ -161,7 +170,7 @@ def test_the_backtest_runs_on_a_real_book_and_carries_its_limitation():
         v for a in accounts if a.account_id in graded for m, v in a.monthly_net_gbp.items() if m > cut_end
     )
     assert bt.aggregate["realised_margin_gbp"] == pytest.approx(ledger)
-    assert backtest_run_output(TRACKED_RUN).accounts_graded == bt.accounts_graded
+    assert backtest_run_output(tracked_run).accounts_graded == bt.accounts_graded
 
 
 def _reversing_pair():
@@ -313,12 +322,12 @@ def test_no_register_is_none_with_its_reason_and_an_empty_one_is_zero_moves():
     assert LIMITATION_NO_MOVE_REGISTER not in empty.limitations
 
 
-def test_the_run_output_door_passes_the_register_through():
+def test_the_run_output_door_passes_the_register_through(tracked_run):
     """The defect: the split built and the path from a run's report never handing it over."""
     import json
     import tempfile
-    run = json.loads(TRACKED_RUN.read_text())
-    accounts, _ = load_book(TRACKED_RUN)
+    run = json.loads(tracked_run.read_text())
+    accounts, _ = load_book(tracked_run)
     leaver = next(a for a in accounts if a.last_month < max(x.last_month for x in accounts))
     ym = leaver.last_month + 1
     run["home_move_outs"] = [{"household": leaver.account_id,

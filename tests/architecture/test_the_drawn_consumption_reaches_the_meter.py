@@ -34,6 +34,8 @@ import pathlib
 
 import pytest
 
+from tools.run_output_store import load_run_output, resolve_run_output
+
 PROJECT = pathlib.Path(__file__).resolve().parents[2]
 RUN = PROJECT / "docs" / "reports" / "run_output_latest.json"
 
@@ -71,11 +73,11 @@ def _spearman(pairs) -> float:
 @pytest.fixture(scope="module")
 def paired():
     """(customer_id, drawn eac_kwh, billed annualised kWh) for resi electricity households."""
-    if not RUN.exists():
+    if resolve_run_output(RUN) is None:
         pytest.skip(f"{RUN} is not in this tree")
     from simulation.live_population import live_population
 
-    billed = _annualised_billed(json.loads(RUN.read_text()))
+    billed = _annualised_billed(load_run_output(RUN))
     rows = []
     for c in live_population():
         if c.get("commodity") != "electricity" or c.get("segment") != "resi":

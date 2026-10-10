@@ -44,6 +44,8 @@ import pathlib
 
 import pytest
 
+from tools.run_output_store import load_run_output, resolve_run_output
+
 PROJECT = pathlib.Path(__file__).resolve().parents[2]
 ARTEFACT = PROJECT / "docs" / "reports" / "run_output_latest.json"
 
@@ -80,10 +82,9 @@ def _bills() -> list[dict]:
     is the state that would mean the publisher has stopped running rather than that it has not run
     yet.
     """
-    if not ARTEFACT.is_file():
+    if resolve_run_output(ARTEFACT) is None:
         pytest.skip(f"{ARTEFACT.name} is not in the tree — no published book to check")
-    with ARTEFACT.open(encoding="utf-8") as handle:
-        bills = (json.load(handle) or {}).get("bills") or []
+    bills = (load_run_output(ARTEFACT) or {}).get("bills") or []
     assert len(bills) >= FLOOR_BILLS, (
         f"the published book holds {len(bills)} bills, floor {FLOOR_BILLS} (2026-09-01). A "
         "consistency scan over an empty book passes exactly like one over a consistent book."
@@ -218,10 +219,9 @@ def test_the_book_is_not_permanently_unarmed():
     published book still carries shocks without one, the question is no longer "has the publisher
     run yet" but "is the publisher running at all" — and the second is a defect this file can see
     and must not sit quietly through."""
-    if not ARTEFACT.is_file():
+    if resolve_run_output(ARTEFACT) is None:
         pytest.skip(f"{ARTEFACT.name} is not in the tree")
-    with ARTEFACT.open(encoding="utf-8") as handle:
-        bills = (json.load(handle) or {}).get("bills") or []
+    bills = (load_run_output(ARTEFACT) or {}).get("bills") or []
     if not bills:
         pytest.skip("no bills in the published book")
     import inspect

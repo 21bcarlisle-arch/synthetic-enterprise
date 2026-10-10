@@ -6834,6 +6834,19 @@ def _land_publish_commit(pathspec, msg, git_hash):
                 "refusal": "the publish pathspec names {} path(s) outside the repository, which "
                            "no commit can carry: {}. Nothing was committed.".format(
                                len(outside), ", ".join(outside[:5]))}
+    # THE PLAIN RUN IS RETIRED HERE, NOT BY A LANDING FROM ELSEWHERE. While it is still at HEAD,
+    # the publish that commits its gz also removes it from the tree (content None: the commit and
+    # the index lose it, the file stays on disk and falls under `run_output_*.json`). A deletion
+    # landed from a worktree would reach this tree through `merge --ff-only`, which refuses to
+    # delete the dirty copy that sits here between every run and its publish.
+    retire = {}
+    from tools import run_output_store
+    if (run_output_store.PUBLISHED_REL in relative
+            and run_output_store.LATEST_REL not in relative
+            and run_output_store.plain_copy_is_tracked(root)):
+        relative.append(run_output_store.LATEST_REL)
+        retire = {"content": {run_output_store.LATEST_REL: None},
+                  "drops": frozenset({run_output_store.LATEST_REL})}
     lost = []
 
     def _chains_run(exhausted: bool) -> int:
@@ -6887,7 +6900,7 @@ def _land_publish_commit(pathspec, msg, git_hash):
 
     try:
         sha = surgical_land.land(root, relative, msg,
-                                 attempts=PUBLISH_LAND_ATTEMPTS, on_lost=_on_lost)
+                                 attempts=PUBLISH_LAND_ATTEMPTS, on_lost=_on_lost, **retire)
     except surgical_land.LandingRefused as exc:
         # The gate ran (or refused to run) and said no. Same measurement as the old `git commit`
         # path recorded, against the same deadline vocabulary, so the duration series does not
@@ -7060,9 +7073,13 @@ def git_commit_push(git_hash, net_margin, outcome=None):
         # (2026-09-01) and accepted the cost per changed book, but never put it on this list, so
         # from 09-09 every publish shipped customers.json without the run it was made from and
         # `test_a_published_surface_is_reproducible_from_its_committed_input` stood red at HEAD.
+        # COMMITTED GZIPPED (2026-10-10): the plain run passed GitHub's 100 MiB limit, so the
+        # publish commits `<run>.json.gz` and retires the plain file from HEAD inside
+        # `_land_publish_commit`. See `tools.run_output_store`.
         from tools.generate_customers_json import RUN_OUTPUT as _customers_input
         if _customers_input.exists():
-            files.append(str(_customers_input))
+            from tools.run_output_store import write_published
+            files.append(str(write_published(_customers_input)))
     site_data_supplier = PROJECT_DIR / "site" / "data" / "supplier.json"
     if site_data_supplier.exists():
         files.append(str(site_data_supplier))

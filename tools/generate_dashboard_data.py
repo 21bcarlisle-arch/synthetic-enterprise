@@ -2236,8 +2236,8 @@ def generate(run_json_path=None):
 
     run_json_path = Path(run_json_path)
     print(f"Loading run output: {run_json_path.name}")
-    with open(run_json_path) as f:
-        data = json.load(f)
+    from tools.run_output_store import load_run_output
+    data = load_run_output(run_json_path)
 
     print("Loading Elexon SSP (may take a few seconds)...")
     spot_monthly = load_spot_monthly()

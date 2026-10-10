@@ -22,16 +22,18 @@ from company.billing.pre_bill_validation import validate_bills
 from simulation.arrears_engine import BALANCE_OPEN, CREDIT_APPLIED, compute_emergent_bad_debt
 from simulation.household import supply_points_that_left
 from tools.generate_billing_ledger import generate
+from tools.run_output_store import as_plain_file, load_run_output, resolve_run_output
 
 RUN = Path(__file__).resolve().parents[2] / "docs" / "reports" / "run_output_latest.json"
 
 
 @pytest.fixture(scope="module")
 def book(tmp_path_factory):
-    if not RUN.exists():
+    if resolve_run_output(RUN) is None:
         pytest.fail(f"the real run output is absent at {RUN} -- 'could not look' is not 'agrees'")
-    data = json.loads(RUN.read_text())
-    ledger = generate(RUN, tmp_path_factory.mktemp("ledger") / "billing_ledger.json")
+    data = load_run_output(RUN)
+    scratch = tmp_path_factory.mktemp("ledger")
+    ledger = generate(as_plain_file(RUN, scratch), scratch / "billing_ledger.json")
     return data, ledger
 
 

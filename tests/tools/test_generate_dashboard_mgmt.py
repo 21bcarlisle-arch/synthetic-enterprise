@@ -2,6 +2,7 @@ import json
 import pathlib
 import pytest
 from tools.generate_dashboard_data import extract_management_accounts
+from tools.run_output_store import resolve_run_output
 
 
 def _make_data(years_range=(2016, 2018), rev=500000.0, wholesale=300000.0,
@@ -160,7 +161,7 @@ def test_mgmt_accounts_in_dashboard_json(tmp_path, monkeypatch):
     json -- so dropping the `ok` assert here opens no fail-open.
     """
     rj = pathlib.Path("docs/reports/run_output_latest.json")
-    if not rj.exists():
+    if resolve_run_output(rj) is None:
         pytest.skip("run_output_latest.json not present")
     import tools.generate_dashboard_data as gdd
 

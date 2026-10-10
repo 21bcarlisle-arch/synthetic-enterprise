@@ -48,6 +48,7 @@ import subprocess
 import pytest
 
 from tools.generate_customers_json import generate as generate_customers
+from tools.run_output_store import loads_run_output
 
 PROJECT = pathlib.Path(__file__).resolve().parents[2]
 
@@ -56,6 +57,10 @@ PROJECT = pathlib.Path(__file__).resolve().parents[2]
 #: while proving nothing.
 PUBLISHED = "site/data/customers.json"
 INPUT = "docs/reports/run_output_latest.json"
+#: Since 2026-10-10 the run is COMMITTED gzipped (`tools.run_output_store`) and the plain file is
+#: retired from the tree by the first publish that commits the gz. The gz is read when the tree
+#: carries it, and the plain file only before that first publish.
+INPUT_GZ = INPUT + ".gz"
 
 
 def _head_resolves() -> bool:
@@ -92,6 +97,28 @@ def _as_committed(rel: str) -> str:
     return done.stdout
 
 
+def _committed_input() -> tuple[str, bytes]:
+    """(path, bytes) of the run output the tree being graded carries -- gz first, then plain."""
+    if not _head_resolves():
+        for rel in (INPUT_GZ, INPUT):
+            if (PROJECT / rel).is_file():
+                return rel, (PROJECT / rel).read_bytes()
+        raise AssertionError(
+            f"neither {INPUT_GZ} nor {INPUT} is on disk. The tree being graded does not contain "
+            "the artefact this control is about.")
+    for rel in (INPUT_GZ, INPUT):
+        done = subprocess.run(["git", "cat-file", "-e", f"HEAD:{rel}"], cwd=str(PROJECT),
+                              capture_output=True, check=False)
+        if done.returncode == 0:
+            shown = subprocess.run(["git", "show", f"HEAD:{rel}"], cwd=str(PROJECT),
+                                   capture_output=True, check=False)
+            assert shown.returncode == 0, f"`git show HEAD:{rel}` failed rc={shown.returncode}"
+            return rel, shown.stdout
+    raise AssertionError(
+        f"neither {INPUT_GZ} nor {INPUT} is at HEAD. A published surface and the input it is "
+        "derived from must both be IN the commit that ships them.")
+
+
 def _population(surface: dict) -> list[tuple[str, tuple[str, ...]]]:
     """Who is in the book, and which fuel legs each of them has.
 
@@ -115,8 +142,9 @@ def test_the_published_customer_book_is_reproducible_from_the_run_output_committ
     """
     published = json.loads(_as_committed(PUBLISHED))
 
+    rel, raw = _committed_input()
     run_json = tmp_path / "committed_input.json"
-    run_json.write_text(_as_committed(INPUT))
+    run_json.write_text(json.dumps(loads_run_output(raw)))
     rebuilt = generate_customers(run_json, tmp_path / "rebuilt.json")
 
     want, got = _population(published), _population(rebuilt)
@@ -134,7 +162,7 @@ def test_the_published_customer_book_is_reproducible_from_the_run_output_committ
     assert got == want, (
         "THE PUBLISHED SURFACE IS NOT DERIVABLE FROM THE ARTEFACTS SHIPPED WITH IT.\n"
         f"  {PUBLISHED} publishes {len(want)} households / {sum(len(f) for _, f in want)} legs\n"
-        f"  {INPUT} regenerates {len(got)} households / {sum(len(f) for _, f in got)} legs\n"
+        f"  {rel} regenerates {len(got)} households / {sum(len(f) for _, f in got)} legs\n"
         f"  published but not derivable: {sorted(set(dict(want)) - set(dict(got)))[:10]}\n"
         f"  derivable but not published: {sorted(set(dict(got)) - set(dict(want)))[:10]}\n"
         "Either the input was not committed with the surface it produced, or the surface is "

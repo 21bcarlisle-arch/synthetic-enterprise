@@ -4,10 +4,11 @@ import re
 
 import pytest
 
+from tools.run_output_store import load_run_output
+
 
 def _load_data():
-    with open("docs/reports/run_output_latest.json") as f:
-        return json.load(f)
+    return load_run_output("docs/reports/run_output_latest.json")
 
 
 def _render():

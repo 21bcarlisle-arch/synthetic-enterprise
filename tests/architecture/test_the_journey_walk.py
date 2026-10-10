@@ -27,6 +27,8 @@ from pathlib import Path
 
 import pytest
 
+from tools.run_output_store import load_run_output, resolve_run_output
+
 PROJECT = Path(__file__).resolve().parents[2]
 RUN = PROJECT / "docs" / "reports" / "run_output_latest.json"
 
@@ -48,9 +50,9 @@ PENNY = 0.01
 
 @pytest.fixture(scope="module")
 def run() -> dict:
-    if not RUN.exists():
+    if resolve_run_output(RUN) is None:
         pytest.skip(f"no run artefact at {RUN}")
-    return json.loads(RUN.read_text())
+    return load_run_output(RUN)
 
 
 @pytest.fixture(scope="module")
