@@ -119,6 +119,8 @@ from __future__ import annotations
 
 import argparse
 import datetime
+import hashlib
+import os
 import re
 import subprocess
 import sys
@@ -4865,10 +4867,13 @@ def _worktree_subject(root: Path, copies: dict | None = None) -> tuple[set[str],
             paths.add(str(root / rel))
             if copies is not None:
                 try:
-                    mtime: float | None = (root / rel).stat().st_mtime
+                    stat = (root / rel).stat()
+                    mtime: float | None = stat.st_mtime
+                    size: int | None = stat.st_size
                 except OSError:
-                    mtime = None
-                grade = {"untracked": line[:2] == "??", "origin_tracks": False, "mtime": mtime}
+                    mtime = size = None
+                grade = {"untracked": line[:2] == "??", "origin_tracks": False, "mtime": mtime,
+                         "size": size}
                 copies[rel] = copies[str(root / rel)] = grade
                 if grade["untracked"]:
                     untracked.append(rel)
@@ -4974,6 +4979,8 @@ def _live_holders() -> list[dict]:
         holders.append({"holder": unit, "artefact": artefact or "(none recorded)",
                         "names": names, "paths": paths, "identifiers": idents,
                         "copies": copies.get(home, {}) if home is not None else {}})
+    cwds: list[tuple[int, Path]] | None = None
+    previous: dict[str, str] | None = None
     for root in worktrees:
         try:
             if not _owned(root):
@@ -4981,10 +4988,92 @@ def _live_holders() -> list[dict]:
         except Exception:
             continue
         paths, idents = _subject(root)
+        if cwds is None:
+            cwds, previous = _process_cwds(), _last_refused_digests()
+        digest = _diff_digest(copies.get(root, {}))
+        why = editing_now(root, copies.get(root, {}), digest, previous or {}, cwds)
+        if not why:
+            continue
         holders.append({"holder": f"live worktree {root}", "artefact": str(root),
                         "names": {str(root)}, "paths": paths, "identifiers": idents,
-                        "copies": copies.get(root, {})})
+                        "copies": copies.get(root, {}), "diff_digest": digest,
+                        "editing": why})
     return holders
+
+
+def _diff_digest(copies: dict) -> str:
+    """One string for a worktree's uncommitted diff: each held path with its mtime and size.
+
+    The owner marker is not in it (`_worktree_subject` drops it), so restamping the marker leaves
+    the digest alone and any write to the diff moves it."""
+    rows = sorted((rel, c.get("mtime"), c.get("size")) for rel, c in copies.items()
+                  if not rel.startswith("/"))
+    return hashlib.sha1(repr(rows).encode()).hexdigest()
+
+
+def _process_cwds() -> list[tuple[int, Path]]:
+    """(pid, resolved cwd) for every process this user can read, except this one. NEVER RAISES."""
+    out: list[tuple[int, Path]] = []
+    try:
+        entries = list(Path("/proc").iterdir())
+    except OSError:
+        return out
+    for entry in entries:
+        if not entry.name.isdigit() or int(entry.name) == os.getpid():
+            continue
+        try:
+            out.append((int(entry.name), Path(os.readlink(entry / "cwd")).resolve()))
+        except OSError:
+            continue
+    return out
+
+
+def _last_refused_digests(path: Path | None = None) -> dict[str, str]:
+    """Worktree root -> the diff digest recorded at that worktree's latest held-work refusal."""
+    try:
+        rows = claims_mod._load(_refusals_path(path or CLAIMS_FILE))
+    except Exception:
+        return {}
+    latest: dict[str, tuple[float, str]] = {}
+    for row in (rows if isinstance(rows, dict) else {}).values():
+        if not isinstance(row, dict) or not row.get("diff_digest"):
+            continue
+        root, when = str(row.get("artefact") or ""), float(row.get("last_refused_at") or 0.0)
+        if root and when >= latest.get(root, (-1.0, ""))[0]:
+            latest[root] = (when, str(row["diff_digest"]))
+    return {root: digest for root, (_when, digest) in latest.items()}
+
+
+def editing_now(root: Path, copies: dict, digest: str, previous: dict[str, str],
+                cwds: list[tuple[int, Path]], now: float | None = None) -> str:
+    """Why someone is editing in `root` now, or "" -- the evidence a live marker alone is not.
+
+    THE DEFECT (2026-10-10). `considered-renewals-falling-from-53-to-3-is-explained` was refused
+    128 times by drafts nobody had written to since 2026-10-03. Their markers were fresh because a
+    session's renewer (`renew_claims.sh`, a scratchpad loop under pid 2197437) touches every marker
+    naming that session every ten minutes for as long as the session lives -- about 105 worktrees,
+    restamped together. A lease answers "may the reaper take this tree", not "is anyone working
+    in it", and the draw was asking the second question of the first answer.
+
+    THREE LEGS, ANY ONE HOLDS. A live process whose cwd is inside the worktree. A write to the diff
+    inside this lane's own claim window (`CLAIM_STALE_SECONDS`) -- the same "moving" test a claim is
+    held to, and what keeps a fresh edit held when a watchdog read already recorded its refusal. A
+    diff that changed since this worktree's previous refusal (`previous`, by `_diff_digest`). With
+    none, the worktree is an untouched draft: its subject is not a reason to refuse.
+    """
+    resolved = root.resolve()
+    for pid, cwd in cwds:
+        if cwd == resolved or resolved in cwd.parents:
+            return f"pid {pid} is working inside it"
+    when = time.time() if now is None else float(now)
+    newest = max((c.get("mtime") or 0.0 for rel, c in copies.items() if not rel.startswith("/")),
+                 default=0.0)
+    if newest >= when - CLAIM_STALE_SECONDS:
+        return "its diff was written inside the claim window"
+    before = previous.get(str(root))
+    if before is not None and before != digest:
+        return "its diff changed since its previous refusal"
+    return ""
 
 
 def held_in_other_stores(own: Path, now: float | None = None,
@@ -5142,7 +5231,9 @@ def held_note(skipped: list[tuple[dict, dict, str]],
     out = ""
     if skipped:
         named = "; ".join(f"`{item.get('id')}` -- {holder['holder']} (artefact "
-                          f"{holder['artefact']}) {reason}" for item, holder, reason in skipped)
+                          f"{holder['artefact']}"
+                          + (f"; {holder['editing']}" if holder.get("editing") else "")
+                          + f") {reason}" for item, holder, reason in skipped)
         out += ("HELD-WORK CHECK (systemd and live worktrees, run at draw time): the draw REFUSED "
                 f"{len(skipped)} item(s) because a running job or a live worktree already holds "
                 f"the subject each asks to change -- {named}. Nothing was claimed for them and "
@@ -5197,7 +5288,7 @@ def record_held_refusals(skipped: list[tuple[dict, dict, str]], *, now: float | 
                          "last_refused_at": when,
                          "times": int(prev.get("times") or 0) + 1,
                          "holder": holder.get("holder"), "artefact": holder.get("artefact"),
-                         "contested": reason}
+                         "contested": reason, "diff_digest": holder.get("diff_digest")}
         claims_mod._save(rows, target)
     except Exception:  # noqa: BLE001 - `draw` never raises, and this sits inside it
         return
