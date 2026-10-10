@@ -42,6 +42,7 @@ epc_rating) and returns a plain dict. No imports from `sim/`.
 # a duplicate that documented itself instead of being removed, and therefore one that could
 # only ever drift silently.
 from company.analytics.clv_three_horizon import DISCOUNT_RATE as DISCOUNT_RATE_ANNUAL
+from saas.customer_reaction import _billing_account_id
 from saas.property_model import _epc_rating_of
 
 # Baseline win probability when our price is exactly at the market average
@@ -314,6 +315,11 @@ def build_home_move_win_rates(churn_risk: dict, customers: list[dict], price_dif
     entry in `customers` (looked up by `customer_id`).
     """
     profile_by_account = {c["customer_id"]: c for c in customers}
+    # A billing account whose only leg is gas (a change of tenancy at a gas-only premise opens
+    # `OCC-<id>g` alone) takes that leg's profile, as `churn_model.build_churn_risk` takes its
+    # date. Exact ids are entered first, so no account that resolved before changes.
+    for c in customers:
+        profile_by_account.setdefault(_billing_account_id(c["customer_id"]), c)
 
     win_rates: dict[str, list[dict]] = {}
     for account_id, renewals in churn_risk.items():
