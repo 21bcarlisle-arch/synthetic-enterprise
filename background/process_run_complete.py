@@ -5772,6 +5772,36 @@ def _commit_pathspec(files, extra_relative=()):
     return spec
 
 
+#: GitHub refuses any blob over 100 MiB at push ("GitHub blocks files larger than 100 MiB",
+#: docs.github.com, "About large files on GitHub"). Bytes, not MB: 104,857,600.
+GITHUB_PUSH_FILE_LIMIT_BYTES = 100 * 1024 * 1024
+
+
+def _files_over_push_limit(pathspec, limit=GITHUB_PUSH_FILE_LIMIT_BYTES):
+    """Every file the publish would stage that GitHub would refuse, as `[(relpath, bytes)]`.
+
+    ASKED BEFORE THE LANDING, because after it the refusal arrives as a rejected PUSH: a commit
+    already made and gated, ten-plus minutes of hook chain spent, and a local commit origin can
+    never take, which the next cycle then sits on top of. The pathspec holds directories as well
+    as files (`site/data/customers`, `docs/state`), so a directory is walked rather than skipped
+    -- skipping it would make this blind to the first oversized file to arrive by glob.
+    """
+    over = []
+    for entry in pathspec:
+        root = Path(entry)
+        candidates = [root] if root.is_file() else (
+            sorted(p for p in root.rglob("*") if p.is_file()) if root.is_dir() else [])
+        for path in candidates:
+            size = path.stat().st_size
+            if size > limit:
+                try:
+                    rel = str(path.relative_to(PROJECT_DIR))
+                except ValueError:
+                    rel = str(path)
+                over.append((rel, size))
+    return over
+
+
 def _clear_two_rooms_before_commit() -> dict:
     """Clear a staging duplicate that appeared DURING this run, immediately before committing.
 
@@ -7409,6 +7439,28 @@ def git_commit_push(git_hash, net_margin, outcome=None):
         # run would never be published again. An empty pathspec is a broken state, and the next
         # cycle must really retry it.
         return _outcome(COMMIT_REFUSED, False)
+    # A FILE GITHUB WILL NOT TAKE IS REFUSED HERE, NAMED, not at the push (2026-10-10). See
+    # `_files_over_push_limit`. COMMIT_REFUSED rather than a new outcome: this process does the
+    # same thing next either way (no fingerprint, the next cycle retries), and the cause override
+    # records that no test was judged.
+    _oversized = _files_over_push_limit(pathspec)
+    if _oversized:
+        _named = "; ".join("{} is {:,} bytes ({:.1f} MiB)".format(rel, size, size / 1048576)
+                           for rel, size in _oversized)
+        _why = ("GitHub's push limit is {:,} bytes (100 MiB) per file and {} -- nothing was "
+                "staged, no hook chain ran and no push was attempted. The site keeps serving its "
+                "last published run. Remedy: shrink the file (the durable choice is filed in "
+                "docs/staging/SEAT_FINDING_THE_PUBLISHED_RUN_OUTGREW_GITHUBS_FILE_LIMIT_"
+                "2026-10-10.md), never raise this limit -- it is GitHub's, not ours.".format(
+                    GITHUB_PUSH_FILE_LIMIT_BYTES, _named))
+        log("Publish commit REFUSED before staging, a file is over the push limit: " + _why)
+        try:
+            from background.notify import notify
+            notify("[SIM] PUBLISH REFUSED, FILE TOO LARGE FOR GITHUB -- " + _why,
+                   kind="real_alarm")
+        except Exception as _exc:  # noqa: BLE001 -- the refusal stands whether or not it pages
+            log("Oversized-file NTFY not sent: {}".format(_exc))
+        return _outcome(COMMIT_REFUSED, False, cause=NON_TEST_REFUSAL_CAUSE, evidence=_why)
     # A staging duplicate written WHILE this run was going refuses the landing below, and the
     # worker's own sweep ran before this run started. Repair at the point of use -- see
     # `_clear_two_rooms_before_commit` for the 45-minute blind window.

@@ -414,7 +414,9 @@ def run_simulation() -> bool:
     )
     log(f"[protocol] run_complete message: {_msg.to_json()}")
 
-    # Update latest pointer so Claude always has fresh data
+    # Update latest pointer so Claude always has fresh data. A BYTE copy, so the published file is
+    # exactly as compact as `run_annual_report.dump_run_output` wrote it -- re-encoding here
+    # would be a second writer whose format could drift from the first (2026-10-10).
     latest_json = REPORTS_DIR / "run_output_latest.json"
     latest_json.write_bytes(out_json.read_bytes())
 

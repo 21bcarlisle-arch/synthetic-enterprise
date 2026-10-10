@@ -1,4 +1,4 @@
-**Severity:** BLOCKING · **Lane:** H_harness · **Epoch:** unassigned · **Atom:** `unminted`
+**Severity:** LATENT · **Lane:** H_harness · **Epoch:** unassigned · **Atom:** `unminted`
 
 # The published run has outgrown GitHub's file limit, so the next publish fails at push
 
@@ -50,7 +50,45 @@ buys time and does not fix anything. The durable choices are:
 Either way, add a size check before the publish commits, so that the next growth fails on the
 seat's surface rather than as a refused push.
 
-## Not done here
+## Not done here (as first written)
 
 No code changed. The window opens in about 37 hours. Check whether the shared checkout reaches
 origin by then, because the publish runs the shared tree's copy of `process_run_complete`.
+
+## Done, 2026-10-10 (delivery seat, `the-published-run-fits-under-githubs-file-limit-before-monday`)
+
+*Severity moved BLOCKING -> LATENT: Monday's publish is no longer refused at push, and the next
+growth past the limit is refused by name before anything is staged. What stays open is the
+durable choice below.*
+
+- **The stopgap: compact JSON at the one writer.** `tools/run_annual_report.dump_run_output`
+  (`separators=(",",":")`) now writes both `--save-json` (the file `sim_runner` byte-copies onto
+  `run_output_latest.json`) and `save_run_output_json`. Measured on the shared tree's 123,654,505
+  byte run: **91,599,892 bytes, 87.4% of 104,857,600**, and `json.loads` of it equals the indent=2
+  load. `sim_runner` keeps its byte copy on purpose (one writer, one format).
+- **The refusal.** `process_run_complete._files_over_push_limit` runs after the pathspec is built
+  and before the landing; it walks directories in the pathspec too. A file over 100 MiB returns
+  `COMMIT_REFUSED` (no fingerprint, the next cycle retries) with the `NON_TEST_REFUSAL_CAUSE`
+  override, logs, and pages NTFY `real_alarm` naming the file, its bytes and the limit.
+- **Proven able to fire.** `tests/background/test_the_publish_refuses_a_file_github_would_refuse.py`:
+  a 101 MiB sparse fixture is refused by name; a file inside a staged directory is seen; the
+  partition control lands a file at exactly the limit and refuses one byte over; both writers are
+  compact; HEAD's committed run, through the real writer, reads back equal and is admitted. Each
+  leg was mutated and went red.
+
+**Check before Monday 04:00:** the publish runs the SHARED tree's code and the shared tree's file.
+The 123.6 MB file on disk now was written by the old code, so it is compact only once the shared
+checkout carries this commit AND a run has been written since. If no run lands before the window,
+the publish is now *refused by name* rather than rejected at push -- the site still waits a week.
+
+## Proposal: the durable choice (seat's recommendation)
+
+Compact JSON leaves 12.6% headroom on a book that grew 4.6x in a week; the next book growth
+crosses it. **Recommend gzip with one reader helper**: 11.5 MB on the same run (~9x headroom),
+content-identical, so the reproducibility control
+(`test_a_published_surface_is_reproducible_from_its_committed_input`) still reads the full input,
+and the change is one helper (`load_run_output(path)` opening `.json.gz` or `.json`) plus the
+census of `json.load` readers of this path. The alternative -- a reduced published input carrying
+only what the site generators read -- is smaller still, but it makes a second schema that drifts
+from the run and needs its own reproducibility argument; take it only if the gzip proves too
+large. Either way the size refusal above stays.

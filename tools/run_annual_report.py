@@ -81,6 +81,20 @@ _WINDOW_NOT_STATED = object()
 # Where a run persists its reduced report data. Moved here from
 # `simulation/run_phase4c_on_phase2b.py` with `save_run_output_json()`.
 RUN_OUTPUT_LATEST_PATH = Path("docs/reports/run_output_latest.json")
+
+#: THE RUN IS WRITTEN COMPACT, and the published copy is a byte copy of it (2026-10-10). The
+#: publish commits `run_output_latest.json`, and GitHub refuses any blob over 100 MiB at push:
+#: the single-levy run was 123.5 MB at indent=2 and 91.5 MB compact. Every reader goes through
+#: `json.load`, so the whitespace was read by nobody. This is the STOPGAP -- 8% headroom on a
+#: book that grew 4.6x in a week -- and the size refusal in
+#: `process_run_complete._files_over_push_limit` is what makes the next growth loud. See
+#: docs/staging/SEAT_FINDING_THE_PUBLISHED_RUN_OUTGREW_GITHUBS_FILE_LIMIT_2026-10-10.md.
+RUN_OUTPUT_SEPARATORS = (",", ":")
+
+
+def dump_run_output(data: dict) -> str:
+    """The run output as the bytes every run file on disk carries -- compact, see above."""
+    return json.dumps(data, separators=RUN_OUTPUT_SEPARATORS)
 RUN_OUTPUT_VERSIONED_DIR = Path("docs/reports")
 
 
@@ -509,7 +523,7 @@ def save_run_output_json(run_output: dict) -> tuple[Path, Path]:
     timestamp = data["_cache_meta"]["generated_at_utc"]
 
     RUN_OUTPUT_VERSIONED_DIR.mkdir(parents=True, exist_ok=True)
-    payload = json.dumps(data, indent=2)
+    payload = dump_run_output(data)
 
     RUN_OUTPUT_LATEST_PATH.write_text(payload)
     versioned_path = RUN_OUTPUT_VERSIONED_DIR / f"run_output_{commit_hash}_{timestamp}.json"
@@ -565,7 +579,7 @@ def main() -> None:
         extract_report_data(raw_output), code_commit=code_commit, report_end=report_end
     )
     args.save_json.parent.mkdir(parents=True, exist_ok=True)
-    args.save_json.write_text(json.dumps(data, indent=2))
+    args.save_json.write_text(dump_run_output(data))
 
     fresh_full_run = not args.fast and not report_end
     if fresh_full_run:
