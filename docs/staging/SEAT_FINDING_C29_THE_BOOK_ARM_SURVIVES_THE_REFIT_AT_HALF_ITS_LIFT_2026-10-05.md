@@ -181,3 +181,14 @@ it, and off in `naive`.
    - Total offers: **about 113 (103 to 125)**, against 208.
    - Total spend: **about GBP 3,580 (GBP 3,200 to 4,000)**, against GBP 6,828.
    A result outside a band refutes the claim that the rule moved only what it targets.
+
+**Prediction 1 graded (2026-10-10 02:30 BST): held exactly.** I ran the landed function
+`growth_desk.retention_offer_can_buy_anything` over every offer on run 224e4af02's book, with each
+position re-read through `position_vs_default` at the full and the offered rate. It keeps the 10
+unrolled conversions (GBP 354.72) and drops 95 offers: 84 conversions that the full rate already
+won (GBP 2,660.43) and 11 declines that the discount did not reach (GBP 591.44), GBP 3,251.87 in
+all. All 103 rolled-term offers are kept. The join instrument first reproduced the 2026-10-09
+table to the penny: 208 offers, GBP 6,828.20, no row unjoined. Scratch scripts:
+`/var/tmp/retdisc_post.py` and `/var/tmp/svtann_rule_on_book.py`. Prediction 2 is graded on the
+run `longjob-svtann-retention-rule-run`. That run started at 01:15 BST from a worktree whose three
+rule files are byte-identical to `9efdb1493`, and its output goes to `/var/tmp/svtann_run.json`.
