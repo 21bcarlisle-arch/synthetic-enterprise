@@ -203,3 +203,56 @@ home (step 4), so the answer is recorded and the household still leaves.
 - **on minus off total net = 0.00 at both ends**, as predicted: nothing supplies a mover at its new
   home yet, so the answer is recorded and the household still leaves (step 4, below).
 - Mutants: dropping the `k > 0` guard reds the k = 0 control; ignoring k reds the scaling control.
+
+## Step 4: the destination supply is NOT built, and why (2026-10-10)
+
+The brief allowed this step only if the destination's demand could be drawn without a number nothing
+establishes. It cannot yet, for three reasons, each a gap rather than a choice:
+
+1. **Where the household goes.** The world draws the destination only as an id (`mover_arrives`,
+   `sim/customer_state_layer.draw_home_move`). Demand needs a location (the weather cell) and the
+   carried tariff needs a region (tariffs are regional, and how one is re-rated at another premises
+   is G8.3, not established). No share of moves within a region is in the knowledge layer. Keeping
+   the same cell and region would be an assumption presented as a draw.
+2. **Who the household is, to the world.** The world keys a household's traits (engagement, price
+   sensitivity, vulnerability, its renewal-roll seed) by account and meter-point id. A new account
+   at a new premises is, to the world, a new household unless identity is carried across the move.
+   That is a world change, and it has to be decided blind to this lever's result.
+3. **The dwelling and its demand.** The premise draw exists (`simulation/premise_population.draw_premise`),
+   but its fabric trace is built once at the run's start. Supplying a drawn premise mid-run needs
+   that path made callable for one premise, as `_admit_incoming_occupant` does by copying.
+
+The executor's parallel build (released, not landed; `/var/tmp/mwu/patch/`) supplied the mover at
+"the origin's twin", which assumes moving leaves a household's consumption unchanged. Nothing
+establishes that, so it is not taken here. **The lever has no money in this world until step 4 is
+built.** Recommended order: (2) household identity across a move, then (1) a sourced
+within-region share, then (3).
+
+## Step 5: the arms graded against P1-P4 as written
+
+**Result** (40 founders, budget 0, base seed; arms `off`, `on` k = 0 and `on` k = 1 on the tree
+carrying steps 1-3; `tools/move_with_us_arms.py`). Counts at both ends: 18 move-out legs, 17 notices,
+14 households asked, 4 offers, 1 answerable, movers who would move with us 0 (k = 0) and 1 (k = 1).
+
+- **P1, byte-identity: HOLDS, with one caveat.** `off` (both switches off) is IDENTICAL BOOK against
+  step 1's run. `on` at k = 0 equals `off` on all 717 account-terms and `total_net`. The caveat is
+  the step 1 result: against the run before the notice existed, 7 floats differ in the last bit
+  (cause not yet located).
+- **P2, the stayers: HOLDS, trivially.** 0 stayer price moves at either end. Trivially, because no
+  retained mover is supplied, so no margin reaches the portfolio premium. The `_held_on_a_save`
+  guard this predicted is owed by step 4.
+- **P3, vulnerability: HALF HOLDS.** 0 twin shortfalls at either end. But a known-vulnerable mover
+  (OCC-6387bf64272a, on the default tariff) is unoffered while 4 fixed-tariff movers are offered, so
+  "no known-vulnerable mover left unoffered while others are" **fails, once**. The cause is the
+  fixed-tariff scope (10 of 14 movers are on the default tariff), not vulnerability: its twin is
+  unoffered too.
+- **P4, the size: WRONG on notices, NOT TESTABLE on money.** On a book of 377 committed
+  customer-years the run filed 17 notices. Scaled to P4's ~3,100 that is about 140, below the
+  predicted 230-540. At k = 1, 1 of 4 offered movers would move with us (not "most"): 3 were in a
+  first term and had no world answer. On minus off total net is **0.00 at both ends**, not positive
+  at k = 1, because nothing supplies the mover (step 4). At k = 0 it is exactly zero, as predicted.
+  **The count turns on k (0 against 1). The money does not move at either end until step 4 exists.**
+
+**What would change the size most, in order:** step 4 (no money without it); a world answer for
+default-tariff movers (10 of 14 here; the executor found one: the household's own segment decision
+annualised over its days); and answering first-term movers.
