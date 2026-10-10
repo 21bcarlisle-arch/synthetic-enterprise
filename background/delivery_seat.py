@@ -1520,6 +1520,13 @@ def focus_drawn_since(since: datetime) -> list[str]:
                   | set(seat_executor.ids_run_since(since.timestamp())))
 
 
+def _held_refusals_since(since: datetime) -> list[dict]:
+    """The held-work check's refusals in the stretch, each with its holder and contested path."""
+    from background import delivery_lane
+
+    return delivery_lane.held_refusals_since(since.timestamp())
+
+
 def _drawn_never_landed(now: datetime) -> list[dict]:
     """Lane 0 items handed out in the last day whose window closed with nothing committed.
 
@@ -1690,6 +1697,9 @@ def build_brief(now: datetime | None = None) -> dict:
             prev_focus, focus_drawn_since(since), atom_ids=set(levels),
             window="this stretch only -- the {}h since {}".format(
                 round((now - since).total_seconds() / 3600.0, 1), since.isoformat())),
+        # BESIDE IT, WHAT THE DRAW REFUSED AND WHY. A focus item the held-work check walked past
+        # on every tick read here exactly like one the draw chose not to take (2026-10-09 21:28Z).
+        "previous_focus_refused": _held_refusals_since(since),
         "live_direction_age_hours": round(live.age_hours(now), 1) if live else None,
         # THE LANDING DOOR, ASKED AT WRITE TIME. `delivery_lane.path_note` prints these verdicts to
         # whoever DRAWS an item, which closes the reader's half and leaves the writer's open: the
@@ -1929,6 +1939,18 @@ def _prompt(brief: dict) -> str:
         steered = ("\n\nWHETHER LAST STRETCH'S FOCUS REACHED THE DRAW WAS NOT MEASURED in this "
                    "brief, so the block above is the only drawn-work reading here and it is not "
                    "about the focus.")
+    refused = brief.get("previous_focus_refused") or []
+    if refused:
+        steered += (
+            "\n\nAND THE DRAW REFUSED THESE, so an item above that reads 'not drawn' may have been "
+            "walked past, not passed over. Each was refused because a live job or worktree holds "
+            "a path it asks to change; if the holder is not doing that item's work, the refusal is "
+            "wrong and the item will be refused again at every draw until the holder goes:\n\n"
+            + "\n".join("- {} -- {} ({} draw(s), last {}): {}".format(
+                r.get("id"), r.get("holder"), r.get("times"),
+                datetime.fromtimestamp(float(r.get("last_refused_at") or 0.0),
+                                       timezone.utc).isoformat(timespec="minutes"),
+                r.get("contested")) for r in refused))
     stalled_rows = brief.get("atoms_stalled_with_reason") or []
     if stalled_rows:
         steered += (

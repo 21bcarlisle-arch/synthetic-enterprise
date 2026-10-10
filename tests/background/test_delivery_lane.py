@@ -1116,6 +1116,73 @@ def test_a_path_the_holder_holds_refuses_and_a_dotted_module_name_does_not():
     assert dl.held_by(_item("y", "land it with python3 -m tools.surgical_land"), [holder]) is None
 
 
+#: 2026-10-09's refused focus item, the clauses that name paths verbatim from DIRECTION.yaml at
+#: bd189e491. Its work was in background/delivery_seat.py; it named the direction file only as the
+#: thing that had failed to land, and /var/tmp/se-conc held a modified copy of that file.
+_DIRECTION_RECORD_ITEM = _item(
+    "the-seats-direction-record-reaches-origin",
+    "The delivery seat's 17:23 record was committed as 167d583a4 in /var/tmp/se-direction-seat at "
+    "17:44Z and is on no remote. Origin's docs/direction/DIRECTION.yaml is still the 14:20 record, "
+    "with rows grafted in by 95c1193cb and b6860aaf1. (1) From the delivery-seat journal "
+    "(2026-10-09 17:23-17:46Z) and the landing path in background/delivery_seat.py, establish why "
+    "it never promoted.")
+
+_SE_CONC = {"holder": "live worktree /var/tmp/se-conc", "artefact": "/var/tmp/se-conc",
+            "names": {"/var/tmp/se-conc"}, "paths": {"docs/direction/DIRECTION.yaml"},
+            "identifiers": set()}
+
+
+def test_a_context_only_mention_is_drawn_and_a_path_it_asks_to_change_is_still_refused(
+        tree, monkeypatch):
+    """THE PARTITION, ONE CONTROL. The 2026-10-09 item names the held file as context and is drawn,
+    with the holder named beside it; an item that asks to EDIT the same held file is refused.
+
+    MUTATION (must fire): in `held_grade`, refuse on every shared path (`asked = set(shared_paths)`)
+    -- the context-only item is refused again, which is the 21:28Z defect.
+    MUTATION (must fire): `asked = set()` -- the justified refusal no longer fires.
+    """
+    editor = _item("rewrite-the-direction-record",
+                   "Rewrite docs/direction/DIRECTION.yaml so its focus carries the new rows.")
+    tree["write"]([editor, _DIRECTION_RECORD_ITEM])
+    monkeypatch.setattr(dl, "_live_holders", lambda: [_SE_CONC])
+
+    text = dl.draw(now=NOW_EPOCH, path=tree["claims"])
+
+    assert [i["id"] for i, _h, _r in dl.LAST_HELD_SKIPS] == ["rewrite-the-direction-record"]
+    assert "rewrite-the-direction-record" not in dl.held(tree["claims"])
+    assert _DIRECTION_RECORD_ITEM["id"] in dl.held(tree["claims"])
+    assert text and "CONTEXT ONLY, NOT REFUSED" in text and "/var/tmp/se-conc" in text
+
+
+def test_a_held_work_refusal_reaches_the_seats_brief(tree, monkeypatch):
+    """A refusal is written beside the draw ledger with its holder and contested path, read back
+    for the stretch, and printed in the orientation prompt next to 'did the focus reach the draw'.
+
+    MUTATION (must fire): drop `record_held_refusals` from `draw` -- the store stays empty.
+    MUTATION (must fire): drop the `previous_focus_refused` block from `delivery_seat._prompt`.
+    """
+    from background import delivery_seat as ds
+
+    editor = _item("rewrite-the-direction-record",
+                   "Rewrite docs/direction/DIRECTION.yaml so its focus carries the new rows.")
+    tree["write"]([editor])
+    monkeypatch.setattr(dl, "_live_holders", lambda: [_SE_CONC])
+
+    assert dl.draw(now=NOW_EPOCH, path=tree["claims"]) is None
+    dl.draw(now=NOW_EPOCH + 60, path=tree["claims"])
+
+    rows = dl.held_refusals_since(NOW_EPOCH - 1, path=tree["claims"])
+    assert [r["id"] for r in rows] == ["rewrite-the-direction-record"]
+    assert rows[0]["holder"] == "live worktree /var/tmp/se-conc" and rows[0]["times"] == 2
+    assert "docs/direction/DIRECTION.yaml" in rows[0]["contested"]
+    assert dl.held_refusals_since(NOW_EPOCH + 61, path=tree["claims"]) == []
+
+    prompt_text = ds._prompt({"previous_focus_drawn": {"focus": [], "drawn": [], "window": "w"},
+                              "previous_focus_refused": rows})
+    assert "THE DRAW REFUSED THESE" in prompt_text
+    assert "rewrite-the-direction-record -- live worktree /var/tmp/se-conc" in prompt_text
+
+
 def test_a_running_jobs_worktree_diff_is_its_subject(tmp_path, monkeypatch):
     """The probe end to end over a real git worktree: a running unit whose artefact is written into
     a worktree holds the identifiers that worktree's diff changes, and a stale owner pid holds

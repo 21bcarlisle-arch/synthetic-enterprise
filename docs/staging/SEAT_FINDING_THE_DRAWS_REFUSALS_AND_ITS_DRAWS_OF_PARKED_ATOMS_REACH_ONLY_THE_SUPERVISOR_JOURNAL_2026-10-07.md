@@ -40,3 +40,45 @@ items, and exclusions of atoms that are in neither set, still reach nobody.
 
 Each leg needs a control that can fail: a focus item refused by the held-work check that must
 appear in the brief, and a parked atom in a fixture map that the draw must not select.
+
+## Outcome, defect 1 (worker, 2026-10-10)
+
+Built under focus item `a-held-work-refusal-of-a-focus-item-reaches-the-brief`. Defects 2 and 3
+remain open.
+
+**The refusal now reaches the brief.** `delivery_lane.draw` writes every held-work refusal to
+`docs/observability/.delivery_lane_claims.refusals.json`. Each row records the id, holder,
+artefact, contested subject, first and last refusal, and a count. The file is gitignored like
+the draw ledger beside it. `delivery_seat.build_brief` carries the refusals as
+`previous_focus_refused`. `_prompt` prints them directly under "did last stretch's focus reach the
+draw", so a focus item that was walked past no longer reads as one the draw passed over.
+
+**The path leg refuses only on a path the item asks to change.** `held_grade` refuses when a
+held path sits under an explicit change verb (`_paths_asked_to_change`, using the same
+nearest-governor walk as `_path_roles`). A held path the prose names under a read verb, or under
+no verb, is context. The item is drawn anyway, and the doorbell prints
+`HELD-WORK CHECK, CONTEXT ONLY, NOT REFUSED` with the holder named. The identifier leg is
+unchanged.
+
+**Why the change vocabulary's own subject side was not enough.** `_path_roles` counts an
+ungoverned path as a subject, because the ledger must fail by under-crediting. On the
+2026-10-09 evidence that reading is exactly backwards. In
+`the-seats-direction-record-reaches-origin`, `docs/direction/DIRECTION.yaml` is ungoverned
+("Origin's docs/direction/DIRECTION.yaml is still the 14:20 record"), so `_path_roles` reads it as
+a subject. Its real work, `background/delivery_seat.py`, is governed by `from`, so it reads as a
+mention. So the refusal at 21:28Z was not justified: the contested path was context. Under the
+new rule it is annotated, not refused.
+
+**The cost, measured before landing.** Across the distinct focus items in the last 30 revisions
+of `DIRECTION.yaml` (65 items, 108 confirmed path mentions), 45 mentions sit under an explicit
+change verb. 19 items name paths but would never refuse on the path leg. For those items a live
+holder now produces an annotated draw instead of a refusal. That is the side this check is
+allowed to be wrong on. A wrong refusal is silent and repeats on every draw, while a wrong draw
+happens once and the doorbell names the holder.
+
+**Controls** (`tests/background/test_delivery_lane.py`). In
+`test_a_context_only_mention_is_drawn_and_a_path_it_asks_to_change_is_still_refused`, the
+evidence item is drawn while an edit of the same held file is refused. It reds under both
+`asked = set(shared_paths)` and `asked = set()`.
+`test_a_held_work_refusal_reaches_the_seats_brief` reds when `record_held_refusals` is dropped
+from `draw`, and when the `previous_focus_refused` block is dropped from `_prompt`.

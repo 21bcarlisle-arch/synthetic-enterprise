@@ -41,6 +41,7 @@ docs/observability/value_cycle_size_term_paired_floor_legs/
 # line is ever dropped, read that docstring first.
 docs/observability/.delivery_lane_claims.json
 docs/observability/.delivery_lane_claims.draws.json
+docs/observability/.delivery_lane_claims.refusals.json
 # seat_work_in_hand._exclusive / _save: the claim stores' writer lock and atomic-write sibling
 docs/observability/.delivery_lane_claims.json.lock
 docs/observability/.seat_work_in_hand.json.lock

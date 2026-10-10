@@ -1211,11 +1211,24 @@ def _path_roles(text: str, known: set[str] | None = None) -> tuple[list[str], li
     is the route `_paths_named_in` takes, so the union it returns is unchanged.
     """
     tracked = _tracked_files() if known is None else set(known)
-    if not tracked:
-        return [], []
-    body = text or ""
     to_change: set[str] = set()
     mentioned: set[str] = set()
+    for path, governor in _path_occurrences(text, tracked):
+        (mentioned if governor == "read" else to_change).add(path)
+    return sorted(to_change), sorted(mentioned - to_change)
+
+
+def _path_occurrences(text: str, tracked: set[str]) -> list[tuple[str, str | None]]:
+    """Every confirmed path occurrence with its NEAREST governor: "change", "read", or None.
+
+    One walk for both readers. `_path_roles` folds None into the subject side, because the ledger
+    must fail by under-crediting; `_paths_asked_to_change` folds it into the context side, because
+    the held-work refusal must fail by under-REFUSING. Same occurrences, opposite safe directions.
+    """
+    if not tracked:
+        return []
+    body = text or ""
+    out: list[tuple[str, str | None]] = []
     for match in _PATH_TOKEN.finditer(body):
         path = _confirm_path(match.group(0), tracked)
         if path is None:
@@ -1224,11 +1237,21 @@ def _path_roles(text: str, known: set[str] | None = None) -> tuple[list[str], li
         ends = list(_CLAUSE_END.finditer(prefix))
         clause = prefix[ends[-1].end():] if ends else prefix
         governors = list(_GOVERNOR.finditer(clause))
-        if governors and governors[-1].lastgroup == "read":
-            mentioned.add(path)
-        else:
-            to_change.add(path)
-    return sorted(to_change), sorted(mentioned - to_change)
+        out.append((path, governors[-1].lastgroup if governors else None))
+    return out
+
+
+def _paths_asked_to_change(text: str, known: set[str]) -> set[str]:
+    """The paths in `known` that some occurrence in `text` puts under an explicit CHANGE verb.
+
+    STRICTER THAN `_path_roles`' subject side, ON PURPOSE. An ungoverned path is a subject to the
+    ledger and context to the held-work check: a wrong refusal is silent and repeats on every draw
+    (2026-10-09 21:28Z on: `the-seats-direction-record-reaches-origin` named
+    `docs/direction/DIRECTION.yaml` once, ungoverned, as the thing that had failed to land; its work
+    was in `background/delivery_seat.py`, named under `from`), while a wrong non-refusal is one
+    draw beside a holder the doorbell names.
+    """
+    return {p for p, governor in _path_occurrences(text, set(known)) if governor == "change"}
 
 
 #: The prose fields a direction/continuation item carries, in the order a reader would read them.
@@ -4963,46 +4986,124 @@ def held_in_other_stores(own: Path, now: float | None = None,
 
 
 def held_by(item: dict, holders: list[dict]) -> tuple[dict, str] | None:
-    """(holder, reason) when a live holder already holds `item`'s subject, else None.
+    """(holder, reason) when a live holder already holds `item`'s subject, else None."""
+    return held_grade(item, holders)[0]
+
+
+def held_grade(item: dict, holders: list[dict]
+               ) -> tuple[tuple[dict, str] | None, list[tuple[dict, str]]]:
+    """(refusal, context): the refusal `held_by` returns, and every holder the item only MENTIONS.
 
     KEYED ON THE SUBJECT, NOT THE ID. The id is exactly what a re-mint changes. The fourth PB4 draw
     named no path the job held; it named `_bill_shock_base`, which the held worktree's diff changes
     on thirteen lines. So two legs: a path the item names that the holder holds, and an identifier
     the item names that the holder's diff changes.
+
+    THE PATH LEG REFUSES ONLY ON A PATH THE ITEM ASKS TO CHANGE (`_paths_asked_to_change`). A held
+    path the prose names as context -- under a read verb, or under no verb -- is returned in
+    `context` and drawn anyway, so the doorbell can name the holder beside the work. The identifier
+    leg is unchanged: a name the holder's diff changes is a subject whatever verb the prose uses.
     """
     prose = _item_prose(item)
     named_paths = {m.group(0).rstrip(".)") for m in _NAMED_PATH.finditer(prose)}
     idents = _identifiers(prose)
+    context: list[tuple[dict, str]] = []
     for holder in holders:
         if any(n and n in prose for n in holder.get("names") or ()):
             continue
         reasons = []
         shared_paths = sorted(p for p in named_paths & set(holder.get("paths") or ())
                               if claims_mod._informative(p))
-        if shared_paths:
-            reasons.append("holds " + ", ".join(shared_paths))
+        asked = _paths_asked_to_change(prose, set(shared_paths)) if shared_paths else set()
+        if asked:
+            reasons.append("holds " + ", ".join(sorted(asked)))
         shared_idents = sorted(idents & set(holder.get("identifiers") or ()))
         if shared_idents:
             reasons.append("its uncommitted diff changes " + ", ".join(shared_idents))
         if reasons:
-            return holder, " and ".join(reasons)
-    return None
+            return (holder, " and ".join(reasons)), context
+        if shared_paths:
+            context.append((holder, "holds " + ", ".join(shared_paths)))
+    return None, context
 
 
-def held_note(skipped: list[tuple[dict, dict, str]]) -> str:
-    """The doorbell line naming every item the draw walked past because a live holder has it."""
-    if not skipped:
-        return ""
-    named = "; ".join(f"`{item.get('id')}` -- {holder['holder']} (artefact {holder['artefact']}) "
-                      f"{reason}" for item, holder, reason in skipped)
-    return ("HELD-WORK CHECK (systemd and live worktrees, run at draw time): the draw REFUSED "
-            f"{len(skipped)} item(s) because a running job or a live worktree already holds their "
-            f"subject -- {named}. Nothing was claimed for them and nothing was released. If one is "
-            "NOT the held work, say so in docs/staging/ and name the holder; do not re-mint it. ")
+def held_note(skipped: list[tuple[dict, dict, str]],
+              context: list[tuple[dict, dict, str]] | None = None) -> str:
+    """The doorbell line naming every item the draw walked past because a live holder has it, and
+    every drawn-anyway item whose prose names a held path only as context."""
+    out = ""
+    if skipped:
+        named = "; ".join(f"`{item.get('id')}` -- {holder['holder']} (artefact "
+                          f"{holder['artefact']}) {reason}" for item, holder, reason in skipped)
+        out += ("HELD-WORK CHECK (systemd and live worktrees, run at draw time): the draw REFUSED "
+                f"{len(skipped)} item(s) because a running job or a live worktree already holds "
+                f"the subject each asks to change -- {named}. Nothing was claimed for them and "
+                "nothing was released. If one is NOT the held work, say so in docs/staging/ and "
+                "name the holder; do not re-mint it. ")
+    if context:
+        named = "; ".join(f"`{item.get('id')}` -- {holder['holder']} {reason}"
+                          for item, holder, reason in context)
+        out += ("HELD-WORK CHECK, CONTEXT ONLY, NOT REFUSED: these items name a held path but no "
+                f"change verb governs it, so they stay drawable -- {named}. Read the holder's diff "
+                "before you edit that path. ")
+    return out
 
 
 #: The (item, holder, reason) triples the last `next_item` walk refused as held. Read by `draw`.
 LAST_HELD_SKIPS: list[tuple[dict, dict, str]] = []
+#: The (item, holder, reason) triples the last walk ANNOTATED: a held path named as context only.
+LAST_HELD_CONTEXT: list[tuple[dict, dict, str]] = []
+
+#: Every held-work refusal by id, first and latest, for `delivery_seat`'s brief. A refusal that
+#: reached only the supervisor journal is how a focus item looked, in the brief, exactly like one
+#: the draw chose not to take: 2026-10-09 21:28Z on, every tick, and nothing the seat read said so.
+HELD_REFUSALS_FILE = CLAIMS_FILE.with_suffix(".refusals.json")
+#: Rows older than this are dropped at write: the brief reads one stretch, and this store is never
+#: emptied by a release, so it needs a bound. A week is two days of orientations past any stretch.
+HELD_REFUSALS_KEEP_SECONDS = 7 * 86400
+
+
+def _refusals_path(store: Path) -> Path:
+    """The refusals store beside a given claims store, for `_ledger_path`'s reason."""
+    return store.with_suffix(".refusals.json")
+
+
+def record_held_refusals(skipped: list[tuple[dict, dict, str]], *, now: float | None = None,
+                         path: Path | None = None) -> None:
+    """Write each refused id with its holder, artefact and contested subject. Never raises."""
+    if not skipped:
+        return
+    when = time.time() if now is None else float(now)
+    target = _refusals_path(path or CLAIMS_FILE)
+    try:
+        rows = claims_mod._load(target)
+        rows = {k: v for k, v in (rows if isinstance(rows, dict) else {}).items()
+                if isinstance(v, dict)
+                and when - float(v.get("last_refused_at") or 0.0) < HELD_REFUSALS_KEEP_SECONDS}
+        for item, holder, reason in skipped:
+            fid = str(item.get("id") or "")
+            if not fid:
+                continue
+            prev = rows.get(fid) or {}
+            rows[fid] = {"first_refused_at": float(prev.get("first_refused_at") or when),
+                         "last_refused_at": when,
+                         "times": int(prev.get("times") or 0) + 1,
+                         "holder": holder.get("holder"), "artefact": holder.get("artefact"),
+                         "contested": reason}
+        claims_mod._save(rows, target)
+    except Exception:  # noqa: BLE001 - `draw` never raises, and this sits inside it
+        return
+
+
+def held_refusals_since(cutoff: float, *, path: Path | None = None) -> list[dict]:
+    """Every id the held-work check refused at or after `cutoff`, newest first, with its holder."""
+    try:
+        rows = claims_mod._load(_refusals_path(path or CLAIMS_FILE))
+    except Exception:
+        return []
+    out = [dict(row, id=fid) for fid, row in (rows if isinstance(rows, dict) else {}).items()
+           if isinstance(row, dict) and float(row.get("last_refused_at") or 0.0) >= float(cutoff)]
+    return sorted(out, key=lambda r: -float(r.get("last_refused_at") or 0.0))
 
 
 def next_item(now: float | None = None, path: Path | None = None, *,
@@ -5090,6 +5191,7 @@ def next_item(now: float | None = None, path: Path | None = None, *,
     # the ordinary walk ends at the first unclaimed row. The skips are kept so `draw` can name the
     # holder: a refusal that does not say why is how a wrong refusal stays invisible.
     LAST_HELD_SKIPS.clear()
+    LAST_HELD_CONTEXT.clear()
     LAST_FINISHED_SKIPS.clear()
     probed: list[list[dict]] = []
 
@@ -5102,9 +5204,11 @@ def next_item(now: float | None = None, path: Path | None = None, *,
     def _held(item) -> bool:
         if not probed:
             probed.append(_live_holders())
-        hit = held_by(item, probed[0])
+        hit, context = held_grade(item, probed[0])
         if hit is not None:
             LAST_HELD_SKIPS.append((item, hit[0], hit[1]))
+        else:
+            LAST_HELD_CONTEXT.extend((item, holder, why) for holder, why in context)
         return hit is not None
 
     def _continuation():
@@ -5187,7 +5291,9 @@ def draw(now: float | None = None, path: Path | None = None, *, claim: bool = Tr
     """
     try:
         item = next_item(now=now, path=path)
-        held = held_note(list(LAST_HELD_SKIPS)) + finished_note(list(LAST_FINISHED_SKIPS))
+        record_held_refusals(list(LAST_HELD_SKIPS), now=now, path=path)
+        held = (held_note(list(LAST_HELD_SKIPS), list(LAST_HELD_CONTEXT))
+                + finished_note(list(LAST_FINISHED_SKIPS)))
         if item is None:
             return None
         if not claim:
