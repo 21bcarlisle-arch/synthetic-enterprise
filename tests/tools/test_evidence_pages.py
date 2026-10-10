@@ -346,46 +346,6 @@ def test_rendered_totals_come_from_the_payload(payload, page_html):
         )
 
 
-def test_the_publish_cycle_refreshes_the_payload_that_the_capabilities_door_reads():
-    """DEFECT, observed live on 2026-08-22: `site/data/evidence.json` had no producer in the
-    publish cycle while a page published every 25 minutes read it.
-
-    The retirement of /evidence/ on 2026-08-20 correctly dropped the evidence step from
-    `process_run_complete` -- the generator was recreating the deleted door every cycle. What
-    nobody checked is that the payload has a SECOND consumer: `generate_capabilities_door`
-    reads evidence.json for the "Checked by N automated checks, last run <date>" line. So the
-    door kept regenerating (`capabilities_door.json` stamped 2026-08-22T10:02:21Z) while the
-    figure inside it was pinned at 2026-08-20T05:08:54Z, and would have been forever. A stale
-    number inside a fresh feed is worse than a stale page: nothing about it looks old.
-
-    NOT TAUTOLOGICAL: the consumer half is asserted from the CONSUMER's own source, so this
-    fails if the door stops reading the payload (in which case the wiring is genuinely
-    unnecessary and this control should be deleted) exactly as it fails if the producer is
-    unwired again.
-
-    THE PRODUCER MOVED 2026-09-23 (`7e9c2c935`): `process_run_complete` calls
-    `tools.publish_from_a_clean_tree.publish`, which runs both generators in a clean checkout of
-    HEAD. This leg grepped for the old in-tree import and was red from that commit on. The old
-    ORDER leg is gone with it, deliberately: each clean-tree generator reads the COMMITTED
-    siblings, so the door lags the payload by one cycle by design, and that module's docstring
-    says so. R15 MUTATION: drop `evidence.json` from `PUBLISHED_FROM_A_CLEAN_TREE` -> red."""
-    from tools.publish_from_a_clean_tree import PUBLISHED_FROM_A_CLEAN_TREE
-
-    publisher = (PROJECT / "background" / "process_run_complete.py").read_text(encoding="utf-8")
-    consumer = (PROJECT / "tools" / "generate_capabilities_door.py").read_text(encoding="utf-8")
-
-    assert "evidence.json" in consumer, (
-        "generate_capabilities_door no longer reads site/data/evidence.json -- if the payload "
-        "has no live consumer left, delete this control and the publish step with it rather "
-        "than keeping a generator running for nobody"
-    )
-    assert ("from tools.publish_from_a_clean_tree import publish" in publisher
-            and PUBLISHED_FROM_A_CLEAN_TREE.get("evidence.json") == "generate_evidence_data"), (
-        "the publish cycle does not refresh site/data/evidence.json, but the Capabilities "
-        "door published every cycle reads it -- its 'last run' date will freeze silently"
-    )
-
-
 # --- source unavailable must be LOUD (fail-silent killer) --------------------
 
 _SOURCES = ("map_path", "mapping_path", "ledger_path", "suite_log_path")

@@ -644,3 +644,32 @@ def test_the_door_boots_against_its_own_feed():
         content = rendered.get("innerHTML") or rendered.get("textContent") or ""
         assert content.strip(), f"#{element} rendered nothing"
         assert "could not load" not in content.lower(), f"#{element} rendered its error path"
+
+
+def test_a_test_file_two_claims_cite_is_counted_once_and_a_missing_one_covers_nothing(tmp_path):
+    """The four household items cite ONE test file; summed per item it was published as four
+    times its size. An item whose cited test file does not exist must not count as covered."""
+    from tools import generate_evidence_data as ev
+    tests = tmp_path / "tests"
+    tests.mkdir()
+    (tests / "test_shared.py").write_text("def test_a():\n    pass\n\ndef test_b():\n    pass\n")
+    records = {
+        "A": {"id": "A", "evidence_raw": "[tests/test_shared.py]"},
+        "B": {"id": "B", "evidence_raw": "[tests/test_shared.py]"},
+        "C": {"id": "C", "evidence_raw": "[tests/test_gone.py]"},
+    }
+    got = ev.cited_test_functions(["A", "B", "C"], records, tmp_path)
+    assert got == {"checks": 2, "covered": 2, "of": 3}, got
+    assert ev.cited_test_functions(["C"], records, tmp_path) is None
+
+
+def test_a_check_count_carries_no_run_date(feed):
+    """The count is of tests that EXIST. It once shipped beside a "last run" date that was the
+    day of the largest collection ever logged, three months stale; nothing records when a
+    claim's own tests last ran, so a check publishes counts only."""
+    rows = [e["checks"] for e in feed["world"]["entries"] + feed["supplier"]["entries"]
+            if e.get("checks")]
+    assert rows, "no claim carries a check count -- this control would be vacuous"
+    for c in rows:
+        assert all(isinstance(v, int) for v in c.values()), c
+        assert 0 < c["covered"] <= c["of"], c
