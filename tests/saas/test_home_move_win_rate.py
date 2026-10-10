@@ -147,3 +147,15 @@ def test_epc_sensitivity_monotonic():
     ratings = ["A", "B", "C", "D", "E", "F", "G"]
     sensitivities = [PRICE_SENSITIVITY_BY_EPC[r] for r in ratings]
     assert sensitivities == sorted(sensitivities)
+
+
+def test_an_account_whose_only_leg_is_gas_takes_that_legs_profile():
+    """DEFECT: a change of tenancy at a gas-only premise opens `OCC-<id>g` alone, and its account
+    `OCC-<id>` raised KeyError here (EP17 seeds 61102 and 61104, 2026-10-10), one step past the
+    churn model's same lookup. An id with no leg at all still raises."""
+    renewal = {"renewal_period": "2017-01", "bill_shock_count": 0, "churn_probability": 0.05}
+    gas_only = [{"customer_id": "OCC-1g", "segment": "resi", "epc_rating": "G"}]
+    result = build_home_move_win_rates({"OCC-1": [renewal]}, gas_only, 0.0)
+    assert result["OCC-1"][0]["win_probability"] == home_move_win_probability("resi", "G", 0.0)
+    with pytest.raises(KeyError):
+        build_home_move_win_rates({"C99": [renewal]}, gas_only, 0.0)
