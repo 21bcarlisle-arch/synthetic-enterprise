@@ -82,5 +82,68 @@ this finding's own figures, so the before and after readings come from one instr
 Debt-to-income is not in `run_output_latest.json`; that leg of prediction 4 will read "cannot yet
 tell" from this artefact unless the arrears harness is re-run against it.
 
-*14:17: the run got room at ~13:25 (after the fam1 members) and has reached 2022-12; the readings
-replace this line when it finishes.*
+## The grade (run finished 14:50, 2026-10-10)
+
+The run finished at 14:50. Its payload stamps **`7379375f6`**, the run worktree's HEAD and not the
+`abb925ec7` in the file name. It descends from 1d3c28930 and is on origin. Same grader, same keys:
+before is in `/var/tmp/single_levy/grade_before_cf8706023.txt`, after in
+`grade_after_abb925ec7.txt`, and the run is at `/var/tmp/single_levy/run_output_abb925ec7.json`.
+
+**This is not a one-variable comparison.** cf8706023..7379375f6 is 74 commits, and 9 of them touch
+the world or the company: move-out notice, gas-only change of tenancy, a gas meter needed on a gas
+arrival, switching at renewal, the B8 retention holdout, and the retention offer at a term. Gas is
+the clean leg: 12,976 bills and 11,382,289 kWh in both runs, identical to the kWh. Electricity
+moved +0.9% in kWh (25,462 to 25,527 bills), so it is read per MWh.
+
+| prediction | before (cf8706023) | after (7379375f6) | grade |
+|---|---|---|---|
+| 1. first-review DD variance 2017-2021: median within ±10%, share > 15% below 40% | +32.8%, 90% (n=621) | **-1.8%, 17%** (n=620); every year 2017-2021 is between -4.5% and +3.9% | **MET** |
+| 2. final DD balance within ±£20k; peak held credit above £20k | -£81,185 / £9,987 | **-£39,344 / £19,105** (2024-11) | **NOT MET**, on both legs |
+| 3. resi bills: elec down 20-25%, gas down 15-20%; settlement revenue unmoved | £2,073,168 / £811,185; rev £2,211,737 | £1,663,007 (-19.8%; **-20.5% per MWh**, 312.9 to 248.7 inc-VAT) / £671,942 (**-17.2%**, same kWh); rev £2,228,274 (+0.75%, with kWh +0.9%) | **MET** (elec on the per-MWh reading; the raw total sits 0.2 pt outside the band because volume moved) |
+| 4. figures reading bill totals move with them | see below | see below | **cannot yet tell** |
+
+**Prediction 2, why it missed.** The portfolio balance month by month (before to after):
+2016-12 -£22.6k to +£1.5k; 2018-06 -£63.5k to **-£20.6k**; 2021-12 -£53.4k to -£19.7k; 2023-06
+-£284k to -£238k; 2025-06 -£81k to -£39k. The fix removed about £40-45k of steady pre-crisis
+net debit. It did not create a summer credit build. Held credit before the crisis stays at
+£2-6k across ~600 DD customers, about £5-10 each against Ofgem's ~£200, and the book is £20k net
+debit by mid-2018. That residual is not the levy. The prediction assumed the levy was the whole
+pre-crisis gap, and it was not. What drives the rest is the open question for
+`DD_seasonal_cashflow_physics` L3, now that the double count no longer hides it. **I cannot yet say
+what it is.** The other 73 commits are not ruled out, because this run changed more than one thing.
+
+**Prediction 4, per figure.** Ledger total billed £2,890,673 to £2,334,378 (-19.2%). Bad debt
+written off £8,285 to £6,460 (-22%). Ledger bad debt £58,344 to £47,099 (-19%). Back-billing
+write-off £43,334 to £22,469 (-48%). Receivables peak (2022) £73,931 to £66,460 (-10%).
+**Provisioned bad debt £94,084 to £94,999 (+1%) did not move.** Cash at 2025 fell £1,211,253 to
+£684,780 (-£526k), about the £556k fall in total billed: the supplier's cash had been holding the
+over-collection. Treasury £739,345 to £746,471 and total net £489,345 to £496,471 barely moved,
+because both read settlement. Most of the bill readers moved with the bills; the provision did not.
+Debt-to-income is not in the artefact. The prediction is graded "cannot yet tell" for two reasons:
+the provision's non-move is unexplained until each bad-debt figure is traced to its source (the
+continuation `the-levy-findings-bad-debt-leg-is-sourced-before-it-is-graded`, refused at today's
+draw as held by `/var/tmp/se-cap`), and debt-to-income needs the arrears harness re-run on this
+artefact (`the-arrears-grade-is-retaken-on-single-levy-bills`).
+
+## Not on origin yet, and Monday's publish may not get it there
+
+The run is graded, not published. Two things hold it back.
+
+1. **The weekly window.** Figures go to origin from Monday 04:00 London (director, 2026-09-26,
+   `process_run_complete` "THE WEEKLY WINDOW"). sim-runner's cf8706023 run was HELD at 02:46 for
+   exactly that reason. Promoting this run and its pages by hand mid-week would bypass his cadence,
+   so `docs/reports/run_output_latest.json` on origin is still 998814330 (2026-10-05). Every
+   published page (`site/data/customers.json`, `supplier.json`, `dashboard.json`, `company.json`,
+   `customer_sample.json`, `margin_bridge.json`, `sim_data.json`, `site/state/billing_ledger.json`,
+   and the annual report and LATEST.md) quotes that pre-fix run. No published page carries the
+   single-levy figures yet.
+2. **GitHub refuses a file over 100 MB, and the run is 123.5 MB.** Every sim-runner run since
+   2026-10-09 13:01 is ~120 MB (indent=2), against 26 MB for the 10-05 run that last reached
+   origin, and `git_commit_push` commits `run_output_latest.json` beside `customers.json`. Measured
+   on this run: compact JSON is 91.5 MB, which fits with 8% to spare; gzip is 11.5 MB. `bills`
+   alone is 37.7 MB compact. Unless the committed copy shrinks, the first publish after the window
+   opens will be refused at push. Filed separately:
+   `SEAT_FINDING_THE_PUBLISHED_RUN_OUTGREW_GITHUBS_FILE_LIMIT_2026-10-10.md`.
+
+On Monday, sim-runner will publish its own run. That run carries the fix only if the shared
+checkout has advanced past 1d3c28930 by then (at 14:30 it was 87 commits behind origin).
