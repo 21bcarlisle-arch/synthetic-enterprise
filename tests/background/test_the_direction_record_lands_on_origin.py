@@ -346,6 +346,32 @@ def test_a_red_gates_refusal_names_the_refusing_step_and_not_the_boilerplate_abo
         assert "✓" not in detail, detail
 
 
+def test_a_gate_that_refuses_without_a_banner_keeps_its_own_reasons(world):
+    """Defect it names: 17:45Z 2026-10-09, 167d583a4's merge re-landing went red at
+    `[knowledge-gate] COMMIT REFUSED.` and the record stopped there. The gate wrote which file it
+    refused on the lines below, to stderr, with no `❌`; only its first line is a verdict line, so
+    the filter dropped the reasons inside a record a third of the cut. A replay passed, so the
+    record was the only route to the cause.
+
+    The second leg is the budget: twenty earlier selection lines must not push the reasons out.
+
+    MUTATIONS (must fire): restore the verdict-line filter over every line (the reasons leg loses
+    the file); trim the refusing tail instead of the earlier lines (the budget leg loses it)."""
+    reason = "docs/market_research/FOO.md declares no **Knowledge:** topic line"
+    passed = "[test-gate] merge with 63f429536: selecting on its combined diff, 0 of 5 path(s)\n"
+    err = ("x.py:3: SyntaxWarning: invalid escape sequence\n[knowledge-gate] COMMIT REFUSED.\n  "
+           + reason + "\n  Add one, or none -- <reason>.")
+    for out in (passed + "[test-gate] ✓ consolidation holds\n", passed * 20):
+        world["state"]["red"] = True
+        world["state"]["red_text"] = (
+            "GATE RED on the resulting tree (rc=1). This is the tree the commit WOULD create.\n"
+            + surgical_land._verdict_excerpt(out, err))
+        ok, detail = seat.commit_direction()
+        assert ok is False and "[knowledge-gate] COMMIT REFUSED." in detail, detail
+        assert reason in detail and "Add one" in detail, detail
+        assert "SyntaxWarning" not in detail and "✓" not in detail, detail
+
+
 def test_a_refused_landing_is_RECORDED_as_refused_and_PAGED(tmp_path, monkeypatch):
     """Defect it names: the orientation row is appended as `oriented` before the landing, and a
     refused landing left it reading `oriented` with nobody told. MUTATIONS (must fire): skip the

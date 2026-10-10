@@ -2577,7 +2577,7 @@ def commit_direction(lander=None) -> tuple[bool, str]:
     return True, f"commit rc=0; landed {sha[:9]} on origin/main"
 
 
-def refusal_verdict(text: str, limit: int = 600) -> str:
+def refusal_verdict(text: str, limit: int = 1500) -> str:
     """The refusal's head line and the lines that name what went red, joined on one line.
 
     THE FIRST THREE LINES WERE THE BOILERPLATE (2026-10-09 02:43). A red gate's refusal from
@@ -2585,16 +2585,30 @@ def refusal_verdict(text: str, limit: int = 600) -> str:
     that PASSED, and only then the refusing step's `❌` banner. Cut at three lines and 300
     characters, the 02:43 record ended mid-word inside `[live-hook]`: the direction record stayed
     off origin, its four files held the shared tree's fast-forward, and nothing said which gate.
-    `origin_reconcile` lost its refusal to the same cut and fixed it the same way (eaa94ed5f)."""
+    `origin_reconcile` lost its refusal to the same cut and fixed it the same way (eaa94ed5f).
+
+    THE REASONS UNDER A GATE WITH NO `❌` WERE FILTERED OUT (2026-10-09 17:45). The knowledge
+    gate prints `[knowledge-gate] COMMIT REFUSED.` and then, on the lines below, which file it
+    refused and why. Only the first line is a verdict line, so the filter kept it and dropped the
+    reasons -- the record was 460 characters, well inside the cut, and still could not name the
+    file; a faithful replay passed, so that record was the only route to the cause. The gate
+    chain is `cmd || exit 1`, so whatever follows the LAST verdict line is the refusing gate's
+    own account: it is kept whole, ahead of the earlier selection lines when the budget binds."""
     lines = [line.strip() for line in text.strip().splitlines() if line.strip()]
     if not lines:
         return ""
     if "❌" in text:
         said = [line.strip() for line in text[text.index("❌"):].splitlines() if line.strip()]
-    else:
-        said = [line for line in lines[1:]
-                if child_diagnostics.is_verdict_line(line) and "✓" not in line] or lines[1:3]
-    return " | ".join([lines[0], *said])[:limit]
+        return " | ".join([lines[0], *said])[:limit]
+    marks = [i for i, line in enumerate(lines[1:], 1)
+             if child_diagnostics.is_verdict_line(line) and "✓" not in line]
+    if not marks:
+        return " | ".join([lines[0], *lines[1:3]])[:limit]
+    earlier = [lines[i] for i in marks[:-1]]
+    refusing = lines[marks[-1]:]
+    while earlier and len(" | ".join([lines[0], *earlier, *refusing])) > limit:
+        earlier.pop(0)
+    return " | ".join([lines[0], *earlier, *refusing])[:limit]
 
 
 def out_of_scope_writes() -> list[str]:

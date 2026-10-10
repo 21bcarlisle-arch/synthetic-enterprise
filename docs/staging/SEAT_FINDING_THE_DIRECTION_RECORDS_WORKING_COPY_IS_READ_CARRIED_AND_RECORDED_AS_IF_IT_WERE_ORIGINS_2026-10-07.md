@@ -99,6 +99,18 @@ The cheap next step is not more replay. It is to keep the knowledge gate's reaso
 (`refusal_verdict` keeps the `❌` tail but not a non-`❌` gate's stderr). Filed here, not built:
 it is the `surgical_land` door's subject, not the seat's.
 
+**Built 2026-10-10 (seat, `a-gate-refusal-keeps-the-refusing-gates-own-reasons`). Two corrections
+to the paragraph above.** `refusal_verdict` lives in `background/delivery_seat.py`, so it is the
+seat's subject after all. And it was not the 600-character cut that dropped the reasons. The
+17:45Z record is about 460 characters. `surgical_land`'s exception DID carry the knowledge gate's
+stderr. The cause was the verdict-line filter. Only `COMMIT REFUSED.` matches a verdict marker, so
+the reason lines under it were filtered out. A synthetic refusal of the same shape reproduced the
+record exactly. Now everything after the last verdict line is kept, because the hook chain is
+`cmd || exit 1` and that tail is the refusing gate's own account. When the budget binds (now 1500),
+the earlier selection lines are trimmed first. The control is
+`test_a_gate_that_refuses_without_a_banner_keeps_its_own_reasons`, and both of its mutations fire.
+The 17:45Z cause stays unknown, but the next refusal of this shape will name its file.
+
 **What now says so (landed with this section).**
 
 - `delivery_seat.seat_commit_not_on_origin()` reads the seat worktree's HEAD before the next
