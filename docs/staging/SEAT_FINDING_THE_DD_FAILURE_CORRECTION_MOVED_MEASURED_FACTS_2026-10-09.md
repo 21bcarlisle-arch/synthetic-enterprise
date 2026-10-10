@@ -395,3 +395,10 @@ being absent from the world.
 - **Prepayment share of the accounts behind: 0** on every seed. One prepayment account behind on
   any seed refutes this. It would mean the world can put a PPM account behind 91 days, and the
   reading above would then be a property of this seed's dice.
+
+**In flight (2026-10-10, worker).** `/var/tmp/m_scale.py` has left the box. Dice seeds 1 and 2
+run serially, at origin 820a2f31b, in one unit, `longjob-arrears-dice-seeds-1-2`
+(`/var/tmp/dice_seeds_run.sh`). Admission refused it beside the nightly HEAD-green census
+(11.2 GB, about 2h45m), so it waits on that pid. It then grades the default capture
+(`arrears_lfl_400_nr.json`) pooled with both seeds into `/var/tmp/arrears_dice_pooled.txt`. The
+reading goes here, under P5, unchanged.
