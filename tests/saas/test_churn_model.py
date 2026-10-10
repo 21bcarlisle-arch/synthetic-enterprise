@@ -74,6 +74,15 @@ def test_unknown_account_raises_key_error():
         pass
 
 
+def test_an_account_whose_only_leg_is_gas_takes_that_legs_date():
+    """DEFECT: a change of tenancy at a gas-only premise opens `OCC-<id>g` alone, so its account
+    `OCC-<id>` had no customer and raised KeyError (EP17 seed 61102, 2026-10-10). The unknown-id
+    test above still raises: only an account with a leg resolves."""
+    records = [_record("OCC-1g", f"2016-{m:02d}-15", 100.0) for m in range(1, 13)]
+    result = build_churn_risk(records, [{"customer_id": "OCC-1g", "acquisition_date": "2016-01-01"}])
+    assert result["OCC-1"][0]["renewal_period"] == "2016-12"
+
+
 def test_constants_values():
     assert BASE_ANNUAL_CHURN_PROBABILITY == pytest.approx(0.05)
     assert CHURN_UPLIFT_PER_BILL_SHOCK == pytest.approx(0.03)

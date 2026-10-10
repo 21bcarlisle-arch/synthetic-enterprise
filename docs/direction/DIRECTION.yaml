@@ -190,105 +190,153 @@ for_the_director:
 - id: the-end-to-end-review-of-claude
   raised: '2026-10-04'
   kind: canon_intent
-  what: The end-to-end review of CLAUDE.md found it contradicting the code on the reserved action walls, pointing every session at a staging procedure that still described
-    the July rules, using one name for several seats, and claiming enforcement for two rows that only report; three of its findings touch canon or wall wording that is yours
-    (the curriculum wall reads stricter than your 2026-09-04 canon; DIRECTOR_CANON.md lists seven one-way doors and the twin as standing approver; DIRECTOR_AXES.md cites a
-    pricing law that no longer exists).
-  proposal: 'Approve the cleanup as proposed in docs/staging/SEAT_PROPOSAL_CLAUDE_MD_CLEANUP_FROM_THE_END_TO_END_REVIEW_2026-10-04.md, item by item, or strike the items you
-    disagree with; on the three canon items, rule on the wording and I will carry it into the canon documents. Already done without asking: the plain factual corrections it
-    marks, the reserved-actions list restated from the code, and the two withdrawn rules in the staging procedure.'
+  what: The end-to-end review of CLAUDE.md found it contradicting the code on the reserved action walls,
+    pointing every session at a staging procedure that still described the July rules, using one name
+    for several seats, and claiming enforcement for two rows that only report; three of its findings touch
+    canon or wall wording that is yours (the curriculum wall reads stricter than your 2026-09-04 canon;
+    DIRECTOR_CANON.md lists seven one-way doors and the twin as standing approver; DIRECTOR_AXES.md cites
+    a pricing law that no longer exists).
+  proposal: 'Approve the cleanup as proposed in docs/staging/SEAT_PROPOSAL_CLAUDE_MD_CLEANUP_FROM_THE_END_TO_END_REVIEW_2026-10-04.md,
+    item by item, or strike the items you disagree with; on the three canon items, rule on the wording
+    and I will carry it into the canon documents. Already done without asking: the plain factual corrections
+    it marks, the reserved-actions list restated from the code, and the two withdrawn rules in the staging
+    procedure.'
   status: open
   resolution: ''
 - id: time-is-scored-in-minutes-not-converted-to-money
   raised: '2026-10-04'
   kind: vision
-  what: The mission names three currencies, and time does not exist in the model. The C31 frame (70ea47ac5, docs/design/C31_TIME_AS_A_CURRENCY_DISCOVER_FRAME_2026-10-04.md,
-    Q1) has to decide whether household time is scored in its own unit or converted to money at a value of time. Converting it would fold one of your three currencies into
-    money. The only regulator pricing found (GSOP, GBP 30 or 15) prices failure events, not hours, and it is a transfer.
-  proposal: 'Score time in its own unit: household minutes, per class (shopping, servicing, recovery, routine admin), never summed across classes and never converted to GBP.
-    A GSOP payment stays a money transfer and is not a measure of time. This does not block L1, which counts events in minutes either way, so work carries on unless you rule
-    otherwise.'
+  what: The mission names three currencies, and time does not exist in the model. The C31 frame (70ea47ac5,
+    docs/design/C31_TIME_AS_A_CURRENCY_DISCOVER_FRAME_2026-10-04.md, Q1) has to decide whether household
+    time is scored in its own unit or converted to money at a value of time. Converting it would fold
+    one of your three currencies into money. The only regulator pricing found (GSOP, GBP 30 or 15) prices
+    failure events, not hours, and it is a transfer.
+  proposal: 'Score time in its own unit: household minutes, per class (shopping, servicing, recovery,
+    routine admin), never summed across classes and never converted to GBP. A GSOP payment stays a money
+    transfer and is not a measure of time. This does not block L1, which counts events in minutes either
+    way, so work carries on unless you rule otherwise.'
   status: open
   resolution: ''
 - id: whether-per-customer-pricing-beats-a-flat
   raised: '2026-10-04'
   kind: strategy
-  what: 'Whether per-customer pricing beats a flat price a supplier could have set in advance cannot be answered on one book: the four probe paths share their households, and
-    their SNR ceiling is about 0.95 however often they are re-run. Only independent books separate it. Varying the book seed is EP17_varied_population_draw, which is your curriculum.'
-  proposal: 'Authorise book seeds 61101-61112 for EP17 by recording docs/design/curriculum/varied_population_draw_activation.json in the shape of population_draw_activation.json.
-    I would run 12 books at about 36 min and 5.1 GB each, 7.2 box-hours serial, after the QEP refit lands, and only after a 2.4 h re-take on the default book. Projected SNR
-    is 1.8-2.4. If you decline, the result stands as: not separable on this book.'
+  what: 'Whether per-customer pricing beats a flat price a supplier could have set in advance cannot be
+    answered on one book: the four probe paths share their households, and their SNR ceiling is about
+    0.95 however often they are re-run. Only independent books separate it. Varying the book seed is EP17_varied_population_draw,
+    which is your curriculum.'
+  proposal: 'Authorise book seeds 61101-61112 for EP17 by recording docs/design/curriculum/varied_population_draw_activation.json
+    in the shape of population_draw_activation.json. I would run 12 books at about 36 min and 5.1 GB each,
+    7.2 box-hours serial, after the QEP refit lands, and only after a 2.4 h re-take on the default book.
+    Projected SNR is 1.8-2.4. If you decline, the result stands as: not separable on this book.'
   status: answered
-  resolution: 'Director, 2026-10-10: "Yes to the seed-family runner: 40-founder books settling every win, four side by side on distinct seeds under the box budget ... This also answers my
-      open request on independent books (EP17, seeds 61101-61112): authorised under this runner. Close that concern with this ruling." Recorded in docs/design/curriculum/varied_population_draw_activation.json.'
+  resolution: 'Director, 2026-10-10: "Yes to the seed-family runner: 40-founder books settling every win,
+    four side by side on distinct seeds under the box budget ... This also answers my open request on
+    independent books (EP17, seeds 61101-61112): authorised under this runner. Close that concern with
+    this ruling." Recorded in docs/design/curriculum/varied_population_draw_activation.json.'
 - id: no-atom-can-reach-l3-while-an
   raised: '2026-10-04'
   kind: canon_intent
-  what: 'No atom can reach L3 while an Expert Hour counts reviewer independence as a finding against it: the blind-review tool records independence false on every pass by construction,
-    and reserves external review for the few verdicts you choose. H45 (the queue chained to the map) has closed every other question its two blind passes raised -- edit back
-    door, re-link, doubt route, trend -- and is held at L2 on that one alone. Its specific form: whether a queue item serves its atom is read by a tick of the same machine
-    that files it, and nothing outside audits that read.'
-  proposal: Rule that an Expert Hour whose only open disqualifying question is reviewer independence passes for L3, with the limit carried in the atom's simplification record,
-    and that external review stays at your choosing for the highest-stakes verdicts. On that ruling I would record H45's move to L3 through the level gate. If you want H45
-    audited from outside instead, the read record (serves_by_hand on the harness page) is what you or a relayed model would sample. Meanwhile H45 parks so it stops being drawn
+  what: 'No atom can reach L3 while an Expert Hour counts reviewer independence as a finding against it:
+    the blind-review tool records independence false on every pass by construction, and reserves external
+    review for the few verdicts you choose. H45 (the queue chained to the map) has closed every other
+    question its two blind passes raised -- edit back door, re-link, doubt route, trend -- and is held
+    at L2 on that one alone. Its specific form: whether a queue item serves its atom is read by a tick
+    of the same machine that files it, and nothing outside audits that read.'
+  proposal: Rule that an Expert Hour whose only open disqualifying question is reviewer independence passes
+    for L3, with the limit carried in the atom's simplification record, and that external review stays
+    at your choosing for the highest-stakes verdicts. On that ruling I would record H45's move to L3 through
+    the level gate. If you want H45 audited from outside instead, the read record (serves_by_hand on the
+    harness page) is what you or a relayed model would sample. Meanwhile H45 parks so it stops being drawn
     for a question no build can answer.
   status: open
   resolution: ''
 - id: a-household-s-electricity-carbon-is-shown
   raised: '2026-10-05'
   kind: strategy
-  what: 'A household''s electricity carbon is shown per kWh GENERATED: NESO''s series has carried no transmission and distribution loss uplift since 2020-04-27, so a kWh used
-    at home reads several percent low against the electricity that had to be generated for it. Whether the household figure adds losses is a definition you own; it was described
-    as raised on 2026-10-05 but never reached this list.'
-  proposal: Add losses as its own named line beside the electricity figure, at DESNZ's published T&D factor (0.01853 kgCO2e/kWh, 2025 set, already sourced in the household-carbon
-    knowledge page), never folded into the grid series, so the published NESO number stays NESO's and the household sees both. Until you rule, the page states that losses are
-    not included, which it now does.
+  what: 'A household''s electricity carbon is shown per kWh GENERATED: NESO''s series has carried no transmission
+    and distribution loss uplift since 2020-04-27, so a kWh used at home reads several percent low against
+    the electricity that had to be generated for it. Whether the household figure adds losses is a definition
+    you own; it was described as raised on 2026-10-05 but never reached this list.'
+  proposal: Add losses as its own named line beside the electricity figure, at DESNZ's published T&D factor
+    (0.01853 kgCO2e/kWh, 2025 set, already sourced in the household-carbon knowledge page), never folded
+    into the grid series, so the published NESO number stays NESO's and the household sees both. Until
+    you rule, the page states that losses are not included, which it now does.
   status: open
   resolution: ''
   evidence: docs/staging/SEAT_FINDING_G14_EXPERT_HOUR_RETAKE_ON_THE_HISTORIC_MIX_2026-10-05.md
 - id: c34-next-best-action-the-customer-s
   raised: '2026-10-06'
   kind: canon_intent
-  what: 'C34 next best action: the customer''s benefit first, then ours, is read in slice 1 as a gate (never an action the customer loses by) followed by supplier forward value
-    as the objective. At realistic margins and hazards, every advice action that saves the customer money then LOSES supplier forward value, so the rule advises almost nobody:
-    do no harm, take what pays us.'
-  proposal: Keep the gate-then-CLV reading until you answer. If you agree with the mission's created-then-shared reading, C34 ranks on joint value (customer benefit plus supplier
-    forward-value change) with a no-loss floor on both sides. That is a one-line change to the decision's ranking key; the planted, null and misled control arms carry over.
+  what: 'C34 next best action: the customer''s benefit first, then ours, is read in slice 1 as a gate
+    (never an action the customer loses by) followed by supplier forward value as the objective. At realistic
+    margins and hazards, every advice action that saves the customer money then LOSES supplier forward
+    value, so the rule advises almost nobody: do no harm, take what pays us.'
+  proposal: Keep the gate-then-CLV reading until you answer. If you agree with the mission's created-then-shared
+    reading, C34 ranks on joint value (customer benefit plus supplier forward-value change) with a no-loss
+    floor on both sides. That is a one-line change to the decision's ranking key; the planted, null and
+    misled control arms carry over.
   status: open
   resolution: ''
   evidence: docs/staging/SEAT_FINDING_C34_THE_DECISION_IS_BUILT_AND_ON_SUPPLIER_VALUE_ALONE_IT_ADVISES_NOBODY_2026-10-06.md
 - id: the-run-s-company-cannot-learn-whether
   raised: '2026-10-09'
   kind: strategy
-  what: The run's company cannot learn whether its own retention offers work. Its own holdout sees about 30 offer decisions a year, and the real effect needs about 19,600 per
-    arm to tell from nothing. Meanwhile its standing guard treats every offered household as saved, which B8 measured as a loss at every cut size.
-  proposal: I am keeping the holdout off on every standing policy and recording 'an offer a small book cannot evaluate' as the named limit of a 400-household company. Unless
-    you object, I will not let the company price offers on evidence from outside its own book, because that changes what a supplier this size is allowed to know. If you would
-    rather it use published retention trials, say so and I will build that next.
+  what: The run's company cannot learn whether its own retention offers work. Its own holdout sees about
+    30 offer decisions a year, and the real effect needs about 19,600 per arm to tell from nothing. Meanwhile
+    its standing guard treats every offered household as saved, which B8 measured as a loss at every cut
+    size.
+  proposal: I am keeping the holdout off on every standing policy and recording 'an offer a small book
+    cannot evaluate' as the named limit of a 400-household company. Unless you object, I will not let
+    the company price offers on evidence from outside its own book, because that changes what a supplier
+    this size is allowed to know. If you would rather it use published retention trials, say so and I
+    will build that next.
   status: open
   resolution: ''
   evidence: docs/staging/SEAT_FINDING_B8_L3_THE_RUNS_OWN_HOLDOUT_CANNOT_DECIDE_AT_THE_FOUNDERS_SCALE_2026-10-09.md
 - id: a-held-lane-crash-can-now-wake
   raised: '2026-10-09'
   kind: reserved
-  what: A held lane crash can now wake the interactive session, but only while that session has armed the waiter. Nothing re-arms it after a restart or after it fires, so the
-    10-09 gap is closed only as far as the session remembers.
-  proposal: Add a SessionStart hook on the console that tells the session to arm 'python3 -m background.lane_unit_crash --wait-held --deadline 21600' in the background. The
-    hook only emits context and never types into the pane. It acts on your console, so I have not built it; say yes and I will.
+  what: A held lane crash can now wake the interactive session, but only while that session has armed
+    the waiter. Nothing re-arms it after a restart or after it fires, so the 10-09 gap is closed only
+    as far as the session remembers.
+  proposal: Add a SessionStart hook on the console that tells the session to arm 'python3 -m background.lane_unit_crash
+    --wait-held --deadline 21600' in the background. The hook only emits context and never types into
+    the pane. It acts on your console, so I have not built it; say yes and I will.
   status: open
   resolution: ''
-  evidence: docs/staging/SEAT_FINDING_A_HELD_LANE_CRASH_WAKES_THE_INTERACTIVE_SESSION_2026-10-09.md; landed bcb725078
+  evidence: docs/staging/SEAT_FINDING_A_HELD_LANE_CRASH_WAKES_THE_INTERACTIVE_SESSION_2026-10-09.md; landed
+    bcb725078
 - id: the-scale-lane-s-seed-families-need
   raised: '2026-10-10'
   kind: strategy
-  what: 'The scale lane''s seed families need the same book-seed authorisation as the open row whether-per-customer-pricing-beats-a-flat: any seed other than the default draws
-    a different set of households (EP17_varied_population_draw, your curriculum), so tools/seed_family.py refuses until docs/design/curriculum/varied_population_draw_activation.json
-    lists the seed. Built and checked on the default seed: 482 homes per 40-founder no-sample book, 36 min, 3 GB, identical tables on a repeat. One book reads ''cannot yet
-    tell'' on all three questions; homes per arm for 80% power are 3,012 (value per home, 10%), 661 (share ever >91 days behind, 25%), and the trimmed bad-debt mean is unusable
-    (most homes have none).'
-  proposal: 'Authorise seeds 61101-61112 once, for both uses: record them in varied_population_draw_activation.json (shape of population_draw_activation.json). The scale lane
-    then runs 4 books side by side (~2,000 homes per ~48 min), which answers the debt-share question in about 1.5 books per arm and value per home in about 6 per arm. Reversible:
-    delete the file and every run is the default book again.'
+  what: 'The scale lane''s seed families need the same book-seed authorisation as the open row whether-per-customer-pricing-beats-a-flat:
+    any seed other than the default draws a different set of households (EP17_varied_population_draw,
+    your curriculum), so tools/seed_family.py refuses until docs/design/curriculum/varied_population_draw_activation.json
+    lists the seed. Built and checked on the default seed: 482 homes per 40-founder no-sample book, 36
+    min, 3 GB, identical tables on a repeat. One book reads ''cannot yet tell'' on all three questions;
+    homes per arm for 80% power are 3,012 (value per home, 10%), 661 (share ever >91 days behind, 25%),
+    and the trimmed bad-debt mean is unusable (most homes have none).'
+  proposal: 'Authorise seeds 61101-61112 once, for both uses: record them in varied_population_draw_activation.json
+    (shape of population_draw_activation.json). The scale lane then runs 4 books side by side (~2,000
+    homes per ~48 min), which answers the debt-share question in about 1.5 books per arm and value per
+    home in about 6 per arm. Reversible: delete the file and every run is the default book again.'
   status: answered
-  resolution: 'Director, 2026-10-10: "Yes to the seed-family runner: 40-founder books settling every win, four side by side on distinct seeds under the box budget ... This also answers my
-      open request on independent books (EP17, seeds 61101-61112): authorised under this runner. Close that concern with this ruling." Recorded in docs/design/curriculum/varied_population_draw_activation.json.'
+  resolution: 'Director, 2026-10-10: "Yes to the seed-family runner: 40-founder books settling every win,
+    four side by side on distinct seeds under the box budget ... This also answers my open request on
+    independent books (EP17, seeds 61101-61112): authorised under this runner. Close that concern with
+    this ruling." Recorded in docs/design/curriculum/varied_population_draw_activation.json.'
+- id: c34-s-debt-decision-cannot-be-graded
+  raised: '2026-10-10'
+  kind: strategy
+  what: 'C34''s debt decision cannot be graded: the world answers every plan offer None (no published
+    take-up or keep rate), no payment-method change crosses the seam, and withholding the SLC 27.8 offer
+    is unlawful, so a per-customer debt rule and the flat plan rule are identical by construction on any
+    book.'
+  proposal: 'Name a curriculum world carrying a stated plan take-up and instalment keep rate, marked as
+    curriculum and set blind to company results; the debt decision is then wired and graded inside that
+    named world. Until you do, C34 stays at level 1 and the module stays in the orphan baseline. Also:
+    tell me if a company-initiated payment-method change is a debt action a GB supplier takes at the 27.5B
+    trigger; I read it as needing the household (DD mandate) or the regulated involuntary-PPM route.'
+  status: open
+  resolution: ''
+  evidence: docs/staging/SEAT_FINDING_C34_DEBT_ARMS_ARE_TIED_BY_CONSTRUCTION_BECAUSE_NO_DEBT_ACTION_REACHES_A_WORLD_THAT_ANSWERS_2026-10-10.md

@@ -255,3 +255,23 @@ def test_the_launch_command_follows_every_member_to_its_end(monkeypatch, tmp_pat
     assert sf.main(argv) == 0 and followed == ["u1", "u2"]
     followed.clear()
     assert sf.main(argv + ["--detach"]) == 0 and followed == []
+
+
+def test_a_member_with_no_room_yet_queues_instead_of_stranding_the_family(tmp_path):
+    """DEFECT: a family refused mid-launch for room, leaving the members already started running
+    with nothing following them and the rest never launched."""
+    from background.launch_long_job import NoRoom
+    calls, slept = [], []
+
+    def launcher(job, cmd, **k):
+        calls.append(job)
+        if len(calls) == 2:
+            raise NoRoom("no room for the second member yet")
+        return {"unit": job, "artefact": k["artefact"]}
+    record = tmp_path / "ruled.json"
+    record.write_text(json.dumps({"_meta": {"authority": "test"}, "activated": {"value": True},
+                                  "base_seeds": {"value": [OTHER, OTHER + 1]}}), encoding="utf-8")
+    entries = sf.launch([OTHER, OTHER + 1], 40, tmp_path, "t", 4, {}, launcher=launcher,
+                        record=record, sleep=slept.append)
+    assert [e["unit"] for e in entries] == [f"seed-family-t-{OTHER}", f"seed-family-t-{OTHER + 1}"]
+    assert len(slept) == 1

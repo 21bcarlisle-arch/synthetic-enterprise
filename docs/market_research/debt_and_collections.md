@@ -551,7 +551,9 @@ The 2026-10-09 arrears verdicts were read by two untracked scripts in `/var/tmp`
 captures), with its control in `tests/tools/test_grade_world_debt_against_ofgem.py`. What it
 counts has not changed: 2019 electricity accounts holding a bill unpaid more than 91 days, over
 every account billed in the quarter's last month, pooled over four quarter ends. It is graded
-against Ofgem's arrears plus debt (5.1%) with a Wilson 95% interval. The derivation of 5.1% is in
+against Ofgem's arrears plus debt (5.1%) on an account-clustered 95% interval. *(Corrected
+2026-10-10. It was a Wilson interval on account-quarters, which is too narrow because an account
+behind stays behind about 2.3 of 4 quarters. Wilson is still printed beside it.)* The derivation of 5.1% is in
 `gb_domestic_bill_payment_failure_and_arrears_prevalence.md`.
 
 Both 10-09 readings reproduce exactly through the tool, on the captures those runs wrote:
@@ -564,6 +566,12 @@ Both 10-09 readings reproduce exactly through the tool, on the captures those ru
 **No prepayment account is in either stock (0 of 50, 0 of 98)**, though 87 of the run's 667
 accounts are prepayment. So the 0.30-0.88 toggle moves only credit accounts on this book. That
 fits PPM debt (P4) being absent above. It is one seed. The two-seed re-take is the next item.
+
+*Re-graded 2026-10-10 on the clustered interval.* The default seed reads 4.3% (2.4-6.7%), MET.
+Three dice seeds pooled read 211/3465 = 6.1% (4.6-7.8%), 1.19x, MET. On Wilson that pool was NOT
+MET, HIGH (5.3-6.9%). The interval runs 0.9-1.5x Ofgem, so whether the world over-holds debt is
+not established either way. No prepayment account is behind on any seed. Detail:
+`docs/staging/SEAT_FINDING_THE_DD_FAILURE_CORRECTION_MOVED_MEASURED_FACTS_2026-10-09.md`.
 
 ---
 
