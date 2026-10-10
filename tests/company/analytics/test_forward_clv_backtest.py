@@ -9,6 +9,7 @@ import pytest
 
 from company.analytics.forward_clv import (
     DEFAULT_CUT_YEAR,
+    HELD_BACK_OUTCOMES,
     LIMITATION_DEPARTURE_CAUSE,
     LIMITATION_NO_MOVE_REGISTER,
     AccountHistory,
@@ -315,11 +316,35 @@ def test_no_register_is_none_with_its_reason_and_an_empty_one_is_zero_moves():
     book, end = _movers_book(), _month_index("2025-06")
     absent = run_backtest(book, end)
     assert absent.departures_by_cause is None and absent.switch_hazard_by_contract_year is None
+    assert absent.error_by_outcome is None
     assert LIMITATION_NO_MOVE_REGISTER in absent.limitations
     empty = run_backtest(book, end, move_out_month_by_account={})
     assert empty.departures_by_cause["fit"]["move"] == 0
     assert empty.switch_hazard_by_contract_year == absent.hazard_by_contract_year
     assert LIMITATION_NO_MOVE_REGISTER not in empty.limitations
+
+
+def test_every_held_back_outcome_is_reachable_and_each_is_graded_on_its_own_accounts():
+    """The defect: a split whose mover leg is never taken grades the book as if moves were
+    switches. W4 switched in 2023 with a 2024 move date: only the month supply ended decides."""
+    book = _movers_book() + [_acct("W4", "resi electricity", "2016-01", "2023-08", 16.0)]
+    register = {"home_move_outs": [*_MOVE_REGISTER["home_move_outs"],
+                                   {"household": "W4", "move_date": "2024-03-01"}]}
+    bt = run_backtest(book, _month_index("2025-06"),
+                      move_out_month_by_account=move_outs_from_run_output(register))
+    grades = bt.error_by_outcome
+    assert grades["stayer"].accounts and grades["switcher"].accounts and grades["mover"].accounts
+    assert {o: grades[o].accounts for o in HELD_BACK_OUTCOMES} == {
+        "stayer": 1, "switcher": 2, "mover": 1}
+    assert sum(g.accounts for g in grades.values()) == bt.accounts_graded
+    f = {x.account_id: x for x in bt.forecasts}
+    m2, s1 = f["M2"], f["S1"]
+    assert grades["mover"].margin_error.per_customer == abs(
+        m2.per_customer_margin_gbp - m2.realised_margin_gbp)
+    assert grades["mover"].departure_brier.flat == (m2.flat_departure_p - 1) ** 2
+    assert grades["stayer"].departure_brier.per_customer == s1.per_customer_departure_p ** 2
+    assert grades["mover"].margin_bias["flat"][0] == m2.flat_margin_gbp - m2.realised_margin_gbp
+    assert grades["switcher"].margin_error.interval_95 is not None
 
 
 def test_the_run_output_door_passes_the_register_through(tracked_run):

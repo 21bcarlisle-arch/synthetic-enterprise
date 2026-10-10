@@ -14,7 +14,8 @@ end of the cut year, two things over the held-back months that follow:
     on switches, not on moves) needs the split, so where the book carries a move-out
     register the result also counts departures by cause and fits a SWITCH hazard with each
     move censored at its date (slice 4). Where it carries none, ``LIMITATION_DEPARTURE_CAUSE``
-    is on the result and the split is None, never a zero.
+    is on the result and the split is None, never a zero. With a register, both rules are also
+    graded on each held-back outcome alone: stayers, switchers and movers (slice 5).
 
 THE FORECAST is ``sum over held-back months of P(still supplied) x monthly margin``.
 Realised is the margin the account actually earned in those months (zero after it left).
@@ -76,10 +77,12 @@ from saas.customer_reaction import _billing_account_id
 __all__ = [
     "CAP_ERA_START",
     "DEFAULT_CUT_YEAR",
+    "HELD_BACK_OUTCOMES",
     "LIMITATION_DEPARTURE_CAUSE",
     "LIMITATION_NO_MOVE_REGISTER",
     "AccountHistory",
     "Backtest",
+    "OutcomeGrade",
     "PairedComparison",
     "book_from_run_output",
     "load_book",
@@ -252,6 +255,34 @@ class AccountForecast:
 
 
 @dataclass(frozen=True)
+class OutcomeGrade:
+    accounts: int
+    margin_error: PairedComparison
+    departure_brier: PairedComparison
+    # Forecast minus realised, per account, for each rule: which way the miss runs in this outcome.
+    margin_bias: Mapping[str, tuple[float, tuple[float, float] | None]]
+
+
+HELD_BACK_OUTCOMES = ("stayer", "switcher", "mover")
+
+
+def _grade_outcome(forecasts: Sequence[AccountForecast]) -> OutcomeGrade:
+    return OutcomeGrade(
+        len(forecasts),
+        _paired("absolute margin error, GBP per account",
+                [abs(f.per_customer_margin_gbp - f.realised_margin_gbp) for f in forecasts],
+                [abs(f.flat_margin_gbp - f.realised_margin_gbp) for f in forecasts]),
+        _paired("departure Brier score per account",
+                [(f.per_customer_departure_p - f.departed) ** 2 for f in forecasts],
+                [(f.flat_departure_p - f.departed) ** 2 for f in forecasts]),
+        {"per_customer": _mean_with_interval(
+            [f.per_customer_margin_gbp - f.realised_margin_gbp for f in forecasts]),
+         "flat": _mean_with_interval(
+            [f.flat_margin_gbp - f.realised_margin_gbp for f in forecasts])},
+    )
+
+
+@dataclass(frozen=True)
 class Backtest:
     cut_year: int
     margin_deviation_fit_months: tuple[str, str]
@@ -275,6 +306,10 @@ class Backtest:
     # with each move censored at its date.
     departures_by_cause: Mapping[str, Mapping[str, int]] | None = None
     switch_hazard_by_contract_year: Mapping[int, float] | None = None
+    # Slice 5. None without a register; otherwise each held-back outcome ("stayer", "switcher",
+    # "mover") with both rules graded on its own accounts. A rule can win on the book and lose on
+    # the movers, and a retention lever only ever acts on the switchers.
+    error_by_outcome: Mapping[str, OutcomeGrade] | None = None
 
 
 def regime_boundary_month(
@@ -523,6 +558,7 @@ def run_backtest(
     }
     by_cause: dict[str, dict[str, int]] | None = None
     switch_by_cy: dict[int, float] | None = None
+    by_outcome: dict[str, OutcomeGrade] | None = None
     if move_out_month_by_account is None:
         limitations = [LIMITATION_DEPARTURE_CAUSE, LIMITATION_NO_MOVE_REGISTER]
     else:
@@ -538,6 +574,12 @@ def run_backtest(
             window = "fit" if a.last_month < fit_end else "held_back"
             by_cause[window]["move" if a.account_id in moved else "switch"] += 1
         switch_by_cy = _fit_hazards(accounts, fit_end, moved)[0]
+        partition: dict[str, list[AccountForecast]] = {o: [] for o in HELD_BACK_OUTCOMES}
+        for f in forecasts:
+            outcome = ("stayer" if not f.departed
+                       else "mover" if f.account_id in moved else "switcher")
+            partition[outcome].append(f)
+        by_outcome = {o: _grade_outcome(fs) for o, fs in partition.items()}
     pooled = sorted(s for s, k in k_by_seg.items() if k is None)
     if pooled:
         limitations.append(
@@ -568,6 +610,7 @@ def run_backtest(
         margin_deviation_window_reason=dev_reason,
         departures_by_cause=by_cause,
         switch_hazard_by_contract_year=switch_by_cy,
+        error_by_outcome=by_outcome,
     )
 
 
@@ -611,3 +654,8 @@ if __name__ == "__main__":  # pragma: no cover - a reading aid, not a door
     for c in (bt.margin_error, bt.departure_brier):
         print(c)
     print({k: round(v, 1) for k, v in bt.aggregate.items()})
+    print(f"departures by cause {bt.departures_by_cause}")
+    for outcome, g in (bt.error_by_outcome or {}).items():
+        print(f"{outcome}: {g.accounts} account(s), bias {g.margin_bias}")
+        print(f"  {g.margin_error}")
+        print(f"  {g.departure_brier}")
