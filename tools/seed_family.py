@@ -372,30 +372,47 @@ def member(seed: int, founders: int, out: Path) -> int:
 
 def launch(seeds: list[int], founders: int, out: Path, tag: str, parallel: int,
            run_case: dict, launcher=None, record: Path | None = None,
-           wait_for_pid: int | None = None) -> list[dict]:
+           wait_for_pid: int | None = None, sleep=None, queue_deadline_s: float = 6 * 3600
+           ) -> list[dict]:
     """Every member as its own long-job unit, all at once; admission decides whether they fit.
     More seeds than `parallel` is refused rather than queued: chaining units on a queued unit's
-    pid is refused by the launcher's admission, so the caller launches the next wave itself."""
+    pid is refused by the launcher's admission, so the caller launches the next wave itself.
+    A member the box has no room for yet QUEUES at the launcher's own retry cadence rather than
+    refusing: a refusal mid-family left the members already started with nothing following them
+    (2026-10-10, 61103 refused behind another lane's 7 GB run)."""
     refusal = seed_refusal(seeds, record)
     if refusal is None and len(seeds) > parallel:
         refusal = (f"{len(seeds)} seeds over --parallel {parallel}; launch them in waves of "
                    f"{parallel}")
     if refusal:
         raise SystemExit("REFUSED: " + refusal)
+    from background.launch_long_job import QUEUE_RETRY_SECONDS, NoRoom
     if launcher is None:
         from background.launch_long_job import launch as launcher
+    if sleep is None:
+        sleep = time.sleep
     out = out.resolve()
     expect = run_case.pop("expect_minutes", None) or MEMBER_EXPECT_MINUTES
     entries = []
     for s in seeds:
         member_dir = out / tag
-        entries.append(launcher(
-            f"seed-family-{tag}-{s}",
-            [sys.executable, "-m", "tools.seed_family", "member", "--seed", str(s),
-             "--founders", str(founders), "--out", str(member_dir)],
-            artefact=str(member_dir / f"member_{s}.json"), workdir=str(PROJECT_DIR),
-            peak_mb=MEMBER_PEAK_MB, expect_minutes=expect, run_case=run_case,
-            wait_for_pid=wait_for_pid))
+        waited = 0.0
+        while True:
+            try:
+                entries.append(launcher(
+                    f"seed-family-{tag}-{s}",
+                    [sys.executable, "-m", "tools.seed_family", "member", "--seed", str(s),
+                     "--founders", str(founders), "--out", str(member_dir)],
+                    artefact=str(member_dir / f"member_{s}.json"), workdir=str(PROJECT_DIR),
+                    peak_mb=MEMBER_PEAK_MB, expect_minutes=expect, run_case=dict(run_case),
+                    wait_for_pid=wait_for_pid))
+                break
+            except NoRoom as exc:
+                if waited >= queue_deadline_s:
+                    raise
+                print(f"QUEUED seed {s} (no room yet): {exc}", flush=True)
+                sleep(QUEUE_RETRY_SECONDS)
+                waited += QUEUE_RETRY_SECONDS
     return entries
 
 
