@@ -1607,6 +1607,9 @@ def build_brief(now: datetime | None = None) -> dict:
         # statement that the reading covers both sides of a divergence is worth nothing if the
         # commit list can push it off the end.
         "divergence": divergence,
+        # THIRD, FOR THE SAME REASON: the seat's last gated record never reached origin, so the
+        # steer the director reads is older than the one this brief's `previous_*` describe.
+        "seat_commit_not_on_origin": seat_commit_not_on_origin(),
         # SECOND, AND AHEAD OF `commits`, FOR THE SAME REASON THE LINE ABOVE IS FIRST. A drawn item
         # that finished its window with nothing landed is invisible to every other key here:
         # `commits` cannot show work that was never committed, `atoms_drawn` says only that it WAS
@@ -1685,7 +1688,11 @@ def build_brief(now: datetime | None = None) -> dict:
         # rather than rewriting the list from memory -- the same shape as `previous_wrong`, and
         # `orient` refuses a record that drops one. `concerns_unpaged` is the open ids the last
         # ORIENTED row did not record, i.e. raised by the CLI since and not yet paged.
-        "previous_for_the_director": director_concerns.open_rows(director_concerns.read_raw()),
+        # ORIGIN'S OPEN ROWS UNIONED WITH THE WORKING COPY'S (`director_concerns.
+        # open_rows_on_either`): the checkout lags origin, and a row only origin holds would
+        # otherwise be omitted here and then deleted by a verbatim carry.
+        "previous_for_the_director": director_concerns.open_rows_on_either(
+            director_concerns.read_raw(), director_concerns.read_origin_raw(PROJECT_DIR)),
         "concerns_unpaged": director_concerns.new_open_ids(
             _previous_concern_ids(), director_concerns.read_raw()),
         "atoms_drawn": atoms_drawn_since(since),
@@ -1766,6 +1773,10 @@ def is_material(brief: dict) -> tuple[bool, str]:
         return True, "{} long job(s) died in the stretch: {}".format(
             len(died), ", ".join("{} ({})".format(r["job"], r.get("result") or "no result")
                                  for r in died[:3]))
+    stranded = brief.get("seat_commit_not_on_origin")
+    if stranded:
+        return True, "the last direction record ({}) never reached origin: {}".format(
+            stranded["sha"][:9], stranded["says"])
     if brief.get("levels_recorded"):
         return True, "{} level move(s) recorded in the ledger".format(
             len(brief["levels_recorded"]))
@@ -2179,6 +2190,47 @@ DIRECTION_WORKTREE = Path(os.environ.get("SE_DIRECTION_WORKTREE", "/var/tmp/se-d
 APPEND_ONLY = ("docs/direction/decisions.jsonl", "docs/status/SEAT_STRETCH_LOG.md")
 
 
+def seat_commit_not_on_origin(worktree: Path | None = None) -> dict | None:
+    """The seat worktree's last direction commit when origin/main does not contain it, else None.
+
+    167d583a4 (2026-10-09 17:44Z) was gated green, lost the race to 63f429536, and the merge that
+    should have settled it went red at the knowledge gate. The refusal was paged once, as a
+    refusal; the commit itself was named nowhere, and the next brief said nothing about the record
+    the director reads being a stretch old. The worktree is only re-cut at the NEXT landing, so
+    until then its HEAD is the last thing the seat landed or tried to -- asked here, before that
+    cut. A fresh cut sits on origin's own commit, whose subject is not the seat's."""
+    worktree = worktree or DIRECTION_WORKTREE
+    if not (worktree / ".git").exists():
+        return None
+    head = _git_in(worktree, "log", "-1", "--format=%H %s")
+    sha, _, subject = head.stdout.decode(errors="replace").strip().partition(" ")
+    if head.returncode != 0 or not subject.startswith("delivery seat:"):
+        return None
+    asked = _git_in(PROJECT_DIR, "merge-base", "--is-ancestor", sha, "origin/main")
+    if asked.returncode == 0:
+        return None
+    says = ("not an ancestor of origin/main" if asked.returncode == 1 else
+            "git could not say whether origin/main holds it (rc={}), so it is not shown "
+            "landed".format(asked.returncode))
+    return {"sha": sha, "subject": subject, "worktree": str(worktree), "says": says}
+
+
+def page_a_stranded_record(stranded: dict | None, already_told: bool = False) -> None:
+    """Page once per stranded commit: keyed to its sha, so the next brief re-reading the same
+    commit is suppressed by `notify`'s transition rule, and a new stranded commit pages again.
+
+    `already_told` is a last decisions row carrying `landing_refused`: `record_landing_refused`
+    paged that one as it happened (17:45:51Z for 167d583a4), so this would be a second buzz for
+    one event. What is left for this page is the landing that refused nothing and still did not
+    arrive -- a promotion that claimed success, a run killed between commit and push."""
+    if not stranded or already_told:
+        return
+    _notify("delivery seat: direction commit {} is {}, so origin's record is older than the "
+            "seat's last steer".format(stranded["sha"][:9], stranded["says"]),
+            topic_class="blocked_work", transition_key="delivery-seat:record-not-on-origin",
+            state=stranded["sha"])
+
+
 class DirectionNotLanded(RuntimeError):
     """The direction record did not reach origin. The message names why."""
 
@@ -2563,6 +2615,10 @@ def orient(now: datetime | None = None, dry_run: bool = False) -> dict:
     """One orientation. Always returns the row it recorded."""
     now = now or datetime.now(timezone.utc)
     brief = build_brief(now)
+    if not dry_run:
+        last = direction_mod.read_decisions(limit=1)
+        page_a_stranded_record(brief.get("seat_commit_not_on_origin"),
+                               already_told=bool(last and last[0].get("landing_refused")))
     material, why = is_material(brief)
     row = {
         "at": now.isoformat(),
@@ -2601,7 +2657,9 @@ def orient(now: datetime | None = None, dry_run: bool = False) -> dict:
         before_bytes = direction_mod.DIRECTION_PATH.read_bytes()
     except OSError:
         before_bytes = None
-    before_raw = director_concerns.read_raw()
+    # THE UNION, not the working copy: a row only origin holds must be carried too.
+    before_raw = {director_concerns.KEY: director_concerns.open_rows_on_either(
+        director_concerns.read_raw(), director_concerns.read_origin_raw(PROJECT_DIR))}
     try:
         from background import tick_mode
         tick_mode.note_spawn("delivery-seat")
@@ -2746,7 +2804,8 @@ def record_landing_refused(row: dict, detail: str) -> dict:
     return refused
 
 
-def _notify(message: str, *, topic_class: str) -> None:
+def _notify(message: str, *, topic_class: str, transition_key: str | None = None,
+            state: str | None = None) -> None:
     """Through `background.notify.notify`, never `send_ntfy` directly -- the notify contract, and
     a test enumerates new direct callers. The seat pages RARELY: only when its own record was
     refused, or when something is genuinely the director's.
@@ -2768,7 +2827,8 @@ def _notify(message: str, *, topic_class: str) -> None:
     """
     try:
         from background.notify import notify
-        notify(message, kind="real_alarm", topic_class=topic_class)
+        notify(message, kind="real_alarm", topic_class=topic_class,
+               transition_key=transition_key, state=state)
     except Exception as exc:
         _log(f"notify failed ({exc!r}), message was: {message}")
 
