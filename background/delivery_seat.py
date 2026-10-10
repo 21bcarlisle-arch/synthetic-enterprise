@@ -1607,6 +1607,9 @@ def build_brief(now: datetime | None = None) -> dict:
         # statement that the reading covers both sides of a divergence is worth nothing if the
         # commit list can push it off the end.
         "divergence": divergence,
+        # THIRD, FOR THE SAME REASON: the seat's last gated record never reached origin, so the
+        # steer the director reads is older than the one this brief's `previous_*` describe.
+        "seat_commit_not_on_origin": seat_commit_not_on_origin(),
         # SECOND, AND AHEAD OF `commits`, FOR THE SAME REASON THE LINE ABOVE IS FIRST. A drawn item
         # that finished its window with nothing landed is invisible to every other key here:
         # `commits` cannot show work that was never committed, `atoms_drawn` says only that it WAS
@@ -1685,7 +1688,11 @@ def build_brief(now: datetime | None = None) -> dict:
         # rather than rewriting the list from memory -- the same shape as `previous_wrong`, and
         # `orient` refuses a record that drops one. `concerns_unpaged` is the open ids the last
         # ORIENTED row did not record, i.e. raised by the CLI since and not yet paged.
-        "previous_for_the_director": director_concerns.open_rows(director_concerns.read_raw()),
+        # ORIGIN'S OPEN ROWS UNIONED WITH THE WORKING COPY'S (`director_concerns.
+        # open_rows_on_either`): the checkout lags origin, and a row only origin holds would
+        # otherwise be omitted here and then deleted by a verbatim carry.
+        "previous_for_the_director": director_concerns.open_rows_on_either(
+            director_concerns.read_raw(), director_concerns.read_origin_raw(PROJECT_DIR)),
         "concerns_unpaged": director_concerns.new_open_ids(
             _previous_concern_ids(), director_concerns.read_raw()),
         "atoms_drawn": atoms_drawn_since(since),
@@ -1766,6 +1773,10 @@ def is_material(brief: dict) -> tuple[bool, str]:
         return True, "{} long job(s) died in the stretch: {}".format(
             len(died), ", ".join("{} ({})".format(r["job"], r.get("result") or "no result")
                                  for r in died[:3]))
+    stranded = brief.get("seat_commit_not_on_origin")
+    if stranded:
+        return True, "the last direction record ({}) never reached origin: {}".format(
+            stranded["sha"][:9], stranded["says"])
     if brief.get("levels_recorded"):
         return True, "{} level move(s) recorded in the ledger".format(
             len(brief["levels_recorded"]))
@@ -2179,6 +2190,47 @@ DIRECTION_WORKTREE = Path(os.environ.get("SE_DIRECTION_WORKTREE", "/var/tmp/se-d
 APPEND_ONLY = ("docs/direction/decisions.jsonl", "docs/status/SEAT_STRETCH_LOG.md")
 
 
+def seat_commit_not_on_origin(worktree: Path | None = None) -> dict | None:
+    """The seat worktree's last direction commit when origin/main does not contain it, else None.
+
+    167d583a4 (2026-10-09 17:44Z) was gated green, lost the race to 63f429536, and the merge that
+    should have settled it went red at the knowledge gate. The refusal was paged once, as a
+    refusal; the commit itself was named nowhere, and the next brief said nothing about the record
+    the director reads being a stretch old. The worktree is only re-cut at the NEXT landing, so
+    until then its HEAD is the last thing the seat landed or tried to -- asked here, before that
+    cut. A fresh cut sits on origin's own commit, whose subject is not the seat's."""
+    worktree = worktree or DIRECTION_WORKTREE
+    if not (worktree / ".git").exists():
+        return None
+    head = _git_in(worktree, "log", "-1", "--format=%H %s")
+    sha, _, subject = head.stdout.decode(errors="replace").strip().partition(" ")
+    if head.returncode != 0 or not subject.startswith("delivery seat:"):
+        return None
+    asked = _git_in(PROJECT_DIR, "merge-base", "--is-ancestor", sha, "origin/main")
+    if asked.returncode == 0:
+        return None
+    says = ("not an ancestor of origin/main" if asked.returncode == 1 else
+            "git could not say whether origin/main holds it (rc={}), so it is not shown "
+            "landed".format(asked.returncode))
+    return {"sha": sha, "subject": subject, "worktree": str(worktree), "says": says}
+
+
+def page_a_stranded_record(stranded: dict | None, already_told: bool = False) -> None:
+    """Page once per stranded commit: keyed to its sha, so the next brief re-reading the same
+    commit is suppressed by `notify`'s transition rule, and a new stranded commit pages again.
+
+    `already_told` is a last decisions row carrying `landing_refused`: `record_landing_refused`
+    paged that one as it happened (17:45:51Z for 167d583a4), so this would be a second buzz for
+    one event. What is left for this page is the landing that refused nothing and still did not
+    arrive -- a promotion that claimed success, a run killed between commit and push."""
+    if not stranded or already_told:
+        return
+    _notify("delivery seat: direction commit {} is {}, so origin's record is older than the "
+            "seat's last steer".format(stranded["sha"][:9], stranded["says"]),
+            topic_class="blocked_work", transition_key="delivery-seat:record-not-on-origin",
+            state=stranded["sha"])
+
+
 class DirectionNotLanded(RuntimeError):
     """The direction record did not reach origin. The message names why."""
 
@@ -2525,7 +2577,7 @@ def commit_direction(lander=None) -> tuple[bool, str]:
     return True, f"commit rc=0; landed {sha[:9]} on origin/main"
 
 
-def refusal_verdict(text: str, limit: int = 600) -> str:
+def refusal_verdict(text: str, limit: int = 1500) -> str:
     """The refusal's head line and the lines that name what went red, joined on one line.
 
     THE FIRST THREE LINES WERE THE BOILERPLATE (2026-10-09 02:43). A red gate's refusal from
@@ -2533,16 +2585,30 @@ def refusal_verdict(text: str, limit: int = 600) -> str:
     that PASSED, and only then the refusing step's `❌` banner. Cut at three lines and 300
     characters, the 02:43 record ended mid-word inside `[live-hook]`: the direction record stayed
     off origin, its four files held the shared tree's fast-forward, and nothing said which gate.
-    `origin_reconcile` lost its refusal to the same cut and fixed it the same way (eaa94ed5f)."""
+    `origin_reconcile` lost its refusal to the same cut and fixed it the same way (eaa94ed5f).
+
+    THE REASONS UNDER A GATE WITH NO `❌` WERE FILTERED OUT (2026-10-09 17:45). The knowledge
+    gate prints `[knowledge-gate] COMMIT REFUSED.` and then, on the lines below, which file it
+    refused and why. Only the first line is a verdict line, so the filter kept it and dropped the
+    reasons -- the record was 460 characters, well inside the cut, and still could not name the
+    file; a faithful replay passed, so that record was the only route to the cause. The gate
+    chain is `cmd || exit 1`, so whatever follows the LAST verdict line is the refusing gate's
+    own account: it is kept whole, ahead of the earlier selection lines when the budget binds."""
     lines = [line.strip() for line in text.strip().splitlines() if line.strip()]
     if not lines:
         return ""
     if "❌" in text:
         said = [line.strip() for line in text[text.index("❌"):].splitlines() if line.strip()]
-    else:
-        said = [line for line in lines[1:]
-                if child_diagnostics.is_verdict_line(line) and "✓" not in line] or lines[1:3]
-    return " | ".join([lines[0], *said])[:limit]
+        return " | ".join([lines[0], *said])[:limit]
+    marks = [i for i, line in enumerate(lines[1:], 1)
+             if child_diagnostics.is_verdict_line(line) and "✓" not in line]
+    if not marks:
+        return " | ".join([lines[0], *lines[1:3]])[:limit]
+    earlier = [lines[i] for i in marks[:-1]]
+    refusing = lines[marks[-1]:]
+    while earlier and len(" | ".join([lines[0], *earlier, *refusing])) > limit:
+        earlier.pop(0)
+    return " | ".join([lines[0], *earlier, *refusing])[:limit]
 
 
 def out_of_scope_writes() -> list[str]:
@@ -2563,6 +2629,10 @@ def orient(now: datetime | None = None, dry_run: bool = False) -> dict:
     """One orientation. Always returns the row it recorded."""
     now = now or datetime.now(timezone.utc)
     brief = build_brief(now)
+    if not dry_run:
+        last = direction_mod.read_decisions(limit=1)
+        page_a_stranded_record(brief.get("seat_commit_not_on_origin"),
+                               already_told=bool(last and last[0].get("landing_refused")))
     material, why = is_material(brief)
     row = {
         "at": now.isoformat(),
@@ -2601,7 +2671,9 @@ def orient(now: datetime | None = None, dry_run: bool = False) -> dict:
         before_bytes = direction_mod.DIRECTION_PATH.read_bytes()
     except OSError:
         before_bytes = None
-    before_raw = director_concerns.read_raw()
+    # THE UNION, not the working copy: a row only origin holds must be carried too.
+    before_raw = {director_concerns.KEY: director_concerns.open_rows_on_either(
+        director_concerns.read_raw(), director_concerns.read_origin_raw(PROJECT_DIR))}
     try:
         from background import tick_mode
         tick_mode.note_spawn("delivery-seat")
@@ -2646,6 +2718,10 @@ def orient(now: datetime | None = None, dry_run: bool = False) -> dict:
         direction_mod.append_decision(row)
         return row
 
+    try:
+        row["focus_stamped"] = stamp_focus_written_at(before_bytes)
+    except Exception as exc:  # noqa: BLE001 - an unstamped row only keeps refusing, as before
+        _log(f"focus rows not stamped: {exc!r}")
     parsed = direction_mod.read_direction()
     previous_ids = _previous_concern_ids()   # BEFORE this row is appended and becomes "previous"
     row.update({
@@ -2710,6 +2786,56 @@ def orient(now: datetime | None = None, dry_run: bool = False) -> dict:
     return row
 
 
+def stamp_focus_written_at(before_bytes: bytes | None, path: Path | None = None,
+                           now: float | None = None) -> list[str]:
+    """Stamp `written_at` on each focus row of the record on disk; return the ids stamped NOW.
+
+    WHY (2026-10-10): `delivery_lane._stale_copy`'s age leg -- a held copy with no write since the
+    item was written cannot be work toward it -- read `written_at`, and only continuations carried
+    one, so a modified tracked copy idle since September still refused every focus item asking to
+    change its path. The session rewrites the whole record each stretch, so the stamp is applied
+    here, after validation: a row whose id, `what` and `why` match the previous record's keeps that
+    row's stamp; a new or reworded row is stamped `now`. An unchanged row the previous record had
+    no stamp for stays UNSTAMPED -- its true age is unknown, and a stamp later than the truth would
+    grade a live holder's older write as stale and release a refusal it should keep.
+    """
+    import yaml
+    path = direction_mod.DIRECTION_PATH if path is None else path
+    now = time.time() if now is None else now
+    try:
+        prior = yaml.safe_load(before_bytes.decode("utf-8")) if before_bytes else None
+    except Exception:
+        prior = None
+    prior_rows = {str(r.get("id")): r for r in ((prior or {}).get("focus") or [])
+                  if isinstance(r, dict) and r.get("id")} if isinstance(prior, dict) else {}
+    text = path.read_text(encoding="utf-8")
+    record = yaml.safe_load(text)
+    rows = record.get("focus") if isinstance(record, dict) else None
+    if not isinstance(rows, list):
+        return []
+    stamped, out = [], []
+    for row in rows:
+        if not isinstance(row, dict):
+            out.append(row)
+            continue
+        row = {k: v for k, v in row.items() if k != "written_at"}
+        was = prior_rows.get(str(row.get("id")))
+        if was is not None and was.get("what") == row.get("what") \
+                and was.get("why") == row.get("why"):
+            kept = was.get("written_at")
+            if isinstance(kept, (int, float)) and not isinstance(kept, bool) and kept > 0:
+                row["written_at"] = float(kept)
+        else:
+            row["written_at"] = round(float(now), 3)
+            stamped.append(str(row.get("id")))
+        out.append(row)
+    if out != rows:   # rewrapping an untouched record would churn every row's lines
+        from background.live_ledger_guard import guard_live_ledger_write
+        path = guard_live_ledger_write(path, writer="delivery_seat.stamp_focus_written_at")
+        path.write_text(director_concerns._replace_block(text, out, key="focus"), encoding="utf-8")
+    return stamped
+
+
 def record_session_did_not_run(row: dict, why: str, detail: str, before) -> dict:
     """The session never oriented: record it REFUSED, page, and land NOTHING.
 
@@ -2746,7 +2872,8 @@ def record_landing_refused(row: dict, detail: str) -> dict:
     return refused
 
 
-def _notify(message: str, *, topic_class: str) -> None:
+def _notify(message: str, *, topic_class: str, transition_key: str | None = None,
+            state: str | None = None) -> None:
     """Through `background.notify.notify`, never `send_ntfy` directly -- the notify contract, and
     a test enumerates new direct callers. The seat pages RARELY: only when its own record was
     refused, or when something is genuinely the director's.
@@ -2768,7 +2895,8 @@ def _notify(message: str, *, topic_class: str) -> None:
     """
     try:
         from background.notify import notify
-        notify(message, kind="real_alarm", topic_class=topic_class)
+        notify(message, kind="real_alarm", topic_class=topic_class,
+               transition_key=transition_key, state=state)
     except Exception as exc:
         _log(f"notify failed ({exc!r}), message was: {message}")
 

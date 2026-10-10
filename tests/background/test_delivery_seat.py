@@ -1109,3 +1109,49 @@ def test_a_brief_over_the_kernels_per_argument_limit_still_reaches_the_session(t
     ran, detail = seat.run_session({})
     assert ran, detail
     assert out.read_text() == prompt
+
+
+def test_a_focus_row_is_dated_when_written_and_keeps_its_date_while_unchanged(tmp_path):
+    """THE PARTITION, ONE CONTROL: new, unchanged, reworded and undatable rows in one stamp, and
+    the stamp read back by `delivery_lane._stale_copy`'s age leg through the record the draw reads.
+
+    MUTATION (must fire): stamp every row `now` (no carry) -- the unchanged row loses its date and
+    a live holder's write before the restamp grades stale.
+    MUTATION (must fire): carry every row's stamp, new or not -- the new row has no date.
+    MUTATION (must fire): drop the `why` comparison -- the row reworded only in its `why` keeps
+    its old date.
+    """
+    import yaml
+
+    from background import delivery_lane as dl
+
+    def row(rid, what, why="because", **over):
+        return {"id": rid, "what": f"Edit simulation/{rid}.py: {what}", "why": why, **over}
+
+    prior = _record(focus=[row("kept", "a", written_at=1000.0), row("reworded", "b",
+                           written_at=1000.0), row("undated", "c")])
+    after = _record(focus=[row("kept", "a"), row("reworded", "b", why="a new reason"),
+                           row("undated", "c"), row("new", "d")])
+    path = _write(tmp_path, after)
+
+    stamped = seat.stamp_focus_written_at(yaml.safe_dump(prior).encode(), path, now=5000.0)
+
+    assert stamped == ["reworded", "new"]
+    dated = {i["id"]: i.get("written_at") for i in d.unreachable_focus([], path=path, now=NOW)}
+    assert dated == {"kept": 1000.0, "reworded": 5000.0, "undated": None, "new": 5000.0}
+    assert d.validate(yaml.safe_load(path.read_text())) == []
+    # An unchanged record is not rewritten.
+    before = path.read_bytes()
+    assert seat.stamp_focus_written_at(before, path, now=9000.0) == []
+    assert path.read_bytes() == before
+
+    # The age leg reads it: a copy written at 3000 is stale against the reworded row (5000) and
+    # live against the kept one (1000). The undated row cannot be graded by age and still refuses.
+    focus = {i["id"]: i for i in d.unreachable_focus([], path=path, now=NOW)}
+    def holder(rid):
+        return {"holder": "w", "names": {"/wt/x"}, "paths": {f"simulation/{rid}.py"},
+                "identifiers": set(), "copies": {f"simulation/{rid}.py": {
+                    "untracked": False, "origin_tracks": False, "mtime": 3000.0}}}
+    assert dl.held_by(focus["reworded"], [holder("reworded")]) is None
+    assert dl.held_by(focus["kept"], [holder("kept")]) is not None
+    assert dl.held_by(focus["undated"], [holder("undated")]) is not None

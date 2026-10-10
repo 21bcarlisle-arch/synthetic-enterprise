@@ -139,6 +139,7 @@ FIELD_CONSUMPTION = {
     "include_acq_cost_saved_in_guard": {"via": "run_argument"},
     "retention_weighs_engagement": {"via": "run_argument"},
     "retention_nets_bad_debt": {"via": "run_argument"},
+    "retention_offers_at_default_anniversary_only_where_the_discount_wins": {"via": "run_argument"},
     "svt_contact_instrument": {"via": "run_argument"},
     "save_offer_cut_share": {"via": "run_argument"},
     "use_var_hedge_decision": {"via": "run_argument"},

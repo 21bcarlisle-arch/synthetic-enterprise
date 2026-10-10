@@ -32,6 +32,7 @@ from __future__ import annotations
 
 import argparse
 import re
+import subprocess
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -67,6 +68,41 @@ def rows_of(record) -> list[dict]:
 def open_rows(record) -> list[dict]:
     """The concerns still waiting on the director, in the record's order."""
     return [dict(r) for r in rows_of(record) if r.get("status") == "open"]
+
+
+def read_origin_raw(root: Path | None = None) -> dict | None:
+    """`origin/main`'s record as parsed YAML, or None. The local ref, not a fetch: this is on the
+    seat's hot path, and the reconciler fetches far more often than the seat orients."""
+    path = direction_mod.DIRECTION_PATH
+    root = root or PROJECT_DIR
+    try:
+        import yaml
+        out = subprocess.run(["git", "show", f"origin/main:{path.relative_to(root).as_posix()}"],
+                             cwd=str(root), capture_output=True, timeout=60)
+        raw = yaml.safe_load(out.stdout) if out.returncode == 0 else None
+    except Exception:  # noqa: BLE001 -- no origin copy means only the working copy's rows count
+        return None
+    return raw if isinstance(raw, dict) else None
+
+
+def open_rows_on_either(here, origin) -> list[dict]:
+    """The open concerns of the working copy, then origin's open ones it does not hold.
+
+    THE DIRECTOR READS ORIGIN, and the shared checkout lags it: a row another lane landed on
+    origin is missing from the working copy, so a brief built from the working copy alone omits
+    it, and a record the session then carries verbatim deletes it from his list (2026-10-05,
+    four listed against six on origin). An id that EITHER copy has answered or withdrawn is not
+    open: whichever side is ahead holds the resolution, and listing it would re-open his answer."""
+    closed = {str(r.get("id")) for rec in (here, origin) for r in rows_of(rec)
+              if r.get("id") and r.get("status") != "open"}
+    out, seen = [], set()
+    for row in open_rows(here) + open_rows(origin):
+        rid = str(row.get("id") or "")
+        if rid in closed or (rid and rid in seen):
+            continue
+        seen.add(rid)
+        out.append(row)
+    return out
 
 
 def carry_problems(before, after) -> list[str]:
@@ -175,18 +211,18 @@ def _unique_id(base: str, taken: set[str]) -> str:
     return rid
 
 
-def _render_block(rows: list[dict]) -> str:
+def _render_block(rows: list[dict], key: str = KEY) -> str:
     import yaml
     if not rows:
-        return f"{KEY}: []\n"
-    return yaml.safe_dump({KEY: rows}, sort_keys=False, allow_unicode=True, width=100)
+        return f"{key}: []\n"
+    return yaml.safe_dump({key: rows}, sort_keys=False, allow_unicode=True, width=100)
 
 
-def _replace_block(text: str, rows: list[dict]) -> str:
-    """`text` with ONLY its top-level `for_the_director` block replaced (or appended)."""
+def _replace_block(text: str, rows: list[dict], key: str = KEY) -> str:
+    """`text` with ONLY its top-level `key` block replaced (or appended)."""
     lines = text.splitlines(keepends=True)
-    start = next((i for i, ln in enumerate(lines) if ln.startswith(f"{KEY}:")), None)
-    block = _render_block(rows)
+    start = next((i for i, ln in enumerate(lines) if ln.startswith(f"{key}:")), None)
+    block = _render_block(rows, key)
     if start is None:
         sep = "" if not text or text.endswith("\n") else "\n"
         return text + sep + block

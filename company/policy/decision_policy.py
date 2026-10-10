@@ -194,6 +194,16 @@ class DecisionPolicy:
     #: standing policy sets it; an experiment names its share.
     save_offer_cut_share: float | None = None
 
+    #: (2026-10-10) at a term the world does not roll, the household converting off our default
+    #: tariff onto our fix, a retention offer can buy one thing: a conversion it would otherwise
+    #: decline, where the full-rate fix sits above the published default and the offered rate
+    #: does not. Everywhere else at that term it changes nothing but the bill. On run 224e4af02,
+    #: 95 of the 105 offers made there (GBP 3,252) bought nothing, and the 10 that converted were
+    #: all inside this rule (`SEAT_FINDING_C29_THE_BOOK_ARM_SURVIVES_THE_REFIT_AT_HALF_ITS_LIFT_
+    #: 2026-10-05`, addendum 2026-10-09). On by default and in every arm built from `current`;
+    #: off in `naive`, which predates the rule.
+    retention_offers_at_default_anniversary_only_where_the_discount_wins: bool = True
+
     def retention_discount_for_risk(self, company_est: float) -> float:
         """Return the retention discount fraction for a given churn estimate."""
         if self.retention_discount_mode == "flat":
@@ -232,6 +242,7 @@ NAIVE_POLICY = DecisionPolicy(
     include_acq_cost_saved_in_guard=False,
     use_var_hedge_decision=False,
     framing_mode="gain_framed",
+    retention_offers_at_default_anniversary_only_where_the_discount_wins=False,
 )
 
 # THE VALUE ARM, and NOTHING ELSE (2026-08-26). Built from CURRENT_POLICY by

@@ -544,6 +544,27 @@ Neither is live. Each should be checked against §3 before it is wired.
 
 **A forecast built on today's world would forecast the invented 3/12/35% tiers back to us.**
 
+### 7.1 The arrears like-for-like is a tracked tool (2026-10-10)
+
+The 2026-10-09 arrears verdicts were read by two untracked scripts in `/var/tmp`. They are now
+`tools/grade_world_debt_against_ofgem.py` (`capture` runs the world, `grade` pools one or more
+captures), with its control in `tests/tools/test_grade_world_debt_against_ofgem.py`. What it
+counts has not changed: 2019 electricity accounts holding a bill unpaid more than 91 days, over
+every account billed in the quarter's last month, pooled over four quarter ends. It is graded
+against Ofgem's arrears plus debt (5.1%) with a Wilson 95% interval. The derivation of 5.1% is in
+`gb_domestic_bill_payment_failure_and_arrears_prevalence.md`.
+
+Both 10-09 readings reproduce exactly through the tool, on the captures those runs wrote:
+
+| 400-founder capture, default seed | 2019 pooled electricity | Verdict |
+|---|---|---|
+| flat 0.5 never-repaid share | 98/1153 = 8.5% (7.0-10.3%), 1.67x | NOT MET, HIGH |
+| never-repaid share by method (63f429536 + change) | **50/1153 = 4.3% (3.3-5.7%), 0.85x** | **MET** |
+
+**No prepayment account is in either stock (0 of 50, 0 of 98)**, though 87 of the run's 667
+accounts are prepayment. So the 0.30-0.88 toggle moves only credit accounts on this book. That
+fits PPM debt (P4) being absent above. It is one seed. The two-seed re-take is the next item.
+
 ---
 
 ## 8. Gaps

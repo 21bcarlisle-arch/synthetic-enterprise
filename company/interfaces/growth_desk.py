@@ -60,6 +60,7 @@ __all__ = [
     "mandate_permits_replacement",
     "replacement_cost_avoided_gbp",
     "retention_engagement",
+    "retention_offer_can_buy_anything",
     "retention_value_protected",
 ]
 
@@ -400,3 +401,26 @@ def retention_value_protected(expected_margin: float, acq_cost_saved: float,
 def retention_bad_debt_charge(default_belief_rate: float | None, billed: float) -> float | None:
     """The charge `retention_value_protected` nets, for the run's retention log."""
     return None if default_belief_rate is None else default_belief_rate * max(0.0, billed)
+
+
+def retention_offer_can_buy_anything(*, previous_term_on_our_default: bool,
+                                     full_position_vs_default: float | None,
+                                     offered_position_vs_default: float | None) -> bool:
+    """Whether a retention offer at this term can change what the household does.
+
+    A term that follows a segment on our default tariff carries no exit, because the household's
+    exits were already carried on the default itself. A fix offered there is either taken or
+    declined in favour of staying on the default. So the offer can buy only a conversion the
+    household would otherwise decline: the full-rate fix above the published default, and the
+    offered rate at or below it. These are the two inequalities a household applies when it
+    refuses a fix above its default. Every input is the supplier's own: its fix, its discount,
+    and the published default. Where a position is unknown, the offer cannot be shown to buy
+    anything, and none is made.
+
+    A rolled term (any other previous term) is left to the economic guard, unchanged.
+    """
+    if not previous_term_on_our_default:
+        return True
+    if full_position_vs_default is None or offered_position_vs_default is None:
+        return False
+    return full_position_vs_default > 0 and offered_position_vs_default <= 0
