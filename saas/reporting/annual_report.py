@@ -1198,6 +1198,10 @@ def extract_report_data(run_output: dict) -> dict:
         # refusal downstream keeps naming its own cause.
         "svt_decisions": phase2b.get("svt_decisions"),
         "churned_billing_accounts": phase2b.get("churned_billing_accounts", []),
+        # The home movers, forwarded for the same reason as `svt_departures` above, with NO default:
+        # absent means moves are off. Dropped here until 2026-10-10, so the ledger could not see a
+        # mover's account close, and `forward_clv` read the published run as a world without moves.
+        "home_move_outs": phase2b.get("home_move_outs"),
         "company_event_log": phase2b.get("company_event_log", []),
         "basis_risk_terms": phase2b.get("basis_risk_terms", []),
         "churn_basis_risk": phase2b.get("churn_basis_risk", []),

@@ -40,12 +40,27 @@ _MIN_LOGS_UNDER_CENSUS = 4
 def _returned_dict_keys(tree: ast.AST) -> set[str]:
     """Every string key of every dict literal that is RETURNED anywhere in `tree`."""
     keys: set[str] = set()
+
+    # A returned `{...} | ({...} if on else {})` is still a returned dict literal. The run took
+    # that shape on 2026-10-08 (bfcae065d), and the walk, matching only a bare `Dict`, selected
+    # nothing until 2026-10-10.
+    def dicts(value: ast.AST):
+        if isinstance(value, ast.Dict):
+            yield value
+        elif isinstance(value, ast.BinOp) and isinstance(value.op, ast.BitOr):
+            yield from dicts(value.left)
+            yield from dicts(value.right)
+        elif isinstance(value, ast.IfExp):
+            yield from dicts(value.body)
+            yield from dicts(value.orelse)
+
     for node in ast.walk(tree):
-        if isinstance(node, ast.Return) and isinstance(node.value, ast.Dict):
-            keys |= {
-                k.value for k in node.value.keys
-                if isinstance(k, ast.Constant) and isinstance(k.value, str)
-            }
+        if isinstance(node, ast.Return) and node.value is not None:
+            for d in dicts(node.value):
+                keys |= {
+                    k.value for k in d.keys
+                    if isinstance(k, ast.Constant) and isinstance(k.value, str)
+                }
     return keys
 
 

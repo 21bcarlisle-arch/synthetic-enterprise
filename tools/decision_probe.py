@@ -260,10 +260,10 @@ def probe(report_end: str | None = None, roll_seed: int | None = None) -> list[d
     # up years later, which no rule could have priced. Each decision is charged only the write-offs
     # on bills dated inside the term it priced.
     from simulation.arrears_engine import balance_write_offs
-    from simulation.household import supply_points_that_left
+    from simulation.household import households_whose_account_closed, supply_points_that_left
     bills = out.get("bills") or []
     churned = supply_points_that_left(
-        phase2b.get("churned_billing_accounts", []),
+        households_whose_account_closed(phase2b),
         {r["customer_id"] for r in phase2b.get("all_records") or [] if isinstance(r, Mapping)})
     term_bad_debt_shares(rows, bills, balance_write_offs(
         bills, phase2b.get("per_customer_behavioral", {}), churned))

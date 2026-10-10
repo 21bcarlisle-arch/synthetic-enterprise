@@ -44,7 +44,7 @@ from simulation.arrears_engine import (
     _ON_TIME_PROB,
     _LATE_DAYS,
 )
-from simulation.household import supply_points_that_left
+from simulation.household import households_whose_account_closed, supply_points_that_left
 from company.billing.pre_bill_validation import (
     validate_bills,
     exception_queue_as_dicts,
@@ -153,7 +153,7 @@ def generate(run_json_path=None, out_path=None):
     behavioral = data.get("per_customer_behavioral", {})
     # By supply point, as the engine tests each bill's own id: see `supply_points_that_left`.
     churned = supply_points_that_left(
-        data.get("churned_billing_accounts", []), {b["customer_id"] for b in bills})
+        households_whose_account_closed(data), {b["customer_id"] for b in bills})
     # Which failed bills are written off, when, and what credit is netted against each, is READ
     # from the engine over the same unfiltered bills the P&L sees -- never re-derived here. The
     # engine drops held bills and credits itself, so the ledger and `bad_debt_gbp` agree per

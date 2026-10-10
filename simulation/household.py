@@ -19,7 +19,7 @@ interactions. The SIM's ground truth is never exposed to company code.
 
 from __future__ import annotations
 
-from collections.abc import Iterable
+from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
 from enum import Enum
 
@@ -581,3 +581,17 @@ def supply_points_that_left(
     """
     departed = set(departed_households)
     return departed | {sp for sp in supply_point_ids if household_of(sp) in departed}
+
+
+def households_whose_account_closed(phase2b_result: Mapping) -> set[str]:
+    """Every household whose account closed in the run: the departures, plus the home movers.
+
+    A move is not a registration loss, because the supplier keeps the premise on deemed terms, so
+    `run_phase2b` keeps movers off `churned_billing_accounts`. The MOVER'S ACCOUNT still closes on
+    the move date. It gets the SLC 21B final read, the final bill that asks for the closing
+    balance, the SLC 14 refund of any credit, and the write-off at close. Until 2026-10-10 none of
+    these reached a mover: an unpaid final bill sat as a stayer's live arrears, and a credit was
+    never refunded. The incoming occupant is supplied under its own id, so it is not swept in.
+    """
+    return (set(phase2b_result.get("churned_billing_accounts", []))
+            | {m["household"] for m in phase2b_result.get("home_move_outs") or []})

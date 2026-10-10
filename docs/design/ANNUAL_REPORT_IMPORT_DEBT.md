@@ -15,9 +15,16 @@ deliberately later rather than drifting into it."*
 |---|---|
 | Production importers reading a COMPUTATION | **0** (was 1, moved out) |
 | Production importers frozen with a stated reason | **2** (the renderer's own runner; a publisher importing two path constants) |
-| Test files importing the report | **89** |
+| Test files importing the report | **91** |
 | ...of which reach into private `_section_*` functions | **83** |
 | `saas/reporting/annual_report.py` | **11079 lines** |
+
+Importer count re-measured 2026-10-10: **91**, two new. The first is
+`tests/simulation/test_departure_rolled_at_renewal.py`, which calls the private
+`_customer_lifecycle_events_section`. It landed without this row. The second is
+`tests/simulation/test_a_movers_account_closes_on_the_move.py`, which calls the public
+`extract_report_data` to prove that `home_move_outs` survives the whitelist. The other two figures are still
+the 2026-10-01 measurement.
 
 Re-measured 2026-10-01: **89 / 83 / 11,079**. One new importer and no new private reacher:
 `tests/tools/test_dd_opening_arms.py` calls the public `extract_report_data` to prove that

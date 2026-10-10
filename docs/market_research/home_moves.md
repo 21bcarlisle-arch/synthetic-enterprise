@@ -333,7 +333,48 @@ numbers are at the worktree HEAD of that date.
 - **Exit debt in the world.** `simulation/final_bill_outcome.py` resolves whether a final bill is paid
   (paid / late / partial / unpaid, plus `gone_away`), behind the wall. `FinalBillResolution.as_observable_event()`
   (≈ line 328) is the sanctioned crossing, and it omits the probability, archetype, tenure and channel.
-  It is sound in shape but has no move-out stream to feed it.
+  It is sound in shape. *Corrected 2026-10-10: this said it "has no move-out stream to feed it". The
+  stream now exists (B7, moves on since ada37371c), but the run still has no caller of
+  `OccupancyEnded.final_bill_exposure`, so a mover's final bill never goes through this module.*
+- **That module against the one sourced exit-loss figure (measured 2026-10-10, not wired).** Centrica
+  ARA 2025 Note 17 p.175 provisions UK residential **closed-account final bills** at 31.6% / 57.6% /
+  87.8% of the gross balance at <30 / 30–90 / >90 days past invoice (2024: 36.8 / 63.6 / 89.6), per
+  `knowledge_map.md`'s IFRS 9 row. The world's comparable figure is the eventual shortfall over the
+  balance still outstanding at that invoice age. That age is days past due plus the 28 days to pay.
+  The draw used 20,000 £100 debit exposures per cell, with credit closures excluded as Centrica's
+  bucket excludes them.
+
+  | world cell | at issue | ≥30 days | ≥90 days |
+  |---|---|---|---|
+  | LOW stress, no tenure/channel multiplier | 15.4% | 51.8% | 82.1% |
+  | MODERATE | 30.2% | 46.9% | 80.0% |
+  | HIGH | 44.5% | 47.5% | 61.0% |
+  | private renter, standard credit, LOW | 25.9% | 65.8% | 85.5% |
+  | owner, direct debit, LOW | 10.7% | 42.9% | 78.6% |
+
+  Both ladders rise with age and meet near the old end. The world reaches 80–86% at 90 days in its
+  LOW and MODERATE cells, against 87.8%. **At issue, the LOW tier loses about half of what Centrica
+  provides for: 15% against 32–37%.** Only the MODERATE and HIGH cells reach it. Even a private
+  renter on standard credit is at 26% at LOW stress, and most of the book is at LOW stress. A provision is one supplier's expected loss, prudence included, on its own book
+  mix, so this bounds the world's exit loss and does not set it. It is not yet a defect because the
+  module is unwired. It is the number to look at first when it is wired: if the book's final bills
+  lose well under 30% at issue, the gone-away base rate (`GONE_AWAY_BASE_BETA`, mean 0.12, an
+  admitted choice) is the first suspect, ahead of the multipliers.
+- **What the run actually did with a mover's final bill (found 2026-10-10).** Nothing: the mover's
+  account never closed. `run_phase2b` keeps movers off `churned_billing_accounts`, rightly, because a
+  move is not a registration loss. But phase 4c, the billing ledger and the decision probe built
+  their closure roster from that list alone, and the reducer dropped `home_move_outs`. So a mover
+  got no SLC 21B final read and no SLC 14 refund of credit, and an unpaid final bill sat as a
+  stayer's live arrears, with no write-off. Repaired the same day:
+  `simulation.household.households_whose_account_closed` adds the movers, and all three consumers
+  read it. The mover's exit now goes through `arrears_engine`'s ordinary close rule, which draws a
+  final bill's failure at the **mid-tenure** rate. Measured on the same basis as the table above
+  (20,000 draws per cell, after the 12.2% post-write-off recovery): **0.74% at issue at LOW stress,
+  3.0% MODERATE, 8.8–9.3% HIGH**, by direct debit or standard credit alike. That is a fortieth of
+  Centrica's 32–37% at LOW, and a twentieth of what the unwired module gives. So there are now two
+  exit models, and the live one has no exit shape at all. The next step is to fold
+  `final_bill_outcome` in as the close-time draw for a mover's final bill, and not add it beside
+  the close rule. That would be two implementations of one exit.
 
 ### 5.2 The company: a complete change-of-tenancy machine with no input
 
