@@ -19,8 +19,15 @@ THE COMPARATOR is Ofgem's arrears PLUS debt, about 5.1% of electricity accounts 
 (2.45% + 2.6%): the world has no repayment arrangements, so every world debtor sits in the
 no-arrangement bucket, and the sum is the fair line (derivation:
 docs/market_research/gb_domestic_bill_payment_failure_and_arrears_prevalence.md). The reading is
-2019 electricity pooled over the four quarter ends. MET when 5.1% lies inside its Wilson 95%
-interval. Fuel is split on the account id's `g` suffix, the run's own gas-account convention.
+2019 electricity pooled over the four quarter ends. MET when 5.1% lies inside its account-clustered
+95% interval. Fuel is split on the account id's `g` suffix, the run's own gas-account convention.
+
+THE INTERVAL IS CLUSTERED ON THE ACCOUNT, not Wilson on account-quarters. An account that is behind
+stays behind: on the 2026-10-10 captures the 50/99/62 account-quarters are 22/35/29 accounts, about
+2.3 quarters each, so Wilson is too narrow and graded the three-seed pool NOT MET, HIGH on a bound
+the sample had not earned. The bootstrap resamples account ids and carries each one's quarters
+from EVERY pooled capture together, because dice seeds share one cast: the same household in three
+captures is one draw from the population, not three. Wilson is still printed beside it.
 
 A DICE SEED re-draws each bill's payment outcome and nothing else. Every payment draw in
 `simulation.payment_behaviour_source` (the outcome, its reason, a DD re-presentation, a later
@@ -38,6 +45,7 @@ from __future__ import annotations
 
 import json
 import math
+import random
 import sys
 from datetime import date, timedelta
 
@@ -46,6 +54,9 @@ from datetime import date, timedelta
 OFGEM_ARREARS_PLUS_DEBT_2019 = 0.051
 BEHIND_DAYS = 91
 GRADED_YEAR = 2019
+# Resamples for the clustered interval, and a fixed RNG seed so a capture always grades the same.
+BOOTSTRAP_DRAWS = 4000
+BOOTSTRAP_SEED = 20191231
 
 
 class dice_seeded:
@@ -156,26 +167,56 @@ def wilson(k: int, n: int, z: float = 1.96):
     return (c - h, c + h)
 
 
+def account_clustered(per_account: dict, draws: int = BOOTSTRAP_DRAWS, seed: int = BOOTSTRAP_SEED):
+    """95% percentile interval on sum(behind)/sum(billed) when whole accounts are resampled.
+
+    `per_account` maps an account id to its (account-quarters behind, account-quarters billed),
+    summed over every pooled capture, so one draw of an id carries all of its captures with it."""
+    rows = list(per_account.values())
+    if not rows:
+        return (None, None)
+    rng = random.Random(seed)
+    shares = []
+    for _ in range(draws):
+        k = n = 0
+        for kb, nb in rng.choices(rows, k=len(rows)):
+            k += kb
+            n += nb
+        shares.append(k / n)
+    shares.sort()
+    return (shares[int(0.025 * draws)], shares[int(0.975 * draws) - 1])
+
+
+def _verdict(interval) -> str:
+    lo, hi = interval
+    if lo <= OFGEM_ARREARS_PLUS_DEBT_2019 <= hi:
+        return "MET"
+    return "NOT MET, HIGH" if lo > OFGEM_ARREARS_PLUS_DEBT_2019 else "NOT MET, LOW"
+
+
 def grade(raws: list, fuel: str = "electricity", year: int = GRADED_YEAR) -> dict:
     """Pool the year's four quarter ends over one or more runs' captures, and grade against Ofgem."""
     k = n = prepay = 0
+    per_account: dict = {}
     for raw in raws:
         for m, dd in ((3, 31), (6, 30), (9, 30), (12, 31)):
             behind, active = quarter_reading(raw, date(year, m, dd), fuel)
             k += len(behind)
             n += len(active)
             prepay += sum(1 for a in behind if raw[a]["method"] == "prepayment")
+            behind_set = set(behind)
+            for a in active:
+                kb, nb = per_account.get(a, (0, 0))
+                per_account[a] = (kb + (a in behind_set), nb + 1)
     if n == 0:
         return {"behind": 0, "accounts": 0, "verdict": "CANNOT TELL -- no account billed in the graded year"}
-    lo, hi = wilson(k, n)
-    if lo <= OFGEM_ARREARS_PLUS_DEBT_2019 <= hi:
-        verdict = "MET"
-    elif lo > OFGEM_ARREARS_PLUS_DEBT_2019:
-        verdict = "NOT MET, HIGH"
-    else:
-        verdict = "NOT MET, LOW"
-    return {"behind": k, "accounts": n, "share": k / n, "wilson": (lo, hi),
-            "ratio": (k / n) / OFGEM_ARREARS_PLUS_DEBT_2019, "verdict": verdict,
+    wil = wilson(k, n)
+    clustered = account_clustered(per_account)
+    return {"behind": k, "accounts": n, "share": k / n, "wilson": wil, "clustered": clustered,
+            "distinct_accounts": len(per_account),
+            "distinct_behind": sum(1 for kb, _ in per_account.values() if kb),
+            "ratio": (k / n) / OFGEM_ARREARS_PLUS_DEBT_2019, "verdict": _verdict(clustered),
+            "wilson_verdict": _verdict(wil),
             "prepayment_behind": prepay, "prepayment_share_of_behind": prepay / k if k else None}
 
 
@@ -191,10 +232,15 @@ def main(argv: list) -> int:
             if not g["accounts"]:
                 print(fuel, g["verdict"])
                 continue
-            lo, hi = g["wilson"]
-            print(f"{fuel}: {g['behind']}/{g['accounts']} = {g['share']:.1%} ({lo:.1%}-{hi:.1%}), "
-                  f"{g['ratio']:.2f}x Ofgem {OFGEM_ARREARS_PLUS_DEBT_2019:.1%}: {g['verdict']}; "
-                  f"prepayment {g['prepayment_behind']} of {g['behind']} behind")
+            lo, hi = g["clustered"]
+            wlo, whi = g["wilson"]
+            print(f"{fuel}: {g['behind']}/{g['accounts']} account-quarters = {g['share']:.1%}, "
+                  f"{g['ratio']:.2f}x Ofgem {OFGEM_ARREARS_PLUS_DEBT_2019:.1%}; "
+                  f"{g['distinct_behind']} of {g['distinct_accounts']} accounts ever behind\n"
+                  f"  account-clustered {lo:.1%}-{hi:.1%}: {g['verdict']}\n"
+                  f"  Wilson on account-quarters {wlo:.1%}-{whi:.1%}: {g['wilson_verdict']} "
+                  f"(treats account-quarters as independent)\n"
+                  f"  prepayment {g['prepayment_behind']} of {g['behind']} behind")
         return 0
     print(__doc__.split("Usage:")[1])
     return 2

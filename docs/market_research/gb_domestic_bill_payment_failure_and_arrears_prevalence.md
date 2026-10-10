@@ -609,7 +609,9 @@ every failed bill. Before this section landed, 95c1193cb split the never-repaid 
 method from Centrica's provisions on live UK residential balances over 90 days old (ARA 2025
 Note 17): Direct Debit 7.4% never repaid (92.6% repaid), standard credit 50.3% (49.7% repaid);
 prepayment, which Centrica does not report, keeps this toggle. On that world it measured 4.3%
-(Wilson 3.3-5.7%, 0.85x Ofgem's, MET) with the same instrument and book.
+(Wilson 3.3-5.7%, 0.85x Ofgem's, MET) with the same instrument and book. *(Corrected 2026-10-10:
+that interval was too narrow. On the account-clustered interval it is 2.4-6.7%. Three dice seeds
+pooled read 6.1% (4.6-7.8%), 1.19x, MET, which is not established either way.)*
 
 The two readings agree rather than compete. This range is for the WHOLE book; Centrica's split
 is by method, and a mostly-DD book weighted by its split lands in the high part of the range,
