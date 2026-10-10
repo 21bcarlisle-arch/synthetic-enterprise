@@ -192,3 +192,36 @@ table to the penny: 208 offers, GBP 6,828.20, no row unjoined. Scratch scripts:
 `/var/tmp/retdisc_post.py` and `/var/tmp/svtann_rule_on_book.py`. Prediction 2 is graded on the
 run `longjob-svtann-retention-rule-run`. That run started at 01:15 BST from a worktree whose three
 rule files are byte-identical to `9efdb1493`, and its output goes to `/var/tmp/svtann_run.json`.
+
+**Prediction 2 graded (2026-10-10 02:45 BST): every band held.** Run `longjob-svtann-retention-rule-run`
+ended `success` at 02:29 BST after 1h14m. Output: `/var/tmp/svtann_run.json` (scratch, not
+promoted). It was joined the same way as above, and no row was left unjoined. Script:
+`/var/tmp/svtann_grade_p2.py`.
+
+| | band filed before the run | 224e4af02 | this run | verdict |
+|---|---|---|---|---|
+| offers at unrolled terms | 8 to 14 | 105 | **10** | held |
+| spend on them | GBP 250 to 500 | GBP 3,607 | **GBP 354.84** | held |
+| discount-bought conversions | 8 to 14 | 10 | **10** | held |
+| offers at rolled terms | 93 to 113 | 103 | **102** | held |
+| total offers | 103 to 125 | 208 | **112** | held |
+| total spend | GBP 3,200 to 4,000 | GBP 6,828 | **GBP 3,797.99** | held |
+
+- **The 10 conversions are the same 10 households on the same dates as on 224e4af02** (10 of 10
+  shared by customer and date). The rule kept exactly what the money had won.
+- **Both branches are reached in the run itself.** Across all 314 unrolled-term events, 10 were
+  offered, 94 were withheld with `the_discount_cannot_win_the_fix` stamped on the event, and 210
+  were below the guard's threshold before the rule was asked.
+- Rolled-term spend rose from GBP 3,222 to GBP 3,443 on one fewer offer. That is book drift on
+  the terms the rule does not touch, and it sits inside the total-spend band.
+- **Caveat on the instrument.** The run's `producing_commit` reads `6a7a35721`, which is the
+  worktree's base. The rule was uncommitted on top of that base when the run started. Before
+  grading, I checked that the three rule files in `/var/tmp/se-svtann-run` are byte-identical to
+  `9efdb1493`. The stamp alone would not show that this run carried the rule.
+
+**What this settles.** Retention spend falls by about 44% (GBP 6,828 to GBP 3,798) and every
+conversion the discount bought is kept. That answers the premise of the director's row
+`does-a-retention-discount-offered-to-a` in code: the offers that bought nothing are no longer
+made, and none of the offers that bought something were given up. Whether a conversion is worth
+about GBP 35 an account is still the open question from the 2026-10-09 addendum. The seat should
+carry the row as answered-in-code at its next orientation.
