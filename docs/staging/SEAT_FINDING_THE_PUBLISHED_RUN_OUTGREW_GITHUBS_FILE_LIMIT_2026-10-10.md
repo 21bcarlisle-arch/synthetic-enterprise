@@ -157,3 +157,12 @@ file before the first gz publish.
   without fixing it, and the churned-account file gains a second red, "is missing". Whoever lands
   the 2022 fix has to touch that file anyway; the conversion is two lines (`resolve_run_output(RUN_OUTPUT_PATH)
   is not None` for the existence assert, `load_run_output(RUN_OUTPUT_PATH)` for the read).
+
+**Withdrawn after landing, same evening: the conversion of
+`tests/tools/test_a_published_rate_says_which_rate_it_is.py`.** The shared tree holds an
+uncommitted in-place edit of that file dated 2026-09-24 (newer than its last commit, 7a995e2b1, so
+another lane's work, not a stale revert). `origin_reconcile.paths_blocking_fast_forward` named it
+as blocking the shared tree's `--ff-only` the moment 8f02e2f39 reached origin. The file is restored
+to its pre-landing bytes so the shared tree can advance; until that lane lands or drops its edit,
+the file's run-reading legs skip in gz-only checkouts. The conversion is the same two lines as
+the others.

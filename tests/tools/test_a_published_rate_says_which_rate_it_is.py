@@ -33,8 +33,6 @@ import pathlib
 
 import pytest
 
-from tools.run_output_store import load_run_output, resolve_run_output
-
 PROJECT = pathlib.Path(__file__).resolve().parents[2]
 PUBLISHED = PROJECT / "site" / "data" / "customers.json"
 RUN = PROJECT / "docs" / "reports" / "run_output_latest.json"
@@ -60,7 +58,7 @@ def legs() -> list[dict]:
     subjects is not a pass. The live artefact is checked separately, and only for the one thing that
     is true of it whatever the publisher last did — see the ambiguous-name leg.
     """
-    if resolve_run_output(RUN) is None:
+    if not RUN.exists():
         pytest.skip(f"{RUN} has not been generated in this tree")
 
     import tempfile
@@ -135,9 +133,9 @@ def test_the_effective_rate_is_the_whole_bill_over_the_volume_those_bills_covere
     denominator matters as much as the numerator: a mean over bills weights a 300 kWh month the
     same as a 3,000 kWh one, and that is a different quantity wearing the same name.
     """
-    if resolve_run_output(RUN) is None:
+    if not RUN.exists():
         pytest.skip("no run output in this tree")
-    bills = load_run_output(RUN).get("bills", [])
+    bills = json.loads(RUN.read_text()).get("bills", [])
     assert len(bills) >= 500, f"population floor: only {len(bills)} bills in the run output"
 
     expected: dict[str, list[float]] = {}
