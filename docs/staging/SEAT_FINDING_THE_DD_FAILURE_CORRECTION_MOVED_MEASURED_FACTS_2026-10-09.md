@@ -546,3 +546,45 @@ at an origin that contains 1d3c28930:
 If P1 holds, the levy fix contributes nothing to the 1.19x. Prediction 4 of the levy finding then
 holds for *pounds* in arrears and not for the *share of accounts* behind, which is what Ofgem's 5.1%
 counts.
+
+## Result: the three-seed pool on single-levy bills (seat, 2026-10-10 14:00)
+
+`longjob-arrears-levy-three-seeds` ran `/var/tmp/levy_arrears_run.sh` at d40857770, which descends
+from 1d3c28930. It was admitted at 12:55, after the pre-registration above was written (landed as
+cdc113aaa), and it ended at 13:59. Captures are `/var/tmp/levy_arrears_{default,dice1,dice2}.json`,
+and the pooled grade is `/var/tmp/levy_arrears_pooled.txt`.
+
+| 2019, electricity | levies twice (820a2f31b) | levies once (d40857770) |
+|---|---|---|
+| default dice | 50/1153 = 4.3% | 50/1155 = 4.3%, MET |
+| dice seed 1 | 99/1153 = 8.6% | 99/1155 = 8.6%, NOT MET, HIGH |
+| dice seed 2 | 62/1159 = 5.3% | 62/1161 = 5.3%, MET |
+| **pooled** | 211/3465 = 6.1%, 4.6-7.8% | **211/3471 = 6.1%, account-clustered 4.6-7.7%, MET, 1.19x** |
+
+Gas, pooled, is 40/610 = 6.6%, MET, the same as before. Prepayment accounts behind are 0 on every seed.
+
+**Graded.** P1 holds: the share moved by less than 0.02 pp, and no move was the prediction. P2
+holds: the numerators are identical and each denominator rose by 2. P3 holds: MET. P4 holds: 0.
+
+**The prediction was right, but my reason was only half the story.** I argued that no payment draw
+reads the amount. That is true, but there is a second reason, and it means the item's premise was
+false. The world's payment amount is not the company's bill. `simulation/run_phase2b.py` 4174 builds
+each month's `amount_gbp` from settlement `revenue_gbp`, less the void and occupier charges. It never
+reads `saas/bill_generator`. The levy finding says settlement revenue always held the levies once.
+So the world asked households to pay single-levy amounts all along. The double count lived in the
+company's bill document, and the world's payment path never saw it. **The 1.19x was never measured
+on double-levied bills.**
+
+The +2 in each denominator is the cast. It is consistent with first-review DD rises, which read
+company bills, changing who churns (DD4b). I have not traced it, and at 2 out of about 1,155 it moves
+nothing.
+
+**The 400-founder book's arrears hold is MET on fixed bills.** It is the same reading as before:
+about 1.2x Ofgem. The interval is 0.9x to 1.5x, so the world is *not shown* to over-hold debt, and it
+is not shown that it does not. The levy fix contributed nothing to the excess, and nothing it
+changed could have.
+
+**For the levy finding's prediction 4.** Arrears do not move with bill totals, by either route
+above. Anything that takes the world's debt amount from that same accumulator does not move either.
+Only figures that read the company's bill document can move. The published-run lane should check
+which of its bad-debt figures come from where before grading its leg 4.
