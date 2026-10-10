@@ -214,6 +214,12 @@ from simulation.live_population import (
     run_base_seed,
 )
 from simulation.move_out_notice_feed import MoveOutNoticeFeed
+from simulation.move_with_us_answer import (
+    NOT_ANSWERABLE,
+    household_moves_with_us,
+    move_with_us_active,
+    take_up_scale,
+)
 from simulation.nudge_physics import framing_effectiveness_multiplier, susceptibility_for
 from simulation.payment_timing import generate_payment_record, stress_bad_debt_multiplier
 from simulation.policy_costs import (
@@ -2148,6 +2154,9 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
     _move_out_register = open_move_out_register()
     # ...and what the company decided on each, one row per household, on its deciding leg.
     move_with_us_log: list[dict] = []
+    # Whether households answer that offer (`simulation/move_with_us_answer.py`): read once per run.
+    _move_with_us_answers = move_with_us_active()
+    _move_with_us_k = take_up_scale() if _move_with_us_answers else None
     _home_move_by_household: dict = {}
     home_move_outs: list[dict] = []
     # B7 slice 3: who supplies a vacated premise from the move date. The book is live and module
@@ -2386,6 +2395,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                     term_indices[cid] += 1
                 continue
             if _moved_in_term:
+                _next_renewal_str = term_end_str
                 term_end_str = _move_end.isoformat()
                 if _churn_journey_register.get_journey(billing_account) is None:
                     _churn_journey_register.register_customer(billing_account)
@@ -2878,6 +2888,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                 _engagement_channels[cid] = LiveSimInterface().get_payment_method(
                     billing_account, commodity, as_of=term_start_str)
 
+        _renewal_event_this_term = None
         if term_index >= 1 and commodity == _decision_leg and not _indexed_tariff:
             company_est_pre = None
             _retention_offer = None
@@ -3448,6 +3459,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                     # stay rule is for a renewal offer the household never answered, and reading it
                     # here would splice a saved household onto the default tariff.
                     _offer_vs_default = None
+            _renewal_event_this_term = event
             # STAY, LEAVE, OR STAY AND REFUSE. Leaving is the roll's and stands; the rule only
             # reprices a household that stayed.
             _renewal_outcome = renewal_outcome(
@@ -3844,6 +3856,23 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                     "offered": _mwu_offer is not None, "no_offer_reason": _mwu_reason,
                     "known_vulnerable": _mwu_vulnerable,
                 })
+                # THE WORLD'S ANSWER: the roll of the household's NEXT renewal against k times the
+                # P(stay) the world rolled its renewal onto this tariff against. Recorded only: the
+                # household still leaves at the move, because nothing yet supplies it at its new
+                # home (`mover_arrives` has no demand the world can draw, see the proposal's step 4).
+                if _move_with_us_answers and _mwu_offer is not None:
+                    _p_carried = (_renewal_event_this_term or {}).get(
+                        "effective_retention_probability")
+                    _next_roll = churn_roll_for_renewal(billing_account, _next_renewal_str[:10])
+                    move_with_us_log[-1].update({
+                        "take_up_scale": _move_with_us_k,
+                        "p_stay_at_carried": _p_carried,
+                        "unanswerable_reason": NOT_ANSWERABLE if _p_carried is None else None,
+                        "next_renewal": _next_renewal_str[:10],
+                        "next_renewal_roll": _next_roll,
+                        "moves_with_us": (_p_carried is not None and household_moves_with_us(
+                            _next_roll, _p_carried, _move_with_us_k)),
+                    })
 
         if cid in pending_committee_overrides:
             hf = pending_committee_overrides.pop(cid)

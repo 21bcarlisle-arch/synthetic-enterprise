@@ -1,0 +1,19 @@
+{
+  "_meta": {
+    "artefact": "move_with_us_activation",
+    "version": 1,
+    "status": "OFF -- 2026-10-10, built on the director's direction ('home-mover retention now that moves are on'), not yet switched on",
+    "r13_discipline": "Whether households in this world answer a move-with-us offer made on their move-out notice is a CURRICULUM question, the director's. With it off the run is byte-identical to the run before the offer existed: no household is asked. WHETHER the company offers is the company's (company.policy.decision_policy.DecisionPolicy.move_with_us_offers) and is not set here. No take-up rate of a move-with-us offer is published (docs/market_research/home_moves.md s.8.5 G8.4; re-confirmed by Ofgem OFG1164, June 2026).",
+    "consumed_by": "simulation.move_with_us_answer.move_with_us_active() and .take_up_scale(), read once per run by simulation.run_phase2b._main"
+  },
+  "activated": {
+    "value": false,
+    "basis": "Off until the director reads the arms (docs/staging/SEAT_PROPOSAL_HOME_MOVER_RETENTION_AS_A_SUPPLIER_LEVER_2026-10-10.md). His standing rules: an offer must never be paid for by raising stayers' prices, and a known-vulnerable household is never treated worse than its twin.",
+    "effect": "When true, a household that told us it is moving out and was offered to move with us answers on the renewal roll it would face at its next renewal, at the tariff it would carry, scaled by take_up_scale. REVERT is this one field."
+  },
+  "take_up_scale": {
+    "value": 1.0,
+    "basis": "k, a labelled SENSITIVITY and never a calibration, because no take-up rate exists (G8.4). The household moves with us iff its next renewal's roll is at or below k times the world's P(stay) at the carried tariff. k = 0: no mover ever takes us. k = 1: a mover stays as often as a renewing household at that price. Both ends are run and reported; a result that turns on k is reported to the director as turning on an unpublished number.",
+    "effect": "Read only when activated is true."
+  }
+}

@@ -191,3 +191,15 @@ home (step 4), so the answer is recorded and the household still leaves.
   not offered either, so the director's twin rule holds. The coarser rule (no known-vulnerable mover
   unoffered while others are offered) does not. The cause is the fixed-tariff scope, not
   vulnerability. Graded under P3 below.
+
+**Step 3 result** (40 founders, budget 0, same seed; `tools/move_with_us_arms.py`):
+- **k = 0: no mover takes us; 717 of 717 account-terms and `total_net` identical to off.**
+- **k = 1: 1 mover would move with us** (C8, 2017-12-14: P(stay) at the carried tariff 0.7394,
+  next renewal's roll 0.6055). Expected at k = 1 over the answerable: 0.739.
+- **3 of the 4 offered movers are unanswerable** (C1, C4, SYN-2016-032): each was still in its first
+  term, so the world never rolled a renewal onto the tariff it carries and holds no P(stay) for it.
+  My prediction (2 to 4 movers at k = 1) was too high for that reason: I did not count how many
+  offered movers would be in a first term.
+- **on minus off total net = 0.00 at both ends**, as predicted: nothing supplies a mover at its new
+  home yet, so the answer is recorded and the household still leaves (step 4, below).
+- Mutants: dropping the `k > 0` guard reds the k = 0 control; ignoring k reds the scaling control.
