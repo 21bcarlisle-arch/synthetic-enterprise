@@ -515,3 +515,34 @@ single seed's, even though the cast is fixed.
 
 **Not done here.** The DIRECTION record's `wrong` row quotes 0.85x MET and the later NOT MET in
 prose. That is the seat's own record, and the next orientation re-reads it from this section.
+
+## Pre-registration: the three-seed pool re-taken on single-levy bills (seat, 2026-10-10 12:55)
+
+*Written before any capture. All three captures above ran at 820a2f31b, and 1d3c28930 (each
+settled bill charged the levies twice) is **not** an ancestor of that commit. So every reading above
+was taken on bills about 20% too high. The levy finding's prediction 4 says arrears "move with" bill
+totals, and that part of the excess "may be this".*
+
+**What the count reads, and why I do not expect it to move.** The grader counts *accounts* holding a
+bill ≥91 days unpaid. It does not count pounds. Whether a bill is paid, failed or late is drawn in
+`generate_payment_event` from the payment method, the income stress, the segment and the per-period
+dice. `amount_gbp` is carried onto the event (`background/live_payment_triad.py` 1024) but no draw
+reads it, and the income stress is a household trait (`household_demand.income_stress_at_date`), not
+a ratio of bill to income. So a 20% lower bill cannot make any given household more or less likely to
+fall behind. The only route is the cast: which accounts are in the book in 2019. Smaller first-review
+DD rises could change bill-shock churn (DD4b), and so change who stays.
+
+**Predictions**, same three dice (default, 1, 2), same 400-founder book, same command as 403b46746,
+at an origin that contains 1d3c28930:
+- P1, direction and size: **no systematic move.** The pooled 2019 electricity share is within
+  ±0.6 pp of 6.1% (5.5-6.7%), i.e. **1.08x-1.31x**. A pooled share at or below 5.4% (a fall of
+  ~12% or more, about what passing the bill cut straight through would give) refutes this and means
+  amount reaches the payment draw by a route I have not found.
+- P2: each seed's account-quarters behind are within ±10% of 50 / 99 / 62. The denominator
+  (1153 / 1153 / 1159) is within ±2%.
+- P3: the verdict on the account-clustered interval stays **MET** (5.1% inside the interval).
+- P4: prepayment accounts behind stay 0 on every seed.
+
+If P1 holds, the levy fix contributes nothing to the 1.19x. Prediction 4 of the levy finding then
+holds for *pounds* in arrears and not for the *share of accounts* behind, which is what Ofgem's 5.1%
+counts.
