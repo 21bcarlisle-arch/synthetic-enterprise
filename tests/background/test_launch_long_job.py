@@ -450,3 +450,80 @@ def test_a_run_over_an_hour_must_state_its_case_and_one_that_does_or_is_shorter_
     entry = _launch(tmp_path, _Runner(), expect_minutes=180, run_case=case)
     assert entry["run_case"] == case and entry["expect_minutes"] == 180
     assert _launch(tmp_path, _Runner(), expect_minutes=45, records_path=tmp_path / "r2.json")
+
+
+# ── following the unit to its end (director, 2026-10-10) ────────────────────────────────────────
+
+def test_follow_WAITS_while_the_unit_is_held_and_returns_only_when_it_ends(tmp_path):
+    """Fires on: a follower that returns while the job still runs -- the session is woken by a
+    command that ended when the job was QUEUED, which is the five-hour unread result."""
+    states = iter([True, True, True, False])
+    slept = []
+    artefact = tmp_path / "out.json"
+    artefact.write_text("{}")
+    rc = llj.follow_unit("longjob-x", str(artefact), held=lambda u: next(states),
+                         show=lambda u, *p: {"Result": "success", "ExecMainStatus": "0"},
+                         sleep=slept.append, clock=lambda: 0.0, say=lambda m: None)
+    assert len(slept) == 3, "it must keep waiting for as long as the unit is held"
+    assert rc == 0
+
+
+def test_follow_reports_a_failed_or_artefactless_end_as_not_success(tmp_path):
+    """Fires on: every ending read as success -- a failed measurement wakes the session looking
+    finished."""
+    said = []
+    rc = llj.follow_unit("longjob-x", str(tmp_path / "missing.json"), held=lambda u: False,
+                         show=lambda u, *p: {"Result": "exit-code", "ExecMainStatus": "1"},
+                         sleep=lambda s: None, clock=lambda: 0.0, say=said.append)
+    assert rc == 1 and "MISSING" in said[-1] and "exit-code" in said[-1]
+
+
+def test_follow_past_its_deadline_says_STILL_RUNNING_not_finished():
+    """Fires on: a deadline read as completion."""
+    t = iter(range(0, 10_000, 100))
+    said = []
+    rc = llj.follow_unit("longjob-x", None, deadline_seconds=250, held=lambda u: True,
+                         show=lambda u, *p: {}, sleep=lambda s: None, clock=lambda: next(t),
+                         say=said.append)
+    assert rc == 2 and "not finished" in said[-1]
+
+
+def test_the_command_line_FOLLOWS_by_default_and_detach_opts_out(monkeypatch):
+    """Fires on: following made opt-in again -- the pattern the director asked fixed is a launch
+    that returns at scheduling time unless someone remembers to follow it."""
+    calls = []
+    monkeypatch.setattr(llj, "launch", lambda *a, **k: {"unit": "longjob-x"})
+    monkeypatch.setattr(llj, "follow_unit", lambda unit, artefact, **k: calls.append(unit) or 0)
+    base = ["--job", "x", "--artefact", "/tmp/a", "--peak-mb", "10", "--", "true"]
+    assert llj.main(base) == 0 and calls == ["longjob-x"]
+    assert llj.main(["--detach", *base]) == 0 and calls == ["longjob-x"]
+
+
+def test_a_launch_with_NO_ROOM_queues_and_then_follows_rather_than_returning(monkeypatch):
+    """Fires on: a no-room refusal returned to the caller -- the job was asked for and never runs
+    unless someone remembers to relaunch it, which is the same unread-result shape."""
+    tries, followed, slept = [], [], []
+
+    def launch(*a, **k):
+        tries.append(1)
+        if len(tries) < 3:
+            raise llj.NoRoom("co-resident: no room yet")
+        return {"unit": "longjob-x"}
+    monkeypatch.setattr(llj, "launch", launch)
+    monkeypatch.setattr(llj, "follow_unit", lambda unit, artefact, **k: followed.append(unit) or 0)
+    monkeypatch.setattr("time.sleep", slept.append)
+    base = ["--job", "x", "--artefact", "/tmp/a", "--peak-mb", "10", "--", "true"]
+    assert llj.main(base) == 0
+    assert len(tries) == 3 and len(slept) == 2 and followed == ["longjob-x"]
+
+
+def test_no_queue_and_a_refusal_waiting_cannot_cure_still_return_at_once(monkeypatch):
+    """Fires on: queueing a refusal that waiting cannot cure (a missing run case) -- it would
+    retry for a day -- or ignoring --no-queue."""
+    monkeypatch.setattr("time.sleep", lambda s: (_ for _ in ()).throw(AssertionError("slept")))
+    base = ["--job", "x", "--artefact", "/tmp/a", "--peak-mb", "10", "--", "true"]
+    monkeypatch.setattr(llj, "launch", lambda *a, **k: (_ for _ in ()).throw(llj.NoRoom("full")))
+    assert llj.main(["--no-queue", *base]) == 1
+    monkeypatch.setattr(llj, "launch",
+                        lambda *a, **k: (_ for _ in ()).throw(llj.LaunchRefused("no run case")))
+    assert llj.main(base) == 1
