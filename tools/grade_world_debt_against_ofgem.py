@@ -22,8 +22,16 @@ docs/market_research/gb_domestic_bill_payment_failure_and_arrears_prevalence.md)
 2019 electricity pooled over the four quarter ends. MET when 5.1% lies inside its Wilson 95%
 interval. Fuel is split on the account id's `g` suffix, the run's own gas-account convention.
 
+A DICE SEED re-draws each bill's payment outcome and nothing else. Every payment draw in
+`simulation.payment_behaviour_source` (the outcome, its reason, a DD re-presentation, a later
+settlement) comes through `_period_substream`. The household's payment method uses `_substream`
+directly, and stress is drawn elsewhere. So salting only `_period_substream` keeps the cast, the
+weather, the prices and every household's method, and varies the dice. A book seed would change
+the cast. That is EP17 and the director's (`tools/book_seed_authorisation.py`), and it is not
+reachable from here.
+
 Usage:
-  python3 -m tools.grade_world_debt_against_ofgem capture OUT.json [END]   # runs the world
+  python3 -m tools.grade_world_debt_against_ofgem capture OUT.json [END] [DICE_SEED]  # runs the world
   python3 -m tools.grade_world_debt_against_ofgem grade OUT.json [OUT2.json ...]  # pools seeds
 """
 from __future__ import annotations
@@ -40,8 +48,33 @@ BEHIND_DAYS = 91
 GRADED_YEAR = 2019
 
 
-def capture(out_path: str, end: str = "2019-12-31") -> dict:
+class dice_seeded:
+    """Salt every per-period payment draw with `seed`; restore on exit. `calls` counts the draws
+    the salt reached, so a rebind that reaches nothing can be refused, not published as a spread."""
+
+    def __init__(self, seed: int):
+        self.seed = seed
+        self.calls = 0
+
+    def __enter__(self):
+        import simulation.payment_behaviour_source as pbs
+        self._pbs, self._orig = pbs, pbs._period_substream
+
+        def salted(base_seed, base_name, period_index):
+            self.calls += 1
+            return self._orig(base_seed, f"{base_name}::dice{self.seed}", period_index)
+
+        pbs._period_substream = salted
+        return self
+
+    def __exit__(self, *exc):
+        self._pbs._period_substream = self._orig
+        return False
+
+
+def capture(out_path: str, end: str = "2019-12-31", dice_seed: int | None = None) -> dict:
     """Run the world to `end` and write each account's billed months, method and unpaid spells."""
+    import contextlib
     import time
 
     import background.live_payment_triad as lpt
@@ -54,15 +87,21 @@ def capture(out_path: str, end: str = "2019-12-31") -> dict:
         captured.append(self)
 
     lpt.LivePaymentTriad.__init__ = _init
+    dice = dice_seeded(dice_seed) if dice_seed is not None else contextlib.nullcontext()
     try:
-        from simulation.run_phase2b import main
-        t0 = time.time()
-        main(report_end=end)
-        wall = time.time() - t0
+        with dice:
+            from simulation.run_phase2b import main
+            t0 = time.time()
+            main(report_end=end)
+            wall = time.time() - t0
     finally:
         lpt.LivePaymentTriad.__init__ = orig_init
+    if dice_seed is not None and dice.calls == 0:
+        raise AssertionError(f"dice seed {dice_seed} reached no payment draw; the run is the default "
+                             "world, and grading it as a second seed would report a spread of zero.")
     raw = spells_from_records(captured[-1].records)
-    out = {"end": end, "wall_s": round(wall), "raw": raw}
+    out = {"end": end, "dice_seed": dice_seed, "dice_draws": getattr(dice, "calls", None),
+           "wall_s": round(wall), "raw": raw}
     with open(out_path, "w") as fh:
         json.dump(out, fh, indent=1, default=str)
     return out
@@ -142,7 +181,8 @@ def grade(raws: list, fuel: str = "electricity", year: int = GRADED_YEAR) -> dic
 
 def main(argv: list) -> int:
     if len(argv) >= 2 and argv[0] == "capture":
-        capture(argv[1], argv[2] if len(argv) > 2 else "2019-12-31")
+        capture(argv[1], argv[2] if len(argv) > 2 else "2019-12-31",
+                int(argv[3]) if len(argv) > 3 else None)
         return 0
     if len(argv) >= 2 and argv[0] == "grade":
         raws = [json.load(open(p))["raw"] for p in argv[1:]]

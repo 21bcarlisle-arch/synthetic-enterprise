@@ -88,3 +88,24 @@ def test_the_prepayment_share_of_the_accounts_behind_is_reported():
     raw["ACC-0"]["method"] = "prepayment"
     g = grade([raw])
     assert g["prepayment_behind"] == 4 and g["prepayment_share_of_behind"] == 0.25
+
+
+def _outcomes(pbs, n=300):
+    return [pbs.generate_payment_event(f"C{i}", 3, date(2019, 3, 1), 80.0, "high", pbs.DIRECT_DEBIT).result
+            for i in range(n)]
+
+
+def test_a_dice_seed_moves_payment_outcomes_and_not_the_households_method():
+    """Reds if the dice salt reaches no draw (a second 'seed' that is the default world), if it
+    leaks onto the household's payment method (a different cast), or if it is not restored."""
+    import simulation.payment_behaviour_source as pbs
+    from tools.grade_world_debt_against_ofgem import dice_seeded
+
+    before = _outcomes(pbs)
+    methods = [pbs.generate_payment_method(f"C{i}", "electricity") for i in range(100)]
+    with dice_seeded(7) as dice:
+        salted = _outcomes(pbs)
+        assert [pbs.generate_payment_method(f"C{i}", "electricity") for i in range(100)] == methods
+    assert dice.calls > 0
+    assert sum(a != b for a, b in zip(before, salted)) > 0
+    assert _outcomes(pbs) == before

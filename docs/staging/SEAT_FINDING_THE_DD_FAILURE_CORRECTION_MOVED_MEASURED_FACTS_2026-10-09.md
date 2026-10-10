@@ -375,8 +375,15 @@ being absent from the world.
   churn-roll draws. The default run does not move. **Recommended, and it needs no ruling:** it
   answers "is 4.3% this book's dice or this book?", and that is the question that decides whether
   the MET can carry the re-takes. A book-seed spread would also need the director's EP17 record.
-- The `capture` path has no seed argument yet. Adding the dice rebind is the next increment. The
-  launch also waits for `/var/tmp/m_scale.py` to leave the box. It was still there at 2026-10-10,
+- **Correction, same day.** The payment draws the triad records come from
+  `simulation/payment_behaviour_source`, not from `arrears_engine.bill_substream`. Every per-bill
+  draw there goes through `_period_substream`: the outcome, its reason, a DD re-presentation and a
+  later settlement. The household's method uses `_substream` directly. So `capture OUT END
+  DICE_SEED` now salts `_period_substream` alone (`dice_seeded`). It refuses if the salt reached
+  no draw. Its control reds on a no-op salt and on a salt that leaks onto the method.
+- **The launch:** `python3 -m tools.grade_world_debt_against_ofgem capture OUT 2019-12-31 <seed>`,
+  seeds 1 and 2, serially, through `launch_long_job`. Then `grade` the three captures together.
+  It waits for `/var/tmp/m_scale.py` to leave the box. That file was still there at 2026-10-10,
   with no process running it.
 
 **Prediction P5, filed before any second seed is run (payment-dice seeds, same 400-founder book,
