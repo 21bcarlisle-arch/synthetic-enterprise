@@ -34,10 +34,16 @@ def _call(i: int):
     return _FN(_ITEMS[i])
 
 
-#: What one forked trace worker adds to the box, by PSS. ORIGIN: measured 2026-10-08 on a 40-founder
-#: run to 2017: the whole tree peaked at 1,880 MB PSS against the parent's 1,691 MB, with 12 workers,
-#: so ~16 MB each (copy-on-write keeps the parent's pages shared). Re-measure if traces grow.
-WORKER_PSS_MB = 16
+#: What one forked trace worker adds to the box, by PSS. ORIGIN, RE-MEASURED 2026-10-10 on the full
+#: window (director: "explain the 80-founder memory peak (6.4 GB against 2.9 GB at 40) cheaply before
+#: relying on any memory budget that assumes it"): an 80-founder, every-win-settled run sampled every
+#: 0.5 s for its first 330 s -- with SE_FORK_WORKERS=1 the tree peaked at 1,337 MB; at the default it
+#: peaked at 8,749 MB with 12 workers alive, so ~618 MB each. Copy-on-write does NOT keep the parent's
+#: pages shared once a worker reads them: Python's reference counts write to every object touched.
+#: That spike was the 80-founder 6.4 GB, and the budget priced it at 16 MB a worker. The earlier
+#: figure, kept: 2026-10-08, a 40-founder run to 2017 (small traces), 1,880 against 1,691 MB with 12
+#: workers, ~16 MB each. Re-measure if traces grow again.
+WORKER_PSS_MB = 620
 
 #: Free memory a speed-up must never take: the box's undeclared reserve plus room for a commit
 #: gate, so forked workers cannot crowd out a landing (director, 2026-10-09). The gate's weight is
