@@ -1,76 +1,115 @@
 version: 1
-oriented_at: '2026-10-10T11:23:54.265704+00:00'
-thesis_read: 'This stretch went backwards on evidence and forwards on fidelity, and the fidelity gain is what set the evidence back. 1d3c28930 found that every settled bill charged the
-  non-commodity levies twice. Resident electricity was billed about 27% above the cap, which is why the first DD review ran 24-34% short. So the money and debt readings the thesis is
-  judged on were read off bills no real supplier could send. That covers the published run, the arrears pool, B8 L3, the save''s +GBP 1,582 and the mover''s step 0. None of them is a
-  per-customer-versus-flat result until it is re-read on single-levy bills. That re-read is focus one and two, ahead of new supplier work. The published run has not regenerated: sim-runner
-  has deferred every cycle for long jobs. On the director''s three supplier items: the save''s arms finished with one household saved and an interval of -1,521 to +4,686 (cannot yet
-  tell). No prediction was filed first, so it can never be graded, and it was read on double-levied bills. Home-mover retention landed its notice across the wall (ebde11366) and a real
-  fix (cfd8ae74d: a household switching at renewal was credited with winning its own home). Its decision is still being built by the interactive session. C34''s debt branch was drawn,
-  which corrects my last error, and landed the honest finding that its per-customer and flat rules tie by construction (b6d6bba87). That is now the director''s question. The world gained
-  gas-arrival and gas-only-churn fixes, so the authorised seed books run. The machine got worse. The checkout is 70 behind, and 27 paths refuse the fast-forward, not one. Last record''s
-  focus four was handed out, refused on held paths, and landed nothing, so that steer is drifting and is re-issued over all 27. 33 commits, 20 carrying work, 14 substantive.'
+oriented_at: '2026-10-10T14:23:24.256618+00:00'
+thesis_read: 'This stretch went forward on evidence. The double-levy re-reads ran with predictions filed first, and they say what the thesis needed them to. On single-levy bills the
+  DD first review lands at -1.8% where it was +32.8%, and resi bills fall about 20% while settlement revenue holds. The arrears pool is unchanged at 1.19x MET, because the world never
+  paid the double-levied amounts, and B8 L3 is unchanged and undecided. So last stretch''s backwards step is mostly recovered: the debt and retention readings stood, and the billing
+  reading was the levy. What is not recovered is the published face. The single-levy run is graded but not published, and at 123.5 MB the push on Monday will be refused, so the site
+  still quotes the double-levied 10-05 run. That is focus one, because it is time-bound. Against the thesis, two supplier facts have surfaced and neither is understood. First, the DD
+  book never builds summer credit (GBP 5-10 an account against Ofgem''s ~GBP 200) and is GBP 20k net debit by mid-2018, a gap the levy hid. Second, the run''s renewal decision stops
+  considering the book after year one (53, then 25, then 3). That second one undercuts the per-customer-versus-flat comparison more than any holdout size: a decision that sees three
+  households in 2019 cannot beat a flat rule, or lose to one. Those are focus two and three, ahead of new levers. Home-mover retention landed honestly inert (09900f577): no money moves
+  until the world supplies a destination. The machine got better. The checkout is level with origin, every unit runs origin''s code, and two wrong rows close. The steer bit: the previous
+  three items were drawn, and the two that could land did. The third (clear 27 paths by hand) was the wrong instruction and is graded as the seat''s error. Balance: of 22 commits, 5
+  substantive, with 1 supplier, 1 world and 1 both. Most of the work was findings and grading, which this stretch needed. The next stretch''s two supplier items are the correction.'
 stretch_reviewed:
-  since: '2026-10-10T08:22:27.275131+00:00'
-  commits: 33
-  substantive: 14
+  since: '2026-10-10T11:23:54.265704+00:00'
+  commits: 22
+  substantive: 5
 focus:
-- id: the-published-run-is-re-run-on-single-levy-bills
-  side: supplier
-  lane: D_billing_metering
-  what: 'Regenerate docs/reports/run_output_latest.json on origin code at or after 1d3c28930, then grade it against the four predictions already in docs/staging/SEAT_FINDING_EVERY_SETTLED_BILL_CHARGED_THE_LEVIES_TWICE_2026-10-10.md.
-    The published run is stamped cf8706023, so it still bills every levy twice. sim-runner has deferred every cycle since at least 11:07 for resident long jobs (the save suite and the
-    fam1 seed members). Do not kill those jobs, and do not start a second published run if sim-runner has begun one. If none has started by the time the fam1 members 61102 and 61104
-    finish, queue the same run through python3 -m background.launch_long_job, which now waits for room (339a49723). When it finishes, write each prediction''s reading beside it in the
-    finding: first-review DD variance, the portfolio DD balance and peak held credit, resi bill totals, and every bill-reading figure that moved (bad debt, arrears, debt-to-income).
-    Then list which published pages carry the regenerated figures and which still quote the old run.'
-  why: The supplier's every money figure is read off bills that were about 27% over the cap, so no comparison against the flat baseline means anything until this run exists. The finding
-    wrote its predictions before the re-run, so the grade is clean. DONE when run_output_latest.json's producing_commit descends from 1d3c28930 on origin, and the finding carries all
-    four graded predictions, each MET, NOT MET or 'cannot yet tell'.
-- id: the-arrears-grade-is-retaken-on-single-levy-bills
-  side: world
-  lane: W2_customer_generator
-  what: 'Re-take the three-seed arrears pool (tools/grade_world_debt_against_ofgem.py, account-clustered interval per cbfccfc02) on captures run at or after 1d3c28930. Before launching,
-    file a prediction in docs/staging/SEAT_FINDING_THE_DD_FAILURE_CORRECTION_MOVED_MEASURED_FACTS_2026-10-09.md: the direction and rough size of the ratio''s move once bills fall about
-    20% (the levy finding''s prediction 4). Use the same three payment-dice seeds and the same capture command as 403b46746, queued through launch_long_job behind the published run.
-    Grade the result against the prediction, and state whether the 400-founder book''s arrears hold is MET on fixed bills.'
-  why: The 1.19x MET is the hold condition the 400-founder book and C34's debt work rest on, and it was measured on double-levied bills. A debt world that over-holds arrears because
-    bills were too high would flatter any per-customer collections rule. DONE when the post-fix pooled ratio and its clustered interval are on origin beside a prediction dated before
-    the captures.
-- id: the-shared-checkout-is-released-path-by-path
-  side: harness
+- id: the-published-run-fits-under-githubs-file-limit-before-monday
+  what: 'Before the weekly window opens (Mon 2026-10-12 04:00 London), make the publish commit a docs/reports/run_output_latest.json
+    that GitHub will accept. Follow SEAT_FINDING_THE_PUBLISHED_RUN_OUTGREW_GITHUBS_FILE_LIMIT_2026-10-10.md.
+    (1) In tools/run_annual_report and in the copy step that sim_runner / background/process_run_complete.py
+    takes, write the committed run as compact JSON (separators=('','','':'')): 91.5 MB on the 123.5 MB
+    run, and every reader uses json.load. (2) In process_run_complete.git_commit_push, refuse to stage
+    any file over GitHub''s 100 MiB push limit, with a refusal that names the file, its size and the limit,
+    and put that refusal on the seat''s surface (NTFY / action_needed), not just the journal. (3) Show
+    that the refusal can fire: one control that a 101 MiB fixture is refused, and one that the compacted
+    real run is admitted. (4) In the finding, record compact JSON as the stopgap (8% headroom on a book
+    that just grew 4.6x), and file the durable choice as a proposal: gzip with one reader helper, or a
+    reduced published input carrying only what the site generators read.'
+  why: Every supplier figure the director reads (DD reviews now -1.8% where they were +32.8%, and bills
+    about 20% lower) reaches the site only through this push, and at 123.5 MB the first publish after
+    the window opens is refused, so the site would keep quoting the double-levied 10-05 run for another
+    week. Done means the run sim_runner would publish is under the limit on disk, the size refusal is
+    proven able to fire, and the durable choice is filed. It is NOT done by pushing a run by hand mid-week,
+    which overrides the director's weekly window.
   lane: H_harness
-  what: 'Clear the 27 paths that reconcile-watch''s 11:23 pass names as refusing the fast-forward of /home/rich/synthetic-enterprise (70 behind origin/main). Read the full list from
-    the latest NOT_ADVANCED line in the reconcile log. For each path: (1) site/data/delivery.json is generated, so restore it with git show HEAD:<path>; (2) for each of the 11 untracked
-    drafts of files origin brings, diff it against origin''s copy, preserve any line origin lacks on a ref named in the finding, then remove the draft; (3) for each of the 15 modified
-    paths, run python3 tools/isolate_hunks.py --survey <path>. Restore it to HEAD only when every novel hunk is in origin''s copy in another wording, as for simulation/run_phase2b.py,
-    the 2026-10-09 B8 L3 draft (see docs/staging/SEAT_FINDING_THE_SHARED_TREE_IS_HELD_ONLY_BY_A_PRE_LANDING_DRAFT_OF_B8_L3_2026-10-10.md). Otherwise name the path''s writer in the finding
-    and leave it. Do not touch docs/direction/DIRECTION.yaml or docs/direction/decisions.jsonl; they are the seat''s, and the seat lands them. Never stash, and never touch copies in
-    /var/tmp worktrees.'
-  why: Every unit runs up to 22 origin commits short, including the seat executor's own held-work fix (2973e7a62) and the brief's union of origin's concerns (820a2f31b), so fixes reported
-    landed are inert where they run. Last record named one path, and nothing landed while the count grew to 27. DONE when HEAD equals origin/main after a reconcile pass, or the finding
-    names a live writer for each path that still refuses.
+  side: other
+  written_at: 1791642476.458
+- id: the-dd-books-pre-crisis-net-debit-is-traced-on-single-levy-bills
+  what: 'Find out why the direct-debit book is GBP 20k net debit by mid-2018 and holds only GBP 2-6k of
+    summer credit across about 600 DD customers (about GBP 5-10 each), on the single-levy run /var/tmp/single_levy/run_output_abb925ec7.json
+    (stamp 7379375f6). Before measuring anything, write into the levy finding''s Prediction 2 section
+    which DD quantity is meant (the balance per account, by month), and file one prediction per candidate
+    cause. Candidates: the DD amount setting (annualised estimate / 12 against the account''s actual consumption),
+    first-review timing, the collection-failure path, accounts that start in winter, and estimate-versus-actual
+    reads. Then decompose the 2018-06 balance per account into those legs from the run''s dd_collection_book,
+    bills and meter_read_log. First check the knowledge layer (docs/market_research/, the DD knowledge
+    pages) for the published per-account summer credit and what a GB supplier sets a DD from; if nothing
+    establishes it, file that as a gap and do not pick a number. Land the decomposition as a tracked tool
+    beside its control, and land the finding.'
+  why: Billing accuracy is the director's step 2, and the DD book is where a household meets it. The levy
+    fix removed GBP 40-45k of the gap and DD first reviews now land within +/-5% a year, yet the book
+    still never builds the summer credit a real DD book holds, and 7252e8d72 says it cannot yet say why.
+    Done means the 2018-06 balance is split into named legs that sum to it, each leg is graded against
+    its prediction, and the leg that is a company defect (if one is) is named for DD_seasonal_cashflow_physics
+    L3. It is not done by fitting a DD scalar.
+  lane: D_billing_metering
+  side: supplier
+  written_at: 1791642476.458
+- id: considered-renewals-falling-from-53-to-3-is-explained
+  what: 'Explain why the run''s considered renewals fall from 53 in 2017 to 25 in 2018 and 3 in 2019 in
+    both B8 L3 arms (SEAT_FINDING_B8_L3_THE_RUNS_OWN_HOLDOUT_CANNOT_DECIDE_AT_THE_FOUNDERS_SCALE_2026-10-09.md,
+    ''New, not explained''), when 17 below-threshold leavers left in 2019 against 2 offers. Before running,
+    write in that finding one prediction per candidate cause, saying what each would show: the 10-10 conversion
+    gate, the founders'' term structure (how many fixed terms end each year), the churn estimate''s offer
+    threshold, and book attrition. Then count, per year on the single-levy run: accounts whose fixed term
+    ended, accounts reaching the renewal decision, accounts the decision considered, and accounts offered.
+    Take one count per step of company/pricing/renewal_rate_chain.py and company/pricing/value_based_renewal.py,
+    read from the run''s svt_decisions and account_state_log, so the year the population drops out names
+    its step. Land the counting tool with its control, and the finding.'
+  why: Per-customer decisions are the director's step 4, and retention is the one the company makes most.
+    If the decision stops considering the book after year one, the per-customer-versus-flat comparison
+    has almost nothing to compare from 2019, and no holdout size can rescue that. Done means the per-step
+    counts by year are on origin, the step where the population falls is named, and the result says whether
+    that step is how a real supplier behaves (a term structure) or a defect (a gate that silently excludes).
+    If it is a defect, it is filed as one.
+  lane: C_customer_ops
+  side: supplier
+  written_at: 1791642476.458
+- id: the-week-old-se-cap-draft-is-dispositioned
+  what: Disposition /var/tmp/se-cap. It is a locked worktree at 10cffe38d (2026-10-03, 7 days old), owned
+    by the 15-day worker session pid 2197437, with uncommitted edits to company/pricing/renewal_rate_chain.py,
+    company/interfaces/renewal_rate_chain.py, company/pricing/value_based_renewal.py, company/policy/decision_policy.py
+    and simulation/run_phase2b.py, and a pricing-rules pre-registration. The draw refused two unrelated
+    items 54 and 26 times on it this stretch. Diff each modified path against origin/main and decide.
+    If origin has superseded it, preserve the diff on refs/preserved/se-cap-2026-10-03, record the ref
+    and the reason in a finding, and remove the worktree. If any hunk is novel, live work, land it through
+    tools/isolate_hunks.py and surgical_land --content. Do neither while pid 2197437's session is actively
+    editing it (check the files' mtimes against now).
+  why: Focus three's renewal counting touches exactly the files this draft holds, so it would be refused
+    on the same worktree until the draft goes, and that refusal is the shape listed under wrong for the
+    reactive save. Done means no draw refusal names /var/tmp/se-cap, and its work is either on origin
+    or on a named preserved ref with a written reason. Nothing is lost either way.
+  lane: H_harness
+  side: other
+  written_at: 1791642476.458
 not_now:
-- what: The reactive save and home-mover retention as focus items.
-  why: 'The interactive session is building both: the save suite runs in /var/tmp/se-save-live, and the mover''s decision is in /var/tmp/se-mover (owner pid 2197437). A Lane 0 copy would
-    be the third draw of the same work. Both now also read on double-levied bills, so their graded results wait for focus one.'
-- what: Re-running the save arms on single-levy bills with predictions filed first.
-  why: It is the only way to give the save a graded result. But the box is memory-tight, and the published run and the arrears re-take come first. It goes to the interactive session
-    that holds the save.
-- what: C34's debt branch.
-  why: b6d6bba87 shows the per-customer and flat debt rules tie by construction, because no debt action reaches a world that answers. Grading it needs the director's curriculum world
-    (c34-s-debt-decision-cannot-be-graded). Building more of it before he answers would build an arm that cannot win.
-- what: Billing accuracy (D48), now that a billing defect of 27% was found.
-  why: D48 measures billed kWh against used kWh, and the levy defect was in the rate, so D48 would not have seen it. Its 2158 draws are the coupled-triad row. Focus one is the billing
-    work that matters now.
-- what: Launching more seed-family members beyond the four running (61101-61104).
-  why: Two members died before 805d8b730 and 8c3b5c27c fixed gas arrivals and gas-only churn, and were relaunched. Adding members now would starve the published run of the memory focus
-    one needs.
-- what: The gas-home January shortfall, and S1 missing by 0.001.
-  why: No supplier result rests on it, and under the director's 2026-10-10 balance world work yields to supplier work.
-- what: Reaping agent-a583ed37272a6f872, /var/tmp/se-draw-order, /var/tmp/se-retrate or /var/tmp/se-save-land.
-  why: Each holds commits or staged work on no remote. Reaping cannot be undone, and none blocks a focus item. se-save-land's finding is the save's honest reading, and the session landing
-    the save should carry it.
+- what: Re-run the reactive save's arms on single-levy bills, with predictions filed first, to replace the double-levied +GBP 1,582.
+  why: The old pair could not tell (interval -1,521 to +4,686, one household saved), and B8 L3's power argument says a 400-household book cannot tell this kind of difference at any levy.
+    Two more arms are about four hours of the box for an answer that is almost certainly 'cannot yet tell' again. The DD book and the renewal population are cheaper and can move a level.
+- what: 'Build home-mover retention''s step 4 (supplying the mover at its new home). That needs world work: a destination location and tariff region, and household identity carried across
+    a move.'
+  why: The destination's region is unsourced (G8.3), so knowledge comes first, and the world side has to be decided blind to the mover result. 09900f577 shows no money moves until step
+    4, and only one mover in four answers at 40 founders. That is real but small, next to a DD book and a renewal decision that touch every account.
+- what: Change how the bad-debt provision is computed now that 8dac47886 traced it to settlement revenue rather than billed amounts.
+  why: Whether a GB supplier provisions on billed receivables or on revenue is a question for the knowledge layer and the practitioner, not a reading to build on. It also moves no published
+    figure until the run reaches origin. It is queued behind focus one so that the fix is graded on a published run.
+- what: Work the gas-home January electricity shortfall against SERL.
+  why: It blocks no supplier result named this stretch, so under the director's 2026-10-10 balance it waits.
+- what: Push the graded single-levy run to origin by hand now, ahead of Monday.
+  why: That would override the director's weekly publish window, and at 123.5 MB the push would fail anyway. Focus one makes Monday's own publish succeed instead.
 wrong:
 - what: 'THE MACHINE''S, CARRIED. A held change''s hold condition is not re-asked when its premise moves. Owner: SEAT_FINDING_A_HOLD_OR_A_TOMBSTONE_STATES_ITS_CONDITION_IN_PROSE_AND_NOTHING_RE_ASKS_IT.
     08:22: the arrears half was re-asked by hand (70a662dc1, NOT MET), not by the mechanism. The e2e400 run started with that half unmet, and nothing asked. 11:22: the 400-founder ceiling
@@ -83,12 +122,14 @@ wrong:
     (the-arrears-pooled-grade-under-p5), so the hold is still re-asked by an item, not by a mechanism. 08:22: unchanged. The pooled grade is still a continuation embargoed to 10:30.
     Its capture finished at 06:29 with exit 0, so an item will re-ask the hold, not a mechanism. 11:23: re-asked by items twice more, never by the mechanism: 403b46746 read the three-seed
     pool NOT MET at 1.19x, then cbfccfc02 re-graded the same pool MET at 1.19x on an account-clustered interval. And its premise moved again unasked: 1d3c28930 found every settled bill
-    charged the levies twice, and the arrears captures (finished 06:29) predate that fix. Focus two re-asks it.'
+    charged the levies twice, and the arrears captures (finished 06:29) predate that fix. Focus two re-asks it. 14:23: re-asked by an item again, never by the mechanism: 1f35bc21f re-took
+    the three-seed pool on single-levy bills (211/3471 = 6.1%, 1.19x, MET, unchanged, because the world never paid the double-levied amounts). The premise moved and was re-asked only
+    because a focus item asked.'
   corrected: false
 - what: 'THE MACHINE''S, CARRIED. One item can land twice, on origin through surgical_land and as a local commit on the shared HEAD. Owner: SEAT_FINDING_ONE_ITEM_LANDS_TWICE_AND_THE_SHARED_HEAD_FORKS_FROM_ORIGIN.
     08:22: no new instance. 0c7389aa9 was briefly 1 ahead, then promoted, so HEAD is 0/0. The refusal mechanism is still not built. 11:22: no new instance. 14:20: no new instance; HEAD
     0/0. 17:23: no new instance; HEAD 0/0. 20:22: no new instance; HEAD is 0 ahead, 6 behind. 23:24: no new instance; HEAD 0/0. 02:22: no new instance; HEAD 0 ahead, 8 behind. 05:22:
-    no new instance; HEAD 0 ahead, 25 behind. 08:22: no new instance; HEAD 0 ahead, 37 behind. 11:23: no new instance; HEAD 0 ahead, 70 behind.'
+    no new instance; HEAD 0 ahead, 25 behind. 08:22: no new instance; HEAD 0 ahead, 37 behind. 11:23: no new instance; HEAD 0 ahead, 70 behind. 14:23: no new instance; HEAD 0/0.'
   corrected: false
 - what: 'THE MACHINE''S, CARRIED. The seat''s brief reads the director''s open concerns from the behind checkout. 08:22: the checkout is 0 behind, so there is no live instance. The mechanism
     still reads the working copy. 11:22: 0 behind, no live instance. 14:20: 0 behind, no live instance. 17:23: 0 behind, no live instance. 20:22: LIVE INSTANCE. The checkout is 6 behind,
@@ -99,8 +140,9 @@ wrong:
     until the fix runs; see the checkout row and focus four. 08:22: the checkout is 37 behind, so the seat unit still runs without 820a2f31b. Every open row reached this brief anyway,
     including the-scale-lane-s-seed-families-need (4d38ac8b1, 08:14). It is not corrected until the checkout advances (focus four). 11:23: the checkout is 70 behind, and the seat unit
     still runs without 820a2f31b. All eight open rows reached this brief anyway, and the answered seed row (fad147bd4) is carried from origin. Not corrected until the checkout advances
-    (focus three).'
-  corrected: false
+    (focus three). 14:23: corrected. The checkout is level with origin (0/0), and the brief reports no unit running without an origin commit, so the seat unit now runs 820a2f31b, which
+    unions origin''s open rows. Every open row reached this brief.'
+  corrected: true
 - what: 'THE MACHINE''S, CARRIED. The draw ledger reads the same for work never started and for work mid-landing, because it asks only origin by path. 08:22: unchanged. w2-20-grade-r5-and-publish-the-20261008r-pair-after-leg-two
     still reads not_done, and headcount-given-dwelling-size-then-the-per-occupant-slope still reads CANNOT ANSWER. 11:22: unchanged, and it cannot tell a crash at dispatch from work
     not done either. 14:20: unchanged. raise-the-settlement-budget-to-3100-after-w220 reads not_done, though ad0afe7b3 has since set the budget to 5,000 under another name. 17:23: unchanged;
@@ -110,7 +152,8 @@ wrong:
     the tick launched nothing, correctly, but only because it read the launch queue by hand. 08:22: LIVE INSTANCE. The path check reads the reactive save ''nothing to land'' on all three
     of its paths, while its work sits modified in /var/tmp/se-save-live with its on arm running. 11:23: LIVE INSTANCE. the-reactive-save-on-the-loss-notice-is-live-in-the-run reads not_done
     and the path check reads ''nothing to land'', while its arms finished at 10:03 (compare.json), its suite is running in /var/tmp/se-save-live, and a dead tick''s patch sits staged
-    in /var/tmp/se-save-land.'
+    in /var/tmp/se-save-land. 14:23: no new mid-landing instance. The path check reads the arrears and checkout items ''nothing to land'', and that is right, because both are spent.
+    A related shape is live: the draw refused two items 80 times on /var/tmp/se-cap, a 10-03 draft held by the 15-day worker session, which was doing neither item''s work (focus four).'
   corrected: false
 - what: 'THE MACHINE''S, CARRIED. A focus-row tombstone still retires a row without asking its DONE. 08:22: re-read-the-arrears-like-for-like-after-the-dd-failure-correction was tombstoned
     at 08:04, and that was sound: its DONE (a ratio and met or not met) is on origin in 70a662dc1. The mechanism still does not ask. 11:22: no tombstone this stretch. 14:20: no tombstone
@@ -122,7 +165,8 @@ wrong:
     were the holders'' own). The module-graph instance stays live until the 2026-10-12 publish. 08:22: LIVE INSTANCE. the-shared-checkout-advances-to-origin was tombstoned at 07:41 with
     its DONE unmet. At 08:22 HEAD is 37 behind origin, not equal to it, because one path still holds the tree (7ed1477f2). The repair it landed (b3d948346) is sound; the retirement came
     early. Focus four re-issues the remainder under a new id. The module-graph instance stays live until the 2026-10-12 publish. 11:23: no focus-row tombstone this stretch (all five
-    retirements were the holders'' own). The module-graph instance stays live until the 2026-10-12 publish.'
+    retirements were the holders'' own). The module-graph instance stays live until the 2026-10-12 publish. 14:23: no focus-row tombstone this stretch (all four retirements were the
+    holders'' own). The module-graph instance stays live until the 2026-10-12 publish.'
   corrected: false
 - what: 'THE MACHINE''S, CARRIED. A landing can carry docs/direction/DIRECTION.yaml from the shared working copy when it is older than origin''s. 08:22: no instance. The copy matched
     origin at 09:05. 11:22: no instance. 14:20: no instance. 17:23: no instance. 20:22: the inverse shape is live. The 17:23 record never reached origin at all (167d583a4 sits on no
@@ -131,17 +175,18 @@ wrong:
     that copy. 02:22: no instance. The live risk has moved: the shared working copy now lacks origin''s d717a42bb, so a landing that carried it would revert that addendum. 05:22: no
     instance. The shared working copy equals origin''s record byte for byte. 08:22: no instance, but a live risk. The shared working copy differs from both HEAD and origin''s record,
     and origin''s carries 4d38ac8b1''s new concern row. A landing that carried the working copy would revert that row. 11:23: no instance, but the live risk stands. The shared working
-    copy differs from origin''s record, which carries b6d6bba87''s and fad147bd4''s rows. This record is rebuilt from origin''s, so the seat''s own landing carries them.'
+    copy differs from origin''s record, which carries b6d6bba87''s and fad147bd4''s rows. This record is rebuilt from origin''s, so the seat''s own landing carries them. 14:23: no instance.
+    The shared working copy equals origin''s record, and this record is rebuilt from origin''s.'
   corrected: false
 - what: 'THE MACHINE''S, CARRIED. A parked atom is still counted as drawn. H45 is PARKED and the counter still moves. 08:22: SITE2 moved from 43708 to 43775, and H45 to 1449. 11:22:
     SITE2 43974, H45 1550. 14:20: SITE2 44155, H45 1641. 17:23: SITE2 44317, H45 1722. 20:22: SITE2 44466, H45 1796. 23:24: SITE2 44626, H45 1877. 02:22: SITE2 44784, H45 1958. 05:22:
-    SITE2 44916, H45 2024. 08:22: SITE2 45059, H45 2096. 11:23: SITE2 45181, H45 2157.'
+    SITE2 44916, H45 2024. 08:22: SITE2 45059, H45 2096. 11:23: SITE2 45181, H45 2157. 14:23: SITE2 45335, H45 2234.'
   corrected: false
 - what: 'THE MACHINE''S, CARRIED. The coupled-triad gate now excludes twinless L3 targets, and its refusal reaches only the supervisor journal. 08:22: D48 is still at L1, and its unchanged
     draws rose from 1416 to 1450. 11:22: D48 still L1, unchanged draws 1551. 14:20: D48 still L1, 1641. It still excludes W1_14 and W2_30 behind it in every tick''s journal. 17:23: D48
     still L1, 1722. 20:22: D48 still L1, 1797. 23:24: D48 still L1, 1878. The gate also refused W2_non_dd_miss_vocabulary L2 until its target was lowered 3 -> 2 (64a7c8709), on precedent;
     the move is sound but the gate shaped a target rather than a build. 02:22: D48 still L1, 1958 unchanged draws. 05:22: D48 still L1, 2025 unchanged draws. 08:22: D48 still L1, 2097
-    unchanged draws. 11:23: D48 still L1, 2158 unchanged draws.'
+    unchanged draws. 11:23: D48 still L1, 2158 unchanged draws. 14:23: D48 still L1, 2235 unchanged draws.'
   corrected: false
 - what: 'THE WORLD''S, CARRIED. A gas-heated fabric home''s electricity has no season against SERL. 08:22: unchanged (peak 0.562 at 20:00, season 1.239). The evening-stack pre-registration
     landed (a208dd212) and the measurement has not run. Focus two. 11:22: MOVED, NOT CORRECTED. da944e500 put the dishwasher and lighting on HES time of use, and the peak cell fell 0.561
@@ -154,11 +199,11 @@ wrong:
     with the prediction first: S2 0.495 now PASSES (weak: 2021''s evening is lockdown), S1 0.137 FAILS by 0.001 on 0.126-0.136, S3 1.220 FAILS on 1.358-1.459. What is left is the January
     shortfall, unsourced. 02:22: unchanged; nothing worked it this stretch. 05:22: unchanged; nothing worked it. It blocks no supplier result named this stretch, so under the director''s
     2026-10-10 balance it waits. 08:22: unchanged; nothing worked it. It still waits under the director''s 2026-10-10 balance. 11:23: unchanged; nothing worked it. It still waits under
-    the director''s 2026-10-10 balance.'
+    the director''s 2026-10-10 balance. 14:23: unchanged; nothing worked it. It still waits under the director''s 2026-10-10 balance.'
   corrected: false
 - what: 'THE MACHINE''S, CARRIED. The draw ledger credits or denies an item by path overlap, not by its work. 08:22: unchanged. a-home-mover-is-a-retention-moment-the-company-sees still
     reads landed_unbound against 6987325ae, a commit about electronics. 11:22: unchanged. 14:20: unchanged. 17:23: unchanged. 20:22: unchanged. 23:24: unchanged. 02:22: unchanged; no
-    new instance shown. 05:22: unchanged; no new instance shown. 08:22: unchanged; no new instance shown. 11:23: unchanged; no new instance shown.'
+    new instance shown. 05:22: unchanged; no new instance shown. 08:22: unchanged; no new instance shown. 11:23: unchanged; no new instance shown. 14:23: unchanged; no new instance shown.'
   corrected: false
 - what: 'THE MACHINE''S, NEW. The shared checkout is 0 ahead and 25 behind origin/main, and reconcile-watch finishes a pass every five minutes without advancing it. Every declared daemon
     runs without 5 origin commits to code it imports, and the delivery seat without 4 to its own module (820a2f31b, 889249694, 811af4d80, a8206786a). So the fixes this stretch reports
@@ -168,27 +213,40 @@ wrong:
     it conflicts with origin''s ba98ccd6b in 3 places (7ed1477f2). The checkout is now 37 behind, and every unit runs 5-8 origin commits short. Left alone, the draft ages out about 2026-10-11
     20:30. Focus four. 11:23: WORSE, NOT CORRECTED. The checkout is 70 behind, and reconcile-watch''s 11:23 pass names 27 refusing paths, not one: 15 modified, 11 untracked drafts of
     files origin brings, and site/data/delivery.json. The B8 draft is still among them (mtime 2026-10-09 20:24). Last record''s focus four was handed out, was refused while /var/tmp/se-cap
-    and /var/tmp/se-mover held simulation/run_phase2b.py, and landed nothing. Focus three re-issues it over all 27 paths.'
-  corrected: false
+    and /var/tmp/se-mover held simulation/run_phase2b.py, and landed nothing. Focus three re-issues it over all 27 paths. 14:23: corrected. HEAD and origin/main are level. reconcile-watch
+    fast-forwarded at 14:12 and 14:23 with nothing in the way, and no unit runs without an origin commit. ad319581e preserved the B8 L3 draft of simulation/run_phase2b.py on a ref and
+    put it back to HEAD, and the other paths cleared.'
+  corrected: true
 - what: 'THE MACHINE''S, NEW. The reactive-save arms started at 06:50 (/var/tmp/save_live/arms.sh, off then on, to 2025-06-07). No pre-registration exists in the tree, in the worktree
     or in the staging root, although the focus item asked for predictions first. The off arm finished at 08:37 (total net GBP 407,560), so any prediction filed now is filed with one
     arm known. Focus one requires predictions on the on-minus-off difference before compare.json is written, and requires them to say what was known when they were written. 11:23: not
     correctable for these arms. The on arm finished at 10:03 with no predictions filed. The tick''s finding in /var/tmp/se-save-land says so and refuses to file predictions after the
-    answer, which is the honest result. What remains is that the next save arms (on single-levy bills) pre-register.'
+    answer, which is the honest result. What remains is that the next save arms (on single-levy bills) pre-register. 14:23: unchanged for those arms, which can never be graded (abb925ec7
+    says so). Every re-take this stretch pre-registered before its arms finished (436dcaa38 for B8 L3, cdc113aaa for the arrears pool, the levy finding''s four predictions). The save
+    arms themselves have not been re-run on single-levy bills, and that re-run is in not_now.'
   corrected: false
-- what: 'THE SEAT''S, NEW. I put C34''s debt branch in focus under its atom id. An atom id only biases the atom draw, where C34 sits at 79 unchanged draws, so no Lane 0 tick was handed
-    the instruction and nothing landed on it. This record names it under a kebab id with its lane. That is not corrected until a tick draws it. 11:23: corrected. A Lane 0 tick drew it
-    under its kebab id and landed b6d6bba87 at 10:11.'
-  corrected: true
 - what: 'THE MACHINE''S, NEW. Every settled bill charged the non-commodity levies twice (1d3c28930, 09:20): resi electricity was billed about 27% above the cap, and the first DD review
     ran +24-34% short. The fix is on origin. But every money and debt reading graded this week rests on the double count: the published run (cf8706023, 02:45), the arrears pool (1.19x),
     the save''s +GBP 1,582, B8 L3 and the mover step-0 reading. The published run has not regenerated, because sim-runner has deferred every cycle since at least 11:07 for resident long
-    jobs. Focus one and two.'
+    jobs. Focus one and two. 14:23: MOVED, NOT CORRECTED. The re-reads ran with predictions first. On the published run (7379375f6, graded in 7252e8d72), DD first reviews went from +32.8%
+    to -1.8% (MET), resi electricity per MWh fell 20.5% and gas 17.2% (MET), and the final DD balance went from -GBP 81k to -GBP 39k (NOT MET). The arrears pool is unchanged at 1.19x
+    MET (1f35bc21f). B8 L3 is unchanged and undecided (ad319581e). The provision did not move, and 8dac47886 traced that to it reading settlement revenue. Two things are still open.
+    The published run is not on origin: the window holds it, and at 123.5 MB GitHub will refuse it (focus one). The save''s +GBP 1,582 has not been re-read.'
   corrected: false
-- what: THE MACHINE'S, NEW. The reactive save was handed to a tick at about 10:20, after its arms had finished. The tick wrote its finding and staged the patch in /var/tmp/se-save-land,
+- what: 'THE MACHINE''S, NEW. The reactive save was handed to a tick at about 10:20, after its arms had finished. The tick wrote its finding and staged the patch in /var/tmp/se-save-land,
     then ended (owner pid 518881 is gone) with nothing landed. The draw has since refused the item 71 times on that worktree, while the interactive session drives the same work from
-    /var/tmp/se-save-live. The draw cannot tell a dead tick's leftovers from a live build, and the claim door that would let it is landing now (surgical_land pid 2301136).
+    /var/tmp/se-save-live. The draw cannot tell a dead tick''s leftovers from a live build, and the claim door that would let it is landing now (surgical_land pid 2301136). 14:23: MOVED,
+    NOT CORRECTED. 4675ef0ea lets an interactive session claim an item before it writes any file. The draw still cannot tell stale leftovers from a live build, though: /var/tmp/se-cap
+    (base 10cffe38d, 2026-10-03, uncommitted renewal-pricing edits, owner the 15-day worker pid 2197437) made the draw refuse two unrelated items 54 and 26 times this stretch. Focus
+    four dispositions that instance.'
   corrected: false
+- what: THE MACHINE'S, NEW. The publish path commits docs/reports/run_output_latest.json with no size check. Every run since 2026-10-09 13:01 is about 120 MB (the single-levy run is
+    123.5 MB) against GitHub's 100 MiB limit, so Monday's 04:00 publish will be refused at push. It was found by a grading tick, not by any control on the publish path. Focus one.
+  corrected: false
+- what: THE SEAT'S, NEW. Last record's focus three told a tick to clear 27 paths by hand. The checkout reached origin anyway, through b3d948346's reconciler and ad319581e's disposition
+    of the B8 draft, and the item was refused 54 times on /var/tmp/se-cap without landing. I wrote a manual sweep where the remedy was the reconciler plus one disposition, and I did
+    not ask which paths were stale drafts and which were live work. This record names the one live holder (focus four) and not a path list.
+  corrected: true
 for_the_director:
 - id: the-end-to-end-review-of-claude
   raised: '2026-10-04'
