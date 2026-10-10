@@ -283,3 +283,16 @@ for_the_director:
   status: open
   resolution: ''
   evidence: docs/staging/SEAT_FINDING_A_HELD_LANE_CRASH_WAKES_THE_INTERACTIVE_SESSION_2026-10-09.md; landed bcb725078
+- id: the-scale-lane-s-seed-families-need
+  raised: '2026-10-10'
+  kind: strategy
+  what: 'The scale lane''s seed families need the same book-seed authorisation as the open row whether-per-customer-pricing-beats-a-flat: any seed other than the default draws
+    a different set of households (EP17_varied_population_draw, your curriculum), so tools/seed_family.py refuses until docs/design/curriculum/varied_population_draw_activation.json
+    lists the seed. Built and checked on the default seed: 482 homes per 40-founder no-sample book, 36 min, 3 GB, identical tables on a repeat. One book reads ''cannot yet
+    tell'' on all three questions; homes per arm for 80% power are 3,012 (value per home, 10%), 661 (share ever >91 days behind, 25%), and the trimmed bad-debt mean is unusable
+    (most homes have none).'
+  proposal: 'Authorise seeds 61101-61112 once, for both uses: record them in varied_population_draw_activation.json (shape of population_draw_activation.json). The scale lane
+    then runs 4 books side by side (~2,000 homes per ~48 min), which answers the debt-share question in about 1.5 books per arm and value per home in about 6 per arm. Reversible:
+    delete the file and every run is the default book again.'
+  status: open
+  resolution: ''
