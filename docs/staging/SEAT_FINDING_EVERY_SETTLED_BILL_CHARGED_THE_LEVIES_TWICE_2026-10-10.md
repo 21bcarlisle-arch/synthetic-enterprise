@@ -81,3 +81,6 @@ this finding's own figures, so the before and after readings come from one instr
 
 Debt-to-income is not in `run_output_latest.json`; that leg of prediction 4 will read "cannot yet
 tell" from this artefact unless the arrears harness is re-run against it.
+
+*14:17: the run got room at ~13:25 (after the fam1 members) and has reached 2022-12; the readings
+replace this line when it finishes.*
