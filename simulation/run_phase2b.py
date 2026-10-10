@@ -66,6 +66,7 @@ from company.interfaces.growth_desk import (
     retention_value_protected,
 )
 from company.interfaces.hedge_desk import build_hedge_desk, hedge_mandate
+from company.interfaces.move_with_us import request_move_with_us_offer
 from company.interfaces.point_in_time_view import PointInTimeView, build_price_bitemporal_log
 from company.interfaces.renewal_offer import (
     request_company_forward_estimate,
@@ -2145,6 +2146,8 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
     # household still ours at the notice sends one; with moves off nothing is sent.
     _move_out_feed = MoveOutNoticeFeed()
     _move_out_register = open_move_out_register()
+    # ...and what the company decided on each, one row per household, on its deciding leg.
+    move_with_us_log: list[dict] = []
     _home_move_by_household: dict = {}
     home_move_outs: list[dict] = []
     # B7 slice 3: who supplies a vacated premise from the move date. The book is live and module
@@ -3810,6 +3813,37 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         if _moved_in_term:
             for _wire in _move_out_feed.wire_notices_for_move([cid], _move_end):
                 _move_out_register.receive_move_out_wire(_wire)
+            # THE MOVE-WITH-US OFFER (`company/crm/move_with_us_offer.py`), asked once per household
+            # on the leg that carries its decisions, from what the company holds: the notice, the
+            # tariff in force, the cost it struck that rate against, its own consumption estimate,
+            # and what the household disclosed to its Priority Services Register.
+            if commodity == _decision_leg:
+                _psr_for_move = None
+                if _vulnerability_hidden_state_on:
+                    _psr_for_move = open_priority_services_register()
+                    _mover_record = get_customer(cid) or {}
+                    for _wire in wire_registrations(registration_notices(
+                            [(cid, date.fromisoformat(str(_mover_record.get(
+                                "acquisition_date", term_start_str))[:10]))], run_base_seed())):
+                        _psr_for_move.receive_registration_wire(_wire)
+                _mwu_offer, _mwu_vulnerable, _mwu_reason = request_move_with_us_offer(
+                    _move_out_register, cid, _move_end.isoformat(),
+                    offers_on=policy.move_with_us_offers, tariff_type=term_tariff_type,
+                    unit_rate_per_mwh=unit_rate, cost_per_mwh=company_fwd,
+                    annual_kwh=_account_state_row.get("company_eac_kwh"),
+                    psr_register=_psr_for_move)
+                _mwu_notice = _move_out_register.notice_for(cid, _move_end.isoformat())
+                move_with_us_log.append({
+                    "billing_account": billing_account, "supply_point_id": cid,
+                    "commodity": commodity, "move_out_date": _move_end.isoformat(),
+                    "notified_on": (_mwu_notice.notified_on.isoformat()
+                                    if _mwu_notice is not None else None),
+                    "tariff_type": term_tariff_type, "unit_rate_gbp_per_mwh": unit_rate,
+                    "cost_gbp_per_mwh": company_fwd,
+                    "company_eac_kwh": _account_state_row.get("company_eac_kwh"),
+                    "offered": _mwu_offer is not None, "no_offer_reason": _mwu_reason,
+                    "known_vulnerable": _mwu_vulnerable,
+                })
 
         if cid in pending_committee_overrides:
             hf = pending_committee_overrides.pop(cid)
@@ -4988,6 +5022,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         **({"move_out_notices_filed": _move_out_register.notices(),
             "move_out_notice_exceptions": _move_out_register.exceptions()}
            if _home_moves_on else {}),
+        **({"move_with_us_log": move_with_us_log} if policy.move_with_us_offers else {}),
         **({"home_move_outs": home_move_outs, "home_move_ins": home_move_ins}
            if _home_moves_on else {}),
         "renewal_decisions_log": renewal_decisions_log,

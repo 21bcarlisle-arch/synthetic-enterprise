@@ -158,3 +158,36 @@ and more legs than households where a household is dual fuel.
   an exception for one it does not hold, refuses a destination field as a leak, refuses to file
   without the supply book); the wall census (pinned, belted both sides, anchored through
   `MoveOutRegister._admit`, authenticated decode, three new channel-C rows added by hand).
+
+## Steps 2 and 3: the offer and the world's answer (predictions, written before either run)
+
+**Step 2 (the company's offer), prediction.** With the policy off (every standing policy) the book
+is identical to step 1's. With it on and the world not answering, the book is still identical (an
+offer nobody hears moves no money). Of step 1's 15 moving households, the decision is asked once per
+household on its deciding leg. Offers go only to a household on a FIXED tariff whose carried rate the
+company's own estimate puts above its own cost. C1b put roughly two thirds of the domestic book on
+the default tariff, so I expect about a third of movers fixed: **about 5 offers**, and a refusal
+count dominated by "not on a fixed tariff".
+
+**Step 3 (the world's answer), prediction.** k = 0: no mover takes us, and the book is identical to
+off. k = 1: a mover takes us iff its next renewal's roll is at or below the P(stay) the world rolled
+its renewal onto the carried tariff against. A household still in its first term has no such P(stay)
+and is logged unanswerable. I expect **2 to 4 movers who would move with us** at k = 1 out of ~5
+offers. In both arms **on minus off total net is exactly 0**: nothing yet supplies a mover at its new
+home (step 4), so the answer is recorded and the household still leaves.
+
+**Step 2 result** (40 founders, budget 0; `tools/move_with_us_arms.py`, off against on at k = 0):
+- **Inert when off: IDENTICAL BOOK** (`book_diff`), the tree carrying steps 1 to 3 with the policy and
+  the curriculum both off, against step 1's book. With the policy on and nobody answering (k = 0),
+  all 717 account-terms and `total_net` are identical to off.
+- **14 households asked, 4 offers** (C1, C4, C8, SYN-2016-032: all fixed, all with a positive margin
+  on the company's own estimate). **10 not offered, every one "not on a fixed tariff"**. The
+  prediction (about 5 offers, refusals dominated by the default tariff) held.
+- What the decision read, per row: the notice, the tariff type, the rate in force, the company's
+  forward cost the rate was struck against, and its own `company_eac_kwh` (its billing estimate,
+  not the world's `EFFECTIVE_EAC_KWH`).
+- Vulnerability: **0 twin shortfalls**. But one known-vulnerable mover (OCC-6387bf64272a, on the
+  default tariff, 2021) was not offered while fixed-tariff movers were. Its non-vulnerable twin is
+  not offered either, so the director's twin rule holds. The coarser rule (no known-vulnerable mover
+  unoffered while others are offered) does not. The cause is the fixed-tariff scope, not
+  vulnerability. Graded under P3 below.

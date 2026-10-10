@@ -194,6 +194,12 @@ class DecisionPolicy:
     #: standing policy sets it; an experiment names its share.
     save_offer_cut_share: float | None = None
 
+    #: (2026-10-10) on our household's move-out notice, offer to supply it at its new home on the
+    #: tariff it holds, exit fee waived (`company.crm.move_with_us_offer`), wherever the company's
+    #: own estimate says carrying it earns a margin. False offers nothing and no standing policy sets
+    #: it; an experiment does (`tools/move_with_us_arms.py`).
+    move_with_us_offers: bool = False
+
     #: (2026-10-10) at a term the world does not roll, the household converting off our default
     #: tariff onto our fix, a retention offer can buy one thing: a conversion it would otherwise
     #: decline, where the full-rate fix sits above the published default and the offered rate
