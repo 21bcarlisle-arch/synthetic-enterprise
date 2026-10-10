@@ -190,9 +190,12 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
     var proof = "";
     if (e.status === "Live") {
       if (e.checks) {
-        proof = ' <span class="checks">Checked by ' + E(e.checks.checks) +
-          ' automated tests that run on every change' +
-          (e.checks.last_run ? ', last run ' + E(String(e.checks.last_run).slice(0, 10)) : '') +
+        // A count of tests that EXIST, not a run: nothing records when a claim's tests last
+        // ran, and the date this once showed was the largest collection ever logged.
+        proof = ' <span class="checks">' + E(e.checks.checks) +
+          ' automated tests are written against this' +
+          (e.checks.covered < e.checks.of ? ', covering ' + E(e.checks.covered) + ' of the ' +
+            E(e.checks.of) + ' pieces of work it rests on' : '') +
           '.</span>';
       } else {
         proof = ' <span class="noproof">Nothing published yet shows how this is checked.</span>';

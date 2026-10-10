@@ -481,6 +481,41 @@ def _count_test_functions(path: str, project: Path = PROJECT) -> int:
         return 0
 
 
+def cited_test_functions(ids: list[str], records: dict[str, dict],
+                         project: Path = PROJECT) -> dict | None:
+    """Test functions defined in the test files the given work items cite, each FILE counted once.
+
+    For a claim that rests on several work items -- the Capabilities door's "how do you know?".
+    Read off every item's own map record, not off the diagram's nodes, which cover a fraction of
+    the work. Two items citing one file is common (the four household items share one), and
+    summing per item counted that file's tests four times. `covered` is how many of the items cite
+    any existing test file at all. None when no item does.
+    """
+    seen: set[str] = set()
+    funcs, covered = 0, 0
+    for wid in ids:
+        rec = records.get(wid, {})
+        entries = rec.get("evidence_entries")
+        if entries is None:
+            entries = _split_evidence(rec.get("evidence_raw", ""))
+        cites_a_test = False
+        for raw in entries:
+            for p in citation_paths(raw):
+                if not _is_test_path(p):
+                    continue
+                c = classify_citation(p, project)
+                if c["status"] == MISSING:
+                    continue
+                cites_a_test = True
+                if c["resolved_path"] not in seen:
+                    seen.add(c["resolved_path"])
+                    funcs += _count_test_functions(c["resolved_path"], project)
+        covered += cites_a_test
+    if not funcs:
+        return None
+    return {"checks": funcs, "covered": covered, "of": len(ids)}
+
+
 # --- payload -----------------------------------------------------------------
 
 
