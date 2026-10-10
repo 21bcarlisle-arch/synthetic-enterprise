@@ -1154,6 +1154,54 @@ def test_a_context_only_mention_is_drawn_and_a_path_it_asks_to_change_is_still_r
     assert text and "CONTEXT ONLY, NOT REFUSED" in text and "/var/tmp/se-conc" in text
 
 
+#: 2026-10-10's false hold: an idle agent worktree, its lease kept fresh, holding an UNTRACKED copy
+#: of a path origin tracks, last written 2026-10-05.
+_STRAY = {"holder": "live worktree /wt/agent-a5cc99fa24f34feed", "artefact": "/wt/agent-a5cc99",
+          "names": {"/wt/agent-a5cc99fa24f34feed"},
+          "paths": {"docs/market_research/debt_and_collections.md"}, "identifiers": set(),
+          "copies": {"docs/market_research/debt_and_collections.md": {
+              "untracked": True, "origin_tracks": True, "mtime": NOW_EPOCH - 5 * 86400}}}
+#: A live holder mid-edit: a MODIFIED tracked copy written after the item was.
+_EDITING = {"holder": "live worktree /wt/editing", "artefact": "/wt/editing",
+            "names": {"/wt/editing"}, "paths": {"simulation/arrears_engine.py"},
+            "identifiers": set(),
+            "copies": {"simulation/arrears_engine.py": {
+                "untracked": False, "origin_tracks": False, "mtime": NOW_EPOCH - 60}}}
+
+
+def test_a_stale_sibling_copy_is_drawn_and_named_and_a_live_modified_copy_still_refuses(
+        tree, monkeypatch):
+    """THE PARTITION, ONE CONTROL: both branches of `_stale_copy` are reached in one walk.
+
+    The stray untracked copy does not refuse its item, and the doorbell names it as a STALE copy;
+    a live holder's modified tracked copy still refuses; a modified copy older than the item's own
+    `written_at` is stale by age and does not.
+
+    MUTATION (must fire): `_stale_copy` returns "" always (refuse-always) -- the 2026-10-10 item
+    is refused again.
+    MUTATION (must fire): `_stale_copy` returns a reason always (refuse-never) -- the live edit is
+    drawn over its holder.
+    """
+    stray_item = _item("the-arrears-like-for-like-is-a-tracked-tool",
+                       "Rewrite docs/market_research/debt_and_collections.md beside the tool.")
+    live_item = _item("edit-the-arrears-engine", "Edit simulation/arrears_engine.py's dice.")
+    tree["write"]([live_item, stray_item])
+    monkeypatch.setattr(dl, "_live_holders", lambda: [_STRAY, _EDITING])
+
+    text = dl.draw(now=NOW_EPOCH, path=tree["claims"])
+
+    assert [i["id"] for i, _h, _r in dl.LAST_HELD_SKIPS] == ["edit-the-arrears-engine"]
+    assert stray_item["id"] in dl.held(tree["claims"])
+    assert text and "STALE copy of docs/market_research/debt_and_collections.md" in text
+    assert "untracked copy of a path origin/main tracks" in text
+    # The age leg: written an hour ago, the copy after it refuses and a copy a day old does not.
+    later = dict(live_item, written_at=NOW_EPOCH - 3600)
+    assert dl.held_by(later, [_EDITING]) is not None
+    aged = dict(_EDITING, copies={"simulation/arrears_engine.py": dict(
+        _EDITING["copies"]["simulation/arrears_engine.py"], mtime=NOW_EPOCH - 86400)})
+    assert dl.held_by(later, [aged]) is None
+
+
 def test_a_held_work_refusal_reaches_the_seats_brief(tree, monkeypatch):
     """A refusal is written beside the draw ledger with its holder and contested path, read back
     for the stretch, and printed in the orientation prompt next to 'did the focus reach the draw'.

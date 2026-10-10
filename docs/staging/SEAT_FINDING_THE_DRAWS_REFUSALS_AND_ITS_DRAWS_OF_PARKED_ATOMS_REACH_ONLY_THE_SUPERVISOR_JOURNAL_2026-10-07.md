@@ -82,3 +82,37 @@ evidence item is drawn while an edit of the same held file is refused. It reds u
 `asked = set(shared_paths)` and `asked = set()`.
 `test_a_held_work_refusal_reaches_the_seats_brief` reds when `record_held_refusals` is dropped
 from `draw`, and when the `previous_focus_refused` block is dropped from `_prompt`.
+
+## 2026-10-10: a held path is graded by its copy, not only by being there
+
+**The defect.** cf8706023 made refusals visible, and the first one it showed was false.
+`the-arrears-like-for-like-is-a-tracked-tool` was refused 58 times. The last refusal was at
+02:25Z, and the work had already landed by another route as 84d782864. The holder was
+`.claude/worktrees/agent-a5cc99fa24f34feed`. Its only claim to `docs/market_research/debt_and_collections.md`
+was an UNTRACKED copy last written at 2026-10-05 03:39, of a file origin has tracked for days.
+
+**Why the lease called it live.** Its `.se_worktree_owner` names pid 2197437, the interactive
+worker session that has been running since 2026-09-25. That session's `renew_claims.sh` touches every marker naming it,
+every ten minutes. Measured 2026-10-10 ~04:00: 101 worktrees read as live holders, 99 of them on that
+one pid. Between them they hold 355 paths, 10 of which are untracked copies of paths origin
+tracks. So the lease says the session is alive. It does not say the worktree is being worked.
+
+**The repair** (`background/delivery_lane.py`). `_worktree_subject` now grades each held path's
+copy: untracked or not, whether origin/main tracks the path, and its mtime. `_stale_copy` names two
+shapes as a stale sibling:
+1. an untracked copy of a path origin/main tracks;
+2. a copy last written before the item's own `written_at`.
+
+A stale asked-to-change path does not refuse. It goes to the doorbell as
+`HELD-WORK CHECK, CONTEXT ONLY` with the text `holds a STALE copy of <path> (<reason>)`. A modified
+tracked copy written after the item still refuses, and so does a copy that cannot be graded. Replayed
+against the live holders, the 2026-10-10 item now draws, annotated.
+
+**Control.** `test_a_stale_sibling_copy_is_drawn_and_named_and_a_live_modified_copy_still_refuses`
+reaches both branches in one walk. It reds under refuse-always (`_stale_copy` returns `""`) and
+under refuse-never (`_stale_copy` always returns a reason). Both mutations were run.
+
+**What this does not reach.** Focus rows in `DIRECTION.yaml` carry no `written_at`, so only shape 1
+reaches them. A MODIFIED tracked copy in one of the 99 renewed worktrees, idle since September,
+still refuses any focus item that asks to change that path. The remedy is to stamp a `written_at`
+on focus rows, which the direction writer owns. I did not reap the worktree.

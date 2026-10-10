@@ -4847,17 +4847,36 @@ def _identifiers(text: str) -> set[str]:
     return {m.group(0) for m in _IDENTIFIER.finditer(text) if len(m.group(0)) >= _MIN_IDENTIFIER}
 
 
-def _worktree_subject(root: Path) -> tuple[set[str], set[str]]:
+def _worktree_subject(root: Path, copies: dict | None = None) -> tuple[set[str], set[str]]:
     """(paths, identifiers) a worktree holds: its dirty and untracked paths, and the identifiers on
-    the changed lines of its dirty `.py` files. Empty sets if git cannot answer."""
+    the changed lines of its dirty `.py` files. Empty sets if git cannot answer.
+
+    `copies`, when given, is filled with each held path's grade for `_stale_copy`: whether the copy
+    is untracked, whether origin/main tracks that path, and the copy's mtime (None if deleted).
+    """
     paths: set[str] = set()
     idents: set[str] = set()
+    untracked: list[str] = []
     status = _git("status", "--porcelain", "--untracked-files=all", cwd=root)
     for line in (status or "").splitlines():
         rel = line[3:].split(" -> ")[-1].strip().strip('"')
         if rel and rel != ".se_worktree_owner":
             paths.add(rel)
             paths.add(str(root / rel))
+            if copies is not None:
+                try:
+                    mtime: float | None = (root / rel).stat().st_mtime
+                except OSError:
+                    mtime = None
+                grade = {"untracked": line[:2] == "??", "origin_tracks": False, "mtime": mtime}
+                copies[rel] = copies[str(root / rel)] = grade
+                if grade["untracked"]:
+                    untracked.append(rel)
+    if copies is not None and untracked:
+        tracked = _git("ls-tree", "-r", "--name-only", "origin/main", "--", *untracked, cwd=root)
+        for rel in (tracked or "").splitlines():
+            if rel in copies:
+                copies[rel]["origin_tracks"] = True
     diff = _git("diff", "-U0", "HEAD", "--", "*.py", cwd=root)
     for line in (diff or "").splitlines():
         if line[:1] in "+-" and not line.startswith(("+++", "---")):
@@ -4922,11 +4941,13 @@ def _live_holders() -> list[dict]:
         own = {PROJECT_DIR}
     worktrees = [w for w in worktrees if w.resolve() not in own]
     subjects: dict[Path, tuple[set[str], set[str]]] = {}
+    copies: dict[Path, dict] = {}
 
     def _subject(root: Path) -> tuple[set[str], set[str]]:
         if root not in subjects:
+            copies[root] = {}
             try:
-                subjects[root] = _worktree_subject(root)
+                subjects[root] = _worktree_subject(root, copies[root])
             except Exception:
                 subjects[root] = (set(), set())
         return subjects[root]
@@ -4951,7 +4972,8 @@ def _live_holders() -> list[dict]:
             more_paths, idents = _subject(home)
             paths |= more_paths
         holders.append({"holder": unit, "artefact": artefact or "(none recorded)",
-                        "names": names, "paths": paths, "identifiers": idents})
+                        "names": names, "paths": paths, "identifiers": idents,
+                        "copies": copies.get(home, {}) if home is not None else {}})
     for root in worktrees:
         try:
             if not _owned(root):
@@ -4960,7 +4982,8 @@ def _live_holders() -> list[dict]:
             continue
         paths, idents = _subject(root)
         holders.append({"holder": f"live worktree {root}", "artefact": str(root),
-                        "names": {str(root)}, "paths": paths, "identifiers": idents})
+                        "names": {str(root)}, "paths": paths, "identifiers": idents,
+                        "copies": copies.get(root, {})})
     return holders
 
 
@@ -4990,6 +5013,33 @@ def held_by(item: dict, holders: list[dict]) -> tuple[dict, str] | None:
     return held_grade(item, holders)[0]
 
 
+def _stale_copy(holder: dict, path: str, item: dict) -> str:
+    """Why the holder's copy of `path` is a STALE SIBLING rather than work in hand, or "".
+
+    A LIVE LEASE IS NOT LIVE WORK ON EVERY PATH (2026-10-10). `the-arrears-like-for-like-is-a-
+    tracked-tool` was refused 58 times by `.claude/worktrees/agent-a5cc99fa24f34feed`, whose marker
+    a renewer kept fresh while its untracked copy of `docs/market_research/debt_and_collections.md`
+    had no write since 2026-10-05 -- a file origin had tracked for days. Two shapes are stale:
+    an UNTRACKED copy of a path origin/main tracks (the worktree's base predates the file, so the
+    copy is a snapshot, not an edit), and a copy with no write since the item was written (the
+    holder cannot be working toward an item it last touched before the item existed). Focus rows
+    carry no `written_at`, so only the first shape reaches them. An ungraded copy returns "" and
+    refuses as before: this leg only ever releases a refusal it can name the reason for.
+    """
+    copy = (holder.get("copies") or {}).get(path)
+    if not copy:
+        return ""
+    if copy.get("untracked") and copy.get("origin_tracks"):
+        return "an untracked copy of a path origin/main tracks"
+    mtime = copy.get("mtime")
+    written = float(item.get("written_at") or 0.0)
+    if mtime is not None and written and mtime < written:
+        stamp = datetime.datetime.fromtimestamp(mtime, datetime.timezone.utc).strftime(
+            "%Y-%m-%dT%H:%MZ")
+        return f"no write since {stamp}, before the item was written"
+    return ""
+
+
 def held_grade(item: dict, holders: list[dict]
                ) -> tuple[tuple[dict, str] | None, list[tuple[dict, str]]]:
     """(refusal, context): the refusal `held_by` returns, and every holder the item only MENTIONS.
@@ -5003,6 +5053,9 @@ def held_grade(item: dict, holders: list[dict]
     path the prose names as context -- under a read verb, or under no verb -- is returned in
     `context` and drawn anyway, so the doorbell can name the holder beside the work. The identifier
     leg is unchanged: a name the holder's diff changes is a subject whatever verb the prose uses.
+
+    A HELD PATH WHOSE COPY IS STALE (`_stale_copy`) DOES NOT REFUSE. It goes to `context` with its
+    reason, so the doorbell names the stray copy beside the drawn work.
     """
     prose = _item_prose(item)
     named_paths = {m.group(0).rstrip(".)") for m in _NAMED_PATH.finditer(prose)}
@@ -5015,6 +5068,8 @@ def held_grade(item: dict, holders: list[dict]
         shared_paths = sorted(p for p in named_paths & set(holder.get("paths") or ())
                               if claims_mod._informative(p))
         asked = _paths_asked_to_change(prose, set(shared_paths)) if shared_paths else set()
+        stale = {p: why for p in sorted(asked) if (why := _stale_copy(holder, p, item))}
+        asked -= set(stale)
         if asked:
             reasons.append("holds " + ", ".join(sorted(asked)))
         shared_idents = sorted(idents & set(holder.get("identifiers") or ()))
@@ -5022,7 +5077,10 @@ def held_grade(item: dict, holders: list[dict]
             reasons.append("its uncommitted diff changes " + ", ".join(shared_idents))
         if reasons:
             return (holder, " and ".join(reasons)), context
-        if shared_paths:
+        if stale:
+            context.append((holder, "holds a STALE copy of " + "; ".join(
+                f"{p} ({why})" for p, why in stale.items())))
+        elif shared_paths:
             context.append((holder, "holds " + ", ".join(shared_paths)))
     return None, context
 
