@@ -40,3 +40,17 @@ answer, run wiring, arms tool and 10 mutation-checked controls. The live session
 
 The director's DONE stands, unmet: the choice wired into the run, a partition control showing offer
 and no-offer both reached, and the pre-registered two-arm result on origin. It belongs to the live build.
+
+## Drawn a third time, 10:45 BST: released again, nothing built
+
+Lane 0 drew the same id again at 10:45. The claim in `.seat_work_in_hand.json` (stamped 10:45:44,
+`paths: []`) was this draw's own write, not a rival's. But the live build is plainly still moving. At
+10:46 the interactive session (`22080be5`) was landing step 0 of the lever from `/var/tmp/se-mover`
+under the unit `landing-mover-s0c`. That step retires Phase 7e's renewal-leaver "home-move win" as a
+factual correction. Its worktree also held the next steps, built but not yet committed:
+`company/crm/move_with_us_offer.py`, `company/crm/move_out_register.py`,
+`company/interfaces/move_with_us.py`, `interface/contracts/move_out_notice_seam.py`,
+`simulation/move_out_notice_feed.py`, `simulation/move_with_us_answer.py` and their controls. A second
+copy would collide on every one of those paths. Disposition: `--release`. **The re-draw is the
+defect:** while the interactive session holds a direction item it has no row in the claim store, so lane 0
+treats the item as free every time it orients.
