@@ -100,7 +100,7 @@ moved +0.9% in kWh (25,462 to 25,527 bills), so it is read per MWh.
 | 1. first-review DD variance 2017-2021: median within ±10%, share > 15% below 40% | +32.8%, 90% (n=621) | **-1.8%, 17%** (n=620); every year 2017-2021 is between -4.5% and +3.9% | **MET** |
 | 2. final DD balance within ±£20k; peak held credit above £20k | -£81,185 / £9,987 | **-£39,344 / £19,105** (2024-11) | **NOT MET**, on both legs |
 | 3. resi bills: elec down 20-25%, gas down 15-20%; settlement revenue unmoved | £2,073,168 / £811,185; rev £2,211,737 | £1,663,007 (-19.8%; **-20.5% per MWh**, 312.9 to 248.7 inc-VAT) / £671,942 (**-17.2%**, same kWh); rev £2,228,274 (+0.75%, with kWh +0.9%) | **MET** (elec on the per-MWh reading; the raw total sits 0.2 pt outside the band because volume moved) |
-| 4. figures reading bill totals move with them | see below | see below | **cannot yet tell** |
+| 4. figures reading bill totals move with them | see below | see below | **MET on the four bill readers**; the provision is not one; debt-to-income cannot yet tell |
 
 **Prediction 2, why it missed.** The portfolio balance month by month (before to after):
 2016-12 -£22.6k to +£1.5k; 2018-06 -£63.5k to **-£20.6k**; 2021-12 -£53.4k to -£19.7k; 2023-06
@@ -124,6 +124,37 @@ the provision's non-move is unexplained until each bad-debt figure is traced to 
 continuation `the-levy-findings-bad-debt-leg-is-sourced-before-it-is-graded`, refused at today's
 draw as held by `/var/tmp/se-cap`), and debt-to-income needs the arrears harness re-run on this
 artefact (`the-arrears-grade-is-retaken-on-single-levy-bills`).
+
+## Prediction 4, each figure traced to its source (2026-10-10, continuation `the-levy-findings-bad-debt-leg-is-sourced-before-it-is-graded`)
+
+Prediction 4 is about figures that read bill totals, so each figure's source decides whether it
+is covered. Each one below was traced in the code at 7252e8d72, then checked against the ratio
+it should keep fixed: a settlement reader keeps a constant share of settlement revenue, and a
+bill reader keeps a constant share of ledger total billed.
+
+| figure | where it is computed | reads | share of its base, before to after | moved with the bills? |
+|---|---|---|---|---|
+| provisioned bad debt £94,084 to £94,999 | `simulation/run_phase2b.py` 4201-4202, `revenue_gbp x world_bad_debt_incidence x stress`, frozen as `provisioned_total_bad_debt` by `settlement_clocks.refresh_settlement_scalars` | settlement revenue | 4.254% to **4.263%** of settlement revenue | **not a bill reader**, so it is outside the prediction. Its non-move is what its source predicts |
+| bad debt written off £8,285 to £6,460 | `arrears_engine.emergent_bad_debt_lines` via phase 4c; payments resolved against `bill["total_amount_gbp"]` (`arrears_engine.py` 831) | issued bills | 0.287% to 0.277% of billed | **yes** (-22% against -19.2% billed) |
+| ledger bad debt £58,344 to £47,099 | `saas/ledger.build_ledger`: `payment_behaviour.bad_debt_provision_gbp(credit_risk, b["total_amount_gbp"])` | issued bills | 2.018% to **2.018%** of billed | **yes**, exactly, because it is a rate times the bill |
+| back-billing write-off £43,334 to £22,469 | `accounting_close` -> `make_dd_back_billing_write_off_event` over `dd_balance_book.bar_actions`; after the fix £22,097 of it is DD bars at final bills | the DD balance (bills minus level DD) | 1.50% to 0.96% of billed | **yes**, and by more than the bills (-48%), because it reads a difference that the levy had inflated |
+| receivables peak (2022) £73,931 to £66,460 | `company/finance/double_entry` account 1100 over the ledger events (billing less payment) | open balance on bills | 2.56% to 2.85% of billed | **yes** in direction (-10%). It is a balance, not a flow, so it is not proportional |
+| debt-to-income | not in the artefact | -- | -- | **cannot yet tell** (`the-arrears-grade-is-retaken-on-single-levy-bills`) |
+
+**Grade: MET on the four bill readers; the provision falls outside the prediction; debt-to-income
+cannot yet tell.** The provision is called "provisioned", but it is the world's incidence applied
+to settlement revenue, which the fix left unchanged (+0.75%). Grading its non-move as a miss would
+have read a correct no-move as a refutation.
+
+**There are two arrears books with different bases.** The world's payment triad
+(`_payment_month_open`, `run_phase2b.py` 4226-4238) accumulates `revenue_gbp`. That is why the
+arrears re-take at 1f35bc21f did not move: the world never asked households to pay the double
+levy. `arrears_engine` resolves payments against bill totals, and that is why written-off bad debt
+did move. Until 1d3c28930 these two books disagreed by the levy on every bill. On this run, ledger total billed ex-VAT (£2,334,378 / 1.05 = £2,223,217) is
+within 0.23% of settlement revenue (£2,228,274), where before it was 24.5% above it. This is
+recorded here, not fixed: after the fix they should not diverge, and whether
+two books should exist at all is a question for `DD_seasonal_cashflow_physics` L3. It is not a
+levy question.
 
 ## Not on origin yet, and Monday's publish may not get it there
 
