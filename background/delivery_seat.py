@@ -2718,6 +2718,10 @@ def orient(now: datetime | None = None, dry_run: bool = False) -> dict:
         direction_mod.append_decision(row)
         return row
 
+    try:
+        row["focus_stamped"] = stamp_focus_written_at(before_bytes)
+    except Exception as exc:  # noqa: BLE001 - an unstamped row only keeps refusing, as before
+        _log(f"focus rows not stamped: {exc!r}")
     parsed = direction_mod.read_direction()
     previous_ids = _previous_concern_ids()   # BEFORE this row is appended and becomes "previous"
     row.update({
@@ -2780,6 +2784,56 @@ def orient(now: datetime | None = None, dry_run: bool = False) -> dict:
             for i in fresh[:2]), topic_class="decision_waiting")
     row["concerns_paged"] = fresh
     return row
+
+
+def stamp_focus_written_at(before_bytes: bytes | None, path: Path | None = None,
+                           now: float | None = None) -> list[str]:
+    """Stamp `written_at` on each focus row of the record on disk; return the ids stamped NOW.
+
+    WHY (2026-10-10): `delivery_lane._stale_copy`'s age leg -- a held copy with no write since the
+    item was written cannot be work toward it -- read `written_at`, and only continuations carried
+    one, so a modified tracked copy idle since September still refused every focus item asking to
+    change its path. The session rewrites the whole record each stretch, so the stamp is applied
+    here, after validation: a row whose id, `what` and `why` match the previous record's keeps that
+    row's stamp; a new or reworded row is stamped `now`. An unchanged row the previous record had
+    no stamp for stays UNSTAMPED -- its true age is unknown, and a stamp later than the truth would
+    grade a live holder's older write as stale and release a refusal it should keep.
+    """
+    import yaml
+    path = direction_mod.DIRECTION_PATH if path is None else path
+    now = time.time() if now is None else now
+    try:
+        prior = yaml.safe_load(before_bytes.decode("utf-8")) if before_bytes else None
+    except Exception:
+        prior = None
+    prior_rows = {str(r.get("id")): r for r in ((prior or {}).get("focus") or [])
+                  if isinstance(r, dict) and r.get("id")} if isinstance(prior, dict) else {}
+    text = path.read_text(encoding="utf-8")
+    record = yaml.safe_load(text)
+    rows = record.get("focus") if isinstance(record, dict) else None
+    if not isinstance(rows, list):
+        return []
+    stamped, out = [], []
+    for row in rows:
+        if not isinstance(row, dict):
+            out.append(row)
+            continue
+        row = {k: v for k, v in row.items() if k != "written_at"}
+        was = prior_rows.get(str(row.get("id")))
+        if was is not None and was.get("what") == row.get("what") \
+                and was.get("why") == row.get("why"):
+            kept = was.get("written_at")
+            if isinstance(kept, (int, float)) and not isinstance(kept, bool) and kept > 0:
+                row["written_at"] = float(kept)
+        else:
+            row["written_at"] = round(float(now), 3)
+            stamped.append(str(row.get("id")))
+        out.append(row)
+    if out != rows:   # rewrapping an untouched record would churn every row's lines
+        from background.live_ledger_guard import guard_live_ledger_write
+        path = guard_live_ledger_write(path, writer="delivery_seat.stamp_focus_written_at")
+        path.write_text(director_concerns._replace_block(text, out, key="focus"), encoding="utf-8")
+    return stamped
 
 
 def record_session_did_not_run(row: dict, why: str, detail: str, before) -> dict:

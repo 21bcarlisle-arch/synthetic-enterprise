@@ -211,18 +211,18 @@ def _unique_id(base: str, taken: set[str]) -> str:
     return rid
 
 
-def _render_block(rows: list[dict]) -> str:
+def _render_block(rows: list[dict], key: str = KEY) -> str:
     import yaml
     if not rows:
-        return f"{KEY}: []\n"
-    return yaml.safe_dump({KEY: rows}, sort_keys=False, allow_unicode=True, width=100)
+        return f"{key}: []\n"
+    return yaml.safe_dump({key: rows}, sort_keys=False, allow_unicode=True, width=100)
 
 
-def _replace_block(text: str, rows: list[dict]) -> str:
-    """`text` with ONLY its top-level `for_the_director` block replaced (or appended)."""
+def _replace_block(text: str, rows: list[dict], key: str = KEY) -> str:
+    """`text` with ONLY its top-level `key` block replaced (or appended)."""
     lines = text.splitlines(keepends=True)
-    start = next((i for i, ln in enumerate(lines) if ln.startswith(f"{KEY}:")), None)
-    block = _render_block(rows)
+    start = next((i for i, ln in enumerate(lines) if ln.startswith(f"{key}:")), None)
+    block = _render_block(rows, key)
     if start is None:
         sep = "" if not text or text.endswith("\n") else "\n"
         return text + sep + block

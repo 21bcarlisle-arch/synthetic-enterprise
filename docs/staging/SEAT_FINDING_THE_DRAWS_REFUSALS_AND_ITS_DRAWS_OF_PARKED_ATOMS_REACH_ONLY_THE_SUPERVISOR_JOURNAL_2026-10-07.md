@@ -116,3 +116,18 @@ under refuse-never (`_stale_copy` always returns a reason). Both mutations were 
 reaches them. A MODIFIED tracked copy in one of the 99 renewed worktrees, idle since September,
 still refuses any focus item that asks to change that path. The remedy is to stamp a `written_at`
 on focus rows, which the direction writer owns. I did not reap the worktree.
+
+## 2026-10-10: focus rows now carry `written_at` (item `focus-rows-carry-a-written-at-so-a-stale-held-copy-is-graded-by-age`)
+
+`delivery_seat.stamp_focus_written_at` runs on the seat's record path after the session's record
+is validated and before it is parsed and committed. A row whose id, `what` and `why` match the
+previous record keeps that row's stamp; a new or reworded row is stamped with the orientation's
+time. An unchanged row the previous record never dated stays UNDATED, so the age leg cannot grade
+it and it refuses as before. That is deliberate. A stamp later than the true writing would grade a
+live holder's earlier write as stale and release a refusal it should keep. So today's four rows
+gain a date only when they are reworded or replaced, and the records become dated as the focus
+turns over. Nothing is backfilled. A record with no stamp to move is not rewritten.
+`_stale_copy` reads the stamp through `unreachable_focus` unchanged. The control
+`test_a_focus_row_is_dated_when_written_and_keeps_its_date_while_unchanged` covers new, kept,
+reworded and undated rows in one stamp, plus the age leg's release and refusal. It reds under
+no-carry, carry-always, and dropping the `why` comparison.

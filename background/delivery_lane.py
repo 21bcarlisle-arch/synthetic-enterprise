@@ -5023,7 +5023,8 @@ def _stale_copy(holder: dict, path: str, item: dict) -> str:
     an UNTRACKED copy of a path origin/main tracks (the worktree's base predates the file, so the
     copy is a snapshot, not an edit), and a copy with no write since the item was written (the
     holder cannot be working toward an item it last touched before the item existed). Focus rows
-    carry no `written_at`, so only the first shape reaches them. An ungraded copy returns "" and
+    carry `written_at` from `delivery_seat.stamp_focus_written_at`, kept while a row is unchanged;
+    a row it could not date has none, and only the first shape reaches it. An ungraded copy returns "" and
     refuses as before: this leg only ever releases a refusal it can name the reason for.
     """
     copy = (holder.get("copies") or {}).get(path)
