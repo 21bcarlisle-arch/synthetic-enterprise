@@ -52,6 +52,7 @@ if str(PROJECT) not in sys.path:
 
 from moap_stage import BUILDING, LIVE, PLANNED, compute_stage  # noqa: E402
 
+from tools import generate_evidence_data as evidence_data  # noqa: E402
 from tools import provenance_stamp  # noqa: E402
 
 MAP_FEED = SITE / "data" / "maturity_map.json"
@@ -549,14 +550,14 @@ def _status_for(ids: list[str], levels: dict[str, dict]) -> str:
 
 
 def _entries(register, levels, index: dict[str, str] | None = None,
-             evidence: dict | None = None) -> list[dict]:
-    index, evidence = index or {}, evidence or {}
+             records: dict | None = None) -> list[dict]:
+    index, records = index or {}, records or {}
     out = []
     for name, blurb, ids in register:
         out.append({
             "name": name, "what": blurb, "status": _status_for(ids, levels), "rests_on": ids,
             "evidence": _evidence_for(ids, index),
-            "checks": _checks_for(ids, evidence),
+            "checks": _checks_for(ids, records),
         })
     return out
 
@@ -745,29 +746,16 @@ def _evidence_for(ids: list[str], index: dict[str, str]) -> str | None:
     return None
 
 
-def _checks_for(ids: list[str], evidence: dict) -> dict | None:
-    """How many independent automated checks stand behind a claim, and when they last ran.
+def _checks_for(ids: list[str], records: dict) -> dict | None:
+    """How many automated tests are written against a claim, and over how much of its work.
 
-    Derived from the published evidence data -- the same source the machine-facing page uses,
-    read for the one number a reader wants rather than rendered as a record. None where the
-    work is not covered by that data at all, which is itself said on the page.
+    Read off each cited work item's own record, so a claim is answered whether or not the
+    architecture diagram carries it. It counts tests that EXIST, not a record of a run: until
+    2026-10-10 this also published a "last run" date, which was the day of the largest test
+    collection ever logged (2026-07-17, three months stale on a page saying the tests "run on
+    every change") -- nothing records when a given claim's tests last ran, so no date is said.
     """
-    # `test_files` and `test_functions` are COUNTS in this feed, not lists. Summing them over
-    # the cited work items is right for functions and an over-count for files where two items
-    # share a file, so only the function count is published -- an inflated file count on a page
-    # about honesty would be a poor place to be sloppy.
-    seen, funcs = set(), 0
-    for node in evidence.get("nodes") or []:
-        for atom in node.get("atoms") or []:
-            aid = atom.get("id")
-            if aid in ids and aid not in seen:
-                seen.add(aid)
-                value = atom.get("test_functions")
-                funcs += value if isinstance(value, int) else 0
-    if not seen or not funcs:
-        return None
-    return {"checks": funcs, "covered": len(seen), "of": len(ids),
-            "last_run": (evidence.get("suite") or {}).get("timestamp")}
+    return evidence_data.cited_test_functions(ids, records, PROJECT)
 
 
 def scale(customers: Path = SITE / "data" / "customers.json",
@@ -824,7 +812,7 @@ READS = (
     SITE / "data" / "moap_node_atoms.json",
     SITE / "data" / "customers.json",
     SITE / "data" / "dashboard.json",
-    SITE / "data" / "evidence.json",
+    evidence_data.MAP_PATH,
     QUALIFICATION_REGISTER,
 )
 
@@ -949,9 +937,10 @@ def gaps(world: list[dict], supplier: list[dict], seams: list[dict], book: dict,
             ),
         })
 
-    unproven = [e for e in world + supplier if e["status"] == LIVE and not e["evidence"]]
+    built = [e for e in world + supplier if e["status"] == LIVE]
+    unproven = [e for e in built if not e["evidence"]]
+    unchecked = [e for e in built if not e["checks"]]
     if unproven:
-        built = [e for e in world + supplier if e["status"] == LIVE]
         out.append({
             "plan": plan_for(GAP_PLAN["unproven"], levels),
             "title": "No claim on this page yet links to a record a reader could use",
@@ -959,12 +948,12 @@ def gaps(world: list[dict], supplier: list[dict], seams: list[dict], book: dict,
                 "Every item marked as built should be traceable to what makes it so. The "
                 "records exist, and they are written for whoever maintains this project -- "
                 "internal identifiers, maturity levels, file paths -- so sending a reader to "
-                f"them would satisfy the letter of the request and teach nothing. {len(unproven)} "
-                f"of {len(built)} built capabilities have no published record at all, because "
-                "the evidence pages are generated from the architecture diagram and it covers a "
-                "fraction of the work. Rather than link to the machine's own notes, each claim "
-                "below states in plain words what checks it. A record written for a reader is "
-                "on the plan and is the next thing built here."
+                "them would satisfy the letter of the request and teach nothing. Rather than "
+                "link to the machine's own notes, each claim below says how many automated "
+                f"tests are written against it -- and {len(unchecked)} of the {len(built)} built "
+                "capabilities cite none, which is said on the claim itself. A count of tests is "
+                "not an account of what they check or what would prove the claim wrong; a "
+                "record written for a reader is on the plan and is the next thing built here."
             ),
         })
 
@@ -984,11 +973,11 @@ def build(feed: Path = MAP_FEED) -> dict:
     levels = _levels(feed)
     index = evidence_index()
     try:
-        evidence = json.loads((SITE / "data" / "evidence.json").read_text(encoding="utf-8"))
-    except (OSError, ValueError) as e:
-        raise CapabilitySourceUnavailable(f"evidence data unreadable: {e}") from e
-    world = _entries(WORLD, levels, index, evidence)
-    supplier = _entries(SUPPLIER, levels, index, evidence)
+        records = evidence_data.atom_records()
+    except evidence_data.EvidenceSourceUnavailable as e:
+        raise CapabilitySourceUnavailable(f"work record unreadable: {e}") from e
+    world = _entries(WORLD, levels, index, records)
+    supplier = _entries(SUPPLIER, levels, index, records)
     seams = [
         {"area": s["area"], "counterparty": s["who"], "what": s["what"],
          "access": s["access"], "gate": s["gate"], "spec": s["spec"],
@@ -1021,6 +1010,7 @@ def build(feed: Path = MAP_FEED) -> dict:
                 "FIDELITY_2026-09-06.md"
             ),
             "evidence_map": "site/data/moap_node_atoms.json",
+            "checks": "the test files each work item cites in its record",
             "scale": "site/data/customers.json + site/data/dashboard.json",
         },
         "world": {"entries": world, "tally": tally(world)},

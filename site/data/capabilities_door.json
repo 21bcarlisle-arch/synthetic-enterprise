@@ -1,10 +1,10 @@
 {
- "generated_at": "2026-10-05T21:16:53Z",
- "git_commit": "998814330c298a6f749b14a311739618ffa7de16",
+ "generated_at": "2026-10-10T02:00:10Z",
+ "git_commit": "cf8706023de17cbd24b5c76c1739f5def0258e15",
  "published_from": {
-  "commit": "998814330c298a6f749b14a311739618ffa7de16",
-  "tree_was_clean": true,
-  "inputs_are_the_committed_bytes": true,
+  "commit": "cf8706023de17cbd24b5c76c1739f5def0258e15",
+  "tree_was_clean": false,
+  "inputs_are_the_committed_bytes": false,
   "inputs": [
    {
     "path": "site/data/maturity_map.json",
@@ -23,15 +23,15 @@
     "state": "committed"
    },
    {
-    "path": "site/data/evidence.json",
-    "state": "committed"
+    "path": "docs/design/maturity_map.yaml",
+    "state": "modified"
    },
    {
     "path": "docs/design/EP19_COUNTERPARTY_QUALIFICATION_REGISTER.md",
     "state": "committed"
    }
   ],
-  "reason": "every input read here is byte-identical to what this commit holds, and nothing else in the tree differed from it either"
+  "reason": "read off the working tree, not out of this commit: docs/design/maturity_map.yaml \u2014 standing at this commit will not reproduce this feed"
  },
  "sources": {
   "record": "site/data/maturity_map.json",
@@ -41,6 +41,7 @@
   "access_class": "docs/design/EP19_COUNTERPARTY_QUALIFICATION_REGISTER.md",
   "use_case_register": "docs/staging/done/DIRECTOR_RULING_SUPPLIER_USE_CASE_REGISTER_AND_SIM_FIDELITY_2026-09-06.md",
   "evidence_map": "site/data/moap_node_atoms.json",
+  "checks": "the test files each work item cites in its record",
   "scale": "site/data/customers.json + site/data/dashboard.json"
  },
  "world": {
@@ -55,10 +56,9 @@
     ],
     "evidence": null,
     "checks": {
-     "checks": 56,
+     "checks": 28,
      "covered": 2,
-     "of": 2,
-     "last_run": "2026-07-17T10:04:27.481741+00:00"
+     "of": 2
     }
    },
    {
@@ -72,8 +72,7 @@
     "checks": {
      "checks": 22,
      "covered": 1,
-     "of": 1,
-     "last_run": "2026-07-17T10:04:27.481741+00:00"
+     "of": 1
     }
    },
    {
@@ -87,8 +86,7 @@
     "checks": {
      "checks": 62,
      "covered": 1,
-     "of": 1,
-     "last_run": "2026-07-17T10:04:27.481741+00:00"
+     "of": 1
     }
    },
    {
@@ -100,7 +98,11 @@
      "W1_12_premise_trace_generator"
     ],
     "evidence": null,
-    "checks": null
+    "checks": {
+     "checks": 395,
+     "covered": 2,
+     "of": 2
+    }
    },
    {
     "name": "Households with hidden lives",
@@ -115,9 +117,8 @@
     "evidence": null,
     "checks": {
      "checks": 66,
-     "covered": 4,
-     "of": 4,
-     "last_run": "2026-07-17T10:04:27.481741+00:00"
+     "covered": 1,
+     "of": 4
     }
    },
    {
@@ -140,10 +141,9 @@
     ],
     "evidence": null,
     "checks": {
-     "checks": 20,
-     "covered": 1,
-     "of": 2,
-     "last_run": "2026-07-17T10:04:27.481741+00:00"
+     "checks": 36,
+     "covered": 2,
+     "of": 2
     }
    },
    {
@@ -157,8 +157,7 @@
     "checks": {
      "checks": 38,
      "covered": 1,
-     "of": 1,
-     "last_run": "2026-07-17T10:04:27.481741+00:00"
+     "of": 1
     }
    },
    {
@@ -169,7 +168,11 @@
      "W5_1_banking_payment_rails"
     ],
     "evidence": null,
-    "checks": null
+    "checks": {
+     "checks": 46,
+     "covered": 1,
+     "of": 1
+    }
    },
    {
     "name": "Futures beyond the real record",
@@ -179,7 +182,11 @@
      "W1_2_generate_futures"
     ],
     "evidence": null,
-    "checks": null
+    "checks": {
+     "checks": 16,
+     "covered": 1,
+     "of": 1
+    }
    }
   ],
   "tally": {
@@ -199,7 +206,11 @@
      "F6_bill_integrity_structural"
     ],
     "evidence": null,
-    "checks": null
+    "checks": {
+     "checks": 96,
+     "covered": 1,
+     "of": 2
+    }
    },
    {
     "name": "Estimated bills, and the correction when the read arrives",
@@ -210,10 +221,9 @@
     ],
     "evidence": null,
     "checks": {
-     "checks": 94,
+     "checks": 96,
      "covered": 1,
-     "of": 1,
-     "last_run": "2026-07-17T10:04:27.481741+00:00"
+     "of": 1
     }
    },
    {
@@ -234,7 +244,11 @@
      "D5_account_hierarchy_payments"
     ],
     "evidence": null,
-    "checks": null
+    "checks": {
+     "checks": 19,
+     "covered": 1,
+     "of": 1
+    }
    },
    {
     "name": "Telling can't-pay from won't-pay",
@@ -265,7 +279,11 @@
      "C13_weather_normalisation"
     ],
     "evidence": null,
-    "checks": null
+    "checks": {
+     "checks": 27,
+     "covered": 1,
+     "of": 1
+    }
    },
    {
     "name": "A real set of books",
@@ -278,10 +296,9 @@
     ],
     "evidence": null,
     "checks": {
-     "checks": 12,
+     "checks": 25,
      "covered": 2,
-     "of": 3,
-     "last_run": "2026-07-17T10:04:27.481741+00:00"
+     "of": 3
     }
    },
    {
@@ -295,9 +312,8 @@
     "evidence": null,
     "checks": {
      "checks": 35,
-     "covered": 2,
-     "of": 2,
-     "last_run": "2026-07-17T10:04:27.481741+00:00"
+     "covered": 1,
+     "of": 2
     }
    },
    {
@@ -322,8 +338,7 @@
     "checks": {
      "checks": 26,
      "covered": 1,
-     "of": 1,
-     "last_run": "2026-07-17T10:04:27.481741+00:00"
+     "of": 1
     }
    },
    {
@@ -339,7 +354,7 @@
    {
     "name": "The collections journey, end to end",
     "what": "Missed payment, reminder, dunning ladder, arrangement, and the point where a debt is handed on.",
-    "status": "Planned",
+    "status": "Building",
     "rests_on": [
      "EP4_collections_journey"
     ],
@@ -359,8 +374,8 @@
   ],
   "tally": {
    "Live": 10,
-   "Building": 1,
-   "Planned": 3
+   "Building": 2,
+   "Planned": 2
   }
  },
  "use_cases": {
@@ -1247,7 +1262,7 @@
     "access": "GATED",
     "gate": "Eligibility under the Retail Energy Code, confirmed by its Code Manager.",
     "spec": null,
-    "status": "Planned",
+    "status": "Building",
     "rests_on": [
      "EP12_adapter_css_rec_switching"
     ],
@@ -1282,8 +1297,8 @@
   ],
   "tally": {
    "Live": 0,
-   "Building": 1,
-   "Planned": 7
+   "Building": 2,
+   "Planned": 6
   },
   "access_tally": {
    "OPEN": 3,
@@ -1401,6 +1416,10 @@
    "describes": "Seam: the world reports the renewal; the supplier decides what it costs."
   },
   {
+   "module": "save_offer",
+   "describes": "The company's SAVE-OFFER door: what it offers a household whose switch away it has been told of."
+  },
+  {
    "module": "sim_interface",
    "describes": "Company Layer \u2014 SIM/Company Interface Seam."
   },
@@ -1426,32 +1445,32 @@
   }
  ],
  "wall": {
-  "live_crossings": 6,
-  "direct": 4,
+  "live_crossings": 7,
+  "direct": 5,
   "indirect": 2,
   "examined": 91,
   "cut": 85,
   "owed": 6,
-  "unexamined": 0
+  "unexamined": 1
  },
  "scale": {
   "figures": [
    {
-    "value": 164,
+    "value": 127,
     "basis": "accounts in the live customer feed",
     "source": "site/data/customers.json",
-    "as_of": "2026-09-28T03:54:19Z"
+    "as_of": "2026-10-05T21:17:17Z"
    },
    {
-    "value": 242,
+    "value": 172,
     "basis": "book size used by the break-even analysis",
     "source": "site/data/dashboard.json",
     "as_of": "2016-2025"
    }
   ],
   "agree": false,
-  "low": 164,
-  "high": 242,
+  "low": 127,
+  "high": 172,
   "real_world": "A real GB supplier serves hundreds of thousands to millions of homes."
  },
  "gaps": [
@@ -1464,20 +1483,20 @@
     "when": "being worked on now",
     "waiting_on_count": 0
    },
-   "title": "The book is 164\u2013242 customers",
-   "what": "Everything on this page is true of a supplier with 164\u2013242 accounts. A real GB supplier serves hundreds of thousands to millions of homes. Scale is the largest single gap between this and a real energy retailer, and nothing above will tell you that, because every item can be genuinely built at this size. The project's own feeds do not currently agree on the exact figure \u2014 164 (accounts in the live customer feed), 242 (book size used by the break-even analysis) \u2014 and that disagreement is itself unreconciled."
+   "title": "The book is 127\u2013172 customers",
+   "what": "Everything on this page is true of a supplier with 127\u2013172 accounts. A real GB supplier serves hundreds of thousands to millions of homes. Scale is the largest single gap between this and a real energy retailer, and nothing above will tell you that, because every item can be genuinely built at this size. The project's own feeds do not currently agree on the exact figure \u2014 127 (accounts in the live customer feed), 172 (book size used by the break-even analysis) \u2014 and that disagreement is itself unreconciled."
   },
   {
    "plan": {
     "planned": true,
-    "items": 2,
-    "started": 2,
+    "items": 3,
+    "started": 3,
     "drawable_now": true,
     "when": "being worked on now",
     "waiting_on_count": 0
    },
    "title": "Half-built, not absent",
-   "what": "Listed above as coming next, which understates it: these exist and work in part, and are not finished. The price cap as a real constraint \u2014 Ofgem's cap binds what can be charged rather than sitting in a lookup table, and it change; Carbon measured on three ledgers \u2014 Customer, portfolio and grid carbon accounted separately \u2014 the measurement the whole premi."
+   "what": "Listed above as coming next, which understates it: these exist and work in part, and are not finished. The price cap as a real constraint \u2014 Ofgem's cap binds what can be charged rather than sitting in a lookup table, and it change; Carbon measured on three ledgers \u2014 Customer, portfolio and grid carbon accounted separately \u2014 the measurement the whole premi; The collections journey, end to end \u2014 Missed payment, reminder, dunning ladder, arrangement, and the point where a debt is hande."
   },
   {
    "plan": {
@@ -1501,7 +1520,7 @@
     "waiting_on_count": 0
    },
    "title": "No claim on this page yet links to a record a reader could use",
-   "what": "Every item marked as built should be traceable to what makes it so. The records exist, and they are written for whoever maintains this project -- internal identifiers, maturity levels, file paths -- so sending a reader to them would satisfy the letter of the request and teach nothing. 19 of 19 built capabilities have no published record at all, because the evidence pages are generated from the architecture diagram and it covers a fraction of the work. Rather than link to the machine's own notes, each claim below states in plain words what checks it. A record written for a reader is on the plan and is the next thing built here."
+   "what": "Every item marked as built should be traceable to what makes it so. The records exist, and they are written for whoever maintains this project -- internal identifiers, maturity levels, file paths -- so sending a reader to them would satisfy the letter of the request and teach nothing. Rather than link to the machine's own notes, each claim below says how many automated tests are written against it -- and 5 of the 19 built capabilities cite none, which is said on the claim itself. A count of tests is not an account of what they check or what would prove the claim wrong; a record written for a reader is on the plan and is the next thing built here."
   },
   {
    "plan": {
