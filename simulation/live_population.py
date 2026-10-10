@@ -198,7 +198,7 @@ def live_population(base_seed: Optional[int] = None) -> List[dict]:
     book = static
 
     if draw_population_enabled():
-        drawn = [sc.to_customer_dict() for sc in _drawn_trickle(seed)]
+        drawn = [_trickle_dict(sc) for sc in _drawn_trickle(seed)]
         # ACTIVATION (2026-08-13): register the drawn points on the supply book before
         # handing them back. Iterating a book you cannot then RESOLVE BY ID is what
         # broke the home-move path -- `run_phase2b` looks a winning account back up
@@ -443,13 +443,31 @@ def _drawn_trickle(seed: int):
     """
     from simulation.population_draw import draw_population
 
-    return draw_population(
+    drawn = draw_population(
         seed,
         draw_region=True,
         assign_cohorts=True,
         premise_stock_fn=lambda year: _trickle_stock(year, seed),
         seasonal_dates=True,
     )
+    # A GAS ARRIVAL TAKES THE FOUNDERS' TWO RULES (2026-10-10). The trickle was the third way a
+    # gas account enters the book, and the only one without them: no gas meter, no gas account,
+    # and an AQ from `_gas_aq_kwh` or no account. It reached `run_phase2b.TOTAL_GAS_AQ` as a
+    # KeyError on 8 of the 12 authorised EP17 seeds (61101: SYN-2021-001, a gas account on an
+    # electric home, and SYN-2022-001). The default seed's trickle draws no gas arrival, so its
+    # book is unchanged. Filtered HERE so every caller of the trickle agrees on who arrived.
+    return [sc for sc in drawn if sc.commodity != "gas" or (
+        getattr(getattr(sc, "premise", None), "commodity", "gas") == "gas"
+        and _gas_aq_kwh(sc.customer_id, sc.consumption_band) is not None)]
+
+
+def _trickle_dict(sc) -> dict:
+    """A trickle arrival as the saas-shaped dict, a gas one carrying its AQ as a founder does."""
+    record = sc.to_customer_dict()
+    if record.get("commodity") == "gas":
+        record = {**record, "aq_kwh": _gas_aq_kwh(sc.customer_id, sc.consumption_band),
+                  "cv_factor": GAS_CV_FACTOR, "cf": GAS_CORRECTION_FACTOR}
+    return record
 
 
 def book_subset_verdict(seed: Optional[int] = None) -> dict:
@@ -972,7 +990,7 @@ def _pre_growth_book(seed: int) -> List[dict]:
     static = founder_book(seed)
     if not draw_population_enabled():
         return static
-    return static + [sc.to_customer_dict() for sc in _drawn_trickle(seed)]
+    return static + [_trickle_dict(sc) for sc in _drawn_trickle(seed)]
 
 
 # The run's last reported day, as the campaign's quote cutoff.
