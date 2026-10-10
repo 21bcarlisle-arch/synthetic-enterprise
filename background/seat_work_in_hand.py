@@ -443,7 +443,65 @@ def sweep(*, path: Path | None = None, now: float | None = None,
     return released
 
 
-def main() -> int:
+def live_direction_ids(now: float | None = None) -> set[str]:
+    """Ids the executor's draw can offer right now: live focus rows and live continuations.
+
+    `--claim` asks this so a typo cannot pass for a hold. A claim on an id the draw never offers
+    holds nothing, and the session would build believing the executor had been told to stay away.
+    """
+    from background import direction as direction_mod
+    from background import seat_continuation
+
+    ids: set[str] = set()
+    record = direction_mod.read_direction()
+    if record is not None and record.is_live():
+        ids |= {str(i.get("id")) for i in record.focus if i.get("id")}
+    ids |= {str(i.get("id")) for i in seat_continuation.live(now=now) if i.get("id")}
+    return ids
+
+
+def main(argv: list[str] | None = None) -> int:
+    """No arguments: sweep (the reconcile timer's call). `--claim ID` / `--release ID`: the
+    interactive session's door.
+
+    THE DOOR EXISTS BECAUSE THE DRAW COULD SEE A BUILD ONLY ONCE IT HAD WRITTEN A FILE (2026-10-10).
+    `delivery_lane.next_item` already skips every id held in this store, but nothing outside the
+    executor ever wrote one, so an interactive session building a direction item was invisible to
+    the draw until `2973e7a62`'s file-name match fired -- and that cannot see a build that has
+    written nothing yet, or names its files in other words. Home-mover retention was drawn while
+    /var/tmp/se-mover built it. The session claims first; the draw then skips the id for
+    `STALE_AFTER_SECONDS` from the claim, or from the last commit against paths later bound to it.
+    """
+    import argparse
+
+    ap = argparse.ArgumentParser(prog="python3 -m background.seat_work_in_hand")
+    door = ap.add_mutually_exclusive_group()
+    door.add_argument("--claim", metavar="ID", help="hold a direction item so the draw skips it")
+    door.add_argument("--release", metavar="ID", help="drop a hold once the work has landed")
+    ap.add_argument("--note", default="", help="what the session is doing with it")
+    ap.add_argument("--any-id", action="store_true",
+                    help="claim an id no live direction row carries (work with no row)")
+    args = ap.parse_args(argv)
+
+    if args.claim:
+        if not args.any_id and args.claim not in live_direction_ids():
+            print(f"seat-work-in-hand: REFUSED {args.claim!r} -- no live focus row or continuation "
+                  "carries that id, so the draw would never offer it and a claim on it holds "
+                  "nothing. Check the spelling against docs/direction/DIRECTION.yaml, or pass "
+                  "--any-id for work that has no direction row.")
+            return 1
+        claim(args.claim, args.note)
+        print(f"seat-work-in-hand: claimed {args.claim} -- the draw skips it for "
+              f"{STALE_AFTER_SECONDS // 60} min unless a commit against its bound paths renews it; "
+              "re-run --claim to renew, --release once it has landed")
+        return 0
+    if args.release:
+        if release(args.release):
+            print(f"seat-work-in-hand: released {args.release}")
+            return 0
+        print(f"seat-work-in-hand: {args.release} was NOT HELD -- nothing released")
+        return 1
+
     released = sweep()
     print(f"seat-work-in-hand: released {len(released)} stale claim(s)"
           + (": " + ", ".join(released) if released else ""))
