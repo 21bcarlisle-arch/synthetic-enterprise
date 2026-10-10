@@ -28,7 +28,7 @@ the Point-in-Time Blindfold structural (same pattern as
 
 from datetime import date, timedelta
 
-from saas.customer_reaction import score_experience_signals
+from saas.customer_reaction import _billing_account_id, score_experience_signals
 
 CONTRACT_LENGTH_DAYS = 365  # matches simulation/settlement.py
 
@@ -137,6 +137,14 @@ def build_churn_risk(settlement_records: list[dict], customers: list[dict],
     """
     signals = score_experience_signals(settlement_records, comparison_mode=comparison_mode)
     acquisition_by_account = {c["customer_id"]: c["acquisition_date"] for c in customers}
+    # A billing account whose ONLY leg is gas has no customer under its own id: a change of
+    # tenancy at a gas-only premise opens `OCC-<id>g` and nothing else, and the account
+    # `OCC-<id>` raised KeyError on EP17 seed 61102 (2026-10-10). Such an account takes its leg's
+    # date. Every account that resolved before resolves to the same date, and an id with no leg
+    # at all still raises.
+    for c in customers:
+        acquisition_by_account.setdefault(_billing_account_id(c["customer_id"]),
+                                          c["acquisition_date"])
 
     churn_risk: dict[str, list[dict]] = {}
     for account_id, periods in signals.items():
