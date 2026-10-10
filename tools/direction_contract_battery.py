@@ -67,6 +67,9 @@ DIRECT_NODES = (
     "tests/background/test_delivery_seat.py::test_a_named_atom_actually_becomes_more_likely_and_the_steer_BITES",
     "tests/background/test_delivery_seat.py::test_focus_that_was_never_DRAWN_is_reported_rather_than_assumed",
     "tests/background/test_delivery_seat.py::test_the_verdict_is_SPLIT_so_one_dead_channel_cannot_hide_behind_the_other",
+    # Landed undeclared by 811af4d80 (2026-10-10), red on origin from then: it drives
+    # `direction` read paths through the seat's stamp, so a kill it delivers is the subject's.
+    "tests/background/test_delivery_seat.py::test_a_focus_row_is_dated_when_written_and_keeps_its_date_while_unchanged",
     "tests/background/test_delivery_seat.py::test_a_BROKEN_direction_record_leaves_the_draw_byte_identical",
     "tests/background/test_delivery_seat.py::test_a_MISSING_record_is_not_an_error",
     "tests/background/test_delivery_seat.py::test_direction_EXPIRES_so_stale_advice_stops_steering_on_its_own",

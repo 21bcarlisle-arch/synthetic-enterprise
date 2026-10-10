@@ -696,6 +696,50 @@ def wrong_first_seen(rows, triage) -> dict[str, datetime]:
     return seen
 
 
+#: Director, 2026-10-10: *"Since 7 October about 30% of commits have touched world or supplier
+#: code, but the supplier gets only 1-3 a day against the world's 15-17. My priority order is mostly
+#: supplier work ... every stretch's focus carries at least two supplier items from the priority
+#: order ... World fidelity work continues, but only where it blocks a supplier result."*
+FOCUS_SIDES = ("supplier", "world", "other")
+SUPPLIER_FOCUS_ITEMS_REQUIRED = 2
+
+
+def focus_balance_problems(record) -> list[str]:
+    """Every reason a NEW record's focus breaks the director's supplier-first balance.
+
+    BINDS THE WRITE, NEVER THE READ, like `wrong_triage_problems`: `read_direction` returning None
+    would strip every draw of its focus, so a record already on file -- including every record
+    written before this rule -- stays readable, and only the seat's next write is refused.
+
+    Each focus item says which side it serves (`side`: supplier, world or other). At least two are
+    `supplier`. A `world` item names in `unblocks` the supplier result it is blocking, because world
+    fidelity work is admitted only where it blocks one.
+    """
+    if not isinstance(record, dict) or not isinstance(record.get("focus"), list):
+        return []
+    problems: list[str] = []
+    supplier = 0
+    for i, item in enumerate(record["focus"]):
+        if not isinstance(item, dict):
+            continue
+        side = item.get("side")
+        if side not in FOCUS_SIDES:
+            problems.append(f"focus[{i}] needs a side ({', '.join(FOCUS_SIDES)}) -- the director "
+                            "reads the balance of the focus from it")
+            continue
+        if side == "supplier":
+            supplier += 1
+        if side == "world" and not str(item.get("unblocks") or "").strip():
+            problems.append(f"focus[{i}] is world work with no `unblocks` -- name the supplier "
+                            "result it blocks; world fidelity is admitted only where it blocks one")
+    if supplier < SUPPLIER_FOCUS_ITEMS_REQUIRED:
+        problems.append(f"focus carries {supplier} supplier item(s); at least "
+                        f"{SUPPLIER_FOCUS_ITEMS_REQUIRED} are required from the priority order "
+                        "(billing accuracy, forward customer value on held-back history, "
+                        "per-customer decisions, levers in merit order)")
+    return problems
+
+
 def wrong_triage_problems(record, *, triage_path: Path | None = None,
                           decisions_path: Path | None = None,
                           now: datetime | None = None) -> list[str]:
