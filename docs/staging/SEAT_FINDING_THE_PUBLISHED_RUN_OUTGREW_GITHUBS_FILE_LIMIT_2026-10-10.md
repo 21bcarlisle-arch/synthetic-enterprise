@@ -81,6 +81,18 @@ The 123.6 MB file on disk now was written by the old code, so it is compact only
 checkout carries this commit AND a run has been written since. If no run lands before the window,
 the publish is now *refused by name* rather than rejected at push -- the site still waits a week.
 
+**Met on disk, 2026-10-10 18:34Z (route b).** sim-runner had deferred every cycle since 11:07 to a
+resident long job (`save-eight`, declared 50 min, running ~2h), so the shared tree's
+`docs/reports/run_output_latest.json` was re-written from the graded single-levy run
+(`/var/tmp/single_levy/run_output_abb925ec7.json`, `producing_commit` 7379375f6, which has 1d3c28930
+as an ancestor) through `tools.run_annual_report.dump_run_output`: 91,506,306 bytes, read back equal
+to the source, and `_files_over_push_limit` returns empty for it. The publish checks size, not that
+the run's commit is HEAD; `test_the_published_run_output_names_its_world_and_adds_up` and
+`test_every_promote_target_producer_declares_its_run_identity` pass against it. The double-levied
+run it replaced is still on disk as `docs/reports/run_output_cf8706023_20261010T013208Z.json`, so
+copying that back undoes the change. If sim-runner gets a cycle before the window, its own compact HEAD run
+overwrites this one, which is also fine. Whatever overwrites it, the size refusal still guards Monday's publish.
+
 ## Proposal: the durable choice (seat's recommendation)
 
 Compact JSON leaves 12.6% headroom on a book that grew 4.6x in a week; the next book growth
