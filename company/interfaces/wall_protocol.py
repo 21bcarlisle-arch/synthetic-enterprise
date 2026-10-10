@@ -447,6 +447,10 @@ UK_LINK_SENDER = "UK-LINK-01"
 #: "almost exclusively" by customer disclosure (debt_and_collections.md s.10.5).
 PSR_DISCLOSURE_SENDER = "HOUSEHOLD-DISCLOSURE-01"
 
+#: The company's counterparty on the MOVE-OUT NOTICE seam -- the channel our own household tells us
+#: on that it stops occupying its premises (SLC 24.1(a); home_moves.md s.8.1).
+MOVE_OUT_CONTACT_SENDER = "HOUSEHOLD-MOVE-CONTACT-01"
+
 #: Every counterparty this build will accept a message from. A sender absent
 #: from this mapping is REFUSED -- there is deliberately no default record and
 #: no wildcard, because a registry with a fallback is a registry that cannot
@@ -524,6 +528,14 @@ COUNTERPARTY_REGISTRY: Mapping[str, CounterpartyRecord] = MappingProxyType(
         PSR_DISCLOSURE_SENDER: CounterpartyRecord(
             credential_sha256=(
                 "560398c8e0ea9fdedfec0002a29a491adf6d87f701849c6db7356c7b451382a7"
+            ),
+            speaks_schema_versions=frozenset({2}),
+            nature=CounterpartyNature.STAND_IN,
+        ),
+        # `simulation/move_out_notice_feed.py::MOVE_CONTACT_CREDENTIAL`. First release v2.
+        MOVE_OUT_CONTACT_SENDER: CounterpartyRecord(
+            credential_sha256=(
+                "ca3b9cb51f29947a7e35bc47434017fbbd48f7bbc1801eac7d1e7a72d5ee47b2"
             ),
             speaks_schema_versions=frozenset({2}),
             nature=CounterpartyNature.STAND_IN,

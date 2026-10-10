@@ -76,6 +76,7 @@ from __future__ import annotations
 from typing import Any
 
 from company.crm.cos_process import CoSRegister
+from company.crm.move_out_register import MoveOutRegister
 from company.regulatory.priority_services_register import PriorityServicesRegister
 from saas.customers import (
     ACQUIRED_CUSTOMERS,
@@ -226,3 +227,11 @@ def open_priority_services_register() -> PriorityServicesRegister:
     household is on the register because the household said so. Like the change-of-supplier
     register, it asks this book whether it holds the point a disclosure names WHEN IT ARRIVES."""
     return PriorityServicesRegister(holds=lambda sp: registered_point(sp) is not None)
+
+
+def open_move_out_register() -> MoveOutRegister:
+    """The supplier's register of move-out notices for one run. The world hands it our household's
+    notice (`interface/contracts/move_out_notice_seam.py`) through
+    `MoveOutRegister.receive_move_out_wire` and nothing else, and it asks this book whether it holds
+    the point a notice names WHEN IT ARRIVES, as the change-of-supplier register does."""
+    return MoveOutRegister(holds=lambda sp: registered_point(sp) is not None)

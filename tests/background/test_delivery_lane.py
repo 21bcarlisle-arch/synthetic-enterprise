@@ -1202,6 +1202,60 @@ def test_a_stale_sibling_copy_is_drawn_and_named_and_a_live_modified_copy_still_
     assert dl.held_by(later, [aged]) is None
 
 
+#: 2026-10-10's third home-mover draw, the item's id verbatim; `/var/tmp/se-mover` held none of the
+#: paths it named and changed none of its identifiers, but had CREATED the files below.
+_MOVER_ITEM = _item("home-mover-retention-is-the-companys-decision-at-the-move-out-notice",
+                    "Read docs/market_research/home_moves.md. Replace the flat home_move_won roll.")
+#: A ledger big enough to pass `_VOCABULARY_FLOOR`, in which `move` and `notice` are rare.
+_VOCABULARY = ({"move": 2, "notice": 1, "out": 3}, 400)
+
+
+def _creating(path, mtime, untracked=True):
+    return {"holder": "live worktree /wt/se-mover", "artefact": "/wt/se-mover",
+            "names": {"/wt/se-mover"}, "paths": {path}, "identifiers": set(),
+            "copies": {path: {"untracked": untracked, "origin_tracks": False, "mtime": mtime}}}
+
+
+def test_a_holder_creating_files_named_for_the_item_refuses_it_and_an_idle_or_shared_one_does_not():
+    """THE PARTITION, ONE CONTROL: the new-files leg refuses, and each of its three exclusions
+    draws the same item.
+
+    MUTATION (must fire): `_new_files_naming` returns [] -- the live build is drawn over (the
+    2026-10-10 defect, three times).
+    MUTATION (must fire): drop the `mtime < since` exclusion -- the idle holder refuses.
+    MUTATION (must fire): drop the `_informative` exclusion -- the staging file refuses.
+    """
+    building = _creating("simulation/move_out_notice_feed.py", NOW_EPOCH - 600)
+    hit = dl.held_by(_MOVER_ITEM, [building], now=NOW_EPOCH, vocabulary=_VOCABULARY)
+    assert hit and "simulation/move_out_notice_feed.py" in hit[1] and "notice" in hit[1]
+
+    idle = _creating("simulation/move_out_notice_feed.py",
+                     NOW_EPOCH - dl.CLAIM_STALE_SECONDS - 60)
+    staging = _creating("docs/staging/SEAT_NOTE_MOVE_OUT_NOTICE.md", NOW_EPOCH - 600)
+    modified = _creating("simulation/move_out_notice_feed.py", NOW_EPOCH - 600, untracked=False)
+    for holder in (idle, staging, modified):
+        assert dl.held_by(_MOVER_ITEM, [holder], now=NOW_EPOCH, vocabulary=_VOCABULARY) is None
+
+
+def test_the_draw_walks_past_the_item_a_holder_is_creating_files_for(tree, monkeypatch):
+    """Wired into `next_item`, not only graded: the build's item is skipped with its holder named.
+
+    The draw is asked a day back, because `NOW_EPOCH` IS the wall clock and a draw at it cannot
+    tell its own `now` from `time.time()`.
+
+    MUTATION (must fire): drop `now=now` from `_held`'s `held_grade` call -- against the wall clock
+    the file written ten minutes before the draw is a day old, reads idle, and the item is drawn.
+    """
+    then = NOW_EPOCH - 86400
+    tree["write"]([_MOVER_ITEM, _item("unrelated-ordinary-work")])
+    monkeypatch.setattr(dl, "_live_holders", lambda: [
+        _creating("simulation/move_out_notice_feed.py", then - 600)])
+    monkeypatch.setattr(dl, "_ledger_vocabulary", lambda _p=None: _VOCABULARY)
+
+    assert dl.next_item(now=then, path=tree["claims"])["id"] == "unrelated-ordinary-work"
+    assert [i["id"] for i, _h, _r in dl.LAST_HELD_SKIPS] == [_MOVER_ITEM["id"]]
+
+
 def test_a_held_work_refusal_reaches_the_seats_brief(tree, monkeypatch):
     """A refusal is written beside the draw ledger with its holder and contested path, read back
     for the stretch, and printed in the orientation prompt next to 'did the focus reach the draw'.

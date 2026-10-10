@@ -953,6 +953,11 @@ def run_once(*, dry_run: bool = False, now: float | None = None) -> tuple[bool, 
         if rival is not None:
             raise StoodDown(f"{rival} was claimed by another writer while this turn built its "
                             "worktree")
+        # THE BRIEF IS COMPOSED BEFORE THE CLAIM. `rival_claims` reads a row under this id in
+        # `seat_work_in_hand`'s store as ANOTHER writer, and this loop writes one there; composed
+        # after it, every turn's brief said its own claim was a rival's (2026-10-10, three
+        # home-mover turns in a row, each re-deriving that the "holder" was itself).
+        prompt = build_prompt(item)
         claimed_at = time.time()
         for store in _claim_stores():
             delivery_lane.claims_mod.claim(
@@ -982,7 +987,7 @@ def run_once(*, dry_run: bool = False, now: float | None = None) -> tuple[bool, 
         try:
             proc = subprocess.run(
                 [claude_bin, "-p", "--dangerously-skip-permissions", "--model", MODEL,
-                 build_prompt(item)],
+                 prompt],
                 cwd=str(worktree), capture_output=True, text=True,
                 timeout=SESSION_TIMEOUT_SECONDS,
                 env=dict(os.environ, DISABLE_AUTOUPDATER="1", SE_SEAT_EXECUTOR="1"),

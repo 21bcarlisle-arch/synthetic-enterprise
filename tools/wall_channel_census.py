@@ -2120,6 +2120,11 @@ SURFACE_PINS: dict[str, tuple[int, str]] = {
     # (`company/regulatory/priority_services_register.py`). Its three fields are what a
     # household's disclosure tells its supplier; the judgement is at the dataclass in the seam.
     "interface.contracts.psr_registration_seam": (2, "b6bcb120ecdf174b"),
+    # v2, 2026-10-10: the seam's FIRST release, numbered 2 because dialect 1 has no notification.
+    # Pinned with its producer (`simulation/move_out_notice_feed.py`) and its consumer
+    # (`company/crm/move_out_register.py`). Its three fields are what our household's move-out
+    # notice tells its supplier (SLC 24.1(a)); the judgement is at the dataclass in the seam.
+    "interface.contracts.move_out_notice_seam": (2, "4ca1172d7db56ae5"),
 }
 
 
@@ -2682,6 +2687,8 @@ ANCHORED_FEEDS: dict[str, tuple[str, str]] = {
     "company/market/flex_participation.py": ("FlexEnrolmentBook", "_admit"),
     # 2026-10-08: a household's disclosure registers only a point the supply book holds.
     "company/regulatory/priority_services_register.py": ("PriorityServicesRegister", "_admit"),
+    # 2026-10-10: a household's move-out notice is filed only for a point the supply book holds.
+    "company/crm/move_out_register.py": ("MoveOutRegister", "_admit"),
 }
 
 

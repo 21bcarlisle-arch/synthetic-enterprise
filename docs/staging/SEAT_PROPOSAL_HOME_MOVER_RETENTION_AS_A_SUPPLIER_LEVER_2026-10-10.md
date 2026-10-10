@@ -129,3 +129,32 @@ households may move as well; I cannot say in which direction, and the account-te
   holds the opposite (a successor-bearing leaver goes to market, its successor never supplies).
   The four `home_move_won` tests in `test_customer_events.py` became one: a leaver carries no
   property win. The lineage test in `tests/tools/` no longer reads the deleted map.
+
+## Step 1 result: the move-out notice crosses the seam (2026-10-10)
+
+**Prediction, before the run.** The notice moves no money: the 40-founder budget-0 book is IDENTICAL
+to step 0's. The run's `home_move_outs` counts one row per leg whose move falls in a supplied term;
+the notices filed equal the subset of those legs still ours at that term's start (a household rolled
+to leave at that same term's renewal sends none), so `notices <= home_move_outs`, with no exception
+(every mover's point is on our book). On the 40-founder book (377 committed customer-years, against
+P4's ~3,100) the hazard range 0.073-0.175/yr gives roughly 28-66 moving households, nearer the low end,
+and more legs than households where a household is dual fuel.
+
+**Result** (40 founders, budget 0; before = `bc2ce46d4` exported, after = that plus this step):
+- **17 notices filed** for 18 move-out legs (15 households), **0 exceptions**: every notice names a
+  point on our book. The one leg without a notice is SYN-2016-009's 2021-12-12 move, a household the
+  world rolled to leave at the start of that same term, as predicted. My count (28-66 households)
+  was high by about 2x: 15 households over the window, because founders' supply windows start late
+  and the book is owner-heavy.
+- Lead time: 2 calendar days for 9 notices, 3 for 5, 4 for 3 (two Working Days, weekends between).
+- **The book is not byte-identical, and I cannot yet say why.** `total_net` and every account-term
+  are identical, but 7 floats differ in the last bit (maximum relative difference 3.6e-16), on three
+  incoming occupants and SYN-2016-017. Two runs of the BEFORE code are byte-identical, so it is not
+  run-to-run noise. The notice path moves no money, so the likeliest cause is a summation whose
+  order depends on allocation; that is a guess, not a measurement. The one-variable test is a
+  placebo that allocates the same objects without filing them.
+- Controls: the seam (fields exactly the declared three, no destination; the date is the second
+  Working Day before the move; no world or company import); the register (files a held point, keeps
+  an exception for one it does not hold, refuses a destination field as a leak, refuses to file
+  without the supply book); the wall census (pinned, belted both sides, anchored through
+  `MoveOutRegister._admit`, authenticated decode, three new channel-C rows added by hand).

@@ -5008,9 +5008,10 @@ def held_in_other_stores(own: Path, now: float | None = None,
     return out
 
 
-def held_by(item: dict, holders: list[dict]) -> tuple[dict, str] | None:
+def held_by(item: dict, holders: list[dict], *, now: float | None = None,
+            vocabulary: tuple[dict[str, int], int] | None = None) -> tuple[dict, str] | None:
     """(holder, reason) when a live holder already holds `item`'s subject, else None."""
-    return held_grade(item, holders)[0]
+    return held_grade(item, holders, now=now, vocabulary=vocabulary)[0]
 
 
 def _stale_copy(holder: dict, path: str, item: dict) -> str:
@@ -5041,7 +5042,42 @@ def _stale_copy(holder: dict, path: str, item: dict) -> str:
     return ""
 
 
-def held_grade(item: dict, holders: list[dict]
+def _new_files_naming(item: dict, holder: dict, now: float,
+                      vocabulary: tuple[dict[str, int], int]) -> list[tuple[str, list[str]]]:
+    """(path, shared tokens) for each file the holder CREATED and is still writing whose name
+    shares `_RIVAL_TOKEN_COUNT` ledger-rare tokens with the item's id.
+
+    THE DEFECT (2026-10-10). Home-mover retention was drawn three times while `/var/tmp/se-mover`
+    built it. The item named one path the holder did not hold and one identifier its diff did not
+    change, so neither leg above saw it; the holder's own new files said it outright --
+    `simulation/move_out_notice_feed.py`, `interface/contracts/move_out_notice_seam.py`. A file a
+    worktree created is what it is building; a modified file is often only what it touches.
+
+    CREATED: untracked, and not a path origin/main tracks (that is `_stale_copy`'s snapshot shape).
+    NOT A SHARED ROOM (`claims_mod._informative`) and NOT A DATE: measured over 406 ids on
+    2026-10-10, the only other refusals were a `docs/staging/` finding sharing `2026` and `10`, or
+    `finding` and `settled`, with ids it was not building.
+    STILL WRITING: written inside this lane's own claim deadline, and after the item was written.
+    An idle agent worktree whose lease a renewer keeps fresh holds new files for days; the window
+    is the one a claim is held on, so a holder is held to the same "moving" test a claim is.
+    """
+    counts, population = vocabulary
+    since = max(float(item.get("written_at") or 0.0), now - CLAIM_STALE_SECONDS)
+    focus_id = str(item.get("id") or "")
+    hits = []
+    for path, copy in sorted((holder.get("copies") or {}).items()):
+        if (path.startswith("/") or not copy.get("untracked") or copy.get("origin_tracks")
+                or (copy.get("mtime") or 0.0) < since or not claims_mod._informative(path)):
+            continue
+        shared = [t for t in _distinctive_shared(focus_id, Path(path).stem, counts, population)
+                  if not t.isdigit()]
+        if len(shared) >= _RIVAL_TOKEN_COUNT:
+            hits.append((path, shared))
+    return hits
+
+
+def held_grade(item: dict, holders: list[dict], *, now: float | None = None,
+               vocabulary: tuple[dict[str, int], int] | None = None
                ) -> tuple[tuple[dict, str] | None, list[tuple[dict, str]]]:
     """(refusal, context): the refusal `held_by` returns, and every holder the item only MENTIONS.
 
@@ -5057,7 +5093,12 @@ def held_grade(item: dict, holders: list[dict]
 
     A HELD PATH WHOSE COPY IS STALE (`_stale_copy`) DOES NOT REFUSE. It goes to `context` with its
     reason, so the doorbell names the stray copy beside the drawn work.
+
+    A THIRD LEG, ON THE NAMES OF FILES THE HOLDER CREATED (`_new_files_naming`), for the item that
+    names neither a held path nor a changed identifier. `vocabulary` is `_ledger_vocabulary`'s pair,
+    read from this lane's live ledger when not given.
     """
+    when = time.time() if now is None else float(now)
     prose = _item_prose(item)
     named_paths = {m.group(0).rstrip(".)") for m in _NAMED_PATH.finditer(prose)}
     idents = _identifiers(prose)
@@ -5076,6 +5117,14 @@ def held_grade(item: dict, holders: list[dict]
         shared_idents = sorted(idents & set(holder.get("identifiers") or ()))
         if shared_idents:
             reasons.append("its uncommitted diff changes " + ", ".join(shared_idents))
+        if not reasons and holder.get("copies"):
+            if vocabulary is None:
+                vocabulary = _ledger_vocabulary(CLAIMS_FILE)
+            created = _new_files_naming(item, holder, when, vocabulary)
+            if created:
+                reasons.append("is building " + ", ".join(p for p, _w in created[:3])
+                               + " (new files sharing " + ", ".join(created[0][1])
+                               + " with this id)")
         if reasons:
             return (holder, " and ".join(reasons)), context
         if stale:
@@ -5253,6 +5302,7 @@ def next_item(now: float | None = None, path: Path | None = None, *,
     LAST_HELD_CONTEXT.clear()
     LAST_FINISHED_SKIPS.clear()
     probed: list[list[dict]] = []
+    vocabulary: list[tuple[dict[str, int], int]] = []
 
     def _finished(item) -> bool:
         sha = finished_on_origin(item, path=store)
@@ -5263,7 +5313,8 @@ def next_item(now: float | None = None, path: Path | None = None, *,
     def _held(item) -> bool:
         if not probed:
             probed.append(_live_holders())
-        hit, context = held_grade(item, probed[0])
+            vocabulary.append(_ledger_vocabulary(store))
+        hit, context = held_grade(item, probed[0], now=now, vocabulary=vocabulary[0])
         if hit is not None:
             LAST_HELD_SKIPS.append((item, hit[0], hit[1]))
         else:
