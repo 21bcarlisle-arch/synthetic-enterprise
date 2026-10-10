@@ -155,3 +155,29 @@ do not change what kind of term an offer lands on. Script: `/var/tmp/retdisc_pos
 
 Nothing here edits the direction record. The seat carries this pointer at its next orientation and
 decides whether the row is re-worded or withdrawn.
+
+## Addendum, 2026-10-10: the narrower rule, its prediction filed before any run (`an-svt-anniversary-retention-offer-only-where-the-discount-can-win-the-fix`)
+
+**The rule.** At a term the world does not roll (the previous segment was our SVT), the guard
+offers only where the full-rate fix sits above the published default and the offered rate does
+not: `position_vs_default(full) > 0` and `position_vs_default(offered) <= 0`. Those are exactly
+the two inequalities the world's dominance rule (`renewal_outcome`) applies, and every input is
+the supplier's own: its fix, its discount tier, and the published default. Rolled terms are left
+as they were. Where either position is unknown at an unrolled term, the guard makes no offer and
+logs that as the reason. It is a standing-policy field, on in `current` and every arm built from
+it, and off in `naive`.
+
+**Prediction on run 224e4af02's book, written before any run carrying the rule:**
+1. On the same book, the rule removes exactly the 95 offers (GBP 3,252) the 2026-10-09 table
+   names as buying nothing: 84 that converted at the full rate, and 11 that the discount did not
+   reach. It keeps the 10 conversions (GBP 355). This part is arithmetic, since the rule is the
+   table's own split.
+2. In a fresh run carrying the rule, the book drifts, because a household converting at the
+   full rate is now billed more and the treasury moves. Grading bands:
+   - Offers at unrolled terms: **8 to 14**, against 105.
+   - Spend on those offers: **GBP 250 to 500**, against GBP 3,607.
+   - Discount-bought conversions: **8 to 14**, against 10.
+   - Offers at rolled terms: **within ±10 of 103**.
+   - Total offers: **about 113 (103 to 125)**, against 208.
+   - Total spend: **about GBP 3,580 (GBP 3,200 to 4,000)**, against GBP 6,828.
+   A result outside a band refutes the claim that the rule moved only what it targets.

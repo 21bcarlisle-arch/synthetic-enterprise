@@ -409,6 +409,7 @@ CENSUSED_WHOLE_DIRECTORY_SUBJECTS = [
     # 2026-10-07: the chain leg reads `simulation/run_phase2b.py`'s AST for the one guard call, so
     # a run-loop commit that drops the bad-debt belief selects this file by no stem.
     "tests/company/test_the_retention_guard_nets_the_companys_own_bad_debt_belief.py",  # simulation|6|0.1
+    "tests/company/test_a_retention_offer_at_a_default_anniversary_is_made_only_where_the_discount_wins_the_fix.py",  # simulation|6|0.1
 ]
 
 CONTROL_TESTS += CENSUSED_WHOLE_DIRECTORY_SUBJECTS

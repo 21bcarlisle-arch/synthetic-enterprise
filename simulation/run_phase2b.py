@@ -61,6 +61,7 @@ from company.interfaces.growth_desk import (
     replacement_cost_avoided_gbp,
     retention_bad_debt_charge,
     retention_engagement,
+    retention_offer_can_buy_anything,
     retention_value_protected,
 )
 from company.interfaces.hedge_desk import build_hedge_desk, hedge_mandate
@@ -3097,7 +3098,23 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                                 date.fromisoformat(term_start_str), _company_arrears_state,
                                 payment_method_of=_book_method_of))
                     _ret_billed = unit_rate * eac_for_ret / 1000.0
-                    if retention_value_protected(
+                    # AT A TERM THE WORLD DOES NOT ROLL, ONLY A CONVERSION CAN BE BOUGHT (2026-10-10).
+                    # The household is on our default tariff, so its exits were carried there; the
+                    # offer can only turn a fix it would decline into one it takes. The company asks
+                    # that of its own fix, its own discount and the published default.
+                    _offer_can_buy = (
+                        not policy.retention_offers_at_default_anniversary_only_where_the_discount_wins
+                        or retention_offer_can_buy_anything(
+                            previous_term_on_our_default=(
+                                _previous_tariff_type == SVT_TARIFF_TYPE),
+                            full_position_vs_default=_offer_vs_default,
+                            offered_position_vs_default=(
+                                position_vs_default(offered_rate(unit_rate, discount_pct),
+                                                    term_start_str, commodity=commodity)
+                                if _offer_vs_default is not None else None)))
+                    if not _offer_can_buy:
+                        _no_offer_reason = "the_discount_cannot_win_the_fix"
+                    elif retention_value_protected(
                             expected_margin, acq_cost_saved, _engagement,
                             default_belief_rate=_ret_default_belief,
                             billed=_ret_billed) > ret_cost:
@@ -3444,6 +3461,8 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                     position_vs_default=_offer_vs_default,
                     company_churn_estimate=company_est_pre,
                     retention_offered=_retention_offer is not None,
+                    retention_withheld_because=(
+                        _no_offer_reason if _retention_offer is None else None),
                     is_active_renewal=active_renewal,
                     engagement_level=_engagement_level_str,
                 ))
@@ -3452,6 +3471,8 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                     customer_id=billing_account, event_date=term_start_str, commodity=commodity,
                     company_churn_estimate=company_est_pre,
                     retention_offered=_retention_offer is not None,
+                    retention_withheld_because=(
+                        _no_offer_reason if _retention_offer is None else None),
                     is_active_renewal=active_renewal,
                     engagement_level=_engagement_level_str,
                     unit_rate_gbp_per_mwh=unit_rate,
