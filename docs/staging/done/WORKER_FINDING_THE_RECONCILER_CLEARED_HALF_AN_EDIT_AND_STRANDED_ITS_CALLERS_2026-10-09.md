@@ -1,3 +1,5 @@
+*Archived 2026-10-10: the repair landed in `470f2a746` (`origin_reconcile.stranded_caller_verdicts` + its control are on origin/main). The named better act, clearing the callers together with the cleared copy, is unbuilt and stays the refusal it is today.*
+
 **Severity:** LATENT · **Lane:** H_harness · **Epoch:** unassigned · **Atom:** `unminted` · **Claim:** `the-executors-crash-on-a-half-cleared-edit` (Lane 0 delivery)
 
 # The reconciler cleared one file of a three-file edit and left the two callers live
