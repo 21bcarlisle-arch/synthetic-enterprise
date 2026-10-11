@@ -809,3 +809,203 @@ All fetched 2026-10-06 and read from the text layer with `pdftotext`, unless sta
   provisioning rate) and impact assessment Nov 2025 (§3.10); Lowell Group year-end report 2013;
   all via `debt_and_collections.md`, `dd_failure_basis_and_live_arrears_provision_rates.md` and
   `practitioner_questions_as_assumption_toggles.md`.
+
+---
+
+## 10. 2026-10-11 pass — the Minimum Capital Requirement and Customer Credit Balance ringfencing (Ofgem, 2022-2025), and why "credits and debits net out across the portfolio" is not quite true
+
+*Knowledge pass for the director's personal-payment-plan design ("credit risk sets how far a
+balance may drift from zero... across the portfolio, credits and debits net out; cash and risk are
+managed there, within Ofgem's capital rules"). Written into THIS file, not `company_debt_management.md`,
+because the subject is the supplier's own balance sheet and regulatory capital, which is where this
+file already treats provisioning and the price-cap allowance — the same "what a supplier holds and
+owes" frame. Read at source: Ofgem's *Operational Capability and Financial Responsibility
+Principles* guidance, Nov 2025 edition (sites/default/files/2025-11/...), which sets out SLC 4A, 4B
+and 4D and quotes the decision timeline directly; retrieved and `pdftotext`'d in full this pass.*
+
+### Rules (ESTABLISHED, cited)
+
+**The three licence conditions.** SLC 4A is the Operational Capability Principle. SLC 4B is the
+Financial Responsibility Principle (FRP) — "enforceable overarching rules" requiring a licensee to
+manage risk, be well-capitalised, and withstand "severe but plausible" shocks. SLC 4D is "Protecting
+Domestic Customer Credit Balances" — the clause under which Ofgem can direct CCB ringfencing.
+[H, guidance §1.1-§1.2]
+
+**The decision timeline** (guidance §2.1, a table, read verbatim):
+
+| Modification | Decided | In force |
+|---|---|---|
+| FRP/OCP: sufficient control of material/economic assets | 26 Aug 2022 | 21 Oct 2022 |
+| FRP: Trigger Point framework + Annual Adequacy Self-Assessment (from the *Strengthening Financial Resilience* consultation) | 5 Apr 2023 | 1 Jun 2023 |
+| FRP: the common Minimum Capital Requirement (compliance by March 2025) + the power to direct CCB ringfencing | 26 Jul 2023 | 20 Sep 2023 |
+
+So "Ofgem's 2023 financial resilience decisions" is, precisely, the **26 July 2023** decision — the
+Minimum Capital Requirement and the CCB ringfencing power both originate there, with suppliers given
+to **31 March 2025** to comply with the capital levels themselves. [H]
+
+**The Minimum Capital Requirement, in the published numbers (SLC 4B.16-4B.18; guidance §3.38-3.45):**
+- **Capital Floor**, from 31 March 2025: a domestic licensee's Adjusted Net Assets (ANA) must not
+  fall below the Floor *at any time*; doing so is a licence breach with a 7-day notification duty.
+  The guidance states the obligation but this pass did not reach a stated £ value for the Floor
+  itself distinct from the Target — see GAP 1.
+- **Capital Target**, from 31 March 2025: **£115 Adjusted Net Assets per domestic dual-fuel
+  customer — i.e. £57.50 per domestic electricity customer and £57.50 per domestic gas customer**
+  (guidance §3.40, quoting SLC 4B.16 directly). Below Target but above Floor is the "Intermediate
+  Position": not a breach, but the licensee must follow default Transition Controls until Ofgem
+  accepts a Capitalisation Plan (§3.41, §3.59-3.67).
+- Applies to new entrants from day one of trading (§3.42): a growing new entrant is expected to
+  enter *above* the Target, not build up to it.
+- ANA is Net Assets less intangibles plus permitted Alternative Sources of Capital; Ofgem's stated
+  preference is equity (§3.46).
+
+**The Cash Coverage Trigger — the one that bears directly on the PPP design (§3.33, §4.2(a)):**
+a licensee must notify Ofgem if its **cash in the bank falls below 20% of the value of its GROSS
+Domestic Customer Credit Balances, net of unbilled consumption, owed to FIXED DIRECT DEBIT
+customers (based on the average across the month).** Two things in that sentence matter and are
+easy to misread:
+- **"Gross", and scoped to fixed-DD customers' credit balances only** — not the supplier's whole
+  book, and not net of what customers in debit owe. A debit balance on a high-risk account does
+  **not** reduce the Gross CCB figure that the 20% test is computed against.
+- **"Net of unbilled consumption"** reduces the CCB by energy already used but not yet invoiced —
+  not by other customers' arrears.
+
+**The CCB ringfencing direction mechanism (SLC 4D; guidance §4.1-§4.10):**
+- **Triggers** (§4.2): (a) cash < 20% of the Gross CCB test above; (b) the licensee is below, or at
+  Material risk of being below, the Capital Target; or (c) Material risk that (a) will fail within
+  12 months.
+- **Process**: notice of intent to direct → the licensee gets ≥7 days to make representations →
+  Ofgem applies a **Consumer Interest test** (Resilience, Prices, Quality & Standards, Low-Cost
+  Transition to Net Zero, §4.7) → direction issued or not.
+- **The Adjustment Percentage** (the share of CCBs the licensee must ringfence into a Credit Balance
+  Support Arrangement) defaults to **100% unless Ofgem decides that would not be in the Consumer
+  Interest**, in which case a lower percentage is directed (§4.9).
+- Ofgem does **not** expect to direct ringfencing in every case that trips a trigger (§4.3) — the
+  triggers are notification/engagement points, not an automatic sanction.
+
+**RO ringfencing is a separate, earlier mechanism**, not CCB ringfencing: `/guidance/ringfencing-ro-receipts`
+covers Renewables Obligation payment protection and was not read in depth this pass — the existing
+repo note (`ofgem_regulation.md`, "RO Credit Cover Mechanism... from Q3 2023") is consistent with
+what this pass found but was not independently re-verified against its own primary source.
+
+### A figure conflict to flag, not to fix here
+
+`docs/market_research/ofgem_regulation.md` (outside this task's scope to edit) states the Capital
+Floor as **"£0 net assets per dual-fuel customer equiv"** and the Capital Target as **"£130 net
+assets per dual-fuel customer (£65 per single-fuel)."** The primary-source guidance read this pass
+states the Capital Target as **£115 ANA per dual-fuel customer (£57.50 per fuel)**, cited directly
+to SLC 4B.16. These are not the same number. [confidence: H on the £115/£57.50 figure, since it is
+Ofgem's own Nov 2025 guidance quoting the licence paragraph number directly; the £130/£65 figure's
+source was not found in this pass and may be an earlier consultation-stage proposal, a different
+measurement basis, or an error — **this is a finding to raise, not a value to silently overwrite**,
+since this file's scope does not extend to editing `ofgem_regulation.md`.]
+
+### GAPs
+
+1. **The Capital Floor's own £ value was not pinned down.** The guidance states the obligation
+   (ANA must never go negative relative to the Floor) but this pass did not locate an explicit
+   positive figure for the Floor distinct from "not below it" — it may simply be £0 ANA, consistent
+   with the repo's existing (possibly otherwise-wrong) note, but that specific point needs its own
+   check against the underlying 26 July 2023 decision letter, not just the guidance document.
+2. **The RO ringfencing mechanism's own terms (deadline, % held, enforcement) were not re-verified
+   at source this pass.**
+3. **No published figure for how many/which suppliers have actually been directed to ringfence CCBs**,
+   or at what Adjustment Percentage, was looked for this pass.
+
+### What this means for a risk-based personal payment plan
+
+- **"Credits and debits net out across the portfolio" is true for the supplier's own accounting
+  balance sheet, and NOT true for the Cash Coverage Trigger.** The 20% test is computed against
+  **gross** CCBs owed to fixed-DD customers; a book of high-risk debit accounts does not offset a
+  book of low-risk credit accounts for that specific regulatory test. A PPP design that deliberately
+  widens the credit side for low-risk customers (smoothing, prompt refunds held back as a buffer,
+  no catch-up shocks) **increases the Gross CCB figure the 20% test is measured against**, even
+  while the high-risk side is kept near zero. This is the single most load-bearing correction this
+  pass makes to the framing in the brief: the portfolio nets for cash management purposes, but the
+  *regulatory* trigger does not net, and widening one side of the book moves the company toward (not
+  away from) a notification threshold and, beyond that, a possible ringfencing direction.
+- **Lawful, within that:** holding bigger credit balances for low-risk customers is not itself
+  forbidden — Ofgem's framework is a notify-and-engage regime (§4.3-§4.4) with a Consumer Interest
+  test before any direction, not a hard cap. The design question is whether the company's cash
+  coverage and capital position stay comfortably clear of the 20%/Capital Target triggers as the
+  book's credit side grows, which is a treasury-sizing question for the company, not a licence
+  prohibition.
+- **Not established either way:** whether a ringfencing direction, if issued, would be computed
+  against the SAME portfolio-wide Gross CCB figure or could be scoped to the specific risk tier
+  that caused the trigger. The guidance's definitions (§4.2) are written at the whole-book level;
+  nothing read this pass suggests a tier-level carve-out exists.
+
+## Capital target: the conflict settled (2026-10-11)
+
+*Follow-up pass on the figure conflict flagged in section 10. Primary sources read in full this pass
+(downloaded and `pdftotext`'d): the decision itself, the consolidated licence, and the CMA appeal.*
+
+**Verdict: £115 / £57.50 is right. £130 / £65 is the CONSULTED figure that the decision cut. The
+Capital Floor is £0. ESTABLISHED.**
+
+1. **The decision.** Ofgem, *Decision: Strengthening Financial Resilience - Minimum Capital
+   Requirement and Ringfencing CCBs by Direction*, published **26 July 2023**,
+   https://www.ofgem.gov.uk/sites/default/files/2023-07/FRC%20Decision%20doc%20-%20July%202023.pdf
+   - "Our decisions" box: *"The Capital Floor will be £0 Adjusted Net Assets per dual fuel customer
+     equivalent and the Capital Target will be £115 per domestic dual fuel equivalent customer (i.e.
+     £57.50 per domestic electricity customer and £57.50 per domestic gas customer)."*
+   - §1.1 records what was CONSULTED (5 Apr-5 May 2023): *"a Capital Floor of £0 Adjusted Net Assets
+     per customer from 31 March 2025 and ... a Capital Target equivalent to £130 Adjusted Net Assets
+     per dual fuel customer equivalent (i.e., £65 per domestic gas customer and £65 per domestic
+     electricity customer)"*. §1.2: £130 was itself cut from a £145 figure derived from 5th-percentile
+     historical EBIT losses.
+   - §1.28: *"We have therefore decided that the Capital Target should be set at £115."* §1.36: *"The
+     total target level has been reduced from the consulted £130 to £115 in recognition that the
+     common risks across differing business models may be overestimated in this average loss."*
+   - §1.8: £0 is "not to say that £0 is a sufficient level of capital or the level we expect".
+   - So the repo's £130/£65 is the April 2023 consultation number, not the rule.
+
+2. **The licence text.** Electricity Supply Standard Licence Conditions, "Consolidated to 1 August
+   2025" (Ofgem's URL `sites/default/files/2025-08/Electricity-Supply-Standard-Consolidated-Licence-Conditions.pdf`
+   now 301-redirects to a landing page; read via the Wayback copy of 30 Jul 2026,
+   http://web.archive.org/web/20260730084410/https://www.ofgem.gov.uk/sites/default/files/2025-08/Electricity-Supply-Standard-Consolidated-Licence-Conditions.pdf).
+   - SLC 4B.16: *"If the licensee supplies to Domestic Premises, with effect from 31 March 2025, the
+     licensee's Adjusted Net Assets must not be below the Capital Floor."*
+   - SLC 4B.17: notify the Authority "not more than 7 days" after becoming aware ANA is below, or at
+     Material risk of being below, the Capital Floor.
+   - SLC 4B.18: between Floor and Target is the "Intermediate Position": notify within 7 days; give 28
+     days' notice of any Non-essential Payment; follow Transition Controls until a Capitalisation Plan
+     is approved (4B.20), then follow that plan.
+   - Definitions (SLC 4B): *"'Capital Floor' means licensee Adjusted Net Assets of £0 per Domestic
+     Customer."* *"'Capital Target' means licensee Adjusted Net Assets of £57.50 per Domestic
+     Customer."* The licence is per fuel, so per electricity-licence customer. £57.50 x 2 fuels = the
+     £115 dual-fuel figure. (So the earlier pass's "SLC 4B.16 = £115" was right on the number and a
+     little loose on the clause: 4B.16 sets the Floor obligation, and the £ values are in the
+     definitions.)
+
+3. **Timetable.** Decided 26 Jul 2023. Licence modifications in force 20 Sep 2023 (Nov 2025 guidance
+   §2.1, section 10 above). The Floor and Target both bind **from 31 March 2025**. The first Annual
+   Adequacy Self-Assessment had to show how each would be met by that date (decision §3.40). Ofgem had
+   to be told in writing "no later than 8 weeks ahead of 31 March 2025" (decision, around l.1760 of the
+   text). New entrants must meet them from day one (guidance §3.42).
+
+4. **Did it change later? No.**
+   - Utilita appealed the Capital Target to the CMA on three grounds: objective, level, and
+     proportionality. The CMA *Final Determination, Financial Resilience Appeal 2023*, **19 January
+     2024**, §7.2: *"we do not allow the appeal. Accordingly, we confirm the Decision."*
+     https://assets.publishing.service.gov.uk/media/65afc1c770218e000fb41f88/Final_Determination_AMENDS_pdfa.pdf ;
+     case page https://www.gov.uk/cma-cases/financial-resilience-appeal-2023
+   - The July 2023 decision has no indexation clause: a grep for index/inflation/CPI found none. The
+     licence definition is still a flat £57.50 in the Aug 2025 consolidation. The Nov 2025 guidance
+     §3.40 still quotes £115 (section 10).
+   - Ofgem gave OVO more time to reach the Target (Energy Voice, 10 Nov 2025,
+     https://www.energyvoice.com/renewables-energy-transition/grid-retail/583720/ofgem-gives-ovo-reprieve-with-capital-target-extension/).
+     That is a firm-specific Capitalisation Plan timing agreed "case-by-case". The level stays "£115
+     adjusted net assets per dual fuel equivalent customer". [secondary press, M]
+   - Decision §1.3 reserves a re-consultation if retail reforms change common risks. None was found
+     this pass. NOT ESTABLISHED that one has happened since the Aug 2025 consolidation. The 2026
+     consolidated text was not reachable: the Ofgem URL redirects and the EPR is bot-blocked.
+
+**What is wrong in `docs/market_research/ofgem_regulation.md` (origin copy), for correction beside
+the claim:**
+- l.38: `| Capital target | **£130 net assets per dual-fuel customer** (£65 per single-fuel) | Below target: must have credible capitalisation plan |`
+  should be **£115 Adjusted Net Assets per dual-fuel customer (£57.50 per fuel)**. £130/£65 was the
+  April 2023 consultation proposal.
+- l.56: "...if per-customer equity falls below £130 (plan required) or £0 (breach)." should read £115.
+- l.135: `| Capital target (self-assessment) | £130 net assets / dual-fuel customer |` should be £115.
+- l.37 (Floor £0, 7-day notification) is right. "net assets" should be "Adjusted Net Assets" (Net
+  Assets less intangibles plus permitted Alternative Sources of Capital).
