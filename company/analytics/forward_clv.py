@@ -17,6 +17,13 @@ end of the cut year, two things over the held-back months that follow:
     is on the result and the split is None, never a zero. With a register, both rules are also
     graded on each held-back outcome alone: stayers, switchers and movers (slice 5).
 
+GRADING A DEPARTURE p (slice 6). Two questions, kept apart because one score answers both
+badly: is the rule's LEVEL right (calibration-in-the-large, mean p minus the realised rate, with
+its interval), and does it RANK departers above stayers (an AUC with a DeLong interval, and the
+paired per-customer minus flat difference). Within one held-back outcome the realised value is a
+constant, so a Brier score there grades only the level -- slice 5 read the level difference as a
+win three times. Each outcome is therefore ranked against the held-back stayers instead.
+
 THE FORECAST is ``sum over held-back months of P(still supplied) x monthly margin``.
 Realised is the margin the account actually earned in those months (zero after it left).
 
@@ -52,6 +59,11 @@ gas set an all-time high over the whole published record. The window ends the mo
 2021-05 on the record we hold. Slice 2's hand-picked 2020-12 was chosen after its answer was seen.
 With no such month by the cut, the window is the fit window, i.e. the rule as first shipped.
 
+THE HAZARD WINDOW (slice 6). ``hazard_fit_from_year`` fits both hazards on the months from that
+January to the cut only, left-truncated: an account is at risk from the later of its first month
+and the window's start, and its contract year is still counted from its first month. It exists to
+test whether the fit window's early years set the level; the default is the whole fit window.
+
 THE BOUND. Every comparison is paired over the same accounts: the mean of
 (per-customer absolute error − flat absolute error) with a normal-approximation 95%
 interval on that mean. An interval that straddles zero is reported as "cannot tell",
@@ -84,6 +96,7 @@ __all__ = [
     "Backtest",
     "OutcomeGrade",
     "PairedComparison",
+    "Ranking",
     "book_from_run_output",
     "load_book",
     "move_outs_from_run_output",
@@ -217,6 +230,66 @@ def _mean_with_interval(xs: Sequence[float]) -> tuple[float, tuple[float, float]
     return mean, (mean - half, mean + half)
 
 
+@dataclass(frozen=True)
+class Ranking:
+    """Each rule's AUC, departers against stayers: the chance a departer was given the higher p.
+
+    0.5 is a rule that knows nothing about who leaves; the level of p does not enter. Each AUC
+    carries its DeLong 95% interval, and the paired difference (per-customer minus flat, on the
+    same accounts, so the covariance counts) carries one too. Positive favours per-customer.
+    """
+
+    departers: int
+    stayers: int
+    per_customer: tuple[float, tuple[float, float] | None]
+    flat: tuple[float, tuple[float, float] | None]
+    difference: tuple[float, tuple[float, float] | None]
+    verdict: str
+
+
+def _placements(pos: Sequence[float], neg: Sequence[float]) -> tuple[list[float], list[float]]:
+    """DeLong's structural components: each departer's share of stayers it outranks, and each
+    stayer's share of departers that outrank it. A tie counts a half."""
+    def psi(x: float, y: float) -> float:
+        return 1.0 if x > y else 0.5 if x == y else 0.0
+
+    v10 = [sum(psi(x, y) for y in neg) / len(neg) for x in pos]
+    v01 = [sum(psi(x, y) for x in pos) / len(pos) for y in neg]
+    return v10, v01
+
+
+def _cov(a: Sequence[float], b: Sequence[float]) -> float:
+    ma, mb = sum(a) / len(a), sum(b) / len(b)
+    return sum((x - ma) * (y - mb) for x, y in zip(a, b)) / (len(a) - 1)
+
+
+def _ranking(departers: Sequence["AccountForecast"],
+             stayers: Sequence["AccountForecast"]) -> Ranking:
+    m, n = len(departers), len(stayers)
+    if m < 2 or n < 2:
+        nan = (float("nan"), None)
+        return Ranking(m, n, nan, nan, nan,
+                       f"cannot tell: {m} departer(s) and {n} stayer(s), an interval needs two of each")
+    pc10, pc01 = _placements([f.per_customer_departure_p for f in departers],
+                             [f.per_customer_departure_p for f in stayers])
+    fl10, fl01 = _placements([f.flat_departure_p for f in departers],
+                             [f.flat_departure_p for f in stayers])
+
+    def bound(mean: float, var: float) -> tuple[float, tuple[float, float]]:
+        half = _TWO_SIDED_95 * math.sqrt(max(var, 0.0))
+        return mean, (mean - half, mean + half)
+
+    auc_pc, auc_fl = sum(pc10) / m, sum(fl10) / m
+    var_pc = _cov(pc10, pc10) / m + _cov(pc01, pc01) / n
+    var_fl = _cov(fl10, fl10) / m + _cov(fl01, fl01) / n
+    cov = _cov(pc10, fl10) / m + _cov(pc01, fl01) / n
+    diff = bound(auc_pc - auc_fl, var_pc + var_fl - 2 * cov)
+    lo, hi = diff[1]
+    verdict = ("per-customer ranks better" if lo > 0 else "flat ranks better" if hi < 0
+               else "cannot tell: the 95% interval straddles zero")
+    return Ranking(m, n, bound(auc_pc, var_pc), bound(auc_fl, var_fl), diff, verdict)
+
+
 def _paired(metric: str, pc: Sequence[float], fl: Sequence[float]) -> PairedComparison:
     n = len(pc)
     diffs = [a - b for a, b in zip(pc, fl)]
@@ -258,7 +331,8 @@ class AccountForecast:
 class OutcomeGrade:
     accounts: int
     margin_error: PairedComparison
-    departure_brier: PairedComparison
+    # This outcome's departers ranked against the held-back stayers; None for the stayers.
+    ranking_against_stayers: Ranking | None
     # Forecast minus realised, per account, for each rule: which way the miss runs in this outcome.
     margin_bias: Mapping[str, tuple[float, tuple[float, float] | None]]
 
@@ -266,15 +340,14 @@ class OutcomeGrade:
 HELD_BACK_OUTCOMES = ("stayer", "switcher", "mover")
 
 
-def _grade_outcome(forecasts: Sequence[AccountForecast]) -> OutcomeGrade:
+def _grade_outcome(forecasts: Sequence[AccountForecast],
+                   stayers: Sequence[AccountForecast] | None) -> OutcomeGrade:
     return OutcomeGrade(
         len(forecasts),
         _paired("absolute margin error, GBP per account",
                 [abs(f.per_customer_margin_gbp - f.realised_margin_gbp) for f in forecasts],
                 [abs(f.flat_margin_gbp - f.realised_margin_gbp) for f in forecasts]),
-        _paired("departure Brier score per account",
-                [(f.per_customer_departure_p - f.departed) ** 2 for f in forecasts],
-                [(f.flat_departure_p - f.departed) ** 2 for f in forecasts]),
+        None if stayers is None else _ranking(forecasts, stayers),
         {"per_customer": _mean_with_interval(
             [f.per_customer_margin_gbp - f.realised_margin_gbp for f in forecasts]),
          "flat": _mean_with_interval(
@@ -310,6 +383,14 @@ class Backtest:
     # "mover") with both rules graded on its own accounts. A rule can win on the book and lose on
     # the movers, and a retention lever only ever acts on the switchers.
     error_by_outcome: Mapping[str, OutcomeGrade] | None = None
+    # Slice 6. Mean departure p minus the realised rate, per rule, with its interval: the level.
+    departure_calibration: Mapping[str, tuple[float, tuple[float, float] | None]] | None = None
+    # Departed against stayed over the whole graded book: the ranking, which the level cannot buy.
+    departure_ranking: Ranking | None = None
+    # The book's own departure record by calendar year, every account on supply: months at risk,
+    # departures, and (with a register) switches and moves. A reading of the ledger, not a forecast.
+    departures_by_calendar_year: Mapping[int, Mapping[str, int]] | None = None
+    hazard_fit_months: tuple[str, str] | None = None
 
 
 def regime_boundary_month(
@@ -373,7 +454,8 @@ def _fit_margins(
 
 
 def _fit_hazards(
-    accounts: Sequence[AccountHistory], fit_end: int, censored: frozenset[str] = frozenset()
+    accounts: Sequence[AccountHistory], fit_end: int, censored: frozenset[str] = frozenset(),
+    fit_start: int | None = None,
 ) -> tuple[dict[int, float], dict[str, float], dict[str, float]]:
     """Monthly departure hazard by contract year, by segment, and each segment's ratio to the
     contract-year table — all on fit months only.
@@ -390,16 +472,20 @@ def _fit_hazards(
 
     An account in `censored` is at risk to its last month but its end is not an exit: that
     is how the switch hazard treats a move.
+
+    `fit_start` left-truncates: months before it are not at risk and an exit before it is not
+    counted, while the contract year is still counted from the account's first month.
     """
     at_risk_cy: dict[int, int] = defaultdict(int)
     exits_cy: dict[int, int] = defaultdict(int)
     at_risk_seg: dict[str, int] = defaultdict(int)
     exits_seg: dict[str, int] = defaultdict(int)
+    start = fit_start if fit_start is not None else min(a.first_month for a in accounts)
     for a in accounts:
-        if a.first_month > fit_end:
+        if a.first_month > fit_end or a.last_month < start:
             continue
         end = min(a.last_month, fit_end)
-        for m in range(a.first_month, end + 1):
+        for m in range(max(a.first_month, start), end + 1):
             cy = (m - a.first_month) // _MONTHS_PER_CONTRACT_YEAR
             at_risk_cy[cy] += 1
             at_risk_seg[a.segment] += 1
@@ -407,6 +493,11 @@ def _fit_hazards(
             cy = (a.last_month - a.first_month) // _MONTHS_PER_CONTRACT_YEAR
             exits_cy[cy] += 1
             exits_seg[a.segment] += 1
+    if not at_risk_cy:
+        raise ValueError(
+            f"no account is on supply from {_month_label(start)} to {_month_label(fit_end)}: "
+            "a hazard needs months at risk"
+        )
     years = sorted(at_risk_cy)
     while len(years) > 1 and exits_cy[years[-1]] == 0:
         last = years.pop()
@@ -415,9 +506,9 @@ def _fit_hazards(
     by_seg = {s: exits_seg[s] / n for s, n in at_risk_seg.items()}
     expected: dict[str, float] = defaultdict(float)
     for a in accounts:
-        if a.first_month > fit_end:
+        if a.first_month > fit_end or a.last_month < start:
             continue
-        for m in range(a.first_month, min(a.last_month, fit_end) + 1):
+        for m in range(max(a.first_month, start), min(a.last_month, fit_end) + 1):
             expected[a.segment] += _hazard_at(by_cy, m - a.first_month)
     ratio = {
         s: (exits_seg[s] / expected[s]) if expected[s] > 0 else 1.0 for s in at_risk_seg
@@ -426,9 +517,11 @@ def _fit_hazards(
 
 
 def _hazard_at(by_cy: Mapping[int, float], tenure_months: int) -> float:
-    # Beyond the longest tenure the fit years saw, the oldest contract year's rate holds.
-    cy = min(tenure_months // _MONTHS_PER_CONTRACT_YEAR, max(by_cy))
-    return by_cy[cy]
+    # Beyond the longest tenure the fit years saw, the oldest contract year's rate holds. A
+    # left-truncated window can lack the first years; below its youngest, the youngest holds.
+    cy = tenure_months // _MONTHS_PER_CONTRACT_YEAR
+    seen = [c for c in by_cy if c <= cy]
+    return by_cy[max(seen) if seen else min(by_cy)]
 
 
 def run_backtest(
@@ -438,6 +531,7 @@ def run_backtest(
     margin_fit_end_year: int | None = None,
     wholesale_gas_by_month: Mapping[str, float] | None = None,
     move_out_month_by_account: Mapping[str, int] | None = None,
+    hazard_fit_from_year: int | None = None,
 ) -> Backtest:
     """Fit on months up to December of `cut_year`; forecast and grade every later month.
 
@@ -455,8 +549,17 @@ def run_backtest(
     departure is a move when its last supplied month IS the account's move-out month; an
     account that switched away before a later move date left by switching. The forecast is
     unchanged by it.
+
+    `hazard_fit_from_year` (slice 6) fits both departure hazards on that January to the cut only.
     """
     fit_end = _month_index(f"{cut_year}-12")
+    if hazard_fit_from_year is not None and hazard_fit_from_year > cut_year:
+        raise ValueError(
+            f"hazard window from {hazard_fit_from_year} starts after the cut {cut_year}: it would "
+            "fit on held-back months"
+        )
+    hazard_start = (None if hazard_fit_from_year is None
+                    else _month_index(f"{hazard_fit_from_year}-01"))
     if margin_fit_end_year is not None and wholesale_gas_by_month is not None:
         raise ValueError(
             "a deviation window from a chosen year AND from the wholesale record: give one"
@@ -489,7 +592,7 @@ def run_backtest(
     seg_mean, k_by_seg, own = _fit_margins(accounts, fit_end)
     dev_seg_mean, k_by_seg, dev_own = (
         (seg_mean, k_by_seg, own) if dev_end == fit_end else _fit_margins(accounts, dev_end))
-    by_cy, by_seg_h, seg_ratio = _fit_hazards(accounts, fit_end)
+    by_cy, by_seg_h, seg_ratio = _fit_hazards(accounts, fit_end, fit_start=hazard_start)
     horizon = book_end - fit_end
     excluded = {"joined after the cut (no fit history)": 0, "left before the cut": 0}
     forecasts: list[AccountForecast] = []
@@ -559,6 +662,7 @@ def run_backtest(
     by_cause: dict[str, dict[str, int]] | None = None
     switch_by_cy: dict[int, float] | None = None
     by_outcome: dict[str, OutcomeGrade] | None = None
+    moved: frozenset[str] | None = None
     if move_out_month_by_account is None:
         limitations = [LIMITATION_DEPARTURE_CAUSE, LIMITATION_NO_MOVE_REGISTER]
     else:
@@ -573,13 +677,25 @@ def run_backtest(
                 continue
             window = "fit" if a.last_month < fit_end else "held_back"
             by_cause[window]["move" if a.account_id in moved else "switch"] += 1
-        switch_by_cy = _fit_hazards(accounts, fit_end, moved)[0]
+        switch_by_cy = _fit_hazards(accounts, fit_end, moved, hazard_start)[0]
         partition: dict[str, list[AccountForecast]] = {o: [] for o in HELD_BACK_OUTCOMES}
         for f in forecasts:
             outcome = ("stayer" if not f.departed
                        else "mover" if f.account_id in moved else "switcher")
             partition[outcome].append(f)
-        by_outcome = {o: _grade_outcome(fs) for o, fs in partition.items()}
+        by_outcome = {o: _grade_outcome(fs, None if o == "stayer" else partition["stayer"])
+                      for o, fs in partition.items()}
+    by_year: dict[int, dict[str, int]] = defaultdict(
+        lambda: {"months_at_risk": 0, "departures": 0}
+        | ({} if moved is None else {"switch": 0, "move": 0}))
+    for a in accounts:
+        for m in a.monthly_net_gbp:
+            by_year[m // 12]["months_at_risk"] += 1
+        if a.last_month < book_end:
+            row = by_year[a.last_month // 12]
+            row["departures"] += 1
+            if moved is not None:
+                row["move" if a.account_id in moved else "switch"] += 1
     pooled = sorted(s for s, k in k_by_seg.items() if k is None)
     if pooled:
         limitations.append(
@@ -611,6 +727,16 @@ def run_backtest(
         departures_by_cause=by_cause,
         switch_hazard_by_contract_year=switch_by_cy,
         error_by_outcome=by_outcome,
+        departure_calibration={
+            "per_customer": _mean_with_interval(
+                [f.per_customer_departure_p - f.departed for f in forecasts]),
+            "flat": _mean_with_interval([f.flat_departure_p - f.departed for f in forecasts]),
+        },
+        departure_ranking=_ranking([f for f in forecasts if f.departed],
+                                   [f for f in forecasts if not f.departed]),
+        departures_by_calendar_year={y: dict(r) for y, r in sorted(by_year.items())},
+        hazard_fit_months=(_month_label(first if hazard_start is None else hazard_start),
+                           _month_label(fit_end)),
     )
 
 
@@ -623,6 +749,7 @@ def backtest_run_output(
     cut_year: int = DEFAULT_CUT_YEAR,
     margin_fit_end_year: int | None = None,
     wholesale_gas_by_month: Mapping[str, float] | None = None,
+    hazard_fit_from_year: int | None = None,
 ) -> Backtest:
     """A run's book, split by departure cause where it carries a move-out register. The caller hands in the wholesale series
     (`SimInterface.monthly_wholesale_prices("gas")`); importing the live interface here would
@@ -631,7 +758,7 @@ def backtest_run_output(
     run_output = json.loads(Path(path).read_text())
     return run_backtest(
         *book_from_run_output(run_output), cut_year, margin_fit_end_year,
-        wholesale_gas_by_month, move_outs_from_run_output(run_output),
+        wholesale_gas_by_month, move_outs_from_run_output(run_output), hazard_fit_from_year,
     )
 
 
@@ -640,8 +767,9 @@ if __name__ == "__main__":  # pragma: no cover - a reading aid, not a door
 
     target = sys.argv[1] if len(sys.argv) > 1 else "docs/reports/run_output_latest.json"
     cut = int(sys.argv[2]) if len(sys.argv) > 2 else DEFAULT_CUT_YEAR
-    dev = int(sys.argv[3]) if len(sys.argv) > 3 else None
-    bt = backtest_run_output(target, cut, dev)
+    dev = int(sys.argv[3]) if len(sys.argv) > 3 and sys.argv[3] != "-" else None
+    hazard_from = int(sys.argv[4]) if len(sys.argv) > 4 else None
+    bt = backtest_run_output(target, cut, dev, hazard_fit_from_year=hazard_from)
     print(f"cut {bt.cut_year}: fit {bt.fit_months}, held back {bt.held_back_months}")
     print(f"deviation window {bt.margin_deviation_fit_months}: "
           f"{bt.margin_deviation_window_reason}")
@@ -655,7 +783,12 @@ if __name__ == "__main__":  # pragma: no cover - a reading aid, not a door
         print(c)
     print({k: round(v, 1) for k, v in bt.aggregate.items()})
     print(f"departures by cause {bt.departures_by_cause}")
+    print(f"hazard window {bt.hazard_fit_months}")
+    print(f"departure calibration (mean p - realised) {bt.departure_calibration}")
+    print(f"departure ranking {bt.departure_ranking}")
+    for year, row in (bt.departures_by_calendar_year or {}).items():
+        print(f"  {year}: {row}")
     for outcome, g in (bt.error_by_outcome or {}).items():
         print(f"{outcome}: {g.accounts} account(s), bias {g.margin_bias}")
         print(f"  {g.margin_error}")
-        print(f"  {g.departure_brier}")
+        print(f"  {g.ranking_against_stayers}")

@@ -12,10 +12,13 @@ from company.analytics.forward_clv import (
     HELD_BACK_OUTCOMES,
     LIMITATION_DEPARTURE_CAUSE,
     LIMITATION_NO_MOVE_REGISTER,
+    AccountForecast,
     AccountHistory,
     _fit_hazards,
+    _hazard_at,
     _month_index,
     _paired,
+    _ranking,
     backtest_run_output,
     load_book,
     move_outs_from_run_output,
@@ -341,8 +344,10 @@ def test_every_held_back_outcome_is_reachable_and_each_is_graded_on_its_own_acco
     m2, s1 = f["M2"], f["S1"]
     assert grades["mover"].margin_error.per_customer == abs(
         m2.per_customer_margin_gbp - m2.realised_margin_gbp)
-    assert grades["mover"].departure_brier.flat == (m2.flat_departure_p - 1) ** 2
-    assert grades["stayer"].departure_brier.per_customer == s1.per_customer_departure_p ** 2
+    assert grades["stayer"].ranking_against_stayers is None
+    mover_rank = grades["mover"].ranking_against_stayers
+    assert (mover_rank.departers, mover_rank.stayers) == (1, 1)
+    assert mover_rank.verdict.startswith("cannot tell") and s1.departed is False
     assert grades["mover"].margin_bias["flat"][0] == m2.flat_margin_gbp - m2.realised_margin_gbp
     assert grades["switcher"].margin_error.interval_95 is not None
 
@@ -362,3 +367,96 @@ def test_the_run_output_door_passes_the_register_through(tracked_run):
     bt = backtest_run_output(fh.name)
     Path(fh.name).unlink()
     assert sum(w["move"] for w in bt.departures_by_cause.values()) == 1
+
+
+def _fc(aid, pc, fl, departed):
+    return AccountForecast(aid, "resi dual", 60, 0.0, 0.0, 0.0, 0.0, pc, fl, departed)
+
+
+def test_the_ranking_is_a_hand_count_and_does_not_read_the_level():
+    """The defect slice 5 shipped: a departure score inside one outcome that grades only the
+    level. Adding a constant to every p must leave the AUC where it is and move only the
+    calibration; ties count a half."""
+    leavers = [_fc("D1", 0.6, 0.5, True), _fc("D2", 0.4, 0.5, True), _fc("D3", 0.7, 0.2, True)]
+    stayers = [_fc("S1", 0.4, 0.5, False), _fc("S2", 0.3, 0.6, False)]
+    r = _ranking(leavers, stayers)
+    # per-customer: D1 beats both, D2 ties S1 and beats S2, D3 beats both -> 5.5 of 6.
+    assert r.per_customer[0] == pytest.approx(5.5 / 6)
+    # flat: D1 ties S1 and loses to S2, D2 likewise, D3 loses to both -> 1 of 6.
+    assert r.flat[0] == pytest.approx(1 / 6)
+    shifted = _ranking(*[[_fc(f.account_id, f.per_customer_departure_p + 0.2,
+                              f.flat_departure_p + 0.2, f.departed) for f in g]
+                         for g in (leavers, stayers)])
+    assert shifted.per_customer[0] == pytest.approx(r.per_customer[0])
+    assert shifted.difference[0] == pytest.approx(r.difference[0])
+
+
+def test_every_ranking_verdict_is_reachable():
+    """Both wins, a straddle, and too few to bound -- asserted over the whole partition."""
+    def book(pc_gap, fl_gap, noise):
+        leave = [_fc(f"D{i}", 0.5 + pc_gap + noise * (i % 3), 0.5 + fl_gap + noise * (i % 2), True)
+                 for i in range(12)]
+        stay = [_fc(f"S{i}", 0.5 + noise * (i % 4), 0.5 + noise * (i % 5), False) for i in range(12)]
+        return leave, stay
+    verdicts = {
+        _ranking(*book(0.3, 0.0, 0.01)).verdict,
+        _ranking(*book(0.0, 0.3, 0.01)).verdict,
+        _ranking(*book(0.0, 0.0, 0.1)).verdict,
+        _ranking(*[g[:1] for g in book(0.3, 0.0, 0.01)]).verdict,
+    }
+    assert "per-customer ranks better" in verdicts and "flat ranks better" in verdicts
+    assert sum(v.startswith("cannot tell") for v in verdicts) == 2
+
+
+def test_calibration_in_the_large_is_mean_p_minus_the_realised_rate():
+    bt = run_backtest(_book(), _month_index("2025-06"))
+    rate = sum(f.departed for f in bt.forecasts) / bt.accounts_graded
+    for rule, attr in (("per_customer", "per_customer_departure_p"), ("flat", "flat_departure_p")):
+        mean_p = sum(getattr(f, attr) for f in bt.forecasts) / bt.accounts_graded
+        assert bt.departure_calibration[rule][0] == pytest.approx(mean_p - rate)
+        assert bt.departure_calibration[rule][1] is not None
+    assert bt.departure_ranking.departers + bt.departure_ranking.stayers == bt.accounts_graded
+
+
+def test_a_left_truncated_hazard_window_drops_early_exits_and_keeps_tenure():
+    """The defect: a recency window that still counts the early years' exits, or that restarts
+    every account's tenure at the window's start."""
+    cut_end = _month_index("2020-12")
+    book = [
+        _acct("E1", "resi dual", "2016-01", "2016-06", 1.0),  # exits before the window
+        _acct("L1", "resi dual", "2016-01", "2020-06", 1.0),  # exits inside it, contract year 4
+        _acct("C1", "resi dual", "2016-01", "2023-01", 1.0),
+    ]
+    whole, _, _ = _fit_hazards(book, cut_end)
+    recent, _, _ = _fit_hazards(book, cut_end, fit_start=_month_index("2020-01"))
+    assert whole[0] > 0.0
+    assert list(recent) == [4] and recent[4] == pytest.approx(1 / (6 + 12))
+    assert _hazard_at(recent, 0) == recent[4]
+    with pytest.raises(ValueError, match="needs months at risk"):
+        _fit_hazards(book[:1], cut_end, fit_start=_month_index("2020-01"))
+
+
+def test_the_hazard_window_moves_only_the_departure_and_is_refused_past_the_cut():
+    book = _book()
+    end = _month_index("2025-06")
+    default, from_start = run_backtest(book, end), run_backtest(book, end, hazard_fit_from_year=2016)
+    assert default.forecasts == from_start.forecasts
+    recent = run_backtest(book, end, hazard_fit_from_year=2019)
+    assert recent.hazard_fit_months == ("2019-01", "2020-12")
+    # The margin forecast is survival-weighted, so it moves with the hazard; its fit does not.
+    assert [f.credibility_weight for f in recent.forecasts] == [
+        f.credibility_weight for f in default.forecasts]
+    assert [f.flat_departure_p for f in recent.forecasts] != [f.flat_departure_p for f in default.forecasts]
+    with pytest.raises(ValueError, match="after the cut"):
+        run_backtest(book, end, hazard_fit_from_year=2021)
+
+
+def test_the_calendar_year_record_adds_up_to_the_book_and_splits_by_cause():
+    book, end = _movers_book(), _month_index("2025-06")
+    bt = run_backtest(book, end, move_out_month_by_account=move_outs_from_run_output(_MOVE_REGISTER))
+    rows = bt.departures_by_calendar_year
+    assert sum(r["months_at_risk"] for r in rows.values()) == sum(len(a.monthly_net_gbp) for a in book)
+    assert sum(r["departures"] for r in rows.values()) == sum(a.last_month < end for a in book)
+    assert all(r["switch"] + r["move"] == r["departures"] for r in rows.values())
+    assert rows[2019] == {"months_at_risk": 12 + 3 + 7 + 12 + 12, "departures": 2, "switch": 1, "move": 1}
+    assert "switch" not in run_backtest(book, end).departures_by_calendar_year[2019]
