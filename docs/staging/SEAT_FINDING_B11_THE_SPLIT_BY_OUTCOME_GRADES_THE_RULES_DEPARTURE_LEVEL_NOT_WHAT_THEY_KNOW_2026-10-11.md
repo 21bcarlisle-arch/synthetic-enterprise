@@ -63,6 +63,10 @@ The realised held-back departure rate is **0.429**.
    - switcher vs stayer: AUC 0.583 per-customer, 0.588 flat;
    - mover vs stayer: AUC 0.432 per-customer, 0.447 flat.
 
+   *Corrected 2026-10-11 (slice 6): these four were hand-computed and wrong in the third place.
+   `forward_clv`'s ranking and sklearn agree on switcher 0.575 / 0.583 and mover 0.433 / 0.444.
+   The reading below does not change.*
+
    With n = 61 or 45 against 141, each AUC carries a standard error of about ±0.045, so this is
    weak evidence. Both rules rank movers slightly *below* stayers, which fits the view that a move
    does not follow supply tenure. Neither rule tells movers from switchers better than the other.
