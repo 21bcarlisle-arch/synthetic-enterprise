@@ -149,3 +149,85 @@ gas, calendar 2025) is a mean over prepayment meters INSTALLED FOR DEBT in the y
 new installs (*corrected 2026-10-04: first written as "a mean over plans in force"*). It is not a
 credit-account instalment, and is not wired while take-up is unknown. The credit-account mean
 (SOR Q3.2) is collected and not published.
+
+## Cure rates for plans, and the effect of early contact (2026-10-11)
+
+**2026-10-11, discovery pass for the director's request of the same day:** *"what is known about cure
+rates for payment plans and early contact"*, for one engine covering payment, credit risk and debt,
+with early warnings and automated self-serve responses. This extends the sections above and does not
+repeat them. *Tooling: the WebSearch budget was spent, so sources were reached through the OpenAlex
+API, the GOV.UK search API, the NBER, FCA, ESC (Victoria), Insolvency Service and Ofgem sites
+directly. Ofwat (403), UK Finance (403), the AER (no response) and Ofcom (no response) were not
+reachable. Each gap below says which.*
+
+**What "cure" means here, before any figure.** There are three different things, and the sources
+measure different ones:
+(a) **plan completed**: the agreed balance is cleared under the plan;
+(b) **plan kept to date**: still paying at a horizon, so not yet a cure;
+(c) **account cured**: back to current with no arrangement, by any route. Ofgem publishes none of
+the three for GB energy. Every figure below is labelled with the one it measures.
+
+### A. Plan outcomes, nearest analogue first
+
+| Finding | Measures | Mark | Source |
+|---|---|---|---|
+| **Victoria energy retailers, hardship programmes, exits by type.** 2015-16: by agreement **34.2%**, excluded for not meeting the programme's terms **47.1%**, switched/transferred **18.7%**. 2016-17: 25.6 / 55.8 / 18.6. 2017-18: 22.4 / 63.9 / 13.7. Jul-Dec 2018: 24.6 / 61.0 / 14.4. Mean debt on entry rose from AUD 915 to AUD 1,385. Mean days in the programme were 278-317. | (a)-ish: an exit "by agreement" is not defined as debt cleared | ESTABLISHED, **analogous: energy retail, not GB** | ESC Victoria, *Victorian Energy Market Report* performance data workbook, Tables 2.7 and 2.10-2.16 (https://www.esc.vic.gov.au/sites/default/files/documents/Appendix%20Excel%20-%20Performance%20data_0.xlsx, read 2026-10-11) |
+| **Victoria, tailored assistance under the Payment Difficulty Framework.** In 2019-20, electricity exits were **47.1% by agreement, 45.7% excluded, 7.2% switched**. Gas was 48.6 / 45.0 / 6.4. In 2020-21 the categories were redefined. Electricity exits were then **30.2% with no arrears** (cured), **14.9% with arrears**, **48.7% excluded for non-compliance** and **6.2% changed retailer**; gas was 31.0 / 15.3 / 47.9 / 5.7. The cured share by large retailer ran from **8.5% (Simply) to 41.7% (Origin)**. | (a) for "no arrears" | ESTABLISHED, analogous | ESC, *Appendix 2019-20 Performance data* (Tables S17-S20, Figs 93-94) and *Appendix 2020-21 Performance data* (Tables 23-26), same site, read 2026-10-11. 2020-21 is a Covid year. |
+| **GB IVAs (statutory 5-6 year repayment plans).** Termination for failing to keep to the terms is about **1 in 3 over the lifetime** for 2016-18 registrations. It is front-loaded: **6.0% within year 1** (2024 cohort), **13.2% within 2 years** (2023) and **21.0% within 3 years** (2022). Lifetime termination was **42% for 2007 registrations and 24% for 2012**. The Insolvency Service attributes the fall to the 2008 IVA Protocol "introducing more flexibility to account for debtors' individual circumstances". | (a), its complement | ESTABLISHED, analogous (GB, but a formal insolvency) | Insolvency Service, *Individual Voluntary Arrangements outcomes and providers 2025*, commentary, 27 Feb 2026, https://www.gov.uk/government/statistics/individual-voluntary-arrangements-outcomes-and-providers-2025 |
+| **US credit counselling repayment programmes (MMI, about 80,000 borrowers, randomised).** Control arm: **31.85% started a programme and 13.66% finished one** over about 5 years, so about 43% of starters completed. Treatment: debt write-downs (interest cut) raised finishing by 1.31pp (+9.6%). **Minimum-payment reductions had no detectable effect**, with the CI excluding more than +0.15pp on completion. The median reduction was 0.14pp of the balance, against a control payment of 2.38% of it. | (a) | ESTABLISHED (RCT), analogous | Dobbie & Song, *Targeted Debt Relief and the Origins of Financial Distress*, AER 110(4), 2020, doi:10.1257/aer.20171541; NBER w23545, Table 3 text pp. 22-24 |
+| **US mortgage modifications (HAMP).** An 18pp larger payment cut at an eligibility cutoff lowered default from a control mean of **32% by 6pp**: "a one percent payment reduction reduces default rates by about one percent". Principal forgiveness that left the payment unchanged had **no effect** on default. | (c)'s complement | ESTABLISHED (RD design), analogous | Ganong & Noel, *Liquidity versus Wealth in Household Debt Obligations*, AER 110(10), 2020, doi:10.1257/aer.20181243; NBER w24964 p. 3 |
+| **Covid payment deferrals, UK (about 4.5m granted).** Share of expired first deferrals where the customer needed further help (a second deferral or other forbearance), Jan 2021: top-6 mortgage firms **19%**, smaller deposit-takers **9%**, non-bank mortgage lenders **28%**, cards and loans **13%**, motor finance **13%**, high-cost credit **40%**. | (c) at deferral end: about 60-91% resumed without further help | ESTABLISHED, analogous (a payment holiday, not an arrears plan) | FCA, *Coronavirus linked forbearance: key findings*, Figure 1, 2021, https://www.fca.org.uk/publications/multi-firm-reviews/coronavirus-linked-forbearance-key-findings |
+| StepChange clients 15 months after advice: 85% of those who acted on a recommended DMP or token payment plan said the problem was "sorted" or they were "still following" it, and 12% of all clients were debt free | (b), self-reported | ESTABLISHED as a survey, L for rates (self-selected respondents) | StepChange, *Paths to Recovery*, Mar 2020, https://www.stepchange.org/Portals/0/assets/pdf/Paths-to-Recovery_March-2020.pdf p. 9 |
+| Ofgem 2014 data annex: credit-arrangement entries (BG 179,058; E.ON 154,466; EDF 153,398 electricity) and weeks to recover (46 / 58 / 68). **No failure counts.** This confirms that the 2015 Figure 13 above is the only published GB energy break figure this pass could find. | entries, not outcomes | ESTABLISHED | Ofgem, *Domestic suppliers' social obligations: 2014 annual data report*, https://www.ofgem.gov.uk/sites/default/files/docs/2015/09/externalreportpage_2014_annual_0.pdf |
+| Water (Ofwat, CCW, company payment-matching schemes): plan completion or break rates | - | **NOT ESTABLISHED** | Ofwat returned 403. CCW's site search returned only press items (the 2006 "firm and flexible" release, with no rate). |
+
+**Derived reading (DERIVED).** Every arrears-plan population with published exits shows the same
+shape. **Roughly half of plans end in breach, and a quarter to a third end cured.** Victoria
+hardship: 22-34% exit by agreement and 47-64% are excluded. Tailored assistance: 30% cured and 49%
+excluded. IVAs: about two-thirds complete. Credit counselling: about 43% of starters finish. The
+Ofgem 2015 figure (about 40% of large-supplier credit plans had at least one miss in a year) sits
+in the same range. **Breaks are front-loaded.** IVA terminations run 6% in year 1, 13% by year 2
+and 21% by year 3, and the Victorian programmes last under a year on average. So the first months
+of a plan carry most of the hazard. **Supplier practice moves the cure share by a factor of about
+5**: Victoria's large retailers range from 8.5% to 41.7%, and GB's 2015 tiers differed by a factor
+of 2. That makes the cure rate a property of the engine as much as of the household.
+
+### B. Early contact
+
+| Finding | Mark | Source |
+|---|---|---|
+| **Days, not weeks.** In a random 10% of new delinquencies at a Chinese online lender, half were called by AI on days 1-5 and the other half by humans. The NPV gap grew to **12pp by day 5**, fell to **2pp by day 10** once humans took over, and to **0.8pp at day 30**. The 0.8pp gap persisted for 11 more months. Borrowers first contacted by AI were **1-2pp more likely to be late on each of the next 12 payments**. On a first answered call, AI got **21pp fewer promises to pay** and 18pp fewer same-day repayments, and promises made to AI were kept less often. | ESTABLISHED (RCT + RD), working paper, analogous (unsecured instalment loans, China) | Choi, Huang, Yang & Zhang, *How Good is AI at Twisting Arms? Experiments in Debt Collection*, NBER w33669, Apr 2025, https://www.nber.org/papers/w33669 |
+| **Most first shortfalls self-cure.** Industry respondents told the FCA that "approximately 80% of initial payment shortfalls are rectified within 30 days" on mortgages. | DERIVED: an industry claim reported by the regulator, not an FCA statistic | FCA, *PS24/2: Strengthening protections for borrowers in financial difficulty*, Mar 2024, para 4.10, https://www.fca.org.uk/publication/policy/ps24-2.pdf |
+| **People delay.** "On average, more than 50% of clients waited more than a year between realising their debt was a problem and getting advice" (2013 clients) | ESTABLISHED (survey), GB, cross-creditor | StepChange, *UK personal debt statistics*, Mar 2014, listed at https://www.stepchange.org/policy-and-research/personal-debt-statistics-in-the-uk.aspx |
+| **Prompts raise contact and payment.** For HMCTS court fines, the share paying after a final text, interim results: **no text 5.2%, standard text 23.2%, the best personalised (name-first) text 33.0%**. A mortgage early-arrears contact rate rising from 45.9% to 62.2% (BIT/DfC NI 2018) is already in `debt_and_collections.md` §4. | ESTABLISHED as an interim chart (the bar-to-arm order is read off the chart), analogous | BIT, *Applying behavioural insights to reduce fraud, error and debt*, Feb 2012, Trial 5, p. 29, https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/60539/BIT_FraudErrorDebt_accessible.pdf (now read; the earlier "about 10pp" summary is confirmed) |
+| SMS to borrowers who are already late, Colombian bank (7,063 clients): **-4% (relative) probability of being late**, larger with social-norm wording. **No effect when sent to on-time borrowers to prevent delinquency.** | ESTABLISHED (RCT), analogous | Barboni, Cardenas & de Roux, *Behavioral messages and debt repayment*, Review of Finance, 2026, doi:10.1093/rof/rfag015 (abstract) |
+| A moral-appeal SMS cut credit-card delinquency by **4.4pp from a 66% baseline** (Indonesia). Email reminders at a US credit union **reduced moderate and severe delinquency**. Intensive offers (a savings account, counselling) did nothing because take-up was low. | ESTABLISHED (RCTs), analogous | Bursztyn et al., JPE 2019, doi:10.1086/701605; Roll et al., *J. Consumer Affairs* 2024, doi:10.1111/joca.12597 (abstracts) |
+| An energy-specific effect of time-to-contact on cure | **NOT ESTABLISHED.** No GB or overseas energy trial found. | - |
+
+### What this means for an automated early-warning and self-serve engine
+
+- **Contact on day 1, and a person by day 5 for whoever has not engaged** (DERIVED from w33669). The
+  measured loss from automation is about 12pp at day 5, but only about 1pp if a human takes over by
+  day 6. So automation is supported as the FIRST touch with a fast human fallback. It is not
+  supported as the only touch for anyone who has not engaged. The paper is about AI *calls*, not
+  self-serve offers; whether a self-serve offer carries the same "promise" deficit is a GAP.
+- **Expect most first misses to self-cure** (about 80% in 30 days, an industry claim). An early
+  warning should therefore act on a forecast of a missed payment, not on a single miss. Otherwise
+  the engine spends contacts on accounts that cure anyway.
+- **Expected cure for an automated plan: no GB figure.** If the model needs a prior, the honest
+  form is a range: **25-45% complete or cured, 45-65% broken**, from Victoria, IVAs and
+  credit-counselling (DERIVED, analogous). Put most of the break hazard in the first 3-6 months.
+  Report it as a range with this reason, never as a point. The GB slot stays `None`.
+- **Lower payments: the evidence splits by size of cut.** A cut big enough to change monthly
+  liquidity lowers default roughly one-for-one (HAMP, elasticity about 1). A token reduction did
+  nothing (MMI: 0.14pp of the balance). Forgiveness tied to payment kept was the lever that raised
+  completion (MMI, and the 2001 US arrearage-forgiveness programmes in
+  `risk_based_payment_plans_outside_gb_energy.md`). This supports "a lower payment for a period"
+  only where the reduction is material. "Some money steadily beats none" is supported for liquidity
+  relief and forgiveness earned by paying.
+- **GAPs:**
+  - GB energy plan completion and break flows (Ofgem SOR Q3.6-3.27, collected and unpublished);
+  - water-sector plan outcomes (Ofwat unreachable this pass);
+  - Australian national (AER) hardship exit data (unreachable);
+  - any energy trial of contact timing;
+  - the cure rate of a SELF-SERVE plan versus an agent-set one (none found anywhere).
