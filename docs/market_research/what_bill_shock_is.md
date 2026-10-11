@@ -157,3 +157,139 @@ on a commons page. It is measured in
 - Payment-method mix (~74/13/13): Ofgem 2026, recorded in `docs/market_research/dd_attribution_confound_w2_10.md`.
 
 *Fetched live 2026-09-01. No figure on this page is simulation output.*
+
+---
+
+## Addendum 2026-10-11 — reassessment cadence, winter handling, and the catch-up dose-response (for a personal payment plan)
+
+*Research pass, discovery agent, for the director's 2026-10-11 instruction: "credit risk sets how
+far a customer's balance may drift from zero, not how much they pay over the year... low-risk
+customers get smoothing, prompt refund of surplus credit and no catch-up shocks; higher-risk
+customers are kept near zero without winter bill shock." Scope: how often a GB supplier reassesses
+a fixed DD in practice, how winter is handled, and the evidence on dose (size/frequency of a DD
+change) versus failed payments, complaints, churn and debt. Written into **population A** (fixed
+direct debit) of this page, since it is the payment-change half of the shock, not the bill half.*
+
+### 1. Reassessment cadence — ESTABLISHED: there is no mandated or industry-standard cadence
+
+Ofgem's **Decision on Statutory Consultation: Credit Balances — Strengthening existing Direct Debit
+rules** (26 Aug 2022) is the primary source and settles this directly, because suppliers themselves
+asked for a cadence and Ofgem explicitly declined to set one:
+
+> "The key issue raised by suppliers was whether the changes would mean that fixed DDs would need to
+> be reset every time they received a new piece of information... Five respondents proposed new or
+> alternative SLC wording... Two other respondents requested SLC wording changes to require
+> **quarterly or 'on-demand' DD reviews**."
+> — Ofgem's own decision: **"we do not anticipate a supplier needing to reset a DD where a new meter
+> reading reports a minimal change in consumption"**; instead, new information "should feed into a
+> broader picture... and suppliers should reassess a customer's fixed DD when they receive
+> information that is **likely to have a material impact** on the DD amount. Where any reassessment
+> determines that a change to a DD would be immaterial, suppliers should use their discretion."
+
+**ESTABLISHED (H):** the obligation (SLC 27.15, strengthened Oct 2022) is *event/materiality*
+triggered, not calendar-scheduled. Ofgem considered and rejected mandating quarterly or on-demand
+review. There is no published "N times per year" industry figure, and per Ofgem's own framing there
+is not meant to be one — it is explicitly left to supplier discretion once a material-impact test is
+met.
+
+**DERIVED (M), practice varies by supplier and improved post-2022:** the DD Market Compliance Review
+progress update (Ofgem, undated, "Direct Debit Market Compliance Review: Progress Update") lists
+supplier remediations including *"Increased frequency of Direct Debit adequacy assessments to ensure
+consumers continue to pay the correct amount in line with energy usage"* as one of the concrete fixes
+suppliers made across 56 identified concerns (53 of 56, 95%, resolved by the review's close). This
+confirms frequency **was** a live compliance issue and **did** vary supplier-to-supplier before 2022,
+but no post-remediation frequency number (e.g., "now reviewed quarterly") was published for any
+supplier. **GAP: the cadence a "good" supplier now runs is not published anywhere; it is a
+practitioner question, same shape as the DD-failure-threshold gap already flagged in
+`what_a_supplier_holds_to_size_a_direct_debit.md`.**
+
+### 2. Winter / seasonal handling — ESTABLISHED mechanism, NOT ESTABLISHED magnitude or shape
+
+Same source, direct quote (also already cited in `satisfaction_drivers_and_the_three_bill_shocks.md`
+§(b), reconfirmed here against the primary PDF rather than the press release):
+
+> "Where a consumer is in a credit position, **we expect suppliers to reduce the associated Direct
+> Debit level with the intention of returning the account as close to a zero balance over the next
+> 12 months**. Similarly, where a consumer account is in a debit position, **suppliers commonly add
+> this amount on to the Direct Debit amount and smooth the cost over the next 12 months**."
+
+**ESTABLISHED (H):** the *mechanism* is a 12-month glide, both directions — credit is given back
+gradually, debit (which includes a winter-driven catch-up) is spread over a year, not collected in a
+lump sum or concentrated into the following winter. This is the regulatory expectation across the
+whole DD book, not a special winter rule — there is no separate published "winter catch-up" product
+or rule distinct from ordinary DD adequacy review.
+
+**NOT ESTABLISHED (gap, unchanged by this pass):** the glide path's *shape*. "Over the next 12
+months" is the only parameter published — no supplier is required to publish, and none was found to
+publish, whether the £X debit is spread evenly (1/12 per month), front-loaded, or weighted to avoid
+landing the increase in December–February specifically. **A plan that explicitly avoids loading a
+catch-up into the coldest months would currently be ahead of the published norm, not behind it** —
+there is no rule it would be competing against, only the 12-month outer bound.
+
+### 3. Size and frequency of a DD change versus failed payments, complaints, churn, debt — largely NOT ESTABLISHED; one real proxy found
+
+**No published source crosses DD-change magnitude or frequency against failed-payment rate,
+complaint rate, churn or debt at household level.** This matches and extends the existing gap already
+recorded in `satisfaction_drivers_and_the_three_bill_shocks.md` Part 2 ("What the published record
+does NOT settle", item 2: no per-unit dose-response). Two things were newly found this pass that
+bound the problem rather than solve it:
+
+1. **The 2022 re-review's own error rate was low.** The *Progress Update* page states: "Almost
+   **1 million** Direct Debits fell into the scope of the review exercise [>100% increases,
+   Feb–Apr 2022] and to date issues have been confirmed with approximately **4,000**." That is
+   **~0.4%** of the reviewed, large-jump population found to be genuinely wrong (as opposed to a
+   justified reflection of real cost increases). **DERIVED (M):** even at the most extreme dose in
+   the record (>100% single-step increase), the overwhelming majority of large DD jumps were
+   *accurate*, not supplier error — which says the failure mode this project should model is not
+   "large jumps are usually wrong" but "even a correct large jump is poorly tolerated," a distinct
+   claim the published record does not test either.
+2. **Compensation, where paid, was small per head.** £117,580 total compensation against ~4,000
+   confirmed issues is **~£29/case** (DERIVED, simple division, M) — consistent with the finding
+   being a process/communication failure rather than a large sustained overcharge.
+
+**GAP, explicitly not closed this session:** no Citizens Advice complaint-volume breakdown specific to
+Direct Debit changes (as opposed to "billing" generally) for 2022–2024 was reachable — Citizens
+Advice's own site returned empty/JS-blocked responses to a scripted fetch this session (same
+search-engine/JS constraint logged in `gb_payment_method_migration_rates.md`'s sources section and
+`dd_failure_basis_and_live_arrears_provision_rates.md`'s epistemic note). The existing
+Ombudsman/CAB figures already on this repo's pages (billing = 58% of Ombudsman complaint volume,
+2024, per `satisfaction_drivers_and_the_three_bill_shocks.md`) are the closest published proxy and
+are not DD-change-specific.
+
+### 4. What this means for a personal payment plan merged with debt management
+
+The director's framing — **credit risk bounds the drift, not the annual total** — has direct support
+and direct gaps in what is published:
+
+* **Supplier-controlled, with published cover to act on now:** the 12-month glide for both directions
+  is already the regulatory norm (§2), so a plan that smooths a low-risk customer's surplus back
+  faster, or more gradually, than the generic "12 months" is *inside* what suppliers already do
+  case-by-case under SLC 27.15 discretion — it is not a departure from the regulated norm, because the
+  norm itself has no fixed shape, only an outer bound.
+* **Supplier-controlled, ahead of the published norm:** avoiding a winter-timed catch-up for a
+  higher-risk customer is not something any rule requires OR forbids; no supplier practice publishes
+  doing this, so it would be a novel commitment, not a verified industry benchmark. State it as a
+  design choice, not an established practice.
+* **Reassessment cadence is a dial with no published right answer** (§1) — "how often" is therefore a
+  genuine design decision for the plan, not a figure to source, and should be recorded as such in the
+  design doc rather than attributed to a number nobody published.
+* **The dose-response the director's framing implicitly assumes — that a bigger or more frequent
+  change costs more in failed payments/complaints/churn — is not established at the magnitude level**
+  (§3). The one real data point found (the 2022 re-review) suggests the *correctness* of a large jump,
+  not its *size*, may be what is poorly tolerated — which is a different, and testable, claim from
+  "keep changes small." This should be flagged as a prediction to test inside the simulation, not
+  imported as a validated real-world dose-response, consistent with CLAUDE.md's rule against
+  publishing a dose-response the record does not contain.
+
+### Sources added this pass
+
+- Ofgem, *Decision on Statutory Consultation: Credit Balances — Strengthening existing Direct Debit
+  rules*, 26 Aug 2022 — <https://www.ofgem.gov.uk/sites/default/files/2022-08/Decision%20letter%20DD%20rules.pdf>.
+  Retrieved 2026-10-11. (Primary PDF read directly; supersedes reliance on the press summary alone for
+  §1–§2 above.)
+- Ofgem, *Direct Debit Market Compliance Review: Progress Update* —
+  <https://www.ofgem.gov.uk/decision/direct-debit-market-compliance-review-progress-update>.
+  Retrieved 2026-10-11. Source of the 56-concerns/53-resolved, "almost 1 million"/"~4,000
+  issues"/£117,580 compensation figures in §1 and §3.
+
+*Fetched live 2026-10-11. No figure in this addendum is simulation output.*

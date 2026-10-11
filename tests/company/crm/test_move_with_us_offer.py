@@ -7,7 +7,6 @@ import datetime as dt
 from company.crm.move_with_us_offer import (
     NO_MARGIN,
     NO_POLICY,
-    NOT_FIXED,
     decide_move_with_us,
 )
 from interface.contracts.move_out_notice_seam import MoveOutNotice
@@ -36,11 +35,14 @@ def test_no_offer_where_the_company_expects_to_lose_money_carrying_the_household
     assert _ask(unit_rate_per_mwh=200.0) == (None, NO_MARGIN)
 
 
-def test_no_offer_without_the_policy_or_off_a_fixed_tariff():
-    """Defect: an offer made while the policy is off (the run would not be inert), or a default tariff
-    'carried'."""
+def test_no_offer_without_the_policy_and_a_default_tariff_household_is_offered_on_its_margin():
+    """Defect: an offer made while the policy is off (the run would not be inert), or a default-tariff
+    household refused for its tariff rather than its margin (10 of 14 movers, one known-vulnerable,
+    were refused that way until 2026-10-11)."""
     assert _ask(offers_on=False) == (None, NO_POLICY)
-    assert _ask(tariff_type="svt") == (None, NOT_FIXED)
+    offer, _ = _ask(tariff_type="svt")
+    assert offer is not None and offer.tariff_type == "svt"
+    assert _ask(tariff_type="svt", unit_rate_per_mwh=150.0) == (None, NO_MARGIN)
 
 
 def test_a_known_vulnerable_household_is_never_offered_less_than_its_twin():

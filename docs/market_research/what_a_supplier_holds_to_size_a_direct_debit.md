@@ -160,3 +160,85 @@ These are gaps, stated rather than filled. Each is a place where the code must c
 - [Ofgem, *TDCV decision letter*, 3 Aug 2017](https://www.ofgem.gov.uk/system/files/docs/2017/08/tdcvs_2017_decision.pdf)
 - [Ofgem, *Decision on postponing the TDCV update*, 27 May 2021](https://www.ofgem.gov.uk/sites/default/files/docs/2021/05/tdcv_decision_letter_2021_0.pdf)
 - [Ofgem, *Review of typical domestic consumption values* (2026 decision)](https://www.ofgem.gov.uk/consultation/review-typical-domestic-consumption-values)
+
+---
+
+## 5. 2026-10-11 pass — the 2022 decision's actual reassessment test, SLC 27.16's refund trigger, and what a risk-based PPP may lawfully use SLC 27.15 for
+
+*Knowledge pass for the director's personal-payment-plan design. Read at source: Ofgem's 26 August
+2022 decision letter (the same instrument §1 already cites), and the Nov 2025 edition of the
+Operational Capability and Financial Responsibility Principles guidance (which quotes SLC 27.15 and
+27.16 by title while explaining SLC 4B). Capital/ringfencing material from the same guidance is filed
+in `bad_debt_provisioning.md` §10, not repeated here.*
+
+### Rules (ESTABLISHED, cited)
+
+1. **The reassessment test is "material impact on the DD amount", not any numeric variance.**
+   Ofgem's own decision letter, para 1.12: *"suppliers should reassess a customer's fixed DD when
+   they receive information that is likely to have a material impact on the DD amount. Where any
+   reassessment determines that a change to a DD would be immaterial, suppliers should use their
+   discretion when deciding whether a change is necessary."* This is the exact test the director
+   described from memory, confirmed verbatim at source. [H]
+2. **The strengthened duty does NOT require an automatic reset on every new data point.** Para 1.11:
+   *"we do not anticipate a supplier needing to reset a DD where a new meter reading reports a
+   minimal change in consumption... and the modification we are making will not change this."* The
+   duty is to *reassess* against new information, not to re-run the DD formula on every event. [H]
+3. **What counts as "best and most current information" is explicitly wider than consumption.**
+   Para 1.13: suppliers must "account for a range of relevant data... includ[ing] for example
+   accounting for data such as meter readings, and information provided by consumers and third
+   parties about their circumstances and preferences." Preferences and circumstances are named
+   alongside meter data — the duty is not consumption-only. [H]
+4. **SLC 27.16's duty is reactive, not proactive.** The OCFR guidance (footnote 6, §3.34) titles it
+   *"Refunding customer credit balances on request."* The licence obligation is triggered by the
+   customer asking; nothing in the material read says a supplier must sweep and refund surplus
+   credit unprompted. A supplier that refunds proactively is doing MORE than SLC 27.16 requires, not
+   something the licence assumes. [H, on the title and framing; the full operative text of 27.16
+   itself was not reached this pass — see GAP 1]
+5. **The 2022 Market Compliance Review's initial findings, cited by the same decision letter (para
+   1.10):** the majority of reviewed suppliers had "no or minor procedural weaknesses," five had
+   "moderate or severe weaknesses" and were required to submit remedial action plans. No later
+   (2023-2025) compliance review or open letter specifically on DD-setting practice was found this
+   pass — see GAP 2. [H for the 2022 finding; GAP for anything after]
+
+### GAPs
+
+1. **The operative text of SLC 27.16 itself was not retrieved this pass** (the consolidated licence
+   conditions PDF cited in §Sources of the base file has moved; the replacement URL was not found
+   within this pass's budget). Everything here about SLC 27.16 rests on the OCFR guidance's
+   paraphrase and footnote title, which is a secondary restatement of the licence text, not the
+   text. Re-fetch before this is treated as settled.
+2. **No DD-setting compliance review or open letter after August 2022 was found.** If Ofgem has
+   revisited DD practice 2023–2025 (the director's brief anticipates this), it was not located this
+   pass.
+3. **No published rule distinguishes a "catch-up" component of a fixed DD (recovering an existing
+   arrears balance) from the consumption-cost component SLC 27.15 is written about.** The decision
+   letter's "best and most current information" is framed throughout around *consumption* ("the
+   quantity of electricity/gas... supplied") — arrears recovery through an inflated DD is common
+   industry practice but was not found stated as something SLC 27.15 itself licenses or limits.
+   SLC 27.8 (repayment-plan ability-to-pay; see `company_debt_management.md` §8) is the clause that
+   governs arrears recovery terms. Practitioner question: is a credit-risk-driven DD uplift,
+   presented to the customer as part of their regular fixed DD rather than as a separate repayment
+   plan, something a real supplier does, and under which clause does it sit?
+
+### What this means for a risk-based personal payment plan
+
+- **ALLOWED, on the published text:** reassessing a DD whenever new information — a meter read, a
+  change the customer or a third party discloses, or a material shift in the household's
+  circumstances or stated preferences — would materially change the right amount, and NOT
+  reassessing (or declining to act on an immaterial one) is an explicit discretion, not a breach.
+  A personalised plan that re-sizes a DD on new consumption or payment-behaviour evidence sits
+  squarely inside this.
+- **UNCLEAR, flagged rather than assumed either way:** using a customer's *credit-risk tier itself*
+  (as opposed to evidence about their consumption or circumstances) as the stated basis for a higher
+  fixed DD. SLC 27.15's own wording is anchored to consumption information; nothing read this pass
+  says risk tier is excluded, but nothing read says it is a basis either. A plan that varies the DD
+  by risk tier should be able to point to the *consumption or circumstance evidence* behind the
+  number, not just the risk score, if it is to be defended as an SLC 27.15 "best and most current
+  information" decision.
+- **ALLOWED, and distinct:** a prompt, proactive refund of surplus credit for low-risk customers is
+  a service choice *above* SLC 27.16's on-request minimum, not a workaround of it. Nothing read
+  forbids being more generous than the licence floor.
+- **NOT established either way, flagged for the Capitalisation side:** whether running a deliberately
+  wider band around zero for low-risk customers (more credit held, by design) interacts with the
+  Cash Coverage Trigger and CCB ringfencing regime — this is addressed in `bad_debt_provisioning.md`
+  §10, which is the load-bearing finding for "credits and debits net out across the portfolio."

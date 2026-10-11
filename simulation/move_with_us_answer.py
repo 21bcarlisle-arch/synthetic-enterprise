@@ -9,19 +9,24 @@ INDEX: searched "save offer", "take up", "move with us". `simulation/save_on_los
        its population (movers, not switchers) are the director's separately.
 
 WHO DECIDES. The world. No take-up rate of a move-with-us offer is published (home_moves.md s.8.5
-G8.4), so none is invented. The household answers on the roll it would face at its NEXT renewal
-(`customer_events.churn_roll_for_renewal`, one draw per account per renewal date), against the
-world's own P(stay) at the tariff it would carry: the P(stay) the world rolled the household's
-renewal ONTO that tariff against (`effective_retention_probability` on the renewal event of the term
-in force). That is the same household answering the same price it last accepted.
+G8.4), so none is invented. The household answers on the roll of its NEXT decision with us, against
+the world's own P(stay) at the tariff it would carry (home_moves.md s.8.6, choice 2):
+  * ON A FIXED TERM: the roll of its next renewal (`customer_events.churn_roll_for_renewal`) against
+    the P(stay) the world rolled its renewal ONTO that tariff against (`effective_retention_
+    probability` on the renewal event of the term in force).
+  * ON THE DEFAULT TARIFF (2026-10-11): the roll of its next default-tariff segment (the run's
+    `svt_inertia_<household>_<date>` seed) against the current segment's stay, annualised over the
+    segment's own days, `(1 - p) ** (365.25 / days)` (`p_stay_on_default_tariff`). Annualised so a
+    quarter's stay is not read as a year's. From the seat-executor's preserved build
+    (`/var/tmp/mwu/patch/`), whose "origin's twin" destination is not taken.
 
 `k` (`take_up_scale`) scales that P(stay): k = 0 nobody moves with us, k = 1 a mover stays as often
 as a renewing household at that price. It is a labelled sensitivity, never a calibration.
 
-WHO CAN ANSWER. Only a household whose term in force was entered through a rolled renewal: that roll
-is where the world's P(stay) at the carried tariff comes from. A household still in its first term,
-or on a term the world did not roll, has no such P(stay); it is logged as unanswerable with that
-reason and does not move with us. That can only understate take-up, and it is counted.
+WHO CAN ANSWER. A household whose term in force was entered through a rolled renewal, or whose
+current default-tariff segment the world decided. A household still in its first fixed term has no
+such P(stay); it is logged as unanswerable with that reason and does not move with us. That can only
+understate take-up, and it is counted.
 """
 from __future__ import annotations
 
@@ -31,8 +36,24 @@ from pathlib import Path
 ACTIVATION_PATH = (Path(__file__).resolve().parents[1]
                    / "docs" / "design" / "curriculum" / "move_with_us_activation.json")
 
-NOT_ANSWERABLE = ("the term in force was not entered through a rolled renewal, so the world holds "
-                  "no P(stay) at the carried tariff")
+NOT_ANSWERABLE = ("the term in force was not entered through a rolled renewal or a decided "
+                  "default-tariff segment, so the world holds no P(stay) at the carried tariff")
+
+
+def p_stay_on_default_tariff(p_depart_over_segment: float, segment_days: int) -> float:
+    """The annual stay a default-tariff segment's decision implies."""
+    if not 0.0 <= p_depart_over_segment <= 1.0:
+        raise ValueError(f"a departure probability must lie in [0, 1], got {p_depart_over_segment}")
+    if segment_days <= 0:
+        raise ValueError(f"a segment needs at least one day, got {segment_days}")
+    return (1.0 - p_depart_over_segment) ** (365.25 / segment_days)
+
+
+def default_tariff_roll(household: str, next_segment_start: str) -> float:
+    """The roll of the household's next default-tariff segment, on the run's own seed form."""
+    import random
+
+    return random.Random(f"svt_inertia_{household}_{next_segment_start}").random()
 
 
 def _activation(path: Path) -> dict:

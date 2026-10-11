@@ -408,6 +408,15 @@ def _has_era5(rows: list[dict]) -> bool:
     return any(r.get(f) not in ("", None) for r in rows for f in ERA5_FIELDS)
 
 
+def book_cells_incomplete(cells: dict[str, dict], held: dict[str, list[dict]]) -> list[str]:
+    """The book's cells `build` still fetches: never held, or held without the ERA5 columns.
+
+    ONE PREDICATE for the fetch list and for `--list`'s count, so the number a reader waits on
+    is the number the pull drives to zero.
+    """
+    return [key for key in cells if not _has_era5(held.get(key, []))]
+
+
 def overlay_temperature(cells: dict[str, dict], rows: dict[str, list[dict]],
                         progress=print) -> dict:
     """Put HadUK 1 km daily temperature into `rows`, creating cell-days that do not exist yet.
@@ -458,7 +467,7 @@ def build(limit: int | None = None, pause: float = PAUSE_SECONDS, progress=print
     if temperature:
         overlay_temperature(known, held, progress=progress)
 
-    todo = [c for c in cells.values() if not _has_era5(held.get(c["cell_id"], []))]
+    todo = [cells[key] for key in book_cells_incomplete(cells, held)]
     # NAMED ON THE SURFACE, because the two numbers are not the same and the difference reads as a
     # failed pull. `todo` is drawn from the BOOK; the store also holds cells the book has left, and
     # `_write` keeps them on purpose. Those can never be completed by this loop, so a run that
@@ -676,6 +685,11 @@ def main(argv: list[str] | None = None) -> int:
         # was missing 65 of the cells the book actually occupies.
         print(f"{len(set(cells) - set(stored_cells))} book cell(s) the store has never held; "
               f"{len(left)} stored cell(s) the book no longer occupies (kept, not dropped)")
+        # "NEVER HELD" IS NOT "COMPLETE". On 2026-10-11 the line above read 0 while 478 of the
+        # book's 600 cells held temperature only, and `fabric_eligibility` refused 396 premises
+        # for them. This is the count `--build` drives to zero, so it is the one to wait on.
+        print(f"BOOK CELLS NOT YET COMPLETE: {len(book_cells_incomplete(cells, held))} "
+              "(never held, or temperature-only) -- 0 is the store covering the book")
         for cell in list(cells.values())[:10]:
             print(f"  {cell['cell_id']}  ({cell['latitude']:.3f},{cell['longitude']:.3f})")
         if len(cells) > 10:

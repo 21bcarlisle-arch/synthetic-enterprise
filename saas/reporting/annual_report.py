@@ -986,12 +986,17 @@ def extract_report_data(run_output: dict) -> dict:
             "provisioned_net_gbp": "settled-provisioned",
             "provisioned_final_treasury_gbp": "settled-provisioned",
         },
-        # THE SUPERSEDED READS, KEPT AND NAMED rather than dropped: they are what the company
-        # PROVISIONED at flat rate, and a reader comparing provision against outcome needs
-        # both. `.get` because a run dict produced before `refresh_settlement_scalars` existed
-        # (and every hand-built one in the tests) carries no provisioned reading, and `None`
-        # says "this run did not record one" where 0.0 would be a fabricated provision.
+        # THE SUPERSEDED READS, KEPT AND NAMED rather than dropped. Despite the name they are NOT
+        # the company's provision: `bad_debt_gbp` before phase 4c is the WORLD's default incidence
+        # times settlement revenue (`run_phase2b`), a flow nothing the company holds produced.
+        # `.get` because a run dict produced before `refresh_settlement_scalars` existed (and every
+        # hand-built one in the tests) carries no provisioned reading, and `None` says "this run
+        # did not record one" where 0.0 would be a fabricated provision.
         "provisioned_bad_debt_gbp": phase2b.get("provisioned_total_bad_debt"),
+        # THE COMPANY'S PROVISION: a stock over its own receivables (the payment-seam ledger), by
+        # footing and age band on the published rows, at each 31 December and the run's end.
+        # `None` for a run that did not record one.
+        "company_provision": phase2b.get("company_provision"),
         "provisioned_net_gbp": phase2b.get("provisioned_total_net"),
         "provisioned_final_treasury_gbp": phase2b.get("provisioned_final_treasury"),
         "administration_event": phase2b["administration_event"],

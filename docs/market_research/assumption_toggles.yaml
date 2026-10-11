@@ -84,6 +84,33 @@ toggles:
     read_by: sim/customer_state_layer.py::unnamed_months_per_move (W2_36 slice 3, the change-of-tenancy gap)
     verdict: MATTERS_AND_RESOLVABLE
 
+  - id: q1_move_destination_in_region_share
+    question: Q1 home moves
+    meaning: >-
+      Share of domestic moves whose destination stays in the origin's ONS region (the 12-area
+      Government Office Region and country split, not the 14 electricity regions). Read by
+      simulation/move_destination.py for a household that moves with its supplier.
+    default: 0.519
+    low: 0.519
+    high: 0.70
+    basis_default: >-
+      DERIVED lower bound. Of moves that change local authority, 51.9% stay in-region (ONS
+      IM2020-T7b and T8, year ending June 2020); a same-LA move is necessarily in-region and its
+      share is not published, so the all-moves share is at least this
+      (how_far_gb_households_move_and_what_their_new_home_uses.md s.1).
+    basis_low: The same derived lower bound; no published figure lies below it.
+    basis_high: >-
+      A distance PROXY, not a region share: 70% of social renters moved within 5 miles of their
+      previous home (EHS 2021-22 Annex 1.5), the highest of the three tenures. No published source
+      gives the all-moves in-region share, so this is the generous end, labelled as a proxy.
+    feeds: [B7_customer_state_layer_moves_and_shocks]
+    sensitivity:
+      kind: untested
+      detail: >-
+        Prices are national in this world, so the region moves only the destination's weather cell
+        and siting. Not swept.
+    verdict: DOESNT_MATTER
+
   - id: q1_move_hazard_multiplier
     question: Q1 home moves
     meaning: >-

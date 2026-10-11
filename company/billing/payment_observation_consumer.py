@@ -2099,6 +2099,15 @@ class PaymentObservationConsumer:
             arrears_state_at=arrears_state_at, memo=memo)
         return default_belief(observations, decided_on=as_of, arrears_state=arrears_state).rate
 
+    def provision_stock(self, on: dt.date, *, payment_method_of) -> dict:
+        """The bad-debt provision this company holds on `on` against its own receivables, by footing
+        and age band (`company.pricing.default_belief.provision_stock`). Read off this class's
+        ledger for the reason `default_belief_rate` is; `payment_method_of(account, date)` is the
+        company's own method register, which this class does not hold."""
+        from company.pricing.default_belief import provision_stock
+
+        return provision_stock(self.ledger_book, on=on, payment_method_of=payment_method_of)
+
     def advance_collections_journey(
         self, account_id: str, through: dt.date, segment: str = "resi",
     ) -> None:
