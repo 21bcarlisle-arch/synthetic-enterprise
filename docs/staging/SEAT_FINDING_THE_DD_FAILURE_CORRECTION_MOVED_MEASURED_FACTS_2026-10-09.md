@@ -588,3 +588,32 @@ changed could have.
 above. Anything that takes the world's debt amount from that same accumulator does not move either.
 Only figures that read the company's bill document can move. The published-run lane should check
 which of its bad-debt figures come from where before grading its leg 4.
+
+## Pre-registration: the three-seed pool re-taken after B7 slice 7 (worker, 2026-10-11 03:25Z, before any run)
+
+B7 slice 7 (9a7449b4b) moved a mover's final bill from the mid-tenure draw (0.74% lost at issue at
+LOW) to the world's exit model (13.4%), about eighteenfold. The 1.19x MET above was graded before
+it. Re-taken through the same tool, `tools.grade_world_debt_against_ofgem`, at origin/main
+b72674c73 (a descendant of 9a7449b4b and of c4fb2931b), default dice plus dice seeds 1 and 2,
+2019 electricity, pooled.
+
+**What I expect the slice to do to this instrument: nothing, by two routes.** (1) The grader
+reads the live payment triad's records. The triad draws each month through
+`simulation.payment_behaviour_source.generate_payment_event`, which has no exit awareness.
+`arrears_engine.mover_final_bill_outcome` is asked by `_resolve_bills`, the billing ledger and the
+DD book. Those are the P&L and the company's documents, not the triad. (2) Even if the exit debt
+did reach the triad, a moved-out account is not billed in a later quarter's last month. It leaves
+the denominator, and so the numerator, before its final bill is 91 days old. Ofgem's 5.1% also
+counts current customers, so the second route is like-for-like. The first is a second payment
+truth for one bill, and it is named here rather than assumed harmless.
+
+- **P1.** The numerators are 50 / 99 / 62 on default / dice 1 / dice 2, identical to the levy
+  re-take. The denominators are within 5 of 1155 / 1155 / 1161. The only other world-side change
+  since d40857770 is c4fb2931b (a mover's account closes on the move), and the move already ended
+  the term at slice 2.
+- **P2.** Pooled: 6.0-6.2%, account-clustered interval containing 5.1%: **MET**, 1.15-1.23x.
+- **P3.** Prepayment accounts behind: 0 on every seed.
+
+Refutation: a numerator that moves means a route from the exit rule or the closure into the
+triad that I have not found. A hold that turns NOT MET means the 400-founder book's arrears rested
+on something the closure changed.
