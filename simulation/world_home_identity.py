@@ -160,8 +160,38 @@ def _demand_vectors() -> list[list[str]]:
             premise_id=premise.premise_id, household=premise.household, weather=weather,
             seed=PROBE_SEED, latitude_deg=latitude)
         rows.append([f"{v:.{_PLACES}f}" for commodity in ("electricity", "gas")
-                     for day in trace.half_hourly(commodity) for v in day])
+                     for day in trace.half_hourly(commodity) for v in day]
+                    + _price_response_vector(premise.premise_id))
     return rows
+
+
+#: THE DAYS THE PRICE-RESPONSE LEG IS READ ON: the 1st of every month across the first two response
+#: years. The January week above sits in 2020, before the response exists, and beneath the layer it is
+#: applied in (`fabric_demand_path` scales the trace after it is generated), so the trace alone cannot
+#: see the settled book switch onto it -- which is how the switch would have landed with every world
+#: stamp unchanged.
+PRICE_RESPONSE_PROBE_DAYS = tuple(
+    (year, month, 1) for year, month in
+    [(2022, m) for m in range(4, 13)] + [(2023, m) for m in range(1, 13)] + [(2024, m) for m in (1, 2, 3)]
+)
+
+
+def _price_response_vector(premise_id: str) -> list[str]:
+    """The gas and electricity multipliers the SETTLED book applies to this home, or one marker
+    when it applies none. Read through `SETTLED_BOOK_PRICE_RESPONSE`, the constant the settlement
+    door passes, so turning the book's response off moves the digest as surely as changing it."""
+    import datetime as dt
+
+    from simulation.fabric_demand_path import DEFAULT_TRACE_SEED, SETTLED_BOOK_PRICE_RESPONSE
+
+    if not SETTLED_BOOK_PRICE_RESPONSE:
+        return ["price_response:off"]
+    from simulation.price_response import household_multipliers
+
+    days = [dt.date(*d) for d in PRICE_RESPONSE_PROBE_DAYS]
+    multipliers = household_multipliers(premise_id, days, seed=DEFAULT_TRACE_SEED)
+    return [f"{multipliers[fuel][day.isoformat()]:.{_PLACES}f}"
+            for fuel in ("gas", "electricity") for day in days]
 
 
 def home_demand_identity() -> dict:
@@ -193,7 +223,9 @@ def home_demand_identity() -> dict:
         ),
         "what_this_does_not_cover": (
             "what `fabric_demand_path` layers on top of the trace -- the comfort constraint from "
-            "last year's bill, away days, life-event segments -- and anything that only shows "
+            "last year's bill, away days, life-event segments -- except the 2022 price response, "
+            "which is read for each probe home on the 1st of every month April 2022 - March 2024 "
+            "as the multipliers the settled book applies; and anything else that only shows "
             "outside a January week. It identifies, it does not estimate: no figure should be "
             "read off these homes."
         ),

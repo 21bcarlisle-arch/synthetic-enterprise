@@ -465,23 +465,6 @@ def test_prebound_response_is_live():
     assert pt.prebound_response_is_live(responses)
 
 
-def test_the_prebound_response_moves_with_PRICE_as_well_as_income():
-    """It is a response to the WORLD, not a household attribute: the same
-    household rations harder when the unit price rises."""
-    from simulation.household import IncomeStress
-
-    cheap = pt.comfort_constraint_for(
-        income_stress=IncomeStress.MODERATE, unit_price_p_per_kwh=20.0,
-        reference_price_p_per_kwh=20.0,
-    )
-    dear = pt.comfort_constraint_for(
-        income_stress=IncomeStress.MODERATE, unit_price_p_per_kwh=60.0,
-        reference_price_p_per_kwh=20.0,
-    )
-    assert dear.rationing_intensity > cheap.rationing_intensity
-    assert dear.setpoint_reduction_c > cheap.setpoint_reduction_c
-
-
 def test_prebound_control_FIRES_on_the_shipped_constant():
     """R15 mutation: one constant for every household at every price."""
     fixed = [pt.ComfortConstraint.unconstrained() for _ in range(3)]

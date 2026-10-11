@@ -498,12 +498,12 @@ _INCOME_STRESS_INTENSITY: dict[IncomeStress, float] = {
     IncomeStress.MODERATE: 0.40,
     IncomeStress.HIGH: 0.80,
 }
-# Price response: the intensity added when the unit rate doubles against the
-# household's reference price. `domain-knowledge`, candidate to verify.
-_PRICE_ELASTICITY = 0.45
+# The price response is not here. A leg (`_PRICE_ELASTICITY = 0.45`, unsourced) sat here with no
+# caller feeding it a price; it was deleted 2026-10-11 when the settled book took the per-household
+# SERL elasticity in `simulation.price_response`, applied after the trace by `fabric_demand_path`.
 REFERENCE_UNIT_PRICE_P_PER_KWH = 4.0
-"""Pre-crisis domestic gas unit rate — the household's own reference point, not a
-market datum. A DIAL on the mechanism's zero, published for auditability."""
+"""Pre-crisis domestic gas unit rate, at which `fabric_demand_path` prices last year's heating
+bill for the prebound constraint. The household's own reference point, not a market datum."""
 
 
 @dataclass(frozen=True)
@@ -523,17 +523,15 @@ class ComfortConstraint:
 def comfort_constraint_for(
     *,
     income_stress: IncomeStress,
-    unit_price_p_per_kwh: float = REFERENCE_UNIT_PRICE_P_PER_KWH,
-    reference_price_p_per_kwh: float = REFERENCE_UNIT_PRICE_P_PER_KWH,
     rationing_severity: float = 0.0,
     prior_year_bill_gbp: float | None = None,
     affordable_bill_gbp: float = 1200.0,
 ) -> ComfortConstraint:
-    """The LIVE prebound response: income stress + price + (optionally) last
-    year's bill -> how much comfort the household gives up.
+    """The LIVE prebound response: income stress + (optionally) last year's bill
+    -> how much comfort the household gives up.
 
-    Every argument is something the HOUSEHOLD knows — its own circumstances, the
-    price on its tariff, the bill it received. None of them is a fabric parameter,
+    Every argument is something the HOUSEHOLD knows — its own circumstances and
+    the bill it received. None of them is a fabric parameter,
     which is what keeps the separability contract one-way: Layer 2 never reads
     inside the thermal model. `prior_year_bill_gbp` is an OBSERVABLE (a bill the
     household was sent) and is therefore an INPUT here, not a live feedback loop;
@@ -545,20 +543,16 @@ def comfort_constraint_for(
     as a scalar cut to annual kWh; here the same severity becomes the physical act
     that causes the cut.
     """
-    _require_finite("unit_price_p_per_kwh", unit_price_p_per_kwh)
-    _require_finite("reference_price_p_per_kwh", reference_price_p_per_kwh)
     _require_finite("rationing_severity", rationing_severity)
     _require_finite("affordable_bill_gbp", affordable_bill_gbp)
-    if reference_price_p_per_kwh <= 0 or affordable_bill_gbp <= 0:
-        raise ValueError("reference price and affordable bill must be positive")
+    if affordable_bill_gbp <= 0:
+        raise ValueError("affordable bill must be positive")
     if not 0.0 <= rationing_severity <= 1.0:
         raise ValueError(f"rationing_severity must be in [0, 1], got {rationing_severity!r}")
     if income_stress not in _INCOME_STRESS_INTENSITY:
         raise ValueError(f"unknown income stress {income_stress!r}")
 
     intensity = _INCOME_STRESS_INTENSITY[income_stress]
-    price_ratio = max(0.0, unit_price_p_per_kwh / reference_price_p_per_kwh - 1.0)
-    intensity += _PRICE_ELASTICITY * price_ratio
     if prior_year_bill_gbp is not None:
         _require_finite("prior_year_bill_gbp", prior_year_bill_gbp)
         bill_pressure = max(0.0, prior_year_bill_gbp / affordable_bill_gbp - 1.0)

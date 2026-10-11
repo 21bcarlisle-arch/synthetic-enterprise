@@ -15,8 +15,8 @@ in price is answered against the winter just gone, which is where the partial de
 
 WHY THIS AND NOT THE PREBOUND PRICE LEG
 ----------------------------------------
-`premise_trace.comfort_constraint_for` has a price leg (`_PRICE_ELASTICITY = 0.45`, unsourced) that
-no caller feeds. Measured on and off, it got SERL's gas median roughly right and the rest wrong: no
+`premise_trace.comfort_constraint_for` had a price leg (`_PRICE_ELASTICITY = 0.45`, unsourced) that
+no caller fed; it was deleted when the settled book took this one (2026-10-11). Measured on and off, it got SERL's gas median roughly right and the rest wrong: no
 spread, a cut a quarter before the price rose (one constraint per calendar year), no decay, and no
 electricity response at all
 (`docs/staging/records/SEAT_RESULT_THE_PREBOUND_PRICE_LEG_GETS_THE_2022_GAS_MEDIAN_ROUGHLY_RIGHT_AND_THE_DISTRIBUTION_WRONG_2026-10-11.md`).
